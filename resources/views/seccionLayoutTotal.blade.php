@@ -408,13 +408,6 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                                   <button class="btn btn-success btn-agregarNivel" type="button"><i class="fa fa-fw fa-plus"></i> AGREGAR MÁQUINA</button>
                               </div>
                           </div>
-                          <div id="encabezado_diferencia" class="row" hidden>
-                              <div class="col-md-12">
-                                <h5 >Máquinas con Diferencia</h5>
-                                <div id="maquinas_con_diferencia">
-                                </div>
-                              </div>
-                          </div>
                   </form></div>
                   <br>
                   <div class="row">
@@ -501,13 +494,13 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                         </div>
                     </div>
                     <div class="row tabs" style="background-color:rgb(250,250,250);padding-bottom: 0px;">
-                      <h4 class="col-lg-4 tabActivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>ACTIVAS</b></h4>
-                      <h4 class="col-lg-4 tabInactivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>INACTIVAS</b></h4>
-                      <h4 class="col-lg-4 tabDiferencias" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>DIFERENCIAS</b></h4>
+                      <h4 class="col-lg-4 tabActivas" tabDiv="#modalValidarControl .activas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>ACTIVAS</b></h4>
+                      <h4 class="col-lg-4 tabInactivas" tabDiv="#modalValidarControl .inactivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>INACTIVAS</b></h4>
+                      <h4 class="col-lg-4 tabDiferencias" tabDiv="#modalValidarControl .diferencias" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>DIFERENCIAS</b></h4>
                     </div>
-                    <div class="activas row" style="overflow: scroll;height: 70%;min-height: 30%;">
+                    <div class="activas row tabDiv" style="overflow: scroll;height: 70%;min-height: 30%;">
                     </div>
-                    <div class="inactivas row" style="overflow: scroll;height: 70%;min-height: 30%;">
+                    <div class="inactivas row tabDiv" style="overflow: scroll;height: 70%;min-height: 30%;">
                       <div class="row">
                           <div class="col-md-12">
                               <table id="tablaValidarControlLayout" class="table">
@@ -528,7 +521,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                           </div>
                       </div>
                     </div>
-                    <div class="diferencias row" style="overflow:scroll;height: 70%;min-height: 30%;">
+                    <div class="diferencias row tabDiv" style="overflow:scroll;height: 70%;min-height: 30%;">
                     </div>
                     <div class="row">
                         <div class="col-md-8 col-md-offset-2">

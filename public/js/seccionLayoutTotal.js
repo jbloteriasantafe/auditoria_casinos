@@ -200,74 +200,55 @@ $("#btn-layoutSinSistema").click(function(e){
 })
 
 $("#btn-backup").click(function(){
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
-
-  var formData = {
-    fecha: $('#fechaLayoutSinSistema').val(),
-    fecha_generacion: $('#fechaGeneracionSinSistema').val(),
-    id_casino: $('#casinoSinSistema option:selected').val(),
-  }
-
-  //console.log(formData);
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
   $.ajax({
-      type: "POST",
-      url: 'http://' + window.location.host +'/layouts/usarLayoutTotalBackup',
-      data: formData,
-      dataType: 'json',
-      success: function (data) {
-        //console.log(data);
+    type: "POST",
+    url: 'http://' + window.location.host +'/layouts/usarLayoutTotalBackup',
+    data: {
+      fecha: $('#fechaLayoutSinSistema').val(),
+      fecha_generacion: $('#fechaGeneracionSinSistema').val(),
+      id_casino: $('#casinoSinSistema option:selected').val(),
+    },
+    dataType: 'json',
+    success: function (data) {
+      var pageNumber = $('#herramientasPaginacion').getCurrentPage();
+      var tam = $('#tituloTabla').getPageSize();
+      var columna = $('#tablaLayouts .activa').attr('value');
+      var orden = $('#tablaLayouts .activa').attr('estado');
+      $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
+      $('frmLayoutSinSistema').trigger('reset');
+      $('#modalLayoutSinSistema').modal('hide');
+    },
+    error: function (data) {
+      var response = JSON.parse(data.responseText);
 
-
-        var pageNumber = $('#herramientasPaginacion').getCurrentPage();
-        var tam = $('#tituloTabla').getPageSize();
-        var columna = $('#tablaLayouts .activa').attr('value');
-        var orden = $('#tablaLayouts .activa').attr('estado');
-        $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
-        $('frmLayoutSinSistema').trigger('reset');
-        $('#modalLayoutSinSistema').modal('hide');
-
-      },
-      error: function (data) {
-        var response = JSON.parse(data.responseText);
-
-        if(typeof response.fecha !== 'undefined'){
-              mostrarErrorValidacion($('#fecha_backup'),response.fecha[0],true);
-        }
-        if(typeof response.fecha_generacion !== 'undefined'){
-              mostrarErrorValidacion($('#fecha_generacion_backup'),response.fecha_generacion[0],true);
-        }
-        if(typeof response.id_casino !== 'undefined'){
-              mostrarErrorValidacion($('#casinoSinSistema'),response.id_casino[0],true);
-        }
+      if(typeof response.fecha !== 'undefined'){
+            mostrarErrorValidacion($('#fecha_backup'),response.fecha[0],true);
       }
+      if(typeof response.fecha_generacion !== 'undefined'){
+            mostrarErrorValidacion($('#fecha_generacion_backup'),response.fecha_generacion[0],true);
+      }
+      if(typeof response.id_casino !== 'undefined'){
+            mostrarErrorValidacion($('#casinoSinSistema'),response.id_casino[0],true);
+      }
+    }
   });
-
 })
 
 //GENERAR RELEVAMIENTO
 $('#btn-generar').click(function(e){
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
   e.preventDefault();
-
-  var formData = {
-    id_casino: $('#casino').val(),
-    turno: $('#turno').val(),
-  }
 
   $.ajax({
       type: "POST",
       url: 'http://' + window.location.host +'/layouts/crearLayoutTotal',
-      data: formData,
+      data: {
+        id_casino: $('#casino').val(),
+        turno: $('#turno').val(),
+      },
       dataType: 'json',
       beforeSend: function(data){
         //console.log('Empezó');
@@ -277,17 +258,15 @@ $('#btn-generar').click(function(e){
         $('#iconoCarga').show();
       },
       success: function (data) {
-
         $('#modalLayoutTotal').modal('hide');
         $('#frmLayoutTotal').trigger('reset');
-        var pageNumber = $('#herramientasPaginacion').getCurrentPage();
-        var tam = $('#tituloTabla').getPageSize();
-        var columna = $('#tablaLayouts .activa').attr('value');
-        var orden = $('#tablaLayouts .activa').attr('estado');
+        const pageNumber = $('#herramientasPaginacion').getCurrentPage();
+        const tam = $('#tituloTabla').getPageSize();
+        const columna = $('#tablaLayouts .activa').attr('value');
+        const orden = $('#tablaLayouts .activa').attr('estado');
         $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 
-        var iframe;
-        iframe = document.getElementById("download-container");
+        let iframe = document.getElementById("download-container");
         if (iframe === null){
             iframe = document.createElement('iframe');
             iframe.id = "download-container";
@@ -295,28 +274,21 @@ $('#btn-generar').click(function(e){
             document.body.appendChild(iframe);
         }
         iframe.src = data.url_zip;
-
-
       },
       error: function (data) {
-
         $('#iconoCarga').hide();
         $('#modalLayoutTotal').find('.modal-footer').children().show();
         $('#modalLayoutTotal').find('.modal-body').children().show();
 
-        var response = JSON.parse(data.responseText);
-
+        const response = JSON.parse(data.responseText);
         if(typeof response.id_casino !== 'undefined'){
               mostrarErrorValidacion($('#casino'), response.id_casino[0] ,true);
         }
         if(typeof response.turno !== 'undefined'){
               mostrarErrorValidacion($('#turno'), "Valor de turno incorrecto.",true);
         }
-
       }
   });
-
-
 });
 
 
@@ -325,11 +297,7 @@ function limpiarNull(s,defecto = ''){
 }
 
 function cargarDivActivas(id_layout_total,done = function (x){return;}){
-  $.ajaxSetup({
-    headers: {
-        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-    }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
     type: "GET",
     url: 'layouts/islasLayoutTotal/'+id_layout_total,
@@ -377,8 +345,6 @@ function cargarDivActivas(id_layout_total,done = function (x){return;}){
       console.log(data);
     }
   });
-
- 
 }
 
 function cargarDivInactivas(id_layout_total,done = function (x){return;}){
@@ -421,7 +387,6 @@ function cargarDivInactivas(id_layout_total,done = function (x){return;}){
 
 function cargarDivInactivasValidar(id_layout_total,done = function (x){return;}){
   $.get('http://' + window.location.host +'/layouts/obtenerTotalParaValidar/' + id_layout_total, function(data){
-
     $('#validarFechaActual').val(data.layout_total.fecha);
     $('#validarFechaGeneracion').val(data.layout_total.fecha_generacion);
     $('#validarCasino').val(data.casino);
@@ -460,11 +425,7 @@ function cargarDivInactivasValidar(id_layout_total,done = function (x){return;})
 }
 
 function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
-  $.ajaxSetup({
-    headers: {
-        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-    }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
     type: "GET",
     url: 'layouts/islasLayoutTotal/'+id_layout_total,
@@ -480,8 +441,6 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
         let sector_html = sectorEjemplo.clone();
         sector_html.find('.nombre').text(sector.descripcion);
         sector_html.attr('data-id-sector',sector.id_sector);
-        let total_observadas = 0;
-        let total_sistema = 0;
         let tr = null;
         for(let i=0;i<sector.islas.length;i++){
           const isla = sector.islas[i];
@@ -688,6 +647,14 @@ function cargarDivDiferenciasValidar(){
   $('#modalValidarControl .diferencias').append(tabla);
 }
 
+
+$('#modalValidarControl .tabActivas,#modalValidarControl .tabInactivas,#modalValidarControl .tabDiferencias').on('click',function(){
+  $('#modalValidarControl .tabs h4').removeClass('subrayado');
+  $('#modalValidarControl .tabDiv').hide();
+  $(this).addClass('subrayado');
+  $($(this).attr('tabDiv')).show();
+});
+
 function mostrarModalValidacion(id_layout_total,editable = true){
   limpiarModal();
   //ocultar mensaje de salida
@@ -701,36 +668,8 @@ function mostrarModalValidacion(id_layout_total,editable = true){
   $('#btn-guardar').hide();
   $('#btn-guardarTemp').hide();
 
-  let divActivas = $('#modalValidarControl .activas').hide();
-  let divInactivas = $('#modalValidarControl .inactivas').hide();
-  let divDiferencias = $('#modalValidarControl .diferencias').hide();
-  let tabActivas = $('#modalValidarControl .tabActivas');
-  let tabInactivas = $('#modalValidarControl .tabInactivas');
-  let tabDiferencias = $('#modalValidarControl .tabDiferencias');
-  tabActivas.on('click',function(){
-    divInactivas.hide();
-    divDiferencias.hide();
-    divActivas.show();
-    tabActivas.addClass('subrayado');
-    tabInactivas.removeClass('subrayado');
-    tabDiferencias.removeClass('subrayado');
-  });
-  tabInactivas.on('click',function(){
-    divActivas.hide();
-    divDiferencias.hide();
-    divInactivas.show();
-    tabInactivas.addClass('subrayado');
-    tabActivas.removeClass('subrayado');
-    tabDiferencias.removeClass('subrayado');
-  });
-  tabDiferencias.on('click',function(){
-    divActivas.hide();
-    divInactivas.hide();
-    divDiferencias.show();
-    tabDiferencias.addClass('subrayado');
-    tabActivas.removeClass('subrayado');
-    tabInactivas.removeClass('subrayado');
-  });
+  $('#modalValidarControl .tabActivas').click();
+
   $('#btn-agregarNivel').hide();
   //El que termina primero setea la bandera, el segundo muestra el modal.
   let done = false;
@@ -1016,154 +955,39 @@ function pedirValidacion(){
   $('.mensajeConfirmacion').show();
 }
 
-function agregarMaquinaConDiferencia(renglon ,estado){
-  if(estado == true){
-    var id = renglon.attr('id')
-    if($('#maquina'+id).length==0){
-          $('#encabezado_diferencia').show();
-
-          $('#maquinas_con_diferencia')
-              .append($('<div>')
-                  .addClass('row')
-                  .css('margin-bottom','15px')
-                  .attr('id','maquina' + renglon.attr('id'))
-                  .append($('<div>')
-                        .addClass('col-xs-1 col-xs-offset-1')
-                        .css('padding-right','0px')
-                        .append($('<span>')
-                            .text(renglon.find('.col_nro_admin').text())
-                        )
-                  )
-                  .append($('<div>')
-                        .addClass('col-xs-1 nro_isla_dif')
-                        .css('padding-right','0px')
-                        .append($('<input>')
-                            .attr('id','nro_isla')
-                            .attr('type','text')
-                            .attr('placeholder','Nro Isla')
-                            .addClass('form-control')
-
-                        )
-
-                  )
-                  .append($('<div>')
-                        .addClass('col-xs-1 marca_dif')
-                        .css('padding-right','0px')
-                        .append($('<input>')
-                            .attr('id','marca')
-                            .attr('type','text')
-                            .attr('placeholder','Fabricante')
-                            .addClass('form-control')
-                        )
-                  )
-                  .append($('<div>')
-                        .addClass('col-xs-2 juego_dif')
-                        .css('padding-right','0px')
-                        .append($('<input>')
-                            .attr('id','porc_visible')
-                            .attr('type','text')
-                            .attr('placeholder','Nombre Juego')
-                            .addClass('form-control')
-                        )
-                  )
-                    .append($('<div>')
-                        .addClass('col-xs-1 nro_serie_dif')
-                        .css('padding-right','0px')
-                        .append($('<input>')
-                            .attr('id','nro_serie')
-                            .attr('type','text')
-                            .attr('placeholder','Nro Serie')
-                            .addClass('form-control')
-                        )
-                  )
-
-                  .append($('<div>')
-                          .addClass('col-xs-1 den_dif')
-                          .css('padding-right','0px')
-                          .append($('<input>')
-                              .attr('type','text')
-                              .attr('placeholder','Denominación')
-                              .addClass('form-control')
-                          )
-                  )
-                  .append($('<div>')
-                          .addClass('col-xs-1 porc_dif')
-                          .css('padding-right','0px')
-                          .append($('<input>')
-                              .attr('type','text')
-                              .attr('placeholder','% Devolución')
-                              .addClass('form-control')
-                          )
-                  )
-
-                 )
-
-    }
-    actualizarDiferencia(renglon);
-  }else {
-    if(estaSinDiferencia(renglon)){
-      $('#maquina' + renglon.attr('id')).remove();
-    }else{
-      actualizarDiferencia(renglon);
-    }
-
-    if( $('#maquinas_con_diferencia').children().length == 0 ) {
-      $('#encabezado_diferencia').hide();
-    }
-  }
-
-}
-
 // Todo busqueda Busqueda
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    });
+    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
     e.preventDefault();
 
-    var page_size = (page_size == null || isNaN(page_size) ) ? size : page_size;
-    var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-    var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaLayouts .activa').attr('value'),orden: $('#tablaLayouts .activa').attr('estado')} ;
-    if(sort_by == null){ // limpio las columnas
-      $('#tablaLayouts th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
-    }
-
+    let size = 10;
     //Fix error cuando librería saca los selectores
-    if(isNaN($('#herramientasPaginacion').getPageSize())){
-      var size = 10; // por defecto
-    }else {
-      var size = $('#herramientasPaginacion').getPageSize();
+    if(!isNaN($('#herramientasPaginacion').getPageSize())){
+      size = $('#herramientasPaginacion').getPageSize();
     }
 
-    var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
-    // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
-    var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-    var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaLayouts .activa').attr('value'),orden: $('#tablaLayouts .activa').attr('estado')} ;
+    page_size = (page_size == null || isNaN(page_size))? size : page_size;
+    const page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+    const sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaLayouts .activa').attr('value'),orden: $('#tablaLayouts .activa').attr('estado')} ;
     if(sort_by == null){ // limpio las columnas
       $('#tablaLayouts th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
-    }
-
-    var formData = {
-      fecha: $('#buscadorFecha').val(),
-      casino: $('#buscadorCasino').val(),
-      turno: $('#buscadorTurno').val(),
-      estadoRelevamiento: $('#buscadorEstado').val(),
-      page: page_number,
-      sort_by: sort_by,
-      page_size: page_size,
     }
 
     $.ajax({
         type: 'POST',
         url: 'http://' + window.location.host +'/layouts/buscarLayoutsTotales',
-        data: formData,
+        data: {
+          fecha: $('#buscadorFecha').val(),
+          casino: $('#buscadorCasino').val(),
+          turno: $('#buscadorTurno').val(),
+          estadoRelevamiento: $('#buscadorEstado').val(),
+          page: page_number,
+          sort_by: sort_by,
+          page_size: page_size,
+        },
         dataType: 'json',
         success: function (resultados) {
-            //console.log(resultados);
-
             $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
             $('#cuerpoTabla tr').remove();
             for (var i = 0; i < resultados.data.length; i++){
@@ -1175,9 +999,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
             mostrarIconosPorPermisos();
 
-
             $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
-
         },
         error: function (data) {
             console.log('Error:', data);
@@ -1187,14 +1009,12 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
 //Se usa para mostrar los iconos según los permisos del usuario
 function mostrarIconosPorPermisos(){
-    var formData = {
-        permisos : ["ver_planilla_layout_total","carga_layout_total","validar_layout_total"],
-    }
-
     $.ajax({
       type: 'GET',
       url: 'usuarios/usuarioTienePermisos',
-      data: formData,
+      data: {
+        permisos : ["ver_planilla_layout_total","carga_layout_total","validar_layout_total"],
+      },
       dataType: 'json',
       success: function(data) {
         //Para los iconos que no hay permisos: OCULTARLOS!
@@ -1243,9 +1063,9 @@ function clickIndice(e,pageNumber,tam){
   if(e != null){
     e.preventDefault();
   }
-  var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
-  var columna = $('#tablaLayouts .activa').attr('value');
-  var orden = $('#tablaLayouts .activa').attr('estado');
+  tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
+  const columna = $('#tablaLayouts .activa').attr('value');
+  const orden = $('#tablaLayouts .activa').attr('estado');
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
@@ -1308,13 +1128,6 @@ function generarFilaTabla(layout_total){
 }
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
-// $(document).on('click','.planilla',function(){
-//     $('#alertaArchivo').hide();
-//
-//     window.open('layouts/generarPlanillaLayoutTotales/' + $(this).val(),'_blank');
-//
-// });
-//MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.imprimir',function(){
     $('#alertaArchivo').hide();
     window.open('layouts/generarPlanillaLayoutTotalesCargado/' + $(this).val(),'_blank');
@@ -1331,15 +1144,7 @@ $(document).on('click','.borrarNivelLayout',function(){
     $(this).parent().parent().remove();
 });
 
-$(document).on('input' , '#modalCargaControlLayout input' ,function(){
-  guardado = false;
-});
-  
-$(document).on('input' , '#modalCargaControlLayout textarea' ,function(){
-  guardado = false;
-});
-
-$(document).on('change' , '#modalCargaControlLayout select' ,function(){
+$(document).on('input' , '#modalCargaControlLayout input,#modalCargaControlLayout textarea,#modalCargaControlLayout select' ,function(){
   guardado = false;
 });
 
@@ -1403,6 +1208,8 @@ function agregarNivel(nivel,tabla,funcion){
   tabla.append(fila);
 
   if( funcion == 'carga' ){//agrego buscador y boton borrar (renglon)
+    console.log(sectores);
+    //fila.find('.nro_isla').generarDataList("http://" + window.location.host + "/islas/buscarIslaPorCasinoSectorYNro/" + sectores[0].id_casino  ,'maquinas','id_maquina','nro_admin',1,false);
     fila.find('.nro_admin').generarDataList("http://" + window.location.host + "/maquinas/obtenerMTMEnCasino/" + sectores[0].id_casino  ,'maquinas','id_maquina','nro_admin',1,false);
     fila.find('.nro_admin').setearElementoSeleccionado(id_maquina,nAdmin);
     $(fila).append(
