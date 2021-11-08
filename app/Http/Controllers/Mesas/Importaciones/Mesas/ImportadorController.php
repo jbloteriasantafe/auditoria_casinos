@@ -246,7 +246,7 @@ private function crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin
   $total_validacion = 0;
 
   foreach($fichas as $f){
-    if(($f['importe'] % $f['ficha_valor']) != 0) return 'ERROR EL MONTO '.$f['importe'].' NO ES MULTIPLO DE '.$f['ficha_valor'];
+    if(fmod($f['importe'],$f['ficha_valor']) != 0) return 'ERROR EL MONTO '.$f['importe'].' NO ES MULTIPLO DE '.$f['ficha_valor'];
 
     $ficha = Ficha::withTrashed()->where([['ficha.valor_ficha','=',$f['ficha_valor']],['ficha.id_moneda','=',$id_moneda]])
     ->join('ficha_tiene_casino',function($j) use ($id_casino,$fecha){

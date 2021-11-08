@@ -894,7 +894,6 @@ $('#btn-guardarTemp').click(function(e){
   e.preventDefault();
   enviarLayout('http://' + window.location.host +'/layouts/guardarLayoutTotal',
     function(x){
-      //console.log(x);
       guardado=true;
       $('#mensajeExito h3').text('ÉXITO DE CARGA');
       $('#mensajeExito .cabeceraMensaje').addClass('modificar');
