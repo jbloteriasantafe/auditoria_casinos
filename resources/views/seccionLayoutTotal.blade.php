@@ -41,6 +41,9 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
 }
 .subrayado{
   border-bottom: 4px solid rgb(255,168,141);
+  border-top: 1px solid rgb(255,168,141) !important;
+  background: rgba(255, 168, 141, 0.2) !important;
+  color: rgb(238, 108, 68) !important;
 }
 .correcto{
   color: green;
@@ -53,6 +56,16 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
 }
 .borde_superior {
   border-top: solid 1px black !important;
+}
+.tabTitle{
+  text-align: center;
+  color: #bbb;
+  padding-bottom: 5px;
+  padding-top: 5px;
+  margin-bottom: 0px;
+  border-top: 1px solid #ccc;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
 }
 </style>
 @endsection
@@ -368,12 +381,12 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                     </div>
                   </div>
                   <div class="row tabs" style="background-color:rgb(250,250,250);padding-bottom: 0px;">
-                    <h4 class="col-lg-6 tabActivas tabTitle" tabDiv="#modalCargaControlLayout .activas"  style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>ACTIVAS</b></h4>
-                    <h4 class="col-lg-6 tabInactivas tabTitle" tabDiv="#modalCargaControlLayout .inactivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>INACTIVAS</b></h4>
+                    <h4 class="col-lg-6 tabActivas tabTitle" tabDiv="#modalCargaControlLayout .activas"  ><b>ACTIVAS</b></h4>
+                    <h4 class="col-lg-6 tabInactivas tabTitle" tabDiv="#modalCargaControlLayout .inactivas"><b>INACTIVAS</b></h4>
                   </div>
-                  <div class="activas row tabDiv" style="overflow: scroll;height: 70%;">
+                  <div class="activas row tabDiv" style="overflow-y: scroll;height: 450px;">
                   </div>
-                  <div class="inactivas row tabDiv" style="overflow: scroll;height: 70%;"><form id="frmCargaControlLayout" name="frmCargaLayout" class="form-horizontal" novalidate="">
+                  <div class="inactivas row tabDiv" style="overflow-y: scroll;height: 450px;"><form id="frmCargaControlLayout" name="frmCargaLayout" class="form-horizontal" novalidate="">
                           <div class="row">
                               <div class="col-md-12">
                                   <table id="tablaCargaControlLayout" class="table">
@@ -506,13 +519,13 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                         </div>
                     </div>
                     <div class="row tabs" style="background-color:rgb(250,250,250);padding-bottom: 0px;">
-                      <h4 class="col-lg-4 tabActivas tabTitle" tabDiv="#modalValidarControl .activas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>ACTIVAS</b></h4>
-                      <h4 class="col-lg-4 tabInactivas tabTitle" tabDiv="#modalValidarControl .inactivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>INACTIVAS</b></h4>
-                      <h4 class="col-lg-4 tabDiferencias tabTitle" tabDiv="#modalValidarControl .diferencias" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>DIFERENCIAS</b></h4>
+                      <h4 class="col-lg-4 tabActivas tabTitle" tabDiv="#modalValidarControl .activas"><b>ACTIVAS</b></h4>
+                      <h4 class="col-lg-4 tabInactivas tabTitle" tabDiv="#modalValidarControl .inactivas" ><b>INACTIVAS</b></h4>
+                      <h4 class="col-lg-4 tabDiferencias tabTitle" tabDiv="#modalValidarControl .diferencias"><b>DIFERENCIAS</b></h4>
                     </div>
-                    <div class="activas row tabDiv" style="overflow: scroll;height: 70%;min-height: 30%;">
+                    <div class="activas row tabDiv" style="overflow-y: scroll;height: 450px;">
                     </div>
-                    <div class="inactivas row tabDiv" style="overflow: scroll;height: 70%;min-height: 30%;">
+                    <div class="inactivas row tabDiv" style="overflow-y: scroll;height: 450px;">
                       <div class="row">
                           <div class="col-md-12">
                               <table id="tablaValidarControlLayout" class="table">
@@ -532,9 +545,9 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                           </div>
                       </div>
                     </div>
-                    <div class="diferencias row tabDiv" style="overflow:scroll;height: 70%;min-height: 30%;">
+                    <div class="diferencias row tabDiv" style="overflow-y: scroll;height: 450px;">
                     </div>
-                    <div class="row">
+                    <div class="row" style="border-top: 1px solid #ddd">
                         <div class="col-md-8 col-md-offset-2">
                             <h5>OBSERVACIONES FISCALIZADOR</h5>
                             <textarea id="observacion_carga_validacion" class="form-control" style="resize:vertical;" disabled></textarea>
