@@ -333,22 +333,18 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                     <div class="col-lg-2 col-lg-offset-1">
                       <h5>FECHA DE LAYOUT</h5>
                       <input id="cargaFechaActual" type='text' class="form-control" readonly>
-
                     </div>
                     <div class="col-lg-2">
                       <h5>FECHA DE GENERACIÓN</h5>
                       <input id="cargaFechaGeneracion" type='text' class="form-control" readonly>
-
                     </div>
                     <div class="col-lg-2">
                       <h5>CASINO</h5>
                       <input id="cargaCasino" type='text' class="form-control" readonly>
-                        <span id="alertaCasino" class="alertaSpan"></span>
                     </div>
                     <div class="col-lg-2">
                       <h5>TURNO</h5>
                       <input id="cargaTurno" type='text' class="form-control" readonly>
-                        <span id="alertaTurno" class="alertaSpan"></span>
                     </div>
                   </div>
                   <br>
@@ -359,19 +355,16 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                     </div>
                     <div class="col-xs-3">
                         <h5>FISCALIZADOR TOMA</h5>
-                        <!-- prueba -->
                         <input id="inputFisca" data-fisca="" class="form-control" size="100" type="text" autocomplete="off" />
-
                     </div>
                     <div class="col-xs-4">
                         <h5>FECHA EJECUCIÓN</h5>
-                        <!-- anda -->
-                            <div class='input-group date' id='dtpFecha' data-link-field="fecha_ejecucion" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii">
-                                <input type='text' class="form-control" placeholder="Fecha de ejecución del control" id="fecha" />
-                                <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                            </div>
-                            <input type="hidden" id="fecha_ejecucion" value=""/>
+                        <div class='input-group date' id='dtpFecha' data-link-field="fecha_ejecucion" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii">
+                            <input type='text' class="form-control" placeholder="Fecha de ejecución del control" id="fecha" />
+                            <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                            <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                        </div>
+                        <input type="hidden" id="fecha_ejecucion" value=""/>
                     </div>
                   </div>
                   <div class="row tabs" style="background-color:rgb(250,250,250);padding-bottom: 0px;">
@@ -386,12 +379,12 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                                   <table id="tablaCargaControlLayout" class="table">
                                       <thead>
                                           <tr>
-                                              <th width="20%">SECTOR</th>
-                                              <th width="16%">ISLA</th>
-                                              <th width="12%">N° ADMIN</th>
-                                              <th width="14%">C.O <i class="fa fa-question-circle" data-toggle="popover" data-trigger="hover" data-title="CÓDIGO DE OBSERVACIÓN" data-content="Código que indica el motivo de la no toma."></i></th>
-                                              <th width="14%">PROGRESIVO BLOQ</th>
-                                              <th width="18%"></th>
+                                              <th width="22%" style="text-align: center;">SECTOR</th>
+                                              <th width="18%" style="text-align: center;">ISLA</th>
+                                              <th width="14%" style="text-align: center;">N° ADMIN</th>
+                                              <th width="16%" style="text-align: center;">C.O <i class="fa fa-question-circle" data-toggle="popover" data-trigger="hover" data-title="CÓDIGO DE OBSERVACIÓN" data-content="Código que indica el motivo de la no toma."></i></th>
+                                              <th width="16%" style="text-align: center;">PROGRESIVO BLOQ</th>
+                                              <th width="10%"></th>
                                           </tr>
                                       </thead>
                                       <tbody id="controlLayout">
@@ -492,12 +485,10 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                         <div class="col-lg-2">
                             <h5>CASINO</h5>
                             <input id="validarCasino" type='text' class="form-control" readonly>
-                            <span id="alertaValidarCasino" class="alertaSpan"></span>
                         </div>
                         <div class="col-lg-2">
                             <h5>TURNO</h5>
                             <input id="validarTurno" type='text' class="form-control" readonly>
-                            <span id="alertaValidarTurno" class="alertaSpan"></span>
                         </div>
                     </div>
                     <div class="row">
@@ -511,7 +502,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                         </div>
                         <div class="col-xs-4">
                             <h5>FECHA EJECUCIÓN</h5>
-                            <input type='text' class="form-control" placeholder="Fecha de ejecución del control" id="validarFechaEjecucion" readonly="true" />
+                            <input id="validarFechaEjecucion" type='text' class="form-control" placeholder="Fecha de ejecución del control"  readonly="true" />
                         </div>
                     </div>
                     <div class="row tabs" style="background-color:rgb(250,250,250);padding-bottom: 0px;">
@@ -527,11 +518,11 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                               <table id="tablaValidarControlLayout" class="table">
                                   <thead>
                                       <tr>
-                                          <th width="20%" style="align:center;">SECTOR</th>
-                                          <th width="16%">ISLA</th>
-                                          <th width="12%">N° ADMIN</th>
-                                          <th width="14%">C.O</th>
-                                          <th width="14%">PROGRESIVO BLOQ</th>
+                                          <th width="20%" style="text-align: center;">SECTOR</th>
+                                          <th width="16%" style="text-align: center;">ISLA</th>
+                                          <th width="12%" style="text-align: center;">N° ADMIN</th>
+                                          <th width="14%" style="text-align: center;">C.O</th>
+                                          <th width="14%" style="text-align: center;">PROGRESIVO BLOQ</th>
                                           <th width="18%"></th>
                                       </tr>
                                   </thead>
@@ -567,69 +558,6 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
     </div>
 </div>
 
-    <!-- Modal planilla relevamientos -->
-    <div class="modal fade" id="modalPlanilla" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog" style="width:80%;">
-             <div class="modal-content">
-               <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#42A5F5;">
-                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title">IMPRIMIR PLANILLA</h3>
-                </div>
-
-                <div  id="colapsadoCargar" class="collapse in">
-
-                <div class="modal-body modalCuerpo">
-
-                  <form id="frmPlanilla" name="frmPlanilla" class="form-horizontal" novalidate="">
-
-                          <div class="row">
-                              <div class="col-md-12">
-                                  <!-- Carga de archivos! | Uno para el modal de nuevo y otro para modificar -->
-                                  <div class="zona-file-lg">
-                                      <input id="cargaArchivo" data-borrado="false" type="file" multiple>
-                                  </div>
-
-                                  <div class="alert alert-danger fade in" role="alert" id="alertaArchivo"><span></span></div>
-                              </div>
-                          </div>
-
-                  </form>
-
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-infoBuscar" id="btn-imprimirPlanilla">IMPRIMIR</button>
-                  <button type="button" class="btn btn-default" id="btn-salirPlanilla" data-dismiss="modal">SALIR</button>
-                  <input type="hidden" id="id_relevamiento" value="0">
-                </div>
-              </div>
-            </div>
-          </div>
-      </div>
-
-  <!-- Modal relevamiento activas -->
-  <div class="modal fade" id="modalCargarActivas" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog" style="width:80%;">
-            <div class="modal-content">
-              <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;">
-                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargarCantidad" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                <h3 class="modal-title">CARGAR TOTALES</h3>
-              </div>
-              <div id="colapsadoCargarActivas" class="collapse in">
-                <div class="modal-body">
-                <div class="modalCuerpo" style="overflow: scroll;height: 70%;">
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-successAceptar finalizar" value="nuevo">FINALIZAR RELEVAMIENTO</button> 
-                <button type="button" class="btn btn-default salir" data-dismiss="modal">SALIR</button>
-              </div>
-            </div>
-          </div>
-      </div>
-  </div>
-
   <div id="sectorEjemplo" class="sector" hidden>
     <hr/>
     <b class="nombre">NOMBRE SECTOR</b>
@@ -648,82 +576,65 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
 
   <!-- FILAS EJEMPLO -->
   <!-- Necesito crear tablas por algun motivo sino se rompe el html -->
-  <div hidden>
-    <table>
-      <thead>
-        <tr></tr>
-      </thead>
-      <tbody>
-        <tr id="filaEjemploActivas" style="display: block;" activas_por_fila="{{$activas_por_fila}}"></tr>
-        <tr id="filaEjemplo" style="display: none;">
-          <td class="col-xs-2 fecha">99 Test 9999</td>
-          <td class="col-xs-2 casino">CASINO99</td>
-          <td class="col-xs-2 turno">99</td>
-          <td class="col-xs-3">
-            <i class="fas fa-fw fa-dot-circle icono_estado"></i>
-            <span class="estado">ESTADO99</span>
-          </td>
-          <td class="col-xs-3 acciones">
-            @if($usuario->tienePermiso('validar_layout_total'))
-            <button class="btn btn-info ver" title="VER LAYOUT TOTAL" type="button" value="-1">
-              <i class="fa fa-fw fa-search-plus"></i>
-            </button>
-            @endif
-            <button class="btn btn-info planilla" title="PLANILLA RELEVAMIENTO" type="button" value="-1">
-              <i class="far fa-fw fa-file-alt"></i>
-            </button>
-            @if($usuario->tienePermiso('carga_layout_total'))
-            <button class="btn btn-warning carga" title="CARGAR MAQUINAS NO FUNCIONANDO" type="button" value="-1">
-              <i class="fa fa-fw fa-upload"></i>
-            </button>
-            @endif
-            @if($usuario->tienePermiso('validar_layout_total'))
-            <button class="btn btn-success validar" title="VALIDAR RELEVAMIENTO" type="button" value="-1">
-              <i class="fa fa-fw fa-check"></i>
-            </button>
-            <button class="btn btn-info imprimir" title="PLANILLA COMPLETADA" type="button" value="-1">
-              <i class="fa fa-fw fa-print"></i>
-            </button>
-            <button class="btn btn-info eliminar" title="ELIMINAR LAYOUT TOTAL" type="button" value="-1">
-              <i class="fa fa-fw fa-trash"></i>
-            </button>
-            @endif
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+<table hidden>
+  <tr id="filaEjemploActivas" style="display: block;" activas_por_fila="{{$activas_por_fila}}"></tr>
+  <tr id="filaEjemplo" style="display: none;">
+    <td class="col-xs-2 fecha">99 Test 9999</td>
+    <td class="col-xs-2 casino">CASINO99</td>
+    <td class="col-xs-2 turno">99</td>
+    <td class="col-xs-3">
+      <i class="fas fa-fw fa-dot-circle icono_estado"></i>
+      <span class="estado">ESTADO99</span>
+    </td>
+    <td class="col-xs-3 acciones">
+      @if($usuario->tienePermiso('validar_layout_total'))
+      <button class="btn btn-info ver" title="VER LAYOUT TOTAL" type="button" value="-1">
+        <i class="fa fa-fw fa-search-plus"></i>
+      </button>
+      @endif
+      <button class="btn btn-info planilla" title="PLANILLA RELEVAMIENTO" type="button" value="-1">
+        <i class="far fa-fw fa-file-alt"></i>
+      </button>
+      @if($usuario->tienePermiso('carga_layout_total'))
+      <button class="btn btn-warning carga" title="CARGAR MAQUINAS NO FUNCIONANDO" type="button" value="-1">
+        <i class="fa fa-fw fa-upload"></i>
+      </button>
+      @endif
+      @if($usuario->tienePermiso('validar_layout_total'))
+      <button class="btn btn-success validar" title="VALIDAR RELEVAMIENTO" type="button" value="-1">
+        <i class="fa fa-fw fa-check"></i>
+      </button>
+      <button class="btn btn-info imprimir" title="PLANILLA COMPLETADA" type="button" value="-1">
+        <i class="fa fa-fw fa-print"></i>
+      </button>
+      <button class="btn btn-info eliminar" title="ELIMINAR LAYOUT TOTAL" type="button" value="-1">
+        <i class="fa fa-fw fa-trash"></i>
+      </button>
+      @endif
+    </td>
+  </tr>
+</table>
 
-  <div hidden>
-    <table>
-      <thead>
-        <tr>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td id="islaEjemplo" style="width: {{$porcentaje_por_activa}}%;" class="isla borde">
-            <div>
-              <div style="text-align: center;" class="textoIsla">-1</div>
-              <input class="form-control inputIsla input-chico"/>
-            </div>
-          </td>
-          <td id="islaEjemploValidar" style="width: {{$porcentaje_por_activa}}%;" class="isla borde chico ">
-            <div>
-              <div style="text-align: center;" class="textoIsla">-1</div>
-              <div style="text-align: center;">
-                <span class="observado"></span>
-                <span class="inactivas incorrecto"></span>
-                <span>(<span class="sistema"></span>)</span>
-              </div>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-</div>
+<table hidden>
+  <tr>
+    <td id="islaEjemplo" style="width: {{$porcentaje_por_activa}}%;" class="isla borde">
+      <div>
+        <div style="text-align: center;" class="textoIsla">-1</div>
+        <input class="form-control inputIsla input-chico"/>
+      </div>
+    </td>
+    <td id="islaEjemploValidar" style="width: {{$porcentaje_por_activa}}%;" class="isla borde chico ">
+      <div>
+        <div style="text-align: center;" class="textoIsla">-1</div>
+        <div style="text-align: center;">
+          <span class="observado"></span>
+          <span class="inactivas incorrecto"></span>
+          <span>(<span class="sistema"></span>)</span>
+        </div>
+      </div>
+    </td>
+  </tr>
+</table>
 
 <div hidden>
   <table id="tablaDiferenciasEjemplo" class="table table-fixed tablesorter col-lg-12">

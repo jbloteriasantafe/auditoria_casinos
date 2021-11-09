@@ -272,6 +272,7 @@ Islas
 Route::get('islas','IslaController@buscarTodo')->middleware('tiene_permiso:ver_seccion_islas');
 Route::get('islas/buscarIslaPorCasinoYNro/{id_casino}/{nro_isla}','IslaController@buscarIslaPorCasinoYNro');
 Route::get('islas/buscarIslaPorCasinoSectorYNro/{id_casino}/{id_sector}/{nro_isla}','IslaController@buscarIslaPorCasinoSectorYNro');
+Route::get('islas/buscarIslaPorSectorYNro/{id_sector}/{nro_isla}','IslaController@buscarIslaPorSectorYNro');
 Route::post('islas/buscarIslas','IslaController@buscarIslas');
 Route::get('islas/obtenerIsla/{id_isla}','IslaController@obtenerIsla');
 Route::get('islas/obtenerIsla/{id_casino}/{id_sector}/{nro_isla}','IslaController@obtenerIslaPorNro');

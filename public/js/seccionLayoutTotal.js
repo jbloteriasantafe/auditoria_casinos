@@ -41,7 +41,6 @@ $(document).ready(function(){
     minuteStep: 5,
   });
 
-  limpiarModal();
   $('.mensajeConfirmacion').hide();
   $('#iconoCarga').hide();
   $('#btn-buscar').trigger('click',[1,10,'layout_total.fecha','desc']);
@@ -67,7 +66,6 @@ $('#btn-ayuda').click(function(e){
 //ABRIR MODAL DE NUEVO LAYOUT
 $('#btn-nuevoLayoutTotal').click(function(e){
   e.preventDefault();
-  limpiarModal();
   $('#modalLayoutTotal').modal('show');
   $.get("obtenerFechaActual", function(data){
     $('#fechaActual').val(data.fecha);
@@ -105,7 +103,6 @@ $('#btn-finalizarValidacion').click(function(e){
 
 $("#btn-layoutSinSistema").click(function(e){
   e.preventDefault();
-  limpiarModal();
   $('#modalLayoutSinSistema').modal('show');
 })
 
@@ -131,16 +128,15 @@ $("#btn-backup").click(function(){
       $('#modalLayoutSinSistema').modal('hide');
     },
     error: function (data) {
-      var response = JSON.parse(data.responseText);
-
+      const response = data.responseJSON;
       if(typeof response.fecha !== 'undefined'){
-            mostrarErrorValidacion($('#fecha_backup'),response.fecha[0],true);
+        mostrarErrorValidacion($('#fecha_backup'),'Valor inválido',true);
       }
       if(typeof response.fecha_generacion !== 'undefined'){
-            mostrarErrorValidacion($('#fecha_generacion_backup'),response.fecha_generacion[0],true);
+        mostrarErrorValidacion($('#fecha_generacion_backup'),'Valor inválido',true);
       }
       if(typeof response.id_casino !== 'undefined'){
-            mostrarErrorValidacion($('#casinoSinSistema'),response.id_casino[0],true);
+        mostrarErrorValidacion($('#casinoSinSistema'),'Valor inválido',true);
       }
     }
   });
@@ -392,7 +388,6 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
 
 $(document).on('click','.carga',function(e){
   e.preventDefault();
-  limpiarModal();
   //ocultar mensaje de salida
   salida = 0;
   guardado = true;
@@ -511,7 +506,6 @@ function cargarDivDiferenciasValidar(){
     tabla.find('.cuerpoTablaDiferencias').append(fila);
   }
 
-
   //Busco la isla correspondiente y le agrego las inactivas
   $('#modalValidarControl .activas div.sector .isla').each(function(){
     let t = $(this);
@@ -542,7 +536,6 @@ $('.tabTitle').on('click',function(){
 });
 
 function mostrarModalValidacion(id_layout_total,editable = true){
-  limpiarModal();
   //ocultar mensaje de salida
   salida = 0;
   guardado = true;
@@ -612,33 +605,6 @@ $(document).on('click','.eliminar',function(e){
   $('#modalEliminar').modal('show');
 });
 
-$('.modal').on('hidden.bs.modal', function(){//se ejecuta cuando se oculta modal con clase .modal
-  $('#tecnico').popover('hide');
-  $('#fecha').popover('hide');
-  $('#frmLayoutTotal').trigger('reset');
-  $('#frmLayoutSinSistema').trigger('reset');
-  $('#inputFisca').popover('hide');
-  $('#inputFisca').prop('readonly' ,false);
-  $('#inputFisca').val('');
-  $('#fiscaCarga').val('');
-
-  $('#validarFechaActual').val('');
-  $('#validarFechaGeneracion').val('');
-  $('#validarCasino').val('');
-  $('#validarTurno').val('');
-  $('#validarFiscaCarga').val('');
-  $('#validarInputFisca').val('');
-  $('#validarFechaEjecucion').val('');
-  $('#validarControlLayout').empty();
-
-  ocultarErrorValidacion($('#casino'));
-  ocultarErrorValidacion($('#turno'));
-  ocultarErrorValidacion($('#fecha'));
-
-  $('#mensajeConfirmacion').hide();
-  confirmacion = 0 ;
-})
-
 //SALIR DEL RELEVAMIENTO
 $('#btn-salir').click(function(){
   //Si está guardado deja cerrar el modal
@@ -663,7 +629,7 @@ $('.selectCasinos').on('change',function(){
 
 function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){console.log(x);}){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-  let maquinas = [];
+  const maquinas = [];
   $('#tablaCargaControlLayout tbody tr').each(function(){
     const maquina = {
       id_sector :  $(this).find('.sector').val(),
@@ -676,7 +642,7 @@ function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){cons
     maquinas.push(maquina);
   });
 
-  let islas = [];
+  const islas = [];
   $('#modalCargaControlLayout .isla').each(function(){
     const t = $(this);
     islas.push({
@@ -850,8 +816,6 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
         $('#cuerpoTabla tr').remove();
         for (var i = 0; i < resultados.data.length; i++){
           const fila = generarFilaTabla(resultados.data[i]);
-          const estado = fila.find('.estado').text();
-          setearEstado(fila,estado);
           fila.css('display','');
           $('#cuerpoTabla').append(fila);
         }
@@ -890,6 +854,19 @@ function clickIndice(e,pageNumber,tam){
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
+
+//La genera PERO NO LA MUESTRA por que lo muestro despues cuando le pongo bien los iconos en base a los permisos...
+function generarFilaTabla(layout_total){
+  let fila = $('#filaEjemplo').clone();
+  fila.attr('id',layout_total.id_layout_total);
+  fila.find('.fecha').text(layout_total.fecha);
+  fila.find('.casino').text(layout_total.casino);
+  fila.find('.turno').text(layout_total.turno);
+  fila.find('.acciones').find('button').val(layout_total.id_layout_total);
+  setearEstado(fila,layout_total.estado);
+  return fila;
+}
+
 function setearEstado(fila,estado){
   fila.find('.estado').text(estado);
   //Siempre muestro el de la planilla
@@ -909,33 +886,15 @@ function setearEstado(fila,estado){
   }
 }
 
-//La genera PERO NO LA MUESTRA por que lo muestro despues cuando le pongo bien los iconos en base a los permisos...
-function generarFilaTabla(layout_total){
-  let fila = $('#filaEjemplo').clone();
-  fila.attr('id',layout_total.id_layout_total);
-  fila.find('.fecha').text(layout_total.fecha);
-  fila.find('.casino').text(layout_total.casino);
-  fila.find('.turno').text(layout_total.turno);
-  fila.find('.planilla').val(layout_total.id_layout_total);
-  fila.find('.carga').val(layout_total.id_layout_total);
-  fila.find('.validar').val(layout_total.id_layout_total);
-  fila.find('.imprimir').val(layout_total.id_layout_total);
-  fila.find('.ver').val(layout_total.id_layout_total);
-  fila.find('.eliminar').val(layout_total.id_layout_total);
-  setearEstado(fila,layout_total.estado);
-  return fila;
-}
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.imprimir',function(){
-  $('#alertaArchivo').hide();
   window.open('layouts/generarPlanillaLayoutTotalesCargado/' + $(this).val(),'_blank');
 });
 
 //Agrega nivel de layout
 $(document).on('click','.btn-agregarNivel',function(){
-  $('#controlLayout').show();
-  agregarNivel(null,$('#controlLayout'),'carga');
+  agregarNivel({},$('#controlLayout'),'carga');
 });
 
 //borrar un nivel de layout
@@ -948,73 +907,72 @@ $(document).on('input' , '#modalCargaControlLayout input,#modalCargaControlLayou
 });
 
 function agregarNivel(nivel,tabla,funcion){
-  const id_nivel_layout = (nivel != null) ? nivel.id_nivel_layout: "";
-  const sector = (nivel != null) ? nivel.descripcion_sector: "";
-  const nIsla = (nivel != null) ? nivel.nro_isla: null;
-  const nAdmin = (nivel != null) ? nivel.nro_admin: null;
-  const id_maquina = (nivel != null) ? nivel.id_maquina : 0; 
-  const co = (nivel != null) ? nivel.co: null;
-  const pBloq = (nivel != null) ? nivel.pb : null;  
+  const nivel_vacio = { id_nivel_layout: "", descripcion_sector: "", nro_isla: null, 
+                        nro_admin: null, id_maquina: 0, co: null, pb: null };
+  const n = Object.assign(nivel_vacio,nivel);
   const editable = funcion == 'carga';
 
   const fila = $('#filaEjemploInactivasLayout').clone().removeAttr('id');
-  fila.attr('id_nivel_layout',id_nivel_layout);
-  fila.find('select input').attr('readonly',!editable);
-  fila.find('.nro_isla').val(nIsla);
-  fila.find('.nro_admin').val(nAdmin);
-  fila.find('.co').val(co);
-  fila.find('.pb').prop('checked',pBloq);
-
-  tabla.append(fila);
+  fila.attr('id_nivel_layout',n.id_nivel_layout);
+  fila.find('select,input').attr('readonly',!editable).attr('disabled',!editable);
+  
+  fila.find('.nro_admin').val(n.nro_admin);
+  fila.find('.co').val(n.co);
+  fila.find('.pb').prop('checked',n.pb);
 
   if( funcion == 'carga' ){//agrego buscador y boton borrar (renglon)
     fila.find('.gestion_maquina').remove();
-    //fila.find('.nro_isla').generarDataList("http://" + window.location.host + "/islas/buscarIslaPorCasinoSectorYNro/" + sectores[0].id_casino  ,'maquinas','id_maquina','nro_admin',1,false);
     fila.find('.nro_admin').generarDataList("http://" + window.location.host + "/maquinas/obtenerMTMEnCasino/" + sectores[0].id_casino  ,'maquinas','id_maquina','nro_admin',1,false);
-    fila.find('.nro_admin').setearElementoSeleccionado(id_maquina,nAdmin);
+    fila.find('.nro_admin').setearElementoSeleccionado(n.id_maquina,n.nro_admin);
   }
   else if(funcion == 'validar'){
     fila.find('.borrarNivelLayout').remove();
     fila.find('.gestion_maquina').attr('href' , 'http://' + window.location.host + '/maquinas/' + nivel.id_maquina );
     fila.find('.gestion_maquina').popover({html:true});
   }
-  cargarSectores(sectores ,sector , tabla);
-}
 
-function cargarSectores(sectores, seleccionado , tabla){
-  var select = $('.NivelLayout:last()',tabla).find('.sector')
-
-  for (var i = 0; i < sectores.length; i++) {
-      select.append($('<option>')
-          .val(sectores[i].id_sector)
-          .text(sectores[i].descripcion)
-    )
-    if(seleccionado == sectores[i].descripcion){
-      var id_sector = sectores[i].id_sector;
+  const select = fila.find('.sector');
+  for (let i = 0; i < sectores.length; i++) {
+    select.append($('<option>').val(sectores[i].id_sector).text(sectores[i].descripcion));
+    if(n.descripcion_sector == sectores[i].descripcion){
+      id_sector = sectores[i].id_sector;
     }
   }
-  $('.NivelLayout:last()',tabla).trigger('change');
-  $('.NivelLayout:last()',tabla).find('.sector').val(id_sector);//carga validacion
+  fila.find('.nro_isla').val(n.nro_isla);
+  select.val(id_sector);
+  tabla.append(fila);
 }
 
-function limpiarModal(){
-    $('#iconoCarga').hide();
-    $('#modalLayoutTotal').find('.modal-footer').children().show();
-    $('#modalLayoutTotal').find('.modal-body').children().show()
-    $('#controlLayout .NivelLayout').remove();
-    $('#cargaFechaActual').val('');
-    $('#cargaFechaGeneracion').val('');
-    $('#cargaCasino').val('');
-    $('#cargaTurno').val('');
-    $('#fiscaCarga').val('');
-    $('#inputFisca').val('');
-    $('#fecha').val('');
-    $('#observacion_carga').val('');
-    $('#observacion_validar').val('');
-    $('#observacion_carga_validacion').val('');
-    $('.activas').empty();
-    $('.diferencias').empty();
-    $('#modalCargaControlLayout .subrayado').removeClass('subrayado');
-    $('#modalValidarControl .subrayado').removeClass('subrayado');
-    $('modalCargaControlLayout .total_activas').val('');
-}
+$(document).on('change','.NivelLayout .sector',function(e){
+  e.preventDefault();
+  const fila = $(this).closest('tr');
+  const id_sector = $(this).val();
+  if(id_sector == ""){
+    fila.find('.nro_isla').borrarDataList();
+  }
+  else{
+    const nro_isla = fila.find('.nro_isla').val();
+    fila.find('.nro_isla').generarDataList("http://" + window.location.host + "/islas/buscarIslaPorSectorYNro/" + $(this).val()  ,'islas','id_isla','nro_isla',1,false);
+    fila.find('.nro_isla').val(nro_isla);
+  }
+});
+
+$('.modal').on('hidden.bs.modal', function(){//se ejecuta cuando se oculta modal con clase .modal
+  const campos = $('#modalLayoutTotal,#modalLayoutSinSistema,#modalCargaControlLayout,#modalValidarControl').find('input,select,textarea');
+  ocultarErrorValidacion(campos);
+  campos.val('');
+  $('#controlLayout .NivelLayout').remove();
+  $('#inputFisca').popover('hide');
+  $('#inputFisca').prop('readonly' ,false);
+  $('#fecha').popover('hide');
+  $('.activas').empty();
+  $('.diferencias').empty();
+  $('#validarControlLayout').empty();
+  $('#mensajeConfirmacion').hide();
+  $('#frmLayoutTotal').trigger('reset');
+  $('#frmLayoutSinSistema').trigger('reset');
+  $('#iconoCarga').hide();
+  $('#modalLayoutTotal').find('.modal-footer').children().show();
+  $('#modalLayoutTotal').find('.modal-body').children().show();
+  confirmacion = 0 ;
+})
