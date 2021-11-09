@@ -188,23 +188,19 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
     <div class="modal fade" id="modalLayoutTotal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
-               <div class="modal-header modalNuevo">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
+               <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                 <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">| NUEVO CONTROL LAYOUT </h3>
                 </div>
 
                 <div  id="colapsado" class="collapse in">
 
                 <div class="modal-body modalCuerpo">
-
                   <form id="frmLayoutTotal" name="frmLayoutTotal" class="form-horizontal" novalidate="">
-
                           <div class="row">
                             <div class="col-md-6">
                               <h5>FECHA</h5>
-                              <!-- <input id="fechaActual" class="form-control" type="text" value=""> -->
                               <input id="fechaActual" type='text' class="form-control" readonly>
                               <input id="fechaDate" type="text" name="" hidden>
                               <br>
@@ -258,10 +254,9 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
     <div class="modal fade" id="modalLayoutSinSistema" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
-               <div class="modal-header modalNuevo">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
+               <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizarSinSistema" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoSinSistema" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                 <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoSinSistema" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">| NUEVO CONTROL LAYOUT SIN SISTEMA</h3>
                 </div>
 
@@ -329,9 +324,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
           <div class="modal-dialog" style="width:94%;">
              <div class="modal-content">
                <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;padding-bottom: 8px;">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
-                 <!-- <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button> -->
-                 <button id="btn-minimizarCargar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                 <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">CARGAR CONTROL LAYOUT</h3>
                 </div>
                 <div  id="colapsadoCargar" class="collapse in">
@@ -382,19 +375,18 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                     </div>
                   </div>
                   <div class="row tabs" style="background-color:rgb(250,250,250);padding-bottom: 0px;">
-                    <h4 class="col-lg-6 tabActivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>ACTIVAS</b></h4>
-                    <h4 class="col-lg-6 tabInactivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>INACTIVAS</b></h4>
+                    <h4 class="col-lg-6 tabActivas tabTitle" tabDiv="#modalCargaControlLayout .activas"  style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>ACTIVAS</b></h4>
+                    <h4 class="col-lg-6 tabInactivas tabTitle" tabDiv="#modalCargaControlLayout .inactivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>INACTIVAS</b></h4>
                   </div>
-                  <div class="activas row" style="overflow: scroll;height: 70%;">
+                  <div class="activas row tabDiv" style="overflow: scroll;height: 70%;">
                   </div>
-                  <div class="inactivas row" style="overflow: scroll;height: 70%;"><form id="frmCargaControlLayout" name="frmCargaLayout" class="form-horizontal" novalidate="">
+                  <div class="inactivas row tabDiv" style="overflow: scroll;height: 70%;"><form id="frmCargaControlLayout" name="frmCargaLayout" class="form-horizontal" novalidate="">
                           <div class="row">
                               <div class="col-md-12">
                                   <table id="tablaCargaControlLayout" class="table">
                                       <thead>
                                           <tr>
-                                              <th width="3%" ></th>
-                                              <th width="17%">SECTOR</th>
+                                              <th width="20%">SECTOR</th>
                                               <th width="16%">ISLA</th>
                                               <th width="12%">N° ADMIN</th>
                                               <th width="14%">C.O <i class="fa fa-question-circle" data-toggle="popover" data-trigger="hover" data-title="CÓDIGO DE OBSERVACIÓN" data-content="Código que indica el motivo de la no toma."></i></th>
@@ -448,13 +440,42 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
           </div>
     </div>
 
+<table hidden>
+  <tr id="filaEjemploInactivasLayout" class="NivelLayout" id_nivel_layout="0">
+    <td>
+      <select type="text" class="form-control sector">
+      </select>
+    </td>
+    <td>
+      <input type="text" placeholder="Isla" class="form-control nro_isla"/>
+    </td>
+    <td>
+      <input type="text" placeholder="N° ADMIN" class="form-control nro_admin"/>
+    </td>
+    <td>
+      <input type="text" placeholder="C.0" class="form-control co"/>
+    </td>
+    <td>
+      <input type="checkbox" class="form-control pb" style="text-align: center;"/>
+    </td>
+    <td>
+      <button class="btn btn-dancer borrarFila borrarNivelLayout" type="button">
+        <i class="fa fa-fw fa-trash"></i>
+      </button>
+      <a class="btn btn-success pop gestion_maquina" type="button" target="_blank" 
+          data-placement="top" data-trigger="hover" title="GESTIONAR MÁQUINA" data-content="Ir a sección máquina">
+        <i class="fa fa-fw fa-wrench"></i>
+      </a>
+    </td>
+  </tr>
+</table>
+
 <div class="modal fade" id="modalValidarControl" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog" style="width:94%;">
         <div class="modal-content">
             <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#69F0AE;padding-bottom: 8px;">
-                <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                <button id="btn-minimizarValidar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoValidar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoValidar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                 <h3 class="modal-title">VALIDAR CONTROL LAYOUT</h3>
             </div>
             <div id="colapsadoValidar" class="collapse in">
@@ -494,9 +515,9 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                         </div>
                     </div>
                     <div class="row tabs" style="background-color:rgb(250,250,250);padding-bottom: 0px;">
-                      <h4 class="col-lg-4 tabActivas" tabDiv="#modalValidarControl .activas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>ACTIVAS</b></h4>
-                      <h4 class="col-lg-4 tabInactivas" tabDiv="#modalValidarControl .inactivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>INACTIVAS</b></h4>
-                      <h4 class="col-lg-4 tabDiferencias" tabDiv="#modalValidarControl .diferencias" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>DIFERENCIAS</b></h4>
+                      <h4 class="col-lg-4 tabActivas tabTitle" tabDiv="#modalValidarControl .activas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>ACTIVAS</b></h4>
+                      <h4 class="col-lg-4 tabInactivas tabTitle" tabDiv="#modalValidarControl .inactivas" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>INACTIVAS</b></h4>
+                      <h4 class="col-lg-4 tabDiferencias tabTitle" tabDiv="#modalValidarControl .diferencias" style="text-align: center;color:rgb(0, 103, 177);padding-bottom: 0px;margin-bottom: 0px;"><b>DIFERENCIAS</b></h4>
                     </div>
                     <div class="activas row tabDiv" style="overflow: scroll;height: 70%;min-height: 30%;">
                     </div>
@@ -506,8 +527,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                               <table id="tablaValidarControlLayout" class="table">
                                   <thead>
                                       <tr>
-                                          <th width="3%"></th>
-                                          <th width="17%" style="align:center;">SECTOR</th>
+                                          <th width="20%" style="align:center;">SECTOR</th>
                                           <th width="16%">ISLA</th>
                                           <th width="12%">N° ADMIN</th>
                                           <th width="14%">C.O</th>
@@ -552,9 +572,8 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
           <div class="modal-dialog" style="width:80%;">
              <div class="modal-content">
                <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#42A5F5;">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                 <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">IMPRIMIR PLANILLA</h3>
                 </div>
 
@@ -580,7 +599,6 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-infoBuscar" id="btn-imprimirPlanilla">IMPRIMIR</button>
-                  <!-- <button type="button" class="btn btn-successAceptar" id="btn-finalizar" value="nuevo">FINALIZAR RELEVAMIENTO</button> -->
                   <button type="button" class="btn btn-default" id="btn-salirPlanilla" data-dismiss="modal">SALIR</button>
                   <input type="hidden" id="id_relevamiento" value="0">
                 </div>
@@ -595,7 +613,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
             <div class="modal-content">
               <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;">
                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargarCantidad" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargarCantidad" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                 <h3 class="modal-title">CARGAR TOTALES</h3>
               </div>
               <div id="colapsadoCargarActivas" class="collapse in">
@@ -611,8 +629,6 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
           </div>
       </div>
   </div>
-
-
 
   <div id="sectorEjemplo" class="sector" hidden>
     <hr/>
@@ -647,29 +663,31 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
             <i class="fas fa-fw fa-dot-circle icono_estado"></i>
             <span class="estado">ESTADO99</span>
           </td>
-          <td class="col-xs-3">
+          <td class="col-xs-3 acciones">
+            @if($usuario->tienePermiso('validar_layout_total'))
             <button class="btn btn-info ver" title="VER LAYOUT TOTAL" type="button" value="-1">
               <i class="fa fa-fw fa-search-plus"></i>
             </button>
-            <span></span>
+            @endif
             <button class="btn btn-info planilla" title="PLANILLA RELEVAMIENTO" type="button" value="-1">
               <i class="far fa-fw fa-file-alt"></i>
             </button>
-            <span></span>
+            @if($usuario->tienePermiso('carga_layout_total'))
             <button class="btn btn-warning carga" title="CARGAR MAQUINAS NO FUNCIONANDO" type="button" value="-1">
               <i class="fa fa-fw fa-upload"></i>
             </button>
-            <span></span>
+            @endif
+            @if($usuario->tienePermiso('validar_layout_total'))
             <button class="btn btn-success validar" title="VALIDAR RELEVAMIENTO" type="button" value="-1">
               <i class="fa fa-fw fa-check"></i>
             </button>
-            <span></span>
             <button class="btn btn-info imprimir" title="PLANILLA COMPLETADA" type="button" value="-1">
               <i class="fa fa-fw fa-print"></i>
             </button>
             <button class="btn btn-info eliminar" title="ELIMINAR LAYOUT TOTAL" type="button" value="-1">
               <i class="fa fa-fw fa-trash"></i>
             </button>
+            @endif
           </td>
         </tr>
       </tbody>

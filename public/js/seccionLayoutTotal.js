@@ -3,7 +3,6 @@ var guardado;
 var sectores;
 var confirmacion = 0 ;
 
-
 $(document).ready(function(){
   $('#barraMaquinas').attr('aria-expanded','true');
   $('#maquinas').removeClass();
@@ -17,31 +16,7 @@ $(document).ready(function(){
   $('#opcLayoutTotal').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
   $('#opcLayoutTotal').addClass('opcionesSeleccionado');
 
-  $('#fechaControlSinSistema').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'dd MM yyyy',
-    pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 2,
-    ignoreReadonly: true,
-  });
-
-  $('#dtpBuscadorFecha').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'dd MM yyyy',
-    pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 2,
-    ignoreReadonly: true,
-  });
-
-  $('#fechaGeneracion').datetimepicker({
+  $('#fechaControlSinSistema,#dtpBuscadorFecha,#fechaGeneracion').datetimepicker({
     language:  'es',
     todayBtn:  1,
     autoclose: 1,
@@ -74,72 +49,26 @@ $(document).ready(function(){
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.planilla',function(){
-    $('#alertaArchivo').hide();
-
-    window.open('layouts/generarPlanillaLayoutTotales/' + $(this).val(),'_blank');
-
+  $('#alertaArchivo').hide();
+  window.open('layouts/generarPlanillaLayoutTotales/' + $(this).val(),'_blank');
 });
 
 //Opacidad del modal al minimizar
-$('#btn-minimizar').click(function(){
-  if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-    $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
-});
-
-//Opacidad del modal al minimizar
-$('#btn-minimizarSinSistema').click(function(){
-  if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-    $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
-});
-
-//Opacidad del modal al minimizar
-$('#btn-minimizarCargar').click(function(){
-  if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-    $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
-});
-//Opacidad del modal al minimizar
-$('#btn-minimizarValidar').click(function(){
-  if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-    $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
+$('.minimizar').click(function(){
+  $('.modal-backdrop').css('opacity',$(this).data("minimizar")? '0.1' : '0.5');
+  $(this).data("minimizar",!$(this).data("minimizar"));
 });
 
 $('#btn-ayuda').click(function(e){
   e.preventDefault();
-
-  $('#modalAyuda .modal-title').text('| LAYOUT TOTAL');
-  $('#modalAyuda .modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
-
 	$('#modalAyuda').modal('show');
-
 });
 
 //ABRIR MODAL DE NUEVO LAYOUT
 $('#btn-nuevoLayoutTotal').click(function(e){
   e.preventDefault();
   limpiarModal();
-  $('#modalLayoutTotal .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
   $('#modalLayoutTotal').modal('show');
-
   $.get("obtenerFechaActual", function(data){
     $('#fechaActual').val(data.fecha);
     $('#fechaDate').val(data.fechaDate);
@@ -147,24 +76,17 @@ $('#btn-nuevoLayoutTotal').click(function(e){
 });
 
 $('#btn-finalizarValidacion').click(function(e){
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
-
-  formData = {
-    id_layout_total: $('#id_layout_total').val(),
-    observacion_validacion: $('#observacion_validar').val(),
-  }
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
   $.ajax({
       type: "POST",
       url: 'http://' + window.location.host +'/layouts/validarLayoutTotal',
-      data: formData,
+      data: {
+        id_layout_total: $('#id_layout_total').val(),
+        observacion_validacion: $('#observacion_validar').val(),
+      },
       dataType: 'json',
       success: function (data) {
-        console.log(data);
         $('#mensajeExito h3').text('ÉXITO DE VALIDACIÓN');
         $('#mensajeExito .cabeceraMensaje').removeClass('modificar');
         $('#mensajeExito p').text("Se ha validado correctamente el control de Layout Total.");
@@ -174,20 +96,9 @@ $('#btn-finalizarValidacion').click(function(e){
         $('#modalValidarControl').modal('hide');
       },
       error: function (data) {
-        var response = JSON.parse(data.responseText);
-
-        // if(response.maquinas.length){
-        //   for (var i = 0; i < response.maquinas.length; i++) {
-        //     typeof response.maquinas[i].no_existe !== ?
-        //   }
-        // }
-
-        if(typeof response.observacion_validacion !== 'undefined'){
-          mostrarErrorValidacion($('#observacion_validacion'),response.observacion_validacion[0] ,true );
+        if(typeof data.responseJSON.observacion_validacion !== 'undefined'){
+          mostrarErrorValidacion($('#observacion_validacion'),data.responseJSON.observacion_validacion[0] ,true );
         }
-
-
-
       }
   });
 })
@@ -195,7 +106,6 @@ $('#btn-finalizarValidacion').click(function(e){
 $("#btn-layoutSinSistema").click(function(e){
   e.preventDefault();
   limpiarModal();
-  $('#modalLayoutSinSistema .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
   $('#modalLayoutSinSistema').modal('show');
 })
 
@@ -212,10 +122,10 @@ $("#btn-backup").click(function(){
     },
     dataType: 'json',
     success: function (data) {
-      var pageNumber = $('#herramientasPaginacion').getCurrentPage();
-      var tam = $('#tituloTabla').getPageSize();
-      var columna = $('#tablaLayouts .activa').attr('value');
-      var orden = $('#tablaLayouts .activa').attr('estado');
+      const pageNumber = $('#herramientasPaginacion').getCurrentPage();
+      const tam = $('#tituloTabla').getPageSize();
+      const columna = $('#tablaLayouts .activa').attr('value');
+      const orden = $('#tablaLayouts .activa').attr('estado');
       $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
       $('frmLayoutSinSistema').trigger('reset');
       $('#modalLayoutSinSistema').modal('hide');
@@ -251,10 +161,8 @@ $('#btn-generar').click(function(e){
       },
       dataType: 'json',
       beforeSend: function(data){
-        //console.log('Empezó');
         $('#modalLayoutTotal').find('.modal-footer').children().hide();
         $('#modalLayoutTotal').find('.modal-body').children().hide();
-
         $('#iconoCarga').show();
       },
       success: function (data) {
@@ -290,11 +198,6 @@ $('#btn-generar').click(function(e){
       }
   });
 });
-
-
-function limpiarNull(s,defecto = ''){
-  return s === null? defecto : s;
-}
 
 function cargarDivActivas(id_layout_total,done = function (x){return;}){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
@@ -496,28 +399,12 @@ $(document).on('click','.carga',function(e){
   $('#modalCargaControlLayout .mensajeSalida').hide();
   $('#mensajeExito').hide();
 
-  var id_layout_total = $(this).val();
+  const id_layout_total = $(this).val();
   $('#id_layout_total').val(id_layout_total);
 
   $('#btn-guardar').show();
   $('#btn-guardarTemp').show();
-  let divActivas = $('#modalCargaControlLayout .activas').hide();
-  let divInactivas = $('#modalCargaControlLayout .inactivas').hide();
-  let tabActivas = $('#modalCargaControlLayout .tabActivas');
-  let tabInactivas = $('#modalCargaControlLayout .tabInactivas');
-  tabActivas.on('click',function(){
-    divInactivas.hide();
-    divActivas.show();
-    tabActivas.addClass('subrayado');
-    tabInactivas.removeClass('subrayado');
-  });
-  tabInactivas.on('click',function(){
-    divActivas.hide();
-    divInactivas.show();
-    tabInactivas.addClass('subrayado');
-    tabActivas.removeClass('subrayado');
-  });
-
+  $('#modalCargaControlLayout .tabActivas').click();
   //El que termina primero setea la bandera, el segundo muestra el modal.
   let done = false;
   const donef = function(){
@@ -564,7 +451,6 @@ function cargarDivDiferenciasValidar(){
     const t = $(this);
     const id_sector = t.find('select').val();
     const nro_isla = t.find('.nro_isla').val();
-    //console.log("BUSCANDO INACTIVO "+id_sector);
     //Si es un relevamiento viejo que no tiene asociada islas 
     //Esto no va a estar seteado por lo que se ignora.
     if(id_sector in sectores){
@@ -647,10 +533,10 @@ function cargarDivDiferenciasValidar(){
   $('#modalValidarControl .diferencias').append(tabla);
 }
 
-
-$('#modalValidarControl .tabActivas,#modalValidarControl .tabInactivas,#modalValidarControl .tabDiferencias').on('click',function(){
-  $('#modalValidarControl .tabs h4').removeClass('subrayado');
-  $('#modalValidarControl .tabDiv').hide();
+$('.tabTitle').on('click',function(){
+  const modal = $(this).closest('.modal');
+  modal.find('.tabs h4').removeClass('subrayado');
+  modal.find('.tabDiv').hide();
   $(this).addClass('subrayado');
   $($(this).attr('tabDiv')).show();
 });
@@ -706,27 +592,24 @@ $(document).on('click','.ver',function(e){
   mostrarModalValidacion(id_layout_total,false);
 });
 
+$('#btn-eliminarModal').on('click', function() {
+  $.ajaxSetup({ headers: {  'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } })
+  $.ajax({
+      type: "DELETE",
+      url: "layouts/eliminarLayoutTotal/" + $(this).val(),
+      success: function (data) {
+        $('#btn-buscar').trigger('click');
+      },
+      error: function (data) {
+        console.log('Error: ', data);
+      }
+  })
+});
+
 $(document).on('click','.eliminar',function(e){
   e.preventDefault();
-  const id_layout_total = $(this).val();
+  $('#btn-eliminarModal').val($(this).val());
   $('#modalEliminar').modal('show');
-  $('#btn-eliminarModal').off().on('click', function() {
-      $.ajaxSetup({
-          headers: {
-              'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-          }
-      })
-      $.ajax({
-          type: "DELETE",
-          url: "layouts/eliminarLayoutTotal/" + id_layout_total,
-          success: function (data) {
-            $('#btn-buscar').trigger('click');
-          },
-          error: function (data) {
-            console.log('Error: ', data);
-          }
-      })
-  });
 });
 
 $('.modal').on('hidden.bs.modal', function(){//se ejecuta cuando se oculta modal con clase .modal
@@ -773,19 +656,13 @@ $('#btn-salir').click(function(){
 
 //MOSTRAR LOS SECTORES ASOCIADOS AL CASINO SELECCIONADO
 $('.selectCasinos').on('change',function(){
-  var id_casino = $('option:selected' , this).attr('id');
-  var selectCasino = $(this)
-  $.get('http://' + window.location.host +"/casinos/obtenerTurno/" + id_casino, function(data){
+  $.get('http://' + window.location.host +"/casinos/obtenerTurno/" + $(this).val(), function(data){
       $('#turno').val(data.turno);
   });
 });
 
 function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){console.log(x);}){
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   let maquinas = [];
   $('#tablaCargaControlLayout tbody tr').each(function(){
     const maquina = {
@@ -808,21 +685,18 @@ function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){cons
     });
   });
 
-  const formData = {
-    id_fiscalizador_toma :  $('#inputFisca').obtenerElementoSeleccionado(),
-    id_layout_total:   $('#id_layout_total').val(),
-    fecha_ejecucion: $('#fecha_ejecucion').val(),
-    maquinas: maquinas,
-    observacion_fiscalizacion: $('#observacion_carga').val(),
-    confirmacion: confirmacion,
-    islas: islas
-  };
-  
-  //console.log(formData);
   $.ajax({
       type: 'POST',
       url: url,
-      data: formData,
+      data: {
+        id_fiscalizador_toma :  $('#inputFisca').obtenerElementoSeleccionado(),
+        id_layout_total:   $('#id_layout_total').val(),
+        fecha_ejecucion: $('#fecha_ejecucion').val(),
+        maquinas: maquinas,
+        observacion_fiscalizacion: $('#observacion_carga').val(),
+        confirmacion: confirmacion,
+        islas: islas
+      },
       dataType: 'json',
       success: succ,
       error: err
@@ -859,37 +733,26 @@ function mostrarError(mensaje = '') {
 }
 
 function verificarFormularioCarga(){
-  let invalidas = [];
+  let error = false;
   $('#modalCargaControlLayout .isla input').each(function(){
     const t = $(this);
     const val = t.val();
     const intVal = parseInt(val);
-    if((val.length == 0) 
-    || isNaN(intVal) 
-    || (val.indexOf('.') != -1)
-    || (val.indexOf(',') != -1)
-    || (intVal < 0)){
-      invalidas.push(t);
-      return;
+    if((val != intVal) || (intVal < 0)){
+      mostrarErrorValidacion(t,"Valor invalido",false);
+      error = true;
     }
   });
-  if(invalidas.length != 0){
-    for(let i = 0;i < invalidas.length;i++){
-      let inv = invalidas[i];
-      mostrarErrorValidacion(inv,"Valor invalido",false);
-    }
-    return "Islas incompletas o con valores invalidos";
-  }
-  return null;
+  return error? "Islas incompletas o con valores invalidos" : null;
 }
 
 //FINALIZAR CARGA RELEVAMIENTO
 $('#btn-guardar').click(function(e){
   e.preventDefault();
 
-  const mensajes = verificarFormularioCarga();
-  if(mensajes != null){
-    mostrarError(mensajes);
+  const mensaje = verificarFormularioCarga();
+  if(mensaje != null){
+    mostrarError(mensaje);
     return;
   }
 
@@ -903,43 +766,38 @@ $('#btn-guardar').click(function(e){
   };
 
   const error = function (data) {
-    var response = JSON.parse(data.responseText);
-    var bandera_error_no_aceptable= false;//bandera true ocurrio un error que no necesite ser corregido
-    var bandera_error_aceptable = false;//bandera true si necesito pedir confirmacion
+    const response = data.responseJSON;
+    let bandera_error_no_aceptable = false;//bandera true ocurrio un error que no necesite ser corregido
+    let bandera_error_aceptable    = false;//bandera true si necesito pedir confirmacion
     if(typeof response.id_fiscalizador_toma !== 'undefined'){
-          mostrarErrorValidacion($('#inputFisca'),response.id_fiscalizador_toma[0] ,true);
-          bandera_error_no_aceptable = true;
+      mostrarErrorValidacion($('#inputFisca'),response.id_fiscalizador_toma[0] ,true);
+      bandera_error_no_aceptable = true;
     }
 
     if(typeof response.fecha_ejecucion !== 'undefined'){
-          mostrarErrorValidacion($('#fecha'),response.fecha_ejecucion[0] ,true);
-          bandera_error_no_aceptable = true;
+      mostrarErrorValidacion($('#fecha'),response.fecha_ejecucion[0] ,true);
+      bandera_error_no_aceptable = true;
     }
-    var i = 0;
 
-    $('#controlLayout tr').each(function(){
+    $('#controlLayout tr').each(function(i,elem){
       if(typeof response['maquinas.'+ i +'.id_sector'] !== 'undefined'){
-        filaError = i;
         mostrarErrorValidacion($(this).find('.sector') ,response['maquinas.'+ i +'.id_sector'][0] ,false);
         bandera_error_no_aceptable = true;
       }
       if(typeof response['maquinas.'+ i +'.nro_isla'] !== 'undefined'){
-        filaError = i;
         mostrarErrorValidacion($(this).find('.nro_isla') , response['maquinas.'+ i +'.nro_isla'][0],false);
         bandera_error_no_aceptable = true;
       }
       if(typeof response['maquinas.'+ i +'.nro_admin'] !== 'undefined'){
-        filaError = i;
         mostrarErrorValidacion($(this).find('.nro_admin'), response['maquinas.'+ i +'.nro_admin'][0],false);
         bandera_error_no_aceptable = true;
       }
       if(typeof response['maquinas.'+ i +'.no_existe'] !== 'undefined'){
-        filaError = i;
         mostrarErrorValidacion($(this).find('.nro_isla') , response['maquinas.'+ i +'.no_existe'][0],false);
         bandera_error_aceptable = true;
       }
-      i++;
-    })
+    });
+
     if(bandera_error_aceptable && !bandera_error_no_aceptable){
       pedirValidacion();
     }else{
@@ -975,72 +833,35 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     }
 
     $.ajax({
-        type: 'POST',
-        url: 'http://' + window.location.host +'/layouts/buscarLayoutsTotales',
-        data: {
-          fecha: $('#buscadorFecha').val(),
-          casino: $('#buscadorCasino').val(),
-          turno: $('#buscadorTurno').val(),
-          estadoRelevamiento: $('#buscadorEstado').val(),
-          page: page_number,
-          sort_by: sort_by,
-          page_size: page_size,
-        },
-        dataType: 'json',
-        success: function (resultados) {
-            $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
-            $('#cuerpoTabla tr').remove();
-            for (var i = 0; i < resultados.data.length; i++){
-
-              var fila = generarFilaTabla(resultados.data[i]);
-              $('#cuerpoTabla')
-                  .append(fila);
-            }
-
-            mostrarIconosPorPermisos();
-
-            $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
-        },
-        error: function (data) {
-            console.log('Error:', data);
-        }
-      });
-});
-
-//Se usa para mostrar los iconos según los permisos del usuario
-function mostrarIconosPorPermisos(){
-    $.ajax({
-      type: 'GET',
-      url: 'usuarios/usuarioTienePermisos',
+      type: 'POST',
+      url: 'http://' + window.location.host +'/layouts/buscarLayoutsTotales',
       data: {
-        permisos : ["ver_planilla_layout_total","carga_layout_total","validar_layout_total"],
+        fecha: $('#buscadorFecha').val(),
+        casino: $('#buscadorCasino').val(),
+        turno: $('#buscadorTurno').val(),
+        estadoRelevamiento: $('#buscadorEstado').val(),
+        page: page_number,
+        sort_by: sort_by,
+        page_size: page_size,
       },
       dataType: 'json',
-      success: function(data) {
-        //Para los iconos que no hay permisos: OCULTARLOS!
-        $('#cuerpoTabla tr').each(function(i,c){
-          let fila = $(c);
+      success: function (resultados) {
+        $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
+        $('#cuerpoTabla tr').remove();
+        for (var i = 0; i < resultados.data.length; i++){
+          const fila = generarFilaTabla(resultados.data[i]);
           const estado = fila.find('.estado').text();
           setearEstado(fila,estado);
-          if(!data.carga_layout_total){
-            $('#cuerpoTabla .carga').hide();
-          }
-          if(!data.validar_layout_total){
-            $('#cuerpoTabla .validar').hide();
-            $('#cuerpoTabla .imprimir').hide();
-            $('#cuerpoTabla .ver').hide();
-          }else{
-            $('#cuerpoTabla .imprimir').show();
-            $('#cuerpoTabla .eliminar').show();
-          }
-          fila.css('display','');//Lo muestro.
-        });
+          fila.css('display','');
+          $('#cuerpoTabla').append(fila);
+        }
+        $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
       },
-      error: function(error) {
-          console.log(error);
-      },
+      error: function (data) {
+          console.log('Error:', data);
+      }
     });
-}
+});
 
 $(document).on('click','#tablaLayouts thead tr th[value]',function(e){
   $('#tablaLayouts th').removeClass('activa');
@@ -1070,43 +891,21 @@ function clickIndice(e,pageNumber,tam){
 }
 
 function setearEstado(fila,estado){
-  let icono_estado = fila.find('.icono_estado');
-  let icono_ver = fila.find('.ver');
-  let icono_planilla = fila.find('.planilla');
-  let icono_carga = fila.find('.carga');
-  let icono_validacion = fila.find('.validar');
-  let icono_imprimir = fila.find('.imprimir');
-  let icono_eliminar = fila.find('.eliminar')
-  //Limpio las clases de estado, seteandole lo mismo que la de ejemplo
-  icono_estado.attr('class',$('#filaEjemplo').find('.icono_estado').attr('class'));
   fila.find('.estado').text(estado);
-  //Siempre muestro el de la planilla (ademas porque la tabla se hace percha sin un icono)
-  icono_ver.hide();
-  icono_planilla.show();
-  icono_imprimir.hide();
-  icono_carga.hide();
-  icono_validacion.hide();
-  icono_eliminar.hide();
-  switch (estado) {
-    case 'Generado':
-      icono_estado.addClass('faGenerado');
-      icono_carga.show();
-      break;
-    case 'Cargando':
-      icono_estado.addClass('faCargando');
-      icono_carga.show();
-      break;
-    case 'Finalizado':
-      icono_estado.addClass('faFinalizado');
-      icono_ver.show();
-      icono_validacion.show();
-      break;
-    case 'Visado':
-      icono_estado.addClass('faValidado');
-      icono_ver.show();
-      break;
-    default:
-      break;
+  //Siempre muestro el de la planilla
+  fila.find('.acciones button').hide();
+  fila.find('.planilla,.imprimir,.eliminar').show();
+  //Hack... la clase se llama faValidado y el estado Visado... todas las demas estan bien estructuradas
+  if(estado == 'Visado') fila.find('.icono_estado').addClass('faValidado');
+  else{
+    fila.find('.icono_estado').addClass(`fa${estado}`);
+  }
+
+  const estado_a_acciones = {'Generado':['carga'],'Cargando':['carga'],'Finalizado':['ver','validar'],'Visado':['ver']};
+  if(!(estado in estado_a_acciones)) return;
+  for(let idx=0;idx<estado_a_acciones[estado].length;idx++){
+    const accion = estado_a_acciones[estado][idx];
+    fila.find(`.${accion}`).show();
   }
 }
 
@@ -1129,19 +928,19 @@ function generarFilaTabla(layout_total){
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.imprimir',function(){
-    $('#alertaArchivo').hide();
-    window.open('layouts/generarPlanillaLayoutTotalesCargado/' + $(this).val(),'_blank');
+  $('#alertaArchivo').hide();
+  window.open('layouts/generarPlanillaLayoutTotalesCargado/' + $(this).val(),'_blank');
 });
 
 //Agrega nivel de layout
 $(document).on('click','.btn-agregarNivel',function(){
-    $('#controlLayout').show();
-    agregarNivel(null,$('#controlLayout'),'carga');
+  $('#controlLayout').show();
+  agregarNivel(null,$('#controlLayout'),'carga');
 });
 
 //borrar un nivel de layout
 $(document).on('click','.borrarNivelLayout',function(){
-    $(this).parent().parent().remove();
+  $(this).parent().parent().remove();
 });
 
 $(document).on('input' , '#modalCargaControlLayout input,#modalCargaControlLayout textarea,#modalCargaControlLayout select' ,function(){
@@ -1149,7 +948,6 @@ $(document).on('input' , '#modalCargaControlLayout input,#modalCargaControlLayou
 });
 
 function agregarNivel(nivel,tabla,funcion){
-  console.log(nivel);
   const id_nivel_layout = (nivel != null) ? nivel.id_nivel_layout: "";
   const sector = (nivel != null) ? nivel.descripcion_sector: "";
   const nIsla = (nivel != null) ? nivel.nro_isla: null;
@@ -1159,89 +957,28 @@ function agregarNivel(nivel,tabla,funcion){
   const pBloq = (nivel != null) ? nivel.pb : null;  
   const editable = funcion == 'carga';
 
-  let fila = $('<tr>')
-  .addClass('NivelLayout')
-  .attr('id_nivel_layout',id_nivel_layout);
+  const fila = $('#filaEjemploInactivasLayout').clone().removeAttr('id');
+  fila.attr('id_nivel_layout',id_nivel_layout);
+  fila.find('select input').attr('readonly',!editable);
+  fila.find('.nro_isla').val(nIsla);
+  fila.find('.nro_admin').val(nAdmin);
+  fila.find('.co').val(co);
+  fila.find('.pb').prop('checked',pBloq);
 
-  fila.append($('<td>'));
-  fila.append(
-    $('<td>').append(
-      $('<select>').attr('type','text').addClass('form-control sector').attr('disabled' , !editable)
-    )
-  );
-  fila.append($('<td>')
-    .append($('<input>')
-          .attr('type','text')
-          .attr('placeholder','Isla')
-          .addClass('form-control nro_isla')
-          .val(nIsla)
-          .attr('readonly' , !editable)
-    )
-  );
-  fila.append($('<td>')
-    .append($('<input>')
-        .attr('type','text')
-        .attr('placeholder','N° ADMIN')
-        .addClass('form-control nro_admin')
-        .val(nAdmin)
-        .attr('readonly' , !editable)
-    )
-  );
-  fila.append($('<td>')
-    .append($('<input>')
-        .attr('type','text')
-        .attr('placeholder','C.0')
-        .addClass('form-control co')
-        .val(co)
-        .attr('readonly' , !editable)
-    )
-  );
-  fila.append($('<td>')
-    .css('text-align' , 'center')
-    .append($('<input>')
-    .attr('type','checkbox')
-    .addClass('pb')
-    .prop('checked' , pBloq)
-    .prop('disabled' , !editable)
-    )
-  );
   tabla.append(fila);
 
   if( funcion == 'carga' ){//agrego buscador y boton borrar (renglon)
-    console.log(sectores);
+    fila.find('.gestion_maquina').remove();
     //fila.find('.nro_isla').generarDataList("http://" + window.location.host + "/islas/buscarIslaPorCasinoSectorYNro/" + sectores[0].id_casino  ,'maquinas','id_maquina','nro_admin',1,false);
     fila.find('.nro_admin').generarDataList("http://" + window.location.host + "/maquinas/obtenerMTMEnCasino/" + sectores[0].id_casino  ,'maquinas','id_maquina','nro_admin',1,false);
     fila.find('.nro_admin').setearElementoSeleccionado(id_maquina,nAdmin);
-    $(fila).append(
-      $('<td>')
-        .append($('<button>')
-          .addClass('borrarNivelLayout')
-          .addClass('btn')
-          .addClass('btn-danger')
-          .addClass('borrarFila')
-          .attr('type','button')
-          .append($('<i>')
-            .addClass('fa fa-fw fa-trash')
-          )
-      )
-    );
-  }else if(funcion == 'validar'){
-  var boton_gestionar = $('<a>').addClass('btn btn-success pop gestion_maquina')
-                                .attr('type' , 'button')
-                                .attr('href' , 'http://' + window.location.host + '/maquinas/' + nivel.id_maquina )
-                                .attr('target' , '_blank')
-                                .attr("data-placement" , "top")
-                                .attr('data-trigger','hover')
-                                .attr('title','GESTIONAR MÁQUINA')
-                                .attr('data-content','Ir a sección máquina')
-                                .append($('<i>').addClass('fa fa-fw fa-wrench'));
-  
-  $('.NivelLayout:last()',tabla).append($('<td>').append(boton_gestionar));
-  $('.gestion_maquina').popover({html:true});
-}
-
-
-cargarSectores(sectores ,sector , tabla);
+  }
+  else if(funcion == 'validar'){
+    fila.find('.borrarNivelLayout').remove();
+    fila.find('.gestion_maquina').attr('href' , 'http://' + window.location.host + '/maquinas/' + nivel.id_maquina );
+    fila.find('.gestion_maquina').popover({html:true});
+  }
+  cargarSectores(sectores ,sector , tabla);
 }
 
 function cargarSectores(sectores, seleccionado , tabla){
