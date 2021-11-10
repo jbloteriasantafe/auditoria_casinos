@@ -115,7 +115,6 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                                       <h5 style="color:#f5f5f5;">boton buscar</h5>
                                       <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
                                     </div>
-
                                   </div>
                                   <br>
                                 </div>
@@ -198,7 +197,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
         </div>  <!-- /#row -->
 
     <!-- Modal layout -->
-    <div class="modal fade" id="modalLayoutTotal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal fade" id="modalNuevoLayoutTotal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
                <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
@@ -272,13 +271,9 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                  <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoSinSistema" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">| NUEVO CONTROL LAYOUT SIN SISTEMA</h3>
                 </div>
-
                 <div  id="colapsadoSinSistema" class="collapse in">
-
                 <div class="modal-body modalCuerpo">
-
                   <form id="frmLayoutSinSistema" name="frmLayoutSinSistema" class="form-horizontal" novalidate="">
-
                           <div class="row">
                             <div class="col-md-6">
                               <h5>FECHA DE CONTROL LAYOUT</h5>
@@ -302,9 +297,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                               </div>
                               <br>
                             </div>
-
                           </div>
-
                           <div class="row">
                             <div class="col-md-6">
                               <h5>CASINO</h5>
@@ -317,9 +310,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
                               <br> <span id="alertaCasinoSinsistema" class="alertaSpan"></span>
                             </div>
                           </div>
-
                   </form>
-
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-successAceptar" id="btn-backup" value="nuevo">USAR RELEVAMIENTO BACKUP</button>
@@ -331,120 +322,6 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
           </div>
     </div>
 
-
-    <!-- Modal cargar layout -->
-    <div class="modal fade" id="modalCargaControlLayout" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog" style="width:94%;">
-             <div class="modal-content">
-               <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;padding-bottom: 8px;">
-                 <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title">CARGAR CONTROL LAYOUT</h3>
-                </div>
-                <div  id="colapsadoCargar" class="collapse in">
-                <div class="modal-body modalCuerpo">
-                <div class="row">
-                    <div class="col-lg-2 col-lg-offset-1">
-                      <h5>FECHA DE LAYOUT</h5>
-                      <input id="cargaFechaActual" type='text' class="form-control" readonly>
-                    </div>
-                    <div class="col-lg-2">
-                      <h5>FECHA DE GENERACIÓN</h5>
-                      <input id="cargaFechaGeneracion" type='text' class="form-control" readonly>
-                    </div>
-                    <div class="col-lg-2">
-                      <h5>CASINO</h5>
-                      <input id="cargaCasino" type='text' class="form-control" readonly>
-                    </div>
-                    <div class="col-lg-2">
-                      <h5>TURNO</h5>
-                      <input id="cargaTurno" type='text' class="form-control" readonly>
-                    </div>
-                  </div>
-                  <br>
-                  <div class="row">
-                    <div class="col-xs-3 col-xs-offset-1">
-                        <h5>FISCALIZADOR CARGA</h5>
-                        <input id="fiscaCarga" type="text"class="form-control" readonly>
-                    </div>
-                    <div class="col-xs-3">
-                        <h5>FISCALIZADOR TOMA</h5>
-                        <input id="inputFisca" data-fisca="" class="form-control" size="100" type="text" autocomplete="off" />
-                    </div>
-                    <div class="col-xs-4">
-                        <h5>FECHA EJECUCIÓN</h5>
-                        <div class='input-group date' id='dtpFecha' data-link-field="fecha_ejecucion" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii">
-                            <input type='text' class="form-control" placeholder="Fecha de ejecución del control" id="fecha" />
-                            <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                            <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                        </div>
-                        <input type="hidden" id="fecha_ejecucion" value=""/>
-                    </div>
-                  </div>
-                  <div class="row tabs" style="background-color:rgb(250,250,250);padding-bottom: 0px;">
-                    <h4 class="col-lg-6 tabActivas tabTitle" tabDiv="#modalCargaControlLayout .activas"  ><b>ACTIVAS</b></h4>
-                    <h4 class="col-lg-6 tabInactivas tabTitle" tabDiv="#modalCargaControlLayout .inactivas"><b>INACTIVAS</b></h4>
-                  </div>
-                  <div class="activas row tabDiv" style="overflow-y: scroll;height: 450px;">
-                  </div>
-                  <div class="inactivas row tabDiv" style="overflow-y: scroll;height: 450px;"><form id="frmCargaControlLayout" name="frmCargaLayout" class="form-horizontal" novalidate="">
-                          <div class="row">
-                              <div class="col-md-12">
-                                  <table id="tablaCargaControlLayout" class="table">
-                                      <thead>
-                                          <tr>
-                                              <th width="22%" style="text-align: center;">SECTOR</th>
-                                              <th width="18%" style="text-align: center;">ISLA</th>
-                                              <th width="14%" style="text-align: center;">N° ADMIN</th>
-                                              <th width="16%" style="text-align: center;">C.O <i class="fa fa-question-circle" data-toggle="popover" data-trigger="hover" data-title="CÓDIGO DE OBSERVACIÓN" data-content="Código que indica el motivo de la no toma."></i></th>
-                                              <th width="16%" style="text-align: center;">PROGRESIVO BLOQ</th>
-                                              <th width="10%"></th>
-                                          </tr>
-                                      </thead>
-                                      <tbody id="controlLayout">
-                                      </tbody>
-                                  </table>
-                                  <button class="btn btn-success btn-agregarNivel" type="button"><i class="fa fa-fw fa-plus"></i> AGREGAR MÁQUINA</button>
-                              </div>
-                          </div>
-                  </form></div>
-                  <br>
-                  <div class="row">
-                      <span class="col-md-8 col-md-offset-2">
-                        <h5>CANTIDAD TOTAL DE MÁQUINAS ACTIVAS:</h5>
-                        <input class="total_activas" disabled>
-                      </span>
-                  </div>
-                  <br>
-                  <div class="row">
-                      <div class="col-md-8 col-md-offset-2">
-                        <h5>OBSERVACIONES</h5>
-                        <textarea id="observacion_carga" class="form-control" style="resize:vertical;"></textarea>
-                      </div>
-                  </div>
-
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-warningModificar" id="btn-guardarTemp" value="nuevo" style="position:absolute;left:20px;">GUARDAR TEMPORALMENTE</button>
-                  <button type="button" class="btn btn-successAceptar" id="btn-guardar" value="nuevo">FINALIZAR</button>
-                  <button type="button" class="btn btn-default" id="btn-salir">SALIR</button>
-                  <div class="mensajeSalida">
-                      <br>
-                      <span style="font-family:'Roboto-Black'; color:#EF5350;">CAMBIOS SIN GUARDAR</span>
-                      <br>
-                      <span style="font-family:'Roboto'; color:#555;">Presione SALIR nuevamente para salir sin guardar cambios.</span>
-                  </div>
-                  <div class="mensajeConfirmacion">
-                      <br>
-                      <span style="font-family:'Roboto-Black'; color:#EF5350;">Ocurrieron errores.</span>
-                      <br>
-                      <span style="font-family:'Roboto'; color:#555;">Si presiona finalizar nuevamente se enviará de todas formas.</span>
-                  </div>
-                  <input type="hidden" id="id_layout_total" value="0">
-                </div>
-              </div>
-            </div>
-          </div>
-    </div>
 
 <table hidden>
   <tr id="filaEjemploInactivasLayout" class="NivelLayout" id_nivel_layout="0">
@@ -476,99 +353,122 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
   </tr>
 </table>
 
-<div class="modal fade" id="modalValidarControl" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog" style="width:94%;">
-        <div class="modal-content">
-            <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#69F0AE;padding-bottom: 8px;">
-                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoValidar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                <h3 class="modal-title">VALIDAR CONTROL LAYOUT</h3>
+<div class="modal fade" id="modalLayoutTotal" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog" style="width:94%;">
+    <div class="modal-content">
+      <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:red;padding-bottom: 8px;">
+        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+        <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#modalLayoutTotalColapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+        <h3 class="modal-title">ABCDEFGH</h3>
+      </div>
+      <div id="modalLayoutTotalColapsado" class="collapse in">
+        <div class="modal-body modalCuerpo">
+          <div class="row">
+            <div class="col-lg-2 col-lg-offset-1">
+              <h5>FECHA DE LAYOUT</h5>
+              <input id="fecha_layout" type='text' class="form-control" readonly>
             </div>
-            <div id="colapsadoValidar" class="collapse in">
-                <div class="modal-body modalCuerpo">
-                    <div class="row">
-                        <div class="col-lg-2 col-lg-offset-1">
-                            <h5>FECHA DE LAYOUT</h5>
-                            <input id="validarFechaActual" type='text' class="form-control" readonly>
-                        </div>
-                        <div class="col-lg-2">
-                            <h5>FECHA DE GENERACIÓN</h5>
-                            <input id="validarFechaGeneracion" type='text' class="form-control" readonly>
-                        </div>
-                        <div class="col-lg-2">
-                            <h5>CASINO</h5>
-                            <input id="validarCasino" type='text' class="form-control" readonly>
-                        </div>
-                        <div class="col-lg-2">
-                            <h5>TURNO</h5>
-                            <input id="validarTurno" type='text' class="form-control" readonly>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-3 col-xs-offset-1">
-                            <h5>FISCALIZADOR CARGA</h5>
-                            <input id="validarFiscaCarga" type="text" class="form-control" readonly>
-                        </div>
-                        <div class="col-xs-3">
-                            <h5>FISCALIZADOR TOMA</h5>
-                            <input id="validarInputFisca" data-fisca="" class="form-control" size="100" type="text" />
-                        </div>
-                        <div class="col-xs-4">
-                            <h5>FECHA EJECUCIÓN</h5>
-                            <input id="validarFechaEjecucion" type='text' class="form-control" placeholder="Fecha de ejecución del control"  readonly="true" />
-                        </div>
-                    </div>
-                    <div class="row tabs" style="background-color:rgb(250,250,250);padding-bottom: 0px;">
-                      <h4 class="col-lg-4 tabActivas tabTitle" tabDiv="#modalValidarControl .activas"><b>ACTIVAS</b></h4>
-                      <h4 class="col-lg-4 tabInactivas tabTitle" tabDiv="#modalValidarControl .inactivas" ><b>INACTIVAS</b></h4>
-                      <h4 class="col-lg-4 tabDiferencias tabTitle" tabDiv="#modalValidarControl .diferencias"><b>DIFERENCIAS</b></h4>
-                    </div>
-                    <div class="activas row tabDiv" style="overflow-y: scroll;height: 450px;">
-                    </div>
-                    <div class="inactivas row tabDiv" style="overflow-y: scroll;height: 450px;">
-                      <div class="row">
-                          <div class="col-md-12">
-                              <table id="tablaValidarControlLayout" class="table">
-                                  <thead>
-                                      <tr>
-                                          <th width="20%" style="text-align: center;">SECTOR</th>
-                                          <th width="16%" style="text-align: center;">ISLA</th>
-                                          <th width="12%" style="text-align: center;">N° ADMIN</th>
-                                          <th width="14%" style="text-align: center;">C.O</th>
-                                          <th width="14%" style="text-align: center;">PROGRESIVO BLOQ</th>
-                                          <th width="18%"></th>
-                                      </tr>
-                                  </thead>
-                                  <tbody id="validarControlLayout">
-                                  </tbody>
-                              </table>
-                          </div>
-                      </div>
-                    </div>
-                    <div class="diferencias row tabDiv" style="overflow-y: scroll;height: 450px;">
-                    </div>
-                    <div class="row" style="border-top: 1px solid #ddd">
-                        <div class="col-md-8 col-md-offset-2">
-                            <h5>OBSERVACIONES FISCALIZADOR</h5>
-                            <textarea id="observacion_carga_validacion" class="form-control" style="resize:vertical;" disabled></textarea>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-8 col-md-offset-2">
-                            <h5>OBSERVACIONES</h5>
-                            <textarea id="observacion_validar" class="form-control" style="resize:vertical;"></textarea>
-                        </div>
-                    </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-successAceptar" id="btn-finalizarValidacion" value="nuevo">VALIDAR RELEVAMIENTO</button>
-                        <button type="button" class="btn btn-default" id="btn-salirValidacion" data-dismiss="modal">SALIR</button>
-                        <input type="hidden" id="id_relevamiento" value="0">
-                    </div>
-                </div>
+            <div class="col-lg-2">
+              <h5>FECHA DE GENERACIÓN</h5>
+              <input id="fecha_generacion_layout" type='text' class="form-control" readonly>
             </div>
+            <div class="col-lg-2">
+              <h5>CASINO</h5>
+              <input id="casino_layout" type='text' class="form-control" readonly>
+            </div>
+            <div class="col-lg-2">
+              <h5>TURNO</h5>
+              <input id="turno_layout" type='text' class="form-control" readonly>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-xs-3 col-xs-offset-1">
+              <h5>FISCALIZADOR CARGA</h5>
+              <input id="fiscalizador_carga_layout" type="text" class="form-control" readonly>
+            </div>
+            <div class="col-xs-3">
+              <h5>FISCALIZADOR TOMA</h5>
+              <input id="fiscalizador_toma_layout" data-fisca="" class="form-control" size="100" type="text"/>
+            </div>
+            <div class="col-xs-4">
+              <h5>FECHA EJECUCIÓN</h5>
+              <div class='input-group date' id='dtpFechaEjecucionLayout' data-link-field="fecha_ejecucion_layout_hidden" data-date-format="dd MM yyyy HH:ii" data-link-format="yyyy-mm-dd HH:ii">
+                  <input type='text' class="form-control" placeholder="Fecha de ejecución del control" id="fecha_ejecucion_layout" />
+                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+              </div>
+              <input type="hidden" id="fecha_ejecucion_layout_hidden" value=""/>
+            </div>
+          </div>
+          <div class="row tabs" style="background-color:rgb(250,250,250);padding-bottom: 0px;">
+            <h4 class="tabTitle" tabDiv="#activas_layout" id="tabActivas" style="float: left;"><b>ACTIVAS</b></h4>
+            <h4 class="tabTitle" tabDiv="#inactivas_layout" style="float: left;" ><b>INACTIVAS</b></h4>
+            <h4 class="tabTitle" tabDiv="#diferencias_layout" id="tabDiferencias" style="float: left;"><b>DIFERENCIAS</b></h4>
+          </div>
+          <div id="activas_layout" class="row tabDiv" style="overflow-y: scroll;height: 450px;">
+          </div>
+          <div id="inactivas_layout" class="row tabDiv" style="overflow-y: scroll;height: 450px;">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th width="20%" style="text-align: center;">SECTOR</th>
+                      <th width="16%" style="text-align: center;">ISLA</th>
+                      <th width="12%" style="text-align: center;">N° ADMIN</th>
+                      <th width="14%" style="text-align: center;">C.O</th>
+                      <th width="14%" style="text-align: center;">PROGRESIVO BLOQ</th>
+                      <th width="18%"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+                <button id="btn_agregar_inactiva_layout" class="btn btn-success" type="button"><i class="fa fa-fw fa-plus"></i> AGREGAR MÁQUINA</button>
+              </div>
+            </div>
+          </div>
+          <div id="diferencias_layout" class="row tabDiv" style="overflow-y: scroll;height: 450px;">
+          </div>
+          <div class="row" style="border-top: 1px solid #ddd">
+            <span class="col-md-8 col-md-offset-2">
+              <h5>CANTIDAD TOTAL DE MÁQUINAS ACTIVAS:</h5>
+              <input id="total_activas_layout" disabled>
+            </span>
+          </div>
+          <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+              <h5>OBSERVACIONES FISCALIZADOR</h5>
+              <textarea id="observaciones_fisca_layout" class="form-control" style="resize:vertical;"></textarea>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+              <h5>OBSERVACIONES</h5>
+              <textarea id="observaciones_adm_layout" class="form-control" style="resize:vertical;"></textarea>
+            </div>
+          </div>
         </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-warningModificar" id="btn_guardartemp_layout" style="position:absolute;left:20px;">GUARDAR TEMPORALMENTE</button>
+          <button type="button" class="btn btn-successAceptar" id="btn_finalizar_layout">FINALIZAR</button>
+          <button type="button" class="btn btn-default" id="btn_salir_layout" data-dismiss="modal">SALIR</button>
+          <div id="mensaje_cambios_layout">
+            <br>
+            <span style="font-family:'Roboto-Black'; color:#EF5350;">CAMBIOS SIN GUARDAR</span>
+            <br>
+            <span style="font-family:'Roboto'; color:#555;">Presione SALIR nuevamente para salir sin guardar cambios.</span>
+          </div>
+          <div id="mensaje_confirmar_layout">
+            <br>
+            <span style="font-family:'Roboto-Black'; color:#EF5350;">Ocurrieron errores.</span>
+            <br>
+            <span style="font-family:'Roboto'; color:#555;">Si presiona finalizar nuevamente se enviará de todas formas.</span>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
   <div id="sectorEjemplo" class="sector" hidden>
@@ -609,7 +509,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
         <i class="far fa-fw fa-file-alt"></i>
       </button>
       @if($usuario->tienePermiso('carga_layout_total'))
-      <button class="btn btn-warning carga" title="CARGAR MAQUINAS NO FUNCIONANDO" type="button" value="-1">
+      <button class="btn btn-warning carga" title="CARGAR LAYOUT TOTAL" type="button" value="-1">
         <i class="fa fa-fw fa-upload"></i>
       </button>
       @endif
@@ -682,7 +582,6 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
         <h3 class="modal-titleEliminar">ADVERTENCIA</h3>
       </div>
-
       <div class="modal-body" style="color:#fff; background-color:#EF5350;">
         <form id="frmEliminar" name="frmEliminarLayout" class="form-horizontal" novalidate="">
           <div class="form-group error ">
@@ -692,7 +591,6 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
           </div>
         </form>
       </div>
-
       <div class="modal-footer">
         <button type="button" class="btn btn-dangerEliminar" id="btn-eliminarModal" value="-1" data-dismiss="modal">ELIMINAR</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>

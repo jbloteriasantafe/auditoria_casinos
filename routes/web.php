@@ -434,7 +434,6 @@ Route::get('relevamientos/chequearRolFiscalizador','UsuarioController@chequearRo
 /* OBTENER FECHA Y HORA ACTUAL */
 Route::get('obtenerFechaActual',function(){
   setlocale(LC_TIME, 'es_ES.UTF-8');
-  // echo date("d F Y");
   return ['fecha' => strftime("%A, %d de %B de %Y"), 'fechaDate' => date("Y-m-d")];
 });
 
@@ -585,7 +584,6 @@ Route::group(['prefix' => 'layouts','middleware' => 'tiene_permiso:ver_seccion_l
   Route::post('/guardarLayoutTotal','LayoutController@guardarLayoutTotal');
   Route::post('/cargarLayoutTotal' , 'LayoutController@cargarLayoutTotal');
   Route::get('/descargarLayoutTotalZip/{nombre}','LayoutController@descargarLayoutTotalZip');
-  Route::get('/obtenerTotalParaValidar/{id}','LayoutController@obtenerTotalParaValidar');
   Route::get('/obtenerLayoutTotal/{id}','LayoutController@obtenerLayoutTotal');
   Route::post('/validarLayoutTotal' , 'LayoutController@validarLayoutTotal');
   Route::post('/usarLayoutTotalBackup' , 'LayoutController@usarLayoutTotalBackup');

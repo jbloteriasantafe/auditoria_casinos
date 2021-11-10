@@ -1167,17 +1167,6 @@ class LayoutController extends Controller
     return view('seccionLayoutTotal', ['casinos' => $casinos , 'estados' => $estados,'usuario'=>$usuario]);
   }
 
-  public function obtenerLayoutTotal($id){
-    $layout_total= LayoutTotal::find($id);
-
-    return ['layout_total' => $layout_total ,
-            'sectores' => $layout_total->casino->sectores,
-            'casino' => $layout_total->casino,
-            'sectores' => $layout_total->casino->sectores,
-            'usuario_cargador' => $layout_total->usuario_cargador ,
-            'usuario_fiscalizador' => $layout_total->usuario_fiscalizador,
-            'detalles' => $layout_total->detalles];
-  }
 
   // crearLayoutTotal crea el relevamiento y los backup
   // los ordena segun el casino 
@@ -1521,16 +1510,17 @@ class LayoutController extends Controller
 
   }
 
-  public function obtenerTotalParaValidar($id){
+
+  public function obtenerLayoutTotal($id){
     $layout_total= LayoutTotal::find($id);
     $errors = $this->verificarAccesoLayoutTotal($layout_total,False);
     if(!is_null($errors)) return $errors;
 
-    return ['layout_total' => $layout_total,
+    return ['layout_total' => $layout_total ,
             'total_activas' => $layout_total->total_activas,
             'total_inactivas' => $layout_total->total_inactivas,
             'sectores' => $layout_total->casino->sectores,
-            'casino' => $layout_total->casino->nombre,
+            'casino' => $layout_total->casino,
             'usuario_cargador' => $layout_total->usuario_cargador ,
             'usuario_fiscalizador' => $layout_total->usuario_fiscalizador,
             'detalles' => $layout_total->detalles];
@@ -1686,10 +1676,6 @@ class LayoutController extends Controller
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     if(!$user->usuarioTieneCasino($layout_total->id_casino)){
       return $this->errorOut([ 'casino' => ['El usuario no puede acceder a ese casino.'] ]);
-    }
-
-    if(!($user->es_administrador || $user->es_superusuario || ($user->es_fiscalizador && $permitir_fiscal))){
-      return $this->errorOut([ 'privilegios' => ['El usuario no puede realizar esa accion.'] ]);
     }
 
     return null;

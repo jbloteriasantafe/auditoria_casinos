@@ -23,7 +23,7 @@ $(document).ready(function(){
     ignoreReadonly: true,
   });
 
-  $('#dtpFecha').datetimepicker({
+  $('#dtpFechaEjecucionLayout').datetimepicker({
     todayBtn:  1,
     language:  'es',
     autoclose: 1,
@@ -42,7 +42,6 @@ $(document).ready(function(){
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.planilla',function(){
-  $('#alertaArchivo').hide();
   window.open('layouts/generarPlanillaLayoutTotales/' + $(this).val(),'_blank');
 });
 
@@ -60,7 +59,7 @@ $('#btn-ayuda').click(function(e){
 //ABRIR MODAL DE NUEVO LAYOUT
 $('#btn-nuevoLayoutTotal').click(function(e){
   e.preventDefault();
-  $('#modalLayoutTotal').modal('show');
+  $('#modalNuevoLayoutTotal').modal('show');
   $.get("obtenerFechaActual", function(data){
     $('#fechaActual').val(data.fecha);
     $('#fechaDate').val(data.fechaDate);
@@ -150,12 +149,12 @@ $('#btn-generar').click(function(e){
       },
       dataType: 'json',
       beforeSend: function(data){
-        $('#modalLayoutTotal').find('.modal-footer').children().hide();
-        $('#modalLayoutTotal').find('.modal-body').children().hide();
+        $('#modalNuevoLayoutTotal').find('.modal-footer').children().hide();
+        $('#modalNuevoLayoutTotal').find('.modal-body').children().hide();
         $('#iconoCarga').show();
       },
       success: function (data) {
-        $('#modalLayoutTotal').modal('hide');
+        $('#modalNuevoLayoutTotal').modal('hide');
         $('#frmLayoutTotal').trigger('reset');
         const pageNumber = $('#herramientasPaginacion').getCurrentPage();
         const tam = $('#tituloTabla').getPageSize();
@@ -174,129 +173,52 @@ $('#btn-generar').click(function(e){
       },
       error: function (data) {
         $('#iconoCarga').hide();
-        $('#modalLayoutTotal').find('.modal-footer').children().show();
-        $('#modalLayoutTotal').find('.modal-body').children().show();
+        $('#modalNuevoLayoutTotal').find('.modal-footer').children().show();
+        $('#modalNuevoLayoutTotal').find('.modal-body').children().show();
 
         const response = JSON.parse(data.responseText);
         if(typeof response.id_casino !== 'undefined'){
-              mostrarErrorValidacion($('#casino'), response.id_casino[0] ,true);
+          mostrarErrorValidacion($('#casino'), response.id_casino[0] ,true);
         }
         if(typeof response.turno !== 'undefined'){
-              mostrarErrorValidacion($('#turno'), "Valor de turno incorrecto.",true);
+          mostrarErrorValidacion($('#turno'), "Valor de turno incorrecto.",true);
         }
       }
   });
 });
 
-function cargarDivActivas(id_layout_total,done = function (x){return;}){
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-  $.ajax({
-    type: "GET",
-    url: 'layouts/islasLayoutTotal/'+id_layout_total,
-    dataType: 'json',
-    success: function(data){
-      const sectorEjemplo = $('#sectorEjemplo').clone().attr('id','').show();
-      const filaEjemplo = $('#filaEjemploActivas').clone().attr('id','').show();
-      const islaEjemplo = $('#islaEjemplo').clone().attr('id','').show();
-      const activas_x_fila = filaEjemplo.attr('activas_por_fila');
-      for(let z = 0;z<data.length;z++){
-        const sector = data[z];
-        let sector_html = sectorEjemplo.clone();
-        sector_html.find('.nombre').text(sector.descripcion);
-        sector_html.attr('data-id-sector',sector.id_sector);
-        let tr = null;
-        for(let i=0;i<sector.islas.length;i++){
-          const isla = sector.islas[i];
-          if(i%activas_x_fila == 0){
-            tr = filaEjemplo.clone();
-            sector_html.find('.cuerpoTabla').append(tr);
-          }
-          let isla_html = islaEjemplo.clone();
-          isla_html.find('.textoIsla').text(isla.nro_isla);
-          isla_html.find('.inputIsla').val(isla.maquinas_observadas);
-          isla_html.attr('data-id-isla',isla.id_isla);
-          tr.append(isla_html);
-        }
 
-        $('#modalCargaControlLayout .activas').append(sector_html);
-      }
-      const inputs = $('#modalCargaControlLayout .activas input');
-      let total_activas = $('#modalCargaControlLayout .total_activas');
-      inputs.change(function(){
-        let total = 0;
-        inputs.each(function(i,input){
-          const val = parseInt($(input).val());
-          total += (isNaN(val)? 0 : val);
-        });
-        total_activas.val(total);
-      });
-      $(inputs[0]).change(); //Trigger change para que se actualize.
-      done();
-    },
-    error: function(data){
-      console.log(data);
-    }
-  });
-}
-
-function cargarDivInactivas(id_layout_total,done = function (x){return;}){
+function cargarDivInactivas(id_layout_total,modo,done = function (x){return;}){
   $.get('http://' + window.location.host +'/layouts/obtenerLayoutTotal/' + id_layout_total, function(data){
-      $('#cargaFechaActual').val(data.layout_total.fecha);
-      $('#cargaFechaGeneracion').val(data.layout_total.fecha_generacion);
-      $('#cargaCasino').val(data.casino.nombre);
-      $('#cargaTurno').val(data.layout_total.turno);
-      $('#fecha').val(data.layout_total.fecha_ejecucion);
-      $('#fecha_ejecucion').val(data.layout_total.fecha_ejecucion);
-      $('#observacion_carga').val(data.layout_total.observacion_fiscalizacion);
+    $('#fecha_layout').val(data.layout_total.fecha);
+    $('#fecha_generacion_layout').val(data.layout_total.fecha_generacion);
+    $('#casino_layout').val(data.casino);
+    $('#turno_layout').val(data.layout_total.turno);
+    $('#fecha_ejecucion_layout').val(data.layout_total.fecha_ejecucion);
+    $('#observaciones_fisca_layout').val(data.layout_total?.observacion_fiscalizacion);
 
-      $('#fiscaCarga').val(data.usuario_cargador?.nombre);
-      $('#modalCargaControlLayout').data('sectores',data.sectores);
+    $('#fiscalizador_carga_layout').val(data.usuario_cargador?.nombre);
+    $('#fiscalizador_toma_layout').generarDataList('usuarios/buscarUsuariosPorNombreYCasino/'+ data.casino.id_casino,'usuarios','id_usuario','nombre',2);
+    $('#fiscalizador_toma_layout').setearElementoSeleccionado(0,"");
+    if (data.usuario_fiscalizador){
+      $('#fiscalizador_toma_layout').setearElementoSeleccionado(data.usuario_fiscalizador.id_usuario,data.usuario_fiscalizador.nombre);
+    }
 
-      $('#inputFisca').generarDataList('usuarios/buscarUsuariosPorNombreYCasino/'+ data.casino.id_casino,'usuarios','id_usuario','nombre',2);
-      $('#inputFisca').setearElementoSeleccionado(0,"");
-      if (data.usuario_fiscalizador){
-        $('#inputFisca').setearElementoSeleccionado(data.usuario_fiscalizador.id_usuario,data.usuario_fiscalizador.nombre);
+    $('#fiscalizador_toma_layout').prop('readonly',modo == "ver" || modo == "validar");
+    $('#observaciones_adm_layout').val(data.layout_total?.observacion_validacion).toggle(modo == "ver" || modo == "validar");
+
+    $('#modalLayoutTotal').data('sectores',data.sectores);
+    if('detalles' in data){
+      for (let i = 0; i < data.detalles.length; i++) {
+        agregarNivel(data.sectores, data.detalles[i],modo);
       }
-      $('#tablaCargaControlLayout tbody tr').remove();
-
-      if('detalles' in data){
-        for (let i = 0; i < data.detalles.length; i++) {
-          agregarNivel(data.sectores, data.detalles[i] , $('#controlLayout') ,'carga');
-        }
-      }
-      done();
-  });
-}
-
-function cargarDivInactivasValidar(id_layout_total,done = function (x){return;}){
-  $.get('http://' + window.location.host +'/layouts/obtenerTotalParaValidar/' + id_layout_total, function(data){
-    $('#validarFechaActual').val(data.layout_total.fecha);
-    $('#validarFechaGeneracion').val(data.layout_total.fecha_generacion);
-    $('#validarCasino').val(data.casino);
-    $('#validarTurno').val(data.layout_total.turno);
-
-    $('#fecha').val(data.layout_total.fecha_ejecucion);
-    $('#validarFechaEjecucion').val(data.layout_total.fecha_ejecucion);
-
-    $('#validarFiscaCarga').val(data.usuario_cargador?.nombre);
-    $('#validarInputFisca').val(data.usuario_fiscalizador?.nombre)
-    .attr('data-fisca',data.usuario_fiscalizador?.id_usuario).prop('readonly',true);
-
-    $('#observacion_carga_validacion').val(data.layout_total?.observacion_fiscalizacion);
-    $('#observacion_validar').val(data.layout_total?.observacion_validacion);
-
-    $('#modalValidarControl').data('sectores',data.sectores);
-
-    $('#tablaValidarControlLayout tbody tr').remove();
-
-    for (let i = 0; i < data.detalles.length; i++) {
-      agregarNivel(data.sectores, data.detalles[i] , $('#validarControlLayout') ,'validar');
     }
     done();
   });
 }
 
-function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
+
+function cargarDivActivas(id_layout_total,modo,done = function (x){return;}){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
     type: "GET",
@@ -305,51 +227,66 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
     success: function(data){
       const sectorEjemplo = $('#sectorEjemplo').clone().attr('id','').show();
       const filaEjemplo = $('#filaEjemploActivas').clone().attr('id','').show();
-      const islaEjemplo = $('#islaEjemploValidar').clone().attr('id','').show();
+      
+      let islaEjemplo = null;
+      if(modo == "validar" || modo == "ver") islaEjemplo = $('#islaEjemploValidar').clone();
+      else if(modo == "cargar") islaEjemplo = $('#islaEjemplo').clone();
+      islaEjemplo.attr('id','').show();
+
       const activas_x_fila = filaEjemplo.attr('activas_por_fila');
-      if(data.length == 0) $('#modalValidarControl .activas').append('<h4>No hay islas asociadas a este layout total</h4>');
+      if(data.length == 0) $('#activas_layout').append('<h4>No hay islas asociadas a este layout total</h4>');
       for(let z = 0;z<data.length;z++){
         const sector = data[z];
         let sector_html = sectorEjemplo.clone();
         sector_html.find('.nombre').text(sector.descripcion);
         sector_html.attr('data-id-sector',sector.id_sector);
-        let tr = null;
+        let fila = null;
         for(let i=0;i<sector.islas.length;i++){
           const isla = sector.islas[i];
           if(i%activas_x_fila == 0){
-            tr = filaEjemplo.clone();
-            sector_html.find('.cuerpoTabla').append(tr);
+            fila = filaEjemplo.clone();
+            sector_html.find('.cuerpoTabla').append(fila);
           }
+
           let isla_html = islaEjemplo.clone();
-          isla_html.find('.textoIsla').text(isla.nro_isla);
-
-          const observado = isla.maquinas_observadas? isla.maquinas_observadas: '0';
-          const sistema = isla.cantidad_maquinas? isla.cantidad_maquinas: '0';
-          isla_html.find('.observado').text(observado);
-          isla_html.find('.sistema').text(sistema);
           isla_html.attr('data-id-isla',isla.id_isla);
-          isla_html.find('.textoIsla').addClass(observado == sistema? 'correcto' : 'incorrecto');
+          isla_html.find('.textoIsla').text(isla.nro_isla);
+          if(modo == "cargar"){
+            isla_html.find('.inputIsla').val(isla.maquinas_observadas);
+          }
+          else {//validar y ver
+            const observado = isla.maquinas_observadas | 0;//castea a int, undefined/null -> 0
+            const sistema = isla.cantidad_maquina | 0;
+            isla_html.find('.observado').text(observado);
+            isla_html.find('.sistema').text(sistema);
+            isla_html.find('.textoIsla').addClass(observado == sistema? 'correcto' : 'incorrecto');
+          }
+          fila.append(isla_html);
+        }
 
-          tr.append(isla_html);
+        if(modo == "validar" || modo == "ver"){//Total por sector
+          let suma = islaEjemplo.clone();
+          suma.addClass('total');
+          suma.find('.textoIsla').text('TOTAL');
+          suma.find('.observado').text(sector.total_observadas);
+          suma.find('.sistema').text(sector.total_sistema);
+          suma.find('.textoIsla').addClass(sector.total_observadas == sector.total_sistema? 'correcto': 'incorrecto');
+          let width = suma.css('width');
+          width = parseFloat(width.substr(0,width.length-1))*2;
+          suma.css('width',width+'%');
+          //Si no hay mas espacio o solo hay espacio para 1 lo pongo en otra fila
+          //Porque ocupa 2 espacios.
+          if(sector.islas.length%activas_x_fila == 0 || (sector.islas.length+1)%activas_x_fila == 0){
+            fila = filaEjemplo.clone();
+            sector_html.find('.cuerpoTabla').append(fila);
+          }
+          fila.append(suma);
         }
-        let suma = islaEjemplo.clone();
-        suma.addClass('total');
-        suma.find('.textoIsla').text('TOTAL');
-        suma.find('.observado').text(sector.total_observadas);
-        suma.find('.sistema').text(sector.total_sistema);
-        suma.find('.textoIsla').addClass(sector.total_observadas == sector.total_sistema? 'correcto': 'incorrecto');
-        let width = suma.css('width');
-        width = parseFloat(width.substr(0,width.length-1))*2;
-        suma.css('width',width+'%');
-        //Si no hay mas espacio o solo hay espacio para 1 lo pongo en otra fila
-        //Porque ocupa 2 espacios.
-        if(sector.islas.length%activas_x_fila == 0 || (sector.islas.length+1)%activas_x_fila == 0){
-          tr = filaEjemplo.clone();
-          sector_html.find('.cuerpoTabla').append(tr);
-        }
-        tr.append(suma);
-        
-        $('#modalValidarControl .activas').append(sector_html);
+
+        $('#activas_layout').append(sector_html);
+      }
+      if(modo == "carga"){
+        $('#activas_layout input').eq(0).change();//Trigger change para que se actualize el total.
       }
       done();
     },
@@ -359,35 +296,27 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
   });
 }
 
-$(document).on('click','.carga',function(e){
+$(document).on('change','#activas_layout .sector input',function(e){
   e.preventDefault();
-
-  const id_layout_total = $(this).val();
-  $('#id_layout_total').val(id_layout_total);
-
-  $('#btn-guardar').show();
-  $('#btn-guardarTemp').show();
-  $('#modalCargaControlLayout .tabActivas').click();
-  //El que termina primero setea la bandera, el segundo muestra el modal.
-  let done = false;
-  const donef = function(){
-    if(done) $('#modalCargaControlLayout').modal('show');
-    else done = true;
-  };
-  cargarDivActivas(id_layout_total,donef);
-  cargarDivInactivas(id_layout_total,donef);
-});
+  let total = 0;
+  const inputs = $('#activas_layout .sector input');
+  inputs.each(function(i,input){
+    const val = parseInt($(input).val());
+    total += (isNaN(val)? 0 : val);
+  });
+  $('#total_activas_layout').val(total);
+})
 
 //Esta funcion hace un "post processing" de las pestañas de activas e inactivas, 
 //esto esta asi porque se tuvo que adaptar codigo existente, que no tenia tiempo de cambiar.
-function cargarDivDiferenciasValidar(){
+function cargarDivDiferencias(){
   let tabla = $('#tablaDiferenciasEjemplo').clone().attr('id','').show();
   const filaEjemplo = tabla.find('.diferenciasFilaEjemplo').clone().removeClass('diferenciasFilaEjemplo');
   tabla.find('.diferenciasFilaEjemplo').remove();
 
   let sectores = [];
   //Busco en el div de activas cada sector y le saco la info
-  $('#modalValidarControl .activas div.sector').each(function(){
+  $('#activas_layout div.sector').each(function(){
     const t = $(this);
     let islaTotal = t.find('.total');
     const nombre = t.find('.nombre').text();
@@ -402,10 +331,9 @@ function cargarDivDiferenciasValidar(){
     sectores[id_sector]['islaTotal'] = islaTotal;
   });
 
-
   islas_con_inactivas = [];
   //Busco en el div de inactivas, saco cuantas invalidas hay por sector y en que isla.
-  $('#modalValidarControl .inactivas .NivelLayout').each(function(){
+  $('#inactivas_layout .NivelLayout').each(function(){
     const t = $(this);
     const id_sector = t.find('select').val();
     const nro_isla = t.find('.nro_isla').val();
@@ -470,7 +398,7 @@ function cargarDivDiferenciasValidar(){
   }
 
   //Busco la isla correspondiente y le agrego las inactivas
-  $('#modalValidarControl .activas div.sector .isla').each(function(){
+  $('#activas_layout div.sector .isla').each(function(){
     let t = $(this);
     let textoIsla = t.find('.textoIsla');
     const nro_isla = parseInt(textoIsla.text());
@@ -487,7 +415,7 @@ function cargarDivDiferenciasValidar(){
     }
   });
 
-  $('#modalValidarControl .diferencias').append(tabla);
+  $('#diferencias_layout').append(tabla);
 }
 
 $('.tabTitle').on('click',function(){
@@ -498,50 +426,60 @@ $('.tabTitle').on('click',function(){
   $($(this).attr('tabDiv')).show();
 });
 
-function mostrarModalValidacion(id_layout_total,editable = true){
-  $('#id_layout_total').val(id_layout_total);
-
-  //SI ESTÁ GUARDADO NO MUESTRA EL BOTÓN PARA GUARDAR
-  $('#btn-guardar').hide();
-  $('#btn-guardarTemp').hide();
-
-  $('#modalValidarControl .tabActivas').click();
-
-  $('#btn-agregarNivel').hide();
-  //El que termina primero setea la bandera, el segundo muestra el modal.
-  let done = false;
-  const donef = function(){
-    if(done){
-      cargarDivDiferenciasValidar();
-      if(editable){
-        $('#observacion_validar').removeAttr('disabled');
-        $('#modalValidarControl .modal-title').text('VALIDAR CONTROL LAYOUT');
-        $('#btn-finalizarValidacion').show();
-      }
-      else{
-        $('#observacion_validar').attr('disabled','disabled');
-        $('#modalValidarControl .modal-title').text('VISUALIZAR CONTROL LAYOUT');
-        $('#btn-finalizarValidacion').hide();
-      }
-      $('#modalValidarControl').modal('show');
-    }
-    else done = true;
-  };
-  cargarDivActivasValidar(id_layout_total,donef);
-  cargarDivInactivasValidar(id_layout_total,donef);
-}
-
 $(document).on('click','.validar',function(e){
   e.preventDefault();
-  const id_layout_total = $(this).val();
-  mostrarModalValidacion(id_layout_total,true);
+  mostrarModalLayoutTotal($(this).val(),'validar');
 });
 
 $(document).on('click','.ver',function(e){
   e.preventDefault();
-  const id_layout_total = $(this).val();
-  mostrarModalValidacion(id_layout_total,false);
+  mostrarModalLayoutTotal($(this).val(),'ver');
 });
+
+$(document).on('click','.carga',function(e){
+  e.preventDefault();
+  mostrarModalLayoutTotal($(this).val(),'cargar');
+});
+
+function mostrarModalLayoutTotal(id_layout_total,modo){  
+  $('#btn_finalizar_layout').val(id_layout_total);
+  if(modo == 'validar'){
+    $('#modalLayoutTotal .modal-title').text('VALIDAR CONTROL LAYOUT');
+    $('#observaciones_adm_layout').removeAttr('disabled');
+    $('#btn_finalizar_layout').text('VALIDAR').show();
+    $('#btn_finalizar_layout').show();
+    $('#btn_agregar_inactiva_layout').hide();
+    $('#tabDiferencias').show();
+  }
+  else if(modo == 'ver'){
+    $('#modalLayoutTotal .modal-title').text('VISUALIZAR CONTROL LAYOUT');
+    $('#observaciones_adm_layout').attr('disabled','disabled');
+    $('#btn_finalizar_layout').hide();
+    $('#btn_guardartemp_layout').hide();
+    $('#btn_agregar_inactiva_layout').hide();
+    $('#tabDiferencias').show();
+  }
+  else if(modo == 'cargar'){
+    $('#modalLayoutTotal .modal-title').text('CARGAR CONTROL LAYOUT');
+    $('#btn_finalizar_layout').show();
+    $('#btn_guardartemp_layout').show();
+    $('#btn_agregar_inactiva_layout').show();
+    $('#tabDiferencias').hide();
+  }
+  else return;
+
+  $('#tabActivas').click();
+  
+  cargarDivActivas(id_layout_total,modo,function(){
+    cargarDivInactivas(id_layout_total,modo,function(){
+      if(modo == "ver" || modo == "validar"){
+        cargarDivDiferencias();
+      }
+      $('#modalLayoutTotal').modal('show');
+    });
+  });
+}
+
 
 $('#btn-eliminarModal').on('click', function() {
   $.ajaxSetup({ headers: {  'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } })
@@ -564,16 +502,16 @@ $(document).on('click','.eliminar',function(e){
 });
 
 //SALIR DEL RELEVAMIENTO
-$('#btn-salir').click(function(){
+$('#btn_salir_layout').click(function(){
   //Si está guardado deja cerrar el modal
   const estado = $(this).data('estado_cambios');
-  if (estado == 'GUARDADOS') $('#modalCargaControlLayout').modal('hide');
+  if (estado == 'GUARDADOS') $('#modalLayoutTotal').modal('hide');
   else if (estado == 'SIN GUARDAR'){//Primera vez que toca salir, se le muestra el mensaje que tiene cambios sin guardar
-    $('#modalCargaControlLayout .mensajeSalida').show();
+    $('#mensaje_cambios_layout').show();
     $(this).data('estado_cambios','SIN GUARDAR 2');
   }
   else if (estado == 'SIN GUARDAR 2'){//Segunda vez que toca salir
-    $('#modalCargaControlLayout').modal('hide');
+    $('#modalLayoutTotal').modal('hide');
   }
 });
 
@@ -587,7 +525,7 @@ $('.selectCasinos').on('change',function(){
 function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){console.log(x);}){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   const maquinas = [];
-  $('#tablaCargaControlLayout tbody tr').each(function(){
+  $('#inactivas_layout tbody tr').each(function(){
     const maquina = {
       id_sector :  $(this).find('.sector').val(),
       nro_isla  : $(this).find('.nro_isla').val(),
@@ -600,7 +538,7 @@ function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){cons
   });
 
   const islas = [];
-  $('#modalCargaControlLayout .isla').each(function(){
+  $('#activas_layout .isla').each(function(){
     const t = $(this);
     islas.push({
       id_isla: t.attr('data-id-isla'),
@@ -612,13 +550,13 @@ function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){cons
       type: 'POST',
       url: url,
       data: {
-        id_fiscalizador_toma :  $('#inputFisca').obtenerElementoSeleccionado(),
-        id_layout_total:   $('#id_layout_total').val(),
-        fecha_ejecucion: $('#fecha_ejecucion').val(),
+        id_fiscalizador_toma :  $('#fiscalizador_toma_layout').obtenerElementoSeleccionado(),
+        id_layout_total:   $('#btn_finalizar_layout').val(),
+        fecha_ejecucion: $('#fecha_ejecucion_layout').val(),
         maquinas: maquinas,
-        observacion_fiscalizacion: $('#observacion_carga').val(),
+        observacion_fiscalizacion: $('#observaciones_fisca_layout').val(),
         //Si ya le mostre el mensaje de confirmacion y manda finalizar de vuelta, en el backend se ignoran algunos chequeos
-        confirmacion: $('#modalCargaControlLayout .mensajeConfirmacion').is(':visible'),
+        confirmacion: $('#mensaje_confirmar_layout').is(':visible'),
         islas: islas
       },
       dataType: 'json',
@@ -627,7 +565,7 @@ function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){cons
   });
 }
 
-$('#btn-guardarTemp').click(function(e){
+$('#btn_guardartemp_layout').click(function(e){
   e.preventDefault();
   enviarLayout('http://' + window.location.host +'/layouts/guardarLayoutTotal',
     function(x){
@@ -658,7 +596,7 @@ function mostrarError(mensaje = '') {
 
 function verificarFormularioCarga(){
   let error = false;
-  $('#modalCargaControlLayout .isla input').each(function(){
+  $('#modalLayoutTotal .isla input').each(function(){
     const t = $(this);
     const val = t.val();
     const intVal = parseInt(val);
@@ -670,8 +608,7 @@ function verificarFormularioCarga(){
   return error? "Islas incompletas o con valores invalidos" : null;
 }
 
-//FINALIZAR CARGA RELEVAMIENTO
-$('#btn-guardar').click(function(e){
+$('#btn_finalizar_layout').click(function(e){
   e.preventDefault();
 
   const mensaje = verificarFormularioCarga();
@@ -686,7 +623,7 @@ $('#btn-guardar').click(function(e){
     $('#mensajeExito p').text("Se ha cargado correctamente el control de Layout Total.");
     $('#mensajeExito').show();
     $('#btn-buscar').trigger('click');
-    $('#modalCargaControlLayout').modal('hide');
+    $('#modalLayoutTotal').modal('hide');
   };
 
   const error = function (data) {
@@ -694,12 +631,12 @@ $('#btn-guardar').click(function(e){
     let error_no_aceptable = false;//true ocurrio un error que no necesite ser corregido
     let error_aceptable    = false;//true si necesito pedir confirmacion
     if(typeof response.id_fiscalizador_toma !== 'undefined'){
-      mostrarErrorValidacion($('#inputFisca'),response.id_fiscalizador_toma[0] ,true);
+      mostrarErrorValidacion($('#fiscalizador_toma_layout'),response.id_fiscalizador_toma[0] ,true);
       error_no_aceptable = true;
     }
 
     if(typeof response.fecha_ejecucion !== 'undefined'){
-      mostrarErrorValidacion($('#fecha'),response.fecha_ejecucion[0] ,true);
+      mostrarErrorValidacion($('#fecha_ejecucion_layout'),response.fecha_ejecucion[0] ,true);
       error_no_aceptable = true;
     }
 
@@ -724,7 +661,7 @@ $('#btn-guardar').click(function(e){
 
     //Pedir confirmacion si hay un error aceptable y ninguno no aceptable
     const confirmacion = error_aceptable && !error_no_aceptable;
-    $('#modalCargaControlLayout .mensajeConfirmacion').toggle(confirmacion);
+    $('#mensaje_confirmar_layout').toggle(confirmacion);
   };
 
   enviarLayout('http://' + window.location.host +'/layouts/cargarLayoutTotal',success,error);
@@ -773,7 +710,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
         $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
       },
       error: function (data) {
-          console.log('Error:', data);
+        console.log('Error:', data);
       }
     });
 });
@@ -804,7 +741,6 @@ function clickIndice(e,pageNumber,tam){
   const orden = $('#tablaLayouts .activa').attr('estado');
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
-
 
 function generarFilaTabla(layout_total){
   let fila = $('#filaEjemplo').clone();
@@ -838,9 +774,8 @@ $(document).on('click','.imprimir',function(){
   window.open('layouts/generarPlanillaLayoutTotalesCargado/' + $(this).val(),'_blank');
 });
 
-//Agrega nivel de layout
-$(document).on('click','.btn-agregarNivel',function(){
-  agregarNivel($('#modalCargaControlLayout').data('sectores'),{},$('#controlLayout'),'carga');
+$('#btn_agregar_inactiva_layout').click(function(){
+  agregarNivel($('#modalLayoutTotal').data('sectores'),{},'carga');
 });
 
 //borrar un nivel de layout
@@ -848,16 +783,16 @@ $(document).on('click','.borrarNivelLayout',function(){
   $(this).parent().parent().remove();
 });
 
-$(document).on('input' , '#modalCargaControlLayout input,#modalCargaControlLayout textarea,#modalCargaControlLayout select' ,function(){
-  $('#btn-salir').data('estado_cambios','SIN GUARDAR');
-  $('#modalCargaControlLayout .mensajeSalida').hide();
+$(document).on('input' , '#modalLayoutTotal input,#modalLayoutTotal textarea,#modalLayoutTotal select' ,function(){
+  $('#btn_salir_layout').data('estado_cambios','SIN GUARDAR');
+  $('#modalLayoutTotal .mensajeSalida').hide();
 });
 
-function agregarNivel(sectores,nivel,tabla,funcion){
+function agregarNivel(sectores,nivel,modo){
   const nivel_vacio = { id_nivel_layout: "", descripcion_sector: "", nro_isla: null, 
                         nro_admin: null, id_maquina: 0, co: null, pb: null };
   const n = Object.assign(nivel_vacio,nivel);
-  const editable = funcion == 'carga';
+  const editable = modo == 'cargar';
 
   const fila = $('#filaEjemploInactivasLayout').clone().removeAttr('id');
   fila.attr('id_nivel_layout',n.id_nivel_layout);
@@ -867,12 +802,12 @@ function agregarNivel(sectores,nivel,tabla,funcion){
   fila.find('.co').val(n.co);
   fila.find('.pb').prop('checked',n.pb);
 
-  if( funcion == 'carga' ){//agrego buscador y boton borrar (renglon)
+  if( modo == 'cargar' ){//agrego buscador y boton borrar (renglon)
     fila.find('.gestion_maquina').remove();
     fila.find('.nro_admin').generarDataList("http://" + window.location.host + "/maquinas/obtenerMTMEnCasino/" + sectores[0].id_casino  ,'maquinas','id_maquina','nro_admin',1,false);
     fila.find('.nro_admin').setearElementoSeleccionado(n.id_maquina,n.nro_admin);
   }
-  else if(funcion == 'validar'){
+  else if(modo == 'validar' || modo == "ver"){
     fila.find('.borrarNivelLayout').remove();
     fila.find('.gestion_maquina').attr('href' , 'http://' + window.location.host + '/maquinas/' + nivel.id_maquina );
     fila.find('.gestion_maquina').popover({html:true});
@@ -888,7 +823,7 @@ function agregarNivel(sectores,nivel,tabla,funcion){
   }
   fila.find('.nro_isla').val(n.nro_isla);
   select.val(id_sector);
-  tabla.append(fila);
+  $('#inactivas_layout tbody').append(fila);
 }
 
 $(document).on('change','.NivelLayout .sector',function(e){
@@ -908,24 +843,22 @@ $(document).on('change','.NivelLayout .sector',function(e){
 $('.modal').on('hidden.bs.modal', limpiarModales);
 
 function limpiarModales(){
-  const campos = $('#modalLayoutTotal,#modalLayoutSinSistema,#modalCargaControlLayout,#modalValidarControl').find('input,select,textarea');
+  const campos = $('#modalNuevoLayoutTotal,#modalLayoutSinSistema,#modalLayoutTotal').find('input,select,textarea');
   ocultarErrorValidacion(campos);
   campos.val('');
-  $('#controlLayout .NivelLayout').remove();
-  $('#inputFisca').popover('hide');
-  $('#inputFisca').prop('readonly' ,false);
-  $('#fecha').popover('hide');
-  $('.activas').empty();
-  $('.diferencias').empty();
-  $('#validarControlLayout').empty();
-  $('#mensajeConfirmacion').hide();
+  
+  $('#inactivas_layout tbody').empty();
+  $('#activas_layout').empty();
+  $('#diferencias_layout').empty();
+  $('#fiscalizador_toma_layout').popover('hide');
+  $('#fecha_ejecucion_layout').popover('hide');
+  $('#mensaje_cambios_layout').hide();//Mensaje guardado
+  $('#btn_salir_layout').data('estado_cambios','GUARDADOS');
+  $('#mensaje_confirmar_layout').hide();//Mensaje confirmar carga */
+
   $('#frmLayoutTotal').trigger('reset');
   $('#frmLayoutSinSistema').trigger('reset');
   $('#iconoCarga').hide();
-  $('#modalLayoutTotal').find('.modal-footer').children().show();
-  $('#modalLayoutTotal').find('.modal-body').children().show();
-
-  $('.mensajeSalida').hide();//Mensaje guardado
-  $('#btn-salir').data('estado_cambios','GUARDADOS');
-  $('.mensajeConfirmacion').hide();//Mensaje confirmar carga 
+  $('#modalNuevoLayoutTotal').find('.modal-footer').children().show();
+  $('#modalNuevoLayoutTotal').find('.modal-body').children().show();
 }
