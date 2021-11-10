@@ -1,8 +1,3 @@
-var salida; //cantidad de veces que se apreta salir
-var guardado;
-var sectores;
-var confirmacion = 0 ;
-
 $(document).ready(function(){
   $('#barraMaquinas').attr('aria-expanded','true');
   $('#maquinas').removeClass();
@@ -41,8 +36,7 @@ $(document).ready(function(){
     minuteStep: 5,
   });
 
-  $('.mensajeConfirmacion').hide();
-  $('#iconoCarga').hide();
+  limpiarModales();
   $('#btn-buscar').trigger('click',[1,10,'layout_total.fecha','desc']);
 });
 
@@ -89,7 +83,6 @@ $('#btn-finalizarValidacion').click(function(e){
         $('#mensajeExito .cabeceraMensaje').removeClass('modificar');
         $('#mensajeExito p').text("Se ha validado correctamente el control de Layout Total.");
         $('#mensajeExito').show();
-        //Una vez validido disparo evento buscar con fecha descendentemente
         $('#btn-buscar').trigger('click');
         $('#modalValidarControl').modal('hide');
       },
@@ -256,17 +249,8 @@ function cargarDivInactivas(id_layout_total,done = function (x){return;}){
       $('#fecha_ejecucion').val(data.layout_total.fecha_ejecucion);
       $('#observacion_carga').val(data.layout_total.observacion_fiscalizacion);
 
-      if (data.usuario_cargador != null) {
-          $('#fiscaCarga').val(data.usuario_cargador.nombre);
-      }
-
-      if (data.usuario_fiscalizador != null) {
-        $('#inputFisca').val(data.usuario_fiscalizador.nombre)
-                        .attr('data-fisca',data.usuario_fiscalizador.id_usuario)
-                        .prop('readonly',true);
-      }
-
-      sectores = data.sectores;
+      $('#fiscaCarga').val(data.usuario_cargador?.nombre);
+      $('#modalCargaControlLayout').data('sectores',data.sectores);
 
       $('#inputFisca').generarDataList('usuarios/buscarUsuariosPorNombreYCasino/'+ data.casino.id_casino,'usuarios','id_usuario','nombre',2);
       $('#inputFisca').setearElementoSeleccionado(0,"");
@@ -276,8 +260,8 @@ function cargarDivInactivas(id_layout_total,done = function (x){return;}){
       $('#tablaCargaControlLayout tbody tr').remove();
 
       if('detalles' in data){
-        for (var i = 0; i < data.detalles.length; i++) {
-          agregarNivel(data.detalles[i] , $('#controlLayout') ,'carga');
+        for (let i = 0; i < data.detalles.length; i++) {
+          agregarNivel(data.sectores, data.detalles[i] , $('#controlLayout') ,'carga');
         }
       }
       done();
@@ -294,30 +278,19 @@ function cargarDivInactivasValidar(id_layout_total,done = function (x){return;})
     $('#fecha').val(data.layout_total.fecha_ejecucion);
     $('#validarFechaEjecucion').val(data.layout_total.fecha_ejecucion);
 
-    if(data.usuario_cargador != null) {
-        $('#validarFiscaCarga').val(data.usuario_cargador.nombre);
-    }
+    $('#validarFiscaCarga').val(data.usuario_cargador?.nombre);
+    $('#validarInputFisca').val(data.usuario_fiscalizador?.nombre)
+    .attr('data-fisca',data.usuario_fiscalizador?.id_usuario).prop('readonly',true);
 
-    if(data.usuario_fiscalizador != null) {
-      $('#validarInputFisca').val(data.usuario_fiscalizador.nombre)
-                      .attr('data-fisca',data.usuario_fiscalizador.id_usuario)
-                      .prop('readonly',true);
-    }
+    $('#observacion_carga_validacion').val(data.layout_total?.observacion_fiscalizacion);
+    $('#observacion_validar').val(data.layout_total?.observacion_validacion);
 
-    if(data.layout_total.observacion_fiscalizacion != null){
-      $('#observacion_carga_validacion').val(data.layout_total.observacion_fiscalizacion);
-    }
-
-    if(data.layout_total.observacion_validacion != null){
-      $('#observacion_validar').val(data.layout_total.observacion_validacion);
-    }
-
-    sectores = data.sectores;
+    $('#modalValidarControl').data('sectores',data.sectores);
 
     $('#tablaValidarControlLayout tbody tr').remove();
 
-    for (var i = 0; i < data.detalles.length; i++) {
-      agregarNivel(data.detalles[i] , $('#validarControlLayout') ,'validar');
+    for (let i = 0; i < data.detalles.length; i++) {
+      agregarNivel(data.sectores, data.detalles[i] , $('#validarControlLayout') ,'validar');
     }
     done();
   });
@@ -388,11 +361,6 @@ function cargarDivActivasValidar(id_layout_total,done = function (x){return;}){
 
 $(document).on('click','.carga',function(e){
   e.preventDefault();
-  //ocultar mensaje de salida
-  salida = 0;
-  guardado = true;
-  $('#modalCargaControlLayout .mensajeSalida').hide();
-  $('#mensajeExito').hide();
 
   const id_layout_total = $(this).val();
   $('#id_layout_total').val(id_layout_total);
@@ -410,7 +378,13 @@ $(document).on('click','.carga',function(e){
   cargarDivInactivas(id_layout_total,donef);
 });
 
-function infoSectores(){
+//Esta funcion hace un "post processing" de las pestañas de activas e inactivas, 
+//esto esta asi porque se tuvo que adaptar codigo existente, que no tenia tiempo de cambiar.
+function cargarDivDiferenciasValidar(){
+  let tabla = $('#tablaDiferenciasEjemplo').clone().attr('id','').show();
+  const filaEjemplo = tabla.find('.diferenciasFilaEjemplo').clone().removeClass('diferenciasFilaEjemplo');
+  tabla.find('.diferenciasFilaEjemplo').remove();
+
   let sectores = [];
   //Busco en el div de activas cada sector y le saco la info
   $('#modalValidarControl .activas div.sector').each(function(){
@@ -420,7 +394,6 @@ function infoSectores(){
     const observado = parseInt(islaTotal.find('.observado').text());
     const sistema = parseInt(islaTotal.find('.sistema').text());
     const id_sector = t.attr('data-id-sector');
-    //console.log("AGREGANDO "+id_sector);
     sectores[id_sector] = [];
     sectores[id_sector]['nombre'] = nombre;
     sectores[id_sector]['activas'] = observado;
@@ -429,16 +402,6 @@ function infoSectores(){
     sectores[id_sector]['islaTotal'] = islaTotal;
   });
 
-  return sectores;
-}
-//Esta funcion hace un "post processing" de las pestañas de activas e inactivas, 
-//esto esta asi porque se tuvo que adaptar codigo existente, que no tenia tiempo de cambiar.
-function cargarDivDiferenciasValidar(){
-  let tabla = $('#tablaDiferenciasEjemplo').clone().attr('id','').show();
-  const filaEjemplo = tabla.find('.diferenciasFilaEjemplo').clone().removeClass('diferenciasFilaEjemplo');
-  tabla.find('.diferenciasFilaEjemplo').remove();
-
-  sectores = infoSectores();
 
   islas_con_inactivas = [];
   //Busco en el div de inactivas, saco cuantas invalidas hay por sector y en que isla.
@@ -536,11 +499,6 @@ $('.tabTitle').on('click',function(){
 });
 
 function mostrarModalValidacion(id_layout_total,editable = true){
-  //ocultar mensaje de salida
-  salida = 0;
-  guardado = true;
-  $('#modalValidarControlLayout .mensajeSalida').hide();
-  $('#mensajeExito').hide();
   $('#id_layout_total').val(id_layout_total);
 
   //SI ESTÁ GUARDADO NO MUESTRA EL BOTÓN PARA GUARDAR
@@ -608,15 +566,14 @@ $(document).on('click','.eliminar',function(e){
 //SALIR DEL RELEVAMIENTO
 $('#btn-salir').click(function(){
   //Si está guardado deja cerrar el modal
-  if (guardado) $('#modalCargaControlLayout').modal('hide');
-  //Si no está guardado
-  else{
-    if (salida == 0) {
-      $('#modalCargaControlLayout .mensajeSalida').show();
-      salida = 1;
-    }else {
-      $('#modalCargaControlLayout').modal('hide');
-    }
+  const estado = $(this).data('estado_cambios');
+  if (estado == 'GUARDADOS') $('#modalCargaControlLayout').modal('hide');
+  else if (estado == 'SIN GUARDAR'){//Primera vez que toca salir, se le muestra el mensaje que tiene cambios sin guardar
+    $('#modalCargaControlLayout .mensajeSalida').show();
+    $(this).data('estado_cambios','SIN GUARDAR 2');
+  }
+  else if (estado == 'SIN GUARDAR 2'){//Segunda vez que toca salir
+    $('#modalCargaControlLayout').modal('hide');
   }
 });
 
@@ -660,7 +617,8 @@ function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){cons
         fecha_ejecucion: $('#fecha_ejecucion').val(),
         maquinas: maquinas,
         observacion_fiscalizacion: $('#observacion_carga').val(),
-        confirmacion: confirmacion,
+        //Si ya le mostre el mensaje de confirmacion y manda finalizar de vuelta, en el backend se ignoran algunos chequeos
+        confirmacion: $('#modalCargaControlLayout .mensajeConfirmacion').is(':visible'),
         islas: islas
       },
       dataType: 'json',
@@ -673,7 +631,7 @@ $('#btn-guardarTemp').click(function(e){
   e.preventDefault();
   enviarLayout('http://' + window.location.host +'/layouts/guardarLayoutTotal',
     function(x){
-      guardado=true;
+      $('#btn-salir').data('estado_cambios','GUARDADOS');
       $('#mensajeExito h3').text('ÉXITO DE CARGA');
       $('#mensajeExito .cabeceraMensaje').addClass('modificar');
       $('#mensajeExito p').text("Se ha guardado correctamente el control de Layout Total.");
@@ -733,51 +691,45 @@ $('#btn-guardar').click(function(e){
 
   const error = function (data) {
     const response = data.responseJSON;
-    let bandera_error_no_aceptable = false;//bandera true ocurrio un error que no necesite ser corregido
-    let bandera_error_aceptable    = false;//bandera true si necesito pedir confirmacion
+    let error_no_aceptable = false;//true ocurrio un error que no necesite ser corregido
+    let error_aceptable    = false;//true si necesito pedir confirmacion
     if(typeof response.id_fiscalizador_toma !== 'undefined'){
       mostrarErrorValidacion($('#inputFisca'),response.id_fiscalizador_toma[0] ,true);
-      bandera_error_no_aceptable = true;
+      error_no_aceptable = true;
     }
 
     if(typeof response.fecha_ejecucion !== 'undefined'){
       mostrarErrorValidacion($('#fecha'),response.fecha_ejecucion[0] ,true);
-      bandera_error_no_aceptable = true;
+      error_no_aceptable = true;
     }
 
     $('#controlLayout tr').each(function(i,elem){
       if(typeof response['maquinas.'+ i +'.id_sector'] !== 'undefined'){
         mostrarErrorValidacion($(this).find('.sector') ,response['maquinas.'+ i +'.id_sector'][0] ,false);
-        bandera_error_no_aceptable = true;
+        error_no_aceptable = true;
       }
       if(typeof response['maquinas.'+ i +'.nro_isla'] !== 'undefined'){
         mostrarErrorValidacion($(this).find('.nro_isla') , response['maquinas.'+ i +'.nro_isla'][0],false);
-        bandera_error_no_aceptable = true;
+        error_no_aceptable = true;
       }
       if(typeof response['maquinas.'+ i +'.nro_admin'] !== 'undefined'){
         mostrarErrorValidacion($(this).find('.nro_admin'), response['maquinas.'+ i +'.nro_admin'][0],false);
-        bandera_error_no_aceptable = true;
+        error_no_aceptable = true;
       }
       if(typeof response['maquinas.'+ i +'.no_existe'] !== 'undefined'){
         mostrarErrorValidacion($(this).find('.nro_isla') , response['maquinas.'+ i +'.no_existe'][0],false);
-        bandera_error_aceptable = true;
+        error_aceptable = true;
       }
     });
 
-    if(bandera_error_aceptable && !bandera_error_no_aceptable){
-      pedirValidacion();
-    }else{
-      $('.mensajeConfirmacion').hide();
-    }
+    //Pedir confirmacion si hay un error aceptable y ninguno no aceptable
+    const confirmacion = error_aceptable && !error_no_aceptable;
+    $('#modalCargaControlLayout .mensajeConfirmacion').toggle(confirmacion);
   };
 
   enviarLayout('http://' + window.location.host +'/layouts/cargarLayoutTotal',success,error);
 });
 
-function pedirValidacion(){
-  confirmacion = 1;
-  $('.mensajeConfirmacion').show();
-}
 
 // Todo busqueda Busqueda
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
@@ -814,9 +766,8 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
       success: function (resultados) {
         $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
         $('#cuerpoTabla tr').remove();
-        for (var i = 0; i < resultados.data.length; i++){
+        for (let i = 0; i < resultados.data.length; i++){
           const fila = generarFilaTabla(resultados.data[i]);
-          fila.css('display','');
           $('#cuerpoTabla').append(fila);
         }
         $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
@@ -855,7 +806,6 @@ function clickIndice(e,pageNumber,tam){
 }
 
 
-//La genera PERO NO LA MUESTRA por que lo muestro despues cuando le pongo bien los iconos en base a los permisos...
 function generarFilaTabla(layout_total){
   let fila = $('#filaEjemplo').clone();
   fila.attr('id',layout_total.id_layout_total);
@@ -863,29 +813,25 @@ function generarFilaTabla(layout_total){
   fila.find('.casino').text(layout_total.casino);
   fila.find('.turno').text(layout_total.turno);
   fila.find('.acciones').find('button').val(layout_total.id_layout_total);
-  setearEstado(fila,layout_total.estado);
-  return fila;
-}
-
-function setearEstado(fila,estado){
-  fila.find('.estado').text(estado);
+  fila.find('.estado').text(layout_total.estado);
   //Siempre muestro el de la planilla
   fila.find('.acciones button').hide();
   fila.find('.planilla,.imprimir,.eliminar').show();
   //Hack... la clase se llama faValidado y el estado Visado... todas las demas estan bien estructuradas
-  if(estado == 'Visado') fila.find('.icono_estado').addClass('faValidado');
+  if(layout_total.estado == 'Visado') fila.find('.icono_estado').addClass('faValidado');
   else{
-    fila.find('.icono_estado').addClass(`fa${estado}`);
+    fila.find('.icono_estado').addClass(`fa${layout_total.estado}`);
   }
 
   const estado_a_acciones = {'Generado':['carga'],'Cargando':['carga'],'Finalizado':['ver','validar'],'Visado':['ver']};
-  if(!(estado in estado_a_acciones)) return;
-  for(let idx=0;idx<estado_a_acciones[estado].length;idx++){
-    const accion = estado_a_acciones[estado][idx];
+  if(!(layout_total.estado in estado_a_acciones)) return;
+  for(let idx=0;idx<estado_a_acciones[layout_total.estado].length;idx++){
+    const accion = estado_a_acciones[layout_total.estado][idx];
     fila.find(`.${accion}`).show();
   }
+  fila.css('display','');
+  return fila;
 }
-
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.imprimir',function(){
@@ -894,7 +840,7 @@ $(document).on('click','.imprimir',function(){
 
 //Agrega nivel de layout
 $(document).on('click','.btn-agregarNivel',function(){
-  agregarNivel({},$('#controlLayout'),'carga');
+  agregarNivel($('#modalCargaControlLayout').data('sectores'),{},$('#controlLayout'),'carga');
 });
 
 //borrar un nivel de layout
@@ -903,10 +849,11 @@ $(document).on('click','.borrarNivelLayout',function(){
 });
 
 $(document).on('input' , '#modalCargaControlLayout input,#modalCargaControlLayout textarea,#modalCargaControlLayout select' ,function(){
-  guardado = false;
+  $('#btn-salir').data('estado_cambios','SIN GUARDAR');
+  $('#modalCargaControlLayout .mensajeSalida').hide();
 });
 
-function agregarNivel(nivel,tabla,funcion){
+function agregarNivel(sectores,nivel,tabla,funcion){
   const nivel_vacio = { id_nivel_layout: "", descripcion_sector: "", nro_isla: null, 
                         nro_admin: null, id_maquina: 0, co: null, pb: null };
   const n = Object.assign(nivel_vacio,nivel);
@@ -932,6 +879,7 @@ function agregarNivel(nivel,tabla,funcion){
   }
 
   const select = fila.find('.sector');
+  let id_sector = null;
   for (let i = 0; i < sectores.length; i++) {
     select.append($('<option>').val(sectores[i].id_sector).text(sectores[i].descripcion));
     if(n.descripcion_sector == sectores[i].descripcion){
@@ -957,7 +905,9 @@ $(document).on('change','.NivelLayout .sector',function(e){
   }
 });
 
-$('.modal').on('hidden.bs.modal', function(){//se ejecuta cuando se oculta modal con clase .modal
+$('.modal').on('hidden.bs.modal', limpiarModales);
+
+function limpiarModales(){
   const campos = $('#modalLayoutTotal,#modalLayoutSinSistema,#modalCargaControlLayout,#modalValidarControl').find('input,select,textarea');
   ocultarErrorValidacion(campos);
   campos.val('');
@@ -974,5 +924,8 @@ $('.modal').on('hidden.bs.modal', function(){//se ejecuta cuando se oculta modal
   $('#iconoCarga').hide();
   $('#modalLayoutTotal').find('.modal-footer').children().show();
   $('#modalLayoutTotal').find('.modal-body').children().show();
-  confirmacion = 0 ;
-})
+
+  $('.mensajeSalida').hide();//Mensaje guardado
+  $('#btn-salir').data('estado_cambios','GUARDADOS');
+  $('.mensajeConfirmacion').hide();//Mensaje confirmar carga 
+}
