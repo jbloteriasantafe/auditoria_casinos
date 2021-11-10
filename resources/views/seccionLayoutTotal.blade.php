@@ -40,7 +40,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
   border-radius: 0px;
 }
 .subrayado{
-  border-bottom: 4px solid rgb(255,168,141);
+  border-bottom: 4px solid rgb(255,168,141) !important;
   border-top: 1px solid rgb(255,168,141) !important;
   background: rgba(255, 168, 141, 0.2) !important;
   color: rgb(238, 108, 68) !important;
@@ -64,8 +64,23 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
   padding-top: 5px;
   margin-bottom: 0px;
   border-top: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  border-bottom: 4px solid #ccc;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
+  min-width: 33%;
+}
+.tabs{
+  background-color:rgb(250,250,250);
+  padding-bottom: 0px;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: space-between;
+	align-items: stretch;
+	align-content: stretch;
 }
 </style>
 @endsection
@@ -400,10 +415,10 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
               <input type="hidden" id="fecha_ejecucion_layout_hidden" value=""/>
             </div>
           </div>
-          <div class="row tabs" style="background-color:rgb(250,250,250);padding-bottom: 0px;">
-            <h4 class="tabTitle" tabDiv="#activas_layout" id="tabActivas" style="float: left;"><b>ACTIVAS</b></h4>
-            <h4 class="tabTitle" tabDiv="#inactivas_layout" style="float: left;" ><b>INACTIVAS</b></h4>
-            <h4 class="tabTitle" tabDiv="#diferencias_layout" id="tabDiferencias" style="float: left;"><b>DIFERENCIAS</b></h4>
+          <div class="row tabs">
+            <h4 class="tabTitle" tabDiv="#activas_layout" id="tabActivas"><b>ACTIVAS</b></h4>
+            <h4 class="tabTitle" tabDiv="#inactivas_layout"><b>INACTIVAS</b></h4>
+            <h4 class="tabTitle" tabDiv="#diferencias_layout" id="tabDiferencias"><b>DIFERENCIAS</b></h4>
           </div>
           <div id="activas_layout" class="row tabDiv" style="overflow-y: scroll;height: 450px;">
           </div>

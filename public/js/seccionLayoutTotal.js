@@ -192,7 +192,7 @@ function cargarDivInactivas(id_layout_total,modo,done = function (x){return;}){
   $.get('http://' + window.location.host +'/layouts/obtenerLayoutTotal/' + id_layout_total, function(data){
     $('#fecha_layout').val(data.layout_total.fecha);
     $('#fecha_generacion_layout').val(data.layout_total.fecha_generacion);
-    $('#casino_layout').val(data.casino);
+    $('#casino_layout').val(data.casino.nombre);
     $('#turno_layout').val(data.layout_total.turno);
     $('#fecha_ejecucion_layout').val(data.layout_total.fecha_ejecucion);
     $('#observaciones_fisca_layout').val(data.layout_total?.observacion_fiscalizacion);
@@ -204,8 +204,7 @@ function cargarDivInactivas(id_layout_total,modo,done = function (x){return;}){
       $('#fiscalizador_toma_layout').setearElementoSeleccionado(data.usuario_fiscalizador.id_usuario,data.usuario_fiscalizador.nombre);
     }
 
-    $('#fiscalizador_toma_layout').prop('readonly',modo == "ver" || modo == "validar");
-    $('#observaciones_adm_layout').val(data.layout_total?.observacion_validacion).toggle(modo == "ver" || modo == "validar");
+    $('#observaciones_adm_layout').val(data.layout_total?.observacion_validacion);
 
     $('#modalLayoutTotal').data('sectores',data.sectores);
     if('detalles' in data){
@@ -216,7 +215,6 @@ function cargarDivInactivas(id_layout_total,modo,done = function (x){return;}){
     done();
   });
 }
-
 
 function cargarDivActivas(id_layout_total,modo,done = function (x){return;}){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
@@ -444,27 +442,37 @@ $(document).on('click','.carga',function(e){
 function mostrarModalLayoutTotal(id_layout_total,modo){  
   $('#btn_finalizar_layout').val(id_layout_total);
   if(modo == 'validar'){
+    $('#modalLayoutTotal .modal-header').css('background-color','#69F0AE');
     $('#modalLayoutTotal .modal-title').text('VALIDAR CONTROL LAYOUT');
-    $('#observaciones_adm_layout').removeAttr('disabled');
     $('#btn_finalizar_layout').text('VALIDAR').show();
     $('#btn_finalizar_layout').show();
     $('#btn_agregar_inactiva_layout').hide();
     $('#tabDiferencias').show();
+    $('#fiscalizador_toma_layout').prop('readonly',true);
+    $('#observaciones_fisca_layout').attr('disabled',true);
+    $('#observaciones_adm_layout').show().attr('disabled',false);
   }
   else if(modo == 'ver'){
+    $('#modalLayoutTotal .modal-header').css('background-color','#69F0AE');
     $('#modalLayoutTotal .modal-title').text('VISUALIZAR CONTROL LAYOUT');
-    $('#observaciones_adm_layout').attr('disabled','disabled');
     $('#btn_finalizar_layout').hide();
     $('#btn_guardartemp_layout').hide();
     $('#btn_agregar_inactiva_layout').hide();
     $('#tabDiferencias').show();
+    $('#fiscalizador_toma_layout').prop('readonly',true);
+    $('#observaciones_fisca_layout').attr('disabled',true);
+    $('#observaciones_adm_layout').show().attr('disabled',true);
   }
   else if(modo == 'cargar'){
+    $('#modalLayoutTotal .modal-header').css('background-color','#FF6E40');
     $('#modalLayoutTotal .modal-title').text('CARGAR CONTROL LAYOUT');
     $('#btn_finalizar_layout').show();
     $('#btn_guardartemp_layout').show();
     $('#btn_agregar_inactiva_layout').show();
     $('#tabDiferencias').hide();
+    $('#fiscalizador_toma_layout').prop('readonly',false);
+    $('#observaciones_fisca_layout').attr('disabled',false);
+    $('#observaciones_adm_layout').hide();
   }
   else return;
 
