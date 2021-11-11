@@ -322,6 +322,14 @@ function cargarDivDiferencias(){
     sectores[id_sector]['islaTotal'] = islaTotal;
   });
 
+  $('#inactivas_layout .NivelLayout').each(function(){
+    const t = $(this);
+    const id_sector = t.find('select').val();
+    if(id_sector in sectores){
+      sectores[id_sector]['inactivas']++;
+    }
+  });
+  
   //Agrego una fila por cada uno y seteo la celda total en ACTIVAS
   let total_observadas = 0;
   let total_inactivas = 0;
