@@ -8,10 +8,9 @@
 use Illuminate\Http\Request;
 use App\Http\Controllers\CasinoController;
 
-$activas_por_fila = 23;
+$observadas_por_fila = 23;
 $total_usado = 98; //Dejo un poco de espacio en el borde.
-$porcentaje_por_activa = $total_usado/$activas_por_fila;
-$mitad_porcentaje = $porcentaje_por_activa / 2;
+$porcentaje_por_observada = $total_usado/$observadas_por_fila;
 ?>
 
 @section('estilos')
@@ -415,11 +414,11 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
             </div>
           </div>
           <div class="row tabs">
-            <h4 class="tabTitle" tabDiv="#activas_layout" id="tabActivas"><b>ACTIVAS</b></h4>
+            <h4 class="tabTitle" tabDiv="#observadas_layout" id="tabObservadas"><b>OBSERVADAS</b></h4>
             <h4 class="tabTitle" tabDiv="#inactivas_layout"><b>INACTIVAS</b></h4>
             <h4 class="tabTitle" tabDiv="#diferencias_layout" id="tabDiferencias"><b>DIFERENCIAS</b></h4>
           </div>
-          <div id="activas_layout" class="row tabDiv" style="overflow-y: scroll;height: 450px;">
+          <div id="observadas_layout" class="row tabDiv" style="overflow-y: scroll;height: 450px;">
           </div>
           <div id="inactivas_layout" class="row tabDiv" style="overflow-y: scroll;height: 450px;">
             <div class="row">
@@ -445,8 +444,8 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
           <div id="diferencias_layout" class="row tabDiv" style="overflow-y: scroll;height: 450px;">
           </div>
           <div class="row" style="border-top: 1px solid #ddd">
-            <div id="total_activas_layout" class="col-md-8 col-md-offset-2">
-              <h5>CANTIDAD TOTAL DE MÁQUINAS ACTIVAS:</h5>
+            <div id="total_observadas_layout" class="col-md-8 col-md-offset-2">
+              <h5>CANTIDAD TOTAL DE MÁQUINAS OBSERVADAS:</h5>
               <input disabled>
             </div>
           </div>
@@ -492,8 +491,8 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
     <table class="tablaIslas table table-fixed tablesorter">
       <thead class="cabezeraTabla">
         <tr>
-          @for ($i=1;$i<=$activas_por_fila;$i++)
-          <th style="text-align: center;width: {{$porcentaje_por_activa}}%" class="{{$i}}"></th>
+          @for ($i=1;$i<=$observadas_por_fila;$i++)
+          <th style="text-align: center;width: {{$porcentaje_por_observada}}%" class="{{$i}}"></th>
           @endfor
         </tr>
       </thead>
@@ -505,7 +504,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
   <!-- FILAS EJEMPLO -->
   <!-- Necesito crear tablas por algun motivo sino se rompe el html -->
 <table hidden>
-  <tr id="filaEjemploActivas" style="display: block;" activas_por_fila="{{$activas_por_fila}}"></tr>
+  <tr id="filaEjemploObservadas" style="display: block;" observadas_por_fila="{{$observadas_por_fila}}"></tr>
   <tr id="filaEjemplo" style="display: none;">
     <td class="col-xs-2 fecha">99 Test 9999</td>
     <td class="col-xs-2 casino">CASINO99</td>
@@ -545,13 +544,13 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
 
 <table hidden>
   <tr>
-    <td id="islaEjemplo" style="width: {{$porcentaje_por_activa}}%;" class="isla borde">
+    <td id="islaEjemplo" style="width: {{$porcentaje_por_observada}}%;" class="isla borde">
       <div>
         <div style="text-align: center;" class="textoIsla">-1</div>
         <input class="form-control inputIsla input-chico"/>
       </div>
     </td>
-    <td id="islaEjemploValidar" style="width: {{$porcentaje_por_activa}}%;" class="isla borde chico ">
+    <td id="islaEjemploValidar" style="width: {{$porcentaje_por_observada}}%;" class="isla borde chico ">
       <div>
         <div style="text-align: center;" class="textoIsla">-1</div>
         <div style="text-align: center;">
@@ -565,25 +564,23 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
 </table>
 
 <div hidden>
-  <table id="tablaDiferenciasEjemplo" class="table table-fixed tablesorter col-lg-12">
+  <table id="tablaDiferenciasEjemplo" class="table table-fixed table-bordered tablesorter col-lg-12">
     <thead>
       <tr>
-        <th class="col-lg-2">SECTOR</th>
-        <th class="col-lg-2">ACTIVAS</th>
-        <th class="col-lg-2">INACTIVAS</th>
-        <th class="col-lg-2">TOTAL RELEVADO</th>
-        <th class="col-lg-2">TOTAL SISTEMA</th>
-        <th class="col-lg-2">DIFERENCIA</th>
+        <th class="col-lg-2" style="text-align: center;">SECTOR</th>
+        <th class="col-lg-2" style="text-align: center;">INACTIVAS</th>
+        <th class="col-lg-3" style="text-align: center;">OBSERVADAS</th>
+        <th class="col-lg-3" style="text-align: center;">TOTAL SISTEMA</th>
+        <th class="col-lg-2" style="text-align: center;">DIFERENCIA</th>
       </tr>
     </thead>
     <tbody class="cuerpoTablaDiferencias">
       <tr class="diferenciasFilaEjemplo">
-        <td class="diferenciasSector col-lg-2">SECTOR999</td>
-        <td class="diferenciasActivas col-lg-2">ERROR</td>
-        <td class="diferenciasInactivas col-lg-2">ERROR</td>
-        <td class="diferenciasTotal col-lg-2">ERROR</td>
-        <td class="diferenciasTotalSistema col-lg-2">ERROR</td>
-        <td class="diferenciasDiferencia col-lg-2">ERROR</td>
+        <td class="diferenciasSector col-lg-2" style="text-align: center;">SECTOR999</td>
+        <td class="diferenciasInactivas col-lg-2" style="text-align: right;">ERROR</td>
+        <td class="diferenciasObservadas col-lg-3" style="text-align: right;">ERROR</td>
+        <td class="diferenciasTotalSistema col-lg-3" style="text-align: right;">ERROR</td>
+        <td class="diferenciasDiferencia col-lg-2" style="text-align: right;">ERROR</td>
       </tr>
     </tbody>
   </table>

@@ -209,7 +209,7 @@ function cargarDivInactivas(id_layout_total,modo,done = function (x){return;}){
   });
 }
 
-function cargarDivActivas(id_layout_total,modo,done = function (x){return;}){
+function cargarDivObservadas(id_layout_total,modo,done = function (x){return;}){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
     type: "GET",
@@ -217,15 +217,15 @@ function cargarDivActivas(id_layout_total,modo,done = function (x){return;}){
     dataType: 'json',
     success: function(data){
       const sectorEjemplo = $('#sectorEjemplo').clone().attr('id','').show();
-      const filaEjemplo = $('#filaEjemploActivas').clone().attr('id','').show();
+      const filaEjemplo = $('#filaEjemploObservadas').clone().attr('id','').show();
       
       let islaEjemplo = null;
       if(modo == "validar" || modo == "ver") islaEjemplo = $('#islaEjemploValidar').clone();
       else if(modo == "cargar") islaEjemplo = $('#islaEjemplo').clone();
       islaEjemplo.attr('id','').show();
 
-      const activas_x_fila = filaEjemplo.attr('activas_por_fila');
-      if(data.length == 0) $('#activas_layout').append('<h4>No hay islas asociadas a este layout total</h4>');
+      const observadas_x_fila = filaEjemplo.attr('observadas_por_fila');
+      if(data.length == 0) $('#observadas_layout').append('<h4>No hay islas asociadas a este layout total</h4>');
       for(let z = 0;z<data.length;z++){
         const sector = data[z];
         let sector_html = sectorEjemplo.clone();
@@ -234,7 +234,7 @@ function cargarDivActivas(id_layout_total,modo,done = function (x){return;}){
         let fila = null;
         for(let i=0;i<sector.islas.length;i++){
           const isla = sector.islas[i];
-          if(i%activas_x_fila == 0){
+          if(i%observadas_x_fila == 0){
             fila = filaEjemplo.clone();
             sector_html.find('.cuerpoTabla').append(fila);
           }
@@ -267,17 +267,17 @@ function cargarDivActivas(id_layout_total,modo,done = function (x){return;}){
           suma.css('width',width+'%');
           //Si no hay mas espacio o solo hay espacio para 1 lo pongo en otra fila
           //Porque ocupa 2 espacios.
-          if(sector.islas.length%activas_x_fila == 0 || (sector.islas.length+1)%activas_x_fila == 0){
+          if(sector.islas.length%observadas_x_fila == 0 || (sector.islas.length+1)%observadas_x_fila == 0){
             fila = filaEjemplo.clone();
             sector_html.find('.cuerpoTabla').append(fila);
           }
           fila.append(suma);
         }
 
-        $('#activas_layout').append(sector_html);
+        $('#observadas_layout').append(sector_html);
       }
       if(modo == "cargar"){
-        $('#activas_layout .inputIsla').eq(0).change();//Trigger change para que se actualize el total.
+        $('#observadas_layout .inputIsla').eq(0).change();//Trigger change para que se actualize el total.
       }
       done();
     },
@@ -287,18 +287,18 @@ function cargarDivActivas(id_layout_total,modo,done = function (x){return;}){
   });
 }
 
-$(document).on('change','#activas_layout .sector input',function(e){
+$(document).on('change','#observadas_layout .sector input',function(e){
   e.preventDefault();
   let total = 0;
-  const inputs = $('#activas_layout .sector input');
+  const inputs = $('#observadas_layout .sector input');
   inputs.each(function(i,input){
     const val = parseInt($(input).val());
     total += (isNaN(val)? 0 : val);
   });
-  $('#total_activas_layout input').val(total);
+  $('#total_observadas_layout input').val(total);
 })
 
-//Esta funcion hace un "post processing" de las pestañas de activas e inactivas, 
+//Esta funcion hace un "post processing" de las pestañas de observadas e inactivas, 
 //esto esta asi porque se tuvo que adaptar codigo existente, que no tenia tiempo de cambiar.
 function cargarDivDiferencias(){
   let tabla = $('#tablaDiferenciasEjemplo').clone().attr('id','').show();
@@ -307,7 +307,7 @@ function cargarDivDiferencias(){
 
   let sectores = [];
   //Busco en el div de activas cada sector y le saco la info
-  $('#activas_layout div.sector').each(function(){
+  $('#observadas_layout div.sector').each(function(){
     const t = $(this);
     let islaTotal = t.find('.total');
     const nombre = t.find('.nombre').text();
@@ -316,53 +316,33 @@ function cargarDivDiferencias(){
     const id_sector = t.attr('data-id-sector');
     sectores[id_sector] = [];
     sectores[id_sector]['nombre'] = nombre;
-    sectores[id_sector]['activas'] = observado;
+    sectores[id_sector]['observadas'] = observado;
     sectores[id_sector]['sistema'] = sistema;
     sectores[id_sector]['inactivas'] = 0;
     sectores[id_sector]['islaTotal'] = islaTotal;
   });
 
-  islas_con_inactivas = [];
-  //Busco en el div de inactivas, saco cuantas invalidas hay por sector y en que isla.
-  $('#inactivas_layout .NivelLayout').each(function(){
-    const t = $(this);
-    const id_sector = t.find('select').val();
-    const nro_isla = t.find('.nro_isla').val();
-    //Si es un relevamiento viejo que no tiene asociada islas 
-    //Esto no va a estar seteado por lo que se ignora.
-    if(id_sector in sectores){
-      sectores[id_sector]['inactivas']++;
-      const init = !(nro_isla in islas_con_inactivas);
-      if(init) islas_con_inactivas[nro_isla] = 1;
-      else islas_con_inactivas[nro_isla]++;
-    }
-  });
-
   //Agrego una fila por cada uno y seteo la celda total en ACTIVAS
-  let total_activas = 0;
+  let total_observadas = 0;
   let total_inactivas = 0;
-  let total_relevadas = 0;
   let total_sistema = 0;
   let total_diff = 0;
   sectores.forEach(function(val,key){
     const fila = filaEjemplo.clone();
     const nombre = val['nombre'];
-    const activas = val['activas'];
-    total_activas += activas;
+    const observadas = val['observadas'];
+    total_observadas += observadas;
     const inactivas = val['inactivas'];
     total_inactivas += inactivas;
-    const relevado = activas + inactivas;
-    total_relevadas += relevado;
     const sistema = val['sistema'];
     total_sistema += sistema;
-    const diff = Math.abs(sistema - relevado);
+    const diff = Math.abs(sistema - observadas);
     total_diff += diff;
 
     fila.attr('data-id-sector',key);
     fila.find('.diferenciasSector').text(nombre);
-    fila.find('.diferenciasActivas').text(activas);
+    fila.find('.diferenciasObservadas').text(observadas);
     fila.find('.diferenciasInactivas').text(inactivas);
-    fila.find('.diferenciasTotal').text(relevado);
     fila.find('.diferenciasTotalSistema').text(sistema);
     fila.find('.diferenciasDiferencia').text(diff)
     .addClass(diff? 'incorrecto' : 'correcto');
@@ -378,33 +358,15 @@ function cargarDivDiferencias(){
   {
     const fila = filaEjemplo.clone();
     fila.attr('data-id-sector',-1);
-    fila.find('.diferenciasSector').text('').addClass('borde_superior');
-    fila.find('.diferenciasActivas').text(total_activas).addClass('borde_superior');
-    fila.find('.diferenciasInactivas').text(total_inactivas).addClass('borde_superior');
-    fila.find('.diferenciasTotal').text(total_relevadas).addClass('borde_superior');
-    fila.find('.diferenciasTotalSistema').text(total_sistema).addClass('borde_superior');
+    fila.find('.diferenciasSector').text("- TOTAL -").append('&nbsp;');
+    fila.find('.diferenciasObservadas').text(total_observadas);
+    fila.find('.diferenciasInactivas').text(total_inactivas);
+    fila.find('.diferenciasTotalSistema').text(total_sistema);
     fila.find('.diferenciasDiferencia').text(total_diff)
-    .addClass(total_diff? 'incorrecto' : 'correcto').addClass('borde_superior');
+    .addClass(total_diff? 'incorrecto' : 'correcto');
+    fila.find('td').addClass('borde_superior');
     tabla.find('.cuerpoTablaDiferencias').append(fila);
   }
-
-  //Busco la isla correspondiente y le agrego las inactivas
-  $('#activas_layout div.sector .isla').each(function(){
-    let t = $(this);
-    let textoIsla = t.find('.textoIsla');
-    const nro_isla = parseInt(textoIsla.text());
-    if(nro_isla in islas_con_inactivas){
-      //Si la isla tiene inactivas, saco la evaluacion de correcto e incorrecto
-      //y me fijo de vuelta si da con las inactivas
-      textoIsla.removeClass('correcto').removeClass('incorrecto');
-      const observadas = parseInt(t.find('.observado').text());
-      const sistema = parseInt(t.find('.sistema').text());
-      const inactivas = islas_con_inactivas[nro_isla];
-      t.find('.inactivas').text('+'+inactivas);
-      const correcto = sistema == (inactivas+observadas); 
-      textoIsla.addClass(correcto? 'correcto' : 'incorrecto');
-    }
-  });
 
   $('#diferencias_layout').append(tabla);
 }
@@ -476,14 +438,14 @@ function mostrarModalLayoutTotal(id_layout_total,modo){
   $('#btn_guardartemp_layout').toggle(m_cargar);
   $('#btn_finalizar_layout').toggle(m_cargar);
   $('#btn_agregar_inactiva_layout').toggle(m_cargar);
-  $('#total_activas_layout').toggle(m_cargar);
+  $('#total_observadas_layout').toggle(m_cargar);
   
   $('#observaciones_adm_layout').attr('disabled',modo == 'ver');
   $('#btn_validar_layout').toggle(modo == 'validar');
 
-  $('#tabActivas').click();
+  $('#tabObservadas').click();
   
-  cargarDivActivas(id_layout_total,modo,function(){
+  cargarDivObservadas(id_layout_total,modo,function(){
     cargarDivInactivas(id_layout_total,modo,function(){
       if(m_validar_ver){
         cargarDivDiferencias();
@@ -550,7 +512,7 @@ function formDataLayout(){
   });
 
   const islas = [];
-  $('#activas_layout .isla').each(function(){
+  $('#observadas_layout .isla').each(function(){
     const t = $(this);
     islas.push({
       id_isla: t.attr('data-id-isla'),
@@ -655,7 +617,6 @@ $('#btn_finalizar_layout').click(function(e){
         error_no_aceptable = true;
       }
   
-      let inactivas_err = 
       $('#inactivas_layout tbody tr').each(function(i,elem){
         if(typeof response['maquinas.'+ i +'.id_sector'] !== 'undefined'){
           mostrarErrorValidacion($(this).find('.sector') ,response['maquinas.'+ i +'.id_sector'][0] ,false);
@@ -863,7 +824,7 @@ function limpiarModales(){
   campos.val('');
   
   $('#inactivas_layout tbody').empty();
-  $('#activas_layout').empty();
+  $('#observadas_layout').empty();
   $('#diferencias_layout').empty();
   $('#fiscalizador_toma_layout').popover('hide');
   $('#fecha_ejecucion_layout').popover('hide');
