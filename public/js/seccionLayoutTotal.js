@@ -329,7 +329,7 @@ function cargarDivDiferencias(){
       sectores[id_sector]['inactivas']++;
     }
   });
-  
+
   //Agrego una fila por cada uno y seteo la celda total en ACTIVAS
   let total_observadas = 0;
   let total_inactivas = 0;
@@ -359,8 +359,6 @@ function cargarDivDiferencias(){
     let islaTotal = val['islaTotal'];
     islaTotal.find('.textoIsla').removeClass('correcto').removeClass('incorrecto');
     islaTotal.find('.textoIsla').addClass(diff == 0? 'correcto' : 'incorrecto');
-    if(inactivas != 0) islaTotal.find('.inactivas').text('+'+inactivas);
-    else islaTotal.find('.inactivas').text('');
   });
 
   {
