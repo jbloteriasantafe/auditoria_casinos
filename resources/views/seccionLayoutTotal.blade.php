@@ -40,10 +40,9 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
   border-radius: 0px;
 }
 .subrayado{
-  border-bottom: 4px solid rgb(255,168,141) !important;
-  border-top: 1px solid rgb(255,168,141) !important;
-  background: rgba(255, 168, 141, 0.2) !important;
+  border-bottom: 2px solid rgb(255,168,141) !important;
   color: rgb(238, 108, 68) !important;
+  background-color: unset !important;
 }
 .correcto{
   color: green;
@@ -66,10 +65,10 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
   border-top: 1px solid #ccc;
   border-left: 1px solid #ccc;
   border-right: 1px solid #ccc;
-  border-bottom: 4px solid #ccc;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   min-width: 33%;
+  background-color: #f3f3f3;
 }
 .tabs{
   background-color:rgb(250,250,250);
@@ -446,10 +445,10 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
           <div id="diferencias_layout" class="row tabDiv" style="overflow-y: scroll;height: 450px;">
           </div>
           <div class="row" style="border-top: 1px solid #ddd">
-            <span class="col-md-8 col-md-offset-2">
+            <div id="total_activas_layout" class="col-md-8 col-md-offset-2">
               <h5>CANTIDAD TOTAL DE MÁQUINAS ACTIVAS:</h5>
-              <input id="total_activas_layout" disabled>
-            </span>
+              <input disabled>
+            </div>
           </div>
           <div class="row">
             <div class="col-md-8 col-md-offset-2">

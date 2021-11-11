@@ -23,19 +23,6 @@ $(document).ready(function(){
     ignoreReadonly: true,
   });
 
-  $('#dtpFechaEjecucionLayout').datetimepicker({
-    todayBtn:  1,
-    language:  'es',
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'dd MM yyyy HH:ii',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 0,
-    ignoreReadonly: true,
-    minuteStep: 5,
-  });
-
   limpiarModales();
   $('#btn-buscar').trigger('click',[1,10,'layout_total.fecha','desc']);
 });
@@ -194,7 +181,13 @@ function cargarDivInactivas(id_layout_total,modo,done = function (x){return;}){
     $('#fecha_generacion_layout').val(data.layout_total.fecha_generacion);
     $('#casino_layout').val(data.casino.nombre);
     $('#turno_layout').val(data.layout_total.turno);
-    $('#fecha_ejecucion_layout').val(data.layout_total.fecha_ejecucion);
+    const dtp = $('#dtpFechaEjecucionLayout').data('datetimepicker');
+    if(dtp && data.layout_total.fecha_ejecucion){
+      dtp.setDate(new Date(data.layout_total.fecha_ejecucion));
+    }
+    else{
+      $('#fecha_ejecucion_layout').val(data.layout_total.fecha_ejecucion);
+    }
     $('#observaciones_fisca_layout').val(data.layout_total?.observacion_fiscalizacion);
 
     $('#fiscalizador_carga_layout').val(data.usuario_cargador?.nombre);
@@ -254,7 +247,7 @@ function cargarDivActivas(id_layout_total,modo,done = function (x){return;}){
           }
           else {//validar y ver
             const observado = isla.maquinas_observadas | 0;//castea a int, undefined/null -> 0
-            const sistema = isla.cantidad_maquina | 0;
+            const sistema = isla.cantidad_maquinas | 0;
             isla_html.find('.observado').text(observado);
             isla_html.find('.sistema').text(sistema);
             isla_html.find('.textoIsla').addClass(observado == sistema? 'correcto' : 'incorrecto');
@@ -302,7 +295,7 @@ $(document).on('change','#activas_layout .sector input',function(e){
     const val = parseInt($(input).val());
     total += (isNaN(val)? 0 : val);
   });
-  $('#total_activas_layout').val(total);
+  $('#total_activas_layout input').val(total);
 })
 
 //Esta funcion hace un "post processing" de las pestañas de activas e inactivas, 
@@ -444,35 +437,60 @@ function mostrarModalLayoutTotal(id_layout_total,modo){
   if(modo == 'validar'){
     $('#modalLayoutTotal .modal-header').css('background-color','#69F0AE');
     $('#modalLayoutTotal .modal-title').text('VALIDAR CONTROL LAYOUT');
+    $('#dtpFechaEjecucionLayout span').hide();
+    $('#dtpFechaEjecucionLayout input').prop('readonly',true);
+    const dtp = $('#dtpFechaEjecucionLayout').data('datetimepicker');
+    if(dtp) dtp.remove();
     $('#btn_finalizar_layout').text('VALIDAR').show();
     $('#btn_finalizar_layout').show();
     $('#btn_agregar_inactiva_layout').hide();
     $('#tabDiferencias').show();
     $('#fiscalizador_toma_layout').prop('readonly',true);
     $('#observaciones_fisca_layout').attr('disabled',true);
-    $('#observaciones_adm_layout').show().attr('disabled',false);
+    $('#observaciones_adm_layout').attr('disabled',false).closest('div').show();
+    $('#total_activas_layout').hide();
   }
   else if(modo == 'ver'){
     $('#modalLayoutTotal .modal-header').css('background-color','#69F0AE');
     $('#modalLayoutTotal .modal-title').text('VISUALIZAR CONTROL LAYOUT');
+    $('#dtpFechaEjecucionLayout span').hide();
+    $('#dtpFechaEjecucionLayout input').prop('readonly',true);
+    const dtp = $('#dtpFechaEjecucionLayout').data('datetimepicker');
+    if(dtp) dtp.remove();
     $('#btn_finalizar_layout').hide();
     $('#btn_guardartemp_layout').hide();
     $('#btn_agregar_inactiva_layout').hide();
     $('#tabDiferencias').show();
     $('#fiscalizador_toma_layout').prop('readonly',true);
     $('#observaciones_fisca_layout').attr('disabled',true);
-    $('#observaciones_adm_layout').show().attr('disabled',true);
+    $('#observaciones_adm_layout').attr('disabled',true).closest('div').show();
+    $('#total_activas_layout').hide();
   }
   else if(modo == 'cargar'){
     $('#modalLayoutTotal .modal-header').css('background-color','#FF6E40');
     $('#modalLayoutTotal .modal-title').text('CARGAR CONTROL LAYOUT');
+    $('#dtpFechaEjecucionLayout span').show();
+    $('#dtpFechaEjecucionLayout input').prop('readonly',false);
+    $('#dtpFechaEjecucionLayout').datetimepicker({
+      todayBtn:  1,
+      language:  'es',
+      autoclose: 1,
+      todayHighlight: 1,
+      format: 'dd MM yyyy HH:ii',
+      pickerPosition: "bottom-left",
+      startView: 2,
+      minView: 0,
+      ignoreReadonly: true,
+      minuteStep: 5,
+    });
     $('#btn_finalizar_layout').show();
     $('#btn_guardartemp_layout').show();
     $('#btn_agregar_inactiva_layout').show();
     $('#tabDiferencias').hide();
     $('#fiscalizador_toma_layout').prop('readonly',false);
     $('#observaciones_fisca_layout').attr('disabled',false);
-    $('#observaciones_adm_layout').hide();
+    $('#observaciones_adm_layout').attr('disabled',true).closest('div').hide();
+    $('#total_activas_layout').show();
   }
   else return;
 
@@ -560,7 +578,7 @@ function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){cons
       data: {
         id_fiscalizador_toma :  $('#fiscalizador_toma_layout').obtenerElementoSeleccionado(),
         id_layout_total:   $('#btn_finalizar_layout').val(),
-        fecha_ejecucion: $('#fecha_ejecucion_layout').val(),
+        fecha_ejecucion: $('#fecha_ejecucion_layout_hidden').val(),
         maquinas: maquinas,
         observacion_fiscalizacion: $('#observaciones_fisca_layout').val(),
         //Si ya le mostre el mensaje de confirmacion y manda finalizar de vuelta, en el backend se ignoran algunos chequeos
