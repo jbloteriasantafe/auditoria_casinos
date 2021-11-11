@@ -756,7 +756,7 @@ $(document).on('click','.imprimir',function(){
 });
 
 $('#btn_agregar_inactiva_layout').click(function(){
-  agregarNivel($('#modalLayoutTotal').data('sectores'),{},'carga');
+  agregarNivel($('#modalLayoutTotal').data('sectores'),{},'cargar');
 });
 
 //borrar un nivel de layout
