@@ -53,15 +53,15 @@ $('#btn-nuevoLayoutTotal').click(function(e){
   });
 });
 
-$('#btn-finalizarValidacion').click(function(e){
+$('#btn_validar_layout').click(function(e){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
   $.ajax({
       type: "POST",
       url: 'http://' + window.location.host +'/layouts/validarLayoutTotal',
       data: {
-        id_layout_total: $('#id_layout_total').val(),
-        observacion_validacion: $('#observacion_validar').val(),
+        id_layout_total: $(this).val(),
+        observacion_validacion: $('#observaciones_adm_layout').val(),
       },
       dataType: 'json',
       success: function (data) {
@@ -70,7 +70,7 @@ $('#btn-finalizarValidacion').click(function(e){
         $('#mensajeExito p').text("Se ha validado correctamente el control de Layout Total.");
         $('#mensajeExito').show();
         $('#btn-buscar').trigger('click');
-        $('#modalValidarControl').modal('hide');
+        $('#modalLayoutTotal').modal('hide');
       },
       error: function (data) {
         if(typeof data.responseJSON.observacion_validacion !== 'undefined'){
@@ -276,8 +276,8 @@ function cargarDivActivas(id_layout_total,modo,done = function (x){return;}){
 
         $('#activas_layout').append(sector_html);
       }
-      if(modo == "carga"){
-        $('#activas_layout input').eq(0).change();//Trigger change para que se actualize el total.
+      if(modo == "cargar"){
+        $('#activas_layout .inputIsla').eq(0).change();//Trigger change para que se actualize el total.
       }
       done();
     },
@@ -433,44 +433,22 @@ $(document).on('click','.carga',function(e){
 });
 
 function mostrarModalLayoutTotal(id_layout_total,modo){  
-  $('#btn_finalizar_layout').val(id_layout_total);
+  $('#btn_finalizar_layout,#btn_validar_layout,#btn_guardartemp_layout').val(id_layout_total);
   if(modo == 'validar'){
     $('#modalLayoutTotal .modal-header').css('background-color','#69F0AE');
     $('#modalLayoutTotal .modal-title').text('VALIDAR CONTROL LAYOUT');
-    $('#dtpFechaEjecucionLayout span').hide();
-    $('#dtpFechaEjecucionLayout input').prop('readonly',true);
     const dtp = $('#dtpFechaEjecucionLayout').data('datetimepicker');
     if(dtp) dtp.remove();
-    $('#btn_finalizar_layout').text('VALIDAR').show();
-    $('#btn_finalizar_layout').show();
-    $('#btn_agregar_inactiva_layout').hide();
-    $('#tabDiferencias').show();
-    $('#fiscalizador_toma_layout').prop('readonly',true);
-    $('#observaciones_fisca_layout').attr('disabled',true);
-    $('#observaciones_adm_layout').attr('disabled',false).closest('div').show();
-    $('#total_activas_layout').hide();
   }
   else if(modo == 'ver'){
-    $('#modalLayoutTotal .modal-header').css('background-color','#69F0AE');
+    $('#modalLayoutTotal .modal-header').css('background-color','rgb(105, 170, 240)');
     $('#modalLayoutTotal .modal-title').text('VISUALIZAR CONTROL LAYOUT');
-    $('#dtpFechaEjecucionLayout span').hide();
-    $('#dtpFechaEjecucionLayout input').prop('readonly',true);
     const dtp = $('#dtpFechaEjecucionLayout').data('datetimepicker');
     if(dtp) dtp.remove();
-    $('#btn_finalizar_layout').hide();
-    $('#btn_guardartemp_layout').hide();
-    $('#btn_agregar_inactiva_layout').hide();
-    $('#tabDiferencias').show();
-    $('#fiscalizador_toma_layout').prop('readonly',true);
-    $('#observaciones_fisca_layout').attr('disabled',true);
-    $('#observaciones_adm_layout').attr('disabled',true).closest('div').show();
-    $('#total_activas_layout').hide();
   }
   else if(modo == 'cargar'){
     $('#modalLayoutTotal .modal-header').css('background-color','#FF6E40');
     $('#modalLayoutTotal .modal-title').text('CARGAR CONTROL LAYOUT');
-    $('#dtpFechaEjecucionLayout span').show();
-    $('#dtpFechaEjecucionLayout input').prop('readonly',false);
     $('#dtpFechaEjecucionLayout').datetimepicker({
       todayBtn:  1,
       language:  'es',
@@ -483,22 +461,31 @@ function mostrarModalLayoutTotal(id_layout_total,modo){
       ignoreReadonly: true,
       minuteStep: 5,
     });
-    $('#btn_finalizar_layout').show();
-    $('#btn_guardartemp_layout').show();
-    $('#btn_agregar_inactiva_layout').show();
-    $('#tabDiferencias').hide();
-    $('#fiscalizador_toma_layout').prop('readonly',false);
-    $('#observaciones_fisca_layout').attr('disabled',false);
-    $('#observaciones_adm_layout').attr('disabled',true).closest('div').hide();
-    $('#total_activas_layout').show();
   }
   else return;
+
+  const m_validar_ver = modo == 'validar' || modo == 'ver';
+  $('#dtpFechaEjecucionLayout input').prop('readonly',m_validar_ver);
+  $('#fiscalizador_toma_layout').prop('readonly',m_validar_ver);
+  $('#observaciones_fisca_layout').attr('disabled',m_validar_ver);
+  $('#observaciones_adm_layout').closest('div').toggle(m_validar_ver);
+  $('#tabDiferencias').toggle(m_validar_ver);
+
+  const m_cargar = !m_validar_ver;
+  $('#dtpFechaEjecucionLayout span').toggle(m_cargar);
+  $('#btn_guardartemp_layout').toggle(m_cargar);
+  $('#btn_finalizar_layout').toggle(m_cargar);
+  $('#btn_agregar_inactiva_layout').toggle(m_cargar);
+  $('#total_activas_layout').toggle(m_cargar);
+  
+  $('#observaciones_adm_layout').attr('disabled',modo == 'ver');
+  $('#btn_validar_layout').toggle(modo == 'validar');
 
   $('#tabActivas').click();
   
   cargarDivActivas(id_layout_total,modo,function(){
     cargarDivInactivas(id_layout_total,modo,function(){
-      if(modo == "ver" || modo == "validar"){
+      if(m_validar_ver){
         cargarDivDiferencias();
       }
       $('#modalLayoutTotal').modal('show');
@@ -548,8 +535,7 @@ $('.selectCasinos').on('change',function(){
   });
 });
 
-function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){console.log(x);}){
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+function formDataLayout(){
   const maquinas = [];
   $('#inactivas_layout tbody tr').each(function(){
     const maquina = {
@@ -572,41 +558,39 @@ function enviarLayout(url,succ=function(x){console.log(x);},err=function(x){cons
     });
   });
 
-  $.ajax({
-      type: 'POST',
-      url: url,
-      data: {
-        id_fiscalizador_toma :  $('#fiscalizador_toma_layout').obtenerElementoSeleccionado(),
-        id_layout_total:   $('#btn_finalizar_layout').val(),
-        fecha_ejecucion: $('#fecha_ejecucion_layout_hidden').val(),
-        maquinas: maquinas,
-        observacion_fiscalizacion: $('#observaciones_fisca_layout').val(),
-        //Si ya le mostre el mensaje de confirmacion y manda finalizar de vuelta, en el backend se ignoran algunos chequeos
-        confirmacion: $('#mensaje_confirmar_layout').is(':visible'),
-        islas: islas
-      },
-      dataType: 'json',
-      success: succ,
-      error: err
-  });
+  return {
+    id_fiscalizador_toma :  $('#fiscalizador_toma_layout').obtenerElementoSeleccionado(),
+    id_layout_total:   $('#btn_finalizar_layout').val(),
+    fecha_ejecucion: $('#fecha_ejecucion_layout_hidden').val(),
+    maquinas: maquinas,
+    observacion_fiscalizacion: $('#observaciones_fisca_layout').val(),
+    //Si ya le mostre el mensaje de confirmacion y manda finalizar de vuelta, en el backend se ignoran algunos chequeos
+    confirmacion: $('#mensaje_confirmar_layout').is(':visible')? 1 : 0,
+    islas: islas
+  };
 }
 
 $('#btn_guardartemp_layout').click(function(e){
   e.preventDefault();
-  enviarLayout('http://' + window.location.host +'/layouts/guardarLayoutTotal',
-    function(x){
-      $('#btn-salir').data('estado_cambios','GUARDADOS');
-      $('#mensajeExito h3').text('ÉXITO DE CARGA');
-      $('#mensajeExito .cabeceraMensaje').addClass('modificar');
-      $('#mensajeExito p').text("Se ha guardado correctamente el control de Layout Total.");
-      $('#mensajeExito').show();
-      $('#btn-buscar').trigger('click');
-    },
-    function(x){
-      console.log(x);
-      mostrarError('Hubo un problema al guardar.');
-    }
-  );
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  $.ajax({
+      type: 'POST',
+      url: '/layouts/guardarLayoutTotal',
+      data: formDataLayout(),
+      dataType: 'json',
+      success: function(x){
+        $('#btn-salir').data('estado_cambios','GUARDADOS');
+        $('#mensajeExito h3').text('ÉXITO DE CARGA');
+        $('#mensajeExito .cabeceraMensaje').addClass('modificar');
+        $('#mensajeExito p').text("Se ha guardado correctamente el control de Layout Total.");
+        $('#mensajeExito').show();
+        $('#btn-buscar').trigger('click');
+      },
+      error: function(x){
+        console.log(x);
+        mostrarError('Hubo un problema al guardar.');
+      }
+  });
 });
 
 function mostrarError(mensaje = '') {
@@ -643,56 +627,60 @@ $('#btn_finalizar_layout').click(function(e){
     return;
   }
 
-  const success = function (resultados) {
-    $('#mensajeExito h3').text('ÉXITO DE CARGA');
-    $('#mensajeExito .cabeceraMensaje').addClass('modificar');
-    $('#mensajeExito p').text("Se ha cargado correctamente el control de Layout Total.");
-    $('#mensajeExito').show();
-    $('#btn-buscar').trigger('click');
-    $('#modalLayoutTotal').modal('hide');
-  };
-
-  const error = function (data) {
-    const response = data.responseJSON;
-    let error_no_aceptable = false;//true ocurrio un error que no necesite ser corregido
-    let error_aceptable    = false;//true si necesito pedir confirmacion
-    if(typeof response.id_fiscalizador_toma !== 'undefined'){
-      mostrarErrorValidacion($('#fiscalizador_toma_layout'),response.id_fiscalizador_toma[0] ,true);
-      error_no_aceptable = true;
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  $.ajax({
+    type: 'POST',
+    url: '/layouts/cargarLayoutTotal',
+    data: formDataLayout(),
+    dataType: 'json',
+    success: function (resultados) {
+      $('#mensajeExito h3').text('ÉXITO DE CARGA');
+      $('#mensajeExito .cabeceraMensaje').addClass('modificar');
+      $('#mensajeExito p').text("Se ha cargado correctamente el control de Layout Total.");
+      $('#mensajeExito').show();
+      $('#btn-buscar').trigger('click');
+      $('#modalLayoutTotal').modal('hide');
+    },
+    error: function (data) {
+      const response = data.responseJSON;
+      let error_no_aceptable = false;//true ocurrio un error que no necesite ser corregido
+      let error_aceptable    = false;//true si necesito pedir confirmacion
+      if(typeof response.id_fiscalizador_toma !== 'undefined'){
+        mostrarErrorValidacion($('#fiscalizador_toma_layout'),response.id_fiscalizador_toma[0] ,true);
+        error_no_aceptable = true;
+      }
+  
+      if(typeof response.fecha_ejecucion !== 'undefined'){
+        mostrarErrorValidacion($('#fecha_ejecucion_layout'),response.fecha_ejecucion[0] ,true);
+        error_no_aceptable = true;
+      }
+  
+      let inactivas_err = 
+      $('#inactivas_layout tbody tr').each(function(i,elem){
+        if(typeof response['maquinas.'+ i +'.id_sector'] !== 'undefined'){
+          mostrarErrorValidacion($(this).find('.sector') ,response['maquinas.'+ i +'.id_sector'][0] ,false);
+          error_no_aceptable = true;
+        }
+        if(typeof response['maquinas.'+ i +'.nro_isla'] !== 'undefined'){
+          mostrarErrorValidacion($(this).find('.nro_isla') , response['maquinas.'+ i +'.nro_isla'][0],false);
+          error_no_aceptable = true;
+        }
+        if(typeof response['maquinas.'+ i +'.nro_admin'] !== 'undefined'){
+          mostrarErrorValidacion($(this).find('.nro_admin'), response['maquinas.'+ i +'.nro_admin'][0],false);
+          error_no_aceptable = true;
+        }
+        if(typeof response['maquinas.'+ i +'.no_existe'] !== 'undefined'){
+          mostrarErrorValidacion($(this).find('.nro_isla') , response['maquinas.'+ i +'.no_existe'][0],false);
+          error_aceptable = true;
+        }
+      });
+  
+      //Pedir confirmacion si hay un error aceptable y ninguno no aceptable
+      const confirmacion = error_aceptable && !error_no_aceptable;
+      $('#mensaje_confirmar_layout').toggle(confirmacion);
     }
-
-    if(typeof response.fecha_ejecucion !== 'undefined'){
-      mostrarErrorValidacion($('#fecha_ejecucion_layout'),response.fecha_ejecucion[0] ,true);
-      error_no_aceptable = true;
-    }
-
-    $('#controlLayout tr').each(function(i,elem){
-      if(typeof response['maquinas.'+ i +'.id_sector'] !== 'undefined'){
-        mostrarErrorValidacion($(this).find('.sector') ,response['maquinas.'+ i +'.id_sector'][0] ,false);
-        error_no_aceptable = true;
-      }
-      if(typeof response['maquinas.'+ i +'.nro_isla'] !== 'undefined'){
-        mostrarErrorValidacion($(this).find('.nro_isla') , response['maquinas.'+ i +'.nro_isla'][0],false);
-        error_no_aceptable = true;
-      }
-      if(typeof response['maquinas.'+ i +'.nro_admin'] !== 'undefined'){
-        mostrarErrorValidacion($(this).find('.nro_admin'), response['maquinas.'+ i +'.nro_admin'][0],false);
-        error_no_aceptable = true;
-      }
-      if(typeof response['maquinas.'+ i +'.no_existe'] !== 'undefined'){
-        mostrarErrorValidacion($(this).find('.nro_isla') , response['maquinas.'+ i +'.no_existe'][0],false);
-        error_aceptable = true;
-      }
-    });
-
-    //Pedir confirmacion si hay un error aceptable y ninguno no aceptable
-    const confirmacion = error_aceptable && !error_no_aceptable;
-    $('#mensaje_confirmar_layout').toggle(confirmacion);
-  };
-
-  enviarLayout('http://' + window.location.host +'/layouts/cargarLayoutTotal',success,error);
+  });
 });
-
 
 // Todo busqueda Busqueda
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
@@ -847,13 +835,14 @@ function agregarNivel(sectores,nivel,modo){
       id_sector = sectores[i].id_sector;
     }
   }
-  fila.find('.nro_isla').val(n.nro_isla);
-  select.val(id_sector);
+  fila.find('.nro_isla').val(n.nro_isla)
   $('#inactivas_layout tbody').append(fila);
+  select.val(id_sector).change();//Importante hacerlo despues del append() porque sino el change() no se triggerea
 }
 
 $(document).on('change','.NivelLayout .sector',function(e){
   e.preventDefault();
+  console.log('ENTR!');
   const fila = $(this).closest('tr');
   const id_sector = $(this).val();
   if(id_sector == ""){

@@ -465,6 +465,7 @@ $mitad_porcentaje = $porcentaje_por_activa / 2;
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-warningModificar" id="btn_guardartemp_layout" style="position:absolute;left:20px;">GUARDAR TEMPORALMENTE</button>
+          <button type="button" class="btn btn-successAceptar" id="btn_validar_layout">VALIDAR</button>
           <button type="button" class="btn btn-successAceptar" id="btn_finalizar_layout">FINALIZAR</button>
           <button type="button" class="btn btn-default" id="btn_salir_layout" data-dismiss="modal">SALIR</button>
           <div id="mensaje_cambios_layout">
