@@ -427,8 +427,12 @@ public function importarDiario(Request $request){
       if(is_null($imp)) return $row;
       $detalles = $imp->detalles;
       foreach($detalles as $d){
-        if(is_null($d->cierre)) return $row;
-        if(is_null($d->cierre_anterior)) return $row;
+        $nullc1 = is_null($d->cierre);
+        $nullc2 = is_null($d->cierre_anterior);
+        $sin_saldo_fichas = $d->saldo_fichas == "0.00" || empty($d->saldo_fichas);
+        //Lo consideramos "relevado" al detalle si no tiene cierres y el saldo fichas es 0
+        if($nullc1 && $nullc2 && $sin_saldo_fichas) continue;
+        if($nullc1 || $nullc2) return $row;//Si falta uno, consideramos que no esta relevado
       }
       $row->tiene_cierre = 1;
       return $row;
