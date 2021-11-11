@@ -172,7 +172,7 @@ public function importarCierres(Request $request){
       $nro_admin = $fila[$header_esperado_inv['nro_admin']];
       $hora_apertura = $fila[$header_esperado_inv['hora_apertura']];
       $hora_cierre = $fila[$header_esperado_inv['hora_cierre']];
-      if($nro_admin == "" || $hora_apertura == "0" || $hora_cierre == "0") continue;
+      if(empty($nro_admin) || empty($hora_apertura) || empty($hora_cierre)) continue;
       $cod_juego = $fila[$header_esperado_inv['cod_juego']];
       $anticipos = str_replace(',','.',$fila[$header_esperado_inv['anticipos']]);
       $total     = str_replace(',','.',$fila[$header_esperado_inv['total']]);

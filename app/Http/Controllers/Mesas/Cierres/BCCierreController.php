@@ -88,7 +88,9 @@ class BCCierreController extends Controller
     ->where(function($q) use ($fecha_cierre){
       return $q->where('ficha_tiene_casino.deleted_at','>',$fecha_cierre)->orWhereNull('ficha_tiene_casino.deleted_at');
     })
-    ->where('ficha_tiene_casino.created_at','<=',$fecha_cierre)
+    ->where(function($q) use ($fecha_cierre){
+      return $q->where('ficha_tiene_casino.created_at','<=',$fecha_cierre)->orWhereNotNull('DC.id_ficha');
+    })
     ->where('F.id_moneda','=',$moneda->id_moneda)
     ->orderBy('F.valor_ficha','desc')
     ->get();
@@ -112,7 +114,9 @@ class BCCierreController extends Controller
         // en el modal de casino, ademas no importa tanto que este la ficha sino que el casino la tenga - Octavio 30/03/21
         return $q->where('ficha_tiene_casino.deleted_at','>',$apertura->fecha)->orWhereNull('ficha_tiene_casino.deleted_at');
       })
-      ->where('ficha_tiene_casino.created_at','<=',$apertura->created_at)
+      ->where(function($q) use ($apertura){
+        return $q->where('ficha_tiene_casino.created_at','<=',$apertura->created_at)->orWhereNotNull('DA.id_ficha');
+      })
       ->where('ficha.id_moneda','=',$apertura->id_moneda)
       ->groupBy('DA.cantidad_ficha','ficha.valor_ficha','ficha.id_ficha','DA.id_detalle_apertura')
       ->orderBy('ficha.valor_ficha','desc')->get();
