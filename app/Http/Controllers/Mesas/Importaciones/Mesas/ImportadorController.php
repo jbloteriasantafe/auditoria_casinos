@@ -193,8 +193,7 @@ public function importarCierres(Request $request){
     throw $e;
   }
   fclose($handle);
-
-  if(count($error) > 0){
+  if(count($errores) > 0){
     DB::rollback();
     return response()->json(['archivo' => $errores],422);
   }
@@ -221,7 +220,6 @@ private function crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin
     return $q->whereNull('mesa_de_panio.id_moneda')->orWhere('mesa_de_panio.id_moneda','=',$id_moneda);
   })->get()->first();
   if(is_null($mesa)) return 'NO SE ENCONTRO LA MESA '.$cod_juego.' '.$nro_admin;
-
 
   $ya_existe = Cierre::where([
     ['id_casino','=',$id_casino],['id_mesa_de_panio','=',$mesa->id_mesa_de_panio],['id_moneda','=',$id_moneda],
