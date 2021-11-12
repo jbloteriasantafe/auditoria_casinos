@@ -172,7 +172,7 @@ public function importarCierres(Request $request){
       $nro_admin = $fila[$header_esperado_inv['nro_admin']];
       $hora_apertura = $fila[$header_esperado_inv['hora_apertura']];
       $hora_cierre = $fila[$header_esperado_inv['hora_cierre']];
-      if(empty($nro_admin) || empty($hora_apertura) || empty($hora_cierre)) continue;
+      if(empty($nro_admin) || empty($hora_apertura) || empty($hora_cierre) || ($hora_apertura == $hora_cierre)) continue;
       $cod_juego = $fila[$header_esperado_inv['cod_juego']];
       $anticipos = str_replace(',','.',$fila[$header_esperado_inv['anticipos']]);
       $total     = str_replace(',','.',$fila[$header_esperado_inv['total']]);
@@ -412,31 +412,49 @@ public function importarDiario(Request $request){
       $fecha = date('Y-m-d' , strtotime($fecha . ' + 1 days'));
     }
     $tabla_fechas = '('.implode(' union all ',$fechas).') as fechas';
+
+    //Si hay una importacion, se fija para cada detalle que: tenga 2 cierres o que no tenga y que el saldo sea 0
     $ret = DB::table(DB::raw($tabla_fechas))
-    ->selectRaw('fechas.fecha, idm.id_importacion_diaria_mesas, idm.validado, 0 as tiene_cierre')
+    ->selectRaw('fechas.fecha, idm.id_importacion_diaria_mesas, idm.validado,
+    BIT_AND(
+      idm.id_importacion_diaria_mesas IS NOT NULL
+      AND ( 
+        (c1.id_cierre_mesa IS NOT NULL AND c2.id_cierre_mesa IS NOT NULL)
+        OR 
+        (c1.id_cierre_mesa IS NULL and c2.id_cierre_mesa IS NULL and didm.saldo_fichas = 0)
+      )
+    ) as tiene_cierre')
     ->leftJoin('importacion_diaria_mesas as idm',function($j) use ($request) {
       $reglas = [['id_moneda','=',$request->id_moneda],['id_casino','=',$request->id_casino]];
       return $j->on('idm.fecha','=','fechas.fecha')->where($reglas)->whereNull('idm.deleted_at');
     })
+    ->leftJoin('detalle_importacion_diaria_mesas as didm','didm.id_importacion_diaria_mesas','=','idm.id_importacion_diaria_mesas')
+    ->leftJoin('juego_mesa as jm',function($j){
+      return $j->on('jm.id_casino','=','idm.id_casino')->whereNull('jm.deleted_at')->on(function($j2){
+        return $j2->on('jm.siglas','LIKE','didm.siglas_juego')->orOn('jm.nombre_juego','LIKE','didm.siglas_juego');
+      });
+    })
+    ->leftJoin('mesa_de_panio as mp',function($j){
+      return $j->on('mp.nro_admin','=','didm.nro_mesa')
+      ->on('mp.id_juego_mesa','=','jm.id_juego_mesa')
+      ->on(function($j2){
+        return $j2->on('mp.id_moneda','=','idm.id_moneda')->orWhereNull('mp.id_moneda');
+      });
+    })
+    ->leftJoin('cierre_mesa as c1',function($j){
+      return $j->on('c1.fecha','=','idm.fecha')
+      ->on('c1.id_casino','=','idm.id_casino')->on('c1.id_moneda','=','idm.id_moneda')
+      ->on('c1.id_mesa_de_panio','=','mp.id_mesa_de_panio')->whereNull('c1.deleted_at');
+    })
+    ->leftJoin('cierre_mesa as c2',function($j){
+      return $j->on('c2.fecha','=',DB::raw('DATE_SUB(idm.fecha, INTERVAL 1 DAY)'))
+      ->on('c2.id_casino','=','idm.id_casino')->on('c2.id_moneda','=','idm.id_moneda')
+      ->on('c2.id_mesa_de_panio','=','mp.id_mesa_de_panio')->whereNull('c2.deleted_at');
+    })
     ->orderBy('fechas.fecha',$request->sort_by["orden"])
+    ->groupBy(DB::raw('fechas.fecha, idm.id_importacion_diaria_mesas'))
     ->get();
 
-    $ret->transform(function ($row){
-      if(is_null($row->id_importacion_diaria_mesas)) return $row;
-      $imp = ImportacionDiariaMesas::find($row->id_importacion_diaria_mesas);
-      if(is_null($imp)) return $row;
-      $detalles = $imp->detalles;
-      foreach($detalles as $d){
-        $nullc1 = is_null($d->cierre);
-        $nullc2 = is_null($d->cierre_anterior);
-        $sin_saldo_fichas = $d->saldo_fichas == "0.00" || empty($d->saldo_fichas);
-        //Lo consideramos "relevado" al detalle si no tiene cierres y el saldo fichas es 0
-        if($nullc1 && $nullc2 && $sin_saldo_fichas) continue;
-        if($nullc1 || $nullc2) return $row;//Si falta uno, consideramos que no esta relevado
-      }
-      $row->tiene_cierre = 1;
-      return $row;
-    });
     return $ret;
   }
 
