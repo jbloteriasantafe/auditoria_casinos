@@ -434,9 +434,9 @@ $porcentaje_por_observada = $total_usado/$observadas_por_fila;
                       <th width="20%" style="text-align: center;">SECTOR</th>
                       <th width="16%" style="text-align: center;">ISLA</th>
                       <th width="12%" style="text-align: center;">N° ADMIN</th>
-                      <th width="14%" style="text-align: center;">C.O</th>
+                      <th width="22%" style="text-align: center;">C.O</th>
                       <th width="14%" style="text-align: center;">PROGRESIVO BLOQ</th>
-                      <th width="18%"></th>
+                      <th width="10%"></th>
                     </tr>
                   </thead>
                   <tbody>
