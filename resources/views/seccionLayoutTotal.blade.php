@@ -352,7 +352,7 @@ $porcentaje_por_observada = $total_usado/$observadas_por_fila;
       <select type="text" class="form-control co">
         <option value="">- C.O. -</option>
         @foreach($codigos as $c)
-        <option value="{{$c->codigo}}">{{$c->codigo}} -> {{$c->descripcion}}</option>
+        <option value="{{$c->codigo}}" title="{{$c->descripcion}}">{{$c->codigo}} -> {{$c->descripcion}}</option>
         @endforeach
       </select>
     </td>

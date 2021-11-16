@@ -769,6 +769,11 @@ $(document).on('input' , '#modalLayoutTotal input,#modalLayoutTotal textarea,#mo
   $('#modalLayoutTotal .mensajeSalida').hide();
 });
 
+$(document).on('mouseover','.co',function(e){//Muestro el valor seleccionado, util cuando se esta validando/visualizando
+  e.preventDefault();
+  $(this).attr('title',$(this).find('option:selected').text());
+});
+
 function agregarNivel(sectores,nivel,modo){
   const nivel_vacio = { id_nivel_layout: "", descripcion_sector: "", nro_isla: null, 
                         nro_admin: null, id_maquina: 0, co: null, pb: null };
