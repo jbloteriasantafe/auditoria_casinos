@@ -390,13 +390,9 @@ p {
               <div>
                 <div style="float: left;width: 20%;">
                   <div style="font-size: 11px; text-decoration: underline;"> Códigos:</div>
-                  <div style="font-size: 11px;"><strong>FDS</strong> -> Fuera de servicio.</div>
-                  <div style="font-size: 11px;"><strong>MT</strong> -> Módulo tildado.</div>
-                  <div style="font-size: 11px;"><strong>FDST</strong> -> Fuera de servicio temporal.</div>
-                  <div style="font-size: 11px;"><strong>TM</strong> -> Tareas de mantenimiento.</div>
-                  <div style="font-size: 11px;"><strong>FDS</strong> -> No funciona la botonera.</div>
-                  <div style="font-size: 11px;"><strong>MA</strong> -> Máquinia apagada.</div>
-                  <div style="font-size: 11px;"><strong>TP</strong> -> Trabajo en el plato.</div>
+                  @foreach($codigos as $c)
+                  <div style="font-size: 11px;"><strong>{{$c->codigo}}</strong> -> {{$c->descripcion}}</div>
+                  @endforeach
                 </div>
                 <div style="float: left;width: 45%;">
                   @if(!is_null($observacion))

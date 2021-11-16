@@ -780,7 +780,13 @@ function agregarNivel(sectores,nivel,modo){
   fila.find('select,input').attr('readonly',!editable).attr('disabled',!editable);
   
   fila.find('.nro_admin').val(n.nro_admin);
-  fila.find('.co').val(n.co);
+  //@HACK: aca antes se escribia el codigo manualmente, algunos lo ponian en minuscula. Habria que hacer una migracion de lo viejo
+  //y enlazar directamente con los ids en vez de poner el codigo en la tabla. Whatever.
+  fila.find('.co').val(n.co?.toUpperCase());
+  if(fila.find('.co').val() === null){//No se encontro el valor en la lista de opciones
+    fila.find('.co').append($('<option>').val(n.co).text(n.co));//Le creo una opcion y la elijo
+    fila.find('.co').val(n.co);
+  }
   fila.find('.pb').prop('checked',n.pb);
 
   if( modo == 'cargar' ){//agrego buscador y boton borrar (renglon)
@@ -809,7 +815,6 @@ function agregarNivel(sectores,nivel,modo){
 
 $(document).on('change','.NivelLayout .sector',function(e){
   e.preventDefault();
-  console.log('ENTR!');
   const fila = $(this).closest('tr');
   const id_sector = $(this).val();
   if(id_sector == ""){

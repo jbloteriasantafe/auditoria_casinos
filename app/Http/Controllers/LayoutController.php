@@ -21,6 +21,7 @@ use App\CampoConDiferencia;
 use App\Maquina;
 use App\LayoutTotal;
 use App\DetalleLayoutTotal;
+use App\LayoutTotalCodigo;
 use App\MaquinaAPedido;
 use App\Isla;
 use App\TipoCausaNoToma;
@@ -36,10 +37,8 @@ class LayoutController extends Controller
 {
   public $sorteadas = array();
 
-  private static $atributos = [
-  ];
+  private static $atributos = [];
   private static $instance;
-
   private static $cant_dias_backup_relevamiento = 6;
 
   public static function getInstancia(){
@@ -62,9 +61,6 @@ class LayoutController extends Controller
   // considera si una maquina dentro del layout implementa paquete de juegos, retornando una bandera y los juegos habilitados
   public function obtenerLayoutParcial($id){
       $layout_parcial = LayoutParcial::find($id);
-
-      // $contador_horario = ContadorHorario::where([['fecha','=',$layout_parcial->fecha],['id_casino','=',$layout_parcial->sector->casino->id_casino]])->first();
-      // $layout_parcial->fecha = date("d-M-Y", strtotime($layout_parcial->fecha));
 
       $detalles = array();
       foreach($layout_parcial->detalles as $detalle){
@@ -94,13 +90,6 @@ class LayoutController extends Controller
         }else{
           $linea->tiene_pack_bandera=false;
         }
-        //refactor para tomar el pack correspondiente a la tabla asociacion con maquina y juego
-        // if(count($maquina->juego_activo->pack)>0){
-        //   $linea->tiene_pack_bandera=true;
-        //   $linea->juegos_pack=$maquina->juego_activo->pack[0]->juegos;
-        // }else{
-        //   $linea->tiene_pack_bandera=false;
-        // }
         
         $linea->nro_serie = ['correcto' => true, 'valor' => $maquina->nro_serie, 'valor_antiguo' => ''] ;
         $linea->id_maquina =  $maquina->id_maquina;
@@ -149,9 +138,6 @@ class LayoutController extends Controller
   // si la maquina implementa paquete de juegos, se realiza validaciones sobre los juegos activos
   public function obtenerLayoutParcialValidar($id){
       $layout_parcial = LayoutParcial::find($id);
-
-      // $contador_horario = ContadorHorario::where([['fecha','=',$layout_parcial->fecha],['id_casino','=',$layout_parcial->sector->casino->id_casino]])->first();
-      // $layout_parcial->fecha = date("d-M-Y", strtotime($layout_parcial->fecha));
 
       $detalles = array();
       if($layout_parcial->campos_con_diferencia  != null){
@@ -211,13 +197,6 @@ class LayoutController extends Controller
             }else{
               $linea->tiene_pack_bandera=false;
             }
-
-          // if(count($maquina->juego_activo->pack)>0){
-          //   $linea->tiene_pack_bandera=true;
-          //   $linea->juegos_pack=$maquina->juego_activo->pack[0]->juegos;
-          // }else{
-          //   $linea->tiene_pack_bandera=false;
-          // }
 
           $aux = $detalle_aux->where('columna', 'nro_serie');
           if($aux->count() == 1){
@@ -1164,7 +1143,7 @@ class LayoutController extends Controller
     $casinos = $usuario->casinos;
     $estados = EstadoRelevamiento::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Layout Total' , 'layout_total');
-    return view('seccionLayoutTotal', ['casinos' => $casinos , 'estados' => $estados,'usuario'=>$usuario]);
+    return view('seccionLayoutTotal', ['casinos' => $casinos , 'estados' => $estados,'usuario'=>$usuario,'codigos' => LayoutTotalCodigo::all()]);
   }
 
 
@@ -1356,7 +1335,8 @@ class LayoutController extends Controller
       $detalles[] = $det;
     };
     usort($detalles,function($a,$b){return $a->descripcion<=>$b->descripcion;});
-    $view = View::make('planillaLayoutTotalEdit', compact('rel','detalles','maquinas_apagadas','mostrar_maquinas','observacion'));
+    $codigos = LayoutTotalCodigo::all();
+    $view = View::make('planillaLayoutTotalEdit', compact('rel','detalles','maquinas_apagadas','mostrar_maquinas','observacion','codigos'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'landscape');
     $dompdf->loadHtml($view->render());

@@ -349,7 +349,12 @@ $porcentaje_por_observada = $total_usado/$observadas_por_fila;
       <input type="text" placeholder="N° ADMIN" class="form-control nro_admin"/>
     </td>
     <td>
-      <input type="text" placeholder="C.0" class="form-control co"/>
+      <select type="text" class="form-control co">
+        <option value="">- C.O. -</option>
+        @foreach($codigos as $c)
+        <option value="{{$c->codigo}}">{{$c->codigo}} -> {{$c->descripcion}}</option>
+        @endforeach
+      </select>
     </td>
     <td>
       <input type="checkbox" class="form-control pb" style="text-align: center;"/>
@@ -610,8 +615,6 @@ $porcentaje_por_observada = $total_usado/$observadas_por_fila;
     </div>
   </div>
 </div>
-    
-
     <meta name="_token" content="{!! csrf_token() !!}" />
 
     @endsection
