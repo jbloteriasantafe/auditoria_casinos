@@ -47,6 +47,10 @@ $('#btn-ayuda').click(function(e){
 $('#btn-nuevoLayoutTotal').click(function(e){
   e.preventDefault();
   $('#modalNuevoLayoutTotal').modal('show');
+  const options = $('#modalNuevoLayoutTotal #casino option');
+  if(options.length == 2){//Solo tiene 1 casino lo seteo
+    $('#modalNuevoLayoutTotal #casino').val(options.eq(1).val()).change();
+  }
   $.get("obtenerFechaActual", function(data){
     $('#fechaActual').val(data.fecha);
     $('#fechaDate').val(data.fechaDate);
@@ -82,6 +86,10 @@ $('#btn_validar_layout').click(function(e){
 
 $("#btn-layoutSinSistema").click(function(e){
   e.preventDefault();
+  const options = $('#casinoSinSistema option');
+  if(options.length == 2){//Solo tiene 1 casino lo seteo
+    $('#casinoSinSistema').val(options.eq(1).val()).change();
+  }
   $('#modalLayoutSinSistema').modal('show');
 })
 
@@ -515,12 +523,12 @@ $('#btn_salir_layout').click(function(){
 });
 
 $('.selectCasinos').on('change',function(){
-  $.get('http://' + window.location.host +"/casinos/obtenerTurno/" + $(this).val(), function(data){
+  $.get("/layouts/obtenerTurno/" + $(this).val(), function(data){
     $('#turno').val(data.turno);
   });
   const select = $(this).closest('.modal').find('.selectSector');
   select.empty();
-  $.get('http://' + window.location.host +"/sectores/obtenerSectoresPorCasino/" + $(this).val(), function(data){    
+  $.get("/layouts/obtenerSectoresPorCasino/" + $(this).val(), function(data){    
     select.append($('<option>').val("").text("- TODOS -"));
     for(const idx in data.sectores){
       const s = data.sectores[idx];

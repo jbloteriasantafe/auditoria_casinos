@@ -112,7 +112,7 @@ $porcentaje_por_observada = $total_usado/$observadas_por_fila;
                                     <div class="col-md-3">
                                         <h5>Casino</h5>
                                         <select id="buscadorCasino" class="form-control selectCasinos" name="">
-                                            <option value="0">-Todos los Casinos-</option>
+                                            <option value="">-Todos los Casinos-</option>
                                             @foreach ($casinos as $casino)
                                               <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                             @endforeach
@@ -237,11 +237,9 @@ $porcentaje_por_observada = $total_usado/$observadas_por_fila;
                             <div class="col-md-6">
                               <h5>CASINO</h5>
                               <select id="casino" class="form-control selectCasinos" name="">
-                                @if(count($casinos) != 1)
-                                  <option value="0">- Seleccione un casino -</option>
-                                @endif
+                                <option value="">- Seleccione un casino -</option>
                                 @foreach ($casinos as $casino)
-                                  <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                 @endforeach
                               </select>
                             </div>
@@ -324,7 +322,7 @@ $porcentaje_por_observada = $total_usado/$observadas_por_fila;
                 <select id="casinoSinSistema" class="form-control selectCasinos" name="">
                   <option value="">- Seleccione un casino -</option>
                   @foreach ($casinos as $casino)
-                  <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                  <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                   @endforeach
                 </select>
               </div>
