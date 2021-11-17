@@ -11,7 +11,7 @@ class LayoutTotal extends Model
   protected $connection = 'mysql';
   protected $table = 'layout_total';
   protected $primaryKey = 'id_layout_total';
-  protected $visible = array('id_layout_total', 'nro_layout_total' ,'fecha','fecha_generacion','fecha_ejecucion', 'backup', 'id_casino','turno' ,'id_estado_relevamiento' , 'observacion_fiscalizacion' , 'observacion_validacion');
+  protected $visible = array('id_layout_total', 'nro_layout_total' ,'fecha','fecha_generacion','fecha_ejecucion', 'backup', 'id_casino','id_sector','turno' ,'id_estado_relevamiento' , 'observacion_fiscalizacion' , 'observacion_validacion');
   public $timestamps = false;
   protected $appends = array('total_activas','total_inactivas');
 
@@ -39,7 +39,10 @@ class LayoutTotal extends Model
 
   public function casino(){
     return $this->belongsTo('App\Casino','id_casino','id_casino');
+  }
 
+  public function sector(){
+    return $this->belongsTo('App\Sector','id_sector','id_sector');
   }
 
   public function estado_relevamiento(){

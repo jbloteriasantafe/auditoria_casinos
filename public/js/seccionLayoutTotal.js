@@ -95,6 +95,8 @@ $("#btn-backup").click(function(){
       fecha: $('#fechaLayoutSinSistema').val(),
       fecha_generacion: $('#fechaGeneracionSinSistema').val(),
       id_casino: $('#casinoSinSistema option:selected').val(),
+      id_sector: $('#modalLayoutSinSistema .selectSector').val(),
+      turno: $('#turnoSinSistema').val(),
     },
     dataType: 'json',
     success: function (data) {
@@ -117,6 +119,15 @@ $("#btn-backup").click(function(){
       if(typeof response.id_casino !== 'undefined'){
         mostrarErrorValidacion($('#casinoSinSistema'),'Valor inválido',true);
       }
+      if(typeof response.id_sector !== 'undefined'){
+        mostrarErrorValidacion($('#modalLayoutSinSistema .selectSector'),'Valor inválido',true);
+      }
+      if(typeof response.turno !== 'undefined'){
+        mostrarErrorValidacion($('#turnoSinSistema'),'Valor inválido',true);
+      }
+      if(typeof response.error !== 'undefined'){
+        mostrarError(response.error.join('<br>'));
+      }
     }
   });
 })
@@ -133,6 +144,7 @@ $('#btn-generar').click(function(e){
       data: {
         id_casino: $('#casino').val(),
         turno: $('#turno').val(),
+        id_sector: $('#modalNuevoLayoutTotal .selectSector').val()
       },
       dataType: 'json',
       beforeSend: function(data){
@@ -169,6 +181,12 @@ $('#btn-generar').click(function(e){
         }
         if(typeof response.turno !== 'undefined'){
           mostrarErrorValidacion($('#turno'), "Valor de turno incorrecto.",true);
+        }
+        if(typeof response.id_sector !== 'undefined'){
+          mostrarErrorValidacion($('#modalNuevoLayoutTotal .selectSector'),response.id_sector[0],true);
+        }
+        if(typeof response.error !== 'undefined'){
+          mostrarError(response.error.join('<br>'));
         }
       }
   });
@@ -496,10 +514,19 @@ $('#btn_salir_layout').click(function(){
   }
 });
 
-//MOSTRAR LOS SECTORES ASOCIADOS AL CASINO SELECCIONADO
 $('.selectCasinos').on('change',function(){
   $.get('http://' + window.location.host +"/casinos/obtenerTurno/" + $(this).val(), function(data){
-      $('#turno').val(data.turno);
+    $('#turno').val(data.turno);
+  });
+  const select = $(this).closest('.modal').find('.selectSector');
+  select.empty();
+  $.get('http://' + window.location.host +"/sectores/obtenerSectoresPorCasino/" + $(this).val(), function(data){    
+    select.append($('<option>').val("").text("- TODOS -"));
+    for(const idx in data.sectores){
+      const s = data.sectores[idx];
+      select.append($('<option>').val(s.id_sector).text(s.descripcion));
+    }
+    select.val("");
   });
 });
 
@@ -728,6 +755,7 @@ function generarFilaTabla(layout_total){
   fila.attr('id',layout_total.id_layout_total);
   fila.find('.fecha').text(layout_total.fecha);
   fila.find('.casino').text(layout_total.casino);
+  fila.find('.sector').text(layout_total.sector? layout_total.sector : '---');
   fila.find('.turno').text(layout_total.turno);
   fila.find('.acciones').find('button').val(layout_total.id_layout_total);
   fila.find('.estado').text(layout_total.estado);

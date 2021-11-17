@@ -80,6 +80,9 @@ $porcentaje_por_observada = $total_usado/$observadas_por_fila;
 	align-items: stretch;
 	align-content: stretch;
 }
+.left{
+  text-align: left;
+}
 </style>
 @endsection
 
@@ -117,7 +120,7 @@ $porcentaje_por_observada = $total_usado/$observadas_por_fila;
                                     </div>
                                     <div class="col-md-3">
                                         <h5>Estado Relevamiento</h5>
-                                        <select id="buscadorEstado" class="form-control selectSector" name="">
+                                        <select id="buscadorEstado" class="form-control" name="">
                                             <option value="0">-Todos los estados-</option>
                                             @foreach($estados as $estado)
                                               <option id="estado{{$estado->id_estado_relevamiento}}" value="{{$estado->id_estado_relevamiento}}">{{$estado->descripcion}}</option>
@@ -148,11 +151,12 @@ $porcentaje_por_observada = $total_usado/$observadas_por_fila;
                         <table id="tablaLayouts" class="table table-fixed tablesorter">
                           <thead>
                             <tr>
-                              <th class="col-xs-2 activa" value="layout_total.fecha" estado="desc">FECHA <i class="fas fa-sort-down"></i></th>
-                              <th class="col-xs-2" value="casino.nombre" estado="">CASINO  <i class="fas fa-sort"></i></th>
-                              <th class="col-xs-2" value="sector.descripcion" estado="">TURNO <i class="fas fa-sort"></i></th>
-                              <th class="col-xs-3" value="estado_relevamiento.descripcion" estado="">ESTADO <i class="fas fa-sort"></i></th>
-                              <th class="col-xs-3">ACCIÓN </th>
+                              <th class="left col-xs-2 activa" value="layout_total.fecha" estado="desc">FECHA <i class="fas fa-sort-down"></i></th>
+                              <th class="left col-xs-2" value="casino.nombre" estado="">CASINO  <i class="fas fa-sort"></i></th>
+                              <th class="left col-xs-2" value="sector.descripcion" estado="">SECTOR  <i class="fas fa-sort"></i></th>
+                              <th class="col-xs-1" value="layout_total.turno" estado="">TURNO <i class="fas fa-sort"></i></th>
+                              <th class="left col-xs-2" value="estado_relevamiento.descripcion" estado="">ESTADO <i class="fas fa-sort"></i></th>
+                              <th class="left col-xs-3">ACCIÓN </th>
                             </tr>
                           </thead>
                           <tbody id="cuerpoTabla" style="height: 350px;">
@@ -240,11 +244,15 @@ $porcentaje_por_observada = $total_usado/$observadas_por_fila;
                                   <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                 @endforeach
                               </select>
-                              <br> <span id="alertaCasino" class="alertaSpan"></span>
                             </div>
                           </div>
 
                           <div class="row">
+                            <div class="col-md-6">
+                              <h5>SECTOR</h5>
+                              <select class="form-control selectSector">
+                              </select>
+                            </div>
                             <div class="col-md-6">
                               <h5>Turno</h5>
                               @if(count($casinos) != 1)
@@ -275,66 +283,72 @@ $porcentaje_por_observada = $total_usado/$observadas_por_fila;
           </div>
     </div>
 
-    <!-- Modal Relevamientos -->
-    <div class="modal fade" id="modalLayoutSinSistema" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-             <div class="modal-content">
-               <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
-                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoSinSistema" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title">| NUEVO CONTROL LAYOUT SIN SISTEMA</h3>
+<div class="modal fade" id="modalLayoutSinSistema" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
+          <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+          <button type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoSinSistema" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+          <h3 class="modal-title">| NUEVO CONTROL LAYOUT SIN SISTEMA</h3>
+        </div>
+        <div  id="colapsadoSinSistema" class="collapse in">
+        <div class="modal-body modalCuerpo">
+          <form id="frmLayoutSinSistema" name="frmLayoutSinSistema" class="form-horizontal" novalidate="">
+            <div class="row">
+              <div class="col-md-6">
+                <h5>FECHA DE CONTROL LAYOUT</h5>
+                <div class='input-group date' id='fechaControlSinSistema' data-link-field="fechaLayoutSinSistema" data-link-format="yyyy-mm-dd">
+                  <input id="fecha_backup" type='text' class="form-control" placeholder="Fecha de Relevamiento"/>
+                  <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                  </span>
+                  <input type="hidden" id="fechaLayoutSinSistema" value=""/>
                 </div>
-                <div  id="colapsadoSinSistema" class="collapse in">
-                <div class="modal-body modalCuerpo">
-                  <form id="frmLayoutSinSistema" name="frmLayoutSinSistema" class="form-horizontal" novalidate="">
-                          <div class="row">
-                            <div class="col-md-6">
-                              <h5>FECHA DE CONTROL LAYOUT</h5>
-                              <div class='input-group date' id='fechaControlSinSistema' data-link-field="fechaLayoutSinSistema" data-link-format="yyyy-mm-dd">
-                                <input id="fecha_backup" type='text' class="form-control" placeholder="Fecha de Relevamiento"/>
-                                <span class="input-group-addon">
-                                  <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                                <input type="hidden" id="fechaLayoutSinSistema" value=""/>
-                              </div>
-                              <br>
-                            </div>
-                            <div class="col-md-6">
-                              <h5>FECHA DE GENERACIÓN</h5>
-                              <div class='input-group date' id='fechaGeneracion' data-link-field="fechaGeneracionSinSistema" data-link-format="yyyy-mm-dd">
-                                <input id="fecha_generacion_backup" type='text' class="form-control" placeholder="Fecha de Generación"/>
-                                <span class="input-group-addon">
-                                  <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                                <input type="hidden" id="fechaGeneracionSinSistema" value=""/>
-                              </div>
-                              <br>
-                            </div>
-                          </div>
-                          <div class="row">
-                            <div class="col-md-6">
-                              <h5>CASINO</h5>
-                              <select id="casinoSinSistema" class="form-control selectCasinos" name="">
-                                  <option value="">- Seleccione un casino -</option>
-                                   @foreach ($casinos as $casino)
-                                   <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                                   @endforeach
-                              </select>
-                              <br> <span id="alertaCasinoSinsistema" class="alertaSpan"></span>
-                            </div>
-                          </div>
-                  </form>
+                <br>
+              </div>
+              <div class="col-md-6">
+                <h5>FECHA DE GENERACIÓN</h5>
+                <div class='input-group date' id='fechaGeneracion' data-link-field="fechaGeneracionSinSistema" data-link-format="yyyy-mm-dd">
+                  <input id="fecha_generacion_backup" type='text' class="form-control" placeholder="Fecha de Generación"/>
+                  <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                  </span>
+                  <input type="hidden" id="fechaGeneracionSinSistema" value=""/>
                 </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-successAceptar" id="btn-backup" value="nuevo">USAR RELEVAMIENTO BACKUP</button>
-                  <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-                  <input type="hidden" id="id_casino" name="id_casino" value="0">
-                </div>
+                <br>
               </div>
             </div>
-          </div>
+            <div class="row">
+              <div class="col-md-4">
+                <h5>CASINO</h5>
+                <select id="casinoSinSistema" class="form-control selectCasinos" name="">
+                  <option value="">- Seleccione un casino -</option>
+                  @foreach ($casinos as $casino)
+                  <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="col-md-4">
+                <h5>TURNO</h5>
+                <input id="turnoSinSistema" type="number" class="form-control" name=""/>
+              </div>
+              <div class="col-md-4">
+                <h5>SECTOR</h5>
+                <select class="form-control selectSector">
+                </select>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-successAceptar" id="btn-backup" value="nuevo">USAR RELEVAMIENTO BACKUP</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+          <input type="hidden" id="id_casino" name="id_casino" value="0">
+        </div>
+      </div>
     </div>
-
+  </div>
+</div>
 
 <table hidden>
   <tr id="filaEjemploInactivasLayout" class="NivelLayout" id_nivel_layout="0">
@@ -511,14 +525,15 @@ $porcentaje_por_observada = $total_usado/$observadas_por_fila;
 <table hidden>
   <tr id="filaEjemploObservadas" style="display: block;" observadas_por_fila="{{$observadas_por_fila}}"></tr>
   <tr id="filaEjemplo" style="display: none;">
-    <td class="col-xs-2 fecha">99 Test 9999</td>
-    <td class="col-xs-2 casino">CASINO99</td>
-    <td class="col-xs-2 turno">99</td>
-    <td class="col-xs-3">
+    <td class="left col-xs-2 fecha">99 Test 9999</td>
+    <td class="left col-xs-2 casino">CASINO99</td>
+    <td class="left col-xs-2 sector">SECTOR99</td>
+    <td class="col-xs-1 turno" style="text-align: center;">99</td>
+    <td class="col-xs-2" style="text-align: left;">
       <i class="fas fa-fw fa-dot-circle icono_estado"></i>
       <span class="estado">ESTADO99</span>
     </td>
-    <td class="col-xs-3 acciones">
+    <td class="left col-xs-3 acciones">
       @if($usuario->tienePermiso('validar_layout_total'))
       <button class="btn btn-info ver" title="VER LAYOUT TOTAL" type="button" value="-1">
         <i class="fa fa-fw fa-search-plus"></i>

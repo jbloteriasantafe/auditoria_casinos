@@ -564,7 +564,6 @@ Route::post('/layouts/usarLayoutBackup' , 'LayoutController@usarLayoutBackup');
 //PARCIAL
 Route::get('/layouts/existeLayoutParcial/{id_sector}','LayoutController@existeLayoutParcial');
 Route::get('/layouts/existeLayoutParcialGenerado/{id_sector}','LayoutController@existeLayoutParcialGenerado');
-Route::get('/layouts/randomMaquinas/{id_sector}','LayoutController@randomMaquinas');
 Route::get('/layouts/obtenerLayoutParcial/{id}','LayoutController@obtenerLayoutParcial');
 Route::get('/layouts/obtenerLayoutParcialValidar/{id}','LayoutController@obtenerLayoutParcialValidar');
 Route::get('/layouts/generarPlanillaLayoutParcial/{id}','LayoutController@generarPlanillaLayoutParcial');
