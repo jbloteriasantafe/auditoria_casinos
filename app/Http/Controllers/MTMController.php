@@ -218,7 +218,6 @@ class MTMController extends Controller
 
   }
 
-
   public function desasociarFormula($id_formula){
      $MTMS=Formula::find($id_formula)->maquinas;
       foreach ($MTMS as $MTM){

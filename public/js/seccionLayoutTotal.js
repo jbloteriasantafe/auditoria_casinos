@@ -835,8 +835,6 @@ function agregarNivel(sectores,nivel,modo){
 
   if( modo == 'cargar' ){//agrego buscador y boton borrar (renglon)
     fila.find('.gestion_maquina').remove();
-    fila.find('.nro_admin').generarDataList("http://" + window.location.host + "/maquinas/obtenerMTMEnCasino/" + sectores[0].id_casino  ,'maquinas','id_maquina','nro_admin',1,false);
-    fila.find('.nro_admin').setearElementoSeleccionado(n.id_maquina,n.nro_admin);
   }
   else if(modo == 'validar' || modo == "ver"){
     fila.find('.borrarNivelLayout').remove();
@@ -854,7 +852,12 @@ function agregarNivel(sectores,nivel,modo){
   }
   fila.find('.nro_isla').val(n.nro_isla)
   $('#inactivas_layout tbody').append(fila);
-  select.val(id_sector).attr('disabled',n.descripcion_sector != "").change();//Importante hacerlo despues del append() porque sino el change() no se triggerea
+  //Importante hacerlo despues del append() porque sino el change() no se triggerea
+  $.when(
+    select.val(id_sector).attr('disabled',n.descripcion_sector != "").trigger('change')
+  ).done(function(){
+    fila.find('.nro_admin').setearElementoSeleccionado(n.id_maquina,n.nro_admin);
+  });
 }
 
 $(document).on('change','.NivelLayout .sector',function(e){
@@ -867,7 +870,22 @@ $(document).on('change','.NivelLayout .sector',function(e){
   else{
     const nro_isla = fila.find('.nro_isla').val();
     fila.find('.nro_isla').generarDataList("http://" + window.location.host + "/islas/buscarIslaPorSectorYNro/" + $(this).val()  ,'islas','id_isla','nro_isla',1,false);
-    fila.find('.nro_isla').val(nro_isla);
+    fila.find('.nro_isla').val(nro_isla).change();
+  }
+});
+
+$(document).on('change','.NivelLayout .nro_isla',function(e){
+  e.preventDefault();
+  const fila = $(this).closest('tr');
+  const nro_isla = $(this).val();
+  if(nro_isla == ""){
+    fila.find('.nro_admin').borrarDataList();
+  }
+  else{
+    const nro_admin = fila.find('.nro_admin').val();
+    const id_casino = $('#modalLayoutTotal').data('sectores')[0].id_casino;
+    fila.find('.nro_admin').generarDataList("/layouts/obtenerMTMsEnIsla/" + id_casino + '/' + nro_isla,'maquinas','id_maquina','nro_admin',1,false);
+    fila.find('.nro_admin').val(nro_admin);
   }
 });
 

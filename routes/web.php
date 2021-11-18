@@ -590,6 +590,7 @@ Route::group(['prefix' => 'layouts','middleware' => 'tiene_permiso:ver_seccion_l
   Route::delete('/eliminarLayoutTotal/{id_layout_total}','LayoutController@eliminarLayoutTotal');
   Route::get('/obtenerTurno/{id}','CasinoController@obtenerTurno');
   Route::get('/obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
+  Route::get('/obtenerMTMsEnIsla/{id_casino}/{nro_isla}/{nro_admin}','LayoutController@obtenerMTMsEnIsla');
 });
 
 

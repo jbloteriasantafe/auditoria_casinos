@@ -1651,4 +1651,23 @@ class LayoutController extends Controller
     return 200;
   }
 
+  public function obtenerMTMsEnIsla($id_casino,$nro_isla,$nro_admin){
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $cids = [];
+    foreach($user->casinos as $c) $cids[] = $c->id_casino;
+    $prioridad_en_isla = '(
+    case
+    when (isla.nro_isla = '.$nro_isla.') then 0
+    when (isla.nro_isla LIKE "'.$nro_isla.'%") then 1
+    else 2
+    end)';
+    $maquinas = DB::table('maquina')
+    ->join('isla','isla.id_isla','=','maquina.id_isla')
+    ->where('maquina.nro_admin','LIKE',$nro_admin.'%')
+    ->whereIn('maquina.id_casino',$cids)
+    ->whereNull('isla.deleted_at')->whereNull('maquina.deleted_at')
+    ->orderByRaw($prioridad_en_isla.' asc, maquina.nro_admin asc');
+    if(!empty($id_casino)) $maquinas->where('maquina.id_casino','=',$id_casino);
+    return ['maquinas' => $maquinas->get()];
+  }
 }
