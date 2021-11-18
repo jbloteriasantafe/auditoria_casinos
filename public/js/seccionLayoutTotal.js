@@ -413,20 +413,23 @@ $('.tabTitle').on('click',function(){
 
 $(document).on('click','.validar',function(e){
   e.preventDefault();
-  mostrarModalLayoutTotal($(this).val(),'validar');
+  const sector = $(this).closest('tr').find('.sector').text();
+  mostrarModalLayoutTotal($(this).val(),sector == '---'? '' : sector,'validar');
 });
 
 $(document).on('click','.ver',function(e){
   e.preventDefault();
-  mostrarModalLayoutTotal($(this).val(),'ver');
+  const sector = $(this).closest('tr').find('.sector').text();
+  mostrarModalLayoutTotal($(this).val(),sector == '---'? '' : sector,'ver');
 });
 
 $(document).on('click','.carga',function(e){
   e.preventDefault();
-  mostrarModalLayoutTotal($(this).val(),'cargar');
+  const sector = $(this).closest('tr').find('.sector').text();
+  mostrarModalLayoutTotal($(this).val(),sector == '---'? '' : sector,'cargar');
 });
 
-function mostrarModalLayoutTotal(id_layout_total,modo){  
+function mostrarModalLayoutTotal(id_layout_total,sector,modo){  
   $('#btn_finalizar_layout,#btn_validar_layout,#btn_guardartemp_layout').val(id_layout_total);
   if(modo == 'validar'){
     $('#modalLayoutTotal .modal-header').css('background-color','#69F0AE');
@@ -469,7 +472,7 @@ function mostrarModalLayoutTotal(id_layout_total,modo){
   $('#dtpFechaEjecucionLayout span').toggle(m_cargar);
   $('#btn_guardartemp_layout').toggle(m_cargar);
   $('#btn_finalizar_layout').toggle(m_cargar);
-  $('#btn_agregar_inactiva_layout').toggle(m_cargar);
+  $('#btn_agregar_inactiva_layout').toggle(m_cargar).val(sector);
   $('#total_observadas_layout').toggle(m_cargar);
   
   $('#observaciones_adm_layout').attr('disabled',modo == 'ver');
@@ -792,7 +795,7 @@ $(document).on('click','.imprimir',function(){
 });
 
 $('#btn_agregar_inactiva_layout').click(function(){
-  agregarNivel($('#modalLayoutTotal').data('sectores'),{},'cargar');
+  agregarNivel($('#modalLayoutTotal').data('sectores'),{descripcion_sector: $(this).val()},'cargar');
 });
 
 //borrar un nivel de layout
@@ -851,7 +854,7 @@ function agregarNivel(sectores,nivel,modo){
   }
   fila.find('.nro_isla').val(n.nro_isla)
   $('#inactivas_layout tbody').append(fila);
-  select.val(id_sector).change();//Importante hacerlo despues del append() porque sino el change() no se triggerea
+  select.val(id_sector).attr('disabled',n.descripcion_sector != "").change();//Importante hacerlo despues del append() porque sino el change() no se triggerea
 }
 
 $(document).on('change','.NivelLayout .sector',function(e){
