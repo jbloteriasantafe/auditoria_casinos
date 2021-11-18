@@ -248,7 +248,11 @@ $porcentaje_por_observada = $total_usado/$observadas_por_fila;
                           <div class="row">
                             <div class="col-md-6">
                               <h5>SECTOR</h5>
-                              <select class="form-control selectSector">
+                              <select class="form-control selectSector"
+                              @if(count($casinos) == 1 && $casinos[0]->id_casino != 3)
+                              disabled
+                              @endif
+                              >
                               </select>
                             </div>
                             <div class="col-md-6">
@@ -332,7 +336,11 @@ $porcentaje_por_observada = $total_usado/$observadas_por_fila;
               </div>
               <div class="col-md-4">
                 <h5>SECTOR</h5>
-                <select class="form-control selectSector">
+                <select class="form-control selectSector"
+                @if(count($casinos) == 1 && $casinos[0]->id_casino != 3)
+                disabled
+                @endif
+                >
                 </select>
               </div>
             </div>
