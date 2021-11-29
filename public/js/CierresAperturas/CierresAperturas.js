@@ -2627,6 +2627,8 @@ $('#btn-apertura-a-pedido').click(function(e){
   $('#juegoAaP option').removeAttr('selected').eq(0).attr('selected','selected').change();
   $('#dtpFechaInicioAaP').data('datetimepicker').reset();
   $('#dtpFechaFinAaP').data('datetimepicker').reset();
+  ocultarErrorValidacion($('#modalAaP input'));
+  ocultarErrorValidacion($('#modalAaP select'));
   $('#modalAaP').modal('show');
 })
 
@@ -2643,7 +2645,6 @@ $('#agregarAaP').click(function(e){
     fecha_inicio : $('#fechaInicioAaP').val(),
     fecha_fin : $('#fechaFinAaP').val(),
   }
-  if(formData.id_mesa_de_panio == 0) return;
   $.ajax({
     url: '/aperturas/agregarAperturaAPedido',
     type: 'POST',
@@ -2660,6 +2661,19 @@ $('#agregarAaP').click(function(e){
         fecha_fin: data.apertura_a_pedido.fecha_fin,
       }
       agregarFilaAaP(fila);
+    },
+    error: function(data){
+      const response = data.responseJSON;
+      console.log(response);
+      if(response.id_mesa_de_panio){
+        mostrarErrorValidacion($('#mesaAaP'),'Valor incorrecto',true);
+      }
+      if(response.fecha_inicio){
+        mostrarErrorValidacion($('#fechaInicioAaP'),'Valor incorrecto',true);
+      }
+      if(response.fecha_fin){
+        mostrarErrorValidacion($('#fechaFinAaP'),'Valor incorrecto',true);
+      }
     }
   })
 })

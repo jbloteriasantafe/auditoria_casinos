@@ -216,7 +216,29 @@ class ABMAperturaController extends Controller
     }
   }
   public function agregarAperturaAPedido(Request $request){
-    $mesa = Mesa::find($request->id_mesa_de_panio);
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $casinos = array();
+    foreach($usuario->casinos as $casino){
+      $casinos[]=$casino->id_casino;
+    }
+    $mesa = null;
+    $validator=  Validator::make($request->all(),[
+      'id_mesa_de_panio' => 'required|exists:mesa_de_panio,id_mesa_de_panio',
+      'fecha_inicio'     => 'required|date',
+      'fecha_fin'        => 'required|date',
+    ], array(), self::$atributos)->after(function($validator) use ($casinos,&$mesa){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      $mesa = Mesa::find($data['id_mesa_de_panio']);
+      if(!in_array($mesa->juego->id_casino,$casinos)){
+        $validator->errors()->add('id_mesa_de_panio','validation.required');
+      }
+      $fecha_inicio = date('Y-m-d',strtotime($data['fecha_inicio']));
+      $fecha_fin    = date('Y-m-d',strtotime($data['fecha_fin']));
+      if($fecha_inicio > $fecha_fin){
+        $validator->errors()->add('fecha_fin','validation.required');
+      }
+    })->validate();
     $data = [
       'mesa' => $mesa,
       'moneda' => $mesa->moneda,
