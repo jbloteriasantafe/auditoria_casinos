@@ -72,9 +72,11 @@ class Mesa extends Model
     return $this->hasMany('App\Mesas\Mesa','id_mesa_de_panio','id_mesa_de_panio');
   }
 
+  //ELIMINAR EL ATRIBUTO DE LA BD!!! en enlace que esta funcionando es por juego()->tipo_mesa()
+  /*
   public function tipo_mesa(){
     return $this->belongsTo('App\Mesas\TipoMesa','id_tipo_mesa','id_tipo_mesa');
-  }
+  }*/
 
   public function getTableName(){
     return $this->table;

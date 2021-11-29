@@ -42,9 +42,6 @@ class Kernel extends ConsoleKernel
                ->appendOutputTo('sorteo.log')
                ->runInBackground();
 
-      // $schedule->command('RAM:sortear')
-      //         ->dailyAt('12:00')
-      //         ->runInBackground();
       $schedule->command('RAM:sortear')
                ->dailyAt('16:30')
                ->appendOutputTo('sorteo.log')

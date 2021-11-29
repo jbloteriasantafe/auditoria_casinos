@@ -39,9 +39,7 @@ class SortearMesas extends Command
      */
     public function handle()
     {
-      //echo('entró');
       $this->relevamientoController->sortearMesasCommand();
-
       echo('Se sortearon las mesas para las aperturas de los siguientes dias exitosamente!');
     }
 }

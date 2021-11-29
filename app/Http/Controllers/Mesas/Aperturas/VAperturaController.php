@@ -76,12 +76,5 @@ class VAperturaController extends Controller
     $cacontroller = new ABMCCierreAperturaController;
     $cacontroller->asociarAperturaACierre($apertura, $request['id_cierre']);
     return response()->json(['ok' => true], 200);
-
   }
-
-
-
-
-
-
 }
