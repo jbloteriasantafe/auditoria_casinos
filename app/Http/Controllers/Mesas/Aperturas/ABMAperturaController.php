@@ -215,5 +215,17 @@ class ABMAperturaController extends Controller
 
     }
   }
-
+  public function agregarAperturaAPedido(Request $request){
+    $mesa = Mesa::find($request->id_mesa_de_panio);
+    $data = [
+      'mesa' => $mesa,
+      'moneda' => $mesa->moneda,
+      'apertura_a_pedido' => [
+        'id_apertura_a_pedido' => 99123,
+        'fecha_inicio' => $request->fecha_inicio,
+        'fecha_fin' => $request->fecha_fin,
+      ],
+    ];
+    return $data;
+  }
 }

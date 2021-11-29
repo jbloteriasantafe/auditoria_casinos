@@ -106,6 +106,16 @@ $(document).ready(function() {
     $('#modalCargaCierre #agregarMesaCierre').click(clickAgregarMesaCierre);
     $('#btn-buscarCyA').trigger('click',[1,10,'apertura_mesa.fecha','desc']);
 
+    $('#dtpFechaInicioAaP,#dtpFechaFinAaP').datetimepicker({
+      language:  'es',
+      todayBtn:  1,
+      autoclose: 1,
+      todayHighlight: 1,
+      format: 'yyyy-mm-dd',
+      pickerPosition: "bottom-left",
+      startView: 4,
+      minView: 2,
+    });
 }); //fin document ready
 
 
@@ -2582,6 +2592,81 @@ function limpiarFiltrosCierre(){
   $('#filtroMesaCierre').val('');
   $('#B_fecha_filtro_cierre').val('');
   $('#selectCasCierre').val('0');
-
-
 }
+
+
+/*
+  ######             #######
+ ##    ##     ####   ##    ## 
+ ##    ##    ##  ##  ##    ##
+ ########         #  ####### 
+ ##    ##   #######  ##
+ ##    ##  ##    ##  ##
+ ##    ##  ##    ##  ##
+ ##    ##   ##### #  ##
+
+ APERTURAS A PEDIDO
+*/
+
+function agregarFilaAaP(aap){
+  const fila = $('#moldeAaP').clone().removeAttr('id');
+  fila.find('.casino').text(aap.casino);
+  fila.find('.moneda').text(aap.moneda);
+  fila.find('.juego').text(aap.juego);
+  fila.find('.mesa').text(aap.mesa);
+  fila.find('.fecha_inicio').text(aap.fecha_inicio);
+  fila.find('.fecha_fin').text(aap.fecha_fin);
+  fila.find('button').val(aap.id_apertura_a_pedido);
+  $('#tablaAaP tbody').append(fila);
+}
+
+$('#btn-apertura-a-pedido').click(function(e){
+  e.preventDefault();
+  $('#mesaAaP').setearElementoSeleccionado(0, '');
+  $('#tablaAaP tbody').empty();
+  $('#juegoAaP option').removeAttr('selected').eq(0).attr('selected','selected').change();
+  $('#dtpFechaInicioAaP').data('datetimepicker').reset();
+  $('#dtpFechaFinAaP').data('datetimepicker').reset();
+  $('#modalAaP').modal('show');
+})
+
+$('#juegoAaP').change(function(e){
+  e.preventDefault();
+  $('#mesaAaP').generarDataList("/aperturas/obtenerMesasPorJuego/" + $('#juegoAaP').val(), 'mesas', 'id_mesa_de_panio', 'nro_mesa', 1);
+})
+
+$('#agregarAaP').click(function(e){
+  e.preventDefault();
+  const juego = $('#juegoAaP option:selected');
+  const formData = {
+    id_mesa_de_panio : $('#mesaAaP').obtenerElementoSeleccionado(),
+    fecha_inicio : $('#fechaInicioAaP').val(),
+    fecha_fin : $('#fechaFinAaP').val(),
+  }
+  if(formData.id_mesa_de_panio == 0) return;
+  $.ajax({
+    url: '/aperturas/agregarAperturaAPedido',
+    type: 'POST',
+    dataType: 'json',
+    data: formData,
+    success: function(data){
+      const fila = {
+        id_apertura_a_pedido: data.apertura_a_pedido.id_apertura_a_pedido,
+        casino: juego.attr('data-casino'),
+        moneda: data.moneda.siglas,
+        juego: juego.attr('data-siglas'),
+        mesa:  data.mesa.nro_mesa,
+        fecha_inicio: data.apertura_a_pedido.fecha_inicio,
+        fecha_fin: data.apertura_a_pedido.fecha_fin,
+      }
+      agregarFilaAaP(fila);
+    }
+  })
+})
+
+
+$(document).on('click','.eliminarAaP',function(e){
+  e.preventDefault();
+  //@TODO borrar de la BD
+  $(this).closest('tr').remove();
+})

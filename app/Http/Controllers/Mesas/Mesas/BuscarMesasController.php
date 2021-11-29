@@ -246,6 +246,24 @@ class BuscarMesasController extends Controller
     return ['mesas'=>$resultado];
   }
 
+  public function buscarMesaPorJuego($id_juego_mesa,$nro_mesa){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $casinos = array();
+    foreach($usuario->casinos as $casino){
+      $casinos[]=$casino->id_casino;
+    }
+
+    $mesas = DB::table('mesa_de_panio')
+    ->selectRaw('id_mesa_de_panio, nro_mesa')
+    ->where('nro_mesa','like','%'.$nro_mesa.'%')
+    ->where('id_juego_mesa',$id_juego_mesa)
+    ->whereIn('id_casino',$casinos)
+    ->whereNull('deleted_at')
+    ->orderBy('nro_mesa','asc')->get();
+
+    return ['mesas'=>$mesas];
+  }
+
   public function buscarMesaPorNroCasinoSinApertura($id_casino,$fecha,$nro_mesa){
     $controllerAP = new BCAperturaController;
     $resultadoo = $controllerAP->buscarIDMesasAperturasDelDia($fecha,$id_casino);
