@@ -2659,7 +2659,6 @@ $('#juegoAaP').change(function(e){
 
 $('#agregarAaP').click(function(e){
   e.preventDefault();
-  const juego = $('#juegoAaP option:selected');
   const formData = {
     id_mesa_de_panio : $('#mesaAaP').obtenerElementoSeleccionado(),
     fecha_inicio : $('#fechaInicioAaP').val(),
@@ -2671,6 +2670,7 @@ $('#agregarAaP').click(function(e){
     dataType: 'json',
     data: formData,
     success: function(data){
+      $('#juegoAaP').change();//Limpia el input de nro de mesa
       buscarAperturasAPedido();
     },
     error: function(data){

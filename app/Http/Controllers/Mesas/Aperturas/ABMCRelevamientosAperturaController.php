@@ -72,6 +72,34 @@ class ABMCRelevamientosAperturaController extends Controller
     $this->middleware(['tiene_permiso:m_sortear_mesas']);
   }
 
+  public function generarRelevamiento(){
+    $fecha_hoy = Carbon::now()->format("Y-m-d");
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $cas = $user->casinos->first();
+    $codigo_casino = $cas->codigo;
+
+    $nombreZip = 'Planillas-Aperturas-'.$codigo_casino
+              .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".(self::$cantidad_dias_backup-1)." day"))
+              .'.zip';
+    if(file_exists( public_path().'/Mesas/RelevamientosAperturas/'.$nombreZip)){
+      return ['url_zip' => 'sorteo-aperturas/descargarZip/'.$nombreZip];
+    }else{
+      $enEspera = DB::table('comando_a_ejecutar')
+          ->where([['fecha_a_ejecutar','>',Carbon::now()->format('Y:m:d H:i:s')],
+                  ['nombre_comando','=','RAM:sortear']
+                  ])
+          ->get()->count();
+      if($enEspera == 0){
+        $agrega_comando = new ComandoEnEspera;
+        $agrega_comando->nombre_comando = 'RAM:sortear';
+        $agrega_comando->fecha_a_ejecutar = Carbon::now()->addMinutes(30)->format('Y:m:d H:i:s');
+        $agrega_comando->save();
+      }
+
+      return response()->json(['apertura' => 'Por favor reintente en 15 minutos...'], 404);
+    }
+  }
+
   private function creaRelevamientoZip(){
     $permissions = intval( config('permissions.directory'), 8 );
     if(file_exists( public_path().'/Mesas/RelevamientosAperturas')){
