@@ -707,7 +707,10 @@ Route::get('mesas/obtenerDatos/{id_cas}', 'Mesas\Mesas\BuscarMesasController@dat
   //Aperturas
   Route::get('/aperturas', 'Mesas\Aperturas\BCAperturaController@buscarTodo');
   Route::get('/aperturas/obtenerMesasPorJuego/{id_juego_mesa}/{nro_mesa}', 'Mesas\Mesas\BuscarMesasController@buscarMesaPorJuego');
+
   Route::post('/aperturas/agregarAperturaAPedido','Mesas\Aperturas\ABMAperturaController@agregarAperturaAPedido');
+  Route::get('/aperturas/buscarAperturasAPedido','Mesas\Aperturas\ABMAperturaController@buscarAperturasAPedido');
+  Route::delete('/aperturas/borrarAperturaAPedido/{id_apertura_a_pedido}','Mesas\Aperturas\ABMAperturaController@borrarAperturaAPedido');
   Route::post('aperturas/filtrosAperturas', 'Mesas\Aperturas\BCAperturaController@filtros');
   Route::get('aperturas/obtenerAperturas/{id_apertura}', 'Mesas\Aperturas\BCAperturaController@getApertura');
   Route::post('aperturas/guardarApertura', 'Mesas\Aperturas\ABMAperturaController@guardar');

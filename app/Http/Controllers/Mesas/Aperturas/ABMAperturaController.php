@@ -22,6 +22,7 @@ use App\Mesas\JuegoMesa;
 use App\Mesas\SectorMesas;
 use App\Mesas\TipoMesa;
 use App\Mesas\Apertura;
+use App\Mesas\AperturaAPedido;
 use App\Mesas\DetalleApertura;
 use App\Mesas\EstadoCierre;
 use App\Mesas\TipoCierre;
@@ -239,15 +240,41 @@ class ABMAperturaController extends Controller
         $validator->errors()->add('fecha_fin','validation.required');
       }
     })->validate();
-    $data = [
-      'mesa' => $mesa,
-      'moneda' => $mesa->moneda,
-      'apertura_a_pedido' => [
-        'id_apertura_a_pedido' => 99123,
-        'fecha_inicio' => $request->fecha_inicio,
-        'fecha_fin' => $request->fecha_fin,
-      ],
-    ];
-    return $data;
+    $aap = null;
+    DB::transaction(function () use (&$mesa,&$aap,$request){
+      $aap = new AperturaAPedido;
+      $aap->id_mesa_de_panio = $request->id_mesa_de_panio;
+      $aap->fecha_inicio     = $request->fecha_inicio;
+      $aap->fecha_fin        = $request->fecha_fin;
+      $aap->save();
+    });
+    return 1;
+  }
+  public function buscarAperturasAPedido(){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $casinos = array();
+    foreach($usuario->casinos as $casino){
+      $casinos[]=$casino->id_casino;
+    }
+    $ret = DB::table('apertura_a_pedido as aap')
+    ->select('aap.*','mp.nro_mesa','jm.siglas as juego','c.nombre as casino',DB::raw('IFNULL(m.siglas,"MULTIMONEDA") as moneda'))
+    ->join('mesa_de_panio as mp','mp.id_mesa_de_panio','=','aap.id_mesa_de_panio')
+    ->leftJoin('moneda as m','m.id_moneda','=','mp.id_moneda')
+    ->join('juego_mesa as jm','jm.id_juego_mesa','=','mp.id_juego_mesa')
+    ->join('casino as c','c.id_casino','=','jm.id_casino')
+    ->whereIn('jm.id_casino',$casinos)
+    ->whereNull('mp.deleted_at')->whereNull('jm.deleted_at')
+    ->orderBy('aap.fecha_inicio','desc')
+    ->orderBy('aap.fecha_fin','desc')
+    ->orderBy('jm.siglas','asc')
+    ->orderBy('mp.nro_mesa','asc');
+
+    return $ret->get();
+  }
+  public function borrarAperturaAPedido($id_apertura_a_pedido){
+    DB::transaction(function () use ($id_apertura_a_pedido){
+      AperturaAPedido::find($id_apertura_a_pedido)->delete();
+    });
+    return 1;
   }
 }

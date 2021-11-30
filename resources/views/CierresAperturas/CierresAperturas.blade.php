@@ -1672,7 +1672,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                 <td class="casino" style="text-align:center;">CASINO</td>
                 <td class="moneda" style="text-align:center;">ARS/USD/MULTIMONEDA</td>
                 <td class="juego" style="text-align:center;">RA/CR/MJ/ETC</td>
-                <td class="mesa" style="text-align:center;">1234</td>
+                <td class="nro_mesa" style="text-align:center;">1234</td>
                 <td class="fecha_inicio" style="text-align:center;">9999-99-99</td>
                 <td class="fecha_fin" style="text-align:center;">9999-99-99</td>
                 <td style="text-align:center;">
