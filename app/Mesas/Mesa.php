@@ -68,8 +68,8 @@ class Mesa extends Model
     return $this->belongsTo('App\Mesas\Moneda','id_moneda','id_moneda');
   }
 
-  public function mesa_a_pedido(){
-    return $this->hasMany('App\Mesas\Mesa','id_mesa_de_panio','id_mesa_de_panio');
+  public function aperturas_a_pedido(){
+    return $this->hasMany('App\Mesas\AperturaAPedido','id_mesa_de_panio','id_mesa_de_panio');
   }
 
   //ELIMINAR EL ATRIBUTO DE LA BD!!! en enlace que esta funcionando es por juego()->tipo_mesa()

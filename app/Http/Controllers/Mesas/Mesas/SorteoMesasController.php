@@ -124,6 +124,14 @@ class SorteoMesasController extends Controller
     //Antes se agregaba el menos relevado y el mas relevado, creo que es un bug porque el ultimo seria una retroalimentación positiva
     //if($cantidad > 1) $ret[] = $aperturas[$cantidad-1]->id_mesa_de_panio;
     if($cantidad > 1) $ret[] = $aperturas[1]->id_mesa_de_panio;
+
+    $aperturas_a_pedido = DB::table('apertura_a_pedido as aap')
+    ->select('aap.id_mesa_de_panio')
+    ->join('mesa_de_panio as mp','mp.id_mesa_de_panio','=','aap.id_mesa_de_panio')
+    ->where('mp.id_casino','=',$id_casino)
+    ->where('aap.fecha_inicio','<=',$fecha_backup)->where('aap.fecha_fin','>=',$fecha_backup)->get();
+    foreach($aperturas_a_pedido as $aap) $ret[] = $aap->id_mesa_de_panio;
+
     return $ret;
   }
 
