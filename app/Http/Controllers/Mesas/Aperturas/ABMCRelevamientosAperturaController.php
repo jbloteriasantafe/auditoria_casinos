@@ -40,7 +40,6 @@ use File;
 use App\Mesas\ComandoEnEspera;
 use App\Mesas\FichaTieneCasino;
 use App\Http\Controllers\Mesas\Mesas\SorteoMesasController;
-use App\Http\Controllers\Mesas\InformesMesas\ABCMesasSorteadasController;
 
 
 //busqueda y consulta de cierres
@@ -109,7 +108,6 @@ class ABMCRelevamientosAperturaController extends Controller
       File::makeDirectory( public_path().'/Mesas/RelevamientosAperturas');
     }
 
-    $informesSorteadas = new ABCMesasSorteadasController;
     $fecha_hoy = Carbon::now()->format("Y-m-d"); // fecha de hoy
     $casinos = Casino::all();
     $arregloRutas = array();
@@ -142,9 +140,12 @@ class ABMCRelevamientosAperturaController extends Controller
   * Se utiliza desde \console\Commands\SortearMesas
   */
   public function sortearMesasCommand(){
+    try{
+      DB::table('mesas_sorteadas')->where('fecha_backup','>',Carbon::now()->format("Y-m-d"))->delete();
+    }catch(Exception $e){
+      throw new \Exception("FALLO durante la eliminación de sorteos mesa de paño - llame a un ADMINISTRADOR", 1);
+    }
     $sorteoController = new SorteoMesasController;
-    $sorteadasController = new ABCMesasSorteadasController;
-    $sorteadasController->eliminarSiguientes();
     $casinos = Casino::all();
     foreach ($casinos as $cas) {
       if(count($cas->mesas) > 0){

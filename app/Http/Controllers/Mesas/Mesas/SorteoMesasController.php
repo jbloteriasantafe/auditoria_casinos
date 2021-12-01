@@ -29,7 +29,6 @@ use App\Mesas\EstadoCierre;
 use App\Mesas\TipoCierre;
 use App\Mesas\MesasSorteadas;
 
-use App\Http\Controllers\Mesas\InformesMesas\ABCMesasSorteadasController;
 
 use Exception;
 
@@ -50,9 +49,8 @@ class SorteoMesasController extends Controller
   {
     $this->middleware(['tiene_permiso:m_sortear_mesas']);
   }
-  
+
   public function sortear($id_casino,$fecha_backup){
-    $informesSorteadas = new ABCMesasSorteadasController;
     $cantidadRULETA = $id_casino == 3? 8 : 4;
     $cantidadCARTAS = $id_casino == 3? 8 : 4;
     $ruletasDados = null;
@@ -67,7 +65,14 @@ class SorteoMesasController extends Controller
       }else{
         $ruletas = $this->getMesas($cantidadRULETA,$id_casino,[1],$fecha_backup);
         $cartasDados = $this->getMesas($cantidadCARTAS,$id_casino,[2,3],$fecha_backup);
-        $informesSorteadas->almacenarSorteadas($ruletas,$cartasDados,$id_casino,$fecha_backup);
+
+        $sorteadas = new MesasSorteadas;
+        $sorteadas->mesas = ['ruletas' => $ruletas->toArray(),
+                              'cartasDados' => $cartasDados->toArray(),];
+        $sorteadas->casino()->associate($id_casino);
+        $sorteadas->fecha_backup = $fecha_backup;
+        $sorteadas->save();
+
         return ['ruletas' => $ruletas,'cartasDados' => $cartasDados];
       }
     }catch(Exception $e){
@@ -77,13 +82,13 @@ class SorteoMesasController extends Controller
 
   private function getMesas($cantidad, $id_casino, $tipo,$fecha_backup){
     $mesas = [];
-    $ids_si_o_si = $this->obtenerPonderadas($tipo,$id_casino,$fecha_backup);
-    $mesas_si_o_si = DB::table('mesa_de_panio')
+    $ids_obligadas = $this->obtenerMesasObligatorias($tipo,$id_casino,$fecha_backup);
+    $mesas_obligadas = DB::table('mesa_de_panio')
     ->join('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
     ->join('tipo_mesa','juego_mesa.id_tipo_mesa','=','tipo_mesa.id_tipo_mesa')//Para que este join?
     ->whereIn('juego_mesa.id_tipo_mesa',$tipo)
     ->where('mesa_de_panio.id_casino','=',$id_casino)
-    ->whereIn('id_mesa_de_panio',$ids_si_o_si)
+    ->whereIn('id_mesa_de_panio',$ids_obligadas)
     ->whereNull('mesa_de_panio.deleted_at')
     ->get();
 
@@ -92,41 +97,41 @@ class SorteoMesasController extends Controller
     ->join('tipo_mesa','juego_mesa.id_tipo_mesa','=','tipo_mesa.id_tipo_mesa')//Para que este join?
     ->whereIn('juego_mesa.id_tipo_mesa',$tipo)
     ->where('mesa_de_panio.id_casino','=',$id_casino)
-    ->whereNotIn('mesa_de_panio.id_mesa_de_panio',$ids_si_o_si)
+    ->whereNotIn('mesa_de_panio.id_mesa_de_panio',$ids_obligadas)
     ->whereNull('mesa_de_panio.deleted_at')
     ->inRandomOrder()
-    ->take($cantidad-count($ids_si_o_si))
+    ->take($cantidad-count($ids_obligadas))
     ->get()
-    ->merge($mesas_si_o_si);
+    ->merge($mesas_obligadas);
 
     return $mesas;
   }
 
-  //Retorna las mesas de $casino-$tipo con mas aperturas y con menos aperturas de los ultimos 30 dias
-  private function obtenerPonderadas($tipo,$id_casino,$fecha_backup){
+  //Retorna las mesas de $casino-$tipo obligadas a ser relevadas
+  private function obtenerMesasObligatorias($tipo,$id_casino,$fecha_backup){
     $cantidad = 0;
     $date = \Carbon\Carbon::today()->subDays(30);
     
     $aperturas = DB::table('apertura_mesa')->select(DB::raw('count(id_mesa_de_panio) as cant_mesa'),'id_mesa_de_panio')
     ->whereIn('id_tipo_mesa',$tipo)->where('id_casino','=',$id_casino)->where('fecha', '>=', date($date))
     ->groupBy('id_mesa_de_panio')
-    ->orderBy('cant_mesa','desc')->get();
+    ->orderBy('cant_mesa','asc')->get();
+
     $ret = [];
     $cantidad = is_null($aperturas)? 0 : count($aperturas);
     //Hay al menos 1, agrego el primero
     if($cantidad > 0) $ret[] = $aperturas[0]->id_mesa_de_panio;
-    //Hay mas de 1, agrego el ultimo
-    if($cantidad > 1) $ret[] = $aperturas[$cantidad-1]->id_mesa_de_panio;
+    //Antes se agregaba el menos relevado y el mas relevado, creo que es un bug porque el ultimo seria una retroalimentación positiva
+    //if($cantidad > 1) $ret[] = $aperturas[$cantidad-1]->id_mesa_de_panio;
+    if($cantidad > 1) $ret[] = $aperturas[1]->id_mesa_de_panio;
     return $ret;
   }
 
-  public function buscarBackUps($cas,$fecha){
-    //debe retornar lo mismo que retorna sortear.
-    $sorteadasController = new ABCMesasSorteadasController;
+  public function buscarBackUps($id_casino,$fecha){//debe retornar lo mismo que retorna sortear.
     try{
-      $rta = $sorteadasController->obtenerSorteo($cas,$fecha);
+      $rta = MesasSorteadas::where([['fecha_backup','=',$fecha],['id_casino','=',$id_casino]])->firstOrFail();
     }catch(Exception $e){
-      throw new \Exception("Sorteo no encontrado - llame a un ADMINISTRADOR".$cas.'-'.$fecha, 1);
+      throw new \Exception("Sorteo no encontrado - llame a un ADMINISTRADOR".$id_casino.'-'.$fecha, 1);
       //hola admin -> cuando salga este mensaje deberás ejecutar el comando RAM:sortear
     }
 
