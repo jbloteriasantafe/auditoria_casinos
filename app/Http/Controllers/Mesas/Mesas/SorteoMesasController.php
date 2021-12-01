@@ -50,6 +50,7 @@ class SorteoMesasController extends Controller
   {
     $this->middleware(['tiene_permiso:m_sortear_mesas']);
   }
+  
   public function sortear($id_casino,$fecha_backup){
     $informesSorteadas = new ABCMesasSorteadasController;
     $cantidadRULETA = $id_casino == 3? 8 : 4;
@@ -75,77 +76,48 @@ class SorteoMesasController extends Controller
   }
 
   private function getMesas($cantidad, $id_casino, $tipo,$fecha_backup){
-    $mesas = array();
-    $mesas_pond = $this->obtenerPonderadas($tipo,$id_casino,$fecha_backup);
+    $mesas = [];
+    $ids_si_o_si = $this->obtenerPonderadas($tipo,$id_casino,$fecha_backup);
+    $mesas_si_o_si = DB::table('mesa_de_panio')
+    ->join('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
+    ->join('tipo_mesa','juego_mesa.id_tipo_mesa','=','tipo_mesa.id_tipo_mesa')//Para que este join?
+    ->whereIn('juego_mesa.id_tipo_mesa',$tipo)
+    ->where('mesa_de_panio.id_casino','=',$id_casino)
+    ->whereIn('id_mesa_de_panio',$ids_si_o_si)
+    ->whereNull('mesa_de_panio.deleted_at')
+    ->get();
 
-    if($mesas_pond->cantidad){
-      if($mesas_pond->cantidad == 1){
-        $mesas = DB::table('mesa_de_panio')
-        ->join('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
-        ->join('tipo_mesa','juego_mesa.id_tipo_mesa','=','tipo_mesa.id_tipo_mesa')//Para que este join?
-        ->whereIn('juego_mesa.id_tipo_mesa',$tipo)
-        ->where('mesa_de_panio.id_casino','=',$id_casino)
-        ->whereNotIn('mesa_de_panio.id_mesa_de_panio',[$mesas_pond->mesas[0]->id_mesa_de_panio])
-        ->whereNull('mesa_de_panio.deleted_at')
-        ->inRandomOrder()
-        ->take($cantidad-$mesas_pond->cantidad)
-        ->get();
-        $mesas = $mesas->merge($mesas_pond->mesas);
-      }else{
-        $mesas = DB::table('mesa_de_panio')
-        ->join('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
-        ->join('tipo_mesa','juego_mesa.id_tipo_mesa','=','tipo_mesa.id_tipo_mesa')//Para que este join?
-        ->whereIn('juego_mesa.id_tipo_mesa',$tipo)
-        ->where('mesa_de_panio.id_casino','=',$id_casino)
-        ->whereNotIn('mesa_de_panio.id_mesa_de_panio',[$mesas_pond->mesas[0]->id_mesa_de_panio,$mesas_pond->mesas[1]->id_mesa_de_panio])
-        ->whereNull('mesa_de_panio.deleted_at')
-        ->inRandomOrder()
-        ->take($cantidad-$mesas_pond->cantidad)
-        ->get();
-        $mesas = $mesas->merge($mesas_pond->mesas);
-      }
-    }else{
-      $mesas = DB::table('mesa_de_panio')
-      ->join('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
-      ->join('tipo_mesa','juego_mesa.id_tipo_mesa','=','tipo_mesa.id_tipo_mesa')//Para que este join?
-      ->whereIn('juego_mesa.id_tipo_mesa',$tipo)
-      ->where('mesa_de_panio.id_casino','=',$id_casino)
-      ->whereNull('mesa_de_panio.deleted_at')
-      ->inRandomOrder()
-      ->take($cantidad)
-      ->get();
-    }
+    $mesas = DB::table('mesa_de_panio')
+    ->join('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
+    ->join('tipo_mesa','juego_mesa.id_tipo_mesa','=','tipo_mesa.id_tipo_mesa')//Para que este join?
+    ->whereIn('juego_mesa.id_tipo_mesa',$tipo)
+    ->where('mesa_de_panio.id_casino','=',$id_casino)
+    ->whereNotIn('mesa_de_panio.id_mesa_de_panio',$ids_si_o_si)
+    ->whereNull('mesa_de_panio.deleted_at')
+    ->inRandomOrder()
+    ->take($cantidad-count($ids_si_o_si))
+    ->get()
+    ->merge($mesas_si_o_si);
+
     return $mesas;
   }
 
+  //Retorna las mesas de $casino-$tipo con mas aperturas y con menos aperturas de los ultimos 30 dias
   private function obtenerPonderadas($tipo,$id_casino,$fecha_backup){
     $cantidad = 0;
     $date = \Carbon\Carbon::today()->subDays(30);
-
+    
     $aperturas = DB::table('apertura_mesa')->select(DB::raw('count(id_mesa_de_panio) as cant_mesa'),'id_mesa_de_panio')
     ->whereIn('id_tipo_mesa',$tipo)->where('id_casino','=',$id_casino)->where('fecha', '>=', date($date))
     ->groupBy('id_mesa_de_panio')
     ->orderBy('cant_mesa','desc')->get();
-
-    $cantidad = count($aperturas);
-    if(!isset($aperturas)){
-      $mesas = DB::table('mesa_de_panio')
-      ->join('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')//Para que este join?
-      ->join('tipo_mesa','juego_mesa.id_tipo_mesa','=','tipo_mesa.id_tipo_mesa')//Para que este join?
-      ->whereIn('mesa_de_panio.id_casino','=',$id_casino)
-      ->whereIn('id_mesa_de_panio',[$aperturas[0]->id_mesa_de_panio,$aperturas[$cantidad-1]->id_mesa_de_panio])
-      ->get();
-    }else{
-      $mesas =array();
-      $coss = new \stdClass();
-      $coss->id_mesa_de_panio = 0;
-      $mesas[] = $coss;
-      $cantidad = 0;
-    }
-    $rta = new \stdClass();
-    $rta->mesas = $mesas;
-    $rta->cantidad = $cantidad;
-    return $rta;
+    $ret = [];
+    $cantidad = is_null($aperturas)? 0 : count($aperturas);
+    //Hay al menos 1, agrego el primero
+    if($cantidad > 0) $ret[] = $aperturas[0]->id_mesa_de_panio;
+    //Hay mas de 1, agrego el ultimo
+    if($cantidad > 1) $ret[] = $aperturas[$cantidad-1]->id_mesa_de_panio;
+    return $ret;
   }
 
   public function buscarBackUps($cas,$fecha){
