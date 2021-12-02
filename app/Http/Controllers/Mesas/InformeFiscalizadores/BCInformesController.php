@@ -56,22 +56,15 @@ class BCInformesController extends Controller
   }
 
   public function index(){
-    // $pep = new ABMCCierreAperturaController;
-    // $pep->revivirElPasado();
     $uc = new UsuarioController;
     $uc->agregarSeccionReciente('Informes Diarios Fiscalizaciones','informeDiarioBasico');
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos = $user->casinos;
     return view('InformesFiscalizadores.informeDiario',['casinos'=>$casinos]);
-
   }
-
-
 
   public function filtros(Request $request)
 {
-  // $this->actualizarAll();
-  // dd('ok');
   $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
   $cas = array();
 
@@ -226,120 +219,4 @@ public function asociarMinimos($informe){
     $informeController->agregarRelacionValoresApuestas($rel);
   }
 }
-
-
-public function actualizarAll(){
-  $informes = InformeFiscalizadores::all();
-
-  foreach ($informes as $informe) {
-
-    $turnos_sin_minimo = DB::table('relevamiento_apuestas_mesas')
-                                  ->select('nro_turno','id_estado_relevamiento')
-                                  ->where('cumplio_minimo','=',0)
-                                  ->where('fecha','=',$informe->fecha)
-                                  ->where('es_backup','=',0)
-                                  ->where('id_casino','=',$informe->id_casino)
-                                  ->get();
-
-    $mesasRelevadasAbiertas = DB::table('detalle_relevamiento_apuestas' )
-                                  ->select('detalle_relevamiento_apuestas.id_mesa_de_panio')
-                                  ->join('relevamiento_apuestas_mesas','detalle_relevamiento_apuestas.id_relevamiento_apuestas',
-                                          '=','relevamiento_apuestas_mesas.id_relevamiento_apuestas')
-                                  ->where('relevamiento_apuestas_mesas.fecha', '=', $informe->fecha)
-                                  ->where( 'detalle_relevamiento_apuestas.id_estado_mesa',
-                                          '=',1)
-                                  ->groupBy('detalle_relevamiento_apuestas.id_mesa_de_panio')
-                                  ->orderBy('detalle_relevamiento_apuestas.id_mesa_de_panio','asc')
-                                  ->distinct('detalle_relevamiento_apuestas.id_mesa_de_panio')
-                                  ->get();
-
-
-   $mesasImportadasAbiertas = DB::table('detalle_importacion_diaria_mesas')
-                                    ->select('detalle_importacion_diaria_mesas.id_mesa_de_panio')
-                                    ->join('importacion_diaria_mesas','detalle_importacion_diaria_mesas.id_importacion_diaria_mesas',
-                                           '=', 'importacion_diaria_mesas.id_importacion_diaria_mesas')
-                                    ->where('importacion_diaria_mesas.fecha','=',$informe->fecha)
-                                    ->where('detalle_importacion_diaria_mesas.utilidad', '<>', 0)
-                                    ->groupBy('detalle_importacion_diaria_mesas.id_mesa_de_panio')
-                                    ->orderBy('detalle_importacion_diaria_mesas.id_mesa_de_panio','asc')
-                                    ->distinct('detalle_importacion_diaria_mesas.id_mesa_de_panio')
-                                    ->get();
-    $array_t = '';
-    $hay_rels_sin_visar = 0;
-    $cant_turnos = 0;
-    foreach ($turnos_sin_minimo as $t) {
-      if($cant_turnos <= 4){
-        $array_t = $array_t.' - '.$t->nro_turno;
-      }
-      if($cant_turnos == 5){
-        $array_t = $array_t.'...';
-      }
-
-      if($t->id_estado_relevamiento != 4){
-        $hay_rels_sin_visar = 1;
-      }
-      $cant_turnos++;
-    }
-
-    $controllerCA = new ABMCCierreAperturaController;
-    $mesas_con_diferencia = json_encode($controllerCA->obtenerMesasConDiferencias($informe->fecha));
-    //
-    $aperturas = Apertura::where('fecha','=',$informe->fecha)
-                            ->where('id_estado_cierre','=',1)
-                            ->where('id_casino','=',$informe->id_casino)
-                            ->get();
-
-    $cierres = Cierre::where('fecha','=',$informe->fecha)
-                             ->where('id_estado_cierre','=',1)
-                             ->where('id_casino','=',$informe->id_casino)
-                             ->get()->count();
-
-    $informe->turnos_sin_minimo = $array_t;
-    $informe->mesas_relevadas_abiertas = $mesasRelevadasAbiertas;
-    $informe->mesas_importadas_abiertas = $mesasImportadasAbiertas;
-    if($mesas_con_diferencia == 'null'){
-      $informe->mesas_con_diferencia = '{}';
-    }
-    else {
-      $informe->mesas_con_diferencia = $mesas_con_diferencia;
-    }
-    $informe->ap_sin_validar =  $aperturas->count();
-    $informe->cie_sin_validar = $cierres;
-    //dd($informe);
-    $informe->save();
-
-    $sorteadas = MesasSorteadas::where('fecha_backup','=', $informe->fecha)
-                                ->where('id_casino','=',$informe->id_casino)
-                                ->get()->first();
-    if(isset($sorteadas)){
-      //dd($sorteadas->mesas);
-      $coinciden = 0;
-      $mesas_sorteadas = $sorteadas->mesas;
-      foreach ($mesas_sorteadas['ruletasDados'] as $mesa) {
-        $apertura = $aperturas->where('id_mesa_de_panio',$mesa['id_mesa_de_panio']);
-        if($apertura->first()!== null){
-          $coinciden++;
-        }
-      }
-      foreach ($mesas_sorteadas['cartas'] as $mesa) {
-        $apertura = $aperturas->where('id_mesa_de_panio',$mesa['id_mesa_de_panio']);
-        if($apertura->first() !== null){
-          $coinciden++;
-        }
-      }
-      //dd((($coinciden * 100)/$aperturas->count()),$coinciden);
-      if($aperturas->count() != 0) {
-        $informe->aperturas_sorteadas = round(($coinciden * 100)/$aperturas->count(),2);
-      }
-      else {
-        $informe->aperturas_sorteadas = 0;
-      }
-      $informe->save();
-      //dd($informe);
-      //$sorteadas->delete();
-    }
-
-  }
-}
-
 }

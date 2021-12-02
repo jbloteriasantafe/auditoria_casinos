@@ -86,7 +86,6 @@ class ABMCCierreAperturaController extends Controller
       $cierre->save();
       $informeController = new GenerarInformesFiscalizadorController;
       $informeController->iniciarInformeDiario($caobject);
-
     }
 
     public function ascociarDetalles($apertura,$cierre){
@@ -147,7 +146,6 @@ class ABMCCierreAperturaController extends Controller
       }
     }
 
-
     public function obtenerMesasConDiferencias($fecha){
       $resultados = CierreApertura::where('fecha_produccion','=',$fecha)
                                     ->where('diferencias','=',1)
@@ -176,7 +174,6 @@ class ABMCCierreAperturaController extends Controller
       }
     }
 
-
     public function desvincularApertura($id_apertura){
       $apertura = Apertura::findOrFail($id_apertura);
       $fechamascincuenta = Carbon::parse($apertura->fecha)->addDay(50)->format('Y-m-d');
@@ -194,51 +191,5 @@ class ABMCCierreAperturaController extends Controller
         return 1;
       }
       return 0;
-    }
-
-    public function revivirElPasado(){
-      $aperturasValidadas = CierreApertura::all();
-      $informeController = new GenerarInformesFiscalizadorController;
-      foreach($aperturasValidadas as $apOk){
-        //agregarle los atributos que le falten al cierre_apertura
-        $apOk->fecha_produccion = $apOk->apertura->fecha;
-        $apOk->diferencias = $this->calcularDifferencias($apOk);
-        $apOk->casino()->associate($apOk->apertura->id_casino);
-        $apOk->save();
-
-        $informeController->iniciarInformeDiario($apOk);
-      }
-    }
-
-    public function calcularDifferencias($apOk){
-      $apertura = $apOk->apertura;
-      $cierre = $apOk->cierre;
-      $deApertura = DB::table('detalle_apertura as DA')
-                              ->select('DA.id_ficha',
-                                       DB::raw( 'SUM(DA.cantidad_ficha * ficha.valor_ficha) as monto_ficha')
-                                      )
-                              ->join('ficha','ficha.id_ficha','=','DA.id_ficha')
-                              ->where('DA.id_apertura_mesa','=',$apertura->id_apertura_mesa)
-                              ->orderBy('ficha.valor_ficha')
-                              ->groupBy('DA.id_ficha','DA.cantidad_ficha','ficha.valor_ficha')
-                              ->get()->toArray();
-
-      $deCierre = DB::table('detalle_cierre as DC')
-                              ->select('DC.id_ficha',
-                                       'DC.monto_ficha'
-                                      )
-                              ->join('ficha','ficha.id_ficha','=','DC.id_ficha')
-                              ->where('DC.id_cierre_mesa','=',$cierre->id_cierre_mesa)
-                              ->orderBy('ficha.valor_ficha')
-                              ->get()->toArray();
-      $diferencias = 0;
-      foreach ($deApertura as $ap) {
-        if(!$this->estaEn($ap,$deCierre)){
-          $diferencias = 1;
-          break;
-        }
-      }
-
-      return $diferencias;
     }
   }

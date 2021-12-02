@@ -225,7 +225,6 @@ class GenerarInformesFiscalizadorController extends Controller
                                     ->where('id_casino','=',$informe->id_casino)
                                     ->get()->first();
         if(isset($sorteadas)){
-          //dd($sorteadas->mesas);
           $coinciden = 0;
           $mesas_sorteadas = $sorteadas->mesas;
           foreach ($mesas_sorteadas['ruletasDados'] as $mesa) {
@@ -240,12 +239,9 @@ class GenerarInformesFiscalizadorController extends Controller
               $coinciden++;
             }
           }
-          //dd((($coinciden * 100)/$aperturas->count()),$coinciden);
           $informe->aperturas_sorteadas = round(($coinciden * 100)/$aperturas->count(),2);
           $informe->save();
-          //dd($informe);
           $sorteadas->delete();
         }
     }
-
   }

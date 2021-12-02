@@ -57,8 +57,6 @@ class BCCierreController extends Controller
     //VER CONDICIONES PARA QUE SE PUEDA BORRAR UN CIERRE
     $cierre = Cierre::find($id);
     $cierre->delete();
-    //return ['cierre' => $cierre];
-    //return 1;
     return response()->json(['cierre' => $cierre], 200);
   }
 

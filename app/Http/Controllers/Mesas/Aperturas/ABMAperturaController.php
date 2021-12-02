@@ -132,10 +132,6 @@ class ABMAperturaController extends Controller
         $apertura->save();
       }
 
-      //$cacontroller = new ABMCCierreAperturaController;
-      //$cacontroller->asociarAperturaACierre($apertura);
-
-
      return ['apertura' => $apertura,'detalles' => $detalles];
     }else{
        return response()->json(['errors' => ['autorizacion' => 'No está autorizado para realizar esta accion.'],404]);

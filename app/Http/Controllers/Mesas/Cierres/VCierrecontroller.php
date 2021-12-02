@@ -25,8 +25,6 @@ use App\Mesas\TipoMesa;
 use App\Mesas\Cierre;
 use App\Mesas\DetalleCierre;
 use App\Mesas\EstadoCierre;
-
-use App\Http\Controllers\UsuarioController;
 //validacion de cierres
 class VCierreController extends Controller
 {
@@ -75,7 +73,4 @@ class VCierreController extends Controller
       return ['errors' => $val->messages()->toJson()];
     }
   }
-
-
-
 }

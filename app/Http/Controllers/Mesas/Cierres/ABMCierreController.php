@@ -110,7 +110,6 @@ class ABMCierreController extends Controller
       foreach ($request->fichas as $f) {
           if($f['monto_ficha'] != 0){
           $ficha = new DetalleCierre;
-          //dd($ficha);
           $ficha->ficha()->associate($f['id_ficha']);
           $ficha->monto_ficha = $f['monto_ficha'];
           $ficha->cierre()->associate($cierre->id_cierre_mesa);
