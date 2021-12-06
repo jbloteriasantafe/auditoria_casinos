@@ -1,10 +1,5 @@
 <?php
-use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\AuthenticationController;
-use Illuminate\Http\Request;
-
-$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-$id_usuario = $usuario['usuario']->id_usuario;
 ?>
 @extends('includes.dashboard')
 
@@ -69,6 +64,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
           </div>
           <div class="row">
         <!-- botón de cargar apertura fiscalizada -->
+    @if($usuario->es_administrador || $usuario->es_superusuario)
     <div class="col-md-12">
       <a href="" id="btn-apertura-a-pedido" dusk="btn-nuevo" style="text-decoration: none;">
         <div class="panel panel-default panelBotonNuevo">
@@ -83,8 +79,9 @@ $id_usuario = $usuario['usuario']->id_usuario;
               </div>
             </div>
           </div>
-        </a>
-      </div>
+      </a>
+    </div>
+    @endif
     </div>    
   </div>
 
@@ -187,7 +184,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
                     <button type="button" class="btn btn-info infoCyA" value="">
                       <i class="fa fa-fw fa-search-plus"></i>
                     </button>
-                    @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_validar_aperturas'))
+                    @if(AuthenticationController::getInstancia()->usuarioTienePermiso($usuario->id_usuario,'m_validar_aperturas'))
                     <button type="button" class="btn btn-info desvincular" value="">
                       <i class="fas fa-fw fa-unlink"></i>
                     </button>
@@ -195,12 +192,12 @@ $id_usuario = $usuario['usuario']->id_usuario;
                     <button type="button" class="btn btn-warning modificarCyA" value="">
                       <i class="fas fa-fw fa-pencil-alt"></i>
                     </button>
-                    @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_validar_aperturas'))
+                    @if(AuthenticationController::getInstancia()->usuarioTienePermiso($usuario->id_usuario,'m_validar_aperturas'))
                     <button type="button" class="btn btn-success validarCyA" value="">
                       <i class="fa fa-fw fa-check"></i>
                     </button>
                     @endif
-                    @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_eliminar_cierres_y_aperturas'))
+                    @if(AuthenticationController::getInstancia()->usuarioTienePermiso($usuario->id_usuario,'m_eliminar_cierres_y_aperturas'))
                     <button type="button" class="btn btn-success eliminarCyA" value="" >
                       <i class="fa fa-fw fa-trash"></i>
                     </button>
@@ -340,12 +337,12 @@ $id_usuario = $usuario['usuario']->id_usuario;
                       <button type="button" class="btn btn-warning modificarCierre" value="">
                         <i class="fas fa-fw fa-pencil-alt"></i>
                       </button>
-                      @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_validar_cierres'))
+                      @if(AuthenticationController::getInstancia()->usuarioTienePermiso($usuario->id_usuario,'m_validar_cierres'))
                       <button type="button" class="btn btn-success validarCierre" value="">
                         <i class="fa fa-fw fa-check"></i>
                       </button>
                       @endif
-                      @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_eliminar_cierres_y_aperturas'))
+                      @if(AuthenticationController::getInstancia()->usuarioTienePermiso($usuario->id_usuario,'m_eliminar_cierres_y_aperturas'))
                       <button type="button" class="btn btn-success eliminarCierre" value="" >
                         <i class="fa fa-fw fa-trash"></i>
                       </button>

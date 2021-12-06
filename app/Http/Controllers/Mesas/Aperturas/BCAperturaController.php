@@ -88,7 +88,7 @@ class BCAperturaController extends Controller
     $juegos = JuegoMesa::whereIn('id_casino',$casinos)->with('casino')->get();
     $monedas = Moneda::all();
     return  view('CierresAperturas.CierresAperturas', ['juegos' => $juegos,
-                             'casinos' => $cas, 'monedas' => $monedas]);
+                             'casinos' => $cas, 'monedas' => $monedas,'usuario' => $user]);
   }
 
   public function getApertura($id){//agregar nombre juego
