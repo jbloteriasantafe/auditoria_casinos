@@ -8,113 +8,38 @@ $(document).ready(function() {
   $('.tituloSeccionPantalla').text('Gestionar Cierres y Aperturas');
   $('#opcAperturas').attr('style','border-left: 6px solid #185891; background-color: #131836;');
   $('#opcAperturas').addClass('opcionesSeleccionado');
-    $('[data-toggle="popover"]').popover();
-    $(function () {
-      $('[data-toggle="popover"]').popover()
-    })
+  $('[data-toggle="popover"]').popover();
+  $('.tituloSeccionPantalla').hide();
+  limpiarFiltrosApertura();
+  limpiarFiltrosCierre();
+  $('#cierreApertura').show();
+  $('#cierreApertura').css('display','inline-block');
+  $('#casinoApertura').val('0');
+  $('#B_fecha_cie').val('');
+  $('#B_fecha_apert').val('');
+  $('#mensajeExito').hide();
+  $('#mensajeError').hide();
 
-    $('.tituloSeccionPantalla').hide();
-    limpiarFiltrosApertura();
-    limpiarFiltrosCierre();
-    $('#cierreApertura').show();
-    $('#cierreApertura').css('display','inline-block');
+  $('#dtpFechaApert,#dtpfechaCierre,#dtpFechaCierreFiltro,#dtpFecha,#dtpFechaInicioAaP,#dtpFechaFinAaP').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd',
+    pickerPosition: "bottom-left",
+    startView: 4,
+    minView: 2,
+  });
 
-    $('#casinoApertura').val('0');
-    $('#B_fecha_cie').val('');
-    $('#B_fecha_apert').val('');
+  //pestañas
+  $(".tab_content").hide(); //Hide all content
+  $("ul.cierreApertura li:first").addClass("active").show(); //Activate first tab
+  $(".tab_content:first").show(); //Show first tab content
 
-    $('#mensajeExito').hide();
-    $('#mensajeError').hide();
-
-
-    $(function(){
-      $('#dtpFechaApert').datetimepicker({
-            language:  'es',
-            todayBtn:  1,
-            autoclose: 1,
-            todayHighlight: 1,
-            format: 'yyyy-mm-dd',
-            pickerPosition: "bottom-left",
-            startView: 4,
-            minView: 2,
-            container:$('#modalCargaApertura'),
-          });
-    });
-
-    $(function(){
-      $('#dtpfechaCierreModif').datetimepicker({
-            language:  'es',
-            todayBtn:  1,
-            autoclose: 1,
-            todayHighlight: 1,
-            format: 'yyyy-mm-dd',
-            pickerPosition: "bottom-left",
-            startView: 4,
-            minView: 2,
-            container:$('#modalModificarCierre'),
-          });
-    });
-
-    $(function(){
-        $('#dtpfechaCierre').datetimepicker({
-            language:  'es',
-            todayBtn:  1,
-            autoclose: 1,
-            todayHighlight: 1,
-            format: 'yyyy-mm-dd',
-            pickerPosition: "bottom-left",
-            startView: 4,
-            minView: 2,
-            container:$('#modalCargaCierre'),
-          });
-      });
-    $(function(){
-        $('#dtpFechaCierreFiltro').datetimepicker({
-            language:  'es',
-            todayBtn:  1,
-            autoclose: 1,
-            todayHighlight: 1,
-            format: 'yyyy-mm-dd',
-            pickerPosition: "bottom-left",
-            startView: 4,
-            minView: 2,
-          });
-        });
-    $(function(){
-        $('#dtpFecha').datetimepicker({
-            language:  'es',
-            todayBtn:  1,
-            autoclose: 1,
-            todayHighlight: 1,
-            format: 'yyyy-mm-dd',
-            pickerPosition: "bottom-left",
-            startView: 4,
-            minView: 2,
-        });
-      });
-
-
-    //pestañas
-    $(".tab_content").hide(); //Hide all content
-  	$("ul.cierreApertura li:first").addClass("active").show(); //Activate first tab
-  	$(".tab_content:first").show(); //Show first tab content
-
-    $('#modalCargaApertura #agregarMesa').click(clickAgregarMesa);
-    $('#modalCargaCierre #agregarMesaCierre').click(clickAgregarMesaCierre);
-    $('#btn-buscarCyA').trigger('click',[1,10,'apertura_mesa.fecha','desc']);
-
-    $('#dtpFechaInicioAaP,#dtpFechaFinAaP').datetimepicker({
-      language:  'es',
-      todayBtn:  1,
-      autoclose: 1,
-      todayHighlight: 1,
-      format: 'yyyy-mm-dd',
-      pickerPosition: "bottom-left",
-      startView: 4,
-      minView: 2,
-    });
+  $('#modalCargaApertura #agregarMesa').click(clickAgregarMesa);
+  $('#modalCargaCierre #agregarMesaCierre').click(clickAgregarMesaCierre);
+  $('#btn-buscarCyA').trigger('click',[1,10,'apertura_mesa.fecha','desc']);
 }); //fin document ready
-
 
 //PESTAÑAS
 $("ul.cierreApertura li").click(function() {
@@ -340,7 +265,6 @@ $('#btn-cargar-apertura').on('click', function(e){
 })
 
 $(document).on('change','#casinoApertura',function(){
-
   limpiarCargaApertura();
   $('#id_mesa_ap').val('');
   $('#cargador').val('');
@@ -355,15 +279,11 @@ $(document).on('change','#casinoApertura',function(){
 
 //presiona el botón dentro del modal de carga que confirma el casino
 $('#confirmar').on('click',function(e){
-
   e.preventDefault();
 
     $('#btn-guardar-apertura').hide();
     if($('#casinoApertura').val() != 0 && $('#B_fecha_apert').val().length != 0){
-
       $('.detallesCargaAp').show();
-
-      var fecha = $('#B_fecha_apert').val();
       var id_casino=$('#casinoApertura').val();
 
       $('#inputMesaApertura').generarDataList("mesas/obtenerMesasApertura/"  + id_casino ,'mesas','id_mesa_de_panio','nro_mesa',1,true);
@@ -377,15 +297,13 @@ $('#confirmar').on('click',function(e){
       })
     }
     else{
-      if($('#casinoApertura').val() == 0 ){
+      if($('#casinoApertura').val() == 0){
         mostrarErrorValidacion($('#casinoApertura'),'Campo Obligatorio',false);
       }
-
-      if($('#B_fecha_apert').val().length == 0  ){
+      if($('#B_fecha_apert').val().length == 0){
         mostrarErrorValidacion($('#B_fecha_apert'),'Campo Obligatorio',false);
       }
     }
-
 })
 
 $(document).on('change','.inputApe',function(){

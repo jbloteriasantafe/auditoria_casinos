@@ -71,7 +71,6 @@ class GenerarInformesFiscalizadorController extends Controller
         //case: no está
         $abmcontroller = new ABMInformesFiscalizadoresController;
         $informe = $abmcontroller->crearInforme($cierre_apertura->casino, $cierre_apertura->fecha_produccion);
-        //dd($informe);
         $this->updateInforme($informe,$aperturas);
         $this->calcularApRelevadas($informe,$aperturas);
       }else{
@@ -181,7 +180,6 @@ class GenerarInformesFiscalizadorController extends Controller
       $informe->mesas_importadas_abiertas = [];
       $informe->save();
     }
-
 
     public function agregarRelacionValoresApuestas(RelevamientoApuestas $relevamiento){
       //si esta el informe creado ->

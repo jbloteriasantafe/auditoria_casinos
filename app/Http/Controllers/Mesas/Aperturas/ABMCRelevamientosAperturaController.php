@@ -140,8 +140,34 @@ class ABMCRelevamientosAperturaController extends Controller
   * Se utiliza desde \console\Commands\SortearMesas
   */
   public function sortearMesasCommand(){
+    // Borra todas las sorteadas exceptuando las de hoy. Esto es asi para evitar que el resorteo 
+    // en el mismo dia por ej en el turno 2 borre las mesas_sorteadas del turno anterior.
+    // Si se hiciera, romperia la dependencia necesaria para generar el InformeFiscalizador de mesas,
+    // ver calcularApRelevadas (creo que no se se usa en la practica pero por las dudas no rompo compatibilidad hacia atras)
+    //
+    // Genera un problema al tratar de implementar aperturas a pedido:
+    // Si hoy se sortean $hoy+4 dias para adelante. Cuando pase al otro dia, se reusaran la mesas_sorteadas de ayer
+    // porque el delete() no lo agarraba. Esto hace que las aperturas a pedido tengan efecto a diferencia de 2 dias
+    //
+    // Para evitar esto cuando se buscan mesas_sorteadas:
+    // - Si fecha_backup > $hoy => BORRAR
+    // - Si fecha_backup == $hoy && created_at  < $hoy => BORRAR
+    // - Si fecha_backup == $hoy && created_at == $hoy => DEJAR
+    // Esto tiene un problema, si se cae el sistema un par de dias y vuelve entre turnos el segundo turno va a eliminar las mesas_sorteadas
+    // con las que se usaron para relevar el primer turno. Lo optimo seria que el desarrollador re-sortee a primera hora para evitar esto
+    // Hago un @HACK, y es que ademas verificar que no tenga InformeFiscalizadores
+    // Esto NO agarra todos los casos, ya que estos son solo generados cuando se valida una apertura. Osea solo agarra si se cae varios dias,
+    // el sistema vuelve entre turnos y cargaron&validaron una apertura en el primer turno antes del segundo sorteo
+    // Octavio 06-12-2021
     try{
-      DB::table('mesas_sorteadas')->where('fecha_backup','>',Carbon::now()->format("Y-m-d"))->delete();
+      $hoy = Carbon::now()->format("Y-m-d");
+      DB::table('mesas_sorteadas')->where('fecha_backup','>',$hoy)->delete();//Antes solo se hacia este delete
+
+      $casinos_con_informes_fisca_creados_para_hoy = DB::table('informe_fiscalizadores')
+      ->where('fecha','>=',$hoy)->select('id_casino')->get()->pluck('id_casino');
+
+      DB::table('mesas_sorteadas')->where('fecha_backup','=',$hoy)
+      ->where('created_at','<',$hoy)->whereNotIn('id_casino',$casinos_con_informes_fisca_creados_para_hoy)->delete();
     }catch(Exception $e){
       throw new \Exception("FALLO durante la eliminación de sorteos mesa de paño - llame a un ADMINISTRADOR", 1);
     }
