@@ -12,7 +12,7 @@ class Relevamiento extends Model
   protected $primaryKey = 'id_relevamiento';
   protected $visible = array('id_relevamiento','nro_relevamiento','subrelevamiento',
   'backup','fecha','fecha_generacion','fecha_ejecucion','fecha_carga','tecnico',
-  'observacion_carga','observacion_validacion','truncadas','mtms_habilitadas_hoy','mtms_sin_isla','id_estado_relevamiento');
+  'observacion_carga','observacion_validacion','truncadas','mtms_habilitadas_hoy','mtms_sin_isla','id_estado_relevamiento','seed');
   public $timestamps = false;
 
   public function sector(){

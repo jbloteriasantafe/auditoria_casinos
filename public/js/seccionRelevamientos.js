@@ -228,15 +228,14 @@ $('#btn-generar').click(function(e){
           cantidad_fiscalizadores: $('#cantidad_fiscalizadores').val(),
         }
 
+        //Solo los superusers tienen el input para seedear
+        if($('#seed').length > 0) formData.seed = $('#seed').val();
 
         $.ajax({
             type: "POST",
             url: 'relevamientos/crearRelevamiento',
             data: formData,
             dataType: 'json',
-            // processData: false,
-            // contentType:false,
-            // cache:false,
             beforeSend: function(data){
               //Si están cargados los datos para generar oculta el formulario y muestra el icono de carga
               if ($('#modalRelevamiento #casino option:selected').val() != "") {

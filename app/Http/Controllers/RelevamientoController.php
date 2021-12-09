@@ -212,7 +212,8 @@ class RelevamientoController extends Controller
   public function crearRelevamiento(Request $request){
     Validator::make($request->all(),[
         'id_sector' => 'required|exists:sector,id_sector',
-        'cantidad_fiscalizadores' => 'nullable|numeric|between:1,10'
+        'cantidad_fiscalizadores' => 'nullable|numeric|between:1,10',
+        'seed' => 'nullable|integer',
     ], array(), self::$atributos)->after(function($validator){
       $estados_rechazados = [2,3,4];
       $relevamientos = Relevamiento::where([['fecha',date("Y-m-d")],['id_sector',$validator->getData()['id_sector']],['backup',0]])->whereIn('id_estado_relevamiento' ,$estados_rechazados )->count();
@@ -224,10 +225,13 @@ class RelevamientoController extends Controller
           $validator->errors()->add('cantidad_maquinas','La cantidad de maquinas debe ser mayor o igual a la cantidad de fiscalizadores.');
         }
       }
+      $seed = isset($validator->getData()['seed'])? $validator->getData()['seed'] : null;
+      if(!empty($seed) && !UsuarioController::getInstancia()->quienSoy()['usuario']->es_superusuario){
+        $validator->errors()->add('seed','El usuario no puede realizar esa acción');
+      }
     })->validate();
 
     $fecha_hoy = date("Y-m-d"); // fecha de hoy
-
 
     //me fijo si ya habia generados relevamientos para el dia de hoy que no sean back up, si hay los borro
     $relevamientos_viejos = Relevamiento::where([['fecha',$fecha_hoy],['id_sector',$request->id_sector],['backup',0],['id_estado_relevamiento',1]])->get();
@@ -258,21 +262,22 @@ class RelevamientoController extends Controller
     }
     $cantidad_maquinas = $this->obtenerCantidadMaquinasRelevamiento($request->id_sector);
 
+
+    //@WARNING: Seeding el generador de numeros aleatorios solo funciona con MySQL en esta version de Laravel
+    $seed = ((new DateTime())->getTimestamp() % 999999) + 1;//Por las moscas, no permito $seed = 0 para evitar problemas con nulos (lol php)
+    if(!empty($request->seed)){
+      $seed = $request->seed;
+    }
     $maquinas = Maquina::whereIn('id_isla',$islas)->whereNotIn('id_maquina',$arregloMaquinaAPedido)
                        ->whereHas('estado_maquina',function($q){$q->where('descripcion','Ingreso')->orWhere('descripcion','ReIngreso');})
-                       ->inRandomOrder()->take($cantidad_maquinas)->get();
+                       ->inRandomOrder($seed)->take($cantidad_maquinas)->get();
 
     $maquinas_total = $maquinas->merge($maquinas_a_pedido);
     if($id_casino == 3){ // si es rosario ordeno por el ordne de los islotes
       $maquinas_total = $maquinas_total->sortBy(function($maquina,$key){
-        //return Isla::find($maquina->id_isla)->nro_isla;
-         //return Isla::find($maquina->id_isla)->orden; se quito el orden de islote, se orderana por islote y nro de isla
          $maq=Isla::find($maquina->id_isla);
          return [$maq->orden, $maq->nro_isla];
-       //});
       });
-
-
     }else{
       $maquinas_total = $maquinas_total->sortBy(function($maquina,$key){
         return Isla::find($maquina->id_isla)->nro_isla;
@@ -287,6 +292,7 @@ class RelevamientoController extends Controller
         $relevamientos->fecha = $fecha_hoy;
         $relevamientos->fecha_generacion = date('Y-m-d h:i:s', time());
         $relevamientos->backup = 0;
+        $relevamientos->seed = $seed;
         $fecha_generacion= $relevamientos->fecha_generacion ;
         $relevamientos->sector()->associate($sector->id_sector);
         $relevamientos->estado_relevamiento()->associate(1);
@@ -307,7 +313,7 @@ class RelevamientoController extends Controller
         $arregloRutas[] = $this->guardarPlanilla($relevamientos->id_relevamiento);
     }
     else{
-        $cant_por_planilla = ceil($maquinas_total->count()/$request->cantidad_fiscalizadores);///$request->cantidad_fiscalizadores);
+        $cant_por_planilla = ceil($maquinas_total->count()/$request->cantidad_fiscalizadores);
         $start = 0;
         $offset = 1 + $request->cantidad_fiscalizadores - (($cant_por_planilla*$request->cantidad_fiscalizadores) - $maquinas_total->count());
         for($i = 1; $i <= $request->cantidad_fiscalizadores; $i++){
@@ -315,6 +321,7 @@ class RelevamientoController extends Controller
           $relevamiento->nro_relevamiento = DB::table('relevamiento')->max('nro_relevamiento') + 1;
           $relevamiento->fecha = $fecha_hoy;
           $relevamiento->fecha_generacion = date('Y-m-d h:i:s', time());
+          $relevamiento->seed = $seed;
           $relevamiento->sector()->associate($sector->id_sector);
           $relevamiento->estado_relevamiento()->associate(1);
           $relevamiento->subrelevamiento = $i;
@@ -364,6 +371,7 @@ class RelevamientoController extends Controller
       $relevamiento_backup->fecha = $fecha_backup;
       $relevamiento_backup->fecha_generacion = $fecha_generacion;
       $relevamiento_backup->backup = 1;
+      $relevamiento_backup->seed = $seed+$i;
       $relevamiento_backup->sector()->associate($sector->id_sector);
       $relevamiento_backup->estado_relevamiento()->associate(1);
       $relevamiento_backup->save();
@@ -383,7 +391,7 @@ class RelevamientoController extends Controller
 
       $maquinas = Maquina::whereIn('id_isla',$islas)->whereNotIn('id_maquina',$arregloMaquinaAPedido)
                          ->whereHas('estado_maquina',function($q){$q->where('descripcion','Ingreso')->orWhere('descripcion','ReIngreso');})
-                         ->inRandomOrder()->take($cantidad_maquinas)->get();
+                         ->inRandomOrder($seed+$i)->take($cantidad_maquinas)->get();
 
       $maquinas_total = $maquinas->union($maquinas_a_pedido);
       $maquinas_total = $maquinas_total->sortBy(function($maquina,$key){
@@ -714,6 +722,7 @@ class RelevamientoController extends Controller
     $rel->fecha = $relevamiento->fecha;
     $rel->fecha_ejecucion = $relevamiento->fecha_ejecucion;
     $rel->fecha_generacion = $relevamiento->fecha_generacion;
+    $rel->seed = is_null($relevamiento->seed)? '' : $relevamiento->seed;
 
     $año = substr($rel->fecha,0,4);
     $mes = substr($rel->fecha,5,2);
@@ -723,8 +732,7 @@ class RelevamientoController extends Controller
     $añoG = substr($rel->fecha_generacion,0,4);
     $mesG = substr($rel->fecha_generacion,5,2);
     $diaG = substr($rel->fecha_generacion,8,2);
-    //$horaG = substr($rel->fecha_generacion,11,2).":".substr($rel->fecha_generacion,14,2).":".substr($rel->fecha_generacion,17,2);;
-    $rel->fecha_generacion = $diaG."-".$mesG."-".$añoG;//." ".$horaG;
+    $rel->fecha_generacion = $diaG."-".$mesG."-".$añoG;
     $rel->causas_no_toma = TipoCausaNoToma::all();
     $detalles = array();
     foreach($relevamiento->detalles as $detalle){
@@ -752,8 +760,6 @@ class RelevamientoController extends Controller
       $detalles[] = $det;
     };
 
-    // $view = View::make('planillaRelevamientosEdit', compact('detalles','rel'));
-
     $view = View::make('planillaRelevamientos2018', compact('detalles','rel'));
 
     $dompdf = new Dompdf();
@@ -762,7 +768,10 @@ class RelevamientoController extends Controller
     $dompdf->render();
 
     $font = $dompdf->getFontMetrics()->get_font("Helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 565, (($rel->nro_relevamiento != null) ? $rel->nro_relevamiento : "AUX")."/".$rel->casinoCod."/".$rel->sector."/".$rel->fecha."/Generado:".$rel->fecha_generacion, $font, 10, array(0,0,0));
+    $dompdf->getCanvas()->page_text(20, 565, 
+      (($rel->nro_relevamiento != null) ? $rel->nro_relevamiento : "AUX")."/".$rel->seed.'/'.$rel->casinoCod
+      ."/".$rel->sector."/".$rel->fecha."/Generado:".$rel->fecha_generacion
+    , $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(750, 565, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
     return $dompdf;
   }

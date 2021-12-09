@@ -33,19 +33,10 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
   <head>
     <meta charset="utf-8">
     <title></title>
-
-    <!-- <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> -->
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- <link href="css/bootstrap.min.css" rel="stylesheet"> -->
-
-    <!-- <link href="css/estiloPlanillaPortrait.css" rel="stylesheet"> -->
-
     <link rel="stylesheet" href="css/estiloPlanillaRelevamiento.css">
-
   </head>
   <body>
 
@@ -161,7 +152,6 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                         <td style="font-size: 11px;">@if($detalle->formula->cont4 != null) {{$detalle->formula->cont4}} @endif</td>
                         <td style="font-size: 11px;">@if($detalle->formula->cont5 != null) {{$detalle->formula->cont5}} @endif</td>
                         <td class="borde_negro" style="font-size: 11px;">@if($detalle->formula->cont6 != null) {{$detalle->formula->cont6}} @endif</td>
-                        <!-- <td rowspan="2"></td> -->
                       </tr>
 
                       @if($detalle->no_toma != null)

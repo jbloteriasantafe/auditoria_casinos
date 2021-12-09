@@ -5,14 +5,12 @@
 @section('contenidoVista')
 <?php
 use App\Http\Controllers\UsuarioController;
-use App\Http\Controllers\AuthenticationController;
 use Illuminate\Http\Request;
 setlocale(LC_TIME, 'es_ES.UTF-8');
-$id_usuario = session('id_usuario');
+$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
 ?>
 
 @section('estilos')
-<!-- <link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet"/> -->
 <link rel="stylesheet" href="css/bootstrap-datetimepicker.css">
 <link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
@@ -23,7 +21,7 @@ $id_usuario = session('id_usuario');
 
         <div class="row">
             <div class="col-xl-3">
-              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'relevamiento_cargar'))
+              @if($usuario->tienePermiso('relevamiento_cargar'))
               <div class="row">
                   <div class="col-xl-12 col-md-4">
                    <a href="" id="btn-nuevoRelevamiento" style="text-decoration: none;">
@@ -58,11 +56,9 @@ $id_usuario = session('id_usuario');
                     </div>
                    </a>
                   </div>
-
               @endif
 
-              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'relevamiento_selec_maquinas_por_relevamiento'))
-
+              @if($usuario->tienePermiso('relevamiento_selec_maquinas_por_relevamiento'))
                   <div class="col-xl-12 col-md-4">
                    <a href="" id="btn-maquinasPorRelevamiento" style="text-decoration: none;">
                     <div class="panel panel-default panelBotonNuevo">
@@ -82,9 +78,6 @@ $id_usuario = session('id_usuario');
               @endif
               </div>
             </div>
-
-
-
 
             <div class="col-xl-9"> <!-- columna TABLA CASINOS -->
               <!-- FILTROS -->
@@ -151,9 +144,6 @@ $id_usuario = session('id_usuario');
                     <div class="panel-heading">
                         <h4>Últimos relevamientos</h4>
                     </div>
-                    <!-- <div class="panel-heading">
-                        <h4 id="tituloTabla" class="nombreTabla"></h4>
-                    </div> -->
                     <div class="panel-body">
                       <table id="tablaRelevamientos" class="table table-fixed tablesorter">
                         <thead>
@@ -186,7 +176,6 @@ $id_usuario = session('id_usuario');
               <div class="modal-dialog modal-lg">
                  <div class="modal-content">
                     <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be;">
-                       <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                        <button id="btn-minimizarMRelevamientos" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoMRelevamientos" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                        <h3 class="modal-title">SELECCIONAR MAQUINAS POR RELEVAMIENTO</h3>
@@ -204,8 +193,7 @@ $id_usuario = session('id_usuario');
                                       <h5>CASINO</h5>
                                       <select id="casino" class="form-control" name="">
                                           <option value="">- Seleccione un casino -</option>
-                                          <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
-                                           @foreach ($usuario['usuario']->casinos as $casino)
+                                           @foreach ($usuario->casinos as $casino)
                                            <option id="{{$casino->id_casino}}" value="{{$casino->codigo}}">{{$casino->nombre}}</option>
                                            @endforeach
                                       </select>
@@ -239,52 +227,32 @@ $id_usuario = session('id_usuario');
 
                                 <div class="col-md-4">
                                   <h5>FECHA DESDE</h5>
-                                  <!-- <input id="fechaActual" class="form-control" type="text" value=""> -->
-
-
                                      <div class='input-group date' id='dtpFechaDesde' data-link-field="fecha_desde" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
                                          <input type='text' class="form-control" placeholder="Fecha de Inicio" id="B_fecha_inicio"/>
                                          <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                          <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                      </div>
                                      <input class="form-control" type="hidden" id="fecha_desde" value=""/>
-
-
-
-                                  <!-- <input id="fechaDesde" type='text' class="form-control" readonly>
-                                  <input id="fechaDesdeDate" type="text" name="" hidden> -->
-
                                 </div>
 
                                 <div class="col-md-4">
                                   <h5>FECHA HASTA</h5>
-                                  <!-- <input id="fechaActual" class="form-control" type="text" value=""> -->
-
-
                                      <div class='input-group date' id='dtpFechaHasta' data-link-field="fecha_hasta" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
                                          <input type='text' class="form-control" placeholder="Fecha Hasta" id="B_fecha_inicio"/>
                                          <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                          <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                      </div>
                                      <input class="form-control" type="hidden" id="fecha_hasta" value=""/>
-
-
-                                  <!-- <input id="fechaHasta" type='text' class="form-control" readonly>
-                                  <input id="fechaHastaDate" type="text" name="" hidden> -->
-
                                 </div>
 
                                 <div class="col-md-4">
                                   <h5>MÁQUINAS</h5>
-                                  <!-- <input id="cantidad_maquinas" type="text" class="form-control" name="" value=""> -->
                                   <div class="input-group number-spinner">
                                     <span class="input-group-btn">
-                                      <!-- <button class="btn btn-default" data-dir="dwn"><span class="glyphicon glyphicon-minus"></span></button> -->
                                       <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="dwn">-</button>
                                     </span>
                                     <input id="cantidad_maquinas_por_relevamiento" type="text" class="form-control text-center" value="1">
                                     <span class="input-group-btn">
-                                      <!-- <button class="btn btn-default" data-dir="up"><span class="glyphicon glyphicon-plus"></span></button> -->
                                       <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="up">+</button>
                                     </span>
                                   </div>
@@ -365,7 +333,6 @@ $id_usuario = session('id_usuario');
           <div class="modal-dialog">
              <div class="modal-content">
                <div class="modal-header modalNuevo">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizarNuevo" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoNuevo" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">| NUEVO RELEVAMIENTO</h3>
@@ -380,7 +347,6 @@ $id_usuario = session('id_usuario');
                           <div class="row">
                             <div class="col-md-12">
                               <h5>FECHA DE RELEVAMIENTO</h5>
-                              <!-- <input id="fechaActual" class="form-control" type="text" value=""> -->
                               <input id="fechaActual" type='text' class="form-control" disabled style="text-align:center;">
                               <input id="fechaDate" type="text" name="" hidden>
                               <br>
@@ -392,8 +358,7 @@ $id_usuario = session('id_usuario');
                               <h5>CASINO</h5>
                               <select id="casino" class="form-control" name="">
                                   <option value="">- Seleccione un casino -</option>
-                                  <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
-                                   @foreach ($usuario['usuario']->casinos as $casino)
+                                   @foreach ($usuario->casinos as $casino)
                                    <option id="{{$casino->id_casino}}" value="{{$casino->codigo}}">{{$casino->nombre}}</option>
                                    @endforeach
                               </select>
@@ -412,7 +377,6 @@ $id_usuario = session('id_usuario');
                             <div class="col-md-6">
                               <h5>MÁQUINAS</h5>
                               <input id="cantidad_maquinas" type="text" class="form-control" name="" value="" disabled>
-
                             </div>
 
                             <div class="col-md-6">
@@ -428,7 +392,14 @@ $id_usuario = session('id_usuario');
                         			</div>
                         		</div>
                           </div>
-
+                          @if($usuario->es_superusuario)
+                          <div class="row">
+                            <div class="col-md-6">
+                              <h5>SEMILLA</h5>
+                              <input id="seed" type="number" class="form-control">
+                            </div>
+                          </div>
+                          @endif
                           <br><br>
                           <div id="maquinas_pedido" class="row">
                             <div class="col-md-12">
@@ -460,7 +431,6 @@ $id_usuario = session('id_usuario');
           <div class="modal-dialog">
              <div class="modal-content">
                   <div class="modal-header modalNuevo">
-                      <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                       <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                       <h3 class="modal-title"> NUEVO RELEVAMIENTO</h3>
                   </div>
@@ -489,7 +459,6 @@ $id_usuario = session('id_usuario');
           <div class="modal-dialog">
              <div class="modal-content">
                   <div class="modal-header modalNuevo">
-                      <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                       <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                       <h3 class="modal-title"> NUEVO RELEVAMIENTO</h3>
                   </div>
@@ -512,7 +481,6 @@ $id_usuario = session('id_usuario');
           <div class="modal-dialog">
              <div class="modal-content">
                <div class="modal-header modalNuevo">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizarSinSistema" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoSinSistema" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">RELEVAMIENTO SIN SISTEMA</h3>
@@ -534,28 +502,10 @@ $id_usuario = session('id_usuario');
                                   <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                               </div>
                               <input type="hidden" id="fechaRelSinSistema_date" value=""/>
-
-<!--
-                              <div class='input-group date' id='fechaRelSinSistema' data-link-field="fechaRelSinSistema_date" data-link-format="yyyy-mm-dd">
-                                <input id="" type='text' class="form-control" placeholder="Fecha de Inicio"/>
-                                <span class="input-group-addon">
-                                  <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                                <input type="hidden" id="fechaRelSinSistema_date" value=""/>
-                              </div> -->
-
-
                               <br>
                             </div>
                             <div class="col-md-6">
                               <h5>FECHA DE GENERACIÓN</h5>
-                              <!-- <div class='input-group date' id='fechaGeneracion' data-link-field="fechaGeneracion_date" data-link-format="yyyy-mm-dd">
-                                <input id="" type='text' class="form-control" placeholder="Fecha de Inicio"/>
-                                <span class="input-group-addon">
-                                  <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                                <input type="hidden" id="fechaGeneracion_date" value=""/>
-                              </div> -->
                               <div class='input-group date' id='fechaGeneracion' data-link-field="fechaGeneracion_date" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
                                   <input type='text' class="form-control" placeholder="Fecha de Inicio"/>
                                   <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
@@ -573,8 +523,7 @@ $id_usuario = session('id_usuario');
                               <h5>CASINO</h5>
                               <select id="casinoSinSistema" class="form-control" name="">
                                   <option value="">- Seleccione un casino -</option>
-                                  <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
-                                   @foreach ($usuario['usuario']->casinos as $casino)
+                                   @foreach ($usuario->casinos as $casino)
                                    <option id="{{$casino->id_casino}}" value="{{$casino->codigo}}">{{$casino->nombre}}</option>
                                    @endforeach
                               </select>
@@ -588,9 +537,7 @@ $id_usuario = session('id_usuario');
                               <br> <span id="alertaSectorSinSistema" class="alertaSpan"></span>
                             </div>
                           </div>
-
                   </form>
-
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-successAceptar" id="btn-backup" value="nuevo">USAR RELEVAMIENTO BACKUP</button>
@@ -602,14 +549,11 @@ $id_usuario = session('id_usuario');
           </div>
     </div>
 
-
     <!-- Modal cargar relevamientos -->
     <div class="modal fade" id="modalCargaRelevamiento" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog" style="width:90%;">
              <div class="modal-content">
                <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
-                 <!-- <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button> -->
                  <button id="btn-minimizarCargar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">CARGAR RELEVAMIENTO</h3>
                 </div>
@@ -659,9 +603,7 @@ $id_usuario = session('id_usuario');
                             </div>
                             <div class="col-md-2">
                                 <h5>TÉCNICO</h5>
-                                <!-- <input id="tecnico" data-content='Este campo es <strong>requerido</strong>' data-trigger="manual" data-toggle="popover" data-placement="top" type="text"class="form-control"> -->
                                 <input id="tecnico" type="text"class="form-control">
-
                             </div>
                             <div class="col-md-3">
                                 <h5>HORA EJECUCIÓN</h5>
@@ -737,7 +679,6 @@ $id_usuario = session('id_usuario');
           <div class="modal-dialog" style="width:94%;">
              <div class="modal-content">
                <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#69F0AE;">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizarValidar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoValidar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">| VISAR RELEVAMIENTO</h3>
@@ -855,7 +796,6 @@ $id_usuario = session('id_usuario');
           <div class="modal-dialog" style="width:80%;">
              <div class="modal-content">
                <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#42A5F5;">
-                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                  <h3 class="modal-title">IMPRIMIR PLANILLA</h3>
@@ -883,7 +823,6 @@ $id_usuario = session('id_usuario');
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-infoBuscar" id="btn-imprimirPlanilla">IMPRIMIR</button>
-                  <!-- <button type="button" class="btn btn-successAceptar" id="btn-finalizar" value="nuevo">FINALIZAR RELEVAMIENTO</button> -->
                   <button type="button" class="btn btn-default" id="btn-salirPlanilla" data-dismiss="modal">SALIR</button>
                   <input type="hidden" id="id_relevamiento" value="0">
                 </div>
@@ -989,6 +928,4 @@ $id_usuario = session('id_usuario');
     <script src="js/inputSpinner.js" type="text/javascript"></script>
     <script src="js/lista-datos.js" type="text/javascript"></script>
     <script src="js/math.min.js" type="text/javascript"></script>
-
-
     @endsection
