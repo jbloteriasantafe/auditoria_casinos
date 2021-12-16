@@ -59,8 +59,7 @@ background-color: #4CAF50;
 
 @section('contenidoVista')
 
-    <div class="col-xl-9">
-
+    <div class="col-xl-12">
       <!-- FILTROS DE BÚSQUEDA -->
       <div class="row">
           <div>
@@ -341,8 +340,8 @@ background-color: #4CAF50;
               <table id="tablaInformesAE" class="table table-fixed tablesorter">
                 <thead>
                   <tr>
-                    <th style="width: 5%;" value="casino_plataforma" estado="">CAS<i class="fa fa-sort"></i></th>
-                    <th style="width: 13%;" value="ae_datos.nro_dni" estado="">DNI<i class="fa fa-sort"></i></th>
+                    <th style="width: 9%;" value="casino_plataforma" estado="">CAS<i class="fa fa-sort"></i></th>
+                    <th style="width: 9%;" value="ae_datos.nro_dni" estado="">DNI<i class="fa fa-sort"></i></th>
                     <th style="width: 14%;" value="estado" estado="">ESTADO<i class="fa fa-sort"></i></th>
                     <th style="width: 9%;" value="ae_datos.apellido" estado="">APELLIDO<i class="fa fa-sort"></i></th>
                     <th style="width: 9%;" value="ae_datos.nombres" estado="">NOMBRES<i class="fa fa-sort"></i></th>
@@ -356,8 +355,8 @@ background-color: #4CAF50;
                 </thead>
                 <tbody id="cuerpoTabla" style="height: 350px;">
                   <tr class="filaTabla" style="display: none">
-                    <td style="width: 5%;" class="casino_plataforma"></td>
-                    <td style="width: 13%;" class="dni" >
+                    <td style="width: 9%;" class="casino_plataforma"></td>
+                    <td style="width: 9%;" class="dni" >
                       <a target="_blank" class="link" title="VER AUTOEXCLUSIÓN">9999</a>
                       <a target="_blank" class="btnVerFoto btn btn-info planilla" type="button" data-toggle="tooltip" data-placement="top" title="VER FOTO" data-delay="{'show':'300', 'hide':'100'}">
                         <i class="far  fa-fw fa-images"></i></a>
