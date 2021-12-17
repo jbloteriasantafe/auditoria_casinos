@@ -421,7 +421,11 @@ public function importarDiario(Request $request){
         OR 
         (c1.id_cierre_mesa IS NULL and c2.id_cierre_mesa IS NULL and didm.saldo_fichas = 0)
       )
-    ) as tiene_cierre')
+    ) as todos_los_cierres,
+    BIT_OR(
+      c1.id_cierre_mesa IS NOT NULL
+    ) as tiene_cierre
+    ')
     ->leftJoin('importacion_diaria_mesas as idm',function($j) use ($request) {
       $reglas = [['id_moneda','=',$request->id_moneda],['id_casino','=',$request->id_casino]];
       return $j->on('idm.fecha','=','fechas.fecha')->where($reglas)->whereNull('idm.deleted_at');

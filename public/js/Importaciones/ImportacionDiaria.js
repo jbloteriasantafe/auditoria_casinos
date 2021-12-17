@@ -234,13 +234,16 @@ function generarFilaImportaciones(imp){
   fila.attr('id', id);
   fila.find('.d_fecha').text(imp.fecha);
 
-  const classbool = ['fas fa-fw fa-times','fas fa-check-circle'];
-  const colorbool = ['#D32F2F','#4CAF50'];
+  const classbool = ['fas fa-fw fa-times','fas fa-check-circle','fas fa-clock'];
+  const colorbool = [           '#D32F2F',            '#4CAF50',     '#EEB342'];
   const importado = (id !== null) | 0; //cast to int
-  const cierre = imp.tiene_cierre | 0;
+  const cierre = imp.todos_los_cierres | 0;
   const validado = (id !== null && imp.validado) | 0;
   fila.find('.d_importado').append($('<i>').addClass(classbool[importado]).css('color',colorbool[importado]).css('text-align','center'));
   fila.find('.d_relevado' ).append($('<i>').addClass(classbool[cierre]   ).css('color',colorbool[cierre]   ).css('text-align','center'));
+  if(cierre == 0 && imp.tiene_cierre){//No tiene todos los cierres pero tiene alguno, le muestro otro icono
+    fila.find('.d_relevado').empty().append($('<i>').addClass(classbool[2]).css('color',colorbool[2]   ).css('text-align','center'));
+  }
   fila.find('.d_validado' ).append($('<i>').addClass(classbool[validado] ).css('color',colorbool[validado] ).css('text-align','center'));
   if(id == null){
     fila.find('.d_accion').empty().append('<span>&nbsp;</span>');
