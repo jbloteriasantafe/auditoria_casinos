@@ -411,48 +411,42 @@ public function importarDiario(Request $request){
     }
     $tabla_fechas = '('.implode(' union all ',$fechas).') as fechas';
 
-    //Si hay una importacion, se fija para cada detalle que: tenga 2 cierres o que no tenga y que el saldo sea 0
+    //Verifico que todas las importaciones tengan cierres (salvo que el saldo fichas sea 0)
     $ret = DB::table(DB::raw($tabla_fechas))
     ->selectRaw('fechas.fecha, idm.id_importacion_diaria_mesas, idm.validado,
-    BIT_AND(
+    SUM(c1.id_cierre_mesa IS NOT NULL) > 0 as tiene_cierre,
+    COUNT(
       idm.id_importacion_diaria_mesas IS NOT NULL
-      AND ( 
-        (c1.id_cierre_mesa IS NOT NULL AND c2.id_cierre_mesa IS NOT NULL)
-        OR 
-        (c1.id_cierre_mesa IS NULL and c2.id_cierre_mesa IS NULL and didm.saldo_fichas = 0)
+      AND (
+           (c1.id_cierre_mesa IS NOT NULL AND c2.id_cierre_mesa IS NOT NULL)
+        OR (c1.id_cierre_mesa IS NULL AND c2.id_cierre_mesa IS NULL AND didm.saldo_fichas = 0)
       )
-    ) as todos_los_cierres,
-    BIT_OR(
-      c1.id_cierre_mesa IS NOT NULL
-    ) as tiene_cierre
-    ')
-    ->leftJoin('importacion_diaria_mesas as idm',function($j) use ($request) {
-      $reglas = [['id_moneda','=',$request->id_moneda],['id_casino','=',$request->id_casino]];
-      return $j->on('idm.fecha','=','fechas.fecha')->where($reglas)->whereNull('idm.deleted_at');
-    })
-    ->leftJoin('detalle_importacion_diaria_mesas as didm','didm.id_importacion_diaria_mesas','=','idm.id_importacion_diaria_mesas')
-    ->leftJoin('juego_mesa as jm',function($j){
-      return $j->on('jm.id_casino','=','idm.id_casino')->whereNull('jm.deleted_at')->on(function($j2){
-        return $j2->on('jm.siglas','LIKE','didm.siglas_juego')->orOn('jm.nombre_juego','LIKE','didm.siglas_juego');
-      });
-    })
-    ->leftJoin('mesa_de_panio as mp',function($j){
-      return $j->on('mp.nro_admin','=','didm.nro_mesa')
-      ->on('mp.id_juego_mesa','=','jm.id_juego_mesa')
-      ->on(function($j2){
-        return $j2->on('mp.id_moneda','=','idm.id_moneda')->orWhereNull('mp.id_moneda');
-      });
-    })
-    ->leftJoin('cierre_mesa as c1',function($j){
-      return $j->on('c1.fecha','=','idm.fecha')
-      ->on('c1.id_casino','=','idm.id_casino')->on('c1.id_moneda','=','idm.id_moneda')
-      ->on('c1.id_mesa_de_panio','=','mp.id_mesa_de_panio')->whereNull('c1.deleted_at');
+      AND mp.nro_admin = didm.nro_mesa
+      AND (
+        (jm.siglas LIKE didm.siglas_juego) OR (jm.nombre_juego LIKE didm.siglas_juego)
+      )
+    ) 
+    = COUNT(didm.id_detalle_importacion_diaria_mesas) as todos_los_cierres')
+    ->leftJoin('cierre_mesa as c1',function($j)  use ($request){
+      return $j->on('c1.fecha','=','fechas.fecha')
+      ->where([['c1.id_moneda','=',$request->id_moneda],['c1.id_casino','=',$request->id_casino]])
+      ->whereNull('c1.deleted_at');
     })
     ->leftJoin('cierre_mesa as c2',function($j){
-      return $j->on('c2.fecha','=',DB::raw('DATE_SUB(idm.fecha, INTERVAL 1 DAY)'))
-      ->on('c2.id_casino','=','idm.id_casino')->on('c2.id_moneda','=','idm.id_moneda')
-      ->on('c2.id_mesa_de_panio','=','mp.id_mesa_de_panio')->whereNull('c2.deleted_at');
+      return $j->on('c2.fecha','=',DB::raw('DATE_SUB(c1.fecha, INTERVAL 1 DAY)'))
+      ->on('c2.id_moneda','=','c1.id_moneda')->on('c2.id_casino','=','c1.id_casino')
+      ->on('c2.id_mesa_de_panio','=','c1.id_mesa_de_panio')
+      ->whereNull('c2.deleted_at');
     })
+    ->leftJoin('mesa_de_panio as mp','mp.id_mesa_de_panio','=','c1.id_mesa_de_panio')
+    ->leftJoin('juego_mesa as jm','jm.id_juego_mesa','=','mp.id_juego_mesa')
+    //Aca hay 2 branches en la query a proposito, para que el chequeo de cierres no dependa del chequeo de la importacion
+    ->leftJoin('importacion_diaria_mesas as idm',function($j) use ($request) {
+      return $j->on('idm.fecha','=','fechas.fecha')
+      ->where([['idm.id_moneda','=',$request->id_moneda],['idm.id_casino','=',$request->id_casino]])
+      ->whereNull('idm.deleted_at');
+    })
+    ->leftJoin('detalle_importacion_diaria_mesas as didm','didm.id_importacion_diaria_mesas','=','idm.id_importacion_diaria_mesas')
     ->orderBy('fechas.fecha',$request->sort_by["orden"])
     ->groupBy(DB::raw('fechas.fecha, idm.id_importacion_diaria_mesas'))
     ->get();
