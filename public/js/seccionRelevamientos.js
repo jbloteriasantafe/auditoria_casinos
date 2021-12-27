@@ -2057,54 +2057,12 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
       }
       //Si no, calcular la diferencia entre lo calculado y lo importado
       else {
-          //SI HAY DIFERENCIA
-
-          // var resta = Number(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido );
-          // if (Number(resta.toFixed(2)) != 0) {
-          //   var diferenciaProducido =  math.abs(Number(resta.toFixed(2))) >= 1000000;
-          //   var moduloDiferencia = Number(resta.toFixed(2)) % 1000000;
-
-
-    //       console.log(math.abs(data.detalles[i].detalle.producido_calculado_relevado),"-",math.abs(data.detalles[i].producido));
-    //         console.log('MODULO DIFERENCIA', moduloDiferencia);
-    //         console.log('DIFERENCIA', diferenciaProducido);
-
-    //         if(diferenciaProducido && math.abs(moduloDiferencia) == 0){
-    //           iconoPregunta.hide();
-    //           iconoCruz.hide();
-    //           iconoCheck.hide();
-    //           iconoAdmiracion.show();
-    //           truncadas++;
-    //           diferencia.val(resta.toFixed(2)).css('border','2px solid #FFA726').css('color','#FFA726');
-    //         }
-    //         else{
-    //           iconoPregunta.hide();
-    //           iconoCruz.show();
-    //           iconoCheck.hide();
-    //           iconoAdmiracion.hide();
-
-    //           diferencia.val(moduloDiferencia).css('border','2px solid #EF5350').css('color','#EF5350');
-    //         }
-    //       }
-    //       else {
-    //         iconoPregunta.hide();
-    //         iconoCruz.hide();
-    //         iconoCheck.show();
-    //         iconoAdmiracion.hide();
-
-    //         diferencia.val(0).css('border','2px solid #66BB6A').css('color','#66BB6A');
-    //       }
-    //   }
-    // }
-
-        //se cambio para considerar los contadores negativos
           var resta = Number(data.detalles[i].detalle.producido_calculado_relevado - data.detalles[i].producido );
           if (Number(resta.toFixed(2)) != 0) {
             var diferenciaProducido =  math.abs(Number(resta.toFixed(2))) >= 1000000;
             var moduloDiferencia = Number(resta.toFixed(2));
             moduloDiferencia= math.abs(Number(moduloDiferencia.toFixed(2))) % 1000000;
 
-            console.log(math.abs(data.detalles[i].detalle.producido_calculado_relevado),"-",math.abs(data.detalles[i].producido));
             console.log('MODULO DIFERENCIA', moduloDiferencia);
             console.log('DIFERENCIA', diferenciaProducido);
 

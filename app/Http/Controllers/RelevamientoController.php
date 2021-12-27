@@ -485,9 +485,6 @@ class RelevamientoController extends Controller
       // si cierra el relevamiento (estado == 3) me fijo en la bd y elimino todos los backup que habia para esa fecha
       $this->eliminarRelevamientosBackUp($relevamiento);
     }
-    // dd(date_format($request->hora_ejecucion , 'hh:ii:ss'));
-    //
-    // $fecha = DateTime::createFromFormat('HH:ii', '');
 
     $cantidad_habilitadas = $this->calcularMTMsHabilitadas($relevamiento->sector->id_casino);
     $sin_isla = $this->calcular_sin_isla($relevamiento->sector->id_casino);
