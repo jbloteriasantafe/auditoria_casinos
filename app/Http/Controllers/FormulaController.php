@@ -129,7 +129,7 @@ class FormulaController extends Controller
       if($i < self::$max_conts){//Operadores va de 1 a $max_conts no inclusivo
         $formula->{'operador'.$i} = $termino['operador'];
       }
-      
+
       $i++;
     }
   }
@@ -184,25 +184,22 @@ class FormulaController extends Controller
     $inputFormula = str_replace(' ', '', $input);
     $formulas=Formula::all();
     $resultados=array();
-    foreach ($formulas as $unaFormula) {
-
-        $formulaDB=  $unaFormula->cont1 . $unaFormula->operador1 .
-                     $unaFormula->cont2 . $unaFormula->operador2 .
-                     $unaFormula->cont3 . $unaFormula->operador3 .
-                     $unaFormula->cont4 . $unaFormula->operador4 .
-                     $unaFormula->cont5 . $unaFormula->operador5 .
-                     $unaFormula->cont6 . $unaFormula->operador6 .
-                     $unaFormula->cont7 . $unaFormula->operador7 .
-                     $unaFormula->cont8;
-
-      if(strpos(strtoupper($formulaDB),strtoupper($inputFormula))!==false){
-        $auxiliar =  new \stdClass();
-        $auxiliar->id_formula = $unaFormula->id_formula;
-        $auxiliar->formula = $formulaDB;
-        $resultados[] = $auxiliar;
+    
+    $terminos = [];
+    for($i=1;$i<=self::$max_conts;$i++){
+      $terminos[] = "IFNULL(cont$i,'')";
+      if($i < self::$max_conts){
+        $terminos[] = "IFNULL(operador$i,'')";
       }
     }
+    $terminos = implode(',',$terminos);
+    $f_sql = "CONCAT($terminos)";
+    
+    $formulas = DB::table('formula')
+    ->selectRaw("formula.id_formula,$f_sql as formula")
+    ->whereRaw("$f_sql LIKE '%$inputFormula%'")
+    ->get();
 
-    return['formulas' => $resultados];
+    return['formulas' => $formulas];
   }
 }
