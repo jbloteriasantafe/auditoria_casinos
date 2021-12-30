@@ -69,14 +69,7 @@ class FormulaController extends Controller
     })->validate();
 
     $formula = new Formula;
-    $i=1;
-    foreach ($request->formula as $termino) {
-      $formula->{'cont'.$i}     = $termino['contador'];
-      if($i < self::$max_conts){
-        $formula->{'operador'.$i} = $termino['operador'];
-      } 
-      $i++;
-    }
+    $this->setearTerminos($formula,$request->formula);
     $formula->save();
     return ['formula' => $formula];
   }
@@ -117,27 +110,28 @@ class FormulaController extends Controller
       }
     })->validate();
 
-
     $formula= Formula::find($request->id_formula);
-
-    for($i = 1;$i<=self::$max_conts;$i++){
-      $formula->{'cont'.$i} = null;
-      if($i < self::$max_conts){//Operadores va de 1 a $max_conts no inclusivo
-        $formula->{'operador'.$i} = null;
-      }
-    }
-
-    $i=1;
-    foreach ($request->formula as $termino) {
-      $formula->{'cont'.$i}     = $termino['contador'];
-      if($i < self::$max_conts){
-        $formula->{'operador'.$i} = $termino['operador'];
-      }
-      $i++;
-    }
-    
+    $nulos = [];
+    for($i=0;$i<self::$max_conts;$i++) $nulos[] = ['contador' => null,'operador' => null];
+    $this->setearTerminos($formula,$nulos);
+    $this->setearTerminos($formula,$request->formula);    
     $formula->save();
     return ['formula' => $formula];
+  }
+
+  private function setearTerminos(&$formula,$terminos){
+    $i=1;
+    foreach ($terminos as $termino) {
+      if($i > self::$max_conts) break;
+
+      $formula->{'cont'.$i} = $termino['contador'];
+
+      if($i < self::$max_conts){//Operadores va de 1 a $max_conts no inclusivo
+        $formula->{'operador'.$i} = $termino['operador'];
+      }
+      
+      $i++;
+    }
   }
 
   public function eliminarFormula($id){
