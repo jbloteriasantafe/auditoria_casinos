@@ -130,7 +130,9 @@ class FormulaController extends Controller
     $i=1;
     foreach ($request->formula as $termino) {
       $formula->{'cont'.$i}     = $termino['contador'];
-      $formula->{'operador'.$i} = $termino['operador'];
+      if($i < self::$max_conts){
+        $formula->{'operador'.$i} = $termino['operador'];
+      }
       $i++;
     }
     
