@@ -158,9 +158,6 @@ $(document).on('click','.modificar',function(){
     var id_formula = $(this).val();
 
     $.get("formulas/obtenerFormula/" + id_formula, function(data){
-        console.log(data.formula.length);
-        console.log(data);
-
         $('#id_formula').val(id_formula);//campo oculto
         $('#btn-guardar').val("modificar");
         $('#id_formula').val(id_formula);
@@ -387,11 +384,7 @@ $('#btn-guardar').click(function (e) {
 });
 //Busqueda
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
   e.preventDefault();
 
@@ -403,7 +396,6 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   }
 
   var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
-  // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
   var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
   var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
   if(sort_by == null){ // limpio las columnas
@@ -411,7 +403,6 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   }
 
   var formData = {
-    usuario: $('#buscadorNombre').val(),
     tabla: $('#buscadorDescripcion').val(),
     page: page_number,
     sort_by: sort_by,

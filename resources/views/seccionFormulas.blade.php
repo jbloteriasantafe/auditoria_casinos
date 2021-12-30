@@ -2,16 +2,10 @@
 @section('headerLogo')
 <span class="etiquetaLogoMaquinas">@svg('maquinas','iconoMaquinas')</span>
 @endsection
-<?php
-use App\Http\Controllers\UsuarioController;
-use Illuminate\Http\Request;
-
-$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
 
 @section('estilos')
   <link rel="stylesheet" href="css/paginacion.css">
   <link rel="stylesheet" href="/css/lista-datos.css">
-
 @endsection
 
 @section('contenidoVista')
@@ -29,14 +23,9 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                               <div class="panel-body">
                                 <div class="row">
                                   <div class="col-md-3">
-                                    <h5>Nombre de formula</h5>
-                                    <input id="buscadorNombre" class="form-control" placeholder="Nombre de fórmula">
-                                  </div>
-                                  <div class="col-md-3">
                                     <h5>Descripción de formula</h5>
                                     <input id="buscadorDescripcion" class="form-control" placeholder="Descripción de fórmula">
                                   </div>
-
                                   <div class="col-md-3">
                                     <h5 style="color:#f5f5f5;">boton buscar</h5>
                                     <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
@@ -170,7 +159,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                               <div class="col-lg-6">
                                 <select class="form-control" id="selectCasino">
                                   <option value="0">-Seleccione Casino-</option>
-                                  @foreach ($usuario['usuario']->casinos as $casino)
+                                  @foreach ($casinos as $casino)
                                   <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                   @endforeach
                                 </select>
