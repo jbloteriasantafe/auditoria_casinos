@@ -64,6 +64,7 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
     const formData = {
         apellido: $('#buscadorApellido').val(),
         dni: $('#buscadorDni').val(),
+        correo: $('#buscadorCorreo').val(),
         estado: $('#buscadorEstado').val(),
         casino: $('#buscadorCasino').val() > 0? $('#buscadorCasino').val() : "",
         plataforma: $('#buscadorCasino').val() < 0? -$('#buscadorCasino').val() : "",

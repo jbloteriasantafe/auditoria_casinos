@@ -64,6 +64,9 @@ class AutoexclusionController extends Controller
       if(!empty($request->apellido)){
         $reglas[]=['ae_datos.apellido','LIKE', '%' . $request->apellido . '%'];
       }
+      if(!empty($request->correo)){
+        $reglas[]=['ae_datos.correo','LIKE', '%' . $request->correo . '%'];
+      }
 
       if(!empty($request->dni)){
         $reglas[]=['ae_datos.nro_dni','=',$request->dni];

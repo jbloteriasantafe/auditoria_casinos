@@ -133,13 +133,17 @@ input[required], select[required]{
         <div id="collapseFiltros" class="panel-collapse collapse">
           <div class="panel-body">
             <div class="row">
-              <div class="col-md-3">
+              <div class="col-md-2">
                 <h5>Apellido</h5>
                 <input class="form-control" id="buscadorApellido" value=""/>
               </div>
-              <div class="col-md-3">
+              <div class="col-md-2">
                 <h5>DNI</h5>
                 <input class="form-control" id="buscadorDni" value="{{$dni}}"/>
+              </div>
+              <div class="col-md-2">
+                <h5>Correo</h5>
+                <input class="form-control" id="buscadorCorreo" value=""/>
               </div>
               <div class="col-md-3">
                 <h5>Estado</h5>
