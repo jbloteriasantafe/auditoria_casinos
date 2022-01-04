@@ -30,17 +30,10 @@ footer
 </style>
 
   <head>
-
     <title></title>
-
-    <!-- <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> -->
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- <link href="css/bootstrap.min.css" rel="stylesheet"> -->
-
     <link href="css/estiloPlanillaLandscapeMesas.css" rel="stylesheet">
   </head>
   <body>
@@ -148,14 +141,13 @@ footer
             <p style="border: 0px;" >{{$rel->observaciones}}</p>
             <p></p>
             <br>
-            <p style="border: 0px;" >Firma y Aclaración Fiscalizador:</p>
-            <p style="border: 0px;" >{{$rel->fiscalizador}}</p>
+            <p style="border: 0px;" >Firma y Aclaración Fiscalizador:
+              <span style="color: #555555;">{{$rel->fiscalizador}}</span>
+              <br>
+            </p>
           @endif
           <p></p>
         </div>
-
-
       @endforeach
-
       </body>
 </html>
