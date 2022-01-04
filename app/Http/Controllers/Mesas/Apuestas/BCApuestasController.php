@@ -381,11 +381,11 @@ class BCApuestasController extends Controller
     $rel->hora_propuesta = $hora[0].':'.$hora[1];
 
     $rel->observaciones = $relevamiento->observaciones;
-    $nombres = '';
+    $nombres = [];
     foreach ($relevamiento->fiscalizadores as $f) {
-      $nombres = $nombres.$f->nombre.';';
+      $nombres[] = $f->nombre;
     }
-    $rel->fiscalizador = $nombres;
+    $rel->fiscalizador = implode(";",$nombres);
     $rel->hora_ejecucion = $relevamiento->hora_ejecucion;
 
     $view = View::make('Mesas.Planillas.PlanillaRelevamientoDeApuestas2', compact('rel'));
