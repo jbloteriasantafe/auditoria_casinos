@@ -16,7 +16,7 @@ use App\Http\Controllers\permisoController;
     <meta name="author" content="">
     <meta name="_token" content="{!! csrf_token() !!}"/>
 
-    <link rel="icon" type="image/png" sizes="32x32" href="img/logos/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/logos/favico.ico">
     <title>Gestión Roles y Permisos</title>
 
     <head>
@@ -25,7 +25,7 @@ use App\Http\Controllers\permisoController;
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="icon" type="image/png" sizes="32x32" href="img/logos/favicon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="img/logos/favicon.ico">
         <title>CAS - Lotería de Santa Fe</title>
 
         <!-- Bootstrap Core CSS -->

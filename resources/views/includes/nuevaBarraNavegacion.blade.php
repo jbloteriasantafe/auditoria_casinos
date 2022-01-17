@@ -17,7 +17,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
     <meta name="_token" content="{!! csrf_token() !!}"/>
     <!-- <meta http-equiv="Cache-Control" content="public"> -->
 
-    <link rel="icon" type="image/png" sizes="32x32" href="/img/logos/favicon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/logos/favicon.ico">
     <title>CAS - Lotería de Santa Fe</title>
 
     <!-- Bootstrap Core CSS -->

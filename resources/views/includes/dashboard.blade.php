@@ -18,7 +18,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="_token" content="{!! csrf_token() !!}"/>
 
-    <link rel="icon" type="image/png" sizes="32x32" href="/img/logos/favicon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/logos/favicon.ico">
     <title>CAS - Lotería de Santa Fe</title>
 
     <!-- Bootstrap Core CSS -->

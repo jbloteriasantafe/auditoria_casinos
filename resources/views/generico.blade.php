@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="icon" type="image/png" sizes="32x32" href="img/logos/favicon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/logos/favicon.ico">
     <title>CAS - Lotería de Santa Fe</title>
 
     <!-- Bootstrap Core CSS -->
