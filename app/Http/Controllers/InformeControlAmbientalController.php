@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\InformeControlAmbiental;
 use App\RelevamientoAmbiental;
 use App\Casino;
 use Dompdf\Dompdf;
@@ -55,28 +54,10 @@ class InformeControlAmbientalController extends Controller
     return ['diarios' => $ret];
   }
 
-  public function crearInformeControlAmbiental($relevamiento_ambiental_mtm, $relevamiento_ambiental_mesas) {
-    DB::transaction(function() use($relevamiento_ambiental_mtm, $relevamiento_ambiental_mesas){
-      $informe_ambiental = new InformeControlAmbiental;
-      $informe_ambiental->id_casino = $relevamiento_ambiental_mtm->id_casino;
-      $informe_ambiental->fecha = $relevamiento_ambiental_mtm->fecha_generacion;
-      $informe_ambiental->nro_informe_control_ambiental = DB::table('informe_control_ambiental')->max('nro_informe_control_ambiental') + 1;
-      $informe_ambiental->id_relevamiento_ambiental_maquinas = $relevamiento_ambiental_mtm->id_relevamiento_ambiental;
-      $informe_ambiental->id_relevamiento_ambiental_mesas = $relevamiento_ambiental_mesas->id_relevamiento_ambiental;
-
-      $informe_ambiental->save();
-    });
-  }
-
   public function imprimir($id_casino,$fecha) {
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     if(!$user->usuarioTieneCasino($id_casino)) return '';
     
-    $detalles_informe_mtm = array();
-    $detalles_informe_mesas = array();
-    $distribuciones_globales_mtm = array();
-    $distribuciones_globales_mesas = array();
-
     $detalles_relevamientos_mtm = DB::table('detalle_relevamiento_ambiental')
     ->join('isla','isla.id_isla','=','detalle_relevamiento_ambiental.id_isla')
     ->join('sector','sector.id_sector','=','isla.id_sector')

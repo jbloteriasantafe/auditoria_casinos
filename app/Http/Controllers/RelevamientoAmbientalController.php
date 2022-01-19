@@ -17,7 +17,6 @@ use App\DatoGeneralidad;
 use App\Clima;
 use App\Temperatura;
 use App\EventoControlAmbiental;
-use App\InformeControlAmbiental;
 use Validator;
 use View;
 use Dompdf\Dompdf;
@@ -437,10 +436,6 @@ class RelevamientoAmbientalController extends Controller
                                       ->where('id_estado_relevamiento','=', 4) //estado visado
                                       ->where('fecha_generacion','=', $relevamiento_ambiental_mtm->fecha_generacion) //fechas coincidentes
                                       ->get();
-
-      if ($relevamiento_ambiental_mesas->first() != NULL) {
-        InformeControlAmbientalController::getInstancia()->crearInformeControlAmbiental($relevamiento_ambiental_mtm, $relevamiento_ambiental_mesas->first());
-      }
     });
 
     return ['codigo' => 200];
@@ -458,18 +453,6 @@ class RelevamientoAmbientalController extends Controller
     if(!$usercontroller->usuarioTieneCasinoCorrespondiente($usuario->id_usuario, $casino->id_casino)) return;
 
     DB::transaction(function() use ($id_relevamiento_ambiental, $estado){
-      //si se trata de un relevamiento visado (estado = 4), me fijo si hay un informe generado asociado.
-      //Si hay, primero elimino ese informe.
-      if ($estado == 4) {
-        $informe = InformeControlAmbiental::where([['id_relevamiento_ambiental_maquinas', $id_relevamiento_ambiental]])->first();
-
-        if (sizeof($informe) == 1) {
-          DB::table('informe_control_ambiental')
-          ->where('id_informe_control_ambiental', '=', $informe->id_informe_control_ambiental)
-          ->delete();
-        }
-      }
-
       //elimino todos los detalles asociados al relevamiento de control ambiental
       DB::table('detalle_relevamiento_ambiental')
       ->where('id_relevamiento_ambiental', '=', $id_relevamiento_ambiental)
