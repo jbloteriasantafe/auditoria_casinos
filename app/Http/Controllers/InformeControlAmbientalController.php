@@ -142,6 +142,8 @@ class InformeControlAmbientalController extends Controller
       'total_sector' => array_reduce($total_por_turno_mesas,function($total,$i){ return $total+$i; },0),
     ];
 
+    $total = array_reduce($total_por_turno,function($total,$i){ return $total+$i; },0);
+
     $casino = Casino::find($id_casino);
     $otros_datos = array(
       'fecha_produccion' => date("d-m-Y", strtotime($fecha)),
@@ -149,7 +151,7 @@ class InformeControlAmbientalController extends Controller
       'casino' => $casino,
     );
 
-    $view = view('planillaInformesControlAmbiental', compact(['sectores_mtm','sectores_mesas','total_por_turno','otros_datos']));
+    $view = view('planillaInformesControlAmbiental', compact(['sectores_mtm','sectores_mesas','total_por_turno','total','otros_datos']));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view);

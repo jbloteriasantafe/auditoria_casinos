@@ -24,6 +24,13 @@
         width:200%;
         height:300px;
     }
+
+    .derecha {
+      text-align: right;
+    }
+    .centro {
+      text-align: center;
+    }
   </style>
 
   <head>
@@ -52,29 +59,28 @@
 
     <!-- Tabla MTM -->
     <div class="primerEncabezado">Reporte de Máquinas tragamonedas:</div>
-    <table>
+    <table style="width: 100%;">
       <thead>
         <tr>
-          <th class="tablaInicio" style="background-color: #e6e6e6" width="10px;" rowspan="2">SECTOR</th>
+          <th class="tablaInicio centro" style="background-color: #e6e6e6;" width="15%;" rowspan="2">SECTOR</th>
           <!-- Le sumo 1 para el total por sector -->
-          <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" width="10px" 
-            colspan="{{$otros_datos['cantidad_turnos']+1}}">OCUPACIÓN</th>
+          <th class="tablaInicio centro" style="background-color: #e6e6e6;" colspan="{{$otros_datos['cantidad_turnos']+1}}">OCUPACIÓN</th>
         </tr>
         <tr>
           @foreach ($sectores_mtm['TOTAL']['turnos'] as $nro_turno => $cantidad)
-          <th class="tablaInicio" style="background-color: #e6e6e6" width="11px">T{{$nro_turno}}</th>
+          <th class="tablaInicio centro" style="background-color: #e6e6e6;">T{{$nro_turno}}</th>
           @endforeach
-          <th class="tablaInicio" style="background-color: #e6e6e6" width="11px">TOTAL</th>
+          <th class="tablaInicio centro" style="background-color: #e6e6e6;">TOTAL</th>
         </tr>
       </thead>
       <tbody>
         @foreach($sectores_mtm as $s)
         <tr>
-          <td class="tablaInicio" style="background-color: white" width="10px">{{$s['sector']}}</td>
+          <td class="tablaInicio centro" style="background-color: white;" width="15%">{{$s['sector']}}</td>
           @foreach($s['turnos'] as $nro_turno => $cantidad)
-          <td class="tablaInicio" style="background-color: white" width="10px">{{$cantidad}}</td>
+          <td class="tablaInicio derecha" style="background-color: white;">{{$cantidad}}</td>
           @endforeach
-          <td class="tablaInicio" style="background-color: white" width="10px">{{$s['total_sector']}}</td>
+          <td class="tablaInicio derecha" style="background-color: white;">{{$s['total_sector']}}</td>
         </tr>
         @endforeach
       </tbody>
@@ -82,29 +88,29 @@
 
     <!-- Tabla Mesas -->
     <div class="primerEncabezado">Reporte de Mesas de paño:</div>
-    <table>
+    <table style="width: 100%;">
       <thead>
         <tr>
-          <th class="tablaInicio" style="background-color: #e6e6e6" width="10px;" rowspan="2">SECTOR</th>
+          <th class="tablaInicio centro" style="background-color: #e6e6e6;" width="15%;" rowspan="2">SECTOR</th>
           <!-- Le sumo 1 para el total por sector -->
-          <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" width="10px" 
+          <th class="tablaInicio centro" style="background-color: #e6e6e6; text-align: center"
             colspan="{{$otros_datos['cantidad_turnos']+1}}">OCUPACIÓN</th>
         </tr>
         <tr>
           @foreach ($sectores_mesas['TOTAL']['turnos'] as $nro_turno => $cantidad)
-          <th class="tablaInicio" style="background-color: #e6e6e6" width="11px">T{{$nro_turno}}</th>
+          <th class="tablaInicio centro" style="background-color: #e6e6e6;">T{{$nro_turno}}</th>
           @endforeach
-          <th class="tablaInicio" style="background-color: #e6e6e6" width="11px">TOTAL</th>
+          <th class="tablaInicio centro" style="background-color: #e6e6e6;">TOTAL</th>
         </tr>
       </thead>
       <tbody>
         @foreach($sectores_mesas as $s)
         <tr>
-          <td class="tablaInicio" style="background-color: white" width="10px">{{$s['sector']}}</td>
+          <td class="tablaInicio centro" style="background-color: white;" width="15%;">{{$s['sector']}}</td>
           @foreach($s['turnos'] as $nro_turno => $cantidad)
-          <td class="tablaInicio" style="background-color: white" width="10px">{{$cantidad}}</td>
+          <td class="tablaInicio derecha" style="background-color: white;">{{$cantidad}}</td>
           @endforeach
-          <td class="tablaInicio" style="background-color: white" width="10px">{{$s['total_sector']}}</td>
+          <td class="tablaInicio derecha" style="background-color: white;">{{$s['total_sector']}}</td>
         </tr>
         @endforeach
       </tbody>
@@ -112,20 +118,22 @@
 
     <!-- Tabla totales (MTM + Mesas) -->    
     <div class="primerEncabezado">Reporte estadístico de control ambiental - Totales:</div>
-    <table>
+    <table style="width: 100%;">
       <thead>
         <tr>
-          <th class="tablaInicio" style="background-color: #e6e6e6" width="10px;"></th>
+          <th class="tablaInicio centro" style="background-color: #e6e6e6;" width="15%;"></th>
           @foreach ($total_por_turno as $nro_turno => $cantidad)
-          <th class="tablaInicio" style="background-color: #e6e6e6" width="11px">T{{$nro_turno}}</th>
+          <th class="tablaInicio centro" style="background-color: #e6e6e6;">T{{$nro_turno}}</th>
           @endforeach
+          <th class="tablaInicio centro" style="background-color: #e6e6e6;">TOTAL</th>
         </tr>
       </thead>
       <tr>
-        <td class="tablaInicio" style="background-color: #e6e6e6" width="10px"><b>OCUPACIÓN</b></td>
+        <td class="tablaInicio centro" style="background-color: #e6e6e6;" width="15%;"><b>OCUPACIÓN</b></td>
         @foreach ($total_por_turno as $nro_turno => $cantidad)
-        <td class="tablaInicio" style="background-color: white" width="10px">{{$cantidad}}</td>
+        <td class="tablaInicio derecha" style="background-color: white;">{{$cantidad}}</td>
         @endforeach
+        <td class="tablaInicio derecha" style="background-color: white;">{{$total}}</td>
       </tr>
     </table>
   </body>
