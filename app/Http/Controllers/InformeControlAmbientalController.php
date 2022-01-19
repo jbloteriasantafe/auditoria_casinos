@@ -26,51 +26,33 @@ class InformeControlAmbientalController extends Controller
   }
 
   public function buscarInformesControlAmbiental(Request $request){
-    $reglas = array();
     $casinos = array();
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-
-    if(!empty($request['id_casino']) || $request['id_casino'] != 0){
-      $casinos[] = $request['id_casino'];
-    }else {
-      foreach ($user->casinos as $cass) {
-        $casinos[]=$cass->id_casino;
-      }
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    foreach($user->casinos as $c){
+      $casinos[] = $c->id_casino;
     }
 
+    $reglas = [];
+    if(!empty($request->id_casino)){
+      $reglas[] = ['c.id_casino','=',$request->id_casino];
+    }
+ 
     if(!empty( $request->sort_by)){
       $sort_by = $request->sort_by;
     }else {
-
-        $sort_by = ['columna' => 'informe_control_ambiental.fecha','orden'=>'desc'];
+      $sort_by = ['columna' => 'fecha','orden'=>'desc'];
     }
 
-    if(!empty($request['fecha']) || $request['fecha'] != 0){
+    $ret = DB::table('relevamiento_ambiental as ra')
+    ->selectRaw('DATE(ra.fecha_generacion) as fecha,ra.id_casino,c.nombre as casino')
+    ->join('casino as c','c.id_casino','=','ra.id_casino')
+    ->where($reglas)
+    ->whereIn('ra.id_casino',$casinos)
+    ->groupBy(DB::raw('DATE(ra.fecha_generacion), ra.id_casino'))
+    ->orderBy($sort_by['columna'],$sort_by['orden'])
+    ->paginate($request->page_size);
 
-      $fecha = explode('-',$request['fecha']);
-      $diarios = DB::table('informe_control_ambiental')
-                    ->join('casino','casino.id_casino','=','informe_control_ambiental.id_casino')
-                    ->where($reglas)
-                    ->whereYear('fecha','=',$fecha[0])
-                    ->whereMonth('fecha','=',$fecha[1])
-                    ->whereDay('fecha','=',$fecha[2])
-                    ->whereIn('casino.id_casino',$casinos)
-                    ->when($sort_by,function($query) use ($sort_by){
-                                    return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                })
-                    ->paginate($request->page_size);
-    }else{
-      $diarios = DB::table('informe_control_ambiental')
-                    ->join('casino','casino.id_casino','=','informe_control_ambiental.id_casino')
-                    ->where($reglas)
-                    ->whereIn('casino.id_casino',$casinos)
-                    ->when($sort_by,function($query) use ($sort_by){
-                                    return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                })
-                    ->paginate($request->page_size);
-    }
-
-   return ['diarios' => $diarios];
+    return ['diarios' => $ret];
   }
 
   public function crearInformeControlAmbiental($relevamiento_ambiental_mtm, $relevamiento_ambiental_mesas) {
@@ -86,215 +68,114 @@ class InformeControlAmbientalController extends Controller
     });
   }
 
-  public function imprimir($id_informe) {
-    $informe = InformeControlAmbiental::find($id_informe);
-    $casino = Casino::find($informe->id_casino);
-
+  public function imprimir($id_casino,$fecha) {
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if(!$user->usuarioTieneCasino($id_casino)) return '';
+    
     $detalles_informe_mtm = array();
     $detalles_informe_mesas = array();
     $distribuciones_globales_mtm = array();
     $distribuciones_globales_mesas = array();
 
     $detalles_relevamientos_mtm = DB::table('detalle_relevamiento_ambiental')
-                          ->join('isla','isla.id_isla','=','detalle_relevamiento_ambiental.id_isla')
-                          ->join('sector','sector.id_sector','=','isla.id_sector')
-                          ->where('id_relevamiento_ambiental','=', $informe->id_relevamiento_ambiental_maquinas)
-                          ->get();
+    ->join('isla','isla.id_isla','=','detalle_relevamiento_ambiental.id_isla')
+    ->join('sector','sector.id_sector','=','isla.id_sector')
+    ->join('relevamiento_ambiental','relevamiento_ambiental.id_relevamiento_ambiental','=','detalle_relevamiento_ambiental.id_relevamiento_ambiental')
+    ->where(DB::raw('DATE(relevamiento_ambiental.fecha_generacion)'),'=', $fecha)
+    ->where('sector.id_casino','=',$id_casino)
+    ->get();
 
     $detalles_relevamientos_mesas = DB::table('detalle_relevamiento_ambiental')
-                          ->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','detalle_relevamiento_ambiental.id_mesa_de_panio')
-                          ->join('sector_mesas','sector_mesas.id_sector_mesas','=','mesa_de_panio.id_sector_mesas')
-                          ->where('id_relevamiento_ambiental','=', $informe->id_relevamiento_ambiental_mesas)
-                          ->get();
+    ->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','detalle_relevamiento_ambiental.id_mesa_de_panio')
+    ->join('sector_mesas','sector_mesas.id_sector_mesas','=','mesa_de_panio.id_sector_mesas')
+    ->join('relevamiento_ambiental','relevamiento_ambiental.id_relevamiento_ambiental','=','detalle_relevamiento_ambiental.id_relevamiento_ambiental')
+    ->where(DB::raw('DATE(relevamiento_ambiental.fecha_generacion)'),'=', $fecha)
+    ->where('sector_mesas.id_casino','=',$id_casino)
+    ->get();
+    
+    //@HACK: obtener la cantidad de turnos al momento de generacion...
+    $TURNOS_TOTALES = 8;//@HACK: hardlimit
+    $total_por_turno = [];
 
-    //creo un detalle MTM por cada sector:
-    foreach ($casino->sectores as $sector) {
-      $flag_hay_detalles_sector = 0;
-      $totalizador_sector = 0;
-      $totales_sector = array();
-      $porcentajes_sector = array();
+    $sectores_mtm = [];
+    $total_por_turno_mtm = [];
 
-      //creo un array totales y porcentajes de sector por cada turno existente:
-      for ($i=1; $i<=sizeof($casino->turnos); $i++) {
-        $total = 0;
+    $sectores_mesas = [];
+    $total_por_turno_mesas = [];
 
-        foreach ($detalles_relevamientos_mtm as $d) {
-          if ($d->id_sector == $sector->id_sector) {
-            if      ($i==1) $total += $d->turno1;
-            else if ($i==2) $total += $d->turno2;
-            else if ($i==3) $total += $d->turno3;
-            else if ($i==4) $total += $d->turno4;
-            else if ($i==5) $total += $d->turno5;
-            else if ($i==6) $total += $d->turno6;
-            else if ($i==7) $total += $d->turno7;
-            else            $total += $d->turno8;
-
-            $flag_hay_detalles_sector = 1;
-          }
-        }
-
-        $totalizador_sector += $total;
-        //creo un item de totales_sector y lo añado al array:
-        $t = array(
-          'turno' => 'turno'.$i,
-          'total' => $total
-        );
-        $totales_sector[] = $t;
-      }
-
-      foreach ($totales_sector as $t) {
-        //creo un item de porcentajes_sector y lo añado al array:
-        $p = array(
-          'turno' => $t['turno'],
-          'porcentaje' => ($flag_hay_detalles_sector) ? number_format($t['total']*100 / $totalizador_sector ,2) : 0 //división por cero
-        );
-        $porcentajes_sector[] = $p;
-      }
-
-      //genero un detalle MTM:
-      $detalle_informe_mtm = array(
-        'sector_nombre' => $sector->descripcion,
-        'porcentajes_sector' => $porcentajes_sector,
-        'totales_sector' => $totales_sector,
-        'flag_hay_detalles_sectores' => $flag_hay_detalles_sector
-      );
-
-      //añado el detalle MTM al array de detalles:
-      $detalles_informe_mtm[] = $detalle_informe_mtm;
+    for($t=1;$t<=8;$t++){
+      $total_por_turno[$t]       = 0;
+      $total_por_turno_mtm[$t]   = 0;
+      $total_por_turno_mesas[$t] = 0;
     }
 
-    //creo un array de distribuciones globales mtm:
-    for ($i=1; $i<=sizeof($casino->turnos); $i++) {
-      $distribucion = 0;
-      foreach ($detalles_informe_mtm as $d) {
-        foreach ($d['totales_sector'] as $t) {
-          if ($t['turno'] == 'turno'.$i) {
-            $distribucion += $t['total'];
-          }
-        }
+    foreach($detalles_relevamientos_mtm as $d){
+      $id_sector = $d->id_sector;
+      if(!array_key_exists($id_sector,$sectores_mtm)){
+        $sectores_mtm[$id_sector] = [
+          'sector' => $d->descripcion,
+          'turnos' => [],
+          'total_sector' => 0
+        ];
       }
-
-      $dist = array(
-        'turno' => 'turno'.$i,
-        'distribucion' => $distribucion
-      );
-      $distribuciones_globales_mtm[] = $dist;
+      $s = &$sectores_mtm[$id_sector];
+      for($t=1;$t<=$TURNOS_TOTALES;$t++){ 
+        $ocupacion = $d->{'turno'.$t};
+        if(!array_key_exists($t,$s['turnos'])) $s['turnos'][$t] = 0;
+        $s['turnos'][$t] += $ocupacion;
+        $s['total_sector'] += $ocupacion;
+        $total_por_turno[$t] += $ocupacion;
+        $total_por_turno_mtm[$t] += $ocupacion;
+      }
     }
 
-    //creo un detalle de mesas por cada sector:
-    foreach ($casino->sectores_mesas as $sector) {
-      $flag_hay_detalles_sector = 0;
-      $totalizador_sector = 0;
-      $totales_sector = array();
-      $porcentajes_sector = array();
+    $sectores_mtm['TOTAL'] = [
+      'sector' => 'TOTAL',
+      'turnos' => $total_por_turno_mtm,
+      'total_sector' => array_reduce($total_por_turno_mtm,function($total,$i){ return $total+$i; },0),
+    ];
 
-      //creo un array totales y porcentajes de sector por cada turno existente:
-      for ($i=1; $i<=sizeof($casino->turnos); $i++) {
-        $total = 0;
-
-        foreach ($detalles_relevamientos_mesas as $d) {
-          if ($d->id_sector_mesas == $sector->id_sector_mesas) {
-            if      ($i==1) $total += $d->turno1;
-            else if ($i==2) $total += $d->turno2;
-            else if ($i==3) $total += $d->turno3;
-            else if ($i==4) $total += $d->turno4;
-            else if ($i==5) $total += $d->turno5;
-            else if ($i==6) $total += $d->turno6;
-            else if ($i==7) $total += $d->turno7;
-            else            $total += $d->turno8;
-
-            $flag_hay_detalles_sector = 1;
-          }
-        }
-
-        $totalizador_sector += $total;
-        //creo un item de totales_sector y lo añado al array:
-        $t = array(
-          'turno' => 'turno'.$i,
-          'total' => $total
-        );
-        $totales_sector[] = $t;
+    foreach($detalles_relevamientos_mesas as $d){//Lo mismo que en MTM
+      $id_sector = $d->id_sector_mesas;
+      if(!array_key_exists($id_sector,$sectores_mesas)){
+        $sectores_mesas[$id_sector] = [
+          'sector' => $d->descripcion,
+          'turnos' => [],
+          'total_sector' => 0
+        ];
       }
-
-      foreach ($totales_sector as $t) {
-        //creo un item de porcentajes_sector y lo añado al array:
-        $p = array(
-          'turno' => $t['turno'],
-          'porcentaje' => ($flag_hay_detalles_sector) ? number_format($t['total']*100 / $totalizador_sector ,2) : 0 //división por cero
-        );
-        $porcentajes_sector[] = $p;
+      $s = &$sectores_mesas[$id_sector];
+      for($t=1;$t<=$TURNOS_TOTALES;$t++){ 
+        $ocupacion = $d->{'turno'.$t};
+        if(!array_key_exists($t,$s['turnos'])) $s['turnos'][$t] = 0;
+        $s['turnos'][$t] += $ocupacion;
+        $s['total_sector'] += $ocupacion;
+        $total_por_turno[$t] += $ocupacion;
+        $total_por_turno_mesas[$t] += $ocupacion;
       }
-
-      //genero un detalle Maquina:
-      $detalle_informe_mesas = array(
-        'sector_nombre' => $sector->descripcion,
-        'porcentajes_sector' => $porcentajes_sector,
-        'totales_sector' => $totales_sector,
-        'flag_hay_detalles_sectores' => $flag_hay_detalles_sector
-      );
-
-      //añado el detalle MTM al array de detalles:
-      $detalles_informe_mesas[] = $detalle_informe_mesas;
     }
 
-    //creo un array de distribuciones globales de mesas
-    for ($i=1; $i<=sizeof($casino->turnos); $i++) {
-      $distribucion = 0;
-      foreach ($detalles_informe_mesas as $d) {
-        foreach ($d['totales_sector'] as $t) {
-          if ($t['turno'] == 'turno'.$i) {
-            $distribucion += $t['total'];
-          }
-        }
-      }
+    $sectores_mesas['TOTAL'] = [
+      'sector' => 'TOTAL',
+      'turnos' => $total_por_turno_mesas,
+      'total_sector' => array_reduce($total_por_turno_mesas,function($total,$i){ return $total+$i; },0),
+    ];
 
-      $dist = array(
-        'turno' => 'turno'.$i,
-        'distribucion' => $distribucion
-      );
-      $distribuciones_globales_mesas[] = $dist;
-    }
-
-
-    //creo un array de totales absolutos
-    $totales_absolutos = array();
-    for ($i=1; $i<=sizeof($casino->turnos); $i++) {
-      $total_absoluto = 0;
-      foreach ($detalles_informe_mtm as $d) {
-        foreach ($d['totales_sector'] as $t) {
-          if ($t['turno'] == 'turno'.$i) {
-            $total_absoluto += $t['total'];
-          }
-        }
-      }
-
-      foreach ($detalles_informe_mesas as $d) {
-        foreach ($d['totales_sector'] as $t) {
-          if ($t['turno'] == 'turno'.$i) {
-            $total_absoluto += $t['total'];
-          }
-        }
-      }
-
-      array_push($totales_absolutos, $total_absoluto);
-    }
-
+    $casino = Casino::find($id_casino);
     $otros_datos = array(
-      'fecha_produccion' => date("d-m-Y", strtotime($informe->fecha)),
-      'cantidad_turnos' => sizeof($casino->turnos),
+      'fecha_produccion' => date("d-m-Y", strtotime($fecha)),
+      'cantidad_turnos' => $TURNOS_TOTALES,//@HACK
       'casino' => $casino,
-      'totales_absolutos' => $totales_absolutos
     );
 
-    $view = view('planillaInformesControlAmbiental', compact(['detalles_informe_mtm','detalles_informe_mesas', 'distribuciones_globales_mtm', 'distribuciones_globales_mesas', 'otros_datos']));
+    $view = view('planillaInformesControlAmbiental', compact(['sectores_mtm','sectores_mesas','total_por_turno','otros_datos']));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view);
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$informe->fecha, $font, 10, array(0,0,0));
+    $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$fecha, $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-    return $dompdf->stream('informe_diario_'.$casino->codigo.'_'.$informe->fecha.'.pdf', Array('Attachment'=>0));
+    return $dompdf->stream('informe_diario_'.$casino->codigo.'_'.$fecha.'.pdf', Array('Attachment'=>0));
   }
-
 }

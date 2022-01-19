@@ -73,7 +73,7 @@ $('#buscar-info-diarios').on('click',function(e,pagina,page_size,columna,orden){
 
 $(document).on('click','.imprimirInfoDiario', function(e){
   e.preventDefault();
-  window.open('informeControlAmbiental/imprimir/' + $(this).val(),'_blank');
+  window.open('informeControlAmbiental/imprimir/' + $(this).data('id_casino') + '/' + $(this).data('fecha'),'_blank');
 })
 
 
@@ -81,10 +81,9 @@ function generarFilaTablaInicial(data){
   const fila = $('#moldeInfoDia').clone();
 
   fila.removeAttr('id');
-  fila.attr('id',data.id_informe_control_ambiental);
   fila.find('.diario_fecha').text(data.fecha).css('text-align','center');
-  fila.find('.diario_casino').text(data.nombre).css('text-align','center');
-  fila.find('.imprimirInfoDiario').val(data.id_informe_control_ambiental).css('text-align','center');
+  fila.find('.diario_casino').text(data.casino).css('text-align','center');
+  fila.find('.imprimirInfoDiario').data('id_casino',data.id_casino).data('fecha',data.fecha).css('text-align','center');
   fila.css('display','');
   $('#molde2').css('display','block');
 

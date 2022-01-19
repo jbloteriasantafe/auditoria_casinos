@@ -36,10 +36,6 @@
     <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
     <link href="/css/importacionFuentes.css" rel="stylesheet">
     <link rel="stylesheet" href="/web-fonts-with-css/css/fontawesome-all.css">
-
-    <script src="/js/jquery.js"></script>
-    <script src="/js/bootstrap.js"></script>
-    <script src="/js/ajaxError.js"></script>
   </head>
 
   <body>
@@ -54,103 +50,83 @@
     <div class="camposInfo" style="top:33px; right:5px;"></span>{{$otros_datos['fecha_produccion']}}</div>
     <h4 style="font-family:Roboto-Condesed !important;top:-10px;bottom:-30px!important;padding-top:-40px !important;"><i>ESTADÍSTICAS DE OCUPACIÓN DE LAS SALAS DE JUEGO<i></h4>
 
-      <!-- Tabla de estadísticas de máquinas tragamonedas-->
-      <div class="primerEncabezado">Reporte estadístico de control ambiental - Máquinas tragamonedas:</div>
-      <table>
-        <thead>
-          <tr>
-            <th class="tablaInicio" style="background-color: #e6e6e6" width="10px;" rowspan="2">SECTOR</th>
-            <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" width="10px" colspan="{{$otros_datos['cantidad_turnos']}}">PORCENTAJE DE OCUPACIÓN</th>
-            <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" width="10px" colspan="{{$otros_datos['cantidad_turnos']}}">TOTALES</th>
-            <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" width="10px" colspan="{{$otros_datos['cantidad_turnos']}}">DISTRIBUCIÓN GLOBAL</th>
-          </tr>
-          <tr>
-            @for ($i=1; $i<=3; $i++)
-              @foreach ($otros_datos['casino']->turnos as $turno)
-              <th class="tablaInicio" style="background-color: #e6e6e6" width="11px">T{{$turno->nro_turno}}</th>
-              @endforeach
-            @endfor
-          </tr>
-        </thead>
-        <?php $una_sola_vez=1?>
-        @foreach ($detalles_informe_mtm as $detalle)
+    <!-- Tabla MTM -->
+    <div class="primerEncabezado">Reporte de Máquinas tragamonedas:</div>
+    <table>
+      <thead>
         <tr>
-          <td class="tablaInicio" style="background-color: white" width="10px">{{$detalle['sector_nombre']}}</td>
-          @foreach ($detalle['porcentajes_sector'] as $porc)
-          <td class="tablaInicio" style="background-color: white" width="10px">{{$porc['porcentaje'] . '%'}}</td>
+          <th class="tablaInicio" style="background-color: #e6e6e6" width="10px;" rowspan="2">SECTOR</th>
+          <!-- Le sumo 1 para el total por sector -->
+          <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" width="10px" 
+            colspan="{{$otros_datos['cantidad_turnos']+1}}">OCUPACIÓN</th>
+        </tr>
+        <tr>
+          @foreach ($sectores_mtm['TOTAL']['turnos'] as $nro_turno => $cantidad)
+          <th class="tablaInicio" style="background-color: #e6e6e6" width="11px">T{{$nro_turno}}</th>
           @endforeach
-          @foreach ($detalle['totales_sector'] as $tot)
-          <td class="tablaInicio" style="background-color: white" width="10px">{{$tot['total']}}</td>
+          <th class="tablaInicio" style="background-color: #e6e6e6" width="11px">TOTAL</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach($sectores_mtm as $s)
+        <tr>
+          <td class="tablaInicio" style="background-color: white" width="10px">{{$s['sector']}}</td>
+          @foreach($s['turnos'] as $nro_turno => $cantidad)
+          <td class="tablaInicio" style="background-color: white" width="10px">{{$cantidad}}</td>
           @endforeach
-          @if ($una_sola_vez)
-          @foreach ($distribuciones_globales_mtm as $dist)
-          <td class="tablaInicio" style="background-color: white" width="10px" rowspan="{{sizeof($otros_datos['casino']->sectores)}}">{{$dist['distribucion']}}</td>
-          @endforeach
-          <?php $una_sola_vez=0; ?>
-          @endif
+          <td class="tablaInicio" style="background-color: white" width="10px">{{$s['total_sector']}}</td>
         </tr>
         @endforeach
-      </table>
-      <br><br>
+      </tbody>
+    </table>
 
-      <!-- Tabla de estadísticas de mesas de paño-->
-      <div class="primerEncabezado">Reporte estadístico de control ambiental - Mesas de paño:</div>
-      <table>
-        <thead>
-          <tr>
-            <th class="tablaInicio" style="background-color: #e6e6e6" width="10px;" rowspan="2">SECTOR</th>
-            <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" width="10px" colspan="{{$otros_datos['cantidad_turnos']}}">PORCENTAJE DE OCUPACIÓN</th>
-            <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" width="10px" colspan="{{$otros_datos['cantidad_turnos']}}">TOTALES</th>
-            <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" width="10px" colspan="{{$otros_datos['cantidad_turnos']}}">DISTRIBUCIÓN GLOBAL</th>
-          </tr>
-          <tr>
-            @for ($i=1; $i<=3; $i++)
-              @foreach ($otros_datos['casino']->turnos as $turno)
-              <th class="tablaInicio" style="background-color: #e6e6e6" width="11px">T{{$turno->nro_turno}}</th>
-              @endforeach
-            @endfor
-          </tr>
-        </thead>
-        <?php $una_sola_vez=1?>
-        @foreach ($detalles_informe_mesas as $detalle)
+    <!-- Tabla Mesas -->
+    <div class="primerEncabezado">Reporte de Mesas de paño:</div>
+    <table>
+      <thead>
         <tr>
-          <td class="tablaInicio" style="background-color: white" width="10px">{{$detalle['sector_nombre']}}</td>
-          @foreach ($detalle['porcentajes_sector'] as $porc)
-          <td class="tablaInicio" style="background-color: white" width="10px">{{$porc['porcentaje'] . '%'}}</td>
+          <th class="tablaInicio" style="background-color: #e6e6e6" width="10px;" rowspan="2">SECTOR</th>
+          <!-- Le sumo 1 para el total por sector -->
+          <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" width="10px" 
+            colspan="{{$otros_datos['cantidad_turnos']+1}}">OCUPACIÓN</th>
+        </tr>
+        <tr>
+          @foreach ($sectores_mesas['TOTAL']['turnos'] as $nro_turno => $cantidad)
+          <th class="tablaInicio" style="background-color: #e6e6e6" width="11px">T{{$nro_turno}}</th>
           @endforeach
-          @foreach ($detalle['totales_sector'] as $tot)
-          <td class="tablaInicio" style="background-color: white" width="10px">{{$tot['total']}}</td>
+          <th class="tablaInicio" style="background-color: #e6e6e6" width="11px">TOTAL</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach($sectores_mesas as $s)
+        <tr>
+          <td class="tablaInicio" style="background-color: white" width="10px">{{$s['sector']}}</td>
+          @foreach($s['turnos'] as $nro_turno => $cantidad)
+          <td class="tablaInicio" style="background-color: white" width="10px">{{$cantidad}}</td>
           @endforeach
-          @if ($una_sola_vez)
-          @foreach ($distribuciones_globales_mesas as $dist)
-          <td class="tablaInicio" style="background-color: white" width="10px" rowspan="{{sizeof($otros_datos['casino']->sectores_mesas)}}">{{$dist['distribucion']}}</td>
-          @endforeach
-          <?php $una_sola_vez=0; ?>
-          @endif
+          <td class="tablaInicio" style="background-color: white" width="10px">{{$s['total_sector']}}</td>
         </tr>
         @endforeach
-      </table>
-      <br><br>
+      </tbody>
+    </table>
 
-      <!-- Tabla de totales absolutos-->
-      <div class="primerEncabezado">Reporte estadístico de control ambiental - Totales absolutos:</div>
-      <table>
-        <thead>
-          <tr>
-            <th class="tablaInicio" style="background-color: #e6e6e6" width="10px;"></th>
-            @foreach ($otros_datos['casino']->turnos as $turno)
-            <th class="tablaInicio" style="background-color: #e6e6e6" width="11px">T{{$turno->nro_turno}}</th>
-            @endforeach
-          </tr>
-        </thead>
+    <!-- Tabla totales (MTM + Mesas) -->    
+    <div class="primerEncabezado">Reporte estadístico de control ambiental - Totales:</div>
+    <table>
+      <thead>
         <tr>
-          <td class="tablaInicio" style="background-color: #e6e6e6" width="10px"><b>TOTALES ABSOLUTOS</b></td>
-          @for ($i=1; $i<=sizeof($otros_datos['totales_absolutos']); $i++)
-          <td class="tablaInicio" style="background-color: white" width="10px">{{$otros_datos['totales_absolutos'][$i-1]}}</td>
-          @endfor
+          <th class="tablaInicio" style="background-color: #e6e6e6" width="10px;"></th>
+          @foreach ($total_por_turno as $nro_turno => $cantidad)
+          <th class="tablaInicio" style="background-color: #e6e6e6" width="11px">T{{$nro_turno}}</th>
+          @endforeach
         </tr>
-      </table>
-      <br><br>
-
+      </thead>
+      <tr>
+        <td class="tablaInicio" style="background-color: #e6e6e6" width="10px"><b>OCUPACIÓN</b></td>
+        @foreach ($total_por_turno as $nro_turno => $cantidad)
+        <td class="tablaInicio" style="background-color: white" width="10px">{{$cantidad}}</td>
+        @endforeach
+      </tr>
+    </table>
   </body>
 </html>

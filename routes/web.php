@@ -492,7 +492,7 @@ INFORMES CONTROL AMBIENTAL
 Route::group(['prefix' => 'informeControlAmbiental','middleware' => 'tiene_permiso:ver_seccion_informes_control_ambiental'], function () {
   Route::get('/','InformeControlAmbientalController@buscarTodo');
   Route::get('/buscarInformesControlAmbiental','InformeControlAmbientalController@buscarInformesControlAmbiental');
-  Route::get('/imprimir/{id}','InformeControlAmbientalController@imprimir');
+  Route::get('/imprimir/{id_casino}/{fecha}','InformeControlAmbientalController@imprimir');
 });
 
 /*******************
