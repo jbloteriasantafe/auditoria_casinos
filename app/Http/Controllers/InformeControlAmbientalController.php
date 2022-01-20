@@ -99,7 +99,11 @@ class InformeControlAmbientalController extends Controller
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     if(!$user->usuarioTieneCasino($id_casino)) return '';
 
+
+    $TURNOS_TOTALES = 8;//@HACK: hardlimit en la tabla, obtenerlo dinamicamente
+
     $detalles_relevamientos_mtm = DB::table('detalle_relevamiento_ambiental')
+    ->selectRaw('sector.id_sector, sector.descripcion, turno'.implode(', turno',range(1,$TURNOS_TOTALES)))
     ->join('isla','isla.id_isla','=','detalle_relevamiento_ambiental.id_isla')
     ->join('sector','sector.id_sector','=','isla.id_sector')
     ->join('relevamiento_ambiental','relevamiento_ambiental.id_relevamiento_ambiental','=','detalle_relevamiento_ambiental.id_relevamiento_ambiental')
@@ -113,6 +117,7 @@ class InformeControlAmbientalController extends Controller
     if(!is_null($estado_mtm)) $estado_mtm = $estado_mtm->estado_relevamiento->descripcion;
 
     $detalles_relevamientos_mesas = DB::table('detalle_relevamiento_ambiental')
+    ->selectRaw('sector_mesas.id_sector_mesas as id_sector, sector_mesas.descripcion, turno'.implode(', turno',range(1,$TURNOS_TOTALES)))
     ->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','detalle_relevamiento_ambiental.id_mesa_de_panio')
     ->join('sector_mesas','sector_mesas.id_sector_mesas','=','mesa_de_panio.id_sector_mesas')
     ->join('relevamiento_ambiental','relevamiento_ambiental.id_relevamiento_ambiental','=','detalle_relevamiento_ambiental.id_relevamiento_ambiental')
@@ -125,77 +130,54 @@ class InformeControlAmbientalController extends Controller
     ])->get()->first();
     if(!is_null($estado_mesas)) $estado_mesas = $estado_mesas->estado_relevamiento->descripcion;
 
-
-    $TURNOS_TOTALES = 8;//@HACK: hardlimit en la tabla, obtenerlo dinamicamente
     $turnos = $this->obtenerTurnosActivos($id_casino,$fecha)->take($TURNOS_TOTALES);
-    
-    //@HACK: obtener la cantidad de turnos al momento de generacion...
-    $total_por_turno = [];
+  
+    $extrar_totales = function($turnos,&$detalles_relevamientos){
+      $sectores = [];
+      
+      $sectores['TOTAL'] = [
+        'sector' => 'TOTAL',
+        'turnos' => [],
+        'total_sector' => 0,
+      ];
+      foreach($turnos as $t){
+        $sectores['TOTAL']['turnos'][$t->nro_turno] = 0;
+      }
+      $total = &$sectores['TOTAL'];
 
-    $sectores_mtm = [];
-    $total_por_turno_mtm = [];
+      foreach($detalles_relevamientos as $d){
 
-    $sectores_mesas = [];
-    $total_por_turno_mesas = [];
+        if(!array_key_exists($d->id_sector,$sectores)){
+          $sectores[$d->id_sector] = [
+            'sector' => $d->descripcion,
+            'turnos' => [],
+            'total_sector' => 0
+          ];
+          foreach($turnos as $t){
+            $sectores[$d->id_sector]['turnos'][$t->nro_turno] = 0;
+          }
+        }
 
-    foreach($turnos as $t){
-      $total_por_turno[$t->nro_turno]       = 0;
-      $total_por_turno_mtm[$t->nro_turno]   = 0;
-      $total_por_turno_mesas[$t->nro_turno] = 0;
+        $s = &$sectores[$d->id_sector];
+        foreach($turnos as $idx => $t){ 
+          $ocupacion = $d->{'turno'.($idx+1)};
+          $s['turnos'][$t->nro_turno] += $ocupacion;
+          $s['total_sector'] += $ocupacion;
+          $total['turnos'][$t->nro_turno] += $ocupacion;
+          $total['total_sector'] += $ocupacion;
+        }
+      }
+      return $sectores;
+    };
+
+    $sectores_mtm   = $extrar_totales($turnos,$detalles_relevamientos_mtm);
+    $sectores_mesas = $extrar_totales($turnos,$detalles_relevamientos_mesas);
+
+    //Totalizo
+    $total_por_turno = $sectores_mtm['TOTAL']['turnos'];
+    foreach($sectores_mesas['TOTAL']['turnos'] as $nro_turno => $ocupacion){
+      $total_por_turno[$nro_turno] += $ocupacion;
     }
-
-    foreach($detalles_relevamientos_mtm as $d){
-      $id_sector = $d->id_sector;
-      if(!array_key_exists($id_sector,$sectores_mtm)){
-        $sectores_mtm[$id_sector] = [
-          'sector' => $d->descripcion,
-          'turnos' => [],
-          'total_sector' => 0
-        ];
-      }
-      $s = &$sectores_mtm[$id_sector];
-      foreach($turnos as $idx => $t){ 
-        $ocupacion = $d->{'turno'.($idx+1)};
-        if(!array_key_exists($t->nro_turno,$s['turnos'])) $s['turnos'][$t->nro_turno] = 0;
-        $s['turnos'][$t->nro_turno] += $ocupacion;
-        $s['total_sector'] += $ocupacion;
-        $total_por_turno[$t->nro_turno] += $ocupacion;
-        $total_por_turno_mtm[$t->nro_turno] += $ocupacion;
-      }
-    }
-
-    $sectores_mtm['TOTAL'] = [
-      'sector' => 'TOTAL',
-      'turnos' => $total_por_turno_mtm,
-      'total_sector' => array_reduce($total_por_turno_mtm,function($total,$i){ return $total+$i; },0),
-    ];
-
-    foreach($detalles_relevamientos_mesas as $d){//Lo mismo que en MTM
-      $id_sector = $d->id_sector_mesas;
-      if(!array_key_exists($id_sector,$sectores_mesas)){
-        $sectores_mesas[$id_sector] = [
-          'sector' => $d->descripcion,
-          'turnos' => [],
-          'total_sector' => 0
-        ];
-      }
-      $s = &$sectores_mesas[$id_sector];
-      foreach($turnos as $idx => $t){ 
-        $ocupacion = $d->{'turno'.($idx+1)};
-        if(!array_key_exists($t->nro_turno,$s['turnos'])) $s['turnos'][$t->nro_turno] = 0;
-        $s['turnos'][$t->nro_turno] += $ocupacion;
-        $s['total_sector'] += $ocupacion;
-        $total_por_turno[$t->nro_turno] += $ocupacion;
-        $total_por_turno_mesas[$t->nro_turno] += $ocupacion;
-      }
-    }
-
-    $sectores_mesas['TOTAL'] = [
-      'sector' => 'TOTAL',
-      'turnos' => $total_por_turno_mesas,
-      'total_sector' => array_reduce($total_por_turno_mesas,function($total,$i){ return $total+$i; },0),
-    ];
-
     $total = array_reduce($total_por_turno,function($total,$i){ return $total+$i; },0);
 
     $casino = Casino::find($id_casino);
