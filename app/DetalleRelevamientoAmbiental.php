@@ -38,4 +38,16 @@ class DetalleRelevamientoAmbiental extends Model
     return $this->belongsTo('App\Mesas\Mesa','id_mesa_de_panio','id_mesa_de_panio');
   }
 
+  public static function limiteCantidadTurnos(){
+    $test_obj = new DetalleRelevamientoAmbiental;
+    $cols = $test_obj->visible;
+    $maxt = -1;
+    foreach($cols as $c){
+      if(strpos($c,'turno') === 0){
+        $t = intval(substr($c,strlen('turno')));
+        $maxt = max($t,$maxt);
+      }
+    }
+    return $maxt;
+  }
 }

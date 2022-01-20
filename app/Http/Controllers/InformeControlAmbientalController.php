@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\RelevamientoAmbiental;
+use App\DetalleRelevamientoAmbiental;
 use App\Casino;
 use Dompdf\Dompdf;
 
@@ -99,8 +100,8 @@ class InformeControlAmbientalController extends Controller
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     if(!$user->usuarioTieneCasino($id_casino)) return '';
 
-
-    $TURNOS_TOTALES = 8;//@HACK: hardlimit en la tabla, obtenerlo dinamicamente
+    //hardlimit en la tabla, lo obtengo dinamicamente
+    $TURNOS_TOTALES = DetalleRelevamientoAmbiental::limiteCantidadTurnos();
 
     $detalles_relevamientos_mtm = DB::table('detalle_relevamiento_ambiental')
     ->selectRaw('sector.id_sector, sector.descripcion, turno'.implode(', turno',range(1,$TURNOS_TOTALES)))
