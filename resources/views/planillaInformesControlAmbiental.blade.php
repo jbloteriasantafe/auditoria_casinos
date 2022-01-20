@@ -58,15 +58,12 @@
     <h4 style="font-family:Roboto-Condesed !important;top:-10px;bottom:-30px!important;padding-top:-40px !important;"><i>ESTADÍSTICAS DE OCUPACIÓN DE LAS SALAS DE JUEGO<i></h4>
 
     <!-- Tabla MTM -->
-    <div class="primerEncabezado">Reporte de Máquinas tragamonedas ({{$otros_datos['estado_mtm']?: 'SIN RELEVAR' }}):</div>
+    <div class="primerEncabezado">Relevamiento de Máquinas tragamonedas (Estado: {{$otros_datos['estado_mtm']?: 'SIN RELEVAR' }})</div>
+    <br>
     <table style="width: 100%;">
       <thead>
         <tr>
-          <th class="tablaInicio centro" style="background-color: #e6e6e6;" width="15%;" rowspan="2">SECTOR</th>
-          <!-- Le sumo 1 para el total por sector -->
-          <th class="tablaInicio centro" style="background-color: #e6e6e6;" colspan="{{$otros_datos['cantidad_turnos']+1}}">OCUPACIÓN</th>
-        </tr>
-        <tr>
+          <th class="tablaInicio centro" style="background-color: #e6e6e6;" width="15%;">SECTOR</th>
           @foreach ($sectores_mtm['TOTAL']['turnos'] as $nro_turno => $cantidad)
           <th class="tablaInicio centro" style="background-color: #e6e6e6;">T{{$nro_turno}}</th>
           @endforeach
@@ -87,16 +84,12 @@
     </table>
     <br>
     <!-- Tabla Mesas -->
-    <div class="primerEncabezado">Reporte de Mesas de paño ({{$otros_datos['estado_mesas']?: 'SIN RELEVAR' }}):</div>
+    <div class="primerEncabezado">Relevamiento de Mesas de paño (Estado: {{$otros_datos['estado_mesas']?: 'SIN RELEVAR' }})</div>
+    <br>
     <table style="width: 100%;">
       <thead>
         <tr>
-          <th class="tablaInicio centro" style="background-color: #e6e6e6;" width="15%;" rowspan="2">SECTOR</th>
-          <!-- Le sumo 1 para el total por sector -->
-          <th class="tablaInicio centro" style="background-color: #e6e6e6; text-align: center"
-            colspan="{{$otros_datos['cantidad_turnos']+1}}">OCUPACIÓN</th>
-        </tr>
-        <tr>
+          <th class="tablaInicio centro" style="background-color: #e6e6e6;" width="15%;">SECTOR</th>
           @foreach ($sectores_mesas['TOTAL']['turnos'] as $nro_turno => $cantidad)
           <th class="tablaInicio centro" style="background-color: #e6e6e6;">T{{$nro_turno}}</th>
           @endforeach
@@ -117,7 +110,8 @@
     </table>
     <br>
     <!-- Tabla totales (MTM + Mesas) -->    
-    <div class="primerEncabezado">Reporte estadístico de control ambiental - Totales:</div>
+    <div class="primerEncabezado">Totales por turno</div>
+    <br>
     <table style="width: 100%;">
       <thead>
         <tr>
@@ -129,7 +123,7 @@
         </tr>
       </thead>
       <tr>
-        <td class="tablaInicio centro" style="background-color: #e6e6e6;" width="15%;"><b>OCUPACIÓN</b></td>
+        <td class="tablaInicio centro" style="background-color: #e6e6e6;" width="15%;"><b>TOTAL</b></td>
         @foreach ($total_por_turno as $nro_turno => $cantidad)
         <td class="tablaInicio derecha" style="background-color: white;">{{$cantidad}}</td>
         @endforeach
