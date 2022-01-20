@@ -58,7 +58,7 @@
     <h4 style="font-family:Roboto-Condesed !important;top:-10px;bottom:-30px!important;padding-top:-40px !important;"><i>ESTADÍSTICAS DE OCUPACIÓN DE LAS SALAS DE JUEGO<i></h4>
 
     <!-- Tabla MTM -->
-    <div class="primerEncabezado">Reporte de Máquinas tragamonedas:</div>
+    <div class="primerEncabezado">Reporte de Máquinas tragamonedas ({{$otros_datos['estado_mtm']?: 'SIN RELEVAR' }}):</div>
     <table style="width: 100%;">
       <thead>
         <tr>
@@ -85,9 +85,9 @@
         @endforeach
       </tbody>
     </table>
-
+    <br>
     <!-- Tabla Mesas -->
-    <div class="primerEncabezado">Reporte de Mesas de paño:</div>
+    <div class="primerEncabezado">Reporte de Mesas de paño ({{$otros_datos['estado_mesas']?: 'SIN RELEVAR' }}):</div>
     <table style="width: 100%;">
       <thead>
         <tr>
@@ -115,7 +115,7 @@
         @endforeach
       </tbody>
     </table>
-
+    <br>
     <!-- Tabla totales (MTM + Mesas) -->    
     <div class="primerEncabezado">Reporte estadístico de control ambiental - Totales:</div>
     <table style="width: 100%;">
