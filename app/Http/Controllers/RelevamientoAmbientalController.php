@@ -246,8 +246,8 @@ class RelevamientoAmbientalController extends Controller
           'turno4' => $generalidad->turno4 != NULL ? $this->obtenerDescripcionGeneralidad($generalidad->turno4, $generalidad->tipo_generalidad) : NULL,
           'turno5' => $generalidad->turno5 != NULL ? $this->obtenerDescripcionGeneralidad($generalidad->turno5, $generalidad->tipo_generalidad) : NULL,
           'turno6' => $generalidad->turno6 != NULL ? $this->obtenerDescripcionGeneralidad($generalidad->turno6, $generalidad->tipo_generalidad) : NULL,
-          'turno7' => $generalidad->turno1 != NULL ? $this->obtenerDescripcionGeneralidad($generalidad->turno7, $generalidad->tipo_generalidad) : NULL,
-          'turno8' => $generalidad->turno1 != NULL ? $this->obtenerDescripcionGeneralidad($generalidad->turno8, $generalidad->tipo_generalidad) : NULL,
+          'turno7' => $generalidad->turno7 != NULL ? $this->obtenerDescripcionGeneralidad($generalidad->turno7, $generalidad->tipo_generalidad) : NULL,
+          'turno8' => $generalidad->turno8 != NULL ? $this->obtenerDescripcionGeneralidad($generalidad->turno8, $generalidad->tipo_generalidad) : NULL,
       );
 
       $generalidades[] = $g;
@@ -551,5 +551,4 @@ class RelevamientoAmbientalController extends Controller
     else
       return (EventoControlAmbiental::find($id))['descripcion'];
   }
-
 }
