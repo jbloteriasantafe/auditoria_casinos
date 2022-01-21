@@ -8,6 +8,7 @@ use App\RelevamientoAmbiental;
 use App\DetalleRelevamientoAmbiental;
 use App\Casino;
 use Dompdf\Dompdf;
+use App\Http\Controllers\Turnos\TurnosController;
 
 class InformeControlAmbientalController extends Controller
 {
@@ -55,47 +56,6 @@ class InformeControlAmbientalController extends Controller
     return ['diarios' => $ret];
   }
 
-  private function obtenerTurnosActivos($id_casino, $fecha){
-    $dia = date('w',strtotime($fecha));
-    /*
-    PHP es
-    do lu ma mi ju vi sa
-     1  2  3  4  5  6  7
-    En la BD es
-    lu ma mi ju vi sa do
-     1  2  3  4  5  6  7
-    */
-    if($dia == 1){
-      $dia = 7;
-    }
-    else{
-      $dia -= 1;
-    }
-
-    $turnos_activos = DB::table('turno')
-    ->where('id_casino','=',$id_casino)
-    ->where('created_at','<',$fecha)
-    ->where(function($q) use ($fecha){
-      return $q->whereNull('deleted_at')->orWhere('deleted_at','>',$fecha);
-    })
-    ->where(function ($q) use ($dia) {
-      return $q->where(function ($q) use ($dia){
-        $q->whereRaw('dia_desde <= dia_hasta')//Si es "normal" el turno, lo chequeamos como esperamos
-        ->where('dia_desde','<=',$dia)->where('dia_hasta','>=',$dia);
-      })
-      ->orWhere(function ($q) use ($dia){
-        return $q->whereRaw('dia_desde > dia_hasta')
-        ->where(function ($q) use ($dia){
-          return $q->where('dia_desde','<=',$dia)//Prestar atencion al "orWhere"
-          ->orWhere('dia_hasta','>=',$dia);
-        });
-      });
-    })
-    ->orderBy('nro_turno')->get();//@HACK: ver que hacer cuando hay turnos ala 1,2,3, 1 (otro dia), 2 (otro dia)
-
-    return $turnos_activos;
-  }
-
   public function imprimir($id_casino,$fecha) {
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     if(!$user->usuarioTieneCasino($id_casino)) return '';
@@ -131,7 +91,7 @@ class InformeControlAmbientalController extends Controller
     ])->get()->first();
     if(!is_null($estado_mesas)) $estado_mesas = $estado_mesas->estado_relevamiento->descripcion;
 
-    $turnos = $this->obtenerTurnosActivos($id_casino,$fecha)->take($TURNOS_TOTALES);
+    $turnos = (new TurnosController)->obtenerTurnosActivos($id_casino,$fecha)->take($TURNOS_TOTALES);
   
     $extrar_totales = function($turnos,&$detalles_relevamientos){
       $sectores = [];

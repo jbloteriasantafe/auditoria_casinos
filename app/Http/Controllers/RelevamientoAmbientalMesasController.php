@@ -216,18 +216,7 @@ class RelevamientoAmbientalMesasController extends Controller
       $relevamiento_ambiental_mesas->observacion_validacion = $request->observacion_validacion;
       $relevamiento_ambiental_mesas->estado_relevamiento()->associate(4);
       $relevamiento_ambiental_mesas->save();
-
-      //como el relevamiento de control ambiental de mesas para la fecha ya esta visado en este punto,
-      //si el relevamiento de control ambiental de MTM de la fecha tambien esta visado,
-      //entonces es posible generar un informe diario:
-      $relevamiento_ambiental_mtm = DB::table('relevamiento_ambiental')
-                                      ->where('id_tipo_relev_ambiental', '=', 0) //relevamientos de control ambiental MTM
-                                      ->where('id_casino','=',$relevamiento_ambiental_mesas->id_casino) //mismo casino
-                                      ->where('id_estado_relevamiento','=', 4) //estado visado
-                                      ->where('fecha_generacion','=', $relevamiento_ambiental_mesas->fecha_generacion) //fechas coincidentes
-                                      ->get();
     });
-
 
     return ['codigo' => 200];
   }

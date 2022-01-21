@@ -21,6 +21,7 @@ use Validator;
 use View;
 use Dompdf\Dompdf;
 use PDF;
+use App\Http\Controllers\Turnos\TurnosController;
 
 class RelevamientoAmbientalController extends Controller
 {
@@ -284,29 +285,23 @@ class RelevamientoAmbientalController extends Controller
 
       foreach($request->detalles as $detalle) {
         $unDetalle = DetalleRelevamientoAmbiental::find($detalle['id_detalle_relevamiento_ambiental']);
-
-        $unDetalle->turno1 = array_key_exists(0, $detalle['personasTurnos']) ? $detalle['personasTurnos'][0]['valor'] : NULL;
-        $unDetalle->turno2 = array_key_exists(1, $detalle['personasTurnos']) ? $detalle['personasTurnos'][1]['valor'] : NULL;
-        $unDetalle->turno3 = array_key_exists(2, $detalle['personasTurnos']) ? $detalle['personasTurnos'][2]['valor'] : NULL;
-        $unDetalle->turno4 = array_key_exists(3, $detalle['personasTurnos']) ? $detalle['personasTurnos'][3]['valor'] : NULL;
-        $unDetalle->turno5 = array_key_exists(4, $detalle['personasTurnos']) ? $detalle['personasTurnos'][4]['valor'] : NULL;
-        $unDetalle->turno6 = array_key_exists(5, $detalle['personasTurnos']) ? $detalle['personasTurnos'][5]['valor'] : NULL;
-        $unDetalle->turno7 = array_key_exists(6, $detalle['personasTurnos']) ? $detalle['personasTurnos'][6]['valor'] : NULL;
-        $unDetalle->turno8 = array_key_exists(7, $detalle['personasTurnos']) ? $detalle['personasTurnos'][7]['valor'] : NULL;
+        for($i=1;$i<=8;$i++){
+          $unDetalle->{"turno$i"} = NULL;
+          if(array_key_exists($i-1,$detalle['personasTurnos'])){//$i-1 porque es un arreglo 0-indexado
+            $unDetalle->{"turno$i"} = $detalle['personasTurnos'][$i-1]['valor'];
+          }
+        }
         $unDetalle->save();
       }
 
       foreach ($request->generalidades as $generalidad) {
         $unDatoGeneralidad = DatoGeneralidad::find($generalidad['id_dato_generalidad']);
-
-        $unDatoGeneralidad->turno1 = array_key_exists(0, $generalidad['datos']) ? $generalidad['datos'][0]['valor'] : NULL;
-        $unDatoGeneralidad->turno2 = array_key_exists(1, $generalidad['datos']) ? $generalidad['datos'][1]['valor'] : NULL;
-        $unDatoGeneralidad->turno3 = array_key_exists(2, $generalidad['datos']) ? $generalidad['datos'][2]['valor'] : NULL;
-        $unDatoGeneralidad->turno4 = array_key_exists(3, $generalidad['datos']) ? $generalidad['datos'][3]['valor'] : NULL;
-        $unDatoGeneralidad->turno5 = array_key_exists(4, $generalidad['datos']) ? $generalidad['datos'][4]['valor'] : NULL;
-        $unDatoGeneralidad->turno6 = array_key_exists(5, $generalidad['datos']) ? $generalidad['datos'][5]['valor'] : NULL;
-        $unDatoGeneralidad->turno7 = array_key_exists(6, $generalidad['datos']) ? $generalidad['datos'][6]['valor'] : NULL;
-        $unDatoGeneralidad->turno8 = array_key_exists(7, $generalidad['datos']) ? $generalidad['datos'][7]['valor'] : NULL;
+        for($i=1;$i<=8;$i++){
+          $unDatoGeneralidad->{"turno$i"} = NULL;
+          if(array_key_exists($i-1, $generalidad['datos'])){
+            $unDatoGeneralidad->{"turno$i"} = $generalidad['datos'][$i-1]['valor'];
+          }
+        }
         $unDatoGeneralidad->save();
       }
     });
@@ -325,39 +320,23 @@ class RelevamientoAmbientalController extends Controller
 
       foreach($request->detalles as $detalle) {
         $unDetalle = DetalleRelevamientoAmbiental::find($detalle['id_detalle_relevamiento_ambiental']);
-
-        $unDetalle->turno1 = array_key_exists(0, $detalle['personasTurnos']) && $detalle['personasTurnos'][0] != NULL && is_numeric($detalle['personasTurnos'][0]['valor']) ?
-          $detalle['personasTurnos'][0]['valor'] : NULL;
-        $unDetalle->turno2 = array_key_exists(1, $detalle['personasTurnos']) && $detalle['personasTurnos'][1] != NULL && is_numeric($detalle['personasTurnos'][1]['valor']) ?
-          $detalle['personasTurnos'][1]['valor'] : NULL;
-        $unDetalle->turno3 = array_key_exists(2, $detalle['personasTurnos']) && $detalle['personasTurnos'][2] != NULL && is_numeric($detalle['personasTurnos'][2]['valor']) ?
-          $detalle['personasTurnos'][2]['valor'] : NULL;
-        $unDetalle->turno4 = array_key_exists(3, $detalle['personasTurnos']) && $detalle['personasTurnos'][3] != NULL && is_numeric($detalle['personasTurnos'][3]['valor']) ?
-          $detalle['personasTurnos'][3]['valor'] : NULL;
-        $unDetalle->turno5 = array_key_exists(4, $detalle['personasTurnos']) && $detalle['personasTurnos'][4] != NULL && is_numeric($detalle['personasTurnos'][4]['valor']) ?
-          $detalle['personasTurnos'][4]['valor'] : NULL;
-        $unDetalle->turno6 = array_key_exists(5, $detalle['personasTurnos']) && $detalle['personasTurnos'][5] != NULL && is_numeric($detalle['personasTurnos'][5]['valor']) ?
-          $detalle['personasTurnos'][5]['valor'] : NULL;
-        $unDetalle->turno7 = array_key_exists(6, $detalle['personasTurnos']) && $detalle['personasTurnos'][6] != NULL && is_numeric($detalle['personasTurnos'][6]['valor']) ?
-          $detalle['personasTurnos'][6]['valor'] : NULL;
-        $unDetalle->turno8 = array_key_exists(7, $detalle['personasTurnos']) && $detalle['personasTurnos'][7] != NULL && is_numeric($detalle['personasTurnos'][7]['valor']) ?
-          $detalle['personasTurnos'][7]['valor'] : NULL;
-
+        for($i=1;$i<=8;$i++){
+          $unDetalle->{"turno$i"} = NULL;
+          if(array_key_exists($i-1, $detalle['personasTurnos']) && $detalle['personasTurnos'][$i-1] != NULL && is_numeric($detalle['personasTurnos'][$i-1]['valor'])){
+            $unDetalle->{"turno$i"} = $detalle['personasTurnos'][$i-1]['valor'];
+          }
+        }
         $unDetalle->save();
       }
 
       foreach ($request->generalidades as $generalidad) {
         $unDatoGeneralidad = DatoGeneralidad::find($generalidad['id_dato_generalidad']);
-
-        $unDatoGeneralidad->turno1 = array_key_exists(0, $generalidad['datos']) && $generalidad['datos'][0]['valor'] != -1 ? $generalidad['datos'][0]['valor'] : NULL;
-        $unDatoGeneralidad->turno2 = array_key_exists(1, $generalidad['datos']) && $generalidad['datos'][1]['valor'] != -1? $generalidad['datos'][1]['valor'] : NULL;
-        $unDatoGeneralidad->turno3 = array_key_exists(2, $generalidad['datos']) && $generalidad['datos'][2]['valor'] != -1? $generalidad['datos'][2]['valor'] : NULL;
-        $unDatoGeneralidad->turno4 = array_key_exists(3, $generalidad['datos']) && $generalidad['datos'][3]['valor'] != -1? $generalidad['datos'][3]['valor'] : NULL;
-        $unDatoGeneralidad->turno5 = array_key_exists(4, $generalidad['datos']) && $generalidad['datos'][4]['valor'] != -1? $generalidad['datos'][4]['valor'] : NULL;
-        $unDatoGeneralidad->turno6 = array_key_exists(5, $generalidad['datos']) && $generalidad['datos'][5]['valor'] != -1? $generalidad['datos'][5]['valor'] : NULL;
-        $unDatoGeneralidad->turno7 = array_key_exists(6, $generalidad['datos']) && $generalidad['datos'][6]['valor'] != -1? $generalidad['datos'][6]['valor'] : NULL;
-        $unDatoGeneralidad->turno8 = array_key_exists(7, $generalidad['datos']) && $generalidad['datos'][7]['valor'] != -1? $generalidad['datos'][7]['valor'] : NULL;
-
+        for($i=1;$i<=8;$i++){
+          $unDatoGeneralidad->{"turno$i"} = null;
+          if(array_key_exists($i-1, $generalidad['datos']) && $generalidad['datos'][$i-1]['valor'] != -1){
+            $unDatoGeneralidad->{"turno$i"} = $generalidad['datos'][$i-1]['valor'];
+          }
+        }
         $unDatoGeneralidad->save();
       }
     });
@@ -384,16 +363,6 @@ class RelevamientoAmbientalController extends Controller
       $relevamiento_ambiental_mtm->observacion_validacion = $request->observacion_validacion;
       $relevamiento_ambiental_mtm->estado_relevamiento()->associate(4);
       $relevamiento_ambiental_mtm->save();
-
-      //como el relevamiento de control ambiental MTM para la fecha ya esta visado en este punto,
-      //si el relevamiento de control ambiental de mesas de la fecha tambien esta visado,
-      //entonces es posible generar un informe diario:
-      $relevamiento_ambiental_mesas = DB::table('relevamiento_ambiental')
-                                      ->where('id_tipo_relev_ambiental', '=', 1) //relevamientos de control ambiental mesas
-                                      ->where('id_casino','=',$relevamiento_ambiental_mtm->id_casino) //mismo casino
-                                      ->where('id_estado_relevamiento','=', 4) //estado visado
-                                      ->where('fecha_generacion','=', $relevamiento_ambiental_mtm->fecha_generacion) //fechas coincidentes
-                                      ->get();
     });
 
     return ['codigo' => 200];
@@ -435,22 +404,15 @@ class RelevamientoAmbientalController extends Controller
     $detalles = array();
     $generalidades = array();
     $casino = $relevamiento->casino;
-    $cantidad_turnos = sizeof($casino->turnos);
+    $cantidad_turnos = 8;//(new TurnosController)->obtenerTurnosActivos($relevamiento->id_casino,$relevamiento->fecha_generacion)->take(8)->count();
 
     foreach ($relevamiento->detalles as $detalle) {
       $d = new \stdClass;
 
       $d->nro_isla_o_islote = $relevamiento->casino->id_casino==3 ? $detalle->nro_islote : (Isla::find($detalle->id_isla))->nro_isla;
       $d->id_detalle_relevamiento_ambiental = $detalle->id_detalle_relevamiento_ambiental;
-      $d->cantidad_turnos = sizeof($casino->turnos);
-      $d->turno1 = $detalle->turno1;
-      $d->turno2 = $detalle->turno2;
-      $d->turno3 = $detalle->turno3;
-      $d->turno4 = $detalle->turno4;
-      $d->turno5 = $detalle->turno5;
-      $d->turno6 = $detalle->turno6;
-      $d->turno7 = $detalle->turno7;
-      $d->turno8 = $detalle->turno8;
+      $d->cantidad_turnos = $cantidad_turnos;
+      for($i=1;$i<=8;$i++) $d->{"turno$i"} = $detalle->{"turno$i"};
 
       $detalles[] = $d;
     }
@@ -460,14 +422,7 @@ class RelevamientoAmbientalController extends Controller
 
       $g->id_dato_generalidad = $generalidad->id_dato_generalidad;
       $g->tipo_generalidad = $generalidad->tipo_generalidad;
-      $g->turno1 = $generalidad->turno1;
-      $g->turno2 = $generalidad->turno2;
-      $g->turno3 = $generalidad->turno3;
-      $g->turno4 = $generalidad->turno4;
-      $g->turno5 = $generalidad->turno5;
-      $g->turno6 = $generalidad->turno6;
-      $g->turno7 = $generalidad->turno7;
-      $g->turno8 = $generalidad->turno8;
+      for($i=1;$i<=8;$i++) $g->{"turno$i"} = $generalidad->{"turno$i"};
 
       $generalidades[] = $g;
     }
