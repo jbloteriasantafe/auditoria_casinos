@@ -92,11 +92,10 @@ class RelevamientoAmbientalController extends Controller
 
     if ($request->id_casino != 3) {
       $islas = DB::table('isla')->where('id_casino','=',$request->id_casino)
-                                ->where('id_sector', '!=', NULL)
-                                ->where('deleted_at','=',NULL)
-                                ->orderBy('nro_isla', 'asc')
-                                ->get();
-
+      ->whereNotNull('id_sector')
+      ->whereNull('deleted_at')
+      ->orderBy('nro_isla', 'asc')
+      ->get();
 
       //creo los detalles
       $detalles = array();
@@ -109,21 +108,22 @@ class RelevamientoAmbientalController extends Controller
     }
     else {
       $islotes_y_sectores = DB::table('isla')->select('nro_islote', 'id_sector')
-                                    ->where('id_casino','=',$request->id_casino)
-                                    ->where('nro_islote', '!=', NULL)
-                                    ->where('id_sector', '!=', NULL)
-                                    ->distinct('nro_islote')
-                                    ->orderBy('nro_islote', 'asc')
-                                    ->get();
+      ->where('id_casino','=',$request->id_casino)
+      ->whereNotNull('nro_islote')
+      ->whereNotNull('id_sector')
+      ->whereNull('deleted_at')
+      ->distinct('nro_islote')
+      ->orderBy('nro_islote', 'asc')
+      ->get();
 
-        //creo los detalles
-        foreach($islotes_y_sectores as $islote_y_sector){
-          $detalle = new DetalleRelevamientoAmbiental;
-          //si es un relevamiento para el casino 3 (Rosario), seteo los islotes en lugar de las islas
-          $detalle->nro_islote = $islote_y_sector->nro_islote;
+      //creo los detalles
+      foreach($islotes_y_sectores as $islote_y_sector){
+        $detalle = new DetalleRelevamientoAmbiental;
+        //si es un relevamiento para el casino 3 (Rosario), seteo los islotes en lugar de las islas
+        $detalle->nro_islote = $islote_y_sector->nro_islote;
 
-          $detalles[] = $detalle;
-        }
+        $detalles[] = $detalle;
+      }
     }
 
      if(!empty($detalles)){
@@ -140,27 +140,18 @@ class RelevamientoAmbientalController extends Controller
 
          //guardo los detalles
          foreach($detalles as $detalle){
-            $detalle->id_relevamiento_ambiental = DB::table('relevamiento_ambiental')->max('id_relevamiento_ambiental');
+            $detalle->id_relevamiento_ambiental = $relevamiento_ambiental->id_relevamiento_ambiental;
             $detalle->save();
-
          }
 
          //creo y guardo los detalles de generalidades (dato_generalidad)
-         $id_relevamiento = DB::table('relevamiento_ambiental')->max('id_relevamiento_ambiental');
-         $dato_generalidad = new DatoGeneralidad;
-         $dato_generalidad->tipo_generalidad = "clima";
-         $dato_generalidad->id_relevamiento_ambiental = $id_relevamiento;
-         $dato_generalidad->save();
-         $dato_generalidad = new DatoGeneralidad;
-         $dato_generalidad->tipo_generalidad = "temperatura";
-         $dato_generalidad->id_relevamiento_ambiental = $id_relevamiento;
-         $dato_generalidad->save();
-         $dato_generalidad = new DatoGeneralidad;
-         $dato_generalidad->tipo_generalidad = "evento";
-         $dato_generalidad->id_relevamiento_ambiental = $id_relevamiento;
-         $dato_generalidad->save();
+         foreach(["clima","temperatura","evento"] as $tipo){
+          $dato_generalidad = new DatoGeneralidad;
+          $dato_generalidad->tipo_generalidad = $tipo;
+          $dato_generalidad->id_relevamiento_ambiental = $relevamiento_ambiental->id_relevamiento_ambiental;
+          $dato_generalidad->save();
+         }
        });
-
       }else{
        return ['codigo' => 500]; //error, no existen islas o islotes para relevar.
      }
@@ -186,77 +177,45 @@ class RelevamientoAmbientalController extends Controller
         $id_sector = $isla->sector->id_sector;
         $nro_isla = $isla->nro_isla;
 
-        $detalle = array(
-          'id_sector' => $id_sector,
-          'id_isla' => $det->id_isla,
-          'nro_isla' => $nro_isla,
-          'turno1' => $det->turno1,
-          'turno2' => $det->turno2,
-          'turno3' => $det->turno3,
-          'turno4' => $det->turno4,
-          'turno5' => $det->turno5,
-          'turno6' => $det->turno6,
-          'turno7' => $det->turno7,
-          'turno8' => $det->turno8
-        );
-
+        $detalle = $det->toArray();
+        $detalle['id_sector'] = $id_sector;
+        $detalle['nro_isla']  = $nro_isla;
         $detalles[] = $detalle;
       }
     }
     else {
-      $islotes_y_sectores = DB::table('isla')->select('nro_islote', 'id_sector')
-                                    ->where('id_casino','=',$relevamiento_ambiental->casino->id_casino)
-                                    ->where('nro_islote', '!=', NULL)
-                                    ->distinct('nro_islote')
-                                    ->orderBy('nro_islote', 'asc')
-                                    ->get();
-
       foreach ($relevamiento_ambiental->detalles as $det) {
-
-        foreach ($islotes_y_sectores as $islote_y_sector) {
-          if ($det->nro_islote == $islote_y_sector->nro_islote) {
-            $id_sector = $islote_y_sector->id_sector;
-            break;
-          }
-        }
-
-        $detalle = array(
-          'id_sector' => $id_sector,
-          'nro_islote' => $det->nro_islote,
-          'turno1' => $det->turno1,
-          'turno2' => $det->turno2,
-          'turno3' => $det->turno3,
-          'turno4' => $det->turno4,
-          'turno5' => $det->turno5,
-          'turno6' => $det->turno6,
-          'turno7' => $det->turno7,
-          'turno8' => $det->turno8
-        );
-
+        $id_sector = DB::table('isla')->select('id_sector')
+        ->where('id_casino','=',$relevamiento_ambiental->casino->id_casino)
+        ->where('nro_islote','=',$det->nro_islote)
+        ->whereNull('deleted_at')->take(1)
+        ->get()->first()->id_sector;
+        $detalle = $det->toArray();
+        $detalle['id_sector'] = $id_sector;
         $detalles[] = $detalle;
       }
     }
 
     foreach ($relevamiento_ambiental->generalidades as $generalidad) {
-      $g = array(
-          'tipo_generalidad' => ucfirst($generalidad->tipo_generalidad),
-          'turno1' => $generalidad->turno1 != NULL ? $this->obtenerDescripcionGeneralidad($generalidad->turno1, $generalidad->tipo_generalidad) : NULL,
-          'turno2' => $generalidad->turno2 != NULL ? $this->obtenerDescripcionGeneralidad($generalidad->turno2, $generalidad->tipo_generalidad) : NULL,
-          'turno3' => $generalidad->turno3 != NULL ? $this->obtenerDescripcionGeneralidad($generalidad->turno3, $generalidad->tipo_generalidad) : NULL,
-          'turno4' => $generalidad->turno4 != NULL ? $this->obtenerDescripcionGeneralidad($generalidad->turno4, $generalidad->tipo_generalidad) : NULL,
-          'turno5' => $generalidad->turno5 != NULL ? $this->obtenerDescripcionGeneralidad($generalidad->turno5, $generalidad->tipo_generalidad) : NULL,
-          'turno6' => $generalidad->turno6 != NULL ? $this->obtenerDescripcionGeneralidad($generalidad->turno6, $generalidad->tipo_generalidad) : NULL,
-          'turno7' => $generalidad->turno7 != NULL ? $this->obtenerDescripcionGeneralidad($generalidad->turno7, $generalidad->tipo_generalidad) : NULL,
-          'turno8' => $generalidad->turno8 != NULL ? $this->obtenerDescripcionGeneralidad($generalidad->turno8, $generalidad->tipo_generalidad) : NULL,
-      );
+      $g = [
+          'tipo_generalidad' => ucfirst($generalidad->tipo_generalidad)//Primer caracter capitalizado
+      ];
 
+      for($i=1;$i<=8;$i++){
+        $t = $generalidad->{"turno$i"};
+        $g["turno$i"] = NULL;
+        if(!is_null($t)){
+          $g["turno$i"] = $this->obtenerDescripcionGeneralidad($t, $generalidad->tipo_generalidad);
+        }
+      }
       $generalidades[] = $g;
     }
 
+    $fiscalizador = Usuario::find($relevamiento_ambiental->id_usuario_fiscalizador);
     $otros_datos = array(
       'casino' => $relevamiento_ambiental->casino->nombre,
-      'fiscalizador' => ($relevamiento_ambiental->id_usuario_fiscalizador != NULL) ? (Usuario::find($relevamiento_ambiental->id_usuario_fiscalizador)->nombre) : "",
-      'estado' => EstadoRelevamiento::find($relevamiento_ambiental->id_estado_relevamiento)->descripcion
+      'fiscalizador' => $fiscalizador ? $fiscalizador->nombre : "",
+      'estado' => $relevamiento_ambiental->estado_relevamiento->descripcion
     );
 
     $view = View::make('planillaRelevamientosAmbiental', compact('relevamiento_ambiental', 'detalles', 'generalidades', 'otros_datos'));
@@ -294,7 +253,6 @@ class RelevamientoAmbientalController extends Controller
           'generalidades.*.datos' => 'nullable|array',
           'generalidades.*.datos.*' => 'nullable',
           'generalidades.*.datos.*.valor'=> 'required|numeric|min:1'
-
       ], array(
         'detalles.*.personasTurnos.*.valor.numeric' => 'El valor de un nivel no es numerico.'
       ), self::$atributos)->after(function($validator){
