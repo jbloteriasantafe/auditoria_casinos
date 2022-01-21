@@ -17,6 +17,7 @@ use App\Autoexclusion\Encuesta;
 use App\Autoexclusion\ImportacionAE;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Autoexclusion as AE;
 use App\Casino;
 use App\Plataforma;
@@ -161,11 +162,20 @@ class InformesAEController extends Controller
 
       $buscar_encuesta = true;
       if(count($request->hace_encuesta) > 0){
+        //@HACK, hay algunos que "tienen" encuesta con todos los campos vacios... para eso hago este chequeo
+        $columnas = array_filter(
+          Schema::getColumnListing('ae_encuesta'),
+          function($c){ return !in_array($c,['id_encuesta','id_autoexcluido','created_at','updated_at','deleted_at']); }
+        );
+        //Tiene encuesta y alguno de los campos no es nulo
+        $where = 'ae_encuesta.id_encuesta IS NOT NULL and
+                 (ae_encuesta.'.implode(' IS NOT NULL OR ae_encuesta.',$columnas).' IS NOT NULL)';
         if($request->hace_encuesta === '1'){
-          $resultados = $resultados->whereNotNull('ae_encuesta.id_autoexcluido');
+          $resultados = $resultados->whereRaw($where);
         }
         else if($request->hace_encuesta === '0'){
-          $resultados = $resultados->whereNull('ae_encuesta.id_autoexcluido');
+          //No tiene encuesta o tiene pero todos los campos son nulos
+          $resultados = $resultados->whereRaw('NOT ('.$where.')');
           $buscar_encuesta = false;
         }
       }
