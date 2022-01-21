@@ -70,7 +70,6 @@
     <br>
 
     <?php 
-    $turnos_size = sizeof($relevamiento_ambiental->casino->turnos);
     function clearnull($val,$default = ''){
       return is_null($val)? $default : $val;
     }
@@ -86,8 +85,8 @@
             <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" colspan="{{sizeof($relevamiento_ambiental->casino->turnos)}}">TURNOS</th>
         </tr>
         <tr>
-          @foreach ($relevamiento_ambiental->casino->turnos as $turno)
-          <th class="tablaInicio" style="background-color: #e6e6e6">{{$turno->nro_turno}}</th>
+          @foreach ($otros_datos['turnos'] as $t)
+          <th class="tablaInicio" style="background-color: #e6e6e6">{{$t->nro_turno}}</th>
           @endforeach
         </tr>
       </thead>
@@ -95,9 +94,9 @@
         @foreach ($generalidades as $g)
         <tr>
           <td class="tablaInicio" style="background-color: #e6e6e6" width="120px"><b>{{$g['tipo_generalidad']}}</b></td>
-          @for($i=1;$i<=$turnos_size;$i++)
-          <td class="tablaAmbiental" style="background-color: white">{{clearnull($g['turno'.$i])}}</td>
-          @endfor
+          @foreach ($otros_datos['turnos'] as $i => $t)
+          <td class="tablaAmbiental" style="background-color: white">{{clearnull($g['turno'.($i+1)])}}</td>
+          @endforeach
         </tr>
         @endforeach
       </tbody>
@@ -166,7 +165,7 @@
     @foreach($nombres_sectores as $id_sector => $nsector)
     <?php 
       $total_turno = [];
-      for($i=1;$i<=$turnos_size;$i++) $total_turno[$i] = 0;
+      foreach ($otros_datos['turnos'] as $i => $t) $total_turno[$i+1] = 0;
     ?>
     <div style="page-break-after:always;"></div>
     <div class="primerEncabezado" style="font-size: 103%;">Sector de control ambiental: {{$nsector}}</div>
@@ -178,10 +177,10 @@
       <thead>
         <tr>
           <th class="tablaInicio" style="background-color: #e6e6e6;font-size: 0.5em;text-align: center;" rowspan="2" width="5%">{{$nombre_columna}}</th>
-          <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" colspan="{{$turnos_size}}">TURNOS</th>
+          <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" colspan="{{$otros_datos['turnos']->count()}}">TURNOS</th>
         </tr>
         <tr>
-        @foreach ($relevamiento_ambiental->casino->turnos as $turno)
+        @foreach ($otros_datos['turnos'] as $turno)
           <th class="tablaInicio" style="background-color: #e6e6e6" width="5%">{{$turno->nro_turno}}</th>
         @endforeach
         </tr>
@@ -191,23 +190,23 @@
         <?php $detalle = $det_x_sectores[$id_sector][$j];?>
         <tr>
           <td class="tablaAmbiental" style="background-color: white;border-right: 1px solid grey;border-left: 1px solid grey;">{{$detalle[$atributo]}} </td>
-          @for($i=1;$i<=$turnos_size;$i++)
-            <?php $total_turno[$i] += $detalle['turno'.$i];?>
-            <td class="tablaAmbiental" style="background-color: white">{{clearnull($detalle['turno'.$i])}}</td>
-          @endfor
+          @foreach($otros_datos['turnos'] as $i => $t)
+            <?php $total_turno[$i+1] += $detalle['turno'.($i+1)];?>
+            <td class="tablaAmbiental" style="background-color: white">{{clearnull($detalle['turno'.($i+1)])}}</td>
+          @endforeach
         </tr>
         @endfor
         <tr>
           @if(($col+1) == $cols_x_sector[$id_sector])
             <td class="tablaAmbiental" style="background-color: #e6e6e6;border-top: 1.5px solid grey;font-size: 0.5em;text-align: center;"><b>TOTAL<b></td>
-            @for($i=1;$i<=$turnos_size;$i++)
-            <td class="tablaAmbiental" style="background-color: white;border-top: 1.5px solid grey;">{{clearzero($total_turno[$i])}}</td>
-            @endfor
+            @foreach($otros_datos['turnos'] as $i => $t)
+            <td class="tablaAmbiental" style="background-color: white;border-top: 1.5px solid grey;">{{clearzero($total_turno[$i+1])}}</td>
+            @endforeach
           @else
             <td class="tablaAmbiental" style="background-color: #e6e6e6;border-top: 1.5px solid grey;"></td>
-            @for($i=1;$i<=$turnos_size;$i++)
+            @foreach($otros_datos['turnos'] as $i => $t)
             <td class="tablaAmbiental" style="background-color: white;border-top: 1.5px solid grey;"></td>
-            @endfor
+            @endforeach
           @endif
         </tr>
       </tbody>
@@ -220,17 +219,17 @@
       <thead>
         <tr>
             <th class="tablaInicio" style="background-color: #e6e6e6" width="100px">TURNOS</th>
-            @foreach ($relevamiento_ambiental->casino->turnos as $turno)
-            <th class="tablaInicio" style="background-color: #e6e6e6">{{$turno->nro_turno}}</th>
+            @foreach($otros_datos['turnos'] as $i => $t)
+            <th class="tablaInicio" style="background-color: #e6e6e6">{{$t->nro_turno}}</th>
             @endforeach
         </tr>
       </thead>
       <tbody>
         <tr style="line-height: 600%;">
           <td class="tablaInicio" style="background-color: #e6e6e6;text-align: center;padding-bottom: 30px;" width="100px"><b>Firma y sello</b></td>
-          @for($i=1;$i<=$turnos_size;$i++)
+          @foreach($otros_datos['turnos'] as $i => $t)
           <td class="tablaAmbiental" style="background-color: white"></td>
-          @endfor
+          @endforeach
         </tr>
       </tbody>
     </table>

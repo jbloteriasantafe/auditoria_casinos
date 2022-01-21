@@ -216,7 +216,8 @@ class RelevamientoAmbientalController extends Controller
     $otros_datos = array(
       'casino' => $relevamiento_ambiental->casino->nombre,
       'fiscalizador' => $fiscalizador ? $fiscalizador->nombre : "",
-      'estado' => $relevamiento_ambiental->estado_relevamiento->descripcion
+      'estado' => $relevamiento_ambiental->estado_relevamiento->descripcion,
+      'turnos' => (new TurnosController)->obtenerTurnosActivos($relevamiento_ambiental->id_casino,$relevamiento_ambiental->fecha_generacion),
     );
 
     $view = View::make('planillaRelevamientosAmbiental', compact('relevamiento_ambiental', 'detalles', 'generalidades', 'otros_datos'));
@@ -404,7 +405,7 @@ class RelevamientoAmbientalController extends Controller
     $detalles = array();
     $generalidades = array();
     $casino = $relevamiento->casino;
-    $cantidad_turnos = 8;//(new TurnosController)->obtenerTurnosActivos($relevamiento->id_casino,$relevamiento->fecha_generacion)->take(8)->count();
+    $cantidad_turnos = 8;
 
     foreach ($relevamiento->detalles as $detalle) {
       $d = new \stdClass;
