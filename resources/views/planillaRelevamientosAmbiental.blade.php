@@ -82,7 +82,7 @@
       <thead>
         <tr>
             <th class="tablaInicio" style="background-color: #e6e6e6" rowspan="2">GENERALIDADES</th>
-            <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" colspan="{{$otros_datos['turnos']->count()}}">TURNOS</th>
+            <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" colspan="{{count($otros_datos['turnos'])}}">TURNOS</th>
         </tr>
         <tr>
           @foreach ($otros_datos['turnos'] as $t)
@@ -177,7 +177,7 @@
       <thead>
         <tr>
           <th class="tablaInicio" style="background-color: #e6e6e6;font-size: 0.5em;text-align: center;" rowspan="2" width="5%">{{$nombre_columna}}</th>
-          <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" colspan="{{$otros_datos['turnos']->count()}}">TURNOS</th>
+          <th class="tablaInicio" style="background-color: #e6e6e6; text-align: center" colspan="{{count($otros_datos['turnos'])}}">TURNOS</th>
         </tr>
         <tr>
         @foreach ($otros_datos['turnos'] as $turno)

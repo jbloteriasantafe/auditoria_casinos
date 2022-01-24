@@ -193,6 +193,16 @@ class RelevamientoAmbientalController extends Controller
     }
 
     $fiscalizador = Usuario::find($relevamiento_ambiental->id_usuario_fiscalizador);
+    $turnos = (new TurnosController)->obtenerTurnosActivos($relevamiento_ambiental->id_casino,$relevamiento_ambiental->fecha_generacion);
+    if($turnos->count() == 0){
+      $turnos_truchos = [];
+      for($i=1;$i<=$limite_tabla;$i++){
+        $t = new \stdClass;
+        $t->nro_turno = $i;
+        $turnos_truchos[$i] = $t;
+      }
+    }
+
     $otros_datos = array(
       'casino' => $relevamiento_ambiental->casino->nombre,
       'fiscalizador' => $fiscalizador ? $fiscalizador->nombre : "",
@@ -356,6 +366,7 @@ class RelevamientoAmbientalController extends Controller
     $cantidad_turnos = (new TurnosController)->obtenerTurnosActivos($relevamiento->id_casino,$relevamiento->fecha_generacion)->count();
     $limite_tabla = DetalleRelevamientoAmbiental::limiteCantidadTurnos();
     $cantidad_turnos = min($cantidad_turnos,$limite_tabla);
+    if($cantidad_turnos == 0) $cantidad_turnos = $limite_tabla;//@HACK: nose porque a veces de vuelve 0?
 
     foreach ($relevamiento->detalles as $detalle) {
       $d = new \stdClass;
