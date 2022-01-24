@@ -207,7 +207,7 @@ class RelevamientoAmbientalController extends Controller
       'casino' => $relevamiento_ambiental->casino->nombre,
       'fiscalizador' => $fiscalizador ? $fiscalizador->nombre : "",
       'estado' => $relevamiento_ambiental->estado_relevamiento->descripcion,
-      'turnos' => (new TurnosController)->obtenerTurnosActivos($relevamiento_ambiental->id_casino,$relevamiento_ambiental->fecha_generacion),
+      'turnos' => $turnos,
     );
 
     $view = View::make('planillaRelevamientosAmbiental', compact('relevamiento_ambiental', 'detalles', 'generalidades', 'otros_datos'));
