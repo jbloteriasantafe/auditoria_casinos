@@ -63,9 +63,26 @@ class InformeControlAmbientalController extends Controller
     //hardlimit en la tabla, lo obtengo dinamicamente
     $TURNOS_TOTALES = DetalleRelevamientoAmbiental::limiteCantidadTurnos();
 
-    $detalles_relevamientos_mtm = DB::table('detalle_relevamiento_ambiental')
+    $detalles_relevamientos_mtm = DB::table('detalle_relevamiento_ambiental');
+    if($id_casino == 3){
+      //Como hay varias islas con el mismo nro_islote, hago una subquery para que me devuelva una sola fila por id_sector-nro_islote
+      //Si un islote esta en mas de un sector (porque en la isla i1 tiene el sector A y en la isla i2 tiene el sector B), se rompe todo
+      //Terminaria contando para ambos sectores... medio raro. Deberia prevenirse esto desde el frontend/backend de gestion de Islas
+      //-- Octavio 24 de Enero 2022
+      $detalles_relevamientos_mtm = $detalles_relevamientos_mtm->join(DB::raw(
+        '(
+          SELECT distinct i.id_sector, i.nro_islote
+          FROM isla as i
+          WHERE i.deleted_at IS NULL
+        ) as isla'
+      ),'isla.nro_islote','=','detalle_relevamiento_ambiental.nro_islote');
+    }
+    else{
+      $detalles_relevamientos_mtm = $detalles_relevamientos_mtm->join('isla','isla.id_isla','=','detalle_relevamiento_ambiental.id_isla');
+    }
+
+    $detalles_relevamientos_mtm = $detalles_relevamientos_mtm
     ->selectRaw('sector.id_sector, sector.descripcion, turno'.implode(', turno',range(1,$TURNOS_TOTALES)))
-    ->join('isla','isla.id_isla','=','detalle_relevamiento_ambiental.id_isla')
     ->join('sector','sector.id_sector','=','isla.id_sector')
     ->join('relevamiento_ambiental','relevamiento_ambiental.id_relevamiento_ambiental','=','detalle_relevamiento_ambiental.id_relevamiento_ambiental')
     ->where(DB::raw('DATE(relevamiento_ambiental.fecha_generacion)'),'=', $fecha)

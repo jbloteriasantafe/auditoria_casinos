@@ -4,14 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Maquina;
-use App\Sector;
 use App\Casino;
 use App\Isla;
 use App\EstadoRelevamiento;
 use App\RelevamientoAmbiental;
 use App\DetalleRelevamientoAmbiental;
-use App\Turno;
 use App\Usuario;
 use App\DatoGeneralidad;
 use App\Clima;
