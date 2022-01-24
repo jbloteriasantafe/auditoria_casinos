@@ -128,6 +128,9 @@ class InformeControlAmbientalController extends Controller
           $total['total_sector'] += $ocupacion;
         }
       }
+      $t = $sectores['TOTAL'];//Muevo el total al final... para que al imprimir aparezca ultimo
+      unset($sectores['TOTAL']);
+      $sectores['TOTAL'] = $t;
       return $sectores;
     };
 
