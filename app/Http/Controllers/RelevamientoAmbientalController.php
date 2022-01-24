@@ -93,77 +93,60 @@ class RelevamientoAmbientalController extends Controller
     $fiscalizador = $usuario_actual['usuario'];
 
     Validator::make($request->all(),[
-        'id_casino' => 'required|exists:casino,id_casino',
-        'fecha_generacion' => 'required|date|before_or_equal:' . date('Y-m-d H:i:s'),
+      'id_casino' => 'required|exists:casino,id_casino',
+      'fecha_generacion' => 'required|date|before_or_equal:' . date('Y-m-d H:i:s'),
     ], array(), self::$atributos)->after(function($validator){
     })->validate();
 
-    if ($request->id_casino != 3) {
-      $islas = DB::table('isla')->where('id_casino','=',$request->id_casino)
-      ->whereNotNull('id_sector')
-      ->whereNull('deleted_at')
-      ->orderBy('nro_isla', 'asc')
-      ->get();
-
-      //creo los detalles
-      $detalles = array();
-      foreach($islas as $isla){
-        $detalle = new DetalleRelevamientoAmbiental;
-        $detalle->id_isla = $isla->id_isla;
-
-        $detalles[] = $detalle;
-      }
-    }
-    else {
-      $islotes_y_sectores = DB::table('isla')->select('nro_islote', 'id_sector')
-      ->where('id_casino','=',$request->id_casino)
+    $islas_islotes = null;
+    if($request->id_casino == 3){
+      $islas_islotes = DB::table('isla')
+      ->selectRaw('NULL as id_isla, isla.nro_islote')
       ->whereNotNull('nro_islote')
-      ->whereNotNull('id_sector')
-      ->whereNull('deleted_at')
       ->distinct('nro_islote')
-      ->orderBy('nro_islote', 'asc')
-      ->get();
-
-      //creo los detalles
-      foreach($islotes_y_sectores as $islote_y_sector){
-        $detalle = new DetalleRelevamientoAmbiental;
-        //si es un relevamiento para el casino 3 (Rosario), seteo los islotes en lugar de las islas
-        $detalle->nro_islote = $islote_y_sector->nro_islote;
-
-        $detalles[] = $detalle;
-      }
+      ->orderBy('nro_islote', 'asc');
+    }
+    else{
+      $islas_islotes = DB::table('isla')
+      ->selectRaw('isla.id_isla, NULL as nro_islote')
+      ->orderBy('nro_isla', 'asc');
     }
 
-     if(!empty($detalles)){
-       //creo y guardo el relevamiento de control ambiental
-       DB::transaction(function() use($request,$fiscalizador,$detalles){
-         $relevamiento_ambiental = new RelevamientoAmbiental;
-         $relevamiento_ambiental->nro_relevamiento_ambiental = DB::table('relevamiento_ambiental')->max('nro_relevamiento_ambiental') + 1;
-         $relevamiento_ambiental->fecha_generacion = $request->fecha_generacion;
-         $relevamiento_ambiental->id_casino = $request->id_casino;
-         $relevamiento_ambiental->id_estado_relevamiento = 1;
-         $relevamiento_ambiental->id_tipo_relev_ambiental = 0;
-         $relevamiento_ambiental->id_usuario_cargador = $fiscalizador->id_usuario;
-         $relevamiento_ambiental->save();
+    $islas_islotes = $islas_islotes->where('id_casino','=',$request->id_casino)
+    ->whereNotNull('id_sector')
+    ->whereNull('deleted_at')->get();
 
-         //guardo los detalles
-         foreach($detalles as $detalle){
-            $detalle->id_relevamiento_ambiental = $relevamiento_ambiental->id_relevamiento_ambiental;
-            $detalle->save();
-         }
+    if($islas_islotes->count() == 0) return ['codigo' => 500]; //error, no existen islas o islotes para relevar.
 
-         //creo y guardo los detalles de generalidades (dato_generalidad)
-         foreach(["clima","temperatura","evento"] as $tipo){
-          $dato_generalidad = new DatoGeneralidad;
-          $dato_generalidad->tipo_generalidad = $tipo;
-          $dato_generalidad->id_relevamiento_ambiental = $relevamiento_ambiental->id_relevamiento_ambiental;
-          $dato_generalidad->save();
-         }
-       });
-      }else{
-       return ['codigo' => 500]; //error, no existen islas o islotes para relevar.
-     }
+    //creo y guardo el relevamiento de control ambiental
+    DB::transaction(function() use($request,$fiscalizador,$islas_islotes){
+      $relevamiento_ambiental = new RelevamientoAmbiental;
+      $relevamiento_ambiental->nro_relevamiento_ambiental = DB::table('relevamiento_ambiental')->max('nro_relevamiento_ambiental') + 1;
+      $relevamiento_ambiental->fecha_generacion = $request->fecha_generacion;
+      $relevamiento_ambiental->id_casino = $request->id_casino;
+      $relevamiento_ambiental->id_estado_relevamiento = 1;
+      $relevamiento_ambiental->id_tipo_relev_ambiental = 0;
+      $relevamiento_ambiental->id_usuario_cargador = $fiscalizador->id_usuario;
+      $relevamiento_ambiental->save();
 
+      //guardo los detalles
+      foreach($islas_islotes as $i){
+        $detalle = new DetalleRelevamientoAmbiental;
+        $detalle->id_isla    = $i->id_isla;
+        $detalle->nro_islote = $i->nro_islote;
+        $detalle->id_relevamiento_ambiental = $relevamiento_ambiental->id_relevamiento_ambiental;
+        $detalle->save();
+      }
+
+      //creo y guardo los detalles de generalidades (dato_generalidad)
+      foreach(["clima","temperatura","evento"] as $tipo){
+        $dato_generalidad = new DatoGeneralidad;
+        $dato_generalidad->tipo_generalidad = $tipo;
+        $dato_generalidad->id_relevamiento_ambiental = $relevamiento_ambiental->id_relevamiento_ambiental;
+        $dato_generalidad->save();
+      }
+    });
+    
     return ['codigo' => 200];
   }
 
