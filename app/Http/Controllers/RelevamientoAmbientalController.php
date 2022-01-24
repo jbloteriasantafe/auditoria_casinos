@@ -201,6 +201,7 @@ class RelevamientoAmbientalController extends Controller
         $t->nro_turno = $i;
         $turnos_truchos[$i] = $t;
       }
+      $turnos = $turnos_truchos;
     }
 
     $otros_datos = array(
