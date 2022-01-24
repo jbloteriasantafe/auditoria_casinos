@@ -304,7 +304,7 @@ $eventos = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['ev
 
   <!-- MODAL CARGAR RELEVAMIENTO -->
   <div class="modal fade" id="modalRelevamientoAmbiental" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog" style="width:50%">
+    <div class="modal-dialog" style="width:70%;">
       <div class="modal-content">
          <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;">
            <button id="btn-minimizarCargar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
@@ -354,18 +354,21 @@ $eventos = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['ev
                     <div class="row" id="rowTemperatura"></div>
                     <div class="row" id="rowEvento">  </div>
 
-                    <table class="table" id="tablaPersonas" style="margin-bottom: 0px; border-bottom: 0px">
-                      <thead class="cabeceraTablaPersonas">
-                      </thead>
-                      <tbody></tbody>
-                    </table>
-
+                    <div class="row">
+                      <div class="col-md-12">
+                        <table class="table" id="tablaPersonas" style="margin-bottom: 0px; border-bottom: 0px">
+                          <thead class="cabeceraTablaPersonas">
+                          </thead>
+                          <tbody></tbody>
+                        </table>
+                      </div>
+                    </div>
+                    
                     <div class="" style="overflow: scroll; height: 350px;">
                     <table class="table tablaPozos">
                       <tbody class="cuerpoTablaPersonas">
                         <tr class="filaEjemplo" style="display: none">
                           <td class="col-xs-2 nroIslaIslote" style="width:110px; height:52px: display: inline-block">X</td>
-
                         </tr>
                       </tbody>
                     </table>

@@ -299,7 +299,7 @@ $cant_turnos = sizeof($casinos[0]->turnos);
 
   <!-- MODAL CARGAR RELEVAMIENTO -->
   <div class="modal fade" id="modalRelevamientoAmbiental" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog" style="width:45%;">
+    <div class="modal-dialog" style="width:70%;">
       <div class="modal-content">
          <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;">
            <button id="btn-minimizarCargar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>

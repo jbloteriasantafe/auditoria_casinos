@@ -177,11 +177,12 @@ class RelevamientoAmbientalController extends Controller
       $detalles[] = $arr;
     }
 
+    $limite_tabla = DetalleRelevamientoAmbiental::limiteCantidadTurnos();
     foreach ($relevamiento_ambiental->generalidades as $generalidad) {
       //Primer caracter capitalizado
       $g = [ 'tipo_generalidad' => ucfirst($generalidad->tipo_generalidad) ];
 
-      for($i=1;$i<=8;$i++){
+      for($i=1;$i<=$limite_tabla;$i++){
         $t = $generalidad->{"turno$i"};
         $g["turno$i"] = NULL;
         if(!is_null($t)){
@@ -259,9 +260,10 @@ class RelevamientoAmbientalController extends Controller
       $rel->observacion_carga = $request->observaciones;
       $rel->save();
 
+      $limite_tabla = DetalleRelevamientoAmbiental::limiteCantidadTurnos();
       foreach($request->detalles as $detalle) {
         $unDetalle = DetalleRelevamientoAmbiental::find($detalle['id_detalle_relevamiento_ambiental']);
-        for($i=1;$i<=8;$i++){
+        for($i=1;$i<=$limite_tabla;$i++){
           $unDetalle->{"turno$i"} = NULL;
           //Doble validacion con is_numeric porque con el guardadoTemporal la validación que es un numero se saltea
           if(array_key_exists($i-1,$detalle['personasTurnos']) && is_numeric($detalle['personasTurnos'][$i-1]['valor'])){//$i-1 porque es un arreglo 0-indexado
@@ -273,7 +275,7 @@ class RelevamientoAmbientalController extends Controller
 
       foreach ($request->generalidades as $generalidad) {
         $unDatoGeneralidad = DatoGeneralidad::find($generalidad['id_dato_generalidad']);
-        for($i=1;$i<=8;$i++){
+        for($i=1;$i<=$limite_tabla;$i++){
           $unDatoGeneralidad->{"turno$i"} = NULL;
           //Idem
           if(array_key_exists($i-1, $generalidad['datos']) && $generalidad['datos'][$i-1]['valor'] != -1){
@@ -351,26 +353,24 @@ class RelevamientoAmbientalController extends Controller
     $detalles = array();
     $generalidades = array();
     $casino = $relevamiento->casino;
-    $cantidad_turnos = 8;
+    $cantidad_turnos = (new TurnosController)->obtenerTurnosActivos($relevamiento->id_casino,$relevamiento->fecha_generacion)->count();
+    $limite_tabla = DetalleRelevamientoAmbiental::limiteCantidadTurnos();
+    $cantidad_turnos = min($cantidad_turnos,$limite_tabla);
 
     foreach ($relevamiento->detalles as $detalle) {
       $d = new \stdClass;
-
       $d->nro_isla_o_islote = $relevamiento->casino->id_casino==3 ? $detalle->nro_islote : (Isla::find($detalle->id_isla))->nro_isla;
       $d->id_detalle_relevamiento_ambiental = $detalle->id_detalle_relevamiento_ambiental;
-      $d->cantidad_turnos = $cantidad_turnos;
-      for($i=1;$i<=8;$i++) $d->{"turno$i"} = $detalle->{"turno$i"};
-
+      $d->cantidad_turnos = $cantidad_turnos;//@HACK: esto esta acoplado asi por el front, cambiar el frontend para que use $cantidad_turnos
+      for($i=1;$i<=$limite_tabla;$i++) $d->{"turno$i"} = $detalle->{"turno$i"};
       $detalles[] = $d;
     }
 
     foreach ($relevamiento->generalidades as $generalidad) {
       $g = new \stdClass;
-
       $g->id_dato_generalidad = $generalidad->id_dato_generalidad;
       $g->tipo_generalidad = $generalidad->tipo_generalidad;
-      for($i=1;$i<=8;$i++) $g->{"turno$i"} = $generalidad->{"turno$i"};
-
+      for($i=1;$i<=$limite_tabla;$i++) $g->{"turno$i"} = $generalidad->{"turno$i"};
       $generalidades[] = $g;
     }
 
