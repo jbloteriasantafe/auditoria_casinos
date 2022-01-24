@@ -151,17 +151,10 @@ class RelevamientoAmbientalController extends Controller
   }
 
   public function generarPlanillaAmbiental($id_relevamiento_ambiental){
-    $rel = RelevamientoAmbiental::find($id_relevamiento_ambiental);
+    $relevamiento_ambiental = RelevamientoAmbiental::find($id_relevamiento_ambiental);
 
-    $dompdf = $this->crearPlanillaAmbiental($rel);
-
-    return $dompdf->stream("Relevamiento_Control_Ambiental_" . $rel->casino->id_casino . "_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
-  }
-
-  public function crearPlanillaAmbiental($relevamiento_ambiental){
     $detalles = array();
     $generalidades = array();
-
     foreach ($relevamiento_ambiental->detalles as $det) {
       $isla = null;
       $id_sector = null;
@@ -212,14 +205,10 @@ class RelevamientoAmbientalController extends Controller
     $dompdf->loadHtml($view->render());
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("Helvetica", "normal");
-    $dompdf->getCanvas()->page_text(20, 575, 
-    $relevamiento_ambiental->nro_relevamiento_ambiental
-      ."/".$relevamiento_ambiental->casino->codigo
-      .'/Generado:'.$relevamiento_ambiental->fecha_generacion,
-      $font, 10, array(0,0,0));
+    $codigo = $relevamiento_ambiental->nro_relevamiento_ambiental.'/'.$relevamiento_ambiental->casino->codigo.'/Generado:'.$relevamiento_ambiental->fecha_generacion;
+    $dompdf->getCanvas()->page_text(20, 575,$codigo,$font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(765, 575, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-
-    return $dompdf;
+    return $dompdf->stream("Relevamiento_Control_Ambiental_" . $relevamiento_ambiental->casino->id_casino . "_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
   }
 
   public function cargarRelevamiento(Request $request,$guardadoTemporal = false){
