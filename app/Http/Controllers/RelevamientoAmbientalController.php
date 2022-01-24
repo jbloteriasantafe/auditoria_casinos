@@ -194,9 +194,9 @@ class RelevamientoAmbientalController extends Controller
 
     $fiscalizador = Usuario::find($relevamiento_ambiental->id_usuario_fiscalizador);
     $turnos = (new TurnosController)->obtenerTurnosActivos($relevamiento_ambiental->id_casino,$relevamiento_ambiental->fecha_generacion);
-    if($turnos->count() == 0){
+    if($turnos->count() == 0){//@HACK!!!
       $turnos_truchos = [];
-      for($i=1;$i<=$limite_tabla;$i++){
+      for($i=1;$i<=4;$i++){//Si no hay turnos en el sistema vuelvo a un defecto de 4... ups!
         $t = new \stdClass;
         $t->nro_turno = $i;
         $turnos_truchos[$i] = $t;
