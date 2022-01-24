@@ -28,19 +28,26 @@ class RelevamientoAmbientalController extends Controller
   private static $atributos = [];
 
   public function buscarTodo(){
-      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+      $uc = UsuarioController::getInstancia();
+      $usuario = $uc->quienSoy()['usuario'];
       $casinos = $usuario->casinos;
-      $estados = EstadoRelevamiento::all();
-      $fiscalizadores = $this->obtenerFiscalizadores($casinos,$usuario);
+
+      $fiscalizadores = [];
+      foreach($casinos as $c){
+        $fiscalizadores[$c->id_casino] = [];
+        $fs = $uc->obtenerFiscalizadores($c->id_casino,$usuario->id_usuario);
+        foreach($fs as $f){
+          $fiscalizadores[$c->id_casino][] = ['id_usuario' => $f->id_usuario,'nombre' => $f->nombre];
+        }
+      }
+
       UsuarioController::getInstancia()->agregarSeccionReciente('Relevamiento Control Ambiental' , 'relevamientosControlAmbiental');
 
-
-      return view('seccionRelevamientosAmbientalMaquinas',
-      [ 'casinos' => $casinos,
-        'estados' => $estados,
+      return view('seccionRelevamientosAmbientalMaquinas',[ 
+        'casinos' => $casinos,
+        'estados' => EstadoRelevamiento::all(),
         'fiscalizadores' => $fiscalizadores
-      ]
-      )->render();
+      ])->render();
   }
 
   public function buscarRelevamientosAmbiental(Request $request){
@@ -402,26 +409,6 @@ class RelevamientoAmbientalController extends Controller
             'cantidad_turnos' => $cantidad_turnos,
             'usuario_cargador' => $relevamiento->usuario_cargador,
             'usuario_fiscalizador' => $relevamiento->usuario_fiscalizador];
-  }
-
-  private function obtenerFiscalizadores($casinos,$user){
-    $controller = UsuarioController::getInstancia();
-    $fiscalizadores = array();
-
-    foreach($casinos as $c){
-      $cas = array();
-      $fs = $controller->obtenerFiscalizadores($c->id_casino,$user->id_usuario);
-
-      foreach($fs as $f){
-        $cas[] = array(
-                      'id_usuario' => $f->id_usuario,
-                      'nombre' => $f->nombre
-                      );
-      }
-      $fiscalizadores[$c->id_casino] = $cas;
-    }
-
-    return $fiscalizadores;
   }
 
   private function obtenerDescripcionGeneralidad ($id, $tipo_generalidad) {
