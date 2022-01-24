@@ -172,35 +172,31 @@ class RelevamientoAmbientalController extends Controller
     $detalles = array();
     $generalidades = array();
 
-    if ($relevamiento_ambiental->id_casino !=3) {
-      foreach ($relevamiento_ambiental->detalles as $det) {
-        $isla = Isla::find($det->id_isla);
-        $id_sector = $isla->sector->id_sector;
-        $nro_isla = $isla->nro_isla;
-
-        $detalle = $det->toArray();
-        $detalle['id_sector'] = $id_sector;
-        $detalle['nro_isla']  = $nro_isla;
-        $detalles[] = $detalle;
-      }
-    }
-    else {
-      foreach ($relevamiento_ambiental->detalles as $det) {
+    foreach ($relevamiento_ambiental->detalles as $det) {
+      $isla = null;
+      $id_sector = null;
+      $nro_isla = null;
+      if($relevamiento_ambiental->id_casino == 3){
         $id_sector = DB::table('isla')->select('id_sector')
         ->where('id_casino','=',$relevamiento_ambiental->casino->id_casino)
         ->where('nro_islote','=',$det->nro_islote)
         ->whereNull('deleted_at')->take(1)
         ->get()->first()->id_sector;
-        $detalle = $det->toArray();
-        $detalle['id_sector'] = $id_sector;
-        $detalles[] = $detalle;
       }
+      else{
+        $isla = Isla::find($det->id_isla);
+        $id_sector = $isla->sector->id_sector;
+        $nro_isla = $isla->nro_isla;
+      }
+      $arr = $det->toArray();
+      $arr['id_sector'] = $id_sector;
+      $arr['nro_isla']  = $nro_isla;
+      $detalles[] = $arr;
     }
 
     foreach ($relevamiento_ambiental->generalidades as $generalidad) {
-      $g = [
-          'tipo_generalidad' => ucfirst($generalidad->tipo_generalidad)//Primer caracter capitalizado
-      ];
+      //Primer caracter capitalizado
+      $g = [ 'tipo_generalidad' => ucfirst($generalidad->tipo_generalidad) ];
 
       for($i=1;$i<=8;$i++){
         $t = $generalidad->{"turno$i"};
@@ -462,7 +458,9 @@ class RelevamientoAmbientalController extends Controller
       return (Clima::find($id))['descripcion'];
     else if ($tipo_generalidad == 'temperatura')
       return (Temperatura::find($id))['descripcion'];
-    else
+    else if ($tipo_generalidad == 'evento')
       return (EventoControlAmbiental::find($id))['descripcion'];
+    else 
+      return '!!!ERROR!!!';
   }
 }
