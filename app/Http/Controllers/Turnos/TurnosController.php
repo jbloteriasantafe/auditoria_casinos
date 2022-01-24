@@ -89,8 +89,6 @@ class TurnosController extends Controller
   }
 
   public function obtenerTurnosActivos($id_casino, $fecha){
-    dump(date('w',strtotime('2022-01-23')));
-    dump(date('w',strtotime('2022-01-24')));
     $dia = date('w',strtotime($fecha));
     /*
     PHP es
@@ -103,7 +101,7 @@ class TurnosController extends Controller
     if($dia == 0){
       $dia = 7;
     }
-    
+
     $turnos_activos = DB::table('turno')
     ->where('id_casino','=',$id_casino)
     ->where('created_at','<',$fecha)
