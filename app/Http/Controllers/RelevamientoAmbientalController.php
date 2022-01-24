@@ -232,8 +232,8 @@ class RelevamientoAmbientalController extends Controller
     return $dompdf;
   }
 
-  public function cargarRelevamiento(Request $request,$validar = true){
-    if($validar){
+  public function cargarRelevamiento(Request $request,$guardadoTemporal = false){
+    if(!$guardadoTemporal){
       Validator::make($request->all(),[
           'id_relevamiento_ambiental' => 'required|exists:relevamiento_ambiental,id_relevamiento_ambiental',
           'id_usuario_fiscalizador' => 'required|exists:usuario,id_usuario',
@@ -272,11 +272,11 @@ class RelevamientoAmbientalController extends Controller
       })->validate();
     }
 
-    DB::transaction(function() use($request){
+    DB::transaction(function() use($request,$guardadoTemporal){
       $rel = RelevamientoAmbiental::find($request->id_relevamiento_ambiental);
       $rel->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador);
       $rel->fecha_ejecucion = $request->fecha_ejecucion;
-      $rel->estado_relevamiento()->associate(3); // id_estado finalizado
+      $rel->estado_relevamiento()->associate($guardadoTemporal? 2 : 3); // id_estado finalizado
       $rel->observacion_carga = $request->observaciones;
       $rel->save();
 
@@ -284,7 +284,8 @@ class RelevamientoAmbientalController extends Controller
         $unDetalle = DetalleRelevamientoAmbiental::find($detalle['id_detalle_relevamiento_ambiental']);
         for($i=1;$i<=8;$i++){
           $unDetalle->{"turno$i"} = NULL;
-          if(array_key_exists($i-1,$detalle['personasTurnos'])){//$i-1 porque es un arreglo 0-indexado
+          //Doble validacion con is_numeric porque con el guardadoTemporal la validación que es un numero se saltea
+          if(array_key_exists($i-1,$detalle['personasTurnos']) && is_numeric($detalle['personasTurnos'][$i-1]['valor'])){//$i-1 porque es un arreglo 0-indexado
             $unDetalle->{"turno$i"} = $detalle['personasTurnos'][$i-1]['valor'];
           }
         }
@@ -295,7 +296,8 @@ class RelevamientoAmbientalController extends Controller
         $unDatoGeneralidad = DatoGeneralidad::find($generalidad['id_dato_generalidad']);
         for($i=1;$i<=8;$i++){
           $unDatoGeneralidad->{"turno$i"} = NULL;
-          if(array_key_exists($i-1, $generalidad['datos'])){
+          //Idem
+          if(array_key_exists($i-1, $generalidad['datos']) && $generalidad['datos'][$i-1]['valor'] != -1){
             $unDatoGeneralidad->{"turno$i"} = $generalidad['datos'][$i-1]['valor'];
           }
         }
@@ -307,38 +309,7 @@ class RelevamientoAmbientalController extends Controller
   }
 
   public function guardarTemporalmenteRelevamiento(Request $request){
-    DB::transaction(function() use($request){
-      $rel = RelevamientoAmbiental::find($request->id_relevamiento_ambiental);
-      $rel->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador);
-      $rel->fecha_ejecucion = $request->fecha_ejecucion;
-      $rel->estado_relevamiento()->associate(2); // id_estado cargando
-      $rel->observacion_carga = $request->observaciones;
-      $rel->save();
-
-      foreach($request->detalles as $detalle) {
-        $unDetalle = DetalleRelevamientoAmbiental::find($detalle['id_detalle_relevamiento_ambiental']);
-        for($i=1;$i<=8;$i++){
-          $unDetalle->{"turno$i"} = NULL;
-          if(array_key_exists($i-1, $detalle['personasTurnos']) && $detalle['personasTurnos'][$i-1] != NULL && is_numeric($detalle['personasTurnos'][$i-1]['valor'])){
-            $unDetalle->{"turno$i"} = $detalle['personasTurnos'][$i-1]['valor'];
-          }
-        }
-        $unDetalle->save();
-      }
-
-      foreach ($request->generalidades as $generalidad) {
-        $unDatoGeneralidad = DatoGeneralidad::find($generalidad['id_dato_generalidad']);
-        for($i=1;$i<=8;$i++){
-          $unDatoGeneralidad->{"turno$i"} = null;
-          if(array_key_exists($i-1, $generalidad['datos']) && $generalidad['datos'][$i-1]['valor'] != -1){
-            $unDatoGeneralidad->{"turno$i"} = $generalidad['datos'][$i-1]['valor'];
-          }
-        }
-        $unDatoGeneralidad->save();
-      }
-    });
-
-    return ['codigo' => 200];
+    return $this->cargarRelevamiento($request,true);
   }
 
   public function validarRelevamiento(Request $request){
