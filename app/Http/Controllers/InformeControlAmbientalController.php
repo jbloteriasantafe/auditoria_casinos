@@ -142,7 +142,7 @@ class InformeControlAmbientalController extends Controller
     $turnos = (new TurnosController)->obtenerTurnosActivos($id_casino,$fecha)->take($TURNOS_TOTALES);
     $sectores_mtm   = is_null($por_sector_mtm)?   [] : $por_sector_mtm;
     $sectores_mesas = is_null($por_sector_mesas)? [] : $por_sector_mesas;
-    $total            = is_null($total)?          [] : $total;
+    $total          = is_null($total)?            [] : $total;
     $casino = Casino::find($id_casino);
     $otros_datos = array(
       'fecha_produccion' => date("d-m-Y", strtotime($fecha)),
