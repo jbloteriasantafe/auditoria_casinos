@@ -85,6 +85,7 @@ class InformeControlAmbientalController extends Controller
     $group_turnos = implode(',',$aux_turnos);
     $aux_turnos = array_map(function($i){return "SUM(IFNULL(turno$i,0))";},range(1,$TURNOS_TOTALES));
     $group_turnos .= ',('.implode('+',$aux_turnos).') as total';
+    $total_group_turnos = "'TOTAL' as id_sector,'TOTAL' as descripcion, $group_turnos";
 
     $detalles_relevamientos_mtm = $detalles_relevamientos_mtm
     ->join('sector','sector.id_sector','=','isla.id_sector')
@@ -98,7 +99,7 @@ class InformeControlAmbientalController extends Controller
     ->get()
     ->merge(
       (clone $detalles_relevamientos_mtm)
-      ->selectRaw("'TOTAL' as id_sector,'TOTAL' as descripcion, $group_turnos")
+      ->selectRaw($total_group_turnos)
       ->groupBy('sector.id_casino')
       ->get()
     );
@@ -121,7 +122,7 @@ class InformeControlAmbientalController extends Controller
     ->get()
     ->merge(
       (clone $detalles_relevamientos_mesas)
-      ->selectRaw("'TOTAL' as id_sector,'TOTAL' as descripcion, $group_turnos")
+      ->selectRaw($total_group_turnos)
       ->groupBy('sector_mesas.id_casino')
       ->get()
     );
@@ -131,46 +132,26 @@ class InformeControlAmbientalController extends Controller
     ])->get()->first();
     if(!is_null($estado_mesas)) $estado_mesas = $estado_mesas->estado_relevamiento->descripcion;
 
+    $total = DB::table('detalle_relevamiento_ambiental')
+    ->selectRaw($total_group_turnos)
+    ->join('relevamiento_ambiental','relevamiento_ambiental.id_relevamiento_ambiental','=','detalle_relevamiento_ambiental.id_relevamiento_ambiental')
+    ->where(DB::raw('DATE(relevamiento_ambiental.fecha_generacion)'),'=', $fecha)
+    ->where('relevamiento_ambiental.id_casino','=',$id_casino)
+    ->groupBy('relevamiento_ambiental.id_casino')->get()->first();
+    
     $turnos = (new TurnosController)->obtenerTurnosActivos($id_casino,$fecha)->take($TURNOS_TOTALES);
-  
-    $extrar_totales = function($turnos,&$por_sector){
-      $sectores = [];
-      if(is_null($por_sector)) return $sectores;
-
-      foreach($por_sector as $x){
-        $s = &$sectores[$x->id_sector];
-        $s = [
-          'sector' => $x->descripcion,
-          'turnos' => [],
-          'total_sector' => $x->total,
-        ];
-        foreach($turnos as $i => $t){
-          $s['turnos'][$t->nro_turno] = $x->{'turno'.($i+1)};
-        }
-      }
-      return $sectores;
-    };
-
-    $sectores_mtm   = $extrar_totales($turnos,$por_sector_mtm);
-    $sectores_mesas = $extrar_totales($turnos,$por_sector_mesas);
-
-    //Totalizo
-    $total_por_turno = $sectores_mtm['TOTAL']['turnos'];
-    foreach($sectores_mesas['TOTAL']['turnos'] as $nro_turno => $ocupacion){
-      $total_por_turno[$nro_turno] += $ocupacion;
-    }
-    $total = array_reduce($total_por_turno,function($total,$i){ return $total+$i; },0);
-
+    $sectores_mtm   = is_null($por_sector_mtm)?   [] : $por_sector_mtm;
+    $sectores_mesas = is_null($por_sector_mesas)? [] : $por_sector_mesas;
+    $total            = is_null($total)?          [] : $total;
     $casino = Casino::find($id_casino);
     $otros_datos = array(
       'fecha_produccion' => date("d-m-Y", strtotime($fecha)),
-      'cantidad_turnos' => $turnos->count(),
       'casino' => $casino,
       'estado_mtm' => $estado_mtm,
       'estado_mesas' => $estado_mesas,
     );
 
-    $view = view('planillaInformesControlAmbiental', compact(['sectores_mtm','sectores_mesas','total_por_turno','total','otros_datos']));
+    $view = view('planillaInformesControlAmbiental', compact(['turnos','sectores_mtm','sectores_mesas','total','otros_datos']))->render();
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view);

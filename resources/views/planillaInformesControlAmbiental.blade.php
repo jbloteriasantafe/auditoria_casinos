@@ -64,8 +64,8 @@
       <thead>
         <tr>
           <th class="tablaInicio centro" style="background-color: #e6e6e6;" width="15%;">SECTOR</th>
-          @foreach ($sectores_mtm['TOTAL']['turnos'] as $nro_turno => $cantidad)
-          <th class="tablaInicio centro" style="background-color: #e6e6e6;">T{{$nro_turno}}</th>
+          @foreach($turnos as $t)
+          <th class="tablaInicio centro" style="background-color: #e6e6e6;">T{{$t->nro_turno}}</th>
           @endforeach
           <th class="tablaInicio centro" style="background-color: #e6e6e6;">TOTAL</th>
         </tr>
@@ -73,11 +73,12 @@
       <tbody>
         @foreach($sectores_mtm as $s)
         <tr>
-          <td class="tablaInicio centro" style="background-color: white;" width="15%">{{$s['sector']}}</td>
-          @foreach($s['turnos'] as $nro_turno => $cantidad)
-          <td class="tablaInicio derecha" style="background-color: white;">{{$cantidad}}</td>
+          <td class="tablaInicio centro" style="background-color: white;" width="15%">{{$s->descripcion}}</td>
+          <!-- Importante el espacio entre {} -->
+          @foreach($turnos as $i => $t)
+          <td class="tablaInicio derecha" style="background-color: white;">{{ $s->{'turno'.($i+1)} }}</td>
           @endforeach
-          <td class="tablaInicio derecha" style="background-color: white;">{{$s['total_sector']}}</td>
+          <td class="tablaInicio derecha" style="background-color: white;">{{$s->total}}</td>
         </tr>
         @endforeach
       </tbody>
@@ -90,8 +91,8 @@
       <thead>
         <tr>
           <th class="tablaInicio centro" style="background-color: #e6e6e6;" width="15%;">SECTOR</th>
-          @foreach ($sectores_mesas['TOTAL']['turnos'] as $nro_turno => $cantidad)
-          <th class="tablaInicio centro" style="background-color: #e6e6e6;">T{{$nro_turno}}</th>
+          @foreach($turnos as $t)
+          <th class="tablaInicio centro" style="background-color: #e6e6e6;">T{{$t->nro_turno}}</th>
           @endforeach
           <th class="tablaInicio centro" style="background-color: #e6e6e6;">TOTAL</th>
         </tr>
@@ -99,11 +100,11 @@
       <tbody>
         @foreach($sectores_mesas as $s)
         <tr>
-          <td class="tablaInicio centro" style="background-color: white;" width="15%;">{{$s['sector']}}</td>
-          @foreach($s['turnos'] as $nro_turno => $cantidad)
-          <td class="tablaInicio derecha" style="background-color: white;">{{$cantidad}}</td>
+          <td class="tablaInicio centro" style="background-color: white;" width="15%">{{$s->descripcion}}</td>
+          @foreach($turnos as $i => $t)
+          <td class="tablaInicio derecha" style="background-color: white;">{{ $s->{'turno'.($i+1)} }}</td>
           @endforeach
-          <td class="tablaInicio derecha" style="background-color: white;">{{$s['total_sector']}}</td>
+          <td class="tablaInicio derecha" style="background-color: white;">{{$s->total}}</td>
         </tr>
         @endforeach
       </tbody>
@@ -116,18 +117,18 @@
       <thead>
         <tr>
           <th class="tablaInicio centro" style="background-color: #e6e6e6;" width="15%;"></th>
-          @foreach ($total_por_turno as $nro_turno => $cantidad)
-          <th class="tablaInicio centro" style="background-color: #e6e6e6;">T{{$nro_turno}}</th>
+          @foreach($turnos as $t)
+          <th class="tablaInicio centro" style="background-color: #e6e6e6;">T{{$t->nro_turno}}</th>
           @endforeach
           <th class="tablaInicio centro" style="background-color: #e6e6e6;">TOTAL</th>
         </tr>
       </thead>
       <tr>
         <td class="tablaInicio centro" style="background-color: #e6e6e6;" width="15%;"><b>TOTAL</b></td>
-        @foreach ($total_por_turno as $nro_turno => $cantidad)
-        <td class="tablaInicio derecha" style="background-color: white;">{{$cantidad}}</td>
+        @foreach($turnos as $i => $t)
+        <td class="tablaInicio derecha" style="background-color: white;">{{ $total->{'turno'.($i+1)} }}</td>
         @endforeach
-        <td class="tablaInicio derecha" style="background-color: white;">{{$total}}</td>
+        <td class="tablaInicio derecha" style="background-color: white;">{{$total->total}}</td>
       </tr>
     </table>
   </body>
