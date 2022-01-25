@@ -86,29 +86,45 @@ class InformeControlAmbientalController extends Controller
     $aux_turnos = array_map(function($i){return "SUM(IFNULL(turno$i,0))";},range(1,$TURNOS_TOTALES));
     $group_turnos .= ',('.implode('+',$aux_turnos).') as total';
 
-    $por_sector_mtm = $detalles_relevamientos_mtm
-    ->selectRaw("sector.id_sector, sector.descripcion, $group_turnos")
+    $detalles_relevamientos_mtm = $detalles_relevamientos_mtm
     ->join('sector','sector.id_sector','=','isla.id_sector')
     ->join('relevamiento_ambiental','relevamiento_ambiental.id_relevamiento_ambiental','=','detalle_relevamiento_ambiental.id_relevamiento_ambiental')
     ->where(DB::raw('DATE(relevamiento_ambiental.fecha_generacion)'),'=', $fecha)
-    ->where('sector.id_casino','=',$id_casino)
+    ->where('sector.id_casino','=',$id_casino);
+
+    $por_sector_mtm = (clone $detalles_relevamientos_mtm)
+    ->selectRaw("sector.id_sector, sector.descripcion, $group_turnos")
     ->groupBy('sector.id_sector')
-    ->get();
+    ->get()
+    ->merge(
+      (clone $detalles_relevamientos_mtm)
+      ->selectRaw("'TOTAL' as id_sector,'TOTAL' as descripcion, $group_turnos")
+      ->groupBy('sector.id_casino')
+      ->get()
+    );
 
     $estado_mtm = RelevamientoAmbiental::where([
       ['id_casino','=',$id_casino],[DB::raw('DATE(fecha_generacion)'),'=',$fecha],['id_tipo_relev_ambiental','=',0]
     ])->get()->first();
     if(!is_null($estado_mtm)) $estado_mtm = $estado_mtm->estado_relevamiento->descripcion;
 
-    $por_sector_mesas = DB::table('detalle_relevamiento_ambiental')
-    ->selectRaw("sector_mesas.id_sector_mesas as id_sector, sector_mesas.descripcion, $group_turnos")
+    $detalles_relevamientos_mesas = DB::table('detalle_relevamiento_ambiental')
     ->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','detalle_relevamiento_ambiental.id_mesa_de_panio')
     ->join('sector_mesas','sector_mesas.id_sector_mesas','=','mesa_de_panio.id_sector_mesas')
     ->join('relevamiento_ambiental','relevamiento_ambiental.id_relevamiento_ambiental','=','detalle_relevamiento_ambiental.id_relevamiento_ambiental')
     ->where(DB::raw('DATE(relevamiento_ambiental.fecha_generacion)'),'=', $fecha)
-    ->where('sector_mesas.id_casino','=',$id_casino)
+    ->where('sector_mesas.id_casino','=',$id_casino);
+
+    $por_sector_mesas = (clone $detalles_relevamientos_mesas)
+    ->selectRaw("sector_mesas.id_sector_mesas as id_sector, sector_mesas.descripcion, $group_turnos")
     ->groupBy('sector_mesas.id_sector_mesas')
-    ->get();
+    ->get()
+    ->merge(
+      (clone $detalles_relevamientos_mesas)
+      ->selectRaw("'TOTAL' as id_sector,'TOTAL' as descripcion, $group_turnos")
+      ->groupBy('sector_mesas.id_casino')
+      ->get()
+    );
 
     $estado_mesas = RelevamientoAmbiental::where([
       ['id_casino','=',$id_casino],[DB::raw('DATE(fecha_generacion)'),'=',$fecha],['id_tipo_relev_ambiental','=',1]
@@ -119,17 +135,6 @@ class InformeControlAmbientalController extends Controller
   
     $extrar_totales = function($turnos,&$por_sector){
       $sectores = [];
-      
-      $sectores['TOTAL'] = [
-        'sector' => 'TOTAL',
-        'turnos' => [],
-        'total_sector' => 0,
-      ];
-      foreach($turnos as $t){
-        $sectores['TOTAL']['turnos'][$t->nro_turno] = 0;
-      }
-
-      $total = &$sectores['TOTAL'];
       if(is_null($por_sector)) return $sectores;
 
       foreach($por_sector as $x){
@@ -140,15 +145,9 @@ class InformeControlAmbientalController extends Controller
           'total_sector' => $x->total,
         ];
         foreach($turnos as $i => $t){
-          $ocupacion = $x->{'turno'.($i+1)};
-          $s['turnos'][$t->nro_turno]      = $ocupacion;
-          $total['turnos'][$t->nro_turno] += $ocupacion;
-          $total['total_sector']          += $ocupacion;
+          $s['turnos'][$t->nro_turno] = $x->{'turno'.($i+1)};
         }
       }
-      $t = $sectores['TOTAL'];//Muevo el total al final... para que al imprimir aparezca ultimo
-      unset($sectores['TOTAL']);
-      $sectores['TOTAL'] = $t;
       return $sectores;
     };
 
