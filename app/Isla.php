@@ -15,7 +15,7 @@ class Isla extends Model
   protected $connection = 'mysql';
   protected $table = 'isla';
   protected $primaryKey = 'id_isla';
-  protected $visible = array('id_isla','nro_isla','codigo','cantidad_maquinas','id_casino','deleted_at','orden','id_sector');
+  protected $visible = array('id_isla','nro_isla','codigo','cantidad_maquinas','id_casino','deleted_at','nro_islote','orden','id_sector');
   public $timestamps = false;
   protected $appends = array('cantidad_maquinas','cantidad_maquinas_y_int_tecnica');
 
@@ -80,12 +80,4 @@ class Isla extends Model
   public function getId(){
     return $this->id_isla;
   }
-
-  // public function __construct($nro_isla,$codigo,$id_casino){
-  //   $this->nro_isla = $nro_isla;
-  //   $this->codigo = $codigo;
-  //   $this->casino()->associate($id_casino);
-  //   return $this;
-  // }
-
 }

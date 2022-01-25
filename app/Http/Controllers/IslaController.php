@@ -26,20 +26,8 @@ class IslaController extends Controller
 
   public function buscarTodo(){
       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      $casinos = array();
-      foreach($usuario->casinos as $casino){
-        $casinos [] = $casino->id_casino;
-      }
-
-      $casinos= Casino::whereIn('id_casino',$casinos)->get();
-      if(count($casinos)== 1 && $casinos->first()->id_casino == 3){
-         $esRosario =1;
-      }else{
-        $esRosario = 0;
-      }
       UsuarioController::getInstancia()->agregarSeccionReciente('Islas' , 'islas');
-
-      return view('seccionIslas' , ['casinos' => $casinos, 'esRosario' => $esRosario ]);
+      return view('seccionIslas' , ['casinos' => $usuario->casinos]);
   }
 
   public static function getInstancia(){
@@ -571,62 +559,4 @@ class IslaController extends Controller
     }
     return $aux;//no esta en la isla
   }
-
-  public function modifyIsla($islaModif, $id_isla, $maquinas){
-
-    $unaIsla = Isla::find($id_isla);
-    $unaIsla->nro_isla= $islaModif->nro_isla;
-    $unaIsla->codigo= $islaModif->codigo;
-    $unaIsla->id_casino = $islaModif->id_casino;
-    $unaIsla->id_sector = $islaModif->id_sector;
-    //desasociar maquinas viejas
-    foreach ($unaIsla->maquinas as $maquinaActual) {
-      if($this->noEstaraMasEnLaIsla($maquinaActual ,$maquinas)) {
-        $maquinaActual->isla()->dissociate();
-        $maquinaActual->save();
-        $razon = "Se eliminó la mtm " . $maquinaActual->nro_admin ." de la isla " . $unaIsla->nro_isla . ".";
-        LogMaquinaController::getInstancia()->registrarMovimiento($maquinaActual->id_maquina, $razon,4);//tipo mov cambio layout
-      }
-    }
-
-    //asociar maquinas nuevas
-    if(!empty($request->maquinas)){
-      foreach($request->maquinas as $maquina) {
-        if($this->noEstabaEnLaIsla($maquina, $unaIsla->maquinas)){
-          MTMController::getInstancia()->asociarIsla($maquina['id_maquina'], $unaIsla->id_isla); //el log_maquina se crea en esa fn
-          MovimientoIslaController::getInstancia()->guardar($unaIsla->id_isla, $maquina['id_maquina']);  //para controlar el movimiento
-          $razon = "Se agregó la mtm a la isla ". $unaIsla->nro_isla .".";
-          LogMaquinaController::getInstancia()->registrarMovimiento($maquina['id_maquina'], $razon,4);//tipo mov cambio layout
-        }
-      }
-    }
-    $unaIsla->save();
-    LogIslaController::getInstancia()->guardar($unaIsla->id_isla, 5); //5 -> estado de relevamiento sin relevar!
-    return $unaIsla;
-  }
-
-  public function desasociarMaquinas($id_isla){
-    $isla= Isla::find($id_isla);
-      foreach ($isla->maquinas as $maquina) {
-        $maquina->isla()->dissociate();
-        $maquina->save();
-        $razon = "La maquina no pertence más a la isla ". ($isla->nro_isla);
-        LogMaquinaController::getInstancia()->registrarMovimiento($maquina->id_maquina, $razon,4);//tipo movimiento cambio layout
-      }
-  }
-
-  //no se usa nunca?
-  public function asociarMaquinas($maquinas, $id_isla){
-    $isla= Isla::find($id_isla);
-
-      foreach ($maquinas as $maq) {
-        $maquina = Maquina::find($maq);
-        $maquina->isla()->associate($id_maquina);
-        $maquina->save();
-        $razon = "La maquina se agregó a la isla ". ($isla->nro_isla);
-        LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,4);//tipo movimiento cambio layout
-
-      }
-  }
-
 }
