@@ -15,8 +15,7 @@ $(document).ready(function(){
   
   $('#dtpFechaAutoexclusionEstado').datetimepicker(input_fecha_iso);
   $('#dtpFechaNacimiento').datetimepicker(input_fecha_iso);
-  $('#fecha_nacimiento').off('focus keydown keyup');//Saco los evento de DTP que genera problemas si quiero chequear
-  $('#fecha_nacimiento').change(cambioFechaNacimiento);
+  $('#fecha_nacimiento,#fecha_autoexclusion').off('focus keydown keyup');//Saco los evento de DTP que genera problemas si quiero chequear
 
   const input_fecha = {
     language:  'es',
@@ -416,13 +415,17 @@ $( "#fecha_autoexlusion" ).change(function() {
     const dia = f.getDate();
     return f.getFullYear() + (mes<10?'-0':'-') + mes + (dia<10?'-0':'-') + dia;
   }
-  const fecha_autoexlusion        = new Date($( "#fecha_autoexlusion" ).val());
-  const fecha_renovacion          = new Date(fecha_autoexlusion.getTime());
-  const fecha_vencimiento_periodo = new Date(fecha_autoexlusion.getTime());
-  const fecha_cierre_definitivo   = new Date(fecha_autoexlusion.getTime());
-  fecha_renovacion.setDate(fecha_autoexlusion.getDate() + 150);
-  fecha_vencimiento_periodo.setDate(fecha_autoexlusion.getDate() + 180);
-  fecha_cierre_definitivo.setDate(fecha_autoexlusion.getDate() + 365);
+  const fecha_autoexclusion       = validarDTP($('#dtpFechaAutoexclusionEstado'));
+  if(fecha_autoexclusion == null){
+    $("#fecha_renovacion,#fecha_vencimiento_periodo,#fecha_cierre_definitivo" ).val("");
+    return;
+  }
+  const fecha_renovacion          = new Date(fecha_autoexclusion.getTime());
+  const fecha_vencimiento_periodo = new Date(fecha_autoexclusion.getTime());
+  const fecha_cierre_definitivo   = new Date(fecha_autoexclusion.getTime());
+  fecha_renovacion.setDate(fecha_autoexclusion.getDate() + 150);
+  fecha_vencimiento_periodo.setDate(fecha_autoexclusion.getDate() + 180);
+  fecha_cierre_definitivo.setDate(fecha_autoexclusion.getDate() + 365);
   $( "#fecha_renovacion" ).val(iso(fecha_renovacion));
   $( "#fecha_vencimiento_periodo" ).val(iso(fecha_vencimiento_periodo));
   $( "#fecha_cierre_definitivo" ).val(iso(fecha_cierre_definitivo));
@@ -527,32 +530,44 @@ $('#nro_dni').change(function(){
   $('#dtpFechaNacimiento').data('datetimepicker').setDate(fecha);
 })
 
-function cambioFechaNacimiento(){
-  ocultarErrorValidacion($('#fecha_nacimiento'));
-  let fecha = $(this).val();
-  if(fecha == null || fecha.length == 0) return;
+function validarFechaIso(fecha){
   const fecha_regexp_iterator = fecha.matchAll(/[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}/g);
   const valido_regexp = Array.from(fecha_regexp_iterator).length == 1;
   if(!valido_regexp){
-    $('#dtpFechaNacimiento').data("datetimepicker").reset();
-    setTimeout(function(){
-      mostrarErrorValidacion($('#fecha_nacimiento'),'El formato tiene que ser AAAA-MM-DD',true);
-    },250);
-    return;
+    return {err: 1,msg: 'El formato tiene que ser AAAA-MM-DD'};
   }
   const f = fecha.split('-');
   const y = parseInt(f[0]), m = parseInt(f[1]), d = parseInt(f[2]);
   const date = new Date(to_iso(d,m,y));
   const hoy = new Date();
   if(date == 'Invalid Date' || y <= 1900 || date >= hoy){
-    $('#dtpFechaNacimiento').data("datetimepicker").reset();
-    setTimeout(function(){
-      mostrarErrorValidacion($('#fecha_nacimiento'),'Valor inválido',true);
-    },250);
-    return;
+    return {err: 1,msg: 'Valor inválido'};
   }
-  $('#dtpFechaNacimiento').data('datetimepicker').setDate(new Date(to_iso(d,m,y)));
+  return {err: 0,date: new Date(to_iso(d,m,y))};
 }
+
+function validarDTP(dtp){
+  const input = dtp.find('input');
+  ocultarErrorValidacion(input);
+  const fecha = input.val();
+  //el change() de mas abajo triggerea un change() que hace que se llame de vuelta
+  //escapo la recursion asi...
+  if(fecha == null || fecha.length == 0) return;
+  const err_ret = validarFechaIso(fecha);
+  if(err_ret.err != 0){
+    dtp.data("datetimepicker").reset();//triggerea change()!
+    setTimeout(function(){
+      mostrarErrorValidacion(input,err_ret.msg,true);
+    },250);
+    return null;
+  }
+  dtp.data('datetimepicker').setDate(err_ret.date);
+  return err_ret.date;
+}
+
+$('#fecha_nacimiento').change(function(){
+  validarDTP($('#dtpFechaNacimiento'));
+});
 
 function validarDNI(){
   if (isNaN($('#nro_dni').val()) && $('#nro_dni').val() != '') {
