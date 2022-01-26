@@ -159,6 +159,16 @@
                       <span id="alerta-sector" class="alertaSpan"></span>
                     </div>
                   </div>
+                  <div class="row">
+                    <div class="col-md-2">
+                      <h5>N° Islote</h5>
+                      <input id="nro_islote" type="text" class="form-control" placeholder="Nro de Islote"/>
+                    </div>
+                    <div class="col-md-2">
+                      <h5>Orden</h5>
+                      <input id="orden" type="text" class="form-control" placeholder="Orden"/>
+                    </div>
+                  </div>
 
                   <div class="row">
 
@@ -240,19 +250,6 @@
       </div>
 </div>
 
-
-<!-- <style media="screen">
-
-    #modalDividirIsla .modal-dialog {
-        width: 80%;
-    }
-
-    @media (max-width: 1400px) {
-        #modalDividirIsla .modal-dialog {
-            width: 92%;
-        }
-    }
-</style> -->
 <div id="modalDividirIsla" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -272,10 +269,6 @@
                       <h5>CASINO</h5>
                       <input id="d_casino" class="form-control" type="text" value="" readonly>
                   </div>
-                  <!-- <div class="col-xl-3 col-md-3">
-                      <h5>SECTOR</h5>
-                      <input id="d_sector" class="form-control" type="text" value="" readonly>
-                  </div> -->
                   <div class="col-md-3">
                       <h5>MÁQUINAS</h5>
                       <input id="d_maquinas" class="form-control" type="text" value="" readonly>
@@ -304,20 +297,10 @@
               <br>
 
               <style media="screen">
-                  /*.btn.mover {
-                      padding: 8px 9px;
-                  }*/
                   .btn.mover i {
                       position: relative;
                       top:-1px;
                   }
-                  /*.btn.mover i.fa-arrow-left {
-                      left: -1px;
-                  }
-                  .btn.mover i.fa-arrow-right {
-                      left: 1px;
-                  }*/
-
 
                   .contenedorSI {
                     border: 3px solid #333;
@@ -327,18 +310,9 @@
                   }
 
                   .contenedorSI span {
-                    /*position: absolute;*/
                     font-family: Roboto-Condensed;
                     font-size: 20px;
-                    /*left: 40px;*/
                   }
-
-                  /*.primera .mover_arriba {
-                      display: none;
-                  }
-                  .ultimo .mover_abajo {
-                      display: none;
-                  }*/
 
                   .subisla h5 {
                     margin-top: 10px;
@@ -410,13 +384,7 @@
 
                       </div> <!-- contenedor -->
                     </div> <!-- sub -->
-
-
-
-
               </div>
-
-
             </div>
 
             <div class="modal-footer">

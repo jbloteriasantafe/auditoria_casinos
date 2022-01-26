@@ -486,10 +486,6 @@ class IslaController extends Controller
     $isla->id_sector = $request->sector;
     $isla->save();
 
-    if($isla->niveles_progresivo != null){
-        $isla->niveles_progresivo()->detach();
-    }
-
     if(!empty($request->historial)){
       foreach ($request->historial as $log) {
         $log_isla = LogIsla::find($log['id_log_isla']);
