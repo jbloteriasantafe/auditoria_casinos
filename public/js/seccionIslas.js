@@ -217,8 +217,6 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
 $('#btn-ayuda').click(function(e){
   e.preventDefault();
-  $('.modal-title').text('| ISLAS');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
 	$('#modalAyuda').modal('show');
 });
 
@@ -231,8 +229,8 @@ $('#btn-nuevo').click(function(e){
   $('#btn-guardar').val("nuevo");
   $('#btn-guardar').show();
   $('.movimientos').hide();
-  $('.modal-title').text('| NUEVA ISLA');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
+  $('#modalIsla .modal-title').text('| NUEVA ISLA');
+  $('#modalIsla .modal-header').attr('style','background-color: #6dc7be; color: #fff');
   $('#btn-guardar').removeClass();
   $('#btn-guardar').addClass('btn btn-successAceptar');
   $('#modalIsla').modal('show');
@@ -502,8 +500,8 @@ $('#btn-aceptarDividir').click(function() {
 $(document).on('click','.detalle',function(){
     limpiarModal();
     reiniciarSector();
-    $('.modal-title').text('| VER MÁS');
-    $('.modal-header').attr('style','font-family: Roboto-Black; background: #4FC3F7');
+    $('#modalIsla .modal-title').text('| VER MÁS');
+    $('#modalIsla .modal-header').attr('style','background: #4FC3F7');
     $('.movimientos').show();
     var id_isla = $(this).val();
 
@@ -519,9 +517,9 @@ $(document).on('click','.detalle',function(){
 //Modal para modificar una ISLA
 $(document).on('click','.modificar',function(){
     limpiarModal();
-    $('.modal-title').text('| MODIFICAR ISLA');
+    $('#modalIsla .modal-title').text('| MODIFICAR ISLA');
+    $('#modalIsla .modal-header').attr('style','background: #ff9d2d');
     $('#mensajeExito').hide();
-    $('.modal-header').attr('style','font-family: Roboto-Black; background: #ff9d2d');
     $('#btn-guardar').addClass('btn btn-warningModificar');
     $('#btn-guardar').show();
     $('.movimientos').show();
@@ -540,14 +538,8 @@ $(document).on('click','.modificar',function(){
 
 //Borrar Isla y remover de la tabla
 $(document).on('click','.eliminar',function(){
-    //Cambiar colores modal
-    $('.modal-title').text('ADVERTENCIA');
-    $('.modal-header').removeAttr('style');
-    $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
-
-    var id_isla = $(this).val();
-    $('#btn-eliminarModal').val(id_isla);
-    $('#modalEliminar').modal('show');
+  $('#btn-eliminarModal').val($(this).val());
+  $('#modalEliminar').modal('show');
 });
 
 $('#btn-eliminarModal').click(function (e) {

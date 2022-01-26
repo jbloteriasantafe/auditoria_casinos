@@ -117,7 +117,7 @@
 <div class="modal fade" id="modalIsla" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg">
          <div class="modal-content">
-            <div class="modal-header" style="background: #5cb85c;">
+            <div class="modal-header" style="background: #5cb85c;font-family: Roboto-Black;">
               <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
               <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
               <h3 class="modal-title" style="color: #fff;">| NUEVA ISLA</h3>
@@ -227,7 +227,7 @@
 <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
          <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header" style="font-family: Roboto-Black; color: #EF5350">
               <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
               <h3 class="modal-titleEliminar" id="myModalLabel">ADVERTENCIA</h3>
             </div>
@@ -400,11 +400,10 @@
 
   <!-- Comienza modal de ayuda -->
   @section('tituloDeAyuda')
-  <h3 class="modal-title" style="color: #fff;">| ISLAS</h3>
+  <h3 class="modal-title" style="color: #fff;">ISLAS</h3>
   @endsection
   @section('contenidoAyuda')
   <div class="col-md-12">
-    <h5>Tarjeta de Islas</h5>
     <p>
       Definir, modificar o cambiar islas en cada sector del casino, pudiendo asociar MTM en ellas.
     </p>
