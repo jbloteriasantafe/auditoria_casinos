@@ -26,10 +26,8 @@ $('#btn-minimizar').click(function(){
 });
 
 $('.modal').on('hidden.bs.modal', function(){//se ejecuta cuando se oculta modal con clase .modal
-  ocultarErrorValidacion($('#casino'));
-  ocultarErrorValidacion($('#sector'));
-  ocultarErrorValidacion($('#nro_isla'));
-})
+  limpiarModal();
+});
 
 //Quitar eventos de la tecla Enter
 $("#contenedorFiltros input").on('keypress',function(e){
@@ -223,8 +221,6 @@ $('#btn-ayuda').click(function(e){
 $('#btn-nuevo').click(function(e){
   $('#mensajeExito').hide();
   e.preventDefault();
-  limpiarModal();
-  reiniciarSector();
   habilitarControles(true);
   $('#btn-guardar').val("nuevo");
   $('#btn-guardar').show();
@@ -498,8 +494,6 @@ $('#btn-aceptarDividir').click(function() {
 
 //Mostrar modal con los datos del Log
 $(document).on('click','.detalle',function(){
-    limpiarModal();
-    reiniciarSector();
     $('#modalIsla .modal-title').text('| VER MÁS');
     $('#modalIsla .modal-header').attr('style','background: #4FC3F7');
     $('.movimientos').show();
@@ -516,7 +510,6 @@ $(document).on('click','.detalle',function(){
 
 //Modal para modificar una ISLA
 $(document).on('click','.modificar',function(){
-    limpiarModal();
     $('#modalIsla .modal-title').text('| MODIFICAR ISLA');
     $('#modalIsla .modal-header').attr('style','background: #ff9d2d');
     $('#mensajeExito').hide();
@@ -822,25 +815,18 @@ function generarFilaTabla(isla,sector){
 }
 
 function limpiarModal(){
+  ocultarErrorValidacion($('#modalIsla input,#modalIsla select'));
   $('#frmIsla').trigger('reset');
   $('#id_isla').val(0);
   $('#listaMaquinas li').remove();
-  limpiarAlertas();
-}
-
-function reiniciarSector(){
-  $('#sector option').remove();
-  $('#sector').append($('<option>').val(0).text('-Sectores del casino-'));
-}
-
-function limpiarAlertas(){
   $('#nro_isla').removeClass('alerta');
   $('#cant_maquinas').removeClass('alerta');
-
   $('#alerta-nro_isla').text('');
   $('#alerta-nro_isla').hide();
   $('#alerta-cant_maquinas').text('');
   $('#alerta-cant_maquinas').hide();
+  $('#sector option').remove();
+  $('#sector').append($('<option>').val(0).text('-Sectores del casino-'));
 }
 
 function mostrarIsla(isla,sector,maquinas){
