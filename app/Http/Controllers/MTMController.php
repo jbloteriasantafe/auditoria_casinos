@@ -664,25 +664,23 @@ class MTMController extends Controller
     return ['MTM'=> $MTM ];
   }
 
-  public function buscarMaquinaPorNumeroMarcaYModelo($casino = 0, $busqueda){
-      if($casino!=0){
-        $resultados = DB::table('maquina')
-        ->select('maquina.id_maquina','maquina.nro_admin','maquina.marca','maquina.modelo')
-          ->where([['maquina.nro_admin','like', $busqueda.'%'],['maquina.id_casino' , '=' , $casino]])
-
-          ->get();
-      }else{
-        $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-        $casinos = array();
-        foreach($usuario->casinos as $casino){
-          $casinos[]=$casino->id_casino;
-        }
-        $resultados = DB::table('maquina')
-        ->select('maquina.id_maquina','maquina.nro_admin','maquina.marca','maquina.modelo')
-          ->where('maquina.nro_admin','like', $busqueda.'%')
-          ->whereIn('maquina.id_casino' , $casinos)
-          ->get();
+  public function buscarMaquinaPorNumeroMarcaYModelo($id_casino = 0, $busqueda){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $casinos = array();
+    foreach($usuario->casinos as $c){
+      $casinos[]=$c->id_casino;
     }
+    $reglas = [['maquina.nro_admin','like', $busqueda.'%']];
+    if($id_casino != 0){
+      $reglas[] = ['maquina.id_casino' , '=' , $id_casino];
+    }
+
+    $resultados = DB::table('maquina')
+    ->select('maquina.id_maquina','maquina.nro_admin','maquina.marca','maquina.modelo')
+    ->where($reglas)
+    ->whereIn('maquina.id_casino' , $casinos)
+    ->whereNull('maquina.deleted_at')
+    ->get();
 
     return ['resultados' => $resultados];
   }

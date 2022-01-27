@@ -98,29 +98,22 @@ function generarHistorialMov(id_isla){
 
 //Agregar Máquina
 $('.agregarMaquina').click(function(){
-      //Crear un item de la lista
-      console.log('agregar maquina');
-      var id = $('#buscadorMaquina').obtenerElementoSeleccionado(); // 25 - KONAMI (ASD-123)
-      if(!existeEnDataList(id)){
-       $.get('http://' + window.location.host +"/maquinas/obtenerMTMReducido/" + id, function(data) {
-
-          agregarMaquina(data.id_maquina,data.nro_admin,data.marca,data.modelo);
-
-          $('#buscadorMaquina').setearElementoSeleccionado(0 , "");//se limpia buscador
-        })
-      }else {
-        $('#buscadorMaquina').setearElementoSeleccionado(0 , "");//se limpia
-      }
+  if(existeEnDataList($('#buscadorMaquina').val())){
+    $('#buscadorMaquina').setearElementoSeleccionado(0 , "");//se limpia
+    return;
+  }
+  $.get("/islas/obtenerMTMReducido/" + $('#buscadorMaquina').obtenerElementoSeleccionado(), function(data) {
+    agregarMaquina(data.id_maquina,data.nro_admin,data.marca,data.modelo);
+    $('#buscadorMaquina').setearElementoSeleccionado(0 , "");//se limpia buscador
+  });
 });
 
-function existeEnDataList(id){
-  var bandera = false;
-  $('#listaMaquinas li').each(function(){
-      if ($(this).val() ==  id)
-        bandera = true;
-  });
-
-  return bandera;
+function existeEnDataList(nro_admin){
+  const maqs = $('#listaMaquinas li');
+  for(let i = 0;i<maqs.length;i++){
+    if(maqs.eq(i).find('.nro_admin').text() == nro_admin) return true;
+  }
+  return false;
 }
 
 $(document).on('click','.borrarMaquina',function(){
@@ -128,45 +121,32 @@ $(document).on('click','.borrarMaquina',function(){
 });
 
 $('#buscadorCasino').on('change' , function (){
-   if($(this).val() != 0){
-     $.get('http://' + window.location.host + "/sectores/obtenerSectoresPorCasino/" + $(this).val(), function(data){
-       $('#buscadorSector option').remove();
-       $('#buscadorSector').append($('<option value="0">-Todos los sectores-</option>'));
-       for (var i = 0; i < data.sectores.length; i++) {
-         $('#buscadorSector').append($('<option>')
-         .val(data.sectores[i].id_sector)
-         .text(data.sectores[i].descripcion)
-       )
-     }
-   })
-   }
+  if($(this).val() == 0) return;
+  $.get("/sectores/obtenerSectoresPorCasino/" + $(this).val(), function(data){
+    $('#buscadorSector option').remove();
+    $('#buscadorSector').append($('<option value="0">-Todos los sectores-</option>'));
+    for (let i = 0; i < data.sectores.length; i++) {
+      $('#buscadorSector').append($('<option>').val(data.sectores[i].id_sector).text(data.sectores[i].descripcion));
+    }
+  });
  })
 
 //Busqueda
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
   e.preventDefault();
 
+  let size = 10;
   //Fix error cuando librería saca los selectores
-  if(isNaN($('#herramientasPaginacion').getPageSize())){
-    var size = 10; // por defecto
-  }else {
-    var size = $('#herramientasPaginacion').getPageSize();
+  if(!isNaN($('#herramientasPaginacion').getPageSize())){
+    size = $('#herramientasPaginacion').getPageSize();
   }
 
-  var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
-  var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-  var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
-  if(sort_by == null){ // limpio las columnas
-    $('#tablaResultados th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
-  }
-
-  var formData = {
+  page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
+  const page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+  const sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
+  const formData = {
     nro_isla: $('#buscadorNroIsla').val(),
     cantidad_maquinas: $('#buscadorCantMaquinas').val(),
     casino: $('#buscadorCasino').val(),
@@ -176,32 +156,28 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     page_size: page_size,
   }
 
-  console.log(formData);
-
   $.ajax({
-      type: 'POST',
-      url: 'http://' + window.location.host + '/islas/buscarIslas',
-      data: formData,
-      dataType: 'json',
-      success: function (resultados) {
-          $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
-          $('#cuerpoTabla tr').remove();
+    type: 'POST',
+    url: 'http://' + window.location.host + '/islas/buscarIslas',
+    data: formData,
+    dataType: 'json',
+    success: function (resultados) {
+      $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
+      $('#cuerpoTabla tr').remove();
 
-          for (var i = 0; i < resultados.data.length; i++){
-            $('#cuerpoTabla').append(generarFilaTabla(resultados.data[i],resultados.data[i].sector));
-          }
-
-          $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
-
-      },
-      error: function (data) {
-        var response = JSON.parse(data.responseText);
-
-        if(typeof response.cantidad_maquinas !== 'undefined'){
-          mostrarErrorValidacion($('#buscadorCantMaquinas') , response.cantidad_maquinas[0] , true);
-        }
+      for (var i = 0; i < resultados.data.length; i++){
+        $('#cuerpoTabla').append(generarFilaTabla(resultados.data[i],resultados.data[i].sector));
       }
-    });
+
+      $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
+    },
+    error: function (data) {
+      const response = JSON.parse(data.responseText);
+      if(typeof response.cantidad_maquinas !== 'undefined'){
+        mostrarErrorValidacion($('#buscadorCantMaquinas') , response.cantidad_maquinas[0] , true);
+      }
+    }
+  });
 });
 
 $('#btn-ayuda').click(function(e){
@@ -245,10 +221,10 @@ $(document).on('click','.dividir',function(){
 
     //Setear sectores
     $.get('sectores/obtenerSectoresPorCasino/' + id_casino, function(data){
-        for (var i = 0; i < data.sectores.length; i++) {
-            var option = $('<option>').val(data.sectores[i].id_sector).text(data.sectores[i].descripcion);
-            $('#moldeSubisla .selectSector').append(option);
-        }
+      for (let i = 0; i < data.sectores.length; i++) {
+        const option = $('<option>').val(data.sectores[i].id_sector).text(data.sectores[i].descripcion);
+        $('#moldeSubisla .selectSector').append(option);
+      }
     });
 
     $.get('islas/obtenerIsla/'+ id_isla, function(data) {
@@ -264,22 +240,18 @@ $(document).on('click','.dividir',function(){
 
         $('#d_maquinas').val(data.cantidad_maquinas);
 
-        //Setear el select de agregar máquina
-        var subisla;
-
         //Generar las subislas existentes en el modal
-        for (var i = 1; i < cantidad_subislas; i++) {
-            subisla = generarSubisla(i, data.islas[i-1]);
+        for (let i = 1; i < cantidad_subislas; i++) {
+            const subisla = generarSubisla(i, data.islas[i-1]);
             $('#subislas').append(subisla);
         }
 
         //Generar la nueva subisla en el modal
-        subisla = generarSubisla(cantidad_subislas);
+        const subisla = generarSubisla(cantidad_subislas);
         subisla.find('.contenedorSI').css('border-color','#FF9100');
         $('#subislas').append(subisla);
 
-        var option = $('<option>').val(cantidad_subislas).text(cantidad_subislas);
-        $('#selectSubisla').append(option);
+        $('#selectSubisla').append($('<option>').val(cantidad_subislas).text(cantidad_subislas));
     });
     $('#modalDividirIsla').modal('show');
 });
@@ -306,30 +278,29 @@ $('#btn-agregarMaquina').click(function(e){
 });
 
 function generarSubisla(indice, subisla) {
-    var moldeSubisla = $('#moldeSubisla').clone().show();
+    const moldeSubisla = $('#moldeSubisla').clone().show().removeAttr('id').attr('data-sub', indice);
 
-    moldeSubisla.removeAttr('id');
-    moldeSubisla.attr('data-sub', indice);
     moldeSubisla.find('span').text(indice);
 
     if (typeof subisla === "undefined") {
       moldeSubisla.attr('id', 0);
-    }else {
-      moldeSubisla.attr('id',subisla.id_isla);
-      moldeSubisla.find('input.codigo_subisla').val(subisla.codigo);
-      moldeSubisla.find('.selectSector').val(subisla.id_sector);
-
-      for (var i = 0; i < subisla.maquinas.length; i++) {
-        var maquina = generarMaquinaSI(indice, subisla.maquinas[i]);
-        moldeSubisla.find('table tbody').append(maquina);
-      }
+      return moldeSubisla;
     }
 
+    moldeSubisla.attr('id',subisla.id_isla);
+    moldeSubisla.find('input.codigo_subisla').val(subisla.codigo);
+    moldeSubisla.find('.selectSector').val(subisla.id_sector);
+
+    for (let i = 0; i < subisla.maquinas.length; i++) {
+      const maquina = generarMaquinaSI(indice, subisla.maquinas[i]);
+      moldeSubisla.find('table tbody').append(maquina);
+    }
+    
     return moldeSubisla;
 }
 
 function generarMaquinaSI(indice, maquina) {
-  var moldeMaquinaSI = $('#moldeMaquinaSI').clone().show();
+  const moldeMaquinaSI = $('#moldeMaquinaSI').clone().show();
   moldeMaquinaSI.removeAttr('id');
   moldeMaquinaSI.attr('data-maquina', maquina.id_maquina);
   moldeMaquinaSI.find('.nro_admin').text(maquina.nro_admin);

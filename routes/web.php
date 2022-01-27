@@ -263,7 +263,6 @@ Route::get('maquinas/obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMT
 Route::get('maquinas/buscarMaquinaPorNumeroMarcaYModelo/{casino?}/{busqueda}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
 Route::get('maquinas/obtenerConfiguracionMaquina/{id}', 'MTMController@obtenerConfiguracionMaquina');
 Route::get('maquinas/buscarMarcas/{marca}', 'MTMController@buscarMarcas');
-Route::get('maquinas/obtenerMTMReducido/{id}', 'MTMController@obtenerMTMReducido');
 
 
 /**********
@@ -281,6 +280,7 @@ Route::post('islas/modificarIsla','IslaController@modificarIsla');
 Route::post('islas/guardarIsla','IslaController@guardarIsla');
 Route::get('islas/listarMaquinasPorNroIsla/{nro_isla}/{id_casino?}','IslaController@listarMaquinasPorNroIsla');
 Route::post('islas/actualizarListaMaquinas','IslaController@actualizarListaMaquinas');
+Route::get('islas/obtenerMTMReducido/{id}', 'MTMController@obtenerMTMReducido');
 
 /**********
 Movimientos
