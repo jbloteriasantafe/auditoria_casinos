@@ -802,7 +802,7 @@ function mostrarIsla(isla,sector,maquinas){
   $('#nro_islote').val(isla.nro_islote).closest('div').toggle(isla.id_casino == 3);
 
   for (var i = 0; i < maquinas.length; i++) {
-      agregarMaquina(maquinas[i].id_maquina, maquinas[i].nro_admin, maquinas[i].marca, maquinas[i].modelo);
+    agregarMaquina(maquinas[i].id_maquina, maquinas[i].nro_admin, maquinas[i].marca, maquinas[i].modelo);
   }
 }
 

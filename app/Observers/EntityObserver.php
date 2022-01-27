@@ -8,7 +8,6 @@ use App\Http\Controllers\DetalleLogController;
 //y además sobreescribir el método getDetalles
 class EntityObserver
 {
-
     public function created($entidad){
       $this->guardarLog($entidad,'Alta');
     }
@@ -30,5 +29,4 @@ class EntityObserver
       //hacer override y retornar vector de (campo,valor)
       return null;
     }
-
 }

@@ -3,7 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\IslaObserver;
+use App\Observers\FullObserver;
 use App\Maquina;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -69,8 +69,8 @@ class Isla extends Model
   }
 
   public static function boot(){
-        parent::boot();
-        Isla::observe(new IslaObserver());
+    parent::boot();
+    Isla::observe(new FullObserver());
   }
 
   public function getTableName(){
