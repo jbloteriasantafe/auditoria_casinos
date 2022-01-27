@@ -46,7 +46,7 @@ $("#modalIsla input").on('keypress',function(e){
 });
 
 $('#casino').on('change' , function(e,id_sector){
-    var id_casino=$(this).val();
+    const id_casino = $(this).val();
     if(id_casino == 0){
       $('#buscadorMaquina').borrarDataList();
     }else{
@@ -54,11 +54,8 @@ $('#casino').on('change' , function(e,id_sector){
       $('#buscadorMaquina').setearElementoSeleccionado(0 , "");
       $('#sector option').remove();
       $.get('http://' + window.location.host + "/sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
-        for (var i = 0; i < data.sectores.length; i++) {
-          $('#sector').append($('<option>')
-                            .val(data.sectores[i].id_sector)
-                            .text(data.sectores[i].descripcion)
-                        )
+        for (let i = 0; i < data.sectores.length; i++) {
+          $('#sector').append($('<option>').val(data.sectores[i].id_sector).text(data.sectores[i].descripcion))
         }
         $('#sector').val(id_sector);
       })
@@ -80,29 +77,23 @@ $('#cancelarMaquina').click(function(){
 });
 
 function generarHistorialMov(id_isla){
-  var estadosMov = $('<select>').addClass('form-control').attr('id','estadosMovimientos');
-
+  const estadosMov = $('<select>').addClass('form-control estadosMovimientos');
+  $('.columnaMovimientos').children().remove();
   $.get("logIsla/obtenerHistorial/" + id_isla, function(data){
-        estadosMov.children().remove();
-        for(i=0 ; i<data.estados.length ; i++){
-          console.log(data.estados[i].id_estado_relevamiento);
-          estadosMov.append($('<option>').val(data.estados[i].id_estado_relevamiento).text(data.estados[i].descripcion));
-        }
+    for(let i = 0;i<data.estados.length;i++){
+      estadosMov.append($('<option>').val(data.estados[i].id_estado_relevamiento).text(data.estados[i].descripcion));
+    }
 
-        // console.log(selectMov);
-        $('.columnaMovimientos').children().remove();
-        for(i=0; i<data.historial.length; i++){
-          console.log(data.historial[i]);
-          $('.columnaMovimientos')
-          .append($('<div>').addClass('unMovimiento')
-          .append($('<div>').addClass('col-md-4').css('padding-bottom','15px')
-          .append($('<span>').attr('value',data.historial[i].id_log_isla).text(data.historial[i].fecha)))
-          .append($('<div>').addClass('col-md-8').css('padding-bottom','15px')
-          .append(estadosMov.clone().val(data.historial[i].id_estado_relevamiento))))
-          .append($('<br>'));
-        }
+    for(let i = 0;i<data.historial.length;i++){
+      $('.columnaMovimientos')
+      .append($('<div>').addClass('unMovimiento')
+      .append($('<div>').addClass('col-md-4').css('padding-bottom','15px')
+        .append($('<span>').attr('value',data.historial[i].id_log_isla).text(data.historial[i].fecha)))
+      .append($('<div>').addClass('col-md-8').css('padding-bottom','15px')
+        .append(estadosMov.clone().val(data.historial[i].id_estado_relevamiento))))
+      .append($('<br>'));
+    }
   });
-
 }
 
 //Agregar Máquina
@@ -556,7 +547,7 @@ $('#btn-guardar').click(function (e) {
     $('.columnaMovimientos .unMovimiento').each(function(){
         var movimiento = {
           id_log_isla: $(this).find('span').attr('value'),
-          id_estado_relevamiento: $(this).find('#estadosMovimientos option:selected').val(),
+          id_estado_relevamiento: $(this).find('.estadosMovimientos option:selected').val(),
         }
         historial.push(movimiento);
     });
@@ -654,127 +645,19 @@ function existeMaquina(id_maquina){ // devuelve true si ya existe esa maquina en
 }
 
 function generarFilaTabla(isla,sector){
-  console.log('44',isla);
-  var fila = $(document.createElement('tr'));
-  var codigo;
-  isla.codigo == null ? codigo = '-' : codigo= isla.codigo;
-
-  if(isla.id_casino != 3){
-  fila.attr('id','isla' + isla.id_isla)
-      .append($('<td>')
-          .addClass('col-xs-1')
-          .text(isla.nro_isla)
-      )
-      .append($('<td>')
-          .addClass('col-xs-2')
-          .text(codigo).css('text-align','center')
-      )
-
-      fila.append($('<td>')
-          .addClass('col-xs-2')
-          .text(isla.casino)
-      )
-      .append($('<td>')
-          .addClass('col-xs-2')
-          .text(sector)
-      )
-      .append($('<td>')
-          .addClass('col-xs-2')
-          .text(isla.cantidad_maquinas).css('text-align','center')
-      )
-
-      fila.append($('<td>')
-          .addClass('col-xs-3')
-          .append($('<button>')
-              .append($('<i>')
-                  .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
-              )
-              .append($('<span>').text(' VER MÁS'))
-              .addClass('btn').addClass('btn-info').addClass('detalle')
-              .attr('value', isla.id_isla)
-          )
-          .append($('<span>').text(' '))
-          .append($('<button>')
-              .append($('<i>')
-                  .addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt')
-              )
-              .append($('<span>').text(' MODIFICAR'))
-              .addClass('btn').addClass('btn-warning').addClass('modificar')
-              .attr('value', isla.id_isla)
-          )
-          .append($('<span>').text(' '))
-          .append($('<button>')
-              .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-unlink')
-              )
-              .append($('<span>').text(' DIVIDIR'))
-              .addClass('btn').addClass('btn-warning').addClass('dividir')
-              .attr('value', isla.id_isla)
-              .attr('data-isla', isla.nro_isla)
-              .attr('data-casino', isla.id_casino)
-          )
-          .append($('<span>').text(' '))
-          .append($('<button>')
-              .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-trash-alt')
-              )
-              .append($('<span>').text(' ELIMINAR'))
-              .addClass('btn').addClass('btn-danger').addClass('eliminar')
-              .attr('value', isla.id_isla)
-          )
-      )}
-      else{
-        fila.attr('id','isla' + isla.id_isla)
-            .append($('<td>')
-                .addClass('col-xs-1')
-                .text(isla.nro_isla)
-            )
-            .append($('<td>')
-                .addClass('col-xs-2')
-                .text(' - ').css('text-align','center')
-            )
-            .append($('<td>')
-                .addClass('col-xs-2')
-                .text(isla.casino)
-            )
-            .append($('<td>')
-                .addClass('col-xs-2')
-                .text(sector)
-            )
-            .append($('<td>')
-                .addClass('col-xs-2')
-                .text(isla.cantidad_maquinas).css('text-align','center')
-            )
-
-          .append($('<td>')
-            .addClass('col-xs-3')
-            .append($('<button>')
-                .append($('<i>')
-                    .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
-                )
-                .append($('<span>').text(' VER MÁS'))
-                .addClass('btn').addClass('btn-info').addClass('detalle')
-                .attr('value', isla.id_isla)
-            )
-            .append($('<span>').text(' '))
-            .append($('<button>')
-                .append($('<i>')
-                    .addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt')
-                )
-                .append($('<span>').text(' MODIFICAR'))
-                .addClass('btn').addClass('btn-warning').addClass('modificar')
-                .attr('value', isla.id_isla)
-            )
-
-            .append($('<span>').text(' '))
-            .append($('<button>')
-                .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-trash-alt')
-                )
-                .append($('<span>').text(' ELIMINAR'))
-                .addClass('btn').addClass('btn-danger').addClass('eliminar')
-                .attr('value', isla.id_isla)
-            )
-        )
-      }
-    return fila;
+  const fila = $('#moldeFilaTabla').clone().removeAttr('id');
+  const codigo = isla.codigo == null ? '-' :  isla.codigo;
+  fila.attr('id','isla' + isla.id_isla);
+  fila.find('.nro_isla').text(isla.nro_isla);
+  fila.find('.codigo').text(isla.id_casino == 3? codigo : ' - ');
+  fila.find('.casino').text(isla.casino);
+  fila.find('.sector').text(sector);
+  fila.find('.cantidad_maquinas').text(isla.cantidad_maquinas);
+  fila.find('button').val(isla.id_isla).attr('data-isla',isla.nro_isla).attr('data-casino',isla.id_casino);
+  if(isla.id_casino == 3){
+    fila.find('.dividir').remove();
+  }
+  return fila;
 }
 
 function limpiarModal(){
@@ -807,37 +690,11 @@ function mostrarIsla(isla,sector,maquinas){
 }
 
 function agregarMaquina(id_maquina, nro_admin,nombre,modelo){
-  $('#listaMaquinas')
-     .append($('<li>')
-        .val(id_maquina)
-        .addClass('row')
-        .css('list-style','none').css('padding','5px 0px')
-        //Columna de NUMERO ADMIN
-        .append($('<div>')
-            .addClass('col-xs-2')
-            .text(nro_admin)
-        )
-        //Columna de NOMBRE
-        .append($('<div>')
-            .addClass('col-xs-4')
-            .text(nombre)
-        )
-        //Columna de MODELO
-        .append($('<div>')
-            .addClass('col-xs-4')
-            .text(modelo)
-        )
-        //Columna BOTON QUITAR
-        .append($('<div>')
-            .addClass('col-xs-2')
-            .append($('<button>')
-                .addClass('btn').addClass('btn-danger').addClass('borrarFila').addClass('borrarMaquina')
-                .append($('<i>')
-                    .addClass('fa').addClass('fa-trash')
-                )
-            )
-        )
-    );
+  const fila = $('#moldeMaquina').clone().removeAttr('id');
+  fila.find('.nro_admin').text(nro_admin);
+  fila.find('.nombre').text(nombre);
+  fila.find('.modelo').text(modelo);
+  $('#listaMaquinas').append(fila);
 }
 
 function habilitarControles(valor){

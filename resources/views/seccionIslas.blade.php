@@ -395,6 +395,33 @@
         </div>
     </div>
 </div>
+<div hidden>
+  <li id="moldeMaquina" class="row" style="list-style: none;padding: 5px 0px;">
+    <div class="col-xs-2 nro_admin">N° ADM</div>
+    <div class="col-xs-4 nombre">NOMBRE</div>
+    <div class="col-xs-4 modelo">MODELO</div>
+    <div class="col-xs-2">
+      <button class="btn btn-link borrarMaquina">
+        <i class="fa fa-trash"></i>
+      </button>
+    </div>
+  </li>
+</div>
+<table hidden>
+  <tr id="moldeFilaTabla">
+    <td class="col-xs-1 nro_isla">NRO_ISLA</td>
+    <td class="col-xs-2 codigo" style="text-align: center;"> - </td>
+    <td class="col-xs-2 casino">CAS</td>
+    <td class="col-xs-2 sector">SECTOR</td>
+    <td class="col-xs-2 cantidad_maquinas" style="text-align: center;"># MAQs</td>
+    <td class="col-xs-3">
+      <button class="btn detalle"   title="VER MÁS"  ><i class="fa fa-fw fa-search-plus"></i></button>
+      <button class="btn modificar" title="MODIFICAR"><i class="fa fa-fw fa-pencil-alt"></i></button>
+      <button class="btn dividir"   title="DIVIDIR"  ><i class="fa fa-fw fa-unlink"></i></button>
+      <button class="btn eliminar"  title="ELIMINAR" ><i class="fa fa-fw fa-trash-alt"></i></button>
+    </td>
+  </tr>
+</table>
 
 @endsection
 
