@@ -201,9 +201,9 @@ $('#btn-nuevo').click(function(e){
 
 /* DIVIDIR ISLAS */
 $(document).on('click','.dividir',function(){
-    var nro_isla = $(this).attr('data-isla');
-    var id_casino = $(this).attr('data-casino');
-    var id_isla = $(this).val();
+    const nro_isla = $(this).attr('data-isla');
+    const id_casino = $(this).attr('data-casino');
+    const id_isla = $(this).val();
 
     //Setear datos al boton de enviar
     $('#btn-aceptarDividir').val(id_isla);
@@ -261,47 +261,43 @@ $('#modalDividirIsla').on('hidden.bs.modal',function(){
 });
 
 $('#btn-agregarMaquina').click(function(e){
-  var indice = $('#selectSubisla').val();
-  var id_maquina = $('#inputMaquina').obtenerElementoSeleccionado();
-
+  const indice = $('#selectSubisla').val();
+  const id_maquina = $('#inputMaquina').obtenerElementoSeleccionado();
+  if(existeMaquina(id_maquina)){
+    mostrarErrorValidacion($('#inputMaquina') , 'Ya existe la maquina elegida.' , true);
+    return;
+  }
   $.get('maquinas/obtenerMTM/'+ id_maquina , function(data){
-    if(!existeMaquina(data.maquina.id_maquina)){
-      var maquina = generarMaquinaSI(indice, data.maquina);
-
-      $('#inputMaquina').setearElementoSeleccionado(0 , "");
-      $('.subisla[data-sub="'+ indice +'"] table tbody').append(maquina);
-      $('#d_maquinas').val(parseInt($('#d_maquinas').val())+1);
-    }else {
-      mostrarErrorValidacion($('#inputMaquina') , 'Ya existe la maquina elegida.' , true);
-    }
+    $('#inputMaquina').setearElementoSeleccionado(0 , "");
+    $(`.subisla[data-sub="${indice}"] table tbody`).append(generarMaquinaSI(indice, data.maquina));
+    $('#d_maquinas').val(parseInt($('#d_maquinas').val())+1);
   });
 });
 
 function generarSubisla(indice, subisla) {
-    const moldeSubisla = $('#moldeSubisla').clone().show().removeAttr('id').attr('data-sub', indice);
+  const moldeSubisla = $('#moldeSubisla').clone().show().removeAttr('id').attr('data-sub', indice);
 
-    moldeSubisla.find('span').text(indice);
+  moldeSubisla.find('span').text(indice);
 
-    if (typeof subisla === "undefined") {
-      moldeSubisla.attr('id', 0);
-      return moldeSubisla;
-    }
-
-    moldeSubisla.attr('id',subisla.id_isla);
-    moldeSubisla.find('input.codigo_subisla').val(subisla.codigo);
-    moldeSubisla.find('.selectSector').val(subisla.id_sector);
-
-    for (let i = 0; i < subisla.maquinas.length; i++) {
-      const maquina = generarMaquinaSI(indice, subisla.maquinas[i]);
-      moldeSubisla.find('table tbody').append(maquina);
-    }
-    
+  if (typeof subisla === "undefined") {
+    moldeSubisla.attr('id', 0);
     return moldeSubisla;
+  }
+
+  moldeSubisla.attr('id',subisla.id_isla);
+  moldeSubisla.find('input.codigo_subisla').val(subisla.codigo);
+  moldeSubisla.find('.selectSector').val(subisla.id_sector);
+  
+  for (let i = 0; i < subisla.maquinas.length; i++) {
+    const maquina = generarMaquinaSI(indice, subisla.maquinas[i]);
+    moldeSubisla.find('table tbody').append(maquina);
+  }
+  
+  return moldeSubisla;
 }
 
 function generarMaquinaSI(indice, maquina) {
-  const moldeMaquinaSI = $('#moldeMaquinaSI').clone().show();
-  moldeMaquinaSI.removeAttr('id');
+  const moldeMaquinaSI = $('#moldeMaquinaSI').clone().show().removeAttr('id');
   moldeMaquinaSI.attr('data-maquina', maquina.id_maquina);
   moldeMaquinaSI.find('.nro_admin').text(maquina.nro_admin);
   moldeMaquinaSI.find('.marca_juego').text(maquina.marca_juego);
@@ -313,36 +309,27 @@ function generarMaquinaSI(indice, maquina) {
 var cantidad_subislas = 3;
 
 $(document).on('click','.mover_izquierda', function() {
-  var tr = $(this).closest('tr');
-  var nro_subisla_actual = parseInt($(this).val());
-  var nro_nueva_subisla =  nro_subisla_actual - 1;
-
-  if (nro_nueva_subisla < 1 ) nro_nueva_subisla = cantidad_subislas;
+  const tr = $(this).closest('tr');
+  const nro_subisla_actual = parseInt($(this).val());
+  const nro_nueva_subisla =  nro_subisla_actual >= 2? nro_subisla_actual - 1 : cantidad_subislas;
 
   $(this).val(nro_nueva_subisla);
   $(this).siblings('button').val(nro_nueva_subisla);
 
-  var subislaNueva = $('#subislas').find('div[data-sub="'+ nro_nueva_subisla +'"]');
-
   tr.remove();
-  subislaNueva.find('table tbody').append(tr);
+  $('#subislas').find(`div[data-sub="${nro_nueva_subisla}"]`).find('table tbody').append(tr);
 });
 
 $(document).on('click','.mover_derecha', function() {
-    //Cortar la fila de la máquina y moverla a la sub indicada
-    var tr = $(this).closest('tr');
-    var nro_subisla_actual = parseInt($(this).val());
-    var nro_nueva_subisla =  nro_subisla_actual + 1;
+  const tr = $(this).closest('tr');
+  const nro_subisla_actual = parseInt($(this).val());
+  const nro_nueva_subisla =  (nro_subisla_actual < cantidad_subislas)? nro_subisla_actual + 1 : 1;
 
-    if (nro_nueva_subisla > cantidad_subislas ) nro_nueva_subisla = 1;
-
-    $(this).val(nro_nueva_subisla);
-    $(this).siblings('button').val(nro_nueva_subisla);
-
-    var subislaNueva = $('#subislas').find('div[data-sub="'+ nro_nueva_subisla +'"]');
-
-    tr.remove();
-    subislaNueva.find('table tbody').append(tr);
+  $(this).val(nro_nueva_subisla);
+  $(this).siblings('button').val(nro_nueva_subisla);
+  
+  tr.remove();
+  $('#subislas').find(`div[data-sub="${nro_nueva_subisla}"]`).find('table tbody').append(tr);
 });
 
 $(document).on('click','.borrarMaquinaSI', function() {
@@ -351,11 +338,7 @@ $(document).on('click','.borrarMaquinaSI', function() {
 });
 
 $('#btn-aceptarDividir').click(function() {
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    });
+    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
     var subislas = [];
     var subislasModal = $('.subisla').not('#moldeSubisla');

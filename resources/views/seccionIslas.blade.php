@@ -336,54 +336,6 @@
               </div>
 
               <div id="subislas" class="row">
-
-                    <div id="moldeSubisla" class="subisla" data-sub="1" hidden>
-                      <div class="contenedorSI">
-                        <div class="col-md-2" style="margin-bottom:30px;">
-                            <span></span>
-                        </div>
-                        <div class="col-md-4" style="margin-bottom:30px;">
-                            <h5>CÓDIGO SUBISLA</h5>
-                            <input class="form-control codigo_subisla" type="text" name="">
-                        </div>
-                        <div class="col-md-6" style="margin-bottom:30px;">
-                            <h5>SECTOR</h5>
-                            <select class="selectSector form-control" name="">
-                            </select>
-                        </div>
-
-                        <table class="table" style="margin-top:20px;">
-                          <thead>
-                              <tr>
-                                <th class="col-xs-1"></th>
-                                <th class="col-xs-3">N° ADMIN</th>
-                                <th class="col-xs-6">MARCA</th>
-                                <th class="col-xs-2" style="text-align:center;">MOVER</th>
-                              </tr>
-                          </thead>
-                          <tbody>
-                              <tr id="moldeMaquinaSI" class="maquinaSI" data-maquina="0" hidden>
-                                <td class="tdBorrar">
-                                  <button class="btn btn-danger borrarMaquinaSI" type="button" name="button" value="1">
-                                      <i class="fa fa-fw fa-trash"></i>
-                                  </button>
-                                </td>
-                                <td class="nro_admin"></td>
-                                <td class="marca_juego">MÁQUINA 1</td>
-                                <td style="text-align:center;">
-                                    <button class="btn btn-warning mover_izquierda mover" type="button" name="button" value="1">
-                                        <i class="fa fa-fw fa-arrow-up"></i>
-                                    </button>
-                                    <button class="btn btn-warning mover_derecha mover" type="button" name="button" value="1">
-                                        <i class="fa fa-fw fa-arrow-down"></i>
-                                    </button>
-                                </td>
-                              </tr>
-                          </tbody>
-                        </table>
-
-                      </div> <!-- contenedor -->
-                    </div> <!-- sub -->
               </div>
             </div>
 
@@ -422,6 +374,53 @@
     </td>
   </tr>
 </table>
+
+
+<div id="moldeSubisla" class="subisla" data-sub="0" hidden>
+  <div class="contenedorSI">
+    <div class="col-md-2" style="margin-bottom:30px;">
+      <span></span>
+    </div>
+    <div class="col-md-4" style="margin-bottom:30px;">
+      <h5>CÓDIGO SUBISLA</h5>
+      <input class="form-control codigo_subisla" type="text" name="">
+    </div>
+    <div class="col-md-6" style="margin-bottom:30px;">
+      <h5>SECTOR</h5>
+      <select class="selectSector form-control" name="">
+      </select>
+    </div>
+    <table class="table" style="margin-top:20px;">
+      <thead>
+        <tr>
+          <th class="col-xs-1"></th>
+          <th class="col-xs-3">N° ADMIN</th>
+          <th class="col-xs-6">MARCA</th>
+          <th class="col-xs-2" style="text-align:center;">MOVER</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr id="moldeMaquinaSI" class="maquinaSI" data-maquina="0" hidden>
+          <td class="tdBorrar">
+            <button class="btn btn-danger borrarMaquinaSI" type="button" name="button" value="1">
+              <i class="fa fa-fw fa-trash"></i>
+            </button>
+          </td>
+          <td class="nro_admin"></td>
+          <td class="marca_juego">MÁQUINA 1</td>
+          <td style="text-align:center;">
+            <button class="btn btn-warning mover_izquierda mover" type="button" name="button" value="1">
+              <i class="fa fa-fw fa-arrow-up"></i>
+            </button>
+            <button class="btn btn-warning mover_derecha mover" type="button" name="button" value="1">
+              <i class="fa fa-fw fa-arrow-down"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div> <!-- contenedor -->
+</div> <!-- sub -->
 
 @endsection
 
