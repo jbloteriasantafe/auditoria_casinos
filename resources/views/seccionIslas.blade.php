@@ -177,7 +177,7 @@
                               <div class="input-group">
                                   <input id="buscadorMaquina" class="form-control" type="text" value="" autocomplete="off">
                                   <span class="input-group-btn">
-                                    <button class="btn btn-default btn-lista-datos agregarMaquina" type="button"><i class="fa fa-plus"></i></button>
+                                    <button id="btn-agregarMaquina" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
                                   </span>
                               </div>
 
@@ -288,7 +288,7 @@
                       <div class="input-group lista-datos-group">
                            <input id="inputMaquina" class="form-control " type="text" value="" autocomplete="off" placeholder="Buscar máquina">
                            <span class="input-group-btn">
-                             <button id="btn-agregarMaquina" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
+                             <button id="btn-agregarMaquinaSI" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
                            </span>
                      </div>
                   </div>
@@ -376,7 +376,7 @@
 </table>
 
 
-<div id="moldeSubisla" class="subisla" data-sub="0" hidden>
+<div id="moldeSubisla" class="subisla" data-sub="MOLDE" hidden>
   <div class="contenedorSI">
     <div class="col-md-2" style="margin-bottom:30px;">
       <span></span>

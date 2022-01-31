@@ -70,12 +70,6 @@ $('#casino').on('change' , function(e,id_sector){
     Si fue seleccionado se compara con el input para sacarle el id.
 */
 
-//Botón Cancelar input Islas
-$('#cancelarMaquina').click(function(){
-    $('#buscadorMaquina').prop("readonly", false); //Se habilita el input
-    $('#buscadorMaquina').setearElementoSeleccionado(0 , "");
-});
-
 function generarHistorialMov(id_isla){
   const estadosMov = $('<select>').addClass('form-control estadosMovimientos');
   $('.columnaMovimientos').children().remove();
@@ -97,8 +91,10 @@ function generarHistorialMov(id_isla){
 }
 
 //Agregar Máquina
-$('.agregarMaquina').click(function(){
-  if(existeEnDataList($('#buscadorMaquina').val())){
+$('#btn-agregarMaquina').click(function(){
+  const nro_admin = $('#buscadorMaquina').val();
+  const existeEnLista = $('#listaMaquinas li .nro_admin').filter(function(){return $(this).text() == nro_admin;}).length > 0;
+  if(existeEnLista){
     $('#buscadorMaquina').setearElementoSeleccionado(0 , "");//se limpia
     return;
   }
@@ -107,14 +103,6 @@ $('.agregarMaquina').click(function(){
     $('#buscadorMaquina').setearElementoSeleccionado(0 , "");//se limpia buscador
   });
 });
-
-function existeEnDataList(nro_admin){
-  const maqs = $('#listaMaquinas li');
-  for(let i = 0;i<maqs.length;i++){
-    if(maqs.eq(i).find('.nro_admin').text() == nro_admin) return true;
-  }
-  return false;
-}
 
 $(document).on('click','.borrarMaquina',function(){
   $(this).parent().parent().remove();
@@ -146,20 +134,19 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
   const page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
   const sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
-  const formData = {
-    nro_isla: $('#buscadorNroIsla').val(),
-    cantidad_maquinas: $('#buscadorCantMaquinas').val(),
-    casino: $('#buscadorCasino').val(),
-    sector: $('#buscadorSector').val(),
-    page: page_number,
-    sort_by: sort_by,
-    page_size: page_size,
-  }
 
   $.ajax({
     type: 'POST',
     url: 'http://' + window.location.host + '/islas/buscarIslas',
-    data: formData,
+    data: {
+      nro_isla: $('#buscadorNroIsla').val(),
+      cantidad_maquinas: $('#buscadorCantMaquinas').val(),
+      casino: $('#buscadorCasino').val(),
+      sector: $('#buscadorSector').val(),
+      page: page_number,
+      sort_by: sort_by,
+      page_size: page_size,
+    },
     dataType: 'json',
     success: function (resultados) {
       $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
@@ -215,7 +202,7 @@ $(document).on('click','.dividir',function(){
     $('#selectSubisla option').remove();
 
     //Buscador de máquinas
-    $('#inputMaquina').generarDataList('http://' + window.location.host + '/maquinas/buscarMaquinaPorNumeroMarcaYModelo/' + id_casino, "resultados","id_maquina" ,"nro_admin" , 2, true);
+    $('#inputMaquina').generarDataList('/maquinas/buscarMaquinaPorNumeroMarcaYModelo/' + id_casino, "resultados","id_maquina" ,"nro_admin" , 2, true);
 
     $('#moldeSubisla .selectSector option').remove();
 
@@ -235,23 +222,21 @@ $(document).on('click','.dividir',function(){
     });
 
     $.get('islas/listarMaquinasPorNroIsla/' + nro_isla + '/' + id_casino, function(data) {
-        //Setear la nueva cantidad de subislas
-        cantidad_subislas = parseInt(data.islas.length) + 1;
+      //Setear la nueva cantidad de subislas
+      $('#d_maquinas').val(data.cantidad_maquinas);
 
-        $('#d_maquinas').val(data.cantidad_maquinas);
-
-        //Generar las subislas existentes en el modal
-        for (let i = 1; i < cantidad_subislas; i++) {
-            const subisla = generarSubisla(i, data.islas[i-1]);
-            $('#subislas').append(subisla);
-        }
-
-        //Generar la nueva subisla en el modal
-        const subisla = generarSubisla(cantidad_subislas);
-        subisla.find('.contenedorSI').css('border-color','#FF9100');
+      //Generar las subislas existentes en el modal
+      for (let i = 0; i < data.islas.length; i++) {
+        const subisla = generarSubisla(i, data.islas[i]);
         $('#subislas').append(subisla);
+        $('#selectSubisla').append($('<option>').val(i).text(i));
+      }
 
-        $('#selectSubisla').append($('<option>').val(cantidad_subislas).text(cantidad_subislas));
+      //Generar la nueva subisla en el modal
+      const subisla = generarSubisla(data.islas.length);
+      subisla.find('.contenedorSI').css('border-color','#FF9100');
+      $('#subislas').append(subisla);
+      $('#selectSubisla').append($('<option>').val(data.islas.length).text(data.islas.length));
     });
     $('#modalDividirIsla').modal('show');
 });
@@ -260,10 +245,11 @@ $('#modalDividirIsla').on('hidden.bs.modal',function(){
   $('#inputMaquina').setearElementoSeleccionado(0 , "");
 });
 
-$('#btn-agregarMaquina').click(function(e){
+$('#btn-agregarMaquinaSI').click(function(e){
   const indice = $('#selectSubisla').val();
   const id_maquina = $('#inputMaquina').obtenerElementoSeleccionado();
-  if(existeMaquina(id_maquina)){
+  const existeMaquina = $(`#subislas tr.maquinaSI[data-maquina="${id_maquina}"]`).not('#moldeMaquinaSI').length > 0;
+  if(existeMaquina){
     mostrarErrorValidacion($('#inputMaquina') , 'Ya existe la maquina elegida.' , true);
     return;
   }
@@ -296,45 +282,39 @@ function generarSubisla(indice, subisla) {
   return moldeSubisla;
 }
 
+function mod(x,m){//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Remainder
+  return ((x % m) + m) % m;
+}
+
 function generarMaquinaSI(indice, maquina) {
   const moldeMaquinaSI = $('#moldeMaquinaSI').clone().show().removeAttr('id');
   moldeMaquinaSI.attr('data-maquina', maquina.id_maquina);
   moldeMaquinaSI.find('.nro_admin').text(maquina.nro_admin);
   moldeMaquinaSI.find('.marca_juego').text(maquina.marca_juego);
-  moldeMaquinaSI.find('button.mover_izquierda').val(indice);
-  moldeMaquinaSI.find('button.mover_derecha').val(indice);
+  moldeMaquinaSI.find('button').val(indice);
   return moldeMaquinaSI;
 }
 
-var cantidad_subislas = 3;
+function moverFila(fila,mover){
+  const nro_subisla_actual = parseInt(fila.find('button').eq(0).val());
+  const cantidad_subislas =  $('#subislas .subisla').length;
+  const nuevapos = mod(nro_subisla_actual + mover,cantidad_subislas);
+  fila.find('button').val(nuevapos);
+  fila.remove();
+  $('#subislas').find(`div[data-sub="${nuevapos}"]`).find('table tbody').append(fila);
+}
 
 $(document).on('click','.mover_izquierda', function() {
-  const tr = $(this).closest('tr');
-  const nro_subisla_actual = parseInt($(this).val());
-  const nro_nueva_subisla =  nro_subisla_actual >= 2? nro_subisla_actual - 1 : cantidad_subislas;
-
-  $(this).val(nro_nueva_subisla);
-  $(this).siblings('button').val(nro_nueva_subisla);
-
-  tr.remove();
-  $('#subislas').find(`div[data-sub="${nro_nueva_subisla}"]`).find('table tbody').append(tr);
+  moverFila($(this).closest('tr'),-1);
 });
 
 $(document).on('click','.mover_derecha', function() {
-  const tr = $(this).closest('tr');
-  const nro_subisla_actual = parseInt($(this).val());
-  const nro_nueva_subisla =  (nro_subisla_actual < cantidad_subislas)? nro_subisla_actual + 1 : 1;
-
-  $(this).val(nro_nueva_subisla);
-  $(this).siblings('button').val(nro_nueva_subisla);
-  
-  tr.remove();
-  $('#subislas').find(`div[data-sub="${nro_nueva_subisla}"]`).find('table tbody').append(tr);
+  moverFila($(this).closest('tr'),+1);
 });
 
 $(document).on('click','.borrarMaquinaSI', function() {
-    $(this).parent().parent().remove();
-    $('#d_maquinas').val(parseInt($('#d_maquinas').val())-1);
+  $(this).parent().parent().remove();
+  $('#d_maquinas').val(parseInt($('#d_maquinas').val())-1);
 });
 
 $('#btn-aceptarDividir').click(function() {
@@ -408,10 +388,10 @@ $(document).on('click','.detalle',function(){
   $('#modalIsla .modal-header').attr('style','background: #4FC3F7');
   $('.movimientos').show();
   $.get( "/islas/obtenerIsla/" + $(this).val(), function(data){
-      mostrarIsla(data.isla,data.sector,data.maquinas);
-      habilitarControles(false);
-      $('#btn-guardar').hide();
-      $('#modalIsla').modal('show');
+    mostrarIsla(data.isla,data.sector,data.maquinas);
+    habilitarControles(false);
+    $('#btn-guardar').hide();
+    $('#modalIsla').modal('show');
   });
 });
 
@@ -428,10 +408,10 @@ $(document).on('click','.modificar',function(){
   generarHistorialMov(id_isla);
 
   $.get("/islas/obtenerIsla/" + id_isla, function(data){
-      mostrarIsla(data.isla,data.sector,data.maquinas);
-      habilitarControles(true);
-      $('#btn-guardar').val("modificar");
-      $('#modalIsla').modal('show');
+    mostrarIsla(data.isla,data.sector,data.maquinas);
+    habilitarControles(true);
+    $('#btn-guardar').val("modificar");
+    $('#modalIsla').modal('show');
   });
 });
 
@@ -445,16 +425,15 @@ $('#btn-eliminarModal').click(function (e) {
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   const id_isla = $(this).val();
   $.ajax({
-      type: "DELETE",
-      url: "islas/eliminarIsla/" + id_isla,
-      success: function (data) {
-        $('#isla' + id_isla).remove();
-        $("#tablaIslas").trigger("update");
-        $('#modalEliminar').modal('hide');
-      },
-      error: function (data) {
-        console.log('Error: ', data);
-      }
+    type: "DELETE",
+    url: "islas/eliminarIsla/" + id_isla,
+    success: function (data) {
+      $('#btn-buscar').click();
+      $('#modalEliminar').modal('hide');
+    },
+    error: function (data) {
+      console.log('Error: ', data);
+    }
   });
 });
 
@@ -462,10 +441,7 @@ $('#btn-eliminarModal').click(function (e) {
 $('#btn-guardar').click(function (e) {
     $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
-    const maquinas = $('#listaMaquinas li').map(function(){
-      return $(this).val();
-    }).toArray();
-
+    const maquinas = $('#listaMaquinas li').map(function(){ return $(this).val(); }).toArray();
     const historial = $('.columnaMovimientos .unMovimiento').map(function(){
       return {
         id_log_isla: $(this).find('span').attr('value'),
@@ -480,7 +456,6 @@ $('#btn-guardar').click(function (e) {
       data: {
         id_isla: $('#id_isla').val(),
         nro_isla: $('#nro_isla').val(),
-        cant_maquinas:  $('#listaMaquinas li').length,
         casino: $('#casino').val(),
         sector: $('#sector').val(),
         codigo: $('#ncodigo').val(),
@@ -489,15 +464,11 @@ $('#btn-guardar').click(function (e) {
       },
       dataType: 'json',
       success: function (data) {
-        const isla = generarFilaTabla(data.isla , data.sector.descripcion);
-
         if (state == "nuevo"){ //Si está agregando
-          $('#cuerpoTablaIsla').append(isla);
           $('#mensajeExito h3').text('ÉXITO DE CARGA');
           $('#mensajeExito p').text("Se ha creado correctamente la isla.");
           $('#mensajeExito .cabeceraMensaje').removeClass('modificar');
         }else{ //Si está modificando
-          $('#isla' + data.isla.id_isla).replaceWith(isla);
           $('#mensajeExito h3').text('ÉXITO DE MODIFICACIÓN');
           $('#mensajeExito p').text("Se ha modificado la isla correctamente.");
           $('#mensajeExito .cabeceraMensaje').addClass('modificar');
@@ -540,20 +511,6 @@ $(document).on('click','#tablaResultados thead tr th[value]',function(e){
   $('#tablaResultados th:not(.activa) i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
   clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
-
-function existeMaquina(id_maquina){ // devuelve true si ya existe esa maquina entre las subisla
-  var subislasModal = $('.subisla').not('#moldeSubisla');
-  var bandera = false;
-  $.each(subislasModal, function(i){
-      var maquinasModal = $(this).find('table tbody .maquinaSI').not('#moldeMaquinaSI');
-      $.each(maquinasModal, function(i) {//true -> ya existe la maquina en alguna sub isla
-          if(parseInt($(this).attr('data-maquina')) === parseInt(id_maquina)){
-            bandera = true;
-          }
-      });
-  });
-  return bandera;
-}
 
 function generarFilaTabla(isla,sector){
   const fila = $('#moldeFilaTabla').clone().removeAttr('id');
@@ -624,8 +581,8 @@ function clickIndice(e,pageNumber,tam){
   if(e != null){
     e.preventDefault();
   }
-  var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
-  var columna = $('#tablaResultados .activa').attr('value');
-  var orden = $('#tablaResultados .activa').attr('estado');
+  tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
+  const columna = $('#tablaResultados .activa').attr('value');
+  const orden = $('#tablaResultados .activa').attr('estado');
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
