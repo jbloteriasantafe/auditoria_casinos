@@ -147,8 +147,8 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     data: {
       nro_isla: $('#buscadorNroIsla').val(),
       cantidad_maquinas: $('#buscadorCantMaquinas').val(),
-      casino: $('#buscadorCasino').val(),
-      sector: $('#buscadorSector').val(),
+      id_casino: $('#buscadorCasino').val(),
+      id_sector: $('#buscadorSector').val(),
       page: page_number,
       sort_by: sort_by,
       page_size: page_size,

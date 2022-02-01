@@ -25,6 +25,7 @@ class IslaController extends Controller
   private static $errores =       [
     'required' => 'El valor es requerido',
     'integer' => 'El valor no es un numero',
+    'numeric' => 'El valor no es un numero',
     'exists' => 'El valor es invalido',
     'array' => 'El valor es invalido',
     'alpha_dash' => 'El valor tiene que ser alfanumérico opcionalmente con guiones',
@@ -237,42 +238,40 @@ class IslaController extends Controller
   }
 
   public function buscarIslas(Request $request){
-    Validator::make($request->all() ,  [
-        'cantidad_maquinas' => 'nullable|numeric',
-    ], array(), self::$atributos)->validate();
-
     $reglas = array();
     if(!empty($request->nro_isla))
-      $reglas[]=['nro_isla','like','%'.$request->nro_isla.'%'];
-    if($request->sector != 0)
-      $reglas[]=['sector.id_sector','=',$request->sector];
+      $reglas[]=['isla.nro_isla','like',$request->nro_isla.'%'];
+    if(!empty($request->id_sector))
+      $reglas[]=['isla.id_sector','=',$request->sector];
+    if(!empty($request->id_casino))
+      $reglas[]=['isla.id_casino','=',$request->id_casino];
 
-    if($request->casino==0){
-        $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-        $casinos = array();
-        foreach($usuario->casinos as $casino){
-          $casinos [] = $casino->id_casino;
-        }
-    }else {
-      $casinos[]=$request->casino;
+    foreach(UsuarioController::getInstancia()->quienSoy()['usuario']->casinos as $casino){
+      $casinos [] = $casino->id_casino;
     }
 
-    $sort_by = $request->sort_by;
+    $sort_by = [
+      'columna' => 'isla.nro_isla',
+      'orden' => 'asc',
+    ];
+    if(!empty($request->sort_by)) $sort_by = $request->sort_by;
+
     $resultados=DB::table('isla')
     ->selectRaw('isla.id_isla, isla.nro_isla , isla.codigo , COUNT(id_maquina) as cantidad_maquinas ,sector.descripcion AS sector, casino.id_casino as id_casino, casino.nombre as casino')
     ->leftJoin('maquina','maquina.id_isla','=','isla.id_isla')
     ->join('sector','sector.id_sector','=','isla.id_sector')
     ->join('casino' ,'sector.id_casino' , '=' ,'casino.id_casino')
-    ->when($sort_by,function($query) use ($sort_by){
-                    return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                })
     ->where($reglas)
     ->whereNull('maquina.deleted_at')
     ->whereNull('isla.deleted_at')
     ->whereIn('isla.id_casino' , $casinos)
-    ->groupBy('isla.id_isla')->paginate($request->page_size);
+    ->groupBy('isla.id_isla');
+    //is_null porque puede mandar 0, ver empty() en los DOC de PHP
+    if(!is_null($request->cantidad_maquinas))
+      $resultados = $resultados->havingRaw('COUNT(id_maquina) <= ?',[$request->cantidad_maquinas]);
 
-    return $resultados;
+    return $resultados->orderBy($sort_by['columna'],$sort_by['orden'])
+    ->paginate($request->page_size);
   }
 
   public function obtenerIsla($id){

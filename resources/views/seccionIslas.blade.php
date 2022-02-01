@@ -28,13 +28,13 @@
                                   <input id="buscadorNroIsla" class="form-control" placeholder="Nro. de isla">
                                 </div>
                                 <div class="col-md-2">
-                                  <h5>Cant. de máquinas</h5>
+                                  <h5>Maximo de máquinas</h5>
                                   <input id="buscadorCantMaquinas" class="form-control" placeholder="Cantidad de máquinas">
                                 </div>
                                 <div class="col-md-3">
                                     <h5>Casino</h5>
                                     <select id="buscadorCasino" class="form-control" name="">
-                                        <option value="0">-Seleccione un Casino-</option>
+                                        <option value="">-Seleccione un Casino-</option>
                                          @foreach ($casinos as $casino)
                                          <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                                          @endforeach
@@ -43,7 +43,7 @@
                                 <div class="col-md-3">
                                     <h5>Sector</h5>
                                     <select id="buscadorSector" class="form-control" name="">
-                                        <option value="0">-Todos los sectores-</option>
+                                        <option value="">-Todos los sectores-</option>
                                     </select>
                                 </div>
                                 <div class="col-md-2">
@@ -71,12 +71,11 @@
                               <tr>
                                 <th class="col-xs-1 activa" value="isla.nro_isla" estado="asc">N° ISLA  <i class="fas fa-sort-up"></i></th>
                                 <th class="col-xs-2" value="isla.codigo" estado="">CÓD SUBISLA  <i class="fas fa-sort"></i></th>
-                                <th class="col-xs-2" value="casino.descripcion" estado="">CASINO  <i class="fas fa-sort"></i></th>
+                                <th class="col-xs-2" value="casino.nombre" estado="">CASINO  <i class="fas fa-sort"></i></th>
                                 <th class="col-xs-2" value="sector.descripcion" estado="">SECTOR  <i class="fas fa-sort"></i></th>
                                 <th class="col-xs-2" value="cantidad_maquinas" estado="">MÁQUINAS <i class="fas fa-sort"></i></th>
                                 <th class="col-xs-3" value="" estado="">ACCIONES</th>
                               </tr>
-
                             </thead>
                             <tbody id="cuerpoTabla" style="height: 350px;">
                             </tbody>
