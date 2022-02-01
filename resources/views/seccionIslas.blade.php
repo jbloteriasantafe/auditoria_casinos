@@ -132,33 +132,28 @@
                     <div class="col-md-2">
                       <h5>N° Isla</h5>
                       <input id="nro_isla" type="text" class="form-control" placeholder="Nro de Isla">
-                      <br>
-                      <span id="alerta-nro_isla" class="alertaSpan"></span>
                     </div>
                     <div class="col-md-2">
                       <h5>Código</h5>
                       <input id="ncodigo" type="text" class="form-control" placeholder="Subisla">
-                      <br>
-                      <span id="alerta-codigo" class="alertaSpan"></span>
                     </div>
                     <div class="col-md-4">
-                        <h5>Casino</h5>
-                        <select id="casino" class="form-control" name="">
-                            <option value="0">-Seleccione un Casino-</option>
-                             @foreach ($casinos as $casino)
-                             <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                             @endforeach
-                        </select>
+                      <h5>Casino</h5>
+                      <select id="casino" class="form-control" name="">
+                        <option value="0">-Seleccione un Casino-</option>
+                        @foreach ($casinos as $casino)
+                        <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                        @endforeach
+                      </select>
                     </div>
                     <div class="col-md-4">
                       <h5>Sector</h5>
                       <select id="sector" class="form-control" name="">
-                          <option value="0">-Sector del Casino-</option>
+                        <option value="0">-Sector del Casino-</option>
                       </select>
-                      <br>
-                      <span id="alerta-sector" class="alertaSpan"></span>
                     </div>
                   </div>
+                  <br>
                   <div class="row">
                     <div class="col-md-2">
                       <h5>N° Islote</h5>
@@ -169,9 +164,8 @@
                       <input id="orden" type="text" class="form-control" placeholder="Orden"/>
                     </div>
                   </div>
-
+                  <br>
                   <div class="row">
-
                       <div class="col-md-6">
                           <h5>Buscar Máquinas <i class="fa fa-fw fa-search"></i></h5>
                               <div class="input-group">
@@ -180,11 +174,8 @@
                                     <button id="btn-agregarMaquina" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
                                   </span>
                               </div>
-
                           <br>
-
-                          <!-- Lista de maquinas agregadas -->
-                          <h5>Máquinas agregadas en la isla</h5>
+                          <h5>Máquinas en la isla</h5>
                           <div class="row">
                               <div class="col-xs-2">
                                     <h5>NÚMERO</h5>
@@ -347,6 +338,7 @@
         </div>
     </div>
 </div>
+
 <div hidden>
   <li id="moldeMaquina" class="row" style="list-style: none;padding: 5px 0px;">
     <div class="col-xs-2 nro_admin">N° ADM</div>
@@ -359,6 +351,7 @@
     </div>
   </li>
 </div>
+
 <table hidden>
   <tr id="moldeFilaTabla">
     <td class="col-xs-1 nro_isla">NRO_ISLA</td>
@@ -374,7 +367,6 @@
     </td>
   </tr>
 </table>
-
 
 <div id="moldeSubisla" class="subisla" data-sub="MOLDE" hidden>
   <div class="contenedorSI">

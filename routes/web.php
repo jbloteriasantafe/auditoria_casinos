@@ -279,7 +279,7 @@ Route::delete('islas/eliminarIsla/{id_isla}','IslaController@eliminarIsla');
 Route::post('islas/modificarIsla','IslaController@modificarIsla');
 Route::post('islas/guardarIsla','IslaController@guardarIsla');
 Route::get('islas/listarMaquinasPorNroIsla/{nro_isla}/{id_casino?}','IslaController@listarMaquinasPorNroIsla');
-Route::post('islas/actualizarListaMaquinas','IslaController@actualizarListaMaquinas');
+Route::post('islas/dividirIsla','IslaController@dividirIsla');
 Route::get('islas/obtenerMTMReducido/{id}', 'MTMController@obtenerMTMReducido');
 
 /**********

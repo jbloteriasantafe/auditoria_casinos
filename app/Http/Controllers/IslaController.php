@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\UsuarioController;
 use App\Isla;
+use App\Sector;
 use App\LogIsla;
 use App\Casino;
 use App\Progresivo;
@@ -21,6 +22,17 @@ use Validator;
 class IslaController extends Controller
 {
   private static $atributos = ['nro_isla' => 'Número de Isla'];
+  private static $errores =       [
+    'required' => 'El valor es requerido',
+    'integer' => 'El valor no es un numero',
+    'exists' => 'El valor es invalido',
+    'array' => 'El valor es invalido',
+    'alpha_dash' => 'El valor tiene que ser alfanumérico opcionalmente con guiones',
+    'string' => 'El valor tiene que ser una cadena de caracteres',
+    'string.min' => 'El valor es muy corto',
+    'privilegios' => 'No puede realizar esa acción',
+    'incompatibilidad' => 'El valor no puede ser asignado',
+  ];
 
   private static $instance;
 
@@ -123,81 +135,103 @@ class IslaController extends Controller
     return ['islas' => $detalles, 'cantidad_maquinas' => $cantidad];
   }
 
-  public function actualizarListaMaquinas(Request $request){
-    //este se utiliza cuando se modifica una mauqina usando el modal "DIVIDIR ISLA"
+  public function dividirIsla(Request $request){
     Validator::make($request->all() , [
-        'detalles.*.id_isla' => 'required|integer',
-        'detalles.*.maquinas.*.id_maquina' => 'required|integer|exists:maquina,id_maquina',
-        'detalles.*.codigo' => 'nullable|alpha_dash',
-      ] , array(), self::$atributos)->after(function ($validator){
-        $detalles = $validator->getData()['detalles'];
-        $codigos = array();
-        foreach ($detalles as $index => $detalle){
-          $id_casino = $validator->getData()['id_casino'];
-          $nro_isla =  $validator->getData()['nro_isla'];
+        'id_casino'                        => 'required|integer|exists:casino,id_casino',
+        'nro_isla'                         => 'required|integer',
+        'subislas'                         => 'required|array',
+        'subislas.*.id_isla'               => 'required|integer',
+        'subislas.*.id_sector'             => 'required|integer|exists:sector,id_sector',
+        'subislas.*.codigo'                => 'nullable|alpha_dash|string|min:1',
+        'subislas.*.maquinas'              => 'nullable|array',
+        'subislas.*.maquinas.*.id_maquina' => 'required|integer|exists:maquina,id_maquina',
+      ] , 
+      self::$errores, self::$atributos)->after(function ($validator){
+        if($validator->errors()->any()) return;
+        $subislas  = $validator->getData()['subislas'];
+        $id_casino = $validator->getData()['id_casino'];
+        $nro_isla  =  $validator->getData()['nro_isla'];
+        if(!UsuarioController::getInstancia()->quienSoy()['usuario']->usuarioTieneCasino($id_casino)){
+          $validator->errors()->add('id_casino',self::$errors['privilegios']);
+          return;
+        }
+        $codigos = [];
+        foreach ($subislas as $index => $SI){
+          //Validaciones de Isla/Sector/Casino
+          if($SI['id_isla'] > 0){
+            $isla = Isla::find($SI['id_isla']);//Se chequea is_null porque pueden haber sido softdeleteados 
+            if(is_null($isla) || $isla->nro_isla != $nro_isla || $isla->id_casino != $id_casino){
+              $validator->errors()->add("subislas.$index.id_isla",self::$errores['incompatibilidad']);
+            }
+          }
+          $sector = Sector::find($SI['id_sector']);
+          if(is_null($sector) || $sector->id_casino != $id_casino){
+            $validator->errors()->add("subislas.$index.id_sector",self::$errores['incompatibilidad']);
+          }
 
-          if(isset($detalle['maquinas'])){
+          //Validaciones de codigo
+          if(empty($SI['codigo'])){
+            if(!empty($SI['maquinas'])){//Si no tiene codigos pero si maquinas
+              $validator->errors()->add("subislas.$index.codigo",self::$errores['required']);
+            }
+          }
+          else{
+            if(array_key_exists($SI['codigo'],$codigos)){
+              $validator->errors()->add("subislas.$index.codigo",'Valor repetido');
+            }
+            else{
+              $codigos[$SI['codigo']] = 1;
+            }
+          }
 
-            if($detalle['codigo'] == null){
-              $validator->errors()->add('codigo.' . $index ,'El código no puede estar en blanco.');
-            }else {
-              if(in_array($detalle['codigo'] , $codigos)){
-                $validator->errors()->add('duplicado.' . $index ,'El código de subisla ya está tomado.');
+          //Validaciones de maquinas
+          if(!empty($SI['maquinas'])){
+            foreach($SI['maquinas'] as $midx => $m){
+              $maq = Maquina::find($m['id_maquina']);
+              if(is_null($maq) || $maq->id_casino != $id_casino){
+                $validator->errors()->add("subislas.$index.maquinas.$midx.id_maquina",self::$errores['incompatibilidad']);
               }
-              $codigos[] = $detalle['codigo'];
             }
-
-            if($detalle['id_sector'] == null)
-              $validator->errors()->add('sector.' . $index ,'El valor del sector no es válido.');
-
-            if($detalle['id_isla'] > 0){
-              $isla = Isla::find($detalle['id_isla']);
-              if($isla->nro_isla != $nro_isla)
-                $validator->errors()->add('sin_id' . $index,'Ocurrió un error.');
-            }
-
           }
         }
-
-
       })->validate();
 
-      $contador = 0;
-
-      foreach($request->detalles as $detalle) {
-        if(isset($detalle['maquinas'])){
-          if($detalle['id_isla'] == 0){
+      DB::transaction(function() use ($request){
+        $subislas = [];
+        $MTMC = MTMController::getInstancia();
+        foreach($request->subislas as $SI) {
+          $subislas++;
+          if($SI['id_isla'] == 0){
             $isla = new Isla();
-            $isla->nro_isla = $request->nro_isla;
+            $isla->nro_isla  = $request->nro_isla;
             $isla->id_casino = $request->id_casino;
-            $isla->id_sector = $detalle['id_sector'];
           }else {
-            $isla = Isla::find($detalle['id_isla']);
-            $isla->id_sector = $detalle['id_sector'];
+            $isla = Isla::find($SI['id_isla']);
           }
-          $isla->codigo = $detalle['codigo'];
-          $mtmcontroller = MTMController::getInstancia();
-
+          $isla->id_sector = $SI['id_sector'];
+          $isla->codigo    = $SI['codigo'];
           $isla->save();
+          $subislas[$isla->id_isla] = true;
 
-          foreach ($detalle['maquinas'] as $maquina){
-            $mtmcontroller->asociarIsla($maquina['id_maquina'],$isla->id_isla);
+          if(!empty($SI['maquinas'])){
+            foreach ($SI['maquinas'] as $maquina){
+              $MTMC->asociarIsla($maquina['id_maquina'],$isla->id_isla);
+            }
           }
-
-          $contador++;
-        }
-      }//fin foreach
-
-      switch ($contador) {
-        case 1://si existe una sola isla "activa" le saco el codigo
-          $isla->codigo = null;
-          $isla->save();
-          break;
-        case 0:
-          break;
-        default:
-          break;
-      }
+          else{//Si no tiene maquinas, la isla se elimina
+            $this->eliminarIsla($isla->id_isla);
+            unset($subislas[$isla->id_isla]);
+          }
+        }//fin foreach
+  
+        if(count($subislas) == 1){//si es una sola isla le saco el codigo porque no hay subislas
+          foreach($subislas as $id_isla => $nada){
+            $isla = Isla::find($id_isla);
+            $isla->codigo = null;
+            $isla->save();
+          }
+        } 
+      });
 
       return ['codigo' => 200];
   }
@@ -225,7 +259,7 @@ class IslaController extends Controller
 
     $sort_by = $request->sort_by;
     $resultados=DB::table('isla')
-    ->select(DB::raw('isla.id_isla, isla.nro_isla , isla.codigo , COUNT(id_maquina) as cantidad_maquinas ,sector.descripcion AS sector, casino.id_casino as id_casino, casino.nombre as casino'))
+    ->selectRaw('isla.id_isla, isla.nro_isla , isla.codigo , COUNT(id_maquina) as cantidad_maquinas ,sector.descripcion AS sector, casino.id_casino as id_casino, casino.nombre as casino')
     ->leftJoin('maquina','maquina.id_isla','=','isla.id_isla')
     ->join('sector','sector.id_sector','=','isla.id_sector')
     ->join('casino' ,'sector.id_casino' , '=' ,'casino.id_casino')
