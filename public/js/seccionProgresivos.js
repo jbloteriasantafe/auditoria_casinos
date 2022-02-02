@@ -647,24 +647,24 @@ $('#btn-agregarIsla').click(function(){
     const id_casino = $('#modalProgresivo_casino').val();
     const nro_isla = $('#input-isla').val();
     if(id_casino == null || nro_isla.length == 0) return;
+    //Esto retorna lista de subislas (islas con mismo nro y distinto codigo). Por eso la doble iteracion
     $.get('/islas/listarMaquinasPorNroIsla/'+nro_isla+'/'+id_casino,function(data){
         let maquinas_filas = [];
-        if(data.islas.length == 0) return;
-        const isla = data.islas[0];
-        if(isla.nro_isla != nro_isla) return;
         $('#input-isla').setearElementoSeleccionado(0, "");
-        isla.maquinas.forEach(function(m,k){
-            const selector_maquina = 'data-id='+m.id_maquina;
-            const esta_en_la_tabla = $('#contenedorMaquinas .tablaMaquinas tr['+selector_maquina+']').length != 0;
-            if(esta_en_la_tabla) return;
-            maquinas_filas.push({
-                id_maquina:  m.id_maquina,
-                nro_admin:   m.nro_admin,
-                sector:      isla.sector,
-                isla:        isla.nro_isla,
-                marca_juego: m.marca_juego
-            });
-        });
+        data.islas.forEach(function(subisla){
+            subisla.maquinas.forEach(function(m,k){
+                const selector_maquina = 'data-id='+m.id_maquina;
+                const esta_en_la_tabla = $('#contenedorMaquinas .tablaMaquinas tr['+selector_maquina+']').length != 0;
+                if(esta_en_la_tabla) return;
+                maquinas_filas.push({
+                    id_maquina:  m.id_maquina,
+                    nro_admin:   m.nro_admin,
+                    sector:      subisla.sector,
+                    isla:        subisla.nro_isla,
+                    marca_juego: m.marca_juego
+                });
+            })
+        })
         llenarTablaMaquinas(maquinas_filas,true,true);
     });
 });

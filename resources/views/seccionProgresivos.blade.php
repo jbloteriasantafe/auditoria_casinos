@@ -590,6 +590,6 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
 <script src="/js/lista-datos.js" type="text/javascript"></script>
 <!-- JavaScript personalizado -->
 <script src="/js/float.js" charset="utf-8"></script>
-<script src="/js/seccionProgresivos.js" charset="utf-8"></script>
+<script src="/js/seccionProgresivos.js?2" charset="utf-8"></script>
 <script src="/js/seccionProgresivosFilas.js" charset="utf-8"></script>
 @endsection
