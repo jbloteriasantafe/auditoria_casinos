@@ -268,19 +268,22 @@ Route::get('maquinas/buscarMarcas/{marca}', 'MTMController@buscarMarcas');
 /**********
 Islas
 **********/
-Route::get('islas','IslaController@buscarTodo')->middleware('tiene_permiso:ver_seccion_islas');
+Route::group(['prefix' => 'islas','middleware' => 'tiene_permiso:ver_seccion_islas'], function () {
+  Route::get('/','IslaController@buscarTodo');
+  Route::post('/buscarIslas','IslaController@buscarIslas');
+  Route::post('/guardarIsla','IslaController@guardarIsla');
+  Route::post('/modificarIsla','IslaController@modificarIsla');
+  Route::delete('/eliminarIsla/{id_isla}','IslaController@eliminarIsla');
+  Route::post('/dividirIsla','IslaController@dividirIsla');
+  Route::get('/obtenerMTMReducido/{id}', 'MTMController@obtenerMTMReducido');
+});
+//@HACK: mover estos endpoints al group() donde se use... no es necesario que tengan el prefijo "islas"
 Route::get('islas/buscarIslaPorCasinoYNro/{id_casino}/{nro_isla}','IslaController@buscarIslaPorCasinoYNro');
 Route::get('islas/buscarIslaPorCasinoSectorYNro/{id_casino}/{id_sector}/{nro_isla}','IslaController@buscarIslaPorCasinoSectorYNro');
 Route::get('islas/buscarIslaPorSectorYNro/{id_sector}/{nro_isla}','IslaController@buscarIslaPorSectorYNro');
-Route::post('islas/buscarIslas','IslaController@buscarIslas');
 Route::get('islas/obtenerIsla/{id_isla}','IslaController@obtenerIsla');
 Route::get('islas/obtenerIsla/{id_casino}/{id_sector}/{nro_isla}','IslaController@obtenerIslaPorNro');
-Route::delete('islas/eliminarIsla/{id_isla}','IslaController@eliminarIsla');
-Route::post('islas/modificarIsla','IslaController@modificarIsla');
-Route::post('islas/guardarIsla','IslaController@guardarIsla');
 Route::get('islas/listarMaquinasPorNroIsla/{nro_isla}/{id_casino?}','IslaController@listarMaquinasPorNroIsla');
-Route::post('islas/dividirIsla','IslaController@dividirIsla');
-Route::get('islas/obtenerMTMReducido/{id}', 'MTMController@obtenerMTMReducido');
 
 /**********
 Movimientos
@@ -373,10 +376,6 @@ CALENDARIO
  Route::get('calendario_eventos/getOpciones', 'CalendarioController@getOpciones');
  Route::post('calendario_eventos/crearTipoEvento', 'CalendarioController@crearTipoEvento');
 
-/***********
-Log Isla
-************/
-Route::get('logIsla/obtenerHistorial/{id_isla}','LogIslaController@obtenerHistorial');
 
 /**********
 Sectores

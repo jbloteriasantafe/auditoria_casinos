@@ -57,7 +57,7 @@ $('#casino').on('change' , function(e,id_sector){
     $('#buscadorMaquina').borrarDataList();
     return;
   }
-  $('#buscadorMaquina').generarDataList('http://' +window.location.host + '/maquinas/buscarMaquinaPorNumeroMarcaYModelo/' + id_casino, "resultados","id_maquina" ,"nro_admin" , 2, true);
+  $('#buscadorMaquina').generarDataList('/maquinas/buscarMaquinaPorNumeroMarcaYModelo/' + id_casino, "resultados","id_maquina" ,"nro_admin" , 2, true);
   $('#buscadorMaquina').setearElementoSeleccionado(0 , "");
   $('#sector option').remove();
   $.get("/sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
@@ -68,32 +68,21 @@ $('#casino').on('change' , function(e,id_sector){
   });
 })
 
-/**************************************************
-  TODOS LOS EVENTOS DEL INPUT MÁQUINA
-**************************************************
- Evento para pasarle el ID de la isla en el datalist al input
-    Cada vez que se hace el input se controla si un option del datalist fue seleccionado.
-    Si fue seleccionado se compara con el input para sacarle el id.
-*/
-
-function generarHistorialMov(id_isla){
+function generarHistorialMov(estados,historial){//Esto habria que deprecarlo
   const estadosMov = $('<select>').addClass('form-control estadosMovimientos');
   $('.columnaMovimientos').children().remove();
-  $.get("logIsla/obtenerHistorial/" + id_isla, function(data){
-    for(let i = 0;i<data.estados.length;i++){
-      estadosMov.append($('<option>').val(data.estados[i].id_estado_relevamiento).text(data.estados[i].descripcion));
-    }
-
-    for(let i = 0;i<data.historial.length;i++){
-      $('.columnaMovimientos')
-      .append($('<div>').addClass('unMovimiento')
-      .append($('<div>').addClass('col-md-4').css('padding-bottom','15px')
-        .append($('<span>').attr('value',data.historial[i].id_log_isla).text(data.historial[i].fecha)))
-      .append($('<div>').addClass('col-md-8').css('padding-bottom','15px')
-        .append(estadosMov.clone().val(data.historial[i].id_estado_relevamiento))))
-      .append($('<br>'));
-    }
-  });
+  for(let i = 0;i<estados.length;i++){
+    estadosMov.append($('<option>').val(estados[i].id_estado_relevamiento).text(estados[i].descripcion));
+  }
+  for(let i = 0;i<historial.length;i++){
+    $('.columnaMovimientos')
+    .append($('<div>').addClass('unMovimiento')
+    .append($('<div>').addClass('col-md-4').css('padding-bottom','15px')
+      .append($('<span>').attr('value',historial[i].id_log_isla).text(historial[i].fecha)))
+    .append($('<div>').addClass('col-md-8').css('padding-bottom','15px')
+      .append(estadosMov.clone().val(historial[i].id_estado_relevamiento))))
+    .append($('<br>'));
+  }
 }
 
 //Agregar Máquina
@@ -143,7 +132,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
   $.ajax({
     type: 'POST',
-    url: 'http://' + window.location.host + '/islas/buscarIslas',
+    url: '/islas/buscarIslas',
     data: {
       nro_isla: $('#buscadorNroIsla').val(),
       cantidad_maquinas: $('#buscadorCantMaquinas').val(),
@@ -372,6 +361,7 @@ $(document).on('click','.detalle',function(){
   $('.movimientos').show();
   $.get( "/islas/obtenerIsla/" + $(this).val(), function(data){
     mostrarIsla(data.isla,data.sector,data.maquinas);
+    generarHistorialMov(data.estados,data.historial);
     habilitarControles(false);
     $('#btn-guardar').hide();
     $('#modalIsla').modal('show');
@@ -379,7 +369,8 @@ $(document).on('click','.detalle',function(){
 });
 
 //Modal para modificar una ISLA
-$(document).on('click','.modificar',function(){
+//Cambio el nombre de la clase de "modificar" a "modificarIsla" porque "modificar" clashea con la clase asignada al mensajeExito
+$(document).on('click','.modificarIsla',function(){
   $('#modalIsla .modal-title').text('| MODIFICAR ISLA');
   $('#modalIsla .modal-header').attr('style','background: #ff9d2d');
   $('#mensajeExito').hide();
@@ -388,10 +379,10 @@ $(document).on('click','.modificar',function(){
   $('.movimientos').show();
 
   const id_isla = $(this).val();
-  generarHistorialMov(id_isla);
 
   $.get("/islas/obtenerIsla/" + id_isla, function(data){
     mostrarIsla(data.isla,data.sector,data.maquinas);
+    generarHistorialMov(data.estados,data.historial);
     habilitarControles(true);
     $('#casino').attr('disabled',true);//Deshabilito cambiar casino al modificar... para no vincular maquinas de un casino con otro
     $('#btn-guardar').val("modificar");
@@ -440,8 +431,8 @@ $('#btn-guardar').click(function (e) {
       data: {
         id_isla: $('#id_isla').val(),
         nro_isla: $('#nro_isla').val(),
-        casino: $('#casino').val(),
-        sector: $('#sector').val(),
+        id_casino: $('#casino').val(),
+        id_sector: $('#sector').val(),
         codigo: $('#ncodigo').val(),
         maquinas: maquinas,
         historial: historial,

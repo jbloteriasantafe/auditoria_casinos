@@ -275,38 +275,15 @@ class IslaController extends Controller
   }
 
   public function obtenerIsla($id){
-    $nivelesNuevo=array();
     $isla = Isla::find($id);
-    if($isla->sector != null){
-      $sector=$isla->sector;
-    }else{
-      $sector='';
-    };
-    if ($isla->maquinas->count() != 0){
-      $maquinas= $isla->maquinas;
-    }else{
-      $maquinas='';
-    }
-
-    $casino = $isla->casino;
-
-    $historial= DB::table('log_isla')
-                    ->select('log_isla.id_log_isla','log_isla.fecha','estado_relevamiento.descripcion')
-                    ->join('estado_relevamiento','estado_relevamiento.id_estado_relevamiento','=','log_isla.id_estado_relevamiento')
-                    ->where('log_isla.id_isla','=',$id)
-                    ->orderBy('log_isla.fecha','desc')
-                    ->take(3)
-                    ->get();
-
-    $estados = EstadoRelevamiento::all();
-    return ['isla' => $isla ,
-            'sector' => $sector ,
-            'maquinas' => $maquinas ,
-            'historial' => $isla->logs_isla,
-            'estados' => $estados,
-            'historial' =>$historial,
-            'casino' => $casino
-          ];
+    return [
+      'isla'      => $isla ,
+      'sector'    => $isla->sector ,
+      'maquinas'  => $isla->maquinas ,
+      'historial' => $isla->logs_isla()->orderBy('log_isla.fecha','desc')->take(3)->get(),
+      'estados'   => EstadoRelevamiento::all(),
+      'casino'    => $isla->casino
+    ];
   }
 
   public function obtenerIslaPorNro($id_casino,$id_sector,$nro_isla){
@@ -323,122 +300,99 @@ class IslaController extends Controller
   }
 
   public function eliminarIsla($id){
-
-    Validator::make([
-         'id_isla' => $id,
-      ] ,
-       [
-         'id_isla' => 'required|integer|exists:isla,id_isla'
-      ] , array(), self::$atributos)->after(function ($validator){
-        $isla = Isla::find($validator->getData()['id_isla']);
-        foreach ($isla->maquinas as $maquina) {
-            if ($maquina->estado_maquina->descripcion == 'Ingreso' && $maquina->estado_maquina->descripcion == 'Reingreso') {
-              $validator->errors()->add('id_isla','Existen máquinas habilitadas en la isla.');
-            }
+    Validator::make(//@TODO: Validar que el usuario tiene el casino para eliminar la isla
+      ['id_isla' => $id],
+      ['id_isla' => 'required|integer|exists:isla,id_isla'],
+      self::$errores, self::$atributos
+    )->after(function ($validator){
+      if($validator->errors()->any()) return;
+      $isla = Isla::find($validator->getData()['id_isla']);
+      $casinos_acceso = [];
+      foreach(UsuarioController::getInstancia()->quienSoy()['usuario']->casinos as $c){
+        $casinos_acceso[$c->id_casino] = true;
+      }
+      if(!array_key_exists($isla->id_casino,$casinos_acceso)){
+        $validator->errors()->add('id_isla',self::$errores['privilegios']);
+      }
+      foreach ($isla->maquinas as $maquina) {
+        if ($maquina->estado_maquina->descripcion == 'Ingreso' && $maquina->estado_maquina->descripcion == 'Reingreso') {
+          $validator->errors()->add('id_isla','Existen máquinas habilitadas en la isla.');
         }
-
-        })->validate();
+      }
+    })->validate();
 
     $isla = Isla::find($id);
-
-    if(!empty($isla->maquinas)){
-      foreach($isla->maquinas as $maquina){
-        MTMController::getInstancia()->desasociarIsla($maquina->id_maquina, $isla->id_isla);
-          MovimientoIslaController::getInstancia()->guardar($isla->id_isla, $maquina['id_maquina']);  //para controlar el movimiento
-      }
+  
+    foreach($isla->maquinas as $maquina){
+      MTMController::getInstancia()->desasociarIsla($maquina->id_maquina, $isla->id_isla);
+      MovimientoIslaController::getInstancia()->guardar($isla->id_isla, $maquina['id_maquina']);  //para controlar el movimiento
     }
 
     $isla->logs_isla()->delete();
-
-    // creo el log de isla para controlar el movimiento
-    // LogIslaController::getInstancia()->guardar($isla->id_isla, 5); //5 -> estado de relevamiento sin relevar!
-
     $isla->delete();
-
-    return ['isla' => $isla];
+    return 1;
   }
 
+  //Rosario usa el codigo de otra forma... casi poniendole una descripcion nmemotecnica, nose como unificar SantaFe-Mel con Rosario
   public function guardarIsla(Request $request){
     Validator::make($request->all(), [
         'nro_isla' => 'required|integer|max:9999999999',
-        'sector' => 'required|exists:sector,id_sector',
-        'casino' => 'required|exists:casino,id_casino',
+        'id_sector' => 'required|exists:sector,id_sector',
+        'id_casino' => 'required|exists:casino,id_casino',
         'codigo' => 'nullable',
         'maquinas' => 'nullable',
         'maquinas.*' => 'required|exists:maquina,id_maquina'
-    ], array(), self::$atributos)->after(function ($validator){
-        if(isset($validator->getData()['maquinas'])){
-            foreach ($validator->getData()['maquinas'] as $maquina) {
-              $aux= Maquina::find($maquina);
-              if($aux->id_casino != $validator->getData()['casino']){
-                   $validator->errors()->add('casino','El casino seleccionado no concuerda con el casino de las maquinas');
-              }
-            }}
-        $islas=Isla::where([['id_casino' , '=' , $validator->getData()['casino']],['nro_isla' , '=' , $validator->getData()['nro_isla']]])->get();
-
-        if($validator->getData()['codigo'] != ''){//estoy creando sub isla
-          $reglasBusqueda=array();
-          if($validator->getData()['casino'] != 0){
-            $reglasBusqueda[]= ['id_casino' , '=' , $validator->getData()['casino']];
+    ], self::$errores, self::$atributos)->after(function ($validator){
+      if($validator->errors()->any()) return;
+      $maquinas = $validator->getData()['maquinas'] ?? [];
+      $id_casino = $validator->getData()['id_casino'];
+      foreach ($maquinas as $id_maquina) {
+        $m = Maquina::find($id_maquina);
+        if(is_null($m) || $m->id_casino != $id_casino){
+          $validator->errors()->add('maquinas',self::$errores['incompatibilidad']);
+          return;
+        }
+      }
+      $nro_isla = $validator->getData()['nro_isla'];
+      $reglas = [['id_casino' , '=' , $id_casino],['nro_isla' , '=' , $nro_isla]];
+      $codigo = $validator->getData()['codigo'] ?? null;
+      foreach(Isla::where($reglas)->get() as $i){
+        if(!empty($codigo)){
+          if(empty($i->codigo)){
+            $validator->errors()->add('codigo','Existe otra isla con el mismo N° sin codigo');
           }
-          if($validator->getData()['nro_isla'] != ''){
-            $reglasBusqueda[]= ['nro_isla' , '=' , $validator->getData()['nro_isla']];
-          }
-          if($validator->getData()['codigo'] != ''){
-            $reglasBusqueda[]= ['codigo', '=' , $validator->getData()['codigo']];
-          }
-          $islasCodigo=Isla::where($reglasBusqueda)->get();
-          if($islasCodigo->count()>=1){
-               $validator->errors()->add('codigo','El código de Subisla ya esta en uso.');
-          }
-          foreach ($islas as $isla) {
-            if($isla->codigo == ''){
-              $validator->errors()->add('existe','Existe otro número de isla sin codigo.');
-            }
-          }
-
-        }else { // guardando isla
-          if($islas->count() > 0 ){
-            $validator->errors()->add('nro_isla','El número de isla ' . $validator->getData()['nro_isla']. ' ya esta en uso.');
+          if($i->codigo == $codigo){
+            $validator->errors()->add('codigo','El código de subisla ya esta en uso.');
           }
         }
-
+        else{
+          if(!empty($i->codigo)){
+            $validator->errors()->add('codigo','Existe otra isla con el mismo N° con codigo');
+          }
+          else{
+            $validator->errors()->add('nro_isla','Existe otro número de isla sin codigo.');
+          }
+        }
+      }
     })->validate();
 
-    $isla = new Isla;
-    $isla->nro_isla = $request->nro_isla;
-    $isla->codigo= $request->codigo;
-    $isla->id_casino=$request->casino;
-    $isla->id_sector = $request->sector;
-    $isla->save();
-
-
-    //creo el log de isla para controlar el movimiento
-
-    LogIslaController::getInstancia()->guardar($isla->id_isla, 5); //5 -> estado de relevamiento sin relevar!
-
-
-    if(!empty($request->maquinas)){
-      foreach($request->maquinas as $maquina) {
-        MTMController::getInstancia()->asociarIsla($maquina, $isla->id_isla);
-        MovimientoIslaController::getInstancia()->guardar($isla->id_isla, $maquina);  //para controlar el movimiento
+    return DB::transaction(function () use ($request){
+      $isla = new Isla;
+      $isla->nro_isla  = $request->nro_isla;
+      $isla->codigo    = $request->codigo;
+      $isla->id_casino = $request->id_casino;
+      $isla->id_sector = $request->id_sector;
+      $isla->save();
+  
+      //creo el log de isla para controlar el movimiento
+      $this->guardarLogIsla($isla->id_isla, 5); //5 -> estado de relevamiento sin relevar!
+      $request_maquinas = $request->maquinas ?? [];
+      foreach($request_maquinas as $id_maquina) {
+        MTMController::getInstancia()->asociarIsla($id_maquina, $isla->id_isla);
+        MovimientoIslaController::getInstancia()->guardar($isla->id_isla, $id_maquina);  //para controlar el movimiento
       }
-    }
-
-    return ['isla' => $isla , 'sector' => $isla->sector ];
-  }
-
-  //guarda isla cuando se crea desde el gestionar maquinas
-  public function saveIsla($isla, $maquinas){
-    $isla->save();
-    if(!empty($maquinas)){
-      foreach($maquinas as $maquina) {
-        MTMController::getInstancia()->asociarIsla($maquina, $isla->id_isla);
-        MovimientoIslaController::getInstancia()->guardar($isla->id_isla, $maquina);  //para controlar el movimiento
-      }
-    LogIslaController::getInstancia()->guardar($isla->id_isla, 5); //5 -> estado de relevamiento sin relevar!
-    }
-    return $isla;
+      return ['isla' => $isla, 'sector' => $isla->sector];
+    });
   }
 
   public function encontrarOCrear($nro_isla , $id_casino){
@@ -452,140 +406,134 @@ class IslaController extends Controller
     }else {
       return $isla['islas'][0];
     }
-
   }
 
   public function modificarIsla(Request $request){
     Validator::make($request->all(), [
-        'nro_isla' => 'required|integer|max:9999999999',
-        'codigo' => 'nullable',
-        'sector' => 'required|exists:sector,id_sector',
-        'casino' => 'required|exists:casino,id_casino',
-        'maquinas' => 'nullable',
-        'maquinas.*' => 'required|exists:maquina,id_maquina',
-        'historial' => 'nullable',
-        'historial.*.id_log_isla' => 'required | exists:log_isla,id_log_isla',
-        'historial.*.id_estado_relevamiento' => 'required | exists:estado_relevamiento,id_estado_relevamiento',
-    ], array(), self::$atributos)->after(function ($validator){
+      'id_isla'  => 'required|integer|exists:isla,id_isla',
+      'nro_isla' => 'required|integer|max:9999999999',
+      'id_sector' => 'required|exists:sector,id_sector',
+      'id_casino' => 'required|exists:casino,id_casino',
+      'codigo' => 'nullable',
+      'maquinas' => 'nullable',
+      'maquinas.*' => 'required|exists:maquina,id_maquina',
+      'historial' => 'nullable',
+      'historial.*.id_log_isla' => 'required | exists:log_isla,id_log_isla',
+      'historial.*.id_estado_relevamiento' => 'required | exists:estado_relevamiento,id_estado_relevamiento',
+    ], self::$errores, self::$atributos)->after(function ($validator){
+      if($validator->errors()->any()) return;
+      
+      $casinos_acceso = [];
+      foreach(UsuarioController::getInstancia()->quienSoy()['usuario']->casinos as $c){
+        $casinos_acceso[$c->id_casino] = true;
+      }
+      $isla = Isla::find($validator->getData()['id_isla']);
+      if(!array_key_exists($isla->id_casino,$casinos_acceso)){
+        $validator->errors()->add('id_isla',self::$errores['privilegios']);
+        return;
+      }
+      $id_casino = $validator->getData()['id_casino'];
+      if(is_null($isla) || $isla->id_casino != $id_casino){//chequeo is_null porque tiene softdeletes
+        $validator->errors()->add('id_isla',self::$errores['incompatibilidad']);
+        return;
+      }
 
-      if(isset($validator->getData()['maquinas'])){
-       foreach ($validator->getData()['maquinas'] as $maquina) {
-          $aux= Maquina::find($maquina);
-          if($aux->id_casino != $validator->getData()['casino']){
-               $validator->errors()->add('casino','El casino seleccionado no concuerda con el casino de las maquinas');
+      $historial = $validator->getData()['historial'] ?? [];
+      foreach($historial as $idx => $h){//Deprecar LogIsla
+        $logisla = LogIsla::find($h['id_log_isla']);
+        if($logisla->id_isla != $isla->id_isla){
+          $validator->errors()->add('historial',self::$errores['incompatibilidad']);
+          return;
+        }
+      }
+
+      $maquinas = $validator->getData()['maquinas'] ?? [];
+      foreach ($maquinas as $id_maquina) {
+        $m = Maquina::find($id_maquina);
+        if(is_null($m) || $m->id_casino != $id_casino){
+          $validator->errors()->add('maquinas',self::$errores['incompatibilidad']);
+          return;
+        }
+      }
+
+      $nro_isla = $validator->getData()['nro_isla'];
+      $reglas = [['id_casino' , '=' , $id_casino],['nro_isla' , '=' , $nro_isla],['id_isla','<>',$isla->id_isla]];
+      $codigo = $validator->getData()['codigo'] ?? null;
+      foreach(Isla::where($reglas)->get() as $i){
+        if(!empty($codigo)){
+          if(empty($i->codigo)){
+            $validator->errors()->add('codigo','Existe otra isla con el mismo N° sin codigo');
           }
-       }
-     }
-      $islaModificar= Isla::find($validator->getData()['id_isla']);
-      $islas=Isla::where([['id_casino' , '=' , $validator->getData()['casino']], ['id_isla' , '!=' , $islaModificar->id_isla],['nro_isla' , '=' , $validator->getData()['nro_isla']]])->get();
-
-      if($validator->getData()['codigo'] != ''){//estoy creando sub isla
-        $reglasBusqueda=array();
-        $reglasBusqueda[]=['id_isla' , '!=' , $islaModificar->id_isla];
-
-        if($validator->getData()['casino'] != 0){
-          $reglasBusqueda[]= ['id_casino' , '=' , $validator->getData()['casino']];
-        }
-
-        if($validator->getData()['nro_isla'] != ''){
-          $reglasBusqueda[]= ['nro_isla' , '=' , $validator->getData()['nro_isla']];
-        }
-
-        if($validator->getData()['codigo'] != ''){
-          $reglasBusqueda[]= ['codigo', '=' , $validator->getData()['codigo']];
-        }
-
-        $islasCodigo=Isla::where($reglasBusqueda)->get();
-
-        if($islasCodigo->count()>=1){
-             $validator->errors()->add('codigo','El código de Subisla ya esta en uso.');
-        }
-        foreach ($islas as $isla) {
-          if($isla->codigo == ''){
-            $validator->errors()->add('existe','Existe otro número de isla sin codigo.');
+          if($i->codigo == $codigo){
+            $validator->errors()->add('codigo','El código de subisla ya esta en uso.');
           }
         }
-
-      }else { // guardando isla
-        if($islas->count() > 0 ){
-          $validator->errors()->add('nro_isla','El número de isla ' . $validator->getData()['nro_isla']. ' ya esta en uso.');
+        else{
+          if(!empty($i->codigo)){
+            $validator->errors()->add('codigo','Existe otra isla con el mismo N° con codigo');
+          }
+          else{
+            $validator->errors()->add('nro_isla','Existe otro número de isla sin codigo.');
+          }
         }
       }
     })->validate();
 
-    $isla = Isla::find($request->id_isla);
-    $isla->nro_isla = $request->nro_isla;
-    $isla->codigo = $request->codigo;
-    $isla->id_sector = $request->sector;
-    $isla->save();
-
-    if(!empty($request->historial)){
-      foreach ($request->historial as $log) {
-        $log_isla = LogIsla::find($log['id_log_isla']);
-        $log_isla->estado_relevamiento()->associate($log['id_estado_relevamiento']);
-        $log_isla->save();
-      }
-    }
-
-    $cambios = 0;
-
-    //desasociar maquinas viejas
-    foreach ($isla->maquinas as $maquinaActual) {
-      if($this->noEstaraMasEnLaIsla($maquinaActual ,$request['maquinas'])) {
-        $maquinaActual->isla()->dissociate();
-        $maquinaActual->save();
-        $razon = "Se eliminó la mtm " . $maquinaActual->nro_admin . " de la isla " . $isla->nro_isla . ".";
-        LogMaquinaController::getInstancia()->registrarMovimiento($maquinaActual->id_maquina, $razon,4);//tipo mov cambio layout
-        if($cambios ==0){ LogIslaController::getInstancia()->guardar($isla->id_isla, 5);}//5 -> estado de relevamiento sin relevar!
-        $cambios++;
-      }
-    }
-
-    //asociar maquinas nuevas
-    if(!empty($request->maquinas)){
-      foreach($request->maquinas as $maquina) {
-        //maquina es un id , $isla->maquinas es arreglo de instancias de maquina
-        if($this->noEstabaEnLaIsla($maquina, $isla->maquinas)){
-          MTMController::getInstancia()->asociarIsla($maquina, $isla->id_isla); //el log_maquina se crea en esa fn
-          MovimientoIslaController::getInstancia()->guardar($isla->id_isla, $maquina);  //para controlar el movimiento
-          if($cambios ==0){ LogIslaController::getInstancia()->guardar($isla->id_isla, 5);}
-          $cambios++;
+    return DB::transaction(function () use ($request){
+      $isla = Isla::find($request->id_isla);
+      $isla->nro_isla  = $request->nro_isla;
+      $isla->id_casino = $request->id_casino;
+      $isla->id_sector = $request->id_sector;
+      $isla->codigo    = $request->codigo;
+      $isla->save();
+  
+      if(!empty($request->historial)){
+        foreach ($request->historial as $log) {
+          $log_isla = LogIsla::find($log['id_log_isla']);
+          $log_isla->estado_relevamiento()->associate($log['id_estado_relevamiento']);
+          $log_isla->save();
         }
       }
-    }
+      
+      $request_maquinas = $request['maquinas'] ?? [];
+      $id_maqs_enviadas = [];//Uso hashmap pq 1) es mas rapido 2) evito duplicados
+      foreach($request_maquinas as $m) $id_maqs_enviadas[$m] = true;
+      
+      $primer_logeo = true;//Bandera para hacer un solo log por mas que cambien muchas maquinas
+      $id_maqs_ya_estaban = [];//Maquinas que ya estaban asociadas y las enviaron de vuelta
+      foreach ($isla->maquinas as $m) {
+        if(array_key_exists($m->id_maquina,$id_maqs_enviadas)){
+          $id_maqs_ya_estaban[$m->id_maquina] = true;
+        }
+        else{//Si no esta en lo que envio, lo disasocio
+          $m->isla()->dissociate();
+          $m->save();
+          $razon = "Se eliminó la mtm " . $m->nro_admin . " de la isla " . $isla->nro_isla . ".";
+          LogMaquinaController::getInstancia()->registrarMovimiento($m->id_maquina, $razon,4);//tipo mov cambio layout
+          //Deprecar LogIsla
+          if($primer_logeo){ $this->guardarLogIsla($isla->id_isla, 5);}//5 -> estado de relevamiento sin relevar!
+          $primer_logeo = false;
+        }
+      }
 
-    return ['isla' => $isla , 'sector' => $isla->sector];
+      // Enviado - YaEstaban = Maquinas a agregar
+      $id_maqs_a_agregar = array_diff_assoc($id_maqs_enviadas,$id_maqs_ya_estaban);
+      foreach($id_maqs_a_agregar as $id_maquina => $ignorar) {
+        MTMController::getInstancia()->asociarIsla($id_maquina, $isla->id_isla);
+        MovimientoIslaController::getInstancia()->guardar($isla->id_isla, $id_maquina);//Deprecar esto tambien...
+        if($primer_logeo){  $this->guardarLogIsla($isla->id_isla, 5);}
+        $primer_logeo = false;
+      }
+  
+      return ['isla' => $isla , 'sector' => $isla->sector];
+    });
   }
 
-  private function noEstaraMasEnLaIsla($maquinaActual ,$maquinas){ //maqActual
-    //es de la isla, $maquinas es del request
-    $aux= true;
-
-    if(empty($maquinas)){
-      return true;
-    }
-
-    foreach($maquinas as $mtm) {
-      if($mtm == $maquinaActual->id_maquina){
-        $aux = false;//sigue estando
-      }
-    }
-
-    return $aux; //no va a estar más
-  }
-
-  private function noEstabaEnLaIsla($maquina, $maquinas){ //maq que esta
-    //en el request, maquinas que estaban en la isla
-    $aux=true;
-    if(empty($maquinas)){
-      return true;
-    }
-    //mtm es instancia de maquina
-    foreach ($maquinas as $mtm){
-      if($maquina == $mtm->id_maquina){
-        $aux=false;//si esta en la isla
-      }
-    }
-    return $aux;//no esta en la isla
+  private function guardarLogIsla($id_isla, $id_estado_relevamiento){//Deprecar esto
+    $log = new LogIsla;
+    $log->isla()->associate($id_isla);
+    $log->estado_relevamiento()->associate($id_estado_relevamiento);
+    $log->fecha = date("Y-m-d");
+    $log->save();
   }
 }

@@ -360,7 +360,7 @@
     <td class="col-xs-2 cantidad_maquinas" style="text-align: center;"># MAQs</td>
     <td class="col-xs-3">
       <button class="btn detalle"   title="VER MÁS"  ><i class="fa fa-fw fa-search-plus"></i></button>
-      <button class="btn modificar" title="MODIFICAR"><i class="fa fa-fw fa-pencil-alt"></i></button>
+      <button class="btn modificarIsla" title="MODIFICAR"><i class="fa fa-fw fa-pencil-alt"></i></button>
       <button class="btn dividir"   title="DIVIDIR"  ><i class="fa fa-fw fa-unlink"></i></button>
       <button class="btn eliminar"  title="ELIMINAR" ><i class="fa fa-fw fa-trash-alt"></i></button>
     </td>
