@@ -333,6 +333,19 @@ class IslaController extends Controller
     return 1;
   }
 
+  public function encontrarOCrear($nro_isla , $id_casino){
+    $isla = $this->buscarIslaPorNro($nro_isla ,$id_casino);
+    if(count($isla['islas'])==0){
+      $isla=new Isla;
+      $isla->nro_isla=$nro_isla;
+      $isla->id_casino=$id_casino;
+      $isla->save();
+      return $isla;
+    }else {
+      return $isla['islas'][0];
+    }
+  }
+
   //Rosario usa el codigo de otra forma... casi poniendole una descripcion nmemotecnica, nose como unificar SantaFe-Mel con Rosario
   public function guardarIsla(Request $request){
     Validator::make($request->all(), [
@@ -377,35 +390,13 @@ class IslaController extends Controller
     })->validate();
 
     return DB::transaction(function () use ($request){
-      $isla = new Isla;
-      $isla->nro_isla  = $request->nro_isla;
-      $isla->codigo    = $request->codigo;
-      $isla->id_casino = $request->id_casino;
-      $isla->id_sector = $request->id_sector;
-      $isla->save();
-  
-      //creo el log de isla para controlar el movimiento
-      $this->guardarLogIsla($isla->id_isla, 5); //5 -> estado de relevamiento sin relevar!
-      $request_maquinas = $request->maquinas ?? [];
-      foreach($request_maquinas as $id_maquina) {
-        MTMController::getInstancia()->asociarIsla($id_maquina, $isla->id_isla);
-        MovimientoIslaController::getInstancia()->guardar($isla->id_isla, $id_maquina);  //para controlar el movimiento
-      }
-      return ['isla' => $isla, 'sector' => $isla->sector];
+      return $this->crear_o_modificar(
+        null,$request->id_casino,$request->id_sector,
+        $request->nro_isla,$request->codigo,
+        [],
+        $request->maquinas ?? []
+      );
     });
-  }
-
-  public function encontrarOCrear($nro_isla , $id_casino){
-    $isla=$this->buscarIslaPorNro($nro_isla ,$id_casino);
-    if(count($isla['islas'])==0){
-      $isla=new Isla;
-      $isla->nro_isla=$nro_isla;
-      $isla->id_casino=$id_casino;
-      $isla->save();
-      return $isla;
-    }else {
-      return $isla['islas'][0];
-    }
   }
 
   public function modificarIsla(Request $request){
@@ -480,26 +471,41 @@ class IslaController extends Controller
     })->validate();
 
     return DB::transaction(function () use ($request){
-      $isla = Isla::find($request->id_isla);
-      $isla->nro_isla  = $request->nro_isla;
-      $isla->id_casino = $request->id_casino;
-      $isla->id_sector = $request->id_sector;
-      $isla->codigo    = $request->codigo;
-      $isla->save();
-  
-      if(!empty($request->historial)){
-        foreach ($request->historial as $log) {
-          $log_isla = LogIsla::find($log['id_log_isla']);
-          $log_isla->estado_relevamiento()->associate($log['id_estado_relevamiento']);
-          $log_isla->save();
-        }
-      }
-      
-      $request_maquinas = $request['maquinas'] ?? [];
+      return $this->crear_o_modificar(
+        $request->id_isla,$request->id_casino,$request->id_sector,
+        $request->nro_isla,$request->codigo,
+        $request->historial ?? [],
+        $request->maquinas  ?? []
+      );
+    });
+  }
+
+  private function crear_o_modificar($id_isla,$id_casino,$id_sector,$nro_isla,$codigo,$historial,$maquinas){
+    $isla = null;
+    if(empty($id_isla)){
+      $isla = new Isla;
+    }
+    else{
+      $isla = Isla::find($id_isla);
+    }
+
+    $isla->nro_isla  = $nro_isla;
+    $isla->id_casino = $id_casino;
+    $isla->id_sector = $id_sector;
+    $isla->codigo    = $codigo;
+    $isla->save();
+
+    foreach ($historial as $log) {
+      $log_isla = LogIsla::find($log['id_log_isla']);
+      $log_isla->estado_relevamiento()->associate($log['id_estado_relevamiento']);
+      $log_isla->save();
+    }
+
+    $cambio = false;//Bandera para saber si cambio una maquina
+    {
       $id_maqs_enviadas = [];//Uso hashmap pq 1) es mas rapido 2) evito duplicados
-      foreach($request_maquinas as $m) $id_maqs_enviadas[$m] = true;
+      foreach($maquinas as $m) $id_maqs_enviadas[$m] = true;
       
-      $primer_logeo = true;//Bandera para hacer un solo log por mas que cambien muchas maquinas
       $id_maqs_ya_estaban = [];//Maquinas que ya estaban asociadas y las enviaron de vuelta
       foreach ($isla->maquinas as $m) {
         if(array_key_exists($m->id_maquina,$id_maqs_enviadas)){
@@ -510,9 +516,7 @@ class IslaController extends Controller
           $m->save();
           $razon = "Se eliminó la mtm " . $m->nro_admin . " de la isla " . $isla->nro_isla . ".";
           LogMaquinaController::getInstancia()->registrarMovimiento($m->id_maquina, $razon,4);//tipo mov cambio layout
-          //Deprecar LogIsla
-          if($primer_logeo){ $this->guardarLogIsla($isla->id_isla, 5);}//5 -> estado de relevamiento sin relevar!
-          $primer_logeo = false;
+          $cambio = true;
         }
       }
 
@@ -521,12 +525,15 @@ class IslaController extends Controller
       foreach($id_maqs_a_agregar as $id_maquina => $ignorar) {
         MTMController::getInstancia()->asociarIsla($id_maquina, $isla->id_isla);
         MovimientoIslaController::getInstancia()->guardar($isla->id_isla, $id_maquina);//Deprecar esto tambien...
-        if($primer_logeo){  $this->guardarLogIsla($isla->id_isla, 5);}
-        $primer_logeo = false;
+        $cambio = true;
       }
-  
-      return ['isla' => $isla , 'sector' => $isla->sector];
-    });
+    }
+
+    if($cambio){//Deprecar LogIsla
+      $this->guardarLogIsla($isla->id_isla, 5);//5 -> estado de relevamiento sin relevar!
+    }
+
+    return ['isla' => $isla , 'sector' => $isla->sector];
   }
 
   private function guardarLogIsla($id_isla, $id_estado_relevamiento){//Deprecar esto
