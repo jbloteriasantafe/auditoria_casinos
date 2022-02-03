@@ -438,7 +438,7 @@ class IslaController extends Controller
           }
         }
       }
-      
+
       $codigo = $validator->getData()['codigo'] ?? null;
       //Rosario usa el codigo de otra forma... casi poniendole una descripcion nmemotecnica, nose como unificar SantaFe-Mel con Rosario
       foreach(Isla::where($reglas)->get() as $i){
@@ -447,7 +447,7 @@ class IslaController extends Controller
             $validator->errors()->add('codigo','Existe otra isla con el mismo N° sin codigo');
           }
           if($i->codigo == $codigo){
-            $validator->errors()->add('codigo','El código de subisla ya esta en uso.');
+            $validator->errors()->add('codigo','El código de subisla ya esta en uso');
           }
         }
         else{
@@ -455,7 +455,7 @@ class IslaController extends Controller
             $validator->errors()->add('codigo','Existe otra isla con el mismo N° con codigo');
           }
           else{
-            $validator->errors()->add('nro_isla','Existe otro número de isla sin codigo.');
+            $validator->errors()->add('nro_isla','El N° de isla ya esta en uso');
           }
         }
       }
