@@ -346,48 +346,9 @@ class IslaController extends Controller
     }
   }
 
-  //Rosario usa el codigo de otra forma... casi poniendole una descripcion nmemotecnica, nose como unificar SantaFe-Mel con Rosario
+  
   public function guardarIsla(Request $request){
-    Validator::make($request->all(), [
-        'nro_isla' => 'required|integer|max:9999999999',
-        'id_sector' => 'required|exists:sector,id_sector',
-        'id_casino' => 'required|exists:casino,id_casino',
-        'codigo' => 'nullable',
-        'maquinas' => 'nullable',
-        'maquinas.*' => 'required|exists:maquina,id_maquina'
-    ], self::$errores, self::$atributos)->after(function ($validator){
-      if($validator->errors()->any()) return;
-      $maquinas = $validator->getData()['maquinas'] ?? [];
-      $id_casino = $validator->getData()['id_casino'];
-      foreach ($maquinas as $id_maquina) {
-        $m = Maquina::find($id_maquina);
-        if(is_null($m) || $m->id_casino != $id_casino){
-          $validator->errors()->add('maquinas',self::$errores['incompatibilidad']);
-          return;
-        }
-      }
-      $nro_isla = $validator->getData()['nro_isla'];
-      $reglas = [['id_casino' , '=' , $id_casino],['nro_isla' , '=' , $nro_isla]];
-      $codigo = $validator->getData()['codigo'] ?? null;
-      foreach(Isla::where($reglas)->get() as $i){
-        if(!empty($codigo)){
-          if(empty($i->codigo)){
-            $validator->errors()->add('codigo','Existe otra isla con el mismo N° sin codigo');
-          }
-          if($i->codigo == $codigo){
-            $validator->errors()->add('codigo','El código de subisla ya esta en uso.');
-          }
-        }
-        else{
-          if(!empty($i->codigo)){
-            $validator->errors()->add('codigo','Existe otra isla con el mismo N° con codigo');
-          }
-          else{
-            $validator->errors()->add('nro_isla','Existe otro número de isla sin codigo.');
-          }
-        }
-      }
-    })->validate();
+    $this->validar_crear_o_modificar($request,false);
 
     return DB::transaction(function () use ($request){
       return $this->crear_o_modificar(
@@ -400,42 +361,54 @@ class IslaController extends Controller
   }
 
   public function modificarIsla(Request $request){
-    Validator::make($request->all(), [
-      'id_isla'  => 'required|integer|exists:isla,id_isla',
+    $this->validar_crear_o_modificar($request,true);
+
+    return DB::transaction(function () use ($request){
+      return $this->crear_o_modificar(
+        $request->id_isla,$request->id_casino,$request->id_sector,
+        $request->nro_isla,$request->codigo,
+        $request->historial ?? [],
+        $request->maquinas  ?? []
+      );
+    });
+  }
+
+  private function validar_crear_o_modificar($request,$modificando){
+    $validacion = [
       'nro_isla' => 'required|integer|max:9999999999',
       'id_sector' => 'required|exists:sector,id_sector',
       'id_casino' => 'required|exists:casino,id_casino',
       'codigo' => 'nullable',
       'maquinas' => 'nullable',
       'maquinas.*' => 'required|exists:maquina,id_maquina',
-      'historial' => 'nullable',
-      'historial.*.id_log_isla' => 'required | exists:log_isla,id_log_isla',
-      'historial.*.id_estado_relevamiento' => 'required | exists:estado_relevamiento,id_estado_relevamiento',
-    ], self::$errores, self::$atributos)->after(function ($validator){
+    ];
+    if($modificando){
+      $validacion = array_merge($validacion,[
+        'id_isla'  => 'required|integer|exists:isla,id_isla',
+        'historial' => 'nullable',
+        'historial.*.id_log_isla' => 'required|exists:log_isla,id_log_isla',
+        'historial.*.id_estado_relevamiento' => 'required|exists:estado_relevamiento,id_estado_relevamiento',
+      ]);
+    }
+
+    Validator::make($request->all(),$validacion,self::$errores,self::$atributos)->after(function ($validator) use($modificando){
       if($validator->errors()->any()) return;
       
       $casinos_acceso = [];
       foreach(UsuarioController::getInstancia()->quienSoy()['usuario']->casinos as $c){
         $casinos_acceso[$c->id_casino] = true;
       }
-      $isla = Isla::find($validator->getData()['id_isla']);
-      if(!array_key_exists($isla->id_casino,$casinos_acceso)){
-        $validator->errors()->add('id_isla',self::$errores['privilegios']);
-        return;
-      }
+
       $id_casino = $validator->getData()['id_casino'];
-      if(is_null($isla) || $isla->id_casino != $id_casino){//chequeo is_null porque tiene softdeletes
-        $validator->errors()->add('id_isla',self::$errores['incompatibilidad']);
+      if(!array_key_exists($id_casino,$casinos_acceso)){
+        $validator->errors()->add('id_casino',self::$errores['privilegios']);
         return;
       }
 
-      $historial = $validator->getData()['historial'] ?? [];
-      foreach($historial as $idx => $h){//Deprecar LogIsla
-        $logisla = LogIsla::find($h['id_log_isla']);
-        if($logisla->id_isla != $isla->id_isla){
-          $validator->errors()->add('historial',self::$errores['incompatibilidad']);
-          return;
-        }
+      $sector = Sector::find($validator->getData()['id_sector']);
+      if(is_null($sector) || $sector->id_casino != $id_casino){//Verifico que no este softdeleted y que pertenezca al casino
+        $validator->errors()->add('id_sector',self::$errores['incompatibilidad']);
+        return;
       }
 
       $maquinas = $validator->getData()['maquinas'] ?? [];
@@ -447,9 +420,27 @@ class IslaController extends Controller
         }
       }
 
-      $nro_isla = $validator->getData()['nro_isla'];
-      $reglas = [['id_casino' , '=' , $id_casino],['nro_isla' , '=' , $nro_isla],['id_isla','<>',$isla->id_isla]];
+      $reglas = [['id_casino' , '=' , $id_casino],['nro_isla' , '=' , $validator->getData()['nro_isla']]];
+      if($modificando){
+        $isla = Isla::find($validator->getData()['id_isla']);
+        if(is_null($isla) || $isla->id_casino != $id_casino){
+          $validator->errors()->add('id_isla',self::$errores['incompatibilidad']);
+          return;
+        }
+        $reglas[] = ['id_isla','<>',$isla->id_isla];
+
+        $historial = $validator->getData()['historial'] ?? [];
+        foreach($historial as $idx => $h){//@Deprecar LogIsla
+          $logisla = LogIsla::find($h['id_log_isla']);
+          if($logisla->id_isla != $isla->id_isla){
+            $validator->errors()->add('historial',self::$errores['incompatibilidad']);
+            return;
+          }
+        }
+      }
+      
       $codigo = $validator->getData()['codigo'] ?? null;
+      //Rosario usa el codigo de otra forma... casi poniendole una descripcion nmemotecnica, nose como unificar SantaFe-Mel con Rosario
       foreach(Isla::where($reglas)->get() as $i){
         if(!empty($codigo)){
           if(empty($i->codigo)){
@@ -469,15 +460,6 @@ class IslaController extends Controller
         }
       }
     })->validate();
-
-    return DB::transaction(function () use ($request){
-      return $this->crear_o_modificar(
-        $request->id_isla,$request->id_casino,$request->id_sector,
-        $request->nro_isla,$request->codigo,
-        $request->historial ?? [],
-        $request->maquinas  ?? []
-      );
-    });
   }
 
   private function crear_o_modificar($id_isla,$id_casino,$id_sector,$nro_isla,$codigo,$historial,$maquinas){
@@ -530,17 +512,13 @@ class IslaController extends Controller
     }
 
     if($cambio){//Deprecar LogIsla
-      $this->guardarLogIsla($isla->id_isla, 5);//5 -> estado de relevamiento sin relevar!
+      $log = new LogIsla;
+      $log->isla()->associate($isla->id_isla);
+      $log->estado_relevamiento()->associate(5);//5 -> estado de relevamiento sin relevar!
+      $log->fecha = date("Y-m-d");
+      $log->save();
     }
 
     return ['isla' => $isla , 'sector' => $isla->sector];
-  }
-
-  private function guardarLogIsla($id_isla, $id_estado_relevamiento){//Deprecar esto
-    $log = new LogIsla;
-    $log->isla()->associate($id_isla);
-    $log->estado_relevamiento()->associate($id_estado_relevamiento);
-    $log->fecha = date("Y-m-d");
-    $log->save();
   }
 }
