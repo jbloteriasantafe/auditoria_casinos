@@ -156,11 +156,11 @@
                   <div class="row">
                     <div class="col-md-2">
                       <h5>N° Islote</h5>
-                      <input id="nro_islote" type="text" class="form-control" placeholder="Nro de Islote"/>
+                      <input id="nro_islote" type="text" class="form-control" placeholder="Nro de Islote" disabled/>
                     </div>
                     <div class="col-md-2">
                       <h5>Orden</h5>
-                      <input id="orden" type="text" class="form-control" placeholder="Orden"/>
+                      <input id="orden" type="text" class="form-control" placeholder="Orden" disabled/>
                     </div>
                   </div>
                   <br>
