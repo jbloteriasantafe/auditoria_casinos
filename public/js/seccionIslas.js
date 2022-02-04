@@ -57,6 +57,8 @@ $('#casino').on('change' , function(e,id_sector){
     $('#buscadorMaquina').borrarDataList();
     return;
   }
+  //@TODO: permitir enviar el nro_islote y orden en la creación, hasta que no tenga eso, lo escondo.
+  $('#nro_islote,#orden').parent().toggle(false);//.toggle(id_casino == 3);
   $('#buscadorMaquina').generarDataList('/maquinas/buscarMaquinaPorNumeroMarcaYModelo/' + id_casino, "resultados","id_maquina" ,"nro_admin" , 2, true);
   $('#buscadorMaquina').setearElementoSeleccionado(0 , "");
   $('#sector option').remove();
@@ -178,6 +180,9 @@ $('#btn-nuevo').click(function(e){
   $('#modalIsla .modal-header').attr('style','background-color: #6dc7be; color: #fff');
   $('#btn-guardar').removeClass();
   $('#btn-guardar').addClass('btn btn-successAceptar');
+  if($('#casino option').length == 2){//Solo tiene el "Seleccione" y el casino 
+    $('#casino').val($('#casino option').eq(1).val()).change();
+  }
   $('#modalIsla').modal('show');
 });
 
