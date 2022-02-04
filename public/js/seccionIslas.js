@@ -509,8 +509,9 @@ function mostrarIsla(isla,sector,maquinas){
   $('#cant_maquinas').val(isla.cantidad_maquinas);
   $('#casino').val(sector.id_casino).trigger('change', [sector.id_sector]);
   $('#ncodigo').val(isla.codigo);
-  $('#orden').val(isla.orden).closest('div').toggle(isla.id_casino == 3);
-  $('#nro_islote').val(isla.nro_islote).closest('div').toggle(isla.id_casino == 3);
+  //@TODO: permitir modificarlo cuando se implemente bien lo de nro_islote / orden
+  $('#orden').val(isla.orden).closest('div').toggle(isla.id_casino == 3).attr('disabled','true');
+  $('#nro_islote').val(isla.nro_islote).closest('div').toggle(isla.id_casino == 3).attr('disabled','true');
 
   for (var i = 0; i < maquinas.length; i++) {
     agregarMaquina(maquinas[i].id_maquina, maquinas[i].nro_admin, maquinas[i].marca, maquinas[i].modelo);
