@@ -89,26 +89,46 @@
                 </div>
 
             <div class="col-lg-12 col-xl-3">
-             <div class="row">
-              <div class="col-lg-12">
-               <a href="" id="btn-nuevo" style="text-decoration: none;">
-                <div class="panel panel-default panelBotonNuevo">
-                    <center><img class="imgNuevo" src="/img/logos/islas_white.png"><center>
-                    <div class="backgroundNuevo"></div>
-                    <div class="row">
+              <div class="row">
+                <div class="col-lg-12">
+                  <a href="" id="btn-nuevo" style="text-decoration: none;">
+                    <div class="panel panel-default panelBotonNuevo">
+                      <center><img class="imgNuevo" src="/img/logos/islas_white.png"><center>
+                      <div class="backgroundNuevo"></div>
+                      <div class="row">
                         <div class="col-xs-12">
                           <center>
-                              <h5 class="txtLogo">+</h5>
-                              <h4 class="txtNuevo">NUEVA ISLA</h4>
+                            <h5 class="txtLogo">+</h5>
+                            <h4 class="txtNuevo">NUEVA ISLA</h4>
                           </center>
                         </div>
+                      </div>
                     </div>
+                  </a>
                 </div>
-               </a>
-              </div> <!-- fin fila NUEVO USUARIO -->
-             </div>
+              </div>
+              <!-- Sacar este IF cuando este estable -->
+              @if($usuario->es_superusuario)
+              <div class="row">
+                <div class="col-lg-12">
+                  <a href="" id="btn-islotes" style="text-decoration: none;">
+                    <div class="panel panel-default panelBotonNuevo">
+                      <center><img class="imgNuevo" src="/img/logos/islas_white.png"><center>
+                      <div class="backgroundNuevo"></div>
+                      <div class="row">
+                        <div class="col-xs-12">
+                          <center>
+                            <h5 class="txtLogo">¤</h5>
+                            <h4 class="txtNuevo">ASIGNAR ISLOTES</h4>
+                          </center>
+                        </div>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              </div>
+              @endif
             </div>
-
         </div> <!-- columna de FILTROS Y TABLA -->
 
 
@@ -336,6 +356,96 @@
             </div>
         </div>
     </div>
+</div>
+
+<div id="modalAsignarIslotes" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="width:90%;">
+      <div class="modal-content">
+        <div class="modal-header" style="font-family: Roboto-Black; background: #ff9d2d;">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+          <h3 class="modal-title">ASIGNAR ISLOTES</h3>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-4">
+              <h5>CASINO</h5>
+              <select id="casinoIslotes" class="form-control">
+                @foreach ($casinos as $casino)
+                <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+          <div id="sectores" class="row" style="height: 550px;overflow-y: scroll;">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-aceptarIslotes" type="button" class="btn btn-success btn-warningModificar">ACEPTAR</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<div hidden>
+  <style>
+    .islotes{
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      align-items: stretch;
+      align-content: stretch;
+    }
+    .islotes > div {
+      width: 50%;
+      min-height: 100px;
+      border-top: 1px #ccc solid;
+      border-left: 1px #ddd solid;
+      border-right: 1px #ccc solid;
+      border-bottom: 1px #ddd solid;
+    }
+    .islotes > div > .nro_islote {
+      text-align: center;
+      background: #efefef;
+      margin-top: 0px;
+    }
+    .islas {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      align-content: center;
+    }
+    .isla_islote {
+      text-align: center;
+      border: 1px #ddd solid;
+      min-width: 8%;
+    }
+    .hover:hover{
+      border: 2px dashed orange; 
+    }
+    .movido_reciente{
+      background: orange;
+      animation: sacarcolor 2s;
+    }
+    @keyframes sacarcolor{
+      from {background-color: orange;}
+      to   {background-color: unset;}
+    }
+  </style>
+  <div id="moldeSector">
+    <h3 class="nombre_sector">SECTOR ZZZ</h3>
+    <div class="islotes"></div>
+  </div>
+  <div id="moldeIslote" class="hover">
+    <h4 class="nro_islote">ISLOTE XXX</h4>
+    <div class="islas"></div>
+  </div>
+  <div id="moldeIslaIslote" class="isla_islote hover">
+    <span class="nro_isla">ISLAYYY</span>
+  </div>
 </div>
 
 <div hidden>

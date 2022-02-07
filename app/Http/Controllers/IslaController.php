@@ -40,7 +40,7 @@ class IslaController extends Controller
   public function buscarTodo(){
       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       UsuarioController::getInstancia()->agregarSeccionReciente('Islas' , 'islas');
-      return view('seccionIslas' , ['casinos' => $usuario->casinos]);
+      return view('seccionIslas' , ['usuario' => $usuario,'casinos' => $usuario->casinos]);
   }
 
   public static function getInstancia(){
@@ -378,7 +378,7 @@ class IslaController extends Controller
       'nro_isla' => 'required|integer|max:9999999999',
       'id_sector' => 'required|exists:sector,id_sector',
       'id_casino' => 'required|exists:casino,id_casino',
-      'codigo' => 'nullable',
+      'codigo' => 'nullable|alpha_dash|string|min:1',
       'maquinas' => 'nullable',
       'maquinas.*' => 'required|exists:maquina,id_maquina',
     ];
@@ -520,5 +520,44 @@ class IslaController extends Controller
     }
 
     return ['isla' => $isla , 'sector' => $isla->sector];
+  }
+
+  public function buscarIslotesPorCasino($id_casino){
+    //@TODO: Agregar un "orden" al sector?
+    //@TODO: Agregar un CHECK de BD que no permita tener el mismo nro_islote en 2 sectores
+    //(o pasarlo a una tabla aparte)
+    $sectores = DB::table('sector')
+    ->selectRaw('sector.id_sector,sector.descripcion')
+    ->where('sector.id_casino','=',$id_casino)
+    ->whereNull('sector.deleted_at')
+    ->orderBy('sector.descripcion','asc')->get();
+
+    $sector_islotes_arr = [];
+    foreach($sectores as $s){
+      $sector_islotes_arr[$s->id_sector] = [
+        'descripcion' => $s->descripcion,
+        'islotes' => []
+      ];
+    }
+    $sector_islotes_arr['SIN_SECTOR'] = [
+      'descripcion' => 'SIN_SECTOR',
+      'islotes'     => []
+    ];
+
+    $islotes_islas = DB::table('isla')
+    ->selectRaw('sector.id_sector,isla.nro_islote,GROUP_CONCAT(distinct isla.nro_isla SEPARATOR ",") as islas')
+    ->leftJoin('sector',function($j){
+      return $j->on('sector.id_sector','=','isla.id_sector')->whereNull('sector.deleted_at');
+    })
+    ->where('isla.id_casino','=',$id_casino)
+    ->whereNull('isla.deleted_at')
+    ->groupBy(DB::raw('sector.id_sector,isla.nro_islote'))
+    ->orderBy('isla.nro_islote', 'asc')
+    ->get();
+    foreach($islotes_islas as $idx => $ii){
+      $sector_islotes_arr[$ii->id_sector ?? 'SIN_SECTOR']['islotes'][$ii->nro_islote ?? 'SIN_NRO_ISLOTE'] = explode(',',$ii->islas);
+    }
+    $sector_islotes_arr = array_filter($sector_islotes_arr,function($s){return count($s['islotes']) > 0;});
+    return $sector_islotes_arr;
   }
 }

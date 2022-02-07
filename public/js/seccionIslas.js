@@ -547,3 +547,79 @@ function mensajeExito(modo,mensaje){
   $('#mensajeExito .cabeceraMensaje').toggleClass('modificar',modo=="modificar");
   $('#mensajeExito').show();
 }
+
+$('#btn-islotes').click(function(e){
+  e.preventDefault();
+  $('#casinoIslotes').val($('#casinoIslotes option').eq(0).val()).change()
+  .attr('disabled',$('#casinoIslotes option').length == 1);//Si tiene 1 solo deshabilito seleccionar 
+  $('#modalAsignarIslotes').modal('show');
+});
+
+$('#casinoIslotes').change(function(e){
+  e.preventDefault();
+  $('#sectores').empty();
+  $.get('/islas/buscarIslotesPorCasino/'+$(this).val(),function(sectores){
+    for(const id_sector in sectores){
+      const sector = $('#moldeSector').clone().removeAttr('id');
+      sector.find('.nombre_sector').text(sectores[id_sector]['descripcion']);
+
+      const islotes = sectores[id_sector]['islotes'];
+      for(const nro_islote in islotes){
+        const islote = $('#moldeIslote').clone().removeAttr('id');
+        islote.find('.nro_islote').text(nro_islote);
+        for(const nro_isla_idx in islotes[nro_islote]){
+          const nro_isla = islotes[nro_islote][nro_isla_idx];
+          const isla = $('#moldeIslaIslote').clone().removeAttr('id');
+          isla.find('.nro_isla').text(nro_isla);
+          islote.find('.islas').append(isla);
+        }
+        sector.find('.islotes').append(islote);
+      }
+      $('#sectores').append(sector);
+    }
+  });
+});
+
+let seleccionado = null;
+const color_arriba = '#ffe';
+
+$(document).on('mousedown','.islas > div',function(e){
+  if(seleccionado == null && e.which == 1){
+    e.preventDefault();//evitar que seleccione
+    $(this).css('border','2px solid blue');
+    $(this).closest('.islas').css('background',color_arriba);
+    seleccionado = $(this);
+  }
+});
+$(document).on('mouseenter','.islas',function(){
+  if(seleccionado != null){
+    $(this).css('background',color_arriba);
+  }
+});
+$(document).on('mouseleave','.islas',function(){
+  if(seleccionado != null){
+    $(this).css('background','unset');
+  }
+});
+$(document).on('mouseup','.islas',function(e){
+  if(seleccionado != null && e.which == 1){
+    const isla_mouse_arriba = $(document.elementsFromPoint(e.pageX,e.pageY)).filter(function() {
+      return $(this).hasClass('isla_islote');
+    }).eq(0);
+    if(isla_mouse_arriba.length == 0){//Averiguo si fue arriba/abajo para hacer append/prepend
+      const rect = $(this).parent()[0].getBoundingClientRect();
+      const mitad = (rect.top+rect.bottom)/2.;
+      if(e.pageY >= mitad) $(this).append(seleccionado);
+      else                 $(this).prepend(seleccionado);
+    }
+    else{//Averiguo si fue a la izquierda o derecha del elemento
+      const rect = isla_mouse_arriba[0].getBoundingClientRect();
+      const mitad = (rect.left+rect.right)/2.;
+      if(e.pageX >= mitad) seleccionado.insertAfter(isla_mouse_arriba);
+      else                 seleccionado.insertBefore(isla_mouse_arriba); 
+    }
+    seleccionado.css('border','').css('background','unset').addClass('movido_reciente');
+    $(this).css('background','unset');
+    seleccionado = null;
+  }
+})
