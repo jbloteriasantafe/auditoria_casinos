@@ -606,7 +606,6 @@ $(document).on('mouseup','*',function(e){
   if(seleccionado == null) return;
 
   const elementos_en_el_mouse = $(document.elementsFromPoint(e.pageX,e.pageY));
-
   const isla_mouse_arriba = elementos_en_el_mouse.filter(function() {
     return $(this).hasClass('isla_islote');
   }).eq(0);
@@ -632,7 +631,7 @@ $(document).on('mouseup','*',function(e){
     let obj = null;
     divislas_mouse_arriba.find('.isla_islote').each(function(){
       const obj_rect = this.getBoundingClientRect();
-      const d = distancia_a_caja(obj_rect.left,obj_rect.bottom,obj_rect.right,obj_rect.top,e.pageX,e.pageY);
+      const d = distancia_a_caja(obj_rect,e.pageX,e.pageY);
       if(d < min_dist){
         min_dist = d;
         obj = this;
@@ -655,12 +654,12 @@ $(document).on('mouseup','*',function(e){
   seleccionado = null;
 })
 
-function distancia_a_caja(x0,y0,x1,y1,px,py){
+function distancia_a_caja(rect,px,py){
   //Retorna la distancia de (e.pageX,e.pageY) a una caja. Basado en https://www.iquilezles.org/www/articles/distfunctions2d/distfunctions2d.htm
-  const centerx = (x0+x1)*0.5;
-  const centery = (y0+y1)*0.5;
-  const lx = Math.abs(x0-centerx);
-  const ly = Math.abs(y0-centery);
+  const centerx = (rect.left+rect.right)*0.5;
+  const centery = (rect.top+rect.bottom)*0.5;
+  const lx = Math.abs(rect.left-centerx);
+  const ly = Math.abs(rect.bottom-centery);
   const dx = Math.abs(px-centerx) - lx;
   const dy = Math.abs(py-centery) - ly;
   const length = function(x,y){ return Math.sqrt(x*x+y*y); }
