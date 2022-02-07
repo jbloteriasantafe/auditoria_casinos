@@ -242,7 +242,7 @@ class IslaController extends Controller
     if(!empty($request->nro_isla))
       $reglas[]=['isla.nro_isla','like',$request->nro_isla.'%'];
     if(!empty($request->id_sector))
-      $reglas[]=['isla.id_sector','=',$request->sector];
+      $reglas[]=['isla.id_sector','=',$request->id_sector];
     if(!empty($request->id_casino))
       $reglas[]=['isla.id_casino','=',$request->id_casino];
 
