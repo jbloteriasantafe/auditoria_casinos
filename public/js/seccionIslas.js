@@ -613,30 +613,56 @@ $(document).on('mouseup','*',function(e){
   const divislas_mouse_arriba = elementos_en_el_mouse.filter(function() {
     return $(this).parent().hasClass('islotes');
   }).eq(0);
-  const resetear_estilos = function(){
-    divislas_mouse_arriba.css('background','');
-    seleccionado.css('border','').css('background','unset').addClass('movido_reciente');
-    seleccionado = null;
-  }
 
-  //Primero pruebo insertarlo delante/atras de una isla
-  if(isla_mouse_arriba.length == 1){//Averiguo si fue a la izquierda o derecha del elemento
-    const rect = isla_mouse_arriba[0].getBoundingClientRect();
+  const insertar_isla = function(isla_base){
+    const rect = isla_base[0].getBoundingClientRect();//Averiguo si fue a la izquierda o derecha del elemento
     const mitad = (rect.left+rect.right)/2.;
-    if(e.pageX >= mitad) seleccionado.detach().insertAfter(isla_mouse_arriba);
-    else                 seleccionado.detach().insertBefore(isla_mouse_arriba); 
-    return resetear_estilos();
+    if(e.pageX >= mitad) seleccionado.detach().insertAfter(isla_base);
+    else                 seleccionado.detach().insertBefore(isla_base); 
   }
 
-  //Si no pudo, pruebo insertarlo primero/ultimo en la lista
-  if(divislas_mouse_arriba.length == 1){//Averiguo si fue arriba/abajo para hacer append/prepend
-    const rect = divislas_mouse_arriba[0].getBoundingClientRect();
-    const mitad = (rect.top+rect.bottom)/2.;
-    if(e.pageY >= mitad) divislas_mouse_arriba.find('.islas').append(seleccionado.detach());
-    else                 divislas_mouse_arriba.find('.islas').prepend(seleccionado.detach());
-    return resetear_estilos();
+  //Si solto el click adentro de otra isla, entra aca 
+  if(isla_mouse_arriba.length == 1 && isla_mouse_arriba[0] != seleccionado[0]){
+    insertar_isla(isla_mouse_arriba);
   }
+  //Si solto el click en el div pero por fuera de cualquier isla
+  else if(isla_mouse_arriba.length == 0 && divislas_mouse_arriba.find('.isla_islote').length > 0){
+    //Encuentro la isla mas cercana
+    let min_dist = Infinity;
+    let obj = null;
+    divislas_mouse_arriba.find('.isla_islote').each(function(){
+      const obj_rect = this.getBoundingClientRect();
+      const d = distancia_a_caja(obj_rect.left,obj_rect.bottom,obj_rect.right,obj_rect.top,e.pageX,e.pageY);
+      if(d < min_dist){
+        min_dist = d;
+        obj = this;
+      }
+    });
 
-  //Si no pudo ninguno de los dos, reseteo
-  return resetear_estilos();
+    insertar_isla($(obj));
+  }
+  //Si solto el click en un islote sin islas
+  else if(isla_mouse_arriba.length == 0 && divislas_mouse_arriba.length == 1 && divislas_mouse_arriba.find('.isla_islote').length == 0){
+    divislas_mouse_arriba.find('.islas').append(seleccionado.detach());
+  }
+  //ELSE -> No hago nada (si solto el click en la misma isla o por fuera de cualquier div que buscamos)
+  divislas_mouse_arriba.css('background','');
+  seleccionado.css('border','').css('background','unset').addClass('movido_reciente');
+  const aux = seleccionado;
+  setTimeout(function(){
+    aux.removeClass('movido_reciente');//le saco la clase para que pueda volver a hacer el efecto 
+  },3000);
+  seleccionado = null;
 })
+
+function distancia_a_caja(x0,y0,x1,y1,px,py){
+  //Retorna la distancia de (e.pageX,e.pageY) a una caja. Basado en https://www.iquilezles.org/www/articles/distfunctions2d/distfunctions2d.htm
+  const centerx = (x0+x1)*0.5;
+  const centery = (y0+y1)*0.5;
+  const lx = Math.abs(x0-centerx);
+  const ly = Math.abs(y0-centery);
+  const dx = Math.abs(px-centerx) - lx;
+  const dy = Math.abs(py-centery) - ly;
+  const length = function(x,y){ return Math.sqrt(x*x+y*y); }
+  return length(Math.max(dx,0.),Math.max(dy,0.)) + Math.min(Math.max(dx,dy),0.);
+}
