@@ -601,25 +601,42 @@ $(document).on('mouseleave','.islotes > div',function(){
     $(this).css('background','unset');
   }
 });
-$(document).on('mouseup','.islotes > div',function(e){
-  if(seleccionado != null && e.which == 1){
-    const isla_mouse_arriba = $(document.elementsFromPoint(e.pageX,e.pageY)).filter(function() {
-      return $(this).hasClass('isla_islote');
-    }).eq(0);
-    if(isla_mouse_arriba.length == 0){//Averiguo si fue arriba/abajo para hacer append/prepend
-      const rect = $(this)[0].getBoundingClientRect();
-      const mitad = (rect.top+rect.bottom)/2.;
-      if(e.pageY >= mitad) $(this).find('.islas').append(seleccionado);
-      else                 $(this).find('.islas').prepend(seleccionado);
-    }
-    else{//Averiguo si fue a la izquierda o derecha del elemento
-      const rect = isla_mouse_arriba[0].getBoundingClientRect();
-      const mitad = (rect.left+rect.right)/2.;
-      if(e.pageX >= mitad) seleccionado.insertAfter(isla_mouse_arriba);
-      else                 seleccionado.insertBefore(isla_mouse_arriba); 
-    }
+
+$(document).on('mouseup','*',function(e){
+  if(seleccionado == null) return;
+
+  const elementos_en_el_mouse = $(document.elementsFromPoint(e.pageX,e.pageY));
+
+  const isla_mouse_arriba = elementos_en_el_mouse.filter(function() {
+    return $(this).hasClass('isla_islote');
+  }).eq(0);
+  const divislas_mouse_arriba = elementos_en_el_mouse.filter(function() {
+    return $(this).parent().hasClass('islotes');
+  }).eq(0);
+  const resetear_estilos = function(){
+    divislas_mouse_arriba.css('background','');
     seleccionado.css('border','').css('background','unset').addClass('movido_reciente');
-    $(this).css('background','unset');
     seleccionado = null;
   }
+
+  //Primero pruebo insertarlo delante/atras de una isla
+  if(isla_mouse_arriba.length == 1){//Averiguo si fue a la izquierda o derecha del elemento
+    const rect = isla_mouse_arriba[0].getBoundingClientRect();
+    const mitad = (rect.left+rect.right)/2.;
+    if(e.pageX >= mitad) seleccionado.detach().insertAfter(isla_mouse_arriba);
+    else                 seleccionado.detach().insertBefore(isla_mouse_arriba); 
+    return resetear_estilos();
+  }
+
+  //Si no pudo, pruebo insertarlo primero/ultimo en la lista
+  if(divislas_mouse_arriba.length == 1){//Averiguo si fue arriba/abajo para hacer append/prepend
+    const rect = divislas_mouse_arriba[0].getBoundingClientRect();
+    const mitad = (rect.top+rect.bottom)/2.;
+    if(e.pageY >= mitad) divislas_mouse_arriba.find('.islas').append(seleccionado.detach());
+    else                 divislas_mouse_arriba.find('.islas').prepend(seleccionado.detach());
+    return resetear_estilos();
+  }
+
+  //Si no pudo ninguno de los dos, reseteo
+  return resetear_estilos();
 })
