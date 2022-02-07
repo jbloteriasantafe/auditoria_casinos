@@ -587,30 +587,30 @@ $(document).on('mousedown','.islas > div',function(e){
   if(seleccionado == null && e.which == 1){
     e.preventDefault();//evitar que seleccione
     $(this).css('border','2px solid blue');
-    $(this).closest('.islas').css('background',color_arriba);
+    $(this).closest('.islas').parent().css('background',color_arriba);
     seleccionado = $(this);
   }
 });
-$(document).on('mouseenter','.islas',function(){
+$(document).on('mouseenter','.islotes > div',function(){
   if(seleccionado != null){
     $(this).css('background',color_arriba);
   }
 });
-$(document).on('mouseleave','.islas',function(){
+$(document).on('mouseleave','.islotes > div',function(){
   if(seleccionado != null){
     $(this).css('background','unset');
   }
 });
-$(document).on('mouseup','.islas',function(e){
+$(document).on('mouseup','.islotes > div',function(e){
   if(seleccionado != null && e.which == 1){
     const isla_mouse_arriba = $(document.elementsFromPoint(e.pageX,e.pageY)).filter(function() {
       return $(this).hasClass('isla_islote');
     }).eq(0);
     if(isla_mouse_arriba.length == 0){//Averiguo si fue arriba/abajo para hacer append/prepend
-      const rect = $(this).parent()[0].getBoundingClientRect();
+      const rect = $(this)[0].getBoundingClientRect();
       const mitad = (rect.top+rect.bottom)/2.;
-      if(e.pageY >= mitad) $(this).append(seleccionado);
-      else                 $(this).prepend(seleccionado);
+      if(e.pageY >= mitad) $(this).find('.islas').append(seleccionado);
+      else                 $(this).find('.islas').prepend(seleccionado);
     }
     else{//Averiguo si fue a la izquierda o derecha del elemento
       const rect = isla_mouse_arriba[0].getBoundingClientRect();
