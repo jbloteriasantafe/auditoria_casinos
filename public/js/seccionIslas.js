@@ -566,7 +566,7 @@ $('#casinoIslotes').change(function(e){
       const islotes = sectores[id_sector]['islotes'];
       for(const nro_islote in islotes){
         const islote = $('#moldeIslote').clone().removeAttr('id');
-        islote.find('.nro_islote').text(nro_islote);
+        islote.find('.nro_islote').empty().append(nro_islote == 'SIN_NRO_ISLOTE'? '&nbsp;' : nro_islote);
         for(const nro_isla_idx in islotes[nro_islote]){
           const nro_isla = islotes[nro_islote][nro_isla_idx];
           const isla = $('#moldeIslaIslote').clone().removeAttr('id');
