@@ -603,7 +603,7 @@ $(document).on('mouseleave','.islotes > div',function(){
 });
 
 $(document).on('mouseup','*',function(e){
-  if(seleccionado == null) return;
+  if(seleccionado == null || e.which != 1) return;
 
   const elementos_en_el_mouse = $(document.elementsFromPoint(e.pageX,e.pageY));
   const isla_mouse_arriba = elementos_en_el_mouse.filter(function() {
