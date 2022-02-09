@@ -581,7 +581,7 @@ $('#casinoIslotes').change(function(e){
 });
 
 let seleccionado = null;
-const color_arriba = '#ffe';
+const color_arriba = '#fef';
 
 $(document).on('mousedown','.islas > div',function(e){
   if(seleccionado == null && e.which == 1){
@@ -633,9 +633,9 @@ function mover_seleccionado_a_div(div,divpadre,x,y){
   if(div.length == 1 && div[0] != seleccionado[0]){
     insertar(div);
   }
-  //Si solto el click en el divpadre pero por fuera de cualquier isla
+  //Si solto el click en el divpadre pero por fuera de cualquier div
   else if(div.length == 0 && slot_a_insertar.children().length > 0){
-    //Encuentro la isla mas cercana
+    //Encuentro el div mas cercano
     let min_dist = Infinity;
     let obj = null;
     slot_a_insertar.children().each(function(){
@@ -651,7 +651,7 @@ function mover_seleccionado_a_div(div,divpadre,x,y){
       insertar($(obj));
     }
   }
-  //Si solto el click en un islote sin islas
+  //Si solto el click en un divpadre sin hijos
   else if(div.length == 0 && divpadre.length == 1 && slot_a_insertar.children().length == 0){
     slot_a_insertar.append(seleccionado.detach());
   }
@@ -676,7 +676,7 @@ $(document).on('mouseup','*',function(e){
   else if(seleccionado.hasClass('asignar_islote') && (islote_mouse_arriba.length + sector_mouse_arriba.length) > 0){//Si encontro islote y/o sector
     mover_seleccionado_a_div(islote_mouse_arriba,sector_mouse_arriba,e.pageX,e.pageY);
   }
-  
+
   seleccionado.addClass('movido_reciente').css('border','');
   islote_mouse_arriba.css('background','');
   {
