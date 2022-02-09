@@ -555,6 +555,18 @@ $('#btn-islotes').click(function(e){
   $('#modalAsignarIslotes').modal('show');
 });
 
+function crearIslote(nro_islote,islas){
+  const islote = $('#moldeIslote').clone().removeAttr('id');
+  islote.find('.nro_islote').empty().append(nro_islote == 'SIN_NRO_ISLOTE'? '&nbsp;' : nro_islote);
+  for(const nro_isla_idx in islas){
+    const nro_isla = islas[nro_isla_idx];
+    const isla = $('#moldeIslaIslote').clone().removeAttr('id');
+    isla.find('.nro_isla').text(nro_isla);
+    islote.find('.islas').append(isla);
+  }
+  return islote;
+}
+
 $('#casinoIslotes').change(function(e){
   e.preventDefault();
   $('#sectores').empty();
@@ -562,18 +574,9 @@ $('#casinoIslotes').change(function(e){
     for(const id_sector in sectores){
       const sector = $('#moldeSector').clone().removeAttr('id');
       sector.find('.nombre_sector').text(sectores[id_sector]['descripcion']);
-
       const islotes = sectores[id_sector]['islotes'];
       for(const nro_islote in islotes){
-        const islote = $('#moldeIslote').clone().removeAttr('id');
-        islote.find('.nro_islote').empty().append(nro_islote == 'SIN_NRO_ISLOTE'? '&nbsp;' : nro_islote);
-        for(const nro_isla_idx in islotes[nro_islote]){
-          const nro_isla = islotes[nro_islote][nro_isla_idx];
-          const isla = $('#moldeIslaIslote').clone().removeAttr('id');
-          isla.find('.nro_isla').text(nro_isla);
-          islote.find('.islas').append(isla);
-        }
-        sector.find('.islotes').append(islote);
+        sector.find('.islotes').append(crearIslote(nro_islote,islotes[nro_islote]));
       }
       $('#sectores').append(sector);
     }
@@ -655,6 +658,13 @@ function mover_seleccionado_a_div(seleccionado,div,divpadre,x,y){
   }
 }
 
+function movidoReciente(obj){
+  obj.addClass('movido_reciente');
+  setTimeout(function(){
+    obj.removeClass('movido_reciente');//le saco la clase para que pueda volver a hacer el efecto 
+  },2000);
+}
+
 $(document).on('mouseup','*',function(e){
   const seleccionado = $('.seleccionado');
   if(seleccionado.length == 0 || e.which != 1) return;
@@ -676,16 +686,13 @@ $(document).on('mouseup','*',function(e){
     mover_seleccionado_a_div(seleccionado,islote_mouse_arriba,sector_mouse_arriba,e.pageX,e.pageY);
   }
 
-  seleccionado.addClass('movido_reciente');
-  setTimeout(function(){
-    seleccionado.removeClass('movido_reciente');//le saco la clase para que pueda volver a hacer el efecto 
-  },2000);
+  movidoReciente(seleccionado);
   $('.seleccionado').removeClass('seleccionado');
   $('.sombreado').removeClass('sombreado');
 })
 
 function distancia_a_caja(rect,px,py){
-  //Retorna la distancia de (e.pageX,e.pageY) a una caja. Basado en https://www.iquilezles.org/www/articles/distfunctions2d/distfunctions2d.htm
+  //Retorna la distancia de (px,py) a una caja. Basado en https://www.iquilezles.org/www/articles/distfunctions2d/distfunctions2d.htm
   const centerx = (rect.left+rect.right)*0.5;
   const centery = (rect.top+rect.bottom)*0.5;
   const lx = Math.abs(rect.left-centerx);
@@ -695,3 +702,15 @@ function distancia_a_caja(rect,px,py){
   const length = function(x,y){ return Math.sqrt(x*x+y*y); }
   return length(Math.max(dx,0.),Math.max(dy,0.)) + Math.min(Math.max(dx,dy),0.);
 }
+
+$('#agregarIslote').keyup(function(e){
+  e.preventDefault();
+  if(e.which == 13){//Agrego y limpio si toco enter
+    if($(this).val() == parseInt($(this).val())){
+      const islote = crearIslote($(this).val(),[]);
+      $('#sectores .asignar_sector').eq(0).find('.islotes').prepend(islote);
+      movidoReciente(islote);
+    }
+    $(this).val("").change();
+  }
+});

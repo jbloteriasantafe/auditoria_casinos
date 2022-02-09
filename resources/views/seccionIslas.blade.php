@@ -375,6 +375,10 @@
                 @endforeach
               </select>
             </div>
+            <div class="col-md-4">
+              <h5>Agregar islote</h5>
+              <input id="agregarIslote" class="form-control" placeholder="Presione ENTER"/>
+            </div>
           </div>
           <div id="sectores" class="row" style="height: 550px;overflow-y: scroll;">
           </div>
@@ -409,6 +413,7 @@
     }
     .islotes .nro_islote {
       text-align: center;
+      text-shadow: 1px 1px 0px white;
       border-radius: 25px 25px 0px 0px;
       background-color: #ccc;
       margin-top: 0px;
