@@ -659,7 +659,6 @@ function mover_seleccionado_a_div(div,divpadre,x,y){
 
 $(document).on('mouseup','*',function(e){
   if(seleccionado == null || e.which != 1) return;
-
   const elementos_en_el_mouse = $(document.elementsFromPoint(e.pageX,e.pageY));
   const isla_mouse_arriba = elementos_en_el_mouse.filter(function() {//solto en una isla
     return $(this).hasClass('asignar_isla');
@@ -677,10 +676,7 @@ $(document).on('mouseup','*',function(e){
   else if(seleccionado.hasClass('asignar_islote') && (islote_mouse_arriba.length + sector_mouse_arriba.length) > 0){//Si encontro islote y/o sector
     mover_seleccionado_a_div(islote_mouse_arriba,sector_mouse_arriba,e.pageX,e.pageY);
   }
-  else{
-    return;
-  }
-
+  
   seleccionado.addClass('movido_reciente').css('border','');
   islote_mouse_arriba.css('background','');
   {
