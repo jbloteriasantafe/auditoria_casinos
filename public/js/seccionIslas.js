@@ -623,6 +623,8 @@ function mover_seleccionado_a_div(div,divpadre,x,y){
   */
 
   const insertar = function(div_base){
+    //No hacerlo si es el mismo sino al hacer detach() no puede insertarAfter/Before (no tiene padre) y termina borrandose
+    if(div_base[0] == seleccionado[0]) return;//No insetar
     const rect = div_base[0].getBoundingClientRect();//Averiguo si fue a la izquierda o derecha del elemento
     const mitad = (rect.left+rect.right)/2.;
     if(x >= mitad) seleccionado.detach().insertAfter(div_base);
@@ -630,7 +632,7 @@ function mover_seleccionado_a_div(div,divpadre,x,y){
   }
   const slot_a_insertar = divpadre.find('.hijos').first();
   //Si solto el click adentro del div
-  if(div.length == 1 && div[0] != seleccionado[0]){
+  if(div.length == 1){
     insertar(div);
   }
   //Si solto el click en el divpadre pero por fuera de cualquier div
@@ -646,10 +648,7 @@ function mover_seleccionado_a_div(div,divpadre,x,y){
         obj = this;
       }
     });
-    if(obj != seleccionado[0]){//Trato de usarlo como base solo si es otro div
-      //Sino al hacer detach() no puede insertarAfter/Before (no tiene padre) y termina borrandose
-      insertar($(obj));
-    }
+    insertar($(obj));
   }
   //Si solto el click en un divpadre sin hijos
   else if(div.length == 0 && divpadre.length == 1 && slot_a_insertar.children().length == 0){
