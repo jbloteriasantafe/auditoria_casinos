@@ -397,7 +397,7 @@
       align-items: stretch;
       align-content: stretch;
     }
-    .islotes > div {
+    .asignar_islote {
       width: 50%;
       min-height: 100px;
       border-top: 1px #ccc solid;
@@ -405,7 +405,7 @@
       border-right: 1px #ccc solid;
       border-bottom: 1px #ddd solid;
     }
-    .islotes > div > .nro_islote {
+    .islotes .nro_islote {
       text-align: center;
       background: #efefef;
       margin-top: 0px;
@@ -418,33 +418,35 @@
       align-items: center;
       align-content: center;
     }
-    .isla_islote {
+    .asignar_isla {
       text-align: center;
       border: 1px #ddd solid;
       min-width: 8%;
     }
-    .hover:hover{
+    .asignar_isla:hover,.asignar_islote:hover{
       border: 2px dashed orange; 
     }
+    .islotes .nro_islote:hover{
+      border-bottom: 2px solid orange; 
+    }
     .movido_reciente{
-      background: orange;
-      animation: sacarcolor 2s;
+      animation: sacarcolor 3s;
     }
     @keyframes sacarcolor{
-      from {background-color: orange;}
-      to   {background-color: unset;}
+      0%   {background-color: orange;}
+      100% {background-color: unset;}
     }
   </style>
-  <div id="moldeSector">
+  <div id="moldeSector" class="asignar_sector">
     <h3 class="nombre_sector">SECTOR ZZZ</h3>
-    <div class="islotes"></div>
+    <div class="islotes hijos"></div>
   </div>
-  <div id="moldeIslote" class="hover">
+  <div id="moldeIslote" class="asignar_islote">
     <h4 class="nro_islote">ISLOTE XXX</h4>
-    <div class="islas"></div>
+    <div class="islas hijos"></div>
   </div>
-  <div id="moldeIslaIslote" class="isla_islote hover">
-    <span class="nro_isla">ISLAYYY</span>
+  <div id="moldeIslaIslote" class="asignar_isla">
+    <span class="nro_isla hijos">ISLAYYY</span>
   </div>
 </div>
 

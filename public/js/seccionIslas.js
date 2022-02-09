@@ -591,6 +591,16 @@ $(document).on('mousedown','.islas > div',function(e){
     seleccionado = $(this);
   }
 });
+
+$(document).on('mousedown','.islotes .nro_islote',function(e){
+  //No permito seleccionar el "SIN_NRO_ISLOTE" ya que es solo para mostrar islas sin asignar
+  if(seleccionado == null && e.which == 1 && $(this).text().trim().length > 0){
+    e.preventDefault();//evitar que seleccione
+    $(this).parent().css('border','2px solid blue');
+    seleccionado = $(this).parent();
+  }
+});
+
 $(document).on('mouseenter','.islotes > div',function(){
   if(seleccionado != null){
     $(this).css('background',color_arriba);
@@ -602,55 +612,83 @@ $(document).on('mouseleave','.islotes > div',function(){
   }
 });
 
-$(document).on('mouseup','*',function(e){
-  if(seleccionado == null || e.which != 1) return;
+function mover_seleccionado_a_div(div,divpadre,x,y){
+  /*
+  sectores
+    asignar_sector (divpadre)
+      hijos
+        asignar_islote (div),(divpadre)
+          hijos
+            asignar_isla (div)
+  */
 
-  const elementos_en_el_mouse = $(document.elementsFromPoint(e.pageX,e.pageY));
-  const isla_mouse_arriba = elementos_en_el_mouse.filter(function() {
-    return $(this).hasClass('isla_islote');
-  }).eq(0);
-  const divislas_mouse_arriba = elementos_en_el_mouse.filter(function() {
-    return $(this).parent().hasClass('islotes');
-  }).eq(0);
-
-  const insertar_isla = function(isla_base){
-    const rect = isla_base[0].getBoundingClientRect();//Averiguo si fue a la izquierda o derecha del elemento
+  const insertar = function(div_base){
+    const rect = div_base[0].getBoundingClientRect();//Averiguo si fue a la izquierda o derecha del elemento
     const mitad = (rect.left+rect.right)/2.;
-    if(e.pageX >= mitad) seleccionado.detach().insertAfter(isla_base);
-    else                 seleccionado.detach().insertBefore(isla_base); 
+    if(x >= mitad) seleccionado.detach().insertAfter(div_base);
+    else           seleccionado.detach().insertBefore(div_base); 
   }
-
-  //Si solto el click adentro de otra isla, entra aca 
-  if(isla_mouse_arriba.length == 1 && isla_mouse_arriba[0] != seleccionado[0]){
-    insertar_isla(isla_mouse_arriba);
+  const slot_a_insertar = divpadre.find('.hijos').first();
+  //Si solto el click adentro del div
+  if(div.length == 1 && div[0] != seleccionado[0]){
+    insertar(div);
   }
-  //Si solto el click en el div pero por fuera de cualquier isla
-  else if(isla_mouse_arriba.length == 0 && divislas_mouse_arriba.find('.isla_islote').length > 0){
+  //Si solto el click en el divpadre pero por fuera de cualquier isla
+  else if(div.length == 0 && slot_a_insertar.children().length > 0){
     //Encuentro la isla mas cercana
     let min_dist = Infinity;
     let obj = null;
-    divislas_mouse_arriba.find('.isla_islote').each(function(){
+    slot_a_insertar.children().each(function(){
       const obj_rect = this.getBoundingClientRect();
-      const d = distancia_a_caja(obj_rect,e.pageX,e.pageY);
+      const d = distancia_a_caja(obj_rect,x,y);
       if(d < min_dist){
         min_dist = d;
         obj = this;
       }
     });
-
-    insertar_isla($(obj));
+    if(obj != seleccionado[0]){//Trato de usarlo como base solo si es otro div
+      //Sino al hacer detach() no puede insertarAfter/Before (no tiene padre) y termina borrandose
+      insertar($(obj));
+    }
   }
   //Si solto el click en un islote sin islas
-  else if(isla_mouse_arriba.length == 0 && divislas_mouse_arriba.length == 1 && divislas_mouse_arriba.find('.isla_islote').length == 0){
-    divislas_mouse_arriba.find('.islas').append(seleccionado.detach());
+  else if(div.length == 0 && divpadre.length == 1 && slot_a_insertar.children().length == 0){
+    slot_a_insertar.append(seleccionado.detach());
   }
-  //ELSE -> No hago nada (si solto el click en la misma isla o por fuera de cualquier div que buscamos)
-  divislas_mouse_arriba.css('background','');
-  seleccionado.css('border','').css('background','unset').addClass('movido_reciente');
-  const aux = seleccionado;
-  setTimeout(function(){
-    aux.removeClass('movido_reciente');//le saco la clase para que pueda volver a hacer el efecto 
-  },3000);
+}
+
+$(document).on('mouseup','*',function(e){
+  if(seleccionado == null || e.which != 1) return;
+
+  const elementos_en_el_mouse = $(document.elementsFromPoint(e.pageX,e.pageY));
+  const isla_mouse_arriba = elementos_en_el_mouse.filter(function() {//solto en una isla
+    return $(this).hasClass('asignar_isla');
+  }).eq(0);
+  const islote_mouse_arriba = elementos_en_el_mouse.filter(function() {//solto en la lista de islas de un islote
+    return $(this).hasClass('asignar_islote')
+  }).eq(0);
+  const sector_mouse_arriba = elementos_en_el_mouse.filter(function(){//solto en un sector
+    return $(this).hasClass('asignar_sector');
+  }).eq(0);
+
+  if(seleccionado.hasClass('asignar_isla') && (isla_mouse_arriba.length + islote_mouse_arriba.length) > 0){//Si encontro isla y/o islote
+    mover_seleccionado_a_div(isla_mouse_arriba,islote_mouse_arriba,e.pageX,e.pageY);
+  }
+  else if(seleccionado.hasClass('asignar_islote') && (islote_mouse_arriba.length + sector_mouse_arriba.length) > 0){//Si encontro islote y/o sector
+    mover_seleccionado_a_div(islote_mouse_arriba,sector_mouse_arriba,e.pageX,e.pageY);
+  }
+  else{
+    return;
+  }
+
+  seleccionado.addClass('movido_reciente').css('border','');
+  islote_mouse_arriba.css('background','');
+  {
+    const aux = seleccionado;//Lo mantengo en una referencia local porque lo voy a asignar a null
+    setTimeout(function(){
+      aux.removeClass('movido_reciente');//le saco la clase para que pueda volver a hacer el efecto 
+    },2000);
+  }
   seleccionado = null;
 })
 
