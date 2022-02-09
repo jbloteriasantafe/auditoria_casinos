@@ -398,16 +398,19 @@
       align-content: stretch;
     }
     .asignar_islote {
-      width: 50%;
+      width: 49%;
+      margin: 0.5%;
       min-height: 100px;
       border-top: 1px #ccc solid;
       border-left: 1px #ddd solid;
       border-right: 1px #ccc solid;
       border-bottom: 1px #ddd solid;
+      border-radius: 25px;
     }
     .islotes .nro_islote {
       text-align: center;
-      background: #efefef;
+      border-radius: 25px 25px 0px 0px;
+      background-color: #ccc;
       margin-top: 0px;
     }
     .islas {
@@ -428,6 +431,12 @@
     }
     .islotes .nro_islote:hover{
       border-bottom: 2px solid orange; 
+    }
+    .sombreado {
+      background-color: #fef;
+    }
+    .seleccionado {
+      border: 2px solid blue !important;
     }
     .movido_reciente{
       animation: sacarcolor 3s;

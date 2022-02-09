@@ -580,39 +580,38 @@ $('#casinoIslotes').change(function(e){
   });
 });
 
-let seleccionado = null;
-const color_arriba = '#fef';
-
-$(document).on('mousedown','.islas > div',function(e){
-  if(seleccionado == null && e.which == 1){
-    e.preventDefault();//evitar que seleccione
-    $(this).css('border','2px solid blue');
-    $(this).closest('.islas').parent().css('background',color_arriba);
-    seleccionado = $(this);
+$(document).on('mousedown','.asignar_isla',function(e){
+  if($('.seleccionado').length == 0 && e.which == 1){
+    e.preventDefault();//evitar que seleccione texto
+    $(this).addClass('seleccionado').closest('.asignar_islote').addClass('sombreado');
   }
 });
 
-$(document).on('mousedown','.islotes .nro_islote',function(e){
+$(document).on('mousedown','.asignar_islote',function(e){
   //No permito seleccionar el "SIN_NRO_ISLOTE" ya que es solo para mostrar islas sin asignar
-  if(seleccionado == null && e.which == 1 && $(this).text().trim().length > 0){
-    e.preventDefault();//evitar que seleccione
-    $(this).parent().css('border','2px solid blue');
-    seleccionado = $(this).parent();
+  if($('.seleccionado').length == 0 && e.which == 1 && $(this).text().trim().length > 0){
+    e.preventDefault();//evitar que seleccione texto
+    $(this).addClass('seleccionado').closest('.asignar_sector').addClass('sombreado');
   }
 });
 
-$(document).on('mouseenter','.islotes > div',function(){
-  if(seleccionado != null){
-    $(this).css('background',color_arriba);
+$(document).on('mouseenter','#sectores div',function(){
+  if($('.seleccionado').length == 0) return;
+  let div = $();
+  if($('.seleccionado').hasClass('asignar_isla')){
+    div = $(this).filter(".asignar_islote");
   }
-});
-$(document).on('mouseleave','.islotes > div',function(){
-  if(seleccionado != null){
-    $(this).css('background','unset');
+  if($('.seleccionado').hasClass('asignar_islote')){
+    div = $(this).filter('.asignar_sector');
   }
+  div.addClass('sombreado');
 });
 
-function mover_seleccionado_a_div(div,divpadre,x,y){
+$(document).on('mouseleave','.sombreado',function(){
+  $(this).removeClass('sombreado');
+});
+
+function mover_seleccionado_a_div(seleccionado,div,divpadre,x,y){
   /*
   sectores
     asignar_sector (divpadre)
@@ -624,7 +623,7 @@ function mover_seleccionado_a_div(div,divpadre,x,y){
 
   const insertar = function(div_base){
     //No hacerlo si es el mismo sino al hacer detach() no puede insertarAfter/Before (no tiene padre) y termina borrandose
-    if(div_base[0] == seleccionado[0]) return;//No insetar
+    if(div_base[0] == seleccionado[0]) return;
     const rect = div_base[0].getBoundingClientRect();//Averiguo si fue a la izquierda o derecha del elemento
     const mitad = (rect.left+rect.right)/2.;
     if(x >= mitad) seleccionado.detach().insertAfter(div_base);
@@ -657,7 +656,8 @@ function mover_seleccionado_a_div(div,divpadre,x,y){
 }
 
 $(document).on('mouseup','*',function(e){
-  if(seleccionado == null || e.which != 1) return;
+  const seleccionado = $('.seleccionado');
+  if(seleccionado.length == 0 || e.which != 1) return;
   const elementos_en_el_mouse = $(document.elementsFromPoint(e.pageX,e.pageY));
   const isla_mouse_arriba = elementos_en_el_mouse.filter(function() {//solto en una isla
     return $(this).hasClass('asignar_isla');
@@ -670,21 +670,18 @@ $(document).on('mouseup','*',function(e){
   }).eq(0);
 
   if(seleccionado.hasClass('asignar_isla') && (isla_mouse_arriba.length + islote_mouse_arriba.length) > 0){//Si encontro isla y/o islote
-    mover_seleccionado_a_div(isla_mouse_arriba,islote_mouse_arriba,e.pageX,e.pageY);
+    mover_seleccionado_a_div(seleccionado,isla_mouse_arriba,islote_mouse_arriba,e.pageX,e.pageY);
   }
   else if(seleccionado.hasClass('asignar_islote') && (islote_mouse_arriba.length + sector_mouse_arriba.length) > 0){//Si encontro islote y/o sector
-    mover_seleccionado_a_div(islote_mouse_arriba,sector_mouse_arriba,e.pageX,e.pageY);
+    mover_seleccionado_a_div(seleccionado,islote_mouse_arriba,sector_mouse_arriba,e.pageX,e.pageY);
   }
 
-  seleccionado.addClass('movido_reciente').css('border','');
-  islote_mouse_arriba.css('background','');
-  {
-    const aux = seleccionado;//Lo mantengo en una referencia local porque lo voy a asignar a null
-    setTimeout(function(){
-      aux.removeClass('movido_reciente');//le saco la clase para que pueda volver a hacer el efecto 
-    },2000);
-  }
-  seleccionado = null;
+  seleccionado.addClass('movido_reciente');
+  setTimeout(function(){
+    seleccionado.removeClass('movido_reciente');//le saco la clase para que pueda volver a hacer el efecto 
+  },2000);
+  $('.seleccionado').removeClass('seleccionado');
+  $('.sombreado').removeClass('sombreado');
 })
 
 function distancia_a_caja(rect,px,py){
