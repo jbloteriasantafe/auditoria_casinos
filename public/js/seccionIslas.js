@@ -557,7 +557,8 @@ $('#btn-islotes').click(function(e){
 
 function crearIslote(nro_islote,islas){
   const islote = $('#moldeIslote').clone().removeAttr('id');
-  islote.find('.nro_islote').empty().append(nro_islote == 'SIN_NRO_ISLOTE'? '&nbsp;' : nro_islote);
+  islote.find('.nro_islote').empty().append(nro_islote == 'SIN_NRO_ISLOTE'? '&nbsp;' : nro_islote)
+  .css('background',nro_islote == 'SIN_NRO_ISLOTE'? '#fcc' : '');
   for(const nro_isla_idx in islas){
     const nro_isla = islas[nro_isla_idx];
     const isla = $('#moldeIslaIslote').clone().removeAttr('id');
@@ -592,7 +593,7 @@ $(document).on('mousedown','.asignar_isla',function(e){
 
 $(document).on('mousedown','.asignar_islote',function(e){
   //No permito seleccionar el "SIN_NRO_ISLOTE" ya que es solo para mostrar islas sin asignar
-  if($('.seleccionado').length == 0 && e.which == 1 && $(this).text().trim().length > 0){
+  if($('.seleccionado').length == 0 && e.which == 1 && $(this).find('.nro_islote').text().trim().length > 0){
     e.preventDefault();//evitar que seleccione texto
     $(this).addClass('seleccionado').closest('.asignar_sector').addClass('sombreado');
   }
