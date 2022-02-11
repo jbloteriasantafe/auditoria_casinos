@@ -596,10 +596,11 @@ $(document).on('mousedown','.asignar_islote',function(e){
   if($('.seleccionado').length == 0 && e.which == 1 && $(this).find('.nro_islote').text().trim().length > 0){
     e.preventDefault();//evitar que seleccione texto
     $(this).addClass('seleccionado').closest('.asignar_sector').addClass('sombreado');
+    $('#modalAsignarIslotes .asignar_borrar_islote').addClass('sombreado');
   }
 });
 
-$(document).on('mouseenter','#sectores div',function(){
+$(document).on('mouseenter','#modalAsignarIslotes div',function(){
   if($('.seleccionado').length == 0) return;
   let div = $();
   if($('.seleccionado').hasClass('asignar_isla')){
@@ -670,21 +671,31 @@ $(document).on('mouseup','*',function(e){
   const seleccionado = $('.seleccionado');
   if(seleccionado.length == 0 || e.which != 1) return;
   const elementos_en_el_mouse = $(document.elementsFromPoint(e.pageX,e.pageY));
-  const isla_mouse_arriba = elementos_en_el_mouse.filter(function() {//solto en una isla
-    return $(this).hasClass('asignar_isla');
-  }).eq(0);
-  const islote_mouse_arriba = elementos_en_el_mouse.filter(function() {//solto en la lista de islas de un islote
-    return $(this).hasClass('asignar_islote')
-  }).eq(0);
-  const sector_mouse_arriba = elementos_en_el_mouse.filter(function(){//solto en un sector
-    return $(this).hasClass('asignar_sector');
-  }).eq(0);
+  const isla_mouse_arriba   = elementos_en_el_mouse.filter('.asignar_isla').eq(0);//solto en una isla
+  const islote_mouse_arriba = elementos_en_el_mouse.filter('.asignar_islote').eq(0);//solto en un islote
+  const sector_mouse_arriba = elementos_en_el_mouse.filter('.asignar_sector').eq(0);//solto en un sector
+  const borrar_mouse_arriba = elementos_en_el_mouse.filter('.asignar_borrar_islote').eq(0);//solto en el cesto de borrar
 
   if(seleccionado.hasClass('asignar_isla') && (isla_mouse_arriba.length + islote_mouse_arriba.length) > 0){//Si encontro isla y/o islote
     mover_seleccionado_a_div(seleccionado,isla_mouse_arriba,islote_mouse_arriba,e.pageX,e.pageY);
   }
   else if(seleccionado.hasClass('asignar_islote') && (islote_mouse_arriba.length + sector_mouse_arriba.length) > 0){//Si encontro islote y/o sector
     mover_seleccionado_a_div(seleccionado,islote_mouse_arriba,sector_mouse_arriba,e.pageX,e.pageY);
+  }
+  else if(seleccionado.hasClass('asignar_islote') && borrar_mouse_arriba.length > 0){
+    let sin_nro_islote = seleccionado.parent().find('.asignar_islote').filter(function(){return $(this).find('.nro_islote').text().trim().length == 0;})
+    if(sin_nro_islote.length == 0){
+      sin_nro_islote = crearIslote('SIN_NRO_ISLOTE',[]);
+      seleccionado.parent().append(sin_nro_islote);
+      movidoReciente(sin_nro_islote);
+    }
+    const ultima_isla = sin_nro_islote.find('.asignar_isla').last();
+    seleccionado.find('.asignar_isla').each(function(){
+      //Lo muevo a la derecha de la ultima isla
+      mover_seleccionado_a_div($(this),ultima_isla,sin_nro_islote,window.screen.width,window.screen.height);
+      movidoReciente($(this));
+    });
+    seleccionado.remove();
   }
 
   movidoReciente(seleccionado);

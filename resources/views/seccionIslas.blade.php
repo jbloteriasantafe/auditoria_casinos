@@ -367,7 +367,7 @@
         </div>
         <div class="modal-body">
           <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-3">
               <h5>CASINO</h5>
               <select id="casinoIslotes" class="form-control">
                 @foreach ($casinos as $casino)
@@ -375,9 +375,13 @@
                 @endforeach
               </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
               <h5>Agregar islote</h5>
               <input id="agregarIslote" class="form-control" placeholder="Presione ENTER"/>
+            </div>
+            <div class="col-md-3">
+              <h5>&nbsp;</h5>
+              <i class="asignar_borrar_islote fa fa-fw fa-trash-alt" style="font-size: 200%;color: gray;"></i>
             </div>
           </div>
           <div id="sectores" class="row" style="height: 550px;overflow-y: scroll;">
@@ -439,6 +443,7 @@
     }
     .sombreado {
       background-color: #fef;
+      border: 1px solid red;
     }
     .seleccionado {
       border: 2px solid blue !important;
