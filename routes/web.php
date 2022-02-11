@@ -276,7 +276,8 @@ Route::group(['prefix' => 'islas','middleware' => 'tiene_permiso:ver_seccion_isl
   Route::delete('/eliminarIsla/{id_isla}','IslaController@eliminarIsla');
   Route::post('/dividirIsla','IslaController@dividirIsla');
   Route::get('/obtenerMTMReducido/{id}', 'MTMController@obtenerMTMReducido');
-  Route::get('/buscarIslotesPorCasino/{id_casino}','IslaController@buscarIslotesPorCasino');
+  Route::get('/buscarIslotes/{id_casino}','IslaController@buscarIslotes');
+  Route::post('/asignarIslotes','IslaController@asignarIslotes');
 });
 //@HACK: mover estos endpoints al group() donde se use... no es necesario que tengan el prefijo "islas"
 Route::get('islas/buscarIslaPorCasinoYNro/{id_casino}/{nro_isla}','IslaController@buscarIslaPorCasinoYNro');

@@ -522,7 +522,7 @@ class IslaController extends Controller
     return ['isla' => $isla , 'sector' => $isla->sector];
   }
 
-  public function buscarIslotesPorCasino($id_casino){
+  public function buscarIslotes($id_casino){
     //@TODO: Agregar un "orden" al sector?
     //@TODO: Agregar un CHECK de BD que no permita tener el mismo nro_islote en 2 sectores
     //(o pasarlo a una tabla aparte)
@@ -559,5 +559,54 @@ class IslaController extends Controller
     }
     $sector_islotes_arr = array_filter($sector_islotes_arr,function($s){return count($s['islotes']) > 0;});
     return $sector_islotes_arr;
+  }
+
+  public function asignarIslotes(Request $request){
+    Validator::make($request->all() , [
+      'id_casino'                        => 'required|integer|exists:casino,id_casino',
+      'sectores'                         => 'required|array',
+      'sectores.*.id_sector'             => 'required|integer|exists:sector,id_sector',
+      'sectores.*.islotes'               => 'nullable|array',
+      'sectores.*.islotes.*.nro_islote'  => 'nullable|integer',
+      'sectores.*.islotes.*.islas'       => 'nullable|array',
+      'sectores.*.islotes.*.islas.*'     => 'required|integer|exists:isla,nro_isla',
+    ], 
+    self::$errores, self::$atributos)->after(function ($validator){
+      if($validator->errors()->any()) return;
+      $id_casino = $validator->getData()['id_casino'];
+      if(!UsuarioController::getInstancia()->quienSoy()['usuario']->usuarioTieneCasino($id_casino)){
+        $validator->errors()->add('id_casino',self::$errors['privilegios']);
+        return;
+      }
+      $sectores = $validator->getData()['sectores'];
+      {
+        $id_sectores_request = array_map(function($s){return $s['id_sector'];},$sectores);
+        $c1 = Sector::where('id_casino','=',$id_casino)->whereIn('id_sector',$id_sectores_request)->get()->count();
+        $c2 = Sector::where('id_casino','=',$id_casino)->get()->count();
+        if($c1 != $c2){
+          $validator->add('sectores','Sectores incorrectos');
+          return;
+        }
+      }
+      {
+        $islas = [];
+        foreach($sectores as $s){
+          $islotes = $s['islotes'] ?? [];
+          foreach($islotes as $islote){
+            $islas = array_merge($islas,$islote['islas'] ?? []);
+          }
+        }
+        //@HACK: No maneja subislas... correctamente.... (:/)
+        $c1 = Isla::whereIn('nro_isla',$islas)->where('id_casino','=',$id_casino)->get()->count();
+        $c2 = Isla::where('id_casino','=',$id_casino)->get()->count();
+        if($c1 != $c2){
+          $validator->add('islas','Islas incorrectas');
+          return;
+        }
+      }
+    })->validate();
+    return DB::transaction(function() use ($request){
+      //@TODO
+    });
   }
 }

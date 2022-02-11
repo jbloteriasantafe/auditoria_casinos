@@ -571,10 +571,11 @@ function crearIslote(nro_islote,islas){
 $('#casinoIslotes').change(function(e){
   e.preventDefault();
   $('#sectores').empty();
-  $.get('/islas/buscarIslotesPorCasino/'+$(this).val(),function(sectores){
+  $.get('/islas/buscarIslotes/'+$(this).val(),function(sectores){
     for(const id_sector in sectores){
       const sector = $('#moldeSector').clone().removeAttr('id');
       sector.find('.nombre_sector').text(sectores[id_sector]['descripcion']);
+      sector.data('id_sector',id_sector == 'SIN_SECTOR'? '' : id_sector);
       const islotes = sectores[id_sector]['islotes'];
       for(const nro_islote in islotes){
         sector.find('.islotes').append(crearIslote(nro_islote,islotes[nro_islote]));
@@ -726,3 +727,44 @@ $('#agregarIslote').keyup(function(e){
     $(this).val("").change();
   }
 });
+
+$('#btn-aceptarIslotes').click(function(e){
+  e.preventDefault();
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  const sectores = $('#sectores .asignar_sector').map(function(_,sector){
+    const islotes = $(sector).find('.asignar_islote').map(function(_,islote){
+      return {
+        nro_islote: $(islote).find('.nro_islote').text().trim(),
+        islas: $(islote).find('.asignar_isla').map(function(_,isla){
+          return $(isla).text().trim();
+        }).toArray(),
+      };
+    })
+    .toArray().filter(function(islote){
+      return islote.islas.length > 0;
+    });//Solo devuelvo los islotes que tienen islas
+
+    return {
+      id_sector: $(sector).data('id_sector'),
+      islotes: islotes,
+    };
+  }).toArray().filter(function(sector){
+    return sector.islotes.length > 0;
+  });//Solo devuelvo los sectores que tienen islotes
+
+  $.ajax({
+    type: 'POST',
+    url: '/islas/asignarIslotes',
+    data: {
+      id_casino: $('#casinoIslotes').val(),
+      sectores: sectores,
+    },
+    dataType: 'json',
+    success: function (resultados) {
+      console.log(resultados);
+    },
+    error: function (x) {
+      console.log(x);
+    }
+  });
+})
