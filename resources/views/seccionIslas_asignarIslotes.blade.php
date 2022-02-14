@@ -24,6 +24,7 @@
               <i class="asignar_borrar_islote fa fa-fw fa-trash-alt" style="font-size: 200%;color: gray;"></i>
             </div>
           </div>
+          <div id="escondido_pre_insertar" class="row" hidden></div>
           <div id="sectores" class="row" style="height: 550px;overflow-y: scroll;">
           </div>
         </div>

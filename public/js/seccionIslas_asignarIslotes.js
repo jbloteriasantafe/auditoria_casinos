@@ -127,6 +127,15 @@ function mensajeError(msg){
       obj.removeClass('movido_reciente');//le saco la clase para que pueda volver a hacer el efecto 
     },2000);
   }
+
+  function merge_islotes(a_borrar,a_agregar){
+    const ultima_isla = a_agregar.find('.asignar_isla').last();
+    a_borrar.find('.asignar_isla').each(function(){
+      mover_seleccionado_a_div($(this),ultima_isla,a_agregar,window.screen.width,window.screen.height);
+      movidoReciente($(this));
+    });
+    a_borrar.remove();
+  }
   
   $(document).on('mouseup','*',function(e){
     const seleccionado = $('.seleccionado');
@@ -141,22 +150,30 @@ function mensajeError(msg){
       mover_seleccionado_a_div(seleccionado,isla_mouse_arriba,islote_mouse_arriba,e.pageX,e.pageY);
     }
     else if(seleccionado.hasClass('asignar_islote') && (islote_mouse_arriba.length + sector_mouse_arriba.length) > 0){//Si encontro islote y/o sector
-      mover_seleccionado_a_div(seleccionado,islote_mouse_arriba,sector_mouse_arriba,e.pageX,e.pageY);
+      const nro_islote_seleccionado = seleccionado.find('.nro_islote').text().trim();
+      const ya_esta_islote = sector_mouse_arriba.find('.asignar_islote').filter(function(){
+          return $(this).find('.nro_islote').text().trim() == nro_islote_seleccionado;
+      });
+      if(ya_esta_islote.length > 0 && ya_esta_islote[0] != seleccionado[0]){//Mergear islote con el que ya esta
+        merge_islotes(seleccionado,ya_esta_islote);
+      }
+      else{//Lo muevo al sector
+        mover_seleccionado_a_div(seleccionado,islote_mouse_arriba,sector_mouse_arriba,e.pageX,e.pageY);
+      }
     }
     else if(seleccionado.hasClass('asignar_islote') && borrar_mouse_arriba.length > 0){
-      let sin_nro_islote = seleccionado.parent().find('.asignar_islote').filter(function(){return $(this).find('.nro_islote').text().trim().length == 0;})
-      if(sin_nro_islote.length == 0){
-        sin_nro_islote = crearIslote('SIN_NRO_ISLOTE',[]);
-        seleccionado.parent().append(sin_nro_islote);
-        movidoReciente(sin_nro_islote);
+      if(seleccionado.closest('#escondido_pre_insertar').length > 0){//Esta borrando uno nuevo
+        seleccionado.remove();
       }
-      const ultima_isla = sin_nro_islote.find('.asignar_isla').last();
-      seleccionado.find('.asignar_isla').each(function(){
-        //Lo muevo a la derecha de la ultima isla
-        mover_seleccionado_a_div($(this),ultima_isla,sin_nro_islote,window.screen.width,window.screen.height);
-        movidoReciente($(this));
-      });
-      seleccionado.remove();
+      else{//Esta borrando uno que ya existe en un sector
+        let sin_nro_islote = seleccionado.parent().find('.asignar_islote').filter(function(){return $(this).find('.nro_islote').text().trim().length == 0;})
+        if(sin_nro_islote.length == 0){
+          sin_nro_islote = crearIslote('SIN_NRO_ISLOTE',[]);
+          seleccionado.parent().append(sin_nro_islote);
+          movidoReciente(sin_nro_islote);
+        }
+        merge_islotes(seleccionado,sin_nro_islote);
+      }
     }
   
     movidoReciente(seleccionado);
@@ -181,8 +198,8 @@ function mensajeError(msg){
     if(e.which == 13){//Agrego y limpio si toco enter
       if($(this).val() == parseInt($(this).val())){
         const islote = crearIslote($(this).val(),[]);
-        $('#sectores .asignar_sector').eq(0).find('.islotes').prepend(islote);
-        movidoReciente(islote);
+        $('#escondido_pre_insertar').append(islote);
+        islote.addClass('seleccionado');
       }
       $(this).val("").change();
     }
