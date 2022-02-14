@@ -545,14 +545,14 @@ class IslaController extends Controller
     ];
 
     $islotes_islas = DB::table('isla')
-    ->selectRaw('sector.id_sector,isla.nro_islote,GROUP_CONCAT(distinct isla.nro_isla SEPARATOR ",") as islas')
+    ->selectRaw('sector.id_sector,isla.nro_islote,GROUP_CONCAT(distinct isla.nro_isla ORDER BY isla.orden ASC SEPARATOR ",") as islas')
     ->leftJoin('sector',function($j){
       return $j->on('sector.id_sector','=','isla.id_sector')->whereNull('sector.deleted_at');
     })
     ->where('isla.id_casino','=',$id_casino)
     ->whereNull('isla.deleted_at')
     ->groupBy(DB::raw('sector.id_sector,isla.nro_islote'))
-    ->orderBy('isla.nro_islote', 'asc')
+    ->orderBy(DB::raw('MIN(isla.orden)'), 'asc')
     ->get();
     foreach($islotes_islas as $idx => $ii){
       $sector_islotes_arr[$ii->id_sector ?? 'SIN_SECTOR']['islotes'][$ii->nro_islote ?? 'SIN_NRO_ISLOTE'] = explode(',',$ii->islas);
@@ -572,7 +572,7 @@ class IslaController extends Controller
       'sectores.*.islotes.*.islas.*'     => 'required|integer|exists:isla,nro_isla',
     ], 
     self::$errores, self::$atributos)->after(function ($validator){
-      if($validator->errors()->any()) return;
+      if($validator->errors()->any()) return;//Retorno temprano si hay errores de que no existen en la BD
       $id_casino = $validator->getData()['id_casino'];
       if(!UsuarioController::getInstancia()->quienSoy()['usuario']->usuarioTieneCasino($id_casino)){
         $validator->errors()->add('id_casino',self::$errors['privilegios']);
@@ -581,10 +581,13 @@ class IslaController extends Controller
       $sectores = $validator->getData()['sectores'];
       {
         $id_sectores_request = array_map(function($s){return $s['id_sector'];},$sectores);
-        $c1 = Sector::where('id_casino','=',$id_casino)->whereIn('id_sector',$id_sectores_request)->get()->count();
-        $c2 = Sector::where('id_casino','=',$id_casino)->get()->count();
-        if($c1 != $c2){
-          $validator->add('sectores','Sectores incorrectos');
+        $c1 = Sector::where('id_casino','=',$id_casino);
+        $c2 = (clone $c1)->whereIn('id_sector',$id_sectores_request)->get()->count();
+        $c1 = $c1->get()->count();
+        //La primera condición detecta que se enviaron menos sectores de los que hay en la BD
+        //La segunda condición detecta que se enviaron mas sectores (repetidos o algunos softdeletedes)
+        if(($c1 != $c2) || ($c1 != count($id_sectores_request))){
+          $validator->errors()->add('sectores','Sectores incorrectos');
           return;
         }
       }
@@ -596,17 +599,54 @@ class IslaController extends Controller
             $islas = array_merge($islas,$islote['islas'] ?? []);
           }
         }
-        //@HACK: No maneja subislas... correctamente.... (:/)
-        $c1 = Isla::whereIn('nro_isla',$islas)->where('id_casino','=',$id_casino)->get()->count();
-        $c2 = Isla::where('id_casino','=',$id_casino)->get()->count();
-        if($c1 != $c2){
-          $validator->add('islas','Islas incorrectas');
+        //Lo hago asi por el temita de las subislas (pueden haber mas de 1 isla con el mismo nro pero distinto codigo)
+        $c1 = DB::table('isla')->select('nro_isla')->distinct()->whereNull('deleted_at')->where('id_casino','=',$id_casino);
+        $c2 = (clone $c1)->whereIn('nro_isla',$islas)->get()->count();
+        $c1 = $c1->get()->count();
+        if(($c1 != $c2) || ($c1 != count($islas))){
+          $validator->errors()->add('islas','Islas incorrectas');
           return;
         }
       }
     })->validate();
     return DB::transaction(function() use ($request){
-      //@TODO
+      //Lo paso asi para eliminar islotes duplicados, se le asigna el orden del primer aparición
+      //No se me ocurre una forma de intuitiva de evitar islotes duplicados desde el frontend/validate
+      $sectores = [];
+      foreach($request['sectores'] as $sector){
+        $id_sector = $sector['id_sector'];
+        if(!array_key_exists($id_sector,$sectores)) $sectores[$id_sector] = [];
+
+        foreach($sector['islotes'] as $islote){
+          $nro_islote = $islote['nro_islote'];
+          if(!array_key_exists($nro_islote,$sectores[$id_sector])) $sectores[$id_sector][$nro_islote] = [];
+          
+          foreach($islote['islas'] as $nro_isla){
+            if(!array_key_exists($nro_isla,$sectores[$id_sector][$nro_islote])){
+              $sectores[$id_sector][$nro_islote][$nro_isla] = true;
+            }
+          }
+        }
+      }
+      $orden = 0;
+      foreach($sectores as $id_sector => $islotes){
+        foreach($islotes as $nro_islote => $islas){
+          foreach($islas as $nro_isla => $ignorar){
+            $subislas = Isla::where([
+              ['id_casino','=',$request->id_casino],
+              ['nro_isla','=',$nro_isla],
+            ])->get();
+            foreach($subislas as $si){//Si, cuatro iteraciones...
+              $si->id_sector  = $id_sector == ""? null : $id_sector;
+              $si->nro_islote = $nro_islote == ""? null : $nro_islote;
+              $si->orden      = $orden;
+              $si->save();
+              $orden++;
+            }
+          }
+        }
+      }
+      return 1;
     });
   }
 }
