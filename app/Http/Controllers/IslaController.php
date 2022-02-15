@@ -528,9 +528,12 @@ class IslaController extends Controller
     //(o pasarlo a una tabla aparte)
     $sectores = DB::table('sector')
     ->selectRaw('sector.id_sector,sector.descripcion')
+    ->leftJoin('isla','isla.id_sector','=','sector.id_sector')
     ->where('sector.id_casino','=',$id_casino)
     ->whereNull('sector.deleted_at')
-    ->orderBy('sector.descripcion','asc')->get();
+    ->orderBy(DB::raw('MIN(isla.orden)'),'asc')
+    ->groupBy('sector.id_sector')
+    ->get();
 
     /* Los objetos no estan garantizados de estar preservar su orden por key en JSON y Javascript, por lo que 
        me re ordena el orden de los islotes, por eso duplico los campos como key y como valor en el mismo objeto

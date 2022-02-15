@@ -65,6 +65,13 @@ $(document).on('mousedown','.asignar_islote',function(e){
     $('#modalAsignarIslotes .asignar_borrar_islote').addClass('sombreado');
   }
 });
+
+$(document).on('mousedown','.asignar_sector h3',function(e){
+  if($('.seleccionado').length == 0 && e.which == 1){
+    e.preventDefault();//evitar que seleccione texto
+    $(this).closest('.asignar_sector').addClass('seleccionado');
+  }
+});
   
 $(document).on('mouseenter','#modalAsignarIslotes div',function(){
   if($('.seleccionado').length == 0) return;
@@ -181,6 +188,9 @@ $(document).on('mouseup','*',function(e){
       }
       merge_islotes(seleccionado,sin_nro_islote);
     }
+  }
+  else if(seleccionado.hasClass('asignar_sector') && sector_mouse_arriba.length > 0 && seleccionado[0] != sector_mouse_arriba[0]){
+    seleccionado.detach().insertAfter(sector_mouse_arriba);
   }
 
   movidoReciente(seleccionado);

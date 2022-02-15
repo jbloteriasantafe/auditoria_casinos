@@ -56,6 +56,14 @@
       border-bottom: 1px #ddd solid;
       border-radius: 25px;
     }
+    .asignar_sector{
+      border-top:    2px #ccc solid;
+      border-left:   1px #ccc solid;
+      border-right:  1px #ccc solid;
+      border-bottom: 2px #ccc solid;
+      border-radius: 25px;
+      margin: 0.5% !important;
+    }
     .islotes .nro_islote {
       text-align: center;
       text-shadow: 1px 1px 0px white;
@@ -79,7 +87,7 @@
     .asignar_isla:hover,.asignar_islote:hover{
       border: 2px dashed orange; 
     }
-    .islotes .nro_islote:hover{
+    .islotes .nro_islote:hover,.asignar_sector h3:hover{
       border-bottom: 2px solid orange; 
     }
     .sombreado {
@@ -88,6 +96,7 @@
     }
     .seleccionado {
       border: 2px solid blue !important;
+      background: 
     }
     .movido_reciente{
       animation: sacarcolor 3s;
