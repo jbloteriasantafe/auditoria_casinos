@@ -35,13 +35,15 @@ $('#casinoIslotes').change(function(e){
   e.preventDefault();
   $('#sectores').empty();
   $.get('/islas/buscarIslotes/'+$(this).val(),function(sectores){
-    for(const id_sector in sectores){
+    for(const sectores_idx in sectores){
       const sector = $('#moldeSector').clone().removeAttr('id');
-      sector.find('.nombre_sector').text(sectores[id_sector]['descripcion']);
-      sector.data('id_sector',id_sector == 'SIN_SECTOR'? '' : id_sector);
-      const islotes = sectores[id_sector]['islotes'];
-      for(const nro_islote in islotes){
-        sector.find('.islotes').append(crearIslote(nro_islote,islotes[nro_islote]));
+      const sector_obj = sectores[sectores_idx];
+      sector.find('.nombre_sector').text(sector_obj['descripcion']);
+      sector.data('id_sector',sector_obj['id_sector'] == 'SIN_SECTOR'? '' : sector_obj['id_sector'] );
+      const islotes = sector_obj['islotes'];
+      for(const islotes_idx in islotes){
+        const islotes_obj = islotes[islotes_idx];
+        sector.find('.islotes').append(crearIslote(islotes_obj['nro_islote'],islotes_obj['islas']));
       }
       $('#sectores').append(sector);
     }

@@ -532,14 +532,19 @@ class IslaController extends Controller
     ->whereNull('sector.deleted_at')
     ->orderBy('sector.descripcion','asc')->get();
 
+    /* Los objetos no estan garantizados de estar preservar su orden por key en JSON y Javascript, por lo que 
+       me re ordena el orden de los islotes, por eso duplico los campos como key y como valor en el mismo objeto
+       y despues lo convierto a arreglo antes de retornar. Octavio Garcia Aguirre 2022-02-15  */
     $sector_islotes_arr = [];
     foreach($sectores as $s){
       $sector_islotes_arr[$s->id_sector] = [
+        'id_sector'   => $s->id_sector,
         'descripcion' => $s->descripcion,
-        'islotes' => []
+        'islotes'     => []
       ];
     }
     $sector_islotes_arr['SIN_SECTOR'] = [
+      'id_sector'   => 'SIN_SECTOR',
       'descripcion' => 'SIN_SECTOR',
       'islotes'     => []
     ];
@@ -555,10 +560,16 @@ class IslaController extends Controller
     ->orderBy(DB::raw('MIN(isla.orden)'), 'asc')
     ->get();
     foreach($islotes_islas as $idx => $ii){
-      $sector_islotes_arr[$ii->id_sector ?? 'SIN_SECTOR']['islotes'][$ii->nro_islote ?? 'SIN_NRO_ISLOTE'] = explode(',',$ii->islas);
+      $sector_islotes_arr[$ii->id_sector ?? 'SIN_SECTOR']['islotes'][] = 
+      [
+        'nro_islote' => $ii->nro_islote ?? 'SIN_NRO_ISLOTE',
+        'islas'      => explode(',',$ii->islas),
+      ];
     }
-    $sector_islotes_arr = array_filter($sector_islotes_arr,function($s){return count($s['islotes']) > 0;});
-    return $sector_islotes_arr;
+    if(count($sector_islotes_arr['SIN_SECTOR']['islotes']) == 0){//No muestro el SIN_SECTOR si no es necesario
+      unset($sector_islotes_arr['SIN_SECTOR']);
+    }
+    return array_values($sector_islotes_arr);//Le saco el indice para que no me reordene
   }
 
   public function asignarIslotes(Request $request){
