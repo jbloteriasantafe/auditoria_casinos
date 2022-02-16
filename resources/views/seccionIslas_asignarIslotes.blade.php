@@ -25,7 +25,7 @@
             </div>
           </div>
           <div id="escondido_pre_insertar" class="row" hidden></div>
-          <div id="sectores" class="row" style="height: 550px;overflow-y: scroll;">
+          <div id="sectores" class="row" style="height: 550px;overflow-y: scroll;background: #ddd;">
           </div>
         </div>
         <div class="modal-footer">
@@ -63,6 +63,7 @@
       border-bottom: 2px #ccc solid;
       border-radius: 25px;
       margin: 0.5% !important;
+      background: #fff;
     }
     .islotes .nro_islote {
       text-align: center;

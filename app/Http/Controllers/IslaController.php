@@ -523,12 +523,12 @@ class IslaController extends Controller
   }
 
   public function buscarIslotes($id_casino){
-    //@TODO: Agregar un "orden" al sector?
-    //@TODO: Agregar un CHECK de BD que no permita tener el mismo nro_islote en 2 sectores
-    //(o pasarlo a una tabla aparte)
+    //@TODO: Agregar un CHECK de BD que no permita tener el mismo nro_islote en 2 sectores??
     $sectores = DB::table('sector')
     ->selectRaw('sector.id_sector,sector.descripcion')
-    ->leftJoin('isla','isla.id_sector','=','sector.id_sector')
+    ->leftJoin('isla',function($j){
+      return $j->on('isla.id_sector','=','sector.id_sector')->whereNull('isla.deleted_at');
+    })
     ->where('sector.id_casino','=',$id_casino)
     ->whereNull('sector.deleted_at')
     ->orderBy(DB::raw('MIN(isla.orden)'),'asc')
@@ -554,10 +554,13 @@ class IslaController extends Controller
 
     $islotes_islas = DB::table('isla')
     ->selectRaw('sector.id_sector,isla.nro_islote,GROUP_CONCAT(distinct isla.nro_isla ORDER BY isla.orden ASC SEPARATOR ",") as islas')
-    ->leftJoin('sector',function($j){
+    ->join('sector',function($j){//No se si mostrar las que tienen o no sector (el "join" en vez de "leftJoin" hace un NOP todo el algoritmo de SIN_SECTOR porque siempre lo borra)
       return $j->on('sector.id_sector','=','isla.id_sector')->whereNull('sector.deleted_at');
     })
     ->where('isla.id_casino','=',$id_casino)
+    /*->whereRaw('EXISTS (
+      SELECT m.id_maquina FROM maquina m WHERE m.id_isla = isla.id_isla AND m.deleted_at IS NULL LIMIT 1
+    )')*/ //No se si mostrar la isla si tiene maquinas o no... es a requerimiento eso...
     ->whereNull('isla.deleted_at')
     ->groupBy(DB::raw('sector.id_sector,isla.nro_islote'))
     ->orderBy(DB::raw('MIN(isla.orden)'), 'asc')
