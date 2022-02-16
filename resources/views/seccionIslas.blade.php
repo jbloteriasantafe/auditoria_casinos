@@ -108,7 +108,9 @@
                 </div>
               </div>
               <!-- Sacar este IF cuando este estable -->
-              @if($usuario->es_superusuario)
+              @if($usuario->es_superusuario || $usuario->es_administrador)
+              @foreach($casinos as $c)
+              @if($c->id_casino == 3)
               <div class="row">
                 <div class="col-lg-12">
                   <a href="" id="btn-islotes" style="text-decoration: none;">
@@ -127,6 +129,9 @@
                   </a>
                 </div>
               </div>
+              @break
+              @endif
+              @endforeach
               @endif
             </div>
         </div> <!-- columna de FILTROS Y TABLA -->
