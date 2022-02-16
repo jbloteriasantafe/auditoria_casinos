@@ -57,8 +57,6 @@ $('#casino').on('change' , function(e,id_sector){
     $('#buscadorMaquina').borrarDataList();
     return;
   }
-  //@TODO: permitir enviar el nro_islote y orden en la creación, hasta que no tenga eso, lo escondo.
-  $('#nro_islote,#orden').parent().toggle(false);//.toggle(id_casino == 3);
   $('#buscadorMaquina').generarDataList('/maquinas/buscarMaquinaPorNumeroMarcaYModelo/' + id_casino, "resultados","id_maquina" ,"nro_admin" , 2, true);
   $('#buscadorMaquina').setearElementoSeleccionado(0 , "");
   $('#sector option').remove();
@@ -509,9 +507,8 @@ function mostrarIsla(isla,sector,maquinas){
   $('#cant_maquinas').val(isla.cantidad_maquinas);
   $('#casino').val(sector.id_casino).trigger('change', [sector.id_sector]);
   $('#ncodigo').val(isla.codigo);
-  //@TODO: permitir modificarlo cuando se implemente bien lo de nro_islote / orden
-  $('#orden').val(isla.orden).closest('div').toggle(isla.id_casino == 3).attr('disabled','true');
-  $('#nro_islote').val(isla.nro_islote).closest('div').toggle(isla.id_casino == 3).attr('disabled','true');
+  $('#orden').val(isla.orden).closest('div').toggle(isla.id_casino == 3);
+  $('#nro_islote').val(isla.nro_islote).closest('div').toggle(isla.id_casino == 3);
 
   for (var i = 0; i < maquinas.length; i++) {
     agregarMaquina(maquinas[i].id_maquina, maquinas[i].nro_admin, maquinas[i].marca, maquinas[i].modelo);
@@ -529,6 +526,7 @@ function agregarMaquina(id_maquina, nro_admin,nombre,modelo){
 
 function habilitarControles(valor){
   $('#modalIsla .modal-body').find('input,select,button').prop('readonly',!valor).prop('disabled',!valor);
+  $('#nro_islote,#orden').attr('disabled',true);//Estos valores solo son para mostrar, no se modifican
 }
 
 function clickIndice(e,pageNumber,tam){
