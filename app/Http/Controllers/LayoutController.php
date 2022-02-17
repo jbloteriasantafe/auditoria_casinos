@@ -433,7 +433,6 @@ class LayoutController extends Controller
   // toma un random dentro de las maquinas habilitadas
   // crea la planilla y los nuevos backup a partir de este relevamiento
   public function crearLayoutParcial(Request $request){
-
     Validator::make($request->all(),[
         'id_sector' => 'required|exists:sector,id_sector',
         'cantidad_maquinas' => 'required|max:1000',
@@ -473,19 +472,12 @@ class LayoutController extends Controller
                        ->whereHas('estado_maquina',function($q){$q->where('descripcion','Ingreso')->orWhere('descripcion','ReIngreso');})
                        ->inRandomOrder()->take($request->cantidad_maquinas)->get();
    
-                       /*
-    //ordena por número de isla, recuperando la isla para saber su número
-    $maquinas = $maquinas->sortBy(function($maquina,$key){
-      return Isla::find($maquina->id_isla)->nro_isla;
-    });*/
-
     //evaluo si es de rosario para ordenar por islote e isla , sino solo por isla
     $id_casino_orden=Sector::find($request->id_sector)->id_casino;
     if($id_casino_orden==3){
       $maquinas = $maquinas->sortBy(function($maquina,$key){
-        $maq=Isla::find($maquina->id_isla);
-         return [$maq->orden, $maq->nro_isla];
-        
+        $isla = Isla::find($maquina->id_isla);
+        return [$isla->orden, $isla->nro_isla];
       });
     }else{
       $maquinas = $maquinas->sortBy(function($maquina,$key){
@@ -1267,10 +1259,8 @@ class LayoutController extends Controller
     $añoG = substr($rel->fecha_generacion,0,4);
     $mesG = substr($rel->fecha_generacion,5,2);
     $diaG = substr($rel->fecha_generacion,8,2);
-    //$horaG = substr($rel->fecha_generacion,11,2).":".substr($rel->fecha_generacion,14,2).":".substr($rel->fecha_generacion,17,2);;
     $rel->fecha_generacion = $diaG."-".$mesG."-".$añoG;//." ".$horaG;
 
-    $detalles = array();
     $progresivos = array();
 
     //cargado significa que entreo luego que se finalizo, en ese punto solo lo puede ver el administrador
@@ -1294,32 +1284,41 @@ class LayoutController extends Controller
     else{
       $sectores=$layout_total->casino->sectores;
     }
+
+    $q_ordenar_islas = 'isla.nro_isla asc';
+    $f_ordenar_sectores = function($a,$b){
+      return $a->descripcion <=> $b->descripcion;
+    };
+    if($layout_total->id_casino == 3){
+      $q_ordenar_islas = 'isla.orden asc,isla.nro_isla asc';
+      $f_ordenar_sectores = function($a,$b){
+        if(count($a->islas) == 0) return 0;
+        if(count($b->islas) == 0) return 1;
+        return $a->islas[0]->orden <=> $b->islas[0]->orden;
+      };
+    }
+
+    $detalles = array();
     foreach($sectores as $sector){
       $det = new \stdClass();
       $det->descripcion = $sector->descripcion;
-      //si el casino es de rosario lo ordeno por islote e isla
-      $det->islas = $layout_total->islas->where('id_sector',$sector->id_sector);
-      //Si es un layout viejo, no tiene islas asociadas, les devuelvo todas las del sector nomas.
-      if(count($det->islas)==0){
-        $det->islas = $sector->islas;
+      $det->islas = $layout_total->islas()
+      ->where('id_sector',$sector->id_sector)
+      ->orderByRaw($q_ordenar_islas)->get();
+
+      if(count($det->islas)==0){//Si es un layout viejo, no tiene islas asociadas, les devuelvo todas las del sector nomas.
+        //Por alguna razon el metodo islas() en la clase Sector ordena por nro_isla... lo hago a pata no quiero cambiarlo
+        //porque capaz rompo algo - Octavio Garcia Aguirre 17 Feb 2022
+        $det->islas = $sector->hasMany('App\Isla','id_sector','id_sector')->orderByRaw($q_ordenar_islas)->get();
         foreach($det->islas as &$i){
           $i->pivot = new \stdClass();
           $i->pivot->maquinas_observadas = NULL;
         }
       }
-      if($layout_total->id_casino==3){
-        $det->islas = $det->islas->sortBy(function($isl,$key){
-          return [$isl->orden,$isl->nro_isla];
-        });
-      }
-      else{
-        $det->islas = $det->islas->sortBy(function($isl,$key){
-          return [$isl->nro_isla];
-        });
-      }
+
       $detalles[] = $det;
     };
-    usort($detalles,function($a,$b){return $a->descripcion<=>$b->descripcion;});
+    usort($detalles,$f_ordenar_sectores);
     $codigos = LayoutTotalCodigo::all();
     $view = View::make('planillaLayoutTotalEdit', compact('rel','detalles','maquinas_apagadas','mostrar_maquinas','observacion','codigos'));
     $dompdf = new Dompdf();
@@ -1600,25 +1599,30 @@ class LayoutController extends Controller
       $sectores[$id_sector]['total_observadas']+=(is_null($observadas)? 0 : $observadas);
       $sectores[$id_sector]['total_sistema']+=(is_null($sistema)? 0: $sistema);
     }
+    
+    $f_ordenar_islas = function($a,$b){
+      return $a['nro_isla']<=>$b['nro_isla'];
+    };
+    $f_ordenar_sectores = function($a,$b){
+      return $a['descripcion']<=>$b['descripcion'];
+    };
+    if($layout->id_casino == 3){
+      $f_ordenar_islas = function($a,$b){
+        if($a['orden'] != $b['orden']) return $a['orden']<=>$b['orden'];
+        return $a['nro_isla']<=>$b['nro_isla'];
+      };
+      $f_ordenar_sectores = function($a,$b){
+        //En principio no deberia haber sectores sin islas. Ordeno por la primer isla, que deberia ser la mas alta prioridad del sector
+        return $a['islas'][0]['orden'] <=> $b['islas'][0]['orden'];
+      };
+    }
+
     $ret = [];
     foreach($sectores as $s){
-      if($layout->id_casino==3){
-        usort($s['islas'],function($a,$b){
-          if($a['orden'] != $b['orden']) return $a['orden']<=>$b['orden'];
-          return $a['nro_isla']<=>$b['nro_isla'];
-        });
-      }
-      else{
-        usort($s['islas'],function($a,$b){
-          return $a['nro_isla']<=>$b['nro_isla'];
-        });
-      }
-
+      usort($s['islas'],$f_ordenar_islas);
       $ret[]=$s;
     }
-    usort($ret,function($a,$b){
-      return $a['descripcion']<=>$b['descripcion'];
-    });
+    usort($ret,$f_ordenar_sectores);
     return $ret;
   }
 
