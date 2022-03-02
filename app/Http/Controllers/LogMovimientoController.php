@@ -1090,20 +1090,22 @@ class LogMovimientoController extends Controller
 
   /////////////////////////////////EXPEDIENTES//////////////////////////////////
 
-  public function movimientosSinExpediente(Request $req){
-    $tipo_descripcion = 'GROUP_CONCAT(DISTINCT(tipo_movimiento.descripcion) ORDER BY tipo_movimiento.descripcion ASC SEPARATOR ", ")';
-    $logs= DB::table('log_movimiento')
-             ->select('log_movimiento.id_log_movimiento','log_movimiento.fecha','log_movimiento.sentido','casino.nombre','casino.id_casino')
-             ->selectRaw($tipo_descripcion.' as descripcion')
-              ->join('logmov_tipomov','logmov_tipomov.id_log_movimiento','=','log_movimiento.id_log_movimiento')
-              ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','logmov_tipomov.id_tipo_movimiento')
-              ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
-              ->where('log_movimiento.tiene_expediente','=',0)
-              ->whereIn('casino.id_casino',$req['id_casino'])
-              ->groupBy('log_movimiento.id_log_movimiento','log_movimiento.fecha','casino.nombre','casino.id_casino')
-              ->orderBy('log_movimiento.fecha','desc')
-              ->get();
-
+  public function movimientosSinExpediente($id_casino){
+    $id_casinos = UsuarioController::getInstancia()->quienSoy()['usuario']->casinos->map(function($c){
+      return $c->id_casino;
+    });
+    $logs = DB::table('log_movimiento')
+    ->select('log_movimiento.id_log_movimiento','log_movimiento.fecha','log_movimiento.sentido','casino.nombre','casino.id_casino')
+    ->selectRaw('GROUP_CONCAT(DISTINCT(tipo_movimiento.descripcion) ORDER BY tipo_movimiento.descripcion ASC SEPARATOR ", ") as descripcion')
+    ->join('logmov_tipomov','logmov_tipomov.id_log_movimiento','=','log_movimiento.id_log_movimiento')
+    ->join('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','logmov_tipomov.id_tipo_movimiento')
+    ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
+    ->where('log_movimiento.tiene_expediente','=',0)
+    ->whereIn('casino.id_casino',$id_casinos)
+    ->where('casino.id_casino','=',$id_casino)
+    ->groupBy('log_movimiento.id_log_movimiento','log_movimiento.fecha','casino.nombre','casino.id_casino')
+    ->orderBy('log_movimiento.fecha','desc')
+    ->get();
     return ['logs' => $logs];
   }
 

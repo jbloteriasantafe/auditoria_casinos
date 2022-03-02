@@ -125,7 +125,7 @@ Route::get('expedientes/buscarExpedientePorNumero/{busqueda}','ExpedienteControl
 Route::get('expedientes/buscarExpedientePorCasinoYNumero/{id_casino}/{busqueda}','ExpedienteController@buscarExpedientePorCasinoYNumero');
 Route::get('expedientes/tiposMovimientos/{id_expediente}','ExpedienteController@tiposMovimientos');
 Route::get( 'expedientes/obtenerMovimiento/{id}','LogMovimientoController@obtenerMovimiento');
-Route::post('expedientes/movimientosSinExpediente','LogMovimientoController@movimientosSinExpediente');
+Route::get('expedientes/movimientosSinExpediente/{id_casino}','LogMovimientoController@movimientosSinExpediente');
 /***********
 Usuarios
 ***********/
@@ -313,7 +313,6 @@ Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_secci
   Route::get( '/obtenerMTM/{id}', 'MTMController@obtenerMTM');
   Route::post('/cargarMaquinasMovimiento','LogMovimientoController@cargarMaquinasMovimiento');
   Route::get( '/obtenerMovimiento/{id}','LogMovimientoController@obtenerMovimiento');
-  Route::post('/movimientosSinExpediente','LogMovimientoController@movimientosSinExpediente');
 });
 
 /**********

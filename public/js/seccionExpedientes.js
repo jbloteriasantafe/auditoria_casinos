@@ -1,9 +1,7 @@
-var id_casinos_seleccionados = [];
 var lista_tipos_movimientos = [];
 
 //Resaltar la sección en el menú del costado
 $(document).ready(function() {
-
   $('#barraExpedientes').attr('aria-expanded','true');
   $('#expedientes').removeClass();
   $('#expedientes').addClass('subMenu1 collapse in');
@@ -37,165 +35,98 @@ $(document).ready(function() {
   });
 });
 
-
 /* PESTAÑAS */
-
-// Motrar la pestaña activa (se agrega el subrayado).
-$('.navModal a').click(function(e){
-    e.preventDefault();
-    $('.navModal a').removeClass();
-    $(this).addClass('navModalActivo');
-});
-
-//Cambiar a la sección de Configuración.
-$('#navConfig').click(function(){
+$('.tab').click(function(e){
+  e.preventDefault();
   $('.seccion').hide();
-  $('#secConfig').show();
-});
-
-//Cambiar a la sección de Notas nuevas.
-$('#navNotas').click(function(){
-  $('.seccion').hide();
-  $('#secNotas').show();
-});
-
-//Cambiar a la sección de Notas con movimientos.
-$('#navMov').click(function(){
-  $('.seccion').hide();
-  $('#secMov').show();
+  $($(this).attr('data-tab')).show();
+  $('.tab').removeClass('navModalActivo');
+  $(this).addClass('navModalActivo');
 });
 
 /////////////////////////////////// NOTAS ////////////////////////////////////
 
+function obtenerCasinosSeleccionados(){
+  return $('.casinosExp:checked').map(function(){return $(this).attr('id');}).toArray();
+}
+
 //Detectar casino de/seleccionado.
 $(document).on('change','.casinosExp', function() {
-    //Revisar todos los casinos para ver si hay uno seleccionado
-    var casinos_seleccionados = $('.casinosExp:checked');
-    id_casinos_seleccionados = [];
-
-    limpiarNotasMovimientos();                                                  //Limpiar la sección de notas con movimientos existentes
-
-    for (var i = 0; i < casinos_seleccionados.length; i++) {
-      id_casinos_seleccionados.push(parseInt(casinos_seleccionados[i].id));
-    }
-
-    // Si hay 0 casinos seleccionados: limpiar las secciones de notas y mostrar mensajes.
-    if (casinos_seleccionados.length == 0) {
-        limpiarSeccionNotas();
-        $('.mensajeNotas').show();
-        $('.formularioNotas').hide();
-
-    //Si hay un SOLO UN CASINO seleccionado: habilitar las dos pestañas
-    } else if (casinos_seleccionados.length == 1) {
-        habilitarSeccionNotasMovimientos();
-        $('.mensajeNotas').hide();
-        $('.formularioNotas').show();
-    //Si hay más casinos seleccionados: SOLO habilitar las notas nuevas
-    } else {
-        habilitarNotasNuevas();
+    $('.notaMov').not('#moldeNotaMov').remove();  //Eliminar todas las notas de fila (menos el molde)
+    $('#cantidad_movimientos').val(0);            //Resetear la cantidad de movimientos disponibles
+    $('#btn-notaMov').parent().show();           //Mostrar el botón de agregar notas
+    const casinos_seleccionados = obtenerCasinosSeleccionados();
+    if (casinos_seleccionados.length == 0) {// Si hay 0 casinos seleccionados: limpiar las secciones de notas y mostrar mensajes.
+      //limpiarSeccionNotas
+      lista_tipos_movimientos= [];
+      $('#moldeNotaNueva .tiposMovimientos option').remove(); //Eliminar los tipos de movimientos
+      $('.notaNueva').not('#moldeNotaNueva').remove(); //Eliminar las filas de notas
+      $('.mensajeNotas').show();
+      $('.formularioNotas').hide();
+    } else if (casinos_seleccionados.length == 1) {//Si hay un SOLO UN CASINO seleccionado: habilitar las dos pestañas
+      //habilitarSeccionNotasMovimientos
+      $('.mensajeNotas').hide();
+      $('.formularioNotas').show();
+      movimientosSinExpediente(casinos_seleccionados[0]);
+      $('.mensajeNotas').hide();
+      $('.formularioNotas').show();
+    } else {//Si hay más casinos seleccionados: SOLO habilitar las notas nuevas
+      //habilitarNotasNuevas
+      $('#secNotas .mensajeNotas').hide();
+      $('#secNotas .formularioNotas').show();
+      $('#secMov .mensajeNotas').show();
+      $('#secMov .formularioNotas').hide();
     }
 });
 
-function limpiarSeccionNotas() {
-  lista_tipos_movimientos= [];
-  $('#moldeNotaNueva .tiposMovimientos option').remove(); //Eliminar los tipos de movimientos
-  $('.notaNueva').not('#moldeNotaNueva').remove(); //Eliminar las filas de notas
-}
-
-function limpiarNotasMovimientos() {
-    $('.notaMov').not('#moldeNotaMov').remove();                              //Eliminar todas las notas de fila (menos el molde)
-    $('#cantidad_movimientos').val(0);                                          //Resetear la cantidad de movimientos disponibles
-    $('#btn-notaMov').parent().show();                                          //Mostrar el botón de agregar notas
-}
-
-function habilitarSeccionNotasMovimientos() {
-  $('.mensajeNotas').hide();
-  $('.formularioNotas').show();
-  movimientosSinExpediente();
-}
-
-function movimientosSinExpediente() {
+function movimientosSinExpediente(id_casino) {
   $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
-
   $.ajax({
-      type: "POST",
-      url: 'expedientes/movimientosSinExpediente',
-      data: {
-        id_casino: id_casinos_seleccionados,
-      },
-      success: function (data) {
-        console.log('Mov sin expedientes: ', data);
-        var cantidadMovimientos = data.logs.length;
-        $('#cantidad_movimientos').val(cantidadMovimientos);
-        var select = $('#movimientosDisponibles');
-        var optionDefecto = $('<option>').val(0).text("Seleccione un movimiento");
-
-        select.find('option').remove();
-        select.append(optionDefecto);
-
-        for (var i = 0; i < data.logs.length; i++) {
-            var option = $('<option>').val(data.logs[i].id_log_movimiento)
-                                      .text(data.logs[i].nombre + ' - ' +data.logs[i].descripcion + ' - '+ data.logs[i].fecha)
-                                      .attr('data-casino',data.logs[i].id_casino);
-            select.append(option);
-        }
-
-
-      },
-      error: function (data) {
-        console.log('Error: ', data);
-      }
+    type: "GET",
+    url: 'expedientes/movimientosSinExpediente/'+id_casino,
+    success: function (data) {
+      $('#cantidad_movimientos').val(data.logs.length);
+      $('#movimientosDisponibles').find('option').remove();
+      $('#movimientosDisponibles').append( $('<option>').val(0).text("Seleccione un movimiento"));
+      data.logs.forEach(function(l){
+        $('#movimientosDisponibles').append(
+          $('<option>').val(l.id_log_movimiento).text(`${l.nombre} - ${l.descripcion} - ${l.fecha}`).attr('data-casino',l.id_casino)
+        );
+      });
+    },
+    error: function (data) {
+      console.log('Error: ', data);
+    }
   });
-
-}
-
-function habilitarNotasNuevas() {
-  $('#secNotas .mensajeNotas').hide();
-  $('#secNotas .formularioNotas').show();
-  $('#secMov .mensajeNotas').show();
-  $('#secMov .formularioNotas').hide();
 }
 
 function obtenerTiposMovimientos() {
-    var id_expediente = $('#modalExpediente #id_expediente').val();
-    //id_casinos_seleccionados.push(parseInt(casinos_seleccionados[i].id));
-    $.get('expedientes/tiposMovimientos/' + id_expediente, function(data) {
-      console.log('get',data);
-          var optionDefecto = $('<option>').val(0).text("- Tipo de movimiento -");
-          $('#moldeNotaNueva .tiposMovimientos').append(optionDefecto);
-          $('#moldeDisposicion #tiposMovimientosDisp').append(optionDefecto);
-          lista_tipos_movimientos.push([0,"- Tipo de movimiento -"]);
-          for (var i = 0; i < data.length; i++) {
-            var option = $('<option>').val(data[i].id_tipo_movimiento).text(data[i].descripcion);
-            $('#moldeNotaNueva .tiposMovimientos').append(option);
-            $('#moldeDisposicion #tiposMovimientosDisp').append(option);
-            lista_tipos_movimientos.push([data[i].id_tipo_movimiento,data[i].descripcion]);
-          }
+  $.get('expedientes/tiposMovimientos/' + $('#modalExpediente #id_expediente').val(), function(data) {
+    lista_tipos_movimientos = [[0,"- Tipo de movimiento -"]];
+    lista_tipos_movimientos.push(...data.map(function(m){
+      return [m.id_tipo_movimiento,m.descripcion]
+    }));
+    lista_tipos_movimientos.forEach(function(m){
+      const option = $('<option>').val(m[0]).text(m[1]);
+      $('#moldeNotaNueva .tiposMovimientos').append(option);
+      $('#moldeDisposicion #tiposMovimientosDisp').append(option);
     });
-}
-
-function mostrarMovimientosDisponibles(cantidadMovimientos) {
-  if (cantidadMovimientos == 1) $('#cantidadMovimientos').text('1 Movimiento disponible');
-  else $('#cantidadMovimientos').text(cantidadMovimientos + ' Movimientos disponibles');
+  });
 }
 
 //Opacidad del modal al minimizar
 $('#btn-minimizar').click(function(){
-    if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-      $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
+  const minimizar = $(this).data("minimizar");
+  $('.modal-backdrop').css('opacity',minimizar? '0.1' : '0.5');
+  $(this).data("minimizar",!minimizar);
 });
 
 //Quitar eventos de la tecla Enter y guardar
 $('#collapseFiltros').on('keypress',function(e){
-    if(e.which == 13) {
-      e.preventDefault();
-      $('#btn-buscar').click();
-    }
+  if(e.which == 13) {
+    e.preventDefault();
+    $('#btn-buscar').click();
+  }
 });
 
 //Quitar eventos de la tecla Enter y guardar
@@ -266,23 +197,22 @@ $('#btn-agregarResolucion').on("click",function(e){
   fila.append($('<td>').text(nro_res));
   fila.append($('<td>').text(anio_res));
   fila.append($('<td>').append(
-    $('<button>').addClass('btn btn-danger borrarResolucion')
+    $('<button>').addClass('btn btn-danger borrarFila')
     .css('margin-left','10px')
     .append($('<i>').addClass('fa fa-fw fa-trash'))
   ));
   $('#tablaResolucion').append(fila);
 });
 
-$(document).on('click','.borrarResolucion',function(){
+$(document).on('click','.borrarFila,.borrarNota,.borrarNotaCargada',function(){
   $(this).parent().parent().remove();
 });
 
-$(document).on('click','.borrarDisposicion',function(){
+$(document).on('click','.borrarNotaMov', function(){
   $(this).parent().parent().remove();
-});
-
-$(document).on('click','.borrarMovimiento',function(){
-  $(this).parent().parent().remove();
+  $('#cantidad_movimientos').val(parseInt($('#cantidad_movimientos').val()) + 1);
+  $('#secMov .agregarNota').show(); //Mostrar el botón para agregar notas
+  $(`#movimientosDisponibles option[value="${$(this).attr('id')}"]`).show();//Mostrar el movimiento borrado nuevamente en el selector
 });
 
 function generarListaMovimientos(id_expediente){
@@ -330,23 +260,6 @@ $('#btn-notaNueva').click(function(e){
 
     $('#moldeNotaNueva').before(clonNota);
 });
-
-$('#modalExpediente').on('click','.borrarNota', function(){
-    $(this).parent().parent().remove();
-});
-
-$('#modalExpediente').on('click','.borrarNotaMov', function(){
-    var id_movimiento = $(this).attr('id');
-
-    var cantidadMovimientos = $('#cantidad_movimientos').val();                 //Cantidad de movimientos disponibles
-    $(this).parent().parent().remove();                                         //Se borra la fila
-    cantidad_movimientos = parseInt(cantidadMovimientos) + 1;                   //Se aumenta la cantidad de movimientos disponibles
-
-    $('#cantidad_movimientos').val(cantidad_movimientos);                       //Se setea la nueva cantidad de movimientos
-    $('#secMov .agregarNota').show();                                           //Mostrar el botón para agregar notas
-    $('#movimientosDisponibles option[value="'+ id_movimiento +'"]').show();    //Mostrar el movimiento borrado nuevamente en el selector
-});
-
 
 $('#btn-notaMov').click(function(e){
   e.preventDefault();
@@ -660,7 +573,7 @@ $('#btn-guardar').click(function (e) {
       nro_exp_org: $('#nro_exp_org').val(),
       nro_exp_interno: $('#nro_exp_interno').val(),
       nro_exp_control: $('#nro_exp_control').val(),
-      casinos: id_casinos_seleccionados ,
+      casinos: $('.casinosExp:checked').map(function(){return $(this).attr('id');}).toArray(),
       fecha_pase: fecha_pase,
       fecha_iniciacion: fecha_iniciacion,
       remitente: $('#remitente').val(),
@@ -946,11 +859,6 @@ $(document).on('click','#tablaResultados thead tr th[value]',function(e){
   $('#tablaResultados th:not(.activa) i').removeClass().addClass('fas fa-sort').parent().attr('estado','');
   clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
-
-$(document).on('click','.borrarNotaCargada',function(e){
-  $(this).parent().parent().remove();
-});
-
 function clickIndice(e,pageNumber,tam){
   if(e != null){
     e.preventDefault();

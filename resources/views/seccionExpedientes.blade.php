@@ -245,24 +245,19 @@ $id_usuario = session('id_usuario');
                   </style>
 
                   <div class="navModal" style="position:relative; bottom:-15px; text-align:center; font-family: Roboto-Regular; font-size: 20px; color: #999;">
-
-                        <div style="width:25%;">
-                              <i id="error_nav_config" class="fa fa-times" style="color:red;"></i>
-                              <a href="" id="navConfig"><h4>CONFIGURACIÓN</h4></a>
-                        </div>
-                        <div style="width:25%;">
-                              <i id="error_nav_notas" class="fa fa-times" style="color:red;"></i>
-                              <a href="" id="navNotas"><h4>NOTAS</h4></a>
-                        </div>
-                        <div style="width:25%;">
-                              <i id="error_nav_mov" class="fa fa-times" style="color:red;"></i>
-                              <a href="" id="navMov"><h4>NOTAS & MOVIMIENTOS</h4></a>
-                        </div>
-
+                    <div style="width:25%;">
+                      <i id="error_nav_config" class="fa fa-times" style="color:red;"></i>
+                      <a href="" id="navConfig" class="tab" data-tab="#secConfig"><h4>CONFIGURACIÓN</h4></a>
+                    </div>
+                    <div style="width:25%;">
+                      <i id="error_nav_notas" class="fa fa-times" style="color:red;"></i>
+                      <a href="" id="navNotas" class="tab" data-tab="#secNotas"><h4>NOTAS</h4></a>
+                    </div>
+                    <div style="width:25%;">
+                      <i id="error_nav_mov" class="fa fa-times" style="color:red;"></i>
+                      <a href="" id="navMov" class="tab" data-tab="#secMov"><h4>NOTAS & MOVIMIENTOS</h4></a>
+                    </div>
                   </div>
-
-
-
                 </div> <!-- modal-header -->
 
 
@@ -415,7 +410,7 @@ $id_usuario = session('id_usuario');
                                     <input id="nro_resolucion_anio" style="width:40%; border-left:none;" type="text" placeholder="--" maxlength="2" class="form-control" />
                                     
                                   </div> 
-                                  <button id="btn-agregarResolucion" class="btn btn-success borrarFila" type="button">
+                                  <button id="btn-agregarResolucion" class="btn btn-link" type="button">
                                     <i class="fa fa-fw fa-plus"></i>
                                   </button>
                                 </div>
@@ -467,7 +462,7 @@ $id_usuario = session('id_usuario');
                               <div class="row">
                                 <div class="col-lg-12" style="margin-top:8px;">
                                   <h5 style="display:inline;">Disposición(es)</h5>
-                                  <button id="btn-agregarDisposicion" class="btn btn-success borrarFila" type="button" style="display:inline;position:relative;top:-2px;">
+                                  <button id="btn-agregarDisposicion" class="btn btn-link" type="button" style="display:inline;position:relative;top:-2px;">
                                     <i class="fa fa-fw fa-plus"></i>
                                   </button>
 
@@ -495,7 +490,7 @@ $id_usuario = session('id_usuario');
                                             <select class="form-control" id="tiposMovimientosDisp" disabled></select>
                                           </div>
                                           <div class="col-md-2">
-                                            <button class="btn btn-danger borrarFila borrarDisposicion" type="button" name="button">
+                                            <button class="btn btn-link borrarFila" type="button" name="button">
                                               <i class="fa fa-fw fa-trash-alt"></i>
                                             </button>
                                           </div>
@@ -538,7 +533,7 @@ $id_usuario = session('id_usuario');
                                       </thead>
                                       <tbody>
                                          <tr id="moldeFilaNota" class="filaNota" style="display:none;">
-                                           <td class="col-xs-1"><button class="btn btn-danger borrarFila borrarNotaCargada" type="button">
+                                           <td class="col-xs-1"><button class="btn btn-link borrarNotaCargada" type="button">
                                              <i class="fas fa-fw fa-trash-alt"></i> </td>
                                            <td class="col-xs-1 identificacion">9</td>
                                            <td class="col-xs-3 fecha">11 AGO 2018</td>
@@ -600,7 +595,7 @@ $id_usuario = session('id_usuario');
                                   </select>
                                 </div>
                                 <div class="col-md-1">
-                                  <button class="btn btn-danger borrarFila borrarNota" type="button" style="position:relative;top:35px;">
+                                  <button class="btn btn-link borrarNotaMov" type="button" style="position:relative;top:35px;">
                                     <i class="fa fa-fw fa-trash-alt"></i>
                                   </button>
                                 </div>
@@ -648,7 +643,7 @@ $id_usuario = session('id_usuario');
                                   <input class="form-control descripcionTipoMovimiento" type="text" value="" readonly="true">
                                 </div>
                                 <div class="col-md-2">
-                                    <button class="btn btn-danger borrarFila borrarNotaMov" type="button" style="float:right; position:relative; top:32px; right:20px;">
+                                    <button class="btn btn-link borrarNotaCargada" type="button" style="float:right; position:relative; top:32px; right:20px;">
                                         <i class="fa fa-fw fa-trash-alt"></i>
                                     </button>
                                 </div>
