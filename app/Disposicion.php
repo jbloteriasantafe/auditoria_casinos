@@ -10,7 +10,7 @@ class Disposicion extends Model
   protected $connection = 'mysql';
   protected $table = 'disposicion';
   protected $primaryKey = 'id_disposicion';
-  protected $visible = array('id_disposicion','nro_disposicion','nro_disposicion_anio','descripcion','id_nota');
+  protected $visible = array('id_disposicion','nro_disposicion','nro_disposicion_anio','descripcion','id_nota','fecha');
   public $timestamps = false;
 
   public function expediente(){

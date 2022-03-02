@@ -108,35 +108,6 @@ class NotaController extends Controller
     return $nota->id_nota;
   }
 
-  //nunca se usa ja
-  public function guardarNotaNueva($request)
-  {
-    Validator::make($request->all(), [
-        'id_expediente' => 'required|exists:expediente,id_expediente',
-        'id_casino' => 'required|exists:casino,id_casino',
-        'id_tipo_movimiento' => 'required|exists:tipo_movimiento,id_tipo_movimiento',
-        'fecha' => 'required|date',
-        'disposiciones' => 'nullable',
-        'disposiciones.*.nro_disposicion' => ['required','regex:/^\d\d\d$/'],
-        'disposiciones.*.nro_disposicion_anio' => ['required','regex:/^\d\d$/']
-    ], array(), self::$atributos)->after(function($validator){
-      //ver que mensaje largar
-      //$validator->errors()->add('detalles.['.$index.'].producido_calculado_relevado','El Producido Calculado Relevado debe estar presente si el estado es 3.');
-    })->validate();
-
-    $nota = new Nota;
-    $nota->expediente()->associate($request['id_expediente']);
-    $nota->casino()->associate($request['id_casino']); //asumiendo que los expedientes anuales son uno por casino copio el id_casino del expediente
-    $nota->tipo_movimiento()->associate($request['id_tipo_movimiento']);
-    $nota->fecha = $request['fecha'];
-    $nota->save();
-    if(!empty($request['disposiciones'])){
-      foreach ($request['disposiciones'] as $disp){
-        DisposicionController::getInstancia()->guardarDisposicionNota($disp,$nota->id_nota);
-      }
-    }
-  }
-
   public function eliminarNota($id)
   {
     $nota = Nota::find($id);

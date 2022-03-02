@@ -63,13 +63,7 @@ $('#navNotas').click(function(){
 $('#navMov').click(function(){
   $('.seccion').hide();
   $('#secMov').show();
-
-  // if (id_casinos_seleccionados.length > 0) {
-  //   //Cargar sección notas
-  //   movimientosSinExpediente();
-  // }
 });
-
 
 /////////////////////////////////// NOTAS ////////////////////////////////////
 
@@ -123,20 +117,16 @@ function habilitarSeccionNotasMovimientos() {
 function movimientosSinExpediente() {
   $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
-  var formData = {
-      id_casino: id_casinos_seleccionados,
-  }
-
   $.ajax({
       type: "POST",
       url: 'expedientes/movimientosSinExpediente',
-      data: formData,
+      data: {
+        id_casino: id_casinos_seleccionados,
+      },
       success: function (data) {
         console.log('Mov sin expedientes: ', data);
         var cantidadMovimientos = data.logs.length;
-        //
         $('#cantidad_movimientos').val(cantidadMovimientos);
-        // mostrarMovimientosDisponibles(cantidadMovimientos);
         var select = $('#movimientosDisponibles');
         var optionDefecto = $('<option>').val(0).text("Seleccione un movimiento");
 
@@ -210,10 +200,10 @@ $('#collapseFiltros').on('keypress',function(e){
 
 //Quitar eventos de la tecla Enter y guardar
 $(document).on('keypress',function(e){
-    if(e.which == 13 && $('#modalExpediente').is(':visible')) {
-      e.preventDefault();
-      $('#btn-guardar').click();
-    }
+  if(e.which == 13 && $('#modalExpediente').is(':visible')) {
+    e.preventDefault();
+    $('#btn-guardar').click();
+  }
 });
 
 
@@ -250,45 +240,41 @@ function habilitarDTP() {
 
 //Agregar nueva disposicion en el modal
 $('#btn-agregarDisposicion').click(function(){
-
-  var moldeDisposicion = $('#moldeDisposicion').clone();
-
-
-  moldeDisposicion.removeAttr('id');
+  const moldeDisposicion = $('#moldeDisposicion').clone().removeAttr('id').show();
   moldeDisposicion.find('#tiposMovimientosDisp').prop("disabled", false);
-  moldeDisposicion.show();
-
+  moldeDisposicion.find('.dtpFechaDisposicion').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd',
+    pickerPosition: "bottom-left",
+    startView: 4,
+    minView: 3,
+  });
   $('#columnaDisposicion').append(moldeDisposicion);
-
 });
 
 // Agregar resolucion
 $('#btn-agregarResolucion').on("click",function(e){
-  var fila = $('<tr>').attr("id-resolucion",-1);
-  nro_res=$('#nro_resolucion').val();
-  anio_res=$('#nro_resolucion_anio').val();
-
-  if (nro_res!="" && anio_res!=""){
-    fila.append($('<td>').text(nro_res));
-    fila.append($('<td>').text(anio_res));
-    var boton = $('<button>').addClass('btn btn-danger borrarResolucion')
-                           .css('margin-left','10px')
-                           .append($('<i>').addClass('fa fa-fw fa-trash'));
-    fila.append($('<td>').append(boton));
-    $('#tablaResolucion').append(fila);
-    $('#nro_resolucion').val("");
-    $('#nro_resolucion_anio').val("");
-  }
+  const nro_res  = $('#nro_resolucion').val();
+  const anio_res = $('#nro_resolucion_anio').val();
+  if(nro_res == "" || anio_res == "") return;
+  $('#nro_resolucion').val("");
+  $('#nro_resolucion_anio').val("");
+  const fila = $('<tr>').attr("id-resolucion",-1);
+  fila.append($('<td>').text(nro_res));
+  fila.append($('<td>').text(anio_res));
+  fila.append($('<td>').append(
+    $('<button>').addClass('btn btn-danger borrarResolucion')
+    .css('margin-left','10px')
+    .append($('<i>').addClass('fa fa-fw fa-trash'))
+  ));
+  $('#tablaResolucion').append(fila);
 });
 
 $(document).on('click','.borrarResolucion',function(){
   $(this).parent().parent().remove();
-});
-
-
-//Agregar nuevo movimiento en el modal
-$('#btn-agregarMovimientos').click(function(){
-  agregarMovimientos(null,true);
 });
 
 $(document).on('click','.borrarDisposicion',function(){
@@ -299,40 +285,12 @@ $(document).on('click','.borrarMovimiento',function(){
   $(this).parent().parent().remove();
 });
 
-// $(document).on('change','#selectCasinos',function(){
-//   var cas = $(this).val();
-//   generarListaAsocMovimientos(cas);
-//
-//   console.log(cas);
-// });
-
-function generarListaMovimientos(expediente){
-
-  $.get("expedientes/tiposMovimientos/" + expediente, function(data){
-      console.log(data);
-        selectMov.children().remove();
-        for(i=0 ; i<data.length ; i++){
-          selectMov.append($('<option>').val(data[i].id_tipo_movimiento).text(data[i].descripcion));
-        }
-  });
-
-}
-
-function generarListaAsocMovimientos(casino){
-
-  var espacio = ' | ';
-
-  $.get("movimientos/movimientosSinExpediente/" + casino, function(data){
-    console.log(data);
-      asocMov.children().remove();
-      console.log(data.length);
-      for(i=0; i<data.logs.length; i++){
-        asocMov.append($('<input>').attr('type','checkbox').addClass('asociaMovimiento').val(data.logs[i].id_log_movimiento))
-        .append($('<span>').text(data.logs[i].descripcion))
-        .append($('<span>').text(espacio))
-        .append($('<span>').text(data.logs[i].fecha))
-        .append($('<br>'));
-      }
+function generarListaMovimientos(id_expediente){
+  $.get("expedientes/tiposMovimientos/" + id_expediente, function(data){
+    selectMov.children().remove();
+    for(let i=0;i<data.length;i++){
+      selectMov.append($('<option>').val(data[i].id_tipo_movimiento).text(data[i].descripcion));
+    }
   });
 }
 
@@ -443,14 +401,10 @@ $('#btn-notaMov').click(function(e){
 
 $('#btn-ayuda').click(function(e){
   e.preventDefault();
-
   $('.modal-title').text('| GESTIONAR EXPEDIENTES');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
-
 	$('#modalAyuda').modal('show');
-
 });
-
 
 //Mostrar modal para agregar nuevo Expediente
 $('#btn-nuevo').click(function(e){
@@ -491,8 +445,6 @@ $('#btn-nuevo').click(function(e){
     $('#btn-cancelar').text('CANCELAR');
     $('#asociar').show();
 
-    // generarListaMovimientos(0);
-    // generarListaAsocMovimientos();
     $('#tiposMovimientosDisp option').remove();
     obtenerTiposMovimientos();
 
@@ -501,42 +453,38 @@ $('#btn-nuevo').click(function(e){
 
 //Mostrar modal con los datos del Log
 $(document).on('click','.detalle',function(){
-
   $('#mensajeExito').hide();
   $('#modalExpediente').find('.modal-footer').children().show();
   $('#modalExpediente').find('.modal-body').children().show();
   $('#modalExpediente').find('.modal-body').children('#iconoCarga').hide();
-    //$('#tablaDispoCreadas tbody tr').not('#moldeDispoCargada').remove();
 
-      limpiarModal();
-      //Ocultar errores
-      $('#error_nav_config').hide();
-      $('#error_nav_notas').hide();
-      $('#error_nav_mov').hide();
+  limpiarModal();
+  //Ocultar errores
+  $('#error_nav_config').hide();
+  $('#error_nav_notas').hide();
+  $('#error_nav_mov').hide();
 
+  $('.modal-title').text('| VER EXPEDIENTE');
+  $('.modal-header').attr('style','background: #4FC3F7');
+  $('#btn-cancelar').text('SALIR');
 
-      $('.modal-title').text('| VER EXPEDIENTE');
-      $('.modal-header').attr('style','background: #4FC3F7');
-      $('#btn-cancelar').text('SALIR');
+  $('#navConfig').click(); //Empezar por la sección de configuración
 
-      $('#navConfig').click(); //Empezar por la sección de configuración
+  var id_expediente = $(this).val();
 
-      var id_expediente = $(this).val();
+  obtenerTiposMovimientos();
 
-      obtenerTiposMovimientos();
+  $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
+    generarListaMovimientos(id_expediente);
+    mostrarExpediente(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,false);
+    habilitarControles(false);
 
-      $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
-          console.log('aqui',data);
-          generarListaMovimientos(id_expediente);
-          mostrarExpedienteModif(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,false);
-          habilitarControles(false);
+    //Deshabilitar sección de 'notas & movimientos'
+    $('#navMov').parent().hide();
+    $('.notasNuevas').hide();
 
-          //Deshabilitar sección de 'notas & movimientos'
-          $('#navMov').parent().hide();
-          $('.notasNuevas').hide();
-
-          $('#modalExpediente').modal('show');
-      });
+    $('#modalExpediente').modal('show');
+  });
 });
 
 //Mostrar modal con los datos del Casino cargados
@@ -572,16 +520,13 @@ $(document).on('click','.modificar',function(){
     obtenerTiposMovimientos();
 
     $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
-
-        generarListaMovimientos(id_expediente);
-        // mostrarExpedienteModif(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.log_movimientos,data.tipos_movimientos,true);
-        mostrarExpedienteModif(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,true);
-        habilitarControles(true);
-        $('#btn-guardar').val("modificar");
-        $('#modalExpediente').modal('show');
-        $('[rel=tooltip]').tooltip('disable');
+      generarListaMovimientos(id_expediente);
+      mostrarExpediente(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,true);
+      habilitarControles(true);
+      $('#btn-guardar').val("modificar");
+      $('#modalExpediente').modal('show');
+      $('[rel=tooltip]').tooltip('disable');
     });
-
 });
 
 
@@ -663,24 +608,13 @@ function obtenerNotasMov() {
 $('#btn-guardar').click(function (e) {
     $('#mensajeExito').hide();
 
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    });
+    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
     e.preventDefault();
 
     var fecha_pase = $('#fecha_pase').val();
     var fecha_iniciacion = $('#fecha_inicio').val();
 
-    // var resolucion = null;
-    // if($('#nro_resolucion').val() != '' || $('#nro_resolucion_anio').val() != ''){
-    //   var resolucion = {
-    //     nro_resolucion: $('#nro_resolucion').val(),
-    //     nro_resolucion_anio: $('#nro_resolucion_anio').val(),
-    //   }
-    // }
     var resolucion = obtenerResoluciones();
 
 
@@ -752,9 +686,6 @@ $('#btn-guardar').click(function (e) {
         url: url,
         data: formData,
         dataType: 'json',
-        // processData: false,
-        // contentType:false,
-        // cache:false,
         beforeSend: function(data){
           console.log('Empezó');
           $('#modalExpediente').find('.modal-footer').children().hide();
@@ -764,8 +695,6 @@ $('#btn-guardar').click(function (e) {
         success: function (data) {
 
             $('#btn-buscar').trigger('click');
-
-            // var expediente = generarFilaTabla(data.expediente,data.casino.nombre);
 
             if (state == "nuevo"){ //Si está agregando agrega una fila con el nuevo expediente
               $('#mensajeExito h3').text('Creación Exitosa');
@@ -791,18 +720,10 @@ $('#btn-guardar').click(function (e) {
 
             var response = JSON.parse(data.responseText);
 
-            // limpiarAlertas(); ESTE TIENE QUE CAMBIARSE
-
             //Si hay algun campo vacio en nro_exp
             var nro_exp_org_vacio = typeof response.nro_exp_org != "undefined";
             var nro_exp_interno_vacio = typeof response.nro_exp_interno != "undefined";
             var nro_exp_control_vacio = typeof response.nro_exp_control != "undefined";
-
-            //Modelo
-            // if(typeof response.nro_admin !== 'undefined'){
-            //   mostrarErrorValidacion($('#nro_admin'),response.nro_admin[0],true);
-            //   $('#error_nav_maquina').show();
-            // }
 
             //Ocultar errores
             $('#error_nav_config').hide();
@@ -814,7 +735,6 @@ $('#btn-guardar').click(function (e) {
 
             if(typeof response.casinos !== 'undefined'){
               mostrarErrorValidacion($('#contenedorCasinos'),"Debe seleccionar al menos un casino",true);
-              // $('#error_nav_maquina').show();
             }
 
             if (nro_exp_org_vacio || nro_exp_interno_vacio || nro_exp_control_vacio) {
@@ -878,22 +798,14 @@ $('#btn-guardar').click(function (e) {
             if (typeof response["resolucion.nro_resolucion"] != "undefined") {
               mostrarErrorValidacion($('#nro_resolucion'),response['resolucion.nro_resolucion'][0],false);
               $('#error_nav_config').show();
-                // $('#nro_resolucion').addClass('alerta');
-                // errorRes += response["resolucion.nro_resolucion"][0] + "\n";
             }
             if (typeof response["resolucion.nro_resolucion_anio"] != "undefined") {
               mostrarErrorValidacion($('#nro_resolucion_anio'),response['resolucion.nro_resolucion_anio'][0],false);
               $('#error_nav_config').show();
-                // $('#nro_resolucion_anio').addClass('alerta');
-                // errorRes += response["resolucion.nro_resolucion_anio"][0];
             }
-            // if(errorRes != ' '){
-            //   $('#alerta-resolucion').text(errorRes).show();
-            // }
 
             var i=0;
             $('#columnaDisposicion .disposicion').not('#moldeDisposicion').each(function(){
-              // var error=' ';
               if(typeof response['disposiciones.'+ i +'.nro_disposicion'] !== 'undefined'){
                 mostrarErrorValidacion($(this).find('.nro_disposicion'),response['disposiciones.'+ i +'.nro_disposicion'][0],false);
                 $('#error_nav_config').show();
@@ -909,16 +821,6 @@ $('#btn-guardar').click(function (e) {
 
               i++;
             })
-
-            // var i=0;
-            // $('#columna .Movimiento').each(function(){
-            //   var error=' ';
-            //   if(error != ' '){
-            //   var alerta='<div class="col-xs-12"><span class="alertaTabla alertaSpan">'+error+'</span></div>';
-            //     $(this).append(alerta);
-            //   }
-            //   i++;
-            // })
 
             //////////////////////////  ALERTAS DE NOTAS /////////////////////////
             var i = 0;
@@ -962,20 +864,13 @@ $('#btn-guardar').click(function (e) {
 
                 j++;
             });
-
-            ///////////////////////  ALERTAS NOTAS Y MOVS ////////////////////////
-            // $('#error_nav_mov').hide();
         }
     });
 });
 
 //Busqueda
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
   e.preventDefault();
 
@@ -987,7 +882,6 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   }
   console.log($('#herramientasPaginacion').getPageSize());
   var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
-  // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
   var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
   var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
   if(sort_by == null){ // limpio las columnas
@@ -1057,7 +951,6 @@ $(document).on('click','.borrarNotaCargada',function(e){
   $(this).parent().parent().remove();
 });
 
-
 function clickIndice(e,pageNumber,tam){
   if(e != null){
     e.preventDefault();
@@ -1069,53 +962,26 @@ function clickIndice(e,pageNumber,tam){
 }
 
 function generarFilaTabla(expediente){
-      var fila = $(document.createElement('tr'));
-      var ubicacion = expediente.ubicacion_fisica == "" ? "-" : expediente.ubicacion_fisica;
-      // var fecha = expediente.fecha_iniciacion == "" ? "-" : expediente.fecha_iniciacion;
-      expediente.ubicacion_fisica != null ? ubicacion=expediente.ubicacion_fisica : ubicacion='-' ;
-      expediente.fecha_iniciacion != null ? fecha= convertirDate(expediente.fecha_iniciacion) : fecha='-' ;
-
-      fila.attr('id','expediente' + expediente.id_expediente)
-          .append($('<td>')
-              .addClass('col-xs-3')
-              .text(expediente.nro_exp_org + '-' + expediente.nro_exp_interno + '-' + expediente.nro_exp_control)
-          )
-          .append($('<td>')
-              .addClass('col-xs-3')
-              .text(fecha)
-          )
-
-          .append($('<td>')
-              .addClass('col-xs-3')
-              .text(expediente.nombre)
-          )
-
-          .append($('<td>')
-              .addClass('col-xs-3')
-              .append($('<button>')
-                  .append($('<i>')
-                      .addClass('fa').addClass('fa-fw').addClass('fa-search-plus')
-                  )
-                  .addClass('btn').addClass('btn-info').addClass('detalle')
-                  .attr('value',expediente.id_expediente)
-              )
-              .append($('<span>').text(' '))
-              .append($('<button>')
-                  .append($('<i>')
-                      .addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt')
-                  )
-                  .addClass('btn').addClass('btn-warning').addClass('modificar')
-                  .attr('value',expediente.id_expediente)
-              )
-              .append($('<span>').text(' '))
-              .append($('<button>')
-                  .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-trash-alt')
-                  )
-                  .addClass('btn').addClass('btn-danger').addClass('eliminar')
-                  .attr('value',expediente.id_expediente)
-              )
-          )
-        $('#cuerpoTabla').append(fila);
+  const fila = $('<tr>').attr('id','expediente' + expediente.id_expediente);
+  fila.append($('<td>').addClass('col-xs-3').text(`${expediente.nro_exp_org}-${expediente.nro_exp_interno}-${expediente.nro_exp_control}`))
+  .append($('<td>').addClass('col-xs-3').text(convertirDate(expediente.fecha_iniciacion) ?? '-'))
+  .append($('<td>').addClass('col-xs-3').text(expediente.nombre))
+  .append($('<td>').addClass('col-xs-3')
+    .append(
+      $('<button>').append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-search-plus'))
+      .addClass('btn').addClass('btn-info').addClass('detalle')
+    )
+    .append(
+      $('<button>').append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt'))
+      .addClass('btn').addClass('btn-warning').addClass('modificar')
+    )
+    .append(
+      $('<button>').append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-trash-alt'))
+      .addClass('btn').addClass('btn-danger').addClass('eliminar')
+    )
+  );
+  fila.find('button').val(expediente.id_expediente);
+  $('#cuerpoTabla').append(fila);
 }
 
 function habilitarControles(valor){
@@ -1165,12 +1031,9 @@ function limpiarModal(){
   lista_tipos_movimientos= [];
   $('#frmExpediente').trigger('reset');
   $('#modalExpediente input').val('');
-  // $('div').remove(".Disposicion");
   $('#id_expediente').val(0);
 
-
   $('#columnaDisposicion .disposicion').not('#moldeDisposicion').remove();
-
   $('.filaNota').not('#moldeFilaNota').remove(); //Eliminar todas las notas creadas
 
   $('#moldeNotaNueva .tiposMovimientos option').remove(); //Eliminar los tipos de movimientos
@@ -1205,33 +1068,6 @@ function limpiarAlertas(){
   ocultarErrorValidacion($('#nro_resolucion'));
   ocultarErrorValidacion($('#nro_resolucion_anio'));
 
-  // $('#fecha_pase').removeClass('alerta');
-  // $('#alerta-fechaPase').text('').hide();
-  // $('#fecha_inicio').removeClass('alerta');
-  // $('#alerta-fechaInicio').text('').hide();
-  // $('#destino').removeClass('alerta');
-  // $('#alerta-destino').text('').hide();
-  // $('#ubicacion').removeClass('alerta');
-  // $('#alerta-ubicacion').text('').hide();
-  // $('#iniciador').removeClass('alerta');
-  // $('#alerta-iniciador').text('').hide();
-  // $('#remitente').removeClass('alerta');
-  // $('#alerta-remitente').text('').hide();
-
-  // $('#concepto').removeClass('alerta');
-  // $('#alerta-concepto').text('').hide();
-  // $('#tema').removeClass('alerta');
-  // $('#alerta-tema').text('').hide();
-  // $('#nro_cuerpos').removeClass('alerta');
-  // $('#alerta-nroCuerpos').text('').hide();
-  // $('#nro_folios').removeClass('alerta');
-  // $('#alerta-nroFolios').text('').hide();
-  // $('#anexo').removeClass('alerta');
-  // $('#alerta-anexo').text('').hide();
-  // $('#nro_resolucion').removeClass('alerta');
-  // $('#nro_resolucion_anio').removeClass('alerta');
-  // $('#alerta-resolucion').text('').hide();
-
   $('#columna .Disposicion').each(function(){
     $(this).find('#nro_disposicion').removeClass('alerta');
     $(this).find('#nro_disposicion_anio').removeClass('alerta');
@@ -1239,66 +1075,18 @@ function limpiarAlertas(){
   $('.alertaTabla').remove();
 }
 
-function mostrarExpediente(expediente,casinos,resolucion,disposiciones,movimientos,editable){
-  $('#id_expediente').val(expediente.id_expediente);
+function mostrarExpediente(expediente,casinos,resolucion,disposiciones,notas,notasConMovimientos,editable){
   $('#nro_exp_org').val(expediente.nro_exp_org);
   $('#nro_exp_control').val(expediente.nro_exp_control);
   $('#nro_exp_interno').val(expediente.nro_exp_interno);
 
-
-  for (var i = 0; i < casinos.length; i++) {
-    $('#'+casinos[i].id_casino).prop("checked",true).prop('disabled',true);
-  }
-
-
-  //$('#selectCasinos').val(casino.id_casino);
-  if(expediente.fecha_pase != null){
-    var fecha_pase = expediente.fecha_pase.split('-');
-    $('#fecha_pase').val(fecha_pase[2] + " / " + fecha_pase[1] + " / " + fecha_pase[0]);
-  }
-  if(expediente.fecha_iniciacion != null){
-    var fecha_inicio = expediente.fecha_iniciacion.split('-');
-    $('#fecha_inicio').val(fecha_inicio[2] + " / " + fecha_inicio[1] + " / " + fecha_inicio[0]);
-  }
-  $('#destino').val(expediente.destino);
-  $('#ubicacion').val(expediente.ubicacion_fisica);
-  $('#iniciador').val(expediente.iniciador);
-  $('#remitente').val(expediente.remitente);
-  $('#concepto').val(expediente.concepto);
-  $('#tema').val(expediente.tema);
-  $('#nro_cuerpos').val(expediente.nro_cuerpos);
-  $('#nro_folios').val(expediente.nro_folios);
-  $('#anexo').val(expediente.anexo);
-  if(resolucion != null){
-    $('#nro_resolucion').val(resolucion.nro_resolucion);
-    $('#nro_resolucion_anio').val(resolucion.nro_resolucion_anio);
-  }
-  if(movimientos != null){
-    for(var index=0; index<movimientos.length; index++){
-      agregarMovimientos(movimientos[index],editable);
-    }
-  }
-  if(disposiciones != null){
-    for(var index=0; index<disposiciones.length; index++){
-      agregarDisposicion(disposiciones[index],editable);
-    }
-  }
-
-}
-
-function mostrarExpedienteModif(expediente,casinos,resolucion,disposiciones,notas,notasConMovimientos,editable){
-  $('#nro_exp_org').val(expediente.nro_exp_org);
-  $('#nro_exp_control').val(expediente.nro_exp_control);
-  $('#nro_exp_interno').val(expediente.nro_exp_interno);
-
-  for (var i = 0; i < casinos.length; i++) {
+  for (let i = 0; i < casinos.length; i++) {
     $('#'+ casinos[i].id_casino).prop('checked',true).prop('disabled',true);
   }
 
   if (casinos.length > 0) $('.casinosExp').change();
 
   if(expediente.fecha_pase != null){
-    // var fecha_pase = expediente.fecha_pase.split('-');
     $('#dtpFechaPase input').val(convertirDate(expediente.fecha_pase));
     $('#fecha_pase').val(expediente.fecha_pase);
   }
@@ -1329,36 +1117,35 @@ function mostrarExpedienteModif(expediente,casinos,resolucion,disposiciones,nota
                            .append($('<i>').addClass('fa fa-fw fa-trash'));
     fila.append($('<td>').append(boton));
     $('#tablaResolucion').append(fila);
-
   });
 
-
-  if(disposiciones.length != 0){
-    for(var index=0; index<disposiciones.length; index++){
-      agregarDisposicion(disposiciones[index],editable);
-    }
+  for(let index=0; index<disposiciones.length; index++){
+    const d = disposiciones[index];
+    const fila = $('#moldeDispoCargada').clone().removeAttr('id').attr('id', d.id_disposicion);
+    fila.find('.nro_dCreada').text(d.nro_disposicion);
+    fila.find('.anio_dCreada').text(d.nro_disposicion_anio);
+    fila.find('.fecha_dCreada').text(d.fecha ?? " -- ")
+    fila.find('.desc_dCreada').text(d.descripcion  ?? "Sin Descripción");
+    fila.find('.mov_dCreada').text(d.descripcion_movimiento ?? " -- ");
+    fila.find('button').val(d.id_disposicion);
+    fila.show();
+    $('#tablaDispoCreadas tbody').append(fila);
   }
-  //MOSTRAR NOTAS!!!!
+  if(!editable){
+    $('.filaDispo').not('#moldeDiposCargada').find('button').remove();
+  }
 
-  var i = 0;
-  var j = 0;
-
+  let i = 0;
   for (i; i < notas.length; i++) {
-      agregarNota(notas[i],false);
+    agregarNota(notas[i],false);
   }
+  let j = 0;
   for (j; j < notasConMovimientos.length; j++) {
-      agregarNota(notasConMovimientos[j],true);
+    agregarNota(notasConMovimientos[j],true);
   }
-
 
   //Si hay notas mostrarlas
-  if (i || j) {
-      $('.notasCreadas').show();
-  }else {
-      $('.notasCreadas').hide();
-  }
-
-
+  $('.notasCreadas').toggle(i || j);
 }
 
 function agregarNota(nota,conMovimiento) {
@@ -1378,217 +1165,9 @@ function agregarNota(nota,conMovimiento) {
   $('#tablaNotasCreadas tbody').append(fila);
 }
 
-function agregarDisposicion(disposicion, editable){
-
-    var moldeDisposicion = $('#moldeDisposicion').clone();
-
-    moldeDisposicion.removeAttr('id');
-    moldeDisposicion.attr('id',disposicion.id_disposicion);
-
-    //Para el modificar
-
-    if(editable==false){
-      $('#dispoCarg').hide();
-      //$('#tablaDispoCreadas').hide();
-      moldeDisposicion.find('.nro_disposicion').val(disposicion.nro_disposicion).prop('readonly',true);
-      moldeDisposicion.find('.nro_disposicion_anio').val(disposicion.nro_disposicion_anio).prop('readonly',true);
-      moldeDisposicion.find('#descripcion_disposicion').val(disposicion.descripcion).prop('readonly',true);
-      moldeDisposicion.find('.borrarDisposicion').hide();
-      moldeDisposicion.show();
-      if(disposicion.id_nota != null){
-
-        //moldeDisposicion.find('#selectgay').remove();
-        console.log('holaaaaaaa',moldeDisposicion.find('#tiposMovimientosDisp'));
-
-      moldeDisposicion.find('#tiposMovimientosDisp').val(disposicion.id_tipo_movimiento);
-
-      }else {
-        console.log('rr',moldeDisposicion.find('#tiposMovimientosDisp'));
-        moldeDisposicion.find('#tiposMovimientosDisp').hide();
-      }
-
-      $('#columnaDisposicion').append(moldeDisposicion);
-      //$('#columnaDisposicion').find('#' + disposicion.id_disposicion).prop('disabled',true);
-    }
-
-    if(editable==true) {
-      $('#dispoCarg').show();
-      $('#moldeDisposicion').hide();
-      $('#tablaDispoCreadas').show();
-
-      var fila=$('#moldeDispoCargada').clone();
-      fila.removeAttr('id');
-      fila.attr('id', disposicion.id_disposicion);
-
-      fila.find('.nro_dCreada').text(disposicion.nro_disposicion);
-      fila.find('.anio_dCreada').text(disposicion.nro_disposicion_anio);
-      if(disposicion.descripcion != null){
-        fila.find('.desc_dCreada').text(disposicion.descripcion);}
-      else {
-         fila.find('.desc_dCreada').text("Sin Descripción");
-     }
-     if(disposicion.descripcion_movimiento != null){
-     fila.find('.mov_dCreada').text(disposicion.descripcion_movimiento);}
-     else{
-       fila.find('.mov_dCreada').text(" -- ");}
-
-     fila.find('.borrarDispoCargada').val(disposicion.id_disposicion);
-     fila.show();
-     //fila.css('display','block');
-      $('#tablaDispoCreadas tbody').append(fila);
-    }
-      //moldeDisposicion.show();
-    if(editable=='vacia') {
-      $('#columnaDisposicion').append(moldeDisposicion);  }
-  // var id_disposicion = ((disposicion != null) ? disposicion.id_disposicion: null);
-  // var nro_disposicion = ((disposicion != null) ? disposicion.nro_disposicion: null);
-  // var nro_disposicion_anio = ((disposicion != null) ? disposicion.nro_disposicion_anio: null);
-  // var descripcion = ((disposicion != null) ? disposicion.descripcion: null);
-
-  // $('#columnaDisposicion')
-  //     .append($('<div>')
-  //         .addClass('row')
-  //         .css('margin-bottom','15px')
-  //         .addClass('Disposicion')
-  //         .attr('id_disposicion',id_disposicion)
-  //         .append($('<div>')
-  //             .addClass('col-xs-3')
-  //             .css('padding-right','0px')
-  //             .append($('<input>')
-  //                 .attr('id','nro_disposicion')
-  //                 .attr('type','text')
-  //                 .css('margin-top','6px')
-  //                 .addClass('form-control')
-  //                 .val(nro_disposicion)
-  //                 .attr('maxlength','3')
-  //                 .attr('placeholder','- - -')
-  //             )
-  //         )
-  //         .append($('<div>')
-  //             .addClass('col-xs-3')
-  //             .css('padding-right','0px')
-  //             .append($('<input>')
-  //                 .attr('id','nro_disposicion_anio')
-  //                 .attr('type','text')
-  //                 .css('margin-top','6px')
-  //                 .addClass('form-control')
-  //                 .val(nro_disposicion_anio)
-  //                 .attr('maxlength','2')
-  //                 .attr('placeholder','- -')
-  //             )
-  //         )
-  //         .append($('<div>')
-  //             .addClass('col-xs-5')
-  //             .css('padding-right','0px')
-  //             .append($('<input>')
-  //                 .attr('id','nro_disposicion_anio')
-  //                 .attr('type','text')
-  //                 .css('margin-top','6px')
-  //                 .addClass('form-control')
-  //                 .val('Descripción')
-  //                 .attr('placeholder','Descripción')
-  //             )
-  //         )
-  //     )
-
-      // if(editable){
-      //   $('#columnaDisposicion .Disposicion:last')
-      //         .append($('<div>')
-      //         .addClass('col-xs-1')
-      //         .append($('<button>')
-      //             .addClass('borrarDisposicion')
-      //             .addClass('btn')
-      //             .addClass('borrarInput')
-      //             .addClass('btn-danger')
-      //             .css('margin-top','6px')
-      //             .attr('type','button')
-      //             .append($('<i>')
-      //                 .addClass('fa')
-      //                 .addClass('fa-fw')
-      //                 .addClass('fa-trash')
-      //             )
-      //         )
-      //       )
-      // }
-}
 $(document).on('click','.borrarDispoCargada', function(){
-
   $(this).parent().parent().remove();
 })
-
-function agregarMovimientos(movimiento, editable){
-
-  $('#columnaMovimientos')
-      .append($('<div>')
-          .addClass('row')
-          .append($('<div>')
-          .addClass('col-xs-10')
-          .addClass('Movimiento')
-          .css('padding-right','0px')
-          .css('margin-top','6px')
-          .append(selectMov.clone())
-      )
-    )
-
-      if(editable){
-        $('#columnaMovimientos .row:last')
-              .append($('<div>')
-              .addClass('col-xs-2')
-              .append($('<button>')
-                  .addClass('borrarMovimiento')
-                  .addClass('btn')
-                  .addClass('borrarInput')
-                  .addClass('btn-danger')
-                  .css('margin-top','6px')
-                  .css('margin-bottom','3px')
-                  .attr('type','button')
-                  .append($('<i>')
-                      .addClass('fa')
-                      .addClass('fa-fw')
-                      .addClass('fa-trash-alt')
-                  )
-              )
-            )
-      }
-}
-
-function agregarLogModif(log, editable){
-
-  var salida = log.descripcion + " | " + log.fecha;
-
-  $('#columnaMovimientos')
-      .append($('<div>')
-          .addClass('row')
-          .append($('<div>')
-          .addClass('col-xs-10')
-          .addClass('Movimiento_modif')
-          .attr('id',log.id_log_movimiento)
-          .css('padding-right','0px')
-          .css('margin-top','12px')
-          .append(salida)
-      )
-    )
-
-      if(editable){
-        $('#columnaMovimientos .row:last')
-              .append($('<div>')
-              .addClass('col-xs-2')
-              .append($('<button>')
-                  .addClass('borrarMovimiento')
-                  .addClass('btn')
-                  .addClass('borrarInput')
-                  .addClass('btn-danger')
-                  .css('margin-top','6px')
-                  .attr('type','button')
-                  .append($('<i>')
-                      .addClass('fa')
-                      .addClass('fa-fw')
-                      .addClass('fa-trash-alt')
-                  )
-              )
-            )
-      }
-}
 
 function obtenerResoluciones(){
   var resoluciones=[];

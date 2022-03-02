@@ -127,7 +127,6 @@ $id_usuario = session('id_usuario');
                             <tr>
                               <th class="col-xs-3" value="expediente.nro_expediente" estado="">NRO EXPEDIENTE  <i class="fas fa-sort"></i></th>
                               <th class="col-xs-3 activa" value="expediente.fecha_iniciacion" estado="desc">FECHA DE INICIO  <i class="fas fa-sort-down"></i></th>
-                              <!-- <th class="col-xs-2">UBICACIÓN  <i class="fa fa-sort"></i></th> -->
                               <th class="col-xs-3" value="casino.nombre" estado="">CASINO  <i class="fas fa-sort"></i></th>
                               <th class="col-xs-3">ACCIONES</th>
                             </tr>
@@ -218,8 +217,6 @@ $id_usuario = session('id_usuario');
 
                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                   <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-
-                  <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                   <h3 class="modal-title" style="margin-left:33px; color: #fff; text-align:center">NUEVO EXPEDIENTE</h3>
 
                   <style media="screen">
@@ -409,7 +406,7 @@ $id_usuario = session('id_usuario');
                               </div> <!-- / Row Primera sección  style="padding-right: 0px;-->
 
                               <div class="row" style="">
-                                <div id="columna" class="col-lg-6" style="margin-top:8px;">
+                                <div id="columna" class="col-lg-9" style="margin-top:8px;">
                                   <div></div>
                                   <h5>Resolución</h5>
                                   <div class="form-inline">
@@ -433,31 +430,19 @@ $id_usuario = session('id_usuario');
                                     <tbody>
 
                                     </tbody>
-                                  </table>
-
-                                 
-
-                                  <!-- Acá -->
-                                  <!-- <div class="row" style="margin-bottom:20px;">
-                                    <div class="col-xs-6" style="padding-right: 0px;">
-                                      <input id="nro_resolucion" type="text" class="form-control" maxlength="3" placeholder="- - -">
-                                    </div>
-                                    <div class="col-xs-6">
-                                      <input id="nro_resolucion_anio" type="text" class="form-control" maxlength="2" placeholder="- -">
-                                    </div>
-                                  </div> -->
+                                  </table>                            
                                 </div>
                               </div>
                               <br>
                               <div class="row" id="dispoCarg">
                                 <div class="col-md-9" style="margin-top:8px;" >
                                   <h5>Disposición(es) Cargadas</h5>
-                                  <!-- TABLA ṔARA MOSTARR LAS DISPOSICIONES AL MODIFICAR UNE EXPEDIENTE -->
-                                  <table id="tablaDispoCreadas" class="table" hidden>
+                                  <table id="tablaDispoCreadas" class="table">
                                       <thead>
                                          <tr>
                                            <th class="col-xs-2" text-align="center">NRO</th>
-                                           <th class="col-xs-2" text-align="center"><h5>AÑO.</h5></th>
+                                           <th class="col-xs-2" text-align="center"><h5>AÑO</h5></th>
+                                           <th class="col-xs-2" text-align="center"><h5>FECHA</h5></th>
                                            <th class="col-xs-4" text-align="center"><h5>DESCRIPCIÓN</h5></th>
                                            <th class="col-xs-3" text-align="center"><h5>MOVIMIENTO</h5></th>
                                            <th class="col-xs-1" text-align="center"></th>
@@ -465,14 +450,14 @@ $id_usuario = session('id_usuario');
                                       </thead>
                                       <tbody>
                                          <tr id="moldeDispoCargada" class="filaDispo" style="display:none;">
-
                                            <td class="col-xs-2 nro_dCreada">9</td>
-                                           <td class="col-xs-2 anio_dCreada">11 AGO 2018</td>
+                                           <td class="col-xs-2 anio_dCreada">99</td>
+                                           <td class="col-xs-2 fecha_dCreada">99 DIC 9999</td>
                                            <td class="col-xs-4 desc_dCreada">EGRESO</td>
                                            <td class="col-xs-3 mov_dCreada" style="resize:vertical;"> dsfs </td>
-                                          <td class="col-xs-1"><button class="btn btn-danger borrarDispoCargada" type="button">
-                                               <i class="fas fa-fw fa-trash-alt"></i> </td>
-                                           <!-- <td class="col-xl-6 detalleNota">Acá tiene que ir algún detalle que se le puso a la nota con movimiento o sin movimiento.</td> -->
+                                            <td class="col-xs-1"><button class="btn btn-danger borrarDispoCargada" type="button">
+                                               <i class="fas fa-fw fa-trash-alt"></i>
+                                            </td>
                                          </tr>
                                       </tbody>
                                   </table>
@@ -480,14 +465,13 @@ $id_usuario = session('id_usuario');
                                 </div>
                               </div>
                               <div class="row">
-                                <div class="col-lg-9" style="margin-top:8px;">
+                                <div class="col-lg-12" style="margin-top:8px;">
                                   <h5 style="display:inline;">Disposición(es)</h5>
                                   <button id="btn-agregarDisposicion" class="btn btn-success borrarFila" type="button" style="display:inline;position:relative;top:-2px;">
                                     <i class="fa fa-fw fa-plus"></i>
                                   </button>
 
                                   <div id="columnaDisposicion" style="padding-top:10px;">
-
                                       <div id="moldeDisposicion" class="row disposicion" style="padding-bottom:15px;" hidden>
                                           <div class="col-md-3">
                                             <div class="input-group triple-input">
@@ -495,23 +479,27 @@ $id_usuario = session('id_usuario');
                                               <input class="form-control nro_disposicion_anio" style="width:40%; border-left:none;" type="text" placeholder="--" maxlength="2"  />
                                             </div>
                                           </div>
-                                          <div class="col-md-4">
-                                            <input class="form-control" id="descripcion_disposicion" type="text" name="" value="" placeholder="Descripción">
+                                          <div class="col-lg-2">
+                                            <div class="form-group">
+                                              <div class='input-group date dtpFechaDisposicion'>
+                                                <input type='text' class="form-control" placeholder="Fecha de la disposición"/>
+                                                <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                                <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
+                                              </div>
+                                            </div>
                                           </div>
-
                                           <div class="col-md-3">
-                                            <select class="form-control" id="tiposMovimientosDisp" disabled>
-
-                                             </select>
+                                            <textarea class="form-control" id="descripcion_disposicion" type="text" name="" value="" placeholder="Descripción" style="resize: vertical;"></textarea>
                                           </div>
-
+                                          <div class="col-md-2">
+                                            <select class="form-control" id="tiposMovimientosDisp" disabled></select>
+                                          </div>
                                           <div class="col-md-2">
                                             <button class="btn btn-danger borrarFila borrarDisposicion" type="button" name="button">
                                               <i class="fa fa-fw fa-trash-alt"></i>
                                             </button>
                                           </div>
                                       </div> <!-- disposicion -->
-
                                   </div> <!-- columnaDisposicion -->
 
                                 </div>
@@ -546,7 +534,6 @@ $id_usuario = session('id_usuario');
                                            <th class="col-xs-3"><h5>FECHA</h5></th>
                                            <th class="col-xs-3"><h5>MOVIMIENTO</h5></th>
                                            <th class="col-xs-4"><h5>DETALLE</h5></th>
-                                           <!-- <th class="col-xl-6"><h5>DETALLE</h5></th> -->
                                          </tr>
                                       </thead>
                                       <tbody>
@@ -556,10 +543,7 @@ $id_usuario = session('id_usuario');
                                            <td class="col-xs-1 identificacion">9</td>
                                            <td class="col-xs-3 fecha">11 AGO 2018</td>
                                            <td class="col-xs-3 movimiento">EGRESO</td>
-                                           <td class="col-xs-4 detalle" style="resize:vertical;"> dsfs<div class="">
-
-                                           </div> </td>
-                                           <!-- <td class="col-xl-6 detalleNota">Acá tiene que ir algún detalle que se le puso a la nota con movimiento o sin movimiento.</td> -->
+                                           <td class="col-xs-4 detalle" style="resize:vertical;"> dsfs<div class=""></div> </td>
                                          </tr>
                                       </tbody>
                                   </table>
@@ -605,7 +589,6 @@ $id_usuario = session('id_usuario');
                                      <input class="form-control fecha_notaNueva" type="hidden" id="" value=""/>
                                   </div>
 
-                                  <!-- <input class="form-control" type="text" name="" value=""> -->
                                 </div>
                                 <div class="col-md-3">
                                   <h5>IDENTIFICACIÓN</h5>
@@ -655,7 +638,6 @@ $id_usuario = session('id_usuario');
                             <div class="row" style="padding:10px 0px 20px 0px;">
                               <div class="col-md-12">
                                 <h6 style="display:inline">Notas con movimientos existentes</h6>
-                                <!-- <span id="cantidadMovimientos" class="badge" style="position:relative;top:-2px;display:inline;margin-left:15px;font-size:16px;">0 Movimientos disponibles</span> -->
                               </div>
                             </div>
 
@@ -690,13 +672,6 @@ $id_usuario = session('id_usuario');
                                       <h5>DETALLE</h5>
                                       <textarea class="form-control detalleNota" name="name" style="resize:none; height:80px;"></textarea>
                                 </div>
-
-                              <!-- <div class="col-md-1">
-                                <button class="btn btn-danger borrarFila borrarNotaMov" type="button" style="position:relative;top:35px;">
-                                  <i class="fa fa-fw fa-trash"></i>
-                                </button>
-                              </div> -->
-
                             </div> <!-- molde -->
 
                             <!-- btn agregar nota -->
