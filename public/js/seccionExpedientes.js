@@ -52,7 +52,7 @@ function obtenerCasinosSeleccionados(){
 
 //Detectar casino de/seleccionado.
 $(document).on('change','.casinosExp', function() {
-    $('.notaMov').not('#moldeNotaMov').remove();  //Eliminar todas las notas de fila (menos el molde)
+    $('#notasMov').empty();  //Eliminar todas las notas de fila (menos el molde)
     $('#cantidad_movimientos').val(0);            //Resetear la cantidad de movimientos disponibles
     $('#btn-notaMov').parent().show();           //Mostrar el botón de agregar notas
     const casinos_seleccionados = obtenerCasinosSeleccionados();
@@ -60,7 +60,7 @@ $(document).on('change','.casinosExp', function() {
       //limpiarSeccionNotas
       lista_tipos_movimientos= [];
       $('#moldeNotaNueva .tiposMovimientos option').remove(); //Eliminar los tipos de movimientos
-      $('.notaNueva').not('#moldeNotaNueva').remove(); //Eliminar las filas de notas
+      $('#notas').empty(); //Eliminar las filas de notas
       $('.mensajeNotas').show();
       $('.formularioNotas').hide();
     } else if (casinos_seleccionados.length == 1) {//Si hay un SOLO UN CASINO seleccionado: habilitar las dos pestañas
@@ -193,23 +193,22 @@ $('#btn-agregarResolucion').on("click",function(e){
   if(nro_res == "" || anio_res == "") return;
   $('#nro_resolucion').val("");
   $('#nro_resolucion_anio').val("");
-  const fila = $('<tr>').attr("id-resolucion",-1);
-  fila.append($('<td>').text(nro_res));
-  fila.append($('<td>').text(anio_res));
-  fila.append($('<td>').append(
-    $('<button>').addClass('btn btn-danger borrarFila')
-    .css('margin-left','10px')
-    .append($('<i>').addClass('fa fa-fw fa-trash'))
-  ));
+  const fila = $('#moldeResolucion').clone().removeAttr('id');
+  fila.find('.nro_res').text(nro_res);
+  fila.find('.anio_res').text(anio_res);
   $('#tablaResolucion').append(fila);
 });
 
-$(document).on('click','.borrarFila,.borrarNota,.borrarNotaCargada',function(){
+$(document).on('click','.borrarFila',function(){
   $(this).parent().parent().remove();
 });
 
-$(document).on('click','.borrarNotaMov', function(){
-  $(this).parent().parent().remove();
+$(document).on('click','.borrarNota', function(){
+  $(this).closest('.nota').remove();
+});
+
+$(document).on('click','.borrarNotaMov',function(){
+  $(this).closest('.notaMov').remove();
   $('#cantidad_movimientos').val(parseInt($('#cantidad_movimientos').val()) + 1);
   $('#secMov .agregarNota').show(); //Mostrar el botón para agregar notas
   $(`#movimientosDisponibles option[value="${$(this).attr('id')}"]`).show();//Mostrar el movimiento borrado nuevamente en el selector
@@ -235,9 +234,7 @@ $('#btn-notaNueva').click(function(e){
     nro_nota = nro_nota + 1;                                                    //Se incrementa en 1, para que cada DTP tenga un ID diferente
 
     e.preventDefault();
-    var clonNota = $('#moldeNotaNueva').clone();
-    clonNota.removeAttr('id');
-    clonNota.show();
+    const clonNota = $('#moldeNotaNueva').clone().removeAttr('id');
 
     clonNota.find('.dtpFechaNota').attr('data-link-field', nro_nota + '_fecha');
     clonNota.find('.fecha_notaNueva').attr('id', nro_nota + '_fecha');
@@ -254,11 +251,11 @@ $('#btn-notaNueva').click(function(e){
     });
 
     for (var i = 0; i < lista_tipos_movimientos.length; i++) {
-      var option = $('<option>').val(lista_tipos_movimientos[i][0]).text(lista_tipos_movimientos[i][1]);
+      const option = $('<option>').val(lista_tipos_movimientos[i][0]).text(lista_tipos_movimientos[i][1]);
       clonNota.find('.tiposMovimientos').append(option);
     }
 
-    $('#moldeNotaNueva').before(clonNota);
+    $('#notas').append(clonNota);
 });
 
 $('#btn-notaMov').click(function(e){
@@ -272,13 +269,9 @@ $('#btn-notaMov').click(function(e){
     $('#movimientosDisponibles option[value="' + id_movimiento + '"]').hide();  //Ocultar la opción del movimiento que se va a agregar
     $('#movimientosDisponibles').val(0);                                        //Cambiar el selector a la opción por defecto
 
-    var clonNota = $('#moldeNotaMov').clone();
+    var clonNota = $('#moldeNotaMov').clone().removeAttr('id');
 
     $.get('expedientes/obtenerMovimiento/' + id_movimiento, function(data) {    //Se trae toda la información del movimiento seleccionado
-
-        clonNota.removeAttr('id');
-        clonNota.show();
-
         //Generar un ID (id_movimiento_fecha) para linkear el DTP con el input oculto que guarda el 'date' elegido
         clonNota.find('.dtpFechaMov').attr('data-link-field', id_movimiento + '_fecha');
         clonNota.find('.fecha_notaMov').attr('id',id_movimiento + '_fecha');
@@ -298,7 +291,7 @@ $('#btn-notaMov').click(function(e){
         var descripcion = fecha + " - " + data.tipo + " - " + data.casino.nombre;
         clonNota.find('.descripcionTipoMovimiento').val(descripcion).attr('id', id_movimiento);
         clonNota.find('.borrarNotaMov').attr('id', id_movimiento);
-        $('#moldeNotaMov').before(clonNota);                                    //Agregar la nota con el movimiento existente para editarla
+        $('#notasMov').append(clonNota);                                    //Agregar la nota con el movimiento existente para editarla
 
         cantidadMovimientos = cantidadMovimientos - 1;
         $('#cantidad_movimientos').val(cantidadMovimientos);                    //Disminuir en 1 el contador de cantidad de movimientos
@@ -307,16 +300,7 @@ $('#btn-notaMov').click(function(e){
           $('#btn-notaMov').parent().hide();
         }
     });
-
   }
-
-});
-
-$('#btn-ayuda').click(function(e){
-  e.preventDefault();
-  $('.modal-title').text('| GESTIONAR EXPEDIENTES');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
-	$('#modalAyuda').modal('show');
 });
 
 //Mostrar modal para agregar nuevo Expediente
@@ -339,7 +323,7 @@ $('#btn-nuevo').click(function(e){
     $('#navMov').parent().show();
     $('#navConfig').click(); //Empezar por la sección de configuración
     $('.formularioNotas').hide(); //Ocultar los formularios de notas
-    $('.notasCreadas').hide(); //Ocultar las notas creadas (es del modal modificar expediente)
+    $('#notasCreadas').hide(); //Ocultar las notas creadas (es del modal modificar expediente)
     $('.casinosExp').prop('checked',false); //Deseleccionar todos los casinos
     $('.mensajeExito').show();
     $('.mensajeNotas').show();
@@ -350,8 +334,8 @@ $('#btn-nuevo').click(function(e){
     $('#tema').val(' ');
 
     habilitarControles(true);
-    $('.modal-title').text('NUEVO EXPEDIENTE');
-    $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
+    $('#modalExpediente .modal-title').text('NUEVO EXPEDIENTE');
+    $('#modalExpediente .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
     $('#btn-guardar').removeClass();
     $('#btn-guardar').addClass('btn btn-successAceptar');
     $('#btn-guardar').val("nuevo");
@@ -377,13 +361,13 @@ $(document).on('click','.detalle',function(){
   $('#error_nav_notas').hide();
   $('#error_nav_mov').hide();
 
-  $('.modal-title').text('| VER EXPEDIENTE');
-  $('.modal-header').attr('style','background: #4FC3F7');
+  $('#modalExpediente .modal-title').text('| VER EXPEDIENTE');
+  $('#modalExpediente .modal-header').attr('style','background: #4FC3F7');
   $('#btn-cancelar').text('SALIR');
 
   $('#navConfig').click(); //Empezar por la sección de configuración
 
-  var id_expediente = $(this).val();
+  const id_expediente = $(this).val();
 
   obtenerTiposMovimientos();
 
@@ -394,14 +378,14 @@ $(document).on('click','.detalle',function(){
 
     //Deshabilitar sección de 'notas & movimientos'
     $('#navMov').parent().hide();
-    $('.notasNuevas').hide();
+    $('#notasNuevas').hide();
 
     $('#modalExpediente').modal('show');
   });
 });
 
 //Mostrar modal con los datos del Casino cargados
-$(document).on('click','.modificar',function(){
+$(document).on('click','.modificarExp',function(){//"modificarExp" en vez de "modificar" porque al mensaje de exito se le agrega .modificar para ponerlo amarillo... y tira errores
     $('#mensajeExito').hide();
     $('#tablaDispoCreadas tbody tr').not('#moldeDispoCargada').remove();
     $('#modalExpediente').find('.modal-footer').children().show();
@@ -412,8 +396,8 @@ $(document).on('click','.modificar',function(){
     limpiarModal();
     habilitarDTP();
     habilitarControles(true);
-    $('.modal-title').text('| MODIFICAR EXPEDIENTE');
-    $('.modal-header').attr('style','background: #FFB74D');
+    $('#modalExpediente .modal-title').text('| MODIFICAR EXPEDIENTE');
+    $('#modalExpediente .modal-header').attr('style','background: #FFB74D');
     $('#btn-guardar').removeClass();
     $('#btn-guardar').addClass('btn btn-warningModificar');
     $('#btn-cancelar').text('CANCELAR');
@@ -427,7 +411,7 @@ $(document).on('click','.modificar',function(){
     $('#error_nav_notas').hide();
     $('#error_nav_mov').hide();
 
-    var id_expediente = $(this).val();
+    const id_expediente = $(this).val();
     $('#modalExpediente #id_expediente').val(id_expediente);
 
     obtenerTiposMovimientos();
@@ -438,50 +422,34 @@ $(document).on('click','.modificar',function(){
       habilitarControles(true);
       $('#btn-guardar').val("modificar");
       $('#modalExpediente').modal('show');
-      $('[rel=tooltip]').tooltip('disable');
     });
 });
 
 
 //Borrar Casino y remover de la tabla
 $(document).on('click','.eliminar',function(){
-    //Cambiar colores modal
-    $('.modal-title').text('ADVERTENCIA');
-    $('.modal-header').removeAttr('style');
-    $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
-
-    var id_expediente = $(this).val();
-    $('#btn-eliminarModal').val(id_expediente);
-    $('#modalEliminar').modal('show');
+  $('#btn-eliminarModal').val($(this).val());
+  $('#modalEliminar').modal('show');
 });
 
 $('#btn-eliminarModal').click(function (e) {
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    })
-    var id_expediente = $(this).val();
-
-    $.ajax({
-        type: "DELETE",
-        url: "expedientes/eliminarExpediente/" + id_expediente,
-        success: function (data) {
-          //Remueve de la tabla
-          $('#expediente' + id_expediente).remove();
-          $("#tablaExpedientes").trigger("update");
-          $('#modalEliminar').modal('hide');
-        },
-        error: function (data) {
-          console.log('Error: ', data);
-        }
-    });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } })
+  $.ajax({
+    type: "DELETE",
+    url: "expedientes/eliminarExpediente/" + $(this).val(),
+    success: function (data) {
+      $('#btn-buscar').click();
+    },
+    error: function (data) {
+      console.log('Error: ', data);
+    }
+  });
 });
 
 function obtenerNotasNuevas() {
   var notas_nuevas = [];
   var mov = null;
-  $.each($('.notaNueva').not('#moldeNotaNueva'), function (index, value) {
+  $.each($('#notas .nota'), function (index, value) {
     if($(this).find('.tiposMovimientos').val() != 0){
       mov = $(this).find('.tiposMovimientos').val();
     }else{
@@ -503,7 +471,7 @@ function obtenerNotasNuevas() {
 function obtenerNotasMov() {
   var notas_mov = [];
 
-  $.each($('.notaMov').not('#moldeNotaMov'), function (index, value) {
+  $.each($('#notasMov .notaMov'), function (index, value) {
       var nota = {
         fecha: $(this).find('.fecha_notaMov').val(),
         identificacion: $(this).find('.identificacion').val(),
@@ -528,7 +496,13 @@ $('#btn-guardar').click(function (e) {
     var fecha_pase = $('#fecha_pase').val();
     var fecha_iniciacion = $('#fecha_inicio').val();
 
-    var resolucion = obtenerResoluciones();
+    var resolucion = $('#tablaResolucion tbody tr').map(function(){
+      return {
+        id_resolucion:$(this).attr("id-resolucion"),
+        nro_resolucion:$(this).find('td:eq(0)').text(),
+        nro_resolucion_anio: $(this).find('td:eq(1)').text(),
+      }
+    }).toArray();
 
 
     var disposiciones = [];
@@ -738,7 +712,7 @@ $('#btn-guardar').click(function (e) {
             //////////////////////////  ALERTAS DE NOTAS /////////////////////////
             var i = 0;
 
-            $('.notaNueva').not('#moldeNotaNueva').each(function(){
+            $('#notas .nota').each(function(){
                 if(typeof response['notas.'+ i +'.fecha'] !== 'undefined'){
                   mostrarErrorValidacion($(this).find('.dtpFechaNota input'),response['notas.'+ i +'.fecha'][0],false);
                   $('#error_nav_notas').show();
@@ -761,7 +735,7 @@ $('#btn-guardar').click(function (e) {
 
             var j = 0;
 
-            $('.notaMov').not('#moldeNotaMov').each(function(){
+            $('#notasMov .notaMov').each(function(){
                 if(typeof response['notas_asociadas.'+ j +'.fecha'] !== 'undefined'){
                   mostrarErrorValidacion($(this).find('.dtpFechaMov input'),response['notas_asociadas.'+ j +'.fecha'][0],false);
                   $('#error_nav_mov').show();
@@ -824,15 +798,12 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
       data: formData,
       dataType: 'json',
       success: function (data) {
-        console.log(page_number,page_size,data.total);
         $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.expedientes.total,clickIndice);
-        $('#cuerpoTabla tr').remove();
+        $('#cuerpoTabla').empty();
 
-        for(var i = 0; i < data.expedientes.data.length; i++) {
+        for(let i = 0; i < data.expedientes.data.length; i++) {
           generarFilaTabla(data.expedientes.data[i]);
         }
-
-        $('[data-toggle="tooltip"]').tooltip();
 
         $('#herramientasPaginacion').generarIndices(page_number,page_size,data.expedientes.total,clickIndice);
       },
@@ -870,24 +841,10 @@ function clickIndice(e,pageNumber,tam){
 }
 
 function generarFilaTabla(expediente){
-  const fila = $('<tr>').attr('id','expediente' + expediente.id_expediente);
-  fila.append($('<td>').addClass('col-xs-3').text(`${expediente.nro_exp_org}-${expediente.nro_exp_interno}-${expediente.nro_exp_control}`))
-  .append($('<td>').addClass('col-xs-3').text(convertirDate(expediente.fecha_iniciacion) ?? '-'))
-  .append($('<td>').addClass('col-xs-3').text(expediente.nombre))
-  .append($('<td>').addClass('col-xs-3')
-    .append(
-      $('<button>').append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-search-plus'))
-      .addClass('btn').addClass('btn-info').addClass('detalle')
-    )
-    .append(
-      $('<button>').append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt'))
-      .addClass('btn').addClass('btn-warning').addClass('modificar')
-    )
-    .append(
-      $('<button>').append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-trash-alt'))
-      .addClass('btn').addClass('btn-danger').addClass('eliminar')
-    )
-  );
+  const fila = $('#moldeFilaTabla').clone().removeAttr('id');
+  fila.find('.expediente').text(`${expediente.nro_exp_org}-${expediente.nro_exp_interno}-${expediente.nro_exp_control}`);
+  fila.find('.fecha').text(convertirDate(expediente.fecha_iniciacion) ?? '-');
+  fila.find('.casino').text(expediente.nombre);
   fila.find('button').val(expediente.id_expediente);
   $('#cuerpoTabla').append(fila);
 }
@@ -946,8 +903,8 @@ function limpiarModal(){
 
   $('#moldeNotaNueva .tiposMovimientos option').remove(); //Eliminar los tipos de movimientos
   $('#moldeDisposicion #tiposMovimientosDisp option').remove(); //Eliminar los tipos de movimientos
-  $('.notaNueva').not('#moldeNotaNueva').remove(); //Eliminar las filas de notas nuevas
-  $('.notaMov').not('#moldeNotaMov').remove(); //Eliminar las filas de notas con movimientos existentes
+  $('#notas').empty(); //Eliminar las filas de notas nuevas
+  $('#notasMov').empty(); //Eliminar las filas de notas con movimientos existentes
   //limipar tabla de resoluciones
   $('#tablaResolucion tbody').empty();
 
@@ -992,7 +949,7 @@ function mostrarExpediente(expediente,casinos,resolucion,disposiciones,notas,not
     $('#'+ casinos[i].id_casino).prop('checked',true).prop('disabled',true);
   }
 
-  if (casinos.length > 0) $('.casinosExp').change();
+  $('.casinosExp').change();
 
   if(expediente.fecha_pase != null){
     $('#dtpFechaPase input').val(convertirDate(expediente.fecha_pase));
@@ -1012,48 +969,38 @@ function mostrarExpediente(expediente,casinos,resolucion,disposiciones,notas,not
   $('#nro_folios').val(expediente.nro_folios);
   $('#anexo').val(expediente.anexo);
 
-  if(resolucion != null){
-    $('#nro_resolucion').val(resolucion.nro_resolucion);
-    $('#nro_resolucion_anio').val(resolucion.nro_resolucion_anio);
-  }
   resolucion.forEach(res => {
-    var fila = $('<tr>').attr("id-resolucion",res.id_resolucion);
-    fila.append($('<td>').text(res.nro_resolucion));
-    fila.append($('<td>').text(res.nro_resolucion_anio));
-    var boton = $('<button>').addClass('btn btn-danger borrarResolucion')
-                           .css('margin-left','10px')
-                           .append($('<i>').addClass('fa fa-fw fa-trash'));
-    fila.append($('<td>').append(boton));
+    const fila = $('#moldeResolucionCargada').clone().removeAttr('id').attr("id-resolucion",res.id_resolucion);
+    fila.find('.nro_res').text(res.nro_resolucion);
+    fila.find('.anio_res').text(res.nro_resolucion_anio);
     $('#tablaResolucion').append(fila);
   });
 
-  for(let index=0; index<disposiciones.length; index++){
-    const d = disposiciones[index];
-    const fila = $('#moldeDispoCargada').clone().removeAttr('id').attr('id', d.id_disposicion);
+  disposiciones.forEach(d => {
+    const fila = $('#moldeDispoCargada').clone().attr('id', d.id_disposicion);
     fila.find('.nro_dCreada').text(d.nro_disposicion);
     fila.find('.anio_dCreada').text(d.nro_disposicion_anio);
     fila.find('.fecha_dCreada').text(d.fecha ?? " -- ")
     fila.find('.desc_dCreada').text(d.descripcion  ?? "Sin Descripción");
     fila.find('.mov_dCreada').text(d.descripcion_movimiento ?? " -- ");
     fila.find('button').val(d.id_disposicion);
-    fila.show();
     $('#tablaDispoCreadas tbody').append(fila);
-  }
+  });
+
   if(!editable){
-    $('.filaDispo').not('#moldeDiposCargada').find('button').remove();
+    $('#tablaDispoCreadas,#tablaResolucion').find('button').remove();
   }
 
-  let i = 0;
-  for (i; i < notas.length; i++) {
+  for (let i = 0; i < notas.length; i++) {
     agregarNota(notas[i],false);
   }
-  let j = 0;
-  for (j; j < notasConMovimientos.length; j++) {
+
+  for (let j = 0; j < notasConMovimientos.length; j++) {
     agregarNota(notasConMovimientos[j],true);
   }
 
   //Si hay notas mostrarlas
-  $('.notasCreadas').toggle(i || j);
+  $('#notasCreadas').toggle((notas.length > 0) || (notasConMovimientos.length > 0));
 }
 
 function agregarNota(nota,conMovimiento) {
@@ -1063,7 +1010,7 @@ function agregarNota(nota,conMovimiento) {
   fila.removeAttr('moldeFilaNota');
 
   fila.attr('id',nota.id_nota);
-  fila.find('.borrarNotaCargada').attr('id',nota.id_nota);
+  fila.find('.borrarNota').attr('id',nota.id_nota);
 
   fila.find('.identificacion').text(nota.identificacion);
   fila.find('.fecha').text(convertirDate(nota.fecha));
@@ -1072,20 +1019,3 @@ function agregarNota(nota,conMovimiento) {
 
   $('#tablaNotasCreadas tbody').append(fila);
 }
-
-$(document).on('click','.borrarDispoCargada', function(){
-  $(this).parent().parent().remove();
-})
-
-function obtenerResoluciones(){
-  var resoluciones=[];
-  $.each($('#tablaResolucion tbody tr') , function(indexMayor){
-    var res={
-      id_resolucion:$(this).attr("id-resolucion"),
-      nro_resolucion:$(this).find('td:eq(0)').text(),
-      nro_resolucion_anio: $(this).find('td:eq(1)').text(),
-    }
-    resoluciones.push(res);
-  });
-  return resoluciones;
-};

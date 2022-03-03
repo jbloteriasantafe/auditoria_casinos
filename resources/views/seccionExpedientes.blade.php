@@ -2,7 +2,49 @@
 @section('estilos')
   <link rel="stylesheet" href="/css/bootstrap-datetimepicker.css">
   <link rel="stylesheet" href="/css/paginacion.css">
+<style>
+  #modalExpediente h6 {
+      font-family: Roboto-Condensed;
+  }
 
+  .navModal > div {
+    display: inline-block;
+    margin: 0px 15px 0px 15px;
+  }
+  .navModal > div a{
+    outline: none;
+    text-decoration: none;
+    margin-bottom: 0px !important;
+  }
+  .navModal h4 {
+    font-family: Roboto-BoldCondensed;
+    padding-bottom: 20px;
+    margin-bottom: 0px !important;
+  }
+  .navModal a.navModalActivo h4 {
+    color: white;
+    font-size: 20px;
+    border-bottom: 5px solid #fff;
+  }
+
+  div#contenedorCasinos.alerta {
+      border:3px solid #EF5350; padding:5px; border-radius:4px;
+  }
+
+  #tablaNotasCreadas h5 {
+    padding-left: 0px;
+  }
+  #tablaNotasCreadas tr td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nota, .notaMov{
+    padding: 10px 0px 20px 0px;
+    border-top: 1px solid #ddd;
+  }
+</style>
 @endsection
 @section('headerLogo')
 <span class="etiquetaLogoExpedientes">@svg('expedientes','iconoExpedientes')</span>
@@ -197,13 +239,6 @@ $id_usuario = session('id_usuario');
     <!-- /#container-fluid -->
   <!-- </div> -->
   <!-- /#page-wrapper -->
-
-    <style media="screen">
-        #modalExpediente h6 {
-            font-family: Roboto-Condensed;
-        }
-    </style>
-
     <!-- Modal Expediente -->
     <div class="modal fade" id="modalExpediente" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog" style="width:94%;">
@@ -218,31 +253,6 @@ $id_usuario = session('id_usuario');
                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                   <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                   <h3 class="modal-title" style="margin-left:33px; color: #fff; text-align:center">NUEVO EXPEDIENTE</h3>
-
-                  <style media="screen">
-                      .navModal > div {
-                        display: inline-block;
-                        margin: 0px 15px 0px 15px;
-                      }
-
-                      .navModal > div a{
-                        outline: none;
-                        text-decoration: none;
-                        margin-bottom: 0px !important;
-                      }
-
-                      .navModal h4 {
-                        font-family: Roboto-BoldCondensed;
-                        padding-bottom: 20px;
-                        margin-bottom: 0px !important;
-                      }
-
-                      .navModal a.navModalActivo h4 {
-                          color: white;
-                          font-size: 20px;
-                          border-bottom: 5px solid #fff;
-                      }
-                  </style>
 
                   <div class="navModal" style="position:relative; bottom:-15px; text-align:center; font-family: Roboto-Regular; font-size: 20px; color: #999;">
                     <div style="width:25%;">
@@ -280,12 +290,6 @@ $id_usuario = session('id_usuario');
                                   <br>
                                   <span id="alerta-nroExpediente" class="alertaSpan"></span>
                                 </div>
-
-                                <style media="screen">
-                                    div#contenedorCasinos.alerta {
-                                        border:3px solid #EF5350; padding:5px; border-radius:4px;
-                                    }
-                                </style>
 
                                 <div class="col-md-8 col-lg-8" style="text-align:center;">
                                   <h5 style="padding-left:0px;">Casinos</h5>
@@ -444,16 +448,6 @@ $id_usuario = session('id_usuario');
                                          </tr>
                                       </thead>
                                       <tbody>
-                                         <tr id="moldeDispoCargada" class="filaDispo" style="display:none;">
-                                           <td class="col-xs-2 nro_dCreada">9</td>
-                                           <td class="col-xs-2 anio_dCreada">99</td>
-                                           <td class="col-xs-2 fecha_dCreada">99 DIC 9999</td>
-                                           <td class="col-xs-4 desc_dCreada">EGRESO</td>
-                                           <td class="col-xs-3 mov_dCreada" style="resize:vertical;"> dsfs </td>
-                                            <td class="col-xs-1"><button class="btn btn-danger borrarDispoCargada" type="button">
-                                               <i class="fas fa-fw fa-trash-alt"></i>
-                                            </td>
-                                         </tr>
                                       </tbody>
                                   </table>
 
@@ -467,34 +461,6 @@ $id_usuario = session('id_usuario');
                                   </button>
 
                                   <div id="columnaDisposicion" style="padding-top:10px;">
-                                      <div id="moldeDisposicion" class="row disposicion" style="padding-bottom:15px;" hidden>
-                                          <div class="col-md-3">
-                                            <div class="input-group triple-input">
-                                              <input class="form-control nro_disposicion" style="width:60%;" type="text" placeholder="---" maxlength="3"  />
-                                              <input class="form-control nro_disposicion_anio" style="width:40%; border-left:none;" type="text" placeholder="--" maxlength="2"  />
-                                            </div>
-                                          </div>
-                                          <div class="col-lg-2">
-                                            <div class="form-group">
-                                              <div class='input-group date dtpFechaDisposicion'>
-                                                <input type='text' class="form-control" placeholder="Fecha de la disposición"/>
-                                                <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                                <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
-                                              </div>
-                                            </div>
-                                          </div>
-                                          <div class="col-md-3">
-                                            <textarea class="form-control" id="descripcion_disposicion" type="text" name="" value="" placeholder="Descripción" style="resize: vertical;"></textarea>
-                                          </div>
-                                          <div class="col-md-2">
-                                            <select class="form-control" id="tiposMovimientosDisp" disabled></select>
-                                          </div>
-                                          <div class="col-md-2">
-                                            <button class="btn btn-link borrarFila" type="button" name="button">
-                                              <i class="fa fa-fw fa-trash-alt"></i>
-                                            </button>
-                                          </div>
-                                      </div> <!-- disposicion -->
                                   </div> <!-- columnaDisposicion -->
 
                                 </div>
@@ -507,20 +473,9 @@ $id_usuario = session('id_usuario');
                       <div class="seccion" id="secNotas">
 
                           <!-- notas creadas -->
-                          <div class="row notasCreadas" style="border-bottom:1px solid #ddd; padding-bottom:20px; margin-bottom:20px !important;">
+                          <div id="notasCreadas" class="row" style="border-bottom:1px solid #ddd; padding-bottom:20px; margin-bottom:20px !important;">
                               <div class="col-md-12">
                                   <h6>Notas creadas</h6>
-
-                                  <style media="screen">
-                                      #tablaNotasCreadas h5 {
-                                        padding-left: 0px;
-                                      }
-                                      #tablaNotasCreadas tr td {
-                                        white-space: nowrap;
-                                        overflow: hidden;
-                                        text-overflow: ellipsis;
-                                      }
-                                  </style>
                                   <table id="tablaNotasCreadas" class="table">
                                       <thead>
                                          <tr>
@@ -532,20 +487,10 @@ $id_usuario = session('id_usuario');
                                          </tr>
                                       </thead>
                                       <tbody>
-                                         <tr id="moldeFilaNota" class="filaNota" style="display:none;">
-                                           <td class="col-xs-1"><button class="btn btn-link borrarNotaCargada" type="button">
-                                             <i class="fas fa-fw fa-trash-alt"></i> </td>
-                                           <td class="col-xs-1 identificacion">9</td>
-                                           <td class="col-xs-3 fecha">11 AGO 2018</td>
-                                           <td class="col-xs-3 movimiento">EGRESO</td>
-                                           <td class="col-xs-4 detalle" style="resize:vertical;"> dsfs<div class=""></div> </td>
-                                         </tr>
                                       </tbody>
                                   </table>
                               </div>
                           </div>
-
-
 
                           <!-- mensaje -->
                           <div class="row mensajeNotas" style="padding-top:20px;">
@@ -555,56 +500,15 @@ $id_usuario = session('id_usuario');
                                 </div>
                           </div>
 
-                          <style media="screen">
-                             .notaNueva, .notaMov{
-                               padding: 10px 0px 20px 0px;
-                               border-top: 1px solid #ddd;
-                             }
-                          </style>
-
                           <!-- formulario NOTAS Y MOVIMIENTOS NUEVOS -->
-                          <div class="notasNuevas formularioNotas">
+                          <div id="notasNuevas" class="formularioNotas">
                               <div class="row" style="padding-top:0px; padding-bottom:10px;">
                                 <div class="col-md-12">
                                   <h6>Notas y movimientos nuevos</h6>
                                 </div>
                               </div>
-
-                              <div id="moldeNotaNueva" class="row notaNueva" hidden>
-                                <form id="frmNotas" name="frmNotas" class="form-horizontal">
-                                <div class="col-md-4">
-                                  <h5>FECHA</h5>
-                                  <!-- FORM GROUP -->
-                                  <div class="form-group" style="padding-left:20px;">
-                                     <div class='input-group date dtpFechaNota' data-link-field="" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
-                                         <input id="" type='text' class="form-control" placeholder="Fecha de la NOTA"/>
-                                         <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                         <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
-                                     </div>
-                                     <input class="form-control fecha_notaNueva" type="hidden" id="" value=""/>
-                                  </div>
-
-                                </div>
-                                <div class="col-md-3">
-                                  <h5>IDENTIFICACIÓN</h5>
-                                  <input class="form-control identificacion" type="text" name="" value="">
-                                </div>
-                                <div class="col-md-4">
-                                  <h5>TIPO MOVIMIENTO</h5>
-                                  <select class="form-control tiposMovimientos" name="">
-                                  </select>
-                                </div>
-                                <div class="col-md-1">
-                                  <button class="btn btn-link borrarNotaMov" type="button" style="position:relative;top:35px;">
-                                    <i class="fa fa-fw fa-trash-alt"></i>
-                                  </button>
-                                </div>
-                                <div class="col-md-12">
-                                  <h5>DETALLE</h5>
-                                  <textarea class="form-control detalleNota" name="name" style="resize:vertical; height:36px;min-height:35px;"></textarea>
-                                </div>
+                              <div id="notas">
                               </div>
-                            </form>
                               <!-- btn agregar nota -->
                               <div class="row agregarNota" style="text-align:center;height:40px;border-top:1px solid #ddd;">
                                   <a id="btn-notaNueva" href="#">
@@ -615,7 +519,6 @@ $id_usuario = session('id_usuario');
                                   </a>
                               </div>
                           </div>
-
                       </div>
 
 
@@ -635,40 +538,8 @@ $id_usuario = session('id_usuario');
                                 <h6 style="display:inline">Notas con movimientos existentes</h6>
                               </div>
                             </div>
-
-                            <div id="moldeNotaMov" class="row notaMov" hidden>
-
-                                <div class="col-md-8 col-md-offset-2">
-                                  <h5>TIPO MOVIMIENTO</h5>
-                                  <input class="form-control descripcionTipoMovimiento" type="text" value="" readonly="true">
-                                </div>
-                                <div class="col-md-2">
-                                    <button class="btn btn-link borrarNotaCargada" type="button" style="float:right; position:relative; top:32px; right:20px;">
-                                        <i class="fa fa-fw fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                                <div class="col-md-4 col-md-offset-2">
-                                  <h5>FECHA</h5>
-                                  <!-- FORM GROUP -->
-                                  <div class="form-group" style="padding-left:20px;">
-                                     <div class='input-group date dtpFechaMov' data-link-field="" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
-                                         <input id="" type='text' class="form-control" placeholder="Fecha de la NOTA"/>
-                                         <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                         <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
-                                     </div>
-                                     <input class="form-control fecha_notaMov" type="hidden" id="" value=""/>
-                                  </div>
-                                </div>
-                                <div class="col-md-4">
-                                  <h5>IDENTIFICACIÓN</h5>
-                                  <input class="form-control identificacion" type="text" name="" value="">
-                                </div>
-                                <div class="col-md-12">
-                                      <h5>DETALLE</h5>
-                                      <textarea class="form-control detalleNota" name="name" style="resize:none; height:80px;"></textarea>
-                                </div>
-                            </div> <!-- molde -->
-
+                            <div id="notasMov">
+                            </div>
                             <!-- btn agregar nota -->
                             <div class="row agregarNota" style="text-align:center;height:100px;border-top:1px solid #ddd;">
                                 <br>
@@ -688,9 +559,6 @@ $id_usuario = session('id_usuario');
                                 </a>
                             </div>
                         </div>
-
-
-
                       </div>
                   </div> <!-- /Fin panel minimizable -->
                   <br>
@@ -713,17 +581,166 @@ $id_usuario = session('id_usuario');
           </div>
     </div>
   </div>
+  
+  <!-- moldes -->
+  <div hidden>
+    <table>
+      <tr id="moldeFilaTabla">
+        <td class="col-xs-3 expediente">99999-9999999-9</td>
+        <td class="col-xs-3 fecha">99 DIC 9999</td>
+        <td class="col-xs-3 casino">CASINO</td>
+        <td class="col-xs-3">
+          <button class="btn detalle" type="button" title="VER">
+            <i class="fa fa-fw fa-search-plus"></i>
+          </button>
+          <button class="btn modificarExp" type="button" title="MODIFICAR">
+            <i class="fa fa-fw fa-pencil-alt"></i>
+          </button>
+          <button class="btn eliminar" type="button" title="ELIMINAR">
+            <i class="fa fa-fw fa-trash-alt"></i>
+          </button>
+        </td>
+      </tr>
+      <tr id="moldeResolucionCargada" id-resolucion="-1">
+        <td class="nro_res">999</td>
+        <td class="anio_res">99</td>
+        <td>
+          <button class="btn btn-link borrarFila" type="button" style="margin-left: 10px;"><i class="fas fa-fw fa-trash"></i>
+        </td>
+      </tr>
+      <tr id="moldeResolucion" id-resolucion="-1">
+        <td class="nro_res">999</td>
+        <td class="anio_res">99</td>
+        <td>
+          <button class="btn btn-link borrarFila" type="button" style="margin-left: 10px;"><i class="fas fa-fw fa-trash"></i>
+        </td>
+      </tr>
+      <tr id="moldeDispoCargada" class="filaDispo">
+        <td class="col-xs-2 nro_dCreada">9</td>
+        <td class="col-xs-2 anio_dCreada">99</td>
+        <td class="col-xs-2 fecha_dCreada">99 DIC 9999</td>
+        <td class="col-xs-4 desc_dCreada">EGRESO</td>
+        <td class="col-xs-3 mov_dCreada" style="resize:vertical;"> dsfs </td>
+        <td class="col-xs-1">
+          <button class="btn btn-link borrarFila" type="button">
+            <i class="fas fa-fw fa-trash-alt"></i>
+          </button>
+        </td>
+      </tr>
+      <tr id="moldeFilaNota" class="filaNota">
+        <td class="col-xs-1"><button class="btn btn-link borrarFila" type="button">
+          <i class="fas fa-fw fa-trash-alt"></i> </td>
+        <td class="col-xs-1 identificacion">9</td>
+        <td class="col-xs-3 fecha">11 AGO 2018</td>
+        <td class="col-xs-3 movimiento">EGRESO</td>
+        <td class="col-xs-4 detalle" style="resize:vertical;"> dsfs<div class=""></div> </td>
+      </tr>
+    </table>
 
+    <div id="moldeDisposicion" class="row disposicion" style="padding-bottom:15px;">
+      <div class="col-md-3">
+        <div class="input-group triple-input">
+          <input class="form-control nro_disposicion" style="width:60%;" type="text" placeholder="---" maxlength="3"  />
+          <input class="form-control nro_disposicion_anio" style="width:40%; border-left:none;" type="text" placeholder="--" maxlength="2"  />
+        </div>
+      </div>
+      <div class="col-lg-2">
+        <div class="form-group">
+          <div class='input-group date dtpFechaDisposicion'>
+            <input type='text' class="form-control" placeholder="Fecha de la disposición"/>
+            <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+            <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <textarea class="form-control" id="descripcion_disposicion" type="text" name="" value="" placeholder="Descripción" style="resize: vertical;"></textarea>
+      </div>
+      <div class="col-md-2">
+        <select class="form-control" id="tiposMovimientosDisp" disabled></select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-link borrarFila" type="button" name="button">
+          <i class="fa fa-fw fa-trash-alt"></i>
+        </button>
+      </div>
+    </div> 
+
+    <div id="moldeNotaMov" class="row notaMov">
+      <div class="col-md-8 col-md-offset-2">
+        <h5>TIPO MOVIMIENTO</h5>
+        <input class="form-control descripcionTipoMovimiento" type="text" value="" readonly="true">
+      </div>
+      <div class="col-md-2">
+          <button class="btn btn-link borrarNotaMov" type="button" style="float:right; position:relative; top:32px; right:20px;">
+              <i class="fa fa-fw fa-trash-alt"></i>
+          </button>
+      </div>
+      <div class="col-md-4 col-md-offset-2">
+        <h5>FECHA</h5>
+        <!-- FORM GROUP -->
+        <div class="form-group" style="padding-left:20px;">
+          <div class='input-group date dtpFechaMov' data-link-field="" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
+              <input id="" type='text' class="form-control" placeholder="Fecha de la NOTA"/>
+              <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+              <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
+          </div>
+          <input class="form-control fecha_notaMov" type="hidden" id="" value=""/>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <h5>IDENTIFICACIÓN</h5>
+        <input class="form-control identificacion" type="text" name="" value="">
+      </div>
+      <div class="col-md-12">
+        <h5>DETALLE</h5>
+        <textarea class="form-control detalleNota" name="name" style="resize:none; height:80px;"></textarea>
+      </div>
+    </div>
+
+    <div id="moldeNotaNueva" class="row nota">
+      <form id="frmNotas" name="frmNotas" class="form-horizontal">
+      <div class="col-md-4">
+        <h5>FECHA</h5>
+        <div class="form-group" style="padding-left:20px;">
+          <div class='input-group date dtpFechaNota' data-link-field="" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
+              <input id="" type='text' class="form-control" placeholder="Fecha de la NOTA"/>
+              <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+              <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
+          </div>
+          <input class="form-control fecha_notaNueva" type="hidden" id="" value=""/>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <h5>IDENTIFICACIÓN</h5>
+        <input class="form-control identificacion" type="text" name="" value="">
+      </div>
+      <div class="col-md-4">
+        <h5>TIPO MOVIMIENTO</h5>
+        <select class="form-control tiposMovimientos" name="">
+        </select>
+      </div>
+      <div class="col-md-1">
+        <button class="btn btn-link borrarNota" type="button" style="position:relative;top:35px;">
+          <i class="fa fa-fw fa-trash-alt"></i>
+        </button>
+      </div>
+      <div class="col-md-12">
+        <h5>DETALLE</h5>
+        <textarea class="form-control detalleNota" name="name" style="resize:vertical; height:36px;min-height:35px;"></textarea>
+      </div>
+    </div>
+  </div>
     <!-- Modal Eliminar -->
     <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header" style="font-family: Roboto-Black;color: #EF5350;">
                   <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
                   <h3 class="modal-titleEliminar" id="myModalLabel">ADVERTENCIA</h3>
                 </div>
 
-                <div class="modal-body" style="color:#fff; background-color:#EF5350;">
+                <div class="modal-body" style="background-color: #EF5350;color: white;">
                   <form id="frmEliminar" name="frmCasino" class="form-horizontal" novalidate="">
                       <div class="form-group error ">
                           <div class="col-xs-12">
@@ -748,11 +765,10 @@ $id_usuario = session('id_usuario');
 
     <!-- Comienza modal de ayuda -->
     @section('tituloDeAyuda')
-    <h3 class="modal-title" style="color: #fff;">| AYUDA EXPEDIENTES</h3>
+    <h3 class="modal-title" style="color: #fff;">GESTIONAR EXPEDIENTES</h3>
     @endsection
     @section('contenidoAyuda')
     <div class="col-md-12">
-      <h5>Tarjeta de Expedientes</h5>
       <p>
         Informe detallado que muestra las últimas tareas o acciones realizadas por los usuarios dentro del sistema.
         Estan clasificadas de acuerdo a la actividad, fecha y tabla en la que fue producida.
