@@ -100,7 +100,7 @@
                                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                        <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
                                    </div>
-                                   <input class="form-control" type="hidden" id="fecha_inicio1" value=""/>
+                                   <input class="form-control" type="hidden" id="fecha_inicio1" />
                                 </div>
                               </div>
                               <div class="col-lg-3">
@@ -238,7 +238,7 @@
     <div class="modal fade" id="modalExpediente" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog" style="width:94%;">
              <div class="modal-content">
-                <div class="modal-header modalNuevo">
+                <div class="modal-header modalNuevo" style="font-family: Roboto-Black;">
                   <a class="btn-ayuda" type="button" name="button" data-toggle="popover" title="Ayuda - NUEVO EXPEDIENTE" data-html="true"
                     data-content="@include('ayudas.modalExpedientes')"
                     data-placement="bottom">
@@ -290,7 +290,7 @@
                                   <h5 style="padding-left:0px;">Casinos</h5>
                                   <div id="contenedorCasinos">
                                       @foreach ($casinos as $casino)
-                                      <input type="checkbox" id="{{$casino->id_casino}}" value="" class="casinosExp" style="margin:3px">
+                                      <input type="checkbox" id="{{$casino->id_casino}}"  class="casinosExp" style="margin:3px">
                                       <span style="font-family:Roboto-Light; font-size:18px; margin-left:2px; margin-right:40px">{{$casino->nombre}}</span>
                                       @endforeach
                                   </div>
@@ -310,7 +310,7 @@
                                            <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                            <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
                                        </div>
-                                       <input class="form-control" type="hidden" id="fecha_inicio" value=""/>
+                                       <input class="form-control" type="hidden" id="fecha_inicio" />
                                     </div>
 
                                 </div>
@@ -323,7 +323,7 @@
                                          <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                          <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
                                      </div>
-                                     <input class="form-control" type="hidden" id="fecha_pase" value=""/>
+                                     <input class="form-control" type="hidden" id="fecha_pase" />
                                   </div>
 
                                 </div>
@@ -538,12 +538,12 @@
                             <!-- btn agregar nota -->
                             <div class="row agregarNota" style="text-align:center;height:100px;border-top:1px solid #ddd;">
                                 <br>
-                                <input id="cantidad_movimientos" type="text" name="" value="0" hidden>
+                                <input id="cantidad_movimientos" type="text"  value="0" hidden>
                                 <div class="col-md-4 col-md-offset-4">
-                                    <select id="movimientosDisponibles" class="form-control" name="">
-                                        <option value="">INGRESO</option>
-                                        <option value="">BLA BLA</option>
-                                        <option value="">EGRESO</option>
+                                    <select id="movimientosDisponibles" class="form-control" >
+                                        <option >INGRESO</option>
+                                        <option >BLA BLA</option>
+                                        <option >EGRESO</option>
                                     </select>
                                 </div>
                                 <a id="btn-notaMov" href="#">
@@ -646,13 +646,14 @@
             <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
             <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
           </div>
+          <input class="form-control fecha_disposicion" type="hidden"  />
         </div>
       </div>
       <div class="col-md-3">
-        <textarea class="form-control" id="descripcion_disposicion" type="text" name="" value="" placeholder="Descripción" style="resize: vertical;"></textarea>
+        <textarea class="form-control" id="descripcion_disposicion" type="text"   placeholder="Descripción" style="resize: vertical;"></textarea>
       </div>
       <div class="col-md-2">
-        <select class="form-control" id="tiposMovimientosDisp" disabled>
+        <select class="form-control" id="tiposMovimientosDisp">
           <option value="0">- Tipo de movimiento -</option>
           @foreach($tipos_movimientos as $t)
           <option value="{{$t->id_tipo_movimiento}}">{{$t->descripcion}}</option>
@@ -669,7 +670,7 @@
     <div id="moldeNotaMov" class="row notaMov">
       <div class="col-md-8 col-md-offset-2">
         <h5>TIPO MOVIMIENTO</h5>
-        <input class="form-control descripcionTipoMovimiento" type="text" value="" readonly="true">
+        <input class="form-control descripcionTipoMovimiento" type="text"  readonly="true">
       </div>
       <div class="col-md-2">
           <button class="btn btn-link borrarNotaMov" type="button" style="float:right; position:relative; top:32px; right:20px;">
@@ -681,16 +682,16 @@
         <!-- FORM GROUP -->
         <div class="form-group" style="padding-left:20px;">
           <div class='input-group date dtpFechaMov' data-link-field="" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
-              <input id="" type='text' class="form-control" placeholder="Fecha de la NOTA"/>
+              <input  type='text' class="form-control" placeholder="Fecha de la NOTA"/>
               <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
               <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
           </div>
-          <input class="form-control fecha_notaMov" type="hidden" id="" value=""/>
+          <input class="form-control fecha_notaMov" type="hidden"  />
         </div>
       </div>
       <div class="col-md-4">
         <h5>IDENTIFICACIÓN</h5>
-        <input class="form-control identificacion" type="text" name="" value="">
+        <input class="form-control identificacion" type="text"  >
       </div>
       <div class="col-md-12">
         <h5>DETALLE</h5>
@@ -704,20 +705,20 @@
         <h5>FECHA</h5>
         <div class="form-group" style="padding-left:20px;">
           <div class='input-group date dtpFechaNota' data-link-field="" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
-              <input id="" type='text' class="form-control" placeholder="Fecha de la NOTA"/>
+              <input  type='text' class="form-control" placeholder="Fecha de la NOTA"/>
               <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
               <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
           </div>
-          <input class="form-control fecha_notaNueva" type="hidden" id="" value=""/>
+          <input class="form-control fecha_notaNueva" type="hidden"  />
         </div>
       </div>
       <div class="col-md-3">
         <h5>IDENTIFICACIÓN</h5>
-        <input class="form-control identificacion" type="text" name="" value="">
+        <input class="form-control identificacion" type="text"  >
       </div>
       <div class="col-md-4">
         <h5>TIPO MOVIMIENTO</h5>
-        <select class="form-control tiposMovimientos" name="">
+        <select class="form-control tiposMovimientos" >
         <option value="0">- Tipo de movimiento -</option>
           @foreach($tipos_movimientos as $t)
           <option value="{{$t->id_tipo_movimiento}}">{{$t->descripcion}}</option>
