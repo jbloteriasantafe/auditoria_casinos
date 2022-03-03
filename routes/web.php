@@ -123,7 +123,6 @@ Route::delete('expedientes/eliminarExpediente/{id}','ExpedienteController@elimin
 Route::post('expedientes/buscarExpedientes','ExpedienteController@buscarExpedientes');
 Route::get('expedientes/buscarExpedientePorNumero/{busqueda}','ExpedienteController@buscarExpedientePorNumero');
 Route::get('expedientes/buscarExpedientePorCasinoYNumero/{id_casino}/{busqueda}','ExpedienteController@buscarExpedientePorCasinoYNumero');
-Route::get('expedientes/tiposMovimientos/{id_expediente}','ExpedienteController@tiposMovimientos');
 Route::get( 'expedientes/obtenerMovimiento/{id}','LogMovimientoController@obtenerMovimiento');
 Route::get('expedientes/movimientosSinExpediente/{id_casino}','LogMovimientoController@movimientosSinExpediente');
 /***********

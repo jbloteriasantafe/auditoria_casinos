@@ -50,18 +50,10 @@ class ExpedienteController extends Controller
   }
 
   public function buscarTodo(){
-    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-    $expedientes = DB::table('expediente')
-                        ->select('expediente.*','casino.*')
-                        ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
-                        ->join('casino','expediente_tiene_casino.id_casino','=','casino.id_casino')
-                        ->join('usuario_tiene_casino','usuario_tiene_casino.id_casino','=','casino.id_casino')
-                        ->where('usuario_tiene_casino.id_usuario','=',session('id_usuario'))
-                        ->get();
-    $casinos = Casino::all();
-
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $tipos_movimientos = TipoMovimiento::whereIn('id_tipo_movimiento',[1,2,3,4,5,6,7])->get();
     UsuarioController::getInstancia()->agregarSeccionReciente('Expedientes' , 'expedientes');
-    return view('seccionExpedientes' , ['expedientes' => $expedientes , 'casinos' => $casinos]);
+    return view('seccionExpedientes' , ['casinos' => $usuario->casinos,'tipos_movimientos' => $tipos_movimientos]);
   }
 
   public function obtenerExpediente($id){
@@ -217,9 +209,7 @@ class ExpedienteController extends Controller
 
     return ['expediente' => $expediente , 'casinos' => $expediente->casinos];
   }
-  //table,column,except,idColumn
-  //expediente,nro_exp_interno,'.$request->id_expediente.',id_expediente'
-  // 'nro_exp_interno' => ['required','regex:/^\d\d\d\d\d\d\d$/','unique:expediente,nro_exp_interno,'.$request->id_expediente.',id_expediente'],
+
   public function modificarExpediente(Request $request){
     Validator::make($request->all(), [
         'id_expediente' => 'required|exists:expediente,id_expediente',
@@ -610,21 +600,5 @@ class ExpedienteController extends Controller
       $resultado[] = $auxiliar;
     }
     return ['resultados' => $resultado];
-  }
-
-  public function tiposMovimientos($id_expediente){
-    if($id_expediente==0){
-      return TipoMovimiento::whereIn('id_tipo_movimiento',[1,2,4,5,6,7])->get();
-    }else{
-      $logs = DB::table('log_movimiento')
-      ->join('logmov_tipomov','logmov_tipomov.id_log_movimiento','=','log_movimiento.id_log_movimiento')
-      ->where('logmov_tipomov.id_tipo_movimiento','=',2)->count(); //chequeo que exista un egreso
-
-      if($logs == 0){
-        return TipoMovimiento::whereIn('id_tipo_movimiento',[1,2,4,5,6,7])->get();
-      }else{
-        return TipoMovimiento::whereIn('id_tipo_movimiento',[1,2,3,4,5,6,7])->get();//agrega reingreso
-      }
-    }
   }
 }

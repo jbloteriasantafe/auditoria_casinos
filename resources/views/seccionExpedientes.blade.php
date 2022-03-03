@@ -51,11 +51,8 @@
 @endsection
 
 <?php
-use App\Http\Controllers\UsuarioController;
-use App\Http\Controllers\AuthenticationController;
-use Illuminate\Http\Request;
-
-$id_usuario = session('id_usuario');
+  use App\Http\Controllers\AuthenticationController;
+  $id_usuario = session('id_usuario');
 ?>
 
 @section('contenidoVista')
@@ -206,7 +203,6 @@ $id_usuario = session('id_usuario');
                </a>
               </div>
             @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_resoluciones'))
-
               <div class="col-xl-12 ">
                 <a href="resoluciones" style="text-decoration:none;">
                     <div class="tarjetaSeccionMenor" align="center">
@@ -218,7 +214,6 @@ $id_usuario = session('id_usuario');
               </div>
             @endif
             @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_disposiciones'))
-
               <div class="col-xl-12">
                 <a href="disposiciones" style="text-decoration:none;">
                     <div class="tarjetaSeccionMenor" align="center">
@@ -657,7 +652,12 @@ $id_usuario = session('id_usuario');
         <textarea class="form-control" id="descripcion_disposicion" type="text" name="" value="" placeholder="Descripción" style="resize: vertical;"></textarea>
       </div>
       <div class="col-md-2">
-        <select class="form-control" id="tiposMovimientosDisp" disabled></select>
+        <select class="form-control" id="tiposMovimientosDisp" disabled>
+          <option value="0">- Tipo de movimiento -</option>
+          @foreach($tipos_movimientos as $t)
+          <option value="{{$t->id_tipo_movimiento}}">{{$t->descripcion}}</option>
+          @endforeach
+        </select>
       </div>
       <div class="col-md-2">
         <button class="btn btn-link borrarFila" type="button" name="button">
@@ -718,6 +718,10 @@ $id_usuario = session('id_usuario');
       <div class="col-md-4">
         <h5>TIPO MOVIMIENTO</h5>
         <select class="form-control tiposMovimientos" name="">
+        <option value="0">- Tipo de movimiento -</option>
+          @foreach($tipos_movimientos as $t)
+          <option value="{{$t->id_tipo_movimiento}}">{{$t->descripcion}}</option>
+          @endforeach
         </select>
       </div>
       <div class="col-md-1">

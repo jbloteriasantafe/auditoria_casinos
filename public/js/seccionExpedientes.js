@@ -1,5 +1,3 @@
-var lista_tipos_movimientos = [];
-
 //Resaltar la sección en el menú del costado
 $(document).ready(function() {
   $('#barraExpedientes').attr('aria-expanded','true');
@@ -58,8 +56,6 @@ $(document).on('change','.casinosExp', function() {
     const casinos_seleccionados = obtenerCasinosSeleccionados();
     if (casinos_seleccionados.length == 0) {// Si hay 0 casinos seleccionados: limpiar las secciones de notas y mostrar mensajes.
       //limpiarSeccionNotas
-      lista_tipos_movimientos= [];
-      $('#moldeNotaNueva .tiposMovimientos option').remove(); //Eliminar los tipos de movimientos
       $('#notas').empty(); //Eliminar las filas de notas
       $('.mensajeNotas').show();
       $('.formularioNotas').hide();
@@ -97,20 +93,6 @@ function movimientosSinExpediente(id_casino) {
     error: function (data) {
       console.log('Error: ', data);
     }
-  });
-}
-
-function obtenerTiposMovimientos() {
-  $.get('expedientes/tiposMovimientos/' + $('#modalExpediente #id_expediente').val(), function(data) {
-    lista_tipos_movimientos = [[0,"- Tipo de movimiento -"]];
-    lista_tipos_movimientos.push(...data.map(function(m){
-      return [m.id_tipo_movimiento,m.descripcion]
-    }));
-    lista_tipos_movimientos.forEach(function(m){
-      const option = $('<option>').val(m[0]).text(m[1]);
-      $('#moldeNotaNueva .tiposMovimientos').append(option);
-      $('#moldeDisposicion #tiposMovimientosDisp').append(option);
-    });
   });
 }
 
@@ -214,18 +196,8 @@ $(document).on('click','.borrarNotaMov',function(){
   $(`#movimientosDisponibles option[value="${$(this).attr('id')}"]`).show();//Mostrar el movimiento borrado nuevamente en el selector
 });
 
-function generarListaMovimientos(id_expediente){
-  $.get("expedientes/tiposMovimientos/" + id_expediente, function(data){
-    selectMov.children().remove();
-    for(let i=0;i<data.length;i++){
-      selectMov.append($('<option>').val(data[i].id_tipo_movimiento).text(data[i].descripcion));
-    }
-  });
-}
-
 //variable global para selectMovimientos
 var asocMov = $('#columnaAsociar').append($('<div>'));
-var selectMov = $('<select>').addClass('form-control').attr('id','selectMovimientos');
 
 //Contador global que sirve para generar el id de cada DTP de notas nuevas
 var nro_nota = 0;
@@ -249,11 +221,6 @@ $('#btn-notaNueva').click(function(e){
       startView: 4,
       minView: 2,
     });
-
-    for (var i = 0; i < lista_tipos_movimientos.length; i++) {
-      const option = $('<option>').val(lista_tipos_movimientos[i][0]).text(lista_tipos_movimientos[i][1]);
-      clonNota.find('.tiposMovimientos').append(option);
-    }
 
     $('#notas').append(clonNota);
 });
@@ -341,10 +308,6 @@ $('#btn-nuevo').click(function(e){
     $('#btn-guardar').val("nuevo");
     $('#btn-cancelar').text('CANCELAR');
     $('#asociar').show();
-
-    $('#tiposMovimientosDisp option').remove();
-    obtenerTiposMovimientos();
-
     $('#modalExpediente').modal('show');
 });
 
@@ -369,10 +332,7 @@ $(document).on('click','.detalle',function(){
 
   const id_expediente = $(this).val();
 
-  obtenerTiposMovimientos();
-
   $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
-    generarListaMovimientos(id_expediente);
     mostrarExpediente(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,false);
     habilitarControles(false);
 
@@ -414,10 +374,7 @@ $(document).on('click','.modificarExp',function(){//"modificarExp" en vez de "mo
     const id_expediente = $(this).val();
     $('#modalExpediente #id_expediente').val(id_expediente);
 
-    obtenerTiposMovimientos();
-
     $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
-      generarListaMovimientos(id_expediente);
       mostrarExpediente(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,true);
       habilitarControles(true);
       $('#btn-guardar').val("modificar");
@@ -893,45 +850,19 @@ function habilitarControles(valor){
 }
 
 function limpiarModal(){
-  lista_tipos_movimientos= [];
   $('#frmExpediente').trigger('reset');
   $('#modalExpediente input').val('');
   $('#id_expediente').val(0);
 
   $('#columnaDisposicion .disposicion').not('#moldeDisposicion').remove();
   $('.filaNota').not('#moldeFilaNota').remove(); //Eliminar todas las notas creadas
-
-  $('#moldeNotaNueva .tiposMovimientos option').remove(); //Eliminar los tipos de movimientos
-  $('#moldeDisposicion #tiposMovimientosDisp option').remove(); //Eliminar los tipos de movimientos
   $('#notas').empty(); //Eliminar las filas de notas nuevas
   $('#notasMov').empty(); //Eliminar las filas de notas con movimientos existentes
   //limipar tabla de resoluciones
   $('#tablaResolucion tbody').empty();
 
-  limpiarAlertas();
-}
-
-function limpiarAlertas(){
-
-  ocultarErrorValidacion($('#nro_exp_org'));
-  ocultarErrorValidacion($('#nro_exp_interno'));
-  ocultarErrorValidacion($('#nro_exp_control'));
-
+  ocultarErrorValidacion($('#modalExpediente input,textarea,select,button'));
   ocultarErrorValidacion($('#contenedorCasinos'));
-
-  ocultarErrorValidacion($('#dtpFechaPase input'));
-  ocultarErrorValidacion($('#dtpFechaInicio input'));
-  ocultarErrorValidacion($('#destino'));
-  ocultarErrorValidacion($('#ubicacion'));
-  ocultarErrorValidacion($('#iniciador'));
-  ocultarErrorValidacion($('#remitente'));
-  ocultarErrorValidacion($('#concepto'));
-  ocultarErrorValidacion($('#tema'));
-  ocultarErrorValidacion($('#nro_cuerpos'));
-  ocultarErrorValidacion($('#nro_folios'));
-  ocultarErrorValidacion($('#anexo'));
-  ocultarErrorValidacion($('#nro_resolucion'));
-  ocultarErrorValidacion($('#nro_resolucion_anio'));
 
   $('#columna .Disposicion').each(function(){
     $(this).find('#nro_disposicion').removeClass('alerta');
