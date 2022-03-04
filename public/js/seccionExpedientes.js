@@ -210,42 +210,56 @@ $('#btn-notaMov').click(function(e){
   });
 });
 
-function modalExpediente(modo,id_expediente){
+function aux_modalExpediente(modo,data){
   limpiarModal();
   habilitarDTP();
   $('#navConfig').click(); //Empezar por la sección de configuración
+  if(data != null){
+    setearExpediente(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos);
+  }
+
+  const modificar_o_nuevo = modo == "modificar" || modo == "nuevo";
+  habilitarControles(modificar_o_nuevo);
+  $('#navMov').parent().toggle(modificar_o_nuevo);
+  $('#notasNuevas').toggle(modificar_o_nuevo);
+  $('.mensajeNotas').toggle(modificar_o_nuevo);
+  
+  const modificar_o_ver   = modo == "modificar" || modo == "ver";
+  $('#notasCreadas').toggle(modificar_o_ver);
+  $('.casinosExp').prop('disabled',modificar_o_ver);
+  
+  if(modificar_o_nuevo) $('.casinosExp').change();
+  $('#modalExpediente').modal('show');
+}
+
+function modalExpediente(modo,id_expediente){
   if(modo == "nuevo"){
     $('#modalExpediente .modal-title').text('NUEVO EXPEDIENTE');
     $('#modalExpediente .modal-header').css('background-color','#6dc7be');
     $('#btn-guardar').removeClass().addClass('btn btn-successAceptar').val("nuevo");
     $('#btn-cancelar').text('CANCELAR');
-    $('#navMov').parent().show();
-    habilitarControles(true);
-    $('.casinosExp').change();
-    return $('#modalExpediente').modal('show');
   }
   if(modo == "modificar"){
     $('#modalExpediente .modal-title').text('MODIFICAR EXPEDIENTE');
     $('#modalExpediente .modal-header').css('background-color','#FFB74D');
     $('#btn-guardar').removeClass().addClass('btn btn-warningModificar').val("modificar");
     $('#btn-cancelar').text('CANCELAR');
-    $('#navMov').parent().show();
   }
   else if(modo == "ver"){
     $('#modalExpediente .modal-title').text('VER EXPEDIENTE');
     $('#modalExpediente .modal-header').css('background-color','#4FC3F7');
     $('#btn-guardar').hide();
     $('#btn-cancelar').text('SALIR');
-    $('#navMov').parent().hide();//Deshabilitar sección de 'notas & movimientos'
   }
-  else return;
   $('#modalExpediente #id_expediente').val(id_expediente);
-  $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
-    setearExpediente(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos);
-    habilitarControles(modo == "modificar");
-    $('.casinosExp').change();
-    return $('#modalExpediente').modal('show');
-  });
+  if(modo == "nuevo"){
+    aux_modalExpediente(modo,null);
+  }
+  else{
+    $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
+      aux_modalExpediente(modo,data);
+    });
+  }
 }
 
 //Mostrar modal para agregar nuevo Expediente
