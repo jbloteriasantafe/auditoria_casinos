@@ -379,184 +379,78 @@ $('#btn-guardar').click(function (e) {
     };
     const state = $('#btn-guardar').val();
     $.ajax({
-        type: "POST",
-        url: 'expedientes/' + (state == "modificar"? 'modificarExpediente': 'guardarExpediente'),
-        data: formData,
-        dataType: 'json',
-        beforeSend: function(data){
-          console.log('Empezó');
-          $('#modalExpediente').find('.modal-footer').children().hide();
-          $('#modalExpediente').find('.modal-body').children().hide();
-          $('#modalExpediente').find('.modal-body').children('#iconoCarga').show();
-        },
-        success: function (data) {
-          $('#btn-buscar').trigger('click');
-          if (state == "nuevo"){ //Si está agregando agrega una fila con el nuevo expediente
-            $('#mensajeExito h3').text('Creación Exitosa');
-            $('#mensajeExito p').text('El expediente fue creado con éxito');
-            $('#mensajeExito .cabeceraMensaje').removeClass('modificar');
-          }else{ //Si está modificando reemplaza la fila con el expediente modificado
-            $('#mensajeExito h3').text('Modificación Exitosa');
-            $('#mensajeExito p').text('El expediente fue modificado con éxito');
-            $('#mensajeExito .cabeceraMensaje').addClass('modificar');
-          }
-          $('#modalExpediente').modal('hide');
-          $('#mensajeExito').show();
-        },
-        error: function (data) {
-            console.log('Error:', data);
-
-            $('#modalExpediente').find('.modal-footer').children().show();
-            $('#modalExpediente').find('.modal-body').children().show();
-            $('#modalExpediente').find('.modal-body').children('#iconoCarga').hide();
-
-            var response = JSON.parse(data.responseText);
-
-            //Si hay algun campo vacio en nro_exp
-            var nro_exp_org_vacio = typeof response.nro_exp_org != "undefined";
-            var nro_exp_interno_vacio = typeof response.nro_exp_interno != "undefined";
-            var nro_exp_control_vacio = typeof response.nro_exp_control != "undefined";
-
-            //Ocultar errores
-            $('#error_nav_config').hide();
-            $('#error_nav_notas').hide();
-            $('#error_nav_mov').hide();
-
-
-            //////////////////////////  ALERTAS DE CONFIGURACIÓN /////////////////////////
-
-            if(typeof response.casinos !== 'undefined'){
-              mostrarErrorValidacion($('#contenedorCasinos'),"Debe seleccionar al menos un casino",true);
-            }
-
-            if (nro_exp_org_vacio || nro_exp_interno_vacio || nro_exp_control_vacio) {
-                if(nro_exp_org_vacio) mostrarErrorValidacion($('#nro_exp_org'),response.nro_exp_org[0],false);
-                if(nro_exp_interno_vacio) mostrarErrorValidacion($('#nro_exp_interno'),response.nro_exp_interno[0],false);
-                if(nro_exp_control_vacio) mostrarErrorValidacion($('#nro_exp_control'),response.nro_exp_control[0],false);
-                $('#error_nav_config').show();
-            }
-
-            if (typeof response.nro_cuerpos != "undefined") {
-              mostrarErrorValidacion($('#nro_cuerpos'),response.nro_cuerpos[0],false);
-              $('#error_nav_config').show();
-            }
-
-            if (typeof response.fecha_iniciacion != "undefined") {
-              mostrarErrorValidacion($('#dtpFechaInicio input'),response.fecha_iniciacion[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.fecha_pase != "undefined") {
-              mostrarErrorValidacion($('#dtpFechaPase input'),response.fecha_pase[0],false);
-              $('#error_nav_config').show();
-            }
-
-            if (typeof response.destino != "undefined") {
-              mostrarErrorValidacion($('#destino'),response.destino[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.ubicacion_fisica != "undefined") {
-              mostrarErrorValidacion($('#ubicacion'),response.ubicacion_fisica[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.iniciador != "undefined") {
-              mostrarErrorValidacion($('#iniciador'),response.iniciador[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.remitente != "undefined") {
-              mostrarErrorValidacion($('#remitente'),response.remitente[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.concepto != "undefined") {
-              mostrarErrorValidacion($('#concepto'),response.concepto[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.tema != "undefined") {
-              mostrarErrorValidacion($('#tema'),response.tema[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.nro_cuerpos != "undefined") {
-              mostrarErrorValidacion($('#nro_cuerpos'),response.nro_cuerpos[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.nro_folios != "undefined") {
-              mostrarErrorValidacion($('#nro_folios'),response.nro_folios[0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response.anexo != "undefined") {
-              mostrarErrorValidacion($('#anexo'),response.anexo[0],false);
-              $('#error_nav_config').show();
-            }
-            var errorRes = ' ';
-            if (typeof response["resolucion.nro_resolucion"] != "undefined") {
-              mostrarErrorValidacion($('#nro_resolucion'),response['resolucion.nro_resolucion'][0],false);
-              $('#error_nav_config').show();
-            }
-            if (typeof response["resolucion.nro_resolucion_anio"] != "undefined") {
-              mostrarErrorValidacion($('#nro_resolucion_anio'),response['resolucion.nro_resolucion_anio'][0],false);
-              $('#error_nav_config').show();
-            }
-
-            var i=0;
-            $('#columnaDisposicion .disposicion').not('#moldeDisposicion').each(function(){
-              if(typeof response['disposiciones.'+ i +'.nro_disposicion'] !== 'undefined'){
-                mostrarErrorValidacion($(this).find('.nro_disposicion'),response['disposiciones.'+ i +'.nro_disposicion'][0],false);
-                $('#error_nav_config').show();
-              }
-              if(typeof response['disposiciones.'+ i +'.nro_disposicion_anio'] !== 'undefined'){
-                mostrarErrorValidacion($(this).find('.nro_disposicion_anio'),response['disposiciones.'+ i +'.nro_disposicion_anio'][0],false);
-                $('#error_nav_config').show();
-              }
-              if(typeof response['disposiciones.'+ i +'.descripcion'] !== 'undefined'){
-                mostrarErrorValidacion($(this).find('#descripcion_disposicion'),response['disposiciones.'+ i +'.descripcion'][0],false);
-                $('#error_nav_config').show();
-              }
-
-              i++;
-            })
-
-            //////////////////////////  ALERTAS DE NOTAS /////////////////////////
-            var i = 0;
-
-            $('#notas .nota').each(function(){
-                if(typeof response['notas.'+ i +'.fecha'] !== 'undefined'){
-                  mostrarErrorValidacion($(this).find('.dtpFechaNota input'),response['notas.'+ i +'.fecha'][0],false);
-                  $('#error_nav_notas').show();
-                }
-                if(typeof response['notas.'+ i +'.identificacion'] !== 'undefined'){
-                  mostrarErrorValidacion($(this).find('.identificacion'),response['notas.'+ i +'.identificacion'][0],false);
-                  $('#error_nav_notas').show();
-                }
-                if(typeof response['notas.'+ i +'.detalle'] !== 'undefined'){
-                  mostrarErrorValidacion($(this).find('.detalleNota'),response['notas.'+ i +'.detalle'][0],false);
-                  $('#error_nav_notas').show();
-                }
-                if(typeof response['notas.'+ i +'.id_tipo_movimiento'] !== 'undefined'){
-                  mostrarErrorValidacion($(this).find('.tiposMovimientos'),response['notas.'+ i +'.id_tipo_movimiento'][0],false);
-                  $('#error_nav_notas').show();
-                }
-
-                i++;
-            });
-
-            var j = 0;
-
-            $('#notasMov .notaMov').each(function(){
-                if(typeof response['notas_asociadas.'+ j +'.fecha'] !== 'undefined'){
-                  mostrarErrorValidacion($(this).find('.dtpFechaMov input'),response['notas_asociadas.'+ j +'.fecha'][0],false);
-                  $('#error_nav_mov').show();
-                }
-                if(typeof response['notas_asociadas.'+ j +'.identificacion'] !== 'undefined'){
-                  mostrarErrorValidacion($(this).find('.identificacion'),response['notas_asociadas.'+ j +'.identificacion'][0],false);
-                  $('#error_nav_mov').show();
-                }
-                if(typeof response['notas_asociadas.'+ j +'.detalle'] !== 'undefined'){
-                  mostrarErrorValidacion($(this).find('.detalleNota'),response['notas_asociadas.'+ j +'.detalle'][0],false);
-                  $('#error_nav_mov').show();
-                }
-
-                j++;
-            });
+      type: "POST",
+      url: 'expedientes/' + (state == "modificar"? 'modificarExpediente': 'guardarExpediente'),
+      data: formData,
+      dataType: 'json',
+      beforeSend: function(data){
+        console.log('Empezó');
+        $('#modalExpediente').find('.modal-footer').children().hide();
+        $('#modalExpediente').find('.modal-body').children().hide();
+        $('#modalExpediente').find('.modal-body').children('#iconoCarga').show();
+      },
+      success: function (data) {
+        $('#btn-buscar').trigger('click');
+        if (state == "nuevo"){ //Si está agregando agrega una fila con el nuevo expediente
+          $('#mensajeExito h3').text('Creación Exitosa');
+          $('#mensajeExito p').text('El expediente fue creado con éxito');
+          $('#mensajeExito .cabeceraMensaje').removeClass('modificar');
+        }else{ //Si está modificando reemplaza la fila con el expediente modificado
+          $('#mensajeExito h3').text('Modificación Exitosa');
+          $('#mensajeExito p').text('El expediente fue modificado con éxito');
+          $('#mensajeExito .cabeceraMensaje').addClass('modificar');
         }
+        $('#modalExpediente').modal('hide');
+        $('#mensajeExito').show();
+      },
+      error: function (data) {
+        console.log('Error:', data);
+
+        $('#modalExpediente').find('.modal-footer').children().show();
+        $('#modalExpediente').find('.modal-body').children().show();
+        $('#modalExpediente').find('.modal-body').children('#iconoCarga').hide();
+        //Ocultar errores
+        $('#error_nav_config,#error_nav_notas,#error_nav_mov').hide();
+        ocultarErrorValidacion($('#modalExpediente').find('input,select,button,textarea'));
+        
+        const error_map_config = {
+          'casinos' : '#contenedorCasinos',
+          'nro_exp_org' : '#nro_exp_org','nro_exp_interno' : '#nro_exp_interno','nro_exp_control' : '#nro_exp_control',
+          'nro_cuerpos' : '#nro_cuerpos','fecha_iniciacion' : '#dtpFechaInicio input','fecha_pase' : '#dtpFechaPase input',
+          'destino' : '#destino', 'ubicacion_fisica' : '#ubicacion', 'iniciador' : '#iniciador', 'remitente' : '#remitente',
+          'concepto' : '#concepto', 'tema' : '#tema', 'nro_cuerpos' : '#nro_cuerpos', 'nro_folios' : '#nro_folios', 'anexo' : '#anexo',
+          'resolucion.nro_resolucion' : '#nro_resolucion','resolucion.nro_resolucion_anio' : '#nro_resolucion_anio',
+        };
+
+        const mostrar_error = function(k,selector,nav){
+          if(typeof response[k] !== 'undefined'){
+            mostrarErrorValidacion(selector,response[k].join(", "),false);
+            nav.show();
+          }
+        }
+
+        const response = data.responseJSON;
+        for(const k in error_map_config){
+          mostrar_error(k,$(error_map_config[k]),$('#error_nav_config'));
+        }
+
+        $('#columnaDisposicion .disposicion').each(function(idx,obj){
+          mostrar_error(`disposiciones.${idx}.nro_disposicion`     ,$(obj).find('.nro_disposicion')        ,$('#error_nav_config'));
+          mostrar_error(`disposiciones.${idx}.nro_disposicion_anio`,$(obj).find('.nro_disposicion_anio')   ,$('#error_nav_config'));
+          mostrar_error(`disposiciones.${idx}.descripcion`         ,$(obj).find('#descripcion_disposicion'),$('#error_nav_config'));
+        });
+        $('#notas .nota').each(function(idx,obj){
+          mostrar_error(`notas.${idx}.fecha`             ,$(obj).find('.dtpFechaNota input'),$('#error_nav_notas'));
+          mostrar_error(`notas.${idx}.identificacion`    ,$(obj).find('.identificacion')    ,$('#error_nav_notas'));
+          mostrar_error(`notas.${idx}.detalle`           ,$(obj).find('.detalleNota')       ,$('#error_nav_notas'));
+          mostrar_error(`notas.${idx}.id_tipo_movimiento`,$(obj).find('.tiposMovimientos')  ,$('#error_nav_notas'));
+        });
+        $('#notasMov .notaMov').each(function(idx,obj){
+          mostrar_error(`notas_asociadas.${idx}.fecha`         ,$(obj).find('.dtpFechaMov input'),$('#error_nav_mov'));
+          mostrar_error(`notas_asociadas.${idx}.identificacion`,$(obj).find('.identificacion')   ,$('#error_nav_mov'));
+          mostrar_error(`notas_asociadas.${idx}.detalle`       ,$(obj).find('.detalleNota')      ,$('#error_nav_mov'));
+        });
+      }
     });
 });
 
@@ -751,18 +645,11 @@ function setearExpediente(expediente,casinos,resolucion,disposiciones,notas,nota
 }
 
 function agregarNota(nota,conMovimiento) {
-  var fila = $('#moldeFilaNota').clone();
-
-  fila.show();
-  fila.removeAttr('moldeFilaNota');
-
-  fila.attr('id',nota.id_nota);
+  var fila = $('#moldeFilaNota').clone().attr('id',nota.id_nota);
   fila.find('.borrarNota').attr('id',nota.id_nota);
-
   fila.find('.identificacion').text(nota.identificacion);
   fila.find('.fecha').text(convertirDate(nota.fecha));
   fila.find('.movimiento').text(conMovimiento? nota.movimiento: '-');
   fila.find('.detalle').text(nota.detalle);
-
   $('#tablaNotasCreadas tbody').append(fila);
 }

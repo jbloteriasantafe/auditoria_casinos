@@ -39,6 +39,19 @@ class ExpedienteController extends Controller
     'disposiciones.*.nro_disposicion_anio' => 'Nro Disposición Año',
     'id_tipo_movimiento' => 'Tipo de Movimiento'
   ];
+  private static $errores =       [
+    'required' => 'El valor es requerido',
+    'integer' => 'El valor no es un numero',
+    'numeric' => 'El valor no es un numero',
+    'exists' => 'El valor es invalido',
+    'array' => 'El valor es invalido',
+    'alpha_dash' => 'El valor tiene que ser alfanumérico opcionalmente con guiones',
+    'regex' => 'El formato es incorrecto',
+    'string' => 'El valor tiene que ser una cadena de caracteres',
+    'string.min' => 'El valor es muy corto',
+    'privilegios' => 'No puede realizar esa acción',
+    'incompatibilidad' => 'El valor no puede ser asignado',
+  ];
 
   private static $instance;
 
@@ -147,7 +160,7 @@ class ExpedienteController extends Controller
         'notas_asociadas.*.identificacion'=>'required',
         'notas_asociadas.*.detalle'=>'required',
         'notas_asociadas.*.id_log_movimiento' => 'required | exists:log_movimiento,id_log_movimiento',
-    ], array(), self::$atributos)->after(function ($validator){
+    ], self::$errores, self::$atributos)->after(function ($validator){
 
 
       //validar que sea unico en conjunto con el nro_cuerpo
@@ -246,7 +259,7 @@ class ExpedienteController extends Controller
         'notas_asociadas.*.id_log_movimiento' => 'required | exists:log_movimiento,id_log_movimiento',
         'tablaNotas' => 'nullable|array',
         'tablaNotas.*' => 'required|integer|exists:nota,id_nota'
-    ], array(), self::$atributos)->after(function ($validator){
+    ], self::$errores, self::$atributos)->after(function ($validator){
 
       $expediente=Expediente::find($validator->getData()['id_expediente']);
       if($expediente->nro_exp_interno != $validator->getData()['nro_exp_interno']){ // si cambió checkeo que sea unico
