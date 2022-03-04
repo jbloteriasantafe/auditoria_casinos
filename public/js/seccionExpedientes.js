@@ -251,7 +251,7 @@ function modalExpediente(modo,id_expediente){
     $('#btn-guardar').hide();
     $('#btn-cancelar').text('SALIR');
   }
-  $('#modalExpediente #id_expediente').val(id_expediente);
+  $('#btn-guardar').data('id_expediente',id_expediente);
   if(modo == "nuevo"){
     aux_modalExpediente(modo,null);
   }
@@ -354,7 +354,7 @@ $('#btn-guardar').click(function (e) {
     }).toArray();
 
     const formData = {
-      id_expediente: $('#id_expediente').val(),
+      id_expediente: $('#btn-guardar').data('id_expediente'),
       nro_exp_org: $('#nro_exp_org').val(),
       nro_exp_interno: $('#nro_exp_interno').val(),
       nro_exp_control: $('#nro_exp_control').val(),
@@ -675,7 +675,6 @@ function limpiarModal(){
   $('#frmExpediente').trigger('reset');
   $('.casinosExp').prop('checked',false).prop('disabled',false);
   $('#modalExpediente input').val('');
-  $('#id_expediente').val(0);
   $('#concepto').val(' ');
   $('#tema').val(' ');
 

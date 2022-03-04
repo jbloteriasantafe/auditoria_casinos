@@ -570,7 +570,6 @@
                 <div class="modal-footer">
                   <button type="button" class="btn btn-successAceptar" id="btn-guardar" value="nuevo">ACEPTAR</button>
                   <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal">CANCELAR</button>
-                  <input type="hidden" id="id_expediente" value="0">
                 </div>
             </div>
           </div>
