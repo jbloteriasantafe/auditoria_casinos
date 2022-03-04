@@ -8,18 +8,6 @@ $(document).ready(function() {
   $('#opcGestionarExpedientes').attr('style','border-left: 6px solid #185891; background-color: #131836;');
   $('#opcGestionarExpedientes').addClass('opcionesSeleccionado');
 
-  $('#btn-buscar').trigger('click');
-
-  limpiarModal();
-
-  $('#navConfig').click();
-  $('#error_nav_config').hide();
-  $('#error_nav_notas').hide();
-  $('#error_nav_mov').hide();
-
-  //DTP filtros
-  $('#B_dtpFechaInicio span:first').click();
-
   $('#B_dtpFechaInicio').datetimepicker({
     language:  'es',
     todayBtn:  1,
@@ -29,8 +17,9 @@ $(document).ready(function() {
     pickerPosition: "bottom-left",
     startView: 4,
     minView: 3,
-    container: $('main section'),
   });
+
+  $('#btn-buscar').trigger('click');
 });
 
 /* PESTAÑAS */
@@ -119,14 +108,9 @@ $(document).on('keypress',function(e){
   }
 });
 
-
 //DATETIMEPICKER de las fechas
 function habilitarDTP() {
-  //Resetear DTP (Click en la cruz)
-  $('#dtpFechaInicio span:first').click();
-  $('#dtpFechaPase span:first').click();
-
-  $('#dtpFechaPase').datetimepicker({
+  $('#dtpFechaPase,#dtpFechaInicio').datetimepicker({
     language:  'es',
     todayBtn:  1,
     autoclose: 1,
@@ -135,20 +119,9 @@ function habilitarDTP() {
     pickerPosition: "bottom-left",
     startView: 4,
     minView: 2,
-    container: $('#modalExpediente'),
   });
-
-  $('#dtpFechaInicio').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'dd MM yyyy',
-    pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 2,
-    container: $('#modalExpediente'),
-  });
+  $('#dtpFechaPase').data('datetimepicker').reset();
+  $('#dtpFechaInicio').data('datetimepicker').reset();
 }
 
 //Agregar nueva disposicion en el modal
@@ -185,7 +158,6 @@ $(document).on('click','.borrarNotaMov',function(){
   $('#secMov .agregarNota').show(); //Mostrar el botón para agregar notas
   $(`#movimientosDisponibles option[value="${$(this).val()}"]`).show();//Mostrar el movimiento borrado nuevamente en el selector
 });
-
 
 $('#btn-notaNueva').click(function(e){
   e.preventDefault();
@@ -240,52 +212,39 @@ $('#btn-notaMov').click(function(e){
 
 function modalExpediente(modo,id_expediente){
   limpiarModal();
+  habilitarDTP();
   $('#navConfig').click(); //Empezar por la sección de configuración
-  $('.formularioNotas').hide(); //Ocultar los formularios de notas @???
-  $('#notasCreadas').hide(); //Ocultar las notas creadas (es del modal modificar expediente) @???
   if(modo == "nuevo"){
     $('#modalExpediente .modal-title').text('NUEVO EXPEDIENTE');
     $('#modalExpediente .modal-header').css('background-color','#6dc7be');
-    $('#btn-guardar').removeClass();
-    $('#btn-guardar').addClass('btn btn-successAceptar');
-    $('#btn-guardar').val("nuevo");
+    $('#btn-guardar').removeClass().addClass('btn btn-successAceptar').val("nuevo");
     $('#btn-cancelar').text('CANCELAR');
-    $('#asociar').show();
-    habilitarDTP();
-    habilitarControles(true);
     $('#navMov').parent().show();
-    $('#notasCreadas').hide();
-    $('#modalExpediente').modal('show');
-    return;
+    habilitarControles(true);
+    $('.casinosExp').change();
+    return $('#modalExpediente').modal('show');
   }
   if(modo == "modificar"){
     $('#modalExpediente .modal-title').text('MODIFICAR EXPEDIENTE');
     $('#modalExpediente .modal-header').css('background-color','#FFB74D');
-    habilitarDTP();
-    habilitarControles(true);
-    $('#btn-guardar').removeClass();
-    $('#btn-guardar').val("modificar");
-    $('#btn-guardar').addClass('btn btn-warningModificar');
+    $('#btn-guardar').removeClass().addClass('btn btn-warningModificar').val("modificar");
     $('#btn-cancelar').text('CANCELAR');
-    $('#notasCreadas').show();
     $('#navMov').parent().show();
-    $('#asociar').hide();
   }
   else if(modo == "ver"){
     $('#modalExpediente .modal-title').text('VER EXPEDIENTE');
     $('#modalExpediente .modal-header').css('background-color','#4FC3F7');
-    habilitarControles(false);
     $('#btn-guardar').hide();
     $('#btn-cancelar').text('SALIR');
-    $('#navMov').parent().show();//Deshabilitar sección de 'notas & movimientos'
-    $('#notasNuevas').hide();
-    $('#notasCreadas').show();
+    $('#navMov').parent().hide();//Deshabilitar sección de 'notas & movimientos'
   }
   else return;
   $('#modalExpediente #id_expediente').val(id_expediente);
   $.get("expedientes/obtenerExpediente/" + id_expediente, function(data){
-    mostrarExpediente(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos,modo == "modificar");
-    $('#modalExpediente').modal('show');
+    setearExpediente(data.expediente,data.casinos,data.resolucion,data.disposiciones,data.notas,data.notasConMovimientos);
+    habilitarControles(modo == "modificar");
+    $('.casinosExp').change();
+    return $('#modalExpediente').modal('show');
   });
 }
 
@@ -593,21 +552,20 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
   e.preventDefault();
 
+  let size = 10;;
   //Fix error cuando librería saca los selectores
-  if(isNaN($('#herramientasPaginacion').getPageSize())){
-    var size = 10; // por defecto
-  }else {
-    var size = $('#herramientasPaginacion').getPageSize();
+  if(!isNaN($('#herramientasPaginacion').getPageSize())){
+    size = $('#herramientasPaginacion').getPageSize();
   }
-  console.log($('#herramientasPaginacion').getPageSize());
-  var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
-  var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-  var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
+
+  page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
+  const page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+  const sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
   if(sort_by == null){ // limpio las columnas
     $('#tablaResultados th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
   }
 
-  var formData = {
+  const formData = {
     nro_exp_org: $('#B_nro_exp_org').val(),
     nro_exp_interno: $('#B_nro_exp_interno').val(),
     nro_exp_control: $('#B_nro_exp_control').val(),
@@ -623,26 +581,25 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     sort_by: sort_by,
     page_size: page_size,
   }
-  console.log(formData);
   $.ajax({
-      type: 'POST',
-      url: 'expedientes/buscarExpedientes',
-      data: formData,
-      dataType: 'json',
-      success: function (data) {
-        $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.expedientes.total,clickIndice);
-        $('#cuerpoTabla').empty();
+    type: 'POST',
+    url: 'expedientes/buscarExpedientes',
+    data: formData,
+    dataType: 'json',
+    success: function (data) {
+      $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.expedientes.total,clickIndice);
+      $('#cuerpoTabla').empty();
 
-        for(let i = 0; i < data.expedientes.data.length; i++) {
-          generarFilaTabla(data.expedientes.data[i]);
-        }
-
-        $('#herramientasPaginacion').generarIndices(page_number,page_size,data.expedientes.total,clickIndice);
-      },
-      error: function (data) {
-          console.log('Error:', data);
+      for(let i = 0; i < data.expedientes.data.length; i++) {
+        generarFilaTabla(data.expedientes.data[i]);
       }
-    });
+
+      $('#herramientasPaginacion').generarIndices(page_number,page_size,data.expedientes.total,clickIndice);
+    },
+    error: function (data) {
+      console.log('Error:', data);
+    }
+  });
 });
 
 $(document).on('click','#tablaResultados thead tr th[value]',function(e){
@@ -681,37 +638,11 @@ function generarFilaTabla(expediente){
 }
 
 function habilitarControles(valor){
-  $('#nro_exp_org').prop('readonly',!valor);
-  $('#nro_exp_interno').prop('readonly',!valor);
-  $('#nro_exp_control').prop('readonly',!valor);
-  $('.casinosExp').prop('disabled',!valor);
-  $('#dtpFechaPase input').prop('readonly',!valor);
-  $('#dtpFechaInicio input').prop('readonly',!valor);
-  $('#destino').prop('readonly',!valor);
-  $('#ubicacion').prop('readonly',!valor);
-  $('#iniciador').prop('readonly',!valor);
-  $('#remitente').prop('readonly',!valor);
-  $('#concepto').prop('readonly',!valor);
-  $('#tema').prop('readonly',!valor);
-  $('#nro_cuerpos').prop('readonly',!valor);
-  $('#nro_folios').prop('readonly',!valor);
-  $('#anexo').prop('readonly',!valor);
-  $('#nro_resolucion').prop('readonly',!valor);
-  $('#nro_resolucion_anio').prop('readonly',!valor);
-
-  $('#columnaDisposicion .Disposicion').each(function(){
-    $(this).find('#nro_disposicion').prop('readonly',!valor);
-    $(this).find('#nro_disposicion_anio').prop('readonly',!valor);
-  });
-
-  $('#columnaMovimientos .Movimiento').each(function(){
-    $(this).find('#selectMovimientos').prop('readonly',!valor);
-  });
-
-  $('#btn-guardar').prop('disabled',!valor).show();
-  $('#btn-agregarDisposicion').toggle(valor);
-  $('#btn-agregarMovimientos').toggle(valor);
-  $('#btn-guardar').toggle(valor);
+  $('#modalExpediente').find('input,select,textarea,button').prop('disabled',!valor).prop('readonly',!valor);
+  $('#modalExpediente .modal-header').find('button').prop('disabled',false).prop('readonly',false);
+  $('#btn-cancelar').prop('disabled',false).prop('readonly',false);
+  $('#btn-agregarDisposicion,#btn-agregarMovimientos,#btn-guardar').toggle(valor);
+  $('#modalExpediente .agregarNota').parent().toggle(valor);
   if(!valor){
     ($('#dtpFechaInicio').data('datetimepicker') ?? $()).remove();
     ($('#dtpFechaPase').data('datetimepicker') ?? $()).remove();
@@ -728,7 +659,7 @@ function limpiarModal(){
   $('#error_nav_notas').hide();
   $('#error_nav_mov').hide();
   $('#frmExpediente').trigger('reset');
-  $('.casinosExp').prop('checked',false).prop('disabled',false).change();
+  $('.casinosExp').prop('checked',false).prop('disabled',false);
   $('#modalExpediente input').val('');
   $('#id_expediente').val(0);
   $('#concepto').val(' ');
@@ -751,24 +682,20 @@ function limpiarModal(){
   $('.alertaTabla').remove();
 }
 
-function mostrarExpediente(expediente,casinos,resolucion,disposiciones,notas,notasConMovimientos,editable){
+function setearExpediente(expediente,casinos,resolucion,disposiciones,notas,notasConMovimientos){
   $('#nro_exp_org').val(expediente.nro_exp_org);
   $('#nro_exp_control').val(expediente.nro_exp_control);
   $('#nro_exp_interno').val(expediente.nro_exp_interno);
 
   for (let i = 0; i < casinos.length; i++) {
-    $('#'+ casinos[i].id_casino).prop('checked',true).prop('disabled',true);
+    $('#contenedorCasinos').find(`#${casinos[i].id_casino}`).prop('checked',true).prop('disabled',true);
   }
-
-  $('.casinosExp').change();
 
   if(expediente.fecha_pase != null){
-    $('#dtpFechaPase input').val(convertirDate(expediente.fecha_pase));
-    $('#fecha_pase').val(expediente.fecha_pase);
+    $('#dtpFechaPase').data('datetimepicker').setDate(new Date(`${expediente.fecha_pase} 00:00`));
   }
   if(expediente.fecha_iniciacion != null){
-    $('#dtpFechaInicio input').val(convertirDate(expediente.fecha_iniciacion));
-    $('#fecha_inicio').val(expediente.fecha_iniciacion);
+    $('#dtpFechaInicio').data('datetimepicker').setDate(new Date(`${expediente.fecha_iniciacion} 00:00`));
   }
   $('#destino').val(expediente.destino);
   $('#ubicacion').val(expediente.ubicacion_fisica);
@@ -797,10 +724,6 @@ function mostrarExpediente(expediente,casinos,resolucion,disposiciones,notas,not
     fila.find('button').val(d.id_disposicion);
     $('#tablaDispoCreadas tbody').append(fila);
   });
-
-  if(!editable){
-    $('#tablaDispoCreadas,#tablaResolucion').find('button').remove();
-  }
 
   for (let i = 0; i < notas.length; i++) {
     agregarNota(notas[i],false);

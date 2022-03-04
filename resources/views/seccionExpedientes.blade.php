@@ -363,13 +363,13 @@
 
                                 <div class="col-md-6 col-lg-6">
                                   <h5>Concepto</h5>
-                                  <textarea id="concepto" type="text" class="form-control" maxlength="150" style="height:80px;" placeholder="Ingresar concepto"></textarea>
+                                  <textarea id="concepto" type="text" class="form-control" maxlength="150" style="height:80px; resize: vertical;" placeholder="Ingresar concepto"></textarea>
                                   <br>
                                   <span id="alerta-concepto" class="alertaSpan"></span>
                                 </div>
                                 <div class="col-md-6 col-lg-6">
                                   <h5>Tema</h5>
-                                  <textarea id="tema" type="text" class="form-control" maxlength="100" style="height:80px" placeholder="Ingresar tema"></textarea>
+                                  <textarea id="tema" type="text" class="form-control" maxlength="100" style="height:80px; resize: vertical;" placeholder="Ingresar tema"></textarea>
                                   <br>
                                   <span id="alerta-tema" class="alertaSpan"></span>
                                 </div>
@@ -577,8 +577,7 @@
     </div>
   </div>
   
-  <!-- moldes -->
-  <div hidden>
+  <div id="moldes" hidden>
     <table>
       <tr id="moldeFilaTabla">
         <td class="col-xs-3 expediente">99999-9999999-9</td>
@@ -695,7 +694,7 @@
       </div>
       <div class="col-md-12">
         <h5>DETALLE</h5>
-        <textarea class="form-control detalleNota" name="name" style="resize:none; height:80px;"></textarea>
+        <textarea class="form-control detalleNota" name="name" style="resize: vertical; height:80px;"></textarea>
       </div>
     </div>
 
