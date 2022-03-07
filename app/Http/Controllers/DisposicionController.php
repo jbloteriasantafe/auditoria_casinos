@@ -43,6 +43,7 @@ class DisposicionController extends Controller
     $disposicion->nro_disposicion = $disp['nro_disposicion'];
     $disposicion->nro_disposicion_anio = $disp['nro_disposicion_anio'];
     $disposicion->descripcion = $disp['descripcion'];
+    $disposicion->fecha       = $disp['fecha'];
     $disposicion->save();
     $disposicion->expediente()->associate($id_expediente);
     $disposicion->save();
@@ -52,14 +53,6 @@ class DisposicionController extends Controller
       $disposicion->nota()->associate($id_nota);
       $disposicion->save();
     }
-  }
-
-  public function guardarDisposicionNota($disp, $id_nota){
-    $disposicion = new Disposicion;
-    $disposicion->nro_disposicion = $disp['nro_disposicion'];
-    $disposicion->nro_disposicion_anio = $disp['nro_disposicion_anio'];
-    $disposicion->nota()->associate($id_nota);
-    $disposicion->save();
   }
 
   public function eliminarDisposicion($id){
