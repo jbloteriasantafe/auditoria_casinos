@@ -117,8 +117,7 @@ Expedientes
 ***********/
 Route::get('expedientes','ExpedienteController@buscarTodo')->middleware('tiene_permiso:ver_seccion_expedientes');
 Route::get('expedientes/obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
-Route::post('expedientes/guardarExpediente','ExpedienteController@guardarExpediente');
-Route::post('expedientes/modificarExpediente','ExpedienteController@modificarExpediente');
+Route::post('expedientes/guardarOmodificarExpediente','ExpedienteController@guardarOmodificarExpediente');
 Route::delete('expedientes/eliminarExpediente/{id}','ExpedienteController@eliminarExpediente');
 Route::post('expedientes/buscarExpedientes','ExpedienteController@buscarExpedientes');
 Route::get('expedientes/buscarExpedientePorNumero/{busqueda}','ExpedienteController@buscarExpedientePorNumero');

@@ -594,14 +594,7 @@
           </button>
         </td>
       </tr>
-      <tr id="moldeResolucionCargada" id-resolucion="-1">
-        <td class="nro_res">999</td>
-        <td class="anio_res">99</td>
-        <td>
-          <button class="btn btn-link borrarFila" type="button" style="margin-left: 10px;"><i class="fas fa-fw fa-trash"></i>
-        </td>
-      </tr>
-      <tr id="moldeResolucion" id-resolucion="-1">
+      <tr id="moldeResolucion">
         <td class="nro_res">999</td>
         <td class="anio_res">99</td>
         <td>

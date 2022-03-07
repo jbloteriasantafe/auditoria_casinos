@@ -317,19 +317,25 @@ $('#btn-guardar').click(function (e) {
       }
     }).toArray();
 
+    const dispo_cargadas = $('#tablaDispoCreadas tbody tr').map(function(){
+      return this.id;
+    }).toArray();
+
     const disposiciones = $('#columnaDisposicion .disposicion').map(function(){
+      const mov = $(this).find('#tiposMovimientosDisp').val();
       return {
         nro_disposicion: $(this).find('.nro_disposicion').val(),
         nro_disposicion_anio: $(this).find('.nro_disposicion_anio').val(),
         descripcion: $(this).find('#descripcion_disposicion').val(),
-        id_tipo_movimiento: $(this).find('#tiposMovimientosDisp').val(),
+        fecha:       $(this).find('.fecha_disposicion').val(),
+        id_tipo_movimiento: mov != 0 ? mov : null,
       }
     }).toArray();
     
-    const dispo_cargadas = $('#tablaDispoCreadas tbody tr').map(function(){
+    const tablaNotas = $('#tablaNotasCreadas tbody tr').map(function(){
       return this.id;
     }).toArray();
-    
+
     const notas = $('#notas .nota').map(function(){
       const mov = $(this).find('.tiposMovimientos').val();
       return {
@@ -349,38 +355,35 @@ $('#btn-guardar').click(function (e) {
       };
     }).toArray();
 
-    const tablaNotas = $('#tablaNotasCreadas tbody tr').map(function(){
-      return this.id;
-    }).toArray();
-
     const formData = {
       id_expediente: $('#btn-guardar').data('id_expediente'),
       nro_exp_org: $('#nro_exp_org').val(),
       nro_exp_interno: $('#nro_exp_interno').val(),
       nro_exp_control: $('#nro_exp_control').val(),
-      casinos: obtenerCasinosSeleccionados(),
-      fecha_pase: $('#fecha_pase').val(),
       fecha_iniciacion: $('#fecha_inicio').val(),
-      remitente: $('#remitente').val(),
-      concepto: $('#concepto').val(),
       iniciador: $('#iniciador').val(),
-      tema: $('#tema').val(),
+      concepto: $('#concepto').val(),
       ubicacion_fisica: $('#ubicacion').val(),
+      fecha_pase: $('#fecha_pase').val(),
+      remitente: $('#remitente').val(),
       destino: $('#destino').val(),
-      nro_cuerpos: $('#nro_cuerpos').val(),
       nro_folios: $('#nro_folios').val(),
+      tema: $('#tema').val(),
       anexo: $('#anexo').val(),
+      nro_cuerpos: $('#nro_cuerpos').val(),
+      casinos: obtenerCasinosSeleccionados(),
       resolucion: resolucion,
+      //@TODO: Habria que unir "Disposiciones cargadas" con "Disposiciones". El usuario no tiene porque ver dos tablas
+      dispo_cargadas: dispo_cargadas,
       disposiciones: disposiciones,
+      //@TODO: Idem notas, tal vez hasta eliminar el tab de notas movimientos y agregarlo como una opcion
+      tablaNotas: tablaNotas,
       notas: notas,
       notas_asociadas: notas_asociadas,
-      tablaNotas: tablaNotas,
-      dispo_cargadas: dispo_cargadas
     };
-    const state = $('#btn-guardar').val();
     $.ajax({
       type: "POST",
-      url: 'expedientes/' + (state == "modificar"? 'modificarExpediente': 'guardarExpediente'),
+      url: 'expedientes/guardarOmodificarExpediente',
       data: formData,
       dataType: 'json',
       beforeSend: function(data){
@@ -391,11 +394,11 @@ $('#btn-guardar').click(function (e) {
       },
       success: function (data) {
         $('#btn-buscar').trigger('click');
-        if (state == "nuevo"){ //Si está agregando agrega una fila con el nuevo expediente
+        if ($('#btn-guardar').val() == "nuevo"){
           $('#mensajeExito h3').text('Creación Exitosa');
           $('#mensajeExito p').text('El expediente fue creado con éxito');
           $('#mensajeExito .cabeceraMensaje').removeClass('modificar');
-        }else{ //Si está modificando reemplaza la fila con el expediente modificado
+        }else{
           $('#mensajeExito h3').text('Modificación Exitosa');
           $('#mensajeExito p').text('El expediente fue modificado con éxito');
           $('#mensajeExito .cabeceraMensaje').addClass('modificar');
@@ -615,7 +618,7 @@ function setearExpediente(expediente,casinos,resolucion,disposiciones,notas,nota
   $('#anexo').val(expediente.anexo);
 
   resolucion.forEach(res => {
-    const fila = $('#moldeResolucionCargada').clone().removeAttr('id').attr("id-resolucion",res.id_resolucion);
+    const fila = $('#moldeResolucion').clone().removeAttr('id').attr("id-resolucion",res.id_resolucion);
     fila.find('.nro_res').text(res.nro_resolucion);
     fila.find('.anio_res').text(res.nro_resolucion_anio);
     $('#tablaResolucion').append(fila);

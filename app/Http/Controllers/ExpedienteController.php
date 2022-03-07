@@ -9,6 +9,7 @@ use App\Casino;
 use App\LogMovimiento;
 use App\TipoMovimiento;
 use App\Nota;
+use App\Disposicion;
 use Illuminate\Support\Facades\DB;
 use Validator;
 use App\Http\Controllers\ExpedienteController;
@@ -123,300 +124,168 @@ class ExpedienteController extends Controller
           ];
   }
 
-  public function guardarExpediente(Request $request){
-
+  public function guardarOmodificarExpediente(Request $request){
     Validator::make($request->all(), [
-        'nro_exp_org' => ['required','regex:/^\d\d\d\d\d$/'],
-        'nro_exp_interno' => ['required','regex:/^\d\d\d\d\d\d\d$/','unique:expediente,nro_exp_interno'],
-        'nro_exp_control' => ['required','regex:/^\d$/'],
-        'fecha_iniciacion' => 'nullable|date',
-        'fecha_pase' => 'nullable|date',
-        'iniciador' => 'nullable|max:250',
-        'concepto' => 'nullable|max:250',
-        'ubicacion_fisica' => 'nullable|max:250',
-        'remitente' => 'nullable|max:250',
-        'destino' => 'nullable|max:250',
-        'nro_folios' => 'nullable|integer',
-        'tema' => 'nullable|max:250',
-        'anexo' => 'nullable|max:250',
-        'nro_cuerpos' => 'required|integer',
-        'casinos' => 'required',
-        'resolucion' => 'nullable',
-        'resolucion.*.nro_resolucion' => ['required_with:resolucion','regex:/^\d\d\d$/'],
-        'resolucion.*.nro_resolucion_anio' => ['required_with:resolucion','regex:/^\d\d$/'],
-        'disposiciones' => 'nullable',
-        'disposiciones.*.nro_disposicion' => ['required','regex:/^\d\d\d$/'],
-        'disposiciones.*.nro_disposicion_anio' => ['required','regex:/^\d\d$/'],
-        'notas'  => 'nullable',
-        'notas.*.fecha'=>'required|date',
-        'notas.*.identificacion'=>'required',
-        'notas.*.detalle'=>'required',
-        'notas.*.id_tipo_movimiento' => 'nullable|integer',
-        'notas.*.nro_disposicion'=> 'nullable|integer',
-        'notas.*.nro_disposicion_anio'=> 'nullable|integer',
-        'notas.*.descripcion_disposicion'=> 'nullable',
-        'notas_asociadas'  => 'nullable',
-        'notas_asociadas.*.fecha'=>'required|date',
-        'notas_asociadas.*.identificacion'=>'required',
-        'notas_asociadas.*.detalle'=>'required',
-        'notas_asociadas.*.id_log_movimiento' => 'required | exists:log_movimiento,id_log_movimiento',
-    ], self::$errores, self::$atributos)->after(function ($validator){
-
-
-      //validar que sea unico en conjunto con el nro_cuerpo
-
-      $expedientes=Expediente::where([ ['nro_cuerpos' , '=' , $validator->getData()['nro_cuerpos']], ['nro_exp_interno', '=' , $validator->getData()['nro_exp_interno']]])->get();
-      if($expedientes->count() > 0){
-        $validator->errors()->add('nro_cuerpos', 'Ya existe un expediente con el número de expediente interno y cuerpo indicado.');
+      'id_expediente'    => 'nullable|integer|exists:expediente,id_expediente',
+      'nro_exp_org'      => ['required','regex:/^\d\d\d\d\d$/'],
+      'nro_exp_interno'  => ['required','regex:/^\d\d\d\d\d\d\d$/'],
+      'nro_exp_control'  => ['required','regex:/^\d$/'],
+      'fecha_iniciacion' => 'nullable|date',
+      'iniciador'        => 'nullable|string|max:250',
+      'concepto'         => 'required|string|max:1000',
+      'ubicacion_fisica' => 'nullable|string|max:250',
+      'fecha_pase'       => 'nullable|date',
+      'remitente'        => 'nullable|string|max:250',
+      'destino'          => 'nullable|string|max:250',
+      'nro_folios'       => 'nullable|integer',
+      'tema'             => 'nullable|string|max:250',
+      'anexo'            => 'nullable|string|max:250',
+      'nro_cuerpos'      => 'required|integer',
+      'casinos'          => 'required',
+      'casinos.*'        => 'required|integer|exists:casino,id_casino',
+      //id_tipo_movimiento(??)
+      'resolucion'                       => 'nullable|array',
+      'resolucion.*.id_resolucion'       => 'nullable|integer|exists:resolucion,id_resolucion',
+      'resolucion.*.nro_resolucion'      => ['required','regex:/^\d\d\d$/'],
+      'resolucion.*.nro_resolucion_anio' => ['required','regex:/^\d\d$/'],
+      'dispo_cargadas'   => 'nullable|array',
+      'dispo_cargadas.*' => 'required|integer|exists:disposicion,id_disposicion',
+      'disposiciones'                        => 'nullable',
+      'disposiciones.*.nro_disposicion'      => ['required','regex:/^\d\d\d$/'],
+      'disposiciones.*.nro_disposicion_anio' => ['required','regex:/^\d\d$/'],
+      'disposiciones.*.descripcion'          => 'nullable|string|max:1000',
+      'disposiciones.*.fecha'                => 'nullable|date',
+      'disposiciones.*.id_tipo_movimiento'   => 'nullable|exists:tipo_movimiento,id_tipo_movimiento',
+      'tablaNotas'   => 'nullable|array',//Unificar esto con notas??
+      'tablaNotas.*' => 'required|integer|exists:nota,id_nota',
+      'notas'                      => 'nullable',
+      'notas.*.fecha'              => 'required|date',
+      'notas.*.identificacion'     => 'required|string|max:50',
+      'notas.*.detalle'            => 'required|string|max:500',
+      'notas.*.id_tipo_movimiento' => 'nullable|integer|exists:tipo_movimiento,id_tipo_movimiento',
+      'notas_asociadas'                     => 'nullable',
+      'notas_asociadas.*.fecha'             => 'required|date',
+      'notas_asociadas.*.identificacion'    => 'required|string|max:50',
+      'notas_asociadas.*.detalle'           => 'required|string|max:500',
+      'notas_asociadas.*.id_log_movimiento' => 'required|integer|exists:log_movimiento,id_log_movimiento',
+    ],
+    self::$errores, self::$atributos)->after(function ($validator){
+      if($validator->errors()->any()) return;
+      //@TODO: validar que el id_log_movimiento le pertenezca a algun casino que mando
+      $data = $validator->getData();
+      $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+      foreach($data['casinos'] as $c){
+        if(!$user->usuarioTieneCasino($c)){
+          $validator->errors()->add('casinos',self::$errores['privilegios']);
+          return;
+        }
+      }
+      $exp = Expediente::where([
+        ['nro_exp_org','=',$data['nro_exp_org']],['nro_exp_interno','=',$data['nro_exp_interno']],
+        ['nro_exp_control','=',$data['nro_exp_control']],['nro_cuerpos','=',$data['nro_cuerpos']]
+      ]);
+      if(!is_null($data['id_expediente'])){
+        $exp = $exp->where('id_expediente','<>',$data['id_expediente']);
+      }
+      if($exp->get()->count() > 0){
+        $validator->errors()->add('nro_cuerpos', 'Ya existe el expediente indicado');
       }
     })->validate();
-
-    $expediente = new Expediente;
-    DB::transaction(function () use ($request,&$expediente){
-      $expediente->nro_exp_org = $request->nro_exp_org;
-      $expediente->nro_exp_interno = $request->nro_exp_interno;
-      $expediente->nro_exp_control = $request->nro_exp_control;
-      $expediente->fecha_iniciacion = $request->fecha_iniciacion;
-      $expediente->fecha_pase = $request->fecha_pase;
-      $expediente->iniciador = $request->iniciador;
-      if(!empty($request->concepto)){
-          $expediente->concepto = $request->concepto;
-      }
-      $expediente->ubicacion_fisica = $request->ubicacion_fisica;
-      $expediente->remitente = $request->remitente;
-      $expediente->destino = $request->destino;
-      $expediente->nro_folios = $request->nro_folios;
-      $expediente->tema = $request->tema;
-      $expediente->anexo = $request->anexo;
-      $expediente->nro_cuerpos = $request->nro_cuerpos;
-      $expediente->save();
-  
-      foreach ($request['casinos'] as $id_casino) {
-        $expediente->casinos()->attach(intval($id_casino));
-      }
-      $expediente->save();
-    
-      if(!empty($request->resolucion)){
-        foreach($request->resolucion as $res){
-          ResolucionController::getInstancia()->guardarResolucion($res,$expediente->id_expediente);
-        }
-  
-      }
-      if(!empty($request->disposiciones)){
-        foreach ($request->disposiciones as $disp){
-          DisposicionController::getInstancia()->guardarDisposicion($disp,$expediente->id_expediente);
-        }
-      }
-  
-      if(!empty($request->notas)){
-        foreach ($request->notas as $nota){
-          NotaController::getInstancia()->guardarNota($nota,$expediente->id_expediente,  $expediente->casinos->first()->id_casino);
-        }
-      }
-      if(!empty($request->notas_asociadas)){
-        foreach ($request->notas_asociadas as $nota){
-          NotaController::getInstancia()->guardarNotaConMovimiento($nota,$expediente->id_expediente,  $expediente->casinos->first()->id_casino);
-        }
-      }
-    });
-
-    return ['expediente' => $expediente , 'casinos' => $expediente->casinos];
-  }
-
-  public function modificarExpediente(Request $request){
-    Validator::make($request->all(), [
-        'id_expediente' => 'required|exists:expediente,id_expediente',
-        'nro_exp_org' => ['required','regex:/^\d\d\d\d\d$/'],
-        'nro_exp_interno' => ['required','regex:/^\d\d\d\d\d\d\d$/'],
-        'nro_exp_control' => ['required','regex:/^\d$/'],
-        'fecha_iniciacion' => 'nullable|date',
-        'fecha_pase' => 'nullable|date',
-        'iniciador' => 'nullable|max:250',
-        'concepto' => 'nullable|max:250',
-        'ubicacion_fisica' => 'nullable|max:250',
-        'remitente' => 'nullable|max:250',
-        'destino' => 'nullable|max:250',
-        'nro_folios' => 'nullable|integer',
-        'tema' => 'nullable|max:250',
-        'anexo' => 'nullable|max:250',
-        'nro_cuerpos' => 'required|integer',
-        'casinos' => 'required',
-        'resolucion' => 'nullable',
-        'resolucion.*.nro_resolucion' => ['required_with:resolucion','regex:/^\d\d\d$/'],
-        'resolucion.*.nro_resolucion_anio' => ['required_with:resolucion','regex:/^\d\d$/'],
-        'disposiciones' => 'nullable',
-        'disposiciones.*.nro_disposicion' => ['required','regex:/^\d\d\d$/'],
-        'disposiciones.*.nro_disposicion_anio' => ['required','regex:/^\d\d$/'],
-        'notas'  => 'nullable',
-        'notas.*.fecha'=>'required|date',
-        'notas.*.identificacion'=>'required',
-        'notas.*.detalle'=>'required',
-        'notas.*.id_tipo_movimiento' => 'nullable|exists:tipo_movimiento,id_tipo_movimiento',
-        'notas_asociadas'  => 'nullable',
-        'notas_asociadas.*.fecha'=>'required|date',
-        'notas_asociadas.*.identificacion'=>'required',
-        'notas_asociadas.*.detalle'=>'required',
-        'notas_asociadas.*.id_log_movimiento' => 'required | exists:log_movimiento,id_log_movimiento',
-        'tablaNotas' => 'nullable|array',
-        'tablaNotas.*' => 'required|integer|exists:nota,id_nota'
-    ], self::$errores, self::$atributos)->after(function ($validator){
-
-      $expediente=Expediente::find($validator->getData()['id_expediente']);
-      if($expediente->nro_exp_interno != $validator->getData()['nro_exp_interno']){ // si cambió checkeo que sea unico
-            $exp = Expediente::where('nro_exp_interno','=',$validator->getData()['nro_exp_interno'])->get();
-            if($exp->count() > 0){
-                $validator->errors()->add('nro_exp_interno', 'Ya existe un expediente con el número de expediente interno indicado.');
-            }
-      }
-
-    })->validate();
-
-    if(isset($validator))
-    {
-      if ($validator->fails())
-      {
-        return [
-              'errors' => $v->getMessageBag()->toArray()
-          ];
-      }
-    }
 
     DB::transaction(function() use ($request){
-      $expediente = Expediente::find($request->id_expediente);
-      $expediente->nro_exp_org = $request->nro_exp_org;
-      $expediente->nro_exp_interno = $request->nro_exp_interno;
-      $expediente->nro_exp_control = $request->nro_exp_control;
+      $expediente = null;
+      if(!empty($request->id_expediente)){
+        $expediente = Expediente::find($request->id_expediente);
+      }
+      else{
+        $expediente = new Expediente;
+      }
+
+      $expediente->nro_exp_org      = $request->nro_exp_org;
+      $expediente->nro_exp_interno  = $request->nro_exp_interno;
+      $expediente->nro_exp_control  = $request->nro_exp_control;
       $expediente->fecha_iniciacion = $request->fecha_iniciacion;
-      $expediente->fecha_pase = $request->fecha_pase;
-      $expediente->iniciador = $request->iniciador;
-      if(!empty($request->concepto)){
-          $expediente->concepto = $request->concepto;
-      }
+      $expediente->iniciador        = $request->iniciador;
+      $expediente->concepto         = $request->concepto;
       $expediente->ubicacion_fisica = $request->ubicacion_fisica;
-      $expediente->remitente = $request->remitente;
-      $expediente->destino = $request->destino;
-      $expediente->nro_folios = $request->nro_folios;
-      $expediente->tema = $request->tema;
-      $expediente->anexo = $request->anexo;
-      $expediente->nro_cuerpos = $request->nro_cuerpos;
-      $expediente->casinos()->detach();
-  
-      $expediente->casinos()->sync($request['casinos']);
+      $expediente->fecha_pase       = $request->fecha_pase;
+      $expediente->remitente        = $request->remitente;
+      $expediente->destino          = $request->destino;
+      $expediente->nro_folios       = $request->nro_folios;
+      $expediente->tema             = $request->tema;
+      $expediente->anexo            = $request->anexo;
+      $expediente->nro_cuerpos      = $request->nro_cuerpos;
       $expediente->save();
-  
-      //tablaNotas contiene todas las notas que existian - o sea con // ID
+
+      $expediente->casinos()->sync($request->casinos ?? []);
+      {//@TODO: simplificar esto... se puede inlinear la mayoria creo porque solo se llama aca
+        $resoluciones = $request->resolucion ?? [];
+        ResolucionController::getInstancia()->updateResolucion($resoluciones,$expediente->id_expediente);
+      }
       {
-        $listita = array();
-        if(isset($request->tablaNotas)){
-          foreach ($request->tablaNotas as $tn) {
-            if(ctype_digit($tn)){
-              $listita[] = $tn;
-            }
-          }
+        $dispo_cargadas = $request->dispo_cargadas ?? [];
+        $a_borrar = Disposicion::where('id_expediente',$expediente->id_expediente)
+        ->whereNotIn('id_disposicion',$dispo_cargadas)->get();
+        foreach($a_borrar as $d){
+          DisposicionController::getInstancia()->eliminarDisposicion($d->id_disposicion);
         }
-        $notas_a_eliminar = Nota::whereNotIn('id_nota',$listita)
-              ->where('id_expediente',$expediente->id_expediente)
-              ->where('es_disposicion',0)->get();
-        foreach($notas_a_eliminar as $nota){
-          NotaController::getInstancia()->eliminarNota($nota->id_nota);
-        }
-      }
-  
-      //chequeo si recibe notas y movimientos nuevos
-  
-      if(!empty($request->notas)){
-        foreach ($request->notas as $nota){
-          if(!$this->existeNota($nota, $expediente->notas)){
-            NotaController::getInstancia()->guardarNota($nota,$expediente->id_expediente, $expediente->casinos->first()->id_casino);
+        $disposiciones = $request->disposiciones ?? [];
+        $exp_dispos = $expediente->disposiciones;
+        foreach($disposiciones as $d){
+          if(!$this->existeDisposicion($d,$exp_dispos)){
+            DisposicionController::getInstancia()->guardarDisposicion($d,$expediente->id_expediente);
           }
         }
       }
-  
-      //notas para asociar
-      if(!empty($request->notas_asociadas)){
-        foreach ($request->notas_asociadas as $nota){
-          NotaController::getInstancia()->guardarNotaConMovimiento($nota,$expediente->id_expediente,  $expediente->casinos->first()->id_casino);
+      {
+        $notas_cargadas = $request->tablaNotas ?? [];
+        $a_borrar = Nota::where('id_expediente',$expediente->id_expediente)
+        ->where('es_disposicion',0)->whereNotIn('id_nota',$notas_cargadas)->get();
+        foreach($a_borrar as $n){
+          NotaController::getInstancia()->eliminarNota($n->id_nota);
         }
-      }
-  
-      $disposiciones = $expediente->disposiciones;
-      if(!empty($disposiciones)){ //si no estan vacias las disposiciones del expediente actual
-        foreach($disposiciones as $disposicion){ //por cada dispósicion del Expediente actual
-          if(!$this->existeIdDisposicion($disposicion,$request->dispo_cargadas)){//chequea que exista la disposiciones en el request
-            DisposicionController::getInstancia()->eliminarDisposicion($disposicion->id_disposicion); //si no esta en el request la elimina
+
+        $notas = $request->notas ?? [];
+        $exp_notas = $expediente->notas;
+        $id_casino = $expediente->casinos->first()->id_casino;
+        foreach ($notas as $n){
+          if(!$this->existeNota($n, $exp_notas)){
+            NotaController::getInstancia()->guardarNota($n,$expediente->id_expediente,$id_casino);
+          }
+        }
+    
+        $notas_asociadas = $request->notas_asociadas ?? [];
+        foreach ($notas_asociadas as $n){
+          if(!$this->existeNota($n, $exp_notas)){
+            NotaController::getInstancia()->guardarNotaConMovimiento($n,$expediente->id_expediente,$id_casino);
           }
         }
       }
-      
-      if(!empty($request->disposiciones)){
-        foreach($request->disposiciones as $disposicion){
-          if(!$this->existeDisposicion($disposicion,$expediente->disposiciones)
-            && !empty($disposicion['nro_disposicion']) && !empty($disposicion['nro_disposicion_anio'])){
-            DisposicionController::getInstancia()->guardarDisposicion($disposicion,$expediente->id_expediente);
-          }
-        }
-      }
-  
-      ResolucionController::getInstancia()->updateResolucion($request->resolucion,$expediente->id_expediente);
     });
-
-    $expediente = Expediente::find($request->id_expediente);
-
-    return ['expediente' => $expediente , 'casinos' => $expediente->casinos];
+    return 1;
   }
-
-
-  public function existeLogMovimiento($log,$movimientos_existentes)
-  {
-    $result=false;
-    for($i = 0;$i<count($movimientos_existentes);$i++){
-      if($movimientos_existentes[$i]['id_log_movimiento'] == $log->id_log_movimiento){
-         $result = true;
-        break;
+  private function existeNota($nota, $notas){
+    foreach ($notas as $n) {
+      $fecha = $nota['fecha'] == $n->fecha;
+      $ident = $nota['identificacion'] == $n->identificacion;
+      $id_tipo_mov = $nota['id_tipo_movimiento'] ?? null;
+      $mov   = $id_tipo_mov == $n->id_tipo_movimiento;
+      if($fecha && $ident && $mov){
+        return true;
       }
     }
-    return $result;
+    return false;
   }
 
-  public function existeNota($nota, $notas){
-    $result=false;
-    foreach ($notas as $note) {
-      if($nota['fecha'] == $note->fecha
-      && $nota['identificacion'] == $note->identificacion ){
-         $result = true;
-        break;
+  private function existeDisposicion($disp,$disposiciones){
+    foreach($disposiciones as $d){
+      if($disp['nro_disposicion']      == $d['nro_disposicion']
+      && $disp['nro_disposicion_anio'] == $d['nro_disposicion_anio']
+      && $disp['descripcion']          == $d['descripcion']){
+        return true;
       }
     }
-    return $result;
-  }
-
-  /*
-    una disposicion y el request de disposiciones
-  */
-  public function existeIdDisposicion($disp,$disposiciones){
-    $result = false;
-    for($i = 0;$i<count($disposiciones);$i++){
-      if($disp->id_disposicion == $disposiciones[$i]){
-
-        $result = true;
-        break;
-      }
-    }
-    return $result;
-  }
-
-  public function existeDisposicion($disp,$disposiciones){
-    $result = false;
-    for($i = 0;$i<count($disposiciones);$i++){
-      if($disp['nro_disposicion'] == $disposiciones[$i]['nro_disposicion']
-      && $disp['nro_disposicion_anio'] == $disposiciones[$i]['nro_disposicion_anio']
-      && $disp['descripcion'] == $disposiciones[$i]['descripcion']){
-
-        $result = true;
-        break;
-      }
-    }
-    return $result;
+    return false;
   }
 
   public function eliminarExpediente($id){
@@ -454,8 +323,6 @@ class ExpedienteController extends Controller
         NotaController::getInstancia()->eliminarNota($nota->id_nota);
       }
     }
-
-
 
     $expediente->maquinas()->detach();
     $expediente->casinos()->detach();
@@ -539,11 +406,6 @@ class ExpedienteController extends Controller
     }
 
     return ['expedientes' => $resultados];
-  }
-
-  public function getAll(){
-    $todos=Expediente::all();
-    return $todos;
   }
 
   public function buscarExpedientePorNumero($busqueda){

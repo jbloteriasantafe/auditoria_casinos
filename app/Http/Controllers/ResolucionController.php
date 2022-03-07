@@ -65,59 +65,34 @@ class ResolucionController extends Controller
 
   public function guardarResolucion($res,$id_expediente){
     $resolucion = new Resolucion;
-    $resolucion->nro_resolucion = $res['nro_resolucion'];
+    $resolucion->nro_resolucion      = $res['nro_resolucion'];
     $resolucion->nro_resolucion_anio = $res['nro_resolucion_anio'];
     $resolucion->expediente()->associate($id_expediente);
     $resolucion->save();
   }
 
   public function updateResolucion($res,$id_expediente){
-    
-    if(count($res)>0){
-      $id_res_actuales=array();
-      $res_crear=array();
-      foreach($res as $r){
-        if($r['id_resolucion']!="-1"){
-          array_push($id_res_actuales,$r['id_resolucion']);
-        }else{
-
-          array_push($res_crear,$r);
-        }
-
-      }
-
-      if($id_res_actuales){
-        $res_elim=Resolucion::select("id_resolucion")
-                ->where('id_expediente',$id_expediente)
-                ->whereNotIn("id_resolucion",$id_res_actuales)
-                ->get();
-        foreach($res_elim as $r){
-          Resolucion::destroy($r->id_resolucion);
-        }      
+    $res = $res ?? [];
+    $actuales = [];
+    $crear    = [];
+    foreach($res as $r){
+      if(!empty($r['id_resolucion'])){
+        array_push($actuales,$r['id_resolucion']);
       }else{
-        Resolucion::where("id_expediente",$id_expediente)
-                  ->delete();
+        array_push($crear,$r);
       }
-      
-      if ($res_crear){
-        foreach($res_crear as $rc){
-          $this->guardarResolucion($rc,$id_expediente);
-        }
-      }
-    }else{
-      Resolucion::where("id_expediente",$id_expediente)
-                  ->delete();
     }
-     
+
+    Resolucion::where('id_expediente',$id_expediente)
+    ->whereNotIn('id_resolucion',$actuales)->delete();
     
-
-
+    foreach($crear as $r){
+      $this->guardarResolucion($r,$id_expediente);
+    }
   }
-
 
   public function eliminarResolucion($id){
     $resolucion = Resolucion::destroy($id);
     return ['resolucion' => $resolucion];
   }
-
 }
