@@ -37,7 +37,7 @@ $id_usuario = session('id_usuario');
                                       <h5>Casinos</h5>
                                       <div class="form-group">
                                         <select class="form-control" id="sel1">
-                                          <option value="0">Todas los casinos</option>
+                                          <option value="0">Todos los casinos</option>
                                           @foreach($casinos as $c)
                                           <option value="{{$c->id_casino}}">{{$c->nombre}}</option>
                                           @endforeach
