@@ -32,25 +32,8 @@ class NotaController extends Controller
   }
 
   public function buscarTodoNotas(){
-
-      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      $casinos = array();
-      foreach($usuario->casinos as $casino){
-        $casinos[] = $casino->id_casino;
-      }
-      $notas=DB::table('nota')
-                      ->join('expediente' , 'expediente.id_expediente' ,'=' , 'nota.id_expediente')
-                      ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
-                      ->join('casino', 'expediente_tiene_casino.id_casino', '=', 'casino.id_casino')
-                      ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
-                      ->whereIn('casino.id_casino' ,$casinos)
-                      ->where('es_disposicion','=',0)
-                      ->orderBy('nota.identificacion','asc')
-                      ->take(30)
-                      ->get();
-
-      $casinos=Casino::all();
-      return view('seccionNotasExpediente' , ['notas' => $notas , 'casinos' => $casinos]);
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    return view('seccionNotasExpediente' , ['casinos' => $usuario->casinos]);
   }
 
   public function guardarNota($request, $id_expediente, $id_casino)// se usa desde expedienteController
@@ -138,6 +121,10 @@ class NotaController extends Controller
   }
 
   public function buscarNotas(Request $request){
+    $usuario =  UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $cas = [];
+    foreach($usuario->casinos as $c) $cas[] = $c->id_casino;
+
     $reglas = array();
     if(!empty($request->nro_exp_org)){
       $reglas[]=['expediente.nro_exp_org' , 'like' ,'%' . $request->nro_exp_org . '%'];
@@ -148,55 +135,49 @@ class NotaController extends Controller
     if(!empty($request->nro_exp_control)){
       $reglas[]=['expediente.nro_exp_control', 'like' ,'%' . $request->nro_exp_control .'%'];
     }
-    if($request->casino!= 0){
-      $reglas[]=['expediente.id_casino', '=' ,  $request->casino ];
+    if($request->casino != 0){
+      $reglas[]=['casino.id_casino', '=' ,  $request->casino ];
     }
-
     if(!empty($request->identificacion)){
       $reglas[]=['nota.identificacion', 'like' ,  '%' . $request->identificacion.'%'];
     }
 
+    $resultados = DB::table('expediente')->select('nota.*','casino.*','tipo_movimiento.descripcion as tipo_movimiento','expediente.*')
+    ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
+    ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
+    ->join('casino', 'expediente_tiene_casino.id_casino', '=', 'casino.id_casino')
+    ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
+    ->where('es_disposicion','=',0)
+    ->whereIn('casino.id_casino',$cas)
+    ->orderBy('nota.identificacion','asc')
+    ->where($reglas);
+    if(!empty($request->fecha)){
+      $resultados = $resultados->whereYear('fecha_iniciacion' , '=' ,$fecha[0])->whereMonth('fecha_iniciacion','=', $fecha[1]);
+    }
 
-    if(empty($request->fecha)){
-        $resultados=DB::table('expediente')
-        ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
-        ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
-        ->join('casino', 'expediente_tiene_casino.id_casino', '=', 'casino.id_casino')
-        ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
-        ->where('es_disposicion','=',0)
-        ->orderBy('nota.identificacion','asc')
-        ->where($reglas)
-        ->take(50)
-        ->get();
-    }else{
-        $fecha=explode("-", $request->fecha);
-        $resultados=DB::table('expediente')
-        ->join('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
-        ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
-        ->join('casino', 'expediente_tiene_casino.id_casino', '=', 'casino.id_casino')
-        ->leftJoin('tipo_movimiento','tipo_movimiento.id_tipo_movimiento','=','nota.id_tipo_movimiento')
-        ->where('es_disposicion','=',0)
-        ->orderBy('nota.identificacion','asc')
-        ->where($reglas)
-        ->whereYear('fecha_iniciacion' , '=' ,$fecha[0])
-        ->whereMonth('fecha_iniciacion','=', $fecha[1])
+    $sort_by = $request->sort_by;
+    $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    })->paginate($request->page_size);
 
-        ->take(50)
-        ->get();
-      }
-        return ['resultados' => $resultados];
+    return ['resultados' => $resultados];
   }
 
+
   public function eliminarNotaCompleta($id_nota){
-    $logMovsController = new LogMovimientoController();
-    $nota = Nota::find($id_nota);
-    if($nota->id_tipo_movimiento != null){
-      $nota->tipo_movimiento()->dissociate();
-      $log = $nota->log_movimiento();
-      $nota->log_movimiento()->dissociate();
-      $logMovsController->eliminarMovimientoExpediente($log->id_log_movimiento);
-    }
-    $nota->expediente()->dissociate();
+    DB::transaction(function() use($id_nota){
+      $nota = Nota::find($id_nota);
+      if($nota->id_tipo_movimiento != null){
+        $nota->tipo_movimiento()->dissociate();
+      }
+      $log = $nota->log_movimiento;
+      if($log){
+        $nota->log_movimiento()->dissociate();
+        LogMovimientoController::getInstancia()->eliminarMovimientoExpediente($log->id_log_movimiento);
+      }
+      $nota->expediente()->dissociate();
+      $nota->delete();
+    });
     return 1;
   }
 
