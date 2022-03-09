@@ -1,6 +1,5 @@
 //Resaltar la sección en el menú del costado
 $(document).ready(function() {
-
   $('#barraExpedientes').attr('aria-expanded','true');
   $('#expedientes').removeClass();
   $('#expedientes').addClass('subMenu1 collapse in');
@@ -15,27 +14,41 @@ $(document).ready(function() {
   $('#collapseFiltros').on('keypress',function(e){
       if(e.which == 13) {
         e.preventDefault();
-        $('#btn-buscarResolucion').click();
+        $('#buscarResolucion').click();
       }
   });
 
   $('#liExpedientes .setNavIcono').addClass('iconoAzul');
-
-
+  $('#buscarResolucion').click();
 });
 
 $('#btn-ayuda').click(function(e){
   e.preventDefault();
-
   $('.modal-title').text('| RESOLUCIONES');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
-
 	$('#modalAyuda').modal('show');
-
 });
 
-//Mostrar modal para agregar nuevo Casino
-$('#buscarResolucion').click(function(){
+$('#buscarResolucion').click(function(e,pagina,page_size,columna,orden){
+  $.ajaxSetup({
+     headers: {
+         'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+     }
+ })
+
+  //Fix error cuando librería saca los selectores
+  if(isNaN($('#herramientasPaginacion').getPageSize())){
+    var size = 10; // por defecto
+  }else {
+    var size = $('#herramientasPaginacion').getPageSize();
+  }
+  var page_size = (page_size == null || isNaN(page_size)) ? size : page_size;
+  var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+  var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResoluciones .activa').attr('value'),orden: $('#tablaResoluciones .activa').attr('estado')} ;
+  if(sort_by == null){ // limpio las columnas
+    $('#tablaResoluciones th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
+  }
+
   var formData={
     nro_resolucion: $('#nro_resolucion').val(),
     nro_resolucion_anio:$('#nro_resolucion_anio').val(),
@@ -43,13 +56,11 @@ $('#buscarResolucion').click(function(){
     nro_exp_interno:$('#nro_exp_interno').val(),
     nro_exp_control:$('#nro_exp_control').val(),
     casino:$('#sel1').val(),
+    page: page_number,
+    sort_by: sort_by,
+    page_size: page_size,
   }
 
-  $.ajaxSetup({
-     headers: {
-         'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-     }
- })
 
  $.ajax({
      type: "post",
@@ -57,44 +68,39 @@ $('#buscarResolucion').click(function(){
      dataType: 'json',
      data: formData,
      success: function (data) {
-       console.log(data);
-       //Remueve de la tabla
+       $('#herramientasPaginacion').generarTitulo(page_number,page_size,data.resultados.total,clickIndice);
        $('tbody').empty();
-       var cantidad = data.resultados.length;
-       switch(cantidad){
-         case 0:
-           var titulo = "No se encontraron expedientes";
-           break;
-         case 1:
-           var titulo = "Se encontró 1 Expediente";
-           break;
-         default:
-           var titulo = "Se encontraron " + cantidad + " Expedientes";
-       }
-       $('#tituloResoluciones').text(titulo);
-      //  $('#tablaExpedientes tbody > tr').remove();
-       for (var i = 0; i < data.resultados.length; i++) {
+       for (var i = 0; i < data.resultados.data.length; i++) {
          $('tbody')
             .append($('<tr>')
                 .append($('<td>')
-                  .text(data.resultados[i].nro_exp_org + '-' + data.resultados[i].nro_exp_interno + '-' + data.resultados[i].nro_exp_control)
+                  .text(data.resultados.data[i].nro_exp_org + '-' + data.resultados.data[i].nro_exp_interno + '-' + data.resultados.data[i].nro_exp_control)
+                  .addClass('col-xs-4')
                 )
                 .append($('<td>')
-                  .text(data.resultados[i].nombre)
+                  .text(data.resultados.data[i].nombre)
+                  .addClass('col-xs-4')
                 )
                 .append($('<td>')
-                  .text(data.resultados[i].nro_resolucion+'-'+data.resultados[i].nro_resolucion_anio)
-
+                  .text(data.resultados.data[i].nro_resolucion+'-'+data.resultados.data[i].nro_resolucion_anio)
+                  .addClass('col-xs-4')
               )
           )
        }
-
-       $("#tablaResoluciones").trigger("update");
-       $("#tablaResoluciones th").removeClass('headerSortDown').removeClass('headerSortUp').children('i').removeClass().addClass('fa').addClass('fa-sort');
-
+       $('#herramientasPaginacion').generarIndices(page_number,page_size,data.resultados.total,clickIndice);
      },
      error: function (data) {
        console.log('Error: ', data);
      }
  });
 });
+
+function clickIndice(e,pageNumber,tam){
+  if(e != null){
+    e.preventDefault();
+  }
+  var tam = $('#herramientasPaginacion').getPageSize();
+  var columna = $('#tablaResoluciones .activa').attr('value');
+  var orden = $('#tablaResoluciones .activa').attr('estado');
+  $('#buscarResolucion').trigger('click',[pageNumber,tam,columna,orden]);
+}

@@ -22,19 +22,16 @@ class ResolucionController extends Controller
   }
 
   public function buscarTodoResoluciones(){
-    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-    $resoluciones=array();
-    foreach($usuario['usuario']->casinos as $casino){
-      $auxiliar=DB::table('resolucion')->join('expediente' , 'expediente.id_expediente' ,'=' , 'resolucion.id_expediente')->join('casino', 'casino.id_casino', '=' , 'expediente.id_casino')->where('casino.id_casino' , '=' ,$casino->id_casino)->get()->toArray();
-        $resoluciones=array_merge($resoluciones,$auxiliar);
-    }
-    $casinos=Casino::all();
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     UsuarioController::getInstancia()->agregarSeccionReciente('Resoluciones' , 'resoluciones');
-
-    return view('seccionResoluciones' , ['resoluciones' => $resoluciones , 'casinos' => $casinos]);
+    return view('seccionResoluciones' , ['casinos' => $usuario->casinos]);
   }
 
   public function buscarResolucion(Request $request){
+    $usuario =  UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $cas = [];
+    foreach($usuario->casinos as $c) $cas[] = $c->id_casino;
+
     $reglas = array();
     if(!empty($request->nro_exp_org)){
       $reglas[]=['expediente.nro_exp_org' , 'like' ,'%' . $request->nro_exp_org . '%'];
@@ -46,7 +43,7 @@ class ResolucionController extends Controller
       $reglas[]=['expediente.nro_exp_control', 'like' ,'%' . $request->nro_exp_control .'%'];
     }
     if($request->casino!= 0){
-      $reglas[]=['expediente.id_casino', '=' , $request->casino ];
+      $reglas[]=['casino.id_casino', '=' , $request->casino];
     }
     if(!empty($request->nro_resolucion)){
       $reglas[]=['resolucion.nro_resolucion', 'like' ,'%' . $request->nro_resolucion . '%'];
@@ -55,12 +52,18 @@ class ResolucionController extends Controller
       $reglas[]=['resolucion.nro_resolucion_anio', 'like' , '%' . $request->nro_resolucion_anio . '%'];
     }
 
-      $resultados=DB::table('expediente')
-      ->join('resolucion', 'resolucion.id_expediente' , '=' , 'expediente.id_expediente')
-      ->join('casino', 'casino.id_casino' , '=' , 'expediente.id_casino')
-      ->where($reglas)
-      ->get();
-        return ['resultados' => $resultados , 'dato' => $request->nro_exp_org];
+    $sort_by = $request->sort_by;
+    $resultados=DB::table('expediente')
+    ->join('resolucion', 'resolucion.id_expediente' , '=' , 'expediente.id_expediente')
+    ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
+    ->join('casino','casino.id_casino','=','expediente_tiene_casino.id_casino')
+    ->whereIn('casino.id_casino',$cas)
+    ->where($reglas)
+    ->when($sort_by,function($query) use ($sort_by){
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    })->paginate($request->page_size);
+
+    return ['resultados' => $resultados];
   }
 
   public function guardarResolucion($res,$id_expediente){
