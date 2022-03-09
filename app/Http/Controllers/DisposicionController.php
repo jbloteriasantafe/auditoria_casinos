@@ -23,19 +23,8 @@ class DisposicionController extends Controller
 
   public function buscarTodoDisposiciones(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-    $disposiciones=array();
-    foreach($usuario['usuario']->casinos as $casino){
-      $auxiliar=DB::table('disposicion')->join('expediente' , 'expediente.id_expediente' ,'=' , 'disposicion.id_expediente')->join('casino', 'casino.id_casino', '=' , 'expediente.id_casino')->where('casino.id_casino' , '=' ,$casino->id_casino)->get()->toArray();
-      $disposiciones=array_merge($disposiciones,$auxiliar);
-      //añade las disposiciones de notas
-      $auxiliar=DB::table('disposicion')->join('expediente' , 'expediente.id_expediente' ,'=' , 'disposicion.id_expediente')->join('casino', 'casino.id_casino', '=' , 'expediente.id_casino')->join('nota', 'nota.id_nota','=','expediente.id_expediente')->where('casino.id_casino' , '=' ,$casino->id_casino)->get()->toArray();
-      $disposiciones=array_merge($disposiciones,$auxiliar);
-    }
-    $casinos=Casino::all();
-
     UsuarioController::getInstancia()->agregarSeccionReciente('Disposiciones' , 'disposiciones');
-
-    return view('seccionDisposiciones' , ['disposiciones' => $disposiciones , 'casinos' => $casinos]);
+    return view('seccionDisposiciones' , ['casinos' => $usuario['usuario']->casinos]);
   }
 
   public function guardarDisposicion($disp, $id_expediente){
@@ -70,6 +59,10 @@ class DisposicionController extends Controller
 
 
   public function buscarDispocisiones(Request $request){
+    $usuario =  UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $cas = [];
+    foreach($usuario->casinos as $c) $cas[] = $c->id_casino;
+    
     $reglas = array();
     if(!empty($request->nro_exp_org)){
       $reglas[]=['expediente.nro_exp_org' , 'like' ,'%' . $request->nro_exp_org . '%'];
@@ -81,7 +74,7 @@ class DisposicionController extends Controller
       $reglas[]=['expediente.nro_exp_control', 'like' ,'%' . $request->nro_exp_control .'%'];
     }
     if($request->casino!= 0){
-      $reglas[]=['expediente.id_casino', '=' ,  $request->casino ];
+      $reglas[]=['casino.id_casino', '=' ,  $request->casino ];
     }
     if(!empty($request->nro_disposicion)){
       $reglas[]=['disposicion.nro_disposicion', 'like' ,'%' . $request->nro_disposicion . '%'];
@@ -90,15 +83,19 @@ class DisposicionController extends Controller
       $reglas[]=['disposicion.nro_disposicion_anio', 'like' , '%' . $request->nro_disposicion_anio . '%'];
     }
 
-      $resultados=DB::table('expediente')
-      ->join('disposicion', 'disposicion.id_expediente' , '=' , 'expediente.id_expediente')
-      ->join('casino', 'casino.id_casino' , '=' , 'expediente.id_casino')
-      ->leftJoin('nota', 'nota.id_expediente', '=', 'expediente.id_expediente')
-      ->where($reglas)
-      ->get();
+    $resultados=DB::table('expediente')
+    ->join('disposicion', 'disposicion.id_expediente' , '=' , 'expediente.id_expediente')
+    ->join('expediente_tiene_casino','expediente_tiene_casino.id_expediente','=','expediente.id_expediente')
+    ->join('casino', 'casino.id_casino' , '=' , 'expediente_tiene_casino.id_casino')
+    ->leftJoin('nota', 'nota.id_nota', '=', 'disposicion.id_nota')
+    ->whereIn('casino.id_casino',$cas)
+    ->where($reglas);
 
-      return ['resultados' => $resultados];
+    $sort_by = $request->sort_by;
+    $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    })->paginate($request->page_size);
 
-
+    return ['resultados' => $resultados];
   }
 }
