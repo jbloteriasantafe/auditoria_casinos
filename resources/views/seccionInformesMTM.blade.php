@@ -80,18 +80,21 @@ function anio_mes($anio,$mes){
                                 <table id="" class="table table-fixed tablesorter">
                                   <thead>
                                       <tr>
-                                        <th class="col-xs-7">FECHA</th>
-                                        <th class="col-xs-5">ACCIÓN</th>
+                                        <th class="col-xs-7" style="text-align: center;">FECHA</th>
+                                        <th class="col-xs-5" style="text-align: center;">ACCIÓN</th>
                                       </tr>
                                   </thead>
                                   <tbody style="height: 356px;">
                                      @foreach($beneficios_sfe as $b)
                                       <tr>
-                                        <td class="col-xs-8">{{anio_mes($b->anio,$b->mes)}}</td>
-                                        <td class="col-xs-4">
+                                        <td class="col-xs-7">{{anio_mes($b->anio,$b->mes)}}</td>
+                                        <td class="col-xs-5" style="text-align: center;">
                                           @if($b->estado == 1)
-                                            <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" class="btn btn-info planilla detalle" type="button">
+                                            <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" data-pdev="0" class="btn btn-info planilla detalle" type="button">
                                                 <i class="fa fa-fw fa-print"></i>
+                                            </button>
+                                            <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" data-pdev="1" class="btn btn-info planilla detalle" type="button">
+                                              <i class="fa fa-fw fa-search-plus"></i>
                                             </button>
                                           @endif
                                           @if($b->estado == 0)
@@ -132,18 +135,21 @@ function anio_mes($anio,$mes){
                                 <table id="" class="table table-fixed tablesorter">
                                   <thead>
                                       <tr>
-                                        <th class="col-xs-7">FECHA</th>
-                                        <th class="col-xs-5">ACCIÓN</th>
+                                        <th class="col-xs-7" style="text-align: center;">FECHA</th>
+                                        <th class="col-xs-5" style="text-align: center;">ACCIÓN</th>
                                       </tr>
                                   </thead>
                                   <tbody style="height: 356px;">
                                     @foreach($beneficios_mel as $b)
                                       <tr id="">
-                                        <td class="col-xs-8">{{anio_mes($b->anio,$b->mes)}}</td>
-                                        <td class="col-xs-4">
+                                        <td class="col-xs-7">{{anio_mes($b->anio,$b->mes)}}</td>
+                                        <td class="col-xs-5" style="text-align: center;">
                                           @if($b->estado == 1)
                                           <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" class="btn btn-info planilla detalle" type="button">
                                                 <i class="fa fa-fw fa-print"></i>
+                                          </button>
+                                          <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" data-pdev="1" class="btn btn-info planilla detalle" type="button">
+                                            <i class="fa fa-fw fa-search-plus"></i>
                                           </button>
                                           @endif
                                           @if($b->estado == 0)
@@ -183,20 +189,23 @@ function anio_mes($anio,$mes){
                                 <table id="" class="table table-fixed tablesorter">
                                   <thead>
                                       <tr>
-                                        <th class="col-xs-4">FECHA</th>
-                                        <th class="col-xs-5">MONEDA</th>
-                                        <th class="col-xs-3">ACCIÓN</th>
+                                        <th class="col-xs-5" style="text-align: center;">FECHA</th>
+                                        <th class="col-xs-4" style="text-align: center;">MONEDA</th>
+                                        <th class="col-xs-3" style="text-align: center;">ACCIÓN</th>
                                       </tr>
                                   </thead>
                                   <tbody style="height: 356px;">
                                     @foreach($beneficios_ros as $b)
                                       <tr>
                                         <td class="col-xs-5">{{anio_mes($b->anio,$b->mes)}}</td>
-                                        <td class="col-xs-5">{{moneda($b->id_tipo_moneda)}}</td>
-                                        <td class="col-xs-2">
+                                        <td class="col-xs-4" style="text-align: center;">{{moneda($b->id_tipo_moneda)}}</td>
+                                        <td class="col-xs-3" style="text-align: center;"> 
                                           @if($b->estado == 1)
                                             <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" class="btn btn-info planilla detalle" type="button">
                                                 <i class="fa fa-fw fa-print"></i>
+                                            </button>
+                                            <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" data-pdev="1" class="btn btn-info planilla detalle" type="button">
+                                              <i class="fa fa-fw fa-search-plus"></i>
                                             </button>
                                           @endif
                                           @if($b->estado == 0)
@@ -244,7 +253,7 @@ function anio_mes($anio,$mes){
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionMTMbeneficios.js" charset="utf-8"></script>
+    <script src="js/seccionMTMbeneficios.js?2" charset="utf-8"></script>
     <script>
       $(document).ready(function(){
           $('[data-toggle="popover"]').popover();

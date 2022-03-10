@@ -65,6 +65,9 @@
         @if ($sum->casino != 'Rosario' && !$calculado)
         <th class="tablaInicio">P.MAYORES</th>
         @endif
+        @if ($mostrar_pdev)
+        <th class="tablaInicio">%dev</th>
+        @endif
         @if ($sum->tipoMoneda == 'US$')
         <th class="tablaInicio">BENEFICIO (US$) {{$calculado? '(CALCULADO)' : ''}}</th>
         <th class="tablaInicio">COTIZACIÓN<sup>*</sup></th>
@@ -81,6 +84,9 @@
         <td class="tablaCampos">{{$b->premios}}</td>
         @if ($sum->casino != 'Rosario' && !$calculado)
         <td class="tablaCampos">{{$b->pmayores}}</td>
+        @endif
+        @if ($mostrar_pdev)
+        <td class="tablaCampos">{{$b->pdev}}</td>
         @endif
         @if ($sum->tipoMoneda == 'US$')
         <td class="tablaCampos">{{$b->beneficio}}</td>
@@ -101,6 +107,9 @@
         @if ($sum->casino != 'Rosario' && !$calculado)
         <th class="tablaInicio">P.MAYORES</th>
         @endif
+        @if ($mostrar_pdev)
+        <th class="tablaInicio">%dev</th>
+        @endif
         @if ($sum->tipoMoneda == 'US$')
         <th class="tablaInicio">BENEFICIO (US$) {{$calculado? '(CALCULADO)' : ''}}</th>
         <th class="tablaInicio">BENEFICIO ($)</th>
@@ -114,6 +123,9 @@
         <td class="tablaCampos centrar">{{$mostrar_total_apostadoypremios? $sum->totalPremios  : ''}}</td>
         @if ($sum->casino != 'Rosario' && !$calculado)
         <td class="tablaCampos centrar">{{$sum->totalPmayores}}</td>
+        @endif
+        @if ($mostrar_pdev)
+        <td class="tablaCampos">{{$sum->totalPdev}}</td>
         @endif
         @if ($sum->tipoMoneda == 'US$')
         <td class="tablaCampos centrar">{{$sum->totalBeneficio}}</td>

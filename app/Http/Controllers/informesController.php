@@ -31,9 +31,9 @@ class informesController extends Controller
       PARA PANTALLAS DE INFORMES
     */
 
-  public function generarPlanilla(int $anio,int $mes,int $id_casino,int $tipo_moneda){
-    $condicion = [['b.id_casino','=',$id_casino],['b.id_tipo_moneda','=',$tipo_moneda],
-                  [DB::raw('YEAR(b.fecha)'),'=',$anio],[DB::raw('MONTH(b.fecha)'),'=',$mes]];
+  public function generarPlanilla(Request $request){
+    $condicion = [['b.id_casino','=',$request->id_casino],['b.id_tipo_moneda','=',$request->id_tipo_moneda],
+                  [DB::raw('YEAR(b.fecha)'),'=',$request->anio],[DB::raw('MONTH(b.fecha)'),'=',$request->mes]];
 
     //@TODO: extender cotizacion a N monedas. Si agregas peso con convertivilidad 1 por defecto simplificaria bastante codigo
     $beneficios = DB::table('beneficio as b')
@@ -43,6 +43,7 @@ class informesController extends Controller
       DB::raw('FORMAT(b.coinin,2,"es_AR")  as apostado'),
       DB::raw('FORMAT(b.coinout,2,"es_AR") as premios'),
       DB::raw('FORMAT(b.jackpot,2,"es_AR") as pmayores'),
+      DB::raw('FORMAT((b.coinout+IFNULL(b.jackpot,0))/b.coinin,3,"es_AR") as pdev'),
       DB::raw('FORMAT(b.valor,2,"es_AR")   as beneficio'),
       DB::raw('IF(cot.valor IS NULL,"-",FORMAT(cot.valor,3,"es_AR"))         as cotizacion'),//Para dolares
       DB::raw('IF(cot.valor IS NULL,"-",FORMAT(b.valor*cot.valor,2,"es_AR")) as beneficioPesos')//Para dolares
@@ -50,7 +51,7 @@ class informesController extends Controller
     ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha')//No deberiamos usar la ultima cotizacion cargada si la de la fecha no esta?
     ->where($condicion)->orderBy('b.fecha','asc')->get();
 
-    $condicion_p = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],['dp.valor','<>',0]];
+    $condicion_p = [['p.id_casino','=',$request->id_casino],['p.id_tipo_moneda','=',$request->id_tipo_moneda],['dp.valor','<>',0]];
 
     foreach($beneficios as $b){
       //Esto en realidad es un limite inferior porque al momento de importar si falta la maquina en el sistema, se ignora la fila
@@ -66,6 +67,7 @@ class informesController extends Controller
         DB::raw('FORMAT(SUM(b.coinin),2,"es_AR")  as totalApostado'),
         DB::raw('FORMAT(SUM(b.coinout),2,"es_AR") as totalPremios'),
         DB::raw('FORMAT(SUM(b.jackpot),2,"es_AR") as totalPmayores'),
+        DB::raw('FORMAT((SUM(b.coinout)+SUM(IFNULL(b.jackpot,0)))/SUM(b.coinin),3,"es_AR") as totalPdev'),
         DB::raw('FORMAT(SUM(b.valor),2,"es_AR")   as totalBeneficio'),
         DB::raw('FORMAT(SUM(b.valor*IFNULL(cot.valor,0)),2,"es_AR") as totalBeneficioPesos')//Para dolares
     )
@@ -74,8 +76,8 @@ class informesController extends Controller
     ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha')
     ->where($condicion)->groupBy('c.nombre','tm.descripcion')->first();
 
-    $condicion_p = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],['dp.valor','<>',0],
-                    [DB::raw('YEAR(p.fecha)'),'=',$anio],[DB::raw('MONTH(p.fecha)'),'=',$mes]];
+    $condicion_p = [['p.id_casino','=',$request->id_casino],['p.id_tipo_moneda','=',$request->id_tipo_moneda],['dp.valor','<>',0],
+                    [DB::raw('YEAR(p.fecha)'),'=',$request->anio],[DB::raw('MONTH(p.fecha)'),'=',$request->mes]];
 
     //Esto en realidad es un limite inferior porque al momento de importar si falta la maquina en el sistema, se ignora la fila
     $maquinas = DB::table('producido as p')
@@ -85,15 +87,16 @@ class informesController extends Controller
     if($maquinas) $sum->cantidad_maquinas = $maquinas->cantidad_maquinas;
 
     $meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-    if(array_key_exists($mes-1,$meses)) $mes = $meses[$mes-1];
-    $sum->mes = $mes . '';//to String
+    if(array_key_exists(intval($request->mes)-1,$meses)) $mes = $meses[intval($request->mes)-1];
+    $sum->mes = $request->mes;
 
-    if($tipo_moneda == 2)      $sum->tipoMoneda = 'US$';
-    else if($tipo_moneda == 1) $sum->tipoMoneda = '$';
+    if($request->id_tipo_moneda == 2)      $sum->tipoMoneda = 'US$';
+    else if($request->id_tipo_moneda == 1) $sum->tipoMoneda = '$';
     else return "Moneda no soportada";
 
     $desde_hasta = null;
-    $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde_hasta'));
+    $mostrar_pdev = $request->pdev == 1;
+    $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde_hasta','mostrar_pdev'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -105,7 +108,7 @@ class informesController extends Controller
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
 
-  private function generarPlanillaNroAdmins(int  $anio,int $mes,int $id_casino,int $tipo_moneda,array $nro_admins){
+  private function generarPlanillaNroAdmins(int  $anio,int $mes,int $id_casino,int $tipo_moneda,bool $mostrar_pdev,array $nro_admins){
     $condicion = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],
     [DB::raw('YEAR(p.fecha)'),'=',$anio],[DB::raw('MONTH(p.fecha)'),'=',$mes]];
 
@@ -121,6 +124,7 @@ class informesController extends Controller
       DB::raw('FORMAT('.$suma_a.',2,"es_AR") as apostado'),
       DB::raw('FORMAT('.$suma_p.',2,"es_AR") as premios'),
       DB::raw('"" as pmayores'),
+      DB::raw('FORMAT('.$suma_p.'/'.$suma_a.',3,"es_AR")as pdev'),
       DB::raw('FORMAT('.$suma_v.',2,"es_AR") as beneficio'),
       DB::raw('IF(cot.valor IS NULL,"-",FORMAT(cot.valor,3,"es_AR")) as cotizacion'),//Para dolares
       DB::raw('IF(cot.valor IS NULL,"-",FORMAT('.$suma_cotizada.',2,"es_AR")) as beneficioPesos')//Para dolares
@@ -142,6 +146,7 @@ class informesController extends Controller
       DB::raw('FORMAT('.$suma_a.',2,"es_AR") as totalApostado'),
       DB::raw('FORMAT('.$suma_p.',2,"es_AR") as totalPremios'),
       DB::raw('"" as totalPmayores'),
+      DB::raw('FORMAT('.$suma_p.'/'.$suma_a.',3,"es_AR") as totalPdev'),
       DB::raw('FORMAT('.$suma_v.',2,"es_AR") as totalBeneficio'),
       DB::raw('FORMAT('.$suma_cotizada.',2,"es_AR") as totalBeneficioPesos')//Para dolares
     )
@@ -181,8 +186,11 @@ class informesController extends Controller
       $rangos[] = $current_min.'-'.$nro_admins[$idx-1];
       $current_min = $n;
     }
+    if(end($rangos) != ($current_min.'-'.end($nro_admins))){//Caso especial para el ultimo rango si fueron todos consecutivos nunca lo agrego
+      $rangos[] = $current_min.'-'.end($nro_admins);
+    }
     $desde_hasta = implode(',',$rangos);
-    $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde_hasta'));
+    $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde_hasta','mostrar_pdev'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -194,18 +202,18 @@ class informesController extends Controller
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
 
-  public function generarPlanillaMaquinas(int $anio,int $mes,int $id_casino,int $tipo_moneda,int $maqmenor,int $maqmayor){
-    $reglas = [['id_casino','=',$id_casino]];
-    if($maqmenor != -1) $reglas[] = ['nro_admin','>=',$maqmenor];
-    if($maqmayor != -1) $reglas[] = ['nro_admin','<=',$maqmayor];
+  public function generarPlanillaMaquinas(Request $request){
+    $reglas = [['id_casino','=',$request->id_casino]];
+    if($request->nro_admin_min != -1) $reglas[] = ['nro_admin','>=',$request->nro_admin_min];
+    if($request->nro_admin_max != -1) $reglas[] = ['nro_admin','<=',$request->nro_admin_max];
     $maqs = Maquina::where($reglas)->orderBy('nro_admin','asc')->pluck('nro_admin')->toArray();
-    return $this->generarPlanillaNroAdmins($anio,$mes,$id_casino,$tipo_moneda,$maqs);
+    return $this->generarPlanillaNroAdmins($request->anio,$request->mes,$request->id_casino,$request->id_tipo_moneda,$request->pdev == 1,$maqs);
   }
   
-  public function generarPlanillaIsla(int $anio,int $mes,int $id_casino,int $tipo_moneda,int $nro_isla){
-    $maqs = Isla::where([['id_casino','=',$id_casino],['nro_isla','=',$nro_isla]])
+  public function generarPlanillaIsla(Request $request){
+    $maqs = Isla::where([['id_casino','=',$request->id_casino],['nro_isla','=',$request->nro_isla]])
     ->get()->first()->maquinas()->orderBy('nro_admin','asc')->pluck('nro_admin')->toArray();
-    return $this->generarPlanillaNroAdmins($anio,$mes,$id_casino,$tipo_moneda,$maqs);
+    return $this->generarPlanillaNroAdmins($request->anio,$request->mes,$request->id_casino,$request->id_tipo_moneda,$request->pdev == 1,$maqs);
   }
 
   public function obtenerUltimosBeneficiosPorCasino(){

@@ -7,29 +7,35 @@ $(document).ready(function(){
   $('#opcInformesMTM').addClass('opcionesSeleccionado');
 });
 
+function encodeQueryData(data){
+  const ret = [];
+  for (let d in data)
+    ret.push(encodeURIComponent(d) + '=' + encodeURIComponent(data[d]));
+  return ret.join('&');
+}
+
 //MUESTRA LA PLANILLA
 $(document).on('click','.planilla',function(){
     $('#alertaArchivo').hide();
-    const anio   = $(this).attr('data-anio');
-    const mes    = $(this).attr('data-mes');
-    const casino = $(this).attr('data-casino');
-    const moneda = $(this).attr('data-moneda');
     let url = 'informesMTM/';
     const maq1 = $('#maquinasMenor').val();
     const maq2 = $('#maquinasMayor').val();
     const isla = $('#isla').val();
+    const params = {
+      'anio' : $(this).attr('data-anio'),'mes' : $(this).attr('data-mes'), 'id_casino' : $(this).attr('data-casino'),
+      'id_tipo_moneda' : $(this).attr('data-moneda'), 'pdev' : $(this).attr('data-pdev'),
+      'nro_admin_min': (maq1.length > 0? maq1 : -1),'nro_admin_max': (maq2.length > 0? maq2 : -1), 'nro_isla': isla,
+    };
     if(maq1.length > 0 || maq2.length > 0){
-      const m1 = maq1.length > 0? maq1 : -1;
-      const m2 = maq2.length > 0? maq2 : -1;
-      url += `generarPlanillaMaquinas/${anio}/${mes}/${casino}/${moneda}/${m1}/${m2}`;
+      url += `generarPlanillaMaquinas`;
     }
     else if(isla){
-      url += `generarPlanillaIsla/${anio}/${mes}/${casino}/${moneda}/${isla}`;
+      url += `generarPlanillaIsla`;
     }
     else{
-      url += `generarPlanilla/${anio}/${mes}/${casino}/${moneda}`;
+      url += `generarPlanilla`;
     }
-    window.open(url,'_blank');
+    window.open(url+'?'+encodeQueryData(params),'_blank');
 });
 
 
