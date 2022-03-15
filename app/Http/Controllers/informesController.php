@@ -43,7 +43,7 @@ class informesController extends Controller
       DB::raw('FORMAT(b.coinin,2,"es_AR")  as apostado'),
       DB::raw('FORMAT(b.coinout,2,"es_AR") as premios'),
       DB::raw('FORMAT(b.jackpot,2,"es_AR") as pmayores'),
-      DB::raw('FORMAT((b.coinout+IFNULL(b.jackpot,0))/b.coinin,3,"es_AR") as pdev'),
+      DB::raw('FORMAT(100*(b.coinout+IFNULL(b.jackpot,0))/b.coinin,3,"es_AR") as pdev'),
       DB::raw('FORMAT(b.valor,2,"es_AR")   as beneficio'),
       DB::raw('IF(cot.valor IS NULL,"-",FORMAT(cot.valor,3,"es_AR"))         as cotizacion'),//Para dolares
       DB::raw('IF(cot.valor IS NULL,"-",FORMAT(b.valor*cot.valor,2,"es_AR")) as beneficioPesos')//Para dolares
@@ -67,7 +67,7 @@ class informesController extends Controller
         DB::raw('FORMAT(SUM(b.coinin),2,"es_AR")  as totalApostado'),
         DB::raw('FORMAT(SUM(b.coinout),2,"es_AR") as totalPremios'),
         DB::raw('FORMAT(SUM(b.jackpot),2,"es_AR") as totalPmayores'),
-        DB::raw('FORMAT((SUM(b.coinout)+SUM(IFNULL(b.jackpot,0)))/SUM(b.coinin),3,"es_AR") as totalPdev'),
+        DB::raw('FORMAT(100*(SUM(b.coinout)+SUM(IFNULL(b.jackpot,0)))/SUM(b.coinin),3,"es_AR") as totalPdev'),
         DB::raw('FORMAT(SUM(b.valor),2,"es_AR")   as totalBeneficio'),
         DB::raw('FORMAT(SUM(b.valor*IFNULL(cot.valor,0)),2,"es_AR") as totalBeneficioPesos')//Para dolares
     )
@@ -124,7 +124,7 @@ class informesController extends Controller
       DB::raw('FORMAT('.$suma_a.',2,"es_AR") as apostado'),
       DB::raw('FORMAT('.$suma_p.',2,"es_AR") as premios'),
       DB::raw('"" as pmayores'),
-      DB::raw('FORMAT('.$suma_p.'/'.$suma_a.',3,"es_AR")as pdev'),
+      DB::raw('FORMAT(100*'.$suma_p.'/'.$suma_a.',3,"es_AR")as pdev'),
       DB::raw('FORMAT('.$suma_v.',2,"es_AR") as beneficio'),
       DB::raw('IF(cot.valor IS NULL,"-",FORMAT(cot.valor,3,"es_AR")) as cotizacion'),//Para dolares
       DB::raw('IF(cot.valor IS NULL,"-",FORMAT('.$suma_cotizada.',2,"es_AR")) as beneficioPesos')//Para dolares
@@ -146,7 +146,7 @@ class informesController extends Controller
       DB::raw('FORMAT('.$suma_a.',2,"es_AR") as totalApostado'),
       DB::raw('FORMAT('.$suma_p.',2,"es_AR") as totalPremios'),
       DB::raw('"" as totalPmayores'),
-      DB::raw('FORMAT('.$suma_p.'/'.$suma_a.',3,"es_AR") as totalPdev'),
+      DB::raw('FORMAT(100*'.$suma_p.'/'.$suma_a.',3,"es_AR") as totalPdev'),
       DB::raw('FORMAT('.$suma_v.',2,"es_AR") as totalBeneficio'),
       DB::raw('FORMAT('.$suma_cotizada.',2,"es_AR") as totalBeneficioPesos')//Para dolares
     )
