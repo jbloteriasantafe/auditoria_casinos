@@ -241,14 +241,8 @@ class IslaController extends Controller
     $reglas = array();
     if(!empty($request->nro_isla))
       $reglas[]=['isla.nro_isla','like',$request->nro_isla.'%'];
-    if(!empty($request->id_sector)){
-      if($request->id_sector == 'SIN_SECTOR'){
-        $reglas[]=['isla.id_sector','IS',DB::raw('NULL')];
-      }
-      else{
-        $reglas[]=['isla.id_sector','=',$request->id_sector];
-      }
-    }
+    if(!empty($request->id_sector) && is_numeric($request->id_sector))
+      $reglas[]=['isla.id_sector','=',$request->id_sector];
       
     if(!empty($request->id_casino))
       $reglas[]=['isla.id_casino','=',$request->id_casino];
@@ -264,7 +258,7 @@ class IslaController extends Controller
     if(!empty($request->sort_by)) $sort_by = $request->sort_by;
 
     $resultados=DB::table('isla')
-    ->selectRaw('isla.id_isla, isla.nro_isla , isla.codigo , COUNT(id_maquina) as cantidad_maquinas ,IFNULL(sector.descripcion,"SIN SECTOR") AS sector, casino.id_casino as id_casino, casino.nombre as casino')
+    ->selectRaw('isla.id_isla, isla.nro_isla , isla.codigo , COUNT(id_maquina) as cantidad_maquinas ,IFNULL(sector.descripcion,"- SIN SECTOR -") AS sector, casino.id_casino as id_casino, casino.nombre as casino')
     ->leftJoin('maquina','maquina.id_isla','=','isla.id_isla')
     ->leftJoin('sector','sector.id_sector','=','isla.id_sector')
     ->join('casino' ,'isla.id_casino' , '=' ,'casino.id_casino')
@@ -273,6 +267,12 @@ class IslaController extends Controller
     ->whereNull('isla.deleted_at')
     ->whereIn('isla.id_casino' , $casinos)
     ->groupBy('isla.id_isla');
+    if(!empty($request->id_sector) && is_numeric($request->id_sector)){
+      $reglas[]=['isla.id_sector','=',$request->id_sector];
+    }
+    if(!empty($request->id_sector) && $request->id_sector == "SIN_SECTOR"){
+      $resultados = $resultados->whereNull('isla.id_sector');
+    }
     //is_null porque puede mandar 0, ver empty() en los DOC de PHP
     if(!is_null($request->cantidad_maquinas))
       $resultados = $resultados->havingRaw('COUNT(id_maquina) <= ?',[$request->cantidad_maquinas]);
