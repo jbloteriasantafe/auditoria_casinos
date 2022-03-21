@@ -617,7 +617,7 @@ class IslaController extends Controller
           }
         }
         //Lo hago asi por el temita de las subislas (pueden haber mas de 1 isla con el mismo nro pero distinto codigo)
-        $c1 = DB::table('isla')->select('nro_isla')->distinct()->whereNull('deleted_at')->where('id_casino','=',$id_casino);
+        $c1 = DB::table('isla')->select('nro_isla')->distinct()->whereNull('deleted_at')->where('id_casino','=',$id_casino)->whereNotNull('id_sector');
         $c2 = (clone $c1)->whereIn('nro_isla',$islas)->get()->count();
         $c1 = $c1->get()->count();
         if(($c1 != $c2) || ($c1 != count($islas))){
