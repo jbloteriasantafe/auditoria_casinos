@@ -111,6 +111,7 @@ $('#buscadorCasino').on('change' , function (){
     for (let i = 0; i < data.sectores.length; i++) {
       $('#buscadorSector').append($('<option>').val(data.sectores[i].id_sector).text(data.sectores[i].descripcion));
     }
+    $('#buscadorSector').append($('<option value="SIN_SECTOR">-SIN SECTOR-</option>'));
   });
  })
 
