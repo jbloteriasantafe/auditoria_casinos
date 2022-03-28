@@ -176,7 +176,7 @@ function datetimepicker(dtp,linkfield){//Auxiliar que permite generar datetimepi
     autoclose: 1,
     todayHighlight: 1,
     format: 'dd MM yyyy',
-    pickerPosition: "bottom-left",
+    pickerPosition: "top-right",
     startView: 4,
     minView: 2,
     linkField: id,
