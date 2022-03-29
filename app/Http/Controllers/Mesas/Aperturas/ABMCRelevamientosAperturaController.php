@@ -207,26 +207,11 @@ class ABMCRelevamientosAperturaController extends Controller
         $rel->sorteadas->cartasDados = $sorteo['cartasDados'];
 
         $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->with('juego')->get();
-        $m_ordenadas = $rmesas->sortBy('codigo_sector');
-        $lista_mesas = array();
-        $sublista = array();
-        $contador = 1;
-        foreach ($m_ordenadas as $m) {
-          if($contador == 35){ //30 = cant de mesas que entran de 1
-            $sublista[] = ['codigo_mesa'=> $m->codigo_mesa,'sector'=> $m->nombre_sector];
-            $lista_mesas[] = $sublista;
-            $sublista = array();
-            $contador = 1;
-          }else{
-            $sublista[] = ['codigo_mesa'=> $m->codigo_mesa,'sector'=> $m->nombre_sector];
-            $contador++;
-          }
-        }
-        if($contador != 35){
-          $lista_mesas[] = $sublista;
-        }
+        $m_ordenadas = $rmesas->sortBy('codigo_sector')->map(function($m){
+          return ['codigo_mesa'=> $m->codigo_mesa,'sector'=> $m->nombre_sector];
+        })->toArray();
 
-        $rel->mesas = $lista_mesas;
+        $rel->mesas = array_chunk($m_ordenadas,33);
         $rel->fecha = \Carbon\Carbon::today();
         $año = substr($rel->fecha,0,4);
         $mes = substr($rel->fecha,5,2);
@@ -241,15 +226,10 @@ class ABMCRelevamientosAperturaController extends Controller
         ->whereNull('fc.deleted_at')->whereNull('ficha.deleted_at')
         ->distinct('ficha.valor_ficha')
         ->orderBy('valor_ficha','desc')
-        ->get();
+        ->get()->pluck('valor_ficha')->toArray();
 
-        $rel->fichas = $fichas;
-        $rel->cant_fichas = $rel->fichas->count();
-        if($rel->cant_fichas > 15){
-          $rel->paginas = [1,2]; //->cantidad de mesas que se deben relevar obligatoriamente (de a pares)
-        }else{
-          $rel->paginas = [1,2,3,4];
-        }
+        $rel->fichas = array_chunk($fichas,10);
+        $rel->paginas = 4;//@HACK: porque estaba harcodeado??? 
 
         $view = View::make('Mesas.Planillas.PlanillaRelevamientoAperturaSorteadas_v3', compact('rel'));
 
