@@ -284,6 +284,7 @@ class ImportacionController extends Controller
           $importacion->premio_bingo      = (float)$row[16];
           $importacion->pozo_dot          = (float)$row[17];
           $importacion->pozo_extra        = (float)$row[18];
+          $importacion->fecha             = $nfecha;
         }
         else{
           return 'error_archivo';
