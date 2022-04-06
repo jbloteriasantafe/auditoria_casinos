@@ -831,7 +831,7 @@ class RelevamientoController extends Controller
         //el contador horario puede ser null porque la mtm puede estar apagada en ese momento
         if($detalle_contador_horario == null){
           $det = new \stdClass();
-          $det->producido_calculado_relevado = $detalle->producido_calculado_relevado;
+          $det->producido_calculado_relevado = round($detalle->producido_calculado_relevado,2);
           $det->nro_admin = $detalle->maquina->nro_admin;
           if ($detalle->maquina->isla!=null){
             $det->isla = $detalle->maquina->isla->nro_isla;
@@ -863,17 +863,17 @@ class RelevamientoController extends Controller
             //Asi que ya lo calculamos en el momento.
             //$producido = $detalle->producido;
 
-            $producido = $detalle_contador_horario->coinin
+            $producido = round($detalle_contador_horario->coinin
             - $detalle_contador_horario->coinout
             - $detalle_contador_horario->jackpot
-            - $detalle_contador_horario->progresivo;//APLICO FORMULA
+            - $detalle_contador_horario->progresivo,2);//APLICO FORMULA
 
-            $diferencia = round(abs($detalle->producido_calculado_relevado - $producido), 2);
+            $diferencia = round(abs(round($detalle->producido_calculado_relevado,2) - $producido), 2);
 
             if($diferencia != 0){
 
               $det = new \stdClass();
-              $det->producido_calculado_relevado = $detalle->producido_calculado_relevado;
+              $det->producido_calculado_relevado = round($detalle->producido_calculado_relevado,2);
               $det->nro_admin = $detalle->maquina->nro_admin;
               if ($detalle->maquina->isla!=null){
                 $det->isla = $detalle->maquina->isla->nro_isla;
