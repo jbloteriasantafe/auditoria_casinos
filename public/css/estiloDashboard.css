@@ -140,23 +140,7 @@ table td {
 
 
 header {
-  background-color: #fff;
-  margin-left: 260px;
   font-family: Roboto-Condensed;
-}
-
-nav {
-  min-height: 80px;
-  /*line-height: 50px;*/
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-}
-
-.tituloSeccionPantalla {
-  /*line-height: inherit;*/
-  padding: 0px 6px 0px 20px;
-  margin-top: 25px;
-  float: left;
-  color: #000;
 }
 
 .iconoAyuda {
@@ -186,40 +170,19 @@ nav {
   padding: 0px 25px;
 }
 
-aside {
-  background-color: #263238;
-  color: #fff;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 260px;
-  /*overflow-y: auto;*/
-  /*overflow-x: visible;*/
-
-}
 
 .contenedorLogo {
-  width: 260px;
   text-align: center;
   height: 80px;
 }
 
-/*.scrollMenu {
-    height: calc(100% - 80px);
-    width: 260px;
-    overflow: hidden;
-}*/
-
 .contenedorMenu {
   height: calc(100% - 80px);
-  width: 260px;
   overflow-y: hidden;
 }
 
 .contenedorUsuario {
   top:80px;
-  width: 260px;
   position: absolute;
   height: 200px;
   font-size: 16px;
@@ -229,7 +192,7 @@ aside {
   z-index: 300;
 }
 
-.fondoSFE {
+.fondoOL1 {
   display: block;
   position: absolute;
   height: 180px;
@@ -237,14 +200,14 @@ aside {
   bottom: 0;
   left: 0;
   right: 0;
-  background-image: url(/img/tarjetas/banner_santafe.jpg);
+  background-image: url(/img/tarjetas/banner_OL1.jpg);
   background-repeat: no-repeat;
   background-position: left top;
   background-size: cover;
   opacity: .6;
   z-index: 1;
 }
-.fondoMEL {
+.fondoOL2 {
   display: block;
   position: absolute;
   height: 180px;
@@ -252,22 +215,7 @@ aside {
   bottom: 0;
   left: 0;
   right: 0;
-  background-image: url(/img/tarjetas/banner_melincue.jpg);
-  background-repeat: no-repeat;
-  background-position: left top;
-  background-size: cover;
-  opacity: .6;
-  z-index: 1;
-}
-.fondoROS {
-  display: block;
-  position: absolute;
-  height: 180px;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-image: url(/img/tarjetas/banner_rosario.jpg);
+  background-image: url(/img/tarjetas/banner_OL2.jpg);
   background-repeat: no-repeat;
   background-position: left top;
   background-size: cover;
@@ -310,7 +258,6 @@ aside {
   position: relative;
   /*margin: 0px 0px;*/
   padding: 0px;
-  width: 260px;
   height: calc(100% - 220px);
   overflow: auto;
   margin: 200px 0px 0px 0px;
@@ -459,7 +406,6 @@ aside div[aria-expanded="true"] > .flechita {
 }*/
 
 .contenedorVistaPrincipal {
-  margin-left: 260px;
   position: relative;
   height: calc(100% - 80px);
   overflow-y: auto;
@@ -469,42 +415,6 @@ aside div[aria-expanded="true"] > .flechita {
   /*overflow-y: auto;*/
   padding: 30px 10px 0px 10px;
   overflow-y: auto;
-}
-
-.etiquetaLogoInicio {
-  float: left;
-  margin-left: 15px;
-  margin-top: 17px;
-}
-.etiquetaLogoCasinos {
-  float: left;
-  margin-left: 15px;
-  margin-top: 15px;
-}
-.etiquetaLogoUsuarios {
-  float: left;
-  margin-left: 15px;
-  margin-top: 20px;
-}
-.etiquetaLogoExpedientes {
-  float: left;
-  margin-left: 15px;
-  margin-top: 17px;
-}
-.etiquetaLogoMaquinas {
-  float: left;
-  margin-left: 15px;
-  margin-top: 15px;
-}
-.etiquetaLogoTablero {
-  float: left;
-  margin-left: 15px;
-  margin-top: 19px;
-}
-.etiquetaLogoInformes {
-  float: left;
-  margin-left: 15px;
-  margin-top: 19px;
 }
 
 /* Highchart */

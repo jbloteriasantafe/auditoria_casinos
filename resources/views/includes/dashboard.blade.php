@@ -5,9 +5,425 @@ use Illuminate\Http\Request;
 
 $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
 $id_usuario = $usuario['usuario']->id_usuario;
-$cas = $usuario['usuario']->casinos;
 
-$ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
+$get_svg = function($nombre){
+  return file_get_contents(resource_path()."/assets/svg/$nombre.svg");
+};
+$icono_usuario = $get_svg('usuario');//Para evitar pedir constantemente al disco, lo guardo en una variable
+$icono_expedientes = $get_svg('expedientes');
+$icono_maquinas = $get_svg('maquinas');
+$icono_bingos = $get_svg('bingos');
+$icono_mesas = $get_svg('mesa');
+$icono_tablero = $get_svg('tablero_control');
+$gestion_hijos = [
+  'Usuarios' => [
+    'icono' => $icono_usuario,
+    'hijos' => [
+      'Gestionar usuarios' => [
+        'link' => '/usuarios',
+        'algun_permiso' => ['ver_seccion_usuarios'],
+      ],
+      'Roles y permisos' => [
+        'link' => '/roles',
+        'algun_permiso' => ['ver_seccion_roles_permisos'],
+      ],
+      'Log de actividades' => [
+        'link' => '/logActividades',
+        'algun_permiso' => ['ver_seccion_logs_actividades'],
+      ],
+    ]
+  ],
+  'Expedientes' => [
+    'icono' => $icono_expedientes,
+    'hijos' => [
+      'Gestionar expedientes' => [
+        'link' => '/expedientes',
+        'algun_permiso' => ['ver_seccion_expedientes'],
+      ],
+      'Resoluciones' => [
+        'link' => '/resoluciones',
+        'algun_permiso' => ['ver_seccion_resoluciones'],
+      ],
+      'Notas' => [
+        'link' => '/notas',
+        'algun_permiso' => [],//@TODO: Sin permiso O_o ??
+      ],
+      'Disposiciones' => [
+        'link' => '/disposiciones',
+        'algun_permiso' => ['ver_seccion_disposiciones'],
+      ],
+    ]
+  ],
+  'Máquinas' => [
+    'icono' => $icono_maquinas,
+    'hijos' => [
+      'Máquinas' => [
+        'link' => '/maquinas',
+        'algun_permiso' => ['ver_seccion_juegos'],
+      ],
+      'Progresivos' => [
+        'link' => '/progresivos',
+        'algun_permiso' => ['ver_seccion_progresivos'],
+      ],
+      'Islas' => [
+        'link' => '/islas',
+        'algun_permiso' => ['ver_seccion_islas'],
+      ],
+      'Juegos' => [
+        'link' => '/juegos',
+        'algun_permiso' => ['ver_seccion_juegos'],
+      ],
+      'Paquete-Juegos' => [
+        //'link' => '/packJuegos',
+        'link_style' => 'color: grey;',
+        'algun_permiso' => ['ver_seccion_juegos'],
+      ],
+      'Certificados Software' => [
+        'link' => '/certificadoSoft',
+        'algun_permiso' => ['ver_seccion_glisoft'],
+      ],
+      'Certificados Hardware' => [
+        'link' => '/certificadoHard',
+        'algun_permiso' => ['ver_seccion_glihard'],
+      ],
+      'Sectores' => [
+        'link' => '/sectores',
+        'algun_permiso' => ['ver_seccion_sectores'],
+      ],
+    ]
+  ],
+  'Mesas' => [
+    'icono' => $icono_mesas,
+    'hijos' => [
+      'Juegos y Sectores' => [
+        'link' => '/juegosMesa',
+        'algun_permiso' => ['m_gestionar_juegos_mesas'],
+      ],
+      'Mesas' => [
+        'link' => '/mesas',
+        'algun_permiso' => ['m_gestionar_mesas'],
+      ]
+    ]
+  ],
+  'Bingo (Premios)' => [
+    'icono' => $icono_bingos,
+    'link' => '/bingo/gestionBingo',
+    'algun_permiso' => ['bingo_ver_gestion'],
+  ],
+  'Autoexclusión' => [
+    'icono' => $icono_usuario,
+    'link' => '/autoexclusion',
+    'algun_permiso' => ['ver_seccion_ae_alta'],
+  ]
+];
+$fiscalizacion_hijos = [
+  'Maquinas' => [
+    'icono' => $icono_maquinas,
+    'hijos' => [
+      'Contadores' => [
+        'link' => '/relevamientos',
+        'algun_permiso' => ['ver_seccion_relevamientos'],
+      ],
+      'Progresivos' => [
+        'link' => '/relevamientosProgresivo',
+        'algun_permiso' => ['ver_seccion_relevamientos_progresivos'],
+      ],
+      'MTM a pedido' => [
+        'link' => '/mtm_a_pedido',
+        'algun_permiso' => ['ver_seccion_mtm_a_pedido'],
+      ],
+      'Movimientos' => [
+        'hijos' => [
+          'Asignacion' => [
+            'link' => '/movimientos',
+            'algun_permiso' => ['ver_seccion_gestionar_movimientos'],
+          ],
+          'Relevamientos' => [
+            'link' => '/relevamientos_movimientos',
+            'algun_permiso' => ['ver_seccion_relevamientos_movimientos'],
+          ],
+          'Intervenciones técnicas' => [
+            //'link' => '/eventualidades',
+            'link_style' => 'color:grey;',
+            'algun_permiso' => ['ver_seccion_eventualidades'],
+          ],
+          'Intervenciones MTM' => [
+            'link' => '/eventualidadesMTM',
+            'algun_permiso' => ['ver_seccion_eventualidades_MTM'],
+          ],
+        ]
+      ],
+      'Layout' => [
+        'hijos' => [
+          'Total' => [
+            'link' => '/layout_total',
+            'algun_permiso' => ['ver_planilla_layout_total'],
+          ],
+          'Parcial' => [
+            'link' => '/layout_parcial',
+            'algun_permiso' => ['ver_planilla_layout_parcial'],
+          ],
+        ]
+      ],
+      'Control Ambiental' => [
+        'link' => '/relevamientosControlAmbiental',
+        'algun_permiso' => ['ver_seccion_relevamientos_control_ambiental'],
+      ],
+      /*'Pruebas' => [
+        'hijos' => [
+          'Pruebas Juegos' => [
+            //'link' => '/prueba_juegos',
+            'link_style' => 'color:grey;',
+            'algun_permiso' => ['ver_seccion_prueba_juegos'],
+          ],
+          'Pruebas Progresivos' => [
+            //'link' => '/prueba_progresivos',
+            'link_style' => 'color:grey;',
+            'algun_permiso' => ['ver_seccion_prueba_progresivos'],
+          ],
+        ]
+      ],*/
+    ],
+  ],
+  'Mesas' => [
+    'icono' => $icono_mesas,
+    'hijos' => [
+      'Cierres y Aperturas' => [
+        'link' => '/aperturas',
+        'algun_permiso' => ['m_buscar_aperturas'],
+      ],
+      'Apuestas Minimas' => [
+        'link' => '/apuestas',
+        'algun_permiso' => ['m_ver_seccion_apuestas'],
+      ],
+      'Control Ambiental' => [
+        'link' => '/relevamientosControlAmbientalMesas',
+        'algun_permiso' => ['ver_seccion_relevamientos_control_ambiental'],
+      ],
+    ],
+  ],
+  'Bingo (Sesiones)' => [
+    'icono' => $icono_bingos,
+    'link' => '/bingo',
+    'algun_permiso' => ['ver_seccion_sesion_relevamientos'],
+  ],
+  'Autoexclusión Galería' => [
+    'icono' => $icono_usuario,
+    'link' => '/galeriaImagenesAutoexcluidos',
+    'algun_permiso' => ['ver_seccion_ae_informes_galeria']
+  ],
+];
+$auditoria_hijos = [
+  'Importaciones' => [
+    'icono' => $icono_expedientes,
+    'hijos' => [
+      'Maquinas' => [
+        'link' => '/importaciones',
+        'algun_permiso' => ['ver_seccion_importaciones']
+      ],
+      'Mesas' => [
+        'link' => '/importacionDiaria',
+        'algun_permiso' => ['m_ver_seccion_importaciones']
+      ],
+      'Bingo' => [
+        'link' => '/bingo/importarRelevamiento',
+        'algun_permiso' => ['importar_bingo']
+      ],
+    ],
+  ],
+  'Validación' => [
+    'icono' => '<i class="fa fa-check-square"></i>',
+    'hijos' => [
+      'Maquinas' => [
+        'hijos' => [
+          'Contadores' => [
+            'link' => '/alertas_contadores',
+            'algun_permiso' => ['ver_seccion_contadores'],
+          ],
+          'Producidos' => [
+            'link' => '/producidos',
+            'algun_permiso' => ['ver_seccion_producidos'],
+          ],
+          'Beneficios' => [
+            'link' => '/beneficios',
+            'algun_permiso' => ['ver_seccion_beneficios'],
+          ],
+        ]
+      ],
+      'Mesas' => [
+        'hijos' => [
+          'Canon' => [
+            'link' => '/canon',
+            'algun_permiso' => ['m_ver_seccion_canon']
+          ],
+          'Imagenes Bunker' => [
+            'link' => '/solicitudImagenes',
+            'algun_permiso' => ['m_ver_seccion_imagenes_bunker'],
+          ],
+        ],
+      ],
+    ],
+  ],
+];
+$informes_hijos = [
+  'Maquinas' => [
+    'icono' => $icono_maquinas,
+    'hijos' => [
+      'Estado Casino' => [
+        'link' => '/informeEstadoParque',
+        'algun_permiso' => ['ver_seccion_estestadoparque'],
+      ],
+      'Relevamiento' => [
+        'link' => '/estadisticas_relevamientos',
+        'algun_permiso' => ['ver_seccion_estestadorelevamientos'],
+      ],
+      'Sector' => [
+        'link' => '/informeSector',
+        'algun_permiso' => ['ver_seccion_informesector'],
+      ],
+      'Maquina' => [
+        'link' => '/informeContableMTM',
+        'algun_permiso' => ['ver_seccion_informecontable'],
+      ],
+      'No toma' => [
+        'link' => '/estadisticas_no_toma',
+        'algun_permiso' => ['ver_seccion_informecontable'],
+      ],
+    ]
+  ],
+  'Mesas' => [
+    'icono' => $icono_mesas,
+    'hijos' => [
+      'Informes Diarios' => [
+        'link' => '/informeDiarioBasico',
+        'algun_permiso' => ['m_ver_seccion_informe_fiscalizadores'],
+      ],
+      'Mensual' => [
+        'link' => '/informeMensual',
+        'algun_permiso' => ['m_ver_seccion_informes'],
+      ],
+      'Anual' => [
+        'link' => '/informeAnual',
+        'algun_permiso' => ['m_ver_seccion_informes'],
+      ]
+    ]
+  ],
+  'Bingo' => [
+    'icono' => $icono_bingos,
+    'hijos' => [
+      'Reportes de Estados' => [
+        'link' => '/bingo/reportesEstado',
+        'algun_permiso' => ['reporte_estado_bingo'],
+      ],
+      'Reportes de Diferencia' => [
+        'link' => '/bingo/reportesDiferencia',
+        'algun_permiso' => ['reporte_diferencia_bingo'],
+      ],
+    ]
+  ],
+  'Autoexclusión Listado' => [
+    'icono' => $icono_usuario,
+    'link' => '/informesAutoexcluidos',
+    'algun_permiso' => ['ver_seccion_ae_informes_listado'],
+  ],
+];
+$contable_hijos = [
+  'Maquinas' => [
+    'icono' => $icono_maquinas,
+    'link' => '/informesMTM',
+    'algun_permiso' => ['informes_mtm'],
+  ],
+  'Bingo' => [
+    'icono' => $icono_bingos,
+    'link' => '/bingo/informe',
+    'algun_permiso' => ['informes_bingos'],
+  ],
+  'Tablero' => [
+    'icono' => $icono_tablero,
+    'hijos' => [
+      'Generales' => [
+        //'link' => '/estadisticasGenerales',
+        'link_style' => 'color: grey;',
+        'algun_permiso' => ['estadisticas_generales'],
+      ],
+      'Por casino' => [
+        //'link' => '/estadisticasPorCasino',
+        'link_style' => 'color: grey;',
+        'algun_permiso' => ['estadisticas_por_casino'],
+      ],
+      'Interanuales' => [
+        //'link' => '/interanuales',
+        'link_style' => 'color: grey;',
+        'algun_permiso' => ['estadisticas_interanuales'],
+      ],
+    ],
+  ]
+];
+$opciones = [
+  'Casinos' => [
+    'link' => '/casinos',
+    'algun_permiso' => ['ver_seccion_casinos'],
+  ],
+  'Gestion' => [
+    'hijos' => $gestion_hijos,
+  ],
+  'Fiscalización' => [
+    'hijos' => $fiscalizacion_hijos,
+  ],
+  'Auditoria' => [
+    'hijos' => $auditoria_hijos,
+  ],
+  'Informes' => [
+    'hijos' => $informes_hijos,
+  ],
+  'Contable' => [
+    'hijos' => $contable_hijos,
+  ],
+];
+//Copia los permisos necesarios de los hijos a los padres, simplifica el array de $opciones bastante. Solo es necesario indicar la opcion
+//Ademas pone los valores por defecto de cada campo, simplificando el codigo de los componentes
+{
+  $promover_permisos_y_asignar_defaults = function($k,&$opciones) use (&$promover_permisos_y_asignar_defaults){
+    $opciones['algun_permiso'] = $opciones['algun_permiso'] ?? [];
+    $opciones['divli_style']   = $opciones['divli_style']   ?? '';
+    $opciones['link_style']    = $opciones['link_style']    ?? '';
+    $opciones['link']          = $opciones['link']          ?? '#';
+    $opciones['icono']         = $opciones['icono']         ?? '';
+    $opciones['hijos']         = $opciones['hijos']         ?? [];
+    $hijos = &$opciones['hijos'];
+    if(!is_null($hijos)) foreach($hijos as $op => &$h){
+      $h = $promover_permisos_y_asignar_defaults($op,$h);
+      $opciones['algun_permiso'] = array_merge($opciones['algun_permiso'],$h['algun_permiso']);
+    }
+    return $opciones;
+  };
+  $aux = ['hijos' => $opciones];
+  $opciones = $promover_permisos_y_asignar_defaults('',$aux)['hijos'];
+}
+
+{
+  $ac = AuthenticationController::getInstancia();//Saco las opciones segun los permisos que tenga
+  $filtrar_permisos = function($k,&$opciones) use (&$filtrar_permisos,$ac,$id_usuario){
+    $nuevos_hijos = [];
+    $hijos = &$opciones['hijos'];
+    if(!is_null($hijos)) foreach($hijos as $op => $datos){
+      $permisos = $datos['algun_permiso'] ?? [];
+      if(count($permisos) != 0 && !$ac->usuarioTieneAlgunPermiso($id_usuario,$permisos)) continue;
+      $nuevos_hijos[$op] = $filtrar_permisos($op,$datos);
+    }
+    $opciones['hijos'] = $nuevos_hijos;
+    return $opciones;
+  };
+  $aux = ['hijos' => $opciones];
+  $opciones = $filtrar_permisos('',$aux)['hijos'];
+}
+$fondo = 'rgb(38, 50, 56)';
+//Fisico
+$casinos_ids = $usuario['usuario']->casinos->map(function($c){return $c->id_casino;})->toArray();
+$cas_random = $casinos_ids[array_rand($casinos_ids,1)];
+$tarjetas = [1 => '/img/tarjetas/banner_MEL.jpg',2 => '/img/tarjetas/banner_CSF.jpg',3 => '/img/tarjetas/banner_ROS.jpg'];
+$tarjeta = $tarjetas[$cas_random] ?? null;
+$tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;background-size: contain;background-repeat: space" : null;
 ?>
 
 <!DOCTYPE html>
@@ -19,7 +435,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
     <meta name="_token" content="{!! csrf_token() !!}"/>
 
     <link rel="icon" type="image/png" sizes="32x32" href="/img/logos/favicon.ico">
-    <title>CAS - Lotería de Santa Fe</title>
+    <title>CASOnline - Lotería de Santa Fe</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="/css/bootstrap.min.css" rel="stylesheet">
@@ -36,9 +452,6 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
     <link rel="stylesheet" href="/css/style.css">
 
     <link rel="stylesheet" type="text/css" href="/css/component.css" />
-
-    <!-- Custom Fonts -->
-    <!-- <link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css" > -->
 
     <!-- Animaciones de los LINKS en MENU -->
     <link rel="stylesheet" href="/css/animacionesMenu.css">
@@ -59,1035 +472,42 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
     <link rel="stylesheet" href="/css/estiloDashboard_xs.css">
 
     <!-- Custom Fonts -->
-    <!-- <link rel="stylesheet" type="text/css" href="/font-awesome/css/font-awesome.min.css"> -->
     <link rel="stylesheet" href="/web-fonts-with-css/css/fontawesome-all.css">
 
     <!-- Mesaje de notificación -->
     <link rel="stylesheet" href="/css/mensajeExito.css">
     <link rel="stylesheet" href="/css/mensajeError.css">
-
-    <link rel="stylesheet" href="/css/perfect-scrollbar.css">
-
-
-
     @section('estilos')
     @show
-
   </head>
   <body>
 
     <!-- Contenedor de toda la página -->
     <div class="contenedor">
-
         <!-- Barra superior  -->
         <header>
-            <nav>@section('headerLogo')
-                 @show
-              <h2 class="tituloSeccionPantalla"></h2>
-
-              <ul class="nav nav-tabs nav-justified juegosSec" id="juegosSec" style=" width:70%;" hidden="true">
-                <li id="b_juego" ><a href="#pant_juegos"  style="font-family:Roboto-condensed;font-size:20px; ">Juegos</a></li>
-                <li id="b_sector"><a href="#pant_sectores"  style="font-family:Roboto-condensed;font-size:20px;">Sectores</a></li>
-              </ul>
-              <ul class="nav nav-tabs nav-justified cierreApertura" id="cierreApertura" style=" width:70%;" hidden="true">
-                <li id="b_apertura" ><a href="#pant_aperturas"  style="font-family:Roboto-condensed;font-size:20px; ">Aperturas</a></li>
-                <li id="b_cierre"><a href="#pant_cierres"  style="font-family:Roboto-condensed;font-size:20px;">Cierres</a></li>
-             </ul>
-
-              <ul class="nav nav-tabs nav-justified pestCanon" id="pestCanon" style=" width:70%;" hidden="true">
-                <li id="canon1" ><a href="#pant_canon_meses"  style="font-family:Roboto-condensed;font-size:20px; ">Recaudado Mensual (Bruto)</a></li>
-                <li id="canon2"><a href="#pant_canon_valores"  style="font-family:Roboto-condensed;font-size:20px;">Valor base y Canon</a></li>
-              </ul>
-
-              <a href="#" id="btn-ayuda"><i class="iconoAyuda glyphicon glyphicon-question-sign" style="padding-top: 12px; padding-left: 10px; !important"></i></a>
-              <ul class="opcionesBarraSuperior">
-                  <?php
-                    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-                  ?>
-                  @if($usuario['usuario']->es_superusuario || $usuario['usuario']->es_auditor)
-                  <li>
-                    <button id="ticket" type="button" class="iconoBarraSuperior btn btn-link"><i class="far fa-envelope fa-2x" style="margin-right:6px; margin-top: 1px; color: black;"></i></button>
-                    <div id="modalTicket" class="modal fade in" tabindex="-1" role="dialog" aria-hidden="true">
-                      <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                          <div class="modal-header" style="font-family: Robot-Black;background-color: #6dc7be;">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                              <i class="fa fa-times"></i>
-                            </button>
-                            <h3 class="modal-title">Crear ticket</h3>
-                          </div>
-                          <div class="modal-body">
-                            <div class="row">
-                              <div class="col-md-12">
-                                <input class="form-control ticket-asunto" placeholder="Asunto"/>
-                              </div>
-                            </div>
-                            <br>
-                            <div class="row">
-                              <div class="col-md-12">
-                                <textarea class="form-control ticket-mensaje" placeholder="Mensaje"></textarea>
-                              </div>
-                            </div>
-                            <br>
-                            <div class="row">
-                              <h5>Adjunto</h5>
-                              <input type="file" class="form-control-file ticket-adjunto" multiple/>
-                            </div>
-                          </div>
-                          <div class="modal-footer">
-                            <button type="button" class="btn btn-primary ticket-enviar">Enviar</button>
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                  @endif
-
-                  <li class="dropdown" id="marcaLeido" onclick="markNotificationAsRead('{{count($usuario['usuario']->unreadNotifications)}}')" style="right:1%;">
-                    <!--Icono de notificaciones -->
-
-                  <a href="#" id="notificaciones" style="text-decoration:none;position:relative;top:1px;" class="dropdown-toggle" data-toggle="dropdown" type="button">
-                    <i class="far fa-bell fa-2x" style="margin-right:5px;color:#333;"></i>
-                    <span class="badge" style="font-size:20px; background:#333333;height:30px;padding-top:5px;position:relative;top:-5px;">{{count($usuario['usuario']->unreadNotifications)}}</span>
-                  </a>
-                  <ul class="dropdown-menu dropdown-menu-right" style="max-height: 300px; overflow-y:auto; width:350px;">
-                    @forelse ($usuario['usuario']->unreadNotifications as $notif)
-                    <div style="background: #E6E6E6;">
-                        @include('includes.notifications.'.snake_case(class_basename($notif->type)))
-                    </div>
-
-                    @empty
-                      @forelse($usuario['usuario']->lastNotifications() as $notif)
-                        @include('includes.notifications.'.snake_case(class_basename($notif->type)))
-                      @empty
-                        <a href="#" style="font-size:20px;">No hay nuevas Notificaciones</a>
-                      @endforelse
-                    @endforelse
-                  </ul>
-
-                  </li>
-                  <li>
-                    <a id="calendario" class="iconoBarraSuperior" onclick="window.location = window.location.protocol + '//' + window.location.host + '/calendario_eventos'" href="#"><i class="far fa-fw fa-calendar-alt fa-2x" style="margin-right:6px; margin-top: 1px; color: black;"></i></a>
-                  </li>
-                  <li>
-                    <a href="#" class="etiquetaLogoSalida"><img src="/img/logos/salida_negrita.png" style="margin-top:4px; margin-right: 32px; width: 17px;"></a>
-                  </li>
-              </ul>
-            </nav>
+          @component('includes.barraMenuPrincipal',[
+            'usuario' => UsuarioController::getInstancia()->quienSoy()['usuario'],
+            'tiene_imagen' => UsuarioController::getInstancia()->tieneImagen(),
+            'opciones' => $opciones ?? [],
+            'fondo' => $fondo ?? "black",
+          ])
+          @endcomponent
         </header>
-
-        <!-- Menú lateral -->
-        <aside>
-            <div class="contenedorLogo">
-                <a onclick="window.location = window.location.protocol + '//' + window.location.host + '/inicio'"  href="#">
-                  <img src="/img/logos/logo_nuevo2_bn.png" alt="" width="55%" style="margin-top: 6px;">
-                </a>
-            </div>
-              <div class="contenedorMenu">
-                <div class="contenedorUsuario">
-                  <?php
-                    $casinos = $usuario['usuario']->casinos;
-                    if(count($casinos)!=0){
-                      $cas = $casinos[0]->id_casino;
-                      if($cas == 1){
-                        echo '<div class="fondoMEL"></div>';
-                      }
-                      else if($cas == 2){
-                        echo '<div class="fondoSFE"></div>';
-                      }
-                      else if($cas == 3){
-                        echo '<div class="fondoROS"></div>';
-                      }
-                    }
-                  ?>
-                    <div class="infoUsuario">
-                      <a onclick="window.location = window.location.protocol + '//' + window.location.host + '/configCuenta'" href="#">
-                        <?php
-                          $tieneImagen = UsuarioController::getInstancia()->tieneImagen();
-                          if($tieneImagen) {
-                            echo '<img id="img_perfilBarra" src="/usuarios/imagen" class="img-circle">';
-                          }
-                          else {
-                            echo '<img id="img_perfilBarra" src="/img/img_user.jpg" class="img-circle">';
-                          }
-                        ?>
-                        <i id="iconConfig" class="fa fa-cog"></i>
-                      </a>
-                        <h3>{{$usuario['usuario']->nombre}}</h3>
-                        <div class="nombreUsuario"><h4>{{'@'.$usuario['usuario']->user_name}}</h4></div>
-
-                    </div>
-                </div>
-
-                <div class="opcionesMenu">
-
-                    <!-- PRIMER NIVEL -->
-                    <ul>
-                        <div class="separadoresMenu">MENÚ</div>
-                        <li>
-                            <div id="opcInicio" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/inicio'" style="cursor: pointer;">
-                                <span class="icono" style="padding-bottom: 50px;">
-                                  @svg('home','iconoHome')
-                                </span>
-                                <span>Inicio</span>
-                            </div>
-                        </li>
-                        <!-- CASINOS -->
-                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_casinos'))
-                        <li>
-                            <div id="opcCasino" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/casinos'" href="#" style="cursor: pointer;">
-                                <span class="icono" style="padding-bottom: 56px;">
-                                  @svg('casinos','iconoCasinos')
-                                </span>
-                                <span>Casinos</span>
-                            </div>
-                        </li>
-                        @endif
-
-                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_usuarios','ver_seccion_roles_permisos','ver_seccion_casinos']))
-                        <div class="separadoresMenu">GESTIÓN</div>
-                        <li>
-                            <div id="barraUsuarios" class="opcionesHover" data-target="#usuarios" data-toggle="collapse">
-                                <span class="flechita">
-                                  <i class="fa fa-angle-right"></i>
-                                </span>
-                                <span class="icono" style="padding-bottom: 50px;">
-                                  @svg('usuario','iconoUsuarios')
-                                </span>
-                                <span>Usuarios</span>
-                            </div>
-
-                            <!-- SEGUNDO NIVEL -->
-                            <ul class="subMenu1 collapse" id="usuarios">
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_usuarios'))
-                              <li>
-                                <div id="opcGestionarUsuarios" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/usuarios'" href="#" style="cursor: pointer;">
-                                  <span>Gestionar usuarios</span>
-                                </div>
-                              </li>
-                              @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_roles_permisos'))
-                              <li>
-                                <div id="opcRolesPermisos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/roles'" href="#" style="cursor: pointer;">
-                                  <span>Roles y permisos</span>
-                                </div>
-                              </li>
-                              @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_logs_actividades'))
-                              <li>
-                                <div id="opcLogActividades" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/logActividades'" href="#" style="cursor: pointer;">
-                                  <span>Log de actividades</span>
-                                </div>
-                              </li>
-                              @endif
-                            </ul>
-
-
-                        </li>
-                        @endif
-                        <!-- EXPEDIENTES -->
-                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_expedientes','ver_seccion_resoluciones','ver_seccion_disposiciones']))
-                        <li>
-                            <div id="barraExpedientes" class="opcionesHover" data-target="#expedientes" data-toggle="collapse" href="#">
-                                <span class="flechita">
-                                  <i class="fa fa-angle-right"></i>
-                                </span>
-                                <span class="icono" style="padding-bottom: 54px;">
-                                  @svg('expedientes','iconoExpedientes')
-                                </span>
-                                <span>Expedientes</span>
-                            </div>
-
-                            <!-- SEGUNDO NIVEL -->
-                            <ul class="subMenu1 collapse" id="expedientes">
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_expedientes'))
-                              <li>
-                                <div id="opcGestionarExpedientes" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/expedientes'" href="#" style="cursor: pointer;">
-                                  <span>Gestionar expedientes</span>
-                                </div>
-                              </li>
-                              @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_resoluciones'))
-                              <li>
-                                <div id="opcResoluciones" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/resoluciones'" href="#" style="cursor: pointer;">
-                                  <span>Resoluciones</span>
-                                </div>
-                              </li>
-                              <li>
-                                <div id="opcNotas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/notas'" href="#" style="cursor: pointer;">
-                                  <span>Notas</span>
-                                </div>
-                              </li>
-                              @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_disposiciones'))
-                              <li>
-                                <div id="opcDisposiciones" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/disposiciones'" href="#" style="cursor: pointer;">
-                                  <span>Disposiciones</span>
-                                </div>
-                              </li>
-                              @endif
-                            </ul>
-                        </li>
-                        @endif
-
-                        <!-- GESTIÓN MAQUINAS -->
-                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_maquinas','ver_seccion_progresivos','ver_seccion_islas',
-                                                                                                            'ver_seccion_formulas','ver_seccion_juegos','ver_seccion_glisoft',
-                                                                                                            'ver_seccion_glihard','ver_seccion_sectores']))
-                        <li>
-                            <div class="opcionesHover" data-target="#gestionarMTM" data-toggle="collapse">
-                              <span class="flechita">
-                                <i class="fa fa-angle-right"></i>
-                              </span>
-                              <span class="icono" style="padding-bottom: 56px;">
-                                @svg('maquinas','iconoMaquinas')
-                              </span>
-                                <span>Maquinas</span>
-                            </div>
-                              <!-- CUARTO NIVEL -->
-                              <ul class="subMenu2 collapse" id="gestionarMTM">
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_maquinas'))
-                                  <li>
-                                    <div id="opcGestionarMaquinas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/maquinas'" href="#" style="cursor: pointer;">
-                                      <span>Máquinas</span>
-                                    </div>
-                                  </li>
-                                  @endif
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_progresivos'))
-                                  <li>
-                                    <div id="opcProgresivos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/progresivos'" href="#" style="cursor: pointer;">
-                                      <span>Progresivos</span>
-                                    </div>
-                                  </li>
-                                  @endif
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_islas'))
-                                  <li>
-                                    <div id="opcIslas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/islas'" href="#" style="cursor: pointer;">
-                                      <span>Islas</span>
-                                    </div>
-                                  </li>
-                                  @endif
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_formulas'))
-                                  <li>
-                                    <div id="opcFormulas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/formulas'" href="#" style="cursor: pointer;">
-                                      <span>Fórmulas</span>
-                                    </div>
-                                  </li>
-                                  @endif
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_juegos'))
-                                  <li>
-                                    <div id="opcJuegos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/juegos'" href="#" style="cursor: pointer;">
-                                      <span>Juegos</span>
-                                    </div>
-                                  </li>
-                                  @endif
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_juegos'))
-                                  <li>
-                                    <div id="opcPackJuegos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/packJuegos'" href="#" style="cursor: pointer;">
-                                      <span>Paquete-Juegos</span>
-                                    </div>
-                                  </li>
-                                  @endif
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_glisoft'))
-                                  <li>
-                                    <div id="opcGliSoft" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/certificadoSoft'" href="#" style="cursor: pointer;">
-                                      <span>Certificados Software</span>
-                                    </div>
-                                  </li>
-                                  @endif
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_glihard'))
-                                  <li>
-                                    <div id="opcGliHard" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/certificadoHard'" href="#" style="cursor: pointer;">
-                                      <span>Certificados Hardware</span>
-                                    </div>
-                                  </li>
-                                  @endif
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_sectores'))
-                                  <li>
-                                    <div id="opcSectores" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/sectores'" href="#" style="cursor: pointer;">
-                                      <span>Sectores</span>
-                                    </div>
-                                  </li>
-                                  @endif
-                              </ul>
-                        </li>
-                        @endif
-
-                        <!-- FIN GESTIÓN MAQUINAS -->
-
-                        <!-- GESTIÓN BINGO -->
-                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'bingo_ver_gestion') || $usuario['usuario']->es_superusuario)
-                         <li>
-                            <div id="barraGestionBingo" class="opcionesHover" data-target="#gestionBingo" data-toggle="collapse">
-                                <span class="flechita">
-                                  <i class="fa fa-angle-right"></i>
-                                </span>
-                                <span class="icono" style="padding-bottom: 50px;">
-                                    @svg('bingos','iconoTableroControl')
-                               </span>
-                                <span>Bingo</span>
-                            </div>
-
-                            <!-- SEGUNDO NIVEL -->
-                             <ul class="subMenu1 collapse" id="gestionBingo">
-                              <li>
-                                <div id="opcGestionarBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo/gestionBingo'" href="#" style="cursor: pointer;">
-                                  <span>Gestión de premios</span>
-                                </div>
-                              </li>
-                            </ul>
-                        </li>
-                        @endif
-                        <!-- FIN GESTIÓN BINGO -->
-
-                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_maquinas','ver_seccion_progresivos','ver_seccion_islas',
-                                                                                                            'ver_seccion_formulas','ver_seccion_juegos','ver_seccion_glisoft',
-                                                                                                            'ver_seccion_glihard','ver_seccion_sectores','ver_seccion_importaciones',
-                                                                                                            'ver_seccion_relevamientos','ver_seccion_mtm_a_pedido','ver_seccion_producidos',
-                                                                                                            'ver_seccion_beneficios','ver_planilla_layout_total','ver_planilla_layout_parcial',
-                                                                                                            'ver_seccion_gestionar_movimientos','ver_seccion_relevamientos_movimientos',
-                                                                                                            'ver_seccion_eventualidades','ver_seccion_eventualidades_MTM',
-                                                                                                            'ver_seccion_estestadoparque','ver_seccion_estestadorelevamientos',
-                                                                                                            'ver_seccion_informecontable','ver_seccion_informesector']))
-                        <div class="separadoresMenu">AUDITORÍA</div>
-                        <li>
-                            <div id="barraMaquinas" class="opcionesHover" data-target="#maquinas" data-toggle="collapse" href="#">
-                                <span class="flechita">
-                                  <i class="fa fa-angle-right"></i>
-                                </span>
-                                <span class="icono" style="padding-bottom: 56px;">
-                                  @svg('maquinas','iconoMaquinas')
-                                </span>
-                                <span>Máquinas</span>
-                            </div>
-
-                            <!-- SEGUNDO NIVEL -->
-                            <ul class="subMenu1 collapse" id="maquinas">
-                              @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_estestadoparque','ver_seccion_estestadorelevamientos',
-                              'ver_seccion_informecontable','ver_seccion_informesector']))
-                              <li>
-                                <div class="opcionesHover" data-target="#informesMTM" data-toggle="collapse" href="#">
-                                  <span class="flechita">
-                                    <i class="fa fa-angle-right"></i>
-                                  </span>
-                                  <span>Informes MTM</span>
-                                </div>
-
-                                <!-- TERCER NIVEL -->
-                                <ul class="subMenu2 collapse" id="informesMTM">
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_estestadoparque'))
-                                    <li>
-                                      <div id="opcInformeEstadoParque" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeEstadoParque'" href="#" style="cursor: pointer;">
-                                        <span>Casino</span>
-                                      </div>
-                                    </li>
-                                  @endif
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_estestadorelevamientos'))
-                                    <li>
-                                      <div id="opcEstadisticas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/estadisticas_relevamientos'" href="#" style="cursor: pointer;">                                        <span>Relevamiento</span>
-                                      </div>
-                                    </li>
-                                  @endif
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_informesector'))
-                                    <li>
-                                      <div id="opcInformesSector" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeSector'" href="#" style="cursor: pointer;">
-                                        <span>Sector</span>
-                                      </div>
-                                    </li>
-                                  @endif
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_informecontable'))
-                                    <li>
-                                      <div id="opcInformesContableMTM" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeContableMTM'" href="#" style="cursor: pointer;">
-                                        <span>MTM</span>
-                                      </div>
-                                    </li>
-                                  @endif
-                                  @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_informecontable'))
-                                    <li>
-                                      <div id="opcInformesNoToma" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/estadisticas_no_toma'" href="#" style="cursor: pointer;">
-                                        <span>No toma</span>
-                                      </div>
-                                    </li>
-                                  @endif
-                                </ul>
-                              </li>
-                              @endif
-
-
-
-                              <!-- Procedimientos -->
-                              @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_importaciones','ver_seccion_relevamientos',
-                                                                                                                  'ver_seccion_relevamientos_progresivos','ver_seccion_mtm_a_pedido','ver_seccion_producidos',
-                                                                                                                  'ver_seccion_beneficios','ver_planilla_layout_total',
-                                                                                                                  'ver_planilla_layout_parcial','ver_seccion_prueba_juegos',
-                                                                                                                  'ver_seccion_prueba_progresivos','ver_seccion_gestionar_movimientos',
-                                                                                                                  'ver_seccion_relevamientos_movimientos','ver_seccion_eventualidades',
-                                                                                                                  'ver_seccion_eventualidades_MTM']))
-                              <li>
-                                <div id="gestionarProcedimientos" class="opcionesHover" data-target="#procedimientos" data-toggle="collapse" href="#">
-                                  <span class="flechita">
-                                    <i class="fa fa-angle-right"></i>
-                                  </span>
-                                  <span>Procedimientos</span>
-                                </div>
-                                <!-- TERCER NIVEL -->
-                                @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_importaciones','ver_seccion_relevamientos','ver_seccion_relevamientos_progresivos',
-                                                                                                                    'ver_seccion_mtm_a_pedido','ver_seccion_contadores','ver_seccion_producidos',
-                                                                                                                    'ver_seccion_beneficios']))
-                               <ul class="subMenu2 collapse" id="procedimientos">
-                                   <li>
-                                     <div id="gestionarContadores" class="opcionesHover" data-target="#contadores" data-toggle="collapse" href="#">
-                                       <span class="flechita">
-                                         <i class="fa fa-angle-right"></i>
-                                       </span>
-                                       <span>Contadores</span>
-                                     </div>
-
-                                     <!-- CUARTO NIVEL -->
-                                     <ul class="subMenu3 collapse" id="contadores">
-                                       @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_importaciones'))
-                                         <li>
-                                           <div id="opcImportaciones" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/importaciones'" href="#" style="cursor: pointer;">
-                                             <span>Importaciones</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_relevamientos'))
-                                         <li>
-                                           <div id="opcRelevamientos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientos'" href="#" style="cursor: pointer;">
-                                             <span>Relevamientos</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_relevamientos_progresivos'))
-                                         <li>
-                                           <div id="opcRelevamientosProgresivos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosProgresivo'" href="#" style="cursor: pointer;">
-                                             <span>Relev. Progresivos</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_mtm_a_pedido'))
-                                         <li>
-                                           <div id="opcMTMaPedido" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/mtm_a_pedido'" href="#" style="cursor: pointer;">
-                                             <span>MTM a pedido</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_contadores'))
-                                         <li>
-                                           <div id="opcAlertasContadores" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/alertas_contadores'" href="#" style="cursor: pointer;">
-                                             <span>Alertas Contadores</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_producidos'))
-                                         <li>
-                                           <div id="opcProducidos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/producidos'" href="#" style="cursor: pointer;">
-                                             <span>Producidos</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_beneficios'))
-                                         <li>
-                                           <div id="opcBeneficios" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/beneficios'" href="#" style="cursor: pointer;">
-                                             <span>Beneficios</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                     </ul>
-                                     @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_planilla_layout_total','ver_planilla_layout_parcial']))
-                                     <div id="gestionarLayout" class="opcionesHover" data-target="#layout" data-toggle="collapse" href="#">
-                                       <span class="flechita">
-                                         <i class="fa fa-angle-right"></i>
-                                       </span>
-                                       <span>Layout</span>
-                                     </div>
-
-                                     <!-- CUARTO NIVEL -->
-                                     <ul class="subMenu3 collapse" id="layout">
-                                       @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_planilla_layout_total'))
-                                         <li>
-                                           <div id="opcLayoutTotal" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/layout_total'" href="#" style="cursor: pointer;">
-                                             <span>Total</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_planilla_layout_parcial'))
-                                         <li>
-                                           <div id="opcLayoutParcial" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/layout_parcial'" href="#" style="cursor: pointer;">
-                                             <span>Parcial</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                     </ul>
-                                     @endif
-                                     @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_prueba_juegos','ver_seccion_prueba_progresivos']) && $ver_prueba_progresivo)
-                                     <div id="gestionarPruebas" class="opcionesHover" data-target="#prueba" data-toggle="collapse" href="#">
-                                       <span class="flechita">
-                                         <i class="fa fa-angle-right"></i>
-                                       </span>
-                                       <span>Pruebas</span>
-                                     </div>
-                                     <!-- CUARTO NIVEL -->
-                                     <ul class="subMenu3 collapse" id="prueba">
-                                       @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_prueba_juegos'))
-                                         <li>
-                                           <div id="opcPruebaJuego" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/prueba_juegos'" href="#" style="cursor: pointer;">
-                                             <span>Juegos</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_prueba_progresivos'))
-                                         <li>
-                                           <div id="opcPruebaProgresivo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/prueba_progresivos'" href="#" style="cursor: pointer;">
-                                             <span>Progresivos</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                     </ul>
-                                     @endif
-                                     @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['ver_seccion_gestionar_movimientos','ver_seccion_relevamientos_movimientos',
-                                                                                                                         'ver_seccion_eventualidades','ver_seccion_eventualidades_MTM']))
-                                     <!-- MOVIMIENTOS -->
-                                     <div id="gestionarMovimientos" class="opcionesHover" data-target="#movimientos" data-toggle="collapse" href="#">
-                                       <span class="flechita">
-                                         <i class="fa fa-angle-right"></i>
-                                       </span>
-                                       <span>Movimientos</span>
-                                     </div>
-
-                                     <!-- CUARTO NIVEL -->
-                                     <ul class="subMenu3 collapse" id="movimientos">
-                                       @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_gestionar_movimientos'))
-                                         <li>
-                                           <div id="opcAsignacion" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/movimientos'" href="#" style="cursor: pointer;">
-                                             <span>Asignación</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_relevamientos_movimientos'))
-                                         <li>
-                                           <div id="opcRelevamientosMovimientos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientos_movimientos'" href="#" style="cursor: pointer;">
-                                             <span>Relevamientos</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_eventualidades'))
-                                         <li>
-                                           <div id="opcIntervencionesTecnicas" class="opcionesHover" 
-                                            @if(false)
-                                              onclick="window.location = window.location.protocol + '//' + window.location.host + '/eventualidades'"
-                                            @else
-                                              style="color: grey;"
-                                            @endif
-                                            href="#" style="cursor: pointer;">
-                                             <span>Intervenciones Téc.</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                         @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_eventualidades_MTM'))
-                                         <li>
-                                           <div id="opcIntervencionesMTM" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/eventualidadesMTM'" href="#" style="cursor: pointer;">
-                                             <span>Intervenciones MTM</span>
-                                           </div>
-                                         </li>
-                                         @endif
-                                     </ul>
-                                     @endif
-                                   </li>
-                               </ul>
-                               @endif
-                              </li>
-                              @endif
-                            </ul>
-                        </li>
-                        @endif
-
-                        <li>
-                            @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,
-                              [
-                              'm_gestionar_juegos_mesas','m_gestionar_mesas','m_buscar_aperturas','m_ver_seccion_apuestas','m_ver_seccion_informe_fiscalizadores'
-                              ]
-                            ))
-                            <div id="barraMesas" class="opcionesHover" data-target="#mesasPanio" data-toggle="collapse" href="#">
-                                <span class="flechita">
-                                  <i class="fa fa-angle-right"></i>
-                                </span>
-                                <span class="icono" style="padding-bottom: 54px;">
-                                  @svg('mesa','iconoMesa')
-                                </span>
-                                <span>Mesas de paño</span>
-                            </div>
-                            <!-- SEGUNDO NIVEL -->
-                            <ul class="subMenu1 collapse" id="mesasPanio">
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_gestionar_juegos_mesas'))
-                              <li>
-                                <div id="opcJuegos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/juegosMesa'" href="#" style="cursor: pointer;">
-                                  <span>Gestionar Juegos y Sectores</span>
-                                </div>
-                              </li>
-                              @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_gestionar_mesas'))
-                              <li>
-                                <div id="opcGestionarMesas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/mesas'" href="#" style="cursor: pointer;">
-                                  <span>Gestionar Mesas</span>
-                                </div>
-                              </li>
-                              @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_buscar_aperturas'))
-                              <li>
-                                <div id="opcAperturas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/aperturas'" href="#" style="cursor: pointer;">
-                                  <span>Cierres y Aperturas</span>
-                                </div>
-                              </li>
-                              @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_apuestas'))
-                              <li>
-                                <div id="opcApuestas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/apuestas'" href="#" style="cursor: pointer;">
-                                  <span>Apuestas Mínimas</span>
-                                </div>
-                              </li>
-                              @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_informe_fiscalizadores'))
-                              <li>
-                                <div id="opcInformesFisca" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeDiarioBasico'" href="#" style="cursor: pointer;">
-                                  <span>Informes Diarios </span>
-                                </div>
-                              </li>
-                              @endif
-                            </ul>
-                            @endif
-                        </li>
-
-
-                        <li>
-                            @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,
-                            [
-                              'ver_seccion_sesion_relevamientos','importar_bingo','reporte_estado_bingo','reporte_estado_bingo','reporte_diferencia_bingo'
-                            ]))
-                            <div id="barraBingo" class="opcionesHover" data-target="#bingoMenu" data-toggle="collapse" href="#">
-                              <span class="flechita">
-                                  <i class="fa fa-angle-right"></i>
-                                </span>
-                                <span class="icono" style="padding-bottom: 50px;">
-                                  @svg('bingos','iconoTableroControl')
-                                </span>
-                                <span>Bingo</span>
-                            </div>
-                            <ul class="subMenu1 collapse" id="bingoMenu">
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_sesion_relevamientos'))
-                              <li>
-                                <div id="opcBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo'" href="#" style="cursor: pointer;">
-                                  <span>Sesiones y Relevamiento</span>
-                                </div>
-                              </li>
-                              @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'importar_bingo'))
-                              <li>
-                                <div id="opcImportarBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo/importarRelevamiento'" href="#" style="cursor: pointer;">
-                                  <span>Importar Relevamiento</span>
-                                </div>
-                              </li>
-                              @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'reporte_estado_bingo'))
-                              <li>
-                                <div id="opcReporteEstadoBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo/reportesEstado'" href="#" style="cursor: pointer;">
-                                  <span>Reportes de Estados</span>
-                                </div>
-                              </li>
-                              @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'reporte_diferencia_bingo'))
-                              <li>
-                                <div id="opcReporteEstadoDiferenciaBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo/reportesDiferencia'" href="#" style="cursor: pointer;">
-                                  <span>Reportes de Diferencia</span>
-                                </div>
-                              </li>
-                              @endif
-                            </ul>
-                            @endif
-                          </li>
-
-
-
-
-                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_importaciones'))
-                        <div class="separadoresMenu" style="font-size:11px !important">GESTIÓN CONTABLE MESAS</div>
-                          <li>
-                              <div id="barraImportaciones" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/importacionDiaria'" href="#" style="cursor: pointer;">
-
-                                  <span class="icono" style="padding-bottom: 56px;">
-                                    @svg('expedientes','iconoExpedientes')
-                                  </span>
-                                  <span>Importaciones Diarias</span>
-
-                              </div>
-                          </li>
-                        @endif
-                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_informes'))
-
-                          <li>
-                              <div id="barraInformesMesas" class="opcionesHover" data-target="#informes2" data-toggle="collapse" href="#">
-                                <span class="flechita">
-                                    <i class="fa fa-angle-right"></i>
-                                  </span>
-                                  <span class="icono" style="padding-bottom: 54px;">
-                                    @svg('informes','iconoInformes')
-                                  </span>
-                                  <span>Informes </span>
-                              </div>
-
-                              <!-- SEGUNDO NIVEL -->
-                              <ul class="subMenu1 collapse" id="informes2">
-                                <li>
-                                  <div id="opcInfoMensual" class="opcionesHover"
-                                  onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeMensual'" href="#" style="cursor: pointer;"
-                                  >
-                                    <span>Mensual</span>
-                                  </div>
-                                </li>
-
-                                <li>
-                                  <div id="opcInfoInteranuales" class="opcionesHover"
-                                  onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeAnual'" href="#" style="cursor: pointer;"
-                                  >
-                                    <span>Anuales</span>
-                                  </div>
-                                </li>
-                              </ul>
-                          </li>
-                          @endif
-                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_canon'))
-                          <li>
-                            <div id="barraCanon" class="opcionesHover" 
-                            onclick="window.location = window.location.protocol + '//' + window.location.host + '/canon'" href="#" style="cursor: pointer;"
-                            >
-                                <span class="icono" style="padding-bottom: 56px;">
-                                  @svg('bolsa_pesos','iconoCanon')
-                                </span>
-                                <span>Canon</span>
-                            </div>
-                          </li>
-                          @endif
-                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_ver_seccion_imagenes_bunker'))
-                          <li>
-                            <div id="barraImagenes" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/solicitudImagenes'" href="#" style="cursor: pointer; padding-left:15px; ">
-                              <span class="icono" >
-                                @svg('camara','iconoCamara')
-                              </span>
-                              <span>Imágenes Bunker</span>
-                            </div>
-                          </li>
-                          @endif
-
-                      @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_relevamientos_control_ambiental')
-                          || AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_informes_control_ambiental'))
-                        <div class="separadoresMenu">CONTROL AMBIENTAL</div>
-                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_relevamientos_control_ambiental'))
-                        <li>
-                          <div id="barraRelevamientosAmbiental" class="opcionesHover" data-target="#relevamientoAmbiental" data-toggle="collapse" href="#">
-                            <span class="flechita">
-                                <i class="fa fa-angle-right"></i>
-                              </span>
-                              <span class="icono" style="padding-bottom: 50px;">
-                                @svg('tablero_control','iconoTableroControl')
-                              </span>
-                              <span>Relevamientos</span>
-                          </div>
-
-                          <!-- SEGUNDO NIVEL -->
-                          <ul class="subMenu1 collapse" id="relevamientoAmbiental">
-                            <li>
-                              <div id="opcAmbientalmaquinas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbiental'" style="cursor: pointer;">
-                                <span>Máquinas</span>
-                              </div>
-                            </li>
-
-                            <li>
-                              <div id="opcAmbientalMesas" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/relevamientosControlAmbientalMesas'" href="#" style="cursor: pointer;">
-                                <span>Mesas de paño</span>
-                              </div>
-                            </li>
-                          </ul>
-
-                        </li>
-                        @endif
-
-                        @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_informes_control_ambiental'))
-                        <li>
-                          <div id="opcInformeControlAmbiental" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informeControlAmbiental'" style="cursor: pointer;">
-                            <span class="icono" style="padding-bottom: 56px;">
-                                @svg('informes','iconoInformes')
-                            </span>
-                            <span>Informes</span>
-                          </div>
-                        </li>
-                        @endif
-                      @endif
-
-                        <div class="separadoresMenu">AUTOEXCLUSIÓN</div>
-                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_alta'))
-                          <li>
-                            <div id="opcAltaAutoexcluidos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/autoexclusion'" style="cursor: pointer;">
-                              <span class="icono" style="padding-bottom: 56px;">
-                                  @svg('usuario','iconoUsuarios')
-                              </span>
-                              <span>Autoexcluidos</span>
-                            </div>
-                          </li>
-                          @endif
-                          
-                          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_informes_listado')
-                          || AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_informes_galeria'))
-                          <li>
-                            <div id="barraInformesAutoexclusion" class="opcionesHover" data-target="#informesAutoexcluidos" data-toggle="collapse" href="#">
-                              <span class="flechita">
-                                  <i class="fa fa-angle-right"></i>
-                                </span>
-                                <span class="icono" style="padding-bottom: 50px;">
-                                  @svg('informes','iconoInformes')
-                                </span>
-                                <span>Informes</span>
-                            </div>
-
-                            <!-- SEGUNDO NIVEL -->
-                            <ul class="subMenu1 collapse" id="informesAutoexcluidos">
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_informes_listado'))
-                              <li>
-                                <div id="opcListadoAutoexcluidos" class="opcionesHover" 
-                                onclick="window.location = window.location.protocol + '//' + window.location.host + '/informesAutoexcluidos'" 
-                                style="cursor: pointer;">
-                                  <span>Listado de AE</span>
-                                </div>
-                              </li>
-                              @endif
-
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_ae_informes_galeria'))
-                              <li>
-                                <div id="opcGaleriaImagenesAutoexcluidos" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/galeriaImagenesAutoexcluidos'" href="#" style="cursor: pointer;">
-                                  <span>Galería de imágenes</span>
-                                </div>
-                              </li>
-                              @endif
-                            </ul>
-
-                          </li>
-                          @endif
-
-                          <!-- Escondo el enlace al sistema viejo por las moscas que se necesite -->
-                          @if(false)
-                          <div class="separadoresMenu">AUTOEXCLUSIÓN (VIEJO)</div>
-                          <li>
-                            <div id="" class="opcionesHover"  href="">
-                              <a href="http://10.1.120.9/AE/login.php" target="_blank">
-                              <span class="flechita">
-                                  <i class="fa fa-angle-right"></i>
-                                </span>
-                                <span class="icono" style="padding-bottom: 50px;">
-                                  @svg('usuario','iconoUsuarios')
-                                </span>
-                                <span>AUTOEXCLUSIÓN</span>
-                              </a>
-                            </div>
-                          </li>
-                          @endif
-
-
-                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales',
-                                                                                                            'informes_mtm','informes_bingos','informes_mesas']))
-                        <div class="separadoresMenu">ESTADÍSTICAS MTM</div>
-                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['estadisticas_generales','estadisticas_por_casino','estadisticas_interanuales']))
-                        <li>
-                            <div id="barraEstadisticas" class="opcionesHover" data-target="#tablero" data-toggle="collapse" href="#">
-                              <span class="flechita">
-                                  <i class="fa fa-angle-right"></i>
-                                </span>
-                                <span class="icono" style="padding-bottom: 50px;">
-                                  @svg('tablero_control','iconoTableroControl')
-                                </span>
-                                <span>Tablero</span>
-                            </div>
-
-                            <!-- SEGUNDO NIVEL -->
-                            <ul class="subMenu1 collapse" id="tablero">
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_generales'))
-                              <li>
-                                <div id="opcEstadisticasGenerales" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/estadisticasGenerales'" href="#" style="cursor: pointer;">
-                                  <span>Generales</span>
-                                </div>
-                              </li>
-                              @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_por_casino'))
-                              <li>
-                                <div id="opcEstadisticasPorCasino" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/estadisticasPorCasino'" href="#" style="cursor: pointer;">
-                                  <span>Por casino</span>
-                                </div>
-                              </li>
-                              @endif
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'estadisticas_interanuales'))
-                              <li>
-                                <div id="opcEstadisticasInteranuales" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/interanuales'" href="#" style="cursor: pointer;">
-                                  <span>Interanuales</span>
-                                </div>
-                              </li>
-                              @endif
-                            </ul>
-
-                        </li>
-                        @endif
-                        @if(AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($id_usuario,['informes_mtm','informes_bingos','informes_mesas']))
-                        <li>
-                            <div id="barraInformes" class="opcionesHover" data-target="#informes" data-toggle="collapse" href="#">
-                              <span class="flechita">
-                                  <i class="fa fa-angle-right"></i>
-                                </span>
-                                <span class="icono" style="padding-bottom: 50px;">
-                                  @svg('informes','iconoInformes')
-                                </span>
-                                <span>Informes</span>
-                            </div>
-
-                            <!-- SEGUNDO NIVEL -->
-                            <ul class="subMenu1 collapse" id="informes">
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'informes_mtm'))
-                              <li>
-                                <div id="opcInformesMTM" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/informesMTM'" href="#" style="cursor: pointer;">
-                                  <span>MTM</span>
-                                </div>
-                              </li>
-                              @endif
-
-                              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'informes_bingos'))
-                              <li>
-                                <div id="opcInformeBingo" class="opcionesHover" onclick="window.location = window.location.protocol + '//' + window.location.host + '/bingo/informe'" href="#" style="cursor: pointer;">
-                                  <span>BINGO</span>
-                                </div>
-                              </li>
-                              @endif
-
-                            </ul>
-
-                        </li>
-                        @endif
-                        @endif
-                    </ul>
-
-                </div>
-                <div class="bottomMenu"></div>
-              </div> <!-- contenedorMenu -->
-          <!--  </div>  scrollMenu -->
-        </aside>
+        @component('includes.menuDesplegable',[
+          'tarjeta_css' => $tarjeta_css,
+          'opciones' => $opciones ?? [],
+          'fondo' => $fondo ?? "black",
+        ])
+        @endcomponent
 
         <!-- Vista de secciones -->
         <main class="contenedorVistaPrincipal">
-
           <section>
               <div class="container-fluid">
                 @section('contenidoVista')
                 @show
-
               </div>
-
           </section>
         </main>
               <!-- DESDE ACA -->
@@ -1134,7 +554,6 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
               <div class="modal-dialog">
                  <div class="modal-content">
                    <div class="modal-header modalNuevo" style="background-color: #1976D2;">
-                     <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                      @section('tituloDeAyuda')
@@ -1156,6 +575,42 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
         </div>
         <!-- HASTA ACA -->
 
+        @if($usuario['usuario']->es_superusuario || $usuario['usuario']->es_auditor)
+        <div id="modalTicket" class="modal fade in" tabindex="-1" role="dialog" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header" style="font-family: Robot-Black;background-color: #6dc7be;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <i class="fa fa-times"></i>
+                </button>
+                <h3 class="modal-title">Crear ticket</h3>
+              </div>
+              <div class="modal-body">
+                <div class="row">
+                  <div class="col-md-12">
+                    <input class="form-control ticket-asunto" placeholder="Asunto"/>
+                  </div>
+                </div>
+                <br>
+                <div class="row">
+                  <div class="col-md-12">
+                    <textarea class="form-control ticket-mensaje" placeholder="Mensaje"></textarea>
+                  </div>
+                </div>
+                <br>
+                <div class="row">
+                  <h5>Adjunto</h5>
+                  <input type="file" class="form-control-file ticket-adjunto" multiple/>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary ticket-enviar">Enviar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        @endif
     </div>
 
 
@@ -1185,25 +640,7 @@ $ver_prueba_progresivo = $usuario['usuario']->es_superusuario;
     <!-- librerias de animate -->
     <script src="/js/createjs-2015.11.26.min.js"></script>
     <script src="/js/Animacion_logo2.js?1517927954849"></script>
-
-    <script src="/js/perfect-scrollbar.js" charset="utf-8"></script>
-
-    <script type="text/javascript">
-
-        $(document).on('show.bs.collapse','.subMenu1',function(){
-            $('.subMenu1').not($(this)).collapse('hide');
-        });
-        $(document).on('show.bs.collapse','.subMenu2',function(){
-            $('.subMenu2').not($(this)).collapse('hide');
-        });
-        $(document).on('show.bs.collapse','.subMenu3',function(){
-            $('.subMenu3').not($(this)).collapse('hide');
-        });
-
-        var ps = new PerfectScrollbar('.opcionesMenu');
-    </script>
-    <script src="/js/modalTicket.js" src="/js/modalTicket.js"></script>
-
+    <script type="text/javascript" src="/js/modalTicket.js" charset="utf-8"></script>
     @section('scripts')
     @show
   </body>

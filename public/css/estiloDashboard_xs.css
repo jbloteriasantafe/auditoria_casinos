@@ -8,21 +8,12 @@
 
     /* CONFIGURACION DE LA PANTALLA */
 
-    header {
-      margin-left: 220px;
-      height: 60px;
-    }
-
     nav {
       min-height: 60px;
     }
 
     nav > span {
       margin: 5px 15px 0px 15px !important;
-    }
-    .tituloSeccionPantalla {
-      margin: 13px 0px 0px 0px;
-      padding: 0px;
     }
     .iconoAyuda {
       margin: 13px 0px 0px 10px;
@@ -33,14 +24,6 @@
     }
     .opcionesBarraSuperior span.badge {
       height: auto !important;
-    }
-
-    aside, .contenedorLogo, .opcionesMenu, .contenedorUsuario {
-      width: 220px;
-    }
-
-    .contenedorMenu {
-      width: 220px;
     }
 
     .contenedorLogo {
@@ -63,7 +46,6 @@
     .contenedorVistaPrincipal {
       /*position: absolute;*/
       height: calc(100% - 60px);
-      margin-left: 220px;
     }
 
     .contenedorVistaPrincipal section {
@@ -107,7 +89,7 @@
     }
 
     /* MENÚ */
-    .fondoMEL, .fondoROS, .fondoSFE {
+    .fondoOL1, .fondoOL2 {
         height: 160px;
     }
 

@@ -14,5 +14,4 @@
         <i class='glyphicon glyphicon-folder-open'></i>
         </label>
     </div>
-    </div>
 </div>

@@ -363,9 +363,4 @@ use Illuminate\Http\Request;
     <script src="js/fileinput.min.js" type="text/javascript"></script>
     <script src="js/locales/es.js" type="text/javascript"></script>
     <script src="/themes/explorer/theme.js" type="text/javascript"></script>
-
-    <script type="text/javascript">
-    var ps = new PerfectScrollbar('.opcionesMenu');
-    </script>
-
     @endsection
