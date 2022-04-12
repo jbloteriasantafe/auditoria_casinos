@@ -468,8 +468,8 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
 
     <!-- Estilos de imagenes en SVG -->
     <link rel="stylesheet" href="/css/estilosSVG.css">
-    <link rel="stylesheet" href="/css/estiloDashboard.css">
-    <link rel="stylesheet" href="/css/estiloDashboard_xs.css">
+    <link rel="stylesheet" href="/css/estiloDashboard.css?2">
+    <link rel="stylesheet" href="/css/estiloDashboard_xs.css?2">
 
     <!-- Custom Fonts -->
     <link rel="stylesheet" href="/web-fonts-with-css/css/fontawesome-all.css">
