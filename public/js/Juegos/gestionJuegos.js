@@ -1,19 +1,9 @@
 $(document).ready(function(e) {
-
-  $('#barraJuegosSectores').attr('aria-expanded','true');
-
-  $('.tituloSeccionPantalla').hide();
-  $('#barraJuegosSectores').attr('style','border-left: 6px solid #185891; background-color: #131836;');
-  $('#barraJuegosSectores').addClass('opcionesSeleccionado');
-  //$('.tituloSeccionPantalla').text('Gestionar Juegos');
+  $('.tituloSeccionPantalla').text('Mesas - Gestionar Juegos y Sectores');
   var fila= $('#filaFichasClon').clone();
 
   $('#juegosSec').show();
   $('#juegosSec').css('display','inline-block');
-
-  //$('#juegosSec').find('#b_juego').addClass('active');
-
-  $('#btn-ayuda').hide();
   $('#opcJuegos').attr('style','border-left: 6px solid #185891; background-color: #131836;');
   $('#opcJuegos').addClass('opcionesSeleccionado');
 

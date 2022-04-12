@@ -473,16 +473,12 @@
 
   <!-- Comienza modal de ayuda -->
   @section('tituloDeAyuda')
-  <h3 class="modal-title" style="color: #fff;">| AYUDA GESTIONAR MESAS</h3>
+  <h3 class="modal-title" style="color: #fff;">| GESTIONAR JUEGOS Y SECTORES</h3>
   @endsection
   @section('contenidoAyuda')
   <div class="col-md-12">
-    <h5>Tarjetas de gestionar juegos</h5>
-    <p>
-    ver
-    </p>
+    <p>-</p>
   </div>
-
   @endsection
   <!-- Termina modal de ayuda -->
 
@@ -496,7 +492,7 @@
   <script src="/js/fileinput.min.js" type="text/javascript"></script>
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
 
-  <script src="js/Juegos/gestionJuegos.js"></script>
+  <script src="js/Juegos/gestionJuegos.js?2"></script>
 
 
   @endsection

@@ -2,14 +2,8 @@ var dataFichas;
 var dataFichas2;
 
 $(document).ready(function() {
-  $('#barraMesas').attr('aria-expanded','true');
-  $('#mesasPanio').removeClass();
-  $('#mesasPanio').addClass('subMenu1 collapse in');
-  $('.tituloSeccionPantalla').text('Gestionar Cierres y Aperturas');
-  $('#opcAperturas').attr('style','border-left: 6px solid #185891; background-color: #131836;');
-  $('#opcAperturas').addClass('opcionesSeleccionado');
+  $('.tituloSeccionPantalla').text('Cierres y Aperturas');
   $('[data-toggle="popover"]').popover();
-  $('.tituloSeccionPantalla').hide();
   limpiarFiltrosApertura();
   limpiarFiltrosCierre();
   $('#cierreApertura').show();

@@ -46,7 +46,7 @@ $gestion_hijos = [
       ],
       'Notas' => [
         'link' => '/notas',
-        'algun_permiso' => [],//@TODO: Sin permiso O_o ??
+        'algun_permiso' => ['ver_seccion_resoluciones'],
       ],
       'Disposiciones' => [
         'link' => '/disposiciones',
@@ -102,7 +102,11 @@ $gestion_hijos = [
       'Mesas' => [
         'link' => '/mesas',
         'algun_permiso' => ['m_gestionar_mesas'],
-      ]
+      ],
+      'Canon' => [
+        'link' => '/canon',
+        'algun_permiso' => ['m_ver_seccion_canon'],
+      ],
     ]
   ],
   'Bingo (Premios)' => [
@@ -236,10 +240,10 @@ $auditoria_hijos = [
     'hijos' => [
       'Maquinas' => [
         'hijos' => [
-          'Contadores' => [
+          /*'Contadores' => [
             'link' => '/alertas_contadores',
             'algun_permiso' => ['ver_seccion_contadores'],
-          ],
+          ],*/
           'Producidos' => [
             'link' => '/producidos',
             'algun_permiso' => ['ver_seccion_producidos'],
@@ -252,10 +256,6 @@ $auditoria_hijos = [
       ],
       'Mesas' => [
         'hijos' => [
-          'Canon' => [
-            'link' => '/canon',
-            'algun_permiso' => ['m_ver_seccion_canon']
-          ],
           'Imagenes Bunker' => [
             'link' => '/solicitudImagenes',
             'algun_permiso' => ['m_ver_seccion_imagenes_bunker'],
@@ -500,6 +500,20 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
           'fondo' => $fondo ?? "black",
         ])
         @endcomponent
+        <nav>
+          <ul class="nav nav-tabs nav-justified juegosSec" id="juegosSec" hidden="true">
+            <li id="b_juego"><a href="#pant_juegos" style="font-family:Roboto-condensed;font-size:20px;background: white;">Juegos</a></li>
+            <li id="b_sector"><a href="#pant_sectores" style="font-family:Roboto-condensed;font-size:20px;background: white;">Sectores</a></li>
+          </ul>
+          <ul class="nav nav-tabs nav-justified cierreApertura" id="cierreApertura" hidden="true">
+            <li id="b_apertura" class="active"><a href="#pant_aperturas" style="font-family:Roboto-condensed;font-size:20px;background: white;">Aperturas</a></li>
+            <li id="b_cierre"><a href="#pant_cierres" style="font-family:Roboto-condensed;font-size:20px;background: white;">Cierres</a></li>
+          </ul>
+          <ul class="nav nav-tabs nav-justified pestCanon" id="pestCanon" hidden="true">
+            <li id="canon1"><a href="#pant_canon_meses" style="font-family:Roboto-condensed;font-size:20px;background: white;">Recaudado Mensual (Bruto)</a></li>
+            <li id="canon2"><a href="#pant_canon_valores" style="font-family:Roboto-condensed;font-size:20px;background: white;">Valor base y Canon</a></li>
+          </ul>
+        </nav>
 
         <!-- Vista de secciones -->
         <main class="contenedorVistaPrincipal">

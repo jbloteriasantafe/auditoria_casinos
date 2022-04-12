@@ -482,6 +482,6 @@
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
   <script src="/js/paginacion.js" charset="utf-8"></script>
 
-  <script src="js/Canon/canon.js" type="text/javascript" charset="utf-8"></script>
+  <script src="js/Canon/canon.js?2" type="text/javascript" charset="utf-8"></script>
 
 @endsection

@@ -1,9 +1,5 @@
 $(document).ready(function() {
-  $('#barraCanon').attr('aria-expanded','true');
-  $('.tituloSeccionPantalla').hide();
-  $('#barraCanon').attr('style','border-left: 6px solid #185891; background-color: #131836;');
-  $('#barraCanon').addClass('opcionesSeleccionado');
-
+  $('.tituloSeccionPantalla').text('Mesas - Canon');
   //pestañas
   $('#pestCanon').show();
   $('#pestCanon').css('display','inline-block');
