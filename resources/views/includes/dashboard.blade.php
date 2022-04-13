@@ -436,7 +436,7 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
     <meta name="_token" content="{!! csrf_token() !!}"/>
 
     <link rel="icon" type="image/png" sizes="32x32" href="/img/logos/favicon.ico">
-    <title>CASOnline - Lotería de Santa Fe</title>
+    <title>CAS - Lotería de Santa Fe</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="/css/bootstrap.min.css" rel="stylesheet">
