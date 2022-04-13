@@ -16,6 +16,11 @@ $icono_bingos = $get_svg('bingos');
 $icono_mesas = $get_svg('mesa');
 $icono_tablero = $get_svg('tablero_control');
 $gestion_hijos = [
+  'Casinos' => [
+    'icono' => $get_svg('casinos'),
+    'link' => '/casinos',
+    'algun_permiso' => ['ver_seccion_casinos'],
+  ],
   'Usuarios' => [
     'icono' => $icono_usuario,
     'hijos' => [
@@ -73,11 +78,11 @@ $gestion_hijos = [
         'link' => '/juegos',
         'algun_permiso' => ['ver_seccion_juegos'],
       ],
-      'Paquete-Juegos' => [
+      /*'Paquete-Juegos' => [
         //'link' => '/packJuegos',
         'link_style' => 'color: grey;',
         'algun_permiso' => ['ver_seccion_juegos'],
-      ],
+      ],*/
       'Certificados Software' => [
         'link' => '/certificadoSoft',
         'algun_permiso' => ['ver_seccion_glisoft'],
@@ -360,10 +365,6 @@ $contable_hijos = [
   ]
 ];
 $opciones = [
-  'Casinos' => [
-    'link' => '/casinos',
-    'algun_permiso' => ['ver_seccion_casinos'],
-  ],
   'Gestion' => [
     'hijos' => $gestion_hijos,
   ],
