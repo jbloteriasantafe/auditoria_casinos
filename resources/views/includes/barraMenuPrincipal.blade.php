@@ -67,8 +67,17 @@
   width: 100%;
 }
 #barraMenuPrincipal .dropdown-submenu .dropdown-menu {
+  width: 16em !important;
+  border: 1px solid #aaa;
+  box-shadow: 1px 1px black;
+}
+#barraMenuPrincipal .dropdown-submenu .dropdown-menu.derecha {/*Posición del submenu*/
   top: 10%;
-  left: 100%;
+  left: 90%;
+}
+#barraMenuPrincipal .dropdown-submenu .dropdown-menu.izquierda {/*Posición del submenu*/
+  top: 10%;
+  left: -90%;
 }
 #barraMenuPrincipal .enlace,#barraMenuPrincipal .desplegar-menu {
   padding: 0px;
@@ -93,13 +102,13 @@
 </style>
 
 <ul id="barraMenuPrincipal">
-  <div class="card" style="width: 8vw; flex: unset;">
+  <div class="card" style="flex:unset;width: 8vw;">
     <?php $fondoOL = '/img/tarjetas/banner_OL'.(rand(0,1) + 1).'.jpg'; ?>
     <a tabindex="-1" href="/inicio">
       <span><img src="/img/logos/logo_nuevo2_bn.png" style="width: 8vw;"></span>
     </a>
   </div>
-  <div class="card" style="width: 8vw; flex: unset;">
+  <div class="card" style="flex:unset;width: 8vw;">
     <a tabindex="-1" href="/configCuenta">
       <?php
       $img_user = $tiene_imagen ? '/usuarios/imagen' : '/img/img_user.jpg';
@@ -139,7 +148,7 @@
       @endcomponent
     @endif
   @endforeach
-  <div class="card dropdown" style="width: 5%;flex: unset;"  onclick="markNotificationAsRead('{{count($usuario->unreadNotifications)}}')">
+  <div class="card dropdown" style="flex:unset;width: 5vw;" onclick="markNotificationAsRead('{{count($usuario->unreadNotifications)}}')">
     <a class="dropdown-toggle no_abrir_en_mouseenter" type="button" data-toggle="dropdown">
       @component('includes.barraMenuPrincipal_texto_con_icono',[
         'icono' => '<i class="far fa-bell" style="font-size: 100%;"></i>
@@ -164,7 +173,7 @@
     </ul>
   </div>
   @if($usuario->es_superusuario || $usuario->es_auditor)
-  <div class="card" style="width:5%;flex: unset;">
+  <div class="card" style="flex:unset;width: 5vw;">
     <a id="ticket" tabindex="-1" href="#">
       @component('includes.barraMenuPrincipal_texto_con_icono',[
         'icono' => '<i id="ticket" class="far fa-envelope"></i>',
@@ -173,7 +182,7 @@
     </a>
   </div>
   @endif
-  <div class="card" style="width:5%;flex: unset;">
+  <div class="card" style="flex:unset;width: 5vw;">
     <a id="calendario" tabindex="-1" href="/calendario_eventos">
       @component('includes.barraMenuPrincipal_texto_con_icono',[
         'icono' => '<i  class="far fa-fw fa-calendar-alt"></i>',
@@ -181,7 +190,7 @@
       @endcomponent
     </a>
   </div>
-  <div class="card" style="width:5%;flex: unset;">
+  <div class="card" style="flex:unset;width: 5vw;">
     <a class="etiquetaLogoSalida" tabindex="-1" href="#">
       @component('includes.barraMenuPrincipal_texto_con_icono',[
         'icono' => '<img src="/img/logos/salida.png">',
@@ -202,8 +211,18 @@ $(document).ready(function(){
     e.stopPropagation();
     const submenu = $(this).next('ul');
     $(this).closest('ul.dropdown-menu')//voy para el menu de arriba
-    .find('ul.dropdown-menu').not(submenu).hide();//escondo todos los submenues menos el propio
-    submenu.toggle();//Toggleo el submenu
+    .find('ul.dropdown-menu').not(submenu)
+    .hide().removeClass('izquierda derecha');//escondo todos los submenues menos el propio
+
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    if(submenu.length > 0){
+      submenu.addClass('derecha');
+      submenu.toggle();//Toggleo el submenu
+      const relativo = submenu[0].getBoundingClientRect().right/vw;
+      if(relativo > 1.){
+        submenu.removeClass('derecha').addClass('izquierda');
+      }
+    }
     $(this).blur();
   }
   $('#barraMenuPrincipal > .card > * a.desplegar-menu').mouseenter(toggleSubmenu).click(toggleSubmenu);
@@ -211,6 +230,7 @@ $(document).ready(function(){
   $(document).on('hidden.bs.dropdown','.dropdown',function(e){
     //Escondo todos los submenues cuando se esconde un menu de 1er nivel
     $(this).find('li.dropdown-submenu').find('ul.dropdown-menu').hide();
+    $('#barraMenuPrincipal').find('.izquierda,.derecha').removeClass('izquierda derecha');
   });
 });
 </script>
