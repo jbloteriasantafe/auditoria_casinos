@@ -99,6 +99,10 @@
   font-size: 125%;
   line-height: 2em;
 }
+#barraMenuPrincipal .texto_con_icono span{
+  word-wrap: break-all;
+  white-space: normal;
+}
 </style>
 
 <ul id="barraMenuPrincipal">

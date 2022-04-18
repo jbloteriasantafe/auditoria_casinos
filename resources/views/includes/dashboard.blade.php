@@ -418,6 +418,36 @@ $opciones = [
   $aux = ['hijos' => $opciones];
   $opciones = $filtrar_permisos('',$aux)['hijos'];
 }
+{//Saco los submenues que tienen solo 1 opcion (quedan asi por los permisos de usuario) ej Auditoria -> Validacion -> Mesas -> Mesas para los auditores
+  $simplificar_submenues = function(&$k,&$opciones,$nivel) use (&$simplificar_submenues){
+    $nuevas_opciones = $opciones;//Clone
+    $nuevas_opciones['hijos'] = [];
+    $hijos = &$opciones['hijos'];//Clone
+    if(!is_null($hijos)) foreach($hijos as $h_k => $h){
+      $new_h = $simplificar_submenues($h_k,$h,$nivel+1);
+      if(is_null($new_h)) continue;
+      $nuevas_opciones['hijos'][$new_h['k']] = $new_h['opciones'];
+    }
+    
+    if($nivel > 1){
+      if(count($nuevas_opciones['hijos']) == 0 && $opciones['link'] == ''){//Si no tiene hijos ni tampoco un link, lo saco
+        return null;
+      }
+      if(count($nuevas_opciones['hijos']) == 1){//Le dejo el mismo icono
+        $icono = $nuevas_opciones['icono'];
+        $newk = array_keys($nuevas_opciones['hijos'])[0];
+        $nuevo = $nuevas_opciones['hijos'][$newk];
+        $nuevo['icono'] = $icono;
+        $ret = ['k' => $k.' - '.$newk,'opciones' => $nuevo];
+        return $ret;
+      }
+    }
+    return ['k' => $k,'opciones' => $nuevas_opciones];
+  };
+  $aux1 = '';
+  $aux2 = ['hijos' => $opciones];
+  $opciones = $simplificar_submenues($aux1,$aux2,0)['opciones']['hijos'];
+}
 $fondo = 'rgb(38, 50, 56)';
 //Fisico
 $casinos_ids = $usuario['usuario']->casinos->map(function($c){return $c->id_casino;})->toArray();
