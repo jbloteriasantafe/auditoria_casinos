@@ -513,61 +513,55 @@ public function importarDiario(Request $request){
     return $dimp;
   }
 
-  public function mensualPorMonedaPorJuego($id_casino,$date){
-    $por_moneda = array();
-    foreach(Moneda::all() as $moneda){
-      $detalles = ImportacionDiariaMesas::whereYear('fecha','=',$date[0])
-      ->whereMonth('fecha','=',$date[1])
-      ->where('id_casino','=',$id_casino)
-      ->where('id_moneda','=',$moneda->id_moneda)
-      ->whereNull('deleted_at')
-      ->orderBy('fecha','asc')->get()->toArray();//si no hago toArray me retorna vacio despues...
-      
-      if(count($detalles) == 0) continue;
-      
-      $total = DB::table('importacion_diaria_mesas as IDM')
-      ->whereYear('IDM.fecha','=',$date[0])->whereMonth('IDM.fecha','=',$date[1])
-      ->where('IDM.id_casino','=',$id_casino)->where('IDM.id_moneda','=',$moneda->id_moneda)
-      ->whereNull('IDM.deleted_at')
-      ->selectRaw('SUM(IDM.droop) as droop, SUM(IDM.retiros) as retiros, SUM(IDM.utilidad) as utilidad, SUM(IDM.saldo_fichas) as saldo_fichas,
-       "---" as hold, 0 as conversion_total')
-      ->groupBy('IDM.id_casino','IDM.id_moneda')
-      ->first();
+  public function mensualPorMonedaPorJuego($id_casino,$id_moneda,$anio_mes){
+    $detalles = ImportacionDiariaMesas::whereYear('fecha','=',$anio_mes[0])
+    ->whereMonth('fecha','=',$anio_mes[1])
+    ->where('id_casino','=',$id_casino)
+    ->where('id_moneda','=',$id_moneda)
+    ->whereNull('deleted_at')
+    ->orderBy('fecha','asc')->get()->toArray();//si no hago toArray me retorna vacio despues...
+        
+    $total = DB::table('importacion_diaria_mesas as IDM')
+    ->whereYear('IDM.fecha','=',$anio_mes[0])->whereMonth('IDM.fecha','=',$anio_mes[1])
+    ->where('IDM.id_casino','=',$id_casino)->where('IDM.id_moneda','=',$id_moneda)
+    ->whereNull('IDM.deleted_at')
+    ->selectRaw('SUM(IDM.droop) as droop, SUM(IDM.retiros) as retiros, SUM(IDM.utilidad) as utilidad, SUM(IDM.saldo_fichas) as saldo_fichas,
+      "---" as hold, 0 as conversion_total')
+    ->groupBy('IDM.id_casino','IDM.id_moneda')
+    ->first();
 
-      if($total->droop != 0){
-        $total->hold = round(($total->utilidad * 100)/$total->droop,2);
-      }
-      foreach($detalles as $d) $total->conversion_total += $d['conversion_total'];
-
-      $juegos = DB::table('importacion_diaria_mesas as IDM')
-      ->join('detalle_importacion_diaria_mesas as DIDM','IDM.id_importacion_diaria_mesas','=','DIDM.id_importacion_diaria_mesas')
-      ->whereYear('IDM.fecha','=',$date[0])->whereMonth('IDM.fecha','=',$date[1])
-      ->where('IDM.id_casino','=',$id_casino)->where('IDM.id_moneda','=',$moneda->id_moneda)
-      ->whereNull('IDM.deleted_at')->whereNull('DIDM.deleted_at')
-      ->selectRaw('DIDM.siglas_juego, DIDM.nro_mesa, SUM(DIDM.utilidad) as utilidad')
-      ->groupBy('DIDM.siglas_juego','DIDM.nro_mesa')
-      ->orderBy('DIDM.siglas_juego','asc')
-      ->orderBy('DIDM.nro_mesa','asc')
-      ->get();
-
-      foreach($juegos as $j) $j->porcentaje = round(100*$j->utilidad/$total->utilidad,2);
-      
-      $por_moneda[] = [
-        'moneda' => $moneda->siglas,
-        'juegos' => $juegos,
-        'detalles' => $detalles,
-        'total' => $total,
-      ];
+    if(!is_null($total) && $total->droop != 0){
+      $total->hold = round(($total->utilidad * 100)/$total->droop,2);
     }
-    return $por_moneda;
+    foreach($detalles as $d) $total->conversion_total += $d['conversion_total'];
+
+    $juegos = DB::table('importacion_diaria_mesas as IDM')
+    ->join('detalle_importacion_diaria_mesas as DIDM','IDM.id_importacion_diaria_mesas','=','DIDM.id_importacion_diaria_mesas')
+    ->whereYear('IDM.fecha','=',$anio_mes[0])->whereMonth('IDM.fecha','=',$anio_mes[1])
+    ->where('IDM.id_casino','=',$id_casino)->where('IDM.id_moneda','=',$id_moneda)
+    ->whereNull('IDM.deleted_at')->whereNull('DIDM.deleted_at')
+    ->selectRaw('DIDM.siglas_juego, DIDM.nro_mesa, SUM(DIDM.utilidad) as utilidad')
+    ->groupBy('DIDM.siglas_juego','DIDM.nro_mesa')
+    ->orderBy('DIDM.siglas_juego','asc')
+    ->orderBy('DIDM.nro_mesa','asc')
+    ->get();
+
+    foreach($juegos as $j) $j->porcentaje = round(100*$j->utilidad/$total->utilidad,2);
+
+    return [
+      'moneda' => Moneda::find($id_moneda)->siglas,
+      'juegos' => $juegos,
+      'detalles' => $detalles,
+      'total' => $total,
+    ];
   }
 
   public function imprimirMensual(Request $request){
     $casino = Casino::find($request->id_casino);
     $date = explode('-',$request->fecha);
     $mes = $date[0].'-'.$date[1];
-    $por_moneda = $this->mensualPorMonedaPorJuego($request->id_casino,$request->id__moneda,$date);
-    $view = view('Informes.informeMes', compact('por_moneda','casino','mes'));
+    $datos = $this->mensualPorMonedaPorJuego($request->id_casino,$request->id_moneda,[intval($date[0]),intval($date[1])]);
+    $view = view('Informes.informeMes', compact('datos','casino','mes'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view);

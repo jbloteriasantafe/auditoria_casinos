@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Mesas\Importaciones\Mesas\ImportadorController;
 use App\Mesas\JuegoMesa;
+use App\Mesas\Moneda;
 use App\Mesas\ImportacionDiariaMesas;
 use App\Mesas\DetalleImportacionDiariaMesas;
 use Carbon\Carbon;
@@ -29,7 +30,10 @@ class BCMensualesController extends Controller
       $nro_mes = $monthNames_N[$fecha[1]];
     }
 
-    $por_moneda = ImportadorController::getInstancia()->mensualPorMonedaPorJuego($request->id_casino,[$anio,$nro_mes]);
+    $por_moneda = [];
+    foreach(Moneda::all() as $moneda){
+      $por_moneda[] = ImportadorController::getInstancia()->mensualPorMonedaPorJuego($request->id_casino,$moneda->id_moneda,[$anio,$nro_mes]);
+    }
     $ret = [];
     foreach($por_moneda as $moneda){
       $m = new \StdClass;
