@@ -103,7 +103,7 @@ function grarGraficoCasinos(datas,names){
     const name = names[i]? names[i] : 'N/A';
     const data = [0,0,0,0,0,0,0,0,0,0,0,0];
     datas[i].forEach(function(x){
-      data[x.mes-1]  = x.total_utilidad_mensual;
+      data[x.mes-1]  = parseFloat(x.total_utilidad_mensual);
     });
     chart.series[i].update({name: name,data: data,showInLegend: true},false);
     chart.series[i].show();

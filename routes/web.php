@@ -778,7 +778,7 @@ Route::group(['prefix' => 'importacionDiaria','middleware' => 'tiene_permiso:m_v
   Route::post('/guardar','Mesas\Importaciones\Mesas\ImportadorController@guardarImportacionDiaria');
   Route::get('/eliminarImportacion/{id_imp}','Mesas\Importaciones\Mesas\ImportadorController@eliminar');
   Route::post('/ajustarDetalle','Mesas\Importaciones\Mesas\ImportadorController@ajustarDetalle');
-  Route::get('/imprimirMensual/{fecha}/{id_casino}','Mesas\Importaciones\Mesas\ImportadorController@imprimirMensual');
+  Route::get('/imprimirMensual','Mesas\Importaciones\Mesas\ImportadorController@imprimirMensual');
 });
 
 Route::group(['prefix' => 'informeAnual','middleware' => 'tiene_permiso:m_bc_anuales'],function (){

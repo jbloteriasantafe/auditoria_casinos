@@ -562,11 +562,11 @@ public function importarDiario(Request $request){
     return $por_moneda;
   }
 
-  public function imprimirMensual($fecha,$id_casino){
-    $casino = Casino::find($id_casino);
-    $date = explode('-',$fecha);
+  public function imprimirMensual(Request $request){
+    $casino = Casino::find($request->id_casino);
+    $date = explode('-',$request->fecha);
     $mes = $date[0].'-'.$date[1];
-    $por_moneda = $this->mensualPorMonedaPorJuego($id_casino,$date);
+    $por_moneda = $this->mensualPorMonedaPorJuego($request->id_casino,$request->id__moneda,$date);
     $view = view('Informes.informeMes', compact('por_moneda','casino','mes'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');

@@ -225,7 +225,11 @@ $('#buscar-importacionesDiarias').click(function(e){
 
 $('#btn-informeMensual').click(function(e){
   e.preventDefault();
-  window.open('importacionDiaria/imprimirMensual/' + $('#dtpFecha_hidden').val() + '/' + $('#filtroCas').val(),'_blank');
+  const params = new URLSearchParams();
+  params.append('id_casino',$('#filtroCas').val());
+  params.append('fecha',$('#dtpFecha_hidden').val());
+  params.append('id_tipo_moneda',$('#filtroMon').val());
+  window.open('importacionDiaria/imprimirMensual?' + params.toString(),'_blank');
 });
 
 function generarFilaImportaciones(imp){

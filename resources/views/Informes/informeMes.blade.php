@@ -90,12 +90,12 @@
           @foreach($moneda['detalles'] as $d)
           <tr>
             <td class="tablaCampos" style="font-size: 13px;text-align: center">{{$d['fecha']}}</td>
-            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['saldo_fichas']}}</td>
-            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['droop']}}</td>
-            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['utilidad']}}</td>
-            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['hold']}} %</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['saldo_fichas'],2,",",".")}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['droop'],2,",",".")}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['utilidad'],2,",",".")}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['hold'],3,",",".")}} %</td>
             @if($moneda['moneda'] != 'ARS')
-            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['cotizacion_diaria']}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['cotizacion_diaria'],2,",",".")}}</td>
             <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['conversion_total']}}</td>
             @endif
           </tr>
@@ -103,10 +103,10 @@
           <!-- fila totalizadora -->
           <tr>
             <td class="tablaCampos" style="font-size: 13px;text-align: center;font-weight: bold;">{{$mes.'-##'}}</td>
-            <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$moneda['total']->saldo_fichas}}</td>
-            <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$moneda['total']->droop}}</td>
-            <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$moneda['total']->utilidad}}</td>
-            <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$moneda['total']->hold}} %</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($moneda['total']->saldo_fichas,2,",",".")}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($moneda['total']->droop,2,",",".")}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($moneda['total']->utilidad,2,",",".")}}</td>
+            <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($moneda['total']->hold,3,",",".")}} %</td>
             @if($moneda['moneda'] != 'ARS')
             <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">--</td>
             <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$moneda['total']->conversion_total}}</td>

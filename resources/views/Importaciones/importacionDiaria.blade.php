@@ -722,7 +722,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
   <!-- JavaScript paginacion -->
   <script src="js/paginacion.js" charset="utf-8"></script>
   <!-- JavaScript personalizado -->
-  <script src="/js/Importaciones/ImportacionDiaria.js" charset="utf-8"></script>
+  <script src="/js/Importaciones/ImportacionDiaria.js?2" charset="utf-8"></script>
   <script src="/js/lib/spark-md5.js" charset="utf-8"></script><!-- Dependencia de md5.js -->
   <script src="/js/md5.js" charset="utf-8"></script>
 @endsection
