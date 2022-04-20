@@ -165,6 +165,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
                                             <a href="informeContableMTM"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'informeSector')
                                             <a href="informeSector"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>
+                                          @elseif($visitada->ruta == 'informeDiarioBasico')
+                                            <a href="informeDiarioBasico"><i class="fa fa-share fa-2x"></i>@svg('informes','iconoMaquinas')</a>  
                                           @elseif($visitada->ruta == 'relevamientosProgresivo')
                                             <a href="relevamientosProgresivo"><i class="fa fa-share fa-2x"></i>@svg('maquinas','iconoMaquinas')</a>
                                           @elseif($visitada->ruta == 'maquinas')
