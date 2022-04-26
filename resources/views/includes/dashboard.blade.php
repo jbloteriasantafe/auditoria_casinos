@@ -448,6 +448,43 @@ $opciones = [
   $aux2 = ['hijos' => $opciones];
   $opciones = $simplificar_submenues($aux1,$aux2,0)['opciones']['hijos'];
 }
+
+//@HACK: Elimino submenues para windows XP porque no se muestran... mando todos los enlaces directos al menu
+//poner true || request()->... etc para probar
+if(request()->header('User-Agent') == "Mozilla/5.0 (Windows NT 5.1; rv:52.0) Gecko/20100101 Firefox/52.0"){
+  $array_pop_k = function(&$arr){
+    if(count($arr) == 0) return [null,null];
+    $k = array_keys($arr)[count($arr)-1];
+    $v = $arr[$k];
+    array_pop($arr);
+    return [$k,$v];
+  };
+  foreach($opciones as $op => $submenu){
+    $new_submenu = [];
+    $first = true;
+    $stack = [];
+    $kv = [$op,$submenu];
+    while(count($stack) > 0 || $first){
+      while(count($kv[1]['hijos']) > 0){
+        $hijo = $array_pop_k($kv[1]['hijos']);
+        $new_text = $first? $hijo[0] : ($kv[0].' - '.$hijo[0]);
+        $stack[] = [$new_text,$hijo[1]];
+      }
+      $first = false;
+      while(true){
+        $kv = array_pop($stack);
+        if(!empty($kv[1]['link']) && $kv[1]['link'] != '#'){
+          $new_submenu[$kv[0]] = $kv[1];
+        }
+        else{
+          break;
+        }
+      }
+    }
+    $opciones[$op]['hijos'] = $new_submenu;
+  }
+}
+
 $fondo = 'rgb(38, 50, 56)';
 //Fisico
 $casinos_ids = $usuario['usuario']->casinos->map(function($c){return $c->id_casino;})->toArray();
