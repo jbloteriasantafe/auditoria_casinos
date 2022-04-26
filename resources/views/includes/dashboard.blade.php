@@ -464,7 +464,7 @@ if(request()->header('User-Agent') == "Mozilla/5.0 (Windows NT 5.1; rv:52.0) Gec
     $first = true;
     $stack = [];
     $kv = [$op,$submenu];
-    while(count($stack) > 0 || $first){
+    while(!is_null($kv[1]) || $first){
       while(count($kv[1]['hijos']) > 0){
         $hijo = $array_pop_k($kv[1]['hijos']);
         $new_text = $first? $hijo[0] : ($kv[0].' - '.$hijo[0]);
