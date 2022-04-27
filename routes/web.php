@@ -859,7 +859,6 @@ Route::group(['middleware' => ['tiene_permiso:importar_bingo']], function () {
   Route::delete('bingo/eliminarImportacion/{id}','Bingo\ImportacionController@eliminarImportacion');
   Route::post('bingo/guardarImportacion','Bingo\ImportacionController@guardarImportacion');
   Route::get('bingo/obtenerImportacionCompleta/{id}','Bingo\ImportacionController@obtenerImportacionCompleta');
-  Route::get('bingo/obtenerImportacionSimple/{fecha}/{casino}','Bingo\ImportacionController@obtenerImportacionSimple');
 });
 Route::group(['middleware' => ['tiene_permiso:reporte_estado_bingo']], function () {
   Route::get('bingo/reportesEstado','Bingo\ReportesController@reportesEstado');

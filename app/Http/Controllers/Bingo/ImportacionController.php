@@ -76,12 +76,14 @@ class ImportacionController extends Controller
       //busco el reporte que cumpla con las reglas
       $reporte = ReporteEstado::where($reglas)->first();
 
-      if($reporte->sesion_abierta == null || $reporte->sesion_abierta == 0){
-        if($reporte->sesion_cerrada == null || $reporte->sesion_cerrada == 0) $reporte->delete();
-      }
-      else{
-      //pongo en 0 el reporte de estado
-      app(\App\Http\Controllers\Bingo\ReportesController::class)->eliminarReporteEstado($importaciones[0]->id_casino, $importaciones[0]->fecha, 1);
+      if(!is_null($reporte)){
+        if($reporte->sesion_abierta == null || $reporte->sesion_abierta == 0){
+          if($reporte->sesion_cerrada == null || $reporte->sesion_cerrada == 0) $reporte->delete();
+        }
+        else{
+        //pongo en 0 el reporte de estado
+        app(\App\Http\Controllers\Bingo\ReportesController::class)->eliminarReporteEstado($importaciones[0]->id_casino, $importaciones[0]->fecha, 1);
+        }
       }
 
       foreach ($importaciones as $importacion) {
@@ -106,20 +108,20 @@ class ImportacionController extends Controller
       //si decidió guardar igual un archivo con fecha y casino ya importado, borro
       //cargo las observaciones de re importación
       if($request->guarda_igual == 1){
-          //Validación del motivo
-          Validator::make($request->all(), [
-                'motivo' => 'required'
-            ])->validate();
-
-         $id = $this->obtenerImportacionSimple($nfecha, $request->id_casino);
-         $this->eliminarImportacion($id);
-         DB::table('bingo_obs_importacion')
-                           ->insert([
-                             'id_casino' => $request->id_casino,
-                             'fecha_importacion' => $nfecha,
-                             'id_usuario' => $usuario,
-                             'observacion' => $request->motivo
-                           ]);
+        //Validación del motivo
+        Validator::make($request->all(), ['motivo' => 'required'])->validate();
+        $importacion = ImportacionBingo::where([
+          ['bingo_importacion.id_casino', '=', $request->id_casino],
+          ['bingo_importacion.fecha', '=', $nfecha]]
+        )->first();
+        $this->eliminarImportacion($importacion->id_importacion);
+        DB::table('bingo_obs_importacion')
+        ->insert([
+          'id_casino' => $request->id_casino,
+          'fecha_importacion' => $nfecha,
+          'id_usuario' => $usuario,
+          'observacion' => $request->motivo
+        ]);
       }
 
       //valido la importacion
@@ -187,27 +189,7 @@ class ImportacionController extends Controller
     public function obtenerImportacionFC($fecha, $id_casino){
       $importacion = ImportacionBingo::where('id_casino','=',$id_casino)->where('fecha','=',$fecha)->first();
       if($importacion != null) return $this->obtenerImportacionCompleta($importacion->id_importacion);
-
       return -1;
-
-    }
-
-    protected function obtenerImportacionSimple($fecha, $id_casino){
-      //Si viene desde "guardar igual", hay que armar la fecha
-      $pos = strpos($fecha, '-');
-      if($pos === false) {
-        $dd = substr($fecha,0,2);
-        $mm = substr($fecha,2,2);
-        $aa = substr($fecha,4,4);
-        $fecha = $aa . '-' . $mm .'-' .$dd;
-      }
-      //busca las importaciones cargadas que cumplan con "regla"
-      $regla = array();
-      $regla [] =['bingo_importacion.id_casino', '=', $id_casino];
-      $regla [] =['bingo_importacion.fecha', '=', $fecha];
-      $importacion = ImportacionBingo::where($regla)->first();
-
-      return $importacion->id_importacion;
     }
 
     protected function guardarImportacionArr($resultado,$id,$usuario,$fecha_archivo){
@@ -237,6 +219,8 @@ class ImportacionController extends Controller
         $importacion = new ImportacionBingo;
         $importacion->id_casino = $id;
         $importacion->id_usuario = $usuario;
+        //Si manda sin numero de partida lo ignoramos, pasa a veces que mandan una fila toda vacia (i.e. ;;;;;;;... etc)
+        if($row[0] == '') continue;
         if($id == 3){//Rosario
           $fecha = explode('/', $row[18]);
           //si no pudo separar la fecha en 3 partes, el archivo no es válido
@@ -303,14 +287,15 @@ class ImportacionController extends Controller
     protected function fechaArchivo($archivo){
       $path = $archivo->getRealPath();
       $fileHandle_validator = fopen($path, "r");
-      $file_line = fgetcsv($fileHandle_validator);
+      $file_line = fgetcsv($fileHandle_validator,null,';');
       $error_leer = is_null($file_line) || ($file_line === false);
       if(!$error_leer){
-        $end_line = end($file_line);
-        $pos = strpos($end_line,'/');
-        $file_date = substr($end_line, $pos-2,11);
-        $fecha = explode('/', $file_date);
-        return $fecha[2] . '-' . $fecha[1] . '-' . $fecha[0];
+        $fecha = end($file_line);
+        $fecha_arr = explode('/',$fecha);
+        $dia_1digito = count($fecha_arr[0]) < 2;
+        $mes_1digito = count($fecha_arr[1]) < 2;
+        $ret = $fecha_arr[2].'-'.($mes_1digito? '0' : '').$fecha_arr[1].'-'.($dia_1digito? '0' : '').$fecha_arr[0];
+        return $ret;
       }
       //Fallback, leo del nombre
       $filename = $archivo->getClientOriginalName();

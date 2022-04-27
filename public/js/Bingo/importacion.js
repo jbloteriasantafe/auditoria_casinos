@@ -309,12 +309,7 @@ $('#btn-guardar').click(function (e) {
 //Si la sesión ya existe, guardo igual
 $('#btn-guardarIgual').click(function (e) {
   $('#guarda_igual').attr('value', 1);
-  var ff = $('#i_eliminar').val();
-  var id_casino = $('#id_casino').val();
-  var motivo = $('#motivo-reimportacion ').val();
-  idFilaRemover(ff, id_casino);
   $('#btn-guardar').trigger('click');
-  // $('#modalImportacionCargada').modal('hide');
 });
 
 //si falla la conexión, botón para reintentar
@@ -531,19 +526,6 @@ function generarFilaTablaDetalles(importacion){
           .text(importacion.pozo_extra)
         )
         return fila;
-}
-//Carga la id de importacion para poder borrarla si se decide guardar igual
-function idFilaRemover(fecha, casino){
-  $.ajax({
-      url: "obtenerImportacionSimple/" + fecha + "/" + casino,
-      method: 'GET',
-      type: 'JSON'
-  }).done(function(data) {
-    $('#i_eliminar').attr('value', data);
-  })
-  .fail(function(data){
-    console.log(data);
-  });
 }
 //obtener la fecha del archivo
 function obtenerFecha(data){
