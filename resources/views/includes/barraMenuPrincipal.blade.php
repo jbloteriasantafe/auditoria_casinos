@@ -103,6 +103,21 @@
   word-wrap: break-all;
   white-space: normal;
 }
+#barraMenuPrincipal div,#barraMenuPrincipal li{
+  /*Deshabilitar selección para que la apariencia sea mas de botones*/
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+      -moz-user-select: none; /* Old versions of Firefox */
+      -ms-user-select: none; /* Internet Explorer/Edge */
+          user-select: none; /* Non-prefixed version, currently
+                                supported by Chrome, Edge, Opera and Firefox */
+}
+#barraMenuPrincipal .desplegar-menu {
+  font-style: oblique 11deg;
+  background: linear-gradient(45deg, {{$fondo}} 0%, white 1500%);
+  font-weight: 50;
+}
 </style>
 
 <ul id="barraMenuPrincipal">
@@ -213,12 +228,12 @@ $(document).ready(function(){
   function toggleSubmenu(e){//@TODO: ver porque se mueve el fondo si se desplegan muchos submenues
     e.preventDefault();
     e.stopPropagation();
-    const submenu = $(this).next('ul');
     $(this).closest('ul.dropdown-menu')//voy para el menu de arriba
-    .find('ul.dropdown-menu').not(submenu)
-    .hide().removeClass('izquierda derecha');//escondo todos los submenues menos el propio
+    .find('ul.dropdown-menu')
+    .hide().removeClass('izquierda derecha');
 
     const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    const submenu = $(this).next('ul');
     if(submenu.length > 0){
       submenu.addClass('derecha');
       submenu.toggle();//Toggleo el submenu
@@ -227,9 +242,13 @@ $(document).ready(function(){
         submenu.removeClass('derecha').addClass('izquierda');
       }
     }
-    $(this).blur();
+    //$(this).blur();
   }
-  $('#barraMenuPrincipal > .card > * a.desplegar-menu').mouseenter(toggleSubmenu).click(toggleSubmenu);
+  $('#barraMenuPrincipal > .card > * a.desplegar-menu').mouseenter(toggleSubmenu).click(function(e){
+    //Bloqueo todas las acciones al clickear
+    e.preventDefault();
+    e.stopPropagation();
+  });
   $('#barraMenuPrincipal > .card > * a.enlace').mouseenter(toggleSubmenu);
   $(document).on('hidden.bs.dropdown','.dropdown',function(e){
     //Escondo todos los submenues cuando se esconde un menu de 1er nivel
