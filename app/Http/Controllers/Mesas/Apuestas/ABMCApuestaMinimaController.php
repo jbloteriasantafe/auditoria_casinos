@@ -113,7 +113,13 @@ class ABMCApuestaMinimaController extends Controller
       'modificaciones.cantidad_requerida' =>['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?$/'],
       'modificaciones.id_casino' => 'required|exists:casino,id_casino',
       'modificaciones.id_moneda' => 'required|exists:moneda,id_moneda'
-    ], array(), self::$atributos)->after(function($validator){})->validate();
+    ], array(), self::$atributos)->after(function($validator){
+      if($validator->errors()->any()) return;
+      $jm = JuegoMesa::find($validator->getData()['modificaciones']['id_juego']);
+      if($jm->id_casino != $validator->getData()['modificaciones']['id_casino']){
+        $validator->errors()->add('id_casino','Error de consistencia casino-juego');
+      }
+    })->validate();
 
 
     if(isset($validator) && $validator->fails()) {
@@ -128,7 +134,9 @@ class ABMCApuestaMinimaController extends Controller
                                         ->where('id_juego_mesa','=',$modif['id_juego'])
                                         ->get();
 
-    if($apuestaMinima != null) {$apuestaMinima->delete();}
+    if($apuestaMinima != null) {
+      foreach($apuestaMinima as $apMin) $apMin->delete();
+    }
 
     $apuestaMinima = new ApuestaMinimaJuego;
     $apuestaMinima->juego()->associate($modif['id_juego']);
