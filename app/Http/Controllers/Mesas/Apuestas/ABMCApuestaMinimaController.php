@@ -126,8 +126,7 @@ class ABMCApuestaMinimaController extends Controller
     $apuestaMinima = ApuestaMinimaJuego::whereIn('id_casino',[$modif['id_casino']])
                                         ->where('id_moneda','=',$modif['id_moneda'])
                                         ->where('id_juego_mesa','=',$modif['id_juego'])
-                                        ->get()
-                                        ->first();
+                                        ->get();
 
     if($apuestaMinima != null) {$apuestaMinima->delete();}
 
