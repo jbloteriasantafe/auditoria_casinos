@@ -194,9 +194,7 @@ public function imprimirPlanilla($id_informe){
   if(count($informe->minimos) == 0){
     $this->asociarMinimos($informe);
   }
-  $rel->minimos = $informe->minimos()->get()->all();
-
-
+  $rel->minimos = $informe->minimos;
   $view = View::make('InformesFiscalizadores.informeDiarioFiscalizadores', compact('rel'));
   $dompdf = new Dompdf();
   $dompdf->set_paper('A4', 'portrait');
