@@ -233,7 +233,7 @@ $('#agregarCSV').click(function(){
   const finalizoAE = $('#finalizoAE').val() == ''? '\xa0' : $('#finalizoAE option:selected').text();
   assign(fila.find('.finalizoAE'),finalizoAE);
 
-  assign(fila.find('.nombres'),e($('#buscadorNombre').val()));
+  assign(fila.find('.nombres'),e($('#buscadorNombres').val()));
   assign(fila.find('.apellido'),e($('#buscadorApellido').val()));
 
   const dia = $('#buscadorDia').val() == ''? '\xa0' : $('#buscadorDia option:selected').text();
