@@ -26,6 +26,7 @@ function buscar(pagina){
     });
 
     const formData = {
+        nombres: $('#buscadorNombres').val(),
         apellido: $('#buscadorApellido').val(),
         dni: $('#buscadorDni').val(),
         casino: $('#buscadorCasino').val() > 0? $('#buscadorCasino').val() : "",

@@ -61,6 +61,7 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
     }
 
     const formData = {
+        nombres: $('#buscadorNombres').val(),
         apellido: $('#buscadorApellido').val(),
         dni: $('#buscadorDni').val(),
         correo: $('#buscadorCorreo').val(),

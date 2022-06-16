@@ -66,6 +66,10 @@ class InformesAEController extends Controller
         $reglas[]=['ae_estado.id_nombre_estado','=',$request->estado];
       }
 
+      if(!empty($request->nombres)){
+        $reglas[]=['ae_datos.nombres','LIKE', '%' . $request->nombres . '%'];
+      }
+      
       if(!empty($request->apellido)){
         $reglas[]=['ae_datos.apellido','LIKE', '%' . $request->apellido . '%'];
       }

@@ -64,8 +64,7 @@ background-color: #4CAF50;
 
 @section('contenidoVista')
 
-    <div class="col-xl-9">
-
+    <div class="col-xl-12">
         <!-- FILTROS DE BÚSQUEDA -->
         <div class="row">
             <div class="col-md-12">
@@ -76,15 +75,19 @@ background-color: #4CAF50;
                   <div id="collapseFiltros" class="panel-collapse collapse">
                     <div class="panel-body">
                       <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <h5>Nombres</h5>
+                            <input class="form-control" id="buscadorNombres" value=""/>
+                        </div>
+                        <div class="col-md-3">
                             <h5>Apellido</h5>
                             <input class="form-control" id="buscadorApellido" value=""/>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <h5>DNI</h5>
                             <input class="form-control" id="buscadorDni" value="{{$dni}}"/>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <h5>Casino</h5>
                             <select id="buscadorCasino" class="form-control selectCasinos" name="">
                                 <option value="0">-Todos los Casinos-</option>
@@ -216,5 +219,5 @@ background-color: #4CAF50;
   <script type="text/javascript" src="/js/jquery.imagesloaded.min.js"></script>
   <script type="text/javascript" src="/js/jquery.ImageGallery.js"></script>
 
-  <script src="/js/Autoexclusion/galeriaImagenesAutoexcluidos.js" charset="utf-8"></script>
+  <script src="/js/Autoexclusion/galeriaImagenesAutoexcluidos.js?2" charset="utf-8"></script>
   @endsection

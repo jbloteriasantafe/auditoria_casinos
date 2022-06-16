@@ -82,7 +82,7 @@ background-color: #4CAF50;
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <h5>Estado</h5>
                             <select id="buscadorEstado" class="form-control">
                               <option selected="" value="">- Todos los estados -</option>
@@ -99,9 +99,13 @@ background-color: #4CAF50;
                             <option value="1">SI</option>
                           </select>
                         </div>
-                        <div class="col-md-3">
-                            <h5>Apellido</h5>
-                            <input class="form-control" id="buscadorApellido" value=""/>
+                        <div class="col-md-2">
+                          <h5>Nombres</h5>
+                          <input class="form-control" id="buscadorNombres" value=""/>
+                        </div>
+                        <div class="col-md-2">
+                          <h5>Apellido</h5>
+                          <input class="form-control" id="buscadorApellido" value=""/>
                         </div>
                         <div class="col-md-2">
                           <h5>Día semanal</h5>
@@ -399,6 +403,7 @@ background-color: #4CAF50;
               <th class="smalltext casino_plataforma" style="width: 4%;" data-busq="#buscadorCasino" data-busq-attr='data-codigo'>CAS</th>
               <th class="smalltext estado" style="width: 6%;" data-busq="#buscadorEstado">Estado</th>
               <th class="smalltext finalizoAE" style="width: 2%;" data-busq="#finalizoAE">FIN. AE</th>
+              <th class="smalltext nombres" style="width: 4%;" data-busq="#buscadorNombres">Nombres</th>
               <th class="smalltext apellido" style="width: 6%;" data-busq="#buscadorApellido">Apellido</th>
               <th class="smalltext dia_semanal" style="width: 4%" data-busq="#buscadorDia">Día</th>
               <th class="smalltext rango_etario" style="width: 4%" data-busq="#buscadorRangoEtario" rango>Rango Etario</th>
@@ -406,10 +411,10 @@ background-color: #4CAF50;
               <th class="smalltext sexo" style="width: 5%;" data-busq="#buscadorSexo">Sexo</th>
               <th class="smalltext localidad" style="width: 8%;" data-busq="#buscadorLocalidad">Localidad</th>
               <th class="smalltext provincia" style="width: 8%;" data-busq="#buscadorProvincia">Provincia</th>
-              <th class="smalltext f_ae" style="width: 10%;" data-busq="#dtpFechaAutoexclusion" fecha>Fecha AE</th>
-              <th class="smalltext f_v" style="width: 10%;" data-busq="#dtpFechaVencimiento"   fecha>Fecha Venc.</th> 
-              <th class="smalltext f_r" style="width: 10%;" data-busq="#dtpFechaRevocacion"    fecha>Fecha Revoc.</th>
-              <th class="smalltext f_c" style="width: 10%;" data-busq="#dtpFechaCierre"        fecha>Fecha Cierre</th>
+              <th class="smalltext f_ae" style="width: 9%;" data-busq="#dtpFechaAutoexclusion" fecha>Fecha AE</th>
+              <th class="smalltext f_v" style="width: 9%;" data-busq="#dtpFechaVencimiento"   fecha>Fecha Venc.</th> 
+              <th class="smalltext f_r" style="width: 9%;" data-busq="#dtpFechaRevocacion"    fecha>Fecha Revoc.</th>
+              <th class="smalltext f_c" style="width: 9%;" data-busq="#dtpFechaCierre"        fecha>Fecha Cierre</th>
               <th class="smalltext hace_encuesta" style="width: 3%;" data-busq="#buscadorEncuesta" >Encuesta</th>
               <th class="smalltext frecuencia" style="width: 3%;" data-busq="#buscadorFrecuencia" >Frecuencia</th>
               <th class="smalltext veces" style="width: 3%;" data-busq="#buscadorVeces" rango opcional>Veces</th>
@@ -488,7 +493,7 @@ background-color: #4CAF50;
   <!-- JavaScript paginacion -->
   <script src="js/paginacion.js" charset="utf-8"></script>
   <!-- JavaScript personalizado -->
-  <script src="/js/Autoexclusion/informesAE.js" charset="utf-8"></script>
+  <script src="/js/Autoexclusion/informesAE.js?2" charset="utf-8"></script>
   <!-- Custom input Bootstrap -->
   <script src="/js/fileinput.min.js" type="text/javascript"></script>
   <script src="/js/locales/es.js" type="text/javascript"></script>

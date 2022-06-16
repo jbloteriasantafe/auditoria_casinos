@@ -61,6 +61,9 @@ class AutoexclusionController extends Controller
     public function buscarAutoexcluidos(Request $request){
       $reglas = Array();
 
+      if(!empty($request->nombres)){
+        $reglas[]=['ae_datos.nombres','LIKE', '%' . $request->nombres . '%'];
+      }
       if(!empty($request->apellido)){
         $reglas[]=['ae_datos.apellido','LIKE', '%' . $request->apellido . '%'];
       }

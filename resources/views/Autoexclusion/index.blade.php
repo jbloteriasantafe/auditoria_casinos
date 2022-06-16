@@ -134,6 +134,10 @@ input[required], select[required]{
           <div class="panel-body">
             <div class="row">
               <div class="col-md-2">
+                <h5>Nombres</h5>
+                <input class="form-control" id="buscadorNombres" value=""/>
+              </div>
+              <div class="col-md-2">
                 <h5>Apellido</h5>
                 <input class="form-control" id="buscadorApellido" value=""/>
               </div>
@@ -145,7 +149,7 @@ input[required], select[required]{
                 <h5>Correo</h5>
                 <input class="form-control" id="buscadorCorreo" value=""/>
               </div>
-              <div class="col-md-3">
+              <div class="col-md-2">
                 <h5>Estado</h5>
                 <select id="buscadorEstado" class="form-control selectEstado" name="">
                   <option selected="" value="">- Todos los estados -</option>
@@ -154,7 +158,7 @@ input[required], select[required]{
                   @endforeach
                 </select>
               </div>
-              <div class="col-md-3">
+              <div class="col-md-2">
                 <h5>Casino</h5>
                 <select id="buscadorCasino" class="form-control selectCasinos" name="">
                   <option value="0">-Todos los Casinos-</option>
@@ -1079,7 +1083,7 @@ input[required], select[required]{
 <!-- JavaScript paginacion -->
 <script src="/js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
-<script src="/js/Autoexclusion/index.js" charset="utf-8"></script>
+<script src="/js/Autoexclusion/index.js?2" charset="utf-8"></script>
 <!-- JS file -->
 <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>
 <!-- CSS file -->
