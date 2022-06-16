@@ -434,6 +434,7 @@ background-color: #4CAF50;
               <td class="smalltext casino_plataforma"    style="width: 4%;">CAS</td>
               <td class="smalltext estado"    style="width: 6%;">ESTADO</td>
               <td class="smalltext finalizoAE"    style="width: 2%;">FINALIZO AE</td>
+              <td class="smalltext nombres"  style="width: 4%;">NOMBRES</td>
               <td class="smalltext apellido"  style="width: 6%;">APELLIDO</td>
               <td class="smalltext dia_semanal" style="width: 4%">DIA</td>
               <td class="smalltext rango_etario" style="width: 4%">00-99</td>
@@ -441,10 +442,10 @@ background-color: #4CAF50;
               <td class="smalltext sexo"      style="width: 5%;">S</td>
               <td class="smalltext localidad" style="width: 8%;">LOC</td>
               <td class="smalltext provincia" style="width: 8%;">PROV</td>
-              <td class="smalltext f_ae"    style="width: 10%;">Fecha AE</td>
-              <td class="smalltext f_v"     style="width: 10%;">Fecha Venc.</td> 
-              <td class="smalltext f_r"     style="width: 10%;">Fecha Revoc.</td>
-              <td class="smalltext f_c"     style="width: 10%;" >Fecha Cierre</td>
+              <td class="smalltext f_ae"    style="width: 9%;">Fecha AE</td>
+              <td class="smalltext f_v"     style="width: 9%;">Fecha Venc.</td> 
+              <td class="smalltext f_r"     style="width: 9%;">Fecha Revoc.</td>
+              <td class="smalltext f_c"     style="width: 9%;" >Fecha Cierre</td>
               <td class="smalltext hace_encuesta"     style="width: 3%;">Encuesta</td>
               <td class="smalltext frecuencia"   style="width: 3%;">Frecuencia</td>
               <td class="smalltext veces"        style="width: 3%;">Veces</td>
