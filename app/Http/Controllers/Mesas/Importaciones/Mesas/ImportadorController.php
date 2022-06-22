@@ -497,7 +497,7 @@ public function importarDiario(Request $request){
   }
 
   public function ajustarDetalle(Request $request){
-    $validator =  Validator::make($request->all(),[
+    Validator::make($request->all(),[
       'id_detalle_importacion_diaria_mesas' => 'required|exists:detalle_importacion_diaria_mesas,id_detalle_importacion_diaria_mesas',
       'ajuste' => 'nullable|numeric',
       'observacion' => 'nullable|string|max:64',
@@ -527,13 +527,46 @@ public function importarDiario(Request $request){
     ->whereNull('IDM.deleted_at')
     ->selectRaw('SUM(IDM.droop) as droop, SUM(IDM.retiros) as retiros, SUM(IDM.utilidad) as utilidad, SUM(IDM.saldo_fichas) as saldo_fichas,
       "---" as hold, 0 as conversion_total')
-    ->groupBy('IDM.id_casino','IDM.id_moneda')
+    ->groupBy(DB::raw('"constant"'))
     ->first();
 
-    if(!is_null($total) && $total->droop != 0){
-      $total->hold = round(($total->utilidad * 100)/$total->droop,2);
+    if(is_null($total)){//No hay importacion en todo el mes
+      $total = new \stdClass;
+      $total->droop = 0;
+      $total->retiros = 0;
+      $total->utilidad = 0;
+      $total->saldo_fichas = 0;
+      $total->conversion_total = 0;
+      $total->mesas = 0;
     }
-    foreach($detalles as $d) $total->conversion_total += $d['conversion_total'];
+    $total->hold = $total->droop? round(($total->utilidad * 100)/$total->droop,2) : "---";
+
+    $total->mesas = DB::table('importacion_diaria_mesas as IDM')
+    ->join('detalle_importacion_diaria_mesas as DIDM','DIDM.id_importacion_diaria_mesas','=','IDM.id_importacion_diaria_mesas')
+    ->selectRaw('COUNT(distinct CONCAT(DIDM.siglas_juego,DIDM.nro_mesa)) as mesas')
+    ->whereYear('IDM.fecha','=',$anio_mes[0])->whereMonth('IDM.fecha','=',$anio_mes[1])
+    ->where('IDM.id_casino','=',$id_casino)->where('IDM.id_moneda','=',$id_moneda)
+    ->where(function($q){
+      return $q->whereRaw('IFNULL(DIDM.droop,0) <> 0 OR IFNULL(DIDM.droop_tarjeta,0) <> 0 OR IFNULL(DIDM.reposiciones,0) <> 0
+                        OR IFNULL(DIDM.retiros,0) <> 0 OR IFNULL(DIDM.utilidad,0) <> 0 OR IFNULL(DIDM.saldo_fichas,0) <> 0 OR IFNULL(DIDM.propina <> 0,0)');
+    })
+    ->groupBy(DB::raw('"constant"'))
+    ->first();
+    $total->mesas = is_null($total->mesas)? 0 : $total->mesas->mesas;
+
+    foreach($detalles as &$d){
+      $total->conversion_total += $d['conversion_total'];
+      $d['mesas'] = DB::table('detalle_importacion_diaria_mesas as DIDM')
+      ->selectRaw('COUNT(distinct CONCAT(DIDM.siglas_juego,DIDM.nro_mesa)) as mesas')
+      ->where('id_importacion_diaria_mesas','=',$d['id_importacion_diaria_mesas'])
+      ->where(function($q){
+        return $q->whereRaw('IFNULL(DIDM.droop,0) <> 0 OR IFNULL(DIDM.droop_tarjeta,0) <> 0 OR IFNULL(DIDM.reposiciones,0) <> 0
+                          OR IFNULL(DIDM.retiros,0) <> 0 OR IFNULL(DIDM.utilidad,0) <> 0 OR IFNULL(DIDM.saldo_fichas,0) <> 0 OR IFNULL(DIDM.propina <> 0,0)');
+      })
+      ->groupBy(DB::raw('"constant"'))
+      ->first();
+      $d['mesas'] = is_null($d['mesas'])? 0 : $d['mesas']->mesas;
+    }
 
     $juegos = DB::table('importacion_diaria_mesas as IDM')
     ->join('detalle_importacion_diaria_mesas as DIDM','IDM.id_importacion_diaria_mesas','=','DIDM.id_importacion_diaria_mesas')

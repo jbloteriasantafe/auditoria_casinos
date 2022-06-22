@@ -62,6 +62,7 @@
       <thead>
         <tr align="center" >
           <th class="col-xl-2 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray;text-align:center !important">FECHA</th>
+          <th class="col-xl-3 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray;text-align:center !important">MESAS</th>
           <th class="col-xl-3 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray;text-align:center !important">SALDO EN FICHAS</th>
           <th class="col-xl-2 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray; text-align:center !important;">DROP</th>
           <th class="col-xl-3 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray; text-align:center !important;">UTILIDAD</th>
@@ -76,6 +77,7 @@
         @foreach($datos['detalles'] as $d)
         <tr>
           <td class="tablaCampos" style="font-size: 13px;text-align: center">{{$d['fecha']}}</td>
+          <td class="tablaCampos" style="font-size: 13px;text-align: center">{{$d['mesas'] ?? 1}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['saldo_fichas'],2,",",".")}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['droop'],2,",",".")}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['utilidad'],2,",",".")}}</td>
@@ -89,6 +91,7 @@
         <!-- fila totalizadora -->
         <tr>
           <td class="tablaCampos" style="font-size: 13px;text-align: center;font-weight: bold;">{{$mes.'-##'}}</td>
+          <td class="tablaCampos" style="font-size: 13px;text-align: center">{{$datos['total']->mesas}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($datos['total']->saldo_fichas,2,",",".")}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($datos['total']->droop,2,",",".")}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($datos['total']->utilidad,2,",",".")}}</td>
@@ -136,7 +139,9 @@
           <td class="tablaCampos" style="font-size: 13px;text-align: center">---</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($utilidad,2,',','.')}}</td>
           <!-- Deberia ser siempre 100% -->
-          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format(round(100*$utilidad/$datos['total']->utilidad,3),3,',','.')}} %</td>
+          <td class="tablaCampos" style="font-size: 13px;text-align: right">
+            {{number_format($datos['total']->utilidad? round(100*$utilidad/$datos['total']->utilidad,3) : 100.0,3,',','.')}} %
+          </td>
         </tr>
       </tbody>
     </table>
