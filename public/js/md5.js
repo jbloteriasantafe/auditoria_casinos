@@ -6,12 +6,42 @@ function md5(input,file){
         progress = (progress + 1)%4;
     },100);
 
-    const file_reader = new FileReader();
-    file_reader.onload = function(){
-        input.val(SparkMD5.hash(file_reader.result)).change();//Asegurarse de cargar sparkmd5 antes de este archivo!!
+    hash_incrementally_md5(file,function(h){
+        input.val(h);
         clearInterval(loading);
+    });
+}
+
+function hash_incrementally_md5(file,done_callback = function(h) {return;}){
+    const blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice;
+    const chunkSize = 2097152;//2MB
+    const chunks = Math.ceil(file.size / chunkSize);
+    let currentChunk = 0;
+    const spark = new SparkMD5.ArrayBuffer();
+    const fileReader = new FileReader();
+
+    fileReader.onload = function (e) {
+        spark.append(e.target.result);                   // Append array buffer
+        currentChunk++;
+
+        if (currentChunk < chunks) {
+            loadNext();
+        } else {
+            done_callback(spark.end());
+        }
     };
-    file_reader.readAsText(file);
+
+    fileReader.onerror = function () {
+        console.log('Error loading file for md5');
+    };
+
+    function loadNext() {
+        const start = currentChunk * chunkSize;
+        const end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
+        fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
+    }
+
+    loadNext();
 }
   
 function compararHash(div){
