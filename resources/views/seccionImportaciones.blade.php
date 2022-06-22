@@ -699,7 +699,7 @@ $id_usuario = session('id_usuario');
     <!-- JavaScript personalizado -->
     <script src="js/seccionImportaciones.js" charset="utf-8"></script>
     <script src="js/lib/spark-md5.js?2" charset="utf-8"></script><!-- Dependencia de md5.js -->
-    <script src="js/md5.js" charset="utf-8"></script>
+    <script src="js/md5.js?2" charset="utf-8"></script>
 
     <!-- JS paginacion -->
     <script src="/js/paginacion.js" charset="utf-8"></script>

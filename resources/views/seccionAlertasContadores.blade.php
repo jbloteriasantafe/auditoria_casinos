@@ -418,7 +418,7 @@
     <script src="js/seccionAlertasContadores.js" charset="utf-8"></script>
 
     <script src="js/lib/spark-md5.js?2" charset="utf-8"></script><!-- Dependencia de md5.js -->
-    <script src="js/md5.js" charset="utf-8"></script>
+    <script src="js/md5.js?2" charset="utf-8"></script>
 
     <script src="js/fileinput.min.js" type="text/javascript"></script>
     <script src="js/locales/es.js" type="text/javascript"></script>
