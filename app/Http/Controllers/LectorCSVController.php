@@ -142,9 +142,10 @@ class LectorCSVController extends Controller
   // genera un join con las maquinas para tener valores de maquinas que existan en el maestro de mtm
   // y con esto se va agregado en los detalles_contadores
   // luego elimina los temporales
-  public function importarContadorSantaFeMelincue($archivoCSV,$fecha,$casino,$md5){
+  public function importarContadorSantaFeMelincue($archivoCSV,$fecha,$id_tipo_moneda,$casino,$md5){
     $contador = new ContadorHorario;
     $contador->id_casino = $casino;
+    $contador->id_tipo_moneda = $id_tipo_moneda;
     $contador->cerrado = 0;
     $contador->md5 = $md5;
     $contador->save();
@@ -181,7 +182,12 @@ class LectorCSVController extends Controller
     $contador->fecha = date('Y-m-d' , strtotime($fecha  . ' + 1 days'));
     $contador->save();
 
-    $contadores = DB::table('contador_horario')->where([['id_contador_horario','<>',$contador->id_contador_horario],['id_casino','=',$casino],['fecha','=',$contador->fecha]])->get();
+    $contadores = DB::table('contador_horario')->where([
+      ['id_contador_horario','<>',$contador->id_contador_horario],
+      ['id_casino','=',$casino],
+      ['id_tipo_moneda','=',$id_tipo_moneda],
+      ['fecha','=',$contador->fecha]
+    ])->get();
     //Me fijo si el contador viejo estaba cerrado, para reimportarlo correctamente sino se bugea 
     //La parte de producidos (no deja ajustar el producido)
     $viejo_cerrado = false;
@@ -201,10 +207,9 @@ class LectorCSVController extends Controller
     }
     $contador->cerrado = $viejo_cerrado? 1 : 0;
     $contador->save();
+
     //obtener mtm e ir insertando en detalle contador horario
-
     //cambiar sentencia para actualizar los campos de contadores donde la mtm y el id contador sean iguales
-
     $query = sprintf(" INSERT INTO detalle_contador_horario (coinin,coinout,jackpot,id_maquina,id_contador_horario,isla)
                        SELECT ct.coinin, ct.coinout, ct.jackpot, mtm.id_maquina, ct.id_contador_horario, ct.isla
                        FROM contadores_temporal AS ct, maquina AS mtm,

@@ -262,14 +262,10 @@ class ImportacionController extends Controller
 
   public function estadoImportacionesDeCasino($id_casino,$fecha_busqueda = null,$orden = 'desc'){
     //modficar para que tome ultimos dias con datos, no solo los ultimos dias
-    Validator::make([
-         'id_casino' => $id_casino,
-       ],
-       [
-         'id_casino' => 'required|exists:casino,id_casino' ,
-       ] , array(), self::$atributos)->after(function ($validator){
-
-    })->validate();
+    Validator::make(
+      ['id_casino' => $id_casino],
+      ['id_casino' => 'required|exists:casino,id_casino'], 
+      [], self::$atributos)->validate();
 
     $fecha = is_null($fecha_busqueda)? date('Y-m-d') : $fecha_busqueda;
     $aux = new \DateTime($fecha);
@@ -277,22 +273,15 @@ class ImportacionController extends Controller
     $fecha = $aux->format('Y-m-d');
     $mes = date('m',strtotime($fecha));
 
-    $arreglo = array();
-
+    $arreglo = [];
     while(date('m',strtotime($fecha)) == $mes){
-      if($id_casino == 3){//si es rosario tengo $ y DOL
-        $contador['pesos'] = ContadorHorario::where([['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , 1]])->count() >= 1 ? true :false;
-        $producido['pesos'] = Producido::where([['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , 1]])->count() >= 1 ? true : false;
-        $beneficio['pesos'] = Beneficio::where([['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , 1]])->count() >= 1 ? true : false;
-        $contador['dolares'] = ContadorHorario::where([['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , 2]])->count() >= 1 ? true : false;
-        $producido['dolares'] = Producido::where([['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , 2]])->count() >= 1 ? true : false;
-        $beneficio['dolares'] = Beneficio::where([['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , 2]])->count() >= 1 ? true : false;
-      }else{
-        $contador['pesos'] = ContadorHorario::where([['fecha',$fecha],['id_casino', $id_casino]])->count() >= 1 ? true : false;
-        $producido['pesos'] = Producido::where([['fecha',$fecha],['id_casino',$id_casino]])->count() >= 1 ? true : false;
-        $beneficio['pesos'] = Beneficio::where([['fecha' , $fecha],['id_casino',$id_casino]])->count() >= 1 ? true : false;
+      foreach([1 => 'pesos',2 => 'dolares'] as $id_tipo_moneda => $moneda){//@HACK, usar la tabla tipo_moneda
+        $reglas = [['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , $id_tipo_moneda]];
+        $contador[$moneda]  = ContadorHorario::where($reglas)->count() >= 1;
+        $producido[$moneda] = Producido::where($reglas)->count()       >= 1;
+        $beneficio[$moneda] = Beneficio::where($reglas)->count()       >= 1;
       }
-      $dia['contador'] = $contador;
+      $dia['contador']  = $contador;
       $dia['producido'] = $producido;
       $dia['beneficio'] = $beneficio;
       $dia['fecha'] = $fecha;
@@ -313,71 +302,68 @@ class ImportacionController extends Controller
         'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda',
         'md5' => 'required|string|max:32'
     ], array(), self::$atributos)->after(function($validator){
-        $data = $validator->getData();
-        $fecha = $data['fecha'];
-        $id_casino = $data['id_casino'];
-        $id_tipo_moneda = $data['id_tipo_moneda'];
-        //se debe permitir al que tiene el permiso correspondiente importar aun cuando el contador esta cerrado
-        if(!AuthenticationController::getInstancia()->usuarioTienePermiso(session('id_usuario'),'importar_contador_visado')){
-          $reglas = Array();
-          $reglas[]=['fecha','=',$fecha];
-          $reglas[]=['id_casino','=',$id_casino];
-          $reglas[]=['cerrado','=',1];
-          $reglas[]=['id_tipo_moneda','=',$id_tipo_moneda];
-          if(ContadorHorario::where($reglas)->count() > 0){
-            $validator->errors()->add('contador_cerrado', 'El Contador para esa fecha ya está cerrado y no se puede reimportar.');
-          }
+      if($validator->errors()->any()) return;
+
+      $data = $validator->getData();
+      $fecha = $data['fecha'];
+      $id_casino = $data['id_casino'];
+      $id_tipo_moneda = $data['id_tipo_moneda'];
+      $id_usuario = session('id_usuario');
+      //se debe permitir al que tiene el permiso correspondiente importar aun cuando el contador esta cerrado
+      if(!AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'importar_contador_visado')){
+        $reglas = Array();
+        $reglas[]=['fecha','=',$fecha];
+        $reglas[]=['id_casino','=',$id_casino];
+        $reglas[]=['cerrado','=',1];
+        $reglas[]=['id_tipo_moneda','=',$id_tipo_moneda];
+        if(ContadorHorario::where($reglas)->count() > 0){
+          $validator->errors()->add('contador_cerrado', 'El Contador para esa fecha ya está cerrado y no se puede reimportar.');
         }
-        //@HACK: crear una entidad casino_tiene_moneda y agregarlo al panel de administracion
-        if($id_casino != 3 && $data['id_tipo_moneda'] != 1){
-          $validator->errors()->add('id_tipo_moneda','Solo Rosario puede usar otra moneda');
+      }
+
+      if($validator->errors()->any()) return;
+      if(RelevamientoController::getInstancia()->existeRelVisado($fecha, $id_casino)){
+        if(!AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'importar_contador_visado')){
+          $validator->errors()->add('existeRel','No tiene permisos para reimportar contadores visados');
         }
+      }
     })->validate();
 
-    //solo el super usuario podrá reimportar contadores visados, de no estar cerrrado los contadores
-    if(RelevamientoController::getInstancia()->existeRelVisado($request['fecha'], $request['id_casino'])){
-      $id_usuario=session('id_usuario');
-      if(!AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'importar_contador_visado')){
-        return ['resultado' => 'existeRel'];
+    return DB::transaction(function() use ($request){
+      $ret = null;
+      switch($request->id_casino){
+        case 1:
+        case 2:
+          $ret = LectorCSVController::getInstancia()->importarContadorSantaFeMelincue($request->archivo,$request->fecha,$request->id_tipo_moneda,$request->id_casino,$request->md5);
+          break;
+        case 3:
+          $ret = LectorCSVController::getInstancia()->importarContadorRosario($request->archivo,$request->fecha,$request->id_tipo_moneda,$request->md5);
+          break;
+        default:
+          break;
       }
-    }
+      $fecha = $ret['fecha'];
 
-
-    $ret = null;
-    switch($request->id_casino){
-      case 1:
-        $ret = LectorCSVController::getInstancia()->importarContadorSantaFeMelincue($request->archivo,$request->fecha,1,$request->md5);
-        break;
-      case 2:
-        $ret = LectorCSVController::getInstancia()->importarContadorSantaFeMelincue($request->archivo,$request->fecha,2,$request->md5);
-        break;
-      case 3:
-        $ret = LectorCSVController::getInstancia()->importarContadorRosario($request->archivo,$request->fecha,$request->id_tipo_moneda,$request->md5);
-        break;
-      default:
-        break;
-    }
-
-
-    $fecha = $ret['fecha'];
-    //Actualizo los producidos de los relevamientos que ya estan en el sistema.
-    $relevamientos = Relevamiento::where([['fecha', $fecha],['backup',0]])->get();
-  
-    foreach($relevamientos as $rel){
-      if($rel->sector->casino->id_casino == $request->id_casino){
-        foreach($rel->detalles as $det){
-          $det->producido_importado =
-          RelevamientoController::getInstancia()->calcularProducido($fecha,$request->id_casino,$det->id_maquina);
-          if($det->producido_calculado_relevado != null){
-            $det->diferencia = $det->producido_calculado_relevado - $det->producido_importado;
+      //Actualizo los producidos de los relevamientos que ya estan en el sistema.
+      $relevamientos = Relevamiento::where([['fecha', $fecha],['backup',0]])->get();
+      foreach($relevamientos as $rel){
+        if($rel->sector->casino->id_casino == $request->id_casino){
+          foreach($rel->detalles as $det){
+            $det->producido_importado = RelevamientoController::getInstancia()->calcularProducido(
+              $fecha,
+              $request->id_casino,
+              $det->id_maquina
+            );
+            if($det->producido_calculado_relevado != null){
+              $det->diferencia = $det->producido_calculado_relevado - $det->producido_importado;
+            }
+            $det->save();
           }
-          $det->save();
+          $rel->save();
         }
-        $rel->save();
       }
-    }
-
-    return $ret;
+      return $ret;
+    });
   }
 
   public function importarProducido(Request $request){

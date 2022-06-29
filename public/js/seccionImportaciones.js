@@ -106,51 +106,27 @@ $(document).ready(function(){
 
 
 $('#casinoInfoImportacion').change(function() {
-    var id_casino = $(this).val();
-    var id_moneda = $('#monedaInfoImportacion').val();
-    const fecha_sort = $('#infoImportaciones .activa').attr('estado');
-    //Si el casino elegido no es Rosario, entonces ocultar el select de monedas
-      //Para Santa Fe y Melincué mandar moneda PESOS por defecto
-      //Para Rosario mirar que moneda está seleccionada
-    if (id_casino != '3') {
-        $('#monedaInfoImportacion').hide();
-
-        cargarTablasImportaciones(id_casino, '1',fecha_sort); //El 1 es PESOS
-    }else {
-        $('#monedaInfoImportacion').show();
-        console.log("Casino: ", id_casino);
-        console.log("Moneda: ", id_moneda);
-        $('#monedaInfoImportacion').change();
-    }
-});
-
-$('#monedaInfoImportacion').change(function() {
-    var id_moneda = $(this).val();
-    const fecha_sort = $('#infoImportaciones .activa').attr('estado');
-
-    if (id_moneda == 1) $('.tablaBody').removeClass('dolares').addClass('pesos');
-    else $('.tablaBody').removeClass('pesos').addClass('dolares');
-
-    //Esto pasa siempre en Rosario, el único casino que tiene dolar
-    cargarTablasImportaciones('3', id_moneda, fecha_sort);
+  $('#monedaInfoImportacion').change();
 });
 
 $('#mesInfoImportacion').on("change.datetimepicker",function(){
-  var id_casino = $('#casinoInfoImportacion').val();
-  var id_moneda = $('#monedaInfoImportacion').val();
+  $('#monedaInfoImportacion').change();
+});
+
+$('#monedaInfoImportacion').change(function() {
+  const id_moneda = $(this).val();
   const fecha_sort = $('#infoImportaciones .activa').attr('estado');
 
-  if(id_casino != '3'){
-    cargarTablasImportaciones(id_casino, '1', fecha_sort); //El 1 es PESOS
-  }
-  else{
-    cargarTablasImportaciones(id_casino,id_moneda, fecha_sort);
-  }
-})
+  if (id_moneda == 1) $('.tablaBody').removeClass('dolares').addClass('pesos');
+  else $('.tablaBody').removeClass('pesos').addClass('dolares');
+
+  //Esto pasa siempre en Rosario, el único casino que tiene dolar
+  cargarTablasImportaciones($('#casinoInfoImportacion').val(), id_moneda, fecha_sort);
+});
 
 function limpiarBodysImportaciones() {
-    $('.tablaBody tr').not('#moldeFilaImportacion').remove();
-    $('.tablaBody').hide();
+  $('.tablaBody tr').not('#moldeFilaImportacion').remove();
+  $('.tablaBody').hide();
 }
 
 function cargarTablasImportaciones(casino, moneda, fecha_sort) {
@@ -512,70 +488,44 @@ $('#btn-guardarContador').on('click', function(e){
 
 
   $.ajax({
-      type: "POST",
-      url: url,
-      data: formData,
-      processData: false,
-      contentType:false,
-      cache:false,
-      beforeSend: function(data){
-        console.log('Empezó');
-        $('#modalImportacionContadores').find('.modal-footer').children().hide();
-        $('#modalImportacionContadores').find('.modal-body').children().hide();
-
-        $('#modalImportacionContadores').find('.modal-body').children('#iconoCarga').show();
-      },
-      complete: function(data){
-        console.log('Terminó');
-      },
-      success: function (data) {
-
-        //existe para el casino y la fecha relevamientos visados, por lo que no se puede importar
-
-        if(data.resultado!='existeRel'){
-
-          $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN CONTADOR');
-          $('#mensajeExito p').text(data.cantidad_registros + ' registro(s) del CONTADOR fueron importados');
-
-
-        $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
-
+    type: "POST",
+    url: url,
+    data: formData,
+    processData: false,
+    contentType:false,
+    cache:false,
+    beforeSend: function(data){
+      console.log('Empezó');
+      $('#modalImportacionContadores').find('.modal-footer').children().hide();
+      $('#modalImportacionContadores').find('.modal-body').children().hide();
+      $('#modalImportacionContadores').find('.modal-body').children('#iconoCarga').show();
+    },
+    success: function (data) {
+      //existe para el casino y la fecha relevamientos visados, por lo que no se puede importar
+      $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN CONTADOR');
+      $('#mensajeExito p').text(data.cantidad_registros + ' registro(s) del CONTADOR fueron importados');
+      $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
+      $('#modalImportacionContadores').modal('hide');
+      limpiarBodysImportaciones();
+      $('#casinoInfoImportacion').change();
+      $('#mensajeExito').show();
+    },
+    error: function (data) {
+      console.log(data);
+      const response = data.responseJSON;
+      if(response.existeRel){
         $('#modalImportacionContadores').modal('hide');
-
-        limpiarBodysImportaciones();
-
-        var casino = id_casino.toString();
-        var moneda = '1';
-
-        console.log('En guardar contador, casino: ', casino);
-        console.log('En guardar contador, moneda: ', moneda);
-
-        if (casino == '3') moneda = id_tipo_moneda.toString();
-
-        $('#casinoInfoImportacion').change();
-
-        $('#mensajeExito').show();
-
-        }
-        if(data.resultado == 'existeRel'){
-          //se debe cambiar el modal para que sea homogeneo con el resto
-          $('#modalImportacionContadores').modal('hide');
-          $('#modalErrorVisado').modal(true);
-
-        }
-      },
-      error: function (data) {
-        //Mostrar: mensajeError
+        $('#modalErrorVisado').modal(true);
+      }
+      else{
         $('#modalImportacionContadores #mensajeError').show();
-        //Ocultar: rowArchivo, rowFecha, mensajes, iconoCarga
         $('#modalImportacionContadores #rowArchivo').hide();
         $('#modalImportacionContadores #rowFecha').hide();
         $('#modalImportacionContadores #mensajeInvalido').hide();
         $('#modalImportacionContadores #mensajeInformacion').hide();
         $('#modalImportacionContadores #iconoCarga').hide();
-        console.log('ERROR!');
-        console.log(data);
       }
+    }
   });
 });
 
@@ -614,82 +564,85 @@ function errorContadores(msg){
   $('#modalImportacionContadores #mensajeInvalido p').text(msg);
 }
 
-function procesarDatosContador(e) {
-    $('#modalImportacionContadores #mensajeInvalido').hide();
-    $('#modalImportacionContadores select').prop('disabled','disabled');
-    $('#modalImportacionContadores #fecha input').prop('disabled','disabled');
-    $('#modalImportacionContadores #fecha span').hide();
-    $('#modalImportacionContadores #fecha input').val('');
-    $('#contSelCasino').val(-1);
-    $('#contSelMoneda').val(-1);
-    $('#contSelCasino option').prop('disabled',false);
-    $('#contSelMoneda option').prop('disabled',false);
-    $('#valoresArchivoContador').show();
+function obtener_id_tipo_moneda(id_casino,nro_admin){
+  let id_tipo_moneda = null;
+  $.ajax({
+    url:'importaciones/getMoneda/'+id_casino+'/'+nro_admin, 
+    async: false,
+    success: function(moneda) {
+      if (moneda) { id_tipo_moneda = moneda.id_tipo_moneda; }
+    },
+    error: function(data){ console.log(data)  }
+  });
+  return id_tipo_moneda;
+}
 
-    let csv = e.target.result;
-    csv = csv.replace('\r','');
-    let lineas = csv.split('\n'); //Se obtienen todas las filas del archivo
-    let cols = lineas[0].split(';');
-    if(cols.length == 16){ // Rosario
-      $('#contSelCasino').val(3);
-      $('#contSelCasino option').prop('disabled','disabled');
-      $('#contSelCasino option[value="-1"]').prop('disabled',false);
-      $('#contSelCasino option[value="3"]').prop('disabled',false);
-      $('#modalImportacionContadores #fecha select').prop('disabled',false);
-      $('#modalImportacionContadores #fecha input').prop('disabled',false);
-      $('#modalImportacionContadores #fecha span').show();
-      if(lineas.length >= 5){
-        const primer_renglon = lineas[2].split(';');
-        const nro_admin = primer_renglon[1].slice(0,4);
-        //Consultar tipo de moneda
-        $.get('maquinas/getMoneda/' + nro_admin , function(data) {
-            console.log('Data tipo moneda: ' , data);
-            if (data.tipo != null) {
-                $('#contSelMoneda').val(data.tipo.id_tipo_moneda);
-            }
-        });
+function procesarDatosContador(e) {
+  $('#modalImportacionContadores #mensajeInvalido').hide();
+  $('#modalImportacionContadores select').prop('disabled','disabled');
+  $('#modalImportacionContadores #fecha input').prop('disabled','disabled');
+  $('#modalImportacionContadores #fecha span').hide();
+  $('#modalImportacionContadores #fecha input').val('');
+  $('#contSelCasino').val(-1);
+  $('#contSelMoneda').val(-1);
+  $('#contSelCasino option').prop('disabled',false);
+  $('#contSelMoneda option').prop('disabled',false);
+  $('#valoresArchivoContador').show();
+
+  let csv = e.target.result;
+  csv = csv.replace('\r','');
+  let lineas = csv.split('\n'); //Se obtienen todas las filas del archivo
+  let cols = lineas[0].split(';');
+
+  //Habilito todo y voy deshabilitando segun el archivo
+  $('#contSelMoneda').val(-1).attr('disabled',false).show();
+  $('#contSelCasino').val(-1).attr('disabled',false).show().find('option').attr('disabled',false);
+  $('#modalImportacionContadores #fecha').data('datetimepicker').reset();
+  $('#modalImportacionContadores #fecha input').prop('disabled',false);
+  $('#modalImportacionContadores #fecha span').show();
+  $('#btn-guardarContador').hide()
+  if(cols.length == 16){ // Rosario
+    $('#contSelCasino').val(3).attr('disabled','disabled');
+    if(lineas.length >= 5){
+      const primer_renglon = lineas[2].split(';');
+      const nro_admin = primer_renglon[1].slice(0,4);
+      const id_tipo_moneda = obtener_id_tipo_moneda(3,nro_admin);
+      if(id_tipo_moneda != null){
+        $('#contSelMoneda').val(id_tipo_moneda).attr('disabled','disabled');
       }
-      else{
-        $('#contSelMoneda').prop('disabled',false);
-      }
-      return;
     }
-    if(cols.length == 18){//Santa Fe o Melinque
-      //@HACK: tendria que existir un casino_tiene_moneda o algo por el estilo
-      //Lo hardcodeo a que SFE/MEL sea siempre sea pesos.
-      $('#contSelMoneda').val(1);
-      $('#contSelMoneda option').prop('disabled','disabled');
-      $('#contSelMoneda option[value="-1"]').prop('disabled',false);
-      $('#contSelMoneda option[value="1"]').prop('disabled',false);
-      $('#contSelCasino option').prop('disabled','disabled');
-      $('#contSelCasino option[value="-1"]').prop('disabled',false);
-      $('#contSelCasino option[value="1"]').prop('disabled',false);
-      $('#contSelCasino option[value="2"]').prop('disabled',false);
-      if(lineas.length >= 3){//Si tiene maquinas, saco la fecha y casino de ahi.
-        const primer_renglon = lineas[1].split(';');
-        const fecha = primer_renglon[primer_renglon.length-1];
-        const ddmmyyyy = fecha.trim().split("/");
-        const isofecha = ddmmyyyy[0] + '-' + ddmmyyyy[1] + '-' + ddmmyyyy[2]+'T00:00:00.0';
-        const date = new Date(isofecha);
-        console.log('fecha',isofecha,date);
-        $('#modalImportacionContadores #fecha').data('datetimepicker').setDate(date);
-        //@HACK: consultar la base de dato por nro_admin.
-        const casino = primer_renglon[3] < 2000? 1 : 2;
-        $('#contSelCasino').val(casino);
-        $('#btn-guardarContador').show();
+    return $('#btn-guardarContador').show();
+  }
+  if(cols.length == 18){//Santa Fe o Melinque
+    //Deshabilito la selección de Rosario
+    $('#contSelCasino option[value="3"]').attr('disabled','disabled');
+    if(lineas.length >= 3){//Si tiene maquinas, saco la fecha, casino y moneda de ahi.
+      const primer_renglon = lineas[1].split(';');
+
+      //Seteo y deshabilito las fechas
+      const fecha = primer_renglon[primer_renglon.length-1];
+      const ddmmyyyy = fecha.trim().split("/");
+      const isofecha = ddmmyyyy[0] + '-' + ddmmyyyy[1] + '-' + ddmmyyyy[2]+'T00:00:00.0';
+      const date = new Date(isofecha);
+      $('#modalImportacionContadores #fecha').data('datetimepicker').setDate(date);
+      $('#modalImportacionContadores #fecha input').prop('disabled','disabled');
+      $('#modalImportacionContadores #fecha span').hide();
+
+      //Seteo y deshabilito el casino
+      const nro_admin = primer_renglon[3];
+      const id_casino = nro_admin < 2000? 1 : 2;
+      $('#contSelCasino').val(id_casino).attr('disabled','disabled');
+
+      //Seteo y deshabilito la moneda si hay
+      const id_tipo_moneda = obtener_id_tipo_moneda(id_casino,nro_admin);
+      if(id_tipo_moneda != null){
+        $('#contSelMoneda').val(id_tipo_moneda).attr('disabled','disabled');
       }
-      else{
-        $('#contSelCasino').prop('disabled',false);
-        //Habilitar el ingreso de fecha
-        $('#modalImportacionContadores #fecha select').prop('disabled',false);
-        $('#modalImportacionContadores #fecha input').prop('disabled',false);
-        $('#modalImportacionContadores #fecha span').show();
-      }
-      return;
     }
-    console.log("Archivo incorrecto");
-    errorContadores('El archivo no contiene contadores de ningún casino');
-    return;
+    return $('#btn-guardarContador').show();
+  }
+  errorContadores('El archivo no contiene contadores de ningún casino');
+  return;
 }
 
 $('#modalImportacionContadores #fecha > input').on('change', function(){

@@ -252,8 +252,6 @@ Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_
   Route::delete('/eliminarMaquina/{id}', 'MTMController@eliminarMTM');
   Route::post('/cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
 });
-//Lo necesitan los auditores
-Route::get('maquinas/getMoneda/{nro}','MTMController@getMoneda');
 //Estos por si las moscas lo pongo ... Son todos GET por lo menos
 //Es muy posible que usuarios que no tienen el permiso ver_seccion_maquinas las use
 Route::get('maquinas/obtenerMTM/{id}', 'MTMController@obtenerMTM');
@@ -392,15 +390,21 @@ Route::delete('contadores/eliminarContador/{id}','ContadorController@eliminarCon
 Route::delete('producidos/eliminarProducido/{id}','ProducidoController@eliminarProducido');
 Route::delete('beneficios/eliminarBeneficios/{id_casino}/{id_tipo_moneda}/{anio}/{mes}','BeneficioController@eliminarBeneficios');
 Route::delete('beneficios/eliminarBeneficio/{id}','BeneficioController@eliminarBeneficio');
-Route::get('importaciones','ImportacionController@buscarTodo')->middleware('tiene_permiso:ver_seccion_importaciones');
-Route::post('importaciones/buscar','ImportacionController@buscar');
-Route::get('importaciones/{id_casino}/{fecha_busqueda?}/{orden?}','ImportacionController@estadoImportacionesDeCasino');
-Route::post('importaciones/importarContador','ImportacionController@importarContador');
-Route::post('importaciones/importarProducido','ImportacionController@importarProducido');
-Route::post('importaciones/importarBeneficio','ImportacionController@importarBeneficio');
-Route::post('importaciones/previewBeneficios','ImportacionController@previewBeneficios');
-Route::post('importaciones/previewProducidos','ImportacionController@previewProducidos');
-Route::post('importaciones/previewContadores','ImportacionController@previewContadores');
+
+Route::group(['prefix' => 'importaciones','middleware' => 'tiene_permiso:ver_seccion_importaciones'], function () {
+  Route::get('/','ImportacionController@buscarTodo')->middleware('tiene_permiso:ver_seccion_importaciones');
+  //Lo necesitan los auditores
+  Route::get('/getMoneda/{id_casino}/{nro_admin}','MTMController@getMoneda');
+  Route::post('/buscar','ImportacionController@buscar');
+  Route::get('/{id_casino}/{fecha_busqueda?}/{orden?}','ImportacionController@estadoImportacionesDeCasino');
+  Route::post('/importarContador','ImportacionController@importarContador');
+  Route::post('/importarProducido','ImportacionController@importarProducido');
+  Route::post('/importarBeneficio','ImportacionController@importarBeneficio');
+  Route::post('/previewBeneficios','ImportacionController@previewBeneficios');
+  Route::post('/previewProducidos','ImportacionController@previewProducidos');
+  Route::post('/previewContadores','ImportacionController@previewContadores');
+});
+
 
 Route::get('cotizacion/obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');
 Route::post('cotizacion/guardarCotizacion','CotizacionController@guardarCotizacion');

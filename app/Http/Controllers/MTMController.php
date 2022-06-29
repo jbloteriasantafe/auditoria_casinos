@@ -989,22 +989,10 @@ class MTMController extends Controller
     $mtm->save();
   }
 
-  public function getMoneda($nro){//@param: nro_admin de maquina
-    Validator::make([
-        'nro_admin' => $nro
-      ] ,
-       [
-         'nro_admin' => 'required|exists:maquina,nro_admin'
-      ] , array(), self::$atributos)->after(function ($validator){
-          $resultados = Maquina::where([['id_casino',3],['nro_admin',$validator->getData()['nro_admin']]])->get();
-          if($resultados->count() != 1){
-            $validator->errors()->add('nro_admin', 'La maquina no se encuentra en el casino de Rosario.');
-          }
-        })->validate();
-
-      $maquina = Maquina::where([['id_casino',3], ['nro_admin',$nro]])->first();
-
-      return ['tipo' => $maquina->tipoMoneda];
+  public function getMoneda($id_casino,$nro_admin){//@param: nro_admin de maquina
+    $maquina = Maquina::where([['id_casino',$id_casino], ['nro_admin',$nro_admin]])->first();
+    if(!is_null($maquina)) return $maquina->tipoMoneda;
+    return null;
   }
 
   public function transaccionEstadoMasivo(Request $request){
