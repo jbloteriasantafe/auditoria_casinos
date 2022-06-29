@@ -274,12 +274,13 @@ class ImportacionController extends Controller
     $mes = date('m',strtotime($fecha));
 
     $arreglo = [];
+    $monedas = TipoMoneda::all();
     while(date('m',strtotime($fecha)) == $mes){
-      foreach([1 => 'pesos',2 => 'dolares'] as $id_tipo_moneda => $moneda){//@HACK, usar la tabla tipo_moneda
-        $reglas = [['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , $id_tipo_moneda]];
-        $contador[$moneda]  = ContadorHorario::where($reglas)->count() >= 1;
-        $producido[$moneda] = Producido::where($reglas)->count()       >= 1;
-        $beneficio[$moneda] = Beneficio::where($reglas)->count()       >= 1;
+      foreach($monedas as $m){//@HACK, usar la tabla tipo_moneda
+        $reglas = [['fecha' , $fecha],['id_casino', $id_casino] ,['id_tipo_moneda' , $m->id_tipo_moneda]];
+        $contador[$m->id_tipo_moneda]  = ContadorHorario::where($reglas)->count() >= 1;
+        $producido[$m->id_tipo_moneda] = Producido::where($reglas)->count()       >= 1;
+        $beneficio[$m->id_tipo_moneda] = Beneficio::where($reglas)->count()       >= 1;
       }
       $dia['contador']  = $contador;
       $dia['producido'] = $producido;

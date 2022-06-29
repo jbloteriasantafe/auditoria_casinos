@@ -130,58 +130,43 @@ function limpiarBodysImportaciones() {
 }
 
 function cargarTablasImportaciones(casino, moneda, fecha_sort) {
-    const fecha = $('#mes_info_hidden').val();
-    const url = fecha.size == 0? '/' : ('/' + fecha);
-    $.get('importaciones/' + casino + url + '/' + (fecha_sort? fecha_sort : ''), function(data) {
-        var tablaBody;
+  const fecha = $('#mes_info_hidden').val();
+  const url = fecha.size == 0? '/' : ('/' + fecha);
+  $.get('importaciones/' + casino + url + '/' + (fecha_sort? fecha_sort : ''), function(data) {
+    let tablaBody = $();
 
-        console.log("Casino: ", casino);
+    limpiarBodysImportaciones();
 
-        limpiarBodysImportaciones();
+    switch (casino) {
+      case '1':
+        tablaBody = $('#bodyMelincue');
+        break;
+      case '2':
+        tablaBody = $('#bodySantaFe');
+        break;
+      case '3':
+        tablaBody = $('#bodyRosario');
+        break;
+    }
 
-        switch (casino) {
-          case '1':
-            tablaBody = $('#bodyMelincue');
-            break;
-          case '2':
-            tablaBody = $('#bodySantaFe');
-            break;
-          case '3':
-            tablaBody = $('#bodyRosario');
-            break;
-        }
+    for (let i = 0; i < data.arreglo.length; i++) {
+      const fila = $('#moldeFilaImportacion').clone();
+      fila.removeAttr('id');
+      fila.find('.fecha').text(convertirDate(data.arreglo[i].fecha));
 
-        for (var i = 0; i < data.arreglo.length; i++) {
+      const tipos = ['contador','producido','beneficio'];
+      for(const idx in tipos){
+        const t = tipos[idx];
+        fila.find('.'+t).addClass(data.arreglo[i]?.[t]?.[moneda]? 'true' : 'false');
+      }
 
-          var moldeFilaImportacion = $('#moldeFilaImportacion').clone();
-          moldeFilaImportacion.removeAttr('id');
-          moldeFilaImportacion.find('.fecha').text(convertirDate(data.arreglo[i].fecha));
+      tablaBody.append(fila);
+      fila.show();
+    }
 
-          var filaContador = moldeFilaImportacion.find('.contador');
-          var filaProducido = moldeFilaImportacion.find('.producido');
-          var filaBeneficio = moldeFilaImportacion.find('.beneficio');
-
-          if (moneda == '1') {
-            console.log('PESOS');
-            data.arreglo[i].contador.pesos == true ? filaContador.addClass('true') : filaContador.addClass('false');
-            data.arreglo[i].producido.pesos == true ? filaProducido.addClass('true') : filaProducido.addClass('false');
-            data.arreglo[i].beneficio.pesos == true ? filaBeneficio.addClass('true') : filaBeneficio.addClass('false');
-          }
-          else {
-            console.log('DOLAR');
-            data.arreglo[i].contador.dolares == true ? filaContador.addClass('true') : filaContador.addClass('false');
-            data.arreglo[i].producido.dolares == true ? filaProducido.addClass('true') : filaProducido.addClass('false');
-            data.arreglo[i].beneficio.dolares == true ? filaBeneficio.addClass('true') : filaBeneficio.addClass('false');
-          }
-
-          tablaBody.append(moldeFilaImportacion);
-          moldeFilaImportacion.show();
-        }
-
-        tablaBody.show();
-    });
-
-    $('#moldeFilaImportacion').hide();
+    tablaBody.show();
+  });
+  $('#moldeFilaImportacion').hide();
 }
 
 
