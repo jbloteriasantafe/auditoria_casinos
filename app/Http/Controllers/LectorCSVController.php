@@ -249,8 +249,9 @@ class LectorCSVController extends Controller
   // producido 0 y se genera un log en el archivo de producido
   // como santa fe y melincue tiene en el archivo el beneficio en su ultima linea
   // tambien se crea el archivo de beneficio
-  public function importarProducidoSantaFeMelincue($archivoCSV,$casino,$md5){
+  public function importarProducidoSantaFeMelincue($archivoCSV,$id_tipo_moneda,$casino,$md5){
     $producido = new Producido;
+    $producido->id_tipo_moneda = $id_tipo_moneda;
     $producido->id_casino = $casino;
     $producido->validado = 0;
     $producido->md5 = $md5;
@@ -280,24 +281,32 @@ class LectorCSVController extends Controller
     $prod_temp = DB::table('producido_temporal')->where('id_producido','=',$producido->id_producido)->first();
     $producido->fecha = $prod_temp->fecha;
     $producido->save();
-    $producido_validado = Producido::where([['id_casino','=',$casino],['fecha','=',$producido->fecha],['validado','=',1]])->count();
+    $producido_validado = Producido::where([
+      ['id_casino','=',$casino],
+      ['id_tipo_moneda','=',$id_tipo_moneda],
+      ['fecha','=',$producido->fecha],
+      ['validado','=',1]]
+    )->count();
 
     //despues de haberlo creado se pregunta si npodia cearlo y sino podia, vuelve atras borrando las tablas que recien armo
     if($producido_validado > 0){
       $query = sprintf(" DELETE FROM producido_temporal WHERE id_producido = '%d'",$producido->id_producido);
       $pdo->exec($query);
       $producido->delete();
-      Validator::make([],[
-          'producido_validado' => 'required|integer',
-      ], array(), array())->after(function($validator) use ($producido_validado){
-          if($producido_validado > 0){
-              $validator->errors()->add('producido_validado','El Producido para esa fecha ya está validado y no se puede reimportar.');
-          }
+      Validator::make([],['producido_validado' => 'required|integer'], [], [])
+      ->after(function($validator) use ($producido_validado){
+        if($producido_validado > 0){
+          $validator->errors()->add('producido_validado','El Producido para esa fecha ya está validado y no se puede reimportar.');
+        }
       })->validate();
       return;
     }
     //si ya hay producidos para esa fecha pero aun no esta validado primero borra todos los detalles producido y luego el producido
-    $producidos = DB::table('producido')->where([['id_producido','<>',$producido->id_producido],['id_casino','=',$casino],['fecha','=',$producido->fecha]])->get();
+    $producidos = DB::table('producido')->where([
+      ['id_producido','<>',$producido->id_producido],
+      ['id_tipo_moneda','=',$id_tipo_moneda],
+      ['id_casino','=',$casino],
+      ['fecha','=',$producido->fecha]])->get();
     if($producidos != null){
       $pc = ProducidoController::getInstancia();
       foreach($producidos as $prod) $pc->eliminarProducido($prod->id_producido,false);
@@ -323,9 +332,11 @@ class LectorCSVController extends Controller
 
     $pdo->exec($query);
 
-    //@BUG: No considera la moneda NO USAR EL CAMPO CANTIDAD MAQUINAS SI SE QUIERE POR MONEDA.
-    $cantidad_maquinas = Maquina::where('id_casino','=',$casino)->whereHas('estado_maquina',function($q){
-                                  $q->where('descripcion','=','Ingreso')->orWhere('descripcion','=','ReIngreso');})->count();
+    $cantidad_maquinas = Maquina::where('id_casino','=',$casino)//@BUG? porque no sacarlo directamente de los detalle_producido
+    ->where('id_tipo_moneda','=',$id_tipo_moneda)
+    ->whereHas('estado_maquina',function($q){
+      $q->where('descripcion','=','Ingreso')->orWhere('descripcion','=','ReIngreso');
+    })->count();
 
     //La ultima fila del producido tiene el beneficio del dia (Empieza con CTR)
     $query = sprintf("LOAD DATA local INFILE '%s'
@@ -336,6 +347,7 @@ class LectorCSVController extends Controller
                       LINES STARTING BY 'CTR' TERMINATED BY '\\n'
                       (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13)
                       SET id_casino = '%d',
+                     id_tipo_moneda = '%d',
                               fecha = STR_TO_DATE('%s','%s'),
                              coinin = CAST(REPLACE(@4,',','.') as DECIMAL(15,2)),
                             coinout = CAST(REPLACE(@5,',','.') as DECIMAL(15,2)),
@@ -344,19 +356,22 @@ class LectorCSVController extends Controller
               porcentaje_devolucion = 100*(CAST(REPLACE(@5,',','.') as DECIMAL(15,2)) + CAST(REPLACE(@6,',','.') as DECIMAL(15,2)))/(CAST(REPLACE(@4,',','.') as DECIMAL(15,2))),
                   cantidad_maquinas = '%d',
                promedio_por_maquina = CAST(REPLACE(@9,',','.') as DECIMAL(15,2))/'%d'
-                      ",$path,$casino,$producido->fecha,"%Y-%m-%d",$cantidad_maquinas,$cantidad_maquinas);
+                      ",$path,$casino,$id_tipo_moneda,$producido->fecha,"%Y-%m-%d",$cantidad_maquinas,$cantidad_maquinas);
 
     $pdo->exec($query);
 
     //@BUG: Race condition
     $ben = Beneficio::find(DB::table('beneficio')->max('id_beneficio'));
-    if($ben != null){//Boro los duplicados para ese beneficio importado
-      $beneficios = Beneficio::where([['id_beneficio','<>',$ben->id_beneficio],['id_casino','=',$casino],['fecha','=',$ben->fecha]])->get();
+    if($ben != null){//Borro los duplicados para ese beneficio importado
+      $beneficios = Beneficio::where([
+        ['id_beneficio','<>',$ben->id_beneficio],
+        ['id_casino','=',$casino],
+        ['id_tipo_moneda','=',$id_tipo_moneda],
+        ['fecha','=',$ben->fecha]]
+      )->get();
       if($beneficios != null){
-          if($beneficios != null){
-            $bc = BeneficioController::getInstancia();
-            foreach($beneficios as $b) $bc->eliminarBeneficio($b->id_beneficio,false);
-          }
+        $bc = BeneficioController::getInstancia();
+        foreach($beneficios as $b) $bc->eliminarBeneficio($b->id_beneficio,false);
       }
       $ben->md5 = $md5;
       $ben->save();
@@ -368,6 +383,7 @@ class LectorCSVController extends Controller
     // implementacion para contemplar los casos donde ciertas maquinas no reportan producido
     $mtms= Maquina::select("id_maquina","nro_admin")
                     ->where("id_casino","=",$casino)
+                    ->where("id_tipo_moneda","=",$id_tipo_moneda)
                     ->whereNull("deleted_at")
                     ->whereIn("id_estado_maquina",[1,2,4,5,7])
                     ->get();
@@ -394,7 +410,6 @@ class LectorCSVController extends Controller
     $producido->premio = $producido->recalcular('premio');
     $producido->valor = $producido->recalcular('valor');
     $producido->save();
-  //fin de implementacion
     return ['id_producido' => $producido->id_producido,'fecha' => $producido->fecha,'casino' => $producido->casino->nombre,'cantidad_registros' => $cantidad_registros,'tipo_moneda' => Producido::find($producido->id_producido)->tipo_moneda->descripcion, 'cant_mtm_forzadas' => $cant_mtm_forzadas];
   }
 

@@ -374,34 +374,19 @@ class ImportacionController extends Controller
         'archivo' => 'required|mimes:csv,txt',
         'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda',
         'md5' => 'required|string|max:32'
-    ], array(), self::$atributos)->after(function($validator){
-        if($validator->getData()['fecha'] != null){
-          $reglas = Array();
-          $reglas[]=['fecha','=',$validator->getData()['fecha']];
-          $reglas[]=['id_casino','=',$validator->getData()['id_casino']];
-          $reglas[]=['validado','=',1];
-          if($validator->getData()['id_tipo_moneda'] != null){
-            $reglas[]=['id_tipo_moneda','=',$validator->getData()['id_tipo_moneda']];
-          }
-          if(Producido::where($reglas)->count() > 0){
-            //$validator->errors()->add('producido_validado', 'El Producido para esa fecha ya está validado y no se puede reimportar.');
-          }
-        }
-    })->validate();
+    ], array(), self::$atributos)->validate();
 
-    switch($request->id_casino){
-      case 1:
-        return LectorCSVController::getInstancia()->importarProducidoSantaFeMelincue($request->archivo,1,$request->md5);
-        break;
-      case 2:
-        return LectorCSVController::getInstancia()->importarProducidoSantaFeMelincue($request->archivo,2,$request->md5);
-        break;
-      case 3:
-        return LectorCSVController::getInstancia()->importarProducidoRosario($request->archivo,$request->fecha,$request->id_tipo_moneda,$request->md5);
-        break;
-      default:
-        break;
-    }
+    return DB::transaction(function() use ($request){
+      switch($request->id_casino){
+        case 1:
+        case 2://No necesita break porque retorna
+          return LectorCSVController::getInstancia()->importarProducidoSantaFeMelincue($request->archivo,$request->id_tipo_moneda,$request->id_casino,$request->md5);
+        case 3:
+          return LectorCSVController::getInstancia()->importarProducidoRosario($request->archivo,$request->fecha,$request->id_tipo_moneda,$request->md5);
+        default:
+          return null;
+      }
+    });
   }
 
   public function importarBeneficio(Request $request){

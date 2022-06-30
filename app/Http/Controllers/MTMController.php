@@ -990,7 +990,7 @@ class MTMController extends Controller
   }
 
   public function getMoneda($id_casino,$nro_admin){//@param: nro_admin de maquina
-    $maquina = Maquina::where([['id_casino',$id_casino], ['nro_admin',$nro_admin]])->first();
+    $maquina = Maquina::where([['id_casino',intval($id_casino)], ['nro_admin',intval($nro_admin)]])->first();
     if(!is_null($maquina)) return $maquina->tipoMoneda;
     return null;
   }

@@ -834,113 +834,89 @@ function habilitarInputProducido(){
 }
 
 function procesarDatosProducidos(e) {
-    var csv = e.target.result;
+  const allTextLines = e.target.result.split('\n');
 
-    // var allTextLines = csv.split(/\r\n|\n/);
-    var allTextLines = csv.split('\n');
+  const fail = function(){
+    console.log((new Error()).stack);
+    $('#modalImportacionProducidos #mensajeInformacion').hide();
+    $('#modalImportacionProducidos #mensajeInvalido p').text('El archivo no contiene producidos');
+    $('#modalImportacionProducidos #mensajeInvalido').show();
+    $('#modalImportacionProducidos #iconoCarga').hide();
+    //Ocultar botón de subida
+    $('#btn-guardarProducido').hide();
+  };
 
-    if (allTextLines.length > 2 ) {
-        var data = allTextLines[2].split(';');
+  if(allTextLines.length <= 2){
+    return fail();
+  }
 
-        var tarr = [];
+  const columnas = allTextLines[2].split(';');
+  let nro_admin = null;
+  let ddmmaaaa = null;
 
-        for (var j=0; j<data.length; j++) {
-              tarr.push(data[j]);
-        }
+  if(columnas.length == COL_PROD_ROS){
+    id_casino = 3;
+    //Se obtiene la fecha del CSV para mostrarlo
+    ddmmaaaa = columnas[0].substring(0,10).split("/");
 
-        console.log('allTextLines: ', allTextLines.length);
-        console.log('tarr:', tarr);
-
-        //Mirar si la cantidad de columnas pertenece a un archivo de producido
-        if (tarr.length == COL_PROD_ROS || tarr.length == COL_PROD_SFE) {
-          console.log('Está bien');
-          //Mostrar el select de moneda (único dato que no se puede obtener desde el archivo)
-
-          //Si es de Santa Fe o Melincué, CASINO: 1ra columna del CSV; MONEDA: Pesos; FECHA: 3ra columna del CSV;
-          //Si es de Rosario, MONEDA: según cantidad de filas del archivo; FECHA: en 1ra columna del CSV;
-          switch (tarr.length) {
-            case COL_PROD_SFE:
-              //Verificar el CASINO: 1.Melincué; 2.Santa Fe;
-              if (tarr[0] == 1) {
-                id_casino = 1;
-                $('#modalImportacionProducidos #informacionCasino').text('CASINO MELINCUÉ');
-              }else {
-                id_casino = 2;
-                $('#modalImportacionProducidos #informacionCasino').text('CASINO SANTA FE');
-              }
-
-              //Se saca la fecha del CSV en formato string
-              var fecha = tarr[2];
-              //Se arma un date con esos datos
-              var dia = fecha.substring(6,8);
-              var mes = fecha.substring(4,6);
-              var anio = fecha.substring(0,4);
-
-              //Se arma así (dd/MM/AAAA) para mostrarlo
-              fecha_date = dia+'/'+mes+'/'+anio;
-              $('#modalImportacionProducidos #informacionFecha').text(obtenerFechaString(fecha_date, true));
-              //Se arma así para mandarlo a la BD
-              fecha_date = anio+'/'+mes+'/'+dia;
-
-              $('#modalImportacionProducidos #informacionMoneda').text('ARS');
-
-              id_tipo_moneda = 1;
-
-              break;
-            case COL_PROD_ROS:
-              id_casino = 3;
-              //Setear el nombre
-              $('#modalImportacionProducidos #informacionCasino').text('CASINO ROSARIO');
-              //Se obtiene la fecha del CSV para mostrarlo
-              fecha_date = tarr[0].substring(0,10);
-              //Setear la fecha en el modal
-              $('#modalImportacionProducidos #informacionFecha').text(obtenerFechaString(fecha_date, true));
-              //Se modifica el date para guardalo en la BD
-              fecha_date = tarr[0].substring(0,10).split('/');
-              fecha_date = fecha_date[2] + '/' + fecha_date[1] + '/' + fecha_date[0];
-
-
-              //Si hay más de 1000 lineas entonces tiene que ser en PESOS
-              if (allTextLines.length > 1000) {
-                id_tipo_moneda = 1;
-                $('#modalImportacionProducidos #informacionMoneda').text('ARS');
-              }else {
-                id_tipo_moneda = 2;
-                $('#modalImportacionProducidos #informacionMoneda').text('USD');
-              }
-
-              break;
-          }
-
-
-
-          $('#modalImportacionProducidos #mensajeInvalido').hide();
-          $('#modalImportacionProducidos #mensajeInformacion').show();
-          //Mostrar botón SUBIR
-          $('#btn-guardarProducido').show();
-        }
-        //No pertenece a un archivo de producido
-        else {
-          $('#modalImportacionProducidos #mensajeInformacion').hide();
-
-          $('#modalImportacionProducidos #mensajeInvalido p').text('El archivo no contiene producidos');
-          $('#modalImportacionProducidos #mensajeInvalido').show();
-
-          $('#modalImportacionProducidos #iconoCarga').hide();
-          //Ocultar botón de subida
-          $('#btn-guardarProducido').hide();
-        }
+    if(allTextLines.length > 7){
+      const aux = allTextLines[6].split(";")[1];
+      nro_admin = aux.substring(0,aux.length-2);
     }
-    else {
-      $('#modalImportacionProducidos #mensajeInformacion').hide();
-
-      $('#modalImportacionProducidos #mensajeInvalido p').text('El archivo no contiene producidos');
-      $('#modalImportacionProducidos #mensajeInvalido').show();
-
-      $('#modalImportacionProducidos #iconoCarga').hide();
-      //Ocultar botón de subida
-      $('#btn-guardarProducido').hide();
+    else{
+      return fail();
     }
+  }
+  else if(columnas.length == COL_PROD_SFE){
+    if(columnas[0] != 1 && columnas[0] != 2){
+      return fail();
+    }
+
+    id_casino = parseInt(columnas[0]);
+
+    //Se saca la fecha del CSV en formato string
+    const fecha = columnas[2];
+    ddmmaaaa = [fecha.substring(6,8),fecha.substring(4,6),fecha.substring(0,4)];
+
+    if(allTextLines.length > 2){
+      const aux = allTextLines[0].split(";")[1];
+      nro_admin = aux.substring(2);
+    }
+    else{
+      return fail();
+    }
+  }
+  else{ return fail(); }
+
+  if(id_casino == null || nro_admin == null || ddmmaaaa == null) return fail();
+
+  //Se modifica el date para guardalo en la BD
+
+  switch(id_casino){
+    case 1:{
+      $('#modalImportacionProducidos #informacionCasino').text('CASINO MELINCUÉ');
+    }break;
+    case 2:{
+      $('#modalImportacionProducidos #informacionCasino').text('CASINO SANTA FE');
+    }break;
+    case 3:{
+      $('#modalImportacionProducidos #informacionCasino').text('CASINO ROSARIO');
+    }break;
+    default: return fail();
+  }
+
+  fecha_date = ddmmaaaa.reverse().join("/");
+  $('#modalImportacionProducidos #informacionFecha').text(obtenerFechaString(ddmmaaaa.join("/"), true));
+
+  id_tipo_moneda = obtener_id_tipo_moneda(id_casino,nro_admin);
+  if(id_tipo_moneda != 1 && id_tipo_moneda != 2){
+    return fail();
+  }
+  $('#modalImportacionProducidos #informacionMoneda').text(id_tipo_moneda == 1? 'ARS' : 'USD');
+  $('#modalImportacionProducidos #mensajeInvalido').hide();
+  $('#modalImportacionProducidos #mensajeInformacion').show();
+  //Mostrar botón SUBIR
+  $('#btn-guardarProducido').show();
 }
 
 //Eventos de la librería del input
