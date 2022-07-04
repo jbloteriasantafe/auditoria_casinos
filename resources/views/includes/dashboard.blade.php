@@ -78,6 +78,10 @@ $gestion_hijos = [
         'link' => '/juegos',
         'algun_permiso' => ['ver_seccion_juegos'],
       ],
+      'Fórmulas' => [
+        'link' => '/formulas',
+        'algun_permiso' => ['ver_seccion_formulas'],
+      ],
       /*'Paquete-Juegos' => [
         //'link' => '/packJuegos',
         'link_style' => 'color: grey;',
