@@ -83,6 +83,14 @@
   padding: 0px;
   line-height: 2em;
 }
+#barraMenuPrincipal .enlace{
+  font-weight: bold;
+}
+#barraMenuPrincipal .desplegar-menu {
+  font-style: oblique 11deg;
+  background: linear-gradient(45deg, {{$fondo}} 0%, white 1500%);
+  font-weight: 50;
+}
 #barraMenuPrincipal .texto_con_icono{
   display: flex;
   flex-direction: row;
@@ -112,11 +120,6 @@
       -ms-user-select: none; /* Internet Explorer/Edge */
           user-select: none; /* Non-prefixed version, currently
                                 supported by Chrome, Edge, Opera and Firefox */
-}
-#barraMenuPrincipal .desplegar-menu {
-  font-style: oblique 11deg;
-  background: linear-gradient(45deg, {{$fondo}} 0%, white 1500%);
-  font-weight: 50;
 }
 </style>
 
