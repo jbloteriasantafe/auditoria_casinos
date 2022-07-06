@@ -752,9 +752,11 @@ class LectorCSVController extends Controller
     DB::connection()->disableQueryLog();
     $path = $archivoCSV->getRealPath();
 
-    //@BUG: No considera la moneda NO USAR EL CAMPO CANTIDAD MAQUINAS SI SE QUIERE POR MONEDA.
-    $cantidad_maquinas = Maquina::where('id_casino','=',3)->whereHas('estado_maquina',function($q){
-                                  $q->where('descripcion','=','Ingreso')->orWhere('descripcion','=','ReIngreso');})->count();
+    $cantidad_maquinas = Maquina::where('id_casino','=',3)
+    ->where('id_tipo_moneda','=',$id_tipo_moneda)
+    ->whereHas('estado_maquina',function($q){
+      $q->where('descripcion','=','Ingreso')->orWhere('descripcion','=','ReIngreso');
+    })->count();
 
     //@BUG: Race condition si dos personas importan al mismo tiempo
     $proximo_id_beneficio = DB::table('beneficio')->max('id_beneficio') + 1;
