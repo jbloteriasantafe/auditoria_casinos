@@ -15,7 +15,7 @@ class CheckSessionTime
      * @param  \Closure  $next
      * @return mixed
      */
-    protected $tiempo_sesion = 1800;// segundos
+    protected $tiempo_sesion = 14400;// segundos
 
     public function handle($request, Closure $next)
     {
