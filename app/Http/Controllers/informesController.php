@@ -217,38 +217,35 @@ class informesController extends Controller
   }
 
   public function obtenerUltimosBeneficiosPorCasino(){
-    BeneficioController::initViews();
-    //@HACK @TODO: generalizar a N casinos y N monedas
-    $beneficios = DB::table('v_diferencia_mes as vdm')
-    ->select('vdm.*','bm.id_beneficio_mensual',DB::raw('"1" as estado'))
-    ->join('casino as c','c.id_casino','=','vdm.id_casino')
-    ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','vdm.id_tipo_moneda')
+    $beneficios = DB::table('beneficio as b')
+    ->distinct()
+    ->selectRaw('YEAR(b.fecha) as anio,MONTH(b.fecha) as mes,b.id_casino,b.id_tipo_moneda,bm.id_beneficio_mensual,1 as estado')
     ->leftJoin('beneficio_mensual as bm',function($j){
-      return $j->on('bm.id_casino','=','vdm.id_casino')->on('bm.id_tipo_moneda','=','vdm.id_tipo_moneda')
-      ->on('bm.anio_mes','=',DB::raw('MAKEDATE(vdm.anio,vdm.mes)'))->where('bm.id_actividad','=',1);
-    })->orderBy(DB::raw('MAKEDATE(vdm.anio,vdm.mes)'),'desc')->get();
-    $beneficios_x_casino = [1 => [],2 => [],3 => []];
-    foreach($beneficios as $b){
-      $beneficios_x_casino[$b->id_casino][] = $b;
-    }
+      return $j->on('bm.id_casino','=','b.id_casino')
+               ->on('bm.id_tipo_moneda','=','b.id_tipo_moneda')
+               ->on(DB::raw('YEAR(bm.anio_mes)'),'=',DB::raw('YEAR(b.fecha)'))
+               ->on(DB::raw('MONTH(bm.anio_mes)'),'=',DB::raw('MONTH(b.fecha)'))
+              ->where('bm.id_actividad','=',1);
+    });
 
     $beneficios_mensuales_sin_beneficios = DB::table('beneficio_mensual as bm')
-    ->select('bm.*',DB::raw('"0" as estado'),DB::raw('YEAR(bm.anio_mes) as anio'),DB::raw('MONTH(bm.anio_mes) as mes'))
+    ->distinct()
+    ->selectRaw('YEAR(bm.anio_mes) as anio,MONTH(bm.anio_mes) as mes,bm.id_casino,bm.id_tipo_moneda,bm.id_beneficio_mensual,0 as estado')
     ->leftJoin('beneficio as b',function($j){
-      return $j->on('bm.id_casino','=','b.id_casino')->on('bm.id_tipo_moneda','=','b.id_tipo_moneda')
-      ->on('bm.anio_mes','=',DB::raw('MAKEDATE(YEAR(b.fecha),MONTH(b.fecha))'));
+      return $j->on('bm.id_casino','=','b.id_casino')
+               ->on('bm.id_tipo_moneda','=','b.id_tipo_moneda')
+               ->on(DB::raw('YEAR(bm.anio_mes)'),'=',DB::raw('YEAR(b.fecha)'))
+               ->on(DB::raw('MONTH(bm.anio_mes)'),'=',DB::raw('MONTH(b.fecha)'));
     })
-    ->where('bm.id_actividad',1)->whereNull('b.id_beneficio')->orderBy('bm.anio_mes','desc')->get();
-    foreach($beneficios_mensuales_sin_beneficios as $b){
+    ->where('bm.id_actividad','=',1)->whereNull('b.id_beneficio');
+
+    $beneficios = $beneficios->union($beneficios_mensuales_sin_beneficios)
+    ->orderByRaw('id_casino asc,anio desc,mes desc,id_tipo_moneda asc,id_beneficio_mensual asc')->get();
+
+    $beneficios_x_casino = [];
+    foreach($beneficios as $b){
+      if(!array_key_exists($b->id_casino,$beneficios_x_casino)) $beneficios_x_casino[$b->id_casino] = [];
       $beneficios_x_casino[$b->id_casino][] = $b;
-    }
-    foreach($beneficios_x_casino as $bcasino){
-      usort($bcasino,function($a,$b){
-        if(intval($a->anio) > intval($b->anio)) return true;
-        if(intval($a->mes)  > intval($b->mes))  return true;
-        if($a->id_beneficio_mensual > $b->id_beneficio_mensual) return true;
-        return false;
-      });
     }
 
     UsuarioController::getInstancia()->agregarSeccionReciente('Informes MTM' ,'informesMTM');
