@@ -115,7 +115,7 @@ function nombre_casino($id_casino){
                     <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
                       <i class="fa fa-exclamation" style="color: #FFA726;"></i>
                     </a>
-                    @elseif(!is_null($b->id_beneficio_mensual))
+                    @elseif($b->tiene_beneficio_mensual)
                     <a data-toggle="popover" data-trigger="hover" data-content="VALIDADO">
                       <i class="fa fa-check" style="color: green;"></i>
                     </a>

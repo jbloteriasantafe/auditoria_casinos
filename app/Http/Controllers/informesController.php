@@ -217,9 +217,15 @@ class informesController extends Controller
   }
 
   public function obtenerUltimosBeneficiosPorCasino(){
+    // A veces cuando reimportan se generaron 2 beneficios_mensual, por eso no retorno el id_beneficio_mensual directo si no
+    // un booleano indicando si lo tiene o no, para que el DISTINCT borre duplicados.
+    // Esto es un @HACK. Lo que hay que hacer es arreglar el importador para que los elimine al reimportar
+    // y eliminar los repetidos (no son tantos.. creo... hasta se puede hacer a pata). 
+    // Ver SELECT * FROM beneficio_mensual where id_beneficio_mensual IN (1172,1175) en la BD de producción
+    // Octavio Garcia Aguirre - 13 de Julio de 2022
     $beneficios = DB::table('beneficio as b')
     ->distinct()
-    ->selectRaw('YEAR(b.fecha) as anio,MONTH(b.fecha) as mes,b.id_casino,b.id_tipo_moneda,bm.id_beneficio_mensual,1 as estado')
+    ->selectRaw('YEAR(b.fecha) as anio,MONTH(b.fecha) as mes,b.id_casino,b.id_tipo_moneda,bm.id_beneficio_mensual IS NOT NULL as tiene_beneficio_mensual,1 as estado')
     ->leftJoin('beneficio_mensual as bm',function($j){
       return $j->on('bm.id_casino','=','b.id_casino')
                ->on('bm.id_tipo_moneda','=','b.id_tipo_moneda')
@@ -230,7 +236,7 @@ class informesController extends Controller
 
     $beneficios_mensuales_sin_beneficios = DB::table('beneficio_mensual as bm')
     ->distinct()
-    ->selectRaw('YEAR(bm.anio_mes) as anio,MONTH(bm.anio_mes) as mes,bm.id_casino,bm.id_tipo_moneda,bm.id_beneficio_mensual,0 as estado')
+    ->selectRaw('YEAR(bm.anio_mes) as anio,MONTH(bm.anio_mes) as mes,bm.id_casino,bm.id_tipo_moneda,1 as tiene_beneficio_mensual,0 as estado')
     ->leftJoin('beneficio as b',function($j){
       return $j->on('bm.id_casino','=','b.id_casino')
                ->on('bm.id_tipo_moneda','=','b.id_tipo_moneda')
@@ -240,7 +246,7 @@ class informesController extends Controller
     ->where('bm.id_actividad','=',1)->whereNull('b.id_beneficio');
 
     $beneficios = $beneficios->union($beneficios_mensuales_sin_beneficios)
-    ->orderByRaw('id_casino asc,anio desc,mes desc,id_tipo_moneda asc,id_beneficio_mensual asc')->get();
+    ->orderByRaw('id_casino asc,anio desc,mes desc,id_tipo_moneda asc')->get();
 
     $beneficios_x_casino = [];
     foreach($beneficios as $b){
