@@ -3,239 +3,135 @@
 <span class="etiquetaLogoInformes">@svg('informes','iconoInformes')</span>
 @endsection
 @section('contenidoVista')
-<?php
-use App\Http\Controllers\UsuarioController;
-use Illuminate\Http\Request;
-setlocale(LC_TIME, 'es_ES.UTF-8');
-?>
-
 @section('estilos')
 <link rel="stylesheet" href="/css/bootstrap-datetimepicker.min.css">
 <link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="css/zona-file-large.css">
+<style>
+.width_columna {
+  float: left;
+  width: {{100.0/count($beneficios_x_casino)}}%;
+}
+</style>
 @endsection
 <?php
 function moneda($id_tipo_moneda){
   if($id_tipo_moneda == 1) return '$';
   if($id_tipo_moneda == 2) return 'U$S';
-  return $id_tipo_moneda;
+  return ''.$id_tipo_moneda;
 }
 function mes($mes_num){
   $meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  if(!array_key_exists($mes_num-1,$meses)) return $mes_num;
+  if(!array_key_exists($mes_num-1,$meses)) return ''.$mes_num;
   return $meses[$mes_num-1];
 }
 function anio_mes($anio,$mes){
   return $anio.' '.mes($mes);
 }
+function img_casino($id_casino){
+  switch($id_casino){
+    case 1:
+      return '<img width="100%" src="/img/tarjetas/banner_MEL.jpg">';
+    case 2:
+      return '<img width="100%" src="/img/tarjetas/banner_CSF.jpg">';
+    case 3:
+      return '<img width="100%" src="/img/tarjetas/banner_ROS.jpg">';
+  }
+  return ''.$id_casino;
+}
+function nombre_casino($id_casino){
+  $c = App\Casino::find($id_casino);
+  return is_null($c)? ''.$id_casino : $c->nombre;
+}
 ?>
-
-        <style>
-        .imgwrapper {
-          width: 80%;
-        }
-        </style>
+<div class="row">
+  <div class="panel panel-default">
+    <div class="panel-heading collaped" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer" aria-expanded="true">
+      <h4>FILTROS<i class="fa fa-fw fa-angle-down"></i></h4>
+    </div>
+    <div id="collapseFiltros" class="panel-collapse collapse" aria-expanded="true">
+      <div class="panel-body">
         <div class="row">
-          <div class="panel panel-default">
-            <div class="panel-heading collaped" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer" aria-expanded="true">
-              <h4>FILTROS<i class="fa fa-fw fa-angle-down"></i></h4>
-            </div>
-            <div id="collapseFiltros" class="panel-collapse collapse" aria-expanded="true">
-              <div class="panel-body">
-                <div class="row">
-                  <div class="col-md-4" style="text-align: center;">
-                    <h5>MÁQUINAS</h5>
-                    <div class="input-group">
-                      <input id="maquinasMenor" class="form-control" type="text" placeholder="0000" style="text-align: center;">
-                      <span class="input-group-addon">-</span>
-                      <input id="maquinasMayor" class="form-control" type="text" placeholder="XXXX" style="text-align: center;">
-                    </div>
-                  </div>
-                  <div class="col-md-3" style="text-align: center;">
-                    <h5>ISLA</h5>
-                    <input id="isla" class="form-control" type="text" placeholder="XXX" style="text-align: center;">
-                  </div>
-                </div>
-              </div>
+          <div class="col-md-4" style="text-align: center;">
+            <h5>MÁQUINAS</h5>
+            <div class="input-group">
+              <input id="maquinasMenor" class="form-control" type="text" placeholder="0000" style="text-align: center;">
+              <span class="input-group-addon">-</span>
+              <input id="maquinasMayor" class="form-control" type="text" placeholder="XXXX" style="text-align: center;">
             </div>
           </div>
+          <div class="col-md-3" style="text-align: center;">
+            <h5>ISLA</h5>
+            <input id="isla" class="form-control" type="text" placeholder="XXX" style="text-align: center;">
+          </div>
         </div>
-                <div class="row">
-                  <div class="col-md-4">
-                      <div class="row">
-                          <div class="col-lg-12">
-                            <div class="panel">
-                                <center><img width="100%" src="/img/tarjetas/banner_CSF.jpg"></center>
-                            </div>
-                          </div>
-                      </div>
-                      <div class="row">
-                          <div class="col-lg-12 col-xl-12">
-                            <div class="panel panel-default">
-                              <div class="panel-heading">
-                                  <h4>Beneficios - MTM Santa fe</h4>
-                              </div>
-                              <div class="panel-body">
-                                <table id="" class="table table-fixed tablesorter">
-                                  <thead>
-                                      <tr>
-                                        <th class="col-xs-5" style="text-align: center;">FECHA</th>
-                                        <th class="col-xs-4" style="text-align: center;">MONEDA</th>
-                                        <th class="col-xs-3" style="text-align: center;">ACCIÓN</th>
-                                      </tr>
-                                  </thead>
-                                  <tbody style="height: 356px;">
-                                     @foreach($beneficios_sfe as $b)
-                                      <tr>
-                                        <td class="col-xs-5">{{anio_mes($b->anio,$b->mes)}}</td>
-                                        <td class="col-xs-4" style="text-align: center;">{{moneda($b->id_tipo_moneda)}}</td>
-                                        <td class="col-xs-3" style="text-align: center;">
-                                          @if($b->estado == 1)
-                                            <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" data-pdev="0" class="btn btn-info planilla detalle" type="button">
-                                                <i class="fa fa-fw fa-print"></i>
-                                            </button>
-                                            <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" data-pdev="1" class="btn btn-info planilla detalle" type="button">
-                                              <i class="fa fa-fw fa-search-plus"></i>
-                                            </button>
-                                          @endif
-                                          @if($b->estado == 0)
-                                          <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
-                                            <i class="fa fa-exclamation" style="color: #FFA726;"></i>
-                                          </a>
-                                          @elseif(!is_null($b->id_beneficio_mensual))
-                                          <a data-toggle="popover" data-trigger="hover" data-content="VALIDADO">
-                                            <i class="fa fa-check" style="color: green;"></i>
-                                          </a>
-                                          @endif
-                                        </td>
-                                      </tr>
-                                    @endforeach
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                          </div>
-                      </div> <!-- row -->
-                  </div>
-
-                  <div class="col-md-4">
-                    <div class="row">
-                        <div class="col-lg-12">
-                          <div class="panel">
-                              <center><img width="100%" src="/img/tarjetas/banner_MEL.jpg"><center>
-                          </div>
-                        </div>
-                    </div>
-                      <div class="row">
-                          <div class="col-lg-12 col-xl-12">
-                            <div class="panel panel-default">
-                              <div class="panel-heading">
-                                  <h4>Beneficios - MTM Melincué</h4>
-                              </div>
-                              <div class="panel-body">
-                                <table id="" class="table table-fixed tablesorter">
-                                  <thead>
-                                      <tr>
-                                        <th class="col-xs-5" style="text-align: center;">FECHA</th>
-                                        <th class="col-xs-4" style="text-align: center;">MONEDA</th>
-                                        <th class="col-xs-3" style="text-align: center;">ACCIÓN</th>
-                                      </tr>
-                                  </thead>
-                                  <tbody style="height: 356px;">
-                                    @foreach($beneficios_mel as $b)
-                                      <tr id="">
-                                        <td class="col-xs-5">{{anio_mes($b->anio,$b->mes)}}</td>
-                                        <td class="col-xs-4" style="text-align: center;">{{moneda($b->id_tipo_moneda)}}</td>
-                                        <td class="col-xs-3" style="text-align: center;">
-                                          @if($b->estado == 1)
-                                          <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" class="btn btn-info planilla detalle" type="button">
-                                                <i class="fa fa-fw fa-print"></i>
-                                          </button>
-                                          <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" data-pdev="1" class="btn btn-info planilla detalle" type="button">
-                                            <i class="fa fa-fw fa-search-plus"></i>
-                                          </button>
-                                          @endif
-                                          @if($b->estado == 0)
-                                          <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
-                                            <i class="fa fa-exclamation" style="color: #FFA726;"></i>
-                                          </a>
-                                          @elseif(!is_null($b->id_beneficio_mensual))
-                                          <a data-toggle="popover" data-trigger="hover" data-content="VALIDADO">
-                                            <i class="fa fa-check" style="color: green;"></i>
-                                          </a>
-                                          @endif
-                                      </tr>
-                                      @endforeach
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                          </div>
-                      </div> <!-- row -->
-                  </div>
-
-                  <div class="col-md-4">
-                    <div class="row">
-                        <div class="col-lg-12">
-                          <div class="panel">
-                              <center><img width="100%" src="/img/tarjetas/banner_ROS.jpg"></center>
-                          </div>
-                        </div>
-                    </div>
-                      <div class="row">
-                          <div class="col-lg-12 col-xl-12">
-                            <div class="panel panel-default">
-                              <div class="panel-heading">
-                                  <h4>Beneficios - MTM Rosario</h4>
-                              </div>
-                              <div class="panel-body">
-                                <table id="" class="table table-fixed tablesorter">
-                                  <thead>
-                                      <tr>
-                                        <th class="col-xs-5" style="text-align: center;">FECHA</th>
-                                        <th class="col-xs-4" style="text-align: center;">MONEDA</th>
-                                        <th class="col-xs-3" style="text-align: center;">ACCIÓN</th>
-                                      </tr>
-                                  </thead>
-                                  <tbody style="height: 356px;">
-                                    @foreach($beneficios_ros as $b)
-                                      <tr>
-                                        <td class="col-xs-5">{{anio_mes($b->anio,$b->mes)}}</td>
-                                        <td class="col-xs-4" style="text-align: center;">{{moneda($b->id_tipo_moneda)}}</td>
-                                        <td class="col-xs-3" style="text-align: center;"> 
-                                          @if($b->estado == 1)
-                                            <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" class="btn btn-info planilla detalle" type="button">
-                                                <i class="fa fa-fw fa-print"></i>
-                                            </button>
-                                            <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" data-pdev="1" class="btn btn-info planilla detalle" type="button">
-                                              <i class="fa fa-fw fa-search-plus"></i>
-                                            </button>
-                                          @endif
-                                          @if($b->estado == 0)
-                                          <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
-                                            <i class="fa fa-exclamation" style="color: #FFA726;"></i>
-                                          </a>
-                                          @elseif(!is_null($b->id_beneficio_mensual))
-                                          <a data-toggle="popover" data-trigger="hover" data-content="VALIDADO">
-                                            <i class="fa fa-check" style="color: green;"></i>
-                                          </a>
-                                          @endif
-                                        </td>
-                                      </tr>
-                                      @endforeach
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                          </div>
-                      </div> <!-- row -->
-                  </div>
-
-
-            </div>
-            <!-- row -->
-
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  @foreach($beneficios_x_casino as $id_casino => $beneficios)
+  <div class="width_columna">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="panel">
+          <center>
+            {!! img_casino($id_casino) !!}
+          </center>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-12 col-xl-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4>Beneficios - MTM {{nombre_casino($id_casino)}}</h4>
+          </div>
+          <div class="panel-body">
+            <table id="" class="table table-fixed tablesorter">
+              <thead>
+                <tr>
+                  <th class="col-xs-5" style="text-align: center;">FECHA</th>
+                  <th class="col-xs-4" style="text-align: center;">MONEDA</th>
+                  <th class="col-xs-3" style="text-align: center;">ACCIÓN</th>
+                </tr>
+              </thead>
+              <tbody style="height: 356px;">
+                @foreach($beneficios as $b)
+                <tr>
+                  <td class="col-xs-5">{{anio_mes($b->anio,$b->mes)}}</td>
+                  <td class="col-xs-4" style="text-align: center;">{{moneda($b->id_tipo_moneda)}}</td>
+                  <td class="col-xs-3" style="text-align: center;">
+                    @if($b->estado == 1)
+                    <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" data-pdev="0" class="btn btn-info planilla detalle" type="button">
+                        <i class="fa fa-fw fa-print"></i>
+                    </button>
+                    <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" data-pdev="1" class="btn btn-info planilla detalle" type="button">
+                      <i class="fa fa-fw fa-search-plus"></i>
+                    </button>
+                    @endif
+                    @if($b->estado == 0)
+                    <a data-toggle="popover" data-trigger="hover" data-content="Beneficio no importado">
+                      <i class="fa fa-exclamation" style="color: #FFA726;"></i>
+                    </a>
+                    @elseif(!is_null($b->id_beneficio_mensual))
+                    <a data-toggle="popover" data-trigger="hover" data-content="VALIDADO">
+                      <i class="fa fa-check" style="color: green;"></i>
+                    </a>
+                    @endif
+                  </td>
+                </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> 
+  @endforeach
+</div>
     <meta name="_token" content="{!! csrf_token() !!}" />
 
     @endsection
