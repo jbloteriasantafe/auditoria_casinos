@@ -832,10 +832,11 @@ class RelevamientoController extends Controller
         if($detalle_contador_horario == null){
           $det = new \stdClass();
           $det->producido_calculado_relevado = round($detalle->producido_calculado_relevado,2);
-          $det->nro_admin = $detalle->maquina->nro_admin;
-          if ($detalle->maquina->isla!=null){
-            $det->isla = $detalle->maquina->isla->nro_isla;
-            $det->sector= $detalle->maquina->isla->sector->descripcion;
+          $maquina = $detalle->maquina()->withTrashed()->get()->first();
+          $det->nro_admin = $maquina->nro_admin;
+          if($maquina->isla!=null){
+            $det->isla = $maquina->isla->nro_isla;
+            $det->sector= $maquina->isla->sector->descripcion;
           }else{
             $det->isla ="-";
             $det->sector= "-";
@@ -874,10 +875,12 @@ class RelevamientoController extends Controller
 
               $det = new \stdClass();
               $det->producido_calculado_relevado = round($detalle->producido_calculado_relevado,2);
-              $det->nro_admin = $detalle->maquina->nro_admin;
-              if ($detalle->maquina->isla!=null){
-                $det->isla = $detalle->maquina->isla->nro_isla;
-                $det->sector= $detalle->maquina->isla->sector->descripcion;
+              
+              $maquina = $detalle->maquina()->withTrashed()->get()->first();
+              $det->nro_admin = $maquina->nro_admin;
+              if ($maquina->isla!=null){
+                $det->isla = $maquina->isla->nro_isla;
+                $det->sector= $maquina->isla->sector->descripcion;
               }else{
                 $det->isla ="-";
                 $det->sector= "-";
