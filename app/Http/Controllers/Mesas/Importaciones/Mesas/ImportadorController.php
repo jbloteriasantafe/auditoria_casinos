@@ -184,7 +184,7 @@ public function importarCierres(Request $request){
         $fichas[] = ['ficha_valor' => $ficha_valor,'importe' => $importe];
       }
       $error = $this->crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin,$cod_juego,$hora_apertura,$hora_cierre,$anticipos,$total,$fichas);
-      if(!is_null($error)) $errores[] = $error;
+      if(!is_null($error)) $errores[] = "$cod_juego$nro_admin: $error";
     }
   }
   catch(Exception $e){
