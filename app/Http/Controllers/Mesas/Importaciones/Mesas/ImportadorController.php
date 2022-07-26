@@ -289,10 +289,14 @@ public function importarDiario(Request $request){
       $handle = fopen($archivo->getRealPath(), 'r');
 
       $recibido = fgetcsv($handle,1600,';','"');
-      $recibido2 = [];//Lo convierto porque lo mandan en un encoding raro, me figura como binaria la cadena
-      foreach($recibido as $h) $recibido2[] = utf8_encode($h);
-      $esperado = ['JUEGO','N°MESA','DROP','DROP TARJETA','UTILIDAD','FILL','CREDIT','PROPINAS'];
-      if($recibido2 != $esperado){
+      $recibido2 = [];
+      foreach($recibido as &$h){
+        $h = trim($h,"\xEF\xBB\xBF");//Sacar caracter BOM insertado por excel https://stackoverflow.com/questions/54145035/cant-remove-ufeff-from-a-string
+        $recibido2[] = utf8_encode($h);//Lo convierto porque pueden mandarlo en un encoding raro
+      }
+      $esperado_ros = ['JUEGO','N°MESA','DROP','DROP TARJETA','UTILIDAD','FILL','CREDIT','PROPINAS'];
+      $esperado_sfemel = ['Mesa','Nro.','Billetes_Drop','Tarjetas_Drop','Resultado','Devolución_MovInternos','Anticipo_MovInternos','Propinas'];
+      if($recibido != $esperado_ros && $recibido != $esperado_sfemel && $recibido2 != $esperado_ros && $recibido2 != $esperado_sfemel){
         $validator->errors()->add('archivo', 'El formato del archivo no es correcto.');
         fclose($handle);
         return;
