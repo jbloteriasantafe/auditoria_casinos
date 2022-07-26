@@ -368,7 +368,7 @@ public function importarDiario(Request $request){
         saldo_fichas,propina)
         SELECT 
         csv.id_archivo, csv.row_1, csv.row_2, csv.row_3,csv.row_10, csv.row_4, csv.row_5, csv.row_6,
-        (csv.row_4 - csv.row_3 + csv.row_5 - csv.row_6),csv.row_11
+        (csv.row_4 - csv.row_3 - csv.row_10 + csv.row_5 - csv.row_6),csv.row_11
         FROM filas_csv_mesas_bingos as csv
         WHERE csv.id_archivo = '%d' AND csv.row_1 <> '' AND csv.row_2 <> '' AND SUBSTR(csv.row_1,0,7) <> 'TOTALES';",
         $iid);
