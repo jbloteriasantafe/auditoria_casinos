@@ -988,6 +988,13 @@ class MTMController extends Controller
     $mtm->expedientes()->detach($id_expediente);
     $mtm->save();
   }
+  
+  public function getCasinos($nro_admin){
+    $maquinas = Maquina::where('nro_admin',$nro_admin)->get() ?? [];
+    $casinos  = [];
+    foreach($maquinas as $m) $casinos[]=$m->id_casino;
+    return $casinos;
+  }
 
   public function getMoneda($id_casino,$nro_admin){//@param: nro_admin de maquina
     $maquina = Maquina::where([['id_casino',intval($id_casino)], ['nro_admin',intval($nro_admin)]])->first();
