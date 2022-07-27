@@ -389,11 +389,11 @@ Contadores
 Route::delete('contadores/eliminarContador/{id}','ContadorController@eliminarContador');
 Route::delete('producidos/eliminarProducido/{id}','ProducidoController@eliminarProducido');
 Route::delete('beneficios/eliminarBeneficios/{id_casino}/{id_tipo_moneda}/{anio}/{mes}','BeneficioController@eliminarBeneficios');
-Route::delete('beneficios/eliminarBeneficio/{id}','BeneficioController@eliminarBeneficio');
 
 Route::group(['prefix' => 'importaciones','middleware' => 'tiene_permiso:ver_seccion_importaciones'], function () {
   Route::get('/','ImportacionController@buscarTodo')->middleware('tiene_permiso:ver_seccion_importaciones');
   //Lo necesitan los auditores
+  Route::get('/getCasinos/{nro_admin}','MTMController@getCasinos');
   Route::get('/getMoneda/{id_casino}/{nro_admin}','MTMController@getMoneda');
   Route::post('/buscar','ImportacionController@buscar');
   Route::get('/{id_casino}/{fecha_busqueda?}/{orden?}','ImportacionController@estadoImportacionesDeCasino');

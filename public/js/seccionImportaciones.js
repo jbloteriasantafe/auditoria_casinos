@@ -7,6 +7,7 @@ var fecha_date;
 var COL_PROD_ROS = 4;
 var COL_PROD_SFE = 32;
 var COL_BEN_ROS = 8;
+var COL_BEN_MEL_SFE = 14;
 
 //Opacidad del modal al minimizar
 $('#btn-minimizarProducidos').click(function(){
@@ -562,6 +563,21 @@ function obtener_id_tipo_moneda(id_casino,nro_admin){
   return id_tipo_moneda;
 }
 
+function obtener_casinos(nro_admin){
+  const ids = [];
+  $.ajax({//Lo mas probable es que retorne 1 pero podria retornar mas...
+    url:'importaciones/getCasinos/'+nro_admin, 
+    async: false,
+    success: function(casinos) {
+      for(const cidx in casinos){
+        ids.push(casinos[cidx]);
+      }
+    },
+    error: function(data){ console.log(data)  }
+  });
+  return ids;
+}
+
 function procesarDatosContador(e) {
   $('#modalImportacionContadores #mensajeInvalido').hide();
   $('#modalImportacionContadores select').prop('disabled','disabled');
@@ -615,13 +631,22 @@ function procesarDatosContador(e) {
 
       //Seteo y deshabilito el casino
       const nro_admin = primer_renglon[3];
-      const id_casino = nro_admin < 2000? 1 : 2;
-      $('#contSelCasino').val(id_casino).attr('disabled','disabled');
-
-      //Seteo y deshabilito la moneda si hay
-      const id_tipo_moneda = obtener_id_tipo_moneda(id_casino,nro_admin);
-      if(id_tipo_moneda != null){
-        $('#contSelMoneda').val(id_tipo_moneda).attr('disabled','disabled');
+      const casinos = obtener_casinos(nro_admin).filter(function(id_casino) { return id_casino != 3; });
+      
+      $('#contSelCasino').find('option[value!="-1"]').attr('disabled','disabled');
+      for(const idx in casinos){
+        $('#contSelCasino').find(`option[value="${casinos[idx]}"]`).attr('disabled',false);
+      }
+      if(casinos.length == 1){
+        $('#contSelCasino').val(casinos[0]).attr('disabled','disabled');
+        //Seteo y deshabilito la moneda si hay
+        const id_tipo_moneda = obtener_id_tipo_moneda(casinos[0],nro_admin);
+        if(id_tipo_moneda != null){
+          $('#contSelMoneda').val(id_tipo_moneda).attr('disabled','disabled');
+        }
+      }
+      else{
+        $('#contSelCasino').val(-1);
       }
     }
     return $('#btn-guardarContador').show();
@@ -982,7 +1007,7 @@ $('#btn-ayuda').click(function(e){
   $('.modal-title').text('| IMPORTACIONES');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
 
-	$('#modalAyuda').modal('show');
+  $('#modalAyuda').modal('show');
 
 });
 
@@ -1011,26 +1036,17 @@ $('#btn-importarBeneficios').click(function(e){
 });
 
 $('#btn-guardarBeneficio').on('click', function(e){
-
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
 
   e.preventDefault();
 
-  var url = 'importaciones/importarBeneficio';
-
-  var formData = new FormData();
-
-
-  formData.append('id_casino', 3);
+  const formData = new FormData();
+  formData.append('id_casino', id_casino);
   formData.append('fecha', fecha_date);
   formData.append('id_tipo_moneda',id_tipo_moneda);
   formData.append('md5',$('#modalImportacionBeneficios .hashCalculado').val());
 
-  $('#casinoInfoImportacion').val(3);
+  $('#casinoInfoImportacion').val(id_casino);
   $('#monedaInfoImportacion').val(id_tipo_moneda);
   {
     const aux = fecha_date.split('/');
@@ -1043,52 +1059,39 @@ $('#btn-guardarBeneficio').on('click', function(e){
     formData.append('archivo' , $('#modalImportacionBeneficios #archivo')[0].files[0]);
   }
 
-
   $.ajax({
-      type: "POST",
-      url: url,
-      data: formData,
-      processData: false,
-      contentType:false,
-      cache:false,
-      beforeSend: function(data){
-        console.log('Empezó');
-        $('#modalImportacionBeneficios').find('.modal-footer').children().hide();
-        $('#modalImportacionBeneficios').find('.modal-body').children().hide();
-
-        $('#modalImportacionBeneficios').find('.modal-body').children('#iconoCarga').show();
-      },
-      complete: function(data){
-        console.log('Terminó');
-      },
-      success: function (data) {
-
-        $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
-
-        $('#modalImportacionBeneficios').modal('hide');
-
-        limpiarBodysImportaciones();
-
-        $('#casinoInfoImportacion').change();
-
-
-        $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN BENEFICIO');
-        $('#mensajeExito p').text(data.cantidad_registros + ' registro(s) del BENEFICIO fueron importados');
-
-        $('#mensajeExito').show();
-      },
-      error: function (data) {
-        //Mostrar: mensajeError
-        $('#modalImportacionBeneficios #mensajeError').show();
-        //Ocultar: rowArchivo, rowFecha, mensajes, iconoCarga
-        $('#modalImportacionBeneficios #rowArchivo').hide();
-        $('#modalImportacionBeneficios #rowFecha').hide();
-        $('#modalImportacionBeneficios #mensajeInvalido').hide();
-        $('#modalImportacionBeneficios #mensajeInformacion').hide();
-        $('#modalImportacionBeneficios #iconoCarga').hide();
-        console.log('ERROR!');
-        console.log(data);
-      }
+    type: "POST",
+    url: 'importaciones/importarBeneficio',
+    data: formData,
+    processData: false,
+    contentType:false,
+    cache:false,
+    beforeSend: function(data){
+      $('#modalImportacionBeneficios').find('.modal-footer').children().hide();
+      $('#modalImportacionBeneficios').find('.modal-body').children().hide();
+      $('#modalImportacionBeneficios').find('.modal-body').children('#iconoCarga').show();
+    },
+    success: function (data) {
+      $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
+      $('#modalImportacionBeneficios').modal('hide');
+      limpiarBodysImportaciones();
+      $('#casinoInfoImportacion').change();
+      $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN BENEFICIO');
+      $('#mensajeExito p').text(data.cantidad_registros + ' registro(s) del BENEFICIO fueron importados');
+      $('#mensajeExito').show();
+    },
+    error: function (data) {
+      //Mostrar: mensajeError
+      $('#modalImportacionBeneficios #mensajeError').show();
+      //Ocultar: rowArchivo, rowFecha, mensajes, iconoCarga
+      $('#modalImportacionBeneficios #rowArchivo').hide();
+      $('#modalImportacionBeneficios #rowFecha').hide();
+      $('#modalImportacionBeneficios #mensajeInvalido').hide();
+      $('#modalImportacionBeneficios #mensajeInformacion').hide();
+      $('#modalImportacionBeneficios #iconoCarga').hide();
+      console.log('ERROR!');
+      console.log(data);
+    }
   });
 });
 
@@ -1117,69 +1120,61 @@ function habilitarInputBeneficio(){
 }
 
 function procesarDatosBeneficios(e) {
-    var csv = e.target.result;
+  const fail = function(){
+    console.log((new Error()).stack);
+    $('#modalImportacionBeneficios #rowMoneda').hide();
+    $('#modalImportacionBeneficios #mensajeInformacion').hide();
+    $('#modalImportacionBeneficios #mensajeInvalido p').text('El archivo no contiene beneficios');
+    $('#modalImportacionBeneficios #mensajeInvalido').show();
+    $('#modalImportacionBeneficios #iconoCarga').hide();
+    $('#modalImportacionBeneficios #btn-guardarBeneficio').hide();
+  }
+  const csv = e.target.result;
+  const allTextLines = csv.split('\n');
+  if(allTextLines.length < 1) return fail();
 
-    // var allTextLines = csv.split(/\r\n|\n/);
-    var allTextLines = csv.split('\n');
-
-    console.log(allTextLines.length);
-
-    if (allTextLines.length > 4) {
-        var data = allTextLines[4].split(';');
-
-        var tarr = [];
-
-        for (var j=0; j<data.length; j++) {
-              tarr.push(data[j]);
-        }
-
-        console.log(tarr);
-        if (tarr.length == COL_BEN_ROS) {
-            console.log('Está bien');
-            id_casino = 3;
-            //Mostrar el select de moneda (único dato que no se puede obtener desde el archivo)
-            $('#modalImportacionBeneficios #rowMoneda').show();
-            $('#modalImportacionBeneficios #rowMoneda select').val(0);
-            $('#modalImportacionBeneficios #mensajeInvalido').hide();
-
-            //Info casino
-            $('#modalImportacionBeneficios #informacionCasino').text('CASINO ROSARIO');
-            //Info fecha
-            fecha_date = tarr[0];
-
-            $('#modalImportacionBeneficios #informacionFecha').text(obtenerFechaString(fecha_date, false));
-        }
-        else {
-            $('#modalImportacionBeneficios #rowMoneda').hide();
-            $('#modalImportacionBeneficios #mensajeInformacion').hide();
-
-            $('#modalImportacionBeneficios #mensajeInvalido p').text('El archivo no contiene beneficios');
-            $('#modalImportacionBeneficios #mensajeInvalido').show();
-
-            $('#modalImportacionBeneficios #iconoCarga').hide();
-            //Ocultar botón de subida
-            $('#modalImportacionBeneficios #btn-guardarBeneficio').hide();
-        }
-
-    } else {
-
-        $('#modalImportacionBeneficios #rowMoneda').hide();
-        $('#modalImportacionBeneficios #mensajeInformacion').hide();
-
-        $('#modalImportacionBeneficios #mensajeInvalido p').text('El archivo no contiene beneficios');
-        $('#modalImportacionBeneficios #mensajeInvalido').show();
-
-        $('#modalImportacionBeneficios #iconoCarga').hide();
-        //Ocultar botón de subida
-        $('#modalImportacionBeneficios #btn-guardarBeneficio').hide();
-    }
-
-
+  id_casino = null;
+  fecha_date = null;
+  id_tipo_moneda = 0;
+  $('#modalImportacionBeneficios #rowMoneda select').val(0);
+  $('#modalImportacionBeneficios #informacionCasino').text('');
+  
+  const columnas = allTextLines[0].split(';');
+  if(columnas.length == COL_BEN_MEL_SFE){
+    const cas_fecha_timestamp = columnas[1].split("_");
+    id_casino = parseInt(cas_fecha_timestamp[0]);
+    fecha_date = cas_fecha_timestamp[1].substr(6,2)
+    +'/'+cas_fecha_timestamp[1].substr(4,2)
+    +'/'+cas_fecha_timestamp[1].substr(0,4);
+  }
+  if(id_casino === null) {//Pruebo procesar Rosario
+    if(allTextLines.length <= 4) return fail();
+    const columnas = allTextLines[4].split(';');
+    if(columnas.length != COL_BEN_ROS) return fail();
+    id_casino = 3;
+    fecha_date = columnas[0];
+  }
+  //Mostrar el select de moneda (único dato que no se puede obtener desde el archivo)
+  $('#modalImportacionBeneficios #rowMoneda').show();
+  $('#modalImportacionBeneficios #mensajeInvalido').hide();
+  switch(id_casino){
+    case 1:
+      $('#modalImportacionBeneficios #informacionCasino').text('CASINO MELINCUÉ');
+      break;
+    case 2:
+      $('#modalImportacionBeneficios #informacionCasino').text('CASINO SANTA FE');
+      break;
+    case 3:
+      $('#modalImportacionBeneficios #informacionCasino').text('CASINO ROSARIO');
+      break;
+    default:
+      return fail();
+  }
+  $('#modalImportacionBeneficios #informacionFecha').text(obtenerFechaString(fecha_date, false));
 }
 
 $('#modalImportacionBeneficios #rowMoneda select').change(function(e) {
   console.log('CAMBIÓ');
-
   //Si se elige una moneda
   if ($(this).val() != 0) {
     id_tipo_moneda = $(this).val();
@@ -1195,7 +1190,6 @@ $('#modalImportacionBeneficios #rowMoneda select').change(function(e) {
     $('#modalImportacionBeneficios #mensajeInformacion').hide();
     $('#btn-guardarBeneficio').hide();
   }
-
 });
 
 //Eventos de la librería del input
@@ -1206,7 +1200,6 @@ $('#modalImportacionBeneficios #archivo').on('fileerror', function(event, data, 
    $('#modalImportacionBeneficios #mensajeInvalido p').text(msg);
    //Ocultar botón SUBIR
    $('#btn-guardarBeneficio').hide();
-
 });
 
 $('#modalImportacionBeneficios #archivo').on('fileclear', function(event) {

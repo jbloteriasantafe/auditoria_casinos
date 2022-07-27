@@ -697,7 +697,7 @@ $id_usuario = session('id_usuario');
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionImportaciones.js?2" charset="utf-8"></script>
+    <script src="js/seccionImportaciones.js?3" charset="utf-8"></script>
     <script src="js/lib/spark-md5.js?2" charset="utf-8"></script><!-- Dependencia de md5.js -->
     <script src="js/md5.js?2" charset="utf-8"></script>
 
