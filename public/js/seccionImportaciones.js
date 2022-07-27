@@ -645,9 +645,6 @@ function procesarDatosContador(e) {
           $('#contSelMoneda').val(id_tipo_moneda).attr('disabled','disabled');
         }
       }
-      else{
-        $('#contSelCasino').val(-1);
-      }
     }
     return $('#btn-guardarContador').show();
   }

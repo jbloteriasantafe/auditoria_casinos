@@ -32,24 +32,18 @@ class ImportacionController extends Controller
   }
 
   public function buscarTodo(){
-
     $tipoMoneda = TipoMoneda::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Importaciones' , 'importaciones');
     return view('seccionImportaciones', ['tipoMoneda' => $tipoMoneda, 'casinos' => Casino::all()]);
   }
 
   public function eliminarBeneficios(Request $request){
-    //el request contiene mes anio id_tipo_moneda id_casino
-    $beneficios = Beneficio::where([['id_tipo_moneda','=',$request['id_tipo_moneda']],['id_casino','=',$request['id_casino']]])
-                            ->whereYear('fecha','=',$request['anio'])
-                            ->whereMonth('fecha','=',$request['mes'])
-                            ->get();
-    if(isset($beneficios)){
-      foreach ($beneficios as $b){
-        BeneficioController::getInstancia()->eliminarBeneficio($b->id_beneficio);
-      }
-    }
-    return 1;
+    return BeneficioController::getInstancia()->eliminarBeneficios(
+      $request['id_casino'],
+      $request['id_tipo_moneda'],
+      $request['anio'],
+      $request['mes']
+    );
   }
 
   public function previewBeneficios(Request $request){
@@ -93,158 +87,95 @@ class ImportacionController extends Controller
   }
 
   public function buscar(Request $request){
-    $reglas = array();
-    $casinos = array();
-    if($request->casinos !=0){
-      $casinos[] = $request->casinos;
-    }else {
-      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      foreach ($usuario->casinos as $casino) {
-        $casinos[] = $casino->id_casino;
-      }
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    foreach ($usuario->casinos as $casino) {
+      $casinos[] = $casino->id_casino;
     }
 
-    if(isset($request->tipo_moneda) && $request->tipo_moneda !=0)
+    $reglas = [];
+    if(isset($request->tipo_moneda) && $request->tipo_moneda !=0){
       $reglas[]=['tipo_moneda.id_tipo_moneda','=', $request->tipo_moneda];
-
-
-    $contadores =array();
-    $producidos =array();
-    $beneficios =array();
-
+    }    
+    if(isset($request->casinos) && $request->casinos !=0){
+      $reglas[]=['casino.id_casino','=', $request->casinos];
+    }
+    
+    $contadores = [];
+    $producidos = [];
+    $beneficios = [];
     $sort_by = $request->sort_by;
 
     switch ($request->seleccion) {
-      case 1://contadores
-        if(!isset($request->fecha)){
-          $contadores = DB::table('contador_horario')->select('contador_horario.id_contador_horario as id_contador_horario','contador_horario.fecha as fecha'
-                                                              ,'casino.nombre as casino' , 'casino.id_casino as id_casino','tipo_moneda.descripcion as tipo_moneda','contador_horario.cerrado as cerrado')
-                                                     ->join('casino','contador_horario.id_casino','=','casino.id_casino')
-                                                     ->join('tipo_moneda','contador_horario.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')
-                                                     ->where($reglas)
-                                                     ->whereIn('casino.id_casino' , $casinos)
-                                                     ->when($sort_by,function($query) use ($sort_by){
-                                                                     return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                                                 })
-                                                     ->paginate($request->page_size);
+      case 1:{//contadores
+        if(isset($request->fecha)){
+          $fecha = explode("-",$request->fecha);
+          $reglas[]=[DB::raw('YEAR(contador_horario.fecha)'),'=',$fecha[0]];
+          $reglas[]=[DB::raw('MONTH(contador_horario.fecha)'),'=',$fecha[1]];
+        }
+        
+        $contadores = DB::table('contador_horario')
+        ->select('contador_horario.id_contador_horario as id_contador_horario','contador_horario.fecha as fecha'
+                ,'casino.nombre as casino' , 'casino.id_casino as id_casino','tipo_moneda.descripcion as tipo_moneda','contador_horario.cerrado as cerrado')
+        ->join('casino','contador_horario.id_casino','=','casino.id_casino')
+        ->join('tipo_moneda','contador_horario.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')
+        ->where($reglas)->whereIn('casino.id_casino' , $casinos)
+        ->when($sort_by,function($query) use ($sort_by){
+          return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+        })
+        ->paginate($request->page_size);
+      }break;
+      case 2:{//producidos
+        if(isset($request->fecha)){
+          $fecha = explode("-",$request->fecha);
+          $reglas[]=[DB::raw('YEAR(producido.fecha)'),'=',$fecha[0]];
+          $reglas[]=[DB::raw('MONTH(producido.fecha)'),'=',$fecha[1]];
+        }
+        $sort_by = $sort_by['columna'] == 'contador_horario.fecha' ? null : $sort_by;
 
-          }else{
-            $fecha=explode("-", $request->fecha);
-            $contadores = DB::table('contador_horario')
-                             ->select('contador_horario.id_contador_horario as id_contador_horario','contador_horario.fecha as fecha'
-                                      ,'casino.nombre as casino' , 'casino.id_casino as id_casino','tipo_moneda.descripcion as tipo_moneda','contador_horario.cerrado as cerrado')
-                             ->join('casino','contador_horario.id_casino','=','casino.id_casino')
-                             ->join('tipo_moneda','contador_horario.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')
-                             ->where($reglas)
-                             ->whereIn('casino.id_casino' , $casinos)
-                             ->whereYear('contador_horario.fecha' , '=' ,$fecha[0])
-                             ->whereMonth('contador_horario.fecha','=', $fecha[1])
-                             ->when($sort_by,function($query) use ($sort_by){
-                                             return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                         })
+        $producidos = DB::table('producido')
+        ->select('producido.id_producido as id_producido','producido.fecha as fecha'
+                ,'casino.nombre as casino','tipo_moneda.descripcion as tipo_moneda','producido.validado as validado')
+        ->join('casino','producido.id_casino','=','casino.id_casino')
+        ->join('tipo_moneda','producido.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')
+        ->where($reglas)->whereIn('casino.id_casino' , $casinos)
+        ->when($sort_by,function($query) use ($sort_by){
+          return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+        })
+        ->paginate($request->page_size);
+      }break;
+      case 3:{//beneficios
+        if(isset($request->fecha)){
+          $fecha = explode("-",$request->fecha);
+          $reglas[]=[DB::raw('YEAR(beneficio.fecha)'),'=',$fecha[0]];
+          $reglas[]=[DB::raw('MONTH(beneficio.fecha)'),'=',$fecha[1]];
+        }
 
-                             ->paginate($request->page_size);
+        $sort_raw = $sort_by['columna'] == "beneficio.fecha";
+        if($sort_raw){
+          $ord = "asc";
+          if($sort_by['orden'] == 'desc') $ord = "desc";//Evita SQL injection de poner el orden directamente
+          $sort_raw = "YEAR(beneficio.fecha) $ord,MONTH(beneficio.fecha) $ord";
+        }
+        $sort_by = $sort_by['columna'] == 'contador_horario.fecha' ? null : $sort_by;
+
+        $beneficios = DB::table('beneficio')
+        ->selectRaw('MONTH(beneficio.fecha) as mes, YEAR(beneficio.fecha) as anio,
+                     beneficio.id_casino, beneficio.id_tipo_moneda,
+                     casino.nombre as casino, tipo_moneda.descripcion as tipo_moneda')
+        ->join('casino','casino.id_casino','=','beneficio.id_casino')
+        ->join('tipo_moneda','tipo_moneda.id_tipo_moneda','=','beneficio.id_tipo_moneda')
+        ->where($reglas)->whereIn('casino.id_casino',$casinos)
+        ->groupBy(DB::raw('MONTH(beneficio.fecha)'),DB::raw('YEAR(beneficio.fecha)'),'beneficio.id_casino','beneficio.id_tipo_moneda')
+        ->when($sort_by,function($query) use ($sort_by,$sort_raw){
+          if($sort_raw === false){
+            return $query->orderBy($sort_by['columna'],$sort_by['orden']);
           }
-          break;
-      case 2://producidos
-        if(empty($request->fecha)){
-          $producidos = DB::table('producido')->select('producido.id_producido as id_producido','producido.fecha as fecha'
-                                                      ,'casino.nombre as casino','tipo_moneda.descripcion as tipo_moneda','producido.validado as validado')
-                                              ->join('casino','producido.id_casino','=','casino.id_casino')
-                                              ->join('tipo_moneda','producido.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')
-                                              ->where($reglas)
-                                              ->whereIn('casino.id_casino' , $casinos)
-                                              ->when($sort_by,function($query) use ($sort_by){
-                                                              return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                                          })
-
-                                              ->paginate($request->page_size);
-
-        }else{
-          $fecha=explode("-", $request->fecha);
-          $producidos = DB::table('producido')->select('producido.id_producido as id_producido','producido.fecha as fecha'
-                                                      ,'casino.nombre as casino','tipo_moneda.descripcion as tipo_moneda','producido.validado as validado')
-                                              ->join('casino','producido.id_casino','=','casino.id_casino')
-                                              ->join('tipo_moneda','producido.id_tipo_moneda','=','tipo_moneda.id_tipo_moneda')
-                                              ->where($reglas)
-                                              ->whereIn('casino.id_casino' , $casinos)
-                                              ->whereYear('producido.fecha' , '=' ,$fecha[0])
-                                              ->whereMonth('producido.fecha','=', $fecha[1])
-                                              ->when($sort_by,function($query) use ($sort_by){
-                                                              return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                                          })
-
-                                              ->paginate($request->page_size);
-        }
-        break;
-      case 3://beneficios
-      $reglas2 = array();
-
-      if($request->sort_by['columna'] == "beneficio.fecha"){
-        $sort_by['columna'] = 'anio,mes';
-
-      }
-
-
-      if(!empty($request->tipo_moneda) && $request->tipo_moneda !=0)
-        $reglas2[]=['id_tipo_moneda','=', $request->tipo_moneda];
-
-        $createTempTables = DB::unprepared(DB::raw("CREATE TEMPORARY TABLE beneficios_temporal
-                                                            AS (
-                                                                SELECT MONTH(beneficio.fecha) as mes,
-                                                                       YEAR(beneficio.fecha) as anio,
-                                                                       casino.*,
-                                                                       tipo_moneda.*
-                                                                FROM beneficio inner join casino on beneficio.id_casino = casino.id_casino
-                                                                     inner join tipo_moneda on beneficio.id_tipo_moneda = tipo_moneda.id_tipo_moneda
-                                                                );
-                                             "
-                                             )
-                                       );
-
-        if(empty($request->fecha)){// si fecha esta vacio
-        if($createTempTables){
-           $beneficios = DB::table('beneficios_temporal')->select('mes','anio','nombre as casino','id_casino','id_tipo_moneda','descripcion as tipo_moneda')
-                             ->where($reglas2)
-                             ->whereIn('id_casino' , $casinos)
-                             ->groupBy('mes','anio','nombre','descripcion','id_casino','id_tipo_moneda')->when($sort_by,function($query) use ($sort_by){
-                                              return $query->orderBy(DB::raw($sort_by['columna']),$sort_by['orden']);
-                                         })
-                            ->paginate($request->page_size);
-           $query1 = DB::statement(DB::raw("
-                                              DROP TABLE beneficios_temporal
-                                          "));
-         }else {
-                $error = "ERROR MESSAGE";
-                dd($error);
-        }
-
-        }else{
-          $fecha=explode("-", $request->fecha);
-
-          if($createTempTables){
-            $beneficios = DB::table('beneficios_temporal')->select('mes','anio','nombre as casino','descripcion as tipo_moneda','id_casino','id_tipo_moneda')
-                              ->where($reglas2)
-                              ->where('anio' , '=' ,$fecha[0])
-                              ->where('mes','=', $fecha[1])
-                              ->groupBy('mes','anio','nombre','descripcion','id_casino','id_tipo_moneda')->when($sort_by,function($query) use ($sort_by){
-                                               return $query->orderBy(DB::raw($sort_by['columna']),$sort_by['orden']);
-                                          })
-                             ->paginate($request->page_size);
-            $query1 = DB::statement(DB::raw("
-                                               DROP TABLE beneficios_temporal
-                                           "));
-          }else {
-                 $error = "ERROR MESSAGE";
-                 dd($error);
-         }
-
-
-        }
-        break;
-    default:
-      //nada
-        break;
+          return $query->orderByRaw($sort_raw);
+        })
+        ->paginate($request->page_size);
+      }break;
+      default:{//nada
+      }break;
     }
 
     foreach ($contadores as $index => $contador){
@@ -255,7 +186,7 @@ class ImportacionController extends Controller
       }
     }
 
-      return  ['contadores' => $contadores, 'producidos' => $producidos, 'beneficios' => $beneficios];
+    return  ['contadores' => $contadores, 'producidos' => $producidos, 'beneficios' => $beneficios];
   }
 
 
@@ -369,13 +300,12 @@ class ImportacionController extends Controller
 
   public function importarProducido(Request $request){
     Validator::make($request->all(),[
-        'id_casino' => 'required|integer|exists:casino,id_casino',
-        'fecha' => 'nullable|date',
-        'archivo' => 'required|mimes:csv,txt',
-        'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda',
-        'md5' => 'required|string|max:32'
-    ], array(), self::$atributos)->validate();
-
+      'id_casino' => 'required|integer|exists:casino,id_casino',
+      'fecha' => 'nullable|date',
+      'archivo' => 'required|mimes:csv,txt',
+      'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda',
+      'md5' => 'required|string|max:32'
+    ], [], self::$atributos)->validate();
     return DB::transaction(function() use ($request){
       switch($request->id_casino){
         case 1:
@@ -391,24 +321,18 @@ class ImportacionController extends Controller
 
   public function importarBeneficio(Request $request){
     Validator::make($request->all(),[
-        'id_casino' => 'required|integer|exists:casino,id_casino',
-        'archivo' => 'required|mimes:csv,txt',
-        'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda',
-        'md5' => 'required|string|max:32'
-    ], array(), self::$atributos)->after(function($validator){
-    })->validate();
-    switch($request->id_casino){
-      case 1:
-        return LectorCSVController::getInstancia()->importarBeneficioSantaFeMelincue($request->archivo,1,$request->md5);
-        break;
-      case 2:
-        return LectorCSVController::getInstancia()->importarBeneficioSantaFeMelincue($request->archivo,2,$request->md5);
-        break;
-      case 3:
-        return LectorCSVController::getInstancia()->importarBeneficioRosario($request->archivo,$request->id_tipo_moneda,$request->md5);
-        break;
-      default:
-        break;
-    }
+      'id_casino' => 'required|integer|exists:casino,id_casino',
+      'archivo' => 'required|mimes:csv,txt',
+      'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda',
+      'md5' => 'required|string|max:32'
+    ], [], self::$atributos)->validate();
+    return DB::transaction(function() use ($request){
+      return LectorCSVController::getInstancia()->importarBeneficio(
+        $request->archivo,
+        $request->id_tipo_moneda,
+        $request->id_casino,
+        $request->md5
+      );
+    });
   }
 }

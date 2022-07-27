@@ -63,36 +63,27 @@ class BeneficioController extends Controller
   public function eliminarBeneficios($id_casino,$id_tipo_moneda,$anio,$mes){//@TODO: validar acceso a casinos del usuario
     $bens = Beneficio::where([['id_casino','=',$id_casino],['id_tipo_moneda','=',$id_tipo_moneda]])
     ->whereYear('fecha',$anio)->whereMonth('fecha',$mes)->get();
-    DB::beginTransaction();
-    try{
-      foreach($bens as $b){
-        $this->eliminarBeneficio($b->id_beneficio,false);
+    $bmensual = BeneficioMensual::where([['id_casino','=',$id_casino],['id_tipo_moneda','=',$id_tipo_moneda]])
+    ->whereYear('anio_mes',$anio)->whereMonth('anio_mes',$mes)->get();
+
+    return DB::transaction(function() use ($bens,$bmensual){
+      if(!is_null($bens)){
+        foreach($bens as $b){
+          $ben = Beneficio::find($b->id_beneficio);
+          $ab = $ben->ajuste_beneficio;
+          if(!is_null($ab)) $ab->delete();
+          $ben->delete();
+        }
       }
-    }
-    catch(Exception $e){
-      DB::rollBack();
-      throw $e;
-    }
-    DB::commit();
-    return 1;
-  }
-
-  public function eliminarBeneficio($id_beneficio,$validar = true){
-    if($validar) Validator::make(['id_beneficio' => $id_beneficio]
-    ,['id_beneficio' => 'required|exists:beneficio,id_beneficio']
-    , array(), self::$atributos)->sometimes('id_beneficio','exists:beneficio,id_beneficio',function($input){
-      $ben = Beneficio::find($input['id_beneficio']);
-      return !$ben->validado;
-    })->validate();
-
-    DB::transaction(function() use ($id_beneficio){
-      $ben = Beneficio::find($id_beneficio);
-      $ab = $ben->ajuste_beneficio;
-      if(!is_null($ab)) $ab->delete();
-      $ben->delete();
+      if(!is_null($bmensual)){
+        foreach($bmensual as $bm){
+          $bm->delete();
+        }
+      }
+      return 1;
     });
   }
-
+  
   public function buscarTodo(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     UsuarioController::getInstancia()->agregarSeccionReciente('Beneficios' ,'beneficios');
