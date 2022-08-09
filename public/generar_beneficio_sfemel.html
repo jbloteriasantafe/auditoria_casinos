@@ -1,0 +1,131 @@
+<html><head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/logos/favicon.ico">
+    <title>CAS - Lotería de Santa Fe</title>
+  </head>
+  <body>
+    <h4>Seleccione los producidos para utilizar como base para generar el beneficio</h4>
+    <input id="inputArchivos" type="file" multiple accept=".csv, .txt">
+    <button id="limpiarArchivos">LIMPIAR</button>
+    <h5>Archivos seleccionados:</h5>
+    <ul id="listaArchivos">
+    </ul>
+    <h5>Salida:</h5>
+    <p id="mensajeError" style="color: red;" hidden></p>
+    <pre id="salidaBeneficio" data-endcsv="" data-id_casino="" data-añomes=""></pre>
+    <a id="descargarBeneficio" href="#" target="_blank" hidden>
+      Descargar CSV
+    </a>
+    <!-- jQuery -->
+    <script src="/js/jquery.js"></script>
+    <script>
+$(document).ready(function(e){
+  function limpiarPantalla(){
+    $('#listaArchivos').empty();
+    $('#salidaBeneficio').empty().data('endcsv','').data('id_casino','').data('añomes','').change();
+    $('#mensajeError').empty().hide();
+  }
+  limpiarPantalla();
+  $('#inputArchivos').change(function(e) {
+    limpiarPantalla();
+    const files = Array.from(this.files ?? []).sort(function(a,b){
+      return a.name > b.name;
+    });
+    for(let fidx = 0;fidx<files.length;fidx++){
+      const f = files[fidx];
+      const nombre = f.name;
+      const fechamodif = new Date(f.lastModified).toLocaleDateString();
+      const horamodif  = new Date(f.lastModified).toLocaleTimeString();
+      const tamaño = (f.size/1024.0).toFixed(3)+' KB';
+      $('#listaArchivos').append($('<li>').text(`${nombre} - Modificado: ${fechamodif} ${horamodif} - ${tamaño}`).data('file',f));
+    }
+    generarBeneficio();
+  });
+  
+  $('#limpiarArchivos').click(function(e){
+    limpiarPantalla();
+    $('#inputArchivos')[0].value = null;
+  });
+  
+  function readIdx(
+    idx,
+    accum = [],
+    onload = function(idx,text,accum){},
+    onend = function(accum){console.log(accum.join("\r\n"));}
+  ){
+    if(idx < 0 || idx >= $('#listaArchivos li').length) return onend(accum);
+    const reader = new FileReader();
+    reader.onload = function(event){
+      accum.push(onload(idx,event.target.result,accum));
+      readIdx(idx+1,accum,onload,onend)
+    };
+    reader.readAsText($('#listaArchivos li').eq(idx).data('file'));
+  }
+  
+  function generarBeneficio(){
+    function onload(idx,text,accum){
+      //Normalizo los saltos de linea y saco las filas vacias
+      const lines = text.replaceAll('\r\n','\n').split('\n').filter(function(l){return l.length > 0;});
+      if (lines.length <= 0) return null;
+      const ult_linea = lines[lines.length-1];
+      
+      const ult_linea_split = ult_linea.split(";");
+      if(ult_linea_split.length < 2) return null;
+      
+      const info = ult_linea_split[1].split("_");
+      if(info.length < 2) return null;
+      
+      return {
+        id_casino: parseInt(info[0]),
+        añomes: info[1].substr(0,6),
+        dia: parseInt(info[1].substr(6)),
+        linea: ult_linea
+      };
+    };
+    function onend(accum){
+      accum = accum.filter(function(l){return l !== null;}).sort(function(a,b){
+        return a.dia >= b.dia;
+      });
+      function mensaje_error(msj){
+        $('#mensajeError').html(msj).show();
+      }
+      if(accum.length <= 0){
+        return mensaje_error(`No hay archivos seleccionados o estan vacios`);
+      }
+      const id_casinos = [...new Set(accum.map(function(l){return l.id_casino;}))];
+      if(id_casinos.length != 1){
+        return mensaje_error(`Error de incompatibilidad de casinos en los archivos (${id_casinos})`);
+      }
+      const añomeses   = [...new Set(accum.map(function(l){return l.añomes;}))];
+      if(añomeses.length != 1){
+        return mensaje_error(`Error de incompatibilidad de año-mes (${añomeses})`);
+      }
+      const endcsv     = accum.map(function(l){return l.linea;}).join("\r\n");
+      $('#salidaBeneficio').html(endcsv)
+      .data('endcsv',endcsv)
+      .data('id_casino',id_casinos.values().next().value+"")
+      .data('añomes',añomeses.values().next().value)
+      .change();
+    };
+    readIdx(0,[],onload,onend);
+  };
+  
+  $('#salidaBeneficio').change(function(e){
+    const endcsv = $(this).data('endcsv');
+    const id_casino = $(this).data('id_casino');
+    const añomes = $(this).data('añomes');
+    const hay_archivo = endcsv.length > 0 && id_casino.length > 0 && añomes.length > 0;
+    $('#descargarBeneficio').toggle(hay_archivo);
+    if(!hay_archivo) return;
+    const ahora = new Date().toISOString().substr(0,19).replaceAll("-","").replaceAll(":","").replaceAll("T","");
+    const file = new Blob([$(this).data('endcsv')], { type: 'text/csv' });
+    const fileURL = window.URL.createObjectURL(file);
+    $('#descargarBeneficio')[0].href = fileURL;
+    $('#descargarBeneficio')[0].download = `BeneficioGenerado-${id_casino}-${añomes}-${ahora}.csv`;
+  });
+});
+    </script>
+  </body>
+</html>

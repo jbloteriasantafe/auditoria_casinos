@@ -81,7 +81,14 @@ $id_usuario = session('id_usuario');
                          </a>
                         </div>
                     </div> <!-- .row | IMPORTAR BENEFICIOS -->
-
+                    <div class="row">
+                      <div class="col-sm-12 col-md-12 col-xl-12">
+                        <a href="/generar_beneficio_sfemel.html" target="_blank" style="background: white;font-weight: bold;padding: 2px;">
+                          GENERAR BENEFICIO CON PRODUCIDOS (SFE/MEL)
+                        </a>
+                      </div>
+                    </div>
+                    <br>
               </div> <!-- .columna de los BOTONES -->
 
 
