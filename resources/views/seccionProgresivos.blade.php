@@ -2,15 +2,6 @@
 @section('headerLogo')
 <span class="etiquetaLogoMaquinas">@svg('maquinas','iconoMaquinas')</span>
 @endsection
-<?php
-use App\Http\Controllers\UsuarioController;
-use Illuminate\Http\Request;
-
-$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-$selected = False;//Se setea una sola vez, pone el atributo selected en el casino del modal
-?>
-
-
 @section('estilos')
 <link rel="stylesheet" href="/css/paginacion.css"/>
 <link rel="stylesheet" href="/css/lista-datos.css"/>
@@ -37,121 +28,99 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
 
 @section('contenidoVista')
 
-<datalist id='maquinas_lista'>
-</datalist>
-
 <div class="row">
-  <div class="col-xl-3">
+  <div class="col-xl-2">
     <div class="row">
-      <div class="col-xl-12 col-md-4"> <!-- BOTON NUEVO PROG INDIVIDUAL -->
-            <a href="" id="btn-nuevo-ind" style="text-decoration: none;">
-              <div class="panel panel-default panelBotonNuevo">
-                <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"></center>
-                  <div class="backgroundNuevo">
-                  </div>
-                  <div class="row">
-                    <div class="col-xs-12">
-                      <center>
-                        <h5 class="txtLogo">+</h5>
-                        <h4 class="txtNuevo">NUEVO PROGRESIVO INDIVIDUAL</h4>
-                      </center>
-                    </div>
-                  </div>
-                </div>
-              </a>
-        </div>
-
-      <div class="col-xl-12 col-md-4"> <!-- BOTON NUEVO PROG INDIVIDUAL -->
-          <a href="" id="btn-nuevo" style="text-decoration: none;">
-            <div class="panel panel-default panelBotonNuevo">
-              <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"></center>
-                <div class="backgroundNuevo">
-                </div>
-                <div class="row">
-                  <div class="col-xs-12">
-                    <center>
-                      <h5 class="txtLogo">+</h5>
-                      <h4 class="txtNuevo">NUEVO PROGRESIVO LINKEADO</h4>
-                    </center>
-                  </div>
-                </div>
-            </div>
-          </a>
-        </div>
-      </div>
-  </div>
-  <div class="col-xl-9">
-    <div id="contenedorFiltrosIndividuales" class="row">
-      <div class="col-md-12">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h4>Buscar/modificar individuales</h4>
-          </div>
-          <div class="">
-            <div class="panel-body">
-              <div class="row"> <!-- Primera fila -->
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="busqueda_casino_individuales">
-                    @foreach ($usuario['usuario']->casinos as $casino)
-                    <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Desde</h5>
-                  <input id="maquina_desde" type="text" class="form-control" placeholder="Número maquina">
-                </div>
-                <div class="col-lg-3">
-                  <h5>Hasta</h5>
-                  <input id="maquina_hasta" type="text" class="form-control" placeholder="Número maquina">
-                </div>
-                <div class="col-lg-3">
-                  <h5>Búsqueda</h5>
-                  <button id="btn-buscar-individuales" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
-                </div>
-              </div>
+      <a href="" id="btn-nuevo" style="text-decoration: none;">
+        <div class="panel panel-default panelBotonNuevo">
+          <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"></center>
+          <div class="backgroundNuevo"></div>
+          <div class="row">
+            <div class="col-xs-12">
+              <center>
+                <h5 class="txtLogo">+</h5>
+                <h4 class="txtNuevo">NUEVO PROG</h4>
+              </center>
             </div>
           </div>
         </div>
-      </div>
+      </a>
     </div>
+    <div class="row">
+      <a href="" id="btn-nuevo-ind" style="text-decoration: none;">
+        <div class="panel panel-default panelBotonNuevo">
+          <center><img class="imgNuevo" src="/img/logos/progresivos_white.png"></center>
+          <div class="backgroundNuevo"></div>
+          <div class="row">
+            <div class="col-xs-12">
+              <center>
+                <h5 class="txtLogo">+</h5>
+                <h4 class="txtNuevo">CARGA MASIVA INDIV</h4>
+              </center>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+  <div class="col-xl-10">
     <div class="row">
       <div class="col-md-12">
         <div id="contenedorFiltros" class="row"> <!-- Tarjeta de FILTROS -->
           <div class="col-md-12">
             <div class="panel panel-default">
               <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
-                <h4>Filtros de búsqueda linkeados <i class="fa fa-fw fa-angle-down"></i></h4>
+                <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
               </div>
               <div id="collapseFiltros" class="panel-collapse collapse">
                 <div class="panel-body">
                   <div class="row"> <!-- Primera fila -->
-                    <div class="col-lg-2">
+                    <div class="col-lg-4">
+                      <h5>TIPO</h5>
+                      <select class="form-control" id="busqueda_tipo" form-key="es_individual" style="text-align-last: center;">
+                        <option value="" selected>Todos</option>
+                        <option value="0">Linkeado</option>
+                        <option value="1">Individual</option>
+                      </select>
+                    </div>
+                    <div class="col-lg-4">
                       <h5>Casino</h5>
-                      <select class="form-control" id="busqueda_casino">
-                        @if ($usuario['usuario']->es_superusuario)
-                        <option value="0">Todos los casinos</option>
+                      <select class="form-control" id="busqueda_casino" form-key="id_casino" style="text-align-last: center;">
+                        @if ($es_superusuario)
+                        <option value="">Todos</option>
                         @endif
-                        @foreach ($usuario['usuario']->casinos as $casino)
-                        <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                        @foreach ($casinos as $c)
+                        <option value="{{$c->id_casino}}">{{$c->nombre}}</option>
                         @endforeach
                       </select>
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-4">
+                      <h5>Moneda</h5>
+                      <select class="form-control" id="busqueda_tipomoneda" form-key="id_tipo_moneda" style="text-align-last: center;">
+                        <option value="">Todas</option>
+                        @foreach ($tipo_monedas as $idx => $tm)
+                        <option value="{{$tm->id_tipo_moneda}}">{{$tm->descripcion}}</option>
+                        @endforeach
+                      </select>
+                    </div>
+                    <div id="target_link" class="col-lg-3">
                       <h5>Nombre Progresivo</h5>
-                      <input id="B_nombre_progresivo" type="text" class="form-control" placeholder="Nombre progresivo">
+                      <input id="B_nombre_progresivo" type="text" class="form-control" placeholder="Nombre progresivo" form-key="nombre_progresivo">
+                    </div>
+                    <div id="target_individual" class="col-md-3">
+                      <h5>Maquinas</h5>
+                      <input id="B_maquinas" type="text" class="form-control" placeholder="Maquinas" form-key="maquinas">
                     </div>
                     <div class="col-lg-3">
                       <h5>Islas</h5>
-                      <input id="B_islas" type="text" class="form-control" placeholder="Islas">
+                      <input id="B_islas" type="text" class="form-control" placeholder="Islas" form-key="islas">
                     </div>
-                    <div class="col-lg-2">
+                    <div class="col-lg-3">
                       <h5>Sectores</h5>
-                      <input id="B_sectores" type="text" class="form-control" placeholder="Sectores">
+                      <input id="B_sectores" type="text" class="form-control" placeholder="Sectores" form-key="sectores">
                     </div>
-                    <div class="col-lg-2">
-                      <h5>Búsqueda</h5>
+                    <div class="col-lg-2 col-lg-offset-5">
+                      <h5>&nbsp;</h5>
                       <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
                     </div>
                   </div>
@@ -165,52 +134,61 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
     <div class="row"> 
       <div class="col-md-12">
         <div class="panel panel-default">
-        <div class="panel-heading">
-          <h4>ÚLTIMOS PROGRESIVOS LINKEADOS</h4>
-        </div>
-        <div class="panel-body">
-        <table id="tablaResultados" class="table table-fixed tablesorter">
-          <thead>
-            <tr>
-              <th class="col-xs-3" value="progresivo.nombre"    estado="">NOMBRE PROGRESIVO<i class="fa fa-sort"></i></th>
-              <th class="col-xs-2" value="progresivo.id_casino" estado="">CASINO<i class="fa fa-sort"></i></th>
-              <th class="col-xs-2" value="islas"                estado="">ISLAS<i class="fa fa-sort"></i></td>
-              <th class="col-xs-3" value="sectores"             estado="">SECTORES<i class="fa fa-sort"></i></td>
-              <th class="col-xs-2">ACCIONES</th>
-            </tr>
-          </thead>
-          <tbody id="cuerpoTabla" style="height: 350px;">
-            <tr class="filaEjemplo" style='display: none;'>
-              <td class="col-xs-3 nombre">PROGRESIVO999</td>
-              <td class="col-xs-2 casino">CASINO999</td>
-              <td class="col-xs-2 islas">ISLA1/ISLA2/...</td>
-              <td class="col-xs-3 sectores">SECTOR1/SECTOR2/...</td>
-              <td class="col-xs-2 acciones">
-                <button class="btn btn-info grupal detalle">
-                  <i class="fa fa-fw fa-search-plus"></i>
-                </button>
-                <span> </span>
-                <button class="btn btn-info grupal modificar">
-                  <i class="fa fa-fw fa-pencil-alt"></i>
-                </button>
-                <span> </span>
-                <button class="btn btn-info grupal eliminar">
-                  <i class="fa fa-fw fa-trash-alt"></i>
-                </button>
-              </td>
-            </tr>
-            </tbody>
-          </table>
-          <!--Comienzo indices paginacion-->
-          <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
+          <div class="panel-heading">
+            <h4>PROGRESIVOS LINKEADOS</h4>
+          </div>
+          <div class="panel-body">
+            <table id="tablaResultados" class="table table-fixed tablesorter">
+              <thead>
+                <tr>
+                  <th class="col-xs-1" value="progresivo.id_casino" estado="">CASINO<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-1" value="tipo_moneda.descripcion" estado="">MONEDA<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-2" value="progresivo.nombre"    estado="">NOMBRE PROGRESIVO<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-2" value="maquinas"  estado="">MAQUINAS<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-2" value="islas"     estado="">ISLAS<i class="fa fa-sort"></i></td>
+                  <th class="col-xs-2" value="sectores"             estado="">SECTORES<i class="fa fa-sort"></i></td>
+                  <th class="col-xs-2">ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpoTabla" style="height: 350px;">
+                <tr class="filaEjemplo" style='display: none;'>
+                  <td class="col-xs-1 casino">CASINO</td>
+                  <td class="col-xs-1 moneda">MONEDA</td>
+                  <td class="col-xs-2">
+                    <span class="nombre">NOMBREPROG</span>
+                    <sup style="color: blue;" es_individual="0" hidden>LINK</sup>
+                    <sup style="color: green;" es_individual="1" hidden>INDIV</sup>
+                  </td>
+                  <td class="col-xs-2 maquinas">MAQUINAS</td>
+                  <td class="col-xs-2 islas">ISLA1/ISLA2/...</td>
+                  <td class="col-xs-2 sectores">SECTOR1/SECTOR2/...</td>
+                  <td class="col-xs-2 acciones">
+                    <button class="btn btn-info grupal detalle">
+                      <i class="fa fa-fw fa-search-plus"></i>
+                    </button>
+                    <span> </span>
+                    <button class="btn btn-info grupal modificar">
+                      <i class="fa fa-fw fa-pencil-alt"></i>
+                    </button>
+                    <span> </span>
+                    <button class="btn btn-info grupal eliminar">
+                      <i class="fa fa-fw fa-trash-alt"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <!--Comienzo indices paginacion-->
+            <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
+          </div>
         </div>
       </div>
     </div>
+  </div>
 </div>
-
 <!-- Modal Progresivo -->
 <div class="modal fade" id="modalProgresivo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-keyboard="false" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg" style="width: 80%;">
     <div class="modal-content">
       <div class="modal-header" style="background: #5cb85c;font-family: Roboto-Black;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
@@ -220,27 +198,35 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
       <div  id="colapsado" class="collapse in">
         <div class="modal-body modal-Cuerpo">
           <div class="row">
-            <div class="col-md-4 col-lg-4">
+            <div class="col-md-3 col-lg-3">
               <h5 class='row'>Nombre Progresivo</h5>
               <input id="nombre_progresivo" type="text" class="form-control" placeholder="Nombre Progresivo" autocomplete="off">
             </div>
-            <div class="col-md-4 col-lg-4">
+            <div class="col-md-3 col-lg-3">
               <h5 class='row'>Porcentaje de recuperación</h5>
               <input id="porc_recup" type="text"  class="form-control" placeholder="0">
             </div>
-            <div class="col-md-4 col-lg-4">
+            <div class="col-md-3 col-lg-3">
               <h5 class='row'>Casino</h5>
               <select class="form-control" id="modalProgresivo_casino">
-                @foreach ($usuario['usuario']->casinos as $casino)
-                <option value="{{$casino->id_casino}}" <?php if(!$selected){echo("selected");$selected=True;}?> >{{$casino->nombre}}</option>
+                @foreach ($casinos as $idx => $c)
+                <option value="{{$c->id_casino}}" {{$idx==0? 'selected' : ''}}>{{$c->nombre}}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-md-3 col-lg-3">
+              <h5 class='row'>Moneda</h5>
+              <select class="form-control" id="modalProgresivo_tipomoneda">
+                @foreach ($tipo_monedas as $idx => $tm)
+                <option value="{{$tm->id_tipo_moneda}}" {{$idx==0? 'selected' : ''}}>{{$tm->descripcion}}</option>
                 @endforeach
               </select>
             </div>
           </div>
           <div id='modalProgresivo_cuerpo' class='row'>
             <hr>
-            <div class=''>
-              <h3 class=''>Pozos</h3>
+            <div>
+              <h3>Pozos</h3>
               <div class="row">
                 <h5>Nuevo Pozo:
                   <button id="btn-agregarPozo" class="btn btn-success  " type="button">
@@ -252,11 +238,17 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
               <div id="contenedorPozos" class="row" style="overflow-y: auto;overflow-x: hidden;height: 400px;"></div>
             </div>
             <hr>
-            <div class=''>
-              <h3 class=''>Maquinas</h3>
-              <div class="row">
-                <div class="col-md-3">
-                  <h5>Enlazar maquina:</h5>
+            <div>
+              <div class="form-group form-inline">
+                <label for="selectTipoProgresivo"><h3>Maquinas</h3></label>
+                <select id="selectTipoProgresivo" class="form-control">
+                  <option value="0">LINK</option>
+                  <option value="1">INDIVIDUAL</option>
+                </select>
+              </div>
+              <div class="row" id="enlazarMaquinaDiv">
+                <div class="col-md-2">
+                  <h5 style="text-align: right;">Enlazar maquina</h5>
                 </div>
                 <div class="col-md-2">
                   <div class="input-group lista-datos-group" style="display: inline-block;">
@@ -270,9 +262,9 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
                   </button>
                 </div>
               </div>
-              <div class="row">
-                <div class="col-md-3">
-                  <h5>Enlazar isla:</h5>
+              <div class="row" id="enlazarIslaDiv">
+                <div class="col-md-2">
+                  <h5 style="text-align: right;">Enlazar isla</h5>
                 </div>
                 <div class="col-md-2">
                   <div class="input-group lista-datos-group" style="display: inline-block;">
@@ -300,26 +292,33 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
   </div>
 </div>
 
-
 <div class="modal fade" id="modalProgresivoIndividual" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-keyboard="false" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg" style="width: 80%;">
     <div class="modal-content">
       <div class="modal-header" style="background: #5cb85c;font-family: Roboto-Black;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title" style="color: #fff;">| NUEVOS PROGRESIVOS INDIVIDUALES</h3>
       </div>
-      <div  id="colapsado" class="collapse in">
+      <div id="colapsado" class="collapse in">
         <div class="modal-body modal-Cuerpo">
-          <div class="" id='modalProgresivoIndividual_seccionSup'>
+          <div id='modalProgresivoIndividual_seccionSup'>
             <div class="row">
               <h3 class='col-md-3 col-lg-3'>Parametros base</h3>
-              <div class='col-md-5 col-lg-5'></div>
+              <div class='col-md-1 col-lg-1'></div>
               <h5 class='col-md-1 col-lg-1'>Casino</h5>
               <div class='col-md-3 col-lg-3 '>
                 <select class="form-control" id="modalProgresivoIndividual_casino">
-                  @foreach ($usuario['usuario']->casinos as $casino)
-                  <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                  @foreach ($casinos as $idx => $c)
+                  <option value="{{$c->id_casino}}" {{$idx==0? 'selected' : ''}}>{{$c->nombre}}</option>
+                  @endforeach
+                </select>
+              </div>
+              <h5 class='col-md-1 col-lg-1'>Moneda</h5>
+              <div class='col-md-3 col-lg-3'>
+                <select class="form-control" id="modalProgresivoIndividual_tipomoneda">
+                  @foreach ($tipo_monedas as $idx => $tm)
+                  <option value="{{$tm->id_tipo_moneda}}" {{$idx==0? 'selected' : ''}}>{{$tm->descripcion}}</option>
                   @endforeach
                 </select>
               </div>
@@ -327,27 +326,27 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
           </div>
           <div class="row no-gutters" id='modalProgresivoIndividual_seccionParametros'>
             <div class="col-md-3 col-lg-3">
-              <h5 class="">% Recuperación</h5>
+              <h5>% Recuperación</h5>
               <input id="inputPorcRecupIndividual" class="editable form-control" type="text">
             </div>
             <div class="col-md-3 col-lg-3">
-              <h5 class=''>Máximo</h5>
+              <h5>Máximo</h5>
               <input id="inputMaximoIndividual" class="editable form-control" type="text">
             </div>
             <div class="col-md-2 col-lg-2">
-              <h5 class=''>Base</h5>
+              <h5>Base</h5>
               <input id="inputBaseIndividual" class="editable form-control" type="text">
             </div>
             <div class="col-md-2 col-lg-2">
-              <h5 class=''>% Visible</h5>
+              <h5>% Visible</h5>
               <input id="inputPorcVisibleIndividual" class="editable form-control" type="text">
             </div>
             <div class="col-md-2 col-lg-2">
-              <h5 class=''>% Oculto</h5>
+              <h5>% Oculto</h5>
               <input id="inputPorcOcultoIndividual" class="editable form-control" type="text">
             </div>
           </div>
-          <h3 class=''>Progresivos</h3>
+          <h3>Progresivos</h3>
           <div class="row">
             <div class="row">
               <div class="col-md-3">
@@ -365,7 +364,7 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
                 </button>
               </div>
             </div>
-            <div id="contenedorMaquinasIndividual" class="" style="overflow-y: auto;overflow-x: hidden;height: 400px;"></div>
+            <div id="contenedorMaquinasIndividual"  style="overflow-y: auto;overflow-x: hidden;height: 400px;"></div>
           </div>
 
           <div class="modal-footer">
@@ -379,9 +378,6 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
 </div>
 
 
-
-
-
 <!-- Modal Eliminar -->
 <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -390,7 +386,6 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
         <h3 class="modal-titleEliminar" id="myModalLabel">ADVERTENCIA</h3>
       </div>
-
       <div class="modal-body" style="color:#fff; background-color:#EF5350;">
         <form id="frmEliminar" name="frmProgresivo" class="form-horizontal" novalidate="">
           <div class="form-group error ">
@@ -400,7 +395,6 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
           </div>
         </form>
       </div>
-
       <div class="modal-footer">
         <button type="button" class="btn btn-dangerEliminar" id="btn-eliminarModal" value="0">ELIMINAR</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
@@ -408,8 +402,6 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
     </div>
   </div>
 </div>
-
-
 
 <!-- Tabla del pozo de ejemplo -->
 <div class="row top-buffer tablaPozoDiv ejemplo" style="display: none">
@@ -425,7 +417,6 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
       <button class="btn btn-link eliminarPozo"></i>
         <i class="fa fa-fw fa-trash-alt"></i>
       </button>
-
       <div class="panel-body collapse">
         <table class="table table-condensed tablesorter tablaPozo" style="padding: 1px;">
           <thead>
@@ -590,6 +581,6 @@ $selected = False;//Se setea una sola vez, pone el atributo selected en el casin
 <script src="/js/lista-datos.js" type="text/javascript"></script>
 <!-- JavaScript personalizado -->
 <script src="/js/float.js" charset="utf-8"></script>
-<script src="/js/seccionProgresivos.js?2" charset="utf-8"></script>
+<script src="/js/seccionProgresivos.js?3" charset="utf-8"></script>
 <script src="/js/seccionProgresivosFilas.js" charset="utf-8"></script>
 @endsection

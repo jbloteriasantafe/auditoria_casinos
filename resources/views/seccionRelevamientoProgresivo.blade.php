@@ -446,24 +446,27 @@ $niveles = (new DetalleRelevamientoProgresivo)->max_lvl;
         <button id="btn-minimizar-carga-cierre" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title">| MODIFICAR PARÁMETROS DE RELEVAMIENTO DE PROGRESIVOS </h3>
       </div>
-      <div  id="colapsado" class="collapse in">
+      <div id="colapsado" class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
           <div class="row" style="text-align:center !important;border-bottom:1px solid #ccc; padding-bottom:10px" >
             <div class="row">
-            <div class="col-xs-6">
-              <span display="inline-block" class="col-xs-4" style="width:15%">
-                <h6 style="font-size:17px;">CASINO:</h6>
-              </span>
-              <span display="inline" style="padding-left:-35px;text-align:left !important">
-                <div class="col-xs-8">
-                <select class="form-control" style="float:right !important" name="casinoSel" id="selectCasinoModificarRelev">
+              <div class="col-xs-6">
+                <h6>CASINO</h6>
+                <select class="form-control" name="casinoSel" id="selectCasinoModificarRelev" style="text-align-last:center;">
                   @foreach ($casinos as $cas)
-                  <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
+                  <option value="{{$cas->id_casino}}" style="text-align: center;">{{$cas->nombre}}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="col-xs-6">
+                <h6>MONEDA</h6>
+                <select class="form-control" name="casinoSel" id="selectTipoMonedaModificarRelev" style="text-align-last:center;">
+                  @foreach ($tipo_monedas as $tm)
+                  <option value="{{$tm->id_tipo_moneda}}">{{$tm->descripcion}}</option>
                   @endforeach
                 </select>
               </div>
             </div>
-          </div>
           </div>
           <br>
           <div id="valoresParamRelevProgresivos" class="row">
@@ -472,17 +475,16 @@ $niveles = (new DetalleRelevamientoProgresivo)->max_lvl;
               <div class="col-xs-12">
                 <div class="row">
                   <div class="col-xs-4" display="inline">
-                   <h6 style="font-size:16px">Valor mínimo de base de niveles para un pozo*: </h6>
+                    <h6 style="font-size:16px">Valor mínimo de base de niveles para un pozo*: </h6>
                   </div>
                   <div class="col-xs-8" display="inline" style="text-align:left">
-                  <input type="text" class="form-control" id="valorMinimoRelevamientoProgresivo" name="" value="">
-                </div>
+                    <input type="text" class="form-control" id="valorMinimoRelevamientoProgresivo" name="" value="">
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
         <div class="modal-footer">
           <span style="font-family:sans-serif;float:left !important;font-size:12px; text-align:left; color:#0D47A1"> * Este valor corresponde a la base mínima a ser considerada para relevar. Si un pozo tiene algún <br>nivel con base mayor a la definida en el parámetro, será considerado para su relevamiento.</span>
           <button type="button" class="btn btn-warningModificar" id="btn-guardar-param-relev-progresivos" value="nuevo" hidden="true">GUARDAR</button>
@@ -533,7 +535,7 @@ $niveles = (new DetalleRelevamientoProgresivo)->max_lvl;
 
 @section('scripts')
 <!-- JavaScript personalizado -->
-<script src="js/seccionRelevamientosProgresivos.js" charset="utf-8"></script>
+<script src="js/seccionRelevamientosProgresivos.js?3" charset="utf-8"></script>
 <script src="js/paginacion.js" charset="utf-8"></script>
 
 <!-- DateTimePicker JavaScript -->

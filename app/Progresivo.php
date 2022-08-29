@@ -18,7 +18,8 @@ class Progresivo extends Model
     'porc_recup',
     'id_casino',
     'es_individual',
-    'deleted_at'
+    'deleted_at',
+    'id_tipo_moneda',
   );
   public $timestamps = false;
 
@@ -33,6 +34,10 @@ class Progresivo extends Model
 
   public function casino(){
         return $this->belongsTo('App\Casino','id_casino','id_casino');
+  }
+  
+  public function tipo_moneda(){
+        return $this->belongsTo('App\TipoMoneda','id_tipo_moneda','id_tipo_moneda');
   }
 
   public static function boot(){

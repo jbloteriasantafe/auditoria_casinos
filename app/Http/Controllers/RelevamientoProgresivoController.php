@@ -19,6 +19,7 @@ use File;
 use App\Sector;
 use App\Pozo;
 use App\Casino;
+use App\TipoMoneda;
 use App\DetalleLayoutParcial;
 use App\LayoutParcial;
 use App\EstadoRelevamiento;
@@ -44,92 +45,96 @@ class RelevamientoProgresivoController extends Controller
     }
     return self::$instance;
   }
+  
+  private static function SIMPLIFY_INT_RANGES(Array $list){
+    if(count($list) == 0) return '';
+    $init_range = $list[0];
+    $end_range  = $list[0];
+    $list = array_slice($list,1);
+    $newlist = [];
+    foreach($list as $i){
+      if($i == $end_range) continue;
+      if($i != ($end_range+1)){
+        $newlist[] = [$init_range,$end_range];
+        $init_range = $i;
+      }
+      $end_range = $i;
+    }
+    $newlist[] = [$init_range,$end_range];
+    $newlist = array_map(function($r){
+      return $r[0]!=$r[1]? $r[0].'-'.$r[1] : $r[0];
+    },$newlist);
+    return implode(",",$newlist);
+  }
 
   public function obtenerRelevamiento($id_relevamiento_progresivo){
     $relevamiento = RelevamientoProgresivo::findOrFail($id_relevamiento_progresivo);
-    $detalles = array();
-
-    $casino = $relevamiento->sector->casino;
-    foreach ($relevamiento->detalles as $detalle) {
-      $niveles = array();
-      $id_maquinas_pozo = array();
-      $nro_admin_maquinas = '';
-      $pozo = Pozo::find($detalle->id_pozo);
+        
+    $detalles = [];
+    foreach ($relevamiento->detalles as $drel) {
+      $pozo = Pozo::find($drel->id_pozo);
       if($pozo == null) continue;
-      $maquinas = $pozo->progresivo->maquinas()->orderBy('maquina.nro_admin','asc')->get();
-      foreach ($maquinas as $maq){
-        $id_maquinas_pozo[] = $maq['id_maquina'];
-        $nro_admin_maquinas = $nro_admin_maquinas .'/'. $maq['nro_admin'];
-      }
-
-      $nro_admin_maquinas = substr_replace($nro_admin_maquinas,'',0,1);
-
-      $resultados = DB::table('isla')->selectRaw('DISTINCT(nro_isla)')
-                                     ->join('maquina','maquina.id_isla','=','isla.id_isla')
-                                     ->whereIn('id_maquina',$id_maquinas_pozo)
-                                     ->orderBy('nro_isla', 'asc')
-                                     ->get();
-
-      $i=0;
-      $nro_isla='';
-      foreach ($resultados as $resultado){
-        if($i == 0){
-          $nro_isla = $resultado->nro_isla;
-        }else{
-          $nro_isla = $nro_isla . '/' . $resultado->nro_isla;
-        }
-        $i++;
-      }
-
+      
+      $nro_admins  = $pozo->progresivo->maquinas()
+      ->select('maquina.nro_admin')->distinct()
+      ->orderBy('maquina.nro_admin','asc')
+      ->get()->map(function($m){return intval($m->nro_admin);})->toArray();
+      
+      $nro_islas = $pozo->progresivo->maquinas()
+      ->join('isla','isla.id_isla','=','maquina.id_isla')
+      ->selectRaw('isla.nro_isla')->distinct()
+      ->orderBy('isla.nro_isla','asc')
+      ->get()->map(function($i){return intval($i->nro_isla);})->toArray();
+      
       $d = new \stdClass;
-      $d->nro_isla = $nro_isla;
-      $d->id_detalle_relevamiento_progresivo = $detalle->id_detalle_relevamiento_progresivo;
-      $d->nombre_progresivo=$pozo->progresivo->nombre;
-      $d->pozo_unico = count($pozo->progresivo->pozos) == 1;
-      $d->nombre_pozo=$pozo->descripcion;
-      $d->id_pozo = $pozo->id_pozo;
-      $d->id_tipo_causa_no_toma_progresivo = $detalle->id_tipo_causa_no_toma_progresivo;
-      $d->nro_admins=$nro_admin_maquinas;
+      $d->nro_isla_0    = count($nro_islas) > 0? $nro_islas[0] : -9999;//para ordenar
+      $d->nro_isla      = self::SIMPLIFY_INT_RANGES($nro_islas);
+      $d->pozo_unico    = count($pozo->progresivo->pozos) == 1;
+      $d->nombre_pozo   = $pozo->descripcion;
+      $d->id_pozo       = $pozo->id_pozo;
+      $d->nro_admins    = self::SIMPLIFY_INT_RANGES($nro_admins);
       $d->es_individual = $pozo->progresivo->es_individual;
-      $d->niveles=array();
-      $detalle_arr = $detalle->toArray();
-      foreach ($pozo->niveles as $nivel){
-          $unNivel = new \stdClass;
-          $unNivel->base = $nivel->base;
-          $unNivel->nombre_nivel = $nivel->nombre_nivel;
-          $unNivel->nro_nivel = $nivel->nro_nivel;
-          $unNivel->valor= $detalle_arr['nivel' . $nivel->nro_nivel];
-          $unNivel->id_nivel_progresivo = $nivel->id_nivel_progresivo;
-          $d->niveles[] = $unNivel;
-      }
+      $d->niveles       = $pozo->niveles->map(function($n) use ($drel){
+        $ret = new \stdClass;
+        $ret->base          = $n->base;
+        $ret->nombre_nivel  = $n->nombre_nivel;
+        $ret->nro_nivel     = $n->nro_nivel;
+        $ret->valor         = $drel->{'nivel' . $n->nro_nivel};
+        $ret->id_nivel_progresivo = $n->id_nivel_progresivo;
+        return $ret;
+      })->toArray();
+      
+      $d->nombre_progresivo = $pozo->progresivo->nombre;
+      $d->id_detalle_relevamiento_progresivo = $drel->id_detalle_relevamiento_progresivo;
+      $d->id_tipo_causa_no_toma_progresivo   = $drel->id_tipo_causa_no_toma_progresivo;
       $detalles[]=$d;
     }
+    
+    usort($detalles,function($a,$b){
+      return $a->nro_isla_0 > $b->nro_isla_0;
+    });
 
-    $detalles = $this->ordenarArrayBubbleSort($detalles, 0);
-
-    return ['detalles' => $detalles,
-            'relevamiento' => $relevamiento,
-            'sector' => $relevamiento->sector,
-            'casino' => $casino,
-            'usuario_cargador' => $relevamiento->usuario_cargador,
-            'usuario_fiscalizador' => $relevamiento->usuario_fiscalizador];
+    return [
+      'relevamiento' => $relevamiento,
+      'detalles' => $detalles, 
+      'sector' => $relevamiento->sector,
+      'casino' => $relevamiento->sector->casino,
+      'usuario_cargador' => $relevamiento->usuario_cargador,
+      'usuario_fiscalizador' => $relevamiento->usuario_fiscalizador
+    ];
   }
 
   public function buscarTodo(){
-
-      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      $casinos = $usuario->casinos;
-      $estados = EstadoRelevamiento::all();
-      UsuarioController::getInstancia()->agregarSeccionReciente('Relevamiento Progresivo' , 'relevamientosProgresivo');
-      $fiscalizadores = $this->obtenerFiscalizadores($casinos,$usuario);
-
-      return view('seccionRelevamientoProgresivo',
-      ['casinos' => $casinos ,
-      'estados' => $estados,
-      "fiscalizadores" => $fiscalizadores,
-      "causasNoToma" => TipoCausaNoTomaProgresivo::all()]
-
-      )->render();
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $casinos = $usuario->casinos;
+    UsuarioController::getInstancia()->agregarSeccionReciente('Relevamiento Progresivo' , 'relevamientosProgresivo');
+    return view('seccionRelevamientoProgresivo',[
+      'casinos'        => $casinos,
+      'tipo_monedas'   => TipoMoneda::all(),
+      'estados'        => EstadoRelevamiento::all(),
+      'fiscalizadores' => $this->obtenerFiscalizadores($casinos,$usuario),
+      'causasNoToma'   => TipoCausaNoTomaProgresivo::all()
+    ])->render();
   }
 
   public function buscarRelevamientosProgresivos(Request $request){
@@ -159,241 +164,201 @@ class RelevamientoProgresivoController extends Controller
     $sort_by = $request->sort_by;
     $resultados=DB::table('relevamiento_progresivo')
     ->select('relevamiento_progresivo.*'  , 'sector.descripcion as sector' , 'casino.nombre as casino' , 'estado_relevamiento.descripcion as estado')
-      ->join('sector' ,'sector.id_sector' , '=' , 'relevamiento_progresivo.id_sector')
-      ->join('casino' , 'sector.id_casino' , '=' , 'casino.id_casino')
-      ->join('estado_relevamiento' , 'relevamiento_progresivo.id_estado_relevamiento' , '=' , 'estado_relevamiento.id_estado_relevamiento')
-      ->when($sort_by,function($query) use ($sort_by){
-                      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                  })
-      ->where($reglas)
-      ->whereIn('casino.id_casino' , $casinos)
-      ->where('backup' , '=', 0)->paginate($request->page_size);
-
-
+    ->join('sector' ,'sector.id_sector' , '=' , 'relevamiento_progresivo.id_sector')
+    ->join('casino' , 'sector.id_casino' , '=' , 'casino.id_casino')
+    ->join('estado_relevamiento' , 'relevamiento_progresivo.id_estado_relevamiento' , '=' , 'estado_relevamiento.id_estado_relevamiento')
+    ->when($sort_by,function($query) use ($sort_by){
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    })
+    ->where($reglas)
+    ->whereIn('casino.id_casino' , $casinos)
+    ->where('backup','=',0)->paginate($request->page_size);
 
     return $resultados;
   }
 
   private function obtenerFiscalizadores($casinos,$user){
-    $controller = UsuarioController::getInstancia();
-    $fiscalizadores = array();
-
+    $UC = UsuarioController::getInstancia();
+    $fiscalizadores = [];
     foreach($casinos as $c){
-      $cas = array();
-      $fs = $controller->obtenerFiscalizadores($c->id_casino,$user->id_usuario);
-
+      $fs = $UC->obtenerFiscalizadores($c->id_casino,$user->id_usuario);
+      $cas = [];
       foreach($fs as $f){
-        $cas[] = array(
-                      'id_usuario' => $f->id_usuario,
-                      'nombre' => $f->nombre
-                      );
+        $cas[] = ['id_usuario' => $f->id_usuario,'nombre' => $f->nombre];
       }
       $fiscalizadores[$c->id_casino] = $cas;
     }
-
     return $fiscalizadores;
   }
-
+  
   public function crearRelevamientoProgresivos(Request $request){
-    $usuario_actual = UsuarioController::getInstancia()->quienSoy();
-    $fiscalizador = $usuario_actual['usuario'];
-
+    $fiscalizador = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    
     Validator::make($request->all(),[
-        'id_sector' => 'required|exists:sector,id_sector',
-        'fecha_generacion' => 'required|date|before_or_equal:' . date('Y-m-d H:i:s'),
-    ], array(), self::$atributos)->after(function($validator){
-    })->validate();
+      'id_sector' => 'required|exists:sector,id_sector',
+      'fecha_generacion' => 'required|date|before_or_equal:' . date('Y-m-d H:i:s'),
+    ],[], self::$atributos)->after(function($validator){})->validate();
 
-    $pozos = DB::table('pozo')->select('pozo.id_pozo' , 'pozo.id_progresivo')
-                                    ->join('maquina_tiene_progresivo', 'pozo.id_progresivo', '=', 'maquina_tiene_progresivo.id_progresivo')
-                                    ->join('maquina', 'maquina.id_maquina', '=', 'maquina_tiene_progresivo.id_maquina')
-                                    ->join('isla','maquina.id_isla','=','isla.id_isla')
-                                    ->join('sector','isla.id_sector','=','sector.id_sector')
-                                    ->where('sector.id_sector','=',$request->id_sector)
-                                    ->whereNull('pozo.deleted_at')
-                                    ->groupBy('id_progresivo', 'id_pozo')
-                                    ->get();
+    $id_pozos = DB::table('pozo')
+    ->select('pozo.id_pozo')
+    ->join('progresivo','progresivo.id_progresivo','=','pozo.id_progresivo')
+    ->join('maquina_tiene_progresivo', 'pozo.id_progresivo', '=', 'maquina_tiene_progresivo.id_progresivo')
+    ->join('maquina', 'maquina.id_maquina', '=', 'maquina_tiene_progresivo.id_maquina')
+    ->join('isla','maquina.id_isla','=','isla.id_isla')
+    ->join('sector','isla.id_sector','=','sector.id_sector')
+    ->where('sector.id_sector','=',$request->id_sector)
+    ->whereNull('pozo.deleted_at')
+    ->whereNull('progresivo.deleted_at')
+    ->groupBy('pozo.id_progresivo', 'pozo.id_pozo')
+    ->get()->pluck('id_pozo');
 
+    $id_casino = Sector::withTrashed()->find($request->id_sector)->get()->first()->casino->id_casino;
+    $minimos_por_moneda = [];
+    foreach(TipoMoneda::all() as $tm){
+      $min = $this->obtenerMinimorelevamientoProgresivo($id_casino,$tm->id_tipo_moneda)['rta'];
+      $minimos_por_moneda[$tm->id_tipo_moneda] = $min;
+    }
+    
+    $detalles = [];
+    foreach($id_pozos as $id_pozo){
+      $pozo = Pozo::find($id_pozo);
+      $moneda_pozo = $pozo->progresivo->id_tipo_moneda;
+      foreach ($pozo->niveles as $nivel) {
+        if ($nivel->base >= $minimos_por_moneda[$moneda_pozo]) {
+          $detalle = new DetalleRelevamientoProgresivo;
+          $detalle->id_pozo = $id_pozo;
+          $detalles[] = $detalle;
+          break;
+        }
+      }
+    }
+    
+    if(empty($detalles)) return ['codigo' => 500]; //error, no existen progresivos para relevar.
 
-
-     //creo los detalles
-     $detalles = array();
-     foreach($pozos as $pozo){
-       if(ProgresivoController::getInstancia()->existenNivelSuperior($pozo->id_pozo)){
-         $detalle = new DetalleRelevamientoProgresivo;
-         $detalle->id_pozo = $pozo->id_pozo;
-         $detalles[] = $detalle;
-       }
-     }
-
-     if(!empty($detalles)){
-
-       //creo y guardo el relevamiento progresivo
-       DB::transaction(function() use($request,$fiscalizador,$detalles){
-         $relevamiento_progresivo = new RelevamientoProgresivo;
-         $relevamiento_progresivo->nro_relevamiento_progresivo = DB::table('relevamiento_progresivo')->max('nro_relevamiento_progresivo') + 1;
-         $relevamiento_progresivo->fecha_generacion = $request->fecha_generacion;
-         $relevamiento_progresivo->id_sector = $request->id_sector;
-         $relevamiento_progresivo->id_estado_relevamiento = 1;
-         $relevamiento_progresivo->id_usuario_cargador = $fiscalizador->id_usuario;
-         $relevamiento_progresivo->backup = 0;
-         $relevamiento_progresivo->save();
-
-         //guardo los detalles
-         foreach($detalles as $detalle){
-            $detalle->id_relevamiento_progresivo = DB::table('relevamiento_progresivo')->max('id_relevamiento_progresivo');
-           $detalle->save();
-         }
-       });
-
-
-      }else{
-       return ['codigo' => 500]; //error, no existen progresivos para relevar.
-     }
-
+    //creo y guardo el relevamiento progresivo
+    DB::transaction(function() use($request,$fiscalizador,$detalles){
+      $relevamiento_progresivo = new RelevamientoProgresivo;
+      $relevamiento_progresivo->nro_relevamiento_progresivo = DB::table('relevamiento_progresivo')->max('nro_relevamiento_progresivo') + 1;
+      $relevamiento_progresivo->fecha_generacion = $request->fecha_generacion;
+      $relevamiento_progresivo->id_sector = $request->id_sector;
+      $relevamiento_progresivo->id_estado_relevamiento = 1;
+      $relevamiento_progresivo->id_usuario_cargador = $fiscalizador->id_usuario;
+      $relevamiento_progresivo->backup = 0;
+      $relevamiento_progresivo->save();
+      foreach($detalles as $detalle){
+        $detalle->id_relevamiento_progresivo = $relevamiento_progresivo->id_relevamiento_progresivo; //DB::table('relevamiento_progresivo')->max('id_relevamiento_progresivo');
+        $detalle->save();
+      }
+    });
+    
     return ['codigo' => 200];
   }
 
   public function generarPlanillaProgresivos($id_relevamiento_progresivo){
     $rel = RelevamientoProgresivo::find($id_relevamiento_progresivo);
 
-    $html = false;//poner en true si se quiere ver como html (DEBUG)
-    $dompdf = $this->crearPlanillaProgresivos($rel,$html);
+    $html = false;
+    $dompdf = $this->crearPlanillaProgresivos($rel,$html);//poner en true si se quiere ver como html (DEBUG)
 
     if($html) return $dompdf;
     else return $dompdf->stream("Relevamiento_Progresivo_" . $rel->sector->descripcion . "_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
   }
 
   public function crearPlanillaProgresivos($relevamiento_progresivo,$html = false){
-    $detalles = array();
-    $detalles_link_sin_ordenar = array();
-    $detalles_individuales = array();
-
+    $detalles_linkeados    = [];
+    $detalles_individuales = [];
+    $MAX_LVL = (new DetalleRelevamientoProgresivo)->max_lvl;
     foreach ($relevamiento_progresivo->detalles as $detalle_relevamiento) {
-      $niveles = array();
-      $id_maquinas = array();
-
       $pozo = Pozo::withTrashed()->find($detalle_relevamiento->id_pozo);
       $progresivo = $pozo->progresivo()->withTrashed()->get()->first();
-      $niveles = $pozo->niveles()->get();
+      
+      $nro_maquinas = $progresivo->maquinas()
+      ->selectRaw('DISTINCT maquina.nro_admin as nro_admin')
+      ->orderBy('maquina.nro_admin','asc')->get();
 
-      $x=0;
-      $nro_maquinas = "";
-      foreach ($progresivo->maquinas()->orderBy('maquina.nro_admin','asc')->get() as $maq) {
-        $id_maquinas[] = $maq->id_maquina;
-        if ($x == 0) {
-          $nro_maquinas = $maq->nro_admin;
-        }
-        else {
-          $nro_maquinas = $nro_maquinas . '/' . $maq->nro_admin;
-        }
-        $x++;
-      }
+      $nro_islas = $progresivo->maquinas()
+      ->join('isla','isla.id_isla','=','maquina.id_isla')
+      ->selectRaw('DISTINCT isla.nro_isla as nro_isla, isla.orden')
+      ->orderBy('nro_isla', 'asc')->get();
+      
 
-      $resultados = DB::table('isla') ->selectRaw('DISTINCT(nro_isla)')
-                                      ->join('maquina' , 'maquina.id_isla' , '=' , 'isla.id_isla')
-                                      ->whereIn('id_maquina' , $id_maquinas)
-                                      ->orderBy('nro_isla', 'asc')
-                                      ->get();
-      $i = 0;
-      $nro_islas="";
-      $flag_isla_unica = 0;
-      foreach ($resultados as $resultado) {
-
-        if($i == 0){
-          $nro_islas = $resultado->nro_isla;
-        }else {
-          $flag_isla_unica = 1;
-          $nro_islas = $nro_islas . '/' . $resultado->nro_isla;
-        }
-        $i++;
-      }
-
-      if($detalle_relevamiento->id_tipo_causa_no_toma_progresivo != NULL) {
-        $causa_no_toma_progresivo = TipoCausaNoTomaProgresivo::find($detalle_relevamiento->id_tipo_causa_no_toma_progresivo)->descripcion;
-      }
-      else {
-        $causa_no_toma_progresivo = -1;
-      }
-
-      $nombre_nivel = [];
-      foreach($niveles as $n){
-        if(isset($n->nro_nivel)){
-          $nombre_nivel[$n->nro_nivel]=isset($n->nombre_nivel)? $n->nombre_nivel : '';
-        }
-      }
-      $formatearNum = function($n){
-        if(is_null($n)) return '';
-        return number_format($n,2,'.','');
-      };
-      $nivel1 = $formatearNum($detalle_relevamiento->nivel1);
-      $nivel2 = $formatearNum($detalle_relevamiento->nivel2);
-      $nivel3 = $formatearNum($detalle_relevamiento->nivel3);
-      $nivel4 = $formatearNum($detalle_relevamiento->nivel4);
-      $nivel5 = $formatearNum($detalle_relevamiento->nivel5);
-      $nivel6 = $formatearNum($detalle_relevamiento->nivel6);
-
-
-      $detalle = array(
-        'nro_maquinas' => $nro_maquinas,
-        'nro_islas' => $nro_islas,
-        'flag_isla_unica' => $flag_isla_unica,
-        'pozo' => $pozo->descripcion,
-        //Si venimos de un progresivo borrado, nos va a dar 0 pozos, que le muestre el nombre por si las moscas
-        //No habria forma de saber si era pozo unico o no.
-        'pozo_unico' => count($progresivo->pozos) == 1,
-        'progresivo' => $progresivo->nombre,
-        'es_individual' => $progresivo->es_individual,
-        'nivel1' => $nivel1,
-        'nivel2' => $nivel2,
-        'nivel3' => $nivel3,
-        'nivel4' => $nivel4,
-        'nivel5' => $nivel5,
-        'nivel6' => $nivel6,
-        'nombre_nivel1' => isset($nombre_nivel[1])? $nombre_nivel[1] : '',
-        'nombre_nivel2' => isset($nombre_nivel[2])? $nombre_nivel[2] : '',
-        'nombre_nivel3' => isset($nombre_nivel[3])? $nombre_nivel[3] : '',
-        'nombre_nivel4' => isset($nombre_nivel[4])? $nombre_nivel[4] : '',
-        'nombre_nivel5' => isset($nombre_nivel[5])? $nombre_nivel[5] : '',
-        'nombre_nivel6' => isset($nombre_nivel[6])? $nombre_nivel[6] : '',
-        'causa_no_toma_progresivo' => $causa_no_toma_progresivo
+      $detalle = new \stdClass;
+      $detalle->nro_maquinas = $this->SIMPLIFY_INT_RANGES(
+        $nro_maquinas->map(function($m){return intval($m->nro_admin);})->toArray()
       );
-
-      $detalles[] = $detalle;
+      $detalle->nro_islas    = $this->SIMPLIFY_INT_RANGES(
+        $nro_islas->map(function($i){return intval($i->nro_isla);})->toArray()
+      );
+      
+      $detalle->nro_isla_0 = -9999;
+      $detalle->orden_min  = -9999;
+      if(count($nro_islas) > 0){
+        $detalle->nro_isla_0 = $nro_islas[0]->nro_isla;
+        $detalle->orden_min  = min($nro_islas->map(function($i){return intval($i->orden);})->toArray());
+      }
+        
+      $detalle->pozo = $pozo->descripcion;
+      //Si venimos de un progresivo borrado, nos va a dar 0 pozos, que le muestre el nombre por si las moscas
+      //No habria forma de saber si era pozo unico o no.
+      $detalle->pozo_unico = count($progresivo->pozos) == 1;
+      $detalle->progresivo = $progresivo->nombre;
+      $detalle->es_individual = $progresivo->es_individual;
+      
+      {
+        $cnt = $detalle_relevamiento->tipo_causa_no_toma;
+        $detalle->causa_no_toma_progresivo = is_null($cnt)? null : $cnt->descripcion;
+      }
+      
+      {
+        $nombre_nivel = [];
+        foreach($pozo->niveles as $n){
+          $nombre_nivel[$n->nro_nivel]= $n->nombre_nivel ?? '';
+        }
+        for($i=1;$i<=$MAX_LVL;$i++){
+          $n = $detalle_relevamiento->{"nivel$i"};
+          $detalle->{"nivel$i"} = is_null($n)? '' : number_format($n,2,'.','');
+          $detalle->{"nombre_nivel$i"} = $nombre_nivel[$i] ?? '';
+        }
+      }
+      
+      if($detalle->es_individual){
+        $detalles_individuales[] = $detalle;
+      }
+      else{
+        $detalles_linkeados[] = $detalle;
+      }
     }
 
-    foreach ($detalles as $detalle) {
-      if ($detalle['es_individual'] == 0) {
-        array_push($detalles_link_sin_ordenar, $detalle);
-      }
-      else {
-        array_push($detalles_individuales, $detalle);
-      }
+    {
+      $ROS = $relevamiento_progresivo->sector->id_casino == 3;
+      usort($detalles_linkeados,function($a,$b) use ($ROS){
+        if($ROS && $a->orden_min != $b->orden_min){
+          return $a->orden_min > $b->orden_min;
+        }
+        return $a->nro_isla_0 > $b->nro_isla_0;
+      });
     }
-
-    $detalles_linkeados = $this->ordenarArrayBubbleSort($detalles_link_sin_ordenar, 1);
-
+    
     $sector = Sector::find($relevamiento_progresivo->id_sector);
     $casino = Casino::find($sector->id_casino);
-    $otros_datos_relevamiento_progresivo = array(
+    $fiscalizador = $relevamiento_progresivo->usuario_fiscalizador;
+    $otros_datos = [
       'sector' => $sector->descripcion,
       'casino' => $casino->nombre,
-      'codigo_casino'=> $casino->codigo,
-      'fiscalizador' => ($relevamiento_progresivo->id_usuario_fiscalizador != NULL) ? 
-      (Usuario::find($relevamiento_progresivo->id_usuario_fiscalizador)->nombre) 
-      : "",
-      'estado' => EstadoRelevamiento::find($relevamiento_progresivo->id_estado_relevamiento)->descripcion,
-      'maxlvl' => (new DetalleRelevamientoProgresivo)->max_lvl
-    );
+      'codigo_casino' => $casino->codigo,
+      'fiscalizador'  => is_null($fiscalizador)? "" : $fiscalizador->nombre,
+      'estado' => $relevamiento_progresivo->estado_relevamiento->descripcion,
+      'MAX_LVL' => $MAX_LVL,
+    ];
 
-    $view = View::make('planillaRelevamientosProgresivo', compact('detalles_linkeados', 'detalles_individuales', 'relevamiento_progresivo', 'otros_datos_relevamiento_progresivo'));
+    $view = View::make('planillaRelevamientosProgresivo', compact('detalles_linkeados', 'detalles_individuales', 'relevamiento_progresivo', 'otros_datos'));
     if(!$html){
       $dompdf = new Dompdf();
       $dompdf->set_paper('A4', 'landscape');
       $dompdf->loadHtml($view->render());
       $dompdf->render();
       $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-      $dompdf->getCanvas()->page_text(20, 575, $relevamiento_progresivo->nro_relevamiento_progresivo . "/" . $otros_datos_relevamiento_progresivo['codigo_casino'] . "/" . $otros_datos_relevamiento_progresivo['sector'], $font, 10, array(0,0,0));
+      $dompdf->getCanvas()->page_text(20, 575, "$relevamiento_progresivo->nro_relevamiento_progresivo/$otros_datos[codigo_casino]/$otros_datos[sector]", $font, 10, array(0,0,0));
       $dompdf->getCanvas()->page_text(765, 575, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
       return $dompdf;
     }
@@ -540,17 +505,27 @@ class RelevamientoProgresivoController extends Controller
 
   public function modificarParametrosRelevamientosProgresivo(Request $request) {
     Validator::make($request->all(),[
-        'minimo_relevamiento_progresivo' => 'required',
-    ], array(), self::$atributos)->after(function($validator){
-
+      'minimo_relevamiento_progresivo' => 'required|numeric',
+      'id_casino' => 'required|exists:casino,id_casino',
+      'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda',
+    ], [
+      'required' => 'El valor es requerido',
+      'exists'   => 'El valor tiene que existir',
+      'numeric'  => 'El valor tiene que ser numerico (con punto decimal)',
+    ], self::$atributos)->after(function($validator){
+      $id_casino = $validator->getData()['id_casino'];
+      if(!UsuarioController::getInstancia()->quienSoy()['usuario']->usuarioTieneCasino($id_casino)){
+        return $validator->errors()->add('id_casino','No tiene los privilegios');
+      }
       if($validator->getData()['minimo_relevamiento_progresivo'] < 0){
-        $validator->errors()->add('error_minimo_relevamiento_progresivo', 'El valor mínimo de base de niveles para un pozo no puede ser negativo');
+        return $validator->errors()->add('minimo_relevamiento_progresivo', 'El valor mínimo de base de niveles para un pozo no puede ser negativo');
       }
     })->validate();
 
-
     $cas = Casino::find($request->id_casino);
-    $cas->minimo_relevamiento_progresivo = $request->minimo_relevamiento_progresivo;
+    $json = json_decode($cas->minimo_relevamiento_progresivo ?? "{}",true);
+    $json[$request->id_tipo_moneda]=$request->minimo_relevamiento_progresivo;
+    $cas->minimo_relevamiento_progresivo = json_encode($json);
     $cas->save();
 
     return ['codigo' => 200];
@@ -580,68 +555,10 @@ class RelevamientoProgresivoController extends Controller
     return ['codigo' => 200];
   }
 
-  public function obtenerMinimorelevamientoProgresivo ($id_casino) {
-    return ['rta' => (Casino::find($id_casino))->minimo_relevamiento_progresivo];
+  public function obtenerMinimorelevamientoProgresivo ($id_casino,$id_tipo_moneda) {
+    $json = json_decode((Casino::find($id_casino))->minimo_relevamiento_progresivo,true);
+    $rta = ['rta' => 10000.0];//Valor por defecto
+    if(array_key_exists($id_tipo_moneda,$json ?? [])) $rta['rta'] = doubleval($json[$id_tipo_moneda]);
+    return $rta;
   }
-
-  public function ordenarArrayBubbleSort ($array, $paraPlanilla) {
-
-    //CASO 1: ordenamiento para planillas (entra un array comun)
-    if ($paraPlanilla == 1) {
-      //primero separo el array entre los que tienen isla unica y los que no
-      //(estos ultimos no me sirven para el ordenamiento, los pusheo al final del array resultante)
-      $arr_ordenar = array();
-      $arr_no_ordenar = array();
-      foreach ($array as $a) {
-        if ($a['flag_isla_unica'] == 0) {
-          array_push ($arr_ordenar, $a);
-        }
-        else {
-          array_push ($arr_no_ordenar, $a);
-        }
-      }
-
-        //bubble sort
-        $n = sizeof($arr_ordenar);
-        for ($i=0; $i<$n; $i++) {
-          for ($j=0; $j < $n-$i-1; $j++) {
-            if ($arr_ordenar[$j]['nro_islas'] > $arr_ordenar[$j+1]['nro_islas']) {
-              $temp = $arr_ordenar[$j];
-              $arr_ordenar[$j] = $arr_ordenar[$j+1];
-              $arr_ordenar[$j+1] = $temp;
-            }
-          }
-        }
-    }
-    //CASO 2: ordenamiento para modal carga (entra un object)
-    else {
-      //primero separo el array entre los que tienen isla unica y los que no
-      //(estos ultimos no me sirven para el ordenamiento, los pusheo al final del array resultante)
-      $arr_ordenar = array();
-      $arr_no_ordenar = array();
-      foreach ($array as $a) {
-        if ($a->es_individual == 0) {
-          array_push ($arr_ordenar, $a);
-        }
-        else {
-          array_push ($arr_no_ordenar, $a);
-        }
-      }
-
-        //bubble sort
-        $n = sizeof($arr_ordenar);
-        for ($i=0; $i<$n; $i++) {
-          for ($j=0; $j < $n-$i-1; $j++) {
-            if ($arr_ordenar[$j]->nro_isla > $arr_ordenar[$j+1]->nro_isla) {
-              $temp = $arr_ordenar[$j];
-              $arr_ordenar[$j] = $arr_ordenar[$j+1];
-              $arr_ordenar[$j+1] = $temp;
-            }
-          }
-        }
-    }
-
-    return array_merge($arr_ordenar, $arr_no_ordenar);
-  }
-
 }

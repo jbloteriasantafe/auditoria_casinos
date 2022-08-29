@@ -86,13 +86,10 @@ Route::group(['prefix' => 'progresivos','middleware' => 'tiene_permiso:ver_secci
   Route::post('/buscarProgresivos','ProgresivoController@buscarProgresivos');
   Route::get('/buscarMaquinas/{id_casino}/{nro_admin?}','ProgresivoController@buscarMaquinas');
   Route::get('/obtenerProgresivo/{id_progresivo}','ProgresivoController@obtenerProgresivo');
-  Route::get('/obtenerMinimoRelevamientoProgresivo/{id_casino}','RelevamientoProgresivoController@obtenerMinimoRelevamientoProgresivo');
-  Route::post('/crearProgresivo','ProgresivoController@crearProgresivo');
-  Route::post('/modificarProgresivo/{id_progresivo}','ProgresivoController@modificarProgresivo');
+  Route::get('/obtenerMinimoRelevamientoProgresivo/{id_casino}/{id_tipo_moneda}','RelevamientoProgresivoController@obtenerMinimoRelevamientoProgresivo');
+  Route::post('/crearModificarProgresivo','ProgresivoController@crearModificarProgresivo');
   Route::delete('/eliminarProgresivo/{id_progresivo}','ProgresivoController@eliminarProgresivo');
   Route::post('/crearProgresivosIndividuales','ProgresivoController@crearProgresivosIndividuales');
-  Route::post('/buscarProgresivosIndividuales','ProgresivoController@buscarProgresivosIndividuales');
-  Route::post('/modificarProgresivosIndividuales','ProgresivoController@modificarProgresivosIndividuales');
   Route::post('/modificarParametrosRelevamientosProgresivo','RelevamientoProgresivoController@modificarParametrosRelevamientosProgresivo');
 });
 /***********

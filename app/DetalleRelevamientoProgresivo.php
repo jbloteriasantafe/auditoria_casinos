@@ -38,7 +38,7 @@ class DetalleRelevamientoProgresivo extends Model
     $maxlvl = -1;
     foreach($this->visible as $att){
       if(substr($att,0,strlen('nivel')) == 'nivel'){
-        $lvl = substr($att,strlen('nivel'));
+        $lvl = intval(substr($att,strlen('nivel')));
         $maxlvl = ($lvl > $maxlvl)? $lvl : $maxlvl;
       }
     }

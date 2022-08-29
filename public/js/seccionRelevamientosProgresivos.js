@@ -136,12 +136,27 @@ $('#buscadorCasino').on('change', function() {
     });
 });
 
-$('#selectCasinoModificarRelev').on('change', function() {
+function setearValorMinimoRelevamientoProgresivo(after = function(){}) {
+  const id_casino      = $('#selectCasinoModificarRelev').val();
+  const id_tipo_moneda = $('#selectTipoMonedaModificarRelev').val();
+  $.ajax({
+    url: "progresivos/obtenerMinimoRelevamientoProgresivo/" + id_casino + "/" + id_tipo_moneda,
+    type: "GET",
+    dataType: "json",
+    success: function(data){
+      $('#valorMinimoRelevamientoProgresivo').val(data.rta);
+      after();
+    },
+    error: function(e) { console.log(e.responseJSON); }
+  });
+}
 
-    let id_casino = $('#selectCasinoModificarRelev').val();
-    $.get("progresivos/obtenerMinimoRelevamientoProgresivo/" + id_casino, function(data) {
-        $('#valorMinimoRelevamientoProgresivo').val(data.rta);
-    });
+$('#selectCasinoModificarRelev,#selectTipoMonedaModificarRelev').change(function(){setearValorMinimoRelevamientoProgresivo();});
+$('#btn-modificar-parametros-relevamientos').click(function(e) {
+  e.preventDefault();
+  setearValorMinimoRelevamientoProgresivo(function() {
+    $('#modalModificarRelev').modal('show');
+  });
 });
 
 //GENERAR RELEVAMIENTO
@@ -939,48 +954,33 @@ $('.cabeceraTablaPozos th.sortable').click(function() {
     }
 })
 
-
-$('#btn-modificar-parametros-relevamientos').on('click', function(e) {
-
-    e.preventDefault();
-    $('#modalModificarRelev').modal('show');
-
-    let id_casino = $('#selectCasinoModificarRelev').val();
-    $.get("progresivos/obtenerMinimoRelevamientoProgresivo/" + id_casino, function(data) {
-        $('#valorMinimoRelevamientoProgresivo').val(data.rta);
-    });
-})
-
-
 $('#btn-guardar-param-relev-progresivos').on('click', function(e) {
-
-    e.preventDefault();
-
-    var formData = {
-        id_casino: $('#selectCasinoModificarRelev').val(),
-        minimo_relevamiento_progresivo: $('#valorMinimoRelevamientoProgresivo').val(),
-    };
-
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    });
-
-    $.ajax({
-        type: 'POST',
-        url: 'progresivos/modificarParametrosRelevamientosProgresivo',
-        data: formData,
-        dataType: 'json',
-
-        success: function(data) {
-            $('#modalModificarRelev').modal('hide');
-            $('#mensajeExito h3').text('ÉXITO');
-            $('#mensajeExito p').text('Cambios GUARDADOS. ');
-            $('#mensajeExito').show();
-            $('#btn-buscar-apuestas').trigger('click', [1, 10, 'fecha', 'desc']);
-        },
-    });
+  e.preventDefault();
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  $.ajax({
+    type: 'POST',
+    url: 'progresivos/modificarParametrosRelevamientosProgresivo',
+    data: {
+      id_casino: $('#selectCasinoModificarRelev').val(),
+      id_tipo_moneda: $('#selectTipoMonedaModificarRelev').val(),
+      minimo_relevamiento_progresivo: $('#valorMinimoRelevamientoProgresivo').val(),
+    },
+    dataType: 'json',
+    success: function(data) {
+      $('#modalModificarRelev').modal('hide');
+      $('#mensajeExito h3').text('ÉXITO');
+      $('#mensajeExito p').text('Cambios GUARDADOS. ');
+      $('#mensajeExito').show();
+      $('#btn-buscar-apuestas').trigger('click', [1, 10, 'fecha', 'desc']);
+    },
+    error: function(data) {
+      const errs = data.responseJSON;
+      console.log(errs);
+      mensajeError(Object.keys(errs).map(function(k,_){
+        return `${k} => ${errs[k]}`;
+      }));
+    }
+  });
 });
 
 function ordenar(list, comp, onadd = function(add) { return add; }) {
