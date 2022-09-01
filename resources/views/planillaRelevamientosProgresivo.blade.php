@@ -66,19 +66,19 @@
       </thead>
       <tbody>
         <tr>
-          <td class="tablaInicio">{{$otros_datos['casino']}}</td>
-          <td class="tablaInicio">{{$otros_datos['sector']}}</td>
-          <td class="tablaInicio">{{$relevamiento_progresivo->nro_relevamiento_progresivo}}</td>
-          <td class="tablaInicio">{{$relevamiento_progresivo->fecha_generacion}}</td>
-          <td class="tablaInicio">{{$relevamiento_progresivo->fecha_ejecucion}}</td>
-          <td class="tablaInicio">{{$otros_datos['fiscalizador']}}</td>
-          <td class="tablaInicio">{{$otros_datos['estado']}}</td>
+          <td class="tablaInicio">{{$rel['casino']->nombre}}</td>
+          <td class="tablaInicio">{{$rel['sector']->descripcion}}</td>
+          <td class="tablaInicio">{{$rel['relevamiento']->nro_relevamiento_progresivo}}</td>
+          <td class="tablaInicio">{{$rel['relevamiento']->fecha_generacion}}</td>
+          <td class="tablaInicio">{{$rel['relevamiento']->fecha_ejecucion}}</td>
+          <td class="tablaInicio">{{$rel['usuario_fiscalizador']? $rel['usuario_fiscalizador']->nombre : '' }}</td>
+          <td class="tablaInicio">{{$rel['relevamiento']->estado_relevamiento->descripcion}}</td>
         </tr>
       </tbody>
     </table>
     <br>
     
-    @foreach(['linkeados' => $detalles_linkeados,'individuales' => $detalles_individuales] as $tipo => $dets)
+    @foreach(['linkeados' => $rel['detalles_linkeados'],'individuales' => $rel['detalles_individuales']] as $tipo => $dets)
     
     @continue(count($dets)==0)
     
@@ -96,7 +96,7 @@
           <th class="tablaInicio" style="background-color: #dddddd">MAQUINA</th>
           @endif
           <th class="tablaInicio" style="background-color: #dddddd" width="10.5%">PROGRESIVO</th>
-          @for($i=1;$i<=$otros_datos['MAX_LVL'];$i++)
+          @for($i=1;$i<=$rel['MAX_LVL'];$i++)
           <th class="tablaInicio" style="background-color: #dddddd">NIVEL {{$i}}</th>
           @endfor
           <th class="tablaInicio" style="background-color: #dddddd;" width="10.5%">CAUSA NO TOMA</th>
@@ -108,27 +108,45 @@
           <td class="tablaProgresivos break">{{$d->nro_islas}}</td>
           
           @if($tipo == 'individuales')
-          <td class="tablaProgresivos break">{{$d->nro_maquinas}}</td>
+          <td class="tablaProgresivos break">{{$d->nro_admins}}</td>
           @endif
           
           @if ($d->pozo_unico)
-          <td class="tablaProgresivos break">{{$d->progresivo}}</td>
+          <td class="tablaProgresivos break">{{$d->nombre_progresivo}}</td>
           @else
-          <td class="tablaProgresivos break">{{$d->progresivo}} ( {{$d->pozo}} )</td>
+          <td class="tablaProgresivos break">{{$d->nombre_progresivo}} ( {{$d->descripcion_pozo}} )</td>
           @endif
           
-          @for($i=1;$i<=$otros_datos['MAX_LVL'];$i++)
+          {{-- Asume que niveles esta ordenado por nro_nivel ASCENDENTE --}}
+          @php
+            $last_level = 0;
+          @endphp
+          
+          @foreach($d->niveles as $idx => $n)   
+            {{-- Si salto de 1 a 4 por ejemplo, hace una columna vacia para 2 y 3 --}}
+            @for($i=$last_level+1;$i<$n->nro_nivel;$i++)
+            <td class="tablaProgresivos" style="background-color: #f5f5f5"></td>            
+            @endfor
+            
+            {{-- El nivel per-se --}}
             @if ($d->causa_no_toma_progresivo)
             <td class="tablaProgresivos" style="text-align: center;"> — </td>
-            @elseif($d->{"nombre_nivel$i"})
-            <td class="tablaProgresivos">
-              <div class="cell_fg">{{ $d->{"nivel$i"} }}</div>
-              <div class="cell_bg">{{ $d->{"nombre_nivel$i"} }}</div>
-            </td>
             @else
-            <td class="tablaProgresivos" style="background-color: #f5f5f5"></td>
+            <td class="tablaProgresivos">
+              <div class="cell_fg">{{ $n->valor }}</div>
+              <div class="cell_bg">{{ $n->nombre_nivel }}</div>
+            </td>
             @endif
+            
+            @php
+              $last_level = $n->nro_nivel;
+            @endphp
+          @endforeach
+          {{-- Completo los que falten despues del ultimo --}}
+          @for($i=$last_level+1;$i<=$rel['MAX_LVL'];$i++)
+          <td class="tablaProgresivos" style="background-color: #f5f5f5"></td>            
           @endfor
+          
           <td class="tablaProgresivos break">{{$d->causa_no_toma_progresivo}}</td>
         </tr>
         @endforeach
@@ -136,12 +154,12 @@
     </table>
     @endforeach
     <br><br>
-    @if ($relevamiento_progresivo->observacion_carga)
+    @if ($rel['relevamiento']->observacion_carga)
     <div class="primerEncabezado">Observaciones de carga:</div>
     <div style="color: #9c9c9c;">{{$relevamiento_progresivo->observacion_carga}}</div>
     <br><br>
     @endif
-    @if ($relevamiento_progresivo->observacion_validacion)
+    @if ($rel['relevamiento']->observacion_validacion)
     <div class="primerEncabezado">Observaciones de validacion:</div>
     <div style="color: #9c9c9c;">{{$relevamiento_progresivo->observacion_validacion}}</div>
     <br><br>

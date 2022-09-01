@@ -24,6 +24,7 @@ use App\DetalleLayoutParcial;
 use App\LayoutParcial;
 use App\EstadoRelevamiento;
 use App\Progresivo;
+use App\NivelProgresivo;
 use App\CampoConDiferencia;
 use App\Maquina;
 use App\LayoutTotal;
@@ -66,54 +67,105 @@ class RelevamientoProgresivoController extends Controller
     },$newlist);
     return implode(",",$newlist);
   }
-
-  public function obtenerRelevamiento($id_relevamiento_progresivo){
+  
+  private function relevamientoCompleto($id_relevamiento_progresivo){
     $relevamiento = RelevamientoProgresivo::findOrFail($id_relevamiento_progresivo);
-        
     $detalles = [];
+    $MAX_LVL = (new DetalleRelevamientoProgresivo)->max_lvl;
     foreach ($relevamiento->detalles as $drel) {
-      $pozo = Pozo::find($drel->id_pozo);
+      $pozo = Pozo::withTrashed()->find($drel->id_pozo);
       if($pozo == null) continue;
+      $progresivo = $pozo->progresivo()->withTrashed()->get()->first();
       
-      $nro_admins  = $pozo->progresivo->maquinas()
+      $nro_admins  = $progresivo->maquinas()
       ->select('maquina.nro_admin')->distinct()
       ->orderBy('maquina.nro_admin','asc')
       ->get()->map(function($m){return intval($m->nro_admin);})->toArray();
       
-      $nro_islas = $pozo->progresivo->maquinas()
+      $nro_islas = $progresivo->maquinas()
       ->join('isla','isla.id_isla','=','maquina.id_isla')
-      ->selectRaw('isla.nro_isla')->distinct()
+      ->selectRaw('DISTINCT isla.nro_isla, isla.orden')
       ->orderBy('isla.nro_isla','asc')
-      ->get()->map(function($i){return intval($i->nro_isla);})->toArray();
+      ->orderBy('isla.orden','asc')
+      ->get();
       
       $d = new \stdClass;
-      $d->nro_isla_0    = count($nro_islas) > 0? $nro_islas[0] : -9999;//para ordenar
-      $d->nro_isla      = self::SIMPLIFY_INT_RANGES($nro_islas);
-      $d->pozo_unico    = count($pozo->progresivo->pozos) == 1;
-      $d->nombre_pozo   = $pozo->descripcion;
-      $d->id_pozo       = $pozo->id_pozo;
+      $d->id_detalle_relevamiento_progresivo = $drel->id_detalle_relevamiento_progresivo;
+      $d->nro_islas_arr  = $nro_islas->map(function($i){return intval($i->nro_isla);})->toArray();
+      $d->ordenes_arr    = $nro_islas->map(function($i){return intval($i->orden);})->toArray();
+      $d->nro_admins_arr = $nro_admins;
+      sort($d->ordenes_arr);//nro_islas_arr y nro_admins_arr ya estan ordenados
+      
+      $d->nro_islas     = self::SIMPLIFY_INT_RANGES($d->nro_islas_arr);
       $d->nro_admins    = self::SIMPLIFY_INT_RANGES($nro_admins);
-      $d->es_individual = $pozo->progresivo->es_individual;
-      $d->niveles       = $pozo->niveles->map(function($n) use ($drel){
+      $d->pozo_unico    = count($progresivo->pozos) == 1;//@HACK: ver como hacer cuando esta elimiando el pozo
+      $d->descripcion_pozo   = $pozo->descripcion;
+      $d->id_pozo       = $pozo->id_pozo;
+      $d->nombre_progresivo = $progresivo->nombre;
+      $d->es_individual = $progresivo->es_individual;//@HACK: ver como hacer cuando esta elimiando el pozo
+      $d->niveles       = $pozo->niveles()->orderBy('nivel_progresivo.nro_nivel','asc')->get()
+      ->map(function($n) use ($drel,$MAX_LVL){
+        if($n->nro_nivel < 1 || $n->nro_nivel > $MAX_LVL) return null;
         $ret = new \stdClass;
-        $ret->base          = $n->base;
-        $ret->nombre_nivel  = $n->nombre_nivel;
-        $ret->nro_nivel     = $n->nro_nivel;
-        $ret->valor         = $drel->{'nivel' . $n->nro_nivel};
+        $ret->base         = $n->base;
+        $ret->nombre_nivel = $n->nombre_nivel;
+        $ret->nro_nivel    = $n->nro_nivel;
+        $ret->valor        = $drel->{"nivel$n->nro_nivel"} ?? '';
         $ret->id_nivel_progresivo = $n->id_nivel_progresivo;
         return $ret;
-      })->toArray();
+      })
+      ->reject(function($n){return is_null($n);})->toArray();
       
-      $d->nombre_progresivo = $pozo->progresivo->nombre;
-      $d->id_detalle_relevamiento_progresivo = $drel->id_detalle_relevamiento_progresivo;
       $d->id_tipo_causa_no_toma_progresivo   = $drel->id_tipo_causa_no_toma_progresivo;
+      $d->causa_no_toma_progresivo = is_null($drel->tipo_causa_no_toma)? null : $drel->tipo_causa_no_toma->descripcion;
       $detalles[]=$d;
     }
-    
-    usort($detalles,function($a,$b){
-      return $a->nro_isla_0 > $b->nro_isla_0;
-    });
+/*
+select progresivo.id_progresivo,
+  GROUP_CONCAT(isla.nro_isla ORDER BY isla.nro_isla ASC SEPARATOR ',') as nro_islas,
+    GROUP_CONCAT(isla.orden    ORDER BY isla.orden    ASC SEPARATOR ',') as ordenes
+from progresivo
+join maquina_tiene_progresivo ON (maquina_tiene_progresivo.id_progresivo = progresivo.id_progresivo)
+join maquina ON (maquina.id_maquina = maquina_tiene_progresivo.id_maquina)
+join isla ON (isla.id_isla = maquina.id_isla)
+WHERE progresivo.deleted_at IS NULL and maquina.deleted_at IS NULL and isla.deleted_at IS NULL and maquina.id_casino = 3
+GROUP BY progresivo.id_progresivo
+ORDER BY 
+  GROUP_CONCAT(INT_A_STR_ORDENABLE(isla.orden)    ORDER BY INT_A_STR_ORDENABLE(isla.orden)    ASC SEPARATOR ',') asc,
+  GROUP_CONCAT(INT_A_STR_ORDENABLE(isla.nro_isla) ORDER BY INT_A_STR_ORDENABLE(isla.nro_isla) ASC SEPARATOR ',') asc  
+*/
+    {
+      $ROS = $relevamiento->sector->id_casino == 3;
+      $sort_int_arrs = function($a,$b){//Usado para devolver el "mas chico" de los arreglos
+        $count_a = count($a);
+        $count_b = count($b);
+        for($idx=0;$idx<min($count_a,$count_b);$idx++){
+          $val_a = $a[$idx];
+          $val_b = $b[$idx];
+          if($val_a > $val_b) return 1;
+          if($val_a < $val_b) return -1;
+        }
+        if($count_a > $count_b) return 1;
+        if($count_a < $count_b) return -1;
+        return 0;//Son iguales
+      };
+      usort($detalles,function($a,$b) use ($ROS,$sort_int_arrs){
+        if($ROS){
+          $s = $sort_int_arrs($a->ordenes_arr,$b->ordenes_arr);
+          if($s != 0) return $s > 0;
+        }
+        $s = $sort_int_arrs($a->nro_islas_arr,$b->nro_islas_arr);
+        if($s != 0) return $s > 0;
+        $s = $sort_int_arrs($a->nro_admins_arr,$b->nro_admins_arr);
+        return $s > 0;
+      });
+    }
+    return $detalles;
+  }
 
+  public function obtenerRelevamiento($id_relevamiento_progresivo){
+    $relevamiento = RelevamientoProgresivo::findOrFail($id_relevamiento_progresivo);
+    $detalles = $this->relevamientoCompleto($id_relevamiento_progresivo);
     return [
       'relevamiento' => $relevamiento,
       'detalles' => $detalles, 
@@ -123,7 +175,40 @@ class RelevamientoProgresivoController extends Controller
       'usuario_fiscalizador' => $relevamiento->usuario_fiscalizador
     ];
   }
+  
+  public function generarPlanillaProgresivos($id_relevamiento_progresivo){
+    $rel = $this->obtenerRelevamiento($id_relevamiento_progresivo);
+    $html = false;
+    $dompdf = $this->crearPlanillaProgresivos($rel,$html);//poner en true si se quiere ver como html (DEBUG)
 
+    if($html) return $dompdf;
+    return $dompdf->stream("Relevamiento_Progresivo_". $rel['sector']->descripcion ."_".date('Y-m-d').".pdf", ['Attachment'=>0]);
+  }
+  
+  public function crearPlanillaProgresivos($rel,$html = false){
+    $rel['detalles_linkeados']    = [];
+    $rel['detalles_individuales'] = [];
+    foreach($rel['detalles'] as $d){
+      $rel[$d->es_individual? 'detalles_individuales' : 'detalles_linkeados'][] = $d;
+    }
+    $rel['MAX_LVL'] = (new DetalleRelevamientoProgresivo)->max_lvl;
+    $view = View::make('planillaRelevamientosProgresivo',compact('rel'));
+    if(!$html){
+      $dompdf  = new Dompdf();
+      $font    = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+      $nro_rel = $rel['relevamiento']->nro_relevamiento_progresivo;
+      $CAS     = $rel['casino']->codigo;
+      $sector  = $rel['sector']->descripcion;
+      $dompdf->getCanvas()->page_text(20, 575, "$nro_rel/$CAS/$sector", $font, 10, [0,0,0]);
+      $dompdf->getCanvas()->page_text(765, 575, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, [0,0,0]);
+      $dompdf->set_paper('A4', 'landscape');
+      $dompdf->loadHtml($view->render());
+      $dompdf->render();
+      return $dompdf;
+    }
+    return $view;
+  }
+  
   public function buscarTodo(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos = $usuario->casinos;
@@ -254,156 +339,43 @@ class RelevamientoProgresivoController extends Controller
     return ['codigo' => 200];
   }
 
-  public function generarPlanillaProgresivos($id_relevamiento_progresivo){
-    $rel = RelevamientoProgresivo::find($id_relevamiento_progresivo);
-
-    $html = false;
-    $dompdf = $this->crearPlanillaProgresivos($rel,$html);//poner en true si se quiere ver como html (DEBUG)
-
-    if($html) return $dompdf;
-    else return $dompdf->stream("Relevamiento_Progresivo_" . $rel->sector->descripcion . "_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
-  }
-
-  public function crearPlanillaProgresivos($relevamiento_progresivo,$html = false){
-    $detalles_linkeados    = [];
-    $detalles_individuales = [];
-    $MAX_LVL = (new DetalleRelevamientoProgresivo)->max_lvl;
-    foreach ($relevamiento_progresivo->detalles as $detalle_relevamiento) {
-      $pozo = Pozo::withTrashed()->find($detalle_relevamiento->id_pozo);
-      $progresivo = $pozo->progresivo()->withTrashed()->get()->first();
-      
-      $nro_maquinas = $progresivo->maquinas()
-      ->selectRaw('DISTINCT maquina.nro_admin as nro_admin')
-      ->orderBy('maquina.nro_admin','asc')->get();
-
-      $nro_islas = $progresivo->maquinas()
-      ->join('isla','isla.id_isla','=','maquina.id_isla')
-      ->selectRaw('DISTINCT isla.nro_isla as nro_isla, isla.orden')
-      ->orderBy('nro_isla', 'asc')->get();
-      
-
-      $detalle = new \stdClass;
-      $detalle->nro_maquinas = $this->SIMPLIFY_INT_RANGES(
-        $nro_maquinas->map(function($m){return intval($m->nro_admin);})->toArray()
-      );
-      $detalle->nro_islas    = $this->SIMPLIFY_INT_RANGES(
-        $nro_islas->map(function($i){return intval($i->nro_isla);})->toArray()
-      );
-      
-      $detalle->nro_isla_0 = -9999;
-      $detalle->orden_min  = -9999;
-      if(count($nro_islas) > 0){
-        $detalle->nro_isla_0 = $nro_islas[0]->nro_isla;
-        $detalle->orden_min  = min($nro_islas->map(function($i){return intval($i->orden);})->toArray());
-      }
-        
-      $detalle->pozo = $pozo->descripcion;
-      //Si venimos de un progresivo borrado, nos va a dar 0 pozos, que le muestre el nombre por si las moscas
-      //No habria forma de saber si era pozo unico o no.
-      $detalle->pozo_unico = count($progresivo->pozos) == 1;
-      $detalle->progresivo = $progresivo->nombre;
-      $detalle->es_individual = $progresivo->es_individual;
-      
-      {
-        $cnt = $detalle_relevamiento->tipo_causa_no_toma;
-        $detalle->causa_no_toma_progresivo = is_null($cnt)? null : $cnt->descripcion;
-      }
-      
-      {
-        $nombre_nivel = [];
-        foreach($pozo->niveles as $n){
-          $nombre_nivel[$n->nro_nivel]= $n->nombre_nivel ?? '';
-        }
-        for($i=1;$i<=$MAX_LVL;$i++){
-          $n = $detalle_relevamiento->{"nivel$i"};
-          $detalle->{"nivel$i"} = is_null($n)? '' : number_format($n,2,'.','');
-          $detalle->{"nombre_nivel$i"} = $nombre_nivel[$i] ?? '';
-        }
-      }
-      
-      if($detalle->es_individual){
-        $detalles_individuales[] = $detalle;
-      }
-      else{
-        $detalles_linkeados[] = $detalle;
-      }
-    }
-
-    {
-      $ROS = $relevamiento_progresivo->sector->id_casino == 3;
-      usort($detalles_linkeados,function($a,$b) use ($ROS){
-        if($ROS && $a->orden_min != $b->orden_min){
-          return $a->orden_min > $b->orden_min;
-        }
-        return $a->nro_isla_0 > $b->nro_isla_0;
-      });
-    }
-    
-    $sector = Sector::find($relevamiento_progresivo->id_sector);
-    $casino = Casino::find($sector->id_casino);
-    $fiscalizador = $relevamiento_progresivo->usuario_fiscalizador;
-    $otros_datos = [
-      'sector' => $sector->descripcion,
-      'casino' => $casino->nombre,
-      'codigo_casino' => $casino->codigo,
-      'fiscalizador'  => is_null($fiscalizador)? "" : $fiscalizador->nombre,
-      'estado' => $relevamiento_progresivo->estado_relevamiento->descripcion,
-      'MAX_LVL' => $MAX_LVL,
-    ];
-
-    $view = View::make('planillaRelevamientosProgresivo', compact('detalles_linkeados', 'detalles_individuales', 'relevamiento_progresivo', 'otros_datos'));
-    if(!$html){
-      $dompdf = new Dompdf();
-      $dompdf->set_paper('A4', 'landscape');
-      $dompdf->loadHtml($view->render());
-      $dompdf->render();
-      $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-      $dompdf->getCanvas()->page_text(20, 575, "$relevamiento_progresivo->nro_relevamiento_progresivo/$otros_datos[codigo_casino]/$otros_datos[sector]", $font, 10, array(0,0,0));
-      $dompdf->getCanvas()->page_text(765, 575, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-      return $dompdf;
-    }
-    return $view;
-  }
-
   public function cargarRelevamiento(Request $request,$validar = true){
-    if($validar){
-      Validator::make($request->all(),[
-          'id_relevamiento_progresivo' => 'required|exists:relevamiento_progresivo,id_relevamiento_progresivo',
-          'id_usuario_fiscalizador' => 'required|exists:usuario,id_usuario',
-          'id_casino' => 'required|exists:casino,id_casino',
-          'fiscalizador' => 'exists:usuario,id_usuario',
-          'fecha_ejecucion' => 'required',
-          'observaciones' => 'nullable|string',
-          'detalles.*' => 'nullable|array',
-          'detalles.*.id_detalle_relevamiento_progresivo' => 'required|numeric',
-          'detalles.*.niveles' => 'nullable|array',
-          'detalles.*.niveles.*' => 'nullable',
-          'detalles.*.niveles.*.valor'=> 'required|numeric|min:0',
-          'detalles.*.niveles.*.numero' => 'required|string',
-          'detalles.*.niveles.*.id_nivel' => 'required|integer|exists:nivel_progresivo,id_nivel_progresivo',
-          'detalles.*.id_tipo_causa_no_toma' => 'nullable|integer|exists:tipo_causa_no_toma_progresivo,id_tipo_causa_no_toma_progresivo'
-      ], array(
-        'detalles.*.niveles.*.valor.numeric' => 'El valor de un nivel no es numerico.'
-      ), self::$atributos)->after(function($validator){
-        $relevamiento = RelevamientoProgresivo::find($validator->getData()['id_relevamiento_progresivo']);
-        $controller = UsuarioController::getInstancia();
-
-        if($validator->getData()['fecha_ejecucion'] < $relevamiento->fecha_generacion){
-          $validator->errors()->add('error_fecha_ejecucion', 'La fecha de ejecución no puede ser inferior a la fecha de generación del relevamiento');
-        }
-        if(!$controller->usuarioTieneCasinoCorrespondiente($validator->getData()['id_usuario_fiscalizador'], $validator->getData()['id_casino'])) {
-            $validator->errors()->add('error_usuario_tiene_casino','No existe ningún casino asociado al fiscalizador ingresado');
-        }
-        if(!$controller->usuarioEsFiscalizador($validator->getData()['id_usuario_fiscalizador'])) {
-            $validator->errors()->add('error_usuario_es_fiscalizador','El usuario ingresado no es fiscalizador');
-        }
-        //Hasta donde se, no hay forma de pedirle la longitud de un campo a eloquent
-        //De una forma que no sea una raw query. Lo hardcodeo.
-        if(strlen($validator->getData()['observaciones'])>200){
-          $validator->errors()->add('error_observaciones', 'La observacion supera los 200 caracteres');
-        }
-      })->validate();
-    }
+    $rules = [
+      'id_relevamiento_progresivo' => 'required|exists:relevamiento_progresivo,id_relevamiento_progresivo',
+      'id_casino'                  => 'required|exists:casino,id_casino',
+      'observaciones'              => 'nullable|string|max:200',
+    ];
+    $rules = array_merge($rules,$validar? [
+      'id_usuario_fiscalizador' => 'required|exists:usuario,id_usuario',
+      'fecha_ejecucion' => 'required',
+      'detalles.*'      => 'nullable|array',
+      'detalles.*.id_detalle_relevamiento_progresivo' => 'required|numeric|exists:detalle_relevamiento_progresivo,id_detalle_relevamiento_progresivo',
+      'detalles.*.niveles'               => 'nullable|array',
+      'detalles.*.niveles.*'             => 'nullable',
+      'detalles.*.niveles.*.id_nivel'    => 'required|integer|exists:nivel_progresivo,id_nivel_progresivo',
+      'detalles.*.id_tipo_causa_no_toma' => 'nullable|integer|exists:tipo_causa_no_toma_progresivo,id_tipo_causa_no_toma_progresivo',
+      'detalles.*.niveles.*.valor'       => 'required_without:detalles.*.id_tipo_causa_no_toma|numeric|min:0',
+    ] : []);
+    Validator::make($request->all(),$rules, [
+      'detalles.*.niveles.*.valor.numeric' => 'El valor de no es numerico',
+      'detalles.*.niveles.*.valor.min' => 'El valor tiene que ser positivo',
+      'detalles.*.niveles.*.valor.required_without' => 'El valor es requerido',
+      'observaciones.max' => 'La observacion supera los 200 caracteres',
+    ], self::$atributos)->after(function($validator) use ($validar){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      $relevamiento = RelevamientoProgresivo::find($data['id_relevamiento_progresivo']);
+      $UC = UsuarioController::getInstancia();
+      if($data['fecha_ejecucion'] && $data['fecha_ejecucion'] < $relevamiento->fecha_generacion){
+        $validator->errors()->add('error_fecha_ejecucion', 'La fecha de ejecución no puede ser inferior a la fecha de generación del relevamiento');
+      }
+      if($data['id_usuario_fiscalizador'] && !$UC->usuarioTieneCasinoCorrespondiente($data['id_usuario_fiscalizador'],$data['id_casino'])) {
+        $validator->errors()->add('error_usuario_tiene_casino','No existe ningún casino asociado al fiscalizador ingresado');
+      }
+      if($data['id_usuario_fiscalizador'] && !$UC->usuarioEsFiscalizador($data['id_usuario_fiscalizador'])) {
+        $validator->errors()->add('error_usuario_es_fiscalizador','El usuario ingresado no es fiscalizador');
+      }
+    })->validate();
 
     DB::transaction(function() use($request){
       $rel = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);
@@ -413,28 +385,21 @@ class RelevamientoProgresivoController extends Controller
       $rel->estado_relevamiento()->associate(3); // id_estado finalizado
       $rel->observacion_carga = $request->observaciones;
       $rel->save();
+      
+      $MAX_LVL = (new DetalleRelevamientoProgresivo)->max_lvl;
 
-      foreach($request->detalles as $detalle) {
-        $unDetalle = DetalleRelevamientoProgresivo::find($detalle['id_detalle_relevamiento_progresivo']);
-        if (!array_key_exists('id_tipo_causa_no_toma', $detalle) || $detalle['id_tipo_causa_no_toma'] === null) {
-          $unDetalle->nivel1 = array_key_exists(0, $detalle['niveles']) ? $detalle['niveles'][0]['valor'] : NULL;
-          $unDetalle->nivel2 = array_key_exists(1, $detalle['niveles']) ? $detalle['niveles'][1]['valor'] : NULL;
-          $unDetalle->nivel3 = array_key_exists(2, $detalle['niveles']) ? $detalle['niveles'][2]['valor'] : NULL;
-          $unDetalle->nivel4 = array_key_exists(3, $detalle['niveles']) ? $detalle['niveles'][3]['valor'] : NULL;
-          $unDetalle->nivel5 = array_key_exists(4, $detalle['niveles']) ? $detalle['niveles'][4]['valor'] : NULL;
-          $unDetalle->nivel6 = array_key_exists(5, $detalle['niveles']) ? $detalle['niveles'][5]['valor'] : NULL;
-          $unDetalle->id_tipo_causa_no_toma_progresivo = NULL;
+      foreach(($request->detalles ?? []) as $d) {
+        $d_bd = DetalleRelevamientoProgresivo::find($d['id_detalle_relevamiento_progresivo']);
+        $viene_con_cnt = array_key_exists('id_tipo_causa_no_toma',$d) && $d['id_tipo_causa_no_toma'] !== null;
+        $level_set = [];
+        foreach(($d['niveles'] ?? []) as $n){
+          $level_set[NivelProgresivo::find($n['id_nivel'])->nro_nivel] = $n['valor'] ?? null;
         }
-        else {
-          $unDetalle->nivel1 = NULL;
-          $unDetalle->nivel2 = NULL;
-          $unDetalle->nivel3 = NULL;
-          $unDetalle->nivel4 = NULL;
-          $unDetalle->nivel5 = NULL;
-          $unDetalle->nivel6 = NULL;
-          $unDetalle->id_tipo_causa_no_toma_progresivo = $detalle['id_tipo_causa_no_toma'];
+        for($nro = 1;$nro<=$MAX_LVL;$nro++){
+          $d_bd->{"nivel$nro"} = $viene_con_cnt? null : ($level_set[$nro] ?? null);
         }
-        $unDetalle->save();
+        $d_bd->id_tipo_causa_no_toma_progresivo = $viene_con_cnt? $d['id_tipo_causa_no_toma'] : null;
+        $d_bd->save();
       }
     });
 
@@ -442,55 +407,23 @@ class RelevamientoProgresivoController extends Controller
   }
 
   public function guardarRelevamiento(Request $request){
-    //Como no se hace validacion, puede mandar texto, si es texto
-    //Lo pongo como nulo.
-    $detalles = $request->detalles;
-    //Tengo que hacer todo este berenjenal porque
-    //PHP te hace copias en vez de referencias
-    //Y no pude hacer andar el array con &
-    //Un foreach seria mucho mas facil...
-    $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
-    for($didx=0;$didx<sizeof($detalles);$didx++){
-      if(array_key_exists('niveles',$detalles[$didx])){
-        for($n = 0;$n<$maxlvl;$n++){
-          if(array_key_exists($n,$detalles[$didx]['niveles'])){
-            $aux = $detalles[$didx]['niveles'][$n]['valor'];
-            $value = is_numeric($aux)? $aux : NULL;
-            $detalles[$didx]['niveles'][$n]['valor']=$value;
-          }
-        }
-      }
-      if(array_key_exists('id_tipo_causa_no_toma',$detalles[$didx])){
-        $causa = $detalles[$didx]['id_tipo_causa_no_toma'];
-        $detalles[$didx]['id_tipo_causa_no_toma'] = is_numeric($causa) && $causa > 0? $causa : NULL;
-      }
-    }
-    $request->merge(['detalles'=>$detalles]);
     $resultado = $this->cargarRelevamiento($request,false);
-    if(array_key_exists('codigo',$resultado) && $resultado['codigo']==200){
+    if($resultado['codigo']==200){
       $rel = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);
       $rel->estado_relevamiento()->associate(2);
       $rel->save();
-      return ['codigo' => 200];
     }
-    else return $resultado;
+    return $resultado;
   }
 
   public function validarRelevamiento(Request $request){
     Validator::make($request->all(),[
-        'id_relevamiento_progresivo' => 'required|exists:relevamiento_progresivo,id_relevamiento_progresivo',
-        'observacion_validacion' => 'nullable|string',
-    ], array(), self::$atributos)->after(function($validator){
-      $relevamiento = RelevamientoProgresivo::find($validator->getData()['id_relevamiento_progresivo']);
-      if($relevamiento->id_estado_relevamiento != 3){
-        $validator->errors()->add('error_estado_relevamiento','El Relevamiento debe estar finalizado para validar.');
-      }
-      //Hasta donde se, no hay forma de pedirle la longitud de un campo a eloquent
-      //De una forma que no sea una raw query. Lo hardcodeo.
-      if(strlen($validator->getData()['observacion_validacion'])>200){
-        $validator->errors()->add('error_observacion_validacion', 'La observacion supera los 200 caracteres');
-      }
-    })->validate();
+        'id_relevamiento_progresivo' => 'required|exists:relevamiento_progresivo,id_relevamiento_progresivo,id_estado_relevamiento,3',
+        'observacion_validacion' => 'nullable|string|max:200',
+    ], [
+      'observacion_validacion.max' => 'La observacion supera los 200 caracteres',
+      'id_relevamiento_progresivo.exists' => 'El Relevamiento debe estar finalizado para validar',
+    ], self::$atributos)->after(function($validator){})->validate();
 
     DB::transaction(function() use($request){
       $relevamiento = RelevamientoProgresivo::find($request->id_relevamiento_progresivo);
@@ -498,7 +431,6 @@ class RelevamientoProgresivoController extends Controller
       $relevamiento->estado_relevamiento()->associate(4);
       $relevamiento->save();
     });
-
 
     return ['codigo' => 200];
   }

@@ -220,7 +220,7 @@ $niveles = (new DetalleRelevamientoProgresivo)->max_lvl;
 <div class="modal fade" id="modalRelevamiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
          <div class="modal-content">
-           <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+           <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
              <button id="btn-minimizarCrear" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrear" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
              <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO RELEVAMIENTO PROGRESIVOS</h3>
