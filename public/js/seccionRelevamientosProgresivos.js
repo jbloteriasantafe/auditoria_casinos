@@ -25,6 +25,12 @@ $(document).ready(function() {
   $('#btn-buscar').trigger('click');
 });
 
+$('.minimizar').click(function(){
+  const minimizado = $(this).data("minimizar");
+  $('.modal-backdrop').css('opacity',minimizado? '0.1' : '0.5');
+  $(this).data("minimizar",!minimizado);
+});
+
 $('#btn-ayuda').click(function(e) {
   e.preventDefault();
   $('#modalAyuda').modal('show');
@@ -38,68 +44,33 @@ $('#btn-nuevo').click(function(e) {
   $('#modalRelevamiento').modal('show');
 });
 
-function filaEjemploCarga() {
-    return $('#modalRelevamientoProgresivos .filaEjemplo').not('.validacion')
-        .clone().removeClass('filaEjemplo').show().css('display', '');
-}
-
-function filaEjemploValidacion() {
-    return $('#modalRelevamientoProgresivos .filaEjemplo.validacion')
-        .clone().removeClass('filaEjemplo').removeClass('validacion').show().css('display', '');
-}
-
 $('#modalRelevamientoProgresivos').on('hidden.bs.modal', function() {
-    ocultarErrorValidacion($('.form-control')); //oculto todos los errores
-    $('#contenedor_progresivos').empty();
-    $('#cargaFechaActual').val('');
-    $('#cargaCasino').val('');
-    $('#cargaSector').val('');
-    $('#tecnico').val('');
-    $('#validacionFechaEjecucion').val('');
-    $('#validacionInputFisca').val('');
-    $('#validacionFiscaCarga').val('');
-})
+  ocultarErrorValidacion($('#modalRelevamientoProgresivos .form-control')); //oculto todos los errores
+  $('#modalRelevamientoProgresivos .form-control').val('');
+});
 
-console.log($('#modalRelevamiento #casino option:selected').attr('id'));
 //MOSTRAR LOS SECTORES ASOCIADOS AL CASINO SELECCIONADO
 $('#modalRelevamiento #casino').on('change', function() {
-    console.log("cambio!");
-    var id_casino = $('#modalRelevamiento #casino option:selected').attr('id');
-
-    $('#modalRelevamiento #sector option').remove();
-    $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data) {
-
-        for (var i = 0; i < data.sectores.length; i++) {
-            $('#modalRelevamiento #sector')
-                .append($('<option>')
-                    .val(data.sectores[i].id_sector)
-                    .text(data.sectores[i].descripcion)
-                )
-        }
-
+  $('#modalRelevamiento #sector').empty().removeClass('alerta');
+  $.get("sectores/obtenerSectoresPorCasino/" + $(this).val(), function(data) {
+    data.sectores.forEach(function(s,idx){
+      $('#modalRelevamiento #sector').append(
+        $('<option>').val(s.id_sector).text(s.descripcion)
+      );
     });
-
-    $('#sector').removeClass('alerta');
+  });
 });
 
 $('#buscadorCasino').on('change', function() {
-    console.log('change');
-    var id_casino = $('#buscadorCasino option:selected').attr('id');
-
-    $('#buscadorSector option').remove();
-
-    $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data) {
-        $('#buscadorSector')
-            .append($('<option>').val(0).text('-Todos los sectores-'))
-        for (var i = 0; i < data.sectores.length; i++) {
-            $('#buscadorSector')
-                .append($('<option>')
-                    .val(data.sectores[i].id_sector)
-                    .text(data.sectores[i].descripcion)
-                )
-        }
-
+  $('#buscadorSector').empty();
+  $.get("sectores/obtenerSectoresPorCasino/" + $(this).val(), function(data) {
+    $('#buscadorSector').append($('<option>').val(0).text('-Todos los sectores-'));
+    data.sectores.forEach(function(s,idx){
+      $('#buscadorSector').append(
+        $('<option>').val(s.id_sector).text(s.descripcion)
+      );
     });
+  });
 });
 
 function setearValorMinimoRelevamientoProgresivo(after = function(){}) {
@@ -127,41 +98,30 @@ $('#btn-modificar-parametros-relevamientos').click(function(e) {
 
 //GENERAR RELEVAMIENTO
 $('#btn-generar').click(function(e) {
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    });
-
-    e.preventDefault();
-
-    var formData = {
-        id_sector: $('#sector').val(),
-        fecha_generacion: $('#fechaRelevamientoInput').val()
+  e.preventDefault();
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  $.ajax({
+    type: "POST",
+    url: 'relevamientosProgresivo/crearRelevamiento',
+    data: {
+      id_sector: $('#sector').val(),
+      fecha_generacion: $('#fechaRelevamientoInput').val()
+    },
+    dataType: 'json',
+    success: function(data) {
+      $('#btn-buscar').trigger('click');
+      $('#modalRelevamiento').modal('hide');
+    },
+    error: function(data) {
+      const response = JSON.parse(data.responseText);
+      if (typeof response.id_sector !== 'undefined') {
+        $('#sector,#casino').addClass('alerta');
+      }
+      if (typeof response.fecha_generacion !== 'undefined') {
+        $('#fechaRelevamientoInput').addClass('alerta');
+      }
     }
-
-    $.ajax({
-        type: "POST",
-        url: 'relevamientosProgresivo/crearRelevamiento',
-        data: formData,
-        dataType: 'json',
-        success: function(data) {
-            $('#btn-buscar').trigger('click');
-            $('#modalRelevamiento').modal('hide');
-        },
-        error: function(data) {
-            var response = JSON.parse(data.responseText);
-
-            if (typeof response.id_sector !== 'undefined') {
-                $('#sector').addClass('alerta');
-                $('#casino').addClass('alerta');
-            }
-            if (typeof response.fecha_generacion !== 'undefined') {
-                $('#fechaRelevamientoInput').addClass('alerta');
-            }
-        }
-    });
-
+  });
 });
 
 function sacarAlerta() {
@@ -286,6 +246,9 @@ function obtenerMensajesError(response) {
     return mensajes;
 }
 
+function verRelevamiento(relevamiento){
+   cargarRelevamiento(relevamiento);
+}
 
 function cargarRelevamiento(relevamiento) {
     $('#modalRelevamientoProgresivos .mensajeSalida').hide();
@@ -306,7 +269,7 @@ function cargarRelevamiento(relevamiento) {
     $('#dtpFecha span.nousables').hide();
 
     $.get('relevamientosProgresivo/obtenerRelevamiento/' + relevamiento.id_relevamiento_progresivo,function(data) {
-      setearRelevamiento(data, obtenerFila);
+      setearRelevamiento(data, function(d){return obtenerFila(d,'cargar');});
       
       $('#btn-finalizar').off().click(function() {
         const err = validarFormulario(data.casino.id_casino);
@@ -345,7 +308,7 @@ function validarRelevamiento(relevamiento) {
     $('#dtpFecha span.usables').hide();
 
     $.get('relevamientosProgresivo/obtenerRelevamiento/' + relevamiento.id_relevamiento_progresivo,function(data) {
-      setearRelevamiento(data, obtenerFilaValidacion);
+      setearRelevamiento(data, function(d){return obtenerFila(d,'validar');});
 
       $('#btn-finalizar').off().click(function() {
         enviarFormularioValidacion(relevamiento.id_relevamiento_progresivo);
@@ -357,220 +320,123 @@ function validarRelevamiento(relevamiento) {
     $('#modalRelevamientoProgresivos').modal('show');
 }
 
-function cambiarEstadoFila(fila, relevamiento) {
-    let planilla = fila.find('.planilla').off();
-    let carga = fila.find('.carga').off();
-    let validacion = fila.find('.validar').off();
-    let imprimir = fila.find('.imprimir').off();
-    let eliminar = fila.find('.eliminar').off().show();
-
-    fila.find('.textoEstado').text(relevamiento.estado);
-
-    switch (relevamiento.estado) {
-        case 'Generado':
-            fila.find('.fa-dot-circle').addClass('faGenerado');
-            carga.click(function(e) {
-                e.preventDefault();
-                cargarRelevamiento(relevamiento);
-            });
-            validacion.hide();
-            imprimir.hide();
-            carga.show();
-            planilla.show();
-            break;
-        case 'Cargando':
-            fila.find('.fa-dot-circle').addClass('faCargando');
-            carga.click(function(e) {
-                e.preventDefault();
-                cargarRelevamiento(relevamiento);
-            });
-            validacion.hide();
-            imprimir.hide();
-            carga.show();
-            planilla.show();
-            break;
-        case 'Finalizado':
-            fila.find('.fa-dot-circle').addClass('faFinalizado');
-            validacion.click(function(e) {
-                e.preventDefault();
-                validarRelevamiento(relevamiento);
-            });
-            carga.hide();
-            imprimir.hide();
-            planilla.show();
-            validacion.show();
-            break;
-        case 'Visado':
-            fila.find('.fa-dot-circle').addClass('faValidado');
-            planilla.hide();
-            carga.hide();
-            validacion.hide();
-            imprimir.show();
-            break;
+$(document).on('click','#tablaRelevamientos .ver',function(){
+  verRelevamiento($(this).closest('tr').data('relevamiento'));
+});
+$(document).on('click','#tablaRelevamientos .planilla',function(){
+  const id = $(this).closest('tr').data('relevamiento').id_relevamiento_progresivo;
+  window.open('relevamientosProgresivo/generarPlanilla/' + id, '_blank');
+});
+$(document).on('click','#tablaRelevamientos .imprimir',function(){
+  const id = $(this).closest('tr').data('relevamiento').id_relevamiento_progresivo
+  window.open('relevamientosProgresivo/generarPlanilla/' + id, '_blank');
+});
+$(document).on('click','#tablaRelevamientos .carga',function(){
+  cargarRelevamiento($(this).closest('tr').data('relevamiento'));
+});
+$(document).on('click','#tablaRelevamientos .validar',function(){
+  validarRelevamiento($(this).closest('tr').data('relevamiento'));
+});
+$(document).on('click','#tablaRelevamientos .eliminar',function(){
+  const id = $(this).closest('tr').data('relevamiento').id_relevamiento_progresivo;
+  $('#mensajeAlerta .confirmar').val(id);
+  $('#mensajeAlerta').modal('show');
+});
+$('#mensajeAlerta .confirmar').click(function(){
+  $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
+  $.ajax({
+    type: "GET",
+    url: 'relevamientosProgresivo/eliminarRelevamientoProgresivo/' + $(this).val(),
+    success: function(data) {
+      console.log(data);
+      $('#btn-buscar').click();
+      $('#mensajeAlerta').modal('hide');
+    },
+    error: function(data) {
+      console.log(data);
+      $('#mensajeAlerta').modal('hide');
     }
-
-    planilla.click(function() {
-        window.open('relevamientosProgresivo/generarPlanilla/' + relevamiento.id_relevamiento_progresivo, '_blank');
-    });
-    imprimir.click(function() {
-        window.open('relevamientosProgresivo/generarPlanilla/' + relevamiento.id_relevamiento_progresivo, '_blank');
-    });
-    eliminar.click(function() {
-        mensajeAlerta(
-            //MENSAJES
-            ["<h4><b>ESTA POR ELIMINAR UN RELEVAMIENTO</b></h4>"],
-            //CONFIRMAR
-            function() {
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-                    }
-                });
-
-                const id = $(eliminar).val();
-                if (id === null || typeof id === 'undefined') {
-                    throw 'Error al eliminar progresivo id no definido';
-                }
-
-                $.ajax({
-                    type: "GET",
-                    url: 'relevamientosProgresivo/eliminarRelevamientoProgresivo/' + id,
-                    success: function(data) {
-                        console.log(data);
-                        $('#mensajeAlerta').hide();
-                        $('#cuerpoTabla tr[data-id="' + id + '"').remove();
-                    },
-                    error: function(data) {
-                        console.log(data);
-                        $('#mensajeAlerta').hide();
-                    }
-                });
-            },
-            //CANCELAR
-            function() {
-                $('#mensajeAlerta').hide();
-            }
-        );
-    })
-}
+  });
+});
+$('#mensajeAlerta .cancelar').click(function(){
+  $('#mensajeAlerta').modal('hide');
+});
 
 function generarFilaTabla(relevamiento) {
-    var subrelevamiento;
-    relevamiento.sub_control != null ? subrelevamiento = relevamiento.sub_control : subrelevamiento = '';
-    let fila = $('#cuerpoTabla .filaEjemplo').clone().removeClass('filaEjemplo').show();
-
-    fila.attr('data-id', relevamiento.id_relevamiento_progresivo);
-    fila.find('.movimiento').text(relevamiento.id_log_movimiento).attr('title',relevamiento.id_log_movimiento);
-    fila.find('.fecha').text(relevamiento.fecha_generacion).attr('title',relevamiento.fecha_generacion);
-    fila.find('.casino').text(relevamiento.casino).attr('title',relevamiento.casino);
-    fila.find('.sector').text(relevamiento.sector).attr('title',relevamiento.sector);
-    fila.find('.subcontrol').text(subrelevamiento).attr('title',subrelevamiento);
-    fila.find('.textoEstado').text(relevamiento.estado).attr('title',relevamiento.estado);
-    fila.find('button').each(function(idx, c) { $(c).val(relevamiento.id_relevamiento_progresivo); });
-    let planilla = fila.find('.planilla').attr({ 'data-toggle': 'tooltip', 'data-placement': 'top', 'title': 'VER PLANILLA', 'data-delay': '{"show":"300", "hide":"100"}' });
-    let carga = fila.find('.carga').attr({ 'data-toggle': 'tooltip', 'data-placement': 'top', 'title': 'CARGAR RELEVAMIENTO', 'data-delay': '{"show":"300", "hide":"100"}' });
-    let validacion = fila.find('.validar').attr({ 'data-toggle': 'tooltip', 'data-placement': 'top', 'title': 'VISAR RELEVAMIENTO', 'data-delay': '{"show":"300", "hide":"100"}' });
-    let imprimir = fila.find('.imprimir').attr({ 'data-toggle': 'tooltip', 'data-placement': 'top', 'title': 'IMPRIMIR PLANILLA', 'data-delay': '{"show":"300", "hide":"100"}' });
-    let eliminar = fila.find('.eliminar').attr({ 'data-toggle': 'tooltip', 'data-placement': 'top', 'title': 'ELIMINAR RELEVAMIENTO', 'data-delay': '{"show":"300", "hide":"100"}' });
-    //Se setea el display como table-row por algun motivo :/
-    //Lo saco a pata.
-    fila.css('display', '');
-    //Qué ESTADO e ICONOS mostrar
-    cambiarEstadoFila(fila, relevamiento);
-
-    return fila;
+  const fila = $('#cuerpoTabla .filaEjemplo').clone().removeClass('filaEjemplo').show();
+  //Se setea el display como table-row por algun motivo :/
+  //Lo saco a pata.
+  fila.css('display', '');
+  fila.attr('data-id', relevamiento.id_relevamiento_progresivo);
+  fila.find('.fecha').text(relevamiento.fecha_generacion).attr('title',relevamiento.fecha_generacion);
+  fila.find('.casino').text(relevamiento.casino).attr('title',relevamiento.casino);
+  fila.find('.sector').text(relevamiento.sector).attr('title',relevamiento.sector);
+  fila.find('.textoEstado').text(relevamiento.estado).attr('title',relevamiento.estado);
+  //Estado e Iconos a mostrar
+  fila.data('relevamiento',relevamiento);//Usado en los callback de los botones
+  fila.find('.textoEstado').text(relevamiento.estado);
+  fila.find('.fa-dot-circle').addClass(relevamiento.estado=='Visado'? 'faValidado' : (`fa${relevamiento.estado}`));
+  fila.find('button').hide();
+  fila.find('.eliminar').show();
+  switch(relevamiento.estado){
+    case 'Generado':
+    case 'Cargando':{
+      fila.find('.carga,.planilla').show();
+    }break;
+    case 'Finalizado':{
+      fila.find('.validar,.planilla').show();
+    }break;
+    case 'Visado':{
+      fila.find('.imprimir').show();
+    }break;
+  }
+  return fila;
 }
 
 $('#btn-salir').click(function() {
-    $('#modalRelevamientoProgresivos').modal('hide');
+  $('#modalRelevamientoProgresivos').modal('hide');
 });
 
-function obtenerFila(detalle) {
-    let fila = filaEjemploCarga();
-    if (detalle.pozo_unico) {
-        fila.find('.nombreProgresivo').text(detalle.nombre_progresivo);
-    } else {
-        fila.find('.nombreProgresivo').text(detalle.nombre_progresivo + ' (' + detalle.nombre_pozo + ')');
-    }
-    fila.find('.maquinas').text(detalle.nro_admins);
-
-    fila.find('.isla').text(detalle.nro_islas);
-    fila.attr('data-id', detalle.id_detalle_relevamiento_progresivo);
-
-    fila.find('.causaNoToma').on('change', function() {
-        causaNoTomaCallback(this);
-    });
-
-    if (detalle.id_tipo_causa_no_toma_progresivo != null) {
-        fila.find('.causaNoToma').val(detalle.id_tipo_causa_no_toma_progresivo);
-        fila.find('.causaNoToma').change();
-    }
-
-    for (let n = 0; n < detalle.niveles.length; n++) {
-        let nivel = detalle.niveles[n];
-        if (nivel.nombre_nivel != null)
-            fila.find('.nivel' + nivel.nro_nivel).attr('placeholder', nivel.nombre_nivel);
-
-        fila.find('.nivel' + nivel.nro_nivel)
-            .val(nivel.valor)
-            .attr('data-id', nivel.id_nivel_progresivo);
-    }
-
-    fila.find('input').off().change(sacarAlerta);
-
-    fila.find('input:not([data-id])').attr('disabled', true);
-    return fila;
-}
-
 function causaNoTomaCallback(x) {
-    let fila = $(x).parent().parent();
-    if ($(x).val() != -1) {
-        fila.find('input').attr('disabled', true)
-        fila.find('input').css('color', '#fff');
-        fila.find('.alerta').removeClass('alerta');
-    } else {
-        fila.find('input').attr('disabled', false);
-        fila.find('input').css('color', '');
-        fila.find('input:not([data-id])').attr('disabled', true);
-    }
+  let fila = $(x).parent().parent();
+  const seteado = $(x).val() != -1;
+  fila.find('input').attr('disabled',seteado).css('color',seteado? '#fff' : '');
+  fila.find('input:not([data-id])').attr('disabled',true);
 }
 
-function obtenerFilaValidacion(detalle) {
-    let fila = filaEjemploValidacion();
-    fila.find('.nombreProgresivo').text(detalle.nombre_progresivo);
-    //fila.find('.nombrePozo').text(detalle.nombre_pozo);
-    fila.find('.maquinas').text(detalle.nro_admins);
-    fila.find('.isla').text(detalle.nro_isla);
-    fila.attr('data-id', detalle.id_detalle_relevamiento_progresivo);
-
-    for (let n = 0; n < detalle.niveles.length; n++) {
-        let nivel = detalle.niveles[n];
-        if (nivel.nombre_nivel != null)
-            fila.find('.nivel' + nivel.nro_nivel).attr('placeholder', nivel.nombre_nivel);
-
-        fila.find('.nivel' + nivel.nro_nivel)
-            .val(nivel.valor)
-            .attr('data-id', nivel.id_nivel_progresivo);
-    }
-
-    fila.find('input:not([data-id])').attr('disabled', true);
-
-    if (detalle.id_tipo_causa_no_toma_progresivo != null) {
-        fila.find('.causaNoToma').val(detalle.id_tipo_causa_no_toma_progresivo);
-    }
-
-    fila.find('.causaNoToma').on('change', function() {
-        if ($(this).val() != -1) {
-            fila.find('input').attr('disabled', true)
-            fila.find('input').css('color', '#fff');
-        } else {
-            fila.find('input').attr('disabled', false);
-            fila.find('input').css('color', '');
-            fila.find('input:not([data-id])').attr('disabled', true);
-        }
-    });
-
-    return fila;
+function obtenerFila(detalle,modo){
+  let fila = null;
+  if(modo == 'validar'){
+    fila = $('#modalRelevamientoProgresivos .filaEjemplo.validacion').clone();
+  }
+  else if(modo == 'cargar'){
+    fila = $('#modalRelevamientoProgresivos .filaEjemplo:not(.validacion)').clone();
+  }
+  else throw "Modo no soportado";
+  fila.removeClass('filaEjemplo validacion').show().css('display', '');
+  const nombre_prog = detalle.nombre_progresivo;
+  if(!detalle.pozo_unico){
+    nombre_prog += ` (${detalle.nombre_pozo})`;
+  }
+  fila.find('.nombreProgresivo').text(nombre_prog);
+  fila.find('.maquinas').text(detalle.nro_admins);
+  fila.find('.isla').text(detalle.nro_islas);  
+  fila.attr('data-id', detalle.id_detalle_relevamiento_progresivo);
+  fila.find('.causaNoToma').on('change', function() {
+    causaNoTomaCallback(this);
+  });
+  if (detalle.id_tipo_causa_no_toma_progresivo != null) {
+    fila.find('.causaNoToma').val(detalle.id_tipo_causa_no_toma_progresivo);
+    fila.find('.causaNoToma').change();
+  }
+  detalle.niveles.forEach(function(n,idx){
+    const nivel = fila.find('.nivel'+n.nro_nivel);
+    if (n.nombre_nivel != null) nivel.attr('placeholder', n.nombre_nivel);
+    nivel.val(n.valor).attr('data-id', n.id_nivel_progresivo);
+  });
+  fila.find('input').off().change(sacarAlerta);
+  fila.find('input:not([data-id])').attr('disabled', true);
+  return fila;
 }
 
 function setearRelevamiento(data, filaCallback) {
@@ -651,16 +517,6 @@ function mensajeError(errores) {
     setTimeout(function() {
         $('#mensajeError').show();
     }, 250);
-}
-
-function mensajeAlerta(alertas, callbackConfirmar, callbackCancelar) {
-    $('#mensajeAlerta .textoMensaje').empty();
-    for (let i = 0; i < alertas.length; i++) {
-        $('#mensajeAlerta .textoMensaje').append($(alertas[i]));
-    }
-    $('#mensajeAlerta .confirmar').off().click(callbackConfirmar);
-    $('#mensajeAlerta .cancelar').off().click(callbackCancelar);
-    $('#mensajeAlerta').show();
 }
 
 function obtenerIdFiscalizador(id_casino, str) {
@@ -768,31 +624,6 @@ function validarFormulario(id_casino) {
     if (hay_vacio) mensajes.push("Tiene al menos un nivel sin ingresar o con valores invalidos");
     return { errores: errores, mensajes: mensajes };
 }
-
-
-//Opacidad del modal al minimizar
-$('#btn-minimizarCargar').click(function() {
-    if ($(this).data("minimizar") == true) {
-        $('.modal-backdrop').css('opacity', '0.1');
-        $(this).data("minimizar", false);
-    } else {
-        $('.modal-backdrop').css('opacity', '0.5');
-        $(this).data("minimizar", true);
-    }
-});
-
-
-//Opacidad del modal al minimizar
-$('#btn-minimizarCrear').click(function() {
-    if ($(this).data("minimizar") == true) {
-        $('.modal-backdrop').css('opacity', '0.1');
-        $(this).data("minimizar", false);
-    } else {
-        $('.modal-backdrop').css('opacity', '0.5');
-        $(this).data("minimizar", true);
-    }
-});
-
 
 $('.cabeceraTablaPozos th.sortable').click(function() {
     let sort_by = $(this).attr('data-id');

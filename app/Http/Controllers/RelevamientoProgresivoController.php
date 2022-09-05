@@ -50,7 +50,7 @@ class RelevamientoProgresivoController extends Controller
   private static function SIMPLIFY_INT_RANGES(Array $list){
     if(count($list) == 0) return '';
     $init_range = $list[0];
-    $end_range  = $list[0];
+    $end_range  = $init_range;
     $list = array_slice($list,1);
     $newlist = [];
     foreach($list as $i){
@@ -63,7 +63,8 @@ class RelevamientoProgresivoController extends Controller
     }
     $newlist[] = [$init_range,$end_range];
     $newlist = array_map(function($r){
-      return $r[0]!=$r[1]? $r[0].'-'.$r[1] : $r[0];
+      $sep = $r[1] != ($r[0]+1)? '-' : ',';
+      return $r[0]!=$r[1]? "$r[0]$sep$r[1]" : $r[0];
     },$newlist);
     return implode(",",$newlist);
   }
@@ -120,20 +121,6 @@ class RelevamientoProgresivoController extends Controller
       $d->causa_no_toma_progresivo = is_null($drel->tipo_causa_no_toma)? null : $drel->tipo_causa_no_toma->descripcion;
       $detalles[]=$d;
     }
-/*
-select progresivo.id_progresivo,
-  GROUP_CONCAT(isla.nro_isla ORDER BY isla.nro_isla ASC SEPARATOR ',') as nro_islas,
-    GROUP_CONCAT(isla.orden    ORDER BY isla.orden    ASC SEPARATOR ',') as ordenes
-from progresivo
-join maquina_tiene_progresivo ON (maquina_tiene_progresivo.id_progresivo = progresivo.id_progresivo)
-join maquina ON (maquina.id_maquina = maquina_tiene_progresivo.id_maquina)
-join isla ON (isla.id_isla = maquina.id_isla)
-WHERE progresivo.deleted_at IS NULL and maquina.deleted_at IS NULL and isla.deleted_at IS NULL and maquina.id_casino = 3
-GROUP BY progresivo.id_progresivo
-ORDER BY 
-  GROUP_CONCAT(INT_A_STR_ORDENABLE(isla.orden)    ORDER BY INT_A_STR_ORDENABLE(isla.orden)    ASC SEPARATOR ',') asc,
-  GROUP_CONCAT(INT_A_STR_ORDENABLE(isla.nro_isla) ORDER BY INT_A_STR_ORDENABLE(isla.nro_isla) ASC SEPARATOR ',') asc  
-*/
     {
       $ROS = $relevamiento->sector->id_casino == 3;
       $sort_int_arrs = function($a,$b){//Usado para devolver el "mas chico" de los arreglos
@@ -218,7 +205,12 @@ ORDER BY
       'tipo_monedas'   => TipoMoneda::all(),
       'estados'        => EstadoRelevamiento::all(),
       'fiscalizadores' => $this->obtenerFiscalizadores($casinos,$usuario),
-      'causasNoToma'   => TipoCausaNoTomaProgresivo::all()
+      'causasNoToma'   => TipoCausaNoTomaProgresivo::all(),
+      'puede_fiscalizar' => $usuario->es_fiscalizador || $usuario->es_superusuario,
+      'puede_validar' => $usuario->es_administrador || $usuario->es_superusuario || $usuario->es_control,
+      'puede_eliminar' => $usuario->es_administrador || $usuario->es_superusuario,
+      'puede_modificar_valores' => $usuario->es_administrador || $usuario->es_superusuario,
+      'niveles' => (new DetalleRelevamientoProgresivo)->max_lvl
     ])->render();
   }
 
@@ -489,8 +481,8 @@ ORDER BY
 
   public function obtenerMinimorelevamientoProgresivo ($id_casino,$id_tipo_moneda) {
     $json = json_decode((Casino::find($id_casino))->minimo_relevamiento_progresivo,true);
-    $rta = ['rta' => 10000.0];//Valor por defecto
-    if(array_key_exists($id_tipo_moneda,$json ?? [])) $rta['rta'] = doubleval($json[$id_tipo_moneda]);
-    return $rta;
+    $rta = 10000.0;//Valor por defecto
+    if(array_key_exists($id_tipo_moneda,$json ?? [])) $rta = doubleval($json[$id_tipo_moneda]);
+    return ['rta' => $rta];
   }
 }

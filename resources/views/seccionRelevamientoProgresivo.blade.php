@@ -3,21 +3,8 @@
 <span class="etiquetaLogoMaquinas">@svg('maquinas','iconoMaquinas')</span>
 @endsection
 @section('contenidoVista')
-<?php
-
-use Illuminate\Http\Request;
-use App\Http\Controllers\UsuarioController;
-use App\DetalleRelevamientoProgresivo;
-$user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-$puede_fiscalizar = $user->es_fiscalizador || $user->es_superusuario;
-$puede_validar = $user->es_administrador || $user->es_superusuario || $user->es_control;
-$puede_eliminar = $user->es_administrador || $user->es_superusuario;
-$puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
-$niveles = (new DetalleRelevamientoProgresivo)->max_lvl;
-?>
 
 @section('estilos')
-<!-- <link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet"/> -->
 <link rel="stylesheet" href="css/bootstrap-datetimepicker.css">
 <link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
@@ -28,7 +15,9 @@ $niveles = (new DetalleRelevamientoProgresivo)->max_lvl;
 .fondoBlanco {
   background-color: rgb(255,255,255) !important;
 }
-
+#tablaRelevamientos th, #tablaRelevamientos td {
+  text-align: center;  
+}
 </style>
 
 @endsection
@@ -152,60 +141,52 @@ $niveles = (new DetalleRelevamientoProgresivo)->max_lvl;
             <div class="panel-heading">
               <h4>RELEVAMIENTO DE PROGRESIVOS GENERADO POR EL SISTEMA</h4>
             </div>
-
             <div class="panel-body">
               <table id="tablaRelevamientos" class="table table-fixed tablesorter">
                 <thead>
                   <tr>
-                    <th class="col-xs-2 activa" value="relevamiento_progresivo.fecha_generacion" estado="desc">FECHA <i class="fa fa-sort-desc"></i></th>
-                    <th class="col-xs-2" value="casino.nombre" estado="">CASINO  <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2" value="sector.descripcion" estado="">SECTOR <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-1" value="relevamiento_progresivo.sub_control" estado="">SUB <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2" value="estado_relevamiento.descripcion" estado="">ESTADO <i class="fa fa-sort"></i></th>
-                    <th class="col-xs-3">ACCIÓN </th>
+                    <th class="col-xs-3 activa" value="relevamiento_progresivo.fecha_generacion" estado="desc">FECHA<i class="fa fa-sort-desc"></i></th>
+                    <th class="col-xs-2" value="casino.nombre" estado="">CASINO<i class="fa fa-sort"></i></th>
+                    <th class="col-xs-2" value="sector.descripcion" estado="">SECTOR<i class="fa fa-sort"></i></th>
+                    <th class="col-xs-2" value="estado_relevamiento.descripcion" estado="">ESTADO<i class="fa fa-sort"></i></th>
+                    <th class="col-xs-3">ACCIÓN</th>
                   </tr>
                 </thead>
                 <tbody id="cuerpoTabla" style="height: 350px;">
                   <tr class='filaEjemplo' style="display: none;">
-                    <td class="col-xs-2 fecha">
-                      01 Ene 9999
-                    </td>
-                    <td class="col-xs-2 casino">
-                      EJEMPLO
-                    </td>
-                    <td class="col-xs-2 sector">
-                      SECTOR999
-                    </td>
-                    <td class="col-xs-1 subcontrol">
-                      99
-                    </td>
-                    <td class="col-xs-2">
+                    <td class="col-xs-3 fecha">01 Ene 9999</td>
+                    <td class="col-xs-2 casino">CASINO</td>
+                    <td class="col-xs-2 sector">SECTOR</td>
+                    <td class="col-xs-2" style="display: flex;">
                       <i class="fas fa-fw fa-dot-circle iconoEstado"></i>
-                      <span class="textoEstado">EJEMPLO</span>
+                      <span class="textoEstado">ESTADO</span>
                     </td>
-                    <td class="col-xs-3 acciones">
-                      <button class="btn btn-info planilla" type="button">
-                        <i class="far  fa-fw fa-file-alt"></i></button>
-                      <span></span>
-                      @if($puede_fiscalizar)
-                      <button class="btn btn-warning carga" type="button">
-                        <i class="fa fa-fw fa-upload"></i></button>
-                      <span></span>
-                      @endif
+                    <td class="col-xs-3 acciones" style="text-align: left;">
                       @if($puede_validar)
-                      <button class="btn btn-success validar" type="button">
-                        <i class="fa fa-fw fa-check"></i></button>
-                      <span></span>
+                      <button class="btn btn-success ver" type="button" title='Ver Relevamiento'>
+                        <i class="fa fa-fw fa-search-plus"></i>
+                      </button>
+                      <button class="btn btn-success validar" type="button" title='Validar Relevamiento'>
+                        <i class="fa fa-fw fa-check"></i>
+                      </button>
                       @endif
+                      @if($puede_fiscalizar)
+                      <button class="btn btn-warning carga" type="button" title='Cargar Relevamiento'>
+                        <i class="fa fa-fw fa-upload"></i>
+                      </button>
+                      @endif
+                      <button class="btn btn-info planilla" type="button" title='Ver Planilla'>
+                        <i class="far  fa-fw fa-file-alt"></i>
+                      </button>
+                      <button class="btn btn-info imprimir" type="button" title='Imprimir Planilla'>
+                        <i class="fa fa-fw fa-print"></i>
+                      </button>
                       @if($puede_eliminar)
-                      <button class="btn btn-success eliminar" type="button">
-                        <i class="fa fa-fw fa-trash"></i></button>
-                      <span></span>
+                      <button class="btn btn-success eliminar" type="button" title='Eliminar Relevamiento'>
+                        <i class="fa fa-fw fa-trash"></i>
+                      </button>
                       @endif
-                      <button class="btn btn-info imprimir" type="button">
-                        <i class="fa fa-fw fa-print"></i></button>
                     </td>
-
                   </tr>
                 </tbody>
               </table>
@@ -222,7 +203,7 @@ $niveles = (new DetalleRelevamientoProgresivo)->max_lvl;
          <div class="modal-content">
            <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-             <button id="btn-minimizarCrear" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrear" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+             <button id="btn-minimizarCrear" type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrear" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
              <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO RELEVAMIENTO PROGRESIVOS</h3>
             </div>
 
@@ -239,11 +220,10 @@ $niveles = (new DetalleRelevamientoProgresivo)->max_lvl;
                         <div class="col-md-6">
                           <h5>CASINO</h5>
                           <select id="casino" class="form-control" name="">
-                              <option value="">- Seleccione un casino -</option>
-                              <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))?>
-                               @foreach ($usuario['usuario']->casinos as $casino)
-                               <option id="{{$casino->id_casino}}" value="{{$casino->codigo}}">{{$casino->nombre}}</option>
-                               @endforeach
+                            <option value="">- Seleccione un casino -</option>
+                            @foreach ($casinos as $casino)
+                            <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                            @endforeach
                           </select>
                           <br> <span id="alertaCasino" class="alertaSpan"></span>
                         </div>
@@ -307,7 +287,7 @@ $niveles = (new DetalleRelevamientoProgresivo)->max_lvl;
       <div class="modal-dialog" style="width:95%;">
          <div class="modal-content">
            <div class="modal-header" style="font-family:'Roboto-Black';color:white;background-color:#FF6E40;">
-             <button id="btn-minimizarCargar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+             <button id="btn-minimizarCargar" type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCargar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                <h3 class="modal-title">CARGAR CONTROL LAYOUT</h3>
             </div>
 
@@ -443,7 +423,7 @@ $niveles = (new DetalleRelevamientoProgresivo)->max_lvl;
     <div class="modal-content">
       <div class="modal-header" style="background-color:#FFA726;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizar-carga-cierre" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+        <button id="btn-minimizar-carga-cierre" type="button" class="close minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title">| MODIFICAR PARÁMETROS DE RELEVAMIENTO DE PROGRESIVOS </h3>
       </div>
       <div id="colapsado" class="collapse in">

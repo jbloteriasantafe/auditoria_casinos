@@ -156,12 +156,12 @@
     <br><br>
     @if ($rel['relevamiento']->observacion_carga)
     <div class="primerEncabezado">Observaciones de carga:</div>
-    <div style="color: #9c9c9c;">{{$relevamiento_progresivo->observacion_carga}}</div>
+    <div style="color: #9c9c9c;">{{$rel['relevamiento']->observacion_carga}}</div>
     <br><br>
     @endif
     @if ($rel['relevamiento']->observacion_validacion)
     <div class="primerEncabezado">Observaciones de validacion:</div>
-    <div style="color: #9c9c9c;">{{$relevamiento_progresivo->observacion_validacion}}</div>
+    <div style="color: #9c9c9c;">{{$rel['relevamiento']->observacion_validacion}}</div>
     <br><br>
     @endif
     <br>
