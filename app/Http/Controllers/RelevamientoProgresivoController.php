@@ -292,7 +292,7 @@ class RelevamientoProgresivoController extends Controller
     $id_casino = Sector::withTrashed()->find($request->id_sector)->get()->first()->casino->id_casino;
     $minimos_por_moneda = [];
     foreach(TipoMoneda::all() as $tm){
-      $min = $this->obtenerMinimorelevamientoProgresivo($id_casino,$tm->id_tipo_moneda)['rta'];
+      $min = $this->obtenerMinimorelevamientoProgresivo($id_casino,$tm->id_tipo_moneda);
       $minimos_por_moneda[$tm->id_tipo_moneda] = $min;
     }
     
@@ -483,6 +483,6 @@ class RelevamientoProgresivoController extends Controller
     $json = json_decode((Casino::find($id_casino))->minimo_relevamiento_progresivo,true);
     $rta = 10000.0;//Valor por defecto
     if(array_key_exists($id_tipo_moneda,$json ?? [])) $rta = doubleval($json[$id_tipo_moneda]);
-    return ['rta' => $rta];
+    return $rta;
   }
 }

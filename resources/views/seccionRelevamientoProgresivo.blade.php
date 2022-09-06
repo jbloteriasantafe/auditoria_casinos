@@ -295,21 +295,17 @@
 
             <div class="modal-body modalCuerpo">
                       <div class="row">
-                        <div class="col-lg-3">
+                        <div class="col-lg-4">
                           <h5>FECHA DE GENERACIÓN</h5>
                           <input id="cargaFechaGeneracion" type='text' class="form-control" readonly>
                         </div>
-                        <div class="col-lg-3">
+                        <div class="col-lg-4">
                           <h5>CASINO</h5>
                           <input id="cargaCasino" type='text' class="form-control" readonly>
                         </div>
-                        <div class="col-lg-3">
+                        <div class="col-lg-4">
                           <h5>SECTOR</h5>
                           <input id="cargaSector" type='text' class="form-control" readonly>
-                        </div>
-                        <div class="col-lg-3">
-                          <h5>SUB RELEVAMIENTO</h5>
-                          <input id="cargaSubrelevamiento" type='text' class="form-control" readonly>
                         </div>
                       </div>
 
@@ -338,9 +334,9 @@
 
                       <table class="table table-fixed" style="margin-bottom: 0px;">
                         <thead class="cabeceraTablaPozos">
-                          <th class="col-xs-2 sortable" data-id="nombreProgresivo">Progresivo</th>
-                          <th class="col-xs-2 sortable" data-id="maquinas">Maquinas</th>
-                          <th class="col-xs-1 sortable" data-id="isla">Isla</th>
+                          <th class="col-xs-2 sortable" data-id="nombreProgresivo">Progresivo<i class="fa fa-sort"></i></th>
+                          <th class="col-xs-2 sortable" data-id="maquinas">Maquinas<i class="fa fa-sort"></i></th>
+                          <th class="col-xs-1 sortable" data-id="isla">Isla<i class="fa fa-sort"></i></th>
                           @for ($i=1;$i<=$niveles;$i++)
                           <th class="col-xs-1" data-id="nivel{{$i}}">Nivel {{$i}}</th>
                           @endfor
@@ -362,25 +358,7 @@
                             @endfor
                             <td class="col-xs-1">
                               <select class="causaNoToma form-control">
-                                <option value="-1"></option>
-                                @foreach($causasNoToma as $causa)
-                                <option value="{{$causa->id_tipo_causa_no_toma_progresivo}}">{{$causa->descripcion}}</option>
-                                @endforeach
-                              </select>
-                            </td>
-                          </tr>
-                          <tr class="filaEjemplo validacion" style="display: none">
-                            <td class="col-xs-2 nombreProgresivo">PROGRESIVO99</td>
-                            <td class="col-xs-2 maquinas">MAQUINA1/MAQUINA2/...</td>
-                            <td class="col-xs-1 isla">ISLA1/ISLA2/...</td>
-                            @for ($i=1;$i<=$niveles;$i++)
-                            <td class="col-xs-1">
-                              <input disabled="disabled" class="nivel{{$i}} form-control" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
-                            </td>
-                            @endfor
-                            <td class="col-xs-1">
-                              <select disabled="disabled" class="causaNoToma form-control">
-                                <option value="-1"></option>
+                                <option value=""></option>
                                 @foreach($causasNoToma as $causa)
                                 <option value="{{$causa->id_tipo_causa_no_toma_progresivo}}">{{$causa->descripcion}}</option>
                                 @endforeach

@@ -442,7 +442,7 @@ RELEVAMIENTO PROGRESIVO
 **************/
 Route::group(['prefix' => 'relevamientosProgresivo','middleware' => 'tiene_permiso:ver_seccion_relevamientos_progresivos'], function () {
   Route::get('/','RelevamientoProgresivoController@buscarTodo');
-  Route::get('/buscarRelevamientosProgresivos','RelevamientoProgresivoController@buscarRelevamientosProgresivos');
+  Route::post('/buscarRelevamientosProgresivos','RelevamientoProgresivoController@buscarRelevamientosProgresivos');
   Route::post('/crearRelevamiento' , 'RelevamientoProgresivoController@crearRelevamientoProgresivos');
   Route::post('/cargarRelevamiento','RelevamientoProgresivoController@cargarRelevamiento');
   Route::post('/guardarRelevamiento','RelevamientoProgresivoController@guardarRelevamiento');
