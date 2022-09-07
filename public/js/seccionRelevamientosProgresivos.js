@@ -289,8 +289,6 @@ function mostrarRelevamiento(id_relevamiento_progresivo,modo){
     }).forEach(function(){
       $('#modalRelevamientoProgresivos').one('shown.bs.modal', setearBordeSeparadorFilaProgresivos);
     });
-    tabla.find('tr:not(.filaEjemplo) input,select').attr('disabled', !attr.inputs_enabled);
-    tabla.find('tr:not(.filaEjemplo) input:not([data-id])').attr('disabled', true);
     tabla.find('tr:not(.filaEjemplo) .causaNoToma').change();
     
     $('#observacion_carga').attr('disabled',!attr.inputs_enabled)
@@ -385,7 +383,7 @@ $(document).on('change','#modalRelevamientoProgresivos tr:not(.filaEjemplo) .cau
   const seteado = $(this).val().length > 0;
   if(seteado) fila.find('input[data-id]').val('').attr('disabled',true).css('color','#fff');
   else        fila.find('input[data-id]').attr('disabled',false).css('color','');
-  fila.find('input:not([data-id])').attr('disabled',false);
+  fila.find('input:not([data-id])').attr('disabled',true);
 });
 
 //Le seteo la misma altura a todas las celdas y le pongo el borde
