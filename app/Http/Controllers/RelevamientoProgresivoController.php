@@ -334,7 +334,6 @@ class RelevamientoProgresivoController extends Controller
   public function cargarRelevamiento(Request $request,$validar = true){
     $rules = [
       'id_relevamiento_progresivo' => 'required|exists:relevamiento_progresivo,id_relevamiento_progresivo',
-      'id_casino'                  => 'required|exists:casino,id_casino',
       'observaciones'              => 'nullable|string|max:200',
     ];
     $rules = array_merge($rules,$validar? [
@@ -342,10 +341,10 @@ class RelevamientoProgresivoController extends Controller
       'fecha_ejecucion' => 'required',
       'detalles.*'      => 'nullable|array',
       'detalles.*.id_detalle_relevamiento_progresivo' => 'required|numeric|exists:detalle_relevamiento_progresivo,id_detalle_relevamiento_progresivo',
+      'detalles.*.id_tipo_causa_no_toma' => 'nullable|integer|exists:tipo_causa_no_toma_progresivo,id_tipo_causa_no_toma_progresivo',
       'detalles.*.niveles'               => 'nullable|array',
       'detalles.*.niveles.*'             => 'nullable',
       'detalles.*.niveles.*.id_nivel'    => 'required|integer|exists:nivel_progresivo,id_nivel_progresivo',
-      'detalles.*.id_tipo_causa_no_toma' => 'nullable|integer|exists:tipo_causa_no_toma_progresivo,id_tipo_causa_no_toma_progresivo',
       'detalles.*.niveles.*.valor'       => 'required_without:detalles.*.id_tipo_causa_no_toma|numeric|min:0',
     ] : []);
     Validator::make($request->all(),$rules, [
@@ -357,15 +356,17 @@ class RelevamientoProgresivoController extends Controller
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       $relevamiento = RelevamientoProgresivo::find($data['id_relevamiento_progresivo']);
-      $UC = UsuarioController::getInstancia();
       if($data['fecha_ejecucion'] && $data['fecha_ejecucion'] < $relevamiento->fecha_generacion){
         $validator->errors()->add('error_fecha_ejecucion', 'La fecha de ejecución no puede ser inferior a la fecha de generación del relevamiento');
       }
-      if($data['id_usuario_fiscalizador'] && !$UC->usuarioTieneCasinoCorrespondiente($data['id_usuario_fiscalizador'],$data['id_casino'])) {
-        $validator->errors()->add('error_usuario_tiene_casino','No existe ningún casino asociado al fiscalizador ingresado');
-      }
-      if($data['id_usuario_fiscalizador'] && !$UC->usuarioEsFiscalizador($data['id_usuario_fiscalizador'])) {
-        $validator->errors()->add('error_usuario_es_fiscalizador','El usuario ingresado no es fiscalizador');
+      if($data['id_usuario_fiscalizador']){
+        $UC = UsuarioController::getInstancia();
+        if(!$UC->usuarioTieneCasinoCorrespondiente($data['id_usuario_fiscalizador'],$relevamiento->sector->id_casino)){
+          return $validator->errors()->add('error_usuario_tiene_casino','No existe ningún casino asociado al fiscalizador ingresado');
+        }
+        if(!$UC->usuarioEsFiscalizador($data['id_usuario_fiscalizador'])){
+          return $validator->errors()->add('error_usuario_es_fiscalizador','El usuario ingresado no es fiscalizador');
+        }
       }
     })->validate();
 

@@ -163,15 +163,15 @@
                     </td>
                     <td class="col-xs-3 acciones" style="text-align: left;">
                       @if($puede_validar)
-                      <button class="btn btn-success ver" type="button" title='Ver Relevamiento'>
+                      <button class="btn btn-success ver" data-modo="ver" type="button" title='Ver Relevamiento'>
                         <i class="fa fa-fw fa-search-plus"></i>
                       </button>
-                      <button class="btn btn-success validar" type="button" title='Validar Relevamiento'>
+                      <button class="btn btn-success validar" data-modo="validar" type="button" title='Validar Relevamiento'>
                         <i class="fa fa-fw fa-check"></i>
                       </button>
                       @endif
                       @if($puede_fiscalizar)
-                      <button class="btn btn-warning carga" type="button" title='Cargar Relevamiento'>
+                      <button class="btn btn-warning cargar" data-modo="cargar" type="button" title='Cargar Relevamiento'>
                         <i class="fa fa-fw fa-upload"></i>
                       </button>
                       @endif
@@ -384,8 +384,8 @@
 
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-warningModificar" id="btn-guardar">GUARDAR TEMPORALMENTE</button>
-              <button type="button" class="btn btn-successAceptar" id="btn-finalizar" value="nuevo">FINALIZAR</button>
+              <button type="button" class="btn btn-warningModificar" id="btn-guardar" data-modo-form="guardar">GUARDAR TEMPORALMENTE</button>
+              <button type="button" class="btn btn-successAceptar" id="btn-finalizar" data-modo-form="cargar">FINALIZAR</button>
               <button type="button" class="btn btn-dangerElimina" id="btn-salir">SALIR</button>
             </div>
           </div>
