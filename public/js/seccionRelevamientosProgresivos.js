@@ -62,7 +62,7 @@ function setearSectores(selSector,id_casino){
   selSector.empty().removeClass('alerta');
   $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data) {
     selSector.append($(data.sectores).map(function(idx,s){
-      return $('<option>').text(s.id_sector).text(s.descripcion)[0];
+      return $('<option>').val(s.id_sector).text(s.descripcion)[0];
     }));
   });
 }
