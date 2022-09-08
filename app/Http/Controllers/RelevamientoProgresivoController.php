@@ -163,8 +163,19 @@ class RelevamientoProgresivoController extends Controller
     ];
   }
   
-  public function generarPlanillaProgresivos($id_relevamiento_progresivo){
+  public function generarPlanillaProgresivos(int $id_relevamiento_progresivo,bool $sin = false){
     $rel = $this->obtenerRelevamiento($id_relevamiento_progresivo);
+    if($sin){
+      foreach(($rel['detalles'] ?? []) as &$d){
+        foreach($d->niveles as &$n) $n->valor = '';
+        $d->id_tipo_causa_no_toma = null;
+        $d->causa_no_toma_progresivo = '';
+      }
+      $rel['relevamiento']->observacion_validacion = null;
+      $rel['relevamiento']->observacion_carga      = null;
+      $rel['relevamiento']->fecha_ejecucion        = null;
+      $rel['usuario_fiscalizador']                 = null;
+    }
     $html = false;
     $dompdf = $this->crearPlanillaProgresivos($rel,$html);//poner en true si se quiere ver como html (DEBUG)
 
