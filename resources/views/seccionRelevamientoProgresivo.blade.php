@@ -18,6 +18,9 @@
 #tablaRelevamientos th, #tablaRelevamientos td {
   text-align: center;  
 }
+#modalRelevamientoProgresivos .cuerpoTablaPozos tr:not(.filaEjemplo) input:not([data-id]):disabled{
+  opacity: 0;
+}
 </style>
 
 @endsection

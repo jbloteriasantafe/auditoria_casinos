@@ -213,15 +213,17 @@ function mostrarRelevamiento(id_relevamiento_progresivo,modo){
       boton_finalizar: false,
       texto_finalizar: "",
       observacion_validacion: true,
+      observacion_validacion_enabled: false,
     },
     'cargar':{
       color: '#FF6E40',
-      title: '| VALIDAR RELEVAMIENTO DE PROGRESIVOS',
+      title: '| CARGAR RELEVAMIENTO DE PROGRESIVOS',
       inputs_enabled: true,
       boton_guardar: true,
       boton_finalizar: true,
       texto_finalizar: "FINALIZAR",
       observacion_validacion: false,
+      observacion_validacion_enabled: false,
     },
     'validar':{
       color: '#69F0AE',
@@ -231,6 +233,7 @@ function mostrarRelevamiento(id_relevamiento_progresivo,modo){
       boton_finalizar: true,
       texto_finalizar: "VISAR",
       observacion_validacion: true,
+      observacion_validacion_enabled: true,
     }
   };
   if(!(modo in modos_attr)) throw `Modo ${modo} no soportado`;
@@ -260,6 +263,7 @@ function mostrarRelevamiento(id_relevamiento_progresivo,modo){
   };
   
   $.get('relevamientosProgresivo/obtenerRelevamiento/' + id_relevamiento_progresivo,function(data) {
+    $('#modalRelevamientoProgresivos').attr('data-modo',modo);
     $('#modalRelevamientoProgresivos .modal-header').css('background-color',attr.color);
     $('#modalRelevamientoProgresivos .modal-title').text(attr.title);
     $('#cargaFechaGeneracion').val(data.relevamiento.fecha_generacion);
@@ -289,24 +293,25 @@ function mostrarRelevamiento(id_relevamiento_progresivo,modo){
     }).forEach(function(){
       $('#modalRelevamientoProgresivos').one('shown.bs.modal', setearBordeSeparadorFilaProgresivos);
     });
+    tabla.find('.form-control').attr('disabled',!attr.inputs_enabled);
     tabla.find('tr:not(.filaEjemplo) .causaNoToma').change();
     
     $('#observacion_carga').attr('disabled',!attr.inputs_enabled)
     .val(data.relevamiento.observacion_carga ?? '');
-    $('#observacion_validacion').attr('disabled',!attr.observacion_validacion)
+    $('#observacion_validacion').attr('disabled',!attr.observacion_validacion_enabled)
     .val(data.relevamiento.observacion_validacion ?? '')
     .parent().toggle(attr.observacion_validacion);
     
-    $('#btn-guardar').toggle(attr.boton_guardar).attr('data-modo',modo).val(data.relevamiento.id_relevamiento_progresivo);
-    $('#btn-finalizar').toggle(attr.boton_finalizar).attr('data-modo',modo).val(data.relevamiento.id_relevamiento_progresivo);
+    $('#btn-guardar').toggle(attr.boton_guardar).val(data.relevamiento.id_relevamiento_progresivo);
+    $('#btn-finalizar').toggle(attr.boton_finalizar).val(data.relevamiento.id_relevamiento_progresivo);
     $('#modalRelevamientoProgresivos').modal('show');
   });
 }
 
-$(document).on('click','#btn-guardar[data-modo="cargar"],#btn-finalizar[data-modo="cargar"]',function(){
+$(document).on('click','#modalRelevamientoProgresivos[data-modo="cargar"] #btn-guardar,#modalRelevamientoProgresivos[data-modo="cargar"] #btn-finalizar',function(){
   enviarFormularioCarga($(this).val(),$(this).attr('data-modo-form'));
 });
-$(document).on('click','#btn-finalizar[data-modo="validar"]',function(){
+$(document).on('click','#modalRelevamientoProgresivos[data-modo="validar"] #btn-finalizar',function(){
   enviarFormularioValidacion($(this).val());
 });
 $(document).on('click','#tablaRelevamientos .ver,#tablaRelevamientos .cargar,#tablaRelevamientos .validar',function(){
@@ -378,11 +383,11 @@ $('#btn-salir').click(function() {
   $('#modalRelevamientoProgresivos').modal('hide');
 });
 
-$(document).on('change','#modalRelevamientoProgresivos tr:not(.filaEjemplo) .causaNoToma:not(:disabled)',function(){
+$(document).on('change','#modalRelevamientoProgresivos[data-modo="cargar"] tr:not(.filaEjemplo) .causaNoToma:not(:disabled)',function(){
   const fila = $(this).closest('tr');
   const seteado = $(this).val().length > 0;
-  if(seteado) fila.find('input[data-id]').val('').attr('disabled',true).css('color','#fff');
-  else        fila.find('input[data-id]').attr('disabled',false).css('color','');
+  if(seteado) fila.find('input[data-id]').val('');
+  fila.find('input[data-id]').attr('disabled',seteado);
   fila.find('input:not([data-id])').attr('disabled',true);
 });
 
