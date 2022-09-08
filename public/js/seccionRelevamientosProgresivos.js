@@ -424,9 +424,9 @@ function obtenerIdFiscalizador(id_casino, str) {
 
 function enviarFormularioCarga(id_relevamiento_progresivo,modo) {
   const err = modo == "cargar"? validarFormulario() : null;
-  if (err && err.errores) {
-    console.log(err.mensajes);
-    return mensajeError(err.mensajes);
+  if (err && err.length > 0) {
+    console.log(err);
+    return mensajeError(err);
   }
   
   const formData = {
@@ -487,18 +487,17 @@ function enviarFormularioValidacion(id_relevamiento) {
 }
 
 function validarFormulario() {
-  let errores = false;
   const id_casino = $('#cargaCasino').data('id_casino');
   const fisca = $('#usuario_fiscalizador');
   if (fisca.val() == "" || obtenerIdFiscalizador(id_casino, fisca.val()) === null){
-    errores = true;
     mostrarErrorValidacion(fisca,"Ingrese un fiscalizador",true);
+    mensajes.push("Ingrese un fiscalizador");
   }
 
   const fecha = $('#fecha');
   if (fecha.val() == "") {
-    errores = true;
     mostrarErrorValidacion(fecha,"Ingrese una fecha de ejecución",true);
+    mensajes.push("Ingrese una fecha de ejecución")
   }
 
   const inputs = $('#modalRelevamientoProgresivos .cuerpoTablaPozos tr:not(.filaEjemplo) input:not([disabled])');
@@ -512,7 +511,7 @@ function validarFormulario() {
     mensajes.push("Tiene al menos un nivel sin ingresar o con valores invalidos");
     vacios.addClass('alerta');
   }
-  return { errores: errores, mensajes: mensajes };
+  return mensajes;
 }
 
 $('.cabeceraTablaPozos th.sortable').click(function() {
