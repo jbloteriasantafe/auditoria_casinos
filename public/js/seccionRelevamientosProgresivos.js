@@ -458,6 +458,9 @@ function enviarFormularioCarga(id_relevamiento_progresivo,modo) {
     dataType: 'json',
     success: function(data){
       $('#btn-buscar').click();
+      if(modo == "cargar"){
+        $('#modalRelevamientoProgresivos').modal('hide');
+      }
     },
     error: function(data){
       console.log(data);
