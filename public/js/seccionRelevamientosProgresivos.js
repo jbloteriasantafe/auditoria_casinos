@@ -386,7 +386,7 @@ $('#btn-salir').click(function() {
 $(document).on('change','#modalRelevamientoProgresivos[data-modo="cargar"] tr:not(.filaEjemplo) .causaNoToma:not(:disabled)',function(){
   const fila = $(this).closest('tr');
   const seteado = $(this).val().length > 0;
-  if(seteado) fila.find('input[data-id]').val('');
+  if(seteado) fila.find('input[data-id]').val('').removeClass('alerta');
   fila.find('input[data-id]').attr('disabled',seteado);
   fila.find('input:not([data-id])').attr('disabled',true);
 });
