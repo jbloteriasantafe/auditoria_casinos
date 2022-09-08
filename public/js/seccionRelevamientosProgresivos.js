@@ -318,7 +318,7 @@ $(document).on('click','#tablaRelevamientos .ver,#tablaRelevamientos .cargar,#ta
   mostrarRelevamiento($(this).val(),$(this).data('modo'));
 });
 $(document).on('click','#tablaRelevamientos .planilla',function(){
-  window.open('relevamientosProgresivo/generarPlanilla/' + $(this).val() + '/0', '_blank');
+  window.open('relevamientosProgresivo/generarPlanilla/' + $(this).val() + '/1', '_blank');
 });
 $(document).on('click','#tablaRelevamientos .imprimir',function(){
   window.open('relevamientosProgresivo/generarPlanilla/' + $(this).val(), '_blank');
