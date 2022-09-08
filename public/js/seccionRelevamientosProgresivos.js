@@ -481,6 +481,7 @@ function enviarFormularioValidacion(id_relevamiento) {
     dataType: 'json',
     success: function(data){
       $('#btn-buscar').click();
+      $('#modalRelevamientoProgresivos').modal('hide');
     },
     error: function(data){
       console.log(data);
