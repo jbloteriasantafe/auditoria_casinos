@@ -376,22 +376,18 @@ $(document).on('click','#btn-validar',function(e){
       },
       error: function (data) {
           console.log('Error:', data);
-          $('#textoExito').text('');
-          var texto = "";
+          const errores = ["Errores:"];
+          Object.keys(data.responseJSON).forEach(function(k,_){
+            errores.push(...data.responseJSON[k]);
+          });
+          $('#textoExito').html("<p>"+errores.join("</p>")+"</p>");
           if(data.responseJSON.id_beneficio !== undefined){
-            texto += 'Hay beneficios sin ajustar.  ';
-              $('#btn-validar-si').hide();
+            $('#btn-validar-si').hide();
           }
           if(data.responseJSON.id_producido !== undefined){
-            texto += 'Hay producidos sin cargar. ¿Desea validarlos de todos modos?';
             $('#btn-validar-si').show();
             $('#btn-validar').hide();
           }
-          if(data.responseJSON.not_found !== undefined){
-            texto += 'Recargue la página.  ';
-            $('#btn-validar-si').hide();
-          }
-          $('#textoExito').text('Errores: '+ texto);
       }
     });
 });

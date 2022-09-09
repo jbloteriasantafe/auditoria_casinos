@@ -153,174 +153,82 @@ class BeneficioController extends Controller
     return ['ajuste' => $ab];
   }
 
-  public function validarBeneficios(Request $request){
+  public function validarBeneficios(Request $request,$validar_sin_producidos = false){
+    $mes  = null;
+    $anio = null;
+    $id_casino = null;
+    $id_tipo_moneda = null;
     $validator = Validator::make($request->all(), [
-      'beneficios_ajustados' => 'nullable',
+      'beneficios_ajustados' => 'required|array',
       'beneficios_ajustados.*.id_beneficio' => 'required|exists:beneficio,id_beneficio',
       'beneficios_ajustados.*.observacion' => 'nullable|max:500'
-    ], array(), self::$atributos)->after(function($validator){
-    })->validate();
-    if(isset($validator))
-    {
-      if ($validator->fails())
-      {
-        return [
-              'errors' => $v->getMessageBag()->toArray()
-          ];
-      }
-    }
-    $errors = null;
-
-    if($request->beneficios_ajustados != null){
-      foreach($request->beneficios_ajustados as $beneficio_ajustado){
-        $ben = Beneficio::find($beneficio_ajustado['id_beneficio']);
-        if($ben != null){
-          $fecha = $ben->fecha;
-          $ben->observacion = $beneficio_ajustado['observacion'];
-
-          $prod = Producido::where([['fecha',$ben->fecha],['id_casino',$ben->id_casino],['id_tipo_moneda',$ben->id_tipo_moneda]])->first();
-          if($prod != null){
-            $producido_calculado = $prod->beneficio_calculado; //calcula atributo en el producido sumandole el ajuste reciente
-            $diff = $producido_calculado - $ben->valor;
-            $diff_round = round($diff,2);
-            if(!is_null($producido_calculado) && $diff_round == 0.00){
-              $ben->validado = 1;
-            }else{//si no lo valida, largo error
-              $errors = new MessageBag;
-              $errors->add('id_beneficio', 'No se ajustó el beneficio del día '.$fecha.'. Diferencia de '.round($producido_calculado - $ben->valor,2).'.');
-            }
-          }else{
-            $errors = new MessageBag;
-            $errors->add('id_producido', 'No hay producidos cargados para el beneficio del día '.$fecha.'.');
-          }
-
-          $ben->save();
-        }else{
-          $errors = new MessageBag;
-          $errors->add('not_found', 'Beneficio del día '.$fecha.' no encontrado.');
+    ], [], self::$atributos)->after(function($validator) use ($mes,$anio,$id_casino,$id_tipo_moneda,$validar_sin_producidos){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      $dias = [];
+      foreach($data['beneficios_ajustados'] as $bajuidx => $baju){
+        $b = Beneficio::find($baju['id_beneficio']);
+        $rules = [['fecha',$b->fecha],['id_casino',$b->id_casino],['id_tipo_moneda',$b->id_tipo_moneda]];
+        if(Beneficio::where($rules)->count() > 1){
+          $validator->errors()->add('id_beneficio', "Mas de 1 beneficio para {$b->fecha} en la base de datos");
         }
-      }//fin for each
-      if(isset($errors))
-      {
-        return response()->json($errors->toArray(), 404);
-
+        if(array_key_exists($b->fecha,$dias)){
+          $validator->errors()->add('id_beneficio',"Dia {$b->fecha} recibido mas de una vez");
+        }
+        $dias[$b->fecha] = true;
+        if(is_null($mes))            $mes  = date("n",strtotime($b->fecha));
+        if(is_null($anio))           $anio = date("Y",strtotime($b->fecha));
+        if(is_null($id_casino))      $id_casino      = $b->id_casino;
+        if(is_null($id_tipo_moneda)) $id_tipo_moneda = $b->id_tipo_moneda;
+        if($mes != date("n",strtotime($b->fecha)) || $anio != date("Y",strtotime($b->fecha))
+        || $id_casino != $b->id_casino            || $id_tipo_moneda != $b->id_tipo_moneda){
+          $idx = $bajuidx+1;
+          $validator->errors()->add('id_beneficio',"Se recibio $mes-$anio CAS$id_casino M$id_tipo_moneda pero el beneficio $idx tiene es {$b->fecha} CAS{$b->id_casino} M{$b->id_tipo_moneda}");
+        }
+        $prod = Producido::where($rules)->first();
+        if($validar_sin_producidos && is_null($prod)) continue;
+        if(is_null($prod)){
+          $validator->errors()->add('id_producido',"No hay producidos cargados para el beneficio del día {$b->fecha}");
+        }
+        $producido_calculado = is_null($prod)? 0 : $prod->beneficio_calculado; //calcula atributo en el producido sumandole el ajuste reciente
+        $diff = round($producido_calculado - $b->valor,2);
+        if(is_null($producido_calculado) || $diff != 0.00){
+          $validator->errors()->add('id_beneficio', "No se ajustó el beneficio del día {$b->fecha}. Diferencia de $diff.");
+        }
       }
-
-      $ben = Beneficio::find($request->beneficios_ajustados[0]['id_beneficio']);
-      $fecha = $ben->fecha;
-      $mes = date("n",strtotime($fecha));
-      $anio = date("Y",strtotime($fecha));
-      // si estan los beneficios para todo el mes cargados y validados, guardo el beneficio mensual correspondiente
       $cant_dias = cal_days_in_month(CAL_GREGORIAN,$mes,$anio);
-      $bandera = true;
+      if($cant_dias != count($dias)) $validator->errors()->add('beneficios_ajustados','Faltan importar beneficios para el mes');
+    })->validate();
+    
+    return DB::transaction(function() use ($request,$mes,$anio,$id_casino,$id_tipo_moneda){
       $acumulado = 0;
-
-      for($i = 1; $i <= $cant_dias; $i++){ // casino, fecha, tipo_moneda
-        $benef = Beneficio::where([['id_casino',$ben->casino->id_casino],['id_tipo_moneda',$ben->tipo_moneda->id_tipo_moneda]])
-                          ->whereYear('fecha',$anio)
-                          ->whereMonth('fecha',$mes)
-                          ->whereDay('fecha',$i)
-                          ->first();
-
-        if($benef != null && $benef->validado == 1){
-          $acumulado = $acumulado + $benef->valor;
-        }
-        else{
-          $bandera = false;
-          $i = $cant_dias;
-        }
+      foreach($request->beneficios_ajustados as $baju){
+        $b = Beneficio::find($baju['id_beneficio']);
+        $b->observacion = $baju['observacion'];
+        $b->validado    = 1;
+        $acumulado += $b->valor;
+        $b->save();
       }
-      if($bandera){
-        $beneficio_mensual = new BeneficioMensual;
-        $beneficio_mensual->id_casino = $ben->id_casino;
-        $beneficio_mensual->id_tipo_moneda = $ben->id_tipo_moneda;
-        $beneficio_mensual->id_actividad = 1;
-        $beneficio_mensual->anio_mes = ''.$anio.'-'.$mes.'-01';
-        $beneficio_mensual->bruto = $acumulado;
-        $beneficio_mensual->save();
-      }else{
-        return response()->json("Faltan importar beneficios", 404);
-      }
-
-    }
-    // TODO gestionar el error en el caso de que no se importaron los producidos
-    // ene se caso no va dar error pero tampoco va generar el producido mensual
-    return "true";
+      
+      $anio_mes = "$anio-$mes-01";
+      $bmensual = BeneficioMensual::where([
+        ['id_casino','=',$id_casino],['id_tipo_moneda','=',$id_tipo_moneda],
+        ['anio_mes','=',$anio_mes],['id_actividad','=',1]
+      ])->get()->first();
+      if(is_null($bmensual)) $bmensual = new BeneficioMensual;
+      
+      $beneficio_mensual->id_casino      = $id_casino;
+      $beneficio_mensual->id_tipo_moneda = $id_tipo_moneda;
+      $beneficio_mensual->id_actividad   = 1;
+      $beneficio_mensual->anio_mes       = "$anio-$mes-01";
+      $beneficio_mensual->bruto          = $acumulado;
+      $beneficio_mensual->save();
+      return "true";
+    });
   }
 
   public function validarBeneficiosSinProducidos(Request $request){
-    $validator = Validator::make($request->all(), [
-      'beneficios_ajustados' => 'nullable',
-      'beneficios_ajustados.*.id_beneficio' => 'required|exists:beneficio,id_beneficio',
-      'beneficios_ajustados.*.observacion' => 'nullable|max:500'
-    ], array(), self::$atributos)->after(function($validator){
-    })->validate();
-
-    $errors = null;
-    if($request->beneficios_ajustados != null){
-      foreach($request->beneficios_ajustados as $beneficio_ajustado){
-        $ben = Beneficio::find($beneficio_ajustado['id_beneficio']);
-        if($ben != null){
-          $fecha = $ben->fecha;
-          $ben->observacion = $beneficio_ajustado['observacion'];
-
-          $prod = Producido::where([['fecha',$ben->fecha],['id_casino',$ben->id_casino],['id_tipo_moneda',$ben->id_tipo_moneda]])->first();
-          if($prod != null){
-            $producido_calculado = $prod->beneficio_calculado; //calcula atributo en el producido
-
-            if(!is_null($producido_calculado) && round($producido_calculado - $ben->valor,2) == 0){
-              $ben->validado = 1;
-            }else{//si no lo valida, largo error
-              $errors = new MessageBag;
-              $errors->add('id_beneficio', 'No se ajustó el beneficio del día '.$fecha.'. Diferencia de '.round($producido_calculado - $ben->valor,2).'.');
-            }
-          }else{
-            $ben->validado = 1;
-          }
-
-          $ben->save();
-        }else{
-          $errors = new MessageBag;
-          $errors->add('not_found', 'Beneficio del día '.$fecha.' no encontrado.');
-        }
-      }//fin for each
-
-      if(isset($errors))
-      {
-        return response()->json($errors->toArray(), 422);
-      }
-
-      $ben = Beneficio::find($request->beneficios_ajustados[0]['id_beneficio']);
-      $fecha = $ben->fecha;
-      $mes = date("n",strtotime($fecha));
-      $anio = date("Y",strtotime($fecha));
-      // si estan los beneficios para todo el mes cargados y validados, guardo el beneficio mensual correspondiente
-      $cant_dias = cal_days_in_month(CAL_GREGORIAN,$mes,$anio);
-      $bandera = true;
-      $acumulado = 0;
-      for($i = 1; $i <= $cant_dias; $i++){ // casino, fecha, tipo_moneda
-        $benef = Beneficio::where([['id_casino',$ben->casino->id_casino],['id_tipo_moneda',$ben->tipo_moneda->id_tipo_moneda]])
-                          ->whereYear('fecha',$anio)
-                          ->whereMonth('fecha',$mes)
-                          ->whereDay('fecha',$i)
-                          ->first();
-        if($benef != null && $benef->validado == 1){
-          $acumulado = $acumulado + $benef->valor;
-        }
-        else{
-          $i = $cant_dias;
-        }
-      }
-     // como se esta intentando validar dias sin producidos, se genera el mensual de todas formas
-      $beneficio_mensual = new BeneficioMensual;
-      $beneficio_mensual->id_casino = $ben->id_casino;
-      $beneficio_mensual->id_tipo_moneda = $ben->id_tipo_moneda;
-      $beneficio_mensual->id_actividad = 1;
-      $beneficio_mensual->anio_mes = ''.$anio.'-'.$mes.'-01'; // Ej: 2017-08-01
-      $beneficio_mensual->bruto = $acumulado;
-      $beneficio_mensual->save();
-    }
-    return "true";
+    return $this->validarBeneficios($request,true);
   }
 
   public function cargarImpuesto(Request $request){
