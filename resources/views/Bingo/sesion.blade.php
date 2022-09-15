@@ -40,38 +40,30 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                             <div id="collapseFiltros" class="panel-collapse collapse">
                               <div class="panel-body">
                                 <div class="row">
-
                                   <div class="col-md-3">
                                     <h5>Fecha de la sesión</h5>
-                                    <!-- <div class="form-group"> -->
-                                       <div class='input-group date' id='dtpBuscadorFecha' data-link-field="buscadorFecha" data-link-format="yyyy-mm-dd">
-                                           <input type='text' class="form-control" placeholder="Fecha de relevamiento" id="B_fecharelevamiento"/>
-                                           <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                           <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                                       </div>
-                                       <input class="form-control" type="hidden" id="buscadorFecha" value=""/>
-                                    <!-- </div> -->
+                                    <div class='input-group date' id='dtpBuscadorFecha' data-link-field="buscadorFecha" data-link-format="yyyy-mm-dd">
+                                      <input type='text' class="form-control" placeholder="Fecha de relevamiento" id="B_fecharelevamiento"/>
+                                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                    <input class="form-control" type="hidden" id="buscadorFecha" value=""/>
                                   </div>
-
-                                  <!-- <div class="col-md-3">
-                                    <h5>Fecha de Sesión</h5>
-                                    <input type="date" id="buscadorFecha" class="form-control" style="padding: 0px!important;">
-                                  </div> -->
                                   <div class="col-md-3">
                                     <h5>Estado de la Sesión</h5>
                                     <select id="buscadorEstado" class="form-control" name="">
-                                        <option value="0">-Todos los Estados-</option>
-                                        <option value="1">ABIERTA</option>
-                                        <option value="2">CERRADA</option>
+                                      <option value="0">-Todos los Estados-</option>
+                                      <option value="1">ABIERTA</option>
+                                      <option value="2">CERRADA</option>
                                     </select>
                                   </div>
                                   <div class="col-md-3">
                                     <h5>Casino</h5>
                                     <select id="buscadorCasino" class="form-control selectCasinos" name="">
-                                        <option value="0">-Todos los Casinos-</option>
-                                        @foreach($casinos as $casino)
-                                        <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                                        @endforeach
+                                      <option value="0">-Todos los Casinos-</option>
+                                      @foreach($casinos as $casino)
+                                      <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                      @endforeach
                                     </select>
                                   </div>
                                   <div class="col-md-3">
@@ -84,8 +76,6 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                           </div> <!-- /.panel -->
                         </div> <!-- /.col-md-12 -->
                     </div> <!-- Fin de la fila de FILTROS -->
-
-
                       <div class="row"><!-- RESULTADOS BÚSQUEDA -->
                         <div class="col-md-12">
                           <div class="panel panel-default">
@@ -147,7 +137,7 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                       <div class="col-lg-4 col-xl-3"><!-- BOTÓN GENERAR FORMULARIO SESIÓN -->
                         <div class="row">
                           <div class="col-md-12">
-                            <a href="" id="btn-planilla-sesion" style="text-decoration: none;">
+                            <a href="" class="btn-planilla" style="text-decoration: none;" data-url='bingo/generarPlanillaSesion'>
                                 <div class="panel panel-default panelBotonNuevo">
                                   <center><img class="imgNuevo" src="/img/logos/relevamientos_white.png"><center>
                                     <div class="backgroundNuevo"></div>
@@ -169,7 +159,7 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                       <div class="col-lg-4 col-xl-3"><!-- BOTÓN GENERAR FORMULARIO RELEVAMIENTO -->
                         <div class="row">
                           <div class="col-md-12">
-                            <a href="" id="btn-planilla-relevamiento" style="text-decoration: none;">
+                            <a href="" class="btn-planilla" style="text-decoration: none;" data-url='bingo/generarPlanillaRelevamiento'>
                                 <div class="panel panel-default panelBotonNuevo">
                                   <center><img class="imgNuevo" src="/img/logos/relevamientos_white.png"><center>
                                     <div class="backgroundNuevo"></div>
@@ -197,11 +187,11 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
              <div class="modal-content">
                 <div class="modal-header">
                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                  <button type="button" class="close btn-minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoFormula" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                   <h3 class="modal-title" id="myModalLabel">| NUEVA SESIÓN</h3>
                 </div>
 
-                <div  id="colapsado" class="collapse in">
+                <div id="colapsadoFormula" class="collapse in">
                  <div class="modal-body modal-Cuerpo">
                   <form id="frmFormula" name="frmFormula" class="form-horizontal" novalidate="">
                       <div class="form-group error">
@@ -216,8 +206,6 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                       <span id="input-times" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                       <span id="input-calendar" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                   </div>
-
-                                  <!-- <input type="date" id="fechaInicioNueva" class="form-control" style="padding: 0px!important;"> -->
                                 </div>
 
                                 <div class="col-lg-4">
@@ -227,9 +215,6 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                   </div>
-
-
-                                  <!-- <input id="horaInicioNueva" name="horaInicioNueva" type="time" class="form-control"  style="padding: 0!important;" placeholder="" value="" required> -->
                                 </div>
 
                                 <div class="col-lg-4">
@@ -297,13 +282,13 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
     <div class="modal fade" id="modalCierreSesion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-lg">
              <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header" style="font-family: Roboto-Black; background-color: #46b8da; color: #fff;">
                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                  <button type="button" class="close btn-minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCierreSesion" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                   <h3 class="modal-title" id="myModalLabel">| CERRAR SESIÓN</h3>
                 </div>
 
-                <div  id="colapsado" class="collapse in">
+                <div id="colapsadoCierreSesion" class="collapse in">
                  <div class="modal-body modal-Cuerpo">
                   <form id="frmCierreSesion" name="frmCierreSesion" class="form-horizontal" novalidate="">
                       <div class="form-group error">
@@ -318,8 +303,6 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                   </div>
-
-                                  <!-- <input type="date" id="fechaCierreSesion" class="form-control" style="padding: 0px!important;"> -->
                                 </div>
 
                                 <div class="col-lg-4">
@@ -329,8 +312,6 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                   </div>
-
-                                  <!-- <input id="horaCierreSesion" name="horaInicioNueva" type="time" class="form-control"  style="padding: 0!important;" placeholder="" value="" required> -->
                                 </div>
 
                                 <div class="col-lg-4">
@@ -372,13 +353,8 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                  <h5>-</h5>
                                  <button id="btn-agregarTerminoFinal" class="btn btn-success btn-xs" type="button"><i class="fa fa-fw fa-plus"></i> Mas filas</button>
                                </div>
-
                               </div>
-
                           </div>
-                          <span id="alerta_sesion" class="alertaSpan"></span>
-
-
                         </div>
                       </div>
                   </form>
@@ -399,13 +375,13 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
     <div class="modal fade" id="modalRelevamiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-lg">
              <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header" style="font-family: Roboto-Black; background-color: #46b8da; color: #fff;">
                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                  <button type="button" class="close btn-minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoRelevamiento" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                   <h3 class="modal-title" id="myModalLabel">| CARGAR RELEVAMIENTO</h3>
                 </div>
 
-                <div  id="colapsado" class="collapse in">
+                <div id="colapsadoRelevamiento" class="collapse in">
                  <div class="modal-body modal-Cuerpo">
                   <form id="frmRelevamiento" name="frmCierreSesion" class="form-horizontal" novalidate="">
                       <div class="form-group error">
@@ -426,7 +402,6 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                   </div>
-                                  <!-- <input id="hora_jugada" name="hora_jugada" type="time" class="form-control"  placeholder="" value=""> -->
                                 </div>
 
                                 <div class="col-lg-4">
@@ -553,18 +528,17 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
     <div class="modal fade" id="modalDetallesRel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-lg" style="min-width:85%;">
              <div class="modal-content">
-                <div class="modal-header pbzero">
+                <div class="modal-header pbzero" style="font-family: Roboto-Black; background-color: #46b8da; color: #fff;">
                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                  <button type="button" class="close btn-minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoDetallesRel" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                   <h3 class="modal-title pbtitle" id="myModalLabel">| DETALLES SESIÓN</h3>
-
                   <ul class="nav nav-tabs bbnav">
                     <li class="active"><a data-toggle="tab" href="#detalles">DETALLES</a></li>
                     <li><a data-toggle="tab" href="#historialCambios">HISTORIAL DE CAMBIOS</a></li>
                   </ul>
                 </div>
 
-                <div  id="colapsado" class="collapse in">
+                <div id="colapsadoDetallesRel" class="collapse in">
                  <div class="modal-body modal-Cuerpo">
                   <form id="frmDetallesRel" name="frmDetallesRel" class="form-horizontal" novalidate="">
                       <div class="form-group error">
@@ -705,7 +679,7 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
     <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header" style="font-family: Roboto-Black; color: #EF5350;">
                   <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
                   <h3 class="modal-titleEliminar" id="myModalLabel">ADVERTENCIA</h3>
                 </div>
@@ -732,7 +706,7 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
     <div class="modal fade" id="modalEliminarPartida" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header" style="font-family: Roboto-Black; color: #EF5350;">
                   <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
                   <h3 class="modal-titleEliminarPartida" id="myModalLabel">ADVERTENCIA</h3>
                 </div>
@@ -753,34 +727,7 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
             </div>
           </div>
     </div>
-
-    <!-- Modal reAbrirSesion -->
-    <!-- <div class="modal fade" id="modalAbrirSesion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-             <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                  <h3 class="modal-titleAbrirSesion" id="myModalLabel">ADVERTENCIA</h3>
-                </div>
-
-                <div class="modal-body" style="color:#fff; background-color:#EF5350;">
-                      <div class="form-group error ">
-                          <div class="col-lg-12">
-                            <strong id="mensajeAbrirSesion"></strong>
-                          </div>
-                      </div>
-
-                </div>
-
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-dangerAbrirSesion" id="btn-abrirSesion" value="0">ACEPTAR</button>
-                  <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
-                </div>
-            </div>
-          </div>
-    </div> -->
-
-
+    
     <!-- Modal reabrir sesión -->
     <div class="modal fade" id="modalAbrirSesion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 
@@ -807,8 +754,6 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
             <div class="modal-footer">
               <button type="button" class="btn btn-default" id="btn-abrirSesion">ACEPTAR</button>
               <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal">CANCELAR</button>
-              <!-- <button type="button" class="btn btn-dangerAbrirSesion" id="btn-abrirSesion" value="0">ACEPTAR</button>
-              <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button> -->
             </div>
         </div>
       </div>
@@ -818,7 +763,7 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
     <div class="modal fade" id="modalCorrecta" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header" style="font-family: Roboto-Black; color: #EF5350;">
                   <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
                   <h3 class="modal-title-correcta" id="myModalLabel">ADVERTENCIA</h3>
                 </div>

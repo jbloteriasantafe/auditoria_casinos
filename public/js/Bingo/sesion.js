@@ -1,162 +1,64 @@
 $(document).ready(function(){
-
-  $('#barraMenu').attr('aria-expanded','true');
-  // $('#maquinas').removeClass();
-  // $('#maquinas').addClass('subMenu1 collapse in');
-  $('#bingoMenu').removeClass();
-  $('#bingoMenu').addClass('subMenu2 collapse in');
-
-  $('#bingoMenu').siblings('div.opcionesHover').attr('aria-expanded','true');
-
   $('.tituloSeccionPantalla').text('Sesiones Bingo');
-  // $('#gestionarMaquinas').attr('style','border-left: 6px solid #3F51B5;');
-  $('#opcBingo').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
-  $('#opcBingo').addClass('opcionesSeleccionado');
-
-  $('#dtpBuscadorFecha').datetimepicker({
+  
+  const common_dtp = {
     language:  'es',
     todayBtn:  1,
     autoclose: 1,
     todayHighlight: 1,
-    format: 'yyyy-mm-dd',
     pickerPosition: "bottom-left",
+    ignoreReadonly: true,
+    endDate: '+0d',
     startView: 2,
-    minView: 2,
-    ignoreReadonly: true,
-    endDate: '+0d'
-  });
-
-  $('#dtpFechaSesion').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
+    minView: 0,
+  };
+  const yyyy_mm_dd = {
+    ...common_dtp,
     format: 'yyyy-mm-dd',
-    pickerPosition: "bottom-left",
-    startView: 2,
     minView: 2,
-    ignoreReadonly: true,
-    endDate: '+0d'
-  });
-
-  $('#dtpFechaCierreSesion').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'yyyy-mm-dd',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 2,
-    ignoreReadonly: true,
-    endDate: '+0d'
-  });
-
-  $('#dtpHoraSesion').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
+  };
+  const hh_ii = {
+    ...common_dtp,
     format: 'HH:ii',
-    pickerPosition: "bottom-left",
     startView: 0,
-    minView: 0,
-    ignoreReadonly: true,
-    endDate: '+0d'
-  });
-
-  $('#dtpHoraCierreSesion').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'HH:ii',
-    pickerPosition: "bottom-left",
-    startView: 0,
-    minView: 0,
-    ignoreReadonly: true,
-    endDate: '+0d'
-  });
-
-  $('#dtpHoraJugada').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'HH:ii',
-    pickerPosition: "bottom-left",
-    startView: 0,
-    minView: 0,
-    ignoreReadonly: true,
-    endDate: '+0d'
-  });
-
-  $('#dtpFecha').datetimepicker({
-    todayBtn:  1,
-    language:  'es',
-    autoclose: 1,
-    todayHighlight: 1,
+  };
+  const yyyy_mm_dd_hh_ii = {
+    ...common_dtp,
     format: 'yyyy-mm-dd HH:ii',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 0,
-    ignoreReadonly: true,
     minuteStep: 5,
-    endDate: '+0d'
-  });
-
+  };
+  
+  $('#dtpBuscadorFecha').datetimepicker(yyyy_mm_dd);
+  $('#dtpFechaSesion').datetimepicker(yyyy_mm_dd);
+  $('#dtpFechaCierreSesion').datetimepicker(yyyy_mm_dd);
+  
+  $('#dtpHoraSesion').datetimepicker(hh_ii);
+  $('#dtpHoraCierreSesion').datetimepicker(hh_ii);
+  $('#dtpHoraJugada').datetimepicker(hh_ii);
+  
+  $('#dtpFecha').datetimepicker(yyyy_mm_dd_hh_ii);
   $('#dtpFecha span.nousables').off();
-
-  $('#fechaRelevamientoDiv').datetimepicker({
-    todayBtn:  1,
-    language:  'es',
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'yyyy-mm-dd HH:ii',
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 0,
-    ignoreReadonly: true,
-    minuteStep: 5,
-    endDate: '+0d'
-  });
-
+  $('#fechaRelevamientoDiv').datetimepicker(yyyy_mm_dd_hh_ii);
 
   $('#btn-buscar').trigger('click');
-
+  $('#modalFormula').trigger('hidden.bs.modal');
 });
 
-//Generar planilla sesion
-$(document).on('click','#btn-planilla-sesion',function(){
-
-        window.open('bingo/generarPlanillaSesion');
-});
-//Generar planilla relevamiento
-$(document).on('click','#btn-planilla-relevamiento',function(){
-
-        window.open('bingo/generarPlanillaRelevamiento');
+$('#modalFormula').on('hidden.bs.modal',function(){
+  ocultarErrorValidacion($(this).find('.form-control'));
+  $(this).find('.terminoFormula').remove();
 });
 
-//Opacidad del modal al minimizar
-$('#btn-minimizar').click(function(){
-    if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-    $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
+$('.btn-planilla').click(function(e){
+  e.preventDefault();
+  window.open($(this).attr('data-url'),'_blank');
 });
 
 //Opacidad del modal al minimizar
-$('#btn-minimizarMaquinas').click(function(){
-    if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-    $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
+$('.btn-minimizar').click(function(){
+  const activo = $(this).data("minimizar")==true;
+  $('.modal-backdrop').css('opacity',activo? '0.1' : '0.5');
+  $(this).data("minimizar",!activo);
 });
 
 //si presiono enter y el modal esta abierto se manda el formulario
@@ -170,7 +72,7 @@ $(document).on("keypress" , function(e){
 $('contenedorFiltros input').on("keypress" , function(e){
   if(e.which == 13) {
     e.preventDefault();
-    $('#').click();
+    $('#btn-buscar').click();
   }
 })
 
@@ -180,209 +82,8 @@ $('#columna input').on('focusout' , function(){
   }
 });
 
-$('#columna input').focusin(function(){
+$(document).on('focusin','.alerta',function(){
   $(this).removeClass('alerta');
-
-});
-
-//Agregar nueva fila -> valor carton - serie inicial - carton incial
-$('#btn-agregarTermino').click(function(){
-
-  $('#columna')
-      .append($('<div>')
-          .addClass('row')
-          .addClass('terminoFormula')
-          .css('margin-bottom','15px')
-          .attr('id','terminoFormulaAgregado')
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','valor_carton')
-                  .attr('type','text')
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','serie_inicial')
-                  .attr('type','text')
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','carton_inicial')
-                  .attr('type','text')
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-xs-3')
-              .css('padding-right','0px')
-              .append($('<button>')
-                  .addClass('borrarTermino')
-                  .addClass('borrarFila')
-                  .addClass('btn')
-                  .addClass('btn-danger')
-                  .css('margin-top','6px')
-                  .attr('type','button')
-                  .append($('<i>')
-                      .addClass('fa')
-                      .addClass('fa-trash')
-                  )
-              )
-          )
-
-
-      )
-
-});
-
-//Agregar nueva fila -> valor carton - serie final - carton final
-$('#btn-agregarTerminoFinal').click(function(){
-  $('#columna2')
-      .append($('<div>')
-          .addClass('row')
-          .addClass('terminoCierreSesion')
-          .css('margin-bottom','15px')
-          .attr('id','terminoCierreSesion')
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','valor_carton_f')
-                  .attr('type','text')
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','serie_final')
-                  .attr('type','text')
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','carton_final')
-                  .attr('type','text')
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-xs-3')
-              .css('padding-right','0px')
-              .append($('<button>')
-                  .addClass('borrarTerminoFinal')
-                  .addClass('borrarFila')
-                  .addClass('btn')
-                  .addClass('btn-danger')
-                  .css('margin-top','6px')
-                  .attr('type','button')
-                  .append($('<i>')
-                      .addClass('fa')
-                      .addClass('fa-trash')
-                  )
-              )
-          )
-
-
-      )
-
-});
-
-//Agregar nueva fila -> nombre del premio - nro carton ganador
-$('#btn-agregarTerminoRelevamiento').click(function(){
-  $('#columnaRelevamiento')
-      .append($('<div>')
-          .addClass('row')
-          .addClass('terminoRelevamiento')
-          .css('margin-bottom','15px')
-          .attr('id','terminoRelevamiento')
-          .append($('<div>')
-              .addClass('col-lg-4')
-              .append($('<select>')
-                .addClass('form-control')
-                  .attr('id','nombre_premio')
-                  .append($('<option>')
-                      .attr('value','')
-                      .attr('selected','')
-                      .append('Seleccione Valor')
-                  )
-                  .append($('<option>')
-                      .attr('value','1')
-                      .append('Línea')
-                  )
-                  .append($('<option>')
-                      .attr('value','1')
-                      .append('Bingo')
-                  )
-                  .append($('<option>')
-                      .attr('value','1')
-                      .append('Línea Acumulada')
-                  )
-                  .append($('<option>')
-                      .attr('value','1')
-                      .append('Pozo Acumulado')
-                  )
-                  .append($('<option>')
-                      .attr('value','1')
-                      .append('Bingo Especial')
-                  )
-                  .append($('<option>')
-                      .attr('value','1')
-                      .append('Bingo sale o sale')
-                  )
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-4')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','carton_ganador')
-                  .attr('type','text')
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-xs-4')
-              .css('padding-right','0px')
-              .append($('<button>')
-                  .addClass('borrarTerminoRelevamiento')
-                  .addClass('borrarFila')
-                  .addClass('btn')
-                  .addClass('btn-danger')
-                  .css('margin-top','6px')
-                  .attr('type','button')
-                  .append($('<i>')
-                      .addClass('fa')
-                      .addClass('fa-trash')
-                  )
-              )
-          )
-
-
-      )
-
-});
-
-$('#btn-ayuda').click(function(e){
-  e.preventDefault();
-
-  $('.modal-title').text('| FÓRMULAS');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
-
-	$('#modalAyuda').modal('show');
-
 });
 
 //Mostrar modal para iniciar una nueva sesion
@@ -399,73 +100,56 @@ $('#btn-nuevo').click(function(e){
   $('.terminoFormula').remove();
   $('#btn-guardar').removeClass();
   $('#btn-guardar').addClass('btn btn-successAceptar');
-  $('.modal-title').text('| NUEVA SESIÓN');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
-
-  //Restablezco los campos para crear sesión en caso de que hayan sido ocultados
-  // $('#valor_carton').show();
-  // $('#serie_inicial').show();
-  // $('#carton_inicial').show();
-
+  $('#modalFormula .modal-title').text('| NUEVA SESIÓN');
+  $('#modalFormula .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
   $('#modalFormula').modal('show');
-
 });
 
 //Mostrar modal con los datos de las sesion cargados
 $(document).on('click','.modificar',function(){
-    $('#mensajeExito').hide();
-    $('#btn-agregarTermino').hide();
-    $('#frmFormula').trigger('reset');
-    $('.terminoFormula').remove();
-    $('.modal-title').text('| MODIFICAR SESIÓN');
-    $('.modal-header').attr('style','font-family: Roboto-Black; background: #ff9d2d; color: #fff;');
-    $('#btn-guardar').removeClass();
-    $('#btn-guardar').addClass('btn btn-warningModificar');
-    $('#casino_nueva').attr('disabled','disabled');
-    $('#fechaInicioNueva').attr('disabled','disabled');
-    $('#input-calendar').hide();
-    $('#input-times').hide();
-    var id_sesion = $(this).val();
-
-    $.get("bingo/obtenerSesion/" + id_sesion, function(data){
-        console.log(data);
-
-        $('#id_sesion').val(id_sesion);//campo oculto
-        $('#btn-guardar').val("modificar");
-        $('#id_sesion').val(id_sesion);
-        $('#modalFormula').modal('show');
-        $('#fechaInicioNueva').val(data.sesion.fecha_inicio);
-        $('#horaInicioNueva').val(data.sesion.hora_inicio);
-        $('#casino_nueva').val(data.sesion.id_casino);
-        $('#pozo_dotacion_inicial').val(data.sesion.pozo_dotacion_inicial);
-        $('#pozo_extra_inicial').val(data.sesion.pozo_extra_inicial);
-
-        //oculto los campos utilizados para iniciar una sesión
-        $('#valor_carton').remove();
-        $('#serie_inicial').remove();
-        $('#carton_inicial').remove();
-
-        var cantidad = data.detalles.length ;
-         for (var i = 0; i < cantidad; i++){
-           cargarDetallesInicioSesion(data.detalles[i]);
-         }
-
-      });
-      $('.terminoFormula').remove();
+  $('#mensajeExito').hide();
+  $('#btn-agregarTermino').hide();
+  $('#frmFormula').trigger('reset');
+  $('.terminoFormula').remove();
+  $('#modalFormula .modal-title').text('| MODIFICAR SESIÓN');
+  $('#modalFormula .modal-header').attr('style','font-family: Roboto-Black; background: #ff9d2d; color: #fff;');
+  $('#btn-guardar').removeClass();
+  $('#btn-guardar').addClass('btn btn-warningModificar');
+  $('#casino_nueva').attr('disabled','disabled');
+  $('#fechaInicioNueva').attr('disabled','disabled');
+  $('#input-calendar').hide();
+  $('#input-times').hide();
+  const id_sesion = $(this).val();
+  $.get("bingo/obtenerSesion/" + id_sesion, function(data){
+    console.log(data);
+    $('#id_sesion').val(id_sesion);//campo oculto
+    $('#btn-guardar').val("modificar");
+    $('#id_sesion').val(id_sesion);
+    $('#fechaInicioNueva').val(data.sesion.fecha_inicio);
+    $('#horaInicioNueva').val(data.sesion.hora_inicio);
+    $('#casino_nueva').val(data.sesion.id_casino);
+    $('#pozo_dotacion_inicial').val(data.sesion.pozo_dotacion_inicial);
+    $('#pozo_extra_inicial').val(data.sesion.pozo_extra_inicial);
+    
+    $('#valor_carton,#serie_inicial,#carton_inicial').remove();
+    for (const i in data.detalles){
+      cargarDetallesInicioSesion(data.detalles[i]);
+    }
+    $('#modalFormula').modal('show');
+  });
+  $('.terminoFormula').remove();
 });
 
 $('.operador').keydown(function(e){
-  console.log($(this).val().length);
-  if(e.which!=107 && e.which!=109 && e.which!=8)
+  if((e.which!=107 && e.which!=109 && e.which!=8)
+   ||($(this).val().length > 0 && e.which!=8)){
     e.preventDefault();
-  else if($(this).val().length > 0 && e.which!=8){
-      e.preventDefault();
   }
 })
 
 //borrar fila -> valor carton - serie inicial - carton incial
 $(document).on('click','.borrarTermino',function(){
-  var i=$('#columna #terminoFormula').length;
+  var i = $('#columna #terminoFormula').length;//global?
   console.log(i);
   if(i == 3){
     $('#columna #terminoFormula').last().find('#valor_carton').val('');
@@ -475,7 +159,7 @@ $(document).on('click','.borrarTermino',function(){
     $(this).parent().parent().remove();
   }
 
-  var j=$('#columna #terminoFormulAgregado').length;
+  var j = $('#columna #terminoFormulAgregado').length;//global?
   console.log(j);
   if(j ==1){
     $(this).parent().parent().remove();
@@ -484,467 +168,358 @@ $(document).on('click','.borrarTermino',function(){
 
 //borrar fila -> valor carton_f - serie inicial - carton incial
 $(document).on('click','.borrarTerminoFinal',function(){
-
   $(this).parent().parent().remove();
-
-  var i=$('#columna2 #terminoCierreSesion').length;
-
+  var i = $('#columna2 #terminoCierreSesion').length;//Global?
   $('#columna2 #terminoCierreSesion').last().find('#valor_carton_f').val('');
   $('#columna2 #terminoCierreSesion').last().find('#serie_inicial').val('');
   $('#columna2 #terminoCierreSesion').last().find('#carton_inicial').val('');
-
 });
 
 //borrar fila -> valor carton - serie final - carton final
 $(document).on('click','.borrarTerminoRelevamiento',function(){
-
   $(this).parent().parent().remove();
-
 });
 
 //Modal de eliminar una sesión
 $(document).on('click','.eliminar',function(){
-    var id = $(this).val();
-    cantidadPartidas(id); //cargo la cantidad de partidas y luego si es necesario, muestra el mensaje
-    $('.modal-title').text('ADVERTENCIA');
-    $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
-    $('#btn-eliminarSesion').val(id);
-    $('#modalEliminar').modal('show');
-    $('#mensajeEliminar').text('¿Seguro que desea eliminar la sesión del día "' + $(this).parent().parent().find('td:first').text()+'"?');
-
+  const id = $(this).val();
+  cantidadPartidas(id); //cargo la cantidad de partidas y luego si es necesario, muestra el mensaje
+  $('#btn-eliminarSesion').val(id);
+  $('#modalEliminar').modal('show');
+  $('#mensajeEliminar').text('¿Seguro que desea eliminar la sesión del día "' + $(this).parent().parent().find('td:first').text()+'"?');
 });
 
 //Modal de eliminar una partida
 $(document).on('click','.borrarPartida',function(){
-    var id = $(this).val();
-    console.log(id);
-    $('.modal-title').text('ADVERTENCIA');
-    $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
-    $('#btn-eliminarPartida').val(id);
-    $('#modalEliminarPartida').modal('show');
-    $('#mensajeEliminarPartida').text('¿Seguro que desea eliminar la partida número "' + $(this).parent().parent().find('td:first').text()+'"?');
-
+  $('#btn-eliminarPartida').val($(this).val());
+  $('#modalEliminarPartida').modal('show');
+  $('#mensajeEliminarPartida').text('¿Seguro que desea eliminar la partida número "' + $(this).parent().parent().find('td:first').text()+'"?');
 });
 
 //Elimina una sesión
 $('#btn-eliminarSesion').click(function (e) {
-    var id = $(this).val();
-
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    })
-
-    $.ajax({
-        type: "DELETE",
-        url: "bingo/eliminarSesion/" + id,
-        success: function (data) {
-
-          //Remueve de la tabla
-          $('#cuerpoTabla #'+ id).remove();
-          $("#tablaResultados").trigger("update");
-
-          $('#modalEliminar').modal('hide');
-        },
-        error: function (data) {
-          console.log(data);
-          console.log('Error: ', data);
-        }
-    });
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  $.ajax({
+    type: "DELETE",
+    url: "bingo/eliminarSesion/" + $(this).val(),
+    success: function (data) {
+      $('#btn-buscar').click();
+    },
+    error: function (data) {
+      console.log(data);
+      console.log('Error: ', data);
+    }
+  });
 });
 
 //Elimina una partida
 $('#btn-eliminarPartida').click(function (e) {
-    var id = $(this).val();
-
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    })
-
-    $.ajax({
-        type: "DELETE",
-        url: "bingo/eliminarPartida/" + id,
-        success: function (data) {
-
-          //Remueve de la tabla
-          $('#cuerpoTablaRel #'+ id).remove();
-          $("#tablaResultadosRel").trigger("update");
-
-          $('#modalEliminarPartida').modal('hide');
-        },
-        error: function (data) {
-          console.log('Error: ', data);
-        }
-    });
+  const id = $(this).val();
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } })
+  $.ajax({
+    type: "DELETE",
+    url: "bingo/eliminarPartida/" + id,
+    success: function (data) {
+      //Remueve de la tabla
+      $('#cuerpoTablaRel #'+ id).remove();
+      $("#tablaResultadosRel").trigger("update");
+      $('#modalEliminarPartida').modal('hide');
+    },
+    error: function (data) {
+      console.log('Error: ', data);
+    }
+  });
 });
 
 //envio de datos a servidor (guardar / modificar)
 $('#btn-guardar').click(function (e) {
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+  const detalles = $('#columna .terminoFormula').map(function(){
+    return {
+      valor_carton: $(this).find('#valor_carton').val(),
+      serie_inicial: $(this).find('#serie_inicial').val(),
+      carton_inicial: $(this).find('#carton_inicial').val(),
+    };
+  }).toArray();
+
+  const formData = {
+    pozo_dotacion_inicial: $('#pozo_dotacion_inicial').val(),
+    pozo_extra_inicial: $('#pozo_extra_inicial').val(),
+    fecha_inicio: $('#fechaInicioNueva').val(),
+    hora_inicio: $('#horaInicioNueva').val(),
+    casino: $('#casino_nueva').val(),
+    detalles:detalles,
+  }
+
+  const state = $('#btn-guardar').val();    
+  if(state != 'nuevo'){//se agrega id_sesion si se esta modificando
+    formData.id_sesion = $('#id_sesion').val();
+  }
+
+  console.log(formData);
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  $.ajax({
+    type: "POST",
+    url: state == 'nuevo'? 'bingo/guardarSesion' : 'bingo/modificarSesion',
+    data: formData,
+    dataType: 'json',
+    success: function (data) {
+      console.log(data);
+      $('#btn-buscar').click();
+      if (state == "nuevo"){//si se esta creando guarda en tabla
+        $('#mensajeExito P').text('La sesión fue ABIERTA correctamente.');
+        $('#mensajeExito div').css('background-color','#4DB6AC');
+      }else{ //Si está modificando
+        $('#mensajeExito p').text('La sesión fue MODIFICADA correctamente.');
+        $('#mensajeExito div').css('background-color','#FFB74D');
+      }
+      $('#frmFormula').trigger("reset");
+      $('#modalFormula').modal('hide');
+      //Mostrar éxito
+      $('#mensajeExito').show();
+    },
+    error: function (data) {
+      const response = data.responseJSON;
+      if(typeof response.pozo_dotacion_inicial !== 'undefined'){
+        mostrarErrorValidacion($('#pozo_dotacion_inicial'),'El campo no puede estar en blanco.' ,true);
+      }
+      if(typeof response.pozo_extra_inicial !== 'undefined'){
+        mostrarErrorValidacion($('#pozo_extra_inicial'),'El campo no puede estar en blanco.' ,true);
+      }
+      if(typeof response.fecha_inicio !== 'undefined'){
+        mostrarErrorValidacion($('#fechaInicioNueva'),'El campo no puede estar en blanco.' ,true);
+      }
+      if(typeof response.hora_inicio !== 'undefined'){
+        mostrarErrorValidacion($('#horaInicioNueva'),'El campo no puede estar en blanco.' ,true);
+      }
+      $('#columna .terminoFormula').each(function(index,value){
+        if(typeof response[`detalles.${index}.valor_carton`] !== 'undefined'){
+          mostrarErrorValidacion($(this).find('#valor_carton'),'El campo no puede estar en blanco.' ,true);
         }
-    });
-
-    var detalles = [];
-
-    $('#columna #terminoFormula').each(function(){
-        var termino = {
-          valor_carton: $(this).find('#valor_carton').val(),
-          serie_inicial: $(this).find('#serie_inicial').val(),
-          carton_inicial: $(this).find('#carton_inicial').val(),
+        if(typeof response[`detalles.${index}.serie_inicial`] !== 'undefined'){
+          mostrarErrorValidacion($(this).find('#serie_inicial'),'El campo no puede estar en blanco.' ,true);
         }
-        detalles.push(termino);
-    });
-
-
-    var formData = {
-      pozo_dotacion_inicial: $('#pozo_dotacion_inicial').val(),
-      pozo_extra_inicial: $('#pozo_extra_inicial').val(),
-      fecha_inicio: $('#fechaInicioNueva').val(),
-      hora_inicio: $('#horaInicioNueva').val(),
-      casino: $('#casino_nueva').val(),
-      detalles:detalles,
-    }
-
-    var state = $('#btn-guardar').val();
-    var type = "POST";
-
-    var url; //url de destino, dependiendo si se esta creando o modificando una sesión
-
-    if(state == 'nuevo'){
-      url =  'bingo/guardarSesion';
-    }else{
-      url = 'bingo/modificarSesion';
-      //se agrega id_sesion si se esta modificando
-      var formData = {
-        pozo_dotacion_inicial: $('#pozo_dotacion_inicial').val(),
-        pozo_extra_inicial: $('#pozo_extra_inicial').val(),
-        fecha_inicio: $('#fechaInicioNueva').val(),
-        hora_inicio: $('#horaInicioNueva').val(),
-        casino: $('#casino_nueva').val(),
-        detalles:detalles,
-        id_sesion: $('#id_sesion').val(),
+        if(typeof response[`detalles.${index}.carton_inicial`] !== 'undefined'){
+          mostrarErrorValidacion($(this).find('#carton_inicial'),'El campo no puede estar en blanco.' ,true);
+        }
+      });
+      if(response.sesion_cargada != null){
+        modalCorrecta('ADVERTENCIA: YA SE HA ABIERTO UNA SESIÓN EL DÍA DE HOY.','Ya se ha realizado la apertura de una sesión para el día de hoy.');
       }
     }
-
-    console.log(formData);
-
-    $.ajax({
-        type: "POST",
-        url: url,
-        data: formData,
-        dataType: 'json',
-        success: function (data) {
-            console.log(data);
-            if (state == "nuevo"){//si se esta creando guarda en tabla
-              $('#mensajeExito P').text('La sesión fue ABIERTA correctamente.');
-              $('#mensajeExito div').css('background-color','#4DB6AC');
-              $('#cuerpoTabla').append(generarFilaTabla(data.sesion,data.estado,data.casino,data.nombre_inicio,data.nombre_fin,'guardar'));
-            }else{ //Si está modificando
-              $('#mensajeExito p').text('La sesión fue MODIFICADA correctamente.');
-              $('#mensajeExito div').css('background-color','#FFB74D');
-            }
-            $('#frmFormula').trigger("reset");
-            $('#modalFormula').modal('hide');
-            //Mostrar éxito
-            $('#mensajeExito').show();
-        },
-        error: function (data) {
-            var response = JSON.parse(data.responseText);
-
-            $('#columna .row').each(function(index,value){
-
-              if(typeof response.pozo_dotacion_inicial !== 'undefined'){
-                  mostrarErrorValidacion($('#pozo_dotacion_inicial'),'El campo no puede estar en blanco.' ,true);
-                }
-              if(typeof response.pozo_extra_inicial !== 'undefined'){
-                    mostrarErrorValidacion($('#pozo_extra_inicial'),'El campo no puede estar en blanco.' ,true);
-                }
-              if(typeof response.fecha_inicio !== 'undefined'){
-                      mostrarErrorValidacion($('#fechaInicioNueva'),'El campo no puede estar en blanco.' ,true);
-                }
-              if(typeof response.hora_inicio !== 'undefined'){
-                        mostrarErrorValidacion($('#horaInicioNueva'),'El campo no puede estar en blanco.' ,true);
-                }
-              if(typeof response['detalles.' + index + '.valor_carton'] !== 'undefined'){
-                      mostrarErrorValidacion($('#valor_carton'),'El campo no puede estar en blanco.' ,true);
-                }
-              if(typeof response['detalles.' + index + '.serie_inicial'] !== 'undefined'){
-                        mostrarErrorValidacion($('#serie_inicial'),'El campo no puede estar en blanco.' ,true);
-                }
-              if(typeof response['detalles.' + index + '.carton_inicial'] !== 'undefined'){
-                          mostrarErrorValidacion($('#carton_inicial'),'El campo no puede estar en blanco.' ,true);
-                }
-
-            })
-            if(response.sesion_cargada != null){
-              avisoSesionAbierta()
-            }
-        }
-    });
+  });
 });
 
 //envio de datos a servidor cierre sesion
 $('#btn-guardar-cierre').click(function (e) {
   e.preventDefault();
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    });
 
-    var detalles = []; //array para guardar los detalles de la sesión
-    var id_sesion = $('#id_sesion').val();
-
-    //guarda los detalles de la sesión en el array por termino
-    $('#columna2 #terminoCierreSesion').each(function(){
-        var termino = {
-          valor_carton_f: $(this).find('#valor_carton_f').val(),
-          serie_final: $(this).find('#serie_final').val(),
-          carton_final: $(this).find('#carton_final').val(),
-        }
-        detalles.push(termino);
-    });
-
-    //datos a enviar
-    var formData = {
-      id_sesion: id_sesion,
-      pozo_dotacion_final: $('#pozo_dotacion_final').val(),
-      pozo_extra_final: $('#pozo_extra_final').val(),
-      fecha_fin: $('#fechaCierreSesion').val(),
-      hora_fin: $('#horaCierreSesion').val(),
-      detalles:detalles,
+  //guarda los detalles de la sesión en el array por termino
+  const detalles = $('#columna2 #terminoCierreSesion').map(function(){
+    return  {
+      valor_carton_f: $(this).find('#valor_carton_f').val(),
+      serie_final: $(this).find('#serie_final').val(),
+      carton_final: $(this).find('#carton_final').val(),
     }
-    var state = $('#btn-guardar-cierre').val();
-    var url;
-    if(state == 'crear'){
-      url = 'bingo/guardarCierreSesion';
-    }else{
-      url = 'bingo/modificarCierreSesion';
-    }
-    var cantidad_detalles = $('#cantidad_detalles').val(); //cantidad de detalles con los que cuenta la sesión abierta
-    var length_detalles = detalles.length; //cantidad de detalles enviados en el form de cerrar sesión
+  }).toArray();
 
+  const formData = {
+    id_sesion: $('#id_sesion').val(),
+    pozo_dotacion_final: $('#pozo_dotacion_final').val(),
+    pozo_extra_final: $('#pozo_extra_final').val(),
+    fecha_fin: $('#fechaCierreSesion').val(),
+    hora_fin: $('#horaCierreSesion').val(),
+    detalles: detalles,
+  }
+  
+  const state = $('#btn-guardar-cierre').val();
     //si la cantidad de detalles a enviar es igual a la que tiene, envia los datos
-    if (cantidad_detalles == length_detalles) {
-            var type = "POST";
-            console.log(formData);
-            $.ajax({
-                type: "POST",
-                url: url,
-                data: formData,
-                dataType: 'json',
-                success: function (data) {
-                    console.log(data);
-                    if(state == 'crear'){
-                      $('#mensajeExito p').text('La sesión fue CERRADA correctamente.');
-                      $('#mensajeExito div').css('background-color','#4DB6AC');
-                    }else{
-                      $('#mensajeExito p').text('La sesión fue MODIFICADA correctamente.');
-                      $('#mensajeExito div').css('background-color','#FFB74D');
-                    }
-                    $('#cuerpoTabla #' +data.sesion.id_sesion ).replaceWith(generarFilaTabla(data.sesion,data.estado,data.casino,data.nombre_inicio,data.nombre_fin,'guardar'))
-
-                    $('#frmCierreSesion').trigger("reset");
-                    $('#modalCierreSesion').modal('hide');
-                    //abre planilla cierre sesión
-                    window.open('bingo/generarPlanillaCierreSesion');
-                    //Mostrar éxito
-                    $('#mensajeExito').show();
-                },
-                error: function (data) {
-                    var response = JSON.parse(data.responseText);
-
-                    $('#columna .row').each(function(index,value){
-
-                      if(typeof response.pozo_dotacion_final !== 'undefined'){
-                          mostrarErrorValidacion($('#pozo_dotacion_final'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.pozo_extra_final !== 'undefined'){
-                            mostrarErrorValidacion($('#pozo_extra_final'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.fecha_fin !== 'undefined'){
-                              mostrarErrorValidacion($('#fechaCierreSesion'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.hora_fin !== 'undefined'){
-                                mostrarErrorValidacion($('#horaCierreSesion'),'El campo no puede estar en blanco.' ,true);
-                          }
-                      if(typeof response['detalles.' + index + '.valor_carton_f'] !== 'undefined'){
-                              mostrarErrorValidacion($('#valor_carton_f'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response['detalles.' + index + '.serie_final'] !== 'undefined'){
-                                mostrarErrorValidacion($('#serie_final'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response['detalles.' + index + '.carton_final'] !== 'undefined'){
-                                  mostrarErrorValidacion($('#carton_final'),'El campo no puede estar en blanco.' ,true);
-                       }
-                    })
-
-                }
-            });
-          }
-          else
-          {
-            //muestra mensaje de error por tener cantidad de detalles distintas en el inicio y cierre de sesión
-            errorCantidad();
-          }
+  if($('#cantidad_detalles').val() != detalles.length){
+    return modalCorrecta('ERROR: CANTIDAD DE DETALLES INVALIDA','La cantidad de detalles que contiene el inicio de sesión no coinciden con los de cierre.');
+  }
+  
+  console.log(formData);
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  $.ajax({
+    type: "POST",
+    url: state == 'crear'? 'bingo/guardarCierreSesion' : 'bingo/modificarCierreSesion',
+    data: formData,
+    dataType: 'json',
+    success: function (data) {
+      console.log(data);
+      if(state == 'crear'){
+        $('#mensajeExito p').text('La sesión fue CERRADA correctamente.');
+        $('#mensajeExito div').css('background-color','#4DB6AC');
+      }else{
+        $('#mensajeExito p').text('La sesión fue MODIFICADA correctamente.');
+        $('#mensajeExito div').css('background-color','#FFB74D');
+      }
+      $('#btn-buscar').click();
+      $('#frmCierreSesion').trigger("reset");
+      $('#modalCierreSesion').modal('hide');
+      //abre planilla cierre sesión
+      window.open('bingo/generarPlanillaCierreSesion');
+      //Mostrar éxito
+      $('#mensajeExito').show();
+    },
+    error: function (data) {
+      const response = data.responseJSON;
+      if(typeof response.pozo_dotacion_final !== 'undefined'){
+        mostrarErrorValidacion($('#pozo_dotacion_final'),'El campo no puede estar en blanco.' ,true);
+      }
+      if(typeof response.pozo_extra_final !== 'undefined'){
+        mostrarErrorValidacion($('#pozo_extra_final'),'El campo no puede estar en blanco.' ,true);
+      }
+      if(typeof response.fecha_fin !== 'undefined'){
+        mostrarErrorValidacion($('#fechaCierreSesion'),'El campo no puede estar en blanco.' ,true);
+      }
+      if(typeof response.hora_fin !== 'undefined'){
+        mostrarErrorValidacion($('#horaCierreSesion'),'El campo no puede estar en blanco.' ,true);
+      }
+      $('#columna2 #terminoCierreSesion').each(function(index,value){
+        if(typeof response[`detalles.${index}.valor_carton_f`] !== 'undefined'){
+          mostrarErrorValidacion($(this).find('#valor_carton_f'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response[`detalles.${index}.serie_final`] !== 'undefined'){
+          mostrarErrorValidacion($(this).find('#serie_final'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response[`detalles.${index}.carton_final`] !== 'undefined'){
+          mostrarErrorValidacion($(this).find('#carton_final'),'El campo no puede estar en blanco.' ,true);
+        }
+      });
+    }
+  });
 });
 
 //envio de datos a servidor relevamiento
 $('#btn-guardar-relevamiento').click(function (e) {
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    });
-
-    var detalles = []; //array para guardar los detalles del relevamiento
-    var id_sesion = $('#id_sesion').val();
-
     //guarda los detalles de la sesión en el array por termino
-    $('#columnaRelevamiento #terminoRelevamiento').each(function(){
+    const detalles = $('#columnaRelevamiento #terminoRelevamiento').each(function(){
         var termino = {
           nombre_premio: $(this).find('#nombre_premio').val(),
           carton_ganador: $(this).find('#carton_ganador').val(),
         }
         detalles.push(termino);
-    });
+    }).toArray();
 
     //datos a enviar
-    var formData = {
-      id_sesion: id_sesion,
-      nro_partida: $('#nro_partida').val(),
-      hora_jugada: $('#hora_jugada').val(),
-      valor_carton: $('#valor_carton_rel').val(),
-      serie_inicio: $('#serie_inicio').val(),
-      carton_inicio_i: $('#carton_inicio_i').val(),
-      carton_fin_i: $('#carton_fin_i').val(),
-      serie_fin: $('#serie_fin').val(),
-      carton_inicio_f: $('#carton_inicio_f').val(),
-      carton_fin_f: $('#carton_fin_f').val(),
+    const formData = {
+      id_sesion:         $('#id_sesion').val(),
+      nro_partida:       $('#nro_partida').val(),
+      hora_jugada:       $('#hora_jugada').val(),
+      valor_carton:      $('#valor_carton_rel').val(),
+      serie_inicio:      $('#serie_inicio').val(),
+      carton_inicio_i:   $('#carton_inicio_i').val(),
+      carton_fin_i:      $('#carton_fin_i').val(),
+      serie_fin:         $('#serie_fin').val(),
+      carton_inicio_f:   $('#carton_inicio_f').val(),
+      carton_fin_f:      $('#carton_fin_f').val(),
       cartones_vendidos: $('#cartones_vendidos').val(),
-      premio_linea: $('#premio_linea').val(),
-      premio_bingo: $('#premio_bingo').val(),
-      maxi_linea: $('#maxi_linea').val(),
-      maxi_bingo: $('#maxi_bingo').val(),
-      pos_bola_linea: $('#pos_bola_linea').val(),
-      pos_bola_bingo: $('#pos_bola_bingo').val(),
-      detalles:detalles,
+      premio_linea:      $('#premio_linea').val(),
+      premio_bingo:      $('#premio_bingo').val(),
+      maxi_linea:        $('#maxi_linea').val(),
+      maxi_bingo:        $('#maxi_bingo').val(),
+      pos_bola_linea:    $('#pos_bola_linea').val(),
+      pos_bola_bingo:    $('#pos_bola_bingo').val(),
+      detalles: detalles,
     }
 
-            var type = "POST";
-            var url = 'bingo/guardarRelevamiento';
-
-            console.log(formData);
-            $.ajax({
-                type: "POST",
-                url: url,
-                data: formData,
-                dataType: 'json',
-                success: function (data) {
-                    console.log(data);
-
-                    $('#mensajeExito p').text('El relevamiento fue CARGADO correctamente.');
-                    $('#mensajeExito div').css('background-color','#4DB6AC');
-
-                    $('#frmRelevamiento').trigger("reset");
-                    $('#modalRelevamiento').modal('hide');
-                    //Mostrar éxito
-                    $('#mensajeExito').show();
-                },
-                error: function (data) {
-                    var response = JSON.parse(data.responseText);
-                    console.log(response);
-                    $('#columna .row').each(function(index,value){
-
-                       if(typeof response.relevamiento_cerrado !== 'undefined'){
-                           errorSesionCerrada();
-                        }
-                      if(typeof response.partida_cargada !== 'undefined'){
-                            mostrarErrorValidacion($('#nro_partida'),response.partida_cargada[0] ,true);
-                        }
-                      if(typeof response.nro_partida !== 'undefined'){
-                          mostrarErrorValidacion($('#nro_partida'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.hora_jugada !== 'undefined'){
-                            mostrarErrorValidacion($('#hora_jugada'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.valor_carton !== 'undefined'){
-                              mostrarErrorValidacion($('#valor_carton'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.valor_carton !== 'undefined'){
-                              mostrarErrorValidacion($('#valor_carton'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.serie_inicio !== 'undefined'){
-                              mostrarErrorValidacion($('#serie_inicio'),'El campo no puede estar en blanco.' ,true);
-                        }
-                        if(typeof response.serie_fin !== 'undefined'){
-                                mostrarErrorValidacion($('#serie_fin'),'El campo no puede estar en blanco.' ,true);
-                          }
-                      if(typeof response.carton_inicio_i !== 'undefined'){
-                              mostrarErrorValidacion($('#carton_inicio_i'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.carton_fin_i !== 'undefined'){
-                                mostrarErrorValidacion($('#carton_fin_i'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.carton_inicio_f !== 'undefined'){
-                                mostrarErrorValidacion($('#carton_inicio_f'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.carton_fin_f !== 'undefined'){
-                                  mostrarErrorValidacion($('#carton_fin_f'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.cartones_vendidos !== 'undefined'){
-                                    mostrarErrorValidacion($('#cartones_vendidos'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.premio_linea !== 'undefined'){
-                                      mostrarErrorValidacion($('#premio_linea'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.premio_bingo !== 'undefined'){
-                                        mostrarErrorValidacion($('#premio_bingo'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.maxi_bingo !== 'undefined'){
-                                        mostrarErrorValidacion($('#maxi_bingo'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.maxi_linea !== 'undefined'){
-                                          mostrarErrorValidacion($('#maxi_linea'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.pos_bola_bingo !== 'undefined'){
-                                          mostrarErrorValidacion($('#pos_bola_bingo'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response.pos_bola_linea !== 'undefined'){
-                                            mostrarErrorValidacion($('#pos_bola_linea'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response['detalles.' + index + '.nombre_premio'] !== 'undefined'){
-                              mostrarErrorValidacion($('#nombre_premio'),'El campo no puede estar en blanco.' ,true);
-                        }
-                      if(typeof response['detalles.' + index + '.carton_ganador'] !== 'undefined'){
-                                mostrarErrorValidacion($('#carton_ganador'),'El campo no puede estar en blanco.' ,true);
-                        }
-
-                    })
-
-                }
-            });
+    console.log(formData);
+    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+    $.ajax({
+      type: "POST",
+      url: 'bingo/guardarRelevamiento',
+      data: formData,
+      dataType: 'json',
+      success: function (data) {
+        console.log(data);
+        $('#mensajeExito p').text('El relevamiento fue CARGADO correctamente.');
+        $('#mensajeExito div').css('background-color','#4DB6AC');
+        $('#frmRelevamiento').trigger("reset");
+        $('#modalRelevamiento').modal('hide');
+        //Mostrar éxito
+        $('#mensajeExito').show();
+      },
+      error: function (data) {
+        const response = data.responseJSON;
+        console.log(response);
+        if(typeof response.relevamiento_cerrado !== 'undefined'){
+          modalCorrecta('ERROR: LA SESIÓN SE ENCUENTRA CERRADA','No es posible cargar relevamientos en una sesión cerrada.');
+        }
+        if(typeof response.partida_cargada !== 'undefined'){
+          mostrarErrorValidacion($('#nro_partida'),response.partida_cargada[0] ,true);
+        }
+        if(typeof response.nro_partida !== 'undefined'){
+          mostrarErrorValidacion($('#nro_partida'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response.hora_jugada !== 'undefined'){
+          mostrarErrorValidacion($('#hora_jugada'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response.valor_carton !== 'undefined'){
+          mostrarErrorValidacion($('#valor_carton'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response.valor_carton !== 'undefined'){
+          mostrarErrorValidacion($('#valor_carton'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response.serie_inicio !== 'undefined'){
+          mostrarErrorValidacion($('#serie_inicio'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response.serie_fin !== 'undefined'){
+          mostrarErrorValidacion($('#serie_fin'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response.carton_inicio_i !== 'undefined'){
+          mostrarErrorValidacion($('#carton_inicio_i'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response.carton_fin_i !== 'undefined'){
+          mostrarErrorValidacion($('#carton_fin_i'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response.carton_inicio_f !== 'undefined'){
+          mostrarErrorValidacion($('#carton_inicio_f'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response.carton_fin_f !== 'undefined'){
+          mostrarErrorValidacion($('#carton_fin_f'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response.cartones_vendidos !== 'undefined'){
+          mostrarErrorValidacion($('#cartones_vendidos'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response.premio_linea !== 'undefined'){
+          mostrarErrorValidacion($('#premio_linea'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response.premio_bingo !== 'undefined'){
+          mostrarErrorValidacion($('#premio_bingo'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response.maxi_bingo !== 'undefined'){
+          mostrarErrorValidacion($('#maxi_bingo'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response.maxi_linea !== 'undefined'){
+          mostrarErrorValidacion($('#maxi_linea'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response.pos_bola_bingo !== 'undefined'){
+          mostrarErrorValidacion($('#pos_bola_bingo'),'El campo no puede estar en blanco.' ,true);
+        }
+        if(typeof response.pos_bola_linea !== 'undefined'){
+          mostrarErrorValidacion($('#pos_bola_linea'),'El campo no puede estar en blanco.' ,true);
+        }
+        $('#columnaRelevamiento #terminoRelevamiento').each(function(index,value){
+          if(typeof response[`detalles.${index}.nombre_premio`] !== 'undefined'){
+             mostrarErrorValidacion($(this).find('#nombre_premio'),'El campo no puede estar en blanco.' ,true);
+          }
+          if(typeof response[`detalles.${index}.carton_ganador`] !== 'undefined'){
+            mostrarErrorValidacion($(this).find('#carton_ganador'),'El campo no puede estar en blanco.' ,true);
+          }
+        });
+      }
+    });
 
 });
 
 //envio reabrir sesión
 $('#btn-abrirSesion').click(function (e) {
     var id = $(this).val();
-
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    })
     var formData = {
       motivo: $('#motivo-reapertura').val(),
     }
     console.log(formData);
+    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
     $.ajax({
         type: "POST",
         data: formData,
@@ -961,12 +536,11 @@ $('#btn-abrirSesion').click(function (e) {
         error: function (data) {
           var response = JSON.parse(data.responseText);
           if(typeof response.no_tiene_permiso !== 'undefined'){
-              errorPermiso();
-            }
+            modalCorrecta('ERROR: NO TIENE PERMISOS','Su usuario no tiene los permisos necesarios para realizar esta acción.');
+          }
           if(typeof response.motivo !== 'undefined'){
-              mostrarErrorValidacion($('#motivo-reapertura'),'El campo no puede estar en blanco.' ,true);
-            }
-
+            mostrarErrorValidacion($('#motivo-reapertura'),'El campo no puede estar en blanco.' ,true);
+          }
           console.log('Error: ', data);
         }
     });
@@ -974,38 +548,33 @@ $('#btn-abrirSesion').click(function (e) {
 
 //busqueda
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
-
   e.preventDefault();
 
   //Fix error cuando librería saca los selectores
-  if(isNaN($('#herramientasPaginacion').getPageSize())){
-    var size = 10; // por defecto
-  }else {
-    var size = $('#herramientasPaginacion').getPageSize();
+  let size = 10;
+  if(!isNaN($('#herramientasPaginacion').getPageSize())){
+    size = $('#herramientasPaginacion').getPageSize();
   }
 
-  var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
-  // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
-  var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-  var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
+  page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
+  const page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+  const sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultados .activa').attr('value'),orden: $('#tablaResultados .activa').attr('estado')} ;
   if(sort_by == null){ // limpio las columnas
     $('#tablaResultados th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
   }
-  var formData = {
+  const formData = {
     fecha: $('#buscadorFecha').val(),
     estado: $('#buscadorEstado').val(),
     casino: $('#buscadorCasino').val(),
     page: page_number,
     sort_by: sort_by,
     page_size: page_size,
-  }
-
-  $.ajax({
+  };
+  
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  $.get('relevamientos/chequearRolFiscalizador', function(rolfisca){
+    puede_cerrar_sesion_y_eliminar = rolfisca != 1;//@HACK: eliminar las globales pasandolo a la vista
+    $.ajax({
       type: 'GET',
       url: 'bingo/buscarSesion',
       data: formData,
@@ -1022,6 +591,8 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
         console.log('Error:', data);
       }
     });
+  });
+
 });
 
 $(document).on('click','#tablaResultados thead tr th[value]',function(e){
@@ -1046,177 +617,73 @@ $(document).on('click' , '.cerrarSesion' , function() {
   $('#btn-agregarTerminoFinal').hide();
   $('#borrarTerminoFinal').hide();
   console.log("cerrar/abrir");
-    $('#id_sesion').val($(this).val());
-    var id_sesion = $('#id_sesion').val();
-
-    var estado = $('.estado-'+ id_sesion).text(); // obtengo el estado desde el texto del td de la sesión
-    //Si la sesión está cerrada, llama al modal para confirmar.
-    $('#btn-guardar-cierre').removeClass();
-    if( estado == 'CERRADA'){
-      reAbrirSesion(id_sesion);
-    }else{
-      cargarDatosCierreSesion(id_sesion); // si se reabrio la sesion, cargo los datos y sino, solo el casino al que pertenece
-      cantidadDetalles(id_sesion); //cargo la cantidad de detalles
-      $('.terminoCierreSesion').remove();
-      $('#modalCierreSesion .modal-title').text('| CERRAR SESIÓN');
-      $('#modalCierreSesion .modal-header').attr('style','font-family: Roboto-Black; background-color: #46b8da; color: #fff');
-      $('#frmCierreSesion').trigger('reset');
-      $('#btn-guardar-cierre').removeClass();
-
-      // document.querySelector("#fechaCierreSesion").valueAsDate = new Date();
-      // let h =new Date();
-      // let hora = h.getHours() + ":" + h.getMinutes() + ":" + h.getSeconds();
-      // document.querySelector("#horaCierreSesion").value = hora;
-
-      $('#btn-guardar-cierre').addClass('btn btn-informacion');
-      $('#modalCierreSesion').modal('show');
-    }
+  const id_sesion = $(this).val();
+  $('#id_sesion').val(id_sesion);
+  const estado = $(`.estado-${id_sesion}`).text(); // obtengo el estado desde el texto del td de la sesión
+  //Si la sesión está cerrada, llama al modal para confirmar.
+  $('#btn-guardar-cierre').removeClass();
+  if(estado == 'CERRADA'){
+    return reAbrirSesion(id_sesion);
+  }
+  cargarDatosCierreSesion(id_sesion); // si se reabrio la sesion, cargo los datos y sino, solo el casino al que pertenece
+  cantidadDetalles(id_sesion); //cargo la cantidad de detalles
+  $('.terminoCierreSesion').remove();
+  $('#frmCierreSesion').trigger('reset');
+  $('#btn-guardar-cierre').removeClass();
+  $('#btn-guardar-cierre').addClass('btn btn-informacion');
+  $('#modalCierreSesion').modal('show');
 })
 
 //Mostral modal para carga de relevamientos
 $(document).on('click' , '.relevamientos' , function() {
-    console.log("relevamientos");
-    $('#id_sesion').val($(this).val());
-    var id_sesion = $('#id_sesion').val();
-
-    $('.terminoRelevamiento').remove();
-    $('#modalRelevamiento .modal-title').text('| CARGAR RELEVAMIENTO');
-    $('#modalRelevamiento .modal-header').attr('style','font-family: Roboto-Black; background-color: #46b8da; color: #fff');
-    $('#frmRelevamiento').trigger('reset');
-    $('#btn-relevamiento').removeClass();
-    $('#btn-relevamiento').addClass('btn btn-informacion');
-    $('#modalRelevamiento').modal('show');
-
+  console.log("relevamientos");
+  const id_sesion = $(this).val();
+  $('#id_sesion').val(id_sesion);
+  $('.terminoRelevamiento').remove();
+  $('#frmRelevamiento').trigger('reset');
+  $('#btn-relevamiento').removeClass();
+  $('#btn-relevamiento').addClass('btn btn-informacion');
+  $('#modalRelevamiento').modal('show');
 })
 
 //Mostral modal con detalles y relevamientos de la sesión
 $(document).on('click' , '.detallesRel' , function() {
-    console.log("detallesRel");
-    $('#id_sesion').val($(this).val());
-    var id_sesion = $('#id_sesion').val();
+  console.log("detallesRel");
+  $('#terminoDatos2,#cuerpoTablaRel,#cuerpoTablaHis').remove();
+  $('#terminoDetallesRel').append($('<div>').attr('id', 'terminoDatos2'));
+  $('#tablaResultadosRel').append($('<tbody>').attr('id', 'cuerpoTablaRel'));
+  $('#tablaResultadosHis').append($('<tbody>').attr('id', 'cuerpoTablaHis'));
+  
+  const id_sesion = $(this).val();
+  $('#id_sesion').val(id_sesion);
 
-    $('#terminoDatos2').remove();
-    $('#terminoDetallesRel').append($('<div>').attr('id', 'terminoDatos2'));
-
-
-    $('#modalDetallesRel .modal-header').attr('style','font-family: Roboto-Black; background-color: #46b8da; color: #fff');
-
-     $('#cuerpoTablaRel').remove();
-     $('#cuerpoTablaHis').remove();
-     $('#tablaResultadosRel').append($('<tbody>').attr('id', 'cuerpoTablaRel'));
-     $('#tablaResultadosHis').append($('<tbody>').attr('id', 'cuerpoTablaHis'));
-
-    $.get("bingo/obtenerSesion/" + id_sesion, function(data){
-        console.log(data);
-        $('#modalDetallesRel .modal-title').text('| DETALLES SESIÓN ' + data.sesion.fecha_inicio);
-        $('#modalDetallesRel').modal('show');
-
-        //detalles sesion
-        $('#pozo_dotacion_inicial_d').val(data.sesion.pozo_dotacion_inicial).attr('readonly','readonly');
-        $('#pozo_extra_inicial_d').val(data.sesion.pozo_extra_inicial).attr('readonly','readonly');
-
-        if(data.sesion.pozo_dotacion_final == null){
-          $('#pozo_dotacion_final_d').val('-').attr('readonly','readonly');
-        }else{
-          $('#pozo_dotacion_final_d').val(data.sesion.pozo_dotacion_final).attr('readonly','readonly');
-        }
-
-        if(data.sesion.pozo_extra_final == null){
-          $('#pozo_extra_final_d').val('-').attr('readonly','readonly');
-        }else{
-          $('#pozo_extra_final_d').val(data.sesion.pozo_extra_final).attr('readonly','readonly');
-        }
-        //ocultar fila acción e icono eliminar partida si es fiscalizador
-        $.get('relevamientos/chequearRolFiscalizador', function(data){
-          if(data==1){
-            $('.borrarPartida').hide();
-            $('#accionesResultadoRel').hide();
-          }
-        })
-        //genera los input con detalles de sesión
-        console.log(data.detalles[0]);
-        for (var i = 0; i < data.detalles.length; i++){
-          console.log(data.detalles[i]);
-            $('#terminoDatos2').append(generarFilaDetallesSesion(data.detalles[i]));
-        }
-        //genera la tabla con los relevamientos cargados
-        for (var i = 0; i < data.partidas.length; i++){
-          $('#cuerpoTablaRel').append(generarFilaTablaRel(data.partidas[i]));
-        }
-        //genera la tabla con el historial de cambios
-        for (var i = 0; i < data.historico.length; i++){
-          $('#cuerpoTablaHis').append(generarFilaTablaHis(data.historico[i]));
-        }
-
-      });
-
+  $.get("bingo/obtenerSesion/" + id_sesion, function(data){
+    console.log(data);
+    $('#modalDetallesRel .modal-title').text('| DETALLES SESIÓN ' + data.sesion.fecha_inicio);
+    
+    //detalles sesion
+    $('#pozo_dotacion_inicial_d').val(data.sesion.pozo_dotacion_inicial).attr('readonly','readonly');
+    $('#pozo_extra_inicial_d').val(data.sesion.pozo_extra_inicial).attr('readonly','readonly');
+    function ifnull(val,dflt='-'){ return val == null? val : dflt; };//Por si tienen navegadores viejos... igual que el operador "??"
+    $('#pozo_dotacion_final_d').val(ifnull(data.sesion.pozo_dotacion_final)).attr('readonly','readonly');
+    $('#pozo_extra_final_d').val(ifnull(data.sesion.pozo_extra_final)).attr('readonly','readonly');
+    //ocultar fila acción e icono eliminar partida si es fiscalizador
+    $.get('relevamientos/chequearRolFiscalizador', function(data){
+      $('.borrarPartida,#accionesResultadoRel').toggle(data!=1);
+    })
+    //genera los input con detalles de sesión
+    for(const i in data.detalles){
+      $('#terminoDatos2').append(generarFilaDetallesSesion(data.detalles[i]));
+    }
+    for(const i in data.partidas){
+      $('#cuerpoTablaRel').append(generarFilaTablaRel(data.partidas[i]));
+    }
+    for(const i in data.historico){
+      $('#cuerpoTablaHis').append(generarFilaTablaHis(data.historico[i]));
+    }
+    $('#modalDetallesRel').modal('show');
+  });
 })
-
-//genera la fila de  detalles
-function generarFilaDetallesSesion(detalle){
-  var fila =
-   $(document.createElement('div'))
-          .addClass('row')
-          .css('padding-top' ,'15px')
-        .append($('<div>')
-              .addClass('col-lg-2')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','valor_carton_f')
-                  .attr('type','text')
-                  .attr('disabled','disabled')
-                  .attr('value', detalle.valor_carton)
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-2')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','serie_inicial_f')
-                  .attr('type','text')
-                  .attr('disabled','disabled')
-                  .attr('value', detalle.serie_inicio)
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-2')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','carton_inicial_f')
-                  .attr('type','text')
-                  .attr('disabled','disabled')
-                  .attr('value', detalle.carton_inicio)
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-2')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','serie_final_f')
-                  .attr('type','text')
-                  .attr('disabled','disabled')
-                  .attr('value', detalle.serie_fin)
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-2')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','carton_final_f')
-                  .attr('type','text')
-                  .attr('disabled','disabled')
-                  .attr('value', detalle.carton_fin)
-                  .addClass('form-control')
-              )
-          )
-
-      return fila;
-
-}
 
 function clickIndice(e,pageNumber,tam){
   if(e != null){
@@ -1228,287 +695,112 @@ function clickIndice(e,pageNumber,tam){
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
+//Hacerlo estatico a la view
+puede_cerrar_sesion_y_eliminar = false;
+
 //Genero las filas con los datos. Recibe una sesion para la busqueda y un "valor" como bandera para determinar si búsqueda o de guardado.
 //Estado y casino sólo se utilizan en caso de valor='guardar'
 function generarFilaTabla(sesion, estado, casino,nombre_inicio, nombre_fin, valor){
+  const hora_fin = sesion.hora_fin == null  || sesion.id_usuario_fin == null? '-' : sesion.hora_fin;    
+  const pozo_dotacion_final = sesion.pozo_dotacion_final == null ? '-' : sesion.pozo_dotacion_final;
+  const pozo_extra_final =  sesion.pozo_extra_final == null ? '-' : sesion.pozo_extra_final;
+  const estado_sesion =  valor == 'buscar' ? sesion.descripcion : estado.descripcion;
+  casino = valor == 'buscar' ? sesion.nombre : casino.nombre;
+  const nombre_i = valor == 'guardar' ? nombre_inicio : sesion.nombre_inicio;
+  const nombre_f = valor == 'guardar' || (valor == 'buscar' && sesion.nombre_fin == null)? nombre_fin : sesion.nombre_fin;
+  
+  const puede_ver_relevamientos_y_modificar = sesion.id_estado != 2;
 
-  //Variables para cargar los datos correctamente y corregir en caso de no existir el dato(sesion abierta)
-    var hora_fin;
-    sesion.hora_fin == null ? hora_fin = '-' : hora_fin= sesion.hora_fin;
-    if(sesion.id_usuario_fin == null) hora_fin = '-';
-    var pozo_dotacion_final;
-    sesion.pozo_dotacion_final == null ? pozo_dotacion_final = '-' : pozo_dotacion_final = sesion.pozo_dotacion_final;
-    var pozo_extra_final;
-    sesion.pozo_extra_final == null ? pozo_extra_final = '-' : pozo_extra_final = sesion.pozo_extra_final;
-    var estado_sesion;
-    valor == 'buscar' ? estado_sesion = sesion.descripcion : estado_sesion = estado.descripcion;
-    var casino;
-    valor == 'buscar' ? casino = sesion.nombre : casino = casino.nombre;
-    var nombre_i;
-    valor == 'guardar' ? nombre_i = nombre_inicio : nombre_i = sesion.nombre_inicio;
-    var nombre_f;
-    valor == 'guardar' ? nombre_f = nombre_fin : nombre_f = sesion.nombre_fin;
-    if (valor == 'buscar' && sesion.nombre_fin == null) nombre_f = '-';
-
-      var fila = $(document.createElement('tr'));
-          fila.attr('id', sesion.id_sesion)
-            .append($('<td>')
-            .addClass('col-xs-2')
-                .text(sesion.fecha_inicio)
-            )
-            .append($('<td>')
-              .addClass('col-xs-1')
-
-              .text(sesion.hora_inicio)
-            )
-            .append($('<td>')
-              .addClass('col-xs-1')
-
-              .text(casino)
-            )
-            .append($('<td>')
-              .addClass('col-xs-2')
-
-              .text(nombre_i)
-            )
-            .append($('<td>')
-              .addClass('col-xs-1')
-
-              .text(hora_fin)
-            )
-            .append($('<td>')
-              .addClass('col-xs-2')
-
-              .text(nombre_f)
-            )
-            .append($('<td>')
-              .addClass('col-xs-1')
-              .addClass('estado-'+ sesion.id_sesion)
-              .text(estado_sesion)
-            )
-            .append($('<td>')
-              .addClass('col-xs-2')
-                .append($('<button>')
-                    .append($('<i>')
-                        .addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt')
-                    )
-                    .append($('<span>').text(' MODIFICAR'))
-                    .addClass('btn').addClass('btn-warning').addClass('btn-detalle').addClass('modificar')
-                    .attr('value',sesion.id_sesion)
-                )
-                  .append($('<span>').text(' '))
-                  .append($('<button>')
-                      .append($('<i>')
-                          .addClass('fa')
-                          .addClass('fa-paperclip')
-                      )
-                      .addClass('btn').addClass('btn-detalle').addClass('btn-info').addClass('relevamientos')
-                      .attr('value',sesion.id_sesion)
-                  )
-                .append($('<span>').text(' '))
-                .append($('<button>')
-                    .append($('<i>')
-                        .addClass('fas')
-                        .addClass('fa-wrench')
-                    )
-                    .append($('<span>').text('CERRAR SESIÓN'))
-                    .addClass('btn').addClass('btn-success').addClass('btn-cerrarSesion').addClass('cerrarSesion')
-                    .attr('value',sesion.id_sesion)
-                )
-                .append($('<span>').text(' '))
-                .append($('<button>')
-                    .append($('<i>')
-                        .addClass('fa').addClass('fa-fw')
-                        .addClass('fa-search-plus')
-                    )
-                    .append($('<span>').text('DETALLES'))
-                    .addClass('btn').addClass('btn-success').addClass('btn-detallesRel').addClass('detallesRel')
-                    .attr('value',sesion.id_sesion)
-                )
-                .append($('<span>').text(' '))
-                .append($('<button>')
-                    .append($('<i>')
-                        .addClass('fa')
-                        .addClass('fa-trash-alt')
-                    )
-                    .append($('<span>').text(' ELIMINAR'))
-                    .addClass('btn').addClass('btn-danger').addClass('btn-borrar').addClass('eliminar')
-                    .attr('value',sesion.id_sesion)
-                )
-            )
-
-
-            //ocultar botones de cargar relevamientos y modificar la sesion si la sesión se encuentra cerrada
-            if( sesion.id_estado == 2){
-              fila.find('.relevamientos').hide();
-              fila.find('.modificar').hide();
-
-              //ocultar boton para re abrir sesión  y eliminar si es fizcalizador
-              $.get('relevamientos/chequearRolFiscalizador', function(data){
-                if(data==1){
-                  fila.find('.cerrarSesion').hide();
-                  fila.find('.eliminar').hide();
-                }
-              })
-            }
-
-      return fila;
+  return $('<tr>').attr('id', sesion.id_sesion)
+  .append($('<td>').addClass('col-xs-2').text(sesion.fecha_inicio))
+  .append($('<td>').addClass('col-xs-1').text(sesion.hora_inicio))
+  .append($('<td>').addClass('col-xs-1').text(casino))
+  .append($('<td>').addClass('col-xs-2').text(nombre_i))
+  .append($('<td>').addClass('col-xs-1').text(hora_fin))
+  .append($('<td>').addClass('col-xs-2').text(nombre_f))
+  .append($('<td>').addClass('col-xs-1').addClass('estado-'+ sesion.id_sesion).text(estado_sesion))
+  .append($('<td>').addClass('col-xs-2')
+    .append(
+      $('<button>').attr('value',sesion.id_sesion).addClass('btn btn-warning btn-detalle modificar')
+      .attr('title','MODIFICAR').toggle(puede_ver_relevamientos_y_modificar)
+      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt'))
+    )
+    .append(
+      $('<button>').attr('value',sesion.id_sesion).addClass('btn btn-detalle btn-info relevamientos')
+      .attr('title','RELEVAMIENTOS').toggle(puede_ver_relevamientos_y_modificar)
+      .append($('<i>').addClass('fa').addClass('fa-paperclip'))
+    )
+    .append(
+      $('<button>').attr('value',sesion.id_sesion).addClass('btn btn-success btn-cerrarSesion cerrarSesion')
+      .attr('title','CERRAR SESIÓN').toggle(puede_cerrar_sesion_y_eliminar)
+      .append($('<i>').addClass('fas fa-wrench'))
+    )
+    .append(
+      $('<button>').attr('value',sesion.id_sesion).addClass('btn btn-success btn-detallesRel detallesRel')
+      .attr('title','DETALLES')
+      .append($('<i>').addClass('fa fa-fw fa-search-plus'))
+    )
+    .append(
+      $('<button>').attr('value',sesion.id_sesion).addClass('btn btn-danger btn-borrar eliminar')
+      .attr('title','ELIMINAR').toggle(puede_cerrar_sesion_y_eliminar)
+      .append($('<i>').addClass('fa fa-trash-alt'))
+    )
+  );
 }
+
 //Generar fila con los datos de las partidas
 function generarFilaTablaRel(partida){
-  console.log(partida);
-  var fila = $(document.createElement('tr'));
-      fila.attr('id', partida[0].id_partida)
-        .append($('<td>')
-        .addClass('col')
-            .text(partida[0].num_partida)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(partida[0].hora_inicio)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(partida[0].serie_inicio)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(partida[0].carton_inicio_i)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(partida[0].carton_fin_i)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(partida[0].serie_fin)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(partida[0].carton_inicio_f)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(partida[0].carton_fin_f)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(partida[0].cartones_vendidos)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(partida[0].valor_carton)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(partida[0].bola_linea)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(partida[0].bola_bingo)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(partida[0].premio_linea)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(partida[0].premio_bingo)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(partida[0].pozo_dot)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(partida[0].pozo_extra)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(partida[1])
-        )
-        .append($('<td>')
-            .addClass('col')
-            .css('padding-right','0px')
-            .append($('<button>')
-                .addClass('borrarPartida')
-                .addClass('btn')
-                .addClass('btn-danger')
-                .css('margin-top','6px')
-                .attr('type','button')
-                .attr('value',partida[0].id_partida)
-                .append($('<i>')
-                    .addClass('fa')
-                    .addClass('fa-trash')
-                )
-            )
-        )
-
-        return fila;
+  return $('<tr>').attr('id', partida[0].id_partida)
+  .append($('<td>').addClass('col').text(partida[0].num_partida))
+  .append($('<td>').addClass('col').text(partida[0].hora_inicio))
+  .append($('<td>').addClass('col').text(partida[0].serie_inicio))
+  .append($('<td>').addClass('col').text(partida[0].carton_inicio_i))
+  .append($('<td>').addClass('col').text(partida[0].carton_fin_i))
+  .append($('<td>').addClass('col').text(partida[0].serie_fin))
+  .append($('<td>').addClass('col').text(partida[0].carton_inicio_f))
+  .append($('<td>').addClass('col').text(partida[0].carton_fin_f))
+  .append($('<td>').addClass('col').text(partida[0].cartones_vendidos))
+  .append($('<td>').addClass('col').text(partida[0].valor_carton))
+  .append($('<td>').addClass('col').text(partida[0].bola_linea))
+  .append($('<td>').addClass('col').text(partida[0].bola_bingo))
+  .append($('<td>').addClass('col').text(partida[0].premio_linea))
+  .append($('<td>').addClass('col').text(partida[0].premio_bingo))
+  .append($('<td>').addClass('col').text(partida[0].pozo_dot))
+  .append($('<td>').addClass('col').text(partida[0].pozo_extra))
+  .append($('<td>').addClass('col').text(partida[1]))
+  .append($('<td>').addClass('col').css('padding-right','0px').append(
+      $('<button>').addClass('borrarPartida btn btn-danger').css('margin-top','6px')
+      .attr('type','button').attr('value',partida[0].id_partida)
+      .append($('<i>').addClass('fa fa-trash'))
+    )
+  );
 }
+
 //Generar fila con los datos de historico
 function generarFilaTablaHis(historico){
-  var fecha_inicio
-  historico.fecha_inicio == null ? fecha_inicio = '-' : fecha_inicio = historico.fecha_inicio;
-  var hora_inicio
-  historico.hora_inicio == null ? hora_inicio = '-' : hora_inicio = historico.hora_inicio;
-  var fecha_fin
-  historico.fecha_fin == null ? fecha_fin = '-' : fecha_fin = historico.fecha_fin;
+  const fecha_inicio = historico.fecha_inicio == null ? '-' : historico.fecha_inicio;
+  const hora_inicio  = historico.hora_inicio == null  ? '-' : historico.hora_inicio;
+  const fecha_fin    = historico.fecha_fin == null    ? '-' : historico.fecha_fin;
 
-  var fila = $(document.createElement('tr'));
-      fila.attr('id', historico.id_sesion_re)
-        .append($('<td>')
-        .addClass('col')
-            .text(historico.fecha_re)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(historico.nombre_inicio)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(fecha_inicio)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(hora_inicio)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(historico.pozo_dotacion_inicial)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(historico.pozo_extra_inicial)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(historico.nombre_fin)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(fecha_fin)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(historico.hora_fin)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(historico.pozo_dotacion_final)
-        )
-        .append($('<td>')
-          .addClass('col')
-          .text(historico.pozo_extra_final)
-        )
-        return fila;
+  return $('<tr>').attr('id', historico.id_sesion_re)
+  .append($('<td>').addClass('col').text(historico.fecha_re))
+  .append($('<td>').addClass('col').text(historico.nombre_inicio))
+  .append($('<td>').addClass('col').text(fecha_inicio))
+  .append($('<td>').addClass('col').text(hora_inicio))
+  .append($('<td>').addClass('col').text(historico.pozo_dotacion_inicial))
+  .append($('<td>').addClass('col').text(historico.pozo_extra_inicial))
+  .append($('<td>').addClass('col').text(historico.nombre_fin))
+  .append($('<td>').addClass('col').text(fecha_fin))
+  .append($('<td>').addClass('col').text(historico.hora_fin))
+  .append($('<td>').addClass('col').text(historico.pozo_dotacion_final))
+  .append($('<td>').addClass('col').text(historico.pozo_extra_final));
 }
 //Carga la cantidad de detalles del inicio de sesion
 function cantidadDetalles(id_sesion){
   $.ajax({
-      url: "bingo/obtenerSesion/" + id_sesion,
-      method: 'GET',
-      type: 'JSON'
+    url: "bingo/obtenerSesion/" + id_sesion,
+    method: 'GET',
+    type: 'JSON'
   }).done(function(data) {
       $('#cantidad_detalles').attr('value', data.detalles.length);
   });
@@ -1516,330 +808,177 @@ function cantidadDetalles(id_sesion){
 //Carga la cantidad de partidas inicio de sesion
 function cantidadPartidas(id_sesion){
   $.ajax({
-      url: "bingo/obtenerSesion/" + id_sesion,
-      method: 'GET',
-      type: 'JSON'
+    url: "bingo/obtenerSesion/" + id_sesion,
+    method: 'GET',
+    type: 'JSON'
   }).done(function(data) {
-    if(data.partidas.length > 0) advertenciaEliminarSesion();
+    if(data.partidas.length > 0){
+      modalCorrecta('ADVERTENCIA','La sesión que está queriendo eliminar contiene relevamientos cargados.');
+    }
   });
 }
-//Mensaje de error por cantidad de detalles distintas de inicio y cierre de sesión
-function errorCantidad() {
-  $('.modal-title-correcta').text('ERROR: CANTIDAD DE DETALLES INVALIDA');
-  $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
+
+function modalCorrecta(title,msj){
+  $('#modalCorrecta .modal-title-correcta').text(title);
+  $('#mensajeCorrecta').text(msj);
   $('#modalCorrecta').modal('show');
-  $('#mensajeCorrecta').text('La cantidad de detalles que contiene el inicio de sesión no coinciden con los de cierre.');
-}
-//Mensaje de error no tiene permisos
-function errorPermiso() {
-  $('.modal-title-correcta').text('ERROR: NO TIENE PERMISOS');
-  $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
-  $('#modalCorrecta').modal('show');
-  $('#mensajeCorrecta').text('Su usuario no tiene los permisos necesarios para realizar esta acción.');
-}
-//Mensaje de error por cantidad de detalles distintas de inicio y cierre de sesión
-function advertenciaEliminarSesion() {
-  $('.modal-title-correcta').text('ADVERTENCIA');
-  $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
-  $('#modalCorrecta').modal('show');
-  $('#mensajeCorrecta').text('La sesión que está queriendo eliminar contiene relevamientos cargados.');
-}
-//Mensaje de error no se puede cargar relevamientos en una sesion cerrada
-function errorSesionCerrada() {
-  $('.modal-title-correcta').text('ERROR: LA SESIÓN SE ENCUENTRA CERRADA');
-  $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
-  $('#modalCorrecta').modal('show');
-  $('#mensajeCorrecta').text('No es posible cargar relevamientos en una sesión cerrada.');
-}
-//Mensaje de aviso al querer abrir una sesión si ya se ha abierto una en el día
-function avisoSesionAbierta() {
-  $('.modal-title-correcta').text('ADVERTENCIA: YA SE HA ABIERTO UNA SESIÓN EL DÍA DE HOY.');
-  $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
-  $('#modalCorrecta').modal('show');
-  $('#mensajeCorrecta').text('Ya se ha realizado la apertura de una sesión para el día de hoy.');
 }
 //Modal de aviso reAbrirSesion
 function reAbrirSesion(id_sesion){
-    $('.modal-titleAbrirSesion').text('ADVERTENCIA');
-    // $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
-    $('#btn-abrirSesion').val(id_sesion);
-    $('#modalAbrirSesion').modal('show');
-      $('#frmMotivos').trigger('reset');
-    $('#mensajeAbrirSesion').text('Esta seguro que desea reabrir la sesión? Por favor, ingrese el motivo.');
+  $('.modal-titleAbrirSesion').text('ADVERTENCIA');
+  $('#btn-abrirSesion').val(id_sesion);
+  $('#modalAbrirSesion').modal('show');
+  $('#frmMotivos').trigger('reset');
+  $('#mensajeAbrirSesion').text('Esta seguro que desea reabrir la sesión? Por favor, ingrese el motivo.');
 }
-//Calculo de feecha de hoy
-function fechaHoy(){
-    var hoy = new Date();
-        var dd = hoy.getDate();
-        var mm = hoy.getMonth()+1;
-        var yyyy = hoy.getFullYear();
 
-        dd = addZero(dd);
-        mm = addZero(mm);
-
-        return yyyy+'-'+mm+'-'+dd;
-}
-//Función auxiliar para agregar los ceros a la fecha
-function addZero(i) {
-    if (i < 10) {
-        i = '0' + i;
-    }
-    return i;
-}
 //Cargar los datos que contiene una sesion re abierta
 function cargarDatosCierreSesion(id_sesion){
   $.get("bingo/obtenerSesion/" + id_sesion, function(data){
-      if(data.sesion.pozo_dotacion_final != null){   //solo si tiene datos lleno el formulario
-        $('#id_sesion').val(id_sesion);//campo oculto
+    if(data.sesion.pozo_dotacion_final != null){   //solo si tiene datos lleno el formulario
+      $('#id_sesion').val(id_sesion);//campo oculto
 
-        $('#pozo_dotacion_final').val(data.sesion.pozo_dotacion_final);
-        $('#pozo_extra_final').val(data.sesion.pozo_extra_final);
-        $('#fechaCierreSesion').val(data.sesion.fecha_fin);
-        $('#horaCierreSesion').val(data.sesion.hora_fin);
+      $('#pozo_dotacion_final').val(data.sesion.pozo_dotacion_final);
+      $('#pozo_extra_final').val(data.sesion.pozo_extra_final);
+      $('#fechaCierreSesion').val(data.sesion.fecha_fin);
+      $('#horaCierreSesion').val(data.sesion.hora_fin);
 
-        $('#valor_carton_f').val(data.detalles[0].valor_carton).attr('disabled','disabled');
-        $('#serie_final').val(data.detalles[0].serie_fin);
-        $('#carton_final').val(data.detalles[0].carton_fin);
+      $('#valor_carton_f').val(data.detalles[0].valor_carton).attr('disabled','disabled');
+      $('#serie_final').val(data.detalles[0].serie_fin);
+      $('#carton_final').val(data.detalles[0].carton_fin);
 
-        $('#btn-guardar-cierre').val("modificar");
-        console.log(data);
-        var cantidad = data.detalles.length - 1; //cantidad de detalles -1 que ya se utilizo
-         for (var i = 0; i < cantidad; i++){
-           cargarDetallesCierreSesion(data.detalles[i+1]);
-         }
-          } else{
-          $('#btn-guardar-cierre').val("crear");
-      // }
+      $('#btn-guardar-cierre').val("modificar");
+      console.log(data);
+      var cantidad = data.detalles.length - 1; //cantidad de detalles -1 que ya se utilizo
+      for (var i = 0; i < cantidad; i++){
+       cargarDetallesCierreSesion(data.detalles[i+1]);
+      }
+    }
+    else{
+      $('#btn-guardar-cierre').val("crear");
       $('#casino_cierre').val(data.sesion.id_casino);
       $('#valor_carton_f').val(data.detalles[0].valor_carton).attr('disabled','disabled');
       $('#valor_carton_f').attr('disabled','disabled');
 
       var cantidad = data.detalles.length - 1; //cantidad de detalles -1 que ya se utilizo
-       for (var i = 0; i < cantidad; i++){
-         cargarDetallesValCarton(data.detalles[i+1].valor_carton);
-       }
-       }
-    });
+      for (var i = 0; i < cantidad; i++){
+        cargarDetallesValCarton(data.detalles[i+1].valor_carton);
+      }
+    }
+  });
 }
+
+//genera la fila de  detalles
+function generarFilaDetallesSesion(detalle){
+  const div_input = function(id_input,val=''){
+    return $('<div>').addClass('col-lg-2').append(
+      $('<input>').attr('placeholder' , '').attr('disabled','disabled')
+      .attr('id',id_input).attr('type','text')
+      .addClass('form-control').val(val)
+    );
+  };
+  return $('<div>').addClass('row').css('padding-top' ,'15px')
+  .append(div_input('valor_carton_f',detalle.valor_carton))
+  .append(div_input('serie_inicial_f',detalle.serie_inicio))
+  .append(div_input('carton_inicial_f',detalle.carton_inicio))
+  .append(div_input('serie_final_f',detalle.serie_fin))
+  .append(div_input('carton_final_f',detalle.carton_fin));
+}
+
 //cargar filas detalles ciere de sesion con valores de carton
-function cargarDetallesValCarton(valor_carton){
-  // $('#columna2').append('<br>');
-  $('#columna2')
-      .append($('<div>')
-          .addClass('row')
-          .addClass('terminoCierreSesion')
-          .css('margin-bottom','15px')
-          .attr('id','terminoCierreSesion')
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','valor_carton_f')
-                  .attr('disabled','disabled')
-                  .attr('type','text')
-                  .attr('value', valor_carton)
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','serie_final')
-                  .attr('type','text')
-                  .attr('value', '')
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','carton_final')
-                  .attr('type','text')
-                  .attr('value', '')
-                  .addClass('form-control')
-              )
-          )
-
-
-
-      )
+function cargarDetallesValCarton(valor_carton){  
+  fila_valores(false,$('#columna2'),'terminoCierreSesion','terminoCierreSesion',{valor_carton: valor_carton});
 }
 //cargar filas detalles ciere de sesion al reabrir
-function cargarDetallesCierreSesion(detalle){
-  // $('#columna2').append('<br>');
-  $('#columna2')
-      .append($('<div>')
-          .addClass('row')
-          .addClass('terminoCierreSesion')
-          .css('margin-bottom','15px')
-          .attr('id','terminoCierreSesion')
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('disabled','disabled')
-                  .attr('id','valor_carton_f')
-                  .attr('type','text')
-                  .attr('value', detalle.valor_carton)
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','serie_final')
-                  .attr('type','text')
-                  .attr('value', detalle.serie_fin)
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','carton_final')
-                  .attr('type','text')
-                  .attr('value', detalle.carton_fin)
-                  .addClass('form-control')
-              )
-          )
-          // .append($('<div>')
-          //     .addClass('col-xs-3')
-          //     .css('padding-right','0px')
-          //     .append($('<button>')
-          //         .addClass('borrarTerminoFinal')
-          //         .addClass('borrarFila')
-          //         .addClass('btn')
-          //         .addClass('btn-danger')
-          //         .css('margin-top','6px')
-          //         .attr('type','button')
-          //         .append($('<i>')
-          //             .addClass('fa')
-          //             .addClass('fa-trash')
-          //         )
-          //     )
-          // )
-
-
-      )
+function cargarDetallesCierreSesion(detalle){  
+  fila_valores(false,$('#columna2'),'terminoCierreSesion','terminoCierreSesion',detalle);
 }
 //cargar filas detalles inicio de sesion para editar
 function cargarDetallesInicioSesion(detalle){
-  $('#columna')
-      .append($('<div>')
-          .addClass('row')
-          .addClass('terminoFormula')
-          .css('margin-bottom','15px')
-          .attr('id','terminoFormula')
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','valor_carton')
-                  .attr('type','text')
-                  .attr('value', detalle.valor_carton)
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','serie_inicial')
-                  .attr('type','text')
-                  .attr('value', detalle.serie_inicio)
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','carton_inicial')
-                  .attr('type','text')
-                  .attr('value', detalle.carton_inicio)
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-xs-3')
-              .css('padding-right','0px')
-              .append($('<button>')
-                  .addClass('borrarTermino')
-                  .addClass('borrarFila')
-                  .addClass('btn')
-                  .addClass('btn-danger')
-                  .css('margin-top','6px')
-                  .attr('type','button')
-                  .append($('<i>')
-                      .addClass('fa')
-                      .addClass('fa-trash')
-                  )
-              )
-          )
-
-
-      )
+  fila_valores(true,$('#columna'),'terminoFormula','terminoFormula',detalle,'borrarTermino');
 }
 
 //cargar fila detalle inicio de sesion
 function cargarFilaDetallesInicioSesion(){
-  $('#columna')
-      .append($('<div>')
-          .addClass('row')
-          .addClass('terminoFormula')
-          .css('margin-bottom','15px')
-          .attr('id','terminoFormula')
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','valor_carton')
-                  .attr('type','text')
-                  .attr('value', '')
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','serie_inicial')
-                  .attr('type','text')
-                  .attr('value', '')
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .append($('<input>')
-                  .attr('placeholder' , '')
-                  .attr('id','carton_inicial')
-                  .attr('type','text')
-                  .attr('value', '')
-                  .addClass('form-control')
-              )
-          )
-          .append($('<div>')
-              .addClass('col-lg-3')
-              .css('padding-right','0px')
-              .append($('<button>')
-                  .addClass('borrarTermino')
-                  .addClass('borrarFila')
-                  .addClass('btn')
-                  .addClass('btn-danger')
-                  .css('margin-top','6px')
-                  .attr('type','button')
-                  .append($('<i>')
-                      .addClass('fa')
-                      .addClass('fa-trash')
-                  )
-              )
-          )
-
-
-      )
+  cargarDetallesInicioSesion({});
 }
+
+$('#btn-agregarTermino').click(function(){
+  fila_valores(true,$('#columna'),'terminoFormulaAgregado','terminoFormula',{},'borrarTermino');
+});
+
+$('#btn-agregarTerminoFinal').click(function(){
+  fila_valores(false,$('#columna2'),'terminoCierreSesion','terminoCierreSesion',{},'borrarTerminoFinal');
+});
+
+//Agregar nueva fila -> valor carton - serie inicial - carton incial
+function fila_valores(inicial,divpadre,id_div,clase_div,valores = {},clase_boton_borrar = null){//@TODO: Pasar a un molde estatico en la view
+  const div_input = function(id_input,val=''){
+    return $('<div>').addClass('col-lg-3').append(
+      $('<input>').attr('placeholder' , '')
+      .attr('id',id_input).attr('type','text')
+      .addClass('form-control').val(val)
+    );
+  };
+
+  const defecto = {valor_carton: '',serie_inicio: '',carton_inicio: '',serie_fin: '',carton_final: ''};
+  const nvalores = {...defecto,valores};
+  const divhijo = $('<div>').addClass(`row ${clase_div}`).attr('id',id_div).css('margin-bottom','15px');
+  
+  if(inicial){
+    divhijo.append(div_input('valor_carton',nvalores.valor_carton))
+    .append(div_input('serie_inicial',nvalores.serie_inicio))
+    .append(div_input('carton_inicial',nvalores.carton_inicio));
+  }
+  else{
+    divhijo.append(div_input('valor_carton_f',nvalores.valor_carton))
+    .append(div_input('serie_final',nvalores.serie_fin))
+    .append(div_input('carton_final',nalores.carton_final))
+  }
+  
+  if(clase_boton_borrar !== null){
+    divhijo.append(
+      $('<div>').addClass('col-xs-3').css('padding-right','0px').append(
+        $('<button>').addClass(`${clase_boton_borrar} borrarFila btn btn-danger`)
+        .css('margin-top','6px').attr('type','button')
+        .append($('<i>').addClass('fa fa-trash'))
+      )
+    );
+  }
+  
+  divpadre.append(divhijo);
+}
+
+//Agregar nueva fila -> nombre del premio - nro carton ganador
+$('#btn-agregarTerminoRelevamiento').click(function(){//@TODO: Pasar a un molde estatico en la view
+  const nombre_premio = $('<select>').addClass('form-control').attr('id','nombre_premio');
+  const premios = ['Seleccione Valor','Línea','Bingo','Línea Acumulada','Pozo Acumulado','Bingo Especial','Bingo sale o sale'];
+  for(const idx in premios){
+    const op = $('<option>').append(premios[idx]);
+    if(idx == 0){
+      op.attr('value','').attr('selected','');
+    }
+    else{
+      op.attr('value','1');
+    }
+    nombre_premio.append(op);
+  }
+  $('#columnaRelevamiento').append(
+    $('<div>').addClass('row terminoRelevamiento').css('margin-bottom','15px')
+    .attr('id','terminoRelevamiento')
+    .append($('<div>').addClass('col-lg-4').append(nombre_premio))
+    .append(
+      $('<div>').addClass('col-lg-4').append(
+        $('<input>').attr('placeholder' , '').attr('id','carton_ganador')
+        .attr('type','text').addClass('form-control')
+      )
+    )
+    .append(
+      $('<div>').addClass('col-xs-4').css('padding-right','0px').append(
+        $('<button>').addClass('borrarTerminoRelevamiento borrarFila btn btn-danger')
+        .css('margin-top','6px').attr('type','button')
+        .append($('<i>').addClass('fa fa-trash'))
+      )
+    )
+  );
+});

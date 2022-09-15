@@ -243,7 +243,6 @@ class SesionesController extends Controller
         }
 
     public function modificarSesion(Request $request){
-      dd($request);
       //Validación de los datos
       Validator::make($request->all(), [
             'pozo_dotacion_inicial' => 'required|numeric',
@@ -346,15 +345,17 @@ class SesionesController extends Controller
       //busco el reporte que cumpla con las reglas
       $reporte = ReporteEstado::where($reglas)->first();
       // dd($reporte);
-      if($reporte->importacion == null || $reporte->importacion == 0) {
-        $reporte->delete();
+      //Octavio 15 Sep 2022: No estoy seguro que quieren hacer aca, le agregue un chequeo de nulo porque tiraba excepcion al dereferenciar si no habia reporte
+      if(!is_null($reporte)){
+        if($reporte->importacion == null || $reporte->importacion == 0){
+          $reporte->delete();  
+        }
+        else{
+          app(\App\Http\Controllers\Bingo\ReportesController::class)->eliminarReporteEstado($sesion->id_casino, $sesion->fecha_inicio, 2);
+          app(\App\Http\Controllers\Bingo\ReportesController::class)->eliminarReporteEstado($sesion->id_casino, $sesion->fecha_inicio, 3);
+          app(\App\Http\Controllers\Bingo\ReportesController::class)->eliminarReporteEstado($sesion->id_casino, $sesion->fecha_inicio, 4);
+        }
       }
-      else{
-        app(\App\Http\Controllers\Bingo\ReportesController::class)->eliminarReporteEstado($sesion->id_casino, $sesion->fecha_inicio, 2);
-        app(\App\Http\Controllers\Bingo\ReportesController::class)->eliminarReporteEstado($sesion->id_casino, $sesion->fecha_inicio, 3);
-        app(\App\Http\Controllers\Bingo\ReportesController::class)->eliminarReporteEstado($sesion->id_casino, $sesion->fecha_inicio, 4);
-      }
-
 
       // Elimina los relevamientos asociados a la sesión y sus detalles.
       foreach ($sesion->partidasSesion as $partida) {
