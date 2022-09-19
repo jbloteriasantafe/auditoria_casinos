@@ -185,7 +185,7 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
     <div class="modal fade" id="modalFormula" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-lg">
              <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header" style="font-family: Roboto-Black;color: #fff;">
                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                   <button type="button" class="close btn-minimizar" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoFormula" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                   <h3 class="modal-title" id="myModalLabel">| NUEVA SESIÓN</h3>
@@ -197,8 +197,7 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                       <div class="form-group error">
                           <div class="col-lg-12">
                             <div id="columna" class="row">
-                              <div id="terminoFormula" class="row" style="margin-bottom: 15px;">
-
+                              <div class="row" style="margin-bottom: 15px;">
                                 <div class="col-lg-4">
                                   <h5>FECHA INICIO</h5>
                                   <div class='input-group date' id='dtpFechaSesion' data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
@@ -207,7 +206,6 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                       <span id="input-calendar" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                   </div>
                                 </div>
-
                                 <div class="col-lg-4">
                                   <h5>HORA INICIO</h5>
                                   <div class='input-group date' id='dtpHoraSesion' data-date-format="HH:ii:ss" data-link-format="HH:ii">
@@ -216,7 +214,6 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                   </div>
                                 </div>
-
                                 <div class="col-lg-4">
                                   <h5>CASINO</h5>
                                   <select id="casino_nueva" class="form-control selectCasinos" name="">
@@ -225,49 +222,35 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                       @endforeach
                                   </select>
                                 </div>
-
                                 <div class="col-lg-6">
                                   <h5>POZO DOTACIÓN INICIAL</h5>
                                   <input id="pozo_dotacion_inicial" name="pozo_dotacion_inicial" type="text" class="form-control"  placeholder="" value="" required>
                                 </div>
-
                                 <div class="col-lg-6">
                                   <h5>POZO EXTRA INICIAL</h5>
                                   <input id="pozo_extra_inicial" name="pozo_extra_inicial" type="text" class="form-control"  placeholder="" value="">
                                 </div>
                               </div>
-                                <div id="terminoFormula" class="row" style="margin-bottom: 15px;">
+                                <div class="row">
                                   <div class="col-lg-3">
                                     <h5>VALOR DEL CARTON</h5>
-                                    <input id="valor_carton" name="valor_carton" type="text" class="form-control"  placeholder="" value="">
                                   </div>
-
                                   <div class="col-lg-3">
                                     <h5>SERIE INICIAL</h5>
-                                    <input id="serie_inicial" name="serie_inicial" type="text" class="form-control"  placeholder="" value="">
                                   </div>
-
                                   <div class="col-lg-3">
                                     <h5>CARTON INICIAL</h5>
-                                    <input id="carton_inicial" name="carton_inicial" type="text" class="form-control"  placeholder="" value="">
                                   </div>
-
                                   <div class="col-lg-3 text-center">
-                                   <h5>-</h5>
-                                   <button id="btn-agregarTermino" class="btn btn-success btn-xs" type="button"><i class="fa fa-fw fa-plus"></i> Mas filas</button>
-                                 </div>
-
+                                    <h5>&nbsp;</h5>
+                                    <button id="btn-agregarTermino" class="btn btn-success btn-xs" type="button"><i class="fa fa-fw fa-plus"></i> Mas filas</button>
+                                  </div>
                               </div>
-
                           </div>
-                          <span id="alerta_sesion" class="alertaSpan"></span>
-
-
                         </div>
                       </div>
                   </form>
                 </div>
-
                 <div class="modal-footer">
                   <button type="button" class="btn btn-successAceptar" id="btn-guardar" value="nuevo">ACEPTAR</button>
                   <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
@@ -295,7 +278,6 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                           <div class="col-lg-12">
                             <div id="columna2" class="row">
                               <div id="terminoCierreSesion" class="row" style="margin-bottom: 15px;">
-
                                 <div class="col-lg-4">
                                   <h5>FECHA CIERRE</h5>
                                   <div class='input-group date' id='dtpFechaCierreSesion' data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
@@ -304,7 +286,6 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                   </div>
                                 </div>
-
                                 <div class="col-lg-4">
                                   <h5>HORA CIERRE</h5>
                                   <div class='input-group date' id='dtpHoraCierreSesion' data-date-format="HH:ii:ss" data-link-format="HH:ii">
@@ -313,7 +294,6 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                                   </div>
                                 </div>
-
                                 <div class="col-lg-4">
                                   <h5>CASINO</h5>
                                   <select id="casino_cierre" class="form-control selectCasinos" name="" disabled="">
@@ -322,37 +302,23 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                       @endforeach
                                   </select>
                                 </div>
-
-
                                 <div class="col-lg-6">
                                   <h5>POZO DOTACIÓN FINAL</h5>
                                   <input id="pozo_dotacion_final" name="pozo_dotacion_final" type="text" class="form-control"  placeholder="" value="">
                                 </div>
-
                                 <div class="col-lg-6">
                                   <h5>POZO EXTRA FINAL</h5>
                                   <input id="pozo_extra_final" name="pozo_extra_final" type="text" class="form-control"  placeholder="" value="">
                                 </div>
-
                                 <div class="col-lg-3">
                                   <h5>VALOR DEL CARTON</h5>
-                                  <input id="valor_carton_f" name="valor_carton_f" type="text" class="form-control"  placeholder="" value="">
                                 </div>
-
                                 <div class="col-lg-3">
                                   <h5>SERIE FINAL</h5>
-                                  <input id="serie_final" name="serie_final" type="text" class="form-control"  placeholder="" value="">
                                 </div>
-
                                 <div class="col-lg-3">
                                   <h5>CARTON FINAL</h5>
-                                  <input id="carton_final" name="carton_final" type="text" class="form-control"  placeholder="" value="">
                                 </div>
-
-                                <div class="col-lg-3 text-center">
-                                 <h5>-</h5>
-                                 <button id="btn-agregarTerminoFinal" class="btn btn-success btn-xs" type="button"><i class="fa fa-fw fa-plus"></i> Mas filas</button>
-                               </div>
                               </div>
                           </div>
                         </div>

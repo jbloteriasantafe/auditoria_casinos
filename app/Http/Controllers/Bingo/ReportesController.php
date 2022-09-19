@@ -13,6 +13,13 @@ use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\DB;
 
 class ReportesController extends Controller{
+    private static $instance;
+    public static function getInstancia() {
+      if (!isset(self::$instance)) {
+        self::$instance = new self();
+      }
+      return self::$instance;
+    }
     //BUSCAR IMPORTACIONES, RELEVADOS Y ESTADOS PARA ARMAR REPORTE DE DIFERENCIA
     public function buscarReportesDiferencia(Request $request){
       //obtener todos los estados

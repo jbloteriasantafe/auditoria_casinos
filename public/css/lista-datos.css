@@ -62,7 +62,7 @@
   position: relative !important;
   top: -7px !important;
 }
-#terminoFormula, #terminoCierreSesion, #terminoRelevamiento {
+#terminoFormula, #terminoFormulaAgregado, #terminoCierreSesion, #terminoRelevamiento {
   margin-bottom: 15px!important;
 }
 .pbzero{

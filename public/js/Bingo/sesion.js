@@ -47,6 +47,7 @@ $(document).ready(function(){
 $('#modalFormula').on('hidden.bs.modal',function(){
   ocultarErrorValidacion($(this).find('.form-control'));
   $(this).find('.terminoFormula').remove();
+  $('#frmFormula').trigger('reset');
 });
 
 $('.btn-planilla').click(function(e){
@@ -86,58 +87,52 @@ $(document).on('focusin','.alerta',function(){
   $(this).removeClass('alerta');
 });
 
-//Mostrar modal para iniciar una nueva sesion
-$('#btn-nuevo').click(function(e){
-  $('#mensajeExito').hide();
-  $('#btn-agregarTermino').show();
-  e.preventDefault();
-  $('#casino_nueva').removeAttr('disabled','disabled');
-  $('#fechaInicioNueva').removeAttr('disabled','disabled');
-  $('#input-calendar').show();
-  $('#input-times').show();
-  $('#btn-guardar').val("nuevo");
-  $('#frmFormula').trigger('reset');
-  $('.terminoFormula').remove();
-  $('#btn-guardar').removeClass();
-  $('#btn-guardar').addClass('btn btn-successAceptar');
-  $('#modalFormula .modal-title').text('| NUEVA SESIÓN');
-  $('#modalFormula .modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be; color: #fff');
-  $('#modalFormula').modal('show');
-});
-
-//Mostrar modal con los datos de las sesion cargados
-$(document).on('click','.modificar',function(){
-  $('#mensajeExito').hide();
-  $('#btn-agregarTermino').hide();
-  $('#frmFormula').trigger('reset');
-  $('.terminoFormula').remove();
-  $('#modalFormula .modal-title').text('| MODIFICAR SESIÓN');
-  $('#modalFormula .modal-header').attr('style','font-family: Roboto-Black; background: #ff9d2d; color: #fff;');
-  $('#btn-guardar').removeClass();
-  $('#btn-guardar').addClass('btn btn-warningModificar');
-  $('#casino_nueva').attr('disabled','disabled');
-  $('#fechaInicioNueva').attr('disabled','disabled');
-  $('#input-calendar').hide();
-  $('#input-times').hide();
-  const id_sesion = $(this).val();
+function modalNuevoModificar(id_sesion){
+  const nuevo = id_sesion === null;//Si es nulo es nuevo, sino modifica
+  $('#btn-agregarTermino').data('nuevo',nuevo);
+  $('#modalFormula .modal-title').text(nuevo? '| NUEVA SESIÓN' : '| MODIFICAR SESIÓN');
+  $('#modalFormula .modal-header').css('background-color',nuevo? '#6dc7be' : '#ff9d2d');
+  $('#btn-guardar').removeClass().addClass('btn').addClass(nuevo? 'btn-successAceptar' : 'btn-warningModificar')
+  .val(nuevo? "nuevo" : "modificar");
+  if(nuevo){
+    $('#casino_nueva').removeAttr('disabled','disabled');
+    $('#fechaInicioNueva').removeAttr('disabled','disabled');
+  } 
+  else{
+    $('#casino_nueva').attr('disabled','disabled');
+    $('#fechaInicioNueva').attr('disabled','disabled');
+  }
+  $('#input-calendar').toggle(nuevo);
+  $('#input-times').toggle(nuevo);
+  if(nuevo){
+    $('#id_sesion').val('');
+    agregarTerminoNuevo(false);
+    return $('#modalFormula').modal('show');
+  }
   $.get("bingo/obtenerSesion/" + id_sesion, function(data){
     console.log(data);
     $('#id_sesion').val(id_sesion);//campo oculto
-    $('#btn-guardar').val("modificar");
-    $('#id_sesion').val(id_sesion);
     $('#fechaInicioNueva').val(data.sesion.fecha_inicio);
     $('#horaInicioNueva').val(data.sesion.hora_inicio);
     $('#casino_nueva').val(data.sesion.id_casino);
     $('#pozo_dotacion_inicial').val(data.sesion.pozo_dotacion_inicial);
     $('#pozo_extra_inicial').val(data.sesion.pozo_extra_inicial);
-    
-    $('#valor_carton,#serie_inicial,#carton_inicial').remove();
     for (const i in data.detalles){
-      cargarDetallesInicioSesion(data.detalles[i]);
+      agregarTerminoModificar(data.detalles[i],i != 0);//No permito borrar todas las filas porque es un parametro requerido
     }
     $('#modalFormula').modal('show');
   });
-  $('.terminoFormula').remove();
+}
+
+//Mostrar modal para iniciar una nueva sesion
+$('#btn-nuevo').click(function(e){
+  e.preventDefault();
+  modalNuevoModificar(null);
+});
+
+//Mostrar modal con los datos de las sesion cargados
+$(document).on('click','.modificar',function(){
+  modalNuevoModificar($(this).val());
 });
 
 $('.operador').keydown(function(e){
@@ -147,37 +142,11 @@ $('.operador').keydown(function(e){
   }
 })
 
-//borrar fila -> valor carton - serie inicial - carton incial
 $(document).on('click','.borrarTermino',function(){
-  var i = $('#columna #terminoFormula').length;//global?
-  console.log(i);
-  if(i == 3){
-    $('#columna #terminoFormula').last().find('#valor_carton').val('');
-    $('#columna #terminoFormula').last().find('#serie_inicial').val('');
-    $('#columna #terminoFormula').last().find('#carton_inicial').val('');
-  }else{
-    $(this).parent().parent().remove();
-  }
-
-  var j = $('#columna #terminoFormulAgregado').length;//global?
-  console.log(j);
-  if(j ==1){
-    $(this).parent().parent().remove();
-  }
+  $(this).closest('.terminoFormula').remove();
 });
-
-//borrar fila -> valor carton_f - serie inicial - carton incial
-$(document).on('click','.borrarTerminoFinal',function(){
-  $(this).parent().parent().remove();
-  var i = $('#columna2 #terminoCierreSesion').length;//Global?
-  $('#columna2 #terminoCierreSesion').last().find('#valor_carton_f').val('');
-  $('#columna2 #terminoCierreSesion').last().find('#serie_inicial').val('');
-  $('#columna2 #terminoCierreSesion').last().find('#carton_inicial').val('');
-});
-
-//borrar fila -> valor carton - serie final - carton final
 $(document).on('click','.borrarTerminoRelevamiento',function(){
-  $(this).parent().parent().remove();
+  $(this).closest('.terminoRelevamiento').remove();
 });
 
 //Modal de eliminar una sesión
@@ -204,6 +173,7 @@ $('#btn-eliminarSesion').click(function (e) {
     url: "bingo/eliminarSesion/" + $(this).val(),
     success: function (data) {
       $('#btn-buscar').click();
+      $('#modalEliminar').modal('hide');
     },
     error: function (data) {
       console.log(data);
@@ -313,12 +283,11 @@ $('#btn-guardar').click(function (e) {
 $('#btn-guardar-cierre').click(function (e) {
   e.preventDefault();
 
-  //guarda los detalles de la sesión en el array por termino
-  const detalles = $('#columna2 #terminoCierreSesion').map(function(){
+  const detalles = $('#columna2 .terminoCierreSesion').map(function(){
     return  {
       valor_carton_f: $(this).find('#valor_carton_f').val(),
-      serie_final: $(this).find('#serie_final').val(),
-      carton_final: $(this).find('#carton_final').val(),
+      serie_final:    $(this).find('#serie_final').val(),
+      carton_final:   $(this).find('#carton_final').val(),
     }
   }).toArray();
 
@@ -357,7 +326,7 @@ $('#btn-guardar-cierre').click(function (e) {
       $('#frmCierreSesion').trigger("reset");
       $('#modalCierreSesion').modal('hide');
       //abre planilla cierre sesión
-      window.open('bingo/generarPlanillaCierreSesion');
+      window.open('bingo/generarPlanillaCierreSesion','_blank');
       //Mostrar éxito
       $('#mensajeExito').show();
     },
@@ -375,7 +344,7 @@ $('#btn-guardar-cierre').click(function (e) {
       if(typeof response.hora_fin !== 'undefined'){
         mostrarErrorValidacion($('#horaCierreSesion'),'El campo no puede estar en blanco.' ,true);
       }
-      $('#columna2 #terminoCierreSesion').each(function(index,value){
+      $('#columna2 .terminoCierreSesion').each(function(index,value){
         if(typeof response[`detalles.${index}.valor_carton_f`] !== 'undefined'){
           mostrarErrorValidacion($(this).find('#valor_carton_f'),'El campo no puede estar en blanco.' ,true);
         }
@@ -393,12 +362,11 @@ $('#btn-guardar-cierre').click(function (e) {
 //envio de datos a servidor relevamiento
 $('#btn-guardar-relevamiento').click(function (e) {
     //guarda los detalles de la sesión en el array por termino
-    const detalles = $('#columnaRelevamiento #terminoRelevamiento').each(function(){
-        var termino = {
-          nombre_premio: $(this).find('#nombre_premio').val(),
-          carton_ganador: $(this).find('#carton_ganador').val(),
-        }
-        detalles.push(termino);
+    const detalles = $('#columnaRelevamiento #terminoRelevamiento').map(function(){
+      return {
+        nombre_premio: $(this).find('#nombre_premio').val(),
+        carton_ganador: $(this).find('#carton_ganador').val(),
+      }
     }).toArray();
 
     //datos a enviar
@@ -614,7 +582,6 @@ $(document).on('click','#tablaResultados thead tr th[value]',function(e){
 
 //Mostral modal para cierre de sesión y reabrir sesión
 $(document).on('click' , '.cerrarSesion' , function() {
-  $('#btn-agregarTerminoFinal').hide();
   $('#borrarTerminoFinal').hide();
   console.log("cerrar/abrir");
   const id_sesion = $(this).val();
@@ -664,7 +631,7 @@ $(document).on('click' , '.detallesRel' , function() {
     //detalles sesion
     $('#pozo_dotacion_inicial_d').val(data.sesion.pozo_dotacion_inicial).attr('readonly','readonly');
     $('#pozo_extra_inicial_d').val(data.sesion.pozo_extra_inicial).attr('readonly','readonly');
-    function ifnull(val,dflt='-'){ return val == null? val : dflt; };//Por si tienen navegadores viejos... igual que el operador "??"
+    function ifnull(val,dflt='-'){ return val != null? val : dflt; };//Por si tienen navegadores viejos... igual que el operador "??"
     $('#pozo_dotacion_final_d').val(ifnull(data.sesion.pozo_dotacion_final)).attr('readonly','readonly');
     $('#pozo_extra_final_d').val(ifnull(data.sesion.pozo_extra_final)).attr('readonly','readonly');
     //ocultar fila acción e icono eliminar partida si es fiscalizador
@@ -835,34 +802,24 @@ function reAbrirSesion(id_sesion){
 //Cargar los datos que contiene una sesion re abierta
 function cargarDatosCierreSesion(id_sesion){
   $.get("bingo/obtenerSesion/" + id_sesion, function(data){
+    $('#casino_cierre').val(data.sesion.id_casino);
     if(data.sesion.pozo_dotacion_final != null){   //solo si tiene datos lleno el formulario
       $('#id_sesion').val(id_sesion);//campo oculto
-
       $('#pozo_dotacion_final').val(data.sesion.pozo_dotacion_final);
       $('#pozo_extra_final').val(data.sesion.pozo_extra_final);
       $('#fechaCierreSesion').val(data.sesion.fecha_fin);
       $('#horaCierreSesion').val(data.sesion.hora_fin);
-
-      $('#valor_carton_f').val(data.detalles[0].valor_carton).attr('disabled','disabled');
-      $('#serie_final').val(data.detalles[0].serie_fin);
-      $('#carton_final').val(data.detalles[0].carton_fin);
-
       $('#btn-guardar-cierre').val("modificar");
       console.log(data);
-      var cantidad = data.detalles.length - 1; //cantidad de detalles -1 que ya se utilizo
-      for (var i = 0; i < cantidad; i++){
-       cargarDetallesCierreSesion(data.detalles[i+1]);
-      }
+      for(const i in data.detalles){
+       cargarDetallesCierreSesion(data.detalles[i]);
+      }      
+      $('#valor_carton_f').attr('disabled','disabled');
     }
     else{
       $('#btn-guardar-cierre').val("crear");
-      $('#casino_cierre').val(data.sesion.id_casino);
-      $('#valor_carton_f').val(data.detalles[0].valor_carton).attr('disabled','disabled');
-      $('#valor_carton_f').attr('disabled','disabled');
-
-      var cantidad = data.detalles.length - 1; //cantidad de detalles -1 que ya se utilizo
-      for (var i = 0; i < cantidad; i++){
-        cargarDetallesValCarton(data.detalles[i+1].valor_carton);
+      for(const i in data.detalles){
+        cargarDetallesCierreSesion({valor_carton: data.detalles[i].valor_carton});
       }
     }
   });
@@ -885,34 +842,23 @@ function generarFilaDetallesSesion(detalle){
   .append(div_input('carton_final_f',detalle.carton_fin));
 }
 
-//cargar filas detalles ciere de sesion con valores de carton
-function cargarDetallesValCarton(valor_carton){  
-  fila_valores(false,$('#columna2'),'terminoCierreSesion','terminoCierreSesion',{valor_carton: valor_carton});
-}
 //cargar filas detalles ciere de sesion al reabrir
 function cargarDetallesCierreSesion(detalle){  
-  fila_valores(false,$('#columna2'),'terminoCierreSesion','terminoCierreSesion',detalle);
+  $('#columna2').append(fila_valores(false,'terminoCierreSesion','terminoCierreSesion',detalle));
 }
-//cargar filas detalles inicio de sesion para editar
-function cargarDetallesInicioSesion(detalle){
-  fila_valores(true,$('#columna'),'terminoFormula','terminoFormula',detalle,'borrarTermino');
+function agregarTerminoNuevo(boton_borrar = true){
+  $('#columna').append(fila_valores(true,'terminoFormulaAgregado','terminoFormula',{},boton_borrar? 'borrarTermino' : null));
 }
-
-//cargar fila detalle inicio de sesion
-function cargarFilaDetallesInicioSesion(){
-  cargarDetallesInicioSesion({});
+function agregarTerminoModificar(detalle = {},boton_borrar = true){
+  $('#columna').append(fila_valores(true,'terminoFormula','terminoFormula',detalle,boton_borrar? 'borrarTermino' : null));
 }
-
 $('#btn-agregarTermino').click(function(){
-  fila_valores(true,$('#columna'),'terminoFormulaAgregado','terminoFormula',{},'borrarTermino');
-});
-
-$('#btn-agregarTerminoFinal').click(function(){
-  fila_valores(false,$('#columna2'),'terminoCierreSesion','terminoCierreSesion',{},'borrarTerminoFinal');
+  if($(this).data('nuevo')) agregarTerminoNuevo();
+  else                      agregarTerminoModificar();
 });
 
 //Agregar nueva fila -> valor carton - serie inicial - carton incial
-function fila_valores(inicial,divpadre,id_div,clase_div,valores = {},clase_boton_borrar = null){//@TODO: Pasar a un molde estatico en la view
+function fila_valores(inicial,id_div,clase_div,valores = {},clase_boton_borrar = null){//@TODO: Pasar a un molde estatico en la view
   const div_input = function(id_input,val=''){
     return $('<div>').addClass('col-lg-3').append(
       $('<input>').attr('placeholder' , '')
@@ -921,23 +867,24 @@ function fila_valores(inicial,divpadre,id_div,clase_div,valores = {},clase_boton
     );
   };
 
-  const defecto = {valor_carton: '',serie_inicio: '',carton_inicio: '',serie_fin: '',carton_final: ''};
-  const nvalores = {...defecto,valores};
-  const divhijo = $('<div>').addClass(`row ${clase_div}`).attr('id',id_div).css('margin-bottom','15px');
+  const defecto = {valor_carton: '',serie_inicio: '',carton_inicio: '',serie_fin: '',carton_fin: ''};
+  const nvalores = {...defecto,...valores};
+  const div = $('<div>').addClass(`row ${clase_div}`).attr('id',id_div).css('margin-bottom','15px');
   
   if(inicial){
-    divhijo.append(div_input('valor_carton',nvalores.valor_carton))
+    div.append(div_input('valor_carton',nvalores.valor_carton))
     .append(div_input('serie_inicial',nvalores.serie_inicio))
     .append(div_input('carton_inicial',nvalores.carton_inicio));
   }
   else{
-    divhijo.append(div_input('valor_carton_f',nvalores.valor_carton))
+    div.append(div_input('valor_carton_f',nvalores.valor_carton))
     .append(div_input('serie_final',nvalores.serie_fin))
-    .append(div_input('carton_final',nalores.carton_final))
+    .append(div_input('carton_final',nvalores.carton_fin))
+    div.find('#valor_carton_f').attr('disabled','disabled');
   }
   
   if(clase_boton_borrar !== null){
-    divhijo.append(
+    div.append(
       $('<div>').addClass('col-xs-3').css('padding-right','0px').append(
         $('<button>').addClass(`${clase_boton_borrar} borrarFila btn btn-danger`)
         .css('margin-top','6px').attr('type','button')
@@ -945,8 +892,7 @@ function fila_valores(inicial,divpadre,id_div,clase_div,valores = {},clase_boton
       )
     );
   }
-  
-  divpadre.append(divhijo);
+  return div;
 }
 
 //Agregar nueva fila -> nombre del premio - nro carton ganador
