@@ -65,7 +65,7 @@ class SesionesController extends Controller
     ->whereIn('casino.id_casino', $casinos)
     ->paginate($request->page_size);
   }
-
+  //Llamado al CREAR la sesion del dia por primera vez (setea los datos de INICIO)
   public function guardarSesion(Request $request){
     //Validación de los datos
     Validator::make($request->all(), [
@@ -89,7 +89,6 @@ class SesionesController extends Controller
     })->validate();
 
     return DB::transaction(function() use ($request){
-      //busco la id del usuario que guarda la sesión
       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario;
       //Se crea una nueva sesión y se le cargan los datos
       $sesion = new SesionBingo;
@@ -116,10 +115,10 @@ class SesionesController extends Controller
       return ['sesion' => $sesion, 'casino' => $sesion->casino, 'estado' => $sesion->estadoSesion, 'nombre_inicio' => $sesion->usuarioInicio->nombre, 'nombre_fin' => '-'];
     });
   }
-
-  public function guardarCierreSesion(Request $request){
-    //Validación de los datos
+  //Llamado al CERRAR la sesion del dia por primera vez (cambia los datos de FIN)
+  public function guardarCierreSesion(Request $request,$eliminar_reporte = false){
     Validator::make($request->all(), [
+      'id_sesion'           => 'required|integer|exists:bingo_sesion,id_sesion',
       'pozo_dotacion_final' => 'required|numeric',
       'pozo_extra_final'    => 'required|numeric',
       'fecha_fin'           => 'required',
@@ -127,10 +126,19 @@ class SesionesController extends Controller
       'detalles.*.valor_carton_f' => 'required|numeric',
       'detalles.*.serie_final'    => 'required|numeric',
       'detalles.*.carton_final'   => 'required|numeric',
-    ])->validate();
+    ])->after(function($validator){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      $sesion = SesionBingo::find($data['id_sesion']);
+      foreach($data['detalles'] as $idx => $d){
+        $tiene_valor_carton = $sesion->detallesSesion()->where('valor_carton','=',$d['valor_carton_f'])->count() > 0;
+        if(!$tiene_valor_carton){
+          $validator->errors()->add("detalles.$idx.valor_carton_f","No existe un carton con valor $d[valor_carton_f]");
+        }
+      }
+    })->validate();
     
-    return DB::transaction(function() use ($request){
-      //Busco la id del usuario que cerro la sesión
+    return DB::transaction(function() use ($request,$eliminar_reporte){
       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario;
       //busco la sesión y le cargo los datos de cierre
       $sesion = SesionBingo::findorfail($request->id_sesion);
@@ -145,9 +153,6 @@ class SesionesController extends Controller
       foreach($request->detalles as $d){
         //Busco si el detalle que mando ya existe con valor_carton
         $det_sesion = $sesion->detallesSesion()->where('valor_carton','=',$d['valor_carton_f'])->first();
-        if(is_null($det_sesion)){//@HACK: verificar en la validacion que existan todos los valores carton enviados
-          throw new Exception('FIX HACK');
-        }
         $det_sesion->serie_fin  = $d['serie_final'];
         $det_sesion->carton_fin = $d['carton_final'];
         $det_sesion->save();
@@ -155,85 +160,81 @@ class SesionesController extends Controller
       
       //Guardo la información para el reporte de estado
       ReportesController::getInstancia()->guardarReporteEstado($sesion->id_casino, $sesion->fecha_inicio, 2);
-      ReportesController::getInstancia()->eliminarReporteEstado($sesion->id_casino, $sesion->fecha_inicio, 4);
+      if($eliminar_reporte){//@HACK: no se que hace esto
+        ReportesController::getInstancia()->eliminarReporteEstado($sesion->id_casino, $sesion->fecha_inicio, 4);
+      }
+      
       return ['sesion' => $sesion, 'casino' => $sesion->casino, 'estado' => $sesion->estadoSesion, 'nombre_inicio' => $sesion->usuarioInicio->nombre, 'nombre_fin' => $sesion->usuarioFin->nombre];
     });
   }
-
+  //Cierra sesion de una sesion reabierta (cambia los datos de FIN)
   public function modificarCierreSesion(Request $request){
+    return $this->guardarCierreSesion($request,true);
+  }
+  //Re abre una sesion cerrada, se guardan los datos de la sesion en otra tabla y se le cambia el estado
+  public function reAbrirSesion(Request $request, $id){
     Validator::make($request->all(), [
-      'pozo_dotacion_final' => 'required|numeric',
-      'pozo_extra_final'    => 'required|numeric',
-      'fecha_fin'           => 'required',
-      'hora_fin'            => 'required',
-      'detalles.*.valor_carton_f' => 'required|numeric',
-      'detalles.*.serie_final'    => 'required|numeric',
-      'detalles.*.carton_final'   => 'required|numeric',
+      'motivo' => 'required'
     ])->validate();
-    
-    return DB::transaction(function() use ($request){          
-      //busco la id del usuario que esta modificando
-      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario;
-      //busco la sesion a modificar
-      $sesion = SesionBingo::findorfail($request->id_sesion);
-      //busco la sesion re abierta para agregarle los datos al historial
-      $sesionre = SesionBingoRe::where('id_sesion','=',$request->id_sesion)->get()->last();
-      $valores_cartones_usados = [];
-      foreach($request->detalles as $d){
-        $valores_cartones_usados[] = $d['valor_carton_f'];
-        //Busco si el detalle que mando ya existe con valor_carton
-        //Si ya esta, le asigno los valores
-        //Si no, creo uno nuevo
-        $det_sesion = $sesion->detallesSesion()->where('valor_carton','=',$d['valor_carton_f'])->first();
-        if(is_null($det_sesion)){//@HACK: validar en que exista el detalle ya creado
-          $det_sesion = new DetalleSesionBingo;
-          $det_sesion->sesionBingo()->associate($sesion->id_sesion);
-          $det_sesion->serie_inicio = 0;
-          $det_sesion->carton_inicio = 0;
-        }
-        $det_sesion->valor_carton  = $d['valor_carton_f'];
-        $det_sesion->serie_fin     = $d['serie_final'];
-        $det_sesion->carton_fin    = $d['carton_final'];
-        $det_sesion->save();
-      }
-      $detalles_a_borrar = $sesion->detallesSesion()->whereNotIn('valor_carton',$valores_cartones_usados)->get();
-      foreach($detalles_a_borrar as $d_borr){
-        $dets_re = DetalleSesionBingoRe::where('id_detalle_sesion','=',$d_borr->id_detalle_sesion)->get();
-        foreach($dets_re as $dre){
-          $dre->id_detalle_sesion = null;
-          $dre->save();
-        }
-        $d_borr->delete();  
-      }
-    
-      //Guarda las modificaciones en la sesion
-      $sesion->fecha_fin           = $request->fecha_fin;
-      $sesion->hora_fin            = $request->hora_fin;
-      $sesion->pozo_dotacion_final = $request->pozo_dotacion_final;
-      $sesion->pozo_extra_final    = $request->pozo_extra_final;
-      $sesion->id_usuario_fin      = $usuario;
-      $sesion->id_estado           = '2';
-      $sesion->save();
+    $permiso = UsuarioController::getInstancia()->chequearRolFiscalizador();
+    if( $permiso == 1){
+      return $this->errorOut(['no_tiene_permiso' => 'Su rol en el sistema no le permite reabrir una sesión.']);
+    }
 
+    return DB::transaction(function() use ($request,$id){      
+      $sesion = SesionBingo::findorfail($id);
+      //Guardo los datos que contenia la sesion
+      $sesionre = new SesionBingoRe;
+      $sesionre->id_sesion             = $id;
+      $sesionre->hora_fin              = $sesion->hora_fin;
+      $sesionre->fecha_fin             = $sesion->fecha_fin;
+      $sesionre->hora_inicio           = $sesion->hora_inicio;
+      $sesionre->fecha_inicio          = $sesion->fecha_inicio;
+      $sesionre->id_usuario_inicio     = $sesion->id_usuario_inicio;
+      $sesionre->id_usuario_fin        = $sesion->id_usuario_fin;
+      $sesionre->pozo_dotacion_inicial = $sesion->pozo_dotacion_inicial;
+      $sesionre->pozo_extra_inicial    = $sesion->pozo_extra_inicial;
+      $sesionre->pozo_dotacion_final   = $sesion->pozo_dotacion_final;
+      $sesionre->pozo_extra_final      = $sesion->pozo_extra_final;
+      $sesionre->observacion           = $request->motivo;
+      $sesionre->fecha_re              = date("Y-m-d");
+      $sesionre->save();
+      //Restablezco valores de la sesion
+      $sesion->id_estado = '1';
+      $sesion->id_usuario_fin = null;
+      $sesion->save();
+      
+      foreach($sesion->detallesSesion as $d){
+        $dre = new DetalleSesionBingoRe;
+        $dre->id_sesion_re = $sesionre->id_sesion_re;
+        $dre->id_detalle_sesion = $d->id_detalle_sesion;
+        $dre->valor_carton  = $d->valor_carton;
+        $dre->serie_inicio  = $d->serie_inicio;
+        $dre->serie_fin     = $d->serie_fin;
+        $dre->carton_inicio = $d->carton_inicio;
+        $dre->carton_fin    = $d->carton_fin;
+        $dre->save();
+      }
       //Guardo la información para el reporte de estado
-      ReportesController::getInstancia()->guardarReporteEstado($sesion->id_casino, $sesion->fecha_inicio, 2);
-      return ['sesion' => $sesion, 'casino' => $sesion->casino, 'estado' => $sesion->estadoSesion, 'nombre_inicio' => $sesion->usuarioInicio->nombre, 'nombre_fin' => $sesion->usuarioFin->nombre];
+      ReportesController::getInstancia()->eliminarReporteEstado($sesion->id_casino, $sesion->fecha_inicio, 2);
+      ReportesController::getInstancia()->guardarReporteEstado($sesion->id_casino, $sesion->fecha_inicio, 4);
+
+      return ['sesion' => $sesion, 'casino' => $sesion->casino, 'estado' => $sesion->estadoSesion, 'nombre_inicio' => $sesion->usuarioInicio->nombre, 'nombre_fin' => '-'];
     });
   }
-
+  //Toca en el lapiz de modificar (cambia los datos de INICIO)
   public function modificarSesion(Request $request){
-    //Validación de los datos
     Validator::make($request->all(), [
+      'id_sesion'             => 'required|integer|exists:bingo_sesion,id_sesion',
       'pozo_dotacion_inicial' => 'required|numeric',
-      'pozo_extra_inicial' => 'required|numeric',
-      'fecha_inicio' => 'required',
-      'hora_inicio' => 'required',
-      'detalles.*.valor_carton' => 'required|numeric',
-      'detalles.*.serie_inicial' => 'required|numeric',
+      'pozo_extra_inicial'    => 'required|numeric',
+      'fecha_inicio'          => 'required',
+      'hora_inicio'           => 'required',
+      'detalles.*.valor_carton'   => 'required|numeric',
+      'detalles.*.serie_inicial'  => 'required|numeric',
       'detalles.*.carton_inicial' => 'required|numeric',
     ])->validate();
     return DB::transaction(function() use ($request){
-      //busco la id del usuario que esta modificando
       $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario;
       $sesion   = SesionBingo::findorfail($request->id_sesion);    
       $sesion->fecha_inicio          = $request->fecha_inicio;
@@ -259,12 +260,23 @@ class SesionesController extends Controller
         $det_sesion->serie_inicio  = $d['serie_inicial'];
         $det_sesion->carton_inicio = $d['carton_inicial'];
         $det_sesion->save();
+        
+        //Verifico si en los historicos ya existe uno con el mismo valor carton desenlazado para enlazarlos
+        foreach(SesionBingoRe::where('id_sesion','=',$sesion->id_sesion)->get() as $sre){
+          $detsre_enlazables = $sre->detallesSesion()->where('valor_carton','=',$d['valor_carton'])
+          ->whereNull('id_detalle_sesion')->get();
+          foreach($detsre_enlazables as $dre){
+            $dre->id_detalle_sesion = $det_sesion->id_detalle_sesion;
+            $dre->save();
+          }
+        }
       }
       
+      //Desenlazo los cartones que no existen mas
       $detalles_a_borrar = $sesion->detallesSesion()->whereNotIn('valor_carton',$valores_cartones_usados)->get();
       foreach($detalles_a_borrar as $d_borr){
         $dets_re = DetalleSesionBingoRe::where('id_detalle_sesion','=',$d_borr->id_detalle_sesion)->get();
-        foreach($dets_re as $dre){
+        foreach($dets_re as $dre){//Le desconecto los detalles viejos
           $dre->id_detalle_sesion = null;
           $dre->save();
         }
@@ -318,7 +330,7 @@ class SesionesController extends Controller
 
   public function obtenerSesion($id){
     $sesion   = SesionBingo::findorfail($id);
-    $detalles = $sesion->detallesSesion;
+    $detalles = $sesion->detallesSesion()->orderBy('valor_carton','asc')->get();
     $partidas = $sesion->partidasSesion->map(function($partida){
       return [$partida,$partida->usuario->nombre];
     });
@@ -333,12 +345,11 @@ class SesionesController extends Controller
   
   //obtener datos de sesiones a partir de fecha y casino
   public function obtenerSesionFC($fecha, $id_casino){//Usado en ReportesController
-    $sesion = SesionBingo::where('id_casino','=',$id_casino)->where('fecha_inicio','=',$fecha)->first();
+    $sesion = SesionBingo::where('id_casino','=',$id_casino)->where('fecha_inicio','=',$fecha)->select('id_sesion')->first();
     return is_null($sesion)? $this->obtenerSesion($sesion->id_sesion) : -1;
   }
 
   public function guardarRelevamiento(Request $request){
-    //Validación de los datos
     Validator::make($request->all(), [
       'id_sesion'         => 'required|integer|exists:bingo_sesion,id_sesion',
       'nro_partida'       => 'required|numeric',
@@ -367,7 +378,7 @@ class SesionesController extends Controller
       if($sesion->id_estado == 2){
         $validator->errors()->add('relevamiento_cerrado', 'La sesión está cerrada, no se pueden cargar relevamientos.');
       }
-      $partida_cargada = $sesion->partidasSesion()->where('nro_partida','=',$data['nro_partida'])->count() > 0;
+      $partida_cargada = $sesion->partidasSesion()->where('num_partida','=',$data['nro_partida'])->count() > 0;
       if($partida_cargada){
         $validator->errors()->add('partida_cargada', 'Ya se ha cargado un relevamiento con el mismo número de partida.');
       }
@@ -408,46 +419,6 @@ class SesionesController extends Controller
         //Guardo la información para el reporte de estado
       ReportesController::getInstancia()->guardarReporteEstado($sesion->id_casino, $sesion->fecha_inicio, 3);
       return ['partida' => $partida];
-    });
-  }
-
-  public function reAbrirSesion(Request $request, $id){
-    Validator::make($request->all(), [
-      'motivo' => 'required'
-    ])->validate();
-    $permiso = UsuarioController::getInstancia()->chequearRolFiscalizador();
-    if( $permiso == 1){
-      return $this->errorOut(['no_tiene_permiso' => 'Su rol en el sistema no le permite reabrir una sesión.']);
-    }
-
-    return DB::transaction(function() use ($id){      
-      $sesion = SesionBingo::findorfail($id);
-      //Guardo los datos que contenia la sesion
-      $sesionre = new SesionBingoRe;
-      $sesionre->id_sesion             = $id;
-      $sesionre->hora_fin              = $sesion->hora_fin;
-      $sesionre->fecha_fin             = $sesion->fecha_fin;
-      $sesionre->hora_inicio           = $sesion->hora_inicio;
-      $sesionre->fecha_inicio          = $sesion->fecha_inicio;
-      $sesionre->id_usuario_inicio     = $sesion->id_usuario_inicio;
-      $sesionre->id_usuario_fin        = $sesion->id_usuario_fin;
-      $sesionre->pozo_dotacion_inicial = $sesion->pozo_dotacion_inicial;
-      $sesionre->pozo_extra_inicial    = $sesion->pozo_extra_inicial;
-      $sesionre->pozo_dotacion_final   = $sesion->pozo_dotacion_final;
-      $sesionre->pozo_extra_final      = $sesion->pozo_extra_final;
-      $sesionre->observacion           = $request->motivo;
-      $sesionre->fecha_re              = date("Y-m-d");
-      $sesionre->save();
-      //Restablezco valores de la sesion
-      $sesion->id_estado = '1';
-      $sesion->id_usuario_fin = null;
-      $sesion->save();
-
-      //Guardo la información para el reporte de estado
-      ReportesController::getInstancia()->eliminarReporteEstado($sesion->id_casino, $sesion->fecha_inicio, 2);
-      ReportesController::getInstancia()->guardarReporteEstado($sesion->id_casino, $sesion->fecha_inicio, 4);
-
-      return ['sesion' => $sesion, 'casino' => $sesion->casino, 'estado' => $sesion->estadoSesion, 'nombre_inicio' => $sesion->usuarioInicio->nombre, 'nombre_fin' => '-'];
     });
   }
 
