@@ -346,7 +346,7 @@ class SesionesController extends Controller
   //obtener datos de sesiones a partir de fecha y casino
   public function obtenerSesionFC($fecha, $id_casino){//Usado en ReportesController
     $sesion = SesionBingo::where('id_casino','=',$id_casino)->where('fecha_inicio','=',$fecha)->select('id_sesion')->first();
-    return is_null($sesion)? $this->obtenerSesion($sesion->id_sesion) : -1;
+    return !is_null($sesion)? $this->obtenerSesion($sesion->id_sesion) : -1;
   }
 
   public function guardarRelevamiento(Request $request){
