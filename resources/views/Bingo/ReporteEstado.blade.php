@@ -25,48 +25,25 @@ $casinos = $usuario->casinos;
                 <div class="row">
                   <div class="col-lg-12 col-xl-12">
 
-                     <div class="row"> <!-- fila de FILTROS -->
+                     <div class="row" id="filtros"> <!-- fila de FILTROS -->
                         <div class="col-md-12">
                           <div class="panel panel-default">
-                            <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
-                              <h4>Filtros de Búsqueda  <i class="fa fa-fw fa-angle-down"></i></h4>
-                            </div>
-                            <div id="collapseFiltros" class="panel-collapse collapse">
-                              <div class="panel-body">
-                                <div class="row">
-                                  <div class="col-md-3">
-                                    <h5>Fecha de la sesión</h5>
-                                    <!-- <div class="form-group"> -->
-                                       <div class='input-group date' id='dtpBuscadorFecha' data-link-field="buscadorFecha" data-link-format="yyyy-mm-dd">
-                                           <input type='text' class="form-control" placeholder="Fecha de relevamiento" id="B_fecharelevamiento"/>
-                                           <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                           <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                                       </div>
-                                       <input class="form-control" type="hidden" id="buscadorFecha" value=""/>
-                                    <!-- </div> -->
-                                  </div>
-                                  <div class="col-md-3">
-                                    <h5>CASINO</h5>
-                                    <select id="buscadorCasino" class="form-control selectCasinos" name="">
-                                        <option value="0">-Todos los Casinos-</option>
-                                        @foreach($casinos as $casino)
-                                        <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                                        @endforeach
-                                    </select>
-                                  </div>
-
-                                  <div class="col-md-6 text-right">
-                                    <h5 style="color:#f5f5f5;">boton buscar</h5>
-                                    <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
-                                  </div>
-                                </div><br>
-                              </div> <!-- /.panel-body -->
-                            </div>
+                            <div class="panel-body">
+                              <div class="row">
+                                <div class="col-md-3">
+                                  <h5>CASINO</h5>
+                                  <select id="buscadorCasino" class="form-control selectCasinos" name="">
+                                    <option value="">- Todos los casinos -</option>
+                                    @foreach($casinos as $casino)
+                                    <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                    @endforeach
+                                  </select>
+                                </div>
+                              </div><br>
+                            </div> <!-- /.panel-body -->
                           </div> <!-- /.panel -->
                         </div> <!-- /.col-md-12 -->
                     </div> <!-- Fin de la fila de FILTROS -->
-
-
                       <div class="row"><!-- RESULTADOS BÚSQUEDA -->
                         <div class="col-md-12">
                           <div class="panel panel-default">
@@ -78,7 +55,7 @@ $casinos = $usuario->casinos;
                                 <thead>
                                   <tr>
                                     <th class="col" value="fecha_sesion">FECHA SESIÓN <i class="fa fa-sort"></i></th>
-                                    <th class="col" value="id_casino">CASINO <i class="fa fa-sort"></i></th>
+                                    <th class="col" value="casin">CASINO <i class="fa fa-sort"></i></th>
                                     <th class="col" value="importacion">IMPORTADO <i class="fa fa-sort"></i></th>
                                     <th class="col" value="relevamiento">RELEVAMIENTO <i class="fa fa-sort"></i></th>
                                     <th class="col" value="sesion_cerrada">SESIÓN CERRADA <i class="fa fa-sort"></i></th>
@@ -86,21 +63,14 @@ $casinos = $usuario->casinos;
                                   </tr>
                                 </thead>
                                 <tbody id="cuerpoTabla">
-
-
                                 </tbody>
                               </table>
                               <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
                               </div>
                             </div>
                           </div>
-
-
-
                         </div> <!-- Fin del col de los filtros -->
-
                       </div> <!-- Fin del row de la tabla -->
-
             </div> <!--/columna row -->
 
 
@@ -111,13 +81,12 @@ $casinos = $usuario->casinos;
 
     <!-- Comienza modal de ayuda -->
     @section('tituloDeAyuda')
-    <h3 class="modal-title2" style="color: #fff;">| IMPORTAR RELVAMIENTOS DE PARTIDAS</h3>
+    <h3 class="modal-title2" style="color: #fff;">| Reporte de Estados de Bingos</h3>
     @endsection
     @section('contenidoAyuda')
     <div class="col-md-12">
-      <h5>Tarjeta de Importar Relevamientos</h5>
       <p>
-        Visualiza los estados de las sesiones.
+        Visualiza los estados de las sesiones y las importaciones de Bingos.
       </p>
     </div>
     @endsection

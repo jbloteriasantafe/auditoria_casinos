@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Bingo;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-
+use App\Utils;
 use App\Bingo\ReporteEstado;
 use App\Bingo\SesionBingo;
 use App\Bingo\ImportacionBingo;
@@ -46,17 +46,49 @@ class ReportesController extends Controller{
     public function reportesEstado(){
         //Busco los casinos a los que esta asociado el usuario
         $casinos = UsuarioController::getInstancia()->getCasinos();
-        //agrego a seccion reciente a BINGo
         UsuarioController::getInstancia()->agregarSeccionReciente('Reporte Estado' , 'estado-bingo');
-
         return view('Bingo.ReporteEstado', ['casinos' => $casinos]);
     }
+    
     //BUSCAR ESTADOS
     public function buscarEstado(Request $request){
-      //obtengo los estados
-      $resultados = $this->obtenerEstados($request);
-
-      return $resultados;
+      $id_casino  = empty($request->casino)? null : $request->casino;
+      $id_casinos = UsuarioController::getInstancia()->quienSoy()['usuario']->casinos->map(function($c){
+        return $c->id_casino;
+      })->toArray();
+      $inicio = '2012-01-01';
+      $fin    = date('Y-m-d');
+      $dates  = Utils::tablaDates($fin);
+      $sort_by = ['columna' => "$dates.date",'orden' => 'desc'];
+      if(!empty($request->sort_by)){
+        $sort_by['columna'] = $request->sort_by['columna'];
+        $sort_by['orden']   = $request->sort_by['orden'];
+      }
+      return DB::table(DB::raw($dates))
+      ->selectRaw('dates.date as fecha_sesion,c.nombre as casino,
+       SUM(bs.id_sesion IS NOT NULL AND bs.id_estado = 2) > 0 as sesion_cerrada,
+       SUM(bp.id_partida IS NOT NULL) > 0 as relevamiento,
+       SUM(bi.id_importacion IS NOT NULL) > 0 as importacion,
+       SUM(bre.id_reporte_estado IS NOT NULL and bre.visado) > 0 as visado'
+      )
+      ->join('casino as c',function($j) use ($id_casino,$id_casinos){
+        if(!is_null($id_casino)) $j->where('c.id_casino','=',$id_casino);
+        return $j->whereIn('c.id_casino',$id_casinos);
+      })
+      ->leftJoin('bingo_sesion as bs',function($j) use ($dates){
+        return $j->on('bs.fecha_inicio','=',"$dates.date")->on('bs.id_casino','=','c.id_casino');
+      })
+      ->leftJoin('bingo_partida as bp','bp.id_sesion','=','bs.id_sesion')//Chequear todos los cartones?
+      ->leftJoin('bingo_importacion as bi',function($j) use ($dates){
+        return $j->on('bi.fecha','=',"$dates.date")->on('bi.id_casino','=','c.id_casino');
+      })//Mover el visado a la importacion
+      ->leftJoin('bingo_reporte_estado as bre',function($j) use ($dates){
+        return $j->on('bre.fecha_sesion','=',"$dates.date")->on('bre.id_casino','=','c.id_casino');
+      })
+      ->where("$dates.date",'>=',$inicio)->where("$dates.date",'<=',$fin)
+      ->groupBy("$dates.date",'c.id_casino')
+      ->orderBy($sort_by['columna'],$sort_by['orden'])
+      ->paginate($request->page_size);
     }
     //Funcion para guardar el estado de cargada la importación
     public function guardarReporteEstado($id_casino, $fecha, $valor){
