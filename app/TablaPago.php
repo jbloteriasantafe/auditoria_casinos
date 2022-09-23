@@ -10,7 +10,7 @@ class TablaPago extends Model
   protected $connection = 'mysql';
   protected $table = 'tabla_pago';
   protected $primaryKey = 'id_tabla_pago';
-  protected $visible = array('id_tabla_pago','codigo','id_juego'); //'denominacion_base','porc_devolucion_min', 'porc_devolucion_max'
+  protected $visible = ['id_tabla_pago','codigo','id_juego','porcentaje_devolucion']; //'denominacion_base','porc_devolucion_min', 'porc_devolucion_max'
   public $timestamps = false;
 
   public function juego(){
