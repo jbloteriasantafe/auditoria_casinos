@@ -29,38 +29,31 @@ $('#btn-agregarJuegoLista').click(function(){
 });
 
 $('#inputJuego').on('seleccionado',function(){
-    var id_juego = $(this).obtenerElementoSeleccionado();
-
-    $.get('juegos/obtenerJuego/' + id_juego, function(data) {
-        $('#inputCodigo').val(data.juego.cod_juego).prop('readonly',true);
-
-        //Si no tiene tablas de pagos ocultar esa zona
-        if (data.tablasDePago.length == 0) {
-            $('#tablas_de_pago').hide();
-        } else {
-            //Mostrarlas
-            $('#tablas_de_pago').show();
-            $('#tablas_pago').empty();
-            for (var i = 0; i < data.tablasDePago.length; i++) {
-              $('#tablas_pago')
-                  .append($('<div>').addClass('row')
-                                    .css('margin-bottom','15px')
-                                    .append($('<div>')
-                                      .addClass('col-xs-10')
-                                      .append($('<input>').attr('data-id' , data.tablasDePago[i].id_tabla_pago).attr('disabled',true).val(data.tablasDePago[i].codigo).addClass('form-control'))
-                                    )
-
-                          ).append($('<br>'))
-            }
-        }
-    });
-
+  const id_juego = $(this).obtenerElementoSeleccionado();
+  $.get('juegos/obtenerJuego/' + id_juego, function(data) {
+    $('#inputCodigo').val(data.juego.cod_juego).prop('readonly',true);
+    $('#tablas_pago').empty();
+    if (data.tablasDePago.length == 0) {
+      return $('#tablas_de_pago').hide();
+    }
+    $('#tablas_de_pago').show();
+    const tp_ejemplo = $('<div>').addClass('row').css('margin-bottom','15px').append(
+      $('<div>').addClass('col-xs-8').append($('<input>').attr('disabled',true).addClass('form-control codigo'))
+    ).append(
+      $('<div>').addClass('col-xs-4').append($('<input>').attr('disabled',true).addClass('form-control porcentaje'))
+    );
+    for(const i in data.tablasDePago) {
+      const tp = tp_ejemplo.clone();
+      tp.find('input').attr('data-id',data.tablasDePago[i].id_tabla_pago);
+      tp.find('.codigo').val(data.tablasDePago[i].codigo);
+      tp.find('.porcentaje').val(data.tablasDePago[i].porcentaje_devolucion);
+      $('#tablas_pago').append(tp);
+    }
     //Mostrar los botones correspondientes
     $('#btn-agregarJuegoLista').show();
     $('#btn-crearJuego').hide();
-
+  });
 });
-
 
 $('#inputJuego').on('deseleccionado',function(){
       console.log('deseleccionado');
@@ -89,53 +82,47 @@ function mostrarJuegos(id_casino,juegos,juego_activo){
 }
 
 function agregarRenglonListaJuego(id_juego, nombre_juego,denominacion,porcentaje_devolucion ,tablas, activo){
-  denominacion = denominacion != null ? denominacion : "-"; // si denomacion vacio hardcodeo guion medio
-  porcentaje_devolucion = porcentaje_devolucion != null ? porcentaje_devolucion : "-"; // si denomacion vacio hardcodeo guion medio
+  porcentaje_devolucion = porcentaje_devolucion ?? '-';
+  denominacion = denominacion ?? '-';
 
+  const fila = $('<tr>').attr('id',id_juego);
+  const juego_checked = activo || $('#tablaJuegosActivos tbody tr').length == 0;
+  fila.append($('<td>').append($('<input>').attr('name','juego_seleccionado').attr('type','radio').css('margin-left','10px').prop('checked', juego_checked)));
+  const span = $('<span>').addClass('badge').css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'});
+  fila.append($('<td>').append(span.clone().text(nombre_juego)));
+  fila.append($('<td>').append(span.clone().text(denominacion)));
+  fila.append($('<td>').append(span.clone().addClass('pdev').text(porcentaje_devolucion)));
 
-
-  var fila = $('<tr>').attr('id',id_juego);
-
-  //Mirar si solo hay un juego cuando se agrega manuealmente, setearlo como activo
-  if (!activo && $('#tablaJuegosActivos tbody tr').length == 0) {
-    fila.append($('<td>').append($('<input>').attr('name','juego_seleccionado').attr('type','radio').css('margin-left','10px').prop('checked', true)));
-  }else {
-    fila.append($('<td>').append($('<input>').attr('name','juego_seleccionado').attr('type','radio').css('margin-left','10px').prop('checked', activo)));
-  }
-
-  fila.append($('<td>').append($('<span>').addClass('badge')
-                                          .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
-                                          .text(nombre_juego)
-                              )
-             );
-
-
-    fila.append($('<td>').append($('<span>').addClass('badge')
-                                         .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
-                                         .text(denominacion)
-                             ));
-  fila.append($('<td>').append($('<span>').addClass('badge')
-                                         .css({'background-color':'#6dc7be','font-family':'Roboto-Regular','font-size':'18px','margin-top':'-3px'})
-                                         .text(porcentaje_devolucion)
-                             ));
-
-  var tablasPago = $('<select>').addClass('form-control');
-  if(typeof(tablas) != 'undefined' ){
-    for (var i = 0; i < tablas.length; i++) {
-      var tabla = $('<option>').val(tablas[i].id_tabla_pago).text(tablas[i].codigo);
-      tablasPago.append(tabla);
+  const tablasPago = $('<select>').addClass('form-control select_tablas_pago');
+  let id_tabla_seleccionada = null;
+  for (const i in (tablas ?? [])) {
+    if(id_tabla_seleccionada === null && parseFloat(tablas[i].porcentaje_devolucion) == parseFloat(porcentaje_devolucion)){
+      id_tabla_seleccionada = tablas[i].id_tabla_pago;
     }
+    const t = $('<option>').val(tablas[i].id_tabla_pago).text(tablas[i].codigo).attr('data-pdev',tablas[i].porcentaje_devolucion);
+    tablasPago.append(t);
   }
-
-  var boton = $('<button>').addClass('btn btn-danger borrarJuegoaActivo')
-                           .css('margin-left','10px')
-                           .append($('<i>').addClass('fa fa-fw fa-trash'));
+  
+  if(id_tabla_seleccionada === null){
+    id_tabla_seleccionada = '-SIN-TABLA-DE-PAGO-';
+    const t = $('<option>').val(id_tabla_seleccionada).text(id_tabla_seleccionada).attr('data-pdev',porcentaje_devolucion);
+    tablasPago.append(t);
+  }
+  tablasPago.val(id_tabla_seleccionada);
+  
   fila.append($('<td>').append(tablasPago));
+  const boton = $('<button>').addClass('btn btn-danger borrarJuegoaActivo').css('margin-left','10px').append($('<i>').addClass('fa fa-fw fa-trash'));
   fila.append($('<td>').append(boton));
-
   $('#tablaJuegosActivos').append(fila);
   $('#tablaJuegosActivos').show();
 }
+
+$(document).on('change','#tablaJuegosActivos .select_tablas_pago',function(e){
+  const op = $(this).find('option:selected');
+  const pdev = op.attr('data-pdev'); 
+  if(pdev === undefined) return;
+  $(this).closest('tr').find('.pdev').text(pdev);
+});
 
 //agregar Tabla DE Pago
 $('#btn-agregarTablaDePago').click(function(){
