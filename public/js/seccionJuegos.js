@@ -533,22 +533,14 @@ function clickIndice(e,pageNumber,tam){
 function habilitarControles(habilitado){
   $('#inputJuego').prop('readonly',!habilitado);
   $('#inputCodigoJuego').prop('readonly',!habilitado);
-  if(habilitado){
-    $('.borrarTablaPago').show();
-    $('#btn-agregarMaquina').show();
-    $('#btn-agregarTablaDePago').show();
-    $('.borrarFila').show();
-    $('#btn-agregarCertificado').show();
-  }
-  else{
-    $('.borrarTablaPago').hide();
-    $('#btn-agregarMaquina').hide();
-    $('#btn-agregarTablaDePago').hide();
-    $('.borrarFila').hide();
-    $('#btn-agregarCertificado').hide();
-  }
+  $('.borrarTablaPago').toggle(habilitado);
+  $('#btn-agregarMaquina').toggle(habilitado);
+  $('#btn-agregarTablaDePago').toggle(habilitado);
+  $('.borrarFila').toggle(habilitado);
+  $('#btn-agregarCertificado').toggle(habilitado);
   $('#modalJuego .copia input').prop('readonly',!habilitado);
   $('#modalJuego .copia select').attr('disabled',!habilitado);
+  $('#tablas_pago .form-control').prop('disabled',!habilitado);
 }
 
 function mostrarJuego(juego, tablas, maquinas,certificados,casinos){

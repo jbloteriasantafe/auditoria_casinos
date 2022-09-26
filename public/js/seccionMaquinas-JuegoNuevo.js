@@ -240,21 +240,14 @@ function limpiarModalJuego(){
   $('#btn-agregarTablaDePago').show();
 }
 
-function habilitarControlesJuegos(valor){
-  if(valor){
-    $('#inputJuego').prop('readonly', false);
-
-    $('#inputCodigo').prop('readonly', false);
-    $('.juegoSeleccionado input[type=radio]').prop('disabled' , false);
-    $('#agregarJuego').show();
-    $('.borrarJuego').show();
-  }else{
-    $('#inputJuego').prop('readonly', true);
-    $('#inputCodigo').prop('readonly', true);
-    $('.juegoSeleccionado input[type=radio]').prop('disabled' , true);
-    $('.borrarJuego').hide();
-    $('#agregarJuego').hide();
-  }
+function habilitarControlesJuegos(habilitado){
+  $('#inputJuego').prop('readonly', !habilitado);
+  $('#inputCodigo').prop('readonly', !habilitado);
+  $('#tablaJuegosActivos input[type=radio][name="juego_seleccionado"]').prop('disabled' , !habilitado);
+  $('#tablaJuegosActivos .borrarJuegoaActivo').prop('disabled' , !habilitado);
+  $('#tablaJuegosActivos .select_tablas_pago').prop('disabled' , !habilitado);
+  $('#agregarJuego').toggle(habilitado);
+  $('.borrarJuego').toggle(habilitado);
 }
 
 function obtenerDatosJuego(){
