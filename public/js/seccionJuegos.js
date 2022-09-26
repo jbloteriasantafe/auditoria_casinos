@@ -625,6 +625,7 @@ $(document).on('click','body',function(e){
 
 $(document).on('click','#listaMaquinas .porcentaje',function(e){
   $('#listaMaquinas .porcentaje').popover('destroy');
+  if($(this).prop('readonly')) return;
   let idx_seleccionado = null;
   const porcentaje_input = $(this).val();
   const pdevs = $('#tablas_pago > div').map(function(idx,obj){
