@@ -85,7 +85,7 @@ $('#btn-ayuda').click(function(e){
   $('.modal-title').text('| FÓRMULAS');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
 
-	$('#modalAyuda').modal('show');
+  $('#modalAyuda').modal('show');
 
 });
 
@@ -128,14 +128,14 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
       data: formData,
       dataType: 'json',
       success: function(resultados){
-        $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.estados.total,clickIndice);
+        $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
         $('#cuerpoTabla tr').remove()
 
-        for (var i = 0; i < resultados.respuesta.relevados.length; i++){
-          $('#cuerpoTabla').append(generarFilaTabla(resultados.respuesta.relevados[i],resultados.respuesta.importaciones[i],resultados.estados.data[i]));
+        for (const i  in resultados.data){
+          $('#cuerpoTabla').append(generarFilaTabla(resultados.data[i]));
         }
 
-        $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.estados.total,clickIndice);
+        $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
       },
       error: function(data){
         console.log('Error:', data);
@@ -493,111 +493,38 @@ function generarFilaDetallesSesion(detalle, detalles_relevado){
       return fila;
 }
 //Generar fila con los datos
-function generarFilaTabla(relevados, importados, estado){
-  var id_importacion;
-  var importado;
-  if(importados === -1) {
-    id_importacion = 'no_importado';
-    importado = 'NO'
-  }else{
-    id_importacion = importados[0].id_importacion;
-    importado = 'SI';
-  }
-
-  var relevamiento;
-  if(estado.relevamiento == null || estado.relevamiento == 0) relevamiento = 'NO';
-  else relevamiento = 'SI';
-
-  var cerrada;
-  if(estado.sesion_cerrada == null || estado.sesion_cerrada == 0) cerrada = 'NO';
-  else cerrada = 'SI';
-
-  var fecha;
-  var hora;
-  if(importados != -1 ){
-    fecha = importados[0].fecha;
-    hora = importados[0].hora_inicio;
-  }else if(relevados != -1){
-    fecha = relevados.sesion.fecha_inicio;
-    hora = relevados.sesion.hora_inicio;
-  }
-
-  var casino;
-  if(estado.id_casino == 1) casino = 'Melincue';
-  if(estado.id_casino == 2) casino = 'Santa Fe';
-  if(estado.id_casino == 3) casino = 'Rosario';
-
-  var visado;
-  if(estado.visado === 1){
-    visado = 'SI';
-  }else{
-    visado = 'NO';
-  }
-    var fila = $(document.createElement('tr'));
-        fila.attr('id', id_importacion)
-          .append($('<td>')
-          .addClass('col')
-              .text(fecha)
-          )
-          .append($('<td>')
-            .addClass('col')
-            .text(casino)
-          )
-          .append($('<td>')
-            .addClass('col')
-            .text(hora)
-          )
-          .append($('<td>')
-            .addClass('col')
-            .text(importado)
-          )
-          .append($('<td>')
-            .addClass('col')
-            .text(relevamiento)
-          )
-          .append($('<td>')
-            .addClass('col')
-            .text(cerrada)
-          )
-          .append($('<td>')
-            .addClass('col')
-            .text(visado)
-          )
-          .append($('<td>')
-            .addClass('col')
-            .append($('<button>')
-                .append($('<i>')
-                    .addClass('fa')
-                    .addClass('fa-fw')
-                    .addClass('fa-check')
-                  )
-                .append($('<span>').text('VISAR DIFERENCIA'))
-                .addClass('btn').addClass('btn-success').addClass('validar').addClass('no-visado')
-                .attr('value',id_importacion)
-              )
-              .append($('<button>')
-                  .append($('<i>')
-                      .addClass('fa')
-                      .addClass('fa-fw')
-                      .addClass('fa-search-plus')
-                    )
-                  .append($('<span>').text('VER VISADO'))
-                  .addClass('btn').addClass('btn-success').addClass('validar').addClass('visado')
-                  .attr('value',id_importacion)
-                )
-            )
-
-            if( id_importacion === 'no_importado'){
-              fila.find('.validar').removeClass('btn-success').addClass('btn-danger');
-            }
-            if( visado === 'SI') {
-              fila.find('.visado').show();
-              fila.find('.no-visado').hide();
-            }else{
-              fila.find('.visado').hide();
-              fila.find('.no-visado').show();
-            }
-      return fila;
+function generarFilaTabla(data){
+  const fecha = data.fecha_sesion;
+  const casino = data.casino;
+  const hora  = data.importacion? data.imp_hora_inicio : data.ses_hora_inicio;
+  const importado = data.importacion? 'SI' : 'NO';
+  const relevamiento = data.relevamiento? 'SI' : 'NO';
+  const cerrada = data.sesion_cerrada? 'SI': 'NO';
+  const visado = data.visado? 'SI' : 'NO';
+  
+  return $('<tr>').attr('id',data.importacion ?? 'no_importado')
+  .append($('<td>').addClass('col').text(fecha))
+  .append($('<td>').addClass('col').text(casino))
+  .append($('<td>').addClass('col').text(hora ?? '-'))
+  .append($('<td>').addClass('col').text(importado))
+  .append($('<td>').addClass('col').text(relevamiento))
+  .append($('<td>').addClass('col').text(cerrada))
+  .append($('<td>').addClass('col').text(visado))
+  .append($('<td>').addClass('col')
+    .append(
+      $('<button>').addClass('btn validar no-visado')
+      .addClass(data.importacion? 'btn-success' : 'btn-danger')
+      .toggle(!!data.visado)
+      .append($('<i>').addClass('fa fa-fw fa-check'))
+      .attr('title','VISAR DIFERENCIA').val(data.importacion ?? 'no_importado')
+    )
+    .append(
+      $('<button>').addClass('btn validar visado btn-success')
+      .toggle(!data.visado)
+      .append($('<i>').addClass('fa fa-fw fa-search-plus'))
+      .attr('title','VER VISADO').val(data.importacion ?? 'no_importado')
+    )
+  );
 }
 //Generar fila con los datos de las partidas importadas
 function generarFilaPartidaImportada(importado, partida = -1){

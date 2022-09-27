@@ -20,19 +20,6 @@ class ReportesController extends Controller{
       }
       return self::$instance;
     }
-    //BUSCAR IMPORTACIONES, RELEVADOS Y ESTADOS PARA ARMAR REPORTE DE DIFERENCIA
-    public function buscarReportesDiferencia(Request $request){
-      //obtener todos los estados
-      $estados = $this->obtenerEstados($request);
-      //por cada estado, obtener las importaciones y relevamientos(sesiones/partidas)
-      $respuesta = $this->obtenerCargados($estados);
-
-      // //obtengo el pozo dotación inicial, último pozo dotación de la sesión anterior
-      // $pozo_dotacion_inicial = $this->obtenerPozoDotacionInicial();
-
-      return ['respuesta' => $respuesta, 'estados' => $estados];
-      // return $respuesta;
-    }
     //función index de reporte de diferencia
     public function reportesDiferencia(){
         //Busco los casinos a los que esta asociado el usuario
@@ -40,7 +27,7 @@ class ReportesController extends Controller{
         //agrego a seccion reciente a BINGo
         UsuarioController::getInstancia()->agregarSeccionReciente('Reporte Diferencia' , 'diferencia-bingo');
 
-        return view('Bingo.ReporteDiferencia', ['casinos' => $casinos]);
+        return view('Bingo.ReporteDiferencia', ['casinos' => $casinos, 'estados' => []]);
     }
     //función index de reporte de estados
     public function reportesEstado(){
@@ -50,6 +37,9 @@ class ReportesController extends Controller{
         return view('Bingo.ReporteEstado', ['casinos' => $casinos]);
     }
     
+    public function buscarReportesDiferencia(Request $request){
+      return $this->buscarEstado($request);
+    }
     //BUSCAR ESTADOS
     public function buscarEstado(Request $request){
       $id_casino  = empty($request->casino)? null : $request->casino;
@@ -66,10 +56,14 @@ class ReportesController extends Controller{
       }
       return DB::table(DB::raw($dates))
       ->selectRaw('dates.date as fecha_sesion,c.nombre as casino,
-       SUM(bs.id_sesion IS NOT NULL AND bs.id_estado = 2) > 0 as sesion_cerrada,
-       SUM(bp.id_partida IS NOT NULL) > 0 as relevamiento,
-       SUM(bi.id_importacion IS NOT NULL) > 0 as importacion,
-       SUM(bre.id_reporte_estado IS NOT NULL and bre.visado) > 0 as visado'
+       MAX(bi.fecha)        as imp_fecha_inicio,
+       MAX(bi.hora_inicio)  as imp_hora_inicio,
+       MAX(bs.fecha_inicio) as ses_fecha_inicio,
+       MAX(bs.hora_inicio)  as ses_hora_inicio,
+       MAX(IF(bs.id_estado = 2,bs.id_sesion,NULL)) as sesion_cerrada,
+       MAX(bp.id_partida) as relevamiento,
+       MAX(bi.id_importacion) as importacion,
+       MAX(bre.id_reporte_estado) as visado'
       )
       ->join('casino as c',function($j) use ($id_casino,$id_casinos){
         if(!is_null($id_casino)) $j->where('c.id_casino','=',$id_casino);
@@ -90,6 +84,7 @@ class ReportesController extends Controller{
       ->orderBy($sort_by['columna'],$sort_by['orden'])
       ->paginate($request->page_size);
     }
+    
     //Funcion para guardar el estado de cargada la importación
     public function guardarReporteEstado($id_casino, $fecha, $valor){
       //armo las reglas para filtrar los datos del reporte
@@ -132,36 +127,6 @@ class ReportesController extends Controller{
       if($valor == 3)$reporte->relevamiento = 0;
       if($valor == 4)$reporte->sesion_abierta = 0;
       $reporte->save();
-    }
-
-    //funcion auxiliar para obtener tods los estados
-    public function obtenerEstados($request){
-      //Busco los casinos a los que esta asociado el usuario
-      $casinos = UsuarioController::getInstancia()->getCasinos();
-      //reglas que vienen desde el buscador para poder filtrar
-      $reglas = array();
-      if(isset($request->fecha)){
-        $reglas[]=['bingo_reporte_estado.fecha_sesion', '=', $request->fecha];
-      }
-      if($request->casino!=0){
-        $reglas[]=['casino.id_casino', '=', $request->casino];
-      }
-      $sort_by = $request->sort_by;
-      // dd($sort_by);
-      //consulta a la db para obtener los estados que cumplan con las reglas
-      $resultados = DB::table('bingo_reporte_estado')
-                         ->select('bingo_reporte_estado.*', 'casino.nombre')
-                         ->leftJoin('casino' , 'bingo_reporte_estado.id_casino','=','casino.id_casino')
-                         ->when($sort_by,function($query) use ($sort_by){
-                          return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                        },function($query){
-                          return $query->orderBy('fecha_sesion','desc');
-                        })
-                      ->where($reglas)
-                      ->whereIn('casino.id_casino', $casinos)
-                      ->orderBy('id_reporte_estado', 'desc')
-                      ->paginate($request->page_size);
-      return $resultados;
     }
     //obtiene los datos relevados y las importaciones
     public function obtenerCargados($estados){
