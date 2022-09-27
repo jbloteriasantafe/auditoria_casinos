@@ -24,6 +24,7 @@ class TablaPagoController extends Controller
   public function guardarTablaPago($tab,$id_juego){
     $tabla = new TablaPago;
     $tabla->codigo = $tab['codigo'];
+    $tabla->porcentaje_devolucion = $tab['porcentaje'] ?? null;
     $tabla->juego()->associate($id_juego);
     $tabla->save();
   }
@@ -31,6 +32,7 @@ class TablaPagoController extends Controller
   public function modificarTablaPago($tab){
     $tabla = TablaPago::find($tab['id_tabla_pago']);
     $tabla->codigo = $tab['codigo'];
+    $tabla->porcentaje_devolucion = $tab['porcentaje'] ?? null;
     $tabla->save();
   }
 

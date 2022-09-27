@@ -48,7 +48,7 @@ $('#btn-ayuda').click(function(e){
   e.preventDefault();
   $('.modal-title').text('| JUEGOS');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
-	$('#modalAyuda').modal('show');
+  $('#modalAyuda').modal('show');
 });
 
 //Mostrar modal para agregar nuevo Juego
@@ -177,17 +177,7 @@ $(document).on('change','.copia input.nro_admin',function(){
 });
 
 function agregarRenglonTablaDePago(){
-  let fila = $('<div>').addClass('row').addClass('col-md-12').addClass('copia')
-  .css('padding-top','2px').css('padding-bottom','2px');
-
-  let input = $('<input>').attr('data-id' , 0).addClass('form-control');
-  let boton_borrar = $('<button>').addClass('btn').addClass('btn-danger')
-  .addClass('borrarFila').addClass('borrarTablaPago').css('display','block')
-  .append($('<i>').addClass('fa fa-fw fa-trash'));
-
-  fila.append($('<div>').addClass('col-xs-10').append(input));
-  fila.append($('<div>').addClass('col-xs-2').append(boton_borrar));
-
+  const fila = $('#tablapago_mod').clone().removeAttr('id');
   $('#tablas_pago').append(fila);
   return fila;
 }
@@ -369,98 +359,88 @@ function parseError(response){
 //Crear nuevo Juego / actualizar si existe
 $('#btn-guardar').click(function (e) {
   $('#mensajeExito').hide();
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    });
 
-    var maquinas = [];
-   
-    $('#listaMaquinas .copia').each(function (){
-      var id_m = $(this).attr('data-id') == undefined ? 0 : $(this).attr('data-id') ;
-      var maquina = {
-        id_maquina: id_m,
-        id_casino: $('.selectCasinos',$(this)).val(),
-        nro_admin: $('.nro_admin',$(this)).val() ,
-        denominacion: $('.denominacion',$(this)).val(),
-        porcentaje: $('.porcentaje',$(this)).val(),
-        activo: $('.esActivo',$(this)).css('display') != "none"? "1" : "0"
-      }
-      maquinas.push(maquina);
-    })
-
-    var tablas = [];
-    $('#tablas_de_pago input').each(function(){
-      var id_t = $(this).attr('data-id') == undefined ? 0 : $(this).attr('data-id') ;
-      var tabla = {
-        id_tabla_pago: id_t,
-        codigo:  $(this).val()
-      }
-      tablas.push(tabla)
-    })
-
-    let certificados = [];
-    $('#listaSoft .copia').each(function(){
-      const texto = $(this).find('.codigo').val();
-      const cert = obtenerIdCertificado(texto);
-      if(cert != null) certificados.push(cert);
-    });
-
-    var state = $('#btn-guardar').val();
-    var type = "POST";
-    var url = '/juegos/guardarJuego';
-    var id_juego = $('#id_juego').val();
-
-    var formData = {
-      nombre_juego: $('#inputJuego').val(),
-      cod_identificacion: $('#inputCodigo').val(),
-      cod_juego:$('#inputCodigoJuego').val(),
-      tabla_pago: tablas,
-      maquinas: maquinas,
-      certificados: certificados,
+  const maquinas = $('#listaMaquinas > div').map(function(){
+    return {
+      id_maquina: $(this).attr('data-id') ?? 0,
+      id_casino: $(this).find('.selectCasinos').val(),
+      nro_admin: $(this).find('.nro_admin').val(),
+      denominacion: $(this).find('.denominacion').val(),
+      porcentaje: $(this).find('.porcentaje').val(),
+      activo: $(this).find('.esActivo').css('display') != "none"? "1" : "0"
     }
-
-    if (state == "modificar") {
-      url = '/juegos/modificarJuego';
-      formData.id_juego =  $('#id_juego').val();
+  }).toArray();
+  
+  const tablas = $('#tablas_pago > div').map(function(){
+    return {
+      id_tabla_de_pago: $(this).attr('data-id') ?? 0,
+      codigo:           $(this).find('.codigo').val(),
+      porcentaje:       $(this).find('.porcentaje').val(),
     }
+  }).toArray();
+    
+  const certificados = $('#listaSoft > div').map(function(){
+    return obtenerIdCertificado($(this).find('.codigo').val());//Si es null el .map no lo incluye
+  }).toArray();
 
-    $.ajax({
-        type: type,
-        url: url,
-        data: formData,
-        dataType: 'json',
-        success: function (data) {
-            $('#btn-buscar').trigger('click');
-            $('#modalJuego').modal('hide');
-            $('#mensajeExito h3').text('ÉXITO');
-            $('#mensajeExito p').text(' ');
-            $('#mensajeExito').show();
-        },
-        error: function (data) {
-            var response = JSON.parse(data.responseText);
+  let url = '/juegos/guardarJuego';
+  const formData = {
+    nombre_juego: $('#inputJuego').val(),
+    cod_identificacion: $('#inputCodigo').val(),
+    cod_juego:$('#inputCodigoJuego').val(),
+    tabla_pago: tablas,
+    maquinas: maquinas,
+    certificados: certificados,
+  };
 
-            if(typeof response.nombre_juego !== 'undefined'){
-              mostrarErrorValidacion($('#inputJuego'),parseError(response.nombre_juego),true);
-            }
+  if ($('#btn-guardar').val() == "modificar") {
+    url = '/juegos/modificarJuego';
+    formData.id_juego = $('#id_juego').val();
+  }
 
-            if(typeof response.cod_identificacion !== 'undefined'){
-              mostrarErrorValidacion($('#inputCodigo'),parseError(response.cod_identificacion),true);
-            }
-
-            $('#tablas_pago .copia input').each(function(){
-              $(this).removeClass('alerta');
-            });
-
-            $('#tablas_pago .copia input').each(function(index,value){
-              if(typeof response['tabla_pago.'+ index +'.codigo'] !== 'undefined'){
-                $(this).addClass('alerta');
-              }
-            });
-
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  $.ajax({
+    type: "POST",
+    url: url,
+    data: formData,
+    dataType: 'json',
+    success: function (data) {
+      $('#btn-buscar').trigger('click');
+      $('#modalJuego').modal('hide');
+      $('#mensajeExito h3').text('ÉXITO');
+      $('#mensajeExito p').text(' ');
+      $('#mensajeExito').show();
+    },
+    error: function (data) {
+      const response = data.responseJSON;
+      if(typeof response.nombre_juego !== 'undefined'){
+        mostrarErrorValidacion($('#inputJuego'),parseError(response.nombre_juego),true);
+      }
+      if(typeof response.cod_identificacion !== 'undefined'){
+        mostrarErrorValidacion($('#inputCodigo'),parseError(response.cod_identificacion),true);
+      }
+      $('#tablas_pago .alerta').removeClass('alerta');
+      $('#tablas_pago > div').each(function(index,value){
+        if(typeof response[`tabla_pago.${index}.codigo`] !== 'undefined'){
+          $(this).find('.codigo').addClass('alerta');
         }
-    });
+        if(typeof response[`tabla_pago.${index}.porcentaje`] !== 'undefined'){
+          $(this).find('.porcentaje').addClass('alerta');
+        }
+      });
+      $('#listaMaquinas > div').each(function(index,value){
+        if(typeof response[`maquinas.${index}.nro_admin`] !== 'undefined'){
+          $(this).find('.nro_admin').addClass('alerta');
+        }
+        if(typeof response[`maquinas.${index}.denominacion`] !== 'undefined'){
+          $(this).find('.denominacion').addClass('alerta');
+        }
+        if(typeof response[`maquinas.${index}.porcentaje`] !== 'undefined'){
+          $(this).find('.porcentaje').addClass('alerta');
+        }
+      });
+    }
+  });
 });
 
 $(document).on('click','#tablaResultados thead tr th[value]',function(e){
@@ -553,24 +533,15 @@ function clickIndice(e,pageNumber,tam){
 function habilitarControles(habilitado){
   $('#inputJuego').prop('readonly',!habilitado);
   $('#inputCodigoJuego').prop('readonly',!habilitado);
-  if(habilitado){
-    $('.borrarTablaPago').show();
-    $('#btn-agregarMaquina').show();
-    $('#btn-agregarTablaDePago').show();
-    $('.borrarFila').show();
-    $('#btn-agregarCertificado').show();
-  }
-  else{
-    $('.borrarTablaPago').hide();
-    $('#btn-agregarMaquina').hide();
-    $('#btn-agregarTablaDePago').hide();
-    $('.borrarFila').hide();
-    $('#btn-agregarCertificado').hide();
-  }
+  $('.borrarTablaPago').toggle(habilitado);
+  $('#btn-agregarMaquina').toggle(habilitado);
+  $('#btn-agregarTablaDePago').toggle(habilitado);
+  $('.borrarFila').toggle(habilitado);
+  $('#btn-agregarCertificado').toggle(habilitado);
   $('#modalJuego .copia input').prop('readonly',!habilitado);
   $('#modalJuego .copia select').attr('disabled',!habilitado);
+  $('#tablas_pago .form-control').prop('disabled',!habilitado);
 }
-
 
 function mostrarJuego(juego, tablas, maquinas,certificados,casinos){
   $('#inputJuego').val(juego.nombre_juego);
@@ -578,9 +549,9 @@ function mostrarJuego(juego, tablas, maquinas,certificados,casinos){
 
   for (var i = 0; i < tablas.length; i++) {
     let fila = agregarRenglonTablaDePago();
-    fila.find('input').val(tablas[i].codigo)
-    .attr('data-id' , tablas[i].id_tabla_pago);
     fila.attr('data-id' , tablas[i].id_tabla_pago);
+    fila.find('.codigo').val(tablas[i].codigo);
+    fila.find('.porcentaje').val(tablas[i].porcentaje_devolucion)
   }
 
   for (var i = 0; i < maquinas.length; i++) {
@@ -590,9 +561,11 @@ function mostrarJuego(juego, tablas, maquinas,certificados,casinos){
     div.find('.nro_admin').val(maquinas[i].nro_admin).trigger('change');
     div.find('.denominacion').val(maquinas[i].denominacion);
     div.find('.porcentaje').val(maquinas[i].porcentaje_devolucion);
-    if(maquinas[i].activo){ div.find('.esActivo').show(); div.find('.borrarJuego').attr('disabled',true);}
-    else{ div.find('.esActivo').hide(); }
-  } 
+    div.find('.esActivo').toggle(maquinas[i].activo);
+    div.find('.esInactivo').toggle(!maquinas[i].activo);
+    div.find('.borrarJuego').attr('disabled',maquinas[i].activo);
+  }
+  
   for (var i = 0; i < certificados.length; i++){
     let fila = agregarRenglonCertificado();
     const cert = certificados[i].certificado;
@@ -634,3 +607,61 @@ function mensajeError(errores) {
       $('#mensajeError').show();
   }, 250);
 }
+
+//focusout retorna undefined para pageX pageY
+//Es un bug de la de JqueryV2 aparentemente... lo hago asi... Octavio 2022-09-23
+$(document).on('click','body',function(e){
+  if(e.pageX === undefined || e.pageY === undefined) return;
+  const elementos_en_el_mouse = $(document.elementsFromPoint(e.pageX,e.pageY));
+  //Si clickeo en un porcentaje dejo que lo maneje el callback de abajo
+  if(elementos_en_el_mouse.children('#listaMaquinas .porcentaje').length > 0){
+    return;
+  }
+  //Si no, y no clickeo en el popover, lo escondo
+  if(!elementos_en_el_mouse.hasClass('popover')){
+    $('#listaMaquinas .porcentaje').popover('destroy');
+  }
+});
+
+$(document).on('click','#listaMaquinas .porcentaje',function(e){
+  $('#listaMaquinas .porcentaje').popover('destroy');
+  if($(this).prop('readonly')) return;
+  let idx_seleccionado = null;
+  const porcentaje_input = $(this).val();
+  const pdevs = $('#tablas_pago > div').map(function(idx,obj){
+    const porcentaje = $(obj).find('.porcentaje').val();
+    if(porcentaje == "") return;
+    //Seteo el primero que tenga el mismo porcentaje 
+    if(idx_seleccionado === null && porcentaje == porcentaje_input){
+      idx_seleccionado = idx;
+    }
+    return {
+      'codigo' : $(obj).find('.codigo').val(),
+      'porcentaje': $(obj).find('.porcentaje').val(),
+    };
+  }).map(function(idx,obj){
+    const checked = idx === idx_seleccionado? 'checked' : '';
+    return `<div class="form-check">\
+      <input data-porcentaje="${obj.porcentaje}" class="form-check-input radioPdev" type="radio" name="radioPdev" id="radioPdev${idx}" ${checked}/>\
+      <label class="form-check-label" for="radioPdev${idx}">${obj.codigo} (${obj.porcentaje})</label>\
+    </div>`
+  }).toArray().join("");
+  
+  if(pdevs.length == 0) return;
+  
+  $(this).attr({
+    'data-container':'body','data-toggle':'popover',
+    'data-placement':'top','data-html':true,
+    'data-trigger':'manual','title':'Seleccionar %dev',
+    'data-content': `<div style="text-align: left;">${pdevs}</div>`,
+  }).popover('show');
+});
+
+$(document).on('change','.radioPdev',function(e){
+  if(!this.checked) return;
+  const popoverid = $(this).closest('.popover').attr('id');
+  const input = $(`.porcentaje[aria-describedby="${popoverid}"]`);
+  if(input.length > 0){
+    input.val($(this).attr('data-porcentaje'));
+  }
+});

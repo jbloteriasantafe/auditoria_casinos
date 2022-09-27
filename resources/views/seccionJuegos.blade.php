@@ -158,7 +158,7 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
 
     <!-- Modal Juego -->
     <div class="modal fade" id="modalJuego" tabindex="-1" data-backdrop="static" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-lg">
+          <div class="modal-dialog modal-lg" style="width: 80%;">
              <div class="modal-content">
                 <div class="modal-header modalNuevo">
                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
@@ -176,15 +176,15 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                 <div class="row">
                   <div class="row" style="padding-bottom: 15px;">
                     <div class="col-md-12">
-                      <div class="col-md-3">
+                      <div class="col-md-4">
                           <h5>Nombre Juego</h5>
                           <input id="inputJuego" class="form-control" type="text" autocomplete="off" placeholder="Nombre juego"/>
                       </div>
-                      <div class="col-md-3">
+                      <div class="col-md-4">
                         <h5>Código Juego</h5>
                         <input id="inputCodigoJuego" class="form-control" type="text" autocomplete="off" placeholder="Código Juego" />
                       </div>
-                      <div class="col-md-3">
+                      <div class="col-md-4">
                         <h5>Casinos</h5>
                         <select id="selectCasinosJuego" class="form-control" list="dataCasinos" size="1" style="height: 100%;" readonly>
                         </select>
@@ -198,21 +198,6 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                         <i class="fa fa-fw fa-link"></i>
                       </button>
                       <div id="listaSoft" class="pre-scrollable" style="margin-top:15px;max-height: 150px;">
-                        <div id="soft_mod" class="row col-md-12" hidden>
-                          <div class="col-md-10">
-                            <input class="codigo form-control" value="" list="datalistCertificados">
-                          </div>
-                          <div class="col-md-1">
-                            <button class="btn btn-link verCertificado">
-                              <i class="fa fa-fw fa-search"></i>
-                            </button>
-                          </div>
-                          <div class="col-md-1">
-                            <button class="btn borrarFila borrarCertificado">
-                              <i class="fa fa-fw fa-trash"></i>
-                            </button>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -233,36 +218,8 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                         <i class="fa fa-fw fa-link"></i>
                       </button></h5>
                         <div id="listaMaquinas" class="pre-scrollable" style="margin-top:15px;min-height: 350px;">
-                          <div id="maquina_mod" class="row col-md-12" style="padding-top: 2px;padding-bottom: 2px;" hidden>
-                            <div class="col-md-1" title="Juego activo en la máquina">
-                              <span class="esActivo" style="font-size: 20px;color: gold;" hidden><i class="fa fa-fw fa-star"></i></span>
-                            </div>
-                            <div class="col-md-9">
-                              <div class="input-group">
-                                <select class="selectCasinos selectpicker form-control" name="" style="width: 25%;">
-                                  @foreach($casinos as $casino)
-                                  <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                                  @endforeach
-                                </select>
-
-                                <input type="text" class="form-control nro_admin" name="snpid" placeholder="Nro Admin" style="width: 25%;">
-                                <input type="text" class="form-control denominacion" name="snpid" placeholder="Denominación" style="width: 25%;">
-                                <input type="text" class="form-control porcentaje" name="snpid" placeholder="% Devolución" style="width: 25%;">
-                              </div>
-                            </div>
-                            <div class="col-md-1">
-                              <button class="btn btn-link verMaquina">
-                                <i class="fa fa-fw fa-search"></i>
-                              </button>
-                            </div>
-                            <div class="col-md-1">
-                              <button class="btn btn-danger borrarFila borrarJuego"><i class="fa fa-fw fa-trash"></i></button>
-                            </div>
-                          </div>
-                        
                         </div>
                     </div><!-- col-md-12 -->
-
                   </div>
                 </div>
               </div>
@@ -276,6 +233,63 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
               </div>
             </div>
           </div>
+    </div>
+    <div hidden>
+      <div id="soft_mod" class="row col-md-12">
+        <div class="col-md-1"></div>
+        <div class="col-md-9">
+          <input class="codigo form-control" value="" list="datalistCertificados" style="text-align: center;">
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-link verCertificado">
+            <i class="fa fa-fw fa-search"></i>
+          </button>
+          <button class="btn borrarFila borrarCertificado">
+            <i class="fa fa-fw fa-trash"></i>
+          </button>
+        </div>
+      </div>
+      <div id="tablapago_mod" class="row col-md-12" style="padding-top: 2px; padding-bottom: 2px;">
+        <div class="col-xs-1"></div>
+        <div class="col-xs-6">
+          <input class="form-control codigo" placeholder="Código" style="text-align: center;">
+        </div>
+        <div class="col-xs-3">
+          <input class="form-control porcentaje" placeholder="% Devolución" style="text-align: center;">
+        </div>
+        <div class="col-xs-2">
+          <button class="btn btn-danger borrarFila borrarTablaPago">
+            <i class="fa fa-fw fa-trash"></i>
+          </button>
+        </div>
+      </div>
+      <div id="maquina_mod" class="row col-md-12" style="padding-top: 2px;padding-bottom: 2px;" hidden>
+        <div class="col-md-1"></div>
+        <div class="col-md-1 centrar_con_flex">
+          <span class="esActivo" title="Juego activo en la máquina" style="text-align: center;font-size: 20px;color: gold;" hidden><i class="fa fa-fw fa-star"></i></span>
+          <span class="esInactivo" title="Juego inactivo en la máquina" style="text-align: center;font-size: 20px;color: grey;"><i class="far fa-fw fa-star"></i></span>
+        </div>
+        <div class="col-md-2">
+          <select class="selectCasinos selectpicker form-control" style="text-align: center;">
+            @foreach($casinos as $casino)
+            <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="col-md-2">
+          <input type="text" class="form-control nro_admin" placeholder="Nro Admin" style="text-align: center;">
+        </div>
+        <div class="col-md-2">
+          <input type="text" class="form-control denominacion" placeholder="Denominación" style="text-align: center;">
+        </div>
+        <div class="col-md-2">
+          <input type="text" class="form-control porcentaje" placeholder="% Devolución" style="text-align: center;">
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-link verMaquina"><i class="fa fa-fw fa-search"></i></button>
+          <button class="btn btn-danger borrarFila borrarJuego"><i class="fa fa-fw fa-trash"></i></button>
+        </div>
+      </div>
     </div>
 
     <!-- Modal Eliminar -->
