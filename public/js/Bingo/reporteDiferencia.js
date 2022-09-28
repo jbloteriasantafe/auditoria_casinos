@@ -182,76 +182,59 @@ $('#btn-finalizarValidacion').click(function(e){
     });
 //Mostral modal con detalles y relevamientos de la sesión
 $(document).on('click' , '.validar' , function() {
-
-     $('#id_importacion').val($(this).val());
-     var id_importacion = $('#id_importacion').val();
-     $('#frmDetalles').trigger("reset");
-     $('#msje-sesion-no-cerrada').text('');
-     //si la sesión tiene archivo importado, muestra el modal con los datos
-     //sino, muestra mensaje de error
-     if(id_importacion != 'no_importado'){
-       $('#modalDetalles .modal-header').attr('style','font-family: Roboto-Black; background-color: #46b8da; color: #fff');
-
-       $('#cuerpoTablaDetalles').remove();
-       $('#tablaResultadosDetalles').append($('<tbody>').attr('id', 'cuerpoTablaDetalles'));
-
-       $('#terminoDatos2').remove();
-       $('#columnaDetalles').append($('<div>').attr('id', 'terminoDatos2'));
-       $('#modalDetalles').modal('show');
-
-      $.get("obtenerDiferencia/" + id_importacion, function(data){
-        $('#modalDetalles .modal-title').text('| DETALLES DIFERENCIA ' + data.importacion[0].fecha);
-        //detalles sesion
-        cargarDatosSesion(data.importacion, data.sesion.sesion, data.pozoDotInicial);
-        cargarDetallesSesion(data.importacion, data.sesion.detalles);
-         // console.log(data);
-        //genera la tabla con las partidas importadas
-        for (var i = 0; i < data.importacion.length; i++){
-            if(data.sesion !== -1){
-              var partida = buscarPartida(data.sesion.partidas, i+1);
-            }
-            $('#cuerpoTablaDetalles').append(generarFilaPartidaImportada(data.importacion[i], partida));
-        }
-
-        //mostrar pops iconos
-        $('.pop-exclamation').popover({
-          html:true
-        });
-        $('.pop-check').popover({
-          html:true
-        });
-        $('.pop-times').popover({
-          html:true
-        });
-        //mostrar pops diferencias
-        $('.pop-diferencia').popover({
-          html:true
-        });
-
-        if(data.reporte.visado == 1){
-          $('#observacion_validacion').val(data.reporte.observaciones_visado).attr('disabled','disabled');
-          $('#btn-finalizarValidacion').hide();
-        }
-        else{
-          $('#observacion_validacion').removeAttr('disabled');
-          $('#btn-finalizarValidacion').show();
-        }
-
-      });
-    }else{
-      mensajeSesionNoImportada();
+  const id_importacion = $(this).val();
+  $('#id_importacion').val(id_importacion);
+  $('#frmDetalles').trigger("reset");
+  $('#msje-sesion-no-cerrada').text('');
+  //si la sesión tiene archivo importado, muestra el modal con los datos
+  //sino, muestra mensaje de error
+  if(id_importacion == 'no_importado'){
+    return mensajeSesionNoImportada();
+  }
+  $('#modalDetalles .modal-header').attr('style','font-family: Roboto-Black; background-color: #46b8da; color: #fff');
+  $('#cuerpoTablaDetalles').remove();
+  $('#tablaResultadosDetalles').append($('<tbody>').attr('id', 'cuerpoTablaDetalles'));
+  $('#terminoDatos2').remove();
+  $('#columnaDetalles').append($('<div>').attr('id', 'terminoDatos2'));
+  $.get("obtenerDiferencia/" + id_importacion, function(data){
+    console.log(data);
+    $('#modalDetalles .modal-title').text('| DETALLES DIFERENCIA ' + data.importacion[0].fecha);
+    //detalles sesion
+    const sesion = data.sesion? data.sesion.sesion : -1;
+    const detalles_sesion = data.sesion? data.sesion.detalles : [];
+    cargarDatosSesion(data.importacion, sesion, data.pozoDotInicial);
+    cargarDetallesSesion(data.importacion, detalles_sesion);
+    //genera la tabla con las partidas importadas
+    
+    const partidas = data.sesion? (data.sesion.partidas? data.sesion.partidas : []) : [];
+    console.log(data.importacion,partidas);
+    for (const i in data.importacion){
+      const partida = partidas.find(function(p){
+        return p[0].num_partida === (parseInt(i)+1);
+      }) ?? [-1];
+      $('#cuerpoTablaDetalles').append(generarFilaPartidaImportada(data.importacion[i], partida[0]));
     }
 
+    //mostrar pops iconos
+    $('.pop-exclamation').popover({html:true});
+    $('.pop-check').popover({html:true});
+    $('.pop-times').popover({html:true});
+    //mostrar pops diferencias
+    $('.pop-diferencia').popover({html:true});
+    $('#btn-finalizarValidacion').toggle(!data.reporte.visado);
+    $('#observacion_validacion').val(data.reporte.observaciones_visado).attr('disabled',!!data.reporte.visado);
+    $('#modalDetalles').modal('show');
+  });
 })
 
 $(document).on('click','#tablaResultados thead tr th[value]',function(e){
   $('#tablaResultados th').removeClass('activa');
   if($(e.currentTarget).children('i').hasClass('fa-sort')){
-    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-desc').parent().addClass('activa').attr('estado','desc');
+    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-down').parent().addClass('activa').attr('estado','desc');
   }
   else{
-    if($(e.currentTarget).children('i').hasClass('fa-sort-desc')){
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-asc').parent().addClass('activa').attr('estado','asc');
+    if($(e.currentTarget).children('i').hasClass('fa-sort-down')){
+      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-up').parent().addClass('activa').attr('estado','asc');
     }
     else{
       $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
@@ -493,34 +476,25 @@ function generarFilaDetallesSesion(detalle, detalles_relevado){
       return fila;
 }
 //Generar fila con los datos
-function generarFilaTabla(data){
-  const fecha = data.fecha_sesion;
-  const casino = data.casino;
-  const hora  = data.importacion? data.imp_hora_inicio : data.ses_hora_inicio;
-  const importado = data.importacion? 'SI' : 'NO';
-  const relevamiento = data.relevamiento? 'SI' : 'NO';
-  const cerrada = data.sesion_cerrada? 'SI': 'NO';
-  const visado = data.visado? 'SI' : 'NO';
-  
+function generarFilaTabla(data){  
   return $('<tr>').attr('id',data.importacion ?? 'no_importado')
-  .append($('<td>').addClass('col').text(fecha))
-  .append($('<td>').addClass('col').text(casino))
-  .append($('<td>').addClass('col').text(hora ?? '-'))
-  .append($('<td>').addClass('col').text(importado))
-  .append($('<td>').addClass('col').text(relevamiento))
-  .append($('<td>').addClass('col').text(cerrada))
-  .append($('<td>').addClass('col').text(visado))
+  .append($('<td>').addClass('col').text(data.fecha_sesion))
+  .append($('<td>').addClass('col').text(data.casino))
+  .append($('<td>').addClass('col').text(data.imp_hora_inicio ?? data.ses_hora_inicio ?? '-'))
+  .append($('<td>').addClass('col').text(data.importacion?    'SI' : 'NO'))
+  .append($('<td>').addClass('col').text(data.relevamiento?   'SI' : 'NO'))
+  .append($('<td>').addClass('col').text(data.sesion_cerrada? 'SI' : 'NO'))
+  .append($('<td>').addClass('col').text(data.visado?         'SI' : 'NO'))
   .append($('<td>').addClass('col')
     .append(
-      $('<button>').addClass('btn validar no-visado')
-      .addClass(data.importacion? 'btn-success' : 'btn-danger')
-      .toggle(!!data.visado)
+      $('<button>').addClass('btn btn-success validar no-visado')
+      .toggle(data.visado == null && data.importacion != null)
       .append($('<i>').addClass('fa fa-fw fa-check'))
       .attr('title','VISAR DIFERENCIA').val(data.importacion ?? 'no_importado')
     )
     .append(
-      $('<button>').addClass('btn validar visado btn-success')
-      .toggle(!data.visado)
+      $('<button>').addClass('btn btn-success validar visado')
+      .toggle(data.visado != null)
       .append($('<i>').addClass('fa fa-fw fa-search-plus'))
       .attr('title','VER VISADO').val(data.importacion ?? 'no_importado')
     )
@@ -528,131 +502,73 @@ function generarFilaTabla(data){
 }
 //Generar fila con los datos de las partidas importadas
 function generarFilaPartidaImportada(importado, partida = -1){
-  var fila = $(document.createElement('tr'));
-    fila.attr('id', importado.num_partida);
-    appendFila(fila, 'num_partida', importado.num_partida);
-    appendFila(fila, 'hora', importado.hora_inicio);
-    appendFila(fila, 'serieA', importado.serieA);
-    appendFila(fila, 'carton_inicio_A', importado.carton_inicio_A);
-    appendFila(fila, 'carton_fin_A', importado.carton_fin_A);
-    appendFila(fila, 'serieB', importado.serieB);
-    appendFila(fila, 'carton_inicio_B', importado.carton_inicio_B);
-    appendFila(fila, 'carton_fin_B', importado.carton_fin_B);
-    appendFila(fila, 'cartones_vendidos', importado.cartones_vendidos);
-    appendFila(fila, 'valor_carton', importado.valor_carton);
-    appendFila(fila, 'cant_bola', importado.cant_bola);
-    appendFila(fila, 'recaudado', importado.recaudado);
-    appendFila(fila, 'premio_linea', importado.premio_linea);
-    appendFila(fila, 'premio_bingo', importado.premio_bingo);
-    appendFila(fila, 'pozo_dot', importado.pozo_dot);
-    appendFila(fila, 'pozo_extra', importado.pozo_extra);
-
-        fila.append($('<td>').css('text-align','center')
-          .append($('<a>')
-              .addClass('pop-exclamation')
-              .attr("data-content", 'Partida no relevada.')
-              .attr("data-placement" , "top")
-              .attr("rel","popover")
-              .attr("data-trigger" , "hover")
-              .append($('<i>').addClass('pop').addClass('fa').addClass('fa-exclamation')
-                              .css('color','#FFA726'))
-          )
-          .append($('<a>')
-              .addClass('pop-check')
-              .attr("data-content", 'Coinciden datos relevados con importados.')
-              .attr("data-placement" , "top")
-              .attr("rel","popover")
-              .attr("data-trigger" , "hover")
-              .append($('<i>').addClass('pop').addClass('fa').addClass('fa-check')
-                              .css('color','rgb(102, 187, 106)'))
-          )
-          .append($('<a>')
-              .addClass('pop-times')
-              .attr("data-content", 'No coinciden datos relevados con importados.')
-              .attr("data-placement" , "top")
-              .attr("rel","popover")
-              .attr("data-trigger" , "hover")
-              .append($('<i>').addClass('pop').addClass('fa').addClass('fa-times')
-                              .css('color','rgb(239, 83, 80)'))
-          )
-        )
-
-          //si existe partida para comparar con la importacion, comparo
-          if(partida !== -1){
-            var bandera = 0;
-            var recaudado = (partida.cartones_vendidos*partida.valor_carton);
-
-            if(partida.hora_inicio != importado.hora_inicio) {
-              attrComparacion(fila, '#hora', partida.hora_inicio)
-              bandera++;};
-            if(partida.serie_inicio != importado.serieA){
-              attrComparacion(fila, '#serieA', partida.serie_inicio)
-              bandera++;};
-            if(partida.carton_inicio_i != importado.carton_inicio_A) {
-              attrComparacion(fila, '#carton_inicio_A', partida.carton_inicio_i)
-              bandera++;};
-            if(partida.carton_fin_i != importado.carton_fin_A) {
-              attrComparacion(fila, '#carton_fin_A', partida.carton_fin_i)
-              bandera++;};
-            if(partida.serie_fin != importado.serieB) {
-              attrComparacion(fila, '#serieB', partida.serie_fin)
-              bandera++;};
-            if(partida.carton_inicio_f != importado.carton_inicio_B) {
-              attrComparacion(fila, '#carton_inicio_B', partida.carton_inicio_f)
-              bandera++;};
-            if(partida.carton_fin_f != importado.carton_fin_B) {
-              attrComparacion(fila, '#carton_fin_B', partida.carton_fin_f)
-              bandera++;};
-            if(partida.cartones_vendidos != importado.cartones_vendidos) {
-              attrComparacion(fila, '#cartones_vendidos', partida.cartones_vendidos)
-              bandera++;};
-            if(partida.valor_carton != importado.valor_carton) {
-              attrComparacion(fila, '#valor_carton', partida.valor_carton)
-              bandera++;};
-            if(partida.bola_bingo != importado.cant_bola) {
-              attrComparacion(fila, '#cant_bola', partida.bola_bingo)
-              bandera++;};
-            if(recaudado != importado.recaudado) {
-              attrComparacion(fila, '#recaudado', recaudado)
-              bandera++;};
-            if(partida.premio_linea != importado.premio_linea) {
-              attrComparacion(fila, '#premio_linea', partida.premio_linea)
-              bandera++;};
-            if(partida.premio_bingo != importado.premio_bingo) {
-              attrComparacion(fila, '#premio_bingo', partida.premio_bingo)
-              bandera++;};
-            if(partida.pozo_dot != importado.pozo_dot) {
-              attrComparacion(fila, '#pozo_dot', partida.pozo_dot)
-              bandera++;};
-            if(partida.pozo_extra != importado.pozo_extra) {
-              attrComparacion(fila, '#pozo_extra', partida.pozo_extra)
-              bandera++;};
-
-            fila.find('.pop-exclamation').hide();
-
-            if(bandera == 0){
-              fila.find('.pop-times').hide();
-            }else{
-              fila.find('.pop-check').hide();
-            }
-
-          }else{
-              fila.find('.pop-check').hide();
-              fila.find('.pop-times').hide();
-          }
-
-        return fila;
-}
-//busca si existe partida relevada para comparar con importada
-function buscarPartida(partidas, num_partida){
-  var r;
-  partidas.forEach(function(partida){
-    if(partida[0].num_partida === num_partida){
-      r = partida[0];
-      return;
+  const cols_imp_partida = {
+    num_partida: null,
+    hora_inicio: 'hora_inicio',
+    serieA: 'serie_inicio',
+    carton_inicio_A: 'carton_inicio_i',
+    carton_fin_A: 'carton_fin_i',
+    serieB: 'serie_fin',
+    carton_inicio_B: 'carton_inicio_f',
+    carton_fin_B: 'carton_fin_f',
+    cartones_vendidos: 'cartones_vendidos',
+    valor_carton: 'valor_carton',
+    cant_bola: 'bola_bingo',
+    recaudado: 'recaudado',
+    premio_linea: 'premio_linea',
+    premio_bingo: 'premio_bingo',
+    pozo_dot: 'pozo_dot',
+    pozo_extra: 'pozo_extra'
+  };
+  const keys_cols_imp_partida = Object.keys(cols_imp_partida);
+  const fila = $('<tr>').attr('id', importado.num_partida);
+  
+  for(const kidx in keys_cols_imp_partida){
+    const attr_imp = keys_cols_imp_partida[kidx];
+    fila.append($('<td>').append(
+      $('<p>').attr('id', attr).addClass('col').text(importado[attr])
+    ));
+  }
+  
+  const icono = $('<a>').attr("data-placement","top").attr("rel","popover")
+  .attr("data-trigger" , "hover").append($('<i>').addClass('pop fa'));
+  const icono_no_relevado  = icono.clone().attr("data-content", 'Partida no relevada.').addClass('pop-exclamation');
+  icono_no_relevado.find('i').addClass('fa-exclamation').css('color','#FFA726');
+  const icono_coinciden    = icono.clone().attr("data-content", 'Coinciden datos relevados con importados.').addClass('pop-check');
+  icono_coinciden.find('i').addClass('fa-check').css('color','rgb(102, 187, 106)');
+  const icono_no_coinciden = icono.clone().attr("data-content", 'No coinciden datos relevados con importados.').addClass('pop-times');
+  icono_no_coinciden.find('i').addClass('fa-times').css('color','rgb(239, 83, 80)');
+  
+  fila.append($('<td>').css('text-align','center')
+    .append(icono_no_relevado).toggle(partida == -1)
+    .append(icono_coinciden).toggle(partida != -1)
+    .append(icono_no_coinciden).toggle(partida != -1)
+  );
+  
+  if(partida == -1){//Si no hay partida, no comparo
+    return fila;
+  }
+  
+  let correcto = true;  
+  const recaudado = partida.cartones_vendidos*partida.valor_carton;
+  if(recaudado != importado.recaudado) {
+    attrComparacion(fila, '#recaudado', recaudado)
+    correcto = false;
+  }
+  
+  for(const kidx in keys_cols_imp_partida){
+    const attr_imp = keys_cols_imp_partida[kidx];
+    const attr_par = cols_imp_partida[attr_imp];
+    if(partida[attr_par] != null && partida[attr_par] != importado[attr_imp]){
+      attrComparacion(fila, '#'+attr_imp, partida[attr_par]);
+      correcto = false;
     }
-  });
-  return r;
+  }
+  
+  fila.find('.pop-times').toggle(!correcto);
+  fila.find('.pop-check').toggle(correcto);
+
+  return fila;
 }
 //Mensaje de error cuando la sesión no se encuentra importada
 function mensajeSesionNoImportada(){
@@ -670,16 +586,6 @@ function attrComparacion(fila, lugar, valor){
   .attr('title','VALOR RELEVADO')
   .attr("data-trigger" , "hover")
   .addClass('pop-diferencia');
-}
-//append y atrr atributos fila importaciones
-function appendFila(fila, nombre_id, valor){
-  fila.append($('<td>')
-    .append($('<p>')
-  .attr('id', nombre_id)
-  .addClass('col')
-  .removeClass('pintar-red')
-      .text(valor)
-  ))
 }
 //append fila detalle sesión
 function appendFilaDetalleSesion(fila, valor, id){

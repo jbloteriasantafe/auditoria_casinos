@@ -14,6 +14,13 @@ use App\Casino;
 use App\Http\Controllers\Bingo\ReportesController;
 class ImportacionController extends Controller
 {
+    private static $instance;
+    public static function getInstancia() {
+      if (!isset(self::$instance)) {
+        self::$instance = new self();
+      }
+      return self::$instance;
+    }
     private static $atributos = [
     ];
     public function index(){
@@ -132,7 +139,7 @@ class ImportacionController extends Controller
       //guardo todas las filas en lines, como csv corta con ',', habrá más columnas por fila
       $lines = array();
       while( ($row = fgetcsv($fileHandle)) !== FALSE ) {
-      	$lines[] = $row;
+        $lines[] = $row;
       }
 
       $resultado = array(); //variable auxiliar para guardar  el array separando

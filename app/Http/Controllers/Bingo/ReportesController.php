@@ -10,6 +10,8 @@ use App\Bingo\SesionBingo;
 use App\Bingo\ImportacionBingo;
 use App\Bingo\PartidaBingo;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\Bingo\SesionesController;
+use App\Http\Controllers\Bingo\ImportacionController;
 use Illuminate\Support\Facades\DB;
 
 class ReportesController extends Controller{
@@ -41,12 +43,7 @@ class ReportesController extends Controller{
       return $this->buscarEstado($request);
     }
     //BUSCAR ESTADOS
-    public function buscarEstado(Request $request){
-      $id_casino  = empty($request->casino)? null : $request->casino;
-      $id_casinos = UsuarioController::getInstancia()->quienSoy()['usuario']->casinos->map(function($c){
-        return $c->id_casino;
-      })->toArray();
-      $inicio = '2012-01-01';
+    public function buscarEstado(Request $request,$id_importacion = null){
       $fin    = date('Y-m-d');
       $dates  = Utils::tablaDates($fin);
       $sort_by = ['columna' => "$dates.date",'orden' => 'desc'];
@@ -54,7 +51,17 @@ class ReportesController extends Controller{
         $sort_by['columna'] = $request->sort_by['columna'];
         $sort_by['orden']   = $request->sort_by['orden'];
       }
-      return DB::table(DB::raw($dates))
+      $reglas = [["$dates.date",'>=','2012-01-01'],["$dates.date",'<=',$fin]];
+      if(!empty($request->casino)){
+        $reglas[] = ['c.id_casino','=',$request->casino];
+      }
+      if(!is_null($id_importacion)){
+        $reglas[] = ['bi.id_importacion','=',$id_importacion];
+      }
+      $id_casinos = UsuarioController::getInstancia()->quienSoy()['usuario']->casinos->map(function($c){
+        return $c->id_casino;
+      })->toArray();
+      $resultados = DB::table(DB::raw($dates))
       ->selectRaw('dates.date as fecha_sesion,c.nombre as casino,
        MAX(bi.fecha)        as imp_fecha_inicio,
        MAX(bi.hora_inicio)  as imp_hora_inicio,
@@ -63,11 +70,10 @@ class ReportesController extends Controller{
        MAX(IF(bs.id_estado = 2,bs.id_sesion,NULL)) as sesion_cerrada,
        MAX(bp.id_partida) as relevamiento,
        MAX(bi.id_importacion) as importacion,
-       MAX(bre.id_reporte_estado) as visado'
+       MAX(IF(bre.visado,bre.id_reporte_estado,NULL)) as visado'
       )
-      ->join('casino as c',function($j) use ($id_casino,$id_casinos){
-        if(!is_null($id_casino)) $j->where('c.id_casino','=',$id_casino);
-        return $j->whereIn('c.id_casino',$id_casinos);
+      ->join('casino as c',function($j){
+        return $j;
       })
       ->leftJoin('bingo_sesion as bs',function($j) use ($dates){
         return $j->on('bs.fecha_inicio','=',"$dates.date")->on('bs.id_casino','=','c.id_casino');
@@ -79,10 +85,12 @@ class ReportesController extends Controller{
       ->leftJoin('bingo_reporte_estado as bre',function($j) use ($dates){
         return $j->on('bre.fecha_sesion','=',"$dates.date")->on('bre.id_casino','=','c.id_casino');
       })
-      ->where("$dates.date",'>=',$inicio)->where("$dates.date",'<=',$fin)
+      ->where($reglas)->whereIn('c.id_casino',$id_casinos)
       ->groupBy("$dates.date",'c.id_casino')
-      ->orderBy($sort_by['columna'],$sort_by['orden'])
-      ->paginate($request->page_size);
+      ->orderBy($sort_by['columna'],$sort_by['orden']);
+      
+      if(!is_null($id_importacion)) return $resultados->first();
+      return $resultados->paginate($request->page_size);
     }
     
     //Funcion para guardar el estado de cargada la importación
@@ -146,33 +154,29 @@ class ReportesController extends Controller{
     }
 
     public function obtenerDiferencia($id){
-      $importacion = app(\App\Http\Controllers\Bingo\ImportacionController::class)
-                        ->obtenerImportacionCompleta($id);
+      $data = $this->buscarEstado(request(),$id);
+      if(is_null($data)) return response()->json(['id_importacion' => 'No encontrado']);
+      
+      $importacion = ImportacionController::getInstancia()->obtenerImportacionCompleta($id);
 
-      $sesion = app(\App\Http\Controllers\Bingo\SesionesController::class)
-                    ->obtenerSesionFC($importacion[0]->fecha,$importacion[0]->id_casino, 'diferencia');
-
-      //armo las reglas para obtener el reporte de estado de la importación
-      $reglas = array();
-      $reglas [] =['fecha_sesion','=', $importacion[0]->fecha];
-      $reglas [] =['id_casino','=', $importacion[0]->id_casino];
-      $reporte = ReporteEstado::where($reglas)->first();
+      $sesion = is_null($data->sesion_cerrada)? 
+        null :
+        SesionesController::getInstancia()->obtenerSesion($data->sesion_cerrada);
+      
+      $reporte = ReporteEstado::where([
+        ['fecha_sesion','=', $importacion[0]->fecha],['id_casino','=', $importacion[0]->id_casino]
+      ])->first();
 
       //busco la primer ocurrencia que cumpla con la id de casino y con fecha menor
-      $cumple = array();
-      $cumple [] =['fecha','<', $importacion[0]->fecha];
-      $cumple [] =['id_casino','=', $importacion[0]->id_casino];
-      $id_importacion_anterior = ImportacionBingo::where($cumple)->orderBy('fecha','dsc')->first();
+      $bd_importacion_anterior = ImportacionBingo::where([
+        ['fecha','<', $importacion[0]->fecha],['id_casino','=', $importacion[0]->id_casino]
+      ])->orderBy('fecha','desc')->first();
 
-      //si existe, busco la primer anterior
-      if($id_importacion_anterior != null){
-        $id_importacion_anterior = $id_importacion_anterior->id_importacion;
-        $importacion_anterior = app(\App\Http\Controllers\Bingo\ImportacionController::class)
-                          ->obtenerImportacionCompleta($id_importacion_anterior);
+      $pozo_dotacion_inicial = null;
+      if(!is_null($bd_importacion_anterior)){//si existe, busco la primer anterior
+        $id_importacion_anterior = $bd_importacion_anterior->id_importacion;
+        $importacion_anterior = ImportacionController::getInstancia()->obtenerImportacionCompleta($id_importacion_anterior);
         $pozo_dotacion_inicial = $importacion_anterior->last()->pozo_dot;
-
-      }else {
-        $pozo_dotacion_inicial = -1;
       }
 
       return ['importacion' => $importacion, 'sesion' => $sesion, 'reporte' => $reporte, 'pozoDotInicial' => $pozo_dotacion_inicial];

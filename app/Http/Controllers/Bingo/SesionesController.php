@@ -25,6 +25,13 @@ use PDF;
 use View;
 class SesionesController extends Controller
 {
+  private static $instance;
+  public static function getInstancia() {
+    if (!isset(self::$instance)) {
+      self::$instance = new self();
+    }
+    return self::$instance;
+  }
   private static $atributos = [];
 
   private function errorOut($map){

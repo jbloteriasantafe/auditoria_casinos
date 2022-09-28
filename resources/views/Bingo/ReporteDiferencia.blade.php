@@ -90,9 +90,9 @@ $casinos = $usuario->casinos;
                                 <thead>
                                   <tr>
                                     <th class="col" value="fecha_sesion">FECHA SESIÓN <i class="fa fa-sort"></i></th>
-                                    <th class="col" value="id_casino">CASINO <i class="fa fa-sort"></i></th>
+                                    <th class="col" value="casino">CASINO <i class="fa fa-sort"></i></th>
                                     <th class="col" value="hora_inicio">HORA INICIO </th>
-                                    <th class="col" value="importado">IMPORTADO <i class="fa fa-sort"></i></th>
+                                    <th class="col" value="importacion">IMPORTADO <i class="fa fa-sort"></i></th>
                                     <th class="col" value="relevamiento">RELEVAMIENTO <i class="fa fa-sort"></i></th>
                                     <th class="col" value="sesion_cerrada">SESIÓN CERRADA <i class="fa fa-sort"></i></th>
                                     <th class="col" value="visado">VISADO <i class="fa fa-sort"></i></th>
