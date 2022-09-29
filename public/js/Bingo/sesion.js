@@ -541,7 +541,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.get('relevamientos/chequearRolFiscalizador', function(rolfisca){
-    puede_cerrar_sesion_y_eliminar = rolfisca != 1;//@HACK: eliminar las globales pasandolo a la vista
+    puede_eliminar = rolfisca != 1;//@HACK: eliminar las globales pasandolo a la vista
     $.ajax({
       type: 'GET',
       url: 'bingo/buscarSesion',
@@ -663,7 +663,7 @@ function clickIndice(e,pageNumber,tam){
 }
 
 //Hacerlo estatico a la view
-puede_cerrar_sesion_y_eliminar = false;
+puede_eliminar = false;
 
 //Genero las filas con los datos. Recibe una sesion para la busqueda y un "valor" como bandera para determinar si búsqueda o de guardado.
 //Estado y casino sólo se utilizan en caso de valor='guardar'
@@ -699,7 +699,8 @@ function generarFilaTabla(sesion, estado, casino,nombre_inicio, nombre_fin, valo
     )
     .append(
       $('<button>').attr('value',sesion.id_sesion).addClass('btn btn-success btn-cerrarSesion cerrarSesion')
-      .attr('title','CERRAR SESIÓN').toggle(puede_cerrar_sesion_y_eliminar)
+      .attr('title', sesion.id_estado == 1? 'CERRAR SESIÓN' : 'ABRIR SESION')
+      .toggle(sesion.id_estado == 1 || puede_eliminar)//Si esta abierto todos pueden cerrar, sino solo puede reabrir el ADM
       .append($('<i>').addClass('fas fa-wrench'))
     )
     .append(
@@ -709,7 +710,7 @@ function generarFilaTabla(sesion, estado, casino,nombre_inicio, nombre_fin, valo
     )
     .append(
       $('<button>').attr('value',sesion.id_sesion).addClass('btn btn-danger btn-borrar eliminar')
-      .attr('title','ELIMINAR').toggle(puede_cerrar_sesion_y_eliminar)
+      .attr('title','ELIMINAR').toggle(puede_eliminar)
       .append($('<i>').addClass('fa fa-trash-alt'))
     )
   );
