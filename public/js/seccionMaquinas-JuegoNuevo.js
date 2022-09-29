@@ -33,10 +33,7 @@ $('#inputJuego').on('seleccionado',function(){
   $.get('juegos/obtenerJuego/' + id_juego, function(data) {
     $('#inputCodigo').val(data.juego.cod_juego).prop('readonly',true);
     $('#tablas_pago').empty();
-    if (data.tablasDePago.length == 0) {
-      return $('#tablas_de_pago').hide();
-    }
-    $('#tablas_de_pago').show();
+    $('#tablas_de_pago').toggle(data.tablasDePago.length > 0);
     const tp_ejemplo = $('<div>').addClass('row').css('margin-bottom','15px').append(
       $('<div>').addClass('col-xs-8').append($('<input>').attr('disabled',true).addClass('form-control codigo'))
     ).append(
