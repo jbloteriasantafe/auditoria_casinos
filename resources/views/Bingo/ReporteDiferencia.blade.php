@@ -89,30 +89,41 @@ $casinos = $usuario->casinos;
                               <table id="tablaResultados" class="table table-striped tablesorter">
                                 <thead>
                                   <tr>
-                                    <th class="col" value="fecha_sesion">FECHA SESIÓN <i class="fa fa-sort"></i></th>
-                                    <th class="col" value="casino">CASINO <i class="fa fa-sort"></i></th>
-                                    <th class="col" value="hora_inicio">HORA INICIO </th>
-                                    <th class="col" value="importacion">IMPORTADO <i class="fa fa-sort"></i></th>
-                                    <th class="col" value="relevamiento">RELEVAMIENTO <i class="fa fa-sort"></i></th>
-                                    <th class="col" value="sesion_cerrada">SESIÓN CERRADA <i class="fa fa-sort"></i></th>
-                                    <th class="col" value="visado">VISADO <i class="fa fa-sort"></i></th>
-                                    <th class="col" >ACCIÓN</th>
+                                    <th value="fecha_sesion">FECHA SESIÓN <i class="fa fa-sort"></i></th>
+                                    <th value="casino">CASINO <i class="fa fa-sort"></i></th>
+                                    <th value="hora_inicio">HORA INICIO </th>
+                                    <th value="importacion">IMPORTADO <i class="fa fa-sort"></i></th>
+                                    <th value="relevamiento">RELEVAMIENTO <i class="fa fa-sort"></i></th>
+                                    <th value="sesion_cerrada">SESIÓN CERRADA <i class="fa fa-sort"></i></th>
+                                    <th value="visado">VISADO <i class="fa fa-sort"></i></th>
+                                    <th >ACCIÓN</th>
                                   </tr>
                                 </thead>
                                 <tbody id="cuerpoTabla">
-
-
                                 </tbody>
+                              </table>
+                              <table hidden>
+                                <tr id="filaEjemploResultados">
+                                  <td class="fecha_sesion">9999-99-99</td>
+                                  <td class="casino">CASINO</td>
+                                  <td class="hora_inicio">99:99:99</td>
+                                  <td class="importacion">SI/NO</td>
+                                  <td class="relevamiento">SI/NO</td>
+                                  <td class="sesion_cerrada">SI/NO</td>
+                                  <td class="visado">SI/NO</td>
+                                  <td>
+                                    <button class="btn btn-success ver" style="display: none;" title="VER VISADO" value="8"><i class="fa fa-fw fa-search-plus"></i></button>
+                                    @if($usuario->es_administrador || $usuario->es_superusuario || $usuario->es_auditor)
+                                    <button class="btn btn-success visar" style="display: none;" title="VISAR DIFERENCIA" value="8"><i class="fa fa-fw fa-check"></i></button>
+                                    @endif
+                                  </td>
+                                </tr>
                               </table>
                               <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
                               </div>
                             </div>
                           </div>
-
-
-
                         </div> <!-- Fin del col de los filtros -->
-
                       </div> <!-- Fin del row de la tabla -->
 
             </div> <!--/columna row -->
@@ -195,29 +206,58 @@ $casinos = $usuario->casinos;
                                     <table id="tablaResultadosDetalles" class="table table-striped">
                                       <thead>
                                         <tr>
-                                          <th class="col" value="nro_partida">PARTIDA</th>
-                                          <th class="col" value="hora_sesion">HORA</th>
-                                          <th class="col" value="serie_inicial">SERIE INICIAL</th>
-                                          <th class="col" value="carton_inicial">CARTON INICIAL</th>
-                                          <th class="col" value="carton_final">CARTON FINAL</th>
-                                          <th class="col" value="serie_final">SERIE FINAL</th>
-                                          <th class="col" value="carton_inicial">CARTON INICIAL</th>
-                                          <th class="col" value="carton_final">CARTON FINAL</th>
-                                          <th class="col" value="cartones_vendidos">CARTONES VENDIDOS</th>
-                                          <th class="col" value="valor_carton">VALOR CARTON</th>
-                                          <th class="col" value="cant_bola">CANT. BOLA</th>
-                                          <th class="col" value="recaudado">RECAUDADO</th>
-                                          <th class="col" value="premio_bingo">PREMIO LÍNEA</th>
-                                          <th class="col" value="premio_bingo">PREMIO BINGO</th>
-                                          <th class="col" value="pozo_dot">POZO DOT.</th>
-                                          <th class="col" value="pozo_extra">POZO EXTRA</th>
-                                          <th class="col" value="estado"></th>
+                                          <th value="nro_partida">PARTIDA</th>
+                                          <th value="hora_sesion">HORA</th>
+                                          <th value="serie_inicial">SERIE INICIAL</th>
+                                          <th value="carton_inicial">CARTON INICIAL</th>
+                                          <th value="carton_final">CARTON FINAL</th>
+                                          <th value="serie_final">SERIE FINAL</th>
+                                          <th value="carton_inicial">CARTON INICIAL</th>
+                                          <th value="carton_final">CARTON FINAL</th>
+                                          <th value="cartones_vendidos">CARTONES VENDIDOS</th>
+                                          <th value="valor_carton">VALOR CARTON</th>
+                                          <th value="cant_bola">CANT. BOLA</th>
+                                          <th value="recaudado">RECAUDADO</th>
+                                          <th value="premio_bingo">PREMIO LÍNEA</th>
+                                          <th value="premio_bingo">PREMIO BINGO</th>
+                                          <th value="pozo_dot">POZO DOT.</th>
+                                          <th value="pozo_extra">POZO EXTRA</th>
+                                          <th value="estado"></th>
                                         </tr>
                                       </thead>
                                       <tbody id="cuerpoTablaDetalles">
-
-
                                       </tbody>
+                                    </table>
+                                    <table hidden>
+                                      <tr id="filaEjemploDetalle">
+                                        <td data-attr-imp="num_partida">999</td>
+                                        <td data-attr-imp="hora_inicio" data-attr-par="hora_inicio">99:99:99</td>
+                                        <td data-attr-imp="serieA" data-attr-par="serie_inicio">999</td>
+                                        <td data-attr-imp="carton_inicio_A" data-attr-par="carton_inicio_i">9999</td>
+                                        <td data-attr-imp="carton_fin_A" data-attr-par="carton_fin_i">9999</td>
+                                        <td data-attr-imp="serieB" data-attr-par="serie_fin">999</td>
+                                        <td data-attr-imp="carton_inicio_B" data-attr-par="carton_inicio_f">9</td>
+                                        <td data-attr-imp="carton_fin_B" data-attr-par="carton_fin_f">999</td>
+                                        <td data-attr-imp="cartones_vendidos" data-attr-par="cartones_vendidos">999</td>
+                                        <td data-attr-imp="valor_carton" data-attr-par="valor_carton">99</td>
+                                        <td data-attr-imp="cant_bola" data-attr-par="bola_bingo">99</td>
+                                        <td class="recaudado">9999</td>
+                                        <td data-attr-imp="premio_linea" data-attr-par="premio_linea">999.9</td>
+                                        <td data-attr-imp="premio_bingo" data-attr-par="premio_bingo">999.9</td>
+                                        <td data-attr-imp="pozo_dot" data-attr-par="pozo_dot">9999.99</td>
+                                        <td data-attr-imp="pozo_extra" data-attr-par="pozo_extra">9</td>
+                                        <td style="text-align: center;">
+                                          <a data-placement="top" rel="popover" data-trigger="hover" data-content="Partida no relevada." class="pop-exclamation" data-original-title="" title="">
+                                            <i class="pop fa fa-exclamation no-relevado" style="display: none;color: rgb(255, 167, 38);"></i>
+                                          </a>
+                                          <a data-placement="top" rel="popover" data-trigger="hover" data-content="Coinciden datos relevados con importados." class="pop-check" data-original-title="" title="">
+                                            <i class="pop fa fa-check coinciden" style="display: none; color: rgb(102, 187, 106);"></i>
+                                          </a>
+                                          <a data-placement="top" rel="popover" data-trigger="hover" data-content="No coinciden datos relevados con importados." class="pop-times" data-original-title="" title="">
+                                            <i class="pop fa fa-times no-coinciden" style="display: none; color: rgb(239, 83, 80);"></i>
+                                          </a>
+                                        </td>
+                                      </tr>
                                     </table>
                                     </div>
 

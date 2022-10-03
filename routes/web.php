@@ -862,7 +862,6 @@ Route::group(['middleware' => ['tiene_permiso:importar_bingo']], function () {
   Route::get('bingo/obtenerImportacionCompleta/{id}','Bingo\ImportacionController@obtenerImportacionCompleta');
 });
 Route::group(['middleware' => ['tiene_permiso:reporte_estado_bingo']], function () {
-  Route::get('bingo/reportesEstado','Bingo\ReportesController@reportesEstado');
   Route::get('bingo/buscarEstado','Bingo\ReportesController@buscarEstado');
 });
 Route::group(['middleware' => ['tiene_permiso:reporte_diferencia_bingo']], function () {

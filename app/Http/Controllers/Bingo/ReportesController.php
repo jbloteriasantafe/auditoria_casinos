@@ -31,13 +31,6 @@ class ReportesController extends Controller{
 
         return view('Bingo.ReporteDiferencia', ['casinos' => $casinos, 'estados' => []]);
     }
-    //función index de reporte de estados
-    public function reportesEstado(){
-        //Busco los casinos a los que esta asociado el usuario
-        $casinos = UsuarioController::getInstancia()->getCasinos();
-        UsuarioController::getInstancia()->agregarSeccionReciente('Reporte Estado' , 'estado-bingo');
-        return view('Bingo.ReporteEstado', ['casinos' => $casinos]);
-    }
     
     public function buscarReportesDiferencia(Request $request){
       return $this->buscarEstado($request);

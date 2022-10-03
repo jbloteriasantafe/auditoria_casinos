@@ -164,13 +164,8 @@ $('#btn-finalizarValidacion').click(function(e){
         dataType: 'json',
         success: function (data) {
             console.log(data);
-
-            $('#mensajeExito p').text('Sesión VISADA existosamente.');
-            $('#mensajeExito div').css('background-color','#4DB6AC');
-            $('#cuerpoTabla #' + data +' .no-visado').hide();
-            $('#cuerpoTabla #' + data +' .visado').show();
+            $('#btn-buscar').click();
             $('#modalDetalles').modal('hide');
-            //Mostrar éxito
             $('#mensajeExito').show();
         },
         error: function (data) {
@@ -181,7 +176,7 @@ $('#btn-finalizarValidacion').click(function(e){
 
     });
 //Mostral modal con detalles y relevamientos de la sesión
-$(document).on('click' , '.validar' , function() {
+$(document).on('click' , '.visar,.ver' , function() {
   const id_importacion = $(this).val();
   $('#id_importacion').val(id_importacion);
   $('#frmDetalles').trigger("reset");
@@ -477,97 +472,53 @@ function generarFilaDetallesSesion(detalle, detalles_relevado){
 }
 //Generar fila con los datos
 function generarFilaTabla(data){  
-  return $('<tr>').attr('id',data.importacion ?? 'no_importado')
-  .append($('<td>').addClass('col').text(data.fecha_sesion))
-  .append($('<td>').addClass('col').text(data.casino))
-  .append($('<td>').addClass('col').text(data.imp_hora_inicio ?? data.ses_hora_inicio ?? '-'))
-  .append($('<td>').addClass('col').text(data.importacion?    'SI' : 'NO'))
-  .append($('<td>').addClass('col').text(data.relevamiento?   'SI' : 'NO'))
-  .append($('<td>').addClass('col').text(data.sesion_cerrada? 'SI' : 'NO'))
-  .append($('<td>').addClass('col').text(data.visado?         'SI' : 'NO'))
-  .append($('<td>').addClass('col')
-    .append(
-      $('<button>').addClass('btn btn-success validar no-visado')
-      .toggle(data.visado == null && data.importacion != null)
-      .append($('<i>').addClass('fa fa-fw fa-check'))
-      .attr('title','VISAR DIFERENCIA').val(data.importacion ?? 'no_importado')
-    )
-    .append(
-      $('<button>').addClass('btn btn-success validar visado')
-      .toggle(data.visado != null)
-      .append($('<i>').addClass('fa fa-fw fa-search-plus'))
-      .attr('title','VER VISADO').val(data.importacion ?? 'no_importado')
-    )
-  );
+  const fila = $('#filaEjemploResultados').clone().removeAttr('id');
+  fila.find('.fecha_sesion').text(data.fecha_sesion);
+  fila.find('.casino').text(data.casino);
+  fila.find('.hora_inicio').text(data.imp_hora_inicio ?? data.ses_hora_inicio ?? '-');
+  fila.find('.importacion').text(data.importacion?    'SI' : 'NO');
+  fila.find('.relevamiento').text(data.relevamiento?   'SI' : 'NO');
+  fila.find('.sesion_cerrada').text(data.sesion_cerrada? 'SI' : 'NO');
+  fila.find('.visado').text(data.visado?         'SI' : 'NO');
+  fila.find('.visar').toggle(data.visado == null && data.importacion != null);
+  fila.find('.ver').toggle(data.visado != null);
+  fila.find('button').val(data.importacion ?? 'no_importado');
+  return fila;
 }
 //Generar fila con los datos de las partidas importadas
 function generarFilaPartidaImportada(importado, partida = -1){
-  const cols_imp_partida = {
-    num_partida: null,
-    hora_inicio: 'hora_inicio',
-    serieA: 'serie_inicio',
-    carton_inicio_A: 'carton_inicio_i',
-    carton_fin_A: 'carton_fin_i',
-    serieB: 'serie_fin',
-    carton_inicio_B: 'carton_inicio_f',
-    carton_fin_B: 'carton_fin_f',
-    cartones_vendidos: 'cartones_vendidos',
-    valor_carton: 'valor_carton',
-    cant_bola: 'bola_bingo',
-    recaudado: 'recaudado',
-    premio_linea: 'premio_linea',
-    premio_bingo: 'premio_bingo',
-    pozo_dot: 'pozo_dot',
-    pozo_extra: 'pozo_extra'
-  };
-  const keys_cols_imp_partida = Object.keys(cols_imp_partida);
-  const fila = $('<tr>').attr('id', importado.num_partida);
-  
-  for(const kidx in keys_cols_imp_partida){
-    const attr_imp = keys_cols_imp_partida[kidx];
-    fila.append($('<td>').append(
-      $('<p>').attr('id', attr).addClass('col').text(importado[attr])
-    ));
+  const keys_imp = Object.keys(importado);
+  const fila = $('#filaEjemploDetalle').clone().removeAttr('id');
+  for(const kidx in keys_imp){
+    const attr_imp = keys_imp[kidx];
+    fila.find(`[data-attr-imp="${attr_imp}"]`).text(importado[attr_imp]);
   }
   
-  const icono = $('<a>').attr("data-placement","top").attr("rel","popover")
-  .attr("data-trigger" , "hover").append($('<i>').addClass('pop fa'));
-  const icono_no_relevado  = icono.clone().attr("data-content", 'Partida no relevada.').addClass('pop-exclamation');
-  icono_no_relevado.find('i').addClass('fa-exclamation').css('color','#FFA726');
-  const icono_coinciden    = icono.clone().attr("data-content", 'Coinciden datos relevados con importados.').addClass('pop-check');
-  icono_coinciden.find('i').addClass('fa-check').css('color','rgb(102, 187, 106)');
-  const icono_no_coinciden = icono.clone().attr("data-content", 'No coinciden datos relevados con importados.').addClass('pop-times');
-  icono_no_coinciden.find('i').addClass('fa-times').css('color','rgb(239, 83, 80)');
-  
-  fila.append($('<td>').css('text-align','center')
-    .append(icono_no_relevado).toggle(partida == -1)
-    .append(icono_coinciden).toggle(partida != -1)
-    .append(icono_no_coinciden).toggle(partida != -1)
-  );
-  
   if(partida == -1){//Si no hay partida, no comparo
+    fila.find('.no-relevado').show();
     return fila;
   }
   
   let correcto = true;  
   const recaudado = partida.cartones_vendidos*partida.valor_carton;
   if(recaudado != importado.recaudado) {
-    attrComparacion(fila, '#recaudado', recaudado)
+    attrComparacion(fila, '.recaudado', recaudado)
     correcto = false;
   }
   
-  for(const kidx in keys_cols_imp_partida){
-    const attr_imp = keys_cols_imp_partida[kidx];
-    const attr_par = cols_imp_partida[attr_imp];
-    if(partida[attr_par] != null && partida[attr_par] != importado[attr_imp]){
-      attrComparacion(fila, '#'+attr_imp, partida[attr_par]);
+  const keys_par = Object.keys(partida);
+  for(const kidx in keys_par){
+    const attr_par = keys_par[kidx];
+    const attr_imp = fila.find(`[data-attr-par="${attr_par}"]`).attr('data-attr-imp');
+    if(attr_imp !== undefined && (partida[attr_par] ?? 0) != (importado[attr_imp] ?? 0)){
+      console.log(partida[attr_par] ?? 0,'!=',importado[attr_imp] ?? 0);
+      attrComparacion(fila,`[data-attr-imp="${attr_imp}"]`, partida[attr_par]);
       correcto = false;
     }
   }
   
-  fila.find('.pop-times').toggle(!correcto);
-  fila.find('.pop-check').toggle(correcto);
-
+  fila.find('.coinciden').toggle(correcto);
+  fila.find('.no-coinciden').toggle(!correcto);
   return fila;
 }
 //Mensaje de error cuando la sesión no se encuentra importada
@@ -585,6 +536,7 @@ function attrComparacion(fila, lugar, valor){
   .attr("rel","popover")
   .attr('title','VALOR RELEVADO')
   .attr("data-trigger" , "hover")
+  .attr('data-container','body')
   .addClass('pop-diferencia');
 }
 //append fila detalle sesión

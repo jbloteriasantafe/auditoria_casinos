@@ -118,10 +118,14 @@ $gestion_hijos = [
       ],
     ]
   ],
-  'Bingo (Premios)' => [
+  'Bingo' => [
     'icono' => $icono_bingos,
-    'link' => '/bingo/gestionBingo',
-    'algun_permiso' => ['bingo_ver_gestion'],
+    'hijos' => [
+      'Premios' => [
+        'link' => '/bingo/gestionBingo',
+        'algun_permiso' => ['bingo_ver_gestion'],
+      ],
+    ]
   ],
   'Autoexclusión' => [
     'icono' => $icono_usuario,
@@ -215,10 +219,14 @@ $fiscalizacion_hijos = [
       ],
     ],
   ],
-  'Bingo (Sesiones)' => [
+  'Bingo' => [
     'icono' => $icono_bingos,
-    'link' => '/bingo',
-    'algun_permiso' => ['ver_seccion_sesion_relevamientos'],
+    'hijos' => [
+      'Sesiones' => [
+        'link' => '/bingo',
+        'algun_permiso' => ['ver_seccion_sesion_relevamientos'],
+      ],
+    ]
   ],
   'Autoexclusión Galería' => [
     'icono' => $icono_usuario,
@@ -320,10 +328,6 @@ $informes_hijos = [
   'Bingo' => [
     'icono' => $icono_bingos,
     'hijos' => [
-      'Reportes de Estados' => [
-        'link' => '/bingo/reportesEstado',
-        'algun_permiso' => ['reporte_estado_bingo'],
-      ],
       'Reportes de Diferencia' => [
         'link' => '/bingo/reportesDiferencia',
         'algun_permiso' => ['reporte_diferencia_bingo'],
@@ -455,6 +459,7 @@ $opciones = [
 
 //@HACK: Elimino submenues para windows XP porque no se muestran... mando todos los enlaces directos al menu
 //poner true || request()->... etc para probar
+//Instalar un browser moderno backporteado https://retrosystemsrevival.blogspot.com/2019/10/roytam1-browser-installer.html
 if(request()->header('User-Agent') == "Mozilla/5.0 (Windows NT 5.1; rv:52.0) Gecko/20100101 Firefox/52.0"){
   $array_pop_k = function(&$arr){
     if(count($arr) == 0) return [null,null];
