@@ -162,7 +162,7 @@ class BeneficioController extends Controller
       'beneficios_ajustados' => 'required|array',
       'beneficios_ajustados.*.id_beneficio' => 'required|exists:beneficio,id_beneficio',
       'beneficios_ajustados.*.observacion' => 'nullable|max:500'
-    ], [], self::$atributos)->after(function($validator) use ($mes,$anio,$id_casino,$id_tipo_moneda,$validar_sin_producidos){
+    ], [], self::$atributos)->after(function($validator) use (&$mes,&$anio,&$id_casino,&$id_tipo_moneda,$validar_sin_producidos){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       $dias = [];
