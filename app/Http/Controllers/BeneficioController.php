@@ -217,12 +217,12 @@ class BeneficioController extends Controller
       ])->get()->first();
       if(is_null($bmensual)) $bmensual = new BeneficioMensual;
       
-      $beneficio_mensual->id_casino      = $id_casino;
-      $beneficio_mensual->id_tipo_moneda = $id_tipo_moneda;
-      $beneficio_mensual->id_actividad   = 1;
-      $beneficio_mensual->anio_mes       = "$anio-$mes-01";
-      $beneficio_mensual->bruto          = $acumulado;
-      $beneficio_mensual->save();
+      $bmensual->id_casino      = $id_casino;
+      $bmensual->id_tipo_moneda = $id_tipo_moneda;
+      $bmensual->id_actividad   = 1;
+      $bmensual->anio_mes       = "$anio-$mes-01";
+      $bmensual->bruto          = $acumulado;
+      $bmensual->save();
       return "true";
     });
   }
