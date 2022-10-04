@@ -116,10 +116,10 @@ class BeneficioController extends Controller
     ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','vdm.id_tipo_moneda')
     ->leftJoin('beneficio_mensual as bm',function($j){
       return $j->on('bm.id_casino','=','vdm.id_casino')->on('bm.id_tipo_moneda','=','vdm.id_tipo_moneda')
-      ->on('bm.anio_mes','=',DB::raw('MAKEDATE(vdm.anio,vdm.mes)'))->where('bm.id_actividad','=',1);
+      ->on('bm.anio_mes','=',DB::raw('DATE(CONCAT(vdm.anio,"-",vdm.mes,"-1"))'))->where('bm.id_actividad','=',1);
     })
     ->whereIn('vdm.id_casino',$casinos)->where($reglas)
-    ->orderBy(DB::raw('MAKEDATE(vdm.anio,vdm.mes)'),'desc')->paginate($request->page_size);
+    ->orderBy(DB::raw('DATE(CONCAT(vdm.anio,"-",vdm.mes,"-1"))'),'desc')->paginate($request->page_size);
   }
 
   public function obtenerBeneficiosParaValidar(Request $request){
