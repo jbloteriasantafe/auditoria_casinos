@@ -1,19 +1,5 @@
 $(document).ready(function(){
-
-  $('#barraMenu').attr('aria-expanded','true');
-  // $('#maquinas').removeClass();
-  // $('#maquinas').addClass('subMenu1 collapse in');
-  $('#bingoMenu').removeClass();
-  $('#bingoMenu').addClass('subMenu2 collapse in');
-
-  $('#bingoMenu').siblings('div.opcionesHover').attr('aria-expanded','true');
-
   $('.tituloSeccionPantalla').text('Reportes de Diferencia');
-  // $('#gestionarMaquinas').attr('style','border-left: 6px solid #3F51B5;');
-  $('#opcReporteEstadoDiferenciaBingo').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
-  $('#opcReporteEstadoDiferenciaBingo').addClass('opcionesSeleccionado');
-
-  //datepicker fecha busqueda
   $('#dtpBuscadorFecha').datetimepicker({
     language:  'es',
     todayBtn:  1,
@@ -26,76 +12,27 @@ $(document).ready(function(){
     ignoreReadonly: true,
     endDate: '+0d'
   });
-  //busca automaticamente
   $('#btn-buscar').trigger('click');
-
 });
 
 //Opacidad del modal al minimizar
 $('#btn-minimizar').click(function(){
-    if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-    $(this).data("minimizar",false);
-  }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
+  const minimizar = $(this).data("minimizar")==true;
+  $('.modal-backdrop').css('opacity',minimizar? '0.1' : '0.5');
+  $(this).data("minimizar",!minimizar);  
 });
 
-//Opacidad del modal al minimizar
-$('#btn-minimizarMaquinas').click(function(){
-    if($(this).data("minimizar")==true){
-    $('.modal-backdrop').css('opacity','0.1');
-    $(this).data("minimizar",false);
-    }else{
-    $('.modal-backdrop').css('opacity','0.5');
-    $(this).data("minimizar",true);
-  }
-});
-
-//si presiono enter y el modal esta abierto se manda el formulario
-$(document).on("keypress" , function(e){
-  if(e.which == 13 && $('#modalFormula').is(':visible')) {
-    e.preventDefault();
-    $('#btn-guardar').click();
-  }
-})
 //enter en buscador
-$('contenedorFiltros input').on("keypress" , function(e){
+$('#collapseFiltros .form-control').on("keypress" , function(e){
   if(e.which == 13) {
     e.preventDefault();
-    $('#').click();
+    $('#btn-buscar').click();
   }
 })
-
-$('#columna input').on('focusout' , function(){
-  if ($(this).val() == ''){
-    mostrarErrorValidacion($(this) , 'El campo no puede estar en blanco' , false);
-  }
-});
-
-$('#columna input').focusin(function(){
-  $(this).removeClass('alerta');
-
-});
-
-$('#btn-ayuda').click(function(e){
-  e.preventDefault();
-
-  $('.modal-title').text('| FÓRMULAS');
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
-
-  $('#modalAyuda').modal('show');
-
-});
 
 //búsqueda de reportes
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
-  $.ajaxSetup({
-      headers: {
-          'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-      }
-  });
+  
 
   e.preventDefault();
 
@@ -122,6 +59,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     page_size: page_size,
   }
 
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
       type: 'GET',
       url: 'buscarReportesDiferencia',
@@ -476,10 +414,10 @@ function generarFilaTabla(data){
   fila.find('.fecha_sesion').text(data.fecha_sesion);
   fila.find('.casino').text(data.casino);
   fila.find('.hora_inicio').text(data.imp_hora_inicio ?? data.ses_hora_inicio ?? '-');
-  fila.find('.importacion').text(data.importacion?    'SI' : 'NO');
-  fila.find('.relevamiento').text(data.relevamiento?   'SI' : 'NO');
-  fila.find('.sesion_cerrada').text(data.sesion_cerrada? 'SI' : 'NO');
-  fila.find('.visado').text(data.visado?         'SI' : 'NO');
+  fila.find(`.importacion i[data-status="${+!!data.importacion}"]`).show();
+  fila.find(`.relevamiento i[data-status="${+!!data.relevamiento}"]`).show();
+  fila.find(`.sesion_cerrada i[data-status="${+!!data.sesion_cerrada}"]`).show();
+  fila.find(`.visado i[data-status="${+!!data.visado}"]`).show();
   fila.find('.visar').toggle(data.visado == null && data.importacion != null);
   fila.find('.ver').toggle(data.visado != null);
   fila.find('button').val(data.importacion ?? 'no_importado');

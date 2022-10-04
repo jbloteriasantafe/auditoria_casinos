@@ -107,10 +107,10 @@ $casinos = $usuario->casinos;
                                   <td class="fecha_sesion">9999-99-99</td>
                                   <td class="casino">CASINO</td>
                                   <td class="hora_inicio">99:99:99</td>
-                                  <td class="importacion">SI/NO</td>
-                                  <td class="relevamiento">SI/NO</td>
-                                  <td class="sesion_cerrada">SI/NO</td>
-                                  <td class="visado">SI/NO</td>
+                                  <td class="importacion"><i class="fa fa-check" data-status="1" style="color:green;display: none;"></i><i class="fa fa-times" data-status="0"  style="color:red;display: none;"></i></td>
+                                  <td class="relevamiento"><i class="fa fa-check" data-status="1" style="color:green;display: none;"></i><i class="fa fa-times" data-status="0"  style="color:red;display: none;"></i></td>
+                                  <td class="sesion_cerrada"><i class="fa fa-check" data-status="1" style="color:green;display: none;"></i><i class="fa fa-times" data-status="0"  style="color:red;display: none;"></i></td>
+                                  <td class="visado"><i class="fa fa-check" data-status="1" style="color:green;display: none;"></i><i class="fa fa-times" data-status="0"  style="color:red;display: none;"></i></td>
                                   <td>
                                     <button class="btn btn-success ver" style="display: none;" title="VER VISADO" value="8"><i class="fa fa-fw fa-search-plus"></i></button>
                                     @if($usuario->es_administrador || $usuario->es_superusuario || $usuario->es_auditor)
@@ -323,13 +323,12 @@ $casinos = $usuario->casinos;
 
     <!-- Comienza modal de ayuda -->
     @section('tituloDeAyuda')
-    <h3 class="modal-title2" style="color: #fff;">| IMPORTAR RELVAMIENTOS DE PARTIDAS</h3>
+    <h3 class="modal-title2" style="color: #fff;">| Reporte de Diferencias Bingos</h3>
     @endsection
     @section('contenidoAyuda')
     <div class="col-md-12">
-      <h5>Tarjeta de Importar Relevamientos</h5>
       <p>
-        Visualiza los estados de las sesiones y las valida.
+        Visualizar y validar los estados de las sesiones, los relevamientos y las importaciones.
       </p>
     </div>
     @endsection
