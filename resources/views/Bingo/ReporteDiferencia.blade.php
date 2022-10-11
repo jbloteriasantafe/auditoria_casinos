@@ -33,6 +33,10 @@ $casinos = $usuario->casinos;
 .pintar-orange{
   color: rgb(255, 167, 38);
 }
+#tablaResultados th,
+#tablaResultados td {
+  text-align: center;
+}
 </style>
                 <div class="row">
                   <div class="col-lg-12 col-xl-12">
@@ -132,7 +136,7 @@ $casinos = $usuario->casinos;
             <div class="modal fade" id="modalDetalles" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                   <div class="modal-dialog modal-lg" style="min-width:85%;">
                      <div class="modal-content">
-                        <div class="modal-header pbzero">
+                        <div class="modal-header pbzero" style="font-family: Roboto-Black; background-color: #46b8da; color: #fff;">
                           <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                           <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                           <h3 class="modal-title pbtitle" id="myModalLabel">| DETALLES DIFERENCIA</h3>

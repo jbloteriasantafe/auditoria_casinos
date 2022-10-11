@@ -32,110 +32,89 @@ $('#collapseFiltros .form-control').on("keypress" , function(e){
 
 //búsqueda de reportes
 $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
-  
-
   e.preventDefault();
 
   //Fix error cuando librería saca los selectores
-  if(isNaN($('#herramientasPaginacion').getPageSize())){
-    var size = 10; // por defecto
-  }else {
-    var size = $('#herramientasPaginacion').getPageSize();
+  let size = 10;
+  if(!isNaN($('#herramientasPaginacion').getPageSize())){
+    size = $('#herramientasPaginacion').getPageSize();
   }
 
-  var page_size = (page_size == null || isNaN(page_size)) ?size : page_size;
-  // var page_size = (page_size != null) ? page_size : $('#herramientasPaginacion').getPageSize();
-  var page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
-  var sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultadosPremio .activa').attr('value'),orden: $('#tablaResultadosPremio .activa').attr('estado')} ;
+  page_size = (page_size == null || isNaN(page_size))? size : page_size;
+  const page_number = (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage();
+  const sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaResultadosPremio .activa').attr('value'),orden: $('#tablaResultadosPremio .activa').attr('estado')} ;
   if(sort_by == null){ // limpio las columnas
     $('#tablaResultadosPremios th i').removeClass().addClass('fa fa-sort').parent().removeClass('activa').attr('estado','');
-  }
-  //datos para enviar
-  var formData = {
-    fecha: $('#buscadorFecha').val(),
-    casino: $('#buscadorCasino').val(),
-    page: page_number,
-    sort_by: sort_by,
-    page_size: page_size,
   }
 
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
-      type: 'GET',
-      url: 'buscarReportesDiferencia',
-      data: formData,
-      dataType: 'json',
-      success: function(resultados){
-        $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
-        $('#cuerpoTabla tr').remove()
-
-        for (const i  in resultados.data){
-          $('#cuerpoTabla').append(generarFilaTabla(resultados.data[i]));
-        }
-
-        $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
-      },
-      error: function(data){
-        console.log('Error:', data);
+    type: 'GET',
+    url: 'buscarReportesDiferencia',
+    data: {
+      fecha: $('#buscadorFecha').val(),
+      casino: $('#buscadorCasino').val(),
+      page: page_number,
+      sort_by: sort_by,
+      page_size: page_size,
+    },
+    dataType: 'json',
+    success: function(resultados){
+      $('#herramientasPaginacion').generarTitulo(page_number,page_size,resultados.total,clickIndice);
+      $('#cuerpoTabla tr').remove();
+      for (const i in resultados.data){
+        $('#cuerpoTabla').append(generarFilaTabla(resultados.data[i]));
       }
-    });
+      $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
+    },
+    error: function(data){
+      console.log('Error:', data);
+    }
+  });
 });
 
 //envia los datos para validar (obsercaciones+cambio de estado)
 $('#btn-finalizarValidacion').click(function(e){
   e.preventDefault();
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    });
-    //datos para enviar
-    var formData = {
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+  $.ajax({
+    type: "POST",
+    url: 'guardarReporteDiferencia',
+    data: {
       id_importacion: $('#id_importacion').val(),
       observacion: $('#observacion_validacion').val()
+    },
+    dataType: 'json',
+    success: function (data) {
+      console.log(data);
+      $('#btn-buscar').click();
+      $('#modalDetalles').modal('hide');
+      $('#mensajeExito').show();
+    },
+    error: function (data) {
+      console.log(data);
     }
-
-    $.ajax({
-        type: "POST",
-        url: 'guardarReporteDiferencia',
-        data: formData,
-        dataType: 'json',
-        success: function (data) {
-            console.log(data);
-            $('#btn-buscar').click();
-            $('#modalDetalles').modal('hide');
-            $('#mensajeExito').show();
-        },
-        error: function (data) {
-        }
-
-        });
-
-
-    });
+  });
+});
 //Mostral modal con detalles y relevamientos de la sesión
 $(document).on('click' , '.visar,.ver' , function() {
   const id_importacion = $(this).val();
   $('#id_importacion').val(id_importacion);
   $('#frmDetalles').trigger("reset");
-  $('#msje-sesion-no-cerrada').text('');
+  $('#cuerpoTablaDetalles').empty();
+  $('#terminoDatos2').empty();
   //si la sesión tiene archivo importado, muestra el modal con los datos
   //sino, muestra mensaje de error
   if(id_importacion == 'no_importado'){
     return mensajeSesionNoImportada();
   }
-  $('#modalDetalles .modal-header').attr('style','font-family: Roboto-Black; background-color: #46b8da; color: #fff');
-  $('#cuerpoTablaDetalles').remove();
-  $('#tablaResultadosDetalles').append($('<tbody>').attr('id', 'cuerpoTablaDetalles'));
-  $('#terminoDatos2').remove();
-  $('#columnaDetalles').append($('<div>').attr('id', 'terminoDatos2'));
   $.get("obtenerDiferencia/" + id_importacion, function(data){
     console.log(data);
     $('#modalDetalles .modal-title').text('| DETALLES DIFERENCIA ' + data.importacion[0].fecha);
     //detalles sesion
-    const sesion = data.sesion? data.sesion.sesion : -1;
+    const sesion = data.sesion? data.sesion.sesion : null;
     const detalles_sesion = data.sesion? data.sesion.detalles : [];
-    cargarDatosSesion(data.importacion, sesion, data.pozoDotInicial);
+    cargarDatosSesion(data.importacion,sesion ?? null, data.pozoDotInicial);
     cargarDetallesSesion(data.importacion, detalles_sesion);
     //genera la tabla con las partidas importadas
     
@@ -188,225 +167,122 @@ function clickIndice(e,pageNumber,tam){
 }
 //función auxiliar cargar datos de la sesión a partir de importación
 function cargarDatosSesion(importaciones,sesion, pozoDotInicial){
-  //si no existen datos de sesión, cargo los datos desde importación y pinto de naranja
-  if(sesion == undefined){
-    $('#pozo_dotacion_inicial_d').val(pozoDotInicial).attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange');
-    $('#pozo_extra_inicial_d').val(importaciones[0].pozo_extra).attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange');
-    var i = importaciones.length - 1;
-    $('#pozo_dotacion_final_d').val(importaciones[i].pozo_dot).attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange');
-    $('#pozo_extra_final_d').val(importaciones[i].pozo_extra).attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange');
+  if(sesion == null || sesion.id_estado != 2){//si no existen datos de sesión, cargo los datos desde importación y pinto de naranja
+    const ult_imp = importaciones[importaciones.length - 1];
+    $('#pozo_dotacion_inicial_d').val(pozoDotInicial);
+    $('#pozo_extra_inicial_d').val(importaciones[0].pozo_extra);
+    $('#pozo_dotacion_final_d').val(ult_imp.pozo_dot);
+    $('#pozo_extra_final_d').val(ult_imp.pozo_extra);
+    $('#pozo_dotacion_inicial_d,#pozo_extra_inicial_d,#pozo_dotacion_final_d,#pozo_extra_final_d')
+    .attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange');
+    return;
+  }
+  $('.popover-relevado').popover('destroy');
+  function marcarError(obj,valor,valor_relevado){
+    obj.val(valor).removeClass('pintar-orange');
+    if(valor == valor_relevado){
+      obj.attr('readonly','readonly').removeClass('pintar-red');
+      return;
+    }
+    obj.attr('readonly','readonly').addClass('pintar-red')
+    .attr("data-content", valor_relevado).attr("data-placement" , "top")
+    .attr("rel","popover").attr("data-trigger" , "hover")
+    .attr('title','VALOR RELEVADO').addClass('popover-relevado');
   }
   //si hay datos de sesión, comparo esos datos con los de importación y si son distintos, pinto de rojo o de naranja si no existe comparación
-  else{
-
-    //comparo datos iniciales de pozo dot y pozo extra, si llego hasta acá, existen. Sólo comparo y pinto de rojo si son != o dejo sin pintar si son ==
-    if (pozoDotInicial != sesion.pozo_dotacion_inicial){
-      $('#pozo_dotacion_inicial_d').val(pozoDotInicial).attr('readonly','readonly').addClass('pintar-red').removeClass('pintar-orange')
-        .attr("data-content", sesion.pozo_dotacion_inicial)
-        .attr("data-placement" , "top")
-        .attr("rel","popover")
-        .attr("data-trigger" , "hover")
-        .attr('title','VALOR RELEVADO')
-        .addClass('pop-pozo-dot-inicial-d');
-
-        //popover con datos de diferencia
-        $('.pop-pozo-dot-inicial-d').popover({
-          html:true
-        });
-
-    }else{
-        $('#pozo_dotacion_inicial_d').val(pozoDotInicial).attr('readonly','readonly').removeClass('pintar-red').removeClass('pintar-orange');
-        $('.pop-pozo-dot-inicial-d').popover('disable');
-    }
-    if (importaciones[0].pozo_extra != sesion.pozo_extra_inicial){
-      $('#pozo_extra_inicial_d').val(importaciones[0].pozo_extra).attr('readonly','readonly').addClass('pintar-red').removeClass('pintar-orange')
-      .attr("data-content", sesion.pozo_extra_inicial)
-      .attr("data-placement" , "top")
-      .attr("rel","popover")
-      .attr("data-trigger" , "hover")
-      .attr('title','VALOR RELEVADO')
-      .addClass('pop-pozo-extra-inicial-d');
-      //popover con datos de diferencia
-      $('.pop-pozo-extra-inicial-d').popover({
-        html:true
-      });
-    }else{
-      $('#pozo_extra_inicial_d').val(importaciones[0].pozo_extra).attr('readonly','readonly').removeClass('pintar-red').removeClass('pintar-orange');
-          $('.pop-pozo-extra-inicial-d').popover('disable');
-    }
-
-    //me posiciono en la última ocurrencia de importaciones
-    var t = importaciones.length - 1;
-
-    //si la sesión está cerrada, tengo datos para comparar. Pinto de rojo si son != o dejo sin pintar si son ==
-    if(sesion.id_estado == 2){
-      if (importaciones[t].pozo_dot != sesion.pozo_dotacion_final){
-        $('#pozo_dotacion_final_d').val(importaciones[t].pozo_dot).attr('readonly','readonly').addClass('pintar-red').removeClass('pintar-orange')
-        .attr("data-content", sesion.pozo_dotacion_final)
-        .attr("data-placement" , "top")
-        .attr("rel","popover")
-        .attr("data-trigger" , "hover")
-        .attr('title','VALOR RELEVADO')
-        .addClass('pop-pozo-dot-final-d');
-
-        //popover con datos de diferencia
-        $('.pop-pozo-dot-final-d').popover({
-          html:true
-        });
-      }else{
-        $('#pozo_dotacion_final_d').val(importaciones[t].pozo_dot).attr('readonly','readonly').removeClass('pintar-red').removeClass('pintar-orange');
-            $('.pop-pozo-dot-final-d').popover('disable');
-      }
-
-      if (importaciones[t].pozo_extra != sesion.pozo_extra_final){
-        $('#pozo_extra_final_d').val(importaciones[t].pozo_extra).attr('readonly','readonly').addClass('pintar-red').removeClass('pintar-orange')
-        .attr("data-content", sesion.pozo_extra_final)
-        .attr("data-placement" , "top")
-        .attr("rel","popover")
-        .attr("data-trigger" , "hover")
-        .attr('title','VALOR RELEVADO')
-        .addClass('pop-pozo-dot-extra-final-d');
-
-        //popover con datos de diferencia
-        $('.pop-pozo-dot-extra-final-d').popover({
-          html:true
-        });
-      }else{
-        $('#pozo_extra_final_d').val(importaciones[t].pozo_extra).attr('readonly','readonly').removeClass('pintar-red').removeClass('pintar-orange');
-            $('.pop-pozo-dot-extra-final-d').popover('disable');
-      }
-    }else{  //si la sesión no está cerrada, no tengo datos para comparar.Pinto de naranja
-      $('#pozo_dotacion_final_d').val(importaciones[0].pozo_dot).attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange');
-      $('#pozo_extra_final_d').val(importaciones[0].pozo_extra).attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange');
-      $('.pop-pozo-dot-final-d').popover('disable');
-      $('.pop-pozo-dot-extra-final-d').popover('disable');
-    }
-
-
-  }
-
-
+  //comparo datos iniciales de pozo dot y pozo extra, si llego hasta acá, existen. Sólo comparo y pinto de rojo si son != o dejo sin pintar si son ==
+  marcarError($('#pozo_dotacion_inicial_d'),pozoDotInicial,sesion.pozo_dotacion_inicial);
+  marcarError($('#pozo_extra_inicial_d'),importaciones[0].pozo_extra,sesion.pozo_extra_inicial);
+  const ult_imp = importaciones[importaciones.length - 1];
+  //Si no esta cerrado (estado = 2), NO le marco diferencia sino que le pongo color naranja
+  marcarError($('#pozo_dotacion_final_d'),ult_imp.pozo_dot,sesion.pozo_dotacion_final);
+  marcarError($('#pozo_extra_final_d'),ult_imp.pozo_extra,sesion.pozo_extra_final);
+  //Mostrar los popover
+  $('.popover-relevado').popover({ html:true });
 }
 //funcion auxiliar para cargar los detalles de la sesion a partir de importación
-function cargarDetallesSesion(importaciones,detalle){
-  //busco pcurrencias con distinto vaor de cartón, generando un nuevo detalle
-  var detalles = [];  //variable para guardar los detalles con distinto valor de cartón
-  importaciones.forEach(function(importacion){ //recorro las importaciones
-      //si ya tengo cargado detalles, entro al if
-      if(detalles.length != 0){
-          var existe = 0; //variable auxiliar para saber si existe un valor de cartón con el mismo monto
-          //recorro los detalles cargados, si existe un valor de carton con igual monto, asigno 1 a existe
-          detalles.forEach(function(det){
-            if(det.valor_carton === importacion.valor_carton) existe = 1;
-          });
-          //si no existe un detalle con el mismo valor de carton, entro al if
-          if(existe === 0){
-            //guardo los datos en una variable auxiliar
-            var datos = {
-              valor_carton: importacion.valor_carton,
-              serie_inicio: importacion.serieA,
-              carton_inicio: importacion.carton_inicio_A,
-              serie_fin: null,
-              carton_fin: null,
-            }
-            //meto los datos en el arreglo de detalles
-            detalles.push(datos);
-          }
-      }else if(detalles.length == 0){ //si todavía no tengo detalles agregados, entro al if
-        //guardo los datos en una variable auxiliar
-        var datos = {
-          valor_carton: importacion.valor_carton,
-          serie_inicio: importacion.serieA,
-          carton_inicio: importacion.carton_inicio_A,
-          serie_fin: null,
-          carton_fin: null,
-        }
-        //meto los datos en el arreglo de detalles
-        detalles.push(datos);
-      }
-    // }
+function cargarDetallesSesion(importaciones,detalles_sesion){
+  const cartones_ini = {};
+  (importaciones ?? []).forEach(function(imp){//Se queda con la primer ocurrencia de cada carton
+    if(!(imp.valor_carton in cartones_ini)){
+      cartones_ini[imp.valor_carton] = {
+        valor_carton: imp.valor_carton,
+        serie_inicio: imp.serieA,
+        carton_inicio: imp.carton_inicio_A,
+      };
+    }
   });
-
-  var t = importaciones.length - 1; //cantidad de importaciones para recorrer;
-
-  if( detalles.length != 0){ //si comenzó a armar un nuevo detalle, busco los valores finales
-        detalles.forEach(function(linea){ //por cada linea de detalles
-          var c = 0; //varaible de bandera para cargar sólo la primer ocurrencia
-          for (var i = t; i > 0; i--) { //recorro las importaciones desde el final
-            if(importaciones[i].valor_carton == linea.valor_carton && c == 0){ //si encuentro una importación con el mismo valor de carton y es la primera, ingreso al if
-              if(importaciones[i].serieB != 0){ //si serieB es !=0 quiere decir que existe segunda serie, entro al if, guardo
-                linea.serie_fin = importaciones[i].serieB;
-                linea.carton_fin = importaciones[i].carton_fin_B;
-              }else{ //no tengo segunda serie, guardo los datos de la primera
-                linea.serie_fin = importaciones[i].serieA;
-                linea.carton_fin = importaciones[i].carton_fin_A;
-              }
-              c++;
-            }
-          }
-        });
-      }
-
-  //llamo a la función para generar la nueva fila.
-  for (var i = 0; i < detalles.length; i++){
-    $('#terminoDatos2').append(generarFilaDetallesSesion(detalles[i],detalle));
+  
+  const cartones_fin = {};
+  (importaciones ?? []).forEach(function(_,idx,arr){//Se queda con la ultima ocurrencia de cada carton
+    const imp = arr[arr.length-1-idx];//Recorre atras para adelante
+    if(!(imp.valor_carton in cartones_fin)){
+      cartones_fin[imp.valor_carton] = {//si serieB es !=0 quiere decir que existe segunda serie
+        serie_fin:  imp.serieB != 0? imp.serieB       : imp.serieA,
+        carton_fin: imp.serieB != 0? imp.carton_fin_B : imp.carton_fin_A,
+      };
+    }
+  });
+  
+  const cant_detalles_importados = Object.keys(cartones_ini).filter(function(valor_carton){
+    const carton = {...cartones_ini[valor_carton],...cartones_fin[valor_carton]};//Los uno
+    $('#terminoDatos2').append(generarFilaDetallesSesion(carton,detalles_sesion));
+    return true;
+  }).length;
+  
+  if(cant_detalles_importados != detalles_sesion.length){
+    $('#terminoDatos2').append(//mensaje de aviso si no coincide la cantidad de detalles
+      $('<p>').css('color' ,'red').text('*La cantidad de detalles relevados no coincide con los detalles de importados.')
+    );
   }
-  //mensaje de aviso si no coincide la cantidad de detalles
-  if(detalle == undefined ||  detalles.length != detalle.length){
-    $('#terminoDatos2').append($('<p>').css('color' ,'red')
-        .text('*La cantidad de detalles relevados no coincide con los detalles de importados.')
-    );}
 }
 
 //genera la fila de  detalles
-function generarFilaDetallesSesion(detalle, detalles_relevado){
-  var fila =
-   $(document.createElement('div'))
-          .addClass('row')
-          .css('padding-top' ,'15px');
-          //carga de fila de detalles
-          appendFilaDetalleSesion(fila, detalle.valor_carton, 'valor_carton_f');
-          appendFilaDetalleSesion(fila, detalle.serie_inicio, 'serie_inicial_f');
-          appendFilaDetalleSesion(fila, detalle.carton_inicio, 'carton_inicial_f');
-          appendFilaDetalleSesion(fila, detalle.serie_fin, 'serie_final_f');
-          appendFilaDetalleSesion(fila, detalle.carton_fin, 'carton_final_f');
+function generarFilaDetallesSesion(detalle_importado, detalles_sesion){
+  function appendFilaDetalleSesion(fila, valor, id){
+    fila.append($('<div>').addClass('col-lg-2').append(
+      $('<input>').attr('id',id).val(valor).attr('type','text')
+      .attr('disabled','disabled').addClass('form-control')
+    ));
+  }
+  
+  const fila = $('<div>').addClass('row').css('padding-top' ,'15px');
+  appendFilaDetalleSesion(fila, detalle_importado.valor_carton, 'valor_carton_f');
+  appendFilaDetalleSesion(fila, detalle_importado.serie_inicio, 'serie_inicial_f');
+  appendFilaDetalleSesion(fila, detalle_importado.carton_inicio, 'carton_inicial_f');
+  appendFilaDetalleSesion(fila, detalle_importado.serie_fin, 'serie_final_f');
+  appendFilaDetalleSesion(fila, detalle_importado.carton_fin, 'carton_final_f');
 
-          //si no existe dato para comparar, pinto de naranja
-          if(detalles_relevado == undefined){
-            fila.find('#valor_carton_f').removeClass('pintar-red').addClass('pintar-orange');
-            fila.find('#serie_inicial_f').removeClass('pintar-red').addClass('pintar-orange');
-            fila.find('#carton_inicial_f').removeClass('pintar-red').addClass('pintar-orange');
-            fila.find('#serie_final_f').removeClass('pintar-red').addClass('pintar-orange');
-            fila.find('#carton_final_f').removeClass('pintar-red').addClass('pintar-orange');
-          }else{
-          //si existen datos para comparar, comparo
-          //busco el detalle con el mismo valor de cartón para comparar, suponiendo que agregan más de los que existen y en distinto orden.
-            detalles_relevado.forEach(function(detalle_relevado){ //por cada detalle
-                //si tienen el mismo valor de cartón, comparo los datos, si son != pinto de rojo
-              if(detalle_relevado.valor_carton == detalle.valor_carton){
-                  if(detalle_relevado.serie_inicio != detalle.serie_inicio){
-                    attrComparacion(fila, '#serie_inicial_f', detalle_relevado.serie_inicio);
-                  }
-                  if(detalle_relevado.carton_inicio != detalle.carton_inicio){
-                    attrComparacion(fila, '#carton_inicial_f', detalle_relevado.carton_inicio);
-                  }
-                  //si la sesión se enceuntra cerrada, no tengo datos de fin, pinto de naranja
-                  if(detalle_relevado.serie_fin == null){
-                    fila.find('#serie_final_f').removeClass('pintar-red').addClass('pintar-orange');
-                    fila.find('#carton_final_f').removeClass('pintar-red').addClass('pintar-orange');
-                  }else{ //tengo datos de fin, comparo y pinto de rojo si son !=
-                    if(detalle_relevado.serie_fin != detalle.serie_fin){
-                      attrComparacion(fila, '#serie_final_f', detalle_relevado.serie_fin);
-                    }
-                    if(detalle_relevado.carton_fin != detalle.carton_fin){
-                      attrComparacion(fila, '#carton_final_f', detalle_relevado.carton_fin);
-                    }
-                  }
-              }
-            });
-          }
-
-      return fila;
+  if(detalles_sesion.length == 0){//si no existe dato para comparar, pinto de naranja
+    fila.find('.form-control').addClass('pintar-orange');
+    return fila;
+  }
+  
+  const ds = detalles_sesion.find(function(ds){
+    return ds.valor_carton == detalle_importado.valor_carton;
+  });
+  if(ds !== undefined){
+    if(ds.serie_inicio != detalle_importado.serie_inicio){
+      attrComparacion(fila, '#serie_inicial_f', ds.serie_inicio);
+    }
+    if(ds.carton_inicio != detalle_importado.carton_inicio){
+      attrComparacion(fila, '#carton_inicial_f', ds.carton_inicio);
+    }
+    //si la sesión se enceuntra cerrada, no tengo datos de fin, pinto de naranja
+    if(ds.serie_fin == null){
+      fila.find('#serie_final_f').removeClass('pintar-red').addClass('pintar-orange');
+      fila.find('#carton_final_f').removeClass('pintar-red').addClass('pintar-orange');
+    }else{ //tengo datos de fin, comparo y pinto de rojo si son !=
+      if(ds.serie_fin != detalle_importado.serie_fin){
+        attrComparacion(fila, '#serie_final_f', ds.serie_fin);
+      }
+      if(ds.carton_fin != detalle_importado.carton_fin){
+        attrComparacion(fila, '#carton_final_f', ds.carton_fin);
+      }
+    }
+  }
+  
+  return fila;
 }
 //Generar fila con los datos
 function generarFilaTabla(data){  
@@ -449,7 +325,6 @@ function generarFilaPartidaImportada(importado, partida = -1){
     const attr_par = keys_par[kidx];
     const attr_imp = fila.find(`[data-attr-par="${attr_par}"]`).attr('data-attr-imp');
     if(attr_imp !== undefined && (partida[attr_par] ?? 0) != (importado[attr_imp] ?? 0)){
-      console.log(partida[attr_par] ?? 0,'!=',importado[attr_imp] ?? 0);
       attrComparacion(fila,`[data-attr-imp="${attr_imp}"]`, partida[attr_par]);
       correcto = false;
     }
@@ -476,18 +351,4 @@ function attrComparacion(fila, lugar, valor){
   .attr("data-trigger" , "hover")
   .attr('data-container','body')
   .addClass('pop-diferencia');
-}
-//append fila detalle sesión
-function appendFilaDetalleSesion(fila, valor, id){
-  fila.append($('<div>')
-      .addClass('col-lg-2')
-      .append($('<input>')
-          .attr('placeholder' , '')
-          .attr('id',id)
-          .attr('type','text')
-          .attr('disabled','disabled')
-          .attr('value', valor)
-          .addClass('form-control')
-      )
-  )
 }
