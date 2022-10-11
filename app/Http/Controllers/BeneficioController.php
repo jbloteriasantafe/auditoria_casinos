@@ -116,10 +116,10 @@ class BeneficioController extends Controller
     ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','vdm.id_tipo_moneda')
     ->leftJoin('beneficio_mensual as bm',function($j){
       return $j->on('bm.id_casino','=','vdm.id_casino')->on('bm.id_tipo_moneda','=','vdm.id_tipo_moneda')
-      ->on('bm.anio_mes','=',DB::raw('MAKEDATE(vdm.anio,vdm.mes)'))->where('bm.id_actividad','=',1);
+      ->on('bm.anio_mes','=',DB::raw('DATE(CONCAT(vdm.anio,"-",vdm.mes,"-1"))'))->where('bm.id_actividad','=',1);
     })
     ->whereIn('vdm.id_casino',$casinos)->where($reglas)
-    ->orderBy(DB::raw('MAKEDATE(vdm.anio,vdm.mes)'),'desc')->paginate($request->page_size);
+    ->orderBy(DB::raw('DATE(CONCAT(vdm.anio,"-",vdm.mes,"-1"))'),'desc')->paginate($request->page_size);
   }
 
   public function obtenerBeneficiosParaValidar(Request $request){
@@ -162,7 +162,7 @@ class BeneficioController extends Controller
       'beneficios_ajustados' => 'required|array',
       'beneficios_ajustados.*.id_beneficio' => 'required|exists:beneficio,id_beneficio',
       'beneficios_ajustados.*.observacion' => 'nullable|max:500'
-    ], [], self::$atributos)->after(function($validator) use ($mes,$anio,$id_casino,$id_tipo_moneda,$validar_sin_producidos){
+    ], [], self::$atributos)->after(function($validator) use (&$mes,&$anio,&$id_casino,&$id_tipo_moneda,$validar_sin_producidos){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       $dias = [];
@@ -217,12 +217,12 @@ class BeneficioController extends Controller
       ])->get()->first();
       if(is_null($bmensual)) $bmensual = new BeneficioMensual;
       
-      $beneficio_mensual->id_casino      = $id_casino;
-      $beneficio_mensual->id_tipo_moneda = $id_tipo_moneda;
-      $beneficio_mensual->id_actividad   = 1;
-      $beneficio_mensual->anio_mes       = "$anio-$mes-01";
-      $beneficio_mensual->bruto          = $acumulado;
-      $beneficio_mensual->save();
+      $bmensual->id_casino      = $id_casino;
+      $bmensual->id_tipo_moneda = $id_tipo_moneda;
+      $bmensual->id_actividad   = 1;
+      $bmensual->anio_mes       = "$anio-$mes-01";
+      $bmensual->bruto          = $acumulado;
+      $bmensual->save();
       return "true";
     });
   }
