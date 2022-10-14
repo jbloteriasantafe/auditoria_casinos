@@ -245,7 +245,7 @@ $casinos = $usuario->casinos;
                                         <td data-attr-imp="cartones_vendidos" data-attr-par="cartones_vendidos">999</td>
                                         <td data-attr-imp="valor_carton" data-attr-par="valor_carton">99</td>
                                         <td data-attr-imp="cant_bola" data-attr-par="bola_bingo">99</td>
-                                        <td class="recaudado">9999</td>
+                                        <td data-attr-imp="recaudado" class="recaudado">9999</td>
                                         <td data-attr-imp="premio_linea" data-attr-par="premio_linea">999.9</td>
                                         <td data-attr-imp="premio_bingo" data-attr-par="premio_bingo">999.9</td>
                                         <td data-attr-imp="pozo_dot" data-attr-par="pozo_dot">9999.99</td>
@@ -295,20 +295,18 @@ $casinos = $usuario->casinos;
             <div class="modal fade" id="modalError" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                   <div class="modal-dialog">
                      <div class="modal-content">
-                        <div class="modal-header">
+                        <div class="modal-header" style="font-family: Roboto-Black; color: #EF5350;">
                           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                          <h3 class="modal-title-error" id="myModalLabel">ERROR</h3>
+                          <h3 class="modal-title-error" id="myModalLabel">ERROR: SESIÓN NO IMPORTADA</h3>
                         </div>
 
                         <div class="modal-body" style="color:#fff; background-color:#EF5350;">
                               <div class="form-group error ">
                                   <div class="col-lg-12">
-                                    <strong id="errorNoImportada"></strong>
+                                    <strong id="errorNoImportada">No se puede visar ésta sesión por no encontrarse importada.</strong>
                                   </div>
                               </div>
-
                         </div>
-
                         <div class="modal-footer">
                           <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">ACEPTAR</button>
                         </div>

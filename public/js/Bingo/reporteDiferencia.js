@@ -106,7 +106,7 @@ $(document).on('click' , '.visar,.ver' , function() {
   //si la sesión tiene archivo importado, muestra el modal con los datos
   //sino, muestra mensaje de error
   if(id_importacion == 'no_importado'){
-    return mensajeSesionNoImportada();
+    return $('#modalError').modal('show');
   }
   $.get("obtenerDiferencia/" + id_importacion, function(data){
     console.log(data);
@@ -117,22 +117,21 @@ $(document).on('click' , '.visar,.ver' , function() {
     cargarDatosSesion(data.importacion,sesion ?? null, data.pozoDotInicial);
     cargarDetallesSesion(data.importacion, detalles_sesion);
     //genera la tabla con las partidas importadas
-    
     const partidas = data.sesion? (data.sesion.partidas? data.sesion.partidas : []) : [];
-    console.log(data.importacion,partidas);
-    for (const i in data.importacion){
-      const partida = partidas.find(function(p){
-        return p[0].num_partida === (parseInt(i)+1);
-      }) ?? [-1];
-      $('#cuerpoTablaDetalles').append(generarFilaPartidaImportada(data.importacion[i], partida[0]));
-    }
+    data.importacion.forEach(function(imp,idx){
+      const par = partidas.find(function(p){
+        return p[0].num_partida === (parseInt(idx)+1);
+      });
+      $('#cuerpoTablaDetalles').append(generarFilaPartidaImportada(imp, par? par[0] : undefined));
+    });
 
-    //mostrar pops iconos
+    //mostrar pops
+    $('.pop-sinrelevar').popover({html:true});
+    $('.pop-relevado').popover({html:true});
     $('.pop-exclamation').popover({html:true});
     $('.pop-check').popover({html:true});
     $('.pop-times').popover({html:true});
-    //mostrar pops diferencias
-    $('.pop-diferencia').popover({html:true});
+    
     $('#btn-finalizarValidacion').toggle(!data.reporte.visado);
     $('#observacion_validacion').val(data.reporte.observaciones_visado).attr('disabled',!!data.reporte.visado);
     $('#modalDetalles').modal('show');
@@ -141,18 +140,22 @@ $(document).on('click' , '.visar,.ver' , function() {
 
 $(document).on('click','#tablaResultados thead tr th[value]',function(e){
   $('#tablaResultados th').removeClass('activa');
-  if($(e.currentTarget).children('i').hasClass('fa-sort')){
-    $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-down').parent().addClass('activa').attr('estado','desc');
+  const icon = $(this).children('i');
+  const sin_ordenar = icon.hasClass('fa-sort');
+  const ordenado_abajo = icon.hasClass('fa-sort-down');
+  icon.removeClass('fa-sort fa-sort-down fa-sort-up');
+  if(sin_ordenar){
+    icon.addClass('fa-sort-down').parent().addClass('activa').attr('estado','desc');
   }
   else{
-    if($(e.currentTarget).children('i').hasClass('fa-sort-down')){
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort-up').parent().addClass('activa').attr('estado','asc');
+    if(ordenado_abajo){
+      icon.addClass('fa-sort-up').parent().addClass('activa').attr('estado','asc');
     }
     else{
-      $(e.currentTarget).children('i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+      icon.addClass('fa-sort').parent().attr('estado','');
     }
   }
-  $('#tablaResultados th:not(.activa) i').removeClass().addClass('fa fa-sort').parent().attr('estado','');
+  $('#tablaResultados th:not(.activa) i').removeClass('fa-sort-down fa-sort-up').addClass('fa-sort').parent().attr('estado','');
   clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
 });
 
@@ -160,50 +163,37 @@ function clickIndice(e,pageNumber,tam){
   if(e != null){
     e.preventDefault();
   }
-  var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
-  var columna = $('#tablaResultados .activa').attr('value');
-  var orden = $('#tablaResultados .activa').attr('estado');
+  tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
+  const columna = $('#tablaResultados .activa').attr('value');
+  const orden = $('#tablaResultados .activa').attr('estado');
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
-//función auxiliar cargar datos de la sesión a partir de importación
-function cargarDatosSesion(importaciones,sesion, pozoDotInicial){
+function cargarDatosSesion(importaciones,sesion, pozoDotInicial){  
+  $('.pop-relevado').popover('destroy');
+  $('.pop-sinrelevar').popover('destroy');
   if(sesion == null || sesion.id_estado != 2){//si no existen datos de sesión, cargo los datos desde importación y pinto de naranja
     const ult_imp = importaciones[importaciones.length - 1];
-    $('#pozo_dotacion_inicial_d').val(pozoDotInicial);
-    $('#pozo_extra_inicial_d').val(importaciones[0].pozo_extra);
-    $('#pozo_dotacion_final_d').val(ult_imp.pozo_dot);
-    $('#pozo_extra_final_d').val(ult_imp.pozo_extra);
-    $('#pozo_dotacion_inicial_d,#pozo_extra_inicial_d,#pozo_dotacion_final_d,#pozo_extra_final_d')
-    .attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange');
+    marcarSinRelevar($('#pozo_dotacion_inicial_d'),pozoDotInicial);
+    marcarSinRelevar($('#pozo_extra_inicial_d'),importaciones[0].pozo_extra);
+    marcarSinRelevar($('#pozo_dotacion_final_d'),ult_imp.pozo_dot);
+    marcarSinRelevar($('#pozo_extra_final_d'),ult_imp.pozo_extra);
     return;
   }
-  $('.popover-relevado').popover('destroy');
-  function marcarError(obj,valor,valor_relevado){
-    obj.val(valor).removeClass('pintar-orange');
-    if(valor == valor_relevado){
-      obj.attr('readonly','readonly').removeClass('pintar-red');
-      return;
-    }
-    obj.attr('readonly','readonly').addClass('pintar-red')
-    .attr("data-content", valor_relevado).attr("data-placement" , "top")
-    .attr("rel","popover").attr("data-trigger" , "hover")
-    .attr('title','VALOR RELEVADO').addClass('popover-relevado');
-  }
+
   //si hay datos de sesión, comparo esos datos con los de importación y si son distintos, pinto de rojo o de naranja si no existe comparación
   //comparo datos iniciales de pozo dot y pozo extra, si llego hasta acá, existen. Sólo comparo y pinto de rojo si son != o dejo sin pintar si son ==
-  marcarError($('#pozo_dotacion_inicial_d'),pozoDotInicial,sesion.pozo_dotacion_inicial);
-  marcarError($('#pozo_extra_inicial_d'),importaciones[0].pozo_extra,sesion.pozo_extra_inicial);
+  marcarDiferencia($('#pozo_dotacion_inicial_d'),pozoDotInicial,sesion.pozo_dotacion_inicial);
+  marcarDiferencia($('#pozo_extra_inicial_d'),importaciones[0].pozo_extra,sesion.pozo_extra_inicial);
   const ult_imp = importaciones[importaciones.length - 1];
   //Si no esta cerrado (estado = 2), NO le marco diferencia sino que le pongo color naranja
-  marcarError($('#pozo_dotacion_final_d'),ult_imp.pozo_dot,sesion.pozo_dotacion_final);
-  marcarError($('#pozo_extra_final_d'),ult_imp.pozo_extra,sesion.pozo_extra_final);
-  //Mostrar los popover
-  $('.popover-relevado').popover({ html:true });
+  marcarDiferencia($('#pozo_dotacion_final_d'),ult_imp.pozo_dot,sesion.pozo_dotacion_final);
+  marcarDiferencia($('#pozo_extra_final_d'),ult_imp.pozo_extra,sesion.pozo_extra_final);
 }
 //funcion auxiliar para cargar los detalles de la sesion a partir de importación
 function cargarDetallesSesion(importaciones,detalles_sesion){
-  const cartones_ini = {};
-  (importaciones ?? []).forEach(function(imp){//Se queda con la primer ocurrencia de cada carton
+  const cartones_ini = {};//Se queda con la primer ocurrencia de cada carton
+  const cartones_fin = {};//Se queda con la ultima ocurrencia de cada carton
+  (importaciones ?? []).map(function(imp){
     if(!(imp.valor_carton in cartones_ini)){
       cartones_ini[imp.valor_carton] = {
         valor_carton: imp.valor_carton,
@@ -211,10 +201,8 @@ function cargarDetallesSesion(importaciones,detalles_sesion){
         carton_inicio: imp.carton_inicio_A,
       };
     }
-  });
-  
-  const cartones_fin = {};
-  (importaciones ?? []).forEach(function(_,idx,arr){//Se queda con la ultima ocurrencia de cada carton
+    return imp;//Chain
+  }).forEach(function(_,idx,arr){
     const imp = arr[arr.length-1-idx];//Recorre atras para adelante
     if(!(imp.valor_carton in cartones_fin)){
       cartones_fin[imp.valor_carton] = {//si serieB es !=0 quiere decir que existe segunda serie
@@ -262,23 +250,15 @@ function generarFilaDetallesSesion(detalle_importado, detalles_sesion){
     return ds.valor_carton == detalle_importado.valor_carton;
   });
   if(ds !== undefined){
-    if(ds.serie_inicio != detalle_importado.serie_inicio){
-      attrComparacion(fila, '#serie_inicial_f', ds.serie_inicio);
-    }
-    if(ds.carton_inicio != detalle_importado.carton_inicio){
-      attrComparacion(fila, '#carton_inicial_f', ds.carton_inicio);
-    }
+    marcarDiferencia(fila.find('#serie_inicial_f'),detalle_importado.serie_inicio,ds.serie_inicio);
+    marcarDiferencia(fila.find('#carton_inicial_f'),detalle_importado.carton_inicio,ds.carton_inicio);
     //si la sesión se enceuntra cerrada, no tengo datos de fin, pinto de naranja
     if(ds.serie_fin == null){
-      fila.find('#serie_final_f').removeClass('pintar-red').addClass('pintar-orange');
-      fila.find('#carton_final_f').removeClass('pintar-red').addClass('pintar-orange');
+      marcarSinRelevar(fila.find('#serie_final_f'),detalle_importado.serie_fin);
+      marcarSinRelevar(fila.find('#carton_final_f'),detalle_importado.carton_fin);
     }else{ //tengo datos de fin, comparo y pinto de rojo si son !=
-      if(ds.serie_fin != detalle_importado.serie_fin){
-        attrComparacion(fila, '#serie_final_f', ds.serie_fin);
-      }
-      if(ds.carton_fin != detalle_importado.carton_fin){
-        attrComparacion(fila, '#carton_final_f', ds.carton_fin);
-      }
+      marcarDiferencia(fila.find('#serie_final_f'),detalle_importado.serie_fin,ds.serie_fin);
+      marcarDiferencia(fila.find('#carton_final_f'),detalle_importado.carton_fin,ds.carton_fin);
     }
   }
   
@@ -300,33 +280,27 @@ function generarFilaTabla(data){
   return fila;
 }
 //Generar fila con los datos de las partidas importadas
-function generarFilaPartidaImportada(importado, partida = -1){
+function generarFilaPartidaImportada(importado, partida){
   const keys_imp = Object.keys(importado);
   const fila = $('#filaEjemploDetalle').clone().removeAttr('id');
   for(const kidx in keys_imp){
     const attr_imp = keys_imp[kidx];
     fila.find(`[data-attr-imp="${attr_imp}"]`).text(importado[attr_imp]);
   }
-  
-  if(partida == -1){//Si no hay partida, no comparo
+    
+  if(partida == undefined){//Si no hay partida, no comparo
     fila.find('.no-relevado').show();
     return fila;
   }
   
-  let correcto = true;  
-  const recaudado = partida.cartones_vendidos*partida.valor_carton;
-  if(recaudado != importado.recaudado) {
-    attrComparacion(fila, '.recaudado', recaudado)
-    correcto = false;
-  }
+  let correcto = marcarDiferencia(fila.find('.recaudado'),importado.recaudado,partida.cartones_vendidos*partida.valor_carton);
   
   const keys_par = Object.keys(partida);
   for(const kidx in keys_par){
     const attr_par = keys_par[kidx];
     const attr_imp = fila.find(`[data-attr-par="${attr_par}"]`).attr('data-attr-imp');
-    if(attr_imp !== undefined && (partida[attr_par] ?? 0) != (importado[attr_imp] ?? 0)){
-      attrComparacion(fila,`[data-attr-imp="${attr_imp}"]`, partida[attr_par]);
-      correcto = false;
+    if(attr_imp !== undefined){
+      correcto = correcto && marcarDiferencia(fila.find(`[data-attr-imp="${attr_imp}"]`),importado[attr_imp] ?? 0,partida[attr_par] ?? 0);
     }
   }
   
@@ -334,21 +308,25 @@ function generarFilaPartidaImportada(importado, partida = -1){
   fila.find('.no-coinciden').toggle(!correcto);
   return fila;
 }
-//Mensaje de error cuando la sesión no se encuentra importada
-function mensajeSesionNoImportada(){
-  $('.modal-title-error').text('ERROR: SESIÓN NO IMPORTADA');
-  $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
-  $('#modalError').modal('show');
- $('#errorNoImportada').text('No se puede visar ésta sesión por no encontrarse importada.');
-}
-//attr atributos de comparación
-function attrComparacion(fila, lugar, valor){
-  fila.find(lugar).addClass('pintar-red')
-  .attr("data-content", valor)
-  .attr("data-placement" , "top")
-  .attr("rel","popover")
-  .attr('title','VALOR RELEVADO')
-  .attr("data-trigger" , "hover")
+
+function marcarSinRelevar(obj,valor){
+  obj.val(valor).text(valor).attr('readonly','readonly').removeClass('pintar-red').addClass('pintar-orange')
   .attr('data-container','body')
-  .addClass('pop-diferencia');
+  .attr("data-content",'Datos de Importación').attr("data-placement" , "top")
+  .attr("rel","popover").attr("data-trigger" , "hover")
+  .attr('title','SIN RELEVAR').addClass('pop-sinrelevar');
+}
+  
+function marcarDiferencia(obj,valor,valor_relevado){
+  obj.val(valor).text(valor).removeClass('pintar-orange');
+  if(valor == valor_relevado){
+    obj.attr('readonly','readonly').removeClass('pintar-red');
+    return true;
+  }
+  obj.attr('readonly','readonly').addClass('pintar-red')
+  .attr('data-container','body')
+  .attr("data-content", valor_relevado).attr("data-placement" , "top")
+  .attr("rel","popover").attr("data-trigger" , "hover")
+  .attr('title','VALOR RELEVADO').addClass('pop-relevado');
+  return false;
 }
