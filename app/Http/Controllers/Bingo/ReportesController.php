@@ -37,14 +37,12 @@ class ReportesController extends Controller{
     }
     //BUSCAR ESTADOS
     public function buscarEstado(Request $request,$id_importacion = null){
-      $fin    = date('Y-m-d');
-      $dates  = Utils::tablaDates($fin);
-      $sort_by = ['columna' => "$dates.date",'orden' => 'desc'];
+      $sort_by = ['columna' => 'fechas.fecha','orden' => 'desc'];
       if(!empty($request->sort_by)){
         $sort_by['columna'] = $request->sort_by['columna'];
         $sort_by['orden']   = $request->sort_by['orden'];
       }
-      $reglas = [["$dates.date",'>=','2012-01-01'],["$dates.date",'<=',$fin]];
+      $reglas = [];
       if(!empty($request->casino)){
         $reglas[] = ['c.id_casino','=',$request->casino];
       }
@@ -54,8 +52,9 @@ class ReportesController extends Controller{
       $id_casinos = UsuarioController::getInstancia()->quienSoy()['usuario']->casinos->map(function($c){
         return $c->id_casino;
       })->toArray();
-      $resultados = DB::table(DB::raw($dates))
-      ->selectRaw('dates.date as fecha_sesion,c.nombre as casino,
+      
+      $resultados = DB::table('casino as c')
+      ->selectRaw('fechas.fecha as fecha_sesion,c.nombre as casino,
        MAX(bi.fecha)        as imp_fecha_inicio,
        MAX(bi.hora_inicio)  as imp_hora_inicio,
        MAX(bs.fecha_inicio) as ses_fecha_inicio,
@@ -65,21 +64,29 @@ class ReportesController extends Controller{
        MAX(bi.id_importacion) as importacion,
        MAX(IF(bre.visado,bre.id_reporte_estado,NULL)) as visado'
       )
-      ->join('casino as c',function($j){
-        return $j;
-      })
-      ->leftJoin('bingo_sesion as bs',function($j) use ($dates){
-        return $j->on('bs.fecha_inicio','=',"$dates.date")->on('bs.id_casino','=','c.id_casino');
+      ->join(//Todas las fechas que existen para el casino, sean de sesion,importacion o reporte
+        DB::raw('(
+          SELECT distinct id_casino,fecha_inicio as fecha FROM bingo_sesion
+          UNION
+          SELECT distinct id_casino,fecha as fecha FROM bingo_importacion
+          UNION
+          SELECT distinct id_casino,fecha_sesion as fecha FROM bingo_reporte_estado
+          ) as fechas'
+        ),
+        'fechas.id_casino','=','c.id_casino'
+      )
+      ->leftJoin('bingo_sesion as bs',function($j){
+        return $j->on('bs.fecha_inicio','=','fechas.fecha')->on('bs.id_casino','=','c.id_casino');
       })
       ->leftJoin('bingo_partida as bp','bp.id_sesion','=','bs.id_sesion')//Chequear todos los cartones?
-      ->leftJoin('bingo_importacion as bi',function($j) use ($dates){
-        return $j->on('bi.fecha','=',"$dates.date")->on('bi.id_casino','=','c.id_casino');
+      ->leftJoin('bingo_importacion as bi',function($j){
+        return $j->on('bi.fecha','=','fechas.fecha')->on('bi.id_casino','=','c.id_casino');
       })//Mover el visado a la importacion
-      ->leftJoin('bingo_reporte_estado as bre',function($j) use ($dates){
-        return $j->on('bre.fecha_sesion','=',"$dates.date")->on('bre.id_casino','=','c.id_casino');
+      ->leftJoin('bingo_reporte_estado as bre',function($j){
+        return $j->on('bre.fecha_sesion','=','fechas.fecha')->on('bre.id_casino','=','c.id_casino');
       })
       ->where($reglas)->whereIn('c.id_casino',$id_casinos)
-      ->groupBy("$dates.date",'c.id_casino')
+      ->groupBy('fechas.fecha','c.id_casino')
       ->orderBy($sort_by['columna'],$sort_by['orden']);
       
       if(!is_null($id_importacion)) return $resultados->first();
