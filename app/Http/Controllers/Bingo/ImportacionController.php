@@ -89,7 +89,7 @@ class ImportacionController extends Controller
         }
         else{
         //pongo en 0 el reporte de estado
-        app(\App\Http\Controllers\Bingo\ReportesController::class)->eliminarReporteEstado($importaciones[0]->id_casino, $importaciones[0]->fecha, 1);
+          ReportesController::getInstancia()->eliminarReporteEstado($importaciones[0]->id_casino, $importaciones[0]->fecha, 1);
         }
       }
 
@@ -163,19 +163,13 @@ class ImportacionController extends Controller
         }
       }
       //@Elegancia: Podria estandarizarse la forma que se manda $resultado, para que no tenga que switchear internamente.
-      $una_importacion = $this->guardarImportacionArr($resultado,$request->id_casino,$usuario,$nfecha);
-      //si el archivo no es correcto, devuelve el error
-      if($una_importacion == 'error_archivo') {
+      $todo_ok = DB::transaction(function() use($resultado,$request,$usuario,$nfecha){
+        return $this->guardarImportacionArr($resultado,$request->id_casino,$usuario,$nfecha);
+      });
+      if(!$todo_ok) {
         return $this->errorOut(['archivo_valido' => 'El archivo que esta queriendo importar no es válido para el casino seleccionado.']);
       }
-
-      //paso lo recibido a collection para agregarle los datos que faltan para mostrarse
-      $una_importacion = collect($una_importacion);
-      //Agrego nombre de usuario y código de casino
-      $una_importacion = array_add($una_importacion, 'nombre',$nombre);
-      $una_importacion = array_add($una_importacion, 'codigo',$casino);
-      //retorno $una_importacion para poder actualizar las filas
-      return $una_importacion;
+      return 1;
     }
 
     public function obtenerImportacionCompleta($id){
@@ -221,18 +215,19 @@ class ImportacionController extends Controller
       $una_importacion->pozo_dot          = 0;
       $una_importacion->pozo_extra        = 0;
       $una_importacion->fecha             = $fecha_archivo;
-
+      if(count($resultado) == 0){
+        $una_importacion->save();
+        return true;
+      }
       foreach($resultado as $row){
-        $importacion = new ImportacionBingo;
-        $importacion->id_casino = $id;
-        $importacion->id_usuario = $usuario;
+        $importacion = clone $una_importacion;
         //Si manda sin numero de partida lo ignoramos, pasa a veces que mandan una fila toda vacia (i.e. ;;;;;;;... etc)
         if($row[0] == '') continue;
         if($id == 3){//Rosario
           $fecha = explode('/', $row[18]);
           //si no pudo separar la fecha en 3 partes, el archivo no es válido
-          if( count($fecha) != 3) {
-            return 'error_archivo';
+          if(count($fecha) != 3) {
+            return false;
           }
           $nfecha = $fecha[2] . '-' . $fecha[1] . '-' . $fecha[0];
           $importacion->num_partida       = (int)$row[0];
@@ -255,7 +250,7 @@ class ImportacionController extends Controller
         }
         else if($id == 1 || $id == 2){//SFE/MEL
           if(count($row) != 20) {
-            return 'error_archivo';
+            return false;
           }
           $fecha = explode('/', $row[19]);
           $nfecha = $fecha[2] . '-' . $fecha[1] . '-' . $fecha[0];
@@ -278,16 +273,13 @@ class ImportacionController extends Controller
           $importacion->fecha             = $nfecha;
         }
         else{
-          return 'error_archivo';
+          return false;
         }
         $importacion->save();
-        $una_importacion = $importacion;
       }
-
-      if(count($resultado) == 0) $una_importacion->save();
       //Guardo la información para el reporte de estados
-      app(\App\Http\Controllers\Bingo\ReportesController::class)->guardarReporteEstado($id, $fecha_archivo, 1);
-      return $una_importacion;
+      ReportesController::getInstancia()->guardarReporteEstado($id, $fecha_archivo, 1);
+      return true;
     }
 
     //Funcion auxiliar para obtener la fecha de la importacion

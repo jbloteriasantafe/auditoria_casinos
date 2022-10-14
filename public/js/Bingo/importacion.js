@@ -1,18 +1,5 @@
-  $(document).ready(function(){
-
-  $('#barraMenu').attr('aria-expanded','true');
-  // $('#maquinas').removeClass();
-  // $('#maquinas').addClass('subMenu1 collapse in');
-  $('#bingoMenu').removeClass();
-  $('#bingoMenu').addClass('subMenu2 collapse in');
-
-  $('#bingoMenu').siblings('div.opcionesHover').attr('aria-expanded','true');
-
-  $('.tituloSeccionPantalla').text('Importaciones Bingo');
-  // $('#gestionarMaquinas').attr('style','border-left: 6px solid #3F51B5;');
-  $('#opcImportarBingo').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
-  $('#opcImportarBingo').addClass('opcionesSeleccionado');
-
+$(document).ready(function(){
+  $('.tituloSeccionPantalla').text('Importaciones Bingo');;
   $('#dtpBuscadorFecha').datetimepicker({
     language:  'es',
     todayBtn:  1,
@@ -25,10 +12,7 @@
     ignoreReadonly: true,
     endDate: '+0d'
   });
-
   $('#btn-buscar').trigger('click');
-
-
 });
 
 //Opacidad del modal al minimizar
@@ -85,7 +69,7 @@ $('#btn-ayuda').click(function(e){
   $('.modal-title').text('| FÓRMULAS');
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #aaa; color: #fff');
 
-	$('#modalAyuda').modal('show');
+  $('#modalAyuda').modal('show');
 
 });
 
@@ -264,11 +248,7 @@ $('#btn-guardar').click(function (e) {
         },
         success: function (data) {
           $('#modalImportacion').modal('hide');
-
           $('#mensajeExito P').text('El relevamiento de bingo fue IMPORTADO exitosamente.');
-          // $('#btn-guardar').text('ACEPTAR');
-          console.log(data);
-
           $('#mensajeExito').show();
           $('#modalImportacionCargada').modal('hide');
           $('#btn-buscar').click();
