@@ -54,15 +54,18 @@ class ReportesController extends Controller{
       })->toArray();
       
       $resultados = DB::table('casino as c')
+      //MAX(bi.fecha) y MAX(bs.fecha_inicio) simplemente limpia el NULL porque es = o NULL por el leftJoin
+      //SUBSTR(MAX(CONCAT(LPAD(_ID_,10,"0"),_HORA_)),11) obtiene la hora del ultimo en la tabla con esa fecha (tiene _ID_ mas grande)
+      //LPAD porque se hace comparación caracter a caracter, se le concatena la hora para despues sacarsela
       ->selectRaw('fechas.fecha as fecha_sesion,c.nombre as casino,
        MAX(bi.fecha)        as imp_fecha_inicio,
-       MAX(bi.hora_inicio)  as imp_hora_inicio,
        MAX(bs.fecha_inicio) as ses_fecha_inicio,
-       MAX(bs.hora_inicio)  as ses_hora_inicio,
+       SUBSTR(MAX(CONCAT(LPAD(bi.id_importacion,10,"0"),bi.hora_inicio)),11) as imp_hora_inicio,
+       SUBSTR(MAX(CONCAT(LPAD(bs.id_sesion     ,10,"0"),bs.hora_inicio)),11) as ses_hora_inicio,
        MAX(IF(bs.id_estado = 2,bs.id_sesion,NULL)) as sesion_cerrada,
-       MAX(bp.id_partida) as relevamiento,
+       BIT_OR(bp.id_partida IS NOT NULL) as relevamiento,
        MAX(bi.id_importacion) as importacion,
-       MAX(IF(bre.visado,bre.id_reporte_estado,NULL)) as visado'
+       BIT_OR(bre.id_reporte_estado IS NOT NULL AND bre.visado = 1) as visado'
       )
       ->join(//Todas las fechas que existen para el casino, sean de sesion,importacion o reporte
         DB::raw('(
