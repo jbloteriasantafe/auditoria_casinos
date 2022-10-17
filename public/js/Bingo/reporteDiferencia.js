@@ -274,8 +274,8 @@ function generarFilaTabla(data){
   fila.find(`.relevamiento i[data-status="${+!!data.relevamiento}"]`).show();
   fila.find(`.sesion_cerrada i[data-status="${+!!data.sesion_cerrada}"]`).show();
   fila.find(`.visado i[data-status="${+!!data.visado}"]`).show();
-  fila.find('.visar').toggle(data.visado == null && data.importacion != null);
-  fila.find('.ver').toggle(data.visado != null);
+  fila.find('.visar').toggle(!!!data.visado);
+  fila.find('.ver').toggle(!!data.visado);
   fila.find('button').val(data.importacion ?? 'no_importado');
   return fila;
 }
