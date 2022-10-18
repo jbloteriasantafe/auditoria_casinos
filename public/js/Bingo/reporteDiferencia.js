@@ -147,13 +147,11 @@ $(document).on('click','#tablaResultados thead tr th[value]',function(e){
   if(sin_ordenar){
     icon.addClass('fa-sort-down').parent().addClass('activa').attr('estado','desc');
   }
+  else if(ordenado_abajo){
+    icon.addClass('fa-sort-up').parent().addClass('activa').attr('estado','asc');
+  }
   else{
-    if(ordenado_abajo){
-      icon.addClass('fa-sort-up').parent().addClass('activa').attr('estado','asc');
-    }
-    else{
-      icon.addClass('fa-sort').parent().attr('estado','');
-    }
+    icon.addClass('fa-sort').parent().attr('estado','');
   }
   $('#tablaResultados th:not(.activa) i').removeClass('fa-sort-down fa-sort-up').addClass('fa-sort').parent().attr('estado','');
   clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());

@@ -92,49 +92,24 @@ class ReportesController extends Controller{
     if(!is_null($id_importacion)) return $resultados->first();
     return $resultados->paginate($request->page_size);
   }
-    
-  //Funcion para guardar el estado de cargada la importación
-  public function guardarReporteEstado($id_casino, $fecha, $valor){
-    //armo las reglas para filtrar los datos del reporte
-    $reglas = array();
-    $reglas [] =['fecha_sesion','=', $fecha];
-    $reglas [] =['id_casino','=', $id_casino];
-    //busco el reporte que cumpla con las reglas
-    $reporte = ReporteEstado::where($reglas)->first();
-    //si aún no existe reporte, lo creo. Sino, modifico el que encontro.
-    //dependiendo de donde viene($valor), asigno 1 ->SI
-    if($reporte == null){
-      $reporte = new ReporteEstado;
-      $reporte->fecha_sesion = $fecha;
-      $reporte->id_casino = $id_casino;
-      if($valor == 1)$reporte->importacion = 1;
-      if($valor == 2)$reporte->sesion_cerrada = 1;
-      if($valor == 3)$reporte->relevamiento = 1;
-      if($valor == 4)$reporte->sesion_abierta = 1;
-      $reporte->save();
-    }else{
-      $reporte->fecha_sesion = $fecha;
-      $reporte->id_casino = $id_casino;
-      if($valor == 1)$reporte->importacion = 1;
-      if($valor == 2)$reporte->sesion_cerrada = 1;
-      if($valor == 3)$reporte->relevamiento = 1;
-      if($valor == 4)$reporte->sesion_abierta = 1;
-      $reporte->save();
+  
+  public function reporteEstadoSet($id_casino,$fecha,array $attrs_vals){
+    $reporte = ReporteEstado::where([['fecha_sesion','=', $fecha],['id_casino','=', $id_casino]])
+    ->orderBy('id_reporte_estado','desc')->first();
+    if(is_null($reporte)) $reporte = new ReporteEstado;
+    $reporte->fecha_sesion = $fecha;
+    $reporte->id_casino = $id_casino;
+    foreach($attr_vals as $attr => $val){
+      $reporte->{$attr} = $val;
     }
-  }
-  //Funcion para guardar el estado de cargada la importación
-  public function eliminarReporteEstado($id_casino, $fecha, $valor){
-    //armo las reglas para filtrar los datos del reporte
-    $reglas = array();
-    $reglas [] =['fecha_sesion','=', $fecha];
-    $reglas [] =['id_casino','=', $id_casino];
-    //como sé que existe un reporte de estado, le cambio el valor a 0 ->No
-    $reporte = ReporteEstado::where($reglas)->first();
-    if($valor == 1)$reporte->importacion = 0;
-    if($valor == 2)$reporte->sesion_cerrada = 0;
-    if($valor == 3)$reporte->relevamiento = 0;
-    if($valor == 4)$reporte->sesion_abierta = 0;
     $reporte->save();
+    
+    if(empty($reporte->importacion)  && empty($reporte->sesion_cerrada)
+    && empty($reporte->relevamiento) && empty($reporte->relevamiento)){
+      $reporte->delete();
+    }
+    
+    return $this;
   }
 
   public function obtenerDiferencia($id){

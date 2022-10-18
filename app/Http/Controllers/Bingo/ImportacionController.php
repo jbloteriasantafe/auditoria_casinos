@@ -72,39 +72,17 @@ class ImportacionController extends Controller
 
     public function eliminarImportacion($id){
       $importaciones = $this->obtenerImportacionCompleta($id);
-
-      //Guardo la información para el reporte de estado
-      //si no tiene cargada una sesion, relevamiento o cerrada, elimino el reporte
-
-      //armo las reglas para la busqueda
-      $reglas = array();
-      $reglas [] =['fecha_sesion','=', $importaciones[0]->fecha];
-      $reglas [] =['id_casino','=', $importaciones[0]->id_casino];
-      //busco el reporte que cumpla con las reglas
-      $reporte = ReporteEstado::where($reglas)->first();
-
-      if(!is_null($reporte)){
-        if($reporte->sesion_abierta == null || $reporte->sesion_abierta == 0){
-          if($reporte->sesion_cerrada == null || $reporte->sesion_cerrada == 0) $reporte->delete();
-        }
-        else{
-        //pongo en 0 el reporte de estado
-          ReportesController::getInstancia()->eliminarReporteEstado($importaciones[0]->id_casino, $importaciones[0]->fecha, 1);
-        }
-      }
-
+      ReportesController::getInstancia()->reporteEstadoSet($sesion->id_casino, $sesion->fecha_inicio,'importacion',0);
       foreach ($importaciones as $importacion) {
         $eliminar = ImportacionBingo::findOrFail($importacion->id_importacion);
         $eliminar->delete();
       }
-
       return ['importaciones' => $importaciones];
     }
 
     public function guardarImportacion(Request $request){
-      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario;
-      $nombre = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->nombre;
-      $casino = Casino::findOrFail($request->id_casino)->codigo;
+      $id_usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+      $casino  = Casino::findOrFail($request->id_casino)->codigo;
 
       //obtengo el archivo
       $archivoCSV = $request->archivo;
@@ -126,7 +104,7 @@ class ImportacionController extends Controller
         ->insert([
           'id_casino' => $request->id_casino,
           'fecha_importacion' => $nfecha,
-          'id_usuario' => $usuario,
+          'id_usuario' => $id_usuario,
           'observacion' => $request->motivo
         ]);
       }
@@ -163,8 +141,8 @@ class ImportacionController extends Controller
         }
       }
       //@Elegancia: Podria estandarizarse la forma que se manda $resultado, para que no tenga que switchear internamente.
-      $todo_ok = DB::transaction(function() use($resultado,$request,$usuario,$nfecha){
-        return $this->guardarImportacionArr($resultado,$request->id_casino,$usuario,$nfecha);
+      $todo_ok = DB::transaction(function() use($resultado,$request,$id_usuario,$nfecha){
+        return $this->guardarImportacionArr($resultado,$request->id_casino,$id_usuario,$nfecha);
       });
       if(!$todo_ok) {
         return $this->errorOut(['archivo_valido' => 'El archivo que esta queriendo importar no es válido para el casino seleccionado.']);
@@ -278,7 +256,7 @@ class ImportacionController extends Controller
         $importacion->save();
       }
       //Guardo la información para el reporte de estados
-      ReportesController::getInstancia()->guardarReporteEstado($id, $fecha_archivo, 1);
+      ReportesController::getInstancia()->reporteEstadoSet($id, $fecha_archivo,'importacion',1);
       return true;
     }
 
