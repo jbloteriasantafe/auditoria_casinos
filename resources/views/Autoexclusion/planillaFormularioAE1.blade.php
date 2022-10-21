@@ -60,7 +60,8 @@
          de la localidad de <b>{{$autoexcluido['nombre_localidad']}}</b>, Provincia de <b>{{$autoexcluido['nombre_provincia']}}</b>
         {!! is_null($autoexcluido['codigo_postal'])? '' : ', C.P. <b>'.$autoexcluido['codigo_postal'].'</b>' !!}
         {!! is_null($autoexcluido['telefono'])? '' : ', Teléfono <b>'.$autoexcluido['telefono'].'</b>' !!}; manifiesto voluntariamente, que no ingresaré a ninguna Sala de Juego de los Casinos y
-        Bingos de la Provincia de Santa Fe, durante el plazo de duración del
+        Bingos, ni accederé a las Plataformas de Juego Online
+(<a href="https://www.bplay.bet.ar">www.bplay.bet.ar</a> y/o <a href="https://www.citycenteronline.bet.ar">www.citycenteronline.bet.ar</a>) de la Provincia de Santa Fe, durante el plazo de duración del
         @if($es_primer_ae)
         presente, que se extiende por seis (6) meses desde su suscripción y
         cuyo primer vencimiento operará en la siguiente fecha:
