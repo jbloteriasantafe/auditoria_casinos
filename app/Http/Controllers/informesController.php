@@ -211,8 +211,10 @@ class informesController extends Controller
   }
   
   public function generarPlanillaIsla(Request $request){
-    $maqs = Isla::where([['id_casino','=',$request->id_casino],['nro_isla','=',$request->nro_isla]])
-    ->get()->first()->maquinas()->orderBy('nro_admin','asc')->pluck('nro_admin')->toArray();
+    $maqs = Isla::where('isla.id_casino','=',$request->id_casino)
+    ->whereIn('isla.nro_isla',explode(',',($request->islas ?? '')))
+    ->join('maquina','maquina.id_isla','=','isla.id_isla')
+    ->orderBy('nro_admin','asc')->select('nro_admin')->get()->pluck('nro_admin')->toArray();
     return $this->generarPlanillaNroAdmins($request->anio,$request->mes,$request->id_casino,$request->id_tipo_moneda,$request->pdev == 1,$maqs);
   }
 
