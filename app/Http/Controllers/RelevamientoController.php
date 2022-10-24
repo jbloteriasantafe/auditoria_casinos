@@ -666,7 +666,7 @@ class RelevamientoController extends Controller
         $detalles[] = ['detalle' => $det,
                        'nro_admin' => $mtmm->nro_admin,
                        'mtm_a_pedido' => null,
-                       'denominacion' => $det->denominacion,
+                       'denominacion' => $det->id_unidad_medida == 1? $det->denominacion : '-',
                        'tipo_no_toma' => $tc,
                        'producido_importado' => $importt,
                        'diferencia' => $det->diferencia,];
