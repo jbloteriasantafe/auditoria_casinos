@@ -257,7 +257,7 @@ class informesController extends Controller
     
     $maqs = array_merge($maqs1,$maqs2);
     sort($maqs);
-    $maqs = array_unique($maqs,SORT_NUMERIC);
+    $maqs = array_values(array_unique($maqs,SORT_NUMERIC));
     
     return $this->generarPlanillaNroAdmins($request->anio,$request->mes,$request->id_casino,$request->id_tipo_moneda,$request->pdev == 1,$maqs);
   }
