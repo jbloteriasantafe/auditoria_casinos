@@ -476,7 +476,18 @@ class LectorCSVController extends Controller
       ->selectRaw('YEAR(bt.fecha) as anio,MONTH(bt.fecha) as mes')->distinct()
       ->where('bt.id_beneficio','=',$id_unico)
       ->whereRaw('(YEAR(bt.fecha) IS NOT NULL AND MONTH(bt.fecha) IS NOT NULL)')->get();
-      if(count($anio_mes) > 1){
+      //Rosario por algun motivo en el primero de cada mes trae todos los dias
+      //del mes anterior y el primero de ese mes. Comento el chequeo de abajo...
+      //Octavio 03 Noviembre 2022
+      foreach($anio_mes as $am){
+        BeneficioController::getInstancia()->eliminarBeneficios(
+          $id_casino,
+          $id_tipo_moneda,
+          $am->anio,
+          $am->mes
+        );
+      }
+      /*if(count($anio_mes) > 1){
         dump($anio_mes);
         throw new Exception('Error, el beneficio tiene mas de un mes');
       }
@@ -487,7 +498,7 @@ class LectorCSVController extends Controller
           $anio_mes[0]->anio,
           $anio_mes[0]->mes
         );
-      }
+      }*/
     }
 
     $cantidad_maquinas = Maquina::where('id_casino','=',$id_casino)->where('id_tipo_moneda','=',$id_tipo_moneda)
