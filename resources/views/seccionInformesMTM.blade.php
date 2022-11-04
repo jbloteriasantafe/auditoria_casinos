@@ -55,15 +55,11 @@ function nombre_casino($id_casino){
         <div class="row">
           <div class="col-md-4" style="text-align: center;">
             <h5>MÁQUINAS</h5>
-            <div class="input-group">
-              <input id="maquinasMenor" class="form-control" type="text" placeholder="0000" style="text-align: center;">
-              <span class="input-group-addon">-</span>
-              <input id="maquinasMayor" class="form-control" type="text" placeholder="XXXX" style="text-align: center;">
-            </div>
+            <input id="maquinas" class="form-control" type="text" placeholder="XX-YY,ZZ" style="text-align: center;">
           </div>
           <div class="col-md-3" style="text-align: center;">
-            <h5>ISLA</h5>
-            <input id="isla" class="form-control" type="text" placeholder="XXX" style="text-align: center;">
+            <h5>ISLAS</h5>
+            <input id="islas" class="form-control" type="text" placeholder="XX-YY,ZZ" style="text-align: center;">
           </div>
         </div>
       </div>
@@ -153,7 +149,7 @@ function nombre_casino($id_casino){
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionMTMbeneficios.js?2" charset="utf-8"></script>
+    <script src="js/seccionMTMbeneficios.js?4" charset="utf-8"></script>
     <script>
       $(document).ready(function(){
           $('[data-toggle="popover"]').popover();

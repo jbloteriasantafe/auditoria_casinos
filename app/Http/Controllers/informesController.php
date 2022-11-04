@@ -171,25 +171,7 @@ class informesController extends Controller
     else if($tipo_moneda == 1) $sum->tipoMoneda = '$';
     else return "Moneda no soportada";
 
-    //@WARNING: espera que nro_admins este ordenado ascendentemente
-    $rangos = [];
-    $current_min = +INF;
-    foreach($nro_admins as $idx => $n){
-      if($idx == 0){//Primera vez en el loop
-        $current_min = $n;
-        continue;
-      }
-      if($n == ($nro_admins[$idx-1]+1)){//Si es mas grande por 1, sigue estando OK el rango
-        continue;
-      }
-      //Se rompio el rango
-      $rangos[] = $current_min.'-'.$nro_admins[$idx-1];
-      $current_min = $n;
-    }
-    if(end($rangos) != ($current_min.'-'.end($nro_admins))){//Caso especial para el ultimo rango si fueron todos consecutivos nunca lo agrego
-      $rangos[] = $current_min.'-'.end($nro_admins);
-    }
-    $desde_hasta = implode(',',$rangos);
+    $desde_hasta = $this->colapsarListaDeNumerosAscendentes($nro_admins);
     $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde_hasta','mostrar_pdev'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
@@ -201,18 +183,82 @@ class informesController extends Controller
 
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
-
-  public function generarPlanillaMaquinas(Request $request){
-    $reglas = [['id_casino','=',$request->id_casino]];
-    if($request->nro_admin_min != -1) $reglas[] = ['nro_admin','>=',$request->nro_admin_min];
-    if($request->nro_admin_max != -1) $reglas[] = ['nro_admin','<=',$request->nro_admin_max];
-    $maqs = Maquina::where($reglas)->orderBy('nro_admin','asc')->pluck('nro_admin')->toArray();
-    return $this->generarPlanillaNroAdmins($request->anio,$request->mes,$request->id_casino,$request->id_tipo_moneda,$request->pdev == 1,$maqs);
+  //@WARNING: espera que lista ordenada ascendentemente
+  private function colapsarListaDeNumerosAscendentes($lista){
+    $rangos = [];
+    $agregar_rango = function(&$rangos,$n1,$n2){
+      //"Rango" de 1 maquina
+      if($n1 == $n2){
+        $rangos[] = $n1;
+      }
+      //Rango de 2 maquinas, mas simple de leer con una coma
+      else if($n1 == ($n2-1)){
+        $rangos[] = $n1;
+        $rangos[] = $n2;
+      }
+      else{
+        $rangos[] = $n1.'-'.$n2;
+      }
+    };
+    $current_min = $lista[0] ?? null;
+    for($idx = 1;$idx < count($lista);$idx++){
+      $n = $lista[$idx];
+      if($n == ($lista[$idx-1]+1)){//Si es mas grande por 1, sigue estando OK el rango
+        continue;
+      }
+      $agregar_rango($rangos,$current_min,$lista[$idx-1]);
+      $current_min = $n;
+    }
+    //Caso especial para el ultimo rango si fueron todos consecutivos nunca lo agrego
+    if($current_min !== null && $current_min === $lista[0]){
+      $agregar_rango($rangos,$lista[0],end($lista));
+    }
+    return implode(',',$rangos);
+  }
+  private function expandirListaDeRangosSeparadaPorComas($lista_comas){
+    if($lista_comas == '') return [];
+    $lista_con_rangos = explode(',',$lista_comas);
+    $lista_final = [];
+    foreach($lista_con_rangos as $v){
+      $v = trim($v);
+      if(ctype_digit($v)){
+        $lista_final[] = intval($v);
+        continue;
+      }
+      $rango = explode('-',$v);
+      if(count($rango) != 2) return false;
+      
+      $v1 = trim($rango[0]);$v2 = trim($rango[1]);
+      if(!ctype_digit($v1) || !ctype_digit($v2)) return false;
+      $v1 = intval($v1);$v2 = intval($v2);
+      $min = min($v1,$v2);
+      $max = max($v1,$v2);
+      for($i = $min;$i <= $max;$i++){
+        $lista_final[] = $i;
+      }
+    }
+    return $lista_final;
   }
   
-  public function generarPlanillaIsla(Request $request){
-    $maqs = Isla::where([['id_casino','=',$request->id_casino],['nro_isla','=',$request->nro_isla]])
-    ->get()->first()->maquinas()->orderBy('nro_admin','asc')->pluck('nro_admin')->toArray();
+  public function generarPlanillaIslasMaquinas(Request $request){
+    $lista_islas = $this->expandirListaDeRangosSeparadaPorComas($request->islas ?? '');
+    if($lista_islas === false) return 'Formato incorrecto de islas';
+    $lista_maquinas = $this->expandirListaDeRangosSeparadaPorComas($request->maquinas ?? '');
+    if($lista_maquinas === false) return 'Formato incorrecto de maquinas';
+    
+    $maqs1 = Isla::where('isla.id_casino','=',$request->id_casino)
+    ->whereIn('isla.nro_isla',$lista_islas)
+    ->join('maquina','maquina.id_isla','=','isla.id_isla')
+    ->orderBy('nro_admin','asc')->select('nro_admin')->get()->pluck('nro_admin')->toArray();
+    
+    $maqs2 = Maquina::where('maquina.id_casino','=',$request->id_casino)
+    ->whereIn('maquina.nro_admin',$lista_maquinas)
+    ->orderBy('nro_admin','asc')->select('nro_admin')->get()->pluck('nro_admin')->toArray();
+    
+    $maqs = array_merge($maqs1,$maqs2);
+    sort($maqs);
+    $maqs = array_values(array_unique($maqs,SORT_NUMERIC));
+    
     return $this->generarPlanillaNroAdmins($request->anio,$request->mes,$request->id_casino,$request->id_tipo_moneda,$request->pdev == 1,$maqs);
   }
 
