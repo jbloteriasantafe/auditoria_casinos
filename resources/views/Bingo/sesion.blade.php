@@ -522,7 +522,7 @@ $premios = PremioBingo::where('id_casino','=',$casinos[0]->id_casino)->get()->al
                                 </div>
 
                                 <div class="col-lg-3">
-                                  <h5>POZO EXTRA FINAL</h5>
+                                  <h5>POZO EXTRA INICIAL</h5>
                                   <input id="pozo_extra_inicial_d" name="pozo_extra_inicial_d" type="text" class="form-control"  placeholder="" value="">
                                 </div>
 

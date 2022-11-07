@@ -223,7 +223,7 @@ class SesionesController extends Controller
       }
       //Guardo la información para el reporte de estado
       ReportesController::getInstancia()->reporteEstadoSet(
-        $sesion->id_casino, $sesion->fecha_inicio,['sesion_cerrada'=>0,'sesion_abierta'=>1]
+        $sesion->id_casino, $sesion->fecha_inicio,['sesion_cerrada'=>0,'sesion_abierta'=>1,'visado' => 0]
       );
 
       return ['sesion' => $sesion, 'casino' => $sesion->casino, 'estado' => $sesion->estadoSesion, 'nombre_inicio' => $sesion->usuarioInicio->nombre, 'nombre_fin' => '-'];
@@ -322,7 +322,7 @@ class SesionesController extends Controller
       $sesion->delete();
       
       ReportesController::getInstancia()->reporteEstadoSet(
-        $sesion->id_casino, $sesion->fecha_inicio,['sesion_cerrada'=>0,'sesion_abierta'=>0,'relevamiento'=>0]
+        $sesion->id_casino, $sesion->fecha_inicio,['sesion_cerrada'=>0,'sesion_abierta'=>0,'relevamiento'=>0,'visado' => 0]
       );
       
       return ['sesion' => $sesion];
@@ -438,7 +438,9 @@ class SesionesController extends Controller
       $partidas = $sesion->partidasSesion->count();
       //si es la última, cambio la información en el reporte de estado
       if($partidas == 1){
-        ReportesController::getInstancia()->reporteEstadoClear($sesion->id_casino, $sesion->fecha_inicio, 3);
+        ReportesController::getInstancia()->reporteEstadoSet(
+          $sesion->id_casino, $sesion->fecha_inicio, ['relevamiento' => 0]
+        );
       }
       //elimino la partidas
       $partida->delete();

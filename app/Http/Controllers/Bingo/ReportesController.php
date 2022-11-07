@@ -99,7 +99,7 @@ class ReportesController extends Controller{
     if(is_null($reporte)) $reporte = new ReporteEstado;
     $reporte->fecha_sesion = $fecha;
     $reporte->id_casino = $id_casino;
-    foreach($attr_vals as $attr => $val){
+    foreach($attrs_vals as $attr => $val){
       $reporte->{$attr} = $val;
     }
     $reporte->save();

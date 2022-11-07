@@ -81,7 +81,7 @@ class ImportacionController extends Controller
     }
 
     public function guardarImportacion(Request $request){
-      $id_usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+      $id_usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario;
       $casino  = Casino::findOrFail($request->id_casino)->codigo;
 
       //obtengo el archivo
@@ -256,7 +256,7 @@ class ImportacionController extends Controller
         $importacion->save();
       }
       //Guardo la información para el reporte de estados
-      ReportesController::getInstancia()->reporteEstadoSet($id, $fecha_archivo,'importacion',1);
+      ReportesController::getInstancia()->reporteEstadoSet($id, $fecha_archivo,['importacion'=>1,'visado'=>0]);
       return true;
     }
 
