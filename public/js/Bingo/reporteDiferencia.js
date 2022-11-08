@@ -297,7 +297,7 @@ function generarFilaPartidaImportada(importado, partida){
   for(const kidx in keys_par){
     const attr_par = keys_par[kidx];
     const attr_imp = fila.find(`[data-attr-par="${attr_par}"]`).attr('data-attr-imp');
-    if(attr_imp !== undefined){
+    if(attr_imp !== undefined && attr_imp != 'hora_inicio'){
       correcto = correcto && marcarDiferencia(fila.find(`[data-attr-imp="${attr_imp}"]`),importado[attr_imp] ?? 0,partida[attr_par] ?? 0);
     }
   }
