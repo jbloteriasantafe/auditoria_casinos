@@ -173,9 +173,9 @@ class informesController extends Controller
     else return "Moneda no soportada";
 
     $desde_hasta = $this->colapsarListaDeNumerosAscendentes($nro_admins);
-    $suma_maqs = $beneficios->reduce(function($sum,$b){
+    $suma_maqs = $mostrar_pdev? $beneficios->reduce(function($sum,$b){
       return $sum+$b->cantidad_maquinas;
-    },0);
+    },0) : null;
     $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde_hasta','mostrar_pdev','suma_maqs'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
