@@ -96,7 +96,9 @@ class informesController extends Controller
 
     $desde_hasta = null;
     $mostrar_pdev = $request->pdev == 1;
-    $suma_maqs = null;
+    $suma_maqs = $mostrar_pdev? $beneficios->reduce(function($sum,$b){
+      return $sum+$b->cantidad_maquinas;
+    },0) : null;
     $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde_hasta','mostrar_pdev','suma_maqs'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
