@@ -96,7 +96,8 @@ class informesController extends Controller
 
     $desde_hasta = null;
     $mostrar_pdev = $request->pdev == 1;
-    $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde_hasta','mostrar_pdev'));
+    $suma_maqs = null;
+    $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde_hasta','mostrar_pdev','suma_maqs'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -172,7 +173,10 @@ class informesController extends Controller
     else return "Moneda no soportada";
 
     $desde_hasta = $this->colapsarListaDeNumerosAscendentes($nro_admins);
-    $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde_hasta','mostrar_pdev'));
+    $suma_maqs = $beneficios->reduce(function($sum,$b){
+      return $sum+$b->cantidad_maquinas;
+    },0);
+    $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde_hasta','mostrar_pdev','suma_maqs'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());

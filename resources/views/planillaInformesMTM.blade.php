@@ -97,6 +97,27 @@
         @endif
       </tr>
       @endforeach
+      @if(!is_null($suma_maqs))
+      <tr>
+        <td style="border: 0;background: rgba(0,0,0,0);"></td>
+        <td class="tablaCampos centrar">{{$suma_maqs}}</td>
+        <td style="border: 0;background: rgba(0,0,0,0);"></td>
+        <td style="border: 0;background: rgba(0,0,0,0);"></td>
+        @if ($sum->casino != 'Rosario' && !$calculado)
+        <td style="border: 0;background: rgba(0,0,0,0);"></td>
+        @endif
+        @if ($mostrar_pdev)
+        <td style="border: 0;background: rgba(0,0,0,0);"></td>
+        @endif
+        @if ($sum->tipoMoneda == 'US$')
+        <td style="border: 0;background: rgba(0,0,0,0);"></td>
+        <td style="border: 0;background: rgba(0,0,0,0);"></td>
+        <td style="border: 0;background: rgba(0,0,0,0);"></td>
+        @elseif($sum->tipoMoneda == '$')
+        <td style="border: 0;background: rgba(0,0,0,0);"></td>
+        @endif
+      </tr>
+      @endif
     </table>
     <br><br>
     <table>
