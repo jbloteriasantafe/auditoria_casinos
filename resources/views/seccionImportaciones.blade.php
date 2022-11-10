@@ -214,7 +214,7 @@ $id_usuario = session('id_usuario');
                         <div class="panel-heading">
                             <h4>FILTROS DE BÚSQUEDA</h4>
                         </div>
-                        <div class="panel-body">
+                        <div class="panel-body" id="filtrosBusquedaImportaciones">
                           <div class="row">
 
                               <div class="col-md-3">
@@ -360,7 +360,7 @@ $id_usuario = session('id_usuario');
     <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header" style="font-family: Roboto-Black; color: #EF5350;">
                   <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
                   <h3 class="modal-titleEliminar">ADVERTENCIA</h3>
                 </div>
@@ -502,10 +502,10 @@ $id_usuario = session('id_usuario');
     <div class="modal fade" id="modalImportacionProducidos" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
-               <div class="modal-header modalNuevo">
+               <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizarProducidos" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoProducidos" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title">| IMPORTAR PRODUCIDO</h3>
+                 <h3 class="modal-title">| IMPORTAR PRODUCIDOS</h3>
                 </div>
 
                 <div  id="colapsadoProducidos" class="collapse in">
@@ -575,10 +575,10 @@ $id_usuario = session('id_usuario');
     <div class="modal fade" id="modalImportacionBeneficios" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
-               <div class="modal-header modalNuevo">
+               <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizarBeneficios" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoBeneficios" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title">| IMPORTAR BENEFICIO</h3>
+                 <h3 class="modal-title">| IMPORTAR BENEFICIOS</h3>
                 </div>
 
                 <div  id="colapsadoBeneficios" class="collapse in">
@@ -719,12 +719,4 @@ $id_usuario = session('id_usuario');
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
     <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
-
-    @if ($id_usuario == 5)
-    <script type="text/javascript">
-        $('#modal_javi').modal('show');
-        console.log('Anda');
-    </script>
-    @endif
-
     @endsection
