@@ -162,20 +162,74 @@ $('#btn-minimizar').click(function(){
   $(this).data("minimizar",!minimizar);
 });
 
+function mostrarBeneficio(data){
+  $('#modalPlanilla .modal-title').text('VISTA PREVIA BENEFICIO');
+  $('#modalPlanilla #fecha').val(convertirDate(data.beneficios[0].fecha).substring(3,11));
+  $('#tablaVistaPrevia thead tr')
+    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('FECHA')))
+    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('COININ')))
+    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('COINOUT')))
+    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('VALOR')))
+    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('% DEVOLUCION')))
+    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('PROMEDIO')));
+  data.beneficios.forEach(function(b){
+    $('#tablaVistaPrevia tbody').append($('<tr>')
+      .append($('<td>').addClass('col-xs-2').text(convertirDate(b.fecha)))
+      .append($('<td>').addClass('col-xs-2').text(b.coinin))
+      .append($('<td>').addClass('col-xs-2').text(b.coinout))
+      .append($('<td>').addClass('col-xs-2').text(b.valor))
+      .append($('<td>').addClass('col-xs-2').text(b.porcentaje_devolucion))
+      .append($('<td>').addClass('col-xs-2').text(b.promedio_por_maquina))
+    );
+  });
+}
+
+function mostrarProducido(data){
+  $('#modalPlanilla .modal-title').text('VISTA PREVIA PRODUCIDO');
+  $('#modalPlanilla #fecha').val(convertirDate(data.producido.fecha));
+  $('#tablaVistaPrevia thead tr')
+    .append($('<th>').addClass('col-xs-5').append($('<h5>').text('MTM')))
+    .append($('<th>').addClass('col-xs-7').append($('<h5>').text('VALOR')));
+  data.detalles_producido.forEach(function(p){
+    $('#tablaVistaPrevia tbody').append($('<tr>')
+      .append($('<td>').addClass('col-xs-5').text(p.nro_admin))
+      .append($('<td>').addClass('col-xs-7').text(p.valor))
+    );
+  });
+}
+
+function mostrarContador(data){
+  $('#modalPlanilla .modal-title').text('VISTA PREVIA CONTADOR');
+  $('#modalPlanilla #fecha').val(convertirDate(data.contador.fecha));
+  $('#tablaVistaPrevia thead tr')
+    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('MTM')))
+    .append($('<th>').addClass('col-xs-3').append($('<h5>').text('COININ')))
+    .append($('<th>').addClass('col-xs-3').append($('<h5>').text('COINOUT')))
+    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('JACKPOT')))
+    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('PROGRESIVO')));
+  data.detalles_contador.forEach(function(c){
+    $('#tablaVistaPrevia tbody').append($('<tr>')
+      .append($('<td>').addClass('col-xs-2').append(c.nro_admin))
+      .append($('<td>').addClass('col-xs-3').append(formatNumber(c.coinin)))
+      .append($('<td>').addClass('col-xs-3').append(formatNumber(c.coinout)))
+      .append($('<td>').addClass('col-xs-2').append(formatNumber(c.jackpot)))
+      .append($('<td>').addClass('col-xs-2').append(formatNumber(c.progresivo)))
+    );
+  });
+}
+
 $(document).on('click','.planilla', function(){
   //Limpiar el modal
-  $('#modalPlanilla').find('#fecha,#casino,#tipo_moneda').val('');
-  const head = $('#tablaVistaPrevia thead tr');
-  head.children().remove();
-  $('#tablaVistaPrevia tbody tr').remove();
+  $('#modalPlanilla').find('#fecha,#casino,#tipo_moneda,.modal-title').val('');
+  $('#tablaVistaPrevia thead tr').empty();
+  $('#tablaVistaPrevia tbody').empty();
 
   let url = null;
-  let success = null;
+  let mostrar = null;
   let formData = null;
   const tipo_importacion = $('#tablaImportaciones').attr('data-tipo');
   const id_importacion = $(this).val();
   if(tipo_importacion == 3){
-    $('#modalPlanilla h3.modal-title').text('VISTA PREVIA BENEFICIO');
     url = 'previewBeneficios';
     formData = {
       mes: $(this).attr('data-mes'),
@@ -183,41 +237,17 @@ $(document).on('click','.planilla', function(){
       id_tipo_moneda: $(this).attr('data-moneda'),
       id_casino: $(this).attr('data-casino'),
     };
-    success = function (data) {
-      $('#modalPlanilla #fecha').val(convertirDate(data.beneficios[0].fecha).substring(3,11));
-      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('FECHA')));
-      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('COININ')));
-      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('COINOUT')));
-      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('VALOR')));
-      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('% DEVOLUCION')));
-      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('PROMEDIO')));
-      data.beneficios.forEach(agregarFilaDetalleBeneficio);
-    };
+    mostrar = mostrarBeneficio;
   }
   else if(tipo_importacion == 2){
-    $('#modalPlanilla h3.modal-title').text('VISTA PREVIA PRODUCIDO');
     url = 'previewProducidos';
     formData = { id: id_importacion }
-    success =  function (data) {
-      $('#modalPlanilla #fecha').val(convertirDate(data.producido.fecha));
-      head.append($('<th>').addClass('col-xs-5').append($('<h5>').text('MTM')));
-      head.append($('<th>').addClass('col-xs-7').append($('<h5>').text('VALOR')));
-      data.detalles_producido.forEach(agregarFilaDetalleProducido);
-    };
+    mostrar = mostrarProducido;
   }
-  else if(tipo_importacion == 1){
-    $('#modalPlanilla h3.modal-title').text('VISTA PREVIA CONTADOR');
+  else if(tipo_importacion == 1){    
     url = 'previewContadores';
     formData = { id: id_importacion }
-    success =  function (data) {
-      $('#modalPlanilla #fecha').val(convertirDate(data.contador.fecha));
-      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('MTM')));
-      head.append($('<th>').addClass('col-xs-3').append($('<h5>').text('COININ')));
-      head.append($('<th>').addClass('col-xs-3').append($('<h5>').text('COINOUT')));
-      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('JACKPOT')));
-      head.append($('<th>').addClass('col-xs-2').append($('<h5>').text('PROGRESIVO')));
-      data.detalles_contador.forEach(agregarFilaDetalleContador);
-    };
+    mostrar = mostrarContador;
   }
   else{
     throw 'Error tipo de importacion = '+tipo_importacion;
@@ -232,7 +262,7 @@ $(document).on('click','.planilla', function(){
     success: function(data){
       $('#modalPlanilla #casino').val(data.casino.nombre);
       $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
-      success(data);
+      mostrar(data);
       $('#modalPlanilla').modal('show');
     },
     error: function (data) { console.log(data); }
@@ -306,36 +336,17 @@ $('#btn-eliminarModal').click(function (e) {
 function formatNumber(f){
   return f !== null && f !== undefined? f.toLocaleString() : '&nbsp;';
 }
-function agregarFilaDetalleContador(contador) {
-  $('#tablaVistaPrevia tbody').append(
-    $('<tr>').append($('<td>').addClass('col-xs-2').append(contador.nro_admin))
-    .append($('<td>').addClass('col-xs-3').append(formatNumber(contador.coinin)))
-    .append($('<td>').addClass('col-xs-3').append(formatNumber(contador.coinout)))
-    .append($('<td>').addClass('col-xs-2').append(formatNumber(contador.jackpot)))
-    .append($('<td>').addClass('col-xs-2').append(formatNumber(contador.progresivo)))
-  );
-}
 
 $('#btn-importarContadores').click(function(e){
-    e.preventDefault();
-    $('.modal-title').text('| IMPORTADOR CONTADOR');
-    $('#modalImportacionContadores .modalNuevo').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
-    //Mostrar: rowArchivo
-    $('#modalImportacionContadores #rowArchivo').show();
-    $('#valoresArchivoContador').hide();
-    //Ocultar: rowFecha, mensajes, iconoCarga
-    $('#modalImportacionContadores #mensajeError').hide();
-    $('#modalImportacionContadores #mensajeInvalido').hide();
-    $('#modalImportacionContadores #iconoCarga').hide();
-
-    habilitarInputContador();
-    $('#modalImportacionContadores').find('.modal-footer').children().show();
-
-    $('#mensajeExito').hide();
-    $('#modalImportacionContadores').modal('show');
-
-    //Ocultar botón SUBIR
-    $('#btn-guardarContador').hide();
+  e.preventDefault();
+  $('#mensajeExito').hide();
+  $('#modalImportacionContadores #rowArchivo').show();
+  $('#modalImportacionContadores .modal-footer').children().show();
+  $('#modalImportacionContadores')
+  .find('#valoresArchivoContador,#mensajeError,\
+         #mensajeInvalido,#iconoCarga,#btn-guardarContador').hide();
+  habilitarInputContador();
+  $('#modalImportacionContadores').modal('show');
 });
 
 $('#btn-guardarContador').on('click', function(e){
@@ -381,7 +392,6 @@ $('#btn-guardarContador').on('click', function(e){
     contentType:false,
     cache:false,
     beforeSend: function(data){
-      console.log('Empezó');
       $('#modalImportacionContadores').find('.modal-footer').children().hide();
       $('#modalImportacionContadores').find('.modal-body').children().hide();
       $('#modalImportacionContadores').find('.modal-body').children('#iconoCarga').show();
@@ -389,8 +399,8 @@ $('#btn-guardarContador').on('click', function(e){
     success: function (data) {
       //existe para el casino y la fecha relevamientos visados, por lo que no se puede importar
       $('#mensajeExito h3').text('ÉXITO DE IMPORTACIÓN CONTADOR');
-      $('#mensajeExito p').text(data.cantidad_registros + ' registro(s) del CONTADOR fueron importados');
-      $('#btn-buscarImportaciones').trigger('click',[1,10,$('#tipo_fecha').attr('value'),'desc']);
+      $('#mensajeExito p').text(`${data.cantidad_registros} registro(s) del CONTADOR fueron importados`);
+      $('#btn-buscarImportaciones').click();
       $('#modalImportacionContadores').modal('hide');
       limpiarBodysImportaciones();
       $('#casinoInfoImportacion').change();
@@ -401,15 +411,12 @@ $('#btn-guardarContador').on('click', function(e){
       const response = data.responseJSON;
       if(response.existeRel){
         $('#modalImportacionContadores').modal('hide');
-        $('#modalErrorVisado').modal(true);
+        $('#modalErrorVisado').modal('show');
       }
       else{
         $('#modalImportacionContadores #mensajeError').show();
-        $('#modalImportacionContadores #rowArchivo').hide();
-        $('#modalImportacionContadores #rowFecha').hide();
-        $('#modalImportacionContadores #mensajeInvalido').hide();
-        $('#modalImportacionContadores #mensajeInformacion').hide();
-        $('#modalImportacionContadores #iconoCarga').hide();
+        $('#modalImportacionContadores')
+          .find('#rowArchivo,#mensajeInvalido,#iconoCarga').hide();
       }
     }
   });
@@ -438,19 +445,17 @@ function habilitarInputContador(){
 }
 
 function errorContadores(msg){
-  $('#valoresArchivoContador').hide();
-  $('#modalImportacionContadores #mensajeError').hide();
-  $('#modalImportacionContadores #iconoCarga').hide();
-  //Ocultar botón de subida
-  $('#modalImportacionContadores #btn-guardarContador').hide();
-  $('#modalImportacionContadores #mensajeInvalido').show();
+  $('#modalImportacionContadores')
+    .find('#valoresArchivoContador,#mensajeError,\
+           #iconoCarga,#btn-guardarContador').hide();
   $('#modalImportacionContadores #mensajeInvalido p').text(msg);
+  $('#modalImportacionContadores #mensajeInvalido').show();
 }
 
 function obtener_id_tipo_moneda(id_casino,nro_admin){
   let id_tipo_moneda = null;
   $.ajax({
-    url:'importaciones/getMoneda/'+id_casino+'/'+nro_admin, 
+    url: `importaciones/getMoneda/{$id_casino}/${nro_admin}`,
     async: false,
     success: function(moneda) {
       if (moneda) { id_tipo_moneda = moneda.id_tipo_moneda; }
@@ -463,7 +468,7 @@ function obtener_id_tipo_moneda(id_casino,nro_admin){
 function obtener_casinos(nro_admin){
   const ids = [];
   $.ajax({//Lo mas probable es que retorne 1 pero podria retornar mas...
-    url:'importaciones/getCasinos/'+nro_admin, 
+    url: `importaciones/getCasinos/${nro_admin}`,
     async: false,
     success: function(casinos) {
       for(const cidx in casinos){
@@ -477,36 +482,27 @@ function obtener_casinos(nro_admin){
 
 function procesarDatosContador(e) {
   $('#modalImportacionContadores #mensajeInvalido').hide();
-  $('#modalImportacionContadores select').prop('disabled','disabled');
-  $('#modalImportacionContadores #fecha input').prop('disabled','disabled');
-  $('#modalImportacionContadores #fecha span').hide();
-  $('#modalImportacionContadores #fecha input').val('');
-  $('#contSelCasino').val(-1);
-  $('#contSelMoneda').val(-1);
-  $('#contSelCasino option').prop('disabled',false);
-  $('#contSelMoneda option').prop('disabled',false);
-  $('#valoresArchivoContador').show();
-
-  let csv = e.target.result;
-  csv = csv.replace('\r','');
-  let lineas = csv.split('\n'); //Se obtienen todas las filas del archivo
-  let cols = lineas[0].split(';');
-
-  //Habilito todo y voy deshabilitando segun el archivo
-  $('#contSelMoneda').val(-1).attr('disabled',false).show();
-  $('#contSelCasino').val(-1).attr('disabled',false).show().find('option').attr('disabled',false);
-  $('#modalImportacionContadores #fecha').data('datetimepicker').reset();
-  $('#modalImportacionContadores #fecha input').prop('disabled',false);
   $('#modalImportacionContadores #fecha span').show();
+  $('#modalImportacionContadores #fecha input')
+    .attr('disabled',false).val('');
+  $('#modalImportacionContadores #fecha')
+    .data('datetimepicker').reset();
+  $('#contSelCasino,#contSelMoneda').attr('disabled',false)
+    .val(-1).show().find('option').attr('disabled',false);
+  $('#valoresArchivoContador').show();
   $('#btn-guardarContador').hide()
+  
+  const csv = e.target.result.replace('\r','');
+  const lineas = csv.split('\n'); //Se obtienen todas las filas del archivo
+  const cols = lineas.length? lineas[0].split(';') : [];
   if(cols.length == 16){ // Rosario
-    $('#contSelCasino').val(3).attr('disabled','disabled');
+    $('#contSelCasino').val(3).attr('disabled',true);
     if(lineas.length >= 5){
       const primer_renglon = lineas[2].split(';');
       const nro_admin = primer_renglon[1].slice(0,4);
       const id_tipo_moneda = obtener_id_tipo_moneda(3,nro_admin);
       if(id_tipo_moneda != null){
-        $('#contSelMoneda').val(id_tipo_moneda).attr('disabled','disabled');
+        $('#contSelMoneda').val(id_tipo_moneda).attr('disabled',true);
       }
     }
     return $('#btn-guardarContador').show();
@@ -518,10 +514,8 @@ function procesarDatosContador(e) {
       const primer_renglon = lineas[1].split(';');
 
       //Seteo y deshabilito las fechas
-      const fecha = primer_renglon[primer_renglon.length-1];
-      const ddmmyyyy = fecha.trim().split("/");
-      const isofecha = ddmmyyyy[0] + '-' + ddmmyyyy[1] + '-' + ddmmyyyy[2]+'T00:00:00.0';
-      const date = new Date(isofecha);
+      const ddmmyyyy = primer_renglon[primer_renglon.length-1].trim().split('/');
+      const date = new Date(ddmmyyyy.reverse().join('-')+'T00:00:00.0');
       $('#modalImportacionContadores #fecha').data('datetimepicker').setDate(date);
       $('#modalImportacionContadores #fecha input').prop('disabled','disabled');
       $('#modalImportacionContadores #fecha span').hide();
@@ -530,10 +524,10 @@ function procesarDatosContador(e) {
       const nro_admin = primer_renglon[3];
       const casinos = obtener_casinos(nro_admin).filter(function(id_casino) { return id_casino != 3; });
       
-      $('#contSelCasino').find('option[value!="-1"]').attr('disabled','disabled');
-      for(const idx in casinos){
-        $('#contSelCasino').find(`option[value="${casinos[idx]}"]`).attr('disabled',false);
-      }
+      $('#contSelCasino').find('option[value!="-1"]').attr('disabled',true);
+      casinos.forEach(function(c){
+        $('#contSelCasino').find(`option[value="${c}"]`).attr('disabled',false);
+      });
       if(casinos.length == 1){
         $('#contSelCasino').val(casinos[0]).attr('disabled','disabled');
         //Seteo y deshabilito la moneda si hay
@@ -546,7 +540,6 @@ function procesarDatosContador(e) {
     return $('#btn-guardarContador').show();
   }
   errorContadores('El archivo no contiene contadores de ningún casino');
-  return;
 }
 
 //Si hay una fecha mostrar el mensaje de información
@@ -557,13 +550,14 @@ $('#modalImportacionContadores #fecha > input').on('change', function(){
 //Eventos de la librería del input
 $('#modalImportacionContadores #archivo').on('fileerror', function(event, data, msg) {
   $('#modalImportacionContadores')
-    .find('#rowFecha,#mensajeInformacion,#btn-guardarContador').hide();
-  $('#modalImportacionContadores #mensajeInvalido').show().find('p').text(msg);
+    .find('#mensajeInformacion,#btn-guardarContador').hide();
+  $('#modalImportacionContadores #mensajeInvalido p').text(msg);
+  $('#modalImportacionContadores #mensajeInvalido').show();
 });
 
 $('#modalImportacionContadores #archivo').on('fileclear', function(event) {
   $('#modalImportacionContadores')
-    .find('#rowFecha,#mensajeInformacion,#btn-guardarContador').hide();
+    .find('#mensajeInformacion,#btn-guardarContador').hide();
   $('#modalImportacionContadores #archivo')
     .attr('data-borrado','true')[0].files[0] = null;
 });
@@ -578,24 +572,14 @@ $('#modalImportacionContadores #archivo').on('fileselect', function(event) {
 });
 
 $('#btn-reintentarContador').click(function(e) {
-  //Mostrar: rowArchivo
   $('#modalImportacionContadores #rowArchivo').show();
-  //Ocultar: rowFecha, mensajes, iconoCarga
   $('#modalImportacionContadores')
-    .find('#rowFecha,#mensajeError,#mensajeInvalido,#mensajeInformacion,#iconoCarga').hide();
-
+    .find('#mensajeError,#mensajeInvalido,#mensajeInformacion,#iconoCarga').hide();
   habilitarInputContador();
   $('#modalImportacionContadores .modal-footer').children().show();
 });
 
 /*********************** PRODUCIDOS *********************************/
-function agregarFilaDetalleProducido(producido) {
-  $('#tablaVistaPrevia tbody').append(
-    $('<tr>').append($('<td>').addClass('col-xs-5').text(producido.nro_admin))
-             .append($('<td>').addClass('col-xs-7').text(producido.valor))
-  );
-}
-
 $('#btn-importarProducidos').click(function(e){
   e.preventDefault();  
   $('#mensajeExito').hide();
@@ -636,9 +620,8 @@ $('#btn-guardarProducido').on('click',function(e){
     contentType:false,
     cache:false,
     beforeSend: function(data){
-      $('#modalImportacionProducidos').find('.modal-footer').children().hide();
-      $('#modalImportacionProducidos').find('.modal-body').children().hide();
-      $('#modalImportacionProducidos').find('.modal-body').children('#iconoCarga').show();
+      $('#modalImportacionProducidos').find('.modal-footer,.modal-body').children().hide();
+      $('#modalImportacionProducidos .modal-body #iconoCarga').show();
     },
     success: function (data) {
       $('#btn-buscarImportaciones').click();
@@ -812,17 +795,6 @@ $('#btn-reintentarProducido').click(function(e) {
 });
 
 /*********************** BENEFICIOS *********************************/
-function agregarFilaDetalleBeneficio(beneficio){
-  $('#tablaVistaPrevia tbody').append($('<tr>')
-    .append($('<td>').addClass('col-xs-2').text(convertirDate(beneficio.fecha)))
-    .append($('<td>').addClass('col-xs-2').text(beneficio.coinin))
-    .append($('<td>').addClass('col-xs-2').text(beneficio.coinout))
-    .append($('<td>').addClass('col-xs-2').text(beneficio.valor))
-    .append($('<td>').addClass('col-xs-2').text(beneficio.porcentaje_devolucion))
-    .append($('<td>').addClass('col-xs-2').text(beneficio.promedio_por_maquina))
-  );
-}
-
 $('#btn-importarBeneficios').click(function(e){
   e.preventDefault();
   $('#mensajeExito').hide();
@@ -882,7 +854,7 @@ $('#btn-guardarBeneficio').on('click', function(e){
       console.log(data);
       $('#modalImportacionBeneficios #mensajeError').show();
       $('#modalImportacionBeneficios')
-        .find('#rowArchivo,#rowFecha,#mensajeInvalido,\
+        .find('#rowArchivo,#mensajeInvalido,\
                #mensajeInformacion,#iconoCarga').hide();
     }
   });

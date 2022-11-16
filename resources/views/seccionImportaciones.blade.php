@@ -387,10 +387,10 @@ $id_usuario = session('id_usuario');
     <div class="modal fade" id="modalImportacionContadores" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
              <div class="modal-content">
-               <div class="modal-header modalNuevo">
+               <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title">| IMPORTAR CONTADOR</h3>
+                 <h3 class="modal-title">| IMPORTADOR CONTADOR</h3>
                 </div>
 
                 <div  id="colapsado" class="collapse in">
