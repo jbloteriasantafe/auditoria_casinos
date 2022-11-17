@@ -225,19 +225,17 @@ $(document).on('click','.planilla', function(){
     3:['Beneficios',mostrarBeneficio]
   };
   if(!(tipo_importacion in tmap)) throw 'Error tipo de importacion = '+tipo_importacion;
-  const url = tmap[tipo_importacion][0];
-  const mostrar = tmap[tipo_importacion][1];
 
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
     type: 'POST',
-    url: 'importaciones/preview'+url,
+    url: 'importaciones/preview'+tmap[tipo_importacion][0],
     data: formData,
     dataType: 'json',
     success: function(data){
       $('#modalPlanilla #casino').val(data.casino.nombre);
       $('#modalPlanilla #tipo_moneda').val(data.tipo_moneda.descripcion);
-      mostrar(data);
+      tmap[tipo_importacion][1](data);
       $('#modalPlanilla').modal('show');
     },
     error: function (data) { console.log(data); }
