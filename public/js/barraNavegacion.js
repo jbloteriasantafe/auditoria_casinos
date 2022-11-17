@@ -162,17 +162,10 @@ function ocultarAdvertencia(input) {
 }
 
 function convertirDate(date) {
-  if (date != null) {
-    var mesesEnteros = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-    var meses = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
-
-    var fecha = date.split('-');
-
-    return fecha[2] + ' ' + meses[fecha[1] - 1] + ' ' + fecha[0];
-  }else {
-
-    return null;
-  }
+  if(date == null) return null;
+  const meses = ['PAD','ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  const fecha = date.split('-');
+  return fecha[2]+' '+meses[parseInt(fecha[1])]+' '+fecha[0];
 }
 
 function animacionLogo(){

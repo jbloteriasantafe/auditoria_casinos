@@ -66,6 +66,15 @@
   font-size: 16px;
   font-family:Roboto-Regular !important
 }
+#tablaVistaPrevia th {
+  border-top: 0px;
+  text-align: center;
+}
+#tablaVistaPrevia td {
+  text-align: right;
+  border-right: 1px solid #eee;
+  border-left: 1px solid #eee;
+}
 </style>
 @endsection
 
@@ -275,6 +284,18 @@
               <tbody style="height: 300px;">
               </tbody>
             </table>
+            <table hidden>
+              <tr id="moldeFilaImp">
+                <td class="col-xs-3 fecha_produccion">99 MES 9999</td>
+                <td class="col-xs-3 fecha">99 MES 9999</td>
+                <td class="col-xs-2 casino">CASINO</td>
+                <td class="col-xs-2 moneda">MONEDA</td>
+                <td class="col-xs-2">
+                  <button class="btn btn-info planilla"><i class="far fa-fw fa-file-alt"></i></button>
+                  <button class="btn btn-danger borrar"><i class="fa fa-fw fa-trash-alt"></i></button>
+                </td>
+              </tr>
+            </table>
             <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
           </div> <!-- .panel-body -->
         </div> <!-- .panel -->
@@ -311,10 +332,49 @@
           <div class="col-md-12">
             <table id="tablaVistaPrevia" class="table table-fixed">
               <thead>
-                <tr></tr>
+                <tr id="headerContador" hidden>
+                  <th class="col-xs-2">MTM</th>
+                  <th class="col-xs-3">COININ</th>
+                  <th class="col-xs-3">COINOUT</th>
+                  <th class="col-xs-2">JACKPOT</th>
+                  <th class="col-xs-2">PROGRESIVO</th>
+                </tr>
+                <tr id="headerProducido" hidden>
+                  <th class="col-xs-5">MTM</th>
+                  <th class="col-xs-7">VALOR</th>
+                </tr>
+                <tr id="headerBeneficio" hidden>
+                  <th class="col-xs-2">FECHA</th>
+                  <th class="col-xs-2">COININ</th>
+                  <th class="col-xs-2">COINOUT</th>
+                  <th class="col-xs-2">VALOR</th>
+                  <th class="col-xs-2">% DEVOLUCION</th>
+                  <th class="col-xs-2">PROMEDIO</th>
+                </tr>
               </thead>
               <tbody style="max-height:400px;">
               </tbody>
+            </table>
+            <table hidden>
+              <tr id="moldeContador">
+                <td class="col-xs-2 mtm">9999</td>
+                <td class="col-xs-3 coinin">9.999,99</td>
+                <td class="col-xs-3 coinout">9.999,99</td>
+                <td class="col-xs-2 jackpot">9.999,99</td>
+                <td class="col-xs-2 progresivo">9.999,99</td>
+              </tr>
+              <tr id="moldeProducido">
+                <td class="col-xs-5 mtm">9999</td>
+                <td class="col-xs-7 valor">9.999,99</td>
+              </tr>
+              <tr id="moldeBeneficio">
+                <td class="col-xs-2 fecha">99 MES 9999</td>
+                <td class="col-xs-2 coinin">9.999,99</td>
+                <td class="col-xs-2 coinout">9.999,99</td>
+                <td class="col-xs-2 valor">9.999,99</td>
+                <td class="col-xs-2 pdev">99,99</td>
+                <td class="col-xs-2 promedio">999,99</td>
+              </tr>
             </table>
             <br>
             <p style="color:#aaa;font-family:Roboto-Regular;font-size:16px;margin-left:10px;">Se muestran los primeros 30 registros.</p>
@@ -581,7 +641,6 @@
   </div>
 </div>
 
-<!-- Modal ErrorVisado -->
 <div class="modal fade" id="modalErrorVisado" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
    <div class="modal-content">

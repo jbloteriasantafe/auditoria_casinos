@@ -151,7 +151,7 @@ function setearValueFecha() {
 
 function obtenerFechaString(dateFecha, conDia) {
   const arrayFecha = dateFecha.split('/');
-  const meses = ['','ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+  const meses = ['ERROR','ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
   return `${arrayFecha[0]} ${meses[arrayFecha[1]]} ${conDia? arrayFecha[2] : ''}`;
 }
 
@@ -165,63 +165,50 @@ $('#btn-minimizar').click(function(){
 function mostrarBeneficio(data){
   $('#modalPlanilla .modal-title').text('VISTA PREVIA BENEFICIO');
   $('#modalPlanilla #fecha').val(convertirDate(data.beneficios[0].fecha).substring(3,11));
-  $('#tablaVistaPrevia thead tr')
-    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('FECHA')))
-    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('COININ')))
-    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('COINOUT')))
-    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('VALOR')))
-    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('% DEVOLUCION')))
-    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('PROMEDIO')));
+  $('#tablaVistaPrevia thead #headerBeneficio').show();
   data.beneficios.forEach(function(b){
-    $('#tablaVistaPrevia tbody').append($('<tr>')
-      .append($('<td>').addClass('col-xs-2').text(convertirDate(b.fecha)))
-      .append($('<td>').addClass('col-xs-2').text(b.coinin))
-      .append($('<td>').addClass('col-xs-2').text(b.coinout))
-      .append($('<td>').addClass('col-xs-2').text(b.valor))
-      .append($('<td>').addClass('col-xs-2').text(b.porcentaje_devolucion))
-      .append($('<td>').addClass('col-xs-2').text(b.promedio_por_maquina))
-    );
+    const fila = $('#moldeBeneficio').clone().removeAttr('id');
+    fila.find('.fecha').text(convertirDate(b.fecha));
+    fila.find('.coinin').text(b.coinin);
+    fila.find('.coinout').text(b.coinout);
+    fila.find('.valor').text(b.valor);
+    fila.find('.pdev').text(b.porcentaje_devolucion);
+    fila.find('.promedio').text(b.promedio_por_maquina);
+    $('#tablaVistaPrevia tbody').append(fila);
   });
 }
 
 function mostrarProducido(data){
   $('#modalPlanilla .modal-title').text('VISTA PREVIA PRODUCIDO');
   $('#modalPlanilla #fecha').val(convertirDate(data.producido.fecha));
-  $('#tablaVistaPrevia thead tr')
-    .append($('<th>').addClass('col-xs-5').append($('<h5>').text('MTM')))
-    .append($('<th>').addClass('col-xs-7').append($('<h5>').text('VALOR')));
+  $('#tablaVistaPrevia thead #headerProducido').show();
   data.detalles_producido.forEach(function(p){
-    $('#tablaVistaPrevia tbody').append($('<tr>')
-      .append($('<td>').addClass('col-xs-5').text(p.nro_admin))
-      .append($('<td>').addClass('col-xs-7').text(p.valor))
-    );
+    const fila = $('#moldeProducido').clone().removeAttr('id');
+    fila.find('.mtm').text(p.nro_admin);
+    fila.find('.valor').text(p.valor);
+    $('#tablaVistaPrevia tbody').append(fila);
   });
 }
 
 function mostrarContador(data){
   $('#modalPlanilla .modal-title').text('VISTA PREVIA CONTADOR');
   $('#modalPlanilla #fecha').val(convertirDate(data.contador.fecha));
-  $('#tablaVistaPrevia thead tr')
-    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('MTM')))
-    .append($('<th>').addClass('col-xs-3').append($('<h5>').text('COININ')))
-    .append($('<th>').addClass('col-xs-3').append($('<h5>').text('COINOUT')))
-    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('JACKPOT')))
-    .append($('<th>').addClass('col-xs-2').append($('<h5>').text('PROGRESIVO')));
+  $('#tablaVistaPrevia thead #headerContador').show();
   data.detalles_contador.forEach(function(c){
-    $('#tablaVistaPrevia tbody').append($('<tr>')
-      .append($('<td>').addClass('col-xs-2').append(c.nro_admin))
-      .append($('<td>').addClass('col-xs-3').append(formatNumber(c.coinin)))
-      .append($('<td>').addClass('col-xs-3').append(formatNumber(c.coinout)))
-      .append($('<td>').addClass('col-xs-2').append(formatNumber(c.jackpot)))
-      .append($('<td>').addClass('col-xs-2').append(formatNumber(c.progresivo)))
-    );
+    const fila = $('#moldeContador').clone().removeAttr('id');
+    fila.find('.mtm').text(c.nro_admin);
+    fila.find('.coinin').text(c.coinin);
+    fila.find('.coinout').text(c.coinout);
+    fila.find('.jackpot').text(c.jackpot);
+    fila.find('.progresivo').html(c.progresivo ?? '&nbsp;');
+    $('#tablaVistaPrevia tbody').append(fila);
   });
 }
 
 $(document).on('click','.planilla', function(){
   //Limpiar el modal
   $('#modalPlanilla').find('#fecha,#casino,#tipo_moneda,.modal-title').val('');
-  $('#tablaVistaPrevia thead tr').empty();
+  $('#tablaVistaPrevia thead tr').hide();
   $('#tablaVistaPrevia tbody').empty();
 
   let url = null;
@@ -976,21 +963,14 @@ $('#modalImportacionBeneficios #archivo').on('fileselect', function(event) {
 
 function agregarFilasImportaciones(data, id) {
   const meses = [null,'ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
-  const archivo = id == null? '-' : (typeof data.fecha_archivo == "undefined" ? "-" : convertirDate(data.fecha_archivo));
+  const f_prod = id == null? '-' : (typeof data.fecha_archivo == "undefined" ? "-" : convertirDate(data.fecha_archivo));
   const fecha = id == null? `${meses[data.mes]} ${data.anio}` : convertirDate(data.fecha);
-  const fila = $('<tr>');
-  //Si es beneficio no se muestra el dia y se agregan los 'datas'
-  fila.append($('<td>').addClass('col-xs-3').text(archivo))
-  .append($('<td>').addClass('col-xs-3').text(fecha))
-  .append($('<td>').addClass('col-xs-2').text(data.casino))
-  .append($('<td>').addClass('col-xs-2').text(data.tipo_moneda))
-  .append($('<td>').addClass('col-xs-2').append(
-      $('<button>').addClass('btn btn-info planilla').append($('<i>').addClass('far fa-fw fa-file-alt'))
-    )
-    .append(
-      $('<button>').addClass('btn btn-danger borrar').append($('<i>').addClass('fa fa-fw fa-trash-alt'))
-    )
-  );
+  
+  const fila = $('#moldeFilaImp').clone().removeAttr('id');
+  fila.find('.fecha_produccion').text(f_prod);
+  fila.find('.fecha').text(fecha);
+  fila.find('.casino').text(data.casino);
+  fila.find('.moneda').text(data.tipo_moneda);
   fila.find('button').val(id).attr('data-mes', data.mes)
   .attr('data-anio', data.anio).attr('data-casino', data.id_casino)
   .attr('data-moneda', data.id_tipo_moneda);
