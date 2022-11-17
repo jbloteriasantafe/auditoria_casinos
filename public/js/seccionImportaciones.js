@@ -211,39 +211,27 @@ $(document).on('click','.planilla', function(){
   $('#tablaVistaPrevia thead tr').hide();
   $('#tablaVistaPrevia tbody').empty();
 
-  let url = null;
-  let mostrar = null;
-  let formData = null;
+  const formData = {
+    mes: $(this).attr('data-mes'),
+    anio: $(this).attr('data-anio'),
+    id_tipo_moneda: $(this).attr('data-moneda'),
+    id_casino: $(this).attr('data-casino'),
+    id: $(this).val(),
+  };
   const tipo_importacion = $('#tablaImportaciones').attr('data-tipo');
-  const id_importacion = $(this).val();
-  if(tipo_importacion == 3){
-    url = 'previewBeneficios';
-    formData = {
-      mes: $(this).attr('data-mes'),
-      anio: $(this).attr('data-anio'),
-      id_tipo_moneda: $(this).attr('data-moneda'),
-      id_casino: $(this).attr('data-casino'),
-    };
-    mostrar = mostrarBeneficio;
-  }
-  else if(tipo_importacion == 2){
-    url = 'previewProducidos';
-    formData = { id: id_importacion }
-    mostrar = mostrarProducido;
-  }
-  else if(tipo_importacion == 1){    
-    url = 'previewContadores';
-    formData = { id: id_importacion }
-    mostrar = mostrarContador;
-  }
-  else{
-    throw 'Error tipo de importacion = '+tipo_importacion;
-  }
+  const tmap = {
+    1:['Contadores',mostrarContador],
+    2:['Producidos',mostrarProducido],
+    3:['Beneficios',mostrarBeneficio]
+  };
+  if(!(tipo_importacion in tmap)) throw 'Error tipo de importacion = '+tipo_importacion;
+  const url = tmap[tipo_importacion][0];
+  const mostrar = tmap[tipo_importacion][1];
 
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
     type: 'POST',
-    url: 'importaciones/'+url,
+    url: 'importaciones/preview'+url,
     data: formData,
     dataType: 'json',
     success: function(data){
