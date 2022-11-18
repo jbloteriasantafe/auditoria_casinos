@@ -1,14 +1,3 @@
-//Cuando se sube el archivo se identifican los datos posibles
-let id_casino = null;
-let id_tipo_moneda = null;
-let fecha_date = null;
-
-//Tamaños de los diferentes archivos CSV
-const COL_PROD_ROS = 4;
-const COL_PROD_SFE = 32;
-const COL_BEN_ROS = 8;
-const COL_BEN_MEL_SFE = 14;
-
 $(document).ready(function(){
   $('.tituloSeccionPantalla').text('Importaciones');
   $('#mensajeInformacion').hide();
@@ -619,8 +608,8 @@ function procesarDatosProducidos(e) {
   const columnas = allTextLines[2].split(';');
   let nro_admin = null;
   let ddmmaaaa = null;
-
-  if(columnas.length == COL_PROD_ROS){
+  let id_casino = null;
+  if(columnas.length == 4){
     id_casino = 3;
     //Se obtiene la fecha del CSV para mostrarlo
     ddmmaaaa = columnas[0].substring(0,10).split("/");
@@ -633,7 +622,7 @@ function procesarDatosProducidos(e) {
       return failImportacion('El archivo no contiene producidos');
     }
   }
-  else if(columnas.length == COL_PROD_SFE){
+  else if(columnas.length == 32){
     if(columnas[0] != 1 && columnas[0] != 2){
       return failImportacion('El archivo no contiene producidos');
     }
@@ -655,11 +644,11 @@ function procesarDatosProducidos(e) {
   else{ return failImportacion('El archivo no contiene producidos'); }
 
   if(id_casino == null || nro_admin == null || ddmmaaaa == null) return failImportacion('El archivo no contiene producidos');
-  id_tipo_moneda = obtener_id_tipo_moneda(id_casino,nro_admin);
+  const id_tipo_moneda = obtener_id_tipo_moneda(id_casino,nro_admin);
   if(id_tipo_moneda == null) return failImportacion('El archivo no contiene producidos');
 
   //Se modifica el date para guardalo en la BD
-  fecha_date = ddmmaaaa.reverse().join("/");
+  const fecha_date = ddmmaaaa.reverse().join("/");
   $('#fecha_imp input').attr('disabled',true);
   $('#fecha_imp span').hide();
   $('#fecha_imp').data('datetimepicker')
@@ -682,14 +671,13 @@ function procesarDatosBeneficios(e) {
     return l.length > 0;
   });
   
-  id_casino = null;
-  fecha_date = null;
-  id_tipo_moneda = 0;
+  let id_casino = null;
+  let fecha_date = null;
   
   if(allTextLines.length < 1) return failImportacion('El archivo no contiene beneficios');
   
   const columnas = allTextLines[allTextLines.length-1].split(';');
-  if(columnas.length == COL_BEN_MEL_SFE){
+  if(columnas.length == 14){
     const cas_fecha_timestamp = columnas[1].split("_");
     id_casino = parseInt(cas_fecha_timestamp[0]);
     fecha_date = cas_fecha_timestamp[1].substr(6,2)
@@ -699,7 +687,7 @@ function procesarDatosBeneficios(e) {
   if(id_casino === null) {//Pruebo procesar Rosario
     if(allTextLines.length <= 8) return failImportacion('El archivo no contiene beneficios');
     const columnas = allTextLines[allTextLines.length-6].split(';');//Saco la ultima fila
-    if(columnas.length != COL_BEN_ROS) return failImportacion('El archivo no contiene beneficios');
+    if(columnas.length != 8) return failImportacion('El archivo no contiene beneficios');
     id_casino = 3;
     fecha_date = columnas[0];
   }
