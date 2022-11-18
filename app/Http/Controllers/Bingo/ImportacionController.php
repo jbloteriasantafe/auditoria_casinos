@@ -5,13 +5,13 @@ namespace App\Http\Controllers\Bingo;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\Bingo\ReportesController;
 use Illuminate\Support\Facades\DB;
 use App\Bingo\ImportacionBingo;
 use App\Bingo\ReporteEstado;
 use Validator;
 use App\Casino;
 
-use App\Http\Controllers\Bingo\ReportesController;
 class ImportacionController extends Controller
 {
     private static $instance;
@@ -72,7 +72,8 @@ class ImportacionController extends Controller
 
     public function eliminarImportacion($id){
       $importaciones = $this->obtenerImportacionCompleta($id);
-      ReportesController::getInstancia()->reporteEstadoSet($sesion->id_casino, $sesion->fecha_inicio,'importacion',0);
+      if(count($importaciones) == 0) return ['importaciones' => []];
+      ReportesController::getInstancia()->reporteEstadoSet($importaciones[0]->id_casino, $importaciones[0]->fecha,['importacion'=>0]);
       foreach ($importaciones as $importacion) {
         $eliminar = ImportacionBingo::findOrFail($importacion->id_importacion);
         $eliminar->delete();
