@@ -229,7 +229,7 @@ class ImportacionController extends Controller
   public function importarContador(Request $request){
     Validator::make($request->all(),[
         'id_casino' => 'required|integer|exists:casino,id_casino',
-        'fecha' => 'required|date',
+        'fecha_iso' => 'required|date',
         'archivo' => 'required|mimes:csv,txt',
         'id_tipo_moneda' => 'required|exists:tipo_moneda,id_tipo_moneda',
         'md5' => 'required|string|max:32'
@@ -237,7 +237,7 @@ class ImportacionController extends Controller
       if($validator->errors()->any()) return;
 
       $data = $validator->getData();
-      $fecha = $data['fecha'];
+      $fecha = $data['fecha_iso'];
       $id_casino = $data['id_casino'];
       $id_tipo_moneda = $data['id_tipo_moneda'];
       $id_usuario = session('id_usuario');
@@ -266,10 +266,10 @@ class ImportacionController extends Controller
       switch($request->id_casino){
         case 1:
         case 2:
-          $ret = LectorCSVController::getInstancia()->importarContadorSantaFeMelincue($request->archivo,$request->fecha,$request->id_tipo_moneda,$request->id_casino,$request->md5);
+          $ret = LectorCSVController::getInstancia()->importarContadorSantaFeMelincue($request->archivo,$request->fecha_iso,$request->id_tipo_moneda,$request->id_casino,$request->md5);
           break;
         case 3:
-          $ret = LectorCSVController::getInstancia()->importarContadorRosario($request->archivo,$request->fecha,$request->id_tipo_moneda,$request->md5);
+          $ret = LectorCSVController::getInstancia()->importarContadorRosario($request->archivo,$request->fecha_iso,$request->id_tipo_moneda,$request->md5);
           break;
         default:
           break;
@@ -301,7 +301,7 @@ class ImportacionController extends Controller
   public function importarProducido(Request $request){
     Validator::make($request->all(),[
       'id_casino' => 'required|integer|exists:casino,id_casino',
-      'fecha' => 'nullable|date',
+      'fecha_iso' => 'nullable|date',
       'archivo' => 'required|mimes:csv,txt',
       'id_tipo_moneda' => 'nullable|exists:tipo_moneda,id_tipo_moneda',
       'md5' => 'required|string|max:32'
@@ -312,7 +312,7 @@ class ImportacionController extends Controller
         case 2://No necesita break porque retorna
           return LectorCSVController::getInstancia()->importarProducidoSantaFeMelincue($request->archivo,$request->id_tipo_moneda,$request->id_casino,$request->md5);
         case 3:
-          return LectorCSVController::getInstancia()->importarProducidoRosario($request->archivo,$request->fecha,$request->id_tipo_moneda,$request->md5);
+          return LectorCSVController::getInstancia()->importarProducidoRosario($request->archivo,$request->fecha_iso,$request->id_tipo_moneda,$request->md5);
         default:
           return null;
       }

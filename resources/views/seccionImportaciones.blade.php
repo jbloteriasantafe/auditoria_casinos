@@ -82,7 +82,7 @@
   <div class="col-md-3"><!-- columna de los BOTONES  -->
     <div class="row"><!-- IMPORTAR CONTADORES -->
       <div class="col-sm-12 col-md-12 col-xl-12">
-        <a href="" id="btn-importarContadores" style="text-decoration: none;">
+        <a href="" class="btn-importar" data-importacion="contadores" style="text-decoration: none;">
           <div class="panel panel-default panelBotonNuevo">
             <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
             <div class="backgroundNuevo"></div>
@@ -100,7 +100,7 @@
     </div> <!--   .row | IMPORTAR CONTADORES -->
     <div class="row"> <!-- IMPORTAR PRODUCIDOS -->
       <div class="col-sm-12 col-md-12 col-xl-12">
-        <a href="" id="btn-importarProducidos" style="text-decoration: none;">
+        <a href=""  class="btn-importar" data-importacion="producidos" style="text-decoration: none;">
           <div class="panel panel-default panelBotonNuevo">
             <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
             <div class="backgroundNuevo"></div>
@@ -118,7 +118,7 @@
     </div> <!--    .row | IMPORTAR PRODUCIDOS -->
     <div class="row"><!-- IMPORTAR BENEFICIOS -->
       <div class="col-sm-12 col-md-12 col-xl-12">
-        <a href="" id="btn-importarBeneficios" style="text-decoration: none;">
+        <a href="" class="btn-importar" data-importacion="beneficios" style="text-decoration: none;">
           <div class="panel panel-default panelBotonNuevo">
             <center><img class="imgNuevo" src="/img/logos/CSV_white.png"><center>
             <div class="backgroundNuevo"></div>
@@ -413,14 +413,13 @@
   </div>
 </div>
 
-<!-- Modal Importacion -->
-<div class="modal fade" id="modalImportacionContadores" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalImportacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title">| IMPORTADOR CONTADOR</h3>
+        <h3 class="modal-title">| IMPORTADOR</h3>
       </div>
       <div  id="colapsado" class="collapse in">
         <div class="modal-body modalCuerpo">
@@ -435,20 +434,20 @@
             </div>
             @include('includes.md5hash')
           </div>
-          <div class="row" id="valoresArchivoContador">
+          <div class="row" id="valoresArchivo">
             <div class="row">
               <div class="col-xs-5">
                 <h5>FECHA</h5>
-                <div class='input-group date' id='fecha' data-link-field="fecha_hidden" data-date-format="dd/mm/yyyy" data-link-format="yyyy-mm-dd">
-                  <input type='text' class="form-control" placeholder="Fecha de Inicio"/>
+                <div class='input-group date' id='fecha_imp' data-link-field="fecha_imp_hidden" data-date-format="dd/mm/yyyy" data-link-format="yyyy-mm-dd">
+                  <input type='text' class="form-control" placeholder="Fecha"/>
                   <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                   <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                 </div>
-                <input type="hidden" id="fecha_hidden" value=""/>
+                <input type="hidden" id="fecha_imp_hidden" value=""/>
               </div>
               <div class="col-xs-4">
                 <h5>CASINO</h5>
-                <select id="contSelCasino" class="form-control">
+                <select id="casinoImp" class="form-control">
                   <option value="-1">Seleccione</option>
                   @foreach ($casinos as $casino)
                   <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
@@ -457,7 +456,7 @@
               </div>
               <div class="col-xs-3">
                 <h5>MONEDA</h5>
-                <select id="contSelMoneda" class="form-control">
+                <select id="monedaImp" class="form-control">
                   <option value="-1">Seleccione</option>
                   @foreach($tipoMoneda as $tipo)
                   <option value="{{$tipo->id_tipo_moneda}}">{{$tipo->descripcion}}</option>
@@ -469,7 +468,7 @@
           <div id="mensajeError" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
             <div class="col-md-12">
               <h6>SE PRODUJO UN ERROR DE CONEXIÓN</h6>
-              <button id="btn-reintentarContador" class="btn btn-info" type="button" name="button">REINTENTAR IMPORTACIÓN</button>
+              <button id="btn-reintentarImp" class="btn btn-info" type="button" name="button">REINTENTAR IMPORTACIÓN</button>
             </div>
           </div>
           <div id="mensajeInvalido" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
@@ -491,150 +490,8 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-successAceptar" id="btn-guardarContador" hidden value="nuevo"> SUBIR</button>
+          <button type="button" class="btn btn-successAceptar" id="btn-guardarImp" hidden value="nuevo"> SUBIR</button>
           <button type="button" class="btn btn-default" data-dismiss="modal"> CANCELAR</button>
-          <input type="hidden" id="tipoImportacion" name="" value="">
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Producido -->
-<div class="modal fade" id="modalImportacionProducidos" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
-       <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-       <button id="btn-minimizarProducidos" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoProducidos" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-       <h3 class="modal-title">| IMPORTAR PRODUCIDOS</h3>
-      </div>
-      <div id="colapsadoProducidos" class="collapse in">
-        <div class="modal-body modalCuerpo">
-          <div id="rowArchivo" class="row" style="">
-            <div class="col-xs-12">
-              <h5>ARCHIVO</h5>
-              <div class="zona-file">
-                <input id="archivo" data-borrado="false" type="file" name="" >
-                <br>
-                <span id="alertaArchivo" class="alertaSpan"></span>
-              </div>
-            </div>
-            @include('includes.md5hash')
-          </div>
-          <div id="mensajeError" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
-            <div class="col-md-12">
-              <h6>SE PRODUJO UN ERROR DE CONEXIÓN</h6>
-              <button id="btn-reintentarProducido" class="btn btn-info" type="button" name="button">REINTENTAR IMPORTACIÓN</button>
-            </div>
-          </div>
-          <div id="mensajeInvalido" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
-            <div class="col-xs-12" align="center">
-              <i class="fa fa-fw fa-exclamation-triangle"></i>
-              <h6> ARCHIVO INCORRECTO</h6>
-            </div>
-            <br>
-            <br>
-            <div class="col-xs-12" align="center">
-              <p>Solo se aceptan archivos con extensión .csv o .txt</p>
-            </div>
-          </div>
-          <div id="mensajeInformacion" class="row" style="margin-bottom:20px !important; margin-top: 50px !important;">
-            <div class="col-xs-12" align="center">
-              <i class="fa fa-fw fa-star"></i>
-              <h6 id="informacionCasino"> CASINO ROSARIO</h6>
-              <i class="fa fa-fw fa-calendar corrido"></i>
-              <h6 id="informacionFecha">10 OCTUBRE 2017</h6>
-              <i id="iconoMoneda" class="fa fa-fw fa-usd corrido"></i>
-              <h6 id="informacionMoneda"> DOLAR</h6>
-            </div>
-          </div>
-          <div id="iconoCarga" class="sk-folding-cube">
-            <div class="sk-cube1 sk-cube"></div>
-            <div class="sk-cube2 sk-cube"></div>
-            <div class="sk-cube4 sk-cube"></div>
-            <div class="sk-cube3 sk-cube"></div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-successAceptar" id="btn-guardarProducido" hidden value="nuevo"> SUBIR</button>
-          <button type="button" class="btn btn-default" data-dismiss="modal"> CANCELAR</button>
-          <input type="hidden" id="tipoImportacion" name="" value="">
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Beneficio -->
-<div class="modal fade" id="modalImportacionBeneficios" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizarBeneficios" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoBeneficios" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title">| IMPORTAR BENEFICIOS</h3>
-      </div>
-      <div  id="colapsadoBeneficios" class="collapse in">
-        <div class="modal-body modalCuerpo">
-          <div id="rowArchivo" class="row" style="">
-            <div class="col-xs-12">
-              <h5>ARCHIVO</h5>
-              <div class="zona-file">
-                <input id="archivo" data-borrado="false" type="file" name="" >
-                <br> <span id="alertaArchivo" class="alertaSpan"></span>
-              </div>
-            </div>
-            @include('includes.md5hash')
-          </div>
-          <div id="rowMoneda" hidden class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
-            <div class="col-xs-6">
-              <h5>MONEDA</h5>
-              <select class="form-control" name="">
-                <option value="0">Elegir moneda</option>
-                <option value="1">ARS</option>
-                <option value="2">USD</option>
-              </select>
-            </div>
-          </div>
-          <div id="mensajeError" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
-            <div class="col-md-12">
-              <h6>SE PRODUJO UN ERROR DE CONEXIÓN</h6>
-              <button id="btn-reintentarContador" class="btn btn-info" type="button" name="button">REINTENTAR IMPORTACIÓN</button>
-            </div>
-          </div>
-          <div id="mensajeInvalido" class="row" style="margin-bottom:20px !important; margin-top: 20px !important;">
-            <div class="col-xs-12" align="center">
-              <i class="fa fa-fw fa-exclamation-triangle"></i>
-              <h6> ARCHIVO INCORRECTO</h6>
-            </div>
-            <br>
-            <br>
-            <div class="col-xs-12" align="center">
-              <p>Solo se aceptan archivos con extensión .csv o .txt</p>
-            </div>
-          </div>
-          <div id="mensajeInformacion" class="row" style="margin-bottom:20px !important; margin-top: 50px !important;">
-            <div class="col-xs-12" align="center">
-              <i class="fa fa-fw fa-star"></i>
-              <h6 id="informacionCasino"> CASINO ROSARIO</h6>
-              <i class="fa fa-fw fa-calendar corrido"></i>
-              <h6 id="informacionFecha">10 OCTUBRE 2017</h6>
-              <i id="iconoMoneda" class="fa fa-fw fa-usd corrido"></i>
-              <h6 id="informacionMoneda"> DOLAR</h6>
-            </div>
-          </div>
-          <div id="iconoCarga" class="sk-folding-cube">
-            <div class="sk-cube1 sk-cube"></div>
-            <div class="sk-cube2 sk-cube"></div>
-            <div class="sk-cube4 sk-cube"></div>
-            <div class="sk-cube3 sk-cube"></div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-successAceptar" id="btn-guardarBeneficio" hidden value="nuevo"> SUBIR</button>
-          <button type="button" class="btn btn-default" data-dismiss="modal"> CANCELAR</button>
-          <input type="hidden" id="tipoImportacion" name="" value="">
         </div>
       </div>
     </div>
@@ -677,7 +534,7 @@
 
 @section('scripts')
 <!-- JavaScript personalizado -->
-<script src="js/seccionImportaciones.js?3" charset="utf-8"></script>
+<script src="js/seccionImportaciones.js?4" charset="utf-8"></script>
 <script src="js/lib/spark-md5.js?2" charset="utf-8"></script><!-- Dependencia de md5.js -->
 <script src="js/md5.js?2" charset="utf-8"></script>
 <!-- JS paginacion -->
