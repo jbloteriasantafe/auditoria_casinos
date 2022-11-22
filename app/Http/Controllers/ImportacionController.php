@@ -100,20 +100,20 @@ class ImportacionController extends Controller
       $reglas[]=['casino.id_casino','=', $request->casinos];
     }
     
-    $contadores = [];
-    $producidos = [];
-    $beneficios = [];
+    $resultados = ['data' => [],'total' => 0];
     $sort_by = $request->sort_by;
-
+    
     switch ($request->seleccion) {
-      case 1:{//contadores
+      case 'CONTADORES':{
         if(isset($request->fecha)){
           $fecha = explode("-",$request->fecha);
           $reglas[]=[DB::raw('YEAR(contador_horario.fecha)'),'=',$fecha[0]];
           $reglas[]=[DB::raw('MONTH(contador_horario.fecha)'),'=',$fecha[1]];
         }
+        if($sort_by && $sort_by['columna'] == 'fecha')
+          $sort_by['columna'] = 'contador_horario.fecha';
         
-        $contadores = DB::table('contador_horario')
+        $resultados = DB::table('contador_horario')
         ->select('contador_horario.id_contador_horario as id_contador_horario','contador_horario.fecha as fecha'
                 ,'casino.nombre as casino' , 'casino.id_casino as id_casino','tipo_moneda.descripcion as tipo_moneda','contador_horario.cerrado as cerrado')
         ->join('casino','contador_horario.id_casino','=','casino.id_casino')
@@ -123,16 +123,25 @@ class ImportacionController extends Controller
           return $query->orderBy($sort_by['columna'],$sort_by['orden']);
         })
         ->paginate($request->page_size);
+        
+        foreach ($resultados as $index => &$c){
+          if($c->id_casino == 1 || $c->id_casino == 2){
+            $c->fecha_archivo = date('Y-m-d',strtotime("$c->fecha - 1 days"));
+          }else if($c->id_casino == 3){//rosario
+            $c->fecha_archivo = $c->fecha;
+          }
+        }
       }break;
-      case 2:{//producidos
+      case 'PRODUCIDOS':{
         if(isset($request->fecha)){
           $fecha = explode("-",$request->fecha);
           $reglas[]=[DB::raw('YEAR(producido.fecha)'),'=',$fecha[0]];
           $reglas[]=[DB::raw('MONTH(producido.fecha)'),'=',$fecha[1]];
         }
-        $sort_by = $sort_by['columna'] == 'contador_horario.fecha' ? null : $sort_by;
+        if($sort_by && $sort_by['columna'] == 'fecha')
+          $sort_by['columna'] = 'producido.fecha';
 
-        $producidos = DB::table('producido')
+        $resultados = DB::table('producido')
         ->select('producido.id_producido as id_producido','producido.fecha as fecha'
                 ,'casino.nombre as casino','tipo_moneda.descripcion as tipo_moneda','producido.validado as validado')
         ->join('casino','producido.id_casino','=','casino.id_casino')
@@ -143,22 +152,21 @@ class ImportacionController extends Controller
         })
         ->paginate($request->page_size);
       }break;
-      case 3:{//beneficios
+      case 'BENEFICIOS':{
         if(isset($request->fecha)){
           $fecha = explode("-",$request->fecha);
           $reglas[]=[DB::raw('YEAR(beneficio.fecha)'),'=',$fecha[0]];
           $reglas[]=[DB::raw('MONTH(beneficio.fecha)'),'=',$fecha[1]];
         }
 
-        $sort_raw = $sort_by['columna'] == "beneficio.fecha";
+        $sort_raw = $sort_by && $sort_by['columna'] == 'fecha';
         if($sort_raw){
           $ord = "asc";
           if($sort_by['orden'] == 'desc') $ord = "desc";//Evita SQL injection de poner el orden directamente
           $sort_raw = "YEAR(beneficio.fecha) $ord,MONTH(beneficio.fecha) $ord";
         }
-        $sort_by = $sort_by['columna'] == 'contador_horario.fecha' ? null : $sort_by;
 
-        $beneficios = DB::table('beneficio')
+        $resultados = DB::table('beneficio')
         ->selectRaw('MONTH(beneficio.fecha) as mes, YEAR(beneficio.fecha) as anio,
                      beneficio.id_casino, beneficio.id_tipo_moneda,
                      casino.nombre as casino, tipo_moneda.descripcion as tipo_moneda')
@@ -174,19 +182,9 @@ class ImportacionController extends Controller
         })
         ->paginate($request->page_size);
       }break;
-      default:{//nada
-      }break;
     }
-
-    foreach ($contadores as $index => $contador){
-      if($contador->id_casino == 1 || $contador->id_casino == 2){
-        $contadores[$index]->fecha_archivo = date('Y-m-d' , strtotime($contador->fecha . ' - 1 days'));
-      }else {//rosario
-        $contadores[$index]->fecha_archivo = $contador->fecha;
-      }
-    }
-
-    return  ['contadores' => $contadores, 'producidos' => $producidos, 'beneficios' => $beneficios];
+    
+    return $resultados;
   }
 
 

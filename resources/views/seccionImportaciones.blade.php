@@ -212,9 +212,9 @@
               <div class="col-md-3">
                 <h5>TIPO DE ARCHIVO</h5>
                 <select id="tipo_archivo" class="form-control">
-                  <option value="1">CONTADORES</option>
-                  <option value="2">PRODUCIDOS</option>
-                  <option value="3">BENEFICIOS</option>
+                  <option>CONTADORES</option>
+                  <option>PRODUCIDOS</option>
+                  <option>BENEFICIOS</option>
                 </select>
               </div>
               <div class="col-md-2">
@@ -268,8 +268,8 @@
             <table id="tablaImportaciones" class="table table-fixed tablesorter">
               <thead>
                 <tr>
-                  <th class="col-xs-3" value="contador_horario.fecha" estado="">FECHA PRODUCCIÓN<i class="fa fa-sort"></i></th>
-                  <th id="tipo_fecha" class="col-xs-3 activa" value="contador_horario.fecha" estado="desc">FECHA <i class="fa fa-sort-desc"></i></th>
+                  <th class="col-xs-3" value="fecha" estado="">FECHA PRODUCCIÓN<i class="fa fa-sort"></i></th>
+                  <th class="col-xs-3 activa" value="fecha" estado="desc">FECHA <i class="fa fa-sort-down"></i></th>
                   <th class="col-xs-2" value="casino.nombre" estado="">CASINO <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" value="tipo_moneda.descripcion" estado="">MONEDA <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" value="" estado="">ACCIÓN</th>
