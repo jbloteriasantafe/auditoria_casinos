@@ -38,65 +38,34 @@ $(document).ready(function(){
   $('#casino_busqueda,#casinoInfoImportacion').change();
 });
 
-
-$('#casinoInfoImportacion').change(function() {
-  $('#monedaInfoImportacion').change();
-});
-
-$('#mesInfoImportacion').on("change.datetimepicker",function(){
-  $('#monedaInfoImportacion').change();
-});
-
-$('#monedaInfoImportacion').change(function() {
+function actualizarImportaciones(){
   const id_moneda = $('#monedaInfoImportacion').val();
   if (id_moneda == 1) $('.tablaBody').removeClass('dolares').addClass('pesos');
   else $('.tablaBody').removeClass('pesos').addClass('dolares');
 
   const fecha_sort = $('#infoImportaciones .activa').attr('estado');
   cargarTablasImportaciones($('#casinoInfoImportacion').val(), id_moneda, fecha_sort);
-});
-
-function limpiarBodysImportaciones() {
-  $('.tablaBody').hide().find('tr:not(#moldeFilaImportacion)').remove();
 }
+
+$('#casinoInfoImportacion,#monedaInfoImportacion').change(actualizarImportaciones);
+$('#mesInfoImportacion').on("change.datetimepicker",actualizarImportaciones);
 
 function cargarTablasImportaciones(casino, moneda, fecha_sort) {
   const fecha = $('#mes_info_hidden').val();
   $.get(`importaciones/${casino}/${fecha}/${fecha_sort ?? ''}`, function(data) {
-    let tablaBody = $();
-
-    limpiarBodysImportaciones();
-
-    switch (casino) {
-      case '1':
-        tablaBody = $('#bodyMelincue');
-        break;
-      case '2':
-        tablaBody = $('#bodySantaFe');
-        break;
-      case '3':
-        tablaBody = $('#bodyRosario');
-        break;
-      default:
-        throw 'Casino no implementado';
-    }
+    $('#infoImportaciones tbody').empty().attr('data-casino',casino);
     
     data.arreglo.forEach(function(v){
-      const fila = $('#moldeFilaImportacion').clone();
-      fila.removeAttr('id');
+      const fila = $('#moldeFilaImportacion').clone().removeAttr('id');
       fila.find('.fecha').text(convertirDate(v.fecha));
       ['contador','producido','beneficio'].forEach(function(t){
         fila.find('.'+t).addClass(v?.[t]?.[moneda]? 'true' : 'false');
       });
-      tablaBody.append(fila);
+      $('#infoImportaciones tbody').append(fila);
       fila.show();
     });
-
-    tablaBody.show();
   });
-  $('#moldeFilaImportacion').hide();
 }
-
 
 function setearValueFecha() {
   const tipo_archivo = $('#tipo_archivo').val();

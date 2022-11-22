@@ -34,17 +34,14 @@
 }
 
 /* Bordes para identificar el casino en cada tabla */
-#bodySantaFe {
-  border-top: 3px solid #EF9A9A !important;
-}
-#bodyMelincue {
+#infoImportaciones tbody[data-casino="1"]{
   border-top: 3px solid #A5D6A7 !important;
 }
-#bodyRosario.pesos {
-  border-top: 3px solid #FFE0B2 !important;
+#infoImportaciones tbody[data-casino="2"]{
+  border-top: 3px solid #EF9A9A !important;
 }
-#bodyRosario.dolares {
-  border-top: 3px solid #FFE082 !important;
+#infoImportaciones tbody[data-casino="3"]{
+  border-top: 3px solid #FFE0B2 !important;
 }
 
 #mensajeInvalido i {
@@ -178,7 +175,7 @@
             </div>
             <br>
             <table id="infoImportaciones" class="table table-fixed tablesorter">
-              <thead id="headSantaFe">
+              <thead>
                 <tr>
                   <th class="col-xs-3" value="fecha" estado="">FECHA<i class="fa fa-sort"></i></th>
                   <th class="col-xs-3" style="text-align:center;">CONTADORES </th>
@@ -186,19 +183,16 @@
                   <th class="col-xs-3" style="text-align:center;">BENEFICIOS</th>
                 </tr>
               </thead>
-              <!-- Se usa como molde para generar todas las filas -->
-              <tbody id="bodySantaFe" class="tablaBody" style="text-align:center; max-height:440px;">
-                <tr id="moldeFilaImportacion">
-                  <td class="col-xs-3 fecha" style="text-align:left;">12 AGO 2018</td>
-                  <td class="col-xs-3 contador"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
-                  <td class="col-xs-3 producido"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
-                  <td class="col-xs-3 beneficio"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
-                </tr>
+              <tbody class="tablaBody" style="text-align:center; max-height:440px;">
               </tbody>
-              <tbody id="bodyMelincue" class="tablaBody" style="text-align:center; max-height:440px;">
-              </tbody>
-              <tbody id="bodyRosario" class="tablaBody" style="text-align:center; max-height:440px;">
-              </tbody>
+            </table>
+            <table hidden><!-- Se usa como molde para generar todas las filas -->
+              <tr id="moldeFilaImportacion">
+                <td class="col-xs-3 fecha" style="text-align:left;">12 AGO 2018</td>
+                <td class="col-xs-3 contador"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+                <td class="col-xs-3 producido"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+                <td class="col-xs-3 beneficio"><i class="fa fa-check"></i><i class="fa fa-times"></i></td>
+              </tr>
             </table>
           </div>
         </div>
@@ -534,7 +528,7 @@
 
 @section('scripts')
 <!-- JavaScript personalizado -->
-<script src="js/seccionImportaciones.js?4" charset="utf-8"></script>
+<script src="js/seccionImportaciones.js?5" charset="utf-8"></script>
 <script src="js/lib/spark-md5.js?2" charset="utf-8"></script><!-- Dependencia de md5.js -->
 <script src="js/md5.js?2" charset="utf-8"></script>
 <!-- JS paginacion -->
