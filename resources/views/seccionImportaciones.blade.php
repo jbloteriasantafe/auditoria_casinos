@@ -20,16 +20,16 @@
 #infoImportaciones td {
   height: 50px;
 }
-#infoImportaciones td.true .fa-check {
+#infoImportaciones td[data-imp="1"] .fa-check {
   display: inline;
 }
-#infoImportaciones td.true .fa-times {
+#infoImportaciones td[data-imp="1"] .fa-times {
   display: none;
 }
-#infoImportaciones td.false .fa-times {
+#infoImportaciones td[data-imp="0"] .fa-times {
   display: inline;
 }
-#infoImportaciones td.false .fa-check {
+#infoImportaciones td[data-imp="0"] .fa-check {
   display: none;
 }
 
@@ -243,12 +243,6 @@
                   <option value="{{$tipo->id_tipo_moneda}}">{{$tipo->descripcion}}</option>
                   @endforeach
                 </select>
-              </div>
-              <div class="col-md-2">
-                <h5>&nbsp;</h5>
-                <button id="btn-buscarImportaciones" class="btn btn-infoBuscar" type="button">
-                  <i class="fa fa-fw fa-search"></i> BUSCAR
-                </button>
               </div>
             </div> <!-- row -->
           </div> <!-- panel-body -->
