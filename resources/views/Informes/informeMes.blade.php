@@ -81,7 +81,7 @@
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['saldo_fichas'],2,",",".")}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['droop'],2,",",".")}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['utilidad'],2,",",".")}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['hold'],3,",",".")}} %</td>
+          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{is_numeric($d['hold'])? number_format($d['hold'],3,",",".") : $d['hold']}} %</td>
           @if($datos['moneda'] != 'ARS')
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['cotizacion_diaria'],2,",",".")}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['conversion_total']}}</td>
