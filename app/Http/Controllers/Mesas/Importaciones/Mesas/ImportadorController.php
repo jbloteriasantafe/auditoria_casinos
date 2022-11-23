@@ -530,7 +530,7 @@ public function importarDiario(Request $request){
     ->where('IDM.id_casino','=',$id_casino)->where('IDM.id_moneda','=',$id_moneda)
     ->whereNull('IDM.deleted_at')
     ->selectRaw('SUM(IDM.droop) as droop, SUM(IDM.retiros) as retiros, SUM(IDM.utilidad) as utilidad, SUM(IDM.saldo_fichas) as saldo_fichas,
-      "---" as hold, 0 as conversion_total')
+      "--" as hold, 0 as conversion_total')
     ->groupBy(DB::raw('"constant"'))
     ->first();
 
@@ -543,7 +543,7 @@ public function importarDiario(Request $request){
       $total->conversion_total = 0;
       $total->mesas = 0;
     }
-    $total->hold = $total->droop? round(($total->utilidad * 100)/$total->droop,2) : "---";
+    $total->hold = $total->droop? round(($total->utilidad * 100)/$total->droop,2) : "--";
 
     $total->mesas = DB::table('importacion_diaria_mesas as IDM')
     ->join('detalle_importacion_diaria_mesas as DIDM','DIDM.id_importacion_diaria_mesas','=','IDM.id_importacion_diaria_mesas')

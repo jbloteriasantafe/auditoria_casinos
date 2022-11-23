@@ -95,7 +95,7 @@
           <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($datos['total']->saldo_fichas,2,",",".")}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($datos['total']->droop,2,",",".")}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($datos['total']->utilidad,2,",",".")}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($datos['total']->hold,3,",",".")}} %</td>
+          <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{is_numeric($datos['total']->hold)? number_format($datos['total']->hold,3,",",".") : $datos['total']->hold}} %</td>
           @if($datos['moneda'] != 'ARS')
           <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">--</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$datos['total']->conversion_total}}</td>
