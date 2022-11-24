@@ -543,7 +543,7 @@ public function importarDiario(Request $request){
       $total->conversion_total = 0;
       $total->mesas = 0;
     }
-    $total->hold = $total->droop? round(($total->utilidad * 100)/$total->droop,2) : "--";
+    $total->hold = $total->droop != 0? round(($total->utilidad * 100)/$total->droop,2) : "--";
 
     $total->mesas = DB::table('importacion_diaria_mesas as IDM')
     ->join('detalle_importacion_diaria_mesas as DIDM','DIDM.id_importacion_diaria_mesas','=','IDM.id_importacion_diaria_mesas')
