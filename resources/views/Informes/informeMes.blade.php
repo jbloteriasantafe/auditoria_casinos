@@ -81,7 +81,7 @@
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['saldo_fichas'],2,",",".")}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['droop'],2,",",".")}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['utilidad'],2,",",".")}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{is_numeric($d['hold'])? number_format($d['hold'],3,",",".") : $d['hold']}} %</td>
+          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['hold']}} %</td>
           @if($datos['moneda'] != 'ARS')
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['cotizacion_diaria'],2,",",".")}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['conversion_total']}}</td>
@@ -95,7 +95,7 @@
           <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($datos['total']->saldo_fichas,2,",",".")}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($datos['total']->droop,2,",",".")}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($datos['total']->utilidad,2,",",".")}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{is_numeric($datos['total']->hold)? number_format($datos['total']->hold,3,",",".") : $datos['total']->hold}} %</td>
+          <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$datos['total']->hold}} %</td>
           @if($datos['moneda'] != 'ARS')
           <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">--</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$datos['total']->conversion_total}}</td>
@@ -120,8 +120,9 @@
     <table style="border-collapse: collapse;" >
       <thead>
         <tr align="center" >
-          <th class="col-xl-2 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray;text-align:center !important">JUEGO</th>
-          <th class="col-xl-2 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray; text-align:center !important;">UTILIDAD TOTAL</th>
+          <th class="col-xl-3 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray;text-align:center !important">JUEGO</th>
+          <th class="col-xl-3 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray; text-align:center !important;">UTILIDAD</th>
+          <th class="col-xl-3 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray; text-align:center !important;">UTILIDAD (ABS)</th>
           <th class="col-xl-3 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray; text-align:center !important;">PORCENTAJE</th>
         </tr>
       </thead>
@@ -132,16 +133,16 @@
         <tr>
           <td class="tablaCampos" style="font-size: 13px;text-align: center">{{$j->siglas_juego . $j->nro_mesa}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($j->utilidad,2,',','.')}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{is_numeric($j->porcentaje)? number_format($j->porcentaje,3,',','.') : '--'}} %</td>
+          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($j->abs_utilidad,2,',','.')}}</td>
+          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$j->porcentaje}} %</td>
         </tr>
         @endforeach
         <tr>
           <td class="tablaCampos" style="font-size: 13px;text-align: center">---</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($utilidad,2,',','.')}}</td>
+          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format(abs($utilidad),2,',','.')}}</td>
           <!-- Deberia ser siempre 100% -->
-          <td class="tablaCampos" style="font-size: 13px;text-align: right">
-            {{number_format($datos['total']->utilidad != 0? round(100*$utilidad/$datos['total']->utilidad,3) : 100.0,3,',','.')}} %
-          </td>
+          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$datos['total']->porcentaje}} %</td>
         </tr>
       </tbody>
     </table>

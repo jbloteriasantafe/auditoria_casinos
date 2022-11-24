@@ -543,8 +543,12 @@ public function importarDiario(Request $request){
       $total->conversion_total = 0;
       $total->mesas = 0;
     }
-    $total->hold = $total->droop != 0? round(($total->utilidad * 100)/$total->droop,2) : '--';
-
+    
+    $total->hold = $total->droop != 0? round(($total->utilidad * 100)/$total->droop,3) : '--';
+    foreach($detalles as &$d){
+      $d->hold = $d->droop != 0? round(($d->utilidad * 100)/$d->droop,3) : '--';
+    }
+    
     $total->mesas = DB::table('importacion_diaria_mesas as IDM')
     ->join('detalle_importacion_diaria_mesas as DIDM','DIDM.id_importacion_diaria_mesas','=','IDM.id_importacion_diaria_mesas')
     ->selectRaw('COUNT(distinct CONCAT(DIDM.siglas_juego,DIDM.nro_mesa)) as mesas')
@@ -583,7 +587,15 @@ public function importarDiario(Request $request){
     ->orderBy('DIDM.nro_mesa','asc')
     ->get();
 
-    foreach($juegos as $j) $j->porcentaje = $total->utilidad != 0? round(100*$j->utilidad/$total->utilidad,2) : '--';
+    $total->abs_utilidad = abs($total->utilidad);
+    $sum = 0;
+    foreach($juegos as &$j){
+      $j->abs_utilidad = abs($j->utilidad);
+      $sum += $j->abs_utilidad;
+      $j->porcentaje = $total->abs_utilidad != 0? round(100*$j->abs_utilidad/$total->abs_utilidad,3) : '--';
+    }
+    //Deberia ser siempre 100%
+    $total->porcentaje = $total->abs_utilidad != 0? round(100*$sum/$total->abs_utilidad,3) : '--';
 
     return [
       'moneda' => Moneda::find($id_moneda)->siglas,
