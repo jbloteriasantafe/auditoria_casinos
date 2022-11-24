@@ -140,7 +140,7 @@
         <tr>
           <td class="tablaCampos" style="font-size: 13px;text-align: center">---</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($utilidad,2,',','.')}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format(abs($utilidad),2,',','.')}}</td>
+          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($datos['total']->abs_utilidad,2,',','.')}}</td>
           <!-- Deberia ser siempre 100% -->
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$datos['total']->porcentaje}} %</td>
         </tr>
