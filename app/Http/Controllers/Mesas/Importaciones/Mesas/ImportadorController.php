@@ -586,16 +586,16 @@ public function importarDiario(Request $request){
     ->orderBy('DIDM.siglas_juego','asc')
     ->orderBy('DIDM.nro_mesa','asc')
     ->get();
-
-    $total->abs_utilidad = abs($total->utilidad);
-    $sum = 0;
+    
+    $total->abs_utilidad = 0;
     foreach($juegos as &$j){
       $j->abs_utilidad = abs($j->utilidad);
-      $sum += $j->abs_utilidad;
+      $total->abs_utilidad += abs($j->abs_utilidad);
+    }
+    foreach($juegos as &$j){
       $j->porcentaje = $total->abs_utilidad != 0? number_format(100*$j->abs_utilidad/$total->abs_utilidad,3,',','.') : '--';
     }
-    //Deberia ser siempre 100%
-    $total->porcentaje = $total->abs_utilidad != 0? number_format(100*$sum/$total->abs_utilidad,3,',','.') : '--';
+    $total->porcentaje = number_format(100,3,',','.');
 
     return [
       'moneda' => Moneda::find($id_moneda)->siglas,
