@@ -132,7 +132,7 @@
         <tr>
           <td class="tablaCampos" style="font-size: 13px;text-align: center">{{$j->siglas_juego . $j->nro_mesa}}</td>
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($j->utilidad,2,',','.')}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($j->porcentaje,3,',','.')}} %</td>
+          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{is_numeric($j->porcentaje)? number_format($j->porcentaje,3,',','.') : '--'}} %</td>
         </tr>
         @endforeach
         <tr>
@@ -140,7 +140,7 @@
           <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($utilidad,2,',','.')}}</td>
           <!-- Deberia ser siempre 100% -->
           <td class="tablaCampos" style="font-size: 13px;text-align: right">
-            {{number_format($datos['total']->utilidad? round(100*$utilidad/$datos['total']->utilidad,3) : 100.0,3,',','.')}} %
+            {{number_format($datos['total']->utilidad != 0? round(100*$utilidad/$datos['total']->utilidad,3) : 100.0,3,',','.')}} %
           </td>
         </tr>
       </tbody>
