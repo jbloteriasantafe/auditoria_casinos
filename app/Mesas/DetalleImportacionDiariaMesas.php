@@ -80,7 +80,7 @@ class DetalleImportacionDiariaMesas extends Model
     ->where(function($q) use ($fecha){
       return $q->whereNull('mesa_de_panio.deleted_at')->orWhere('mesa_de_panio.deleted_at','>',$fecha);
     })
-    ->orderBy('mesa_de_panio.id_mesa_de_panio','desc')->first()
+    ->orderBy('mesa_de_panio.id_mesa_de_panio','desc')->first();
     
     return $mesa;
   }
