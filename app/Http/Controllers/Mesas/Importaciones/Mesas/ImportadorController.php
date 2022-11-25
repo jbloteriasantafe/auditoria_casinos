@@ -208,6 +208,9 @@ private function crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin
   ->where(function ($q) use ($fecha){
     return $q->whereNull('mesa_de_panio.deleted_at')->orWhere('mesa_de_panio.deleted_at','>',$fecha);
   })
+  ->where(function($q) use ($id_moneda){//Multimoneda o coincide la moneda
+    return $q->whereNull('mesa_de_panio.id_moneda')->orWhere('mesa_de_panio.id_moneda','=',$id_moneda);
+  })
   ->orderBy('mesa_de_panio.id_mesa_de_panio','desc')
   ->get()->first();
   if(is_null($mesa)) return 'NO SE ENCONTRO LA MESA '.$cod_juego.' '.$nro_admin;
