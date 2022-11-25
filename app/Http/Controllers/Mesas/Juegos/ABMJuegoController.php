@@ -103,19 +103,6 @@ class ABMJuegoController extends Controller
       if(!$user->usuarioTieneCasino($id_casino)){
         return $validator->errors()->add('privilegios','No puede realizar esa accion');
       }
-      
-      $check = [
-        ['id_casino','=',$id_casino],
-        ['siglas','=',$data['siglas']],
-      ];
-      if(!$creando){
-        $check[] = ['id_juego_mesa','<>',$data['id_juego_mesa']];
-      }
-      
-      $existe_otro = JuegoMesa::where($check)->get()->count() > 0;
-      if($existe_otro){
-        return $validator->errors()->add('siglas','El valor tiene que ser unico');
-      }
     })->validate();
     
     $juego = null;

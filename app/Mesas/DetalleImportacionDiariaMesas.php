@@ -60,38 +60,28 @@ class DetalleImportacionDiariaMesas extends Model
   }
 
   public function juego_mesa(){
-    $imp = $this->importacion_diaria_mesas;
-    $id_casino = $imp->id_casino;
-    $id_moneda = $imp->id_moneda;
-    $fecha     = $imp->fecha;
-    $siglas_juego = $this->siglas_juego;
-    
-    $juego =  JuegoMesa::withTrashed()->where('juego_mesa.id_casino',$id_casino)
-    ->where(function($q) use ($siglas_juego){
-      return $q->where('juego_mesa.siglas','like',$siglas_juego)->orWhere('juego_mesa.nombre_juego','like',$siglas_juego);
-    })
-    ->where(function ($q) use ($fecha){
-      return $q->whereNull('juego_mesa.deleted_at')->orWhere('juego_mesa.deleted_at','>',$fecha);
-    })->first();
-    return $juego;
+    $mesa = $this->mesa();
+    return is_null($mesa) null : $mesa->juego;
   }
 
   public function mesa(){
-    $juego = $this->juego_mesa();
-    if(is_null($juego)) return null;
-
     $imp       = $this->importacion_diaria_mesas;
     $fecha     = $imp->fecha;
     $id_moneda = $imp->id_moneda;
+    $id_casino = $imp->id_casino;
+    $siglas_juego = $this->siglas_juego;
     
-    $mesa = $juego->mesas()
+    $mesa = Mesa::withTrashed()->where('mesa_de_panio.id_casino',$id_casino)
     ->where('mesa_de_panio.nro_admin','=',$this->nro_mesa)
+    ->where('mesa_de_panio.nombre','LIKE',$siglas_juego.'%')
+    ->where(function($q) use ($id_moneda){//Multimoneda o coincide la moneda
+      return $q->whereNull('mesa_de_panio.id_moneda')->orWhere('mesa_de_panio.id_moneda','=',$id_moneda);
+    })
     ->where(function($q) use ($fecha){
       return $q->whereNull('mesa_de_panio.deleted_at')->orWhere('mesa_de_panio.deleted_at','>',$fecha);
     })
-    ->where(function($q) use ($id_moneda){//Multimoneda o coincide la moneda
-      return $q->whereNull('mesa_de_panio.id_moneda')->orWhere('mesa_de_panio.id_moneda','=',$id_moneda);
-    })->first();
+    ->orderBy('mesa_de_panio.id_mesa_de_panio','desc')->first()
+    
     return $mesa;
   }
 
