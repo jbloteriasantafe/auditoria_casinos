@@ -202,23 +202,14 @@ public function importarCierres(Request $request){
 }
 
 private function crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin,$cod_juego,$hora_apertura,$hora_cierre,$anticipos,$total,$fichas){
-  $juego = JuegoMesa::withTrashed()->where('juego_mesa.id_casino',$id_casino)
-  ->where(function($q) use ($cod_juego){
-    return $q->where('juego_mesa.siglas','like',$cod_juego)->orWhere('juego_mesa.nombre_juego','like',$cod_juego);
-  })
-  ->where(function ($q) use ($fecha){
-    return $q->whereNull('juego_mesa.deleted_at')->orWhere('juego_mesa.deleted_at','>',$fecha);
-  })->get()->first();
-  if(is_null($juego)) return 'NO SE ENCONTRO EL JUEGO '.$cod_juego;
-
-  $mesa = $juego->mesas()
+  $mesa = Mesa::where('mesa_de_panio.id_casino','=',$id_casino)
   ->where('mesa_de_panio.nro_admin','=',$nro_admin)
-  ->where(function($q) use ($fecha){
+  ->where('mesa_de_panio.nombre','LIKE',$cod_juego.'%')
+  ->where(function ($q) use ($fecha){
     return $q->whereNull('mesa_de_panio.deleted_at')->orWhere('mesa_de_panio.deleted_at','>',$fecha);
   })
-  ->where(function($q) use ($id_moneda){//Multimoneda o coincide la moneda
-    return $q->whereNull('mesa_de_panio.id_moneda')->orWhere('mesa_de_panio.id_moneda','=',$id_moneda);
-  })->get()->first();
+  ->orderBy('mesa_de_panio.id_mesa_de_panio','desc')
+  ->get()->first();
   if(is_null($mesa)) return 'NO SE ENCONTRO LA MESA '.$cod_juego.' '.$nro_admin;
 
   $ya_existe = Cierre::where([
@@ -237,7 +228,7 @@ private function crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin
   $cierre->id_casino            = $id_casino;
   $cierre->id_fiscalizador      = $id_usuario;
   $cierre->id_moneda            = $id_moneda;
-  $cierre->id_tipo_mesa         = $juego->id_tipo_mesa;
+  $cierre->id_tipo_mesa         = $mesa->id_tipo_mesa;
   $cierre->id_mesa_de_panio     = $mesa->id_mesa_de_panio;
   $cierre->save();
 
