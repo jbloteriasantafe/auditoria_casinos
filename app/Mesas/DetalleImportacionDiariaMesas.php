@@ -61,7 +61,7 @@ class DetalleImportacionDiariaMesas extends Model
 
   public function juego_mesa(){
     $mesa = $this->mesa();
-    return is_null($mesa) null : $mesa->juego;
+    return is_null($mesa)? null : $mesa->juego;
   }
 
   public function mesa(){
