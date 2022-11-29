@@ -323,7 +323,44 @@ public function importarDiario(Request $request){
   
       $pdo = DB::connection('mysql')->getPdo();
       DB::connection()->disableQueryLog();
-      $path = $request->archivo->getRealPath();
+      $path = $pdo->quote($request->archivo->getRealPath());
+      //A los de Melincue les pinta a veces mandar en formato "plata"
+      //i.e. $ 1.333.214,32 y otras veces en formato comun i.e. 1333214.32
+      //Esta funcion homogeiniza al formato estandar con punto decimal
+      //Octavio
+      $normalizar = function($c){
+        //Usa una heuristica basada en que no deberia mandar mas de 
+        //2 numeros decimales, tampoco valida que los separadores
+        //de miles agrupen bien los numeros
+        //Esta version de MySQL no tiene REGEXP_REPLACE...
+        $c = "REPLACE(REPLACE($c,'\n',''),'\r','')";
+        $c = "TRIM(REPLACE(REPLACE($c,'$',''),' ',''))";
+        $sin_puntos = "REPLACE($c,'.','')";
+        $sin_comas  = "REPLACE($c,',','')";
+        $cant_puntos = "(LENGTH($c)-LENGTH($sin_puntos))";
+        $cant_comas  = "(LENGTH($c)-LENGTH($sin_comas))";
+        $pos_punto = "POSITION('.' IN REVERSE($c))";//Retorna 0 si no hay
+        $pos_coma  = "POSITION(',' IN REVERSE($c))";
+        $NUM_ENTERO = "$cant_puntos = 0 AND $cant_comas = 0";
+        $NUM_DECIMAL_INGLES = "$cant_puntos = 1 AND $cant_comas = 0 AND $pos_punto IN (2,3)";
+        $NUM_DECIMAL_ESPÑOL = "$cant_puntos = 0 AND $cant_comas = 1 AND $pos_coma  IN (2,3)";
+        $NUM_MILES_INGLES = "$cant_puntos > 1 AND $cant_comas  = 0";
+        $NUM_MILES_ESPÑOL = "$cant_comas  > 1 AND $cant_puntos = 0";
+        $NUM_MILES_DECIMAL_INGLES = "$cant_comas >= 1 AND $cant_puntos  = 1 AND $pos_punto IN (2,3)";
+        $NUM_MILES_DECIMAL_ESPÑOL = "$cant_comas  = 1 AND $cant_puntos >= 1 AND $pos_coma  IN (2,3)";
+        //No se puede tirar un error sin un procedure... devuelvo NULL
+        return "(CASE
+          WHEN ($c = '' OR $c IS NULL) THEN 0.00
+          WHEN ($NUM_ENTERO)         THEN ($c)
+          WHEN ($NUM_DECIMAL_INGLES) THEN ($c)
+          WHEN ($NUM_DECIMAL_ESPÑOL) THEN (REPLACE($c,',','.'))
+          WHEN ($NUM_MILES_INGLES)   THEN ($sin_puntos)
+          WHEN ($NUM_MILES_ESPÑOL)   THEN ($sin_comas)
+          WHEN ($NUM_MILES_DECIMAL_INGLES) THEN ($sin_comas)
+          WHEN ($NUM_MILES_DECIMAL_ESPÑOL) THEN (REPLACE($sin_puntos,',','.'))
+          ELSE NULL
+        END)";
+      };
       /*
         row_1 nombre juegos
         row_2 nro_mesa
@@ -334,7 +371,7 @@ public function importarDiario(Request $request){
         row_10 drop_tarjeta
         row_11 propina
       */
-      $query = sprintf("LOAD DATA local INFILE '%s'
+      $query = "LOAD DATA local INFILE $path
       INTO TABLE filas_csv_mesas_bingos
       FIELDS TERMINATED BY ';'
       OPTIONALLY ENCLOSED BY '\"'
@@ -342,47 +379,58 @@ public function importarDiario(Request $request){
       LINES TERMINATED BY '\\n'
       IGNORE 1 LINES
       (@0,@1,@2,@3,@4,@5,@6,@7)
-      SET id_archivo = '%d',
-          row_1      = @0,
-          row_2      = @1,
-          row_3      = CAST(REPLACE(REPLACE(@2,'.',''),',','.') as DECIMAL(15,2)),
-          row_10     = CAST(REPLACE(REPLACE(@3,'.',''),',','.') as DECIMAL(15,2)),
-          row_4      = CAST(REPLACE(REPLACE(@4,'.',''),',','.') as DECIMAL(15,2)),
-          row_5      = CAST(REPLACE(REPLACE(@5,'.',''),',','.') as DECIMAL(15,2)),
-          row_6      = CAST(REPLACE(REPLACE(@6,'.',''),',','.') as DECIMAL(15,2)),
-          row_11     = CAST(REPLACE(REPLACE(@7,'.',''),',','.') as DECIMAL(15,2))",
-          $path,$iid, $fecha
-      );
+      SET 
+      id_archivo = '$iid',
+      row_1      = @0,
+      row_2      = @1,
+      row_3      = CAST(".$normalizar('@2')." as DECIMAL(15,2)),
+      row_10     = CAST(".$normalizar('@3')." as DECIMAL(15,2)),
+      row_4      = CAST(".$normalizar('@4')." as DECIMAL(15,2)),
+      row_5      = CAST(".$normalizar('@5')." as DECIMAL(15,2)),
+      row_6      = CAST(".$normalizar('@6')." as DECIMAL(15,2)),
+      row_11     = CAST(".$normalizar('@7')." as DECIMAL(15,2))";
 
       $pdo->exec($query);
+      
+      $archivo_incorrecto = DB::table('filas_csv_mesas_bingos')->selectRaw('id_archivo')
+      ->where('id_archivo','=',$iid)
+      ->where(function($q){
+        $q->whereNull('row_3')->orWhereNull('row_4')
+        ->orWhereNull('row_5')->orWhereNull('row_6')
+        ->orWhereNull('row_10')->orWhereNull('row_11');
+      })
+      ->get()->count() > 0;
+      
+      if($archivo_incorrecto){
+        throw new \DomainException('Archivo con datos numericos en formato incorrecto');
+      }
 
       //@HACK: saldo_fichas calculado a pata hasta que lo manden en el archivo
-      $crea_detalles = sprintf("INSERT INTO detalle_importacion_diaria_mesas
-        (id_importacion_diaria_mesas, siglas_juego, nro_mesa, droop, droop_tarjeta, utilidad, reposiciones, retiros, 
-        saldo_fichas,propina)
-        SELECT 
-        csv.id_archivo, csv.row_1, csv.row_2, csv.row_3,csv.row_10, csv.row_4, csv.row_5, csv.row_6,
-        (csv.row_4 - csv.row_3 - csv.row_10 + csv.row_5 - csv.row_6),csv.row_11
-        FROM filas_csv_mesas_bingos as csv
-        WHERE csv.id_archivo = '%d' AND csv.row_1 <> '' AND csv.row_2 <> '' AND SUBSTR(csv.row_1,0,7) <> 'TOTALES';",
-        $iid);
+      $crea_detalles = "INSERT INTO detalle_importacion_diaria_mesas
+      (id_importacion_diaria_mesas, siglas_juego, nro_mesa, droop, droop_tarjeta, utilidad, reposiciones, retiros, 
+      saldo_fichas,propina)
+      SELECT 
+      csv.id_archivo, csv.row_1, csv.row_2, csv.row_3,csv.row_10, csv.row_4, csv.row_5, csv.row_6,
+      (csv.row_4 - csv.row_3 - csv.row_10 + csv.row_5 - csv.row_6),csv.row_11
+      FROM filas_csv_mesas_bingos as csv
+      WHERE csv.id_archivo = '$iid' AND csv.row_1 <> '' AND csv.row_2 <> '' AND SUBSTR(csv.row_1,0,7) <> 'TOTALES';";
 
       $pdo->exec($crea_detalles);
 
-      $setea_totales = sprintf("UPDATE importacion_diaria_mesas i,
+      $setea_totales = "UPDATE importacion_diaria_mesas i,
       (
         SELECT SUM(d.droop) as droop              , SUM(d.droop_tarjeta) as droop_tarjeta , SUM(d.utilidad) as utilidad,
                SUM(d.reposiciones) as reposiciones, SUM(d.retiros) as retiros             , SUM(d.saldo_fichas) as saldo_fichas,
                SUM(d.propina) as propina
         FROM detalle_importacion_diaria_mesas d
-        WHERE d.id_importacion_diaria_mesas = '%d'
+        WHERE d.id_importacion_diaria_mesas = '$iid'
         GROUP BY d.id_importacion_diaria_mesas
       ) total
       SET i.droop    = IFNULL(total.droop,0),    i.droop_tarjeta = IFNULL(total.droop_tarjeta,0),
           i.utilidad = IFNULL(total.utilidad,0), i.reposiciones = IFNULL(total.reposiciones,0), 
           i.retiros  = IFNULL(total.retiros,0),  i.saldo_fichas = IFNULL(total.saldo_fichas,0),
           i.propina  = IFNULL(total.propina,0)
-      WHERE i.id_importacion_diaria_mesas = '%d'",$iid,$iid);
+      WHERE i.id_importacion_diaria_mesas = '$iid'";
 
       $pdo->exec($setea_totales);
   
@@ -390,7 +438,7 @@ public function importarDiario(Request $request){
       $importacion->save();
       $importacion->actualizarCierres();
 
-      DB::table('filas_csv_mesas_bingos')->where('id_archivo','=',$importacion->id_importacion_diaria_mesas)->delete();
+      DB::table('filas_csv_mesas_bingos')->where('id_archivo','=',$iid)->delete();
     });
     return 1;
   }
