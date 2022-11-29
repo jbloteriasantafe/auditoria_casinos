@@ -84,6 +84,7 @@
           <th class="tablaInicio text_field" style="background-color: #c0c0c0;width: 7%;">JUEGO</th>
           <th class="tablaInicio text_field" style="background-color: #c0c0c0;width: 5%;">MESA</th>
           <th class="tablaInicio text_field" style="background-color: #c0c0c0;">DROP</th>
+          <th class="tablaInicio text_field" style="background-color: #c0c0c0;">DROP (TARJETA)</th>
           <th class="tablaInicio text_field" style="background-color: #c0c0c0;">REPOS.</th>
           <th class="tablaInicio text_field" style="background-color: #c0c0c0;">RETIROS</th>
           <th class="tablaInicio text_field" style="background-color: #c0c0c0;">UTIL.</th>
@@ -107,6 +108,7 @@
           <td class="tablaCampos text_field">{{$d->siglas_juego}}</td>
           <td class="tablaCampos text_field">{{$d->nro_mesa}}</td>
           <td class="tablaCampos number_field">{{$string_number($d->droop)}}</td>
+          <td class="tablaCampos number_field">{{$string_number($d->droop_tarjeta)}}</td>
           <td class="tablaCampos number_field">{{$string_number($d->reposiciones)}}</td>
           <td class="tablaCampos number_field">{{$string_number($d->retiros)}}</td>
           <td class="tablaCampos number_field">{{$string_number($d->utilidad)}}</td>
@@ -127,6 +129,7 @@
           <th class="text_field">TOTALES</th>
           <th class="text_field">--</th>
           <th class="number_field">{{$string_number($importacion->droop)}}</th>
+          <th class="number_field">{{$string_number($importacion->droop_tarjeta)}}</th>
           <th class="number_field">{{$string_number($importacion->reposiciones)}}</th>
           <th class="number_field">{{$string_number($importacion->retiros)}}</th>
           <th class="number_field">{{$string_number($importacion->utilidad)}}</th>
