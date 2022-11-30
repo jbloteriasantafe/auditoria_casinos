@@ -344,8 +344,8 @@ public function importarDiario(Request $request){
         $NUM_ENTERO = "$cant_puntos = 0 AND $cant_comas = 0";
         $NUM_DECIMAL_INGLES = "$cant_puntos = 1 AND $cant_comas = 0 AND $pos_punto IN (2,3)";
         $NUM_DECIMAL_ESPÑOL = "$cant_puntos = 0 AND $cant_comas = 1 AND $pos_coma  IN (2,3)";
-        $NUM_MILES_INGLES = "$cant_puntos > 1 AND $cant_comas  = 0";
-        $NUM_MILES_ESPÑOL = "$cant_comas  > 1 AND $cant_puntos = 0";
+        $NUM_MILES_INGLES = "$cant_comas  > 1 AND $cant_puntos = 0";
+        $NUM_MILES_ESPÑOL = "$cant_puntos > 1 AND $cant_comas  = 0";
         $NUM_MILES_DECIMAL_INGLES = "$cant_comas >= 1 AND $cant_puntos  = 1 AND $pos_punto IN (2,3)";
         $NUM_MILES_DECIMAL_ESPÑOL = "$cant_comas  = 1 AND $cant_puntos >= 1 AND $pos_coma  IN (2,3)";
         //No se puede tirar un error sin un procedure... devuelvo NULL
@@ -354,8 +354,8 @@ public function importarDiario(Request $request){
           WHEN ($NUM_ENTERO)         THEN ($c)
           WHEN ($NUM_DECIMAL_INGLES) THEN ($c)
           WHEN ($NUM_DECIMAL_ESPÑOL) THEN (REPLACE($c,',','.'))
-          WHEN ($NUM_MILES_INGLES)   THEN ($sin_puntos)
-          WHEN ($NUM_MILES_ESPÑOL)   THEN ($sin_comas)
+          WHEN ($NUM_MILES_INGLES)   THEN ($sin_comas)
+          WHEN ($NUM_MILES_ESPÑOL)   THEN ($sin_puntos)
           WHEN ($NUM_MILES_DECIMAL_INGLES) THEN ($sin_comas)
           WHEN ($NUM_MILES_DECIMAL_ESPÑOL) THEN (REPLACE($sin_puntos,',','.'))
           ELSE NULL
