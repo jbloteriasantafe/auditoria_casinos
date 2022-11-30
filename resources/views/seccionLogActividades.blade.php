@@ -7,7 +7,6 @@
 <span class="etiquetaLogoUsuarios">@svg('usuario','iconoUsuarios')</span>
 @endsection
 @section('contenidoVista')
-
         <div id="page-wrapper">
           <div class="container-fluid">
                 <div class="row"> <!-- Tarjeta de FILTROS -->
@@ -23,15 +22,25 @@
                             <div class="row">
                               <div class="col-lg-3 col-xs-6">
                                 <h5>Usuario</h5>
-                                <input id="B_usuario" type="text" class="form-control" placeholder="Usuario">
+                                <input id="B_usuario" type="text" class="form-control" placeholder="Usuario" list="usuarios">
                               </div>
                               <div class="col-lg-3 col-xs-6">
                                 <h5>Tabla</h5>
-                                <input id="B_tabla" type="text" class="form-control" placeholder="Tabla">
+                                <select id="B_tabla" class="form-control">
+                                  <option value="">- Todas -</option>
+                                  @foreach($tablas as $t)
+                                  <option>{{$t}}</option>
+                                  @endforeach
+                                </select>
                               </div>
                               <div class="col-lg-3 col-xs-6">
                                 <h5>Acción</h5>
-                                <input id="B_accion" type="text" class="form-control" placeholder="Acción">
+                                <select id="B_accion" class="form-control">
+                                  <option value="">- Todas -</option>
+                                  @foreach($acciones as $a)
+                                  <option>{{$a}}</option>
+                                  @endforeach
+                                </select>
                               </div>
                               <div class="col-lg-3 col-xs-6">
                                 <h5>Fecha</h5>
@@ -168,6 +177,11 @@
           </div>
     </div>
   </div>
+<div hidden><datalist id="usuarios">
+  @foreach($usuarios as $u)
+  <option>{{$u}}</option>
+  @endforeach
+</datalist></div>
 
     <meta name="_token" content="{!! csrf_token() !!}" />
 

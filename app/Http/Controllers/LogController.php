@@ -19,12 +19,17 @@ class LogController extends Controller
   }
 
   public function buscarTodo(){
-    //$logs = Log::all();
-
     UsuarioController::getInstancia()->agregarSeccionReciente('Log Actividades' , 'logActividades');
-    return view('seccionLogActividades');//->with('logActividades',$logs);
+    //Agregar indices si estas querys se vuelven muy pesadas
+    $usuarios = DB::table('usuario')->select('nombre')->distinct()
+    ->whereNull('deleted_at')->get()->pluck('nombre')->sort();
+    $tablas = DB::table('log')->select('tabla')->distinct()
+    ->get()->pluck('tabla')->sort();
+    $acciones = DB::table('log')->select('accion')->distinct()
+    ->get()->pluck('accion')->sort();
+    return view('seccionLogActividades',compact('usuarios','tablas','acciones'));
   }
-
+  
   public function guardarLog($accion,$tabla,$id_entidad){
       $id_usuario = session('id_usuario');
       $log = new Log;
