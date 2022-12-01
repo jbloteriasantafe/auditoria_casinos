@@ -96,9 +96,9 @@ function clickIndice(e,pageNumber,tam){
   if(e != null){
     e.preventDefault();
   }
-  var tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
-  var columna = $('#tablaResultados .activa').attr('value');
-  var orden = $('#tablaResultados .activa').attr('estado');
+  tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
+  const columna = $('#tablaResultados .activa').attr('value');
+  const orden = $('#tablaResultados .activa').attr('estado');
   $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
 }
 
