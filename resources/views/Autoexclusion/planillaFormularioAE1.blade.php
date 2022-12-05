@@ -105,11 +105,14 @@
 
     <div class="primerEncabezado" style="font-size:13px">
       <p><b>Que la presente solicitud tiene carácter de IRREVOCABLE.</b></p>
-      <p>  Que en tal sentido, y durante el período de vigencia de la Autoexclusión, solicito me sea rechazado la entrada a todos los Casinos
-      de la Provincia de Santa Fe, y se me prohíba, en la medida de lo posible, la permanencia en los mismos. Que si intentara, o lograra
-      ingresar a cualquier Sala de Juego, me sea requerido el retiro del lugar.</p>
-      <p>Asimismo autorizo a que me sean tomadas las imágenes necesarias con el fin de mi identificación, aceptando que las mismas sean
-      remitidas a las restantes Salas de Juego, al único efecto del cumplimiento del presente.</p>
+      <p>  Que en tal sentido, y durante el período de vigencia de la Autoexclusión, solicito me sea
+      rechazado la entrada a todos los Casinos de la Provincia de Santa Fe, y a las plataformas de
+      Juego Online ut-supra mencionadas y se me prohíba, en la medida de lo posible, la
+      permanencia en los mismos. Que si intentara, o lograra ingresar a cualquier Sala de las
+      aludidas, me sea requerido el retiro del lugar.</p>
+      <p>También autorizo a que me sean tomadas las imágenes necesarias con el fin de mi
+      identificación, aceptando que las mismas sean remitidas a las restantes Salas de Juego, al
+      único efecto del cumplimiento del presente.</p>
     </div>
 
     <div style="page-break-after: always;"></div>
@@ -122,7 +125,7 @@
       <p>Asimismo, expreso:</p>
       @if(count($contacto['nombre_apellido']) > 0)
       <p>Que nombro como persona de contacto en forma de referencia a:</p>
-      <p>Sr./Sra <b>{{ifempty($contacto['nombre_apellido'],'NOINFORMA')}}</b> Domiciliado en calle <b>{{ifempty($contacto['domicilio'])}}</b>
+      <p>Sr./Sra <b>{{ifempty($contacto['nombre_apellido'],'NOINFORMA')}}</b> con domicilio en calle <b>{{ifempty($contacto['domicilio'])}}</b>
       de la Localidad de <b>{{ifempty($contacto['nombre_localidad'])}}</b> Provincia de <b>{{ifempty($contacto['nombre_provincia'])}}</b>
       Tel <b>{{ifempty($contacto['telefono'])}}</b> Vínculo con el Solicitante <b>{{ifempty($contacto['vinculo'])}}</b>.</p>
       @endif
@@ -138,6 +141,7 @@
       de Santa Fe y/ o el Estado Provincial, por violación o incumplimiento del presente. Reconozco que las Salas de Juego y sus concesionarios,
       ni la CAS - Lotería de Santa Fe ni el Estado Provincial, resultan responsables de las pérdidas o daños que por mi propio accionar se
       produzcan en mi patrimonio y/o persona y/o en la de terceros.</p>
+      <p>Linea telefónica de atención gratuita y confidencial. Si considera que tiene algún inconveniente con su manera de jugar puede informarse al numero 0800-345-5640.</p>
     </div>
 
     @if($es_primer_ae)
