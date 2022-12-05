@@ -8,12 +8,7 @@
 <link rel='stylesheet' href='/css/fullcalendar.min.css'/>
 @endsection
 <?php
-use App\Http\Controllers\UsuarioController;
-use App\Http\Controllers\AuthenticationController;
-use Illuminate\Http\Request;
-
-$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-$id_usuario = $usuario['usuario']->id_usuario;
+$usuario = \App\Http\Controllers\UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
 ?>
 
 @section('contenidoVista')
@@ -65,7 +60,7 @@ $id_usuario = $usuario['usuario']->id_usuario;
 
                                 ?></h4>
                             </div>
-
+git 
                             <div class="panel-body">
                               <div class="row">
                                 <div class="col-lg-12">
@@ -222,7 +217,7 @@ $iconos_por_ruta = [
               </div>
             </div>
 
-            @if ($id_usuario == 00)
+            @if ($usuario['usuario']->id_usuario == 00)
 
             <div id="modal_javi" class="modal fade" role="dialog">
               <div class="modal-dialog modal-lg">
@@ -266,7 +261,7 @@ $iconos_por_ruta = [
 
     <script src="js/seccionInicio.js"></script>
 
-    @if ($id_usuario == 5)
+    @if ($usuario['usuario']->id_usuario == 5)
     <script type="text/javascript">
         $('#modal_javi').modal('show');
         console.log('Anda');
