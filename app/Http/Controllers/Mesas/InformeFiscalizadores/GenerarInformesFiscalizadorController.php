@@ -171,13 +171,13 @@ class GenerarInformesFiscalizadorController extends Controller
       //$informe->cantidad_abiertas_con_minimo = $cantidad_con_minimo;
       $informe->cant_mesas_con_diferencia = $asociados_con_diferencias;
       if($mesas_con_diferencia == 'null'){
-        $informe->mesas_con_diferencia = '[{}]';
+        $informe->mesas_con_diferencia = '[]';
       }
       else {
         $informe->mesas_con_diferencia = $mesas_con_diferencia;
       }
       $informe->mesas_relevadas_abiertas = json_encode($mesasRelevadasAbiertas);
-      $informe->mesas_importadas_abiertas = [];
+      $informe->mesas_importadas_abiertas = '[]';
       $informe->save();
     }
 
