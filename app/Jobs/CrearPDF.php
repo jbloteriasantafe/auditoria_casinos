@@ -43,6 +43,16 @@ class CrearPDF implements ShouldQueue
     // sudo supervisorctl reread
     // sudo supervisorctl update
     // sudo supervisorctl restart all
+    
+    //NOTA: NO DEBERIA HABER COSAS EN LA TABLA jobs, eso indica que se quedaron
+    //colgados por algun motivo, por ejemplo hoy fue porque los permisos 
+    //de storage/logs/laravel.log no permitian escritura 
+    //(me di cuenta leyendo worker.log)
+    //La solucion: truncar la tabla y reiniciar los workers como mostre 
+    //anteriormente. Tambien acordarse de borrar los pdfs storage/app
+    //Lamentablemente, no encuentro forma de hacerlo mas robusto 
+    //sacando reemplazar el sistema por un sistema de pool de hilos
+    //o alguna libreria de async - Octavio 6 de Diciembre del 2022 
     public function handle(){
         $view = View::make($this->planilla, $this->compct);
         $dompdf = new Dompdf();
