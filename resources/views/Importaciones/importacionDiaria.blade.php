@@ -146,9 +146,9 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
                       <thead>
                         <tr align="center" >
                           <th class="col-xs-3 activa" estado="desc" value="fecha" style="font-size:14px; text-align:center !important;">FECHA<i class="fas fa-sort-down"></i></th>
-                          <th class="col-xs-2" style="font-size:14px; text-align:center !important;">IMP.</th>
-                          <th class="col-xs-2" style="font-size:14px; text-align:center !important;">REL.</th>
-                          <th class="col-xs-2" style="font-size:14px; text-align:center !important;">VAL.</th>
+                          <th class="col-xs-2" style="font-size:14px; text-align:center !important;">PRODUCIDO</th>
+                          <th class="col-xs-2" style="font-size:14px; text-align:center !important;">CIERRES</th>
+                          <th class="col-xs-2" style="font-size:14px; text-align:center !important;">VALIDADO</th>
                           <th class="col-xs-3"  style="font-size:14px; text-align:center !important;">ACCIÓN</th>
                         </tr>
                       </thead>
