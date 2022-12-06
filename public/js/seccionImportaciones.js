@@ -381,18 +381,19 @@ $('#btn-guardarImp').click(function(e){
   formData.append('id_tipo_moneda',$('#monedaImp').val());
   formData.append('md5',$('#modalImportacion .hashCalculado').val());
   
-  $('#casinoInfoImportacion').val(formData.get('id_casino'));
-  $('#monedaInfoImportacion').val(formData.get('id_tipo_moneda'));
-  $('#mesInfoImportacion').data('datetimepicker')
-    .setDate(new Date(formData.get('fecha').split('/').reverse().join('-')+'T00:00'));
-  $('#casinoInfoImportacion').change();
-
+  $('#casinoInfoImportacion,#casino_busqueda').val(formData.get('id_casino'));
+  $('#monedaInfoImportacion,#moneda_busqueda').val(formData.get('id_tipo_moneda'));
+  const fecha_iso = new Date(formData.get('fecha').split('/').reverse().join('-')+'T00:00');
+  $('#mesInfoImportacion').data('datetimepicker').setDate(fecha_iso);
+  
   //Si subió archivo lo guarda
   if($('#archivo').attr('data-borrado') == 'false' && $('#archivo')[0].files[0] != null){
     formData.append('archivo' , $('#archivo')[0].files[0]);
   }
   
   const tipo = $('#modalImportacion').data('tipo');
+  $('#tipo_archivo').val(tipo.toUpperCase());
+  
   let url = '';
   if(tipo == 'contadores') url = 'Contador';
   else if(tipo == 'producidos') url = 'Producido';
@@ -412,7 +413,8 @@ $('#btn-guardarImp').click(function(e){
       $('#modalImportacion .modal-body #iconoCarga').show();
     },
     success: function (data) {
-      $('#btn-buscarImportaciones').trigger('click');
+      cargarTablasImportaciones();
+      buscarImportaciones();
       $('#modalImportacion').modal('hide');
       let titulo = null;
       let texto = null;
@@ -661,7 +663,8 @@ $('#btn-eliminarModal').click(function (e) {
     type: "DELETE",
     url: url,
     success: function (data) {
-      $('#btn-buscarImportaciones').click();
+      cargarTablasImportaciones();
+      buscarImportaciones();
       $('#modalEliminar').modal('hide');
     },
     error: function (data) {
