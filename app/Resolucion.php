@@ -3,7 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\ResolucionObserver;
+
+class ResolucionObserver extends Observers\ParametrizedObserver {
+  public function __construct(){
+    parent::__construct('nro_resolucion','nro_resolucion_anio');
+  }
+}
 
 class Resolucion extends Model
 {

@@ -3,7 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\EventualidadObserver;
+
+class EventualidadObserver extends Observers\ParametrizedObserver {
+  public function __construct(){
+    parent::__construct('fecha','sector','islas','maquinas','id_log_movimiento','id_archivo');
+  }
+}
 
 class Eventualidad extends Model
 {

@@ -3,7 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\PermisoObserver;
+
+class PermisoObserver extends Observers\ParametrizedObserver {
+  public function __construct(){
+    parent::__construct('descripcion');
+  }
+}
 
 class Permiso extends Model
 {

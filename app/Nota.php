@@ -3,7 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\NotaObserver;
+
+class NotaObserver extends Observers\ParametrizedObserver {
+  public function __construct(){
+    parent::__construct('fecha');
+  }
+}
 
 class Nota extends Model
 {

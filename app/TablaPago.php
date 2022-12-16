@@ -3,7 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\TablaPagoObserver;
+
+class TablaPagoObserver extends Observers\ParametrizedObserver {
+  public function __construct(){
+    parent::__construct('codigo');
+  }
+}
 
 class TablaPago extends Model
 {

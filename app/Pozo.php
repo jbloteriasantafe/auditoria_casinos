@@ -3,9 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\PozoObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
 
 class Pozo extends Model
 {
@@ -26,7 +24,7 @@ class Pozo extends Model
 
   public static function boot(){
     parent::boot();
-    Pozo::observe(new PozoObserver());
+    Pozo::observe(Observers\ParametrizedObserver::class);
   }
 
   public function getTableName(){

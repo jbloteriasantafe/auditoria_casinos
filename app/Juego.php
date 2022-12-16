@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\JuegoObserver;
 
 class Juego extends Model
 {
@@ -78,7 +77,7 @@ class Juego extends Model
   }
   public static function boot(){
     parent::boot();
-    Juego::observe(new JuegoObserver());
+    Juego::observe(Observers\ParametrizedObserver::class);
   }
 
   public function getTableName(){

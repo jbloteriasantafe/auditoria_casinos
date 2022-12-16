@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\ContadorHorarioObserver;
 
 class ContadorHorario extends Model
 {
@@ -25,7 +24,7 @@ class ContadorHorario extends Model
 
   public static function boot(){
     parent::boot();
-    ContadorHorario::observe(new ContadorHorarioObserver());
+    ContadorHorario::observe(Observers\ParametrizedObserver::class);
   }
 
   public function getTableName(){

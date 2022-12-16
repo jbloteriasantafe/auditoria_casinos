@@ -3,7 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\RolObserver;
+
+class RolObserver extends Observers\ParametrizedObserver {
+  public function __construct(){
+    parent::__construct('descripcion');
+  }
+}
 
 class Rol extends Model
 {

@@ -3,7 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\CasinoObserver;
+
+class CasinoObserver extends Observers\ParametrizedObserver {
+  public function __construct(){
+    parent::__construct('nombre');
+  }
+}
 
 class Casino extends Model
 {

@@ -1,6 +1,7 @@
 <?php
 namespace App\Observers;
-class ParametrizedObserver extends EntityObserver{
+class ParametrizedObserver extends EntityObserver
+{
     private $attrs;
     public function __construct(){
         $this->attrs = func_get_args();
@@ -13,11 +14,3 @@ class ParametrizedObserver extends EntityObserver{
         return $ret;
     }
 }
-/*
-{//Si se asigna esta clase por si sola no guarda nada... Es para subclasearla tipo
-class ArchivoObserver extends Observers\ParametrizedObserver {
-  public function __construct(){
-    parent::__construct('nombre_archivo');
-  }
-}
-*/

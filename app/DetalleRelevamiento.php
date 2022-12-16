@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\DetalleRelevamientoObserver;
 
 class DetalleRelevamiento extends Model
 {

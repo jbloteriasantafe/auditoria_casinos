@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\RelevamientoObserver;
 
 class Relevamiento extends Model
 {
@@ -41,7 +40,7 @@ class Relevamiento extends Model
 
   public static function boot(){
     parent::boot();
-    Relevamiento::observe(new RelevamientoObserver());
+    Relevamiento::observe(Observers\ParametrizedObserver::class);
   }
 
   public function delete(){

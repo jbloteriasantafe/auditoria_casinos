@@ -5,6 +5,21 @@ namespace App\Mesas;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+class SectorMesasObserver extends \App\Observers\EntityObserver
+{
+   public function creating(SectorMesas $model)
+   {
+       $model->descripcion = strtoupper($model->descripcion);
+   }
+
+   public function getDetalles($entidad){
+     $detalles = array(//para cada modelo poner los atributos más importantes
+       array('descripcion', $entidad->descripcion),
+     );
+     return $detalles;
+   }
+}
+
 class SectorMesas extends Model
 {
   use SoftDeletes;
@@ -47,5 +62,9 @@ class SectorMesas extends Model
   }
   public function getId(){
     return $this->id_sector_mesas;
+  }
+  public static function boot(){
+    parent::boot();
+    SectorMesas::observe(new SectorMesasObserver());
   }
 }

@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\ProgresivoObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Progresivo extends Model
@@ -42,7 +41,7 @@ class Progresivo extends Model
 
   public static function boot(){
     parent::boot();
-    Progresivo::observe(new ProgresivoObserver());
+    Progresivo::observe(Observers\ParametrizedObserver::class);
   }
 
   public function getTableName(){

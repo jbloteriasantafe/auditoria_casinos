@@ -5,6 +5,23 @@ namespace App\Mesas;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+class JuegoMesaObserver extends \App\Observers\EntityObserver
+{
+   public function creating(JuegoMesa $model)
+   {
+     $model->nombre_juego = strtoupper($model->nombre_juego);
+     $model->siglas = strtoupper($model->siglas);
+   }
+
+   public function getDetalles($entidad){
+     $detalles = array(//para cada modelo poner los atributos más importantes
+       array('nombre_juego', $entidad->nombre_juego),
+       array('siglas', $entidad->siglas),
+     );
+     return $detalles;
+   }
+}
+
 class JuegoMesa extends Model
 {
   use SoftDeletes;
@@ -32,5 +49,9 @@ class JuegoMesa extends Model
   }
   public function getId(){
     return $this->id_juego_mesa;
+  }
+  public static function boot(){
+    parent::boot();
+    JuegoMesa::observe(new JuegoMesaObserver());
   }
 }

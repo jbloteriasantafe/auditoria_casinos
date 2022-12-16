@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\MaquinaObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Maquina extends Model
@@ -109,7 +108,7 @@ class Maquina extends Model
 
   public static function boot(){
     parent::boot();
-    Maquina::observe(new MaquinaObserver());
+    Maquina::observe(Observers\ParametrizedObserver::class);
   }
   public function getTableName(){
     return $this->table;

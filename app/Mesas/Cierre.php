@@ -5,6 +5,12 @@ namespace App\Mesas;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+class CierreObserver extends \App\Observers\ParametrizedObserver {
+  public function __construct(){
+    parent::__construct('fecha','hora_inicio','hora_fin','total_anticipos_c','total_pesos_fichas_c','id_mesa_de_panio');
+  }
+}
+
 class Cierre extends Model
 {
   use SoftDeletes;
@@ -101,5 +107,9 @@ class Cierre extends Model
   }
   public function getId(){
     return $this->id_cierre_mesa;
+  }
+  public static function boot(){
+    parent::boot();
+    Cierre::observe(new CierreObserver());
   }
 }

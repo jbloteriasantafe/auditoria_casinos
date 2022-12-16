@@ -3,7 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\ExpedienteObserver;
+
+class ExpedienteObserver extends Observers\ParametrizedObserver {
+  public function __construct(){
+    parent::__construct('nro_exp_org','nro_exp_interno','nro_exp_control');
+  }
+}
 
 class Expediente extends Model
 {

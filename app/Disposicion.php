@@ -3,7 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\DisposicionObserver;
+
+class DisposicionObserver extends Observers\ParametrizedObserver {
+  public function __construct(){
+    parent::__construct('nro_disposicion','nro_disposicion_anio');
+  }
+}
 
 class Disposicion extends Model
 {

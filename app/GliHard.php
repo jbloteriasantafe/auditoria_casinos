@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\GliHardObserver;
 
 class GliHard extends Model
 {
@@ -31,7 +30,7 @@ class GliHard extends Model
 
   public static function boot(){
         parent::boot();
-        GliHard::observe(new GliHardObserver());
+        GliHard::observe(Observers\ParametrizedObserver::class);
   }
 
   public function getTableName(){

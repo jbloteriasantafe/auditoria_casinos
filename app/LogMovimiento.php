@@ -3,7 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\LogMovimientoObserver;
+
+class LogMovimientoObserver extends Observers\ParametrizedObserver {
+  public function __construct(){
+    parent::__construct('id_estado_movimiento','id_estado_relevamiento','id_tipo_movimiento');
+  }
+}
 
 class LogMovimiento extends Model
 {
@@ -73,7 +78,7 @@ class LogMovimiento extends Model
 
  public static function boot(){
         parent::boot();
-        Disposicion::observe(new LogMovimientoObserver());
+        LogMovimiento::observe(new LogMovimientoObserver());
   }
 
   public function getTableName(){

@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\FormulaObserver;
 
 class Formula extends Model
 {
@@ -30,7 +29,7 @@ class Formula extends Model
 
   public static function boot(){
         parent::boot();
-        Formula::observe(new FormulaObserver());
+        Formula::observe(Observers\ParametrizedObserver::class);
   }
 
   public function getTableName(){

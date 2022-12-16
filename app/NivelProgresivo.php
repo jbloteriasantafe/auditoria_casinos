@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\NivelProgresivoObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class NivelProgresivo extends Model
@@ -29,7 +28,7 @@ class NivelProgresivo extends Model
 
   public static function boot(){
     parent::boot();
-    NivelProgresivo::observe(new NivelProgresivoObserver());
+    NivelProgresivo::observe(Observers\ParametrizedObserver::class);
   }
 
   public function getTableName(){

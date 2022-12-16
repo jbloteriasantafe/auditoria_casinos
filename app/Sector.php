@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\SectorObserver;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 
@@ -52,7 +51,7 @@ class Sector extends Model
 
   public static function boot(){
         parent::boot();
-        Sector::observe(new SectorObserver());
+        Sector::observe(Observers\ParametrizedObserver::class);
   }
 
   public function getTableName(){

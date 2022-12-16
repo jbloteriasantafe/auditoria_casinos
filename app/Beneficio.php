@@ -3,7 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\BeneficioObserver;
+
 class Beneficio extends Model
 {
   protected $connection = 'mysql';
@@ -26,7 +26,7 @@ class Beneficio extends Model
 
   public static function boot(){
     parent::boot();
-    Beneficio::observe(new BeneficioObserver());
+    Beneficio::observe(Observers\ParametrizedObserver::class);
   }
 
   public function getTableName(){

@@ -179,19 +179,6 @@ return [
         Barryvdh\DomPDF\ServiceProvider::class,
         Chumper\Zipper\ZipperServiceProvider::class,
         BladeSvg\BladeSvgServiceProvider::class,
-
-
-        /*
-        *
-        *Providers Creados
-        *
-        */
-        App\Providers\MesaModelServiceProvider::class,
-        App\Providers\TipoMesaModelServiceProvider::class,
-        App\Providers\MonedaModelServiceProvider::class,
-        App\Providers\SectorMesasModelServiceProvider::class,
-        App\Providers\JuegoMesaModelServiceProvider::class,
-        App\Providers\AperturasCierresModelsServiceProvider::class,
     ],
 
     /*

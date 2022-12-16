@@ -3,7 +3,16 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\TomaRelevMovObserver;
+
+class TomaRelevMovObserver extends Observers\ParametrizedObserver {
+  public function __construct(){
+    parent::__construct(
+      'vcont1','vcont2','vcont3','vcont4','vcont5','vcont6','vcont7',
+      'vcont8', 'juego', 'apuesta_max','cant_lineas', 'porcentaje_devolucion',
+      'denominacion','cant_creditos', 'observaciones'
+    );
+  }
+}
 
 /*
 *
@@ -28,7 +37,7 @@ class TomaRelevamientoMovimiento extends Model
   }
   public static function boot(){
         parent::boot();
-        Nota::observe(new TomaRelevMovObserver());
+        TomaRelevamientoMovimiento::observe(new TomaRelevMovObserver());
   }
   public function getTableName(){
     return $this->table;

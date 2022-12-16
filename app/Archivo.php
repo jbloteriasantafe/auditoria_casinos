@@ -3,7 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\ArchivoObserver;
+
+class ArchivoObserver extends Observers\ParametrizedObserver {
+  public function __construct(){
+    parent::__construct('nombre_archivo');
+  }
+}
 
 class Archivo extends Model
 {

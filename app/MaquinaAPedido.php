@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\MaquinaAPedidoObserver;
 
 class MaquinaAPedido extends Model
 {
@@ -22,7 +21,7 @@ class MaquinaAPedido extends Model
 
   public static function boot(){
     parent::boot();
-    MaquinaAPedido::observe(new MaquinaAPedidoObserver());
+    MaquinaAPedido::observe(Observers\ParametrizedObserver::class);
   }
 
   public function getTableName(){

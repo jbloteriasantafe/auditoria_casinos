@@ -5,7 +5,6 @@ namespace App;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Observers\UsuarioObserver;
 use App\Http\Controllers\AuthenticationController;
 
 class Usuario extends Model
@@ -129,7 +128,7 @@ class Usuario extends Model
 
     public static function boot(){
           parent::boot();
-          Usuario::observe(new UsuarioObserver());
+          Usuario::observe(Observers\ParametrizedObserver::class);
     }
 
     // public function agregarRuta($string){

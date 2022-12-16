@@ -5,6 +5,13 @@ namespace App\Mesas;
 use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
+
+class AperturaObserver extends \App\Observers\ParametrizedObserver {
+  public function __construct(){
+    parent::__construct('fecha','hora','total_pesos_fichas_a','id_mesa_de_panio');
+  }
+}
+
 class Apertura extends Model
 {
   use SoftDeletes;
@@ -91,5 +98,9 @@ public function getTotalCantidadFichasAttribute(){
   }
   public function getId(){
     return $this->id_apertura_mesa;
+  }
+  public static function boot(){
+    parent::boot();
+    Apertura::observe(new AperturaObserver());
   }
 }
