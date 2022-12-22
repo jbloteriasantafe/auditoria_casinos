@@ -42,15 +42,6 @@ class CasinoController extends Controller
     return view('Casinos.casinos')->with('casinos',$usuario->casinos);
   }
 
-  //se usa en canon mesas
-  public function getParaUsuario(){
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-
-    $cas = $user->casinos->all();
-
-    return $cas;
-  }
-
   public function obtenerCasino(Request $request,$id){
     $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
     if($usuario == null || !$usuario->usuarioTieneCasino($id)){
@@ -265,15 +256,6 @@ private function asociarTurnos($turnos, $casino){
 
     $casino = Casino::destroy($id);
     return ['casino' => $casino];
-  }
-
-  public function getAll(){
-    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
-    if($usuario == null || !$usuario->es_superusuario){
-      return ['error' => 'El usuario no es superusuario, por ende no puede crear casinos'];
-    }
-    $todos=Casino::all();
-    return $todos;
   }
 
   public function getFichas(Request $request){

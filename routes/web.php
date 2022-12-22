@@ -103,8 +103,6 @@ Route::group(['prefix' => 'casinos','middleware' => 'tiene_permiso:ver_seccion_c
   Route::get('obtenerTurno/{id}','CasinoController@obtenerTurno');
   Route::post('modificarCasino','CasinoController@modificarCasino');
   Route::delete('eliminarCasino/{id}','CasinoController@eliminarCasino');
-  Route::get('get', 'CasinoController@getAll');
-  Route::get('getCasinos', 'CasinoController@getParaUsuario');
   Route::get('getFichas','CasinoController@getFichas');
 });
 /***********
