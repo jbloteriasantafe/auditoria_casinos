@@ -50,7 +50,7 @@ $('#btn-agregarExpediente').click(function(e){
     var id_expediente = $('#inputExpediente').obtenerElementoSeleccionado();
 
     if (id_expediente != 0) {
-      $.get('expedientes/obtenerExpediente/' + id_expediente , function(data){
+      $.get('glihards/obtenerExpediente/' + id_expediente , function(data){
         //Agregar la fila a la tabla
         agregarFilaExpediente(data.expediente);
         //Limpiar el input para seguir buscando expedientes

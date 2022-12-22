@@ -278,7 +278,7 @@ $id_usuario = session('id_usuario');
     <!-- token -->
     <meta name="_token" content="{!! csrf_token() !!}" />
 
-    <script src="js/seccionGLIHard.js"></script>
+    <script src="js/seccionGLIHard.js?1"></script>
 
     <!-- Custom input Bootstrap -->
     <script src="js/fileinput.min.js" type="text/javascript"></script>

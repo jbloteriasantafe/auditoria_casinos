@@ -223,6 +223,7 @@ Route::group(['prefix' => 'notas'], function () {
  ************/
 Route::group(['prefix' => 'certificadoSoft','middleware' =>'tiene_permiso:ver_seccion_glisoft'],function(){
   Route::get('/','GliSoftController@buscarTodo');
+  Route::get('obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
   Route::post('guardarGliSoft','GliSoftController@guardarGliSoft');
   Route::get('pdf/{id}','GliSoftController@leerArchivoGliSoft');
   Route::get('obtenerGliSoft/{id}','GliSoftController@obtenerGliSoft');
@@ -240,6 +241,7 @@ Route::get('certificadoHard','GliHardController@buscarTodo')->middleware('tiene_
 Route::group(['prefix' => 'glihards'], function () {
   Route::post('buscarGliHard','GliHardController@buscarGliHard');
   Route::get('pdf/{id}','GliHardController@leerArchivoGliHard');
+  Route::get('obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
   Route::get('obtenerGliHard/{id}','GliHardController@obtenerGliHard');
   Route::post('guardarGliHard','GliHardController@guardarGliHard');
   Route::post('modificarGliHard','GliHardController@modificarGliHard');
