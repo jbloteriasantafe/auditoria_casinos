@@ -74,8 +74,8 @@ Route::post('login','AuthenticationController@login');
 /***********
 Log Actividades
 ***********/
-Route::group(['prefix' => 'logActividades'], function () {
-  Route::get('/','LogController@buscarTodo')->middleware('tiene_permiso:ver_seccion_logs_actividades');
+Route::group(['prefix' => 'logActividades','middleware' => 'tiene_permiso:ver_seccion_logs_actividades'], function () {
+  Route::get('/','LogController@buscarTodo');
   Route::get('buscarLogActividades','LogController@buscarLogActividades');
   Route::get('obtenerLogActividad/{id}','LogController@obtenerLogActividad');
 });
