@@ -115,7 +115,6 @@ Route::group(['prefix' => 'expedientes'], function () {
   Route::delete('eliminarExpediente/{id}','ExpedienteController@eliminarExpediente');
   Route::post('buscarExpedientes','ExpedienteController@buscarExpedientes');
   Route::get('buscarExpedientePorNumero/{busqueda}','ExpedienteController@buscarExpedientePorNumero');
-  Route::get('buscarExpedientePorCasinoYNumero/{id_casino}/{busqueda}','ExpedienteController@buscarExpedientePorCasinoYNumero');
   Route::get('obtenerMovimiento/{id}','LogMovimientoController@obtenerMovimiento');
   Route::get('movimientosSinExpediente/{id_casino}','LogMovimientoController@movimientosSinExpediente');
 });
@@ -270,7 +269,9 @@ Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_
   Route::post('modificarMaquina', 'MTMController@modificarMaquina');
   Route::post('buscarMaquinas', 'MTMController@buscarMaquinas');
   Route::delete('eliminarMaquina/{id}', 'MTMController@eliminarMTM');
-  Route::post('cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
+  Route::post('cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');  
+  Route::get('obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
+  Route::get('buscarExpedientePorCasinoYNumero/{id_casino}/{busqueda}','ExpedienteController@buscarExpedientePorCasinoYNumero');
   Route::get('{id}','MTMController@buscarTodo');
 });
 //Estos por si las moscas lo pongo ... Son todos GET por lo menos
@@ -313,7 +314,6 @@ Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_secci
   Route::get('casinosYMovimientosIngresosEgresos','LogMovimientoController@casinosYMovimientosIngresosEgresos');
   Route::post('buscarLogsMovimientos','LogMovimientoController@buscarLogsMovimientos');
   Route::post('enviarAFiscalizar', 'LogMovimientoController@enviarAFiscalizar');
-  Route::get('obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
   Route::post('guardarMaquina', 'MTMController@guardarMaquina');
   Route::post('cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
   Route::post('guardarTipoCargaYCantMaq', 'LogMovimientoController@guardarTipoCargaYCantMaq');

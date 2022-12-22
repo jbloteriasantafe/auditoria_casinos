@@ -68,7 +68,7 @@ $(document).on('click','.borrarExpediente',function(){
 $('.agregarExpediente').click(function(){
   var id = $('#buscadorExpediente').obtenerElementoSeleccionado();
 
-  $.get('http://' + window.location.host + '/movimientos/obtenerExpediente/' + id , function(data){
+  $.get('maquinas/obtenerExpediente/' + id , function(data){
     $('#listaExpedientes')
           .append($('<li>')
                 .val(data.expediente.id_expediente)
@@ -431,7 +431,7 @@ function mostrarMaquina(data, accion){
     $('#navJuego').attr('hidden',true);
   }
   casino_global = data.casino.id_casino;
-  $('#buscadorExpediente').generarDataList("expedientes/buscarExpedientePorCasinoYNumero/"+casino_global,'resultados','id_expediente','concatenacion',2,true);
+  $('#buscadorExpediente').generarDataList("maquinas/buscarExpedientePorCasinoYNumero/"+casino_global,'resultados','id_expediente','concatenacion',2,true);
   $('#buscadorExpediente').setearElementoSeleccionado(0,"");
   if (data.maquina.juega_progresivo==0){
     $('#juega_progresivo_m').val("NO");

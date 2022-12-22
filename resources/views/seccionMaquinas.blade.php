@@ -837,7 +837,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
     <script src="/js/seccionMaquinas-GliSoftNuevo.js" charset="utf-8"></script>
     <script src="/js/seccionMaquinas-GliHardNuevo.js" charset="utf-8"></script>
     <script src="/js/seccionMaquina-IslaNuevo.js" charset="utf-8"></script>
-    <script src="/js/seccionMaquinas-Modal.js" charset="utf-8"></script>
+    <script src="/js/seccionMaquinas-Modal.js?1" charset="utf-8"></script>
     <script src="/js/seccionMaquinas.js" charset="utf-8"></script>
     <script src="/js/utils.js" charset="utf-8"></script>
     <script src="/js/lista-datos.js" type="text/javascript"></script>
