@@ -167,7 +167,6 @@ Juegos
 ***********/
 Route::group(['prefix' => 'juegos','middleware' => 'tiene_permiso:ver_seccion_juegos'], function () {
   Route::get('/','JuegoController@buscarTodo');
-  Route::get('{id}','JuegoController@buscarTodo');
   Route::get('obtenerJuego/{id?}','JuegoController@obtenerJuego');
   Route::post('guardarJuego','JuegoController@guardarJuego');
   Route::post('modificarJuego','JuegoController@modificarJuego');
@@ -176,6 +175,7 @@ Route::group(['prefix' => 'juegos','middleware' => 'tiene_permiso:ver_seccion_ju
   Route::get('buscarJuegos/{busqueda}','JuegoController@buscarJuegoPorCodigoYNombre');
   Route::get('buscarJuegos/{id_casino}/{busqueda}','JuegoController@buscarJuegoPorCasinoYNombre');
   Route::post('buscar','JuegoController@buscarJuegos');
+  Route::get('{id}','JuegoController@buscarTodo');
 });
 
 /***********
@@ -223,13 +223,13 @@ Route::group(['prefix' => 'notas'], function () {
  ************/
 Route::group(['prefix' => 'certificadoSoft','middleware' =>'tiene_permiso:ver_seccion_glisoft'],function(){
   Route::get('/','GliSoftController@buscarTodo');
-  Route::get('{id}','GliSoftController@buscarTodo');
   Route::post('guardarGliSoft','GliSoftController@guardarGliSoft');
   Route::get('pdf/{id}','GliSoftController@leerArchivoGliSoft');
   Route::get('obtenerGliSoft/{id}','GliSoftController@obtenerGliSoft');
   Route::delete('eliminarGliSoft/{id}','GliSoftController@eliminarGLI');
   Route::post('buscarGliSoft','GliSoftController@buscarGliSofts');
   Route::post('modificarGliSoft','GliSoftController@modificarGliSoft');
+  Route::get('{id}','GliSoftController@buscarTodo');
 });
 //Lo dejo afuera sin permisos porque se usa en otro modulo, Movimientos...
 Route::get('certificadoSoft/buscarGliSoftsPorNroArchivo/{nro_archivo}','GliSoftController@buscarGliSoftsPorNroArchivo');
@@ -266,12 +266,12 @@ Seccion MTM
 ************/
 Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_maquinas'], function () {
   Route::get('/','MTMController@buscarTodo');
-  Route::get('{id}','MTMController@buscarTodo');
   Route::post('guardarMaquina', 'MTMController@guardarMaquina');
   Route::post('modificarMaquina', 'MTMController@modificarMaquina');
   Route::post('buscarMaquinas', 'MTMController@buscarMaquinas');
   Route::delete('eliminarMaquina/{id}', 'MTMController@eliminarMTM');
   Route::post('cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
+  Route::get('{id}','MTMController@buscarTodo');
 });
 //Estos por si las moscas lo pongo ... Son todos GET por lo menos
 //Es muy posible que usuarios que no tienen el permiso ver_seccion_maquinas las use
@@ -338,13 +338,13 @@ Relevamientos
 ***********/
 Route::group(['prefix' => 'relevamientos_movimientos','middleware' => 'tiene_permiso:ver_seccion_relevamientos_movimientos'], function () {
   Route::get('/','LogMovimientoController@relevamientosMovimientos');
-  Route::get('{id}','LogMovimientoController@relevamientosMovimientos');
   Route::post('buscarFiscalizaciones','FiscalizacionMovController@buscarFiscalizaciones');
   Route::get('eliminarFiscalizacion/{id}','FiscalizacionMovController@eliminarFiscalizacionParcial');
   Route::get('imprimirFiscalizacion/{id}','LogMovimientoController@imprimirFiscalizacion');
   Route::get('obtenerRelevamientosFiscalizacion/{id_fiscalizacion_movimiento}','LogMovimientoController@obtenerRelevamientosFiscalizacion');
   Route::get('obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
   Route::post('cargarTomaRelevamiento', 'LogMovimientoController@cargarTomaRelevamiento');
+  Route::get('{id}','LogMovimientoController@relevamientosMovimientos');
 });
 
 /**********
@@ -926,10 +926,10 @@ Route::group(['prefix' => 'informesAutoexcluidos','middleware' => 'tiene_permiso
 });
 
 Route::group(['prefix' => 'galeriaImagenesAutoexcluidos','middleware' => 'tiene_permiso:ver_seccion_ae_informes_galeria'], function () {
-  Route::get('{dni?}','Autoexclusion\GaleriaImagenesAutoexcluidosController@todo');
   Route::get('getPathsFotosAutoexcluidos','Autoexclusion\GaleriaImagenesAutoexcluidosController@getPathsFotosAutoexcluidos');
   Route::get('getDatosUnAutoexcluido/{nro_dni}','Autoexclusion\GaleriaImagenesAutoexcluidosController@getDatosUnAutoexcluido');
   Route::get('mostrarArchivo/{id_importacion}/{tipo_archivo}','Autoexclusion\AutoexclusionController@mostrarArchivo');
+  Route::get('{dni?}','Autoexclusion\GaleriaImagenesAutoexcluidosController@todo');
 });
 
 Route::group(['prefix' =>'API'],function(){
