@@ -303,7 +303,6 @@ Route::group(['prefix' => 'islas','middleware' => 'tiene_permiso:ver_seccion_isl
 });
 //@HACK: mover estos endpoints al group() donde se use... no es necesario que tengan el prefijo "islas"
 Route::group(['prefix' => 'islas'], function () {
-  Route::get('obtenerIsla/{id_casino}/{id_sector}/{nro_isla}','IslaController@obtenerIslaPorNro');
   Route::get('listarMaquinasPorNroIsla/{nro_isla}/{id_casino?}','IslaController@listarMaquinasPorNroIsla');
 });
 /**********
@@ -333,6 +332,7 @@ Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_secci
   Route::get('obtenerMovimiento/{id}','LogMovimientoController@obtenerMovimiento');
   Route::get('buscarIslaPorCasinoSectorYNro/{id_casino}/{id_sector}/{nro_isla}','IslaController@buscarIslaPorCasinoSectorYNro');
   Route::get('obtenerIsla/{id_isla}','IslaController@obtenerIsla');
+  Route::get('obtenerIsla/{id_casino}/{id_sector}/{nro_isla}','IslaController@obtenerIslaPorNro');
 });
 
 /**********

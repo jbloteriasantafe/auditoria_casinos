@@ -161,7 +161,7 @@ function changeIsla(e) {
   $('#tablaMaquinasDeIsla tbody > tr').not('.actual').not('.agregada').remove();
   //Aca hacemos otro pedido a la base de datos porque el datalist te guarda el ultimo seleccionado entonces
   //Quedaba bugeado (solo en el fronttend) isla 219381987321 con id_isla correcto
-  $.get('http://' + window.location.host + "/islas/obtenerIsla/" + id_casino + '/' + id_sector + '/' + nro_isla, function (data) {
+  $.get(window.location.href+"/obtenerIsla/" + id_casino + '/' + id_sector + '/' + nro_isla, function (data) {
     if (data.length == 0) {//Nro isla invalido
       $('#tablaMaquinasDeIsla tbody > tr').not('.actual').remove();
       $('#nro_isla').attr('data-sector', "");
