@@ -285,7 +285,7 @@ $('#confirmar').on('click',function(e){
       $('#fiscalizApertura').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_apert').prop('disabled', true);
 
-      $.get('usuarios/quienSoy',function(data){
+      $.get('aperturas/quienSoy',function(data){
         $('#cargador').val(data.usuario.nombre);
         $('#cargador').attr('data-cargador',data.usuario.id_usuario);
       })
@@ -707,7 +707,7 @@ $('#confirmarCierre').on('click',function(e){
       $('#columnaDetalleCie').hide();
       $('#mensajeExitoCargaCie').hide();
 
-      $.get('usuarios/quienSoy',function(data){
+      $.get('aperturas/quienSoy',function(data){
         console.log('quiensoy',data);
         $('#fiscalizadorCierre').val(data.usuario.nombre);
         $('#fiscalizadorCierre').attr('data-cargador',data.usuario.id_usuario);

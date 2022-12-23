@@ -127,7 +127,6 @@ Route::group(['prefix' => 'usuarios'], function () {
   Route::get('/','UsuarioController@buscarTodo')->middleware('tiene_permiso:ver_seccion_usuarios');
   Route::post('buscar','UsuarioController@buscarUsuarios');
   Route::get('buscar/{id_usuario}','UsuarioController@buscarUsuario');
-  Route::get('quienSoy' ,'UsuarioController@quienSoy');
   Route::post('guardarUsuario','UsuarioController@guardarUsuario');
   Route::delete('eliminarUsuario/{id_usuario}','UsuarioController@eliminarUsuario');
   Route::get('imagen','UsuarioController@leerImagenUsuario');
@@ -734,6 +733,7 @@ Route::get('mesas/obtenerMesasCierre/{id_cas}/{nro_mesa}', 'Mesas\Mesas\BuscarMe
 
 Route::group(['prefix' => 'aperturas'], function () {
   Route::get('/', 'Mesas\Aperturas\BCAperturaController@buscarTodo');
+  Route::get('quienSoy' ,'UsuarioController@quienSoy');
   Route::get('obtenerMesasPorJuego/{id_juego_mesa}/{nro_mesa}', 'Mesas\Mesas\BuscarMesasController@buscarMesaPorJuego');
   Route::post('agregarAperturaAPedido','Mesas\Aperturas\ABMAperturaController@agregarAperturaAPedido');
   Route::get('buscarAperturasAPedido','Mesas\Aperturas\ABMAperturaController@buscarAperturasAPedido');
