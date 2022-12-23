@@ -465,8 +465,8 @@ function mostrarPozo(id_pozo, nombre, editable, niveles = {}) {
 }
 
 $('#modalProgresivo_casino').change(function(){
-    $('#input-isla').generarDataList("http://" + window.location.host+"/islas/buscarIslaPorCasinoYNro/" + $(this).val(),'islas','id_isla','nro_isla',1,true);
-    $('#input-maquina').generarDataList("http://" + window.location.host+"/progresivos/buscarMaquinas/" + $(this).val(),'maquinas','id_maquina','nro_admin',1,true);
+    $('#input-isla').generarDataList("/progresivos/buscarIslaPorCasinoYNro/" + $(this).val(),'islas','id_isla','nro_isla',1,true);
+    $('#input-maquina').generarDataList("/progresivos/buscarMaquinas/" + $(this).val(),'maquinas','id_maquina','nro_admin',1,true);
     //FIX visual
     $('#input-isla').parent().find('.contenedor-data-list').css('top','0px').css('position','revert');
     $('#input-maquina').parent().find('.contenedor-data-list').css('top','0px').css('position','revert');

@@ -66,16 +66,9 @@ $("#modalSector input").on('keypress',function(e){
     Cada vez que se hace el input se controla si un option del datalist fue seleccionado.
     Si fue seleccionado se compara con el input para sacarle el id.
 */
-
-//Evento de tipeo en el input
-$('#inputIsla').bind('input', function() {
-
-});
-
-
 $('#casino').on('change' , function() {
      var id_casino = $(this).val();
-    $('.buscadorIsla').generarDataList("http://" + window.location.host+  "/islas/buscarIslaPorCasinoYNro/" + id_casino,'islas','id_isla','nro_isla',2,true);
+    $('.buscadorIsla').generarDataList("sectores/buscarIslaPorCasinoYNro/" + id_casino,'islas','id_isla','nro_isla',2,true);
 })
 
 $(document).on('click','.borrarIsla',function(){

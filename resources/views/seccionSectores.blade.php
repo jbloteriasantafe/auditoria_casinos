@@ -241,7 +241,7 @@ use Illuminate\Http\Request;
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionSectores.js" charset="utf-8"></script>
+    <script src="js/seccionSectores.js?1" charset="utf-8"></script>
     <script src="/js/lista-datos.js" charset="utf-8"></script>
 
     @endsection

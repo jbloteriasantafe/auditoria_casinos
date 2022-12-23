@@ -464,7 +464,7 @@ $(document).on('change','#selectCasino',function () {
     $('#buscadores').show();
     $('.buscadorMaquina').generarDataList('http://' +window.location.host + '/maquinas/buscarMaquinaPorNumeroMarcaYModelo/' + casino, "resultados","id_maquina" ,"nro_admin" , 2, true);
     $('.buscadorMaquina').setearElementoSeleccionado(0 , "");
-    $('.buscadorIsla').generarDataList("http://" + window.location.host+  "/islas/buscarIslaPorCasinoYNro/" + casino,'islas','id_isla','nro_isla',1,true);;
+    $('.buscadorIsla').generarDataList("formulas/buscarIslaPorCasinoYNro/" + casino,'islas','id_isla','nro_isla',1,true);;
     $('.buscadorIsla').setearElementoSeleccionado(0,"");
   }else{
     $('#buscadores').hide();

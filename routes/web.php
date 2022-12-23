@@ -92,6 +92,7 @@ Route::group(['prefix' => 'progresivos','middleware' => 'tiene_permiso:ver_secci
   Route::delete('eliminarProgresivo/{id_progresivo}','ProgresivoController@eliminarProgresivo');
   Route::post('crearProgresivosIndividuales','ProgresivoController@crearProgresivosIndividuales');
   Route::post('modificarParametrosRelevamientosProgresivo','RelevamientoProgresivoController@modificarParametrosRelevamientosProgresivo');
+  Route::get('buscarIslaPorCasinoYNro/{id_casino}/{nro_isla}','IslaController@buscarIslaPorCasinoYNro');
 });
 /***********
 Casinos
@@ -258,6 +259,7 @@ Route::group(['prefix' => 'formulas'], function () {
   Route::post('modificarFormula','FormulaController@modificarFormula');
   Route::post('asociarMaquinas','FormulaController@asociarMaquinas');
   Route::delete('eliminarFormula/{id}','FormulaController@eliminarFormula');
+  Route::get('buscarIslaPorCasinoYNro/{id_casino}/{nro_isla}','IslaController@buscarIslaPorCasinoYNro');
 });
 
 /***********
@@ -299,7 +301,6 @@ Route::group(['prefix' => 'islas','middleware' => 'tiene_permiso:ver_seccion_isl
 });
 //@HACK: mover estos endpoints al group() donde se use... no es necesario que tengan el prefijo "islas"
 Route::group(['prefix' => 'islas'], function () {
-  Route::get('buscarIslaPorCasinoYNro/{id_casino}/{nro_isla}','IslaController@buscarIslaPorCasinoYNro');
   Route::get('buscarIslaPorCasinoSectorYNro/{id_casino}/{id_sector}/{nro_isla}','IslaController@buscarIslaPorCasinoSectorYNro');
   Route::get('buscarIslaPorSectorYNro/{id_sector}/{nro_isla}','IslaController@buscarIslaPorSectorYNro');
   Route::get('obtenerIsla/{id_isla}','IslaController@obtenerIsla');
@@ -404,6 +405,7 @@ Route::group(['prefix' => 'sectores'], function () {
   Route::post('guardarSector','SectorController@guardarSector');
   Route::post('modificarSector','SectorController@modificarSector');
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
+  Route::get('buscarIslaPorCasinoYNro/{id_casino}/{nro_isla}','IslaController@buscarIslaPorCasinoYNro');
 });
 /**********
 Contadores
