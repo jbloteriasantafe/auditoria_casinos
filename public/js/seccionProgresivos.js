@@ -525,7 +525,7 @@ $('#btn-agregarIsla').click(function(){
     const nro_isla = $('#input-isla').val();
     if(id_casino == null || nro_isla.length == 0) return;
     //Esto retorna lista de subislas (islas con mismo nro y distinto codigo). Por eso la doble iteracion
-    $.get('/islas/listarMaquinasPorNroIsla/'+nro_isla+'/'+id_casino,function(data){
+    $.get('/progresivos/listarMaquinasPorNroIsla/'+nro_isla+'/'+id_casino,function(data){
         let maquinas_filas = [];
         $('#input-isla').setearElementoSeleccionado(0, "");
         data.islas.forEach(function(subisla){

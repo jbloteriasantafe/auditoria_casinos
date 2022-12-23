@@ -93,6 +93,7 @@ Route::group(['prefix' => 'progresivos','middleware' => 'tiene_permiso:ver_secci
   Route::post('crearProgresivosIndividuales','ProgresivoController@crearProgresivosIndividuales');
   Route::post('modificarParametrosRelevamientosProgresivo','RelevamientoProgresivoController@modificarParametrosRelevamientosProgresivo');
   Route::get('buscarIslaPorCasinoYNro/{id_casino}/{nro_isla}','IslaController@buscarIslaPorCasinoYNro');
+  Route::get('listarMaquinasPorNroIsla/{nro_isla}/{id_casino?}','IslaController@listarMaquinasPorNroIsla');
 });
 /***********
 Casinos
@@ -300,9 +301,6 @@ Route::group(['prefix' => 'islas','middleware' => 'tiene_permiso:ver_seccion_isl
   Route::get('buscarIslotes/{id_casino}','IslaController@buscarIslotes');
   Route::post('asignarIslotes','IslaController@asignarIslotes');
   Route::get('obtenerIsla/{id_isla}','IslaController@obtenerIsla');
-});
-//@HACK: mover estos endpoints al group() donde se use... no es necesario que tengan el prefijo "islas"
-Route::group(['prefix' => 'islas'], function () {
   Route::get('listarMaquinasPorNroIsla/{nro_isla}/{id_casino?}','IslaController@listarMaquinasPorNroIsla');
 });
 /**********
