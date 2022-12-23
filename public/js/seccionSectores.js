@@ -354,7 +354,7 @@ $(document).on("click", ".agregarIsla" ,function(){
   var id = $('.buscadorIsla').obtenerElementoSeleccionado();
   if(!existeEnDataList(id)){
     if(id != 0){
-      $.get('http://' + window.location.host +"/islas/obtenerIsla/" + id, function(data){
+      $.get("sectores/obtenerIsla/" + id, function(data){
         agregarIsla(data.isla ,true);
       });
       $('.buscadorIsla').setearElementoSeleccionado(0,"")

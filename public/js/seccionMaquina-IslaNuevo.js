@@ -227,7 +227,7 @@ function clickEditarIsla(e) {
     //Hacer un GET y cargar los datos
     var id_isla = $('#activa_datos').attr('data-isla');
 
-    $.get('http://' + window.location.host +"/islas/obtenerIsla/" + id_isla, function(data){
+    $.get(window.location.href+"/obtenerIsla/" + id_isla, function(data){
       console.log(data.sector.id_sector);
 
       $('#selectCasino').val(data.sector.id_casino).trigger('change', [data.sector.id_sector]);

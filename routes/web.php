@@ -260,6 +260,7 @@ Route::group(['prefix' => 'formulas'], function () {
   Route::post('asociarMaquinas','FormulaController@asociarMaquinas');
   Route::delete('eliminarFormula/{id}','FormulaController@eliminarFormula');
   Route::get('buscarIslaPorCasinoYNro/{id_casino}/{nro_isla}','IslaController@buscarIslaPorCasinoYNro');
+  Route::get('obtenerIsla/{id_isla}','IslaController@obtenerIsla');
 });
 
 /***********
@@ -298,10 +299,10 @@ Route::group(['prefix' => 'islas','middleware' => 'tiene_permiso:ver_seccion_isl
   Route::get('obtenerMTMReducido/{id}', 'MTMController@obtenerMTMReducido');
   Route::get('buscarIslotes/{id_casino}','IslaController@buscarIslotes');
   Route::post('asignarIslotes','IslaController@asignarIslotes');
+  Route::get('obtenerIsla/{id_isla}','IslaController@obtenerIsla');
 });
 //@HACK: mover estos endpoints al group() donde se use... no es necesario que tengan el prefijo "islas"
 Route::group(['prefix' => 'islas'], function () {
-  Route::get('obtenerIsla/{id_isla}','IslaController@obtenerIsla');
   Route::get('obtenerIsla/{id_casino}/{id_sector}/{nro_isla}','IslaController@obtenerIslaPorNro');
   Route::get('listarMaquinasPorNroIsla/{nro_isla}/{id_casino?}','IslaController@listarMaquinasPorNroIsla');
 });
@@ -331,6 +332,7 @@ Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_secci
   Route::post('cargarMaquinasMovimiento','LogMovimientoController@cargarMaquinasMovimiento');
   Route::get('obtenerMovimiento/{id}','LogMovimientoController@obtenerMovimiento');
   Route::get('buscarIslaPorCasinoSectorYNro/{id_casino}/{id_sector}/{nro_isla}','IslaController@buscarIslaPorCasinoSectorYNro');
+  Route::get('obtenerIsla/{id_isla}','IslaController@obtenerIsla');
 });
 
 /**********
@@ -363,6 +365,7 @@ Route::group(['prefix' => 'eventualidades'], function () {
   Route::get('visado/{id_ev}', 'EventualidadController@validarEventualidad');
   Route::post('buscarEventualidadesMTMs', 'LogMovimientoController@buscarEventualidadesMTMs');
   Route::get('leerArchivoEventualidad/{id}','EventualidadController@leerArchivoEventualidad');
+  Route::get('obtenerIsla/{id_isla}','IslaController@obtenerIsla');
 });
 /**********
 Eventualidades MTM ->intervenciones tecnicas mtm
@@ -405,6 +408,7 @@ Route::group(['prefix' => 'sectores'], function () {
   Route::post('modificarSector','SectorController@modificarSector');
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
   Route::get('buscarIslaPorCasinoYNro/{id_casino}/{nro_isla}','IslaController@buscarIslaPorCasinoYNro');
+  Route::get('obtenerIsla/{id_isla}','IslaController@obtenerIsla');
 });
 /**********
 Contadores

@@ -629,8 +629,7 @@ function existeEnDataList(id){
 }
 
 function agregarIsla(id_isla , listaMaquinas){
-
-  $.get( 'http://' + window.location.host +"/islas/obtenerIsla/" + id_isla , function(data){
+  $.get("formulas/obtenerIsla/" + id_isla , function(data){
     for (var i = 0; i < data.maquinas.length; i++) {
       if(!existeEnDataList(data.maquinas[i].id_maquina)){
         agregarMaquina(data.maquinas[i].id_maquina ,data.maquinas[i].nro_admin ,data.maquinas[i].marca , data.maquinas[i].modelo , listaMaquinas)

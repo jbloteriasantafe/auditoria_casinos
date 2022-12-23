@@ -256,7 +256,7 @@ function clickAgregarEv(e) {
       }
 
       if(select==0){
-        $.get('http://' + window.location.host +"/islas/obtenerIsla/" + id_isla, function(data) {
+        $.get("eventualidades/obtenerIsla/" + id_isla, function(data) {
           console.log('get de isla:', data);
           agregarIsEv(data.isla.id_isla, data.isla.nro_isla);
           $('#inputIs').setearElementoSeleccionado(0 , "");});
