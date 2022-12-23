@@ -32,7 +32,7 @@ $('#selectCasino').on('change', function(e,id_sector=0){
 
 $('#sector').on('change',function(){
     //generar datalist en campo de isla
-    $('#nro_isla').generarDataList("islas/buscarIslaPorCasinoSectorYNro/" + $('#selectCasino').val() + '/' + $('#sector').val()  ,'islas','id_isla','nro_isla',1);
+    $('#nro_isla').generarDataList("movimientos/buscarIslaPorCasinoSectorYNro/" + $('#selectCasino').val() + '/' + $('#sector').val()  ,'islas','id_isla','nro_isla',1);
     $('#nro_isla').prop('readonly',false);
     $('#sub_isla').prop('readonly',false);
 })
