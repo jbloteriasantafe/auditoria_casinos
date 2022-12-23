@@ -120,7 +120,7 @@ $('#btn-nuevo').click(function(e){
     $('#frmGLI').trigger('reset');
     $('#listaExpedientes').empty();
     //$('#alertaNombre').hide(); Esconder los alertas!
-    $('#inputExpediente').generarDataList("expedientes/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
+    $('#inputExpediente').generarDataList("glihards/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
     $('#inputExpediente').setearElementoSeleccionado(0,"");
     $('#modalGLI').modal('show');
 });
@@ -161,7 +161,7 @@ $(document).on('click','.modificar',function(){
     //obtenerGli
 
 
-    $('#inputExpediente').generarDataList("expedientes/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
+    $('#inputExpediente').generarDataList("glihards/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
     $('#inputExpediente').setearElementoSeleccionado(0,"");
 
     $('#cargaArchivo').attr('data-borrado','false');

@@ -236,7 +236,7 @@ $('#btn-nuevo').click(function(e){
     $('#tablaExpedientesSoft tbody').empty();
 
     //Preparar los datalist
-    $('#inputExpediente').generarDataList("http://" + window.location.host + "/expedientes/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
+    $('#inputExpediente').generarDataList("certificadoSoft/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
     $('#inputExpediente').setearElementoSeleccionado(0,"");
 
     //Inicializa el fileinput para cargar los PDF
@@ -292,7 +292,7 @@ $(document).on('click','.modificarGLI',function(){
     $('#tablaJuegos tbody').empty();
 
     //Preparar los datalist
-    $('#inputExpediente').generarDataList("http://" + window.location.host + "/expedientes/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
+    $('#inputExpediente').generarDataList("certificadoSoft/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
 
     $('#inputExpediente').setearElementoSeleccionado(0,"");
 

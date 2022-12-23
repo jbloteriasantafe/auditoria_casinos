@@ -115,7 +115,6 @@ Route::group(['prefix' => 'expedientes'], function () {
   Route::post('guardarOmodificarExpediente','ExpedienteController@guardarOmodificarExpediente');
   Route::delete('eliminarExpediente/{id}','ExpedienteController@eliminarExpediente');
   Route::post('buscarExpedientes','ExpedienteController@buscarExpedientes');
-  Route::get('buscarExpedientePorNumero/{busqueda}','ExpedienteController@buscarExpedientePorNumero');
   Route::get('obtenerMovimiento/{id}','LogMovimientoController@obtenerMovimiento');
   Route::get('movimientosSinExpediente/{id_casino}','LogMovimientoController@movimientosSinExpediente');
 });
@@ -222,6 +221,7 @@ Route::group(['prefix' => 'notas'], function () {
 Route::group(['prefix' => 'certificadoSoft','middleware' =>'tiene_permiso:ver_seccion_glisoft'],function(){
   Route::get('/','GliSoftController@buscarTodo');
   Route::get('obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
+  Route::get('buscarExpedientePorNumero/{busqueda}','ExpedienteController@buscarExpedientePorNumero');
   Route::post('guardarGliSoft','GliSoftController@guardarGliSoft');
   Route::get('pdf/{id}','GliSoftController@leerArchivoGliSoft');
   Route::get('obtenerGliSoft/{id}','GliSoftController@obtenerGliSoft');
@@ -240,6 +240,7 @@ Route::group(['prefix' => 'glihards'], function () {
   Route::post('buscarGliHard','GliHardController@buscarGliHard');
   Route::get('pdf/{id}','GliHardController@leerArchivoGliHard');
   Route::get('obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
+  Route::get('buscarExpedientePorNumero/{busqueda}','ExpedienteController@buscarExpedientePorNumero');
   Route::get('obtenerGliHard/{id}','GliHardController@obtenerGliHard');
   Route::post('guardarGliHard','GliHardController@guardarGliHard');
   Route::post('modificarGliHard','GliHardController@modificarGliHard');
