@@ -66,6 +66,7 @@ Route::group(['prefix' => 'configCuenta'], function () {
   Route::post('modificarPassword','UsuarioController@modificarPassword');
   Route::post('modificarImagen','UsuarioController@modificarImagen');
   Route::post('modificarDatos','UsuarioController@modificarDatos');
+  Route::get('buscarUsuario/{id_usuario}','UsuarioController@buscarUsuario');
 });
 
 Route::post('logout','AuthenticationController@logout');
@@ -787,6 +788,7 @@ Route::group(['prefix' => 'apuestas'], function () {
   Route::post('modificarRequerimiento','Mesas\Apuestas\ABMCApuestaMinimaController@modificar');
   Route::get('obtenerRequerimientos/{id_cas}/{id_moneda}','Mesas\Apuestas\ABMCApuestaMinimaController@obtenerApuestaMinima');
   Route::post('modificarRequerimiento','Mesas\Apuestas\ABMCApuestaMinimaController@modificar');
+  Route::get('buscarUsuario/{id_usuario}','UsuarioController@buscarUsuario');
 });
 Route::get('turnos/buscarTurnos/{nro}','Mesas\Turnos\TurnosController@buscarTurnos');
 

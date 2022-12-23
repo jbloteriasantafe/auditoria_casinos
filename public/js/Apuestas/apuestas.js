@@ -1365,7 +1365,7 @@ function clickAgregarFisca(e) {
   if($(this).attr('data-carga') == 'normal'){
     var id = $('#fiscalizadorCarga').obtenerElementoSeleccionado();
 
-       $.get('http://' + window.location.host +"/usuarios/buscar/" + id, function(data) {
+       $.get("apuestas/buscarUsuario/" + id, function(data) {
 
            var fila= $(document.createElement('tr'));
            fila.attr('id', data.usuario.id_usuario)
@@ -1389,7 +1389,7 @@ function clickAgregarFisca(e) {
 
     var id = $('#fiscalizadorBUp').obtenerElementoSeleccionado();
 
-       $.get('http://' + window.location.host +"/usuarios/buscar/" + id, function(data) {
+       $.get("apuestas/buscarUsuario/" + id, function(data) {
 
            var fila= $(document.createElement('tr'));
            fila.attr('id', data.usuario.id_usuario)
@@ -1413,7 +1413,7 @@ function clickAgregarFisca(e) {
 function clickAgregarFiscaMod(e) {
   var id = $('#fiscalizadorMod').obtenerElementoSeleccionado();
 
-     $.get('http://' + window.location.host +"/usuarios/buscar/" + id, function(data) {
+     $.get("apuestas/buscarUsuario/" + id, function(data) {
 
        var fila= $(document.createElement('tr'));
        fila.attr('id', data.usuario.id_usuario)

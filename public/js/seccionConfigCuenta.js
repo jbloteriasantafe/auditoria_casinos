@@ -183,7 +183,7 @@ $('#btn-editarDatos').click(function() {
     ocultarErrorValidacion($('#email'));
 
     //Setear los datos
-    $.get('usuarios/buscar/' + id_usuario, function(data) {
+    $.get('configCuenta/buscarUsuario/' + id_usuario, function(data) {
         console.log(data);
 
         $('#user_name').val(data.usuario.user_name);

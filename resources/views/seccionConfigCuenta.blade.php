@@ -325,7 +325,7 @@
 
 @section('scripts')
 <!-- JavaScript personalizado -->
-<script src="js/seccionConfigCuenta.js" charset="utf-8"></script>
+<script src="js/seccionConfigCuenta.js?1" charset="utf-8"></script>
 
 <!-- Croppie -->
 <script src="js/croppie.js" charset="utf-8"></script>
