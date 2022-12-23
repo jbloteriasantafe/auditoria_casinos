@@ -132,7 +132,7 @@
                   <div class="row">
                       <div class="col-md-7" style="border-right: 1px solid #ccc;">
                           <center>
-                              <img id="C_imagen" src="/usuarios/imagen" class="img-circle">
+                              <img id="C_imagen" src="/configCuenta/imagen" class="img-circle">
                               <h2 id="C_nombre">{{$usuario['usuario']->nombre}}</h2>
                               <h3 id="C_username">{{'@'.$usuario['usuario']->user_name}}</h3>
                           </center>

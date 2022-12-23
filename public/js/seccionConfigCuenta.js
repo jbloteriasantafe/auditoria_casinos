@@ -232,7 +232,7 @@ var $imagenPerfil;
 
 $(document).on('shown.bs.modal','#modalCambiarImagen', function(){
   $imagenPerfil = $('#imagenPerfil').croppie('destroy').croppie({
-    url: 'http://' + window.location.host + '/usuarios/imagen',
+    url: 'configCuenta/imagen',
     enableExif: true,
     viewport: {
       width: 250,

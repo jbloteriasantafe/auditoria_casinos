@@ -133,7 +133,7 @@
   <div class="card" style="flex:unset;width: 8vw;">
     <a tabindex="-1" href="/configCuenta">
       <?php
-      $img_user = $tiene_imagen ? '/usuarios/imagen' : '/img/img_user.jpg';
+      $img_user = $tiene_imagen ? '/configCuenta/imagen' : '/img/img_user.jpg';
       ?>
       <span>
         <img src='{{$img_user}}' class='img-circle' style="width: 2vw;">
