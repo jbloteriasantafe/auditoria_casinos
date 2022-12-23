@@ -869,7 +869,7 @@ $(document).on('change','.NivelLayout .sector',function(e){
   }
   else{
     const nro_isla = fila.find('.nro_isla').val();
-    fila.find('.nro_isla').generarDataList("http://" + window.location.host + "/islas/buscarIslaPorSectorYNro/" + $(this).val()  ,'islas','id_isla','nro_isla',1,false);
+    fila.find('.nro_isla').generarDataList("layouts/buscarIslaPorSectorYNro/" + $(this).val()  ,'islas','id_isla','nro_isla',1,false);
     fila.find('.nro_isla').val(nro_isla).change();
   }
 });
