@@ -102,10 +102,9 @@ Route::group(['prefix' => 'casinos','middleware' => 'tiene_permiso:ver_seccion_c
   Route::get('/','CasinoController@buscarTodo');
   Route::get('obtenerCasino/{id?}','CasinoController@obtenerCasino');
   Route::post('guardarCasino','CasinoController@guardarCasino');
-  Route::get('obtenerTurno/{id}','CasinoController@obtenerTurno');
   Route::post('modificarCasino','CasinoController@modificarCasino');
   Route::delete('eliminarCasino/{id}','CasinoController@eliminarCasino');
-  Route::get('getFichas','CasinoController@getFichas');
+  Route::get('getFichas','CasinoController@getFichas');//@deprecado, casinos.js no se usa mas
 });
 /***********
 Expedientes
