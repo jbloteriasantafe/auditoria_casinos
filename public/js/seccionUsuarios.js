@@ -267,7 +267,7 @@ function mostrarPermisos(roles) {
   cont.empty();
   $.ajax({
       type: "POST",
-      url: 'permiso/buscarPermisosPorRoles',
+      url: 'usuarios/buscarPermisosPorRoles',
       data:  {
         roles: roles,
       },

@@ -89,11 +89,9 @@ Route::group(['prefix' => 'progresivos','middleware' => 'tiene_permiso:ver_secci
   Route::post('buscarProgresivos','ProgresivoController@buscarProgresivos');
   Route::get('buscarMaquinas/{id_casino}/{nro_admin?}','ProgresivoController@buscarMaquinas');
   Route::get('obtenerProgresivo/{id_progresivo}','ProgresivoController@obtenerProgresivo');
-  Route::get('obtenerMinimoRelevamientoProgresivo/{id_casino}/{id_tipo_moneda}','RelevamientoProgresivoController@obtenerMinimoRelevamientoProgresivo');
   Route::post('crearModificarProgresivo','ProgresivoController@crearModificarProgresivo');
   Route::delete('eliminarProgresivo/{id_progresivo}','ProgresivoController@eliminarProgresivo');
   Route::post('crearProgresivosIndividuales','ProgresivoController@crearProgresivosIndividuales');
-  Route::post('modificarParametrosRelevamientosProgresivo','RelevamientoProgresivoController@modificarParametrosRelevamientosProgresivo');
   Route::get('buscarIslaPorCasinoYNro/{id_casino}/{nro_isla}','IslaController@buscarIslaPorCasinoYNro');
   Route::get('listarMaquinasPorNroIsla/{nro_isla}/{id_casino?}','IslaController@listarMaquinasPorNroIsla');
 });
@@ -135,6 +133,7 @@ Route::group(['prefix' => 'usuarios'], function () {
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
   Route::get('usuarioTienePermisos','AuthenticationController@usuarioTienePermisos');
   Route::post('reestablecerContraseña','UsuarioController@reestablecerContraseña');
+  Route::post('buscarPermisosPorRoles',"PermisoController@buscarPermisosPorRoles");
 });
 /***********
 Roles y permisos
@@ -153,7 +152,6 @@ Route::group(['prefix' => 'permiso'], function () {
   Route::post('guardar','PermisoController@guardarPermiso');
   Route::post('modificar','PermisoController@modificarPermiso');
   Route::get('getAll','PermisoController@getAll');
-  Route::post('buscarPermisosPorRoles',"PermisoController@buscarPermisosPorRoles");
   Route::delete('{id}','PermisoController@eliminarPermiso');
   Route::get('{id}','PermisoController@getPermiso');
 });
@@ -475,6 +473,10 @@ Route::group(['prefix' => 'relevamientosProgresivo','middleware' => 'tiene_permi
   Route::get('obtenerRelevamiento/{id}','RelevamientoProgresivoController@obtenerRelevamiento');
   Route::get('generarPlanilla/{id_relevamiento_progresivo}/{sin?}','RelevamientoProgresivoController@generarPlanillaProgresivos');
   Route::get('eliminarRelevamientoProgresivo/{id_relevamiento_progresivo}','RelevamientoProgresivoController@eliminarRelevamientoProgresivo');
+  Route::group(['middleware' => 'tiene_permiso:ver_seccion_progresivos'],function(){
+    Route::get('obtenerMinimoRelevamientoProgresivo/{id_casino}/{id_tipo_moneda}','RelevamientoProgresivoController@obtenerMinimoRelevamientoProgresivo');
+    Route::post('modificarParametrosRelevamientosProgresivo','RelevamientoProgresivoController@modificarParametrosRelevamientosProgresivo');
+  });
 });
 /******************************************************
 RELEVAMIENTOS CONTROL AMBIENTAL - MÁQUINAS TRAGAMONEDAS

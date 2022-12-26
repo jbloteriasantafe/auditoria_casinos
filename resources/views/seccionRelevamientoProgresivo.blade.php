@@ -496,7 +496,7 @@
 
 @section('scripts')
 <!-- JavaScript personalizado -->
-<script src="js/seccionRelevamientosProgresivos.js?3" charset="utf-8"></script>
+<script src="js/seccionRelevamientosProgresivos.js?4" charset="utf-8"></script>
 <script src="js/paginacion.js" charset="utf-8"></script>
 
 <!-- DateTimePicker JavaScript -->

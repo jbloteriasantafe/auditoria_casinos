@@ -78,7 +78,7 @@ function setearValorMinimoRelevamientoProgresivo(after = function(){}) {
   const id_casino      = $('#selectCasinoModificarRelev').val();
   const id_tipo_moneda = $('#selectTipoMonedaModificarRelev').val();
   $.ajax({
-    url: "progresivos/obtenerMinimoRelevamientoProgresivo/" + id_casino + "/" + id_tipo_moneda,
+    url: "relevamientosProgresivo/obtenerMinimoRelevamientoProgresivo/" + id_casino + "/" + id_tipo_moneda,
     type: "GET",
     dataType: "json",
     success: function(val){
@@ -571,7 +571,7 @@ $('#btn-guardar-param-relev-progresivos').on('click', function(e) {
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
     type: 'POST',
-    url: 'progresivos/modificarParametrosRelevamientosProgresivo',
+    url: 'relevamientosProgresivo/modificarParametrosRelevamientosProgresivo',
     data: {
       id_casino: $('#selectCasinoModificarRelev').val(),
       id_tipo_moneda: $('#selectTipoMonedaModificarRelev').val(),
