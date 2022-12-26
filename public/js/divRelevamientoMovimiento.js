@@ -261,7 +261,7 @@ function divRelMovMostrarDetalleRelevamiento(){
     divRM.find('.detalleRel').show();
 }
 function divRelMovSetearUsuarios(casino,cargador,fiscalizador){
-    divRM.find('.fiscaToma').generarDataList("/usuarios/buscarUsuariosPorNombreYCasino/" + casino.id_casino,'usuarios' ,'id_usuario','nombre',1,false);
+    divRM.find('.fiscaToma').generarDataList(window.location.href+"/buscarUsuariosPorNombreYCasino/" + casino.id_casino,'usuarios' ,'id_usuario','nombre',1,false);
     divRM.find('.fiscaToma').setearElementoSeleccionado(0,"");
     divRM.find('.fiscaCarga').val('');
     divRM.find('.fiscaCarga').removeAttr('data-id');

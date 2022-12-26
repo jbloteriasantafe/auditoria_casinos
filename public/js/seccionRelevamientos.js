@@ -360,7 +360,7 @@ $(document).on('click','.carga',function(e){
           $('#fiscaCarga').val(data.usuario_actual.usuario.nombre);// si el relevamiento no tiene usuario fizcalizador se le asigna el actual
       }
 
-      $('#inputFisca').generarDataList('usuarios/buscarUsuariosPorNombreYCasino/'+ data.id_casino,'usuarios','id_usuario','nombre',2);
+      $('#inputFisca').generarDataList('relevamientos/buscarUsuariosPorNombreYCasino/'+ data.id_casino,'usuarios','id_usuario','nombre',2);
       $('#inputFisca').setearElementoSeleccionado(0,"");
       if (data.usuario_fiscalizador){
         $('#inputFisca').setearElementoSeleccionado(data.usuario_fiscalizador.id_usuario,data.usuario_fiscalizador.nombre);

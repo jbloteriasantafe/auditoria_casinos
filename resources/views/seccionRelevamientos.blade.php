@@ -915,7 +915,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 
     <!-- JavaScript personalizado -->
     <!-- ?version para forzar que se recarge el script en el navegador del cliente -->
-    <script src="js/seccionRelevamientos.js?2" charset="utf-8"></script>
+    <script src="js/seccionRelevamientos.js?3" charset="utf-8"></script>
 
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>

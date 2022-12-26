@@ -149,7 +149,7 @@ $(document).on('click','#btn_cargarEv',function(e){
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
   $('#modalCargarEventualidad').modal('show');
   $('#fechaRel').val('');
-  $('#fiscaToma').generarDataList("usuarios/buscarUsuariosPorNombreYCasino/" + casino,'usuarios' ,'id_usuario','nombre',1,false);
+  $('#fiscaToma').generarDataList("eventualidades/buscarUsuariosPorNombreYCasino/" + casino,'usuarios' ,'id_usuario','nombre',1,false);
   $('#fiscaToma').setearElementoSeleccionado(0,"");
   $('#modalCargarEventualidad').find('#fechaEv').val(" ");
   $('#modalCargarEventualidad #tipoEventualidad').val(" ");

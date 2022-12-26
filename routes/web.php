@@ -130,7 +130,6 @@ Route::group(['prefix' => 'usuarios'], function () {
   Route::delete('eliminarUsuario/{id_usuario}','UsuarioController@eliminarUsuario');
   Route::get('buscarUsuariosPorNombre/{nombre}','UsuarioController@buscarUsuariosPorNombre');
   Route::get('buscarUsuariosPorNombre/{nombre}/relevamiento/{id_relevamiento}','UsuarioController@buscarUsuariosPorNombreYRelevamiento');
-  Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
   Route::get('usuarioTienePermisos','AuthenticationController@usuarioTienePermisos');
   Route::post('reestablecerContraseña','UsuarioController@reestablecerContraseña');
   Route::post('buscarPermisosPorRoles',"PermisoController@buscarPermisosPorRoles");
@@ -329,6 +328,7 @@ Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_secci
   Route::get('buscarIslaPorCasinoSectorYNro/{id_casino}/{id_sector}/{nro_isla}','IslaController@buscarIslaPorCasinoSectorYNro');
   Route::get('obtenerIsla/{id_isla}','IslaController@obtenerIsla');
   Route::get('obtenerIsla/{id_casino}/{id_sector}/{nro_isla}','IslaController@obtenerIslaPorNro');
+  Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
 });
 
 /**********
@@ -342,6 +342,7 @@ Route::group(['prefix' => 'relevamientos_movimientos','middleware' => 'tiene_per
   Route::get('obtenerRelevamientosFiscalizacion/{id_fiscalizacion_movimiento}','LogMovimientoController@obtenerRelevamientosFiscalizacion');
   Route::get('obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
   Route::post('cargarTomaRelevamiento', 'LogMovimientoController@cargarTomaRelevamiento');
+  Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
   Route::get('{id}','LogMovimientoController@relevamientosMovimientos');
 });
 
@@ -362,6 +363,7 @@ Route::group(['prefix' => 'eventualidades'], function () {
   Route::post('buscarEventualidadesMTMs', 'LogMovimientoController@buscarEventualidadesMTMs');
   Route::get('leerArchivoEventualidad/{id}','EventualidadController@leerArchivoEventualidad');
   Route::get('obtenerIsla/{id_isla}','IslaController@obtenerIsla');
+  Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
 });
 /**********
 Eventualidades MTM ->intervenciones tecnicas mtm
@@ -378,6 +380,7 @@ Route::group(['prefix' => 'eventualidadesMTM','middleware' => 'tiene_permiso:ver
   Route::post('visarConObservacion', 'LogMovimientoController@visarConObservacion');
   Route::get('obtenerMTMEnCasino/{id_casino}/{admin}','MTMController@obtenerMTMEnCasino');
   Route::get('obtenerMTM/{id}', 'MTMController@obtenerMTM');
+  Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
 });
 /******
 CALENDARIO
@@ -454,6 +457,7 @@ Route::group(['prefix' => 'relevamientos'], function () {
   Route::post('buscarRelevamientos','RelevamientoController@buscarRelevamientos');
   Route::get('verRelevamientoVisado/{id_relevamiento}','RelevamientoController@obtenerRelevamientoVisado');
   Route::get('chequearRolFiscalizador','UsuarioController@chequearRolFiscalizador');
+  Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
 });
 /* OBTENER FECHA Y HORA ACTUAL */
 Route::get('obtenerFechaActual',function(){
@@ -596,6 +600,7 @@ Route::group(['prefix' => 'layouts'],function (){
   Route::post('buscarLayoutsParciales' , 'LayoutController@buscarLayoutsParciales');
   Route::post('cargarLayoutParcial' , 'LayoutController@cargarLayoutParcial');
   Route::post('validarLayoutParcial' , 'LayoutController@validarLayoutParcial');
+  Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
 });
 
 //TOTAL
@@ -618,6 +623,7 @@ Route::group(['prefix' => 'layouts','middleware' => 'tiene_permiso:ver_seccion_l
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
   Route::get('obtenerMTMsEnIsla/{id_casino}/{nro_isla}/{nro_admin}','LayoutController@obtenerMTMsEnIsla');
   Route::get('buscarIslaPorSectorYNro/{id_sector}/{nro_isla}','IslaController@buscarIslaPorSectorYNro');
+  Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
 });
 
 

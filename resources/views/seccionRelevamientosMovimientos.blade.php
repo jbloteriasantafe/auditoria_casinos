@@ -193,7 +193,7 @@ $cas = $usuario['usuario']->casinos;
 
 <script src="/js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
-<script src="/js/divRelevamientoMovimiento.js" charset="utf-8"></script>
+<script src="/js/divRelevamientoMovimiento.js?1" charset="utf-8"></script>
 <script src="/js/seccionRelevamientosMovimientos.js" charset="utf-8"></script>
 
 <!-- DateTimePicker JavaScript -->

@@ -217,7 +217,7 @@ function cargarDivInactivas(id_layout_total,modo,done = function (x){return;}){
     $('#observaciones_fisca_layout').val(data.layout_total?.observacion_fiscalizacion);
 
     $('#fiscalizador_carga_layout').val(data.usuario_cargador?.nombre);
-    $('#fiscalizador_toma_layout').generarDataList('usuarios/buscarUsuariosPorNombreYCasino/'+ data.casino.id_casino,'usuarios','id_usuario','nombre',2);
+    $('#fiscalizador_toma_layout').generarDataList('layouts/buscarUsuariosPorNombreYCasino/'+ data.casino.id_casino,'usuarios','id_usuario','nombre',2);
     $('#fiscalizador_toma_layout').setearElementoSeleccionado(0,"");
     if (data.usuario_fiscalizador){
       $('#fiscalizador_toma_layout').setearElementoSeleccionado(data.usuario_fiscalizador.id_usuario,data.usuario_fiscalizador.nombre);

@@ -136,7 +136,7 @@ $(document).on('click','.carga',function(e){
           $('#fiscaCarga').val(data.usuario_cargador.nombre);
       }
 
-      $('#inputFisca').generarDataList('usuarios/buscarUsuariosPorNombreYCasino/'+ data.id_casino,'usuarios','id_usuario','nombre',2);
+      $('#inputFisca').generarDataList('layouts/buscarUsuariosPorNombreYCasino/'+ data.id_casino,'usuarios','id_usuario','nombre',2);
       $('#inputFisca').setearElementoSeleccionado(0,"");
       if (data.usuario_fiscalizador){
         $('#inputFisca').setearElementoSeleccionado(data.usuario_fiscalizador.id_usuario,data.usuario_fiscalizador.nombre);
