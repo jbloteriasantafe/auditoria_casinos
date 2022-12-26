@@ -201,34 +201,6 @@ class UsuarioController extends Controller
     return ['codigo' => 200];
   }
 
-  public function buscarUsuariosPorNombre($nombre){
-
-    if(empty($nombre) ){
-    $nombre = '%';
-    }
-    else{
-      $nombre = '%'.$nombre.'%';
-    }
-    $resultado = Usuario::where([['nombre','like',$nombre]])->get();
-    return ['usuarios' => $resultado];
-  }
-
-  public function buscarUsuariosPorNombreYRelevamiento($nombre, $id_relevamiento){
-    $relevamiento = Relevamiento::find($id_relevamiento);
-    $id_casino = $relevamiento->sector->id_casino;
-
-    if(empty($request->nombre) ){
-    $nombre = '%';
-    }
-    else{
-      $nombre = '%'.$request->nombre.'%';
-    }
-
-    $resultado = Usuario::join('usuario_tiene_casino' , 'usuario_tiene_casino.id_usuario' ,'=' , 'usuario.id_usuario')->where([['nombre','like',$nombre], ['usuario_tiene_casino.id_casino' , '=' , $id_casino]])->get();
-
-    return ['usuarios' => $resultado];
-  }
-
   public function buscarUsuariosPorNombreYCasino($id_casino,$nombre){
     $nombre = (empty($nombre)) ? '%' : '%'.$nombre.'%';
 

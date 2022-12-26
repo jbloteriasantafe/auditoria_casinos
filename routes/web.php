@@ -128,8 +128,6 @@ Route::group(['prefix' => 'usuarios'], function () {
   Route::get('buscar/{id_usuario}','UsuarioController@buscarUsuario');
   Route::post('guardarUsuario','UsuarioController@guardarUsuario');
   Route::delete('eliminarUsuario/{id_usuario}','UsuarioController@eliminarUsuario');
-  Route::get('buscarUsuariosPorNombre/{nombre}','UsuarioController@buscarUsuariosPorNombre');
-  Route::get('buscarUsuariosPorNombre/{nombre}/relevamiento/{id_relevamiento}','UsuarioController@buscarUsuariosPorNombreYRelevamiento');
   Route::get('usuarioTienePermisos','AuthenticationController@usuarioTienePermisos');
   Route::post('reestablecerContraseña','UsuarioController@reestablecerContraseña');
   Route::post('buscarPermisosPorRoles',"PermisoController@buscarPermisosPorRoles");
