@@ -128,7 +128,6 @@ Route::group(['prefix' => 'usuarios'], function () {
   Route::get('buscar/{id_usuario}','UsuarioController@buscarUsuario');
   Route::post('guardarUsuario','UsuarioController@guardarUsuario');
   Route::delete('eliminarUsuario/{id_usuario}','UsuarioController@eliminarUsuario');
-  Route::get('usuarioTienePermisos','AuthenticationController@usuarioTienePermisos');
   Route::post('reestablecerContraseña','UsuarioController@reestablecerContraseña');
   Route::post('buscarPermisosPorRoles',"PermisoController@buscarPermisosPorRoles");
 });
@@ -456,6 +455,7 @@ Route::group(['prefix' => 'relevamientos'], function () {
   Route::get('verRelevamientoVisado/{id_relevamiento}','RelevamientoController@obtenerRelevamientoVisado');
   Route::get('chequearRolFiscalizador','UsuarioController@chequearRolFiscalizador');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
+  Route::get('usuarioTienePermisos','AuthenticationController@usuarioTienePermisos');
 });
 /* OBTENER FECHA Y HORA ACTUAL */
 Route::get('obtenerFechaActual',function(){
@@ -599,6 +599,7 @@ Route::group(['prefix' => 'layouts'],function (){
   Route::post('cargarLayoutParcial' , 'LayoutController@cargarLayoutParcial');
   Route::post('validarLayoutParcial' , 'LayoutController@validarLayoutParcial');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
+  Route::get('usuarioTienePermisos','AuthenticationController@usuarioTienePermisos');
 });
 
 //TOTAL
@@ -713,8 +714,6 @@ Route::get('calendario_eventos',function(){
 });
 
 /*SECCION MESAS DE PAÑO*/
-Route::get('usuarios/buscarFiscalizadores/{id_cas}/{nombre}', 'UsuarioController@buscarFiscaNombreCasino');
-
 //gestion mesas
 Route::group(['prefix' => 'mesas'], function () {
   Route::get('/','Mesas\Mesas\BuscarMesasController@getMesas');
@@ -734,6 +733,7 @@ Route::group(['prefix' => 'cierres'], function () {
   Route::post('modificarCierre','Mesas\Cierres\ABMCierreController@modificarCierre');
   Route::get('obtenerCierres/{id_cierre}', 'Mesas\Cierres\BCCierreController@getCierre');
   Route::get('bajaCierre/{id_cierre}', 'Mesas\Cierres\BCCierreController@eliminarCierre')->middleware(['tiene_permiso:m_eliminar_cierres_y_aperturas']);
+  Route::get('buscarFiscalizadores/{id_cas}/{nombre}', 'UsuarioController@buscarFiscaNombreCasino');
 });
 Route::get('mesas/obtenerMesasCierre/{id_cas}/{nro_mesa}', 'Mesas\Mesas\BuscarMesasController@buscarMesaPorNroCasino');
 
@@ -753,6 +753,7 @@ Route::group(['prefix' => 'aperturas'], function () {
   Route::post('validarApertura','Mesas\Aperturas\VAperturaController@validarApertura');
   Route::get('obtenerApValidar/{id_apertura}', 'Mesas\Aperturas\BCAperturaController@obtenerApParaValidar');
   Route::get('desvincularApertura/{id_apertura}', 'Mesas\Cierres\ABMCCierreAperturaController@desvincularApertura')->middleware(['tiene_permiso:m_desvincular_aperturas']);
+  Route::get('buscarFiscalizadores/{id_cas}/{nombre}', 'UsuarioController@buscarFiscaNombreCasino');
 });
 Route::get('sorteo-aperturas/descargarZip/{nombre}', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@descargarZip');
 Route::get('compararCierre/{id_apertura}/{id_cierre}/{id_moneda}','Mesas\Aperturas\BCAperturaController@obtenerDetallesApCierre');
@@ -795,6 +796,7 @@ Route::group(['prefix' => 'apuestas'], function () {
   Route::get('obtenerRequerimientos/{id_cas}/{id_moneda}','Mesas\Apuestas\ABMCApuestaMinimaController@obtenerApuestaMinima');
   Route::post('modificarRequerimiento','Mesas\Apuestas\ABMCApuestaMinimaController@modificar');
   Route::get('buscarUsuario/{id_usuario}','UsuarioController@buscarUsuario');
+  Route::get('buscarFiscalizadores/{id_cas}/{nombre}', 'UsuarioController@buscarFiscaNombreCasino');
 });
 Route::get('turnos/buscarTurnos/{nro}','Mesas\Turnos\TurnosController@buscarTurnos');
 

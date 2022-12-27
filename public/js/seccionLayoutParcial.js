@@ -1232,7 +1232,7 @@ function mostrarIconosPorPermisos(){
 
     $.ajax({
       type: 'GET',
-      url: 'usuarios/usuarioTienePermisos',
+      url: 'layouts/usuarioTienePermisos',
       data: formData,
       dataType: 'json',
       success: function(data) {

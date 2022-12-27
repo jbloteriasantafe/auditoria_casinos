@@ -208,7 +208,7 @@ $('#buscarBackUp').on('click', function(e){
         var id_relevamiento=data.relevamiento.id_relevamiento_apuestas;
         var id_casino=data.relevamiento.id_casino;
 
-        $('#fiscalizadorBUp').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
+        $('#fiscalizadorBUp').generarDataList("apuestas/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
         $('#hora_prop_BUp').val(data.relevamiento.hora_propuesta).prop('readonly',true);
 
         var aux_nro_fila = 0;
@@ -450,7 +450,7 @@ $(document).on('click', '.cargarApuesta', function(e){
   $.get('apuestas/obtenerDatos/' + id_relevamiento, function(data){
       var id_casino=data.relevamiento.id_casino;
 
-      $('#fiscalizadorCarga').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
+      $('#fiscalizadorCarga').generarDataList("apuestas/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_carga').val(data.fecha).prop('readonly',true);
 
       if(data.relevamiento.hora_propuesta != null){
@@ -629,7 +629,7 @@ $(document).on('click', '.modificarApuesta', function(e){
 
        var id_casino=data.relevamiento_apuestas.id_casino;
 
-       $('#fiscalizadorMod').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
+       $('#fiscalizadorMod').generarDataList("apuestas/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
 
        for (var i = 0; i < data.fiscalizadores.length; i++) {
          var fila= generarTablaFisca(data.fiscalizadores[i]);

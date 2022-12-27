@@ -268,7 +268,7 @@ $(document).on('change','#casinoApertura',function(){
   var fecha=$('#B_fecha_apert').val();
   var id_casino=$('#casinoApertura').val();
   $('#inputMesaApertura').generarDataList("mesas/obtenerMesasApertura/"  + id_casino ,'mesas','id_mesa_de_panio','nro_mesa',1,true);
-  $('#fiscalizApertura').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
+  $('#fiscalizApertura').generarDataList("aperturas/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
 });
 
 //presiona el botón dentro del modal de carga que confirma el casino
@@ -282,7 +282,7 @@ $('#confirmar').on('click',function(e){
 
       $('#inputMesaApertura').generarDataList("mesas/obtenerMesasApertura/"  + id_casino ,'mesas','id_mesa_de_panio','nro_mesa',1,true);
 
-      $('#fiscalizApertura').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
+      $('#fiscalizApertura').generarDataList("aperturas/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_apert').prop('disabled', true);
 
       $.get('aperturas/quienSoy',function(data){
@@ -1296,7 +1296,7 @@ $(document).on('click', '.modificarCyA', function(e) {
 
       var id_casino = data.casino.id_casino;
       $('.f_apertura').text(data.apertura.fecha);
-      $('#fis_apertura').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
+      $('#fis_apertura').generarDataList("aperturas/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#fis_apertura').setearElementoSeleccionado(data.fiscalizador.id_usuario, data.fiscalizador.nombre);
       $('.car_apertura').text(data.cargador.nombre);
       $('.cas_apertura').text( data.casino.nombre);
@@ -1371,7 +1371,7 @@ $(document).on('click', '.modificarCierre', function(e) {
       $("input[name='monedaModCie'][value='"+data.moneda.id_moneda+"']").prop('checked', true);
       $("input[name='monedaModCie']").prop('disabled', true);
 
-      $('#fis_cierre').generarDataList("usuarios/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
+      $('#fis_cierre').generarDataList("cierres/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#fis_cierre').setearElementoSeleccionado(data.cargador.id_usuario, data.cargador.nombre);
       $('.cas_cierre').text( data.casino.nombre);
       $('#hs_cierre_cierre').val(data.cierre.hora_fin_format);
