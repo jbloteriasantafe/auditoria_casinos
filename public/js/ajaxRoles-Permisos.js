@@ -103,7 +103,7 @@ $(document).on('click','.openEliminar',function(){
 
   // $('#modalEliminar').show();
 
-  $.get('/' + tipo + '/' + id, function (data) {
+  $.get('roles_permisos/' + tipo + '/' + id, function (data) {
 
     console.log(data);
     $('#lista1').empty();
@@ -157,7 +157,7 @@ $('#btn-eliminar').click( function(e) {
   })
   $.ajax({
     type: "delete",
-    url:  '/'+tipo+ '/' + id,
+    url:  'roles_permisos/'+tipo+ '/' + id,
     success: function (data) {
       console.log(data);
       if(tipo == 'rol'){
@@ -174,7 +174,7 @@ $('#btn-eliminar').click( function(e) {
 
         $('#cuerpoTablaRoles tr').each(function(){
           var id=$(this).attr("id");
-          $.get('/rol/' + id, function (data) {
+          $.get('roles_permisos/rol/' + id, function (data) {
             var permisos='';
             for (var i = 0; i < data.permisos.length; i++) {
               permisos+= '· ' + data.permisos[i].descripcion + '<br>';
@@ -227,7 +227,7 @@ $(document).on('click','.detalleRol',function(){
 
   })
 
-  $.get('/rol/' + id_rol, function (data) {
+  $.get('roles_permisos/rol/' + id_rol, function (data) {
 
     console.log(data);
     $('#comment').val(data.rol.descripcion);
@@ -261,7 +261,7 @@ $(document).on('click','.detallePermiso',function(){
 
   })
 
-  $.get('/permiso/' + id_permiso, function (data) {
+  $.get('roles_permisos/permiso/' + id_permiso, function (data) {
 
 
     $('#commentPermiso').val(data.permiso.descripcion);
@@ -298,7 +298,7 @@ $(document).on('click','.modificarRol',function(){
     $(this).prop('readonly' , false);
   })
   $('#conteinerPermisos input:checkbox').prop('checked',false);
-  $.get('/rol/' + id_rol, function (data) {
+  $.get('roles_permisos/rol/' + id_rol, function (data) {
 
     console.log(data);
     $('#comment').val(data.rol.descripcion);
@@ -334,7 +334,7 @@ $(document).on('click','.modificarPermiso',function(){
   var id_permiso = $(this).val();
 
 
-  $.get('/permiso/' + id_permiso, function (data) {
+  $.get('roles_permisos/permiso/' + id_permiso, function (data) {
 
     $('#myModalPermisos input').each(function(e){
       $(this).prop('checked', false);
@@ -440,7 +440,7 @@ $('#btn-add2').click(function(e){
 $('#btn-save-rol').click(function(e){
 
   var permisos=[];
-  var my_url='rol/guardar';
+  var my_url='roles_permisos/rol/guardar';
   var state=$('#btn-save-rol').val();
 
   $('#mensajeExito').hide();
@@ -466,7 +466,7 @@ $('#btn-save-rol').click(function(e){
       descripcion: $('#comment').val(),
 
     };
-    my_url='rol/modificar' ;
+    my_url='roles_permisos/rol/modificar' ;
   }
   else {
     formData={
@@ -563,7 +563,7 @@ $('#btn-save-rol').click(function(e){
 $('#btn-save-permiso').click(function(e){
   var roles=[];
   var state=$('#btn-save-permiso').val();
-  var my_url= 'permiso/guardar';
+  var my_url= 'roles_permisos/permiso/guardar';
 
   $('#mensajeExito').hide();
   $('#mensajeExito .cabeceraMensaje').removeClass('modificar');
@@ -590,7 +590,7 @@ $('#btn-save-permiso').click(function(e){
       roles:  roles,
       descripcion: $('#commentPermiso').val(),
     } ;
-    my_url= 'permiso/modificar';
+    my_url= 'roles_permisos/permiso/modificar';
   };
 
 
@@ -625,7 +625,7 @@ $('#btn-save-permiso').click(function(e){
         */
         $('#cuerpoTablaRoles tr').each(function(){
           var id=$(this).attr("id");
-          $.get('/rol/' + id, function (data) {
+          $.get('roles_permisos/rol/' + id, function (data) {
             var permisos='';
             for (var i = 0; i < data.permisos.length; i++) {
               permisos+= '· ' + data.permisos[i].descripcion + '<br>';
@@ -750,7 +750,7 @@ $('#buscarRol').click(function(e){
   console.log(formData);
   $.ajax({
     type: "POST",
-    url: 'roles/buscar',
+    url: 'roles_permisos/rol/buscar',
     data: formData,
     dataType: 'json',
     success: function (data) {
@@ -867,7 +867,7 @@ $('#buscarPermiso').click(function(e){
   console.log(formData);
   $.ajax({
     type: "POST",
-    url: 'permisos/buscar',
+    url: 'roles_permisos/permiso/buscar',
     data: formData,
     dataType: 'json',
     success: function (data) {

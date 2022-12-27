@@ -100,13 +100,6 @@ class PermisoController extends Controller
 
   }
 
-  public function getAll(){
-      $permisos=Permiso::all();
-
-      return  $permisos;
-
-  }
-
   public function buscarPermisos(Request $request){
     if(empty($request->permiso) ){
     $permiso='%';

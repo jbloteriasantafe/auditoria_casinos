@@ -134,24 +134,25 @@ Route::group(['prefix' => 'usuarios','middleware' => 'tiene_permiso:ver_seccion_
 /***********
 Roles y permisos
 ***********/
-Route::group(['prefix' => 'rol'], function () {
-  Route::post('guardar','RolController@guardarRol');
-  Route::post('modificar','RolController@modificarRol');
-  Route::get('getAll','RolController@getAll');
-  Route::delete('{id}','RolController@eliminarRol');
-  Route::get('{id}','RolController@getRol');
+Route::group(['prefix' => 'roles_permisos','middleware' => 'tiene_permiso:ver_seccion_roles_permisos'], function () {
+  Route::get('/','RolController@buscarTodo');
+  Route::group(['prefix' => 'rol'], function () {
+    Route::post('buscar','RolController@buscarRoles');
+    Route::post('guardar','RolController@guardarRol');
+    Route::post('modificar','RolController@modificarRol');
+    Route::get('getAll','RolController@getAll');
+    Route::delete('{id}','RolController@eliminarRol');
+    Route::get('{id}','RolController@getRol');
+  });
+  Route::group(['prefix' => 'permiso'], function () {
+    Route::post('buscar','PermisoController@buscarPermisos');
+    Route::post('guardar','PermisoController@guardarPermiso');
+    Route::post('modificar','PermisoController@modificarPermiso');
+    Route::get('getAll','PermisoController@getAll');
+    Route::delete('{id}','PermisoController@eliminarPermiso');
+    Route::get('{id}','PermisoController@getPermiso');
+  });
 });
-Route::get('roles','RolController@buscarTodo')->middleware('tiene_permiso:ver_seccion_roles_permisos');
-Route::post('roles/buscar','RolController@buscarRoles');
-
-Route::group(['prefix' => 'permiso'], function () {
-  Route::post('guardar','PermisoController@guardarPermiso');
-  Route::post('modificar','PermisoController@modificarPermiso');
-  Route::get('getAll','PermisoController@getAll');
-  Route::delete('{id}','PermisoController@eliminarPermiso');
-  Route::get('{id}','PermisoController@getPermiso');
-});
-Route::post('permisos/buscar','PermisoController@buscarPermisos');
 
 /***********
 Juegos

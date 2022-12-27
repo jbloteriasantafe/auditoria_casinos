@@ -42,7 +42,7 @@ class RolController extends Controller
                                     ->orderBy('permiso.descripcion' , 'asc')
                                     ->distinct()->get();
 
-    UsuarioController::getInstancia()->agregarSeccionReciente('Roles y Permisos' , 'roles');
+    UsuarioController::getInstancia()->agregarSeccionReciente('Roles y Permisos' , 'roles_permisos');
     return view('seccionRolesPermisos' , ['roles' => $roles , 'permisos' => $permisos]);
   }
 
@@ -124,12 +124,6 @@ class RolController extends Controller
       public function getRol($id){
         $rol=Rol::findorfail($id);
         return ['rol' => $rol , 'permisos' => $rol->permisos, 'usuarios' => $rol->usuarios];
-      }
-
-
-      public function getAll(){
-        $todos=Rol::all();
-        return $todos;
       }
 
       public function buscarRoles(Request $request){

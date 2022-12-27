@@ -29,7 +29,7 @@ $gestion_hijos = [
         'algun_permiso' => ['ver_seccion_usuarios'],
       ],
       'Roles y permisos' => [
-        'link' => '/roles',
+        'link' => '/roles_permisos',
         'algun_permiso' => ['ver_seccion_roles_permisos'],
       ],
       'Log de actividades' => [

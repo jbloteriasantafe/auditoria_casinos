@@ -342,7 +342,7 @@ use App\Http\Controllers\permisoController;
  <!-- JavaScript personalizado -->
  <!-- <script src="js/seccionCasinos.js"></script> -->
 
-<script src="js/ajaxRoles-Permisos.js"></script>
+<script src="js/ajaxRoles-Permisos.js?1"></script>
 
 <script type="text/javascript">
 
