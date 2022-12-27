@@ -403,18 +403,6 @@ class GliSoftController extends Controller
       return ['gli_soft' => $GLI , 'nombre_archivo' => $nombre_archivo ];
   }
 
-  public function getGli($id){
-    return GliSoft::find($id);
-  }
-
-  public function buscarGliSoftsPorNroArchivo($nro_archivo){
-    $reglas = Array();
-    if(!empty($nro_archivo))
-      $reglas[]=['nro_archivo', 'like', '%'.$nro_archivo.'%'];
-    $resultado = GliSoft::where($reglas)->get();
-    return ['gli_softs' => $resultado];
-  }
-
   private function noEstaEnLista($expediente ,$expedientes ){//expediente posta ,expedientes del request
     for($i=0; $i<count($expedientes); $i++){
       if($expedientes[$i] == $expediente->id_expediente){

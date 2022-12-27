@@ -189,25 +189,21 @@ Route::group(['prefix' => 'packJuegos','middleware' => 'tiene_permiso:ver_seccio
 /***********
 Disposiciones
 ***********/
-Route::group(['prefix' => 'disposiciones'], function () {
-  Route::get('/','DisposicionController@buscarTodoDisposiciones')->middleware('tiene_permiso:ver_seccion_disposiciones');
+Route::group(['prefix' => 'disposiciones','middleware' => 'tiene_permiso:ver_seccion_disposiciones'], function () {
+  Route::get('/','DisposicionController@buscarTodoDisposiciones');
   Route::post('buscar','DisposicionController@buscarDispocisiones');
 });
-Route::group(['prefix' => 'resoluciones'], function () {
+Route::group(['prefix' => 'resoluciones','middleware' => 'tiene_permiso:ver_seccion_resoluciones'], function () {
   Route::get('/','ResolucionController@buscarTodoResoluciones');
-  Route::post('buscar','ResolucionController@buscarResolucion')->middleware('tiene_permiso:ver_seccion_resoluciones');
+  Route::post('buscar','ResolucionController@buscarResolucion');
 });
-
-/***********
-Notas
-***********/
-Route::group(['prefix' => 'notas'], function () {
-  Route::get('/','NotaController@buscarTodoNotas')->middleware('tiene_permiso:ver_seccion_resoluciones');
-  Route::post('buscar','NotaController@buscarNotas')->middleware('tiene_permiso:ver_seccion_resoluciones');
+//@TODO: hacer un permiso para la seccion notas
+Route::group(['prefix' => 'notas','middleware' => 'tiene_permiso:ver_seccion_resoluciones'], function () {
+  Route::get('/','NotaController@buscarTodoNotas');
+  Route::post('buscar','NotaController@buscarNotas');
   Route::get('consulta-nota/{id}','NotaController@consultaMovimientosNota');
   Route::delete('eliminar-nota/{id}','NotaController@eliminarNotaCompleta');
 });
-
  /***********
     GLI soft
  ************/
@@ -223,8 +219,7 @@ Route::group(['prefix' => 'certificadoSoft','middleware' =>'tiene_permiso:ver_se
   Route::post('modificarGliSoft','GliSoftController@modificarGliSoft');
   Route::get('{id}','GliSoftController@buscarTodo');
 });
-//Lo dejo afuera sin permisos porque se usa en otro modulo, Movimientos...
-Route::get('certificadoSoft/buscarGliSoftsPorNroArchivo/{nro_archivo}','GliSoftController@buscarGliSoftsPorNroArchivo');
+
 /***********
 GliHards
 ***********/

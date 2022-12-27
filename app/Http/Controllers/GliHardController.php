@@ -22,10 +22,6 @@ class GliHardController extends Controller
       return self::$instance;
   }
 
-  public function getGli($id){
-    return GliHard::find($id);
-  }
-
   public function buscarTodo(){
       $glihard=GliHard::all();
       $casinos=Casino::all();
