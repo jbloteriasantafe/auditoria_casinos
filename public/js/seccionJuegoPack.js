@@ -50,7 +50,7 @@ $('#btn-asociar-pack-mtm').click(function(e){
     
     $('#inputMTM').generarDataList("maquinas/obtenerMTMEnCasino/" + 0, 'maquinas','id_maquina','nro_admin',1,true);
     $('#inputMTM').setearElementoSeleccionado(0,"");
-    $('#inputPack').generarDataList("http://" + window.location.host + "/packJuego/buscarPackJuegos" ,'resultados','id_pack','identificador', 1, false);
+    $('#inputPack').generarDataList("http://" + window.location.host + "/packJuegos/buscarPackJuegos" ,'resultados','id_pack','identificador', 1, false);
     $('#inputPack').setearElementoSeleccionado(0,"");
     ocultarErrorValidacion($('#inputMTM'));
     $('#modalAsociarPackMtm').modal('show');
@@ -66,7 +66,7 @@ $('#btn-open-asociar-pack-juego').click(function(e){
     $('#inputJuegoPack').generarDataList("http://" + window.location.host + "/juegos/buscarJuegos" ,'resultados','id_juego','nombre_juego', 1, false);
     $('#inputJuegoPack').setearElementoSeleccionado(0,"");
     //genero la lista para los pack
-     $('#inputNombrePack').generarDataList("http://" + window.location.host + "/packJuego/buscarPackJuegos" ,'resultados','id_pack','identificador', 1, false);
+     $('#inputNombrePack').generarDataList("http://" + window.location.host + "/packJuegos/buscarPackJuegos" ,'resultados','id_pack','identificador', 1, false);
     $('#inputNombrePack').setearElementoSeleccionado(0,"");
    
 
@@ -159,11 +159,11 @@ $('#btn-crear-pack').click(function (e) {
         identificador: $('#identificadorPack').val(),
         prefijo: $('#prefijo').val(),
       }
-      var url= 'packJuego/guardarPackJuego';
+      var url= 'packJuegos/guardarPackJuego';
       var msj= 'El paquete de juego se creó correctamente';
       if (accion=='modificar'){
         formData.id_pack=$('#id_pack').val();
-        url='packJuego/modificarPackJuego'
+        url='packJuegos/modificarPackJuego'
         msj='El paquete de juego se modificó correctamente';
       }
       
@@ -232,7 +232,7 @@ $('#btn-asociar-pack-juego').on('click',function(){
   
       $.ajax({
           type: 'POST',
-          url: 'packJuego/asociarPackJuego',
+          url: 'packJuegos/asociarPackJuego',
           data: formData,
           dataType: 'json',
           success: function (data) {
@@ -486,7 +486,7 @@ $('#btn-asociar-pack-mtm-juego').on('click',function(e){
 
       $.ajax({
         type: "POST",
-        url: 'packJuego/asociarMtmJuegosPack',
+        url: 'packJuegos/asociarMtmJuegosPack',
         data: formData,
         dataType: 'json',
         success: function (resultados) {

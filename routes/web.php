@@ -173,20 +173,18 @@ Route::group(['prefix' => 'juegos','middleware' => 'tiene_permiso:ver_seccion_ju
 /***********
 PackJuego
 ***********/
-Route::group(['prefix' => 'packJuego'], function () {
-  Route::get('buscarPackJuegos/{busqueda}','PackJuegoController@buscarPackJuegoPorNombre');
-  Route::post('guardarPackJuego','PackJuegoController@guardarPackJuego');
-  Route::post('modificarPackJuego','PackJuegoController@modificarPackJuego');
-  Route::post('asociarPackJuego','PackJuegoController@asociarPackJuego');
-  Route::post('asociarMtmJuegosPack','PackJuegoController@asociarMtmJuegosPack');
-});
-Route::group(['prefix' => 'packJuegos'], function () {
-  Route::get('/','PackJuegoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_juegos');
+Route::group(['prefix' => 'packJuegos','middleware' => 'tiene_permiso:ver_seccion_juegos'], function () {
+  Route::get('/','PackJuegoController@buscarTodo');
   Route::POST('buscar','PackJuegoController@buscar');
   Route::get('obtenerPackJuego/{id}','PackJuegoController@obtenerPackJuego');
   Route::get('obtenerJuegos/{id}','PackJuegoController@obtenerJuegosDePack');
   Route::delete('eliminarPackJuego/{id}','PackJuegoController@eliminarPack');
   Route::get('obtenerJuegosMTM/{id_maquina}','PackJuegoController@obtenerJuegosDePackMTM');
+  Route::get('buscarPackJuegos/{busqueda}','PackJuegoController@buscarPackJuegoPorNombre');
+  Route::post('guardarPackJuego','PackJuegoController@guardarPackJuego');
+  Route::post('modificarPackJuego','PackJuegoController@modificarPackJuego');
+  Route::post('asociarPackJuego','PackJuegoController@asociarPackJuego');
+  Route::post('asociarMtmJuegosPack','PackJuegoController@asociarMtmJuegosPack');
 });
 /***********
 Disposiciones
