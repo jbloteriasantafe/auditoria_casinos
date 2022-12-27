@@ -109,8 +109,8 @@ Route::group(['prefix' => 'casinos','middleware' => 'tiene_permiso:ver_seccion_c
 /***********
 Expedientes
 ***********/
-Route::group(['prefix' => 'expedientes'], function () {
-  Route::get('/','ExpedienteController@buscarTodo')->middleware('tiene_permiso:ver_seccion_expedientes');
+Route::group(['prefix' => 'expedientes','middleware' => 'tiene_permiso:ver_seccion_expedientes'], function () {
+  Route::get('/','ExpedienteController@buscarTodo');
   Route::get('obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
   Route::post('guardarOmodificarExpediente','ExpedienteController@guardarOmodificarExpediente');
   Route::delete('eliminarExpediente/{id}','ExpedienteController@eliminarExpediente');
@@ -122,8 +122,8 @@ Route::group(['prefix' => 'expedientes'], function () {
 /***********
 Usuarios
 ***********/
-Route::group(['prefix' => 'usuarios'], function () {
-  Route::get('/','UsuarioController@buscarTodo')->middleware('tiene_permiso:ver_seccion_usuarios');
+Route::group(['prefix' => 'usuarios','middleware' => 'tiene_permiso:ver_seccion_usuarios'], function () {
+  Route::get('/','UsuarioController@buscarTodo');
   Route::post('buscar','UsuarioController@buscarUsuarios');
   Route::get('buscar/{id_usuario}','UsuarioController@buscarUsuario');
   Route::post('guardarUsuario','UsuarioController@guardarUsuario');
