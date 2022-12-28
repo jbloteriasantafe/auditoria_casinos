@@ -47,7 +47,7 @@ $('#inputHard').on('seleccionado',function(){
   //Mostrar los datos del GLI
   var id_gli_hard = $(this).obtenerElementoSeleccionado();
 
-  $.get('http://' + window.location.host +"/glihards/obtenerGliHard/" + id_gli_hard, function(data){
+  $.get(window.location.href+"/certificadoHard/obtenerGliHard/" + id_gli_hard, function(data){
 
       //SI NO HAY ARCHIVO EN LA BASE
       if (data.nombre_archivo == null) {
@@ -80,7 +80,7 @@ $('#inputHard').on('seleccionado',function(){
               overwriteInitial: true,
               initialPreviewAsData: true,
               initialPreview: [
-                  'http://' + window.location.host +  "/glihards/pdf/" + data.glihard.id_gli_hard,
+                  window.location.href+"/certificadoHard/pdf/" + data.glihard.id_gli_hard,
               ],
               initialPreviewConfig: [
                   {type:'pdf', caption: data.nombre_archivo, size: 329892, width: "120px", url: "{$url}", key: 1},
@@ -141,7 +141,7 @@ function limpiarCamposHard(){
   $('#btn-agregarHardLista').hide();
 
   // $('#inputSoft').val('');
-  $('#inputHard').generarDataList("http://" + window.location.host + "/glihards/buscarGliHardsPorNroArchivo",'gli_hards','id_gli_hard','nro_archivo',2,false);
+  $('#inputHard').generarDataList(window.location.href+"/certificadoHard/buscarGliHardsPorNroArchivo",'gli_hards','id_gli_hard','nro_archivo',2,false);
 
   // $('#observaciones').val('').prop('readonly',false);
 
@@ -259,7 +259,7 @@ function mostrarGliHard(gli_hard){
         overwriteInitial: true,
         initialPreviewAsData: true,
         initialPreview: [
-          'http://' + window.location.host + "/glihards/pdf/" + gli_hard.id,
+          window.location.href+"/certificadoHard/pdf/"+gli_hard.id,
         ],
         initialPreviewConfig: [
           {type:'pdf', caption: gli_hard.nombre_archivo, size: 329892, width: "100%", url: "{$url}", key: 1},

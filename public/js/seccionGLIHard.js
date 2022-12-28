@@ -50,7 +50,7 @@ $('#btn-agregarExpediente').click(function(e){
     var id_expediente = $('#inputExpediente').obtenerElementoSeleccionado();
 
     if (id_expediente != 0) {
-      $.get('glihards/obtenerExpediente/' + id_expediente , function(data){
+      $.get('certificadoHard/obtenerExpediente/' + id_expediente , function(data){
         //Agregar la fila a la tabla
         agregarFilaExpediente(data.expediente);
         //Limpiar el input para seguir buscando expedientes
@@ -120,7 +120,7 @@ $('#btn-nuevo').click(function(e){
     $('#frmGLI').trigger('reset');
     $('#listaExpedientes').empty();
     //$('#alertaNombre').hide(); Esconder los alertas!
-    $('#inputExpediente').generarDataList("glihards/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
+    $('#inputExpediente').generarDataList("certificadoHard/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
     $('#inputExpediente').setearElementoSeleccionado(0,"");
     $('#modalGLI').modal('show');
 });
@@ -161,12 +161,12 @@ $(document).on('click','.modificar',function(){
     //obtenerGli
 
 
-    $('#inputExpediente').generarDataList("glihards/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
+    $('#inputExpediente').generarDataList("certificadoHard/buscarExpedientePorNumero",'resultados','id_expediente','concatenacion',2,true);
     $('#inputExpediente').setearElementoSeleccionado(0,"");
 
     $('#cargaArchivo').attr('data-borrado','false');
 
-    $.get("glihards/obtenerGliHard/" +id , function(data){
+    $.get("certificadoHard/obtenerGliHard/" +id , function(data){
         $('#nroCertificado').val(data.glihard.nro_archivo);
 
         //SI NO HAY ARCHIVO EN LA BASE
@@ -200,7 +200,7 @@ $(document).on('click','.modificar',function(){
               overwriteInitial: true,
               initialPreviewAsData: true,
               initialPreview: [
-                  "http://localhost:8000/glihards/pdf/" + id,
+                  window.location.origin+"/certificadoHard/pdf/"+id,
               ],
               initialPreviewConfig: [
                   {type:'pdf', caption: data.nombre_archivo, size: 329892, width: "120px", url: "{$url}", key: 1},
@@ -244,7 +244,7 @@ $(document).on('click','.detalle',function(){
 
     //obtenerGli
     var id=$(this).val();
-    $.get("glihards/obtenerGliHard/" +id , function(data){
+    $.get("certificadoHard/obtenerGliHard/" +id , function(data){
       $('#nroCertificado').val(data.glihard.nro_archivo);
 
       $("#cargaArchivo").fileinput('refresh', {
@@ -258,7 +258,7 @@ $(document).on('click','.detalle',function(){
           overwriteInitial: true,
           initialPreviewAsData: true,
           initialPreview: [
-              "http://localhost:8000/glihards/pdf/" + id,
+              window.location.origin+"/certificadoHard/pdf/"+id,
           ],
           initialPreviewConfig: [
               {type:'pdf', caption:  data.nombre_archivo, size: 329892, width: "120px", url: "{$url}", key: 1},
@@ -297,7 +297,7 @@ $('#btn-guardar').click(function (e) {
 
   if(estado=='nuevo'){
     //seteo de la ruta y del contenido del formulario
-    var url="glihards/guardarGliHard";
+    var url="certificadoHard/guardarGliHard";
     var formData=new FormData();
     formData.append('nro_certificado',$('#nroCertificado').val());
 
@@ -306,7 +306,7 @@ $('#btn-guardar').click(function (e) {
     formData.append('expedientes' , expedientes);
   }else{
     var id=$('#id_gli').val();
-    var url="glihards/modificarGliHard";
+    var url="certificadoHard/modificarGliHard";
     var formData=new FormData();
     formData.append('id_gli_hard' , $('#id_gli').val());
     formData.append('nro_certificado',$('#nroCertificado').val());
@@ -380,7 +380,7 @@ $('#btn-eliminar').click(function(){
 
   $.ajax({
       type: "DELETE",
-      url: "glihards/eliminarGliHard/" + id_gli ,
+      url: "certificadoHard/eliminarGliHard/" + id_gli ,
       success: function (data) {
         $('#cuerpoTabla #' + id_gli).remove();
         $("#tablaGliHard").trigger("update");
@@ -455,7 +455,7 @@ $('#buscarCertificado').click(function(e,pagina,page_size,columna,orden){
 
   $.ajax({
       type: "post",
-      url: 'glihards/buscarGliHard',
+      url: 'certificadoHard/buscarGliHard',
       data: formData,
       dataType: 'json',
       success: function (resultados) {

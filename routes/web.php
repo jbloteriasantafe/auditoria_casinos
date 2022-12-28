@@ -223,8 +223,8 @@ Route::group(['prefix' => 'certificadoSoft','middleware' =>'tiene_permiso:ver_se
 /***********
 GliHards
 ***********/
-Route::get('certificadoHard','GliHardController@buscarTodo')->middleware('tiene_permiso:ver_seccion_glihard');
-Route::group(['prefix' => 'glihards'], function () {
+Route::group(['prefix' => 'certificadoHard','middleware' =>'tiene_permiso:ver_seccion_glihard'], function () {
+  Route::get('/','GliHardController@buscarTodo');
   Route::post('buscarGliHard','GliHardController@buscarGliHard');
   Route::get('pdf/{id}','GliHardController@leerArchivoGliHard');
   Route::get('obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
@@ -233,7 +233,6 @@ Route::group(['prefix' => 'glihards'], function () {
   Route::post('guardarGliHard','GliHardController@guardarGliHard');
   Route::post('modificarGliHard','GliHardController@modificarGliHard');
   Route::delete('eliminarGliHard/{id}','GliHardController@eliminarGliHard');
-  Route::get('buscarGliHardsPorNroArchivo/{nro_archivo}','GliHardController@buscarGliHardsPorNroArchivo');
 });
 
 /**********
@@ -264,6 +263,11 @@ Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_
   Route::post('cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');  
   Route::get('obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
   Route::get('buscarExpedientePorCasinoYNumero/{id_casino}/{busqueda}','ExpedienteController@buscarExpedientePorCasinoYNumero');
+  Route::group(['prefix' => 'certificadoHard'],function(){
+    Route::get('pdf/{id}','GliHardController@leerArchivoGliHard');
+    Route::get('obtenerGliHard/{id}','GliHardController@obtenerGliHard');
+    Route::get('buscarGliHardsPorNroArchivo/{nro_archivo}','GliHardController@buscarGliHardsPorNroArchivo');
+  });
   Route::get('{id}','MTMController@buscarTodo');
 });
 //Estos por si las moscas lo pongo ... Son todos GET por lo menos
