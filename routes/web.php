@@ -276,11 +276,6 @@ Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_
   Route::get('obtenerMTM/{id}', 'MTMController@obtenerMTM');
   Route::get('{id}','MTMController@buscarTodo');
 });
-//Estos por si las moscas lo pongo ... Son todos GET por lo menos
-//Es muy posible que usuarios que no tienen el permiso ver_seccion_maquinas las use
-Route::group(['prefix' => 'maquinas'], function () {
-  
-});
 /**********
 Islas
 **********/
