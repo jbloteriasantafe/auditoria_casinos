@@ -3,8 +3,7 @@ TODOS LOS EVENTOS DE FORMULA
 *************/
 
 $(document).ready(function(){
-
-  $('#inputFormula').generarDataList('http://' + window.location.host +'/formulas/buscarFormulaPorCampos','formulas','id_formula','formula',2,true);
+  $('#inputFormula').generarDataList(window.location.href+'/buscarFormulaPorCampos','formulas','id_formula','formula',2,true);
   $('#inputFormula').setearElementoSeleccionado(0,"");
   $('#borrarFormulaSeleccionada').hide();
 })

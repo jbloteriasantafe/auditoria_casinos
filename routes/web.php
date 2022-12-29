@@ -238,9 +238,8 @@ Route::group(['prefix' => 'certificadoHard','middleware' =>'tiene_permiso:ver_se
 /**********
 Formulas
 ***********/
-Route::group(['prefix' => 'formulas'], function () {
+Route::group(['prefix' => 'formulas','middleware' =>'tiene_permiso:ver_seccion_formulas'], function () {
   Route::get('/','FormulaController@buscarTodo')->middleware('tiene_permiso:ver_seccion_formulas');
-  Route::get('buscarFormulaPorCampos/{input}','FormulaController@buscarPorCampos');
   Route::get('buscarFormulas','FormulaController@buscarFormula');
   Route::post('guardarFormula','FormulaController@guardarFormula');
   Route::get('obtenerFormula/{id}','FormulaController@obtenerFormula');
@@ -268,6 +267,7 @@ Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_
     Route::get('obtenerGliHard/{id}','GliHardController@obtenerGliHard');
     Route::get('buscarGliHardsPorNroArchivo/{nro_archivo}','GliHardController@buscarGliHardsPorNroArchivo');
   });
+  Route::get('buscarFormulaPorCampos/{input}','FormulaController@buscarPorCampos');
   Route::get('{id}','MTMController@buscarTodo');
 });
 //Estos por si las moscas lo pongo ... Son todos GET por lo menos
@@ -324,6 +324,7 @@ Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_secci
   Route::get('obtenerIsla/{id_isla}','IslaController@obtenerIsla');
   Route::get('obtenerIsla/{id_casino}/{id_sector}/{nro_isla}','IslaController@obtenerIslaPorNro');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
+  Route::get('buscarFormulaPorCampos/{input}','FormulaController@buscarPorCampos');
 });
 
 /**********

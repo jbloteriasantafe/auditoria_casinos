@@ -1119,7 +1119,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
       return {id_gli_hard : null,nro_certificado: null,file: null,nombre_archivo: null};
     };
     </script>
-    <script src="/js/seccionMaquinas-Formula.js" charset="utf-8"></script>
+    <script src="/js/seccionMaquinas-Formula.js?1" charset="utf-8"></script>
     <script src="/js/seccionMaquinas-JuegoNuevo.js?3" charset="utf-8"></script>
     <script src="/js/seccionMaquina-IslaNuevo.js" charset="utf-8"></script>
     <script src="/js/seccionMaquinas-Modal.js?1" charset="utf-8"></script>
