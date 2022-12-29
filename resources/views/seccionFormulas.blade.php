@@ -273,6 +273,6 @@
     <!-- JavaScript paginacion -->
     <script src="js/paginacion.js" charset="utf-8"></script>
     <!-- JavaScript personalizado -->
-    <script src="js/seccionFormulas.js?1" charset="utf-8"></script>
+    <script src="js/seccionFormulas.js?2" charset="utf-8"></script>
     <script src="/js/lista-datos.js" type="text/javascript"></script>
     @endsection

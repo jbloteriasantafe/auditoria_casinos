@@ -48,7 +48,7 @@ $('#btn-asociar-pack-mtm').click(function(e){
 
 
     
-    $('#inputMTM').generarDataList("maquinas/obtenerMTMEnCasino/" + 0, 'maquinas','id_maquina','nro_admin',1,true);
+    $('#inputMTM').generarDataList("packJuegos/obtenerMTMEnCasino/" + 0, 'maquinas','id_maquina','nro_admin',1,true);
     $('#inputMTM').setearElementoSeleccionado(0,"");
     $('#inputPack').generarDataList("http://" + window.location.host + "/packJuegos/buscarPackJuegos" ,'resultados','id_pack','identificador', 1, false);
     $('#inputPack').setearElementoSeleccionado(0,"");

@@ -57,7 +57,7 @@ $('#casino').on('change' , function(e,id_sector){
     $('#buscadorMaquina').borrarDataList();
     return;
   }
-  $('#buscadorMaquina').generarDataList('/maquinas/buscarMaquinaPorNumeroMarcaYModelo/' + id_casino, "resultados","id_maquina" ,"nro_admin" , 2, true);
+  $('#buscadorMaquina').generarDataList('islas/buscarMaquinaPorNumeroMarcaYModelo/' + id_casino, "resultados","id_maquina" ,"nro_admin" , 2, true);
   $('#buscadorMaquina').setearElementoSeleccionado(0 , "");
   $('#sector option').remove();
   $.get("/sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
@@ -252,7 +252,7 @@ $('#btn-agregarMaquinaSI').click(function(e){
     mostrarErrorValidacion($('#inputMaquina') , 'Ya existe la maquina elegida.' , true);
     return;
   }
-  $.get('maquinas/obtenerMTM/'+ id_maquina , function(data){
+  $.get('islas/obtenerMTM/'+ id_maquina , function(data){
     $('#inputMaquina').setearElementoSeleccionado(0 , "");
     $(`.subisla[data-sub="${indice}"] table tbody`).append(generarMaquinaSI(indice, data.maquina));
     $('#d_maquinas').val(parseInt($('#d_maquinas').val())+1);

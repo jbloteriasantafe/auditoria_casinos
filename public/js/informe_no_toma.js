@@ -86,7 +86,7 @@ function habilitarBusquedaMTM(valor, id_casino) {
     console.log(valor);
 
     if (valor) {
-        $('#inputMaquina').generarDataList("http://" + window.location.host + "/maquinas/obtenerMTMEnCasino/" + id_casino, 'maquinas', 'id_maquina', 'nro_admin', 1);
+        $('#inputMaquina').generarDataList("estadisticas_no_toma/obtenerMTMEnCasino/" + id_casino, 'maquinas', 'id_maquina', 'nro_admin', 1);
         $('#inputMaquina').setearElementoSeleccionado(0, '');
     } else {
         //$('#inputMaquina').borrarDataList();
@@ -110,7 +110,7 @@ function eventoModal(id_maquina) {
     $('#modalMaquinaContable').modal('show');
 
 
-    $.get('http://' + window.location.host + "/estadisticas_no_toma/obtenerEstadisticasNoToma/" + id_maquina, function(data) {
+    $.get("estadisticas_no_toma/obtenerEstadisticasNoToma/" + id_maquina, function(data) {
 
         $('#nro_admin').text(data.maquina.nro_admin);
         $('#casino').text(data.maquina.casino);

@@ -254,7 +254,7 @@
 <!-- Termina modal de ayuda -->
 
 @section('scripts')
-<script src="/js/contable_mtm.js" charset="utf-8"></script>
+<script src="/js/contable_mtm.js?1" charset="utf-8"></script>
 
 <script src="/js/lista-datos.js" type="text/javascript"></script>
 

@@ -207,7 +207,7 @@ $('#select_event').click(function(){
         $('#inputIslaEv').hide();
         $('#inputMaquinaEv').show();
 
-        $('#inputMaqui').generarDataList("maquinas/obtenerMTMEnCasino/" + cas, 'maquinas','id_maquina','nro_admin',1,true);
+        $('#inputMaqui').generarDataList("eventualidades/obtenerMTMEnCasino/" + cas, 'maquinas','id_maquina','nro_admin',1,true);
       }
       //sectores
       if(sel==1){
@@ -242,7 +242,7 @@ function clickAgregarEv(e) {
     if((id_maquina || id_sector || id_isla) != null ){ $('#modalCargarEventualidad').find('#select_event').prop('disabled',true);}
 
     if (select==2) {
-      $.get('http://' + window.location.host +"/maquinas/obtenerMTM/" + id_maquina, function(data) {
+      $.get("eventualidades/obtenerMTM/" + id_maquina, function(data) {
         agregarMaqEv(data.maquina.id_maquina, data.maquina.nro_admin);
         $('#inputMaqui').setearElementoSeleccionado(0 , "");
       });

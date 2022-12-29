@@ -55,7 +55,7 @@ function habilitarBusquedaMTM(valor, id_casino) {
     console.log(valor);
 
     if (valor) {
-        $('#inputMaquina').generarDataList("http://" + window.location.host + "/maquinas/obtenerMTMEnCasino/" + id_casino, 'maquinas', 'id_maquina', 'nro_admin', 1);
+        $('#inputMaquina').generarDataList("informeContableMTM/obtenerMTMEnCasino/" + id_casino, 'maquinas', 'id_maquina', 'nro_admin', 1);
         $('#inputMaquina').setearElementoSeleccionado(0, '');
     } else {
         //$('#inputMaquina').borrarDataList();
@@ -98,7 +98,7 @@ $('#btn-buscarMTM').click(function(e) {
     $('#modalMaquinaContable').modal('show');
     var id_maquina = $('#inputMaquina').obtenerElementoSeleccionado();
 
-    $.get('http://' + window.location.host + "/obtenerInformeContableDeMaquina/" + id_maquina, function(data) {
+    $.get("informeContableMTM/obtenerInformeContableDeMaquina/" + id_maquina, function(data) {
         console.log(data);
         $('#nro_admin').text(limpiarNull(data.nro_admin));
         $('#casino').text(limpiarNull(data.casino));

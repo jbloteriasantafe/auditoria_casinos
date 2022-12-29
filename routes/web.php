@@ -185,6 +185,7 @@ Route::group(['prefix' => 'packJuegos','middleware' => 'tiene_permiso:ver_seccio
   Route::post('modificarPackJuego','PackJuegoController@modificarPackJuego');
   Route::post('asociarPackJuego','PackJuegoController@asociarPackJuego');
   Route::post('asociarMtmJuegosPack','PackJuegoController@asociarMtmJuegosPack');
+  Route::get('obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
 });
 /***********
 Disposiciones
@@ -239,7 +240,7 @@ Route::group(['prefix' => 'certificadoHard','middleware' =>'tiene_permiso:ver_se
 Formulas
 ***********/
 Route::group(['prefix' => 'formulas','middleware' =>'tiene_permiso:ver_seccion_formulas'], function () {
-  Route::get('/','FormulaController@buscarTodo')->middleware('tiene_permiso:ver_seccion_formulas');
+  Route::get('/','FormulaController@buscarTodo');
   Route::get('buscarFormulas','FormulaController@buscarFormula');
   Route::post('guardarFormula','FormulaController@guardarFormula');
   Route::get('obtenerFormula/{id}','FormulaController@obtenerFormula');
@@ -248,6 +249,8 @@ Route::group(['prefix' => 'formulas','middleware' =>'tiene_permiso:ver_seccion_f
   Route::delete('eliminarFormula/{id}','FormulaController@eliminarFormula');
   Route::get('buscarIslaPorCasinoYNro/{id_casino}/{nro_isla}','IslaController@buscarIslaPorCasinoYNro');
   Route::get('obtenerIsla/{id_isla}','IslaController@obtenerIsla');
+  Route::get('obtenerConfiguracionMaquina/{id}', 'MTMController@obtenerConfiguracionMaquina');
+  Route::get('buscarMaquinaPorNumeroMarcaYModelo/{casino?}/{busqueda}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
 });
 
 /***********
@@ -268,16 +271,15 @@ Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_
     Route::get('buscarGliHardsPorNroArchivo/{nro_archivo}','GliHardController@buscarGliHardsPorNroArchivo');
   });
   Route::get('buscarFormulaPorCampos/{input}','FormulaController@buscarPorCampos');
+  Route::get('buscarMarcas/{marca}', 'MTMController@buscarMarcas');
+  Route::get('buscarMaquinaPorNumeroMarcaYModelo/{casino?}/{busqueda}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
+  Route::get('obtenerMTM/{id}', 'MTMController@obtenerMTM');
   Route::get('{id}','MTMController@buscarTodo');
 });
 //Estos por si las moscas lo pongo ... Son todos GET por lo menos
 //Es muy posible que usuarios que no tienen el permiso ver_seccion_maquinas las use
 Route::group(['prefix' => 'maquinas'], function () {
-  Route::get('obtenerMTM/{id}', 'MTMController@obtenerMTM');
-  Route::get('obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
-  Route::get('buscarMaquinaPorNumeroMarcaYModelo/{casino?}/{busqueda}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
-  Route::get('obtenerConfiguracionMaquina/{id}', 'MTMController@obtenerConfiguracionMaquina');
-  Route::get('buscarMarcas/{marca}', 'MTMController@buscarMarcas');
+  
 });
 /**********
 Islas
@@ -294,6 +296,8 @@ Route::group(['prefix' => 'islas','middleware' => 'tiene_permiso:ver_seccion_isl
   Route::post('asignarIslotes','IslaController@asignarIslotes');
   Route::get('obtenerIsla/{id_isla}','IslaController@obtenerIsla');
   Route::get('listarMaquinasPorNroIsla/{nro_isla}/{id_casino?}','IslaController@listarMaquinasPorNroIsla');
+  Route::get('buscarMaquinaPorNumeroMarcaYModelo/{casino?}/{busqueda}','MTMController@buscarMaquinaPorNumeroMarcaYModelo');
+  Route::get('obtenerMTM/{id}', 'MTMController@obtenerMTM');
 });
 /**********
 Movimientos
@@ -325,6 +329,7 @@ Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_secci
   Route::get('obtenerIsla/{id_casino}/{id_sector}/{nro_isla}','IslaController@obtenerIslaPorNro');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
   Route::get('buscarFormulaPorCampos/{input}','FormulaController@buscarPorCampos');
+  Route::get('buscarMarcas/{marca}', 'MTMController@buscarMarcas');
 });
 
 /**********
@@ -360,6 +365,8 @@ Route::group(['prefix' => 'eventualidades'], function () {
   Route::get('leerArchivoEventualidad/{id}','EventualidadController@leerArchivoEventualidad');
   Route::get('obtenerIsla/{id_isla}','IslaController@obtenerIsla');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
+  Route::get('obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
+  Route::get('obtenerMTM/{id}', 'MTMController@obtenerMTM');
 });
 /**********
 Eventualidades MTM ->intervenciones tecnicas mtm
@@ -643,8 +650,12 @@ Route::post('interanuales','BeneficioMensualController@cargaSeccionInteranual');
 Informes
 ***********/
 Route::get('informeEstadoParque' , 'informesController@obtenerInformeEstadoParque');
-Route::get('informeContableMTM','informesController@buscarTodoInformeContable');//carga pagina
-Route::get('obtenerInformeContableDeMaquina/{id_maquina}','informesController@obtenerInformeContableDeMaquina');//informe ultimos 30 dias
+
+Route::group(['prefix' => 'informeContableMTM','middleware' => ['tiene_permiso:ver_seccion_informecontable']], function () {
+  Route::get('/','informesController@buscarTodoInformeContable');//carga pagina
+  Route::get('obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
+  Route::get('obtenerInformeContableDeMaquina/{id_maquina}','informesController@obtenerInformeContableDeMaquina');
+});
 
 Route::group(['prefix' => 'informesMTM'], function () {
   Route::get('/','informesController@obtenerUltimosBeneficiosPorCasino');
@@ -667,9 +678,10 @@ Route::group(['prefix' => 'informeSector','middleware' => ['tiene_permiso:ver_se
   Route::post('transaccionEstadoMasivo','MTMController@transaccionEstadoMasivo');
 });
 
-Route::group(['prefix' => 'estadisticas_no_toma'], function () {
+Route::group(['prefix' => 'estadisticas_no_toma','middleware' => ['tiene_permiso:ver_seccion_informecontable']], function () {
   Route::get('/','informesController@mostrarEstadisticasNoTomaGenerico');
   Route::get('obtenerEstadisticasNoToma/{id}','informesController@obtenerEstadisticasNoToma');
+  Route::get('obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
 });
 Route::get('/relevamientos/estadisticas_no_toma/{id}','informesController@mostrarEstadisticasNoToma');
 /************************

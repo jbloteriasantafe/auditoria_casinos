@@ -3,7 +3,7 @@ var casino_global;//id casino de la maquina
 
 $(document).ready(function(){
   //seteo al inicio el buscador de marca en el modal
-  $('#marca').generarDataList("maquinas/buscarMarcas",'marcas','id_marca','marca',1,false);
+  $('#marca').generarDataList(window.location.href+"/buscarMarcas",'marcas','id_marca','marca',1,false);
   $('#marca').setearElementoSeleccionado(0,"");
   $('#error_nav_juego').hide();
   $('#error_nav_isla').hide();

@@ -210,7 +210,7 @@ function eventoModificar(id_maquina){
 
   $('#id_maquina').val(id_maquina);
 
-  $.get('http://' + window.location.host +  "/maquinas/obtenerMTM/" + id_maquina, function(data){
+  $.get("maquinas/obtenerMTM/" + id_maquina, function(data){
     console.log(data);
     mostrarMaquina(data , 'modificar');
     //Se asigna al botón el valor "MODIFICAR" y se muestra
@@ -260,7 +260,7 @@ $(document).on('click','#cuerpoTabla .detalle',function(){
 
       var id_maquina = $(this).val();
 
-      $.get('http://' + window.location.host + "/maquinas/obtenerMTM/" + id_maquina, function(data){
+      $.get("maquinas/obtenerMTM/" + id_maquina, function(data){
         console.log(data);
 
         mostrarMaquina(data,'detalle');

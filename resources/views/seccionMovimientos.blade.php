@@ -1099,7 +1099,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     <!-- JavaScript personalizado -->
     <script src="/js/divRelevamientoMovimiento.js?1" charset="utf-8"></script>
     <script src="/js/seccionMovimientosVista.js" charset="utf-8"></script>
-    <script src="/js/seccionMovimientos-Egreso.js" charset="utf-8"></script>
+    <script src="/js/seccionMovimientos-Egreso.js?1" charset="utf-8"></script>
     <script src="/js/seccionMovimientos-Ingreso.js" charset="utf-8"></script>
     <script src="/js/seccionMovimientos-Validar.js" charset="utf-8"></script>
     <!-- DateTimePicker JavaScript -->

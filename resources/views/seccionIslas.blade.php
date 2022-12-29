@@ -460,6 +460,6 @@
 <script src="/js/paginacion.js" charset="utf-8"></script>
 <script src="/js/lista-datos.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
-<script src="/js/seccionIslas.js?6" charset="utf-8"></script>
+<script src="/js/seccionIslas.js?7" charset="utf-8"></script>
 <script src="/js/seccionIslas_asignarIslotes.js?6" charset="utf-8"></script>
 @endsection

@@ -16,7 +16,7 @@ $(document).on('click', '.nuevoEgreso', function () {
 $('#agregarMaq').click(function (e) {
     const id_maquina = $('#inputMaq').attr('data-elemento-seleccionado');
     if (id_maquina != 0) {
-        $.get('http://' + window.location.host + "/movimientos/obtenerMTM/" + id_maquina, function (data) {
+        $.get("movimientos/obtenerMTM/" + id_maquina, function (data) {
             agregarMaq(data.maquina.id_maquina, data.maquina.nro_admin, data.maquina.marca,
                 data.maquina.modelo, data.isla.nro_isla, data.juego_activo.nombre_juego,
                 data.maquina.nro_serie);
@@ -89,7 +89,7 @@ function enviarFiscalizar(id_mov, maq) {
 $('#agregarMaqBaja').click(function (e) {
     const id_maq = $('#inputMaq3').attr('data-elemento-seleccionado');
     if (id_maq != 0) {
-        $.get("/maquinas/obtenerMTM/" + id_maq, function (data) {
+        $.get("movimientos/obtenerMTM/" + id_maq, function (data) {
             agregarMaqBaja(data.maquina.id_maquina, data.maquina.nro_admin, data.maquina.marca, data.maquina.modelo, 1);
             $('#inputMaq3').setearElementoSeleccionado(0, "");
         });

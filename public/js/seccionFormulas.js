@@ -462,7 +462,7 @@ $(document).on('change','#selectCasino',function () {
 
   if($('#selectCasino option:selected').val() != 0){
     $('#buscadores').show();
-    $('.buscadorMaquina').generarDataList('http://' +window.location.host + '/maquinas/buscarMaquinaPorNumeroMarcaYModelo/' + casino, "resultados","id_maquina" ,"nro_admin" , 2, true);
+    $('.buscadorMaquina').generarDataList('formulas/buscarMaquinaPorNumeroMarcaYModelo/' + casino, "resultados","id_maquina" ,"nro_admin" , 2, true);
     $('.buscadorMaquina').setearElementoSeleccionado(0 , "");
     $('.buscadorIsla').generarDataList("formulas/buscarIslaPorCasinoYNro/" + casino,'islas','id_isla','nro_isla',1,true);;
     $('.buscadorIsla').setearElementoSeleccionado(0,"");
@@ -591,7 +591,7 @@ $(document).on("click",  ".agregarMaquina" , function(){
       var listaMaquinas = $('.listaMaquinas');
       if(id != 0){
         if(!existeEnDataList(id)){
-          $.get('http://' + window.location.host +"/maquinas/obtenerConfiguracionMaquina/" + id, function(data){
+          $.get("/formulas/obtenerConfiguracionMaquina/" + id, function(data){
             agregarMaquina( data.maquina.id_maquina,data.maquina.nro_admin,data.maquina.marca,data.maquina.modelo,listaMaquinas);
           });
           input.setearElementoSeleccionado(0,"");

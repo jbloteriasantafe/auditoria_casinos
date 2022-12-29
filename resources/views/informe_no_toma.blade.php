@@ -211,7 +211,7 @@
 <!-- Termina modal de ayuda -->
 
 @section('scripts')
-<script src="/js/informe_no_toma.js" charset="utf-8"></script>
+<script src="/js/informe_no_toma.js?1" charset="utf-8"></script>
 
 <script src="/js/lista-datos.js" type="text/javascript"></script>
 
