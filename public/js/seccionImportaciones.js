@@ -645,14 +645,14 @@ $('#btn-eliminarModal').click(function (e) {
   let url = null;
   switch(tipo_archivo){
     case 'CONTADORES':
-      url = `contadores/eliminarContador/${id_importacion}`;
+      url = `eliminarContador/${id_importacion}`;
       break;
     case 'PRODUCIDOS':
-      url = `producidos/eliminarProducido/${id_importacion}`;
+      url = `eliminarProducido/${id_importacion}`;
       break;
     case 'BENEFICIOS':
       const desc_ben = [$(this).attr('data-casino'),$(this).attr('data-moneda'),$(this).attr('data-anio'),$(this).attr('data-mes')].join('/');
-      url = `beneficios/eliminarBeneficios/${desc_ben}`;
+      url = `eliminarBeneficios/${desc_ben}`;
       break;
     default:
       throw 'Tipo de archivo no implementado - '+tipo_archivo;
@@ -661,7 +661,7 @@ $('#btn-eliminarModal').click(function (e) {
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
     type: "DELETE",
-    url: url,
+    url: 'importaciones/' + url,
     success: function (data) {
       cargarTablasImportaciones();
       buscarImportaciones();
