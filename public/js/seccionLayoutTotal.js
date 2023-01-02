@@ -531,7 +531,7 @@ $('.selectCasinos').on('change',function(){
   });
   const select = $(this).closest('.modal').find('.selectSector');
   select.empty();
-  $.get("/layouts/obtenerSectoresPorCasino/" + $(this).val(), function(data){    
+  $.get("layouts/obtenerSectoresPorCasino/" + $(this).val(), function(data){    
     select.append($('<option>').val("").text("- TODOS -"));
     for(const idx in data.sectores){
       const s = data.sectores[idx];

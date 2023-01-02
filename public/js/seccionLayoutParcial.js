@@ -981,7 +981,7 @@ $('.selectCasinos').on('change',function(){
   var id_casino = $('option:selected' , this).attr('id');
   var selectCasino = $(this)
 
-  $.get('http://' + window.location.host + "/sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
+  $.get("layouts/obtenerSectoresPorCasino/" + id_casino, function(data){
     if(selectCasino[0] == $("#casino")[0]){
       var selectSector = $('#sector');
       selectSector.empty();

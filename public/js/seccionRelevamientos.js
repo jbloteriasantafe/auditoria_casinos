@@ -157,7 +157,7 @@ $('#casinoSinSistema').on('change', function(){
 
   $('#sectorSinSistema option').remove();
 
-  $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
+  $.get("relevamientos/obtenerSectoresPorCasino/" + id_casino, function(data){
     console.log(data);
     for (var i = 0; i < data.sectores.length; i++) {
       $('#sectorSinSistema')
@@ -177,7 +177,7 @@ $('#modalRelevamiento #casino').on('change',function(){
   var id_casino = $('#modalRelevamiento #casino option:selected').attr('id');
 
   $('#modalRelevamiento #sector option').remove();
-  $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
+  $.get("relevamientos/obtenerSectoresPorCasino/" + id_casino, function(data){
     for (var i = 0; i < data.sectores.length; i++) {
       $('#modalRelevamiento #sector')
           .append($('<option>')
@@ -964,7 +964,7 @@ $('#modalMaquinasPorRelevamiento #casino').on('change',function(){
   var id_casino = $('#modalMaquinasPorRelevamiento #casino option:selected').attr('id');
 
   $('#modalMaquinasPorRelevamiento #sector option').remove();
-  $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
+  $.get("relevamientos/obtenerSectoresPorCasino/" + id_casino, function(data){
 
     for (var i = 0; i < data.sectores.length; i++) {
       $('#modalMaquinasPorRelevamiento #sector')
@@ -2540,7 +2540,7 @@ $('#buscadorCasino').on('change',function(){
         .text('-Todos los sectores-')
       )
   }else{
-      $.get('http://' + window.location.host + "/sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
+      $.get("relevamientos/obtenerSectoresPorCasino/" + id_casino, function(data){
 
           $('#buscadorSector').append($('<option>')
             .val(0)

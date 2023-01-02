@@ -249,7 +249,7 @@ function clickAgregarEv(e) {
     }
 
     if(select==1){
-      $.get('http://' + window.location.host +"/sectores/obtenerSector/" + id_sector, function(data) {
+      $.get("eventualidades/obtenerSector/" + id_sector, function(data) {
         console.log('get de sector:', data);
         agregarSecEv(data.sector.id_sector, data.sector.descripcion);
         $('#inputSec').setearElementoSeleccionado(0 , "");});

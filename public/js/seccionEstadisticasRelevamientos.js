@@ -131,7 +131,7 @@ $('#b_casino').on('change', function() {
     var id_casino = $('#b_casino').val();
 
 
-    $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data) {
+    $.get("estadisticas_relevamientos/obtenerSectoresPorCasino/" + id_casino, function(data) {
         var selectSector = $('#busqueda_sector');
         selectSector.empty();
         selectSector.append($('<option>')

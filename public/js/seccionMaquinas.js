@@ -170,7 +170,7 @@ $('#busqueda_casino').on('change',function(){
   var id_casino = $('option:selected' , this).val();
   var selectCasino = $(this);
 
-  $.get('http://' + window.location.host + "/sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
+  $.get("maquinas/obtenerSectoresPorCasino/" + id_casino, function(data){
 
     var selectSector = $('#busqueda_sector');
     selectSector.empty();

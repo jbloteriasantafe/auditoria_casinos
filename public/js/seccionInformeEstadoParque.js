@@ -119,7 +119,7 @@ $(document).on('click','.detalle',function(){
     $('.btn-default').text('SALIR');
     var id_sector = $(this).val();
 
-    $.get("sectores/obtenerSector/" + id_sector, function(data){
+    $.get("informeEstadoParque/obtenerSector/" + id_sector, function(data){
         console.log(data);
 
         $('#nombre').val(data.sector.descripcion);

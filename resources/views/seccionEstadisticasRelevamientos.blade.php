@@ -413,7 +413,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     <!-- JavaScript paginacion -->
     <script src="js/paginacion.js" charset="utf-8"></script>
     <!-- JavaScript personalizado -->
-    <script src="js/seccionEstadisticasRelevamientos.js" charset="utf-8"></script>
+    <script src="js/seccionEstadisticasRelevamientos.js?1" charset="utf-8"></script>
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
     <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>

@@ -1121,9 +1121,9 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     </script>
     <script src="/js/seccionMaquinas-Formula.js?1" charset="utf-8"></script>
     <script src="/js/seccionMaquinas-JuegoNuevo.js?3" charset="utf-8"></script>
-    <script src="/js/seccionMaquina-IslaNuevo.js" charset="utf-8"></script>
+    <script src="/js/seccionMaquina-IslaNuevo.js?1" charset="utf-8"></script>
     <script src="/js/seccionMaquinas-Modal.js?1" charset="utf-8"></script>
-    <script src="/js/seccionMaquinas.js" charset="utf-8"></script>
+    <script src="/js/seccionMaquinas.js?1" charset="utf-8"></script>
     <script src="/js/utils.js" type="text/javascript"></script>
 
     <script src="js/inputSpinner.js" type="text/javascript"></script>

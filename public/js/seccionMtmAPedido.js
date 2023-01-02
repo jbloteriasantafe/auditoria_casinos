@@ -134,7 +134,7 @@ $('#selectCasinos').on('change',function(){
   var id_casino = $('#selectCasinos option:selected').attr('id');
 
   $('#selectSector option').remove();
-  $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
+  $.get("mtm_a_pedido/obtenerSectoresPorCasino/" + id_casino, function(data){
 
     $('#selectSector')
         .append($('<option>')

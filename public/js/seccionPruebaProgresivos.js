@@ -221,7 +221,7 @@ $('#modalPrueba #casino').on('change',function(){
   var id_casino = $('#modalPrueba #casino option:selected').val();
 
   $('#modalPrueba #sector option').remove();
-  $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
+  $.get("pruebas/obtenerSectoresPorCasino/" + id_casino, function(data){
 
     for (var i = 0; i < data.sectores.length; i++) {
       $('#modalPrueba #sector')

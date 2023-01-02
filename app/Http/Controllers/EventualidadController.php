@@ -219,7 +219,7 @@ class EventualidadController extends Controller
         if ($id_casino == 0){
             $id_casino = $casinos->first()->id_casino;
         }
-        else if ($casinos->where('id_casino',$id_casino)->count() == 0){
+        else if ($casinos->where('casino.id_casino',$id_casino)->count() == 0){
             return ['sectores' => []];
         }
         $sectores = Sector::where([['sector.id_casino', '=', $id_casino], ['sector.descripcion', 'like', $sector . '%']])->get();

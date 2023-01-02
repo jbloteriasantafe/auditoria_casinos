@@ -15,7 +15,7 @@ $('#selectCasino').on('change', function(e,id_sector=0){
   }
   else{
       //busca sectores en servidor
-      $.get('http://' + window.location.host +"/sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
+      $.get("movimientos/obtenerSectoresPorCasino/" + id_casino, function(data){
         $('#sector').prop('disabled',false);
         for (var i = 0; i < data.sectores.length; i++) {
           $('#sector').append($('<option>')

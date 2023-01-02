@@ -60,7 +60,7 @@ $('#casino').on('change' , function(e,id_sector){
   $('#buscadorMaquina').generarDataList('islas/buscarMaquinaPorNumeroMarcaYModelo/' + id_casino, "resultados","id_maquina" ,"nro_admin" , 2, true);
   $('#buscadorMaquina').setearElementoSeleccionado(0 , "");
   $('#sector option').remove();
-  $.get("/sectores/obtenerSectoresPorCasino/" + id_casino, function(data){
+  $.get("islas/obtenerSectoresPorCasino/" + id_casino, function(data){
     for (let i = 0; i < data.sectores.length; i++) {
       $('#sector').append($('<option>').val(data.sectores[i].id_sector).text(data.sectores[i].descripcion))
     }
@@ -105,7 +105,7 @@ $(document).on('click','.borrarMaquina',function(){
 
 $('#buscadorCasino').on('change' , function (){
   if($(this).val() == 0) return;
-  $.get("/sectores/obtenerSectoresPorCasino/" + $(this).val(), function(data){
+  $.get("islas/obtenerSectoresPorCasino/" + $(this).val(), function(data){
     $('#buscadorSector option').remove();
     $('#buscadorSector').append($('<option value="0">-Todos los sectores-</option>'));
     for (let i = 0; i < data.sectores.length; i++) {
@@ -206,7 +206,7 @@ $(document).on('click','.dividir',function(){
     $('#moldeSubisla .selectSector option').remove();
 
     //Setear sectores
-    $.get('sectores/obtenerSectoresPorCasino/' + id_casino, function(data){
+    $.get('islas/obtenerSectoresPorCasino/' + id_casino, function(data){
       for (let i = 0; i < data.sectores.length; i++) {
         const option = $('<option>').val(data.sectores[i].id_sector).text(data.sectores[i].descripcion);
         $('#moldeSubisla .selectSector').append(option);

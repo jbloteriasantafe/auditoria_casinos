@@ -60,7 +60,7 @@ $('#modalRelevamientoProgresivos').on('hidden.bs.modal', function() {
 //MOSTRAR LOS SECTORES ASOCIADOS AL CASINO SELECCIONADO
 function setearSectores(selSector,id_casino){
   selSector.empty().removeClass('alerta');
-  $.get("sectores/obtenerSectoresPorCasino/" + id_casino, function(data) {
+  $.get("relevamientosProgresivo/obtenerSectoresPorCasino/" + id_casino, function(data) {
     selSector.append($(data.sectores).map(function(idx,s){
       return $('<option>').val(s.id_sector).text(s.descripcion)[0];
     }));
