@@ -3,15 +3,6 @@
 <span class="etiquetaLogoMaquinas">@svg('maquinas','iconoMaquinas')</span>
 @endsection
 @section('contenidoVista')
-<?php
-use App\Http\Controllers\UsuarioController;
-use App\Http\Controllers\AuthenticationController;
-use Illuminate\Http\Request;
-setlocale(LC_TIME, 'es_ES.UTF-8');
-$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-$id_usuario = $usuario['usuario']->id_usuario;
-
-?>
 
 @section('estilos')
 <link rel="stylesheet" href="css/bootstrap-datetimepicker.css">
@@ -141,19 +132,9 @@ $id_usuario = $usuario['usuario']->id_usuario;
                   </a>
                 </div>
               </div>
-              @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'cotizar_dolar_peso'))  
               <div class="row">
-                <div class="col-md-12">
-                  <a id="btn-cotizacion" href="" style="text-decoration:none;">
-                    <div class="tarjetaSeccionMenor" align="center">
-                      <h2 class="tituloFondoMenor"> COTIZACIÓN</h2>
-                      <h2 class="tituloSeccionMenor">COTIZACIÓN </h2>
-                      <img height="62%" style="top:-200px;" class="imagenSeccionMenor" src="/img/logos/peso-dollar.svg" alt="">
-                    </div>
-                  </a>
-                </div>
+                @include('includes.btn-cotizacion')
               </div>
-              @endif
             </div> <!-- /.col-md-3 -->
 
         </div> <!-- /.row -->
@@ -303,37 +284,8 @@ $id_usuario = $usuario['usuario']->id_usuario;
           </div>
     </div>
 
+    @include('includes.cotizacion')
     
-    <!-- Modal cotizacion -->
-      <div class="modal fade" id="modal-cotizacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-lg"  >
-              <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
-                  <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> -->
-                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                  <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                  <h3 class="modal-title">| COTIZACIÓN DÓLAR->PESO</h3>
-                </div>
-
-                <div class="modal-body" style="background-color: white;">
-
-                    <div class="row" style="padding-bottom: 15px;">
-                        <div class="col-md-12">
-                            <div id="calendarioInicioBeneficio"></div>
-                      </div>
-
-                </div>
-
-                <div class="modal-footer">
-                  <label id="labelCotizacion" for="number"> </label>
-                  <input id="valorCotizacion" type="number" step="0.001" min="25" max="200" placeholder="xx,xxx">
-                  <button type="button" class="btn btn-successAceptar" id="guardarCotizacion">GUARDAR</button>
-                </div> 
-            </div>
-          </div>
-      </div>
-    
-
-
     <meta name="_token" content="{!! csrf_token() !!}" />
 
     @endsection

@@ -1,10 +1,5 @@
 $(document).ready(function() {
   $('.tituloSeccionPantalla').text('Mesas - Importaciones Diarias');
-  $('#barraImportaciones').attr('aria-expanded','true');
-  $('#barraImportaciones').attr('style','border-left: 6px solid #185891; background-color: #131836;');
-  $('#barraImportaciones').addClass('opcionesSeleccionado');
-  $('#pestImportaciones').show();
-  $('#pestImportaciones').css('display','inline-block');
   
   limpiarFiltrosDiaria();
 
@@ -525,87 +520,3 @@ function generarFilaCierre(data){
   fila.css('display', '');
   return fila;
 }
-
-
-$('#btn-cotizacion').on('click', function(e){
-  e.preventDefault();
-  //limpio modal
-  $('#labelCotizacion').html("");
-  $('#labelCotizacion').attr("data-fecha","");
-  $('#valorCotizacion').val("");
-  //inicio calendario
-  $('#calendarioInicioBeneficio').fullCalendar({  // assign calendar
-    locale: 'es',
-    backgroundColor: "#f00",
-    eventTextColor:'yellow',
-    editable: false,
-    selectable: true, 
-    allDaySlot: false,
-    selectAllow:false, 
-    customButtons: {
-      nextCustom: {
-        text: 'Siguiente',
-        click: function() {
-          cambioMes('next');
-        }
-      },
-      prevCustom: {
-        text: 'Anterior',
-        click: function() {
-          cambioMes('prev');
-        }
-      },
-    },
-    events: function(start, end, timezone, callback) {
-      $.ajax({
-        url: 'cotizacion/obtenerCotizaciones/'+ start.format('YYYY-MM'),
-        type:"GET",
-        success: function(doc) {
-          var events = [];
-          $(doc).each(function() {
-            var numero=""+$(this).attr('valor');
-            events.push({
-              title:"" + numero.replace(".", ","),
-              start: $(this).attr('fecha')
-            });
-          });
-          callback(events);
-        }
-      });
-    },
-    dayClick: function(date) {
-      $('#labelCotizacion').html('Guardar cotización para el día '+ '<u>'  +date.format('DD/M/YYYY') + '</u>' );
-      $('#labelCotizacion').attr("data-fecha",date.format('YYYY-MM-DD'));
-      $('#valorCotizacion').val("");
-      $('#valorCotizacion').focus();
-    },
-  });
-
-  $('#modal-cotizacion').modal('show')
-});
-
-$('#guardarCotizacion').on('click',function(){
-  fecha=$('#labelCotizacion').attr('data-fecha');
-  valor= $('#valorCotizacion').val();
-  formData={
-    fecha: fecha,
-    valor: valor,
-  }
-  $.ajax({
-    type: 'POST',
-    url: 'cotizacion/guardarCotizacion',
-    data: formData,
-    success: function (data) {
-     $('#calendarioInicioBeneficio').fullCalendar('refetchEvents');
-      //limpio modal
-      $('#labelCotizacion').html("");
-      $('#labelCotizacion').attr("data-fecha","");
-      $('#valorCotizacion').val("");
-    }
-  });
-});
-
-function cambioMes(s){
-  $('#calendarioInicioBeneficio').fullCalendar(s);
-  $('#calendarioInicioBeneficio').fullCalendar('refetchEvents');
-};
