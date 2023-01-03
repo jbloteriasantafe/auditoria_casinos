@@ -431,15 +431,15 @@ Route::group(['prefix' => 'importaciones','middleware' => 'tiene_permiso:ver_sec
   Route::delete('eliminarBeneficios/{id_casino}/{id_tipo_moneda}/{anio}/{mes}','BeneficioController@eliminarBeneficios');
 });
 
-Route::group(['prefix' => 'cotizacion'], function () {
+Route::group(['prefix' => 'cotizacion','middleware' => 'tiene_permiso:cotizar_dolar_peso'], function () {
   Route::get('obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');
   Route::post('guardarCotizacion','CotizacionController@guardarCotizacion');
 });
 /************
 Relevamientos
 ************/
-Route::group(['prefix' => 'relevamientos'], function () {
-  Route::get('/','RelevamientoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_relevamientos');
+Route::group(['prefix' => 'relevamientos','middleware' => 'tiene_permiso:ver_seccion_relevamientos'], function () {
+  Route::get('/','RelevamientoController@buscarTodo');
   Route::post('crearRelevamiento','RelevamientoController@crearRelevamiento');
   Route::post('cargarRelevamiento','RelevamientoController@cargarRelevamiento');
   Route::post('validarRelevamiento','RelevamientoController@validarRelevamiento');
@@ -900,6 +900,7 @@ Route::group(['prefix' => 'bingo'],function(){
     Route::get('generarPlanillaCierreSesion','Bingo\SesionesController@generarPlanillaCierreSesion');
     Route::get('generarPlanillaRelevamiento','Bingo\SesionesController@generarPlanillaRelevamiento');
     Route::delete('eliminarPartida/{id}','Bingo\SesionesController@eliminarPartida');
+    Route::get('chequearRolFiscalizador','UsuarioController@chequearRolFiscalizador');
   });
   Route::group(['middleware' => ['tiene_permiso:bingo_ver_gestion']],function(){
     Route::get('gestionBingo','Bingo\GestionController@index');

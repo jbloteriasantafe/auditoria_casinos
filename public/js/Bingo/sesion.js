@@ -540,7 +540,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   };
   
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-  $.get('relevamientos/chequearRolFiscalizador', function(rolfisca){
+  $.get('bingo/chequearRolFiscalizador', function(rolfisca){
     puede_eliminar = rolfisca != 1;//@HACK: eliminar las globales pasandolo a la vista
     $.ajax({
       type: 'GET',
@@ -635,7 +635,7 @@ $(document).on('click' , '.detallesRel' , function() {
     $('#pozo_dotacion_final_d').val(ifnull(data.sesion.pozo_dotacion_final)).attr('readonly','readonly');
     $('#pozo_extra_final_d').val(ifnull(data.sesion.pozo_extra_final)).attr('readonly','readonly');
     //ocultar fila acción e icono eliminar partida si es fiscalizador
-    $.get('relevamientos/chequearRolFiscalizador', function(data){
+    $.get('bingo/chequearRolFiscalizador', function(data){
       $('.borrarPartida,#accionesResultadoRel').toggle(data!=1);
     })
     //genera los input con detalles de sesión
