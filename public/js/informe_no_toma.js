@@ -241,7 +241,7 @@ function generarTablaRelevamientos(id_casino, nro_admin, cant_rel) {
 
     $.ajax({
         type: 'POST',
-        url: 'estadisticas_relevamientos/obtenerUltimosRelevamientosPorMaquinaNroAdmin',
+        url: 'estadisticas_no_toma/obtenerUltimosRelevamientosPorMaquinaNroAdmin',
         data: formData,
         dataType: 'json',
         success: function(data) {

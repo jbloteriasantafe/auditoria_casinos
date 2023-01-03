@@ -535,7 +535,6 @@ Route::group(['prefix' => 'mtm_a_pedido','middleware' => 'tiene_permiso:ver_secc
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
 });
 
-
 Route::group(['prefix' => 'alertas_contadores', 'middleware' => 'tiene_permiso:ver_seccion_contadores'],function(){
   Route::get('/','AlertasContadoresController@buscarTodo');
   Route::post('buscarPolleos','AlertasContadoresController@buscarPolleos');
@@ -548,7 +547,7 @@ Route::group(['prefix' => 'alertas_contadores', 'middleware' => 'tiene_permiso:v
 PRODUCIDOS-AJUSTES PRODUCIDO
 ******************/
 Route::group(['prefix' => 'producidos','middleware' => 'tiene_permiso:ver_seccion_producidos'],function (){
-  Route::get('','ProducidoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_producidos');
+  Route::get('','ProducidoController@buscarTodo');
   Route::post('buscarProducidos','ProducidoController@buscarProducidos');
   Route::get('generarPlanillaDiferencias/{id_producido}','ProducidoController@generarPlanillaDiferencias');
   Route::get('generarPlanillaProducido/{id_producido}','ProducidoController@generarPlanillaProducido');
@@ -560,11 +559,10 @@ Route::group(['prefix' => 'producidos','middleware' => 'tiene_permiso:ver_seccio
 /***********
  Estadisticas
 ************/
-Route::group(['prefix' => 'estadisticas_relevamientos'],function (){
-  Route::get('/','MaquinaAPedidoController@buscarTodoInforme' )->middleware('tiene_permiso:ver_seccion_estadisticas_relevamientos');
+Route::group(['prefix' => 'estadisticas_relevamientos','middleware' => 'tiene_permiso:ver_seccion_estadisticas_relevamientos'],function (){
+  Route::get('/','MaquinaAPedidoController@buscarTodoInforme');
   Route::post('guardarMtmAPedido','MaquinaAPedidoController@guardarMtmAPedido');
   Route::post('obtenerUltimosRelevamientosPorMaquina','RelevamientoController@obtenerUltimosRelevamientosPorMaquina');
-  Route::post('obtenerUltimosRelevamientosPorMaquinaNroAdmin','RelevamientoController@obtenerUltimosRelevamientosPorMaquinaNroAdmin');
   Route::post('buscarMaquinasSinRelevamientos','RelevamientoController@buscarMaquinasSinRelevamientos');
   Route::get('obtenerFechasMtmAPedido/{id}', 'MaquinaAPedidoController@obtenerFechasMtmAPedido');
   Route::get('buscarMaquinas/{id_casino}','RelevamientoController@buscarMaquinasPorCasino');
@@ -689,6 +687,7 @@ Route::group(['prefix' => 'estadisticas_no_toma','middleware' => ['tiene_permiso
   Route::get('/','informesController@mostrarEstadisticasNoTomaGenerico');
   Route::get('obtenerEstadisticasNoToma/{id}','informesController@obtenerEstadisticasNoToma');
   Route::get('obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
+  Route::post('obtenerUltimosRelevamientosPorMaquinaNroAdmin','RelevamientoController@obtenerUltimosRelevamientosPorMaquinaNroAdmin');
 });
 Route::get('/relevamientos/estadisticas_no_toma/{id}','informesController@mostrarEstadisticasNoToma');
 /************************
