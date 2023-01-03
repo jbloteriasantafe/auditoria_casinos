@@ -461,6 +461,7 @@ Route::group(['prefix' => 'relevamientos','middleware' => 'tiene_permiso:ver_sec
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
   Route::get('usuarioTienePermisos','AuthenticationController@usuarioTienePermisos');
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
+  Route::get('obtenerMtmAPedido/{fecha}/{id_sector}','MaquinaAPedidoController@obtenerMtmAPedido');
 });
 /* OBTENER FECHA Y HORA ACTUAL */
 Route::get('obtenerFechaActual',function(){
@@ -526,9 +527,8 @@ Route::group(['prefix' => 'informeControlAmbiental','middleware' => 'tiene_permi
 /*******************
   Máquinas a pedir
 ********************/
-Route::group(['prefix' => 'mtm_a_pedido'], function () {
-  Route::get('/','MaquinaAPedidoController@buscarTodo')->middleware('tiene_permiso:ver_seccion_mtm_a_pedido');
-  Route::get('obtenerMtmAPedido/{fecha}/{id_sector}','MaquinaAPedidoController@obtenerMtmAPedido');
+Route::group(['prefix' => 'mtm_a_pedido','middleware' => 'tiene_permiso:ver_seccion_mtm_a_pedido'], function () {
+  Route::get('/','MaquinaAPedidoController@buscarTodo');
   Route::post('buscarMTMaPedido','MaquinaAPedidoController@buscarMTMaPedido');
   Route::post('guardarMtmAPedido','MaquinaAPedidoController@guardarMtmAPedido');
   Route::delete('eliminarMmtAPedido/{id}','MaquinaAPedidoController@eliminarMTMAPedido');

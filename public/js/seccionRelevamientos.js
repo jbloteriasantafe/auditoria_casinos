@@ -2107,7 +2107,7 @@ function maquinasAPedido(){
       $('#modalRelevamiento #cantidad_maquinas').val(cantidad);
   });
 
-  $.get("mtm_a_pedido/obtenerMtmAPedido/" + fecha + "/" + id_sector, function(data){
+  $.get("relevamientos/obtenerMtmAPedido/" + fecha + "/" + id_sector, function(data){
       console.log(data);
       var cantidad = data.cantidad;
 
