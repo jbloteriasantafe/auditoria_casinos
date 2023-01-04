@@ -59,18 +59,18 @@
     <table>
       <tr>
         <th class="tablaInicio">FECHA</th>
-        <th class="tablaInicio">MAQUINAS</th>
+        <th class="tablaInicio" width="5%">MAQUINAS</th>
         <th class="tablaInicio">APOSTADO</th>
         <th class="tablaInicio">PREMIOS</th>
         @if ($sum->casino != 'Rosario' && !$calculado)
         <th class="tablaInicio">P.MAYORES</th>
         @endif
         @if ($mostrar_pdev)
-        <th class="tablaInicio">%dev</th>
+        <th class="tablaInicio" width="5%">%dev</th>
         @endif
         @if ($sum->tipoMoneda == 'US$')
         <th class="tablaInicio">BENEFICIO (US$) {{$calculado? '(CALCULADO)' : ''}}</th>
-        <th class="tablaInicio">COTIZACIÓN<sup>*</sup></th>
+        <th class="tablaInicio" width="12%">COTIZACIÓN<sup>*</sup></th>
         <th class="tablaInicio">BENEFICIO ($)</th>
         @elseif($sum->tipoMoneda == '$')
         <th class="tablaInicio">BENEFICIO {{$calculado? '(CALCULADO)' : ''}}</th>
