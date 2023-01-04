@@ -29,7 +29,7 @@ $(document).ready(function(){
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.planilla',function(){
-  window.open('layouts/generarPlanillaLayoutTotales/' + $(this).val(),'_blank');
+  window.open('layout_total/generarPlanillaLayoutTotales/' + $(this).val(),'_blank');
 });
 
 //Opacidad del modal al minimizar
@@ -62,7 +62,7 @@ $('#btn_validar_layout').click(function(e){
 
   $.ajax({
       type: "POST",
-      url: 'http://' + window.location.host +'/layouts/validarLayoutTotal',
+      url: 'layout_total/validarLayoutTotal',
       data: {
         id_layout_total: $(this).val(),
         observacion_validacion: $('#observaciones_adm_layout').val(),
@@ -98,7 +98,7 @@ $("#btn-backup").click(function(){
 
   $.ajax({
     type: "POST",
-    url: 'http://' + window.location.host +'/layouts/usarLayoutTotalBackup',
+    url: 'layout_total/usarLayoutTotalBackup',
     data: {
       fecha: $('#fechaLayoutSinSistema').val(),
       fecha_generacion: $('#fechaGeneracionSinSistema').val(),
@@ -148,7 +148,7 @@ $('#btn-generar').click(function(e){
 
   $.ajax({
       type: "POST",
-      url: 'http://' + window.location.host +'/layouts/crearLayoutTotal',
+      url: 'layout_total/crearLayoutTotal',
       data: {
         id_casino: $('#casino').val(),
         turno: $('#turno').val(),
@@ -176,7 +176,7 @@ $('#btn-generar').click(function(e){
             iframe.style.visibility = 'hidden';
             document.body.appendChild(iframe);
         }
-        iframe.src = data.url_zip;
+        iframe.src = '/layout_total/descargarLayoutTotalZip/'+data.nombre_zip;
       },
       error: function (data) {
         $('#iconoCarga').hide();
@@ -202,7 +202,7 @@ $('#btn-generar').click(function(e){
 
 
 function cargarDivInactivas(id_layout_total,modo,done = function (x){return;}){
-  $.get('http://' + window.location.host +'/layouts/obtenerLayoutTotal/' + id_layout_total, function(data){
+  $.get('layout_total/obtenerLayoutTotal/' + id_layout_total, function(data){
     $('#fecha_layout').val(data.layout_total.fecha);
     $('#fecha_generacion_layout').val(data.layout_total.fecha_generacion);
     $('#casino_layout').val(data.casino.nombre);
@@ -217,7 +217,7 @@ function cargarDivInactivas(id_layout_total,modo,done = function (x){return;}){
     $('#observaciones_fisca_layout').val(data.layout_total?.observacion_fiscalizacion);
 
     $('#fiscalizador_carga_layout').val(data.usuario_cargador?.nombre);
-    $('#fiscalizador_toma_layout').generarDataList('layouts/buscarUsuariosPorNombreYCasino/'+ data.casino.id_casino,'usuarios','id_usuario','nombre',2);
+    $('#fiscalizador_toma_layout').generarDataList('layout_total/buscarUsuariosPorNombreYCasino/'+ data.casino.id_casino,'usuarios','id_usuario','nombre',2);
     $('#fiscalizador_toma_layout').setearElementoSeleccionado(0,"");
     if (data.usuario_fiscalizador){
       $('#fiscalizador_toma_layout').setearElementoSeleccionado(data.usuario_fiscalizador.id_usuario,data.usuario_fiscalizador.nombre);
@@ -239,7 +239,7 @@ function cargarDivObservadas(id_layout_total,modo,done = function (x){return;}){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
     type: "GET",
-    url: 'layouts/islasLayoutTotal/'+id_layout_total,
+    url: 'layout_total/islasLayoutTotal/'+id_layout_total,
     dataType: 'json',
     success: function(data){
       const sectorEjemplo = $('#sectorEjemplo').clone().attr('id','').show();
@@ -495,7 +495,7 @@ $('#btn-eliminarModal').on('click', function() {
   $.ajaxSetup({ headers: {  'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } })
   $.ajax({
       type: "DELETE",
-      url: "layouts/eliminarLayoutTotal/" + $(this).val(),
+      url: "layout_total/eliminarLayoutTotal/" + $(this).val(),
       success: function (data) {
         $('#btn-buscar').trigger('click');
       },
@@ -526,12 +526,12 @@ $('#btn_salir_layout').click(function(){
 });
 
 $('.selectCasinos').on('change',function(){
-  $.get("/layouts/obtenerTurno/" + $(this).val(), function(data){
+  $.get("layout_total/obtenerTurno/" + $(this).val(), function(data){
     $('#turno').val(data.turno);
   });
   const select = $(this).closest('.modal').find('.selectSector');
   select.empty();
-  $.get("layouts/obtenerSectoresPorCasino/" + $(this).val(), function(data){    
+  $.get("layout_total/obtenerSectoresPorCasino/" + $(this).val(), function(data){    
     select.append($('<option>').val("").text("- TODOS -"));
     for(const idx in data.sectores){
       const s = data.sectores[idx];
@@ -581,7 +581,7 @@ $('#btn_guardartemp_layout').click(function(e){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
       type: 'POST',
-      url: '/layouts/guardarLayoutTotal',
+      url: 'layout_total/guardarLayoutTotal',
       data: formDataLayout(),
       dataType: 'json',
       success: function(x){
@@ -636,7 +636,7 @@ $('#btn_finalizar_layout').click(function(e){
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $.ajax({
     type: 'POST',
-    url: '/layouts/cargarLayoutTotal',
+    url: 'layout_total/cargarLayoutTotal',
     data: formDataLayout(),
     dataType: 'json',
     success: function (resultados) {
@@ -708,7 +708,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
     $.ajax({
       type: 'POST',
-      url: 'http://' + window.location.host +'/layouts/buscarLayoutsTotales',
+      url: 'layout_total/buscarLayoutsTotales',
       data: {
         fecha: $('#buscadorFecha').val(),
         casino: $('#buscadorCasino').val(),
@@ -791,7 +791,7 @@ function generarFilaTabla(layout_total){
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.imprimir',function(){
-  window.open('layouts/generarPlanillaLayoutTotalesCargado/' + $(this).val(),'_blank');
+  window.open('layout_total/generarPlanillaLayoutTotalesCargado/' + $(this).val(),'_blank');
 });
 
 $('#btn_agregar_inactiva_layout').click(function(){
@@ -869,7 +869,7 @@ $(document).on('change','.NivelLayout .sector',function(e){
   }
   else{
     const nro_isla = fila.find('.nro_isla').val();
-    fila.find('.nro_isla').generarDataList("layouts/buscarIslaPorSectorYNro/" + $(this).val()  ,'islas','id_isla','nro_isla',1,false);
+    fila.find('.nro_isla').generarDataList("layout_total/buscarIslaPorSectorYNro/" + $(this).val()  ,'islas','id_isla','nro_isla',1,false);
     fila.find('.nro_isla').val(nro_isla).change();
   }
 });
@@ -884,7 +884,7 @@ $(document).on('change','.NivelLayout .nro_isla',function(e){
   else{
     const nro_admin = fila.find('.nro_admin').val();
     const id_casino = $('#modalLayoutTotal').data('sectores')[0].id_casino;
-    fila.find('.nro_admin').generarDataList("/layouts/obtenerMTMsEnIsla/" + id_casino + '/' + nro_isla,'maquinas','id_maquina','nro_admin',1,false);
+    fila.find('.nro_admin').generarDataList("layout_total/obtenerMTMsEnIsla/" + id_casino + '/' + nro_isla,'maquinas','id_maquina','nro_admin',1,false);
     fila.find('.nro_admin').val(nro_admin);
   }
 });

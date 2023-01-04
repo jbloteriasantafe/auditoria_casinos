@@ -596,7 +596,7 @@ class LayoutController extends Controller
             'sector' => $sector->descripcion,
             'estado' => 'Generado',
             'existeLayoutParcial' => 0,
-            'url_zip' => '/layouts/descargarLayoutParcialZip/'.$nombreZip];
+            'nombre_zip' => $nombreZip];
     }else{
     return['existeLayoutParcial' => 1];
      }
@@ -1232,7 +1232,7 @@ class LayoutController extends Controller
       DB::rollBack();
       throw $e;
     }
-    return [ 'url_zip' => '/layouts/descargarLayoutTotalZip/'.$nombreZip];
+    return [ 'nombre_zip' => $nombreZip];
   }
 
 

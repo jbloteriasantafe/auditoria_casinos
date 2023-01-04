@@ -81,7 +81,7 @@ $(document).on('click','.validar',function(e){
     var id_layout_parcial = $(this).val();
     $('#id_layout_parcial').val(id_layout_parcial);
 
-    $.get( 'http://' + window.location.host + '/layouts/obtenerLayoutParcialValidar/' + id_layout_parcial, function(data) {
+    $.get('layout_parcial/obtenerLayoutParcialValidar/' + id_layout_parcial, function(data) {
         $('#validarFechaActual').val(data.layout_parcial.fecha);
         $('#validarFechaEjecucion').val(data.layout_parcial.fecha_ejecucion);
         $('#validarCasino').val(data.casino);
@@ -122,7 +122,7 @@ $(document).on('click','.carga',function(e){
   modal.find('#id_layout_parcial').val(id_layout_parcial);
 
 
-  $.get('http://' + window.location.host + '/layouts/obtenerLayoutParcial/' + id_layout_parcial, function(data){
+  $.get('layout_parcial/obtenerLayoutParcial/' + id_layout_parcial, function(data){
       $('#cargaFechaActual').val(data.layout_parcial.fecha);
       $('#cargaFechaGeneracion').val(data.layout_parcial.fecha_generacion);
       $('#cargaCasino').val(data.casino);
@@ -136,7 +136,7 @@ $(document).on('click','.carga',function(e){
           $('#fiscaCarga').val(data.usuario_cargador.nombre);
       }
 
-      $('#inputFisca').generarDataList('layouts/buscarUsuariosPorNombreYCasino/'+ data.id_casino,'usuarios','id_usuario','nombre',2);
+      $('#inputFisca').generarDataList('layout_parcial/buscarUsuariosPorNombreYCasino/'+ data.id_casino,'usuarios','id_usuario','nombre',2);
       $('#inputFisca').setearElementoSeleccionado(0,"");
       if (data.usuario_fiscalizador){
         $('#inputFisca').setearElementoSeleccionado(data.usuario_fiscalizador.id_usuario,data.usuario_fiscalizador.nombre);
@@ -590,7 +590,7 @@ $('#modalCargaControlLayout #btn-finalizar').click(function(){
 
       $.ajax({
           type: "POST",
-          url: 'http://' + window.location.host +'/layouts/cargarLayoutParcial',
+          url: 'layout_parcial/cargarLayoutParcial',
           data: formData,
           dataType: 'json',
           success: function (data) {
@@ -705,7 +705,7 @@ $('#btn-validarRelevamiento').click(function(){ //metodo de validar
 
   $.ajax({
     type: "POST",
-    url: 'http://' + window.location.host +'/layouts/validarLayoutParcial',
+    url: 'layout_parcial/validarLayoutParcial',
     data: formData,
     dataType: 'json',
     success: function (data) {
@@ -825,7 +825,7 @@ $("#btn-backup").click(function(){
 
   $.ajax({
       type: "POST",
-      url: 'http://' + window.location.host + '/layouts/usarLayoutBackup',
+      url: 'layout_parcial/usarLayoutBackup',
       data: formData,
       dataType: 'json',
       success: function (data) {
@@ -859,14 +859,13 @@ $("#btn-backup").click(function(){
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.planilla',function(){
     $('#alertaArchivo').hide();
-    window.open('layouts/generarPlanillaLayoutParcial/' + $(this).val(),'_blank');
-
+    window.open('layout_parcial/generarPlanillaLayoutParcial/' + $(this).val(),'_blank');
 });
 
 //MUESTRA LA PLANILLA VACIA PARA RELEVAR
 $(document).on('click','.imprimir',function(){
     $('#alertaArchivo').hide();
-    window.open('layouts/generarPlanillaLayoutParcial/' + $(this).val(),'_blank');
+    window.open('layout_parcial/generarPlanillaLayoutParcial/' + $(this).val(),'_blank');
 });
 
 //GENERAR RELEVAMIENTO
@@ -901,7 +900,7 @@ $('#btn-generar').click(function(e){
 
     $.ajax({
         type: "POST",
-        url: 'http://' + window.location.host +'/layouts/crearLayoutParcial',
+        url: 'layout_parcial/crearLayoutParcial',
         data: formData,
         dataType: 'json',
         beforeSend: function(data){
@@ -926,7 +925,7 @@ $('#btn-generar').click(function(e){
                   iframe.style.visibility = 'hidden';
                   document.body.appendChild(iframe);
               }
-              iframe.src = data.url_zip;
+              iframe.src = '/layout_parcial/descargarLayoutParcialZip/' + data.nombre_zip;
             }else{
               $('#modalLayoutParcial').modal('hide');
               $('#modalConfirmacion').modal('show');
@@ -981,7 +980,7 @@ $('.selectCasinos').on('change',function(){
   var id_casino = $('option:selected' , this).attr('id');
   var selectCasino = $(this)
 
-  $.get("layouts/obtenerSectoresPorCasino/" + id_casino, function(data){
+  $.get("layout_parcial/obtenerSectoresPorCasino/" + id_casino, function(data){
     if(selectCasino[0] == $("#casino")[0]){
       var selectSector = $('#sector');
       selectSector.empty();
@@ -1018,7 +1017,7 @@ $('#modalLayoutParcial #sector').on('change',function(){
 
 function existeLayoutParcial(){
   var id_sector = $('#modalLayoutParcial #sector option:selected').val();
-  $.get('/layouts/existeLayoutParcial/' + id_sector, function(data){
+  $.get('layout_parcial/existeLayoutParcial/' + id_sector, function(data){
       //Si ya existe se cambia el valor del botón GENERAR para que muestre o no un modal de confirmación
       console.log("esto me llega de la base para el sector " + id_sector);
       console.log(data);
@@ -1033,7 +1032,7 @@ function existeLayoutParcial(){
 function existeLayoutParcialGenerado(){
 
   var id_sector = $('#modalLayoutParcial #sector option:selected').val();
-  $.get('/layouts/existeLayoutParcialGenerado/' + id_sector, function(data){
+  $.get('layout_parcial/existeLayoutParcialGenerado/' + id_sector, function(data){
       //Si ya existe se cambia el valor del botón GENERAR para que muestre o no un modal de confirmación
       console.log("esto me llega de la base para el sector " + id_sector);
       console.log(data);
@@ -1086,7 +1085,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
 
     $.ajax({
         type: 'POST',
-        url: 'http://' + window.location.host +'/layouts/buscarLayoutsParciales',
+        url: 'layout_parcial/buscarLayoutsParciales',
         data: formData,
         dataType: 'json',
         success: function (resultados) {
@@ -1232,7 +1231,7 @@ function mostrarIconosPorPermisos(){
 
     $.ajax({
       type: 'GET',
-      url: 'layouts/usuarioTienePermisos',
+      url: 'layout_parcial/usuarioTienePermisos',
       data: formData,
       dataType: 'json',
       success: function(data) {

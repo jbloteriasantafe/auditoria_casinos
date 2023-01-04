@@ -572,7 +572,7 @@ Route::group(['prefix' => 'estadisticas_relevamientos','middleware' => 'tiene_pe
  Beneficios
 ***********/
 Route::group(['prefix' => 'beneficios','middleware' => 'tiene_permiso:ver_seccion_beneficios'],function (){
-  Route::get('/','BeneficioController@buscarTodo')->middleware('tiene_permiso:ver_seccion_beneficios');
+  Route::get('/','BeneficioController@buscarTodo');
   Route::post('buscarBeneficios','BeneficioController@buscarBeneficios');
   Route::post('obtenerBeneficiosParaValidar','BeneficioController@obtenerBeneficiosParaValidar');
   Route::post('ajustarBeneficio','BeneficioController@ajustarBeneficio');
@@ -590,9 +590,8 @@ Route::get('menu_layout',function(){
     return view('menu_layout');
 });
 
-//PARCIAL
-Route::get('layout_parcial','LayoutController@buscarTodo')->middleware('tiene_permiso:ver_seccion_layout_parcial');
-Route::group(['prefix' => 'layouts'],function (){
+Route::group(['prefix' => 'layout_parcial','middleware' => 'tiene_permiso:ver_seccion_layout_parcial'],function (){
+  Route::get('/','LayoutController@buscarTodo');
   Route::post('crearLayoutParcial','LayoutController@crearLayoutParcial');
   Route::post('usarLayoutBackup' , 'LayoutController@usarLayoutBackup');
   Route::get('existeLayoutParcial/{id_sector}','LayoutController@existeLayoutParcial');
@@ -609,12 +608,10 @@ Route::group(['prefix' => 'layouts'],function (){
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
 });
 
-//TOTAL
-Route::get('layout_total','LayoutController@buscarTodoTotal')->middleware('tiene_permiso:ver_seccion_layout_total');
-Route::group(['prefix' => 'layouts','middleware' => 'tiene_permiso:ver_seccion_layout_total'], function () {
+Route::group(['prefix' => 'layout_total','middleware' => 'tiene_permiso:ver_seccion_layout_total'], function () {
+  Route::get('/','LayoutController@buscarTodoTotal');
   Route::post('crearLayoutTotal','LayoutController@crearLayoutTotal');
   Route::post('buscarLayoutsTotales' , 'LayoutController@buscarLayoutsTotales');
-  Route::get('descargarLayoutTotalZip/{nombre}','LayoutController@descargarLayoutTotalZip');
   Route::get('generarPlanillaLayoutTotales/{id}','LayoutController@generarPlanillaLayoutTotales');
   Route::get('generarPlanillaLayoutTotalesCargado/{id}','LayoutController@generarPlanillaLayoutTotalesCargado');
   Route::post('guardarLayoutTotal','LayoutController@guardarLayoutTotal');
@@ -632,7 +629,6 @@ Route::group(['prefix' => 'layouts','middleware' => 'tiene_permiso:ver_seccion_l
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
 });
-
 
 /**************
  Estadisticas

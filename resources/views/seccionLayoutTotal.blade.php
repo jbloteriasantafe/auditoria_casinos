@@ -667,7 +667,7 @@ $porcentaje_por_observada = $total_usado/$observadas_por_fila;
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionLayoutTotal.js?3" charset="utf-8"></script>
+    <script src="js/seccionLayoutTotal.js?4" charset="utf-8"></script>
     <script src="js/paginacion.js" charset="utf-8"></script>
     <script src="js/lista-datos.js" charset="utf-8"></script>
 
