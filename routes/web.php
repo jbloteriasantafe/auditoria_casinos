@@ -637,13 +637,18 @@ Route::group(['prefix' => 'layout_total','middleware' => 'tiene_permiso:ver_secc
 Route::get('menu_tablero',function(){
   return view('menu_tablero');
 });
-Route::get('estadisticasGenerales', 'BeneficioMensualController@buscarTodoGenerales');
-Route::get('estadisticasPorCasino','BeneficioMensualController@buscarTodoPorCasino');
-Route::get('interanuales','BeneficioMensualController@buscarTodoInteranuales');
-Route::post('estadisticasGenerales','BeneficioMensualController@cargarEstadisticasGenerales');
-Route::post('estadisticasPorCasino','BeneficioMensualController@cargarSeccionEstadisticasPorCasino');
-Route::post('interanuales','BeneficioMensualController@cargaSeccionInteranual');
-
+Route::group(['prefix' => 'estadisticasGenerales','middleware' => 'tiene_permiso:estadisticas_generales'], function () {
+  Route::get('/', 'BeneficioMensualController@buscarTodoGenerales');
+  Route::post('/','BeneficioMensualController@cargarEstadisticasGenerales');
+});
+Route::group(['prefix' => 'estadisticasPorCasino','middleware' => 'tiene_permiso:estadisticas_por_casino'], function () {
+  Route::get('/','BeneficioMensualController@buscarTodoPorCasino');
+  Route::post('/','BeneficioMensualController@cargarSeccionEstadisticasPorCasino');
+});
+Route::group(['prefix' => 'interanuales','middleware' => 'tiene_permiso:estadisticas_interanuales'], function () {
+  Route::get('/','BeneficioMensualController@buscarTodoInteranuales');
+  Route::post('/','BeneficioMensualController@cargaSeccionInteranual');
+});
 /***********
 Informes
 ***********/
