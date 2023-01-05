@@ -39,7 +39,7 @@ $('#btn-buscar').click(function(e){
   var id = $('#buscadorCasino').val();
 
   if (id != 0) {
-    $.get('/informesMTM/obtenerEstadoParqueDeCasino/' + id , function(data){
+    $.get('informeEstadoParque/obtenerEstadoParqueDeCasino/' + id , function(data){
 
         $('.logoCasino').hide();
 

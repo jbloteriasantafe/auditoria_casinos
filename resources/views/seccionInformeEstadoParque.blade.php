@@ -219,7 +219,7 @@ use Illuminate\Http\Request;
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionInformeEstadoParque.js" charset="utf-8"></script>
+    <script src="js/seccionInformeEstadoParque.js?1" charset="utf-8"></script>
 
     <!-- Highchart -->
     <script src="js/highcharts.js"></script>

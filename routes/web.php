@@ -652,24 +652,23 @@ Route::group(['prefix' => 'interanuales','middleware' => 'tiene_permiso:estadist
 /***********
 Informes
 ***********/
-Route::group(['prefix' => 'informeEstadoParque'],function(){
+Route::group(['prefix' => 'informeEstadoParque','middleware' => 'tiene_permiso:ver_seccion_estestadoparque'],function(){
   Route::get('/' , 'informesController@obtenerInformeEstadoParque');
   Route::get('obtenerSector/{id_sector}','SectorController@obtenerSector');
+  Route::get('obtenerEstadoParqueDeCasino/{id_casino}','informesController@obtenerInformeEstadoParqueDeParque');
 });
 
-Route::group(['prefix' => 'informeContableMTM','middleware' => ['tiene_permiso:ver_seccion_informecontable']], function () {
+Route::group(['prefix' => 'informeContableMTM','middleware' => 'tiene_permiso:ver_seccion_informecontable'], function () {
   Route::get('/','informesController@buscarTodoInformeContable');//carga pagina
   Route::get('obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
   Route::get('obtenerInformeContableDeMaquina/{id_maquina}','informesController@obtenerInformeContableDeMaquina');
 });
 
-Route::group(['prefix' => 'informesMTM'], function () {
+Route::group(['prefix' => 'informesMTM','middleware' => 'tiene_permiso:informes_mtm'], function () {
   Route::get('/','informesController@obtenerUltimosBeneficiosPorCasino');
   Route::get('generarPlanilla','informesController@generarPlanilla');
   Route::get('generarPlanillaIslasMaquinas','informesController@generarPlanillaIslasMaquinas');
-  Route::get('obtenerEstadoParqueDeCasino/{id_casino}','informesController@obtenerInformeEstadoParqueDeParque');
 });
-
 
 Route::get('informesBingo',function(){
   return view('seccionInformesBingo');
