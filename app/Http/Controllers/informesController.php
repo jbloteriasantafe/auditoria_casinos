@@ -46,7 +46,9 @@ class informesController extends Controller
       DB::raw('FORMAT(100*(b.coinout+IFNULL(b.jackpot,0))/b.coinin,3,"es_AR") as pdev'),
       DB::raw('FORMAT(b.valor,2,"es_AR")   as beneficio'),
       DB::raw('IF(cot.valor IS NULL,"-",FORMAT(cot.valor,3,"es_AR"))         as cotizacion'),//Para dolares
-      DB::raw('IF(cot.valor IS NULL,"-",FORMAT(b.valor*cot.valor,2,"es_AR")) as beneficioPesos')//Para dolares
+      DB::raw('IF(cot.valor IS NULL,"-",FORMAT(b.valor*cot.valor,2,"es_AR")) as beneficioPesos'),//Para dolares
+      DB::raw('b.valor*IF(b.id_tipo_moneda = 1,1,cot.valor) as beneficioPesosSinFormatear'),
+      DB::raw('"-" as promedio')
     )
     ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha')//No deberiamos usar la ultima cotizacion cargada si la de la fecha no esta?
     ->where($condicion)->orderBy('b.fecha','asc')->get();
@@ -59,7 +61,13 @@ class informesController extends Controller
       ->selectRaw('COUNT(distinct dp.id_maquina) as cantidad_maquinas')
       ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
       ->where($condicion_p)->where('p.fecha','=',$b->fecha_iso)->groupBy("p.id_producido")->first();
-      if($maquinas) $b->cantidad_maquinas = $maquinas->cantidad_maquinas;
+      
+      if($maquinas){
+        $b->cantidad_maquinas = $maquinas->cantidad_maquinas;
+        if($b->cantidad_maquinas != 0){
+          $b->promedio = number_format($b->beneficioPesosSinFormatear/$b->cantidad_maquinas,3,',','.');
+        }
+      }
     }
 
     $sum = DB::table('beneficio as b')->select('c.nombre as casino','tm.descripcion as tipoMoneda',
@@ -69,7 +77,9 @@ class informesController extends Controller
         DB::raw('FORMAT(SUM(b.jackpot),2,"es_AR") as totalPmayores'),
         DB::raw('FORMAT(100*(SUM(b.coinout)+SUM(IFNULL(b.jackpot,0)))/SUM(b.coinin),3,"es_AR") as totalPdev'),
         DB::raw('FORMAT(SUM(b.valor),2,"es_AR")   as totalBeneficio'),
-        DB::raw('FORMAT(SUM(b.valor*IFNULL(cot.valor,0)),2,"es_AR") as totalBeneficioPesos')//Para dolares
+        DB::raw('FORMAT(SUM(b.valor*IFNULL(cot.valor,0)),2,"es_AR") as totalBeneficioPesos'),//Para dolares
+        DB::raw('SUM(b.valor*IF(b.id_tipo_moneda = 1,1,IFNULL(cot.valor,0))) as totalBeneficioPesosSinFormatear'),
+        DB::raw('"-" as promedio')
     )
     ->join('casino as c','c.id_casino','=','b.id_casino')
     ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','b.id_tipo_moneda')
@@ -84,7 +94,12 @@ class informesController extends Controller
     ->selectRaw('COUNT(distinct dp.id_maquina) as cantidad_maquinas')
     ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
     ->where($condicion_p)->groupBy(DB::raw("'constant'"))->first();//Agrupo por una constante porque quiero contar todo
-    if($maquinas) $sum->cantidad_maquinas = $maquinas->cantidad_maquinas;
+    if($maquinas){
+      $sum->cantidad_maquinas = $maquinas->cantidad_maquinas;
+      if($sum->cantidad_maquinas != 0){
+        $sum->promedio = number_format($sum->totalBeneficioPesosSinFormatear / $sum->cantidad_maquinas,3,',','.');
+      }
+    }
 
     $meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     if(array_key_exists(intval($request->mes)-1,$meses)) $mes = $meses[intval($request->mes)-1];
@@ -115,22 +130,24 @@ class informesController extends Controller
     $condicion = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],
     [DB::raw('YEAR(p.fecha)'),'=',$anio],[DB::raw('MONTH(p.fecha)'),'=',$mes]];
 
+    $cantidad_maquinas = 'COUNT(distinct m.id_maquina)';
     $suma_a = 'SUM(IF(p.apuesta IS NULL OR m.id_maquina IS NULL,NULL,IFNULL(dp.apuesta,0)))';
     $suma_p = 'SUM(IF(p.premio IS NULL OR m.id_maquina IS NULL,NULL,IFNULL(dp.premio,0)))';;
     $suma_v = 'SUM(IF(m.id_maquina IS NULL,0,IFNULL(dp.valor,0)))';
     $suma_cotizada = 'SUM(IF(m.id_maquina IS NULL,0,IFNULL(dp.valor,0)*IFNULL(cot.valor,0)))';
-
+    $suma_pesos = 'SUM(IF(m.id_maquina IS NULL,0,IF(p.id_tipo_moneda = 1,1,IFNULL(cot.valor,0))*IFNULL(dp.valor,0)))';
     $beneficios = DB::table('producido as p')
     ->select(
-      DB::raw('COUNT(distinct m.id_maquina) as cantidad_maquinas'),
+      DB::raw("$cantidad_maquinas as cantidad_maquinas"),
       DB::raw('DATE_FORMAT(p.fecha,"%d-%m-%Y") as fecha'),
-      DB::raw('FORMAT('.$suma_a.',2,"es_AR") as apostado'),
-      DB::raw('FORMAT('.$suma_p.',2,"es_AR") as premios'),
+      DB::raw("FORMAT($suma_a,2,'es_AR') as apostado"),
+      DB::raw("FORMAT($suma_p,2,'es_AR') as premios"),
       DB::raw('"" as pmayores'),
-      DB::raw('FORMAT(100*'.$suma_p.'/'.$suma_a.',3,"es_AR")as pdev'),
-      DB::raw('FORMAT('.$suma_v.',2,"es_AR") as beneficio'),
+      DB::raw("FORMAT(100*$suma_p/$suma_a,3,'es_AR') as pdev"),
+      DB::raw("FORMAT($suma_v,2,'es_AR') as beneficio"),
       DB::raw('IF(cot.valor IS NULL,"-",FORMAT(cot.valor,3,"es_AR")) as cotizacion'),//Para dolares
-      DB::raw('IF(cot.valor IS NULL,"-",FORMAT('.$suma_cotizada.',2,"es_AR")) as beneficioPesos')//Para dolares
+      DB::raw("IF(cot.valor IS NULL,'-',FORMAT($suma_cotizada,2,'es_AR')) as beneficioPesos"),//Para dolares
+      DB::raw("IF($cantidad_maquinas,FORMAT($suma_pesos/$cantidad_maquinas,3,'es_AR'),'-') as promedio")
     )
     ->leftJoin('cotizacion as cot','cot.fecha','=','p.fecha')
     ->leftJoin('detalle_producido as dp',function($j){
@@ -145,13 +162,14 @@ class informesController extends Controller
 
     $sum = DB::table('producido as p')
     ->select('c.nombre as casino','tm.descripcion as tipoMoneda',
-      DB::raw('COUNT(distinct m.id_maquina) as cantidad_maquinas'),
-      DB::raw('FORMAT('.$suma_a.',2,"es_AR") as totalApostado'),
-      DB::raw('FORMAT('.$suma_p.',2,"es_AR") as totalPremios'),
+      DB::raw("$cantidad_maquinas as cantidad_maquinas"),
+      DB::raw("FORMAT($suma_a,2,'es_AR') as totalApostado"),
+      DB::raw("FORMAT($suma_p,2,'es_AR') as totalPremios"),
       DB::raw('"" as totalPmayores'),
-      DB::raw('FORMAT(100*'.$suma_p.'/'.$suma_a.',3,"es_AR") as totalPdev'),
-      DB::raw('FORMAT('.$suma_v.',2,"es_AR") as totalBeneficio'),
-      DB::raw('FORMAT('.$suma_cotizada.',2,"es_AR") as totalBeneficioPesos')//Para dolares
+      DB::raw("FORMAT(100*$suma_p/$suma_a,3,'es_AR') as totalPdev"),
+      DB::raw("FORMAT($suma_v,2,'es_AR') as totalBeneficio"),
+      DB::raw("FORMAT($suma_cotizada,2,'es_AR') as totalBeneficioPesos"),//Para dolares
+      DB::raw("IF($cantidad_maquinas,FORMAT($suma_pesos/$cantidad_maquinas,3,'es_AR'),'-') as promedio")
     )
     ->join('casino as c','c.id_casino','=','p.id_casino')
     ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','p.id_tipo_moneda')

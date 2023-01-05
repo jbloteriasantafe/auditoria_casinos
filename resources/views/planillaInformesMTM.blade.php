@@ -5,12 +5,15 @@
   table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
-    width: 98%;
+    width: 100%;
   }
 
   td, th {
     border: 1px solid #dddddd;
-    padding: 3px;
+    padding: 2px;
+    @if($mostrar_pdev)
+    font-size: 10px !important;
+    @endif
   }
   th {
     text-align: center;
@@ -35,6 +38,7 @@
       break;
     }
   }
+  $width_max_maq_pdev_cot = $mostrar_pdev? 3 : 5;
   ?>
   <head>
     <meta charset="utf-8">
@@ -59,21 +63,24 @@
     <table>
       <tr>
         <th class="tablaInicio">FECHA</th>
-        <th class="tablaInicio" width="5%">MAQUINAS</th>
+        <th class="tablaInicio" width="{{$width_max_maq_pdev_cot}}%">MAQUINAS</th>
         <th class="tablaInicio">APOSTADO</th>
         <th class="tablaInicio">PREMIOS</th>
         @if ($sum->casino != 'Rosario' && !$calculado)
         <th class="tablaInicio">P.MAYORES</th>
         @endif
         @if ($mostrar_pdev)
-        <th class="tablaInicio" width="5%">%dev</th>
+        <th class="tablaInicio" width="{{$width_max_maq_pdev_cot}}%">%dev</th>
         @endif
         @if ($sum->tipoMoneda == 'US$')
         <th class="tablaInicio">BENEFICIO (US$) {{$calculado? '(CALCULADO)' : ''}}</th>
-        <th class="tablaInicio" width="12%">COTIZACIÓN<sup>*</sup></th>
+        <th class="tablaInicio" width="{{$width_max_maq_pdev_cot*3.3}}%">COTIZACIÓN<sup>*</sup></th>
         <th class="tablaInicio">BENEFICIO ($)</th>
         @elseif($sum->tipoMoneda == '$')
         <th class="tablaInicio">BENEFICIO {{$calculado? '(CALCULADO)' : ''}}</th>
+        @endif
+        @if ($mostrar_pdev)
+        <th class="tablaInicio">PROMEDIO</th>
         @endif
       </tr>
       @foreach ($beneficios as $b)
@@ -95,6 +102,9 @@
         @elseif($sum->tipoMoneda == '$')
         <td class="tablaCampos">{{$b->beneficio}}</td>
         @endif
+        @if ($mostrar_pdev)
+        <td class="tablaCampos">{{$b->promedio}}</td>
+        @endif
       </tr>
       @endforeach
       @if(!is_null($suma_maqs))
@@ -114,6 +124,9 @@
         <td style="border: 0;background: rgba(0,0,0,0);"></td>
         <td style="border: 0;background: rgba(0,0,0,0);"></td>
         @elseif($sum->tipoMoneda == '$')
+        <td style="border: 0;background: rgba(0,0,0,0);"></td>
+        @endif
+        @if ($mostrar_pdev)
         <td style="border: 0;background: rgba(0,0,0,0);"></td>
         @endif
       </tr>
@@ -137,6 +150,9 @@
         @elseif($sum->tipoMoneda == '$')
         <th class="tablaInicio">BENEFICIO {{$calculado? '(CALCULADO)' : ''}}</th>
         @endif
+        @if ($mostrar_pdev)
+        <th class="tablaInicio">PROMEDIO</th>
+        @endif
       </tr>
       <tr>
         <td class="tablaCampos centrar">{{$sum->cantidad_maquinas}}</td>
@@ -153,6 +169,9 @@
         <td class="tablaCampos centrar">{{$sum->totalBeneficioPesos}}</td>
         @elseif($sum->tipoMoneda == '$')
         <td class="tablaCampos centrar">{{$sum->totalBeneficio}}</td>
+        @endif
+        @if ($mostrar_pdev)
+        <td class="tablaCampos centrar">{{$sum->promedio}}</td>
         @endif
       </tr>
     </table>
