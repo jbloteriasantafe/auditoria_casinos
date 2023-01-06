@@ -462,6 +462,7 @@ Route::group(['prefix' => 'relevamientos','middleware' => 'tiene_permiso:ver_sec
   Route::get('usuarioTienePermisos','AuthenticationController@usuarioTienePermisos');
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
   Route::get('obtenerMtmAPedido/{fecha}/{id_sector}','MaquinaAPedidoController@obtenerMtmAPedido');
+  Route::get('estadisticas_no_toma/{id}','informesController@mostrarEstadisticasNoToma');
 });
 /* OBTENER FECHA Y HORA ACTUAL */
 Route::get('obtenerFechaActual',function(){
@@ -670,51 +671,40 @@ Route::group(['prefix' => 'informesMTM','middleware' => 'tiene_permiso:informes_
   Route::get('generarPlanillaIslasMaquinas','informesController@generarPlanillaIslasMaquinas');
 });
 
-Route::get('informesBingo',function(){
-  return view('seccionInformesBingo');
-});
-Route::get('informesJuegos',function(){
-  return view('seccionInformesJuegos');
-});
-
-Route::group(['prefix' => 'informeSector','middleware' => ['tiene_permiso:ver_seccion_informesector']], function () {
-  Route::get('/','informesController@mostrarInformeSector')->middleware('tiene_permiso:ver_seccion_informesector');
+Route::group(['prefix' => 'informeSector','middleware' => 'tiene_permiso:ver_seccion_informesector'], function () {
+  Route::get('/','informesController@mostrarInformeSector');
   Route::get('obtenerMTMs','informesController@obtenerMTMs');
   Route::post('transaccionEstadoMasivo','MTMController@transaccionEstadoMasivo');
 });
 
-Route::group(['prefix' => 'estadisticas_no_toma','middleware' => ['tiene_permiso:ver_seccion_informecontable']], function () {
+Route::group(['prefix' => 'estadisticas_no_toma','middleware' => 'tiene_permiso:ver_seccion_informecontable'], function () {
   Route::get('/','informesController@mostrarEstadisticasNoTomaGenerico');
   Route::get('obtenerEstadisticasNoToma/{id}','informesController@obtenerEstadisticasNoToma');
   Route::get('obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
   Route::post('obtenerUltimosRelevamientosPorMaquinaNroAdmin','RelevamientoController@obtenerUltimosRelevamientosPorMaquinaNroAdmin');
 });
-Route::get('/relevamientos/estadisticas_no_toma/{id}','informesController@mostrarEstadisticasNoToma');
+
 /************************
 Prueba Juegos y Progresivos
 ************************/
-Route::group(['prefix' => 'prueba_juegos'],function(){
-  Route::get('/',function(){
-    return view('seccionPruebaJuegos');
-  });
+Route::group(['prefix' => 'prueba_juegos','middleware' => 'tiene_permiso:ver_seccion_prueba_juegos'],function(){
   Route::get('/','PruebaController@buscarTodo');
   Route::get('pdf/{id_prueba_juego}','PruebaController@obtenerPDF');
   Route::get('obtenerPruebaJuego/{id_prueba_juego}','PruebaController@obtenerPruebaJuego');
   Route::post('guardarPruebaJuego','PruebaController@guardarPruebaJuego');
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
-});
-
-Route::group(['prefix' => 'pruebas'],function(){
   Route::post('buscarPruebasDeJuego','PruebaController@buscarPruebasDeJuego');
   Route::get('generarPlanillaPruebaDeJuego/{id_prueba_juego}','PruebaController@generarPlanillaPruebaDeJuego');
   Route::post('sortearMaquinaPruebaDeJuego','PruebaController@sortearMaquinaPruebaDeJuego');
+});
+
+Route::group(['prefix' => 'prueba_progresivos','middleware' => 'tiene_permiso:ver_seccion_prueba_progresivos'],function(){
+  Route::get('/','PruebaController@buscarTodoPruebaProgresivo');
   Route::post('buscarPruebasProgresivo','PruebaController@buscarPruebasProgresivo');
   Route::post('sortearMaquinaPruebaDeProgresivo','PruebaController@sortearMaquinaPruebaDeProgresivo');
   Route::get('generarPlanillaPruebaDeProgresivos/{id_prueba_progresivo}','PruebaController@generarPlanillaPruebaDeProgresivos');
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
 });
-
-Route::get('prueba_progresivos','PruebaController@buscarTodoPruebaProgresivo');
 
 /************************
 PRUEBAS DE DESARROLLO - AUXILIAR

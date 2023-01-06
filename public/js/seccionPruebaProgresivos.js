@@ -92,7 +92,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   console.log(formData);
   $.ajax({
       type: 'POST',
-      url: 'pruebas/buscarPruebasProgresivo',
+      url: 'prueba_progresivos/buscarPruebasProgresivo',
       data: formData,
       dataType: 'json',
       success: function (pruebas) {
@@ -182,7 +182,7 @@ function generarFilaTabla(prueba){
 $(document).on('click','.planilla',function(){
     $('#alertaArchivo').hide();
 
-    window.open('pruebas/generarPlanillaPruebaDeProgresivos/' + $(this).val(),'_blank');
+    window.open('prueba_progresivos/generarPlanillaPruebaDeProgresivos/' + $(this).val(),'_blank');
 
 });
 
@@ -221,7 +221,7 @@ $('#modalPrueba #casino').on('change',function(){
   var id_casino = $('#modalPrueba #casino option:selected').val();
 
   $('#modalPrueba #sector option').remove();
-  $.get("pruebas/obtenerSectoresPorCasino/" + id_casino, function(data){
+  $.get("prueba_progresivos/obtenerSectoresPorCasino/" + id_casino, function(data){
 
     for (var i = 0; i < data.sectores.length; i++) {
       $('#modalPrueba #sector')
@@ -252,7 +252,7 @@ $('#btn-generar').click(function(e){
 
       $.ajax({
           type: "POST",
-          url: 'pruebas/sortearMaquinaPruebaDeProgresivo',
+          url: 'prueba_progresivos/sortearMaquinaPruebaDeProgresivo',
           data: formData,
           dataType: 'json',
           success: function (data) {

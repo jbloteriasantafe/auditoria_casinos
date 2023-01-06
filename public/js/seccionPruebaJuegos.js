@@ -105,7 +105,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
   console.log(formData);
   $.ajax({
       type: 'POST',
-      url: 'pruebas/buscarPruebasDeJuego',
+      url: 'prueba_juegos/buscarPruebasDeJuego',
       data: formData,
       dataType: 'json',
       success: function (pruebas) {
@@ -198,7 +198,7 @@ function generarFilaTabla(prueba){
 $(document).on('click','.planilla',function(){
     $('#alertaArchivo').hide();
 
-    window.open('pruebas/generarPlanillaPruebaDeJuego/' + $(this).val(),'_blank');
+    window.open('prueba_juegos/generarPlanillaPruebaDeJuego/' + $(this).val(),'_blank');
 });
 
 $(document).on('click' , '.carga' , function(){
@@ -317,7 +317,7 @@ $('#btn-generar').click(function(e){
 
       $.ajax({
           type: "POST",
-          url: 'pruebas/sortearMaquinaPruebaDeJuego',
+          url: 'prueba_juegos/sortearMaquinaPruebaDeJuego',
           data: formData,
           dataType: 'json',
           success: function (data) {
