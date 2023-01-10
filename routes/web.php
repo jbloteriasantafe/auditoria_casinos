@@ -786,7 +786,7 @@ Route::group(['prefix' => 'sectores-mesas','middleware' => 'tiene_permiso:m_gest
   Route::post('guardar','Mesas\Sectores\ABMCSectoresController@guardar');
 });
 
-Route::group(['prefix' => 'apuestas'], function () {
+Route::group(['prefix' => 'apuestas','middleware' => 'tiene_permiso:m_ver_seccion_apuestas'], function () {
   Route::get('/', 'Mesas\Apuestas\BCApuestasController@buscarTodo');
   Route::post('buscarRelevamientosApuestas', 'Mesas\Apuestas\BCApuestasController@filtros');
   Route::post('generarRelevamientoApuestas', 'Mesas\Apuestas\BCApuestasController@obtenerNombreZip');
@@ -805,8 +805,8 @@ Route::group(['prefix' => 'apuestas'], function () {
   Route::post('modificarRequerimiento','Mesas\Apuestas\ABMCApuestaMinimaController@modificar');
   Route::get('buscarUsuario/{id_usuario}','UsuarioController@buscarUsuario');
   Route::get('buscarFiscalizadores/{id_cas}/{nombre}', 'UsuarioController@buscarFiscaNombreCasino');
+  Route::get('buscarTurnos/{nro}','Mesas\Turnos\TurnosController@buscarTurnos');
 });
-Route::get('turnos/buscarTurnos/{nro}','Mesas\Turnos\TurnosController@buscarTurnos');
 
 //informes fiscalizadores (compara Cierres contra Aperturas y verifica Apuestas Minimas)
 Route::group(['prefix' => 'informeDiarioBasico','middleware' => 'tiene_permiso:m_ver_seccion_informe_fiscalizadores'], function () {

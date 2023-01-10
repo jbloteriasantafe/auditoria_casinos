@@ -147,7 +147,7 @@ $('#btn-backUp').on('click',function(e){
   $('#B_fecha_bup').val('').prop('readonly',false);
   $('#B_fecha_bupEj').val('').prop('readonly',false);
   $('#turnoRelevadoBUp').val('').prop('readonly',false);
-  $('#turnoRelevadoBUp').generarDataList("turnos/buscarTurnos" ,'turnos','id_turno','nro_turno' ,1,true);
+  $('#turnoRelevadoBUp').generarDataList("apuestas/buscarTurnos" ,'turnos','id_turno','nro_turno' ,1,true);
   $('#turnoRelevadoBUp').setearElementoSeleccionado(0,'');
 
   $('.desplegarCarga').hide();
@@ -420,8 +420,7 @@ $('#btn-generar').on('click', function(e){
                   iframe.style.visibility = 'hidden';
                   document.body.appendChild(iframe);
               }
-
-              iframe.src = data.url_zip;
+              iframe.src = 'apuestas/descargarZipApuestas/'+data.nombre_zip;
 
           },
           error: function (data) {

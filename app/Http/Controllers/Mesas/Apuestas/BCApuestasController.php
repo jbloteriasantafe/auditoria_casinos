@@ -272,7 +272,7 @@ class BCApuestasController extends Controller
      //dd(  public_path().'/Mesas/'.$nombreZip);
     if(file_exists( public_path().'/Mesas/RelevamientosApuestas/'.$nombreZip)){ //C:\xampp\htdocs\agosto\prueba2\blog\
     //if(file_exists( public_path().'\\Mesas\\'.$nombreZip)){ //C:\xampp\htdocs\agosto\prueba2\blog\
-      return ['url_zip' => 'apuestas/descargarZipApuestas/'.$nombreZip];
+      return ['nombre_zip' => $nombreZip];
     }else{
       $enEspera = DB::table('comando_a_ejecutar')
           ->where([['fecha_a_ejecutar','>',Carbon::now()->format('Y:m:d H:i:s')],
