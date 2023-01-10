@@ -846,20 +846,22 @@ Route::group(['prefix' => 'informeMensual','middleware' => 'tiene_permiso:m_bc_d
 });
 
 
-Route::get('canon','Mesas\Canon\BPagosController@index')->middleware(['tiene_permiso:m_ver_seccion_canon']);
-Route::group(['prefix' => 'canon','middleware' => ['tiene_permiso:m_a_pagos']], function () {
-  Route::post('crearOModificarPago','Mesas\Canon\APagosController@crearOModificar');
-  Route::delete('borrarPago/{id_detalle}','Mesas\Canon\APagosController@borrar');
-  Route::post('modificarInformeBase','Mesas\Canon\APagosController@modificarInformeBase');
-});
-Route::group(['prefix' => 'canon','middleware' => ['tiene_permiso:m_b_pagos']], function () {
-  Route::get('getMesesCuotas/{id_casino}/{anio_inicio}', 'Mesas\Canon\BPagosController@mesesCuotasCanon');
-  Route::get('mesesCargados/{id_casino}/{anio_inicio}','Mesas\Canon\BPagosController@mesesCargados');
-  Route::post('buscarPagos','Mesas\Canon\BPagosController@filtros');
-  Route::get('obtenerPago/{id_detalle}','Mesas\Canon\BPagosController@obtenerPago');
-  Route::get('obtenerAnios/{id_casino}','Mesas\Canon\BPagosController@obtenerAnios');
-  Route::get('obtenerInformeBase/{id_casino}','Mesas\Canon\BPagosController@obtenerInformeBase');
-  Route::post('verInforme','Mesas\Canon\BPagosController@verInformeFinalMesas');
+Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_canon'],function(){
+  Route::get('/','Mesas\Canon\BPagosController@index');
+  Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
+    Route::post('crearOModificarPago','Mesas\Canon\APagosController@crearOModificar');
+    Route::delete('borrarPago/{id_detalle}','Mesas\Canon\APagosController@borrar');
+    Route::post('modificarInformeBase','Mesas\Canon\APagosController@modificarInformeBase');
+  });
+  Route::group(['middleware' => 'tiene_permiso:m_b_pagos'], function () {
+    Route::get('getMesesCuotas/{id_casino}/{anio_inicio}', 'Mesas\Canon\BPagosController@mesesCuotasCanon');
+    Route::get('mesesCargados/{id_casino}/{anio_inicio}','Mesas\Canon\BPagosController@mesesCargados');
+    Route::post('buscarPagos','Mesas\Canon\BPagosController@filtros');
+    Route::get('obtenerPago/{id_detalle}','Mesas\Canon\BPagosController@obtenerPago');
+    Route::get('obtenerAnios/{id_casino}','Mesas\Canon\BPagosController@obtenerAnios');
+    Route::get('obtenerInformeBase/{id_casino}','Mesas\Canon\BPagosController@obtenerInformeBase');
+    Route::post('verInforme','Mesas\Canon\BPagosController@verInformeFinalMesas');
+  });
 });
 
 Route::group(['prefix' => 'solicitudImagenes','middleware' => ['tiene_permiso:m_abmc_img_bunker']], function () {
