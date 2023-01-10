@@ -1741,7 +1741,7 @@ use App\Http\Controllers\AuthenticationController;
 @section('scripts')
 
   <!-- JavaScript personalizado -->
-  <script src="js/CierresAperturas/CierresAperturas.js?4" type="text/javascript" charset="utf-8"></script>
+  <script src="js/CierresAperturas/CierresAperturas.js?5" type="text/javascript" charset="utf-8"></script>
   <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
   <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
 

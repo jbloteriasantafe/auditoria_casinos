@@ -81,7 +81,7 @@ class ABMCRelevamientosAperturaController extends Controller
               .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".(self::$cantidad_dias_backup-1)." day"))
               .'.zip';
     if(file_exists( public_path().'/Mesas/RelevamientosAperturas/'.$nombreZip)){
-      return ['url_zip' => 'sorteo-aperturas/descargarZip/'.$nombreZip];
+      return ['nombre_zip' => $nombreZip];
     }else{
       $enEspera = DB::table('comando_a_ejecutar')
           ->where([['fecha_a_ejecutar','>',Carbon::now()->format('Y:m:d H:i:s')],

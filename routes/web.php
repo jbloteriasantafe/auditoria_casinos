@@ -724,7 +724,7 @@ Route::get('calendario_eventos',function(){
 
 /*SECCION MESAS DE PAÑO*/
 //gestion mesas
-Route::group(['prefix' => 'mesas'], function () {
+Route::group(['prefix' => 'mesas','middleware' => 'tiene_permiso:m_gestionar_mesas'], function () {
   Route::get('/','Mesas\Mesas\BuscarMesasController@getMesas');
   Route::post('buscarMesas','Mesas\Mesas\BuscarMesasController@buscarMesas');
   Route::post('nuevaMesa/{id_casino}','Mesas\Mesas\ABMMesaController@guardar');
@@ -732,22 +732,25 @@ Route::group(['prefix' => 'mesas'], function () {
   Route::get('eliminarMesa/{id_casino}/{id_mesa_de_panio}','Mesas\Mesas\ABMMesaController@eliminar');
   Route::get('cargarDatos','Mesas\Mesas\BuscarMesasController@getDatos');
   Route::get('detalleMesa/{id_mesa}','Mesas\Mesas\BuscarMesasController@getMesa');
-  Route::get('obtenerMesasApertura/{id_cas}/{nro_mesa}', 'Mesas\Mesas\BuscarMesasController@buscarMesaPorNroCasino');
   Route::get('obtenerDatos/{id_cas}', 'Mesas\Mesas\BuscarMesasController@datosSegunCasino');
 });
 
-Route::group(['prefix' => 'cierres'], function () {
+Route::group(['prefix' => 'cierres','middleware' => 'tiene_permiso:m_buscar_aperturas'], function () {
+  Route::get('detalleMesa/{id_mesa}','Mesas\Mesas\BuscarMesasController@getMesa');
   Route::post('filtrosCierres','Mesas\Cierres\BCCierreController@filtros');
   Route::post('guardar', 'Mesas\Cierres\ABMCierreController@guardar');
   Route::post('modificarCierre','Mesas\Cierres\ABMCierreController@modificarCierre');
   Route::get('obtenerCierres/{id_cierre}', 'Mesas\Cierres\BCCierreController@getCierre');
   Route::get('bajaCierre/{id_cierre}', 'Mesas\Cierres\BCCierreController@eliminarCierre')->middleware(['tiene_permiso:m_eliminar_cierres_y_aperturas']);
   Route::get('buscarFiscalizadores/{id_cas}/{nombre}', 'UsuarioController@buscarFiscaNombreCasino');
+  Route::get('obtenerMesasCierre/{id_cas}/{nro_mesa}', 'Mesas\Mesas\BuscarMesasController@buscarMesaPorNroCasino');
+  Route::get('obtenerJuegoPorCasino/{id_cas}/{nombreJuego}', 'Mesas\Juegos\BuscarJuegoController@buscarJuegoPorCasinoYNombre');
 });
-Route::get('mesas/obtenerMesasCierre/{id_cas}/{nro_mesa}', 'Mesas\Mesas\BuscarMesasController@buscarMesaPorNroCasino');
 
-Route::group(['prefix' => 'aperturas'], function () {
+Route::group(['prefix' => 'aperturas','middleware' => 'tiene_permiso:m_buscar_aperturas'], function () {
   Route::get('/', 'Mesas\Aperturas\BCAperturaController@buscarTodo');
+  Route::get('detalleMesa/{id_mesa}','Mesas\Mesas\BuscarMesasController@getMesa');
+  Route::get('obtenerMesasApertura/{id_cas}/{nro_mesa}', 'Mesas\Mesas\BuscarMesasController@buscarMesaPorNroCasino');
   Route::get('quienSoy' ,'UsuarioController@quienSoy');
   Route::get('obtenerMesasPorJuego/{id_juego_mesa}/{nro_mesa}', 'Mesas\Mesas\BuscarMesasController@buscarMesaPorJuego');
   Route::post('agregarAperturaAPedido','Mesas\Aperturas\ABMAperturaController@agregarAperturaAPedido');
@@ -763,25 +766,21 @@ Route::group(['prefix' => 'aperturas'], function () {
   Route::get('obtenerApValidar/{id_apertura}', 'Mesas\Aperturas\BCAperturaController@obtenerApParaValidar');
   Route::get('desvincularApertura/{id_apertura}', 'Mesas\Cierres\ABMCCierreAperturaController@desvincularApertura')->middleware(['tiene_permiso:m_desvincular_aperturas']);
   Route::get('buscarFiscalizadores/{id_cas}/{nombre}', 'UsuarioController@buscarFiscaNombreCasino');
+  Route::get('descargarZip/{nombre}', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@descargarZip');
+  Route::get('compararCierre/{id_apertura}/{id_cierre}/{id_moneda}','Mesas\Aperturas\BCAperturaController@obtenerDetallesApCierre');
 });
-Route::get('sorteo-aperturas/descargarZip/{nombre}', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@descargarZip');
-Route::get('compararCierre/{id_apertura}/{id_cierre}/{id_moneda}','Mesas\Aperturas\BCAperturaController@obtenerDetallesApCierre');
 
 //Sección Juegos
-Route::group(['prefix' => 'mesas-juegos'], function () {
+Route::group(['prefix' => 'mesas-juegos','middleware' => 'tiene_permiso:m_gestionar_juegos_mesas'], function () {  
+  Route::get('/', 'Mesas\Juegos\BuscarJuegoController@buscarTodo');
   Route::post('buscarJuegos', 'Mesas\Juegos\BuscarJuegoController@buscarJuegos');
   Route::post('nuevoJuego', 'Mesas\Juegos\ABMJuegoController@guardar');
   Route::post('modificarJuego', 'Mesas\Juegos\ABMJuegoController@modificarJuego');
   Route::get('obtenerJuego/{id_juego}', 'Mesas\Juegos\ABMJuegoController@obtenerJuego');
-  Route::get('obtenerJuegoPorCasino/{id_cas}/{nombreJuego}', 'Mesas\Juegos\BuscarJuegoController@buscarJuegoPorCasinoYNombre');
   Route::get('bajaJuego/{id}', 'Mesas\Juegos\ABMJuegoController@eliminarJuego');
 });
-Route::get('/juegosMesa', 'Mesas\Juegos\BuscarJuegoController@buscarTodo');
-
-Route::group(['prefix' => 'sectores-mesas'], function () {
-  Route::post('nuevoSector','Mesas\Sectores\ABMCSectoresController@guardar');
-  Route::get('obtenerSector/{id_sector}','Mesas\Sectores\ABMCSectoresController@obtenerSector');
-  Route::post('modificarSector/{id_sector}','Mesas\Sectores\ABMCSectoresController@modificarSector');
+//Mismo permiso porque es una pestaña de la misma vista
+Route::group(['prefix' => 'sectores-mesas','middleware' => 'tiene_permiso:m_gestionar_juegos_mesas'], function () {
   Route::get('eliminarSector/{id_sector}','Mesas\Sectores\ABMCSectoresController@eliminarSector');
   Route::post('buscarSectores','Mesas\Sectores\ABMCSectoresController@filtrarSectores');
   Route::post('guardar','Mesas\Sectores\ABMCSectoresController@guardar');

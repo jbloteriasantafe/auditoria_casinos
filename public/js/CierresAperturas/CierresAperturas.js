@@ -224,7 +224,7 @@ $('#btn-generar-rel').on('click', function(e){
               iframe.style.visibility = 'hidden';
               document.body.appendChild(iframe);
           }
-          iframe.src = data.url_zip;
+          iframe.src = 'aperturas/descargarZip/'+data.nombre_zip;
       },
       error: function (data) {
         $('#modalRelevamiento').modal('hide');
@@ -267,7 +267,7 @@ $(document).on('change','#casinoApertura',function(){
   $('#columnaDetalle').hide();
   var fecha=$('#B_fecha_apert').val();
   var id_casino=$('#casinoApertura').val();
-  $('#inputMesaApertura').generarDataList("mesas/obtenerMesasApertura/"  + id_casino ,'mesas','id_mesa_de_panio','nro_mesa',1,true);
+  $('#inputMesaApertura').generarDataList("aperturas/obtenerMesasApertura/"  + id_casino ,'mesas','id_mesa_de_panio','nro_mesa',1,true);
   $('#fiscalizApertura').generarDataList("aperturas/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
 });
 
@@ -280,7 +280,7 @@ $('#confirmar').on('click',function(e){
       $('.detallesCargaAp').show();
       var id_casino=$('#casinoApertura').val();
 
-      $('#inputMesaApertura').generarDataList("mesas/obtenerMesasApertura/"  + id_casino ,'mesas','id_mesa_de_panio','nro_mesa',1,true);
+      $('#inputMesaApertura').generarDataList("aperturas/obtenerMesasApertura/"  + id_casino ,'mesas','id_mesa_de_panio','nro_mesa',1,true);
 
       $('#fiscalizApertura').generarDataList("aperturas/buscarFiscalizadores/" + id_casino,'usuarios' ,'id_usuario','nombre',1);
       $('#B_fecha_apert').prop('disabled', true);
@@ -415,7 +415,7 @@ $(document).on('click', '.btn_ver_mesa', function(e){
     var id_mesa=$(this).attr('data-id');
     $('#id_mesa_ap').val(id_mesa);
 
-    $.get('mesas/detalleMesa/' + id_mesa, function(data){
+    $.get('aperturas/detalleMesa/' + id_mesa, function(data){
       dataFichas=data;
 
       //deshabilito monedas
@@ -681,8 +681,8 @@ $('#btn-cargar-cierre').on('click', function(e){
 $(document).on('change','#casinoCierre',function(){
 
   var id_casino=$('#casinoCierre').val();
-  $('#inputMesaCierre').generarDataList("mesas/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
-  $('#juegoCierre').generarDataList("mesas-juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+  $('#inputMesaCierre').generarDataList("cierres/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
+  $('#juegoCierre').generarDataList("cierres/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
   $('#fiscalizadorCierre').val('');
   $('#tablaCargaCierreF tbody tr').remove();
   $('#horario_ini_c').val("");
@@ -734,8 +734,8 @@ $(document).on('click', '.cargarDatos', function(e){
   $('#mensajeExitoCargaCie').hide();
 
   limpiarCargaCierre();
-  $('#inputMesaCierre').generarDataList("mesas/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
-  $('#juegoCierre').generarDataList("juegos/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
+  $('#inputMesaCierre').generarDataList("cierres/obtenerMesasCierre/" + id_casino,'mesas' ,'id_mesa_de_panio','nro_mesa',1);
+  $('#juegoCierre').generarDataList("cierres/obtenerJuegoPorCasino/" + id_casino,'juegos' ,'id_juego_mesa','nombre_juego',1);
 
   $('#btn-guardar-cierre').show();
 
@@ -757,7 +757,7 @@ $(document).on('click', '.cargarDatos', function(e){
   var id_mesa=$(this).attr('data-id');
   $('#id_mesa_ap').val(id_mesa);
 
-  $.get('mesas/detalleMesa/' + id_mesa, function(data){
+  $.get('cierres/detalleMesa/' + id_mesa, function(data){
       dataFichas2=data;
 
       //deshabilito monedas
@@ -1805,7 +1805,7 @@ $(document).on('click','.comparar',function(){
     var moneda=$('.mon_validar_aper').val();
     var apertura=$('#validar').val();
     var cierre=$('#fechaCierreVal').val();
-  $.get('compararCierre/' + apertura + '/' + cierre + '/' + moneda, function(data){
+  $.get('aperturas/compararCierre/' + apertura + '/' + cierre + '/' + moneda, function(data){
       $('#div_cierre').show();
 
       // //datos cierre
@@ -2031,7 +2031,7 @@ $(document).on('click','.eliminarCierre',function(e){
 //dentro del modal de cargar cierres, para agregar la mesa al listado
 function clickAgregarMesaCierre(e) {
   var id_mesa_panio = $('#inputMesaCierre').attr('data-elemento-seleccionado');
-     $.get('http://' + window.location.host +"/mesas/detalleMesa/" + id_mesa_panio, function(data) {
+     $.get("cierres/detalleMesa/" + id_mesa_panio, function(data) {
 
        var fila= $(document.createElement('tr'));
        fila.attr('id', data.mesa.id_mesa_de_panio)
@@ -2063,7 +2063,7 @@ function clickAgregarMesaCierre(e) {
 //dentro del modal de cargar aperturas, para agregar la mesa al listado
 function clickAgregarMesa(e) {
   var id_mesa_panio = $('#inputMesaApertura').attr('data-elemento-seleccionado');
-     $.get('http://' + window.location.host +"/mesas/detalleMesa/" + id_mesa_panio, function(data) {
+     $.get("aperturas/detalleMesa/" + id_mesa_panio, function(data) {
 
        var fila= $(document.createElement('tr'));
        fila.attr('id', data.mesa.id_mesa_de_panio)

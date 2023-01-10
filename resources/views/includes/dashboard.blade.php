@@ -105,7 +105,7 @@ $gestion_hijos = [
     'icono' => $icono_mesas,
     'hijos' => [
       'Juegos y Sectores' => [
-        'link' => '/juegosMesa',
+        'link' => '/mesas-juegos',
         'algun_permiso' => ['m_gestionar_juegos_mesas'],
       ],
       'Mesas' => [
