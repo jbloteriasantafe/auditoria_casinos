@@ -61,5 +61,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'tiene_permiso' => \App\Http\Middleware\CheckPermission::class,
         'tiene_algun_permiso' => \App\Http\Middleware\CheckAnyPermission::class,
+        'check_API_token' => \App\Http\Middleware\CheckAPIToken::class,
     ];
 }

@@ -18,9 +18,6 @@ class CheckSessionTime
 
     public function handle($request, Closure $next)
     {
-      //Si accede desde la API no chequeo el tiempo
-      if(!empty($request->header('API-Token'))) return $next($request);
-
       $ahora = time();
       $ultima_actividad = $request->session()->has('last_activity_time') ? $request->session()->get('last_activity_time') : null;
       $ultima_actividad = $ultima_actividad === null? ($ahora+$this->tiempo_sesion+1) : $ultima_actividad->getTimestamp();

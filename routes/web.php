@@ -956,14 +956,3 @@ Route::group(['prefix' => 'galeriaImagenesAutoexcluidos','middleware' => 'tiene_
   Route::get('mostrarArchivo/{id_importacion}/{tipo_archivo}','Autoexclusion\AutoexclusionController@mostrarArchivo');
   Route::get('{dni?}','Autoexclusion\GaleriaImagenesAutoexcluidosController@todo');
 });
-
-Route::group(['prefix' =>'API'],function(){
-  Route::group(['prefix' => 'AE'],function(){
-    Route::get('/',function(){//Para probar el acceso
-      return 1;
-    });
-    Route::get('fechas/{DNI}','Autoexclusion\APIAEController@fechas');
-    Route::get('finalizar/{DNI}','Autoexclusion\APIAEController@finalizar');
-    Route::post('agregar','Autoexclusion\APIAEController@agregar');
-  });
-});
