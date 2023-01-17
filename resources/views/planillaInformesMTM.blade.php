@@ -80,7 +80,7 @@
         <th class="tablaInicio">BENEFICIO {{$calculado? '(CALCULADO)' : ''}}</th>
         @endif
         @if ($mostrar_pdev)
-        <th class="tablaInicio">PROMEDIO</th>
+        <th class="tablaInicio">PROMEDIO (MAQ)</th>
         @endif
       </tr>
       @foreach ($beneficios as $b)
@@ -151,7 +151,8 @@
         <th class="tablaInicio">BENEFICIO {{$calculado? '(CALCULADO)' : ''}}</th>
         @endif
         @if ($mostrar_pdev)
-        <th class="tablaInicio">PROMEDIO</th>
+        <th class="tablaInicio">PROMEDIO (MAQ)</th>
+        <th class="tablaInicio">PROMEDIO (DÍA)</th>
         @endif
       </tr>
       <tr>
@@ -172,6 +173,7 @@
         @endif
         @if ($mostrar_pdev)
         <td class="tablaCampos centrar">{{$sum->promedio}}</td>
+        <td class="tablaCampos centrar">{{$sum->promedio_dias}}</td>
         @endif
       </tr>
     </table>

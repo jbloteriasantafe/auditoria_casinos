@@ -79,7 +79,9 @@ class informesController extends Controller
         DB::raw('FORMAT(SUM(b.valor),2,"es_AR")   as totalBeneficio'),
         DB::raw('FORMAT(SUM(b.valor*IFNULL(cot.valor,0)),2,"es_AR") as totalBeneficioPesos'),//Para dolares
         DB::raw('SUM(b.valor*IF(b.id_tipo_moneda = 1,1,IFNULL(cot.valor,0))) as totalBeneficioPesosSinFormatear'),
-        DB::raw('"-" as promedio')
+        DB::raw('"-" as promedio'),
+        DB::raw('"-" as promedio_dias'),
+        DB::raw('COUNT(distinct b.fecha) as dias')
     )
     ->join('casino as c','c.id_casino','=','b.id_casino')
     ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','b.id_tipo_moneda')
@@ -98,6 +100,9 @@ class informesController extends Controller
       $sum->cantidad_maquinas = $maquinas->cantidad_maquinas;
       if($sum->cantidad_maquinas != 0){
         $sum->promedio = number_format($sum->totalBeneficioPesosSinFormatear / $sum->cantidad_maquinas,3,',','.');
+      }
+      if($sum->dias != 0){
+        $sum->promedio_dias = number_format($sum->totalBeneficioPesosSinFormatear / $sum->dias,3,',','.');
       }
     }
 
@@ -159,6 +164,8 @@ class informesController extends Controller
       return $j->whereIn('m.nro_admin',$nro_admins);
     })
     ->where($condicion)->where('dp.valor','<>',0)->groupBy('p.id_producido')->orderBy('p.fecha','asc')->get();
+    
+    $cantidad_dias = 'COUNT(distinct p.fecha)';
 
     $sum = DB::table('producido as p')
     ->select('c.nombre as casino','tm.descripcion as tipoMoneda',
@@ -169,7 +176,8 @@ class informesController extends Controller
       DB::raw("FORMAT(100*$suma_p/$suma_a,3,'es_AR') as totalPdev"),
       DB::raw("FORMAT($suma_v,2,'es_AR') as totalBeneficio"),
       DB::raw("FORMAT($suma_cotizada,2,'es_AR') as totalBeneficioPesos"),//Para dolares
-      DB::raw("IF($cantidad_maquinas,FORMAT($suma_pesos/$cantidad_maquinas,3,'es_AR'),'-') as promedio")
+      DB::raw("IF($cantidad_maquinas,FORMAT($suma_pesos/$cantidad_maquinas,3,'es_AR'),'-') as promedio"),
+      DB::raw("IF($cantidad_dias,FORMAT($suma_pesos/$cantidad_dias,3,'es_AR'),'-') as promedio_dias")
     )
     ->join('casino as c','c.id_casino','=','p.id_casino')
     ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','p.id_tipo_moneda')
