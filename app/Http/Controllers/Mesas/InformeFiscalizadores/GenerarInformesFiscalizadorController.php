@@ -225,13 +225,13 @@ class GenerarInformesFiscalizadorController extends Controller
         if(isset($sorteadas)){
           $coinciden = 0;
           $mesas_sorteadas = $sorteadas->mesas;
-          foreach ($mesas_sorteadas['ruletasDados'] as $mesa) {
+          foreach ($mesas_sorteadas['ruletas'] as $mesa) {
             $apertura = $aperturas->where('id_mesa_de_panio',$mesa['id_mesa_de_panio']);
             if($apertura->first()!== null){
               $coinciden++;
             }
           }
-          foreach ($mesas_sorteadas['cartas'] as $mesa) {
+          foreach ($mesas_sorteadas['cartasDados'] as $mesa) {
             $apertura = $aperturas->where('id_mesa_de_panio',$mesa['id_mesa_de_panio']);
             if($apertura->first() !== null){
               $coinciden++;

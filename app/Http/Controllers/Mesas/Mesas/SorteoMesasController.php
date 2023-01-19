@@ -53,7 +53,6 @@ class SorteoMesasController extends Controller
   public function sortear($id_casino,$fecha_backup){
     $cantidadRULETA = $id_casino == 3? 8 : 4;
     $cantidadCARTAS = $id_casino == 3? 8 : 4;
-    $ruletasDados = null;
     $cartas = null;
     try{
       $mesas_sorteadas = DB::table('mesas_sorteadas')
