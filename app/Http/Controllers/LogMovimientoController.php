@@ -671,7 +671,7 @@ class LogMovimientoController extends Controller
         'denominacion' => 'required|string|max:64',
         'cant_creditos' => 'required|numeric',
         'fecha_sala' => 'required|date',
-        'observaciones' => 'nullable|max:280',
+        'observaciones' => 'nullable|max:800',
         'mac' => 'nullable|max:100',
         'sector_relevado' => 'required',
         'isla_relevada' => 'required',
