@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html>
 
 <style>
@@ -45,7 +44,7 @@ footer
   </head>
   <body>
     @foreach($rel->paginas as $pagina)
-      @if($pagina['count_nro_pagina'] > 1)
+      @if(!$loop->first)
         <div style="page-break-after:always;"></div>
       @endif
         <div class="encabezadoImg">
@@ -69,7 +68,6 @@ footer
         <div style="border-collapse: collapse;position:relative" >
           <div style="border-collapse: collapse;float: left; width: 50%;">
               <table style="width:100%;"  class="table table-responsive">
-
                 <tbody>
                   <tr >
                     <th style="border-color: gray;text-align:center !important; font-size:11px !important;height: 30px !important">JUEGO</th>
@@ -82,29 +80,49 @@ footer
                   </tr>
 
                   @foreach($pagina['izquierda'] as $myji)
+                  <tr>
+                    <td vertical-align="middle" style="border-width:2px; border-color:#757575;" rowspan="{{count($myji['mesas'])+1}}">{{$myji['juego']}}</td>
+                    <td colspan="6" style="background-color: gray; font-size:1px !important;">&nbsp;</td>
+                    @foreach($myji['mesas'] as $detalle)
                     <tr>
-                      <td  vertical-aling="middle" style="border-width:2px; border-color:#757575;" rowspan="{{$myji['filas']+1}}">{{$myji['juego']}}</td>
-                      <td colspan="6" style="background-color: gray; font-size:1px !important;">11</td>
-                      @foreach($myji['mesas'] as $detalle)
-                      <tr>
-                        <td style="border-color: gray;font-size:10px !important;">{{$detalle['codigo_mesa']}}</td>
-                        <td style="border-color: gray;font-size:10px !important;">{{$detalle['siglas']}}</td>
-                        <td style="border-color: gray;font-size:10px !important;">{{$detalle['posiciones']}}</td>
-                        <td style="border-color: gray;font-size:10px !important;">{{$detalle['estado']}}</td>
-                        <td style="border-color: gray;font-size:10px !important;">{{$detalle['minimo']}}</td>
-                        <td style="border-color: gray;font-size:10px !important;">{{$detalle['maximo']}}</td>
-                      </tr>
-                      @endforeach
+                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['codigo_mesa']}}</td>
+                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['siglas']}}</td>
+                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['posiciones']}}</td>
+                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['estado']}}</td>
+                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['minimo']}}</td>
+                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['maximo']}}</td>
                     </tr>
+                    @endforeach
+                  </tr>
                   @endforeach
+                  
+                  @if($loop->last && $rel->totales['columna'] == 'izquierda')
+                  @foreach($rel->totales['totales'] as $t)
+                  
+                  @if(empty($t))
+                  <tr><!-- Separador -->
+                    <td colspan="7" style="border-width: 0px; border-color: white;">&nbsp;</td>
+                  </tr>
+                  @else
+                  <tr>
+                    <td rowspan="2" style="border-width: 0px;font-size:13px !important;">&nbsp;</td>
+                    <td rowspan="2" colspan="2" style="font-size:13px !important;">{{$t}}</td>
+                    <td             colspan="4" style="border-bottom-width: 0px;font-size:13px !important;">&nbsp;</td>
+                  </tr>
+                  <tr>
+                    <td             colspan="4" style="border-top-width: 0px;font-size:13px !important;">&nbsp;</td>
+                  </tr>
+                  @endif
+                  
+                  @endforeach
+                  @endif
+                  
                 </tbody>
               </table>
             </div>
             <div style="float: right; width: 50%;position:absolute;" >
-              @if( $pagina['derecha'] != null)
+              @if( $pagina['derecha'] !== null)
               <table style="width:100%;position:relative" class="table table-responsive" >
-
-
                 <tbody >
                   <tr style="float:right; ">
                     <th style="border-color: gray;text-align:center !important; font-size:11px !important;height: 30px !important">JUEGO</th>
@@ -117,24 +135,46 @@ footer
                   </tr>
 
                   @foreach($pagina['derecha'] as $myjd)
-                  <td  style="border:2px solid #757575 !important;" rowspan="{{$myjd['filas']+1}}">{{$myjd['juego']}}</td>
-
-                  <td colspan="6" style="background-color: gray; font-size:1px !important;">11</td>
-
+                  <tr>
+                    <td vertical-align="middle" style="border:2px solid #757575 !important;" rowspan="{{count($myjd['mesas'])+1}}">{{$myjd['juego']}}</td>
+                    <td colspan="6" style="background-color: gray; font-size:1px !important;">&nbsp;</td>
+                    @foreach($myjd['mesas'] as $detalle)
                     <tr>
-                      @foreach($myjd['mesas'] as $detalle)
-                      <tr>
-                        <td style="border-color: gray;font-size:10px !important;">{{$detalle['codigo_mesa']}}</td>
-                        <td style="border-color: gray;font-size:10px !important;">{{$detalle['siglas']}}</td>
-                        <td style="border-color: gray;font-size:10px !important;">{{$detalle['posiciones']}}</td>
-                        <td style="border-color: gray;font-size:10px !important;">{{$detalle['estado']}}</td>
-                        <td style="border-color: gray;font-size:10px !important;">{{$detalle['minimo']}}</td>
-                        <td style="border-color: gray;font-size:10px !important;">{{$detalle['maximo']}}</td>
-                      </tr>
-                      @endforeach
+                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['codigo_mesa']}}</td>
+                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['siglas']}}</td>
+                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['posiciones']}}</td>
+                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['estado']}}</td>
+                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['minimo']}}</td>
+                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['maximo']}}</td>
                     </tr>
+                    @endforeach
+                  </tr>
                   @endforeach
+                  
+                  
 
+                  
+                  @if($loop->last && $rel->totales['columna'] == 'derecha')
+                  @foreach($rel->totales['totales'] as $t)
+                  
+                  @if(empty($t))
+                  <tr><!-- Separador -->
+                    <td colspan="7" style="border-width: 0px; border-color: white;">&nbsp;</td>
+                  </tr>
+                  @else
+                  <tr>
+                    <td rowspan="2" style="border-width: 0px;font-size:13px !important;">&nbsp;</td>
+                    <td rowspan="2" colspan="2" style="font-size:13px !important;">{{$t}}</td>
+                    <td             colspan="4" style="border-bottom-width: 0px;font-size:13px !important;">&nbsp;</td>
+                  </tr>
+                  <tr>
+                    <td             colspan="4" style="border-top-width: 0px;font-size:13px !important;">&nbsp;</td>
+                  </tr>
+                  @endif
+                  
+                  @endforeach
+                  @endif
+                  
                 </tbody>
               </table>
               @endif
@@ -143,7 +183,7 @@ footer
         <div style="border-collapse: collapse;position:absolute;" >
           <br>
           <p style="border: 0px;" >Observaciones:</p>
-          @if($rel->nro_paginas == $pagina['count_nro_pagina'])
+          @if($loop->last)
             <p style="border: 0px;" >{{$rel->observaciones}}</p>
             <p></p>
             <br>

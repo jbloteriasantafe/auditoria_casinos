@@ -45,7 +45,7 @@ footer
   </head>
   <body>
     @foreach($rel->paginas as $pagina)
-      @if($pagina['count_nro_pagina'] > 1)
+      @if(!$loop->first)
         <div style="page-break-after: always;"></div>
         <div></div>
       @endif
@@ -84,7 +84,7 @@ footer
 
                   @foreach($pagina['izquierda'] as $myji)
                     <tr>
-                      <td  vertical-aling="middle" style="border-width:2px; border-color:#757575;" rowspan="{{$myji['filas']+1}}">{{$myji['juego']}}</td>
+                      <td  vertical-aling="middle" style="border-width:2px; border-color:#757575;" rowspan="{{count($myji['mesas'])+1}}">{{$myji['juego']}}</td>
                       <td colspan="6" style="background-color: gray; font-size:1px !important;">11</td>
                       @foreach($myji['mesas'] as $detalle)
                       <tr>
@@ -118,7 +118,7 @@ footer
                   </tr>
 
                   @foreach($pagina['derecha'] as $myjd)
-                  <td  style="border:2px solid #757575 !important;" rowspan="{{$myjd['filas']+1}}">{{$myjd['juego']}}</td>
+                  <td  style="border:2px solid #757575 !important;" rowspan="{{count($myjd['mesas'])+1}}">{{$myjd['juego']}}</td>
 
                   <td colspan="6" style="background-color: gray; font-size:1px !important;">11</td>
 
@@ -144,7 +144,7 @@ footer
         <div style="border-collapse: collapse;position:absolute;" >
           <br>
           <p style="border: 0px;" >Observaciones:</p>
-          @if($rel->nro_paginas == $pagina['count_nro_pagina'])
+          @if($loop->last)
             <p style="border: 0px;" >{{$rel->observaciones}}</p>
             <p></p>
             <br>
