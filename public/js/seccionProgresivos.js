@@ -700,7 +700,8 @@ function verificarFormulario() {
     }
 
     let nombre_progresivo = $('#nombre_progresivo');
-    if (nombre_progresivo.val() == "") {
+    const es_link = $('#selectTipoProgresivo').val() == 0;
+    if (nombre_progresivo.val() == "" && es_link) {
         nombre_progresivo.addClass('erroneo');
         errores = true;
         mensaje = mensaje + "<p>Sin nombre de progresivo</p>";

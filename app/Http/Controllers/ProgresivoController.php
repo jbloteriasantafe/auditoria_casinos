@@ -234,7 +234,7 @@ class ProgresivoController extends Controller
     Validator::make($request->all(),[
       'id_progresivo'                         => 'nullable|integer|exists:progresivo,id_progresivo,deleted_at,NULL',
       'es_individual'                         => 'required|integer|min:0|max:1',
-      'nombre'                                => 'required|max:100',
+      'nombre'                                => 'required_if:es_individual,0|max:100',
       'porc_recup'                            => 'required|numeric|min:0|max:100',
       'id_casino'                             => 'required|integer|exists:casino,id_casino,deleted_at,NULL',
       'id_tipo_moneda'                        => 'required|integer|exists:tipo_moneda,id_tipo_moneda',
@@ -290,7 +290,7 @@ class ProgresivoController extends Controller
       $controller->internal_crearModificarProgresivo(
         isset($request->id_progresivo)? $request->id_progresivo : null,
         $request->id_casino,$request->id_tipo_moneda,
-        $request->nombre,$request->porc_recup,$pozos,
+        $request->nombre ?? '',$request->porc_recup,$pozos,
         $request->es_individual? true : false,$maquinas
       );
     });
