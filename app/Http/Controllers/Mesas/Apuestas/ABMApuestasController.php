@@ -87,37 +87,6 @@ class ABMApuestasController extends Controller
       $detalle->save();
     }
     return $relevamiento->id_relevamiento_apuestas;
-    //return $this->generarPlanilla($relevamiento->id_relevamiento_apuestas)->stream('sorteoAperturas.pdf', Array('Attachment'=>0));
-  //  return $this->generarPlanilla(35)->stream('sorteoAperturas.pdf', Array('Attachment'=>0));
-
-  }
-
-
-  private function generarPlanilla($id_relevamiento){
-    $relevamiento = RelevamientoApuestas::find($id_relevamiento);
-
-    $rel = new \stdClass();
-    //['paginas' => $pagina,'nro_paginas'=>$count_nro_pagina]
-    $datos =$this->obtenerDatosRelevamiento($id_relevamiento);
-    $rel->paginas = $datos['paginas'];
-    $rel->nro_paginas = $datos['nro_paginas'];
-    $rel->fecha = $relevamiento->fecha;
-    $rel->turno = $relevamiento->turno->nro_turno;
-    $hora = explode(':',$relevamiento->hora_propuesta);
-    $rel->hora_propuesta = $hora[0].':'.$hora[1];
-
-
-    // dd($rel);
-
-    $view = View::make('Mesas.Planillas.PlanillaRelevamientoDeApuestas', compact('rel'));
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'landscape');
-    $dompdf->loadHtml($view);
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 815, $relevamiento->casino->codigo."/".$rel->fecha, $font, 10, array(0,0,0));
-    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
-    return $dompdf;
   }
 
   private function obtenerDatosRelevamiento($id_relevamiento){
