@@ -14,7 +14,6 @@ td, th {
   padding: 3px;
 }
 
-
 p {
       border-top: 1px solid #000;
       font-family: arial, sans-serif;
@@ -26,20 +25,35 @@ footer
     width:200%;
     height:300px;
 }
+
+.headers-rel th, .headers-rel td {
+  font-size: 11px !important;
+  border-color: gray;
+  width: 10px !important;
+}
+
+.headers-juegos th {
+  border-color: gray;
+  text-align: center !important;
+  font-size: 11px !important;
+  height: 30px !important
+}
+
+.forzar-altura-14px {
+  line-height: 14px !important;
+}
+
+.mesa td {
+  border-color: gray;
+  font-size: 10px !important;
+}
 </style>
 
   <head>
-
     <title></title>
-
-    <!-- <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> -->
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- <link href="css/bootstrap.min.css" rel="stylesheet"> -->
-
     <link href="public/css/estiloPlanillaLandscapeMesas.css" rel="stylesheet">
   </head>
   <body>
@@ -54,29 +68,29 @@ footer
         <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
         <div class="camposInfo" style="right:0px;"></span>{{$rel->fecha}}</div>
         <table style="border-collapse: collapse;  table-layout:fixed; width:100%">
-          <tr style="width:100%">
-            <th style="font-size: 11px !important; border-color: gray; width:10px !important;" >FECHA EJECUCIÓN</th>
-            <td style="font-size: 11px !important; border-color: gray; width:10px !important;" >{{$rel->fecha_backup}}</td>
-            <th style="font-size: 11px !important; border-color: gray; width:10px !important;">TURNO</th>
-            <td style="font-size: 11px !important; border-color: gray; width:10px !important;">{{$rel->turno}}</td>
-            <th style="border-color: gray; font-size: 11px !important; width:10px !important;">HORA PROPUESTA</th>
-            <td style="border-color: gray; font-size: 11px !important; width:10px !important;">{{$rel->hora_propuesta}}</td>
-            <th style="border-color: gray; font-size: 11px !important; width:10px !important;">HORA EJECUCIÓN</th>
-            <td style="border-color: gray; font-size: 11px !important; width:10px !important;">{{$rel->hora_ejecucion}}</td>
+          <tr class="headers-rel" style="width:100%">
+            <th>FECHA EJECUCIÓN</th>
+            <td>{{$rel->fecha_backup}}</td>
+            <th>TURNO</th>
+            <td>{{$rel->turno}}</td>
+            <th>HORA PROPUESTA</th>
+            <td>{{$rel->hora_propuesta}}</td>
+            <th>HORA EJECUCIÓN</th>
+            <td>{{$rel->hora_ejecucion}}</td>
           </tr>
         </table>
         <div style="border-collapse: collapse;position:relative" >
           <div style="border-collapse: collapse;float: left; width: 50%;">
               <table style="width:100%;"  class="table table-responsive">
                 <tbody>
-                  <tr >
-                    <th style="border-color: gray;text-align:center !important; font-size:11px !important;height: 30px !important">JUEGO</th>
-                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">CÓDIGO</th>
-                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">MONEDA</th>
-                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">POS.</th>
-                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">ESTADO (A/C/T)</th>
-                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">MÍNIMA</th>
-                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">MÁXIMA</th>
+                  <tr class="headers-juegos">
+                    <th>JUEGO</th>
+                    <th>CÓDIGO</th>
+                    <th>MONEDA</th>
+                    <th>POS.</th>
+                    <th>ESTADO (A/C/T)</th>
+                    <th>MÍNIMA</th>
+                    <th>MÁXIMA</th>
                   </tr>
 
                   @foreach($pagina['izquierda'] as $myji)
@@ -84,26 +98,24 @@ footer
                     <td vertical-align="middle" style="border-width:2px; border-color:#757575;" rowspan="{{count($myji['mesas'])+1}}">{{$myji['juego']}}</td>
                     <td colspan="6" style="background-color: gray; font-size:1px !important;">&nbsp;</td>
                     @foreach($myji['mesas'] as $detalle)
-                    <tr>
-                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['codigo_mesa']}}</td>
-                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['siglas']}}</td>
-                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['posiciones']}}</td>
-                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['estado']}}</td>
-                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['minimo']}}</td>
-                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['maximo']}}</td>
+                    <tr class="mesa forzar-altura-14px">
+                      <td>{{$detalle['codigo_mesa']}}</td>
+                      <td>{{$detalle['siglas']}}</td>
+                      <td>{{$detalle['posiciones']}}</td>
+                      <td>{{$detalle['estado']}}</td>
+                      <td>{{$detalle['minimo']}}</td>
+                      <td>{{$detalle['maximo']}}</td>
                     </tr>
                     @endforeach
                   </tr>
                   @endforeach
                   
                   @if($loop->last && $rel->totales['columna'] == 'izquierda')
-                  @foreach($rel->totales['totales'] as $t)
                   
-                  @if(empty($t))
                   <tr><!-- Separador -->
                     <td colspan="7" style="border-width: 0px; border-color: white;">&nbsp;</td>
                   </tr>
-                  @else
+                  @foreach($rel->totales['totales'] as $t)
                   <tr>
                     <td rowspan="2" style="border-width: 0px;font-size:13px !important;">&nbsp;</td>
                     <td rowspan="2" colspan="2" style="font-size:13px !important;">{{$t}}</td>
@@ -112,9 +124,8 @@ footer
                   <tr>
                     <td             colspan="4" style="border-top-width: 0px;font-size:13px !important;">&nbsp;</td>
                   </tr>
-                  @endif
-                  
                   @endforeach
+                  
                   @endif
                   
                 </tbody>
@@ -124,14 +135,14 @@ footer
               @if( $pagina['derecha'] !== null)
               <table style="width:100%;position:relative" class="table table-responsive" >
                 <tbody >
-                  <tr style="float:right; ">
-                    <th style="border-color: gray;text-align:center !important; font-size:11px !important;height: 30px !important">JUEGO</th>
-                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">CÓDIGO</th>
-                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">MONEDA</th>
-                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">POS.</th>
-                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">ESTADO (A/C/T)</th>
-                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">MÍNIMA</th>
-                    <th style="border-color: gray;text-align:center !important;font-size:11px !important;height: 30px !important">MÁXIMA</th>
+                  <tr class="headers-juegos" style="float:right;">
+                    <th>JUEGO</th>
+                    <th>CÓDIGO</th>
+                    <th>MONEDA</th>
+                    <th>POS.</th>
+                    <th>ESTADO (A/C/T)</th>
+                    <th>MÍNIMA</th>
+                    <th>MÁXIMA</th>
                   </tr>
 
                   @foreach($pagina['derecha'] as $myjd)
@@ -139,29 +150,24 @@ footer
                     <td vertical-align="middle" style="border:2px solid #757575 !important;" rowspan="{{count($myjd['mesas'])+1}}">{{$myjd['juego']}}</td>
                     <td colspan="6" style="background-color: gray; font-size:1px !important;">&nbsp;</td>
                     @foreach($myjd['mesas'] as $detalle)
-                    <tr>
-                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['codigo_mesa']}}</td>
-                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['siglas']}}</td>
-                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['posiciones']}}</td>
-                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['estado']}}</td>
-                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['minimo']}}</td>
-                      <td style="border-color: gray;font-size:10px !important;">{{$detalle['maximo']}}</td>
+                    <tr class="mesa forzar-altura-14px">
+                      <td>{{$detalle['codigo_mesa']}}</td>
+                      <td>{{$detalle['siglas']}}</td>
+                      <td>{{$detalle['posiciones']}}</td>
+                      <td>{{$detalle['estado']}}</td>
+                      <td>{{$detalle['minimo']}}</td>
+                      <td>{{$detalle['maximo']}}</td>
                     </tr>
                     @endforeach
                   </tr>
                   @endforeach
                   
-                  
-
-                  
                   @if($loop->last && $rel->totales['columna'] == 'derecha')
-                  @foreach($rel->totales['totales'] as $t)
                   
-                  @if(empty($t))
                   <tr><!-- Separador -->
                     <td colspan="7" style="border-width: 0px; border-color: white;">&nbsp;</td>
                   </tr>
-                  @else
+                  @foreach($rel->totales['totales'] as $t)
                   <tr>
                     <td rowspan="2" style="border-width: 0px;font-size:13px !important;">&nbsp;</td>
                     <td rowspan="2" colspan="2" style="font-size:13px !important;">{{$t}}</td>
@@ -170,9 +176,8 @@ footer
                   <tr>
                     <td             colspan="4" style="border-top-width: 0px;font-size:13px !important;">&nbsp;</td>
                   </tr>
-                  @endif
-                  
                   @endforeach
+                  
                   @endif
                   
                 </tbody>

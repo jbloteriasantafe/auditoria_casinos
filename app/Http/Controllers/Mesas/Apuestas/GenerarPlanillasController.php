@@ -221,8 +221,13 @@ class GenerarPlanillasController extends Controller
         }
         
         $nombre_juego = $detalle->nombre_juego;
-        if(!array_key_exists($nombre_juego,$mesas_por_juego))
+        if(!array_key_exists($nombre_juego,$mesas_por_juego)){
           $mesas_por_juego[$nombre_juego] = [];
+          $mesas_por_juego[$nombre_juego][] = [//@HACK: cada juego tiene una fila vacia separadora
+            'nombre_juego' => $nombre_juego,
+            'padding'      => true,
+          ];
+        }
 
         $mesas_por_juego[$nombre_juego][] = [
           'nombre_juego' => $nombre_juego,
@@ -246,11 +251,19 @@ class GenerarPlanillasController extends Controller
       $mesas_por_juego[$TOTALES_K] = [
         [
           'nombre_juego' => $TOTALES_K,
-          'texto' => '',//Fila vacia separadora
+          'padding' => true,//Fila separadora
+        ],
+        [
+          'nombre_juego' => $TOTALES_K,
+          'padding' => true,//@HACK: porque cada fila totalizadora toma dos filas
         ],
         [
           'nombre_juego' => $TOTALES_K,
           'texto' => 'Cantidad De Mesas Abiertas',//Fila vacia separadora
+        ],
+        [
+          'nombre_juego' => $TOTALES_K,
+          'padding' => true,//@HACK: porque cada fila totalizadora toma dos filas
         ],
         [
           'nombre_juego' => $TOTALES_K,
@@ -276,6 +289,7 @@ class GenerarPlanillasController extends Controller
         $col_j = [];
         foreach($col_m as $m){
           $nombre_juego = $m['nombre_juego'];
+          if(!empty($m['padding'])) continue;
           if(!array_key_exists($nombre_juego,$col_j)){
             $col_j[$nombre_juego] = ['juego' => $nombre_juego, 'mesas' => []];
           }
@@ -301,6 +315,13 @@ class GenerarPlanillasController extends Controller
       }
       
       if(count($paginas) == 0){
+        $totales = array_map(
+          function($t){return $t['texto'];},
+          array_filter(
+            $mesas_por_juego[$TOTALES_K],
+            function($t){return empty($t['padding']);}
+          )
+        );
         return [
           'paginas' => [
             'izquierda' => [
@@ -311,7 +332,7 @@ class GenerarPlanillasController extends Controller
           'nro_paginas' => 1,
           'totales' => [
             'columna' => 'izquierda',
-            'totales' => array_map(function($t){return $t['texto'];},$mesas_por_juego[$TOTALES_K])
+            'totales' => $totales
           ]
         ];
       }
