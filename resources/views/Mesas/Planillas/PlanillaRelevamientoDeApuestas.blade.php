@@ -58,6 +58,7 @@ footer
   vertical-align: middle;
   text-align: center;
   overflow-wrap: anywhere;
+  word-break: break-all;
 }
 
 .juego {
@@ -66,6 +67,7 @@ footer
   vertical-align: middle;
   text-align: center;
   overflow-wrap: anywhere;
+  word-break: break-all;
 }
 
 </style>
@@ -75,7 +77,7 @@ footer
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="public/css/estiloPlanillaLandscapeMesas.css" rel="stylesheet">
+    <link href="{{public_path()}}/css/estiloPlanillaLandscapeMesas.css" rel="stylesheet">
   </head>
   <body>
     @foreach($rel->paginas as $pagina)
@@ -91,11 +93,11 @@ footer
                dos seria erroneo, la forma mas compatible es llamar a esa funcion
                que nos de el directorio publico
           -->
-          <img src="{{public_path()}}/img/logos/banner_nuevo2_landscape.png" width="900">
+          <img src="{{public_path()}}/img/logos/banner_nuevo2_landscape.png" width="1090">
           <h2><span>RMES03 | Relevamiento de valores de apuestas de Mesas de Paño.</span></h2>
         </div>
-        <div class="camposTab titulo" style="right:250px;">FECHA PLANILLA</div>
-        <div class="camposInfo" style="right:261px;"></span>{{$rel->fecha}}</div>
+        <div class="camposTab titulo" style="right:50px;">FECHA PLANILLA</div>
+        <div class="camposInfo" style="right:61px;"></span>{{$rel->fecha}}</div>
         <table style="table-layout:fixed;width:100%">
           <thead>
             <tr class="headers-rel">
