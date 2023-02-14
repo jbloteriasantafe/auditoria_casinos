@@ -41,8 +41,7 @@ footer
 
 .separador {
   background-color: #757575;
-  line-height: 10px !important;
-  font-size: 10px !important;
+  font-size: 1px !important;
   border-width: 1px;
   border-color: #757575;
 }
