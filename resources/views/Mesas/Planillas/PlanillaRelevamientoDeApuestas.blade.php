@@ -72,6 +72,8 @@ footer
   text-align: center;
   overflow-wrap: anywhere;
   word-break: break-all;
+  font-size: 13px;
+  padding: 1px;
 }
 
 </style>
