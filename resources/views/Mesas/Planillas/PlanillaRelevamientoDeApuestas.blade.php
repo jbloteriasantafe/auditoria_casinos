@@ -42,8 +42,9 @@ footer
 .separador {
   background-color: #757575;
   font-size: 1px !important;
-  border-width: 1px;
-  border-color: #757575;
+  padding: 0;
+  margin: 0;
+  border: 0;
 }
 
 .separador2 {
