@@ -155,7 +155,7 @@ footer
                   
                   @endforeach
                 
-                  @if($loop->last && $rel->totales['columna'] == $izq_der)
+                  @if($loop->parent->last && $rel->totales['columna'] == $izq_der)
                   <tr><!-- Separador -->
                     <td colspan="7" class="separador2">&nbsp;</td>
                   </tr>
@@ -163,7 +163,7 @@ footer
                   <tr>
                     <td style="border: 0;font-size:13px !important;">&nbsp;</td>
                     <td rowspan="2" colspan="2" style="font-size:13px !important;">{{$t}}</td>
-                    <td rowspan="2" colspan="4" style="border-bottom-width: 0px;font-size:13px !important;">&nbsp;</td>
+                    <td rowspan="2" colspan="4" style="font-size:13px !important;">&nbsp;</td>
                   </tr>
                   <tr>
                     <td style="border: 0;font-size:13px !important;">&nbsp;</td>
