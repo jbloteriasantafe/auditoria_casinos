@@ -40,20 +40,23 @@ footer
 }
 
 .separador {
-  line-height: 5px;
-  font-size: 5px !important;
-  background-color: gray;
+  background-color: #757575;
+  line-height: 10px !important;
+  font-size: 10px !important;
+  border-width: 1px;
+  border-color: #757575;
 }
+
 .separador2 {
-  line-height: 5px;
-  font-size: 5px !important;
   background-color: white;
   border-width: 0px; 
+  line-height: 10px !important;
+  font-size: 10px !important;
 }
 
 .mesa td {
   border-color: gray;
-  line-height: 10px;
+  line-height: 10px !important;
   font-size: 10px !important;
   vertical-align: middle;
   text-align: center;
@@ -130,20 +133,22 @@ footer
                 </thead>
                 <tbody>
                   @foreach($pagina['izquierda'] as $myj)
+                  
                   <tr>
                     <td class="juego" rowspan="{{count($myj['mesas'])+1}}">{{$myj['juego']}}</td>
-                    <td colspan="6" class="separador">&nbsp;</td>
-                    @foreach($myj['mesas'] as $detalle)
-                    <tr class="mesa">
-                      <td>{{$detalle['codigo_mesa']}}</td>
-                      <td>{{$detalle['siglas']}}</td>
-                      <td>{{$detalle['posiciones']}}</td>
-                      <td>{{$detalle['estado']}}</td>
-                      <td>{{$detalle['minimo']}}</td>
-                      <td>{{$detalle['maximo']}}</td>
-                    </tr>
-                    @endforeach
+                    <td class="separador" colspan="6">&nbsp;</td>
                   </tr>
+                  @foreach($myj['mesas'] as $detalle)
+                  <tr class="mesa">
+                    <td>{{$detalle['codigo_mesa']}}</td>
+                    <td>{{$detalle['siglas']}}</td>
+                    <td>{{$detalle['posiciones']}}</td>
+                    <td>{{$detalle['estado']}}</td>
+                    <td>{{$detalle['minimo']}}</td>
+                    <td>{{$detalle['maximo']}}</td>
+                  </tr>
+                  @endforeach
+                  
                   @endforeach
                 
                   @if($loop->last && $rel->totales['columna'] == 'izquierda')
@@ -181,20 +186,22 @@ footer
                 </thead>
                 <tbody>
                   @foreach($pagina['derecha'] as $myj)
+                  
                   <tr>
                     <td class="juego" rowspan="{{count($myj['mesas'])+1}}">{{$myj['juego']}}</td>
-                    <td colspan="6" class="separador">&nbsp;</td>
-                    @foreach($myj['mesas'] as $detalle)
-                    <tr class="mesa">
-                      <td>{{$detalle['codigo_mesa']}}</td>
-                      <td>{{$detalle['siglas']}}</td>
-                      <td>{{$detalle['posiciones']}}</td>
-                      <td>{{$detalle['estado']}}</td>
-                      <td>{{$detalle['minimo']}}</td>
-                      <td>{{$detalle['maximo']}}</td>
-                    </tr>
-                    @endforeach
+                    <td class="separador" colspan="6">&nbsp;</td>
                   </tr>
+                  @foreach($myj['mesas'] as $detalle)
+                  <tr class="mesa">
+                    <td>{{$detalle['codigo_mesa']}}</td>
+                    <td>{{$detalle['siglas']}}</td>
+                    <td>{{$detalle['posiciones']}}</td>
+                    <td>{{$detalle['estado']}}</td>
+                    <td>{{$detalle['minimo']}}</td>
+                    <td>{{$detalle['maximo']}}</td>
+                  </tr>
+                  @endforeach
+                  
                   @endforeach
                   
                   @if($loop->last && $rel->totales['columna'] == 'derecha')
@@ -205,8 +212,8 @@ footer
                   @foreach($rel->totales['totales'] as $t)
                   <tr>
                     <td style="border: 0;font-size:13px !important;">&nbsp;</td>
-                    <td rowspan="2" colspan="3" style="font-size:13px !important;">{{$t}}</td>
-                    <td rowspan="2" colspan="3" style="font-size:13px !important;">&nbsp;</td>
+                    <td rowspan="2" colspan="3" style="border: 2px solid #757575;font-size:13px !important;">{{$t}}</td>
+                    <td rowspan="2" colspan="3" style="border: 1px solid gray;font-size:13px !important;">&nbsp;</td>
                   </tr>
                   <tr>
                     <td style="border: 0;font-size:13px !important;">&nbsp;</td>

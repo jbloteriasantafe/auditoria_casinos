@@ -387,6 +387,7 @@ class BCApuestasController extends Controller
     }
     $rel->fiscalizador = implode(";",$nombres);
     $rel->hora_ejecucion = $relevamiento->hora_ejecucion;
+    //$rel->totales = $datos['totales'];
     $rel->totales = ['columna' => null,'totales' => []];//No mostrar rotulos de totales
     $view = View::make('Mesas.Planillas.PlanillaRelevamientoDeApuestas', compact('rel'));
     $dompdf = new Dompdf();
