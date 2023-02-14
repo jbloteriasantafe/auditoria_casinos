@@ -118,7 +118,11 @@ footer
         
         <table style="table-layout:fixed;width:100%">
           <tr>
+            @foreach($pagina as $izq_der => $juegos)
             <td style="padding: 0;border: 0;vertical-align: top;">
+              @if($juegos === null)
+              &nbsp;
+              @else
               <table style="table-layout:fixed;width: 100%";>
                 <thead>
                   <tr class="headers-juegos">
@@ -132,7 +136,7 @@ footer
                   </tr>
                 </thead>
                 <tbody>
-                  @foreach($pagina['izquierda'] as $myj)
+                  @foreach($juegos as $myj)
                   
                   <tr>
                     <td class="juego" rowspan="{{count($myj['mesas'])+1}}">{{$myj['juego']}}</td>
@@ -151,7 +155,7 @@ footer
                   
                   @endforeach
                 
-                  @if($loop->last && $rel->totales['columna'] == 'izquierda')
+                  @if($loop->last && $rel->totales['columna'] == $izq_der)
                   <tr><!-- Separador -->
                     <td colspan="7" class="separador2">&nbsp;</td>
                   </tr>
@@ -169,64 +173,9 @@ footer
                   @endif
                 </tbody>
               </table>
-            </td>
-            <td style="padding: 0;border: 0;vertical-align: top;">
-              @if($pagina['derecha'] !== null)
-              <table style="table-layout:fixed;width: 100%";>
-                <thead>
-                  <tr class="headers-juegos">
-                    <th style="width: 22%;">JUEGO</th>
-                    <th>CÓDIGO</th>
-                    <th>MONEDA</th>
-                    <th>POS.</th>
-                    <th>ESTADO (A/C/T)</th>
-                    <th>MÍNIMA</th>
-                    <th>MÁXIMA</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @foreach($pagina['derecha'] as $myj)
-                  
-                  <tr>
-                    <td class="juego" rowspan="{{count($myj['mesas'])+1}}">{{$myj['juego']}}</td>
-                    <td class="separador" colspan="6">&nbsp;</td>
-                  </tr>
-                  @foreach($myj['mesas'] as $detalle)
-                  <tr class="mesa">
-                    <td>{{$detalle['codigo_mesa']}}</td>
-                    <td>{{$detalle['siglas']}}</td>
-                    <td>{{$detalle['posiciones']}}</td>
-                    <td>{{$detalle['estado']}}</td>
-                    <td>{{$detalle['minimo']}}</td>
-                    <td>{{$detalle['maximo']}}</td>
-                  </tr>
-                  @endforeach
-                  
-                  @endforeach
-                  
-                  @if($loop->last && $rel->totales['columna'] == 'derecha')
-                  
-                  <tr><!-- Separador -->
-                    <td colspan="7" class="separador2">&nbsp;</td>
-                  </tr>
-                  @foreach($rel->totales['totales'] as $t)
-                  <tr>
-                    <td style="border: 0;font-size:13px !important;">&nbsp;</td>
-                    <td rowspan="2" colspan="3" style="border: 2px solid #757575;font-size:13px !important;">{{$t}}</td>
-                    <td rowspan="2" colspan="3" style="border: 1px solid gray;font-size:13px !important;">&nbsp;</td>
-                  </tr>
-                  <tr>
-                    <td style="border: 0;font-size:13px !important;">&nbsp;</td>
-                  </tr>
-                  @endforeach
-                  
-                  @endif
-                </tbody>
-              </table>
-              @else
-              &nbsp;
               @endif
             </td>
+            @endforeach
           </tr>
           <tr>
             <td style="padding: 0;border: 0;vertical-align: top;" colspan="2">
