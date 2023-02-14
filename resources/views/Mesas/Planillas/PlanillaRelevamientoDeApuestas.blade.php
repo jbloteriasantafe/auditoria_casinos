@@ -45,6 +45,7 @@ footer
   padding: 0;
   margin: 0;
   border: 0;
+  border-right: 1px solid #757575;
 }
 
 .separador2 {
