@@ -280,7 +280,7 @@ class GenerarPlanillasController extends Controller
       }
       
       //Agrupo las mesas en cantidad de filas que pueden ir en una columna
-      $MAX_FILAS_POR_COL = 18;
+      $MAX_FILAS_POR_COL = 17;
       $columnas_de_mesas = array_chunk($mesas_desestructuradas,$MAX_FILAS_POR_COL);
       
       //Agrupo, en cada columna, las mesas con juegos comunes
