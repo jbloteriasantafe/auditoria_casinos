@@ -223,10 +223,10 @@ class GenerarPlanillasController extends Controller
         $nombre_juego = $detalle->nombre_juego;
         if(!array_key_exists($nombre_juego,$mesas_por_juego)){
           $mesas_por_juego[$nombre_juego] = [];
-          $mesas_por_juego[$nombre_juego][] = [//@HACK: cada juego tiene una fila vacia separadora
+          /*$mesas_por_juego[$nombre_juego][] = [//@HACK: cada juego tiene una fila vacia separadora
             'nombre_juego' => $nombre_juego,
             'padding'      => true,
-          ];
+          ];*/
         }
 
         $mesas_por_juego[$nombre_juego][] = [
