@@ -306,7 +306,7 @@ class GenerarPlanillasController extends Controller
           $paginas[] = ['izquierda' => $col,'derecha' => null];
         }
         else{
-          $paginas[count($paginas)-1)]['derecha'] = $col;
+          $paginas[count($paginas)-1]['derecha'] = $col;
         }
       }
       
