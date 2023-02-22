@@ -256,7 +256,7 @@ class ABMApuestasController extends Controller
         $detalle->minimo = $det['minimo'];
         $detalle->maximo = $det['maximo'];
         $detalle->estado()->associate($det['id_estado_mesa']);
-        $detalle->id_moneda = $det['id_moneda'];
+        $detalle->id_moneda = $det['id_moneda'] ?? null;
         $detalle->save();
       }
       $relevamiento = $detalle->relevamiento;

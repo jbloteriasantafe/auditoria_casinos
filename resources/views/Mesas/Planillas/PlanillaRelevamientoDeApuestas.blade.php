@@ -165,8 +165,8 @@ footer
                   @foreach($rel->totales['totales'] as $t)
                   <tr>
                     <td style="border: 0;font-size:13px !important;">&nbsp;</td>
-                    <td rowspan="2" colspan="2" style="font-size:13px !important;">{{$t}}</td>
-                    <td rowspan="2" colspan="4" style="font-size:13px !important;">&nbsp;</td>
+                    <td rowspan="2" colspan="2" style="font-size:13px !important;">{{$t['texto']}}</td>
+                    <td rowspan="2" colspan="4" style="font-size:13px !important;">{{is_null($t['val'])? '&nbsp;' : $t['val']}}</td>
                   </tr>
                   <tr>
                     <td style="border: 0;font-size:13px !important;">&nbsp;</td>
