@@ -338,7 +338,7 @@ class GenerarPlanillasController extends Controller
       $totales_col_str = null;
       $totales = [];
       
-      if(array_key_exists($TOTALES_K,$ultima_pag['izquierda'])){
+      if(array_key_exists($TOTALES_K,$ultima_pag['izquierda'] ?? [])){
         foreach($ultima_pag['izquierda'][$TOTALES_K]['mesas'] as $t){
           $totales[] = $t['texto'];
         }
@@ -346,7 +346,7 @@ class GenerarPlanillasController extends Controller
         unset($paginas[count($paginas)-1]['izquierda'][$TOTALES_K]);
       }
       //Puede que los totales OVERFLOWEEN entre columnas por eso no es un ELSE
-      if(array_key_exists($TOTALES_K,$ultima_pag['derecha'])){
+      if(array_key_exists($TOTALES_K,$ultima_pag['derecha'] ?? [])){
         foreach($ultima_pag['derecha'][$TOTALES_K]['mesas'] as $t){
           $totales[] = $t['texto'];
         }
