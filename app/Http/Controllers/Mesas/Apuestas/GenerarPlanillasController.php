@@ -301,16 +301,12 @@ class GenerarPlanillasController extends Controller
       
       //Divido las columnas en paginas, asignandole izq y derecha
       $paginas = [];
-      $pag     = [];
       foreach($columnas_de_juegos as $idx => $col){
         if(($idx % 2) == 0){
-          $pag['izquierda'] = $col;
-          $pag['derecha']   = null;
+          $paginas[] = ['izquierda' => $col,'derecha' => null];
         }
         else{
-          $pag['derecha']   = $col;
-          $paginas[] = $pag;
-          $pag = [];
+          $paginas[count($paginas)-1)]['derecha'] = $col;
         }
       }
       
