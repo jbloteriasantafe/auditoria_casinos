@@ -374,6 +374,8 @@ class BCApuestasController extends Controller
     $datos =$controller->obtenerDatosRelevamiento($id_relevamiento);
     $rel->paginas = $datos['paginas'];
     $rel->nro_paginas = $datos['nro_paginas'];
+    $rel->totales = $datos['totales'];
+    //$rel->totales = ['columna' => null,'totales' => []];//No mostrar rotulos de totales
     $rel->fecha = $relevamiento->created_at;
     $rel->fecha_backup = $relevamiento->fecha;
     $rel->turno = $relevamiento->nro_turno;
@@ -387,8 +389,6 @@ class BCApuestasController extends Controller
     }
     $rel->fiscalizador = implode(";",$nombres);
     $rel->hora_ejecucion = $relevamiento->hora_ejecucion;
-    //$rel->totales = $datos['totales'];
-    $rel->totales = ['columna' => null,'totales' => []];//No mostrar rotulos de totales
     $view = View::make('Mesas.Planillas.PlanillaRelevamientoDeApuestas', compact('rel'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'landscape');
