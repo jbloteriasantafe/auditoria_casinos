@@ -276,39 +276,7 @@ class GenerarPlanillasController extends Controller
           'estado'       => $estado
         ]; 
       }
-      
-      //Agrego los totales ultimos
-      $TOTALES_K = 'TOTALES';
-      //Por si alguien se hace el gracioso y agrega un juego 'TOTALES'
-      while(array_key_exists($TOTALES_K,$mesas_por_juego)){
-        $TOTALES_K .= '9';
-      }
-    
-      $mesas_por_juego[$TOTALES_K] = [
-        [
-          'nombre_juego' => $TOTALES_K,
-          'padding' => true,//Fila separadora
-        ],
-        [
-          'nombre_juego' => $TOTALES_K,
-          'padding' => true,//@HACK: porque cada fila totalizadora toma dos filas
-        ],
-        [
-          'nombre_juego' => $TOTALES_K,
-          'texto' => 'Cantidad De Mesas Abiertas',//Fila vacia separadora
-          'val' => $abiertas,
-        ],
-        [
-          'nombre_juego' => $TOTALES_K,
-          'padding' => true,//@HACK: porque cada fila totalizadora toma dos filas
-        ],
-        [
-          'nombre_juego' => $TOTALES_K,
-          'texto' => 'Cantidad De Mesas Con Apuestas Mínimas',//Fila vacia separadora
-          'val' => $minimos,
-        ],
-      ];
-      
+            
       //Desestructuro en mesas individuales, manteniendo el orden anterior
       $mesas_desestructuradas = [];
       foreach($mesas_por_juego as $nombre_juego => $mesas){
@@ -318,87 +286,76 @@ class GenerarPlanillasController extends Controller
       }
       
       //Agrupo las mesas en cantidad de filas que pueden ir en una columna
-      $MAX_FILAS_POR_COL = 16;
-      $columnas_de_mesas = array_chunk($mesas_desestructuradas,$MAX_FILAS_POR_COL);
+      $MAX_FILAS_POR_COL = 26;
+      $COLUMNAS_POR_PAG = 2;
       
-      //Agrupo, en cada columna, las mesas con juegos comunes
-      $columnas_de_juegos = [];
-      foreach($columnas_de_mesas as $col_m){
-        $col_j = [];
-        foreach($col_m as $m){
-          $nombre_juego = $m['nombre_juego'];
-          if(!empty($m['padding'])) continue;
-          if(!array_key_exists($nombre_juego,$col_j)){
-            $col_j[$nombre_juego] = ['juego' => $nombre_juego, 'mesas' => []];
-          }
-          $col_j[$nombre_juego]['mesas'][] = $m;
-        }
-        
-        $columnas_de_juegos[] = $col_j;
-      }
-      
-      //Divido las columnas en paginas, asignandole izq y derecha
-      $paginas = [];
-      foreach($columnas_de_juegos as $idx => $col){
-        if(($idx % 2) == 0){
-          $paginas[] = ['izquierda' => $col,'derecha' => null];
-        }
-        else{
-          $paginas[count($paginas)-1]['derecha'] = $col;
-        }
-      }
-      
-      if(count($paginas) == 0){
-        $totales = array_map(
-          function($t){return $t['texto'];},
-          array_filter(
-            $mesas_por_juego[$TOTALES_K],
-            function($t){return empty($t['padding']);}
-          )
-        );
-        return [
-          'paginas' => [
-            'izquierda' => [
-              'juego' => '-','mesas' => []
-            ],
-            'derecha' => null,
-          ],
+      $paginas_de_mesas = array_chunk($mesas_desestructuradas,$COLUMNAS_POR_PAG*$MAX_FILAS_POR_COL);
+            
+      if(count($paginas_de_mesas) == 0){//No hay mesas
+        return [//@TODO: checkear que funciona
+          'paginas' => [],
           'nro_paginas' => 1,
-          'totales' => [
-            'columna' => 'izquierda',
-            'totales' => $totales
-          ]
+          'totales' => []
         ];
       }
       
-      //Saco los totales y los pongo aparte
-      $ultima_pag = $paginas[count($paginas)-1];
-      $totales_col_str = null;
-      $totales = [];
+      //A la ultima pagina le pongo otro limite porque va a tener observaciones, firma y totalizadores
+      $ultima_pag = $paginas_de_mesas[count($paginas_de_mesas)-1];
+      unset($paginas_de_mesas[count($paginas_de_mesas)-1]);
       
-      if(array_key_exists($TOTALES_K,$ultima_pag['izquierda'] ?? [])){
-        foreach($ultima_pag['izquierda'][$TOTALES_K]['mesas'] as $t){
-          $totales[] = $t;
+      $F_AGRUPAR_MESAS_EN_JUEGOS = function($mesas){
+        $juegos = [];
+        foreach($mesas as $m){
+          $nombre_juego = $m['nombre_juego'];
+          if(!array_key_exists($nombre_juego,$juegos)){
+            $juegos[$nombre_juego] = ['juego' => $nombre_juego, 'mesas' => []];
+          }
+          $juegos[$nombre_juego]['mesas'][] = $m;
         }
-        $totales_col_str = 'izquierda';
-        unset($paginas[count($paginas)-1]['izquierda'][$TOTALES_K]);
+        return $juegos;
+      };
+      
+      $F_MESAS_A_COLUMNAS_DE_JUEGOS = function($pag_m) 
+        use (&$MAX_FILAS_POR_COL,$F_AGRUPAR_MESAS_EN_JUEGOS){
+          $columnas_de_mesas = array_chunk($pag_m,$MAX_FILAS_POR_COL);
+          return array_map($F_AGRUPAR_MESAS_EN_JUEGOS,$columnas_de_mesas);
+      };
+      
+      $paginas_de_columnas = array_map($F_MESAS_A_COLUMNAS_DE_JUEGOS,$paginas_de_mesas);
+      
+      $MAX_FILAS_POR_COL = 20;
+      
+      $ult_pags = array_chunk($ultima_pag,$COLUMNAS_POR_PAG*$MAX_FILAS_POR_COL);
+      $ult_pags_de_cols = array_map($F_MESAS_A_COLUMNAS_DE_JUEGOS,$ult_pags);
+      
+      $paginas = array_merge($paginas_de_columnas,$ult_pags_de_cols);
+      
+      //Completo la ultima pagina con columnas vacias para que no se vea rara
+      //comparada con la ultima
+      {
+        $cols_ult_pag = count($paginas[count($paginas)-1]);
+        $fill = $COLUMNAS_POR_PAG - $cols_ult_pag;
+        $paginas[count($paginas)-1] = array_merge(
+          $paginas[count($paginas)-1],
+          array_fill(0,$fill,[])
+        );
       }
-      //Puede que los totales OVERFLOWEEN entre columnas por eso no es un ELSE
-      if(array_key_exists($TOTALES_K,$ultima_pag['derecha'] ?? [])){
-        foreach($ultima_pag['derecha'][$TOTALES_K]['mesas'] as $t){
-          $totales[] = $t;
-        }
-        $totales_col_str = 'derecha';
-        unset($paginas[count($paginas)-1]['derecha'][$TOTALES_K]);
-      }
+      
+      $totales = [
+        [
+          'texto' => 'Cantidad De Mesas Abiertas',//Fila vacia separadora
+          'val' => $abiertas,
+        ],
+        [
+          'texto' => 'Cantidad De Mesas Con Apuestas Mínimas',//Fila vacia separadora
+          'val' => $minimos,
+        ]
+      ];
       
       return [
         'paginas' => $paginas,
         'nro_paginas' => count($paginas),
-        'totales' => [
-          'columna' => $totales_col_str,
-          'totales' => $totales
-        ]
+        'totales' => $totales,
       ];
     }
 }

@@ -76,6 +76,14 @@ footer
   padding: 1px;
 }
 
+#tablaFinal th,#tablaFinal td {
+  border: 0;
+  padding: 0;
+  text-align: center;
+  vertical-align: top;
+  font-size: 11px !important;
+}
+
 </style>
 
   <head>
@@ -121,7 +129,7 @@ footer
         
         <table style="table-layout:fixed;width:100%">
           <tr>
-            @foreach($pagina as $izq_der => $juegos)
+            @foreach($pagina as $juegos)
             <td style="padding: 0;border: 0;vertical-align: top;">
               @if($juegos === null)
               &nbsp;
@@ -157,44 +165,35 @@ footer
                   @endforeach
                   
                   @endforeach
-                
-                  @if($loop->parent->last && $rel->totales['columna'] == $izq_der)
-                  <tr><!-- Separador -->
-                    <td colspan="7" class="separador2">&nbsp;</td>
-                  </tr>
-                  @foreach($rel->totales['totales'] as $t)
-                  <tr>
-                    <td style="border: 0;font-size:13px !important;">&nbsp;</td>
-                    <td rowspan="2" colspan="2" style="font-size:13px !important;">{{$t['texto']}}</td>
-                    <td rowspan="2" colspan="4" style="font-size:13px !important;">{{is_null($t['val'])? '&nbsp;' : $t['val']}}</td>
-                  </tr>
-                  <tr>
-                    <td style="border: 0;font-size:13px !important;">&nbsp;</td>
-                  </tr>
-                  @endforeach
-                
-                  @endif
                 </tbody>
               </table>
               @endif
             </td>
             @endforeach
           </tr>
+        </table>
+        @if($loop->last)
+        <table id="tablaFinal" style="table-layout:fixed;width:100%;padding-top: 5px;">
           <tr>
-            <td style="padding: 0;border: 0;vertical-align: top;" colspan="2">
-              <br>
-              <p style="border: 0px;" >Observaciones:</p>
-              @if($loop->last)
-              <p style="border: 0px;" >{{$rel->observaciones}}</p>
-              <p></p>
-              <br>
-              <p style="border: 0px;" >Firma y Aclaración Fiscalizador:</p>
-              <p style="border: 0px;" >{{$rel->fiscalizador}}</p>
-              @endif
-              <p></p>
-            </td>
+            @foreach($rel->totales as $t)
+            <th>{{$t['texto']}}</th>
+            @endforeach
+          </tr>
+          <tr>
+            @foreach($rel->totales as $t)
+            <td>{{is_null($t['val'])? '&nbsp;' : $t['val']}}</td>
+            @endforeach
+          </tr>
+          <tr>
+            <th>Observaciones</th>
+            <th>Firma y Aclaración Fiscalizador</th>
+          </tr>
+          <tr>
+            <td>{{ $rel->observaciones ?? '&nbsp;' }}</td>
+            <td>{{ $rel->fiscalizador ?? '&nbsp;' }}</td>
           </tr>
         </table>
+        @endif
       @endforeach
     </body>
 </html>
