@@ -14,7 +14,7 @@ class DetalleRelevamientoApuestas extends Model
                               'nro_mesa','nombre_juego','posiciones',
                               'minimo','maximo','codigo_mesa','id_estado_mesa',
                               'id_relevamiento_apuestas','id_mesa_de_panio',
-                              'id_moneda','multimoneda','descripcion'
+                              'id_moneda','multimoneda','descripcion','id_juego_mesa'
                             );
   public $timestamps = false;
 

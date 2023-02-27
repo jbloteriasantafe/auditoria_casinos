@@ -186,29 +186,7 @@ class GenerarPlanillasController extends Controller
       return $dompdf;
     }
     
-    private function valoresApuestasMinimas($id_relevamiento){
-      $R = RelevamientoApuestas::find($id_relevamiento);
-      $MINIMOS_PARA_FECHA = [];
-      $MINIMOS_PARA_FECHA_DB = DB::table('apuesta_minima_juego')
-      ->selectRaw('id_juego_mesa, id_moneda, MIN(apuesta_minima) as apuesta_minima')
-      ->whereDate('created_at','<=',$R->fecha)
-      ->where('id_casino',$R->id_casino)
-      ->where(function($q) use ($R){
-        return $q->whereNull('deleted_at')->orWhereDate('deleted_at','>=',$R->fecha);
-      })
-      ->groupBy('id_juego_mesa','id_moneda')
-      ->get();
-      
-      foreach($MINIMOS_PARA_FECHA_DB as $mfdb){
-        if(!array_key_exists($mfdb->id_moneda,$MINIMOS_PARA_FECHA))
-          $MINIMOS_PARA_FECHA[$mfdb->id_moneda] = [];
-        $MINIMOS_PARA_FECHA[$mfdb->id_moneda][$mfdb->id_juego_mesa] = $mfdb->apuesta_minima;
-      }
-      
-      return $MINIMOS_PARA_FECHA = [];
-    }
-
-    public function obtenerDatosRelevamiento($id_relevamiento){
+    public function obtenerDatosRelevamiento($id_relevamiento){      
       $relevamiento = DB::table('relevamiento_apuestas_mesas as RA')
       ->select('DRA.nombre_juego','DRA.posiciones','DRA.id_detalle_relevamiento_apuestas',
       'DRA.codigo_mesa','DRA.nro_mesa','DRA.minimo','DRA.maximo',
@@ -225,14 +203,9 @@ class GenerarPlanillasController extends Controller
       )
       ->orderBy('nro_mesa','asc')
       ->get();
-
-      $MINIMOS_PARA_FECHA = $this->valoresApuestasMinimas($id_relevamiento);
       
       //Agrupo las mesas en juegos por orden de aparicion del juego
       $mesas_por_juego = [];
-      $abiertas = null;
-      $minimos = null;
-      
       foreach($relevamiento as $idx => $detalle){
         $minimo = '';
         $maximo = '';
@@ -242,18 +215,6 @@ class GenerarPlanillasController extends Controller
           $minimo = $detalle->minimo;
           $maximo = $detalle->maximo;
           $estado = $detalle->siglas_mesa;
-          //Inicializo si hay alguno llenado
-          $abiertas = $abiertas === null? 0 : $abiertas;
-          $minimos = $minimos === null? 0 : $minimos;
-          
-          if($estado == 'A'){
-            $abiertas++;
-            if($detalle->id_moneda !== null){
-              $minimo_para_fecha = $MINIMOS_PARA_FECHA[$detalle->id_moneda][$detalle->id_juego_mesa] ?? INF;
-              $cumple_minimo = floatval($minimo) <= floatval($minimo_para_fecha);
-              if($cumple_minimo) $minimos++;
-            }
-          }
         }
 
         if($detalle->id_moneda != null){
@@ -339,6 +300,23 @@ class GenerarPlanillasController extends Controller
           $paginas[count($paginas)-1],
           array_fill(0,$fill,[])
         );
+      }
+      
+      $minimos = null;
+      $abiertas = null;
+      {
+        $mins = (new ABMApuestasController)->minimosCumplidos($id_relevamiento);
+        foreach($mins as $m){
+          if(!empty($m->cumplieron_minimo)){
+            $minimos += $m->cumplieron_minimo;
+          }
+          if(!empty($m->abiertas)){
+            $abiertas += $m->abiertas;
+          }
+        }
+        if(!is_null($abiertas) && is_null($minimos)){
+          $minimos = 0;
+        }
       }
       
       $totales = [

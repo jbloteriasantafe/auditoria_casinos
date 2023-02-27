@@ -332,35 +332,45 @@ $('#btn-guardar-backUp').on('click',function(e){
             }
 
           },
-
           error: function (reject) {
-                if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText);
-                    $.each(errors, function (key, val) {
-                      if(key == 'detalles'){
-
-                        $('#mensajeErrorCargaBUp').show();
-                      }
-                      if(key == 'hora'){
-                        mostrarErrorValidacion( $('#hora_ejec_BUp'),'Campo Obligatorio',false);
-                        $('#modalCargaBackUp').animate({scrollTop:$('#hora_ejec_BUp').offset().top},"slow");
-
-                      }
-                      if(key != 'hora' && key != 'detalles' && key!= 'fiscalizadores'){
-                          var splitt = key.split('.');
-                        mostrarErrorValidacion( $("#" + splitt[0]+splitt[1]+splitt[2] ),'Campo Obligatorio',false);
-                        $('#modalCargaBackUp').animate({scrollTop:$("#" + splitt[0]+splitt[1]+splitt[2]).offset().top},"slow");
-
-                      }
-                      if(key == 'fiscalizadores'){
-                        mostrarErrorValidacion( $('#fiscalizadorBUp'),'Debe cargar al menos uno.',false);
-                        $('#modalCargaBackUp').animate({scrollTop:$('#fiscalizadorBUp').offset().top},"slow");
-
-                      }
-
-                    });
-                }
+            console.log(reject);
+            if(reject.status != 422) return;
+            const errors = reject.responseJSON;
+            
+            if(typeof errors.hora !== 'undefined'){
+              mostrarErrorValidacion( $('#hora_ejec_BUp'),errors.hora.join(', '),false);
+              $('#modalCargaBackUp').animate({scrollTop:$('#hora_ejec_BUp').offset().top},"slow");
+              $('#mensajeErrorCargaBUp').show();
             }
+            if(typeof errors.fiscalizadores !== 'undefined'){
+              mostrarErrorValidacion( $('#fiscalizadorBUp'),errors.fiscalizadores.join(', '),false);
+              $('#modalCargaBackUp').animate({scrollTop:$('#fiscalizadorBUp').offset().top},"slow");
+              $('#mensajeErrorCargaBUp').show();
+            }
+            
+            let last_error = null;
+            $('#tablaCargaBUp .filaClone').each(function(idx,fila){
+              const monn = `detalles.${idx}.id_moneda`;
+              const minn = `detalles.${idx}.minimo`;
+              const maxx = `detalles.${idx}.maximo`;
+              if(typeof errors[monn] !== 'undefined'){
+                mostrarErrorValidacion( $(fila).find('.estado_up'),errors[monn].join(', '),false);
+                last_error = fila;
+              }
+              if(typeof errors[minn] !== 'undefined'){
+                mostrarErrorValidacion( $(fila).find('.min_up'),errors[minn].join(', '),false);
+                last_error = fila;
+              }
+              if(typeof errors[maxx] !== 'undefined'){
+                mostrarErrorValidacion( $(fila).find('.max_up'),errors[maxx].join(', '),false);
+                last_error = fila;
+              }
+            });
+            if(last_error !== null && $('#mensajeErrorCargaBUp').is(':hidden')){
+              $('#mensajeErrorCargaBUp').show();
+              $('#modalCargaBackUp').animate({scrollTop:$(last_error).offset().top},"slow");
+            }
+          }
       })
 
 });
@@ -578,33 +588,45 @@ $('#btn-guardar').on('click',function(e){
 
           },
           error: function (reject) {
-                if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText);
-                    $.each(errors, function (key, val) {
-                      if(key == 'detalles'){
-                        $('#mensajeErrorCarga').show();
-                      }
-                      if(key == 'hora'){
-                        mostrarErrorValidacion( $('#hora_ejec_carga'),'Campo Obligatorio',false);
-                        $('#modalCarga').animate({scrollTop:$('#hora_ejec_carga').offset().top},"slow");
-
-                      }
-                      if(key != 'hora' && key != 'fiscalizadores' && key != 'detalles'){
-                          var splitt = key.split('.');
-                        mostrarErrorValidacion( $("#" + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
-                        $('#modalCarga #tablaCarga').animate({scrollTop:$("#" + splitt[0]+splitt[1]+splitt[2]).offset().top},"slow");
-                        $('#mensajeErrorCargaApMesas').show();
-                      }
-                      if( key=='fiscalizadores' ){
-                        mostrarErrorValidacion($('#fiscalizadorCarga'), 'Campo Obligatorio', false);
-                        $('#modalCarga').animate({scrollTop:$('#fiscalizadorCarga').offset().top},"slow");
-
-                      }
-                    });
-                }
+            console.log(reject);
+            if(reject.status != 422) return;
+            const errors = reject.responseJSON;
+            
+            if(typeof errors.hora !== 'undefined'){
+              mostrarErrorValidacion( $('#hora_ejec_carga'),errors.hora.join(', '),false);
+              $('#modalCarga').animate({scrollTop:$('#hora_ejec_carga').offset().top},"slow");
+              $('#mensajeErrorCarga').show();
             }
-      })
-
+            if(typeof errors.fiscalizadores !== 'undefined'){
+              mostrarErrorValidacion( $('#fiscalizadorCarga'),errors.fiscalizadores.join(', '),false);
+              $('#modalCarga').animate({scrollTop:$('#fiscalizadorCarga').offset().top},"slow");
+              $('#mensajeErrorCarga').show();
+            }
+            
+            let last_error = null;
+            $('#tablaCarga .filaClone').each(function(idx,fila){
+              const monn = `detalles.${idx}.id_moneda`;
+              const minn = `detalles.${idx}.minimo`;
+              const maxx = `detalles.${idx}.maximo`;
+              if(typeof errors[monn] !== 'undefined'){
+                mostrarErrorValidacion( $(fila).find('.estado_carga'),errors[monn].join(', '),false);
+                last_error = fila;
+              }
+              if(typeof errors[minn] !== 'undefined'){
+                mostrarErrorValidacion( $(fila).find('.min_carga'),errors[minn].join(', '),false);
+                last_error = fila;
+              }
+              if(typeof errors[maxx] !== 'undefined'){
+                mostrarErrorValidacion( $(fila).find('.max_carga'),errors[maxx].join(', '),false);
+                last_error = fila;
+              }
+            });
+            if(last_error !== null && $('#mensajeErrorCarga').is(':hidden')){
+              $('#mensajeErrorCarga').show();
+              $('#modalCarga').animate({scrollTop:$(last_error).offset().top},"slow");
+            }
+          }
+      });
 })
 
 $('#btn-salir').on('click',function(){
@@ -735,32 +757,44 @@ $('#btn-guardar-modif').on('click',function(e){
             $('#btn-buscar-apuestas').trigger('click',[1,10,'fecha','desc']);
           },
           error: function (reject) {
-                if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText);
-                    $.each(errors, function (key, val) {
-                      if(key == 'detalles'){
-
-                        $('#mensajeErrorModificar').show();
-                      }
-                      if(key == 'hora'){
-                        mostrarErrorValidacion( $('#hora_ejec_mod'),val[0],false);
-                        $('#modalModificar').animate({scrollTop:$('#hora_ejec_mod').offset().top},"slow");
-
-                      }
-                       if(key != 'hora' && key != 'detalles'){
-                           var splitt = key.split('.');
-                         mostrarErrorValidacion( $('#tablaModificar #' + splitt[0]+splitt[1]+splitt[2] ),val[0],false);
-                         $('#modalModificar').animate({scrollTop:$('#tablaModificar #' + splitt[0]+splitt[1]+splitt[2]).offset().top},"slow");
-
-                       }
-                      if(key == 'fiscalizadores'){
-                        mostrarErrorValidacion( $('#fiscalizadorMod'),val[0],false);
-                        $('#modalModificar').animate({scrollTop:$('#fiscalizadorMod').offset().top},"slow");
-
-                      }
-                    });
-                }
+            console.log(reject);
+            if(reject.status != 422) return;
+            const errors = reject.responseJSON;
+            
+            if(typeof errors.hora !== 'undefined'){
+              mostrarErrorValidacion( $('#hora_ejec_mod'),errors.hora.join(', '),false);
+              $('#modalModificar').animate({scrollTop:$('#hora_ejec_mod').offset().top},"slow");
+              $('#mensajeErrorModificar').show();
             }
+            if(typeof errors.fiscalizadores !== 'undefined'){
+              mostrarErrorValidacion( $('#fiscalizadorMod'),errors.fiscalizadores.join(', '),false);
+              $('#modalModificar').animate({scrollTop:$('#fiscalizadorMod').offset().top},"slow");
+              $('#mensajeErrorModificar').show();
+            }
+            
+            let last_error = null;
+            $('#tablaModificar .filaClone').each(function(idx,fila){
+              const monn = `detalles.${idx}.id_moneda`;
+              const minn = `detalles.${idx}.minimo`;
+              const maxx = `detalles.${idx}.maximo`;
+              if(typeof errors[monn] !== 'undefined'){
+                mostrarErrorValidacion( $(fila).find('.estado_mod'),errors[monn].join(', '),false);
+                last_error = fila;
+              }
+              if(typeof errors[minn] !== 'undefined'){
+                mostrarErrorValidacion( $(fila).find('.min_mod'),errors[minn].join(', '),false);
+                last_error = fila;
+              }
+              if(typeof errors[maxx] !== 'undefined'){
+                mostrarErrorValidacion( $(fila).find('.max_mod'),errors[maxx].join(', '),false);
+                last_error = fila;
+              }
+            });
+            if(last_error !== null && $('#mensajeErrorModificar').is(':hidden')){
+              $('#mensajeErrorModificar').show();
+              $('#modalModificar').animate({scrollTop:$(last_error).offset().top},"slow");
+            }
+          }
       })
 
 })

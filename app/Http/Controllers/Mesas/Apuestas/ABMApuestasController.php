@@ -199,58 +199,56 @@ class ABMApuestasController extends Controller
 
 
   public function cargarRelevamiento(Request $request){
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    
     $validator=  Validator::make($request->all(),[
       'hora' => 'required|date_format:"H:i"',
-      'observaciones' => 'nullable',
-      'fiscalizadores' => 'required',
-      //'fiscalizadores.*.id_fiscalizador' => 'required|exists:users,id',
-      'detalles' => 'required',
+      'observaciones' => 'nullable|string',
+      'detalles' => 'required|array',
       'detalles.*.id_detalle' => 'required|exists:detalle_relevamiento_apuestas,id_detalle_relevamiento_apuestas',
+      'detalles.*.id_estado_mesa' => 'required|exists:estado_mesa,id_estado_mesa',
+      'detalles.*.id_moneda' => 'nullable|exists:moneda,id_moneda|required_if:detalles.*.id_estado_mesa,1',
       'detalles.*.minimo' => 'nullable|integer|min:0',
       'detalles.*.maximo' => 'nullable|integer|min:0',
-      'detalles.*.id_estado_mesa' => 'required|exists:estado_mesa,id_estado_mesa',
-      'detalles.*.id_moneda' => 'nullable|exists:moneda,id_moneda',
-    ], array(), self::$atributos)->after(function($validator){
-      $i = 0;
-      $hubo_abiertas = 0;
-      foreach ($validator->getData()['detalles'] as $fila) {
-        if($fila['id_estado_mesa'] == 1){//si esta abierta
-          $hubo_abiertas++;
-          //si cargo los datos, los valido
-          if(empty($fila['minimo']) || empty($fila['maximo'])){
-              $validator->errors()->add('detalles.'.$i.'.minimo', 'Valor requerido');
-              $validator->errors()->add('detalles.'.$i.'.maximo', 'Valor requerido');
-            }else{
-              if($fila['minimo'] > $fila['maximo']){
-                $validator->errors()->add('detalles.'.$i.'.minimo', 'Es mayor que el máximo');
-              }
-              if($fila['maximo'] < $fila['minimo']){
-                $validator->errors()->add('detalles.'.$i.'.maximo', 'Es menor que el mínimo');
-              }
-              if(($fila['minimo']==0 )){
-                $validator->errors()->add('detalles.'.$i.'.minimo', 'No puede ser 0');
-              }
-              if($fila['maximo']==0){
-                $validator->errors()->add('detalles.'.$i.'.maximo', 'No puede ser 0');
-              }
-              if(empty($fila['id_moneda'])){
-                $validator->errors()->add('detalles.'.$i.'.id_moneda', 'Seleccione una');
-              }
-            }
-          }
-
-          $i++;
+      'fiscalizadores' => 'required|array',
+      'fiscalizadores.*' => 'required|exists:usuario,id_usuario',
+    ], [
+      'hora.required' => 'Ingrese la hora de ejecución',
+      'fiscalizadores.required' => 'Ingrese al menos un fiscalizador',
+      'detalles.*.minimo.min' => 'No puede ser menor o igual a 0',
+      'detalles.*.maximo.min' => 'No puede ser menor o igual a 0',
+      'detalles.*.id_moneda.required_if' => 'Seleccione una moneda',
+    ], self::$atributos)->after(function($validator) use ($user){
+      if($validator->errors()->any()) return;
+      
+      $data = $validator->getData();
+      $id_casino = DetalleRelevamientoApuestas::find($data['detalles'][0]['id_detalle'])->relevamiento->id_casino;
+      if(!$user->usuarioTieneCasino($id_casino)){
+        return $validator->errors()->add('autorizacion','No está autorizado para realizar esta accion.');
+      }
+      foreach($data['fiscalizadores'] as $f){
+        if(!Usuario::find($f)->usuarioTieneCasino($id_casino)){
+          return $validator->errors()->add("fiscalizadores.$i",'No está autorizado para realizar esta accion.');
+        }
+      }
+      
+      foreach ($data['detalles'] as $i => $fila) {
+        //si no esta abierta ignoro
+        if($fila['id_estado_mesa'] != 1) continue;
+        
+        //No puedo validarlo con required_if porque se envia "" vacios si no estan
+        if(empty($fila['minimo']) || empty($fila['maximo'])){
+          $validator->errors()->add('detalles.'.$i.'.minimo', 'Valor requerido');
+          $validator->errors()->add('detalles.'.$i.'.maximo', 'Valor requerido');
+        }
+        else if($fila['maximo'] < $fila['minimo']){
+          $validator->errors()->add('detalles.'.$i.'.maximo', 'Es menor que el mínimo');
+        }
       }
     })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
-
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $detalle = DetalleRelevamientoApuestas::find($request['detalles'][0]['id_detalle']);
-    if($user->usuarioTieneCasino($detalle->relevamiento->id_casino)){
+    
+    return DB::transaction(function() use ($request,$user){
+      $detalle = null;
       foreach ($request['detalles'] as $det) {
         $detalle = DetalleRelevamientoApuestas::find($det['id_detalle']);
         $detalle->minimo = $det['minimo'];
@@ -268,43 +266,29 @@ class ABMApuestasController extends Controller
       $relevamiento->es_backup = 0;
       $relevamiento->save();
       $fiscas = array_unique($request->fiscalizadores);
-      if(!empty($fiscas) && count($relevamiento->fiscalizadores) > 0){
-        $relevamiento->fiscalizadores()->sync($fiscas);
-      }else{
-        $relevamiento->fiscalizadores()->detach();
-        $relevamiento->fiscalizadores()->sync($fiscas);
-      }
+      $relevamiento->fiscalizadores()->sync($fiscas);
 
       $this->verificarMinimoApuestas($relevamiento);
 
       $this->eliminarRelevamientosFecha($relevamiento->fecha,$relevamiento->id_turno,$relevamiento->id_relevamiento_apuestas,$relevamiento->casino);
       return response()->json(['exito' => 'Relevamiento cargado!'], 200);
-    }else{
-      return ['errors' => ['autorizacion' => 'No está autorizado para realizar esta accion.']];
-    }
+    });
   }
 
-  //solo en pesos
-
+  // Este metodo antes de hoy estaba MUY MAL, 
+  // por lo que si se quiere usar cumplio_minimo
+  // hay que usar una query de UPDATE para arreglar los relevamientos viejos
+  // Octavio 2023-02-24
   public function verificarMinimoApuestas($relevamiento){
-    $minimos = ApuestaMinimaJuego::where('id_casino','=',$relevamiento->id_casino)
-                                  ->where('id_moneda','=',1)
-                                  ->get();
-    foreach($minimos as $minimo){
-      $detalles_relevamiento = DB::table('detalle_relevamiento_apuestas as DET')
-                                    ->join('mesa_de_panio as M','M.id_mesa_de_panio','=','DET.id_mesa_de_panio')
-                                    ->where('DET.id_juego_mesa','=',$minimo->id_juego_mesa)
-                                    ->where('M.id_moneda','=',$minimo->id_moneda)
-                                    ->where('DET.minimo','=',$minimo->apuesta_minima)
-                                    ->get();
-      if(count($detalles_relevamiento) >= $minimo->cantidad_requerida){
-        $relevamiento->cumplio_minimo = 1;
-      }else{
-        $relevamiento->cumplio_minimo = 0;
+    $minimos = $this->minimosCumplidos($relevamiento->id_relevamiento);
+    $cumplio_minimo = 1;
+    foreach($minimos as $m){
+      if(is_null($m->requeridas) || ($m->requeridas > $m->cumplieron_minimo)){
+        $cumplio_minimo = 0;
+        break;
       }
-
     }
-
+    $relevamiento->cumplio_minimo = $cumplio_minimo;
     $relevamiento->save();
   }
 
@@ -333,5 +317,28 @@ class ABMApuestasController extends Controller
       $rel->delete();
     }
   }
-
+  
+  public function minimosCumplidos($id_relevamiento){
+    return DB::table('relevamiento_apuestas_mesas as r')
+    ->selectRaw('
+      d.id_juego_mesa,
+      d.id_moneda,
+      COUNT(distinct d.id_mesa_de_panio) as abiertas, 
+      SUM(d.minimo <= IFNULL(ap.apuesta_minima,0)) as cumplieron_minimo,
+      MAX(ap.cantidad_requerida) as requeridas'
+    )
+    ->join('detalle_relevamiento_apuestas as d','d.id_relevamiento_apuestas','=','r.id_relevamiento_apuestas')
+    ->leftJoin('apuesta_minima_juego as ap',function($q){
+      return $q->on('ap.id_casino','=','r.id_casino')
+      ->on('ap.created_at','<=','r.fecha')
+      ->on(function($q2){
+        return $q2->where('ap.deleted_at','>=','r.fecha')->orWhereNull('ap.deleted_at');
+      })
+      ->on('ap.id_juego_mesa','=','d.id_juego_mesa')
+      ->on('ap.id_moneda','=','d.id_moneda');
+    })
+    ->where('d.id_estado_mesa','=',1)//mesas abiertas
+    ->where('r.id_relevamiento_apuestas','=',$id_relevamiento)
+    ->groupBy('d.id_juego_mesa','d.id_moneda')->get();
+  }
 }
