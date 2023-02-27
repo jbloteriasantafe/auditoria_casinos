@@ -283,7 +283,7 @@ class ABMApuestasController extends Controller
     $minimos = $this->minimosCumplidos($relevamiento->id_relevamiento);
     $cumplio_minimo = 1;
     foreach($minimos as $m){
-      if(is_null($m->requeridas) || ($m->requeridas > $m->cumplieron_minimo)){
+      if(!is_null($m->requeridas) && ($m->requeridas > $m->cumplieron_minimo)){
         $cumplio_minimo = 0;
         break;
       }
