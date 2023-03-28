@@ -285,7 +285,7 @@ public function importarDiario(Request $request){
       $recibido = fgetcsv($handle,1600,';','"');
       $recibido2 = [];
       foreach($recibido as &$h){
-        $h = trim($h,' \t\n\r\0\x0B\xEF\xBB\xBF');//Sacar caracter BOM insertado por excel https://stackoverflow.com/questions/54145035/cant-remove-ufeff-from-a-string
+        $h = trim($h," \t\n\r\0\x0B\xEF\xBB\xBF");//Sacar caracter BOM insertado por excel https://stackoverflow.com/questions/54145035/cant-remove-ufeff-from-a-string
         $recibido2[] = utf8_encode($h);//Lo convierto porque pueden mandarlo en un encoding raro
       }
       $esperado_ros = ['JUEGO','N°MESA','DROP','DROP TARJETA','UTILIDAD','FILL','CREDIT','PROPINAS'];
