@@ -531,6 +531,7 @@ class ProducidoController extends Controller
 
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
+    $dompdf->set_option('chroot',public_path());
     $dompdf->loadHtml($view->render());
     $dompdf->render();
 

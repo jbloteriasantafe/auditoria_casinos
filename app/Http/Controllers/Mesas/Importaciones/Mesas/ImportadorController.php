@@ -534,6 +534,7 @@ public function importarDiario(Request $request){
     $view = view('Informes.informeDiario', compact(['importacion','det_importacion','casino']));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
+    $dompdf->set_option('chroot',public_path());
     $dompdf->loadHtml($view);
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
@@ -655,6 +656,7 @@ public function importarDiario(Request $request){
     $view = view('Informes.informeMes', compact('datos','casino','mes'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
+    $dompdf->set_option('chroot',public_path());
     $dompdf->loadHtml($view);
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");

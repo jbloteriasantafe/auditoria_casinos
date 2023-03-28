@@ -406,6 +406,7 @@ class EventualidadController extends Controller
         $view = View::make('planillaEventualidades', compact('rel'));
         $dompdf = new Dompdf();
         $dompdf->set_paper('A4', 'portrait');
+        $dompdf->set_option('chroot',public_path());
         $dompdf->loadHtml($view->render());
         $dompdf->render();
         $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");

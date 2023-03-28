@@ -452,6 +452,7 @@ class SesionesController extends Controller
     $view = View::make($ruta_planilla);
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
+    $dompdf->set_option('chroot',public_path());
     $dompdf->loadHtml($view->render());
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");

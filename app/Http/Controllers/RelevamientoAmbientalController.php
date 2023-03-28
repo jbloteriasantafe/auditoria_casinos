@@ -211,6 +211,7 @@ class RelevamientoAmbientalController extends Controller
     $view = View::make('planillaRelevamientosAmbiental', compact('relevamiento_ambiental', 'detalles', 'generalidades', 'otros_datos'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'landscape');
+    $dompdf->set_option('chroot',public_path());
     $dompdf->loadHtml($view->render());
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("Helvetica", "normal");

@@ -970,6 +970,7 @@ class LayoutController extends Controller
     $view = View::make('planillaLayoutParcialEdit', compact('detalles','rel','progresivos'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
+    $dompdf->set_option('chroot',public_path());
     $dompdf->loadHtml($view->render());
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
@@ -1323,6 +1324,7 @@ class LayoutController extends Controller
     $view = View::make('planillaLayoutTotalEdit', compact('rel','detalles','maquinas_apagadas','mostrar_maquinas','observacion','codigos'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'landscape');
+    $dompdf->set_option('chroot',public_path());
     $dompdf->loadHtml($view->render());
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");

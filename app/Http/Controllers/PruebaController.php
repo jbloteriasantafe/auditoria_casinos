@@ -206,6 +206,7 @@ class PruebaController extends Controller
     $view = View::make('planillaJuegos', compact('rel'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
+    $dompdf->set_option('chroot',public_path());
     $dompdf->loadHtml($view->render());
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
@@ -346,6 +347,7 @@ class PruebaController extends Controller
     $view = View::make('planillaProgresivos',compact('prueba','nivel_progresivo'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
+    $dompdf->set_option('chroot',public_path());
     $dompdf->loadHtml($view->render());
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");

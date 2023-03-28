@@ -200,6 +200,7 @@ class RelevamientoProgresivoController extends Controller
       $dompdf->getCanvas()->page_text(20, 575, "$nro_rel/$CAS/$sector", $font, 10, [0,0,0]);
       $dompdf->getCanvas()->page_text(765, 575, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, [0,0,0]);
       $dompdf->set_paper('A4', 'landscape');
+      $dompdf->set_option('chroot',public_path());
       $dompdf->loadHtml($view->render());
       $dompdf->render();
       return $dompdf;

@@ -198,6 +198,7 @@ public function imprimirPlanilla($id_informe){
   $view = View::make('InformesFiscalizadores.informeDiarioFiscalizadores', compact('rel'));
   $dompdf = new Dompdf();
   $dompdf->set_paper('A4', 'portrait');
+  $dompdf->set_option('chroot',public_path());
   $dompdf->loadHtml($view);
   $dompdf->render();
   $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");

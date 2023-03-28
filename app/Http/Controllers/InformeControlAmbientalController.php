@@ -154,6 +154,7 @@ class InformeControlAmbientalController extends Controller
     $view = view('planillaInformesControlAmbiental', compact(['turnos','sectores_mtm','sectores_mesas','total','otros_datos']))->render();
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
+    $dompdf->set_option('chroot',public_path());
     $dompdf->loadHtml($view);
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");

@@ -93,6 +93,7 @@ class InformeController extends Controller
       $view = View::make('Bingo.planillaInforme', compact('resultado_importaciones','sumarecaudado','sumapremiobingo','sumapremiolinea','beneficio','casino','mes','valor'));
       $dompdf = new Dompdf();
       $dompdf->set_paper('A4', 'portrait');
+      $dompdf->set_option('chroot',public_path());
       $dompdf->loadHtml($view->render());
       $dompdf->render();
       $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");

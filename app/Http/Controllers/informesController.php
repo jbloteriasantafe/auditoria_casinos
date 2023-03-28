@@ -122,6 +122,7 @@ class informesController extends Controller
     $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde_hasta','mostrar_pdev','suma_maqs'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
+    $dompdf->set_option('chroot',public_path());
     $dompdf->loadHtml($view->render());
     $dompdf->render();
 
@@ -207,6 +208,7 @@ class informesController extends Controller
     $view = View::make('planillaInformesMTM',compact('beneficios','sum','desde_hasta','mostrar_pdev','suma_maqs'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
+    $dompdf->set_option('chroot',public_path());
     $dompdf->loadHtml($view->render());
     $dompdf->render();
 
