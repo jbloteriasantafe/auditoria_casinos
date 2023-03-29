@@ -160,7 +160,8 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Barryvdh\DomPDF\ServiceProvider::class,
-        Chumper\Zipper\ZipperServiceProvider::class,
+        //@TODO: reemplazar con otra liberia para laravel moderno
+        //Chumper\Zipper\ZipperServiceProvider::class,
         BladeSvg\BladeSvgServiceProvider::class,
     ],
 
@@ -211,8 +212,8 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
         'PDF' => Barryvdh\DomPDF\Facade::class,
-        'Zipper' => Chumper\Zipper\Zipper::class,
-
+        //@TODO: reemplazar con otra liberia para laravel moderno
+        //'Zipper' => Chumper\Zipper\Zipper::class,
     ],
 
 ];
