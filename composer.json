@@ -7,11 +7,12 @@
     "require": {
         "php": ">=7.2",
         "barryvdh/laravel-dompdf": "^0.8.0",
+        "guzzlehttp/guzzle": "~6.0",
         "laravel/framework": "6.0.*",
+        "laravel/helpers": "^1.6",
         "laravel/tinker": "~1.0",
         "nothingworks/blade-svg": "^0.3.0",
-        "pusher/pusher-php-server": "^3.0",
-        "guzzlehttp/guzzle": "~6.0"
+        "pusher/pusher-php-server": "^3.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
