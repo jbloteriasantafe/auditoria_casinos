@@ -58,6 +58,7 @@ class CrearPDF implements ShouldQueue
         $dompdf = new Dompdf();
         $dompdf->set_option("isPhpEnabled", true);
         $dompdf->set_base_path(public_path());
+        $dompdf->set_option('chroot',public_path());
         $dompdf->set_paper('A4', 'portrait');
         $dompdf->loadHtml($view->render());
         $dompdf->render();
