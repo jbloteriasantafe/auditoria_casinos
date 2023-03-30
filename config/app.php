@@ -162,7 +162,6 @@ return [
         Barryvdh\DomPDF\ServiceProvider::class,
         //@TODO: reemplazar con otra liberia para laravel moderno
         //Chumper\Zipper\ZipperServiceProvider::class,
-        BladeSvg\BladeSvgServiceProvider::class,
     ],
 
     /*
