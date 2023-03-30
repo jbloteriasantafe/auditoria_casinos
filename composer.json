@@ -4,20 +4,21 @@
     "keywords": ["framework", "laravel"],
     "license": "MIT",
     "type": "project",
+    "minimum-stability": "stable",
     "require": {
-        "php": ">=8.0.2",
-        "barryvdh/laravel-dompdf": "^1.0.0",
+        "php": ">=8.1.0",
+        "barryvdh/laravel-dompdf": "^2.0.0",
         "guzzlehttp/guzzle": "^7.0.1",
-        "laravel/framework": "^9.0",
+        "laravel/framework": "^10.0",
         "laravel/helpers": "^1.6",
         "laravel/tinker": "^2.0",
         "nothingworks/blade-svg": "^1.0.0",
-        "pusher/pusher-php-server": "^5.0"
+        "pusher/pusher-php-server": "^7.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
         "mockery/mockery": "0.9.*",
-        "phpunit/phpunit": "^9.0",
+        "phpunit/phpunit": "^10.0",
         "filp/whoops": "~2.0"
     },
     "autoload": {

@@ -193,16 +193,16 @@ class RelevamientoProgresivoController extends Controller
     $view = View::make('planillaRelevamientosProgresivo',compact('rel'));
     if(!$html){
       $dompdf  = new Dompdf();
-      $font    = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
       $nro_rel = $rel['relevamiento']->nro_relevamiento_progresivo;
       $CAS     = $rel['casino']->codigo;
       $sector  = $rel['sector']->descripcion;
-      $dompdf->getCanvas()->page_text(20, 575, "$nro_rel/$CAS/$sector", $font, 10, [0,0,0]);
-      $dompdf->getCanvas()->page_text(765, 575, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, [0,0,0]);
       $dompdf->set_paper('A4', 'landscape');
       $dompdf->set_option('chroot',public_path());
       $dompdf->loadHtml($view->render());
       $dompdf->render();
+      $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+      $dompdf->getCanvas()->page_text(20, 575, "$nro_rel/$CAS/$sector", $font, 10, [0,0,0]);
+	  $dompdf->getCanvas()->page_text(750, 575, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
       return $dompdf;
     }
     return $view;
