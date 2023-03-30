@@ -59,9 +59,9 @@ class PdfParalelo{
             }
         }
         //Paso a path absoluto los inputs y el output
-        $nfiles = array_map(function($f){return Storage::getAdapter()->applyPathPrefix($f);},$files);
+        $nfiles = array_map(function($f){return Storage::path('').$f;},$files);
         $input_files_list = '"'.implode('" "',$nfiles).'"';
-        $output_file = Storage::getAdapter()->applyPathPrefix($fingerprint.'.pdf');
+        $output_file = Storage::path('').$fingerprint.'.pdf';
         $command = 'pdfunite '.$input_files_list.' "'.$output_file.'" 2>&1';
         $output = [];
         $rtrn = 0;

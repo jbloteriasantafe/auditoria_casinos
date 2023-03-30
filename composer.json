@@ -5,14 +5,14 @@
     "license": "MIT",
     "type": "project",
     "require": {
-        "php": ">=7.3",
-        "barryvdh/laravel-dompdf": "^0.8.0",
+        "php": ">=8.0.2",
+        "barryvdh/laravel-dompdf": "^1.0.0",
         "guzzlehttp/guzzle": "^7.0.1",
-        "laravel/framework": "^8.0",
+        "laravel/framework": "^9.0",
         "laravel/helpers": "^1.6",
         "laravel/tinker": "^2.0",
-        "nothingworks/blade-svg": "^0.4.0",
-        "pusher/pusher-php-server": "^3.0"
+        "nothingworks/blade-svg": "^1.0.0",
+        "pusher/pusher-php-server": "^5.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
