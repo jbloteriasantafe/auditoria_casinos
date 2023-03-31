@@ -58,7 +58,7 @@ class ProgresivoController extends Controller
       foreach($casinos as $c) $casinos_ids[] = $c->id_casino;
     }
     
-    $sort_by = $request->sort_by;
+    $sort_by = $request->sort_by ?? ['columna' => 'progresivo.id_progresivo','orden' => 'desc'];
     if($sort_by['columna'] == 'maquinas' || $sort_by['columna'] == 'islas'){
       $col = $sort_by['columna'] == 'maquinas'? 'maquina.nro_admin' : 'isla.nro_isla';
       $sort_by['columna'] = DB::raw("MIN($col)");
