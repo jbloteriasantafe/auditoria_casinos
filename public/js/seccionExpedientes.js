@@ -294,9 +294,11 @@ $('#btn-eliminarModal').click(function (e) {
     url: "expedientes/eliminarExpediente/" + $(this).val(),
     success: function (data) {
       $('#btn-buscar').click();
+      $('#modalEliminar').modal('hide');
     },
     error: function (data) {
       console.log('Error: ', data);
+      $('#modalEliminar').modal('hide');
     }
   });
 });

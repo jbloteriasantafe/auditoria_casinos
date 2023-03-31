@@ -290,6 +290,7 @@ class ExpedienteController extends Controller
 
   public function eliminarExpediente($id){
     $expediente = Expediente::find($id);
+    if(is_null($expediente)) return;
     //primero chequeo que se pueda eliminar los los LogMovimientos que tenga
     //sino no se puede eliminar el expediente
     $logs=$expediente->log_movimientos;

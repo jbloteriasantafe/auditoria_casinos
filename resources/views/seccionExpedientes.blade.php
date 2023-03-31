@@ -779,7 +779,7 @@
     <script src="/js/paginacion.js" charset="utf-8"></script>
 
     <!-- JavaScript personalizado -->
-    <script src="js/seccionExpedientes.js?3" charset="utf-8"></script>
+    <script src="js/seccionExpedientes.js?4" charset="utf-8"></script>
 
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
