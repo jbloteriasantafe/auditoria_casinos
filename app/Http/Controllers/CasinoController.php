@@ -209,10 +209,10 @@ class CasinoController extends Controller
 
 
     //TODO: Hardcodeado
-    if(!array_key_exists('fichas_pesos',$request) && !isset($request['fichas_pesos'])){
+    if(!$request->has('fichas_pesos') && !isset($request['fichas_pesos'])){
       $request['fichas_pesos'] = array();
     }
-    if(!array_key_exists('fichas_dolares',$request) && !isset($request['fichas_dolares'])){
+    if(!$request->has('fichas_dolares') && !isset($request['fichas_dolares'])){
       $request['fichas_dolares'] = array();
     }
 
