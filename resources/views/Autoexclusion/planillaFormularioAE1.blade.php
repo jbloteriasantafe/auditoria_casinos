@@ -123,7 +123,7 @@
 
     <div class="primerEncabezado" style="font-size:13px">
       <p>Asimismo, expreso:</p>
-      @if(count($contacto['nombre_apellido']) > 0)
+      @if(strlen($contacto['nombre_apellido']) > 0)
       <p>Que nombro como persona de contacto en forma de referencia a:</p>
       <p>Sr./Sra <b>{{ifempty($contacto['nombre_apellido'],'NOINFORMA')}}</b> con domicilio en calle <b>{{ifempty($contacto['domicilio'])}}</b>
       de la Localidad de <b>{{ifempty($contacto['nombre_localidad'])}}</b> Provincia de <b>{{ifempty($contacto['nombre_provincia'])}}</b>
@@ -325,7 +325,7 @@
           @endif
         </tr>
         <tr>
-          @if($encuesta['medio_recibir_informacion'] != -1 && !is_numeric($encuesta['medio_recibir_informacion']) && strpos($encuesta['medio_recibir_informacion'], '@') == false && count($encuesta['medio_recibir_informacion']) > 0)
+          @if($encuesta['medio_recibir_informacion'] != -1 && !is_numeric($encuesta['medio_recibir_informacion']) && strpos($encuesta['medio_recibir_informacion'], '@') == false && strlen($encuesta['medio_recibir_informacion']) > 0)
           <td style="width: 5%;"><input type="checkbox" checked/></td>
           <td style="width: 15%;">Otro medio</td>
           <td style="width: 80%;">{{$encuesta['medio_recibir_informacion']}}</td>
@@ -336,7 +336,7 @@
           @endif
         </tr>
       </table>
-      @if(count($encuesta['observacion']) > 0)
+      @if(strlen($encuesta['observacion']) > 0)
       <table  style="table-layout: fixed;width: 100%;margin-top: 1%;">
         <tr>
           <td style="width: 15%;">Observación:</td>

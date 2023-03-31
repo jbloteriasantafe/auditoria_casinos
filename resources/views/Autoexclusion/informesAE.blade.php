@@ -6,7 +6,6 @@
 <?php
 use Illuminate\Http\Request;
 use App\Http\Controllers\UsuarioController;
-use\App\http\Controllers\RelevamientoAmbientalController;
 $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
 ?>
 

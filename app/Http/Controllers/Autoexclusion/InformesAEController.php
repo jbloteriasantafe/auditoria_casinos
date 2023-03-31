@@ -165,7 +165,7 @@ class InformesAEController extends Controller
       }
 
       $buscar_encuesta = true;
-      if(count($request->hace_encuesta) > 0){
+      if(strlen($request->hace_encuesta) > 0){
         //@HACK, hay algunos que "tienen" encuesta con todos los campos vacios... para eso hago este chequeo
         $columnas = array_filter(
           Schema::getColumnListing('ae_encuesta'),
