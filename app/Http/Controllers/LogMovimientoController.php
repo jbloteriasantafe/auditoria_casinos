@@ -630,7 +630,7 @@ class LogMovimientoController extends Controller
       $chunked_compacts[] = compact('relevamientos','tipo_planilla');
     }
 
-    $salida = PdfParalelo::generarPdf('planillaMovimientos',$chunked_compacts,$codigo_casino."/".$fecha,$paginas_por_pdf,$paginas_totales);
+    $salida = PdfParalelo::crear(8,'planillaMovimientos',$chunked_compacts,$codigo_casino."/".$fecha,$paginas_por_pdf,$paginas_totales);
 
     if($salida['error'] == 0) return response()->file($salida['value'])->deleteFileAfterSend(true);
     return 'Error codigo: '.$salida['error'].'<br>'.implode('<br>',$salida['value']);

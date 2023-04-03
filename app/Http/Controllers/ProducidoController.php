@@ -585,7 +585,8 @@ class ProducidoController extends Controller
     }
 
     $paginas = ceil($cantidad_totales / $detalles_por_pagina);
-    $salida = PdfParalelo::generarPdf('planillaProducidos',$chunked_compacts,"",$paginas_por_pdf,$paginas);
+    
+    $salida = PdfParalelo::crear(8,'planillaProducidos',$chunked_compacts,"",$paginas_por_pdf,$paginas);
 
     if($salida['error'] == 0) return response()->file($salida['value'])->deleteFileAfterSend(true);
     return 'Error codigo: '.$salida['error'].'<br>'.implode('<br>',$salida['value']);

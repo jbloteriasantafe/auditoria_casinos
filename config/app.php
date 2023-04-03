@@ -213,6 +213,7 @@ return [
         'PDF' => Barryvdh\DomPDF\Facade::class,
         //@TODO: reemplazar con otra liberia para laravel moderno
         //'Zipper' => Chumper\Zipper\Zipper::class,
+        'GPhpThread' => Zhgzhg\GPhpThread\GPhpThread::class,
     ],
 
 ];

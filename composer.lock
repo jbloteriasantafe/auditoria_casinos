@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "119ec2856738c783e48ce289a34333a8",
+    "content-hash": "8b3991576ca7fca5e5c3a23fac2839ba",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -6027,6 +6027,56 @@
                 "source": "https://github.com/webmozarts/assert/tree/1.11.0"
             },
             "time": "2022-06-03T18:03:27+00:00"
+        },
+        {
+            "name": "zhgzhg/gphpthread",
+            "version": "1.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/zhgzhg/GPhpThread.git",
+                "reference": "fb1798c83f90c0e0cb25cbe276c2f30d7b1798e6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/zhgzhg/GPhpThread/zipball/fb1798c83f90c0e0cb25cbe276c2f30d7b1798e6",
+                "reference": "fb1798c83f90c0e0cb25cbe276c2f30d7b1798e6",
+                "shasum": ""
+            },
+            "require": {
+                "ext-pcntl": "*",
+                "ext-posix": "*",
+                "php": ">=5.3"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "GPhpThread.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Generic PHP Threads library using only pure PHP",
+            "homepage": "https://github.com/zhgzhg/gphpthread",
+            "keywords": [
+                "Thread",
+                "async",
+                "asynchronous",
+                "concurrent",
+                "fork",
+                "multithreading",
+                "parallel",
+                "pcntl",
+                "posix",
+                "promise",
+                "shell"
+            ],
+            "support": {
+                "issues": "https://github.com/zhgzhg/GPhpThread/issues",
+                "source": "https://github.com/zhgzhg/GPhpThread/tree/1.0.4"
+            },
+            "time": "2023-01-13T16:10:21+00:00"
         }
     ],
     "packages-dev": [

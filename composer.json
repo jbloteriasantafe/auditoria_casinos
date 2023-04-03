@@ -13,7 +13,8 @@
         "laravel/helpers": "^1.6",
         "laravel/tinker": "^2.0",
         "nothingworks/blade-svg": "^1.0.0",
-        "pusher/pusher-php-server": "^7.0"
+        "pusher/pusher-php-server": "^7.0",
+        "zhgzhg/gphpthread": "^1.0.4"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
