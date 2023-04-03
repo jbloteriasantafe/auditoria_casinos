@@ -1269,7 +1269,7 @@ class LogMovimientoController extends Controller
       ->select('log_movimiento.*',
         'estado_movimiento.descripcion as estado_mov_descripcion',
         'estado_relevamiento.descripcion as estado_rel_descripcion',
-        'casino.*')
+        'casino.nombre','casino.codigo')
       ->selectRaw($tipo_descripcion.' as descripcion')
       ->join('casino','casino.id_casino','=','log_movimiento.id_casino')
       ->join('logmov_tipomov','logmov_tipomov.id_log_movimiento','=','log_movimiento.id_log_movimiento')
