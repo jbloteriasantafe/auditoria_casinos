@@ -98,7 +98,7 @@ class CrearPdfPool {
     public function process($unite_filename){
 		$max_seconds     = 120;
 		$elapsed_seconds = 0;
-		$sleep_seconds   = 5;
+		$sleep_seconds   = 2;
 		
 		while($this->active_count > 0){
 			if($elapsed_seconds >= $max_seconds){
@@ -110,7 +110,10 @@ class CrearPdfPool {
 			foreach($this->active as $tidx => &$t){
 				if(is_null($t)) continue;
 				
-				$t->join();
+				$t->join(false);
+				if($t->getPid() !== null){//No termino
+					continue;
+				}
 				$this->done[] = $t;
 				
 				$wt       = array_pop($this->waiting);
@@ -137,7 +140,7 @@ class CrearPdfPool {
 			if($ta->pag_offset > $tb->pag_offset) return  1;
 			return 0;
 		});
-		
+				
 		$files = array_map(function($t){return $t->filename;},$this->done);
 		
 		foreach($files as $f){
