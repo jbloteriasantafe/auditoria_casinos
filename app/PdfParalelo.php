@@ -9,6 +9,71 @@ use Dompdf\Dompdf;
 use PDF;
 use GPhpThread;
 
+class ThreadPool {
+	private $active_count = 0;
+	private $active       = [];
+	private $waiting      = [];
+	public  $done         = [];
+	
+	public function __construct($size){
+		$this->active = array_fill(0,$size,null);
+	}
+	
+	public function submit(GPhpThread $thread){
+		if($this->active_count < count($this->active)){
+			$this->active[$this->active_count] = $thread;
+			$this->active_count++;
+		}
+		else{
+			$this->waiting[] = $thread;
+		}
+	}
+	
+	public function start(){
+		foreach($this->active as $t){
+			if(!is_null($t))
+				$t->start();
+		}
+	}
+	
+	public function join($max_seconds = 120,$sleep_seconds = 2){
+		$elapsed_seconds = 0;
+		while($this->active_count > 0){
+			if($elapsed_seconds >= $max_seconds){
+				return 'TIMEOUT';
+            }
+            
+			foreach($this->active as $tidx => &$t){
+				if(is_null($t)) continue;
+				
+				$t->join(false);
+				if($t->getPid() !== null){//No termino
+					continue;
+				}
+				$this->done[] = $t;
+				
+				$wt       = array_pop($this->waiting);
+				$decrease = null;
+				
+				if(!is_null($wt)){
+					$wt->start();
+					$decrease = 0;
+				}
+				else{//Si es nulo, el arreglo de activos va a terminar con un hilo menos
+					$decrease = 1;
+				}
+				
+				$this->active[$tidx] = $wt;
+				$this->active_count -= $decrease;				
+			}
+			
+			sleep($sleep_seconds);
+			$elapsed_seconds+=$sleep_seconds;
+		}
+		return 0;
+	}
+}
+
 //@NOTE: cambiar a Threads nativos de PHP si alguna vez se introducen (por ahora hay que habilitar una configuración
 //al momento de compilar PHP... por eso uso esta libreria)
 class CrearPDF extends GPhpThread {
@@ -60,116 +125,14 @@ class CrearPDF extends GPhpThread {
     }
 }
 
-function borrarArchivos($files){
-	foreach($files as $f){
-		if(Storage::exists($f)) Storage::delete($f);
-	}
-}
 
-class CrearPdfPool {
-	private $size            = 0;
-	private $active_count    = 0;
-	private $active          = [];
-	private $waiting         = [];
-	private $done            = [];
-	
-	public function __construct($size){
-		$this->size = $size;
-		$this->active = array_fill(0,$this->size,null);
-	}
-	
-	public function submit($thread){
-		if($this->active_count < $this->size){
-			$this->active[$this->active_count] = $thread;
-			$this->active_count++;
-		}
-		else{
-			$this->waiting[] = $thread;
-		}
-	}
-	
-	public function start(){
-		foreach($this->active as $t){
-			if(!is_null($t))
-				$t->start();
-		}
-	}
-    
-    public function process($unite_filename){
-		$max_seconds     = 120;
-		$elapsed_seconds = 0;
-		$sleep_seconds   = 2;
-		
-		while($this->active_count > 0){
-			if($elapsed_seconds >= $max_seconds){
-                borrarArchivos(array_map(function($t){return $t->filename;},$this->done));
-                //@TODO: limpiar hilos
-                return ['error' => -1,'value' => ['Error de timeout al crear el archivo']];
-            }
-            
-			foreach($this->active as $tidx => &$t){
-				if(is_null($t)) continue;
-				
-				$t->join(false);
-				if($t->getPid() !== null){//No termino
-					continue;
-				}
-				$this->done[] = $t;
-				
-				$wt       = array_pop($this->waiting);
-				$decrease = null;
-				
-				if(!is_null($wt)){
-					$wt->start();
-					$decrease = 0;
-				}
-				else{//Si es nulo, el arreglo de activos va a terminar con un hilo menos
-					$decrease = 1;
-				}
-				
-				$this->active[$tidx] = $wt;
-				$this->active_count -= $decrease;				
-			}
-			
-			sleep($sleep_seconds);
-			$elapsed_seconds+=$sleep_seconds;
-		}
-		
-		usort($this->done,function($ta,$tb){
-			if($ta->pag_offset < $tb->pag_offset) return -1;
-			if($ta->pag_offset > $tb->pag_offset) return  1;
-			return 0;
-		});
-				
-		$files = array_map(function($t){return $t->filename;},$this->done);
-		
-		foreach($files as $f){
-			if(!Storage::exists($f)){//Si el archivo no se creo bien, borro todo y retorno error
-				borrarArchivos($files);
-				return ['error' => -1,'value' => ['Error de creacion de archivos']];
-			}
-		}
-		
-		//Paso a path absoluto los inputs y el output
-		$nfiles = array_map(function($f){return Storage::path('').$f;},$files);
-        $input_files_list = '"'.implode('" "',$nfiles).'"';
-        $output_file = Storage::path('').$unite_filename;
-        $command = 'pdfunite '.$input_files_list.' "'.$output_file.'" 2>&1';
-        $output = [];
-        $rtrn = 0;
-        exec($command,$output,$rtrn);
-        borrarArchivos($files);
-        //Si hubo error value es la salida, si exitoso devuelvo el path al archivo
-        $hubo_error = count($output) != 0 || $rtrn != 0;
-        if($hubo_error){
-			borrarArchivos([$unite_filename]);
-			return ['error' => $rtrn, 'value' => $output];
-		}
-        return ['error' => $rtrn, 'value' => $output_file];
-    }
-}
 
 class PdfParalelo{
+	private static function borrarArchivos($files){
+		foreach($files as $f){
+			if(Storage::exists($f)) Storage::delete($f);
+		}
+	}
 	public static function crear($hilos,$planilla,$compacts,$codigo,$paginas_por_pdf,$paginas_totales){
 		$fingerprint = null;
 		{
@@ -184,7 +147,7 @@ class PdfParalelo{
 			$fingerprint = implode('|',[$user,$path,$timestamp]);
 		}
 		
-		$pool = new CrearPdfPool($hilos);
+		$pool = new ThreadPool($hilos);
 		foreach($compacts as $idx => $compact){
 			$filename = $fingerprint."-".$idx.".pdf";
 			$pool->submit(new CrearPDF(
@@ -193,6 +156,47 @@ class PdfParalelo{
 			));
 		}
 		$pool->start();
-		return $pool->process($fingerprint.".pdf");
+		
+		
+		$exit = $pool->join();
+		if($exit == 'TIMEOUT'){
+			self::borrarArchivos(array_map(function($t){return $t->filename;},$pool->done));
+			//@TODO: limpiar hilos?
+			return ['error' => -1,'value' => ['Error de timeout al crear el archivo']];
+		}
+		
+		usort($pool->done,function($ta,$tb){
+			if($ta->pag_offset < $tb->pag_offset) return -1;
+			if($ta->pag_offset > $tb->pag_offset) return  1;
+			return 0;
+		});
+				
+		$files = array_map(function($t){return $t->filename;},$pool->done);
+		
+		foreach($files as $f){
+			if(!Storage::exists($f)){//Si el archivo no se creo bien, borro todo y retorno error
+				self::borrarArchivos($files);
+				return ['error' => -1,'value' => ['Error de creacion de archivos']];
+			}
+		}
+		
+		//Paso a path absoluto los inputs y el output
+		$nfiles = array_map(function($f){return Storage::path('').$f;},$files);
+        $input_files_list = '"'.implode('" "',$nfiles).'"';
+		$unite_filename = $fingerprint.".pdf";
+        $output_file = Storage::path('').$unite_filename;
+        
+        $command = 'pdfunite '.$input_files_list.' "'.$output_file.'" 2>&1';
+        $output = [];
+        $rtrn = 0;
+        exec($command,$output,$rtrn);
+        self::borrarArchivos($files);
+        //Si hubo error value es la salida, si exitoso devuelvo el path al archivo
+        $hubo_error = count($output) != 0 || $rtrn != 0;
+        if($hubo_error){
+			self::borrarArchivos([$unite_filename]);
+			return ['error' => $rtrn, 'value' => $output];
+		}
+        return ['error' => $rtrn, 'value' => $output_file];
 	}
 }
