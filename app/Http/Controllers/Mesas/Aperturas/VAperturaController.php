@@ -59,11 +59,7 @@ class VAperturaController extends Controller
       'observaciones' => 'nullable',
       'diferencia' => 'required|boolean',
     ], array(), self::$atributos)->after(function($validator){  })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
+    
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $apertura = Apertura::find($request['id_apertura']);
     if($request->diferencia == 1){

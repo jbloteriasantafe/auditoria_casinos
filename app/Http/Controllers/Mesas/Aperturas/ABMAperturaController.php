@@ -94,11 +94,7 @@ class ABMAperturaController extends Controller
       $validator = $this->validarFichas($validator);
 
     })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
+
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     if($user->usuarioTieneCasino($request->id_casino)){
       $mesa = Mesa::find($request->id_mesa_de_panio);
@@ -156,11 +152,7 @@ class ABMAperturaController extends Controller
       }
       $validator = $this->validarFichas($validator);
      })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
+     
     $apertura = Apertura::find($request->id_apertura);
     $user =  UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     if($user->usuarioTieneCasino($apertura->casino->id_casino)){

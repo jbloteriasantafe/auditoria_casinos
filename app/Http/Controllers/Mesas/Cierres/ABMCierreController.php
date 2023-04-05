@@ -163,11 +163,6 @@ class ABMCierreController extends Controller
         $validator = $this->validarFichas($validator);
       }
     })->validate();
-    if(isset($validator)){
-      if($validator->fails()){
-        return ['errors' => $validator->messages()->toJson()];
-      }
-    }
 
     $cierre = Cierre::find($request->id_cierre_mesa);
     $cierre->hora_inicio = $request->hora_inicio;

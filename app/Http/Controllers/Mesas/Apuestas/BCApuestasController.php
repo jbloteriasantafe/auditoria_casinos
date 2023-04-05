@@ -329,12 +329,7 @@ class BCApuestasController extends Controller
                                  );
       }
     })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
-
+    
      $cas=array();
      $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
      foreach ($user->casinos as $cass) {

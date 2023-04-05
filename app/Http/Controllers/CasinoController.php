@@ -126,11 +126,6 @@ class CasinoController extends Controller
       'fichas_nuevas.*.valor_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'fichas_nuevas.*.id_moneda' => 'required|exists:moneda,id_moneda',
     ],array(),self::$atributos)->after(function ($validator){})->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-        return ['errors' => $validator->messages()->toJson()];
-      }
-    }
 
     $casino = new Casino;
     $casino->nombre = $request->nombre;

@@ -61,11 +61,7 @@ class BVApuestasController extends Controller
       'id_relevamiento' => 'required|exists:relevamiento_apuestas_mesas,id_relevamiento_apuestas',
       'observaciones' => 'nullable|max:200'
     ], array(), self::$atributos)->after(function($validator){  })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
+    
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $relevamiento = RelevamientoApuestas::find($request['id_relevamiento']);
     $relevamiento->estado()->associate(4);//Validado

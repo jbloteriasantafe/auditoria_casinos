@@ -535,7 +535,7 @@
   <script src="/js/locales/es.js" type="text/javascript"></script>
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
 
-  <script src="js/Mesas/seccionGestionMesas.js"></script>
+  <script src="js/Mesas/seccionGestionMesas.js?1"></script>
 
 
 

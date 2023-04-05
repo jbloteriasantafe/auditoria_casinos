@@ -57,12 +57,8 @@ class ABMCSectoresController extends Controller
       'descripcion' => ['required','max:100','unique:sector_mesas,descripcion,'.$id_casino.',id_casino'],
       'id_casino' => 'required|exists:casino,id_casino'
     ], array(), self::$atributos)->after(function($validator){  })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
-     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     if($user->usuarioTieneCasino($id_casino)){
       $sector = SectorMesas::create($request->all());
      return $sector;

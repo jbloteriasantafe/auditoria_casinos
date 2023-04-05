@@ -455,14 +455,6 @@ class EventualidadController extends Controller
             }
         })->validate();
 
-        if (isset($validator)) {
-            if ($validator->fails()) {
-                return [
-                    'errors' => $validator->getMessageBag()->toArray(),
-                ];
-            }
-        }
-
         $evento = Eventualidad::find($req['id_eventualidad']);
         $ucontrol = UsuarioController::getInstancia(); 
         $user = $ucontrol->quienSoy()['usuario'];

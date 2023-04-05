@@ -198,12 +198,7 @@ class ABMCImgBunkerController extends Controller
         }
       }
      })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
-
+     
      $bunker = ImagenesBunker::find($request['id_imagenes_bunker']);
      $bunker->observaciones = $request->observaciones;
      $bunker->save();

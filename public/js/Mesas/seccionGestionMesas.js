@@ -295,6 +295,7 @@ $('#btn-guardar-mesa').click(function(e){
     error:function(data){
 
       var response = data.responseJSON;
+      response = response.errors ?? {};
 
       if(typeof response.id_casino !== 'undefined'){
         $('#mensajeErrorAlta').show();
@@ -424,18 +425,8 @@ $(document).on('click','.modificarMesa',function(e){
         $(this).attr('selected',true);
       }
     })
-    $('#monedaM option').each(function(){
-      if(data.moneda !== 'undefined'){
-        if($(this).val() == data.moneda.id_moneda){
-          $(this).attr('selected',true);
-        }
-      }else{
-        if($(this).val() == 0){
-          $(this).attr('selected',true);
-        }
-      }
-    })
-
+	 
+	$('#monedaM').val(data.moneda? data.moneda.id_moneda : 0);
 
     //$('#monedaM').val(data.moneda.id_moneda);
     //$('#juegoM').val(data.juego.id_juego_mesa);
@@ -504,6 +495,7 @@ $('#btn-modificar-mesa').click(function(){
     error:function(data){
       console.log('error', data);
       var response = data.responseJSON;
+      response = response.errors ?? {};
 
       if(typeof response.id_casino !== 'undefined'){
         $('#mensajeErrorModificacion').show();

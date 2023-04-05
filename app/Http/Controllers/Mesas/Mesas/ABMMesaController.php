@@ -99,11 +99,7 @@ class ABMMesaController extends Controller
         }
 
       })->validate();
-      if(isset($validator)){
-        if ($validator->fails()){
-            return ['errors' => $validator->messages()->toJson()];
-            }
-       }
+      
        $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       if($user->usuarioTieneCasino($id_casino)){
          $mesa = Mesa::create($request->all());
@@ -139,11 +135,7 @@ class ABMMesaController extends Controller
         }
 
       })->validate();
-      if(isset($validator)){
-        if ($validator->fails()){
-            return ['errors' => $validator->messages()->toJson()];
-            }
-       }
+      
        $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       if($user->usuarioTieneCasino($id_casino)){
          $mesa = Mesa::create($request->all());
@@ -210,11 +202,7 @@ class ABMMesaController extends Controller
         }
 
       })->validate();
-      if(isset($validator)){
-        if ($validator->fails()){
-            return ['errors' => $validator->messages()->toJson()];
-            }
-       }
+      
        $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       if($user->usuarioTieneCasino($id_casino)){
          $mesa = Mesa::where('id_mesa_de_panio','=',$request->id_mesa_de_panio)->update($request->all());
@@ -251,12 +239,7 @@ class ABMMesaController extends Controller
         }
 
       })->validate();
-      if(isset($validator)){
-        if ($validator->fails()){
-            return ['errors' => $validator->messages()->toJson()];
-            }
-       }
-
+      
        $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       if($user->usuarioTieneCasino($id_casino)){
         $mesa = Mesa::where('id_mesa_de_panio','=',$request->id_mesa_de_panio)->update($request->all());
