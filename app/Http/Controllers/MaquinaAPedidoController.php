@@ -119,7 +119,7 @@ class MaquinaAPedidoController extends Controller
         }
         $MTM=Maquina::where([['nro_admin' , '=' , $validator->getData()['nro_admin']],['id_casino' , '=' ,$validator->getData()['casino']]])->get();
         if($MTM->count() != 1){
-          $validator->errors()->add('cantidad_maquinas', 'Hay más de una maquina con el número de administración.');
+          $validator->errors()->add('cantidad_maquinas', 'No existe o hay más de una maquina con el número de administración.');
         }
     })->validate();
     //calcular la cantidad de dias en el rango de fechas

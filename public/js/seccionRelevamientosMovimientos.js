@@ -155,7 +155,7 @@ $(document).on('click','#guardarRel',function(){
     error: function (data){
       console.log('ERROR');
       console.log(data);
-      if(divRelMovMostrarErrores(data.responseJSON)){
+      if(divRelMovMostrarErrores(data.responseJSON.errors)){
         $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
       }
     }
