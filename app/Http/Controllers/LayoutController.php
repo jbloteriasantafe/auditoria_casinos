@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use PDF;
 use Dompdf\Dompdf;
 use View;
-use Zipper;
+use Madzipper;
 use File;
 
 use App\Sector;
@@ -585,7 +585,7 @@ class LayoutController extends Controller
                 .'-'.$sector->descripcion
                 .'-'.$fecha_hoy.' al '.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".self::$cant_dias_backup_relevamiento." day"))
                 .'.zip';
-    Zipper::make($nombreZip)->add($arregloRutas)->close();
+    Madzipper::make($nombreZip)->add($arregloRutas)->close();
     File::delete($arregloRutas);
 
     return ['layouts_parcial' => $layouts_finales,
@@ -1225,7 +1225,7 @@ class LayoutController extends Controller
         $codigo_cas .= '-'.Sector::find($request->id_sector)->descripcion;
       }
       $nombreZip = "Planillas-{$codigo_cas}-{$fecha_hoy} al {$fecha_backup}.zip";
-      Zipper::make($nombreZip)->add($rutas)->close();
+      Madzipper::make($nombreZip)->add($rutas)->close();
       File::delete($rutas);
       DB::commit();
     }

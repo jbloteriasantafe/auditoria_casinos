@@ -12,6 +12,7 @@
         "laravel/framework": "^10.0",
         "laravel/helpers": "^1.6",
         "laravel/tinker": "^2.0",
+        "madnest/madzipper": "^1.4",
         "nothingworks/blade-svg": "^1.0.0",
         "pusher/pusher-php-server": "^7.0",
         "zhgzhg/gphpthread": "^1.0.4"

@@ -181,7 +181,13 @@ footer
           </tr>
           <tr>
             @foreach($rel->totales as $t)
-            <td>{{is_null($t['val'])? '&nbsp;' : $t['val']}}</td>
+            <td>
+				@if(empty($t['val']))
+				&nbsp;
+				@else
+				{{$t['val']}}
+				@endif
+            </td>
             @endforeach
           </tr>
           <tr>
@@ -189,8 +195,20 @@ footer
             <th>Firma y Aclaración Fiscalizador</th>
           </tr>
           <tr>
-            <td>{{ $rel->observaciones ?? '&nbsp;' }}</td>
-            <td>{{ $rel->fiscalizador ?? '&nbsp;' }}</td>
+			<td>
+				@if(empty($rel->observaciones))
+				&nbsp;
+				@else
+				{{$rel->observaciones}}
+				@endif
+            </td>
+            <td>
+				@if(empty($rel->fiscalizador))
+				&nbsp;
+				@else
+				{{$rel->fiscalizador}}
+				@endif
+            </td>
           </tr>
         </table>
         @endif

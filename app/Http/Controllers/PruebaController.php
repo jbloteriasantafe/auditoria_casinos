@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\DB;
 use PDF;
 use Dompdf\Dompdf;
 use View;
-use Zipper;
 use File;
 use Response;
 use DateTime;

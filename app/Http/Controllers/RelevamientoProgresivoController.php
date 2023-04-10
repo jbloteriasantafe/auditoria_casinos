@@ -12,8 +12,6 @@ use Validator;
 use View;
 use Dompdf\Dompdf;
 use PDF;
-
-use Zipper;
 use File;
 
 use App\Sector;

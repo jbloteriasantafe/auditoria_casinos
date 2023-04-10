@@ -22,7 +22,7 @@ use App\EstadoMaquina;
 use App\DetalleContadorHorario;
 use App\TipoCausaNoToma;
 use App\DetalleProducido;
-use Zipper;
+use Madzipper;
 use File;
 use DateTime;
 use App\TipoCantidadMaquinasPorRelevamiento;
@@ -413,7 +413,7 @@ class RelevamientoController extends Controller
                 .'-'.$fecha_hoy.' al '.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".self::$cant_dias_backup_relevamiento." day"))
                 .'.zip';
 
-    Zipper::make($nombreZip)->add($arregloRutas)->close();
+    Madzipper::make($nombreZip)->add($arregloRutas)->close();
     File::delete($arregloRutas);
 
     return ['relevamientos' => $relevamientos, // si son varios devuelve arreglo, si es uno devuelve instancia

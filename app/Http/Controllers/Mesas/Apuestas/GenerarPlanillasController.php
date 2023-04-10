@@ -31,7 +31,7 @@ use App\Mesas\RelevamientoApuestas;
 use Dompdf\Dompdf;
 
 use PDF;
-use Zipper;
+use Madzipper;
 use File;
 use Carbon\Carbon;
 use Exception;
@@ -122,7 +122,7 @@ class GenerarPlanillasController extends Controller
             //lo crea y no lo encuentra
             $nombreZipTurno = public_path().'/Mesas/RelevamientosApuestas/'.'Valores_Minimos_Apuestas_'.$fecha_hoy.'_al_'.$fecha_backup.'-TURNO-Nro-'.
                                $turno->nro_turno.'-Dias-'.$turno->nombre_dia_desde.'-a-'.$turno->nombre_dia_hasta.'.zip';
-            Zipper::make($nombreZipTurno)->add($arregloRutasTurno)->close();
+            Madzipper::make($nombreZipTurno)->add($arregloRutasTurno)->close();
             $arregloRutas[] = $nombreZipTurno;
             File::delete($arregloRutasTurno);
           }
@@ -131,7 +131,7 @@ class GenerarPlanillasController extends Controller
                   .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".(self::$cantidad_dias_backup-1)." day"))
                   .'.zip';
 
-        Zipper::make(public_path().'/Mesas/RelevamientosApuestas/'.$nombreZip)->add($arregloRutas)->close();
+        Madzipper::make(public_path().'/Mesas/RelevamientosApuestas/'.$nombreZip)->add($arregloRutas)->close();
         File::delete($arregloRutas);
         $arregloRutas = array();
       }

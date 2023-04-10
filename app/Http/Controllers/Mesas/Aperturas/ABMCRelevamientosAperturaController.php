@@ -34,7 +34,7 @@ use App\Mesas\MesasSorteadas;
 use App\Http\Controllers\UsuarioController;
 use Carbon\Carbon;
 use Exception;
-use Zipper;
+use Madzipper;
 use File;
 
 use App\Mesas\ComandoEnEspera;
@@ -130,7 +130,7 @@ class ABMCRelevamientosAperturaController extends Controller
                   .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".(self::$cantidad_dias_backup-1)." day"))
                   .'.zip';
 
-        Zipper::make(public_path().'/Mesas/RelevamientosAperturas/'.$nombreZip)->add($arregloRutas)->close();
+        Madzipper::make(public_path().'/Mesas/RelevamientosAperturas/'.$nombreZip)->add($arregloRutas)->close();
         File::delete($arregloRutas);
       }
     }
