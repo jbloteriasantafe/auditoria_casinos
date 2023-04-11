@@ -226,7 +226,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionPruebaProgresivos.js?1" charset="utf-8"></script>
+    <script src="js/seccionPruebaProgresivos.js?2" charset="utf-8"></script>
     <script src="js/paginacion.js" charset="utf-8"></script>
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>

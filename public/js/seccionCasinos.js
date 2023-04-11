@@ -265,7 +265,7 @@ $('#btn-guardar').click(function (e) {
         error: function (data) {
 
 
-            var response = JSON.parse(data.responseText);
+            var response = data.responseJSON.errors;
             $('#alertaNombre').hide();
             $('#alertaNombre').text("");
             $('#alertaCodigo').hide();

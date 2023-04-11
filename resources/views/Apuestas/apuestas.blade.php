@@ -947,6 +947,6 @@ $cas = $usuario['usuario']->casinos;
     <!-- JS paginacion -->
     <script src="/js/paginacion.js" charset="utf-8"></script>
 
-    <script src="js/Apuestas/apuestas.js?4" type="text/javascript" charset="utf-8"></script>
+    <script src="js/Apuestas/apuestas.js?5" type="text/javascript" charset="utf-8"></script>
 
   @endsection

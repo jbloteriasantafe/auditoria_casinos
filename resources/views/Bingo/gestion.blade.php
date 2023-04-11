@@ -398,7 +398,7 @@ $casinos = $usuario->casinos;
     <!-- JavaScript paginacion -->
     <script src="/js/paginacion.js" charset="utf-8"></script>
     <!-- JavaScript personalizado -->
-    <script src="/js/Bingo/gestion.js" charset="utf-8"></script>
+    <script src="/js/Bingo/gestion.js?1" charset="utf-8"></script>
     <script src="/js/Bingo/lista-datos.js" type="text/javascript"></script>
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="/js/bootstrap-datetimepicker.js" charset="UTF-8"></script>

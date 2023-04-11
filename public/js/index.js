@@ -42,7 +42,7 @@ window.addEventListener('popstate', function(event) {
         },
         error: function (data) {
           console.log(data);
-          var response = JSON.parse(data.responseText);
+          var response = data.responseJSON.errors;
             $('#alertaLogin').hide();
             $('#alertaLogin span').text("");
             if(typeof response.user_name !== 'undefined'){

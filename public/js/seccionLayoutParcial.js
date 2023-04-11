@@ -610,7 +610,7 @@ $('#modalCargaControlLayout #btn-finalizar').click(function(){
 
           },
           error: function (error) {
-              var response = JSON.parse(error.responseText);
+              var response = error.responseJSON.errors;
 
               if(typeof response.fiscalizador_toma !== 'undefined'){
                 mostrarErrorValidacion($('#inputFisca'),response.fiscalizador_toma[0] ,true );
@@ -724,7 +724,7 @@ $('#btn-validarRelevamiento').click(function(){ //metodo de validar
         $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);    },
 
     error: function (error) {
-      var response = JSON.parse(error.responseText);
+      var response = error.responseJSON.errors;
 
       if(typeof response.observacion_validacion !== 'undefined'){
         mostrarErrorValidacion($('#observacion_validacion'),response.observacion_validacion[0] ,true );
@@ -839,7 +839,7 @@ $("#btn-backup").click(function(){
 
       },
       error: function (data) {
-        var response = JSON.parse(data.responseText);
+        var response = data.responseJSON.errors;
 
         if(typeof response.fecha !== 'undefined'){
           mostrarErrorValidacion($('#fecha_backup'),response.fecha[0] ,true );
@@ -937,7 +937,7 @@ $('#btn-generar').click(function(e){
           $('#modalLayoutParcial').find('.modal-body').children().show();
           $('#iconoCarga').hide();
 
-          var response = JSON.parse(data.responseText);
+          var response = data.responseJSON.errors;
           if(typeof response.id_sector !== 'undefined'){
                 mostrarErrorValidacion( $('#sector'), response.id_sector[0] ,true);
           }

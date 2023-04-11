@@ -206,7 +206,7 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
 
         },
         error: function(data) {
-            var response = JSON.parse(data.responseText);
+            var response = data.responseJSON.errors;
 
             if (typeof response.id_casino !== 'undefined') {
                 $('#b_casino').addClass('alerta');
@@ -300,7 +300,7 @@ $('#btn-buscarMaquina').click(function(e) {
             $('#modalDetalle').modal('show');
         },
         error: function(data) {
-            var response = JSON.parse(data.responseText);
+            var response = data.responseJSON.errors;
 
             if (typeof response.id_casino !== 'undefined' || typeof response.nro_admin !== 'undefined' || typeof response.cantidad_relevamientos !== 'undefined') {
                 $('#btn-buscarMaquina').popover('show');
@@ -487,7 +487,7 @@ $('#btn-pedido').click(function(e) {
             }
         },
         error: function(data) {
-            var response = JSON.parse(data.responseText);
+            var response = data.responseJSON.errors;
 
             if (typeof response.fecha_inicio !== 'undefined') {
                 $('#B_fecha_inicio_m').popover('show');

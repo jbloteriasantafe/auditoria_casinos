@@ -316,7 +316,7 @@
     <script src='/js/locale-all.js'></script>
 
     <!-- JavaScript personalizado -->
-    <script src="js/seccionBeneficios.js?2" charset="utf-8"></script>
+    <script src="js/seccionBeneficios.js?3" charset="utf-8"></script>
     
 
     <!-- DateTimePicker JavaScript -->

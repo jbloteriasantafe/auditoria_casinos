@@ -118,5 +118,5 @@
 @section('scripts')
     <!-- JavaScript personalizado -->
     <script src="js/seccionInformesSectores.js" charset="utf-8"></script>
-    <script src="js/utils.js" charset="utf-8"></script>
+    <script src="js/utils.js?1" charset="utf-8"></script>
 @endsection

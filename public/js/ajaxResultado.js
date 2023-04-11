@@ -211,7 +211,7 @@ $("#btn-save").click(function (e) {
           },
           error: function (data) {
 
-            var response = JSON.parse(data.responseText);
+            var response = data.responseJSON.errors;
 
             $('#alertaFecha').hide();
             $('#alertaBruto').hide();

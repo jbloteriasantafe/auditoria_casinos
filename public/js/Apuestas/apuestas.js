@@ -228,7 +228,7 @@ $('#buscarBackUp').on('click', function(e){
 
         error: function (data) {
 
-            var response= data.responseJSON;
+            var response= data.responseJSON.errors;
 
               if(typeof response != 'undefined'){
                 $('#mensajeErrorBuscarBUp').show();
@@ -335,7 +335,7 @@ $('#btn-guardar-backUp').on('click',function(e){
           error: function (reject) {
             console.log(reject);
             if(reject.status != 422) return;
-            const errors = reject.responseJSON;
+            const errors = reject.responseJSON.errors;
             
             if(typeof errors.hora !== 'undefined'){
               mostrarErrorValidacion( $('#hora_ejec_BUp'),errors.hora.join(', '),false);
@@ -434,8 +434,6 @@ $('#btn-generar').on('click', function(e){
 
           },
           error: function (data) {
-            var ap = $.parseJSON(data.responseText);
-
             $('#modalRelevamiento').modal('hide');
 
             $('#modalErrorRelevamientoA').modal('show');
@@ -590,7 +588,7 @@ $('#btn-guardar').on('click',function(e){
           error: function (reject) {
             console.log(reject);
             if(reject.status != 422) return;
-            const errors = reject.responseJSON;
+            const errors = reject.responseJSON.errors;
             
             if(typeof errors.hora !== 'undefined'){
               mostrarErrorValidacion( $('#hora_ejec_carga'),errors.hora.join(', '),false);
@@ -759,7 +757,7 @@ $('#btn-guardar-modif').on('click',function(e){
           error: function (reject) {
             console.log(reject);
             if(reject.status != 422) return;
-            const errors = reject.responseJSON;
+            const errors = reject.responseJSON.errors;
             
             if(typeof errors.hora !== 'undefined'){
               mostrarErrorValidacion( $('#hora_ejec_mod'),errors.hora.join(', '),false);
@@ -1053,7 +1051,7 @@ $('#btn-guardar-minimo').on('click',function(e){
       },
 
       error: function(data){
-        var errors = $.parseJSON(data.responseText);
+        var errors = data.responseJSON.errors;
 
         $.each(errors, function (key, val) {
           if( key == 'modificaciones.id_juego' ){

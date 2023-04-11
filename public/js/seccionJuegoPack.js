@@ -188,7 +188,7 @@ $('#btn-crear-pack').click(function (e) {
           },
           error: function (data) {
   
-            var response = JSON.parse(data.responseText);
+            var response = data.responseJSON.errors;
 
             if(typeof response.identificador !== 'undefined'){
               mostrarErrorValidacion($('#identificadorPack'),response.identificador,false);
@@ -245,7 +245,7 @@ $('#btn-asociar-pack-juego').on('click',function(){
           },
           error: function (data) {
   
-            var response = JSON.parse(data.responseText);
+            var response = data.responseJSON.errors;
 
             if(typeof response.id_pack !== 'undefined'){
               mostrarErrorValidacion($('#inputNombrePack'),response.id_pack,false);
@@ -496,7 +496,7 @@ $('#btn-asociar-pack-mtm-juego').on('click',function(e){
               $('#mensajeExito').show();
         },
         error: function (data) {
-            if ( data.id_mtm!=""){
+            if ( data.responseJSON.errors.id_mtm!=""){
                 mostrarErrorValidacion($('#inputMTM'),"Campo Requerido", true);
             }
         }

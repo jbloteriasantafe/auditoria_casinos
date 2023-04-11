@@ -248,7 +248,7 @@ $('#btn-guardar').click(function(e){
         error: function (data) {
             console.log('Error:', data);
 
-            var response = JSON.parse(data.responseText);
+            var response = data.responseJSON.errors;
             limpiarAlertas();
 
             if(typeof response.descripcion !== 'undefined'){

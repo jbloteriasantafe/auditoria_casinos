@@ -260,7 +260,7 @@ $('#btn-aceptarIslotes').click(function(e){
       $('#casinoIslotes').change();
     },
     error: function (response) {
-      const responseJSON = response.responseJSON;
+      const responseJSON = data.responseJSON.errors;
       const errores = [];
       for(const idx in responseJSON){
         errores.push(idx+": "+responseJSON[idx]);//@HACK: generar mensajes de errores usables para el usuario

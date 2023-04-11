@@ -207,5 +207,5 @@ $cas = $usuario['usuario']->casinos;
 
 <script src="/js/inputSpinner.js" type="text/javascript"></script>
 <script src="/js/lista-datos.js" type="text/javascript"></script>
-<script src="/js/utils.js" type="text/javascript"></script>
+<script src="/js/utils.js?1" type="text/javascript"></script>
 @endsection

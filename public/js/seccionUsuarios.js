@@ -144,7 +144,7 @@ $('#btn-guardar').on('click',function (e) {
       },
       error: function (data) {
         console.log('Error:', data);
-        const response = JSON.parse(data.responseText);
+        const response = data.responseJSON.errors;
         if(typeof response.user_name !== 'undefined'){
           mostrarErrorValidacion($('#usuario'),response.user_name[0],true);
         }

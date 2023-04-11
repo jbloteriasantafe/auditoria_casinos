@@ -227,5 +227,5 @@
 
 @section('scripts')
 <!-- JavaScript personalizado -->
-<script src="js/seccionUsuarios.js?1"></script>
+<script src="js/seccionUsuarios.js?2"></script>
 @endsection

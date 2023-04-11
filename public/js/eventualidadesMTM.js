@@ -114,7 +114,7 @@ $(document).on('click','#btn-impr',function(e){
     },
     error: function (data) {
       console.log('Error:',data);
-      var response = data.responseJSON;
+      var response = data.responseJSON.errors;
       let err = false;
       if(typeof response.tipos_movimiento !== 'undefined'){
         mostrarErrorValidacion($('#tipoMov'),"Elija al menos un tipo de movimiento");

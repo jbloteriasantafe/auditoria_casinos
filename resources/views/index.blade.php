@@ -137,7 +137,7 @@ $rutaImagen = $ruta.$varImg;
       <!-- iCheck -->
       <script src="js/icheck.min.js"></script>
       <!-- JavaScript personalizado -->
-      <script src="js/index.js" charset="utf-8"></script>
+      <script src="js/index.js?1" charset="utf-8"></script>
 
       <!-- <script>
         $(function () {

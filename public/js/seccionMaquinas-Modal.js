@@ -262,7 +262,7 @@ $('#btn-guardar').click(function(e){
             'id_unidad_medida'     : { obj: '#unidad_medida'             , show: '#error_nav_maquina'}
           };
 
-          const response = JSON.parse(data.responseText);
+          const response = data.responseJSON.errors;
           const keys = Object.keys(response);
           let errores_popup = "";
           keys.forEach(key => {

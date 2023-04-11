@@ -92,7 +92,7 @@ $('#btn-guardarDatos').click(function(e){
       error: function (data) {
           console.log(data);
 
-          var response = JSON.parse(data.responseText);
+          var response = data.responseJSON.errors;
 
           ocultarErrorValidacion($('#user_name'));
           ocultarErrorValidacion($('#email'));
@@ -142,7 +142,7 @@ $('#btn-guardarNuevoPass').click(function(e){
       },
       error: function (data) {
           console.log(data);
-          var response = JSON.parse(data.responseText);
+          var response = data.responseJSON.errors;
 
           ocultarErrorValidacion($('#pass_actual'));
           ocultarErrorValidacion($('#pass_nueva'));

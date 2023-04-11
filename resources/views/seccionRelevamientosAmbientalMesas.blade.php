@@ -435,7 +435,7 @@ $cant_turnos = sizeof($casinos[0]->turnos);
 
 @section('scripts')
 <!-- JavaScript personalizado -->
-<script src="js/seccionRelevamientosAmbientalMesas.js" charset="utf-8"></script>
+<script src="js/seccionRelevamientosAmbientalMesas.js?1" charset="utf-8"></script>
 <script src="js/paginacion.js" charset="utf-8"></script>
 
 <!-- DateTimePicker JavaScript -->

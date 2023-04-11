@@ -537,6 +537,6 @@
   <!-- JS paginacion -->
   <script src="/js/paginacion.js" charset="utf-8"></script>
 
-  <script src="js/SolicitudImagenes/seccionImagenes.js" type="text/javascript" charset="utf-8"></script>
+  <script src="js/SolicitudImagenes/seccionImagenes.js?1" type="text/javascript" charset="utf-8"></script>
 
 @endsection

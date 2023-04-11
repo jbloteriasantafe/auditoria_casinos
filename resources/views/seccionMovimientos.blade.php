@@ -1098,7 +1098,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     <script src="/js/paginacion.js" charset="utf-8"></script>
     <!-- JavaScript personalizado -->
     <script src="/js/divRelevamientoMovimiento.js?1" charset="utf-8"></script>
-    <script src="/js/seccionMovimientosVista.js" charset="utf-8"></script>
+    <script src="/js/seccionMovimientosVista.js?1" charset="utf-8"></script>
     <script src="/js/seccionMovimientos-Egreso.js?1" charset="utf-8"></script>
     <script src="/js/seccionMovimientos-Ingreso.js" charset="utf-8"></script>
     <script src="/js/seccionMovimientos-Validar.js" charset="utf-8"></script>
@@ -1122,9 +1122,9 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     <script src="/js/seccionMaquinas-Formula.js?1" charset="utf-8"></script>
     <script src="/js/seccionMaquinas-JuegoNuevo.js?3" charset="utf-8"></script>
     <script src="/js/seccionMaquina-IslaNuevo.js?1" charset="utf-8"></script>
-    <script src="/js/seccionMaquinas-Modal.js?1" charset="utf-8"></script>
+    <script src="/js/seccionMaquinas-Modal.js?2" charset="utf-8"></script>
     <script src="/js/seccionMaquinas.js?1" charset="utf-8"></script>
-    <script src="/js/utils.js" type="text/javascript"></script>
+    <script src="/js/utils.js?1" type="text/javascript"></script>
 
     <script src="js/inputSpinner.js" type="text/javascript"></script>
     <script src="/js/lista-datos.js" type="text/javascript"></script>

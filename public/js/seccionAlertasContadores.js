@@ -256,7 +256,7 @@ $('#btnImportar').click(function(e){
         }, 250);
       },
       error: function (data) {
-        const json = data.responseJSON;
+        const json = data.responseJSON.errors;
         if(json.id_casino !== 'undefined'){
           mostrarErrorValidacion($('#impSelCasino'),'Valor incorrecto',true);
         }

@@ -932,7 +932,7 @@ Route::group(['prefix' => 'autoexclusion','middleware' => 'tiene_permiso:ver_sec
   Route::post('agregarAE','Autoexclusion\AutoexclusionController@agregarAE');
   Route::post('subirArchivo','Autoexclusion\AutoexclusionController@subirArchivo');
   Route::get('cambiarEstadoAE/{id}/{id_estado}','Autoexclusion\AutoexclusionController@cambiarEstadoAE');
-  Route::get('existeAutoexcluido/{dni}','Autoexclusion\AutoexclusionController@existeAutoexcluido');
+  Route::get('existeAutoexcluido/{dni?}','Autoexclusion\AutoexclusionController@existeAutoexcluido');
   Route::get('buscarAutoexcluidos','Autoexclusion\AutoexclusionController@buscarAutoexcluidos');
   Route::get('buscarAutoexcluido/{id}','Autoexclusion\AutoexclusionController@buscarAutoexcluido');
   Route::get('mostrarArchivo/{id_importacion}/{tipo_archivo}','Autoexclusion\AutoexclusionController@mostrarArchivo');

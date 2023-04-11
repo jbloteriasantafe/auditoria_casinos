@@ -77,8 +77,8 @@ $('#btn_validar_layout').click(function(e){
         $('#modalLayoutTotal').modal('hide');
       },
       error: function (data) {
-        if(typeof data.responseJSON.observacion_validacion !== 'undefined'){
-          mostrarErrorValidacion($('#observacion_validacion'),data.responseJSON.observacion_validacion[0] ,true );
+        if(typeof data.responseJSON.errors.observacion_validacion !== 'undefined'){
+          mostrarErrorValidacion($('#observacion_validacion'),data.responseJSON.errors.observacion_validacion.join(' ') ,true );
         }
       }
   });
@@ -117,7 +117,7 @@ $("#btn-backup").click(function(){
       $('#modalLayoutSinSistema').modal('hide');
     },
     error: function (data) {
-      const response = data.responseJSON;
+      const response = data.responseJSON.errors;
       if(typeof response.fecha !== 'undefined'){
         mostrarErrorValidacion($('#fecha_backup'),'Valor inválido',true);
       }
@@ -183,7 +183,7 @@ $('#btn-generar').click(function(e){
         $('#modalNuevoLayoutTotal').find('.modal-footer').children().show();
         $('#modalNuevoLayoutTotal').find('.modal-body').children().show();
 
-        const response = JSON.parse(data.responseText);
+        const response = data.responseJSON.errors;
         if(typeof response.id_casino !== 'undefined'){
           mostrarErrorValidacion($('#casino'), response.id_casino[0] ,true);
         }
@@ -648,7 +648,7 @@ $('#btn_finalizar_layout').click(function(e){
       $('#modalLayoutTotal').modal('hide');
     },
     error: function (data) {
-      const response = data.responseJSON;
+      const response = data.responseJSON.errors;
       let error_no_aceptable = false;//true ocurrio un error que no necesite ser corregido
       let error_aceptable    = false;//true si necesito pedir confirmacion
       if(typeof response.id_fiscalizador_toma !== 'undefined'){

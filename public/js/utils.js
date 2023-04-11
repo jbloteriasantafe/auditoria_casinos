@@ -29,7 +29,7 @@ function parseError(response){
   
 //Saca los errores custom de un response y los retorna en una lista.
 function sacarErrores(errorResponse){
-    const errorjson = errorResponse.responseJSON;
+    const errorjson = errorResponse.responseJSON.errors;
     const keys  = Object.keys(errorjson);
     let msjs = [];
     keys.forEach(function(k){

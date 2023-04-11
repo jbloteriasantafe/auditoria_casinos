@@ -8,7 +8,6 @@
 <?php
 use Illuminate\Http\Request;
 use App\Http\Controllers\UsuarioController;
-use\App\http\Controllers\RelevamientoAmbientalController;
 $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
 $puede_fiscalizar = $user->es_fiscalizador || $user->es_superusuario;
 $puede_validar = $user->es_administrador || $user->es_superusuario || $user->es_control;
@@ -447,7 +446,7 @@ $eventos = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['ev
 
 @section('scripts')
 <!-- JavaScript personalizado -->
-<script src="js/seccionRelevamientosAmbientalMaquinas.js" charset="utf-8"></script>
+<script src="js/seccionRelevamientosAmbientalMaquinas.js?1" charset="utf-8"></script>
 <script src="js/paginacion.js" charset="utf-8"></script>
 
 <!-- DateTimePicker JavaScript -->

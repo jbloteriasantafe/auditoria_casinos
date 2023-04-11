@@ -222,7 +222,7 @@ $('#btn-guardar').click(function(e){
 
         },
         error: function (data) {
-            var response = JSON.parse(data.responseText);
+            var response = data.responseJSON.errors;
 
             if(typeof response.nro_admin !== 'undefined'){
               mostrarErrorValidacion($('#nro_admin_m'),response.nro_admin[0] ,true);

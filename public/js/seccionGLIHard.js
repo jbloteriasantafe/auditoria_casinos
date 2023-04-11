@@ -342,7 +342,7 @@ $('#btn-guardar').click(function (e) {
     },
     error: function (data) {
       console.log('Error:', data);
-      var response = JSON.parse(data.responseText);
+      var response = data.responseJSON.errors;
       // $('#alertaNroCertificado').hide();
       // $('#alertaNroCertificado').text("");
       if(typeof response.nro_certificado != 'undefined'){

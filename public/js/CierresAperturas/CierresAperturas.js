@@ -599,7 +599,7 @@ $('#btn-guardar-apertura').on('click', function(e){
           $('#btn-guardar-apertura').show();
 
               if( reject.status === 422 ) {
-                  var errors = $.parseJSON(reject.responseText);
+                  var errors = reject.responseJSON.errors;
                   $.each(errors, function (key, val) {
                     if(key == 'fecha'){
                       mostrarErrorValidacion($('#B_fecha_apert'),val[0],false);
@@ -968,7 +968,7 @@ $('#btn-guardar-cierre').on('click', function(e){
           error: function (reject) {
               $('#mensajeError h3').text('ERROR');
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText);
+                    var errors = reject.responseJSON.errors;
                     $.each(errors, function (key, val) {
 
                       if(key == 'fecha'){
@@ -1546,7 +1546,7 @@ $('#modificar_apertura').on('click', function(e){
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText);
+                    var errors = reject.responseJSON.errors;
                     $.each(errors, function (key, val) {
                       if(key == 'id_moneda'){
                         $('#errorModificar2').show();
@@ -1706,7 +1706,7 @@ $('#modificar_cierre').on('click', function(e){
           },
           error: function (reject) {
                 if( reject.status === 422 ) {
-                    var errors = $.parseJSON(reject.responseText);
+                    var errors = reject.responseJSON.errors;
                     $.each(errors, function (key, val) {
                       if(key == 'id_moneda'){
                         $('#errorModificarCierre2').show();
@@ -1930,7 +1930,7 @@ $(document).on('click', '#validar', function(e) {
           $('#btn-buscarCyA').trigger('click',[1,10,'apertura_mesa.fecha','desc']);
         },
         error: function(data){
-           var response = data.responseJSON;
+           var response = data.responseJSON.errors;
 
            if(typeof response.id_cierre !== 'undefined'){
              $('#mensajeErrorValApertura').show();
@@ -1976,7 +1976,7 @@ $(document).on('click', '#validar-diferencia', function(e) {
         },
         error: function(data){
 
-           var response = data.responseJSON;
+           var response = data.responseJSON.errors;
 
            if(typeof response.id_cierre !== 'undefined'){
              $('#mensajeErrorValApertura').show();
@@ -2440,7 +2440,7 @@ $('#agregarAaP').click(function(e){
       buscarAperturasAPedido();
     },
     error: function(data){
-      const response = data.responseJSON;
+      const response = data.responseJSON.errors;
       console.log(response);
       if(response.id_mesa_de_panio){
         mostrarErrorValidacion($('#mesaAaP'),'Valor incorrecto',true);

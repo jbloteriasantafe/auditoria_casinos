@@ -1129,7 +1129,7 @@ $('#btn-subir-archivo').click(function (e) {
         $('#btn-buscar').click();
       },
       error: function (data) {
-        const json = data.responseJSON;
+        const json = data.responseJSON.errors;
         mensajeError('');
         if("archivo" in json){
           mostrarErrorValidacion($('#modalSubirArchivo .archivo'),"Archivo faltante o invalido",true);

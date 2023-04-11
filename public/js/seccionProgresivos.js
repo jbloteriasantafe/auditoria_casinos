@@ -654,7 +654,7 @@ $('#btn-guardar').on('click', function() {
 
 
 function mostrarRespuestaError(err) {
-    let respuesta = err.responseJSON;
+    let respuesta = err.responseJSON.errors;
     console.log(err);
     console.log(respuesta);
     let msj = "";

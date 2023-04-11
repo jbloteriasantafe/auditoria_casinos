@@ -434,7 +434,7 @@ $('#btn-guardar').click(function (e) {
           }
         }
 
-        const response = data.responseJSON;
+        const response = data.responseJSON.errors;
         for(const k in error_map_config){
           mostrar_error(k,$(error_map_config[k]),$('#error_nav_config'));
         }

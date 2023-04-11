@@ -146,7 +146,7 @@ function clickIndice(e, pageNumber, tam) {
 }
 
 function obtenerMensajesError(response) {
-    json = response.responseJSON;
+    json = response.responseJSON.errors;
     mensajes = [];
     keys = Object.keys(json);
     for (let i = 0; i < keys.length; i++) {
@@ -750,7 +750,7 @@ $('#btn-generar').click(function(e) {
             $('#modalRelevamiento').modal('hide');
         },
         error: function(data) {
-            var response = JSON.parse(data.responseText);
+            var response = data.responseJSON.errors;
 
             if (typeof response.id_casino !== 'undefined') {
                 $('#sector').addClass('alerta');

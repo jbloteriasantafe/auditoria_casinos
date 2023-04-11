@@ -328,7 +328,7 @@ $('#btn-generar').click(function(e){
             console.log(data);
             $('#modalPrueba').find('.modal-body').children('#iconoCarga').hide();
 
-            var response = JSON.parse(data.responseText);
+            var response = data.responseJSON.errors;
 
             if(typeof response.id_sector !== 'undefined'){
                   $('#sector').addClass('alerta');
@@ -367,7 +367,7 @@ $('#btn-guardar').click(function(e){
             console.log(data);
             $('#modalPrueba').find('.modal-body').children('#iconoCarga').hide();
 
-            var response = JSON.parse(data.responseText);
+            var response = data.responseJSON.errors;
 
             if(typeof response.archivo !== 'undefined'){
               mostrarErrorValidacion($('#cargaArchivo'),response.archivo[0] ,true);

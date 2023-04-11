@@ -424,6 +424,9 @@ class AutoexclusionController extends Controller
     }
 
   public function existeAutoexcluido($dni){//Usado en APIAEController
+	if(empty($dni) || !ctype_digit((string) $dni)){
+		return $this->errorOut(['dni' => 'DNI incorrecto']);
+	}
     $aes = AE\Autoexcluido::where('nro_dni',$dni)->get();
     $todos_vencidos = true;
     foreach($aes as $ae){

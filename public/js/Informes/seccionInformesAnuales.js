@@ -82,7 +82,7 @@ $('#buscar-informes-anuales').on('click', function(e){
     },
 
     error: function (data) {
-      const response = data.responseJSON;
+      const response = data.responseJSON.errors;
       const keys = Object.keys(response);
       const errors = [];
       for(const kidx in keys){

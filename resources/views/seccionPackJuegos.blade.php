@@ -532,7 +532,7 @@ $id_usuario = session('id_usuario');
     <script src="/js/lista-datos.js" charset="utf-8"></script>
 
     <!-- JavaScript personalizado -->
-    <script src="js/seccionJuegoPack.js" charset="utf-8"></script>
+    <script src="js/seccionJuegoPack.js?1" charset="utf-8"></script>
     {{-- <script src="js/seccionJuegos.js" charset="utf-8"></script> --}}
     <script src="js/lista-datos.js" type="text/javascript"></script>
     @endsection

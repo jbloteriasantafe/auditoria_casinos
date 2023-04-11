@@ -362,7 +362,7 @@ $('#guardarModificacion').on('click',function(e){
         $('#btn-buscar-meses').click();
     },
     error: function (data) {
-      const response = data.responseJSON;
+      const response = data.responseJSON.errors;
       if(typeof response.valor_base_euro !== 'undefined'){
         mostrarErrorValidacion($('#baseNuevoDolar'), response.valor_base_euro[0]);
       }
@@ -586,7 +586,7 @@ $('#guardarMes').on('click',function(e){
         $('#btn-buscar-meses').click();
       },
       error: function (data) {
-        const response = data.responseJSON;
+        const response = data.responseJSON.errors;
 
         if(typeof response.cotizacion_dolar !== 'undefined'){
           mostrarErrorValidacion($('#cotDolarPago'), parseError(response.cotizacion_dolar[0]));

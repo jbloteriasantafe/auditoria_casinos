@@ -483,5 +483,5 @@ setlocale(LC_TIME, 'es_ES.UTF-8');
     <script src="/js/lista-datos.js" charset="utf-8"></script>
 
     <!-- JavaScript personalizado -->
-    <script src="/js/seccionJuegos.js" charset="utf-8"></script>
+    <script src="/js/seccionJuegos.js?1" charset="utf-8"></script>
     @endsection

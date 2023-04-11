@@ -441,7 +441,7 @@ $('#btn-aceptar-carga').click(function (e) {
     error: function (data) {
       console.log("error: ", data);
 
-      let response = JSON.parse(data.responseText);
+      let response = data.responseJSON.errors;
 
       if (typeof response.observaciones !== 'undefined') {
         mostrarErrorValidacion($('#observacionesEv'), response.observaciones[0]);

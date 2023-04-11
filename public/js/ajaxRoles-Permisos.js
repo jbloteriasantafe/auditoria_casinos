@@ -539,7 +539,7 @@ $('#btn-save-rol').click(function(e){
 
       $('#myModalRol #alertaDescripcion').hide();
       console.log('Error:', data);
-      var response = JSON.parse(data.responseText);
+      var response = data.responseJSON.errors;
 
       if(typeof response.existe !== 'undefined'){
         $('#myModalRol #alertaDescripcion span').text(response.existe[0]);
@@ -713,7 +713,7 @@ error: function (data) {
 
   $('#myModalPermisos #alertaDescripcion').hide();
   console.log('Error:', data);
-  var response = JSON.parse(data.responseText);
+  var response = data.responseJSON.errors;
 
   if(typeof response.existe !== 'undefined'){
     $('#myModalPermisos #alertaDescripcion span').text(response.existe[0]);

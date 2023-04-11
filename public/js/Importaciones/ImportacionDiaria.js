@@ -146,7 +146,7 @@ $('#btn-guardarDiario').on('click', function(e){
     error: function (data) {
       ///debería mostrar el mensaje y nada más.
       console.log('error',data);
-      var response = data.responseJSON;
+      var response = data.responseJSON.errors;
 
       $('#modalImportacionDiaria').find('.modal-footer').children().show();
       $('#frmImportacion').show();
@@ -352,7 +352,7 @@ $('#guardar-observacion').on('click', function(e){
       $('#mensajeExito').show();
     },
     error: function(data){ 
-      const errores = data.responseJSON;
+      const errores = data.responseJSON.errors;
       console.log(errores); 
       if(errores.observacion) mostrarErrorValidacion($('#observacionesImpD'),errores.observacion[0],true);
     },
@@ -465,7 +465,7 @@ $('#confirmar_ajuste').click(function(){
       $('#ajuste').hide();
     },
     error: function(data){ 
-      const errores = data.responseJSON;
+      const errores = data.responseJSON.errors;
       console.log(errores);
       if(errores.ajuste) mostrarErrorValidacion($('#ajuste .ajuste'),errores.ajuste[0],true);
       if(errores.observacion) mostrarErrorValidacion($('#ajuste .observaciones'),errores.observacion[0],true);

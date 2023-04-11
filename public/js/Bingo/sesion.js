@@ -248,7 +248,7 @@ $('#btn-guardar').click(function (e) {
       $('#mensajeExito').show();
     },
     error: function (data) {
-      const response = data.responseJSON;
+      const response = data.responseJSON.errors;
       if(typeof response.pozo_dotacion_inicial !== 'undefined'){
         mostrarErrorValidacion($('#pozo_dotacion_inicial'),'El campo no puede estar en blanco.' ,true);
       }
@@ -331,7 +331,7 @@ $('#btn-guardar-cierre').click(function (e) {
       $('#mensajeExito').show();
     },
     error: function (data) {
-      const response = data.responseJSON;
+      const response = data.responseJSON.errors;
       if(typeof response.pozo_dotacion_final !== 'undefined'){
         mostrarErrorValidacion($('#pozo_dotacion_final'),'El campo no puede estar en blanco.' ,true);
       }
@@ -408,7 +408,7 @@ $('#btn-guardar-relevamiento').click(function (e) {
         $('#mensajeExito').show();
       },
       error: function (data) {
-        const response = data.responseJSON;
+        const response = data.responseJSON.errors;
         console.log(response);
         if(typeof response.relevamiento_cerrado !== 'undefined'){
           modalCorrecta('ERROR: LA SESIÓN SE ENCUENTRA CERRADA','No es posible cargar relevamientos en una sesión cerrada.');
@@ -502,7 +502,7 @@ $('#btn-abrirSesion').click(function (e) {
           $('#mensajeExito').show();
         },
         error: function (data) {
-          var response = JSON.parse(data.responseText);
+          var response = data.responseJSON.errors;
           if(typeof response.no_tiene_permiso !== 'undefined'){
             modalCorrecta('ERROR: NO TIENE PERMISOS','Su usuario no tiene los permisos necesarios para realizar esta acción.');
           }

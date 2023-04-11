@@ -328,7 +328,7 @@ $('#btn-eliminarModal').click(function (e) {
         },
         error: function (data) {
           console.log('Error: ', data);
-          const response = data.responseJSON;
+          const response = data.responseJSON.errors;
           if(typeof response.maquina_juego_activo !== 'undefined'){
             let mensaje = "El juego esta activo en las maquinas ";
             for(let i=0;i<response.maquina_juego_activo.length;i++){
@@ -412,7 +412,7 @@ $('#btn-guardar').click(function (e) {
       $('#mensajeExito').show();
     },
     error: function (data) {
-      const response = data.responseJSON;
+      const response = data.responseJSON.errors;
       if(typeof response.nombre_juego !== 'undefined'){
         mostrarErrorValidacion($('#inputJuego'),parseError(response.nombre_juego),true);
       }

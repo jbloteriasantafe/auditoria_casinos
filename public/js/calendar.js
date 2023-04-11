@@ -619,7 +619,7 @@ function guardarEvento(){ // add event
           ocultarErrorValidacion($('#descripcionEvento'));
           ocultarErrorValidacion($('#hastaFecha input'));
 
-          var response = data.responseJSON;
+          var response = data.responseJSON.errors;
 
           if (typeof response.titulo != 'undefined') {
             mostrarErrorValidacion($('#diseñoCrearEvento #tituloEvento'), response.titulo[0], true);

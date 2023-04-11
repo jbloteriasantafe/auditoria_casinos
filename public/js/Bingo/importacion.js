@@ -254,7 +254,7 @@ $('#btn-guardar').click(function (e) {
           $('#btn-buscar').click();
         },
         error: function (data) {
-          var response = JSON.parse(data.responseText);
+          var response = data.responseJSON.errors;
 
           console.log(response);
           //Mostrar: mensajeError

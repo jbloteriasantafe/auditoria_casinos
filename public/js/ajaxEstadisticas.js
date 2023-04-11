@@ -270,7 +270,7 @@ $.ajax({
 
       },
       error: function (data) {
-        var response = JSON.parse(data.responseText);
+        var response = data.responseJSON.errors;
         $('#alertaFechaInicio3').hide();
         $('#alertaFechaFin3').hide();
         $('#alertaCasino2').hide();
@@ -621,7 +621,7 @@ $ ('#btn-grafico-2').click(function (e) {
 
             error: function (data) {
 
-              var response = JSON.parse(data.responseText);
+              var response = data.responseJSON.errors;
               $('#alertaFechaInicio2').hide();
               $('#alertaFechaFin2').hide();
               $('#alertaCasino').hide();
@@ -1120,7 +1120,7 @@ $ ('#btn-grafico-1').click(function (e) {
       },
       error: function (data) {
         console.log(data);
-        var response = JSON.parse(data.responseText);
+        var response = data.responseJSON.errors;
         $('#alertaFechaInicio').hide();
         $('#alertaFechaFin').hide();
         $('#alertaResultados').hide();

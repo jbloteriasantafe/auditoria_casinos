@@ -368,7 +368,7 @@ $('#btn-guardar').click(function (e) {
             $('#mensajeExito').show();
         },
         error: function (data) {
-            var response = JSON.parse(data.responseText);
+            var response = data.responseJSON.errors;
 
             $('#columna .row').each(function(index,value){
               if(typeof response['formula.'+ index +'.operador'] !== 'undefined'){

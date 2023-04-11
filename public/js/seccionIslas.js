@@ -155,7 +155,7 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
       $('#herramientasPaginacion').generarIndices(page_number,page_size,resultados.total,clickIndice);
     },
     error: function (data) {
-      const response = JSON.parse(data.responseText);
+      const response = data.responseJSON.errors;
       if(typeof response.cantidad_maquinas !== 'undefined'){
         mostrarErrorValidacion($('#buscadorCantMaquinas') , response.cantidad_maquinas[0] , true);
       }
@@ -346,7 +346,7 @@ $('#btn-aceptarDividir').click(function() {
         },
         error: function (data) {
           console.log('Error: ', data);
-          const response = JSON.parse(data.responseText);
+          const response = data.responseJSON.errors;
           const subislas = $('.subisla').not('#moldeSubisla');
           subislas.each(function(idx){
             const codigo = response[`subislas.${idx}.codigo`];
@@ -452,7 +452,7 @@ $('#btn-guardar').click(function (e) {
         $('#btn-buscar').click();
       },
       error: function (data) {
-        const response = JSON.parse(data.responseText);
+        const response = data.responseJSON.errors;
         if(typeof response.nro_isla !== 'undefined'){
           mostrarErrorValidacion($('#nro_isla') , response.nro_isla[0] , true);
         }

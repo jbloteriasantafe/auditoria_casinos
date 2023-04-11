@@ -118,7 +118,7 @@ class PermisoController extends Controller
 
     if ($request->roles != null) {
       foreach ($request->roles as $rol) {
-        $roles[] = $rol;
+        $roles[] = $rol['id_rol'] ?? $rol;
       }
     }
 

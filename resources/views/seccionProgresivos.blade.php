@@ -581,6 +581,6 @@
 <script src="/js/lista-datos.js" type="text/javascript"></script>
 <!-- JavaScript personalizado -->
 <script src="/js/float.js" charset="utf-8"></script>
-<script src="/js/seccionProgresivos.js?5" charset="utf-8"></script>
+<script src="/js/seccionProgresivos.js?6" charset="utf-8"></script>
 <script src="/js/seccionProgresivosFilas.js" charset="utf-8"></script>
 @endsection

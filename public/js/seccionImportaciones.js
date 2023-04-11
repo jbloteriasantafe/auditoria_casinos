@@ -440,7 +440,7 @@ $('#btn-guardarImp').click(function(e){
     error: function (data) {
       console.log(data);
       $('#mensajeError').show();
-      const response = data.responseJSON;
+      const response = data.responseJSON.errors;
       if(tipo == 'producidos'){
         if(response.producido_validado !== 'undefined'){
           $('#mensajeError h6').text('El Producido para esa fecha ya está validado y no se puede reimportar.')

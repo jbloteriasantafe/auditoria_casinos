@@ -440,7 +440,7 @@ override_mostrar_dolares = true;
 @endif
 
 </script>
-<script src="js/Casinos/casinos.js" charset="utf-8"></script>
+<script src="js/Casinos/casinos.js?1" charset="utf-8"></script>
 
 
 

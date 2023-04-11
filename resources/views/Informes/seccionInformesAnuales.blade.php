@@ -129,6 +129,6 @@
 <script src="/js/highcharts/code/highcharts-more.js"  type="text/javascript"></script>
 
 
-<script type="text/javascript" src="js/Informes/seccionInformesAnuales.js?2"></script>
+<script type="text/javascript" src="js/Informes/seccionInformesAnuales.js?3"></script>
 
 @endsection

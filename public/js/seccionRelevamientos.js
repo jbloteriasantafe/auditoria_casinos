@@ -266,7 +266,7 @@ $('#btn-generar').click(function(e){
               $('#modalRelevamiento').find('.modal-body').children().show();
               $('#modalRelevamiento').find('.modal-body').children('#iconoCarga').hide();
 
-              var response = JSON.parse(data.responseText);
+              var response = data.responseJSON.errors;
 
               //mostrar error
               if(typeof response.id_sector !== 'undefined'){
@@ -934,7 +934,7 @@ $('#btn-backup').click(function(e){
         console.log('ERROR!');
         console.log(data);
 
-        var response = JSON.parse(data.responseText);
+        var response = data.responseJSON.errors;
 
         if(typeof response.id_sector !== 'undefined'){
           mostrarErrorValidacion($('#casinoSinSistema'), response.id_sector[0],false);
@@ -1326,7 +1326,7 @@ function enviarRelevamiento(estado) {
       },
       error: function (data) {
 
-        var response = JSON.parse(data.responseText);
+        var response = data.responseJSON.errors;
 
         if(    typeof response.tecnico !== 'undefined'
             || typeof response.fecha_ejecucion !== 'undefined'

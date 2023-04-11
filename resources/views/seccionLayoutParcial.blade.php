@@ -948,7 +948,7 @@ use Illuminate\Http\Request;
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionLayoutParcial.js?4" charset="utf-8"></script>
+    <script src="js/seccionLayoutParcial.js?5" charset="utf-8"></script>
     <script src="js/paginacion.js" charset="utf-8"></script>
 
     <!-- DateTimePicker JavaScript -->

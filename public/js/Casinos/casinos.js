@@ -221,7 +221,7 @@ $('#btn-guardar').on('click',function(e){
         console.log(data);
         $('#btn-guardar').prop('disabled',false);
 
-        var errors = $.parseJSON(data.responseText).errors;
+        var errors = data.responseJSON.errors;
         $.each(errors, function (key, val) {
           if(key == 'nombre'){
             mostrarErrorValidacion($('#nombre'),val[0],false);
@@ -647,7 +647,7 @@ $('#btn-modificarCas').on('click',function(e){
         console.log(data);
         $('#btn-modificarCas').prop('disabled',false);
 
-        var errors = $.parseJSON(data.responseText).errors;
+        var errors = data.responseJSON.errors;
         $.each(errors, function (key, val) {
           if(key == 'nombre'){
             mostrarErrorValidacion($('#nombreModif'),val[0],false);

@@ -180,5 +180,5 @@
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionCasinos.js" charset="utf-8"></script>
+    <script src="js/seccionCasinos.js?1" charset="utf-8"></script>
     @endsection

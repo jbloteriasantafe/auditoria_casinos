@@ -239,7 +239,7 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
 </div>
 </div>
 <!-- Lo incluyo porque el script lo usa -->
-<script src="js/utils.js" type="text/javascript"></script>
+<script src="js/utils.js?1" type="text/javascript"></script>
 <script>
 const divRelMovMaxLVLProg = {{$maxlvl}};
 </script>

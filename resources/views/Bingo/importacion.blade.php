@@ -422,7 +422,7 @@ $casinos = $usuario->casinos;
     <!-- JavaScript paginacion -->
     <script src="/js/paginacion.js" charset="utf-8"></script>
     <!-- JavaScript personalizado -->
-    <script src="/js/Bingo/importacion.js?2" charset="utf-8"></script>
+    <script src="/js/Bingo/importacion.js?3" charset="utf-8"></script>
     <script src="/js/Bingo/lista-datos.js" type="text/javascript"></script>
     <!-- Custom input Bootstrap -->
     <script src="/js/fileinput.min.js" type="text/javascript"></script>

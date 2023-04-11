@@ -157,7 +157,7 @@ $(document).on('click', '#aceptarCasinoIng', function (e) {
     },
     error: function (response) {
       console.log(response);
-      const errorjson = response.responseJSON;
+      const errorjson = response.responseJSON.errors;
       if (typeof errorjson.id_casino != 'undefined') {
         mostrarErrorValidacion($('#selectCasinoIngreso'), parseError(errorjson.id_casino[0]), true);
       }

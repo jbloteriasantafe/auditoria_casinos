@@ -114,12 +114,12 @@ $('#btn-generar').click(function(e) {
       $('#modalRelevamiento').modal('hide');
     },
     error: function(data) {
-      const response = JSON.parse(data.responseText);
+      const response = data.responseJSON.errors;
       if (typeof response.id_sector !== 'undefined') {
-        mostrarErrorValidacion($('#sector'),responde.id_sector,true);
+        mostrarErrorValidacion($('#sector'),response.id_sector,true);
       }
       if (typeof response.fecha_generacion !== 'undefined') {
-        mostrarErrorValidacion($('#fechaRelevamientoInput'),responde.fecha_generacion,true);
+        mostrarErrorValidacion($('#fechaRelevamientoInput'),response.fecha_generacion,true);
       }
     }
   });
@@ -195,10 +195,10 @@ function clickIndice(e, pageNumber, tam) {
   $('#btn-buscar').trigger('click', [pageNumber, tam, columna, orden]);
 }
 
-function obtenerMensajesError(response) {
+function obtenerMensajesError(errors) {
   const mensajes = [];
-  Object.keys(response.responseJSON).forEach(function(k,_){
-    response.responseJSON[k].forEach(function(m,_){mensajes.push(m);});
+  Object.keys(errors).forEach(function(k,_){
+    errors[k].forEach(function(m,_){mensajes.push(m);});
   });
   return mensajes;
 }
@@ -464,7 +464,7 @@ function enviarFormularioCarga(id_relevamiento_progresivo,modo) {
     },
     error: function(data){
       console.log(data);
-      mensajeError(obtenerMensajesError(data));
+      mensajeError(obtenerMensajesError(data.responseJSON.errors));
     }
   });
 }
@@ -485,7 +485,7 @@ function enviarFormularioValidacion(id_relevamiento) {
     },
     error: function(data){
       console.log(data);
-      mensajeError(obtenerMensajesError(data));
+      mensajeError(obtenerMensajesError(data.responseJSON.errors));
     }
   });
 }
@@ -586,7 +586,7 @@ $('#btn-guardar-param-relev-progresivos').on('click', function(e) {
       $('#btn-buscar-apuestas').trigger('click', [1, 10, 'fecha', 'desc']);
     },
     error: function(data) {
-      const errs = data.responseJSON;
+      const errs = data.responseJSON.errors;
       console.log(errs);
       mensajeError(Object.keys(errs).map(function(k,_){
         return `${k} => ${errs[k]}`;

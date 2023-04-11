@@ -653,7 +653,7 @@ $('#btn-guardar').on('click',function(e){
 
       error: function (reject) {
         if( reject.status === 422 ) {
-            var errors = $.parseJSON(reject.responseText).errors;
+            var errors = reject.responseJSON.errors;
             $.each(errors, function (key, val) {
               var k=key.split('.');
 
