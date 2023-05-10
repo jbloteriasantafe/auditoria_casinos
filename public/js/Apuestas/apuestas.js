@@ -1176,10 +1176,10 @@ function generarFila(data){
       break;
     case 3:
       fila.find('.modificarApuesta').show();
+      fila.find('.validarApuesta').show();
       break;
     case 4:
       fila.find('.eliminarApuesta').hide();
-      fila.find('.validarApuesta').show(); 
       break;
     default:
       break;
