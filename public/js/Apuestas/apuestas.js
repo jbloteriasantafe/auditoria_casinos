@@ -1080,6 +1080,16 @@ $(document).on('click','.imprimirApuesta',function(){
 
 })
 
+$(document).on('click','.imprimirPlanilla',function(){
+
+  var id=$(this).val();
+
+  window.open('apuestas/imprimirPlanilla/' + id,'_blank');
+
+})
+
+
+
 $(document).on('click','.btn_borrar_fisca',function(){
 
   var tipo= $(this).attr('data-tipo');
@@ -1156,40 +1166,23 @@ function generarFila(data){
     }
     fila.find('.L_estado').css('cssText', 'text-align:center !important');
 
-  fila.find('.cargarApuesta').val(data.id_relevamiento_apuestas);
-  fila.find('.imprimirApuesta').val(data.id_relevamiento_apuestas);
-  fila.find('.eliminarApuesta').val(data.id_relevamiento_apuestas);
-  fila.find('.modificarApuesta').val(data.id_relevamiento_apuestas);
-  fila.find('.validarApuesta').val(data.id_relevamiento_apuestas);
-
+  fila.find('button').val(data.id_relevamiento_apuestas).hide();
+  fila.find('.eliminarApuesta').show();
+  fila.find('.imprimirApuesta').show();
+  fila.find('.imprimirPlanilla').show();
   switch (data.id_estado_relevamiento) {
-    case 4:
-      fila.find('.cargarApuesta').hide();
-      fila.find('.imprimirApuesta').show();
-      fila.find('.eliminarApuesta').hide();
-      fila.find('.modificarApuesta').hide();
-      fila.find('.validarApuesta').hide();
-      break;
     case 1:
       fila.find('.cargarApuesta').show();
-      fila.find('.eliminarApuesta').show();
-      fila.find('.imprimirApuesta').hide();
-      fila.find('.modificarApuesta').hide();
-      fila.find('.validarApuesta').hide();
       break;
     case 3:
-      fila.find('.cargarApuesta').hide();
-      fila.find('.eliminarApuesta').show();
-      fila.find('.imprimirApuesta').hide();
       fila.find('.modificarApuesta').show();
-      fila.find('.validarApuesta').show();
+      break;
+    case 4:
+      fila.find('.eliminarApuesta').hide();
+      fila.find('.validarApuesta').show(); 
       break;
     default:
-      fila.find('.cargarApuesta').show();
-      fila.find('.eliminarApuesta').show();
-      fila.find('.imprimirApuesta').hide();
-      fila.find('.modificarApuesta').hide();
-      fila.find('.validarApuesta').hide();
+      break;
   }
 
   fila.css('display','');

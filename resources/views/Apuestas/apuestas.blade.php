@@ -188,6 +188,9 @@ $cas = $usuario['usuario']->casinos;
                             <button type="button" class="btn btn-warning modificarApuesta" value="">
                                     <i class="fas fa-fw fa-pencil-alt"></i>
                             </button>
+                            <button type="button" class="btn btn-info imprimirPlanilla" value="">
+                                    <i class="far fa-fw fa-file-alt"></i>
+                            </button>
                             @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'m_validar_eliminar_relevamientos_apuestas'))
                             <button type="button" class="btn btn-info imprimirApuesta" value="">
                                     <i class="fa fa-fw fa-print"></i>
@@ -947,6 +950,6 @@ $cas = $usuario['usuario']->casinos;
     <!-- JS paginacion -->
     <script src="/js/paginacion.js" charset="utf-8"></script>
 
-    <script src="js/Apuestas/apuestas.js?4" type="text/javascript" charset="utf-8"></script>
+    <script src="js/Apuestas/apuestas.js?5" type="text/javascript" charset="utf-8"></script>
 
   @endsection

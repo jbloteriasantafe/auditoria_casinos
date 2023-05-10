@@ -798,6 +798,7 @@ Route::group(['prefix' => 'apuestas','middleware' => 'tiene_permiso:m_ver_seccio
   Route::post('validar', 'Mesas\Apuestas\BVApuestasController@validar');
   Route::post('obtenerRelevamientoBackUp', 'Mesas\Apuestas\BCApuestasController@buscarRelevamientosBackUp');
   Route::get('imprimir/{id}','Mesas\Apuestas\BCApuestasController@imprimirPlanilla');
+  Route::get('imprimirPlanilla/{id}','Mesas\Apuestas\BCApuestasController@imprimirPlanillaVacia');
   Route::get('consultarMinimo','Mesas\Apuestas\BCApuestasController@consultarMinimo');
   Route::get('obtenerRequerimientos/{id_cas}/{id_moneda}','Mesas\Apuestas\ABMCApuestaMinimaController@obtenerApuestaMinima');
   Route::post('modificarRequerimiento','Mesas\Apuestas\ABMCApuestaMinimaController@modificar');

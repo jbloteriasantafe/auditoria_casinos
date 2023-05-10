@@ -366,7 +366,7 @@ class BCApuestasController extends Controller
 
   }
 
-  public function imprimirPlanilla($id_relevamiento){
+  public function imprimirPlanilla($id_relevamiento,$vacia = false){
     $relevamiento = RelevamientoApuestas::find($id_relevamiento);
     $rel = new \stdClass();
     //['paginas' => $pagina,'nro_paginas'=>$count_nro_pagina]
@@ -389,6 +389,9 @@ class BCApuestasController extends Controller
     }
     $rel->fiscalizador = implode(";",$nombres);
     $rel->hora_ejecucion = $relevamiento->hora_ejecucion;
+    if($vacia){
+      $this->limpiarRelevamiento($rel);
+    }
     $view = View::make('Mesas.Planillas.PlanillaRelevamientoDeApuestas', compact('rel'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'landscape');
@@ -398,5 +401,30 @@ class BCApuestasController extends Controller
     $dompdf->getCanvas()->page_text(20, 565, $relevamiento->casino->codigo."/".$rel->fecha."/T-".$relevamiento->nro_turno, $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(750, 565, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
     return $dompdf->stream('sorteoAperturas.pdf', Array('Attachment'=>0));
+  }
+  
+  public function imprimirPlanillaVacia($id_relevamiento){
+    return $this->imprimirPlanilla($id_relevamiento,true);
+  }
+  
+  private function limpiarRelevamiento(&$rel){
+    //Lo hago de esta forma sin indentacion porque sino queda superanidado
+    foreach($rel->paginas as &$columnas){
+    foreach($columnas as &$juegos){
+    if($juegos !== null){
+    foreach($juegos as &$j){
+    foreach($j['mesas'] as &$m){
+      $m['estado'] = '';
+      $m['minimo'] = '';
+      $m['maximo'] = '';
+    }}}}}
+    
+    foreach($rel->totales as &$t){
+      $t['val'] = null;
+    }
+    
+    $rel->observaciones = null;
+    $rel->fiscalizador = null;
+    $rel->hora_ejecucion = '';
   }
 }
