@@ -12,6 +12,7 @@ $(document).ready(function() {
     else{
       setTimeout(function(){
         eventoModal(ultimo_valor_url);
+        habilitarBusquedaMTM(true);
       },1000);
     }
 });
