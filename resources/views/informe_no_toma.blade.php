@@ -21,27 +21,23 @@
 
                     <div class="row">
                         <div class="col-md-4 col-md-offset-4">
-                          @if($nro_admin == null)
-                            <select id="selectCasino" class="form-control" name="">
-                                  <option value="0">- Seleccione el casino -</option>
-                                      @foreach($casinos as $casino)
-                                        <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                                      @endforeach
-                            </select>
-                            <br>
-                            <input id="inputMaquina" class="form-control" type="text" placeholder="N° de administración" disabled>
-                            @endif
-                            @if($nro_admin != null)
-                            <select id="selectCasino" class="form-control" name="">
-                                  <option value="{{$casino}}" selected> {{$nombre}} </option>
-                                      @foreach($casinos as $casino)
-                                        <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                                      @endforeach
-                            </select>
-                            <br>
-                            <input id="inputMaquina" class="form-control" type="text" placeholder="{{$nro_admin}}" disabled>
 
-                            @endif
+                            <select id="selectCasino" class="form-control" name="">
+                                  @if($casino === null)
+                                  
+                                  <option value="0">- Seleccione el casino -</option>
+                                  @foreach($casinos as $casino)
+                                  <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                  @endforeach
+                                  
+                                  @else
+                                  
+                                  <option value="{{$casino}}" selected>{{$nombre}} </option>
+                                  
+                                  @endif
+                            </select>
+                            <br>
+                            <input id="inputMaquina" class="form-control" type="text" placeholder="N° de administración" value="{{$nro_admin ?? ''}}" {{$nro_admin? '' : 'disabled'}}>
                             <br>
                             <button id="btn-buscarMTM" class="btn btn-infoBuscar" type="button" style="width:100%;">VER DETALLES</button>
                         </div>
@@ -211,7 +207,7 @@
 <!-- Termina modal de ayuda -->
 
 @section('scripts')
-<script src="/js/informe_no_toma.js?2" charset="utf-8"></script>
+<script src="/js/informe_no_toma.js?3" charset="utf-8"></script>
 
 <script src="/js/lista-datos.js" type="text/javascript"></script>
 

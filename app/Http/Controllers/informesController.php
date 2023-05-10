@@ -562,8 +562,13 @@ class informesController extends Controller
       $casinos[]=$casino;
     }
     $mtm = Maquina::find($id_mtm);
-    // $casinos = Casino::all();
-    return view('informe_no_toma', ['casinos' => $casinos, 'nro_admin' => $mtm->nro_admin, 'casino' => $mtm->id_casino, 'nombre'=> $mtm->casino->nombre]);
+
+    return view('informe_no_toma', [
+      'casinos' => $casinos, 
+      'nro_admin' => $mtm->nro_admin,
+      'casino' => $mtm->id_casino,
+      'nombre'=> $mtm->casino->nombre
+    ]);
   }
 
   public function mostrarEstadisticasNoTomaGenerico(){
@@ -572,9 +577,13 @@ class informesController extends Controller
     foreach($usuario['usuario']->casinos as $casino){
       $casinos[]=$casino;
     }
-    //$mtm = Maquina::find($id_mtm);
-    // $casinos = Casino::all();
-    return view('informe_no_toma', ['casinos' => $casinos, 'nro_admin' => null, 'casino' =>null, 'nombre'=> null]);
+
+    return view('informe_no_toma', [
+      'casinos' => $casinos, 
+      'nro_admin' => null,
+      'casino' =>null,
+      'nombre'=> null
+    ]);
   }
 
   public function obtenerEstadisticasNoToma($id){

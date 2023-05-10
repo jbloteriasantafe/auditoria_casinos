@@ -3,39 +3,17 @@ var datos = [];
 var estado;
 $(document).ready(function() {
     //Resetear componentes
-
-    habilitarBusquedaMTM(false);
-    $('#btn-buscarMTM').prop('disabled', true);
-
-    $('#barraMaquinas').attr('aria-expanded', 'true');
-    $('#maquinas').removeClass();
-    $('#maquinas').addClass('subMenu1 collapse in');
-    $('#informesMTM').removeClass();
-    $('#informesMTM').addClass('subMenu2 collapse in');
-
     $('.tituloSeccionPantalla').text('Estadisticas de no toma');
-    $('#gestionarMaquinas').attr('style', 'border-left: 6px solid #3F51B5;');
-    $('#opcInformesNoToma').attr('style', 'border-left: 6px solid #25306b; background-color: #131836;');
-    $('#opcInformesNoToma').addClass('opcionesSeleccionado');
-
-    // eventoBusqueda(10,1,null,null,null);
-    var pathname = window.location.pathname; // ej: /maquinas , /maquinas/5
-
-    var arreglo = pathname.split("/");
-    console.log(arreglo);
-    switch (arreglo.length) {
-        case 3:
-            if (arreglo[2] != 0) {
-                eventoModal(arreglo[2]);
-                console.log('carga pagina');
-            } else {
-                // eventoNuevo();
-            }
-            break;
-        default:
-
+    const ultimo_valor_url = window.location.pathname.split('/').slice(-1);
+    if(isNaN(ultimo_valor_url)){
+      habilitarBusquedaMTM(false);
+      $('#btn-buscarMTM').prop('disabled', true);
     }
-
+    else{
+      setTimeout(function(){
+        eventoModal(ultimo_valor_url);
+      },1000);
+    }
 });
 
 function llenarTablaNoToma(motivos) {
@@ -86,7 +64,7 @@ function habilitarBusquedaMTM(valor, id_casino) {
     console.log(valor);
 
     if (valor) {
-        $('#inputMaquina').generarDataList("estadisticas_no_toma/obtenerMTMEnCasino/" + id_casino, 'maquinas', 'id_maquina', 'nro_admin', 1);
+        $('#inputMaquina').generarDataList("/estadisticas_no_toma/obtenerMTMEnCasino/" + id_casino, 'maquinas', 'id_maquina', 'nro_admin', 1);
         $('#inputMaquina').setearElementoSeleccionado(0, '');
     } else {
         //$('#inputMaquina').borrarDataList();
@@ -110,7 +88,7 @@ function eventoModal(id_maquina) {
     $('#modalMaquinaContable').modal('show');
 
 
-    $.get("estadisticas_no_toma/obtenerEstadisticasNoToma/" + id_maquina, function(data) {
+    $.get("/estadisticas_no_toma/obtenerEstadisticasNoToma/" + id_maquina, function(data) {
 
         $('#nro_admin').text(data.maquina.nro_admin);
         $('#casino').text(data.maquina.casino);
@@ -241,7 +219,7 @@ function generarTablaRelevamientos(id_casino, nro_admin, cant_rel) {
 
     $.ajax({
         type: 'POST',
-        url: 'estadisticas_no_toma/obtenerUltimosRelevamientosPorMaquinaNroAdmin',
+        url: '/estadisticas_no_toma/obtenerUltimosRelevamientosPorMaquinaNroAdmin',
         data: formData,
         dataType: 'json',
         success: function(data) {
