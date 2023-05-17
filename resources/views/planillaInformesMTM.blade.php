@@ -180,7 +180,7 @@
     @if ($sum->tipoMoneda == 'US$')
     <div>
       <p> 
-        <FONT SIZE=1> <strong>* </strong>Cotización establecida por la Dirección General de Casinos y Bingos (Nota N° 277/16) <br>
+        <FONT SIZE=1> <strong>* </strong>Cotización establecida por la Dirección General de Casinos y Bingos (Nota N° 277/16 y 212/22) <br>
         <i> "... se utilizará como tipo de cambio para efectuar la conversión a pesos, el valor del dólar 
           oficial tipo comprador (información suministrada por el Banco de la Nación Argentina) correspondiente a la fecha de producción
             de las MTM. Para el caso de los días Sábados, Domingos y Feriados, se utilizará como tipo de cambio, el del último día hábil disponible.."
