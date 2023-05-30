@@ -28,6 +28,21 @@
       width:200%;
       height:300px;
   }
+  #tablaDias thead th {
+    font-size:14px;
+    background-color: #dddddd;
+    border-color: gray;
+    text-align:center !important
+  }
+  #tablaDias tbody tr td {
+    font-size: 11px;
+    text-align: right;
+  }
+  #tablaDias tbody tr:last-child td {
+    font-size: 11px;
+    font-weight: bold;
+    text-align: right;
+  }
 </style>
   <head>
     <meta charset="utf-8">
@@ -58,47 +73,47 @@
     <h4 style="top:-10px;bottom:-30px!important;padding-top:-30px !important;">
       <i>RESULTADOS EN {{$datos['moneda']}}<i>
     </h4>
-    <table style="border-collapse: collapse;" >
+    <table style="border-collapse: collapse;" id="tablaDias">
       <thead>
         <tr align="center" >
-          <th class="col-xl-2 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray;text-align:center !important">FECHA</th>
-          <th class="col-xl-3 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray;text-align:center !important">MESAS</th>
-          <th class="col-xl-3 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray;text-align:center !important">SALDO EN FICHAS</th>
-          <th class="col-xl-2 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray; text-align:center !important;">DROP</th>
-          <th class="col-xl-3 tablaInicio" style="font-size:14px;background-color: #dddddd; border-color: gray; text-align:center !important;">UTILIDAD</th>
-          <th class="col-xl-2 tablaInicio"  style="font-size:14px;background-color: #dddddd; border-color: gray;text-align:center !important;">HOLD</th>
+          <th class="col-xl-2 tablaInicio">FECHA</th>
+          <th class="col-xl-3 tablaInicio">MESAS</th>
+          <th class="col-xl-3 tablaInicio">SALDO EN FICHAS</th>
+          <th class="col-xl-2 tablaInicio">DROP</th>
+          <th class="col-xl-3 tablaInicio">UTILIDAD</th>
+          <th class="col-xl-2 tablaInicio">HOLD</th>
           @if($datos['moneda'] != 'ARS')
-            <th class="col-xl-2 tablaInicio"  style="font-size:14px;background-color: #dddddd; border-color: gray;text-align:center !important;">COTIZACIÓN</th>
-            <th class="col-xl-2 tablaInicio"  style="font-size:14px;background-color: #dddddd; border-color: gray;text-align:center !important;">CONVERSIÓN</th>
+            <th class="col-xl-2 tablaInicio">COTIZACIÓN</th>
+            <th class="col-xl-2 tablaInicio">CONVERSIÓN</th>
           @endif
         </tr>
       </thead>
       <tbody>
         @foreach($datos['detalles'] as $d)
         <tr>
-          <td class="tablaCampos" style="font-size: 13px;text-align: center">{{$d['fecha']}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: center">{{$d['mesas'] ?? 1}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['saldo_fichas'],2,",",".")}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['droop'],2,",",".")}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['utilidad'],2,",",".")}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['hold']}} %</td>
+          <td class="tablaCampos" style="text-align: center">{{$d['fecha']}}</td>
+          <td class="tablaCampos" style="text-align: center">{{$d['mesas'] ?? 1}}</td>
+          <td class="tablaCampos">{{number_format($d['saldo_fichas'],2,",",".")}}</td>
+          <td class="tablaCampos">{{number_format($d['droop'],2,",",".")}}</td>
+          <td class="tablaCampos">{{number_format($d['utilidad'],2,",",".")}}</td>
+          <td class="tablaCampos">{{$d['hold']}} %</td>
           @if($datos['moneda'] != 'ARS')
-          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{number_format($d['cotizacion_diaria'],2,",",".")}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right">{{$d['conversion_total']}}</td>
+          <td class="tablaCampos">{{number_format($d['cotizacion_diaria'],2,",",".")}}</td>
+          <td class="tablaCampos">{{$d['conversion_total']}}</td>
           @endif
         </tr>
         @endforeach
         <!-- fila totalizadora -->
         <tr>
-          <td class="tablaCampos" style="font-size: 13px;text-align: center;font-weight: bold;">{{$mes.'-##'}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: center">{{$datos['total']->mesas}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($datos['total']->saldo_fichas,2,",",".")}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($datos['total']->droop,2,",",".")}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{number_format($datos['total']->utilidad,2,",",".")}}</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$datos['total']->hold}} %</td>
+          <td class="tablaCampos" style="text-align: center">{{$mes.'-##'}}</td>
+          <td class="tablaCampos" style="text-align: center">{{$datos['total']->mesas}}</td>
+          <td class="tablaCampos">{{number_format($datos['total']->saldo_fichas,2,",",".")}}</td>
+          <td class="tablaCampos">{{number_format($datos['total']->droop,2,",",".")}}</td>
+          <td class="tablaCampos">{{number_format($datos['total']->utilidad,2,",",".")}}</td>
+          <td class="tablaCampos">{{$datos['total']->hold}} %</td>
           @if($datos['moneda'] != 'ARS')
-          <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">--</td>
-          <td class="tablaCampos" style="font-size: 13px;text-align: right;font-weight: bold;">{{$datos['total']->conversion_total}}</td>
+          <td class="tablaCampos">--</td>
+          <td class="tablaCampos">{{$datos['total']->conversion_total}}</td>
           @endif
         </tr>
       </tbody>
