@@ -55,6 +55,10 @@
   <body>
     <?php 
     $fecha_planilla = date('j-m-y / h:i');
+    $fmt = function($s,$digits = 2){
+      if(!is_numeric($s)) return $s;
+      return number_format($s,$digits,",",".");
+    }
     ?>
     <div class="encabezadoImg">
       <img src="img/logos/banner_nuevo2_landscape.png" width="900">
@@ -93,13 +97,13 @@
         <tr>
           <td class="tablaCampos" style="text-align: center">{{$d['fecha']}}</td>
           <td class="tablaCampos" style="text-align: center">{{$d['mesas'] ?? 1}}</td>
-          <td class="tablaCampos">{{number_format($d['saldo_fichas'],2,",",".")}}</td>
-          <td class="tablaCampos">{{number_format($d['droop'],2,",",".")}}</td>
-          <td class="tablaCampos">{{number_format($d['utilidad'],2,",",".")}}</td>
-          <td class="tablaCampos">{{$d['hold']}} %</td>
+          <td class="tablaCampos">{{$fmt($d['saldo_fichas'])}}</td>
+          <td class="tablaCampos">{{$fmt($d['droop'])}}</td>
+          <td class="tablaCampos">{{$fmt($d['utilidad'])}}</td>
+          <td class="tablaCampos">{{$fmt($d['hold'],3)}} %</td><!-- El hold ya viene formateado pero lo dejo por robustez -->
           @if($datos['moneda'] != 'ARS')
-          <td class="tablaCampos">{{number_format($d['cotizacion_diaria'],2,",",".")}}</td>
-          <td class="tablaCampos">{{$d['conversion_total']}}</td>
+          <td class="tablaCampos">{{$fmt($d['cotizacion_diaria'])}}</td>
+          <td class="tablaCampos">{{$fmt($d['conversion_total'])}}</td>
           @endif
         </tr>
         @endforeach
@@ -107,13 +111,13 @@
         <tr>
           <td class="tablaCampos" style="text-align: center">{{$mes.'-##'}}</td>
           <td class="tablaCampos" style="text-align: center">{{$datos['total']->mesas}}</td>
-          <td class="tablaCampos">{{number_format($datos['total']->saldo_fichas,2,",",".")}}</td>
-          <td class="tablaCampos">{{number_format($datos['total']->droop,2,",",".")}}</td>
-          <td class="tablaCampos">{{number_format($datos['total']->utilidad,2,",",".")}}</td>
-          <td class="tablaCampos">{{$datos['total']->hold}} %</td>
+          <td class="tablaCampos">{{$fmt($datos['total']->saldo_fichas)}}</td>
+          <td class="tablaCampos">{{$fmt($datos['total']->droop)}}</td>
+          <td class="tablaCampos">{{$fmt($datos['total']->utilidad)}}</td>
+          <td class="tablaCampos">{{$fmt($datos['total']->hold,3)}} %</td><!-- El hold ya viene formateado pero lo dejo por robustez -->
           @if($datos['moneda'] != 'ARS')
           <td class="tablaCampos">--</td>
-          <td class="tablaCampos">{{$datos['total']->conversion_total}}</td>
+          <td class="tablaCampos">{{$fmt($datos['total']->conversion_total)}}</td>
           @endif
         </tr>
       </tbody>
