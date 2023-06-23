@@ -378,16 +378,6 @@ $('#btn-preModificar').on('click',function(e){
           $('#finicioModif').prop('disabled',true);
           $('#porcentajeModif').val(data.casino.porcentaje_sorteo_mesas);
 
-          if($('#nombreModif').val() === "Melincué" || $('#nombreModif').val() === "Santa Fe"){
-            $('#p_dolares_modif').css('display','none');
-          }
-          else{
-            $('#p_dolares_modif').css('display',estilo_viejo);
-          }
-          if(override_mostrar_dolares){
-            $('#p_dolares_modif').css('display',estilo_viejo);
-          }
-
           var fk = data.fichas;
           Object.keys(fk).forEach(key => {
             let value = fk[key];
