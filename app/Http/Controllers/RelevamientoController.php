@@ -440,7 +440,7 @@ class RelevamientoController extends Controller
         'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
         'id_usuario_fiscalizador' => 'required_if:estado,3|nullable|exists:usuario,id_usuario',
         'tecnico' => 'nullable|max:45',
-        'observacion_carga' => 'nullable|max:200',
+        'observacion_carga' => 'nullable|max:2000',
         'estado' => 'required|numeric|between:2,3',
         'hora_ejecucion' => 'required_if:estado,3',
         'detalles' => 'required',
@@ -546,7 +546,7 @@ class RelevamientoController extends Controller
   public function validarRelevamiento(Request $request){
     Validator::make($request->all(),[
         'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
-        'observacion_validacion' => 'nullable|max:200',
+        'observacion_validacion' => 'nullable|max:2000',
         'data' => 'required',///trae datos para guardar en el detalle relevamiento
     ], array(), self::$atributos)->after(function($validator){
       $rel = Relevamiento::find($validator->getData()['id_relevamiento']);
