@@ -192,4 +192,125 @@ class ABMCCierreAperturaController extends Controller
       }
       return 0;
     }
+    
+    private function getCierre($id_cierre_mesa,$id_apertura_mesa){
+      if(!is_null($id_cierre_mesa)){
+        $C = Cierre::find($id_cierre_mesa);
+        if(is_null($C)) return $C;
+        $CA = $C->cierre_apertura;
+        if(!is_null($CA) && !is_null($id_apertura_mesa)){
+          if($CA->id_apertura_mesa != $id_apertura_mesa) return null;
+        }
+        return $C;
+      }
+      else if(!is_null($id_apertura_mesa)){
+        $A = Apertura::find($id_apertura_mesa);
+        if(is_null($A)) return null;
+        $CA = $A->cierre_apertura;
+        if(is_null($CA)) return null;
+        return $CA->cierre;
+      }
+      return null;
+    }
+    
+    private function getApertura($id_cierre_mesa,$id_apertura_mesa){
+      if(!is_null($id_apertura_mesa)){
+        $A = Apertura::find($id_apertura_mesa);
+        if(is_null($A)) return $A;
+        $CA = $A->cierre_apertura;
+        if(!is_null($CA) && !is_null($id_cierre_mesa)){
+          if($CA->id_cierre_mesa != $id_cierre_mesa) return null;
+        }
+        return $A;
+      }
+      else if(!is_null($id_cierre_mesa)){
+        $C = Cierre::find($id_cierre_mesa);
+        if(is_null($C)) return null;
+        $CA = $C->cierre_apertura;
+        if(is_null($CA)) return null;
+        return $CA->apertura;
+      }
+      return null;
+    }
+    
+    public function getCierreApertura(){
+      $idc = request()->id_cierre_mesa ?? null;
+      $ida = request()->id_apertura_mesa ?? null;
+      $C = $this->getCierre($idc,$ida);
+      $A = $this->getApertura($idc,$ida);
+      $cierre_apertura = null;
+      if(!is_null($C)){
+        $cierre_apertura = $C->cierre_apertura;
+        
+        $mesa = $C->mesa()->withTrashed()->get()->first();
+        $juego = $mesa->juego()->withTrashed()->get()->first();
+        $moneda = $C->moneda;
+        if(empty($moneda)){
+          $moneda = $mesa->moneda;
+        }
+        $fiscalizador = $C->fiscalizador()->withTrashed()->get()->first();
+
+        $fecha = $C->created_at;
+        if(is_null($fecha)){//created_at puede ser nulo por algun motivo
+          $fecha = $C->fecha;
+        }
+
+        $detalles = DB::table('ficha as F')
+        ->select('D.monto_ficha','F.valor_ficha','F.id_ficha','D.id_detalle_cierre')
+        ->leftJoin('detalle_cierre as D',function ($join) use($C){
+          $join->on('D.id_ficha','=','F.id_ficha')->where('D.id_cierre_mesa','=',$C->id_cierre_mesa);
+        })
+        ->join('ficha_tiene_casino as FC','FC.id_ficha','=','F.id_ficha')
+        ->where('FC.id_casino','=',$C->id_casino)
+        ->where(function($q) use ($fecha){
+          return $q->where('FC.deleted_at','>',$fecha)->orWhereNull('FC.deleted_at');
+        })
+        ->where(function($q) use ($fecha){
+          return $q->where('FC.created_at','<=',$fecha)->orWhereNotNull('D.id_ficha');
+        })
+        ->where('F.id_moneda','=',$moneda->id_moneda)
+        ->orderBy('F.valor_ficha','desc')
+        ->get();
+        
+        $datos = $C;
+        $cierre = compact('datos','detalles','fiscalizador','mesa','juego','moneda');
+      }
+      
+      $apertura = null;
+      if(!is_null($A)){
+        if(is_null($cierre_apertura)) $cierre_apertura = $A->cierre_apertura;
+        
+        $mesa = $A->mesa()->withTrashed()->get()->first();
+        $juego = $mesa->juego()->withTrashed()->get()->first();
+        $moneda = $A->moneda;
+        if(empty($moneda)){
+          $moneda = $mesa->moneda;
+        }
+        $fiscalizador = $A->fiscalizador()->withTrashed()->get()->first();
+        $cargador = $A->cargador()->withTrashed()->get()->first();
+        
+        $detalles = DB::table('ficha as F')
+        ->select('D.cantidad_ficha','F.valor_ficha','F.id_ficha','D.id_detalle_apertura',
+                  DB::raw('SUM(D.cantidad_ficha * F.valor_ficha) as monto_ficha'))
+        ->leftJoin('detalle_apertura as D',function ($join) use($A){
+          $join->on('D.id_ficha','=','F.id_ficha')->where('D.id_apertura_mesa','=',$A->id_apertura_mesa);
+        })
+        ->join('ficha_tiene_casino as FC','FC.id_ficha','=','F.id_ficha')
+        ->where('FC.id_casino','=',$A->id_casino)
+        ->where(function($q) use ($A){//Usar fecha o created_at?
+          return $q->where('FC.deleted_at','>',$A->created_at)->orWhereNull('FC.deleted_at');
+        })
+        ->where(function($q) use ($A){
+          return $q->where('FC.created_at','<=',$A->created_at)->orWhereNotNull('D.id_ficha');
+        })
+        ->where('F.id_moneda','=',$A->id_moneda)
+        ->groupBy('D.cantidad_ficha','F.valor_ficha','F.id_ficha','D.id_detalle_apertura')
+        ->orderBy('F.valor_ficha','desc')->get();
+        
+        $datos = $A;
+        $apertura = compact('datos','detalles','cargador','fiscalizador','mesa','juego','moneda');
+      }
+      
+      return compact('cierre','apertura','cierre_apertura');
+    }
   }

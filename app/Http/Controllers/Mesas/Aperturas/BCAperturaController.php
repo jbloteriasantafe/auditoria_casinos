@@ -18,6 +18,7 @@ use App\Casino;
 use App\SecRecientes;
 
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\Mesas\Cierres\BCCierreController;
 
 use App\Mesas\Mesa;
 use App\Mesas\JuegoMesa;
@@ -132,19 +133,27 @@ class BCAperturaController extends Controller
            'casino' => $apertura->casino, 'moneda' => $moneda ];
   }
 
-  public function obtenerDetallesApCierre($id_apertura,$id_cierre, $id_moneda){
-    if($id_apertura == null || $id_cierre == null || $id_moneda == null){
+  public function obtenerDetallesApCierre($id_apertura,$id_cierre){
+    if($id_apertura == null || $id_cierre == null){
       return response()->json(['error' => 'NULL pointer exception.'], 522);
     }
+    
     $apertura = Apertura::find($id_apertura);
     $cierre = Cierre::find($id_cierre);
-    if(empty($apertura) || empty($cierre)){
+    
+    //Chequeo de sensatez
+    if(empty($apertura)
+    || empty($cierre)
+    || ($apertura->id_casino != $cierre->id_casino)
+    || (strtotime($apertura->fecha) < strtotime($cierre->fecha))
+    || ($apertura->id_moneda != $cierre->id_moneda)
+    || (is_null($apertura->id_moneda) && is_null($cierre->id_moneda))){
       return response()->json(['error' => 'NULL pointer exception.'], 522);
     }
 
     $fichas = Ficha::join('ficha_tiene_casino','ficha_tiene_casino.id_ficha','=','ficha.id_ficha')
     ->where('ficha_tiene_casino.id_casino','=',$apertura->id_casino)
-    ->where('id_moneda','=',$id_moneda)
+    ->where('id_moneda','=',$apertura->id_moneda)
     ->where('ficha_tiene_casino.created_at','<=',$apertura->fecha)
     ->where(function($q) use ($apertura){
       return $q->where('ficha_tiene_casino.deleted_at','>',$apertura->fecha)->orWhereNull('ficha_tiene_casino.deleted_at');
@@ -208,10 +217,11 @@ class BCAperturaController extends Controller
     }
 
     $resultados = DB::table('apertura_mesa')
-    ->select('apertura_mesa.id_apertura_mesa','apertura_mesa.hora',
-              'apertura_mesa.id_estado_cierre','apertura_mesa.fecha',
-              'casino.nombre','juego_mesa.siglas as nombre_juego',
-              'moneda.siglas as siglas_moneda','mesa_de_panio.nro_mesa')
+    ->select('apertura_mesa.id_apertura_mesa as id',
+              'apertura_mesa.id_estado_cierre as estado','apertura_mesa.fecha',
+              'casino.nombre as casino','juego_mesa.siglas as juego',
+              'moneda.siglas as moneda','mesa_de_panio.nro_mesa',
+              DB::raw('IFNULL(TIME_FORMAT(apertura_mesa.hora,"%H:%i"),"") as hora'))
     ->join('mesa_de_panio','apertura_mesa.id_mesa_de_panio','=','mesa_de_panio.id_mesa_de_panio')
     ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
     ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
@@ -230,7 +240,7 @@ class BCAperturaController extends Controller
     ->when($sort_by,function($query) use ($sort_by){
       return $query->orderBy($sort_by['columna'],$sort_by['orden']);
     })->paginate($request->page_size);
-    return ['apertura' => $resultados];
+    return $resultados;
   }
 
   public function buscarIDMesasAperturasDelDia($fecha,$id_casino){

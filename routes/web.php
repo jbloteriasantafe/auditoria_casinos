@@ -740,7 +740,7 @@ Route::group(['prefix' => 'cierres','middleware' => 'tiene_permiso:m_buscar_aper
   Route::post('filtrosCierres','Mesas\Cierres\BCCierreController@filtros');
   Route::post('guardar', 'Mesas\Cierres\ABMCierreController@guardar');
   Route::post('modificarCierre','Mesas\Cierres\ABMCierreController@modificarCierre');
-  Route::get('obtenerCierres/{id_cierre}', 'Mesas\Cierres\BCCierreController@getCierre');
+  Route::get('getCierre', 'Mesas\Cierres\ABMCCierreAperturaController@getCierreApertura');
   Route::get('bajaCierre/{id_cierre}', 'Mesas\Cierres\BCCierreController@eliminarCierre')->middleware(['tiene_permiso:m_eliminar_cierres_y_aperturas']);
   Route::get('buscarFiscalizadores/{id_cas}/{nombre}', 'UsuarioController@buscarFiscaNombreCasino');
   Route::get('obtenerMesasCierre/{id_cas}/{nro_mesa}', 'Mesas\Mesas\BuscarMesasController@buscarMesaPorNroCasino');
@@ -757,7 +757,7 @@ Route::group(['prefix' => 'aperturas','middleware' => 'tiene_permiso:m_buscar_ap
   Route::get('buscarAperturasAPedido','Mesas\Aperturas\ABMAperturaController@buscarAperturasAPedido');
   Route::delete('borrarAperturaAPedido/{id_apertura_a_pedido}','Mesas\Aperturas\ABMAperturaController@borrarAperturaAPedido');
   Route::post('filtrosAperturas', 'Mesas\Aperturas\BCAperturaController@filtros');
-  Route::get('obtenerAperturas/{id_apertura}', 'Mesas\Aperturas\BCAperturaController@getApertura');
+  Route::get('getApertura', 'Mesas\Cierres\ABMCCierreAperturaController@getCierreApertura');
   Route::post('guardarApertura', 'Mesas\Aperturas\ABMAperturaController@guardar');
   Route::post('modificarApertura','Mesas\Aperturas\ABMAperturaController@modificarApertura');
   Route::get('bajaApertura/{id_apertura}', 'Mesas\Aperturas\BCAperturaController@eliminarApertura')->middleware(['tiene_permiso:m_eliminar_cierres_y_aperturas']);
@@ -767,7 +767,7 @@ Route::group(['prefix' => 'aperturas','middleware' => 'tiene_permiso:m_buscar_ap
   Route::get('desvincularApertura/{id_apertura}', 'Mesas\Cierres\ABMCCierreAperturaController@desvincularApertura')->middleware(['tiene_permiso:m_desvincular_aperturas']);
   Route::get('buscarFiscalizadores/{id_cas}/{nombre}', 'UsuarioController@buscarFiscaNombreCasino');
   Route::get('descargarZip/{nombre}', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@descargarZip');
-  Route::get('compararCierre/{id_apertura}/{id_cierre}/{id_moneda}','Mesas\Aperturas\BCAperturaController@obtenerDetallesApCierre');
+  Route::get('compararCierre/{id_apertura}/{id_cierre}','Mesas\Aperturas\BCAperturaController@obtenerDetallesApCierre');
 });
 
 //Sección Juegos
