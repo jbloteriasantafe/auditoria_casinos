@@ -193,7 +193,7 @@ class ABMCCierreAperturaController extends Controller
       return 0;
     }
     
-    private function getCierre($id_cierre_mesa,$id_apertura_mesa){
+    private function _getCierre($id_cierre_mesa,$id_apertura_mesa){
       if(!is_null($id_cierre_mesa)){
         $C = Cierre::find($id_cierre_mesa);
         if(is_null($C)) return $C;
@@ -213,7 +213,7 @@ class ABMCCierreAperturaController extends Controller
       return null;
     }
     
-    private function getApertura($id_cierre_mesa,$id_apertura_mesa){
+    private function _getApertura($id_cierre_mesa,$id_apertura_mesa){
       if(!is_null($id_apertura_mesa)){
         $A = Apertura::find($id_apertura_mesa);
         if(is_null($A)) return $A;
@@ -233,11 +233,9 @@ class ABMCCierreAperturaController extends Controller
       return null;
     }
     
-    public function getCierreApertura(){
-      $idc = request()->id_cierre_mesa ?? null;
-      $ida = request()->id_apertura_mesa ?? null;
-      $C = $this->getCierre($idc,$ida);
-      $A = $this->getApertura($idc,$ida);
+    public function getCierreApertura($idc,$ida){
+      $C = $this->_getCierre($idc,$ida);
+      $A = $this->_getApertura($idc,$ida);
       $cierre_apertura = null;
       if(!is_null($C)){
         $cierre_apertura = $C->cierre_apertura;
@@ -312,5 +310,12 @@ class ABMCCierreAperturaController extends Controller
       }
       
       return compact('cierre','apertura','cierre_apertura');
+    }
+    
+    public function getCierre($id_cierre_mesa){
+      return $this->getCierreApertura($id_cierre_mesa,null);
+    }
+    public function getApertura($id_apertura_mesa){
+      return $this->getCierreApertura(null,$id_apertura_mesa);
     }
   }

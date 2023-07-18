@@ -29,67 +29,59 @@ use App\Http\Controllers\AuthenticationController;
 @section('contenidoVista')
 
 <?php 
-
-  $tabs = ['aperturas','cierres'];
-  $botones = [
-    'aperturas' => [
-      'GenerarPlantilla','CargarApertura','AperturaAPedido',
-    ],
-    'cierres' => [
-      'CargarCierre',
-    ]
-  ];
-  $botones_solo_adm = [
-    'AperturaAPedido',
-  ];
-  
-  $buscar_url = [
-    'aperturas' => 'aperturas/filtrosAperturas',
-    'cierres'  => 'cierres/filtrosCierres',
-  ];
-  
   $CamelCase_to_TitleCase = function($s){
     $arr = preg_split('/(^[^A-Z]+|[A-Z][^A-Z]+)/',$s,-1,PREG_SPLIT_NO_EMPTY|PREG_SPLIT_DELIM_CAPTURE);
     return implode(' ',$arr);
   };
-  $resultados = [
-    'aperturas' => [
-      'fecha' => 'apertura_mesa.fecha',
-      'nro_mesa' => 'mesa_de_panio.nro_mesa',
-      'juego' => 'juego_mesa.siglas',
-      'hora' => 'apertura_mesa.hora',
-      'moneda' => 'moneda.siglas',
-      'casino' => 'casino.nombre',
-      'estado' => 'apertura_mesa.id_estado_cierre',
-      'acciones' =>  [
-        'ver' => ['fa-search-plus',null,'data-estados="1,2,3,4" data-link="aperturas/obtenerAperturas"'],
-        'desvincular' => ['fa-unlink','m_validar_aperturas','data-estados="2,3,4"'],
-        'modificar' => ['fa-pencil-alt',null,'data-estados="1"'],
-        'validar' => ['fa-check','m_validar_aperturas','data-estados="1"'],
-        'eliminar' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1"'],
-      ],
-    ],
-    'cierres' => [
-      'fecha' => 'cierre_mesa.fecha',
-      'nro_mesa' => 'mesa_de_panio.nro_mesa',
-      'juego' => 'juego_mesa.siglas',
-      'hora' => 'cierre_mesa.hora_inicio',
-      'moneda' => 'moneda.siglas',
-      'casino' => 'casino.nombre',
-      'estado' => 'cierre_mesa.id_estado_cierre',
-      'acciones' =>  [
-        'ver' => ['fa-search-plus',null,'data-estados="1,2,3,4" data-link="cierres/obtenerCierres"'],
-        'modificar' => ['fa-pencil-alt',null,'data-estados="1"'],
-        'validar' => ['fa-check','m_validar_cierres','data-estados="1"'],
-        'eliminar' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1"'],
-      ],
-    ],
-  ];
   
   $tiene_permiso = function($p) use ($usuario){
     if(empty($p)) return true;
     return AuthenticationController::getInstancia()->usuarioTienePermiso($usuario->id_usuario,$p);
   };
+  
+  $tabs = [
+    'aperturas' => [
+      'botones' => ['GenerarPlantilla','CargarApertura','AperturaAPedido'],
+      'botones_solo_adm' => ['AperturaAPedido'],
+      'buscar' => 'aperturas/filtrosAperturas',
+      'resultados' => [
+        'fecha' => 'fecha',
+        'nro_mesa' => 'nro_mesa',
+        'juego' => 'juego_mesa.siglas',
+        'hora' => 'hora',
+        'moneda' => 'moneda.siglas',
+        'casino' => 'casino.nombre',
+        'estado' => 'apertura_mesa.id_estado_cierre',
+        'acciones' =>  [//icono, permiso, html extra
+          'ver' => ['fa-search-plus',null,'data-estados="1,2,3,4"'],
+          'desvincular' => ['fa-unlink','m_validar_aperturas','data-estados="2,3,4"'],
+          'modificar' => ['fa-pencil-alt',null,'data-estados="1"'],
+          'validar' => ['fa-check','m_validar_aperturas','data-estados="1"'],
+          'eliminar' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1"'],
+        ],
+      ],
+    ],
+    'cierres' => [
+      'botones' => ['CargarCierre'],
+      'botones_solo_adm' => [],
+      'buscar' => 'cierres/filtrosCierres',
+      'resultados' => [
+        'fecha' => 'fecha',
+        'nro_mesa' => 'nro_mesa',
+        'juego' => 'juego_mesa.siglas',
+        'hora' => 'hora_inicio',
+        'moneda' => 'moneda.siglas',
+        'casino' => 'casino.nombre',
+        'estado' => 'cierre_mesa.id_estado_cierre',
+        'acciones' =>  [
+          'ver' => ['fa-search-plus',null,'data-estados="1,2,3,4"'],
+          'modificar' => ['fa-pencil-alt',null,'data-estados="1"'],
+          'validar' => ['fa-check','m_validar_cierres','data-estados="1"'],
+          'eliminar' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1"'],
+        ],
+      ],
+    ],
+  ];
 ?>
 <div id="iconosEstados" hidden>
   <i data-estado="1" class="fas fa-fw fa-times" style="color: rgb(211, 47, 47); text-align: center;"></i>
@@ -98,12 +90,12 @@ use App\Http\Controllers\AuthenticationController;
   <i data-estado="4" class="fa fa-fw fa-check" style="color: rgb(76, 175, 80); text-align: center;"></i>
   <i data-estado=""  class="fas fa-fw fa-question" style="color: rgb(227, 118, 2); text-align: center;"></i>
 </div>
-@foreach($tabs as $tab)
+@foreach($tabs as $tab => $tdata)
 <div class="col-lg-12 tab_content" id="pant_{{$tab}}" hidden="true">
   <div class="row">
     <div class="col-md-3">
-      @foreach($botones[$tab] as $b)
-      @if(!in_array($b,$botones_solo_adm) || $usuario->es_administrador || $usuario->es_superusuario)
+      @foreach($tdata['botones'] as $b)
+      @if(!in_array($b,$tdata['botones_solo_adm']) || $usuario->es_administrador || $usuario->es_superusuario)
       <div class="row">
         <div class="col-md-12">
           <a href="" class="btn-grande" modal="#modal-{{$b}}" dusk="btn-nuevo" style="text-decoration: none;">
@@ -174,7 +166,7 @@ use App\Http\Controllers\AuthenticationController;
                     </select>
                   </div>
                   <div class="col-md-4" style="padding-top:50px;">
-                    <button target="{{$buscar_url[$tab]}}" class="btn btn-infoBuscar btn-buscar" type="button" style="margin-top:30px">
+                    <button target="{{$tdata['buscar']}}" class="btn btn-infoBuscar btn-buscar" type="button" style="margin-top:30px">
                       <i class="fa fa-fw fa-search"></i> BUSCAR
                     </button>
                   </div>
@@ -195,7 +187,7 @@ use App\Http\Controllers\AuthenticationController;
                 <table class="table tablesorter tablaResultados">
                   <thead>
                     <tr align="center">
-                      @foreach($resultados[$tab] as $class => $key)
+                      @foreach($tdata['resultados'] as $class => $key)
                       @php $txt = str_replace('_',' ',strtoupper($class)); @endphp
                       @if(!is_array($key))
                         @if($loop->first)
@@ -215,7 +207,7 @@ use App\Http\Controllers\AuthenticationController;
               </div>
               <table hidden>
                 <tr class="filaResultado moldeFilaResultados">
-                  @foreach($resultados[$tab] as $class => $key)
+                  @foreach($tdata['resultados'] as $class => $key)
                   @if(!is_array($key))
                   <td class="{{$class}}">{{$class}}</td>
                   @else
@@ -288,10 +280,10 @@ use App\Http\Controllers\AuthenticationController;
       <div class="modal-header" style="background-color:#4AA89F;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true"
-                data-target="#colapsadoAaP" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                data-target="#modal-AperturaAPedido .collapse" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title">| APERTURAS A PEDIDO</h3>
       </div>
-      <div id="colapsadoAaP" class="collapse in">
+      <div class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
           <div class="row">
             <div class="col-xs-2">
@@ -421,12 +413,12 @@ use App\Http\Controllers\AuthenticationController;
         <button type="button" class="close" data-dismiss="modal">
           <i class="fa fa-times"></i>
         </button>
-        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado">
+        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#modalVerCierreApertura .collapse">
           <i class="fa fa-window-minimize"></i>
         </button>
         <h3 class="modal-title">DETALLE</h3>
       </div>
-      <div id="colapsado" class="collapse in">
+      <div class="collapse in">
         <div class="modal-body">
           @foreach(['Cierre','Apertura'] as $tipo)
           <div class="row datos{{$tipo}}">
@@ -619,10 +611,10 @@ use App\Http\Controllers\AuthenticationController;
     <div class="modal-content">
       <div class="modal-header" style="background-color:#6dc7be;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizar-carga-cierre" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+        <button id="btn-minimizar-carga-cierre" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#modal-CargarCierreApertura .collapse" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title tipo">CARGAR XXXXX</h3>
       </div>
-      <div id="colapsado" class="collapse in">
+      <div class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
           <div class="row" style="border-bottom:2px solid #ccc;">
             <div class="col-md-4">
@@ -837,10 +829,10 @@ use App\Http\Controllers\AuthenticationController;
     <div class="modal-content">
       <div class="modal-header" style="background-color:#6dc7be;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#modalValidarApertura .collapse" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title">| VALIDAR APERTURA </h3>
       </div>
-      <div id="colapsado" class="collapse in">
+      <div class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">
           <div class="row borde_abajo" style="padding-bottom:20px">
             <div class="col-xs-5">
@@ -964,10 +956,10 @@ use App\Http\Controllers\AuthenticationController;
     <div class="modal-content">
       <div class="modal-header" style="font-family: Roboto-Black; background-color:#D50000">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#modalAlertaBaja .collapse" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title">ALERTA</h3>
       </div>
-      <div id="colapsado" class="collapse in">
+      <div class="collapse in">
         <div class="modal-body">
           <h6 class="mensaje" style="color:#000000; font-size: 18px !important; text-align:center !important"></h6>
           <div class="row">
