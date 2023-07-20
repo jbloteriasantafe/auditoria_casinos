@@ -57,56 +57,96 @@ class ABMAperturaController extends Controller
   }
 
   public function guardar(Request $request){
-    $validator=  Validator::make($request->all(),[
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+          
+    $validator = Validator::make($request->all(),[
+      'id_apertura_mesa' => 'nullable|exists:apertura_mesa,id_apertura_mesa',
       'fecha' => 'required|date',
       'hora' => 'required|date_format:"H:i"',
       'id_casino' => 'required|exists:casino,id_casino',
-      'total_pesos_fichas_a' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
       'id_fiscalizador' => 'required|exists:usuario,id_usuario',
       'id_mesa_de_panio' => 'required|exists:mesa_de_panio,id_mesa_de_panio',
-      'fichas' => 'required',
+      'fichas' => 'required|array',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
-      'fichas.*.cantidad_ficha' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?$/'],
+      'fichas.*.cantidad_ficha' => 'nullable|integer|min:0',
       'id_moneda' => 'required|exists:moneda,id_moneda',
-    ], array(), self::$atributos)->after(function($validator){
-      $mesa = Mesa::find($validator->getData()['id_mesa_de_panio']);
-      if(!$mesa->multimoneda && $mesa->id_moneda != $validator->getData()['id_moneda']){
-         $validator->errors()->add('id_moneda', 'La moneda elegida no es correcta.');
+    ], [
+      'required' => 'El valor es requerido',
+      'exists'   => 'No existe el valor en la base de datos',
+      'integer'  => 'El valor tiene que ser un numero entero',
+      'min'      => 'El valor tiene que ser positivo',
+    ], self::$atributos)->after(function($validator) use ($user){
+      
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      
+      if(!$user->usuarioTieneCasino($data['id_casino'])){
+        return $validator->errors()->add('id_casino','No tiene los privilegios');
       }
-        if(!empty($validator->getData()['fecha']) &&
-            !empty($validator->getData()['id_mesa_de_panio']) &&
-            !empty($validator->getData()['hora']) &&
-            !empty($validator->getData()['id_moneda'])
-          ){
-        $ap = Apertura::where([
-                                ['fecha','=',$validator->getData()['fecha']],
-                                ['id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio']],
-                                ['hora','=',$validator->getData()['hora']],
-                                ['id_moneda','=',$validator->getData()['id_moneda']]
-                              ])
-                              ->get();
-
-        if(count($ap)> 0 ){
-          $validator->errors()->add('id_mesa_de_panio','Ya existe una apertura para la fecha.'
-                                   );
+      
+      $mesa = Mesa::withTrashed()->where('id_mesa_de_panio','=',$data['id_mesa_de_panio'])
+      ->where(function($q) use ($data){
+        return $q->where('deleted_at','>',$data['fecha'])->orWhereNull('deleted_at');
+      })->first();
+      
+      if(is_null($mesa))
+        return $validator->errors()->add('id_mesa_de_panio', 'No existe la mesa.');
+    
+      if(is_null($data['id_apertura_mesa'])){
+        $reglas = [
+          ['id_mesa_de_panio','=',$data['id_mesa_de_panio']],
+          ['fecha','=',$data['fecha']],
+          ['id_moneda','=',$data['id_moneda']],
+          ['hora','=',$data['hora']]
+        ];
+        $ya_existe = Apertura::where($reglas)->get()->count() > 0;
+        if($ya_existe){
+          $validator->errors()->add('id_mesa_de_panio','Ya existe una apertura para la fecha.');
         }
       }
-      $validator = $this->validarFichas($validator);
-
+      else{
+        $reglas = [
+          ['id_apertura_mesa','=',$data['id_apertura_mesa']],
+          ['id_mesa_de_panio','=',$data['id_mesa_de_panio']],
+          ['fecha','=',$data['fecha']]
+        ];
+        $no_existe = Apertura::where($reglas)->get()->count() != 1;
+        if($no_existe){
+          $validator->errors()->add('id_mesa_de_panio','No existe esa apertura.');
+        }
+      }
+      
+      if($validator->errors()->any()) return;
+      
+      $todos_vacios = true;
+      foreach($data['fichas'] as $f){
+        $todos_vacios = $todos_vacios && is_null($f['cantidad_ficha']);
+        if(!$todos_vacios) break;
+      }
+      
+      if($todos_vacios) foreach($data['fichas'] as $idx => $f){
+        $validator->errors()->add("fichas.$idx.cantidad_ficha",'El valor es requerido');
+      }
     })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    if($user->usuarioTieneCasino($request->id_casino)){
-      $mesa = Mesa::find($request->id_mesa_de_panio);
-      $apertura = new Apertura;
+    
+    return DB::transaction(function() use ($request,$user){
+      $mesa = Mesa::withTrashed()->find($request->id_mesa_de_panio);
+      $apertura = null;
+      if(is_null($request->id_apertura_mesa)){
+        $apertura = new Apertura;
+      }
+      else{
+        $apertura = Apertura::where([
+          ['id_apertura_mesa','=',$request->id_apertura_mesa],
+          ['id_mesa_de_panio','=',$request->id_mesa_de_panio],
+          ['fecha','=',$request->fecha]
+        ])->first();
+      }
+      
+      $apertura->fecha = $request->fecha;
+      $apertura->hora  = $request->hora;
+      $apertura->total_pesos_fichas_a = 0;
       $apertura->moneda()->associate($request->id_moneda);
-      $apertura->fecha =$request->fecha;
-      $apertura->hora = $request->hora;
-      $apertura->total_pesos_fichas_a = $request->total_pesos_fichas_a;
       $apertura->fiscalizador()->associate($request->id_fiscalizador);
       $apertura->cargador()->associate($user->id_usuario);
       $apertura->mesa()->associate($request->id_mesa_de_panio);
@@ -114,104 +154,30 @@ class ABMAperturaController extends Controller
       $apertura->casino()->associate($request->id_casino);
       $apertura->tipo_mesa()->associate($mesa->juego->tipo_mesa->id_tipo_mesa);
       $apertura->save();
-      $detalles = array();
-      $total_pesos_fichas_a = 0;
-      foreach ($request['fichas'] as $f) {
-        if($f['cantidad_ficha'] != 0){
-          $ficha = new DetalleApertura;
-          $ficha->ficha()->associate($f['id_ficha']);
-          $ficha->cantidad_ficha = $f['cantidad_ficha'];
-          $ficha->apertura()->associate($apertura->id_apertura_mesa);
-          $ficha->save();
-          $fixa = Ficha::find($f['id_ficha']);
-          $total_pesos_fichas_a =($f['cantidad_ficha'])*$fixa->valor_ficha + $total_pesos_fichas_a;
-        }
-      }
-      if($total_pesos_fichas_a != $apertura->total_pesos_fichas_a){
-        $apertura->total_pesos_fichas_a = $total_pesos_fichas_a;
-        $apertura->save();
-      }
-
-     return ['apertura' => $apertura,'detalles' => $detalles];
-    }else{
-       return response()->json(['errors' => ['autorizacion' => 'No está autorizado para realizar esta accion.'],404]);
-    }
-  }
-
-  public function modificarApertura(Request $request){
-    $validator=  Validator::make($request->all(),[
-      'id_apertura' => 'required|exists:apertura_mesa,id_apertura_mesa',
-      'hora' => 'required|date_format:"H:i"',
-      'total_pesos_fichas_a' =>  ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'id_fiscalizador' => 'required|exists:usuario,id_usuario',
-      'fichas' => 'required',
-      'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
-      'fichas.*.cantidad_ficha' =>  ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?$/'],
-      'id_moneda' => 'required|exists:moneda,id_moneda',
-    ], array(), self::$atributos)->after(function($validator){
-      $apertura=Apertura::find($validator->getData()['id_apertura']);
-      $mesa = $apertura->mesa;
-      if(!$mesa->multimoneda && $mesa->id_moneda != $validator->getData()['id_moneda']){
-         $validator->errors()->add('id_moneda', 'La moneda elegida no es correcta.');
-      }
-      $validator = $this->validarFichas($validator);
-     })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
-    $apertura = Apertura::find($request->id_apertura);
-    $user =  UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    if($user->usuarioTieneCasino($apertura->casino->id_casino)){
-      $apertura->hora = $request->hora;
-      $apertura->total_pesos_fichas_a = $request->total_pesos_fichas_a;
-      $apertura->fiscalizador()->associate($request->id_fiscalizador);
-      $apertura->save();
-      $detalles = $apertura->detalles;
-      $apertura->moneda()->associate($request->id_moneda);
-      foreach ($detalles as $d) {
+      
+      foreach ($apertura->detalles as $d) {
         $d->apertura()->dissociate();
         $d->delete();
       }
+      
       $total_pesos_fichas_a = 0;
-      foreach ($request['fichas'] as $f) {
-        if($f['cantidad_ficha'] != 0){
-          $ficha = new DetalleApertura;
-          $ficha->ficha()->associate($f['id_ficha']);
-          $ficha->cantidad_ficha = $f['cantidad_ficha'];
-          $ficha->apertura()->associate($apertura->id_apertura_mesa);
-          $ficha->save();
-          $fixa = Ficha::find($f['id_ficha']);
-          $total_pesos_fichas_a =($f['cantidad_ficha'])*$fixa->valor_ficha + $total_pesos_fichas_a;
-        }
+      foreach ($request['fichas'] as $f){
+        if(empty($f['cantidad_ficha'])) continue;
+        $ficha = new DetalleApertura;
+        $ficha->ficha()->associate($f['id_ficha']);
+        $ficha->cantidad_ficha = $f['cantidad_ficha'];
+        $ficha->apertura()->associate($apertura->id_apertura_mesa);
+        $ficha->save();
+        $fixa = Ficha::find($f['id_ficha']);
+        $total_pesos_fichas_a =($f['cantidad_ficha'])*$fixa->valor_ficha + $total_pesos_fichas_a;
       }
-      if($total_pesos_fichas_a != $apertura->total_pesos_fichas_a){
-        $apertura->total_pesos_fichas_a = $total_pesos_fichas_a;
-        $apertura->save();
-      }
-      return response()->json(['exito' => 'Apertura Modificada'], 200);
-    }else{
-
-      return response()->json(['autorizacion' => 'No está autorizado para realizar esta accion.'], 404);
-    }
+      
+      $apertura->total_pesos_fichas_a = $total_pesos_fichas_a;
+      $apertura->save();
+      return ['apertura' => $apertura];
+    });
   }
-
-  private function validarFichas($validator){
-    $aux = 0;
-    $total_pesos_fichas_a = 0;
-    if(!empty($validator->getData()['fichas']) && $validator->getData()['fichas'] != null){
-      foreach ($validator->getData()['fichas'] as $detalle) {
-        $total_pesos_fichas_a+= $detalle['cantidad_ficha'];
-      }
-
-      if($total_pesos_fichas_a == 0){
-        $validator->errors()->add('fichas','No ha ingresado los montos.');
-      }
-      return $validator;
-
-    }
-  }
+  
   public function agregarAperturaAPedido(Request $request){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos = array();
@@ -246,6 +212,7 @@ class ABMAperturaController extends Controller
     });
     return 1;
   }
+  
   public function buscarAperturasAPedido(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos = array();
@@ -267,6 +234,7 @@ class ABMAperturaController extends Controller
 
     return $ret->get();
   }
+  
   public function borrarAperturaAPedido($id_apertura_a_pedido){
     DB::transaction(function () use ($id_apertura_a_pedido){
       AperturaAPedido::find($id_apertura_a_pedido)->delete();

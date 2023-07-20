@@ -3,7 +3,7 @@ $(document).ready(function() {
   $('.tituloSeccionPantalla').text('Cierres y Aperturas');
   $('[data-toggle="popover"]').popover();
 
-  $('.filtroFecha').datetimepicker({
+  $('.dtpFecha').datetimepicker({
     language:  'es',
     todayBtn:  1,
     autoclose: 1,
@@ -14,7 +14,7 @@ $(document).ready(function() {
     minView: 2,
   });
 
-  $('#cierreApertura').show().find('li').eq(0).click();
+  $('#tabs a:first').click();
 });
 
 /*
@@ -193,7 +193,7 @@ function buscarAperturasAPedido(){
 $('.btn-grande[modal="#modal-AperturaAPedido"]').click(function(e){
   e.preventDefault();
   $('#juegoAaP option').removeAttr('selected').eq(0).attr('selected','selected').change();
-  $(this).find('.filtroFecha').each(function(){
+  $(this).find('.dtpFecha').each(function(){
     $(this).data('datetimepicker').reset();
   });
   ocultarErrorValidacion($(this).find('input,select'));
@@ -344,7 +344,7 @@ $(document).on('click', '#btn-desvincular', function(e){
 */
 
 $(document).on('click','#pant_aperturas .eliminar',function(e){
-  $('#modalAlertaBaja .btn-eliminar').attr('data-tipo','aperturas/bajaApertura');
+  $('#modalAlertaBaja .btn-eliminar').attr('data-url','aperturas/bajaApertura');
   $('#modalAlertaBaja .btn-eliminar').val($(this).val());
   $('#modalAlertaBaja .mensaje').text('¿ESTA SEGURO QUE DESEA ELIMINAR ESTA APERTURA?')
   $('#modalAlertaBaja').modal('show');
@@ -567,7 +567,7 @@ const $MCCA = MCCA.find.bind(MCCA);
 
 function modalCargarCierreApertura(titulo,tipo_modal,modo_modal,O){
   {//Limpiar
-    $MCCA('.filtroFecha').data('datetimepicker').reset();
+    $MCCA('.dtpFecha').data('datetimepicker').reset();
     $MCCA('.form-control').val('').change();
     ocultarErrorValidacion($MCCA('.form-control'));
     $MCCA('.tablaMesas tbody tr,.tablaFichas tbody tr').remove();
@@ -575,11 +575,12 @@ function modalCargarCierreApertura(titulo,tipo_modal,modo_modal,O){
     const quienSoy = $('#quienSoy').clone().show().removeAttr('id');
     $MCCA('[name="cargador"]').replaceWith(quienSoy);
     $MCCA('.moldeFila .cargar').removeClass('cargado');
+    MCCA.data('cargados',0);
   }
   {//Armar modal
     $MCCA('.tipo').text(titulo);
     $MCCA(".modal-header").css('background-color',modo_modal);
-    MCCA.attr('data-path',tipo_modal);
+    MCCA.data('path',tipo_modal);
     $MCCA("[cierres]").toggle(tipo_modal == TipoModal.cierre);
     $MCCA("[aperturas]").toggle(tipo_modal == TipoModal.apertura);
     $MCCA("[cargar]").toggle(modo_modal == ModoModal.cargar);
@@ -592,7 +593,7 @@ function modalCargarCierreApertura(titulo,tipo_modal,modo_modal,O){
   }
   
   if(O?.mesa){//Setear mesa si vino una
-    $MCCA('.filtroFecha').data('datetimepicker').setDate(
+    $MCCA('.dtpFecha').data('datetimepicker').setDate(
       new Date(O.datos.fecha+'T00:00')
     );
     $MCCA('[name="fecha"]').change();
@@ -611,9 +612,9 @@ function modalCargarCierreApertura(titulo,tipo_modal,modo_modal,O){
       id_mesa_de_panio: O?.mesa?.id_mesa_de_panio ?? 'ERROR',
       id_moneda: Object.keys(fichas)[0],
       fichas: fichas,
-      hora: O?.datos?.hora ?? '',
-      hora_inicio: O?.datos?.hora_inicio ?? '',
-      hora_fin: O?.datos?.hora_fin ?? '',
+      hora: O?.datos?.hora? hhmm(O.datos.hora) : '',
+      hora_inicio: O?.datos?.hora_inicio? hhmm(O.datos.hora_inicio) : '',
+      hora_fin: O?.datos?.hora_fin? hhmm(O.datos.hora_fin) : '',
       total_pesos_fichas_a: O?.datos?.total_pesos_fichas_a,
       total_pesos_fichas_c: O?.datos?.total_pesos_fichas_c,
       total_anticipos_c: O?.datos?.total_anticipos_c,
@@ -642,13 +643,13 @@ $MCCA('[name="fecha"],[name="id_casino"]').change(function(e){
 
 $MCCA('[name="id_casino"]').change(function(e){
   const id_casino = $(this).val();
-  const PATH = MCCA.attr('data-path');
+  const PATH = MCCA.data('path');
   $MCCA('.tablaMesas tbody').empty()
   $MCCA('.mesa').generarDataList(
     `${PATH}/obtenerMesas/${id_casino}`,
     'mesas' ,'id_mesa_de_panio','nro_mesa',1
   );
-  $MCCA('[name="fiscalizador"]').generarDataList(
+  $MCCA('[name="id_fiscalizador"]').generarDataList(
     `${PATH}/buscarFiscalizadores/${id_casino}`,
     'usuarios' ,'id_usuario','nombre',1
   );
@@ -663,33 +664,20 @@ $MCCA('.agregarMesa').click(function(e) {
   }).length > 0;
   if(ya_existe) return;
   
-  const PATH = MCCA.attr('data-path');
+  const PATH = MCCA.data('path');
   GET(`${PATH}/detalleMesa/${id_mesa_de_panio}`,{}, function(data) {
-    const fila = $MCCA('.moldeFila').clone().removeClass('moldeFila');
+    let id_moneda = '';//Moneda seleccionada
+    const fichas = {//Fichas por moneda
+      '': [], 
+      ...(data.fichas ?? {})
+    };
     
-    //Moneda seleccionada
-    let id_moneda = null;
-    //Fichas por moneda
-    let fichas = {};
-    
-    //@HACK: devolver las monedas habilitadas desde el backend y listo
-    switch(!!data.fichas_pesos + !!data.fichas_dolares){
-      case 1:{
-        fichas[data.fichas_pesos? 1 : 2] = data.fichas_pesos ?? data.fichas_dolares;
-        id_moneda = data.fichas_pesos? 1 : 2;
-      }break;
-      case 2:{
-        id_moneda = '';
-        fichas[''] = [];
-        fichas[1] = data.fichas_pesos;
-        fichas[2] = data.fichas_dolares;
-      }break;
-      default:{
-        id_moneda = '';
-        fichas[''] = [];
-      }break;
+    if(Object.keys(fichas).length == 2){//Si tiene una sola moneda dejo esa sola
+      delete fichas[''];
+      id_moneda = Object.keys(fichas)[0];
     }
     
+    const fila = $MCCA('.moldeFila').clone().removeClass('moldeFila');
     fila.find('.nro_mesa').text(data.mesa.nro_mesa);
     fila.data('valores',{
       id_mesa_de_panio: id_mesa_de_panio,
@@ -746,7 +734,7 @@ $(document).on('click', `${_MCCA} .cargar`, function(e){
     .attr('value',valores.nombre_cargador ?? '');
   }
   
-  $MCCA('[name="fiscalizador"]').setearElementoSeleccionado(
+  $MCCA('[name="id_fiscalizador"]').setearElementoSeleccionado(
     valores.id_fiscalizador ?? null,
     valores.nombre_fiscalizador ?? ''
   );
@@ -866,22 +854,44 @@ function obtenerDatosModalCargarCierreApertura(){
 $MCCA('.btn-guardar').click(function(e){
   const formData = obtenerDatosModalCargarCierreApertura();
   console.log(formData);//@TODO
-  const mesa = $MCCA.find('.mesa_seleccionada');
-  mesa.find('.cargar').addClass('cargado');
-  mesa.find('.borrar').remove();
-  mesa.find('.cargar').click();
+  POST(`${MCCA.data('path')}/guardar`,formData,
+    function(data){
+      const mesa = $MCCA('.mesa_seleccionada');
+      mesa.find('.cargar').addClass('cargado');
+      mesa.find('.borrar').remove();
+      mesa.find('.cargar').click();
+      MCCA.data('cargados',MCCA.data('cargados')+1);
+      $('.tab_content:visible .btn-buscar').click();
+    },
+    function(response){
+      console.log(response);
+      const json = response.responseJSON ?? {};
+      Object.keys(json).forEach(function(k){
+        mostrarErrorValidacion($MCCA(`[name="${k}"]`),json[k].join(', '),true);
+      });
+      $MCCA('.tablaFichas tbody tr').each(function(idx,o){
+        const err_cantidad = json[`fichas.${idx}.cantidad_ficha`] ?? null;
+        const err_monto    = json[`fichas.${idx}.monto_ficha`] ?? null;
+        if(err_cantidad)
+          mostrarErrorValidacion($(o).find('.cantidad_ficha'),err_cantidad.join(', '),false);
+        if(err_monto)
+          mostrarErrorValidacion($(o).find('.monto_ficha'),err_monto.join(', '),false);
+      });
+      mensajeError();
+    }
+  );
 });
 
 $MCCA('.btn-validar').click(function(e){
   const formData = obtenerDatosModalCargarCierreApertura();
   console.log(formData);//@TODO
   mensajeExito('Cierre validado');
-  $(this).closest('.modal').modal('hide');
+  MCCA.modal('hide');
 });
 
 $MCCA('.btn-salir').on('click', function(){
   MCCA.modal('hide');
-  if($MCCA('.cargado:visible').length > 0){
+  if(MCCA.data('cargados')){
     mensajeExito();
   }
 });
@@ -896,23 +906,34 @@ $MCCA('.btn-salir').on('click', function(){
 ##     ##  #######  ##     ## 
 */
 
+function _mensaje(modal,mensaje){
+  modal.hide();
+  setTimeout(function(){
+    modal.find('p').text(mensaje);
+    modal.show();
+  },100);
+}
 function mensajeExito(mensaje=''){
-  $('#mensajeExito p').text(mensaje);
-  $('#mensajeExito').show();
+  _mensaje($('#mensajeExito'),mensaje);
 }
 function mensajeError(mensaje=''){
-  $('#mensajeError p').text(mensaje);
-  $('#mensajeError').show();
+  _mensaje($('#mensajeError'),mensaje);
 }
 
-function GET(url,params = {},success = function(data){},error = function(response){console.log(response);}){
+function _aux_ajax(type,url,params = {},success = function(data){},error = function(response){console.log(response);}){
   $.ajax({
-    type: 'GET',
+    type: type,
     url: url,
     data: params,
     success: success,
     error: error
   });
+}
+function GET(url,params = {},success = function(data){},error = function(response){console.log(response);}){
+  _aux_ajax('GET',url,params,success,error);
+}
+function POST(url,params = {},success = function(data){},error = function(response){console.log(response);}){
+  _aux_ajax('POST',url,params,success,error);
 }
 
 $('[data-minimizar]').click(function() {
@@ -930,13 +951,24 @@ $('.modal').on('shown.bs.modal',function(){
   }
 });
 
-$("#cierreApertura li").click(function() {
-  $("#cierreApertura li").removeClass("active");
+$("#tabs a").click(function() {
+  $("#tabs a").removeClass("active");
   $(this).addClass("active");
-  $(".tab_content").hide();
 
-  const tab = $($(this).find("a").attr("href")); //Find the href attribute value to
-  tab.find('.form-control').val('');//Limpio los filtros
+  const tab = $($(this).attr("href")); //Find the href attribute value to
+  tab.find('.filtro-busqueda-collapse .form-control').val('');//Limpio los filtros
   tab.find('.btn-buscar').click();
-  tab.fadeIn();//La muestro
+  
+  $('.tab_content').hide();
+  tab.show();
+  
+  setTimeout(function(){//@HACK: nose porque scrollea cuando tabea...
+    $('#tabs').get(0).scrollIntoView();
+  },50);
 });
+
+function hhmm(hhmmss){
+  const arr = hhmmss.split(':');
+  if(arr.length != 3) throw 'Formato de hora incorrecto '+hhmmss;
+  return arr.slice(0,2).join(':');
+}

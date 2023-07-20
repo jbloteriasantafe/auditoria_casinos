@@ -23,6 +23,41 @@ use App\Http\Controllers\AuthenticationController;
   tr.filaResultado td {
     text-align:center !important;
   }
+  section {
+    padding: 0 !important;
+  }
+  .contenedor > nav {
+    display: none;
+  }
+  #tabs {
+    width: 100%;
+    display: flex;
+    margin-bottom: 10px;
+  }
+  #tabs > div {
+    flex: 1;
+    margin: 0;
+    padding: 0;
+  }
+  #tabs a {
+    padding: 15px 10px;
+    font-family:Roboto-condensed;
+    font-size:20px;
+    background: white;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px
+  }
+  #tabs a.active {
+    color: #555;
+    cursor: default;
+    border-color: rgb(221, 221, 221);
+  }
 </style>
 @endsection
 
@@ -83,6 +118,17 @@ use App\Http\Controllers\AuthenticationController;
     ],
   ];
 ?>
+<div class="row">
+  <div id="tabs">
+    <div>
+      <a href="#pant_aperturas">Aperturas</a>
+    </div>
+    <div>
+      <a href="#pant_cierres">Cierres</a>
+    </div>
+  </div>
+</div>
+
 <div id="iconosEstados" hidden>
   <i data-estado="1" class="fas fa-fw fa-times" style="color: rgb(211, 47, 47); text-align: center;"></i>
   <i data-estado="2" class="fa fa-fw fa-check" style="color: rgb(76, 175, 80); text-align: center;"></i>
@@ -132,7 +178,7 @@ use App\Http\Controllers\AuthenticationController;
                   <div class="col-xs-4">
                     <h5>Fecha</h5>
                     <div class="form-group">
-                      <div class='input-group date filtroFecha' data-date-format="MM yyyy">
+                      <div class='input-group date dtpFecha' data-date-format="MM yyyy">
                         <input name="fecha" type='text' class="form-control" placeholder="aaaa-mm-dd" />
                         <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                         <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
@@ -303,7 +349,7 @@ use App\Http\Controllers\AuthenticationController;
             <div class="col-xs-2">
               <h5>F. INICIO</h5>
               <div class="form-group">
-                <div class='input-group date filtroFecha' data-date-format="aaaa-mm-dd">
+                <div class='input-group date dtpFecha' data-date-format="aaaa-mm-dd">
                   <input type='text' class="form-control" id="fechaInicioAaP" placeholder="Fecha de inicio"/>
                   <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                   <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
@@ -313,7 +359,7 @@ use App\Http\Controllers\AuthenticationController;
             <div class="col-xs-2">
               <h5>F. FIN</h5>
               <div class="form-group">
-                <div class='input-group date filtroFecha' data-date-format="aaaa-mm-dd">
+                <div class='input-group date dtpFecha' data-date-format="aaaa-mm-dd">
                   <input type='text' class="form-control" id="fechaFinAaP" placeholder="Fecha fin"/>
                   <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                   <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
@@ -604,7 +650,7 @@ use App\Http\Controllers\AuthenticationController;
   }
 </style>
 
-<input id="quienSoy" value="{{$usuario->nombre}}" data-elemento-seleccionado="{{$usuario->id_usuario}}" class="form-control" name="cargador" formData-attr="data-elemento-seleccionado" type="text" readonly style="display: none;">
+<input id="quienSoy" value="{{$usuario->nombre}}" data-elemento-seleccionado="{{$usuario->id_usuario}}" class="form-control" name="id_cargador" formData-attr="data-elemento-seleccionado" type="text" readonly style="display: none;">
 
 <div class="modal fade" id="modal-CargarCierreApertura" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" >
@@ -620,7 +666,7 @@ use App\Http\Controllers\AuthenticationController;
             <div class="col-md-4">
               <h6>FECHA</h6>
               <div class="form-group">
-                <div class='input-group date filtroFecha'>
+                <div class='input-group date dtpFecha'>
                   <input type='text' class="form-control" placeholder="aaaa-mm-dd" name="fecha"/>
                   <span class="input-group-addon" style="border-left:none;cursor:pointer;" cargar><i class="fa fa-times"></i></span>
                   <span class="input-group-addon" style="cursor:pointer;" cargar><i class="fa fa-calendar"></i></span>
@@ -715,7 +761,7 @@ use App\Http\Controllers\AuthenticationController;
                       </div>
                       <div class="col-md-4" aperturas>
                         <h6>FISCALIZADOR DE TOMA</h6>
-                        <input class="form-control" name="fiscalizador" type="text" formData-attr="data-elemento-seleccionado">
+                        <input class="form-control" name="id_fiscalizador" type="text" formData-attr="data-elemento-seleccionado">
                       </div>
                     </div>
                   </div>
@@ -760,12 +806,12 @@ use App\Http\Controllers\AuthenticationController;
                   <div class="row">
                     <div class="col-md-12" validar>
                       <div class="col-md-offset-10">
-                        <button type="button" class="btn btn-primary btn-validar" style="font-family: Roboto-Condensed;">VALIDAR</button>
+                        <button type="button" class="btn btn-success btn-validar" style="font-family: Roboto-Condensed;">VALIDAR</button>
                       </div>
                     </div>
                     <div class="col-md-12" cargar_modificar>
                       <div class="col-md-offset-10">
-                        <button type="button" class="btn btn-success btn-guardar" style="font-family: Roboto-Condensed;">GUARDAR</button>
+                        <button type="button" class="btn btn-primary btn-guardar" style="font-family: Roboto-Condensed;">GUARDAR</button>
                       </div>
                     </div>
                   </div>

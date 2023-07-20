@@ -106,6 +106,19 @@ class BuscarMesasController extends Controller
                       ->get();
       $moneda = null;
     }
+    
+    $fichas = DB::table('ficha as f')
+    ->select('f.id_moneda','f.id_ficha','f.valor_ficha')->distinct()
+    ->join('ficha_tiene_casino as fc','fc.id_ficha','=','f.id_ficha')
+    ->where('fc.id_casino','=',$casino->id_casino)
+    ->whereNull('fc.deleted_at')
+    ->where(function ($q) use ($mesa){
+      if($mesa->id_moneda != null) 
+        return $q->where('f.id_moneda','=',$mesa->id_moneda);
+    })
+    ->orderBy('f.valor_ficha','desc')
+    ->get()->groupBy('id_moneda');
+    
     return [
             'mesa' => $mesa,
             'sector' => $sector,
@@ -113,8 +126,9 @@ class BuscarMesasController extends Controller
             'tipo_mesa' => $tipo_mesa,
             'moneda' => $moneda,
             'casino' => $casino,
-            'fichas_pesos' => $fichasp,
-            'fichas_dolares' => $fichasd,
+            'fichas_pesos' => $fichasp,//@DEPRECAR
+            'fichas_dolares' => $fichasd,//@DEPRECAR
+            'fichas' => $fichas,
             'sectores' => $sectores,
             'juegos' => $juegos,
             'monedas' => $monedas,

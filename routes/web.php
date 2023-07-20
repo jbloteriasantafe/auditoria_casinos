@@ -758,7 +758,7 @@ Route::group(['prefix' => 'aperturas','middleware' => 'tiene_permiso:m_buscar_ap
   Route::delete('borrarAperturaAPedido/{id_apertura_a_pedido}','Mesas\Aperturas\ABMAperturaController@borrarAperturaAPedido');
   Route::post('filtrosAperturas', 'Mesas\Aperturas\BCAperturaController@filtros');
   Route::get('getApertura/{id_apertura_mesa}', 'Mesas\Cierres\ABMCCierreAperturaController@getApertura');
-  Route::post('guardarApertura', 'Mesas\Aperturas\ABMAperturaController@guardar');
+  Route::post('guardar', 'Mesas\Aperturas\ABMAperturaController@guardar');
   Route::post('modificarApertura','Mesas\Aperturas\ABMAperturaController@modificarApertura');
   Route::get('bajaApertura/{id_apertura}', 'Mesas\Aperturas\BCAperturaController@eliminarApertura')->middleware(['tiene_permiso:m_eliminar_cierres_y_aperturas']);
   Route::post('generarRelevamiento', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@generarRelevamiento');

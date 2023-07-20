@@ -582,10 +582,6 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
             <li id="b_juego"><a href="#pant_juegos" style="font-family:Roboto-condensed;font-size:20px;background: white;">Juegos</a></li>
             <li id="b_sector"><a href="#pant_sectores" style="font-family:Roboto-condensed;font-size:20px;background: white;">Sectores</a></li>
           </ul>
-          <ul class="nav nav-tabs nav-justified cierreApertura" id="cierreApertura" hidden="true">
-            <li id="b_apertura" class="active"><a href="#pant_aperturas" style="font-family:Roboto-condensed;font-size:20px;background: white;">Aperturas</a></li>
-            <li id="b_cierre"><a href="#pant_cierres" style="font-family:Roboto-condensed;font-size:20px;background: white;">Cierres</a></li>
-          </ul>
           <ul class="nav nav-tabs nav-justified pestCanon" id="pestCanon" hidden="true">
             <li id="canon1"><a href="#pant_canon_meses" style="font-family:Roboto-condensed;font-size:20px;background: white;">Recaudado Mensual (Bruto)</a></li>
             <li id="canon2"><a href="#pant_canon_valores" style="font-family:Roboto-condensed;font-size:20px;background: white;">Valor base y Canon</a></li>

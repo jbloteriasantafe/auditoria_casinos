@@ -50,85 +50,135 @@ class ABMCierreController extends Controller
   }
 
   public function guardar(Request $request){
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    
     $validator =  Validator::make($request->all(),[
+      'id_cierre_mesa' => 'nullable|exists:cierre_mesa,id_cierre_mesa',
       'fecha' => 'required|date',
-      'hora_inicio' => 'nullable|date_format:"H:i"',
-      'hora_fin' => 'nullable|date_format:"H:i"',
-      'total_pesos_fichas_c' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'total_anticipos_c' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'id_fiscalizador' => 'required|exists:usuario,id_usuario',
+      'hora_inicio' => 'required|date_format:"H:i"',
+      'hora_fin' => 'required|date_format:"H:i"',
+      'total_anticipos_c' => 'nullable|numeric|min:0',
+      'id_cargador' => 'required|exists:usuario,id_usuario',
       'id_mesa_de_panio' => 'required|exists:mesa_de_panio,id_mesa_de_panio',
-      'fichas' => 'required',
+      'fichas' => 'required|array',
       'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
-      'fichas.*.monto_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
+      'fichas.*.monto_ficha' => 'nullable|numeric|min:0',
       'id_moneda' => 'required|exists:moneda,id_moneda',
-    ], array(), self::$atributos)->after(function($validator){
-      $mesa = Mesa::find($validator->getData()['id_mesa_de_panio']);
-      if(!$mesa->multimoneda && $mesa->id_moneda != $validator->getData()['id_moneda']){
-         $validator->errors()->add('id_moneda', 'La moneda elegida no es correcta.');
+    ],[
+      'required' => 'El valor es requerido',
+      'exists'   => 'No existe el valor en la base de datos',
+      'integer'  => 'El valor tiene que ser un numero entero',
+      'min'      => 'El valor tiene que ser positivo',
+      'regex'    => 'El formato es incorrecto'
+    ], self::$atributos)->after(function($validator) use ($user){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      
+      if(!$user->usuarioTieneCasino($data['id_casino'])){
+        return $validator->errors()->add('id_casino','No tiene los privilegios');
       }
-      $filtros = [
-                    ['fecha','=',$validator->getData()['fecha']],
-                    ['id_mesa_de_panio','=',$validator->getData()['id_mesa_de_panio']],
-                    ['hora_fin','=',$validator->getData()['hora_fin']],
-                    ['id_moneda','=',$validator->getData()['id_moneda']]
-                  ];
-      if(!empty($validator->getData()['fecha']) &&
-          !empty($validator->getData()['id_mesa_de_panio']) &&
-          !empty($validator->getData()['hora_fin']) &&
-          !empty($validator->getData()['id_moneda'])
-        ){
-        $yaExiste = Cierre::where($filtros)
-                            ->get();
-        if(count($yaExiste) != 0){
-          $validator->errors()->add('id_mesa_de_panio', 'Ya existe un cierre para la mesa con esos datos.');
+      
+      $mesa = Mesa::withTrashed()->where('id_mesa_de_panio','=',$data['id_mesa_de_panio'])
+      ->where(function($q) use ($data){
+        return $q->where('deleted_at','>',$data['fecha'])->orWhereNull('deleted_at');
+      })->first();
+      
+      if(is_null($mesa))
+        return $validator->errors()->add('id_mesa_de_panio', 'No existe la mesa.');
+        
+      if(!$mesa->multimoneda && $mesa->id_moneda != $data['id_moneda']){
+        return $validator->errors()->add('id_moneda', 'La moneda elegida no es correcta.');
+      }
+      
+      if(is_null($data['id_cierre_mesa'])){
+        $reglas = [
+          ['id_mesa_de_panio','=',$data['id_mesa_de_panio']],
+          ['fecha','=',$data['fecha']],
+          ['id_moneda','=',$data['id_moneda']],
+          ['hora_fin','=',$data['hora_fin']]
+        ];
+        $ya_existe = Cierre::where($reglas)->get()->count() > 0;
+        if($ya_existe){
+          return $validator->errors()->add('id_mesa_de_panio','Ya existe un cierre para la fecha.');
         }
       }
-
-      if(!empty($validator->getData()['fichas'])){
-       $validator = $this->validarFichas($validator);
-     }
+      else{
+        $reglas = [
+          ['id_cierre_mesa','=',$data['id_cierre_mesa']],
+          ['id_mesa_de_panio','=',$data['id_mesa_de_panio']],
+          ['fecha','=',$data['fecha']]
+        ];
+        $no_existe = Cierre::where($reglas)->get()->count() != 1;
+        if($no_existe){
+          return $validator->errors()->add('id_mesa_de_panio','No existe ese cierre.');
+        }
+      }
+      
+      $todos_vacios = true;
+      foreach($data['fichas'] as $f){
+        $todos_vacios = $todos_vacios && is_null($f['monto_ficha']);
+        if(!$todos_vacios) break;
+      }
+      
+      if($todos_vacios) foreach($data['fichas'] as $idx => $f){
+        $validator->errors()->add("fichas.$idx.monto_ficha",'El valor es requerido');
+      }
+      
+      foreach($data['fichas'] as $idx => $f){
+        $ficha = Ficha::withTrashed()->find($f['id_ficha']);
+        $div = $f['monto_ficha'] / $ficha->valor_ficha;
+        if(($div-floor($div)) != 0){
+          $validator->errors()->add("fichas.$idx.monto_ficha",'El monto no es múltiplo del valor.');
+        }
+      }
     })->validate();
 
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    if($user->usuarioTieneCasino($request->id_casino)){
-      $cierre = new Cierre;
-      $mesa = Mesa::find($request->id_mesa_de_panio);
-      $cierre->fecha =$request->fecha;
+    return DB::transaction(function() use ($request){
+      $cierre = null;
+      if(is_null($request->id_cierre_mesa)){
+        $cierre = new Cierre;
+      }
+      else{
+        $cierre = Cierre::where([
+          ['id_cierre_mesa','=',$request->id_cierre_mesa],
+          ['id_mesa_de_panio','=',$request->id_mesa_de_panio],
+          ['fecha','=',$request->fecha]
+        ])->first();
+      }
+      
+      $mesa = Mesa::withTrashed()->find($request->id_mesa_de_panio);
+      $cierre->fecha       = $request->fecha;
       $cierre->hora_inicio = $request->hora_inicio;
-      $cierre->hora_fin = $request->hora_fin;
-      $cierre->total_pesos_fichas_c = $request->total_pesos_fichas_c;
-      $cierre->total_anticipos_c = $request->total_anticipos_c;
+      $cierre->hora_fin    = $request->hora_fin;
+      $cierre->total_pesos_fichas_c = 0;
+      $cierre->total_anticipos_c    = $request->total_anticipos_c ?? 0;
       $cierre->tipo_mesa()->associate($mesa->juego->tipo_mesa->id_tipo_mesa);
       $cierre->casino()->associate($request->id_casino);
-      $cierre->fiscalizador()->associate($request->id_fiscalizador);
+      $cierre->fiscalizador()->associate($request->id_cargador);
       $cierre->mesa()->associate($request->id_mesa_de_panio);
       $cierre->moneda()->associate($request->id_moneda);
       $cierre->save();
-      $detalles = array();
-      $total_pesos_fichas_c =0;
+      
+      foreach ($cierre->detalles as $d) {
+        $d->cierre()->dissociate();
+        $d->delete();
+      }
+      
+      $total_pesos_fichas_c = 0;
       foreach ($request->fichas as $f) {
-          if($f['monto_ficha'] != 0){
-          $ficha = new DetalleCierre;
-          $ficha->ficha()->associate($f['id_ficha']);
-          $ficha->monto_ficha = $f['monto_ficha'];
-          $ficha->cierre()->associate($cierre->id_cierre_mesa);
-          $ficha->save();
-          $detalles[] = $ficha;
-          $total_pesos_fichas_c+=$f['monto_ficha'];
-        }
+        if(empty($f['monto_ficha'])) continue;
+        $ficha = new DetalleCierre;
+        $ficha->ficha()->associate($f['id_ficha']);
+        $ficha->monto_ficha = $f['monto_ficha'] ?? 0;
+        $ficha->cierre()->associate($cierre->id_cierre_mesa);
+        $ficha->save();
+        $total_pesos_fichas_c+=$ficha->monto_ficha;
       }
-      if($total_pesos_fichas_c != $cierre->total_pesos_fichas_c){
-        $cierre->total_pesos_fichas_c = $total_pesos_fichas_c;
-        $cierre->save();
-      }
-     return ['cierre' => $cierre,'detalles' => $detalles];
-    }else{
-      $val = new Validator;
-      $val->errors()->add('autorizacion', 'No está autorizado para realizar esta accion.');
-
-      return ['errors' => $val->messages()->toJson()];
-    }
+      
+      $cierre->total_pesos_fichas_c = $total_pesos_fichas_c;
+      $cierre->save();
+      return ['cierre' => $cierre];
+    });
   }
 
   public function obtenerCierre($id){
@@ -139,69 +189,7 @@ class ABMCierreController extends Controller
             'fiscalizador' => $cierre->fiscalizador,
             'mesa' => $cierre->mesa];
   }
-
-  public function modificarCierre(Request $request){
-    $validator=  Validator::make($request->all(),[
-      'id_cierre_mesa' => 'required|exists:cierre_mesa,id_cierre_mesa',
-      //'fecha' => 'required|date',
-      'hora_inicio' => 'nullable|date_format:"H:i"',
-      'hora_fin' => 'nullable|date_format:"H:i"',
-      'total_pesos_fichas_a' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'total_anticipos_c' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'],
-      'id_fiscalizador' => 'required|exists:usuario,id_usuario',
-      'fichas' => 'required',
-      'fichas.*.id_ficha' => 'required|exists:ficha,id_ficha',
-      'fichas.*.monto_ficha' => ['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?([,|.]?\d?\d?\d?)?$/'], //en realidad es monto lo que esta recibiendo
-      'id_moneda' => 'required|exists:moneda,id_moneda',
-    ], array(), self::$atributos)->after(function($validator){
-      $cierre=Cierre::find($validator->getData()['id_cierre_mesa']);
-      $mesa = $cierre->mesa;
-      if(!$mesa->multimoneda && $mesa->id_moneda != $validator->getData()['id_moneda']){
-         $validator->errors()->add('id_moneda', 'La moneda elegida no es correcta.');
-      }
-       if(!empty($validator->getData()['fichas'])){
-        $validator = $this->validarFichas($validator);
-      }
-    })->validate();
-    if(isset($validator)){
-      if($validator->fails()){
-        return ['errors' => $validator->messages()->toJson()];
-      }
-    }
-
-    $cierre = Cierre::find($request->id_cierre_mesa);
-    $cierre->hora_inicio = $request->hora_inicio;
-    $cierre->hora_fin = $request->hora_fin;
-    $cierre->total_pesos_fichas_c = $request->total_pesos_fichas_a;
-    $cierre->total_anticipos_c = $request->total_anticipos_c;
-    $cierre->moneda()->associate($request->id_moneda);
-    $cierre->fiscalizador()->associate($request->id_fiscalizador);
-    $cierre->save();
-    $detalles = array();
-    $detallesC = $cierre->detalles;
-    foreach ($detallesC as $d) {
-      $d->cierre()->dissociate();
-      $d->delete();
-    }
-    $total_pesos_fichas_c = 0;
-    foreach ($request->fichas as $f) {
-      if($f['monto_ficha'] != 0){
-        $ficha = new DetalleCierre;
-        $ficha->ficha()->associate($f['id_ficha']);
-        $ficha->monto_ficha = $f['monto_ficha'];
-        $ficha->cierre()->associate($cierre->id_cierre_mesa);
-        $ficha->save();
-        $detalles[] = $ficha;
-        $total_pesos_fichas_c+=$f['monto_ficha'];
-      }
-    }
-    if($total_pesos_fichas_c != $cierre->total_pesos_fichas_c){
-      $cierre->total_pesos_fichas_c = $total_pesos_fichas_c;
-      $cierre->save();
-    }
-   return ['cierre' => $cierre,'detalles' => $detalles];
-  }
-
+  
   private function validarFichas($validator){
     $aux = 0;
     $total_pesos_fichas_c = 0;
