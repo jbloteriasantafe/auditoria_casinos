@@ -917,7 +917,7 @@ use App\Http\Controllers\AuthenticationController;
       <div class="modal-header" style="background-color:#6dc7be;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#modalValidarApertura .collapse" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title">| VALIDAR APERTURA </h3>
+        <h3 class="modal-title">VALIDAR APERTURA </h3>
       </div>
       <div class="collapse in">
         <div class="modal-body" style="font-family: Roboto;">

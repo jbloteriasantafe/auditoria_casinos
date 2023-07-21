@@ -1,8 +1,6 @@
 $(document).ready(function() {
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $('.tituloSeccionPantalla').text('Cierres y Aperturas');
-  $('[data-toggle="popover"]').popover();
-
   $('.dtpFecha').datetimepicker({
     language:  'es',
     todayBtn:  1,
@@ -13,7 +11,6 @@ $(document).ready(function() {
     startView: 4,
     minView: 2,
   });
-
   $('#tabs a:first').click();
 });
 
