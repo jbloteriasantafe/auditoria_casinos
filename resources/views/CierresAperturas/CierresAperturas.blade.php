@@ -602,6 +602,10 @@ use App\Http\Controllers\AuthenticationController;
                       <input type="text" class="total_pesos_fichas_a" readonly="true">
                     </div>
                     @endif
+                    <div class="col-xs-12">
+                      <h6>Observaciones</h6>
+                      <p class="observacion"></p>
+                    </div>
                   </div>
                 </div>
               </div>

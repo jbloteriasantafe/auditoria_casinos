@@ -291,6 +291,7 @@ function mostrarCierreApertura(url,sucess = function(data){}){
       $O.find('.cargador').text(O?.cargador?.nombre ?? ' - ');
       $O.find('.hora').text(O?.datos?.hora ?? ' - ');
       $O.find('.total_pesos_fichas_a').val(O?.datos?.total_pesos_fichas_a ?? 0);
+      $O.find('.observacion').text(O?.datos?.observacion ?? '');
       $O.find('.tablaFichas tbody').empty();
       (O?.detalles ?? []).forEach(function(ficha){
         const fila = $O.find('.moldeFila').clone().removeClass('moldeFila');
@@ -731,7 +732,7 @@ $(document).on('click', `${_MCCA} .cargar`, function(e){
   $MCCA('[name="hora_inicio"]').val(valores.hora_inicio);
   $MCCA('[name="hora_fin"]').val(valores.hora_fin);
   
-  if(valores.id_cargador !== null){
+  if(valores.id_cargador){
     $MCCA('[name="id_cargador"]').attr('data-elemento-seleccionado',valores.id_cargador)
     .val(valores.nombre_cargador ?? '')
     .attr('value',valores.nombre_cargador ?? '');
