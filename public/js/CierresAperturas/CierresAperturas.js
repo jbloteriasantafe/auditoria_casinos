@@ -76,7 +76,7 @@ $('.btn-buscar').on('click', function(e,pagina,page_size,columna,orden){
           return !$(o).attr('data-estados').split(',').includes(obj.estado+'');
         }).remove();
         fila.find('.estado').empty().append(
-          $(`#iconosEstados i[data-estado=${obj.estado}]`).clone()
+          $(`#iconosEstados i[data-linkeado=${obj.linkeado}][data-estado=${obj.estado}]`).clone()
         );
         tab.find('.tablaResultados tbody').append(fila);
       });
@@ -570,12 +570,15 @@ function modalCargarCierreApertura(titulo,tipo_modal,modo_modal,O){
     $MCCA('.dtpFecha').data('datetimepicker').reset();
     $MCCA('.form-control').val('').change();
     ocultarErrorValidacion($MCCA('.form-control'));
+    ocultarErrorValidacion($MCCA('[name="observacion"]'));
+    $MCCA('[name="observacion"]').val('').change();
     $MCCA('.tablaMesas tbody tr,.tablaFichas tbody tr').remove();
     $MCCA('.inputMesas,.datosCierreApertura').hide();
     const quienSoy = $('#quienSoy').clone().show().removeAttr('id');
-    $MCCA('[name="cargador"]').replaceWith(quienSoy);
+    $MCCA('[name="id_cargador"]').replaceWith(quienSoy);
     $MCCA('.moldeFila .cargar').removeClass('cargado');
     MCCA.data('cargados',0);
+    MCCA.data('salir_al_completar',modo_modal == ModoModal.modificar || modo_modal == ModoModal.validar);
   }
   {//Armar modal
     $MCCA('.tipo').text(titulo);
@@ -729,7 +732,7 @@ $(document).on('click', `${_MCCA} .cargar`, function(e){
   $MCCA('[name="hora_fin"]').val(valores.hora_fin);
   
   if(valores.id_cargador !== null){
-    $MCCA('[name="cargador"]').attr('data-elemento-seleccionado',valores.id_cargador)
+    $MCCA('[name="id_cargador"]').attr('data-elemento-seleccionado',valores.id_cargador)
     .val(valores.nombre_cargador ?? '')
     .attr('value',valores.nombre_cargador ?? '');
   }
@@ -853,7 +856,6 @@ function obtenerDatosModalCargarCierreApertura(){
 
 $MCCA('.btn-guardar').click(function(e){
   const formData = obtenerDatosModalCargarCierreApertura();
-  console.log(formData);//@TODO
   POST(`${MCCA.data('path')}/guardar`,formData,
     function(data){
       const mesa = $MCCA('.mesa_seleccionada');
@@ -862,6 +864,8 @@ $MCCA('.btn-guardar').click(function(e){
       mesa.find('.cargar').click();
       MCCA.data('cargados',MCCA.data('cargados')+1);
       $('.tab_content:visible .btn-buscar').click();
+      if(MCCA.data('salir_al_completar'))
+        $MCCA('.btn-salir').click();
     },
     function(response){
       console.log(response);
@@ -884,12 +888,27 @@ $MCCA('.btn-guardar').click(function(e){
 
 $MCCA('.btn-validar').click(function(e){
   const formData = obtenerDatosModalCargarCierreApertura();
-  console.log(formData);//@TODO
-  mensajeExito('Cierre validado');
-  MCCA.modal('hide');
+  POST('cierres/validar',formData,
+    function(data){
+      mensajeExito('Cierre validado');
+      MCCA.data('cargados',MCCA.data('cargados')+1);
+      $('.tab_content:visible .btn-buscar').click();
+      if(MCCA.data('salir_al_completar'))
+        $MCCA('.btn-salir').click();
+    },
+    function(response){
+      console.log(response);
+      const json = response.responseJSON ?? {};
+      Object.keys(json).forEach(function(k){
+        mostrarErrorValidacion($MCCA(`[name="${k}"]`),json[k].join(', '),true);
+      });
+      mensajeError();
+    }
+  );
 });
 
-$MCCA('.btn-salir').on('click', function(){
+$MCCA('.btn-salir').on('click', function(e){
+  e.preventDefault();
   MCCA.modal('hide');
   if(MCCA.data('cargados')){
     mensajeExito();

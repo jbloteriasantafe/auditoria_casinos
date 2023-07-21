@@ -150,20 +150,23 @@ class BCCierreController extends Controller
     }
 
     $resultados = DB::table('cierre_mesa')
-    ->select('cierre_mesa.id_cierre_mesa as id','cierre_mesa.fecha',
-              'casino.nombre as casino','juego_mesa.siglas as juego',
-              'moneda.siglas as moneda','mesa_de_panio.nro_mesa',
-              'cierre_mesa.id_estado_cierre as estado',
-              DB::raw('CONCAT(
-                IFNULL(TIME_FORMAT(cierre_mesa.hora_inicio,"%H:%i"),""),
-                "-",
-                IFNULL(TIME_FORMAT(cierre_mesa.hora_fin,"%H:%i"),"")
-              ) as hora'))
+    ->select(
+      'cierre_mesa.id_cierre_mesa as id','cierre_mesa.fecha',
+      'casino.nombre as casino','juego_mesa.siglas as juego',
+      'moneda.siglas as moneda','mesa_de_panio.nro_mesa',
+      'cierre_mesa.id_estado_cierre as estado',
+      DB::raw('CONCAT(
+        IFNULL(TIME_FORMAT(cierre_mesa.hora_inicio,"%H:%i"),""),
+        "-",
+        IFNULL(TIME_FORMAT(cierre_mesa.hora_fin,"%H:%i"),"")
+      ) as hora'),
+      DB::raw('ca.id_cierre_apertura IS NOT NULL as linkeado')
+    )
     ->join('mesa_de_panio','mesa_de_panio.id_mesa_de_panio','=','cierre_mesa.id_mesa_de_panio')
     ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
     ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
     ->leftJoin('moneda','moneda.id_moneda','=','cierre_mesa.id_moneda')
-    ->leftJoin('cierre_apertura','cierre_mesa.id_cierre_mesa','=','cierre_apertura.id_cierre_mesa')
+    ->leftJoin('cierre_apertura as ca','cierre_mesa.id_cierre_mesa','=','ca.id_cierre_mesa')
     ->where($filtros)
     ->whereIn('cierre_mesa.id_casino',$cas)
     ->whereNull('cierre_mesa.deleted_at');

@@ -745,6 +745,7 @@ Route::group(['prefix' => 'cierres','middleware' => 'tiene_permiso:m_buscar_aper
   Route::get('buscarFiscalizadores/{id_cas}/{nombre}', 'UsuarioController@buscarFiscaNombreCasino');
   Route::get('obtenerMesas/{id_cas}/{nro_mesa}', 'Mesas\Mesas\BuscarMesasController@buscarMesaPorNroCasino');
   Route::get('obtenerJuegoPorCasino/{id_cas}/{nombreJuego}', 'Mesas\Juegos\BuscarJuegoController@buscarJuegoPorCasinoYNombre');
+  Route::post('validar','Mesas\Cierres\VCierrecontroller@validar')->middleware(['tiene_permiso:m_validar_cierres']);
 });
 
 Route::group(['prefix' => 'aperturas','middleware' => 'tiene_permiso:m_buscar_aperturas'], function () {

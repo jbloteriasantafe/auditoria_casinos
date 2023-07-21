@@ -217,15 +217,20 @@ class BCAperturaController extends Controller
     }
 
     $resultados = DB::table('apertura_mesa')
-    ->select('apertura_mesa.id_apertura_mesa as id',
-              'apertura_mesa.id_estado_cierre as estado','apertura_mesa.fecha',
-              'casino.nombre as casino','juego_mesa.siglas as juego',
-              'moneda.siglas as moneda','mesa_de_panio.nro_mesa',
-              DB::raw('IFNULL(TIME_FORMAT(apertura_mesa.hora,"%H:%i"),"") as hora'))
+    ->select(
+      'apertura_mesa.id_apertura_mesa as id',
+      'apertura_mesa.id_estado_cierre as estado',
+      'apertura_mesa.fecha',
+      'casino.nombre as casino','juego_mesa.siglas as juego',
+      'moneda.siglas as moneda','mesa_de_panio.nro_mesa',
+      DB::raw('IFNULL(TIME_FORMAT(apertura_mesa.hora,"%H:%i"),"") as hora'),
+      DB::raw('ca.id_cierre_apertura IS NOT NULL as linkeado')
+    )
     ->join('mesa_de_panio','apertura_mesa.id_mesa_de_panio','=','mesa_de_panio.id_mesa_de_panio')
     ->join('casino','casino.id_casino','=','mesa_de_panio.id_casino')
     ->leftJoin('juego_mesa','juego_mesa.id_juego_mesa','=','mesa_de_panio.id_juego_mesa')
     ->leftJoin('moneda','moneda.id_moneda','=','apertura_mesa.id_moneda')
+    ->leftJoin('cierre_apertura as ca','apertura_mesa.id_apertura_mesa','=','ca.id_apertura_mesa')
     ->where($filtros)
     ->whereNull('apertura_mesa.deleted_at')
     ->whereIn('apertura_mesa.id_casino',$cas);

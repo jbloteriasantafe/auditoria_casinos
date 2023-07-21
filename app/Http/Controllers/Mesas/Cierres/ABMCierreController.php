@@ -67,16 +67,12 @@ class ABMCierreController extends Controller
     ],[
       'required' => 'El valor es requerido',
       'exists'   => 'No existe el valor en la base de datos',
-      'integer'  => 'El valor tiene que ser un numero entero',
+      'numeric'  => 'El valor tiene que ser numerico',
       'min'      => 'El valor tiene que ser positivo',
       'regex'    => 'El formato es incorrecto'
     ], self::$atributos)->after(function($validator) use ($user){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
-      
-      if(!$user->usuarioTieneCasino($data['id_casino'])){
-        return $validator->errors()->add('id_casino','No tiene los privilegios');
-      }
       
       $mesa = Mesa::withTrashed()->where('id_mesa_de_panio','=',$data['id_mesa_de_panio'])
       ->where(function($q) use ($data){
@@ -85,12 +81,16 @@ class ABMCierreController extends Controller
       
       if(is_null($mesa))
         return $validator->errors()->add('id_mesa_de_panio', 'No existe la mesa.');
+      
+      if(!$user->usuarioTieneCasino($mesa->id_casino)){
+        return $validator->errors()->add('id_casino','No tiene los privilegios');
+      }
         
       if(!$mesa->multimoneda && $mesa->id_moneda != $data['id_moneda']){
         return $validator->errors()->add('id_moneda', 'La moneda elegida no es correcta.');
       }
       
-      if(is_null($data['id_cierre_mesa'])){
+      if(is_null($data['id_cierre_mesa'] ?? null)){
         $reglas = [
           ['id_mesa_de_panio','=',$data['id_mesa_de_panio']],
           ['fecha','=',$data['fecha']],
@@ -135,7 +135,7 @@ class ABMCierreController extends Controller
 
     return DB::transaction(function() use ($request){
       $cierre = null;
-      if(is_null($request->id_cierre_mesa)){
+      if(is_null($request->id_cierre_mesa ?? null)){
         $cierre = new Cierre;
       }
       else{
@@ -188,31 +188,5 @@ class ABMCierreController extends Controller
             'estado' => $cierre->estado,
             'fiscalizador' => $cierre->fiscalizador,
             'mesa' => $cierre->mesa];
-  }
-  
-  private function validarFichas($validator){
-    $aux = 0;
-    $total_pesos_fichas_c = 0;
-    if(!empty($validator->getData()['fichas']) && $validator->getData()['fichas'] != null){
-      foreach ($validator->getData()['fichas'] as $detalle) {
-        $ficha = Ficha::find($detalle['id_ficha']);
-        $division = floor(($detalle['monto_ficha'] / $ficha->valor_ficha));
-
-        if($detalle['monto_ficha'] != 0 &&(($detalle['monto_ficha']-$division * $ficha->valor_ficha) != 0 ||
-          ($detalle['monto_ficha'] < $ficha->valor_ficha && !empty($detalle['monto_ficha'])))
-          && ($ficha->valor_ficha == floor($ficha->valor_ficha))
-        ){
-
-          $validator->errors()->add('fichas.'.$aux.'.monto_ficha','El monto no es múltiplo del valor.'
-                                   );
-        }
-        $total_pesos_fichas_c+= $detalle['monto_ficha'];
-        $aux++;
-      }
-      if($total_pesos_fichas_c == 0){
-        $validator->errors()->add('fichas','No ha ingresado los montos.');
-      }
-      return $validator;
-    }
   }
 }

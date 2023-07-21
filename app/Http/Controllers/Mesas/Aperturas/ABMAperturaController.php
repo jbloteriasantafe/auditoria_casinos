@@ -79,11 +79,7 @@ class ABMAperturaController extends Controller
       
       if($validator->errors()->any()) return;
       $data = $validator->getData();
-      
-      if(!$user->usuarioTieneCasino($data['id_casino'])){
-        return $validator->errors()->add('id_casino','No tiene los privilegios');
-      }
-      
+    
       $mesa = Mesa::withTrashed()->where('id_mesa_de_panio','=',$data['id_mesa_de_panio'])
       ->where(function($q) use ($data){
         return $q->where('deleted_at','>',$data['fecha'])->orWhereNull('deleted_at');
@@ -91,8 +87,12 @@ class ABMAperturaController extends Controller
       
       if(is_null($mesa))
         return $validator->errors()->add('id_mesa_de_panio', 'No existe la mesa.');
+        
+      if(!$user->usuarioTieneCasino($mesa->id_casino)){
+        return $validator->errors()->add('id_casino','No tiene los privilegios');
+      }
     
-      if(is_null($data['id_apertura_mesa'])){
+      if(is_null($data['id_apertura_mesa'] ?? null)){
         $reglas = [
           ['id_mesa_de_panio','=',$data['id_mesa_de_panio']],
           ['fecha','=',$data['fecha']],
@@ -132,7 +132,7 @@ class ABMAperturaController extends Controller
     return DB::transaction(function() use ($request,$user){
       $mesa = Mesa::withTrashed()->find($request->id_mesa_de_panio);
       $apertura = null;
-      if(is_null($request->id_apertura_mesa)){
+      if(is_null($request->id_apertura_mesa ?? null)){
         $apertura = new Apertura;
       }
       else{

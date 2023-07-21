@@ -112,7 +112,7 @@ use App\Http\Controllers\AuthenticationController;
           'ver' => ['fa-search-plus',null,'data-estados="1,2,3,4"'],
           'modificar' => ['fa-pencil-alt',null,'data-estados="1"'],
           'validar' => ['fa-check','m_validar_cierres','data-estados="1"'],
-          'eliminar' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1"'],
+          'eliminar' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1,3"'],
         ],
       ],
     ],
@@ -129,12 +129,32 @@ use App\Http\Controllers\AuthenticationController;
   </div>
 </div>
 
-<div id="iconosEstados" hidden>
-  <i data-estado="1" class="fas fa-fw fa-times" style="color: rgb(211, 47, 47); text-align: center;"></i>
-  <i data-estado="2" class="fa fa-fw fa-check" style="color: rgb(76, 175, 80); text-align: center;"></i>
-  <i data-estado="3" class="fa fa-fw fa-check" style="color: rgb(76, 175, 80); text-align: center;"></i>
-  <i data-estado="4" class="fa fa-fw fa-check" style="color: rgb(76, 175, 80); text-align: center;"></i>
-  <i data-estado=""  class="fas fa-fw fa-question" style="color: rgb(227, 118, 2); text-align: center;"></i>
+<style>
+  .tablaResultados tbody tr .estado i.rojo{
+    color: rgb(211, 47, 47);
+  }
+  .tablaResultados tbody tr .estado i.azul{
+    color: rgb(30, 30, 227);
+  }
+  .tablaResultados tbody tr .estado i.verde{
+    color: rgb(76, 175, 80);
+  }
+  .tablaResultados tbody tr .estado i.naranja{
+    color: rgb(189, 133, 1);
+  }
+</style>
+
+<div id="iconosEstados" hidden>{{-- El manejo de estados es bastante raro... por eso todos estos casos --}}
+  <i data-linkeado="0" data-estado="1" class="rojo fas fa-fw fa-times" title="CARGADO"></i>
+  <i data-linkeado="0" data-estado="2" class="azul fa fa-fw fa-check" title="VISADO"></i>
+  <i data-linkeado="0" data-estado="3" class="azul fa fa-fw fa-check" title="VISADO"></i>
+  <i data-linkeado="0" data-estado="4" class="azul fa fa-fw fa-check" title="VISADO"></i>
+  <i data-linkeado="0" data-estado=""  class="naranja fas fa-fw fa-question" title="ERROR"></i>
+  <i data-linkeado="1" data-estado="1" class="verde fas fa-fw fa-check" title="VALIDADO"></i>
+  <i data-linkeado="1" data-estado="2" class="verde fa fa-fw fa-check" title="VALIDADO C/ DIFERENCIAS"></i>
+  <i data-linkeado="1" data-estado="3" class="verde fa fa-fw fa-check" title="VALIDADO"></i>
+  <i data-linkeado="1" data-estado="4" class="verde fa fa-fw fa-check" title="VALIDADO"></i>
+  <i data-linkeado="1" data-estado=""  class="naranja fas fa-fw fa-question" title="ERROR"></i>
 </div>
 @foreach($tabs as $tab => $tdata)
 <div class="col-lg-12 tab_content" id="pant_{{$tab}}" hidden="true">
@@ -648,6 +668,20 @@ use App\Http\Controllers\AuthenticationController;
   #modal-CargarCierreApertura .tablaMesas tbody tr .cargar i {
     padding: 0.15em;
   }
+  #modal-CargarCierreApertura [name="observacion"] {
+    background-color: transparent;
+    border: 1px solid #000000;
+    height: 100%;
+    width: 100%;
+    scrollbar-arrow-color: #000066;
+    scrollbar-base-color: #000033;
+    scrollbar-dark-shadow-color: #336699;
+    scrollbar-track-color: #666633;
+    scrollbar-face-color: #cc9933;
+    scrollbar-shadow-color: #DDDDDD;
+    scrollbar-highlight-color: #CCCCCC;
+    resize: vertical;
+  }
 </style>
 
 <input id="quienSoy" value="{{$usuario->nombre}}" data-elemento-seleccionado="{{$usuario->id_usuario}}" class="form-control" name="id_cargador" formData-attr="data-elemento-seleccionado" type="text" readonly style="display: none;">
@@ -698,7 +732,7 @@ use App\Http\Controllers\AuthenticationController;
               </div> 
               <div class="col-md-4">
                 <h6>FISCALIZADOR DE CARGA</h6>
-                <input class="form-control" name="cargador" readonly>
+                <input class="form-control" name="id_cargador" readonly>
               </div>
             </div>
             <div class="row">
@@ -804,6 +838,9 @@ use App\Http\Controllers\AuthenticationController;
                   </div>
                   <hr>
                   <div class="row">
+                    <div class"col-md-12" validar>
+                      <textarea name="observacion"></textarea>
+                    </div>
                     <div class="col-md-12" validar>
                       <div class="col-md-offset-10">
                         <button type="button" class="btn btn-success btn-validar" style="font-family: Roboto-Condensed;">VALIDAR</button>
