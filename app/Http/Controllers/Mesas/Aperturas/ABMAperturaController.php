@@ -189,7 +189,11 @@ class ABMAperturaController extends Controller
       'id_mesa_de_panio' => 'required|exists:mesa_de_panio,id_mesa_de_panio',
       'fecha_inicio'     => 'required|date',
       'fecha_fin'        => 'required|date',
-    ], array(), self::$atributos)->after(function($validator) use ($casinos,&$mesa){
+    ], [
+      'required' => 'El valor es requerido',
+      'exists' => 'El valor es invalido',
+      'date' => 'Tiene que tener formato AAAA-MM-DD',
+    ], self::$atributos)->after(function($validator) use ($casinos,&$mesa){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       $mesa = Mesa::find($data['id_mesa_de_panio']);
