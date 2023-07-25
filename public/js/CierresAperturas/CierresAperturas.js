@@ -11,12 +11,27 @@ $(function() {
     startView: 4,
     minView: 2,
   });
-  $('#tabs a:first').click();
+  
   $('[data-js-mostrar]').click(function(e){
     e.preventDefault();
     $($(this).attr('data-js-mostrar')).trigger(
       'mostrar',[JSON.parse($(this).attr('data-js-mostrar-params') ?? '{}')]
     );
+  });
+  
+  $('[data-minimizar]').click(function() {
+    const minimizar = $(this).data('minimizar');
+    $('.modal-backdrop').css('opacity',minimizar? '0.1' : '0.5');
+    $(this).data("minimizar", !minimizar);
+  });
+
+  $('.modal').on('shown.bs.modal',function(){
+    const min = $(this).find('[data-minimizar]');
+    if(!min.data('minimizar')){
+      setTimeout(function(){
+        min.click();
+      },250);
+    }
   });
 });
 
@@ -29,96 +44,113 @@ $(function() {
 ##     ## ##     ## ##    ## ##    ## ##     ## ##    ##  
 ########   #######   ######   ######  ##     ## ##     ## 
  */
- 
-$('.btn-buscar').on('click', function(e,pagina,page_size,columna,orden){
-  e.preventDefault();
-  const tab = $(this).closest('.tab_content');
-  tab.find('.tablaResultados tbody tr').remove();
-  
-  //Fix error cuando librería saca los selectores
-  let size = tab.find('.herramientasPaginacion').getPageSize();
-  if(isNaN(size)){
-    size = 10;
-  }
+$(function(e){
+  $('.btn-buscar').on('click', function(e,pagina,page_size,columna,orden){
+    e.preventDefault();
+    const clickIndice = (tab,e,pageNumber,tam) => {
+      if(e == null) return;
+      
+      e.preventDefault();
+      tam = (tam != null) ? tam : tab.find('.herramientasPaginacion').getPageSize();
+      const columna = tab.find('.tablaResultados .activa').attr('value');
+      const orden = tab.find('.tablaResultados .activa').attr('estado');
+      
+      tab.find('.btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
+    }
+    
+    const tab = $(this).closest('.tab_content');
+    tab.find('.tablaResultados tbody tr').remove();
+    
+    //Fix error cuando librería saca los selectores
+    let size = tab.find('.herramientasPaginacion').getPageSize();
+    if(isNaN(size)){
+      size = 10;
+    }
 
-  page_size = (page_size == null || isNaN(page_size))? size : page_size;
-  const page_number = (pagina != null) ? pagina : tab.find('.herramientasPaginacion').getCurrentPage();
-  
-  let sort_by = (columna != null) ? {columna,orden} : {columna: tab.find('.tablaResultados .activa').attr('value'),orden: tab.find('.tablaResultados .activa').attr('estado')};
-  if(typeof sort_by['columna'] == 'undefined'){ // limpio las columnas
-    sort_by =  {columna: tab.find('.tablaResultados thead tr th').first().attr('value'),orden: 'desc'} ;
-  }
-  
-  const formData = {
-    page: page_number,
-    sort_by: sort_by,
-    page_size: page_size,
-  };
-  tab.find('.filtro-busqueda-collapse [name]').each(function(idx,o){
-    formData[$(o).attr('name')]=$(o).val();
+    page_size = (page_size == null || isNaN(page_size))? size : page_size;
+    const page_number = (pagina != null) ? pagina : tab.find('.herramientasPaginacion').getCurrentPage();
+    
+    let sort_by = (columna != null) ? {columna,orden} : {columna: tab.find('.tablaResultados .activa').attr('value'),orden: tab.find('.tablaResultados .activa').attr('estado')};
+    if(typeof sort_by['columna'] == 'undefined'){ // limpio las columnas
+      sort_by =  {columna: tab.find('.tablaResultados thead tr th').first().attr('value'),orden: 'desc'} ;
+    }
+    
+    const formData = {
+      page: page_number,
+      sort_by: sort_by,
+      page_size: page_size,
+    };
+    tab.find('.filtro-busqueda-collapse [name]').each(function(idx,o){
+      formData[$(o).attr('name')]=$(o).val();
+    });
+    
+    $.ajax({
+      type: 'POST',
+      url: $(this).attr('target'),
+      data: formData,
+      dataType: 'json',
+
+      success: function (ret){      
+        tab.find('.herramientasPaginacion').generarTitulo(page_number,page_size,ret.total,function(e,pageNumber,tam){
+          return clickIndice(tab,e,pageNumber,tam);
+        });
+        tab.find('.tablaResultados tbody tr').remove();
+
+        ret.data.forEach(function(obj){
+          const fila = tab.find('.moldeFilaResultados').clone().removeClass('moldeFilaResultados');
+          Object.keys(obj).forEach(function(k){
+            fila.find('.'+k).text(obj[k]);
+          });
+          fila.find('button').val(obj.id).filter(function(idx,o){
+            return !$(o).attr('data-estados').split(',').includes(obj.estado+'');
+          }).remove();
+          fila.find('.estado').empty().append(
+            $(`#iconosEstados i[data-linkeado=${obj.linkeado}][data-estado=${obj.estado}]`).clone()
+          );
+          tab.find('.tablaResultados tbody').append(fila);
+        });
+        
+        tab.find('.herramientasPaginacion').generarIndices(page_number,page_size,ret.total,function(e,pageNumber,tam){
+          return clickIndice(tab,e,pageNumber,tam);
+        });
+      },
+      error: function(data){
+        console.log(data);
+      },
+    })
+  });
+
+  $('.tablaResultados thead tr th').click(function(e){
+    const icon = $(this).find('i');
+    const not_sorted = icon.hasClass('fa-sort');
+    const down_sorted = icon.hasClass('fa-sort-down');
+    const tabla = $(this).closest('.tablaResultados');
+    tabla.find('.activa').removeClass('activa');
+    tabla.find('thead tr th i').removeClass().addClass('fa fa-sort').parent().attr('estado', '');
+    if(not_sorted){
+      icon.removeClass().addClass('fa fa-sort-down').parent().addClass('activa').attr('estado','desc');
+    }
+    else if(down_sorted){
+      icon.removeClass().addClass('fa fa-sort-up').parent().addClass('activa').attr('estado','asc');
+    }
+    $(this).closest('.tab_content').find('.btn-buscar').click();
   });
   
-  $.ajax({
-    type: 'POST',
-    url: $(this).attr('target'),
-    data: formData,
-    dataType: 'json',
+  $("#tabs a").click(function() {
+    $("#tabs a").removeClass("active");
+    $(this).addClass("active");
 
-    success: function (ret){      
-      tab.find('.herramientasPaginacion').generarTitulo(page_number,page_size,ret.total,function(e,pageNumber,tam){
-        return clickIndice(tab,e,pageNumber,tam);
-      });
-      tab.find('.tablaResultados tbody tr').remove();
-
-      ret.data.forEach(function(obj){
-        const fila = tab.find('.moldeFilaResultados').clone().removeClass('moldeFilaResultados');
-        Object.keys(obj).forEach(function(k){
-          fila.find('.'+k).text(obj[k]);
-        });
-        fila.find('button').val(obj.id).filter(function(idx,o){
-          return !$(o).attr('data-estados').split(',').includes(obj.estado+'');
-        }).remove();
-        fila.find('.estado').empty().append(
-          $(`#iconosEstados i[data-linkeado=${obj.linkeado}][data-estado=${obj.estado}]`).clone()
-        );
-        tab.find('.tablaResultados tbody').append(fila);
-      });
-      
-      tab.find('.herramientasPaginacion').generarIndices(page_number,page_size,ret.total,function(e,pageNumber,tam){
-        return clickIndice(tab,e,pageNumber,tam);
-      });
-    },
-    error: function(data){
-      console.log(data);
-    },
-  })
-});
-
-function clickIndice(tab,e,pageNumber,tam){
-  if(e == null) return;
-  
-  e.preventDefault();
-  tam = (tam != null) ? tam : tab.find('.herramientasPaginacion').getPageSize();
-  const columna = tab.find('.tablaResultados .activa').attr('value');
-  const orden = tab.find('.tablaResultados .activa').attr('estado');
-  
-  tab.find('.btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
-}
-
-$('.tablaResultados thead tr th').click(function(e){
-  const icon = $(this).find('i');
-  const not_sorted = icon.hasClass('fa-sort');
-  const down_sorted = icon.hasClass('fa-sort-down');
-  const tabla = $(this).closest('.tablaResultados');
-  tabla.find('.activa').removeClass('activa');
-  tabla.find('thead tr th i').removeClass().addClass('fa fa-sort').parent().attr('estado', '');
-  if(not_sorted){
-    icon.removeClass().addClass('fa fa-sort-down').parent().addClass('activa').attr('estado','desc');
-  }
-  else if(down_sorted){
-    icon.removeClass().addClass('fa fa-sort-up').parent().addClass('activa').attr('estado','asc');
-  }
-  $(this).closest('.tab_content').find('.btn-buscar').click();
+    const tab = $($(this).attr("href")); //Find the href attribute value to
+    tab.find('.filtro-busqueda-collapse .form-control').val('');//Limpio los filtros
+    tab.find('.btn-buscar').click();
+    
+    $('.tab_content').hide();
+    tab.show();
+    
+    setTimeout(function(){//@HACK: nose porque scrollea cuando tabea...
+      $('#tabs').get(0).scrollIntoView();
+    },50);
+  }).eq(0).click();
 });
 
 /*
@@ -512,7 +544,7 @@ $(function(e){
       $M('.inputMesas,.datosCierreApertura').hide();
       const quienSoy = $('#quienSoy').clone().show().removeAttr('id');
       $M('[name="id_cargador"]').replaceWith(quienSoy);
-      $M('.moldeFila .cargar').removeClass('cargado');
+      $M('.moldeFila').find('[data-js-cargar],[data-js-ver],[data-js-borrar]').show();
       M.data('cargados',0);
       M.data('salir_al_completar',modo_modal == ModoModal.modificar || modo_modal == ModoModal.validar);
     }
@@ -526,9 +558,6 @@ $(function(e){
       $M("[data-js-campo-cargar-modificar]").toggle(modo_modal == ModoModal.cargar || modo_modal == ModoModal.modificar);
       $M("[data-js-campo-validar]").toggle(modo_modal == ModoModal.validar);
       $M("[name='id_casino'],[name='fecha']").attr('disabled',modo_modal != ModoModal.cargar);
-      $M('.datosCierreApertura .form-control').not('[readonly]').attr('disabled',modo_modal == ModoModal.validar);
-      if(modo_modal == ModoModal.validar)
-        $M('.moldeFila .cargar').addClass('cargado');
     }
     
     if(O?.mesa){//Setear mesa si vino una
@@ -677,6 +706,7 @@ $(function(e){
         total_anticipos_c: 0
       });
       fila.find('button').val(data.mesa.id_mesa_de_panio);
+      fila.find('[data-js-ver]').hide();
       $M('.tablaMesas tbody').append(fila);
     });
   });
@@ -692,11 +722,7 @@ $(function(e){
     $M('.datosCierreApertura').toggle(next.length+prev.length);
   });
 
-  $(document).on('click', `${_M} [data-js-cargar]`, function(e){
-    e.preventDefault();
-    
-    const mesa = $(this).closest('tr');
-    
+  const cargarMesa = function(mesa,deshabilitado){
     $M('.tablaMesas tbody tr').removeClass('mesa_seleccionada');
     mesa.addClass('mesa_seleccionada');
 
@@ -725,11 +751,19 @@ $(function(e){
       valores.nombre_fiscalizador ?? ''
     );
     
-    const cargado = mesa.find('.cargado:visible').length > 0;
-    $M('.btn-guardar').toggle(!cargado);
-    $M('.datosCierreApertura .form-control').not('[readonly]').attr('disabled',cargado);
-    $M('.datosCierreApertura').show();
+    $M('.btn-guardar').toggle(!deshabilitado);
     $M('.datosCierreApertura [name]').change();
+    $M('.datosCierreApertura .form-control').not('[readonly]').attr('disabled',!!deshabilitado);
+    $M('.datosCierreApertura').show();
+  };
+  
+  $(document).on('click', `${_M} [data-js-cargar]`, function(e){
+    e.preventDefault();
+    cargarMesa($(this).closest('tr'),false);
+  });
+  $(document).on('click', `${_M} [data-js-ver]`, function(e){
+    e.preventDefault();
+    cargarMesa($(this).closest('tr'),true);
   });
 
   $M('[data-js-moneda]').change(function(e){
@@ -826,9 +860,8 @@ $(function(e){
     POST(`${M.data('path')}/guardar`,formData,
       function(data){
         const mesa = $M('.mesa_seleccionada');
-        mesa.find('.cargar').addClass('cargado');
-        mesa.find('.borrar').remove();
-        mesa.find('.cargar').click();
+        mesa.find('[data-js-ver]').show();
+        mesa.find('[data-js-cargar],[data-js-borrar]').remove();
         M.data('cargados',M.data('cargados')+1);
         $('.tab_content:visible .btn-buscar').click();
         if(M.data('salir_al_completar'))
@@ -917,37 +950,6 @@ function GET(url,params = {},success = function(data){},error = function(respons
 function POST(url,params = {},success = function(data){},error = function(response){console.log(response);}){
   _aux_ajax('POST',url,params,success,error);
 }
-
-$('[data-minimizar]').click(function() {
-  const minimizar = $(this).data('minimizar');
-  $('.modal-backdrop').css('opacity',minimizar? '0.1' : '0.5');
-  $(this).data("minimizar", !minimizar);
-});
-
-$('.modal').on('shown.bs.modal',function(){
-  const min = $(this).find('[data-minimizar]');
-  if(!min.data('minimizar')){
-    setTimeout(function(){
-      min.click();
-    },250);
-  }
-});
-
-$("#tabs a").click(function() {
-  $("#tabs a").removeClass("active");
-  $(this).addClass("active");
-
-  const tab = $($(this).attr("href")); //Find the href attribute value to
-  tab.find('.filtro-busqueda-collapse .form-control').val('');//Limpio los filtros
-  tab.find('.btn-buscar').click();
-  
-  $('.tab_content').hide();
-  tab.show();
-  
-  setTimeout(function(){//@HACK: nose porque scrollea cuando tabea...
-    $('#tabs').get(0).scrollIntoView();
-  },50);
-});
 
 function hhmm(hhmmss){
   if(hhmmss === null) return '--:--';

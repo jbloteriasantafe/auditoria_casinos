@@ -439,44 +439,44 @@ use App\Http\Controllers\AuthenticationController;
 </div>
 
 <style>
-  [data-js-ver-cierre-apertura] {
+  .verCierreApertura {
     font-family: Roboto;
   }
-  [data-js-ver-cierre-apertura] .modal-header {
+  .verCierreApertura .modal-header {
     background-color:#0D47A1;
   }
-  [data-js-ver-cierre-apertura] .modal-header button {
+  .verCierreApertura .modal-header button {
     margin: 2px !important;
   }
-  [data-js-ver-cierre-apertura] .modal-body .titulo_datos {
+  .verCierreApertura .modal-body .titulo_datos {
     margin: 0px;
     text-align: center;
   }
-  [data-js-ver-cierre-apertura] .borde_arriba {
+  .verCierreApertura .borde_arriba {
     border-top:1px solid #ccc;
   }
-  [data-js-ver-cierre-apertura] .bordes_columnas > *:not(:last-child) {
+  .verCierreApertura .bordes_columnas > *:not(:last-child) {
     border-right:1px solid #ccc;
   }
-  [data-js-ver-cierre-apertura] .div_icono_texto {
+  .verCierreApertura .div_icono_texto {
     display: flex;
     flex-wrap: wrap;
     align-content: center;
   }
-  [data-js-ver-cierre-apertura] .div_icono_texto h5 {
+  .verCierreApertura .div_icono_texto h5 {
     color: #000 !important;
     font-size: 14px;
   }
-  [data-js-ver-cierre-apertura] .tablaFichas thead tr th {
+  .verCierreApertura .tablaFichas thead tr th {
     text-align: center;
     font-size: 1.1em;
   }
-  [data-js-ver-cierre-apertura] .tablaFichas tbody tr td {
+  .verCierreApertura .tablaFichas tbody tr td {
     text-align: right;
   }
 </style>
 
-<div class="modal fade" data-js-ver-cierre-apertura tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
+<div class="modal fade verCierreApertura" data-js-ver-cierre-apertura tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -648,35 +648,23 @@ use App\Http\Controllers\AuthenticationController;
 </div>
 
 <style>
-  [data-js-cargar-apertura-cierre] .modal-lg {
+  .cargarAperturaCierre .modal-lg {
     width: 50%;
   }
-  [data-js-cargar-apertura-cierre] .mesa_seleccionada {
+  .cargarAperturaCierre .mesa_seleccionada {
     background-color: #E0E0E0;
   }
-  [data-js-cargar-apertura-cierre] .tablaFichas th {
+  .cargarAperturaCierre .tablaFichas th {
     text-align: center;
     font-size: 1.1em;
   }
-  [data-js-cargar-apertura-cierre] .align-right {
+  .cargarAperturaCierre .align-right {
     text-align: right !important;
   }
-  [data-js-cargar-apertura-cierre] .tablaMesas tbody tr .cargar.cargado i.fa-pencil-alt {
-    display: none;
-  }
-  [data-js-cargar-apertura-cierre] .tablaMesas tbody tr .cargar.cargado i.fa-eye {
-    display: block;
-  }
-  [data-js-cargar-apertura-cierre] .tablaMesas tbody tr .cargar:not(.cargado) i.fa-pencil-alt {
-    display: block;
-  }
-  [data-js-cargar-apertura-cierre] .tablaMesas tbody tr .cargar:not(.cargado) i.fa-eye {
-    display: none;
-  }
-  [data-js-cargar-apertura-cierre] .tablaMesas tbody tr .cargar i {
+  .cargarAperturaCierre .tablaMesas tbody tr i {
     padding: 0.15em;
   }
-  [data-js-cargar-apertura-cierre] [name="observacion"] {
+  .cargarAperturaCierre [name="observacion"] {
     background-color: transparent;
     border: 1px solid #000000;
     height: 100%;
@@ -696,7 +684,7 @@ use App\Http\Controllers\AuthenticationController;
 
 <div data-js-cargar-apertura hidden></div>
 <div data-js-cargar-cierre hidden></div>
-<div class="modal fade" data-js-cargar-apertura-cierre tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+<div class="modal fade cargarAperturaCierre" data-js-cargar-apertura-cierre tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" >
     <div class="modal-content">
       <div class="modal-header" style="background-color:#6dc7be;">
@@ -762,11 +750,13 @@ use App\Http\Controllers\AuthenticationController;
                   <tr class="moldeFila">
                     <td class="nro_mesa">99999999</td>
                     <td>
-                      <button class="cargar" data-js-cargar>
+                      <button data-js-cargar data-js-campo-cargar-modificar>
                         <i class="fas fa-fw fa-pencil-alt"></i>
+                      </button>
+                      <button data-js-ver data-js-campo-validar>
                         <i class="fas fa-fw fa-eye"></i>
                       </button>
-                      <button class="borrar" data-js-borrar>
+                      <button data-js-borrar data-js-campo-cargar>
                         <i class="fas fa-fw fa-trash"></i>
                       </button>
                     </td>
