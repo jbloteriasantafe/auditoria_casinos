@@ -144,7 +144,7 @@ class BCCierreController extends Controller
     foreach ($user->casinos as $cass) {
       $cas[]=$cass->id_casino;
     }
-    $sort_by = ['columna' => 'cierre_mesa.fecha','orden','desc'];
+    $sort_by = ['columna' => 'cierre_mesa.fecha','orden' => 'desc'];
     if(!empty( $request->sort_by)){
       $sort_by = $request->sort_by;
     }

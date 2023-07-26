@@ -211,7 +211,7 @@ class BCAperturaController extends Controller
       $cas[]=$cass->id_casino;
     }
     
-    $sort_by = ['columna' => 'apertura_mesa.fecha','orden','desc'];
+    $sort_by = ['columna' => 'apertura_mesa.fecha','orden' => 'desc'];
     if(!empty($request->sort_by)){
       $sort_by = $request->sort_by;
     }

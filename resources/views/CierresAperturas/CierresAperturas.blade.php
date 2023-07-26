@@ -29,17 +29,17 @@ use App\Http\Controllers\AuthenticationController;
   .contenedor > nav {
     display: none;
   }
-  #tabs {
+  .tabs {
     width: 100%;
     display: flex;
     margin-bottom: 10px;
   }
-  #tabs > div {
+  .tabs > div {
     flex: 1;
     margin: 0;
     padding: 0;
   }
-  #tabs a {
+  .tabs a {
     padding: 15px 10px;
     font-family:Roboto-condensed;
     font-size:20px;
@@ -53,7 +53,7 @@ use App\Http\Controllers\AuthenticationController;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px
   }
-  #tabs a.active {
+  .tabs a.active {
     color: #555;
     cursor: default;
     border-color: rgb(221, 221, 221);
@@ -91,12 +91,12 @@ use App\Http\Controllers\AuthenticationController;
         'moneda' => 'moneda.siglas',
         'casino' => 'casino.nombre',
         'estado' => 'apertura_mesa.id_estado_cierre',
-        'acciones' =>  [//icono, permiso, html extra
-          'ver' => ['fa-search-plus',null,'data-estados="1,2,3,4" data-js-ver-apertura'],
-          'desvincular' => ['fa-unlink','m_validar_aperturas','data-estados="2,3,4" data-js-desvincular-abrir'],
-          'modificar' => ['fa-pencil-alt',null,'data-estados="1" data-js-modificar-apertura'],
-          'validar' => ['fa-check','m_validar_aperturas','data-estados="1" data-js-validar-apertura-abrir'],
-          'eliminar' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1" data-js-eliminar-apertura-abrir'],
+        'acciones' =>  [//attr => icono, permiso, html extra
+          'data-js-ver-apertura' => ['fa-search-plus',null,'data-estados="1,2,3,4"'],
+          'data-js-desvincular' => ['fa-unlink','m_validar_aperturas','data-estados="2,3,4"'],
+          'data-js-modificar-apertura' => ['fa-pencil-alt',null,'data-estados="1"'],
+          'data-js-validar-apertura' => ['fa-check','m_validar_aperturas','data-estados="1"'],
+          'data-js-eliminar-apertura' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1"'],
         ],
       ],
     ],
@@ -115,22 +115,22 @@ use App\Http\Controllers\AuthenticationController;
         'casino' => 'casino.nombre',
         'estado' => 'cierre_mesa.id_estado_cierre',
         'acciones' =>  [
-          'ver' => ['fa-search-plus',null,'data-estados="1,2,3,4" data-js-ver-cierre'],
-          'modificar' => ['fa-pencil-alt',null,'data-estados="1" data-js-modificar-cierre'],
-          'validar' => ['fa-check','m_validar_cierres','data-estados="1" data-js-validar-cierre'],
-          'eliminar' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1,3" data-js-eliminar-cierre-abrir'],
+          'data-js-ver-cierre' => ['fa-search-plus',null,'data-estados="1,2,3,4"'],
+          'data-js-modificar-cierre' => ['fa-pencil-alt',null,'data-estados="1"'],
+          'data-js-validar-cierre' => ['fa-check','m_validar_cierres','data-estados="1"'],
+          'data-js-eliminar-cierre' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1,3"'],
         ],
       ],
     ],
   ];
 ?>
 <div class="row">
-  <div id="tabs">
+  <div class="tabs" data-js-tabs>
     <div>
-      <a href="#pant_aperturas">Aperturas</a>
+      <a data-js-tab data-tab-target="#pant_aperturas">Aperturas</a>
     </div>
     <div>
-      <a href="#pant_cierres">Cierres</a>
+      <a data-js-tab data-tab-target="#pant_cierres">Cierres</a>
     </div>
   </div>
 </div>
@@ -238,7 +238,7 @@ use App\Http\Controllers\AuthenticationController;
                     </select>
                   </div>
                   <div class="col-md-4" style="padding-top:50px;">
-                    <button target="{{$tdata['buscar']}}" class="btn btn-infoBuscar btn-buscar" type="button" style="margin-top:30px">
+                    <button data-target="{{$tdata['buscar']}}" data-js-buscar class="btn btn-infoBuscar" type="button" style="margin-top:30px">
                       <i class="fa fa-fw fa-search"></i> BUSCAR
                     </button>
                   </div>
@@ -262,11 +262,7 @@ use App\Http\Controllers\AuthenticationController;
                       @foreach($tdata['resultados'] as $class => $key)
                       @php $txt = str_replace('_',' ',strtoupper($class)); @endphp
                       @if(!is_array($key))
-                        @if($loop->first)
-                        <th value="{{$key}}" class="activa {{$class}}" estado="desc">{{$txt}} <i class="fas fa-sort-down"></th>
-                        @else
-                        <th value="{{$key}}">{{$txt}} <i class="fas fa-sort"></th>
-                        @endif
+                        <th data-js-sortable="{{$key}}">{{$txt}}</th>
                       @else
                         <th>{{$txt}}</th>
                       @endif
@@ -286,7 +282,7 @@ use App\Http\Controllers\AuthenticationController;
                   <td>
                     @foreach($key as $boton => $icono_perm)
                     @if($tiene_permiso($icono_perm[1]))
-                    <button type="button" class="btn btn-info {{$boton}}" title="{{strtoupper($boton)}}" {!! $icono_perm[2] !!}>
+                    <button type="button" class="btn" {{$boton}} {!! $icono_perm[2] !!}>
                       <i class="fa fa-fw {{$icono_perm[0]}}"></i>
                     </button>
                     @endif                    
@@ -344,13 +340,13 @@ use App\Http\Controllers\AuthenticationController;
   </div>
 </div>
 
-<div class="modal fade" data-js-apertura-a-pedido tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade .aperturaAPedido" data-js-apertura-a-pedido tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" style="width: 80%">
     <div class="modal-content">
       <div class="modal-header" style="background-color:#4AA89F;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true"
-                data-target="[data-js-apertura-a-pedido] .collapse" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                data-target=".aperturaAPedido .collapse" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title">| APERTURAS A PEDIDO</h3>
       </div>
       <div class="collapse in">
@@ -483,7 +479,7 @@ use App\Http\Controllers\AuthenticationController;
         <button type="button" class="close" data-dismiss="modal">
           <i class="fa fa-times"></i>
         </button>
-        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="[data-js-ver-cierre-apertura] .collapse">
+        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target=".verCierreApertura .collapse">
           <i class="fa fa-window-minimize"></i>
         </button>
         <h3 class="modal-title">DETALLE</h3>
@@ -689,7 +685,7 @@ use App\Http\Controllers\AuthenticationController;
     <div class="modal-content">
       <div class="modal-header" style="background-color:#6dc7be;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizar-carga-cierre" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="[data-js-cargar-apertura-cierre] .collapse" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+        <button id="btn-minimizar-carga-cierre" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target=".cargarAperturaCierre .collapse" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title tipo">CARGAR XXXXX</h3>
       </div>
       <div class="collapse in">
@@ -859,11 +855,11 @@ use App\Http\Controllers\AuthenticationController;
   </div>
 </div>
   
-<style media="screen">
-  [data-js-validar-apertura-modal] .borde_abajo {
+<style>
+  .validarApertura .borde_abajo {
     border-bottom: 2px solid #ccc;
   }
-  [data-js-validar-apertura-modal] .observacion {
+  .validarApertura .observacion {
     background-color: transparent;
     border: 1px solid #000000;
     height: 100%;
@@ -877,7 +873,7 @@ use App\Http\Controllers\AuthenticationController;
     scrollbar-highlight-color: #CCCCCC;
     resize: vertical;
   }
-  [data-js-validar-apertura-modal] .tablaFichas th{
+  .validarApertura .tablaFichas th{
     padding-bottom: 8px;
     padding-top: 8px;
     padding-left: 8px;
@@ -885,29 +881,28 @@ use App\Http\Controllers\AuthenticationController;
     border-right: 1px solid #ccc;
     border-bottom: 1px solid #ccc;
   }
-  [data-js-validar-apertura-modal] .tablaFichas th:last_child{
+  .validarApertura .tablaFichas th:last_child{
     color: #aaa !important;
     border-right: unset;
   }
-  [data-js-validar-apertura-modal] .tablaFichas th h5 {
+  .validarApertura .tablaFichas th h5 {
     font-size: 15px !important;
     color: #aaa !important;
     text-align: center !important;
   }
-  [data-js-validar-apertura-modal] .datosA h6,
-  [data-js-validar-apertura-modal] .datosC h6 {
+  .validarApertura .datosA h6,.validarApertura .datosC h6 {
     font-size:17px !important;
     text-align:left !important;
     margin-left:15px;
   }
 </style>
 
-<div class="modal fade" data-js-validar-apertura-modal tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+<div class="modal fade .validarApertura" data-js-validar-apertura-modal tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog modal-lg" style="width:70%">
     <div class="modal-content">
       <div class="modal-header" style="background-color:#6dc7be;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="[data-js-validar-apertura-modal] .collapse" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target=".validarApertura .collapse" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title">VALIDAR APERTURA </h3>
       </div>
       <div class="collapse in">
@@ -1029,12 +1024,12 @@ use App\Http\Controllers\AuthenticationController;
   </div>
 </div>
 
-<div class="modal fade" data-js-alerta-baja tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade alertaBaja" data-js-alerta-baja tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-70%">
     <div class="modal-content">
       <div class="modal-header" style="font-family: Roboto-Black; background-color:#D50000">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="[data-js-alerta-baja] .collapse" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target=".alertaBaja .collapse" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title">ALERTA</h3>
       </div>
       <div class="collapse in">
@@ -1104,8 +1099,7 @@ use App\Http\Controllers\AuthenticationController;
 @section('scripts')
 
   <!-- JavaScript personalizado -->
-  <script src="/js/onmount.js" type="text/javascript"></script>
-  <script src="js/CierresAperturas/CierresAperturas.js?6" type="text/javascript" charset="utf-8"></script>
+  <script src="js/CierresAperturas/CierresAperturas.js?7" type="text/javascript" charset="utf-8"></script>
   <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
   <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
 
