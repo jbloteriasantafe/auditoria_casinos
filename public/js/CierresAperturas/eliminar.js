@@ -22,7 +22,7 @@ $(function(e){
     const url = $(this).attr('data-url')+'/'+$(this).val();
     AUX.GET(url,{},function(data){
       AUX.mensajeExito('Eliminado con éxito');
-      $('.tab_content:visible .btn-buscar').click();//@DI
+      M.trigger('success');
       M.modal('hide');
     });
   });

@@ -89,6 +89,7 @@ $(function(e){
   });
   
   $M('[data-js-cargar-cierre]').on('mostrar',function(e,params){
+    M.attr('data-entry-div','[data-js-cargar-cierre]');
     modalCargarCierreApertura(
       'CARGAR CIERRES',TipoModal.cierre,ModoModal.cargar,
       {}
@@ -96,6 +97,7 @@ $(function(e){
   });
 
   $M('[data-js-modificar-apertura]').on('mostrar',function(e,params) {
+    M.attr('data-entry-div','[data-js-modificar-apertura]');
     AUX.GET('aperturas/getApertura/'+params.id,{},function(data){
       modalCargarCierreApertura(
         'MODIFICAR APERTURA',TipoModal.apertura,ModoModal.modificar,
@@ -105,6 +107,7 @@ $(function(e){
   });
 
   $M('[data-js-modificar-cierre]').on('mostrar',function(e,params) {
+    M.attr('data-entry-div','[data-js-modificar-cierre]');
     AUX.GET('cierres/getCierre/'+params.id,{},function(data){
       data = data ?? {};
       data.cierre = data?.cierre ?? {};
@@ -117,6 +120,7 @@ $(function(e){
   });
 
   $M('[data-js-validar-cierre]').on('mostrar',function(e,params) {
+    M.attr('data-entry-div','[data-js-validar-cierre]');
     AUX.GET('cierres/getCierre/'+params.id,{},function(data){
       data = data ?? {};
       data.cierre = data?.cierre ?? {};
@@ -343,7 +347,7 @@ $(function(e){
         mesa.find('[data-js-ver]').show();
         mesa.find('[data-js-cargar],[data-js-borrar]').remove();
         M.data('cargados',M.data('cargados')+1);
-        $('.tab_content:visible .btn-buscar').click();
+        $(M.attr('data-entry-div')).trigger('success');
         if(M.data('salir_al_completar'))
           $M('.btn-salir').click();
       },
@@ -370,7 +374,7 @@ $(function(e){
       function(data){
         AUX.mensajeExito('Cierre validado');
         M.data('cargados',M.data('cargados')+1);
-        $('.tab_content:visible .btn-buscar').click();
+        $(M.attr('data-entry-div')).trigger('success');
         if(M.data('salir_al_completar'))
           $M('.btn-salir').click();
       },

@@ -13,7 +13,7 @@ $(function(e){
       M.modal('hide');
       if(data==1){
         AUX.mensajeExito('Se ha desvinculado el cierre de esta Apertura.');
-        $('.tab_content:visible [data-js-buscar]').click();//@DI
+        M.trigger('success');
       }
       else{
         AUX.mensajeError('No es posible realizar esta acción, ya ha cerrado el periodo de producción correspondiente.');

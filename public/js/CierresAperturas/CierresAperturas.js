@@ -7,7 +7,6 @@ import "./validarApertura.js";
 import "./desvincular.js";
 import "./cmApertura_cmvCierre.js";
 
-
 $(function() {
   $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $('.tituloSeccionPantalla').text('Cierres y Aperturas');
@@ -27,6 +26,13 @@ $(function() {
     $($(this).attr('data-js-mostrar')).trigger(
       'mostrar',[JSON.parse($(this).attr('data-js-mostrar-params') ?? '{}')]
     );
+  });
+  
+  $('[data-js-mostrar]').each(function(i,o){
+    const modal = $($(o).attr('data-js-mostrar'));
+    modal.on('success',function(e){
+      $('.tab_content:visible [data-js-buscar]').click();
+    });
   });
   
   $('[data-minimizar]').click(function() {
@@ -67,22 +73,23 @@ $(function(e){
       orden: tab.find('.tablaResultados [data-js-sortable][data-js-state]').attr('data-js-state')
     };
   };
-  const clickIndice = (tab,e,pageNumber,tam) => {
-      if(e == null) return;
-      e.preventDefault();
-      const estado = extraerEstado(tab);
-      tab.find('[data-js-buscar]').trigger('click',[
-        pageNumber  ?? estado.pagina,
-        tam         ?? estado.tam,
-        estado.columna, estado.orden
-      ]);
-  };
   const invalido = n => (n == null || isNaN(n));
   
   $('[data-js-buscar]').on('click', function(e,pagina,page_size,columna,orden){
     e.preventDefault();
 
     const tab = $(this).closest('.tab_content');
+    const clickIndice = (e,pageNumber,tam) => {
+        if(e == null) return;
+        e.preventDefault();
+        const estado = extraerEstado(tab);
+        tab.find('[data-js-buscar]').trigger('click',[
+          pageNumber  ?? estado.pagina,
+          tam         ?? estado.tam,
+          estado.columna, estado.orden
+        ]);
+    };
+    
     const estado = extraerEstado(tab);
     const paging = {
       page_number: !invalido(pagina)? pagina 
@@ -104,10 +111,7 @@ $(function(e){
         ...AUX.extraerFormData(tab.find('.filtro-busqueda-collapse'))
       },
       function (ret){
-        const clickIndice_sin_tab = function(e,pageNumber,tam){
-          return clickIndice(tab,e,pageNumber,tam);
-        };
-        tab.find('.herramientasPaginacion').generarTitulo(paging.page_number,paging.page_size,ret.total,clickIndice_sin_tab);
+        tab.find('.herramientasPaginacion').generarTitulo(paging.page_number,paging.page_size,ret.total);
         tab.find('.tablaResultados tbody tr').remove();
 
         ret.data.forEach(function(obj){
@@ -126,7 +130,7 @@ $(function(e){
           tab.find('.tablaResultados tbody').append(fila);
         });
         
-        tab.find('.herramientasPaginacion').generarIndices(paging.page_number,paging.page_size,ret.total,clickIndice_sin_tab);
+        tab.find('.herramientasPaginacion').generarIndices(paging.page_number,paging.page_size,ret.total,clickIndice);
       },
       function(data){
         console.log(data);

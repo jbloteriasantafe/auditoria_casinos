@@ -82,7 +82,7 @@ $(function(e){
       function (data){
         M.modal('hide');
         AUX.mensajeExito('Apertura Validada correctamente.');
-        $('#pant_aperturas .btn-buscar').click();
+        M.trigger('success');
       },
       function(data){
         console.log(data);

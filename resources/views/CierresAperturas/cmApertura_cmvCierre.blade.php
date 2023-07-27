@@ -84,7 +84,7 @@
               </div> 
               <div class="col-md-4">
                 <h6>FISCALIZADOR DE CARGA</h6>
-                <input class="form-control" name="id_cargador" readonly>
+                <input class="form-control" name="id_cargador" data-js-formdata-attr="data-elemento-seleccionado" readonly>
               </div>
             </div>
             <div class="row">
@@ -144,7 +144,7 @@
                       </div>
                       <div class="col-md-4" data-js-campo-aperturas>
                         <h6>FISCALIZADOR DE TOMA</h6>
-                        <input class="form-control" name="id_fiscalizador" type="text" formData-attr="data-elemento-seleccionado">
+                        <input class="form-control" name="id_fiscalizador" type="text" data-js-formdata-attr="data-elemento-seleccionado">
                       </div>
                     </div>
                   </div>
