@@ -63,6 +63,10 @@ $(function(e){
       },
     );
   });
+  
+  $('[data-js-filtro-tabla]').on('buscar',function(e,pagina,page_size,columna,orden){
+    $(this).find('[data-js-buscar]').trigger('click',[pagina,page_size,columna,orden]);
+  });
 
   $('[data-js-sortable]').click(function(e){
     const not_sorted  = !$(this).attr('data-js-state');

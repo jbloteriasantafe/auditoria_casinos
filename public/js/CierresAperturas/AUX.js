@@ -1,4 +1,6 @@
-
+$(function(e){
+  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
+});
 export const AUX = {
   _mensaje(modal,mensaje){
     modal.hide();

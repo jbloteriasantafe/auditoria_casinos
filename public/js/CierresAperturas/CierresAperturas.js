@@ -9,7 +9,6 @@ import "./cmApertura_cmvCierre.js";
 import "./inputFecha.js";
 
 $(function() {
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
   $('.tituloSeccionPantalla').text('Cierres y Aperturas');
 
   $(document).on('click','[data-js-mostrar]',function(e){
@@ -22,7 +21,7 @@ $(function() {
   $('[data-js-mostrar]').each(function(i,o){
     const modal = $($(o).attr('data-js-mostrar'));
     modal.on('success',function(e){
-      $('.tab_content:visible [data-js-buscar]').click();
+      $('.tab_content:visible [data-js-filtro-tabla]').trigger('buscar');
     });
   });
   
@@ -50,13 +49,8 @@ $(function() {
       $(this).addClass('active');
       const tab = $($(this).attr('data-tab-target')); //Find the href attribute value to
       tab.find('.filtro_tabla_filtro [name]').val('');//Limpio los filtros
-      tab.find('[data-js-buscar]').click();
       $('.tab_content').hide();
-      tab.show();
-      
-      setTimeout(function(){//@HACK: nose porque scrollea cuando tabea...
-        $(tab_group).find('[data-js-tab]').get(0).scrollIntoView();
-      },50);
+      tab.show().find('[data-js-filtro-tabla]').trigger('buscar');
     }).eq(0).click();
   });
 });
