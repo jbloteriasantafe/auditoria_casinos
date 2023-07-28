@@ -7,14 +7,7 @@ use App\Http\Controllers\AuthenticationController;
 
 @endsection
 @section('estilos')
-<link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
-<link href="css/bootstrap-datetimepicker.css" rel="stylesheet"/>
-<link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet"/>
 <link href="css/bootstrap.min.css" rel="stylesheet"/>
-<link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
-<link rel="stylesheet" href="/css/lista-datos.css">
-<link rel="stylesheet" href="/js/jquery-ui-1.12.1.custom/jquery-ui.css">
-<link rel="stylesheet" href="/css/paginacion.css">
 <style>
   table.tablaResultados thead tr th {
     font-size:14px;
@@ -202,13 +195,8 @@ use App\Http\Controllers\AuthenticationController;
         @slot('filtros')
         <div class="col-md-4">
           <h5>Fecha</h5>
-          <div class="form-group">
-            <div class='input-group date' data-js-fecha>
-              <input name="fecha" type='text' class="form-control" placeholder="aaaa-mm-dd" />
-              <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-              <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-            </div>
-          </div>
+          @component('CierresAperturas/inputFecha',['attrs' => 'name="fecha"'])
+          @endcomponent
         </div>
         <div class="col-md-4">
           <h5>Mesa</h5>
@@ -299,11 +287,8 @@ use App\Http\Controllers\AuthenticationController;
 @endcomponent
 
 <meta name="_token" content="{!! csrf_token() !!}" />
-
 @endsection
 
-
-<!-- Comienza modal de ayuda -->
 @section('tituloDeAyuda')
 <h3 class="modal-title" style="color: #fff;">| AYUDA</h3>
 @endsection
@@ -345,7 +330,6 @@ use App\Http\Controllers\AuthenticationController;
   </p>
 </div>
 @endsection
-<!-- Termina modal de ayuda -->
 
 @section('scripts')
   <script src="js/CierresAperturas/CierresAperturas.js?7" type="module" charset="utf-8"></script>

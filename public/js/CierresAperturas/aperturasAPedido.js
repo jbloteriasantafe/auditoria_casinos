@@ -1,4 +1,6 @@
 import {AUX} from "./AUX.js";
+import "./initModal.js";
+import "./inputFecha.js";
 
 $(function(e){
   const _M = '[data-js-apertura-a-pedido]';

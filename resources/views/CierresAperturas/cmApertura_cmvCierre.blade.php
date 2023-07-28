@@ -1,4 +1,4 @@
-
+<link rel="stylesheet" href="/css/lista-datos.css">
 <style>
   .cmApertura_cmvCierre .modal-lg {
     width: 50%;
@@ -52,11 +52,8 @@
             <div class="col-md-4">
               <h6>FECHA</h6>
               <div class="form-group">
-                <div class='input-group date' data-js-fecha>
-                  <input type='text' class="form-control" placeholder="aaaa-mm-dd" name="fecha"/>
-                  <span class="input-group-addon" style="border-left:none;cursor:pointer;" data-js-campo-cargar><i class="fa fa-times"></i></span>
-                  <span class="input-group-addon" style="cursor:pointer;" data-js-campo-cargar><i class="fa fa-calendar"></i></span>
-                </div>
+                @component('CierresAperturas/inputFecha',['attrs' => 'name="fecha"'])
+                @endcomponent
               </div>
             </div>
             <div class="col-xs-4">

@@ -27,21 +27,15 @@
             <div class="col-xs-2">
               <h5>F. INICIO</h5>
               <div class="form-group">
-                <div class='input-group date' data-js-fecha data-date-format="aaaa-mm-dd">
-                  <input type='text' class="form-control" name="fecha_inicio" placeholder="Fecha de inicio"/>
-                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
+                @component('CierresAperturas/inputFecha',['attrs' => 'name="fecha_inicio"','placeholder' => 'Fecha inicio'])
+                @endcomponent
               </div>
             </div>
             <div class="col-xs-2">
               <h5>F. FIN</h5>
               <div class="form-group">
-                <div class='input-group date' data-js-fecha data-date-format="aaaa-mm-dd">
-                  <input type='text' class="form-control" name="fecha_fin" placeholder="Fecha fin"/>
-                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
+                @component('CierresAperturas/inputFecha',['attrs' => 'name="fecha_fin"','placeholder' => 'Fecha fin'])
+                @endcomponent
               </div>
             </div>
             <div class="col-xs-2">

@@ -1,6 +1,7 @@
 <?php
 $id = uniqid();
 ?>
+<link rel="stylesheet" href="/css/paginacion.css">
 <style>
   .filtro_tabla tr {
     display: flex;
@@ -12,6 +13,7 @@ $id = uniqid();
     align-items: center;
   }
 </style>
+
 <div id="{{$id}}" data-js-filtro-tabla class="filtro_tabla">
   <div class="row" data-js-filtro-tabla-filtro>
     <div class="col-md-12">
