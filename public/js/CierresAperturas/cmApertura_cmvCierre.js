@@ -1,4 +1,5 @@
 import {AUX} from "./AUX.js";
+import "/js/lista-datos.js";
 
 $(function(e){
   const TipoModal = {

@@ -88,11 +88,11 @@ use App\Http\Controllers\AuthenticationController;
         'casino' => 'casino.nombre',
         'estado' => 'apertura_mesa.id_estado_cierre',
         'acciones' =>  [//attr => icono, permiso, html extra
-          'data-js-mostrar="[data-js-ver-apertura]"' => ['fa-search-plus',null,'data-estados="1,2,3,4"'],
-          'data-js-mostrar="[data-js-desvincular]"' => ['fa-unlink','m_validar_aperturas','data-estados="2,3,4"'],
-          'data-js-mostrar="[data-js-modificar-apertura]"' => ['fa-pencil-alt',null,'data-estados="1"'],
-          'data-js-mostrar="[data-js-validar-apertura]"' => ['fa-check','m_validar_aperturas','data-estados="1"'],
-          'data-js-mostrar="[data-js-eliminar-apertura]"' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1"'],
+          '[data-js-ver-apertura]' => ['fa-search-plus',null,'data-estados="1,2,3,4"'],
+          '[data-js-desvincular]' => ['fa-unlink','m_validar_aperturas','data-estados="2,3,4"'],
+          '[data-js-modificar-apertura]' => ['fa-pencil-alt',null,'data-estados="1"'],
+          '[data-js-validar-apertura]' => ['fa-check','m_validar_aperturas','data-estados="1"'],
+          '[data-js-eliminar-apertura]' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1"'],
         ],
       ],
     ],
@@ -111,10 +111,10 @@ use App\Http\Controllers\AuthenticationController;
         'casino' => 'casino.nombre',
         'estado' => 'cierre_mesa.id_estado_cierre',
         'acciones' =>  [
-          'data-js-mostrar="[data-js-ver-cierre]"' => ['fa-search-plus',null,'data-estados="1,2,3,4"'],
-          'data-js-mostrar="[data-js-modificar-cierre]"' => ['fa-pencil-alt',null,'data-estados="1"'],
-          'data-js-mostrar="[data-js-validar-cierre]"' => ['fa-check','m_validar_cierres','data-estados="1"'],
-          'data-js-mostrar="[data-js-eliminar-cierre]"' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1,3"'],
+          '[data-js-ver-cierre]' => ['fa-search-plus',null,'data-estados="1,2,3,4"'],
+          '[data-js-modificar-cierre]' => ['fa-pencil-alt',null,'data-estados="1"'],
+          '[data-js-validar-cierre]' => ['fa-check','m_validar_cierres','data-estados="1"'],
+          '[data-js-eliminar-cierre]' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1,3"'],
         ],
       ],
     ],
@@ -131,17 +131,20 @@ use App\Http\Controllers\AuthenticationController;
 </div>
 
 <style>
-  .tablaResultados tbody tr .estado i.rojo{
+  .filtro_tabla tbody tr .estado i.rojo{
     color: rgb(211, 47, 47);
   }
-  .tablaResultados tbody tr .estado i.azul{
+  .filtro_tabla tbody tr .estado i.azul{
     color: rgb(30, 30, 227);
   }
-  .tablaResultados tbody tr .estado i.verde{
+  .filtro_tabla tbody tr .estado i.verde{
     color: rgb(76, 175, 80);
   }
-  .tablaResultados tbody tr .estado i.naranja{
+  .filtro_tabla tbody tr .estado i.naranja{
     color: rgb(189, 133, 1);
+  }
+  .filtro_tabla .txt-center{
+    text-align: center !important;
   }
 </style>
 
@@ -187,111 +190,88 @@ use App\Http\Controllers\AuthenticationController;
       @endforeach
     </div>
     <div class="col-md-9">
-      <div class="row">
-        <div class="col-md-12">
-          <div class="panel panel-default">
-            <div class="panel-heading" data-toggle="collapse" href="#pant_{{$tab}} .filtro-busqueda-collapse" style="cursor: pointer">
-              <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
+      @component('CierresAperturas/FiltroTabla')
+        @slot('titulo')
+        {{$tab}}
+        @endslot
+        
+        @slot('target_buscar')
+        {{$tdata['buscar']}}
+        @endslot
+        
+        @slot('filtros')
+        <div class="col-md-4">
+          <h5>Fecha</h5>
+          <div class="form-group">
+            <div class='input-group date' data-js-fecha>
+              <input name="fecha" type='text' class="form-control" placeholder="aaaa-mm-dd" />
+              <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+              <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
             </div>
-            <div class="filtro-busqueda-collapse panel-collapse collapse">
-              <div class="panel-body">
-                <div class="row">
-                  <div class="col-xs-4">
-                    <h5>Fecha</h5>
-                    <div class="form-group">
-                      <div class='input-group date' data-js-fecha data-date-format="MM yyyy">
-                        <input name="fecha" type='text' class="form-control" placeholder="aaaa-mm-dd" />
-                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-xs-4">
-                    <h5>Mesa</h5>
-                    <div class="input-group">
-                      <input name="nro_mesa" class="form-control filtroMesa" type="text" autocomplete="off">
-                    </div>
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-xs-4">
-                    <h5>Casino</h5>
-                    <select name="id_casino" class="form-control filtroCas">
-                      <option value="" selected>- Seleccione un Casino -</option>
-                      @foreach ($casinos as $cas)
-                      <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
-                      @endforeach
-                    </select>
-                  </div>
-                  <div class="col-xs-4">
-                    <h5>JUEGO</h5>
-                    <select name="id_juego" class="form-control filtroJuego">
-                      <option value="" selected>- Seleccione un Juego -</option>
-                      @foreach ($juegos as $j)
-                      <option value="{{$j->id_juego_mesa}}">{{$j->nombre_juego}} - {{$j->casino->codigo}}</option>
-                      @endforeach
-                    </select>
-                  </div>
-                  <div class="col-md-4" style="padding-top:50px;">
-                    <button data-target="{{$tdata['buscar']}}" data-js-buscar class="btn btn-infoBuscar" type="button" style="margin-top:30px">
-                      <i class="fa fa-fw fa-search"></i> BUSCAR
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <h5>Mesa</h5>
+          <div class="input-group">
+            <input name="nro_mesa" class="form-control" type="text" autocomplete="off">
           </div>
         </div>
       </div>
       <div class="row">
-        <div class="col-md-12">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              <h4>{{$tab}}</h4>
-            </div>
-            <div class="panel-body">
-              <div class="table-responsibe">
-                <table class="table tablesorter tablaResultados">
-                  <thead>
-                    <tr align="center">
-                      @foreach($tdata['resultados'] as $class => $key)
-                      @php $txt = str_replace('_',' ',strtoupper($class)); @endphp
-                      @if(!is_array($key))
-                        <th data-js-sortable="{{$key}}">{{$txt}}</th>
-                      @else
-                        <th>{{$txt}}</th>
-                      @endif
-                      @endforeach
-                    </tr>
-                  </thead>
-                  <tbody>
-                  </tbody>
-                </table>
-              </div>
-              <table hidden>
-                <tr class="filaResultado moldeFilaResultados">
-                  @foreach($tdata['resultados'] as $class => $key)
-                  @if(!is_array($key))
-                  <td class="{{$class}}">{{$class}}</td>
-                  @else
-                  <td>
-                    @foreach($key as $boton => $icono_perm)
-                    @if($tiene_permiso($icono_perm[1]))
-                    <button type="button" class="btn" {!! $boton !!} {!! $icono_perm[2] !!}>
-                      <i class="fa fa-fw {{$icono_perm[0]}}"></i>
-                    </button>
-                    @endif                    
-                    @endforeach
-                  </td>
-                  @endif
-                  @endforeach
-                </tr>
-              </table>
-            </div>
-            <div class="row zonaPaginacion herramientasPaginacion"></div>
-          </div>
+        <div class="col-md-4">
+          <h5>Casino</h5>
+          <select name="id_casino" class="form-control">
+            <option value="" selected>- Seleccione un Casino -</option>
+            @foreach ($casinos as $cas)
+            <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
+            @endforeach
+          </select>
         </div>
-      </div>
+        <div class="col-md-4">
+          <h5>JUEGO</h5>
+          <select name="id_juego" class="form-control">
+            <option value="" selected>- Seleccione un Juego -</option>
+            @foreach ($juegos as $j)
+            <option value="{{$j->id_juego_mesa}}">{{$j->nombre_juego}} - {{$j->casino->codigo}}</option>
+            @endforeach
+          </select>
+        </div>
+        @endslot
+        
+        @slot('cabecera')
+        <tr>
+          @foreach($tdata['resultados'] as $class => $key)
+          @php $txt = str_replace('_',' ',strtoupper($class)); @endphp
+          @if(!is_array($key))
+            <th class="txt-center" data-js-sortable="{{$key}}">{{$txt}}</th>
+          @else
+            <th class="txt-center">{{$txt}}</th>
+          @endif
+          @endforeach
+        </tr>
+        @endslot
+        
+        @slot('molde')
+        <tr>
+          @foreach($tdata['resultados'] as $class => $key)
+          @if(!is_array($key))
+          <td class="{{$class}} txt-center">{{$class}}</td>
+          @else
+          <td>
+            @foreach($key as $selector => $icono_perm)
+            @if($tiene_permiso($icono_perm[1]))
+            <button type="button" class="btn" data-js-mostrar="{{$selector}}" {!! $icono_perm[2] !!}>
+              <i class="fa fa-fw {{$icono_perm[0]}}"></i>
+            </button>
+            @endif                    
+            @endforeach
+          </td>
+          @endif
+          @endforeach
+        </tr>
+        @endslot
+        
+      @endcomponent
     </div>
   </div>
 </div>
@@ -368,22 +348,5 @@ use App\Http\Controllers\AuthenticationController;
 <!-- Termina modal de ayuda -->
 
 @section('scripts')
-
-  <!-- JavaScript personalizado -->
   <script src="js/CierresAperturas/CierresAperturas.js?7" type="module" charset="utf-8"></script>
-  <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
-  <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
-
-  <script src="js/inputSpinner.js" type="text/javascript"></script>
-  <script src="/js/lista-datos.js" type="text/javascript"></script>
-
-  <script src="/js/fileinput.min.js" type="text/javascript"></script>
-  <script src="/js/locales/es.js" type="text/javascript"></script>
-  <script src="/themes/explorer/theme.js" type="text/javascript"></script>
-  <script src="/js/jquery-ui.js" type="text/javascript"></script>
-
-  <script src="js/math.min.js" type="text/javascript"></script>
-
-  <!-- JS paginacion -->
-  <script src="/js/paginacion.js" charset="utf-8"></script>
 @endsection

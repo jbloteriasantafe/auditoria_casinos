@@ -241,8 +241,7 @@ class BCAperturaController extends Controller
                                ->whereMonth('apertura_mesa.fecha','=', $fecha[1])
                                ->whereDay('apertura_mesa.fecha','=', $fecha[2]);
     }
-    $resultados = $resultados->orderBy('apertura_mesa.fecha','desc')
-    ->when($sort_by,function($query) use ($sort_by){
+    $resultados = $resultados->when($sort_by,function($query) use ($sort_by){
       return $query->orderBy($sort_by['columna'],$sort_by['orden']);
     })->paginate($request->page_size);
     return $resultados;
