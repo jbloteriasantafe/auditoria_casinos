@@ -1,6 +1,6 @@
 import {AUX} from "./AUX.js";
 import "/js/lista-datos.js";
-import "./initModal.js";
+import "./modal.js";
 import "./inputFecha.js";
 
 $(function(e){
@@ -347,7 +347,7 @@ $(function(e){
     AUX.POST(`${M.data('path')}/guardar`,formData,
       function(data){
         const mesa = $M('.mesa_seleccionada');
-        mesa.find('[data-js-ver]').show();
+        mesa.find('[data-js-ver]').show().click();
         mesa.find('[data-js-cargar],[data-js-borrar]').remove();
         M.data('cargados',M.data('cargados')+1);
         $(M.attr('data-entry-div')).trigger('success');

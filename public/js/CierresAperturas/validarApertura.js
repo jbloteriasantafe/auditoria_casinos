@@ -1,4 +1,5 @@
 import {AUX} from "./AUX.js";
+import "./modal.js";
 
 $(function(e){
   const  M = $('[data-js-validar-apertura]');

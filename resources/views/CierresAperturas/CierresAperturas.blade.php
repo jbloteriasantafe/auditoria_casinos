@@ -193,19 +193,19 @@ use App\Http\Controllers\AuthenticationController;
         @endslot
         
         @slot('filtros')
-        <div class="col-md-4">
-          <h5>Fecha</h5>
-          @component('CierresAperturas/inputFecha',['attrs' => 'name="fecha"'])
-          @endcomponent
-        </div>
-        <div class="col-md-4">
-          <h5>Mesa</h5>
-          <div class="input-group">
-            <input name="nro_mesa" class="form-control" type="text" autocomplete="off">
+        <div class="row">
+          <div class="col-md-4">
+            <h5>Fecha</h5>
+            @component('CierresAperturas/inputFecha',['attrs' => 'name="fecha"'])
+            @endcomponent
+          </div>
+          <div class="col-md-4">
+            <h5>Mesa</h5>
+            <div class="input-group">
+              <input name="nro_mesa" class="form-control" type="text" autocomplete="off">
+            </div>
           </div>
         </div>
-      </div>
-      <div class="row">
         <div class="col-md-4">
           <h5>Casino</h5>
           <select name="id_casino" class="form-control">

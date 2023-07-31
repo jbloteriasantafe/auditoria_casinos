@@ -1,5 +1,5 @@
 import {AUX} from "./AUX.js";
-import "./initModal.js";
+import "./modal.js";
 import "./inputFecha.js";
 
 $(function(e){

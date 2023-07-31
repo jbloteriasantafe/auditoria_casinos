@@ -1,6 +1,4 @@
-<?php
-$id = uniqid();
-?>
+@component('CierresAperturas/include_guard',['nombre' => 'filtro_tabla'])
 <link rel="stylesheet" href="/css/paginacion.css">
 <style>
   .filtro_tabla tr {
@@ -13,7 +11,10 @@ $id = uniqid();
     align-items: center;
   }
 </style>
-
+@endcomponent
+<?php
+$id = uniqid();
+?>
 <div id="{{$id}}" data-js-filtro-tabla class="filtro_tabla">
   <div class="row" data-js-filtro-tabla-filtro>
     <div class="col-md-12">
