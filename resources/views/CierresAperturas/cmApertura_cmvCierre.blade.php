@@ -7,6 +7,9 @@
   .cmApertura_cmvCierre .mesa_seleccionada {
     background-color: #E0E0E0;
   }
+  .cmApertura_cmvCierre .tablaFichas {
+    width: 100%;
+  }
   .cmApertura_cmvCierre .tablaFichas th {
     text-align: center;
     font-size: 1.1em;
@@ -150,20 +153,18 @@
         <hr>
         <h6 align="center">FICHAS</h6>
         <div class="row">
-          <div class="col-xs-6" >
-            <table class="table tablaFichas">
-              <thead>
-                <tr>
-                  <th>VALOR</th>
-                  <th data-js-campo-aperturas>CANTIDAD</th>
-                  <th data-js-campo-cierres>MONTO</th>
-                </tr>
-              </thead>
-              <tbody>
-              </tbody>
-            </table>
-            <table hidden>
-              <tr class="moldeFichas">
+          <div class="col-xs-6" data-js-tablas-fichas>
+          </div>
+          <table class="tablaFichas" data-js-molde-tabla hidden>
+            <thead>
+              <tr>
+                <th>VALOR</th>
+                <th data-js-campo-aperturas>CANTIDAD</th>
+                <th data-js-campo-cierres>MONTO</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-js-molde-ficha>
                 <td>
                   <input class="form-control align-right valor_ficha" data-js-cambio-ficha readonly>
                 </td>
@@ -174,8 +175,8 @@
                   <input class="form-control align-right monto_ficha" data-js-cambio-ficha>
                 </td>
               </tr>
-            </table>
-          </div>
+            </tbody>
+          </table>
           <div class="col-xs-6">
             <h6><b>TOTAL: </b></h6>
             <input class="form-control align-right" name="total_pesos_fichas_c" readonly data-js-campo-cierres>

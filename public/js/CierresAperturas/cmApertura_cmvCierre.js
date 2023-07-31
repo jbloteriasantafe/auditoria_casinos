@@ -22,7 +22,7 @@ $(function(e){
       ocultarErrorValidacion($M('.form-control'));
       ocultarErrorValidacion($M('[name="observacion"]'));
       $M('[name="observacion"]').val('').change();
-      $M('.tablaMesas tbody tr,.tablaFichas tbody tr').remove();
+      $M('[data-js-tablas-fichas]').empty();
       $M('.inputMesas,.datosCierreApertura').hide();
       $M('[name="id_cargador"]').attr('data-elemento-seleccionado',null);
       $M('.moldeFila').find('[data-js-cargar],[data-js-ver],[data-js-borrar]').show();
@@ -82,6 +82,31 @@ $(function(e){
     }
 
     M.modal('show');
+  }
+  
+  const extraerValores = function(){
+    const data = AUX.extraerFormData(M);
+    data.fichas = {};
+    $M('[data-js-tablas-fichas] table').each(function(idx,t){
+      const id_moneda = $(t).attr('data-id_moneda');
+      const filas = $(t).find('tbody tr');
+      data.fichas[id_moneda] = filas.map(function(idx,f){
+        return {
+          id_ficha: $(f).attr('data-id_ficha'),
+          valor_ficha: $(f).find('.valor_ficha').val(),
+          cantidad_ficha: $(f).find('.cantidad_ficha').val(),
+          monto_ficha: $(f).find('.monto_ficha').val()
+        };
+      }).toArray();
+    });
+        
+    const mesa = $M('.mesa_seleccionada');
+    data.id_mesa_de_panio = mesa.data('valores')?.id_mesa_de_panio;
+    data.id_cierre_mesa   = mesa.data('valores')?.id_cierre_mesa;
+    data.id_apertura_mesa = mesa.data('valores')?.id_apertura_mesa;
+    data.nombre_fiscalizador = $M('[name="id_fiscalizador"]').val();
+    data.nombre_cargador     = $M('[name="id_cargador"]').val();
+    return data;
   }
   
   $M('[data-js-cargar-apertura]').on('mostrar',function(e,params){
@@ -210,16 +235,41 @@ $(function(e){
   });
 
   const cargarMesa = function(mesa,deshabilitado){
-    $M('.tablaMesas tbody tr').removeClass('mesa_seleccionada');
+    {//Al cambiar la mesa, guardo los valores de la mesa vieja
+      const mesa_vieja = $M('.tablaMesas tbody tr.mesa_seleccionada');
+      mesa_vieja.data('valores',extraerValores());
+      mesa_vieja.removeClass('mesa_seleccionada');
+    }
+    //Y seteo los que apreto
     mesa.addClass('mesa_seleccionada');
-
     const valores = mesa.data('valores');
+    $M('[data-js-tablas-fichas]').empty();
+    Object.keys(valores.fichas ?? {}).forEach(function(id_moneda){
+      const fichas = valores.fichas[id_moneda] ?? [];
+      const tabla = $M('[data-js-molde-tabla]').clone().attr('data-id_moneda',id_moneda)
+      .removeAttr('data-js-molde-tabla');
+      $M('[data-js-tablas-fichas]').append(tabla);
+      fichas.forEach(function(f){
+        const fila = tabla.find('[data-js-molde-ficha]').clone().attr('data-id_ficha',f.id_ficha)
+        .removeAttr('data-js-molde-ficha');
+        const valor_ficha = parseFloat(f.valor_ficha);
+        const monto_ficha = parseFloat(f.monto_ficha);
+        const cantidad_ficha = parseFloat(f.cantidad_ficha);
+        fila.find('.valor_ficha').val(isNaN(valor_ficha)? '' : valor_ficha);
+        fila.find('.monto_ficha').val(isNaN(monto_ficha)? '' : monto_ficha);
+        fila.find('.cantidad_ficha').val(isNaN(cantidad_ficha)? '' : cantidad_ficha);
+        tabla.append(fila);
+      });
+      tabla.find('[data-js-molde-ficha]').remove();
+    });
+    
     $M('[name="id_moneda"] option').prop('disabled',true);
     Object.keys(valores.fichas).forEach(function(id_moneda){
       $M(`[name="id_moneda"] option[value="${id_moneda}"]`).prop('disabled',false);
     });
-    
     $M('[name="id_moneda"]').val(valores.id_moneda);
+    $M('[data-js-moneda]').change();
+    
     $M('[name="total_pesos_fichas_a"]').val(valores.total_pesos_fichas_a);
     $M('[name="total_pesos_fichas_c"]').val(valores.total_pesos_fichas_c);
     $M('[name="total_anticipos_c"]').val(valores.total_anticipos_c);
@@ -245,41 +295,19 @@ $(function(e){
   };
   
   $(document).on('click', `${_M} [data-js-cargar]`, function(e){
-    e.preventDefault();
     cargarMesa($(this).closest('tr'),false);
   });
   $(document).on('click', `${_M} [data-js-ver]`, function(e){
-    e.preventDefault();
     cargarMesa($(this).closest('tr'),true);
   });
 
   $M('[data-js-moneda]').change(function(e){
     e.stopPropagation();
-    const mesa = $M('.mesa_seleccionada');
-    const valores = mesa.data('valores') ?? {};
-    valores.id_moneda = $M('[name="id_moneda"]').val();
-    mesa.data('valores',valores);
-      
-    const tabla = $M('.tablaFichas tbody').empty();
-    const moldeFila = $M('.moldeFichas').clone().removeClass('moldeFichas');
-    (valores?.fichas?.[valores.id_moneda] ?? []).forEach(function(f){
-      const fila = moldeFila.clone();
-      fila.attr('data-id_ficha',f.id_ficha);
-      const valor_ficha = parseFloat(f.valor_ficha);
-      const monto_ficha = parseFloat(f.monto_ficha);
-      const cantidad_ficha = parseFloat(f.cantidad_ficha);
-      fila.find('.valor_ficha').val(isNaN(valor_ficha)? '' : valor_ficha);
-      fila.find('.monto_ficha').val(isNaN(monto_ficha)? '' : monto_ficha);
-      fila.find('.cantidad_ficha').val(isNaN(cantidad_ficha)? '' : cantidad_ficha);
-      tabla.append(fila);
-    });
-    tabla.find('tr').eq(0).find('.valor_ficha').change();//Recalcular el total
-  });
-
-  $M('.datosCierreApertura [name]').change(function(e){//actualizar los datos de la mesa
-    const mesa = $M('.mesa_seleccionada');
-    const valores = mesa.data('valores') ?? {};
-    mesa.data('valores',{...valores,...AUX.extraerFormData(M)});
+    $M('[data-js-tablas-fichas] table').hide();  
+    $M('[name="total_pesos_fichas_a"],[name="total_pesos_fichas_c"]').val(0);//Por si elige la opcion sin moneda
+    const id_moneda = $M('[name="id_moneda"]').val();
+    $M(`[data-js-tablas-fichas] table[data-id_moneda="${id_moneda}"]`).show()
+    .find('tbody tr:first .valor_ficha').change();//Recalcular el total
   });
   
   $(document).on('change',`${_M} [data-js-cambio-ficha]`,function(e){
@@ -303,7 +331,7 @@ $(function(e){
     }
     
     let total = 0;
-    const fichas = $M('.tablaFichas tbody tr').map(function(idx,o){
+    const fichas = $(this).closest('table').find('tr').map(function(idx,o){
       const monto_ficha = $(this).find('.monto_ficha').val();
       total += clearNaN(parseFloat(monto_ficha));
       return {
@@ -312,38 +340,14 @@ $(function(e){
         monto_ficha: monto_ficha
       };
     }).toArray();
-    
-    valores.fichas = valores.fichas ?? {};
-    valores.fichas[valores.id_moneda] = fichas;
-    valores.total_pesos_fichas_c = total;
-    valores.total_pesos_fichas_a = total;
-    
+        
     $M('[name="total_pesos_fichas_c"],[name="total_pesos_fichas_a"]')
     .val(total).attr('value',total);
   });
 
-  function obtenerDatosModalCargarCierreApertura(){
-    const data = AUX.extraerFormData(M);
-    
-    data.fichas = $M('.tablaFichas tbody tr').map(function(idx,f){
-      return {
-        id_ficha: $(f).attr('data-id_ficha'),
-        valor_ficha: $(f).find('.valor_ficha').val(),
-        cantidad_ficha: $(f).find('.cantidad_ficha').val(),
-        monto_ficha: $(f).find('.monto_ficha').val()
-      };
-    }).toArray();
-    
-    const mesa = $M('.mesa_seleccionada');
-    data.id_mesa_de_panio = mesa.data('valores').id_mesa_de_panio;
-    data.id_cierre_mesa   = mesa.data('valores').id_cierre_mesa;
-    data.id_apertura_mesa = mesa.data('valores').id_apertura_mesa;
-    
-    return data;
-  }
-
   $M('[data-js-guardar]').click(function(e){
-    const formData = obtenerDatosModalCargarCierreApertura();
+    const formData = extraerValores();
+    formData.fichas = formData.fichas[formData.id_moneda];
     AUX.POST(`${M.data('path')}/guardar`,formData,
       function(data){
         const mesa = $M('.mesa_seleccionada');
@@ -355,10 +359,9 @@ $(function(e){
           $M('.btn-salir').click();
       },
       function(response){
-        console.log(response);
         const json = response.responseJSON ?? {};
         AUX.mostrarErroresNames(M,json);
-        $M('.tablaFichas tbody tr').each(function(idx,o){
+        $M('[data-js-tablas-fichas] table:visible tbody tr').each(function(idx,o){
           const err_cantidad = json[`fichas.${idx}.cantidad_ficha`] ?? null;
           const err_monto    = json[`fichas.${idx}.monto_ficha`] ?? null;
           if(err_cantidad)
@@ -372,7 +375,8 @@ $(function(e){
   });
 
   $M('[data-js-validar]').click(function(e){
-    const formData = obtenerDatosModalCargarCierreApertura();
+    const formData = extraerValores();
+    formData.fichas = formData.fichas[formData.id_moneda];
     AUX.POST('cierres/validar',formData,
       function(data){
         AUX.mensajeExito('Cierre validado');
