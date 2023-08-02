@@ -762,7 +762,7 @@ Route::group(['prefix' => 'aperturas','middleware' => 'tiene_permiso:m_buscar_ap
   Route::post('guardar', 'Mesas\Aperturas\ABMAperturaController@guardar');
   Route::post('modificarApertura','Mesas\Aperturas\ABMAperturaController@modificarApertura');
   Route::get('bajaApertura/{id_apertura}', 'Mesas\Aperturas\BCAperturaController@eliminarApertura')->middleware(['tiene_permiso:m_eliminar_cierres_y_aperturas']);
-  Route::post('generarRelevamiento', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@generarRelevamiento');
+  Route::post('generarRelevamiento/{id_casino?}', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@generarRelevamiento');
   Route::post('validarApertura','Mesas\Aperturas\VAperturaController@validarApertura');
   Route::get('obtenerApValidar/{id_apertura}', 'Mesas\Aperturas\BCAperturaController@obtenerApParaValidar');
   Route::get('desvincularApertura/{id_apertura}', 'Mesas\Cierres\ABMCCierreAperturaController@desvincularApertura')->middleware(['tiene_permiso:m_desvincular_aperturas']);

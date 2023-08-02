@@ -265,7 +265,7 @@ use App\Http\Controllers\AuthenticationController;
 </div>
 @endforeach
 
-@component('CierresAperturas/generar',compact('juegos'))
+@component('CierresAperturas/generar',compact('juegos','casinos'))
 @endcomponent
 
 @component('CierresAperturas/aperturasAPedido',compact('juegos'))
