@@ -110,6 +110,7 @@ $(function(e){
   }
   
   $M('[data-js-cargar-apertura]').on('mostrar',function(e,params){
+    M.attr('data-entry-div','[data-js-cargar-apertura]');
     modalCargarCierreApertura( 
       'CARGAR APERTURAS',TipoModal.apertura,ModoModal.cargar,
       {}

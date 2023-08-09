@@ -122,12 +122,24 @@ class ABMCRelevamientosAperturaController extends Controller
       return [
         'id_casino' => $m->id_casino,
         'codigo_casino' => $m->codigo_casino,
+        'juego' => $m->siglas,
+        'nro_mesa' => $m->nro_mesa,
         'mesa' => "{$m->siglas}{$m->nro_mesa}",
         'id_mesa_de_panio' => $m->id_mesa_de_panio,
         'es_backup' => $m->es_backup,
         'cargada' => $m->cargada,
       ];
     },$ret);
+    
+    usort($ret,function($a,$b){
+      if( $a['cargada'] && !$b['cargada']) return -1;
+      if(!$a['cargada'] &&  $b['cargada']) return  1;
+      $j = -strcmp($a['juego'],$b['juego']);
+      if($j != 0) return $j;
+      if($a['nro_mesa'] > $b['nro_mesa']) return -1;
+      if($a['nro_mesa'] < $b['nro_mesa']) return  1;
+      return 0;
+    });
         
     return $ret;
   }

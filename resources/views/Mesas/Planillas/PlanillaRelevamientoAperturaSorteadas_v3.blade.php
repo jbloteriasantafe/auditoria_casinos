@@ -118,8 +118,8 @@
     }
     
     .tablaGeneral th,.tablaGeneral td {
-      padding: 0;
-      margin: 0;
+      padding: 1px;
+      margin: 0px;
     }
     </style>
   </head>
@@ -184,7 +184,7 @@
     <!-- tabla derecha RULETA -->
     <table >
       <tr>
-        <td  colspan="4">MESAS DE RULETA</td>
+        <td colspan="4">MESAS DE RULETA</td>
       </tr>
       <thead>
         <tr>
