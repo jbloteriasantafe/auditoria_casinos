@@ -36,17 +36,6 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
 
-      $schedule->command('RAM:sortear')
-               //->everyMinute() para pruebas
-               ->dailyAt('00:30')
-               ->appendOutputTo('sorteo.log')
-               ->runInBackground();
-
-      $schedule->command('RAM:sortear')
-               ->dailyAt('16:30')
-               ->appendOutputTo('sorteo.log')
-               ->runInBackground();
-
      $schedule->command('RelevamientoApuestas:generar')
              ->dailyAt('00:45')
              ->appendOutputTo('sorteoApuestas.log')
@@ -58,11 +47,9 @@ class Kernel extends ConsoleKernel
              ->runInBackground();
 
      $impController= new ImportadorController;
-     $relevamientoController = new ABMCRelevamientosAperturaController;
      $generarPlanillasController = new GenerarPlanillasController;
 
      $schedule->call(function () use ($impController,
-                                      $relevamientoController,
                                       $generarPlanillasController){
       $comando = DB::table('comando_a_ejecutar')
           ->where('fecha_a_ejecutar','>',Carbon::now()->format('Y:m:d H:i:s'))
@@ -70,10 +57,6 @@ class Kernel extends ConsoleKernel
       echo($comando);
       foreach ($comando as $c) {
         switch ($c->nombre_comando) {
-          case 'RAM:sortear':
-            $relevamientoController->sortearMesasCommand();
-            echo('Pedido sortear mesas realizado.');
-            break;
           case 'RelevamientoApuestas:generar':
             $generarPlanillasController->generarRelevamientosApuestas();
             echo('Pedido generar apuestas realizado.');

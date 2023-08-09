@@ -70,4 +70,37 @@ class PdfParalelo{
         //Si hubo error value es la salida, si exitoso devuelvo el path al archivo
         return ['error' => $rtrn, 'value' => (count($output) != 0 || $rtrn != 0)? $output : $output_file];
     }
+    
+    public static function generarPdfs_independientes($planilla,$compacts,$codigos){
+        $fingerprint = self::fingerprint();
+        $files = [];
+        foreach($compacts as $idx => $compact){
+            $file = $fingerprint."-".$idx.".pdf";
+            $files[] = $file;
+            dispatch(new \App\Jobs\CrearPDF(
+              $planilla, $compact, $file, $codigos[$idx]
+            ));
+        }
+        //Sincronizar con un spinlock hasta que esten creados todos los archivos
+        {
+            $max_seconds     = 120;
+            $elapsed_seconds = 0;
+            $sleep_seconds   = 5;
+            while($elapsed_seconds < $max_seconds){
+                sleep($sleep_seconds);
+                $elapsed_seconds+=$sleep_seconds;
+                $allFiles = true;
+                foreach($files as $f){
+                    $allFiles = $allFiles & Storage::exists($f);
+                }
+                if($allFiles) break;
+            }
+            if($elapsed_seconds >= $max_seconds){
+                self::borrarArchivos($files);
+                return ['error' => -1,'value' => ['Error de timeout al crear el archivo']];
+            }
+        }
+        
+        return array_map(function($f){return Storage::getAdapter()->applyPathPrefix($f);},$files);
+    }
 }

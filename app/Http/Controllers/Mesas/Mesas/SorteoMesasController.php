@@ -135,13 +135,8 @@ class SorteoMesasController extends Controller
   }
 
   public function buscarBackUps($id_casino,$fecha){//debe retornar lo mismo que retorna sortear.
-    try{
-      $rta = MesasSorteadas::where([['fecha_backup','=',$fecha],['id_casino','=',$id_casino]])->firstOrFail();
-    }catch(Exception $e){
-      throw new \Exception("Sorteo no encontrado - llame a un ADMINISTRADOR".$id_casino.'-'.$fecha, 1);
-      //hola admin -> cuando salga este mensaje deberás ejecutar el comando RAM:sortear
-    }
-
+    $rta = MesasSorteadas::where([['fecha_backup','=',$fecha],['id_casino','=',$id_casino]])->first();
+    if($rta == null) return null;
     return ['ruletas' => $rta->mesas['ruletas'],'cartasDados' => $rta->mesas['cartasDados']];
   }
 }

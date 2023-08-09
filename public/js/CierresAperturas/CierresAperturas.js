@@ -1,5 +1,5 @@
+import "./sorteador.js";
 import "./FiltroTabla.js";
-import "./generar.js";
 import "./eliminar.js";
 import "./aperturasAPedido.js";
 import "./verCierreApertura.js";
@@ -41,6 +41,7 @@ $(function() {
       );
       tbody.append(fila);
     });
+    $('[data-js-aperturas-sorteadas]').trigger('buscar');
   });
   
   $('[data-js-tabs]').each(function(_,tab_group){

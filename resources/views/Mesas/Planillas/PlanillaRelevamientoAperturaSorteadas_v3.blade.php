@@ -1,6 +1,6 @@
 @section('encabezado')
 <div class="encabezadoImg">
-  <img src="public/img/logos/banner_nuevo2_landscape.png" width="900">
+  <img src="{{public_path()}}/img/logos/banner_nuevo2_landscape.png" width="900">
   <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
 </div>
 <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
@@ -111,33 +111,44 @@
   <body>
     @yield('encabezado')
     <!-- Tabla gral -->
-    <table style="border-collapse: collapse;">
-      @foreach($rel->mesas as $lista_mesas)
-      <td style="width: {{100.0/count($rel->mesas)}}%;margin: 0px;padding: 0px;">
-        <!-- tabla izquierda de MESAS -->
-        <table style="border-collapse: collapse;width: 100%;margin: 0px;padding: 0px;">
-          <tbody>
-            <tr>
-              <th class="tablaInicio" style="background-color: white; border-color: gray;" colspan="3">MESAS</th>
-            </tr>
-            <tr>
-              <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">JUEGO-NRO</th>
-              <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">SECTOR</th>
-              <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">HORA APERTURA</th>
-            </tr>
-            @foreach($lista_mesas as $mesa)
-            <tr>
-              <td class="tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$mesa['codigo_mesa']}}</td>
-              <td class="tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$mesa['sector']}}</td>
-              <td class="tablaInicio" style="background-color: white; border-color: gray;"></td>
-            </tr>
-            @endforeach
-          </tbody>
-        </table>
-      </td>
-      @endforeach
+    <table style="width: 100%;margin: 0px;padding: 0px;">
+      <thead>
+        <tr>
+          @foreach($rel->mesas as $ign)
+          <th class="tablaInicio" style="background-color: white; border-color: gray;" colspan="3">MESAS</th>
+          @endforeach
+        </tr>
+        <tr>
+          @foreach($rel->mesas as $ign)
+          <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">JUEGO-NRO</th>
+          <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">SECTOR</th>
+          <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">HORA APERTURA</th>
+          @endforeach
+        </tr>
+      </thead>
+      <tbody>
+        <?php
+          $max_rows = -1;
+          foreach($rel->mesas as $l) $max_rows = max($max_rows,count($l));
+        ?>
+        @for($i=0;$i<$max_rows;$i++)
+        <tr>
+          @foreach($rel->mesas as $lista_mesas)
+          @if(array_key_exists($i,$lista_mesas))
+          <td class="tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$lista_mesas[$i]['codigo_mesa']}}</td>
+          <td class="tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$lista_mesas[$i]['sector']}}</td>
+          <td class="tablaInicio" style="background-color: white; border-color: gray;">&nbsp;</td>
+          @else
+          <td class="tablaInicio" style="border: 0;">&nbsp;</td>
+          <td class="tablaInicio" style="border: 0;">&nbsp;</td>
+          <td class="tablaInicio" style="border: 0;">&nbsp;</td>
+          @endif
+          @endforeach
+        </tr>
+        @endfor
+      </tbody>
     </table>
-
+    
     <br>
     <table>
       <tr>

@@ -26,7 +26,7 @@ class CrearPDF implements ShouldQueue
     public $pags = null;
 
     public function __construct(string $planilla,array $compct, string $filename,
-                                string $codigo,int $pag_offset,int $pags){
+                                string $codigo,int $pag_offset = 0,int $pags = null){
         $this->planilla = $planilla;
         $this->compct = $compct;
         $this->filename = $filename;
@@ -67,7 +67,7 @@ class CrearPDF implements ShouldQueue
             $font = $fontMetrics->getFont("helvetica", "regular");
             $pdf->text(20,815,"%s",$font,10,array(0,0,0));
             $pdf->text(500, 815,"Página ".$p." de %s", $font, 10, array(0,0,0));
-        ',$this->pag_offset,$this->codigo,$this->pags);
+        ',$this->pag_offset,$this->codigo,$this->pags ?? '$PAGE_COUNT');
         $dompdf->getCanvas()->page_script($script);
         Storage::put($this->filename,$dompdf->output());
     }

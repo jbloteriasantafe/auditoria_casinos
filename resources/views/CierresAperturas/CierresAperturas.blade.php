@@ -66,7 +66,6 @@ use App\Http\Controllers\AuthenticationController;
   $tabs = [
     'aperturas' => [
       'botones' => [
-        'Generar Plantilla' => '[data-js-generar-plantilla]',
         'Cargar Apertura' => '[data-js-cargar-apertura]',
         'Apertura A Pedido' => '[data-js-apertura-a-pedido]'
       ],
@@ -157,6 +156,12 @@ use App\Http\Controllers\AuthenticationController;
 <div class="col-lg-12 tab_content" id="pant_{{$tab}}" hidden="true">
   <div class="row">
     <div class="col-md-3">
+      @if($tab == 'aperturas')
+      <div class="row">
+        @component('CierresAperturas/sorteador',compact('casinos'))
+        @endcomponent
+      </div>
+      @endif
       @foreach($tdata['botones'] as $btn_text => $modal_selector)
       @if(!in_array($btn_text,$tdata['botones_solo_adm']) || $usuario->es_administrador || $usuario->es_superusuario)
       <div class="row">
@@ -264,9 +269,6 @@ use App\Http\Controllers\AuthenticationController;
   </div>
 </div>
 @endforeach
-
-@component('CierresAperturas/generar',compact('juegos','casinos'))
-@endcomponent
 
 @component('CierresAperturas/aperturasAPedido',compact('juegos'))
 @endcomponent
