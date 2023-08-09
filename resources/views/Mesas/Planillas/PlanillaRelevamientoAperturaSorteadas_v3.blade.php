@@ -1,60 +1,65 @@
 @section('encabezado')
-<div class="encabezadoImg">
-  <img src="{{public_path()}}/img/logos/banner_nuevo2_landscape.png" width="900">
-  <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
-</div>
-<div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
-<div class="camposInfo" style="right:0px;"></span>
-  <?php $hoy = date('j-m-y / h:i');
-      print_r($hoy); ?>
+<div>
+  <div class="encabezadoImg">
+    <img src="{{public_path()}}/img/logos/banner_nuevo2_landscape.png" width="900">
+    <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
+  </div>
+  <div class="camposTab titulo" style="top: -15px; right:-15px;">
+    FECHA PLANILLA
+  </div>
+  <div class="camposInfo" style="top: 0px; right:0px;"></span>
+    <?php $hoy = date('j-m-y / h:i');print_r($hoy); ?>
+  </div>
 </div>
 @endsection
 
 @section('fichas')
-<table style="padding-left:50px;">
-  <tbody>
+<table>
+  <thead>
     <tr>
-      <th class="tablaInicio" style="width:11.75%; text-align:center; background-color: #dddddd; border-color: gray;">FECHA</th>
-      <th class="tablaInicio" style="width:9.25%; text-align:center; background-color: #dddddd; border-color: gray;">HORA</th>
-      <th class="tablaInicio" style="width:49%; text-align:center; background-color: #dddddd; border-color: gray;">JUEGO</th>
+      <th style="width:11.75%;">FECHA</th>
+      <th style="width:9.25%;">HORA</th>
+      <th style="width:49%;">JUEGO</th>
       <!--Si es de Rosario le damos el nmesa + urs + ars. Sino le damos solo nmesa. -->
       @if($rel->id_casino == 3 || $rel->casino == "Rosario")
-      <th class="tablaInicio" style="width:16.5%; text-align:center; background-color: #dddddd; border-color: gray;">N° MESA</th>
-      <th class="tablaInicio" style="width:6.75%; text-align:center; background-color: #dddddd; border-color: gray;">ARS</th>
-      <th class="tablaInicio" style="width:6.75%; text-align:center; background-color: #dddddd; border-color: gray;">USD</th>
+      <th style="width:16.5%;">N° MESA</th>
+      <th style="width:6.75%;">ARS</th>
+      <th style="width:6.75%;">USD</th>
       @else
-      <th class="tablaInicio" style="width:30%; text-align:center; background-color: #dddddd; border-color: gray;">N° MESA</th>
+      <th style="width:30%;">N° MESA</th>
       @endif
     </tr>
-    <tr>
-      <td class="tablaInicio" style="width:11.75%; text-align:center; padding-top: 10px; background-color:white; border-color: gray;">
-        <?php $hoy = date('j-m-y'); print_r($hoy); ?>
-      </td>
-      <td class="tablaInicio" style="width:9.25%; text-align:center; background-color:white; border-color: gray;">__:__</td>
-      <td class="tablaInicio" style="width:49%; background-color:white; border-color: gray;"></td>
-      @if($rel->id_casino == 3 || $rel->casino == "Rosario")
-      <td class="tablaInicio" style="width:16.5%; background-color:white; border-color: gray;"></td>
-      <td class="tablaInicio" style="width:6.75%; background-color:white; border-color: gray;"></td>
-      <td class="tablaInicio" style="width:6.75%; background-color:white; border-color: gray;"></td>
-      @else
-      <td class="tablaInicio" style="width:30%; background-color:white; border-color: gray;"></td>
-      @endif
-    </tr>
-  </tbody>
+  </thead>
+  <tr>
+    <td style="width:11.75%;">
+      <?php $hoy = date('j-m-y'); print_r($hoy); ?>
+    </td>
+    <td style="width:9.25%;">__:__</td>
+    <td style="width:49%;">&nbsp;</td>
+    @if($rel->id_casino == 3 || $rel->casino == "Rosario")
+    <td style="width:16.5%;">&nbsp;</td>
+    <td style="width:6.75%;">&nbsp;</td>
+    <td style="width:6.75%">&nbsp;</td>
+    @else
+    <td style="width:30%">&nbsp;</td>
+    @endif
+  </tr>
 </table>
-<table style="padding-left:50px;">
+<table>
   @foreach($rel->fichas as $lista_fichas)
   <td style="width: {{100.0/count($rel->fichas)}}%;margin: 0px;padding: 0px;">
     <table style="width: 100%;margin: 0px;padding: 0px;">
-      <tbody>
+      <thead>
         <tr>
-          <th class="tablaInicio" style="width:21%; text-align:center;background-color: #dddddd; border-color: gray;">VALOR FICHA</th>
-          <th class="tablaInicio" style="width:79%; text-align:center; background-color: #dddddd; border-color: gray;">CANTIDAD</th>
+          <th style="width:21%;">VALOR FICHA</th>
+          <th style="width:79%;">CANTIDAD</th>
         </tr>
+      </thead>
+      <tbody>
         @foreach($lista_fichas as $ficha)
         <tr>
-          <td class="tablaInicio" style="width:21%; text-align:center; background-color: #dddddd; border-color: gray;">{{$ficha}}</td>
-          <td class="tablaInicio" style="width:79%; background-color:white; border-color: gray;"></td>
+          <th style="width:21%;">{{$ficha}}</th>
+          <td style="width:79%;">&nbsp;</td>
         </tr>
         @endforeach
       </tbody>
@@ -64,65 +69,63 @@
 </table>
 <br>
 <br>
-<div class="tablaInicio" style="text-align: center;">.........................................</div>
-<div class="tablaInicio" style="text-align: center;">Firma y aclaración</div>
-<br>
+<div style="width: 100%;">
+  <div style="text-align: center;width: 100%;">.........................................</div>
+  <div style="text-align: center;width: 100%;">Firma y aclaración</div>
+</div>
 @endsection
 
 <!DOCTYPE html>
-
 <html>
-  <style>
-    table {
-      font-family: arial, sans-serif;
-      border-collapse: collapse;
-      width: 98%;
-    }
-
-    td, th {
-      border: 1px solid #dddddd;
-      text-align: left;
-      padding: 3px;
-    }
-
-
-    p {
-          border-top: 1px solid #000;
-    }
-    .filaContadores{
-      height: 10px !important;
-    }
-    footer
-    {
-        margin-top:50px;
-        width:200%;
-        height:300px;
-    }
-  </style>
-
   <head>
     <title></title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="public/css/estiloPlanillaPortrait.css" rel="stylesheet">
+    <link href="{{public_path()}}/css/estiloPlanillaPortrait.css" rel="stylesheet">
+    <style>    
+    table {
+      font-family: arial, sans-serif;
+      border-collapse: collapse;
+      width: 98%;
+    }
+    
+    th {
+      background-color: #dddddd;
+    }
+    
+    td, th {
+      border: 1px solid #dddddd;
+      text-align: center;
+      padding: 3px;
+      border-color: gray;
+      font-size: 12px;/*Pasar a em*/
+    }
+    
+    tbody th {
+      font-weight: normal !important;
+    }
+    
+    .tablaGeneral th,.tablaGeneral td {
+      padding: 0;
+      margin: 0;
+    }
+    </style>
   </head>
 
   <body>
     @yield('encabezado')
     <!-- Tabla gral -->
-    <table style="width: 100%;margin: 0px;padding: 0px;">
+    <table class="tablaGeneral" style="width: 100%;margin: 0px;padding: 0px;">
       <thead>
         <tr>
-          @foreach($rel->mesas as $ign)
-          <th class="tablaInicio" style="background-color: white; border-color: gray;" colspan="3">MESAS</th>
-          @endforeach
+          <td colspan="{{3*count($rel->mesas)}}">MESAS</td>
         </tr>
         <tr>
           @foreach($rel->mesas as $ign)
-          <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">JUEGO-NRO</th>
-          <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">SECTOR</th>
-          <th class="tablaInicio" style="background-color: #dddddd; border-color: gray;">HORA APERTURA</th>
+          <th>JUEGO-NRO</th>
+          <th>SECTOR</th>
+          <th>HORA APERTURA</th>
           @endforeach
         </tr>
       </thead>
@@ -135,13 +138,13 @@
         <tr>
           @foreach($rel->mesas as $lista_mesas)
           @if(array_key_exists($i,$lista_mesas))
-          <td class="tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$lista_mesas[$i]['codigo_mesa']}}</td>
-          <td class="tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$lista_mesas[$i]['sector']}}</td>
-          <td class="tablaInicio" style="background-color: white; border-color: gray;">&nbsp;</td>
+          <th>{{$lista_mesas[$i]['codigo_mesa']}}</th>
+          <th>{{$lista_mesas[$i]['sector']}}</th>
+          <td>&nbsp;</td>
           @else
-          <td class="tablaInicio" style="border: 0;">&nbsp;</td>
-          <td class="tablaInicio" style="border: 0;">&nbsp;</td>
-          <td class="tablaInicio" style="border: 0;">&nbsp;</td>
+          <td style="border: 0;">&nbsp;</td>
+          <td style="border: 0;">&nbsp;</td>
+          <td style="border: 0;">&nbsp;</td>
           @endif
           @endforeach
         </tr>
@@ -152,16 +155,16 @@
     <br>
     <table>
       <tr>
-        <th class="tablaInicio" style="padding-top: 50px; border-right: 0px; border-color: gray;"></th>
-        <th class="tablaInicio" style="border-left: 0px; border-color: gray;"></th>
-        <th class="tablaInicio" style="border-right: 0px; border-color: gray;"></th>
-        <th class="tablaInicio" style="border-left: 0px; border-color: gray;"></th>
+        <td style="font-size: 3em;border-right: 0px;">&nbsp;</td>
+        <td style="border-left: 0px;"></td>
+        <td style="border-right: 0px;"></td>
+        <td style="border-left: 0px;"></td>
       </tr>
       <tr>
-        <td class="tablaInicio" style="background-color: #dddddd; border-color: gray;"><center>Personal del Concesionario en Sala de Juegos</center></td>
-        <td class="tablaInicio" style="background-color: #dddddd; border-color: gray;"><center>Fiscalizador en Sala de Juegos</center></td>
-        <td class="tablaInicio" style="background-color: #dddddd; border-color: gray;"><center>Personal del Concesionario en Sala de Juegos</center></td>
-        <td class="tablaInicio" style="background-color: #dddddd; border-color: gray;"><center>Fiscalizador en Sala de Juegos</center></td>
+        <th ><center>Personal del Concesionario en Sala de Juegos</center></th>
+        <th ><center>Fiscalizador en Sala de Juegos</center></th>
+        <th ><center>Personal del Concesionario en Sala de Juegos</center></th>
+        <th ><center>Fiscalizador en Sala de Juegos</center></th>
       </tr>
     </table>
     <!-- segunda hoja -->
@@ -169,66 +172,68 @@
     @yield('encabezado')
     <!-- tabla derecha RULETA -->
     <table >
-      <tbody>
       <tr>
-        <th class="tablaInicio" style="background-color: white; border-color: gray;float: right;"colspan="4">MESAS DE RULETA</th>
+        <td  colspan="4">MESAS DE RULETA</td>
       </tr>
-      <tr>
-        <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">NRO MESA</th>
-        <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">JUEGO</th>
-        <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">TIPO</th>
-        <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">FISCALIZÓ</th>
-      </tr>
-      @foreach($rel->sorteadas->ruletas as $ruleta)
+      <thead>
         <tr>
-          <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$ruleta['nro_mesa']}}</td>
-          <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$ruleta['nombre_juego']}}</td>
-          <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$ruleta['descripcion']}}</td>
-          <td class=" tablaInicio" style=" border-color: gray;"></td>
+          <th>NRO MESA</th>
+          <th>JUEGO</th>
+          <th>TIPO</th>
+          <th>FISCALIZÓ</th>
         </tr>
+      </thead>
+      @foreach($rel->sorteadas->ruletas as $ruleta)
+      <tr>
+        <th>{{$ruleta['nro_mesa']}}</th>
+        <th>{{$ruleta['nombre_juego']}}</th>
+        <th>{{$ruleta['descripcion']}}</th>
+        <td>&nbsp;</td>
+      </tr>
       @endforeach
-      </tbody>
     </table>
     <br>
     <br>
     <!-- tabla derecha CARTAS Y DADOS -->
     <table>
-      <tbody>
       <tr>
-        <th class="tablaInicio" style="background-color: white; border-color: gray;float: right;"colspan="4">MESAS DE CARTAS/DADOS</th>
+        <td colspan="4">MESAS DE CARTAS/DADOS</td>
       </tr>
-      <tr>
-        <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">N° MESA</th>
-        <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">JUEGO</th>
-        <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">TIPO</th>
-        <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">FISCALIZÓ</th>
-      </tr>
+      <thead>
+        <tr>
+          <th>N° MESA</th>
+          <th>JUEGO</th>
+          <th>TIPO</th>
+          <th>FISCALIZÓ</th>
+        </tr>
+      </thead>
       @foreach($rel->sorteadas->cartasDados as $carta)
         <tr>
-          <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$carta['nro_mesa']}}</td>
-          <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$carta['nombre_juego']}}</td>
-          <td class=" tablaInicio" style="background-color: #dddddd; border-color: gray;">{{$carta['descripcion']}}</td>
-          <td class=" tablaInicio" style=" border-color: gray;"></td>
+          <th>{{$carta['nro_mesa']}}</th>
+          <th>{{$carta['nombre_juego']}}</th>
+          <th>{{$carta['descripcion']}}</th>
+          <td>&nbsp;</td>
         </tr>
       @endforeach
-      </tbody>
     </table>
     <br>
     <br>
 
     <!-- tabla POZO ACUMULADO -->
     <table>
+      <thead>
+        <tr>
+          <td colspan="2">POZO ACUMULADO</td>
+        </tr>
+        <tr>
+          <th>N° MESA/S</th>
+          <th>POZO ACUMULADO</th>
+        </tr>
+      </thead>
       <tbody>
         <tr>
-          <th class="tablaInicio" style="background-color: white; border-color: gray;float: right;"colspan="2">POZO ACUMULADO</th>
-        </tr>
-        <tr>
-          <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">N° MESA/S</th>
-          <th class=" tablaInicio" style="background-color: #dddddd; border-color: gray;float: right;">POZO ACUMULADO</th>
-        </tr>
-        <tr>
-          <td class=" tablaInicio" style="height: 10px; background-color: white; border-color: gray;"></td>
-          <td class=" tablaInicio" style="height: 10px; background-color: white; border-color: gray;"></td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
         </tr>
       </tbody>
     </table>
@@ -237,6 +242,7 @@
     <div style="page-break-after:always;"></div>
     @yield('encabezado')
     @yield('fichas')
+    <br>
     @yield('fichas')
     @endfor
   </body>
