@@ -45,27 +45,38 @@
     @endif
   </tr>
 </table>
+
 <table>
-  @foreach($rel->fichas as $lista_fichas)
-  <td style="width: {{100.0/count($rel->fichas)}}%;margin: 0px;padding: 0px;">
-    <table style="width: 100%;margin: 0px;padding: 0px;">
-      <thead>
-        <tr>
-          <th style="width:21%;">VALOR FICHA</th>
-          <th style="width:79%;">CANTIDAD</th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach($lista_fichas as $ficha)
-        <tr>
-          <th style="width:21%;">{{$ficha}}</th>
-          <td style="width:79%;">&nbsp;</td>
-        </tr>
-        @endforeach
-      </tbody>
-    </table>
-  </td>
-  @endforeach
+  <?php
+    $max_rows = -1;
+    foreach($rel->fichas as $l) $max_rows = max($max_rows,count($l));
+    $weight = ['valor_ficha' => 21,'cantidad' => 79 ];
+    $cols = count($rel->fichas);
+    foreach($weight as &$w) $w /= $cols;
+  ?>
+  <thead>
+    <tr>
+      @foreach($rel->fichas as $ign)
+      <th style="width: {{$weight['valor_ficha']}}%;">VALOR FICHA</th>
+      <th style="width: {{$weight['cantidad']}}%;">CANTIDAD</th>
+      @endforeach
+    </tr>
+  </thead>
+  <tbody>
+    @for($i=0;$i<$max_rows;$i++)
+    <tr>
+      @foreach($rel->fichas as $lista_fichas)
+      @if(array_key_exists($i,$lista_fichas))
+      <th style="width: {{$weight['valor_ficha']}}%;">{{$lista_fichas[$i]}}</th>
+      <td style="width: {{$weight['cantidad']}}%;">&nbsp;</td>
+      @else
+      <td style="width: {{$weight['valor_ficha']}}%;border: 0;">&nbsp;</td>
+      <td style="width: {{$weight['cantidad']}}%;border: 0;">&nbsp;</td>
+      @endif
+      @endforeach
+    </tr>
+    @endfor
+  </tbody>
 </table>
 <br>
 <br>
