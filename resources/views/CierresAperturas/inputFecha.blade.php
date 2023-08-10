@@ -1,6 +1,6 @@
 <link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet"/>
 <div class="form-group">
-  <div class='input-group date' data-js-fecha>
+  <div class='input-group date' data-js-fecha {!! $attrs_dtp ?? '' !!}>
     <input type='text' class="form-control" placeholder="{{ $placeholder ?? 'aaaa-mm-dd' }}" {!! $attrs ?? '' !!} />
     <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
     <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>

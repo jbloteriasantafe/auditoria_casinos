@@ -39,9 +39,18 @@
         <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
         @endforeach
       </select>
+      <div class="form-group">
+        <?php $hoy = date("Y-m-d"); ?>
+        @component('CierresAperturas/inputFecha',[
+          'attrs' => 'name="fecha_backup" data-js-cambio-fecha-backup',
+          'attrs_dtp' => "data-start-view=\"month\" data-enddate=\"$hoy\""]
+        )
+        @endcomponent
+      </div>
     </div>
     <div class="panel-body">
       <div class="listaBotones">
+        <button data-js-usar-backup type="button" class="btn btn-primary" disabled>USAR BACKUP</button>
         <button data-js-sortear type="button" class="btn btn-primary" disabled>SORTEAR</button>
         <button data-js-descargar type="button" class="btn btn-primary" disabled>DESCARGAR</button>
       </div>

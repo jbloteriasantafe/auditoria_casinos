@@ -1,4 +1,6 @@
 import {AUX} from "./AUX.js";
+import "./inputFecha.js";
+
 $(function(e){
   const  M = $('[data-js-aperturas-sorteadas]');
   const $M = M.find.bind(M);
@@ -11,11 +13,14 @@ $(function(e){
     mensajeError(errores.join(' || '));
   };
   
+  $M('[name="fecha_backup"]').parent().data('datetimepicker').setDate(new Date());
+  
   M.on('buscar',function(e){
     $M('[data-js-lista-aperturas-sorteadas]').empty();
-    const id_casino = AUX.extraerFormData(M).id_casino;
-    AUX.GET('aperturas/obtenerAperturasSorteadas/'+id_casino,{},function(mesas){
-      (mesas.length? mesas : []).forEach(function(m){
+    const formData = AUX.extraerFormData(M);
+    AUX.GET('aperturas/obtenerAperturasSorteadas',formData,function(data){
+      const mesas = data.mesas ?? [];
+      mesas.forEach(function(m){
         $M('[data-js-lista-aperturas-sorteadas]').append(
           $('<option>').text(`${m.mesa} ${m.cargada? '✓' : ''}`)
           .val(m.id_mesa_de_panio)
@@ -24,8 +29,11 @@ $(function(e){
         );
       });
       $M('[data-js-lista-aperturas-sorteadas]').attr('disabled',mesas.length == 0);
-      $M('[data-js-sortear]').attr('disabled',mesas.length != 0);
-      $M('[data-js-descargar]').attr('disabled',mesas.length == 0);
+      const hoy = (new Date).toISOString().split('T')[0];
+      $M('[data-js-sortear]').attr('disabled',!(mesas.length == 0 && formData.fecha_backup == hoy));
+      $M('[data-js-descargar]').attr('disabled',!(mesas.length > 0));
+      const hay_backup = data.hay_backup ?? 0;
+      $M('[data-js-usar-backup]').attr('disabled',!(mesas.length == 0 && hay_backup));
     });
   });
   
@@ -37,7 +45,19 @@ $(function(e){
         t.find('i.fa-spinner').remove();
         M.trigger('buscar');
       },
-      function(data) { handleErr(t,data); }
+      function(data) { t.find('i.fa-spinner').remove();handleErr(t,data); }
+    );
+  });
+  
+  $M('[data-js-usar-backup]').click(function(e){
+    const t = $(this).append('<i class="fa fa-spinner fa-spin"></i>');
+    const formData = AUX.extraerFormData(M);
+    AUX.GET('aperturas/usarBackup',formData,
+      function (data) {
+        t.find('i.fa-spinner').remove();
+        M.trigger('buscar');
+      },
+      function(data) { t.find('i.fa-spinner').remove();handleErr(t,data); }
     );
   });
   
@@ -57,11 +77,11 @@ $(function(e){
         iframe.src = 'aperturas/descargarZip/'+data.nombre_zip;
         M.trigger('buscar');
       },
-      function(data) { handleErr(t,data); }
+      function(data) { t.find('i.fa-spinner').remove();handleErr(t,data); }
     );
   });
   
-  $M('[data-js-cambio-casino]').change(function(e){
+  $M('[data-js-cambio-casino],[data-js-cambio-fecha-backup]').change(function(e){
     M.trigger('buscar');
   });
 });

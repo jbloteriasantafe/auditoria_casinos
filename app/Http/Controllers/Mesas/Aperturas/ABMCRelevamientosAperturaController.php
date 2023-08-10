@@ -74,51 +74,52 @@ class ABMCRelevamientosAperturaController extends Controller
     $this->middleware(['tiene_permiso:m_sortear_mesas']);
   }
   
-  public function obtenerAperturasSorteadas(Request $request,int $id_casino = null,int $ver_backups = 0){
+  public function obtenerAperturasSorteadas(Request $request){
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $casinos = $user->casinos->map(function($c){
       return $c->id_casino;
     })->toArray();
     $hoy = Carbon::now()->format("Y-m-d");
+    $fecha_backup = $request->fecha_backup ?? $hoy;
     
-    $mesas = DB::table('mesas_sorteadas as ms')
+    $q = DB::table('mesas_sorteadas as ms')
     ->select('ms.*','c.codigo as codigo_casino')
-    ->where('ms.fecha_backup','=',$hoy)
     ->join('casino as c','c.id_casino','=','ms.id_casino')
-    ->where(function($q) use ($id_casino){
-      if(!is_null($id_casino))
-        return $q->where('ms.id_casino','=',$id_casino);
+    ->where(function($q) use ($request){
+      if(isset($request->id_casino))
+        return $q->where('ms.id_casino','=',$request->id_casino);
       return $q;
     })
-    ->where(function($q) use ($ver_backups){
-      if(!$ver_backups)
-        return $q->whereColumn('ms.fecha_backup','=',DB::raw('DATE(ms.created_at)'));
-      return $q;
-    })
-    ->whereIn('c.id_casino',$casinos)
-    ->orderBy('c.id_casino','asc')
+    ->where('ms.fecha_backup','=',$fecha_backup)
+    ->where('ms.fecha_backup','<=',$hoy)//No permitir buscar para adelante
+    ->whereIn('c.id_casino',$casinos);
+    
+    $mesas_db = (clone $q)//Devuelve mesas NO backups de la fecha
+    ->whereColumn('ms.fecha_backup','<=',DB::raw('DATE(ms.created_at)'))
     ->get();
         
-    $ret = [];
-    foreach($mesas as $ms){
-      $es_backup     = (int)($ms->fecha_backup != explode(' ',$ms->created_at)[0]);
+    $hay_backup = (clone $q)//Devuelve solo si existe backup
+    ->whereColumn('ms.fecha_backup','>',DB::raw('DATE(ms.created_at)'))
+    ->count() > 0;
+        
+    $mesas = [];
+    foreach($mesas_db as $ms){
       $codigo_casino = $ms->codigo_casino;
       foreach(json_decode($ms->mesas) as $m){
-        $m = array_map(function($m) use ($es_backup,$codigo_casino,$hoy) {
-          $m->es_backup = $es_backup;
+        $m = array_map(function($m) use ($codigo_casino,$fecha_backup) {
           $m->codigo_casino = $codigo_casino;
           $m->cargada = DB::table('apertura_mesa')
           ->whereNull('deleted_at')
           ->where('id_mesa_de_panio','=',$m->id_mesa_de_panio)
-          ->where('fecha','=',$hoy)
+          ->where('fecha','=',$fecha_backup)
           ->count() > 0;
           return $m;
         },$m);
-        $ret = array_merge($ret,$m);
+        $mesas = array_merge($mesas,$m);
       }
     }
 
-    $ret = array_map(function($m){
+    $mesas = array_map(function($m){
       return [
         'id_casino' => $m->id_casino,
         'codigo_casino' => $m->codigo_casino,
@@ -126,12 +127,11 @@ class ABMCRelevamientosAperturaController extends Controller
         'nro_mesa' => $m->nro_mesa,
         'mesa' => "{$m->siglas}{$m->nro_mesa}",
         'id_mesa_de_panio' => $m->id_mesa_de_panio,
-        'es_backup' => $m->es_backup,
         'cargada' => $m->cargada,
       ];
-    },$ret);
+    },$mesas);
     
-    usort($ret,function($a,$b){
+    usort($mesas,function($a,$b){
       if( $a['cargada'] && !$b['cargada']) return -1;
       if(!$a['cargada'] &&  $b['cargada']) return  1;
       $j = -strcmp($a['juego'],$b['juego']);
@@ -141,7 +141,39 @@ class ABMCRelevamientosAperturaController extends Controller
       return 0;
     });
         
-    return $ret;
+    return compact('mesas','hay_backup');
+  }
+  
+  public function usarBackup(Request $request){
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    $mesas = null;
+
+    $validator = Validator::make($request->all(),[
+      'id_casino' => 'required|exists:casino,id_casino,deleted_at,NULL',
+      'fecha_backup' => 'required|date|before:'.Carbon::now()->addDays(1)->format("Y-m-d"),
+    ], [
+      'required' => 'El valor es requerido',
+      'date' => 'El valor tiene que ser una fecha',
+      'before' => 'El valor supera el limite',
+    ], self::$atributos)->after(function($validator) use ($user,&$mesas){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      if(!$user->usuarioTieneCasino($data['id_casino'])){
+        return $validator->errors()->add('id_casino','No tiene los privilegios');
+      }
+      
+      $mesas = MesasSorteadas::where('id_casino','=',$data['id_casino'])
+      ->where('fecha_backup','=',$data['fecha_backup'])
+      ->whereColumn('fecha_backup','>',DB::raw('DATE(created_at)'))
+      ->first();
+      
+      if(is_null($mesas)) return $validator->errors()->add('fecha_backup','No existe sorteo de backup para esa fecha');
+    })->validate();
+    
+    $mesas->created_at = Carbon::now();
+    $mesas->save();
+    
+    return 1;
   }
   
   public function generarRelevamiento(Request $request,$id_casino){
@@ -159,7 +191,6 @@ class ABMCRelevamientosAperturaController extends Controller
       }
     })->validate();
     
-    //@TODO: manejar backups
     $fechas_sorteadas = $this->sortearMesasSiNoHay($request,$request->id_casino, false);    
     //@SPEED: si tuviera algun hash en mesas_sorteadas podria chequearse si es el mismo en vez de regenarlo
     $nombre_zip = $this->regenerarArchivo($request->id_casino,$fechas_sorteadas);
