@@ -770,7 +770,7 @@ Route::group(['prefix' => 'aperturas','middleware' => 'tiene_permiso:m_buscar_ap
   Route::get('obtenerAperturasSorteadas','Mesas\Aperturas\ABMCRelevamientosAperturaController@obtenerAperturasSorteadas');
   Route::get('usarBackup','Mesas\Aperturas\ABMCRelevamientosAperturaController@usarBackup');
   Route::get('sortearMesasSiNoHay/{id_casino}', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@sortearMesasSiNoHay');
-  Route::get('generarRelevamiento/{id_casino}', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@generarRelevamiento');
+  Route::get('generarRelevamiento', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@generarRelevamiento');
   Route::get('descargarZip/{nombre}', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@descargarZip');
 });
 

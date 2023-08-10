@@ -176,11 +176,12 @@ class ABMCRelevamientosAperturaController extends Controller
     return 1;
   }
   
-  public function generarRelevamiento(Request $request,$id_casino){
+  public function generarRelevamiento(Request $request){
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
 
-    $validator = Validator::make(compact('id_casino'),[
+    $validator = Validator::make($request->all(),[
       'id_casino' => 'required|exists:casino,id_casino,deleted_at,NULL',
+      'fecha_backup' => 'required|date|before:'.Carbon::now()->addDays(1)->format("Y-m-d"),
     ], [
       'required' => 'El valor es requerido',
     ], self::$atributos)->after(function($validator) use ($user){
@@ -191,15 +192,17 @@ class ABMCRelevamientosAperturaController extends Controller
       }
     })->validate();
     
-    $fechas_sorteadas = $this->sortearMesasSiNoHay($request,$request->id_casino, false);    
+    $fechas_sorteadas = $this->sortearMesasSiNoHay($request,$request->id_casino, $request->fecha_backup);    
     //@SPEED: si tuviera algun hash en mesas_sorteadas podria chequearse si es el mismo en vez de regenarlo
     $nombre_zip = $this->regenerarArchivo($request->id_casino,$fechas_sorteadas);
 
     return ['nombre_zip' => $nombre_zip];
   }
   
-  public function sortearMesasSiNoHay(Request $request,$id_casino,$validar = true){
-    if($validar){
+  public function sortearMesasSiNoHay(Request $request,$id_casino,$inicio = null){
+    $hoy = Carbon::now()->format("Y-m-d");
+    if(is_null($inicio)){
+      $inicio = $hoy;
       $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       $validator = Validator::make(compact('id_casino'),[
         'id_casino' => 'required|exists:casino,id_casino,deleted_at,NULL',
@@ -232,22 +235,31 @@ class ABMCRelevamientosAperturaController extends Controller
     // Esto NO agarra todos los casos, ya que estos son solo generados cuando se valida una apertura. Osea solo agarra si se cae varios dias,
     // el sistema vuelve entre turnos y cargaron&validaron una apertura en el primer turno antes del segundo sorteo
     // Octavio 06-12-2021
-    return DB::transaction(function() use ($id_casino){
-      $hoy = Carbon::now()->format("Y-m-d");
-      DB::table('mesas_sorteadas')->where('fecha_backup','>',$hoy)->delete();//Antes solo se hacia este delete
+    return DB::transaction(function() use ($id_casino,$inicio,$hoy){
+      $cantidad_dias_backup = 1;
+      if($inicio == $hoy){
+        $cantidad_dias_backup = self::$cantidad_dias_backup;
+        
+        $informes_creados = DB::table('informe_fiscalizadores')
+        ->where('id_casino','=',$id_casino)
+        ->where('fecha','>=',$inicio)->get()->pluck('fecha')->toArray();
 
-      $casinos_con_informes_fisca_creados_para_hoy = DB::table('informe_fiscalizadores')
-      ->where('fecha','>=',$hoy)->select('id_casino')->get()->pluck('id_casino');
-
-      DB::table('mesas_sorteadas')->where('fecha_backup','=',$hoy)
-      ->where('created_at','<',$hoy)->whereNotIn('id_casino',$casinos_con_informes_fisca_creados_para_hoy)->delete();
-      
+        //Regenero los sorteos solo que son backup, no tengan un informe y sean pasando el dia actual
+        DB::table('mesas_sorteadas')
+        ->where('id_casino','=',$id_casino)
+        ->where('fecha_backup','>',$inicio)
+        ->whereColumn('fecha_backup','>',DB::raw('DATE(created_at)'))//es backup
+        ->whereNotIn('fecha_backup',$informes_creados)//no tiene informe
+        ->delete();
+      }
+            
       $sorteoController = new SorteoMesasController;
       $fechas_a_sortear = [];     
       $casino = Casino::find($id_casino); 
+      $inicio_f = Carbon::createFromFormat('Y-m-d',$inicio);
       if(count($casino->mesas) > 0){
-        for ($i=0;$i<self::$cantidad_dias_backup;$i++) {
-          $f = Carbon::now()->addDays($i)->format("Y-m-d");
+        for($i=0;$i<self::$cantidad_dias_backup;$i++) {
+          $f = (clone $inicio_f)->addDays($i)->format("Y-m-d");
           $fechas_a_sortear[] = $f;
         }
         foreach($fechas_a_sortear as $f){
@@ -302,7 +314,7 @@ class ABMCRelevamientosAperturaController extends Controller
   public function descargarZip($nombre){
     $file    = self::CARPETA_APERTURAS($nombre);
     $headers = array('Content-Type' => 'application/octet-stream',);
-    return response()->download($file,$nombre,$headers);
+    return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
   }
 
   private function crearRel($cas,$fecha_backup){

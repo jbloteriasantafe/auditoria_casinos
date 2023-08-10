@@ -3,7 +3,6 @@ import "/js/bootstrap-datetimepicker.es.js";
 
 $(function(e){
   $('[data-js-fecha]').each(function(_,d){
-    console.log($(d),$(d).attr('data-start-view'));
     $(d).datetimepicker({
       language:  $(d).attr('data-date-language') ?? 'es',
       todayBtn:  $(d).attr('data-date-today-btn') ?? 1,

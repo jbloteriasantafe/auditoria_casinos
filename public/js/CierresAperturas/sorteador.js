@@ -10,7 +10,7 @@ $(function(e){
     const errores = Object.keys(data.responseJSON ?? {}).map(function(k){
       return `${k}: ${data.responseJSON[k].join(', ')}`;
     });
-    mensajeError(errores.join(' || '));
+    AUX.mensajeError(errores.join(' || '));
   };
   
   $M('[name="fecha_backup"]').parent().data('datetimepicker').setDate(new Date());
@@ -63,8 +63,7 @@ $(function(e){
   
   $M('[data-js-descargar]').click(function(e){
     const t = $(this).append('<i class="fa fa-spinner fa-spin"></i>');
-    const id_casino = AUX.extraerFormData(M).id_casino;
-    AUX.GET('aperturas/generarRelevamiento/'+id_casino,{},
+    AUX.GET('aperturas/generarRelevamiento', AUX.extraerFormData(M),
       function (data) {
         t.find('i.fa-spinner').remove();
         let iframe = document.getElementById("download-container");
