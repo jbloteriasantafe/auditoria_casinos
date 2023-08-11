@@ -40,11 +40,10 @@
         @endforeach
       </select>
       <div class="form-group">
-        <?php $hoy = date("Y-m-d"); ?>
         @component('CierresAperturas/inputFecha',[
           'attrs' => 'name="fecha_backup" data-js-cambio-fecha-backup',
-          'attrs_dtp' => "data-start-view=\"month\" data-enddate=\"$hoy\""]
-        )
+          'attrs_dtp' => "data-start-view=\"month\""
+        ])
         @endcomponent
       </div>
     </div>

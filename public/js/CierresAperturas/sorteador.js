@@ -13,8 +13,6 @@ $(function(e){
     AUX.mensajeError(errores.join(' || '));
   };
   
-  $M('[name="fecha_backup"]').parent().data('datetimepicker').setDate(new Date());
-  
   M.on('buscar',function(e){
     $M('[data-js-lista-aperturas-sorteadas]').empty();
     const formData = AUX.extraerFormData(M);

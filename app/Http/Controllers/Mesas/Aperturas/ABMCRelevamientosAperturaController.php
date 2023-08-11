@@ -162,10 +162,11 @@ class ABMCRelevamientosAperturaController extends Controller
         return $validator->errors()->add('id_casino','No tiene los privilegios');
       }
       
-      $mesas = MesasSorteadas::where('id_casino','=',$data['id_casino'])
-      ->where('fecha_backup','=',$data['fecha_backup'])
-      ->whereColumn('fecha_backup','>',DB::raw('DATE(created_at)'))
-      ->first();
+      $mesas = (new SorteoMesasController)->buscar(
+        $data['id_casino'],
+        $data['fecha_backup'],
+        'BACKUP'
+      );
       
       if(is_null($mesas)) return $validator->errors()->add('fecha_backup','No existe sorteo de backup para esa fecha');
     })->validate();
@@ -216,65 +217,59 @@ class ABMCRelevamientosAperturaController extends Controller
         }
       })->validate();
     }
-    // Borra todas las sorteadas exceptuando las de hoy. Esto es asi para evitar que el resorteo 
-    // en el mismo dia por ej en el turno 2 borre las mesas_sorteadas del turno anterior.
-    // Si se hiciera, romperia la dependencia necesaria para generar el InformeFiscalizador de mesas,
-    // ver calcularApRelevadas (creo que no se se usa en la practica pero por las dudas no rompo compatibilidad hacia atras)
-    //
-    // Genera un problema al tratar de implementar aperturas a pedido:
-    // Si hoy se sortean $hoy+4 dias para adelante. Cuando pase al otro dia, se reusaran la mesas_sorteadas de ayer
-    // porque el delete() no lo agarraba. Esto hace que las aperturas a pedido tengan efecto a diferencia de 2 dias
-    //
-    // Para evitar esto cuando se buscan mesas_sorteadas:
-    // - Si fecha_backup > $hoy => BORRAR
-    // - Si fecha_backup == $hoy && created_at  < $hoy => BORRAR
-    // - Si fecha_backup == $hoy && created_at == $hoy => DEJAR
-    // Esto tiene un problema, si se cae el sistema un par de dias y vuelve entre turnos el segundo turno va a eliminar las mesas_sorteadas
-    // con las que se usaron para relevar el primer turno. Lo optimo seria que el desarrollador re-sortee a primera hora para evitar esto
-    // Hago un @HACK, y es que ademas verificar que no tenga InformeFiscalizadores
-    // Esto NO agarra todos los casos, ya que estos son solo generados cuando se valida una apertura. Osea solo agarra si se cae varios dias,
-    // el sistema vuelve entre turnos y cargaron&validaron una apertura en el primer turno antes del segundo sorteo
-    // Octavio 06-12-2021
+    
     return DB::transaction(function() use ($id_casino,$inicio,$hoy){
-      $cantidad_dias_backup = 1;
-      if($inicio == $hoy){
-        $cantidad_dias_backup = self::$cantidad_dias_backup;
-        
-        $informes_creados = DB::table('informe_fiscalizadores')
-        ->where('id_casino','=',$id_casino)
-        ->where('fecha','>=',$inicio)->get()->pluck('fecha')->toArray();
-
-        //Regenero los sorteos solo que son backup, no tengan un informe y sean pasando el dia actual
-        DB::table('mesas_sorteadas')
-        ->where('id_casino','=',$id_casino)
-        ->where('fecha_backup','>',$inicio)
-        ->whereColumn('fecha_backup','>',DB::raw('DATE(created_at)'))//es backup
-        ->whereNotIn('fecha_backup',$informes_creados)//no tiene informe
-        ->delete();
-      }
-            
       $sorteoController = new SorteoMesasController;
-      $fechas_a_sortear = [];     
-      $casino = Casino::find($id_casino); 
+      if($inicio != $hoy){//Si sortea una fecha que no sea hoy, simplemente retorna la fecha si tiene mesas sorteadas
+        $tiene_mesas = !is_null($sorteoController->buscar($id_casino,$inicio,'REAL'));
+        return $tiene_mesas? [$inicio] : [];
+      }
+      
+      $fechas = [];
+      $fechas_sorteadas = [];     
       $inicio_f = Carbon::createFromFormat('Y-m-d',$inicio);
-      if(count($casino->mesas) > 0){
-        for($i=0;$i<self::$cantidad_dias_backup;$i++) {
-          $f = (clone $inicio_f)->addDays($i)->format("Y-m-d");
-          $fechas_a_sortear[] = $f;
-        }
-        foreach($fechas_a_sortear as $f){
-          if(is_null($sorteoController->buscarBackUps($id_casino,$f))){
-             $sorteoController->sortear($id_casino, $f);
-          }
+      for($i=0;$i<self::$cantidad_dias_backup;$i++) {
+        $f = (clone $inicio_f)->addDays($i)->format("Y-m-d");
+        $fechas[] = $f;
+        if(!is_null($sorteoController->buscar($id_casino,$f,$i==0? 'REAL' : 'BACKUP'))){
+          $fechas_sorteadas[] = $f;
         }
       }
-      return $fechas_a_sortear;
+      
+      //Si estan todas sorteadas quiere decir que llamo con el dia ya sorteado
+      if(count($fechas) == count($fechas_sorteadas)){
+        return $fechas_sorteadas;
+      }
+      
+      //Si no, solo puede ser porque se paso de dia
+      //en ese caso, se resortean todos los dias
+      //Borro los que no tengan informe_fiscalizadores generado
+      $informes_creados = DB::table('informe_fiscalizadores')
+      ->where('id_casino','=',$id_casino)
+      ->whereIn('fecha',$fechas)->get()->pluck('fecha')->toArray();
+
+      //Regenero los sorteos solo que son backup, no tengan un informe y sean pasando el dia actual
+      DB::table('mesas_sorteadas')
+      ->where('id_casino','=',$id_casino)
+      ->whereIn('fecha_backup',$fechas)
+      ->whereColumn('fecha_backup','>',DB::raw('DATE(created_at)'))//es backup
+      ->whereNotIn('fecha_backup',$informes_creados)//no tiene informe
+      ->delete();
+      
+      foreach($fechas as $f){
+        if(is_null($sorteoController->buscar($id_casino,$f,$i==0? 'REAL' : 'BACKUP'))){
+          $sorteoController->sortear($id_casino, $f);
+        }
+      }
+      
+      return $fechas;
     });
   }
 
   public function regenerarArchivo($id_casino,$fechas_sorteadas){
     $casino = Casino::find($id_casino);
-    $codigo_casino = $casino->codigo;    
+    $codigo_casino = $casino->codigo;  
+    if(count($fechas_sorteadas) == 0) throw new Exception('No hay fechas sorteadas');  
     $inicio = $fechas_sorteadas[0];
     $fin    = $fechas_sorteadas[count($fechas_sorteadas)-1];
     $nombre_zip = "Planillas-Aperturas-$codigo_casino-$inicio-al-$fin.zip";
@@ -318,41 +313,38 @@ class ABMCRelevamientosAperturaController extends Controller
   }
 
   private function crearRel($cas,$fecha_backup){
-    $sorteoController = new SorteoMesasController;
-    $sorteo = $sorteoController->buscarBackUps($cas->id_casino,$fecha_backup);
+    $sorteo = (new SorteoMesasController)->buscar($cas->id_casino,$fecha_backup,'CUALQUIERA');
+    if(is_null($sorteo)) return null;
+    
+    $rel = new \stdClass();
+    $rel->sorteadas =  new \stdClass();
+    $rel->sorteadas->ruletas = $sorteo->mesas['ruletas'];
+    $rel->sorteadas->cartasDados = $sorteo->mesas['cartasDados'];
 
-    if($sorteo != null){
-      $rel = new \stdClass();
-      $rel->sorteadas =  new \stdClass();
-      $rel->sorteadas->ruletas = $sorteo['ruletas'];
-      $rel->sorteadas->cartasDados = $sorteo['cartasDados'];
+    $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->with('juego')->get();
+    $m_ordenadas = $rmesas->sortBy('codigo_sector')->map(function($m){
+      return ['codigo_mesa'=> $m->codigo_mesa,'sector'=> $m->nombre_sector];
+    })->toArray();
 
-      $rmesas = Mesa::whereIn('id_casino',[$cas->id_casino])->with('juego')->get();
-      $m_ordenadas = $rmesas->sortBy('codigo_sector')->map(function($m){
-        return ['codigo_mesa'=> $m->codigo_mesa,'sector'=> $m->nombre_sector];
-      })->toArray();
+    $rel->mesas = array_chunk($m_ordenadas,33);
+    $rel->fecha = \Carbon\Carbon::today();
+    $año = substr($rel->fecha,0,4);
+    $mes = substr($rel->fecha,5,2);
+    $dia = substr($rel->fecha,8,2);
+    $rel->fecha = $dia."-".$mes."-".$año;
+    $rel->casino = $cas->nombre;
+    $rel->id_casino = $cas->id_casino;
 
-      $rel->mesas = array_chunk($m_ordenadas,33);
-      $rel->fecha = \Carbon\Carbon::today();
-      $año = substr($rel->fecha,0,4);
-      $mes = substr($rel->fecha,5,2);
-      $dia = substr($rel->fecha,8,2);
-      $rel->fecha = $dia."-".$mes."-".$año;
-      $rel->casino = $cas->nombre;
-      $rel->id_casino = $cas->id_casino;
+    $fichas = DB::table('ficha')->select('ficha.valor_ficha')
+    ->join('ficha_tiene_casino as fc','fc.id_ficha','=','ficha.id_ficha')
+    ->where('fc.id_casino','=',$cas->id_casino)
+    ->whereNull('fc.deleted_at')->whereNull('ficha.deleted_at')
+    ->distinct('ficha.valor_ficha')
+    ->orderBy('valor_ficha','desc')
+    ->get()->pluck('valor_ficha')->toArray();
 
-      $fichas = DB::table('ficha')->select('ficha.valor_ficha')
-      ->join('ficha_tiene_casino as fc','fc.id_ficha','=','ficha.id_ficha')
-      ->where('fc.id_casino','=',$cas->id_casino)
-      ->whereNull('fc.deleted_at')->whereNull('ficha.deleted_at')
-      ->distinct('ficha.valor_ficha')
-      ->orderBy('valor_ficha','desc')
-      ->get()->pluck('valor_ficha')->toArray();
-
-      $rel->fichas = array_chunk($fichas,10);
-      $rel->paginas = 4;//@HACK: porque estaba harcodeado??? 
-      return $rel;
-    }
-    return null;
+    $rel->fichas = array_chunk($fichas,10);
+    $rel->paginas = 4;//@HACK: porque estaba harcodeado??? 
+    return $rel;
   }
 }

@@ -134,9 +134,18 @@ class SorteoMesasController extends Controller
     return $ret;
   }
 
-  public function buscarBackUps($id_casino,$fecha){//debe retornar lo mismo que retorna sortear.
-    $rta = MesasSorteadas::where([['fecha_backup','=',$fecha],['id_casino','=',$id_casino]])->first();
-    if($rta == null) return null;
-    return ['ruletas' => $rta->mesas['ruletas'],'cartasDados' => $rta->mesas['cartasDados']];
+  public function buscar($id_casino,$fecha,$tipo = 'CUALQUIERA'){
+    if(!in_array($tipo,['REAL','BACKUP','CUALQUIERA'])){
+      throw new Exception("Tipo '$tipo' invalido");
+    }
+    
+    $reglas = [['fecha_backup','=',$fecha],['id_casino','=',$id_casino]];
+    if($tipo == 'REAL'){
+      $reglas[] = ['fecha_backup','<=',DB::raw('DATE(created_at)')];
+    }
+    if($tipo == 'BACKUP'){
+      $reglas[] = ['fecha_backup','>',DB::raw('DATE(created_at)')];
+    }
+    return MesasSorteadas::where($reglas)->first();
   }
 }
