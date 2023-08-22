@@ -140,6 +140,11 @@ $puede_modificar_minimo = $usuario->tienePermiso('m_abm_apuesta_minima');
           <i class="fas fa-fw fa-check-circle" style="color: rgb(76, 175, 80);" data-estados="4"></i>
         </td>
         <td style="text-align:center;">
+          @if($puede_validar_eliminar)
+          <button type="button" class="btn" data-js-ver-apuesta data-estados="1,2,3,4,5,6,7">
+            <i class="fa fa-fw fa-search-plus"></i>
+          </button>
+          @endif
           <button type="button" class="btn" data-js-cargar-apuesta data-estados="1">
             <i class="fas fa-fw fa-upload"></i>
           </button>

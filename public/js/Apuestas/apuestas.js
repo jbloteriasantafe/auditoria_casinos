@@ -62,6 +62,10 @@ $(document).on('click','[data-js-nueva-pestaña]',function(){
   window.open($(this).attr('data-js-nueva-pestaña')+'/'+$(this).val(),'_blank');
 });
 
+$(document).on('click', '[data-js-ver-apuesta]', function(e){
+  $('[data-js-cargar-modificar-validar]').trigger('mostrar',['Ver',$(this).val()]);
+});
+
 $(document).on('click', '[data-js-cargar-apuesta]', function(e){
   $('[data-js-cargar-modificar-validar]').trigger('mostrar',['Cargar',$(this).val()]);
 });

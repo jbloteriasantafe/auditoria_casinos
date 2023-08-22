@@ -69,8 +69,15 @@ $(function(){
       
       $M('[name="observaciones"]').val(data?.relevamiento?.observaciones);
       $M('[name="observaciones_validacion"]').val(data?.relevamiento?.observaciones_validacion);
-      $M(`[data-js-deshabilitar]`).attr('disabled',false);
-      $M(`[data-js-deshabilitar="${TIPO}"]`).attr('disabled',true);
+      
+      $M(`[data-js-habilitar]`).attr('disabled',true).filter(function(){
+        return $(this)?.attr('data-js-habilitar')?.split(',')?.includes(TIPO) ?? false;
+      }).attr('disabled',false);
+      
+      $M(`[data-js-mostrar]`).hide().filter(function(){
+        return $(this)?.attr('data-js-mostrar')?.split(',')?.includes(TIPO) ?? false;
+      }).show();
+      
       M.modal('show');
     });
   });
@@ -83,7 +90,7 @@ $(function(){
     });
   });
   
-  $(document).on('click',`_M [data-js-fiscalizadores] [data-js-borrar-fiscalizador]`,function(e){
+  $(document).on('click',`${_M} [data-js-fiscalizadores] [data-js-borrar-fiscalizador]`,function(e){
     $(this).closest('tr').remove();
   });
   

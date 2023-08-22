@@ -1,7 +1,8 @@
 @component('../CierresAperturas/include_guard',['nombre' => 'modalCargarModificar'])
 <style>
   .modalCargarModificar[data-tipo="CARGAR"] .modal-header,
-  .modalCargarModificar[data-tipo="VALIDAR"] .modal-header {
+  .modalCargarModificar[data-tipo="VALIDAR"] .modal-header,
+  .modalCargarModificar[data-tipo="VER"] .modal-header {
     background-color: #6dc7be;
   }
   .modalCargarModificar[data-tipo="MODIFICAR"] .modal-header {
@@ -14,12 +15,6 @@
     background-color: #FFA726 !important;
   }
   
-  .modalCargarModificar[data-tipo="CARGAR"] [data-ver-validar]:not([data-ver-cargar-modificar]),
-  .modalCargarModificar[data-tipo="MODIFICAR"] [data-ver-validar]:not([data-ver-cargar-modificar]),
-  .modalCargarModificar[data-tipo="VALIDAR"] [data-ver-cargar-modificar]:not([data-ver-validar]) {
-    display: none;
-  }
-    
   .modalCargarModificar .tablaApuestasMinimas th,
   .modalCargarModificar .tablaApuestasMinimas td,
   .modalCargarModificar .tablaApuestasMinimas .form-control{
@@ -55,7 +50,7 @@
       </div>
       <div class="col-md-3">
         <h5 style="font-size:16px !important;">HORA EJECUCIÓN</h5>
-        <input type="time" name="hora_ejecucion" class="form-control" style="padding-top:0px;" data-js-deshabilitar="VALIDAR">
+        <input type="time" name="hora_ejecucion" class="form-control" style="padding-top:0px;" data-js-habilitar="CARGAR,MODIFICAR">
       </div>
       <div class="col-md-3">
         <h5 style="font-size:16px !important;">TURNO</h5>
@@ -64,7 +59,7 @@
     </div>
     <div class="row" style="border-bottom:2px solid #ccc;">
       @if($puede_validar)
-      <div class="col-md-4" style="border-right:1px solid #ccc;" data-ver-validar>
+      <div class="col-md-4" style="border-right:1px solid #ccc;" data-js-mostrar="VER,VALIDAR">
         <h5 style="font-size:16px !important;">MESAS ABIERTAS</h5>
         <div style="max-height: 20vh;overflow-y: scroll;">
           <table style="width:100%;" class="table table-responsive" data-js-mesas-abiertas>
@@ -88,14 +83,14 @@
             </tr>
           </table>
         </div>
-        <h5 style="font-size:15px !important;" data-ver-validar>
+        <h5 style="font-size:15px !important;" data-js-mostrar="VER,VALIDAR">
           CUMPLIÓ MÍNIMO
           <i data-cumplio-minimo="1" class="fa fa-fw fa-check" style="color: rgb(76, 175, 80);"></i>
           <i data-cumplio-minimo="0" class="fa fa-fw fa-times" style="color: rgb(211, 47, 47);"></i>
         </h5>
       </div>
       @endif
-      <div class="col-md-4" data-ver-cargar-modificar>
+      <div class="col-md-4" data-js-mostrar="CARGAR,MODIFICAR">
         <h5 style="font-size:16px !important;">FISCALIZADOR DE TOMA</h5>
         <div class="input-group">
           <input data-js-fiscalizador class="form-control" type="text" value="" autocomplete="off" placeholder="Nombre Fiscalizador" >
@@ -117,7 +112,7 @@
                 FISCALIZADOR
               </td>
               <td style="margin-top: 0px; margin-bottom: 0px;" class="col-xs-2">
-                <button data-js-borrar-fiscalizador data-ver-cargar-modificar>
+                <button data-js-borrar-fiscalizador data-js-mostrar="CARGAR,MODIFICAR">
                   <i class="fas fa-fw fa-trash"></i>
                 </button>
               </td>
@@ -149,7 +144,7 @@
         <tr data-js-molde-mesa>
           <td class="mesa" name="id_detalle_relevamiento_apuestas" data-js-formdata-attr="data-id_detalle_relevamiento_apuestas">MESA</td>
           <td>
-            <select class="form-control moneda" name="id_moneda" data-js-deshabilitar="VALIDAR">
+            <select class="form-control moneda" name="id_moneda" data-js-habilitar="CARGAR,MODIFICAR">
               <option value="">- SELECCIONE -</option>
               @foreach($monedas as $m)
               <option value="{{$m->id_moneda}}">{{$m->descripcion}}</option>
@@ -158,7 +153,7 @@
           </td>
           <td class="posiciones">POSICIONES</td>
           <td>
-            <select class="form-control estado" name="id_estado_mesa" data-js-deshabilitar="VALIDAR">
+            <select class="form-control estado" name="id_estado_mesa" data-js-habilitar="CARGAR,MODIFICAR">
               <option value="">- SELECCIONE -</option>
               @foreach($estados_mesa as $e)
               <option value="{{$e->id_estado_mesa}}" title="{{$e->descripcion_mesa}}">{{$e->siglas_mesa}}</option>
@@ -166,33 +161,33 @@
             </select>
           </td>
           <td class="col-xs-2">
-            <input type="text" class="form-control minimo" name="minimo" data-js-deshabilitar="VALIDAR">
+            <input type="text" class="form-control minimo" name="minimo" data-js-habilitar="CARGAR,MODIFICAR">
           </td>
           <td class="col-xs-2">
-            <input type="text" class="form-control maximo" name="maximo" data-js-deshabilitar="VALIDAR">
+            <input type="text" class="form-control maximo" name="maximo" data-js-habilitar="CARGAR,MODIFICAR">
           </td>
         </tr>
       </table>
     </div>
-    <div class="row" data-js-datos-relevamiento data-ver-cargar-modificar data-ver-validar>
+    <div class="row" data-js-datos-relevamiento>
       <div class="col-md-10 col-md-offset-1">
         <h6>OBSERVACIONES:</h6>
-        <textarea data-js-deshabilitar="VALIDAR" name="observaciones" style="resize: vertical;width: 100%;"></textarea>
+        <textarea data-js-habilitar="CARGAR,MODIFICAR" name="observaciones" style="resize: vertical;width: 100%;"></textarea>
       </div>
     </div>
     @if($puede_validar)
-    <div class="row" data-js-datos-relevamiento data-ver-validar>
+    <div class="row" data-js-datos-relevamiento data-js-mostrar="VER,VALIDAR">
       <div class="col-md-10 col-md-offset-1">
         <h6>OBSERVACIONES VALIDACIÓN:</h6>
-        <textarea name="observaciones_validacion" style="resize: vertical;width: 100%;"></textarea>
+        <textarea data-js-habilitar="VALIDAR" name="observaciones_validacion" style="resize: vertical;width: 100%;"></textarea>
       </div>
     </div>
     @endif
   @endslot
   @slot('pie')
-    <button type="button" class="btn btn-guardar" data-js-guardar data-ver-cargar-modificar style="color: white !important;">GUARDAR</button>
+    <button type="button" class="btn btn-guardar" data-js-guardar data-js-mostrar="CARGAR,MODIFICAR" style="color: white !important;">GUARDAR</button>
     @if($puede_validar)
-    <button type="button" class="btn btn-validar" data-js-validar data-ver-validar style="color: white !important;background-color: #6dc7be !important;">VALIDAR</button>
+    <button type="button" class="btn btn-validar" data-js-validar data-js-mostrar="VALIDAR" style="color: white !important;background-color: #6dc7be !important;">VALIDAR</button>
     @endif
   @endslot
 @endcomponent
