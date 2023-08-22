@@ -57,28 +57,36 @@ class BVApuestasController extends Controller
   }
 
   public function validar(Request $request){
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    
     $validator=  Validator::make($request->all(),[
-      'id_relevamiento' => 'required|exists:relevamiento_apuestas_mesas,id_relevamiento_apuestas',
-      'observaciones' => 'nullable|max:200'
-    ], array(), self::$atributos)->after(function($validator){  })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $relevamiento = RelevamientoApuestas::find($request['id_relevamiento']);
-    $relevamiento->estado()->associate(4);//Validado
-    $relevamiento->observaciones_validacion = $request['observaciones'];
-    $relevamiento->controlador()->associate($user->id);
-    $relevamiento->save();
+      'id_relevamiento_apuestas' => 'required|exists:relevamiento_apuestas_mesas,id_relevamiento_apuestas',
+      'observaciones_validacion' => 'nullable|string|max:200'
+    ], [
+      'required' => 'El valor es requerido',
+      'exists' => 'El valor no existe',
+      'max' => 'El valor supera el limite',
+    ], self::$atributos)->after(function($validator) use ($user){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      $rel = RelevamientoApuestas::find($data['id_relevamiento_apuestas']);
+      if(!$user->usuarioTieneCasino($rel->id_casino)){
+        return $validator->errors()->add('id_relevamiento_apuestas_mesas','No está autorizado para realizar esta accion.');
+      }
+    })->validate();
+    
+    return DB::transaction(function() use ($request,$user){
+      $relevamiento = RelevamientoApuestas::find($request['id_relevamiento_apuestas']);
+      $relevamiento->estado()->associate(4);//Validado
+      $relevamiento->observaciones_validacion = $request['observaciones_validacion'];
+      $relevamiento->controlador()->associate($user->id_usuario);
+      $relevamiento->save();
 
-    $informeController = new GenerarInformesFiscalizadorController;
-    $informeController->agregarRelacionValoresApuestas($relevamiento);
-
-
-
-    return response()->json(['exito' => 'Relevamiento validado!'], 200);
+      $informeController = new GenerarInformesFiscalizadorController;
+      $informeController->agregarRelacionValoresApuestas($relevamiento);
+      
+      return response()->json(['exito' => 'Relevamiento validado!'], 200);
+    });
   }
 
   public function eliminar($id_relevamiento){

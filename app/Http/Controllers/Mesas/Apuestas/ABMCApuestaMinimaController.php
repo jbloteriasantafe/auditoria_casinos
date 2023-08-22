@@ -70,32 +70,25 @@ class ABMCApuestaMinimaController extends Controller
   }
 
   public function obtenerApuestaMinima($id_casino,$id_moneda){
-    $errores = 'null';
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
 
     if($id_casino == 0 || empty($id_casino)){
-      $id_casino = $user->casinos()->first()->id_casino;
+      $id_casino = $user->casinos()->first()->id_casino ?? null;
+      if(is_null($id_casino)) return ['apuestas' => [], 'juegos' => []];
     }
-
-    $apuestas = DB::table('apuesta_minima_juego')->select('apuesta_minima_juego.apuesta_minima', 'apuesta_minima_juego.cantidad_requerida', 'apuesta_minima_juego.id_juego_mesa', 'apuesta_minima_juego.id_casino','apuesta_minima_juego.id_moneda')
-                                                  ->where('id_casino','=',$id_casino)
-                                                  ->where('id_moneda','=',$id_moneda)
-                                                  ->where('deleted_at','=',NULL)
-                                                  ->get();
-
-    $hayMesas = DB::table('mesa_de_panio')->where('id_moneda','=',$id_moneda)
-                                          ->where('id_casino','=',$id_casino)
-                                          ->get();
-
-    if(count($apuestas) == 0 && count($hayMesas) == 0){
-      $errores = 'No existen mesas para los datos seleccionados.';
-    }
+    
+    $apuestas = DB::table('apuesta_minima_juego')
+    ->select('apuesta_minima_juego.apuesta_minima', 'apuesta_minima_juego.cantidad_requerida', 'apuesta_minima_juego.id_juego_mesa', 'apuesta_minima_juego.id_casino','apuesta_minima_juego.id_moneda')
+    ->where('id_casino','=',$id_casino)
+    ->where('id_moneda','=',$id_moneda)
+    ->whereNull('deleted_at')
+    ->get();
 
     $juegos = JuegoMesa::where('id_casino','=',$id_casino)
-                        ->orderBy('nombre_juego','asc')
-                        ->get();
+    ->orderBy('nombre_juego','asc')
+    ->get();
 
-    return ['apuestas' => $apuestas, 'errores' => $errores , 'juegos' => $juegos];
+    return ['apuestas' => $apuestas, 'juegos' => $juegos];
   }
 
 
@@ -106,44 +99,46 @@ class ABMCApuestaMinimaController extends Controller
   }
 
   public function modificar(Request $request){
-    $validator=  Validator::make($request->all(),[
-      'modificaciones' =>'required',
-      'modificaciones.id_juego' => 'required|exists:juego_mesa,id_juego_mesa',
-      'modificaciones.apuesta_minima' => 'required|numeric|min:0',
-      'modificaciones.cantidad_requerida' =>['required','regex:/^\d\d?\d?\d?\d?\d?\d?\d?$/'],
-      'modificaciones.id_casino' => 'required|exists:casino,id_casino',
-      'modificaciones.id_moneda' => 'required|exists:moneda,id_moneda'
-    ], array(), self::$atributos)->after(function($validator){
+    $validator = Validator::make($request->all(),[
+      'id_casino' => 'required|exists:casino,id_casino,deleted_at,NULL',
+      'id_moneda' => 'required|exists:moneda,id_moneda,deleted_at,NULL',
+      'id_juego_mesa' => 'required|exists:juego_mesa,id_juego_mesa,deleted_at,NULL',
+      'apuesta_minima' => 'required|numeric|min:0',
+      'cantidad_requerida' => 'required|integer|min:0',
+    ], [
+      'required' => 'El valor es requerido',
+      'exists'   => 'El valor es invalido',
+      'numeric'  => 'El valor tiene que ser numérico',
+      'integer'  => 'El valor tiene que ser un numero entero',
+      'min'      => 'El valor tiene que ser positivo',
+    ], self::$atributos)->after(function($validator){
       if($validator->errors()->any()) return;
-      $jm = JuegoMesa::find($validator->getData()['modificaciones']['id_juego']);
-      if($jm->id_casino != $validator->getData()['modificaciones']['id_casino']){
-        $validator->errors()->add('id_casino','Error de consistencia casino-juego');
+      $data = $validator->getData();
+      $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+      if(!$user->usuarioTieneCasino($data['id_casino'])){
+        return $validator->errors()->add('id_casino','Error de privilegios');
+      }
+      $jm = JuegoMesa::find($data['id_juego_mesa']);
+      if($jm->id_casino != $data['id_casino']){
+        return $validator->errors()->add('id_casino','Error de consistencia');
       }
     })->validate();
 
+    $apuestaMinima = ApuestaMinimaJuego::where('id_casino','=',$request->id_casino)
+    ->where('id_moneda','=',$request->id_moneda)
+    ->where('id_juego_mesa','=',$request->id_juego_mesa)
+    ->get();
 
-    if(isset($validator) && $validator->fails()) {
-      return ['errors' => $validator->messages()->toJson()];
-    }
-
-    $modif = collect($request['modificaciones'])->all();
-
-
-    $apuestaMinima = ApuestaMinimaJuego::whereIn('id_casino',[$modif['id_casino']])
-                                        ->where('id_moneda','=',$modif['id_moneda'])
-                                        ->where('id_juego_mesa','=',$modif['id_juego'])
-                                        ->get();
-
-    if($apuestaMinima != null) {
-      foreach($apuestaMinima as $apMin) $apMin->delete();
+    foreach($apuestaMinima as $apMin){
+      $apMin->delete();
     }
 
     $apuestaMinima = new ApuestaMinimaJuego;
-    $apuestaMinima->juego()->associate($modif['id_juego']);
-    $apuestaMinima->apuesta_minima = $modif['apuesta_minima'];
-    $apuestaMinima->cantidad_requerida =$modif['cantidad_requerida'];
-    $apuestaMinima->casino()->associate($modif['id_casino']);
-    $apuestaMinima->moneda()->associate($modif['id_moneda']);
+    $apuestaMinima->juego()->associate($request->id_juego_mesa);
+    $apuestaMinima->casino()->associate($request->id_casino);
+    $apuestaMinima->moneda()->associate($request->id_moneda);
+    $apuestaMinima->apuesta_minima     = $request->apuesta_minima;
+    $apuestaMinima->cantidad_requerida = $request->cantidad_requerida;
     $apuestaMinima->save();
 
    return response()->json(['exito' => 'Monto de Apuesta Mínima modificada.'], 200);

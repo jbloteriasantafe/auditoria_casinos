@@ -62,202 +62,90 @@ class BCApuestasController extends Controller
   }
 
   public function buscarTodo(){
-
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $casinos = array();
-    $cas = array();
-    foreach($user->casinos as $casino){
-      $casinos[]=$casino->id_casino;
-      $cas[] = $casino;
-    }
-    $turnos = Turno::whereIn('id_casino',$casinos)->get();
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $casinos = $usuario->casinos;
+    $turnos  = Turno::whereIn('id_casino',$casinos->pluck('id_casino')->toArray())->get();
     $monedas = Moneda::all();
-    return view('Apuestas.apuestas',['casinos' => $cas,
-                                      'turnos' => $turnos,
-                                      'monedas' => $monedas,
-                                    ]);
+    $estados_mesa = EstadoMesa::all();
+    return view('Apuestas.apuestas',compact('usuario','casinos','turnos','monedas','estados_mesa'));
   }
 
   public function filtros(Request $request){
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $cas = array();
-
-    $filtros = array();
+    $filtros = [];
     if(!empty($request->id_turno) && $request->id_turno != 0){
       $filtros[]= ['RA.id_turno','=',$request->id_turno];
     }
-
-    if(!empty($request->id_casino) && $request->id_casino != 0){
-      $cas[]= $request->id_casino;
-    }else{
-      foreach ($user->casinos as $cass) {
-        $cas[]=$cass->id_casino;
-      }
+    if(!empty($request->id_casino)){
+      $filtros[]= ['RA.id_casino','=',$request->id_casino];
     }
-    if(!empty( $request->sort_by)){
-      $sort_by = $request->sort_by;
-    }else{
-        $sort_by = ['columna' => 'relevamiento_apuestas.fecha','orden','desc'];
+    if(!empty($request->fecha)){
+      $filtros[]= [DB::raw('DATE(RA.fecha)'),'=',$request->fecha];
     }
-
-    if(empty($request->fecha)){
-      $resultados = DB::table('relevamiento_apuestas_mesas as RA')
-                ->select(
-                          'RA.id_relevamiento_apuestas',
-                          'RA.fecha',
-                          'RA.id_casino',
-                          'casino.nombre',
-                          'turno.nro_turno',
-                          'RA.id_estado_relevamiento'
-                        )
-                ->join('casino','casino.id_casino','=','RA.id_casino')
-                ->join('turno','RA.id_turno','=','turno.id_turno')
-                ->where($filtros)
-                ->whereIn('RA.id_casino',$cas)
-                ->where('RA.es_backup','=',0)
-                ->distinct('RA.id_relevamiento_apuestas')
-                ->orderBy('RA.fecha','desc')
-                ->whereNull('RA.deleted_at')
-                ->when($sort_by,function($query) use ($sort_by){
-                                return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                            })
-                ->paginate($request->page_size);
-    }else{
-      $fecha=explode("-", $request->fecha);
-      $resultados = DB::table('relevamiento_apuestas_mesas as RA')
-                        ->select(
-                                  'RA.id_relevamiento_apuestas',
-                                  'RA.fecha',
-                                  'RA.id_casino',
-                                  'casino.nombre',
-                                  'turno.nro_turno',
-                                  'RA.id_estado_relevamiento'
-                                )
-                        ->join('turno','RA.id_turno','=','turno.id_turno')
-                        ->join('casino','casino.id_casino','=','RA.id_casino')
-                        ->where($filtros)
-                        ->whereIn('RA.id_casino',$cas)
-                        ->whereNull('RA.deleted_at')
-                        ->where('RA.es_backup','=',0)
-                        ->whereYear('RA.fecha' , '=', $fecha[0])
-                        ->whereMonth('RA.fecha','=', $fecha[1])
-                        ->whereDay('RA.fecha','=', $fecha[2])
-                        ->orderBy('RA.fecha','desc')
-                        ->distinct('RA.id_relevamiento_apuestas')
-                        ->when($sort_by,function($query) use ($sort_by){
-                                        return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                                    })
-                        ->paginate($request->page_size);
-    }
-    return ['apuestas' => $resultados];
-  }
-
-  public function obtenerRelevamientoCarga($id_relevamiento){
+    
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $estados = EstadoMesa::all();
-    $relevamiento = DB::table('relevamiento_apuestas_mesas as RA')
-                        ->select('DRA.nombre_juego','DRA.posiciones',
-                        'DRA.id_detalle_relevamiento_apuestas',
-                        'DRA.codigo_mesa','DRA.nro_mesa','DRA.id_estado_mesa',
-                        'DRA.id_moneda','DRA.multimoneda','moneda.descripcion')
-                        ->join('detalle_relevamiento_apuestas as DRA',
-                               'DRA.id_relevamiento_apuestas','=',
-                               'RA.id_relevamiento_apuestas')
-                        ->leftJoin('moneda','DRA.id_moneda','=','moneda.id_moneda')
-                        ->where('RA.id_relevamiento_apuestas','=',$id_relevamiento)
-                        ->orderBy('DRA.nombre_juego','asc')
-                        ->groupBy('DRA.nombre_juego',
-                        'DRA.id_detalle_relevamiento_apuestas',
-                        'DRA.codigo_mesa','DRA.nro_mesa','DRA.posiciones',
-                        'DRA.id_estado_mesa','DRA.id_moneda','DRA.multimoneda',
-                        'moneda.descripcion'
-                        )
-                        ->orderBy('nro_mesa','asc')
-                        ->get();
+    $casinos = $user->casinos->pluck('id_casino')->toArray();
+        
+    $sort_by = ['columna' => 'RA.fecha','orden' => 'desc'];
+    if(!empty($request->sort_by)){
+      $sort_by = $request->sort_by;
+    }
 
-      $mesasporjuego = array();
-      $mesas = array();
-      $nombre_juego_anterior = $relevamiento->first()->nombre_juego;
-      foreach ($relevamiento as $detalle) {
-        if($nombre_juego_anterior != $detalle->nombre_juego){
-            $mesasporjuego[] = [
-                                  'juego' => $nombre_juego_anterior,
-                                  'mesas' => $mesas,
-                                ];
-            $mesas = array();
-        }
-        $mesas[] = [
-                      'codigo_mesa' => $detalle->codigo_mesa,
-                      'nro_mesa' => $detalle->nro_mesa,
-                      'posiciones' => $detalle->posiciones,
-                      'id_detalle' => $detalle->id_detalle_relevamiento_apuestas,
-                      'id_estado_mesa' => $detalle->id_estado_mesa,
-                      'id_moneda' => $detalle->id_moneda,
-                      'descripcion' => $detalle->descripcion,
-                      'multimoneda' => $detalle->multimoneda,
-                    ];
-
-
-        $nombre_juego_anterior = $detalle->nombre_juego;
-      }
-      $mesasporjuego[] = [
-                            'juego' => $nombre_juego_anterior,
-                            'mesas' => $mesas,
-                          ];
-      $relevamieno = RelevamientoApuestas::find($id_relevamiento);
-      return ['mesasporjuego'=> $mesasporjuego,
-              'relevamiento' => $relevamieno,
-              'estados'=> $estados,
-              'fecha' => $relevamieno->fecha,
-              'turno' => $relevamieno->turno()->withTrashed()->get()
-              ];
+    return DB::table('relevamiento_apuestas_mesas as RA')
+    ->select(
+      'RA.id_relevamiento_apuestas','RA.fecha','RA.id_casino',
+      'casino.nombre','turno.nro_turno','RA.id_estado_relevamiento'
+    )
+    ->join('casino','casino.id_casino','=','RA.id_casino')
+    ->join('turno','RA.id_turno','=','turno.id_turno')
+    ->where($filtros)
+    ->whereIn('RA.id_casino',$casinos)
+    ->where('RA.es_backup','=',0)
+    ->whereNull('RA.deleted_at')
+    ->orderBy($sort_by['columna'] ?? 'RA.fecha',$sort_by['orden'] ?? 'desc')
+    ->paginate($request->page_size);
   }
-
-  public function obtenerRelevamientoApuesta($id_relevamiento){
+  
+  public function obtenerRelevamiento($id_relevamiento){
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $relevamiento = RelevamientoApuestas::find($id_relevamiento);
-    $detalles = array();
-    $abiertas = 0;
-    foreach ($relevamiento->detalles as $det) {
-      $detalles[]= [
-                    'detalle' => $det
-                    ];
-
-      if($det->id_estado_mesa == 1){
-        $abiertas++;
-      }
+    if(is_null($relevamiento) || !$user->usuarioTieneCasino($relevamiento->id_casino)){
+      return null;
     }
-    $estados = EstadoMesa::all();
-
-    $minimo = false;
-    if($abiertas > 0){
-      $abiertas_por_juego = DB::table('detalle_relevamiento_apuestas as DRA')
-                        ->select(
-                                  'DRA.nombre_juego',
-                                  DB::raw('COUNT(DRA.id_estado_mesa) as cantidad_abiertas')
-                                )
-                        ->where('DRA.id_estado_mesa','=',1)
-                        ->where('DRA.id_relevamiento_apuestas','=',$id_relevamiento)
-                        ->groupBy('DRA.nombre_juego',
-                                  'DRA.id_estado_mesa')
-                        ->orderBy('DRA.nombre_juego','asc')
-                        ->get();
-
-    }else{
-      $abiertas_por_juego = null;
-    }
-
-
-
-    return ['relevamiento_apuestas' => $relevamiento,
-            'turno' => $relevamiento->turno()->withTrashed()->get(),
-            'detalles' => $detalles,
-            'estados' => $estados,
-            'fiscalizadores' => $relevamiento->fiscalizadores,
-            'cargador' => $relevamiento->cargador,
-            'total_abiertas' => $abiertas,
-            'cumplio_minimo' => $relevamiento->cumplio_minimo,
-            'abiertas_por_juego' => $abiertas_por_juego,
-           ];
+    
+    $detalles = $relevamiento->detalles()
+    ->orderBy('nombre_juego','asc')
+    ->orderBy('nro_mesa','asc')
+    ->get();
+    
+    $idx = 0;
+    $abiertas_por_juego = $detalles
+    ->sortBy('nombre_juego')
+    ->groupBy('nombre_juego')
+    ->mapWithKeys(function($mesas,$juego) use (&$idx){
+      $mesas_abiertas = $mesas->filter(
+        function($d){return $d->id_estado_mesa == 1;}
+      )->count();
+      
+      return [
+        ($idx++) => compact('juego','mesas_abiertas')
+      ];
+    });
+    
+    $abiertas_por_juego->push([
+      'juego' => '—TOTAL—',
+      'mesas_abiertas' => $abiertas_por_juego->reduce(function($carry,$ab){
+        return $carry+$ab['mesas_abiertas'];
+      },0)
+    ]);
+    
+    return [
+      'relevamiento' => $relevamiento,
+      'detalles'=> $detalles,
+      'turno' => $relevamiento->turno()->withTrashed()->first(),
+      'fiscalizadores' => $relevamiento->fiscalizadores()->withTrashed()->get(),
+      'cumplio_minimo' => $relevamiento->cumplio_minimo,
+      'abiertas_por_juego' => $abiertas_por_juego,
+    ];
   }
 
   public function obtenerNombreZip(){
@@ -299,61 +187,7 @@ class BCApuestasController extends Controller
     return response()->download($file,$nombre,$headers);
 
   }
-
-  public function buscarRelevamientosBackUp(Request $request){
-
-    $relevamiento = null;
-    $validator=  Validator::make($request->all(),[
-      'fecha' => 'required|date_format:"Y-m-d"',
-      'nro_turno' => 'required|integer',
-      'created_at' => 'required|date_format:"Y-m-d"',
-    ], array(), self::$atributos)->after(function($validator) use($relevamiento){
-      $cas=array();
-      $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      foreach ($user->casinos as $cass) {
-        $cas[]=$cass->id_casino;
-      }
-
-      $fecha = explode('-',$validator->getData()['created_at']);
-      $relevamiento = RelevamientoApuestas::whereDay('created_at','=',$fecha[2])
-                                            ->whereMonth('created_at','=',$fecha[1])
-                                            ->whereYear('created_at','=',$fecha[0])
-                                            ->where('id_turno','=',$validator->getData()['nro_turno'])
-                                            ->where('fecha','=',$validator->getData()['fecha'])
-                                            ->where('es_backup','=','1')
-                                            ->whereIn('id_casino',$cas)
-                                            ->get();
-                                          //  dd($validator->getData()['nro_turno']);
-      if(count($relevamiento) != 1){
-        $validator->errors()->add('error','No se pudo encontrar un relevamiento.'
-                                 );
-      }
-    })->validate();
-    if(isset($validator)){
-      if ($validator->fails()){
-          return ['errors' => $validator->messages()->toJson()];
-          }
-     }
-
-     $cas=array();
-     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-     foreach ($user->casinos as $cass) {
-       $cas[]=$cass->id_casino;
-     }
-
-     $fecha = explode('-',$request['created_at']);
-     $relevamiento = RelevamientoApuestas::whereDay('created_at','=',$fecha[2])
-                                           ->whereMonth('created_at','=',$fecha[1])
-                                           ->whereYear('created_at','=',$fecha[0])
-                                           ->where('id_turno','=',$request['nro_turno'])
-                                           ->where('fecha','=',$request['fecha'])
-                                           ->where('es_backup','=','1')
-                                           ->whereIn('id_casino',$cas)
-                                           ->get();
-                                          // dd($relevamiento);
-     return $this->obtenerRelevamientoCarga($relevamiento->first()->id_relevamiento_apuestas);
-  }
-
+  
   //antes de imprimir la planilla se obliga a que el valor minimo de las apuestas exista.
   public function consultarMinimo(){
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];

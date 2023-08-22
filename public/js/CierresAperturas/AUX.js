@@ -46,7 +46,9 @@ export const AUX = {
     const data = {};
     jqobject.find('[name]').map(function(idx,o){
       const attr = $(o).attr('data-js-formdata-attr');
-      data[$(o).attr('name')] = attr? $(o).attr(attr) : $(o).val();
+      const key  = $(o).attr('name');
+      const val  = attr? $(o).attr(attr) : $(o).val();
+      data[key] = val;
     });
     return data;
   },

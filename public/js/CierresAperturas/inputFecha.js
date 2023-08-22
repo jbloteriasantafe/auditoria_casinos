@@ -10,10 +10,16 @@ $(function(e){
       todayHighlight: $(d).attr('data-date-today-highlight') ?? 1,
       format: $(d).attr('data-date-format') ?? 'yyyy-mm-dd',
       pickerPosition: $(d).attr('data-picker-position') ?? "bottom-left",
-      startView: $(d).attr('data-start-view') ?? 4,
+      startView: $(d).attr('data-start-view') ?? 2,
       minView: $(d).attr('data-min-view') ?? 2,
       startDate: $(d).attr('data-startdate') ?? undefined,
       endDate: $(d).attr('data-enddate') ?? undefined,
     });
+  });
+  $('[data-js-fecha]').each(function(){
+    $(this)[0].disabled = function(disabled){
+      $(this).find('input').attr('disabled',disabled);
+      $(this).find('span').css('visibility',disabled? 'hidden' : 'visible');
+    };
   });
 });

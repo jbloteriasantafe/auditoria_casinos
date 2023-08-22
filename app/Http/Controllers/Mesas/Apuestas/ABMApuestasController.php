@@ -200,77 +200,86 @@ class ABMApuestasController extends Controller
 
   public function cargarRelevamiento(Request $request){
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    
     $validator=  Validator::make($request->all(),[
-      'hora' => 'required|date_format:"H:i"',
-      'observaciones' => 'nullable|string',
+      'relevamiento.id_relevamiento_apuestas' => 'required|exists:relevamiento_apuestas_mesas,id_relevamiento_apuestas,deleted_at,NULL',
+      'relevamiento.hora_ejecucion' => 'required|date_format:"H:i"',
+      'relevamiento.observaciones' => 'nullable|string',
+      'fiscalizadores' => 'required|array',
+      'fiscalizadores.*.id_usuario' => 'required|exists:usuario,id_usuario',
       'detalles' => 'required|array',
-      'detalles.*.id_detalle' => 'required|exists:detalle_relevamiento_apuestas,id_detalle_relevamiento_apuestas',
+      'detalles.*.id_detalle_relevamiento_apuestas' => 'required|exists:detalle_relevamiento_apuestas,id_detalle_relevamiento_apuestas',
       'detalles.*.id_estado_mesa' => 'required|exists:estado_mesa,id_estado_mesa',
       'detalles.*.id_moneda' => 'nullable|exists:moneda,id_moneda|required_if:detalles.*.id_estado_mesa,1',
-      'detalles.*.minimo' => 'nullable|integer|min:0',
-      'detalles.*.maximo' => 'nullable|integer|min:0',
-      'fiscalizadores' => 'required|array',
-      'fiscalizadores.*' => 'required|exists:usuario,id_usuario',
+      'detalles.*.minimo' => 'nullable|integer|min:1|required_with:detalles.*.maximo|required_if:detalles.*.id_estado_mesa,1',
+      'detalles.*.maximo' => 'nullable|integer|min:1|required_with:detalles.*.minimo|required_if:detalles.*.id_estado_mesa,1',
     ], [
-      'hora.required' => 'Ingrese la hora de ejecución',
-      'fiscalizadores.required' => 'Ingrese al menos un fiscalizador',
-      'detalles.*.minimo.min' => 'No puede ser menor o igual a 0',
-      'detalles.*.maximo.min' => 'No puede ser menor o igual a 0',
-      'detalles.*.id_moneda.required_if' => 'Seleccione una moneda',
+      'required' => 'El valor es requerido',
+      'required_if' => 'El valor es requerido',
+      'required_with' => 'El valor es requerido',
+      'exists' => 'El valor es invalido',
+      'date_format' => 'Formato incorrecto',
+      'integer' => 'El valor tiene que ser un numero entero',
+      'min' => 'El valor tiene que ser positivo',
     ], self::$atributos)->after(function($validator) use ($user){
       if($validator->errors()->any()) return;
       
       $data = $validator->getData();
-      $id_casino = DetalleRelevamientoApuestas::find($data['detalles'][0]['id_detalle'])->relevamiento->id_casino;
-      if(!$user->usuarioTieneCasino($id_casino)){
-        return $validator->errors()->add('autorizacion','No está autorizado para realizar esta accion.');
+      $rel = RelevamientoApuestas::find($data['relevamiento']['id_relevamiento_apuestas']);
+      if(!$user->usuarioTieneCasino($rel->id_casino)){
+        return $validator->errors()->add('relevamiento.id_relevamiento_apuestas_mesas','No está autorizado para realizar esta accion.');
       }
+      
+      $ids_detalles = array_map(
+        function($d){return $d['id_detalle_relevamiento_apuestas'];},
+        $data['detalles']
+      );
+      
+      $mando_todos = $rel->detalles()
+      ->whereNotIn('id_detalle_relevamiento_apuestas',$ids_detalles)
+      ->count() == 0;
+      
+      if(!$mando_todos){
+        return $validator->errors()->add('detalles','Faltan detalles en el formulario');
+      }
+      
       foreach($data['fiscalizadores'] as $f){
-        if(!Usuario::find($f)->usuarioTieneCasino($id_casino)){
-          return $validator->errors()->add("fiscalizadores.$i",'No está autorizado para realizar esta accion.');
+        if(!Usuario::find($f['id_usuario'])->usuarioTieneCasino($rel->id_casino)){
+          return $validator->errors()->add("fiscalizadores.$i.id_usuario",'No está autorizado para realizar esta accion.');
         }
       }
       
       foreach ($data['detalles'] as $i => $fila) {
-        //si no esta abierta ignoro
-        if($fila['id_estado_mesa'] != 1) continue;
-        
-        //No puedo validarlo con required_if porque se envia "" vacios si no estan
-        if(empty($fila['minimo']) || empty($fila['maximo'])){
-          $validator->errors()->add('detalles.'.$i.'.minimo', 'Valor requerido');
-          $validator->errors()->add('detalles.'.$i.'.maximo', 'Valor requerido');
-        }
-        else if($fila['maximo'] < $fila['minimo']){
+        if($fila['id_estado_mesa'] == 1 && $fila['maximo'] < $fila['minimo']){
           $validator->errors()->add('detalles.'.$i.'.maximo', 'Es menor que el mínimo');
         }
       }
     })->validate();
     
     return DB::transaction(function() use ($request,$user){
-      $detalle = null;
+      $rel = RelevamientoApuestas::find($request['relevamiento']['id_relevamiento_apuestas']);
+      $rel->observaciones = $request['relevamiento']['observaciones'];
+      $rel->hora_ejecucion = $request['relevamiento']['hora_ejecucion'];
+
+      $rel->cargador()->associate($user->id_usuario);
+      $rel->estado()->associate(3);//finalizado = carga completa
+      $rel->es_backup = 0;
+      $rel->save();
+      
+      $fiscas = array_map(function($f){return $f['id_usuario'];},$request['fiscalizadores']);
+      $rel->fiscalizadores()->sync(array_unique($fiscas));
+      
       foreach ($request['detalles'] as $det) {
-        $detalle = DetalleRelevamientoApuestas::find($det['id_detalle']);
+        $detalle = DetalleRelevamientoApuestas::find($det['id_detalle_relevamiento_apuestas']);
         $detalle->minimo = $det['minimo'];
         $detalle->maximo = $det['maximo'];
         $detalle->estado()->associate($det['id_estado_mesa']);
         $detalle->id_moneda = $det['id_moneda'] ?? null;
         $detalle->save();
       }
-      $relevamiento = $detalle->relevamiento;
-      $relevamiento->observaciones = $request->observaciones;
-      $relevamiento->hora_ejecucion = $request->hora;
+      
+      $this->verificarMinimoApuestas($rel);
 
-      $relevamiento->cargador()->associate($user->id);
-      $relevamiento->estado()->associate(3);//finalizado = carga completa
-      $relevamiento->es_backup = 0;
-      $relevamiento->save();
-      $fiscas = array_unique($request->fiscalizadores);
-      $relevamiento->fiscalizadores()->sync($fiscas);
-
-      $this->verificarMinimoApuestas($relevamiento);
-
-      $this->eliminarRelevamientosFecha($relevamiento->fecha,$relevamiento->id_turno,$relevamiento->id_relevamiento_apuestas,$relevamiento->casino);
+      $this->eliminarRelevamientosFecha($rel->fecha,$rel->id_turno,$rel->id_relevamiento_apuestas,$rel->casino);
       return response()->json(['exito' => 'Relevamiento cargado!'], 200);
     });
   }
@@ -340,5 +349,57 @@ class ABMApuestasController extends Controller
     ->where('d.id_estado_mesa','=',1)//mesas abiertas
     ->where('r.id_relevamiento_apuestas','=',$id_relevamiento)
     ->groupBy('d.id_juego_mesa','d.id_moneda')->get();
+  }
+  
+  public function regenerarBackup(Request $request){
+    $mañana = date('Y-m-d',strtotime("+ 1 day"));
+    $rels = null;
+    $validator = Validator::make($request->all(),[
+      'id_casino'        => 'required|exists:casino,id_casino,deleted_at,NULL',
+      'fecha_generacion' => "required|date|before:$mañana",
+      'fecha'            => "required|date|before:$mañana",
+    ], [
+      'required' => 'El valor es requerido',
+      'exists'   => 'El valor es invalido',
+      'date'     => 'Tiene que tener formato AAAA-MM-DD',
+      'before'   => 'El valor supera el limite',
+    ], self::$atributos)->after(function($validator) use (&$rels){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      if($data['fecha_generacion'] > $data['fecha']){
+        return $validator->errors()->add('fecha_generacion','El valor supera el limite');
+      }
+      $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+      
+      if(!$user->usuarioTieneCasino($data['id_casino'])){
+        return $validator->errors()->add('id_casino','No tiene los privilegios');
+      }
+      
+      $reglas = [
+        ['id_casino','=',$data['id_casino']],
+        ['fecha','=',$data['fecha']],
+      ];
+      
+      $ya_existen = RelevamientoApuestas::where($reglas)
+      ->where('es_backup','=',0)->count() > 0;
+      if($ya_existen){
+        return $validator->errors()->add('errores_generales','Ya existen relevamientos para esa fecha');
+      }
+      
+      $rels = RelevamientoApuestas::where($reglas)
+      ->where('created_at','=',$data['fecha_generacion'])
+      ->where('es_backup','=',1)->get();
+      if(count($rels) == 0){
+        return $validator->errors()->add('errores_generales','No existen relevamientos con esos parametros');
+      }
+    })->validate();
+    
+    return DB::transaction(function() use (&$rels){
+      foreach($rels as $r){
+        $r->es_backup = 0;
+        $r->save();
+      }
+      return 1;
+    });
   }
 }

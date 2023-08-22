@@ -50,7 +50,7 @@ $(function(e){
     AUX.POST($(this).attr('data-target'),
       {
         ...paging,
-        ...AUX.extraerFormData(div.find('.filtro_tabla_filtro'))
+        ...AUX.extraerFormData(div.find('[data-js-filtro-tabla-filtro]'))
       },
       function (ret){
         div.find('.herramientasPaginacion').generarTitulo(paging.page,paging.page_size,ret.total,clickIndice);

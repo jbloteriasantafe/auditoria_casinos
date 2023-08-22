@@ -795,12 +795,11 @@ Route::group(['prefix' => 'apuestas','middleware' => 'tiene_permiso:m_ver_seccio
   Route::post('buscarRelevamientosApuestas', 'Mesas\Apuestas\BCApuestasController@filtros');
   Route::post('generarRelevamientoApuestas', 'Mesas\Apuestas\BCApuestasController@obtenerNombreZip');
   Route::get('descargarZipApuestas/{nombre}', 'Mesas\Apuestas\BCApuestasController@descargarZip');
-  Route::get('obtenerDatos/{id_relevamiento}', 'Mesas\Apuestas\BCApuestasController@obtenerRelevamientoCarga');
+  Route::get('obtenerRelevamiento/{id_relevamiento}', 'Mesas\Apuestas\BCApuestasController@obtenerRelevamiento');
+  Route::post('regenerarBackup','Mesas\Apuestas\ABMApuestasController@regenerarBackup');
   Route::post('cargarRelevamiento','Mesas\Apuestas\ABMApuestasController@cargarRelevamiento');
-  Route::get('relevamientoCargado/{id_relevamiento}', 'Mesas\Apuestas\BCApuestasController@obtenerRelevamientoApuesta');
   Route::get('baja/{id_relevamiento}', 'Mesas\Apuestas\BVApuestasController@eliminar');
   Route::post('validar', 'Mesas\Apuestas\BVApuestasController@validar');
-  Route::post('obtenerRelevamientoBackUp', 'Mesas\Apuestas\BCApuestasController@buscarRelevamientosBackUp');
   Route::get('imprimir/{id}','Mesas\Apuestas\BCApuestasController@imprimirPlanilla');
   Route::get('imprimirPlanilla/{id}','Mesas\Apuestas\BCApuestasController@imprimirPlanillaVacia');
   Route::get('consultarMinimo','Mesas\Apuestas\BCApuestasController@consultarMinimo');
