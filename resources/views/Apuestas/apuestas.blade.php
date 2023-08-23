@@ -22,7 +22,7 @@ $puede_modificar_minimo = $usuario->tienePermiso('m_abm_apuesta_minima');
 @section('contenidoVista')
 
 <div class="row">
-  <div class="col-md-3">
+  <div class="col-md-3">    
     <div class="row">
       <div class="col-md-12">
         <a href="" id="btn-generar" dusk="btn-nuevo" style="text-decoration: none;">
@@ -33,7 +33,7 @@ $puede_modificar_minimo = $usuario->tienePermiso('m_abm_apuesta_minima');
                   <div class="col-xs-12">
                     <center>
                         <h5 class="txtLogo">+</h5>
-                        <h4 class="txtNuevo">IMPRIMIR PLANILLAS DE RELEVAMIENTO </h4>
+                        <h4 class="txtNuevo">GENERAR RELEVAMIENTO </h4>
                     </center>
                   </div>
                 </div>
@@ -52,7 +52,7 @@ $puede_modificar_minimo = $usuario->tienePermiso('m_abm_apuesta_minima');
                   <div class="col-xs-12">
                     <center>
                         <h5 class="txtLogo">+</h5>
-                        <h4 class="txtNuevo">CARGAR RELEVAMIENTO SIN SISTEMA</h4>
+                        <h4 class="txtNuevo">RELEVAMIENTOS SIN SISTEMA</h4>
                     </center>
                   </div>
                 </div>
@@ -187,7 +187,7 @@ $puede_modificar_minimo = $usuario->tienePermiso('m_abm_apuesta_minima');
 @component('Apuestas/regenerarBackup',compact('casinos'))
 @endcomponent
 
-@component('Apuestas/generar')
+@component('Apuestas/generar',compact('casinos'))
 @endcomponent
 
 @endsection

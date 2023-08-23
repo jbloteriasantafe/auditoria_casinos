@@ -35,32 +35,22 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-
-     $schedule->command('RelevamientoApuestas:generar')
-             ->dailyAt('00:45')
-             ->appendOutputTo('sorteoApuestas.log')
+      /*
+     $schedule->command('nombre_comando:accion')
+             ->dailyAt('00:00')
+             ->appendOutputTo('archivo.log')
              ->runInBackground();
-
-     $schedule->command('RelevamientoApuestas:generar')
-             ->dailyAt('17:10')
-             ->appendOutputTo('sorteoApuestas.log')
-             ->runInBackground();
-
-     $impController= new ImportadorController;
-     $generarPlanillasController = new GenerarPlanillasController;
-
-     $schedule->call(function () use ($impController,
-                                      $generarPlanillasController){
+      
+     $schedule->call(function (){
       $comando = DB::table('comando_a_ejecutar')
           ->where('fecha_a_ejecutar','>',Carbon::now()->format('Y:m:d H:i:s'))
           ->get();
       echo($comando);
       foreach ($comando as $c) {
         switch ($c->nombre_comando) {
-          case 'RelevamientoApuestas:generar':
-            $generarPlanillasController->generarRelevamientosApuestas();
-            echo('Pedido generar apuestas realizado.');
-            break;
+          case 'nombre_comando:accion':{
+            //hacer algo
+          }break;
           default:
             break;
         }
@@ -68,7 +58,7 @@ class Kernel extends ConsoleKernel
      })
      ->everyThirtyMinutes()
      ->appendOutputTo('pedidos.log')
-     ->runInBackground();
+     ->runInBackground();*/
     }
 
     /**

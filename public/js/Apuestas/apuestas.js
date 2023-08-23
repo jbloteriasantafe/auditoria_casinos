@@ -9,17 +9,6 @@ import './cargarModificarApuestas.js';
 
 $(function() {
   $('.tituloSeccionPantalla').text('Relevamientos de Valores Mínimos de Apuestas');
-
-  $('#dtpFecha,#dtpFechaCarga,#dtpFechaBUp,#dtpFechaBUpEjecucion').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'yyyy-mm-dd',
-    pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 2
-  });
   
   $('[data-js-filtro-tabla]').on('busqueda',function(e,ret,tbody,molde){
     ret.data.forEach(function(obj){
@@ -38,6 +27,11 @@ $(function() {
     $('[data-js-aperturas-sorteadas]').trigger('buscar');
   }).trigger('buscar');
   
+  $('#btn-generar').click(function(e){
+    e.preventDefault();
+    $('[data-js-generar]').trigger('mostrar');
+  });
+  
   $('#btn-minimo').click(function(e){
     e.preventDefault();
     $('[data-js-modificar-minimo]').trigger('mostrar');
@@ -48,7 +42,7 @@ $(function() {
     $('[data-js-regenerar-backup]').trigger('mostrar');
   });
   
-  $('[data-js-regenerar-backup],[data-js-eliminar],\
+  $('[data-js-generar],[data-js-regenerar-backup],[data-js-eliminar],\
      [data-js-cargar-modificar-validar]').on('success',function(e){
     $('[data-js-filtro-tabla]').trigger('buscar');
   });

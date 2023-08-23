@@ -793,7 +793,7 @@ Route::group(['prefix' => 'sectores-mesas','middleware' => 'tiene_permiso:m_gest
 Route::group(['prefix' => 'apuestas','middleware' => 'tiene_permiso:m_ver_seccion_apuestas'], function () {
   Route::get('/', 'Mesas\Apuestas\BCApuestasController@buscarTodo');
   Route::post('buscarRelevamientosApuestas', 'Mesas\Apuestas\BCApuestasController@filtros');
-  Route::post('generarRelevamientoApuestas', 'Mesas\Apuestas\BCApuestasController@obtenerNombreZip');
+  Route::post('generarRelevamientoApuestas', 'Mesas\Apuestas\BCApuestasController@generarYobtenerNombreZip');
   Route::get('descargarZipApuestas/{nombre}', 'Mesas\Apuestas\BCApuestasController@descargarZip');
   Route::get('obtenerRelevamiento/{id_relevamiento}', 'Mesas\Apuestas\BCApuestasController@obtenerRelevamiento');
   Route::post('regenerarBackup','Mesas\Apuestas\ABMApuestasController@regenerarBackup');

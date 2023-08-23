@@ -147,45 +147,29 @@ class BCApuestasController extends Controller
       'abiertas_por_juego' => $abiertas_por_juego,
     ];
   }
-
-  public function obtenerNombreZip(){
-    $fecha_hoy = Carbon::now()->format("Y-m-d");
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $cas = $user->casinos->first();
-    $codigo_casino = $cas->codigo;
-
-    $nombreZip = 'Planillas-Apuestas-'.$cas->codigo
-              .'-'.$fecha_hoy.'-al-'.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".((self::$cantidad_dias_backup)-1)." day"))
-              .'.zip';
-     //dd(  public_path().'/Mesas/'.$nombreZip);
-    if(file_exists( public_path().'/Mesas/RelevamientosApuestas/'.$nombreZip)){ //C:\xampp\htdocs\agosto\prueba2\blog\
-    //if(file_exists( public_path().'\\Mesas\\'.$nombreZip)){ //C:\xampp\htdocs\agosto\prueba2\blog\
-      return ['nombre_zip' => $nombreZip];
-    }else{
-      $enEspera = DB::table('comando_a_ejecutar')
-          ->where([['fecha_a_ejecutar','>',Carbon::now()->format('Y:m:d H:i:s')],
-                  ['nombre_comando','=','RelevamientoApuestas:generar']
-                  ])
-          ->get()->count();
-      if($enEspera == 0){
-        $agrega_comando = new ComandoEnEspera;
-        $agrega_comando->nombre_comando = 'RelevamientoApuestas:generar';
-        $agrega_comando->fecha_a_ejecutar = Carbon::now()->addMinutes(30)->format('Y:m:d H:i:s');
-        $agrega_comando->save();
+  
+  public function generarYobtenerNombreZip(Request $request){    
+    $validator = Validator::make($request->all(),[
+      'id_casino' => 'required|exists:casino,id_casino,deleted_at,NULL',
+    ], [
+      'required' => 'El valor es requerido',
+      'exists'   => 'El valor es invalido',
+    ], self::$atributos)->after(function($validator){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+      if(!$user->usuarioTieneCasino($data['id_casino'])){
+        return $validator->errors()->add('errores_generales','No tiene los privilegios');
       }
-
-      return response()->json(['apuesta' => 'Por favor reintente en 15 minutos...'], 404);
-    }
+    })->validate();
+    
+    return DB::transaction(function() use ($request){
+      return ['nombre_zip' => (new GenerarPlanillasController)->generarZip($request->id_casino)];
+    });
   }
-
-  public function descargarZip($nombre){
-    //dd($nombre);
-    $file = public_path().'/Mesas/RelevamientosApuestas/'. $nombre;
-    //$file = public_path().'\\Mesas\\'. $nombre;
-    $headers = array('Content-Type' => 'application/octet-stream',);
-
-    return response()->download($file,$nombre,$headers);
-
+  
+  public function descargarZip($nombre_zip){
+    return (new GenerarPlanillasController)->descargarZip($nombre_zip);
   }
   
   //antes de imprimir la planilla se obliga a que el valor minimo de las apuestas exista.

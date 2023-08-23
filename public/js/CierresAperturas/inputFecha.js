@@ -19,7 +19,7 @@ $(function(e){
   $('[data-js-fecha]').each(function(){
     $(this)[0].disabled = function(disabled){
       $(this).find('input').attr('disabled',disabled);
-      $(this).find('span').css('visibility',disabled? 'hidden' : 'visible');
+      $(this).attr('data-disabled',disabled? 1 : 0);
     };
   });
 });
