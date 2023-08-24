@@ -42,7 +42,7 @@ $(function() {
     $('[data-js-regenerar-backup]').trigger('mostrar');
   });
   
-  $('[data-js-generar],[data-js-regenerar-backup],[data-js-eliminar],\
+  $('[data-js-generar-relevamiento],[data-js-regenerar-backup],[data-js-eliminar],\
      [data-js-cargar-modificar-validar]').on('success',function(e){
     $('[data-js-filtro-tabla]').trigger('buscar');
   });

@@ -3,6 +3,12 @@ import "/js/bootstrap-datetimepicker.es.js";
 
 $(function(e){
   $('[data-js-fecha]').each(function(_,d){
+    d.disabled = function(disabled){
+      $(d).find('input').attr('disabled',disabled? true : false);
+      $(d).attr('data-disabled',disabled? 1 : 0);
+    };
+  })
+  .each(function(_,d){
     $(d).datetimepicker({
       language:  $(d).attr('data-date-language') ?? 'es',
       todayBtn:  $(d).attr('data-date-today-btn') ?? 1,
@@ -15,11 +21,12 @@ $(function(e){
       startDate: $(d).attr('data-startdate') ?? undefined,
       endDate: $(d).attr('data-enddate') ?? undefined,
     });
-  });
-  $('[data-js-fecha]').each(function(){
-    $(this)[0].disabled = function(disabled){
-      $(this).find('input').attr('disabled',disabled);
-      $(this).attr('data-disabled',disabled? 1 : 0);
-    };
+    
+    let disabled = true;
+    try {
+      disabled = JSON.parse($(d).attr('data-disabled'));
+    }
+    catch (e) {}
+    d.disabled(!!disabled);
   });
 });

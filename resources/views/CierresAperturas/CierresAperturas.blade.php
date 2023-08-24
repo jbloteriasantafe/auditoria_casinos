@@ -155,7 +155,7 @@ use App\Http\Controllers\AuthenticationController;
 @foreach($tabs as $tab => $tdata)
 <div class="col-lg-12 tab_content" id="pant_{{$tab}}" hidden="true">
   <div class="row">
-    <div class="col-md-3">
+    <div class="col-md-3">  
       @if($tab == 'aperturas')
       <div class="row">
         @component('CierresAperturas/sorteador',compact('casinos'))

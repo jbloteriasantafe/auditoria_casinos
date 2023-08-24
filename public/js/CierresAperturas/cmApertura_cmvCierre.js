@@ -38,7 +38,8 @@ $(function(e){
       $M("[data-js-campo-cargar]").toggle(modo_modal == ModoModal.cargar);
       $M("[data-js-campo-cargar-modificar]").toggle(modo_modal == ModoModal.cargar || modo_modal == ModoModal.modificar);
       $M("[data-js-campo-validar]").toggle(modo_modal == ModoModal.validar);
-      $M("[name='id_casino'],[name='fecha']").attr('disabled',modo_modal != ModoModal.cargar);
+      $M("[name='id_casino']").attr('disabled',modo_modal != ModoModal.cargar);
+      $M("[name='fecha']").closest('[data-js-fecha]')[0].disabled(modo_modal != ModoModal.cargar);
     }
     
     if(O?.mesa){//Setear mesa si vino una

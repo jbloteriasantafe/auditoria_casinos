@@ -151,6 +151,7 @@ class ABMCRelevamientosAperturaController extends Controller
     $validator = Validator::make($request->all(),[
       'id_casino' => 'required|exists:casino,id_casino,deleted_at,NULL',
       'fecha_backup' => 'required|date|before:'.Carbon::now()->addDays(1)->format("Y-m-d"),
+      'created_at' => 'required|date',
     ], [
       'required' => 'El valor es requerido',
       'date' => 'El valor tiene que ser una fecha',
@@ -163,12 +164,13 @@ class ABMCRelevamientosAperturaController extends Controller
       }
       
       $mesas = (new SorteoMesasController)->buscar(
-        $data['id_casino'],
-        $data['fecha_backup'],
-        'BACKUP'
+        $data['id_casino'],$data['fecha_backup'],'BACKUP'
       );
       
-      if(is_null($mesas)) return $validator->errors()->add('fecha_backup','No existe sorteo de backup para esa fecha');
+      $created_at = explode(' ',$mesas->created_at)[0];
+      if(is_null($mesas) || $data['created_at'] != $created_at){
+        return $validator->errors()->add('created_at','No existe tal sorteo de backup');
+      }
     })->validate();
     
     $mesas->created_at = Carbon::now();

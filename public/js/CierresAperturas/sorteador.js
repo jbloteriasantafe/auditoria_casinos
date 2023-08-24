@@ -2,7 +2,9 @@ import {AUX} from "./AUX.js";
 import "./inputFecha.js";
 
 $(function(e){
-  const  M = $('[data-js-aperturas-sorteadas]');
+  const  S = $('[data-js-sorteador]');
+  const $S = $('[data-js-sorteador]').find.bind(S);
+  const  M = $S('[data-js-aperturas-sorteadas]');
   const $M = M.find.bind(M);
   
   const handleErr = (boton,data) => {
@@ -28,35 +30,23 @@ $(function(e){
       });
       $M('[data-js-lista-aperturas-sorteadas]').attr('disabled',mesas.length == 0);
       const hoy = (new Date).toISOString().split('T')[0];
-      $M('[data-js-sortear]').attr('disabled',!(mesas.length == 0 && formData.fecha_backup == hoy));
+      $M('[data-js-abrir-modal="SORTEAR"]').attr('disabled',!(mesas.length == 0 && formData.fecha_backup == hoy));
       $M('[data-js-descargar]').attr('disabled',!(mesas.length > 0));
       const hay_backup = data.hay_backup ?? 0;
-      $M('[data-js-usar-backup]').attr('disabled',!(mesas.length == 0 && hay_backup));
+      $M('[data-js-abrir-modal="BACKUP"]').attr('disabled',!(mesas.length == 0 && hay_backup));
     });
   });
   
-  $M('[data-js-sortear]').click(function(e){
-    const t = $(this).append('<i class="fa fa-spinner fa-spin"></i>');
-    const id_casino = AUX.extraerFormData(M).id_casino;
-    AUX.GET('aperturas/sortearMesasSiNoHay/'+id_casino,{},
-      function (data) {
-        t.find('i.fa-spinner').remove();
-        M.trigger('buscar');
-      },
-      function(data) { t.find('i.fa-spinner').remove();handleErr(t,data); }
-    );
+  $M('[data-js-abrir-modal]').click(function(e){
+    const tipo = $(this).attr('data-js-abrir-modal');
+    const formData =  AUX.extraerFormData(M);
+    const fecha_backup = new Date(formData.fecha_backup+'T00:00');
+    const id_casino = formData.id_casino;
+    $S('[data-js-sortear-usar-backup]').trigger('mostrar',[tipo,id_casino,fecha_backup]);
   });
   
-  $M('[data-js-usar-backup]').click(function(e){
-    const t = $(this).append('<i class="fa fa-spinner fa-spin"></i>');
-    const formData = AUX.extraerFormData(M);
-    AUX.GET('aperturas/usarBackup',formData,
-      function (data) {
-        t.find('i.fa-spinner').remove();
-        M.trigger('buscar');
-      },
-      function(data) { t.find('i.fa-spinner').remove();handleErr(t,data); }
-    );
+  $S('[data-js-sortear-usar-backup]').on('success',function(e){
+    M.trigger('buscar');
   });
   
   $M('[data-js-descargar]').click(function(e){
@@ -81,4 +71,6 @@ $(function(e){
   $M('[data-js-cambio-casino],[data-js-cambio-fecha-backup]').change(function(e){
     M.trigger('buscar');
   });
+  
+  $M('[data-js-fecha]').data('datetimepicker').setDate(new Date());
 });

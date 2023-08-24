@@ -7,6 +7,7 @@ import "./validarApertura.js";
 import "./desvincular.js";
 import "./cmApertura_cmvCierre.js";
 import "./inputFecha.js";
+import "./sortearOusarBackup.js";
 
 $(function() {
   $('.tituloSeccionPantalla').text('Cierres y Aperturas');

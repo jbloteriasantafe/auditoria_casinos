@@ -137,7 +137,7 @@ class GenerarPlanillasController extends Controller
     foreach($fechas_sorteadas as $idx => $f){
       $turno = Turno::find($f['id_turno']);
       $file = self::CARPETA_APUESTAS(
-        "Valores_Minimos_Apuestas-$codigo_casino-fecha_-{$f['fecha']}_Turno-Nro-{$turno->nro_turno}-Dias-{$turno->nombre_dia_desde}-a-{$turno->nombre_dia_hasta}.pdf"
+        "Valores_Minimos_Apuestas-$codigo_casino-{$f['fecha']}_Turno-{$turno->nro_turno}-{$turno->nombre_dia_desde}-a-{$turno->nombre_dia_hasta}.pdf"
       );
       
       $dompdf = $this->generarPlanilla($f['id_relevamiento_apuestas'],$turno,$f['fecha'],$casino);

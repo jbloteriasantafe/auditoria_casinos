@@ -30,32 +30,37 @@
   }
 </style>
 @endcomponent
-<div data-id_casino="" data-js-aperturas-sorteadas class="col-md-12 aperturasSorteadas">
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h4>APERTURAS SORTEADAS</h4>
-      <select name="id_casino" class="form-control" data-js-cambio-casino style="width: 100%;">
-        @foreach ($casinos as $cas)
-        <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
-        @endforeach
-      </select>
-      <div class="form-group">
-        @component('CierresAperturas/inputFecha',[
-          'attrs' => 'name="fecha_backup" data-js-cambio-fecha-backup',
-          'attrs_dtp' => "data-start-view=\"month\""
-        ])
-        @endcomponent
-      </div>
-    </div>
-    <div class="panel-body">
-      <div class="listaBotones">
-        <button data-js-usar-backup type="button" class="btn btn-primary" disabled>USAR BACKUP</button>
-        <button data-js-sortear type="button" class="btn btn-primary" disabled>SORTEAR</button>
-        <button data-js-descargar type="button" class="btn btn-primary" disabled>DESCARGAR</button>
-      </div>
-      <div>
-        <select data-js-lista-aperturas-sorteadas class="form-control listaAperturasSorteadas" multiple>
+<div data-js-sorteador>
+  @component('CierresAperturas/sortearOusarBackup',compact('casinos'))
+  @endcomponent
+
+  <div data-id_casino="" data-js-aperturas-sorteadas class="col-md-12 aperturasSorteadas">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4>APERTURAS SORTEADAS</h4>
+        <select name="id_casino" class="form-control" data-js-cambio-casino style="width: 100%;">
+          @foreach ($casinos as $cas)
+          <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
+          @endforeach
         </select>
+        <div class="form-group">
+          @component('CierresAperturas/inputFecha',[
+            'attrs' => 'name="fecha_backup" data-js-cambio-fecha-backup',
+            'attrs_dtp' => "data-start-view=\"month\""
+          ])
+          @endcomponent
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="listaBotones">
+          <button data-js-abrir-modal="SORTEAR" type="button" class="btn btn-primary" disabled>SORTEAR</button>
+          <button data-js-abrir-modal="BACKUP" type="button" class="btn btn-primary" disabled>USAR BACKUP</button>
+          <button data-js-descargar type="button" class="btn btn-primary" disabled>DESCARGAR</button>
+        </div>
+        <div>
+          <select data-js-lista-aperturas-sorteadas class="form-control listaAperturasSorteadas" multiple>
+          </select>
+        </div>
       </div>
     </div>
   </div>
