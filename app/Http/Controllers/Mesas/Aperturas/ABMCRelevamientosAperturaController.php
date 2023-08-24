@@ -58,11 +58,36 @@ class ABMCRelevamientosAperturaController extends Controller
   ];
 
   private static $cantidad_dias_backup = 5;
-  private static function CARPETA_APERTURAS($file = null){
-    $path = public_path().'/Mesas/RelevamientosAperturas';
+  
+  private static function CARPETA_MESAS($file = null){//@TODO: mover codigo a un archivo comun con el relev de apuestas minimas
+    $path = public_path().'/Mesas';
     if($file !== null)
       return "$path/$file";
     return $path;
+  }
+  private static function MESAS_CREAR_SI_NO_EXISTE(){
+    if(File::exists(self::CARPETA_MESAS())){
+      return true;
+    }else{
+      File::makeDirectory(self::CARPETA_MESAS());
+      return false;
+    }
+  }
+  
+  private static function CARPETA_APERTURAS($file = null){
+    $path = self::CARPETA_MESAS('RelevamientosAperturas');
+    if($file !== null)
+      return "$path/$file";
+    return $path;
+  }
+  private static function APERTURAS_CREAR_SI_NO_EXISTE(){
+    self::MESAS_CREAR_SI_NO_EXISTE();
+    if(File::exists(self::CARPETA_APERTURAS())){
+      return true;
+    }else{
+      File::makeDirectory(self::CARPETA_APERTURAS());
+      return false;
+    }
   }
   /**
    * Create a new controller instance.
@@ -276,12 +301,9 @@ class ABMCRelevamientosAperturaController extends Controller
     $fin    = $fechas_sorteadas[count($fechas_sorteadas)-1];
     $nombre_zip = "Planillas-Aperturas-$codigo_casino-$inicio-al-$fin.zip";
     
-    if(File::exists(self::CARPETA_APERTURAS())){
-      if(File::exists(self::CARPETA_APERTURAS($nombre_zip))){
-        File::delete(self::CARPETA_APERTURAS($nombre_zip));
-      }
-    }else{
-      File::makeDirectory(self::CARPETA_APERTURAS());
+    self::APERTURAS_CREAR_SI_NO_EXISTE();
+    if(File::exists(self::CARPETA_APERTURAS($nombre_zip))){
+      File::delete(self::CARPETA_APERTURAS($nombre_zip));
     }
     
     $files = [];

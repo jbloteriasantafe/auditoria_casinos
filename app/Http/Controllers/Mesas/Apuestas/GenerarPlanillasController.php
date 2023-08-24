@@ -45,14 +45,38 @@ class GenerarPlanillasController extends Controller
   ];
 
   private static $cantidad_dias_backup = 5;
-  private static function CARPETA_APUESTAS($file = null){
-    $path = public_path().'/Mesas/RelevamientosApuestas';
+  
+  private static function CARPETA_MESAS($file = null){
+    $path = public_path().'/Mesas';
     if($file !== null)
       return "$path/$file";
     return $path;
   }
+  private static function MESAS_CREAR_SI_NO_EXISTE(){
+    if(File::exists(self::CARPETA_MESAS())){
+      return true;
+    }else{
+      File::makeDirectory(self::CARPETA_MESAS());
+      return false;
+    }
+  }
   
-
+  private static function CARPETA_APUESTAS($file = null){
+    $path = self::CARPETA_MESAS('RelevamientosApuestas');
+    if($file !== null)
+      return "$path/$file";
+    return $path;
+  }
+  private static function APUESTAS_CREAR_SI_NO_EXISTE(){
+    self::MESAS_CREAR_SI_NO_EXISTE();
+    if(File::exists(self::CARPETA_APUESTAS())){
+      return true;
+    }else{
+      File::makeDirectory(self::CARPETA_APUESTAS());
+      return false;
+    }
+  }
+  
   /**
    * Create a new controller instance.
    *
@@ -125,12 +149,9 @@ class GenerarPlanillasController extends Controller
     $fin    = $fechas_sorteadas[count($fechas_sorteadas)-1]['fecha'];
     $nombre_zip = "Planillas-Apuestas-$codigo_casino-$inicio-al-$fin.zip";
     
-    if(File::exists(self::CARPETA_APUESTAS())){
-      if(File::exists(self::CARPETA_APUESTAS($nombre_zip))){
-        File::delete(self::CARPETA_APUESTAS($nombre_zip));
-      }
-    }else{
-      File::makeDirectory(self::CARPETA_APUESTAS());
+    self::APUESTAS_CREAR_SI_NO_EXISTE();
+    if(File::exists(self::CARPETA_APUESTAS($nombre_zip))){
+      File::delete(self::CARPETA_APUESTAS($nombre_zip));
     }
     
     $files = [];
