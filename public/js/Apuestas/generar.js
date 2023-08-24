@@ -12,8 +12,11 @@ $(function(){
   });
   $M('[data-js-generar]').on('click', function(e){
     e.preventDefault();
+    const t = $(this);
+    t.append('<i class="fa fa-spinner fa-spin"></i>');
     AUX.POST('apuestas/generarRelevamientoApuestas',AUX.extraerFormData(M),
       function (data) {
+        t.find('i.fa-spinner').remove();
         M.trigger('success');
         M.modal('hide');
         let iframe = document.getElementById("download-container");
@@ -26,6 +29,7 @@ $(function(){
         iframe.src = 'apuestas/descargarZipApuestas/'+data.nombre_zip;
       },
       function (data) {
+        t.find('i.fa-spinner').remove();
         const json = data.responseJSON;
         AUX.mostrarErroresNames(M,json);
         AUX.mensajeError(json?.errores_generales?.join(', ') ?? '');
