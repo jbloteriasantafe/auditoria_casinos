@@ -40,6 +40,7 @@ use File;
 use App\Mesas\ComandoEnEspera;
 use App\Mesas\FichaTieneCasino;
 use App\Http\Controllers\Mesas\Mesas\SorteoMesasController;
+use App\Http\Controllers\Mesas\CarpetasHelper;
 
 
 class ABMCRelevamientosAperturaController extends Controller
@@ -59,44 +60,11 @@ class ABMCRelevamientosAperturaController extends Controller
 
   private static $cantidad_dias_backup = 5;
   
-  private static function CARPETA_MESAS($file = null){//@TODO: mover codigo a un archivo comun con el relev de apuestas minimas
-    $path = public_path().'/Mesas';
-    if($file !== null)
-      return "$path/$file";
-    return $path;
-  }
-  private static function MESAS_CREAR_SI_NO_EXISTE(){
-    if(File::exists(self::CARPETA_MESAS())){
-      return true;
-    }else{
-      File::makeDirectory(self::CARPETA_MESAS());
-      return false;
-    }
-  }
-  
-  private static function CARPETA_APERTURAS($file = null){
-    $path = self::CARPETA_MESAS('RelevamientosAperturas');
-    if($file !== null)
-      return "$path/$file";
-    return $path;
-  }
-  private static function APERTURAS_CREAR_SI_NO_EXISTE(){
-    self::MESAS_CREAR_SI_NO_EXISTE();
-    if(File::exists(self::CARPETA_APERTURAS())){
-      return true;
-    }else{
-      File::makeDirectory(self::CARPETA_APERTURAS());
-      return false;
-    }
-  }
-  /**
-   * Create a new controller instance.
-   *
-   * @return void
-   */
+  private $carpetasHelper = null;
   public function __construct()
   {
     $this->middleware(['tiene_permiso:m_sortear_mesas']);
+    $this->carpetasHelper = new CarpetasHelper;
   }
   
   public function obtenerAperturasSorteadas(Request $request){
@@ -297,18 +265,9 @@ class ABMCRelevamientosAperturaController extends Controller
     $casino = Casino::find($id_casino);
     $codigo_casino = $casino->codigo;  
     if(count($fechas_sorteadas) == 0) throw new Exception('No hay fechas sorteadas');  
-    $inicio = $fechas_sorteadas[0];
-    $fin    = $fechas_sorteadas[count($fechas_sorteadas)-1];
-    $nombre_zip = "Planillas-Aperturas-$codigo_casino-$inicio-al-$fin.zip";
     
-    self::APERTURAS_CREAR_SI_NO_EXISTE();
-    if(File::exists(self::CARPETA_APERTURAS($nombre_zip))){
-      File::delete(self::CARPETA_APERTURAS($nombre_zip));
-    }
-    
-    $files = [];
+    $abs_files = [];
     foreach($fechas_sorteadas as $f){
-      $file = self::CARPETA_APERTURAS("Relevamiento-Aperturas-$codigo_casino-$f.pdf");
       $rel = $this->crearRel($casino,$f);
       if($rel == null) continue;
       
@@ -321,19 +280,27 @@ class ABMCRelevamientosAperturaController extends Controller
       $dompdf->getCanvas()->page_text(20, 815, $codigo_casino."/".$rel->fecha, $font, 10, array(0,0,0));
       $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
       
-      File::put($file,$dompdf->output());
-      $files[] = $file;
+      $abs_file = $this->carpetasHelper->APERTURAS("Relevamiento-Aperturas-$codigo_casino-$f.pdf");
+      $this->carpetasHelper->borrarArchivoSiExiste($abs_file);
+      File::put($abs_file,$dompdf->output());
+      $abs_files[] = $abs_file;
     }
     
-    Zipper::make(self::CARPETA_APERTURAS($nombre_zip))->add($files)->close();
-    File::delete($files);
+    $inicio = $fechas_sorteadas[0];
+    $fin    = $fechas_sorteadas[count($fechas_sorteadas)-1];
+    $nombre_zip     = "Planillas-Aperturas-$codigo_casino-$inicio-al-$fin.zip";
+    $abs_nombre_zip = $this->carpetasHelper->APERTURAS($nombre_zip);
+    
+    $this->carpetasHelper->borrarArchivoSiExiste($abs_nombre_zip);
+    Zipper::make($abs_nombre_zip)->add($abs_files)->close();
+    File::delete($abs_files);
     return $nombre_zip;
   }
 
   public function descargarZip($nombre){
-    $file    = self::CARPETA_APERTURAS($nombre);
-    $headers = array('Content-Type' => 'application/octet-stream',);
-    return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
+    $abs_file = $this->carpetasHelper->APERTURAS($nombre);
+    $headers = ['Content-Type' => 'application/octet-stream'];
+    return response()->download($abs_file,$nombre,$headers)->deleteFileAfterSend(true);
   }
 
   private function crearRel($cas,$fecha_backup){

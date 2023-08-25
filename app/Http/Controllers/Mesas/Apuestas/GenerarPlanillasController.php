@@ -28,6 +28,7 @@ use App\Mesas\Moneda;
 use App\Http\Controllers\Turnos\TurnosController;
 
 use App\Http\Controllers\Mesas\Apuestas\ABMApuestasController;
+use App\Http\Controllers\Mesas\CarpetasHelper;
 use App\Mesas\RelevamientoApuestas;
 use Dompdf\Dompdf;
 
@@ -46,44 +47,9 @@ class GenerarPlanillasController extends Controller
 
   private static $cantidad_dias_backup = 5;
   
-  private static function CARPETA_MESAS($file = null){
-    $path = public_path().'/Mesas';
-    if($file !== null)
-      return "$path/$file";
-    return $path;
-  }
-  private static function MESAS_CREAR_SI_NO_EXISTE(){
-    if(File::exists(self::CARPETA_MESAS())){
-      return true;
-    }else{
-      File::makeDirectory(self::CARPETA_MESAS());
-      return false;
-    }
-  }
-  
-  private static function CARPETA_APUESTAS($file = null){
-    $path = self::CARPETA_MESAS('RelevamientosApuestas');
-    if($file !== null)
-      return "$path/$file";
-    return $path;
-  }
-  private static function APUESTAS_CREAR_SI_NO_EXISTE(){
-    self::MESAS_CREAR_SI_NO_EXISTE();
-    if(File::exists(self::CARPETA_APUESTAS())){
-      return true;
-    }else{
-      File::makeDirectory(self::CARPETA_APUESTAS());
-      return false;
-    }
-  }
-  
-  /**
-   * Create a new controller instance.
-   *
-   * @return void
-   */
-  public function __construct()
-  {
+  private $carpetasHelper = null;
+  public function __construct() {
+    $this->carpetasHelper = new CarpetasHelper;
   }
   
   private function generarSiNoExiste($id_casino){
@@ -145,37 +111,37 @@ class GenerarPlanillasController extends Controller
     $casino = Casino::find($id_casino);
     $codigo_casino = $casino->codigo;  
     if(count($fechas_sorteadas) == 0) throw new Exception('No hay fechas sorteadas');  
-    $inicio = $fechas_sorteadas[0]['fecha'];
-    $fin    = $fechas_sorteadas[count($fechas_sorteadas)-1]['fecha'];
-    $nombre_zip = "Planillas-Apuestas-$codigo_casino-$inicio-al-$fin.zip";
     
-    self::APUESTAS_CREAR_SI_NO_EXISTE();
-    if(File::exists(self::CARPETA_APUESTAS($nombre_zip))){
-      File::delete(self::CARPETA_APUESTAS($nombre_zip));
-    }
-    
-    $files = [];
+    $abs_files = [];
     foreach($fechas_sorteadas as $idx => $f){
       $turno = Turno::find($f['id_turno']);
-      $file = self::CARPETA_APUESTAS(
+      $abs_file = $this->carpetasHelper->APUESTAS(
         "Valores_Minimos_Apuestas-$codigo_casino-{$f['fecha']}_Turno-{$turno->nro_turno}-{$turno->nombre_dia_desde}-a-{$turno->nombre_dia_hasta}.pdf"
       );
       
       $dompdf = $this->generarPlanilla($f['id_relevamiento_apuestas'],$turno,$f['fecha'],$casino);
-      File::put($file,$dompdf->output());
-      $files[] = $file;
+      
+      $this->carpetasHelper->borrarArchivoSiExiste($abs_file);
+      File::put($abs_file,$dompdf->output());
+      $abs_files[] = $abs_file;
     }
     
-    Zipper::make(self::CARPETA_APUESTAS($nombre_zip))->add($files)->close();
-    File::delete($files);
+    $inicio = $fechas_sorteadas[0]['fecha'];
+    $fin    = $fechas_sorteadas[count($fechas_sorteadas)-1]['fecha'];
+    $nombre_zip     = "Planillas-Apuestas-$codigo_casino-$inicio-al-$fin.zip";
+    $abs_nombre_zip = $this->carpetasHelper->APUESTAS($nombre_zip);
+    
+    $this->carpetasHelper->borrarArchivoSiExiste($abs_nombre_zip);
+    Zipper::make($abs_nombre_zip)->add($abs_files)->close();
+    File::delete($abs_files);
     
     return $nombre_zip;
   }
   
   public function descargarZip($nombre_zip){
-    $file    = self::CARPETA_APUESTAS($nombre_zip);
+    $abs_file = $this->carpetasHelper->APUESTAS($nombre_zip);
     $headers = ['Content-Type' => 'application/octet-stream'];
-    return response()->download($file,$nombre_zip,$headers)->deleteFileAfterSend(true);
+    return response()->download($abs_file,$nombre_zip,$headers)->deleteFileAfterSend(true);
   }
 
   //falta agregarle nro de pagina .-
