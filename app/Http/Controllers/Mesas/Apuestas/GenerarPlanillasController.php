@@ -121,7 +121,7 @@ class GenerarPlanillasController extends Controller
       
       $dompdf = $this->generarPlanilla($f['id_relevamiento_apuestas'],$turno,$f['fecha'],$casino);
       
-      $this->carpetasHelper->borrarArchivoSiExiste($abs_file);
+      File::delete($abs_file);
       File::put($abs_file,$dompdf->output());
       $abs_files[] = $abs_file;
     }
@@ -131,7 +131,7 @@ class GenerarPlanillasController extends Controller
     $nombre_zip     = "Planillas-Apuestas-$codigo_casino-$inicio-al-$fin.zip";
     $abs_nombre_zip = $this->carpetasHelper->APUESTAS($nombre_zip);
     
-    $this->carpetasHelper->borrarArchivoSiExiste($abs_nombre_zip);
+    File::delete($abs_nombre_zip);
     Zipper::make($abs_nombre_zip)->add($abs_files)->close();
     File::delete($abs_files);
     

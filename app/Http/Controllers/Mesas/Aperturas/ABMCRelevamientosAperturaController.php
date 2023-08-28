@@ -261,7 +261,7 @@ class ABMCRelevamientosAperturaController extends Controller
     });
   }
 
-  public function regenerarArchivo($id_casino,$fechas_sorteadas){
+  private function regenerarArchivo($id_casino,$fechas_sorteadas){
     $casino = Casino::find($id_casino);
     $codigo_casino = $casino->codigo;  
     if(count($fechas_sorteadas) == 0) throw new Exception('No hay fechas sorteadas');  
@@ -281,7 +281,7 @@ class ABMCRelevamientosAperturaController extends Controller
       $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
       
       $abs_file = $this->carpetasHelper->APERTURAS("Relevamiento-Aperturas-$codigo_casino-$f.pdf");
-      $this->carpetasHelper->borrarArchivoSiExiste($abs_file);
+      File::delete($abs_file);
       File::put($abs_file,$dompdf->output());
       $abs_files[] = $abs_file;
     }
@@ -291,7 +291,7 @@ class ABMCRelevamientosAperturaController extends Controller
     $nombre_zip     = "Planillas-Aperturas-$codigo_casino-$inicio-al-$fin.zip";
     $abs_nombre_zip = $this->carpetasHelper->APERTURAS($nombre_zip);
     
-    $this->carpetasHelper->borrarArchivoSiExiste($abs_nombre_zip);
+    File::delete($abs_nombre_zip);
     Zipper::make($abs_nombre_zip)->add($abs_files)->close();
     File::delete($abs_files);
     return $nombre_zip;
