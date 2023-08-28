@@ -156,13 +156,22 @@ class ABMCRelevamientosAperturaController extends Controller
         return $validator->errors()->add('id_casino','No tiene los privilegios');
       }
       
-      $mesas = (new SorteoMesasController)->buscar(
+      $SMC = new SorteoMesasController;
+      $mesas = $SMC->buscar(
         $data['id_casino'],$data['fecha_backup'],'BACKUP'
       );
       
       $created_at = explode(' ',$mesas->created_at)[0];
       if(is_null($mesas) || $data['created_at'] != $created_at){
         return $validator->errors()->add('created_at','No existe tal sorteo de backup');
+      }
+      
+      $ya_esta_sorteado  = $SMC->buscar(
+        $data['id_casino'],$data['fecha_backup'],'REAL'
+      ) !== null;
+      
+      if($ya_esta_sorteado){
+        return $validator->errors()->add('fecha_backup','Ya existe un sorteo para ese día');
       }
     })->validate();
     
