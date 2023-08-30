@@ -603,7 +603,7 @@ class LogMovimientoController extends Controller
 
     if(count($todos_los_rels) < $paginas_por_pdf){//Version single threaded
       //Con ~100 paginas supera los 60 segundos por PDF tirando excepción, por eso el multiprocesamiento
-      $relevamientos = $todos_los_rels;
+      $relevamientos = json_decode(json_encode($todos_los_rels),true);
       $view = View::make('planillaMovimientos', compact('relevamientos','tipo_planilla'));
       $dompdf = new Dompdf();
       $dompdf->set_paper('A4', 'portrait');
