@@ -77,7 +77,7 @@
   </head>
   <body>
     @foreach ($relevamientos as $idx_rel => $relevamiento)
-    @foreach ($relevamiento->tomas as $idx_toma => $toma)
+    @foreach ($relevamiento['tomas'] as $idx_toma => $toma)
     @if ($idx_rel > 0 || $idx_toma > 0)
     <div style="page-break-after:always;"></div>
     @endif
@@ -89,31 +89,31 @@
     <div class="camposInfo" style="right:0px;"><?php $hoy = date('j-m-y / h:i');print_r($hoy); ?></div>
     <table>
       <th class="tablaInicio cabezera" style="width: 20%;">TIPO DE MOVIMIENTO</th>
-      <td class="tablaInicio cabezera" style="padding-left:15px;">{{$relevamiento->tipo_movimiento}}</td>
-      @if(isset($relevamiento->sentido))
+      <td class="tablaInicio cabezera" style="padding-left:15px;">{{$relevamiento['tipo_movimiento']}}</td>
+      @if(isset($relevamiento['sentido']))
       <th class="tablaInicio cabezera" style="width: 10%">SENTIDO</th>
-      <td class="tablaInicio cabezera" style="padding-left:15px;">{{$relevamiento->sentido}}</td>
+      <td class="tablaInicio cabezera" style="padding-left:15px;">{{$relevamiento['sentido']}}</td>
       @endif
       <th class="tablaInicio cabezera" style="width: 10%;">ESTADO</th>
-      <td class="tablaInicio cabezera" style="padding-left:15px;">{{strtoupper($relevamiento->estado)}}</td>
+      <td class="tablaInicio cabezera" style="padding-left:15px;">{{strtoupper($relevamiento['estado'])}}</td>
     </table>
     <br>
     <table>
       <tr>
         <th class="tablaInicio cabezera" style="width: 10%;">N° ADMIN</th>
-        <td class="tablaInicio cabezera" style="padding-left:36px;">{{$relevamiento->nro_admin}}</td>
+        <td class="tablaInicio cabezera" style="padding-left:36px;">{{$relevamiento['nro_admin']}}</td>
         <th class="tablaInicio cabezera" style="width: 10%;">N° ISLA</th>
-        <td class="tablaInicio cabezera" style="padding-left:36px;">{{$relevamiento->nro_isla}}</td>
+        <td class="tablaInicio cabezera" style="padding-left:36px;">{{$relevamiento['nro_isla']}}</td>
         <th class="tablaInicio cabezera" style="width: 10%;">N° SERIE</th>
-        <td class="tablaInicio cabezera" style="padding-left:36px;"> {{$relevamiento->nro_serie}}</td>
+        <td class="tablaInicio cabezera" style="padding-left:36px;"> {{$relevamiento['nro_serie']}}</td>
       </tr>
     </table>
     <table>
       <tr>
         <th class="tablaInicio cabezera" style="width: 10%;">MARCA</th>
-        <td class="tablaInicio cabezera" style="padding-left:36px;">{{$relevamiento->marca}}</td>
+        <td class="tablaInicio cabezera" style="padding-left:36px;">{{$relevamiento['marca']}}</td>
         <th class="tablaInicio cabezera" style="width: 10%;">MODELO</th>
-        <td class="tablaInicio cabezera" style="padding-left:36px;">{{$relevamiento->modelo}}</td>
+        <td class="tablaInicio cabezera" style="padding-left:36px;">{{$relevamiento['modelo']}}</td>
       </tr>
     </table>
     <br>
@@ -121,8 +121,8 @@
       <tr>
         <th class="tablaInicio cabezera" style="width: 15%;">FECHA Y HORA</th>
         <td class="tablaInicio fila" style="padding-left: 36px;">
-        @if($toma->fecha_relev_sala != null)
-        {{$toma->fecha_relev_sala}}
+        @if($toma['fecha_relev_sala'] != null)
+        {{$toma['fecha_relev_sala']}}
         @else
         ____/____/____, ____:____
         @endif
@@ -133,14 +133,14 @@
       <tr>
         <th class="tablaInicio cabezera" style="width: 10%;">SECTOR</th>
         <td class="tablaInicio fila" style="padding-left: 36px;">
-        @if($toma->descripcion_sector_relevado!=null)
-          {{$toma->descripcion_sector_relevado}}
+        @if($toma['descripcion_sector_relevado']!=null)
+          {{$toma['descripcion_sector_relevado']}}
         @endif
         </td>
         <th class="tablaInicio cabezera" style="width: 10%;">ISLA</th>
         <td class="tablaInicio fila" style="padding-left: 36px;">
-        @if($toma->nro_isla_relevada!=null)
-          {{$toma->nro_isla_relevada}}
+        @if($toma['nro_isla_relevada']!=null)
+          {{$toma['nro_isla_relevada']}}
         @endif
         </td>
       </tr>
@@ -157,11 +157,11 @@
         <td class="tablaInicio fila">
           <div class="break">
             <b>
-            @if(isset($relevamiento->nom_conts[$i])) {{$relevamiento->nom_conts[$i]}} @endif
+            @if(isset($relevamiento['nom_conts'][$i])) {{$relevamiento['nom_conts'][$i]}} @endif
             </b>
           </div>
         </td>
-        <td class="tablaInicio fila">@if(isset($toma->conts[$i])) {{$toma->conts[$i]}} @endif</td>
+        <td class="tablaInicio fila">@if(isset($toma['conts'][$i])) {{$toma['conts'][$i]}} @endif</td>
       </tr>
       @endfor
     </table>
@@ -173,64 +173,64 @@
       </tr>
       <tr>
         <td class="tablaInicio fila" style="width: 30%;"><b>JUEGO</b></td>
-        <td class="tablaInicio fila" style="padding-right: 150px;">{{$toma->juego}}</td>
+        <td class="tablaInicio fila" style="padding-right: 150px;">{{$toma['juego']}}</td>
       </tr>
       <tr>
         <td class="tablaInicio fila" style="width: 30%;"><b>APUESTA MÁX</b></td>
-        <td class="tablaInicio fila">{{$toma->apuesta_max}}</td>
+        <td class="tablaInicio fila">{{$toma['apuesta_max']}}</td>
       </tr>
       <tr>
         <td class="tablaInicio fila" style="width: 30%;"><b>CANT LÍNEAS</b></td>
-        <td class="tablaInicio fila">{{$toma->cant_lineas}}</td>
+        <td class="tablaInicio fila">{{$toma['cant_lineas']}}</td>
       </tr>
       <tr>
         <td class="tablaInicio fila" style="width: 30%;"><b>% DEVOLUCIÓN</b></td>
-        <td class="tablaInicio fila">{{$toma->porcentaje_devolucion}}</td>
+        <td class="tablaInicio fila">{{$toma['porcentaje_devolucion']}}</td>
       </tr>
       <tr>
         <td class="tablaInicio fila" style="width: 30%;"><b>DENOMINACIÓN</b></td>
-        <td class="tablaInicio fila">{{$toma->denominacion}}</td>
+        <td class="tablaInicio fila">{{$toma['denominacion']}}</td>
       </tr>
       <tr>
         <td class="tablaInicio fila" style="width: 30%;"><b>CANT CRÉDITOS</b></td>
-        <td class="tablaInicio fila">{{$toma->cant_creditos}}</td>
+        <td class="tablaInicio fila">{{$toma['cant_creditos']}}</td>
       </tr>
       <tr>
         <td class="tablaInicio fila" style="width: 30%;"><b>MAC</b></td>
-        <td class="tablaInicio fila">{{$toma->mac}}</td>
+        <td class="tablaInicio fila">{{$toma['mac']}}</td>
       </tr>
     </table>
     <br>
-    @if(count($toma->progresivos) > 0)
+    @if(count($toma['progresivos']) > 0)
     <table style="table-layout:fixed;">
       <thead>
         <tr>
           <th class="tablaInicio cabezera" style="font-size: 60%;" width="10.5%">PROGRESIVO</th>
-          @for($i=1;$i<=$toma->max_lvl_prog;$i++)
+          @for($i=1;$i<=$toma['max_lvl_prog'];$i++)
           <th class="tablaInicio cabezera" style="font-size: 60%;">NIVEL {{$i}}</th>
           @endfor
           <th class="tablaInicio cabezera" style="font-size: 60%;" width="10.5%">CAUSA NO TOMA</th>
         </tr>
       </thead>
       <tbody>
-        @foreach($toma->progresivos as $p)
+        @foreach($toma['progresivos'] as $p)
         <tr>
-          @if($p->es_individual)
+          @if($p['es_individual'])
             <td class="tablaProgresivos fila" style="font-size: 60%;"><div class="break">INDIVIDUAL</div></td>
           @else
-            <td class="tablaProgresivos fila" style="font-size: 60%;"><div class="break">{{$p->progresivo}}{{$p->pozo_unico? ' ' : ' ('.$p->pozo.')'}}</div></td>
+            <td class="tablaProgresivos fila" style="font-size: 60%;"><div class="break">{{$p['progresivo']}}{{$p['pozo_unico']? ' ' : ' ('.$p['pozo'].')'}}</div></td>
           @endif
-          @for($i=1;$i<=$toma->max_lvl_prog;$i++)
-            @if(array_key_exists($i,$p->niveles) && empty($p->tipo_causa_no_toma_progresivo))
+          @for($i=1;$i<=$toma['max_lvl_prog'];$i++)
+            @if(array_key_exists($i,$p['niveles']) && empty($p['tipo_causa_no_toma_progresivo']))
               <td class="tablaProgresivos fila" style="font-size: 60%;">
                 <div class="cell_fg break">
-                {{empty($p->tipo_causa_no_toma_progresivo)? $p->valores_niveles[$i] : '-'}}
+                {{empty($p['tipo_causa_no_toma_progresivo'])? $p['valores_niveles'][$i] : '-'}}
                 </div>
                 <div class="cell_bg_1 break">
-                {{$p->es_individual? '' : $p->niveles[$i]}}
+                {{$p['es_individual']? '' : $p['niveles'][$i]}}
                 </div>
               </td>
-            @elseif(!empty($p->tipo_causa_no_toma_progresivo))
+            @elseif(!empty($p['tipo_causa_no_toma_progresivo']))
               <td class="tablaProgresivos fila" style="text-align: center;">—</td>
             @else
               <td class="tablaProgresivos cabezera"></td>
@@ -238,7 +238,7 @@
           @endfor
           <td class="tablaProgresivos fila" style="font-size: 60%;">
             <div class="break">
-            {{$p->tipo_causa_no_toma_progresivo}}
+            {{$p['tipo_causa_no_toma_progresivo']}}
             </div>
           </td>
         </tr>
@@ -253,13 +253,13 @@
       </tr>
       <tr>
         <td class="tablaInicio fila" style="height:auto; ">
-        @if(count($relevamiento->tomas) > 1)
+        @if(count($relevamiento['tomas']) > 1)
           <i>TOMA {{$idx_toma + 1}}:</i>
           <br />
         @endif
-        @if($toma->observ != null)
+        @if($toma['observ'] != null)
           <div class="break">
-          {!! nl2br($toma->observ) !!}
+          {!! nl2br($toma['observ']) !!}
           </div>
         @else
           <div style="color: #dddddd;">
