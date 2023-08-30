@@ -195,14 +195,7 @@ $('#btn-minimizar').click(function () {
 
 $(document).on('click', '.print_mov', function (e) {
   const id = $(this).parent().parent().attr('id');
-  $.get('movimientos/imprimirMovimiento/' + id, function (data) {
-    if (data == 0) {
-      $('#modalAlerta').modal('show');
-    }
-    else {
-      window.open('movimientos/imprimirMovimiento/' + id, '_blank');
-    }
-  })
+  window.open('movimientos/imprimirMovimiento/' + id, '_blank');
 });
 
 $(document).on('click', '.baja_mov', function (e) {
