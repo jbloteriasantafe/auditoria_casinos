@@ -65,7 +65,7 @@ class VAperturaController extends Controller
       $hay_diferencia = false;
       foreach($detallesA as $id_ficha => $da){
         $ca = $da['cantidad_ficha'];
-        $cc = array_key_exists($id_ficha,$detallesC)? $detallesC['cantidad_ficha'] : 0;
+        $cc = array_key_exists($id_ficha,$detallesC)? $detallesC[$id_ficha]['cantidad_ficha'] : 0;
         $hay_diferencia = $hay_diferencia || $ca != $cc;
       }
       foreach($detallesC as $id_ficha => $dc){
