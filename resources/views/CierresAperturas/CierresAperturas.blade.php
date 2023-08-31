@@ -334,5 +334,5 @@ use App\Http\Controllers\AuthenticationController;
 @endsection
 
 @section('scripts')
-  <script src="js/CierresAperturas/CierresAperturas.js?7" type="module" charset="utf-8"></script>
+  <script src="js/CierresAperturas/CierresAperturas.js?8" type="module" charset="utf-8"></script>
 @endsection
