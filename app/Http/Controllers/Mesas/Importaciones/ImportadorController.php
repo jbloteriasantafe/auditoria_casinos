@@ -478,7 +478,7 @@ public function importarDiario(Request $request){
     $ret = DB::table(DB::raw($tabla_fechas))
     ->selectRaw('fechas.fecha, idm.id_importacion_diaria_mesas, idm.validado,
     SUM(c1.id_cierre_mesa IS NOT NULL) > 0 as tiene_cierre,
-    MAX(c1.id_importacion_diaria_cierres) as id_importacion_diaria_cierres,
+    MAX(idc.id_importacion_diaria_cierres) as id_importacion_diaria_cierres,
     COUNT(
       idm.id_importacion_diaria_mesas IS NOT NULL
       AND (
@@ -509,6 +509,10 @@ public function importarDiario(Request $request){
       return $j->on('idm.fecha','=','fechas.fecha')
       ->where([['idm.id_moneda','=',$request->id_moneda],['idm.id_casino','=',$request->id_casino]])
       ->whereNull('idm.deleted_at');
+    })
+    ->leftJoin('importacion_diaria_cierres as idc',function($j) use ($request) {
+      return $j->on('idc.fecha','=','fechas.fecha')
+      ->where([['idc.id_moneda','=',$request->id_moneda],['idc.id_casino','=',$request->id_casino]]);
     })
     ->leftJoin('detalle_importacion_diaria_mesas as didm','didm.id_importacion_diaria_mesas','=','idm.id_importacion_diaria_mesas')
     ->orderBy('fechas.fecha',$request->sort_by["orden"])
