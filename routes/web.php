@@ -821,16 +821,17 @@ Route::group(['prefix' => 'informeDiarioBasico','middleware' => 'tiene_permiso:m
 });
 
 Route::group(['prefix' => 'importacionDiaria','middleware' => 'tiene_permiso:m_ver_seccion_importaciones'],function (){
-  Route::get('/','Mesas\Importaciones\Mesas\ImportadorController@buscarTodo');
-  Route::post('importar','Mesas\Importaciones\Mesas\ImportadorController@importarDiario')->middleware(['tiene_permiso:m_importar']);
-  Route::post('importarCierres','Mesas\Importaciones\Mesas\ImportadorController@importarCierres')->middleware(['tiene_permiso:m_importar']);
-  Route::post('filtros','Mesas\Importaciones\Mesas\ImportadorController@filtros');
-  Route::get('verImportacion/{id_imp}/{t_mesa?}','Mesas\Importaciones\Mesas\ImportadorController@buscarPorTipoMesa');
-  Route::get('imprimir/{id}','Mesas\Importaciones\Mesas\ImportadorController@imprimirDiario');
-  Route::post('guardar','Mesas\Importaciones\Mesas\ImportadorController@guardarImportacionDiaria');
-  Route::get('eliminarImportacion/{id_imp}','Mesas\Importaciones\Mesas\ImportadorController@eliminar');
-  Route::post('ajustarDetalle','Mesas\Importaciones\Mesas\ImportadorController@ajustarDetalle');
-  Route::get('imprimirMensual','Mesas\Importaciones\Mesas\ImportadorController@imprimirMensual');
+  Route::get('/','Mesas\Importaciones\ImportadorController@buscarTodo');
+  Route::post('importar','Mesas\Importaciones\ImportadorController@importarDiario')->middleware(['tiene_permiso:m_importar']);
+  Route::post('importarCierres','Mesas\Importaciones\ImportadorController@importarCierres')->middleware(['tiene_permiso:m_importar']);
+  Route::post('filtros','Mesas\Importaciones\ImportadorController@filtros');
+  Route::get('verImportacion/{id_imp}/{t_mesa?}','Mesas\Importaciones\ImportadorController@buscarPorTipoMesa');
+  Route::get('imprimir/{id}','Mesas\Importaciones\ImportadorController@imprimirDiario');
+  Route::post('guardar','Mesas\Importaciones\ImportadorController@guardarImportacionDiaria');
+  Route::get('eliminarImportacion/{id_imp}','Mesas\Importaciones\ImportadorController@eliminar');
+  Route::get('eliminarImportacionCierres/{id_imp}','Mesas\Importaciones\ImportadorController@eliminarCierres');
+  Route::post('ajustarDetalle','Mesas\Importaciones\ImportadorController@ajustarDetalle');
+  Route::get('imprimirMensual','Mesas\Importaciones\ImportadorController@imprimirMensual');
 });
 
 Route::group(['prefix' => 'informeAnual','middleware' => 'tiene_permiso:m_bc_anuales'],function (){

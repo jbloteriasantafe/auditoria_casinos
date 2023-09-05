@@ -23,7 +23,7 @@ class Cierre extends Model
                               'id_mesa_de_panio','id_estado_cierre','id_moneda',
                               'hora_inicio_format','hora_fin_format',
                               'total_pesos','total_cantidad_fichas', 'observacion',
-                              'id_estado_cierre','siglas'
+                              'id_estado_cierre','siglas','id_importacion_diaria_cierres'
                             );
   public $timestamps = false;
 
@@ -31,7 +31,7 @@ class Cierre extends Model
                               'hora_fin','total_pesos_fichas_c',
                               'total_anticipos_c', 'id_fiscalizador',
                               'id_tipo_cierre','id_mesa_de_panio',
-                              'id_estado_cierre','id_moneda'];
+                              'id_estado_cierre','id_moneda','id_importacion_diaria_cierres'];
 
 
   protected $appends = array('hora_inicio_format','hora_fin_format','total_cantidad_fichas','total_pesos','siglas');
@@ -100,6 +100,10 @@ class Cierre extends Model
 
   public function casino(){
     return $this->belongsTo('App\Casino','id_casino','id_casino');
+  }
+  
+  public function importacion(){
+    return $this->belongsTo('App\Mesas\ImportacionDiariaCierres','id_cierre_mesa','id_cierre_mesa');
   }
 
   public function getTableName(){

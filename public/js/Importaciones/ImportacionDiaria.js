@@ -107,6 +107,7 @@ $('#btn-guardarDiario').on('click', function(e){
   formData.append('fecha', $('#fecha_importacion').val());
   formData.append('id_moneda', $('#monedaSel').val());
   formData.append('id_casino', $('#casinoSel').val());
+  formData.append('md5',$('#modalImportacionDiaria .hashCalculado').val());
 
   //Si subió archivo lo guarda
   if($('#modalImportacionDiaria #archivo').attr('data-borrado') == 'false' && $('#modalImportacionDiaria #archivo')[0].files[0] != null){
@@ -235,21 +236,37 @@ function generarFilaImportaciones(imp){
 
   const classbool = ['fas fa-fw fa-times','fas fa-check-circle','fas fa-clock'];
   const colorbool = [           '#D32F2F',            '#4CAF50',     '#EEB342'];
+  
   const importado = (id !== null) | 0; //cast to int
-  const cierre = imp.todos_los_cierres | 0;
-  const validado = (id !== null && imp.validado) | 0;
   fila.find('.d_importado').append($('<i>').addClass(classbool[importado]).css('color',colorbool[importado]).css('text-align','center'));
-  fila.find('.d_relevado' ).append($('<i>').addClass(classbool[cierre]   ).css('color',colorbool[cierre]   ).css('text-align','center'));
-  if(cierre == 0 && imp.tiene_cierre){//No tiene todos los cierres pero tiene alguno, le muestro otro icono
-    fila.find('.d_relevado').empty().append($('<i>').addClass(classbool[2]).css('color',colorbool[2]   ).css('text-align','center'));
+  fila.find('button.producidos').val(id);
+  if(!importado){
+    fila.find('button.producidos').remove();
   }
+  
+  if(imp.id_importacion_diaria_cierres !== null){
+    fila.find('.d_relevado' ).append($('<i>').addClass(classbool[1]).css('color',colorbool[1]).css('text-align','center'));
+    fila.find('button.cierres').val(imp.id_importacion_diaria_cierres);
+  }
+  else if(imp.todos_los_cierres){
+    fila.find('.d_relevado' ).append($('<i>').addClass(classbool[1]).css('color',colorbool[1]).css('text-align','center'));
+    fila.find('button.cierres').remove();
+  }
+  else if(imp.tiene_cierre){
+    fila.find('.d_relevado' ).append($('<i>').addClass(classbool[2]).css('color',colorbool[2]).css('text-align','center'));
+    fila.find('button.cierres').remove();
+  }
+  else{
+    fila.find('.d_relevado' ).append($('<i>').addClass(classbool[0]).css('color',colorbool[0]).css('text-align','center'));
+    fila.find('button.cierres').remove();
+  }
+  
+  const validado = (id !== null && imp.validado) | 0;
   fila.find('.d_validado' ).append($('<i>').addClass(classbool[validado] ).css('color',colorbool[validado] ).css('text-align','center'));
-  if(id == null){
-    fila.find('.d_accion').empty().append('<span>&nbsp;</span>');
+  if(validado){
+    fila.find('.valImpD').remove();
   }
-  else fila.find('button').val(id);
-
-  if(validado) fila.find('.valImpD').remove();
+  
   fila.css('display', 'block');
   return fila;
 }
@@ -360,19 +377,24 @@ $('#guardar-observacion').on('click', function(e){
 })
 
 $(document).on('click','.eliminarDia',function(e){
-  $('#btn-eliminar').val($(this).val());
+  $('#btn-eliminar').val($(this).val())
+  .attr('data-url','importacionDiaria/eliminarImportacion');
+  $('#modalAlertaEliminar').modal('show');
+});
+$(document).on('click','.eliminarCierres',function(e){
+  $('#btn-eliminar').val($(this).val())
+  .attr('data-url','importacionDiaria/eliminarImportacionCierres');
   $('#modalAlertaEliminar').modal('show');
 });
 
 $('#btn-eliminar').on('click', function(){
-  const id = $(this).val();
-  $.get('importacionDiaria/eliminarImportacion/' + id , function(data){
+  $.get($(this).attr('data-url')+'/' + $(this).val(), function(data){
     if(data==1){
       $('#modalAlertaEliminar').modal('hide');
       $('#mensajeExito h3').text('ARCHIVO ELIMINADO');
       $('#mensajeExito p').text(' ');
       $('#mensajeExito').show();
-      $('#cuerpoTablaImpD').find('#'+ id).remove();
+      $('#buscar-importacionesDiarias').click();
     }
   });
 });

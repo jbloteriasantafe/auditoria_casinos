@@ -147,18 +147,22 @@
                           <td class="col-xs-2 d_relevado" style="text-align:center !important;"></td>
                           <td class="col-xs-2 d_validado" style="text-align:center !important;"></td>
                           <td class="col-xs-3 d_accion" style="text-align:center !important;">
-                            <button type="button" class="btn btn-info infoImpD" value="" >
-                                    <i class="fas fa-fw fa-search-plus"></i>
+                            <button type="button" class="btn btn-info infoImpD producidos" value="" >
+                              <i class="fas fa-fw fa-search-plus"></i>
                             </button>
-                            <button type="button" class="btn btn-info valImpD" value="">
-                                    <i class="fa fa-fw fa-check"></i>
+                            <button type="button" class="btn btn-info valImpD producidos" value="">
+                              <i class="fa fa-fw fa-check"></i>
                             </button>
-                            <button type="button" class="btn btn-info impImpD" value="">
-                                    <i class="fa fa-fw fa-print"></i>
+                            <button type="button" class="btn btn-info impImpD producidos" value="">
+                              <i class="fa fa-fw fa-print"></i>
                             </button>
-                            <button type="button" class="btn btn-success eliminarDia" value="">
-                                    <i class="fa fa-fw fa-trash"></i>
+                            <button type="button" class="btn btn-success eliminarDia producidos" value="" title="Eliminar producidos">
+                              <i class="fa fa-fw fa-trash"></i>
                             </button>
+                            <button type="button" class="btn btn-success eliminarCierres cierres" value="" title="Eliminar cierres importados">
+                              <i class="fa fa-fw fa-minus-square"></i>
+                            </button>
+                            <span>&nbsp;</span>
                           </td>
                         </tr>
                       </tbody>
@@ -686,7 +690,7 @@
   <!-- JavaScript paginacion -->
   <script src="js/paginacion.js" charset="utf-8"></script>
   <!-- JavaScript personalizado -->
-  <script src="/js/Importaciones/ImportacionDiaria.js?2" charset="utf-8"></script>
+  <script src="/js/Importaciones/ImportacionDiaria.js?3" charset="utf-8"></script>
   <script src="/js/lib/spark-md5.js?2" charset="utf-8"></script><!-- Dependencia de md5.js -->
   <script src="/js/md5.js?2" charset="utf-8"></script>
 @endsection

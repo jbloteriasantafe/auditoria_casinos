@@ -52,12 +52,41 @@ class BCCierreController extends Controller
   {
     $this->middleware(['tiene_permiso:m_buscar_cierres']);
   }
-
-  public function eliminarCierre($id){
-    //VER CONDICIONES PARA QUE SE PUEDA BORRAR UN CIERRE
-    $cierre = Cierre::find($id);
-    $cierre->delete();
-    return response()->json(['cierre' => $cierre], 200);
+  
+  public function eliminarCierre_internal($cierre,$hard_delete = false){
+    $delete = $hard_delete? 'forceDelete' : 'delete';
+    foreach($cierre->detalles as $d){
+      $d->{$delete}();
+    }
+    $cierre->{$delete}();
+  }
+  
+  public function eliminarCierre(Request $request,$id_cierre_mesa){//VER CONDICIONES PARA QUE SE PUEDA BORRAR UN CIERRE
+    $cierre = null;
+    
+    Validator::make(
+      compact('id_cierre_mesa'),
+      ['id_cierre_mesa' => 'required|exists:cierre_mesa,id_cierre_mesa,deleted_at,NULL'],
+      [
+        'required' => 'El valor es requerido',
+        'exists'   => 'No existe el valor en la base de datos',
+      ], 
+      self::$atributos
+    )->after(function($validator) use (&$cierre){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      
+      $cierre = Cierre::find($data['id_cierre_mesa']);
+      $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+      if(!$usuario->usuarioTieneCasino($cierre->id_casino)){
+        return $validator->errors()->add('id_cierre_mesa','No tiene los privilegios');
+      }
+    })->validate();
+    
+    return DB::transaction(function() use (&$cierre){
+      $this->eliminarCierre_internal($cierre);
+      return response()->json(['cierre' => $cierre], 200);
+    });
   }
 
   public function getCierre($id){

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Mesas\Importaciones\Mesas;
+namespace App\Http\Controllers\Mesas\Importaciones;
 
 use Auth;
 use Session;
@@ -15,29 +15,16 @@ use Illuminate\Validation\Rule;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Hash;
 
-use App\Usuario;
-use App\Mesas\CSVImporter;
 use App\Casino;
-use App\Relevamiento;
-use App\SecRecientes;
-use App\Http\Controllers\RolesPermissions\RoleFinderController;
-
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-
 use App\Mesas\Mesa;
 use App\Mesas\Ficha;
 use App\Mesas\Moneda;
-use App\Mesas\JuegoMesa;
-use App\Mesas\SectorMesas;
-use App\Mesas\TipoMesa;
 use App\Mesas\Cierre;
 use App\Mesas\DetalleCierre;
-
+use App\Mesas\ImportacionDiariaCierres;
 use App\Mesas\ImportacionDiariaMesas;
 use App\Mesas\DetalleImportacionDiariaMesas;
-
-use App\Mesas\ComandoEnEspera;
+use App\Http\Controllers\Mesas\Cierres\BCCierreController;
 
 use \DateTime;
 use \DateInterval;
@@ -78,13 +65,13 @@ class ImportadorController extends Controller
   }
 
   public function buscar($id_importacion){
-   $importacion = ImportacionDiariaMesas::find($id_importacion);
-   return [
-             'importacion' => $importacion,
-             'casino' => $importacion->casino,
-             'detalles' => $importacion->detalles()->get(),
-             'moneda' => $importacion->moneda
-           ];
+    $importacion = ImportacionDiariaMesas::find($id_importacion);
+    return [
+      'importacion' => $importacion,
+      'casino'      => $importacion->casino,
+      'detalles'    => $importacion->detalles()->get(),
+      'moneda'      => $importacion->moneda
+    ];
  }
  public function buscarPorTipoMesa($id_importacion,$t_mesa = null){
   //Si no manda mesa, retorno las que no se encontraron su tipo
@@ -114,6 +101,14 @@ class ImportadorController extends Controller
   return ['importacion' => $importacion,'casino' => $importacion->casino,'detalles' => $detalles,'moneda' => $importacion->moneda];
 }
 
+private function eliminarCierres_internal($importacion){
+  $CC = new BCCierreController;
+  foreach($importacion->cierres as $cierre){
+    $CC->eliminarCierre_internal($cierre,true);
+  }
+  $importacion->delete();
+}
+
 public function importarCierres(Request $request){
   $header_esperado = ['nro_admin','cod_juego','hora_apertura','hora_cierre','anticipos','total'];
   $fichas_totales = 16;
@@ -129,6 +124,7 @@ public function importarCierres(Request $request){
     'id_moneda' => 'required|exists:moneda,id_moneda',
     'fecha' => 'required|date',
     'archivo' => 'required|file',
+    'md5' => 'required|string|max:32',
   ], array(), self::$atributos)->after(function($validator) use ($header_esperado){
     if($validator->errors()->any()) return;
     $fecha = $validator->getData()['fecha'];
@@ -156,13 +152,33 @@ public function importarCierres(Request $request){
   $id_casino = $request->id_casino;
   $id_moneda = $request->id_moneda;
   $fecha     = $request->fecha;
-  $handle  = fopen($request->archivo->getRealPath(), 'r');
   $return  = [];
   $primero = true;
 
   $errores = [];
+  
   DB::beginTransaction();
   try{
+    {
+      $idcs = ImportacionDiariaCierres::where([
+        ['id_casino','=',$id_casino],
+        ['id_moneda','=',$id_moneda],
+        ['fecha','=',$fecha]
+      ])->get();
+      foreach($idcs as $i){
+        $this->eliminarCierres_internal($i);
+      }
+    }
+    
+    $idc = new ImportacionDiariaCierres;
+    $idc->id_casino  = $id_casino;
+    $idc->id_moneda  = $id_moneda;
+    $idc->fecha      = $fecha;
+    $idc->nombre_csv = $request->archivo->getClientOriginalName();
+    $idc->md5        = $request->md5;
+    $idc->save();
+  
+    $handle  = fopen($request->archivo->getRealPath(), 'r');
     while(($fila = fgetcsv($handle,1600,';','"')) !== FALSE){
       if($primero){//Ignoro la primer fila porque es el header
         $primero = false;
@@ -183,7 +199,7 @@ public function importarCierres(Request $request){
         if(floatval($ficha_valor) == 0 || floatval($importe) == 0) continue;
         $fichas[] = ['ficha_valor' => $ficha_valor,'importe' => $importe];
       }
-      $error = $this->crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin,$cod_juego,$hora_apertura,$hora_cierre,$anticipos,$total,$fichas);
+      $error = $this->crearCierre($idc->id_importacion_diaria_cierres,$id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin,$cod_juego,$hora_apertura,$hora_cierre,$anticipos,$total,$fichas);
       if(!is_null($error)) $errores[] = "$cod_juego$nro_admin: $error";
     }
   }
@@ -201,7 +217,7 @@ public function importarCierres(Request $request){
   return 0;
 }
 
-private function crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin,$cod_juego,$hora_apertura,$hora_cierre,$anticipos,$total,$fichas){
+private function crearCierre($id_importacion_diaria_cierres,$id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin,$cod_juego,$hora_apertura,$hora_cierre,$anticipos,$total,$fichas){
   $mesa = Mesa::where('mesa_de_panio.id_casino','=',$id_casino)
   ->where('mesa_de_panio.nro_admin','=',$nro_admin)
   ->where('mesa_de_panio.nombre','LIKE',$cod_juego.'%')
@@ -213,14 +229,14 @@ private function crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin
   })
   ->orderBy('mesa_de_panio.id_mesa_de_panio','desc')
   ->get()->first();
-  if(is_null($mesa)) return 'NO SE ENCONTRO LA MESA '.$cod_juego.' '.$nro_admin;
+  if(is_null($mesa)) return "NO SE ENCONTRO LA MESA $cod_juego $nro_admin";
 
-  $ya_existe = Cierre::where([
+  $ya_existe = Cierre::where([//@DUDA: Validar fecha sola o fecha y hora?
     ['id_casino','=',$id_casino],['id_mesa_de_panio','=',$mesa->id_mesa_de_panio],['id_moneda','=',$id_moneda],
     ['fecha','=',$fecha],['hora_inicio','=',$hora_apertura.':00'],['hora_fin','=',$hora_cierre.':00']
   ])->get()->count() > 0;
 
-  if($ya_existe) return 'YA EXISTE UN CIERRE PARA LA MESA '.$cod_juego.' '.$nro_admin.' EN LA FECHA '.$fecha.' '.$hora_apertura.'-'.$hora_cierre;
+  if($ya_existe) return "YA EXISTE UN CIERRE PARA LA MESA $cod_juego $nro_admin EN LA FECHA $fecha $hora_apertura-$hora_cierre";
   
   $cierre = new Cierre;
   $cierre->fecha                = $fecha;
@@ -233,12 +249,13 @@ private function crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin
   $cierre->id_moneda            = $id_moneda;
   $cierre->id_tipo_mesa         = $mesa->id_tipo_mesa;
   $cierre->id_mesa_de_panio     = $mesa->id_mesa_de_panio;
+  $cierre->id_importacion_diaria_cierres = $id_importacion_diaria_cierres;
   $cierre->save();
 
   $total_validacion = 0;
 
   foreach($fichas as $f){
-    if(fmod($f['importe'],$f['ficha_valor']) != 0) return 'ERROR EL MONTO '.$f['importe'].' NO ES MULTIPLO DE '.$f['ficha_valor'];
+    if(fmod($f['importe'],$f['ficha_valor']) != 0) return "ERROR EL MONTO {$f['importe']} NO ES MULTIPLO DE {$f['ficha_valor']}";
 
     $ficha = Ficha::withTrashed()->where([['ficha.valor_ficha','=',$f['ficha_valor']],['ficha.id_moneda','=',$id_moneda]])
     ->join('ficha_tiene_casino',function($j) use ($id_casino,$fecha){
@@ -252,7 +269,7 @@ private function crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin
       return $q->whereNull('ficha_tiene_casino.deleted_at')->orWhere('ficha_tiene_casino.deleted_at','>',$fecha);
     })->get()->first();
     
-    if(is_null($ficha)) return 'NO SE ENCONTRO LA FICHA DE '.$f['ficha_valor'];
+    if(is_null($ficha)) return "NO SE ENCONTRO LA FICHA DE {$f['ficha_valor']}";
     $d = new DetalleCierre;
     $d->id_ficha       = $ficha->id_ficha;
     $d->monto_ficha    = $f['importe'];
@@ -261,7 +278,7 @@ private function crearCierre($id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin
     $total_validacion +=floatval($f['importe']);
   }
 
-  if(floatval($total) != $total_validacion) return 'ERROR EL MONTO TOTAL ('.$total.') NO COINCIDE CON EL DE LAS FICHAS ('.$total_validacion.')';
+  if(floatval($total) != $total_validacion) return "ERROR EL MONTO TOTAL ($total) NO COINCIDE CON EL DE LAS FICHAS ($total_validacion)";
   return null;
 }
 
@@ -461,6 +478,7 @@ public function importarDiario(Request $request){
     $ret = DB::table(DB::raw($tabla_fechas))
     ->selectRaw('fechas.fecha, idm.id_importacion_diaria_mesas, idm.validado,
     SUM(c1.id_cierre_mesa IS NOT NULL) > 0 as tiene_cierre,
+    MAX(c1.id_importacion_diaria_cierres) as id_importacion_diaria_cierres,
     COUNT(
       idm.id_importacion_diaria_mesas IS NOT NULL
       AND (
@@ -521,6 +539,14 @@ public function importarDiario(Request $request){
         $d->delete();
       }
       ImportacionDiariaMesas::destroy($id);
+    });
+    return 1;
+  }
+  
+  public function eliminarCierres($id){
+    DB::transaction(function() use ($id){
+      $imp = ImportacionDiariaCierres::find($id);
+      $this->eliminarCierres_internal($imp);
     });
     return 1;
   }
