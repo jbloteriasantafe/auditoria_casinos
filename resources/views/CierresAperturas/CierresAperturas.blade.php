@@ -80,11 +80,11 @@ use App\Http\Controllers\AuthenticationController;
         'casino' => 'casino.nombre',
         'estado' => 'apertura_mesa.id_estado_cierre',
         'acciones' =>  [//attr => icono, permiso, html extra
-          '[data-js-ver-apertura]' => ['fa-search-plus',null,'data-estados="1,2,3,4"'],
-          '[data-js-desvincular]' => ['fa-unlink','m_validar_aperturas','data-estados="2,3,4"'],
-          '[data-js-modificar-apertura]' => ['fa-pencil-alt',null,'data-estados="1"'],
-          '[data-js-validar-apertura]' => ['fa-check','m_validar_aperturas','data-estados="1"'],
-          '[data-js-eliminar-apertura]' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1"'],
+          '[data-js-ver-apertura]' => ['fa-search-plus',null,'data-estados="1,2,3,4" data-importado="0,1"'],
+          '[data-js-desvincular]' => ['fa-unlink','m_validar_aperturas','data-estados="2,3,4" data-importado="0,1"'],
+          '[data-js-modificar-apertura]' => ['fa-pencil-alt',null,'data-estados="1" data-importado="0,1"'],
+          '[data-js-validar-apertura]' => ['fa-check','m_validar_aperturas','data-estados="1" data-importado="0,1"'],
+          '[data-js-eliminar-apertura]' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1" data-importado="0,1"'],
         ],
       ],
     ],
@@ -103,10 +103,10 @@ use App\Http\Controllers\AuthenticationController;
         'casino' => 'casino.nombre',
         'estado' => 'cierre_mesa.id_estado_cierre',
         'acciones' =>  [
-          '[data-js-ver-cierre]' => ['fa-search-plus',null,'data-estados="1,2,3,4"'],
-          '[data-js-modificar-cierre]' => ['fa-pencil-alt',null,'data-estados="1"'],
-          '[data-js-validar-cierre]' => ['fa-check','m_validar_cierres','data-estados="1"'],
-          '[data-js-eliminar-cierre]' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1,3"'],
+          '[data-js-ver-cierre]' => ['fa-search-plus',null,'data-estados="1,2,3,4" data-importado="0,1"'],
+          '[data-js-modificar-cierre]' => ['fa-pencil-alt',null,'data-estados="1"  data-importado="0"'],
+          '[data-js-validar-cierre]' => ['fa-check','m_validar_cierres','data-estados="1"  data-importado="0'],
+          '[data-js-eliminar-cierre]' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1,3"  data-importado="0"'],
         ],
       ],
     ],
@@ -334,5 +334,5 @@ use App\Http\Controllers\AuthenticationController;
 @endsection
 
 @section('scripts')
-  <script src="js/CierresAperturas/CierresAperturas.js?8" type="module" charset="utf-8"></script>
+  <script src="js/CierresAperturas/CierresAperturas.js?9" type="module" charset="utf-8"></script>
 @endsection

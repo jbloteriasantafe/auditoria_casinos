@@ -81,6 +81,9 @@ class BCCierreController extends Controller
       if(!$usuario->usuarioTieneCasino($cierre->id_casino)){
         return $validator->errors()->add('id_cierre_mesa','No tiene los privilegios');
       }
+      if($cierre->id_importacion_diaria_cierres !== null){
+        return $validator->errors()->add('id_cierre_mesa','No puede eliminar un cierre importado');
+      }
     })->validate();
     
     return DB::transaction(function() use (&$cierre){
@@ -184,6 +187,7 @@ class BCCierreController extends Controller
       'casino.nombre as casino','juego_mesa.siglas as juego',
       'moneda.siglas as moneda','mesa_de_panio.nro_mesa',
       'cierre_mesa.id_estado_cierre as estado',
+      DB::raw('cierre_mesa.id_importacion_diaria_cierres IS NOT NULL as importado'),
       DB::raw('CONCAT(
         IFNULL(TIME_FORMAT(cierre_mesa.hora_inicio,"%H:%i"),""),
         "-",

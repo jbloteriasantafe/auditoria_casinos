@@ -223,6 +223,7 @@ class BCAperturaController extends Controller
       'apertura_mesa.fecha',
       'casino.nombre as casino','juego_mesa.siglas as juego',
       'moneda.siglas as moneda','mesa_de_panio.nro_mesa',
+      DB::raw('0 as importado'),
       DB::raw('IFNULL(TIME_FORMAT(apertura_mesa.hora,"%H:%i"),"") as hora'),
       DB::raw('ca.id_cierre_apertura IS NOT NULL as linkeado')
     )

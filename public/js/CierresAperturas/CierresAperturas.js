@@ -35,7 +35,9 @@ $(function() {
       fila.find('button').val(obj.id).attr('data-js-mostrar-params',JSON.stringify({
         id: obj.id
       })).filter(function(idx,o){
-        return !$(o).attr('data-estados').split(',').includes(obj.estado+'');
+        const no_accesible_por_estado = !$(o).attr('data-estados').split(',').includes(obj.estado+'');
+        const no_accesible_por_import = !$(o).attr('data-importado').split(',').includes(obj.importado+'');
+        return no_accesible_por_estado || no_accesible_por_import;
       }).remove();
       fila.find('.estado').empty().append(
         $(`#iconosEstados i[data-linkeado=${obj.linkeado}][data-estado=${obj.estado}]`).clone()
