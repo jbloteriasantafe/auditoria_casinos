@@ -105,7 +105,7 @@ use App\Http\Controllers\AuthenticationController;
         'acciones' =>  [
           '[data-js-ver-cierre]' => ['fa-search-plus',null,'data-estados="1,2,3,4" data-importado="0,1"'],
           '[data-js-modificar-cierre]' => ['fa-pencil-alt',null,'data-estados="1"  data-importado="0"'],
-          '[data-js-validar-cierre]' => ['fa-check','m_validar_cierres','data-estados="1"  data-importado="0'],
+          '[data-js-validar-cierre]' => ['fa-check','m_validar_cierres','data-estados="1"  data-importado="0"'],
           '[data-js-eliminar-cierre]' => ['fa-trash','m_eliminar_cierres_y_aperturas','data-estados="1,3"  data-importado="0"'],
         ],
       ],
