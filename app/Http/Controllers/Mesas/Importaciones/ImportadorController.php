@@ -306,7 +306,7 @@ public function importarDiario(Request $request){
         $recibido2[] = utf8_encode($h);//Lo convierto porque pueden mandarlo en un encoding raro
       }
       $esperado_ros = ['JUEGO','N°MESA','DROP','DROP TARJETA','UTILIDAD','FILL','CREDIT','PROPINAS'];
-      $esperado_sfemel = ['Mesa','Nro.','Billetes_Drop','Tarjetas_Drop','Resultado','Devolución_MovInternos','Anticipo_MovInternos','Propinas'];
+      $esperado_sfemel = ['Mesa','Nro.','Billetes_Drop','Tarjetas_Drop','Resultado','Anticipo_MovInternos','Devolucion_MovInternos','Propinas'];
       if($recibido != $esperado_ros && $recibido != $esperado_sfemel && $recibido2 != $esperado_ros && $recibido2 != $esperado_sfemel){
         $validator->errors()->add('archivo', 'El formato del archivo no es correcto.');
         fclose($handle);
