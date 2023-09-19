@@ -337,6 +337,7 @@ public function importarDiario(Request $request){
       $importacion->validado = 0;
       $importacion->save();
       $iid = $importacion->id_importacion_diaria_mesas;
+      $sumar_propina = Casino::find($id_casino)->sumar_propina;
   
       $pdo = DB::connection('mysql')->getPdo();
       DB::connection()->disableQueryLog();
@@ -425,10 +426,10 @@ public function importarDiario(Request $request){
       //@HACK: saldo_fichas calculado a pata hasta que lo manden en el archivo
       $crea_detalles = "INSERT INTO detalle_importacion_diaria_mesas
       (id_importacion_diaria_mesas, siglas_juego, nro_mesa, droop, droop_tarjeta, utilidad, reposiciones, retiros, 
-      saldo_fichas,propina)
+      saldo_fichas,propina,sumar_propina)
       SELECT 
       csv.id_archivo, csv.row_1, csv.row_2, csv.row_3,csv.row_10, csv.row_4, csv.row_5, csv.row_6,
-      (csv.row_4 - csv.row_3 - csv.row_10 + csv.row_5 - csv.row_6),csv.row_11
+      (csv.row_4 - csv.row_3 - csv.row_10 + csv.row_5 - csv.row_6),csv.row_11,$sumar_propina
       FROM filas_csv_mesas_bingos as csv
       WHERE csv.id_archivo = '$iid' AND csv.row_1 <> '' AND csv.row_2 <> '' AND SUBSTR(csv.row_1,0,7) <> 'TOTALES';";
 
@@ -446,7 +447,7 @@ public function importarDiario(Request $request){
       SET i.droop    = IFNULL(total.droop,0),    i.droop_tarjeta = IFNULL(total.droop_tarjeta,0),
           i.utilidad = IFNULL(total.utilidad,0), i.reposiciones = IFNULL(total.reposiciones,0), 
           i.retiros  = IFNULL(total.retiros,0),  i.saldo_fichas = IFNULL(total.saldo_fichas,0),
-          i.propina  = IFNULL(total.propina,0)
+          i.propina  = IFNULL(total.propina,0),  i.sumar_propina = $sumar_propina
       WHERE i.id_importacion_diaria_mesas = '$iid'";
 
       $pdo->exec($setea_totales);

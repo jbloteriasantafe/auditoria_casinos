@@ -24,6 +24,7 @@ class ImportacionDiariaMesas extends Model
                              'saldo_fichas',
                              'propina',
                              'observacion',
+                             'sumar_propina',
                              'cotizacion_diaria',//dinamico
                              'hold',//dinamico
                              'conversion_total',//dinamico

@@ -27,6 +27,7 @@ class DetalleImportacionDiariaMesas extends Model
                              'id_cierre_mesa',//Se setea una vez validada la importacion
                              'id_cierre_mesa_anterior',//Se setea una vez validada la importacion
                              'observacion',
+                             'sumar_propina',
                              'cotizacion_diaria',//dinamico
                              'hold',//dinamico
                              'conversion',//dinamico
@@ -160,7 +161,7 @@ class DetalleImportacionDiariaMesas extends Model
 
   public function getDiferenciaSaldoFichasAttribute(){
     $ajuste_fichas = $this->ajuste_fichas? $this->ajuste_fichas : 0;
-    $propina = $this->propina? $this->propina : 0;
+    $propina = ($this->propina && $this->sumar_propina)? $this->propina : 0;
     return $this->saldo_fichas - $this->saldo_fichas_relevado + $ajuste_fichas + $propina;
   }
 
