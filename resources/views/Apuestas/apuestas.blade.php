@@ -195,5 +195,5 @@ $puede_modificar_minimo = $usuario->tienePermiso('m_abm_apuesta_minima');
 @section('scripts')
     <script src="js/inputSpinner.js" type="text/javascript"></script>
     <script src="/js/lista-datos.js" type="text/javascript"></script>
-    <script src="js/Apuestas/apuestas.js?6" type="module" charset="utf-8"></script>
+    <script src="js/Apuestas/apuestas.js?7" type="module" charset="utf-8"></script>
 @endsection
