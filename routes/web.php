@@ -961,3 +961,12 @@ Route::group(['prefix' => 'galeriaImagenesAutoexcluidos','middleware' => 'tiene_
   Route::get('mostrarArchivo/{id_importacion}/{tipo_archivo}','Autoexclusion\AutoexclusionController@mostrarArchivo');
   Route::get('{dni?}','Autoexclusion\GaleriaImagenesAutoexcluidosController@todo');
 });
+
+Route::group(['prefix' => 'backoffice','middleware' => 'tiene_permiso:ver_seccion_informecontable'], function () {
+  Route::get('/','BackOfficeController@index');
+  Route::post('buscar','BackOfficeController@buscar');
+  Route::post('descargar','BackOfficeController@descargar');
+});
+
+
+

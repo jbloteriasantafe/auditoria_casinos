@@ -1,6 +1,6 @@
-import {AUX} from "./AUX.js";
-import "./modal.js";
-import "./inputFecha.js";
+import {AUX} from "/js/Components/AUX.js";
+import "/js/Components/modal.js";
+import "/js/Components/inputFecha.js";
 
 $(function(e){
   const _M = '[data-js-apertura-a-pedido]';

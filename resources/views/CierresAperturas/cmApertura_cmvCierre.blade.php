@@ -1,4 +1,4 @@
-@component('CierresAperturas/include_guard',['nombre' => 'cmApertura_cmvCierre'])
+@component('Components/include_guard',['nombre' => 'cmApertura_cmvCierre'])
 <link rel="stylesheet" href="/css/lista-datos.css">
 <style>
   .cmApertura_cmvCierre .modal-lg {
@@ -37,7 +37,7 @@
 </style>
 @endcomponent
 
-@component('CierresAperturas/modal',[
+@component('Components/modal',[
   'clases_modal' => 'cmApertura_cmvCierre',
   'attrs_modal' => 'data-js-cargar-apertura-cierre',
   'estilo_cabecera' => 'background-color:#6dc7be;',
@@ -57,7 +57,7 @@
     <div class="col-md-4">
       <h6>FECHA</h6>
       <div class="form-group">
-        @component('CierresAperturas/inputFecha',['attrs' => 'name="fecha"'])
+        @component('Components/inputFecha',['attrs' => 'name="fecha"'])
         @endcomponent
       </div>
     </div>

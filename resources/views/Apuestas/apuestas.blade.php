@@ -85,7 +85,7 @@ $puede_modificar_minimo = $usuario->tienePermiso('m_abm_apuesta_minima');
   </div>
 
   <div class="col-md-9">
-    @component('CierresAperturas/FiltroTabla')
+    @component('Components/FiltroTabla')
       @slot('titulo')
       RELEVAMIENTOS GENERADOS
       @endslot
@@ -97,7 +97,7 @@ $puede_modificar_minimo = $usuario->tienePermiso('m_abm_apuesta_minima');
       @slot('filtros')
       <div class="col-md-2">
         <h5>Fecha</h5>
-        @component('CierresAperturas/inputFecha',['attrs' => 'name="fecha"'])
+        @component('Components/inputFecha',['attrs' => 'name="fecha"'])
         @endcomponent
       </div>
       <div class="col-md-3">

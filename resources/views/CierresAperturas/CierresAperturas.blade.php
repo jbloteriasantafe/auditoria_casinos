@@ -188,7 +188,7 @@ use App\Http\Controllers\AuthenticationController;
       @endforeach
     </div>
     <div class="col-md-9">
-      @component('CierresAperturas/FiltroTabla')
+      @component('Components/FiltroTabla')
         @slot('titulo')
         {{$tab}}
         @endslot
@@ -201,7 +201,7 @@ use App\Http\Controllers\AuthenticationController;
         <div class="row">
           <div class="col-md-4">
             <h5>Fecha</h5>
-            @component('CierresAperturas/inputFecha',['attrs' => 'name="fecha"'])
+            @component('Components/inputFecha',['attrs' => 'name="fecha"'])
             @endcomponent
           </div>
           <div class="col-md-4">

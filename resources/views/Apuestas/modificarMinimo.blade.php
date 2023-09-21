@@ -1,10 +1,10 @@
-@component('CierresAperturas/include_guard',['nombre' => 'modificarMinimo'])
+@component('Components/include_guard',['nombre' => 'modificarMinimo'])
 <style>
   
 </style>
 @endcomponent
 
-@component('CierresAperturas/modal',[
+@component('Components/modal',[
   'clases_modal' => 'modificarMinimo',
   'attrs_modal' => 'data-js-modificar-minimo',
   'estilo_cabecera' => 'background-color:#FFA726;',

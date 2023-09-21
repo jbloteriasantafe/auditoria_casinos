@@ -1,12 +1,12 @@
+import "/js/Components/FiltroTabla.js";
+import "/js/Components/inputFecha.js";
 import "./sorteador.js";
-import "./FiltroTabla.js";
 import "./eliminar.js";
 import "./aperturasAPedido.js";
 import "./verCierreApertura.js";
 import "./validarApertura.js";
 import "./desvincular.js";
 import "./cmApertura_cmvCierre.js";
-import "./inputFecha.js";
 import "./sortearOusarBackup.js";
 
 $(function() {

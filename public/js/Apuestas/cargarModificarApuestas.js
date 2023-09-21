@@ -1,4 +1,4 @@
-import {AUX} from "../CierresAperturas/AUX.js";
+import {AUX} from "/js/Components/AUX.js";
 
 $(function(){
   const _M = '[data-js-cargar-modificar-validar]';

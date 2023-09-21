@@ -1,4 +1,4 @@
-import {AUX} from "../CierresAperturas/AUX.js";
+import {AUX} from "/js/Components/AUX.js";
 
 $(function(e){
   const  M = $('[data-js-modificar-minimo]');

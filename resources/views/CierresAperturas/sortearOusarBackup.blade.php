@@ -1,9 +1,9 @@
-@component('CierresAperturas/include_guard',['nombre' => 'sortearOusarBackup'])
+@component('Components/include_guard',['nombre' => 'sortearOusarBackup'])
 <style>
 </style>
 @endcomponent
 
-@component('CierresAperturas/modal',[
+@component('Components/modal',[
   'clases_modal' => 'sortearOusarBackup',
   'attrs_modal' => 'data-js-sortear-usar-backup',
   'estilo_cabecera' => 'background-color: #6dc7be;',
@@ -25,12 +25,12 @@
     </div>
     <div class="col-md-4">
       <h5>FECHA</h5>
-      @component('CierresAperturas/inputFecha',['attrs' => 'name="fecha_backup"','disabled' => 1])
+      @component('Components/inputFecha',['attrs' => 'name="fecha_backup"','disabled' => 1])
       @endcomponent
     </div>
     <div class="col-md-4" data-mostrar="BACKUP">
       <h5>FECHA GENERACIÓN</h5>
-      @component('CierresAperturas/inputFecha',['attrs' => 'name="created_at"'])
+      @component('Components/inputFecha',['attrs' => 'name="created_at"'])
       @endcomponent
     </div>
   </div>

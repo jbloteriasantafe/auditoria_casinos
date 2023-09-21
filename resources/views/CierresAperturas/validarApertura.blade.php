@@ -1,4 +1,4 @@
-@component('CierresAperturas/include_guard',['nombre' => 'validarApertura'])
+@component('Components/include_guard',['nombre' => 'validarApertura'])
 <style>
   .validarApertura .borde_abajo {
     border-bottom: 2px solid #ccc;
@@ -42,7 +42,7 @@
 </style>
 @endcomponent
 
-@component('CierresAperturas/modal',[
+@component('Components/modal',[
   'clases_modal' => 'validarApertura',
   'attrs_modal' => 'data-js-validar-apertura',
   'estilo_cabecera' => 'background-color:#6dc7be;',

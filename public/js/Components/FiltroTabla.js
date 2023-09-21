@@ -2,6 +2,13 @@ import {AUX} from "./AUX.js";
 import "/js/paginacion.js";
 
 $(function(e){  
+  $('[data-js-filtro-tabla]').each(function(){
+    this.form_entries = function(){//Usado para sacar los atributos de busqueda desde afuera
+      const form = $(this).find('[data-js-filtro-form]')[0];
+      return AUX.form_entries(form);
+    };
+  });
+  
   $('[data-js-sortable]').each(function(col,s){
     $(s).append('<i class="fas fa-sort">');
   });
@@ -16,16 +23,16 @@ $(function(e){
   };
   const invalido = n => (n == null || isNaN(n));
   
-  $('[data-js-buscar]').on('click', function(e,pagina,page_size,columna,orden){
+  $('[data-js-filtro-tabla]').on('buscar', function(e,pagina,page_size,columna,orden){
     e.preventDefault();
     
-    const div = $(this).closest('[data-js-filtro-tabla]');
+    const div = $(this);
 
     const clickIndice = (e,pageNumber,tam) => {
         if(e == null) return;
         e.preventDefault();
         const estado = extraerEstado(div);
-        div.find('[data-js-buscar]').trigger('click',[
+        div.trigger('buscar',[
           pageNumber  ?? estado.pagina,
           tam         ?? estado.tam,
           estado.columna, estado.orden
@@ -47,10 +54,9 @@ $(function(e){
     };
     const tbody = div.find('[data-js-filtro-tabla-resultados] tbody').empty();
     const molde = div.find('[data-js-filtro-tabla-molde] tr:first').clone();
-    AUX.POST($(this).attr('data-target'),
-      {
-        ...paging,
-        ...AUX.extraerFormData(div.find('[data-js-filtro-tabla-filtro]'))
+    AUX.POST(div.find('[data-js-buscar]').attr('data-target'),{
+        ...div[0].form_entries(),
+        ...paging
       },
       function (ret){
         div.find('.herramientasPaginacion').generarTitulo(paging.page,paging.page_size,ret.total,clickIndice);
@@ -64,8 +70,9 @@ $(function(e){
     );
   });
   
-  $('[data-js-filtro-tabla]').on('buscar',function(e,pagina,page_size,columna,orden){
-    $(this).find('[data-js-buscar]').trigger('click',[pagina,page_size,columna,orden]);
+  $('[data-js-buscar]').on('click',function(e,pagina,page_size,columna,orden){
+    const div = $(this).closest('[data-js-filtro-tabla]');
+    div.trigger('buscar',[pagina,page_size,columna,orden]);
   });
 
   $('[data-js-sortable]').click(function(e){
@@ -81,6 +88,6 @@ $(function(e){
       $(this).attr('data-js-state','asc').find('i').addClass('fa fa-sort-up');
     }
     const div = $(this).closest('[data-js-filtro-tabla]');
-    div.find('[data-js-buscar]').click();
+    div.trigger('buscar');
   });
 });

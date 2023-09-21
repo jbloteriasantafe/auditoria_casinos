@@ -1,9 +1,9 @@
-@component('CierresAperturas/include_guard',['nombre' => 'regenerarBackup'])
+@component('Components/include_guard',['nombre' => 'regenerarBackup'])
 <style>
 </style>
 @endcomponent
 
-@component('CierresAperturas/modal',[
+@component('Components/modal',[
   'clases_modal' => 'regenerarBackup',
   'attrs_modal' => 'data-js-regenerar-backup',
   'estilo_cabecera' => 'background-color:#FFA726;',
@@ -24,12 +24,12 @@
     </div>
     <div class="col-md-4">
       <h5>FECHA GENERACIÓN</h5>
-      @component('CierresAperturas/inputFecha',['attrs' => 'name="fecha_generacion"'])
+      @component('Components/inputFecha',['attrs' => 'name="fecha_generacion"'])
       @endcomponent
     </div>
     <div class="col-md-4">
       <h5>FECHA</h5>
-      @component('CierresAperturas/inputFecha',['attrs' => 'name="fecha"'])
+      @component('Components/inputFecha',['attrs' => 'name="fecha"'])
       @endcomponent
     </div>
   </div>

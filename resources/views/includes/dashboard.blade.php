@@ -370,6 +370,11 @@ $contable_hijos = [
         'algun_permiso' => ['estadisticas_interanuales'],
       ],
     ],
+  ],
+  'Backoffice' => [
+    'icono' => '<i class="fa fa-cloud-download-alt"></i>',
+    'link' => '/backoffice',
+    'algun_permiso' => ['ver_seccion_informecontable'],
   ]
 ];
 $opciones = [

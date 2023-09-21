@@ -1,4 +1,4 @@
-@component('../CierresAperturas/include_guard',['nombre' => 'modalCargarModificar'])
+@component('Components/include_guard',['nombre' => 'modalCargarModificar'])
 <style>
   .modalCargarModificar[data-tipo="CARGAR"] .modal-header,
   .modalCargarModificar[data-tipo="VALIDAR"] .modal-header,
@@ -28,7 +28,7 @@
 </style>
 @endcomponent
 
-@component('CierresAperturas/modal',[
+@component('Components/modal',[
   'clases_modal' => 'modalCargarModificar',
   'attrs_modal' => 'data-js-cargar-modificar-validar',
   'grande' => 80,
@@ -41,7 +41,7 @@
       <input name="id_relevamiento_apuestas" hidden>
       <div class="col-md-3">
         <h5 style="font-size:16px !important;">FECHA</h5>
-        @component('CierresAperturas/inputFecha',['attrs' => 'name="fecha"'])
+        @component('Components/inputFecha',['attrs' => 'name="fecha"'])
         @endcomponent
       </div>
       <div class="col-md-3">

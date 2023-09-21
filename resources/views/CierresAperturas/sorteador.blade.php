@@ -1,4 +1,4 @@
-@component('CierresAperturas/include_guard',['nombre' => 'aperturasSorteadas'])
+@component('Components/include_guard',['nombre' => 'aperturasSorteadas'])
 <style>
   .aperturasSorteadas .panel-body {
     display: flex;
@@ -44,7 +44,7 @@
           @endforeach
         </select>
         <div class="form-group">
-          @component('CierresAperturas/inputFecha',[
+          @component('Components/inputFecha',[
             'attrs' => 'name="fecha_backup" data-js-cambio-fecha-backup',
             'attrs_dtp' => "data-start-view=\"month\""
           ])

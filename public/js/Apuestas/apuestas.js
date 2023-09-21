@@ -1,6 +1,6 @@
-import '../CierresAperturas/inputFecha.js';
-import '../CierresAperturas/FiltroTabla.js';
-import {AUX} from "../CierresAperturas/AUX.js";
+import '/js/Components/inputFecha.js';
+import '/js/Components/FiltroTabla.js';
+import {AUX} from "/js/Components/AUX.js";
 import './modificarMinimo.js';
 import './regenerarBackup.js';
 import './generar.js';

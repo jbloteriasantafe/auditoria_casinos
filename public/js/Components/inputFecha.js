@@ -9,12 +9,14 @@ $(function(e){
     };
   })
   .each(function(_,d){
+    console.log($(d).attr('data-start-view'));
     $(d).datetimepicker({
       language:  $(d).attr('data-date-language') ?? 'es',
       todayBtn:  $(d).attr('data-date-today-btn') ?? 1,
       autoclose: $(d).attr('data-autoclose') ?? 1,
       todayHighlight: $(d).attr('data-date-today-highlight') ?? 1,
       format: $(d).attr('data-date-format') ?? 'yyyy-mm-dd',
+      linkFormat: $(d).attr('data-link-format') ?? 'yyyy-mm-dd',      
       pickerPosition: $(d).attr('data-picker-position') ?? "bottom-left",
       startView: $(d).attr('data-start-view') ?? 2,
       minView: $(d).attr('data-min-view') ?? 2,

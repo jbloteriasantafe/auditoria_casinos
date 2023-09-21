@@ -1,7 +1,7 @@
-import {AUX} from "./AUX.js";
+import {AUX} from "/js/Components/AUX.js";
+import "/js/Components/modal.js";
+import "/js/Components/inputFecha.js";
 import "/js/lista-datos.js";
-import "./modal.js";
-import "./inputFecha.js";
 
 $(function(e){
   const TipoModal = {

@@ -1,4 +1,4 @@
-@component('CierresAperturas/modal',[
+@component('Components/modal',[
   'clases_modal' => 'desvincularApertura',
   'attrs_modal' => 'data-js-desvincular',
   'estilo_cabecera' => 'background-color:#0D47A1;'

@@ -1,4 +1,4 @@
-@component('CierresAperturas/modal',[
+@component('Components/modal',[
   'clases_modal' => 'alertaBaja',
   'attrs_modal' => 'data-js-alerta-baja',
   'estilo_cabecera' => 'font-family: Roboto-Black; background-color:#D50000'

@@ -1,4 +1,4 @@
-@component('CierresAperturas/modal',[
+@component('Components/modal',[
   'clases_modal' => 'aperturaAPedido',
   'attrs_modal' => 'data-js-apertura-a-pedido',
   'estilo_cabecera' => 'background-color:#4AA89F;',
@@ -26,14 +26,14 @@
     <div class="col-xs-2">
       <h5>F. INICIO</h5>
       <div class="form-group">
-        @component('CierresAperturas/inputFecha',['attrs' => 'name="fecha_inicio"','placeholder' => 'Fecha inicio'])
+        @component('Components/inputFecha',['attrs' => 'name="fecha_inicio"','placeholder' => 'Fecha inicio'])
         @endcomponent
       </div>
     </div>
     <div class="col-xs-2">
       <h5>F. FIN</h5>
       <div class="form-group">
-        @component('CierresAperturas/inputFecha',['attrs' => 'name="fecha_fin"','placeholder' => 'Fecha fin'])
+        @component('Components/inputFecha',['attrs' => 'name="fecha_fin"','placeholder' => 'Fecha fin'])
         @endcomponent
       </div>
     </div>

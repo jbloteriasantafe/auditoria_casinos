@@ -1,5 +1,5 @@
-import {AUX} from "./AUX.js";
-import "./modal.js";
+import {AUX} from "/js/Components/AUX.js";
+import "/js/Components/modal.js";
 
 $(function(e){
   const  M = $('[data-js-alerta-baja]');

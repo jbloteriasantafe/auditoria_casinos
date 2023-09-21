@@ -56,6 +56,9 @@ export const AUX = {
     Object.keys(json).forEach(function(k){
       mostrarErrorValidacion(jqobject.find(`[name="${k}"]`),json[k].join(', '),true);
     });
+  },
+  form_entries(form){
+    return Object.fromEntries(new FormData(form).entries());
   }
 };
 

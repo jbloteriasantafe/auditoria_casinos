@@ -1,5 +1,5 @@
-import {AUX} from "./AUX.js";
-import "./inputFecha.js";
+import {AUX} from "/js/Components/AUX.js";
+import "/js/Components/inputFecha.js";
 
 $(function(e){
   const  S = $('[data-js-sorteador]');

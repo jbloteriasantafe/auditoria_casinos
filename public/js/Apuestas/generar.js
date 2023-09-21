@@ -1,4 +1,4 @@
-import {AUX} from "../CierresAperturas/AUX.js";
+import {AUX} from "/js/Components/AUX.js";
 
 $(function(){
   const  M = $('[data-js-generar-relevamiento]');

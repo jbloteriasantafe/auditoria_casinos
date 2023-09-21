@@ -1,4 +1,4 @@
-@component('../CierresAperturas/include_guard',['nombre' => 'generarRelevamiento'])
+@component('Components/include_guard',['nombre' => 'generarRelevamiento'])
 <style>
   .generarRelevamiento .form-control {
     text-align: center;
@@ -6,7 +6,7 @@
 </style>
 @endcomponent
 
-@component('CierresAperturas/modal',[
+@component('Components/modal',[
   'clases_modal' => 'generarRelevamiento',
   'attrs_modal' => 'data-js-generar-relevamiento',
   'estilo_cabecera' => 'background-color: #6dc7be;',
@@ -20,7 +20,7 @@
     <div class="col-md-12">
       <div class="col-md-6">
         <h5>FECHA</h5>
-        @component('CierresAperturas/inputFecha',[
+        @component('Components/inputFecha',[
           'attrs' => 'name="fecha"',
           'attrs_dtp' => 'data-date-format="DD dd - MM - yyyy"',
         ])

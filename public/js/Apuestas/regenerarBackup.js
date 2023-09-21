@@ -1,5 +1,5 @@
-import {AUX} from "../CierresAperturas/AUX.js";
-import '../CierresAperturas/inputFecha.js';
+import {AUX} from "/js/Components/AUX.js";
+import '/js/Components/inputFecha.js';
 
 $(function(){
   const  M = $('[data-js-regenerar-backup]');

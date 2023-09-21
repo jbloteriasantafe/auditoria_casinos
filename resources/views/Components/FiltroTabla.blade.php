@@ -1,4 +1,4 @@
-@component('CierresAperturas/include_guard',['nombre' => 'filtro_tabla'])
+@component('Components/include_guard',['nombre' => 'filtro_tabla'])
 <link rel="stylesheet" href="/css/paginacion.css">
 <style>
   .filtro_tabla tr {
@@ -9,6 +9,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    word-break: break-word;
   }
 </style>
 @endcomponent
@@ -24,7 +25,7 @@ $id = uniqid();
         </div>
         <div class="panel-collapse collapse in" aria-expanded="true" style="">
           <div class="panel-body">
-            <div class="row">
+            <form class="row" data-js-filtro-form>
               {{ $filtros ?? '' }}
               <div class="col-md-4">
                 <h5>&nbsp;</h5>
@@ -32,7 +33,7 @@ $id = uniqid();
                   <i class="fa fa-fw fa-search"></i> BUSCAR
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </div>

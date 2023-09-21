@@ -1,4 +1,4 @@
-@component('CierresAperturas/include_guard',['nombre' => 'verCierreApertura'])
+@component('Components/include_guard',['nombre' => 'verCierreApertura'])
 <style>
   .verCierreApertura .modal-body .titulo_datos {
     margin: 0px;
@@ -29,7 +29,7 @@
 </style>
 @endcomponent
 
-@component('CierresAperturas/modal',[
+@component('Components/modal',[
   'clases_modal' => 'verCierreApertura',
   'attrs_modal' => 'data-js-ver-cierre-apertura',
   'estilo_cabecera' => 'background-color:#0D47A1;',
