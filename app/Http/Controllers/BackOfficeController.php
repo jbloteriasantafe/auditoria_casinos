@@ -255,8 +255,8 @@ class BackOfficeController extends Controller {
       return $q->orderBy($sort_by['columna'],$sort_by['orden']);
     });
     
-    $page_size = is_int($request->page_size)? $request->page_size : 10;
-    $page      = is_int($request->page)? $request->page : 1;
+    $page_size = is_numeric($request->page_size)? intval($request->page_size) : 10;
+    $page      = is_numeric($request->page)? intval($request->page) : 1;
     $OFFSET    = ($page-1)*$page_size;
     
     DB::statement('SET @@group_concat_max_len = 4294967295');//MAXUINT
