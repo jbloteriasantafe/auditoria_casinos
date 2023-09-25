@@ -98,4 +98,13 @@ $(function(){
       }
     );
   });
+  
+  $('[data-js-poner-default-al-vacio]').each(function(_,o){
+    const val_al_cargar_html = $(o).val();
+    $(o).change(function(e){
+      if($(this).val().length == 0){
+        $(this).val(val_al_cargar_html).change();
+      }
+    });
+  });
 });

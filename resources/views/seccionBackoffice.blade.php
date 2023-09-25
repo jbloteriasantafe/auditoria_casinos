@@ -84,14 +84,14 @@
               @elseif($tipo == 'input_date')
                 @component('Components/inputFecha',[
                   'form_group_attrs' => 'style="flex: 1;"',
-                  'attrs'            => "name={$name}"
+                  'attrs'            => "name={$name}",
                 ])
                 @endcomponent
               @elseif($tipo == 'input_date_month')
                 @component('Components/inputFecha',[
                   'form_group_attrs' => 'style="flex: 1;"',
-                  'attrs'            => "name='{$name}' value='{$dflt}'",
-                  'attrs_dtp'        => 'data-date-format="yyyy-mm" data-start-view="year" data-min-view="year" data-max-view="decade"'
+                  'attrs'            => "name='{$name}' value='{$dflt}' data-js-poner-default-al-vacio",
+                  'attrs_dtp'        => 'data-date-format="yyyy-mm" data-start-view="year" data-min-view="year" data-max-view="decade"',
                 ])
                 @endcomponent
               @else

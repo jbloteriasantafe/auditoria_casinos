@@ -41,16 +41,15 @@ class BackOfficeController extends Controller {
   private $vistas = null;
   function __construct(){
     $hoy = date('Y-m');
-    define(  'BO_SELECT',0);
-    define(   'BO_ALIAS',1);
-    define(     'BO_FMT',2);
-    define(    'BO_TIPO',3);
-    define('BO_DEFAULTS',4);
-    define(  'BO_VALUES',5);
+    //Directamente vinculado con 'cols', no cambiar el orden si no se cambia el orden de las columnas
+    //select, alias, tipo para formateo, tipo de buscador, cantidad de buscadores y valores por defecto, valores (solo select)
+    $cols_indexes = ['BO_SELECT','BO_ALIAS','BO_FMT','BO_TIPO','BO_DEFAULTS','BO_VALUES'];
+    foreach($cols_indexes as $val => $constant){
+      define($constant,$val);
+    }
     $this->vistas = [
       'beneficio_maquinas' => [
         'cols' => [
-          //select, alias, tipo para formateo, tipo de buscador, cantidad de buscadores y valores por defecto, valores (solo select)
           ['b.fecha','fecha','string','input_date_month',[$hoy]],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('beneficio')],
           ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('beneficio')],
@@ -81,7 +80,7 @@ class BackOfficeController extends Controller {
       ],
       'beneficio_mesas' => [
         'cols' => [
-          ['idm.fecha','fecha','string',"input_date_month",[$hoy]],
+          ['idm.fecha','fecha','string','input_date_month',[$hoy]],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('importacion_diaria_mesas')],
           ['m.siglas','moneda','string','select',[0],$this->selectMonedaVals('importacion_diaria_mesas')],
           ['(
@@ -115,9 +114,9 @@ class BackOfficeController extends Controller {
         'cols' => [
           ['bi.fecha','fecha','string','input_date_month',[$hoy]],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('bingo_importacion')],
-          ['SUM(bi.recaudado)','recaudado','numeric'],
-          ['SUM(bi.premio_linea)','premio_linea','numeric'],
-          ['SUM(bi.premio_bingo)','premio_bingo','numeric'],
+          ['SUM(bi.recaudado)','recaudado_informado','numeric'],
+          ['SUM(bi.premio_linea)','premio_linea_informado','numeric'],
+          ['SUM(bi.premio_bingo)','premio_bingo_informado','numeric'],
           ['(SUM(bi.recaudado)-SUM(bi.premio_linea)-SUM(bi.premio_bingo))','beneficio_calculado','numeric'],
         ],
         'indirect_where' => [
