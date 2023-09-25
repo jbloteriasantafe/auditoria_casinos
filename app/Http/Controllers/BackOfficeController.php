@@ -41,19 +41,31 @@ class BackOfficeController extends Controller {
   private $vistas = null;
   function __construct(){
     $hoy = date('Y-m');
+    define(  'BO_SELECT',0);
+    define(   'BO_ALIAS',1);
+    define(     'BO_FMT',2);
+    define(    'BO_TIPO',3);
+    define('BO_DEFAULTS',4);
+    define(  'BO_VALUES',5);
     $this->vistas = [
       'beneficio_maquinas' => [
         'cols' => [
-          //select, alias, tipo de buscador, cantidad de buscadores y valores por defecto, valores (solo select), tipo para formateo
-          ['b.fecha','fecha',"input_date_month",[$hoy],null,'string'],
-          ['c.nombre','casino','select',[0],$this->selectCasinoVals('beneficio'),'string'],
-          ['tm.descripcion','moneda','select',[0],$this->selectTipoMonedaVals('beneficio'),'string'],
-          ['b.coinin','apostado','input',['',''],null,'numeric'],
-          ['b.coinout','premio','input',['',''],null,'numeric'],
-          ['b.jackpot','premios_mayores','input',['',''],null,'numeric'],
-          ['b.valor','beneficio','input',['',''],null,'numeric'],
-          ['IF(tm.id_tipo_moneda = 1,1.0,cot.valor)','cotizacion','input',['',''],null,'numeric3d'],
-          ['IF(tm.id_tipo_moneda = 1,1.0,cot.valor)*b.valor','cotizado','input',['',''],null,'numeric'],
+          //select, alias, tipo para formateo, tipo de buscador, cantidad de buscadores y valores por defecto, valores (solo select)
+          ['b.fecha','fecha','string','input_date_month',[$hoy]],
+          ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('beneficio')],
+          ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('beneficio')],
+          ['(
+              SELECT COUNT(*)
+              FROM producido as p
+              JOIN detalle_producido as dp ON dp.id_producido = p.id_producido
+              WHERE p.fecha = b.fecha AND p.id_tipo_moneda = b.id_tipo_moneda AND p.id_casino = b.id_casino
+            )','maquinas','integer'],
+          ['b.coinin','apostado','numeric'],
+          ['b.coinout','premio','numeric'],
+          ['b.jackpot','premios_mayores','numeric'],
+          ['b.valor','beneficio','numeric'],
+          ['IF(tm.id_tipo_moneda = 1,1.0,cot.valor)','cotizacion','numeric3d'],
+          ['IF(tm.id_tipo_moneda = 1,1.0,cot.valor)*b.valor','cotizado','numeric'],
         ],
         'indirect_where' => [
           'casino' => 'c.id_casino',
@@ -69,17 +81,22 @@ class BackOfficeController extends Controller {
       ],
       'beneficio_mesas' => [
         'cols' => [
-          ['idm.fecha','fecha',"input_date_month",[$hoy],null,'string'],
-          ['c.nombre','casino','select',[0],$this->selectCasinoVals('importacion_diaria_mesas'),'string'],
-          ['m.siglas','moneda','select',[0],$this->selectMonedaVals('importacion_diaria_mesas'),'string'],
-          ['idm.droop','drop','input',['',''],null,'numeric'],
-          ['idm.droop_tarjeta','drop_tarjeta','input',['',''],null,'numeric'],
-          ['idm.saldo_fichas','saldo_fichas','input',['',''],null,'numeric'],
-          ['idm.retiros','retiros','input',['',''],null,'numeric'],
-          ['idm.reposiciones','reposiciones','input',['',''],null,'numeric'],
-          ['idm.utilidad','utilidad','input',['',''],null,'numeric'],
-          ['IF(m.id_moneda = 1,1.0,cot.valor)','cotizacion','input',['',''],null,'numeric3d'],
-          ['IF(m.id_moneda = 1,1.0,cot.valor)*idm.utilidad','cotizado','input',['',''],null,'numeric'],
+          ['idm.fecha','fecha','string',"input_date_month",[$hoy]],
+          ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('importacion_diaria_mesas')],
+          ['m.siglas','moneda','string','select',[0],$this->selectMonedaVals('importacion_diaria_mesas')],
+          ['(
+            SELECT COUNT(*)
+            FROM detalle_importacion_diaria_mesas as didm
+            WHERE didm.id_importacion_diaria_mesas = idm.id_importacion_diaria_mesas
+          )','mesas','integer'],
+          ['idm.droop','drop','numeric'],
+          ['idm.droop_tarjeta','drop_tarjeta','numeric'],
+          ['idm.saldo_fichas','saldo_fichas','numeric'],
+          ['idm.retiros','retiros','numeric'],
+          ['idm.reposiciones','reposiciones','numeric'],
+          ['idm.utilidad','utilidad','numeric'],
+          ['IF(m.id_moneda = 1,1.0,cot.valor)','cotizacion','numeric3d'],
+          ['IF(m.id_moneda = 1,1.0,cot.valor)*idm.utilidad','cotizado','numeric'],
         ],
         'indirect_where' => [
           'casino' => 'c.id_casino',
@@ -96,12 +113,12 @@ class BackOfficeController extends Controller {
       ],
       'beneficio_bingos' => [
         'cols' => [
-          ['bi.fecha','fecha',"input_date_month",[$hoy],null,'string'],
-          ['c.nombre','casino','select',[0],$this->selectCasinoVals('bingo_importacion'),'string'],
-          ['SUM(bi.recaudado)','recaudado','input',['',''],null,'numeric'],
-          ['SUM(bi.premio_linea)','premio_linea','input',['',''],null,'numeric'],
-          ['SUM(bi.premio_bingo)','premio_bingo','input',['',''],null,'numeric'],
-          ['(SUM(bi.recaudado)-SUM(bi.premio_linea)-SUM(bi.premio_bingo))','beneficio','input',['',''],null,'numeric'],
+          ['bi.fecha','fecha','string','input_date_month',[$hoy]],
+          ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('bingo_importacion')],
+          ['SUM(bi.recaudado)','recaudado','numeric'],
+          ['SUM(bi.premio_linea)','premio_linea','numeric'],
+          ['SUM(bi.premio_bingo)','premio_bingo','numeric'],
+          ['(SUM(bi.recaudado)-SUM(bi.premio_linea)-SUM(bi.premio_bingo))','beneficio_calculado','numeric'],
         ],
         'indirect_where' => [
           'casino' => 'c.id_casino',
@@ -116,14 +133,14 @@ class BackOfficeController extends Controller {
       'producido_maquinas' => [
         'precols' => 'STRAIGHT_JOIN',
         'cols' => [
-          ['p.fecha','fecha',"input_date_month",[$hoy],null,'string'],
-          ['c.nombre','casino','select',[0],$this->selectCasinoVals('producido'),'string'],
-          ['tm.descripcion','moneda','select',[0],$this->selectTipoMonedaVals('producido'),'string'],
-          ['SUM(dp.valor)','producido','input',['',''],null,'numeric'],
-          ['IF(tm.id_tipo_moneda = 1,1.0,cot.valor)','cotizacion','input',['',''],null,'numeric3d'],
-          ['IF(tm.id_tipo_moneda = 1,1.0,cot.valor)*SUM(dp.valor)','cotizado','input',['',''],null,'numeric'],
-          ['GROUP_CONCAT(distinct m.nro_admin ORDER BY m.nro_admin)','maquinas','input_vals_list',[''],null,'string'],
-          ['GROUP_CONCAT(distinct i.nro_isla ORDER BY i.nro_isla)','islas','input_vals_list',[''],null,'string'],
+          ['p.fecha','fecha','string','input_date_month',[$hoy]],
+          ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('producido')],
+          ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('producido')],
+          ['SUM(dp.valor)','producido','numeric'],
+          ['IF(tm.id_tipo_moneda = 1,1.0,cot.valor)','cotizacion','numeric3d'],
+          ['IF(tm.id_tipo_moneda = 1,1.0,cot.valor)*SUM(dp.valor)','cotizado','numeric'],
+          ['GROUP_CONCAT(distinct m.nro_admin ORDER BY m.nro_admin)','maquinas','string','input_vals_list',['']],
+          ['GROUP_CONCAT(distinct i.nro_isla ORDER BY i.nro_isla)','islas','string','input_vals_list',['']],
         ],
         'indirect_where' => [
           'casino' => 'c.id_casino',
@@ -150,11 +167,11 @@ class BackOfficeController extends Controller {
     $vistas = collect($this->vistas)->map(function($v,$k){
       $columnas = collect($v['cols'])->map(function($c) use($v,$k){
         return collect([
-          'nombre' => $c[1],
-          'nombre_fmt' => strtoupper(implode(' ',explode('_',$c[1]))),
-          'tipo' => $c[2] ?? 'input',
-          'default'  => $c[3] ?? [''],
-          'valores'  => $c[4] ?? []
+          'nombre' => $c[BO_ALIAS],
+          'nombre_fmt' => strtoupper(implode(' ',explode('_',$c[BO_ALIAS]))),
+          'tipo' => $c[BO_TIPO] ?? null,
+          'default'  => $c[BO_DEFAULTS] ?? [''],
+          'valores'  => $c[BO_VALUES] ?? []
         ]);
       });
       
@@ -181,15 +198,15 @@ class BackOfficeController extends Controller {
     $q_armada = clone $v['query'];
   
     foreach($cols as $c){
-      $alias = $c[1];
+      $alias = $c[BO_ALIAS];
       if(!isset($data[$alias])) continue;
       $recibido = $data[$alias];
       
       $select = isset($v['indirect_where']) && isset($v['indirect_where'][$alias])?
         $v['indirect_where'][$alias] 
-        : $c[0];
+        : $c[BO_SELECT];
       
-      $tipo = $c[2];
+      $tipo = $c[BO_TIPO] ?? null;
         
       if(is_array($recibido) && $tipo == 'input_vals_list' && !empty($recibido)){
         $q_armada = $q_armada->whereIn(DB::raw($select),$recibido);
@@ -245,8 +262,8 @@ class BackOfficeController extends Controller {
     if(!empty($request->sort_by) 
     && !empty($request->sort_by['columna']) 
     && !empty($request->sort_by['orden']) 
-    && $cols->where(1,$request->sort_by['columna'])->count() > 0){
-      $col = $cols->where(1,$request->sort_by['columna'])->first()[0];
+    && $cols->where(BO_ALIAS,$request->sort_by['columna'])->count() > 0){
+      $col = $cols->where(BO_ALIAS,$request->sort_by['columna'])->first()[0];
       $sort_by['columna'] = DB::raw($col);
       $sort_by['orden'] = $request->sort_by['orden'];
     }
@@ -261,7 +278,7 @@ class BackOfficeController extends Controller {
     
     DB::statement('SET @@group_concat_max_len = 4294967295');//MAXUINT
     $select = $cols->map(function($v){
-      return "{$v[0]} as `{$v[1]}`";
+      return "{$v[BO_SELECT]} as `{$v[BO_ALIAS]}`";
     })->implode(', ');
     $data = (clone $q_armada)->selectRaw(($v['precols'] ?? '').' '.$select);
     
@@ -299,19 +316,21 @@ class BackOfficeController extends Controller {
   }
   
   private function postprocess($vista,$col,$val){
-    $col = collect($this->vistas[$vista]['cols'])->where(1,$col)->first();
-    if(!is_null($col) &&  $col[2] == 'input_vals_list'){
+    $col = collect($this->vistas[$vista]['cols'])->where(BO_ALIAS,$col)->first();
+    $tipo = $col[BO_TIPO] ?? null;
+    if(!is_null($col) && $tipo == 'input_vals_list'){
       $vals  = explode(',',$val);
       $lista = self::colapsarListaDeNumerosAscendentes($vals);
       $count = count($vals);
       $val   = "[$count] $lista";
     }
-    return self::val_format($col[5],$val);
+    return self::val_format($col[BO_FMT] ?? null,$val);
   }
   
   private function postprocess_param($vista,$col,$val){
-    $col = collect($this->vistas[$vista]['cols'])->where(1,$col)->first();
-    if(!is_null($col) && $col[2] == 'input_vals_list'){
+    $col = collect($this->vistas[$vista]['cols'])->where(BO_ALIAS,$col)->first();
+    $tipo = $col[BO_TIPO] ?? null;
+    if(!is_null($col) && $tipo == 'input_vals_list'){
       return self::expandirListaDeRangosSeparadaPorComas($val[0]);
     }
     return $val;

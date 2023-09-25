@@ -55,11 +55,14 @@
       @slot('filtros')
       <div class="row">
         <input name="vista" value="{{$v['nombre']}}" hidden>
-      @foreach($v['columnas'] as $cidx => $c)
+        <?php
+          $columnas = array_filter($v['columnas']->toArray(),function($c){return !is_null($c['tipo']);});
+        ?>
+      @foreach($columnas as $cidx => $c)
         @if(($cidx%3) == 0)
         <div class="row">
         @endif
-        <div class="col-md-4">
+        <div class="col-md-4">        
           <h5>{{$c['nombre_fmt']}}</h5>
           <div style="display: flex;">
             @for($i=0;$i<count($c['default']);$i++)
@@ -78,7 +81,7 @@
                 </select>
               @elseif($tipo == 'input' || $tipo == 'input_vals_list')
                 <input class="form-control" style="flex: 1;" name="{{$name}}">
-              @elseif(strpos($tipo,'input_date:') === 0)
+              @elseif($tipo == 'input_date')
                 @component('Components/inputFecha',[
                   'form_group_attrs' => 'style="flex: 1;"',
                   'attrs'            => "name={$name}"
