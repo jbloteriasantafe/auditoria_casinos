@@ -374,7 +374,7 @@ $contable_hijos = [
   'Backoffice' => [
     'icono' => '<i class="fa fa-cloud-download-alt"></i>',
     'link' => '/backoffice',
-    'algun_permiso' => ['ver_seccion_informecontable'],
+    'algun_permiso' => ['informes_mtm'],
   ]
 ];
 $opciones = [
