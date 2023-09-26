@@ -962,7 +962,7 @@ Route::group(['prefix' => 'galeriaImagenesAutoexcluidos','middleware' => 'tiene_
   Route::get('{dni?}','Autoexclusion\GaleriaImagenesAutoexcluidosController@todo');
 });
 
-Route::group(['prefix' => 'backoffice','middleware' => 'tiene_permiso:ver_seccion_informecontable'], function () {
+Route::group(['prefix' => 'backoffice','middleware' => 'tiene_permiso:informes_mtm'], function () {
   Route::get('/','BackOfficeController@index');
   Route::post('buscar','BackOfficeController@buscar');
   Route::post('descargar','BackOfficeController@descargar');
