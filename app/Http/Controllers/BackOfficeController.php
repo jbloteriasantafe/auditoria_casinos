@@ -158,6 +158,15 @@ class BackOfficeController extends Controller {
         'default_order_by' => [
           'p.fecha' => 'desc'
         ],
+        'count' => DB::table('producido as p')
+        ->selectRaw('COUNT(distinct p.id_producido) as count')
+        ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','p.id_tipo_moneda')
+        ->join('casino as c','c.id_casino','=','p.id_casino')
+        ->leftJoin('cotizacion as cot','cot.fecha','=','p.fecha')
+        ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
+        ->join('maquina as m','m.id_maquina','=','dp.id_maquina')
+        ->join('isla as i','i.id_isla','=','m.id_isla')
+        ->groupBy(DB::raw('"constant"'))
       ]
     ];
   }
@@ -194,7 +203,12 @@ class BackOfficeController extends Controller {
     $v = $this->vistas[$request->vista];
     $cols = collect($v['cols']);
     
-    $q_armada = clone $v['query'];
+    $QS = [
+      clone $v['query'],
+      array_key_exists('count',$v)?
+         clone $v['count']
+      : (clone $v['query'])->selectRaw('COUNT(*) as count')
+    ];
   
     foreach($cols as $c){
       $alias = $c[BO_ALIAS];
@@ -208,47 +222,52 @@ class BackOfficeController extends Controller {
       $tipo = $c[BO_TIPO] ?? null;
         
       if(is_array($recibido) && $tipo == 'input_vals_list' && !empty($recibido)){
-        $q_armada = $q_armada->whereIn(DB::raw($select),$recibido);
+        foreach($QS as &$q)
+          $q = $q->whereIn(DB::raw($select),$recibido);
       }
       else if($tipo == 'input_date_month' && !empty($recibido)){
         if(is_array($recibido) && count($recibido) >= 2 && !empty($recibido[0]) && !empty($recibido[1])){
           $d = explode('-',$recibido[0]);
           $h = explode('-',$recibido[1]);
-          $q_armada = $q_armada
-          ->whereYear(DB::raw($select),'>=',$d[0])
-          ->whereMonth(DB::raw($select),'>=',$d[1])
-          ->whereYear(DB::raw($select),'<=',$h[0])
-          ->whereMonth(DB::raw($select),'<=',$h[1]);
+          foreach($QS as &$q)
+            $q = $q->whereYear(DB::raw($select),'>=',$d[0])
+                   ->whereMonth(DB::raw($select),'>=',$d[1])
+                   ->whereYear(DB::raw($select),'<=',$h[0])
+                   ->whereMonth(DB::raw($select),'<=',$h[1]);
         } 
         else if(is_array($recibido) && count($recibido) == 1 && !empty($recibido[0])){
           $m = explode('-',$recibido[0]);
-          $q_armada = $q_armada
-          ->whereYear(DB::raw($select),'=',$m[0])
-          ->whereMonth(DB::raw($select),'=',$m[1]);
+          foreach($QS as &$q)
+            $q = $q->whereYear(DB::raw($select),'=',$m[0])
+                   ->whereMonth(DB::raw($select),'=',$m[1]);
         }
         else if(!is_array($recibido)){
           $m = explode('-',$recibido);
-          $q_armada = $q_armada
-          ->whereYear(DB::raw($select),'=',$m[0])
-          ->whereMonth(DB::raw($select),'=',$m[1]);
+          foreach($QS as &$q)
+            $q = $q->whereYear(DB::raw($select),'=',$m[0])
+                   ->whereMonth(DB::raw($select),'=',$m[1]);
         }
       }
       else if(is_array($recibido) && count($recibido) >= 2){
         if(!is_null($recibido[0])){
-          $q_armada = $q_armada->where(DB::raw($select),'>=',$recibido[0]);
+          foreach($QS as &$q)
+            $q = $q->where(DB::raw($select),'>=',$recibido[0]);
         }
         if(!is_null($recibido[1])){
-          $q_armada = $q_armada->where(DB::raw($select),'<=',$recibido[1]);
+          foreach($QS as &$q)
+            $q = $q->where(DB::raw($select),'<=',$recibido[1]);
         }
       }
       else if(is_array($recibido) && count($recibido) == 1){
         if(!is_null($recibido[0])){
-          $q_armada = $q_armada->where(DB::raw($select),'=',$recibido[0]);
+          foreach($QS as &$q)
+            $q = $q->where(DB::raw($select),'=',$recibido[0]);
         }
       }
       else if(!is_array($recibido)){
         if(!is_null($recibido)){
-          $q_armada = $q_armada->where(DB::raw($select),'=',$recibido);
+          foreach($QS as &$q)
+            $q = $q->where(DB::raw($select),'=',$recibido);
         }
       }
     }
@@ -267,19 +286,20 @@ class BackOfficeController extends Controller {
       $sort_by['orden'] = $request->sort_by['orden'];
     }
     
-    $q_armada = $q_armada->when($sort_by,function($q) use ($sort_by){
-      return $q->orderBy($sort_by['columna'],$sort_by['orden']);
-    });
+    $query = $QS[0];
+    $count = $QS[1];
+    
+    $query = $query->orderBy($sort_by['columna'],$sort_by['orden']);
     
     $page_size = is_numeric($request->page_size)? intval($request->page_size) : 10;
     $page      = is_numeric($request->page)? intval($request->page) : 1;
     $OFFSET    = ($page-1)*$page_size;
     
     DB::statement('SET @@group_concat_max_len = 4294967295');//MAXUINT
-    $select = $cols->map(function($v){
-      return "{$v[BO_SELECT]} as `{$v[BO_ALIAS]}`";
+    $select = $cols->map(function($c){
+      return "{$c[BO_SELECT]} as `{$c[BO_ALIAS]}`";
     })->implode(', ');
-    $data = (clone $q_armada)->selectRaw(($v['precols'] ?? '').' '.$select);
+    $data = $query->selectRaw(($v['precols'] ?? '').' '.$select);
     
     if($para_descargar === false || $para_descargar == 'PAGINA'){
       $data = $data->skip($OFFSET)->take($page_size);
@@ -299,8 +319,7 @@ class BackOfficeController extends Controller {
       );
     }
     
-    $count = (clone $q_armada)
-    ->selectRaw('COUNT(*) as count')->first();
+    $count = $count->first();
     $count = is_null($count)? 0 : $count->count;
     
     return [
