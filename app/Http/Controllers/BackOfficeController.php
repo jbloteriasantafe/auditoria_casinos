@@ -58,6 +58,7 @@ class BackOfficeController extends Controller {
               FROM producido as p
               JOIN detalle_producido as dp ON dp.id_producido = p.id_producido
               WHERE p.fecha = b.fecha AND p.id_tipo_moneda = b.id_tipo_moneda AND p.id_casino = b.id_casino
+                AND dp.valor <> 0
             )','maquinas','integer'],
           ['b.coinin','apostado','numeric'],
           ['b.coinout','premio','numeric'],
@@ -84,9 +85,15 @@ class BackOfficeController extends Controller {
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('importacion_diaria_mesas')],
           ['m.siglas','moneda','string','select',[0],$this->selectMonedaVals('importacion_diaria_mesas')],
           ['(
-            SELECT COUNT(*)
+            SELECT COUNT(distinct CONCAT(didm.siglas_juego,didm.nro_mesa))
             FROM detalle_importacion_diaria_mesas as didm
             WHERE didm.id_importacion_diaria_mesas = idm.id_importacion_diaria_mesas
+            AND (
+                 IFNULL(didm.droop,0) <> 0 OR IFNULL(didm.droop_tarjeta,0) <> 0 
+              OR IFNULL(didm.reposiciones,0) <> 0 OR IFNULL(didm.retiros,0) <> 0 
+              OR IFNULL(didm.utilidad,0) <> 0 OR IFNULL(didm.saldo_fichas,0) <> 0 
+              OR IFNULL(didm.propina <> 0,0)
+            )
           )','mesas','integer'],
           ['idm.droop','drop','numeric'],
           ['idm.droop_tarjeta','drop_tarjeta','numeric'],
