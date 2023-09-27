@@ -319,7 +319,7 @@ class BackOfficeController extends Controller {
     });
     
     if($para_descargar !== false){
-      return collect([$cols->pluck(1)->toArray()])->merge(
+      return collect([$cols->pluck(BO_ALIAS)->toArray()])->merge(
         $data->map(function($r){
           return $r->values();
         })

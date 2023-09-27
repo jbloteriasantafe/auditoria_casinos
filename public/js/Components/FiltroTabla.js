@@ -2,17 +2,7 @@ import {AUX} from "./AUX.js";
 import "/js/paginacion.js";
 
 $(function(e){  
-  $('[data-js-filtro-tabla]').each(function(){
-    this.form_entries = function(){//Usado para sacar los atributos de busqueda desde afuera
-      const form = $(this).find('[data-js-filtro-form]')[0];
-      return AUX.form_entries(form);
-    };
-  });
-  
-  $('[data-js-sortable]').each(function(col,s){
-    $(s).append('<i class="fas fa-sort">');
-  });
-  
+  const invalido = n => (n == null || isNaN(n));
   const extraerEstado = (div) => {
     return {
       pagina: div.find('.herramientasPaginacion').getCurrentPage(),
@@ -21,47 +11,53 @@ $(function(e){
       orden: div.find('[data-js-filtro-tabla-resultados] [data-js-sortable][data-js-state]').attr('data-js-state')
     };
   };
-  const invalido = n => (n == null || isNaN(n));
   
-  $('[data-js-filtro-tabla]').on('buscar', function(e,pagina,page_size,columna,orden){
-    e.preventDefault();
-    
-    const div = $(this);
-
-    const clickIndice = (e,pageNumber,tam) => {
-        if(e == null) return;
-        e.preventDefault();
-        const estado = extraerEstado(div);
-        div.trigger('buscar',[
-          pageNumber  ?? estado.pagina,
-          tam         ?? estado.tam,
-          estado.columna, estado.orden
-        ]);
+  $('[data-js-filtro-tabla]').each(function(){
+    this.form_entries = function(){//Usado para sacar los atributos de busqueda desde afuera
+      const form = $(this).find('[data-js-filtro-form]')[0];
+      return AUX.form_entries(form);
     };
-    
-    const estado = extraerEstado(div);
-    const paging = {
-      page: !invalido(pagina)? pagina 
-        : estado.pagina,
-      page_size: !invalido(page_size)? page_size
-        : (invalido(estado.tam)? 10 : estado.tam),
-      sort_by: !invalido(columna) && !invalido(orden)? 
-        {columna,orden}
-        : {
+    this.form_data = function(){
+      const estado = extraerEstado($(this));
+      const paging = {
+        page: estado.pagina,
+        page_size: invalido(estado.tam)? 10 : estado.tam,
+        sort_by: {
           columna: estado.columna,
           orden: estado.orden
         }
+      };
+      return {
+        ...this.form_entries(),
+        ...paging
+      }
     };
+  });
+  
+  $('[data-js-sortable]').each(function(col,s){
+    $(s).append('<i class="fas fa-sort">');
+  });
+  
+  $('[data-js-filtro-tabla]').on('buscar', function(e,page){
+    e.preventDefault();
+    
+    const div = $(this);
+    const clickIndice = (e,pageNumber) => {
+      if(e == null) return;
+      e.preventDefault();
+      div.trigger('buscar',[pageNumber]);
+    };
+    
+    const formData = div[0].form_data();
+    formData.page = page ?? formData.page;
+    
     const tbody = div.find('[data-js-filtro-tabla-resultados] tbody').empty();
     const molde = div.find('[data-js-filtro-tabla-molde] tr:first').clone();
-    AUX.POST(div.find('[data-js-buscar]').attr('data-target'),{
-        ...div[0].form_entries(),
-        ...paging
-      },
+    AUX.POST(div.find('[data-js-buscar]').attr('data-target'),formData,
       function (ret){
-        div.find('.herramientasPaginacion').generarTitulo(paging.page,paging.page_size,ret.total,clickIndice);
+        div.find('.herramientasPaginacion').generarTitulo(formData.page,formData.page_size,ret.total,clickIndice);
         div.trigger('busqueda',[ret,tbody,molde]);
-        div.find('.herramientasPaginacion').generarIndices(paging.page,paging.page_size,ret.total,clickIndice);
+        div.find('.herramientasPaginacion').generarIndices(formData.page,formData.page_size,ret.total,clickIndice);
       },
       function(data){
         console.log(data);
@@ -70,9 +66,9 @@ $(function(e){
     );
   });
   
-  $('[data-js-buscar]').on('click',function(e,pagina,page_size,columna,orden){
+  $('[data-js-buscar]').on('click',function(e){
     const div = $(this).closest('[data-js-filtro-tabla]');
-    div.trigger('buscar',[pagina,page_size,columna,orden]);
+    div.trigger('buscar');
   });
 
   $('[data-js-sortable]').click(function(e){

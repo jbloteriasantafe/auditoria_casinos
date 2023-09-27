@@ -66,7 +66,7 @@ $(function(){
     const descargando = $(this).find('[data-js-descargando]');
     descargando.show();
     const formData = {
-      ...$('[data-js-filtro-tabla]:visible')[0].form_entries(),
+      ...$('[data-js-filtro-tabla]:visible')[0].form_data(),
       completo: $(this).attr('data-descargar-completo')
     };
     AUX.POST(
