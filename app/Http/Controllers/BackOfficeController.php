@@ -76,7 +76,7 @@ class BackOfficeController extends Controller {
         ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','b.id_tipo_moneda')
         ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha'),
         'default_order_by' => [
-          'b.fecha' => 'desc'
+          'b.fecha' => 'asc'
         ],
       ],
       'beneficio_mesas' => [
@@ -114,7 +114,7 @@ class BackOfficeController extends Controller {
         ->leftJoin('cotizacion as cot','cot.fecha','=','idm.fecha')
         ->whereNull('idm.deleted_at'),
         'default_order_by' => [
-          'idm.fecha' => 'desc'
+          'idm.fecha' => 'asc'
         ],
       ],
       'beneficio_bingos' => [
@@ -133,7 +133,7 @@ class BackOfficeController extends Controller {
         ->join('casino as c','c.id_casino','=','bi.id_casino')
         ->groupBy('c.nombre','bi.fecha'),
         'default_order_by' => [
-          'bi.fecha' => 'desc'
+          'bi.fecha' => 'asc'
         ],
       ],
       'producido_maquinas' => [
@@ -163,7 +163,7 @@ class BackOfficeController extends Controller {
         ->join('isla as i','i.id_isla','=','m.id_isla')
         ->groupBy('p.id_producido'),
         'default_order_by' => [
-          'p.fecha' => 'desc'
+          'p.fecha' => 'asc'
         ],
         'count' => DB::table('producido as p')
         ->selectRaw('COUNT(distinct p.id_producido) as count')
