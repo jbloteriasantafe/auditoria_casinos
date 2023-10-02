@@ -244,25 +244,21 @@ function generarFilaImportaciones(imp){
     fila.find('button.producidos').remove();
   }
   
-  if(imp.id_importacion_diaria_cierres !== null){
-    fila.find('.d_relevado' ).append($('<i>').addClass(classbool[1]).css('color',colorbool[1]).css('text-align','center'));
-    fila.find('button.cierres').val(imp.id_importacion_diaria_cierres);
+  let estado_cierre = 0;//Sin importar
+  if(imp.id_importacion_diaria_cierres !== null || (imp.tiene_cierre && imp.todos_los_cierres)){
+    estado_cierre = 1;//Todo importado
   }
-  else if(imp.todos_los_cierres){
-    fila.find('.d_relevado' ).append($('<i>').addClass(classbool[1]).css('color',colorbool[1]).css('text-align','center'));
-    fila.find('button.cierres').remove();
-  }
-  else if(imp.tiene_cierre){
-    fila.find('.d_relevado' ).append($('<i>').addClass(classbool[2]).css('color',colorbool[2]).css('text-align','center'));
-    fila.find('button.cierres').remove();
-  }
-  else{
-    fila.find('.d_relevado' ).append($('<i>').addClass(classbool[0]).css('color',colorbool[0]).css('text-align','center'));
-    fila.find('button.cierres').remove();
+  else if(imp.tiene_cierre && !imp.todos_los_cierres){
+    estado_cierre = 2;//Algunos cierres creados
   }
   
+  fila.find('.d_relevado').append($('<i>').addClass(classbool[estado_cierre]).css('color',colorbool[estado_cierre]).css('text-align','center'));
+  fila.find('button.cierres').val(imp.id_importacion_diaria_cierres);
+  if(imp.id_importacion_diaria_cierres === null)
+    fila.find('button.cierres').remove();
+  
   const validado = (id !== null && imp.validado) | 0;
-  fila.find('.d_validado' ).append($('<i>').addClass(classbool[validado] ).css('color',colorbool[validado] ).css('text-align','center'));
+  fila.find('.d_validado').append($('<i>').addClass(classbool[validado] ).css('color',colorbool[validado] ).css('text-align','center'));
   if(validado){
     fila.find('.valImpD').remove();
   }
