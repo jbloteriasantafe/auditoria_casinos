@@ -86,10 +86,14 @@ class ImportadorController extends Controller
       else if($tipo_mesa->descripcion == $t_mesa) $detalles[] = $d;
     }
   }
-  $detalles = collect($detalles)->map(function($v,$idx){
-    $estados_cierres = array_map(function($c){
-      return is_null($c)? 'SIN RELEVAR' : $c->estado_cierre->descripcion;
-    },$v->cierres);
+  $detalles = collect($detalles)->map(function($v,$idx) use (&$importacion){
+    $estados_cierres = ['SIN CIERRE','SIN CIERRE'];
+    if(!is_null($v->cierres[0])){
+      $estados_cierres[0] = $v->cierres[0]->estado_cierre->descripcion;
+    }
+    if(!is_null($v->cierres[1]) && $v->cierres[1]->fecha == $importacion->fecha){
+      $estados_cierres[1] = $v->cierres[1]->estado_cierre->descripcion;
+    }
     
     $v = $v->toArray();
     $v['estados_cierres'] = $estados_cierres;

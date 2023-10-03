@@ -510,8 +510,8 @@ function generarFilaVerImp(data){
   fila.data('ajuste_fichas',data.ajuste_fichas);
   fila.data('observacion',data.observacion);
 
-  if(!data.cierres[0] || !data.cierres[1]){
-    fila.find('.v_saldofichas_rel').css('background-color','rgb(255,255,180)').attr('title','SIN CIERRES');
+  if(!data.estados_cierres[1] || data.estados_cierres[1] == 'SIN CIERRE'){
+    fila.find('.v_saldofichas_rel').css('background-color','rgb(255,255,180)').attr('title','SIN CIERRE');
   }
   if(data.diferencia_saldo_fichas == 0.0 && (data.ajuste_fichas == 0.0 || data.ajuste_fichas == null)){
     fila.find('.v_ajustar i').removeClass('fa-wrench').addClass('fa-search-plus');
