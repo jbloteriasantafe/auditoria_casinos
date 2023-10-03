@@ -87,15 +87,12 @@ class ImportadorController extends Controller
     }
   }
   $detalles = collect($detalles)->map(function($v,$idx){
-    $cierre = $v->cierre;
-    $estado_cierre = is_null($cierre)? 'SIN RELEVAR' : $cierre->estado_cierre->descripcion;
+    $estados_cierres = array_map(function($c){
+      return is_null($c)? 'SIN RELEVAR' : $c->estado_cierre->descripcion;
+    },$v->cierres);
     
-    $cierre_anterior = $v->cierre_anterior;
-    $estado_cierre_anterior = is_null($cierre_anterior)? 'SIN RELEVAR' : $cierre_anterior->estado_cierre->descripcion;
-
     $v = $v->toArray();
-    $v['estado_cierre'] = $estado_cierre;
-    $v['estado_cierre_anterior'] = $estado_cierre_anterior;
+    $v['estados_cierres'] = $estados_cierres;
     return $v;
   });
   return ['importacion' => $importacion,'casino' => $importacion->casino,'detalles' => $detalles,'moneda' => $importacion->moneda];
@@ -692,5 +689,26 @@ public function importarDiario(Request $request){
     $dompdf->getCanvas()->page_text(20, 815, $casino->codigo."/".$mes, $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
     return $dompdf->stream('informe_mensual_'.$casino->codigo."-".$mes.'.pdf', Array('Attachment'=>0));
+  }
+  
+  public function superuserActualizarTodosLosCierres(Request $request){
+    $es_superusuario = UsuarioController::getInstancia()->quienSoy()['usuario']->es_superusuario;
+    if(!$es_superusuario) return false;
+    return DB::transaction(function() use (&$request){
+      $reglas = [];
+      if(isset($request->id_casino))
+        $reglas[] = ['id_casino','=',$request->id_casino];
+      if(!is_null($request->id_moneda))
+        $reglas[] = ['id_moneda','=',$request->id_moneda];
+      if(!is_null($request->fecha))
+        $reglas[] = ['fecha','=',$request->fecha];
+      
+      $idms = ImportacionDiariaMesas::where($reglas)->get();
+      foreach($idms as $i){
+        dump($i->id_casino.'|'.$i->id_moneda.'|'.$i->fecha);
+        $i->actualizarCierres();
+      }
+      return 1;
+    });
   }
 }

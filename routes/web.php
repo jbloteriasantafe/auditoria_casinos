@@ -832,6 +832,7 @@ Route::group(['prefix' => 'importacionDiaria','middleware' => 'tiene_permiso:m_v
   Route::get('eliminarImportacionCierres/{id_imp}','Mesas\Importaciones\ImportadorController@eliminarCierres');
   Route::post('ajustarDetalle','Mesas\Importaciones\ImportadorController@ajustarDetalle');
   Route::get('imprimirMensual','Mesas\Importaciones\ImportadorController@imprimirMensual');
+  Route::get('superuserActualizarTodosLosCierres','Mesas\Importaciones\ImportadorController@superuserActualizarTodosLosCierres');
 });
 
 Route::group(['prefix' => 'informeAnual','middleware' => 'tiene_permiso:m_bc_anuales'],function (){

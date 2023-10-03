@@ -3,6 +3,7 @@
 namespace App\Mesas;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 //Los cierres se tratan de buscar dinamicamente, una vez encontrados se setean para evitar
 //problemas en el futuro por si cambian el juego/nro de mesa 
@@ -31,12 +32,11 @@ class DetalleImportacionDiariaMesas extends Model
                              'cotizacion_diaria',//dinamico
                              'hold',//dinamico
                              'conversion',//dinamico
-                             'cierre',//dinamico
-                             'cierre_anterior',//dinamico
+                             'cierres',//dinamico
                              'saldo_fichas_relevado',//dinamico
                              'diferencia_saldo_fichas'//dinamico
                            );
-  protected $appends = array('hold','conversion','cierre','cierre_anterior','saldo_fichas_relevado','diferencia_saldo_fichas');
+  protected $appends = array('hold','conversion','cierres','saldo_fichas_relevado','diferencia_saldo_fichas');
 
   public function getCotizacionDiariaAttribute(){
     return $this->importacion_diaria_mesas->cotizacion_diaria;
@@ -86,77 +86,77 @@ class DetalleImportacionDiariaMesas extends Model
     return $mesa;
   }
 
-  private function getCierre($fecha){;
-    $mesa = $this->mesa();
-    if(is_null($mesa)) return null;
-    $imp = $this->importacion_diaria_mesas;
-    $id_moneda = $imp->id_moneda;
-    $cierres =  Cierre::where([['fecha','=',$fecha],['id_moneda','=',$id_moneda],['id_mesa_de_panio','=',$mesa->id_mesa_de_panio]])
-    ->whereNull('deleted_at')->orderBy('fecha','desc')->orderBy('hora_inicio','desc')->get()->toArray();
-    usort($cierres,function($c1,$c2){
-      $c1_pasa_el_dia = $c1['hora_inicio'] > $c1['hora_fin'];
-      $c2_pasa_el_dia = $c2['hora_inicio'] > $c2['hora_fin'];
-      if( $c1_pasa_el_dia && !$c2_pasa_el_dia) return  1;//C1 cierra despues, se le da prioridad
-      if(!$c1_pasa_el_dia &&  $c2_pasa_el_dia) return -1;//C2 cierra despues, se le da prioridad
-      if( $c1_pasa_el_dia ==  $c2_pasa_el_dia){//Si ambos terminan en el mismo dia, nos quedamos con el que cerro mas tarde
-        if($c2['hora_fin'] > $c1['hora_fin']) return -1;//C2 cierra despues, se le da prioridad
-        if($c2['hora_fin'] < $c1['hora_fin']) return  1;//C1 cierra despues, se le da prioridad
-      }
-      return 0;//Son iguales, indiferente
-    });
-    return count($cierres) > 0? 
-      Cierre::find($cierres[count($cierres)-1]['id_cierre_mesa']) 
-    : null;
-  }
-
   //Si en algun momento se quisiera que se actualice de todos modos, llamar el metodo con el valor en true
-  public function getCierreAttribute($actualizar = false){
+  public function getCierresAttribute(){
     $imp = $this->importacion_diaria_mesas;
-    //Si esta validado, retorno lo que esta
-    if(!$actualizar && $imp->validado){
-      return is_null($this->id_cierre_mesa)? null : Cierre::withTrashed()->find($this->id_cierre_mesa);
+    
+    if($imp->validado){//Si esta validado, retorno lo que esta    
+      return [
+        is_null($this->id_cierre_mesa_anterior)? null 
+        : Cierre::withTrashed()->find($this->id_cierre_mesa_anterior),
+        is_null($this->id_cierre_mesa)? null 
+        : Cierre::withTrashed()->find($this->id_cierre_mesa),
+      ];
     }
-    //Si no esta validado y ya esta seteado, lo retorno
-    if(!$actualizar && !is_null($this->id_cierre_mesa)){
-      $cierre = Cierre::find($this->id_cierre_mesa);
-      //Si lo borraron, sigo de largo para actualizarlo al mas actual
-      if(!is_null($cierre)) return $cierre;
+    
+    //Si no esta validado SIEMPRE lo actualizo al consultarse
+    $cierres = null;
+    {
+      $mesa = $this->mesa();
+      if(is_null($mesa)) return [null,null];
+      
+      $cierres = Cierre::where([
+        ['fecha','<=',$imp->fecha],
+        ['id_moneda','=', $imp->id_moneda],
+        ['id_mesa_de_panio','=',$mesa->id_mesa_de_panio]
+      ])->whereNull('deleted_at')
+      ->orderBy('fecha','desc')
+      ->orderBy('hora_inicio','desc')
+      //Si termina despues del dia se le da prioridad
+      ->orderBy(DB::raw('IF(hora_inicio > hora_fin,CONCAT(9,hora_fin),hora_fin)'),'desc')
+      ->take(2)->get()->reverse()->values();
     }
-    //Si no esta validado, y no esta seteado, trato de buscarle un cierre (y lo seteo)
-    $cierre = $this->getCierre($imp->fecha);
-    if(!is_null($cierre)){
-      $this->id_cierre_mesa = $cierre->id_cierre_mesa;
-      $this->save();//@SLOW si se actualizan muchos cierres al mismo tiempo
+    
+    $cierres_a_guardar = [];
+    switch($cierres->count()){
+      case 2:{
+        if($cierres[1]->fecha == $imp->fecha){
+          $cierres_a_guardar = [$cierres[0],$cierres[1]];
+        }
+        else{
+          //El ultimo es anterior a la fecha,
+          //por lo que no esta informado en la importacion
+          //El anterior es el ultimo informado y el "actual" tambien
+          $cierres_a_guardar = [$cierres[1],$cierres[1]];
+        }
+      }break;
+      case 1:{//Primer cierre de una mesa nueva
+        $cierres_a_guardar = [$cierres[0],$cierres[0]];
+      }break;
+      default:{//No hay cierres informados de la mesa
+        $cierres_a_guardar = [null,null];
+      }break;
     }
-    return $cierre;
+    
+    $this->id_cierre_mesa_anterior = is_null($cierres_a_guardar[0])? 
+      null 
+      : $cierres_a_guardar[0]->id_cierre_mesa;
+    $this->id_cierre_mesa          = is_null($cierres_a_guardar[1])? 
+      null 
+      : $cierres_a_guardar[1]->id_cierre_mesa;
+    
+    $this->save();
+    
+    return $cierres_a_guardar;
   }
-  public function getCierreAnteriorAttribute($actualizar = false){
-    $imp = $this->importacion_diaria_mesas;
 
-    if(!$actualizar && $imp->validado){
-      return is_null($this->id_cierre_mesa_anterior)? null : Cierre::withTrashed()->find($this->id_cierre_mesa_anterior);
-    }
-
-    if(!$actualizar && !is_null($this->id_cierre_mesa_anterior)){
-      $cierre = Cierre::find($this->id_cierre_mesa_anterior);
-      if(!is_null($cierre)) return $cierre;
-    }
-
-    $cierre = $this->getCierre(date("Y-m-d", strtotime($imp->fecha . " -1 days")));
-    if(!is_null($cierre)){
-      $this->id_cierre_mesa_anterior = $cierre->id_cierre_mesa;
-      $this->save();
-    }
-    return $cierre;
-  }
-
-  public function getSaldoFichasRelevadoAttribute(){
-    $fichas = $this->cierre;
-    $fichas = is_null($fichas)? 0 : $fichas->total_pesos_fichas_c;
-    $fichas_anterior = $this->cierre_anterior;
-    $fichas_anterior = is_null($fichas_anterior)? 0 : $fichas_anterior->total_pesos_fichas_c;
-    $saldo_relevado = $fichas - $fichas_anterior;
-    return $saldo_relevado;
+  public function getSaldoFichasRelevadoAttribute(){   
+    $fichas = array_map(function($c){
+      if(is_null($c)) return 0;
+      return $c->total_pesos_fichas_c;
+    },$this->cierres);
+    
+    return $fichas[1]-$fichas[0];
   }    
 
   public function getDiferenciaSaldoFichasAttribute(){

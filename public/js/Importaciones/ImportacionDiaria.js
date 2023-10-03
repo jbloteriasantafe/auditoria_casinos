@@ -426,30 +426,24 @@ $(document).on('click','.v_ajustar',function(e){
   e.preventDefault();
   ocultarErrorValidacion($('#ajuste input'));
   const fila = $(this).closest('tr');
-  const cierre = fila.data('cierre');
-  const estado_cierre = fila.data('estado_cierre');
-  const cierre_anterior = fila.data('cierre_anterior');
-  const estado_cierre_anterior = fila.data('estado_cierre_anterior');
-  if(cierre != null){
-    $('#cierre').find('.fecha_cierre').text(cierre.fecha+" "+cierre.hora_inicio_format+"-"+cierre.hora_fin_format);
-    $('#cierre').find('.estado_cierre').text(estado_cierre);
-    $('#cierre').find('.fichas_cierre').text(clearNull(cierre.total_pesos_fichas_c));
-  }
-  else{
-    $('#cierre').find('.fecha_cierre').text('--');
-    $('#cierre').find('.estado_cierre').text('SIN RELEVAR');
-    $('#cierre').find('.fichas_cierre').text('--');
-  }
-  if(cierre_anterior != null){
-    $('#cierre_anterior').find('.fecha_cierre').text(cierre_anterior.fecha+" "+cierre_anterior.hora_inicio_format+"-"+cierre_anterior.hora_fin_format);
-    $('#cierre_anterior').find('.estado_cierre').text(estado_cierre_anterior);
-    $('#cierre_anterior').find('.fichas_cierre').text(clearNull(cierre_anterior.total_pesos_fichas_c));
-  }
-  else{
-    $('#cierre_anterior').find('.fecha_cierre').text('--');
-    $('#cierre_anterior').find('.estado_cierre').text('SIN RELEVAR');
-    $('#cierre_anterior').find('.fichas_cierre').text('--');
-  }
+  const cierres = fila.data('cierres');
+  const estados_cierres = fila.data('estados_cierres');
+  const selects = [$('#cierre_anterior'),$('#cierre')];
+  selects.forEach(function($c,idx){
+    const c = cierres[idx];
+    if(c != null){
+      const e = estados_cierres[idx];
+      $c.find('.fecha_cierre').text(`${c.fecha} ${c.hora_inicio_format}-${c.hora_fin_format}`);
+      $c.find('.estado_cierre').text(e);
+      $c.find('.fichas_cierre').text(clearNull(c.total_pesos_fichas_c));
+    }
+    else{
+      $c.find('.fecha_cierre').text('--');
+      $c.find('.estado_cierre').text('SIN RELEVAR');
+      $c.find('.fichas_cierre').text('--');
+    }
+  });
+  
   const ajuste = fila.data('ajuste_fichas');
   const observaciones = fila.data('observacion');
   const habilitar_ajuste = (fila.data('diferencia') != 0.0 || (ajuste != 0.0 && ajuste != null)) && ($('#guardar-observacion').data('modo') == "validar");
@@ -511,14 +505,12 @@ function generarFilaVerImp(data){
   text(fila.find('.v_utilidad'),data.utilidad);
   text(fila.find('.v_hold'),data.hold);
 
-  fila.data('cierre',data.cierre);
-  fila.data('estado_cierre',data.estado_cierre);
-  fila.data('cierre_anterior',data.cierre_anterior);
-  fila.data('estado_cierre_anterior',data.estado_cierre_anterior);
+  fila.data('cierres',data.cierres);
+  fila.data('estados_cierres',data.estados_cierres);
   fila.data('ajuste_fichas',data.ajuste_fichas);
   fila.data('observacion',data.observacion);
 
-  if(!data.cierre || !data.cierre_anterior){
+  if(!data.cierres[0] || !data.cierres[1]){
     fila.find('.v_saldofichas_rel').css('background-color','rgb(255,255,180)').attr('title','SIN CIERRES');
   }
   if(data.diferencia_saldo_fichas == 0.0 && (data.ajuste_fichas == 0.0 || data.ajuste_fichas == null)){
