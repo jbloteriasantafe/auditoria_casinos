@@ -72,9 +72,9 @@ class ImportacionDiariaMesas extends Model
     return $this->saldo_fichas - $this->saldo_fichas_relevado + $this->ajuste_fichas + $this->propina;
   }
 
-  public function actualizarCierres(){
+  public function actualizarCierres($forzar_actualizacion = false){
     foreach($this->detalles as $d){
-      $d->cierres;//al tocarlo lo actualiza porque es un attributo dinamico
+      $d->actualizarCierres($forzar_actualizacion);
     }
   }
 

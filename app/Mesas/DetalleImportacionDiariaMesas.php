@@ -85,9 +85,8 @@ class DetalleImportacionDiariaMesas extends Model
     
     return $mesa;
   }
-
-  //Si en algun momento se quisiera que se actualice de todos modos, llamar el metodo con el valor en true
-  public function getCierresAttribute(){
+  
+  public function actualizarCierres($forzar_actualizacion = false){
     $imp = $this->importacion_diaria_mesas;
     
     if($imp->validado){//Si esta validado, retorno lo que esta    
@@ -99,25 +98,35 @@ class DetalleImportacionDiariaMesas extends Model
       ];
     }
     
-    //Si no esta validado SIEMPRE lo actualizo al consultarse
-    $cierres = null;
-    {
+    $cierres = collect([]);
+    if($forzar_actualizacion || is_null($this->id_cierre_mesa_anterior) || is_null($this->id_cierre_mesa)){
       $mesa = $this->mesa();
-      if(is_null($mesa)) return [null,null];
-      
-      $cierres = Cierre::where([
-        ['fecha','<=',$imp->fecha],
-        ['id_moneda','=', $imp->id_moneda],
-        ['id_mesa_de_panio','=',$mesa->id_mesa_de_panio]
-      ])->whereNull('deleted_at')
-      ->orderBy('fecha','desc')
-      ->orderBy('hora_inicio','desc')
-      //Si termina despues del dia se le da prioridad
-      ->orderBy(DB::raw('IF(hora_inicio > hora_fin,CONCAT(9,hora_fin),hora_fin)'),'desc')
-      ->take(2)->get()->reverse()->values();
+      if(!is_null($mesa)){
+        $cierres = Cierre::where([
+          ['fecha','<=',$imp->fecha],
+          ['id_moneda','=', $imp->id_moneda],
+          ['id_mesa_de_panio','=',$mesa->id_mesa_de_panio]
+        ])->whereNull('deleted_at')
+        ->orderBy('fecha','desc')
+        ->orderBy('hora_inicio','desc')
+        //Si termina despues del dia se le da prioridad
+        ->orderBy(DB::raw('IF(hora_inicio > hora_fin,CONCAT(9,hora_fin),hora_fin)'),'desc')
+        ->take(2)->get()->reverse()->values();
+      }
+    }
+    else{
+      $c = Cierre::find($this->id_cierre_mesa_anterior);
+      if(!is_null($c)){
+        $cierres->push($c);
+      }
+
+      $c = Cierre::find($this->id_cierre_mesa);
+      if(!is_null($c)){
+        $cierres->push($c);
+      }
     }
     
-    $cierres_a_guardar = [];
+    $cierres_a_guardar = null;
     switch($cierres->count()){
       case 2:{
         if($cierres[1]->fecha == $imp->fecha){
@@ -126,12 +135,12 @@ class DetalleImportacionDiariaMesas extends Model
         else{
           //El ultimo es anterior a la fecha,
           //por lo que no esta informado en la importacion
-          //El anterior es el ultimo informado y el "actual" tambien
-          $cierres_a_guardar = [$cierres[1],$cierres[1]];
+          //El anterior es el ultimo informado
+          $cierres_a_guardar = [$cierres[1],null];
         }
       }break;
       case 1:{//Primer cierre de una mesa nueva
-        $cierres_a_guardar = [$cierres[0],$cierres[0]];
+        $cierres_a_guardar = [null,$cierres[0]];
       }break;
       default:{//No hay cierres informados de la mesa
         $cierres_a_guardar = [null,null];
@@ -150,13 +159,29 @@ class DetalleImportacionDiariaMesas extends Model
     return $cierres_a_guardar;
   }
 
+  public function getCierresAttribute(){
+    return $this->actualizarCierres(false);
+  }
+
   public function getSaldoFichasRelevadoAttribute(){   
-    $fichas = array_map(function($c){
-      if(is_null($c)) return 0;
-      return $c->total_pesos_fichas_c;
-    },$this->cierres);
-    
-    return $fichas[1]-$fichas[0];
+    $cierres = $this->cierres;
+    $c0 = $cierres[0];
+    $c1 = $cierres[1];
+    //No tiene cierres
+    if( is_null($c0) &&  is_null($c1))
+      return 0;//retornar null?
+      
+    //No esta informado el cierre para la fecha por lo que se asume
+    //que el saldo fichas sigue igual (osea la resta da 0)
+    if(!is_null($c0) &&  is_null($c1))
+      return 0;
+      
+    //Es el primer cierre de la mesa por lo que el saldo fichas es
+    //el la cantidad de fichas informadas
+    if( is_null($c0) && !is_null($c1))
+      return $c1->total_pesos_fichas_c;
+          
+    return $c1->total_pesos_fichas_c-$c0->total_pesos_fichas_c;
   }    
 
   public function getDiferenciaSaldoFichasAttribute(){

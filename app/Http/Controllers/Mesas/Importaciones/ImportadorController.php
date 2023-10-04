@@ -203,6 +203,46 @@ public function importarCierres(Request $request){
       $error = $this->crearCierre($idc->id_importacion_diaria_cierres,$id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin,$cod_juego,$hora_apertura,$hora_cierre,$anticipos,$total,$fichas);
       if(!is_null($error)) $errores[] = "$cod_juego$nro_admin: $error";
     }
+        
+    {//Ineficiente, se puede hacer por mesa y verificar si ya se actualizo 
+      $mesas = $idc->cierres()
+      ->select('id_mesa_de_panio')
+      ->get()
+      ->pluck('id_mesa_de_panio');
+      
+      
+      $prox_cierre_fecha = DB::table('cierre_mesa as c')
+      ->selectRaw('MAX(c.fecha) as fecha')
+      ->where([
+        ['id_casino','=',$id_casino],
+        ['id_moneda','=',$id_moneda],
+        ['fecha','>',$fecha],
+      ])
+      ->whereNull('deleted_at')
+      ->whereIn('id_mesa_de_panio',$mesas)
+      ->groupBy(DB::raw('"constant"'))
+      ->first();
+      
+      $reglas = [
+        ['id_casino','=',$id_casino],
+        ['id_moneda','=',$id_moneda],
+      ];
+      
+      if(is_null($prox_cierre_fecha) || is_null($prox_cierre_fecha->fecha)){
+        $reglas[] = ['fecha','=',$fecha];
+      }
+      else{
+        $reglas[] = ['fecha','>=',$fecha];
+        $reglas[] = ['fecha','<=',$prox_cierre_fecha->fecha];
+      }
+      
+      $idcs = ImportacionDiariaMesas::where($reglas)
+      ->orderBy('fecha','asc')->get();
+      
+      foreach($idcs as $i){
+        $i->actualizarCierres(true);
+      }
+    }
   }
   catch(Exception $e){
     DB::rollback();
@@ -455,7 +495,7 @@ public function importarDiario(Request $request){
   
       $importacion->nombre_csv = $request->archivo->getClientOriginalName();
       $importacion->save();
-      $importacion->actualizarCierres();
+      $importacion->actualizarCierres(true);
 
       DB::table('filas_csv_mesas_bingos')->where('id_archivo','=',$iid)->delete();
     });
@@ -710,7 +750,7 @@ public function importarDiario(Request $request){
       $idms = ImportacionDiariaMesas::where($reglas)->get();
       foreach($idms as $i){
         dump($i->id_casino.'|'.$i->id_moneda.'|'.$i->fecha);
-        $i->actualizarCierres();
+        $i->actualizarCierres(true);
       }
       return 1;
     });
