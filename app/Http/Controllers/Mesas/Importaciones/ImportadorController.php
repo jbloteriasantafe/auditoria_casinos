@@ -103,7 +103,7 @@ class ImportadorController extends Controller
     $d = $d->toArray();
     $d['estados_cierres'] = $estados_cierres;
     return $d;
-  });
+  })->values();
   
   return ['importacion' => $importacion,'casino' => $importacion->casino,'detalles' => $detalles,'moneda' => $importacion->moneda];
 }
