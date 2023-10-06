@@ -76,29 +76,35 @@ class ImportadorController extends Controller
  public function buscarPorTipoMesa($id_importacion,$t_mesa = null){
   //Si no manda mesa, retorno las que no se encontraron su tipo
   $importacion =  ImportacionDiariaMesas::find($id_importacion);
-  $detalles = [];
-  foreach($importacion->detalles as $d){
-    if($t_mesa == "TODOS") $detalles[] = $d;
-    else{
-      $juego = $d->juego_mesa();
-      $tipo_mesa = is_null($juego)? null : $juego->tipo_mesa;
-      if(is_null($tipo_mesa) && is_null($t_mesa)) $detalles[] = $d;
-      else if($tipo_mesa->descripcion == $t_mesa) $detalles[] = $d;
-    }
-  }
-  $detalles = collect($detalles)->map(function($v,$idx) use (&$importacion){
-    $estados_cierres = ['SIN CIERRE','SIN CIERRE'];
-    if(!is_null($v->cierres[0])){
-      $estados_cierres[0] = $v->cierres[0]->estado_cierre->descripcion;
-    }
-    if(!is_null($v->cierres[1]) && $v->cierres[1]->fecha == $importacion->fecha){
-      $estados_cierres[1] = $v->cierres[1]->estado_cierre->descripcion;
+  
+  $detalles = $importacion->detalles
+  ->filter(function($d) use ($t_mesa){
+    if($t_mesa == "TODOS") return true;
+    
+    $juego = $d->juego_mesa();
+    if(is_null($juego)) return false;
+    
+    $tipo_mesa = $juego->tipo_mesa;
+    if(is_null($tipo_mesa)){
+      return is_null($t_mesa);
     }
     
-    $v = $v->toArray();
-    $v['estados_cierres'] = $estados_cierres;
-    return $v;
+    return $tipo_mesa->descripcion == $t_mesa;
+  })
+  ->map(function($d) use (&$importacion){
+    $estados_cierres = ['SIN CIERRE','SIN CIERRE'];
+    if(!is_null($d->cierres[0])){
+      $estados_cierres[0] = $d->cierres[0]->estado_cierre->descripcion;
+    }
+    if(!is_null($d->cierres[1]) && $d->cierres[1]->fecha == $importacion->fecha){
+      $estados_cierres[1] = $d->cierres[1]->estado_cierre->descripcion;
+    }
+    
+    $d = $d->toArray();
+    $d['estados_cierres'] = $estados_cierres;
+    return $d;
   });
+  
   return ['importacion' => $importacion,'casino' => $importacion->casino,'detalles' => $detalles,'moneda' => $importacion->moneda];
 }
 
