@@ -35,46 +35,34 @@ $(document).ready(function(){
 });
 
 //SI INGRESA ALGO EN ALGUN INPUT, se recalcula la diferencia
-//Lo mas logico seria recalcular en el backend pero no hace tan responsive el input
 $(document).on('input', '#frmCargaProducidos input' , function(e){
   $('#btn-salir').data('salida',false);
   $('#modalCargaProducidos .mensajeSalida span').hide();
-
-  //actualizo la diferencia
-  const denominacion       = parseFloat($('#data-denominacion').val());
-  const coinin_inicial     = parseInt($('#coininIni').val())  * denominacion;
-  const coinout_inicial    = parseInt($('#coinoutIni').val()) * denominacion;
-  const jackpot_inicial    = parseInt($('#jackIni').val())    * denominacion;
-  const progresivo_inicial = parseInt($('#progIni').val())    * denominacion;
-  const coinin_final       = parseInt($('#coininFin').val())  * denominacion;
-  const coinout_final      = parseInt($('#coinoutFin').val()) * denominacion;
-  const jackpot_final      = parseInt($('#jackFin').val())    * denominacion;
-  const progresivo_final   = parseInt($('#progFin').val())    * denominacion;
-  const producido_sistema  = parseFloat($('#prodSist').val());
-  const valor_final        = coinin_final   - coinout_final   - jackpot_final   - progresivo_final;
-  const valor_inicio       = coinin_inicial - coinout_inicial - jackpot_inicial - progresivo_inicial;
-
-  //Aca esta redondeando a 2 digitos
-  const producido_calculado = Math.round((valor_final - valor_inicio)*100)/100;
-  const diferencia          = Math.round((producido_calculado - producido_sistema)*100)/100;
-  $('#prodCalc').val(producido_calculado);
-  $('#diferencias').text(diferencia);
-  if(diferencia == 0){
-    $('#btn-finalizar').show();
-  }
-})
-
-function detectarVueltaContadores(){
-  const conts = ['coinin','coinout','jack','prog'];
-  //Chequeo si algun contador final es menor al inicial
-  for(const idx in conts){
-    const c = conts[idx];
-    const ini = parseInt($('#'+c+'Ini').val());
-    const fin = parseInt($('#'+c+'Fin').val());
-    if(fin < ini) return c;
-  }
-  return null;
-}
+  $.ajax({
+    type: 'POST',
+    url: 'producidos/calcularDiferencia',
+    data: {
+      coinin_inicio:       $('#coininIni').val(),
+      coinout_inicio:      $('#coinoutIni').val(),
+      jackpot_inicio:      $('#jackIni').val(),
+      progresivo_inicio:   $('#progIni').val(),
+      denominacion_inicio: $('#denIni').val(),
+      coinin_final:       $('#coininFin').val(),
+      coinout_final:      $('#coinoutFin').val(),
+      jackpot_final:      $('#jackFin').val(),
+      progresivo_final:   $('#progFin').val(),
+      denominacion_final: $('#denFin').val(),
+      producido: $('#prodSist').val(),
+    },
+    dataType: 'json',
+    success: function (data) {
+      $('#prodCalc').val(data.producido_calculado);
+      $('#diferencias').text(data.diferencia);
+      $('#btn-finalizar').toggle(data.diferencia == 0);
+    },
+    error: function (data) { console.log(data); },
+  });
+});
 
 $(document).on('change','#tipoAjuste',function(){
   //Ver tabla en ProducidoController:guardarAjuste
@@ -89,67 +77,13 @@ $(document).on('change','#tipoAjuste',function(){
   //Vuelvo a los valores originales
   $('.cont_finales input,.cont_iniciales input').each(function(){$(this).val($(this).data('original'));});
   $('#prodSist').val($('#prodSist').data('original')).trigger('input');//Trigger para recalcular
-  const permitir_ajuste_automatico = [0,1,3,5];
-  $('#ajustarProducido').attr('disabled',!permitir_ajuste_automatico.includes(id_tipo_ajuste));
-});
-
-$('#ajustarProducido').click(function(){
-  switch($('#tipoAjuste').val()){
-    case '0':
-    {//No selecciono nada
-      const ini = $('#coininIni,#coinoutIni,#jackIni,#progIni')
-      .map(function(idx,obj){return $(obj).val();}).toArray().join('|');
-      const fin  = $('#coininFin,#coinoutFin,#jackFin,#progFin')
-      .map(function(idx,obj){return $(obj).val();}).toArray().join('|');
-      const ceros = '0|0|0|0';
-      const dif = parseFloat($('#diferencias').text());
-
-      let ajuste = null;
-      if     (ini == ceros && fin != ceros) ajuste = "5";
-      else if(ini != ceros && fin == ceros) ajuste = "3";
-      //No estoy seguro si esto agarra 100% de los casos
-      //No deberia haber dif = 0 pero bueno por las dudas chequeo
-      else if((dif%1000000) == 0 && dif != 0 && detectarVueltaContadores() != null) ajuste = '1';
-
-      if(ajuste == null) return;
-
-      $('#tipoAjuste').val(ajuste).change();
-      $('#ajustarProducido').click();
-    }break;
-    case '5'://Cambio contadores iniciales
-    {
-      $('#coininIni').val($('#coininFin').val());
-      $('#coinoutIni').val($('#coinoutFin').val());
-      $('#jackIni').val($('#jackFin').val());
-      $('#progIni').val($('#progFin').val()).focusout();
-    }break;
-    case '3'://Cambio contadores finales
-    {
-      $('#coininFin').val($('#coininIni').val());
-      $('#coinoutFin').val($('#coinoutIni').val());
-      $('#jackFin').val($('#jackIni').val());
-      $('#progFin').val($('#progIni').val()).focusout();
-    }break;
-    case '1'://Vuelta de contadores
-    {
-      const dif = parseFloat($('#diferencias').text());
-      if((dif%1000000) != 0) break;
-      const c = detectarVueltaContadores();
-      if(c == null) break;
-      const fix = Math.abs(dif/parseFloat($('#data-denominacion').val()));
-      const contador = $('#'+c+'Fin');
-      contador.val(parseFloat(contador.val())+fix).focusout();
-    }break;
-    default:{
-    }break;
-  }
 });
 
 //Permite hacer aritmetica basica en los campos
-$(document).on('focusout' ,'#frmCargaProducidos input' , function(e){
+$(document).on('focusout' ,'#frmCargaProducidos input[type="text"]' , function(e){
   if($(this).val() == '') $(this).val(0);
 
-const val = $(this).val().replaceAll(/(^|[-+*/])0+[1-9][0-9]*/g,function(match){
+  const val = $(this).val().replaceAll(/(^|[-+*/])0+[1-9][0-9]*/g,function(match){
     //Elimino los 0s de adelante para evitar que javascript interprete numeros como octales >:(
     //Osea pasa 0123+004123*0532 a 123+4123*532
     if(['-','+','*','/'].indexOf(match[0]) != -1){//Si el primer caracter es un operador
@@ -243,15 +177,17 @@ $(document).on('click','.infoMaq',function(e){
     $('#btn-finalizar').attr('data-id',id_maq);
 
     $('#columnaDetalle').show();
-    $('#info-denominacion').html('CONTADORES EN CRÉDITOS, DENOMINACIÓN BASE "'+data.producidos_con_diferencia[0].denominacion+'" (Solo Rosario)');
+    $('#info-denominacion').html('CONTADORES EN CRÉDITOS');
     $('#coinoutIni').val(data.producidos_con_diferencia[0].coinout_inicio);
     $('#coininIni').val(data.producidos_con_diferencia[0].coinin_inicio);
     $('#jackIni').val(data.producidos_con_diferencia[0].jackpot_inicio);
     $('#progIni').val(data.producidos_con_diferencia[0].progresivo_inicio);
+    $('#denIni').val(data.producidos_con_diferencia[0].denominacion_inicio);
     $('#coininFin').val(data.producidos_con_diferencia[0].coinin_final);
     $('#coinoutFin').val(data.producidos_con_diferencia[0].coinout_final);
     $('#jackFin').val(data.producidos_con_diferencia[0].jackpot_final);
     $('#progFin').val(data.producidos_con_diferencia[0].progresivo_final);
+    $('#denFin').val(data.producidos_con_diferencia[0].denominacion_final);
     $('#prodCalc').val(data.producidos_con_diferencia[0].delta).prop('disabled', true);
     $('#prodSist').val(data.producidos_con_diferencia[0].producido);
 
@@ -265,8 +201,6 @@ $(document).on('click','.infoMaq',function(e){
     }
     //de momento no esta recuperando el valor del texto de observaciones por lo que se resetea manualmente
     $('#prodObservaciones').val(data.producidos_con_diferencia[0].observacion);
-    //inputs ocultos en el form
-    $('#data-denominacion').val(data.producidos_con_diferencia[0].denominacion);
     $('#data-detalle-final').val(data.producidos_con_diferencia[0].id_detalle_contador_final);
     $('#data-detalle-inicial').val(data.producidos_con_diferencia[0].id_detalle_contador_inicial);
     $('#data-producido').val(data.producidos_con_diferencia[0].id_detalle_producido);
@@ -297,15 +231,16 @@ function guardarFilaDiferenciaCero(){ //POST CON DATOS CARGADOS
   $('#mensajeExito').hide();
 
   const formData = {
-    denominacion: $('#data-denominacion').val(),
-    coinin_inicio:     parseInt($('#coininIni').val()),
-    coinin_final:       parseInt($('#coininFin').val()),
-    coinout_inicio:    parseInt($('#coinoutIni').val()),
-    coinout_final:      parseInt($('#coinoutFin').val()),
-    jackpot_inicio:    parseInt($('#jackIni').val()),
-    jackpot_final:      parseInt($('#jackFin').val()),
-    progresivo_inicio: parseInt($('#progIni').val()),
-    progresivo_final:   parseInt($('#progFin').val()),
+    coinin_inicio:       $('#coininIni').val(),
+    coinout_inicio:      $('#coinoutIni').val(),
+    jackpot_inicio:      $('#jackIni').val(),
+    progresivo_inicio:   $('#progIni').val(),
+    denominacion_inicio: $('#denIni').val(),
+    coinin_final:       $('#coininFin').val(),
+    coinout_final:      $('#coinoutFin').val(),
+    jackpot_final:      $('#jackFin').val(),
+    progresivo_final:   $('#progFin').val(),
+    denominacion_final: $('#denFin').val(),
     id_detalle_producido:        $('#data-producido').val(),
     id_detalle_contador_final:   $('#data-detalle-final').val() != undefined ?  $('#data-detalle-final').val() : null,
     id_detalle_contador_inicial: $('#data-detalle-inicial').val() != undefined ?  $('#data-detalle-inicial').val() : null,
@@ -357,17 +292,9 @@ function guardarFilaDiferenciaCero(){ //POST CON DATOS CARGADOS
 function limpiarCuerpoTabla(){ //LIMPIA LOS DATOS DEL FORM DE DETALLE
   $('#btn-finalizar').hide();
   $('#cuerpoTabla').empty();
-  $('#coinoutIni').val("");
-  $('#coininIni').val("");
-  $('#jackIni').val("");
-  $('#progIni').val("");
-  $('#coininFin').val("");
-  $('#coinoutFin').val("");
-  $('#jackFin').val("");
-  $('#progFin').val("");
-  $('#prodCalc').val("");
-  $('#prodSist').val("");
-  $('#diferencias').val("");
+  $('#coininIni,#coinoutIni,#jackIni,#progIni,#denIni,\
+     #coininFin,#coinoutFin,#jackFin,#progFin,#denIni,\
+     #prodCalc,#prodSist,#diferencias').val("");
   $('#data-detalle-final').val("");
   $('#data-detalle-inicial').val("");
   $('#tipoAjuste option').not('.default1').remove().val(0);

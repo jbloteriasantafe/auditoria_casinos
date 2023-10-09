@@ -210,8 +210,8 @@ class LectorCSVController extends Controller
 
     //obtener mtm e ir insertando en detalle contador horario
     //cambiar sentencia para actualizar los campos de contadores donde la mtm y el id contador sean iguales
-    $query = sprintf(" INSERT INTO detalle_contador_horario (coinin,coinout,jackpot,id_maquina,id_contador_horario,isla)
-                       SELECT ct.coinin, ct.coinout, ct.jackpot, mtm.id_maquina, ct.id_contador_horario, ct.isla
+    $query = sprintf(" INSERT INTO detalle_contador_horario (coinin,coinout,jackpot,id_maquina,id_contador_horario,denominacion_carga,isla)
+                       SELECT ct.coinin, ct.coinout, ct.jackpot, mtm.id_maquina, ct.id_contador_horario,mtm.denominacion,ct.isla
                        FROM contadores_temporal AS ct, maquina AS mtm,
                             (SELECT MAX(horario) AS horario, maquina
                              FROM contadores_temporal

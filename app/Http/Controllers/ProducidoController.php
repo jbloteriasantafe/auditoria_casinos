@@ -32,37 +32,55 @@ class ProducidoController extends Controller
     //para santa fe y melincue que se importa en pesos, la denominacion de carga es 1, por lo que no afecta, pero en rosario, que se importa en creditos, si importa y tiene q ser distinto de 1
     //conclusion, si es de Santa Fe queda en plata, porque la denominacion es 1, si es de rosario se hace un cambio previo para cambiarlo a creditos
     
-    //Lo paso a creditos, en Rosario se usa "denominacion_carga" porque se toma la que esta al momento al importar
-    //En SantaFe/Mel uso la de la maquina (tiene denominacion_carga = 1 por defecto)
-    //Como la division es de izquierda a derecha, termina pasando a creditos
-    //x/denominacion_carga/denominacion
-    //Si es de SantaFe Melinque => x/1/denominacion = x/denominacion
-    //Si es de Rosario => x/denominacion_carga/1 = x/denominacion_carga
-
     //Se hizo de esta forma porque pensaba que era el cuello de botella (funcionaba MUUUY lento). Despues descubri que el cuello de botella
     //era el join complejo de contador_horario, le termine agregando un indice y lo hizo MUCHO mas rapido. Es totalmente razonable
     //(y mas mantenible) devolver los valores brutos para cada atributo y a estos calculos hacerlos en PHP, ahora creo que ya quedo asi y
     //no quiero tocarlo por ahora - Octavio 29 Junio 2021
-    $a_credito_ini = 'IFNULL(dc_ini.denominacion_carga,1.0)/IF(p.id_casino = 3,1.0,m.denominacion)';
-    $coinin_ini = 'IFNULL(dc_ini.coinin,.0)/'.$a_credito_ini;
-    $coinout_ini = 'IFNULL(dc_ini.coinout,.0)/'.$a_credito_ini;
-    $jackpot_ini = 'IFNULL(dc_ini.jackpot,.0)/'.$a_credito_ini;
-    $progresivo_ini = 'IFNULL(dc_ini.progresivo,.0)/'.$a_credito_ini;
-    $a_credito_fin = 'IFNULL(dc_fin.denominacion_carga,1.0)/IF(p.id_casino = 3,1.0,m.denominacion)';
-    $coinin_fin = 'IFNULL(dc_fin.coinin,.0)/'.$a_credito_fin;
-    $coinout_fin = 'IFNULL(dc_fin.coinout,.0)/'.$a_credito_fin;
-    $jackpot_fin = 'IFNULL(dc_fin.jackpot,.0)/'.$a_credito_fin;
-    $progresivo_fin = 'IFNULL(dc_fin.progresivo,.0)/'.$a_credito_fin;
-
-    //plata para santa fe y credito para rosario
-    $valor_inicio = sprintf('%s - %s - %s - %s',$coinin_ini,$coinout_ini,$jackpot_ini,$progresivo_ini);
-    $valor_final  = sprintf('%s - %s - %s - %s',$coinin_fin,$coinout_fin,$jackpot_fin,$progresivo_fin);
-    //Se pasa a plata para comparar 
-    $delta        = sprintf('ROUND(m.denominacion*((%s) - (%s)),2)',$valor_final,$valor_inicio);//denominacion * (creditos-creditos) = plata
-    $diferencia   = sprintf('ROUND((%s)-dp.valor,2)',$delta);//plata - plata
-    $valor_cred   = 'dp.valor/m.denominacion'; //(Al parecer) El dp.valor esta siempre en plata independiente del casino
+    
+    //Originalmente NO se cargaba la denominacion al momento de importacion para
+    //los casinos de SFE y MEL (se cargaba 1.0). Esto lo modifique para que:
+    //1) Sea uniforme entre todos los casinos
+    //2) Poder manejar un cambio de denominación con un tipo de ajuste nuevo
+    //Ergo, se usan en este orden de prioridad
+    //denominacion_carga SI NO es 1.0 o nula -> m.denominacion SI NO es nula -> 1.0 (fallback)
+    
+    //Los contadores estan guardados en plata, se pasa a creditos para mostrarlos
+    //porque los sistemas de los casinos usan creditos. Si hay que hacer ajustes
+    //el auditor necesita verlo asi
+    $deno_ini = 'COALESCE(NULLIF(dc_ini.denominacion_carga,1.0),m.denominacion,1.0)';
+    $coinin_ini = "IFNULL(dc_ini.coinin,.0)/$deno_ini";
+    $coinout_ini = "IFNULL(dc_ini.coinout,.0)/$deno_ini";
+    $jackpot_ini = "IFNULL(dc_ini.jackpot,.0)/$deno_ini";
+    $progresivo_ini = "IFNULL(dc_ini.progresivo,.0)/$deno_ini";
+    
+    $deno_fin = 'COALESCE(NULLIF(dc_fin.denominacion_carga,1.0),m.denominacion,1.0)';
+    $coinin_fin = "IFNULL(dc_fin.coinin,.0)/$deno_fin";
+    $coinout_fin = "IFNULL(dc_fin.coinout,.0)/$deno_fin";
+    $jackpot_fin = "IFNULL(dc_fin.jackpot,.0)/$deno_fin";
+    $progresivo_fin = "IFNULL(dc_fin.progresivo,.0)/$deno_fin";
+    
+    //Valores en creditos
+    $valor_inicio = "$coinin_ini - $coinout_ini - $jackpot_ini - $progresivo_ini";
+    $valor_final  = "$coinin_fin - $coinout_fin - $jackpot_fin - $progresivo_fin";
+    
+    //El producido calculado en plata
+    $delta = "ROUND(($deno_fin)*($valor_final) - ($deno_ini)*($valor_inicio)),2)";
+    $diferencia = "ROUND(($delta)-dp.valor,2)";//plata - plata
 
     $retorno = DB::table('producido as p')
+    ->selectRaw(
+      "p.id_casino as casino, dp.valor as producido, dp.id_detalle_producido,
+      m.nro_admin, m.id_maquina, m.denominacion,
+      dc_ini.id_detalle_contador_horario as id_detalle_contador_inicial,
+      $coinin_ini as coinin_inicio,  $coinout_ini as coinout_inicio,
+      $jackpot_ini as jackpot_inicio,$progresivo_ini as progresivo_inicio,
+      $deno_ini as denominacion_inicio,
+      dc_fin.id_detalle_contador_horario as id_detalle_contador_final,
+      $coinin_fin as coinin_final,  $coinout_fin as coinout_final,
+      $jackpot_fin as jackpot_final,$progresivo_fin as progresivo_final,
+      $deno_fin as denominacion_final,
+      $delta as delta,$diferencia as diferencia"
+    )
     ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
     ->join('maquina as m','m.id_maquina','=','dp.id_maquina')
     ->join('contador_horario as cont_ini',function($j){
@@ -81,12 +99,7 @@ class ProducidoController extends Controller
     })
     ->where('p.id_producido','=',$id_producido)->whereNull('dp.id_tipo_ajuste')
     ->orderBy('m.nro_admin','asc')
-    ->selectRaw('p.id_casino as casino, dp.valor as producido, dp.id_detalle_producido,
-    m.nro_admin, m.id_maquina, m.denominacion,
-    dc_ini.id_detalle_contador_horario as id_detalle_contador_inicial,'.$coinin_ini.' as coinin_inicio,'.$coinout_ini.' as coinout_inicio,'.$jackpot_ini.' as jackpot_inicio,'.$progresivo_ini.' as progresivo_inicio,
-    dc_fin.id_detalle_contador_horario as id_detalle_contador_final,  '.$coinin_fin.' as coinin_final,'.$coinout_fin.' as coinout_final,'.$jackpot_fin.' as jackpot_final,'.$progresivo_fin.' as progresivo_final,
-    '.$delta.' as delta,'.$diferencia.' as diferencia,'.$valor_cred.' as producido_cred')
-    ->whereRaw($diferencia.' <> 0');
+    ->whereRaw("$diferencia <> 0");
 
     //El valor opcional de id_maquina es para solo obtener una fila, hace mas rapido el request
     if(!is_null($id_maquina)) $retorno = $retorno->where('m.id_maquina','=',$id_maquina);
@@ -253,12 +266,13 @@ class ProducidoController extends Controller
 
   // genera los ajustes automaticos que pueden ser calculados numericamente de forma automatica
   public function probarAjusteAutomatico($diff){
-    $dif = json_decode(json_encode($diff),true);//stdClass->array, asi lo espera recalcularDiferencia
+    $dif = json_decode(json_encode($diff),true);//stdClass->array, asi lo espera calcularDiferencia
     $contadores = ['coinin','coinout','jackpot','progresivo'];
     //si 1 algun contador final es menor que el inicial -> posible vuelta de contadores
     //si TODOS los contadores finales son menores a los iniciales (o cero) -> posible reset
     //  (esto es por ejemplo si tenemos iniciales 23 32 0 0 y finales 1 3 0 0, hay que agarra los 0)
     //@SPEED: Chequeable por query de BD
+    $sin_cambio_de_deno = $dif['denominacion_final'] == $dif['denominacion_inicio'];
     $posible_reset_contadores = true;
     $finales_todos_ceros = true;
     foreach($contadores as $idx => $c){
@@ -271,11 +285,11 @@ class ProducidoController extends Controller
         || ($dif[$contador_inicio] == 0 && $dif[$contador_final] == 0)
       );
       $finales_todos_ceros = $finales_todos_ceros && $dif[$contador_final] == 0;
-      if($final_menor_que_inicio && fmod($dif['diferencia'],1000000) == 0){
+      if($sin_cambio_de_deno && $final_menor_que_inicio && fmod($dif['diferencia'],1000000) == 0){
         //Le suma la vuelta de contadores, la diferencia esta en plata, lo paso a creditos
-        $vuelta = abs($dif['diferencia']/$dif['denominacion']);
+        $vuelta = abs($dif['diferencia']/$dif['denominacion_final']);
         $dif[$contador_final] += $vuelta;
-        $diferencia = $this->recalcularDiferencia($dif);
+        $diferencia = $this->calcularDiferencia($dif)['diferencia'];
         $dif[$contador_final] -= $vuelta;//Lo vuelvo al original
         if($diferencia == 0){
           $detalle_producido = DetalleProducido::find($dif['id_detalle_producido']);
@@ -285,11 +299,11 @@ class ProducidoController extends Controller
         }
       }
     }
-    if($posible_reset_contadores){
+    if($sin_cambio_de_deno && $posible_reset_contadores){
       //Se le suma los iniciales, si esto explica la diferencia (da 0 recalculada), lo seteamos.
       //Sino, siguio contando despues del reset y lo tienen que ver los auditores manualmente
       foreach($contadores as $c) $dif[$c.'_final'] += $dif[$c.'_inicio'];
-      $diferencia = $this->recalcularDiferencia($dif);
+      $diferencia = $this->calcularDiferencia($dif)['diferencia'];
       //Lo devuelvo al valor original por si se agrega algun otro ajuste automatico... en principio superflua esta linea
       foreach($contadores as $c) $dif[$c.'_final'] -= $dif[$c.'_inicio'];
       if($diferencia == 0){//Reset de contadores _NO_ afecta nada en la BD (solo el tipo de ajuste). Ver tabla abajo.
@@ -333,13 +347,15 @@ class ProducidoController extends Controller
         // Si es nulo, es la primera vez que entra la maquina en nuestra BD
         // Le transpaso los finales y solo se va a validar cuando el producido es 0
         foreach($contadores as $c) $dif[$c.'_inicio'] = $dif[$c.'_final'];
+        $dif['denominacion_inicio'] = $dif['denominacion_final'];
       }
       else{
         // En la BD estan en plata, lo paso a creditos
-        foreach($contadores as $c) $dif[$c.'_inicio'] = ($ultimo_dc->{$c} / $dif['denominacion']);
+        foreach($contadores as $c) $dif[$c.'_inicio'] = ($ultimo_dc->{$c} / $ultimo_dc->denominacion_carga);
+        $dif['denominacion_inicio'] = $ultimo_dc->denominacion_carga;
       }
 
-      $diferencia = $this->recalcularDiferencia($dif);
+      $diferencia = $this->calcularDiferencia($dif)['diferencia'];
       // Si la diferencia _NO_ es cero, lo mas probable que tomaron el contador de otra hora para el producido
       // Tienen que verificarlo a pata los auditores
       if($diferencia == 0){
@@ -352,6 +368,7 @@ class ProducidoController extends Controller
 
       // Vuelvo a los valores originales, por si agregamos mas ajustes automaticos
       foreach($contadores as $c) $dif[$c.'_inicio'] = 0;
+      $dif['denominacion_inicio'] = null;
     }
     return false;
   }
@@ -360,15 +377,16 @@ class ProducidoController extends Controller
   // solo se guarda si luego del ajuste , la diferencia es nula, es decir, es correto el ajuste
   public function guardarAjuste(Request $request){
     Validator::make($request->all(), [
-      'denominacion'       => 'required|numeric',
-      'coinin_inicio'     => 'required|integer',//Los contadores vienen EN CREDITOS
+      'coinin_inicio'       => 'required|integer',//Los contadores vienen EN CREDITOS
+      'coinout_inicio'      => 'required|integer',
+      'jackpot_inicio'      => 'required|integer',
+      'progresivo_inicio'   => 'required|integer',
+      'denominacion_inicio' => 'required|numeric',
       'coinin_final'       => 'required|integer',
-      'coinout_inicio'    => 'required|integer',
       'coinout_final'      => 'required|integer',
-      'jackpot_inicio'    => 'required|integer',
       'jackpot_final'      => 'required|integer',
-      'progresivo_inicio' => 'required|integer',
       'progresivo_final'   => 'required|integer',
+      'denominacion_final' => 'required|numeric',
       'id_detalle_producido'        => 'required|exists:detalle_producido,id_detalle_producido',
       'id_detalle_contador_inicial' => 'nullable|exists:detalle_contador_horario,id_detalle_contador_horario',
       'id_detalle_contador_final'   => 'nullable|exists:detalle_contador_horario,id_detalle_contador_horario',
@@ -410,43 +428,48 @@ class ProducidoController extends Controller
     // $detalle_producido->valor es el producido INFORMADO POR EL CASINO en el producido (no tiene errores de vuelta de contadores, reset, etc)
     //@BUG: Si se modifican los contadores iniciales, no puede ser que den diferencias para atras???????
     if(in_array($request['id_tipo_ajuste'],[1,2,3,4])){
-      $request['coinin_inicio']     = $detalle_inicio->coinin / $request['denominacion'];//Estan en plata, los paso a creditos
-      $request['coinout_inicio']    = $detalle_inicio->coinout / $request['denominacion'];
-      $request['jackpot_inicio']    = $detalle_inicio->jackpot / $request['denominacion'];
-      $request['progresivo_inicio'] = $detalle_inicio->progresivo / $request['denominacion'];
+      $request['coinin_inicio']     = $detalle_inicio->coinin / $detalle_inicio->denominacion_carga;//Estan en plata, los paso a creditos
+      $request['coinout_inicio']    = $detalle_inicio->coinout / $detalle_inicio->denominacion_carga;
+      $request['jackpot_inicio']    = $detalle_inicio->jackpot / $detalle_inicio->denominacion_carga;
+      $request['progresivo_inicio'] = $detalle_inicio->progresivo / $detalle_inicio->denominacion_carga;
+      $request['denominacion_inicio'] = $detalle_inicio->denominacion_carga;
     }
     if(in_array($request['id_tipo_ajuste'],[4,5])){
-      $request['coinin_final']     = $detalle_final->coinin / $request['denominacion'];
-      $request['coinout_final']    = $detalle_final->coinout / $request['denominacion'];
-      $request['jackpot_final']    = $detalle_final->jackpot / $request['denominacion'];
-      $request['progresivo_final'] = $detalle_final->progresivo / $request['denominacion'];
+      $request['coinin_final']     = $detalle_final->coinin / $detalle_final->denominacion_carga;
+      $request['coinout_final']    = $detalle_final->coinout / $detalle_final->denominacion_carga;
+      $request['jackpot_final']    = $detalle_final->jackpot / $detalle_final->denominacion_carga;
+      $request['progresivo_final'] = $detalle_final->progresivo / $detalle_final->denominacion_carga;
+      $request['denominacion_final'] = $detalle_final->denominacion_carga;
     }
     if(in_array($request['id_tipo_ajuste'],[1,2,3,5])){//Queda mas claro en un IF aparte esto
       $request['producido'] = $detalle_producido->valor;
     }
 
-    $diferencia = $this->recalcularDiferencia($request);
-    if($diferencia != 0) return ['todas_ajustadas' => 0,'hay_diferencia' => 1];
+    $diferencia = $this->calcularDiferencia($request)['diferencia'];
+    if($diferencia != 0) return ['diferencia' => $diferencia,'todas_ajustadas' => 0,'hay_diferencia' => 1];
       
     $producido = $detalle_producido->producido;
-    DB::beginTransaction();
-    try{
+    return DB::transaction(function() 
+    use (
+    &$request,
+    &$detalle_inicio,&$detalle_final,
+    &$producido,&$detalle_producido
+    ){
       if(in_array($request['id_tipo_ajuste'],[5,6])){//Le guardo el contador inicial
         //Aca antes redondeaba a 2 digitos coinin_in, etc antes de asignar, nose porque. Me parece superfluo. MySQL ya lo hace solo
-        $detalle_inicio->coinin     = $request['coinin_inicio']     * $request['denominacion'];//Se guarda en plata
-        $detalle_inicio->coinout    = $request['coinout_inicio']    * $request['denominacion'];
-        $detalle_inicio->jackpot    = $request['jackpot_inicio']    * $request['denominacion'];
-        $detalle_inicio->progresivo = $request['progresivo_inicio'] * $request['denominacion'];
-        //Si el casino es Rosario, se tiene que cargar la denominacion de carga
-        if($producido->id_casino == 3) $detalle_inicio->denominacion_carga = $request['denominacion'];
+        $detalle_inicio->coinin     = $request['coinin_inicio']     * $request['denominacion_inicio'];//Se guarda en plata
+        $detalle_inicio->coinout    = $request['coinout_inicio']    * $request['denominacion_inicio'];
+        $detalle_inicio->jackpot    = $request['jackpot_inicio']    * $request['denominacion_inicio'];
+        $detalle_inicio->progresivo = $request['progresivo_inicio'] * $request['denominacion_inicio'];
+        $detalle_inicio->denominacion_carga = $request['denominacion_inicio'];
         $detalle_inicio->save();//Solo guardo si entro al IF, nose porque pero así lo hacia antes
       }
       if(in_array($request['id_tipo_ajuste'],[3,6])){//Le guardo el contador final
-        $detalle_final->coinin     = $request['coinin_final']     * $request['denominacion'];
-        $detalle_final->coinout    = $request['coinout_final']    * $request['denominacion'];
-        $detalle_final->jackpot    = $request['jackpot_final']    * $request['denominacion'];
-        $detalle_final->progresivo = $request['progresivo_final'] * $request['denominacion'];
-        if($producido->id_casino == 3) $detalle_final->denominacion_carga = $request['denominacion'];
+        $detalle_final->coinin     = $request['coinin_final']     * $request['denominacion_final'];
+        $detalle_final->coinout    = $request['coinout_final']    * $request['denominacion_final'];
+        $detalle_final->jackpot    = $request['jackpot_final']    * $request['denominacion_final'];
+        $detalle_final->progresivo = $request['progresivo_final'] * $request['denominacion_final'];
+        $detalle_final->denominacion_carga = $request['denominacion_final'];
         $detalle_final->save();
       }
       if(in_array($request['id_tipo_ajuste'],[4,6])){//Le guardo el producido
@@ -476,14 +499,9 @@ class ProducidoController extends Controller
         $contador_horario->cerrado = 1; // si valido el producido el contador tambien se cierra
         $contador_horario->save();
       }
-      DB::commit();
-    }
-    catch(Exception $e){
-      DB::rollBack();
-      throw $e;
-    }
-
-    return ['todas_ajustadas' => $faltan_ajustes? 0 : 1,'hay_diferencia' => 0];
+      
+      return ['todas_ajustadas' => $faltan_ajustes? 0 : 1,'hay_diferencia' => 0];
+    });
   }
   // Crea la planilla del producido total del dia, con todas las maquinas que dieron diferencia
   // junto a los ajustes , ya sean automaticos o manual
@@ -607,11 +625,17 @@ class ProducidoController extends Controller
   }
 
   //Contadores en en creditos, producido en plata, se usa en probarAjusteAutomatico y guardarAjuste
-  private function recalcularDiferencia($arr){
+  private function calcularDiferencia($arr){
     $valor_inicio = $arr['coinin_inicio'] - $arr['coinout_inicio'] - $arr['jackpot_inicio'] - $arr['progresivo_inicio'];//credito
+    $valor_inicio *= $arr['denominacion_inicio'];//credito -> plata
     $valor_final  = $arr['coinin_final']  - $arr['coinout_final']  - $arr['jackpot_final']  - $arr['progresivo_final'];//credito
-    $delta        = $valor_final - $valor_inicio;//credito - credito
-    $diferencia   = round($delta*$arr['denominacion'], 2) - $arr['producido']; //plata - plata
-    return round($diferencia,2);
+    $valor_final *= $arr['denominacion_final'];//credito -> plata
+    $producido_calculado = round($valor_final - $valor_inicio,2);//plata - plata
+    $diferencia = round($producido_calculado - $arr['producido'],2);//plata - plata;
+    return compact('producido_calculado','diferencia');
+  }
+  
+  public function calcularDiferenciaHandlePOST(Request $request){
+    return $this->calcularDiferencia($request->all());
   }
 }

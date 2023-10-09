@@ -214,63 +214,81 @@ use Illuminate\Http\Request;
                         <option class="default1" value="0" >-Tipo Ajuste-</option>
                       </select>
                     </div>
-                    <div class="col-lg-1">
-                      <button type="button" class="btn btn-info btn-sucess" id="ajustarProducido" title="AJUSTAR">
-                        <i class="fa fa-fw fa-sync"></i>
-                      </button>
-                    </div>
                   </div>
-                  <div class="row cont_iniciales" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:15px; padding-bottom:15px;" >
-                    <div class="col-lg-3" style="text-align: center;">
+                  <style>
+                    .bordear-separar {
+                      border: 1px solid #ccc;
+                      padding-top: 15px;
+                      padding-bottom: 15px;
+                    }
+                    .listar-horizontal {
+                      display: flex;
+                      justify-content: center;
+                    }
+                    .listar-horizontal > * {
+                      flex: 1;
+                      text-align: center;
+                    }
+                  </style>
+                  <div class="row bordear-separar listar-horizontal cont_iniciales">
+                    <div>
                       <h5>COININ. INICIAL</h5>
                       <input id="coininIni" type="text" class="form-control">
                     </div>
-                    <div class="col-lg-3" style="text-align: center;">
+                    <div>
                       <h5>COINOUT INI.</h5>
-                      <input id="coinoutIni" type="text" class="form-control" >
+                      <input id="coinoutIni" type="text" class="form-control">
                     </div>
-                    <div class="col-lg-3" style="text-align: center;">
+                    <div>
                       <h5>JACKPOT INI.</h5>
                       <input id="jackIni" type="text" class="form-control">
                     </div>
-                    <div class="col-lg-3"style="text-align: center;">
+                    <div>
                       <h5>PROG. INICIAL</h5>
-                      <input id="progIni" type="text" class="form-control" >
+                      <input id="progIni" type="text" class="form-control">
+                    </div>
+                    <div style="flex: 0.7;">
+                      <h5>DEN. INICIAL</h5>
+                      <input id="denIni" type="number"  step="0.01" min="0" class="form-control">
                     </div>
                   </div>
-                  <div class="row cont_finales" style="border-top: 1px solid #ccc;  border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:15px; padding-bottom:15px;">
-                    <div class="col-lg-3" style="text-align: center;">
+                  <div class="row bordear-separar listar-horizontal cont_finales">
+                    <div>
                       <h5>COININ FINAL</h5>
                       <input id="coininFin" type="text" class="form-control">
                     </div>
-                    <div class="col-lg-3" style="text-align: center;">
+                    <div>
                       <h5>COINOUT FINAL</h5>
                       <input id="coinoutFin" type="text" class="form-control">
                     </div>
-                    <div class="col-lg-3" style="text-align: center;">
+                    <div>
                       <h5>JACKPOT FINAL</h5>
-                      <input id="jackFin" type="text" class="form-control" >
+                      <input id="jackFin" type="text" class="form-control">
                     </div>
-                    <div class="col-lg-3" style="text-align: center;">
+                    <div>
                       <h5>PROG. FINAL</h5>
-                      <input id="progFin" type="text" class="form-control" >
+                      <input id="progFin" type="text" class="form-control">
+                    </div>
+                    <div style="flex: 0.7;">
+                      <h5>DEN. FINAL</h5>
+                      <input id="denFin" type="number" step="0.01" min="0" class="form-control">
                     </div>
                   </div>
-                  <div class="row" style="border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:15px; padding-bottom:15px;">
-                    <div class="col-lg-4" style="text-align: center;">
+                  <div class="row bordear-separar listar-horizontal">
+                    <div>
                       <h5>PRODUC.CALC.</h5>
                       <input id="prodCalc" type="text" class="form-control" readonly="readonly">
                     </div>
-                    <div class="col-lg-4" style="text-align: center;">
+                    <div>
                       <h5>PRODUCIDO SIST.</h5>
                       <input id="prodSist" type="text" class="form-control" >
                     </div>
-                    <div class="col-lg-4" style="text-align: center;">
+                    <div>
                       <h5>DIFERENCIAS</h5>
                       <h6 id="diferencias" style="font-size:20px;font-family: Roboto-Regular; color:#000000;  padding-left:  15px;"></h6>
                     </div>
                   </div>
-                  <div class="row" style="border-top: 1px solid #ccc; border-left:1px solid #ccc;border-right:1px solid #ccc;border-bottom:1px solid #ccc; padding-top:15px; padding-bottom:15px;">
+                  <div class="row bordear-separar">
                     <div class="row">
                       <div class="col-lg-12">
                         <h5>OBSERVACIONES</h5>
@@ -352,7 +370,7 @@ use Illuminate\Http\Request;
     @section('scripts')
     <!-- JavaScript personalizado -->
     <script src="/js/paginacion.js" charset="utf-8"></script>
-    <script src="js/seccionProducidos.js" charset="utf-8"></script>
+    <script src="js/seccionProducidos.js?1" charset="utf-8"></script>
     <script src="/js/perfect-scrollbar.js" charset="utf-8"></script>
 
     <!-- DateTimePicker JavaScript -->

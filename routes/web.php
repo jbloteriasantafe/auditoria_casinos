@@ -555,6 +555,7 @@ Route::group(['prefix' => 'producidos','middleware' => 'tiene_permiso:ver_seccio
   Route::post('guardarAjuste','ProducidoController@guardarAjuste');
   Route::get('datosAjusteMTM/{id_maquina}/{id_producidos}','ProducidoController@datosAjusteMTM');
   Route::get('ajustarProducido/{id_producido}','ProducidoController@ajustarProducido');
+  Route::post('calcularDiferencia','ProducidoController@calcularDiferenciaHandlePOST');
 });
 
 /***********
