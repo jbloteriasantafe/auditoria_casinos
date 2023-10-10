@@ -64,7 +64,7 @@ class ProducidoController extends Controller
     $valor_final  = "$coinin_fin - $coinout_fin - $jackpot_fin - $progresivo_fin";
     
     //El producido calculado en plata
-    $delta = "ROUND(($deno_fin)*($valor_final) - ($deno_ini)*($valor_inicio)),2)";
+    $delta = "ROUND(($deno_fin)*($valor_final) - ($deno_ini)*($valor_inicio),2)";
     $diferencia = "ROUND(($delta)-dp.valor,2)";//plata - plata
 
     $retorno = DB::table('producido as p')
