@@ -815,6 +815,7 @@ class LogMovimientoController extends Controller
     $maquinasYJuegos = array();
     foreach ($maquinas as $maq) {
         $mtmm=  Maquina::find($maq->id_maquina);
+        if(is_null($mtmm)) continue;
       	$juego_select = $mtmm->juego_activo();
       	$juegos = $mtmm->juegos;
         $maquinasYJuegos[]= ['maquina'=>$maq,'juegos'=> $juegos, 'juego_seleccionado' => $juego_select];
