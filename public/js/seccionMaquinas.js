@@ -67,43 +67,6 @@ $('#btn-minimizar').click(function(){
   }
 });
 
-
-//boton Borrar Maquina: Mostror modal
-$(document).on('click','.eliminar',function(){
-    //Cambiar colores modal
-    $('.modal-title').text('ADVERTENCIA');
-    $('.modal-header').removeAttr('style');
-    $('.modal-header').attr('style','font-family: Roboto-Black; color: #EF5350');
-
-    var id_maquina = $(this).val();
-    $('#btn-eliminarModal').val(id_maquina);
-    $('#modalEliminar').modal('show');
-});
-//borrar maquina
-$('#btn-eliminarModal').click(function (e) {
-    var id_maquina = $(this).val();
-
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-        }
-    })
-
-    $.ajax({
-        type: "DELETE",
-        url: "maquinas/eliminarMaquina/" + id_maquina,
-        success: function (data) {
-          //Remueve de la tabla
-          console.log(data);
-          $('#' + id_maquina).remove();
-          $("#tablaMaquinas").trigger("update");
-          $('#modalEliminar').modal('hide');
-        },
-        error: function (data) {
-          console.log('Error: ', data);
-        }
-    });
-});
 //Busqueda
 $('#btn-buscar').click(function(e, pagina,page_size,columna,orden){
   e.preventDefault();
@@ -346,24 +309,12 @@ function generarFilaTablaMaquinas(maquina){
                     .addClass('btn').addClass('btn-info').addClass('detalle')
                     .attr('value',maquina.id_maquina)
                 )
-                .append($('<span>').text(' '))
                 .append($('<button>')
                     .append($('<i>')
                         .addClass('fa').addClass('fa-fw').addClass('fa-pencil-alt')
                     )
                     .append($('<span>').text(' MODIFICAR'))
                     .addClass('btn').addClass('btn-warning').addClass('modificar')
-                    .attr('value',maquina.id_maquina)
-                )
-                .append($('<span>').text(' '))
-                .append($('<button>')
-                    .append($('<i>')
-                        .addClass('fa')
-                        .addClass('fa-fw')
-                        .addClass('fa-trash-alt')
-                    )
-                    .append($('<span>').text(' ELIMINAR'))
-                    .addClass('btn').addClass('btn-danger').addClass('eliminar')
                     .attr('value',maquina.id_maquina)
                 )
             )

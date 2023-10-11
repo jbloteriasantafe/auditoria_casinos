@@ -781,34 +781,6 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
 
 
 
-    <!-- Modal Eliminar -->
-    <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-             <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                  <h3 class="modal-titleEliminar" id="myModalLabel">ADVERTENCIA</h3>
-                </div>
-
-                <div class="modal-body" style="color:#fff; background-color:#EF5350;">
-                  <form id="frmEliminar" name="frmCasino" class="form-horizontal" novalidate="">
-                      <div class="form-group error ">
-                          <div class="col-xs-12">
-                            <strong>¿Seguro desea eliminar la MTM?</strong>
-                          </div>
-                      </div>
-                  </form>
-                </div>
-
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-dangerEliminar" id="btn-eliminarModal" value="0">ELIMINAR</button>
-                  <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-                </div>
-            </div>
-          </div>
-    </div>
-
-
     <meta name="_token" content="{!! csrf_token() !!}" />
 
     @endsection
@@ -838,7 +810,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
     <script src="/js/seccionMaquinas-GliHardNuevo.js?1" charset="utf-8"></script>
     <script src="/js/seccionMaquina-IslaNuevo.js?1" charset="utf-8"></script>
     <script src="/js/seccionMaquinas-Modal.js?1" charset="utf-8"></script>
-    <script src="/js/seccionMaquinas.js?1" charset="utf-8"></script>
+    <script src="/js/seccionMaquinas.js?2" charset="utf-8"></script>
     <script src="/js/utils.js" charset="utf-8"></script>
     <script src="/js/lista-datos.js" type="text/javascript"></script>
 

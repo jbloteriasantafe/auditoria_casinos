@@ -261,7 +261,6 @@ Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_
   Route::post('guardarMaquina', 'MTMController@guardarMaquina');
   Route::post('modificarMaquina', 'MTMController@modificarMaquina');
   Route::post('buscarMaquinas', 'MTMController@buscarMaquinas');
-  Route::delete('eliminarMaquina/{id}', 'MTMController@eliminarMTM');
   Route::post('cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');  
   Route::get('obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
   Route::get('buscarExpedientePorCasinoYNumero/{id_casino}/{busqueda}','ExpedienteController@buscarExpedientePorCasinoYNumero');
