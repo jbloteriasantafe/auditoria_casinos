@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Mesas\InformesMesas;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Mesas\Importaciones\Mesas\ImportadorController;
+use App\Http\Controllers\Mesas\Importaciones\ImportadorController;
 use App\Mesas\JuegoMesa;
 use App\Mesas\Moneda;
 use App\Mesas\ImportacionDiariaMesas;
