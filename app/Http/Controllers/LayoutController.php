@@ -651,7 +651,7 @@ class LayoutController extends Controller
 
       'maquinas' => 'nullable',
       'maquinas.*.id_maquina' => 'required|integer|exists:maquina,id_maquina',
-      'maquinas.*.porcentaje_dev' => ['nullable','regex:/^\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
+      'maquinas.*.porcentaje_dev' => ['nullable','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
       'maquinas.*.denominacion' => ['nullable','string'],
       'maquinas.*.juego.correcto' => 'required|in:true,false',
       'maquinas.*.no_toma' => 'required|in:1,0',
@@ -858,10 +858,9 @@ class LayoutController extends Controller
         if($detalle->count() == 1 ){
           $detalle[0]->correcto=$bandera;
           $detalle[0]->denominacion = $maquina_de_layout['denominacion'];
-          $detalle[0]->porcentaje_devolucion = $maquina_de_layout['porcentaje_dev'];
+          $detalle[0]->porcentaje_devolucion = str_replace(',','.',$maquina_de_layout['porcentaje_dev']);
           $detalle[0]->save();
         }
-
       }
     }
     $estado_relevamiento = EstadoRelevamiento::where('descripcion','finalizado')->get();
