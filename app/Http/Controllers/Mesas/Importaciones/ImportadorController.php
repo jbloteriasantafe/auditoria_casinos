@@ -406,21 +406,43 @@ public function importarDiario(Request $request){
         $cant_comas  = "(LENGTH($c)-LENGTH($sin_comas))";
         $pos_punto = "POSITION('.' IN REVERSE($c))";//Retorna 0 si no hay
         $pos_coma  = "POSITION(',' IN REVERSE($c))";
+        
         $NUM_ENTERO = "$cant_puntos = 0 AND $cant_comas = 0";
-        $NUM_DECIMAL_INGLES = "$cant_puntos = 1 AND $cant_comas = 0 AND $pos_punto IN (2,3)";
-        $NUM_DECIMAL_ESPÑOL = "$cant_puntos = 0 AND $cant_comas = 1 AND $pos_coma  IN (2,3)";
-        $NUM_MILES_INGLES = "$cant_comas  > 1 AND $cant_puntos = 0";
-        $NUM_MILES_ESPÑOL = "$cant_puntos > 1 AND $cant_comas  = 0";
-        $NUM_MILES_DECIMAL_INGLES = "$cant_comas >= 1 AND $cant_puntos  = 1 AND $pos_punto IN (2,3)";
-        $NUM_MILES_DECIMAL_ESPÑOL = "$cant_comas  = 1 AND $cant_puntos >= 1 AND $pos_coma  IN (2,3)";
+        
+        //100,000,000 -> 100000000 ("sin_comas")
+        $NUM_MILES_INGLES_CASO_SIMPLE = "$cant_comas  > 1 AND $cant_puntos = 0";
+        //100.000.000 -> 100000000 ("sin_puntos")
+        $NUM_MILES_ESPÑOL_CASO_SIMPLE = "$cant_puntos > 1 AND $cant_comas  = 0";
+        
+        //@HACK: _NO_, aceptamos numeros de tres decimales como validos, sino que son de miles
+        //ya si manda algo asi como 100,0000 le tiramos error
+        //100,000 -> 100000 ("sin_comas")
+        $NUM_MILES_INGLES_CASO_3_DECIMALES = "$cant_comas = 1 AND $pos_coma = 4";
+        //100.000 -> 100000 ("sin_puntos")
+        $NUM_MILES_ESPÑOL_CASO_3_DECIMALES = "$cant_puntos = 1 AND $pos_punto = 4";
+        
+        //100,000,000.00 o 100,000,000.0 -> 100000000.00 o 100000000.0 ("sin_comas")
+        $NUM_MILES_DECIMAL_INGLES = 
+        "   $cant_comas >= 0 
+        AND $cant_puntos = 1 
+        AND $pos_punto IN (2,3) 
+        AND ($pos_punto < $pos_coma OR $pos_coma = 0)";//el punto esta antes de cualquier coma o no hay coma
+        
+        //100.000.000,00 o 100.000.000,0 -> 100000000.00 o 100000000.0 ("sin_puntos" y comas reemplazadas por puntos)
+        $NUM_MILES_DECIMAL_ESPÑOL = 
+        "   $cant_puntos >= 0 
+        AND $cant_comas = 1 
+        AND $pos_coma  IN (2,3) 
+        AND ($pos_coma < $pos_punto OR $pos_punto = 0)";//la coma esta antes de cualquier punto o no hay punto
+        
         //No se puede tirar un error sin un procedure... devuelvo NULL
         return "(CASE
           WHEN ($c = '' OR $c IS NULL) THEN 0.00
           WHEN ($NUM_ENTERO)         THEN ($c)
-          WHEN ($NUM_DECIMAL_INGLES) THEN ($c)
-          WHEN ($NUM_DECIMAL_ESPÑOL) THEN (REPLACE($c,',','.'))
-          WHEN ($NUM_MILES_INGLES)   THEN ($sin_comas)
-          WHEN ($NUM_MILES_ESPÑOL)   THEN ($sin_puntos)
+          WHEN ($NUM_MILES_INGLES_CASO_SIMPLE)   THEN ($sin_comas)
+          WHEN ($NUM_MILES_ESPÑOL_CASO_SIMPLE)   THEN ($sin_puntos)
+          WHEN ($NUM_MILES_INGLES_CASO_3_DECIMALES) THEN ($sin_comas)
+          WHEN ($NUM_MILES_ESPÑOL_CASO_3_DECIMALES) THEN ($sin_puntos)
           WHEN ($NUM_MILES_DECIMAL_INGLES) THEN ($sin_comas)
           WHEN ($NUM_MILES_DECIMAL_ESPÑOL) THEN (REPLACE($sin_puntos,',','.'))
           ELSE NULL
