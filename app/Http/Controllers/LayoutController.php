@@ -858,7 +858,11 @@ class LayoutController extends Controller
         if($detalle->count() == 1 ){
           $detalle[0]->correcto=$bandera;
           $detalle[0]->denominacion = $maquina_de_layout['denominacion'];
-          $detalle[0]->porcentaje_devolucion = str_replace(',','.',$maquina_de_layout['porcentaje_dev']);
+          $porcentaje_devolucion = 
+            (!isset($maquina_de_layout['porcentaje_dev']) || is_null($maquina_de_layout['porcentaje_dev']))?
+            null
+          : str_replace(',','.',$maquina_de_layout['porcentaje_dev']);
+          $detalle[0]->porcentaje_devolucion = $porcentaje_devolucion;
           $detalle[0]->save();
         }
       }
