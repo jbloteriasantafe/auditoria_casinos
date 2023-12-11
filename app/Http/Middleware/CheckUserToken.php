@@ -19,7 +19,7 @@ class CheckUserToken
     public function handle($request, Closure $next)
     {
       $url = ($request->path() != '/') ? explode('/',$request->path())[0] : '/';
-      $id_usuario = $request->session()->has('id_usuario') ? $request->session()->get('id_usuario') : null;
+      $id_usuario = AuthenticationController::getInstancia()->obtenerIdUsuario();
 
       if($url == 'login'){// no hace falta verificar el token de inicio de sesion
         return $next($request);

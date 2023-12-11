@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Log;
 use Illuminate\Support\Facades\DB;
 use Response;
+use App\Http\Controllers\AuthenticationController;
 
 class LogController extends Controller
 {
@@ -31,7 +32,7 @@ class LogController extends Controller
   }
   
   public function guardarLog($accion,$tabla,$id_entidad){
-      $id_usuario = session('id_usuario');
+      $id_usuario = AuthenticationController::getInstancia()->obtenerIdUsuario();
       $log = new Log;
       $log->accion = $accion;
       $log->tabla = $tabla;

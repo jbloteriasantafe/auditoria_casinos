@@ -127,13 +127,29 @@ class AuthenticationController extends Controller
   }
 
   public function obtenerIdUsuario(){
-    $id_usuario = request()->session()->has('id_usuario') ? request()->session()->get('id_usuario') : null;
+    $session = null;
+    try{
+      $session = request()->session();
+    }
+    catch(\Exception $e){}
+    
+    $id_usuario = null;
+    if(!is_null($session)){
+      $id_usuario = $session->has('id_usuario') ? $session->get('id_usuario') : null;
+    }
+    
     if(is_null($id_usuario)){
       $api_token = $this->obtenerAPIToken();
       if(!is_null($api_token)){
-        $id_usuario = $api_token->id_usuario;
+        $metadata = json_decode($api_token->metadata ?? '{}',true);
+        $id_usuario = $metadata['id_usuario'] ?? null;
+        if($metadata['puede_post_user_name'] ?? false){//Este permiso solo deberia usarse entre servidores locales
+          $usuario = \App\Usuario::where('user_name',request()->user_name ?? null)->select('id_usuario')->first();
+          $id_usuario = $usuario? $usuario->id_usuario : $id_usuario;
+        }
       }
     }
+    
     return $id_usuario;
   }
 

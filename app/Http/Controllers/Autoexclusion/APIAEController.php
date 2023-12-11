@@ -183,7 +183,7 @@ class APIAEController extends Controller
           if($validator->errors()->any()) return;
           $data = $validator->getData();
           $se_puede_agregar = $this->verificarConflictoFechas($data['ae_datos']['nro_dni'],$data['ae_estado']['fecha_ae'],false);
-          if($se_puede_agregar > 0){
+          if($se_puede_agregar > 0){//Aca tal vez deberiamos dejar que conflicte... simplemente verificar que no tenga AE vigentes...
             return $validator->errors()->add('ae_datos.nro_dni','AE VIGENTE');
           }
           if($data['ae_estado']['fecha_ae'] > date('Y-m-d')){
@@ -244,13 +244,13 @@ class APIAEController extends Controller
           $contacto->save();
     
           $ae_estado = $request['ae_estado'];
-          $ae_estado['id_usuario'] = $api_token->usuario->id_usuario;
+          $ae_estado['id_usuario'] = AuthenticationController::getInstancia()->obtenerIdUsuario();
           if(empty($ae_estado['fecha_revocacion_ae'])){
             $ae_estado['id_nombre_estado'] = 1;//Vigente
           }else{
             $ae_estado['id_nombre_estado'] = 4;//Fin. por AE
           }
-          $ae_estado['id_plataforma'] = $api_token->id_plataforma;
+          $ae_estado['id_plataforma'] = json_decode($api_token->metadata,true)['id_plataforma'] ?? null;
           $AEC = AutoexclusionController::getInstancia(false);
           $AEC->setearEstado($ae,$ae_estado);
           $AEC->subirImportacionArchivos($ae,[]);
