@@ -127,7 +127,7 @@
   <div class="card" style="flex:unset;width: 8vw;">
     <?php $fondoOL = '/img/tarjetas/banner_OL'.(rand(0,1) + 1).'.jpg'; ?>
     <a tabindex="-1" href="/inicio">
-      <span><img src="/img/logos/logo_nuevo2_bn.png" style="width: 8vw;"></span>
+      <span><img src="/img/logos/logo_2024_loteria_bn.png" style="width: 7vw;"></span>
     </a>
   </div>
   <div class="card" style="flex:unset;width: 8vw;">

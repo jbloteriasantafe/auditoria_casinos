@@ -60,8 +60,17 @@ class VerificarPermisoAccederUsuario {
 
 Route::group(['middleware' => ['check_API_token',VerificarPermisoAccederUsuario::class]],function(){
 	Route::post('obtenerUsuarioPorID',function(Request $request){
+    $validator = Validator::make($request->all(), [
+      'id_usuario' => 'required|exists:usuario,id_usuario,deleted_at,NULL',
+	  ], [
+      'required' => 'El valor es requerido',
+      'exists' => 'No existe ese valor',
+	  ], []);
+    
+    if($validator->errors()->any()) return response()->json($validator->errors(),422);
+    
 	  $u = Usuario::find($request->id_usuario);
-	  if(is_null($u)) return null;
+	  if(is_null($u)) return response()->json(['error' => ['Error al obtener el usuario']],422);
 	  
 	  return completarUsuarioParaRetorno($u);
 	});
@@ -76,21 +85,15 @@ Route::group(['middleware' => ['check_API_token',VerificarPermisoAccederUsuario:
       'exists' => 'No existe ese valor',
 	  ], [])
 	  ->after(function ($validator) use (&$u){
-		if($validator->errors()->any()) return;
+      if($validator->errors()->any()) return;
 		
-		$data = $validator->getData();
-		$u = Usuario::where('user_name','=',$data['user_name'])->where('password','=',$data['password'])
-		->first();
-			
-		if(is_null($u)){
-		  return $validator->errors()->add('password','Contraseña incorrecta');
-		}
-		
-		$api_token = AuthenticationController::getInstancia()->obtenerAPIToken();
-		
-		if(is_null($api_token) || !($api_token->metadata['puede_obtener_usuario'] ?? true)){
-		  return $validator->errors()->add('privilegios','No tiene los privilegios');
-		}
+      $data = $validator->getData();
+      $u = Usuario::where('user_name','=',$data['user_name'])->where('password','=',$data['password'])
+      ->first();
+        
+      if(is_null($u)){
+        return $validator->errors()->add('password','Contraseña incorrecta');
+      }
 	  });
 	  
 	  if($validator->errors()->any()) return response()->json($validator->errors(),422);
