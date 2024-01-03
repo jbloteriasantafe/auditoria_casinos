@@ -11,4 +11,7 @@ class APIToken extends Model
   protected $primaryKey = 'id_api_token';
   protected $visible = array('id_api_token','token','ip','descripcion','metadata');
   public $timestamps = false;
+  protected $casts = [
+    'metadata' => 'array',
+  ];
 }

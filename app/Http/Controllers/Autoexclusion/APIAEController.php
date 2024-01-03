@@ -250,7 +250,7 @@ class APIAEController extends Controller
           }else{
             $ae_estado['id_nombre_estado'] = 4;//Fin. por AE
           }
-          $ae_estado['id_plataforma'] = json_decode($api_token->metadata,true)['id_plataforma'] ?? null;
+          $ae_estado['id_plataforma'] = ($api_token->metadata ?? [])['id_plataforma'] ?? null;
           $AEC = AutoexclusionController::getInstancia(false);
           $AEC->setearEstado($ae,$ae_estado);
           $AEC->subirImportacionArchivos($ae,[]);

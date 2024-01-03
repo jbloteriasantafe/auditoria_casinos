@@ -1,5 +1,9 @@
 <?php
 
+function prefix_cookie($s){
+	return env('COOKIE_PREFIX',$_SERVER['SERVER_PORT'] ?? '').'_'.$s;
+}
+
 return [
 
     /*
@@ -29,7 +33,7 @@ return [
     |
     */
 
-    'lifetime' => 120,
+    'lifetime' => 240,//4 horas en minutos
 
     'expire_on_close' => false,
 
@@ -122,7 +126,7 @@ return [
     |
     */
 
-    'cookie' => 'laravel_session',
+    'cookie' =>  prefix_cookie('laravel_session'),
 
     /*
     |--------------------------------------------------------------------------
