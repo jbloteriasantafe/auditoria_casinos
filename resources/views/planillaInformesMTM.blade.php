@@ -50,7 +50,7 @@
   </head>
   <body>
     <div class="encabezadoImg">
-      <img src="img/logos/banner_nuevo2_landscape.png" width="900">
+      <img src="img/logos/banner_2024_landscape.png" width="900">
       <h2><span>MTM | Informe de beneficios ({{$sum->tipoMoneda}})</span></h2>
     </div>
     <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>

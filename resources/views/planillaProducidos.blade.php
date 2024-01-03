@@ -63,7 +63,7 @@
     <div style="page-break-after:always;"></div>
     @endif
     <div class="encabezadoImg">
-      <img src="img/logos/banner_nuevo2_landscape.png" width="900">
+      <img src="img/logos/banner_2024_landscape.png" width="900">
       <h2><span>RMTM09 | Producidos diarios por máquina tragamonedas (MTM) en {{$pro['tipo_moneda']}}</span></h2>
     </div>
     <!-- Esto es hacky, habria que usar una tabla -->

@@ -61,7 +61,7 @@
     }
     ?>
     <div class="encabezadoImg">
-      <img src="img/logos/banner_nuevo2_landscape.png" width="900">
+      <img src="img/logos/banner_2024_landscape.png" width="900">
       <br>
       <h2><span>RMES02 | Informe mensual por casinos de MESAS DE PAÑO.</span></h2>
     </div>
@@ -125,7 +125,7 @@
 
     <div style="page-break-after:always;"></div>
     <div class="encabezadoImg">
-          <img src="img/logos/banner_nuevo2_landscape.png" width="900">
+          <img src="img/logos/banner_2024_landscape.png" width="900">
           <br>
           <h2><span>RMES02 | Informe mensual por casinos de MESAS DE PAÑO.</span></h2>
     </div>

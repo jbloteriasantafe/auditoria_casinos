@@ -19,7 +19,7 @@
 
 
         <div class="encabezadoImg">
-              <img src="img/logos/banner_nuevo2_landscape.png" width="900">
+              <img src="img/logos/banner_2024_landscape.png" width="900">
               <h2><span>RMTM04 | Relevamiento diario de contadores de máquinas tragamonedas (MTM)</span></h2>
         </div>
               <div class="camposTab titulo">CASINO | FECHA PLANILLA</div><div class="camposTab titulo" style="right:196px;">| SECTOR</div>

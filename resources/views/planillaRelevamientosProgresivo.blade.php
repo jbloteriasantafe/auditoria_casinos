@@ -43,7 +43,7 @@
   <body>
     @section('encabezado')
     <div class="encabezadoImg">
-        <img src="img/logos/banner_nuevo2_landscape.png" width="900">
+        <img src="img/logos/banner_2024_landscape.png" width="900">
         <h2><span>RMTM06 | Procedimiento de Control de valores de Pozos Progresivos de MTM</span></h2>
     </div>
     <div class="camposTab titulo" style="right:250px;">FECHA PLANILLA</div>

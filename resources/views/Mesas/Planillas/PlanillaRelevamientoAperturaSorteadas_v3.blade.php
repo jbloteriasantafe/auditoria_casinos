@@ -1,7 +1,7 @@
 @section('encabezado')
 <div>
   <div class="encabezadoImg">
-    <img src="{{public_path()}}/img/logos/banner_nuevo2_landscape.png" width="900">
+    <img src="{{public_path()}}/img/logos/banner_2024_landscape.png" width="900">
     <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
   </div>
   <div class="camposTab titulo" style="top: -15px; right:-15px;">

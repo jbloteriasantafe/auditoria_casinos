@@ -89,7 +89,7 @@ p {
 
 
         <div class="encabezadoImg">
-              <img src="img/logos/banner_nuevo2_landscape.png" width="900">
+              <img src="img/logos/banner_2024_landscape.png" width="900">
               <h2><span>RMTM07 | Control de Estado de Máquinas Tragamonedas</span></h2>
         </div>
 
@@ -172,7 +172,7 @@ p {
 
         <!-- HOJA 2 -->
         <div class="encabezadoImg">
-              <img src="img/logos/banner_nuevo2_landscape.png" width="900">
+              <img src="img/logos/banner_2024_landscape.png" width="900">
               <h2><span>RMTM07 | Control de Estado de Máquinas Tragamonedas </span></h2>
         </div>
 

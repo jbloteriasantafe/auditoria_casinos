@@ -12,7 +12,7 @@
 <!-- segunda hoja -->
 <div style="page-break-after:always;"></div>
 <div class="encabezadoImg">
-      <img src="public/img/logos/banner_nuevo2_landscape.png" width="50" style="display:inline-block !important">
+      <img src="public/img/logos/banner_2024_landscape.png" width="50" style="display:inline-block !important">
       <h2><span>RMES02 | Relevamiento de valores de apuestas de Mesas de Paño.</span></h2>
 </div>
 

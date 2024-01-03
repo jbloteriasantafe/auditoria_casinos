@@ -69,7 +69,7 @@
 
   <body>
     <div class="encabezadoImg">
-      <img src="img/logos/banner_nuevo2_landscape.png" width="900">
+      <img src="img/logos/banner_2024_landscape.png" width="900">
       <br>
       <h2><span>RMES02 | Informe Diario de Mesas de Paño.</span></h2>
     </div>

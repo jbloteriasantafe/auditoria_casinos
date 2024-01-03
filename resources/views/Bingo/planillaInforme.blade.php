@@ -38,7 +38,7 @@ tr:nth-child(even) {
 
 
         <div class="encabezadoImg">
-              <img src="img/logos/banner_nuevo2_landscape.png" width="900">
+              <img src="img/logos/banner_2024_landscape.png" width="900">
               <h2><span>RBIN01 | Informe de beneficios BINGO</span></h2>
         </div>
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>

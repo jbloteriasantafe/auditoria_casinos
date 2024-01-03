@@ -41,7 +41,7 @@ p {
 
 
         <div class="encabezadoImg">
-              <img src="img/logos/banner_nuevo2_portrait.png" width="900">
+              <img src="img/logos/banner_2024_portrait.png" width="900">
               <h2><span>RMTM ?? | Formato de evaluación a dispositivo de juego electrónico. </span></h2>
         </div>
               <div class="camposTab titulo" style="right:18px; top:-18px;">CASINO</div>

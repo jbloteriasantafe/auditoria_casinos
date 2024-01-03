@@ -107,7 +107,7 @@ footer
                dos seria erroneo, la forma mas compatible es llamar a esa funcion
                que nos de el directorio publico
           -->
-          <img src="{{public_path()}}/img/logos/banner_nuevo2_landscape.png" width="1090">
+          <img src="{{public_path()}}/img/logos/banner_2024_landscape.png" width="1090">
           <h2><span>RMES03 | Relevamiento de valores de apuestas de Mesas de Paño.</span></h2>
         </div>
         <div class="camposTab titulo" style="right:50px;">FECHA PLANILLA</div>

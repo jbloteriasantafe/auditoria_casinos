@@ -47,7 +47,7 @@ footer
   <body>
 
         <div class="encabezadoImg">
-              <img src="public/img/logos/banner_nuevo2_landscape.png" width="900">
+              <img src="public/img/logos/banner_2024_landscape.png" width="900">
               <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
         </div>
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
@@ -99,7 +99,7 @@ footer
               <!-- segunda hoja -->
               <div style="page-break-after:always;"></div>
               <div class="encabezadoImg">
-                    <img src="public/img/logos/banner_nuevo2_landscape.png" width="900">
+                    <img src="public/img/logos/banner_2024_landscape.png" width="900">
                     <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
               </div>
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
@@ -157,7 +157,7 @@ footer
               @foreach($rel->paginas as $p)
               <div style="page-break-after:always;"></div>
               <div class="encabezadoImg">
-                    <img src="public/img/logos/banner_nuevo2_landscape.png" width="900">
+                    <img src="public/img/logos/banner_2024_landscape.png" width="900">
                     <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
               </div>
               <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>
@@ -208,7 +208,7 @@ footer
               @if($rel->cant_fichas > 15)
                 <div style="page-break-after:always;"></div>
                 <div class="encabezadoImg">
-                      <img src="public/img/logos/banner_nuevo2_landscape.png" width="900">
+                      <img src="public/img/logos/banner_2024_landscape.png" width="900">
                       <h2><span>RMES02 | Control de apertura y cierre de MESA DE PAÑO.</span></h2>
                 </div>
                 <div class="camposTab titulo" style="right:-15px;">FECHA PLANILLA</div>

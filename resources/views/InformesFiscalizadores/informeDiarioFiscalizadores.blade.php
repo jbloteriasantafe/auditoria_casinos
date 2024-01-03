@@ -47,7 +47,7 @@ footer
   <body>
 
         <div class="encabezadoImg">
-              <img style="margin-top:-6px !important" src="img/logos/banner_nuevo2_landscape.png" width="900">
+              <img style="margin-top:-6px !important" src="img/logos/banner_2024_landscape.png" width="900">
               <h2><span>PMES01 | Informe Diario - Mesas de Paño</span></h2>
         </div>
               <div class="camposTab titulo" style="right:-25px;">FECHA INFORME</div>
