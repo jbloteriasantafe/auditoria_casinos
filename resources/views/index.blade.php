@@ -54,6 +54,7 @@ $rutaImagen = $ruta.$varImg;
                   <!-- /.login-logo -->
                     <div class="login-logo">
                       <center><img src="img/logos/logo_2024_loteria.png" width="90%"></center> <!-- VER -->
+                      <br>
                     </div>
                     <center><p class="login-box-msg">Ingresá los datos de Usuario y Contraseña</p></center>
 
@@ -105,19 +106,36 @@ $rutaImagen = $ruta.$varImg;
                   <h5 style="padding-top:10px;font-size:16px;padding-top:12px;">LOTERÍA DE SANTA FE</h5>
                   <h5>Copyright © 2018 | Todos los derechos reservados</h5>
               </div>
-              <div class="col-lg-4 col-md-6 col-sm-6">
-                  <a href="http://www.santafe.gov.ar/index.php/web">
-                      <img src="/img/logos/logo_2024_bn.png" width="115px" style="float:right; margin: 13px 5px 0px 5px;">
-                  </a>
-                  <a href="http://www.loteriasantafe.gov.ar/">
-                      <img src="/img/logos/logo_2024_loteria_bn.png" width="115px" style="float:right; margin: 13px 5px 0px 5px;">
-                  </a>
-                  <a href="https://www.facebook.com/loteriadesantafe" style="color:white !important;">
-                      <i class="fa fa-facebook-square fa-2x" style="float:right; margin:35px 30px 0px 10px;"></i>
-                  </a>
-                  <a href="https://twitter.com/loteriasantafe" style="color:white !important;">
-                      <i class="fa fa-twitter fa-2x" style="float:right; margin:35px 20px 0px 10px;"></i>
-                  </a>
+              <style>
+                .iconos_menu_inicio {
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                }
+                .iconos_menu_inicio_padding {
+                  font-size: 4vmax;
+                .iconos_menu_inicio_padding {
+                  font-size: 4vmax;
+                  margin: 0;
+                  padding: 0;
+                }
+              </style>
+              <div class="col-lg-4 col-md-6 col-sm-6" style="display: flex;justify-content: flex-end;">
+                <a href="https://twitter.com/loteriasantafe" class="iconos_menu_inicio" style="color:white !important;">
+                  <i class="fa fa-twitter fa-2x"></i>
+                </a>
+                <span class="iconos_menu_inicio_padding">&nbsp;</span>
+                <a href="https://www.facebook.com/loteriadesantafe"  class="iconos_menu_inicio" style="color:white !important;">
+                  <i class="fa fa-facebook-square fa-2x"></i>
+                </a>
+                <span class="iconos_menu_inicio_padding">&nbsp;</span>
+                <a href="http://www.loteriasantafe.gov.ar/" class="iconos_menu_inicio" style="width: 125px;">
+                  <img src="/img/logos/logo_2024_loteria_bn.png">
+                </a>
+                <span class="iconos_menu_inicio_padding">&nbsp;</span>
+                <a href="http://www.santafe.gov.ar/index.php/web" class="iconos_menu_inicio"  style="width: 85px;">
+                  <img src="/img/logos/logo_2024_bn.png">
+                </a>
               </div>
           </div>
 
