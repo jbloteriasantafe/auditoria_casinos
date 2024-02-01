@@ -110,8 +110,10 @@ function nombre_casino($id_casino){
                 <tr>
                   <td class="col-xs-6">
                     {{anio_mes($b->anio,$b->mes)}}
-                    <?php 
-                      $ultimo_dia_mes = (new DateTime("{$b->anio}-{$b->mes}-01"))->modify('last day of this month');
+                    <?php
+                      $anio = intval($b->anio);
+                      $mes  = intval($b->mes);
+                      $ultimo_dia_mes = (new DateTime("$anio-$mes-01"))->modify('last day of this month');
                       $ultimo_dia_mes = $ultimo_dia_mes->format('d');
                     ?>
                     <span contenteditable data-js-dia-max-value="{{$ultimo_dia_mes}}" style="border: 1px solid #ccc;background-color: #eee;">1</span>
