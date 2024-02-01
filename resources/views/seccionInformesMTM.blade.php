@@ -52,21 +52,33 @@ function nombre_casino($id_casino){
     </div>
     <div id="collapseFiltros" class="panel-collapse collapse" aria-expanded="true">
       <div class="panel-body">
-        <div class="row">
+        <form id="formParametrosInformes" class="row">
           <div class="col-md-4" style="text-align: center;">
             <h5>MÁQUINAS</h5>
-            <input id="maquinas" class="form-control" type="text" placeholder="XX-YY,ZZ" style="text-align: center;">
+            <input id="maquinas" name="maquinas" class="form-control" type="text" placeholder="XX-YY,ZZ" style="text-align: center;">
           </div>
           <div class="col-md-3" style="text-align: center;">
             <h5>ISLAS</h5>
-            <input id="islas" class="form-control" type="text" placeholder="XX-YY,ZZ" style="text-align: center;">
+            <input id="islas" name="islas" class="form-control" type="text" placeholder="XX-YY,ZZ" style="text-align: center;">
           </div>
-        </div>
+        </form>
       </div>
     </div>
   </div>
 </div>
 <div class="row">
+  <style>
+    .tablaBeneficiosPorCasino th,
+    .tablaBeneficiosPorCasino td {
+      font-size: 0.90em !important;
+    }
+    .tablaBeneficiosPorCasino input {
+      width: 1.5em !important;
+      padding: 0;
+      margin: 0;
+      text-align: center;
+    }
+  </style>
   @foreach($beneficios_x_casino as $id_casino => $beneficios)
   <div class="width_columna">
     <div class="row">
@@ -85,19 +97,28 @@ function nombre_casino($id_casino){
             <h4>Beneficios - MTM {{nombre_casino($id_casino)}}</h4>
           </div>
           <div class="panel-body">
-            <table id="" class="table table-fixed tablesorter">
+            <table class="table table-fixed tablesorter tablaBeneficiosPorCasino">
               <thead>
                 <tr>
-                  <th class="col-xs-5" style="text-align: center;">FECHA</th>
-                  <th class="col-xs-4" style="text-align: center;">MONEDA</th>
+                  <th class="col-xs-6" style="text-align: center;">FECHA</th>
+                  <th class="col-xs-3" style="text-align: center;">MONEDA</th>
                   <th class="col-xs-3" style="text-align: center;">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody style="height: 356px;">
                 @foreach($beneficios as $b)
                 <tr>
-                  <td class="col-xs-5">{{anio_mes($b->anio,$b->mes)}}</td>
-                  <td class="col-xs-4" style="text-align: center;">{{moneda($b->id_tipo_moneda)}}</td>
+                  <td class="col-xs-6">
+                    {{anio_mes($b->anio,$b->mes)}}
+                    <?php 
+                      $ultimo_dia_mes = (new DateTime("{$b->anio}-{$b->mes}-01"))->modify('last day of this month');
+                      $ultimo_dia_mes = $ultimo_dia_mes->format('d');
+                    ?>
+                    <span contenteditable data-js-dia-max-value="{{$ultimo_dia_mes}}" style="border: 1px solid #ccc;background-color: #eee;">1</span>
+                    -
+                    <span contenteditable data-js-dia-max-value="{{$ultimo_dia_mes}}" style="border: 1px solid #ccc;background-color: #eee;">{{$ultimo_dia_mes}}</span>
+                  </td>
+                  <td class="col-xs-3" style="text-align: center;">{{moneda($b->id_tipo_moneda)}}</td>
                   <td class="col-xs-3" style="text-align: center;">
                     @if($b->estado == 1)
                     <button data-anio="{{$b->anio}}" data-mes="{{$b->mes}}" data-casino="{{$b->id_casino}}" data-moneda="{{$b->id_tipo_moneda}}" data-pdev="0" class="btn btn-info planilla detalle" type="button">
@@ -149,16 +170,9 @@ function nombre_casino($id_casino){
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionMTMbeneficios.js?4" charset="utf-8"></script>
-    <script>
-      $(document).ready(function(){
-          $('[data-toggle="popover"]').popover();
-      });
-    </script>
-
+    <script src="js/seccionMTMbeneficios.js?5"  type="module" charset="utf-8"></script>
     <!-- Custom input Bootstrap -->
     <script src="js/fileinput.min.js" type="text/javascript"></script>
     <script src="js/locales/es.js" type="text/javascript"></script>
     <script src="/themes/explorer/theme.js" type="text/javascript"></script>
-
     @endsection

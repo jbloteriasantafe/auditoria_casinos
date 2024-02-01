@@ -32,8 +32,14 @@ class informesController extends Controller
     */
 
   public function generarPlanilla(Request $request){
+    $dia_desde = min(intval($request->dia1),intval($request->dia2)) 
+      ?? 1;
+    $dia_hasta = max(intval($request->dia1),intval($request->dia2))
+      ?? intval((new DateTime("{$request->anio}-{$request->mes}-01"))->modify('last day of this month')->format('d'));
+      
     $condicion = [['b.id_casino','=',$request->id_casino],['b.id_tipo_moneda','=',$request->id_tipo_moneda],
-                  [DB::raw('YEAR(b.fecha)'),'=',$request->anio],[DB::raw('MONTH(b.fecha)'),'=',$request->mes]];
+                  [DB::raw('YEAR(b.fecha)'),'=',$request->anio],[DB::raw('MONTH(b.fecha)'),'=',$request->mes],
+                  [DB::raw('DAY(b.fecha)'),'>=',$dia_desde],[DB::raw('DAY(b.fecha)'),'<=',$dia_hasta]];
 
     //@TODO: extender cotizacion a N monedas. Si agregas peso con convertivilidad 1 por defecto simplificaria bastante codigo
     $beneficios = DB::table('beneficio as b')
@@ -53,7 +59,11 @@ class informesController extends Controller
     ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha')//No deberiamos usar la ultima cotizacion cargada si la de la fecha no esta?
     ->where($condicion)->orderBy('b.fecha','asc')->get();
 
-    $condicion_p = [['p.id_casino','=',$request->id_casino],['p.id_tipo_moneda','=',$request->id_tipo_moneda],['dp.valor','<>',0]];
+    $condicion_p = [
+      ['p.id_casino','=',$request->id_casino],
+      ['p.id_tipo_moneda','=',$request->id_tipo_moneda],
+      ['dp.valor','<>',0]
+    ];
 
     foreach($beneficios as $b){
       //Esto en realidad es un limite inferior porque al momento de importar si falta la maquina en el sistema, se ignora la fila
@@ -87,9 +97,11 @@ class informesController extends Controller
     ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','b.id_tipo_moneda')
     ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha')
     ->where($condicion)->groupBy('c.nombre','tm.descripcion')->first();
-
-    $condicion_p = [['p.id_casino','=',$request->id_casino],['p.id_tipo_moneda','=',$request->id_tipo_moneda],['dp.valor','<>',0],
-                    [DB::raw('YEAR(p.fecha)'),'=',$request->anio],[DB::raw('MONTH(p.fecha)'),'=',$request->mes]];
+    
+    $condicion_p[] = [DB::raw('YEAR(p.fecha)'),'=',$request->anio]; 
+    $condicion_p[] = [DB::raw('MONTH(p.fecha)'),'=',$request->mes];
+    $condicion_p[] = [DB::raw('DAY(p.fecha)'),'>=',$dia_desde];
+    $condicion_p[] = [DB::raw('DAY(p.fecha)'),'<=',$dia_hasta];
 
     //Esto en realidad es un limite inferior porque al momento de importar si falta la maquina en el sistema, se ignora la fila
     $maquinas = DB::table('producido as p')
@@ -131,9 +143,12 @@ class informesController extends Controller
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
 
-  private function generarPlanillaNroAdmins(int  $anio,int $mes,int $id_casino,int $tipo_moneda,bool $mostrar_pdev,array $nro_admins){
-    $condicion = [['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],
-    [DB::raw('YEAR(p.fecha)'),'=',$anio],[DB::raw('MONTH(p.fecha)'),'=',$mes]];
+  private function generarPlanillaNroAdmins(int  $anio,int $mes,int $id_casino,int $tipo_moneda,bool $mostrar_pdev,array $nro_admins,int $dia_desde,int $dia_hasta){
+    $condicion = [
+      ['p.id_casino','=',$id_casino],['p.id_tipo_moneda','=',$tipo_moneda],
+      [DB::raw('YEAR(p.fecha)'),'=',$anio],[DB::raw('MONTH(p.fecha)'),'=',$mes],
+      [DB::raw('DAY(p.fecha)'),'>=',$dia_desde],[DB::raw('DAY(p.fecha)'),'<=',$dia_hasta]
+    ];
 
     $cantidad_maquinas = 'COUNT(distinct m.id_maquina)';
     $suma_a = 'SUM(IF(p.apuesta IS NULL OR m.id_maquina IS NULL,NULL,IFNULL(dp.apuesta,0)))';
@@ -291,7 +306,12 @@ class informesController extends Controller
     sort($maqs);
     $maqs = array_values(array_unique($maqs,SORT_NUMERIC));
     
-    return $this->generarPlanillaNroAdmins($request->anio,$request->mes,$request->id_casino,$request->id_tipo_moneda,$request->pdev == 1,$maqs);
+    $dia_desde = min(intval($request->dia1) ?? 1,intval($request->dia2) ?? 1) 
+      ?? 1;
+    $dia_hasta = max(intval($request->dia1),intval($request->dia2))
+      ?? intval((new DateTime("{$request->anio}-{$request->mes}-01"))->modify('last day of this month')->format('d'));
+    
+    return $this->generarPlanillaNroAdmins($request->anio,$request->mes,$request->id_casino,$request->id_tipo_moneda,$request->pdev == 1,$maqs,$dia_desde,$dia_hasta);
   }
 
   public function obtenerUltimosBeneficiosPorCasino(){
