@@ -368,63 +368,38 @@ class informesController extends Controller
     return view('seccionInformeEstadoParque' , ['casinos' => $casinos]);
   }
 
-  public function obtenerInformeEstadoParqueDeParque($id_casino){
-    //funcion que devuelve cantidad de maquinas total del casino y a su vez maquinas separadas por sector . Tambien separadas en habilitadas y deshabilitadas
-    $casino = Casino::find($id_casino);
-
-    $estados_habilitados = EstadoMaquina::where('descripcion' , 'Ingreso')
-                                          ->orWhere('descripcion' , 'Reingreso')
-                                          ->orWhere('descripcion' , 'Eventualidad Observada')
-                                          ->get();
-
-    foreach ($estados_habilitados as $key => $estado) {
-      $estados_habilitados[$key] = $estado->id_estado_maquina;
-    }
-
-    $cantidad = DB::table('maquina')->select(DB::raw('COUNT(id_maquina) as cantidad'))
+  public function obtenerInformeEstadoParqueDeParque(Request $request){
+    $casino = Casino::find($request->id_casino);
+    if(empty($casino)) return [];
     
-                                              ->where('id_casino' , $casino->id_casino)
-                                              ->whereNull('maquina.deleted_at')
-                                              ->first();
-
-    $cantidad_habilitadas = DB::table('maquina')->select(DB::raw('COUNT(id_maquina) as cantidad'))
-                                                  ->where('id_casino' , $casino->id_casino)->whereIn('id_estado_maquina', $estados_habilitados)
-                                                  ->whereNull('maquina.deleted_at')
-                                                  ->first();
-    $cantidad_deshabilitadas = $cantidad->cantidad - $cantidad_habilitadas->cantidad;
-    $maquina_no_asignadas = DB::table('maquina')
-                              ->select(DB::raw('count(*) as cantidad'))
-                              ->where('maquina.id_casino' , $casino->id_casino)
-                              ->whereNull('maquina.deleted_at')
-                              ->whereNull('maquina.id_isla')
-                              ->first();
-
-    $islas=DB::table("isla")
-                ->where("isla.id_casino","=",$id_casino)
-                ->join("sector","isla.id_sector","=","sector.id_sector")
-                ->whereNotNull("sector.deleted_at")
-                ->whereNull("isla.deleted_at")
-                ->get();
-    $islas_no_asignadas =0;
+    $estados_habilitados = EstadoMaquina::whereIn('descripcion' ,['Ingreso','Reingreso','Eventualidad Observada'])
+    ->get()->pluck('id_estado_maquina');
     
-    foreach($islas as $i){
-      $isl=Isla::Find($i->id_isla);
-      if ($isl->cantidad_maquinas>0){
-        $islas_no_asignadas= $islas_no_asignadas+1;
-      }
-    }  
-    
-    $sectores = array();
-    foreach ($casino->sectores as $sector) {
-      $sectores[] =  ['id_sector' =>  $sector->id_sector, 'descripcion' => $sector->descripcion, 'cantidad' => $sector->cantidad_maquinas];
-    }
+    $maqs_q = DB::table('maquina')
+    ->where('id_casino',$casino->id_casino)
+    ->whereNull('maquina.deleted_at');
 
-    return ['casino' => $casino ,'sectores' => $sectores, 'totales' =>['total_casino' => $cantidad->cantidad,
-                                                                      'total_no_asignadas' => $maquina_no_asignadas->cantidad,
-                                                                      'islas_no_asignadas' => $islas_no_asignadas,
-                                                                      'total_habilitadas'  => $cantidad_habilitadas->cantidad,
-                                                                      'total_deshabilitadas' => $cantidad_deshabilitadas]
-          ];
+    $total_casino = (clone $maqs_q)->count();
+    $total_habilitadas = (clone $maqs_q)->whereIn('id_estado_maquina', $estados_habilitados)->count();
+    $total_deshabilitadas = (clone $maqs_q)->whereNotIn('id_estado_maquina', $estados_habilitados)->count();
+    $total_no_asignadas = (clone $maqs_q)->whereNull('maquina.id_isla')->count();   
+    
+    $islas_no_asignadas = DB::table('isla')->select('isla.id_isla')
+    ->where('isla.id_casino',$casino->id_casino)
+    ->join('sector','isla.id_sector','=','sector.id_sector')
+    ->join('maquina','maquina.id_isla','=','isla.id_isla')
+    ->whereNull('isla.deleted_at')//La isla no esta eliminada
+    ->whereNotNull('sector.deleted_at')//Esta en un sector eliminado
+    ->whereNull('maquina.deleted_at')//La maquina no esta eliminada
+    ->whereIn('maquina.id_estado_maquina',$estados_habilitados)//La maquina esta habilitada
+    ->distinct()->get()->count();
+    
+    $sectores = $casino->sectores->map(function($s){
+      return ['id_sector' => $s->id_sector, 'descripcion' => $s->descripcion, 'cantidad' => $s->cantidad_maquinas];
+    });
+
+    $totales = compact('total_casino','total_no_asignadas','islas_no_asignadas','total_habilitadas','total_deshabilitadas');
+    return compact('casino','sectores','totales');
   }
 
   public function buscarTodoInformeContable(){

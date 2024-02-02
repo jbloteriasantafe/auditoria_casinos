@@ -656,7 +656,7 @@ Informes
 Route::group(['prefix' => 'informeEstadoParque','middleware' => 'tiene_permiso:ver_seccion_estestadoparque'],function(){
   Route::get('/' , 'informesController@obtenerInformeEstadoParque');
   Route::get('obtenerSector/{id_sector}','SectorController@obtenerSector');
-  Route::get('obtenerEstadoParqueDeCasino/{id_casino}','informesController@obtenerInformeEstadoParqueDeParque');
+  Route::get('obtenerEstadoParqueDeCasino','informesController@obtenerInformeEstadoParqueDeParque');
 });
 
 Route::group(['prefix' => 'informeContableMTM','middleware' => 'tiene_permiso:ver_seccion_informecontable'], function () {

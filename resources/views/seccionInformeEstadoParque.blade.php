@@ -1,46 +1,52 @@
 @extends('includes.dashboard')
-<?php
-use Illuminate\Http\Request;
-?>
 
 @section('estilos')
-
 @endsection
 
 @section('headerLogo')
 <span class="etiquetaLogoMaquinas">@svg('maquinas','iconoMaquinas')</span>
 @endsection
+
 @section('contenidoVista')
-
-
-
 <div class="row">
-    <div class="col-lg-12">
-        <div class="panel panel-default" style="height:650px; padding-top:100px;">
-            <div class="panel-heading" style="text-align:center;">
-                <h4>¿QUÉ CASINO DESEA VER?</h4>
+  <div class="col-lg-12">
+    <div class="panel panel-default" style="height:650px; padding-top:100px;">
+      <div class="panel-heading" style="text-align:center;">
+        <h4>¿QUÉ CASINO DESEA VER?</h4>
+      </div>
+      <form id="formDatosInforme" class="panel-body" style="text-align:center;">
+          <img src="/img/logos/casinos_gris.png" alt="" width="250px" style="margin-bottom:40px; margin-top:20px;">
+          <div class="row">
+            <div class="col-md-4 col-md-offset-4">
+              <h5>CASINO</h5>
+              <select id="buscadorCasino" class="form-control" name="id_casino">
+                <option value="0">- Seleccione el casino -</option>
+                @foreach($casinos as $casino)
+                <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                @endforeach
+              </select>
             </div>
-            <div class="panel-body" style="text-align:center;">
-                <img src="/img/logos/casinos_gris.png" alt="" width="250px" style="margin-bottom:40px; margin-top:20px;">
-
-                <div class="row">
-                    <div class="col-md-4 col-md-offset-4">
-                        <select id="buscadorCasino" class="form-control" name="">
-                              <option value="0">- Seleccione el casino -</option>
-                            @foreach($casinos as $casino)
-                              <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                            @endforeach
-                        </select>
-                        <br>
-                        <button id="btn-buscar" class="btn btn-infoBuscar" type="button" style="width:100%;">VER DETALLES</button>
-                    </div>
-                </div>
-                <br>
+          </div>
+          <div class="row">
+            <div class="col-md-4 col-md-offset-4">
+              <h5>FECHA INFORME</h5>
+              @component('Components/inputFecha',[
+                'attrs'  => "name=\"fecha_informe\"",
+              ])
+              @endcomponent
             </div>
-        </div>
-    </div> <!-- col-md-4 -->
+          </div>
+          <br>
+          <div class="row">
+            <div class="col-md-4 col-md-offset-4">
+              <button id="btn-buscar" class="btn btn-infoBuscar" type="button" style="width:100%;">VER DETALLES</button>
+            </div>
+          </div>
+          <br>
+      </form>
+    </div>
+  </div> <!-- col-md-4 -->
 </div>
-
 
 <div class="modal fade" id="modalDetallesParque" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog" style="width:70%;">
@@ -81,9 +87,9 @@ use Illuminate\Http\Request;
                     <div class="col-md-8" style="border-right:1px solid #ccc;">
                         <div class="row" style="padding:0px 0px 20px 0px;">
                             <div class="col-md-12" style="text-align:center;">
-                                <img id="logo_CME" class="logoCasino" src="/img/logos/LOGO_CME_gris.png" alt="" hidden>
-                                <img id="logo_CRO" class="logoCasino" src="/img/logos/LOGO_CRO_gris.png" alt="" hidden>
-                                <img id="logo_CSF" class="logoCasino" src="/img/logos/LOGO_CSF_gris.png" alt="" hidden>
+                                <img id="logo_CME" data-id_casino="1" class="logoCasino" src="/img/logos/LOGO_CME_gris.png" alt="" hidden>
+                                <img id="logo_CSF" data-id_casino="2" class="logoCasino" src="/img/logos/LOGO_CSF_gris.png" alt="" hidden>
+                                <img id="logo_CRO" data-id_casino="3" class="logoCasino" src="/img/logos/LOGO_CRO_gris.png" alt="" hidden>
                             </div>
                         </div>
                         <div class="row" style="border-top:1px solid #ccc; padding:20px 0px;">
@@ -193,35 +199,29 @@ use Illuminate\Http\Request;
     </div>
 </div>
 
+<meta name="_token" content="{!! csrf_token() !!}" />
+@endsection
 
+<!-- Comienza modal de ayuda -->
+@section('tituloDeAyuda')
+<h3 class="modal-title" style="color: #fff;">| INFORMES DE CASINO</h3>
+@endsection
+@section('contenidoAyuda')
+<div class="col-md-12">
+  <h5>Tarjeta de Informes</h5>
+  <p>
+    Se detalla gráficamente el estado del parque de máquinas, dependiendo el casino elegido por el usuario.
+    Se describen la cantidad de máquinas del casino, respecto de los sectores en los que se dividen,
+    donde se informan las máquinas habilitadas y deshabilitadas.
+  </p>
+</div>
+@endsection
+<!-- Termina modal de ayuda -->
 
-
-
-    <meta name="_token" content="{!! csrf_token() !!}" />
-
-    @endsection
-
-    <!-- Comienza modal de ayuda -->
-    @section('tituloDeAyuda')
-    <h3 class="modal-title" style="color: #fff;">| AYUDA INFORMES DE CASINO</h3>
-    @endsection
-    @section('contenidoAyuda')
-    <div class="col-md-12">
-      <h5>Tarjeta de Informes</h5>
-      <p>
-        Se detalla gráficamente el estado del parque de máquinas, dependiendo el casino elegido por el usuario.
-        Se describen la cantidad de máquinas del casino, respecto de los sectores en los que se dividen,
-        donde se informan las máquinas habilitadas y deshabilitadas.
-      </p>
-    </div>
-    @endsection
-    <!-- Termina modal de ayuda -->
-
-    @section('scripts')
-    <!-- JavaScript personalizado -->
-    <script src="js/seccionInformeEstadoParque.js?1" charset="utf-8"></script>
-
-    <!-- Highchart -->
-    <script src="js/highcharts.js"></script>
-    <script src="js/highcharts-3d.js"></script>
-    @endsection
+@section('scripts')
+<!-- JavaScript personalizado -->
+<script src="js/seccionInformeEstadoParque.js?2" charset="utf-8" type="module"></script>
+<!-- Highchart -->
+<script src="js/highcharts.js"></script>
+<script src="js/highcharts-3d.js"></script>
+@endsection
