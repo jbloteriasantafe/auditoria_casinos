@@ -24,6 +24,8 @@ Route::group(['prefix' => 'AE','middleware' => 'check_API_token'],function(){
   Route::get('fechas/{DNI}','Autoexclusion\APIAEController@fechas');
   Route::get('finalizar/{DNI}','Autoexclusion\APIAEController@finalizar');
   Route::post('agregar','Autoexclusion\APIAEController@agregar');
+  Route::get('constancia/reingreso/{DNI}','Autoexclusion\APIAEController@reingreso');
+  Route::get('ultima/{DNI}','Autoexclusion\APIAEController@ultimos_datos');
 });
 
 function completarUsuarioParaRetorno(&$u){

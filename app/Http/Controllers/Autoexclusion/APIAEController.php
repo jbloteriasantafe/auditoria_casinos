@@ -11,6 +11,9 @@ use Validator;
 use App\Casino;
 use App\Plataforma;
 use App\Autoexclusion as AE;
+use Dompdf\Dompdf;
+use View;
+use PDF;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -261,5 +264,68 @@ class APIAEController extends Controller
 
     private function errorOut($map){
         return response()->json($map,422);
+    }
+
+    //devuelve el pdf de constancia de reingreso
+    public function reingreso(Request $request, $dni){
+      $aes = AE\Autoexcluido::where('nro_dni',$dni)->max('id_autoexcluido');
+      if($aes){
+        $ae = AE\Autoexcluido::find($aes);
+        $datos = array(
+          'apellido_y_nombre' => $ae->apellido . ', ' . $ae->nombres,
+          'dni' => $ae->nro_dni,
+          'domicilio_completo' => $ae->domicilio . ' ' . $ae->nro_domicilio,
+          'localidad' => ucwords(strtolower($ae->nombre_localidad)),
+          'fecha_cierre_definitivo' => date('d/m/Y', strtotime($ae->estado->fecha_cierre_ae))
+        );
+
+        //Si revoco, le permitimos entrar a partir de la fecha del vencimiento
+        if(!is_null($ae->estado->fecha_revocacion_ae)){
+          $datos['fecha_cierre_definitivo'] = date('d/m/Y',strtotime($ae->estado->fecha_vencimiento));
+        }
+
+        $view = View::make('Autoexclusion.planillaConstanciaReingreso', compact('datos'));
+        $dompdf = new Dompdf();
+        $dompdf->set_paper('A4', 'portrait');
+        $dompdf->loadHtml($view->render());
+        $dompdf->render();
+        $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+        $dompdf->getCanvas()->page_text(20, 820, "Dirección General de Casinos y Bingos / Caja de Asistencia Social - Lotería de Santa Fe", $font, 8, array(0,0,0));
+        $dompdf->getCanvas()->page_text(525, 820, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 8, array(0,0,0));
+        $pdfContent = $dompdf->output();
+        $pdfBase64 = base64_encode($pdfContent);
+        return response()->json(["content" => $pdfBase64]);
+      }
+      return response()->json(["Error" => "Sin AE"]);
+    }
+
+    public function ultimos_datos(Request $request, $dni){
+      // esto solo sirve si las id son asiganadas de manera creciente cambiar en caso contrario
+      // no se puede usaer el created_at ya que no esta seteado 
+      $aes = AE\Autoexcluido::where('nro_dni',$dni)->max('id_autoexcluido');
+      if($aes){
+        $ae = AE\Autoexcluido::find($aes);
+        return response()->json(
+           [          
+            'nro_dni'          => $ae->nro_dni,
+            'apellido'         => $ae->apellido,
+            'nombres'          => $ae->nombres,
+            'fecha_nacimiento' => $ae->fecha_nacimiento,
+            'sexo'             => $ae->sexo->codigo,
+            'domicilio'        => $ae->domicilio,
+            'nro_domicilio'    => $ae->nro_domicilio,
+            'piso'             => $ae->piso,
+            'dpto'             => $ae->dpto,
+            'codigo_postal'    => $ae->codigo_postal,
+            'nombre_localidad' => $ae->nombre_localidad,
+            'nombre_provincia' => $ae->nombre_provincia,
+            'telefono'         => $ae->telefono,
+            'correo'           => $ae->correo,
+            'ocupacion'        => $ae->ocupacion->codigo,
+            'capacitacion'     => $ae->capacitacion->codigo,
+            'estado_civil'     => $ae->estado_civil
+          ]
+          );
+      }
     }
 }
