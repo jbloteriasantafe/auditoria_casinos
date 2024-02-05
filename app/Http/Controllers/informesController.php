@@ -375,15 +375,34 @@ class informesController extends Controller
     $estados_habilitados = EstadoMaquina::whereIn('descripcion' ,['Ingreso','Reingreso','Eventualidad Observada'])
     ->get()->pluck('id_estado_maquina');
     
+    $fecha_informe = $request->fecha_informe ?? date('Y-m-d');
+    DB::statement('SET @fecha_informe = ?',[$fecha_informe]);
+        
+    $id_estado_maquina_q = DB::raw('IFNULL(
+      (
+        SELECT log_maquina.id_estado_maquina
+        FROM log_maquina
+        WHERE log_maquina.id_maquina = maquina.id_maquina
+        AND log_maquina.fecha <= @fecha_informe
+        ORDER BY log_maquina.fecha DESC
+        LIMIT 1
+      ),
+      maquina.id_estado_maquina
+    )');
+    
     $maqs_q = DB::table('maquina')
-    ->where('id_casino',$casino->id_casino)
-    ->whereNull('maquina.deleted_at');
+    ->where('maquina.id_casino',$casino->id_casino)
+    ->where('maquina.created_at','<=',$fecha_informe)
+    ->where(function($q) use ($fecha_informe){
+      return $q->whereNull('maquina.deleted_at')->orWhere('maquina.deleted_at','>',$fecha_informe);
+    });
 
     $total_casino = (clone $maqs_q)->count();
-    $total_habilitadas = (clone $maqs_q)->whereIn('id_estado_maquina', $estados_habilitados)->count();
-    $total_deshabilitadas = (clone $maqs_q)->whereNotIn('id_estado_maquina', $estados_habilitados)->count();
+    $total_habilitadas = (clone $maqs_q)->whereIn($id_estado_maquina_q, $estados_habilitados)->count();
+    $total_deshabilitadas = (clone $maqs_q)->whereNotIn($id_estado_maquina_q, $estados_habilitados)->count();
     $total_no_asignadas = (clone $maqs_q)->whereNull('maquina.id_isla')->count();   
     
+    //@TODO: Como hacer para buscar el estado de las islas y sectores en $fecha_informe?
     $islas_no_asignadas = DB::table('isla')->select('isla.id_isla')
     ->where('isla.id_casino',$casino->id_casino)
     ->join('sector','isla.id_sector','=','sector.id_sector')

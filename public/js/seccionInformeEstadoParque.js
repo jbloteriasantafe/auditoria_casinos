@@ -8,8 +8,12 @@ $(document).ready(function(){
     const id_casino = $('#buscadorCasino').val();
     if(id_casino == 0) return;
     
+    const formData = AUX.form_entries($('#formDatosInforme')[0]);
+    const fecha_hoy = new Date().toISOString().split('T')[0];
+    $('[data-js-mostrar-sin-fecha-informe]').toggle(formData.fecha_informe.length == 0 || formData.fecha_informe == fecha_hoy);
+    
     AUX.GET('informeEstadoParque/obtenerEstadoParqueDeCasino',
-      AUX.form_entries($('#formDatosInforme')[0]),
+      formData,
       function(data){
         $('.logoCasino').hide();
         $(`.logoCasino[data-id_casino="${id_casino}"]`).show();

@@ -129,7 +129,7 @@
                             }
                         </style>
 
-                        <div class="row" style="text-align:center;border-top:1px solid #ccc; padding:20px 0px;">
+                        <div class="row" style="text-align:center;border-top:1px solid #ccc; padding:20px 0px;" data-js-mostrar-sin-fecha-informe>
                             <div class="col-md-6">
                               <h5>ISLAS NO ASIGNADAS</h5>
                               <span id="islas_asignadas" class="islas_noasignadas" style="color:#FF3D00;">1</span>
@@ -142,7 +142,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4" style="padding:20px 0px; text-align:center;">
+                    <div class="col-md-4" style="padding:20px 0px; text-align:center;" data-js-mostrar-sin-fecha-informe>
                         <h5>SECTORES DEL CASINO</h5>
 
                         <style media="screen">
@@ -220,7 +220,7 @@
 
 @section('scripts')
 <!-- JavaScript personalizado -->
-<script src="js/seccionInformeEstadoParque.js?2" charset="utf-8" type="module"></script>
+<script src="js/seccionInformeEstadoParque.js?3" charset="utf-8" type="module"></script>
 <!-- Highchart -->
 <script src="js/highcharts.js"></script>
 <script src="js/highcharts-3d.js"></script>
