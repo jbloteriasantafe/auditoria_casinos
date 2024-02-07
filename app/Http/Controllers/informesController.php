@@ -377,14 +377,28 @@ class informesController extends Controller
     
     $fecha_informe = $request->fecha_informe ?? date('Y-m-d');
     DB::statement('SET @fecha_informe = ?',[$fecha_informe]);
-        
+    
+    //Busco el ultimo movimiento validado de la maquina para ponerle un estado
+    //Si no hay movimiento, me quedo con el estado de la maquina
+    //4 -> egreso temporal, 2 -> reingreso, 3 -> egreso definitivo, 1-> ingreso
     $id_estado_maquina_q = DB::raw('IFNULL(
       (
-        SELECT log_maquina.id_estado_maquina
-        FROM log_maquina
-        WHERE log_maquina.id_maquina = maquina.id_maquina
-        AND log_maquina.fecha <= @fecha_informe
-        ORDER BY log_maquina.fecha DESC
+        SELECT
+        CASE
+          WHEN l.sentido = "EGRESO TEMPORAL" THEN 4
+          WHEN l.sentido = "REINGRESO"       THEN 2
+          WHEN lt.id_tipo_movimiento = 12    THEN 3
+          WHEN lt.id_tipo_movimiento = 11    THEN 1
+          ELSE maquina.id_estado_maquina
+        END as id_estado_maquina
+        FROM log_movimiento l
+        JOIN logmov_tipomov lt ON lt.id_log_movimiento = l.id_log_movimiento
+        JOIN tipo_movimiento t ON t.id_tipo_movimiento = lt.id_tipo_movimiento
+        JOIN relevamiento_movimiento r ON r.id_log_movimiento = l.id_log_movimiento
+        WHERE r.id_estado_relevamiento = 4
+        AND   r.id_maquina = maquina.id_maquina
+        AND   l.fecha <= @fecha_informe
+        ORDER BY l.fecha DESC
         LIMIT 1
       ),
       maquina.id_estado_maquina
