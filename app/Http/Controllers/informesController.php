@@ -376,7 +376,7 @@ class informesController extends Controller
     //@SIN IMPLEMENTAR
     $fecha_informe = $request->fecha_informe ?? date('Y-m-d');
     
-    $maqs = DB::table('maquina')
+    $maqs_q = DB::table('maquina')
     ->where('maquina.id_casino',$casino->id_casino)
     ->whereNull('maquina.deleted_at');
     /*->where('maquina.created_at','<=',$fecha_informe)
