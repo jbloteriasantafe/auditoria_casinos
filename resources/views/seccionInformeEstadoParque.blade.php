@@ -27,7 +27,7 @@
               </select>
             </div>
           </div>
-          <div class="row">
+          <div class="row" hidden>
             <div class="col-md-4 col-md-offset-4">
               <h5>FECHA INFORME</h5>
               @component('Components/inputFecha',[
