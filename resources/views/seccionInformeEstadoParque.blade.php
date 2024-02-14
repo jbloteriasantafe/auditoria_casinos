@@ -27,7 +27,7 @@
               </select>
             </div>
           </div>
-          <div class="row" hidden>
+          <div class="row">
             <div class="col-md-4 col-md-offset-4">
               <h5>FECHA INFORME</h5>
               @component('Components/inputFecha',[
@@ -83,8 +83,8 @@
                     }
                 </style>
 
-                <div class="row">
-                    <div class="col-md-8" style="border-right:1px solid #ccc;">
+                <div class="row" style="display: flex;">
+                    <div style="flex: 2;border-right:1px solid #ccc;">
                         <div class="row" style="padding:0px 0px 20px 0px;">
                             <div class="col-md-12" style="text-align:center;">
                                 <img id="logo_CME" data-id_casino="1" class="logoCasino" src="/img/logos/LOGO_CME_gris.png" alt="" hidden>
@@ -142,7 +142,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4" style="padding:20px 0px; text-align:center;" data-js-mostrar-sin-fecha-informe>
+                    <div style="flex: 1;padding:20px 0px; text-align:center;" data-js-mostrar-sin-fecha-informe>
                         <h5>SECTORES DEL CASINO</h5>
 
                         <style media="screen">
