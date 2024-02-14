@@ -266,6 +266,51 @@ class APIAEController extends Controller
         return response()->json($map,422);
     }
 
+
+    
+    public function exclusion_registro(Request $request, $dni){
+      $aes = AE\Autoexcluido::where('nro_dni',$dni)->max('id_autoexcluido');
+      if($aes){
+        $autoexcluido = AE\Autoexcluido::find($aes);
+        $estado = $autoexcluido->estado;
+        $datos_estado = array(
+          'fecha_ae' => date("d/m/Y",strtotime($estado->fecha_ae)),
+          'fecha_vencimiento' => date("d/m/Y", strtotime($estado->fecha_vencimiento)),
+          'fecha_cierre' => date("d/m/Y", strtotime($estado->fecha_cierre_ae))
+        );
+        $encuesta = $autoexcluido->encuesta;
+        $es_primer_ae = $autoexcluido->es_primer_ae;
+        if (is_null($encuesta)) {
+          $encuesta = array(
+            'id_frecuencia_asistencia' => -1,
+            'veces' => -1,
+            'tiempo_jugado' => -1,
+            'como_asiste' => -1,
+            'id_juego_preferido' => -1,
+            'club_jugadores' => -1,
+            'autocontrol_juego' => -1,
+            'recibir_informacion' => -1,
+            'medio_recibir_informacion' => -1,
+            'observacion' => ''
+          );
+        }
+        $contacto = $autoexcluido->contacto;
+
+        $view = View::make('Autoexclusion.planillaFormularioAE1', compact('autoexcluido', 'encuesta', 'datos_estado', 'contacto','es_primer_ae'));
+        $dompdf = new Dompdf();
+        $dompdf->set_paper('A4', 'portrait');
+        $dompdf->loadHtml($view->render());
+        $dompdf->render();
+        $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+        $dompdf->getCanvas()->page_text(20, 820, "Dirección General de Casinos y Bingos / Caja de Asistencia Social - Lotería de Santa Fe", $font, 8, array(0,0,0));
+        $dompdf->getCanvas()->page_text(525, 820, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 8, array(0,0,0));
+
+        $pdfContent = $dompdf->output();
+        $pdfBase64 = base64_encode($pdfContent);
+        return response()->json(["content" => $pdfBase64]);
+      }
+      return response()->json(["Error" => "Sin AE"]);
+    }
     //devuelve el pdf de constancia de reingreso
     public function reingreso(Request $request, $dni){
       $aes = AE\Autoexcluido::where('nro_dni',$dni)->max('id_autoexcluido');
@@ -303,6 +348,7 @@ class APIAEController extends Controller
       // esto solo sirve si las id son asiganadas de manera creciente cambiar en caso contrario
       // no se puede usaer el created_at ya que no esta seteado 
       $aes = AE\Autoexcluido::where('nro_dni',$dni)->max('id_autoexcluido');
+      Log::info($aes);
       if($aes){
         $ae = AE\Autoexcluido::find($aes);
         return response()->json(
