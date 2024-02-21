@@ -433,6 +433,7 @@ Route::group(['prefix' => 'importaciones','middleware' => 'tiene_permiso:ver_sec
 Route::group(['prefix' => 'cotizacion','middleware' => 'tiene_permiso:cotizar_dolar_peso'], function () {
   Route::get('obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');
   Route::post('guardarCotizacion','CotizacionController@guardarCotizacion');
+  Route::get('dolarOficial','CotizacionController@dolarOficial');
 });
 /************
 Relevamientos
@@ -968,6 +969,3 @@ Route::group(['prefix' => 'backoffice','middleware' => 'tiene_permiso:informes_m
   Route::post('buscar','BackOfficeController@buscar');
   Route::post('descargar','BackOfficeController@descargar');
 });
-
-
-

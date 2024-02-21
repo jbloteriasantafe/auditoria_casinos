@@ -1,7 +1,7 @@
 <?php
 use App\Http\Controllers\UsuarioController;
 ?>
-@if(UsuarioController::getInstancia()->quienSoy()['usuario']->tienePermiso('cotizar_dolar_peso'))  
+@if(UsuarioController::getInstancia()->quienSoy()['usuario']->tienePermiso('cotizar_dolar_peso')) 
 <div class="modal fade" id="modal-cotizacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg"  >
     <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
@@ -25,6 +25,8 @@ use App\Http\Controllers\UsuarioController;
 
 <script type="module" defer>  
   $(document).ready(function(){
+    const dolarOficial = {};
+    let primer_dia = null;
     const cambioMes = function(s){
       $('#calendarioCotizacion').fullCalendar(s);
       $('#calendarioCotizacion').fullCalendar('refetchEvents');
@@ -83,7 +85,22 @@ use App\Http\Controllers\UsuarioController;
         dayClick: function(date) {
           $('#labelCotizacion').html('Guardar cotización para el día '+ '<u>'  +date.format('DD/M/YYYY') + '</u>' );
           $('#labelCotizacion').attr("data-fecha",date.format('YYYY-MM-DD'));
-          $('#valorCotizacion').val("");
+          const isodate = function(_d){
+            return _d.toISOString().split('T')[0];
+          };
+          const nd = new Date(date._d);
+          let valor = '';
+          //Va para atras hasta encontrar el ultimo valor
+          //Esto es porque los sabados, domingos y feriados no tienen mercado de cambios
+          while(primer_dia !== null){
+            const isond = isodate(nd);
+            valor = dolarOficial[isond] ?? ''; 
+            if(isond == primer_dia || valor !== ''){
+              break;
+            }
+            nd.setDate(nd.getDate()-1);
+          }
+          $('#valorCotizacion').val(valor);
           $('#valorCotizacion').focus();
         },
       });
@@ -105,6 +122,13 @@ use App\Http\Controllers\UsuarioController;
           $('#valorCotizacion').val("");
         }
       });
+    });
+    
+    $.get('cotizacion/dolarOficial',function (data) {
+      for(const d of data){
+        dolarOficial[d['d']] = d['v'];
+        primer_dia = primer_dia < d['d'] && primer_dia !== null? primer_dia : d['d'];
+      }
     });
   });
 </script>

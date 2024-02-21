@@ -10,6 +10,7 @@ use Validator;
 
 class CotizacionController extends Controller
 {
+    private static $instance = null;
     public static function getInstancia() {
         if (!isset(self::$instance)) {
           self::$instance = new CotizacionController();
@@ -52,5 +53,27 @@ class CotizacionController extends Controller
         return "OK";
 
     }
-
+    
+    public function dolarOficial(){
+      $CC = \App\Http\Controllers\CacheController::getInstancia();
+      $hoy = date('Y-m-d');
+      $CC->invalidar('dolar_oficial','',$hoy.' 00:00:00');
+      $cache = $CC->buscar('dolar_oficial','',$hoy.' 23:59:59');
+      if($cache->count() > 0){
+        return json_decode($cache->first()->data,true);
+      }
+      set_time_limit(30);
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL, 'https://api.estadisticasbcra.com/usd_of');
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+      curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: '.env('API_KEY_BCRA','')
+      ]);
+      $result = curl_exec($ch);
+      $code   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);  
+      if ($code != 201 && $code != 200) return response()->json($result,422);
+      $CC->agregar('dolar_oficial','',$result);
+      return json_decode($result,true);
+    }
 }
