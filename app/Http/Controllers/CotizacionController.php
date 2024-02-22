@@ -66,6 +66,12 @@ class CotizacionController extends Controller
       $ch = curl_init();
       curl_setopt($ch, CURLOPT_URL, 'https://api.estadisticasbcra.com/usd_of');
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+      $proxy_url = env('HTTP_PROXY_URL',null);
+      $proxy_port = env('HTTP_PROXY_PORT',null);
+      if(!is_null($proxy_url) && !is_null($proxy_port)){
+        curl_setopt($ch,CURLOPT_PROXY,$proxy_url);
+        curl_setopt($ch,CURLOPT_PROXYPORT,$proxy_port);
+      }
       curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Authorization: '.env('API_KEY_BCRA','')
       ]);
