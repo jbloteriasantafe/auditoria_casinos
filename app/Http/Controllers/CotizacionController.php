@@ -55,6 +55,7 @@ class CotizacionController extends Controller
     }
     
     public function dolarOficial(){
+      return [];//@HACK: override, los valores que retorna la API no son los mismos que da la pagina (???)
       $CC = \App\Http\Controllers\CacheController::getInstancia();
       $hoy = date('Y-m-d');
       $CC->invalidar('dolar_oficial','',$hoy.' 00:00:00');
