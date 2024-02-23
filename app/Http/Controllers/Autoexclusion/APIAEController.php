@@ -348,7 +348,6 @@ class APIAEController extends Controller
       // esto solo sirve si las id son asiganadas de manera creciente cambiar en caso contrario
       // no se puede usaer el created_at ya que no esta seteado 
       $aes = AE\Autoexcluido::where('nro_dni',$dni)->max('id_autoexcluido');
-      Log::info($aes);
       if($aes){
         $ae = AE\Autoexcluido::find($aes);
         return response()->json(
