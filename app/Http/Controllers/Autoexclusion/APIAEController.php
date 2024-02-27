@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\Autoexclusion\AutoexclusionController;
+use Illuminate\Support\Facades\Log;
 use Validator;
 
 use App\Casino;
@@ -162,6 +163,7 @@ class APIAEController extends Controller
     }
     
     public function agregar(Request $request){
+        Log::info($request);
         $validator = Validator::make($request->all(), [
           'ae_datos.nro_dni'          => 'required|integer',
           'ae_datos.apellido'         => 'required|string|max:100',
@@ -181,7 +183,8 @@ class APIAEController extends Controller
           'ae_datos.capacitacion'     => 'nullable|string|max:4|exists:ae_capacitacion,codigo',
           'ae_datos.estado_civil'     => 'nullable|string|max:4|exists:ae_estado_civil,codigo',
           'ae_estado.fecha_ae'        => 'required|date',
-          'ae_estado.fecha_revocacion_ae' => 'nullable|date'
+          'ae_estado.fecha_revocacion_ae' => 'nullable|date',
+          'ae_importacion.scandni'              => 'nullable|file|mimes:jpg,jpeg,png,pdf',
         ], array(), self::$atributos)->after(function($validator){
           if($validator->errors()->any()) return;
           $data = $validator->getData();
@@ -256,7 +259,9 @@ class APIAEController extends Controller
           $ae_estado['id_plataforma'] = ($api_token->metadata ?? [])['id_plataforma'] ?? null;
           $AEC = AutoexclusionController::getInstancia(false);
           $AEC->setearEstado($ae,$ae_estado);
-          $AEC->subirImportacionArchivos($ae,[]);
+          
+          $AEC->subirImportacionArchivos($ae, $request["ae_importacion"]);
+          Log::info($AEC);
         });
     
         return response()->json('Agregado',200);
