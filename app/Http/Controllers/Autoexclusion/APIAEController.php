@@ -163,7 +163,6 @@ class APIAEController extends Controller
     }
     
     public function agregar(Request $request){
-        Log::info($request);
         $validator = Validator::make($request->all(), [
           'ae_datos.nro_dni'          => 'required|integer',
           'ae_datos.apellido'         => 'required|string|max:100',
@@ -184,7 +183,6 @@ class APIAEController extends Controller
           'ae_datos.estado_civil'     => 'nullable|string|max:4|exists:ae_estado_civil,codigo',
           'ae_estado.fecha_ae'        => 'required|date',
           'ae_estado.fecha_revocacion_ae' => 'nullable|date',
-          'ae_importacion.scandni'              => 'nullable|file|mimes:jpg,jpeg,png,pdf',
         ], array(), self::$atributos)->after(function($validator){
           if($validator->errors()->any()) return;
           $data = $validator->getData();
@@ -259,9 +257,7 @@ class APIAEController extends Controller
           $ae_estado['id_plataforma'] = ($api_token->metadata ?? [])['id_plataforma'] ?? null;
           $AEC = AutoexclusionController::getInstancia(false);
           $AEC->setearEstado($ae,$ae_estado);
-          
-          $AEC->subirImportacionArchivos($ae, $request["ae_importacion"]);
-          Log::info($AEC);
+          $AEC->subirImportacionArchivos($ae,[]);
         });
     
         return response()->json('Agregado',200);
@@ -271,7 +267,21 @@ class APIAEController extends Controller
         return response()->json($map,422);
     }
 
-
+    public function setImportacion(Request $request){
+      $validator = Validator::make($request->all(), [
+            'dni' => 'required|string|max:150',
+            'file' => 'required||file|mimes:webp',
+        ]);
+      if($validator->fails()) return response()->json($validator->errors(),422);
+      $datas = $request()->all();
+      $aes = AE\Autoexcluido::where('nro_dni',$datas['dni'])->max('id_autoexcluido');
+      if($aes){
+        $ae = AE\Autoexcluido::find($aes);
+        $aec = AutoexclusionController::getInstancia(false);
+        $aec->subirImportacionArchivos($ae,['scandni' => $datas['file']]);
+        return response()->json('Actualizado',200);
+      }
+    }
     
     public function exclusion_registro(Request $request, $dni){
       $aes = AE\Autoexcluido::where('nro_dni',$dni)->max('id_autoexcluido');
