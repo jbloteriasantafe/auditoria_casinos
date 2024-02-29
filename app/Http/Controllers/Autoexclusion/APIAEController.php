@@ -270,7 +270,7 @@ class APIAEController extends Controller
     public function setImportacion(Request $request){
       $validator = Validator::make($request->all(), [
             'dni' => 'required|string|max:150',
-            'file' => 'required||file|mimes:webp',
+            'file' => 'required|file|mimes:webp',
         ]);
       if($validator->fails()) return response()->json($validator->errors(),422);
       $datas = $request()->all();
