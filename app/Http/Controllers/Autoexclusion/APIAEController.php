@@ -267,19 +267,40 @@ class APIAEController extends Controller
         return response()->json($map,422);
     }
 
-    public function setImportacion(Request $request){
+    public function set_importacion_archivos(Request $request){
       $validator = Validator::make($request->all(), [
             'dni' => 'required|string|max:150',
             'file' => 'required|file|mimes:webp',
         ]);
-      if($validator->fails()) return response()->json($validator->errors(),422);
-      $datas = $request()->all();
-      $aes = AE\Autoexcluido::where('nro_dni',$datas['dni'])->max('id_autoexcluido');
+      if($validator->fails()) {
+        return response()->json($validator->errors(), 422);
+      }
+      $data = $request->all();
+      $aes = AE\Autoexcluido::where('nro_dni', $data['dni'])->max('id_autoexcluido');
       if($aes){
         $ae = AE\Autoexcluido::find($aes);
-        $aec = AutoexclusionController::getInstancia(false);
-        $aec->subirImportacionArchivos($ae,['scandni' => $datas['file']]);
-        return response()->json('Actualizado',200);
+        $importacion = AE\ImportacionAE::where('id_autoexcluido', $ae->id_autoexcluido)->first();
+        DB::transaction(function() use ($data, $aes , $ae , $importacion){
+          $aec = AutoexclusionController::getInstancia(false);
+          
+          $barra = strpos($data['file']->getMimeType(),'/');
+          $extension = substr($data['file']->getMimeType(),$barra+1);
+          $nombre_archivo =  date("dmY") . '-' . $ae->nro_dni . '-3.' . $extension;
+
+          $pathCons = public_path('/public/importacionesAutoexcluidos/documentos');
+          if (!file_exists($pathCons)) {
+            mkdir($pathCons, 0755, true);
+          }
+          $path = $pathCons . '/' . $nombre_archivo;
+
+          copy($data['file']->getRealPath(), $path);
+
+          $importacion->scandni = $nombre_archivo;
+          $importacion->save();
+                  
+        });
+
+        return response()->json('Actualizado', 200);
       }
     }
     
