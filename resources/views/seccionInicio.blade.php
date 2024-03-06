@@ -170,7 +170,7 @@ $iconos_por_ruta = [
   'informe-bingo' => ['bingo/informe','bingos','iconoInformesModif'],
   'relevamientosControlAmbiental' => [null,'maquinas','iconoMaquinas'],
   'autoexclusion' => [null,'usuario','iconoUsuarios'],
-  'galeriaAE' => ['galeriaAE','usuario','iconoUsuarios'],
+  'galeriaImagenesAutoexcluidos' => ['galeriaImagenesAutoexcluidos','usuario','iconoUsuarios'],
   'informesAutoexcluidos' => [null,'informes','iconoInformesModif'],
 ];
 ?>
