@@ -656,6 +656,8 @@ function validarDNI(){
           $('#veces').val(data.encuesta.veces);
           $('#tiempo_jugado').val(data.encuesta.tiempo_jugado);
           $('#socio_club_jugadores').val(data.encuesta.club_jugadores);
+          $('#conoce_plataformas').val(data.encuesta.conoce_plataformas);
+          $('#utiliza_plataformas').val(data.encuesta.utiliza_plataformas);
           $('#juego_responsable').val(data.encuesta.juego_responsable);
           $('#autocontrol_juego').val(data.encuesta.autocontrol_juego);
           $('#como_asiste').val(data.encuesta.como_asiste);
@@ -898,6 +900,8 @@ $('#btn-guardar').click(function (e) {
       veces: $('#veces').val(),
       tiempo_jugado: $('#tiempo_jugado').val(),
       club_jugadores: $('#socio_club_jugadores').val(),
+      conoce_plataformas: $('#conoce_plataformas').val(),
+      utiliza_plataformas: $('#utiliza_plataformas').val(),
       juego_responsable: $('#juego_responsable').val(),
       autocontrol_juego: $('#autocontrol_juego').val(),
       recibir_informacion: $('#recibir_informacion').val(),
@@ -1000,6 +1004,8 @@ function mostrarAutoexcluido(id_autoexcluido){
       $('#infoVeces').val(data.encuesta.veces);
       $('#infoTiempoJugado').val(data.encuesta.tiempo_jugado);
       $('#infoSocioClubJugadores').val(data.encuesta.club_jugadores);
+      $('#infoConocePlataformas').val(data.encuesta.conoce_plataformas);
+      $('#infoUtilizaPlataformas').val(data.encuesta.utiliza_plataformas);
       $('#infoJuegoResponsable').val(data.encuesta.juego_responsable);
       $('#infoAutocontrol').val(data.encuesta.autocontrol_juego);
       $('#infoComoAsiste').val(data.encuesta.como_asiste);

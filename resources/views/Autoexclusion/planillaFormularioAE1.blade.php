@@ -143,6 +143,13 @@
       produzcan en mi patrimonio y/o persona y/o en la de terceros.</p>
       <p>Linea telefónica de atención gratuita y confidencial. Si considera que tiene algún inconveniente con su manera de jugar puede informarse al numero 0800-345-5640.</p>
     </div>
+    
+    <div class="primerEncabezado" style="font-size:13px">
+      <p>Los datos contenidos en el presente formulario de autoexclusión, se encuentran bajo los
+      términos expresados en la Ley Nacional 25326/00 de protección de los datos
+      personales, particularmente en los artículos 5, 6, 8, 9 y 10 y la Ley Provincial 8525,
+      Capitulo IV, Art. 13, inc. f, deberes del personal.</p>
+    </div>
 
     @if($es_primer_ae)
     <div class="primerEncabezado" style="font-size:13px">
@@ -279,17 +286,37 @@
       <!-- PREGUNTA N°6 -->
       <table style="table-layout: fixed;width: 100%;margin-top: 1%;">
         <tr>
-          <td style="font-size: 14px;width: 50%;">6. ¿Considera que su decisión de autoexcluirse responde a problemas de autocontrol sobre el juego?</td>
+          <td style="font-size: 14px;width: 50%;">6. ¿Conoce las plataformas de Juego Online?</td>
+          <td style="font-size: 14px;width: 5%;">Sí</td>
+          <td style="width: 5%;"><input type="checkbox" {{$encuesta['conoce_plataformas'] == 'SI' ? 'checked' : ''}}/></td>
+          <td style="font-size: 14px;width: 5%;">No</td>
+          <td style="width: 5%;"><input type="checkbox" {{$encuesta['conoce_plataformas'] == 'NO' ? 'checked' : ''}}/></td>
+        </tr>
+      </table>
+      <!-- PREGUNTA N°7 -->
+      <table style="table-layout: fixed;width: 100%;margin-top: 1%;">
+        <tr>
+          <td style="font-size: 14px;width: 50%;">7. Si conoce las plataformas de Juego Online, ¿las utiliza?</td>
+          <td style="font-size: 14px;width: 5%;">Sí</td>
+          <td style="width: 5%;"><input type="checkbox" {{$encuesta['utiliza_plataformas'] == 'SI' ? 'checked' : ''}}/></td>
+          <td style="font-size: 14px;width: 5%;">No</td>
+          <td style="width: 5%;"><input type="checkbox" {{$encuesta['utiliza_plataformas'] == 'NO' ? 'checked' : ''}}/></td>
+        </tr>
+      </table>
+      <!-- PREGUNTA N°8 -->
+      <table style="table-layout: fixed;width: 100%;margin-top: 1%;">
+        <tr>
+          <td style="font-size: 14px;width: 50%;">8. ¿Considera que su decisión de autoexcluirse responde a problemas de autocontrol sobre el juego?</td>
           <td style="font-size: 14px;width: 5%;">Sí</td>
           <td style="width: 5%;"><input type="checkbox" {{$encuesta['autocontrol_juego'] == 'SI' ? 'checked' : ''}}/></td>
           <td style="font-size: 14px;width: 5%;">No</td>
           <td style="width: 5%;"><input type="checkbox" {{$encuesta['autocontrol_juego'] == 'NO' ? 'checked' : ''}}/></td>
         </tr>
       </table>
-      <!-- PREGUNTA N°7 -->
+      <!-- PREGUNTA N°9 -->
       <table style="table-layout: fixed;width: 100%;margin-top: 1%;">
         <tr>
-          <td style="font-size: 14px;width: 50%;">7. ¿Desea recibir información sobre Juego Responsable?</td>
+          <td style="font-size: 14px;width: 50%;">9. ¿Desea recibir información sobre Juego Responsable?</td>
           <td style="font-size: 14px;width: 5%;">Sí</td>
           <td style="width: 5%;"><input type="checkbox" {{$encuesta['recibir_informacion'] == 'SI' ? 'checked' : ''}}/></td>
           <td style="font-size: 14px;width: 5%;">No</td>
@@ -298,7 +325,7 @@
       </table>
       <table style="table-layout: fixed;width: 100%;margin-top: 1%;margin-left: 5%;">
         <tr>
-          <td style="font-size: 14px;">Si está de acuerdo con recibir más información, ¿por qué medio le gustaría recibirlo?</td>
+          <td style="font-size: 14px;">10. Si está de acuerdo con recibir más información, ¿por qué medio le gustaría recibirlo?</td>
         </tr>
       </table>
       <table style="table-layout: fixed;width: 100%;margin-top: 1%;">

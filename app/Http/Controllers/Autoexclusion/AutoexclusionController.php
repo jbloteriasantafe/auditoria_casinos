@@ -188,6 +188,8 @@ class AutoexclusionController extends Controller
         'ae_encuesta.veces'                     => 'nullable|integer',
         'ae_encuesta.tiempo_jugado'             => 'nullable|integer',
         'ae_encuesta.club_jugadores'            => 'nullable|string|max:2',
+        'ae_encuesta.conoce_plataformas'        => 'nullable|string|max:2',
+        'ae_encuesta.utiliza_plataformas'       => 'nullable|string|max:2',
         'ae_encuesta.juego_responsable'         => 'nullable|string|max:2',
         'ae_encuesta.autocontrol_juego'         => 'nullable|string|max:2',
         'ae_encuesta.recibir_informacion'       => 'nullable|string|max:2',
@@ -526,6 +528,8 @@ class AutoexclusionController extends Controller
         'como_asiste' => -1,
         'id_juego_preferido' => -1,
         'club_jugadores' => -1,
+        'conoce_plataformas' => -1,
+        'utiliza_plataformas' => -1,
         'autocontrol_juego' => -1,
         'recibir_informacion' => -1,
         'medio_recibir_informacion' => -1,
@@ -533,7 +537,6 @@ class AutoexclusionController extends Controller
       );
     }
     $contacto = $autoexcluido->contacto;
-
     $view = View::make('Autoexclusion.planillaFormularioAE1', compact('autoexcluido', 'encuesta', 'datos_estado', 'contacto','es_primer_ae'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');

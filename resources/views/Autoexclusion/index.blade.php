@@ -615,6 +615,22 @@ input[required], select[required]{
                         </select>
                     </div>
                     <div class="col-lg-6">
+                      <h5>¿CONOCE LAS PLATAFORMAS DE JUEGO ONLINE?</h5>
+                        <select id="conoce_plataformas" class="form-control">
+                          <option selected="" value="">- Seleccione una opción -</option>
+                          <option value="SI">SI</option>
+                          <option value="NO">NO</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-6">
+                      <h5>¿UTILIZA LAS PLATAFORMAS DE JUEGO ONLINE?</h5>
+                        <select id="utiliza_plataformas" class="form-control">
+                          <option selected="" value="">- Seleccione una opción -</option>
+                          <option value="SI">SI</option>
+                          <option value="NO">NO</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-6">
                       <h5>¿CONOCE EL PROGRAMA JUEGO RESPONSABLE?</h5>
                       <select id="juego_responsable" class="form-control">
                         <option selected="" value="">- Seleccione una opción -</option>
@@ -941,6 +957,16 @@ input[required], select[required]{
               </div>
               <div class="row">
                 <div class="col-lg-6">
+                  <h5>¿CONOCE LAS PLATAFORMAS DE JUEGO ONLINE?</h5>
+                  <input id="infoConocePlataformas" type="text" class="form-control" placeholder="" value="" disabled>
+                </div>
+                <div class="col-lg-6">
+                  <h5>¿UTILIZA LAS PLATAFORMAS DE JUEGO ONLINE?</h5>
+                  <input id="infoUtilizaPlataformas" type="text" class="form-control" placeholder="" value="" disabled>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-lg-6">
                   <h5>¿DECISIÓN POR PROBLEMAS DE AUTOCONTROL?</h5>
                   <input id="infoAutocontrol" type="text" class="form-control" placeholder="" value="" disabled>
                 </div>
@@ -1083,7 +1109,7 @@ input[required], select[required]{
 <!-- JavaScript paginacion -->
 <script src="/js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
-<script src="/js/Autoexclusion/index.js?2" charset="utf-8"></script>
+<script src="/js/Autoexclusion/index.js?3" charset="utf-8"></script>
 <!-- JS file -->
 <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>
 <!-- CSS file -->
