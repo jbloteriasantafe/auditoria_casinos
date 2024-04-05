@@ -54,6 +54,13 @@
     con las disposiciones establecidas por la Caja de Asistencia Social - Lotería de Santa Fe - en el marco de la Resolución de
     Vicepresidencia Ejecutiva N° 270/10 y modificaciones.
     </p>
+    
+    <p class="primerEncabezado" style="font-size:13px">
+    Los datos contenidos en el presente formulario de autoexclusión, se encuentran bajo los
+    términos expresados en la Ley Nacional 25326/00 de protección de los datos
+    personales, particularmente en los artículos 5, 6, 8, 9 y 10 y la Ley Provincial 8525,
+    Capitulo IV, Art. 13, inc. f, deberes del personal.
+    </p>
 
     <table class="primerEncabezado" style="table-layout: fixed;width: 100%;margin-top: 20%;">
       <tr>
