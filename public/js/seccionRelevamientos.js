@@ -1762,7 +1762,7 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
     const contador_s = renglon_actual.find('td').children('.cont'+c).val();
     const contador = contador_s != '' ? parseFloat(contador_s.replace(/,/g,".")) : 0;
     
-    inputValido = inputValido && (contador_s != '');
+    inputValido = inputValido || (contador_s != '');
     
     if(formulaCont != ''){
       if(c == 1){
