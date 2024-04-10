@@ -382,152 +382,6 @@ $(document).on('click','.carga',function(e){
 
 var guardado;
 
-//CAMBIOS EN TABLAS RELEVAMIENTOS / MOSTRAR BOTÓN GUARDAR
-$('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:radio):not('.denominacion')", function(){
-    habilitarBotonGuardar();
-
-    //Fijarse si se habilita o deshabilita el tipo no toma
-    if($(this).val() != '') $(this).parent().parent().find('td').children('.tipo_causa_no_toma').val('');
-
-    habilitarBotonFinalizar();
-
-    var id_detalle_relevamiento = $(this).parent().parent().attr('id');
-
-    if ($(this).parent().parent().find('td').children('.producido').val() == '') {
-      console.log('No hay producido');
-        //Mostrar signo de pregunta
-        $(this).parent().parent().find('td').children('i.fa-question').show();
-        $(this).parent().parent().find('td').children('i.fa-times').hide();
-        $(this).parent().parent().find('td').children('i.fa-check').hide();
-        $(this).parent().parent().find('td').children('i.fa-exclamation').hide();
-        $(this).parent().parent().find('td').children('i.fa-ban').hide();
-    }else{
-
-      producido = parseFloat($(this).parent().parent().find('td').children('.producido').val());
-
-      formulaCont1 = $(this).parent().parent().children('.formulaCont1').val();
-      formulaCont2 = $(this).parent().parent().children('.formulaCont2').val();
-      formulaCont3 = $(this).parent().parent().children('.formulaCont3').val();
-      formulaCont4 = $(this).parent().parent().children('.formulaCont4').val();
-      formulaCont5 = $(this).parent().parent().children('.formulaCont5').val();
-      formulaCont6 = $(this).parent().parent().children('.formulaCont6').val();
-      formulaCont7 = $(this).parent().parent().children('.formulaCont7').val();
-      formulaCont8 = $(this).parent().parent().children('.formulaCont8').val();
-
-      operador1 = $(this).parent().parent().children('.formulaOper1').val();
-      operador2 = $(this).parent().parent().children('.formulaOper2').val();
-      operador3 = $(this).parent().parent().children('.formulaOper3').val();
-      operador4 = $(this).parent().parent().children('.formulaOper4').val();
-      operador5 = $(this).parent().parent().children('.formulaOper5').val();
-      operador6 = $(this).parent().parent().children('.formulaOper6').val();
-      operador7 = $(this).parent().parent().children('.formulaOper7').val();
-      operador8 = $(this).parent().parent().children('.formulaOper8').val();
-
-      contador1 = $(this).parent().parent().find('td').children('.cont1').val() != '' ? parseFloat($(this).parent().parent().find('td').children('.cont1').val().replace(/,/g,".")) : 0;
-      contador2 = $(this).parent().parent().find('td').children('.cont2').val() != '' ? parseFloat($(this).parent().parent().find('td').children('.cont2').val().replace(/,/g,".")) : 0;
-      contador3 = $(this).parent().parent().find('td').children('.cont3').val() != '' ? parseFloat($(this).parent().parent().find('td').children('.cont3').val().replace(/,/g,".")) : 0;
-      contador4 = $(this).parent().parent().find('td').children('.cont4').val() != '' ? parseFloat($(this).parent().parent().find('td').children('.cont4').val().replace(/,/g,".")) : 0;
-      contador5 = $(this).parent().parent().find('td').children('.cont5').val() != '' ? parseFloat($(this).parent().parent().find('td').children('.cont5').val().replace(/,/g,".")) : 0;
-      contador6 = $(this).parent().parent().find('td').children('.cont6').val() != '' ? parseFloat($(this).parent().parent().find('td').children('.cont6').val().replace(/,/g,".")) : 0;
-      contador7 = $(this).parent().parent().find('td').children('.cont7').val() != '' ? parseFloat($(this).parent().parent().find('td').children('.cont7').val().replace(/,/g,".")) : 0;
-      contador8 = $(this).parent().parent().find('td').children('.cont8').val() != '' ? parseFloat($(this).parent().parent().find('td').children('.cont8').val().replace(/,/g,".")) : 0;
-
-      var suma = 0;
-
-      input1 = $(this).parent().parent().find('td').children('.cont1').val() != '' ? true : false;
-      input2 = $(this).parent().parent().find('td').children('.cont2').val() != '' ? true : false;
-      input3 = $(this).parent().parent().find('td').children('.cont3').val() != '' ? true : false;
-      input4 = $(this).parent().parent().find('td').children('.cont4').val() != '' ? true : false;
-      input5 = $(this).parent().parent().find('td').children('.cont5').val() != '' ? true : false;
-      input6 = $(this).parent().parent().find('td').children('.cont6').val() != '' ? true : false;
-      input7 = $(this).parent().parent().find('td').children('.cont7').val() != '' ? true : false;
-      input8 = $(this).parent().parent().find('td').children('.cont8').val() != '' ? true : false;
-
-      if(input1 || input2 || input3 || input4 || input5 || input6 || input7 || input8){
-          inputValido=true;
-      }else{
-          inputValido=false;
-      }
-
-      //FALTA VALIDAR QUE EL INPUT ESTÉ LLENO
-      if (formulaCont1 != '') {
-        suma = contador1;
-      }
-      if (formulaCont2 != '') {
-        if (operador1 == '+') suma += contador2;
-        else suma -= contador2;
-      }
-      if (formulaCont3 != '') {
-        if (operador2 == '+') suma += contador3;
-        else suma -= contador3;
-      }
-      if (formulaCont4 != '') {
-        if (operador3 == '+') suma += contador4;
-        else suma -= contador4;
-      }
-      if (formulaCont5 != '') {
-        if (operador4 == '+') suma += contador5;
-        else suma -= contador5;
-      }
-      if (formulaCont6 != '') {
-        if (operador5 == '+') suma += contador6;
-        else suma -= contador6;
-      }
-      if (formulaCont7 != '') {
-        if (operador6 == '+') suma += contador7;
-        else suma -= contador7;
-      }
-      if (formulaCont8 != '') {
-        if (operador7 == '+') suma += contador8;
-        else suma -= contador8;
-      }
-
-      var renglon_actual = $(this).parent().parent();
-
-      if(renglon_actual.attr('data-medida') == 1){//si trabjo en credito
-        var denominacion = renglon_actual.attr('data-denominacion');
-        var sumaxdenom = Number((suma * denominacion) );
-        var producidoxcien = Number(producido);
-        var diferencia = Number(sumaxdenom.toFixed(2)) - Number(producidoxcien.toFixed(2));
-
-      }else{
-        var sumaxdenom = Number(suma);
-        var producidoxcien = Number(producido);
-        //se contempla la posibilidad de que los contadores den negativo
-        var diferencia = Number(sumaxdenom.toFixed(2)) - Number(producidoxcien.toFixed(2));
-      }
-      //luego de operar , en ciertos casos quedaba con mas digitos despues de la coma, por lo que se lo fuerza a dos luego de operar
-      diferencia= Number(diferencia.toFixed(2));
-      console.log('acac');
-
-      if (diferencia == 0 && inputValido) {
-          renglon_actual.find('i.fa-question').hide();
-          renglon_actual.find('i.fa-times').hide();
-          renglon_actual.find('i.fa-ban').hide();
-          renglon_actual.find('i.fa-check').show();
-          renglon_actual.find('i.fa-exclamation').hide();
-        } else if(Math.abs(diferencia) > 1 && diferencia%1000000 == 0 && inputValido) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
-          renglon_actual.find('i.fa-question').hide();
-          renglon_actual.find('i.fa-times').hide();
-          renglon_actual.find('i.fa-ban').hide();
-          renglon_actual.find('i.fa-check').hide();
-          renglon_actual.find('i.fa-exclamation').show();
-        } else {
-          renglon_actual.find('i.fa-question').hide();
-          renglon_actual.find('i.fa-times').show();
-          renglon_actual.find('i.fa-ban').hide();
-          renglon_actual.find('i.fa-check').hide();
-          renglon_actual.find('i.fa-exclamation').hide();
-        }
-
-
-      console.log("La suma es: " + (Math.round(suma * 100) / 100) * denominacion);
-      console.log("Producido: " + producido);
-      console.log("Diferencia: " + diferencia);
-  }
-
-});
-
 $('#modalCargaRelevamiento').on('input', "input", function(){
   habilitarBotonGuardar();
 });
@@ -1879,139 +1733,73 @@ function cargarTablaRelevamientos(dataRelevamiento, tablaRelevamientos, estadoRe
   });
 }
 
+
+//CAMBIOS EN TABLAS RELEVAMIENTOS / MOSTRAR BOTÓN GUARDAR
+$('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:radio):not('.denominacion')", function(){
+  habilitarBotonGuardar();
+  const renglon_actual = $(this).parent().parent();
+  
+  //Fijarse si se habilita o deshabilita el tipo no toma
+  if($(this).val() != '') renglon_actual.find('td').children('.tipo_causa_no_toma').val('');
+
+  habilitarBotonFinalizar();
+
+  renglon_actual.find('i.fa-question,i.fa-times,i.fa-ban,i.fa-check,i.fa-exclamation').hide();
+  if (renglon_actual.find('td').children('.producido').val() == '') {
+    console.log('No hay producido');
+    renglon_actual.find('i.fa-question').show();
+    return;
+  }
+
+  producido = parseFloat(renglon_actual.find('td').children('.producido').val());
+  
+  let suma = 0;
+  let inputValido = false;
+  
+  for(let c=1;c<=8;c++){
+    const formulaCont = renglon_actual.children('.formulaCont'+c).val();
+    const operador = renglon_actual.children('.formulaOper'+c).val();
+    const contador_s = renglon_actual.find('td').children('.cont'+c).val();
+    const contador = contador_s != '' ? parseFloat(contador_s.replace(/,/g,".")) : 0;
+    
+    inputValido = inputValido && (contador_s != '');
+    
+    if(formulaCont != ''){
+      if(c == 1){
+        suma = contador;
+      }
+      else{
+        if(operador == '+') suma += contador;
+        else                suma -= contador;
+      }
+    }
+  }
+  
+  const denominacion = renglon_actual.attr('data-medida') == 1? renglon_actual.attr('data-denominacion') : 1;
+  const sumaxdenom = Number((suma * denominacion) );
+  const producidoxcien = Number(producido);
+  const diferencia = Number(sumaxdenom.toFixed(2)) - Number(producidoxcien.toFixed(2));
+  const diferencia_redondeada = Number(diferencia.toFixed(2));
+
+  if (diferencia_redondeada == 0 && inputValido) {
+    renglon_actual.find('i.fa-check').show();
+  }
+  else if(Math.abs(diferencia_redondeada) > 1 && diferencia_redondeada%1000000 == 0 && inputValido) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
+    renglon_actual.find('i.fa-exclamation').show();
+  } 
+  else {
+    renglon_actual.find('i.fa-times').show();
+  }
+  
+  console.log("La suma es: " + (Math.round(suma * 100) / 100) * denominacion);
+  console.log("Producido: " + producido);
+  console.log("Diferencia: " + diferencia_redondeada);
+});
+
 function calculoDiferencia(tablaRelevamientos){
   //Calcular las diferencias
   tablaRelevamientos.find('tr').each(function(){
-  var renglon_actual = $(this);
-  // $('#tablaCargaRelevamiento tbody tr').each(function () {
-      if ($(this).find('td').find('.producido').val() == '') {
-          $(this).find('i.fa-question').show();
-          $(this).find('i.fa-times').hide();
-          $(this).find('i.fa-ban').hide();
-          $(this).find('i.fa-check').hide();
-          $(this).find('i.fa-exclamation').hide();
-      }else{
-              formulaCont1 = $(this).find('.formulaCont1').val();
-              formulaCont2 = $(this).find('.formulaCont2').val();
-              formulaCont3 = $(this).find('.formulaCont3').val();
-              formulaCont4 = $(this).find('.formulaCont4').val();
-              formulaCont5 = $(this).find('.formulaCont5').val();
-              formulaCont6 = $(this).find('.formulaCont6').val();
-              formulaCont7 = $(this).find('.formulaCont7').val();
-              formulaCont8 = $(this).find('.formulaCont8').val();
-
-              operador1 = $(this).find('.formulaOper1').val();
-              operador2 = $(this).find('.formulaOper2').val();
-              operador3 = $(this).find('.formulaOper3').val();
-              operador4 = $(this).find('.formulaOper4').val();
-              operador5 = $(this).find('.formulaOper5').val();
-              operador6 = $(this).find('.formulaOper6').val();
-              operador7 = $(this).find('.formulaOper7').val();
-              operador8 = $(this).find('.formulaOper8').val();
-
-              producido = parseFloat($(this).find('td').find('.producido').val());
-
-              contador1 = $(this).find('.cont1').val() != '' ? parseFloat($(this).find('.cont1').val().replace(/,/g,".")) : 0;
-              contador2 = $(this).find('.cont2').val() != '' ? parseFloat($(this).find('.cont2').val().replace(/,/g,".")) : 0;
-              contador3 = $(this).find('.cont3').val() != '' ? parseFloat($(this).find('.cont3').val().replace(/,/g,".")) : 0;
-              contador4 = $(this).find('.cont4').val() != '' ? parseFloat($(this).find('.cont4').val().replace(/,/g,".")) : 0;
-              contador5 = $(this).find('.cont5').val() != '' ? parseFloat($(this).find('.cont5').val().replace(/,/g,".")) : 0;
-              contador6 = $(this).find('.cont6').val() != '' ? parseFloat($(this).find('.cont6').val().replace(/,/g,".")) : 0;
-              contador7 = $(this).find('.cont7').val() != '' ? parseFloat($(this).find('.cont7').val().replace(/,/g,".")) : 0;
-              contador8 = $(this).find('.cont8').val() != '' ? parseFloat($(this).find('.cont8').val().replace(/,/g,".")) : 0;
-
-              var suma = 0;
-
-              var i = 1;
-
-              // Se valida que almenos un input este lleno
-              input1 = $(this).find('.cont1').val() != '' ? true : false;
-              input2 = $(this).find('.cont2').val() != '' ? true : false;
-              input3 = $(this).find('.cont3').val() != '' ? true : false;
-              input4 = $(this).find('.cont4').val() != '' ? true : false;
-              input5 = $(this).find('.cont5').val() != '' ? true : false;
-              input6 = $(this).find('.cont6').val() != '' ? true : false;
-              input7 = $(this).find('.cont7').val() != '' ? true : false;
-              input8 = $(this).find('.cont8').val() != '' ? true : false;
-
-              if(input1 || input2 || input3 || input4 || input5 || input6 || input7 || input8){
-                inputValido=true;
-              }else{
-                inputValido=false;
-              }
-              console.log("valor del input 1", $(this).find('.cont1').val() )
-              if (formulaCont1 != '') {
-                suma = contador1;
-              }
-              if (formulaCont2 != '') {
-                if (operador1 == '+') suma += contador2;
-                else suma -= contador2;
-              }
-              if (formulaCont3 != '') {
-                if (operador2 == '+') suma += contador3;
-                else suma -= contador3;
-              }
-              if (formulaCont4 != '') {
-                if (operador3 == '+') suma += contador4;
-                else suma -= contador4;
-              }
-              if (formulaCont5 != '') {
-                if (operador4 == '+') suma += contador5;
-                else suma -= contador5;
-              }
-              if (formulaCont6 != '') {
-                if (operador5 == '+') suma += contador6;
-                else suma -= contador6;
-              }
-              if (formulaCont7 != '') {
-                if (operador6 == '+') suma += contador7;
-                else suma -= contador7;
-              }
-              if (formulaCont8 != '') {
-                if (operador7 == '+') suma += contador8;
-                else suma -= contador8;
-              }
-
-              var renglon_actual = $(this);
-
-              if(renglon_actual.attr('data-medida') == 1){//si trabjo en credito
-                //suma es creditos
-                var denominacion = renglon_actual.attr('data-denominacion');
-                var sumaxdenom = Number((suma * denominacion) );
-                var producidoxcien = Number(producido);
-                var diferencia = Number(sumaxdenom.toFixed(2)) - Number(producidoxcien.toFixed(2));
-                // var diferencia = Math.round((suma * denominacion) * 100) / 100 - (Math.round(producido * 100) / 100);//pesos - pesos
-                // diferencia = Math.round(diferencia * 100) / 100;
-
-              }else{
-                var sumatrunc = Number(suma);
-                var producidoxcien = Number(producido);
-                var diferencia = Number(sumatrunc.toFixed(2)) - Number(producidoxcien.toFixed(2));
-                // Math.round(suma * 100) / 100 - (Math.round(producido * 100) / 100);
-                // diferencia = Math.round(diferencia * 100) / 100;
-              }
-              console.log('acac',diferencia);
-              if (diferencia == 0 && inputValido) {
-                  renglon_actual.find('i.fa-question').hide();
-                  renglon_actual.find('i.fa-times').hide();
-                  renglon_actual.find('i.fa-check').show();
-                  renglon_actual.find('i.fa-exclamation').hide();
-                  renglon_actual.find('i.fa-ban').hide();
-                } else if(Math.abs(diferencia) > 1 && diferencia%1000000 == 0 && inputValido) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
-                  renglon_actual.find('i.fa-question').hide();
-                  renglon_actual.find('i.fa-times').hide();
-                  renglon_actual.find('i.fa-check').hide();
-                  renglon_actual.find('i.fa-exclamation').show();
-                  renglon_actual.find('i.fa-ban').hide();
-                } else {
-                  renglon_actual.find('i.fa-question').hide();
-                  renglon_actual.find('i.fa-times').show();
-                  renglon_actual.find('i.fa-check').hide();
-                  renglon_actual.find('i.fa-exclamation').hide();
-                  renglon_actual.find('i.fa-ban').hide();
-                }
-
-      }
+    $(this).find('input.cont1').eq(0).trigger('input');
   });
 }
 
