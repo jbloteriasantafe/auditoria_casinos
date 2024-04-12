@@ -1109,6 +1109,15 @@ input[required], select[required]{
 <!-- JavaScript paginacion -->
 <script src="/js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
+
+<script language="javascript">
+var noPrint=true;
+var noCopy=false;
+var noScreenshot=true;
+var autoBlur=true;
+</script>
+<script type="text/javascript" src="/js/noprint.js"></script> 
+
 <script src="/js/Autoexclusion/index.js?3" charset="utf-8"></script>
 <!-- JS file -->
 <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>

@@ -219,5 +219,13 @@ background-color: #4CAF50;
   <script type="text/javascript" src="/js/jquery.imagesloaded.min.js"></script>
   <script type="text/javascript" src="/js/jquery.ImageGallery.js"></script>
 
+  <script language="javascript">
+  var noPrint=true;
+  var noCopy=false;
+  var noScreenshot=true;
+  var autoBlur=true;
+  </script>
+  <script type="text/javascript" src="/js/noprint.js"></script> 
+
   <script src="/js/Autoexclusion/galeriaImagenesAutoexcluidos.js?2" charset="utf-8"></script>
   @endsection
