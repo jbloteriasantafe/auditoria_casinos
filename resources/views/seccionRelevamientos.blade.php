@@ -100,7 +100,7 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                 </div>
                 <div class="col-md-3">
                   <h5>Casino</h5>
-                  <select id="buscadorCasino" class="form-control selectCasinos" name="">
+                  <select id="buscadorCasino" class="form-control selectCasinos">
                     <option value="0">-Todos los Casinos-</option>
                     @foreach($casinos as $casino)
                     <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
@@ -109,13 +109,13 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                 </div>
                 <div class="col-md-3">
                   <h5>Sector</h5>
-                  <select id="buscadorSector" class="form-control selectSector" name="">
+                  <select id="buscadorSector" class="form-control selectSector">
                     <option value="0">-Todos los sectores-</option>
                   </select>
                 </div>
                 <div class="col-md-3">
                   <h5>Estado Relevamiento</h5>
-                  <select id="buscadorEstado" class="form-control selectSector" name="">
+                  <select id="buscadorEstado" class="form-control selectSector">
                     <option value="0">-Todos los estados-</option>
                     @foreach($estados as $estado)
                     <option value="{{$estado->id_estado_relevamiento}}">{{$estado->descripcion}}</option>
@@ -747,6 +747,147 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
     </div>
   </div>
 </div>
+
+<div hidden>
+
+  <div align='left'>
+    <input type='radio' name='medida' value='credito' checked >
+    <i style='margin-left:5px;position:relative;top:-3px;' class='fa fa-fw fa-life-ring'></i>
+    <span style='position:relative;top:-3px;'> Cŕedito</span><br>
+    <input type='radio' name='medida' value='pesos'>
+    <i style='margin-left:5px;position:relative;top:-3px;' class='fas fa-dollar-sign'></i>
+    <span style='position:relative;top:-3px;'> Pesos</span> <br><br>
+    <button id='1' class='btn btn-deAccion btn-successAccion ajustar' type='button' style='margin-right:8px;'>AJUSTAR</button>
+    <button class='btn btn-deAccion btn-defaultAccion cancelarAjuste' type='button'>CANCELAR</button>
+  </div>
+</div>
+
+<table id="moldesFilas" hidden>
+  <tr class="moldeBusqueda">
+    <td class="col-xs-2 fecha">99 MES 99999</td>
+    <td class="col-xs-2 casino">CASINO</td>
+    <td class="col-xs-2 sector">SECTOR</td>
+    <td class="col-xs-1 subrelevamiento">SUB</td>
+    <td class="col-xs-2 estado">
+      <i class="iconoEstadoRelevamiento fas fa-fw fa-dot-circle faGenerado" data-id-estado-relevamiento="1" style="display: none;"></i>
+      <span data-id-estado-relevamiento="1" hidden>Generado</span>
+      <i class="iconoEstadoRelevamiento fas fa-fw fa-dot-circle faCargando" data-id-estado-relevamiento="2" style="display: none;"></i>
+      <span data-id-estado-relevamiento="2" hidden>Cargando</span>
+      <i class="iconoEstadoRelevamiento fas fa-fw fa-dot-circle faFinalizado" data-id-estado-relevamiento="3" style="display: none;"></i>
+      <span data-id-estado-relevamiento="3" hidden>Finalizado</span>
+      <i class="iconoEstadoRelevamiento fas fa-fw fa-dot-circle faVisado" data-id-estado-relevamiento="4" style="display: none;"></i>
+      <span data-id-estado-relevamiento="4" hidden>Visado</span>
+      <i class="iconoEstadoRelevamiento fas fa-fw fa-dot-circle faValidado" data-id-estado-relevamiento="7" style="display: none;"></i>
+      <span data-id-estado-relevamiento="7" hidden>Rel. Visado</span>
+    </td>
+    <td class="col-xs-3 acciones">
+      @if($usuario->tienePermiso('relevamiento_cargar'))
+      <button class="btn btn-info planilla" type="button" title="VER PLANILLA" data-id-estado-relevamiento="1" style="display: none;">
+        <i class="far fa-fw fa-file-alt"></i>
+      </button>
+      <button class="btn btn-warning carga" type="button" title="CARGAR RELEVAMIENTO" data-id-estado-relevamiento="1,2" style="display: none;">
+        <i class="fa fa-fw fa-upload"></i>
+      </button>
+      @endif
+      @if($usuario->tienePermiso('relevamiento_validar'))
+      <button class="btn btn-success validar" type="button" title="VISAR RELEVAMIENTO" data-id-estado-relevamiento="3" style="display: none;">
+        <i class="fa fa-fw fa-check"></i>
+      </button>
+      @endif
+      @if($usuario->es_administrador || $usuario->es_superusuario)
+      <button class="btn btn-success verDetalle" type="button" title="VER RELEVAMIENTO" data-id-estado-relevamiento="4,7" style="display: none;">
+        <i class="fa fa-fw fa-search-plus"></i>
+      </button>
+      @endif
+      <button class="btn btn-info imprimir" type="button" title="IMPRIMIR PLANILLA" data-id-estado-relevamiento="2,3,4,7" style="display: none;">
+        <i class="fa fa-fw fa-print"></i>
+      </button>
+      <button class="btn btn-success validado" type="button" title="IMPRIMIR VISADO" data-id-estado-relevamiento="7" style="display: none;">
+        <i class="fa fa-fw fa-bookmark"></i>
+      </button>
+    </td>
+  </tr>
+  <tr class="moldeCarga" data-medida="" data-denominacion="">
+    <td class="maquina">2272</td>
+    @for($c=1;$c<=8;$c++)
+    <td {{$c<=6? '' : 'hidden'}}><input class="contador cont{{$c}} form-control"></td>
+    <input class="formulaCont{{$c}}" hidden>
+    <input class="formulaOper{{$c}}" hidden>
+    @endfor
+    <td hidden><input class="producidoCalculado form-control" style="text-align: right; border: 2px solid rgb(109, 199, 190); color: rgb(109, 199, 190);"></td>
+    <td hidden><input class="producido form-control" style="text-align: right; border: 2px solid rgb(109, 199, 190); color: rgb(109, 199, 190);"></td>
+    <td hidden><input class="diferencia form-control" style="text-align: right;"></td>
+    <td style="text-align: center;" class="estado_diferencia">
+      <i class="fa fa-times icono_estado icono_incorrecto" style="color: rgb(239, 83, 80);" hidden></i>
+      <i class="fa fa-check icono_estado icono_correcto" style="color: rgb(102, 187, 106);" hidden></i>
+      <i class="fa fa-ban icono_estado icono_no_toma" style="color: rgb(30, 144, 255);" hidden></i>
+      <a class="pop icono_estado icono_truncado" data-content="Contadores importados truncados" data-placement="top" rel="popover" data-trigger="hover" hidden>
+        <i class="pop fa fa-exclamation" style="color: rgb(255, 167, 38); display: inline-block;"></i>
+      </a>
+      <a class="pop icono_estado icono_no_importado" data-content="No se importaron contadores" data-placement="top" rel="popover" data-trigger="hover" hidden>
+        <i class="pop fa fa-question" style="color: rgb(66, 165, 245); display: inline-block;"></i>
+      </a>
+    </td>
+    <td>
+      <select class="tipo_causa_no_toma form-control">
+        <option value=""></option>
+        <option value="1">NO FUNCIONA TOUCH</option>
+        <option value="2">MÁQUINA OCUPADA</option>
+        <option value="3">MÁQUINA APAGADA</option>
+        <option value="4">FALTA LLAVE</option>
+        <option value="5" disabled="disabled">DATOS ERRONEOS</option>
+        <option value="6">OTRO</option>
+        <option value="7">MÁQUINA FUERA DE SERVICIO</option>
+        <option value="8">MTM NO COMUNICA</option>
+        <option value="9">CERRADURA ROTA</option>
+        <option value="10">BOTONERA ROTA</option>
+        <option value="11">NO FUNCIONA LLAVE</option>
+        <option value="12">NO FUNCIONA BOTONERA</option>
+        <option value="13">ERROR DE FÓRMULA</option>
+      </select>
+    </td>
+    <td hidden>
+      <?php
+      $popup = function($select){
+        $checked1 = $select == 1? 'checked' : '';
+        $checked2 = $select == 2? 'checked' : '';
+        return '<div align="left">
+          <input type="radio" name="medida" value="credito" '.$checked1.'>
+          <i style="margin-left:5px;position:relative;top:-3px;" class="fa fa-fw fa-life-ring"></i>
+          <span style="position:relative;top:-3px;"> Cŕedito</span><br>
+          <input type="radio" name="medida" value="pesos" '.$checked2.'>
+          <i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-dollar-sign"></i>
+          <span style="position:relative;top:-3px;"> Pesos</span> <br><br>
+          <button id="1" class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>
+          <button class="btn btn-deAccion btn-defaultAccion cancelarAjuste" type="button">CANCELAR</button>
+        </div>';
+      };
+      ?>
+      <button data-medida="1" class="btn btn-warning pop medida" title="AJUSTE" data-trigger="manual" data-toggle="popover" data-placement="left" data-html="true" type="button" class="btn btn-warning pop medida"
+       data-content="{{$popup(1)}}">
+        <i class="fa fa-fw fa-life-ring"></i>
+      </button>
+      <button data-medida="2" class="btn btn-warning pop medida" title="AJUSTE" data-trigger="manual" data-toggle="popover" data-placement="left" data-html="true" type="button" class="btn btn-warning pop medida"
+       data-content="{{$popup(2)}}">
+        <i class="fas fa-dollar-sign"></i>
+      </button>
+    </td>
+    <td hidden>
+      <select class="a_pedido form-control acciones_validacion">
+        <option value="0" selected>NO</option>
+        <option value="1">1 día</option>
+        <option value="5">5 días</option>
+        <option value="10">10 días</option>
+        <option value="15">15 días</option>
+      </select>
+    </td>
+    <td hidden>
+      <button class="btn btn-success estadisticas_no_toma acciones_validacion" type="button">
+        <i class="fas fa-fw fa-external-link-square-alt"></i>
+      </button>
+    </td>
+  </tr>
+</table>
 
 <meta name="_token" content="{!! csrf_token() !!}" />
 @endsection

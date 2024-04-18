@@ -250,17 +250,16 @@ $('#modalCargaRelevamiento').on('input', "input", function(){
 });
 
 $(document).on('change','.tipo_causa_no_toma',function(){
+  const fila = $(this).closest('tr');
   //Si se elige algun tipo de no toma se vacian las cargas de contadores
-  $(this).parent().parent().find('td').children('.contador').val('');
-  //Se cambia el icono de diferencia
-  $(this).parent().parent().find('td').find('i.fa-question').hide();
-  $(this).parent().parent().find('td').find('i.fa-times').hide();
-  $(this).parent().parent().find('td').find('i.fa-ban').show();//para no toma
-  $(this).parent().parent().find('td').find('i.fa-check').hide();
-  $(this).parent().parent().find('td').find('i.fa-exclamation').hide();
-
-  habilitarBotonGuardar();
-  habilitarBotonFinalizar();
+  fila.find('.contador').val('');
+  fila.find('.icono_estado').hide();
+  if($(this).val() != ''){//Se cambia el icono de diferencia
+    fila.find('.icono_no_toma').show();
+  }
+  else{
+    fila.find('.cont1').trigger('input');
+  }
 });
 
 //SALIR DEL RELEVAMIENTO
@@ -842,13 +841,16 @@ function cargarTablaRelevamientos(data, tabla, estadoRelevamiento){
   data.detalles.forEach(function(d){
     //  Unidad de medida: 1-Crédito, 2-Pesos      |    Denominación: para créditos
 
-    const fila = $('<tr>').attr('id', d.detalle.id_detalle_relevamiento)
-                        .attr('data-medida', d.unidad_medida.id_unidad_medida)
-                        .attr('data-denominacion', d.denominacion);
-
-    fila.append($('<td>').text(d.maquina));
+    const fila = $('#moldesFilas .moldeCarga').clone().removeClass('moldeCarga')
+    .attr('data-medida', d.unidad_medida.id_unidad_medida)
+    .attr('data-denominacion', d.denominacion)
+    .attr('data-id-maquina',d.detalle.id_maquina)
+    .attr('data-id-detalle-relevamiento',d.detalle.id_detalle_relevamiento);
+    
+    fila.find('.maquina').text(d.maquina);
+    
     for(let c=1;c<=8;c++){
-      const cont = $('<input>').addClass('contador cont'+c).addClass('form-control').val(d.detalle['cont'+c]);
+      const cont = fila.find('.cont'+c).val(d.detalle['cont'+c]);
       
       if(estadoRelevamiento == 'Carga' && d.formula != null){
         cont.prop('readonly',d.formula['cont'+c] == null);
@@ -857,131 +859,43 @@ function cargarTablaRelevamientos(data, tabla, estadoRelevamiento){
         cont.prop('readonly',true);
       }
       
-      fila.append(td(cont).toggle(c<=6));//Los ultimos dos no estan habilitados... por ahora
+      fila.find('.formulaCont'+c).val(d?.formula?.['cont'+c] ?? null);
+      fila.find('.formulaOper'+c).val(d?.formula?.['operador'+c] ?? null);
     }
     
+    fila.find('.producidoCalculado').val(d.detalle.producido_calculado_relevado ?? '');
+    fila.find('.producido').val(d.producido ?? '');
+    fila.find('.diferencia').val('');
+    fila.find('.tipo_causa_no_toma').val(d.tipo_causa_no_toma ?? '');
     
-    fila
-    .append(td($('<input>').addClass('producidoCalculado form-control').css('text-align','right').css('border','2px solid #6DC7BE').css('color','#6DC7BE').val(d.detalle.producido_calculado_relevado ?? '')).hide())
-    .append(td($('<input>').addClass('producido form-control').css('text-align','right').css('border','2px solid #6DC7BE').css('color','#6DC7BE').val(d.producido ?? '')).hide())
-    .append(td($('<input>').addClass('diferencia form-control').css('text-align','right').val('')).hide())
-    .append(
-      $('<td>').css('text-align','center')
-      .append($('<i>').addClass('fa').addClass('fa-times').css('color','#EF5350').hide())
-      .append($('<i>').addClass('fa').addClass('fa-check').css('color','#66BB6A').hide())
-      .append($('<i>').addClass('fa').addClass('fa-ban').css('color','#1E90FF').hide())
-      .append(
-          $('<a>').addClass('pop')
-          .attr("data-content", 'Contadores importados truncados')
-          .attr("data-placement" , "top")
-          .attr("rel","popover")
-          .attr("data-trigger" , "hover")
-          .append($('<i>').addClass('pop').addClass('fa').addClass('fa-exclamation')
-          .css('color','#FFA726'))
-      )
-      .append(
-          $('<a>').addClass('pop')
-          .attr("data-content", 'No se importaron contadores')
-          .attr("data-placement" , "top")
-          .attr("rel","popover")
-          .attr("data-trigger" , "hover")
-          .append($('<i>').addClass('pop').addClass('fa').addClass('fa-question')
-          .css('color','#42A5F5'))
-      )
-    );
+    data.tipos_causa_no_toma.forEach(function(t){//@TODO: pasar a estatico
+      fila.find(`.tipo_causa_no_toma option[value="${t.id_tipo_causa_no_toma}"]`).attr('disabled',t.deprecado == 1? true : false);
+    });
     
-    for(let c=1;c<=8;c++){
-      fila.append($('<input>').addClass('formulaCont'+c).val(d?.formula?.['cont'+c] ?? null).hide());
-    }
-    for(let c=1;c<=8;c++){
-      fila.append($('<input>').addClass('formulaOper'+c).val(d?.formula?.['operador'+c] ?? null).hide());
-    }
-    
-    {
-      //Hacer un for por todo los tipos de no toma para cargar el select
-      const tipoNoToma = $('<select>').addClass('tipo_causa_no_toma form-control');
-      tipoNoToma.append($('<option>').text('').val(''));
-
-      data.tipos_causa_no_toma.forEach(function(t){
-        const tipo = t.descripcion;
-        const id = t.id_tipo_causa_no_toma;
-        tipoNoToma.append($('<option>').text(tipo).val(id).attr('disabled',t.deprecado == 1? true : false));
-      });
-
-      tipoNoToma.val(d.tipo_causa_no_toma);
-      
-      fila.append(td(tipoNoToma));
-    }
-    
-    
-    {/*** PARA CONTROLAR LA UNIDAD DE MEDIDA ***/
-      const unidadMedida = d.unidad_medida.id_unidad_medida;
-      const formulario = `<div align="left">
-        <input type="radio" name="medida" value="credito" ${unidadMedida == 1? 'checked' : ''} >
-        <i style="margin-left:5px;position:relative;top:-3px;" class="fa fa-fw fa-life-ring"></i>
-        <span style="position:relative;top:-3px;"> Cŕedito</span><br>
-        <input type="radio" name="medida" value="pesos" ${unidadMedida != 1? 'checked' : ''} >
-        <i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-dollar-sign"></i>
-        <span style="position:relative;top:-3px;"> Pesos</span> <br><br>
-        <button id="${unidadMedida}" class="btn btn-deAccion btn-successAccion ajustar" type="button" style="margin-right:8px;">AJUSTAR</button>
-        <button class="btn btn-deAccion btn-defaultAccion cancelarAjuste" type="button">CANCELAR</button>
-      </div>`;
-      
-
-      fila.append(td(
-        $('<button>')
-        .attr('data-trigger','manual')
-        .attr('data-toggle','popover')
-        .attr('data-placement','left')
-        .attr('data-html','true')
-        .attr('title','AJUSTE')
-        .attr('data-content',formulario)
-        .attr('type','button')
-        .addClass('btn btn-warning pop medida')
-        .append($('<i>').addClass(unidadMedida == 1? 'fa fa-fw fa-life-ring' : 'fas fa-dollar-sign'))
-      ).hide());
-   }
-    
-   {
-     const tipo_causa_no_toma = d.detalle.tipo_causa_no_toma;
-     const diff = d.detalle.diferencia;
-     const mostrar_botones = estadoRelevamiento == 'Validar' && (tipo_causa_no_toma != null || diff == null || (diff != 0 && ( diff %1000000 != 0)));
-     const a_pedido = $('<select>').addClass('a_pedido form-control acciones_validacion').attr('data-maquina' ,d.detalle.id_maquina)
-     .append($('<option>').val(0).text('NO'))
-     .append($('<option>').val(1).text('1 día'))
-     .append($('<option>').val(5).text('5 días'))
-     .append($('<option>').val(10).text('10 días'))
-     .append($('<option>').val(15).text('15 días'))
-     .toggle(mostrar_botones);
-     
-     const estadisticas_no_toma = $('<button>').addClass('btn btn-success estadisticas_no_toma acciones_validacion')
-      .attr('type' , 'button')
-      .val(d.detalle.id_maquina)
-      .append($('<i>').addClass('fas fa-fw fa-external-link-square-alt'))
-      .toggle(mostrar_botones);
-      
-      fila.append(td(a_pedido));
-      fila.append(td(estadisticas_no_toma));
-    }
-    
-    tabla.append(fila);
+    fila.find(`.medida[data-medida!=${d.unidad_medida.id_unidad_medida}]`).remove();
     
     if(estadoRelevamiento == 'Validar'){
+      const tipo_causa_no_toma = d.detalle.tipo_causa_no_toma;
+      const diff = d.detalle.diferencia;
+      const mostrar_botones = tipo_causa_no_toma != null || diff == null || (diff != 0 && ( diff %1000000 != 0));
+      fila.find('.estadisticas_no_toma').attr('data-maquina',d.detalle.id_maquina);
+      fila.find('.medida,.acciones_validacion').closest('td').toggle(mostrar_botones);
+    
       fila.find('input').each(function(){$(this).attr('title',$(this).val());});
       fila.find('.producido').prop('readonly',true).show().parent().show();
       fila.find('.producidoCalculado').prop('readonly',true).show().parent().show();
       fila.find('.diferencia').prop('readonly',true).show().parent().show();
+      fila.find('.tipo_causa_no_toma').attr('disabled',true);
         
-      const causa_notoma = data.tipos_causa_no_toma?.[parseInt(d?.tipo_causa_no_toma) - 1]?.descripcion ?? '';
-      const input_notoma = $('<input>').addClass('tipo_causa_no_toma form-control').val(causa_notoma);
-      
+      const causa_notoma = data.tipos_causa_no_toma?.[parseInt(d?.tipo_causa_no_toma) - 1]?.descripcion ?? '';      
       if (causa_notoma != '') {
-         input_notoma.css('border','2px solid #1E90FF').css('color','#1E90FF');
+        fila.find('.tipo_causa_no_toma').css('border','2px solid #1E90FF').css('color','#1E90FF');
       }
 
-      fila.find('td').find('.tipo_causa_no_toma').replaceWith(input_notoma).prop('readonly',true);
-      fila.find('.btn.medida').parent().show();
+      fila.find('.medida').parent().show();
     }
+    
+    tabla.append(fila);
   });
 
   $('.pop').popover({
@@ -1019,33 +933,32 @@ function calcularProducido(fila){
 //CAMBIOS EN TABLAS RELEVAMIENTOS / MOSTRAR BOTÓN GUARDAR
 $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:radio):not('.denominacion')", function(){
   habilitarBotonGuardar();
-  const renglon_actual = $(this).parent().parent();
+  const fila = $(this).closest('tr');
   
   //Fijarse si se habilita o deshabilita el tipo no toma
-  if($(this).val() != '') renglon_actual.find('td').children('.tipo_causa_no_toma').val('');
+  if($(this).val() != '') fila.find('.tipo_causa_no_toma').val('');
 
   habilitarBotonFinalizar();
-
-  renglon_actual.find('i.fa-question,i.fa-times,i.fa-ban,i.fa-check,i.fa-exclamation').hide();
-  if (renglon_actual.find('td').children('.producido').val() == '') {
-    console.log('No hay producido');
-    return renglon_actual.find('i.fa-question').show();
+  
+  fila.find('.estado_diferencia .icono_estado').hide();
+  if (fila.find('.producido').val() == ''){
+    return fila.find('.estado_diferencia .icono_no_importado').show();
   }
 
-  producido = parseFloat(renglon_actual.find('td').children('.producido').val());
+  producido = parseFloat(fila.find('.producido').val());
   
-  const [producido_calc,inputValido] = calcularProducido(renglon_actual);
+  const [producido_calc,inputValido] = calcularProducido(fila);
   const diferencia = Number(producido_calc.toFixed(2)) - Number(Number(producido).toFixed(2));
   const diferencia_redondeada = Number(diferencia.toFixed(2));
 
   if (diferencia_redondeada == 0 && inputValido) {
-    renglon_actual.find('i.fa-check').show();
+    fila.find('.icono_correcto').show();
   }
   else if(Math.abs(diferencia_redondeada) > 1 && diferencia_redondeada%1000000 == 0 && inputValido) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
-    renglon_actual.find('i.fa-exclamation').show();
+    fila.find('.icono_truncado').show();
   } 
   else {
-    renglon_actual.find('i.fa-times').show();
+    fila.find('.icono_incorrecto').show();
   }
 });
 
@@ -1061,42 +974,41 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
   truncadas=0;
   data.detalles.forEach(function(d){
     const id_detalle = d.detalle.id_detalle_relevamiento;
-    const fila = tablaValidarRelevamiento.find('#' + id_detalle);
+    const fila = tablaValidarRelevamiento.find(`tr[data-id-detalle-relevamiento="${id_detalle}"]`);
     
-    const iconoPregunta   = fila.find(' a i.fa-question').hide();
-    const iconoCruz       = fila.find('td i.fa-times').hide();
-    const iconoNoToma     = fila.find('td i.fa-ban').hide();
-    const iconoCheck      = fila.find('td i.fa-check').hide();
-    const iconoAdmiracion = fila.find('td i.fa-exclamation').hide();
+    const iconoPregunta   = fila.find('.icono_no_importado').hide();
+    const iconoCruz       = fila.find('.icono_incorrecto').hide();
+    const iconoNoToma     = fila.find('.icono_no_toma').hide();
+    const iconoCheck      = fila.find('.icono_correcto').hide();
+    const iconoAdmiracion = fila.find('.icono_truncado').hide();
     
     const diferencia      = fila.find('td input.diferencia');
+    
+    if(d.tipo_causa_no_toma != null) {
+      iconoNoToma.show();
+      return;
+    }
+    
+    if(d.producido == null) {//no se importaron contadores muestra = ?
+      diferencia.css('border',' 2px solid #EF5350').css('color','#EF5350');
+      iconoPregunta.show();
+      return;
+    }
     
     //calcular la diferencia entre lo calculado y lo importado
     const diff = Math.abs(Number(d.detalle.producido_calculado_relevado - d.producido).toFixed(2));
     diferencia.val(diff);
     
-    if(d.tipo_causa_no_toma != null && diff == 0) {
-      iconoNoToma.show();
+    if(d.detalle.producido_calculado_relevado != null && (diff >= 1000000) && ((diff % 1000000) == 0)){
+      truncadas++;
+      iconoAdmiracion.show();
+      diferencia.css('border','2px solid #FFA726').css('color','#FFA726');
       return;
     }
         
     if(d.detalle.producido_calculado_relevado == null || diff != 0){
       diferencia.css('border',' 2px solid #EF5350').css('color','#EF5350');
       iconoCruz.show();
-      return;
-    }
-    
-    //si no se importaron contadores muestra = ?
-    if(d.producido == null) {
-      diferencia.css('border',' 2px solid #EF5350').css('color','#EF5350');
-      iconoPregunta.show();
-      return;
-    }
-    
-    if((diff >= 1000000) && ((diff % 1000000) == 0)){
-      truncadas++;
-      iconoAdmiracion.show();
-      diferencia.css('border','2px solid #FFA726').css('color','#FFA726');
       return;
     }
     
@@ -1280,118 +1192,26 @@ $('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
     success: function (resultados){
       $('#herramientasPaginacion').generarTitulo(formData.page,formData.page_size,resultados.total,clickIndice);
       $('#tablaRelevamientos tbody tr').remove();
-      resultados.data.forEach(function(d){
-        $('#tablaRelevamientos tbody').append(crearFilaTabla(d));
+      resultados.data.forEach(function(r){
+        const fila = $('#moldesFilas .moldeBusqueda').clone().removeClass('.moldeBusqueda');
+        fila.find('.fecha').text(convertirDate(r.fecha));
+        fila.find('.casino').text(r.casino);
+        fila.find('.sector').text(r.sector);
+        fila.find('.subrelevamiento').text(r.subrelevamiento ?? '');
+        fila.find('[data-id-estado-relevamiento]').filter(function(){
+          const list = $(this).attr('data-id-estado-relevamiento').split(',');
+          return list.includes(r.id_estado_relevamiento+'');
+        }).show(); 
+        fila.find('button').val(r.id_relevamiento); 
+        $('#tablaRelevamientos tbody').append(fila);
       });
       $('#herramientasPaginacion').generarIndices(formData.page,formData.page_size,resultados.total,clickIndice);
-      
-      $.ajax({//@TODO: pasar a molde estatico
-        type: 'GET',
-        url: 'relevamientos/usuarioTienePermisos',
-        data: {
-          permisos : ["relevamiento_cargar","relevamiento_validar"],
-        },
-        dataType: 'json',
-        success: function(permisos) {
-          //Para los iconos que no hay permisos: OCULTARLOS!
-          if (!permisos.relevamiento_cargar) $('.carga').hide();
-          if (!permisos.relevamiento_validar) $('.validar').hide();
-        },
-        error: function(error) {
-          console.log(error);
-        },
-      });
     },
     error: function (data) {
       console.log('Error:', data);
     }
   });
 });
-
-function crearFilaTabla(relevamiento){
-  const fila = $('<tr>');
-  fila.attr('id', relevamiento.id_relevamiento)
-  .append($('<td>').addClass('col-xs-2').text((convertirDate(relevamiento.fecha))))
-  .append($('<td>').addClass('col-xs-2').text(relevamiento.casino))
-  .append($('<td>').addClass('col-xs-2').text(relevamiento.sector))
-  .append($('<td>').addClass('col-xs-1').text(relevamiento.subrelevamiento ?? ''))
-  .append($('<td>').addClass('col-xs-2').append(
-    $('<i>').addClass('iconoEstadoRelevamiento fas fa-fw fa-dot-circle')).append($('<span>').text(relevamiento.estado))
-  )
-  .append($('<td>').addClass('col-xs-3')
-    .append($('<button>').addClass('btn btn-info planilla').attr('type','button').val(relevamiento.id_relevamiento)
-      .attr({'data-toggle':'tooltip','data-placement':'top','title':'VER PLANILLA','data-delay':'{"show":"300", "hide":"100"}'})
-      .append($('<i>').addClass('far').addClass('fa-fw').addClass('fa-file-alt'))
-    )
-    .append($('<button>').addClass('btn btn-warning carga').attr('type','button').val(relevamiento.id_relevamiento)
-      .attr({'data-toggle':'tooltip','trigger':'hover','data-placement':'top','title':'CARGAR RELEVAMIENTO'})
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-upload'))
-    )
-    .append($('<button>').addClass('btn btn-success validar').attr('type','button').val(relevamiento.id_relevamiento)
-      .attr({'data-toggle':'tooltip','data-placement':'top','title':'VISAR RELEVAMIENTO','data-delay':'{"show":"300", "hide":"100"}'})
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-check'))
-    )
-    .append($('<button>').addClass('btn btn-success verDetalle').attr('type','button').val(relevamiento.id_relevamiento)
-      .attr({'data-toggle':'tooltip','data-placement':'top','title':'VER RELEVAMIENTO','data-delay':'{"show":"300", "hide":"100"}'})
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-search-plus'))
-    )
-    .append($('<button>').addClass('btn btn-info imprimir').attr('type','button').val(relevamiento.id_relevamiento)
-      .attr({'data-toggle':'tooltip','data-placement':'top','title':'IMPRIMIR PLANILLA','data-delay':'{"show":"300", "hide":"100"}'})
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-print'))
-    )
-    .append($('<button>').addClass('btn btn-success validado').attr('type','button').val(relevamiento.id_relevamiento)
-      .attr({'data-toggle':'tooltip','data-placement':'top','title':'IMPRIMIR VISADO','data-delay':'{"show":"300", "hide":"100"}'})
-      .append($('<i>').addClass('fa').addClass('fa-fw').addClass('fa-bookmark'))
-    )
-  );
-
-  const icono_planilla   = fila.find('.planilla').hide();
-  const icono_carga      = fila.find('.carga').hide();
-  const icono_validacion = fila.find('.validar').hide();
-  const icono_imprimir   = fila.find('.imprimir').hide();
-  const icono_validado   = fila.find('.validado').hide();
-  const icono_verDetalle = fila.find('.verDetalle').hide();
-
-  //Qué ESTADO e ICONOS mostrar
-  switch (relevamiento.estado) {
-    case 'Generado':
-      fila.find('.iconoEstadoRelevamiento').addClass('faGenerado');
-      icono_planilla.show();
-      icono_carga.show();
-      break;
-    case 'Cargando':
-      fila.find('.iconoEstadoRelevamiento').addClass('faCargando');
-      icono_carga.show();
-      icono_imprimir.show();
-      break;
-    case 'Finalizado':
-      fila.find('.iconoEstadoRelevamiento').addClass('faFinalizado');
-      icono_validacion.show();
-      icono_imprimir.show();
-      break;
-    case 'Visado':
-      fila.find('.iconoEstadoRelevamiento').addClass('faVisado');
-      icono_imprimir.show();
-      $.get('relevamientos/chequearRolFiscalizador', function(data){
-        if(data!=1){
-          icono_verDetalle.show();
-        }
-      });
-      break;
-    case 'Rel. Visado':
-      fila.find('.iconoEstadoRelevamiento').addClass('faValidado');
-      icono_imprimir.show();
-      icono_validado.show();
-      $.get('relevamientos/chequearRolFiscalizador', function(data){
-        if(data!=1){
-          icono_verDetalle.show();
-        }
-      });
-      break;
-  }
-  
-  return fila;
-}
 
 //MOSTRAR LOS SECTORES ASOCIADOS AL CASINO SELECCIONADO
 $('#buscadorCasino').on('change',function(){
