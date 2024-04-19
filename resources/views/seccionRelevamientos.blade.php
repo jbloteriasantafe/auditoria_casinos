@@ -825,19 +825,9 @@ $CONTADORES_VISIBLES = 6;
     <td>
       <select class="tipo_causa_no_toma form-control">
         <option value=""></option>
-        <option value="1">NO FUNCIONA TOUCH</option>
-        <option value="2">MÁQUINA OCUPADA</option>
-        <option value="3">MÁQUINA APAGADA</option>
-        <option value="4">FALTA LLAVE</option>
-        <option value="5" disabled="disabled">DATOS ERRONEOS</option>
-        <option value="6">OTRO</option>
-        <option value="7">MÁQUINA FUERA DE SERVICIO</option>
-        <option value="8">MTM NO COMUNICA</option>
-        <option value="9">CERRADURA ROTA</option>
-        <option value="10">BOTONERA ROTA</option>
-        <option value="11">NO FUNCIONA LLAVE</option>
-        <option value="12">NO FUNCIONA BOTONERA</option>
-        <option value="13">ERROR DE FÓRMULA</option>
+        @foreach($tipos_causa_no_toma as $t)
+        <option value="{{$t->id_tipo_causa_no_toma}}" {{$t->deprecado? 'disabled' : ''}}>{{$t->descripcion}}</option>
+        @endforeach
       </select>
     </td>
     <td hidden>
@@ -893,6 +883,20 @@ $CONTADORES_VISIBLES = 6;
     <td class="tipo_no_toma" style="text-align: center;">NO TOMA</td>
     <td class="denominacion">DENO</td>
     <td class="fecha">fecha</td>
+  </tr>
+  <tr class="moldeMaquinasPorRelevamiento">
+    <td class="fecha_desde">99 Mes 1999</td>
+    <td class="fecha_hasta">99 Mes 2999</td>
+    <td>
+      <span class="badge cantidad" style="background-color: rgb(109, 199, 190); font-family: Roboto-Regular; font-size: 18px;">
+        999
+      </span>
+    </td>
+    <td>
+      <button type="button" class="btn btn-danger borrarCantidadTemporal">
+        <i class="fa fa-fw fa-trash"></i>
+      </button>
+    </td>
   </tr>
 </table>
 

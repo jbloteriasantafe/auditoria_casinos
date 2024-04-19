@@ -103,7 +103,12 @@ class RelevamientoController extends Controller
     $estados = EstadoRelevamiento::all();
 
     UsuarioController::getInstancia()->agregarSeccionReciente('Relevamiento Contadores', 'relevamientos');
-    return view('seccionRelevamientos', ['casinos' => $usuario->casinos ,'estados' => $estados ,'tipos_cantidad' => TipoCantidadMaquinasPorRelevamiento::all()]);
+    return view('seccionRelevamientos', [
+      'casinos' => $usuario->casinos ,
+      'estados' => $estados ,
+      'tipos_cantidad' => TipoCantidadMaquinasPorRelevamiento::all(),
+      'tipos_causa_no_toma' => TipoCausaNoToma::all()
+    ]);
   }
 
   // buscarRelevamientos busca relevamientos de acuerdo a los filtros
@@ -183,7 +188,6 @@ class RelevamientoController extends Controller
             'detalles' => $detalles,
             'usuario_cargador' => $relevamiento->usuario_cargador,
             'usuario_fiscalizador' => $relevamiento->usuario_fiscalizador,
-            'tipos_causa_no_toma' => TipoCausaNoToma::all(),
             'usuario_actual' => $usuario_actual];
   }
 

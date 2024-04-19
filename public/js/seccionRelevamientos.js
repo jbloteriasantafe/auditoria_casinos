@@ -237,7 +237,7 @@ $(document).on('click','.carga',function(e){
     const tbody = $('#tablaCargaRelevamiento tbody');
     tbody.find('tr').remove();
     cargarTablaRelevamientos(data, tbody, 'Carga');
-    calculoDiferencia(tbody);
+    tbody.find('tr .tipo_causa_no_toma').change();
     
     habilitarBotonFinalizar();
     $('#modalCargaRelevamiento').modal('show');
@@ -252,9 +252,9 @@ $('#modalCargaRelevamiento').on('input', "input", function(){
 $(document).on('change','.tipo_causa_no_toma',function(){
   const fila = $(this).closest('tr');
   //Si se elige algun tipo de no toma se vacian las cargas de contadores
-  fila.find('.contador').val('');
   fila.find('.icono_estado').hide();
   if($(this).val() != ''){//Se cambia el icono de diferencia
+    fila.find('.contador').val('');
     fila.find('.icono_no_toma').show();
   }
   else{
@@ -631,13 +631,13 @@ $('#btn-generarMaquinasPorRelevamiento').click(function(){
 //Borrar una cantidad temporal de máquinas por relevamientos
 $('#modalMaquinasPorRelevamiento').on('click','.borrarCantidadTemporal', function(e){
   e.preventDefault();
-
+  const id_cantidad_maquinas_por_relevamiento = $(this).val();
   $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
   $.ajax({
     type: "POST",
     url: 'relevamientos/eliminarCantidadMaquinasPorRelevamiento',
     data: {
-      id_cantidad_maquinas_por_relevamiento: $(this).parent().parent().attr('id')
+      id_cantidad_maquinas_por_relevamiento: id_cantidad_maquinas_por_relevamiento
     },
     dataType: 'json',
     success: function (data) {
@@ -663,16 +663,16 @@ function enviarRelevamiento(estado) {
       calculado = calcularProducido($(this))[0]; //calculado relevado siempre se trabaja en dinero, no en creditos
       calculado = Math.round(calculado*100)/100;//Redondea a 2 digitos
     }
-    
+    const fila = $(this);
     return {
-      id_unidad_medida: $(this).attr('data-medida'),
-      denominacion: $(this).attr('data-denominacion'),
-      id_detalle_relevamiento: $(this).attr('id'),
+      id_unidad_medida: fila.attr('data-medida'),
+      denominacion: fila.attr('data-denominacion'),
+      id_detalle_relevamiento: fila.attr('data-id-detalle-relevamiento'),
       ...Object.fromEntries(Array.from(Array(8).keys()).map((c) => c+1).map(function(c){
         const cont = 'cont'+c;
-        return [cont,$(this).find('.'+cont).val().replace(/,/g,".")];
+        return [cont,fila.find('.'+cont).val().replace(/,/g,".")];
       })),
-      id_tipo_causa_no_toma: $(this).children().children('.tipo_causa_no_toma').val(),
+      id_tipo_causa_no_toma: fila.find('.tipo_causa_no_toma').val(),
       producido_calculado_relevado: calculado,
     };
   }).toArray();
@@ -726,9 +726,9 @@ function enviarRelevamiento(estado) {
       $('#tablaCargaRelevamiento tbody tr').each(function(obj,idx){
         var error=' ';
         for(let c=1;c<=CONTADORES;c++){
-          if(typeof response['detalles.'+ i +'.cont'+c] !== 'undefined'){
+          if(typeof response['detalles.'+ idx +'.cont'+c] !== 'undefined'){
             filaError = $(this);
-            mostrarErrorValidacion($(this).find('.cont'+c),response['detalles.'+ i +'.cont'+c][0],false);
+            mostrarErrorValidacion($(this).find('.cont'+c),response['detalles.'+ idx +'.cont'+c][0],false);
           }
         }
       });
@@ -867,10 +867,6 @@ function cargarTablaRelevamientos(data, tabla, estadoRelevamiento){
     fila.find('.diferencia').val('');
     fila.find('.tipo_causa_no_toma').val(d.tipo_causa_no_toma ?? '');
     
-    data.tipos_causa_no_toma.forEach(function(t){//@TODO: pasar a estatico
-      fila.find(`.tipo_causa_no_toma option[value="${t.id_tipo_causa_no_toma}"]`).attr('disabled',t.deprecado == 1? true : false);
-    });
-    
     fila.find(`.medida[data-medida!=${d.unidad_medida.id_unidad_medida}]`).remove();
     
     if(estadoRelevamiento == 'Validar'){
@@ -886,8 +882,7 @@ function cargarTablaRelevamientos(data, tabla, estadoRelevamiento){
       fila.find('.diferencia').prop('readonly',true).show().parent().show();
       fila.find('.tipo_causa_no_toma').attr('disabled',true);
         
-      const causa_notoma = data.tipos_causa_no_toma?.[parseInt(d?.tipo_causa_no_toma) - 1]?.descripcion ?? '';      
-      if (causa_notoma != '') {
+      if (d.id_tipo_causa_no_toma != null) {
         fila.find('.tipo_causa_no_toma').css('border','2px solid #1E90FF').css('color','#1E90FF');
       }
 
@@ -1074,25 +1069,11 @@ function setCantidadMaquinas(data) {
     let fecha_hasta = valor.fecha_hasta.split("-");
     fecha_hasta = `${fecha_hasta[2]} ${nombreMeses[fecha_hasta[1] - 1]} ${fecha_hasta[0]}`;
 
-    const cantidad = $('<span>').addClass('badge').text(valor.cantidad)
-    .css({
-      'background-color': '#6dc7be','font-family':'Roboto-Regular','font-size':'18px'
-    });
-
-    $('#maquinas_temporales tbody').prepend(
-      $('<tr>').attr('id', valor.id_cantidad_maquinas_por_relevamiento)
-      .append($('<td>').text(fecha_desde)) //fecha_desde
-      .append($('<td>').text(fecha_hasta)) //fecha_hasta
-      .append($('<td>').append(cantidad)) //cantidad_maquinas
-      .append($('<td>').append(
-          $('<button>').attr('type','button').addClass('btn btn-danger borrarCantidadTemporal')
-          .append($('<i>').addClass('fa fa-fw fa-trash'))
-        )
-      ) //icono para borrar
-    );
-
-    //Si hay máquinas temporales MOSTRAR TABLA
-    $('#maquinas_temporales').show();
+    const fila = $('#moldesFilas .moldeMaquinasPorRelevamiento').clone().removeClass('moldeMaquinasPorRelevamiento');
+    fila.find('.fecha_desde').text(fecha_desde);
+    fila.find('.fecha_hasta').text(fecha_hasta);
+    fila.find('.cantidad').text(valor.cantidad);
+    $('#maquinas_temporales').prepend(fila).show();//Si hay máquinas temporales MOSTRAR TABLA
   });
 }
 
