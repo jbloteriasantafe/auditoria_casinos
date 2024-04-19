@@ -404,24 +404,23 @@ $(document).on('click','.verDetalle',function(e){
     $('#btn-finalizarValidacion').hide();
 
     data.detalles.forEach(function(d){
-      const fila = $('<tr>');
-      fila.attr('id', d.id_detalle_relevamiento)
-      .append($('<td>').css('align','center').text(d.nro_admin));
+      const fila = $('#moldesFilas .moldeVer').clone().removeClass('moldeVer');
+      fila.attr('data-id-detalle-relevamiento',d.id_detalle_relevamiento);
+      fila.find('.nro_admin').text(d.nro_admin);
       
-      for(let c=1;c<=8;c++){
+      for(let c=1;c<=CONTADORES;c++){
         const val = d.detalle?.['cont'+c];
-        if(c<=6 || val != null)
-          fila.append($('<td>').css('align','center').text(d.detalle?.['cont'+c] ?? ' - '));
+        fila.find('.cont'+c).text(val ?? ' - ');
       }
-
-      fila.append($('<td>').css('text-align','center').text(d.detalle?.producido_calculado_relevado ?? ' - '));
-      fila.append($('<td>').css('text-align','center').text(d.detalle?.producido_importado ?? ' - '));
-      fila.append($('<td>').css('text-align','center').text(d.detalle?.diferencia ?? ' - '));
-      fila.append($('<td>').text(' '));
-      fila.append($('<td>').text(d.tipo_no_toma ?? ' - ').prop('disabled', true));
-      fila.append($('<td>').text(d.denominacion ?? ' - ').prop('disabled', true));
-      fila.append($('<td>').text(d?.mtm_pedido?.fecha ?? ' ').prop('disabled', true));
-
+      
+      fila.find('.producido_calculado_relevado').text(d.detalle?.producido_calculado_relevado ?? ' - ');
+      fila.find('.producido_importado').text(d.detalle?.producido_importado ?? ' - ');
+      fila.find('.diferencia').text(d.detalle?.diferencia ?? ' - ');
+      fila.find('.tipo_no_toma').text(d.tipo_no_toma ?? ' - ');
+      fila.find('.denominacion').text(d.denominacion ?? ' - ');
+      fila.find('.tipo_no_toma').text(d.tipo_no_toma ?? ' - ');
+      fila.find('.fecha').text(d?.mtm_a_pedido?.fecha ?? ' - ');
+      
       $('#tablaValidarRelevamiento tbody').append(fila);
     });
 
@@ -726,7 +725,7 @@ function enviarRelevamiento(estado) {
       let filaError = null;
       $('#tablaCargaRelevamiento tbody tr').each(function(obj,idx){
         var error=' ';
-        for(let c=1;c<=8;c++){
+        for(let c=1;c<=CONTADORES;c++){
           if(typeof response['detalles.'+ i +'.cont'+c] !== 'undefined'){
             filaError = $(this);
             mostrarErrorValidacion($(this).find('.cont'+c),response['detalles.'+ i +'.cont'+c][0],false);
@@ -849,7 +848,7 @@ function cargarTablaRelevamientos(data, tabla, estadoRelevamiento){
     
     fila.find('.maquina').text(d.maquina);
     
-    for(let c=1;c<=8;c++){
+    for(let c=1;c<=CONTADORES;c++){
       const cont = fila.find('.cont'+c).val(d.detalle['cont'+c]);
       
       if(estadoRelevamiento == 'Carga' && d.formula != null){
@@ -907,7 +906,7 @@ function calcularProducido(fila){
   let suma = 0;
   let inputValido = false;
   
-  for(let c=1;c<=8;c++){
+  for(let c=1;c<=CONTADORES;c++){
     const formulaCont = fila.children('.formulaCont'+c).val();
     const operador = fila.children('.formulaOper'+c).val();
     const contador_s = fila.find('td').children('.cont'+c).val();

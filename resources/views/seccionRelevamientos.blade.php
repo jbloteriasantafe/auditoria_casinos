@@ -8,6 +8,8 @@ use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
 setlocale(LC_TIME, 'es_ES.UTF-8');
 $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+$CONTADORES = 8;
+$CONTADORES_VISIBLES = 6;
 ?>
 
 @section('estilos')
@@ -576,12 +578,9 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                   <thead>
                     <tr>
                       <th width="3%">MTM</th>
-                      <th>CONTADOR 1</th>
-                      <th>CONTADOR 2</th>
-                      <th>CONTADOR 3</th>
-                      <th>CONTADOR 4</th>
-                      <th>CONTADOR 5</th>
-                      <th>CONTADOR 6</th>
+                      @for($c=1;$c<=$CONTADORES;$c++)
+                      <th {{$c<=$CONTADORES_VISIBLES? '' : 'hidden'}}>CONTADOR {{$c}}</th>
+                      @endfor
                       <th width="2%">DIF</th>
                       <th width="12%">CAUSA DE NO TOMA</th>
                     </tr>
@@ -669,21 +668,16 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
                   <thead>
                     <tr>
                       <th width="3%">MÁQ</th>
-                      <th>CONTADOR 1</th>
-                      <th>CONTADOR 2</th>
-                      <th>CONTADOR 3</th>
-                      <th>CONTADOR 4</th>
-                      <th>CONTADOR 5</th>
-                      <th>CONTADOR 6</th>
-                      <!-- <th>CONTADOR 7</th> -->
-                      <!-- <th>CONTADOR 8</th> -->
+                      @for($c=1;$c<=$CONTADORES;$c++)
+                      <th {{$c<=$CONTADORES_VISIBLES? '' : 'hidden'}}>CONTADOR {{$c}}</th>
+                      @endfor
                       <th>P. CALCULADO ($)</th>
                       <th>P. IMPORTADO ($)</th>
                       <th>DIFERENCIA</th>
-                      <th></th>
+                      <th>&nbsp;</th>
                       <th>TIPO NO TOMA</th>
                       <th>DEN</th>
-                      <th>-</th>
+                      <th>A PEDIDO</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -809,8 +803,8 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
   </tr>
   <tr class="moldeCarga" data-medida="" data-denominacion="">
     <td class="maquina">2272</td>
-    @for($c=1;$c<=8;$c++)
-    <td {{$c<=6? '' : 'hidden'}}><input class="contador cont{{$c}} form-control"></td>
+    @for($c=1;$c<=$CONTADORES;$c++)
+    <td {{$c<=$CONTADORES_VISIBLES? '' : 'hidden'}}><input class="contador cont{{$c}} form-control"></td>
     <input class="formulaCont{{$c}}" hidden>
     <input class="formulaOper{{$c}}" hidden>
     @endfor
@@ -887,6 +881,19 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
       </button>
     </td>
   </tr>
+  <tr class="moldeVer">
+    <td class="nro_admin" style="text-align: center;">MAQ</td>
+    @for($c=1;$c<=$CONTADORES;$c++)
+    <td class="cont{{$c}}" {{$c<=$CONTADORES_VISIBLES? '' : 'hidden'}} style="text-align: right;">CONT{{$c}}</td>
+    @endfor
+    <td class="producido_calculado_relevado" style="text-align: center;">PROD CALC</td>
+    <td class="producido_importado" style="text-align: center;">PROD CALC</td>
+    <td class="diferencia" style="text-align: center;">DIF</td>
+    <td style="text-align: center;">&nbsp;</td>
+    <td class="tipo_no_toma" style="text-align: center;">NO TOMA</td>
+    <td class="denominacion">DENO</td>
+    <td class="fecha">fecha</td>
+  </tr>
 </table>
 
 <meta name="_token" content="{!! csrf_token() !!}" />
@@ -911,6 +918,9 @@ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'
 <!-- Termina modal de ayuda -->
 
 @section('scripts')
+<script>
+  const CONTADORES = {{$CONTADORES}};
+</script>
 <!-- JS paginacion -->
 <script src="/js/paginacion.js" charset="utf-8"></script>
 
