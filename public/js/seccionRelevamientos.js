@@ -1,31 +1,58 @@
+import '/js/Components/inputFecha.js';
+import '/js/Components/FiltroTabla.js';
+import {AUX} from "/js/Components/AUX.js";
+
 var nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 var truncadas=0;
 
 $(document).ready(function(){
   $('.tituloSeccionPantalla').text('Relevamientos');
+  
+  $('[data-js-filtro-tabla]').on('busqueda',function(e,ret,tbody,molde){
+    ret.data.forEach(function(r){
+      const fila = molde.clone();
+      fila.find('.fecha').text(convertirDate(r.fecha));
+      fila.find('.casino').text(r.casino);
+      fila.find('.sector').text(r.sector);
+      fila.find('.subrelevamiento').text(r.subrelevamiento ?? '');
+      fila.find('[data-id-estado-relevamiento]').filter(function(){
+        const list = $(this).attr('data-id-estado-relevamiento').split(',');
+        return list.includes(r.id_estado_relevamiento+'');
+      }).show(); 
+      fila.find('button').val(r.id_relevamiento); 
+      tbody.append(fila);
+    });
+  }).trigger('buscar');
+  
+  $('[data-js-cambio-casino-select-sectores]').each(function(){
+    $(this).on('change',function(){
+      const casino = $(this);
+      
+      const sectores = $(casino.attr('data-js-cambio-casino-select-sectores'));
+      sectores.find('option:not([data-js-cambio-casino-mantener])').remove();
+      
+      if(casino.val() == '' || casino.val() == '0') return;
+      
+      AUX.GET("relevamientos/obtenerSectoresPorCasino/"+casino.val(),{},function(data){
+        data.sectores.forEach(function(s){
+          sectores.append($('<option>').val(s.id_sector).text(s.descripcion));
+        });
+        sectores.trigger('cambioSectores',[data.sectores]);
+      });
+    });
+  });
 
-  const dtp_ops = {
+  $('#dtpFecha').datetimepicker({
     language:  'es',
     todayBtn:  1,
     autoclose: 1,
     todayHighlight: 1,
     pickerPosition: "bottom-left",
     ignoreReadonly: true,
-  };
-  
-  $('#dtpFecha').datetimepicker({
-    ...dtp_ops,
     format: 'HH:ii',
     startView: 1,
     minView: 0,
     minuteStep: 5,
-  });
-
-  $('#dtpBuscadorFecha').datetimepicker({
-    ...dtp_ops,
-    format: 'dd MM yyyy',
-    startView: 2,
-    minView: 2,
   });
 
   $('#btn-buscar').trigger('click',[1,10,'relevamiento.fecha','desc']);
@@ -63,7 +90,7 @@ $(document).on('click','.pop',function(e){
 $('#btn-nuevoRelevamiento').click(function(e){
   e.preventDefault();
   $('#frmRelevamiento').trigger('reset');
-  $('#sector option').remove();
+  $('#modalRelevamiento #sector option').remove();
   $('#maquinas_pedido').hide();
   $('#modalRelevamiento').modal('show');
 
@@ -79,35 +106,10 @@ $('#btn-nuevoRelevamiento').click(function(e){
   });
 });
 
-function agregarSectores(id_casino,obj,after = function(sectores){}){
-  $.get("relevamientos/obtenerSectoresPorCasino/" + id_casino, function(data){
-    data.sectores.forEach(function(s){
-      obj.append($('<option>').val(s.id_sector).text(s.descripcion));
-    });
-    after(data.sectores);
-  });
-}
-
-$('#casinoSinSistema').on('change', function(){
-  const id_casino = $('#casinoSinSistema option:selected').attr('id');//WTF? usar value
-  ocultarErrorValidacion($('#sectorSinSistema').empty());
-  agregarSectores(id_casino,$('#sectorSinSistema'));
-});
-
-//MOSTRAR LOS SECTORES ASOCIADOS AL CASINO SELECCIONADO
-$('#modalRelevamiento #casino').on('change',function(){
-  const id_casino = $('#modalRelevamiento #casino option:selected').attr('id');//WTF? usar value
-  $('#modalRelevamiento #sector').removeClass('alerta').empty();
-  agregarSectores(id_casino,$('#modalRelevamiento #sector'),function(){
-    maquinasAPedido();
-    existeRelevamiento();
-  });
-});
-
-$('#modalRelevamiento #sector').on('change',function(){
-    maquinasAPedido();
-    //Acá se pregunta si para el sector y la fecha actual ya se genero un relevamiento.
-    existeRelevamiento();
+$('#modalRelevamiento #sector').on('change cambioSectores',function(e,sectores){
+  $(this).removeClass('alerta');
+  maquinasAPedido();
+  existeRelevamiento();
 });
 
 //GENERAR RELEVAMIENTO SOBRE SECTOR CON RELEVAMIENTO EXISTENTE
@@ -457,7 +459,7 @@ $('#btn-maquinasPorRelevamiento').click(function(e) {
   $('#btn-cancelarTemporal').hide();
 
   $('#frmMaquinasPorRelevamiento').trigger('reset');
-  $('#sector option').remove();
+  $('#modalMaquinasPorRelevamiento #sector option').remove();
   $('#modalMaquinasPorRelevamiento').modal('show');
   $('#modalMaquinasPorRelevamiento').find('.modal-body').children('#iconoCarga').hide();
 
@@ -514,13 +516,8 @@ $('#fechaRelSinSistema input').on('change',function(e) {
 
 //MODAL DE CANTIDAD DE MÁQUINAS POR RELEVAMIENTOS |  DEFAULT Y TEMPORALES
 //Obtener las máquinas para cada relevamiento según el sector
-$('#modalMaquinasPorRelevamiento #casino').on('change',function(){
-  const id_casino = $('#modalMaquinasPorRelevamiento #casino option:selected').attr('id');
-  $('#modalMaquinasPorRelevamiento #sector option').remove();
-  
-  agregarSectores(id_casino,$('#modalMaquinasPorRelevamiento #sector'),function(sectores){
-    maquinasPorRelevamiento();
-  });
+$('#modalMaquinasPorRelevamiento #sector').on('cambioSectores',function(e,sectores){
+  maquinasPorRelevamiento();
 });
 
 $('#modalMaquinasPorRelevamiento #sector').on('change',function(){
@@ -1112,93 +1109,3 @@ function toggleDatosMaquinasPorRelevamiento(habilitado){
   if(habilitado) habilitarDTPmaquinasPorRelevamiento();
   else           deshabilitarDTPmaquinasPorRelevamiento(undefined);
 }
-
-/*****************PAGINACION******************/
-function clickIndice(e,pageNumber,tam){
-  if(e != null){
-    e.preventDefault();
-  }
-  tam = (tam != null) ? tam : $('#herramientasPaginacion').getPageSize();
-  const columna = $('#tablaRelevamientos .activa').attr('value');
-  const orden = $('#tablaRelevamientos .activa').attr('estado');
-  $('#btn-buscar').trigger('click',[pageNumber,tam,columna,orden]);
-}
-
-$(document).on('click','#tablaRelevamientos thead tr th[value]',function(e){
-  const thead = $(this).closest('thead');
-  thead.find('th').removeClass('activa');
-  const i  = $(this).children('i');
-  const sin = i.hasClass('fa-sort');
-  const abajo = i.hasClass('fa-sort-down');
-  i.removeClass();
-  if(sin){
-    i.addClass('fas fa-sort-down').parent().addClass('activa').attr('estado','desc');
-  }
-  else if(abajo){
-    i.addClass('fas fa-sort-up').parent().addClass('activa').attr('estado','asc');
-  }
-  else{
-    i.addClass('fas fa-sort').parent().attr('estado','');
-  }
-  thead.find('th i').not(i).removeClass().addClass('fa fa-sort').parent().attr('estado','');
-  clickIndice(e,$('#herramientasPaginacion').getCurrentPage(),$('#herramientasPaginacion').getPageSize());
-});
-
-$('#btn-buscar').click(function(e,pagina,page_size,columna,orden){
-  //Fix error cuando librería saca los selectores
-  const size = isNaN($('#herramientasPaginacion').getPageSize())? 10 : $('#herramientasPaginacion').getPageSize();
-  page_size = (page_size == null || isNaN(page_size))? size : page_size;
-  const sort_by = (columna != null) ? {columna,orden} : {columna: $('#tablaRelevamientos .activa').attr('value'),orden: $('#tablaRelevamientos .activa').attr('estado')} ;
-  if(sort_by == null){ // limpio las columnas
-    $('#tablaRelevamientos th i').removeClass().addClass('fas fa-sort').parent().removeClass('activa').attr('estado','');
-  }
-
-  const formData = {
-    fecha: $('#buscadorFecha').val(),
-    casino: $('#buscadorCasino').val(),
-    sector: $('#buscadorSector').val(),
-    estadoRelevamiento: $('#buscadorEstado').val(),
-    page: (pagina != null) ? pagina : $('#herramientasPaginacion').getCurrentPage(),
-    sort_by: sort_by,
-    page_size: page_size,
-  };
-  
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-  $.ajax({
-    type: "POST",
-    url: 'relevamientos/buscarRelevamientos',
-    data: formData,
-    dataType: 'json',
-    success: function (resultados){
-      $('#herramientasPaginacion').generarTitulo(formData.page,formData.page_size,resultados.total,clickIndice);
-      $('#tablaRelevamientos tbody tr').remove();
-      resultados.data.forEach(function(r){
-        const fila = $('#moldesFilas .moldeBusqueda').clone().removeClass('.moldeBusqueda');
-        fila.find('.fecha').text(convertirDate(r.fecha));
-        fila.find('.casino').text(r.casino);
-        fila.find('.sector').text(r.sector);
-        fila.find('.subrelevamiento').text(r.subrelevamiento ?? '');
-        fila.find('[data-id-estado-relevamiento]').filter(function(){
-          const list = $(this).attr('data-id-estado-relevamiento').split(',');
-          return list.includes(r.id_estado_relevamiento+'');
-        }).show(); 
-        fila.find('button').val(r.id_relevamiento); 
-        $('#tablaRelevamientos tbody').append(fila);
-      });
-      $('#herramientasPaginacion').generarIndices(formData.page,formData.page_size,resultados.total,clickIndice);
-    },
-    error: function (data) {
-      console.log('Error:', data);
-    }
-  });
-});
-
-//MOSTRAR LOS SECTORES ASOCIADOS AL CASINO SELECCIONADO
-$('#buscadorCasino').on('change',function(){
-  $('#buscadorSector').empty();
-  $('#buscadorSector').append($('<option>').val(0).text('-Todos los sectores-'));
-  
-  const id_casino = $(this).val();
-  if(id_casino!=0)
-    agregarSectores(id_casino,$('#buscadorSector'));
-});

@@ -7,7 +7,7 @@
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
 setlocale(LC_TIME, 'es_ES.UTF-8');
-$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+$usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
 $CONTADORES = 8;
 $CONTADORES_VISIBLES = 6;
 ?>
@@ -79,91 +79,112 @@ $CONTADORES_VISIBLES = 6;
     </div>
   </div>
   <div class="col-xl-9"> <!-- columna TABLA CASINOS -->
-    <!-- FILTROS -->
-    <div class="row">
-      <div class="col-md-12">
-        <div id="contenedorFiltros" class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
-            <h4>Filtros de Búsqueda  <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltros" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-md-3">
-                  <h5>Fecha de Relevamiento</h5>
-                  <div class="form-group">
-                    <div class='input-group date' id='dtpBuscadorFecha' data-link-field="buscadorFecha" data-link-format="yyyy-mm-dd">
-                     <input type='text' class="form-control" placeholder="Fecha de relevamiento" id="B_fecharelevamiento"/>
-                     <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                     <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                    </div>
-                    <input class="form-control" type="hidden" id="buscadorFecha" value=""/>
-                  </div>
-                </div>
-                <div class="col-md-3">
-                  <h5>Casino</h5>
-                  <select id="buscadorCasino" class="form-control selectCasinos">
-                    <option value="0">-Todos los Casinos-</option>
-                    @foreach($casinos as $casino)
-                    <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-md-3">
-                  <h5>Sector</h5>
-                  <select id="buscadorSector" class="form-control selectSector">
-                    <option value="0">-Todos los sectores-</option>
-                  </select>
-                </div>
-                <div class="col-md-3">
-                  <h5>Estado Relevamiento</h5>
-                  <select id="buscadorEstado" class="form-control selectSector">
-                    <option value="0">-Todos los estados-</option>
-                    @foreach($estados as $estado)
-                    <option value="{{$estado->id_estado_relevamiento}}">{{$estado->descripcion}}</option>
-                    @endforeach
-                  </select>
-                </div>
-              </div>
-              <div class="row">
-                <center>
-                  <h5 style="color:#f5f5f5;">boton buscar</h5>
-                  <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
-                </center>
-              </div>
-              <br>
-            </div>
-          </div>
-        </div>
-      </div>
+    @component('Components/FiltroTabla')
+    
+    @slot('titulo')
+    RELEVAMIENTOS
+    @endslot
+    
+    @slot('target_buscar')
+    /relevamientos/buscarRelevamientos
+    @endslot
+    
+    @slot('filtros')
+    <div class="col-md-3">
+      <h5>Fecha de Relevamiento</h5>
+      @component('Components/inputFecha',['attrs' => 'name="fecha"' ,'attrs_dtp' => 'data-start-view="2" data-min-view="2"'])
+      @endcomponent
     </div>
-    <div class="row">
-      <div class="col-md-12">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h4>Últimos relevamientos</h4>
-          </div>
-          <div class="panel-body">
-            <table id="tablaRelevamientos" class="table table-fixed tablesorter">
-              <thead>
-                <tr>
-                  <th class="col-xs-2 activa" value="relevamiento.fecha" estado="desc">FECHA REL.  <i class="fas fa-sort-down"></i></th>
-                  <th class="col-xs-2" value="casino.nombre" estado="">CASINO  <i class="fas fa-sort"></i></th>
-                  <th class="col-xs-2" value="sector.descripcion" estado="">SECTOR  <i class="fas fa-sort"></i></th>
-                  <th class="col-xs-1" value="relevamiento.subrelevamiento" estado="">SUB  <i class="fas fa-sort"></i></th>
-                  <th class="col-xs-2" value="estado_relevamiento.descripcion" estado="">ESTADO  <i class="fas fa-sort"></i></th>
-                  <th class="col-xs-3" value="" estado="">ACCIÓN</th>
-                </tr>
-              </thead>
-              <tbody style="height:275px;">
-              </tbody>
-            </table>
-            <legend></legend>
-            <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
-          </div>
-        </div>
-      </div>
+    <div class="col-md-3">
+      <h5>Casino</h5>
+      <select name="casino" class="form-control" data-js-cambio-casino-select-sectores="#sectoresBusqueda">
+        <option value="">-Todos los Casinos-</option>
+        @foreach($casinos as $casino)
+        <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+        @endforeach
+      </select>
     </div>
+    <div class="col-md-3">
+      <h5>Sector</h5>
+      <select id="sectoresBusqueda" name="sector" class="form-control">
+        <option value="" data-js-cambio-casino-mantener>-Todos los sectores-</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <h5>Estado Relevamiento</h5>
+      <select name="estadoRelevamiento" class="form-control">
+        <option value="">-Todos los estados-</option>
+        @foreach($estados as $estado)
+        <option value="{{$estado->id_estado_relevamiento}}">{{$estado->descripcion}}</option>
+        @endforeach
+      </select>
+    </div>
+    @endslot
+    
+    @slot('cabecera')
+    <tr>
+      <th data-js-sortable="relevamiento.fecha" data-js-state="desc" style="text-align: center;">FECHA</th>
+      <th data-js-sortable="casino.nombre" style="text-align: center;">CASINO</th>
+      <th data-js-sortable="sector.descripcion" style="text-align: center;">SECTOR</th>
+      <th data-js-sortable="relevamiento.subrelevamiento" style="text-align: center;">SUB</th>
+      <th data-js-sortable="estado_relevamiento.descripcion" style="text-align: center;">ESTADO</th>
+      <th style="text-align: center;">ACCION</th>
+    </tr>
+    @endslot
+    
+    @slot('molde')
+    <style>
+      tr.filaBusqueda td {
+        text-align: center;
+      }
+    </style>
+    <tr class="filaBusqueda">
+      <td class="col-xs-2 fecha">99 MES 99999</td>
+      <td class="col-xs-2 casino">CASINO</td>
+      <td class="col-xs-2 sector">SECTOR</td>
+      <td class="col-xs-1 subrelevamiento">SUB</td>
+      <td class="col-xs-2 estado" style="text-align: left;">
+        <i class="iconoEstadoRelevamiento fas fa-fw fa-dot-circle faGenerado" data-id-estado-relevamiento="1" style="display: none;"></i>
+        <span data-id-estado-relevamiento="1" hidden>Generado</span>
+        <i class="iconoEstadoRelevamiento fas fa-fw fa-dot-circle faCargando" data-id-estado-relevamiento="2" style="display: none;"></i>
+        <span data-id-estado-relevamiento="2" hidden>Cargando</span>
+        <i class="iconoEstadoRelevamiento fas fa-fw fa-dot-circle faFinalizado" data-id-estado-relevamiento="3" style="display: none;"></i>
+        <span data-id-estado-relevamiento="3" hidden>Finalizado</span>
+        <i class="iconoEstadoRelevamiento fas fa-fw fa-dot-circle faVisado" data-id-estado-relevamiento="4" style="display: none;"></i>
+        <span data-id-estado-relevamiento="4" hidden>Visado</span>
+        <i class="iconoEstadoRelevamiento fas fa-fw fa-dot-circle faValidado" data-id-estado-relevamiento="7" style="display: none;"></i>
+        <span data-id-estado-relevamiento="7" hidden>Rel. Visado</span>
+      </td>
+      <td class="col-xs-3 acciones" style="text-align: left;">
+        @if($usuario->tienePermiso('relevamiento_cargar'))
+        <button class="btn btn-info planilla" type="button" title="VER PLANILLA" data-id-estado-relevamiento="1" style="display: none;">
+          <i class="far fa-fw fa-file-alt"></i>
+        </button>
+        <button class="btn btn-warning carga" type="button" title="CARGAR RELEVAMIENTO" data-id-estado-relevamiento="1,2" style="display: none;">
+          <i class="fa fa-fw fa-upload"></i>
+        </button>
+        @endif
+        @if($usuario->tienePermiso('relevamiento_validar'))
+        <button class="btn btn-success validar" type="button" title="VISAR RELEVAMIENTO" data-id-estado-relevamiento="3" style="display: none;">
+          <i class="fa fa-fw fa-check"></i>
+        </button>
+        @endif
+        @if($usuario->es_administrador || $usuario->es_superusuario)
+        <button class="btn btn-success verDetalle" type="button" title="VER RELEVAMIENTO" data-id-estado-relevamiento="4,7" style="display: none;">
+          <i class="fa fa-fw fa-search-plus"></i>
+        </button>
+        @endif
+        <button class="btn btn-info imprimir" type="button" title="IMPRIMIR PLANILLA" data-id-estado-relevamiento="2,3,4,7" style="display: none;">
+          <i class="fa fa-fw fa-print"></i>
+        </button>
+        <button class="btn btn-success validado" type="button" title="IMPRIMIR VISADO" data-id-estado-relevamiento="7" style="display: none;">
+          <i class="fa fa-fw fa-bookmark"></i>
+        </button>
+      </td>
+    </tr>
+    @endslot
+    
+    @endcomponent
   </div><!-- /.col-lg-12 col-xl-9 -->
 </div>  <!-- /#row -->
 
@@ -182,10 +203,10 @@ $CONTADORES_VISIBLES = 6;
             <div class="row">
               <div class="col-md-4">
                 <h5>CASINO</h5>
-                <select id="casino" class="form-control" name="">
+                <select id="casino" class="form-control" name="" data-js-cambio-casino-select-sectores="#modalMaquinasPorRelevamiento #sector">
                   <option value="">- Seleccione un casino -</option>
                   @foreach ($usuario->casinos as $casino)
-                  <option id="{{$casino->id_casino}}" value="{{$casino->codigo}}">{{$casino->nombre}}</option>
+                  <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                   @endforeach
                 </select>
                 <br>
@@ -194,7 +215,6 @@ $CONTADORES_VISIBLES = 6;
               <div class="col-md-4">
                 <h5>SECTOR</h5>
                 <select id="sector" class="form-control" name="">
-                  <option value=""></option>
                 </select>
                 <br>
                 <span id="alertaSector" class="alertaSpan"></span>
@@ -328,10 +348,10 @@ $CONTADORES_VISIBLES = 6;
             <div class="row">
               <div class="col-md-6">
                 <h5>CASINO</h5>
-                <select id="casino" class="form-control" name="">
+                <select id="casino" class="form-control" name="" data-js-cambio-casino-select-sectores="#modalRelevamiento #sector">
                   <option value="">- Seleccione un casino -</option>
                    @foreach ($usuario->casinos as $casino)
-                   <option id="{{$casino->id_casino}}" value="{{$casino->codigo}}">{{$casino->nombre}}</option>
+                   <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                    @endforeach
                 </select>
                 <br>
@@ -340,7 +360,6 @@ $CONTADORES_VISIBLES = 6;
               <div class="col-md-6">
                 <h5>SECTOR</h5>
                 <select id="sector" class="form-control" name="">
-                  <option value=""></option>
                 </select>
                 <br>
                 <span id="alertaSector" class="alertaSpan"></span>
@@ -481,10 +500,10 @@ $CONTADORES_VISIBLES = 6;
             <div class="row">
               <div class="col-md-6">
                 <h5>CASINO</h5>
-                <select id="casinoSinSistema" class="form-control" name="">
+                <select id="casinoSinSistema" class="form-control" name="" data-js-cambio-casino-select-sectores="#sectorSinSistema">
                   <option value="">- Seleccione un casino -</option>
                   @foreach ($usuario->casinos as $casino)
-                  <option id="{{$casino->id_casino}}" value="{{$casino->codigo}}">{{$casino->nombre}}</option>
+                  <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                   @endforeach
                 </select>
                 <br>
@@ -493,7 +512,6 @@ $CONTADORES_VISIBLES = 6;
               <div class="col-md-6">
                 <h5>SECTOR</h5>
                 <select id="sectorSinSistema" class="form-control" name="">
-                  <option value=""></option>
                 </select>
                 <br>
                 <span id="alertaSectorSinSistema" class="alertaSpan"></span>
@@ -717,90 +735,7 @@ $CONTADORES_VISIBLES = 6;
   </div>
 </div>
 
-<!-- Modal Eliminar -->
-<div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-     <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-        <h3 class="modal-titleEliminar">ADVERTENCIA</h3>
-      </div>
-      <div class="modal-body franjaRojaModal">
-        <form id="frmEliminar" name="frmCasino" class="form-horizontal" novalidate="">
-          <div class="form-group error ">
-            <div class="col-xs-12">
-              <strong>¿Seguro desea eliminar el CASINO? Podría ocasionar errores serios en el sistema.</strong>
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-danger" id="btn-eliminarModal" value="0">ELIMINAR</button>
-        <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div hidden>
-
-  <div align='left'>
-    <input type='radio' name='medida' value='credito' checked >
-    <i style='margin-left:5px;position:relative;top:-3px;' class='fa fa-fw fa-life-ring'></i>
-    <span style='position:relative;top:-3px;'> Cŕedito</span><br>
-    <input type='radio' name='medida' value='pesos'>
-    <i style='margin-left:5px;position:relative;top:-3px;' class='fas fa-dollar-sign'></i>
-    <span style='position:relative;top:-3px;'> Pesos</span> <br><br>
-    <button id='1' class='btn btn-deAccion btn-successAccion ajustar' type='button' style='margin-right:8px;'>AJUSTAR</button>
-    <button class='btn btn-deAccion btn-defaultAccion cancelarAjuste' type='button'>CANCELAR</button>
-  </div>
-</div>
-
 <table id="moldesFilas" hidden>
-  <tr class="moldeBusqueda">
-    <td class="col-xs-2 fecha">99 MES 99999</td>
-    <td class="col-xs-2 casino">CASINO</td>
-    <td class="col-xs-2 sector">SECTOR</td>
-    <td class="col-xs-1 subrelevamiento">SUB</td>
-    <td class="col-xs-2 estado">
-      <i class="iconoEstadoRelevamiento fas fa-fw fa-dot-circle faGenerado" data-id-estado-relevamiento="1" style="display: none;"></i>
-      <span data-id-estado-relevamiento="1" hidden>Generado</span>
-      <i class="iconoEstadoRelevamiento fas fa-fw fa-dot-circle faCargando" data-id-estado-relevamiento="2" style="display: none;"></i>
-      <span data-id-estado-relevamiento="2" hidden>Cargando</span>
-      <i class="iconoEstadoRelevamiento fas fa-fw fa-dot-circle faFinalizado" data-id-estado-relevamiento="3" style="display: none;"></i>
-      <span data-id-estado-relevamiento="3" hidden>Finalizado</span>
-      <i class="iconoEstadoRelevamiento fas fa-fw fa-dot-circle faVisado" data-id-estado-relevamiento="4" style="display: none;"></i>
-      <span data-id-estado-relevamiento="4" hidden>Visado</span>
-      <i class="iconoEstadoRelevamiento fas fa-fw fa-dot-circle faValidado" data-id-estado-relevamiento="7" style="display: none;"></i>
-      <span data-id-estado-relevamiento="7" hidden>Rel. Visado</span>
-    </td>
-    <td class="col-xs-3 acciones">
-      @if($usuario->tienePermiso('relevamiento_cargar'))
-      <button class="btn btn-info planilla" type="button" title="VER PLANILLA" data-id-estado-relevamiento="1" style="display: none;">
-        <i class="far fa-fw fa-file-alt"></i>
-      </button>
-      <button class="btn btn-warning carga" type="button" title="CARGAR RELEVAMIENTO" data-id-estado-relevamiento="1,2" style="display: none;">
-        <i class="fa fa-fw fa-upload"></i>
-      </button>
-      @endif
-      @if($usuario->tienePermiso('relevamiento_validar'))
-      <button class="btn btn-success validar" type="button" title="VISAR RELEVAMIENTO" data-id-estado-relevamiento="3" style="display: none;">
-        <i class="fa fa-fw fa-check"></i>
-      </button>
-      @endif
-      @if($usuario->es_administrador || $usuario->es_superusuario)
-      <button class="btn btn-success verDetalle" type="button" title="VER RELEVAMIENTO" data-id-estado-relevamiento="4,7" style="display: none;">
-        <i class="fa fa-fw fa-search-plus"></i>
-      </button>
-      @endif
-      <button class="btn btn-info imprimir" type="button" title="IMPRIMIR PLANILLA" data-id-estado-relevamiento="2,3,4,7" style="display: none;">
-        <i class="fa fa-fw fa-print"></i>
-      </button>
-      <button class="btn btn-success validado" type="button" title="IMPRIMIR VISADO" data-id-estado-relevamiento="7" style="display: none;">
-        <i class="fa fa-fw fa-bookmark"></i>
-      </button>
-    </td>
-  </tr>
   <tr class="moldeCarga" data-medida="" data-denominacion="">
     <td class="maquina">2272</td>
     @for($c=1;$c<=$CONTADORES;$c++)
@@ -831,11 +766,12 @@ $CONTADORES_VISIBLES = 6;
       </select>
     </td>
     <td hidden>
-      <?php
+      @php
       $popup = function($select){
         $checked1 = $select == 1? 'checked' : '';
         $checked2 = $select == 2? 'checked' : '';
-        return '<div align="left">
+        return
+         '<div align="left">
           <input type="radio" name="medida" value="credito" '.$checked1.'>
           <i style="margin-left:5px;position:relative;top:-3px;" class="fa fa-fw fa-life-ring"></i>
           <span style="position:relative;top:-3px;"> Cŕedito</span><br>
@@ -846,7 +782,7 @@ $CONTADORES_VISIBLES = 6;
           <button class="btn btn-deAccion btn-defaultAccion cancelarAjuste" type="button">CANCELAR</button>
         </div>';
       };
-      ?>
+      @endphp
       <button data-medida="1" class="btn btn-warning pop medida" title="AJUSTE" data-trigger="manual" data-toggle="popover" data-placement="left" data-html="true" type="button" class="btn btn-warning pop medida"
        data-content="{{$popup(1)}}">
         <i class="fa fa-fw fa-life-ring"></i>
@@ -930,7 +866,7 @@ $CONTADORES_VISIBLES = 6;
 
 <!-- JavaScript personalizado -->
 <!-- ?version para forzar que se recarge el script en el navegador del cliente -->
-<script src="js/seccionRelevamientos.js?7" charset="utf-8"></script>
+<script src="js/seccionRelevamientos.js?7" type="module" charset="utf-8"></script>
 
 <!-- DateTimePicker JavaScript -->
 <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>

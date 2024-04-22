@@ -113,21 +113,20 @@ class RelevamientoController extends Controller
 
   // buscarRelevamientos busca relevamientos de acuerdo a los filtros
   public function buscarRelevamientos(Request $request){
-    $reglas = Array();
-    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    foreach ($usuario->casinos as $casino) {
-      $casinos[] = $casino->id_casino;
-    }
+    $reglas = [];
+    $casinos = UsuarioController::getInstancia()->quienSoy()['usuario']
+    ->casinos->map(function($c){ return $c->id_casino; })->toArray();
+    
     if(isset($request->fecha)){
       $reglas[]=['relevamiento.fecha', '=', $request->fecha];
     }
-    if($request->casino!=0){
+    if(!empty($request->casino)){
       $reglas[]=['casino.id_casino', '=', $request->casino];
     }
-    if($request->sector != 0){
+    if(!empty($request->sector)){
       $reglas[]=['sector.id_sector', '=', $request->sector];
     }
-    if($request->estadoRelevamiento != 0){
+    if(!empty($request->estadoRelevamiento)){
       $reglas[] = ['estado_relevamiento.id_estado_relevamiento' , '=' , $request->estadoRelevamiento];
     }
     $sort_by = $request->sort_by;
@@ -137,15 +136,11 @@ class RelevamientoController extends Controller
     ->join('casino' , 'sector.id_casino' , '=' , 'casino.id_casino')
     ->join('estado_relevamiento' , 'relevamiento.id_estado_relevamiento' , '=' , 'estado_relevamiento.id_estado_relevamiento')
     ->when($sort_by,function($query) use ($sort_by){
-                    return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                })
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    })
     ->where($reglas)
     ->whereIn('casino.id_casino' , $casinos)
     ->where('backup' , '=', 0)->paginate($request->page_size);
-
-    // foreach ($resultados as $resultado) {
-    //   $resultado->fecha = strftime("%d %b %Y", strtotime($resultado->fecha));
-    // }
 
     return $resultados;
   }
