@@ -1758,14 +1758,14 @@ $('#modalCargaRelevamiento').on('input', "#tablaCargaRelevamiento input:not(:rad
   
   for(let c=1;c<=8;c++){
     const formulaCont = renglon_actual.children('.formulaCont'+c).val();
-    const operador = renglon_actual.children('.formulaOper'+c).val();
+    const operador = renglon_actual.children('.formulaOper'+(c-1)).val();//Los operadores estan entre los contadores
     const contador_s = renglon_actual.find('td').children('.cont'+c).val();
     const contador = contador_s != '' ? parseFloat(contador_s.replace(/,/g,".")) : 0;
     
     inputValido = inputValido || (contador_s != '');
     
     if(formulaCont != ''){
-      if(c == 1){
+      if(c == 1){//El primer contador no tiene operador (el signo esta bakeado en el numero)
         suma = contador;
       }
       else{
