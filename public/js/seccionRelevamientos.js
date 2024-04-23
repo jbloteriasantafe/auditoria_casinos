@@ -899,8 +899,8 @@ function calcularProducido(fila){
   let inputValido = false;
   
   for(let c=1;c<=CONTADORES;c++){
-    const formulaCont = fila.children('.formulaCont'+c).val();
-    const operador = fila.children('.formulaOper'+c).val();
+    const formulaCont = fila.find('.formulaCont'+c).val();
+    const operador = fila.find('.formulaOper'+(c-1)).val();
     const contador_s = fila.find('td').children('.cont'+c).val();
     const contador = contador_s? parseFloat(contador_s.replace(/,/g,".")) : 0;
     
