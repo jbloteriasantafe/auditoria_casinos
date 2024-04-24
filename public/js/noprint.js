@@ -36,14 +36,16 @@ if (noPrint)
 	cssNode3.innerHTML ='body{display:none}';
 		document.head.appendChild(cssNode3); 	
 }         	
-	
+
+if (typeof noSelect == 'undefined' || noSelect)
+{
 var cssNode2 = document.createElement('style'); 
 cssNode2.type = 'text/css'; 
 cssNode2.media = 'screen'; 
 cssNode2.innerHTML ='div{-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none;}';
 document.head.appendChild(cssNode2);
 document.body.style.cssText="-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none;";
- 	
+}
 
 function toBlur()
 {
