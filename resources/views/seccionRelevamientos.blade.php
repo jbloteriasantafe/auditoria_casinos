@@ -839,6 +839,7 @@ $CONTADORES_VISIBLES = 6;
 <meta name="_token" content="{!! csrf_token() !!}" />
 @endsection
 
+<<<<<<< HEAD
 <!-- Comienza modal de ayuda -->
 @section('tituloDeAyuda')
 <h3 class="modal-title" style="color: #fff;">| RELEVAMIENTOS</h3>
@@ -881,3 +882,49 @@ $CONTADORES_VISIBLES = 6;
 <script src="js/lista-datos.js" type="text/javascript"></script>
 <script src="js/math.min.js" type="text/javascript"></script>
 @endsection
+=======
+
+    <meta name="_token" content="{!! csrf_token() !!}" />
+
+    @endsection
+
+    <!-- Comienza modal de ayuda -->
+    @section('tituloDeAyuda')
+    <h3 class="modal-title" style="color: #fff;">| RELEVAMIENTOS</h3>
+    @endsection
+    @section('contenidoAyuda')
+    <div class="col-md-12">
+      <h5>Tarjeta de Relevamientos</h5>
+      <p>
+        Se observan los últimos relevamientos generados en el sistema, con sus respectivos estados que son detallados en la vista.
+        Se podrán cargar, editar, imprimir estas planillas, dependiendo en el estado en que se encuentre el relevamiento deseado.
+        Además, se podrán generar nuevos relevamientos, implementándose la opción de que el sistema esté fuera de servicio.
+        Produce un archivo con formato .zip conteniendo en ellos relevamientos para 7 días, los cuales se cargarán cuando el sistema vuelva a estar en línea.
+        Y también se podrán seleccionar máquinas por relevamiento, considerando el casino, la fecha de inicio/final, su tipo y la cantidad de máquinas que requiera.
+      </p>
+    </div>
+    @endsection
+    <!-- Termina modal de ayuda -->
+
+    @section('scripts')
+    <!-- JS paginacion -->
+    <script src="/js/paginacion.js" charset="utf-8"></script>
+
+    <!-- JavaScript personalizado -->
+    <!-- ?version para forzar que se recarge el script en el navegador del cliente -->
+    <script src="js/seccionRelevamientos.js?8" charset="utf-8"></script>
+
+    <!-- DateTimePicker JavaScript -->
+    <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
+    <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
+
+    <!-- Custom input Bootstrap -->
+    <script src="js/fileinput.min.js" type="text/javascript"></script>
+    <script src="js/locales/es.js" type="text/javascript"></script>
+    <script src="/themes/explorer/theme.js" type="text/javascript"></script>
+
+    <script src="js/inputSpinner.js" type="text/javascript"></script>
+    <script src="js/lista-datos.js" type="text/javascript"></script>
+    <script src="js/math.min.js" type="text/javascript"></script>
+    @endsection
+>>>>>>> master

@@ -7,6 +7,9 @@
 use Illuminate\Http\Request;
 use App\Http\Controllers\UsuarioController;
 use\App\http\Controllers\RelevamientoAmbientalController;
+
+$permitir_borrar = $usuario->es_superusuario;
+$permitir_manejar_papel = false;//Deshabilitado por ahora $usuario->es_superusuario || $usuario->es_administrador;
 ?>
 
 @section('estilos')
@@ -55,6 +58,9 @@ use\App\http\Controllers\RelevamientoAmbientalController;
 }
 input[required], select[required]{
   background: #f0f6ff
+}
+.hover-pointer:hover{
+  cursor: pointer;
 }
 </style>
 @endsection
@@ -123,210 +129,220 @@ input[required], select[required]{
   </div>
 </div>
 <div class="col-xl-10">
-  <!-- FILTROS DE BÚSQUEDA -->
+  @component('Components/FiltroTabla')
+  
+  @slot('titulo')
+  AUTOEXCLUIDOS
+  @endslot
+  
+  @slot('target_buscar')
+  /autoexclusion/buscarAutoexcluidos
+  @endslot
+  
+  @slot('filtros')
   <div class="row">
-    <div class="col-md-12">
-      <div id="contenedorFiltros" class="panel panel-default">
-        <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
-          <h4>Filtros de Búsqueda  <i class="fa fa-fw fa-angle-down"></i></h4>
-        </div>
-        <div id="collapseFiltros" class="panel-collapse collapse">
-          <div class="panel-body">
-            <div class="row">
-              <div class="col-md-2">
-                <h5>Nombres</h5>
-                <input class="form-control" id="buscadorNombres" value=""/>
-              </div>
-              <div class="col-md-2">
-                <h5>Apellido</h5>
-                <input class="form-control" id="buscadorApellido" value=""/>
-              </div>
-              <div class="col-md-2">
-                <h5>DNI</h5>
-                <input class="form-control" id="buscadorDni" value="{{$dni}}"/>
-              </div>
-              <div class="col-md-2">
-                <h5>Correo</h5>
-                <input class="form-control" id="buscadorCorreo" value=""/>
-              </div>
-              <div class="col-md-2">
-                <h5>Estado</h5>
-                <select id="buscadorEstado" class="form-control selectEstado" name="">
-                  <option selected="" value="">- Todos los estados -</option>
-                  @foreach ($estados_autoexclusion as $estado)
-                    <option id="{{$estado->id_nombre_estado}}" value="{{$estado->id_nombre_estado}}">{{$estado->descripcion}}</option>
-                  @endforeach
-                </select>
-              </div>
-              <div class="col-md-2">
-                <h5>Casino</h5>
-                <select id="buscadorCasino" class="form-control selectCasinos" name="">
-                  <option value="0">-Todos los Casinos-</option>
-                  @foreach ($casinos as $casino)
-                  <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                  @endforeach
-                  @foreach ($plataformas as $p)
-                  <option id="-{{$p->id_plataforma}}" value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
-                  @endforeach
-                </select>
-              </div>
-            </div>
-            <div class="row">
-              <h5>Desde</h5>
-              <div class="col-md-3">
-                <h5>Fecha autoexclusión</h5>
-                <div class="input-group date" id="dtpFechaAutoexclusionD">
-                  <input type="text" class="form-control" placeholder="Fecha de autoexclusion" id="buscadorFechaAutoexclusionD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
-                  <span id="input-times-autoexclusion" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span id="input-calendar-autoexclusion" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <h5>Fecha renovación</h5>
-                <div class="input-group date" id="dtpFechaRenovacionD">
-                  <input type="text" class="form-control" placeholder="Fecha de renovación" id="buscadorFechaRenovacionD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
-                  <span id="input-times-renovacion" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span id="input-calendar-renovacion" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <h5>Fecha vencimiento</h5>
-                <div class="input-group date" id="dtpFechaVencimientoD">
-                  <input type="text" class="form-control" placeholder="Fecha de vencimiento" id="buscadorFechaVencimientoD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
-                  <span id="input-times-vencimiento" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span id="input-calendar-vencimiento" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <h5>Fecha cierre definitivo</h5>
-                <div class="input-group date" id="dtpFechaCierreDefinitivoD">
-                  <input type="text" class="form-control" placeholder="Fecha de cierre def." id="buscadorFechaCierreDefinitivoD" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
-                  <span id="input-times-cierre-definitivo" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span id="input-calendar-cierre-definitivo" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <h5>Hasta</h5>
-              <div class="col-md-3">
-                <h5>Fecha autoexclusión</h5>
-                <div class="input-group date" id="dtpFechaAutoexclusionH">
-                  <input type="text" class="form-control" placeholder="Fecha de autoexclusion" id="buscadorFechaAutoexclusionH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
-                  <span id="input-times-autoexclusion" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span id="input-calendar-autoexclusion" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <h5>Fecha renovación</h5>
-                <div class="input-group date" id="dtpFechaRenovacionH">
-                  <input type="text" class="form-control" placeholder="Fecha de renovación" id="buscadorFechaRenovaciónH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
-                  <span id="input-times-renovacion" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span id="input-calendar-renovacion" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <h5>Fecha vencimiento</h5>
-                <div class="input-group date" id="dtpFechaVencimientoH">
-                  <input type="text" class="form-control" placeholder="Fecha de vencimiento" id="buscadorFechaVencimientoH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
-                  <span id="input-times-vencimiento" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span id="input-calendar-vencimiento" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <h5>Fecha cierre definitivo</h5>
-                <div class="input-group date" id="dtpFechaCierreDefinitivoH">
-                  <input type="text" class="form-control" placeholder="Fecha de cierre def." id="buscadorFechaCierreDefinitivoH" autocomplete="off" style="background-color: rgb(255,255,255);" data-original-title="" title="">
-                  <span id="input-times-cierre-definitivo" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span id="input-calendar-cierre-definitivo" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-              </div>
-            </div>
-            <br>
-            <div class="row">
-              <center>
-                <button id="btn-buscar" class="btn btn-infoBuscar" type="button" ><i class="fa fa-fw fa-search"></i> BUSCAR</button>
-              </center>
-            </div>
-            <br>
-          </div>
-        </div>
-      </div>
+    <div class="col-md-2">
+      <h5>Nombres</h5>
+      <input name="nombres" class="form-control" id="buscadorNombres" value=""/>
+    </div>
+    <div class="col-md-2">
+      <h5>Apellido</h5>
+      <input name="apellido" class="form-control" id="buscadorApellido" value=""/>
+    </div>
+    <div class="col-md-2">
+      <h5>DNI</h5>
+      <input name="dni" class="form-control" id="buscadorDni" value="{{$dni}}"/>
+    </div>
+    <div class="col-md-2">
+      <h5>Correo</h5>
+      <input name="correo" class="form-control" id="buscadorCorreo" value=""/>
+    </div>
+    <div class="col-md-2">
+      <h5>Estado</h5>
+      <select name="estado" id="buscadorEstado" class="form-control selectEstado">
+        <option selected="" value="">- Todos los estados -</option>
+        @foreach ($estados_autoexclusion as $estado)
+          <option value="{{$estado->id_nombre_estado}}">{{$estado->descripcion}}</option>
+        @endforeach
+      </select>
+    </div>
+    <div class="col-md-2">
+      <h5>Casino</h5>
+      <select name="casino" id="buscadorCasino" class="form-control selectCasinos" data-js-setear-plataforma="#selectEscondidoPlataforma">
+        <option value="">-Todos los Casinos-</option>
+        @foreach ($casinos as $casino)
+        <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+        @endforeach
+        @foreach ($plataformas as $p)
+        <option value="" data-id_plataforma="{{$p->id_plataforma}}">{{$p->nombre}}</option>
+        @endforeach
+      </select>
+      <select name="plataforma" id="selectEscondidoPlataforma" class="form-control" style="display: none;">
+        <option value=""></option>
+        @foreach ($plataformas as $p)
+        <option value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
+        @endforeach
+      </select>
     </div>
   </div>
   <div class="row">
-    <div class="col-md-12">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h4>LISTADO DE AUTOEXCLUIDOS</h4>
-        </div>
-        <div class="panel-body">
-          <table id="tablaAutoexcluidos" class="table table-fixed tablesorter">
-            <thead>
-              <tr>
-                <th class="col-xs-1" value="casino_plataforma" estado="">CASINO<i class="fa fa-sort"></i></th>
-                <th class="col-xs-1" value="ae_datos.nro_dni" estado="">DNI<i class="fa fa-sort"></i></th>
-                <th class="col-xs-1" value="ae_datos.apellido" estado="">APELLIDO<i class="fa fa-sort"></i></th>
-                <th class="col-xs-1" value="ae_datos.nombres" estado="">NOMBRES<i class="fa fa-sort"></i></th>
-                <th class="col-xs-1 smalltext" value="ae_nombre_estado.descripcion" estado="">ESTADO<i class="fa fa-sort"></i></th>
-                <th class="col-xs-1 smalltext" value="ae_estado.fecha_ae" estado="">F. AE<i class="fa fa-sort"></i></th>
-                <th class="col-xs-1 smalltext " value="ae_estado.fecha_renovacion" estado="">F. RENOV<i class="fa fa-sort"></i></th>
-                <th class="col-xs-1 smalltext" value="ae_estado.fecha_vencimiento" estado="">F. VENC<i class="fa fa-sort"></i></th>
-                <th class="col-xs-1 smalltext" value="ae_estado.fecha_cierre_ae" estado="">F. CIERRE<i class="fa fa-sort"></i></th>
-                <th class="col-xs-3">ACCIONES</th>
-              </tr>
-            </thead>
-            <tbody id="cuerpoTabla" style="height: 350px;">
-              <tr class="filaTabla" style="display: none">
-                <td class="col-xs-1 casino_plataforma"></td>
-                <td class="col-xs-1 dni"></td>
-                <td class="col-xs-1 apellido"></td>
-                <td class="col-xs-1 nombres"></td>
-                <td class="col-xs-1 estado smalltext"></td>
-                <td class="col-xs-1 fecha_ae smalltext"></td>
-                <td class="col-xs-1 fecha_renovacion smalltext"></td>
-                <td class="col-xs-1 fecha_vencimiento smalltext"></td>
-                <td class="col-xs-1 fecha_cierre_ae smalltext"></td>
-                <td class="col-xs-3 acciones">
-                  <button id="btnVerMas" class="btn btn-info info" type="button" value="" title="VER MÁS" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
-                    <i class="fa fa-fw fa-search-plus"></i>
-                  </button>
-                  @if($usuario->tienePermiso('modificar_ae'))
-                  <button id="btnEditar" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
-                    <i class="fa fa-fw fa-pencil-alt"></i>
-                  </button>
-                  <button id="btnCambiarEstado" class="btn btn-info info" type="button" value="" title="" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
-                    <i class="fa fa-fw"></i>
-                  </button>
-                  @endif
-                  <a tabindex="0" id="btnSubirArchivos" class="btn btn-info info" role="button" value="" title="SUBIR ARCHIVOS" data-toggle="popover" data-html="true" data-trigger="focus" 
-                     data-content="">
-                    <i class="fa fa-fw fa-folder-open"></i>
-                  </a>
-                  <button id="btnGenerarSolicitudAutoexclusion" class="btn btn-info info" type="button" value="" title="GENERAR SOLICITUD AE" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
-                    <i class="far fa-fw fa-file-alt"></i>
-                  </button>
-                  <button id="btnGenerarConstanciaReingreso" class="btn btn-info imprimir" type="button" value="" title="GENERAR CONSTANCIA DE REINGRESO" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
-                    <i class="fa fa-fw fa-print"></i>
-                  </button>
-                  <button id="btnGenerarSolicitudFinalizacion" class="btn btn-info imprimir" type="button" value="" title="GENERAR SOLICITUD DE FINALIZACION" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
-                    <i class="fa fa-fw fa-print"></i>
-                  </button>
-                  @if($usuario->es_superusuario)
-                  <button id="btnEliminar" class="btn btn-info info" type="button" value="" title="ELIMINAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
-                    <i class="fa fa-fw fa-trash"></i>
-                  </button>
-                  @endif
-                  <span></span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
-        </div>
-      </div>
+    <h5>Desde</h5>
+    <div class="col-md-3">
+      <h5>Fecha autoexclusión</h5>
+      @component('Components/inputFecha',['attrs' => 'name="fecha_autoexclusion_d"'])
+      @endcomponent
     </div>
-  </div>  <!-- row tabla -->
+    <div class="col-md-3">
+      <h5>Fecha renovación</h5>
+      @component('Components/inputFecha',['attrs' => 'name="fecha_renovacion_d"'])
+      @endcomponent
+    </div>
+    <div class="col-md-3">
+      <h5>Fecha vencimiento</h5>
+      @component('Components/inputFecha',['attrs' => 'name="fecha_vencimiento_d"'])
+      @endcomponent
+    </div>
+    <div class="col-md-3">
+      <h5>Fecha cierre definitivo</h5>
+      @component('Components/inputFecha',['attrs' => 'name="fecha_cierre_definitivo_d"'])
+      @endcomponent
+    </div>
+  </div>
+  <div class="row">
+    <h5>Hasta</h5>
+    <div class="col-md-3">
+      <h5>Fecha autoexclusión</h5>
+      @component('Components/inputFecha',['attrs' => 'name="fecha_autoexclusion_h"'])
+      @endcomponent
+    </div>
+    <div class="col-md-3">
+      <h5>Fecha renovación</h5>
+      @component('Components/inputFecha',['attrs' => 'name="fecha_renovacion_h"'])
+      @endcomponent
+    </div>
+    <div class="col-md-3">
+      <h5>Fecha vencimiento</h5>
+      @component('Components/inputFecha',['attrs' => 'name="fecha_vencimiento_h"'])
+      @endcomponent
+    </div>
+    <div class="col-md-3">
+      <h5>Fecha cierre definitivo</h5>
+      @component('Components/inputFecha',['attrs' => 'name="fecha_cierre_definitivo_h"'])
+      @endcomponent
+    </div>
+  </div>
+  @if($permitir_manejar_papel)
+  <div class="row">
+    <div class="col-md-3">
+      <h5>PAPEL DESTRUIDO</h5>
+      <select name="papel_destruido" class="form-control">
+        <option value="">- TODOS -</option>
+        <option value="SI">SI</option>
+        <option value="NO">NO</option>
+      </select>
+    </div>
+  </div>
+  @endif
+  <div class="col-md-5">&nbsp;</div>{{-- OFFSET PARA QUE EL BUSCAR QUEDE EN EL MEDIO --}}
+  @endslot
+  
+  @slot('cabecera')
+  <tr>
+    <th value="casino_plataforma" estado="">CASINO<i class="fa fa-sort"></i></th>
+    <th value="ae_datos.nro_dni" estado="">DNI<i class="fa fa-sort"></i></th>
+    <th value="ae_datos.apellido" estado="">APELLIDO<i class="fa fa-sort"></i></th>
+    <th value="ae_datos.nombres" estado="">NOMBRES<i class="fa fa-sort"></i></th>
+    <th class="smalltext" value="ae_nombre_estado.descripcion" estado="">ESTADO<i class="fa fa-sort"></i></th>
+    <th class="smalltext" value="ae_estado.fecha_ae" estado="">F. AE<i class="fa fa-sort"></i></th>
+    <th class="smalltext " value="ae_estado.fecha_renovacion" estado="">F. RENOV<i class="fa fa-sort"></i></th>
+    <th class="smalltext" value="ae_estado.fecha_vencimiento" estado="">F. VENC<i class="fa fa-sort"></i></th>
+    <th class="smalltext" value="ae_estado.fecha_cierre_ae" estado="">F. CIERRE<i class="fa fa-sort"></i></th>
+    <th style="flex: 2;">ACCIONES</th>
+    @if($permitir_manejar_papel)
+    <th>PAPEL</th>
+    @endif
+  </tr>
+  @endslot
+  
+  @slot('molde')
+  <tr class="filaBusqueda">
+    <td class="casino_plataforma"></td>
+    <td class="dni"></td>
+    <td class="apellido"></td>
+    <td class="nombres"></td>
+    <td class="estado smalltext"></td>
+    <td class="fecha_ae smalltext"></td>
+    <td class="fecha_renovacion smalltext"></td>
+    <td class="fecha_vencimiento smalltext"></td>
+    <td class="fecha_cierre_ae smalltext"></td>
+    <td class="acciones" style="flex: 2;">
+      <button id="btnVerMas" class="btn btn-info info" type="button" value="" title="VER MÁS" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+        <i class="fa fa-fw fa-search-plus"></i>
+      </button>
+      @if($usuario->tienePermiso('modificar_ae'))
+      <button id="btnEditar" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+        <i class="fa fa-fw fa-pencil-alt"></i>
+      </button>
+      <button id="btnCambiarEstado" class="btn btn-info info" type="button" value="" title="" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+        <i class="fa fa-fw"></i>
+      </button>
+      @endif
+      <a tabindex="0" id="btnSubirArchivos" class="btn btn-info info" role="button" value="" title="SUBIR ARCHIVOS" data-toggle="popover" data-html="true" data-trigger="focus" 
+         data-content="">
+        <i class="fa fa-fw fa-folder-open"></i>
+      </a>
+      <button id="btnGenerarSolicitudAutoexclusion" class="btn btn-info info" type="button" value="" title="GENERAR SOLICITUD AE" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+        <i class="far fa-fw fa-file-alt"></i>
+      </button>
+      <button id="btnGenerarConstanciaReingreso" class="btn btn-info imprimir" type="button" value="" title="GENERAR CONSTANCIA DE REINGRESO" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+        <i class="fa fa-fw fa-print"></i>
+      </button>
+      <button id="btnGenerarSolicitudFinalizacion" class="btn btn-info imprimir" type="button" value="" title="GENERAR SOLICITUD DE FINALIZACION" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+        <i class="fa fa-fw fa-print"></i>
+      </button>
+      @if($permitir_borrar)
+      <button id="btnEliminar" class="btn btn-info info" type="button" value="" title="ELIMINAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+        <i class="fa fa-fw fa-trash"></i>
+      </button>
+      @endif
+    </td>
+    @if($permitir_manejar_papel)
+    <td style="flex: 0.8;">
+      <button class="btn btn-info btnDestruirPapel" title="DESTRUIR PAPEL" data-papel-destruido="0">
+        <i class="fa fa-indent" style="transform: rotate(67deg);"></i>
+      </button>
+      <a data-papel-destruido="-1" class="pop" data-content="ERROR -1" rel="popover" data-trigger="hover" data-placement="left">
+        <i class="fa fa-ban hover-pointer" style="color: orange;"></i>
+      </a>
+      <a data-papel-destruido="0" class="pop" data-content="ERROR 0" rel="popover" data-trigger="hover" data-placement="left">
+        <i class="fa fa-times hover-pointer" style="color: #FF1744;"></i>
+      </a>
+      <a data-papel-destruido="1" class="pop" data-content="ERROR 1" rel="popover" data-trigger="hover" data-placement="left">
+        <i class="fa fa-check hover-pointer" style="color: #00C853;"></i>
+      </a>
+    </td>
+    @endif
+  </tr>
+  @endslot
+  
+  @endcomponent
 </div> <!-- col-xs-10 -->
+
+<div hidden>
+  <div data-js-molde-popover-papel data-papel-destruido="-1">
+    <p>AE ONLINE // SIN PAPELES</p>
+    <p>Ultima modificación: <span class="modificado">YYYY-MM-DD HH:mm:SS USUARIO</span></p>
+  </div>
+  <div data-js-molde-popover-papel data-papel-destruido="0">
+    <p>PAPELES SIN DESTRUIR</p>
+    <p>Ultima modificación: <span class="modificado">YYYY-MM-DD HH:mm:SS USUARIO</span></p>
+  </div>
+  <div data-js-molde-popover-papel data-papel-destruido="1">
+    <p>PAPELES DESTRUIDOS</p>
+    <p>Ultima modificación: <span class="modificado">YYYY-MM-DD HH:mm:SS USUARIO</span></p>
+    <p>Destruido: <span class="destruido">YYYY-MM-DD HH:mm:SS USUARIO</span></p>
+  </div>
+</div>
 
 <!-- MODAL AGREGAR AE-->
 <div class="modal fade" id="modalAgregarAE" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -1091,6 +1107,9 @@ input[required], select[required]{
   </div>
 </div>
 
+@component('Components/modalEliminar')
+@endcomponent
+
 <meta name="_token" content="{!! csrf_token() !!}" />
 @endsection
 
@@ -1115,10 +1134,11 @@ var noPrint=true;
 var noCopy=false;
 var noScreenshot=true;
 var autoBlur=true;
+var noSelect=false;
 </script>
-<script type="text/javascript" src="/js/noprint.js"></script> 
+<script type="text/javascript" src="/js/noprint.js?1"></script> 
 
-<script src="/js/Autoexclusion/index.js?3" charset="utf-8"></script>
+<script src="/js/Autoexclusion/index.js?4" type="module"  charset="utf-8"></script>
 <!-- JS file -->
 <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>
 <!-- CSS file -->

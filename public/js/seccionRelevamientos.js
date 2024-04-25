@@ -900,14 +900,14 @@ function calcularProducido(fila){
   
   for(let c=1;c<=CONTADORES;c++){
     const formulaCont = fila.find('.formulaCont'+c).val();
-    const operador = fila.find('.formulaOper'+(c-1)).val();
+    const operador = fila.find('.formulaOper'+(c-1)).val();//Los operadores estan entre los contadores
     const contador_s = fila.find('td').children('.cont'+c).val();
     const contador = contador_s? parseFloat(contador_s.replace(/,/g,".")) : 0;
     
     inputValido = inputValido || (contador_s != '');
     
     if(formulaCont != ''){
-      if(c == 1){
+      if(c == 1){//El primer contador no tiene operador (el signo esta bakeado en el numero)
         suma = contador;
       }
       else{
