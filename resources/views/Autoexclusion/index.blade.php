@@ -9,7 +9,7 @@ use App\Http\Controllers\UsuarioController;
 use\App\http\Controllers\RelevamientoAmbientalController;
 
 $permitir_borrar = $usuario->es_superusuario;
-$permitir_manejar_papel = $usuario->es_superusuario || $usuario->es_administrador;
+$permitir_manejar_papel = false;//Deshabilitado por ahora $usuario->es_superusuario || $usuario->es_administrador;
 ?>
 
 @section('estilos')
