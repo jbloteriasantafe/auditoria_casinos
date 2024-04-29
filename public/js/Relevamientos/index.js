@@ -1,8 +1,8 @@
 import '/js/Components/inputFecha.js';
 import '/js/Components/FiltroTabla.js';
 import {AUX} from "/js/Components/AUX.js";
+import './maquinasPorRelevamientos.js';
 
-var nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 var truncadas=0;
 
 $(document).ready(function(){
@@ -31,7 +31,7 @@ $(document).ready(function(){
       const sectores = $(casino.attr('data-js-cambio-casino-select-sectores'));
       sectores.find('option:not([data-js-cambio-casino-mantener])').remove();
       
-      if(casino.val() == '' || casino.val() == '0') return;
+      if(casino.val() == '' || casino.val() == '0') return sectores.trigger('cambioSectores',[[]]);
       
       AUX.GET("relevamientos/obtenerSectoresPorCasino/"+casino.val(),{},function(data){
         data.sectores.forEach(function(s){
@@ -54,8 +54,6 @@ $(document).ready(function(){
     minView: 0,
     minuteStep: 5,
   });
-
-  $('#btn-buscar').trigger('click',[1,10,'relevamiento.fecha','desc']);
 });
 
 $('#fecha').on('change', function (e) {
@@ -200,12 +198,6 @@ $('#modalCargaRelevamiento').on('hidden.bs.modal', function(){
   $('#modalCargaRelevamiento #frmCargaRelevamiento').trigger('reset');
   $('#modalCargaRelevamiento #inputFisca').prop('readonly',false);
 });
-
-$('#modalMaquinasPorRelevamiento').on('hidden.bs.modal', function(){
-  //resetearModal
-  toggleDatosMaquinasPorRelevamiento(true);
-});
-
 
 let guardado = true;
 let salida = 0; //cantidad de veces que se apreta salir
@@ -451,21 +443,7 @@ $('#btn-relevamientoSinSistema').click(function(e) {
 //ABRIR MODAL DE CARGAR MAQUINAS POR RELEVAMIENTO
 $('#btn-maquinasPorRelevamiento').click(function(e) {
   e.preventDefault();
-
-  //Ocultar y mostrar botones necesarios
-  $('#btn-generarMaquinasPorRelevamiento').show();
-  $('#btn-generarDeTodasFormas').hide();
-  $('#mensajeTemporal').hide();
-  $('#btn-cancelarTemporal').hide();
-
-  $('#frmMaquinasPorRelevamiento').trigger('reset');
-  $('#modalMaquinasPorRelevamiento #sector option').remove();
-  $('#modalMaquinasPorRelevamiento').modal('show');
-  $('#modalMaquinasPorRelevamiento').find('.modal-body').children('#iconoCarga').hide();
-
-  $('#modalMaquinasPorRelevamiento #detalles').hide();
-
-  toggleDatosMaquinasPorRelevamiento(true);
+  return $('[data-js-modal-maquinas-por-relevamiento]').trigger('mostrar');
 });
 
 //Generar el relevamiento de backup
@@ -515,20 +493,7 @@ $('#fechaRelSinSistema input').on('change',function(e) {
 });
 
 //MODAL DE CANTIDAD DE MÁQUINAS POR RELEVAMIENTOS |  DEFAULT Y TEMPORALES
-//Obtener las máquinas para cada relevamiento según el sector
-$('#modalMaquinasPorRelevamiento #sector').on('cambioSectores',function(e,sectores){
-  maquinasPorRelevamiento();
-});
 
-$('#modalMaquinasPorRelevamiento #sector').on('change',function(){
-  maquinasPorRelevamiento();
-});
-
-//Según el tipo de tipo se bloquea la fecha o no
-$('#modalMaquinasPorRelevamiento #tipo_cantidad').change(function() {
-  const tipo_cantidad_1 = $(this).find("option:selected").attr('id') == 1;
-  toggleDatosMaquinasPorRelevamiento(!tipo_cantidad_1);
-});
 
 $('#btn-generarDeTodasFormas').click(function(){
   $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
@@ -571,79 +536,6 @@ $('#btn-cancelarTemporal').click(function(){
   $('#mensajeTemporal').hide();
   $('#btn-cancelarTemporal').hide();
   toggleDatosMaquinasPorRelevamiento(true);
-});
-
-$('#btn-generarMaquinasPorRelevamiento').click(function(){
-  $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
-  
-  const formData = {
-    id_sector: $('#modalMaquinasPorRelevamiento #sector option:selected').val(),
-    id_tipo_cantidad_maquinas_por_relevamiento: $('#modalMaquinasPorRelevamiento #tipo_cantidad option:selected').attr('id'),
-    fecha_desde: $('#modalMaquinasPorRelevamiento #fecha_desde').val(),
-    fecha_hasta: $('#modalMaquinasPorRelevamiento #fecha_hasta').val(),
-    cantidad_maquinas: $('#modalMaquinasPorRelevamiento #cantidad_maquinas_por_relevamiento').val(),
-  };
-  
-  const crearCantidadMaquinasPorRelevamiento = function(){
-    $.ajax({
-      type: "POST",
-      url: 'relevamientos/crearCantidadMaquinasPorRelevamiento',
-      data: formData,
-      dataType: 'json',
-      success: function (data) {
-          console.log(data);
-          //Modificar defecto y/o agregar temporal
-          setCantidadMaquinas(data);
-          //Mostrar mensaje de éxito
-      },
-      error: function (data) {
-        console.log(data);
-      }
-    });
-  };
-  
-  if($('#modalMaquinasPorRelevamiento #tipo_cantidad option:selected').val() != 'Temporal'){
-    return crearCantidadMaquinasPorRelevamiento();
-  }
-  //Preguntar si las fechas para cantidad TEMPORAL se pisan
-  //SOLO PARA UN MENSAJE DE ALERTA AL USUARIO
-  $.get('relevamientos/existeCantidadTemporalMaquinas/' + formData.id_sector + "/" + formData.fecha_desde + "/" + formData.fecha_hasta, function(data){
-    console.log(data);
-    //Si el intervalo de fechas se pisa con uno definido anteriormente
-    if (data.existe) {
-      //Mostrar mensaje y habilitar boton para generar de todas formas con las fechas elegidas
-      $('#btn-generarMaquinasPorRelevamiento').hide();
-      $('#mensajeTemporal').show();
-      $('#btn-generarDeTodasFormas').show();
-      $('#btn-cancelarTemporal').show();
-      //Deshabilitar todos los inputs
-      toggleDatosMaquinasPorRelevamiento(false);
-    }
-    else {
-      crearCantidadMaquinasPorRelevamiento();
-    }
-  });
-});
-
-//Borrar una cantidad temporal de máquinas por relevamientos
-$('#modalMaquinasPorRelevamiento').on('click','.borrarCantidadTemporal', function(e){
-  e.preventDefault();
-  const id_cantidad_maquinas_por_relevamiento = $(this).val();
-  $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
-  $.ajax({
-    type: "POST",
-    url: 'relevamientos/eliminarCantidadMaquinasPorRelevamiento',
-    data: {
-      id_cantidad_maquinas_por_relevamiento: id_cantidad_maquinas_por_relevamiento
-    },
-    dataType: 'json',
-    success: function (data) {
-      maquinasPorRelevamiento();
-    },
-    error: function (error) {
-      console.log('Error: ', error);
-    }
-  });
 });
 
 $(document).on('focusin' , 'input' , function(e){
@@ -1031,81 +923,4 @@ function existeRelevamiento(){
           // 2: El relevamiento empezó a cargarse, entonces no se puede volver a generar.
       $('#modalRelevamiento #existeRelevamiento').val(data);
   });
-}
-
-/* Funciones de MÁQUINAS POR RELEVAMIENTO */
-function maquinasPorRelevamiento() {
-  const id_sector = $('#modalMaquinasPorRelevamiento #sector').val();
-  //Si se elige correctamente un sector se muestran los detalles
-  if (typeof id_sector == 'undefined'){
-    //Ocultar detalles
-    return $('#modalMaquinasPorRelevamiento #detalles').hide();
-  }
-  
-  $.get('relevamientos/obtenerCantidadMaquinasPorRelevamiento/' + id_sector, function(data){
-      setCantidadMaquinas(data);
-      //Mostrar detalles
-      $('#modalMaquinasPorRelevamiento #detalles').show();
-  });
-}
-
-function setCantidadMaquinas(data) {
-  $('#maquinas_temporales tbody tr').remove();
-  $('#maquinas_temporales').hide();
-  $('#maquinas_defecto').text("-");
-  
-  data.forEach(function(valor){
-    //MÁQUINAS POR DEFECTO
-    if(valor.fecha_desde == null && valor.fecha_hasta == null) {
-      $('#maquinas_defecto').text(valor.cantidad);
-      return;
-    }
-    //MÁQUINAS TEMPORALES
-    let fecha_desde = valor.fecha_desde.split("-");
-    fecha_desde = `${fecha_desde[2]} ${nombreMeses[fecha_desde[1] - 1]} ${fecha_desde[0]}`;
-    let fecha_hasta = valor.fecha_hasta.split("-");
-    fecha_hasta = `${fecha_hasta[2]} ${nombreMeses[fecha_hasta[1] - 1]} ${fecha_hasta[0]}`;
-
-    const fila = $('#moldesFilas .moldeMaquinasPorRelevamiento').clone().removeClass('moldeMaquinasPorRelevamiento');
-    fila.find('.fecha_desde').text(fecha_desde);
-    fila.find('.fecha_hasta').text(fecha_hasta);
-    fila.find('.cantidad').text(valor.cantidad);
-    $('#maquinas_temporales').prepend(fila).show();//Si hay máquinas temporales MOSTRAR TABLA
-  });
-}
-
-function habilitarDTPmaquinasPorRelevamiento() {
-  $.get('obtenerFechaActual', function (data) {
-    $('#modalMaquinasPorRelevamiento').find('#dtpFechaDesde,#dtpFechaHasta').each(function(){
-      $(this).find('input').prop('readonly',false);
-      $(this).datetimepicker({
-        todayBtn:  1,
-        language:  'es',
-        autoclose: 1,
-        todayHighlight: 1,
-        format: 'dd MM yyyy',
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-        minuteStep: 5,
-        startDate: data.fechaDate,
-      });
-    });
-  });
-}
-
-function deshabilitarDTPmaquinasPorRelevamiento(val = '') {
-  $('#modalMaquinasPorRelevamiento').find('#dtpFechaDesde,#dtpFechaHasta').each(function(){
-    $(this).find('input').prop('readonly',true).val(...(val === undefined? [] : [val]));
-    $(this).datetimepicker('remove');
-  });
-}
-
-function toggleDatosMaquinasPorRelevamiento(habilitado){
-  $('#cantidad_maquinas_por_relevamiento').prop('readonly',!habilitado);
-  $('#cantidad_maquinas_por_relevamiento').parent().find('button').attr('disabled',!habilitado);
-  $('#modalMaquinasPorRelevamiento').find('#casino,#sector,#tipo_cantidad').attr('disabled',!habilitado);
-  if(habilitado) habilitarDTPmaquinasPorRelevamiento();
-  else           deshabilitarDTPmaquinasPorRelevamiento(undefined);
 }

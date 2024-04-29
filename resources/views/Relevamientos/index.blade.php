@@ -188,142 +188,8 @@ $CONTADORES_VISIBLES = 6;
   </div><!-- /.col-lg-12 col-xl-9 -->
 </div>  <!-- /#row -->
 
-<!-- Modal Relevamientos -->
-<div class="modal fade" id="modalMaquinasPorRelevamiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be;">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizarMRelevamientos" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoMRelevamientos" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title">| MÁQUINAS POR RELEVAMIENTOS</h3>
-      </div> <!-- /.modal-header -->
-      <div id="colapsadoMRelevamientos" class="collapse in">
-        <div class="modal-body modalCuerpo">
-          <form id="frmMaquinasPorRelevamiento" name="frmMaquinasPorRelevamiento" class="form-horizontal" novalidate="">
-            <div class="row">
-              <div class="col-md-4">
-                <h5>CASINO</h5>
-                <select id="casino" class="form-control" name="" data-js-cambio-casino-select-sectores="#modalMaquinasPorRelevamiento #sector">
-                  <option value="">- Seleccione un casino -</option>
-                  @foreach ($usuario->casinos as $casino)
-                  <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                  @endforeach
-                </select>
-                <br>
-                <span id="alertaCasino" class="alertaSpan"></span>
-              </div>
-              <div class="col-md-4">
-                <h5>SECTOR</h5>
-                <select id="sector" class="form-control" name="">
-                </select>
-                <br>
-                <span id="alertaSector" class="alertaSpan"></span>
-              </div>
-              <div class="col-md-4">
-                <h5>TIPO</h5>
-                <select id="tipo_cantidad" class="form-control" name="">
-                  <option value="">- Seleccione el tipo -</option>
-                  @foreach($tipos_cantidad as $tipo_cantidad)
-                  <option id="{{$tipo_cantidad->id_tipo_cantidad_maquinas_por_relevamiento}}">
-                    {{$tipo_cantidad->descripcion}}
-                  </option>
-                  @endforeach
-                </select>
-                <br>
-                <span id="alertaTipoCantidad" class="alertaSpan"></span>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-4">
-                <h5>FECHA DESDE</h5>
-                <div class='input-group date' id='dtpFechaDesde' data-link-field="fecha_desde" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
-                  <input type='text' class="form-control" placeholder="Fecha de Inicio" id="B_fecha_inicio"/>
-                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-                <input class="form-control" type="hidden" id="fecha_desde" value=""/>
-              </div>
-              <div class="col-md-4">
-                <h5>FECHA HASTA</h5>
-                <div class='input-group date' id='dtpFechaHasta' data-link-field="fecha_hasta" data-date-format="dd MM yyyy" data-link-format="yyyy-mm-dd">
-                  <input type='text' class="form-control" placeholder="Fecha Hasta" id="B_fecha_inicio"/>
-                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-                <input class="form-control" type="hidden" id="fecha_hasta" value=""/>
-              </div>
-              <div class="col-md-4">
-                <h5>MÁQUINAS</h5>
-                <div class="input-group number-spinner">
-                  <span class="input-group-btn">
-                    <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="dwn">-</button>
-                  </span>
-                  <input id="cantidad_maquinas_por_relevamiento" type="text" class="form-control text-center" value="1">
-                  <span class="input-group-btn">
-                    <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="up">+</button>
-                  </span>
-                </div>
-              </div>
-            </div>
-            <br>
-            <br>
-            <!-- DETALLES DE LAS MÁQUINAS POR DEFAULT Y TEMPORALES -->
-            <div id="detalles" class="row">
-              <div class="col-md-12">
-                <h5 style="color:#333 !important;font-family:Roboto-Condensed;font-size:20px;font-weight:700;">DETALLES PARA EL SECTOR SELECCIONADO</h5>
-                <br>
-                <div class="row">
-                  <div class="col-xs-6 col-md-4">
-                    <h5>MÁQUINAS POR DEFECTO</h5>
-                  </div>
-                  <div class="col-xs-6 col-md-4">
-                    <span id="maquinas_defecto" class="badge" style="background-color: #6dc7be;font-family:Roboto-Regular;font-size:18px;margin-top:5px;">15</span>
-                  </div>
-                </div> <!-- /.row -->
-                <br>
-                <div class="row">
-                  <div class="col-md-12" style="height: 350px; overflow-y: scroll;">
-                    <table id="maquinas_temporales" class="table">
-                      <thead>
-                        <th>DESDE FECHA</th>
-                        <th>HASTA FECHA</th>
-                        <th>CANTIDAD DE MÁQUINAS</th>
-                        <th>ACCIÓN</th>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>12 Agosto 2017</td>
-                          <td>18 Agosto 2017</td>
-                          <td><span style="background-color: #6dc7be;font-family:Roboto-Regular;font-size:18px;" class="badge">21</span></td>
-                          <td><i class="fa fa-trash"></i></td>
-                        </tr>
-                        <tr>
-                          <td>25 Septiembre 2017</td>
-                          <td>27 Septiembre 2017</td>
-                          <td><span style="background-color: #6dc7be;font-family:Roboto-Regular;font-size:18px;" class="badge">12</span></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div> <!-- /.row -->
-              </div> <!-- /.col-md-12 -->
-            </div> <!-- /#detalles -->
-          </form>
-        </div> <!-- ./modal-body -->
-        <!-- </div> -->
-        <div class="modal-footer">
-          <!-- Mensaje y botones para validación de carga temporal -->
-          <p style="color:red;" id="mensajeTemporal" hidden >LAS FECHAS ELEGIDAS PISAN A OTRAS TEMPORALES DEFINIDAS ANTERIORMENTE</p>
-          <button type="button" class="btn btn-successAceptar" id="btn-generarDeTodasFormas" hidden >GENERAR IGUAL</button>
-          <button type="button" class="btn btn-default" id="btn-cancelarTemporal" hidden>CANCELAR CARGA TEMPORAL</button>
-          <button type="button" class="btn btn-successAceptar" id="btn-generarMaquinasPorRelevamiento" value="nuevo">GENERAR</button>
-          <button type="button" class="btn btn-default" data-dismiss="modal">SALIR</button>
-          <input type="hidden" id="id_casino" name="id_casino" value="0">
-        </div> <!-- /.modal-footer -->
-      </div> <!-- /#collapsado -->
-    </div> <!-- /.modal-content -->
-  </div> <!-- /.modal-dialog -->
-</div> <!-- /.modal -->
+@component('Relevamientos/maquinasPorRelevamientos',['casinos' => $usuario->casinos,'tipos_cantidad' => $tipos_cantidad])
+@endcomponent
 
 <!-- Modal Relevamientos -->
 <div class="modal fade" id="modalRelevamiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -820,26 +686,11 @@ $CONTADORES_VISIBLES = 6;
     <td class="denominacion">DENO</td>
     <td class="fecha">fecha</td>
   </tr>
-  <tr class="moldeMaquinasPorRelevamiento">
-    <td class="fecha_desde">99 Mes 1999</td>
-    <td class="fecha_hasta">99 Mes 2999</td>
-    <td>
-      <span class="badge cantidad" style="background-color: rgb(109, 199, 190); font-family: Roboto-Regular; font-size: 18px;">
-        999
-      </span>
-    </td>
-    <td>
-      <button type="button" class="btn btn-danger borrarCantidadTemporal">
-        <i class="fa fa-fw fa-trash"></i>
-      </button>
-    </td>
-  </tr>
 </table>
 
 <meta name="_token" content="{!! csrf_token() !!}" />
 @endsection
 
-<<<<<<< HEAD
 <!-- Comienza modal de ayuda -->
 @section('tituloDeAyuda')
 <h3 class="modal-title" style="color: #fff;">| RELEVAMIENTOS</h3>
@@ -867,7 +718,7 @@ $CONTADORES_VISIBLES = 6;
 
 <!-- JavaScript personalizado -->
 <!-- ?version para forzar que se recarge el script en el navegador del cliente -->
-<script src="js/seccionRelevamientos.js?7" type="module" charset="utf-8"></script>
+<script src="/js/Relevamientos/index.js" type="module" charset="utf-8"></script>
 
 <!-- DateTimePicker JavaScript -->
 <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
@@ -882,49 +733,3 @@ $CONTADORES_VISIBLES = 6;
 <script src="js/lista-datos.js" type="text/javascript"></script>
 <script src="js/math.min.js" type="text/javascript"></script>
 @endsection
-=======
-
-    <meta name="_token" content="{!! csrf_token() !!}" />
-
-    @endsection
-
-    <!-- Comienza modal de ayuda -->
-    @section('tituloDeAyuda')
-    <h3 class="modal-title" style="color: #fff;">| RELEVAMIENTOS</h3>
-    @endsection
-    @section('contenidoAyuda')
-    <div class="col-md-12">
-      <h5>Tarjeta de Relevamientos</h5>
-      <p>
-        Se observan los últimos relevamientos generados en el sistema, con sus respectivos estados que son detallados en la vista.
-        Se podrán cargar, editar, imprimir estas planillas, dependiendo en el estado en que se encuentre el relevamiento deseado.
-        Además, se podrán generar nuevos relevamientos, implementándose la opción de que el sistema esté fuera de servicio.
-        Produce un archivo con formato .zip conteniendo en ellos relevamientos para 7 días, los cuales se cargarán cuando el sistema vuelva a estar en línea.
-        Y también se podrán seleccionar máquinas por relevamiento, considerando el casino, la fecha de inicio/final, su tipo y la cantidad de máquinas que requiera.
-      </p>
-    </div>
-    @endsection
-    <!-- Termina modal de ayuda -->
-
-    @section('scripts')
-    <!-- JS paginacion -->
-    <script src="/js/paginacion.js" charset="utf-8"></script>
-
-    <!-- JavaScript personalizado -->
-    <!-- ?version para forzar que se recarge el script en el navegador del cliente -->
-    <script src="js/seccionRelevamientos.js?8" charset="utf-8"></script>
-
-    <!-- DateTimePicker JavaScript -->
-    <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
-    <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
-
-    <!-- Custom input Bootstrap -->
-    <script src="js/fileinput.min.js" type="text/javascript"></script>
-    <script src="js/locales/es.js" type="text/javascript"></script>
-    <script src="/themes/explorer/theme.js" type="text/javascript"></script>
-
-    <script src="js/inputSpinner.js" type="text/javascript"></script>
-    <script src="js/lista-datos.js" type="text/javascript"></script>
-    <script src="js/math.min.js" type="text/javascript"></script>
-    @endsection
->>>>>>> master

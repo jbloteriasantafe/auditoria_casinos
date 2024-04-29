@@ -103,7 +103,7 @@ class RelevamientoController extends Controller
     $estados = EstadoRelevamiento::all();
 
     UsuarioController::getInstancia()->agregarSeccionReciente('Relevamiento Contadores', 'relevamientos');
-    return view('seccionRelevamientos', [
+    return view('Relevamientos/index', [
       'casinos' => $usuario->casinos ,
       'estados' => $estados ,
       'tipos_cantidad' => TipoCantidadMaquinasPorRelevamiento::all(),
@@ -1288,40 +1288,46 @@ class RelevamientoController extends Controller
 
     return $resultados;
   }
-
-  public function existeCantidadTemporalMaquinas($id_sector,$fecha_desde,$fecha_hasta){
-    Validator::make(['id_sector' => $id_sector,'fecha_desde' => $fecha_desde,'fecha_hasta' => $fecha_hasta],
-                    ['id_sector' => 'required|exists:sector,id_sector',
-                     'fecha_desde' => 'required|date|after_or_equal:today',
-                     'fecha_hasta' => 'required|date|after_or_equal:fecha_desde']
-                    , array(), self::$atributos)->after(function($validator){
-                  })->validate();
-
-    $cant = DB::table('cantidad_maquinas_por_relevamiento')
-              ->where([['id_sector',$id_sector],['id_tipo_cantidad_maquinas_por_relevamiento',2]])
-              ->where(function($q)use($fecha_desde,$fecha_hasta){
-                      $q->where([['fecha_desde','>=',$fecha_desde],['fecha_desde','<=',$fecha_hasta]])
-                        ->orWhere([['fecha_hasta','>=',$fecha_desde],['fecha_hasta','<=',$fecha_hasta]])
-                        ->orWhere([['fecha_desde','<=',$fecha_desde],['fecha_hasta','>=',$fecha_hasta]])
-                        ->orWhere([['fecha_desde','>=',$fecha_desde],['fecha_hasta','<=',$fecha_hasta]]);
-              })
-              ->count();
-
-    return ['existe' => $cant > 0];
-  }
-
+  
   public function crearCantidadMaquinasPorRelevamiento(Request $request){
     Validator::make($request->all(),[
-        'id_sector' => 'required|exists:sector,id_sector',
-        'id_tipo_cantidad_maquinas_por_relevamiento' => 'required|exists:tipo_cantidad_maquinas_por_relevamiento,id_tipo_cantidad_maquinas_por_relevamiento',
-        'cantidad_maquinas' => 'required|max:1000',
-        'fecha_desde' => 'nullable',
-        'fecha_hasta' => 'nullable'
-    ], array(), self::$atributos)->sometimes('fecha_desde','date|after_or_equal:today', function($data){
-        return $data->id_tipo_cantidad_maquinas_por_relevamiento == 2;
-    })->sometimes('fecha_hasta','date|after_or_equal:fecha_desde', function($data){
-        return $data->id_tipo_cantidad_maquinas_por_relevamiento == 2;
-    })->after(function($validator){
+      'id_sector' => 'required|exists:sector,id_sector',
+      'id_tipo_cantidad_maquinas_por_relevamiento' => 'required|exists:tipo_cantidad_maquinas_por_relevamiento,id_tipo_cantidad_maquinas_por_relevamiento',
+      'cantidad_maquinas' => 'required|max:1000|integer|min:1',
+      'fecha_desde' => 'required_if:id_tipo_cantidad_maquinas_por_relevamiento,2|date|after_or_equal:today',
+      'fecha_hasta' => 'required_if:id_tipo_cantidad_maquinas_por_relevamiento,2|date|after_or_equal:fecha_desde',
+      'forzar' => 'required|boolean',
+    ],[
+      'required' => 'El valor es requerido',
+      'required_if' => 'El valor es requerido',
+      'exists' => 'El valor no existe',
+      'max' => 'El valor supera el limite',
+      'date' => 'El valor tiene que ser una fecha en formato YYYY-MM-DD',
+      'min' => 'El valor es inferior al limite',
+      'after_or_equal' => 'El valor es inferior al limite',
+    ], self::$atributos)->after(function($validator){
+      if($validator->errors()->any()) return;
+      //@TODO: validar usuario
+      $data = $validator->getData();
+      if($data['id_tipo_cantidad_maquinas_por_relevamiento'] != 2) return;
+      
+      $fecha_desde = $data['fecha_desde'];
+      $fecha_hasta = $data['fecha_hasta'];
+      $id_sector   = $data['id_sector'];
+      
+      $ya_existe = !$data['forzar'] && DB::table('cantidad_maquinas_por_relevamiento')
+      ->where([['id_sector',$id_sector],['id_tipo_cantidad_maquinas_por_relevamiento',2]])
+      ->where(function($q)use($fecha_desde,$fecha_hasta){
+        $q->where([['fecha_desde','>=',$fecha_desde],['fecha_desde','<=',$fecha_hasta]])
+        ->orWhere([['fecha_hasta','>=',$fecha_desde],['fecha_hasta','<=',$fecha_hasta]])
+        ->orWhere([['fecha_desde','<=',$fecha_desde],['fecha_hasta','>=',$fecha_hasta]])
+        ->orWhere([['fecha_desde','>=',$fecha_desde],['fecha_hasta','<=',$fecha_hasta]]);
+      })->count() > 0;
+      if($ya_existe){
+        $validator->errors()->add('fecha_desde','Ya existe una cantidad para este intervalo');
+        $validator->errors()->add('fecha_hasta','Ya existe una cantidad para este intervalo');
+        return $validator->errors()->add('ya_existe','1');
+      }
     })->validate();
 
     if($request->id_tipo_cantidad_maquinas_por_relevamiento == 1){
