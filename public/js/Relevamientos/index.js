@@ -2,6 +2,7 @@ import '/js/Components/inputFecha.js';
 import '/js/Components/FiltroTabla.js';
 import {AUX} from "/js/Components/AUX.js";
 import './maquinasPorRelevamientos.js';
+import './generarRelevamiento.js';
 
 var truncadas=0;
 
@@ -87,110 +88,7 @@ $(document).on('click','.pop',function(e){
 //ABRIR MODAL DE NUEVO RELEVAMIENTO
 $('#btn-nuevoRelevamiento').click(function(e){
   e.preventDefault();
-  $('#frmRelevamiento').trigger('reset');
-  $('#modalRelevamiento #sector option').remove();
-  $('#maquinas_pedido').hide();
-  $('#modalRelevamiento').modal('show');
-
-  $('#modalRelevamiento').find('.modal-footer').children().show();
-  $('#modalRelevamiento').find('.modal-body').children().show();
-  $('#modalRelevamiento').find('#iconoCarga').hide();
-
-  $.get("obtenerFechaActual", function(data){
-    //Mayuscula pŕimer letra
-    var fecha = data.fecha.charAt(0).toUpperCase() + data.fecha.slice(1);
-    $('#fechaActual').val(fecha);
-    $('#fechaDate').val(data.fechaDate);
-  });
-});
-
-$('#modalRelevamiento #sector').on('change cambioSectores',function(e,sectores){
-  $(this).removeClass('alerta');
-  maquinasAPedido();
-  existeRelevamiento();
-});
-
-//GENERAR RELEVAMIENTO SOBRE SECTOR CON RELEVAMIENTO EXISTENTE
-$('#btn-generarIgual').click(function(){
-  $('#btn-generar').trigger('click');
-  $('#confirmacionGenerarRelevamiento').modal('hide');
-  $('#modalRelevamiento').modal('show');
-});
-
-$('#btn-cancelarConfirmacion').click(function(){
-  $('#modalRelevamiento #existeRelevamiento').val(1);
-  $('#modalRelevamiento').modal('show');
-});
-
-//GENERAR RELEVAMIENTO
-$('#btn-generar').click(function(e){
-  const existeRelevamiento = $('#modalRelevamiento #existeRelevamiento').val();
-  if(existeRelevamiento == '1' || existeRelevamiento == '2'){
-    $('#modalRelevamiento').modal('hide');
-    $('#modalRelevamiento #existeRelevamiento').val(0);
-    $('#confirmacionGenerarRelevamiento').modal('show');
-    return;
-  }
-  if(existeRelevamiento != '0') throw 'Unexpected value '+existeRelevamiento;
-  
-  const formData = {
-    id_sector: $('#modalRelevamiento #sector').val() ?? 0,
-    cantidad_maquinas: $('#cantidad_maquinas').val(),
-    cantidad_fiscalizadores: $('#cantidad_fiscalizadores').val(),
-  };
-  //Solo los superusers tienen el input para seedear
-  if($('#seed').length > 0) formData.seed = $('#seed').val();
-
-  if ($('#modalRelevamiento #casino').val() == "") return;
-    
-  $('#modalRelevamiento').find('.modal-footer').children().hide();
-  $('#modalRelevamiento').find('.modal-body').children().hide();
-  $('#modalRelevamiento').find('#iconoCarga').show();
-          
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-  $.ajax({
-    type: "POST",
-    url: 'relevamientos/crearRelevamiento',
-    data: formData,
-    dataType: 'json',
-    success: function (data) {      
-      $('#btn-buscar').click();
-      $('#modalRelevamiento').modal('hide');
-
-      let iframe = $('#download-container');
-      if (iframe.length == 0){
-          iframe = $('<iframe>').attr('id','download-container').css('visibility','hidden');
-          $('body').append(iframe);
-      }
-      iframe.attr('src',data.url_zip);
-    },
-    error: function (data) {
-      const response = data.responseJSON;
-      if(typeof response.id_sector !== 'undefined'){
-          mostrarErrorValidacion($('#modalRelevamiento #sector'),response.id_sector[0],false);
-          mostrarErrorValidacion($('#modalRelevamiento #casino'),response.id_sector[0],false);
-      }
-    },
-    complete: function(jqXHR,textStatus){
-      $('#modalRelevamiento').find('.modal-footer').children().show();
-      $('#modalRelevamiento').find('.modal-body').children().show();
-      $('#modalRelevamiento').find('#iconoCarga').hide();
-    }
-  });
-});
-
-$('#btn-volver').click(function(){
-  $('#modalRelevamiento #existeRelevamiento').val(2);
-  $('#modalRelevamiento').modal('show');
-});
-
-$('#modalRelSinSistema').on('hidden.bs.modal', function(){
-  $('#casinoSinSistema').val("");
-  $('#sectorSinSistema option').remove();
-  $('#fechaRelSinSistema').datetimepicker('remove');
-  $('#fechaGeneracion').datetimepicker('remove');
-  $('#fechaRelSinSistema input,#fechaRelSinSistema_date,\
-     #fechaGeneracion input,#fechaGeneracion_date').val('');
+  return $('[data-js-modal-generar-relevamiento]').trigger('mostrar');
 });
 
 $('#modalCargaRelevamiento').on('hidden.bs.modal', function(){
@@ -490,52 +388,6 @@ $('#btn-backup').click(function(e){
 
 $('#fechaRelSinSistema input').on('change',function(e) {
   $(this).removeClass('alerta');
-});
-
-//MODAL DE CANTIDAD DE MÁQUINAS POR RELEVAMIENTOS |  DEFAULT Y TEMPORALES
-
-
-$('#btn-generarDeTodasFormas').click(function(){
-  $.ajaxSetup({headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
-  $.ajax({
-    type: "POST",
-    url: 'relevamientos/crearCantidadMaquinasPorRelevamiento',
-    data: {
-      id_sector: $('#modalMaquinasPorRelevamiento #sector option:selected').val(),
-      id_tipo_cantidad_maquinas_por_relevamiento: $('#modalMaquinasPorRelevamiento #tipo_cantidad option:selected').attr('id'),
-      fecha_desde: $('#modalMaquinasPorRelevamiento #fecha_desde').val(),
-      fecha_hasta: $('#modalMaquinasPorRelevamiento #fecha_hasta').val(),
-      cantidad_maquinas: $('#modalMaquinasPorRelevamiento #cantidad_maquinas_por_relevamiento').val(),
-    },
-    dataType: 'json',
-    success: function (data) {
-      console.log(data);
-      //Habilitar botón originales y sacar los temporales
-      $('#btn-generarMaquinasPorRelevamiento').show();
-      $('#btn-generarDeTodasFormas').hide();
-      $('#mensajeTemporal').hide();
-      $('#btn-cancelarTemporal').hide();
-
-      toggleDatosMaquinasPorRelevamiento(true);
-
-      //Modificar defecto y/o agregar temporal
-      setCantidadMaquinas(data);
-
-      //Mostrar mensaje de éxito
-    },
-    error: function (data) {
-      console.log(data);
-    }
-  });
-});
-
-//Si se cancela la generación temporal se ocultan los boton y se muestran los originales
-$('#btn-cancelarTemporal').click(function(){
-  $('#btn-generarMaquinasPorRelevamiento').show();
-  $('#btn-generarDeTodasFormas').hide();
-  $('#mensajeTemporal').hide();
-  $('#btn-cancelarTemporal').hide();
-  toggleDatosMaquinasPorRelevamiento(true);
 });
 
 $(document).on('focusin' , 'input' , function(e){
@@ -900,27 +752,11 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
   });
 }
 
-function maquinasAPedido(){
-  const id_sector = $('#modalRelevamiento #sector').val();
-  const fecha = $('#fechaDate').val();
-
-  $.get("relevamientos/obtenerCantidadMaquinasRelevamientoHoy/" + id_sector, function(cantidad){
-    $('#modalRelevamiento #cantidad_maquinas').val(cantidad);
-  });
-
-  $.get("relevamientos/obtenerMtmAPedido/" + fecha + "/" + id_sector, function(data){
-    const c = data.cantidad;
-    $('#maquinas_pedido').toggle(c > 0)
-    .find('span').text(`Este sector tiene ${c} máquina${c>1? 's' : ''} a pedido.`);
-  });
-}
-
-function existeRelevamiento(){
-  $.get('relevamientos/existeRelevamiento/' + $('#modalRelevamiento #sector').val(), function(data){
-      //Se guarda un valor que indica que para el SECTOR y la FECHA ACTUAL:
-          // 0: No existe relevamiento generado.
-          // 1: Solamente está generado y se puede volver a generar.
-          // 2: El relevamiento empezó a cargarse, entonces no se puede volver a generar.
-      $('#modalRelevamiento #existeRelevamiento').val(data);
-  });
-}
+$('#modalRelSinSistema').on('hidden.bs.modal', function(){
+  $('#casinoSinSistema').val("");
+  $('#sectorSinSistema option').remove();
+  $('#fechaRelSinSistema').datetimepicker('remove');
+  $('#fechaGeneracion').datetimepicker('remove');
+  $('#fechaRelSinSistema input,#fechaRelSinSistema_date,\
+     #fechaGeneracion input,#fechaGeneracion_date').val('');
+});

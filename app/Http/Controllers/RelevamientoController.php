@@ -211,9 +211,15 @@ class RelevamientoController extends Controller
   public function crearRelevamiento(Request $request){
     Validator::make($request->all(),[
         'id_sector' => 'required|exists:sector,id_sector',
-        'cantidad_fiscalizadores' => 'nullable|numeric|between:1,10',
+        'cantidad_fiscalizadores' => 'nullable|integer|between:1,10',
         'seed' => 'nullable|integer',
-    ], array(), self::$atributos)->after(function($validator){
+    ], [
+      'required' => 'El valor es requerido',
+      'exists' => 'El valor es invalido',
+      'integer' => 'El valor tiene que ser un número entero',
+      'between' => 'El valor tiene que ser entre 1-10',
+    ], self::$atributos)->after(function($validator){
+      if($validator->errors()->any()) return;
       $estados_rechazados = [2,3,4];
       $relevamientos = Relevamiento::where([['fecha',date("Y-m-d")],['id_sector',$validator->getData()['id_sector']],['backup',0]])->whereIn('id_estado_relevamiento' ,$estados_rechazados )->count();
       if($relevamientos > 0){

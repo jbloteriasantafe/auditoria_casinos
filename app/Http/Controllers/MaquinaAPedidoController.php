@@ -42,13 +42,11 @@ class MaquinaAPedidoController extends Controller
 
 
   public function obtenerMtmAPedido($fecha,$id_sector){
-
-    $resultados = DB::table('maquina_a_pedido')->join('maquina','maquina_a_pedido.id_maquina','=','maquina.id_maquina')
-                                           ->join('isla','maquina.id_isla','=','isla.id_isla')
-                                           ->where('maquina_a_pedido.fecha','=',$fecha)
-                                           ->where('isla.id_sector','=',$id_sector)
-                                           ->count();
-    return ['cantidad' => $resultados];
+    return DB::table('maquina_a_pedido')->join('maquina','maquina_a_pedido.id_maquina','=','maquina.id_maquina')
+    ->join('isla','maquina.id_isla','=','isla.id_isla')
+    ->where('maquina_a_pedido.fecha','=',$fecha)
+    ->where('isla.id_sector','=',$id_sector)
+    ->count();
   }
 
   public function obtenerFechasMtmAPedido($id_maquina){

@@ -5,11 +5,13 @@ $(function(e){ $('[data-js-modal-maquinas-por-relevamiento]').each(function(){
   const  M = $(this);
   const $M = M.find.bind(M);
   
+  const nombreMeses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  
   M.on('mostrar',function(e,params){
     $M('[name]').val('').change();
     $M('[data-js-fecha]').data('datetimepicker').reset();
     $M('[data-js-forzando-carga]').hide().filter('[data-js-forzando-carga="0"]').show();
-    ocultarErrorValidacion($M('[name]'))
+    ocultarErrorValidacion($M('[name]'));
     M.modal('show');
   });
   

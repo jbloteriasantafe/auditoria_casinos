@@ -191,143 +191,8 @@ $CONTADORES_VISIBLES = 6;
 @component('Relevamientos/maquinasPorRelevamientos',['casinos' => $usuario->casinos,'tipos_cantidad' => $tipos_cantidad])
 @endcomponent
 
-<!-- Modal Relevamientos -->
-<div class="modal fade" id="modalRelevamiento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header modalNuevo" style="font-family: Roboto-Black; background-color: #6dc7be;">
-       <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-       <button id="btn-minimizarNuevo" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoNuevo" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-       <h3 class="modal-title">| NUEVO RELEVAMIENTO</h3>
-      </div>
-      <div id="colapsadoNuevo" class="collapse in">
-        <div class="modal-body modalCuerpo">
-          <form id="frmRelevamiento" name="frmRelevamiento" class="form-horizontal" novalidate="">
-            <div class="row">
-              <div class="col-md-12">
-                <h5>FECHA DE RELEVAMIENTO</h5>
-                <input id="fechaActual" type='text' class="form-control" disabled style="text-align:center;">
-                <input id="fechaDate" type="text" name="" hidden>
-                <br>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6">
-                <h5>CASINO</h5>
-                <select id="casino" class="form-control" name="" data-js-cambio-casino-select-sectores="#modalRelevamiento #sector">
-                  <option value="">- Seleccione un casino -</option>
-                   @foreach ($usuario->casinos as $casino)
-                   <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                   @endforeach
-                </select>
-                <br>
-                <span id="alertaCasino" class="alertaSpan"></span>
-              </div>
-              <div class="col-md-6">
-                <h5>SECTOR</h5>
-                <select id="sector" class="form-control" name="">
-                </select>
-                <br>
-                <span id="alertaSector" class="alertaSpan"></span>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6">
-                <h5>MÁQUINAS</h5>
-                <input id="cantidad_maquinas" type="text" class="form-control" name="" value="" disabled>
-              </div
-              <div class="col-md-6">
-                <h5>FISCALIZADORES</h5>
-                <div class="input-group number-spinner">
-                  <span class="input-group-btn">
-                    <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="dwn">-</button>
-                  </span>
-                  <input id="cantidad_fiscalizadores" type="text" class="form-control text-center" value="1">
-                  <span class="input-group-btn">
-                    <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="up">+</button>
-                  </span>
-                </div>
-              </div>
-            </div>
-            @if($usuario->es_superusuario)
-            <div class="row">
-              <div class="col-md-6">
-                <h5>SEMILLA</h5>
-                <input id="seed" type="number" class="form-control">
-              </div>
-            </div>
-            @endif
-            <br>
-            <br>
-            <div id="maquinas_pedido" class="row">
-              <div class="col-md-12">
-                <h5>MÁQUINAS A PEDIDO</h5>
-                <span style="font-family:Roboto-Regular;font-size:16px;">El sector elegido tiene N máquinas a pedido</span>
-              </div>
-            </div>
-          </form>
-          <div id="iconoCarga" class="sk-folding-cube">
-            <div class="sk-cube1 sk-cube"></div>
-            <div class="sk-cube2 sk-cube"></div>
-            <div class="sk-cube4 sk-cube"></div>
-            <div class="sk-cube3 sk-cube"></div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-successAceptar" id="btn-generar" value="nuevo">GENERAR</button>
-          <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-          <input type="hidden" id="existeRelevamiento" name="id_casino" value="0">
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal" id="confirmacionGenerarRelevamiento" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header modalNuevo">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <h3 class="modal-title"> NUEVO RELEVAMIENTO</h3>
-      </div>
-      <div class="modal-body">
-        <h5 style="padding:10px;font-family:Roboto-Condensed;color:#FF1744 !important;font-size:24px;">ATENCIÓN</h5>
-        <h5 style="padding:0px;font-family:Roboto-Condensed;color:#444 !important;font-size:20px;">YA EXISTE RELEVAMIENTO PARA EL SECTOR SELECCIONADO</h5>
-        <p style="font-family:Roboto-Regular;font-size:16px;margin:20px 0px;">
-          Si vuelve a generar el relevamiento se sobreescribirán los datos anteriores y se perderán las planillas de relevamiento generadas anteriormente.
-        </p>
-        <p style="font-family:Roboto-Regular;font-size:16px;margin-bottom:20px;">
-          ¿Desea generar el relevamiento de todas formas?
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button id="btn-generarIgual" type="button" class="btn btn-successAceptar" value="nuevo">GENERAR DE TODAS FORMAS</button>
-        <button id="btn-cancelarConfirmacion" type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal" id="imposibleGenerarRelevamiento" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header modalNuevo">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <h3 class="modal-title"> NUEVO RELEVAMIENTO</h3>
-      </div>
-      <div class="modal-body" style="text-align:center;">
-        <h5 style="padding:0px;font-family:Roboto-Condensed;color:#444 !important;font-size:20px;">NO SE PUEDE GENERAR EL RELEVAMIENTO</h5>
-        <p style="font-family:Roboto-Regular;font-size:16px;margin:20px 0px;">
-          El sector seleccionado ya se está relevando.
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button id="btn-volver" type="button" class="btn btn-successAceptar" data-dismiss="modal">VOLVER</button>
-        <button id="btn-cancelarImposible" type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-      </div>
-    </div>
-  </div>
-</div>
+@component('Relevamientos/generarRelevamiento',['casinos' => $usuario->casinos, 'es_superusuario' => $usuario->es_superusuario])
+@endcomponent
 
 <!-- Modal Relevamientos -->
 <div class="modal fade" id="modalRelSinSistema" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -606,8 +471,8 @@ $CONTADORES_VISIBLES = 6;
     <td class="maquina">2272</td>
     @for($c=1;$c<=$CONTADORES;$c++)
     <td {{$c<=$CONTADORES_VISIBLES? '' : 'hidden'}}><input class="contador cont{{$c}} form-control"></td>
-    <input class="formulaCont{{$c}}" hidden>
-    <input class="formulaOper{{$c}}" hidden>
+    <td hidden><input class="formulaCont{{$c}}"></td>
+    <td hidden><input class="formulaOper{{$c}}"></td>
     @endfor
     <td hidden><input class="producidoCalculado form-control" style="text-align: right; border: 2px solid rgb(109, 199, 190); color: rgb(109, 199, 190);"></td>
     <td hidden><input class="producido form-control" style="text-align: right; border: 2px solid rgb(109, 199, 190); color: rgb(109, 199, 190);"></td>
