@@ -1028,9 +1028,15 @@ class RelevamientoController extends Controller
   public function usarRelevamientoBackUp(Request $request){
     Validator::make($request->all(),[
         'id_sector' => 'required|exists:sector,id_sector',
-        'fecha' => 'required|date',
-        'fecha_generacion' => 'required|date'
-    ], array(), self::$atributos)->after(function($validator){
+        'fecha_generacion' => 'required|date|before:today',
+        'fecha' => 'required|date|after_or_equal:fecha_generacion',
+    ], [
+      'required' => 'El valor es requerido',
+      'exists' => 'El valor no existe',
+      'date' => 'El valor tiene que ser una fecha en formato YYYY-MM-DD',
+      'before' => 'La fecha tiene que ser anterior a hoy',
+      'after_or_equal' => 'La fecha tiene que ser posterior a la fecha de generación',
+    ], self::$atributos)->after(function($validator){//@TODO: chequear que tenga acceso al casino
     })->validate();
 
     $relevamientos = Relevamiento::where([['id_sector',$request->id_sector],['fecha',$request->fecha],['backup',0]])->whereIn('id_estado_relevamiento',[1,2])->get();

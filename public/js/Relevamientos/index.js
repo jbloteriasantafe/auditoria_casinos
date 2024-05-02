@@ -3,6 +3,7 @@ import '/js/Components/FiltroTabla.js';
 import {AUX} from "/js/Components/AUX.js";
 import './maquinasPorRelevamientos.js';
 import './generarRelevamiento.js';
+import './relevamientoSinSistema.js';
 
 var truncadas=0;
 
@@ -322,72 +323,13 @@ $(document).on('click','.verDetalle',function(e){
 
 $('#btn-relevamientoSinSistema').click(function(e) {
   e.preventDefault();
-  
-  $('#fechaGeneracion,#fechaRelSinSistema').datetimepicker({
-    language:  'es',
-    todayBtn:  1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: 'dd MM yyyy',
-    pickerPosition: "bottom-left",
-    startView: 4,
-    minView: 2,
-    ignoreReadonly: true,
-  });
-
-  $('#modalRelSinSistema').modal('show');
+  return $('[data-js-modal-relevamiento-sin-sistema]').trigger('mostrar');
 });
 
 //ABRIR MODAL DE CARGAR MAQUINAS POR RELEVAMIENTO
 $('#btn-maquinasPorRelevamiento').click(function(e) {
   e.preventDefault();
   return $('[data-js-modal-maquinas-por-relevamiento]').trigger('mostrar');
-});
-
-//Generar el relevamiento de backup
-$('#btn-backup').click(function(e){
-
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-
-  e.preventDefault();
-
-  $.ajax({
-    type: "POST",
-    url: 'relevamientos/usarRelevamientoBackUp',
-    data: {
-      fecha: $('#fechaRelSinSistema_date').val(),
-      fecha_generacion: $('#fechaGeneracion_date').val(),
-      id_sector: $('#sectorSinSistema').val(),
-    },
-    dataType: 'json',
-    success: function (data) {
-      $('#btn-buscar').trigger('click');
-      $('#modalRelSinSistema').modal('hide');
-    },
-    error: function (data) {
-      console.log(data);
-
-      const response = data.responseJSON;
-
-      if(typeof response.id_sector !== 'undefined'){
-        mostrarErrorValidacion($('#casinoSinSistema'), response.id_sector[0],false);
-        mostrarErrorValidacion($('#sectorSinSistema'), response.id_sector[0],false);
-      }
-
-      if(typeof response.fecha !== 'undefined') {
-        mostrarErrorValidacion($('#fechaRelSinSistema input'), response.fecha[0],false);
-      }
-
-      if(typeof response.fecha_generacion !== 'undefined') {
-        mostrarErrorValidacion($('#fechaGeneracion input'), response.fecha_generacion[0],false);
-      }
-    }
-  });
-
-});
-
-$('#fechaRelSinSistema input').on('change',function(e) {
-  $(this).removeClass('alerta');
 });
 
 $(document).on('focusin' , 'input' , function(e){
@@ -751,12 +693,3 @@ function calculoDiferenciaValidar(tablaValidarRelevamiento, data){
     diferencia.css('border','2px solid #66BB6A').css('color','#66BB6A');
   });
 }
-
-$('#modalRelSinSistema').on('hidden.bs.modal', function(){
-  $('#casinoSinSistema').val("");
-  $('#sectorSinSistema option').remove();
-  $('#fechaRelSinSistema').datetimepicker('remove');
-  $('#fechaGeneracion').datetimepicker('remove');
-  $('#fechaRelSinSistema input,#fechaRelSinSistema_date,\
-     #fechaGeneracion input,#fechaGeneracion_date').val('');
-});
