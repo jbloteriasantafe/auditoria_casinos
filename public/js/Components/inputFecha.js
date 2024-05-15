@@ -9,7 +9,8 @@ $(function(e){
     };
   })
   .each(function(_,d){
-    console.log($(d).attr('data-start-view'));
+    if(typeof $(d).data('datetimepicker') != 'undefined') return;
+    
     $(d).datetimepicker({
       language:  $(d).attr('data-date-language') ?? 'es',
       todayBtn:  $(d).attr('data-date-today-btn') ?? 1,
@@ -29,6 +30,5 @@ $(function(e){
       disabled = JSON.parse($(d).attr('data-disabled'));
     }
     catch (e) {}
-    d.disabled(!!disabled);
   });
 });

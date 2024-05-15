@@ -5,7 +5,6 @@ import './maquinasPorRelevamientos.js';
 import './generarRelevamiento.js';
 import './relevamientoSinSistema.js';
 import './cargarRelevamiento.js';
-import './validarRelevamiento.js';
 
 $(document).ready(function(){
   $('.tituloSeccionPantalla').text('Relevamientos');
@@ -86,4 +85,14 @@ $(document).on('click','.pop',function(e){
     e.preventDefault();
     $('.pop').not(this).popover('hide');
     $(this).popover('show');
+});
+
+$(document).on('click','.carga',function(e){
+  return $('[data-js-modal-cargar-relevamiento]').trigger('mostrar',['Cargar',$(this).val()]);
+});
+$(document).on('click','.validar',function(e){
+  return $('[data-js-modal-cargar-relevamiento]').trigger('mostrar',['Validar',$(this).val()]);
+});
+$(document).on('click','.verDetalle',function(e){
+  return $('[data-js-modal-cargar-relevamiento]').trigger('mostrar',['Ver',$(this).val()]);
 });

@@ -447,7 +447,7 @@ class RelevamientoController extends Controller
         'tecnico' => 'nullable|max:45',
         'observacion_carga' => 'nullable|max:2000',
         'estado' => 'required|numeric|between:2,3',
-        'hora_ejecucion' => 'required_if:estado,3',
+        'hora_ejecucion' => 'required_if:estado,3|regex:/^\d\d:\d\d(:\d\d)?/',
         'detalles' => 'required',
         'detalles.*.id_detalle_relevamiento' => 'required|exists:detalle_relevamiento,id_detalle_relevamiento',
         'detalles.*.cont1' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
@@ -459,20 +459,13 @@ class RelevamientoController extends Controller
         'detalles.*.cont7' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
         'detalles.*.cont8' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
         'detalles.*.id_tipo_causa_no_toma' => 'nullable|exists:tipo_causa_no_toma,id_tipo_causa_no_toma',
-        'detalles.*.producido_calculado_relevado' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/']
+        'detalles.*.producido_calculado' => ['required','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
+        'detalles.*.id_unidad_medida' => 'required|exists:unidad_medida,id_unidad_medida',
     ], array(), self::$atributos)->after(function($validator){
-      if($validator->getData()['estado'] == 3){
-        if($validator->getData()['detalles'] != 0){
-          foreach($validator->getData()['detalles'] as $index => $un_detalle) {
-            if($un_detalle['id_tipo_causa_no_toma'] == null){
-              if($un_detalle['producido_calculado_relevado'] == null){
-                $validator->errors()->add('detalles.['.$index.'].producido_calculado_relevado','El Producido Calculado Relevado debe estar presente si el estado es 3.');
-              }
-            }
-          }
-        }
-      }
+      if($validator->errors()->any()) return;
+      //@TODO validar casinos
     })->validate();
+        
     $request->detalles != 0 ? $detalles = $request->detalles : $detalles = array();
     $relevamiento = Relevamiento::find($request->id_relevamiento);
     if($request->id_usuario_fiscalizador != null){
@@ -494,7 +487,7 @@ class RelevamientoController extends Controller
     $cantidad_habilitadas = $this->calcularMTMsHabilitadas($relevamiento->sector->id_casino);
     $sin_isla = $this->calcular_sin_isla($relevamiento->sector->id_casino);
 
-    $relevamiento->fecha_ejecucion = $request->hora_ejecucion ;
+    $relevamiento->fecha_ejecucion = $request->hora_ejecucion;
     $relevamiento->fecha_carga = date('Y-m-d h:i:s', time());
     $relevamiento->tecnico = $request->tecnico;
     $relevamiento->observacion_carga = $request->observacion_carga;
@@ -514,11 +507,10 @@ class RelevamientoController extends Controller
       $detalle->cont7 = $det['cont7'];
       $detalle->cont8 = $det['cont8'];
       $detalle->id_tipo_causa_no_toma = $det['id_tipo_causa_no_toma'];
-      $detalle->producido_calculado_relevado = $det['producido_calculado_relevado'];
+      $detalle->producido_calculado_relevado = $det['producido_calculado'];
 
-      if($detalle->producido_importado != null && $detalle->producido_calculado_relevado != null){
-        $detalle->diferencia =
-        $detalle->producido_calculado_relevado - $detalle->producido_importado;
+      if($detalle->producido_importado != null && $detalle->producido_calculado != null){
+        $detalle->diferencia = $detalle->producido_calculado - $detalle->producido_importado;
       }
 
       $detalle->id_unidad_medida = $det['id_unidad_medida'];
@@ -552,8 +544,16 @@ class RelevamientoController extends Controller
     Validator::make($request->all(),[
         'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
         'observacion_validacion' => 'nullable|max:2000',
-        'data' => 'required',///trae datos para guardar en el detalle relevamiento
+        'truncadas' => 'required|integer|min:0',
+        'detalles' => 'required',///trae datos para guardar en el detalle relevamiento
+        'detalles.*.id_detalle_relevamiento' => 'required|exists:detalle_relevamiento,id_detalle_relevamiento',
+        'detalles.*.denominacion' => 'nullable|numeric',
+        'detalles.*.diferencia' => 'nullable|numeric',
+        'detalles.*.importado' => 'nullable|numeric',
+        'detalles.*.a_pedido' => 'nullable|integer|min:0',
     ], array(), self::$atributos)->after(function($validator){
+      if($validator->errors()->any()) return;
+      
       $rel = Relevamiento::find($validator->getData()['id_relevamiento']);
       $count = ContadorHorario::where([['id_casino',$rel->sector->id_casino],['fecha',$rel->fecha]])->count();
       //dd(ContadorHorario::where([['id_casino',$rel->sector->id_casino],['fecha',$rel->fecha]])->count());
@@ -571,7 +571,7 @@ class RelevamientoController extends Controller
           break;
       }
     })->validate();
-
+    
     $relevamiento = Relevamiento::find($request->id_relevamiento);
     $relevamiento->observacion_validacion = $request->observacion_validacion;
     $relevamiento->truncadas=$request->truncadas;
@@ -594,16 +594,8 @@ class RelevamientoController extends Controller
       }
     }
 
-
     $mtm_controller = MaquinaAPedidoController::getInstancia();
-    if(!empty($request->maquinas_a_pedido)){
-      foreach ($request->maquinas_a_pedido as $maquina_a_pedido) {
-        $mtm_controller->crearPedidoEn($maquina_a_pedido['id'] , $maquina_a_pedido['en_dias'],$request->id_relevamiento);
-      }
-    }
-
-
-    foreach ($request['data'] as $dat) {
+    foreach ($request['detalles'] as $dat) {
       $dett = DetalleRelevamiento::find($dat['id_detalle_relevamiento']);
       //dd($dat['id_detalle_relevamiento']);
       if(isset($dat['denominacion'])){
@@ -619,6 +611,10 @@ class RelevamientoController extends Controller
       }
 
       $dett->save();
+      
+      if(isset($dat['a_pedido'])){
+        $mtm_controller->crearPedidoEn($dett->id_maquina,$dat['a_pedido'],$request->id_relevamiento);
+      }
     }
 
     return ['relevamiento' => $relevamiento,

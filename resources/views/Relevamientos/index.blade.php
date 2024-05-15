@@ -130,14 +130,14 @@ $CONTADORES_VISIBLES = 6;
       <th data-js-sortable="estado_relevamiento.descripcion" style="text-align: center;">ESTADO</th>
       <th style="text-align: center;">ACCION</th>
     </tr>
-    @endslot
-    
-    @slot('molde')
     <style>
       tr.filaBusqueda td {
         text-align: center;
       }
     </style>
+    @endslot
+    
+    @slot('molde')
     <tr class="filaBusqueda">
       <td class="col-xs-2 fecha">99 MES 99999</td>
       <td class="col-xs-2 casino">CASINO</td>
@@ -198,9 +198,6 @@ $CONTADORES_VISIBLES = 6;
 @endcomponent
 
 @component('Relevamientos/cargarRelevamiento',compact('CONTADORES','CONTADORES_VISIBLES','tipos_causa_no_toma'))
-@endcomponent
-
-@component('Relevamientos/validarRelevamiento',compact('CONTADORES','CONTADORES_VISIBLES'))
 @endcomponent
 
 <meta name="_token" content="{!! csrf_token() !!}" />

@@ -1,4 +1,5 @@
 import '/js/Components/inputFecha.js';
+import '/js/Components/modal.js';
 import {AUX} from "/js/Components/AUX.js";
 
 $(function(e){ $('[data-js-modal-relevamiento-sin-sistema]').each(function(){
