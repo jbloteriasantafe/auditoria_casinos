@@ -86,23 +86,12 @@ $(function(e){ $('[data-js-modal-generar-relevamiento]').each(function(){
       url: 'relevamientos/crearRelevamiento',
       data: formData,
       dataType: 'json',
-      success: function (data) {    
-        $('[data-js-buscar]').click();//@TODO: modularizar
-        M.modal('hide');
-
-        let iframe = $('#download-container');//@TODO: modularizar
-        if (iframe.length == 0){
-          iframe = $('<iframe>').attr('id','download-container').css('visibility','hidden');
-          $('body').append(iframe);
-        }
-        iframe.attr('src',data.url_zip);
+      success: function (data) {
+        M.trigger('creado',[data.url_zip]);
       },
       error: function (data) {
         const response = data.responseJSON;
         AUX.mostrarErroresNames(M,response ?? {});
-        
-        paso = 0;
-        setear_estado_paso();
       },
       complete: function(jqXHR,textStatus){
         paso = 0;

@@ -26,7 +26,7 @@ $CONTADORES_VISIBLES = 6;
     @if($usuario->tienePermiso('relevamiento_cargar'))
     <div class="row">
       <div class="col-xl-12 col-md-4">
-        <a href="" id="btn-nuevoRelevamiento" style="text-decoration: none;">
+        <a data-js-mostrar-modal="[data-js-modal-generar-relevamiento]" href="" id="btn-nuevoRelevamiento" style="text-decoration: none;">
           <div class="panel panel-default panelBotonNuevo">
             <center><img class="imgNuevo" src="/img/logos/relevamientos_white.png"><center>
             <div class="backgroundNuevo"></div>
@@ -42,7 +42,7 @@ $CONTADORES_VISIBLES = 6;
         </a>
       </div>
       <div class="col-xl-12 col-md-4">
-        <a href="" id="btn-relevamientoSinSistema" style="text-decoration: none;">
+        <a data-js-mostrar-modal="[data-js-modal-relevamiento-sin-sistema]" href="" id="btn-relevamientoSinSistema" style="text-decoration: none;">
           <div class="panel panel-default panelBotonNuevo">
             <center><img class="imgNuevo" src="/img/logos/relevamientos_sin_sistema_white.png"><center>
             <div class="backgroundNuevo"></div>
@@ -59,7 +59,7 @@ $CONTADORES_VISIBLES = 6;
       </div>
       @endif
       @if($usuario->tienePermiso('relevamiento_selec_maquinas_por_relevamiento'))
-      <div class="col-xl-12 col-md-4">
+      <div data-js-mostrar-modal="[data-js-modal-maquinas-por-relevamiento]" class="col-xl-12 col-md-4">
         <a href="" id="btn-maquinasPorRelevamiento" style="text-decoration: none;">
           <div class="panel panel-default panelBotonNuevo">
             <center><img class="imgNuevo" src="/img/logos/tragaperras_white.png"><center>
@@ -157,27 +157,27 @@ $CONTADORES_VISIBLES = 6;
       </td>
       <td class="col-xs-3 acciones" style="text-align: left;">
         @if($usuario->tienePermiso('relevamiento_cargar'))
-        <button class="btn btn-info planilla" type="button" title="VER PLANILLA" data-id-estado-relevamiento="1" style="display: none;">
+        <button data-js-click-id-link="relevamientos/generarPlanilla/"  class="btn btn-info planilla" type="button" title="VER PLANILLA" data-id-estado-relevamiento="1" style="display: none;">
           <i class="far fa-fw fa-file-alt"></i>
         </button>
-        <button class="btn btn-warning carga" type="button" title="CARGAR RELEVAMIENTO" data-id-estado-relevamiento="1,2" style="display: none;">
+        <button data-js-mostrar-modal-carga="Cargar"  class="btn btn-warning carga" type="button" title="CARGAR RELEVAMIENTO" data-id-estado-relevamiento="1,2" style="display: none;">
           <i class="fa fa-fw fa-upload"></i>
         </button>
         @endif
         @if($usuario->tienePermiso('relevamiento_validar'))
-        <button class="btn btn-success validar" type="button" title="VISAR RELEVAMIENTO" data-id-estado-relevamiento="3" style="display: none;">
+        <button data-js-mostrar-modal-carga="Validar" class="btn btn-success validar" type="button" title="VISAR RELEVAMIENTO" data-id-estado-relevamiento="3" style="display: none;">
           <i class="fa fa-fw fa-check"></i>
         </button>
         @endif
         @if($usuario->es_administrador || $usuario->es_superusuario)
-        <button class="btn btn-success verDetalle" type="button" title="VER RELEVAMIENTO" data-id-estado-relevamiento="4,7" style="display: none;">
+        <button data-js-mostrar-modal-carga="Ver"     class="btn btn-success verDetalle" type="button" title="VER RELEVAMIENTO" data-id-estado-relevamiento="4,7" style="display: none;">
           <i class="fa fa-fw fa-search-plus"></i>
         </button>
         @endif
-        <button class="btn btn-info imprimir" type="button" title="IMPRIMIR PLANILLA" data-id-estado-relevamiento="2,3,4,7" style="display: none;">
+        <button data-js-click-id-link="relevamientos/generarPlanilla/" class="btn btn-info imprimir" type="button" title="IMPRIMIR PLANILLA" data-id-estado-relevamiento="2,3,4,7" style="display: none;">
           <i class="fa fa-fw fa-print"></i>
         </button>
-        <button class="btn btn-success validado" type="button" title="IMPRIMIR VISADO" data-id-estado-relevamiento="7" style="display: none;">
+        <button data-js-click-id-link="relevamientos/generarPlanillaValidado/" class="btn btn-success validado" type="button" title="IMPRIMIR VISADO" data-id-estado-relevamiento="7" style="display: none;">
           <i class="fa fa-fw fa-bookmark"></i>
         </button>
       </td>

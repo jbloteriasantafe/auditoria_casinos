@@ -99,8 +99,17 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       tabla.append(fila);
     });
     
-    tabla.find('.pop').popover({
+    tabla.find('[data-js-boton-medida]').popover({
       html:true
+    })
+    .click(function(e){
+      e.preventDefault();
+      tabla.find('[data-js-boton-medida]').not(this).popover('hide');
+      $(this).popover('show');
+    });
+    
+    tabla.find('[data-js-estadisticas-no-toma]').click(function (){
+      window.open('/relevamientos/estadisticas_no_toma/'+$(this).closest('tr').attr('data-id-maquina'),'_blank');
     });
     
     tabla.find('tr').each(function(idx,obj){
@@ -190,7 +199,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
 
   $('[data-js-guardar]').click(function(e){
     cargarRelevamiento(2,function(){
-      $('[data-js-buscar]').click();//@TODO: modularizar
+      M.trigger('guardo');
       $M('[data-js-salir]').attr('data-guardado',1);
       $M('[data-js-mensaje-salida]').hide();
       AUX.mensajeExito('Relevamiento guardado');
@@ -199,7 +208,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   
   $M('[data-js-finalizar-carga]').click(function(e){
     cargarRelevamiento(3,function() {
-      $('[data-js-buscar]').click();
+      M.trigger('finalizo');
       M.modal('hide');
     });
   });
@@ -349,32 +358,26 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   });
   
   M.on('click','[data-js-cancelar-ajuste]',function(e){
-    $('.pop').popover('hide');
+    M.find('[data-js-boton-medida]').popover('hide');
   });
   
   M.on('click','[data-js-ajustar]',function(e){
     const medida_es_credito = $(this).siblings('input:checked').val() == 'credito';
     const fila   = $(this).closest('tr');
     
-    fila.attr('data-medida', medida_es_credito? 1 : 2);
-    
+    let deno = fila.attr('data-denominacion');
     if(!medida_es_credito){
-      const den = fila.attr('data-denominacion') ?? '';
-      fila.attr('data-denominacion',den == ''? 0.01 : den);
+      deno = (deno ?? '') == ''? 0.01 : deno;
     }
-    
-    $(this).closest('.popover').siblings('.pop').find('i')
-    .toggleClass('fa-life-ring',medida_es_credito)
-    .toggleClass('fa-usd-circle',!medida_es_credito);
     
     AUX.POST('relevamientos/modificarDenominacionYUnidad',
       {
         id_detalle_relevamiento: fila.attr('data-id-detalle-relevamiento'),
-        id_unidad_medida: fila.attr('data-medida'),
-        denominacion: fila.attr('data-denominacion'),
+        id_unidad_medida:  medida_es_credito? 1 : 2,
+        denominacion: deno,
       },
       function(data){
-        $('.pop').popover('hide');
+        M.find('[data-js-boton-medida]').popover('hide');
         M.trigger('mostrar',['Validar',$M('[name="id_relevamiento"]').val()]);
       },
       function(error){
@@ -384,19 +387,13 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     );
   });
   
-  M.on('click' , '[data-js-estadisticas-no-toma]' , function (){
-    const id_maquina = $(this).closest('tr').attr('data-id-maquina');
-    window.open('/relevamientos/estadisticas_no_toma/'+id_maquina,'_blank');
-  });
-  
   $M('[data-js-finalizar-validacion]').click(function(e){
     const formData = AUX.form_entries($M('form')[0]);
     formData.truncadas = $M('[data-js-tabla-relevamiento]').find('[data-js-icono-estado="icono_truncado"]').length;
     
     AUX.POST('relevamientos/validarRelevamiento',formData,
       function(data){
-        $('[data-js-buscar]').click();//@TODO: modularizar
-        M.modal('hide');
+        M.trigger('valido');
       },
       function (data){
         AUX.mensajeError('');

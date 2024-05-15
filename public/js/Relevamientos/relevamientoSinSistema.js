@@ -18,8 +18,7 @@ $(function(e){ $('[data-js-modal-relevamiento-sin-sistema]').each(function(){
     ocultarErrorValidacion($M('[name]'));
     AUX.POST('relevamientos/usarRelevamientoBackUp',formData,
       function (data) {
-        $('[data-js-buscar]').click();//@TODO: modularizar
-        M.modal('hide');
+        M.trigger('creado');
       },
       function (data) {
         console.log(data);

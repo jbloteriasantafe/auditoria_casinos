@@ -23,6 +23,15 @@ $(document).ready(function(){
       fila.find('button').val(r.id_relevamiento); 
       tbody.append(fila);
     });
+    
+    tbody.find('[data-js-click-id-link]').click(function(e){
+      window.open($(this).attr('data-js-click-id-link') + $(this).val(),'_blank');
+    });
+    tbody.find('[data-js-mostrar-modal-carga]').click(function(e){
+      const modo = $(this).attr('data-js-mostrar-modal-carga');
+      const id_relevamiento = $(this).val();
+      return $('[data-js-modal-cargar-relevamiento]').trigger('mostrar',[modo,id_relevamiento]);
+    });
   }).trigger('buscar');
   
   $('[data-js-cambio-casino-select-sectores]').each(function(){
@@ -42,57 +51,33 @@ $(document).ready(function(){
       });
     });
   });
-});
+  
+  $('[data-js-modal-generar-relevamiento]').on('creado',function(e,url_zip){
+    $('[data-js-filtro-tabla]').trigger('buscar');
+    $('[data-js-modal-generar-relevamiento]').modal('hide');
 
-$('[data-toggle][data-minimizar]').click(function(){
-  const minimizar = !!$(this).data('minimizar');
-  $('.modal-backdrop').css('opacity',minimizar? '0.1' : '0.5');
-  $(this).data('minimizar',!minimizar);
-});
-
-$('#btn-nuevoRelevamiento').click(function(e){
-  e.preventDefault();
-  return $('[data-js-modal-generar-relevamiento]').trigger('mostrar');
-});
-
-$(document).on('click','.validado',function(){
-  window.open('relevamientos/generarPlanillaValidado/' + $(this).val(),'_blank');
-})
-
-$(document).on('click','.imprimir',function(){
-  window.open('relevamientos/generarPlanilla/' + $(this).val(),'_blank');
-});
-
-$(document).on('click','.planilla',function(){
-  window.open('relevamientos/generarPlanilla/' + $(this).val(),'_blank');
-});
-
-$('#btn-relevamientoSinSistema').click(function(e) {
-  e.preventDefault();
-  return $('[data-js-modal-relevamiento-sin-sistema]').trigger('mostrar');
-});
-
-$('#btn-maquinasPorRelevamiento').click(function(e) {
-  e.preventDefault();
-  return $('[data-js-modal-maquinas-por-relevamiento]').trigger('mostrar');
-});
-
-$(document).on('click','.pop',function(e){
-  e.preventDefault();
-});
-
-$(document).on('click','.pop',function(e){
+    let iframe = $('#download-container');
+    if (iframe.length == 0){
+      iframe = $('<iframe>').attr('id','download-container').css('visibility','hidden');
+      $('body').append(iframe);
+    }
+    iframe.attr('src',url_zip);
+  });
+  
+  $('[data-js-modal-relevamiento-sin-sistema]').on('creado',function(e){
+    $('[data-js-filtro-tabla]').trigger('buscar');
+    $('[data-js-modal-relevamiento-sin-sistema]').modal('hide');
+  });
+  
+  $('[data-js-modal-cargar-relevamiento]').on('guardo finalizo valido',function(e){
+    $('[data-js-filtro-tabla]').trigger('buscar');
+    if(e.type != 'guardo'){
+      $('[data-js-modal-cargar-relevamiento]').modal('hide');
+    }
+  });
+  
+  $('[data-js-mostrar-modal]').click(function(e){
     e.preventDefault();
-    $('.pop').not(this).popover('hide');
-    $(this).popover('show');
-});
-
-$(document).on('click','.carga',function(e){
-  return $('[data-js-modal-cargar-relevamiento]').trigger('mostrar',['Cargar',$(this).val()]);
-});
-$(document).on('click','.validar',function(e){
-  return $('[data-js-modal-cargar-relevamiento]').trigger('mostrar',['Validar',$(this).val()]);
-});
-$(document).on('click','.verDetalle',function(e){
-  return $('[data-js-modal-cargar-relevamiento]').trigger('mostrar',['Ver',$(this).val()]);
+    return $($(this).attr('data-js-mostrar-modal')).trigger('mostrar');
+  });
 });
