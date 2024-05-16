@@ -5,6 +5,7 @@ import './maquinasPorRelevamientos.js';
 import './generarRelevamiento.js';
 import './relevamientoSinSistema.js';
 import './cargarRelevamiento.js';
+import './cambioCasinoSelectSectores.js';
 
 $(document).ready(function(){
   $('.tituloSeccionPantalla').text('Relevamientos');
@@ -33,24 +34,6 @@ $(document).ready(function(){
       return $('[data-js-modal-cargar-relevamiento]').trigger('mostrar',[modo,id_relevamiento]);
     });
   }).trigger('buscar');
-  
-  $('[data-js-cambio-casino-select-sectores]').each(function(){
-    $(this).on('change',function(){
-      const casino = $(this);
-      
-      const sectores = $(casino.attr('data-js-cambio-casino-select-sectores'));
-      sectores.find('option:not([data-js-cambio-casino-mantener])').remove();
-      
-      if(casino.val() == '' || casino.val() == '0') return sectores.trigger('cambioSectores',[[]]);
-      
-      AUX.GET("relevamientos/obtenerSectoresPorCasino/"+casino.val(),{},function(data){
-        data.sectores.forEach(function(s){
-          sectores.append($('<option>').val(s.id_sector).text(s.descripcion));
-        });
-        sectores.trigger('cambioSectores',[data.sectores]);
-      });
-    });
-  });
   
   $('[data-js-modal-generar-relevamiento]').on('creado',function(e,url_zip){
     $('[data-js-filtro-tabla]').trigger('buscar');

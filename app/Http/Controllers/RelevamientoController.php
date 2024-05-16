@@ -195,12 +195,9 @@ class RelevamientoController extends Controller
     })->validate();
 
     $fecha_hoy = date("Y-m-d");
-    $rel_sobresescribir = Relevamiento::where([['fecha','=',$fecha_hoy],['id_sector','=',$id_sector],['backup','=',0] , ['id_estado_relevamiento' ,'=' ,1]])->count();
-    $resultados = $rel_sobresescribir > 0 ? 1 : 0;
-    $rel_no_sobrescribir = Relevamiento::where([['fecha','=',$fecha_hoy],['id_sector','=',$id_sector],['backup','=',0] , ['id_estado_relevamiento' ,'<>' ,1]])->count();
-    $resultados = $rel_no_sobrescribir > 0 ? 2 : $resultados;
-
-    return $resultados;
+    $rel_sobreescribiles = Relevamiento::where([['fecha','=',$fecha_hoy],['id_sector','=',$id_sector],['backup','=',0] , ['id_estado_relevamiento' ,'=' ,1]])->count() > 0;
+    $rel_no_sobreescribiles = Relevamiento::where([['fecha','=',$fecha_hoy],['id_sector','=',$id_sector],['backup','=',0] , ['id_estado_relevamiento' ,'<>' ,1]])->count() > 0;
+    return $rel_no_sobreescribiles? 'CARGADO' : ($rel_sobreescribiles? 'GENERADO' : 'SIN_GENERAR');
   }
   // crearRelevamiento crea un nuevo relevamiento
   // limpia los existentes , se considera que se puede regenerar

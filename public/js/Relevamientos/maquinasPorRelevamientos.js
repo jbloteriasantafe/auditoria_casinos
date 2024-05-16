@@ -1,12 +1,11 @@
 import '/js/Components/inputFecha.js';
 import '/js/Components/modal.js';
 import {AUX} from "/js/Components/AUX.js";
+import './cambioCasinoSelectSectores.js';
 
 $(function(e){ $('[data-js-modal-maquinas-por-relevamiento]').each(function(){
   const  M = $(this);
   const $M = M.find.bind(M);
-  
-  const nombreMeses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   
   M.on('mostrar',function(e,params){
     $M('[name]').val('').change();
@@ -15,18 +14,7 @@ $(function(e){ $('[data-js-modal-maquinas-por-relevamiento]').each(function(){
     ocultarErrorValidacion($M('[name]'));
     M.modal('show');
   });
-  
-  const borrar_maquinas_por_relevamiento = function(id){
-    AUX.POST('relevamientos/eliminarCantidadMaquinasPorRelevamiento',
-      {
-        id_cantidad_maquinas_por_relevamiento: id
-      },
-      function(data){
-        $M('[data-js-cambio-sector]').change();
-      }
-    );
-  };
-  
+    
   $M('[data-js-cambio-sector]').on('cambioSectores change',function(e){
     $M('[data-js-maquinas-por-defecto]').text('-');
     $M('[data-js-maquinas-temporales]').hide().find('tbody').empty();
@@ -34,22 +22,30 @@ $(function(e){ $('[data-js-modal-maquinas-por-relevamiento]').each(function(){
     if(id_sector == '' || id_sector == null) return;
     
     AUX.GET('relevamientos/obtenerCantidadMaquinasPorRelevamiento/' + id_sector,{},function(data){
+      const convertir_fecha_iso = (f) => {
+        const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        return f.split('-').map(function(v,idx){return idx == 1? meses[v-1] : v;}).reverse().join(' ');
+      };
+      
       data.forEach(function(valor){
         //MÁQUINAS POR DEFECTO
         if(valor.fecha_desde == null && valor.fecha_hasta == null)
           return $M('[data-js-maquinas-por-defecto]').text(valor.cantidad);
         //MÁQUINAS TEMPORALES
-        let fecha_desde = valor.fecha_desde.split("-");
-        fecha_desde = `${fecha_desde[2]} ${nombreMeses[fecha_desde[1] - 1]} ${fecha_desde[0]}`;
-        let fecha_hasta = valor.fecha_hasta.split("-");
-        fecha_hasta = `${fecha_hasta[2]} ${nombreMeses[fecha_hasta[1] - 1]} ${fecha_hasta[0]}`;
-
         const fila = $M('[data-js-molde-maquinas-por-relevamiento]').clone().removeAttr('data-js-molde-maquinas-por-relevamiento');
-        fila.find('.fecha_desde').text(fecha_desde);
-        fila.find('.fecha_hasta').text(fecha_hasta);
+        fila.find('.fecha_desde').text(convertir_fecha_iso(valor.fecha_desde));
+        fila.find('.fecha_hasta').text(convertir_fecha_iso(valor.fecha_hasta));
         fila.find('.cantidad').text(valor.cantidad);
         fila.find('[data-js-click-borrar-fila]').click(function(){
-          borrar_maquinas_por_relevamiento(valor.id_cantidad_maquinas_por_relevamiento);
+          AUX.POST('relevamientos/eliminarCantidadMaquinasPorRelevamiento',
+            {
+              id_cantidad_maquinas_por_relevamiento: valor.id_cantidad_maquinas_por_relevamiento
+            },
+            function(data){
+              AUX.mensajeExito('Eliminado con exito');
+              $M('[data-js-cambio-sector]').change();
+            }
+          );
         });
         $M('[data-js-maquinas-temporales]').show().find('tbody').prepend(fila);//Si hay máquinas temporales MOSTRAR TABLA
       });

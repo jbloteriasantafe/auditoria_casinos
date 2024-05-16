@@ -157,11 +157,11 @@
         $checked1 = $select == 1? 'checked' : '';
         $checked2 = $select == 2? 'checked' : '';
         return
-         '<div align="left">
-          <input type="radio" name="medida" value="credito" '.$checked1.'>
+        '<div align="left">
+          <input type="radio" name="medida" value="1" '.$checked1.'>
           <i style="margin-left:5px;position:relative;top:-3px;" class="fa fa-fw fa-life-ring"></i>
           <span style="position:relative;top:-3px;"> Crédito</span><br>
-          <input type="radio" name="medida" value="pesos" '.$checked2.'>
+          <input type="radio" name="medida" value="2" '.$checked2.'>
           <i style="margin-left:5px;position:relative;top:-3px;" class="fas fa-dollar-sign"></i>
           <span style="position:relative;top:-3px;"> Pesos</span> <br><br>
           <button data-js-ajustar class="btn btn-deAccion btn-successAccion" type="button" style="margin-right:8px;">AJUSTAR</button>

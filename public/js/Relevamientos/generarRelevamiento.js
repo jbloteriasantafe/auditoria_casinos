@@ -1,6 +1,7 @@
 import '/js/Components/inputFecha.js';
 import '/js/Components/modal.js';
 import {AUX} from "/js/Components/AUX.js";
+import './cambioCasinoSelectSectores.js';
 
 $(function(e){ $('[data-js-modal-generar-relevamiento]').each(function(){
   const  M = $(this);
@@ -10,8 +11,8 @@ $(function(e){ $('[data-js-modal-generar-relevamiento]').each(function(){
   let paso = null;
   
   const setear_estado_paso = function(){
-    $M('[data-existe-relevamiento]').hide().filter(function(idx,obj){
-      const estado_visible = $(obj).attr('data-existe-relevamiento').split(',').includes(estado+'');
+    $M('[data-estado]').hide().filter(function(idx,obj){
+      const estado_visible = $(obj).attr('data-estado').split(',').includes(estado+'');
       const paso_visible = $(obj).attr('data-paso').split(',').includes(paso+'');
       return estado_visible && paso_visible;
     })
@@ -25,14 +26,12 @@ $(function(e){ $('[data-js-modal-generar-relevamiento]').each(function(){
     $M('[name="cantidad_fiscalizadores"]').val(1);
     ocultarErrorValidacion($M('[name]'));
     $M('[data-js-maquinas-a-pedido]').hide();
-    estado = -1;
-    paso   =  0;
-    setear_estado_paso();
+    $M('[data-js-cambio-resetear-estado]').change();
     M.modal('show');
   });
   
-  $M('[data-js-cambio-casino-select-sectores]').change(function(e){
-    estado = -1;
+  $M('[data-js-cambio-resetear-estado]').change(function(e){
+    estado = 'SIN_CHECKEAR';
     paso   =  0;
     setear_estado_paso();
   });

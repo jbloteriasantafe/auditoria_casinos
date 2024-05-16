@@ -362,18 +362,18 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   });
   
   M.on('click','[data-js-ajustar]',function(e){
-    const medida_es_credito = $(this).siblings('input:checked').val() == 'credito';
+    const id_unidad_medida = $(this).siblings('input:checked').val();
     const fila   = $(this).closest('tr');
     
     let deno = fila.attr('data-denominacion');
-    if(!medida_es_credito){
+    if(id_unidad_medida != 1){//@TODO: rechequear esta logica??? si esta en pesos reasigna la denominacion?
       deno = (deno ?? '') == ''? 0.01 : deno;
     }
     
     AUX.POST('relevamientos/modificarDenominacionYUnidad',
       {
         id_detalle_relevamiento: fila.attr('data-id-detalle-relevamiento'),
-        id_unidad_medida:  medida_es_credito? 1 : 2,
+        id_unidad_medida: id_unidad_medida,
         denominacion: deno,
       },
       function(data){
