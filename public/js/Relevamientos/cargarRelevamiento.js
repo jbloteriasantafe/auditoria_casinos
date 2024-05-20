@@ -63,27 +63,8 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
           fila.find(dname_f('id_tipo_causa_no_toma')).css('border','2px solid #1E90FF').css('color','#1E90FF');
         }
         
-        //@TODO: modularizar
         const diff = Math.abs(Number(d.detalle.producido_calculado_relevado - d.producido).toFixed(2));
         fila.find(dname_f('diferencia')).val(diff);
-        fila.find('[data-js-icono-estado]').hide();
-        if(tipo_causa_no_toma != null){
-          fila.find('[data-js-icono-estado="icono_no_toma"]').show();
-          fila.find(dname_f('diferencia')).css('border',' 2px solid #EF5350').css('color','#EF5350');
-        }
-        else if(d.detalle.producido_calculado_relevado != null && (diff >= 1000000) && ((diff % 1000000) == 0)){
-          fila.find('[data-js-icono-estado="icono_truncado"]').show()
-          fila.find(dname_f('diferencia')).css('border','2px solid #FFA726').css('color','#FFA726');
-        }
-        else if(d.detalle.producido_calculado_relevado == null || diff != 0){
-          fila.find('[data-js-icono-estado="icono_incorrecto"]').show();
-          fila.find(dname_f('diferencia')).css('border',' 2px solid #EF5350').css('color','#EF5350');
-        }
-        else {
-          fila.find('[data-js-icono-estado="icono_correcto"]').show();
-          fila.find(dname_f('diferencia')).css('border','2px solid #66BB6A').css('color','#66BB6A');
-        }
-        
       }
       else if(estadoRelevamiento == 'Ver'){
         fila.find('input').each(function(idx,obj){
@@ -108,13 +89,21 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       $(this).popover('show');
     });
     
+    tabla.find('[data-js-icono-estado]').popover({
+      html:true
+    });
+    
     tabla.find('[data-js-estadisticas-no-toma]').click(function (){
       window.open('/relevamientos/estadisticas_no_toma/'+$(this).closest('tr').attr('data-id-maquina'),'_blank');
     });
-    
-    tabla.find('tr').each(function(idx,obj){
-      $(obj).find('[data-js-cambio-tipo-causa-no-toma]').trigger('change');
-      $(obj).find('[data-js-cambio-contador]').eq(0).trigger('input');
+
+    //Muestra los iconos correctos
+    tabla.find('[data-js-cambio-tipo-causa-no-toma]').trigger('change');
+    tabla.find('[data-js-cambio-contador="1"]').trigger('input');
+    //El coloreado depende de que sea visible, lo pongo asi para que solo se haga cuando se muestre el modal
+    M.one('shown.bs.modal',function(e){
+      tabla.find('[data-js-cambio-tipo-causa-no-toma]').trigger('change');
+      tabla.find('[data-js-cambio-contador="1"]').trigger('input');
     });
   }
   
@@ -332,29 +321,37 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     //Fijarse si se habilita o deshabilita el tipo no toma
     if($(this).val() != '') fila.find('[data-js-cambio-tipo-causa-no-toma]').val('');
     
-    const [producido_calc,inputValido] = calcularProducido(fila);
-    fila.find(dname_f('producido_calculado')).val(producido_calc);
+    let producido  = Number(parseFloat(fila.find(dname_f('producido')).val()).toFixed(2));
+    let producido_calc = null;
+    let diferencia     = null;
+    let hay_contadores = null;
+    if(fila.find(dname_f('diferencia')).is(':visible')){//@HACK: modo validar, tomo los valores que ya estan
+      producido_calc = Number(parseFloat(fila.find(dname_f('producido_calculado')).val()).toFixed(2));
+      diferencia     = Number(parseFloat(fila.find(dname_f('diferencia')).val()).toFixed(2));
+      hay_contadores = true;
+    }
+    else{//@HACK: si estoy cargando, saca el producido de los contadores
+      const [producido_calc,inputValido] = calcularProducido(fila);
+      fila.find(dname_f('producido_calculado')).val(producido_calc);
+      diferencia = Number((producido_calc - parseFloat(producido)).toFixed(2));
+      hay_contadores = inputValido;
+    }
     
     fila.find('[data-js-icono-estado]').hide();
-    let producido = fila.find(dname_f('producido')).val();
-    if (producido == ''){
-      return fila.find('[data-js-icono-estado="icono_no_importado"]').show();
+    if(isNaN(producido)){
+      fila.find('[data-js-icono-estado="icono_no_importado"]').show();
     }
-
-    producido = parseFloat(producido);
-    const diferencia = Number(producido_calc.toFixed(2)) - Number(Number(producido).toFixed(2));
-    const diferencia_redondeada = Number(diferencia.toFixed(2));
-
-    if (diferencia_redondeada == 0 && inputValido) {
+    else if (hay_contadores && diferencia == 0) {
       fila.find('[data-js-icono-estado="icono_correcto"]').show();
     }
-    else if(Math.abs(diferencia_redondeada) > 1 && diferencia_redondeada%1000000 == 0 && inputValido) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
+    else if(hay_contadores && diferencia != 0 && diferencia%1000000 == 0) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
       fila.find('[data-js-icono-estado="icono_truncado"]').show();
     } 
     else {
       fila.find('[data-js-icono-estado="icono_incorrecto"]').show();
     }
     
+    fila.attr('data-css-colorear',fila.find('[data-js-icono-estado]:visible').attr('data-js-icono-estado'));
   });
   
   M.on('click','[data-js-cancelar-ajuste]',function(e){
