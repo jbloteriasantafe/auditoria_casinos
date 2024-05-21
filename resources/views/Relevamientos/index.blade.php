@@ -8,8 +8,7 @@ use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
 setlocale(LC_TIME, 'es_ES.UTF-8');
 $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
-$CONTADORES = 8;
-$CONTADORES_VISIBLES = 6;
+$CONTADORES_VISIBLES = min(6,$CONTADORES);
 ?>
 
 @section('estilos')
@@ -224,6 +223,7 @@ $CONTADORES_VISIBLES = 6;
 @section('scripts')
 <script>
   const CONTADORES = {{$CONTADORES}};
+  const TRUNCAMIENTO = {{$TRUNCAMIENTO}};
 </script>
 <!-- JS paginacion -->
 <script src="/js/paginacion.js" charset="utf-8"></script>

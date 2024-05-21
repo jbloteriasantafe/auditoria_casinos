@@ -28,6 +28,7 @@ use DateTime;
 use App\TipoCantidadMaquinasPorRelevamiento;
 use App\CantidadMaquinasPorRelevamiento;
 use ProgresivoController;
+use App\Http\Controllers\ProducidoController;
 use Exception;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
@@ -103,11 +104,17 @@ class RelevamientoController extends Controller
     $estados = EstadoRelevamiento::all();
 
     UsuarioController::getInstancia()->agregarSeccionReciente('Relevamiento Contadores', 'relevamientos');
+    
     return view('Relevamientos/index', [
       'casinos' => $usuario->casinos ,
       'estados' => $estados ,
       'tipos_cantidad' => TipoCantidadMaquinasPorRelevamiento::all(),
-      'tipos_causa_no_toma' => TipoCausaNoToma::all()
+      'tipos_causa_no_toma' => TipoCausaNoToma::all(),
+      'CONTADORES' => collect(\Schema::getColumnListing((new DetalleRelevamiento)->getTableName()))
+      ->filter(function($s){
+        return preg_match('/^cont\d+$/',$s);
+      })->count(),
+      'TRUNCAMIENTO' => ProducidoController::getInstancia()->truncamiento()
     ]);
   }
 
@@ -892,7 +899,7 @@ class RelevamientoController extends Controller
                   $no_tomadas++;
               }else{
                 // se tomo, pero da diferencia, en este punto se evalua si es truncada
-                if(fmod($diferencia,1000000) == 0){//@HACK?: ver ProducidoController::probarAjusteAutomatico
+                if(fmod($diferencia,$this->truncamiento()) == 0){//@HACK?: ver ProducidoController::probarAjusteAutomatico
                   $det->no_toma = 'TRUNCAMIENTO';
                   $truncadas++;
                 }else{
