@@ -156,6 +156,11 @@ $CONTADORES_VISIBLES = 6;
         <span data-id-estado-relevamiento="7" hidden>Rel. Visado</span>
       </td>
       <td class="col-xs-3 acciones" style="text-align: left;">
+        @if($usuario->es_administrador || $usuario->es_superusuario)
+        <button data-js-mostrar-modal-carga="Ver"     class="btn btn-success verDetalle" type="button" title="VER RELEVAMIENTO" data-id-estado-relevamiento="1,2,3,4,7" style="display: none;">
+          <i class="fa fa-fw fa-search-plus"></i>
+        </button>
+        @endif
         @if($usuario->tienePermiso('relevamiento_cargar'))
         <button data-js-click-id-link="relevamientos/generarPlanilla/"  class="btn btn-info planilla" type="button" title="VER PLANILLA" data-id-estado-relevamiento="1" style="display: none;">
           <i class="far fa-fw fa-file-alt"></i>
@@ -167,11 +172,6 @@ $CONTADORES_VISIBLES = 6;
         @if($usuario->tienePermiso('relevamiento_validar'))
         <button data-js-mostrar-modal-carga="Validar" class="btn btn-success validar" type="button" title="VISAR RELEVAMIENTO" data-id-estado-relevamiento="3" style="display: none;">
           <i class="fa fa-fw fa-check"></i>
-        </button>
-        @endif
-        @if($usuario->es_administrador || $usuario->es_superusuario)
-        <button data-js-mostrar-modal-carga="Ver"     class="btn btn-success verDetalle" type="button" title="VER RELEVAMIENTO" data-id-estado-relevamiento="4,7" style="display: none;">
-          <i class="fa fa-fw fa-search-plus"></i>
         </button>
         @endif
         <button data-js-click-id-link="relevamientos/generarPlanilla/" class="btn btn-info imprimir" type="button" title="IMPRIMIR PLANILLA" data-id-estado-relevamiento="2,3,4,7" style="display: none;">

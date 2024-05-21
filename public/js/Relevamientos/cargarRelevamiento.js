@@ -7,8 +7,9 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   const $M = M.find.bind(M);
   
   const dname_f = function(s){return `[data-js-detalle-asignar-name="${s}"]`;};
+  let modo = null;
   
-  function cargarTablaRelevamientos(data, tabla, estadoRelevamiento){
+  function cargarTablaRelevamientos(data, tabla){
     data.detalles.forEach(function(d,didx){
       const fila = $M('[ data-js-molde-tabla-relevamiento]').clone().removeAttr('data-js-molde-tabla-relevamiento')
       .attr('data-medida', d.unidad_medida.id_unidad_medida)//Unidad de medida: 1-Crédito, 2-Pesos 
@@ -46,9 +47,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       
       fila.find('.estadisticas_no_toma').attr('data-maquina',d.detalle.id_maquina);//@TODO
       
-      if(estadoRelevamiento == 'Cargar'){
-      }
-      else if(estadoRelevamiento == 'Validar'){
+      if(modo == 'Validar'){
         const tipo_causa_no_toma = d.tipo_causa_no_toma;
         const diferencia = d.detalle.diferencia;
         const mostrar_botones = tipo_causa_no_toma != null || diferencia == null || (diferencia != 0 && ( diferencia%1000000 != 0));
@@ -63,10 +62,14 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
           fila.find(dname_f('id_tipo_causa_no_toma')).css('border','2px solid #1E90FF').css('color','#1E90FF');
         }
         
-        const diff = Math.abs(Number(d.detalle.producido_calculado_relevado - d.producido).toFixed(2));
+        const diff = Math.abs((d.detalle.producido_calculado_relevado - d.producido).toFixed(2));
         fila.find(dname_f('diferencia')).val(diff);
       }
-      else if(estadoRelevamiento == 'Ver'){
+      
+      if(modo == 'Ver'){
+        const diff = Math.abs((d.detalle.producido_calculado_relevado - d.producido).toFixed(2));
+        fila.find(dname_f('diferencia')).val(diff);
+        
         fila.find('input').each(function(idx,obj){
           const val = $(obj).val().length == 0? '--' : $(obj).val();
           $(obj).replaceWith(val);
@@ -74,6 +77,11 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         fila.find('select').each(function(idx,obj){
           const val = $(obj).find('option:selected').text().length == 0? '--' : $(obj).find('option:selected').text();
           $(obj).replaceWith(val);
+        });
+        
+        fila.find('td').each(function(idx,obj){
+          if($(obj).children().length > 0) return;
+          $(obj).attr('title',$(obj).text().trim());
         });
       }
       
@@ -100,17 +108,13 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     //Muestra los iconos correctos
     tabla.find('[data-js-cambio-tipo-causa-no-toma]').trigger('change');
     tabla.find('[data-js-cambio-contador="1"]').trigger('input');
-    //El coloreado depende de que sea visible, lo pongo asi para que solo se haga cuando se muestre el modal
-    M.one('shown.bs.modal',function(e){
-      tabla.find('[data-js-cambio-tipo-causa-no-toma]').trigger('change');
-      tabla.find('[data-js-cambio-contador="1"]').trigger('input');
-    });
   }
   
-  M.on('mostrar',function(e,estadoRelevamiento,id_relevamiento){
+  M.on('mostrar',function(e,modo_arg,id_relevamiento){
+    modo = modo_arg;
     const checkCSV = function(attr){
       return function(idx,obj){
-        return $(obj).attr(attr).split(',').includes(estadoRelevamiento);
+        return $(obj).attr(attr).split(',').includes(modo);
       };
     };
     $M('[name]').val('').change();
@@ -163,7 +167,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       $M('[name="observacion_carga"]').val(data?.relevamiento?.observacion_carga ?? '');
       $M('[name="observacion_validacion"]').val(data?.relevamiento?.observacion_validacion ?? '');
     
-      cargarTablaRelevamientos(data,tbody,estadoRelevamiento);
+      cargarTablaRelevamientos(data,tbody);
       
       $M('[data-js-salir]').attr('data-guardado',1);
       
@@ -321,37 +325,45 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     //Fijarse si se habilita o deshabilita el tipo no toma
     if($(this).val() != '') fila.find('[data-js-cambio-tipo-causa-no-toma]').val('');
     
-    let producido  = Number(parseFloat(fila.find(dname_f('producido')).val()).toFixed(2));
+    const producido  = Number(parseFloat(fila.find(dname_f('producido')).val()).toFixed(2));
     let producido_calc = null;
     let diferencia     = null;
     let hay_contadores = null;
-    if(fila.find(dname_f('diferencia')).is(':visible')){//@HACK: modo validar, tomo los valores que ya estan
+    
+    if(modo == 'Validar'){
       producido_calc = Number(parseFloat(fila.find(dname_f('producido_calculado')).val()).toFixed(2));
       diferencia     = Number(parseFloat(fila.find(dname_f('diferencia')).val()).toFixed(2));
       hay_contadores = true;
     }
-    else{//@HACK: si estoy cargando, saca el producido de los contadores
+    else if(modo == 'Cargar'){
       const [producido_calc,inputValido] = calcularProducido(fila);
       fila.find(dname_f('producido_calculado')).val(producido_calc);
       diferencia = Number((producido_calc - parseFloat(producido)).toFixed(2));
       hay_contadores = inputValido;
     }
+    else if(modo == 'Ver'){
+      return;
+    }
+    else{
+      throw 'Modo '+modo+' no implementado';
+    }
     
-    fila.find('[data-js-icono-estado]').hide();
+    let icono = null;
     if(isNaN(producido)){
-      fila.find('[data-js-icono-estado="icono_no_importado"]').show();
+      icono = 'icono_no_importado';
     }
     else if (hay_contadores && diferencia == 0) {
-      fila.find('[data-js-icono-estado="icono_correcto"]').show();
+      icono = 'icono_correcto';
     }
     else if(hay_contadores && diferencia != 0 && diferencia%1000000 == 0) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
-      fila.find('[data-js-icono-estado="icono_truncado"]').show();
+      icono = 'icono_truncado';
     } 
     else {
-      fila.find('[data-js-icono-estado="icono_incorrecto"]').show();
+      icono = 'icono_incorrecto';
     }
     
-    fila.attr('data-css-colorear',fila.find('[data-js-icono-estado]:visible').attr('data-js-icono-estado'));
+    fila.find('[data-js-icono-estado]').hide().filter(`[data-js-icono-estado="${icono}"]`).show();
+    fila.attr('data-css-colorear',icono);
   });
   
   M.on('click','[data-js-cancelar-ajuste]',function(e){
