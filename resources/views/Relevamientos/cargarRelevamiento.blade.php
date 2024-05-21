@@ -197,11 +197,11 @@
         </div>';
       };
       @endphp
-      <button data-js-enabled="Validar" data-js-boton-medida data-medida="1" class="btn btn-warning pop medida" title="AJUSTE" data-trigger="manual" data-toggle="popover" data-placement="left" data-html="true" type="button" class="btn btn-warning pop medida"
+      <button data-js-enabled="Validar" data-js-boton-medida="1" class="btn btn-warning pop medida" title="AJUSTE" data-trigger="manual" data-toggle="popover" data-placement="left" data-html="true" type="button" class="btn btn-warning pop medida"
        data-content="{{$popup(1)}}">
         <i class="fa fa-fw fa-life-ring"></i>
       </button>
-      <button data-js-enabled="Validar" data-js-boton-medida data-medida="2" class="btn btn-warning pop medida" title="AJUSTE" data-trigger="manual" data-toggle="popover" data-placement="left" data-html="true" type="button" class="btn btn-warning pop medida"
+      <button data-js-enabled="Validar" data-js-boton-medida="2" class="btn btn-warning pop medida" title="AJUSTE" data-trigger="manual" data-toggle="popover" data-placement="left" data-html="true" type="button" class="btn btn-warning pop medida"
        data-content="{{$popup(2)}}">
         <i class="fas fa-dollar-sign"></i>
       </button>
@@ -216,9 +216,9 @@
       </select>
     </td>
     <td data-js-modo="Validar">
-      <button data-js-enabled="Validar" data-js-estadisticas-no-toma class="btn btn-success acciones_validacion" type="button">
+      <a href="/relevamientos/estadisticas_no_toma" target="_blank" data-js-enabled="Validar" data-js-estadisticas-no-toma class="btn btn-success acciones_validacion" type="button">
         <i class="fas fa-fw fa-external-link-square-alt"></i>
-      </button>
+      </a>
     </td>
   </tr>
 </table>

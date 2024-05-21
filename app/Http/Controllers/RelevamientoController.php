@@ -162,7 +162,9 @@ class RelevamientoController extends Controller
       else{
         $posicion->formula = null;
       }
-
+      
+      if(is_null($det->maquina)) continue;
+      
       $posicion->unidad_medida = $det->maquina->unidad_medida;
       $posicion->denominacion = $det->maquina->denominacion;
       $posicion->producido = $det->producido_importado;

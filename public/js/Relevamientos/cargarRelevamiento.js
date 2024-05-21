@@ -14,8 +14,6 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       const fila = $M('[ data-js-molde-tabla-relevamiento]').clone().removeAttr('data-js-molde-tabla-relevamiento')
       .attr('data-medida', d.unidad_medida.id_unidad_medida)//Unidad de medida: 1-Crédito, 2-Pesos 
       .attr('data-denominacion', d.denominacion)//Denominación: para créditos
-      .attr('data-id-maquina',d.detalle.id_maquina)
-      .attr('data-id-detalle-relevamiento',d.detalle.id_detalle_relevamiento);
       
       fila.find('[data-js-detalle-asignar-name]').each(function(idx,obj){
         const name = $(obj).attr('data-js-detalle-asignar-name');
@@ -42,34 +40,26 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       fila.find(dname_f('id_tipo_causa_no_toma')).val(d.tipo_causa_no_toma ?? '');
       fila.find(dname_f('denominacion')).val(d.unidad_medida.id_unidad_medida == 1? d.denominacion : 1);
             
-      fila.find('[data-js-boton-medida]')
-      .filter(`[data-medida!=${d.unidad_medida.id_unidad_medida}]`).remove();
+      fila.find('[data-js-boton-medida]').filter(`[data-js-boton-medida!="${d.unidad_medida.id_unidad_medida}"]`).remove();
+      fila.find('[data-js-estadisticas-no-toma]').attr('href',fila.find('[data-js-estadisticas-no-toma]').attr('href')+'/'+d.detalle.id_maquina);
       
-      fila.find('.estadisticas_no_toma').attr('data-maquina',d.detalle.id_maquina);//@TODO
+      const diferencia = Math.abs((d.detalle.producido_calculado_relevado - d.producido).toFixed(2));
+      fila.find(dname_f('diferencia')).val(diferencia);
       
       if(modo == 'Validar'){
-        const tipo_causa_no_toma = d.tipo_causa_no_toma;
-        const diferencia = d.detalle.diferencia;
-        const mostrar_botones = tipo_causa_no_toma != null || diferencia == null || (diferencia != 0 && ( diferencia%1000000 != 0));
-        
+        const mostrar_botones = d.tipo_causa_no_toma == null && diferencia != 0 && (diferencia%1000000) != 0;
         if(!mostrar_botones){
           fila.find('[data-js-boton-medida],[data-js-estadisticas-no-toma]').replaceWith('&nbsp;');
         }
       
         fila.find('input').each(function(){$(this).attr('title',$(this).val());});
           
-        if (tipo_causa_no_toma != null) {
+        if (d.tipo_causa_no_toma != null) {
           fila.find(dname_f('id_tipo_causa_no_toma')).css('border','2px solid #1E90FF').css('color','#1E90FF');
         }
-        
-        const diff = Math.abs((d.detalle.producido_calculado_relevado - d.producido).toFixed(2));
-        fila.find(dname_f('diferencia')).val(diff);
       }
       
-      if(modo == 'Ver'){
-        const diff = Math.abs((d.detalle.producido_calculado_relevado - d.producido).toFixed(2));
-        fila.find(dname_f('diferencia')).val(diff);
-        
+      if(modo == 'Ver'){        
         fila.find('input').each(function(idx,obj){
           const val = $(obj).val().length == 0? '--' : $(obj).val();
           $(obj).replaceWith(val);
@@ -101,10 +91,6 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       html:true
     });
     
-    tabla.find('[data-js-estadisticas-no-toma]').click(function (){
-      window.open('/relevamientos/estadisticas_no_toma/'+$(this).closest('tr').attr('data-id-maquina'),'_blank');
-    });
-
     //Muestra los iconos correctos
     tabla.find('[data-js-cambio-tipo-causa-no-toma]').trigger('change');
     tabla.find('[data-js-cambio-contador="1"]').trigger('input');
@@ -381,7 +367,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     
     AUX.POST('relevamientos/modificarDenominacionYUnidad',
       {
-        id_detalle_relevamiento: fila.attr('data-id-detalle-relevamiento'),
+        id_detalle_relevamiento: fila.find(dname_f('id_detalle_relevamiento')).val(),
         id_unidad_medida: id_unidad_medida,
         denominacion: deno,
       },
