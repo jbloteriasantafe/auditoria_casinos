@@ -13,6 +13,7 @@ use PDF;
 use Dompdf\Dompdf;
 use View;
 use App\Maquina;
+use App\Formula;
 use App\MaquinaAPedido;
 use App\Isla;
 use App\EstadoRelevamiento;
@@ -98,22 +99,56 @@ class RelevamientoController extends Controller
 
     return $errores;
   }
+  
+  private function find_columns($table,$count_str){
+    $arr   = \Schema::getColumnListing($table);
+    $regex = '/^'.$count_str.'\d+$/';
+    return collect($arr)->filter(function($s) use ($regex){
+      return preg_match($regex,$s);
+    })->keyBy(function($s) use ($count_str){
+      return intval(substr($s,strlen($count_str)));
+    })->sortBy(function($s,$k){
+      return $k;
+    });
+  }
+  
+  private function contadores(){
+    return $this->find_columns((new DetalleRelevamiento)->getTableName(),'cont');
+  }
+  private function contadores_formula(){
+    return $this->find_columns((new Formula)->getTableName(),'cont');
+  }
+  private function operadores_formula(){
+    return $this->find_columns((new Formula)->getTableName(),'operador');
+  }
+  
+  public function __construct(){
+    $CONTADORES = $this->contadores();
+    $CONTADORES_F = $this->contadores_formula();
+    $OPERADORES_F = $this->operadores_formula();
+    assert(count($CONTADORES) == count($CONTADORES_F));
+    assert(count($CONTADORES) == (count($OPERADORES_F)-1));
+    for($k=1;$k<=count($CONTADORES);$k++){
+      assert($CONTADORES->has($k));
+      assert($CONTADORES_F->has($k));
+      if($k != count($CONTADORES)){
+        assert($OPERADORES_f->has($k));
+      }
+    }
+  }
 
   public function buscarTodo(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     $estados = EstadoRelevamiento::all();
 
     UsuarioController::getInstancia()->agregarSeccionReciente('Relevamiento Contadores', 'relevamientos');
-    
+        
     return view('Relevamientos/index', [
       'casinos' => $usuario->casinos ,
       'estados' => $estados ,
       'tipos_cantidad' => TipoCantidadMaquinasPorRelevamiento::all(),
       'tipos_causa_no_toma' => TipoCausaNoToma::all(),
-      'CONTADORES' => collect(\Schema::getColumnListing((new DetalleRelevamiento)->getTableName()))
-      ->filter(function($s){
-        return preg_match('/^cont\d+$/',$s);
-      })->count(),
+      'CONTADORES' => $this->contadores()->count(),
       'TRUNCAMIENTO' => ProducidoController::getInstancia()->truncamiento()
     ]);
   }
@@ -153,46 +188,39 @@ class RelevamientoController extends Controller
   }
   // obtenerRelevamiento
   public function obtenerRelevamiento($id_relevamiento){
-    $usuario_actual = UsuarioController::getInstancia()->quienSoy();
+    $usuario_actual = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $relevamiento = Relevamiento::find($id_relevamiento);
-
-    $detalles = Array();
-    foreach($relevamiento->detalles as $det){//POR CADA MAQUINA EN EL DETALLE BUSCO FORMULA Y UNIDAD DE MEDIDA , Y CALCULO PRODUCIDO
-
-      $posicion = new \stdClass();
-
-      $posicion->detalle = $det;
-
-      if($det->maquina != null){
-        $posicion->formula = $det->maquina->formula;
-      }
-      else{
-        $posicion->formula = null;
-      }
-      
-      if(is_null($det->maquina)) continue;
-      
-      $posicion->unidad_medida = $det->maquina->unidad_medida;
-      $posicion->denominacion = $det->maquina->denominacion;
-      $posicion->producido = $det->producido_importado;
-
-      $posicion->maquina = $det->maquina->nro_admin;
-      if($det->tipo_causa_no_toma != null){
-        $posicion->tipo_causa_no_toma = $det->tipo_causa_no_toma->id_tipo_causa_no_toma;
-      }else{
-        $posicion->tipo_causa_no_toma = null;
-      }
-      $detalles[] = $posicion;
+    
+    if(!$usuario_actual->casinos->pluck('id_casino')->contains($relevamiento->sector->id_casino)){
+      return [];
     }
+    
+    $detalles = $relevamiento->detalles->map(function($det){//POR CADA MAQUINA EN EL DETALLE BUSCO FORMULA Y UNIDAD DE MEDIDA , Y CALCULO PRODUCIDO
+      $d = new \stdClass();
+      $d->detalle = $det;
+      
+      $m = $det->maquina()->withTrashed()->first();
+      if(is_null($m)) return null;
+      
+      $d->formula       = $m->formula;
+      $d->unidad_medida = $m->unidad_medida;
+      $d->denominacion  = $m->denominacion;
+      $d->maquina       = $m->nro_admin;
+      $d->producido     = $det->producido_importado;
+      $d->tipo_causa_no_toma = is_null($det->tipo_causa_no_toma)? null : $det->tipo_causa_no_toma->id_tipo_causa_no_toma;
+      return $d;
+    })->filter(function($det){return !is_null($det);});
 
-    return ['relevamiento' => $relevamiento,
-            'casino' => $relevamiento->sector->casino->nombre,
-            'id_casino' => $relevamiento->sector->casino->id_casino,
-            'sector' => $relevamiento->sector->descripcion,
-            'detalles' => $detalles,
-            'usuario_cargador' => $relevamiento->usuario_cargador,
-            'usuario_fiscalizador' => $relevamiento->usuario_fiscalizador,
-            'usuario_actual' => $usuario_actual];
+    return [
+      'relevamiento' => $relevamiento,
+      'casino' => $relevamiento->sector->casino->nombre,
+      'id_casino' => $relevamiento->sector->casino->id_casino,
+      'sector' => $relevamiento->sector->descripcion,
+      'detalles' => $detalles,
+      'usuario_cargador' => $relevamiento->usuario_cargador,
+      'usuario_fiscalizador' => $relevamiento->usuario_fiscalizador,
+      'usuario_actual' => $usuario_actual
+    ];
   }
 
   // existeRelevamiento retorna una bandera indicando si existe relevamiento que no se a backup
@@ -317,7 +345,7 @@ class RelevamientoController extends Controller
           $detalle = new DetalleRelevamiento;
           $detalle->id_maquina = $maq->id_maquina;
           $detalle->id_relevamiento = $relevamientos->id_relevamiento;
-          $detalle->producido_importado = $this->calcularProducido($fecha_hoy,$id_casino,$maq->id_maquina);
+          $detalle->producido_importado = $this->calcularProducidoImportado($fecha_hoy,$maq);
           $detalle->save();
         }
 
@@ -354,7 +382,7 @@ class RelevamientoController extends Controller
             $detalle = new DetalleRelevamiento;
             $detalle->id_maquina = $maq->id_maquina;
             $detalle->id_relevamiento = $relevamiento->id_relevamiento;
-            $detalle->producido_importado = $this->calcularProducido($fecha_hoy,$id_casino,$maq->id_maquina);
+            $detalle->producido_importado = $this->calcularProducidoImportado($fecha_hoy,$maq);
             $detalle->save();
           }
           $arregloRutas[] = $this->guardarPlanilla($relevamiento->id_relevamiento);
@@ -438,7 +466,6 @@ class RelevamientoController extends Controller
   }
 
   public function descargarZip($nombre){
-
     $file = public_path() . "/" . $nombre;
     $headers = array('Content-Type' => 'application/octet-stream',);
 
@@ -465,73 +492,66 @@ class RelevamientoController extends Controller
         'detalles.*.cont7' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
         'detalles.*.cont8' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
         'detalles.*.id_tipo_causa_no_toma' => 'nullable|exists:tipo_causa_no_toma,id_tipo_causa_no_toma',
-        'detalles.*.producido_calculado' => ['required','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
+        'detalles.*.producido_calculado_relevado' => ['required','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
         'detalles.*.id_unidad_medida' => 'required|exists:unidad_medida,id_unidad_medida',
     ], array(), self::$atributos)->after(function($validator){
       if($validator->errors()->any()) return;
       //@TODO validar casinos
     })->validate();
-        
-    $request->detalles != 0 ? $detalles = $request->detalles : $detalles = array();
-    $relevamiento = Relevamiento::find($request->id_relevamiento);
-    if($request->id_usuario_fiscalizador != null){
-      $relevamiento->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador);
-    }else {
-      $relevamiento->usuario_fiscalizador()->dissociate();
-    }
-    if($relevamiento->id_usuario_cargador == null){
-      $relevamiento->usuario_cargador()->associate(UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']->id_usuario);
-    }
-    if($request->estado == 2){
-      $relevamiento->estado_relevamiento()->associate(2);
-    }else if($request->estado == 3){
-      $relevamiento->estado_relevamiento()->associate(3);
-      // si cierra el relevamiento (estado == 3) me fijo en la bd y elimino todos los backup que habia para esa fecha
-      $this->eliminarRelevamientosBackUp($relevamiento);
-    }
-
-    $cantidad_habilitadas = $this->calcularMTMsHabilitadas($relevamiento->sector->id_casino);
-    $sin_isla = $this->calcular_sin_isla($relevamiento->sector->id_casino);
-
-    $relevamiento->fecha_ejecucion = $request->hora_ejecucion;
-    $relevamiento->fecha_carga = date('Y-m-d h:i:s', time());
-    $relevamiento->tecnico = $request->tecnico;
-    $relevamiento->observacion_carga = $request->observacion_carga;
-    $relevamiento->truncadas = $request->truncadas;
-    $relevamiento->mtms_habilitadas_hoy = $cantidad_habilitadas;
-    $relevamiento->mtms_sin_isla = $sin_isla;
-    $relevamiento->save();
-
-    foreach($detalles as $det){
-      $detalle = DetalleRelevamiento::find($det['id_detalle_relevamiento']);
-      $detalle->cont1 = $det['cont1'];
-      $detalle->cont2 = $det['cont2'];
-      $detalle->cont3 = $det['cont3'];
-      $detalle->cont4 = $det['cont4'];
-      $detalle->cont5 = $det['cont5'];
-      $detalle->cont6 = $det['cont6'];
-      $detalle->cont7 = $det['cont7'];
-      $detalle->cont8 = $det['cont8'];
-      $detalle->id_tipo_causa_no_toma = $det['id_tipo_causa_no_toma'];
-      $detalle->producido_calculado_relevado = $det['producido_calculado'];
-
-      if($detalle->producido_importado != null && $detalle->producido_calculado != null){
-        $detalle->diferencia = $detalle->producido_calculado - $detalle->producido_importado;
+    
+    return DB::transaction(function() use ($request){
+      $request->detalles != 0 ? $detalles = $request->detalles : $detalles = array();
+      $relevamiento = Relevamiento::find($request->id_relevamiento);
+      if($request->id_usuario_fiscalizador != null){
+        $relevamiento->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador);
+      }else {
+        $relevamiento->usuario_fiscalizador()->dissociate();
+      }
+      if($relevamiento->id_usuario_cargador == null){
+        $relevamiento->usuario_cargador()->associate(UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario);
+      }
+      if($request->estado == 2){
+        $relevamiento->estado_relevamiento()->associate(2);
+      }else if($request->estado == 3){
+        $relevamiento->estado_relevamiento()->associate(3);
+        // si cierra el relevamiento (estado == 3) me fijo en la bd y elimino todos los backup que habia para esa fecha
+        $this->eliminarRelevamientosBackUp($relevamiento);
       }
 
-      $detalle->id_unidad_medida = $det['id_unidad_medida'];
-      $detalle->denominacion = $det['denominacion'];
-      $detalle->save();
-    }
+      $cantidad_habilitadas = $this->calcularMTMsHabilitadas($relevamiento->sector->id_casino);
+      $sin_isla = $this->calcular_sin_isla($relevamiento->sector->id_casino);
 
-    return ['relevamiento' => $relevamiento,
-            'casino' => $relevamiento->sector->casino->nombre,
-            'sector' => $relevamiento->sector->descripcion,
-            'estado' => $relevamiento->estado_relevamiento->descripcion,
-            'detalles' => $relevamiento->detalles ,
-            'esAdministrador' => AuthenticationController::getInstancia()->usuarioTienePermiso(session('id_usuario'),'relevamiento_validar')];
+      $relevamiento->fecha_ejecucion = $request->hora_ejecucion;
+      $relevamiento->fecha_carga = date('Y-m-d h:i:s', time());
+      $relevamiento->tecnico = $request->tecnico;
+      $relevamiento->observacion_carga = $request->observacion_carga;
+      $relevamiento->truncadas = $request->truncadas;
+      $relevamiento->mtms_habilitadas_hoy = $cantidad_habilitadas;
+      $relevamiento->mtms_sin_isla = $sin_isla;
+      $relevamiento->save();
+
+      $CONTADORES = $this->contadores();
+      foreach($detalles as $det){
+        $detalle = DetalleRelevamiento::find($det['id_detalle_relevamiento']);
+        foreach($CONTADORES as $c){
+          $detalle->{$c} = $det[$c];
+        }
+        $detalle->id_tipo_causa_no_toma = $det['id_tipo_causa_no_toma'];
+        $detalle->producido_calculado_relevado = $det['producido_calculado_relevado'];
+
+        if($detalle->producido_importado != null && $detalle->producido_calculado_relevado != null){
+          $detalle->diferencia = $detalle->producido_calculado_relevado - $detalle->producido_importado;
+        }
+
+        $detalle->id_unidad_medida = $det['id_unidad_medida'];
+        $detalle->denominacion = $det['denominacion'];
+        $detalle->save();
+      }
+
+      return 1;
+    });
   }
-
+  
   // eliminarRelevamientosBackUp funcion de utilidad, borra los relevamientos backup, se la llama
   // cuando se cierra el relevamiento
   private function eliminarRelevamientosBackUp($relevamiento){
@@ -630,68 +650,6 @@ class RelevamientoController extends Controller
             'detalles' => $relevamiento->detalles];
   }
 
-  // obtenerRelevamientoVisado
-  public function obtenerRelevamientoVisado($id_relevamiento){
-
-    $relevamiento = Relevamiento::find($id_relevamiento);
-
-    ///controlo que todos esten visados para habilitar el informe
-    $casino = $relevamiento->sector->casino;
-    foreach($casino->sectores as $sector){
-      $sectores[] = $sector->id_sector;
-    }
-    $detalles = array();
-    foreach ($relevamiento->detalles as $det) {
-      $mtm_a_pedido = $this->chequearMTMpedida($det->id_maquina, $relevamiento->id_relevamiento);
-
-      $mtmm = Maquina::find($det->id_maquina);
-      if($mtm_a_pedido != null){
-        if(!empty($det->tipo_causa_no_toma)){
-          $cosix = $det->tipo_causa_no_toma->descripcion;
-        }else{
-          $cosix = '';
-        }
-        $detalles[] = ['detalle' => $det,
-                       'nro_admin' => $mtmm->nro_admin,
-                       'mtm_a_pedido' => $mtm_a_pedido,
-                       'denominacion' => $det->denominacion,
-                       'tipo_no_toma' => $cosix,
-                       'producido_importado' => $det->producido_importado,
-                       'diferencia' => $det->diferencia,
-                     ];
-      }else{
-        if(isset($det->producido_importado)){
-          $importt = $det->producido_importado;
-        }else {
-          $importt = null;
-        }
-        if(!empty($det->tipo_causa_no_toma)){
-          $tc = $det->tipo_causa_no_toma->descripcion;
-        }else {
-          $tc = null;
-        }
-        $detalles[] = ['detalle' => $det,
-                       'nro_admin' => $mtmm->nro_admin,
-                       'mtm_a_pedido' => null,
-                       'denominacion' => $det->id_unidad_medida == 1? $det->denominacion : '-',
-                       'tipo_no_toma' => $tc,
-                       'producido_importado' => $importt,
-                       'diferencia' => $det->diferencia,];
-      }
-    }
-
-
-    //buscar mtm que fueron pedidas
-
-    return ['relevamiento' => $relevamiento,
-            'detalles' => $detalles,
-            'casino' => $relevamiento->sector->casino->nombre,
-            'sector' => $relevamiento->sector->descripcion,
-            'estado' => $relevamiento->estado_relevamiento->descripcion,
-            'fiscalizador' => $relevamiento->usuario_fiscalizador->user_name,
-            'cargador' => $relevamiento->usuario_cargador->user_name,
-            ];
-  }
 
   private function chequearMTMpedida($id_mtm, $id_relevamiento){
     return  MaquinaAPedido::where([['id_relevamiento','=', $id_relevamiento],
@@ -899,7 +857,7 @@ class RelevamientoController extends Controller
                   $no_tomadas++;
               }else{
                 // se tomo, pero da diferencia, en este punto se evalua si es truncada
-                if(fmod($diferencia,$this->truncamiento()) == 0){//@HACK?: ver ProducidoController::probarAjusteAutomatico
+                if(fmod($diferencia,ProducidoController::getInstancia()->truncamiento()) == 0){//@HACK?: ver ProducidoController::probarAjusteAutomatico
                   $det->no_toma = 'TRUNCAMIENTO';
                   $truncadas++;
                 }else{
@@ -1053,7 +1011,7 @@ class RelevamientoController extends Controller
     $fecha = $rel_backup->fecha;
     $id_casino = $rel_backup->sector->casino->id_casino;
     foreach($rel_backup->detalles as $detalle){
-      $detalle->producido_importado = $this->calcularProducido($fecha,$id_casino,$detalle->id_maquina);
+      $detalle->producido_importado = $this->calcularProducidoImportado($fecha,$detalle->maquina()->withTrashed()->first());
       $detalle->save();
     }
     $rel_backup->backup = 0;
@@ -1457,197 +1415,165 @@ class RelevamientoController extends Controller
 
   public function modificarDenominacionYUnidad(Request $request){
     Validator::make($request->all(),[
-        'id_detalle_relevamiento' => 'required|exists:detalle_relevamiento,id_detalle_relevamiento',
-        'denominacidon' => ['nullable','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
-        'id_unidad_medida' => 'required|exists:unidad_medida,id_unidad_medida'
-    ], array(), self::$atributos)->after(function($validator){
-
-    })->validate();
-
-    $detalle_relevamiento = DetalleRelevamiento::find($request->id_detalle_relevamiento);
-    $maquina = MTMController::getInstancia()->modificarDenominacionYUnidad($request->id_unidad_medida ,$request->denominacion , $detalle_relevamiento->id_maquina);
-    $fecha = $detalle_relevamiento->relevamiento->fecha;
-    $id_maquina = $maquina->id_maquina;
-
-    $detalles = DetalleRelevamiento::join('relevamiento','detalle_relevamiento.id_relevamiento','=','relevamiento.id_relevamiento')->where([['relevamiento.fecha' , '>=' , $fecha] , ['detalle_relevamiento.id_maquina' , '=' , $id_maquina]])->whereNotNull('detalle_relevamiento.producido_calculado_relevado')->get();
-
-    $formula = $maquina->formula;
-
-    if($maquina->id_unidad_medida == 1){
-
-      foreach ($detalles  as $un_detalle) {
-          $calculado = $this->calcularDiferencia($un_detalle, $formula);
-          $un_detalle->producido_calculado_relevado = round($calculado*$maquina->denominacion , 2);
-          $un_detalle->id_unidad_medida = 1;//guardo con que unidad de medida hice elcalculo para ese detalle, porque puede cambiar
-          $un_detalle->save();
-      }
-    }else{
-      foreach ($detalles  as $un_detalle) {
-          $un_detalle->producido_calculado_relevado = $this->calcularDiferencia($un_detalle, $formula);
-          $un_detalle->id_unidad_medida = 2;
-          $un_detalle->save();
-      }
-
-    }
-
-    $detalle_relevamiento = DetalleRelevamiento::find($request->id_detalle_relevamiento);//re busco para obtener valor actualizado
-
-    return ['producido_calculado_relevado' => $detalle_relevamiento->producido_calculado_relevado];
-
+      'id_detalle_relevamiento' => 'required|exists:detalle_relevamiento,id_detalle_relevamiento',
+      'denominacion' => ['nullable','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
+      'id_unidad_medida' => 'required|exists:unidad_medida,id_unidad_medida'
+    ], array(), self::$atributos)->after(function($validator){})->validate();
+    
+    return DB::transaction(function() use ($request){
+      $d = DetalleRelevamiento::find($request->id_detalle_relevamiento);
+      $m = MTMController::getInstancia()->modificarDenominacionYUnidad($request->id_unidad_medida,$request->denominacion,$d->id_maquina);
+      
+      $d->producido_calculado_relevado = $this->calcularProducidoRelevado_detalle($d,$d->toArray());
+      $d->id_unidad_medida = $m->id_unidad_medida;//guardo con que unidad de medida hice elcalculo para ese detalle, porque puede cambiar
+      $d->diferencia = $d->producido_calculado_relevado - $d->producido_importado;
+      $d->save();
+      
+      return ['producido_calculado_relevado' => $d->producido_calculado_relevado];
+    });
   }
+  
+  private function calcularProducidoRelevado_array(array $contadores,array $signos,float $denominacion){
+    $producido = 0.0;
+    $size = min(count($contadores),count($signos));
+    for($idx = 0;$idx<$size;$idx++){
+      $c = $contadores[$idx];
+      $s = $signos[$idx];
+      $sign = 0;
+      if     ($s == '+'){ $sign =  1; }
+      else if($s == '-'){ $sign = -1; }
+      $producido += $sign*$c;
+    }
+    return round($producido*$denominacion,2);
+  }
+  
+  private function calcularProducidoRelevado_detalle($d,$conts){
+    $conts_arr = [];
+    foreach($this->contadores() as $cidx => $c){
+      $conts_arr[] = empty($conts[$c])? 0.0 : floatval($conts[$c]);//Redondeo?
+    }
+    $ops_arr = ['+'];
+    $m = $d->maquina()->withTrashed()->first();
+    $formula = $m->formula;
+    foreach($this->operadores_formula() as $oidx => $o){
+      $ops_arr[] = $formula->{$o} ?? null;
+    }
+    
+    /*
+      c1  c2  c3  c4  c5  c6  c7  c8
+     /    /   /   /   /   /   /   /
+    +    o1  o2  o3  o4  o5  o6  o7
+    Si o_n es nulo -> + y c_n+1 = 0
+    */
 
-  public function calcularDiferencia($detalle_relevamiento, $formula){ //aplica formula a contadores relevados, ya sean creidots o pesos, esta tranformacion deberia hacerse despues del calculo
-    $arreglo = array();
-    $i = 1;
-    $calculado = $detalle_relevamiento->cont1;
-    while($i <=  8) {
-      if($formula['operador' . $i] != null){
-        switch ($formula['operador'.$i]) {
-          case '-':
-            if($detalle_relevamiento['cont' . ($i + 1)] != null){
-              $contador = $detalle_relevamiento['cont' . ($i + 1)];
-            }else {
-              $contador=0;
-            }
-            $calculado = $calculado - $contador;
-            break;
-          case '+':
-            if($detalle_relevamiento['cont' . ($i + 1)] != null){
-              $contador = $detalle_relevamiento['cont' . ($i + 1)];
-            }else {
-              $contador=0;
-            }
-            $calculado = $calculado + $contador;
-            break;
-          default:
-            break;
-        }
-        $i++;
-      }else{
-        $i=10;
+    foreach($ops_arr as $oidx => $o){
+      if(empty($o)){
+        $ops_arr[$oidx]    = '+';
+        $cont_arr[$oidx+1] = 0;//No necesito verificar limites porque ya esta assert() en el constructor
       }
     }
-
-    return $calculado;
+    
+    $deno = $m->id_unidad_medida == 2? 1.0 : floatval($m->denominacion);
+    return $this->calcularProducidoRelevado_array($conts_arr, $ops_arr, $deno);
+  }
+  
+  public function calcularProducidoRelevado(Request $request){
+    $validation_arr = [
+      'detalles.*.id_detalle_relevamiento' => 'required|exists:detalle_relevamiento,id_detalle_relevamiento',
+    ];
+    foreach($this->contadores() as $cidx => $c){
+      $validation_arr["detalles.*.$c"] = ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'];
+    }
+    
+    $detalles = collect([]);
+    Validator::make($request->all(),$validation_arr, array(), self::$atributos)->after(function($validator) use (&$detalles){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      $detalles = DetalleRelevamiento::whereIn(
+        'id_detalle_relevamiento',
+        array_map(function($d){return $d['id_detalle_relevamiento'];},$data['detalles'] ?? [])
+      )->get();
+      
+      $id_relevamiento = null;
+      foreach($detalles as $d){
+        if($d->id_relevamiento != $id_relevamiento && !is_null($id_relevamiento)){
+          return $validator->errors()->add('id_relevamiento','No coinciden los detalles');
+        }
+        $id_relevamiento = $d->id_relevamiento;
+      }
+      
+      if(!is_null($id_relevamiento)){
+        $r = Relevamiento::find($id_relevamiento);
+        $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
+        $id_casino = $r->sector()->withTrashed()->first()->casino->id_casino;
+        if(!$u->casinos->pluck('id_casino')->contains($id_casino)){
+          return $validator->errors()->add('id_relevamiento','No puede acceder a ese relevamiento');
+        }
+      }
+    })->validate();
+    
+    return DB::transaction(function() use ($request,$detalles){
+      $ret = [];
+      $recibido = collect($request['detalles'])->keyBy('id_detalle_relevamiento');
+      foreach($detalles as $d){
+        $conts = $recibido[$d->id_detalle_relevamiento];
+        $ret[$d->id_detalle_relevamiento] = $this->calcularProducidoRelevado_detalle($d,$conts);
+      }
+      return $ret;
+    });
+  }
+  
+  public function calcularProducidoImportado($fecha,$maquina){
+    if($fecha == null || $maquina == null){
+      return null;
+    }
+    return ProducidoController::getInstancia()->calcularProducidoAcumulado($fecha,$maquina);
   }
 
   public function estaRelevadoMaquina($fecha,$id_maquina){
-    //OBTENGO EL ESTADO DE RELEVAMIENTO DE UNA MAQUINA
     //si tiene un detalle relevamiento para cierta fecha es porque salio sorteado
-    $detalles = DetalleRelevamiento::join('relevamiento' , 'detalle_relevamiento.id_relevamiento' , '=' , 'relevamiento.id_relevamiento')
-                     ->where([['detalle_relevamiento.id_maquina', $id_maquina],['relevamiento.fecha', $fecha]])
-                     ->get();
-    if($detalles->count() == 1){
-          $validado = $detalles[0]->relevamiento->estado_relevamiento->descripcion == "Validado";
-          $relevado = in_array($detalles[0]->relevamiento->estado_relevamiento->descripcion , array('Validado','Finalizado')) ;//in_array es sensible a mayus y min
-          $detalle = $detalles[0];
-    }else {
-            $validado = 0;
-            $relevado = 0;
-            $detalle= null;
+    $detalle = DetalleRelevamiento::join('relevamiento' , 'detalle_relevamiento.id_relevamiento' , '=' , 'relevamiento.id_relevamiento')
+     ->where([['detalle_relevamiento.id_maquina', $id_maquina],['relevamiento.fecha', $fecha]])
+     ->first();
+    
+    $validado = 0;//La función originalmente retornaba ints, por eso lo mantengo asi
+    $relevado = 0;
+    if(!is_null($detalle)){
+      $estado_relevamiento = $detalle->relevamiento->estado_relevamiento->descripcion;
+      $validado   += $estado_relevamiento == "Validado";
+      $finalizado  = $estado_relevamiento == 'Finalizado';
+      $relevado   += $validado || $finalizado;
     }
 
-    return ['relevado' => $relevado, 'validado' => $validado, 'detalle' => $detalle];
-  }
-
-  public function agregarTresPuntosFormula($formula){ // abrevia los nombres de las formulas para que se vean mejor en la planilla
-    $formula_nueva = new \stdClass();
-    $formula_nueva->cont1  =  strlen($formula->cont1) > 33 ? substr($formula->cont1,0, 33) . '...' :  $formula->cont1;
-    $formula_nueva->cont2  = strlen($formula->cont2) > 33 ? substr($formula->cont2,0, 33) . '...' :  $formula->cont2;
-    $formula_nueva->cont3  = strlen($formula->cont3) > 33 ? substr($formula->cont3,0, 33) . '...' :  $formula->cont3;
-    $formula_nueva->cont4  = strlen($formula->cont4) > 33 ? substr($formula->cont4,0, 33) . '...' :  $formula->cont4;
-    $formula_nueva->cont5  = strlen($formula->cont5) > 33 ? substr($formula->cont5,0, 33) . '...' :  $formula->cont5;
-    $formula_nueva->cont6  = strlen($formula->cont6) > 33 ? substr($formula->cont6,0, 33) . '...' :  $formula->cont6;
-    return $formula_nueva;
+    return compact('relevado','validado','detalle');
   }
 
   public function existeRelVisado($fecha, $id_casino){
-
-    $relevamientoVisado=Relevamiento::join('sector' , 'sector.id_sector' , '=' , 'relevamiento.id_sector')
+    return Relevamiento::join('sector' , 'sector.id_sector' , '=' , 'relevamiento.id_sector')
     ->where([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ,['id_estado_relevamiento','=',4]])
     ->orwhere([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ,['id_estado_relevamiento','=',7]])
-    ->get();
-
-    if(count($relevamientoVisado)>0){
-      return true;
-
-    }
-    return false;
+    ->count() > 0;
   }
 
-  public function calcularProducido($fecha,$id_casino,$id_maquina){
-    if($fecha == null || $id_casino == null || $id_maquina == null){
-      return null;
-    }
-
-    $contador_horario_ARS = ContadorHorario::where([['fecha','=',$fecha],
-                                                    ['id_casino','=',$id_casino],
-                                                    ['id_tipo_moneda','=',1]
-                                                    ])->first();
-
-    $contador_horario_USD = ContadorHorario::where([['fecha','=',$fecha],
-                                                  ['id_casino','=',$id_casino],
-                                                  ['id_tipo_moneda','=',2]
-                                                  ])->first();
-
-    $detalle_contador_horario = null;
-
-    if($contador_horario_ARS != null){
-        $detalle_contador_horario = DetalleContadorHorario::where([
-          ['id_contador_horario','=',$contador_horario_ARS->id_contador_horario],
-          ['id_maquina','=',$id_maquina]])->first();
-    }
-
-    if($detalle_contador_horario == null && $contador_horario_USD != null ){
-      $detalle_contador_horario = DetalleContadorHorario::where([
-        ['id_contador_horario','=',$contador_horario_USD->id_contador_horario],
-        ['id_maquina','=',$id_maquina]])->first();
-    }
-
-    $producido = null;
-
-    if($detalle_contador_horario != null){
-      $producido = $detalle_contador_horario->coinin
-      - $detalle_contador_horario->coinout
-      - $detalle_contador_horario->jackpot
-      - $detalle_contador_horario->progresivo;
-    }
-
-    return $producido;
-  }
-
-  private function datosMaquinasCasino($id_casino = null){
-    $query =
-    "select maq.id_maquina as id_maquina,
-            maq.nro_admin as nro_admin,
-            maq.id_casino as id_casino,
-            cas.codigo as codigo
+  public function buscarMaquinasPorCasino(Request $request,$id_casino){
+    if($id_casino === null) return [];
+    
+    $query = 
+    "select maq.id_maquina as id_maquina, maq.nro_admin as nro_admin, maq.id_casino as id_casino, cas.codigo as codigo
     from maquina as maq
     join casino cas on (maq.id_casino = cas.id_casino)
     where maq.deleted_at is NULL";
-
-    $parametros = array();
-    if($id_casino != null){
-      $query = $query . " and cas.id_casino = :id_casino";
-      $parametros['id_casino'] = $id_casino;
-    }
-    return DB::select(DB::raw($query),$parametros);
-  }
-
-
-  public function buscarMaquinasPorCasino(Request $request,$id_casino){
-    if($id_casino === null) return array();
+    
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     if($id_casino == 0){
-      if($user->es_superusuario) return $this->datosMaquinasCasino();
-      else return array();
+      if($user->es_superusuario) return DB::select(DB::raw($query),[]);
+      else return [];
     }
 
-    $casino = Casino::find($id_casino);
-    if($casino === null || !$user->usuarioTieneCasino($id_casino)){
-        return array();
+    if(!$user->usuarioTieneCasino($id_casino) || is_null(Casino::find($id_casino))){
+      return [];
     }
-
-    return $this->datosMaquinasCasino($casino->id_casino);
+    
+    return DB::select(DB::raw($query),['id_casino' => $id_casino]);
   }
 }

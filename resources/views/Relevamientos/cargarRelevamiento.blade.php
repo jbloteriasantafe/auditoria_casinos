@@ -4,6 +4,10 @@
     text-align: center;
   }
 </style>
+<script>
+  const CONTADORES   = {{$CONTADORES}};
+  const TRUNCAMIENTO = {{$TRUNCAMIENTO}};
+</script>
 @endcomponent
   
 @component('Components/modal',[
@@ -81,7 +85,7 @@
             @endfor
             <th data-js-modo="Ver,Validar">P. CALCULADO ($)</th>
             <th data-js-modo="Ver,Validar">P. IMPORTADO ($)</th>
-            <th data-js-modo="Ver,Validar">DIF</th>
+            <th data-js-modo="Ver,Validar">DIFERENCIA</th>
             <th data-js-modo="Cargar,Validar">&nbsp;</th>{{-- Estado --}}
             <th data-js-modo="Ver,Cargar,Validar">CAUSA NO TOMA</th>
             <th data-js-modo="Ver,Validar">DEN</th>
@@ -143,7 +147,7 @@
     </td>
     @endfor
     <td style="text-align: right;" data-js-modo="Ver,Validar">
-      <input data-js-readonly="Validar" data-js-detalle-asignar-name="producido_calculado" class="producidoCalculado form-control" style="text-align: right; border: 2px solid rgb(109, 199, 190); color: rgb(109, 199, 190);">
+      <input data-js-readonly="Validar" data-js-detalle-asignar-name="producido_calculado_relevado" class="producidoCalculado form-control" style="text-align: right; border: 2px solid rgb(109, 199, 190); color: rgb(109, 199, 190);">
     </td>
     <td style="text-align: right;" data-js-modo="Ver,Validar">
       <input data-js-enabled="Validar" data-js-readonly="Validar" data-js-detalle-asignar-name="producido" class="producido form-control" style="text-align: right; border: 2px solid rgb(109, 199, 190); color: rgb(109, 199, 190);">

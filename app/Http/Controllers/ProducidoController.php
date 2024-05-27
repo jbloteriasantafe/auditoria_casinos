@@ -628,6 +628,21 @@ class ProducidoController extends Controller
    return ['importado' => $importado , 'validado' => $validado, 'detalle' =>$detalle];
   }
 
+  public function calcularProducidoAcumulado($fecha,$maquina){//LLamado desde RelevamientoController
+    $ch = ContadorHorario::where([
+      ['fecha','=',$fecha],['id_casino','=',$maquina->id_casino],['id_tipo_moneda','=',$maquina->id_tipo_moneda]
+    ])->first();
+    
+    if(is_null($ch)) return null;
+    
+    $dch = DetalleContadorHorario::where([
+      ['id_contador_horario','=',$ch->id_contador_horario],['id_maquina','=',$maquina->id_maquina]
+    ])->first();
+    
+    if(is_null($dch)) return null;
+    
+    return ($dch->coinin-$dch->coinout-$dch->jackpot-$dch->progresivo)*$dch->denominacion;
+  }
   //Contadores en en creditos, producido en plata, se usa en probarAjusteAutomatico y guardarAjuste
   private function calcularDiferencia($arr){
     $valor_inicio = $arr['coinin_inicio'] - $arr['coinout_inicio'] - $arr['jackpot_inicio'] - $arr['progresivo_inicio'];//credito

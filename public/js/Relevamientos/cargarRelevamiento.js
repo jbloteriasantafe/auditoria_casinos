@@ -9,11 +9,64 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   const dname_f = function(s){return `[data-js-detalle-asignar-name="${s}"]`;};
   let modo = null;
   
+  const mostrarSegunDiferencia = function(fila,diferencia,hay_contadores){//@TODO: pasar a backend?
+    const producido  = Number(parseFloat(fila.find(dname_f('producido')).val()).toFixed(2));
+    let icono = null;
+    if(isNaN(producido)){
+      icono = 'icono_no_importado';
+    }
+    else if (hay_contadores && diferencia == 0) {
+      icono = 'icono_correcto';
+    }
+    else if(hay_contadores && diferencia != 0 && diferencia%1000000 == 0) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
+      icono = 'icono_truncado';
+    } 
+    else {
+      icono = 'icono_incorrecto';
+    }
+    
+    fila.find('[data-js-icono-estado]').hide().filter(`[data-js-icono-estado="${icono}"]`).show();
+    fila.attr('data-css-colorear',icono);
+  };
+  
+  const calcularProducidoRelevado = function(idrs){
+    const detalles = $M('[data-js-tabla-relevamiento] tbody tr').map(function(idx,obj){
+      const fila = $(obj);
+      const idr = fila.find(dname_f('id_detalle_relevamiento')).val();
+      
+      if(!idrs.includes(idr)) return;
+      
+      const fd = {
+        id_detalle_relevamiento: idr,
+      };
+      fila.find('[data-js-cambio-contador]').each(function(idx,cont){
+        const name = $(cont).attr('data-js-detalle-asignar-name');
+        fd[name] = $(cont).val();
+      });
+      return fd;
+    }).toArray();
+    
+    AUX.POST('relevamientos/calcularProducidoRelevado',{detalles: detalles},function(producidos_calc){
+      for(const idr in producidos_calc){
+        const producido_calc = producidos_calc[idr];
+        const fila = $M(`[data-js-tabla-relevamiento] tbody tr[data-id_detalle_relevamiento="${idr}"]`);
+        const hay_contadores = fila.find('[data-js-cambio-contador]').filter(function(idx,obj){
+          return $(obj).val().length > 0;
+        }).length > 0;
+        const producido = fila.find(dname_f('producido')).val();
+        fila.find(dname_f('producido_calculado_relevado')).val(producido_calc);
+        const diferencia = Number((producido_calc - parseFloat(producido)).toFixed(2));
+        mostrarSegunDiferencia(fila,diferencia,hay_contadores);
+      }
+    });
+  }
+  
   function cargarTablaRelevamientos(data, tabla){
     data.detalles.forEach(function(d,didx){
       const fila = $M('[ data-js-molde-tabla-relevamiento]').clone().removeAttr('data-js-molde-tabla-relevamiento')
       .attr('data-medida', d.unidad_medida.id_unidad_medida)//Unidad de medida: 1-Crédito, 2-Pesos 
       .attr('data-denominacion', d.denominacion)//Denominación: para créditos
+      .attr('data-id_detalle_relevamiento',d.detalle.id_detalle_relevamiento);
       
       fila.find('[data-js-detalle-asignar-name]').each(function(idx,obj){
         const name = $(obj).attr('data-js-detalle-asignar-name');
@@ -35,7 +88,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         cont.attr('data-operador',o ?? '');
       }
       
-      fila.find(dname_f('producido_calculado')).val(d.detalle.producido_calculado_relevado ?? '');
+      fila.find(dname_f('producido_calculado_relevado')).val(d.detalle.producido_calculado_relevado ?? '');
       fila.find(dname_f('producido')).val(d.producido ?? '');
       fila.find(dname_f('id_tipo_causa_no_toma')).val(d.tipo_causa_no_toma ?? '');
       fila.find(dname_f('denominacion')).val(d.unidad_medida.id_unidad_medida == 1? d.denominacion : 1);
@@ -58,8 +111,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
           fila.find(dname_f('id_tipo_causa_no_toma')).css('border','2px solid #1E90FF').css('color','#1E90FF');
         }
       }
-      
-      if(modo == 'Ver'){        
+      else if(modo == 'Ver'){        
         fila.find('input').each(function(idx,obj){
           const val = $(obj).val().length == 0? '--' : $(obj).val();
           $(obj).replaceWith(val);
@@ -91,9 +143,15 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       html:true
     });
     
-    //Muestra los iconos correctos
-    tabla.find('[data-js-cambio-tipo-causa-no-toma]').trigger('change');
-    tabla.find('[data-js-cambio-contador="1"]').trigger('input');
+    if(modo == 'Cargar'){
+      calcularProducidoRelevado(tabla.find('tr').map(function(idx,obj){
+        return $(obj).attr('data-id_detalle_relevamiento');
+      }).toArray());
+    }
+    if(modo == 'Validar'){
+      tabla.find('[data-js-cambio-tipo-causa-no-toma]').trigger('change');
+      tabla.find('[data-js-cambio-contador="1"]').trigger('input');
+    }
   }
   
   M.on('mostrar',function(e,modo_arg,id_relevamiento){
@@ -144,7 +202,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       $M('[name="hora_ejecucion"]').val(data.relevamiento.fecha_ejecucion);
       $M('[name="tecnico"]').val(data.relevamiento.tecnico);
       // si el relevamiento no tiene usuario fizcalizador se le asigna el actual
-      $M('[name="usuario_cargador"]').val(data?.usuario_cargador?.nombre ?? data.usuario_actual.usuario.nombre);
+      $M('[name="usuario_cargador"]').val(data?.usuario_cargador?.nombre ?? data.usuario_actual.nombre);
       
       $M('[data-js-input-usuario-fiscalizador]').generarDataList('relevamientos/buscarUsuariosPorNombreYCasino/'+ data.id_casino,'usuarios','id_usuario','nombre',2);
       $M('[data-js-input-usuario-fiscalizador]').setearElementoSeleccionado(data?.usuario_fiscalizador?.id_usuario ?? 0,data?.usuario_fiscalizador?.nombre ?? "");
@@ -248,39 +306,8 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     $M('[data-js-finalizar-carga]').toggle(puedeFinalizar);
   }
   
-  function calcularProducido(fila){
-    let suma = 0;
-    let inputValido = false;
-    
-    for(let c=1;c<=CONTADORES;c++){
-      const cont_anterior = fila.find(dname_f('cont'+(c-1)));
-      const cont = fila.find(dname_f('cont'+c));
-      
-      const operador = cont_anterior.attr('data-operador');
-      const formula = cont.attr('data-formula');
-      const cont_val = cont.val();
-      const contador = cont_val.length > 0? parseFloat(cont_val.replace(/,/g,".")) : 0;
-      
-      inputValido = inputValido || (cont_val.length > 0);
-      
-      if(formula != ''){
-        if(c == 1){//El primer contador no tiene operador (el signo esta bakeado en el numero)
-          suma = contador;
-        }
-        else{
-          if(operador == '+') suma += contador;
-          else                suma -= contador;
-        }
-      }
-    }
-    
-    const denominacion = fila.attr('data-medida') == 1? fila.attr('data-denominacion') : 1;
-    return [Number((suma * denominacion)),inputValido];
-  }
-
   //CAMBIOS EN TABLAS RELEVAMIENTOS / MOSTRAR BOTÓN GUARDAR
   //@TODO: bindear directamente para que sea mas rapido
-  
   M.on('change','input,select,textarea,.form-control',function(e){
     $M('[data-js-salir]').attr('data-guardado',0);
     $M('[data-js-mensaje-salida]').hide();
@@ -307,49 +334,14 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     habilitarBotonFinalizar();
     
     const fila = $(this).closest('tr');
-    
     //Fijarse si se habilita o deshabilita el tipo no toma
     if($(this).val() != '') fila.find('[data-js-cambio-tipo-causa-no-toma]').val('');
-    
-    const producido  = Number(parseFloat(fila.find(dname_f('producido')).val()).toFixed(2));
-    let producido_calc = null;
-    let diferencia     = null;
-    let hay_contadores = null;
-    
-    if(modo == 'Validar'){
-      producido_calc = Number(parseFloat(fila.find(dname_f('producido_calculado')).val()).toFixed(2));
-      diferencia     = Number(parseFloat(fila.find(dname_f('diferencia')).val()).toFixed(2));
-      hay_contadores = true;
+    if(modo == 'Cargar'){
+      calcularProducidoRelevado([fila.attr('data-id_detalle_relevamiento')]);
     }
-    else if(modo == 'Cargar'){
-      const [producido_calc,inputValido] = calcularProducido(fila);
-      fila.find(dname_f('producido_calculado')).val(producido_calc);
-      diferencia = Number((producido_calc - parseFloat(producido)).toFixed(2));
-      hay_contadores = inputValido;
+    else if(modo == 'Validar'){
+      mostrarSegunDiferencia(fila,fila.find(dname_f('diferencia')).val(),true);
     }
-    else if(modo == 'Ver'){
-      return;
-    }
-    else{
-      throw 'Modo '+modo+' no implementado';
-    }
-    
-    let icono = null;
-    if(isNaN(producido)){
-      icono = 'icono_no_importado';
-    }
-    else if (hay_contadores && diferencia == 0) {
-      icono = 'icono_correcto';
-    }
-    else if(hay_contadores && diferencia != 0 && diferencia%1000000 == 0) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
-      icono = 'icono_truncado';
-    } 
-    else {
-      icono = 'icono_incorrecto';
-    }
-    
-    fila.find('[data-js-icono-estado]').hide().filter(`[data-js-icono-estado="${icono}"]`).show();
-    fila.attr('data-css-colorear',icono);
   });
   
   M.on('click','[data-js-cancelar-ajuste]',function(e){
