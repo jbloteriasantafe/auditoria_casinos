@@ -1287,6 +1287,14 @@ class RelevamientoController extends Controller
       $fecha_hasta = $data['fecha_hasta'];
       $id_sector   = $data['id_sector'];
       
+      $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
+      $sector = Sector::find($id_sector);
+      if(!$u->es_superusuario){
+        if(is_null($sector) || !$u->casinos->pluck('id_casino')->includes($sector->id_casino)){
+          return $validator->errors()->add('id_sector','No puede acceder a ese sector');
+        }
+      }
+      
       $ya_existe = !$data['forzar'] && DB::table('cantidad_maquinas_por_relevamiento')
       ->where([['id_sector',$id_sector],['id_tipo_cantidad_maquinas_por_relevamiento',2]])
       ->where(function($q)use($fecha_desde,$fecha_hasta){
@@ -1302,111 +1310,87 @@ class RelevamientoController extends Controller
       }
     })->validate();
 
-    if($request->id_tipo_cantidad_maquinas_por_relevamiento == 1){
-      $cantidades = CantidadMaquinasPorRelevamiento::where([['id_sector',$request->id_sector],['id_tipo_cantidad_maquinas_por_relevamiento',1]])->get();
-      foreach($cantidades as $cantidad){ // elimino el default que habia antes si es que habia
-        $cantidad->delete();
-      }
-      $cantidad = new CantidadMaquinasPorRelevamiento; // creo y guardo el nuevo default
-      $cantidad->id_sector = $request->id_sector;
-      $cantidad->id_tipo_cantidad_maquinas_por_relevamiento = 1;
-      $cantidad->cantidad = $request->cantidad_maquinas;
-      $cantidad->save();
-    }
-    else{
-      $fecha_desde = DateTime::createFromFormat('Y-m-d', $request->fecha_desde);
-      $fecha_hasta = DateTime::createFromFormat('Y-m-d', $request->fecha_hasta);
-      $cantidades = CantidadMaquinasPorRelevamiento::where([['id_sector',$request->id_sector],['id_tipo_cantidad_maquinas_por_relevamiento',2]])
-                                                   ->where(function($q)use($fecha_desde,$fecha_hasta){
-                                                              $q->where([['fecha_desde','>=',$fecha_desde],['fecha_desde','<=',$fecha_hasta]])
-                                                                ->orWhere([['fecha_hasta','>=',$fecha_desde],['fecha_hasta','<=',$fecha_hasta]])
-                                                                ->orWhere([['fecha_desde','<=',$fecha_desde],['fecha_hasta','>=',$fecha_hasta]])
-                                                                ->orWhere([['fecha_desde','>=',$fecha_desde],['fecha_hasta','<=',$fecha_hasta]]);
-                                                 })->get();
+    $modify_date = function($date,$modif){
+      $dt = new DateTime($date);
+      $dt->modify($modif);
+      return $dt->format('Y-m-d');
+    };
 
-      foreach ($cantidades as $cantidad) { // modifico los que se superponen al nuevo
-        if(($cantidad->fecha_desde >= $fecha_desde) && ($cantidad->fecha_hasta <= $fecha_hasta)){ // 4
-          $cantidad->delete();
-        }elseif(($cantidad->fecha_hasta >= $fecha_desde) && ($cantidad->fecha_hasta <= $fecha_hasta)){ // 2
-          $new_date = date('Y-m-d', strtotime($cantidad->fecha_hasta));
-          $new_date = date('Y-m-d', strtotime('-1 day', $new_date));
-          $cantidad->fecha_hasta = $new_date;
-          $cantidad->save();
-        }elseif(($cantidad->fecha_desde <= $fecha_desde) && ($cantidad->fecha_hasta >= $fecha_hasta)){ // 3
-          $cantidad2 = new CantidadMaquinasPorRelevamiento;
-          $cantidad2->id_sector = $cantidad->id_sector;
-          $cantidad2->id_tipo_cantidad_maquinas_por_relevamiento = 2;
-          $cantidad2->cantidad = $cantidad->cantidad_maquinas;
-          $cantidad2->fecha_hasta = $cantidad->fecha_hasta;
-          $new_date = date('Y-m-d', strtotime($fecha_hasta));
-          $new_date = date('Y-m-d', strtotime('+1 day', $new_date));
-          $cantidad2->fecha_desde = $new_date;
-          $cantidad2->save();
-          $new_date = date('Y-m-d', strtotime($fecha_desde));
-          $new_date = date('Y-m-d', strtotime('-1 day', $new_date));
-          $cantidad->fecha_hasta = $new_date;
-          $cantidad->save();
-        }elseif(($cantidad->fecha_desde >= $fecha_desde) && ($cantidad->fecha_desde <= $fecha_hasta)){ // 1
-          $new_date = date('Y-m-d', strtotime($fecha_hasta));
-          $new_date = date('Y-m-d', strtotime($new_date + 86400 , $fecha_hasta));
+    return DB::transaction(function() use ($request,$modify_date){
+      $cantidades_superpuestas = CantidadMaquinasPorRelevamiento::where([
+        ['id_sector',$request->id_sector],
+        ['id_tipo_cantidad_maquinas_por_relevamiento',$request->id_tipo_cantidad_maquinas_por_relevamiento]
+      ])
+      ->where(function($q) use ($request){
+        if($request->id_tipo_cantidad_maquinas_por_relevamiento == 1)
+          return $q;
+        return $q                                                                                         //    d                   h
+        ->where  ([['fecha_desde','>=',$request->fecha_desde],['fecha_desde','<=',$request->fecha_hasta]])//    |       D---...     |    Comienza adentro
+        ->orWhere([['fecha_hasta','>=',$request->fecha_desde],['fecha_hasta','<=',$request->fecha_hasta]])//    | ...---H           |    Termina adentro
+        ->orWhere([['fecha_desde','<=',$request->fecha_desde],['fecha_hasta','>=',$request->fecha_hasta]])//  D-|-------------------|-H  Empieza antes, termina despues
+        ->orWhere([['fecha_desde','>=',$request->fecha_desde],['fecha_hasta','<=',$request->fecha_hasta]]);//   |  D---------H      |    Empieza adentro, termina adentro (innecesario pero lo pongo por compleción)
+      })->get();
 
-          $cantidad->fecha_desde = $new_date;
-          $cantidad->save();
+      
+      foreach($cantidades_superpuestas as $c){
+        if($request->id_tipo_cantidad_maquinas_por_relevamiento == 1){//Si es tipo DEFAULT, borro siempre
+          $c->delete();
+          continue;
+        }
+        //No deberia pasar pero lo chequeo por las dudas
+        //Termina antes de entrar, o empieza despues
+        if($c->fecha_hasta < $request->fecha_desde || $c->fecha_desde > $request->fecha_hasta){
+          continue;
+        }
+        //Hay una interseccion
+        $termina_en_el_medio_o_igual = $c->fecha_hasta <= $request->fecha_hasta;
+        
+        if($c->fecha_desde < $request->fecha_desde){//empieza_antes
+          if($termina_en_el_medio_o_igual){
+            $c->fecha_hasta = $modify_date($request->fecha_desde,'-1 day');
+            $c->save();
+          }
+          else{//termina_despues
+            $c2 = $c->replicate();
+            $c->fecha_hasta = $modify_date($request->fecha_desde,'-1 day');
+            $c->save();
+            
+            $c2->fecha_desde = $modify_date($request->fecha_hasta,'+1 day');
+            $c2->save();
+          }
+        }
+        else{//empieza_en_el_medio_o_igual
+          if($termina_en_el_medio_o_igual){
+            $c->delete();
+          }
+          else{//termina_despues
+            $c->fecha_desde = $modify_date($request->fecha_hasta,'+1 day');
+            $c->save();
+          }
         }
       }
       //guardo el nuevo
       $cantidad = new CantidadMaquinasPorRelevamiento;
-      $cantidad->id_sector = $request->id_sector;
-      $cantidad->id_tipo_cantidad_maquinas_por_relevamiento = 2;
-      $cantidad->cantidad = $request->cantidad_maquinas;
+      $cantidad->id_sector   = $request->id_sector;
+      $cantidad->cantidad    = $request->cantidad_maquinas;
       $cantidad->fecha_desde = $request->fecha_desde;
       $cantidad->fecha_hasta = $request->fecha_hasta;
+      $cantidad->id_tipo_cantidad_maquinas_por_relevamiento = 2;
       $cantidad->save();
-    }
-
-    $resultados = DB::table('cantidad_maquinas_por_relevamiento')
-                      ->join('tipo_cantidad_maquinas_por_relevamiento','cantidad_maquinas_por_relevamiento.id_tipo_cantidad_maquinas_por_relevamiento'
-                            ,'=','tipo_cantidad_maquinas_por_relevamiento.id_tipo_cantidad_maquinas_por_relevamiento')
-                      ->where('cantidad_maquinas_por_relevamiento.id_sector','=',$request->id_sector)
-                      ->orderBy('cantidad_maquinas_por_relevamiento.fecha_hasta','asc')
-                      ->get();
-
-    return $resultados;
-  }
-
-  public function obtenerCantidadMaquinasRelevamientoHoy($id_sector){
-    $fecha_hoy = date("Y-m-d");
-    $temporal = CantidadMaquinasPorRelevamiento::where([['id_tipo_cantidad_maquinas_por_relevamiento',2],['id_sector',$id_sector],['fecha_desde','<=',$fecha_hoy],['fecha_hasta','>=',$fecha_hoy]])
-                                                ->orderBy('fecha_hasta','desc')->first();
-    if($temporal != null){
-      return $temporal->cantidad;
-    }else{
-      $cantidad = CantidadMaquinasPorRelevamiento::where([['id_tipo_cantidad_maquinas_por_relevamiento',1],['id_sector',$id_sector]])->first();
-      return $cantidad->cantidad;
-    }
+      return 1;
+    });
   }
 
   public function obtenerCantidadMaquinasRelevamiento($id_sector,$fecha = null){
     $fecha = is_null($fecha) ? date("Y-m-d") : $fecha;
     $temporal = CantidadMaquinasPorRelevamiento::where([['id_tipo_cantidad_maquinas_por_relevamiento',2],['id_sector',$id_sector],['fecha_desde','<=',$fecha],['fecha_hasta','>=',$fecha]])
                                                 ->orderBy('fecha_hasta','desc')->first();
-    if($temporal != null){
+    if($temporal != null){//Si hay temporal lo retorno
       return $temporal->cantidad;
-    }else{
-      $cantidad = CantidadMaquinasPorRelevamiento::where([['id_tipo_cantidad_maquinas_por_relevamiento',1],['id_sector',$id_sector]])->first();
-      return $cantidad->cantidad;
     }
-  }
-
-  public function obtenerCantidadMaquinasRelevamientoPorFecha($sector,$fecha){
-    $temporal = CantidadMaquinasPorRelevamiento::where([['id_tipo_cantidad_maquinas_por_relevamiento',2],['id_sector',$sector],['fecha_desde','<=',$fecha],['fecha_hasta','>=',$fecha]])
-                                                ->orderBy('fecha_hasta','desc')->first();
-    if($temporal != null){
-      return $temporal->cantidad;
-    }else{
-      $cantidad = CantidadMaquinasPorRelevamiento::where([['id_tipo_cantidad_maquinas_por_relevamiento',1],['id_sector',$sector]])->first();
-      return $cantidad->cantidad;
-    }
+    //Defecto
+    $cantidad = CantidadMaquinasPorRelevamiento::where([['id_tipo_cantidad_maquinas_por_relevamiento',1],['id_sector',$id_sector]])->first();
+    return is_null($cantidad)? 10 : $cantidad->cantidad;//No hay por defecto, retorno 10
   }
 
   public function eliminarCantidadMaquinasPorRelevamiento(Request $request){
@@ -1551,8 +1535,7 @@ class RelevamientoController extends Controller
   public function existeRelVisado($fecha, $id_casino){
     return Relevamiento::join('sector' , 'sector.id_sector' , '=' , 'relevamiento.id_sector')
     ->where([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ,['id_estado_relevamiento','=',4]])
-    ->orwhere([['fecha' , '=' , $fecha] ,['sector.id_casino' , '=' , $id_casino] ,['id_estado_relevamiento','=',7]])
-    ->count() > 0;
+    ->whereIn('id_estado_relevamiento',[4,7])->count() > 0;
   }
 
   public function buscarMaquinasPorCasino(Request $request,$id_casino){
