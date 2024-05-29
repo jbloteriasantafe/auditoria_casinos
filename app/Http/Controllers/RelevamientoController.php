@@ -243,6 +243,8 @@ class RelevamientoController extends Controller
   // genera los backup para la carga sin sistema
   // genera las planillas , comprime las de backup y se descargan
   public function crearRelevamiento(Request $request){
+    $fecha_hoy = date("Y-m-d"); // fecha de hoy
+    
     Validator::make($request->all(),[
         'id_sector' => 'required|exists:sector,id_sector',
         'cantidad_fiscalizadores' => 'nullable|integer|between:1,10',
@@ -252,25 +254,32 @@ class RelevamientoController extends Controller
       'exists' => 'El valor es invalido',
       'integer' => 'El valor tiene que ser un número entero',
       'between' => 'El valor tiene que ser entre 1-10',
-    ], self::$atributos)->after(function($validator){
+    ], self::$atributos)->after(function($validator) use ($fecha_hoy){
       if($validator->errors()->any()) return;
-      $estados_rechazados = [2,3,4];
-      $relevamientos = Relevamiento::where([['fecha',date("Y-m-d")],['id_sector',$validator->getData()['id_sector']],['backup',0]])->whereIn('id_estado_relevamiento' ,$estados_rechazados )->count();
-      if($relevamientos > 0){
-        $validator->errors()->add('relevamiento_en_carga','El Relevamiento para esa fecha ya está en carga y no se puede reemplazar.');
-      }
-      if ($validator->getData()['id_sector'] != 0) {
-        if($validator->getData()['cantidad_fiscalizadores'] > RelevamientoController::getInstancia()->obtenerCantidadMaquinasRelevamiento($validator->getData()['id_sector'])){
-          $validator->errors()->add('cantidad_maquinas','La cantidad de maquinas debe ser mayor o igual a la cantidad de fiscalizadores.');
+      $id_sector = $validator->getData()['id_sector'];
+      $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
+      $sector = Sector::find($id_sector);
+      if(!$u->es_superusuario){
+        if(is_null($sector) || $u->casinos->pluck('id_casino')->search($sector->id_casino) === false){
+          return $validator->errors()->add('id_sector','No puede acceder a ese sector');
         }
       }
-      $seed = isset($validator->getData()['seed'])? $validator->getData()['seed'] : null;
+      
+      $estados_rechazados = [2,3,4];
+      $relevamientos = Relevamiento::where([['fecha',$fecha_hoy],['id_sector',$id_sector],['backup',0]])->whereIn('id_estado_relevamiento',$estados_rechazados);
+      if($relevamientos->count() > 0){
+        $validator->errors()->add('relevamiento_en_carga','El Relevamiento para esa fecha ya está en carga y no se puede reemplazar.');
+      }
+      
+      $cantidad_fiscalizadores = $validator->getData()['cantidad_fiscalizadores'];
+      if($cantidad_fiscalizadores > RelevamientoController::getInstancia()->obtenerCantidadMaquinasRelevamiento($id_sector)){
+        $validator->errors()->add('cantidad_maquinas','La cantidad de maquinas debe ser mayor o igual a la cantidad de fiscalizadores.');
+      }
+      $seed = $validator->getData()['seed'] ?? null;
       if(!empty($seed) && !UsuarioController::getInstancia()->quienSoy()['usuario']->es_superusuario){
         $validator->errors()->add('seed','El usuario no puede realizar esa acción');
       }
     })->validate();
-
-    $fecha_hoy = date("Y-m-d"); // fecha de hoy
 
     //me fijo si ya habia generados relevamientos para el dia de hoy que no sean back up, si hay los borro
     $relevamientos_viejos = Relevamiento::where([['fecha',$fecha_hoy],['id_sector',$request->id_sector],['backup',0],['id_estado_relevamiento',1]])->get();
@@ -971,18 +980,14 @@ class RelevamientoController extends Controller
               ->whereNull('maquina.id_isla')
               ->first()->cantidad;
   }
+  
   public function generarPlanilla($id_relevamiento){
-
     $dompdf = $this->crearPlanilla($id_relevamiento);
-
     return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
-
   public function generarPlanillaValidado($id_relevamiento){
-      $dompdf = $this->crearPlanillaValidado($id_relevamiento);
-
-      return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
-
+    $dompdf = $this->crearPlanillaValidado($id_relevamiento);
+    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
 
   public function usarRelevamientoBackUp(Request $request){
@@ -1290,7 +1295,7 @@ class RelevamientoController extends Controller
       $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
       $sector = Sector::find($id_sector);
       if(!$u->es_superusuario){
-        if(is_null($sector) || !$u->casinos->pluck('id_casino')->includes($sector->id_casino)){
+        if(is_null($sector) || $u->casinos->pluck('id_casino')->search($sector->id_casino) === false){
           return $validator->errors()->add('id_sector','No puede acceder a ese sector');
         }
       }
@@ -1461,7 +1466,7 @@ class RelevamientoController extends Controller
     return $this->calcularProducidoRelevado_array($conts_arr, $ops_arr, $deno);
   }
   
-  public function calcularProducidoRelevado(Request $request){
+  public function calcularEstadoDetalleRelevamiento(Request $request){
     $validation_arr = [
       'detalles.*.id_detalle_relevamiento' => 'required|exists:detalle_relevamiento,id_detalle_relevamiento',
     ];
@@ -1499,12 +1504,38 @@ class RelevamientoController extends Controller
     return DB::transaction(function() use ($request,$detalles){
       $ret = [];
       $recibido = collect($request['detalles'])->keyBy('id_detalle_relevamiento');
+      $fecha_rel = null;
+      $calcular = null;//Solo recalculo si esta relevando, sino uso directamente del detalle
       foreach($detalles as $d){
+        $fecha_rel = $fecha_rel ?? $d->relevamiento->fecha;
+        $calcular = $calcular ?? in_array($d->relevamiento->id_estado_relevamiento,[1,2]);
         $conts = $recibido[$d->id_detalle_relevamiento];
-        $ret[$d->id_detalle_relevamiento] = $this->calcularProducidoRelevado_detalle($d,$conts);
+        
+        $relevado   = $calcular? $this->calcularProducidoRelevado_detalle($d,$conts) : $d->producido_calculado_relevado;
+        $importado  = $calcular? $this->calcularProducidoImportado($d->relevamiento->fecha,$d->maquina) : $d->producido_importado;
+        $diferencia = $calcular? round($relevado - $importado,2) : $d->diferencia;
+        $hay_contadores = $calcular? false : true;
+        foreach($this->contadores() as $cidx => $c){
+          if($hay_contadores) break;
+          $hay_contadores = $hay_contadores || (($conts[$c] ?? null) !== null);
+        }
+        $estado     = $this->obtenerEstadoDetalleRelevamiento($hay_contadores,$importado,$diferencia,$d->id_tipo_causa_no_toma);
+        $ret[$d->id_detalle_relevamiento] = compact('relevado','importado','diferencia','estado');
       }
       return $ret;
     });
+  }
+  //No modificar sin cambiar el template del modal de carga... usa estos valores de retorno
+  private function obtenerEstadoDetalleRelevamiento($hay_contadores,$importado,$diferencia,$id_tipo_causa_no_toma){
+    if(!is_null($id_tipo_causa_no_toma)) return 'NO_TOMA';
+    if(is_null($importado)) return 'SIN_IMPORTAR';
+    if($diferencia != 0){
+      if(fmod($diferencia,ProducidoController::getInstancia()->truncamiento()) == 0){
+        return 'TRUNCAMIENTO';
+      }
+      return 'DIFERENCIA';
+    }
+    return 'CORRECTO';
   }
   
   public function calcularProducidoImportado($fecha,$maquina){

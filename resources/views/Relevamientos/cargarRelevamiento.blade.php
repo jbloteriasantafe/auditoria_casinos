@@ -119,18 +119,18 @@
     border-style: solid;
   }
   
-  [data-css-colorear="icono_incorrecto"] [data-js-detalle-asignar-name="diferencia"],
-  [data-css-colorear="icono_no_toma"] [data-js-detalle-asignar-name="diferencia"],
-  [data-css-colorear="icono_no_importado"] [data-js-detalle-asignar-name="diferencia"] {
+  [data-css-colorear="DIFERENCIA"] [data-js-detalle-asignar-name="diferencia"],
+  [data-css-colorear="NO_TOMA"] [data-js-detalle-asignar-name="diferencia"],
+  [data-css-colorear="SIN_IMPORTAR"] [data-js-detalle-asignar-name="diferencia"] {
     border-color: #EF5350;
     color: #EF5350;
   }
   
-  [data-css-colorear="icono_correcto"] [data-js-detalle-asignar-name="diferencia"] {
+  [data-css-colorear="CORRECTO"] [data-js-detalle-asignar-name="diferencia"] {
     border-color: #66BB6A;
     color: #66BB6A;
   }
-  [data-css-colorear="icono_truncado"] [data-js-detalle-asignar-name="diferencia"] {
+  [data-css-colorear="TRUNCAMIENTO"] [data-js-detalle-asignar-name="diferencia"] {
     border-color: #FFA726;
     color: #FFA726;
   }
@@ -156,19 +156,19 @@
       <input data-js-enabled="Validar" data-js-readonly="Validar" data-js-detalle-asignar-name="diferencia" class="diferencia form-control" style="text-align: right;">
     </td>
     <td data-js-modo="Cargar,Validar" data-js-estado-diferencia style="text-align: center;" class="estado_diferencia">
-      <a data-js-icono-estado="icono_incorrecto" class="pop" data-content="Contadores incorrectos" data-placement="top" rel="popover" data-trigger="hover" hidden>
+      <a data-js-icono-estado="DIFERENCIA" class="pop" data-content="Contadores incorrectos" data-placement="top" rel="popover" data-trigger="hover" hidden>
         <i class="fa fa-times" style="color: rgb(239, 83, 80); display: inline-block;"></i>
       </a>
-      <a data-js-icono-estado="icono_correcto" class="pop" data-content="Contadores correctos" data-placement="top" rel="popover" data-trigger="hover" hidden>
+      <a data-js-icono-estado="CORRECTO" class="pop" data-content="Contadores correctos" data-placement="top" rel="popover" data-trigger="hover" hidden>
         <i class="fa fa-check" style="color: rgb(102, 187, 106); display: inline-block;"></i>
       </a>
-      <a data-js-icono-estado="icono_no_toma" class="pop" data-content="Contadores no tomados" data-placement="top" rel="popover" data-trigger="hover" hidden>
+      <a data-js-icono-estado="NO_TOMA" class="pop" data-content="Contadores no tomados" data-placement="top" rel="popover" data-trigger="hover" hidden>
         <i class="fa fa-ban" style="color: rgb(30, 144, 255); display: inline-block;"></i>
       </a>
-      <a data-js-icono-estado="icono_truncado" class="pop" data-content="Contadores importados truncados" data-placement="top" rel="popover" data-trigger="hover" hidden>
+      <a data-js-icono-estado="TRUNCAMIENTO" class="pop" data-content="Contadores importados truncados" data-placement="top" rel="popover" data-trigger="hover" hidden>
         <i class="pop fa fa-exclamation" style="color: rgb(255, 167, 38); display: inline-block;"></i>
       </a>
-      <a data-js-icono-estado="icono_no_importado" class="pop" data-content="No se importaron contadores" data-placement="top" rel="popover" data-trigger="hover" hidden>
+      <a data-js-icono-estado="SIN_IMPORTAR" class="pop" data-content="No se importaron contadores" data-placement="top" rel="popover" data-trigger="hover" hidden>
         <i class="pop fa fa-question" style="color: rgb(66, 165, 245); display: inline-block;"></i>
       </a>
     </td>

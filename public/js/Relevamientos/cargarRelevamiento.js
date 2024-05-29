@@ -8,28 +8,8 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   
   const dname_f = function(s){return `[data-js-detalle-asignar-name="${s}"]`;};
   let modo = null;
-  
-  const mostrarSegunDiferencia = function(fila,diferencia,hay_contadores){//@TODO: pasar a backend?
-    const producido  = Number(parseFloat(fila.find(dname_f('producido')).val()).toFixed(2));
-    let icono = null;
-    if(isNaN(producido)){
-      icono = 'icono_no_importado';
-    }
-    else if (hay_contadores && diferencia == 0) {
-      icono = 'icono_correcto';
-    }
-    else if(hay_contadores && diferencia != 0 && diferencia%1000000 == 0) { //El caso de que no haya diferencia ignorando la unidad del millon (en pesos)
-      icono = 'icono_truncado';
-    } 
-    else {
-      icono = 'icono_incorrecto';
-    }
     
-    fila.find('[data-js-icono-estado]').hide().filter(`[data-js-icono-estado="${icono}"]`).show();
-    fila.attr('data-css-colorear',icono);
-  };
-  
-  const calcularProducidoRelevado = function(idrs){
+  const calcularEstadoDetalleRelevamiento = function(idrs){
     const detalles = $M('[data-js-tabla-relevamiento] tbody tr').map(function(idx,obj){
       const fila = $(obj);
       const idr = fila.find(dname_f('id_detalle_relevamiento')).val();
@@ -46,17 +26,42 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       return fd;
     }).toArray();
     
-    AUX.POST('relevamientos/calcularProducidoRelevado',{detalles: detalles},function(producidos_calc){
-      for(const idr in producidos_calc){
-        const producido_calc = producidos_calc[idr];
+    AUX.POST('relevamientos/calcularEstadoDetalleRelevamiento',{detalles: detalles},function(estados){
+      for(const idr in estados){
+        const e = estados[idr];
         const fila = $M(`[data-js-tabla-relevamiento] tbody tr[data-id_detalle_relevamiento="${idr}"]`);
         const hay_contadores = fila.find('[data-js-cambio-contador]').filter(function(idx,obj){
           return $(obj).val().length > 0;
         }).length > 0;
-        const producido = fila.find(dname_f('producido')).val();
-        fila.find(dname_f('producido_calculado_relevado')).val(producido_calc);
-        const diferencia = Number((producido_calc - parseFloat(producido)).toFixed(2));
-        mostrarSegunDiferencia(fila,diferencia,hay_contadores);
+        fila.find(dname_f('producido')).val(e.importado);
+        fila.find(dname_f('producido_calculado_relevado')).val(e.relevado);
+        fila.find(dname_f('diferencia')).val(e.diferencia);
+        fila.find('[data-js-icono-estado]').hide().filter(`[data-js-icono-estado="${e.estado}"]`).show();
+        fila.attr('data-css-colorear',e.estado);
+        
+        if(modo == 'Validar'){
+          if(!(e.estado == 'DIFERENCIA' || e.estado == 'NO_TOMA')){
+            fila.find('[data-js-boton-medida],[data-js-estadisticas-no-toma]').replaceWith('&nbsp;');
+          }
+          fila.find('input').each(function(idx,obj){$(obj).attr('title',$(obj).val());});
+          if (e.estado == 'NO_TOMA'){
+            fila.find(dname_f('id_tipo_causa_no_toma')).css('border','2px solid #1E90FF').css('color','#1E90FF');
+          }
+        }
+        else if(modo == 'Ver'){
+          fila.find('input').each(function(idx,obj){
+            const val = $(obj).val().length == 0? '--' : $(obj).val();
+            $(obj).replaceWith(val);
+          });
+          fila.find('select').each(function(idx,obj){
+            const val = $(obj).find('option:selected').text().length == 0? '--' : $(obj).find('option:selected').text();
+            $(obj).replaceWith(val);
+          });
+          fila.find('td').each(function(idx,obj){
+            if($(obj).children().length > 0) return;
+            $(obj).attr('title',$(obj).text().trim());
+          });
+        }
       }
     });
   }
@@ -88,45 +93,12 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         cont.attr('data-operador',o ?? '');
       }
       
-      fila.find(dname_f('producido_calculado_relevado')).val(d.detalle.producido_calculado_relevado ?? '');
-      fila.find(dname_f('producido')).val(d.producido ?? '');
       fila.find(dname_f('id_tipo_causa_no_toma')).val(d.tipo_causa_no_toma ?? '');
       fila.find(dname_f('denominacion')).val(d.unidad_medida.id_unidad_medida == 1? d.denominacion : 1);
             
       fila.find('[data-js-boton-medida]').filter(`[data-js-boton-medida!="${d.unidad_medida.id_unidad_medida}"]`).remove();
       fila.find('[data-js-estadisticas-no-toma]').attr('href',fila.find('[data-js-estadisticas-no-toma]').attr('href')+'/'+d.detalle.id_maquina);
-      
-      const diferencia = Math.abs((d.detalle.producido_calculado_relevado - d.producido).toFixed(2));
-      fila.find(dname_f('diferencia')).val(diferencia);
-      
-      if(modo == 'Validar'){
-        const mostrar_botones = d.tipo_causa_no_toma == null && diferencia != 0 && (diferencia%1000000) != 0;
-        if(!mostrar_botones){
-          fila.find('[data-js-boton-medida],[data-js-estadisticas-no-toma]').replaceWith('&nbsp;');
-        }
-      
-        fila.find('input').each(function(){$(this).attr('title',$(this).val());});
-          
-        if (d.tipo_causa_no_toma != null) {
-          fila.find(dname_f('id_tipo_causa_no_toma')).css('border','2px solid #1E90FF').css('color','#1E90FF');
-        }
-      }
-      else if(modo == 'Ver'){        
-        fila.find('input').each(function(idx,obj){
-          const val = $(obj).val().length == 0? '--' : $(obj).val();
-          $(obj).replaceWith(val);
-        });
-        fila.find('select').each(function(idx,obj){
-          const val = $(obj).find('option:selected').text().length == 0? '--' : $(obj).find('option:selected').text();
-          $(obj).replaceWith(val);
-        });
-        
-        fila.find('td').each(function(idx,obj){
-          if($(obj).children().length > 0) return;
-          $(obj).attr('title',$(obj).text().trim());
-        });
-      }
-      
+            
       tabla.append(fila);
     });
     
@@ -143,15 +115,9 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       html:true
     });
     
-    if(modo == 'Cargar'){
-      calcularProducidoRelevado(tabla.find('tr').map(function(idx,obj){
-        return $(obj).attr('data-id_detalle_relevamiento');
-      }).toArray());
-    }
-    if(modo == 'Validar'){
-      tabla.find('[data-js-cambio-tipo-causa-no-toma]').trigger('change');
-      tabla.find('[data-js-cambio-contador="1"]').trigger('input');
-    }
+    calcularEstadoDetalleRelevamiento(tabla.find('tr').map(function(idx,obj){
+      return $(obj).attr('data-id_detalle_relevamiento');
+    }).toArray());
   }
   
   M.on('mostrar',function(e,modo_arg,id_relevamiento){
@@ -161,7 +127,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         return $(obj).attr(attr).split(',').includes(modo);
       };
     };
-    $M('[name]').val('').change();
+    $M('[name]').val('');
     $M('[data-js-salir]').attr('data-guardado',1);
     ocultarErrorValidacion($M('[name]'));
     $M('[name="id_relevamiento"]').val(id_relevamiento);
@@ -332,16 +298,10 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   //@TODO: asignar directamente el event handler
   M.on('input', "[data-js-tabla-relevamiento] [data-js-cambio-contador]", function(){
     habilitarBotonFinalizar();
-    
     const fila = $(this).closest('tr');
     //Fijarse si se habilita o deshabilita el tipo no toma
     if($(this).val() != '') fila.find('[data-js-cambio-tipo-causa-no-toma]').val('');
-    if(modo == 'Cargar'){
-      calcularProducidoRelevado([fila.attr('data-id_detalle_relevamiento')]);
-    }
-    else if(modo == 'Validar'){
-      mostrarSegunDiferencia(fila,fila.find(dname_f('diferencia')).val(),true);
-    }
+    calcularEstadoDetalleRelevamiento([fila.attr('data-id_detalle_relevamiento')]);
   });
   
   M.on('click','[data-js-cancelar-ajuste]',function(e){

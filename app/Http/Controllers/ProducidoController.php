@@ -641,7 +641,7 @@ class ProducidoController extends Controller
     
     if(is_null($dch)) return null;
     
-    return ($dch->coinin-$dch->coinout-$dch->jackpot-$dch->progresivo)*$dch->denominacion;
+    return round(($dch->coinin-$dch->coinout-$dch->jackpot-$dch->progresivo)*$dch->denominacion_carga,2);
   }
   //Contadores en en creditos, producido en plata, se usa en probarAjusteAutomatico y guardarAjuste
   private function calcularDiferencia($arr){

@@ -462,7 +462,7 @@ Route::group(['prefix' => 'relevamientos','middleware' => 'tiene_permiso:ver_sec
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
   Route::get('obtenerMtmAPedido/{fecha}/{id_sector}','MaquinaAPedidoController@obtenerMtmAPedido');
   Route::get('estadisticas_no_toma/{id}','informesController@mostrarEstadisticasNoToma');
-  Route::post('calcularProducidoRelevado','RelevamientoController@calcularProducidoRelevado');
+  Route::post('calcularEstadoDetalleRelevamiento','RelevamientoController@calcularEstadoDetalleRelevamiento');
 });
 /* OBTENER FECHA Y HORA ACTUAL */
 Route::get('obtenerFechaActual',function(){
