@@ -23,6 +23,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         const name = $(cont).attr('data-js-detalle-asignar-name');
         fd[name] = $(cont).val();
       });
+      fd['id_tipo_causa_no_toma'] = fila.find('[data-js-cambio-tipo-causa-no-toma]').val();
       return fd;
     }).toArray();
     
@@ -38,6 +39,14 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         fila.find(dname_f('diferencia')).val(e.diferencia);
         fila.find('[data-js-icono-estado]').hide().filter(`[data-js-icono-estado="${e.estado}"]`).show();
         fila.attr('data-css-colorear',e.estado);
+        
+        if(fila.find('[data-js-cambio-tipo-causa-no-toma]').val() != ''){
+          fila.find('[data-js-cambio-contador]').val('');
+          fila.find('[data-formula]').filter('[data-formula!=""]').attr('disabled',true);
+        }
+        else{
+          fila.find('[data-formula]').filter('[data-formula!=""]').removeAttr('disabled');
+        }
         
         if(modo == 'Validar'){
           if(!(e.estado == 'DIFERENCIA' || e.estado == 'NO_TOMA')){
@@ -63,10 +72,16 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
           });
         }
       }
+      
+      habilitarBotonFinalizar();//@TODO: no funcionando?
     });
   }
   
   function cargarTablaRelevamientos(data, tabla){
+    const cambioContador = function(e){
+      calcularEstadoDetalleRelevamiento([$(e.target).closest('tr').attr('data-id_detalle_relevamiento')]);
+    };
+    
     data.detalles.forEach(function(d,didx){
       const fila = $M('[ data-js-molde-tabla-relevamiento]').clone().removeAttr('data-js-molde-tabla-relevamiento')
       .attr('data-medida', d.unidad_medida.id_unidad_medida)//Unidad de medida: 1-Crédito, 2-Pesos 
@@ -100,6 +115,9 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       fila.find('[data-js-estadisticas-no-toma]').attr('href',fila.find('[data-js-estadisticas-no-toma]').attr('href')+'/'+d.detalle.id_maquina);
             
       tabla.append(fila);
+      
+      fila.find('[data-js-cambio-tipo-causa-no-toma]').on('change',cambioContador);
+      fila.find('[data-js-cambio-contador]').on('keypress',cambioContador);
     });
     
     tabla.find('[data-js-boton-medida]').popover({
@@ -278,32 +296,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     $M('[data-js-salir]').attr('data-guardado',0);
     $M('[data-js-mensaje-salida]').hide();
   });
-  
-  //@TODO: asignar directamente el event handler
-  M.on('change','[data-js-tabla-relevamiento] [data-js-cambio-tipo-causa-no-toma]',function(){   
-    habilitarBotonFinalizar();
     
-    const fila = $(this).closest('tr');
-    //Si se elige algun tipo de no toma se vacian las cargas de contadores
-    fila.find('[data-js-icono-estado]').hide();
-    if($(this).val() != ''){//Se cambia el icono de diferencia
-      fila.find('[data-js-cambio-contador]').val('');
-      fila.find('[data-js-icono-estado="icono_no_toma"]').show();
-    }
-    else{
-      fila.find('[data-js-cambio-contador]').eq(0).trigger('input');//Calcular diferencia
-    }
-  });
-  
-  //@TODO: asignar directamente el event handler
-  M.on('input', "[data-js-tabla-relevamiento] [data-js-cambio-contador]", function(){
-    habilitarBotonFinalizar();
-    const fila = $(this).closest('tr');
-    //Fijarse si se habilita o deshabilita el tipo no toma
-    if($(this).val() != '') fila.find('[data-js-cambio-tipo-causa-no-toma]').val('');
-    calcularEstadoDetalleRelevamiento([fila.attr('data-id_detalle_relevamiento')]);
-  });
-  
   M.on('click','[data-js-cancelar-ajuste]',function(e){
     M.find('[data-js-boton-medida]').popover('hide');
   });

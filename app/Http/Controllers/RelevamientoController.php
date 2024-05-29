@@ -543,7 +543,7 @@ class RelevamientoController extends Controller
       foreach($detalles as $det){
         $detalle = DetalleRelevamiento::find($det['id_detalle_relevamiento']);
         foreach($CONTADORES as $c){
-          $detalle->{$c} = $det[$c];
+          $detalle->{$c} = $det[$c] ?? null;
         }
         $detalle->id_tipo_causa_no_toma = $det['id_tipo_causa_no_toma'];
         $detalle->producido_calculado_relevado = $det['producido_calculado_relevado'];
@@ -1469,6 +1469,7 @@ class RelevamientoController extends Controller
   public function calcularEstadoDetalleRelevamiento(Request $request){
     $validation_arr = [
       'detalles.*.id_detalle_relevamiento' => 'required|exists:detalle_relevamiento,id_detalle_relevamiento',
+      'detalles.*.id_tipo_causa_no_toma' => 'nullable|exists:tipo_causa_no_toma,id_tipo_causa_no_toma',
     ];
     foreach($this->contadores() as $cidx => $c){
       $validation_arr["detalles.*.$c"] = ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'];
@@ -1515,11 +1516,12 @@ class RelevamientoController extends Controller
         $importado  = $calcular? $this->calcularProducidoImportado($d->relevamiento->fecha,$d->maquina) : $d->producido_importado;
         $diferencia = $calcular? round($relevado - $importado,2) : $d->diferencia;
         $hay_contadores = $calcular? false : true;
+        $id_tipo_causa_no_toma = $calcular? ($conts['id_tipo_causa_no_toma'] ?? null) : $d->id_tipo_causa_no_toma;
         foreach($this->contadores() as $cidx => $c){
           if($hay_contadores) break;
           $hay_contadores = $hay_contadores || (($conts[$c] ?? null) !== null);
         }
-        $estado     = $this->obtenerEstadoDetalleRelevamiento($hay_contadores,$importado,$diferencia,$d->id_tipo_causa_no_toma);
+        $estado     = $this->obtenerEstadoDetalleRelevamiento($hay_contadores,$importado,$diferencia,$id_tipo_causa_no_toma);
         $ret[$d->id_detalle_relevamiento] = compact('relevado','importado','diferencia','estado');
       }
       return $ret;
