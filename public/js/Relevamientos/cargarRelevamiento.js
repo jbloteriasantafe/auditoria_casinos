@@ -9,35 +9,32 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   const dname_f = function(s){return `[data-js-detalle-asignar-name="${s}"]`;};
   let modo = null;
     
-  const calcularEstadoDetalleRelevamiento = function(idrs){
-    const detalles = $M('[data-js-tabla-relevamiento] tbody tr').map(function(idx,obj){
+  const calcularEstadoDetalleRelevamiento = function(filas,after = function(){}){
+    const idr_to_fila = {};
+    const detalles = filas.map(function(idx,obj){
       const fila = $(obj);
+      
       const idr = fila.find(dname_f('id_detalle_relevamiento')).val();
+      idr_to_fila[idr] = fila;
       
-      if(!idrs.includes(idr)) return;
-      
-      const fd = {
+      return {
         id_detalle_relevamiento: idr,
+        id_tipo_causa_no_toma: fila.find('[data-js-cambio-tipo-causa-no-toma]').val(),
+        ...Object.fromEntries(fila.find('[data-js-cambio-contador]').map(function(idx,cont){
+          const name = $(cont).attr('data-js-detalle-asignar-name');
+          return [[$(cont).attr('data-js-detalle-asignar-name'),$(cont).val()]];//Doble array porque jquery lo flattea con el toArray()
+        }).toArray())
       };
-      fila.find('[data-js-cambio-contador]').each(function(idx,cont){
-        const name = $(cont).attr('data-js-detalle-asignar-name');
-        fd[name] = $(cont).val();
-      });
-      fd['id_tipo_causa_no_toma'] = fila.find('[data-js-cambio-tipo-causa-no-toma]').val();
-      return fd;
     }).toArray();
     
     AUX.POST('relevamientos/calcularEstadoDetalleRelevamiento',{detalles: detalles},function(estados){
       for(const idr in estados){
-        const e = estados[idr];
-        const fila = $M(`[data-js-tabla-relevamiento] tbody tr[data-id_detalle_relevamiento="${idr}"]`);
-        const hay_contadores = fila.find('[data-js-cambio-contador]').filter(function(idx,obj){
-          return $(obj).val().length > 0;
-        }).length > 0;
+        const e    = estados[idr];
+        const fila = idr_to_fila[idr];
+        
         fila.find(dname_f('producido')).val(e.importado);
         fila.find(dname_f('producido_calculado_relevado')).val(e.relevado);
         fila.find(dname_f('diferencia')).val(e.diferencia);
-        fila.find('[data-js-icono-estado]').hide().filter(`[data-js-icono-estado="${e.estado}"]`).show();
         fila.attr('data-css-colorear',e.estado);
         
         if(fila.find('[data-js-cambio-tipo-causa-no-toma]').val() != ''){
@@ -49,13 +46,8 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         }
         
         if(modo == 'Validar'){
-          if(!(e.estado == 'DIFERENCIA' || e.estado == 'NO_TOMA')){
-            fila.find('[data-js-boton-medida],[data-js-estadisticas-no-toma]').replaceWith('&nbsp;');
-          }
-          fila.find('input').each(function(idx,obj){$(obj).attr('title',$(obj).val());});
-          if (e.estado == 'NO_TOMA'){
-            fila.find(dname_f('id_tipo_causa_no_toma')).css('border','2px solid #1E90FF').css('color','#1E90FF');
-          }
+          fila.find('[data-js-cambio-contador]').each(function(idx,obj){$(obj).attr('title',$(obj).val());})
+          .attr('readonly',true);
         }
         else if(modo == 'Ver'){
           fila.find('input').each(function(idx,obj){
@@ -74,12 +66,13 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       }
       
       habilitarBotonFinalizar();//@TODO: no funcionando?
+      after();
     });
   }
   
   function cargarTablaRelevamientos(data, tabla){
     const cambioContador = function(e){
-      calcularEstadoDetalleRelevamiento([$(e.target).closest('tr').attr('data-id_detalle_relevamiento')]);
+      calcularEstadoDetalleRelevamiento($(e.target).closest('tr'));
     };
     
     data.detalles.forEach(function(d,didx){
@@ -133,9 +126,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       html:true
     });
     
-    calcularEstadoDetalleRelevamiento(tabla.find('tr').map(function(idx,obj){
-      return $(obj).attr('data-id_detalle_relevamiento');
-    }).toArray());
+    calcularEstadoDetalleRelevamiento(tabla.find('tr'),function(){M.modal('show');});
   }
   
   M.on('mostrar',function(e,modo_arg,id_relevamiento){
@@ -195,11 +186,9 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       $M('[name="observacion_carga"]').val(data?.relevamiento?.observacion_carga ?? '');
       $M('[name="observacion_validacion"]').val(data?.relevamiento?.observacion_validacion ?? '');
     
-      cargarTablaRelevamientos(data,tbody);
-      
       $M('[data-js-salir]').attr('data-guardado',1);
       
-      M.modal('show');
+      cargarTablaRelevamientos(data,tbody);
     });
   });
   

@@ -134,6 +134,24 @@
     border-color: #FFA726;
     color: #FFA726;
   }
+  
+  [data-css-colorear="NO_TOMA"] [data-js-detalle-asignar-name="id_tipo_causa_no_toma"] {
+    border: 2px solid #1E90FF;
+    color: #1E90FF;
+  }
+  
+  [data-css-colorear="DIFERENCIA"] [data-js-boton-medida],
+  [data-css-colorear="DIFERENCIA"] [data-js-estadisticas-no-toma],
+  [data-css-colorear="NO_TOMA"] [data-js-boton-medida],
+  [data-css-colorear="NO_TOMA"] [data-js-estadisticas-no-toma] {
+    visibility: visible !important;
+  }
+  
+  @foreach(['DIFERENCIA','NO_TOMA','SIN_IMPORTAR','CORRECTO','TRUNCAMIENTO'] as $e)
+  [data-css-colorear="{{$e}}"] [data-js-icono-estado="{{$e}}"] {
+    display: block !important;
+  }
+  @endforeach
 </style>
 <table hidden>
   <tr data-js-molde-tabla-relevamiento data-medida="" data-denominacion="">
@@ -156,19 +174,19 @@
       <input data-js-enabled="Validar" data-js-readonly="Validar" data-js-detalle-asignar-name="diferencia" class="diferencia form-control" style="text-align: right;">
     </td>
     <td data-js-modo="Cargar,Validar" data-js-estado-diferencia style="text-align: center;" class="estado_diferencia">
-      <a data-js-icono-estado="DIFERENCIA" class="pop" data-content="Contadores incorrectos" data-placement="top" rel="popover" data-trigger="hover" hidden>
+      <a data-js-icono-estado="DIFERENCIA" class="pop" data-content="Contadores incorrectos" data-placement="top" rel="popover" data-trigger="hover" style="display: none;">
         <i class="fa fa-times" style="color: rgb(239, 83, 80); display: inline-block;"></i>
       </a>
-      <a data-js-icono-estado="CORRECTO" class="pop" data-content="Contadores correctos" data-placement="top" rel="popover" data-trigger="hover" hidden>
+      <a data-js-icono-estado="CORRECTO" class="pop" data-content="Contadores correctos" data-placement="top" rel="popover" data-trigger="hover" style="display: none;">
         <i class="fa fa-check" style="color: rgb(102, 187, 106); display: inline-block;"></i>
       </a>
-      <a data-js-icono-estado="NO_TOMA" class="pop" data-content="Contadores no tomados" data-placement="top" rel="popover" data-trigger="hover" hidden>
+      <a data-js-icono-estado="NO_TOMA" class="pop" data-content="Contadores no tomados" data-placement="top" rel="popover" data-trigger="hover" style="display: none;">
         <i class="fa fa-ban" style="color: rgb(30, 144, 255); display: inline-block;"></i>
       </a>
-      <a data-js-icono-estado="TRUNCAMIENTO" class="pop" data-content="Contadores importados truncados" data-placement="top" rel="popover" data-trigger="hover" hidden>
+      <a data-js-icono-estado="TRUNCAMIENTO" class="pop" data-content="Contadores importados truncados" data-placement="top" rel="popover" data-trigger="hover" style="display: none;">
         <i class="pop fa fa-exclamation" style="color: rgb(255, 167, 38); display: inline-block;"></i>
       </a>
-      <a data-js-icono-estado="SIN_IMPORTAR" class="pop" data-content="No se importaron contadores" data-placement="top" rel="popover" data-trigger="hover" hidden>
+      <a data-js-icono-estado="SIN_IMPORTAR" class="pop" data-content="No se importaron contadores" data-placement="top" rel="popover" data-trigger="hover" style="display: none;">
         <i class="pop fa fa-question" style="color: rgb(66, 165, 245); display: inline-block;"></i>
       </a>
     </td>
@@ -202,11 +220,11 @@
       };
       @endphp
       <button data-js-enabled="Validar" data-js-boton-medida="1" class="btn btn-warning pop medida" title="AJUSTE" data-trigger="manual" data-toggle="popover" data-placement="left" data-html="true" type="button" class="btn btn-warning pop medida"
-       data-content="{{$popup(1)}}">
+       data-content="{{$popup(1)}}" style="visibility: hidden;">
         <i class="fa fa-fw fa-life-ring"></i>
       </button>
       <button data-js-enabled="Validar" data-js-boton-medida="2" class="btn btn-warning pop medida" title="AJUSTE" data-trigger="manual" data-toggle="popover" data-placement="left" data-html="true" type="button" class="btn btn-warning pop medida"
-       data-content="{{$popup(2)}}">
+       data-content="{{$popup(2)}}" style="visibility: hidden;">
         <i class="fas fa-dollar-sign"></i>
       </button>
     </td>
@@ -220,7 +238,7 @@
       </select>
     </td>
     <td data-js-modo="Validar">
-      <a href="/relevamientos/estadisticas_no_toma" target="_blank" data-js-enabled="Validar" data-js-estadisticas-no-toma class="btn btn-success acciones_validacion" type="button">
+      <a href="/relevamientos/estadisticas_no_toma" target="_blank" data-js-enabled="Validar" data-js-estadisticas-no-toma class="btn btn-success acciones_validacion" type="button" style="visibility: hidden;">
         <i class="fas fa-fw fa-external-link-square-alt"></i>
       </a>
     </td>
