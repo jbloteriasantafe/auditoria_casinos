@@ -114,47 +114,56 @@
 </form>
 
 <style>
-  [data-css-colorear] [data-js-detalle-asignar-name="diferencia"] {
+  tr[data-css-colorear] [data-js-detalle-asignar-name="diferencia"] {
     border-width: 2px;
     border-style: solid;
   }
   
-  [data-css-colorear="DIFERENCIA"] [data-js-detalle-asignar-name="diferencia"],
-  [data-css-colorear="NO_TOMA"] [data-js-detalle-asignar-name="diferencia"],
-  [data-css-colorear="SIN_IMPORTAR"] [data-js-detalle-asignar-name="diferencia"] {
+  tr[data-css-colorear="DIFERENCIA"] [data-js-detalle-asignar-name="diferencia"],
+  tr[data-css-colorear="NO_TOMA"] [data-js-detalle-asignar-name="diferencia"],
+  tr[data-css-colorear="SIN_IMPORTAR"] [data-js-detalle-asignar-name="diferencia"] {
     border-color: #EF5350;
     color: #EF5350;
   }
   
-  [data-css-colorear="CORRECTO"] [data-js-detalle-asignar-name="diferencia"] {
+  tr[data-css-colorear="CORRECTO"] [data-js-detalle-asignar-name="diferencia"] {
     border-color: #66BB6A;
     color: #66BB6A;
   }
-  [data-css-colorear="TRUNCAMIENTO"] [data-js-detalle-asignar-name="diferencia"] {
+  tr[data-css-colorear="TRUNCAMIENTO"] [data-js-detalle-asignar-name="diferencia"] {
     border-color: #FFA726;
     color: #FFA726;
   }
   
-  [data-css-colorear="NO_TOMA"] [data-js-detalle-asignar-name="id_tipo_causa_no_toma"] {
+  tr[data-css-colorear="NO_TOMA"] [data-js-detalle-asignar-name="id_tipo_causa_no_toma"] {
     border: 2px solid #1E90FF;
     color: #1E90FF;
   }
   
-  [data-css-colorear="DIFERENCIA"] [data-js-boton-medida],
-  [data-css-colorear="DIFERENCIA"] [data-js-estadisticas-no-toma],
-  [data-css-colorear="NO_TOMA"] [data-js-boton-medida],
-  [data-css-colorear="NO_TOMA"] [data-js-estadisticas-no-toma] {
+  tr[data-css-colorear="DIFERENCIA"] [data-js-boton-medida],
+  tr[data-css-colorear="DIFERENCIA"] [data-js-estadisticas-no-toma],
+  tr[data-css-colorear="NO_TOMA"] [data-js-estadisticas-no-toma] {
     visibility: visible !important;
   }
   
   @foreach(['DIFERENCIA','NO_TOMA','SIN_IMPORTAR','CORRECTO','TRUNCAMIENTO'] as $e)
-  [data-css-colorear="{{$e}}"] [data-js-icono-estado="{{$e}}"] {
+  tr[data-css-colorear="{{$e}}"] [data-js-icono-estado="{{$e}}"] {
     display: block !important;
   }
   @endforeach
+  
+  tr[data-css-colorear="DIFERENCIA"][data-id_unidad_medida="1"] [data-js-boton-medida="1"] {
+    display: block !important;
+  }
+  tr[data-css-colorear="DIFERENCIA"][data-id_unidad_medida="2"] [data-js-boton-medida="2"] {
+    display: block !important;
+  }
+  tr[data-css-colorear!="DIFERENCIA"][data-id_unidad_medida] [data-js-boton-medida="vacio"] {
+    display: block !important;
+  }
 </style>
 <table hidden>
-  <tr data-js-molde-tabla-relevamiento data-medida="" data-denominacion="">
+  <tr data-js-molde-tabla-relevamiento>
     <td hidden><input data-js-detalle-asignar-name="id_detalle_relevamiento"></td>
     <td hidden><input data-js-detalle-asignar-name="id_unidad_medida"></td>
     <td hidden><input data-js-detalle-asignar-name="denominacion"></td>
@@ -220,13 +229,14 @@
       };
       @endphp
       <button data-js-enabled="Validar" data-js-boton-medida="1" class="btn btn-warning pop medida" title="AJUSTE" data-trigger="manual" data-toggle="popover" data-placement="left" data-html="true" type="button" class="btn btn-warning pop medida"
-       data-content="{{$popup(1)}}" style="visibility: hidden;">
+       data-content="{{$popup(1)}}" style="display: none;">
         <i class="fa fa-fw fa-life-ring"></i>
       </button>
       <button data-js-enabled="Validar" data-js-boton-medida="2" class="btn btn-warning pop medida" title="AJUSTE" data-trigger="manual" data-toggle="popover" data-placement="left" data-html="true" type="button" class="btn btn-warning pop medida"
-       data-content="{{$popup(2)}}" style="visibility: hidden;">
+       data-content="{{$popup(2)}}" style="display: none;">
         <i class="fas fa-dollar-sign"></i>
       </button>
+      <span data-js-boton-medida="vacio" style="display: none;">&nbsp;</span>
     </td>
     <td data-js-modo="Validar">
       <select data-js-enabled="Validar" data-js-detalle-asignar-name="a_pedido" class="a_pedido form-control acciones_validacion">

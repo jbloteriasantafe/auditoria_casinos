@@ -32,11 +32,14 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         const e    = estados[idr];
         const fila = idr_to_fila[idr];
         
+        fila.attr('data-css-colorear',e.estado);
+        fila.attr('data-id_unidad_medida',e.id_unidad_medida);
         fila.find(dname_f('producido')).val(e.importado);
         fila.find(dname_f('producido_calculado_relevado')).val(e.relevado);
         fila.find(dname_f('diferencia')).val(e.diferencia);
-        fila.attr('data-css-colorear',e.estado);
-        
+        fila.find(dname_f('id_unidad_medida')).val(e.id_unidad_medida);
+        fila.find(dname_f('denominacion')).val(e.id_unidad_medida == 1? e.denominacion : 1);
+
         if(fila.find('[data-js-cambio-tipo-causa-no-toma]').val() != ''){
           fila.find('[data-js-cambio-contador]').val('');
           fila.find('[data-formula]').filter('[data-formula!=""]').attr('disabled',true);
@@ -77,8 +80,6 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     
     data.detalles.forEach(function(d,didx){
       const fila = $M('[ data-js-molde-tabla-relevamiento]').clone().removeAttr('data-js-molde-tabla-relevamiento')
-      .attr('data-medida', d.unidad_medida.id_unidad_medida)//Unidad de medida: 1-Crédito, 2-Pesos 
-      .attr('data-denominacion', d.denominacion)//Denominación: para créditos
       .attr('data-id_detalle_relevamiento',d.detalle.id_detalle_relevamiento);
       
       fila.find('[data-js-detalle-asignar-name]').each(function(idx,obj){
@@ -87,8 +88,6 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       });
       
       fila.find(dname_f('id_detalle_relevamiento')).val(d.detalle.id_detalle_relevamiento);
-      fila.find(dname_f('id_unidad_medida')).val(d.unidad_medida.id_unidad_medida);
-      fila.find(dname_f('denominacion')).val(d.denominacion);
       fila.find(dname_f('maquina')).text(d.maquina);
       
       for(let c=1;c<=CONTADORES;c++){
@@ -102,9 +101,6 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       }
       
       fila.find(dname_f('id_tipo_causa_no_toma')).val(d.tipo_causa_no_toma ?? '');
-      fila.find(dname_f('denominacion')).val(d.unidad_medida.id_unidad_medida == 1? d.denominacion : 1);
-            
-      fila.find('[data-js-boton-medida]').filter(`[data-js-boton-medida!="${d.unidad_medida.id_unidad_medida}"]`).remove();
       fila.find('[data-js-estadisticas-no-toma]').attr('href',fila.find('[data-js-estadisticas-no-toma]').attr('href')+'/'+d.detalle.id_maquina);
             
       tabla.append(fila);
@@ -291,10 +287,12 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   });
   
   M.on('click','[data-js-ajustar]',function(e){
+    M.find('[data-js-boton-medida]').popover('hide');
+    
     const id_unidad_medida = $(this).siblings('input:checked').val();
     const fila   = $(this).closest('tr');
     
-    let deno = fila.attr('data-denominacion');
+    let deno = fila.find(dname_f('denominacion')).val();
     if(id_unidad_medida != 1){//@TODO: rechequear esta logica??? si esta en pesos reasigna la denominacion?
       deno = (deno ?? '') == ''? 0.01 : deno;
     }
@@ -306,8 +304,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         denominacion: deno,
       },
       function(data){
-        M.find('[data-js-boton-medida]').popover('hide');
-        M.trigger('mostrar',['Validar',$M('[name="id_relevamiento"]').val()]);
+        calcularEstadoDetalleRelevamiento(fila);
       },
       function(error){
         console.log('Error de cambio denominacion: ', error);

@@ -1511,18 +1511,31 @@ class RelevamientoController extends Controller
         $fecha_rel = $fecha_rel ?? $d->relevamiento->fecha;
         $calcular = $calcular ?? in_array($d->relevamiento->id_estado_relevamiento,[1,2]);
         $conts = $recibido[$d->id_detalle_relevamiento];
+        $m = $d->maquina()->withTrashed()->first();
         
         $relevado   = $calcular? $this->calcularProducidoRelevado_detalle($d,$conts) : $d->producido_calculado_relevado;
-        $importado  = $calcular? $this->calcularProducidoImportado($d->relevamiento->fecha,$d->maquina) : $d->producido_importado;
+        $importado  = $calcular? $this->calcularProducidoImportado($d->relevamiento->fecha,$m) : $d->producido_importado;
         $diferencia = $calcular? round($relevado - $importado,2) : $d->diferencia;
-        $hay_contadores = $calcular? false : true;
         $id_tipo_causa_no_toma = $calcular? ($conts['id_tipo_causa_no_toma'] ?? null) : $d->id_tipo_causa_no_toma;
+        
+        $hay_contadores = $calcular? false : true;
         foreach($this->contadores() as $cidx => $c){
           if($hay_contadores) break;
           $hay_contadores = $hay_contadores || (($conts[$c] ?? null) !== null);
         }
         $estado     = $this->obtenerEstadoDetalleRelevamiento($hay_contadores,$importado,$diferencia,$id_tipo_causa_no_toma);
-        $ret[$d->id_detalle_relevamiento] = compact('relevado','importado','diferencia','estado');
+        
+        //@HACK: Usar id_unidad_medida y denominacion usado el calcularProducidoRelevado?
+        $id_unidad_medida = $calcular? ($m->id_unidad_medida ?? $d->id_unidad_medida) : ($d->id_unidad_medida ?? $m->id_unidad_medida);
+        $id_unidad_medida = $id_unidad_medida ?? 2;
+        
+        $denominacion = $calcular? 
+          ($m->id_unidad_medida == 2? 1.0 : floatval($m->denominacion))
+        : ($d->id_unidad_medida == 2? 1.0 : floatval($d->denominacion));
+        
+        $denominacion = $denominacion ?? 1.0;
+        
+        $ret[$d->id_detalle_relevamiento] = compact('relevado','importado','diferencia','estado','id_unidad_medida','denominacion');
       }
       return $ret;
     });
