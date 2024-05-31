@@ -1587,22 +1587,18 @@ class RelevamientoController extends Controller
   public function buscarMaquinasPorCasino(Request $request,$id_casino){
     if($id_casino === null) return [];
     
-    $query = 
-    "select maq.id_maquina as id_maquina, maq.nro_admin as nro_admin, maq.id_casino as id_casino, cas.codigo as codigo
-    from maquina as maq
-    join casino cas on (maq.id_casino = cas.id_casino)
-    where maq.deleted_at is NULL";
+    $q = DB::table('maquina as m')
+    ->select('m.id_maquina','m.nro_admin','m.id_casino','c.codigo')
+    ->join('casino as c','c.id_casino','=','m.id_casino')
+    ->whereNull('m.deleted_at');
     
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     if($id_casino == 0){
-      if($user->es_superusuario) return DB::select(DB::raw($query),[]);
+      if($user->es_superusuario) return $q->get();
       else return [];
     }
-
-    if(!$user->usuarioTieneCasino($id_casino) || is_null(Casino::find($id_casino))){
-      return [];
-    }
     
-    return DB::select(DB::raw($query),['id_casino' => $id_casino]);
+    return $q->whereIn('m.id_casino',$user->casinos->pluck('id_casino'))
+    ->where('m.id_casino',$id_casino)->get();
   }
 }
