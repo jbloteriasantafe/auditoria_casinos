@@ -179,8 +179,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
                                     <div class="col-lg-4">
                                       <h5>SECTOR</h5>
                                       <select id="busqueda_sector" class="form-control" name="">
-                                        <option value="0">Todos los sectores</option>
-                                        <option value=""></option>
+                                        <option value="">Todos los sectores</option>
                                       </select>
                                     </div>
 
@@ -413,7 +412,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     <!-- JavaScript paginacion -->
     <script src="js/paginacion.js" charset="utf-8"></script>
     <!-- JavaScript personalizado -->
-    <script src="js/seccionEstadisticasRelevamientos.js?1" charset="utf-8"></script>
+    <script src="js/seccionEstadisticasRelevamientos.js?2" charset="utf-8"></script>
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
     <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>

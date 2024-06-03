@@ -1,21 +1,12 @@
 $(document).ready(function() {
-
-    $('#barraMaquinas').attr('aria-expanded', 'true');
-    $('#maquinas').removeClass();
-    $('#maquinas').addClass('subMenu1 collapse in');
-    $('#informesMTM').removeClass();
-    $('#informesMTM').addClass('subMenu2 collapse in');
-
     $('.tituloSeccionPantalla').text('Estadísticas de relevamientos');
-    $('#opcEstadisticas').attr('style', 'border-left: 6px solid #25306b; background-color: #131836;');
-    $('#opcEstadisticas').addClass('opcionesSeleccionado');
-
     habilitarDTP();
     habilitarDTPPedido();
     $('#btn-buscarMaquina').popover({ html: true });
     $('#fecha_desde').popover({ html: true });
     $('#B_fecha_inicio_m').popover({ html: true });
     cargarMaquinas();
+    $('#b_casino').change();
 });
 
 function cargarMaquinas() {
@@ -128,24 +119,19 @@ $('#seccionBusquedaPorMaquina input').on('focusin', function() {
 })
 
 $('#b_casino').on('change', function() {
-    var id_casino = $('#b_casino').val();
-
-
-    $.get("estadisticas_relevamientos/obtenerSectoresPorCasino/" + id_casino, function(data) {
-        var selectSector = $('#busqueda_sector');
-        selectSector.empty();
-        selectSector.append($('<option>')
-            .val(0)
-            .text('Todos los sectores')
-        )
-
-        for (var i = 0; i < data.sectores.length; i++) {
-            selectSector.append($('<option>')
-                .val(data.sectores[i].id_sector)
-                .text(data.sectores[i].descripcion)
-            )
-        }
+  const id_casino = $('#b_casino').val();
+  
+  const select = $('#busqueda_sector');
+  select.empty();
+  select.append($('<option>').val('').text('Todos los sectores'));
+  
+  if(id_casino.length == 0) return;
+  
+  $.get("estadisticas_relevamientos/obtenerSectoresPorCasino/" + id_casino, function(data) {
+    data.sectores.forEach(function(s){
+      select.append($('<option>').val(s.id_sector).text(s.descripcion));
     });
+  });
 });
 
 function generarFilaTabla(resultado) {
