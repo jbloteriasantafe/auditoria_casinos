@@ -6,7 +6,6 @@
 </style>
 <script>
   const CONTADORES   = {{$CONTADORES}};
-  const TRUNCAMIENTO = {{$TRUNCAMIENTO}};
 </script>
 @endcomponent
   
