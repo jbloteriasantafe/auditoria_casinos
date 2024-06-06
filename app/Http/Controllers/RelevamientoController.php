@@ -205,7 +205,6 @@ class RelevamientoController extends Controller
       $d->unidad_medida = $m->unidad_medida;
       $d->denominacion  = $m->denominacion;
       $d->maquina       = $m->nro_admin;
-      $d->producido     = $det->producido_importado;
       $d->tipo_causa_no_toma = is_null($det->tipo_causa_no_toma)? null : $det->tipo_causa_no_toma->id_tipo_causa_no_toma;
       return $d;
     })->filter(function($det){return !is_null($det);});
@@ -403,10 +402,7 @@ class RelevamientoController extends Controller
   }
 
   public function descargarZip($nombre){
-    $file = public_path() . "/" . $nombre;
-    $headers = array('Content-Type' => 'application/octet-stream',);
-
-    return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
+    return response()->download(public_path($nombre),$nombre,['Content-Type' => 'application/octet-stream'])->deleteFileAfterSend(true);
   }
 
   // cargarRelevamiento se guardan los detalles relevamientos de la toma de los fisca
@@ -449,41 +445,14 @@ class RelevamientoController extends Controller
         $this->eliminarRelevamientosBackUp($r);
       }
 
-      $r->fecha_ejecucion = $request->hora_ejecucion;
-      $r->fecha_carga = date('Y-m-d h:i:s', time());
-      $r->tecnico = $request->tecnico;
+      $r->fecha_ejecucion   = $request->hora_ejecucion;
+      $r->fecha_carga       = date('Y-m-d h:i:s', time());
+      $r->tecnico           = $request->tecnico;
       $r->observacion_carga = $request->observacion_carga;
-      //No deberia usar el sector???
-      $r->mtms_habilitadas_hoy = $this->calcularMTMsHabilitadas($r->sector->id_casino);
-      //No deberia usar el sector???
-      $r->mtms_sin_isla = $this->calcular_sin_isla($r->sector->id_casino);
-      $r->truncadas = 0;
       $r->save();
 
-      $CONTADORES = $this->contadores();
-      $request_detalles = collect($request->detalles ?? [])->keyBy('id_detalle_relevamiento');
-      
-      foreach($detalles as $d){
-        $r_d = $request_detalles[$d->id_detalle_relevamiento];
-        $d->id_tipo_causa_no_toma  = $r_d['id_tipo_causa_no_toma'] ?? null;
-        
-        foreach($CONTADORES as $c){
-          $d->{$c} = is_null($d->id_tipo_causa_no_toma)? null : ($r_d[$c] ?? null);
-        }
-        
-        $m = $d->maquina;
-        $d->producido_calculado_relevado = is_null($d->id_tipo_causa_no_toma)? null : $this->calcularProducidoRelevado_detalle($d,$r_d);
-        $d->producido_importado          = $this->calcularProducidoImportado($r->fecha,$m);
-        $d->diferencia                   = $d->producido_calculado_relevado - $d->producido_importado;
-        $d->id_unidad_medida             = $m->id_unidad_medida;
-        $d->denominacion                 = $m->denominacion;
-        $d->save();
-        $estado = $this->obtenerEstadoDetalleRelevamiento($d->producido_importado,$d->diferencia,$d->id_tipo_causa_no_toma);
-        
-        $r->truncadas += $estado == 'TRUNCAMIENTO'? 1 : 0;
-      }
-
-      $r->save();
+      $nuevos_contadores = collect($request->detalles ?? [])->keyBy('id_detalle_relevamiento');
+      $this->actualizarRelevamiento($r,$nuevos_contadores);
       return 1;
     });
   }
@@ -499,164 +468,151 @@ class RelevamientoController extends Controller
       $rel->delete();
     }
   }
+  
+  private function actualizarRelevamiento($r,$nuevos_contadores = []){
+    //No deberia usar el sector???
+    $r->mtms_habilitadas_hoy = $this->calcularMTMsHabilitadas($r->sector->id_casino);
+    //No deberia usar el sector???
+    $r->mtms_sin_isla = $this->calcular_sin_isla($r->sector->id_casino);
+    
+    $CONTADORES = $this->contadores();
+    $r->truncadas = 0;
+    foreach($r->detalles as $d){
+      $n_c = $nuevos_contadores[$d->id_detalle_relevamiento] ?? null;
+      if($n_c != null){
+        $d->id_tipo_causa_no_toma  = $n_c['id_tipo_causa_no_toma'] ?? null;
+        foreach($CONTADORES as $c){
+          $d->{$c} = is_null($d->id_tipo_causa_no_toma)? ($n_c[$c] ?? null) : null;
+        }
+      }
+      $m = $d->maquina;
+      $d->producido_calculado_relevado = is_null($d->id_tipo_causa_no_toma)? $this->calcularProducidoRelevado_detalle($d,$d->toArray()) : null;
+      $d->producido_importado          = $this->calcularProducidoImportado($r->fecha,$m);
+      $d->diferencia                   = $d->producido_calculado_relevado - $d->producido_importado;
+      $d->id_unidad_medida             = $m->id_unidad_medida;
+      $d->denominacion                 = $m->denominacion;
+      $d->save();
+      $estado = $this->obtenerEstadoDetalleRelevamiento($d->producido_importado,$d->diferencia,$d->id_tipo_causa_no_toma);
+      $r->truncadas += $estado == 'TRUNCAMIENTO'? 1 : 0;
+    }
+    $r->save();
+  }
+  
   // validarRelevamiento valida un relevamiento, le cambia el estado a visado
   // tambien verifica si todos los relevamientos para ese sector estan validados, en ese caso
   // se cambia el estado al 7 "rel visado", es decir, todos los relevamientos generados, estan visados
   public function validarRelevamiento(Request $request){
+    $detalles = $this->validarDetalles($request);
     Validator::make($request->all(),[
         'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
         'observacion_validacion' => 'nullable|max:2000',
         'truncadas' => 'required|integer|min:0',
-        'detalles' => 'required',///trae datos para guardar en el detalle relevamiento
+        'detalles' => 'required',
         'detalles.*.id_detalle_relevamiento' => 'required|exists:detalle_relevamiento,id_detalle_relevamiento',
-        'detalles.*.denominacion' => 'nullable|numeric',
-        'detalles.*.diferencia' => 'nullable|numeric',
-        'detalles.*.importado' => 'nullable|numeric',
         'detalles.*.a_pedido' => 'nullable|integer|min:0',
-    ], array(), self::$atributos)->after(function($validator){
+    ], array(), self::$atributos)->after(function($validator) use ($detalles,&$r){
       if($validator->errors()->any()) return;
-      
-      $rel = Relevamiento::find($validator->getData()['id_relevamiento']);
-      $count = ContadorHorario::where([['id_casino',$rel->sector->id_casino],['fecha',$rel->fecha]])->count();
-      //dd(ContadorHorario::where([['id_casino',$rel->sector->id_casino],['fecha',$rel->fecha]])->count());
-      switch ($rel->sector->id_casino) {
-        //se ignora el caso de rosario porque el tipo es "responsable"
-        // case 3: // rosario
-        //   if($count < 2){ // son 2 contadores, 1 por tipo de moneda
-        //     $validator->errors()->add('faltan_contadores','No se puede validar el relevamiento debido a que faltan importar contadores para dicha fecha.');
-        //   }
-        //   break;
-        case 2: // sfe - mel
-          if($count < 1){ // 1 solo contador ya que no usan dolares por ahora
-            $validator->errors()->add('faltan_contadores','No se puede validar el relevamiento debido a que faltan importar los contadores para dicha fecha.');
-          }
-          break;
+      $data = $validator->getData();
+      if(count($detalles) > 0 && $detalles[0]->id_relevamiento != $data['id_relevamiento']){
+        return $validator->errors()->add('id_relevamiento','Error de mismatch entre el relevamiento y los detalles');
+      }
+      $rel = Relevamiento::find($data['id_relevamiento']);
+      $id_casino = $rel->sector->id_casino;
+      $sin_contadores = $id_casino != 3 && ContadorHorario::where([['id_casino',$id_casino],['fecha',$rel->fecha]])->count() == 0;
+      //se ignora el caso de rosario porque el tipo es "responsable"
+      if($sin_contadores){
+        return $validator->errors()->add('faltan_contadores','No se puede validar el relevamiento debido a que faltan importar los contadores para dicha fecha.');
       }
     })->validate();
     
-    $relevamiento = Relevamiento::find($request->id_relevamiento);
-    $relevamiento->observacion_validacion = $request->observacion_validacion;
-    $relevamiento->truncadas=$request->truncadas;
-    $relevamiento->estado_relevamiento()->associate(4);
-    $relevamiento->save();
+    return DB::transaction(function() use ($request,$detalles){
+      $r = Relevamiento::find($request->id_relevamiento);
+      $this->actualizarRelevamiento($r);
+      $r->observacion_validacion = $request->observacion_validacion;
+      $r->estado_relevamiento()->associate(4);
+      $r->save();
 
-    ///controlo que todos esten visados para habilitar el informe
-    $casino = $relevamiento->sector->casino;
-    foreach($casino->sectores as $sector){
-      $sectores[] = $sector->id_sector;
-    }
-    $fecha = $relevamiento->fecha;
-    $todes = Relevamiento::where([['fecha', $fecha],['backup',0]])->whereIn('id_sector',$sectores)->count();
-    $visades = Relevamiento::where([['fecha', $fecha],['backup',0],['id_estado_relevamiento',4]])->whereIn('id_sector',$sectores)->get();
-
-    if($todes  == count($visades)){
-      foreach ($visades as $vis) {
-        $vis->estado_relevamiento()->associate(7);
-        $vis->save();
+      $sectores = $r->sector->casino->sectores->pluck('id_sector');
+      $rels = Relevamiento::where([['fecha', $r->fecha],['backup',0]])->whereIn('id_sector',$sectores)->get();
+      $todos_validados = true;
+      foreach($rels as $r){
+        $todos_validados = $todos_validados && ($r->id_estado_relevamiento == 4 || $r->id_estado_relevamiento == 7);
+        if(!$todos_validados) break;
       }
-    }
-
-    $mtm_controller = MaquinaAPedidoController::getInstancia();
-    foreach ($request['detalles'] as $dat) {
-      $dett = DetalleRelevamiento::find($dat['id_detalle_relevamiento']);
-      //dd($dat['id_detalle_relevamiento']);
-      if(isset($dat['denominacion'])){
-        $dett->denominacion = $dat['denominacion'];
-      }
-
-      if(isset($dat['diferencia'])){
-        $dett->diferencia = $dat['diferencia'];
-      }
-
-      if(isset($dat['importado'])){
-        $dett->producido_importado = $dat['importado'];
-      }
-
-      $dett->save();
       
-      if(isset($dat['a_pedido'])){
-        $mtm_controller->crearPedidoEn($dett->id_maquina,$dat['a_pedido'],$request->id_relevamiento);
+      if($todos_validados) foreach ($rels as $r) {
+        $r->estado_relevamiento()->associate(7);
+        $r->save();
       }
-    }
 
-    return ['relevamiento' => $relevamiento,
-            'casino' => $relevamiento->sector->casino->nombre,
-            'sector' => $relevamiento->sector->descripcion,
-            'estado' => $relevamiento->estado_relevamiento->descripcion,
-            'detalles' => $relevamiento->detalles];
+      foreach ($request['detalles'] as $dat){
+        $d = DetalleRelevamiento::find($dat['id_detalle_relevamiento']);    
+        if(isset($dat['a_pedido'])){
+          MaquinaAPedidoController::getInstancia()->crearPedidoEn($d->id_maquina,$dat['a_pedido'],$d->id_relevamiento);
+        }
+      }
+
+      return 1;
+    });
   }
-
 
   private function chequearMTMpedida($id_mtm, $id_relevamiento){
-    return  MaquinaAPedido::where([['id_relevamiento','=', $id_relevamiento],
-                                            ['id_maquina','=',$id_mtm]])->first();
+    return MaquinaAPedido::where([['id_relevamiento','=', $id_relevamiento],['id_maquina','=',$id_mtm]])->first();
   }
-
 
   private function guardarPlanilla($id_relevamiento){
     $relevamiento = Relevamiento::find($id_relevamiento);
-    $dompdf = $this->crearPlanilla($id_relevamiento);
-
-    $output = $dompdf->output();
-
+    $sector = $relevamiento->sector;
+    $casino = $sector->casino;
+    $ruta = "Relevamiento-{$casino->codigo}-{$sector->descripcion}-{$relevamiento->fecha}";
     if($relevamiento->subrelevamiento != null){
-      $ruta = "Relevamiento-".$relevamiento->sector->casino->codigo."-".$relevamiento->sector->descripcion."-".$relevamiento->fecha."(".$relevamiento->subrelevamiento.")".".pdf";
-    }else{
-      $ruta = "Relevamiento-".$relevamiento->sector->casino->codigo."-".$relevamiento->sector->descripcion."-".$relevamiento->fecha.".pdf";
+      $ruta .= "(".$relevamiento->subrelevamiento.")";
     }
-
-    file_put_contents($ruta, $output);
-
+    $ruta .= '.pdf';
+    
+    file_put_contents($ruta, $this->crearPlanilla($id_relevamiento)->output());
     return $ruta;
   }
   // crearPlanilla crea y guarda la planilla de relevamiento
   public function crearPlanilla($id_relevamiento){
     $relevamiento = Relevamiento::find($id_relevamiento);
     $rel= new \stdClass();
+    $sector = $relevamiento->sector;
+    $casino = $sector->casino;
+    
+    $rel->casinoCod = $casino->codigo;
+    $rel->casinoNom = $casino->nombre;
+    $rel->sector    = $sector->descripcion;
+    
     $rel->nro_relevamiento = $relevamiento->nro_relevamiento;
-    $rel->casinoCod = $relevamiento->sector->casino->codigo;
-    $rel->casinoNom = $relevamiento->sector->casino->nombre;
-    $rel->sector = $relevamiento->sector->descripcion;
-    $rel->fecha = $relevamiento->fecha;
-    $rel->fecha_ejecucion = $relevamiento->fecha_ejecucion;
-    $rel->fecha_generacion = $relevamiento->fecha_generacion;
     $rel->seed = is_null($relevamiento->seed)? '' : $relevamiento->seed;
+    $rel->fecha_ejecucion  = $relevamiento->fecha_ejecucion;
+    
+    $rel->fecha_generacion = implode('-',array_reverse(explode('-',$relevamiento->fecha_generacion)));
+    $rel->fecha = implode('-',array_reverse(explode('-',$relevamiento->fecha)));
 
-    $año = substr($rel->fecha,0,4);
-    $mes = substr($rel->fecha,5,2);
-    $dia = substr($rel->fecha,8,2);
-    $rel->fecha = $dia."-".$mes."-".$año;
-
-    $añoG = substr($rel->fecha_generacion,0,4);
-    $mesG = substr($rel->fecha_generacion,5,2);
-    $diaG = substr($rel->fecha_generacion,8,2);
-    $rel->fecha_generacion = $diaG."-".$mesG."-".$añoG;
     $rel->causas_no_toma = TipoCausaNoToma::all();
-    $detalles = array();
-    foreach($relevamiento->detalles as $detalle){
+    $CONTADORES = $this->contadores();
+    $detalles = $relevamiento->detalles->map(function($d) use (&$CONTADORES){
       $det = new \stdClass();
-      $det->maquina = $detalle->maquina->nro_admin;
-      $det->isla = $detalle->maquina->isla->nro_isla;
-      $det->sector= $detalle->maquina->isla->sector->descripcion;
-      $det->marca = $detalle->maquina->marca_juego;
-      $det->unidad_medida = $detalle->maquina->unidad_medida->descripcion;
-      $det->formula = $detalle->maquina->formula;//abreviar nombre de contadores de formula
-      if($detalle->tipo_causa_no_toma != null){
-          $det->no_toma = $detalle->tipo_causa_no_toma->codigo;
-      }else{
-          $det->no_toma = null;
+      $m = $d->maquina;
+      $i = $m->isla;
+      $tcnt = $d->tipo_causa_no_toma;
+      
+      $det->maquina       = $m->nro_admin;
+      $det->isla          = $i->nro_isla;
+      $det->sector        = $i->sector->descripcion;
+      $det->marca         = $m->marca_juego;
+      $det->unidad_medida = $m->unidad_medida->descripcion;
+      $det->formula = $m->formula;//abreviar nombre de contadores de formula
+      $det->no_toma = ($tcnt != null)? $tcnt->codigo : null;
+      
+      foreach($CONTADORES as $cidx => $c){
+        $det->{$c} = ($d->{$c} != null) ? number_format($d->{$c}, 2, ",", ".") : "";
       }
-
-      $det->cont1 = ($detalle->cont1 != null) ? number_format($detalle->cont1, 2, ",", ".") : "";
-      $det->cont2 = ($detalle->cont2 != null) ? number_format($detalle->cont2, 2, ",", ".") : "";
-      $det->cont3 = ($detalle->cont3 != null) ? number_format($detalle->cont3, 2, ",", ".") : "";
-      $det->cont4 = ($detalle->cont4 != null) ? number_format($detalle->cont4, 2, ",", ".") : "";
-      $det->cont5 = ($detalle->cont5 != null) ? number_format($detalle->cont5, 2, ",", ".") : "";
-      $det->cont6 = ($detalle->cont6 != null) ? number_format($detalle->cont6, 2, ",", ".") : "";
-      $det->cont7 = ($detalle->cont7 != null) ? number_format($detalle->cont7, 2, ",", ".") : "";
-      $det->cont8 = ($detalle->cont8 != null) ? number_format($detalle->cont8, 2, ",", ".") : "";
-      $detalles[] = $det;
-    };
+      
+      return $det;
+    })->toArray();
 
     $view = View::make('planillaRelevamientos2018', compact('detalles','rel'));
 
@@ -666,10 +622,10 @@ class RelevamientoController extends Controller
     $dompdf->render();
 
     $font = $dompdf->getFontMetrics()->get_font("Helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 565, 
-      (($rel->nro_relevamiento != null) ? $rel->nro_relevamiento : "AUX")."/".$rel->seed.'/'.$rel->casinoCod
-      ."/".$rel->sector."/".$rel->fecha."/Generado:".$rel->fecha_generacion
-    , $font, 10, array(0,0,0));
+    $codigo  = ($rel->nro_relevamiento != null) ? $rel->nro_relevamiento : "AUX";
+    $codigo .= "/{$rel->seed}/{$rel->casinoCod}/{$rel->sector}/{$rel->fecha}/Generado:{$rel->fecha_generacion}";
+    
+    $dompdf->getCanvas()->page_text(20, 565, $codigo, $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(750, 565, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
     return $dompdf;
   }
@@ -1248,20 +1204,14 @@ class RelevamientoController extends Controller
   public function modificarDenominacionYUnidad(Request $request){
     Validator::make($request->all(),[
       'id_detalle_relevamiento' => 'required|exists:detalle_relevamiento,id_detalle_relevamiento',
-      'denominacion' => ['nullable','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
       'id_unidad_medida' => 'required|exists:unidad_medida,id_unidad_medida'
     ], array(), self::$atributos)->after(function($validator){})->validate();
     
     return DB::transaction(function() use ($request){
       $d = DetalleRelevamiento::find($request->id_detalle_relevamiento);
-      $m = MTMController::getInstancia()->modificarDenominacionYUnidad($request->id_unidad_medida,$request->denominacion,$d->id_maquina);
-      
-      $d->producido_calculado_relevado = $this->calcularProducidoRelevado_detalle($d,$d->toArray());
-      $d->id_unidad_medida = $m->id_unidad_medida;//guardo con que unidad de medida hice elcalculo para ese detalle, porque puede cambiar
-      $d->diferencia = $d->producido_calculado_relevado - $d->producido_importado;
-      $d->save();
-      
-      return ['producido_calculado_relevado' => $d->producido_calculado_relevado];
+      $m = MTMController::getInstancia()->modificarDenominacionYUnidad($request->id_unidad_medida,$d->id_maquina);
+      $this->actualizarRelevamiento($d->relevamiento);      
+      return ['producido_calculado_relevado' => DetalleRelevamiento::find($request->id_detalle_relevamiento)->producido_calculado_relevado];
     });
   }
   

@@ -292,16 +292,10 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     const id_unidad_medida = $(this).siblings('input:checked').val();
     const fila   = $(this).closest('tr');
     
-    let deno = fila.find(dname_f('denominacion')).val();
-    if(id_unidad_medida != 1){//@TODO: rechequear esta logica??? si esta en pesos reasigna la denominacion?
-      deno = (deno ?? '') == ''? 0.01 : deno;
-    }
-    
     AUX.POST('relevamientos/modificarDenominacionYUnidad',
       {
         id_detalle_relevamiento: fila.find(dname_f('id_detalle_relevamiento')).val(),
         id_unidad_medida: id_unidad_medida,
-        denominacion: deno,
       },
       function(data){
         calcularEstadoDetalleRelevamiento(fila);
