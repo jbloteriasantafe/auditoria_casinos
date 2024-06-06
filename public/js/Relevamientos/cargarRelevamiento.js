@@ -106,7 +106,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       tabla.append(fila);
       
       fila.find('[data-js-cambio-tipo-causa-no-toma]').on('change',cambioContador);
-      fila.find('[data-js-cambio-contador]').on('keypress',cambioContador);
+      fila.find('[data-js-cambio-contador]').on('keyup',cambioContador);
     });
     
     tabla.find('[data-js-boton-medida]').popover({

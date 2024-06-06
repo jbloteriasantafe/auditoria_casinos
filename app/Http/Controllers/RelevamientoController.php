@@ -411,80 +411,79 @@ class RelevamientoController extends Controller
 
   // cargarRelevamiento se guardan los detalles relevamientos de la toma de los fisca
   public function cargarRelevamiento(Request $request){
+    $detalles = $this->validarDetalles($request);
+    
     Validator::make($request->all(), [
         'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
-        'id_usuario_fiscalizador' => 'required_if:estado,3|nullable|exists:usuario,id_usuario',
+        'id_usuario_fiscalizador' => 'required_if:estado,3|nullable|exists:usuario,id_usuario,deleted_at,NULL',
         'tecnico' => 'nullable|max:45',
         'observacion_carga' => 'nullable|max:2000',
         'estado' => 'required|numeric|between:2,3',
         'hora_ejecucion' => 'required_if:estado,3|regex:/^\d\d:\d\d(:\d\d)?/',
-        'detalles' => 'required',
-        'detalles.*.id_detalle_relevamiento' => 'required|exists:detalle_relevamiento,id_detalle_relevamiento',
-        'detalles.*.cont1' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-        'detalles.*.cont2' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-        'detalles.*.cont3' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-        'detalles.*.cont4' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-        'detalles.*.cont5' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-        'detalles.*.cont6' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-        'detalles.*.cont7' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-        'detalles.*.cont8' => ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-        'detalles.*.id_tipo_causa_no_toma' => 'nullable|exists:tipo_causa_no_toma,id_tipo_causa_no_toma',
-        'detalles.*.producido_calculado_relevado' => ['required','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-        'detalles.*.id_unidad_medida' => 'required|exists:unidad_medida,id_unidad_medida',
-    ], array(), self::$atributos)->after(function($validator){
+    ], [], self::$atributos)->after(function($validator) use ($detalles){
       if($validator->errors()->any()) return;
-      //@TODO validar casinos
+      $data = $validator->getData();
+      foreach($detalles as $d){
+        if($d->id_relevamiento != $data['id_relevamiento']){
+          return $validator->errors()->add('id_relevamiento','Error de mismatch entre detalles y relevamiento');
+        }
+      }
     })->validate();
     
-    return DB::transaction(function() use ($request){
-      $request->detalles != 0 ? $detalles = $request->detalles : $detalles = array();
-      $relevamiento = Relevamiento::find($request->id_relevamiento);
+    return DB::transaction(function() use ($request,$detalles){
+      $r = Relevamiento::find($request->id_relevamiento);
+      
       if($request->id_usuario_fiscalizador != null){
-        $relevamiento->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador);
+        $r->usuario_fiscalizador()->associate($request->id_usuario_fiscalizador);
       }else {
-        $relevamiento->usuario_fiscalizador()->dissociate();
+        $r->usuario_fiscalizador()->dissociate();
       }
-      if($relevamiento->id_usuario_cargador == null){
-        $relevamiento->usuario_cargador()->associate(UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario);
+      
+      if($r->id_usuario_cargador == null){
+        $r->usuario_cargador()->associate(UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario);
       }
-      if($request->estado == 2){
-        $relevamiento->estado_relevamiento()->associate(2);
-      }else if($request->estado == 3){
-        $relevamiento->estado_relevamiento()->associate(3);
-        // si cierra el relevamiento (estado == 3) me fijo en la bd y elimino todos los backup que habia para esa fecha
-        $this->eliminarRelevamientosBackUp($relevamiento);
+      
+      $r->estado_relevamiento()->associate($request->estado);
+      
+      if($request->estado == 3){// si cierra el relevamiento me fijo en la bd y elimino todos los backup que habia para esa fecha
+        $this->eliminarRelevamientosBackUp($r);
       }
 
-      $cantidad_habilitadas = $this->calcularMTMsHabilitadas($relevamiento->sector->id_casino);
-      $sin_isla = $this->calcular_sin_isla($relevamiento->sector->id_casino);
-
-      $relevamiento->fecha_ejecucion = $request->hora_ejecucion;
-      $relevamiento->fecha_carga = date('Y-m-d h:i:s', time());
-      $relevamiento->tecnico = $request->tecnico;
-      $relevamiento->observacion_carga = $request->observacion_carga;
-      $relevamiento->truncadas = $request->truncadas;
-      $relevamiento->mtms_habilitadas_hoy = $cantidad_habilitadas;
-      $relevamiento->mtms_sin_isla = $sin_isla;
-      $relevamiento->save();
+      $r->fecha_ejecucion = $request->hora_ejecucion;
+      $r->fecha_carga = date('Y-m-d h:i:s', time());
+      $r->tecnico = $request->tecnico;
+      $r->observacion_carga = $request->observacion_carga;
+      //No deberia usar el sector???
+      $r->mtms_habilitadas_hoy = $this->calcularMTMsHabilitadas($r->sector->id_casino);
+      //No deberia usar el sector???
+      $r->mtms_sin_isla = $this->calcular_sin_isla($r->sector->id_casino);
+      $r->truncadas = 0;
+      $r->save();
 
       $CONTADORES = $this->contadores();
-      foreach($detalles as $det){
-        $detalle = DetalleRelevamiento::find($det['id_detalle_relevamiento']);
+      $request_detalles = collect($request->detalles ?? [])->keyBy('id_detalle_relevamiento');
+      
+      foreach($detalles as $d){
+        $r_d = $request_detalles[$d->id_detalle_relevamiento];
+        $d->id_tipo_causa_no_toma  = $r_d['id_tipo_causa_no_toma'] ?? null;
+        
         foreach($CONTADORES as $c){
-          $detalle->{$c} = $det[$c] ?? null;
+          $d->{$c} = is_null($d->id_tipo_causa_no_toma)? null : ($r_d[$c] ?? null);
         }
-        $detalle->id_tipo_causa_no_toma = $det['id_tipo_causa_no_toma'];
-        $detalle->producido_calculado_relevado = $det['producido_calculado_relevado'];
-
-        if($detalle->producido_importado != null && $detalle->producido_calculado_relevado != null){
-          $detalle->diferencia = $detalle->producido_calculado_relevado - $detalle->producido_importado;
-        }
-
-        $detalle->id_unidad_medida = $det['id_unidad_medida'];
-        $detalle->denominacion = $det['denominacion'];
-        $detalle->save();
+        
+        $m = $d->maquina;
+        $d->producido_calculado_relevado = is_null($d->id_tipo_causa_no_toma)? null : $this->calcularProducidoRelevado_detalle($d,$r_d);
+        $d->producido_importado          = $this->calcularProducidoImportado($r->fecha,$m);
+        $d->diferencia                   = $d->producido_calculado_relevado - $d->producido_importado;
+        $d->id_unidad_medida             = $m->id_unidad_medida;
+        $d->denominacion                 = $m->denominacion;
+        $d->save();
+        $estado = $this->obtenerEstadoDetalleRelevamiento($d->producido_importado,$d->diferencia,$d->id_tipo_causa_no_toma);
+        
+        $r->truncadas += $estado == 'TRUNCAMIENTO'? 1 : 0;
       }
 
+      $r->save();
       return 1;
     });
   }
@@ -1310,13 +1309,13 @@ class RelevamientoController extends Controller
     return $this->calcularProducidoRelevado_array($conts_arr, $ops_arr, $deno);
   }
   
-  public function calcularEstadoDetalleRelevamiento(Request $request){
+  private function validarDetalles(Request $request){
     $validation_arr = [
       'detalles.*.id_detalle_relevamiento' => 'required|exists:detalle_relevamiento,id_detalle_relevamiento',
       'detalles.*.id_tipo_causa_no_toma' => 'nullable|exists:tipo_causa_no_toma,id_tipo_causa_no_toma',
     ];
     foreach($this->contadores() as $cidx => $c){
-      $validation_arr["detalles.*.$c"] = ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'];
+      $validation_arr["detalles.*.$c"] = ['nullable','regex:/^-?\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d?\d?)?$/'];
     }
     
     $detalles = collect([]);
@@ -1346,6 +1345,12 @@ class RelevamientoController extends Controller
       }
     })->validate();
     
+    return $detalles;
+  }
+  
+  public function calcularEstadoDetalleRelevamiento(Request $request){
+    $detalles = $this->validarDetalles($request);
+    
     return DB::transaction(function() use ($request,$detalles){
       $ret = [];
       $recibido = collect($request['detalles'])->keyBy('id_detalle_relevamiento');
@@ -1361,13 +1366,7 @@ class RelevamientoController extends Controller
         $importado  = $calcular? $this->calcularProducidoImportado($d->relevamiento->fecha,$m) : $d->producido_importado;
         $diferencia = $calcular? round($relevado - $importado,2) : $d->diferencia;
         $id_tipo_causa_no_toma = $calcular? ($conts['id_tipo_causa_no_toma'] ?? null) : $d->id_tipo_causa_no_toma;
-        
-        $hay_contadores = $calcular? false : true;
-        foreach($this->contadores() as $cidx => $c){
-          if($hay_contadores) break;
-          $hay_contadores = $hay_contadores || (($conts[$c] ?? null) !== null);
-        }
-        $estado     = $this->obtenerEstadoDetalleRelevamiento($hay_contadores,$importado,$diferencia,$id_tipo_causa_no_toma);
+        $estado = $this->obtenerEstadoDetalleRelevamiento($importado,$diferencia,$id_tipo_causa_no_toma);
         
         //@HACK: Usar id_unidad_medida y denominacion usado el calcularProducidoRelevado?
         $id_unidad_medida = $calcular? ($m->id_unidad_medida ?? $d->id_unidad_medida) : ($d->id_unidad_medida ?? $m->id_unidad_medida);
@@ -1385,7 +1384,7 @@ class RelevamientoController extends Controller
     });
   }
   //No modificar sin cambiar el template del modal de carga... usa estos valores de retorno
-  private function obtenerEstadoDetalleRelevamiento($hay_contadores,$importado,$diferencia,$id_tipo_causa_no_toma){
+  private function obtenerEstadoDetalleRelevamiento($importado,$diferencia,$id_tipo_causa_no_toma){
     if(!is_null($id_tipo_causa_no_toma)) return 'NO_TOMA';
     if(is_null($importado)) return 'SIN_IMPORTAR';
     if($diferencia != 0){
