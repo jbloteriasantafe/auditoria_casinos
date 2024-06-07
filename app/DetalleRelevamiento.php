@@ -11,7 +11,7 @@ class DetalleRelevamiento extends Model
   protected $primaryKey = 'id_detalle_relevamiento';
   protected $visible = array('id_detalle_relevamiento','cont1','cont2',
   'cont3','cont4','cont5','cont6','cont7','cont8','producido_calculado_relevado',
-  'id_unidad_medida' , 'id_maquina','codigo','producido_importado','diferencia','truncado');
+  'id_unidad_medida' , 'id_maquina','codigo','producido_importado','diferencia','truncado','id_tipo_causa_no_toma','denominacion');
   public $timestamps = false;
 
   public function relevamiento(){

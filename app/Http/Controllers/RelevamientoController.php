@@ -469,31 +469,83 @@ class RelevamientoController extends Controller
     }
   }
   
-  private function actualizarRelevamiento($r,$nuevos_contadores = []){
+  public function recalcularDetalles($detalles,$contadores){
+    $ret = [];
+    {
+      $rel = null;
+      $CONTADORES = $this->contadores();
+      foreach($detalles as $d){
+        $m = $d->maquina()->withTrashed()->first();
+        $rel = $rel ?? $d->relevamiento;
+        $conts = $contadores[$d->id_detalle_relevamiento];
+        
+        $producido_importado = $this->calcularProducidoImportado($rel->fecha,$m);
+        $id_tipo_causa_no_toma = $conts['id_tipo_causa_no_toma'] ?? null;
+        
+        $producido_calculado_relevado = is_null($id_tipo_causa_no_toma)? $this->calcularProducidoRelevado_detalle($d,$conts) : null;
+        $diferencia = round($producido_calculado_relevado - $producido_importado,2);
+        $estado     = $this->obtenerEstadoDetalleRelevamiento($producido_importado,$diferencia,$id_tipo_causa_no_toma);
+        
+        $id_unidad_medida = $m->id_unidad_medida;
+        $denominacion     = ($m->id_unidad_medida == 2? 1.0 : floatval($m->denominacion)) ?? 1.0;
+        
+        $ret[$d->id_detalle_relevamiento] = compact('id_detalle_relevamiento','producido_calculado_relevado','producido_importado','diferencia','estado','id_unidad_medida','denominacion');
+        
+        foreach($CONTADORES as $cidx => $c){
+          $ret[$d->id_detalle_relevamiento][$c] = is_null($id_tipo_causa_no_toma)? ($conts[$c] ?? null) : null;
+        }
+      }
+    }
+    
+    return $ret;
+  }
+  
+  public function calcularEstadoDetalleRelevamiento(Request $request){
+    $detalles = $this->validarDetalles($request);
+    
+    return DB::transaction(function() use ($request,$detalles){
+      if(count($detalles) <= 0) return [];
+      //Solo recalculo si esta relevando, sino uso directamente del detalle
+      $calcular = in_array($detalles[0]->relevamiento->id_estado_relevamiento,[1,2]);
+            
+      if($calcular){
+        $contadores = collect($request['detalles'])->keyBy('id_detalle_relevamiento');
+        return $this->recalcularDetalles($detalles,$contadores);
+      }
+      
+      return $detalles->map(function($d){
+        $nd = (object) $d->toArray();
+        $nd->estado = $this->obtenerEstadoDetalleRelevamiento($nd->producido_importado,$nd->diferencia,$nd->id_tipo_causa_no_toma);
+        $nd->denominacion = ($nd->id_unidad_medida == 2? 1.0 : floatval($nd->denominacion)) ?? 1.0;
+        return $nd;
+      })->keyBy('id_detalle_relevamiento');
+    });
+  }
+  
+  private function actualizarRelevamiento($r,$nuevos_contadores = null){
     //No deberia usar el sector???
     $r->mtms_habilitadas_hoy = $this->calcularMTMsHabilitadas($r->sector->id_casino);
     //No deberia usar el sector???
     $r->mtms_sin_isla = $this->calcular_sin_isla($r->sector->id_casino);
-    
-    $CONTADORES = $this->contadores();
+    $nuevos_contadores = $nuevos_contadores ?? $r->detalles->keyBy('id_detalle_relevamiento')->toArray();
+    $nuevos_detalles   = $this->recalcularDetalles($r->detalles,$nuevos_contadores);
     $r->truncadas = 0;
+    $CONTADORES = $this->contadores();
     foreach($r->detalles as $d){
-      $n_c = $nuevos_contadores[$d->id_detalle_relevamiento] ?? null;
-      if($n_c != null){
-        $d->id_tipo_causa_no_toma  = $n_c['id_tipo_causa_no_toma'] ?? null;
-        foreach($CONTADORES as $c){
-          $d->{$c} = is_null($d->id_tipo_causa_no_toma)? ($n_c[$c] ?? null) : null;
-        }
+      $n_d = $nuevos_detalles[$d->id_detalle_relevamiento] ?? null;
+      if($n_d === null) continue;
+      
+      $d->producido_calculado_relevado = $n_d['producido_calculado_relevado'];
+      $d->producido_importado = $n_d['producido_calculado_relevado'];
+      $d->diferencia = $n_d['diferencia'];
+      $d->id_unidad_medida = $n_d['id_unidad_medida'];
+      $d->denominacion = $n_d['denominacion'];
+      foreach($CONTADORES as $c){
+        $d->{$c} = $n_d[$c];
       }
-      $m = $d->maquina;
-      $d->producido_calculado_relevado = is_null($d->id_tipo_causa_no_toma)? $this->calcularProducidoRelevado_detalle($d,$d->toArray()) : null;
-      $d->producido_importado          = $this->calcularProducidoImportado($r->fecha,$m);
-      $d->diferencia                   = $d->producido_calculado_relevado - $d->producido_importado;
-      $d->id_unidad_medida             = $m->id_unidad_medida;
-      $d->denominacion                 = $m->denominacion;
       $d->save();
-      $estado = $this->obtenerEstadoDetalleRelevamiento($d->producido_importado,$d->diferencia,$d->id_tipo_causa_no_toma);
-      $r->truncadas += $estado == 'TRUNCAMIENTO'? 1 : 0;
+      
+      $r->truncadas += $n_d['estado'] == 'TRUNCAMIENTO'? 1 : 0;
     }
     $r->save();
   }
@@ -1298,41 +1350,6 @@ class RelevamientoController extends Controller
     return $detalles;
   }
   
-  public function calcularEstadoDetalleRelevamiento(Request $request){
-    $detalles = $this->validarDetalles($request);
-    
-    return DB::transaction(function() use ($request,$detalles){
-      $ret = [];
-      $recibido = collect($request['detalles'])->keyBy('id_detalle_relevamiento');
-      $fecha_rel = null;
-      $calcular = null;//Solo recalculo si esta relevando, sino uso directamente del detalle
-      foreach($detalles as $d){
-        $fecha_rel = $fecha_rel ?? $d->relevamiento->fecha;
-        $calcular = $calcular ?? in_array($d->relevamiento->id_estado_relevamiento,[1,2]);
-        $conts = $recibido[$d->id_detalle_relevamiento];
-        $m = $d->maquina()->withTrashed()->first();
-        
-        $relevado   = $calcular? $this->calcularProducidoRelevado_detalle($d,$conts) : $d->producido_calculado_relevado;
-        $importado  = $calcular? $this->calcularProducidoImportado($d->relevamiento->fecha,$m) : $d->producido_importado;
-        $diferencia = $calcular? round($relevado - $importado,2) : $d->diferencia;
-        $id_tipo_causa_no_toma = $calcular? ($conts['id_tipo_causa_no_toma'] ?? null) : $d->id_tipo_causa_no_toma;
-        $estado = $this->obtenerEstadoDetalleRelevamiento($importado,$diferencia,$id_tipo_causa_no_toma);
-        
-        //@HACK: Usar id_unidad_medida y denominacion usado el calcularProducidoRelevado?
-        $id_unidad_medida = $calcular? ($m->id_unidad_medida ?? $d->id_unidad_medida) : ($d->id_unidad_medida ?? $m->id_unidad_medida);
-        $id_unidad_medida = $id_unidad_medida ?? 2;
-        
-        $denominacion = $calcular? 
-          ($m->id_unidad_medida == 2? 1.0 : floatval($m->denominacion))
-        : ($d->id_unidad_medida == 2? 1.0 : floatval($d->denominacion));
-        
-        $denominacion = $denominacion ?? 1.0;
-        
-        $ret[$d->id_detalle_relevamiento] = compact('relevado','importado','diferencia','estado','id_unidad_medida','denominacion');
-      }
-      return $ret;
-    });
-  }
   //No modificar sin cambiar el template del modal de carga... usa estos valores de retorno
   private function obtenerEstadoDetalleRelevamiento($importado,$diferencia,$id_tipo_causa_no_toma){
     if(!is_null($id_tipo_causa_no_toma)) return 'NO_TOMA';

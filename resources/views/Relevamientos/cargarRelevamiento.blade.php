@@ -176,7 +176,7 @@
       <input data-js-readonly="Validar" data-js-detalle-asignar-name="producido_calculado_relevado" class="producidoCalculado form-control" style="text-align: right; border: 2px solid rgb(109, 199, 190); color: rgb(109, 199, 190);">
     </td>
     <td style="text-align: right;" data-js-modo="Ver,Validar">
-      <input data-js-enabled="Validar" data-js-readonly="Validar" data-js-detalle-asignar-name="producido" class="producido form-control" style="text-align: right; border: 2px solid rgb(109, 199, 190); color: rgb(109, 199, 190);">
+      <input data-js-enabled="Validar" data-js-readonly="Validar" data-js-detalle-asignar-name="producido_importado" class="producido form-control" style="text-align: right; border: 2px solid rgb(109, 199, 190); color: rgb(109, 199, 190);">
     </td>
     <td style="text-align: right;" data-js-modo="Ver,Validar">
       <input data-js-enabled="Validar" data-js-readonly="Validar" data-js-detalle-asignar-name="diferencia" class="diferencia form-control" style="text-align: right;">

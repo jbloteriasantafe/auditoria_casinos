@@ -34,11 +34,11 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         
         fila.attr('data-css-colorear',e.estado);
         fila.attr('data-id_unidad_medida',e.id_unidad_medida);
-        fila.find(dname_f('producido')).val(e.importado);
-        fila.find(dname_f('producido_calculado_relevado')).val(e.relevado);
+        fila.find(dname_f('producido_importado')).val(e.producido_importado);
+        fila.find(dname_f('producido_calculado_relevado')).val(e.producido_calculado_relevado);
         fila.find(dname_f('diferencia')).val(e.diferencia);
         fila.find(dname_f('id_unidad_medida')).val(e.id_unidad_medida);
-        fila.find(dname_f('denominacion')).val(e.id_unidad_medida == 1? e.denominacion : 1);
+        fila.find(dname_f('denominacion')).val(e.denominacion);
 
         if(fila.find('[data-js-cambio-tipo-causa-no-toma]').val() != ''){
           fila.find('[data-js-cambio-contador]').val('');
