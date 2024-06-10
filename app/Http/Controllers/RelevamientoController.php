@@ -547,7 +547,7 @@ class RelevamientoController extends Controller
     Validator::make($request->all(),[
         'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
         'observacion_validacion' => 'nullable|max:2000',
-        'data' => 'required',///trae datos para guardar en el detalle relevamiento
+        'data' => 'nullable|array',///trae datos para guardar en el detalle relevamiento
     ], array(), self::$atributos)->after(function($validator){
       $rel = Relevamiento::find($validator->getData()['id_relevamiento']);
       $count = ContadorHorario::where([['id_casino',$rel->sector->id_casino],['fecha',$rel->fecha]])->count();
@@ -575,21 +575,23 @@ class RelevamientoController extends Controller
 
     ///controlo que todos esten visados para habilitar el informe
     $casino = $relevamiento->sector->casino;
-    foreach($casino->sectores as $sector){
-      $sectores[] = $sector->id_sector;
-    }
     $fecha = $relevamiento->fecha;
-    $todes = Relevamiento::where([['fecha', $fecha],['backup',0]])->whereIn('id_sector',$sectores)->count();
-    $visades = Relevamiento::where([['fecha', $fecha],['backup',0],['id_estado_relevamiento',4]])->whereIn('id_sector',$sectores)->get();
-
-    if($todes  == count($visades)){
-      foreach ($visades as $vis) {
-        $vis->estado_relevamiento()->associate(7);
-        $vis->save();
+    {
+      $sectores = $casino->sectores->pluck('id_sector');
+      $rels = Relevamiento::where([['fecha', $fecha],['backup',0]])->whereIn('id_sector',$sectores)->get();
+      $todos_visados = true;
+      foreach($rels as $r){
+        $todos_visados = $todos_visados && in_array($r->id_estado_relevamiento,[4,7]);
+        if(!$todos_visados){break;}
+      }
+      if($todos_visados){
+        foreach($rels as $r){
+          $r->estado_relevamiento()->associate(7);
+          $r->save();
+        }
       }
     }
-
-
+    
     $mtm_controller = MaquinaAPedidoController::getInstancia();
     if(!empty($request->maquinas_a_pedido)){
       foreach ($request->maquinas_a_pedido as $maquina_a_pedido) {
@@ -597,8 +599,7 @@ class RelevamientoController extends Controller
       }
     }
 
-
-    foreach ($request['data'] as $dat) {
+    foreach (($request['data'] ?? []) as $dat) {
       $dett = DetalleRelevamiento::find($dat['id_detalle_relevamiento']);
       //dd($dat['id_detalle_relevamiento']);
       if(isset($dat['denominacion'])){
@@ -617,7 +618,7 @@ class RelevamientoController extends Controller
     }
 
     return ['relevamiento' => $relevamiento,
-            'casino' => $relevamiento->sector->casino->nombre,
+            'casino' => $casino->nombre,
             'sector' => $relevamiento->sector->descripcion,
             'estado' => $relevamiento->estado_relevamiento->descripcion,
             'detalles' => $relevamiento->detalles];
@@ -1405,7 +1406,7 @@ class RelevamientoController extends Controller
       return $temporal->cantidad;
     }else{
       $cantidad = CantidadMaquinasPorRelevamiento::where([['id_tipo_cantidad_maquinas_por_relevamiento',1],['id_sector',$id_sector]])->first();
-      return $cantidad->cantidad;
+      return is_null($cantidad)? 10 : $cantidad->cantidad;
     }
   }
 
@@ -1417,7 +1418,7 @@ class RelevamientoController extends Controller
       return $temporal->cantidad;
     }else{
       $cantidad = CantidadMaquinasPorRelevamiento::where([['id_tipo_cantidad_maquinas_por_relevamiento',1],['id_sector',$id_sector]])->first();
-      return $cantidad->cantidad;
+      return is_null($cantidad)? 10 : $cantidad->cantidad;
     }
   }
 
