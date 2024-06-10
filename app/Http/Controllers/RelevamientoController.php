@@ -358,7 +358,7 @@ class RelevamientoController extends Controller
           $cant_por_planilla = intdiv($maquinas_total->count(),$request->cantidad_fiscalizadores);
           $sumar_uno = $maquinas_total->count() % $request->cantidad_fiscalizadores;
           $subrelevamiento = 1;
-          while($restantes > 0){
+          do{
             $r = new Relevamiento;
             $r->nro_relevamiento = DB::table('relevamiento')->max('nro_relevamiento') + 1;
             $r->fecha            = $f;
@@ -386,7 +386,7 @@ class RelevamientoController extends Controller
             
             $inicio    += $cantidad;
             $restantes -= $cantidad;
-          }
+          } while($restantes > 0);
         }
         
         $archivos = array_merge($archivos,$archivos_subrelevamientos);
@@ -559,7 +559,7 @@ class RelevamientoController extends Controller
         'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
         'observacion_validacion' => 'nullable|max:2000',
         'truncadas' => 'required|integer|min:0',
-        'detalles' => 'required',
+        'detalles' => 'nullable|array',
         'detalles.*.id_detalle_relevamiento' => 'required|exists:detalle_relevamiento,id_detalle_relevamiento',
         'detalles.*.a_pedido' => 'nullable|integer|min:0',
     ], array(), self::$atributos)->after(function($validator) use ($detalles,&$r){
@@ -597,7 +597,7 @@ class RelevamientoController extends Controller
         $r->save();
       }
 
-      foreach ($request['detalles'] as $dat){
+      foreach (($request['detalles'] ?? []) as $dat){
         $d = DetalleRelevamiento::find($dat['id_detalle_relevamiento']);    
         if(isset($dat['a_pedido'])){
           MaquinaAPedidoController::getInstancia()->crearPedidoEn($d->id_maquina,$dat['a_pedido'],$d->id_relevamiento);
