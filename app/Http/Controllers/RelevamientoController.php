@@ -522,11 +522,13 @@ class RelevamientoController extends Controller
     });
   }
   
-  private function actualizarRelevamiento($r,$nuevos_contadores = null){
-    //No deberia usar el sector???
-    $r->mtms_habilitadas_hoy = $this->calcularMTMsHabilitadas($r->sector->id_casino);
-    //No deberia usar el sector???
-    $r->mtms_sin_isla = $this->calcular_sin_isla($r->sector->id_casino);
+  private function actualizarRelevamiento($r,$nuevos_contadores = null,$actualizar_mtms = true){
+    if($actualizar_mtms){
+      //No deberia usar el sector???
+      $r->mtms_habilitadas_hoy = $this->calcularMTMsHabilitadas($r->sector->id_casino);
+      //No deberia usar el sector???
+      $r->mtms_sin_isla = $this->calcular_sin_isla($r->sector->id_casino);
+    }
     $nuevos_contadores = $nuevos_contadores ?? $r->detalles->keyBy('id_detalle_relevamiento')->toArray();
     $nuevos_detalles   = $this->recalcularDetalles($r->detalles,$nuevos_contadores);
     $r->truncadas = 0;
@@ -536,7 +538,7 @@ class RelevamientoController extends Controller
       if($n_d === null) continue;
       
       $d->producido_calculado_relevado = $n_d['producido_calculado_relevado'];
-      $d->producido_importado = $n_d['producido_calculado_relevado'];
+      $d->producido_importado = $n_d['producido_importado'];
       $d->diferencia = $n_d['diferencia'];
       $d->id_unidad_medida = $n_d['id_unidad_medida'];
       $d->denominacion = $n_d['denominacion'];
@@ -685,173 +687,77 @@ class RelevamientoController extends Controller
   public function crearPlanillaValidado($id_relevamiento){
     $relevamiento = Relevamiento::find($id_relevamiento);
     $casino = $relevamiento->sector->casino;
-    foreach($casino->sectores as $sector){
-      $sectores[] = $sector->id_sector;
-    }
-    $fecha = $relevamiento->fecha;
-    $relevamientos = Relevamiento::where([['fecha', $fecha],['backup',0]])->whereIn('id_sector',$sectores)->get();
-    $rel= new \stdClass();
-    //la fecha que encesita la interfaz es la de produccion, el dia previo a la de la fecha del relevamiento
-    //$rel->fecha = $relevamiento->fecha;
-    $rel->fecha=date('Y-m-d',strtotime("$relevamiento->fecha -1 day"));
-    $rel->casinoCod = $casino->codigo;
-    $rel->casinoNom = $casino->nombre;
+    
+    $viewrel = new \stdClass();
+    $viewrel->fecha = date('Y-m-d',strtotime("{$relevamiento->fecha} -1 day"));//la fecha que encesita la interfaz es la de produccion, el dia previo a la de la fecha del relevamiento
+    $viewrel->casinoCod = $casino->codigo;
+    $viewrel->casinoNom = $casino->nombre;
 
-    $detalles = array();
-    $relevadas = 0;
-    $observaciones = array();
-    $truncadas=0;
-    $detallesOK = 0;
-    $no_tomadas = 0;
-    $habilitadas_en_tal_fecha=0;
-    $sin_isla = 0;
-    $sin_contadorImportado_relevada=0;
-    $errores = 0;
-
-    foreach ($relevamientos as $unRelevamiento){
-      $relevadas = $relevadas + $unRelevamiento->detalles->count();
-      if($unRelevamiento->mtms_habilitadas_hoy != null) $habilitadas_en_tal_fecha = $unRelevamiento->mtms_habilitadas_hoy;
-      if($unRelevamiento->mtm_sin_isla != null) $sin_isla = $unRelevamiento->mtm_sin_isla;
-
-      $contador_horario_ARS = ContadorHorario::where([['fecha','=',$unRelevamiento->fecha],
-                                                      ['id_casino','=',$unRelevamiento->sector->casino->id_casino],
-                                                      ['id_tipo_moneda','=',1]
-                                                      ])->first();
-
-      $contador_horario_USD = ContadorHorario::where([['fecha','=',$unRelevamiento->fecha],
-                                                    ['id_casino','=',$unRelevamiento->sector->casino->id_casino],
-                                                    ['id_tipo_moneda','=',2]
-                                                    ])->first();
-
-      if($unRelevamiento->observacion_validacion != null){
-        $observaciones[] = ['zona' => $unRelevamiento->sector->descripcion, 'observacion' =>  $unRelevamiento->observacion_validacion ];
-      }
-      foreach ($unRelevamiento->detalles as $idx => $detalle){
-        $detalle_contador_horario = null;
-
-        if($contador_horario_ARS != null){
-          $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_ARS->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
+    $estados_contador   = [];
+    $viewrel->detalles      = collect([]);
+    $viewrel->observaciones = [];
+    $viewrel->cantidad_habilitadas    = null;
+        
+    $relevamientos = Relevamiento::where([['fecha', $relevamiento->fecha],['backup',0]])->whereIn('id_sector',$casino->sectores->pluck('id_sector'))->get();
+    foreach($relevamientos as $r){
+      $this->actualizarRelevamiento($r,null,false);//@HACK: recalcular? que hacer?
+      
+      $viewrel->cantidad_habilitadas = $viewrel->cantidad_habilitadas ?? $r->mtms_habilitadas_hoy;
+      
+      if($r->observacion_validacion !== null)
+        $viewrel->observaciones[] = ['zona' => $r->sector->descripcion, 'observacion' =>  $r->observacion_validacion];
+      
+      $detalles = $r->detalles;
+      
+      $viewrel->detalles = $viewrel->detalles->merge($detalles->map(function($d) use (&$estados_contador,$r){
+        $m = $d->maquina()->withTrashed()->first();
+        $i = $m->isla()->withTrashed()->first();
+        
+        $aux = new \stdClass();
+        $aux->nro_admin   = $m->nro_admin;
+        $aux->isla        = '-';
+        $aux->sector      = '-';
+        $aux->observacion = '';
+        $aux->no_toma = '';
+        $aux->producido_calculado_relevado = $d->producido_calculado_relevado ?? 0;
+        $aux->producido = $d->producido_importado ?? 0;
+        
+        if($i !== null){
+          $aux->isla   = $i->nro_isla;
+          $aux->sector = $i->sector->descripcion;
         }
-
-        if($detalle_contador_horario == null && $contador_horario_USD != null ){
-          $detalle_contador_horario = DetalleContadorHorario::where([['id_contador_horario','=',$contador_horario_USD->id_contador_horario], ['id_maquina','=',$detalle->id_maquina]])->first();
+        
+        
+        $check = $this->chequearMTMpedida($d->id_maquina, $r->id_relevamiento);
+        if($check != null){
+          $aux->observacion = 'Se pidió para el '.$check->fecha.'.';
         }
-
-        //el contador horario puede ser null porque la mtm puede estar apagada en ese momento
-        if($detalle_contador_horario == null){
-          $det = new \stdClass();
-          $det->producido_calculado_relevado = round($detalle->producido_calculado_relevado,2);
-          $maquina = $detalle->maquina()->withTrashed()->get()->first();
-          $det->nro_admin = $maquina->nro_admin;
-          if($maquina->isla!=null){
-            $det->isla = $maquina->isla->nro_isla;
-            $det->sector= $maquina->isla->sector->descripcion;
-          }else{
-            $det->isla ="-";
-            $det->sector= "-";
-          }
-          $det->producido = 0;
-          if($detalle->tipo_causa_no_toma != null){
-              $det->no_toma = $detalle->tipo_causa_no_toma->descripcion;
-              $no_tomadas++;
-          }else{
-              //sino se importaron contadores pero si se relevaron los contadores de la maquina
-              $sin_contadorImportado_relevada+=1;
-              $det->no_toma = 'FALTA DE IMPORTACIÓN';
-          }
-          $check = $this->chequearMTMpedida($detalle->id_maquina, $detalle->id_relevamiento);
-          if($check != null){
-            $det->observacion = 'No se importaron contadores. Se pidió para el '.$check->fecha.'.';
-          }else{
-            $det->observacion = 'No se importaron contadores.';
-          }
-          $detalles[] = $det;
-        }else{
-            //@HACK por algun motivo, el producido no se esta seteando, p
-            //por eso lo recalculamos a pata
-            //Ya en la BD hay muchas filas con el producido sin setear...
-            //Asi que ya lo calculamos en el momento.
-            //$producido = $detalle->producido;
-
-            $producido = round($detalle_contador_horario->coinin
-            - $detalle_contador_horario->coinout
-            - $detalle_contador_horario->jackpot
-            - $detalle_contador_horario->progresivo,2);//APLICO FORMULA
-
-            $diferencia = round(abs(round($detalle->producido_calculado_relevado,2) - $producido), 2);
-
-            if($diferencia != 0){
-
-              $det = new \stdClass();
-              $det->producido_calculado_relevado = round($detalle->producido_calculado_relevado,2);
-              
-              $maquina = $detalle->maquina()->withTrashed()->get()->first();
-              $det->nro_admin = $maquina->nro_admin;
-              if ($maquina->isla!=null){
-                $det->isla = $maquina->isla->nro_isla;
-                $det->sector= $maquina->isla->sector->descripcion;
-              }else{
-                $det->isla ="-";
-                $det->sector= "-";
-              }
-
-              $det->producido = $producido;
-              if($detalle->tipo_causa_no_toma != null){
-                  $det->no_toma = $detalle->tipo_causa_no_toma->descripcion;
-                  $no_tomadas++;
-              }else{
-                // se tomo, pero da diferencia, en este punto se evalua si es truncada
-                if(fmod($diferencia,ProducidoController::getInstancia()->truncamiento()) == 0){//@HACK?: ver ProducidoController::probarAjusteAutomatico
-                  $det->no_toma = 'TRUNCAMIENTO';
-                  $truncadas++;
-                }else{
-                  $det->no_toma = 'ERROR GENERAL';
-                  $errores++;
-                }
-              }
-
-              $check = $this->chequearMTMpedida($detalle->id_maquina, $detalle->id_relevamiento);
-              if($check != null){
-                $det->observacion = ' Se pidió para el '.$check->fecha.'.';
-              }else{
-                $det->observacion = '';
-              }
-
-              $detalles[] = $det;
-            }
-            else{
-              //No se ve el caso diferencia = 0 y con causa de no toma... creo que esta bien...
-              $detallesOK++;
-            }
+        
+        $estado = $this->obtenerEstadoDetalleRelevamiento($d->producido_importado,$d->diferencia,$d->id_tipo_causa_no_toma);
+        $estados_contador[$estado] = ($estados_contador[$estado] ?? 0)+1;
+        if($estado == 'CORRECTO'){
+          return null;
         }
-      }
+        else if($estado == 'SIN_IMPORTAR'){
+          $aux->no_toma = 'FALTA DE IMPORTACIÓN';
+        }
+        else if($estado == 'TRUNCAMIENTO'){
+          $aux->no_toma = 'TRUNCAMIENTO';
+        }
+        else if($estado == 'DIFERENCIA'){
+          $aux->no_toma = 'ERROR GENERAL';
+        }
+        else if($estado == 'NO_TOMA'){
+          $aux->no_toma = $d->tipo_causa_no_toma->descripcion;
+        }
+        
+        return $aux;
+      })->values());
     }
-
-    $rel->observaciones = $observaciones;
-
-    $rel->referencias = TipoCausaNoToma::all();
-
-    if(!empty($detalles)){
-      $rel->detalles = $detalles;
-    }
-
-    //?? wrong!?
-    $rel->cantidad_con_diferencia = count($detalles);
-    $rel->cantidad_relevadas = $relevadas;
-
+    
     //dentro de un año este if va a ser innecesario, pasa que hoy 19/09 estamos agregando campos, y pueden ser nullable
     //y quizas siempre pase jaja
-    if($habilitadas_en_tal_fecha == 0){
-      $rel->cantidad_habilitadas = $this->calcularMTMsHabilitadas($casino->id_casino);
-    }else{
-      $rel->cantidad_habilitadas = $habilitadas_en_tal_fecha;
-    }
-
-    if($sin_isla == 0){
-      $rel->sin_isla = $this->calcular_sin_isla($casino->id_casino);
-    }else{
-      $rel->sin_isla = $sin_isla;
-    }
+    $viewrel->cantidad_habilitadas = $viewrel->cantidad_habilitadas ?? $this->calcularMTMsHabilitadas($casino->id_casino);
 
     /*
     los conceptos del resumen cambiaron por los siguientes:
@@ -861,14 +767,15 @@ class RelevamientoController extends Controller
     sin toma: persiste el concepto, todos los tipos de no toma
     la isla ya no es necesario en este informe
     */
-
-    $rel->truncadas = $truncadas;
-    $rel->verificadas = $relevadas - $no_tomadas;
-    $rel->sin_relevar = $no_tomadas;
-    $rel->errores_generales = $errores;
-    $rel->sin_contadorImportado_relevada=$sin_contadorImportado_relevada;
-
-    $view = View::make('planillaRelevamientosValidados', compact('rel'));
+    
+    $viewrel->cantidad_relevadas = count($viewrel->detalles);
+    $viewrel->detalles = $viewrel->detalles->filter(function($d){return !is_null($d);})->toArray();
+    $viewrel->truncadas = $estados_contador['TRUNCAMIENTO'] ?? 0;
+    $viewrel->sin_relevar = ($estados_contador['NO_TOMA'] ?? 0)+($estados_contador['SIN_IMPORTAR'] ?? 0);
+    $viewrel->verificadas = $viewrel->cantidad_relevadas - $viewrel->sin_relevar;
+    $viewrel->errores_generales = $estados_contador['DIFERENCIA'] ?? 0;
+    $viewrel->sin_contadorImportado_relevada = $estados_contador['SIN_IMPORTAR'] ?? 0;
+    $view = View::make('planillaRelevamientosValidados',['rel' => $viewrel]);
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4','portrait');
     $dompdf->loadHtml($view->render());
