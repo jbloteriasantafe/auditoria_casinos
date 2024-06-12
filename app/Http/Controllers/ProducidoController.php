@@ -26,8 +26,8 @@ class ProducidoController extends Controller
 
   private static $atributos=[];
   
-  public function truncamiento(){
-    return 1000000;
+  public function truncamiento($diferencia){
+    return fmod($diferencia,1000000) == 0;
   }
 
   private function obtenerDiferencias($id_producido,$id_maquina = null){
@@ -289,7 +289,7 @@ class ProducidoController extends Controller
         || ($dif[$contador_inicio] == 0 && $dif[$contador_final] == 0)
       );
       $finales_todos_ceros = $finales_todos_ceros && $dif[$contador_final] == 0;
-      if($sin_cambio_de_deno && $final_menor_que_inicio && fmod($dif['diferencia'],$this->truncamiento()) == 0){
+      if($sin_cambio_de_deno && $final_menor_que_inicio && $this->truncamiento($dif['diferencia'])){
         //Le suma la vuelta de contadores, la diferencia esta en plata, lo paso a creditos
         $vuelta = abs($dif['diferencia']/$dif['denominacion_final']);
         $dif[$contador_final] += $vuelta;

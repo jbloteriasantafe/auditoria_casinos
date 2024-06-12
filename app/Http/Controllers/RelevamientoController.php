@@ -48,63 +48,11 @@ class RelevamientoController extends Controller
     }
     return self::$instance;
   }
-
-  //Verifica que todos los sectores esten validados para un relevamiento en una fecha,
-  //En principio no podria darse la situacion que esten todos los sectores esten en estado "4" (Visado)
-  //Porque automaticamente los pasa a 7 (Rel Visado), pero si se fuese a dar lo consideramos igualmente de correcto
-  //Si esta todo bien, retorna un arreglo vacio.
-  public function estaValidado($fecha, $id_casino,$tipo_moneda){
-    $relevamientos_validados=Relevamiento::join('sector' , 'sector.id_sector' , '=' , 'relevamiento.id_sector')
-                                ->where([
-                                  ['fecha' , '=' , $fecha] ,
-                                  ['sector.id_casino' , '=' , $id_casino],
-                                  ['backup','=',0]
-                                ])
-                                ->whereIn('id_estado_relevamiento',[4,7])
-                                ->get();
-    $errores=array();
-
-    //No estoy seguro pq hace esto aca, pero verifica que tenga contadores importados tambien.
-    $cant_contador_horario = ContadorHorario::where([['fecha' , '=' , $fecha] ,
-                                                    ['id_casino' , '=' , $id_casino] ,
-                                                    ['id_tipo_moneda' , '=' , $tipo_moneda->id_tipo_moneda]])
-                                                    ->count();
-    if($cant_contador_horario != 1){
-      $errores[]= 'Cantidad incorrecta de contador';
-    }
-    //haya relevamiento en todos los sectores
-    $casino=Casino::find($id_casino);
-    $sectorescount = 0;
-    if($casino->id_casino == 2){
-      $sec = Sector::where('id_casino','=',2)->get();
-      $sectorescount = count($sec);
-    }else{
-      $sectorescount = $casino->sectores->count();
-    }
-
-    if($sectorescount != $relevamientos_validados->count()){
-      $errores[]= 'No todos los sectores estan relevados o validados';
-      $sin_validar  = Relevamiento::join('sector' , 'sector.id_sector' , '=' , 'relevamiento.id_sector')
-      ->where([
-        ['fecha' , '=' , $fecha] ,
-        ['sector.id_casino' , '=' , $id_casino],
-        ['backup','=',0]
-      ])
-      ->whereNotIn('id_estado_relevamiento',[4,7])
-      ->get();
-      foreach ($sin_validar as $sv) {
-        $errores[]=[$sv->id_relevamiento,$sv->sector->descripcion];
-      }
-    }
-
-    return $errores;
-  }
   
   private function find_columns($table,$count_str){
-    $arr   = \Schema::getColumnListing($table);
-    $regex = '/^'.$count_str.'\d+$/';
-    return collect($arr)->filter(function($s) use ($regex){
-      return preg_match($regex,$s);
+    return collect(\Schema::getColumnListing($table))
+    ->filter(function($s) use ($count_str){
+      return preg_match('/^'.$count_str.'\d+$/',$s);
     })->keyBy(function($s) use ($count_str){
       return intval(substr($s,strlen($count_str)));
     })->sortBy(function($s,$k){
@@ -113,13 +61,19 @@ class RelevamientoController extends Controller
   }
   
   private function contadores(){
-    return $this->find_columns((new DetalleRelevamiento)->getTableName(),'cont');
+    static $ret = null;
+    $ret = $ret ?? $this->find_columns((new DetalleRelevamiento)->getTableName(),'cont');
+    return $ret;
   }
   private function contadores_formula(){
-    return $this->find_columns((new Formula)->getTableName(),'cont');
+    static $ret = null;
+    $ret = $ret ?? $this->find_columns((new Formula)->getTableName(),'cont');
+    return $ret;
   }
   private function operadores_formula(){
-    return $this->find_columns((new Formula)->getTableName(),'operador');
+    static $ret = null;
+    $ret = $ret ?? $this->find_columns((new Formula)->getTableName(),'operador');
+    return $ret;
   }
   
   public function __construct(){
@@ -138,14 +92,10 @@ class RelevamientoController extends Controller
   }
 
   public function buscarTodo(){
-    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $estados = EstadoRelevamiento::all();
-
     UsuarioController::getInstancia()->agregarSeccionReciente('Relevamiento Contadores', 'relevamientos');
-        
     return view('Relevamientos/index', [
-      'casinos' => $usuario->casinos ,
-      'estados' => $estados ,
+      'casinos' => UsuarioController::getInstancia()->quienSoy()['usuario']->casinos,
+      'estados' => EstadoRelevamiento::all(),
       'tipos_cantidad' => TipoCantidadMaquinasPorRelevamiento::all(),
       'tipos_causa_no_toma' => TipoCausaNoToma::all(),
       'CONTADORES' => $this->contadores()->count(),
@@ -155,8 +105,6 @@ class RelevamientoController extends Controller
   // buscarRelevamientos busca relevamientos de acuerdo a los filtros
   public function buscarRelevamientos(Request $request){
     $reglas = [];
-    $casinos = UsuarioController::getInstancia()->quienSoy()['usuario']
-    ->casinos->pluck('id_casino');
     
     if(isset($request->fecha)){
       $reglas[]=['relevamiento.fecha', '=', $request->fecha];
@@ -172,7 +120,7 @@ class RelevamientoController extends Controller
     }
     
     $sort_by = $request->sort_by;
-    
+    $casinos = UsuarioController::getInstancia()->quienSoy()['usuario']->casinos->pluck('id_casino');
     return DB::table('relevamiento')
     ->select('relevamiento.*'  , 'sector.descripcion as sector' , 'casino.nombre as casino' , 'estado_relevamiento.descripcion as estado')
     ->join('sector' ,'sector.id_sector' , '=' , 'relevamiento.id_sector')
@@ -187,10 +135,9 @@ class RelevamientoController extends Controller
   }
   
   public function obtenerRelevamiento($id_relevamiento){
-    $usuario_actual = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $relevamiento = Relevamiento::find($id_relevamiento);
     
-    if(!$usuario_actual->casinos->pluck('id_casino')->contains($relevamiento->sector->id_casino)){
+    if($this->validarSector($relevamiento->id_sector) === false){
       return [];
     }
     
@@ -217,7 +164,7 @@ class RelevamientoController extends Controller
       'detalles'             => $detalles,
       'usuario_cargador'     => $relevamiento->usuario_cargador,
       'usuario_fiscalizador' => $relevamiento->usuario_fiscalizador,
-      'usuario_actual'       => $usuario_actual
+      'usuario_actual'       => UsuarioController::getInstancia()->quienSoy()['usuario']
     ];
   }
 
@@ -227,6 +174,10 @@ class RelevamientoController extends Controller
     Validator::make(['id_sector' => $id_sector],[
         'id_sector' => 'required|exists:sector,id_sector'
     ], array(), self::$atributos)->after(function($validator){
+      if($validator->errors()->any()) return;
+      if($this->validarSector($validator->getData()['id_sector']) === false){
+        return $validator->errors()->add('id_sector','No tiene los privilegios');
+      }
     })->validate();
 
     $fecha_hoy = date("Y-m-d");
@@ -255,12 +206,8 @@ class RelevamientoController extends Controller
     ], self::$atributos)->after(function($validator) use ($fecha_hoy){
       if($validator->errors()->any()) return;
       $id_sector = $validator->getData()['id_sector'];
-      $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
-      $sector = Sector::find($id_sector);
-      if(!$u->es_superusuario){
-        if(is_null($sector) || $u->casinos->pluck('id_casino')->search($sector->id_casino) === false){
-          return $validator->errors()->add('id_sector','No puede acceder a ese sector');
-        }
+      if($this->validarSector($id_sector) === false){
+        return $validator->errors()->add('id_sector','No puede acceder a ese sector');
       }
       
       $estados_rechazados = [2,3,4];
@@ -420,9 +367,13 @@ class RelevamientoController extends Controller
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       foreach($detalles as $d){
-        if($d->id_relevamiento != $data['id_relevamiento']){
+        if($d->id_relevamiento != $data['id_relevamiento']){//Solo necesito chequear el primero, los demas se chequean en validarDetalles
           return $validator->errors()->add('id_relevamiento','Error de mismatch entre detalles y relevamiento');
         }
+        if($this->validarSector($d->relevamiento->id_sector) === false){
+          return $validator->errors()->add('id_relevamiento','No tiene acceso');
+        }
+        break;
       }
     })->validate();
     
@@ -442,7 +393,13 @@ class RelevamientoController extends Controller
       $r->estado_relevamiento()->associate($request->estado);
       
       if($request->estado == 3){// si cierra el relevamiento me fijo en la bd y elimino todos los backup que habia para esa fecha
-        $this->eliminarRelevamientosBackUp($r);
+        $relevamientos = Relevamiento::where([['id_sector',$r->id_sector],['fecha',$r->fecha],['backup',1]])->get();
+        foreach($relevamientos as $rel){
+          foreach($rel->detalles as $det){
+            $det->delete();
+          }
+          $rel->delete();
+        }
       }
 
       $r->fecha_ejecucion   = $request->hora_ejecucion;
@@ -452,28 +409,16 @@ class RelevamientoController extends Controller
       $r->save();
 
       $nuevos_contadores = collect($request->detalles ?? [])->keyBy('id_detalle_relevamiento');
-      $this->actualizarRelevamiento($r,$nuevos_contadores);
+      $this->actualizarMTMsRelevamiento($r);
+      $this->recalcularRelevamiento($r,$nuevos_contadores);
       return 1;
     });
-  }
-  
-  // eliminarRelevamientosBackUp funcion de utilidad, borra los relevamientos backup, se la llama
-  // cuando se cierra el relevamiento
-  private function eliminarRelevamientosBackUp($relevamiento){
-    $relevamientos = Relevamiento::where([['id_sector',$relevamiento->sector->id_sector],['fecha',$relevamiento->fecha],['backup',1]])->get();
-    foreach($relevamientos as $rel){
-      foreach($rel->detalles as $det){
-        $det->delete();
-      }
-      $rel->delete();
-    }
   }
   
   public function recalcularDetalles($detalles,$contadores){
     $ret = [];
     {
       $rel = null;
-      $CONTADORES = $this->contadores();
       foreach($detalles as $d){
         $m = $d->maquina()->withTrashed()->first();
         $rel = $rel ?? $d->relevamiento;
@@ -482,7 +427,7 @@ class RelevamientoController extends Controller
         $producido_importado = $this->calcularProducidoImportado($rel->fecha,$m);
         $id_tipo_causa_no_toma = $conts['id_tipo_causa_no_toma'] ?? null;
         
-        $producido_calculado_relevado = is_null($id_tipo_causa_no_toma)? $this->calcularProducidoRelevado_detalle($d,$conts) : null;
+        $producido_calculado_relevado = is_null($id_tipo_causa_no_toma)? $this->calcularProducidoRelevado($d,$conts) : null;
         $diferencia = round($producido_calculado_relevado - $producido_importado,2);
         $estado     = $this->obtenerEstadoDetalleRelevamiento($producido_importado,$diferencia,$id_tipo_causa_no_toma);
         
@@ -491,7 +436,7 @@ class RelevamientoController extends Controller
         
         $ret[$d->id_detalle_relevamiento] = compact('id_detalle_relevamiento','producido_calculado_relevado','producido_importado','diferencia','estado','id_unidad_medida','denominacion');
         
-        foreach($CONTADORES as $cidx => $c){
+        foreach($this->contadores() as $cidx => $c){
           $ret[$d->id_detalle_relevamiento][$c] = is_null($id_tipo_causa_no_toma)? ($conts[$c] ?? null) : null;
         }
       }
@@ -522,17 +467,16 @@ class RelevamientoController extends Controller
     });
   }
   
-  private function actualizarRelevamiento($r,$nuevos_contadores = null,$actualizar_mtms = true){
-    if($actualizar_mtms){
-      //No deberia usar el sector???
-      $r->mtms_habilitadas_hoy = $this->calcularMTMsHabilitadas($r->sector->id_casino);
-      //No deberia usar el sector???
-      $r->mtms_sin_isla = $this->calcular_sin_isla($r->sector->id_casino);
-    }
+  private function actualizarMTMsRelevamiento($r){
+    $id_casino = $r->sector->id_casino;
+    $r->mtms_habilitadas_hoy = $this->calcularMTMsHabilitadas($id_casino);//No deberia usar el sector???
+    $r->mtms_sin_isla = $this->calcular_sin_isla($id_casino);//No deberia usar el sector???
+  }
+  
+  private function recalcularRelevamiento($r,$nuevos_contadores=null){
     $nuevos_contadores = $nuevos_contadores ?? $r->detalles->keyBy('id_detalle_relevamiento')->toArray();
     $nuevos_detalles   = $this->recalcularDetalles($r->detalles,$nuevos_contadores);
     $r->truncadas = 0;
-    $CONTADORES = $this->contadores();
     foreach($r->detalles as $d){
       $n_d = $nuevos_detalles[$d->id_detalle_relevamiento] ?? null;
       if($n_d === null) continue;
@@ -542,7 +486,7 @@ class RelevamientoController extends Controller
       $d->diferencia = $n_d['diferencia'];
       $d->id_unidad_medida = $n_d['id_unidad_medida'];
       $d->denominacion = $n_d['denominacion'];
-      foreach($CONTADORES as $c){
+      foreach($this->contadores() as $c){
         $d->{$c} = $n_d[$c];
       }
       $d->save();
@@ -571,6 +515,9 @@ class RelevamientoController extends Controller
         return $validator->errors()->add('id_relevamiento','Error de mismatch entre el relevamiento y los detalles');
       }
       $rel = Relevamiento::find($data['id_relevamiento']);
+      if($this->validarSector($rel->id_sector) === false){
+        return $validator->errors()->add('id_relevamiento','No tiene acceso');
+      }
       $id_casino = $rel->sector->id_casino;
       $sin_contadores = $id_casino != 3 && ContadorHorario::where([['id_casino',$id_casino],['fecha',$rel->fecha]])->count() == 0;
       //se ignora el caso de rosario porque el tipo es "responsable"
@@ -581,7 +528,8 @@ class RelevamientoController extends Controller
     
     return DB::transaction(function() use ($request,$detalles){
       $r = Relevamiento::find($request->id_relevamiento);
-      $this->actualizarRelevamiento($r);
+      $this->actualizarMTMsRelevamiento($r);
+      $this->recalcularRelevamiento($r);
       $r->observacion_validacion = $request->observacion_validacion;
       $r->estado_relevamiento()->associate(4);
       $r->save();
@@ -646,8 +594,7 @@ class RelevamientoController extends Controller
     $rel->fecha = implode('-',array_reverse(explode('-',$relevamiento->fecha)));
 
     $rel->causas_no_toma = TipoCausaNoToma::all();
-    $CONTADORES = $this->contadores();
-    $detalles = $relevamiento->detalles->map(function($d) use (&$CONTADORES){
+    $detalles = $relevamiento->detalles->map(function($d){
       $det = new \stdClass();
       $m = $d->maquina;
       $i = $m->isla;
@@ -661,7 +608,7 @@ class RelevamientoController extends Controller
       $det->formula = $m->formula;//abreviar nombre de contadores de formula
       $det->no_toma = ($tcnt != null)? $tcnt->codigo : null;
       
-      foreach($CONTADORES as $cidx => $c){
+      foreach($this->contadores() as $cidx => $c){
         $det->{$c} = ($d->{$c} != null) ? number_format($d->{$c}, 2, ",", ".") : "";
       }
       
@@ -700,7 +647,7 @@ class RelevamientoController extends Controller
         
     $relevamientos = Relevamiento::where([['fecha', $relevamiento->fecha],['backup',0]])->whereIn('id_sector',$casino->sectores->pluck('id_sector'))->get();
     foreach($relevamientos as $r){
-      $this->actualizarRelevamiento($r,null,false);//@HACK: recalcular? que hacer?
+      $this->recalcularRelevamiento($r);//@HACK: recalcular? que hacer?
       
       $viewrel->cantidad_habilitadas = $viewrel->cantidad_habilitadas ?? $r->mtms_habilitadas_hoy;
       
@@ -726,7 +673,6 @@ class RelevamientoController extends Controller
           $aux->isla   = $i->nro_isla;
           $aux->sector = $i->sector->descripcion;
         }
-        
         
         $check = $this->chequearMTMpedida($d->id_maquina, $r->id_relevamiento);
         if($check != null){
@@ -755,8 +701,7 @@ class RelevamientoController extends Controller
       })->values());
     }
     
-    //dentro de un año este if va a ser innecesario, pasa que hoy 19/09 estamos agregando campos, y pueden ser nullable
-    //y quizas siempre pase jaja
+    //Si por algun motivo los relevamietnos no los tienen seteados, los calculo para la fecha actual
     $viewrel->cantidad_habilitadas = $viewrel->cantidad_habilitadas ?? $this->calcularMTMsHabilitadas($casino->id_casino);
 
     /*
@@ -829,9 +774,7 @@ class RelevamientoController extends Controller
     ], self::$atributos)->after(function($validator) use (&$rel_backup,&$reglas){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
-      $id_casino = Sector::find($data['id_sector'])->id_casino;
-      $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
-      if(!$u->usuarioTieneCasino($id_casino)){
+      if($this->validarSector($data['id_sector']) === false){
         return $validator->errors()->add('id_sector','No puede acceder a ese sector');
       }
       
@@ -1013,9 +956,13 @@ class RelevamientoController extends Controller
     Validator::make(
       ['id_sector' => $id_sector],
       ['id_sector' => 'required|exists:sector,id_sector'],
-      [],
-      self::$atributos
-    )->validate();
+      [],self::$atributos)
+    ->after(function($validator){
+      if($validator->errors()->any()) return;
+      if($this->validarSector($validator->getData()['id_sector']) === false){
+        return $validator->errors()->add('id_sector','No tiene los privilegios');
+      }
+    })->validate();
 
     return DB::table('cantidad_maquinas_por_relevamiento as cmr')
     ->join('tipo_cantidad_maquinas_por_relevamiento as tcmr','cmr.id_tipo_cantidad_maquinas_por_relevamiento','=','tcmr.id_tipo_cantidad_maquinas_por_relevamiento')
@@ -1042,21 +989,18 @@ class RelevamientoController extends Controller
       'after_or_equal' => 'El valor es inferior al limite',
     ], self::$atributos)->after(function($validator){
       if($validator->errors()->any()) return;
-      //@TODO: validar usuario
+      
       $data = $validator->getData();
+      $id_sector   = $data['id_sector'];
+      
+      if($this->validarSector($id_sector) === false){
+        return $validator->errors()->add('id_sector','No tiene los privilegios');
+      }
+      
       if($data['id_tipo_cantidad_maquinas_por_relevamiento'] != 2) return;
       
       $fecha_desde = $data['fecha_desde'];
       $fecha_hasta = $data['fecha_hasta'];
-      $id_sector   = $data['id_sector'];
-      
-      $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
-      $sector = Sector::find($id_sector);
-      if(!$u->es_superusuario){
-        if(is_null($sector) || $u->casinos->pluck('id_casino')->search($sector->id_casino) === false){
-          return $validator->errors()->add('id_sector','No puede acceder a ese sector');
-        }
-      }
       
       $ya_existe = !$data['forzar'] && DB::table('cantidad_maquinas_por_relevamiento')
       ->where([['id_sector',$id_sector],['id_tipo_cantidad_maquinas_por_relevamiento',2]])
@@ -1169,26 +1113,14 @@ class RelevamientoController extends Controller
     return DB::transaction(function() use ($request){
       $d = DetalleRelevamiento::find($request->id_detalle_relevamiento);
       $m = MTMController::getInstancia()->modificarDenominacionYUnidad($request->id_unidad_medida,$d->id_maquina);
-      $this->actualizarRelevamiento($d->relevamiento);      
+      $r = $d->relevamiento;
+      $this->actualizarMTMsRelevamiento($r);
+      $this->recalcularRelevamiento($r);      
       return ['producido_calculado_relevado' => DetalleRelevamiento::find($request->id_detalle_relevamiento)->producido_calculado_relevado];
     });
   }
-  
-  private function calcularProducidoRelevado_array(array $contadores,array $signos,float $denominacion){
-    $producido = 0.0;
-    $size = min(count($contadores),count($signos));
-    for($idx = 0;$idx<$size;$idx++){
-      $c = $contadores[$idx];
-      $s = $signos[$idx];
-      $sign = 0;
-      if     ($s == '+'){ $sign =  1; }
-      else if($s == '-'){ $sign = -1; }
-      $producido += $sign*$c;
-    }
-    return round($producido*$denominacion,2);
-  }
-  
-  private function calcularProducidoRelevado_detalle($d,$conts){
+    
+  private function calcularProducidoRelevado($d,$conts){
     $conts_arr = [];
     foreach($this->contadores() as $cidx => $c){
       $conts_arr[] = empty($conts[$c])? 0.0 : floatval($conts[$c]);//Redondeo?
@@ -1215,7 +1147,20 @@ class RelevamientoController extends Controller
     }
     
     $deno = $m->id_unidad_medida == 2? 1.0 : floatval($m->denominacion);
-    return $this->calcularProducidoRelevado_array($conts_arr, $ops_arr, $deno);
+    
+    $producido = 0.0;
+    {
+      $size = min(count($conts_arr),count($ops_arr));
+      for($idx = 0;$idx<$size;$idx++){
+        $c = $conts_arr[$idx];
+        $s = $ops_arr[$idx];
+        $sign = 0;
+        if     ($s == '+'){ $sign =  1; }
+        else if($s == '-'){ $sign = -1; }
+        $producido += $sign*$c;
+      }
+    }
+    return round($producido*$deno,2);
   }
   
   private function validarDetalles(Request $request){
@@ -1262,7 +1207,7 @@ class RelevamientoController extends Controller
     if(!is_null($id_tipo_causa_no_toma)) return 'NO_TOMA';
     if(is_null($importado)) return 'SIN_IMPORTAR';
     if($diferencia != 0){
-      if(fmod($diferencia,ProducidoController::getInstancia()->truncamiento()) == 0){
+      if(ProducidoController::getInstancia()->truncamiento($diferencia)){
         return 'TRUNCAMIENTO';
       }
       return 'DIFERENCIA';
@@ -1317,5 +1262,16 @@ class RelevamientoController extends Controller
     
     return $q->whereIn('m.id_casino',$user->casinos->pluck('id_casino'))
     ->where('m.id_casino',$id_casino)->get();
+  }
+  
+  private function validarSector($id_sector){
+    $sector = Sector::find($id_sector);
+    $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if(!$u->es_superusuario){
+      if(is_null($sector) || $u->casinos->pluck('id_casino')->search($sector->id_casino) === false){
+        return false;
+      }
+    }
+    return $sector;
   }
 }
