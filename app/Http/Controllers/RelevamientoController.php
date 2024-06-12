@@ -797,15 +797,9 @@ class RelevamientoController extends Controller
         $r->backup = 1;
         $r->save();
       }
-
-      foreach($rel_backup->detalles as $detalle){
-        $m = $detalle->maquina()->withTrashed()->first();
-        $detalle->producido_calculado_relevado = null;
-        $detalle->producido_importado = $this->calcularProducidoImportado($rel_backup->fecha,$m);
-        $detalle->diferencia = -$detalle->producido_importado;
-        $detalle->save();
-      }
       
+      $this->actualizarMTMsRelevamiento($rel_backup);
+      $this->recalcularRelevamiento($rel_backup);
       $rel_backup->backup = 0;
       $rel_backup->save();
       
@@ -1121,45 +1115,42 @@ class RelevamientoController extends Controller
   }
     
   private function calcularProducidoRelevado($d,$conts){
+    /* Cambio de operaciones a signos
+      c1  c2  c3  c4  c5  c6  c7  c8
+      |   |   |   |   |   |   |   |
+      +   o1  o2  o3  o4  o5  o6  o7
+    */
+    
     $conts_arr = [];
     foreach($this->contadores() as $cidx => $c){
       $conts_arr[] = empty($conts[$c])? 0.0 : floatval($conts[$c]);//Redondeo?
     }
-    $ops_arr = ['+'];
+    
     $m = $d->maquina()->withTrashed()->first();
-    $formula = $m->formula;
-    foreach($this->operadores_formula() as $oidx => $o){
-      $ops_arr[] = $formula->{$o} ?? null;
+    $ops_arr = ['+'];
+    {
+      $formula = $m->formula;
+      foreach($this->operadores_formula() as $oidx => $o){
+        $ops_arr[] = $formula->{$o} ?? null;
+      }
     }
     
-    /*
-      c1  c2  c3  c4  c5  c6  c7  c8
-     /    /   /   /   /   /   /   /
-    +    o1  o2  o3  o4  o5  o6  o7
-    Si o_n es nulo -> + y c_n+1 = 0
-    */
-
-    foreach($ops_arr as $oidx => $o){
-      if(empty($o)){
-        $ops_arr[$oidx]    = '+';
-        $cont_arr[$oidx+1] = 0;//No necesito verificar limites porque ya esta assert() en el constructor
+    $producido = 0.0;
+    {
+      $size = count($conts_arr);
+      assert($size == count($ops_arr));
+      for($idx = 0;$idx<$size;$idx++){
+        $c = $conts_arr[$idx];
+        $s = $ops_arr[$idx];
+        $sign;
+        if     ($s == '+'){ $sign =  1; }
+        else if($s == '-'){ $sign = -1; }
+        else              { $sign =  0; }
+        $producido += $sign*$c;
       }
     }
     
     $deno = $m->id_unidad_medida == 2? 1.0 : floatval($m->denominacion);
-    
-    $producido = 0.0;
-    {
-      $size = min(count($conts_arr),count($ops_arr));
-      for($idx = 0;$idx<$size;$idx++){
-        $c = $conts_arr[$idx];
-        $s = $ops_arr[$idx];
-        $sign = 0;
-        if     ($s == '+'){ $sign =  1; }
-        else if($s == '-'){ $sign = -1; }
-        $producido += $sign*$c;
-      }
-    }
     return round($producido*$deno,2);
   }
   
