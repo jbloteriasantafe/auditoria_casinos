@@ -37,15 +37,13 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         fila.find(dname_f('producido_importado')).val(e.producido_importado);
         fila.find(dname_f('producido_calculado_relevado')).val(e.producido_calculado_relevado);
         fila.find(dname_f('diferencia')).val(e.diferencia);
-        fila.find(dname_f('id_unidad_medida')).val(e.id_unidad_medida);
-        fila.find(dname_f('denominacion')).val(e.denominacion);
 
         if(fila.find('[data-js-cambio-tipo-causa-no-toma]').val() != ''){
           fila.find('[data-js-cambio-contador]').val('');
-          fila.find('[data-formula]').filter('[data-formula!=""]').attr('disabled',true);
+          fila.find('[data-contador]').not('[readonly]').attr('disabled',true);
         }
         else{
-          fila.find('[data-formula]').filter('[data-formula!=""]').removeAttr('disabled');
+          fila.find('[data-contador]').not('[readonly]').removeAttr('disabled');
         }
         
         if(modo == 'Validar'){
@@ -68,7 +66,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         }
       }
       
-      habilitarBotonFinalizar();//@TODO: no funcionando?
+      habilitarBotonFinalizar();
       after();
     });
   }
@@ -93,14 +91,10 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       for(let c=1;c<=CONTADORES;c++){
         const cont_s = 'cont'+c;
         const cont = fila.find(`[data-js-cambio-contador="${c}"]`).val(d?.detalle?.[cont_s] ?? '');
-        const f = d?.formula?.[cont_s] ?? '';
-        const o = d?.formula?.['operador'+c] ?? '';
-        cont.prop('readonly',f == '');
-        cont.attr('data-formula',f ?? '');
-        cont.attr('data-operador',o ?? '');
+        cont.prop('readonly',!d?.formula?.[cont_s]);
       }
       
-      fila.find(dname_f('id_tipo_causa_no_toma')).val(d.tipo_causa_no_toma ?? '');
+      fila.find(dname_f('id_tipo_causa_no_toma')).val(d.detalle.id_tipo_causa_no_toma ?? '');
       fila.find('[data-js-estadisticas-no-toma]').attr('href',fila.find('[data-js-estadisticas-no-toma]').attr('href')+'/'+d.detalle.id_maquina);
             
       tabla.append(fila);

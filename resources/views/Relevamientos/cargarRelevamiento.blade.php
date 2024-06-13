@@ -169,7 +169,7 @@
     <td data-js-modo="Ver,Cargar,Validar" data-js-detalle-asignar-name="maquina">XXXX</td>
     @for($c=1;$c<=$CONTADORES;$c++)
     <td style="text-align: right;" data-js-modo="{{$c<=$CONTADORES_VISIBLES? 'Ver,Cargar,Validar' : ''}}">
-      <input data-js-enabled="Cargar" data-js-cambio-contador="{{$c}}" data-formula="" data-operador="" data-js-detalle-asignar-name="cont{{$c}}" class="contador cont{{$c}} form-control">
+      <input data-contador data-js-enabled="Cargar" data-js-cambio-contador="{{$c}}" data-js-detalle-asignar-name="cont{{$c}}" class="contador cont{{$c}} form-control">
     </td>
     @endfor
     <td style="text-align: right;" data-js-modo="Ver,Validar">
