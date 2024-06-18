@@ -65,8 +65,6 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
           });
         }
       }
-      
-      habilitarBotonFinalizar();
       after();
     });
   }
@@ -74,6 +72,9 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   function cargarTablaRelevamientos(data, tabla){
     const cambioContador = function(e){
       calcularEstadoDetalleRelevamiento($(e.target).closest('tr'));
+    };
+    const sacarErroresContadores = function(e){
+      ocultarErrorValidacion($(e.target).closest('tr').find('[data-js-cambio-contador].alerta'));
     };
     
     data.detalles.forEach(function(d,didx){
@@ -101,6 +102,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       
       fila.find('[data-js-cambio-tipo-causa-no-toma]').on('change',cambioContador);
       fila.find('[data-js-cambio-contador]').on('keyup',cambioContador);
+      fila.find('[data-js-cambio-contador]:not([readonly],[disabled]),[data-js-cambio-tipo-causa-no-toma]').on('focus',sacarErroresContadores);
     });
     
     tabla.find('[data-js-boton-medida]').popover({
@@ -130,8 +132,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     $M('[data-js-salir]').attr('data-guardado',1);
     ocultarErrorValidacion($M('[name]'));
     $M('[name="id_relevamiento"]').val(id_relevamiento);
-    $M('[data-js-mensaje-salida],[data-js-finalizar-carga]').hide();
-        
+            
     $M('[data-js-modo]')
     .hide().attr('data-no-mostrar',true)
     .filter(checkCSV('data-js-modo'))
@@ -221,16 +222,20 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       success,
       function (data) {
         const response = data.responseJSON;
-        AUX.mostrarErroresNames(M,response ?? {});
+        AUX.mostrarErroresNames(M,response ?? {},true);
+        
+        if(response.id_usuario_fiscalizador !== undefined){
+          mostrarErrorValidacion($M('[data-js-input-usuario-fiscalizador]'),response.id_usuario_fiscalizador.join(', '),true);
+        }
         
         let filaError = null;
-        $M('[data-js-tabla-relevamiento] tbody tr').each(function(obj,idx){
+        $M('[data-js-tabla-relevamiento] tbody tr').each(function(idx,obj){
           for(let c=1;c<=CONTADORES;c++){
             const err = response['detalles.'+ idx +'.cont'+c];
             if(typeof err !== 'undefined'){
-              const cont = $(this).find(`[data-js-cambio-contador="${c}"]`);
+              const cont = $(obj).find(`[data-js-cambio-contador="${c}"]`).not('[disabled]').not('[readonly]');
               mostrarErrorValidacion(cont,err.join(', '),false);
-              filaError = $(this);
+              filaError = $(obj);
             }
           }
         });
@@ -243,30 +248,6 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         }
       }
     );
-  }
-  
-  function habilitarBotonFinalizar(){
-    const no_finalizable = !!$M('[data-js-finalizar-carga]').attr('data-no-mostrar');
-    if(no_finalizable) return;
-    
-    let puedeFinalizar = true;
-    const cantidadMaquinas = $M('[data-js-tabla-relevamiento] tbody tr').each(function(idx,fila){ 
-      let inputLleno = false;
-      
-      //La fila tiene algun campo lleno
-      $(fila).find('[data-js-cambio-contador]').not('[readonly]').each(function (idx,c){
-        inputLleno = inputLleno || ($(c).val().length > 0);
-        if(inputLleno) return false;//break
-      });
-
-      //Seleccionó un tipo de no toma
-      const noToma = $(fila).find('[data-js-cambio-tipo-causa-no-toma]').val() !== '';
-      
-      puedeFinalizar = puedeFinalizar && (inputLleno || noToma);
-      if(!puedeFinalizar) return false;//break
-    });
-    
-    $M('[data-js-finalizar-carga]').toggle(puedeFinalizar);
   }
   
   //CAMBIOS EN TABLAS RELEVAMIENTOS / MOSTRAR BOTÓN GUARDAR

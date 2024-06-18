@@ -52,9 +52,12 @@ export const AUX = {
     });
     return data;
   },
-  mostrarErroresNames(jqobject,json){
+  mostrarErroresNames(jqobject,json,check_visible=false){//Si hay campos escondidos con [name], check_visible=true evita que se muestre un error flotando
     Object.keys(json).forEach(function(k){
-      mostrarErrorValidacion(jqobject.find(`[name="${k}"]`),json[k].join(', '),true);
+      const obj = jqobject.find(`[name="${k}"]`);
+      const visible = check_visible? obj.is(':visible') : true;
+      if(visible)
+        mostrarErrorValidacion(obj,json[k].join(', '),true);
     });
   },
   form_entries(form){

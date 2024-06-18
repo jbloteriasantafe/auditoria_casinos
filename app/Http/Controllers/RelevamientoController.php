@@ -36,7 +36,24 @@ use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
 class RelevamientoController extends Controller
 {
-  private static $atributos = [
+  private static $atributos = [];
+  private static $mensajesErrores = [
+    'in'          => 'El valor tiene que ser estar dentro del conjunto valido',
+    'required'    => 'El valor es requerido',
+    'required_if' => 'El valor es requerido',
+    'exists'      => 'El valor es inexistente',
+    'integer'     => 'El valor tiene que ser un número entero',
+    'boolean'     => 'El valor solo puede ser 1 o 0',
+    'numeric'     => 'El valor tiene que ser numerico',
+    'date'        => 'El valor tiene que ser una fecha en formato YYYY-MM-DD',
+    'array'       => 'El valor tiene que ser un arreglo',
+    'between'     => 'El valor esta por encima o por debajo del limite',
+    'min'         => 'El valor es menor al limite',
+    'max'         => 'El valor es mayor al limite',
+    'regex'       => 'El formato es incorrecto',
+    'before'      => 'La fecha tiene que ser anterior',
+    'after'       => 'La fecha tiene que ser posterior',
+    'after_or_equal' => 'La fecha tiene que ser posterior',
   ];
   private static $instance;
 
@@ -168,7 +185,7 @@ class RelevamientoController extends Controller
   public function existeRelevamiento($id_sector){
     Validator::make(['id_sector' => $id_sector],[
         'id_sector' => 'required|exists:sector,id_sector'
-    ], array(), self::$atributos)->after(function($validator){
+    ], self::$mensajesErrores, self::$atributos)->after(function($validator){
       if($validator->errors()->any()) return;
       if($this->validarSector($validator->getData()['id_sector']) === false){
         return $validator->errors()->add('id_sector','No tiene los privilegios');
@@ -193,12 +210,10 @@ class RelevamientoController extends Controller
       'id_sector' => 'required|exists:sector,id_sector',
       'cantidad_fiscalizadores' => 'nullable|integer|between:1,10',
       'seed' => 'nullable|integer',
-    ], [
-      'required' => 'El valor es requerido',
-      'exists' => 'El valor es invalido',
-      'integer' => 'El valor tiene que ser un número entero',
-      'between' => 'El valor tiene que ser entre 1-10',
-    ], self::$atributos)->after(function($validator) use ($fecha_hoy){
+    ], 
+      array_merge(self::$mensajesErrores,['between' => 'El valor tiene que ser entre 1-10']),
+      self::$atributos
+    )->after(function($validator) use ($fecha_hoy){
       if($validator->errors()->any()) return;
       $id_sector = $validator->getData()['id_sector'];
       if($this->validarSector($id_sector) === false){
@@ -349,7 +364,7 @@ class RelevamientoController extends Controller
 
   // cargarRelevamiento se guardan los detalles relevamientos de la toma de los fisca
   public function cargarRelevamiento(Request $request){
-    $detalles = $this->validarDetalles($request);
+    $detalles = $this->validarDetalles($request,($request->estado ?? null) == '3');
     
     Validator::make($request->all(), [
         'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
@@ -357,8 +372,8 @@ class RelevamientoController extends Controller
         'tecnico' => 'nullable|max:45',
         'observacion_carga' => 'nullable|max:2000',
         'estado' => 'required|numeric|between:2,3',
-        'hora_ejecucion' => 'required_if:estado,3|regex:/^\d\d:\d\d(:\d\d)?/',
-    ], [], self::$atributos)->after(function($validator) use ($detalles){
+        'hora_ejecucion' => 'nullable|required_if:estado,3|regex:/^\d\d:\d\d(:\d\d)?/',
+    ],self::$mensajesErrores, self::$atributos)->after(function($validator) use ($detalles){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       foreach($detalles as $d){
@@ -429,7 +444,7 @@ class RelevamientoController extends Controller
         $id_unidad_medida = $m->id_unidad_medida;
         $denominacion     = ($m->id_unidad_medida == 2? 1.0 : floatval($m->denominacion)) ?? 1.0;
         
-        $ret[$d->id_detalle_relevamiento] = compact('id_detalle_relevamiento','producido_calculado_relevado','producido_importado','diferencia','estado','id_unidad_medida','denominacion');
+        $ret[$d->id_detalle_relevamiento] = compact('id_detalle_relevamiento','producido_calculado_relevado','producido_importado','diferencia','estado','id_unidad_medida','denominacion','id_tipo_causa_no_toma');
         
         foreach($this->contadores() as $cidx => $c){
           $ret[$d->id_detalle_relevamiento][$c] = is_null($id_tipo_causa_no_toma)? ($conts[$c] ?? null) : null;
@@ -441,7 +456,7 @@ class RelevamientoController extends Controller
   }
   
   public function calcularEstadoDetalleRelevamiento(Request $request){
-    $detalles = $this->validarDetalles($request);
+    $detalles = $this->validarDetalles($request,false);
     
     return collect(DB::transaction(function() use ($request,$detalles){
       if(count($detalles) <= 0) return [];
@@ -478,6 +493,7 @@ class RelevamientoController extends Controller
       $n_d = $nuevos_detalles[$d->id_detalle_relevamiento] ?? null;
       if($n_d === null) continue;
       
+      $d->id_tipo_causa_no_toma = $n_d['id_tipo_causa_no_toma'];
       $d->producido_calculado_relevado = $n_d['producido_calculado_relevado'];
       $d->producido_importado = $n_d['producido_importado'];
       $d->diferencia = $n_d['diferencia'];
@@ -493,19 +509,16 @@ class RelevamientoController extends Controller
     $r->save();
   }
   
-  // validarRelevamiento valida un relevamiento, le cambia el estado a visado
-  // tambien verifica si todos los relevamientos para ese sector estan validados, en ese caso
-  // se cambia el estado al 7 "rel visado", es decir, todos los relevamientos generados, estan visados
   public function validarRelevamiento(Request $request){
-    $detalles = $this->validarDetalles($request);
+    $detalles = $this->validarDetalles($request,false);
     Validator::make($request->all(),[
-        'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
-        'observacion_validacion' => 'nullable|max:2000',
-        'truncadas' => 'required|integer|min:0',
-        'detalles' => 'nullable|array',
-        'detalles.*.id_detalle_relevamiento' => 'required|exists:detalle_relevamiento,id_detalle_relevamiento',
-        'detalles.*.a_pedido' => 'nullable|integer|min:0',
-    ], array(), self::$atributos)->after(function($validator) use ($detalles,&$r){
+      'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
+      'observacion_validacion' => 'nullable|max:2000',
+      'truncadas' => 'required|integer|min:0',
+      'detalles' => 'nullable|array',
+      'detalles.*.id_detalle_relevamiento' => 'required|exists:detalle_relevamiento,id_detalle_relevamiento',
+      'detalles.*.a_pedido' => 'nullable|integer|min:0',
+    ],self::$mensajesErrores, self::$atributos)->after(function($validator) use ($detalles,&$r){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       if(count($detalles) > 0 && $detalles[0]->id_relevamiento != $data['id_relevamiento']){
@@ -748,14 +761,10 @@ class RelevamientoController extends Controller
     Validator::make($request->all(),[
       'id_sector' => 'required|exists:sector,id_sector,deleted_at,NULL',
       'fecha_generacion' => 'required|date|before:today',
-      'fecha' => 'required|date|after_or_equal:fecha_generacion',
-    ], [
-      'required' => 'El valor es requerido',
-      'exists' => 'El valor no existe',
-      'date' => 'El valor tiene que ser una fecha en formato YYYY-MM-DD',
-      'before' => 'La fecha tiene que ser anterior a hoy',
-      'after_or_equal' => 'La fecha tiene que ser posterior a la fecha de generación',
-    ], self::$atributos)->after(function($validator) use (&$rel_backup,&$reglas){
+      'fecha' => 'required|date|after_or_equal:fecha_generacion'
+    ],
+    array_merge(self::$mensajesErrores,['fecha.after_or_equal' => 'La fecha tiene que ser igual o posterior a la fecha de generación','fecha_generacion.before' => 'La fecha de generación tiene que ser anterior a hoy']),
+    self::$atributos)->after(function($validator) use (&$rel_backup,&$reglas){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       if($this->validarSector($data['id_sector']) === false){
@@ -859,7 +868,7 @@ class RelevamientoController extends Controller
         'cantidad_relevamientos' => 'required|numeric|min:1',
         'tomado' => 'nullable|string|in:SI,NO',
         'diferencia' => 'nullable|string|in:SI,NO',
-    ], [], self::$atributos)->after(function($validator) use (&$maq){
+    ], self::$mensajesErrores, self::$atributos)->after(function($validator) use (&$maq){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       $maq = Maquina::find($data['id_maquina']);
@@ -913,7 +922,7 @@ class RelevamientoController extends Controller
         'id_casino' => 'required|numeric|exists:casino,id_casino,deleted_at,NULL',
         'nro_admin' => 'required|numeric|exists:maquina,nro_admin,deleted_at,NULL',
         'cantidad_relevamientos' => 'required|numeric|min:1'
-    ],[], self::$atributos)->after(function($validator){
+    ],self::$mensajesErrores, self::$atributos)->after(function($validator){
       if($validator->errors()->any()) return;
       $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
       if(!$u->usuarioTieneCasino($validator->getData()['id_casino'])){
@@ -934,7 +943,7 @@ class RelevamientoController extends Controller
     Validator::make(
       ['id_sector' => $id_sector],
       ['id_sector' => 'required|exists:sector,id_sector'],
-      [],self::$atributos)
+      self::$mensajesErrores,self::$atributos)
     ->after(function($validator){
       if($validator->errors()->any()) return;
       if($this->validarSector($validator->getData()['id_sector']) === false){
@@ -957,15 +966,9 @@ class RelevamientoController extends Controller
       'fecha_desde' => 'required_if:id_tipo_cantidad_maquinas_por_relevamiento,2|date|after_or_equal:today',
       'fecha_hasta' => 'required_if:id_tipo_cantidad_maquinas_por_relevamiento,2|date|after_or_equal:fecha_desde',
       'forzar' => 'required|boolean',
-    ],[
-      'required' => 'El valor es requerido',
-      'required_if' => 'El valor es requerido',
-      'exists' => 'El valor no existe',
-      'max' => 'El valor supera el limite',
-      'date' => 'El valor tiene que ser una fecha en formato YYYY-MM-DD',
-      'min' => 'El valor es inferior al limite',
-      'after_or_equal' => 'El valor es inferior al limite',
-    ], self::$atributos)->after(function($validator){
+    ],
+    array_merge(self::$mensajesErrores,['fecha_desde.after_or_equal' => 'Tiene que ser posterior o igual a HOY', 'fecha_hasta.after_or_equal' => 'Tiene que ser posterior o igual a la fecha de inicio']),
+    self::$atributos)->after(function($validator){
       if($validator->errors()->any()) return;
       
       $data = $validator->getData();
@@ -1086,7 +1089,7 @@ class RelevamientoController extends Controller
     Validator::make($request->all(),[
       'id_detalle_relevamiento' => 'required|exists:detalle_relevamiento,id_detalle_relevamiento',
       'id_unidad_medida' => 'required|exists:unidad_medida,id_unidad_medida'
-    ], array(), self::$atributos)->after(function($validator){})->validate();
+    ], self::$mensajesErrores, self::$atributos)->after(function($validator){})->validate();
     
     return DB::transaction(function() use ($request){
       $d = DetalleRelevamiento::find($request->id_detalle_relevamiento);
@@ -1138,7 +1141,7 @@ class RelevamientoController extends Controller
     return round($producido*$deno,2);
   }
   
-  private function validarDetalles(Request $request){
+  private function validarDetalles(Request $request,$validar_que_haya_un_contador){
     $validation_arr = [
       'detalles.*.id_detalle_relevamiento' => 'required|exists:detalle_relevamiento,id_detalle_relevamiento',
       'detalles.*.id_tipo_causa_no_toma' => 'nullable|exists:tipo_causa_no_toma,id_tipo_causa_no_toma',
@@ -1148,7 +1151,7 @@ class RelevamientoController extends Controller
     }
     
     $detalles = collect([]);
-    Validator::make($request->all(),$validation_arr, array(), self::$atributos)->after(function($validator) use (&$detalles){
+    Validator::make($request->all(),$validation_arr, self::$mensajesErrores, self::$atributos)->after(function($validator) use (&$detalles,$validar_que_haya_un_contador){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       $detalles = DetalleRelevamiento::whereIn(
@@ -1170,6 +1173,17 @@ class RelevamientoController extends Controller
         $id_casino = $r->sector()->withTrashed()->first()->casino->id_casino;
         if(!$u->casinos->pluck('id_casino')->contains($id_casino)){
           return $validator->errors()->add('id_relevamiento','No puede acceder a ese relevamiento');
+        }
+      }
+      
+      if($validar_que_haya_un_contador) foreach($data['detalles'] as $didx => $d){
+        $con_contadores = ($d['id_tipo_causa_no_toma'] ?? null) !== null;
+        foreach($this->contadores() as $cont){
+          if($con_contadores) break;
+          $con_contadores = $con_contadores || ($d[$cont] ?? null) !== null;
+        }
+        if(!$con_contadores) foreach($this->contadores() as $cont){
+          $validator->errors()->add("detalles.$didx.$cont",'El valor es requerido');
         }
       }
     })->validate();
@@ -1258,13 +1272,16 @@ class RelevamientoController extends Controller
       []
     : ['producido_importado','producido_calculado_relevado','diferencia']);
     
-    $d = (object)(is_array($detalle)? 
-      $detalle
-    : (($detalle instanceof stdClass)?
-        ((array) $detalle)
-      : $detalle->toArray()
-      )
-    );
+    $d;
+    if(is_array($detalle)){
+      $d = (object) $detalle;
+    }
+    else if ($detalle instanceof \Illuminate\Database\Eloquent\Model){
+      $d = (object) $detalle->toArray();
+    }
+    else{
+      $d = $detalle;
+    }
       
     foreach($sacar as $s) unset($d->{$s});
     return $d;
