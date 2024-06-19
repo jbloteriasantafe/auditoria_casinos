@@ -441,6 +441,7 @@ Relevamientos
 Route::group(['prefix' => 'relevamientos','middleware' => 'tiene_permiso:ver_seccion_relevamientos'], function () {
   Route::get('/','RelevamientoController@buscarTodo');
   Route::post('crearRelevamiento','RelevamientoController@crearRelevamiento');
+  Route::post('descargarRelevamiento','RelevamientoController@descargarRelevamiento');
   Route::post('cargarRelevamiento','RelevamientoController@cargarRelevamiento');
   Route::post('validarRelevamiento','RelevamientoController@validarRelevamiento');
   Route::get('obtenerRelevamiento/{id_relevamiento}','RelevamientoController@obtenerRelevamiento');

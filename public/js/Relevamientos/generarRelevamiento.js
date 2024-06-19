@@ -72,7 +72,7 @@ $(function(e){ $('[data-js-modal-generar-relevamiento]').each(function(){
     setear_estado_paso();
   });
   
-  $M('[data-js-generar-posta]').click(function(e){
+  const generar_descargar_zip = function(url){
     const formData = AUX.form_entries($M('form')[0]);
     
     ocultarErrorValidacion($M('[name]'));
@@ -82,7 +82,7 @@ $(function(e){ $('[data-js-modal-generar-relevamiento]').each(function(){
     $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
     $.ajax({
       type: "POST",
-      url: 'relevamientos/crearRelevamiento',
+      url: 'relevamientos/'+url,
       data: formData,
       dataType: 'json',
       success: function (data) {
@@ -97,5 +97,9 @@ $(function(e){ $('[data-js-modal-generar-relevamiento]').each(function(){
         setear_estado_paso();
       }
     });
+  };
+  
+  $M('[data-js-generar-posta-descargar]').click(function(e){
+    generar_descargar_zip($(this).attr('data-js-generar-posta-descargar'));
   });
 })});

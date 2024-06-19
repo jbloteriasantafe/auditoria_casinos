@@ -203,7 +203,104 @@ class RelevamientoController extends Controller
   // genera para el relevamiento, segun la cantidad de maquinas, los detalles relevamientos
   // genera los backup para la carga sin sistema
   // genera las planillas , comprime las de backup y se descargan
-  public function crearRelevamiento(Request $request){
+  
+  private function crearRelevamiento_crear($es_backup,$sector,$f,$fecha_generacion,$cantidad_fiscalizadores,$seed){
+    $maquinas_sorter = $sector->id_casino == 3?
+      function($m,$key) {
+         $i = Isla::find($m->id_isla);
+         return [$i->orden, $i->nro_isla];
+      }
+    :
+      function($m,$key){
+        return Isla::find($m->id_isla)->nro_isla;
+      }
+    ;
+      
+    //Elimino los relevamientos viejos solo en estado GENERADOS
+    foreach($this->crearRelevamiento_buscar($es_backup,$sector,$f,$fecha_generacion,1) as $r){
+      foreach($r->detalles as $d){
+        $d->delete();
+      }
+      $r->delete();
+    }
+    
+    $cantidad_maquinas = $this->obtenerCantidadMaquinasRelevamiento($sector->id_sector,$f);
+    $maquinas_total = null;
+    {//Obtengo las maquinas a relevar
+      $maquinas_sector = Maquina::whereIn('id_isla',$sector->islas->pluck('id_isla'))
+      ->whereHas('estado_maquina',function($q){$q->whereIn('descripcion',['Ingreso','Reingreso']);});
+      
+      $maquinas_a_pedido = (clone $maquinas_sector)
+      ->whereHas('maquinas_a_pedido',function($q) use ($f){$q->where('fecha',$f);})
+      ->get();
+
+      $maquinas = (clone $maquinas_sector)->whereNotIn('id_maquina',$maquinas_a_pedido->pluck('id_maquina'))
+      ->inRandomOrder($seed)->take($cantidad_maquinas)->get();
+      
+      $maquinas_total = $maquinas->merge($maquinas_a_pedido)->sortBy($maquinas_sorter);
+    }
+        
+    $relevamientos = collect([]);
+    {//Creo los subrelevamientos
+      $inicio            = 0;
+      $restantes         = $maquinas_total->count();
+      $cant_por_planilla = intdiv($maquinas_total->count(),$cantidad_fiscalizadores);
+      $sumar_uno = $maquinas_total->count() % $cantidad_fiscalizadores;
+      $subrelevamiento = 1;
+      do{
+        $r = new Relevamiento;
+        $r->nro_relevamiento = DB::table('relevamiento')->max('nro_relevamiento') + 1;
+        $r->fecha            = $f;
+        $r->fecha_generacion = $fecha_generacion;
+        $r->backup           = $es_backup;
+        $r->seed             = $seed;
+        $r->subrelevamiento = $cant_por_planilla==$maquinas_total->count()? null : $subrelevamiento;
+        $subrelevamiento+=1;
+        $r->sector()->associate($sector->id_sector);
+        $r->estado_relevamiento()->associate(1);
+        $r->save();
+
+        $cantidad   = $cant_por_planilla + ($sumar_uno>0? 1 : 0);
+        $sumar_uno -= 1;
+        
+        foreach($maquinas_total->slice($inicio,$cantidad) as $maq){
+          $dr = new DetalleRelevamiento;
+          $dr->id_maquina          = $maq->id_maquina;
+          $dr->id_relevamiento     = $r->id_relevamiento;
+          $dr->producido_importado = $this->calcularProducidoImportado($f,$maq);
+          $dr->save();
+        }
+        
+        $relevamientos->push($r);
+        
+        $inicio    += $cantidad;
+        $restantes -= $cantidad;
+      } while($restantes > 0);
+    }
+    
+    return $relevamientos;
+  }
+  
+  private function crearRelevamiento_buscar($es_backup,$sector,$f,$fecha_generacion,$id_estado_relevamiento){
+    $relevamientos_viejos = Relevamiento::where([
+      ['fecha',$f],['id_sector',$sector->id_sector],['backup',$es_backup? 1 : 0]
+    ]);
+    
+    if(!is_null($id_estado_relevamiento)){
+      $relevamientos_viejos = $relevamientos_viejos->where('id_estado_relevamiento',$id_estado_relevamiento);
+    }
+    
+    if($es_backup){
+      $relevamientos_viejos = $relevamientos_viejos->where('backup',1)->whereDate('fecha_generacion',$fecha_generacion);
+    }
+    else{
+      $relevamientos_viejos = $relevamientos_viejos->where('backup',0);
+    }
+    
+    return $relevamientos_viejos->get();
+  }
+  
+  public function crearRelevamiento(Request $request,$crear_relevamientos = true){
     $fecha_hoy = date("Y-m-d"); // fecha de hoy
     
     Validator::make($request->all(),[
@@ -211,14 +308,21 @@ class RelevamientoController extends Controller
       'cantidad_fiscalizadores' => 'nullable|integer|between:1,10',
       'seed' => 'nullable|integer',
     ], 
-      array_merge(self::$mensajesErrores,['between' => 'El valor tiene que ser entre 1-10']),
+      array_merge(self::$mensajesErrores,['cantidad_fiscalizadores.between' => 'El valor tiene que ser entre 1-10']),
       self::$atributos
-    )->after(function($validator) use ($fecha_hoy){
+    )->after(function($validator) use ($fecha_hoy,$crear_relevamientos){
       if($validator->errors()->any()) return;
       $id_sector = $validator->getData()['id_sector'];
       if($this->validarSector($id_sector) === false){
         return $validator->errors()->add('id_sector','No puede acceder a ese sector');
       }
+      
+      $seed = $validator->getData()['seed'] ?? null;
+      if(!empty($seed) && !UsuarioController::getInstancia()->quienSoy()['usuario']->es_superusuario){
+        $validator->errors()->add('seed','El usuario no puede realizar esa acción');
+      }
+      
+      if(!$crear_relevamientos) return;
       
       $estados_rechazados = [2,3,4];
       $relevamientos = Relevamiento::where([['fecha',$fecha_hoy],['id_sector',$id_sector],['backup',0]])->whereIn('id_estado_relevamiento',$estados_rechazados);
@@ -230,13 +334,9 @@ class RelevamientoController extends Controller
       if($cantidad_fiscalizadores > RelevamientoController::getInstancia()->obtenerCantidadMaquinasRelevamiento($id_sector)){
         $validator->errors()->add('cantidad_maquinas','La cantidad de maquinas debe ser mayor o igual a la cantidad de fiscalizadores.');
       }
-      $seed = $validator->getData()['seed'] ?? null;
-      if(!empty($seed) && !UsuarioController::getInstancia()->quienSoy()['usuario']->es_superusuario){
-        $validator->errors()->add('seed','El usuario no puede realizar esa acción');
-      }
     })->validate();
 
-    return DB::transaction(function() use ($request,$fecha_hoy){
+    return DB::transaction(function() use ($request,$fecha_hoy,$crear_relevamientos){
       $fecha_generacion = explode(' ',$fecha_hoy)[0];
       $fechas = [$fecha_hoy];
       $fecha_backup = $fecha_hoy;
@@ -254,99 +354,25 @@ class RelevamientoController extends Controller
       }
       
       $sector = Sector::find($request->id_sector);
-            
-      $maquinas_sector = Maquina::whereIn('id_isla',$sector->islas->pluck('id_isla'))
-      ->whereHas('estado_maquina',function($q){$q->whereIn('descripcion',['Ingreso','Reingreso']);});
-      
-      $maquinas_sorter = $sector->id_casino == 3?
-        function($m,$key) {
-           $i = Isla::find($m->id_isla);
-           return [$i->orden, $i->nro_isla];
-        }
-      :
-        function($m,$key){
-          return Isla::find($m->id_isla)->nro_isla;
-        }
-      ;
-      
-      $archivos = [];
+        
+      $relevamientos = collect([]);
       foreach($fechas as $idx => $f){
         $es_backup = $idx != 0;
         
-        {//Elimino los relevamientos viejos
-          $relevamientos_viejos = Relevamiento::where([
-            ['fecha',$f],['id_sector',$request->id_sector],['id_estado_relevamiento',1],['backup',$es_backup? 1 : 0]
-          ]);
-          
-          if($es_backup){
-            $relevamientos_viejos = $relevamientos_viejos->where('backup',1)->whereDate('fecha_generacion',$fecha_generacion);
-          }
-          else{
-            $relevamientos_viejos = $relevamientos_viejos->where('backup',0);
-          }
-          
-          foreach($relevamientos_viejos->get() as $r){
-            foreach($r->detalles as $d){
-              $d->delete();
-            }
-            $r->delete();
-          }
-        }
+        $rels_f = $crear_relevamientos?
+          $this->crearRelevamiento_crear($es_backup,$sector,$f,$fecha_generacion,$request->cantidad_fiscalizadores,$seed+$idx)
+        : $this->crearRelevamiento_buscar($es_backup,$sector,$f,$fecha_generacion,null);
         
-        $f_seed = $seed+$idx;
-        $cantidad_maquinas = $this->obtenerCantidadMaquinasRelevamiento($request->id_sector,$f);
-        $maquinas_total = null;
-        {//Obtengo las maquinas a relevar
-          $maquinas_a_pedido = (clone $maquinas_sector)
-          ->whereHas('maquinas_a_pedido',function($q) use ($f){$q->where('fecha',$f);})
-          ->get();
-
-          $maquinas = (clone $maquinas_sector)->whereNotIn('id_maquina',$maquinas_a_pedido->pluck('id_maquina'))
-          ->inRandomOrder($f_seed)->take($cantidad_maquinas)->get();
-          
-          $maquinas_total = $maquinas->merge($maquinas_a_pedido)->sortBy($maquinas_sorter);
-        }
+        $relevamientos = $relevamientos->merge($rels_f->values());
+      }
       
-        
-        $archivos_subrelevamientos = [];
-        {//Creo los subrelevamientos
-          $inicio            = 0;
-          $restantes         = $maquinas_total->count();
-          $cant_por_planilla = intdiv($maquinas_total->count(),$request->cantidad_fiscalizadores);
-          $sumar_uno = $maquinas_total->count() % $request->cantidad_fiscalizadores;
-          $subrelevamiento = 1;
-          do{
-            $r = new Relevamiento;
-            $r->nro_relevamiento = DB::table('relevamiento')->max('nro_relevamiento') + 1;
-            $r->fecha            = $f;
-            $r->fecha_generacion = $fecha_generacion;
-            $r->backup           = $es_backup;
-            $r->seed             = $f_seed;
-            $r->subrelevamiento = $cant_por_planilla==$maquinas_total->count()? null : $subrelevamiento;
-            $subrelevamiento+=1;
-            $r->sector()->associate($sector->id_sector);
-            $r->estado_relevamiento()->associate(1);
-            $r->save();
-
-            $cantidad   = $cant_por_planilla + ($sumar_uno>0? 1 : 0);
-            $sumar_uno -= 1;
-            
-            foreach($maquinas_total->slice($inicio,$cantidad) as $maq){
-              $dr = new DetalleRelevamiento;
-              $dr->id_maquina          = $maq->id_maquina;
-              $dr->id_relevamiento     = $r->id_relevamiento;
-              $dr->producido_importado = $this->calcularProducidoImportado($f,$maq);
-              $dr->save();
-            }
-            
-            $archivos_subrelevamientos[] = $this->guardarPlanilla($r->id_relevamiento);
-            
-            $inicio    += $cantidad;
-            $restantes -= $cantidad;
-          } while($restantes > 0);
-        }
-        
-        $archivos = array_merge($archivos,$archivos_subrelevamientos);
+      $casino = $sector->casino;
+      $archivos = [];
+      foreach($relevamientos as $r){
+        $ruta  = "Relevamiento-{$casino->codigo}-{$sector->descripcion}-{$r->fecha}";
+        $ruta .= $r->subrelevamiento !== null? "({$r->subrelevamiento}).pdf" : '.pdf';
+        file_put_contents($ruta, $this->crearPlanilla($r)->output());
+        $archivos[] = $ruta;
       }
       
       $nombreZip = "Planillas-{$sector->casino->codigo}-{$sector->descripcion}-{$fechas[0]} al {$fechas[count($fechas)-1]}.zip";
@@ -356,6 +382,10 @@ class RelevamientoController extends Controller
 
       return ['url_zip' => 'relevamientos/descargarZip/'.$nombreZip];
     });
+  }
+  
+  public function descargarRelevamiento(Request $request){
+    return $this->crearRelevamiento($request,false);
   }
 
   public function descargarZip($nombre){
@@ -367,23 +397,22 @@ class RelevamientoController extends Controller
     $detalles = $this->validarDetalles($request,($request->estado ?? null) == '3');
     
     Validator::make($request->all(), [
-        'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
-        'id_usuario_fiscalizador' => 'required_if:estado,3|nullable|exists:usuario,id_usuario,deleted_at,NULL',
-        'tecnico' => 'nullable|max:45',
-        'observacion_carga' => 'nullable|max:2000',
-        'estado' => 'required|numeric|between:2,3',
-        'hora_ejecucion' => 'nullable|required_if:estado,3|regex:/^\d\d:\d\d(:\d\d)?/',
+      'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
+      'id_usuario_fiscalizador' => 'required_if:estado,3|nullable|exists:usuario,id_usuario,deleted_at,NULL',
+      'tecnico' => 'nullable|max:45',
+      'observacion_carga' => 'nullable|max:2000',
+      'estado' => 'required|numeric|between:2,3',
+      'hora_ejecucion' => 'nullable|required_if:estado,3|regex:/^\d\d:\d\d(:\d\d)?/',
     ],self::$mensajesErrores, self::$atributos)->after(function($validator) use ($detalles){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
-      foreach($detalles as $d){
-        if($d->id_relevamiento != $data['id_relevamiento']){//Solo necesito chequear el primero, los demas se chequean en validarDetalles
-          return $validator->errors()->add('id_relevamiento','Error de mismatch entre detalles y relevamiento');
-        }
-        if($this->validarSector($d->relevamiento->id_sector) === false){
-          return $validator->errors()->add('id_relevamiento','No tiene acceso');
-        }
-        break;
+      $d = count($detalles)? $detalles[0] : null;
+      if(is_null($d)) return;
+      if($d->id_relevamiento != $data['id_relevamiento']){//Solo necesito chequear el primero, los demas se chequean en validarDetalles
+        return $validator->errors()->add('id_relevamiento','Error de mismatch entre detalles y relevamiento');
+      }
+      if($this->validarSector($d->relevamiento->id_sector) === false){
+        return $validator->errors()->add('id_relevamiento','No tiene acceso');
       }
     })->validate();
     
@@ -567,20 +596,8 @@ class RelevamientoController extends Controller
       return 1;
     });
   }
-
-  private function guardarPlanilla($id_relevamiento){
-    $relevamiento = Relevamiento::find($id_relevamiento);
-    $sector = $relevamiento->sector;
-    $casino = $sector->casino;
-    $ruta  = "Relevamiento-{$casino->codigo}-{$sector->descripcion}-{$relevamiento->fecha}";
-    $ruta .= $relevamiento->subrelevamiento !== null? "({$relevamiento->subrelevamiento}).pdf" : '.pdf';
-    
-    file_put_contents($ruta, $this->crearPlanilla($id_relevamiento)->output());
-    return $ruta;
-  }
   
-  public function crearPlanilla($id_relevamiento){
-    $relevamiento = Relevamiento::find($id_relevamiento);
+  private function crearPlanilla($relevamiento){
     $rel= new \stdClass();
     $sector = $relevamiento->sector;
     $casino = $sector->casino;
@@ -634,7 +651,7 @@ class RelevamientoController extends Controller
     return $dompdf;
   }
 
-  public function crearPlanillaValidado($id_relevamiento){
+  public function generarPlanillaValidado($id_relevamiento){
     $relevamiento = Relevamiento::find($id_relevamiento);
     $casino = $relevamiento->sector->casino;
     
@@ -730,7 +747,7 @@ class RelevamientoController extends Controller
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica","regular");
     $dompdf->getCanvas()->page_text(515, 815,"Página {PAGE_NUM} de {PAGE_COUNT}",$font,10,array(0,0,0));
-    return $dompdf;
+    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
   }
 
   private function calcularMTMsHabilitadas($id_casino){
@@ -747,14 +764,11 @@ class RelevamientoController extends Controller
   }
   
   public function generarPlanilla($id_relevamiento){
-    $dompdf = $this->crearPlanilla($id_relevamiento);
-    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
+    $r = Relevamiento::find($id_relevamiento);
+    if(is_null($r)) return '';
+    return $this->crearPlanilla($r)->stream('planilla.pdf', Array('Attachment'=>0));
   }
-  public function generarPlanillaValidado($id_relevamiento){
-    $dompdf = $this->crearPlanillaValidado($id_relevamiento);
-    return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
-  }
-
+  
   public function usarRelevamientoBackUp(Request $request){
     $rel_backup = null;
     $reglas = null;

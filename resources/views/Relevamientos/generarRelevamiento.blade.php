@@ -107,12 +107,12 @@
 @slot('pie')
 {{-- Para mostrar errores si no manda nada --}}
 <div data-estado="SIN_CHECKEAR" data-paso="0" hidden> 
-  <button type="button" class="btn btn-successAceptar" data-js-generar-posta>GENERAR</button>
+  <button type="button" class="btn btn-successAceptar" data-js-generar-posta-descargar="crearRelevamiento">GENERAR</button>
   <button type="button" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
 </div>
 
 <div data-estado="SIN_GENERAR" data-paso="0" hidden>
-  <button type="button" class="btn btn-successAceptar" data-js-generar-posta>GENERAR</button>
+  <button type="button" class="btn btn-successAceptar" data-js-generar-posta-descargar="crearRelevamiento">GENERAR</button>
   <button type="button" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
 </div>
 
@@ -122,12 +122,14 @@
 </div>
 
 <div data-estado="GENERADO" data-paso="1" hidden>
-  <button type="button" class="btn btn-warningModificar" data-js-generar-posta>REGENERAR</button>
+  <button type="button" class="btn btn-warningModificar" data-js-generar-posta-descargar="crearRelevamiento" style="float: left;">REGENERAR</button>
+  <button type="button" class="btn btn-successAceptar" data-js-generar-posta-descargar="descargarRelevamiento">DESCARGAR</button>
   <button type="button" class="btn btn-successAceptar" data-js-cancelar>CANCELAR</button>
   <button type="button" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
 </div>
 
 <div data-estado="CARGADO" data-paso="1" hidden>
+  <button type="button" class="btn btn-successAceptar" data-js-generar-posta-descargar="descargarRelevamiento">DESCARGAR</button>
   <button type="button" class="btn btn-successAceptar" data-js-cancelar>CANCELAR</button>
   <button type="button" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
 </div>
