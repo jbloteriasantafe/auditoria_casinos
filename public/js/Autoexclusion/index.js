@@ -38,8 +38,6 @@ $(document).ready(function () {
   $("#dtpFechaRenovacionH").datetimepicker(input_fecha);
   $("#dtpFechaCierreDefinitivoH").datetimepicker(input_fecha);
   $("#btn-buscar").trigger("click");
-
-
 });
 
 //PAGINACION
@@ -1430,11 +1428,11 @@ $("#hace_encuesta").change(function () {
 //Botón agregar nueva noticia AE
 $("#btn-agregar-noticia").click(function (e) {
   e.preventDefault();
-  $('#btn-guardar-noticia').removeClass();
-  $('#btn-guardar-noticia').addClass('btn').addClass('btn-successAceptar');
-  $('#btn-guardar-noticia').text('ACEPTAR');
-  $('#btn-guardar-noticia').show();
-  $('#btn-guardar-noticia').val("nuevo");
+  $("#btn-guardar-noticia").removeClass();
+  $("#btn-guardar-noticia").addClass("btn").addClass("btn-successAceptar");
+  $("#btn-guardar-noticia").text("ACEPTAR");
+  $("#btn-guardar-noticia").show();
+  $("#btn-guardar-noticia").val("nuevo");
 
   $("#cargarNoticiaPDF").prop("disabled", false);
   $("#cargarNoticiaPDF")
@@ -1452,7 +1450,20 @@ $("#btn-agregar-noticia").click(function (e) {
       dropZoneEnabled: true,
       allowedFileExtensions: ["pdf"],
     });
-
+  $("#cargarNoticiaIMG").prop("disabled", false);
+  $("#cargarNoticiaIMG").fileinput("destroy").fileinput({
+    language: "es",
+    showRemove: false,
+    showUpload: false,
+    showCaption: false,
+    showZoom: false,
+    browseClass: "btn btn-primary",
+    previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
+    overwriteInitial: false,
+    initialPreviewAsData: true,
+    dropZoneEnabled: true,
+    allowedFileExtensions: ["jpg", "png", "webp", "jpeg"],
+  })
   $("#modalSubirNoticia .link_archivo").removeAttr("href").hide();
   $("#modalSubirNoticia .no_visualizable").hide();
   $("#modalSubirNoticia").modal("show");
@@ -1471,60 +1482,78 @@ $("#cargarNoticiaPDF").on("fileselect", function (event) {
   $("#modalSubirNoticia .link_archivo").hide();
 });
 
-$('#btn-guardar-noticia').click(function (e){
+$("#cargarNoticiaPDF").on("change", function (event) {
+  $("#cargarNoticiaPDF").attr("data-borrado", "false");
+  $("#modalSubirNoticia .no_visualizable").hide();
+  $("#modalSubirNoticia .link_archivo").hide();
+});
+
+$("#borrarImagenBtn").on("click", function () {
+  $("#cargarNoticiaIMG").val("");
+  $("#nombreArchivoContainer").empty();
+  $(this).hide();
+});
+
+$("#btn-guardar-noticia").click(function (e) {
   $.ajaxSetup({
     headers: {
-      'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content'),
-      'X-API-Key': 'base64:TzNlfRUDBa4hqNFm4jSHM60cW+oPhVtGHx6VFYqnrsI='
-    }
+      "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content"),
+      "X-API-Key": "base64:TzNlfRUDBa4hqNFm4jSHM60cW+oPhVtGHx6VFYqnrsI=",
+    },
   });
 
-  var url="http://10.1.121.24:8000/api/resources/post-pdf-document";
-  var formData=new FormData();
-  formData.append('title',$('#noticiaTitulo').val());
-  formData.append('abstract' , $('#noticiaAbstract').val());
-  if ($('#cargarNoticiaIMG')[0].files[0] != null) formData.append('image' , $('#cargarNoticiaIMG')[0].files[0]);
-  if ($('#cargarNoticiaPDF')[0].files[0] != null) formData.append('pdf' , $('#cargarNoticiaPDF')[0].files[0]);
+  var url = "http://10.1.121.24:8000/api/resources/post-pdf-document";
+  var formData = new FormData();
+  formData.append("title", $("#noticiaTitulo").val());
+  formData.append("abstract", $("#noticiaAbstract").val());
+  if ($("#cargarNoticiaIMG")[0].files[0] != null)
+    formData.append("image", $("#cargarNoticiaIMG")[0].files[0]);
+  if ($("#cargarNoticiaPDF")[0].files[0] != null)
+    formData.append("pdf", $("#cargarNoticiaPDF")[0].files[0]);
 
   $.ajax({
-      type: "POST",
-      url: url,
-      data: formData,
-      dataType: "json",
-      processData: false,
-      contentType:false,
-      cache:false,
-      success: function (data) {
-          console.log(data);
+    type: "POST",
+    url: url,
+    data: formData,
+    dataType: "json",
+    processData: false,
+    contentType: false,
+    cache: false,
+    success: function (data) {
+      console.log(data);
 
-          $('#mensajeExito h3').text('ÉXITO DE CARGA');
-          $('#mensajeExito p').text('La noticia se cargo correctamente');
-          $('#modalSubirNoticia').modal('hide');
-          $('#mensajeExito').show();
-      },
-      error: function (data) {
-        console.log('Error:', data);
-        var errors = data.responseJSON.errors;
-        if(errors.title !== 'undefined'){
-          mostrarErrorValidacion($('#noticiaTitulo'),errors.title[0],true);
-        }
+      $("#mensajeExito h3").text("ÉXITO DE CARGA");
+      $("#mensajeExito p").text("La noticia se cargo correctamente");
+      $("#modalSubirNoticia").modal("hide");
+      $("#mensajeExito").show();
+    },
+    error: function (data) {
+      console.log("Error:", data);
+      var errors = data.responseJSON.errors;
+      var oneError= false;
 
-        if(typeof errors.abstract !== 'undefined'){
-          mostrarErrorValidacion($('#noticiaAbstract'),errors.abstract[0],true);
-        }
-
-        if(typeof errors.pdf !== 'undefined' || typeof errors.image !== 'undefined'){
-          $('#mensajeError .textoMensaje').empty();
-          var textPdf = " El archivo PDF es obligatorio y debe ser de tipo PDF.";
-          var textImg = " El archivo Imagen es obligatorio.";
-          var textError = errors.pdf? textPdf : "" + errors.image? textImg: ""
-          $('#mensajeError .textoMensaje').append($('<h3></h3>').text(textError));
-          $('#mensajeError').hide();
-          setTimeout(function(){
-              $('#mensajeError').show();
-          },250);
-        }
+      if (typeof errors.title !== "undefined") {
+        mostrarErrorValidacion($("#noticiaTitulo"), "El titulo es Obligatorio", true);
       }
-  });
 
+      if (typeof errors.abstract !== "undefined") {
+        mostrarErrorValidacion($("#noticiaAbstract"), "El Abstract es Obligatorio", true);
+      }
+
+      if (
+        typeof errors.pdf !== "undefined" ||
+        typeof errors.image !== "undefined"
+      ) {
+        $("#mensajeError .textoMensaje").empty();
+        var textPdf = " El archivo PDF es obligatorio y debe ser de tipo PDF.";
+        var textImg = " El archivo Imagen es obligatorio.";
+        var textError = errors.pdf ? textPdf : "" + errors.image ? textImg : "";
+        $("#mensajeError .textoMensaje").append($("<h3></h3>").text(textError));
+        $("#mensajeError").hide();
+        setTimeout(function () {
+          $("#mensajeError").show();
+        }, 250);
+      }
+    },
+  });
 });

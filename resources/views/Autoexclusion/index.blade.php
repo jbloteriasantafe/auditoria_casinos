@@ -1301,60 +1301,45 @@ select[required] {
               </div>
               <div id="colapsado" class="collapse in">
                   <div class="modal-body">
-                      <div class="row">
-                          <!-- columna de la IZQUIERDA -->
-                          <div class="col-lg-6">
-                              <div class="row">
-                                  <div class="col-lg-12">
-                                      <h5>TITULO</h5>
-                                      <input id="noticiaTitulo" type="text" class="form-control" placeholder="" value=""
-                                          required>
-                                  </div>
-                              </div>
-                              <div class="row">
-                                  <div class="col-lg-12">
-                                      <h5>ABSTRACT</h5>
-                                      <textarea id="noticiaAbstract" class="form-control" rows="10"
-                                          style="resize:vertical; min-height:120px; height:65px;"
-                                          placeholder="Ingresar aquí las una breve descripción (max: 255 caracteres)"
-                                          required></textarea>
-                                  </div>
-                              </div>
-
-                              <div class="row">
-                                  <div class="col-md-12">
-                                      <h5>CARGAR IMAGEN</h5>
-                                      <input id="cargarNoticiaIMG" accept="image/*"  data-borrado="false" type="file">
-                                      <span class="no_visualizable" hidden>El archivo es muy grande para
-                                          visualizarlo.</span>
-
-                                  </div>
-                              </div>
-                          </div>
-                          <!-- /columna izquierda -->
-                          <!-- columna de la DERECHA -->
-                          <div class="col-lg-6">
-                              <!-- archivo -->
-                              <div class="row">
-                                  <div class="col-md-12">
-                                      <h5>CARGAR ARCHIVO Pdf</h5>
-                                      <div class="row zona-file col-md-12" style="border-radius:5px;">
-                                          <input id="cargarNoticiaPDF" accept=".pdf" data-borrado="false" type="file">
-                                          <span class="no_visualizable" hidden>El archivo es muy grande para
-                                              visualizarlo.</span>
-                                      </div>
-                                      <a class="row link_archivo col-md-12" href="/certificadoSoft/pdf/" target="_blank"
-                                          rel="noopener noreferrer" style="text-align: center;">
-                                          PDF
-                                      </a>
-                                  </div>
-                              </div>
-
-                          </div>
+                      <div class="col-lg-12">
+                          <h5>TITULO</h5>
+                          <input id="noticiaTitulo" class="form-control" 
+                              placeholder="Ingresar aquí el titulo (max: 255 caracteres)" required></textarea>
                       </div>
+                      <div class="col-lg-12">
+                          <h5>ABSTRACT</h5>
+                          <textarea id="noticiaAbstract" class="form-control" rows="10"
+                              style="resize:vertical; min-height:120px; height:65px;"
+                              placeholder="Ingresar aquí las una breve descripción (max: 255 caracteres)" required>
+                                </textarea>
+                      </div>
+                      
+                      <div class="row"></div>
+
+                      <div class="row" style="justify-content:center, align-items:center">
+                          <div class="col-lg-6">
+                              <h5>CARGAR IMAGEN</h5>
+                              <div class=" zona-file col-lg-6" style="border-radius:5px;">
+                                  <input id="cargarNoticiaIMG" accept="image/*" data-borrado="false" type="file">
+                                  <span class="no_visualizable" hidden>El archivo es muy grande para
+                                      visualizarlo.</span>
+                              </div>
+                          </div>
+                          <div class="col-lg-6">
+                              <h5>CARGAR ARCHIVO Pdf</h5>
+                              <div class=" zona-file col-lg-6" style="border-radius:5px;">
+                                  <input id="cargarNoticiaPDF" accept=".pdf" data-borrado="false" type="file">
+                                  <span class="no_visualizable" hidden>El archivo es muy grande para
+                                      visualizarlo.</span>
+                              </div>
+                          </div>
+
+                      </div>
+
+
                   </div>
               </div>
-              <div class="modal-footer">
+              <div class="modal-footer" style="padding-top: 7px;">
                   <button id="btn-guardar-noticia" type="button" value="add"></button>
                   <button id="btn-cancelar-noticia" type="button" class="btn btn-default" id="btn-salir"
                       data-dismiss="modal" aria-label="Close">CANCELAR</button>
