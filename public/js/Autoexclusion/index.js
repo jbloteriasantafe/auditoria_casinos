@@ -1451,19 +1451,21 @@ $("#btn-agregar-noticia").click(function (e) {
       allowedFileExtensions: ["pdf"],
     });
   $("#cargarNoticiaIMG").prop("disabled", false);
-  $("#cargarNoticiaIMG").fileinput("destroy").fileinput({
-    language: "es",
-    showRemove: false,
-    showUpload: false,
-    showCaption: false,
-    showZoom: false,
-    browseClass: "btn btn-primary",
-    previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
-    overwriteInitial: false,
-    initialPreviewAsData: true,
-    dropZoneEnabled: true,
-    allowedFileExtensions: ["jpg", "png", "webp", "jpeg"],
-  })
+  $("#cargarNoticiaIMG")
+    .fileinput("destroy")
+    .fileinput({
+      language: "es",
+      showRemove: false,
+      showUpload: false,
+      showCaption: false,
+      showZoom: false,
+      browseClass: "btn btn-primary",
+      previewFileIcon: "<i class='glyphicon glyphicon-list-alt'></i>",
+      overwriteInitial: false,
+      initialPreviewAsData: true,
+      dropZoneEnabled: true,
+      allowedFileExtensions: ["jpg", "png", "webp", "jpeg"],
+    });
   $("#modalSubirNoticia .link_archivo").removeAttr("href").hide();
   $("#modalSubirNoticia .no_visualizable").hide();
   $("#modalSubirNoticia").modal("show");
@@ -1530,14 +1532,22 @@ $("#btn-guardar-noticia").click(function (e) {
     error: function (data) {
       console.log("Error:", data);
       var errors = data.responseJSON.errors;
-      var oneError= false;
+      var oneError = false;
 
       if (typeof errors.title !== "undefined") {
-        mostrarErrorValidacion($("#noticiaTitulo"), "El titulo es Obligatorio", true);
+        mostrarErrorValidacion(
+          $("#noticiaTitulo"),
+          "El titulo es Obligatorio",
+          true
+        );
       }
 
       if (typeof errors.abstract !== "undefined") {
-        mostrarErrorValidacion($("#noticiaAbstract"), "El Abstract es Obligatorio", true);
+        mostrarErrorValidacion(
+          $("#noticiaAbstract"),
+          "El Abstract es Obligatorio",
+          true
+        );
       }
 
       if (
@@ -1545,9 +1555,15 @@ $("#btn-guardar-noticia").click(function (e) {
         typeof errors.image !== "undefined"
       ) {
         $("#mensajeError .textoMensaje").empty();
-        var textPdf = " El archivo PDF es obligatorio y debe ser de tipo PDF.";
-        var textImg = " El archivo Imagen es obligatorio.";
-        var textError = errors.pdf ? textPdf : "" + errors.image ? textImg : "";
+        var textPdf =
+          typeof errors.pdf !== "undefined"
+            ? " El archivo PDF es obligatorio. "
+            : "";
+        var textImg =
+          typeof errors.image !== "undefined"
+            ? " El archivo Imagen es obligatorio."
+            : "";
+        var textError = textPdf + textImg;
         $("#mensajeError .textoMensaje").append($("<h3></h3>").text(textError));
         $("#mensajeError").hide();
         setTimeout(function () {
@@ -1556,4 +1572,54 @@ $("#btn-guardar-noticia").click(function (e) {
       }
     },
   });
+});
+
+$(document).on("click", "#btnEnviarEmail", function (e) {
+  e.preventDefault();
+  const id_autoexcluido = $(this).val();
+  $.get(
+    "/autoexclusion/buscarAutoexcluido/" + id_autoexcluido,
+    function (data) {
+      $.ajaxSetup({
+        headers: {
+          "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content"),
+          "X-API-Key": "base64:TzNlfRUDBa4hqNFm4jSHM60cW+oPhVtGHx6VFYqnrsI=",
+        },
+      });
+
+      var url = "http://10.1.121.24:8000/api/email/rootNotification";
+      var formData = new FormData();
+      formData.append("email", data.autoexcluido.correo);
+      $.ajax({
+        type: "POST",
+        url: url,
+        data: formData,
+        dataType: "json",
+        processData: false,
+        contentType: false,
+        cache: false,
+        success: function (data) {
+          console.log("Success: ", data);
+          $("#mensajeExito h3").text("ENVIO EXITOSO");
+          $("#mensajeExito p").text("El email se envio correctamente");
+          $("#modalSubirNoticia").modal("hide");
+          $("#mensajeExito").show();
+        },
+        error: function (data) {
+          console.log("Error: ", data);
+          var errors = data.responseJSON.errors;
+          if (typeof errors.email !== "undefined") {
+            $("#mensajeError .textoMensaje").empty();
+            $("#mensajeError .textoMensaje").append(
+              $("<h3></h3>").text("El usuario no existe, o su email es diferente al registrado en SEVA")
+            );
+            $("#mensajeError").hide();
+            setTimeout(function () {
+              $("#mensajeError").show();
+            }, 250);
+          }
+        },
+      });
+    }
+  );
 });

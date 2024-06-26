@@ -402,6 +402,13 @@ select[required] {
                                           <i class="fa fa-fw fa-trash"></i>
                                       </button>
                                       @endif
+                                      @if($usuario->es_superusuario)
+                                      <button id="btnEnviarEmail" class="btn btn-info info" type="button" value=""
+                                          title="ENVIAR EMAIL DE VERIFICACIÓN" data-toggle="tooltip" data-placement="top"
+                                          data-delay="{'show':'300', 'hide':'100'}">
+                                          <i class="fa fa-envelope"></i>
+                                      </button>
+                                      @endif
                                       <span></span>
                                   </td>
                               </tr>
