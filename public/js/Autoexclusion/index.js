@@ -1612,7 +1612,7 @@ $(document).on("click", "#btnEnviarEmail", function (e) {
             $("#mensajeError .textoMensaje").empty();
             $("#mensajeError .textoMensaje").append(
               $("<h3></h3>").text(
-                "El usuario no existe, o su email es diferente al registrado en SEVA"
+                "El usuario no existe, o su email en Sistemon es diferente al registrado en SEVA"
               )
             );
             $("#mensajeError").hide();

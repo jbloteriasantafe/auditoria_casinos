@@ -124,12 +124,12 @@ select[required] {
               </a>
           </div>
           @endif
-          @if($usuario->es_superusuario || $usuario->es_auditor)
+          @if($usuario->es_superusuario)
           <div class="col-xl-12 col-md-3">
               <a href="" id="btn-agregar-noticia" style="text-decoration: none;">
                   <div class="panel panel-default panelBotonNuevo">
                       <center>
-                          <img class="imgNuevo" src="/img/logos/informes_white.png">
+                          <img class="imgNuevo" src="/img/logos/noticias_white.png">
                       </center>
                       <div class="backgroundNuevo"></div>
                       <div class="row">
