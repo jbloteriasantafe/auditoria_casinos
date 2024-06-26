@@ -354,7 +354,7 @@ class informesController extends Controller
 
     UsuarioController::getInstancia()->agregarSeccionReciente('Informes MTM' ,'informesMTM');
 
-    return view('seccionInformesMTM',['beneficios_x_casino' => $beneficios_x_casino]);
+    return view('seccionInformesMTM',compact('beneficios_x_casino'));
   }
 
   public function obtenerInformeEstadoParque(){

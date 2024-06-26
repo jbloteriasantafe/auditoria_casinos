@@ -163,6 +163,7 @@ $iconos_por_ruta = [
   'estadisticasPorCasino' => [null,'tablero_modif','iconoTableroModif'],
   'interanuales' => [null,'tablero_control','iconoTableroModif'],
   'informesMTM' => [null,'informes','iconoInformesModif'],
+  'informesMesas' => [null,'informes','iconoInformesModif'],
   'bingo' => [null,'bingos','iconoInformesModif'],
   'diferencia-bingo' => ['bingo/reportesDiferencia','bingos','iconoInformesModif'],
   'estado-bingo' => ['bingo/reportesEstado','bingos','iconoInformesModif'],

@@ -346,6 +346,11 @@ $contable_hijos = [
     'link' => '/informesMTM',
     'algun_permiso' => ['informes_mtm'],
   ],
+  'Mesas' => [
+    'icono' => $icono_mesas,
+    'link' => '/informesMesas',
+    'algun_permiso' => ['informes_mesas'],
+  ],
   'Bingo' => [
     'icono' => $icono_bingos,
     'link' => '/bingo/informe',
