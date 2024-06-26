@@ -1611,7 +1611,9 @@ $(document).on("click", "#btnEnviarEmail", function (e) {
           if (typeof errors.email !== "undefined") {
             $("#mensajeError .textoMensaje").empty();
             $("#mensajeError .textoMensaje").append(
-              $("<h3></h3>").text("El usuario no existe, o su email es diferente al registrado en SEVA")
+              $("<h3></h3>").text(
+                "El usuario no existe, o su email es diferente al registrado en SEVA"
+              )
             );
             $("#mensajeError").hide();
             setTimeout(function () {

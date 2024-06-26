@@ -404,8 +404,8 @@ select[required] {
                                       @endif
                                       @if($usuario->es_superusuario)
                                       <button id="btnEnviarEmail" class="btn btn-info info" type="button" value=""
-                                          title="ENVIAR EMAIL DE VERIFICACIÓN" data-toggle="tooltip" data-placement="top"
-                                          data-delay="{'show':'300', 'hide':'100'}">
+                                          title="ENVIAR EMAIL DE VERIFICACIÓN" data-toggle="tooltip"
+                                          data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
                                           <i class="fa fa-envelope"></i>
                                       </button>
                                       @endif
@@ -1310,7 +1310,7 @@ select[required] {
                   <div class="modal-body">
                       <div class="col-lg-12">
                           <h5>TITULO</h5>
-                          <input id="noticiaTitulo" class="form-control" 
+                          <input id="noticiaTitulo" class="form-control"
                               placeholder="Ingresar aquí el titulo (max: 255 caracteres)" required></textarea>
                       </div>
                       <div class="col-lg-12">
@@ -1320,7 +1320,7 @@ select[required] {
                               placeholder="Ingresar aquí las una breve descripción (max: 255 caracteres)" required>
                                 </textarea>
                       </div>
-                      
+
                       <div class="row"></div>
 
                       <div class="row" style="justify-content:center, align-items:center">
