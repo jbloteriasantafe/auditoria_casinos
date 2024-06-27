@@ -673,6 +673,11 @@ Route::group(['prefix' => 'informesMTM','middleware' => 'tiene_permiso:informes_
   Route::get('generarPlanillaIslasMaquinas','informesController@generarPlanillaIslasMaquinas');
 });
 
+Route::group(['prefix' => 'informesMesas','middleware' => 'tiene_permiso:informes_mesas'], function () {
+  Route::get('/','Mesas\InformesMesas\BCMensualesController@obtenerInformeMesas');
+  Route::get('generarPlanilla','Mesas\InformesMesas\BCMensualesController@generarPlanillaContable');
+});
+
 Route::group(['prefix' => 'informeSector','middleware' => 'tiene_permiso:ver_seccion_informesector'], function () {
   Route::get('/','informesController@mostrarInformeSector');
   Route::get('obtenerMTMs','informesController@obtenerMTMs');
@@ -833,7 +838,7 @@ Route::group(['prefix' => 'importacionDiaria','middleware' => 'tiene_permiso:m_v
   Route::get('eliminarImportacion/{id_imp}','Mesas\Importaciones\ImportadorController@eliminar');
   Route::get('eliminarImportacionCierres/{id_imp}','Mesas\Importaciones\ImportadorController@eliminarCierres');
   Route::post('ajustarDetalle','Mesas\Importaciones\ImportadorController@ajustarDetalle');
-  Route::get('imprimirMensual','Mesas\Importaciones\ImportadorController@imprimirMensual');
+  Route::get('imprimirMensual','Mesas\InformesMesas\BCMensualesController@imprimirMensual');
   Route::get('superuserActualizarTodosLosCierres','Mesas\Importaciones\ImportadorController@superuserActualizarTodosLosCierres');
 });
 

@@ -779,7 +779,7 @@ class MTMController extends Controller
     $maquina = Maquina::find($id_maquina);
     $maquina->id_unidad_medida = $id_unidad_medida;
     $maquina->save();
-    $razon = "Se cambió cambiar unidad medida.";
+    $razon = "Se cambió la unidad medida.";
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,5);//tipo mov denominacion
     return $maquina;
   }
