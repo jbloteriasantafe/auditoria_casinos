@@ -42,7 +42,7 @@ class AutoexclusionController extends Controller
 
       if(!$usuario->tienePermiso('modificar_ae') && !$usuario->tienePermiso('aym_ae_plataformas'))
         $estados_elegibles = AE\NombreEstadoAutoexclusion::where('id_nombre_estado',3)->get();
-
+      
       return view('Autoexclusion.index', ['juegos' => AE\JuegoPreferidoAE::all(),
                                           'ocupaciones' => AE\OcupacionAE::all(),
                                           'casinos' => Casino::all(),
