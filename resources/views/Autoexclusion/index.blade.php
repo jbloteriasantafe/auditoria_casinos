@@ -96,8 +96,8 @@
                           <div class="row">
                               <div class="col-xs-12">
                                   <center>
-                                      <h5 class="txtLogo">+</h5>
-                                      <h4 class="txtNuevo">Ver formularios de autoexclusión</h4>
+                                      <h4 class="txtLogo" style="padding-top: 16px;transform: scale(0.65);" >🔍︎</h4>
+                                      <h4 class="txtNuevo" >Ver formularios de autoexclusión</h4>
                                   </center>
                               </div>
                           </div>
@@ -115,7 +115,7 @@
                               <div class="row">
                                   <div class="col-xs-12">
                                       <center>
-                                          <h5 class="txtLogo" style="font-size: 165px !important;">↓</h5>
+                                          <h5 class="txtLogo " style="font-size: 165px !important;">↓</h5>
                                           <h4 class="txtNuevo"><br>DESCARGAR AEs</h4>
                                       </center>
                                   </div>
@@ -129,14 +129,14 @@
                       <a href="" id="btn-agregar-noticia" style="text-decoration: none;">
                           <div class="panel panel-default panelBotonNuevo">
                               <center>
-                                  <img class="imgNuevo" src="/img/logos/noticias_white.png">
+                                  <img class="imgNuevo" src="/img/logos/noticia_white.png">
                               </center>
                               <div class="backgroundNuevo"></div>
                               <div class="row">
                                   <div class="col-xs-12">
                                       <center>
                                           <h5 class="txtLogo">+</h5>
-                                          <h4 class="txtNuevo">Agregar Noticia</h4>
+                                          <h4 class="txtNuevo">Subir Noticia</h4>
                                       </center>
                                   </div>
                               </div>
