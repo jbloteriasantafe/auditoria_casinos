@@ -1117,7 +1117,7 @@ class RelevamientoController extends Controller
       if($validator->errors()->any()) return;
       $d = DetalleRelevamiento::find($validator->getData()['id_detalle_relevamiento']);
       if($this->estaValidado($d->relevamiento)){
-        return $validator->errros()->add('id_detalle_relevamiento','Ya esta validado');
+        return $validator->errors()->add('id_detalle_relevamiento','Ya esta validado');
       }
     })->validate();
     
@@ -1203,9 +1203,6 @@ class RelevamientoController extends Controller
         $id_casino = $r->sector()->withTrashed()->first()->casino->id_casino;
         if(!$u->casinos->pluck('id_casino')->contains($id_casino)){
           return $validator->errors()->add('id_relevamiento','No puede acceder a ese relevamiento');
-        }
-        if($this->estaValidado($r)){
-          return $validator->errros()->add('id_relevamiento','No es modificable');
         }
       }
       
