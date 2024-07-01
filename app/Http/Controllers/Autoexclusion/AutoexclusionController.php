@@ -60,60 +60,56 @@ class AutoexclusionController extends Controller
     //Función para buscar los autoexcluidos existentes en el sistema
     public function buscarAutoexcluidos(Request $request){
       $reglas = Array();
-
-      if(!empty($request->nombres)){
-        $reglas[]=['ae_datos.nombres','LIKE', '%' . $request->nombres . '%'];
+      $filters = [
+        'nombres' => 'ae_datos.nombres',
+        'apellido' => 'ae_datos.apellido',
+        'correo' => 'ae_datos.correo',
+        'dni' => 'ae_datos.nro_dni',
+        'estado' => 'ae_estado.id_nombre_estado',
+        'casino' => 'ae_estado.id_casino',
+        'plataforma' => 'ae_estado.id_plataforma',
+        'fecha_autoexclusion_d' => 'ae_estado.fecha_ae',
+        'fecha_autoexclusion_h' => 'ae_estado.fecha_ae',
+        'fecha_vencimiento_d' => 'ae_estado.fecha_vencimiento',
+        'fecha_vencimiento_h' => 'ae_estado.fecha_vencimiento',
+        'fecha_renovacion_d' => 'ae_estado.fecha_renovacion',
+        'fecha_renovacion_h' => 'ae_estado.fecha_renovacion',
+        'fecha_cierre_definitivo_d' => 'ae_estado.fecha_cierre_ae',
+        'fecha_cierre_definitivo_h' => 'ae_estado.fecha_cierre_ae',
+      ]; 
+      foreach($filters as $key => $column){
+        if (!empty($request->$key)) {
+          switch($key){
+            case 'nombres':
+            case 'apellido':
+            case 'correo':
+              // si es nombre , apellido o correo
+              $reglas[] = [$column, 'LIKE','%' . $request->$key . '%'];
+              break;
+            case 'dni':
+            case 'estado':
+            case 'plataforma':
+            case 'casino':
+              // si es dni estado plataforma o casino
+              $reglas[] = [$column, '=', $request->$key];
+              break;
+            case 'fecha_autoexclusion_d':
+            case 'fecha_vencimiento_d':
+            case 'fecha_renovacion_d':
+            case 'fecha_cierre_definitivo_d':
+              // si es fecha _ bla bla _ d 
+              $reglas[] = [$column, '>=', $request->$key];
+              break;
+            case 'fecha_autoexclusion_h':
+            case 'fecha_vencimiento_h':
+            case 'fecha_renovacion_h':
+            case 'fecha_cierre_definitivo_h':
+              // si es fecha_blabla_h
+              $reglas[] = [$column, '<=', $request->$key];
+              break;
+          }
+        }
       }
-      if(!empty($request->apellido)){
-        $reglas[]=['ae_datos.apellido','LIKE', '%' . $request->apellido . '%'];
-      }
-      if(!empty($request->correo)){
-        $reglas[]=['ae_datos.correo','LIKE', '%' . $request->correo . '%'];
-      }
-
-      if(!empty($request->dni)){
-        $reglas[]=['ae_datos.nro_dni','=',$request->dni];
-      }
-
-      if(!empty($request->estado)){
-        $reglas[]=['ae_estado.id_nombre_estado','=',$request->estado];
-      }
-
-      if(!empty($request->casino)){
-        $reglas[]=['ae_estado.id_casino','=',$request->casino];
-      }
-      if(!empty($request->plataforma)){
-        $reglas[]=['ae_estado.id_plataforma','=',$request->plataforma];
-      }
-
-      if(!empty($request->fecha_autoexclusion_d)){
-        $reglas[]=['ae_estado.fecha_ae','>=',$request->fecha_autoexclusion_d];
-      }
-      if(!empty($request->fecha_autoexclusion_h)){
-        $reglas[]=['ae_estado.fecha_ae','<=',$request->fecha_autoexclusion_h];
-      }
-
-      if(!empty($request->fecha_vencimiento_d)){
-        $reglas[]=['ae_estado.fecha_vencimiento','>=',$request->fecha_vencimiento_d];
-      }
-      if(!empty($request->fecha_vencimiento_h)){
-        $reglas[]=['ae_estado.fecha_vencimiento','<=',$request->fecha_vencimiento_h];
-      }
-
-      if(!empty($request->fecha_renovacion_d)){
-        $reglas[]=['ae_estado.fecha_renovacion','>=',$request->fecha_renovacion_d];
-      }
-      if(!empty($request->fecha_renovacion_h)){
-        $reglas[]=['ae_estado.fecha_renovacion','<=',$request->fecha_renovacion_h];
-      }
-
-      if(!empty($request->fecha_cierre_definitivo_d)){
-        $reglas[]=['ae_estado.fecha_cierre_ae','>=',$request->fecha_cierre_definitivo_d];
-      }
-      if(!empty($request->fecha_cierre_definitivo_h)){
-        $reglas[]=['ae_estado.fecha_cierre_ae','<=',$request->fecha_cierre_definitivo_h];
-      }
-
       $sort_by = ['columna' => 'ae_datos.id_autoexcluido', 'orden' => 'desc'];
       if(!empty($request->sort_by)){
         $sort_by = $request->sort_by;
@@ -361,10 +357,20 @@ class AutoexclusionController extends Controller
       //fecha actual, sin formatear
       $ahora = date("dmY");
 
-      $carpeta = [ 'foto1' => 'fotos/', 'foto2' => 'fotos/', 'scandni' => 'documentos/',
-       'solicitud_ae' => 'solicitudes/', 'solicitud_revocacion' => 'solicitudes/', 'caratula' => 'solicitudes/' ];
-      $numero_identificador = [ 'foto1' => '1', 'foto2' => '2', 'scandni' => '3', 
-      'solicitud_ae' => '4', 'solicitud_revocacion' => '5', 'caratula' => 'CAR'];
+      $carpeta = ['foto1' => 'fotos/', 
+                  'foto2' => 'fotos/',
+                  'scandni' => 'documentos/',
+                  'solicitud_ae' => 'solicitudes/',
+                  'solicitud_revocacion' => 'solicitudes/',
+                  'caratula' => 'solicitudes/'
+                ];
+      $numero_identificador = ['foto1' => '1',
+                               'foto2' => '2',
+                               'scandni' => '3', 
+                               'solicitud_ae' => '4',
+                               'solicitud_revocacion' => '5',
+                               'caratula' => 'CAR'];
+      
       foreach($carpeta as $tipo => $ignorar){
         if(is_null($ae_importacion) || !array_key_exists($tipo,$ae_importacion)){//Si no viene en el request, lo borro
           $importacion->{$tipo} = NULL;
@@ -423,38 +429,38 @@ class AutoexclusionController extends Controller
       return ['codigo' => 200];
     }
 
-  public function existeAutoexcluido($dni){//Usado en APIAEController
-    $aes = AE\Autoexcluido::where('nro_dni',$dni)->get();
-    $todos_vencidos = true;
-    foreach($aes as $ae){
-      $e = $ae->estado;
-      $vencido = $e->id_nombre_estado == 5 || $ae->estado_transicionable == 5;
-      $todos_vencidos = $vencido && $todos_vencidos;
-      if(!$todos_vencidos) break;
-    }
-    //Si estan todos los anteriores finalizados (o no hay), dejo crear uno nuevo.
-    if($todos_vencidos){
-      //Si ya estuvo AE retorno -1 sino 0
-      if(count($aes) > 0) return -1;
-      else return 0;
+    public function existeAutoexcluido($dni){//Usado en APIAEController
+      $aes = AE\Autoexcluido::where('nro_dni',$dni)->get();
+      $todos_vencidos = true;
+      foreach($aes as $ae){
+        $e = $ae->estado;
+        $vencido = $e->id_nombre_estado == 5 || $ae->estado_transicionable == 5;
+        $todos_vencidos = $vencido && $todos_vencidos;
+        if(!$todos_vencidos) break;
+      }
+      //Si estan todos los anteriores finalizados (o no hay), dejo crear uno nuevo.
+      if($todos_vencidos){
+        //Si ya estuvo AE retorno -1 sino 0
+        if(count($aes) > 0) return -1;
+        else return 0;
+      }
+
+      //Si llegue aca es porque hay uno en vigencia, lo devuelvo para mostrarlo
+      $ae = AE\Autoexcluido::where('nro_dni',$dni)
+      ->join('ae_estado','ae_estado.id_autoexcluido','=','ae_datos.id_autoexcluido')
+      ->orderBy('ae_estado.fecha_ae','desc')->first();
+      return $ae->id_autoexcluido;
     }
 
-    //Si llegue aca es porque hay uno en vigencia, lo devuelvo para mostrarlo
-    $ae = AE\Autoexcluido::where('nro_dni',$dni)
-    ->join('ae_estado','ae_estado.id_autoexcluido','=','ae_datos.id_autoexcluido')
-    ->orderBy('ae_estado.fecha_ae','desc')->first();
-    return $ae->id_autoexcluido;
-  }
-
-  public function buscarAutoexcluido ($id) {
-    $ae = AE\Autoexcluido::find($id);
-    return ['autoexcluido' => $ae,
-            'es_primer_ae' => $ae->es_primer_ae,
-            'datos_contacto' => $ae->contacto,
-            'estado' => $ae->estado,
-            'encuesta' => $ae->encuesta,
-            'importacion' => $ae->importacion];
-  }
+    public function buscarAutoexcluido ($id) {
+      $ae = AE\Autoexcluido::find($id);
+      return ['autoexcluido' => $ae,
+              'es_primer_ae' => $ae->es_primer_ae,
+              'datos_contacto' => $ae->contacto,
+              'estado' => $ae->estado,
+              'encuesta' => $ae->encuesta,
+              'importacion' => $ae->importacion];
+    }
 
   public function mostrarArchivo ($id_importacion,$tipo_archivo) {
     $imp = AE\ImportacionAE::where('id_importacion', '=', $id_importacion)->first();
@@ -596,7 +602,9 @@ class AutoexclusionController extends Controller
   public function cambiarEstadoAE($id,$id_estado){//Usado en APIAEController
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $ae = AE\Autoexcluido::find($id);
+
     if(is_null($ae)) return $this->errorOut(['id_autoexcluido' => 'AE inexistente']);
+    
     $estado = $ae->estado;
 
     $usuario_valido = $usuario->tienePermiso('modificar_ae') || $usuario->tienePermiso('aym_ae_plataformas');
@@ -668,17 +676,11 @@ class AutoexclusionController extends Controller
     DB::transaction(function() use($id_autoexcluido){
       $ae = AE\Autoexcluido::find($id_autoexcluido);
       if(is_null($ae)) return;
-      if(!is_null($ae->contacto)){
-        $ae->contacto->delete();
-      }
-      if(!is_null($ae->estado)){ 
-        $ae->estado->delete();
-      }
-      if(!is_null($ae->importacion)){ 
-        $ae->importacion->delete();
-      }
-      if(!is_null($ae->encuesta)){ 
-        $ae->encuesta->delete();
+      $fields = ['contacto', 'estado', 'importacion', 'encuesta'];
+      foreach($fields as $field){
+        if(!is_null($ae->$field)){
+          $ae->$field->delete();
+        }
       }
       $ae->delete();
     });
@@ -716,7 +718,8 @@ class AutoexclusionController extends Controller
       $aes2 = json_decode(json_encode($aes), true);
       foreach($aes2 as $ae){
         //$aux = json_decode(json_encode($ae), true);
-        if($primer_ae){//Saco las columnas del primer ae
+        if($primer_ae){
+          //Agrego los nombres de las columnas
           fputcsv($fhandle,array_keys($ae),";",'"',"\\");
           $primer_ae = false;
         }
