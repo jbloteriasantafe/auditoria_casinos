@@ -165,7 +165,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       $M('[name="fecha_generacion"]').val(data.relevamiento.fecha_generacion);
       $M('[name="casino"]').val(data.casino);
       $M('[name="sector"]').val(data.sector);
-      //@TODO: Poner subrelevamiento ???
+      $M('[name="subrelevamiento"]').val(data.relevamiento.subrelevamiento ?? '');
       $M('[name="hora_ejecucion"]').val(data.relevamiento.fecha_ejecucion);
       $M('[name="tecnico"]').val(data.relevamiento.tecnico);
       // si el relevamiento no tiene usuario fizcalizador se le asigna el actual
@@ -222,7 +222,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     AUX.POST('relevamientos/cargarRelevamiento',formData,
       success,
       function (data) {
-        const response = data.responseJSON;
+        const response = data.responseJSON ?? {};
         AUX.mostrarErroresNames(M,response ?? {},true);
         
         if(response.id_usuario_fiscalizador !== undefined){
@@ -242,7 +242,9 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         });
 
         if(filaError !== null){
-          M.animate({ scrollTop: filaError.offset().top }, "slow");
+          const div_scrollable = $M('[data-div-tabla-scrollable-errores]');
+          div_scrollable.animate({ scrollTop: filaError.offset().top }, "slow");
+          M.animate({scrollTop: div_scrollable}, "slow");
         }
         else if(Object.keys(response).length > 0){
           M.animate({ scrollTop: 0 }, "slow");
@@ -292,7 +294,13 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         M.trigger('valido');
       },
       function (data){
-        AUX.mensajeError('');
+        const response = data.responseJSON ?? {};
+        if(response.faltan_contadores !== undefined){
+          AUX.mensajeError(response.faltan_contadores.join(', '));
+        }
+        else{
+          AUX.mensajeError('');
+        }
       }
     );
   });

@@ -520,7 +520,7 @@ class RelevamientoController extends Controller
     $r->mtms_sin_isla = Maquina::where('id_casino',$id_casino)->whereNull('id_isla')->count();//No deberia usar el sector???
   }
   
-  private function recalcularRelevamiento($r,$nuevos_contadores=null){
+  public function recalcularRelevamiento($r,$nuevos_contadores=null){
     if($this->estaValidado($r)) return;//Solo recalculo los no validados?
       
     $nuevos_contadores = $nuevos_contadores ?? $r->detalles->keyBy('id_detalle_relevamiento')->toArray();

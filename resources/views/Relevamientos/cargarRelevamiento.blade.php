@@ -45,8 +45,7 @@
     </div>
     <div class="col-lg-2">
       <h5>SUB RELEVAMIENTO</h5>
-      {{-- Nunca se setea? --}}
-      <input type='text' class="form-control"  data-js-enabled="">
+      <input name="subrelevamiento" type='text' class="form-control"  data-js-enabled="">
     </div>
   </div>
   <div class="row">
@@ -66,6 +65,7 @@
     <div class="col-md-3">
       <h5>HORA EJECUCIÓN</h5>
       @component('Components/inputFecha',[
+        'placeholder' => 'hh:mm',
         'attrs' => 'name="hora_ejecucion"',
         'attrs_dtp' => 'data-js-enabled="Cargar" data-date-format="HH:ii" data-start-view="day" data-min-view="hour"'])
       @endcomponent
@@ -73,29 +73,27 @@
   </div>
   <br>
   <br>
-  <div class="row">
-    <div class="col-md-12">
-      <table data-js-tabla-relevamiento class="tablaRelevamiento table">
-        <thead>
-          <tr>
-            <th data-js-modo="Ver,Cargar,Validar" width="3%">MTM</th>
-            @for($c=1;$c<=$CONTADORES;$c++)
-            <th data-js-modo="{{$c<=$CONTADORES_VISIBLES? 'Ver,Cargar,Validar' : ''}}">CONTADOR {{$c}}</th>
-            @endfor
-            <th data-js-modo="Ver,Validar">P. CALCULADO ($)</th>
-            <th data-js-modo="Ver,Validar">P. IMPORTADO ($)</th>
-            <th data-js-modo="Ver,Validar">DIFERENCIA</th>
-            <th data-js-modo="Cargar,Validar">&nbsp;</th>{{-- Estado --}}
-            <th data-js-modo="Ver,Cargar,Validar">CAUSA NO TOMA</th>
-            <th data-js-modo="Ver,Validar">DEN</th>
-            <th data-js-modo="Validar">A PEDIDO</th>
-            <th data-js-modo="Validar">ESTADISTICAS</th>
-          </tr>
-        </thead>
-        <tbody>
-        </tbody>
-      </table>
-    </div>
+  <div class="col-md-12" data-div-tabla-scrollable-errores style="height: 60vh;overflow-y: scroll;overflow-x: clip;width: 100%;">
+    <table data-js-tabla-relevamiento class="tablaRelevamiento table">
+      <thead>
+        <tr>
+          <th data-js-modo="Ver,Cargar,Validar" width="3%">MTM</th>
+          @for($c=1;$c<=$CONTADORES;$c++)
+          <th data-js-modo="{{$c<=$CONTADORES_VISIBLES? 'Ver,Cargar,Validar' : ''}}">CONTADOR {{$c}}</th>
+          @endfor
+          <th data-js-modo="Ver,Validar">P. CALCULADO ($)</th>
+          <th data-js-modo="Ver,Validar">P. IMPORTADO ($)</th>
+          <th data-js-modo="Ver,Validar">DIFERENCIA</th>
+          <th data-js-modo="Cargar,Validar">&nbsp;</th>{{-- Estado --}}
+          <th data-js-modo="Ver,Cargar,Validar">CAUSA NO TOMA</th>
+          <th data-js-modo="Ver,Validar">DEN</th>
+          <th data-js-modo="Validar">A PEDIDO</th>
+          <th data-js-modo="Validar">ESTADISTICAS</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
   </div>
   <br>
   <div class="row" data-js-modo="Cargar,Ver,Validar">
