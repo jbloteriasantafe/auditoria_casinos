@@ -67,7 +67,7 @@
       <div class="col-xl-2">
           <div class="row">
               @if ($usuario->tienePermiso('agregar_ae') || $usuario->tienePermiso('aym_ae_plataformas'))
-                  <div class="col-xl-12 col-md-3">
+                  <div class="col-xl-12 col-md-4">
                       <a href="" id="btn-agregar-ae" style="text-decoration: none;">
                           <div class="panel panel-default panelBotonNuevo">
                               <center>
@@ -86,7 +86,7 @@
                       </a>
                   </div>
               @endif
-              <div class="col-xl-12 col-md-3">
+              <div class="col-xl-12 col-md-4">
                   <a href="" id="btn-ver-formularios-ae" style="text-decoration: none;">
                       <div class="panel panel-default panelBotonNuevo">
                           <center>
@@ -96,8 +96,8 @@
                           <div class="row">
                               <div class="col-xs-12">
                                   <center>
-                                      <h4 class="txtLogo" style="padding-top: 16px;transform: scale(0.65);" >🔍︎</h4>
-                                      <h4 class="txtNuevo" >Ver formularios de autoexclusión</h4>
+                                      <h4 class="txtLogo" style="padding-top: 16px;transform: scale(0.65);">🔍︎</h4>
+                                      <h4 class="txtNuevo">Ver formularios de autoexclusión</h4>
                                   </center>
                               </div>
                           </div>
@@ -105,7 +105,7 @@
                   </a>
               </div>
               @if ($usuario->es_superusuario || $usuario->es_auditor)
-                  <div class="col-xl-12 col-md-3">
+                  <div class="col-xl-12 col-md-4">
                       <a href="" id="btn-descargar-ae" style="text-decoration: none;">
                           <div class="panel panel-default panelBotonNuevo">
                               <center>
@@ -117,26 +117,6 @@
                                       <center>
                                           <h5 class="txtLogo " style="font-size: 165px !important;">↓</h5>
                                           <h4 class="txtNuevo"><br>DESCARGAR AEs</h4>
-                                      </center>
-                                  </div>
-                              </div>
-                          </div>
-                      </a>
-                  </div>
-              @endif
-              @if ($usuario->es_superusuario)
-                  <div class="col-xl-12 col-md-3">
-                      <a href="" id="btn-agregar-noticia" style="text-decoration: none;">
-                          <div class="panel panel-default panelBotonNuevo">
-                              <center>
-                                  <img class="imgNuevo" src="/img/logos/noticia_white.png">
-                              </center>
-                              <div class="backgroundNuevo"></div>
-                              <div class="row">
-                                  <div class="col-xs-12">
-                                      <center>
-                                          <h5 class="txtLogo">+</h5>
-                                          <h4 class="txtNuevo">Subir Noticia</h4>
                                       </center>
                                   </div>
                               </div>
@@ -333,7 +313,6 @@
                           <table id="tablaAutoexcluidos" class="table table-fixed tablesorter">
                               <thead>
                                   <tr>
-
                                       <th class="col-xs-1" value="casino_plataforma" estado="">CASINO<i
                                               class="fa fa-sort"></i></th>
                                       <th class="col-xs-1" value="ae_datos.nro_dni" estado="">DNI<i
@@ -872,7 +851,6 @@
               </div>
           </div>
       </div>
-
       <div class="modal fade" id="modalVerMas" tabindex="-1" role="dialog" aria-hidden="true">
           <div class="modal-dialog modal-lg">
               <div class="modal-content">
@@ -1236,8 +1214,6 @@
               </div>
           </div>
       </div>
-
-
       <!--MODAL SUBIR SOLICITUD AE -->
       <div class="modal fade" id="modalSubirArchivo" tabindex="-1" role="dialog" aria-hidden="true">
           <div class="modal-dialog" style="width: 37%">
@@ -1275,7 +1251,6 @@
               </div>
           </div>
       </div>
-
       <!--MODAL VER FORMULARIOS AE -->
       <div class="modal fade" id="modalFormulariosAE" tabindex="-1" role="dialog" aria-hidden="true">
           <div class="modal-dialog modal-lg">
@@ -1338,67 +1313,6 @@
                           <button type="button" class="btn btn-default" id="btn-salir" data-dismiss="modal"
                               aria-label="Close">SALIR</button>
                       </div>
-                  </div>
-              </div>
-          </div>
-      </div>
-
-      <!--MODAL VER FORMULARIOS SUBIR NOTICIAS -->
-      <div class="modal fade" id="modalSubirNoticia" tabindex="-1" role="dialog" aria-hidden="true">
-          <div class="modal-dialog modal-lg">
-              <div class="modal-content">
-                  <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
-                      <button type="button" class="close" data-dismiss="modal"><i
-                              class="fa fa-times"></i></button>
-                      <button id="btn-minimizar" type="button" class="close" data-toggle="collapse"
-                          data-minimizar="true" data-target="#colapsado"
-                          style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                      <h3 class="modal-title" id="myModalLabel">| SUBIR NOTICIAS PARA EXCLUIDOS </h3>
-                  </div>
-                  <div id="colapsado" class="collapse in">
-                      <div class="modal-body">
-                          <div class="col-lg-12">
-                              <h5>TITULO</h5>
-                              <input id="noticiaTitulo" class="form-control"
-                                  placeholder="Ingresar aquí el titulo (max: 255 caracteres)" required></textarea>
-                          </div>
-                          <div class="col-lg-12">
-                              <h5>ABSTRACT</h5>
-                              <textarea id="noticiaAbstract" class="form-control" rows="10"
-                                  style="resize:vertical; min-height:120px; height:65px;"
-                                  placeholder="Ingresar aquí las una breve descripción (max: 255 caracteres)" required>
-                                </textarea>
-                          </div>
-
-                          <div class="row" style="justify-content:center, align-items:center">
-                              <div class="col-lg-6">
-                                  <h5>CARGAR IMAGEN</h5>
-                                  <div class=" zona-file col-lg-6" style="border-radius:5px;">
-                                      <input id="cargarNoticiaIMG" accept="image/*" data-borrado="false"
-                                          type="file">
-                                      <span class="no_visualizable" hidden>El archivo es muy grande para
-                                          visualizarlo.</span>
-                                  </div>
-                              </div>
-                              <div class="col-lg-6">
-                                  <h5>CARGAR ARCHIVO Pdf</h5>
-                                  <div class=" zona-file col-lg-6" style="border-radius:5px;">
-                                      <input id="cargarNoticiaPDF" accept=".pdf" data-borrado="false"
-                                          type="file">
-                                      <span class="no_visualizable" hidden>El archivo es muy grande para
-                                          visualizarlo.</span>
-                                  </div>
-                              </div>
-
-                          </div>
-
-
-                      </div>
-                  </div>
-                  <div class="modal-footer" style="padding-top: 7px;">
-                      <button id="btn-guardar-noticia" type="button" value="add"></button>
-                      <button id="btn-cancelar-noticia" type="button" class="btn btn-default" id="btn-salir"
-                          data-dismiss="modal" aria-label="Close">CANCELAR</button>
                   </div>
               </div>
           </div>

@@ -129,8 +129,16 @@ $gestion_hijos = [
   ],
   'Autoexclusión' => [
     'icono' => $icono_usuario,
-    'link' => '/autoexclusion',
-    'algun_permiso' => ['ver_seccion_ae_alta'],
+    'hijos' => [
+      'Gestion de Excluidos' => [
+        'link' => '/autoexclusion',
+        'algun_permiso' => ['ver_seccion_ae_alta'],
+      ],
+      'Gestion de Noticias' => [
+        'link' => '/autoexclusion/noticias',
+        'algun_permiso' => ['ver_seccion_ae_alta'],
+      ]
+    ]
   ]
 ];
 $fiscalizacion_hijos = [
