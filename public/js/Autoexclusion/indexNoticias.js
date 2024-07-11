@@ -447,6 +447,7 @@ $(document).on("click", "#btnEditar", function (e) {
   e.preventDefault()
   colorBoton("#enviarNoticiasActualizacion");
   showInputs();
+  clearImputs();
   $("#cargarNuevaNoticiaPDF").prop("disabled", false);
   $("#cargarNuevaNoticiaPDF")
     .fileinput("destroy")
@@ -607,8 +608,8 @@ function enviarModificacion(id_noticia) {
     cache: false,
     success: function (data) {
       console.log("Success: ", data);
-      var mensaje = data.mensaje;
-      if (mensaje === "News updated") {
+      var message = data.message;
+      if (message === "News updated") {
         $("#mensajeExito h3").text("ÉXITO DE CARGA");
         $("#mensajeExito p").text("La noticia se actualizo correctamente");
         $("#modalSubirNoticia").modal("hide");
@@ -668,6 +669,13 @@ function showInputs(){
   $("#cargarNuevaNoticiaIMG").removeClass("no_visualizable").removeAttr("style");
 
   $("#enviarNoticiasActualizacion").removeClass("no_visualizable").removeAttr("style");
+}
+
+function clearImputs() {
+  $("#titleEditShow").val("");
+  $("#noticiaNuevoAbstract").val("");
+  $("#cargarNuevaNoticiaPDF").val(null);
+  $("#cargarNuevaNoticiaIMG").val(null);
 }
 
 function hideInputs(){

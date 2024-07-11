@@ -294,7 +294,7 @@
                           <div class="row">
                               <div class="col-lg-6">
                                   <h5>Abstract</h5>
-                                  <body1 id="text-abstract">Abstract</body1>
+                                  <h6 id="text-abstract">Abstract</h6>
                               </div>
                           </div>
                           <div class="col-lg-12">
