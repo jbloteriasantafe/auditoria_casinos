@@ -20,11 +20,11 @@
       <style>
           .fixed-column {
               position: sticky;
-              left: 0;
-              z-index: 1;
-              /* Asegura que las columnas fijas estén sobre el resto de la tabla */
+              top: 0;
               background-color: #fff;
-              /* Color de fondo para las columnas fijas */
+              /* Color de fondo opcional */
+              z-index: 999;
+              /* Ajustar si es necesario */
           }
 
           .page {
@@ -68,6 +68,32 @@
           input[required],
           select[required] {
               background: #f0f6ff
+          }
+
+          #tablaNoticias {
+              width: 600px;
+              /* Ancho total de la tabla */
+          }
+
+          #tablaNoticias .col-sm-3,
+          #tablaNoticias .col-sm-2 {
+              max-width: 200px;
+              /* Ancho máximo para las columnas TITULO y ABSTRACT */
+              white-space: nowrap;
+              /* Evita saltos de línea */
+              overflow: hidden;
+              /* Oculta el contenido que sobresale */
+              text-overflow: ellipsis;
+              /* Agrega puntos suspensivos al final del texto truncado */
+          }
+
+          #tablaNoticias .col-sm-2 {
+              /*max-width: 100px; */
+              white-space: nowrap;
+              overflow: hidden;
+              /* Oculta el contenido que sobresale */
+              text-overflow: ellipsis;
+              /* Agrega puntos suspensivos al final del texto truncado */
           }
       </style>
   @endsection
@@ -139,24 +165,24 @@
                           <h4>LISTADO DE NOTICIAS</h4>
                       </div>
                       <div class="panel-body">
-                          <table id="tablaNoticias" class="table table-fixed">
+                          <table id="tablaNoticias" class="table">
                               <thead>
                                   <tr>
                                       <!-- <i class="fa fa-sort"></i> -->
-                                      <th class="col-xs-1" value="titulo_noticias" estado="">TITULO</th>
-                                      <th class="col-xs-2" value="abstract_noticias" estado="">ABSTRACT</th>
-                                      <th class="col-xs-1" value="foto_noticias" estado="">FOTO</th>
-                                      <th class="col-xs-1" value="pdf_noticias" estado="">PDF</th>
-                                      <th class="col-xs-1">ACCIONES</th>
+                                      <th class="col-sm-3" value="titulo_noticias" estado="">TITULO</th>
+                                      <th class="col-sm-3" value="abstract_noticias" estado="">ABSTRACT</th>
+                                      <th class="col-sm-2" value="foto_noticias" estado="">FOTO</th>
+                                      <th class="col-sm-2" value="pdf_noticias" estado="">PDF</th>
+                                      <th class="col-sm-2">ACCIONES</th>
                                   </tr>
                               </thead>
                               <tbody id="cuerpoTabla" style="height: 350px;">
                                   <tr class="filaTabla" style="display: none">
-                                      <td class="col-xs-1 titulo_noticias"></td>
-                                      <td class="col-xs-2 abstract_noticias"></td>
-                                      <td class="col-xs-1 foto_noticias"></td>
-                                      <td class="col-xs-1 pdf_noticias"></td>
-                                      <td class="col-xs-1 acciones">
+                                      <td class="col-sm-3 titulo_noticias"></td>
+                                      <td class="col-sm-3 abstract_noticias"></td>
+                                      <td class="col-sm-2 foto_noticias"></td>
+                                      <td class="col-sm-2 pdf_noticias"></td>
+                                      <td class="col-sm-2 acciones">
                                           <button id="btnVerNoticia" class="btn btn-info info" type="button" value=""
                                               title="VER MÁS" data-toggle="tooltip" data-placement="top"
                                               data-delay="{'show':'300', 'hide':'100'}">
