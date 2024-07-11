@@ -3,24 +3,24 @@ import '/js/Components/FiltroTabla.js';
 import '/js/Components/modalEliminar.js';
 import '/js/Components/modal.js';
 import {AUX} from "/js/Components/AUX.js";
-import '/js/Relevamientos/cambioCasinoSelectSectores.js';
+import '/js/Components/cambioCasinoSelectSectores.js';
 
 $(document).ready(function(){
   
 $('.tituloSeccionPantalla').text('MTM a pedido');
+
 $('[data-js-cambio-casino-select-sectores]')
 .trigger('set_url',['mtm_a_pedido/obtenerSectoresPorCasino'])
 .trigger('change');
   
-$('[data-js-filtro-tabla]').on('busqueda',function(e,ret,tbody,molde){
-  const filtro = $(this);  
+$('[data-js-filtro-tabla]').each(function(idx,fObj){ $(fObj).on('busqueda',function(e,ret,tbody,molde){
   const eliminar = function(id){
     return function(e){
       const url = 'mtm_a_pedido/eliminarMmtAPedido/'+id;
       $('[data-js-modal-eliminar]').trigger('mostrar',[{
         url: url,
         mensaje: 'Desea eliminar la MTM a pedido?',
-        success: function(){filtro.trigger('buscar');},
+        success: function(){$(fObj).trigger('buscar');},
       }]);
     };
   };
@@ -35,12 +35,12 @@ $('[data-js-filtro-tabla]').on('busqueda',function(e,ret,tbody,molde){
     fila.find('[data-js-eliminar-mtm-a-p]').click(eliminar(r.id_maquina_a_pedido));
     tbody.append(fila);
   });
-}).trigger('buscar');
+}).trigger('buscar'); });
 
-$('#btn-nuevo').click(function(e){
+$('[data-js-abrir-modal-mtm-a-p]').each(function(idx,bObj){ $(bObj).click(function(e){
   e.preventDefault();
   $('[data-js-modal-mtm-a-p]').trigger('mostrar');
-});
+}) });
 
 $('[data-js-modal-mtm-a-p]').each(function(idx,Mobj){
   const M = $(Mobj);

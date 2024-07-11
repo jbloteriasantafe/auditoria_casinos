@@ -5,10 +5,12 @@ import './maquinasPorRelevamientos.js';
 import './generarRelevamiento.js';
 import './relevamientoSinSistema.js';
 import './cargarRelevamiento.js';
-import './cambioCasinoSelectSectores.js';
+import '/js/Components/cambioCasinoSelectSectores.js';
 
 $(document).ready(function(){
   $('.tituloSeccionPantalla').text('Relevamientos');
+  
+  $('[data-js-filtro-tabla] [data-js-cambio-casino-select-sectores]').trigger('set_url',['relevamientos/obtenerSectoresPorCasino']);
   
   $('[data-js-filtro-tabla]').on('busqueda',function(e,ret,tbody,molde){
     ret.data.forEach(function(r){

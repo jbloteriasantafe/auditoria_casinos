@@ -1,11 +1,13 @@
 import '/js/Components/inputFecha.js';
 import '/js/Components/modal.js';
 import {AUX} from "/js/Components/AUX.js";
-import './cambioCasinoSelectSectores.js';
+import '/js/Components/cambioCasinoSelectSectores.js';
 
 $(function(e){ $('[data-js-modal-generar-relevamiento]').each(function(){
   const  M = $(this);
   const $M = M.find.bind(M);
+  
+  $M('[data-js-cambio-casino-select-sectores]').trigger('set_url',['relevamientos/obtenerSectoresPorCasino']);
   
   let estado = null;
   let paso = null;

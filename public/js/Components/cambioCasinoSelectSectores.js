@@ -1,7 +1,8 @@
 import {AUX} from "/js/Components/AUX.js";
 
 $(function(){ $('[data-js-cambio-casino-select-sectores]').each(function(){
-  let url = "relevamientos/obtenerSectoresPorCasino";//@TODO: mover a Components, hacer agnostico con DI
+  let url = undefined;
+  
   $(this).on('set_url',function(e,new_url){
     url = new_url;
   });

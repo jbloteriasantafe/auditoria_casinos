@@ -26,7 +26,7 @@
     <div class="col-md-3">
       <h5>CASINO</h5>
       <select name="id_casino" class="form-control" data-js-cambio-casino-select-sectores="#destinoSectores">
-        @if(count($casinos) == 0 || count($casinos) > 1)
+        @if(count($casinos) != 1)
         <option value="">- Seleccione un casino -</option>
         @endif
         @foreach($casinos as $c)
@@ -94,7 +94,7 @@
   <div class="col-xl-3">
     <div class="row">
       <div class="col-lg-12">
-        <a href="" id="btn-nuevo" style="text-decoration: none;">
+        <a href="" data-js-abrir-modal-mtm-a-p style="text-decoration: none;">
           <div class="panel panel-default panelBotonNuevo">
             <center><img class="imgNuevo" src="/img/logos/maquinas_a_pedido_white.png"><center>
             <div class="backgroundNuevo"></div>
@@ -128,7 +128,7 @@
   <div class="col-md-6">
     <h5>CASINO</h5>
     <select name="id_casino" class="form-control">
-      @if(count($casinos) == 0 || count($casinos) > 1)
+      @if(count($casinos) != 1)
       <option value="">- Seleccione un casino -</option>
       @endif
       @foreach($casinos as $c)
@@ -187,7 +187,7 @@
 <!-- JavaScript paginacion -->
 <script src="js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
-<script src="/js/seccionMtmAPedido.js?2" type="module" charset="utf-8"></script>
+<script src="/js/seccionMtmAPedido.js?3" type="module" charset="utf-8"></script>
 
 <!-- DateTimePicker JavaScript -->
 <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
