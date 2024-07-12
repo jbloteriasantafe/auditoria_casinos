@@ -42,14 +42,19 @@ $('[data-js-abrir-modal-mtm-a-p]').each(function(idx,bObj){ $(bObj).click(functi
   $('[data-js-modal-mtm-a-p]').trigger('mostrar');
 }) });
 
-$('[data-js-modal-mtm-a-p]').each(function(idx,Mobj){
+$('[data-js-modal-mtm-a-p]').each(function(midx,Mobj){
   const M = $(Mobj);
   
   M.on('mostrar',function(e){
-    $(this).modal('show');
+    ocultarErrorValidacion(M.find('[name]').val(''));
+    M.find('[data-js-fecha]').each(function(fidx,fObj){
+      $(fObj).data('datetimepicker').reset();
+    });
+    M.modal('show');
   });
   
   M.find('[data-js-aceptar]').click(function(e){
+    ocultarErrorValidacion(M.find('[name]'));
     const fd = AUX.form_entries(M.find('form')[0]);
 
     AUX.POST('mtm_a_pedido/guardarMtmAPedido',fd,
