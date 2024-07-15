@@ -13,18 +13,7 @@ $('[data-js-cambio-casino-select-sectores]')
 .trigger('set_url',['mtm_a_pedido/obtenerSectoresPorCasino'])
 .trigger('change');
   
-$('[data-js-filtro-tabla]').each(function(idx,fObj){ $(fObj).on('busqueda',function(e,ret,tbody,molde){
-  const eliminar = function(id){
-    return function(e){
-      const url = 'mtm_a_pedido/eliminarMmtAPedido/'+id;
-      $('[data-js-modal-eliminar]').trigger('mostrar',[{
-        url: url,
-        mensaje: 'Desea eliminar la MTM a pedido?',
-        success: function(){$(fObj).trigger('buscar');},
-      }]);
-    };
-  };
-  
+$('[data-js-filtro-tabla]').each(function(idx,fObj){ $(fObj).on('busqueda',function(e,ret,tbody,molde){  
   ret.data.forEach(function(r){
     const fila = molde.clone();
     fila.find('.nro_admin').text(r.nro_admin);
@@ -32,8 +21,16 @@ $('[data-js-filtro-tabla]').each(function(idx,fObj){ $(fObj).on('busqueda',funct
     fila.find('.casino').text(r.nombre);//@TODO: renombrar
     fila.find('.sector').text(r.descripcion);//@TODO: renombrar
     fila.find('.nro_isla').text(r.nro_isla);
-    fila.find('[data-js-eliminar-mtm-a-p]').click(eliminar(r.id_maquina_a_pedido));
+    fila.find('button').val(r.id_maquina_a_pedido);
     tbody.append(fila);
+  });
+  
+  tbody.find('[data-js-eliminar-mtm-a-p]').click(function(e){
+    $('[data-js-modal-eliminar]').trigger('mostrar',[{
+      url: 'mtm_a_pedido/eliminarMmtAPedido/'+$(e.currentTarget).val(),
+      mensaje: 'Desea eliminar la MTM a pedido?',
+      success: function(){$(fObj).trigger('buscar');},
+    }]);
   });
 }).trigger('buscar'); });
 
