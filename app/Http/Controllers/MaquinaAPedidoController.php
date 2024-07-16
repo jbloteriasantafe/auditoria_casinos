@@ -28,7 +28,17 @@ class MaquinaAPedidoController extends Controller
   public function buscarTodoInforme(){//vista: informeRelevamiento
     UsuarioController::getInstancia()->agregarSeccionReciente('Estadísticas de Relevamiento' , 'estadisticas_relevamientos');
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    return view('seccionEstadisticasRelevamientos' , ['casinos' => $usuario->casinos,'es_superusuario' => $usuario->es_superusuario]);
+    $es_superusuario = $usuario->es_superusuario;
+    $casinos = $es_superusuario? Casino::all() : $usuario->casinos;
+    return view('seccionEstadisticasRelevamientos' , [
+      'casinos' => $casinos,
+      'es_superusuario' => $es_superusuario,
+      'maquinas' => Maquina::whereIn('id_casino',$casinos->pluck('id_casino'))
+      ->select('id_maquina','nro_admin','id_casino')
+      ->orderBy('id_casino','asc')
+      ->orderBy('nro_admin','asc')
+      ->get()
+    ]);
   }
 
   public function obtenerMtmAPedido($fecha,$id_sector){

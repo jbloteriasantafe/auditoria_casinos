@@ -14,177 +14,170 @@
 @endsection
 
 @section('contenidoVista')
-<!-- Tiene TODAS las maquinas del casino -->
-<datalist id="maquinas_lista"></datalist>
+<!-- Tiene TODAS las maquinas de todos los casino -->
+<datalist id="maquinas_lista">
+  <?php $codigos_casinos = $casinos->keyBy('id_casino'); ?>
+  @foreach($maquinas as $m)
+  <option data-id_casino="{{$m->id_casino}}" data-codigo-casino="{{$codigos_casinos[$m->id_casino]->codigo}}" data-id_maquina="{{$m->id_maquina}}" data-nro_admin="{{$m->nro_admin}}"></option>
+  @endforeach
+</datalist>
+<!-- Las maquinas del casino elegido -->
+<datalist id="maquinas_lista_cas"></datalist>
 <!-- Tiene las que va buscando dinamicamente -->
 <datalist id="maquinas_lista_sub"></datalist>
 
 <div class="row"> <!-- row principal -->
   <div class="col-lg-3">
-    <div class="row"> <!-- BUSCAR MÁQUINA -->
-      <div class="col-md-12">
-        <div id="seccionBusquedaPorMaquina" class="panel panel-default">
-          <div class="panel-heading">
-            <h4>BUSCAR MÁQUINA</h4>
-          </div>
-          <div class="panel-body">
-            <div class="row">
-              <div class="col-lg-12">
-                <h5>CASINO</h5>
-                <select id="b_casinoMaquina" class="form-control">
-                  @if($es_superusuario)
-                  <option value="">Todos los casinos</option>
-                  @endif
-                  @foreach ($casinos as $c)
-                  <option id="{{$c->id_casino}}" value="{{$c->id_casino}}">{{$c->nombre}}</option>
-                  @endforeach
-                </select>
-              </div>
-            </div>
-            <br>
-            <div class="row">
-              <div class="col-lg-12">
-                <h5>NÚMERO ADMIN</h5>
-                <input id="b_adminMaquina" type="text" class="form-control" value="" placeholder="Nro. admin" list="maquinas_lista_sub" autoComplete="off">
-              </div>
-            </div>
-            <br>
-            <div class="row">
-              <div class="col-lg-12">
-                <h5>CANTIDAD DE RELEVAMIENTOS</h5>
-                <input id="b_cantidad_relevamientos" type="text" class="form-control" value="" placeholder="Cantidad de relevamientos">
-              </div>
-            </div>
-            <br>
-            <div class="row">
-              <div class="col-lg-12">
-                <h5>Tomado</h5>
-                <select id="b_tomado" class="form-control">
-                  <option value=''>Todos</option>
-                  <option value='SI'>Tomado</option>
-                  <option value='NO'>No tomado</option>
-                </select>
-              </div>
-            </div>
-            <br>
-            <div class="row">
-              <div class="col-lg-12">
-                <h5>Diferencia</h5>
-                <select id="b_diferencia" class="form-control">
-                  <option value=''>Todos</option>
-                  <option value='NO'>Sin diferencia</option>
-                  <option value='SI'>Con diferencia</option>
-                </select>
-              </div>
-            </div>
-            <br>
-            <div class="row">
-              <div class="col-md-12">
-                <button id="btn-buscarMaquina" class="btn btn-infoBuscar" type="button" name="button" data-content='Debe completar <strong>todos</strong> los campos.' data-trigger="manual" data-toggle="popover" data-placement="right" >
-                  <i class="fa fa-fw fa-search" style="margin-right:10px;"></i> BUSCAR MÁQUINA
-                </button>
-              </div>
-            </div>
-            <br>
-          </div> <!-- panel-body -->
-        </div> <!-- panel -->
+    <style>
+      #filtrosRelevamientos [data-js-filtro-tabla-tabla] {
+        display: none;
+      }
+    </style>
+    @component('Components/FiltroTabla',['id' => 'filtrosRelevamientos', 'titulo_filtro' =>  'Buscar Relevamientos'])
+    
+    @slot('titulo')
+    BUSCAR RELEVAMIENTOS DE MÁQUINA
+    @endslot
+    
+    @slot('target_buscar')
+    /estadisticas_relevamientos/obtenerUltimosRelevamientosPorMaquina
+    @endslot
+    
+    @slot('filtros')
+    <div class="row">
+      <div class="col-lg-12">
+        <h5>CASINO</h5>
+        <select name="id_casino" class="form-control" data-js-cambio-asignar-list="#destinoListaNroAdmins">
+          @if(count($casinos) != 1)
+          <option value="">Todos los casinos</option>
+          @endif
+          @foreach($casinos as $c)
+          <option value="{{$c->id_casino}}" {{count($casinos) == 1? 'selected' : ''}}>{{$c->nombre}}</option>
+          @endforeach
+        </select>
       </div>
-    </div> <!-- Tarjeta FILTROS | row -->
-  </div> <!-- columna izquierda | col-lg-3 -->
-  <div class="col-lg-9">
-    <div class="row"> <!-- Tarjeta de FILTROS -->
-      <div class="col-md-12">
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
-            <h4>BÚSQUEDA DE MÁQUINAS SIN RELEVAMIENTO <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltros" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-4">
-                  <h5>Fecha Desde</h5>
-                  <div class="form-group">
-                     <div class='input-group date' id='b_fecha_desde' data-link-field="fecha_desde_date" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                       <input type='text' class="form-control" placeholder="Fecha de Inicio" id="fecha_desde"/>
-                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                       <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
-                     </div>
-                     <input class="form-control" type="hidden" id="fecha_desde_date" value=""/>
-                  </div>
-                </div>
-                <div class="col-lg-4">
-                  <h5>Fecha Hasta</h5>
-                  <div class="form-group">
-                     <div class='input-group date' id='b_fecha_hasta' data-link-field="fecha_hasta_date" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd">
-                       <input type='text' class="form-control" placeholder="Fecha de Fin" id="fecha_hasta"/>
-                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                       <span class="input-group-addon" style="cursor:pointer;"><i class="far fa-calendar-alt"></i></span>
-                     </div>
-                     <input class="form-control" type="hidden" id="fecha_hasta_date" value=""/>
-                  </div>
-                </div>
-                <div class="col-lg-4">
-                  <h5>ISLA</h5>
-                  <input id="b_isla" type="text" class="form-control" value="" placeholder="Isla">
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-lg-4">
-                  <h5>CASINO</h5>
-                  <select id="b_casino" class="form-control" name="">
-                    @if($es_superusuario)
-                    <option value="">Todos los casinos</option>
-                    @endif
-                    @foreach ($casinos as $c)
-                    <option id="{{$c->id_casino}}" value="{{$c->id_casino}}">{{$c->nombre}}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-4">
-                  <h5>SECTOR</h5>
-                  <select id="busqueda_sector" class="form-control" name="">
-                    <option value="">Todos los sectores</option>
-                  </select>
-                </div>
-                <div class="col-lg-4">
-                  <h5 style="color:#f5f5f5;">buqueda</h5>
-                  <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button">
-                    <i class="fa fa-fw fa-search" style="margin-right:10px;"></i> BUSCAR MÁQUINAS
-                  </button>
-                </div>
-              </div>
-              <br>
-            </div>
-          </div>
-        </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-12">
+        <h5>NÚMERO ADMIN</h5>
+        <input name="nro_admin" class="form-control" id="destinoListaNroAdmins" data-js-asignar-id-maquina="#destinoIdMaquina">
+        <input name="id_maquina" id="destinoIdMaquina" hidden>
       </div>
-    </div> <!-- / Tarjeta FILTROS -->
-    <div class="row"> <!-- Tarjeta TABLA resultados -->
-      <div class="col-md-12">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <h4 id="tituloTabla"></h4>
-          </div>
-          <div class="panel-body">
-            <table id="tablaResultados" class="table table-fixed tablesorter">
-              <thead>
-                <tr>
-                  <th class="col-xs-3" value="casino" estado="">CASINO <i class="fa fa-sort"></i></th>
-                  <th class="col-xs-2" value="sector" estado="">SECTOR <i class="fa fa-sort"></i></th>
-                  <th class="col-xs-2" value="isla" estado="">ISLA <i class="fa fa-sort"></i></th>
-                  <th class="col-xs-2" value="maquina" estado="">NRO ADMIN <i class="fa fa-sort"></i></th>
-                  <th class="col-xs-3">ACCIÓN</th>
-                </tr>
-              </thead>
-              <tbody id="cuerpoTabla">
-              </tbody>
-            </table>
-            <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
-          </div>
-        </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-12">
+        <h5>CANTIDAD DE RELEVAMIENTOS</h5>
+        <input name="cantidad_relevamientos" class="form-control">
       </div>
-    </div> <!-- / Tarjeta TABLA -->
-  </div> <!-- col-lg-9 -->
+    </div>
+    <div class="row">
+      <div class="col-lg-12">
+        <h5>TOMADO</h5>
+        <select name="tomado" class="form-control">
+          <option value="">TODOS</option>
+          <option value="SI">SI</option>
+          <option value="NO">NO</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-12">
+        <h5>TOMADO</h5>
+        <select name="diferencia" class="form-control">
+          <option value="">TODOS</option>
+          <option value="SI">SI</option>
+          <option value="NO">NO</option>
+        </select>
+      </div>
+    </div>
+    @endslot
+    
+    @slot('cabecera')
+    @endslot
+    
+    @slot('molde')
+    <tr data-js-buscar-relevamientos>
+    </tr>
+    @endslot
+    
+    @endcomponent
+  </div>
+  <div class="col-xl-9"> <!-- columna TABLA CASINOS -->
+    @component('Components/FiltroTabla')
+    
+    @slot('titulo')
+    BÚSQUEDA DE MÁQUINAS SIN RELEVAMIENTO 
+    @endslot
+    
+    @slot('target_buscar')
+    /estadisticas_relevamientos/buscarMaquinasSinRelevamientos
+    @endslot
+    
+    @slot('filtros')
+    <div class="row">
+      <div class="col-md-4">
+        <h5>CASINO</h5>
+        <select name="id_casino" class="form-control" data-js-cambio-casino-select-sectores="#destinoSectores">
+          @if(count($casinos) != 1)
+          <option value="">- Seleccione un casino -</option>
+          @endif
+          @foreach($casinos as $c)
+          <option value="{{$c->id_casino}}" {{count($casinos) == 1? 'selected' : ''}}>{{$c->nombre}}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="col-md-4">
+        <h5>Sector</h5>
+        <select name="id_sector"  class="form-control" id="destinoSectores">
+          <option value="" data-js-cambio-casino-mantener>- Seleccione -</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <h5>Nro isla</h5>
+        <input name="nro_isla" class="form-control">
+      </div>
+    </div>
+    <div class="col-md-4">
+      <h5>Fecha desde</h5>
+      @component('Components/inputFecha',['attrs' => 'name="fecha_desde"'])
+      @endcomponent
+    </div>
+    <div class="col-md-4">
+      <h5>Fecha hasta</h5>
+      @component('Components/inputFecha',['attrs' => 'name="fecha_hasta"'])
+      @endcomponent
+    </div>
+    @endslot
+    
+    @slot('cabecera')
+    <tr>
+      <th data-js-sortable="casino" style="text-align: center;">CASINO</th>
+      <th data-js-sortable="sector" style="text-align: center;">SECTOR</th>
+      <th data-js-sortable="isla" style="text-align: center;">ISLA</th>
+      <th data-js-sortable="nro_admin"  style="text-align: center;">NRO ADMIN</th>
+      <th style="text-align: center;">ACCION</th>
+    </tr>
+    <style>
+      tr.filaBusqueda td {
+        text-align: center;
+      }
+    </style>
+    @endslot
+    
+    @slot('molde')
+    <tr class="filaBusqueda">
+      <td class="casino">CASINO</td>
+      <td class="sector">SECTOR</td>
+      <td class="nro_isla">ISLA</td>
+      <td class="nro_admin">NRO ADMIN</td>
+      <td>
+        <button data-js-pedir class="btn btn-danger" title="PEDIR"><i class="fa fa-tag"></i></button>
+      </td>
+    </tr>
+    @endslot
+    
+    @endcomponent
+  </div>
 </div><!-- /.row principal -->
 
 <div class="modal fade" id="modalPedido" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -337,7 +330,7 @@
 <!-- JavaScript paginacion -->
 <script src="js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
-<script src="js/seccionEstadisticasRelevamientos.js?3" charset="utf-8"></script>
+<script src="js/seccionEstadisticasRelevamientos.js?3" charset="utf-8" type="module"></script>
 <!-- DateTimePicker JavaScript -->
 <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
 <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>

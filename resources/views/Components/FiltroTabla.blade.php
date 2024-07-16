@@ -14,14 +14,14 @@
 </style>
 @endcomponent
 <?php
-$id = uniqid();
+$id = $id ?? uniqid();
 ?>
 <div id="{{$id}}" data-js-filtro-tabla class="filtro_tabla">
   <div class="row" data-js-filtro-tabla-filtro>
     <div class="col-md-12">
       <div class="panel panel-default">
         <div class="panel-heading" data-toggle="collapse" href="#{{$id}} .collapse" style="cursor: pointer">
-          <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
+          <h4>{{ $titulo_filtro ?? 'Filtros de búsqueda' }} <i class="fa fa-fw fa-angle-down"></i></h4>
         </div>
         <div class="panel-collapse collapse in" aria-expanded="true" style="">
           <div class="panel-body">

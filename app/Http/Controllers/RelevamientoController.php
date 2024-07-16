@@ -862,16 +862,16 @@ class RelevamientoController extends Controller
     ->where($reglas_relevamientos)
     ->whereIn('casino.id_casino',$casinos_validos)
     ->distinct()->get()->pluck('id_maquina');
-
+    
     $sort_by = $request->sort_by;
     //Ahora buscamos la SIN relevamientos.
     return DB::table('maquina')
     ->select(
       'maquina.id_maquina',
-      'maquina.nro_admin as maquina',
+      'maquina.nro_admin as nro_admin',
       'casino.nombre as casino',
       'sector.descripcion as sector',
-      'isla.nro_isla as isla'
+      'isla.nro_isla as nro_isla'
     )
     ->join('isla','maquina.id_isla','=','isla.id_isla')
     ->join('sector','isla.id_sector','=','sector.id_sector')
