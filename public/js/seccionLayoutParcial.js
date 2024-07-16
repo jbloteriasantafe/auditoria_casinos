@@ -94,6 +94,7 @@ $(document).on('click','.validar',function(e){
           $('#validarFiscaToma').val(data.usuario_fiscalizador.nombre);
         }
 
+        $('#observacion_fiscalizacion').val(data.layout_parcial.observacion_fiscalizacion);
         $('#validarTecnico').val(data.layout_parcial.tecnico);
 
         //Limpiar la lista de máquinas del layout

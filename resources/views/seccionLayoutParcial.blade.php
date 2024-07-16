@@ -852,17 +852,20 @@ use Illuminate\Http\Request;
                           <div id="contenedorMaquinas">
 
                           </div> <!-- ./contenedorMaquinas -->
-
                           <br>
-
+                          <div class="row">
+                              <div class="col-md-8 col-md-offset-2">
+                                <h5>OBSERVACIONES FISCALIZACIÓN</h5>
+                                <textarea id="observacion_fiscalizacion" class="form-control" style="resize:vertical;" disabled></textarea>
+                              </div>
+                          </div>
+                          <br>
                           <div class="row">
                               <div class="col-md-8 col-md-offset-2">
                                 <h5>OBSERVACIONES</h5>
                                 <textarea id="observacion_validacion" class="form-control" style="resize:vertical;"></textarea>
                               </div>
                           </div>
-
-
                   </form>
 
                 </div>
@@ -948,7 +951,7 @@ use Illuminate\Http\Request;
 
     @section('scripts')
     <!-- JavaScript personalizado -->
-    <script src="js/seccionLayoutParcial.js?4" charset="utf-8"></script>
+    <script src="js/seccionLayoutParcial.js?5" charset="utf-8"></script>
     <script src="js/paginacion.js" charset="utf-8"></script>
 
     <!-- DateTimePicker JavaScript -->
