@@ -14,17 +14,21 @@
 @endsection
 
 @section('contenidoVista')
-<!-- Tiene TODAS las maquinas de todos los casino -->
-<datalist id="maquinas_lista">
-  <?php $codigos_casinos = $casinos->keyBy('id_casino'); ?>
-  @foreach($maquinas as $m)
-  <option data-id_casino="{{$m->id_casino}}" data-codigo-casino="{{$codigos_casinos[$m->id_casino]->codigo}}" data-id_maquina="{{$m->id_maquina}}" data-nro_admin="{{$m->nro_admin}}"></option>
-  @endforeach
-</datalist>
-<!-- Las maquinas del casino elegido -->
-<datalist id="maquinas_lista_cas"></datalist>
-<!-- Tiene las que va buscando dinamicamente -->
-<datalist id="maquinas_lista_sub"></datalist>
+
+<div data-listas-maquinas data-listas-maquinas-sacar-id_casino="#id_casino" data-listas-maquinas-sacar-str="#nro_admin" data-listas-maquinas-setear-id_maquina="#id_maquina" hidden>
+  <!-- Tiene TODAS las maquinas de todos los casino -->
+  <datalist data-lista-maquina-todas>
+    <?php $codigos_casinos = $casinos->keyBy('id_casino'); ?>
+    @foreach($maquinas as $m)
+    <option data-id_casino="{{$m->id_casino}}" data-codigo-casino="{{$codigos_casinos[$m->id_casino]->codigo}}" data-id_maquina="{{$m->id_maquina}}" data-nro_admin="{{$m->nro_admin}}"></option>
+    @endforeach
+  </datalist>
+  <!-- Las maquinas del casino elegido -->
+  <datalist data-lista-maquina-cas></datalist>
+  <!-- Tiene las que va buscando dinamicamente -->
+  <datalist data-lista-maquina-str id="listasMaquinasStr"></datalist>
+</div>
+
 
 <div class="row"> <!-- row principal -->
   <div class="col-lg-3">
@@ -47,7 +51,7 @@
     <div class="row">
       <div class="col-lg-12">
         <h5>CASINO</h5>
-        <select name="id_casino" class="form-control" data-js-cambio-asignar-list="#destinoListaNroAdmins">
+        <select name="id_casino" class="form-control" id="id_casino">
           @if(count($casinos) != 1)
           <option value="">Todos los casinos</option>
           @endif
@@ -60,8 +64,8 @@
     <div class="row">
       <div class="col-lg-12">
         <h5>NÚMERO ADMIN</h5>
-        <input name="nro_admin" class="form-control" id="destinoListaNroAdmins" data-js-asignar-id-maquina="#destinoIdMaquina">
-        <input name="id_maquina" id="destinoIdMaquina" hidden>
+        <input name="nro_admin" class="form-control" id="nro_admin">
+        <input name="id_maquina" id="id_maquina" hidden>
       </div>
     </div>
     <div class="row">
