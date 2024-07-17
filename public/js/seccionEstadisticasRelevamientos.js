@@ -2,6 +2,7 @@ import '/js/Components/inputFecha.js';
 import '/js/Components/FiltroTabla.js';
 import {AUX} from "/js/Components/AUX.js";
 import '/js/Components/cambioCasinoSelectSectores.js';
+import '/js/Relevamientos/modalMtmAPedido.js';
 
 $(function() {
   
@@ -18,12 +19,26 @@ $('[data-js-filtro-tabla]:not(#filtrosRelevamientos)').on('busqueda',function(e,
     fila.find('.casino').text(r.casino);
     fila.find('.sector').text(r.sector);
     fila.find('.nro_isla').text(r.nro_isla);
-    fila.find('button').val(r.id_maquina);
+    fila.find('button').val(r.id_maquina).attr('data-id_casino',r.id_casino).attr('data-nro_admin',r.nro_admin);
     tbody.append(fila);
   });
   
   tbody.find('[data-js-pedir]').click(function(e){
-    console.log('Pedir: ',$(e.currentTarget).val());
+    e.preventDefault();
+    $('[data-js-modal-mtm-a-p] [data-js-tabla-fechas-pedidas]').hide().find('tbody').empty();
+    $('[data-js-modal-mtm-a-p]').trigger('mostrar',[{
+      vals: {
+        id_casino: $(e.currentTarget).attr('data-id_casino'),
+        nro_admin: $(e.currentTarget).attr('data-nro_admin'),
+        fecha_inicio: new Date()
+      },
+      readonly: {
+        id_casino: true,
+        nro_admin: true,
+        fecha_inicio: true
+      },
+      url: 'estadisticas_relevamientos/guardarMtmAPedido'
+    }]);
   });
 }).trigger('buscar');
 
@@ -71,7 +86,7 @@ $('[data-listas-maquinas]').each(function(lidx,lObj){
   filtro_id_casino.trigger('change');
 });
 
-$('#filtrosRelevamientos[data-js-filtro-tabla]').on('busqueda',function(e,ret,tbody,molde){
+$('#filtrosRelevamientos[data-js-filtro-tabla]').on('busqueda',function(e,ret,_,molde){
   $('#casinoDetalle').val(ret.maquina.casino);
   $('#sectorDetalle').val(ret.maquina.sector);
   $('#islaDetalle').val(ret.maquina.isla);
@@ -79,30 +94,27 @@ $('#filtrosRelevamientos[data-js-filtro-tabla]').on('busqueda',function(e,ret,tb
   
   // se cambia pora no recalcular, el relevamiento ya se hizo, por lo que se traen los valores calculados en su momento, sin alteraciones 
   ret.detalles.forEach(function(d){
-    const fila = $('<tr>')
-    .append($('<td>').text(d.fecha))
-    .append($('<td>').text(d.cont1 ?? '-'))
-    .append($('<td>').text(d.cont2 ?? '-'))
-    .append($('<td>').text(d.cont3 ?? '-'))
-    .append($('<td>').text(d.cont4 ?? '-'))
-    .append($('<td>').text(d.cont5 ?? '-'))
-    .append($('<td>').text(d.cont6 ?? '-'))
-    .append($('<td>').text(d.cont7 ?? '-'))
-    .append($('<td>').text(d.cont8 ?? '-'))
-    .append($('<td>').text(d.coinin ?? '-'))
-    .append($('<td>').text(d.coinout ?? '-'))
-    .append($('<td>').text(d.jackpot ?? '-'))
-    .append($('<td>').text(d.progresivo ?? '-'));
-
-    fila.append($('<td>').text(d.tipos_causa_no_toma ?? d.producido_calculado_relevado ?? '-'));
+    const fila = molde.clone();
+    fila.find('.fecha').text(d.fecha ?? '-');
+    fila.find('.cont1').text(d.cont1 ?? '-');
+    fila.find('.cont2').text(d.cont2 ?? '-');
+    fila.find('.cont3').text(d.cont3 ?? '-');
+    fila.find('.cont4').text(d.cont4 ?? '-');
+    fila.find('.cont5').text(d.cont5 ?? '-');
+    fila.find('.cont6').text(d.cont6 ?? '-');
+    fila.find('.cont7').text(d.cont7 ?? '-');
+    fila.find('.cont8').text(d.cont8 ?? '-');
+    fila.find('.coinin').text(d.coinin ?? '-');
+    fila.find('.coinout').text(d.coinout ?? '-');
+    fila.find('.jackpot').text(d.jackpot ?? '-');
+    fila.find('.progresivo').text(d.progresivo ?? '-');
+    fila.find('.producido_calculado_relevado').text(d.tipos_causa_no_toma ?? d.producido_calculado_relevado ?? '-');
+    fila.find('.producido_importado').text(d.producido_importado ?? '-');
+    fila.find('.diferencia').text(d.diferencia ?? '-');
     fila.toggleClass('no_tomado',d.tipos_causa_no_toma != null);
-
-    fila.append($('<td>').text(d.producido_importado ?? '-'));
-    fila.append($('<td>').text(d.diferencia ?? '-'));
-
     $('#tablaRelevamientos tbody').append(fila);
   });
-
+  
   $('#modalDetalle').modal('show');
 })
 .on('error_busqueda',function(e,ret,tbody,molde){
@@ -111,102 +123,25 @@ $('#filtrosRelevamientos[data-js-filtro-tabla]').on('busqueda',function(e,ret,tb
   const errores = ret.responseJSON ?? {};
   setTimeout(function(){
     AUX.mostrarErroresNames($(e.currentTarget).find('form'),errores);
-    if(errores.id_maquina !== undefined){
+    if(errores.id_maquina !== undefined){//@HACK: leaky abstraction
       mostrarErrorValidacion($(e.currentTarget).find('[name="nro_admin"]'),errores.id_maquina.join(', '),true);
     }
   },100);
 });
 
-function habilitarDTPPedido() {
-    $('#dtpFechaFin_m').datetimepicker({
-      language: 'es',
-      todayBtn: 1,
-      autoclose: 1,
-      todayHighlight: 1,
-      format: 'yyyy-mm-dd',
-      pickerPosition: "bottom-left",
-      startView: 4,
-      minView: 2,
-      minDate: 1,
-      startDate: new Date()
-    });
-
-    const mañana = new Date((new Date()).getTime() + (24 * 60 * 60 * 1000));
-
-    $('#B_fecha_inicio_m').val(dateToString(mañana));
-    $('#dtpFechaFin_m').datetimepicker("setDate", mañana);
-}
-
-function dateToString(date) {
-  const to_2dig = function(d) { return (d > 9? '' : '0')+d; };
-  return date.getFullYear()+'-'+to_2dig(date.getMonth())+'-'+to_2dig(date.getDate());
-}
-
-//Modal para pedir máquina
-$(document).on('click', '.pedido', function(e) {
-  $('#modalPedido #frmPedido').trigger('reset');
-  $('#modalPedido #id_maquina').val($(this).val());
-
-  const id_maquina = $('#modalPedido #id_maquina').val();
-  habilitarDTPPedido();
-
-  $.get('estadisticas_relevamientos/obtenerFechasMtmAPedido/' + id_maquina, function(data) {
-    $('#nro_admin_pedido').val(data.maquina.nro_admin).attr('data-maquina', data.maquina.id_maquina).prop('readonly', true);
-    $('#casino_pedido').val(data.casino.nombre).attr('data-casino', data.casino.id_casino).prop('readonly', true);
-
-    $('#modalPedido #fechasPedido tbody tr').remove();
-    $('#modalPedido #fechasPedido').toggle(data.fechas.length > 0);
-    data.fechas.forEach(function(f){
-      $('#modalPedido #fechasPedido tbody').append($('<tr>').append($('<td>').text(f.fecha)));
-    });
-    
-    $('#modalPedido').modal('show');
-  });
-});
-
-//Pedir máquina
-$('#btn-pedido').click(function(e) {
-  e.preventDefault();
-
-  const formData = {
-    nro_admin: $('#nro_admin_pedido').val(),
-    casino: $('#casino_pedido').attr('data-casino'),
-    fecha_inicio: $('#B_fecha_inicio_m').val(),
-    fecha_fin: $('#B_fecha_fin_m').val(),
-  };
-
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-  $.ajax({
-      type: 'POST',
-      url: 'estadisticas_relevamientos/guardarMtmAPedido',
-      data: formData,
-      dataType: 'json',
-      success: function(data) {
-          console.log('Pedido: ', data);
-          let mañana = new Date();
-          const hoy = new Date();
-          mañana.setDate(mañana.getDate() + 1);
-          mañana.setHours(0, 0, 0, 0);
-          const fecha_retorno = new Date(data.fecha.split('-').join('/'));
-
-          console.log('Hoy: ', hoy, 'Mañana: ', mañana, 'Devuelta: ', fecha_retorno);
-          for (var f = mañana; f <= fecha_retorno; f.setDate(f.getDate() + 1)) {
-              var fila = $('<tr>').append($('<td>').text(dateToString(f)));
-              console.log('Agregando ' + f.toString());
-              $('#modalPedido #fechasPedido tbody').append(fila);
-              $('#modalPedido #fechasPedido').show();
-          }
-      },
-      error: function(data) {
-          var response = JSON.parse(data.responseText);
-
-          if (typeof response.fecha_inicio !== 'undefined') {
-              $('#B_fecha_inicio_m').popover('show');
-              $('.popover').addClass('popAlerta');
-          }
-
-      },
-  });
+$('[data-js-modal-mtm-a-p]').on('creado',function(e,formData,ret){
+  $('[data-js-filtro-tabla]:not(#filtrosRelevamientos)').trigger('buscar');
+  const fecha_inicio = new Date(formData.fecha_inicio+'T00:00');
+  const fecha_fin    = new Date(
+    ((formData.fecha_fin && formData.fecha_fin != '')? formData.fecha_fin : formData.fecha_inicio)
+    +'T00:00'
+  );
+  $('[data-js-modal-mtm-a-p] [data-js-tabla-fechas-pedidas]').show().find('tbody').empty();
+  for(const f=fecha_inicio;f<=fecha_fin;f.setDate(f.getDate()+1)){
+    $(e.currentTarget).find('[data-js-tabla-fechas-pedidas] tbody').append(
+      $('<tr>').append($('<td>').text(f.toISOString().split('T')[0]))
+    );
+  }
 });
 
 });

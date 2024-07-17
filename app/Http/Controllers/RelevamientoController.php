@@ -867,6 +867,7 @@ class RelevamientoController extends Controller
     //Ahora buscamos la SIN relevamientos.
     return DB::table('maquina')
     ->select(
+      'maquina.id_casino',
       'maquina.id_maquina',
       'maquina.nro_admin as nro_admin',
       'casino.nombre as casino',

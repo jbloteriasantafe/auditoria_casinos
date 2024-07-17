@@ -100,7 +100,23 @@
     @endslot
     
     @slot('molde')
-    <tr data-js-buscar-relevamientos>
+    <tr>
+      <td class="fecha">-</td>
+      <td class="cont1">-</td>
+      <td class="cont2">-</td>
+      <td class="cont3">-</td>
+      <td class="cont4">-</td>
+      <td class="cont5">-</td>
+      <td class="cont6">-</td>
+      <td class="cont7">-</td>
+      <td class="cont8">-</td>
+      <td class="coinin">-</td>
+      <td class="coinout">-</td>
+      <td class="jackpot">-</td>
+      <td class="progresivo">-</td>
+      <td class="producido_calculado_relevado">.</td>
+      <td class="producido_importado">-</td>
+      <td class="diferencia">-</td>
     </tr>
     @endslot
     
@@ -184,66 +200,17 @@
   </div>
 </div><!-- /.row principal -->
 
-<div class="modal fade" id="modalPedido" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header" style="font-family: Roboto-Black; background-color: #FFB74D; color: white;">
-       <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-       <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoPedido" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-       <h3 class="modal-title" id="myModalLabel">PEDIR MÁQUINA</h3>
-      </div> <!-- modal-header -->
-      <div id="colapsadoPedido" class="collapse in">
-        <div class="modal-body" style="font-family: Roboto; color: #aaa;">
-          <form id="frmPedido" name="frmPedido" class="form-horizontal" novalidate="">
-            <div class="row">
-              <div class="col-md-6">
-                <h5>NÚMERO ADMIN</h5>
-                <input id="nro_admin_pedido" data-maquina="" class="form-control" type="text" name="" value="">
-              </div>
-              <div class="col-md-6">
-                <h5>CASINO</h5>
-                <input id="casino_pedido" data-casino="" class="form-control" type="text" name="" value="">
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6">
-                <h5>Fecha de inicio</h5>
-                <input type='text' class="form-control" placeholder="Fecha de inicio" id="B_fecha_inicio_m" autocomplete="off" readonly/>
-              </div>
-              <div class="col-md-6">
-                <h5>Fecha de finalización</h5>
-                <div class='input-group date' id='dtpFechaFin_m' data-date-format="yyyy/mm/dd" data-link-format="yyyy/mm/dd">
-                  <input type='text' class="form-control" placeholder="Fecha de finalización" id="B_fecha_fin_m" autocomplete="off"/>
-                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                </div>
-              </div>
-            </div>
-            <br>
-            <div class="row">
-              <div class="col-md-12">
-                <table id="fechasPedido" class="table">
-                  <thead>
-                    <tr>
-                      <th>FECHAS A PEDIDO DE LA MÁQUINA</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </form>
-        </div> <!-- modal-body -->
-        <div class="modal-footer">
-          <button id="btn-pedido" type="button" class="btn btn-warningModificar">PEDIR</button>
-          <button type="button" class="btn btn-default" data-dismiss="modal">SALIR</button>
-          <input id="id_maquina" hidden type="text" name="" value="0">
-        </div> <!-- modal-footer -->
-      </div> <!-- modal colapsado -->
-    </div> <!-- modal-content -->
-  </div> <!-- modal-dialog -->
-</div> <!-- modal -->
+@component('Relevamientos/modalMtmAPedido',['casinos' => $casinos])
+  @slot('append_body')
+  <table data-js-tabla-fechas-pedidas>
+    <thead>
+      <tr><td>FECHAS PEDIDAS</td></tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  @endslot
+@endcomponent
 
 <div class="modal fade" id="modalDetalle" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width:90%;">
