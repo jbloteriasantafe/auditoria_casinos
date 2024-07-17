@@ -7,6 +7,15 @@ $(function(e){
       $(d).find('input').attr('disabled',disabled? true : false);
       $(d).attr('data-disabled',disabled? 1 : 0);
     };
+    d.readonly = function(readonly){
+      $(d).find('input').attr('readonly',readonly? true : false);
+      $(d).attr('data-readonly',readonly? 1 : 0);
+    };
+    $(d).on('show',function(e){
+      if($(d).attr('data-disabled') == 1 || $(d).attr('data-readonly') == 1){
+        $(d).data('datetimepicker').hide();
+      }
+    });
   })
   .each(function(_,d){
     if(typeof $(d).data('datetimepicker') != 'undefined') return;
@@ -28,6 +37,12 @@ $(function(e){
     let disabled = true;
     try {
       disabled = JSON.parse($(d).attr('data-disabled'));
+    }
+    catch (e) {}
+    
+    let readonly = true;
+    try {
+      readonly = JSON.parse($(d).attr('data-readonly'));
     }
     catch (e) {}
   });
