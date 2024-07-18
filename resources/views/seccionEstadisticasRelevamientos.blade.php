@@ -101,14 +101,9 @@
     @slot('molde')
     <tr>
       <td class="fecha">-</td>
-      <td class="cont1">-</td>
-      <td class="cont2">-</td>
-      <td class="cont3">-</td>
-      <td class="cont4">-</td>
-      <td class="cont5">-</td>
-      <td class="cont6">-</td>
-      <td class="cont7">-</td>
-      <td class="cont8">-</td>
+      @for($c=1;$c<=$contadores;$c++)
+      <td class="cont{{$c}}">-</td>
+      @endfor
       <td class="coinin">-</td>
       <td class="coinout">-</td>
       <td class="jackpot">-</td>
@@ -245,14 +240,9 @@
         <thead>
           <tr>
             <th>FECHA</th>
-            <th>CONT 1</th>
-            <th>CONT 2</th>
-            <th>CONT 3</th>
-            <th>CONT 4</th>
-            <th>CONT 5</th>
-            <th>CONT 6</th>
-            <th>CONT 7</th>
-            <th>CONT 8</th>
+            @for($c=1;$c<=$contadores;$c++)
+            <th>CONT {{$c}}</th>
+            @endfor
             <th>COIN IN</th>
             <th>COIN OUT</th>
             <th>JACKPOT</th>
@@ -290,6 +280,9 @@
 <!-- JavaScript paginacion -->
 <script src="js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
+<script>
+  const CONTADORES = {{$contadores}};
+</script>
 <script src="js/seccionEstadisticasRelevamientos.js?3" charset="utf-8" type="module"></script>
 <!-- DateTimePicker JavaScript -->
 <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Casino;
 use App\Maquina;
 use Validator;
+use App\Http\Controllers\RelevamientoController;
 
 class MaquinaAPedidoController extends Controller
 {
@@ -37,7 +38,8 @@ class MaquinaAPedidoController extends Controller
       ->select('id_maquina','nro_admin','id_casino')
       ->orderBy('id_casino','asc')
       ->orderBy('nro_admin','asc')
-      ->get()
+      ->get(),
+      'contadores' => RelevamientoController::getInstancia()->contadores()->count()
     ]);
   }
 

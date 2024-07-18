@@ -89,25 +89,15 @@ $('#filtrosRelevamientos[data-js-filtro-tabla]').on('busqueda',function(e,ret,_,
   M.find('[name="nro_isla"]').val(ret.maquina.nro_isla);
   M.find('[name="nro_admin"]').val(ret.maquina.nro_admin);
   
-  // se cambia pora no recalcular, el relevamiento ya se hizo, por lo que se traen los valores calculados en su momento, sin alteraciones 
   ret.detalles.forEach(function(d){
     const fila = molde.clone();
-    fila.find('.fecha').text(d.fecha ?? '-');
-    fila.find('.cont1').text(d.cont1 ?? '-');
-    fila.find('.cont2').text(d.cont2 ?? '-');
-    fila.find('.cont3').text(d.cont3 ?? '-');
-    fila.find('.cont4').text(d.cont4 ?? '-');
-    fila.find('.cont5').text(d.cont5 ?? '-');
-    fila.find('.cont6').text(d.cont6 ?? '-');
-    fila.find('.cont7').text(d.cont7 ?? '-');
-    fila.find('.cont8').text(d.cont8 ?? '-');
-    fila.find('.coinin').text(d.coinin ?? '-');
-    fila.find('.coinout').text(d.coinout ?? '-');
-    fila.find('.jackpot').text(d.jackpot ?? '-');
-    fila.find('.progresivo').text(d.progresivo ?? '-');
+    const attrs = ['fecha','coinin','coinout','jackpot','progresivo','producido_importado','diferencia',
+      ...Array.from({ length: CONTADORES }, (_, idx) => 'cont'+(idx+1))
+    ];
+    for(const a of attrs){
+      fila.find('.'+a).text(d[a] ?? '-');
+    }
     fila.find('.producido_calculado_relevado').text(d.tipos_causa_no_toma ?? d.producido_calculado_relevado ?? '-');
-    fila.find('.producido_importado').text(d.producido_importado ?? '-');
-    fila.find('.diferencia').text(d.diferencia ?? '-');
     fila.toggleClass('no_tomado',d.tipos_causa_no_toma != null);
     M.find('[data-js-modal-detalle-maquina-tabla-relevamientos] tbody').append(fila);
   });
@@ -119,10 +109,8 @@ $('#filtrosRelevamientos[data-js-filtro-tabla]').on('busqueda',function(e,ret,_,
   
   const errores = ret.responseJSON ?? {};
   setTimeout(function(){
+    errores.nro_admin = errores.nro_admin ?? errores.id_maquina ?? undefined;//@HACK: leaky abstraction
     AUX.mostrarErroresNames($(e.currentTarget).find('form'),errores);
-    if(errores.id_maquina !== undefined){//@HACK: leaky abstraction
-      mostrarErrorValidacion($(e.currentTarget).find('[name="nro_admin"]'),errores.id_maquina.join(', '),true);
-    }
   },100);
 });
 

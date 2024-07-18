@@ -77,7 +77,7 @@ class RelevamientoController extends Controller
     });
   }
   
-  private function contadores(){
+  public function contadores(){//Tambien usado en MaquinaAPedidoController
     static $ret = null;
     $ret = $ret ?? $this->find_columns((new DetalleRelevamiento)->getTableName(),'cont');
     return $ret;
