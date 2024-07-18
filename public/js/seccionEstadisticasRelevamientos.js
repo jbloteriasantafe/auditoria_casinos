@@ -46,7 +46,6 @@ $('[data-listas-maquinas]').each(function(lidx,lObj){
   const L = $(lObj);
   const filtro_id_casino = $(L.attr('data-listas-maquinas-sacar-id_casino'));
   const filtro_str       = $(L.attr('data-listas-maquinas-sacar-str'));
-  const setear_id_maquina = $(L.attr('data-listas-maquinas-setear-id_maquina'));
   const origen_todas     = L.find('[data-lista-maquina-todas]');
   const origen_cas       = L.find('[data-lista-maquina-cas]');
   const origen_str       = L.find('[data-lista-maquina-str]');
@@ -55,12 +54,11 @@ $('[data-listas-maquinas]').each(function(lidx,lObj){
   filtro_id_casino.change(function(e){
     const id_casino = filtro_id_casino.val();
     
-    const options = origen_todas.find('option').filter(id_casino == ''? 'option' : `option[data-id_casino="${id_casino}"]`);
+    const options = origen_todas.find('option').filter(`option[data-id_casino="${id_casino}"]`);
     
     origen_cas.empty().append(options.map(function(oidx,op){
       const op2 = $(op).clone();
-      const cod_casino = id_casino == ''? op2.attr('data-codigo-casino') : '';
-      op2.val(op2.attr('data-nro_admin')+cod_casino);
+      op2.val(op2.attr('data-nro_admin'));
       op2.text(op2.val());
       return op2[0];
     }));
@@ -78,9 +76,6 @@ $('[data-listas-maquinas]').each(function(lidx,lObj){
     
     $(this).attr('list', origen_str_id);
     $(this).focus();
-    
-    const str_option = origen_str.find('option').eq(0);
-    setear_id_maquina.val(str == str_option.val()? str_option.attr('data-id_maquina') : '');
   });
   
   filtro_id_casino.trigger('change');

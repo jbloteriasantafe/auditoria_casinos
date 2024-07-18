@@ -15,7 +15,7 @@
 
 @section('contenidoVista')
 
-<div data-listas-maquinas data-listas-maquinas-sacar-id_casino="#id_casino" data-listas-maquinas-sacar-str="#nro_admin" data-listas-maquinas-setear-id_maquina="#id_maquina" hidden>
+<div data-listas-maquinas data-listas-maquinas-sacar-id_casino="#id_casino" data-listas-maquinas-sacar-str="#nro_admin" hidden>
   <!-- Tiene TODAS las maquinas de todos los casino -->
   <datalist data-lista-maquina-todas>
     <?php $codigos_casinos = $casinos->keyBy('id_casino'); ?>
@@ -53,7 +53,7 @@
         <h5>CASINO</h5>
         <select name="id_casino" class="form-control" id="id_casino">
           @if(count($casinos) != 1)
-          <option value="">Todos los casinos</option>
+          <option value="">- Seleccione un casino -</option>
           @endif
           @foreach($casinos as $c)
           <option value="{{$c->id_casino}}" {{count($casinos) == 1? 'selected' : ''}}>{{$c->nombre}}</option>
@@ -65,7 +65,6 @@
       <div class="col-lg-12">
         <h5>NÚMERO ADMIN</h5>
         <input name="nro_admin" class="form-control" id="nro_admin">
-        <input name="id_maquina" id="id_maquina" hidden>
       </div>
     </div>
     <div class="row">
