@@ -51,9 +51,12 @@ class MaquinaAPedidoController extends Controller
     ->count();
   }
 
-  public function obtenerFechasMtmAPedido($id_maquina){
-    $maquina = Maquina::find($id_maquina);
-    $fechas  = MaquinaAPedido::where([['id_maquina','=',$id_maquina],['fecha','>=',date('Y-m-d')]])->get();
+  public function obtenerFechasMtmAPedido(Request $request){
+    $maquina = Maquina::where([['nro_admin','=',$request->nro_admin],['id_casino','=',$request->id_casino]])->first();
+    if(is_null($maquina)){
+      return ['maquina' => null,'fechas' => [],'casino' => null];
+    }
+    $fechas  = MaquinaAPedido::where([['id_maquina','=',$maquina->id_maquina],['fecha','>=',$request->fecha_inicio]])->get();
     return ['maquina' => $maquina,'fechas' => $fechas,'casino' => (is_null($maquina)? null : $maquina->casino)];
   }
 

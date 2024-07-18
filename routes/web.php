@@ -567,7 +567,7 @@ Route::group(['prefix' => 'estadisticas_relevamientos','middleware' => 'tiene_pe
   Route::post('guardarMtmAPedido','MaquinaAPedidoController@guardarMtmAPedido');
   Route::post('obtenerUltimosRelevamientosPorMaquina','RelevamientoController@obtenerUltimosRelevamientosPorMaquinaNroAdmin');
   Route::post('buscarMaquinasSinRelevamientos','RelevamientoController@buscarMaquinasSinRelevamientos');
-  Route::get('obtenerFechasMtmAPedido/{id}', 'MaquinaAPedidoController@obtenerFechasMtmAPedido');
+  Route::get('obtenerFechasMtmAPedido', 'MaquinaAPedidoController@obtenerFechasMtmAPedido');
   Route::get('buscarMaquinas/{id_casino}','RelevamientoController@buscarMaquinasPorCasino');
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
 });

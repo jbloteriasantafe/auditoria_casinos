@@ -25,7 +25,7 @@ $('[data-js-filtro-tabla]:not(#filtrosRelevamientos)').on('busqueda',function(e,
   
   tbody.find('[data-js-pedir]').click(function(e){
     e.preventDefault();
-    $('[data-js-modal-mtm-a-p] [data-js-tabla-fechas-pedidas]').hide().find('tbody').empty();
+    
     $('[data-js-modal-mtm-a-p]').trigger('mostrar',[{
       vals: {
         id_casino: $(e.currentTarget).attr('data-id_casino'),
@@ -39,6 +39,8 @@ $('[data-js-filtro-tabla]:not(#filtrosRelevamientos)').on('busqueda',function(e,
       },
       url: 'estadisticas_relevamientos/guardarMtmAPedido'
     }]);
+    
+    $('[data-js-modal-mtm-a-p] [data-js-tabla-fechas-pedidas]').trigger('mostrar_mtm_a_pedido');
   });
 }).trigger('buscar');
 
@@ -102,6 +104,7 @@ $('#filtrosRelevamientos[data-js-filtro-tabla]').on('busqueda',function(e,ret,_,
     M.find('[data-js-modal-detalle-maquina-tabla-relevamientos] tbody').append(fila);
   });
   
+
   $('[data-js-modal-detalle-maquina]').modal('show');
 })
 .on('error_busqueda',function(e,ret,tbody,molde){
@@ -116,17 +119,29 @@ $('#filtrosRelevamientos[data-js-filtro-tabla]').on('busqueda',function(e,ret,_,
 
 $('[data-js-modal-mtm-a-p]').on('creado',function(e,formData,ret){
   $('[data-js-filtro-tabla]:not(#filtrosRelevamientos)').trigger('buscar');
-  const fecha_inicio = new Date(formData.fecha_inicio+'T00:00');
-  const fecha_fin    = new Date(
-    ((formData.fecha_fin && formData.fecha_fin != '')? formData.fecha_fin : formData.fecha_inicio)
-    +'T00:00'
+  $(this).find('[data-js-tabla-fechas-pedidas]').trigger('mostrar_mtm_a_pedido');
+});
+
+$('[data-js-modal-mtm-a-p] [data-js-tabla-fechas-pedidas]').on('mostrar_mtm_a_pedido',function(e,callback){
+  const formData = AUX.form_entries($('[data-js-modal-mtm-a-p] form')[0]);
+  const tbody = $(e.currentTarget).find('tbody');
+  tbody.empty().append('<tr><td><i class="fa fa-spinner fa-spin"></td></tr>');
+  AUX.GET('estadisticas_relevamientos/obtenerFechasMtmAPedido',formData,
+    function(data){
+      (callback ?? function(){})();
+      const fechas = data.fechas.length? data.fechas : [{fecha: '-SIN-'}];
+      tbody.empty();
+      fechas.forEach(function(f){
+        tbody.append(
+          $('<tr>').append($('<td>').text(f.fecha))
+        );
+      });
+    },
+    function(data){
+      console.log(data);
+      tbody.empty().append('<tr><td>ERROR</td></tr>');
+    }
   );
-  $('[data-js-modal-mtm-a-p] [data-js-tabla-fechas-pedidas]').show().find('tbody').empty();
-  for(const f=fecha_inicio;f<=fecha_fin;f.setDate(f.getDate()+1)){
-    $(e.currentTarget).find('[data-js-tabla-fechas-pedidas] tbody').append(
-      $('<tr>').append($('<td>').text(f.toISOString().split('T')[0]))
-    );
-  }
 });
 
 });
