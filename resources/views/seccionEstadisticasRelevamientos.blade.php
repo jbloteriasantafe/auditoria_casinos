@@ -212,74 +212,64 @@
   @endslot
 @endcomponent
 
-<div class="modal fade" id="modalDetalle" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog" style="width:90%;">
-    <div class="modal-content">
-      <div class="modal-header" style="font-family: Roboto-Black; background-color: #3D5AFE; color: white;">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizarDetalle" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoDetalle" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title" id="myModalLabel">DETALLE DE MÁQUINA</h3>
-      </div> <!-- modal-header -->
-      <div id="colapsadoDetalle" class="collapse in">
-        <div class="modal-body" style="font-family: Roboto; color: #aaa;">
-          <form id="frmDetalle" name="frmDetalle" class="form-horizontal" novalidate="">
-            <div class="row">
-              <div class="col-md-2 col-md-offset-2">
-                <h5>NÚMERO DE ADMIN</h5>
-                <input id="adminDetalle" type="text" class="form-control" value="" readonly>
-              </div>
-              <div class="col-md-2">
-                <h5>CASINO</h5>
-                <input id="casinoDetalle" type="text" class="form-control" value="" readonly>
-              </div>
-              <div class="col-md-2">
-                <h5>SECTOR</h5>
-                <input id="sectorDetalle" type="text" class="form-control" value="" readonly>
-              </div>
-              <div class="col-md-2">
-                <h5>ISLA</h5>
-                <input id="islaDetalle" type="text" class="form-control" value="" readonly>
-              </div>
-            </div>
-            <br>
-            <div class="row">
-              <div class="col-md-12">
-                <table id="tablaRelevamientos" class="table">
-                  <thead>
-                    <tr>
-                      <th>FECHA</th>
-                      <th>CONT 1</th>
-                      <th>CONT 2</th>
-                      <th>CONT 3</th>
-                      <th>CONT 4</th>
-                      <th>CONT 5</th>
-                      <th>CONT 6</th>
-                      <th>CONT 7</th>
-                      <th>CONT 8</th>
-                      <th>COIN IN</th>
-                      <th>COIN OUT</th>
-                      <th>JACKPOT</th>
-                      <th>PROGRESIVO</th>
-                      <th>PROD CALCULADO</th>
-                      <th>PROD IMPORTADO</th>
-                      <th>DIFERENCIA</th> <!-- 15 columnas -->
-                    </tr>
-                  </thead>
-                  <tbody style="color:black;">
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </form>
-        </div> <!-- modal-body -->
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">SALIR</button>
-          <input id="id_maquina" hidden type="text" name="" value="0">
-        </div> <!-- modal-footer -->
-      </div> <!-- modal colapsado -->
-    </div> <!-- modal-content -->
-  </div> <!-- modal-dialog -->
-</div> <!-- modal -->
+@component('Components/modal',[
+  'attrs_modal' => 'data-js-modal-detalle-maquina',
+  'estilo_cabecera' => 'background-color: #6dc7be;',
+  'grande' => 90,
+])
+  @slot('titulo')
+  DETALLE DE MÁQUINA
+  @endslot
+  @slot('cuerpo')
+  <div class="row">
+    <div class="col-md-2 col-md-offset-2">
+      <h5>NÚMERO DE ADMIN</h5>
+      <input name="nro_admin" type="text" class="form-control" value="" readonly>
+    </div>
+    <div class="col-md-2">
+      <h5>CASINO</h5>
+      <input name="casino" type="text" class="form-control" value="" readonly>
+    </div>
+    <div class="col-md-2">
+      <h5>SECTOR</h5>
+      <input name="sector" type="text" class="form-control" value="" readonly>
+    </div>
+    <div class="col-md-2">
+      <h5>ISLA</h5>
+      <input name="nro_isla" type="text" class="form-control" value="" readonly>
+    </div>
+  </div>
+  <br>
+  <div class="row">
+    <div class="col-md-12">
+      <table data-js-modal-detalle-maquina-tabla-relevamientos class="table">
+        <thead>
+          <tr>
+            <th>FECHA</th>
+            <th>CONT 1</th>
+            <th>CONT 2</th>
+            <th>CONT 3</th>
+            <th>CONT 4</th>
+            <th>CONT 5</th>
+            <th>CONT 6</th>
+            <th>CONT 7</th>
+            <th>CONT 8</th>
+            <th>COIN IN</th>
+            <th>COIN OUT</th>
+            <th>JACKPOT</th>
+            <th>PROGRESIVO</th>
+            <th>PROD CALCULADO</th>
+            <th>PROD IMPORTADO</th>
+            <th>DIFERENCIA</th> <!-- 15 columnas -->
+          </tr>
+        </thead>
+        <tbody style="color:black;">
+        </tbody>
+      </table>
+    </div>
+  </div>
+  @endslot
+@endcomponent
 
 <meta name="_token" content="{!! csrf_token() !!}" />
 @endsection

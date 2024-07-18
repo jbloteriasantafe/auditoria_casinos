@@ -87,10 +87,12 @@ $('[data-listas-maquinas]').each(function(lidx,lObj){
 });
 
 $('#filtrosRelevamientos[data-js-filtro-tabla]').on('busqueda',function(e,ret,_,molde){
-  $('#casinoDetalle').val(ret.maquina.casino);
-  $('#sectorDetalle').val(ret.maquina.sector);
-  $('#islaDetalle').val(ret.maquina.isla);
-  $('#adminDetalle').val(ret.maquina.nro_admin);
+  const M = $('[data-js-modal-detalle-maquina]');
+  
+  M.find('[name="casino"]').val(ret.maquina.casino);
+  M.find('[name="sector"]').val(ret.maquina.sector);
+  M.find('[name="nro_isla"]').val(ret.maquina.nro_isla);
+  M.find('[name="nro_admin"]').val(ret.maquina.nro_admin);
   
   // se cambia pora no recalcular, el relevamiento ya se hizo, por lo que se traen los valores calculados en su momento, sin alteraciones 
   ret.detalles.forEach(function(d){
@@ -112,10 +114,10 @@ $('#filtrosRelevamientos[data-js-filtro-tabla]').on('busqueda',function(e,ret,_,
     fila.find('.producido_importado').text(d.producido_importado ?? '-');
     fila.find('.diferencia').text(d.diferencia ?? '-');
     fila.toggleClass('no_tomado',d.tipos_causa_no_toma != null);
-    $('#tablaRelevamientos tbody').append(fila);
+    M.find('[data-js-modal-detalle-maquina-tabla-relevamientos] tbody').append(fila);
   });
   
-  $('#modalDetalle').modal('show');
+  $('[data-js-modal-detalle-maquina]').modal('show');
 })
 .on('error_busqueda',function(e,ret,tbody,molde){
   ocultarErrorValidacion($(this).find('[name]'));
