@@ -348,7 +348,6 @@
                                   </div>
                               </div>
                           </div>
-
                       </div>
                       <div class="modal-footer">
                           <button id="enviarNoticiasActualizacion" type="button" class="btn btn-default no_visualizable"
