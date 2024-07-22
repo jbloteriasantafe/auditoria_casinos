@@ -268,7 +268,7 @@ class APIAEController extends Controller
     }
 
     public function set_importacion_archivos(Request $request){
-      if($request->header('X-API-Key') !== env("APP_KEY")){
+      if($request->header('X-API-Key') !== env("APP_KEY_SEVA")){
         return response()->json(['error' => 'Key de API inválida'], 401);
       }
       $validator = Validator::make($request->all(), [
@@ -308,7 +308,7 @@ class APIAEController extends Controller
     }
     
     public function exclusion_registro(Request $request, $dni){
-      if($request->header('X-API-Key') !== env("APP_KEY")){
+      if($request->header('X-API-Key') !== env("APP_KEY_SEVA")){
         return response()->json(['error' => 'Key de API inválida'], 401);
       }
       $aes = AE\Autoexcluido::where('nro_dni',$dni)->max('id_autoexcluido');
@@ -355,7 +355,7 @@ class APIAEController extends Controller
     }
     //devuelve el pdf de constancia de reingreso
     public function reingreso(Request $request, $dni){
-      if($request->header('X-API-Key') !== env("APP_KEY")){
+      if($request->header('X-API-Key') !== env("APP_KEY_SEVA")){
         return response()->json(['error' => 'Key de API inválida'], 401);
       }
       $aes = AE\Autoexcluido::where('nro_dni',$dni)->max('id_autoexcluido');
@@ -392,7 +392,7 @@ class APIAEController extends Controller
     public function ultimos_datos(Request $request, $dni){
       // esto solo sirve si las id son asiganadas de manera creciente cambiar en caso contrario
       // no se puede usaer el created_at ya que no esta seteado 
-      if($request->header('X-API-Key') !== env("APP_KEY")){
+      if($request->header('X-API-Key') !== env("APP_KEY_SEVA")){
         return response()->json(['error' => 'Key de API inválida'], 401);
       }
       $aes = AE\Autoexcluido::where('nro_dni',$dni)->max('id_autoexcluido');
