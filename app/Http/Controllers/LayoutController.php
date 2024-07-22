@@ -50,11 +50,15 @@ class LayoutController extends Controller
 
   public function buscarTodo(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $casinos = $usuario->casinos;
+    $casinos = $usuario->es_superusuario? Casino::all() : $usuario->casinos;
+    //@HACK: arreglar permisos
+    $ver_planilla_layout_parcial = $usuario->es_superusuario || $usuario->es_administrador? true : $usuario->tienePermiso('ver_planilla_layout_parcial');
+    $carga_layout_parcial        = $usuario->es_superusuario || $usuario->es_administrador? true : $usuario->tienePermiso('carga_layout_parcial');
+    $validar_layout_parcial      = $usuario->es_superusuario || $usuario->es_administrador? true : $usuario->tienePermiso('validar_layout_parcial');
     $estados = EstadoRelevamiento::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Layout Parcial' , 'layout_parcial');
 
-    return view('seccionLayoutParcial', ['casinos' => $casinos , 'estados' => $estados]);
+    return view('seccionLayoutParcial', compact('casinos','estados','ver_planilla_layout_parcial','carga_layout_parcial','validar_layout_parcial'));
   }
   // obtenerLayoutParcial retorna la informacion para la carga del layout, 
   // obtiene los detalles de layout

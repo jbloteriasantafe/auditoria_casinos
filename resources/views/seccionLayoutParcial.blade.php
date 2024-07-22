@@ -3,11 +3,6 @@
 <span class="etiquetaLogoMaquinas">@svg('maquinas','iconoMaquinas')</span>
 @endsection
 @section('contenidoVista')
-<?php
-
-use Illuminate\Http\Request;
-
-?>
 
 @section('estilos')
 <!-- <link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet"/> -->
@@ -19,95 +14,118 @@ use Illuminate\Http\Request;
 <link rel="stylesheet" href="css/lista-datos.css">
 @endsection
 
+<style>
+  tr.filaCabeceraFiltro th,
+  tr.filaCuerpoFiltro td {
+    text-align: center;
+  }
+</style>
+
 <div class="row">
-  <div class="col-lg-12 col-xl-9"> <!-- columna TABLA CASINOS -->
-    <!-- FILTROS -->
-    <div class="row">
-      <div class="col-md-12">
-        <div id="contenedorFiltros" class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltros" style="cursor: pointer">
-            <h4>Filtros de Búsqueda  <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltros" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-md-3">
-                  <h5>Fecha</h5>
-                  <div class="form-group">
-                     <div class='input-group date' id='dtpBuscadorFecha' data-link-field="buscadorFecha" data-link-format="yyyy-mm-dd">
-                       <input type='text' class="form-control" placeholder="Fecha de relevamiento" id="B_fecharelevamiento"/>
-                       <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                       <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                     </div>
-                     <input class="form-control" type="hidden" id="buscadorFecha" value=""/>
-                  </div>
-                </div>
-                <div class="col-md-3">
-                  <h5>Casino</h5>
-                  <select id="buscadorCasino" class="form-control selectCasinos" name="">
-                    <option value="0">-Todos los Casinos-</option>
-                    @foreach ($casinos as $casino)
-                    <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-md-3">
-                  <h5>Sector</h5>
-                  <select id="buscadorSector" class="form-control selectSector" name="">
-                    <option value="0">-Todos los sectores-</option>
-                  </select>
-                </div>
-                <div class="col-md-3">
-                  <h5>Estado Relevamiento</h5>
-                  <select id="buscadorEstado" class="form-control selectSector" name="">
-                    <option value="0">-Todos los estados-</option>
-                    @foreach($estados as $estado)
-                    <option id="estado{{$estado->id_estado_relevamiento}}" value="{{$estado->id_estado_relevamiento}}">{{$estado->descripcion}}</option>
-                    @endforeach
-                  </select>
-                </div>
-              </div>
-              <div class="row">
-                <center>
-                  <h5 style="color:#f5f5f5;">boton buscar</h5>
-                  <button id="btn-buscar" class="btn btn-infoBuscar" type="button" name="button"><i class="fa fa-fw fa-search"></i> BUSCAR</button>
-                </center>
-              </div>
-              <br>
-            </div>
-          </div>
-        </div>
-      </div>
-  </div>
-  <div class="row">
-    <div class="col-md-12">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h4>LAYOUT PARCIAL GENERADO POR EL SISTEMA</h4>
-        </div>
-        <div class="panel-body">
-          <table id="tablaLayouts" class="table table-fixed tablesorter">
-            <thead>
-              <tr>
-                <th class="col-xs-2 activa" value="layout_parcial.fecha" estado="desc">FECHA <i class="fas fa-sort-down"></i></th>
-                <th class="col-xs-2" value="casino.nombre" estado="">CASINO  <i class="fas fa-sort"></i></th>
-                <th class="col-xs-2" value="sector.descripcion" estado="">SECTOR <i class="fas fa-sort"></i></th>
-                <th class="col-xs-1" value="layout_parcial.sub_control" estado="">SUB <i class="fas fa-sort"></i></th>
-                <th class="col-xs-2" value="estado_relevamiento.descripcion" estado="">ESTADO <i class="fas fa-sort"></i></th>
-                <th class="col-xs-3">ACCIÓN </th>
-              </tr>
-            </thead>
-            <tbody id="cuerpoTabla" style="height: 250px;">
-            </tbody>
-          </table>
-          <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
-          </div>
-        </div>
-      </div>
+  <div class="col-xl-9"> <!-- columna TABLA CASINOS -->
+    @component('Components/FiltroTabla')
+    
+    @slot('titulo')
+    LAYOUT PARCIAL GENERADO POR EL SISTEMA
+    @endslot
+    
+    @slot('target_buscar')
+    /layout_parcial/buscarLayoutsParciales
+    @endslot
+    
+    @slot('filtros')
+    <div class="col-md-3">
+      <h5>Fecha</h5>
+      @component('Components/inputFecha',['attrs' => 'name="fecha"'])
+      @endcomponent
     </div>
+    <div class="col-md-3">
+      <h5>Casino</h5>
+      <select class="form-control" name="id_casino">
+        @if(count($casinos) != 1)
+        <option value="">-Todos los Casinos-</option>
+        @endif
+        @foreach ($casinos as $c)
+        <option value="{{$c->id_casino}}" {{ count($casinos) == 1? 'selected' : '' }}>{{$c->nombre}}</option>
+        @endforeach
+      </select>
+    </div>
+    <div class="col-md-3">
+      <h5>Sector</h5>
+      <select class="form-control" name="id_sector">
+        <option value="">-Todos los sectores-</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <h5>Estado Relevamiento</h5>
+      <select class="form-control" name="id_estado_relevamiento">
+        <option value="">-Todos los estados-</option>
+        @foreach($estados as $e)
+        <option value="{{$e->id_estado_relevamiento}}">{{$e->descripcion}}</option>
+        @endforeach
+      </select>
+    </div>
+    @endslot
+    
+    @slot('cabecera')
+    <tr class="filaCabeceraFiltro">
+      <th class="col-xs-2" data-js-sortable="layout_parcial.fecha" data-js-state="desc">FECHA</th>
+      <th class="col-xs-2" data-js-sortable="casino.nombre">CASINO</th>
+      <th class="col-xs-2" data-js-sortable="sector.descripcion">SECTOR</th>
+      <th class="col-xs-1" data-js-sortable="layout_parcial.sub_control">SUB</th>
+      <th class="col-xs-2" data-js-sortable="estado_relevamiento.descripcion">ESTADO</th>
+      <th class="col-xs-3">ACCIÓN </th>
+    </tr>
+    @endslot
+    
+    @slot('molde')
+    <tr class="filaCuerpoFiltro">
+      <td class="fecha">FECHA</td>
+      <td class="casino">CASINO</td>
+      <td class="sector">SECTOR</td>
+      <td class="subrelevamiento">SUBRELEVAMIETNO</td>
+      <td>
+        <?php 
+          $est = $estados->mapWithKeys(function($e){
+            return [$e['descripcion'] => $e['id_estado_relevamiento']];
+          });;
+        ?>
+        <span data-id_estado_relevamiento="{{$est['Generado']}}">
+          <i class="fas fa-fw fa-dot-circle faGenerado" title="Generado"></i>Generado
+        </span>
+        <span data-id_estado_relevamiento="{{$est['Finalizado']}}">
+          <i class="fas fa-fw fa-dot-circle faFinalizado" title="Finalizado"></i>Finalizado
+        </span>
+        <span data-id_estado_relevamiento="{{$est['Visado']}}">
+          <i class="fas fa-fw fa-dot-circle" title="Visado"></i>Visado
+        </span>
+      </td>
+      <td class="col-xs-3">
+        @if($ver_planilla_layout_parcial)
+        <button class="btn btn-info planilla" type="button">
+          <i class="far fa-fw fa-file-alt"></i>
+        </button>
+        @endif
+        @if($carga_layout_parcial)
+        <button class="btn btn-warning carga" type="button" data-id_estado_relevamiento="{{$est['Generado']}}">
+          <i class="fa fa-fw fa-upload"></i>
+        </button>
+        @endif
+        @if($validar_layout_parcial)
+        <button class="btn btn-success validar" type="button" data-id_estado_relevamiento="{{$est['Finalizado']}}">
+          <i class="fa fa-fw fa-check"></i>
+        </button>
+        @endif
+        <button class="btn btn-info imprimir" type="button" data-id_estado_relevamiento="{{$est['Finalizado']}},{{$est['Visado']}}">
+          <i class="fa fa-fw fa-print"></i>
+        </button>
+      </td>
+    </tr>
+    @endslot
+    
+    @endcomponent
   </div>
-  <!-- /.col-lg-12 col-xl-9 -->
-  <div class="col-lg-12 col-xl-3">
+  <div class="col-xl-3">
     <div class="row">
       <div class="col-md-12">
         <a href="" id="btn-nuevoLayoutParcial" style="text-decoration: none;">
@@ -765,7 +783,7 @@ use Illuminate\Http\Request;
 
 @section('scripts')
 <!-- JavaScript personalizado -->
-<script src="js/seccionLayoutParcial.js?5" charset="utf-8"></script>
+<script src="js/seccionLayoutParcial.js?5" type="module" charset="utf-8"></script>
 <script src="js/paginacion.js" charset="utf-8"></script>
 
 <!-- DateTimePicker JavaScript -->
