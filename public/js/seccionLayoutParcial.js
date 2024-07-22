@@ -2,34 +2,89 @@ import '/js/Components/inputFecha.js';
 import '/js/Components/FiltroTabla.js';
 import '/js/Components/modalEliminar.js';
 import {AUX} from "/js/Components/AUX.js";
+import '/js/Components/cambioCasinoSelectSectores.js';
 
 $(function(){
-  $('.tituloSeccionPantalla').text('Layout Parcial');
   
-  $('[data-js-filtro-tabla]').each(function(idx,fObj){ $(fObj).on('busqueda',function(e,ret,tbody,molde){  
-    ret.data.forEach(function(r){
-      const fila = molde.clone();
-      fila.find('.fecha').text(r.fecha);
-      fila.find('.casino').text(r.casino);
-      fila.find('.sector').text(r.sector);
-      fila.find('.subrelevamiento').text(r.subcontrol ?? '');
-      fila.find('button').val(r.id_layout_parcial);
-      fila.find('[data-id_estado_relevamiento]').hide()
-      .filter(function(idx,obj){
-        return $(obj).attr('data-id_estado_relevamiento').split(',').includes(r.id_estado_relevamiento+'');
-      }).show();
-      tbody.append(fila);
-    });
-  }).trigger('buscar'); });
+$('.tituloSeccionPantalla').text('Layout Parcial');
+
+$('[data-js-cambio-casino-select-sectores]')
+.trigger('set_url',['layout_parcial/obtenerSectoresPorCasino'])
+.trigger('change');
+
+$('[data-js-filtro-tabla]').each(function(idx,fObj){ $(fObj).on('busqueda',function(e,ret,tbody,molde){  
+  ret.data.forEach(function(r){
+    const fila = molde.clone();
+    fila.find('.fecha').text(r.fecha);
+    fila.find('.casino').text(r.casino);
+    fila.find('.sector').text(r.sector);
+    fila.find('.subrelevamiento').text(r.subcontrol ?? '');
+    fila.find('button').val(r.id_layout_parcial);
+    fila.find('[data-id_estado_relevamiento]').hide()
+    .filter(function(idx,obj){
+      return $(obj).attr('data-id_estado_relevamiento').split(',').includes(r.id_estado_relevamiento+'');
+    }).show();
+    tbody.append(fila);
+  });
+}).trigger('buscar'); });
+  
+$('#btn-nuevoLayoutParcial').click(function(e){
+  e.preventDefault();
+  $('[data-js-modal-layout-parcial]').trigger('mostrar');
+});
+
+$('[data-js-modal-layout-parcial]').each(function(idx,Mobj){
+  const M = $(Mobj);
+  
+  M.on('mostrar',function(e){
+    M.find('[data-js-icono-carga]').hide();
+    M.find('[name]').each(function(idx,obj){
+      $(obj).val($(obj).attr('data-default') ?? '');
+    }).change();
+    M.modal('show');
+  });
+  
+  M.find('[data-js-generar]').click(function(e){
+    e.preventDefault();
+    
+    const formData = AUX.form_entries(M.find('form')[0]);
+    
+    M.find('[data-js-icono-carga]').show();
+    AUX.POST('layout_parcial/crearLayoutParcial',formData,
+      function(data){
+        M.find('[data-js-icono-carga]').hide();
+        $('[data-js-filtro-tabla]').trigger('buscar');
+        
+        if(data.nombre_zip !== undefined){
+          let iframe = document.getElementById("download-container");
+          if (iframe === null){
+            iframe = document.createElement('iframe');
+            iframe.id = "download-container";
+            iframe.style.visibility = 'hidden';
+            document.body.appendChild(iframe);
+          }
+          iframe.src = '/layout_parcial/descargarLayoutParcialZip/' + data.nombre_zip;
+          AUX.mensajeExito('Layout Parcial creado');
+          M.modal('hide');
+        }
+        else if(data.existeLayoutParcial == 1){
+          AUX.mensajeError('Deberá finalizar el relevamiento existente para poder generar uno nuevo.');
+        }
+      },
+      function(data){
+        M.find('[data-js-icono-carga]').hide();
+        AUX.mostrarErroresNames(M,data.responseJSON ?? {});
+      }
+    );
+  });
+});
+  
 });
 
 var guardado;
 var salida; //cantidad de veces que se apreta salir
 
 $(document).ready(function(){
-  
-  $('#iconoCarga').hide();
-
   $('#fechaControlSinSistema').datetimepicker({
     language:  'es',
     todayBtn:  1,
@@ -371,11 +426,7 @@ $('.modal').on('hidden.bs.modal', function() {
   if($('#casino').length > 1){
     $('.selectSector' , this).empty();
   }
-
-  $('#modalLayoutParcial').find('.modal-footer').children().show();
-  $('#modalLayoutParcial').find('.modal-body').children().show();
-  $('#iconoCarga').hide();
-
+  
   $(this).find('#contenedorMaquinas div').remove();
 
   $(this).find('#tablaMaquinasLayouts > tbody tr  ').remove();
@@ -721,21 +772,6 @@ $('#btn-minimizarValidar').click(function(){
   }
 });
 
-
-//ABRIR MODAL DE NUEVO RELEVAMIENTO
-$('#btn-nuevoLayoutParcial').click(function(e){
-  e.preventDefault();
-  $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
-  $('#modalLayoutParcial').modal('show');
-
-  $.get("obtenerFechaActual", function(data){
-    //Mayuscula pŕimer letra
-    var fecha = data.fecha.charAt(0).toUpperCase() + data.fecha.slice(1);
-    $('#fechaActual').val(fecha);
-    $('#fechaDate').val(data.fechaDate);
-  });
-});
-
 $("#btn-layoutSinSistema").click(function(e){
   e.preventDefault();
   $('.modal-header').attr('style','font-family: Roboto-Black; background-color: #6dc7be;');
@@ -791,145 +827,6 @@ $(document).on('click','.imprimir',function(){
   $('#alertaArchivo').hide();
   window.open('layout_parcial/generarPlanillaLayoutParcial/' + $(this).val(),'_blank');
 });
-
-//GENERAR RELEVAMIENTO
-$('#btn-generar').click(function(e){
-  e.preventDefault();
-
-  var formData = {
-    id_sector: $('#sector').val(),
-    cantidad_maquinas: $('#cantidad_maquinas').val(),
-    cantidad_fiscalizadores: $('#cantidad_fiscalizadores').val(),
-  }
-
-  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') } });
-  $.ajax({
-    type: "POST",
-    url: 'layout_parcial/crearLayoutParcial',
-    data: formData,
-    dataType: 'json',
-    beforeSend: function(data){
-      console.log('Empezó');
-      $('#modalLayoutParcial').find('.modal-footer').children().hide();
-      $('#modalLayoutParcial').find('.modal-body').children().hide();
-
-      $('#iconoCarga').show();
-    },
-    success: function (data) {
-      if(data.existeLayoutParcial==0){
-        $('#frmLayoutParcial').trigger('reset');
-        $('#modalLayoutParcial').modal('hide');
-        $('#btn-buscar').trigger('click',[1,10,'layout_parcial.fecha' ,'desc']);
-
-        var iframe;
-        iframe = document.getElementById("download-container");
-
-        if (iframe === null){
-          iframe = document.createElement('iframe');
-          iframe.id = "download-container";
-          iframe.style.visibility = 'hidden';
-          document.body.appendChild(iframe);
-        }
-        iframe.src = '/layout_parcial/descargarLayoutParcialZip/' + data.nombre_zip;
-      }else{
-        $('#modalLayoutParcial').modal('hide');
-        $('#modalConfirmacion').modal('show');
-      }
-    },
-    error: function (data) {
-      console.log('entro al err');
-      $('#modalLayoutParcial').find('.modal-footer').children().show();
-      $('#modalLayoutParcial').find('.modal-body').children().show();
-      $('#iconoCarga').hide();
-
-      var response = JSON.parse(data.responseText);
-      if(typeof response.id_sector !== 'undefined'){
-        mostrarErrorValidacion( $('#sector'), response.id_sector[0] ,true);
-      }
-      if(typeof response.cantidad_maquinas !== 'undefined'){
-        mostrarErrorValidacion( $('#cantidad_maquinas'), response.cantidad_maquinas[0] ,true);
-      }
-      if(typeof response.cantidad_fiscalizadores !== 'undefined'){
-        mostrarErrorValidacion( $('#cantidad_fiscalizadores'), response.cantidad_fiscalizadores[0] ,true);
-      }
-    }
-  });
-});
-
-//GENERAR RELEVAMIENTO SOBRE SECTOR CON RELEVAMIENTO EXISTENTE
-$('#btn-generarIgual').click(function(){
-  $('#modalConfirmacion').modal('hide');
-  $('#modalLayoutParcial').modal('show');
-});
-
-//SALIR DEL RELEVAMIENTO
-$('#btn-salir').click(function(){
-  //Si está guardado deja cerrar el modal
-  if (guardado) $('#modalCargaControlLayout').modal('hide');
-  //Si no está guardado
-  else{
-    if (salida == 0) {
-      $('#modalCargaControlLayout .mensajeSalida').show();
-      salida = 1;
-    }else {
-      $('#modalCargaControlLayout').modal('hide');
-    }
-  }
-});
-
-//MOSTRAR LOS SECTORES ASOCIADOS AL CASINO SELECCIONADO
-$('.selectCasinos').on('change',function(){
-  var id_casino = $('option:selected' , this).attr('id');
-  var selectCasino = $(this)
-
-  $.get("layout_parcial/obtenerSectoresPorCasino/" + id_casino, function(data){
-    if(selectCasino[0] == $("#casino")[0]){
-      var selectSector = $('#sector');
-      selectSector.empty();
-    }else if (selectCasino[0] == $('#buscadorCasino')[0]){
-      var selectSector = $('#buscadorSector');
-      selectSector.empty();
-      selectSector.append($('<option>').val(0).text('-Todos los sectores-'))
-    }else {
-      var selectSector = $('#sectorSinSistema');
-      selectSector.empty();
-    }
-
-    for (var i = 0; i < data.sectores.length; i++) {
-      selectSector.append($('<option>').val(data.sectores[i].id_sector).text(data.sectores[i].descripcion))
-    }
-  });
-});
-
-function existeLayoutParcial(){
-  var id_sector = $('#modalLayoutParcial #sector option:selected').val();
-  $.get('layout_parcial/existeLayoutParcial/' + id_sector, function(data){
-    //Si ya existe se cambia el valor del botón GENERAR para que muestre o no un modal de confirmación
-    console.log("esto me llega de la base para el sector " + id_sector);
-    console.log(data);
-    if (data == 1) {
-        $('#modalLayoutParcial #existeLayoutParcial').val(1);
-    }else {
-        $('#modalLayoutParcial #existeLayoutParcial').val(0);
-    }
-  });
-}
-
-function existeLayoutParcialGenerado(){
-  var id_sector = $('#modalLayoutParcial #sector option:selected').val();
-  $.get('layout_parcial/existeLayoutParcialGenerado/' + id_sector, function(data){
-      //Si ya existe se cambia el valor del botón GENERAR para que muestre o no un modal de confirmación
-      console.log("esto me llega de la base para el sector " + id_sector);
-      console.log(data);
-      if (data == 1) {
-          $('#modalLayoutParcial #existeLayoutParcial').val(1);
-      }else {
-        console.log("cambio el valor de la ventana")
-          $('#modalLayoutParcial #existeLayoutParcial').val(0);
-      }
-      return data;
-  });
-}
 
 $(document).on('keypress','.inputLayout', function(e){
   if(e.which == 13) {

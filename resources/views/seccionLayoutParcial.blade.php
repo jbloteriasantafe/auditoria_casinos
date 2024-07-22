@@ -165,120 +165,86 @@
   </div>
 </div>  <!-- /#row -->
 
-<div class="modal fade" id="modalLayoutParcial" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header modalNuevo">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title">| NUEVO CONTROL LAYOUT </h3>
-      </div>
-      <div  id="colapsado" class="collapse in">
-        <div class="modal-body modalCuerpo">
-          <form id="frmLayoutParcial" name="frmLayoutParcial" class="form-horizontal" novalidate="">
-            <div class="row">
-              <div class="col-md-8 col-md-offset-2">
-                <h5>FECHA</h5>
-                <input id="fechaActual" style="text-align:center" type='text' class="form-control" readonly>
-                <input id="fechaDate" type="text" name="" hidden>
-                <br>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6">
-                <h5>CASINO</h5>
-                <select id="casino" class="form-control selectCasinos" name="">
-                  @if(count($casinos) != 1)
-                  <option value="0">- Seleccione un casino -</option>
-                  @endif
-                  @foreach ($casinos as $casino)
-                  <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                  @endforeach
-                </select>
-                <br>
-                <span id="alertaCasino" class="alertaSpan"></span>
-              </div>
-              <div class="col-md-6">
-                <h5>SECTOR</h5>
-                <select id="sector" class="form-control selectSector" name="">
-                  @if(count($casinos) == 1)
-                  @foreach($casinos[0]->sectores as $sector)
-                  <<option value="{{$sector->id_sector}}">{{$sector->descripcion}}</option>
-                  @endforeach
-                  @else
-                  <option value="">-Seleccione un casino-</option>
-                  @endif
-                </select>
-                <br>
-                <span id="alertaSector" class="alertaSpan"></span>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6">
-                <h5>MÁQUINAS</h5>
-                <div class="input-group number-spinner">
-                  <span class="input-group-btn">
-                    <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="dwn">-</button>
-                  </span>
-                  <input id="cantidad_maquinas" type="text" class="form-control text-center" value="10">
-                  <span class="input-group-btn">
-                    <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="up">+</button>
-                  </span>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <h5>FISCALIZADORES</h5>
-                <div class="input-group number-spinner">
-                  <span class="input-group-btn">
-                    <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="dwn">-</button>
-                  </span>
-                  <input id="cantidad_fiscalizadores" type="text" class="form-control text-center" value="1">
-                  <span class="input-group-btn">
-                    <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="up">+</button>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </form>
-          <div id="iconoCarga" class="sk-folding-cube">
-            <div class="sk-cube1 sk-cube"></div>
-            <div class="sk-cube2 sk-cube"></div>
-            <div class="sk-cube4 sk-cube"></div>
-            <div class="sk-cube3 sk-cube"></div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-successAceptar" id="btn-generar" value="nuevo">GENERAR</button>
-          <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-          <input type="hidden" id="existeLayoutParcial" name="id_casino" value="0">
-          <input type="hidden" id="id_casino" name="id_casino" value="0">
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-    
-<div class="modal" id="modalConfirmacion" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header modalNuevo">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <h3 class="modal-title"> NUEVO RELEVAMIENTO</h3>
-      </div>
-      <div class="modal-body">
-        <h5 style="padding:10px;font-family:Roboto-Condensed;color:#FF1744 !important;font-size:24px;">ATENCIÓN</h5>
-        <h5 style="padding:0px;font-family:Roboto-Condensed;color:#444 !important;font-size:20px;">YA EXISTE RELEVAMIENTO PARA EL SECTOR SELECCIONADO</h5>
-        <p style="font-family:Roboto-Regular;font-size:16px;margin:20px 0px;">
-          Deberá finalizar el relevamiento existente para poder generar uno nuevo.
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button id="btn-cancelarConfirmacion" type="button" class="btn btn-successAceptar" data-dismiss="modal">ACEPTAR</button>
-      </div>
-    </div>
-  </div>
-</div>
+@component('Components/modal',[
+  'clases_modal' => 'modalLayoutParcial',
+  'attrs_modal' => 'data-js-modal-layout-parcial',
+  'estilo_cabecera' => 'background-color: #6dc7be;',
+])
 
+@slot('titulo')
+| NUEVO CONTROL LAYOUT 
+@endslot
+
+@slot('cuerpo')
+<form class="form-horizontal" novalidate="">
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <h5>FECHA</h5>
+      <?php setlocale(LC_TIME, 'es_ES.UTF-8'); ?>
+      <input style="text-align:center" type='text' class="form-control" readonly value="{{ucwords(strftime('%A, %d %B %Y'))}}">
+    </div>
+  </div>
+  <br>
+  <div class="row">
+    <div class="col-md-6">
+      <h5>CASINO</h5>
+      <select class="form-control" name="id_casino" data-js-cambio-casino-select-sectores="#destinoSectores">
+        @if(count($casinos) != 1)
+        <option value="">- Seleccione un casino -</option>
+        @endif
+        @foreach ($casinos as $c)
+        <option value="{{$c->id_casino}}" {{count($casinos) == 1? 'selected' : ''}}>{{$c->nombre}}</option>
+        @endforeach
+      </select>
+    </div>
+    <div class="col-md-6">
+      <h5>SECTOR</h5>
+      <select id="destinoSectores" class="form-control" name="id_sector" >
+      </select>
+    </div>
+  </div>
+  <br>
+  <div class="row">
+    <div class="col-md-6">
+      <h5>MÁQUINAS</h5>
+      <div class="input-group number-spinner">
+        <span class="input-group-btn">
+          <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="dwn">-</button>
+        </span>
+        <input name="cantidad_maquinas" type="text" class="form-control text-center" value="10" data-default="10">
+        <span class="input-group-btn">
+          <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="up">+</button>
+        </span>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <h5>FISCALIZADORES</h5>
+      <div class="input-group number-spinner">
+        <span class="input-group-btn">
+          <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="dwn">-</button>
+        </span>
+        <input name="cantidad_fiscalizadores" type="text" class="form-control text-center" value="1" data-default="1">
+        <span class="input-group-btn">
+          <button style="border: 1px solid #ccc;" class="btn btn-default" data-dir="up">+</button>
+        </span>
+      </div>
+    </div>
+  </div>
+</form>
+<div data-js-icono-carga class="sk-folding-cube" hidden>
+  <div class="sk-cube1 sk-cube"></div>
+  <div class="sk-cube2 sk-cube"></div>
+  <div class="sk-cube4 sk-cube"></div>
+  <div class="sk-cube3 sk-cube"></div>
+</div>
+@endslot
+
+@slot('pie')
+<button type="button" class="btn btn-successAceptar" data-js-generar>GENERAR</button>
+@endslot
+
+@endcomponent
+    
 <div class="modal fade" id="modalLayoutSinSistema" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
