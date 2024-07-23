@@ -41,7 +41,7 @@
     </div>
     <div class="col-md-3">
       <h5>Casino</h5>
-      <select class="form-control" name="id_casino">
+      <select class="form-control" name="id_casino"  data-js-cambio-casino-select-sectores="#destinoSectoresFiltro">
         @if(count($casinos) != 1)
         <option value="">-Todos los Casinos-</option>
         @endif
@@ -52,7 +52,7 @@
     </div>
     <div class="col-md-3">
       <h5>Sector</h5>
-      <select class="form-control" name="id_sector">
+      <select class="form-control" name="id_sector" id="destinoSectoresFiltro">
         <option value="">-Todos los sectores-</option>
       </select>
     </div>
@@ -244,6 +244,59 @@
 @endslot
 
 @endcomponent
+
+@component('Components/modal',[
+  'clases_modal' => 'modalLayoutParcialSinSistema',
+  'attrs_modal' => 'data-js-modal-layout-parcial-sin-sistema',
+  'estilo_cabecera' => 'background-color: #6dc7be;',
+])
+
+@slot('titulo')
+| NUEVO CONTROL LAYOUT SIN SISTEMA
+@endslot
+
+@slot('cuerpo')
+<form class="form-horizontal row" novalidate="">
+  <div><!-- Nose porque tengo que ponerlo dentro de otro div para que se alinee -->
+    <div class="col-md-6">
+      <h5>FECHA DE CONTROL LAYOUT</h5>
+      @component('Components/inputFecha',['attrs' => 'name="fecha"'])
+      @endcomponent
+    </div>
+    <div class="col-md-6">
+      <h5>FECHA DE GENERACIÓN</h5>
+      @component('Components/inputFecha',['attrs' => 'name="fecha_generacion"'])
+      @endcomponent
+    </div>
+  </div>
+  <div class="col-md-6">
+    <h5>CASINO</h5>
+    <select class="form-control" name="id_casino"  data-js-cambio-casino-select-sectores="#destinoSectoresSinSistema">
+      <option value="">- Seleccione un casino -</option>
+      @foreach ($casinos as $casino)
+      <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+      @endforeach
+    </select>
+  </div>
+  <div class="col-md-6">
+    <h5>SECTOR</h5>
+    <select class="form-control" name="id_sector" id="destinoSectoresSinSistema">
+    </select>
+  </div>
+</form>
+<div data-js-icono-carga class="sk-folding-cube" hidden>
+  <div class="sk-cube1 sk-cube"></div>
+  <div class="sk-cube2 sk-cube"></div>
+  <div class="sk-cube4 sk-cube"></div>
+  <div class="sk-cube3 sk-cube"></div>
+</div>
+@endslot
+
+@slot('pie')
+<button type="button" class="btn btn-successAceptar" data-js-usar-relevamiento-backup>USAR RELEVAMIENTO BACKUP</button>
+@endslot
+
+@endcomponent
     
 <div class="modal fade" id="modalLayoutSinSistema" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -256,47 +309,7 @@
       <div  id="colapsadoSinSistema" class="collapse in">
         <div class="modal-body modalCuerpo">
           <form id="frmLayoutSinSistema" name="frmLayoutSinSistema" class="form-horizontal" novalidate="">
-            <div class="row">
-              <div class="col-md-6">
-                <h5>FECHA DE CONTROL LAYOUT</h5>
-                <div class='input-group date' id='fechaControlSinSistema' data-link-field="fechaLayoutSinSistema" data-link-format="yyyy-mm-dd">
-                  <input id="fecha_backup" type='text' class="form-control" placeholder="Fecha de Relevamiento"/>
-                  <span class="input-group-addon">
-                    <span class="glyphicon glyphicon-calendar"></span>
-                  </span>
-                  <input type="hidden" id="fechaLayoutSinSistema" value=""/>
-                </div>
-                <br>
-              </div>
-              <div class="col-md-6">
-                <h5>FECHA DE GENERACIÓN</h5>
-                <div class='input-group date' id='fechaGeneracion' data-link-field="fechaGeneracionSinSistema" data-link-format="yyyy-mm-dd">
-                  <input id="fecha_generacion_backup" type='text' class="form-control" placeholder="Fecha de Generación"/>
-                  <span class="input-group-addon">
-                    <span class="glyphicon glyphicon-calendar"></span>
-                  </span>
-                  <input type="hidden" id="fechaGeneracionSinSistema" value=""/>
-                </div>
-                <br>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6">
-                <h5>CASINO</h5>
-                <select id="casinoSinSistema" class="form-control selectCasinos" name="">
-                  <option value="">- Seleccione un casino -</option>
-                  @foreach ($casinos as $casino)
-                  <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-                  @endforeach
-                </select>
-              </div>
-              <div class="col-md-6">
-                <h5>SECTOR</h5>
-                <select id="sectorSinSistema" class="form-control select" name="">
-                  <option value=""></option>
-                </select>
-              </div>
-            </div>
+            
           </form>
         </div>
         <div class="modal-footer">
