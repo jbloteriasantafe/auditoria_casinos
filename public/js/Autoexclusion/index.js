@@ -54,16 +54,6 @@ $("#btn-buscar").click(function (e, pagina, page_size, columna, orden) {
           orden: $("#tablaAutoexcluidos .activa").attr("estado"),
         };
 
-  const iso = function (dtp) {
-    //getDate me retorna hoy si esta vacio, lo tengo que verificar
-    if (dtp.find("input").val().length == 0) return "";
-    const date = dtp.data("datetimepicker").getDate();
-    const y = date.getFullYear();
-    const m = date.getMonth() + 1;
-    const d = date.getDate();
-    return y + (m < 10 ? "-0" : "-") + m + (d < 10 ? "-0" : "-") + d;
-  };
-
   const formData = {
     nombres: $("#buscadorNombres").val(),
     apellido: $("#buscadorApellido").val(),
@@ -73,14 +63,14 @@ $("#btn-buscar").click(function (e, pagina, page_size, columna, orden) {
     casino: $("#buscadorCasino").val() > 0 ? $("#buscadorCasino").val() : "",
     plataforma:
       $("#buscadorCasino").val() < 0 ? -$("#buscadorCasino").val() : "",
-    fecha_autoexclusion_d: iso($("#dtpFechaAutoexclusionD")),
-    fecha_vencimiento_d: iso($("#dtpFechaVencimientoD")),
-    fecha_renovacion_d: iso($("#dtpFechaRenovacionD")),
-    fecha_cierre_definitivo_d: iso($("#dtpFechaCierreDefinitivoD")),
-    fecha_autoexclusion_h: iso($("#dtpFechaAutoexclusionH")),
-    fecha_vencimiento_h: iso($("#dtpFechaVencimientoH")),
-    fecha_renovacion_h: iso($("#dtpFechaRenovacionH")),
-    fecha_cierre_definitivo_h: iso($("#dtpFechaCierreDefinitivoH")),
+    fecha_autoexclusion_d: isoDate($("#dtpFechaAutoexclusionD")),
+    fecha_vencimiento_d: isoDate($("#dtpFechaVencimientoD")),
+    fecha_renovacion_d: isoDate($("#dtpFechaRenovacionD")),
+    fecha_cierre_definitivo_d: isoDate($("#dtpFechaCierreDefinitivoD")),
+    fecha_autoexclusion_h: isoDate($("#dtpFechaAutoexclusionH")),
+    fecha_vencimiento_h: isoDate($("#dtpFechaVencimientoH")),
+    fecha_renovacion_h: isoDate($("#dtpFechaRenovacionH")),
+    fecha_cierre_definitivo_h: isoDate($("#dtpFechaCierreDefinitivoH")),
     page:
       pagina != null ? pagina : $("#herramientasPaginacion").getCurrentPage(),
     sort_by: sort_by,
@@ -493,17 +483,6 @@ function cargarLocalidadesVinculo() {
 
 //función para actualizar fechas
 $("#fecha_autoexlusion").change(function () {
-  const iso = function (f) {
-    const mes = f.getMonth() + 1;
-    const dia = f.getDate();
-    return (
-      f.getFullYear() +
-      (mes < 10 ? "-0" : "-") +
-      mes +
-      (dia < 10 ? "-0" : "-") +
-      dia
-    );
-  };
   const fecha_autoexclusion = validarDTP($("#dtpFechaAutoexclusionEstado"));
   if (fecha_autoexclusion == null) {
     $(
@@ -517,9 +496,9 @@ $("#fecha_autoexlusion").change(function () {
   fecha_renovacion.setDate(fecha_autoexclusion.getDate() + 150);
   fecha_vencimiento_periodo.setDate(fecha_autoexclusion.getDate() + 180);
   fecha_cierre_definitivo.setDate(fecha_autoexclusion.getDate() + 365);
-  $("#fecha_renovacion").val(iso(fecha_renovacion));
-  $("#fecha_vencimiento_periodo").val(iso(fecha_vencimiento_periodo));
-  $("#fecha_cierre_definitivo").val(iso(fecha_cierre_definitivo));
+  $("#fecha_renovacion").val(isoDate(fecha_renovacion));
+  $("#fecha_vencimiento_periodo").val(isoDate(fecha_vencimiento_periodo));
+  $("#fecha_cierre_definitivo").val(isoDate(fecha_cierre_definitivo));
 });
 
 $("#btn-prev").on("click", function () {
@@ -1424,7 +1403,6 @@ $("#hace_encuesta").change(function () {
     .not(".no_esconder");
   divs.toggle(show);
 });
-
 
 $(document).on("click", "#btnEnviarEmail", function (e) {
   e.preventDefault();

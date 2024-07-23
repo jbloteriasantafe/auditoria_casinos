@@ -1,6 +1,20 @@
 $(document).ready(function () {
   $("#barraMenu").attr("aria-expanded", "true");
   $(".tituloSeccionPantalla").text("Autoexcluidos");
+  const input_fecha = {
+    language: "es",
+    todayBtn: 1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: "dd/mm/yy",
+    pickerPosition: "bottom-left",
+    startView: 2,
+    minView: 2,
+    ignoreReadonly: true,
+  };
+  $("#rangofin").datetimepicker(input_fecha);
+  $("#rangoinicio").datetimepicker(input_fecha);
+
   $("#btn-buscar").trigger("click");
 });
 //ACTIONS
@@ -86,6 +100,8 @@ $("#btn-buscar").click(function (e, pagina, page_size, columna, orden) {
   if (abstract.length > 0) {
     formData.append("abstract", abstract);
   }
+  formData.append("start_date", isoDate($("#rangoinicio")));
+  formData.append("end_date", isoDate($("#rangofin")));
 
   $.ajaxSetup({
     headers: {

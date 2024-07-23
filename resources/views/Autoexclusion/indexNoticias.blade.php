@@ -22,9 +22,7 @@
               position: sticky;
               top: 0;
               background-color: #fff;
-              /* Color de fondo opcional */
               z-index: 999;
-              /* Ajustar si es necesario */
           }
 
           .page {
@@ -102,7 +100,7 @@
       <div class="col-xl-2">
           <div class="row">
               @if ($usuario->es_superusuario)
-                  <div class="col-xl-12 col-md-3">
+                  <div class="col-xl-12 col-md-12">
                       <a href="" id="btn-agregar-noticia" style="text-decoration: none;">
                           <div class="panel panel-default panelBotonNuevo">
                               <center>
@@ -133,7 +131,6 @@
                       </div>
                       <div id="collapseFiltros" class="panel-collapse collapse">
                           <div class="panel-body">
-
                               <div class="row">
                                   <div class="col-md-4">
                                       <h5>Titulo</h5>
@@ -142,6 +139,35 @@
                                   <div class="col-md-4">
                                       <h5>Abstract</h5>
                                       <input class="form-control" id="buscarAbstract" value="" />
+                                  </div>
+                              </div>
+                              <div class="row">
+                                  <h5>Publicado entre</h5>
+                                  <div class="col-md-3">
+                                      <h5>Fecha Inicio</h5>
+                                      <div class="input-group date" id="rangoinicio">
+                                          <input type="text" class="form-control" placeholder="Fecha de Inicio"
+                                              id="fecha_noticia_inicio" autocomplete="off"
+                                              style="background-color: rgb(255,255,255);" data-original-title=""
+                                              title="">
+                                          <span id="input-times-autoexclusion" class="input-group-addon"
+                                              style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                          <span id="input-calendar-autoexclusion" class="input-group-addon"
+                                              style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                      </div>
+                                  </div>
+                                  <div class="col-md-3">
+                                      <h5>Fecha Fin</h5>
+                                      <div class="input-group date" id="rangofin">
+                                          <input type="text" class="form-control" placeholder="Fecha de Fin"
+                                              id="fecha_noticia_fin" autocomplete="off"
+                                              style="background-color: rgb(255,255,255);" data-original-title=""
+                                              title="">
+                                          <span id="input-times-renovacion" class="input-group-addon"
+                                              style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                          <span id="input-calendar-renovacion" class="input-group-addon"
+                                              style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                      </div>
                                   </div>
                               </div>
                               <br>
@@ -176,15 +202,15 @@
                                       <th class="col-sm-2">ACCIONES</th>
                                   </tr>
                               </thead>
-                              <tbody id="cuerpoTabla" style="height: 350px;">
+                              <tbody id="cuerpoTabla">
                                   <tr class="filaTabla" style="display: none">
                                       <td class="col-sm-3 titulo_noticias"></td>
                                       <td class="col-sm-3 abstract_noticias"></td>
                                       <td class="col-sm-2 foto_noticias"></td>
                                       <td class="col-sm-2 pdf_noticias"></td>
                                       <td class="col-sm-2 acciones">
-                                          <button id="btnVerNoticia" class="btn btn-info info" type="button" value=""
-                                              title="VER MÁS" data-toggle="tooltip" data-placement="top"
+                                          <button id="btnVerNoticia" class="btn btn-info info" type="button"
+                                              value="" title="VER MÁS" data-toggle="tooltip" data-placement="top"
                                               data-delay="{'show':'300', 'hide':'100'}">
                                               <i class="fa fa-fw fa-search-plus"></i>
                                           </button>
@@ -286,7 +312,7 @@
                           <div class="col text-center">
                               <h6 id="text-titulo" class="mb-0">Titulo</h6>
                           </div>
-                          <div class="col-lg-12 ">
+                          <div class="col-lg-12">
                               <h5 id="titleEditShow" class="no_visualizable">NUEVO TITULO</h5>
                               <input id="noticiaNuevoTitulo" class="form-control no_visualizable"
                                   placeholder="Ingresar aquí el titulo (max: 255 caracteres)" required />
@@ -379,6 +405,7 @@
       <script src="/js/paginacion.js" charset="utf-8"></script>
       <script src="/js/lista-datos.js" type="text/javascript"></script>
       <!-- JavaScript personalizado -->
+      <script src="/js/utils.js" charset="utf-8"></script>
       <script src="/js/Autoexclusion/indexNoticias.js?2" charset="utf-8"></script>
       <!-- JS file -->
       <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>

@@ -1336,6 +1336,7 @@
       <script src="/js/paginacion.js" charset="utf-8"></script>
       <script src="/js/lista-datos.js" type="text/javascript"></script>
       <!-- JavaScript personalizado -->
+      <script src="/js/utils.js" charset="utf-8"></script>
       <script src="/js/Autoexclusion/index.js?2" charset="utf-8"></script>
       <!-- JS file -->
       <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>
