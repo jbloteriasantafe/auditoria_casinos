@@ -90,7 +90,7 @@ class AutoexclusionController extends Controller
       'fecha_cierre_definitivo_d' => 'ae_estado.fecha_cierre_ae',
       'fecha_cierre_definitivo_h' => 'ae_estado.fecha_cierre_ae',
     ]; 
-    foreach($filters as $key => $column){
+    foreach($filters as $key => $column){ //echo asi por las dudas si necesito agregar mas tipos de filtros y evitar tanto los if agrupando diferentes tipos de filtros en uno
       if (!empty($request->$key)) {
         switch($key){
           case 'nombres':
