@@ -176,12 +176,14 @@ class BackOfficeController extends Controller {
         ->join('isla as i','i.id_isla','=','m.id_isla')
         ->groupBy(DB::raw('"constant"'))
       ],
-      'totales_diarios_cotizados'   => $this->vista_totales_mensuales(false),
-      'totales_mensuales_cotizados' => $this->vista_totales_mensuales(true),
+      'totales_diarios_por_moneda'   => $this->vista_totales(false,true),
+      'totales_mensuales_por_moneda' => $this->vista_totales(true,true),
+      'totales_diarios'   => $this->vista_totales(false,false),
+      'totales_mensuales' => $this->vista_totales(true,false),
     ];
   }
   
-  private function vista_totales_mensuales(bool $total_mensual){
+  private function vista_totales(bool $total_mensual,bool $por_moneda){
     $fechas = DB::raw('(
       SELECT distinct fecha,id_casino,id_tipo_moneda FROM beneficio
       UNION
@@ -217,9 +219,11 @@ class BackOfficeController extends Controller {
     
     $indirect_where = [
       'casino' => 'fechas.id_casino',
-      'moneda' => 'fechas.id_tipo_moneda',
     ];
-    $cols = [];
+    
+    $cols = [
+      ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('producido')]
+    ];
     $default_order_by = [];
     
     $beneficios = ['b.valor','idm.utilidad','bi.beneficio'];
@@ -228,39 +232,85 @@ class BackOfficeController extends Controller {
       $beneficios
     );
     
-    if($total_mensual){
-      $año_mes = "CONCAT(LPAD(YEAR(fechas.fecha),4,'0'),'-',LPAD(MONTH(fechas.fecha),2,'0'))";
-      $query = $query->groupBy(DB::raw("$año_mes,c.id_casino,tm.id_tipo_moneda"));
-      $count = $count->selectRaw("COUNT(distinct CONCAT($año_mes,'-',id_casino,'-',id_tipo_moneda)) as count");
-      $indirect_where['año_mes'] = 'fechas.fecha';
-      $cols[] = [$año_mes,'año_mes','string','input_date_month',['','']];
-      $default_order_by[$año_mes] = 'desc';
+    if($por_moneda){
+      $indirect_where['moneda'] = 'fechas.id_tipo_moneda';
+      $cols[] = ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('producido')];
       
-      $SUM = function($s) { return "SUM($s)"; };
-      $beneficios           = array_map($SUM,$beneficios);
-      $beneficios_cotizados = array_map($SUM,$beneficios_cotizados);
+      if($total_mensual){
+        $año_mes = "CONCAT(LPAD(YEAR(fechas.fecha),4,'0'),'-',LPAD(MONTH(fechas.fecha),2,'0'))";
+        array_unshift($cols,[$año_mes,'año_mes','string','input_date_month',['','']]);
+        
+        $query = $query->groupBy(DB::raw("$año_mes,c.id_casino,tm.id_tipo_moneda"));
+        $count = $count->selectRaw("COUNT(distinct CONCAT($año_mes,'-',id_casino,'-',id_tipo_moneda)) as count");
+        
+        $indirect_where['año_mes'] = 'fechas.fecha';
+        
+        $default_order_by[$año_mes] = 'desc';
+        
+        $SUM = function($s) { return "SUM($s)"; };
+        $beneficios           = array_map($SUM,$beneficios);
+        $beneficios_cotizados = array_map($SUM,$beneficios_cotizados);
+      }
+      else{
+        array_unshift($cols,['fechas.fecha','fecha','string','input_date',['','']]);
+        
+        $count = $count->selectRaw('COUNT(distinct CONCAT(fechas.fecha,"-",id_casino,"-",id_tipo_moneda)) as count');
+        
+        $default_order_by['fechas.fecha'] = 'desc';
+      }
+      
+      $cols = array_merge($cols,
+        [
+          [$beneficios[0],'maq_beneficio','numeric'],
+          [$beneficios_cotizados[0],'maq_cotizado','numeric'],
+          [$beneficios[1],'mesas_beneficio','numeric'],
+          [$beneficios_cotizados[1],'mesas_cotizado','numeric'],
+          [$beneficios[2],'bingo_beneficio','numeric'],
+          [$beneficios_cotizados[2],'bingo_cotizado','numeric'],
+        ]
+      );
     }
     else{
-      $count = $count->selectRaw('COUNT(distinct CONCAT(fechas.fecha,"-",id_casino,"-",id_tipo_moneda)) as count');
-      $cols[] = ['fechas.fecha','fecha','string','input_date',['','']];
-      $default_order_by['fechas.fecha'] = 'desc';
+      if($total_mensual){
+        $año_mes = "CONCAT(LPAD(YEAR(fechas.fecha),4,'0'),'-',LPAD(MONTH(fechas.fecha),2,'0'))";
+        array_unshift($cols,[$año_mes,'año_mes','string','input_date_month',['','']]);
+        
+        $query = $query->groupBy(DB::raw("$año_mes,c.id_casino"));
+        $count = $count->selectRaw("COUNT(distinct CONCAT($año_mes,'-',id_casino,'-')) as count");
+        
+        $indirect_where['año_mes'] = 'fechas.fecha';
+        
+        $default_order_by[$año_mes] = 'desc';
+        
+        $SUM = function($s) { return "SUM($s)"; };
+        $beneficios           = array_map($SUM,$beneficios);
+        $beneficios_cotizados = array_map($SUM,$beneficios_cotizados);
+      }
+      else{
+        array_unshift($cols,['fechas.fecha','fecha','string','input_date',['','']]);
+        
+        $query = $query->groupBy(DB::raw("fechas.fecha,c.id_casino"));
+        $count = $count->selectRaw('COUNT(distinct CONCAT(fechas.fecha,"-",id_casino)) as count');
+        
+        $default_order_by['fechas.fecha'] = 'desc';
+        
+        $SUM = function($s) { return "SUM($s)"; };
+        $beneficios           = array_map($SUM,$beneficios);
+        $beneficios_cotizados = array_map($SUM,$beneficios_cotizados);
+      }
+      
+      $cols = array_merge($cols,
+        [
+          [$beneficios_cotizados[0],'maq_cotizado','numeric'],
+          [$beneficios_cotizados[1],'mesas_cotizado','numeric'],
+          [$beneficios_cotizados[2],'bingo_cotizado','numeric'],
+        ]
+      );
     }
     
-    $cols = array_merge($cols,
-      [
-        ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('producido')],
-        ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('producido')],
-        [$beneficios[0],'maq_beneficio','numeric'],
-        [$beneficios_cotizados[0],'maq_cotizado','numeric'],
-        [$beneficios[1],'mesas_beneficio','numeric'],
-        [$beneficios_cotizados[1],'mesas_cotizado','numeric'],
-        [$beneficios[2],'bingo_beneficio','numeric'],
-        [$beneficios_cotizados[2],'bingo_cotizado','numeric'],
-        //Si son todos nulos, sigo queriendo que reporte 0, por eso IFNULL
-        [implode('+',array_map(function($s){ return "IFNULL($s,0)";},$beneficios_cotizados)),'total','numeric']
-      ]
-    );
-    
+    //Si son todos nulos, sigo queriendo que reporte 0, por eso IFNULL
+    $cols[] = [implode('+',array_map(function($s){ return "IFNULL($s,0)";},$beneficios_cotizados)),'total','numeric'];
+        
     return compact('cols','indirect_where','query','count','default_order_by');
   }
   
