@@ -251,7 +251,7 @@ class BackOfficeController extends Controller {
         [$beneficios[1],'mesas_beneficio','numeric'],
         [$beneficios_cotizados[1],'mesas_cotizado','numeric'],
         [$beneficios[2],'bingo_beneficio','numeric'],
-        [$beneficios_cotizados[1],'bingo_cotizado','numeric'],
+        [$beneficios_cotizados[2],'bingo_cotizado','numeric'],
         //Si son todos nulos, sigo queriendo que reporte 0, por eso IFNULL
         [implode('+',array_map(function($s){ return "IFNULL($s,0)";},$beneficios_cotizados)),'total','numeric']
       ]
@@ -398,8 +398,6 @@ class BackOfficeController extends Controller {
       $data = $data->skip($OFFSET)->take($page_size);
     }
     
-    //dump($data->toSql(),$data->getBindings());
-    //dump($count->toSql(),$count->getBindings());
     $data = $data->get()->map(function($r,$rk) use ($request){
       return collect($r)->map(function($cv,$ck) use ($request){
         return $this->postprocess($request->vista,$ck,$cv);
