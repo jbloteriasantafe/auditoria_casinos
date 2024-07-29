@@ -40,13 +40,14 @@ class BackOfficeController extends Controller {
   
   private $vistas = null;
   function __construct(){
-    $hoy = date('Y-m');
+    $hoy = date('Y-m');        
     //Directamente vinculado con 'cols', no cambiar el orden si no se cambia el orden de las columnas
     //select, alias, tipo para formateo, tipo de buscador, cantidad de buscadores y valores por defecto, valores (solo select)
     $cols_indexes = ['BO_SELECT','BO_ALIAS','BO_FMT','BO_TIPO','BO_DEFAULTS','BO_VALUES'];
     foreach($cols_indexes as $val => $constant){
       define($constant,$val);
     }
+    
     $this->vistas = [
       'beneficio_maquinas' => [
         'cols' => [
@@ -174,8 +175,89 @@ class BackOfficeController extends Controller {
         ->join('maquina as m','m.id_maquina','=','dp.id_maquina')
         ->join('isla as i','i.id_isla','=','m.id_isla')
         ->groupBy(DB::raw('"constant"'))
-      ]
+      ],
+      'totales_diarios_cotizados'   => $this->vista_totales_mensuales(false),
+      'totales_mensuales_cotizados' => $this->vista_totales_mensuales(true),
     ];
+  }
+  
+  private function vista_totales_mensuales(bool $total_mensual){
+    $fechas = DB::raw('(
+      SELECT distinct fecha,id_casino,id_tipo_moneda FROM beneficio
+      UNION
+      SELECT distinct fecha,id_casino,id_moneda as id_tipo_moneda FROM importacion_diaria_mesas
+      UNION
+      SELECT distinct fecha,id_casino,1 as id_tipo_moneda FROM bingo_importacion
+    ) as fechas');
+    
+    $query = DB::table($fechas)
+    ->join('casino as c','c.id_casino','=','fechas.id_casino')
+    ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','fechas.id_tipo_moneda')
+    ->leftJoin('cotizacion as cot','cot.fecha','=','fechas.fecha')
+    ->leftJoin('beneficio as b',function($q){
+      return $q->on('fechas.fecha','=','b.fecha')->on('fechas.id_casino','=','b.id_casino')
+      ->on('fechas.id_tipo_moneda','=','b.id_tipo_moneda');
+    })
+    ->leftJoin('importacion_diaria_mesas as idm',function($q){
+      return $q->on('fechas.fecha','=','idm.fecha')->on('fechas.id_casino','=','idm.id_casino')
+      ->on('fechas.id_tipo_moneda','=','idm.id_moneda')//@HACK: no usan la misma tabla para moneda...
+      ->whereNull('idm.deleted_at');
+    })
+    ->leftJoin('bingo_importacion as bi',function($q){
+      return $q->on('fechas.fecha','=','bi.fecha')->on('fechas.id_casino','=','bi.id_casino')
+      ->where('fechas.id_tipo_moneda','=',1);//Bingo solo tiene pesos... que tenga nulo si es en dolares
+    });
+    
+    $count = DB::table($fechas)
+    ->groupBy(DB::raw("'constant'"));
+    
+    $indirect_where = [
+      'casino' => 'fechas.id_casino',
+      'moneda' => 'fechas.id_tipo_moneda',
+    ];
+    $cols = [];
+    $default_order_by = [];
+    
+    $beneficios = ['b.valor','idm.utilidad','(bi.recaudado-bi.premio_linea-bi.premio_bingo)'];
+    $beneficios_cotizados = array_map(
+      function($s) { return "IF(tm.id_tipo_moneda = 1,1.0,cot.valor)*($s)"; },
+      $beneficios
+    );
+    
+    if($total_mensual){
+      $año_mes = "CONCAT(LPAD(YEAR(fechas.fecha),4,'0'),'-',LPAD(MONTH(fechas.fecha),2,'0'))";
+      $query = $query->groupBy(DB::raw("$año_mes,c.id_casino,tm.id_tipo_moneda"));
+      $count = $count->selectRaw("COUNT(distinct CONCAT($año_mes,'-',id_casino,'-',id_tipo_moneda)) as count");
+      $indirect_where['año_mes'] = 'fechas.fecha';
+      $cols[] = [$año_mes,'año_mes','string','input_date_month',['','']];
+      $default_order_by[$año_mes] = 'desc';
+      
+      $SUM = function($s) { return "SUM($s)"; };
+      $beneficios           = array_map($SUM,$beneficios);
+      $beneficios_cotizados = array_map($SUM,$beneficios_cotizados);
+    }
+    else{
+      $count = $count->selectRaw('COUNT(distinct CONCAT(fechas.fecha,"-",id_casino,"-",id_tipo_moneda)) as count');
+      $cols[] = ['fechas.fecha','fecha','string','input_date',['','']];
+      $default_order_by['fechas.fecha'] = 'desc';
+    }
+    
+    $cols = array_merge($cols,
+      [
+        ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('producido')],
+        ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('producido')],
+        [$beneficios[0],'maq_beneficio','numeric'],
+        [$beneficios_cotizados[0],'maq_cotizado','numeric'],
+        [$beneficios[1],'mesas_beneficio','numeric'],
+        [$beneficios_cotizados[1],'mesas_cotizado','numeric'],
+        [$beneficios[2],'bingo_beneficio','numeric'],
+        [$beneficios_cotizados[1],'bingo_cotizado','numeric'],
+        //Si son todos nulos, sigo queriendo que reporte 0, por eso IFNULL
+        [implode('+',array_map(function($s){ return "IFNULL($s,0)";},$beneficios_cotizados)),'total','numeric']
+      ]
+    );
+    
+    return compact('cols','indirect_where','query','count','default_order_by');
   }
   
   public function index(Request $request){
@@ -196,7 +278,7 @@ class BackOfficeController extends Controller {
         'columnas' => $columnas,
       ]);
     });
-    
+            
     return view('seccionBackoffice',compact('vistas'));
   }
   
@@ -233,23 +315,27 @@ class BackOfficeController extends Controller {
           $q = $q->whereIn(DB::raw($select),$recibido);
       }
       else if($tipo == 'input_date_month' && !empty($recibido)){
-        if(is_array($recibido) && count($recibido) >= 2 && !empty($recibido[0]) && !empty($recibido[1])){
-          $d = explode('-',$recibido[0]);
-          $h = explode('-',$recibido[1]);
-          foreach($QS as &$q)
-            $q = $q->whereYear(DB::raw($select),'>=',$d[0])
-                   ->whereMonth(DB::raw($select),'>=',$d[1])
-                   ->whereYear(DB::raw($select),'<=',$h[0])
-                   ->whereMonth(DB::raw($select),'<=',$h[1]);
-        } 
-        else if(is_array($recibido) && count($recibido) == 1 && !empty($recibido[0])){
-          $m = explode('-',$recibido[0]);
-          foreach($QS as &$q)
-            $q = $q->whereYear(DB::raw($select),'=',$m[0])
-                   ->whereMonth(DB::raw($select),'=',$m[1]);
+        if(is_array($recibido)){
+          $d = explode('-',$recibido[0] ?? '1970-01-01');
+          $h = explode('-',$recibido[1] ?? date('Y-m-d'));
+          foreach($QS as &$q){
+            $q = $q->where(function($q) use ($select,$d){
+              return $q->whereYear(DB::raw($select),'>',$d[0])
+              ->orWhere(function($q) use ($select,$d){
+                return $q->whereYear(DB::raw($select),'=',$d[0])
+                ->whereMonth(DB::raw($select),'>=',$d[1]);
+              });
+            })->where(function($q) use ($select,$h){
+              return $q->whereYear(DB::raw($select),'<',$h[0])
+              ->orWhere(function($q) use ($select,$h){
+                return $q->whereYear(DB::raw($select),'=',$h[0])
+                ->whereMonth(DB::raw($select),'<=',$h[1]);
+              });
+            });
+          }
         }
-        else if(!is_array($recibido)){
-          $m = explode('-',$recibido);
+        else{
+          $m = array_map(function($s){return intval($s);},explode('-',$recidibo));
           foreach($QS as &$q)
             $q = $q->whereYear(DB::raw($select),'=',$m[0])
                    ->whereMonth(DB::raw($select),'=',$m[1]);
@@ -295,8 +381,8 @@ class BackOfficeController extends Controller {
     
     $query = $QS[0];
     $count = $QS[1];
-    
-    $query = $query->orderBy($sort_by['columna'],$sort_by['orden']);
+        
+    $query = $query->orderBy(DB::raw($sort_by['columna']),$sort_by['orden']);
     
     $page_size = is_numeric($request->page_size)? intval($request->page_size) : 10;
     $page      = is_numeric($request->page)? intval($request->page) : 1;
@@ -312,6 +398,8 @@ class BackOfficeController extends Controller {
       $data = $data->skip($OFFSET)->take($page_size);
     }
     
+    //dump($data->toSql(),$data->getBindings());
+    //dump($count->toSql(),$count->getBindings());
     $data = $data->get()->map(function($r,$rk) use ($request){
       return collect($r)->map(function($cv,$ck) use ($request){
         return $this->postprocess($request->vista,$ck,$cv);
@@ -427,7 +515,7 @@ class BackOfficeController extends Controller {
   }
   
   private static function val_format($tipo,$val){
-    if(is_null($val) || $val == '' || (is_numeric($val) && is_nan($val)))
+    if($val === null || $val === '')
       return '';
     switch($tipo){
       case 'integer':
