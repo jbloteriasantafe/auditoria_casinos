@@ -203,7 +203,11 @@ class BackOfficeController extends Controller {
       ->on('fechas.id_tipo_moneda','=','idm.id_moneda')//@HACK: no usan la misma tabla para moneda...
       ->whereNull('idm.deleted_at');
     })
-    ->leftJoin('bingo_importacion as bi',function($q){
+    ->leftJoin(DB::raw('(
+      SELECT bi2.fecha,bi2.id_casino,(SUM(bi2.recaudado)-SUM(bi2.premio_linea)-SUM(bi2.premio_bingo)) as beneficio
+      FROM bingo_importacion as bi2
+      GROUP BY bi2.fecha,bi2.id_casino
+    ) as bi'),function($q){
       return $q->on('fechas.fecha','=','bi.fecha')->on('fechas.id_casino','=','bi.id_casino')
       ->where('fechas.id_tipo_moneda','=',1);//Bingo solo tiene pesos... que tenga nulo si es en dolares
     });
@@ -218,7 +222,7 @@ class BackOfficeController extends Controller {
     $cols = [];
     $default_order_by = [];
     
-    $beneficios = ['b.valor','idm.utilidad','(bi.recaudado-bi.premio_linea-bi.premio_bingo)'];
+    $beneficios = ['b.valor','idm.utilidad','bi.beneficio'];
     $beneficios_cotizados = array_map(
       function($s) { return "IF(tm.id_tipo_moneda = 1,1.0,cot.valor)*($s)"; },
       $beneficios
