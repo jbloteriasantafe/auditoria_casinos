@@ -73,11 +73,11 @@
                 $dflt = $c['default'][$i];
               ?>
               @if($tipo == 'select')
-                <select class="form-control" style="flex: 1;" name="{{$name}}">
+                <select class="form-control" style="flex: 1;" name="{{$name}}" data-dflt-val-test="{{$dflt}}">
+                  <option value="" {{ $dflt == ''? 'selected' : '' }}>- TODOS/AS -</option>
                   @foreach($c['valores'] as $val_idx => $val)
-                  <option value="{{$val->id}}" {{ $dflt==$val_idx? 'selected' : '' }}>{{$val->valor}}</option>
+                  <option value="{{$val->id}}" {{ $dflt===$val_idx? 'selected' : '' }}>{{$val->valor}}</option>
                   @endforeach
-                  <option value="" {{ ($dflt==-1 || $dflt>=count($c['valores']))? 'selected' : '' }}>- TODOS/AS -</option>
                 </select>
               @elseif($tipo == 'input' || $tipo == 'input_vals_list')
                 <input class="form-control" style="flex: 1;" name="{{$name}}">
