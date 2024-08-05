@@ -26,6 +26,16 @@ $('[data-js-filtro-tabla]').each(function(idx,fObj){ $(fObj).on('busqueda',funct
     }).show();
     tbody.append(fila);
   });
+  tbody.find('[data-js-planilla]').click(function(e){
+    window.open('layout_parcial/generarPlanillaLayoutParcial/' + $(e.currentTarget).val(),'_blank');
+  });
+  tbody.find('[data-js-imprimir]').click(function(e){
+    window.open('layout_parcial/generarPlanillaLayoutParcial/' + $(e.currentTarget).val(),'_blank');
+  });
+  tbody.find('[data-js-abrir-modal]').click(function(e){
+    const boton = $(e.currentTarget);
+    $('[data-js-modal-ver-cargar-validar-layout-parcial]').trigger('mostrar',[boton.val(),boton.attr('data-js-abrir-modal')]);
+  });
 }).trigger('buscar'); });
   
 $('#btn-nuevoLayoutParcial').click(function(e){
@@ -118,6 +128,62 @@ $('[data-js-modal-layout-parcial-sin-sistema]').each(function(idx,Mobj){
     );
   });
 });
+
+$('[data-js-modal-ver-cargar-validar-layout-parcial]').each(function(mIdx,mObj){
+  const M = $(mObj);  
+  M.on('mostrar',function(e,id_layout_parcial,modo){
+    M.attr('data-css-modo',modo);
+    
+    AUX.GET('layout_parcial/obtenerLayoutParcial/'+id_layout_parcial,{},function(data){
+      const tbody = M.find('[data-js-tabla-relevado] tbody').empty();
+      const molde = M.find('[data-js-molde-relevado]').clone().removeAttr('data-js-molde-relevado');
+      
+      data.detalles.forEach(function(d){
+        const fila = molde.clone();
+        fila.find('[name]').each(function(idx,nobj){
+          const o = $(nobj);
+          const name = o.attr('name');
+          const dname = d[name];
+          o.val(dname?.valor ?? dname ?? '');
+          if(o.is('[data-js-editable-original]')){
+            o.attr('data-js-editable-original',dname?.valor_antiguo?.length?
+              dname.valor_antiguo
+            : (dname.valor ?? dname));
+            
+            if(o.attr('data-js-editable-original') == o.val()){
+              o.attr('readonly',true);
+            }
+          }
+        });
+        
+        fila.find('[name="nro_admin"]').val(d.nro_admin.valor);
+        fila.find('[name="nro_isla"]').val(d.nro_isla.valor);
+        fila.find('[name="marca"]').val(d.marca.valor);
+        fila.find('[name="juego"]').val(d.juego.valor);
+        fila.find('[name="nro_serie"]').val(d.nro_serie.valor);
+        tbody.append(fila);
+      });
+      
+      tbody.find('[data-js-editable-original]').on('dblclick',function(e){
+        $(e.currentTarget).removeAttr('readonly');
+      });
+      
+      M.find('[data-js-modo-habilitar]:not([data-js-fecha])').attr('disabled',true).filter(function(idx,obj){
+        return $(obj).attr('data-js-modo-habilitar').split(',').includes(modo+'');
+      }).removeAttr('disabled');
+      
+      M.find('[data-js-modo-habilitar][data-js-fecha]').each(function(idx,obj){
+        obj.disabled(true);
+      }).filter(function(idx,obj){
+        return $(obj).attr('data-js-modo-habilitar').split(',').includes(modo+'');
+      }).each(function(idx,obj){
+        obj.disabled(false);
+      });
+      
+      M.modal('show');
+    });
+  });
+});
   
 });
 
@@ -140,7 +206,7 @@ $(document).ready(function(){
 });
 
 /*****   Modal de validacion  *****/
-$(document).on('click','.validar',function(e){
+$(document).on('click','[data-js-validar]',function(e){
   e.preventDefault();
   $('#mensajeExito').hide();
   var modal = $('#modalValidarControl'); // formato en html
@@ -182,7 +248,7 @@ $(document).on('click','.validar',function(e){
 });
 
 /*****   Modal de carga | nueva manera   *****/
-$(document).on('click','.carga',function(e){
+$(document).on('click','[data-js-cargar]',function(e){
   e.preventDefault();
   guardado = true;
   $('#mensajeExito').hide();
@@ -765,18 +831,6 @@ $('#btn-minimizarValidar').click(function(){
     $('.modal-backdrop').css('opacity','0.5');
     $(this).data("minimizar",true);
   }
-});
-
-//MUESTRA LA PLANILLA VACIA PARA RELEVAR
-$(document).on('click','.planilla',function(){
-  $('#alertaArchivo').hide();
-  window.open('layout_parcial/generarPlanillaLayoutParcial/' + $(this).val(),'_blank');
-});
-
-//MUESTRA LA PLANILLA VACIA PARA RELEVAR
-$(document).on('click','.imprimir',function(){
-  $('#alertaArchivo').hide();
-  window.open('layout_parcial/generarPlanillaLayoutParcial/' + $(this).val(),'_blank');
 });
 
 $(document).on('keypress','.inputLayout', function(e){

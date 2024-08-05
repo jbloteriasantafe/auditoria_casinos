@@ -55,10 +55,11 @@ class LayoutController extends Controller
     $ver_planilla_layout_parcial = $usuario->es_superusuario || $usuario->es_administrador? true : $usuario->tienePermiso('ver_planilla_layout_parcial');
     $carga_layout_parcial        = $usuario->es_superusuario || $usuario->es_administrador? true : $usuario->tienePermiso('carga_layout_parcial');
     $validar_layout_parcial      = $usuario->es_superusuario || $usuario->es_administrador? true : $usuario->tienePermiso('validar_layout_parcial');
+    $ver_seccion_maquinas        = $usuario->tienePermiso('ver_seccion_maquinas');
     $estados = EstadoRelevamiento::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Layout Parcial' , 'layout_parcial');
 
-    return view('seccionLayoutParcial', compact('casinos','estados','ver_planilla_layout_parcial','carga_layout_parcial','validar_layout_parcial'));
+    return view('seccionLayoutParcial', compact('casinos','estados','ver_planilla_layout_parcial','carga_layout_parcial','validar_layout_parcial','ver_seccion_maquinas'));
   }
   // obtenerLayoutParcial retorna la informacion para la carga del layout, 
   // obtiene los detalles de layout

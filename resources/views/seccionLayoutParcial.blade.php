@@ -102,21 +102,24 @@
       </td>
       <td class="col-xs-3">
         @if($ver_planilla_layout_parcial)
-        <button class="btn btn-info planilla" type="button">
+        <button class="btn btn-info planilla" type="button"   data-js-planilla>
           <i class="far fa-fw fa-file-alt"></i>
         </button>
         @endif
         @if($carga_layout_parcial)
-        <button class="btn btn-warning carga" type="button" data-id_estado_relevamiento="{{$est['Generado']}}">
+        <button class="btn btn-warning carga" type="button"   data-js-abrir-modal="CARGAR"  data-id_estado_relevamiento="{{$est['Generado']}}">
           <i class="fa fa-fw fa-upload"></i>
         </button>
         @endif
         @if($validar_layout_parcial)
-        <button class="btn btn-success validar" type="button" data-id_estado_relevamiento="{{$est['Finalizado']}}">
+        <button class="btn btn-success validar" type="button" data-js-abrir-modal="VALIDAR" data-id_estado_relevamiento="{{$est['Finalizado']}}">
           <i class="fa fa-fw fa-check"></i>
         </button>
+        <button class="btn btn-success ver" type="button"     data-js-abrir-modal="VER"     data-id_estado_relevamiento="{{$est['Visado']}}">
+          <i class="fa fa-fw fa-search-plus"></i>
+        </button>
         @endif
-        <button class="btn btn-info imprimir" type="button" data-id_estado_relevamiento="{{$est['Finalizado']}},{{$est['Visado']}}">
+        <button class="btn btn-info imprimir" type="button"   data-js-imprimir data-id_estado_relevamiento="{{$est['Finalizado']}},{{$est['Visado']}}">
           <i class="fa fa-fw fa-print"></i>
         </button>
       </td>
@@ -297,30 +300,152 @@
 @endslot
 
 @endcomponent
-    
-<div class="modal fade" id="modalLayoutSinSistema" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header modalNuevo">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizarSinSistema" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoSinSistema" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title">| NUEVO CONTROL LAYOUT SIN SISTEMA</h3>
-      </div>
-      <div  id="colapsadoSinSistema" class="collapse in">
-        <div class="modal-body modalCuerpo">
-          <form id="frmLayoutSinSistema" name="frmLayoutSinSistema" class="form-horizontal" novalidate="">
-            
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-successAceptar" id="btn-backup" value="nuevo">USAR RELEVAMIENTO BACKUP</button>
-          <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-          <input type="hidden" id="id_casino" name="id_casino" value="0">
-        </div>
-      </div>
+
+
+<style>
+  .modalVerCargarValidarLayoutParcial[data-css-modo="VER"] .modal-header {
+    background-color: red;
+  }
+  .modalVerCargarValidarLayoutParcial[data-css-modo="CARGAR"] .modal-header {
+    background-color: green;
+  }
+  .modalVerCargarValidarLayoutParcial[data-css-modo="VALIDAR"] .modal-header {
+    background-color: blue;
+  }
+  .modalVerCargarValidarLayoutParcial .tablaRelevado th {
+    text-align: center;
+  }
+</style>
+
+@component('Components/modal',[
+  'clases_modal' => 'modalVerCargarValidarLayoutParcial',
+  'attrs_modal' => 'data-js-modal-ver-cargar-validar-layout-parcial',
+  'grande' => 90,
+])
+
+@slot('titulo')
+| LAYOUT PARCIAL
+@endslot
+
+@slot('cuerpo')
+<form class="form-horizontal row" novalidate="">
+  <div class="row">
+    <div class="col-lg-2 col-lg-offset-1">
+      <h5>FECHA DE CONTROL LAYOUT</h5>
+      <input name="fecha" type='text' class="form-control" data-js-modo-habilitar="">
+    </div>
+    <div class="col-lg-2">
+      <h5>FECHA DE GENERACIÓN</h5>
+      <input name="fecha_generacion" type='text' class="form-control" data-js-modo-habilitar="">
+    </div>
+    <div class="col-lg-2">
+      <h5>CASINO</h5>
+      <input name="casino" type='text' class="form-control" data-js-modo-habilitar="">
+    </div>
+    <div class="col-lg-2">
+      <h5>SECTOR</h5>
+      <input name="sector" type='text' class="form-control" data-js-modo-habilitar="">
+    </div>
+    <div class="col-lg-2">
+      <h5>SUB RELEVAMIENTO</h5>
+      <input name="subrelevamiento" type='text' class="form-control" data-js-modo-habilitar="">
     </div>
   </div>
-</div>
+  <div class="row">
+    <div class="col-md-2 col-md-offset-1">
+      <h5>FISCALIZADOR CARGA</h5>
+      <input name="fiscalizador_carga" type="text"class="form-control" data-js-modo-habilitar="">
+    </div>
+    <div class="col-md-2">
+      <h5>FISCALIZADOR TOMA</h5>
+      <input name="fiscalizador_toma" class="form-control" type="text" autocomplete="off" data-js-modo-habilitar="CARGAR">
+    </div>
+    <div class="col-md-2">
+      <h5>TÉCNICO</h5>
+      <input name="tecnico" type="text"class="form-control" data-js-modo-habilitar="CARGAR">
+    </div>
+    <div class="col-md-3">
+      <h5>FECHA EJECUCIÓN</h5>
+      @component('Components/inputFecha',['attrs' => 'name="fecha_ejecucion"', 'attrs_dtp' => 'data-date-format="yyyy-mm-dd HH:ii" data-js-modo-habilitar="CARGAR"'])
+      @endcomponent
+    </div>
+  </div>
+  <br>
+  <br>
+  <div class="row">
+    <div class="col-md-12">
+      <p style="font-family:'Roboto-Regular';font-size:16px;margin-left:20px;">
+        <i class="fa fa-fw fa-exclamation" style="color:#2196F3"></i> Haga doble click sobre los campos para entrar y salir del modo edición.
+      </p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <table data-js-tabla-relevado class="table tablaRelevado">
+        <thead>
+          <tr>
+            <th>MTM</th>
+            <th>ISLA</th>
+            <th>FABRICANTE</th>
+            <th>JUEGO</th>
+            <th>N° SERIE</th>
+            <th>NT</th>
+            <th>D. SALA</th>
+            <th>% DEV</th>
+            @if($ver_seccion_maquinas)
+            <th>MAQ</th>
+            @endif
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</form>
+<table hidden>
+  <tr data-js-molde-relevado>
+    <td>
+      <input class="form-control" name="nro_admin" type="text" data-js-editable-original="">
+    </td>
+    <td>
+      <input class="form-control" name="nro_isla" type="text" data-js-editable-original="">
+    </td>
+    <td>
+      <input class="form-control" name="marca" type="text" data-js-editable-original="">
+    </td>
+    <td>
+      <input class="form-control" name="juego" type="text" data-js-editable-original="">
+    </td>
+    <td>
+      <input class="form-control" name="nro_serie" type="text" data-js-editable-original="">
+    </td>
+    <td>
+      <input class="checkboxLayout" type="checkbox" name="no_toma" data-js-modo-habilitar="CARGAR">
+    </td>
+    <td>
+      <input class="form-control" type="text" name="denominacion" data-js-modo-habilitar="CARGAR">
+    </td>
+    <td>
+      <input class="form-control" type="text" name="pdev" data-js-modo-habilitar="CARGAR">
+    </td>
+    @if($ver_seccion_maquinas)
+    <td>
+      <a class="btn btn-success pop link_maquinas" type="button" href="http://10.1.121.30:8000/maquinas" target="_blank" data-placement="top" data-trigger="hover" title="GESTIONAR MÁQUINA" data-content="Ir a sección máquina" style="">
+        <i class="fa fa-fw fa-wrench"></i>
+      </a>
+    </td>
+    @endif
+  </tr>
+</table>
+@endslot
+
+@slot('pie')
+<button type="button" class="btn btn-warningModificar" data-js-finalizar data-modo-ver="CARGAR">FINALIZAR RELEVAMIENTO</button>
+<button type="button" class="btn btn-successAceptar"   data-js-validar   data-modo-ver="VALIDAR">VALIDAR RELEVAMIENTO</button>
+@endslot
+
+@endcomponent
 
 <div class="modal fade" id="modalCargaControlLayout" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width:95%;">
