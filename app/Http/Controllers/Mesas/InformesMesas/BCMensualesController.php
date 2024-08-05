@@ -155,7 +155,11 @@ class BCMensualesController extends Controller
       $datos[$mes.'-XX'] = $datos[$mes.'-XX'] ?? collect([]);
       $datos[$mes.'-XX'][$m->siglas] = (array) $mensualPorMonedaPorJuego['total'];
     }
-        
+    
+    $datos = $datos->sortBy(function($arr,$fecha){ 
+      return $fecha;
+    });
+      
     $casino = Casino::find($request->id_casino);
          
     $view = view('Informes.informeContableMesas', compact('datos','casino','mes','monedas'));
