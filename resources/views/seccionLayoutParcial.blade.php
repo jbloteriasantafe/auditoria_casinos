@@ -372,7 +372,7 @@
   </div>
   <br>
   <br>
-  <div class="row">
+  <div class="row" data-js-modo-ver="CARGAR">
     <div class="col-md-12">
       <p style="font-family:'Roboto-Regular';font-size:16px;margin-left:20px;">
         <i class="fa fa-fw fa-exclamation" style="color:#2196F3"></i> Haga doble click sobre los campos para entrar y salir del modo edición.
@@ -402,23 +402,35 @@
       </table>
     </div>
   </div>
+  <div class="row" data-js-modo-ver="VER,CARGAR,VALIDAR">
+    <div class="col-md-8 col-md-offset-2">
+      <h5>OBSERVACIONES FISCALIZACIÓN</h5>
+      <textarea name="observacion_fiscalizacion" class="form-control" style="resize:vertical;" data-js-modo-habilitar="CARGAR"></textarea>
+    </div>
+  </div>
+  <div class="row" data-js-modo-ver="VER,VALIDAR">
+    <div class="col-md-8 col-md-offset-2">
+      <h5>OBSERVACIONES</h5>
+      <textarea name="observacion_validacion" class="form-control" style="resize:vertical;" data-js-modo-habilitar=""></textarea>
+    </div>
+  </div>
 </form>
 <table hidden>
   <tr data-js-molde-relevado>
     <td>
-      <input class="form-control" name="nro_admin" type="text" data-js-editable-original="">
+      <input class="form-control" name="nro_admin" type="text" data-js-editable-original="" data-js-modo-habilitar="CARGAR">
     </td>
     <td>
-      <input class="form-control" name="nro_isla" type="text" data-js-editable-original="">
+      <input class="form-control" name="nro_isla" type="text" data-js-editable-original="" data-js-modo-habilitar="CARGAR">
     </td>
     <td>
-      <input class="form-control" name="marca" type="text" data-js-editable-original="">
+      <input class="form-control" name="marca" type="text" data-js-editable-original="" data-js-modo-habilitar="CARGAR">
     </td>
     <td>
-      <input class="form-control" name="juego" type="text" data-js-editable-original="">
+      <input class="form-control" name="juego" type="text" data-js-editable-original="" data-js-modo-habilitar="CARGAR">
     </td>
     <td>
-      <input class="form-control" name="nro_serie" type="text" data-js-editable-original="">
+      <input class="form-control" name="nro_serie" type="text" data-js-editable-original="" data-js-modo-habilitar="CARGAR">
     </td>
     <td>
       <input class="checkboxLayout" type="checkbox" name="no_toma" data-js-modo-habilitar="CARGAR">
@@ -441,8 +453,8 @@
 @endslot
 
 @slot('pie')
-<button type="button" class="btn btn-warningModificar" data-js-finalizar data-modo-ver="CARGAR">FINALIZAR RELEVAMIENTO</button>
-<button type="button" class="btn btn-successAceptar"   data-js-validar   data-modo-ver="VALIDAR">VALIDAR RELEVAMIENTO</button>
+<button type="button" class="btn btn-warningModificar" data-js-finalizar data-js-modo-ver="CARGAR">FINALIZAR RELEVAMIENTO</button>
+<button type="button" class="btn btn-successAceptar"   data-js-validar   data-js-modo-ver="VALIDAR">VALIDAR RELEVAMIENTO</button>
 @endslot
 
 @endcomponent

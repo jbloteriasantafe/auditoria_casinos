@@ -11,6 +11,12 @@ $('.tituloSeccionPantalla').text('Layout Parcial');
 $('[data-js-cambio-casino-select-sectores]')
 .trigger('set_url',['layout_parcial/obtenerSectoresPorCasino'])
 .trigger('change');
+ 
+const csvCheck = function(attr,str){
+  return function(idx,obj){
+    return $(obj).attr(attr).split(',').includes(str+'');
+  };
+};
 
 $('[data-js-filtro-tabla]').each(function(idx,fObj){ $(fObj).on('busqueda',function(e,ret,tbody,molde){  
   ret.data.forEach(function(r){
@@ -21,9 +27,8 @@ $('[data-js-filtro-tabla]').each(function(idx,fObj){ $(fObj).on('busqueda',funct
     fila.find('.subrelevamiento').text(r.subcontrol ?? '');
     fila.find('button').val(r.id_layout_parcial);
     fila.find('[data-id_estado_relevamiento]').hide()
-    .filter(function(idx,obj){
-      return $(obj).attr('data-id_estado_relevamiento').split(',').includes(r.id_estado_relevamiento+'');
-    }).show();
+    .filter(csvCheck('data-id_estado_relevamiento',r.id_estado_relevamiento))
+    .show();
     tbody.append(fila);
   });
   tbody.find('[data-js-planilla]').click(function(e){
@@ -131,6 +136,7 @@ $('[data-js-modal-layout-parcial-sin-sistema]').each(function(idx,Mobj){
 
 $('[data-js-modal-ver-cargar-validar-layout-parcial]').each(function(mIdx,mObj){
   const M = $(mObj);  
+ 
   M.on('mostrar',function(e,id_layout_parcial,modo){
     M.attr('data-css-modo',modo);
     
@@ -168,17 +174,45 @@ $('[data-js-modal-ver-cargar-validar-layout-parcial]').each(function(mIdx,mObj){
         $(e.currentTarget).removeAttr('readonly');
       });
       
-      M.find('[data-js-modo-habilitar]:not([data-js-fecha])').attr('disabled',true).filter(function(idx,obj){
-        return $(obj).attr('data-js-modo-habilitar').split(',').includes(modo+'');
-      }).removeAttr('disabled');
+      const habilitar = function(estado){
+        return function(idx,obj){
+          if($(obj).is('[data-js-fecha]')){
+            obj.disabled(estado);
+          }
+          else{
+            if(estado) $(obj).attr('disabled',true);
+            else       $(obj).removeAttr('disabled');
+          }
+        };
+      };
       
-      M.find('[data-js-modo-habilitar][data-js-fecha]').each(function(idx,obj){
-        obj.disabled(true);
-      }).filter(function(idx,obj){
-        return $(obj).attr('data-js-modo-habilitar').split(',').includes(modo+'');
-      }).each(function(idx,obj){
-        obj.disabled(false);
-      });
+      M.find('[data-js-modo-habilitar]')
+      .each(habilitar(true))
+      .filter(csvCheck('data-js-modo-habilitar',modo))
+      .each(habilitar(false));
+      
+      //M.find('[data-js-editable-original][data-js-modo-habilitar][disabled]').off('dblclick');//Deshabilito el editar para los que estan deshabilitados por el modo
+    
+      M.find('[data-js-modo-ver]').hide()
+      .filter(csvCheck('data-js-modo-ver',modo))
+      .show();
+      
+      M.find('[name="fecha"]').val(data?.layout_parcial?.fecha ?? '');
+      M.find('[name="fecha_generacion"]').val(data?.layout_parcial?.fecha_generacion ?? '');
+      M.find('[name="casino"]').val(data?.casino ?? '');
+      M.find('[name="sector"]').val(data?.sector ?? '');
+      M.find('[name="subrelevamiento"]').val(data?.layout_parcial?.fecha ?? '');
+      M.find('[name="fiscalizador_carga"]').val(data?.usuario_cargador?.nombre ?? '');
+      M.find('[name="fiscalizador_toma"]').val(data?.usuario_fiscalizador?.nombre ?? '');
+      M.find('[name="tecnico"]').val(data?.layout_parcial?.tecnico ?? '');
+      M.find('[name="observacion_fiscalizacion"]').val(data?.layout_parcial?.observacion_fiscalizacion ?? '');
+      M.find('[name="observacion_validacion"]').val(data?.layout_parcial?.observacion_validacion ?? '');
+      
+      const dtp_fecha_ejecucion = M.find('[name="fecha_ejecucion"]').closest('[data-js-fecha]').data('datetimepicker');
+      dtp_fecha_ejecucion.reset();
+      if(data?.layout_parcial?.fecha_ejecucion){
+        dtp_fecha_ejecucion.setDate(new Date(data.layout_parcial.fecha_ejecucion));
+      }
       
       M.modal('show');
     });
