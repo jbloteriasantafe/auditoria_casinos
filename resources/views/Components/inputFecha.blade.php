@@ -1,5 +1,5 @@
 @component('Components/include_guard',['nombre' => 'input_fecha'])
-<link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet"/>
+<link href="/css/bootstrap-datetimepicker.min.css" rel="stylesheet"/>
 <style>
   .date[data-disabled="1"][data-js-fecha] span,
   .date[data-readonly="1"][data-js-fecha] span {

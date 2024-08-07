@@ -2,6 +2,7 @@ import '/js/Components/inputFecha.js';
 import '/js/Components/FiltroTabla.js';
 import {AUX} from "/js/Components/AUX.js";
 import '/js/Components/cambioCasinoSelectSectores.js';
+import '/js/Components/listasAutocompletar.js';
 import '/js/Relevamientos/modalMtmAPedido.js';
 
 $(function() {
@@ -43,45 +44,6 @@ $('[data-js-filtro-tabla]:not(#filtrosRelevamientos)').on('busqueda',function(e,
     $('[data-js-modal-mtm-a-p] [data-js-tabla-fechas-pedidas]').trigger('mostrar_mtm_a_pedido');
   });
 }).trigger('buscar');
-
-$('[data-listas-maquinas]').each(function(lidx,lObj){
-  const L = $(lObj);
-  const filtro_id_casino = $(L.attr('data-listas-maquinas-sacar-id_casino'));
-  const filtro_str       = $(L.attr('data-listas-maquinas-sacar-str'));
-  const origen_todas     = L.find('[data-lista-maquina-todas]');
-  const origen_cas       = L.find('[data-lista-maquina-cas]');
-  const origen_str       = L.find('[data-lista-maquina-str]');
-  const origen_str_id    = origen_str.attr('id');
-    
-  filtro_id_casino.change(function(e){
-    const id_casino = filtro_id_casino.val();
-    
-    const options = origen_todas.find('option').filter(`option[data-id_casino="${id_casino}"]`);
-    
-    origen_cas.empty().append(options.map(function(oidx,op){
-      const op2 = $(op).clone();
-      op2.val(op2.attr('data-nro_admin'));
-      op2.text(op2.val());
-      return op2[0];
-    }));
-    
-    filtro_str.trigger('input');
-  });
-
-  filtro_str.on('input',function(e){
-    const str = filtro_str.val();
-    $(this).attr('list', '');
-    
-    origen_str.empty().append(origen_cas.find('option').filter(function(idx,op){
-      return $(op).val().substr(0, str.length) === str;
-    }).clone());
-    
-    $(this).attr('list', origen_str_id);
-    $(this).focus();
-  });
-  
-  filtro_id_casino.trigger('change');
-});
 
 $('#filtrosRelevamientos[data-js-filtro-tabla]').on('busqueda',function(e,ret,_,molde){
   const M = $('[data-js-modal-detalle-maquina]');

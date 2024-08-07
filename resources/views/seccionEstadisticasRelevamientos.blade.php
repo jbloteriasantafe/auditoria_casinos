@@ -4,8 +4,8 @@
 @endsection
 
 @section('estilos')
-  <link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">
-  <link rel="stylesheet" href="css/paginacion.css">
+  <link rel="stylesheet" href="/css/bootstrap-datetimepicker.min.css">
+  <link rel="stylesheet" href="/css/paginacion.css">
   <style>
   .no_tomado{
     background-color: rgb(238,238,238);
@@ -15,20 +15,16 @@
 
 @section('contenidoVista')
 
-<div data-listas-maquinas data-listas-maquinas-sacar-id_casino="#id_casino" data-listas-maquinas-sacar-str="#nro_admin" hidden>
-  <!-- Tiene TODAS las maquinas de todos los casino -->
-  <datalist data-lista-maquina-todas>
-    <?php $codigos_casinos = $casinos->keyBy('id_casino'); ?>
-    @foreach($maquinas as $m)
-    <option data-id_casino="{{$m->id_casino}}" data-codigo-casino="{{$codigos_casinos[$m->id_casino]->codigo}}" data-id_maquina="{{$m->id_maquina}}" data-nro_admin="{{$m->nro_admin}}"></option>
-    @endforeach
-  </datalist>
-  <!-- Las maquinas del casino elegido -->
-  <datalist data-lista-maquina-cas></datalist>
-  <!-- Tiene las que va buscando dinamicamente -->
-  <datalist data-lista-maquina-str id="listasMaquinasStr"></datalist>
-</div>
-
+@component('Components/listasAutocompletar',[
+  'data' => $maquinas,
+  'selector_id_casino' => "#id_casino",
+  'selector_str'       => "#nro_admin",
+  'get_id_casino'    => function($m){return $m->id_casino;},
+  'get_id'           => function($m){return $m->id_maquina;},
+  'get_str'          => function($m){return $m->nro_admin;},
+  'outputStrListId'  => 'listasMaquinasStr',
+])
+@endcomponent
 
 <div class="row"> <!-- row principal -->
   <div class="col-lg-3">
@@ -278,13 +274,13 @@
 
 @section('scripts')
 <!-- JavaScript paginacion -->
-<script src="js/paginacion.js" charset="utf-8"></script>
+<script src="/js/paginacion.js" charset="utf-8"></script>
 <!-- JavaScript personalizado -->
 <script>
   const CONTADORES = {{$contadores}};
 </script>
-<script src="js/seccionEstadisticasRelevamientos.js?3" charset="utf-8" type="module"></script>
+<script src="/js/seccionEstadisticasRelevamientos.js?3" charset="utf-8" type="module"></script>
 <!-- DateTimePicker JavaScript -->
-<script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
-<script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
+<script type="text/javascript" src="/js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
+<script type="text/javascript" src="/js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
 @endsection

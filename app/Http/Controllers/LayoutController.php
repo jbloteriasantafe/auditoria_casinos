@@ -58,8 +58,18 @@ class LayoutController extends Controller
     $ver_seccion_maquinas        = $usuario->tienePermiso('ver_seccion_maquinas');
     $estados = EstadoRelevamiento::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Layout Parcial' , 'layout_parcial');
-
-    return view('seccionLayoutParcial', compact('casinos','estados','ver_planilla_layout_parcial','carga_layout_parcial','validar_layout_parcial','ver_seccion_maquinas'));
+    
+    $fiscalizadores = collect([]);
+    foreach($casinos as $c){
+      $fc = UsuarioController::getInstancia()->obtenerFiscalizadores($c->id_casino,$usuario->id_usuario);
+      $fc->transform(function($f,$fidx) use ($c){
+        $f->id_casino = $c->id_casino;
+        return $f;
+      });
+      $fiscalizadores = $fiscalizadores->concat($fc);
+    }
+        
+    return view('seccionLayoutParcial', compact('fiscalizadores','casinos','estados','ver_planilla_layout_parcial','carga_layout_parcial','validar_layout_parcial','ver_seccion_maquinas'));
   }
   // obtenerLayoutParcial retorna la informacion para la carga del layout, 
   // obtiene los detalles de layout

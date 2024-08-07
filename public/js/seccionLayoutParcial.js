@@ -3,6 +3,7 @@ import '/js/Components/FiltroTabla.js';
 import '/js/Components/modalEliminar.js';
 import {AUX} from "/js/Components/AUX.js";
 import '/js/Components/cambioCasinoSelectSectores.js';
+import '/js/Components/listasAutocompletar.js';
 
 $(function(){
   
@@ -207,6 +208,7 @@ $('[data-js-modal-ver-cargar-validar-layout-parcial]').each(function(mIdx,mObj){
       M.find('[name="tecnico"]').val(data?.layout_parcial?.tecnico ?? '');
       M.find('[name="observacion_fiscalizacion"]').val(data?.layout_parcial?.observacion_fiscalizacion ?? '');
       M.find('[name="observacion_validacion"]').val(data?.layout_parcial?.observacion_validacion ?? '');
+      M.find('[name="id_casino"]').val(data?.id_casino).trigger('change');
       
       const dtp_fecha_ejecucion = M.find('[name="fecha_ejecucion"]').closest('[data-js-fecha]').data('datetimepicker');
       dtp_fecha_ejecucion.reset();
@@ -217,8 +219,55 @@ $('[data-js-modal-ver-cargar-validar-layout-parcial]').each(function(mIdx,mObj){
       M.modal('show');
     });
   });
-});
   
+  M.find('[data-js-selecciono-id-fiscalizador]').on('seleccionado',function(e,val,id){
+    const fiscalizador_toma = M.find($(e.currentTarget).attr('data-js-selecciono-id-fiscalizador'));
+    fiscalizador_toma.attr('data-css-seleccion-correcta',(id !== null)+0);
+  });
+});
+
+
+$('[data-listas-maquinas]').each(function(lidx,lObj){
+  const L = $(lObj);
+  const filtro_id_casino = $(L.attr('data-listas-maquinas-sacar-id_casino'));
+  const filtro_str       = $(L.attr('data-listas-maquinas-sacar-str'));
+  const origen_todas     = L.find('[data-lista-maquina-todas]');
+  const origen_cas       = L.find('[data-lista-maquina-cas]');
+  const origen_str       = L.find('[data-lista-maquina-str]');
+  const origen_str_id    = origen_str.attr('id');
+  
+  console.log(filtro_id_casino,filtro_str,origen_todas,origen_cas,origen_str,origen_str_id);
+    
+  filtro_id_casino.change(function(e){
+    const id_casino = filtro_id_casino.val();
+    
+    const options = origen_todas.find('option').filter(`option[data-id_casino="${id_casino}"]`);
+    
+    origen_cas.empty().append(options.map(function(oidx,op){
+      const op2 = $(op).clone();
+      op2.val(op2.attr('data-nro_admin'));
+      op2.text(op2.val());
+      return op2[0];
+    }));
+    
+    filtro_str.trigger('input');
+  });
+
+  filtro_str.on('input',function(e){
+    const str = filtro_str.val();
+    $(this).attr('list', '');
+    
+    origen_str.empty().append(origen_cas.find('option').filter(function(idx,op){
+      return $(op).val().substr(0, str.length) === str;
+    }).clone());
+    
+    $(this).attr('list', origen_str_id);
+    $(this).focus();
+  });
+  
+  filtro_id_casino.trigger('change');
+});
+
 });
 
 var guardado;

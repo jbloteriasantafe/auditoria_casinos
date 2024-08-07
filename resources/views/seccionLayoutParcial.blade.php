@@ -14,6 +14,18 @@
 <link rel="stylesheet" href="css/lista-datos.css">
 @endsection
 
+@component('Components/listasAutocompletar',[
+  'data' => $fiscalizadores,
+  'selector_id_casino' => "[data-js-modal-ver-cargar-validar-layout-parcial] [name='id_casino']",
+  'selector_str'       => "[data-js-modal-ver-cargar-validar-layout-parcial] [name='fiscalizador_toma']",
+  'selector_output_id' => "[data-js-modal-ver-cargar-validar-layout-parcial] [name='id_fiscalizador_toma']",
+  'get_id_casino'    => function($f){return $f->id_casino;},
+  'get_id'           => function($f){return $f->id_usuario;},
+  'get_str'          => function($f){return $f->nombre;},
+  'outputCasListId'  => 'listasFiscalizadoresCas',
+])
+@endcomponent
+
 <style>
   tr.filaCabeceraFiltro th,
   tr.filaCuerpoFiltro td {
@@ -315,6 +327,16 @@
   .modalVerCargarValidarLayoutParcial .tablaRelevado th {
     text-align: center;
   }
+  .modalVerCargarValidarLayoutParcial [data-css-seleccion-correcta="1"] {
+    box-shadow: green 0em 0em 0.3em;
+  }
+  .modalVerCargarValidarLayoutParcial [data-css-seleccion-correcta="0"] {
+    box-shadow: red 0em 0em 0.3em;
+  }
+</style>
+
+<style>
+  
 </style>
 
 @component('Components/modal',[
@@ -329,6 +351,7 @@
 
 @slot('cuerpo')
 <form class="form-horizontal row" novalidate="">
+  <input name="id_casino" hidden>
   <div class="row">
     <div class="col-lg-2 col-lg-offset-1">
       <h5>FECHA DE CONTROL LAYOUT</h5>
@@ -358,7 +381,8 @@
     </div>
     <div class="col-md-2">
       <h5>FISCALIZADOR TOMA</h5>
-      <input name="fiscalizador_toma" class="form-control" type="text" autocomplete="off" data-js-modo-habilitar="CARGAR">
+      <input name="fiscalizador_toma" list="listasFiscalizadoresCas" class="form-control" type="text" autocomplete="off" data-js-modo-habilitar="CARGAR">
+      <input name="id_fiscalizador_toma" data-js-selecciono-id-fiscalizador="[name='fiscalizador_toma']" hidden>
     </div>
     <div class="col-md-2">
       <h5>TÉCNICO</h5>
@@ -411,7 +435,7 @@
   <div class="row" data-js-modo-ver="VER,VALIDAR">
     <div class="col-md-8 col-md-offset-2">
       <h5>OBSERVACIONES</h5>
-      <textarea name="observacion_validacion" class="form-control" style="resize:vertical;" data-js-modo-habilitar=""></textarea>
+      <textarea name="observacion_validacion" class="form-control" style="resize:vertical;" data-js-modo-habilitar="VALIDAR"></textarea>
     </div>
   </div>
 </form>
