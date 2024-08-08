@@ -163,6 +163,7 @@ class APIAEController extends Controller
     }
     
     public function agregar(Request $request){
+      Log::info($request);
         $validator = Validator::make($request->all(), [
           'ae_datos.nro_dni'          => 'required|integer',
           'ae_datos.apellido'         => 'required|string|max:100',
@@ -226,7 +227,7 @@ class APIAEController extends Controller
         foreach($except as $key => $defecto){//Pongo valores por defecto "No contesta" si no lo envia.
           if(!array_key_exists($key,$request['ae_datos'])) $request['ae_datos'][$key] = $defecto[2];
         }
-    
+        Log::info("aqui");
         $api_token = AuthenticationController::getInstancia()->obtenerAPIToken();
         DB::transaction(function() use($request,$api_token,$except){
           $ae = new AE\Autoexcluido;
