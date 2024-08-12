@@ -163,7 +163,6 @@ class APIAEController extends Controller
     }
     
     public function agregar(Request $request){
-      Log::info($request);
         $validator = Validator::make($request->all(), [
           'ae_datos.nro_dni'          => 'required|integer',
           'ae_datos.apellido'         => 'required|string|max:100',
@@ -227,7 +226,6 @@ class APIAEController extends Controller
         foreach($except as $key => $defecto){//Pongo valores por defecto "No contesta" si no lo envia.
           if(!array_key_exists($key,$request['ae_datos'])) $request['ae_datos'][$key] = $defecto[2];
         }
-        Log::info("aqui");
         $api_token = AuthenticationController::getInstancia()->obtenerAPIToken();
         DB::transaction(function() use($request,$api_token,$except){
           $ae = new AE\Autoexcluido;
@@ -421,5 +419,14 @@ class APIAEController extends Controller
           ]
           );
       }
+    }
+
+    public function obtener_autoExclusiones(Request $request, $dni) {
+      $data = DB::table('ae_datos as aedato')
+      ->select('aedato.nro_dni', 'estado.id_estado', 'estado.id_nombre_estado', 'estado.fecha_ae', 'estado.fecha_vencimiento', 'estado.fecha_cierre_ae')
+      ->join('ae_estado as estado','estado.id_autoexcluido','=','aedato.id_autoexcluido')
+      ->where('aedato.nro_dni','=',$dni) 
+      ->paginate($request->page_size);
+      return $data;
     }
 }

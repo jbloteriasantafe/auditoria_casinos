@@ -14,6 +14,7 @@ use PDF;
 use App\Casino;
 use App\Plataforma;
 use App\Autoexclusion as AE;
+use Illuminate\Support\Facades\Log;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -451,6 +452,7 @@ class AutoexclusionController extends Controller
       $todos_vencidos = $vencido && $todos_vencidos;
       if(!$todos_vencidos) break;
     }
+    Log::info("aqui");
     //Si estan todos los anteriores finalizados (o no hay), dejo crear uno nuevo.
     if($todos_vencidos){
       //Si ya estuvo AE retorno -1 sino 0

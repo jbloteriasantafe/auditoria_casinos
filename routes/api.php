@@ -30,6 +30,7 @@ Route::group(['prefix' => 'AE','middleware' => 'check_API_token'],function(){
   Route::get('constancia/reingreso/{DNI}','Autoexclusion\APIAEController@reingreso');
   Route::get('constancia/alta/{DNI}','Autoexclusion\APIAEController@exclusion_registro');
   Route::get('ultima/{DNI}','Autoexclusion\APIAEController@ultimos_datos');
+  Route::post('historial/{DNI}','Autoexclusion\APIAEController@obtener_autoExclusiones');
 });
 
 function completarUsuarioParaRetorno(&$u){
