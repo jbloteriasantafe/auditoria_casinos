@@ -25,7 +25,7 @@ $('[data-js-filtro-tabla]').each(function(idx,fObj){ $(fObj).on('busqueda',funct
     fila.find('.fecha').text(r.fecha);
     fila.find('.casino').text(r.casino);
     fila.find('.sector').text(r.sector);
-    fila.find('.subrelevamiento').text(r.subcontrol ?? '');
+    fila.find('.subrelevamiento').text(r.sub_control ?? '');
     fila.find('button').val(r.id_layout_parcial);
     fila.find('[data-id_estado_relevamiento]').hide()
     .filter(csvCheck('data-id_estado_relevamiento',r.id_estado_relevamiento))
@@ -74,8 +74,8 @@ $('[data-js-modal-layout-parcial]').each(function(idx,Mobj){
     
     AUX.POST('layout_parcial/crearLayoutParcial',formData,
       function(data){
+        M.trigger('success');
         M.find('[data-js-icono-carga]').hide();
-        $('[data-js-filtro-tabla]').trigger('buscar');
         
         if(data.nombre_zip !== undefined){
           let iframe = document.getElementById("download-container");
@@ -89,13 +89,14 @@ $('[data-js-modal-layout-parcial]').each(function(idx,Mobj){
           AUX.mensajeExito('Layout Parcial creado');
           M.modal('hide');
         }
-        else if(data.existeLayoutParcial == 1){
-          AUX.mensajeError('Deberá finalizar el relevamiento existente para poder generar uno nuevo.');
-        }
       },
       function(data){
         M.find('[data-js-icono-carga]').hide();
-        AUX.mostrarErroresNames(M,data.responseJSON ?? {});
+        const errores = data.responseJSON ?? {};
+        AUX.mostrarErroresNames(M,errores);
+        if(errores.layout_en_carga){
+          AUX.mensajeError(errores.layout_en_carga.join('; '));
+        }
       }
     );
   });
@@ -123,6 +124,7 @@ $('[data-js-modal-layout-parcial-sin-sistema]').each(function(idx,Mobj){
     AUX.POST('layout_parcial/usarLayoutBackup',formData,
       function(data){
         M.find('[data-js-icono-carga]').hide();
+        M.trigger('success');
         $('[data-js-filtro-tabla]').trigger('buscar');
         AUX.mensajeExito('Layout Parcial de backup habilitado');
         M.modal('hide');
@@ -140,22 +142,30 @@ $('[data-js-modal-ver-cargar-validar-layout-parcial]').each(function(mIdx,mObj){
  
   M.on('mostrar',function(e,id_layout_parcial,modo){
     M.attr('data-css-modo',modo);
+    M.find('[name="id_layout_parcial"]').val(id_layout_parcial);
+    ocultarErrorValidacion(M.find('[name]'));
     
     AUX.GET('layout_parcial/obtenerLayoutParcial/'+id_layout_parcial,{},function(data){
       const tbody = M.find('[data-js-tabla-relevado] tbody').empty();
       const molde = M.find('[data-js-molde-relevado]').clone().removeAttr('data-js-molde-relevado');
       
-      data.detalles.forEach(function(d){
+      data.detalles.forEach(function(d,didx){
         const fila = molde.clone();
-        fila.find('[name]').each(function(idx,nobj){
+        fila.find('[data-dyn-name]').each(function(nidx,nobj){
           const o = $(nobj);
-          const name = o.attr('name');
+          const name = o.attr('data-dyn-name');
           const dname = d[name];
-          o.val(dname?.valor ?? dname ?? '');
+          const valor = (typeof dname == 'object'?
+            dname?.valor : dname
+          ) ?? '';
+          const valor_antiguo = (typeof dname == 'object'?
+            dname?.valor_antiguo : dname
+          ) ?? '';
+          
+          o.val(valor);
+          o.attr('name',`detalles[${didx}][${name}]`);
           if(o.is('[data-js-editable-original]')){
-            o.attr('data-js-editable-original',dname?.valor_antiguo?.length?
-              dname.valor_antiguo
-            : (dname.valor ?? dname));
+            o.attr('data-js-editable-original',valor_antiguo.length? valor_antiguo : valor);
             
             if(o.attr('data-js-editable-original') == o.val()){
               o.attr('readonly',true);
@@ -163,16 +173,32 @@ $('[data-js-modal-ver-cargar-validar-layout-parcial]').each(function(mIdx,mObj){
           }
         });
         
-        fila.find('[name="nro_admin"]').val(d.nro_admin.valor);
-        fila.find('[name="nro_isla"]').val(d.nro_isla.valor);
-        fila.find('[name="marca"]').val(d.marca.valor);
-        fila.find('[name="juego"]').val(d.juego.valor);
-        fila.find('[name="nro_serie"]').val(d.nro_serie.valor);
+        fila.find('[data-js-cambio-asignar-val]').prop('checked',d.no_toma);
         tbody.append(fila);
       });
       
+      tbody.find('[data-js-cambio-asignar-val]').change(function(e){
+        const check = $(e.currentTarget);
+        const input = check.closest('tr').find(check.attr('data-js-cambio-asignar-val'));
+        input.val(check.prop('checked') ?? false);
+      }).change();
+      
+      tbody.find('[data-js-cambio-limpiar]').change(function(e){
+        const check = $(e.currentTarget);
+        const input = check.closest('tr').find(check.attr('data-js-cambio-limpiar'));
+        if(check.prop('checked')){
+          input.val('');
+        }
+      }).change();
+      
       tbody.find('[data-js-editable-original]').on('dblclick',function(e){
-        $(e.currentTarget).removeAttr('readonly');
+        const obj = $(e.currentTarget);
+        if(obj.attr('readonly')){
+          obj.removeAttr('readonly');
+        }
+        else {
+          obj.attr('readonly',true);
+        }
       });
       
       const habilitar = function(estado){
@@ -192,8 +218,6 @@ $('[data-js-modal-ver-cargar-validar-layout-parcial]').each(function(mIdx,mObj){
       .filter(csvCheck('data-js-modo-habilitar',modo))
       .each(habilitar(false));
       
-      //M.find('[data-js-editable-original][data-js-modo-habilitar][disabled]').off('dblclick');//Deshabilito el editar para los que estan deshabilitados por el modo
-    
       M.find('[data-js-modo-ver]').hide()
       .filter(csvCheck('data-js-modo-ver',modo))
       .show();
@@ -203,7 +227,7 @@ $('[data-js-modal-ver-cargar-validar-layout-parcial]').each(function(mIdx,mObj){
       M.find('[name="casino"]').val(data?.casino ?? '');
       M.find('[name="sector"]').val(data?.sector ?? '');
       M.find('[name="subrelevamiento"]').val(data?.layout_parcial?.fecha ?? '');
-      M.find('[name="fiscalizador_carga"]').val(data?.usuario_cargador?.nombre ?? '');
+      M.find('[name="fiscalizador_carga_recibido"]').val(data?.usuario_cargador?.nombre ?? '');
       M.find('[name="fiscalizador_toma"]').val(data?.usuario_fiscalizador?.nombre ?? '');
       M.find('[name="tecnico"]').val(data?.layout_parcial?.tecnico ?? '');
       M.find('[name="observacion_fiscalizacion"]').val(data?.layout_parcial?.observacion_fiscalizacion ?? '');
@@ -224,48 +248,38 @@ $('[data-js-modal-ver-cargar-validar-layout-parcial]').each(function(mIdx,mObj){
     const fiscalizador_toma = M.find($(e.currentTarget).attr('data-js-selecciono-id-fiscalizador'));
     fiscalizador_toma.attr('data-css-seleccion-correcta',(id !== null)+0);
   });
+  
+  M.find('[data-js-enviar-form]').click(function(e){
+    AUX.POST(
+      $(e.currentTarget).attr('data-js-enviar-form'),
+      AUX.form_entries(M.find('form')[0]),
+      function(data){
+        M.trigger('success');
+        M.modal('hide');
+      },
+      function(data){
+        const errores = data.responseJSON ?? {};
+        AUX.mostrarErroresNames(M.find('form'),errores,true);
+        if(errores.id_fiscalizador_toma){//@HACK leacky abstraction
+          mostrarErrorValidacion(M.find('[name="fiscalizador_toma"]'),errores.id_fiscalizador_toma.join(', '),true);
+        }
+        M.find('[data-js-tabla-relevado] tbody tr').each(function(tridx,tr){//@HACK leacky abstraction
+          $(tr).find('[data-dyn-name]').each(function(nidx,named){
+            const name = $(named).attr('data-dyn-name');
+            const err  = errores[`detalles.${tridx}.${name}`];
+            if(err){
+              mostrarErrorValidacion($(named),err.join(', '),false);
+            }
+          });
+        });
+      }
+    );
+  });
 });
 
-
-$('[data-listas-maquinas]').each(function(lidx,lObj){
-  const L = $(lObj);
-  const filtro_id_casino = $(L.attr('data-listas-maquinas-sacar-id_casino'));
-  const filtro_str       = $(L.attr('data-listas-maquinas-sacar-str'));
-  const origen_todas     = L.find('[data-lista-maquina-todas]');
-  const origen_cas       = L.find('[data-lista-maquina-cas]');
-  const origen_str       = L.find('[data-lista-maquina-str]');
-  const origen_str_id    = origen_str.attr('id');
-  
-  console.log(filtro_id_casino,filtro_str,origen_todas,origen_cas,origen_str,origen_str_id);
-    
-  filtro_id_casino.change(function(e){
-    const id_casino = filtro_id_casino.val();
-    
-    const options = origen_todas.find('option').filter(`option[data-id_casino="${id_casino}"]`);
-    
-    origen_cas.empty().append(options.map(function(oidx,op){
-      const op2 = $(op).clone();
-      op2.val(op2.attr('data-nro_admin'));
-      op2.text(op2.val());
-      return op2[0];
-    }));
-    
-    filtro_str.trigger('input');
-  });
-
-  filtro_str.on('input',function(e){
-    const str = filtro_str.val();
-    $(this).attr('list', '');
-    
-    origen_str.empty().append(origen_cas.find('option').filter(function(idx,op){
-      return $(op).val().substr(0, str.length) === str;
-    }).clone());
-    
-    $(this).attr('list', origen_str_id);
-    $(this).focus();
-  });
-  
-  filtro_id_casino.trigger('change');
+//Enlazar modales con busqueda
+$('[data-js-modal-ver-cargar-validar-layout-parcial],[data-js-modal-layout-parcial],[data-js-modal-layout-parcial-sin-sistema]').on('success',function(e){
+  $('[data-js-filtro-tabla]').trigger('buscar');
 });
 
 });

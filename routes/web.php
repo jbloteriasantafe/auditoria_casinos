@@ -599,13 +599,17 @@ Route::group(['prefix' => 'layout_parcial','middleware' => 'tiene_permiso:ver_se
   Route::post('usarLayoutBackup' , 'LayoutController@usarLayoutBackup');
   Route::get('existeLayoutParcial/{id_sector}','LayoutController@existeLayoutParcial');
   Route::get('existeLayoutParcialGenerado/{id_sector}','LayoutController@existeLayoutParcialGenerado');
+  
   Route::get('obtenerLayoutParcial/{id}','LayoutController@obtenerLayoutParcial');
-  Route::get('obtenerLayoutParcialValidar/{id}','LayoutController@obtenerLayoutParcialValidar');
+  Route::get('obtenerLayoutParcialValidar/{id}','LayoutController@obtenerLayoutParcial');
+  
+  Route::post('guardarLayoutParcial' , 'LayoutController@guardarLayoutParcial');
+  Route::post('finalizarLayoutParcial','LayoutController@finalizarLayoutParcial');
+  Route::post('validarLayoutParcial' , 'LayoutController@validarLayoutParcial');
+  
   Route::get('generarPlanillaLayoutParcial/{id}','LayoutController@generarPlanillaLayoutParcial');
   Route::get('descargarLayoutParcialZip/{nombre}','LayoutController@descargarLayoutParcialZip');
   Route::post('buscarLayoutsParciales' , 'LayoutController@buscarLayoutsParciales');
-  Route::post('cargarLayoutParcial' , 'LayoutController@cargarLayoutParcial');
-  Route::post('validarLayoutParcial' , 'LayoutController@validarLayoutParcial');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
   Route::get('usuarioTienePermisos','AuthenticationController@usuarioTienePermisos');
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');

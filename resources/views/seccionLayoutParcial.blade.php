@@ -65,7 +65,7 @@
     <div class="col-md-3">
       <h5>Sector</h5>
       <select class="form-control" name="id_sector" id="destinoSectoresFiltro">
-        <option value="">-Todos los sectores-</option>
+        <option value="" data-js-cambio-casino-mantener>-Todos los sectores-</option>
       </select>
     </div>
     <div class="col-md-3">
@@ -105,6 +105,9 @@
         <span data-id_estado_relevamiento="{{$est['Generado']}}">
           <i class="fas fa-fw fa-dot-circle faGenerado" title="Generado"></i>Generado
         </span>
+        <span data-id_estado_relevamiento="{{$est['Cargando']}}">
+          <i class="fas fa-fw fa-dot-circle faCargando" title="Cargando"></i>Cargando
+        </span>
         <span data-id_estado_relevamiento="{{$est['Finalizado']}}">
           <i class="fas fa-fw fa-dot-circle faFinalizado" title="Finalizado"></i>Finalizado
         </span>
@@ -119,7 +122,7 @@
         </button>
         @endif
         @if($carga_layout_parcial)
-        <button class="btn btn-warning carga" type="button"   data-js-abrir-modal="CARGAR"  data-id_estado_relevamiento="{{$est['Generado']}}">
+        <button class="btn btn-warning carga" type="button"   data-js-abrir-modal="CARGAR"  data-id_estado_relevamiento="{{$est['Generado']}},{{$est['Cargando']}}">
           <i class="fa fa-fw fa-upload"></i>
         </button>
         @endif
@@ -352,6 +355,7 @@
 @slot('cuerpo')
 <form class="form-horizontal row" novalidate="">
   <input name="id_casino" hidden>
+  <input name="id_layout_parcial" hidden>
   <div class="row">
     <div class="col-lg-2 col-lg-offset-1">
       <h5>FECHA DE CONTROL LAYOUT</h5>
@@ -377,7 +381,8 @@
   <div class="row">
     <div class="col-md-2 col-md-offset-1">
       <h5>FISCALIZADOR CARGA</h5>
-      <input name="fiscalizador_carga" type="text"class="form-control" data-js-modo-habilitar="">
+      <input name="fiscalizador_carga" value="{{$nombre_usuario}}" type="text"class="form-control" data-js-modo-habilitar="" data-js-modo-ver="CARGAR">
+      <input name="fiscalizador_carga_recibido" type="text"class="form-control" data-js-modo-habilitar="" data-js-modo-ver="VER,VALIDAR">
     </div>
     <div class="col-md-2">
       <h5>FISCALIZADOR TOMA</h5>
@@ -442,28 +447,32 @@
 <table hidden>
   <tr data-js-molde-relevado>
     <td>
-      <input class="form-control" name="nro_admin" type="text" data-js-editable-original="" data-js-modo-habilitar="CARGAR">
+      <input class="form-control" data-dyn-name="nro_admin" type="text" readonly>
     </td>
     <td>
-      <input class="form-control" name="nro_isla" type="text" data-js-editable-original="" data-js-modo-habilitar="CARGAR">
+      <input class="form-control" data-dyn-name="nro_isla" type="text" data-js-editable-original="" data-js-modo-habilitar="CARGAR">
     </td>
     <td>
-      <input class="form-control" name="marca" type="text" data-js-editable-original="" data-js-modo-habilitar="CARGAR">
+      <input class="form-control" data-dyn-name="marca" type="text" data-js-editable-original="" data-js-modo-habilitar="CARGAR">
     </td>
     <td>
-      <input class="form-control" name="juego" type="text" data-js-editable-original="" data-js-modo-habilitar="CARGAR">
+      <input class="form-control" data-dyn-name="juego" type="text" data-js-editable-original="" data-js-modo-habilitar="CARGAR">
     </td>
     <td>
-      <input class="form-control" name="nro_serie" type="text" data-js-editable-original="" data-js-modo-habilitar="CARGAR">
+      <input class="form-control" data-dyn-name="nro_serie" type="text" data-js-editable-original="" data-js-modo-habilitar="CARGAR">
     </td>
     <td>
-      <input class="checkboxLayout" type="checkbox" name="no_toma" data-js-modo-habilitar="CARGAR">
+      <input class="checkboxLayout" type="checkbox" 
+        data-js-cambio-limpiar="[data-dyn-name='denominacion'],[data-dyn-name='pdev']" 
+        data-js-cambio-asignar-val="[data-dyn-name='no_toma']"
+        data-js-modo-habilitar="CARGAR">
+      <input data-dyn-name="no_toma" hidden>
     </td>
     <td>
-      <input class="form-control" type="text" name="denominacion" data-js-modo-habilitar="CARGAR">
+      <input class="form-control" type="text" data-dyn-name="denominacion" data-js-modo-habilitar="CARGAR">
     </td>
     <td>
-      <input class="form-control" type="text" name="pdev" data-js-modo-habilitar="CARGAR">
+      <input class="form-control" type="text" data-dyn-name="pdev" data-js-modo-habilitar="CARGAR">
     </td>
     @if($ver_seccion_maquinas)
     <td>
@@ -477,8 +486,9 @@
 @endslot
 
 @slot('pie')
-<button type="button" class="btn btn-warningModificar" data-js-finalizar data-js-modo-ver="CARGAR">FINALIZAR RELEVAMIENTO</button>
-<button type="button" class="btn btn-successAceptar"   data-js-validar   data-js-modo-ver="VALIDAR">VALIDAR RELEVAMIENTO</button>
+<button type="button" class="btn btn-warningModificar" data-js-enviar-form="layout_parcial/guardarLayoutParcial"   data-js-modo-ver="CARGAR" style="float: left;">GUARDAR RELEVAMIENTO</button>
+<button type="button" class="btn btn-successAceptar"   data-js-enviar-form="layout_parcial/finalizarLayoutParcial" data-js-modo-ver="CARGAR">FINALIZAR RELEVAMIENTO</button>
+<button type="button" class="btn btn-successAceptar"   data-js-enviar-form="layout_parcial/validarLayoutParcial"   data-js-modo-ver="VALIDAR">VALIDAR RELEVAMIENTO</button>
 @endslot
 
 @endcomponent
