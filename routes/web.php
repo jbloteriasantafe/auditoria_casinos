@@ -608,6 +608,7 @@ Route::group(['prefix' => 'layout_parcial','middleware' => 'tiene_permiso:ver_se
   Route::post('validarLayoutParcial' , 'LayoutController@validarLayoutParcial');
   
   Route::get('generarPlanillaLayoutParcial/{id}','LayoutController@generarPlanillaLayoutParcial');
+  Route::get('generarPlanillaLayoutParcialCargado/{id}','LayoutController@generarPlanillaLayoutParcialCargado');
   Route::get('descargarLayoutParcialZip/{nombre}','LayoutController@descargarLayoutParcialZip');
   Route::post('buscarLayoutsParciales' , 'LayoutController@buscarLayoutsParciales');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');

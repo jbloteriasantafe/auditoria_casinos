@@ -18,24 +18,14 @@ td, th {
 tr:nth-child(even) {
   background-color: #dddddd;
 }
-
-p {
-      border-top: 1px solid #000;
-}
 </style>
 
   <head>
     <meta charset="utf-8">
     <title></title>
-
-    <!-- <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> -->
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- <link href="css/bootstrap.min.css" rel="stylesheet"> -->
-
     <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
   </head>
   <body>
@@ -71,11 +61,11 @@ p {
                 <tr>
                   <td class="tablaCampos" style="padding: 9px;">{{$rel->sector}}</td>
                   <td class="tablaCampos">{{$det->nro_admin}}</td>
-                  <td class="tablaCampos">{{$det->isla}}</td>
+                  <td class="tablaCampos">{{$det->nro_isla}}</td>
                   <td class="tablaCampos" style="background-color: #fff;"></td>
                   <td class="tablaCampos">{{$det->marca}}</td>
                   <td class="tablaCampos" style="background-color: #fff;"></td>
-                  <td class="tablaCampos">{{$det->juego->nombre_juego}}</td>
+                  <td class="tablaCampos">{{$det->juego}}</td>
                   <td class="tablaCampos" style="background-color: #fff;"></td>
                   <td class="tablaCampos">{{$det->nro_serie}}</td>
                   <td class="tablaCampos" style="background-color: #fff;"> {{$det->denominacion}} </td>
@@ -102,43 +92,27 @@ p {
               @if($det->diferencias->count() != 0)
               <?php
                 $total--;
-                $nro_admin = $det->nro_admin;
-                $isla = $det->isla;
-                $fabricante = $det->marca;
-                $juego = $det->juego->nombre_juego;
-                $nro_serie = $det->nro_serie;
-                $den_sala = $det->denominacion;
-                foreach ($det->diferencias as $diferencia) {
-                  switch ($diferencia->columna) {
-                    case 'nro_admin':
-                      $nro_admin = $diferencia->valor . ' *';
-                      break;
-                    case 'nombre_juego':
-                      $juego = $diferencia->valor . ' *';
-                      break;
-                    case 'marca':
-                      $fabricante = $diferencia->valor . ' *';
-                      break;
-                    case 'nro_isla':
-                      $isla = $diferencia->valor . ' *';
-                      break;
-                    case 'nro_serie':
-                      $nro_serie = $diferencia->valor . ' *';
-                      break;
-                    default:
-                      # code...
-                      break;
-                  }
+                $diffs = [
+                  'nro_admin' => $det->nro_admin,
+                  'nro_isla'  => $det->nro_isla,
+                  'marca'     => $det->marca,
+                  'juego'     => $det->juego,
+                  'nro_serie' => $det->nro_serie,
+                  'denominacion' => $det->denominacion,
+                ];
+                foreach ($det->diferencias as $diff) {
+                  if(!array_key_exists($diff->columna,$diffs)) continue;
+                  $diffs[$diff->columna] = $diff->valor.' *';
                 }
               ?>
 
               <tr>
-                <td class="tablaCampos" style="padding: 11px; background-color: #fff;">{{$nro_admin}} </td>
-                <td class="tablaCampos" style="background-color: #fff;"> {{$isla}}</td>
-                <td class="tablaCampos" style="background-color: #fff;"> {{$fabricante}}</td>
-                <td class="tablaCampos" style="background-color: #fff;"> {{$juego}}</td>
-                <td class="tablaCampos" style="background-color: #fff;"> {{$nro_serie}}</td><!-- -->
-                <td class="tablaCampos" style="background-color: #fff;"> {{$den_sala}}</td> <!-- den sala -->
+                <td class="tablaCampos" style="padding: 11px; background-color: #fff;">{{$diffs['nro_admin']}} </td>
+                <td class="tablaCampos" style="background-color: #fff;"> {{$diffs['nro_isla']}}</td>
+                <td class="tablaCampos" style="background-color: #fff;"> {{$diffs['marca']}}</td>
+                <td class="tablaCampos" style="background-color: #fff;"> {{$diffs['juego']}}</td>
+                <td class="tablaCampos" style="background-color: #fff;"> {{$diffs['nro_serie']}}</td><!-- -->
+                <td class="tablaCampos" style="background-color: #fff;"> {{$diffs['denominacion']}}</td> <!-- den sala -->
               </tr>
               @endif
               @endforeach
@@ -153,11 +127,24 @@ p {
                 </tr>
                 @endfor
               </table>
+              
+              @if(!empty($rel->observacion_fiscalizacion) || !empty($rel->observacion_validacion))
+              <br>
+              <table>
+                @if(!empty($rel->observacion_fiscalizacion))
+                <tr><th class="tablaInicio">Observacion Fiscalización</th></tr>
+                <tr><td class="tablaCampos">{{$rel->observacion_fiscalizacion}}</td></tr>
+                @endif
+                @if(!empty($rel->observacion_validacion))
+                <tr><th class="tablaInicio">Observacion Administracion</th></tr>
+                <tr><td class="tablaCampos">{{$rel->observacion_validacion}}</td></tr>
+                @endif
+              </table>
+              <br>
+              @endif
 
               <br><br><br><br><br><br><br><br>
               <!-- Si la planilla fue relevada -->
               <div class="primerEncabezado"><p style="width: 250px;">Firma y Aclaración/s Responsable/s.</p></div>
-
-
   </body>
 </html>
