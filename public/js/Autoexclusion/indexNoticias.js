@@ -1,3 +1,4 @@
+
 $(document).ready(function () {
   $("#barraMenu").attr("aria-expanded", "true");
   $(".tituloSeccionPantalla").text("Autoexcluidos");
@@ -26,14 +27,13 @@ $(document).on("click", "#btnBorrarNoticias", function (e) {
     },
   });
 
-  var url = "http://10.1.121.24:8000/api/resources/remove-news";
   var formData = new FormData();
   const id_noticia = $(this).val();
   formData.append("id", id_noticia);
 
   $.ajax({
     type: "POST",
-    url: url,
+    url: "/api/AE/noticias/borrar",
     data: formData,
     dataType: "json",
     processData: false,
@@ -102,27 +102,23 @@ $("#btn-buscar").click(function (e, pagina, page_size, columna, orden) {
   }
   formData.append("start_date", isoDate($("#rangoinicio")));
   formData.append("end_date", isoDate($("#rangofin")));
+  formData.append("page",page);
 
   $.ajaxSetup({
     headers: {
       "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content"),
-      "X-API-Key": "base64:TzNlfRUDBa4hqNFm4jSHM60cW+oPhVtGHx6VFYqnrsI=",
     },
   });
 
-  var queryString = "?page=" + encodeURIComponent(page);
-  var url = "http://10.1.121.24:8000/api/resources/get-news-list" + queryString;
-
   $.ajax({
     type: "POST",
-    url: url,
+    url: "/api/AE/noticias",
     data: formData,
     dataType: "json",
     processData: false,
     contentType: false,
     cache: false,
     success: function (response) {
-      console.log(response);
       $("#herramientasPaginacion").generarTitulo(
         response.current_page,
         response.per_page,
@@ -290,6 +286,7 @@ $("#btn-agregar-noticia").click(function (e) {
   e.preventDefault();
 
   colorBoton("#btn-guardar-noticia");
+  clearImputs();
 
   $("#cargarNoticiaPDF").prop("disabled", false);
   $("#cargarNoticiaPDF")
@@ -376,11 +373,9 @@ $("#btn-guardar-noticia").click(function (e) {
   $.ajaxSetup({
     headers: {
       "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content"),
-      "X-API-Key": "base64:TzNlfRUDBa4hqNFm4jSHM60cW+oPhVtGHx6VFYqnrsI=",
     },
   });
 
-  var url = "http://10.1.121.24:8000/api/resources/post-pdf-document";
   var formData = new FormData();
   formData.append("title", $("#noticiaTitulo").val());
   formData.append("abstract", $("#noticiaAbstract").val());
@@ -391,7 +386,7 @@ $("#btn-guardar-noticia").click(function (e) {
 
   $.ajax({
     type: "POST",
-    url: url,
+    url: "/api/AE/noticias/subir",
     data: formData,
     dataType: "json",
     processData: false,

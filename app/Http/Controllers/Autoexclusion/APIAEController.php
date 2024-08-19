@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\Autoexclusion\AutoexclusionController;
+use App\Http\Controllers\Autoexclusion\DecryptDataController;
 use Illuminate\Support\Facades\Log;
 use Validator;
 
@@ -15,6 +16,7 @@ use App\Autoexclusion as AE;
 use Dompdf\Dompdf;
 use View;
 use PDF;
+use GuzzleHttp\Client;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -266,6 +268,7 @@ class APIAEController extends Controller
         return response()->json($map,422);
     }
 
+    // AGREGADO POR IGNACIO
     public function set_importacion_archivos(Request $request){
       if($request->header('X-API-Key') !== env("APP_KEY_SEVA")){
         return response()->json(['error' => 'Key de API inválida'], 401);
@@ -428,5 +431,86 @@ class APIAEController extends Controller
       ->where('aedato.nro_dni','=',$dni) 
       ->paginate($request->page_size);
       return $data;
+    }
+
+    public function obtener_noticias(Request $request){
+      $client = new Client();
+      $url = env("APP_SEVA_URL");
+      $key = env("APP_X_API_KEY");
+      $page = $request->page;
+      $dataNoEncrpt = json_encode($request->all());
+      $response = $client->post("${url}api/resources/get-news-list?page=${page}", [
+          'headers' => [
+            "X-API-Key" =>  $key,
+          ],
+          'form_params' => [
+              'data' => DecryptDataController::encrypt($dataNoEncrpt)
+          ]
+      ]);
+      $content = json_decode($response->getBody(), true);
+      return DecryptDataController::decrypt($content['data']);
+    }
+
+    public function subir_noticias(Request $request){
+      $client = new Client();
+      $url = env("APP_SEVA_URL");
+      $key = env("APP_X_API_KEY");
+      try{
+        $multipart = [];
+
+        // Agrega otros datos como "title" y "abstract" al multipart
+        foreach ($request->except(['image', 'pdf']) as $key => $value) {
+            $multipart[] = [
+                'name' => $key,
+                'contents' => $value,
+            ];
+        }
+
+        // Agrega los archivos si están presentes
+        if ($request->hasFile('image')) {
+            $multipart[] = [
+                'name' => 'image',
+                'contents' => fopen($request->file('image')->getPathname(), 'r'),
+                'filename' => $request->file('image')->getClientOriginalName(),
+            ];
+        }
+
+        if ($request->hasFile('pdf')) {
+            $multipart[] = [
+                'name' => 'pdf',
+                'contents' => fopen($request->file('pdf')->getPathname(), 'r'),
+                'filename' => $request->file('pdf')->getClientOriginalName(),
+            ];
+        }
+        $response = $client->post("${url}api/resources/post-pdf-document", [
+            'headers' => [
+              "X-API-Key" =>  $key,
+            ],
+            'multipart' => $multipart,
+            
+        ]);
+        $content = json_decode($response->getBody(), true);
+        $data = DecryptDataController::decrypt($content['data']);
+      }catch(Exception $e){
+        Log::info($e);
+        $data = $e->getMessage();
+      }
+      return $data;
+    }
+
+    public function borrar_noticias(Request $request){
+      $client = new Client();
+      $url = env("APP_SEVA_URL");
+      $key = env("APP_X_API_KEY");
+      $dataNoEncrpt = json_encode($request->all());
+      Log::info("${url}api/resources/remove-news");
+      $response = $client->post("${url}api/resources/remove-news", [
+          'headers' => [
+            "X-API-Key" => $key,
+          ],
+          'form_params' => $request->all(), //cambiar
+      ]);
+      $content = json_decode($response->getBody(), true);
+      return DecryptDataController::decrypt($content['data']);
     }
 }
