@@ -981,3 +981,32 @@ Route::group(['prefix' => 'backoffice','middleware' => 'tiene_permiso:informes_m
   Route::post('buscar','BackOfficeController@buscar');
   Route::post('descargar','BackOfficeController@descargar');
 });
+
+Route::prefix('Ncanon')->middleware('tiene_algun_permiso','informes_mtm','informes_bingos','informes_mesas')->group(function(){
+  Route::get('/','\App\Http\Controllers\CanonController@index');
+  Route::post('/recalcular','\App\Http\Controllers\CanonController@recalcular');
+  Route::post('/total','\App\Http\Controllers\CanonController@total');
+  Route::post('/total_fisico','\App\Http\Controllers\CanonController@total_fisico');
+  Route::post('/maquinas','\App\Http\Controllers\CanonController@maquinas');
+  Route::post('/maquinas/ingresar','\App\Http\Controllers\CanonController@maquinas_ingresar');
+  Route::delete('/maquinas/borrar','\App\Http\Controllers\CanonController@maquinas_borrar');
+  Route::post('/bingo','\App\Http\Controllers\CanonController@bingo');
+  Route::post('/bingo/ingresar','\App\Http\Controllers\CanonController@bingo_ingresar');
+  Route::delete('/bingo/borrar','\App\Http\Controllers\CanonController@bingo_borrar');
+  Route::post('/jol','\App\Http\Controllers\CanonController@jol');
+  Route::post('/jol/ingresar','\App\Http\Controllers\CanonController@jol_ingresar');
+  Route::delete('/jol/borrar','\App\Http\Controllers\CanonController@jol_borrar');
+  Route::post('/mesas','\App\Http\Controllers\CanonController@mesas');
+  Route::post('/mesas/recalcular','\App\Http\Controllers\CanonController@mesas_recalcular');
+  Route::post('/mesas/ingresar','\App\Http\Controllers\CanonController@mesas_ingresar');
+  Route::delete('/mesas/borrar','\App\Http\Controllers\CanonController@mesas_borrar');
+  Route::post('/mesasAdicionales','\App\Http\Controllers\CanonController@mesasAdicionales');
+  Route::post('/mesasAdicionales/ingresar','\App\Http\Controllers\CanonController@mesasAdicionales_ingresar');
+  Route::delete('/mesasAdicionales/borrar','\App\Http\Controllers\CanonController@mesasAdicionales_borrar');
+  Route::post('/valoresPorDefecto','\App\Http\Controllers\CanonController@valoresPorDefecto');
+  Route::post('/valoresPorDefecto/ingresar','\App\Http\Controllers\CanonController@valoresPorDefecto_ingresar');
+  Route::delete('/valoresPorDefecto/borrar','\App\Http\Controllers\CanonController@valoresPorDefecto_borrar');
+  Route::post('/antiguo','\App\Http\Controllers\CanonController@antiguo');
+  Route::post('/antiguo/ingresar','\App\Http\Controllers\CanonController@antiguo_ingresar');
+  Route::delete('/antiguo/borrar','\App\Http\Controllers\CanonController@antiguo_borrar');
+});

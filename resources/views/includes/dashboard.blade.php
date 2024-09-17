@@ -380,6 +380,11 @@ $contable_hijos = [
     'icono' => '<i class="fa fa-cloud-download-alt"></i>',
     'link' => '/backoffice',
     'algun_permiso' => ['informes_mtm'],
+  ],
+  'Canon' => [
+    'icono' => '<i class="fa fa-dollar-sign"></i>',
+    'link' => '/Ncanon',
+    'algun_permiso' => ['informes_mtm','informes_bingos','informes_mesas'],
   ]
 ];
 $opciones = [
