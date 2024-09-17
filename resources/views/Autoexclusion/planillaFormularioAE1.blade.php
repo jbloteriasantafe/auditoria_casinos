@@ -154,7 +154,7 @@
     @if($es_primer_ae)
     <div class="primerEncabezado" style="font-size:13px">
       <p><b>(*) Si decide realizar el trámite de finalización de la autoexclusión, deberá concurrir con D.N.I., a Calle 1° junta 2724 8vo. Piso
-      de la Ciudad de Santa Fe o en Av. Pellegrini 947 de la Ciudad de Rosario, los días hábiles de 7:30 a 13:30 hs. En el caso de Melincué
+      de la Ciudad de Santa Fe o en San Martin 1221 de la Ciudad de Rosario, los días hábiles de 7:30 a 13:30 hs. En el caso de Melincué
       dicho trámite se podrá realizar en el propio casino. Para las finalizaciones de Santa Fe y Rosario, si el primer plazo de seis meses
       finaliza un día inhábil administrativo, el día de finalización se trasladará al día hábil inmediatamente posterior.-</b></p>
     </div>
