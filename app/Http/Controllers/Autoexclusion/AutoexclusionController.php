@@ -479,18 +479,17 @@ class AutoexclusionController extends Controller
   public function mostrarArchivo ($id_importacion,$tipo_archivo) {
     $imp = AE\ImportacionAE::where('id_importacion', '=', $id_importacion)->first();
     $pathCons = realpath('../') . '/public/importacionesAutoexcluidos/';
-
     if($id_importacion == 0 && $tipo_archivo == 'sin_foto') return response()->file(realpath('../') . '/public/img/img_user.jpg');
-
     $paths = [
       'foto1' => 'fotos', 'foto2' => 'fotos', 'scandni' => 'documentos', 'solicitud_ae' => 'solicitudes', 'solicitud_revocacion' => 'solicitudes',
       'caratula' => 'solicitudes'
     ];
 
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    // Agrege en paths 'scandni' ya que ahora se guardan los documentos.
     if($user->es_casino_ae){
       $paths = [
-        'foto1' => 'fotos', 'foto2' => 'fotos'
+        'foto1' => 'fotos', 'foto2' => 'fotos', 'scandni' => 'documentos'
       ];
     }
 

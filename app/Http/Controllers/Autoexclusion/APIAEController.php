@@ -270,9 +270,6 @@ class APIAEController extends Controller
 
     // AGREGADO POR IGNACIO
     public function set_importacion_archivos(Request $request){
-      if($request->header('X-API-Key') !== env("APP_KEY_SEVA")){
-        return response()->json(['error' => 'Key de API inválida'], 401);
-      }
       $validator = Validator::make($request->all(), [
             'dni' => 'required|string|max:150',
             'file' => 'required|file|mimes:webp',
@@ -292,7 +289,7 @@ class APIAEController extends Controller
           $extension = substr($data['file']->getMimeType(),$barra+1);
           $nombre_archivo =  date("dmY") . '-' . $ae->nro_dni . '-3.' . $extension;
 
-          $pathCons = public_path('/public/importacionesAutoexcluidos/documentos');
+          $pathCons = public_path('/importacionesAutoexcluidos/documentos');
           if (!file_exists($pathCons)) {
             mkdir($pathCons, 0755, true);
           }
