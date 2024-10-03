@@ -108,10 +108,11 @@
       <td class="diferencia">DIFERENCIA</td>
       <td class="saldo_posterior">SALDO</td>
       <td>
-        <button class="btn" type="button" data-js-confirmar="/Ncanon/cambiarEstado?estado='Pagado'">CONFIRMAR PAGO</button>
-        <button class="btn" type="button" data-js-ver="/Ncanon/obtenerConHistorial">VER/HISTORIAL</button>
-        <button class="btn" type="button" data-js-editar="/Ncanon/obtener">EDITAR</button>
-        <button class="btn" type="button" data-js-borrar="/Ncanon/borrar" data-table-id="id_canon">BORRAR</button>
+        <button class="btn" type="button" data-js-cambiar-estado="/Ncanon/cambiarEstado?estado=Pagado" data-estado-visible="GENERADO" title="CONFIRMAR PAGO"><i class="fa fa-fw fa-check"></i></button>
+        <button class="btn" type="button" data-js-adjuntar="/Ncanon/adjuntar" data-estado-visible="PAGADO" title="ADJUNTAR"><i class="fa fa-fw fa-paperclip"></i></button>
+        <button class="btn" type="button" data-js-ver="/Ncanon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
+        <button class="btn" type="button" data-js-editar="/Ncanon/obtener" data-estado-visible="GENERADO"  title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
+        <button class="btn" type="button" data-js-borrar="/Ncanon/borrar" data-table-id="id_canon" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
       </td>
     </tr>
     @endslot
@@ -122,10 +123,12 @@
   @component('Components/FiltroTabla')
     @slot('titulo')
     <div>VALORES POR DEFECTO</div>
-    <form style="display: flex;width: 50%;">
-      <input class="form-control" name="campo" placeholder="Campo">
-      <input class="form-control" name="valor" placeholder="Valor">
-      <button class="btn" type="button" data-js-guardar-nuevo="/Ncanon/valoresPorDefecto/ingresar">GUARDAR</button>
+    <form style="display: flex;">
+      <input class="form-control" name="campo" placeholder="Campo" style="flex: 1;">
+      <div data-js-nuevo-jsoneditor style="flex: 2;"></div>
+      <div style="flex: 1;">
+        <button class="btn" type="button" data-js-guardar-nuevo="/Ncanon/valoresPorDefecto/ingresar">GUARDAR</button>
+      </div>
     </form>
     @endslot
     
@@ -147,10 +150,10 @@
     @slot('molde')
     <tr>
       <td class="campo">-CAMPO-</td>
-      <td class="valor" data-js-trigger-evento-al-insertar="jsoneditor.crear" data-js-jsoneditor>-VALOR-</td>
+      <td class="valor" data-js-jsoneditor>-VALOR-</td>
       <td>
-        <button class="btn" type="button" data-js-guardar="/Ncanon/valoresPorDefecto/ingresar">GUARDAR</button>
-        <button class="btn" type="button" data-js-borrar="/Ncanon/valoresPorDefecto/borrar" data-table-id="id_canon_valor_por_defecto">BORRAR</button>
+        <button class="btn" type="button" data-js-guardar="/Ncanon/valoresPorDefecto/ingresar" title="GUARDAR"><i class="fa fa-fw fa-check"></i></button>
+        <button class="btn" type="button" data-js-borrar="/Ncanon/valoresPorDefecto/borrar" data-table-id="id_canon_valor_por_defecto" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
       </td>
     </tr>
     @endslot
@@ -205,6 +208,13 @@
   .VerCargarCanon select[readonly] {
     pointer-events: none;
   }
+  
+  .VerCargarCanon .solo_mostrar_h5_del_primero > div:nth-child(1) h5 {
+    display: block;
+  }
+  .VerCargarCanon .solo_mostrar_h5_del_primero > div:not(:nth-child(1)) h5 {
+    display: none;
+  }
 </style>
 
 @component('Components/modal',[
@@ -229,7 +239,7 @@
         @component('Components/inputFecha',[
           'attrs' => 'name="año_mes" placeholder="AÑO MES" data-js-empty-si-cambio="[data-canon-variable] [data-js-contenedor],[data-canon-fijo-mesas] [data-js-contenedor],[data-canon-fijo-mesas-adicionales] [data-js-contenedor]"',
           'attrs_dtp' => 'data-date-format="yyyy-mm-01" data-start-view="year" data-min-view="decade"',
-          'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"}]\' style="padding: 0 !important;"'
+          'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "EDITAR"}]\' style="padding: 0 !important;"'
         ])
         @endcomponent
       </div>
@@ -237,7 +247,7 @@
         <h5>Casino</h5>
         <select class="form-control" name="id_casino"
           data-js-empty-si-cambio="[data-canon-variable] [data-js-contenedor],[data-canon-fijo-mesas] [data-js-contenedor],[data-canon-fijo-mesas-adicionales] [data-js-contenedor]"
-          data-readonly='[{"modo": "VER"}]'>
+          data-readonly='[{"modo": "VER"},{"modo": "EDITAR"}]'>
           <option value="" selected>- SELECCIONE -</option>
           @foreach($casinos as $c)
           <option value="{{$c->id_casino}}">{{$c->nombre}}</option>
@@ -257,7 +267,7 @@
           <option value="1">SI</option>
         </select>      
       </div>
-      <div>
+      <div data-modo-mostrar="">
         <input name="id_canon" class="form-control" data-readonly='[{}]'>
       </div>
     </div>
@@ -274,6 +284,9 @@
         </div>
         <div>
           <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-canon-fijo-mesas-adicionales]" tabindex="0">Canon Fijo - Mesas Adicionales</a>
+        </div>
+        <div>
+          <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-adjuntos]" tabindex="0">Adjuntos</a>
         </div>
       </div>
       <div class="pestaña" data-total>
@@ -513,11 +526,11 @@
             </div>
             <div>
               <h5>VALOR DIARIO DOLAR</h5>
-              <input class="form-control" data-name="{{$valor_diario_dolar}}" data-depende="{{$valor_dolar}},{{$dias_valor}}" data-readonly='[{}]'>
+              <input class="form-control" data-name="{{$valor_diario_dolar}}" data-depende="{{$cotizacion_dolar}},{{$valor_dolar}},{{$dias_valor}}" data-readonly='[{}]'>
             </div>
             <div>
               <h5>VALOR DIARIO EURO</h5>
-              <input class="form-control" data-name="{{$valor_diario_euro}}" data-depende="{{$valor_euro}},{{$dias_valor}}" data-readonly='[{}]'>
+              <input class="form-control" data-name="{{$valor_diario_euro}}" data-depende="{{$cotizacion_euro}},{{$valor_euro}},{{$dias_valor}}" data-readonly='[{}]'>
             </div>
           </div>
           <div style="display: flex;">
@@ -635,6 +648,48 @@
             <div>
               <h5>TOTAL (PAGAR)</h5>
               <input class="form-control" data-name="{{$total_pagar}}" data-depende="{{$horas}},{{$mesas}},{{$porcentaje}}" data-readonly='[{}]'>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pestaña" data-adjuntos>
+        <div class="solo_mostrar_h5_del_primero" style="width: 100%;" data-js-contenedor>
+        </div>
+        <hr>
+        <div style="width: 100%;display: flex;" data-modo-mostrar="NUEVO,EDITAR" data-adjunto>
+          <input class="form-control" placeholder="DESCRIPCIÓN" style="flex: 1;text-align: left;" data-descripcion>
+          <input class="form-control" type="file" style="flex: 1;text-align: center;" data-archivo>
+          <button class="btn" type="button" data-js-agregar-adjunto><i class="fa fa-plus"></i></button>
+        </div>
+        <?php
+          $molde_str = '$adj';
+          $n = function($s) use (&$id_casino,&$t,&$molde_str){
+            return "adjuntos[$molde_str][$s]";
+          };
+          $descripcion = $n('descripcion');
+          $nombre_archivo = $n('nombre_archivo');
+          $id_archivo = $n('id_archivo');
+          $archivo = $n('archivo');
+          $link = $n('link');
+        ?>
+        <div data-js-molde="{{$molde_str}}" data-adjunto hidden>
+          <div style="display: flex;">
+            <div style="flex: 1;">
+              <h5>DESCRIPCIÓN</h5>
+              <input style="width: 100%;text-align: left;" class="form-control" data-name="{{$descripcion}}" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
+            </div>
+            <div style="flex: 1;" data-modo-mostrar="VER,NUEVO,EDITAR">
+              <h5>NOMBRE ARCHIVO</h5>
+              <input data-js-click-abrir-val-hermano="[data-es-link]" style="width: 100%;text-align: center;cursor: pointer;" class="form-control" data-name="{{$nombre_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{}]'>
+              <input data-es-link data-name="{{$link}}" data-modo-mostrar="">
+            </div>
+            <div data-modo-mostrar="">
+              <h5>&nbsp;</h5>
+              <input style="flex: 1;" class="form-control" data-name="{{$id_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{}]'>
+            </div>
+            <div data-modo-mostrar="NUEVO,EDITAR">
+              <h5>&nbsp;</h5>
+              <button class="btn" type="button" data-js-borrar-adjunto><i class="fa fa-fw fa-trash-alt"></i></button>
             </div>
           </div>
         </div>

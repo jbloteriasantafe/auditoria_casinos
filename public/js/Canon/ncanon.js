@@ -8,28 +8,19 @@ $(document).ready(function() {
   
   $('[data-js-modal-ver-cargar-canon]').each(function(_,m_obj){
     const M = $(m_obj);
-            
-    const fillValue = function(keys,val){
-      let compound_k = keys[0] ?? '';
-      for(const kidx in keys){
-        if(kidx == 0) continue;
-        compound_k += '['+keys[kidx]+']';
-      }
-      M.find(`[name="${compound_k}"]`).val(val);
-    }
     
-    const fill = function(prefix,obj){
+    const fill = function(div,prefix,obj){//@HACK @TODO: mover a AUX
       const subscript = function(s){
         return prefix === null? s : (prefix+'['+s+']');
       };
       for(const k in obj){
         const val = obj[k];
         if(typeof val == 'object'){
-          fill(subscript(k),val);
+          fill(div,subscript(k),val);
         }
         else{
           const name = subscript(k);
-          M.find(`[name="${name}"]`).val(val);
+          div.find(`[name="${name}"]`).val(val);
         }
       }
     };
@@ -93,6 +84,30 @@ $(document).ready(function() {
       }).show();
     }
     
+    const agregarDetallePestaña = function(pestaña,titulo,replace_idx){
+      const div = pestaña.find('[data-js-molde]').clone();
+      const replace_str_tipo = div.attr('data-js-molde');
+      div.removeAttr('data-js-molde').show();
+      
+      div.find('[data-titulo]').text(titulo);
+      
+      div.find('[data-name]').each(function(_,nobj){
+        const n = $(nobj);
+        n.attr('name',n.attr('data-name').replaceAll(replace_str_tipo,replace_idx));
+      });
+      
+      div.find('[data-depende]').each(function(_,nobj){
+        const n = $(nobj);
+        n.attr('data-depende',n.attr('data-depende').replaceAll(replace_str_tipo,replace_idx));
+      });
+      
+      div.attr('data-idx',replace_idx);
+      
+      pestaña.find('[data-js-contenedor]').append(div);
+      
+      return div;
+    }
+    
     const render = function(canon,mantener_historial = false){
       const form = M.find('form[data-js-recalcular]');
       const rerender = M.attr('data-render');
@@ -103,45 +118,30 @@ $(document).ready(function() {
         return;
       }
       
-      const llenarPestaña = function(pestaña,tipos_obj){
+      const llenarPestaña = function(pestaña,tipos_obj,mostrar_de_todos_modos = false){
         pestaña.find('[data-js-contenedor]').empty();
         let lleno = false;
         for(const tipo in tipos_obj){
           lleno = true;
-          const div = pestaña.find('[data-js-molde]').clone();
-          const replace_str_tipo = div.attr('data-js-molde');
-          div.removeAttr('data-js-molde').show();
-          
-          div.find('[data-titulo]').text(tipo.toUpperCase());
-          
-          div.find('[data-name]').each(function(_,nobj){
-            const n = $(nobj);
-            n.attr('name',n.attr('data-name').replaceAll(replace_str_tipo,tipo));
-          });
-          
-          div.find('[data-depende]').each(function(_,nobj){
-            const n = $(nobj);
-            n.attr('data-depende',n.attr('data-depende').replaceAll(replace_str_tipo,tipo));
-          });
-          
-          pestaña.find('[data-js-contenedor]').append(div);
+          agregarDetallePestaña(pestaña,tipo.toUpperCase(),tipo);
         }
         
         //@HACK: no mostrar la pestaña si no tiene nada
         M.find('[data-js-tabs] [data-js-tab]').filter(function(_,tab_obj){
           return $($(tab_obj).attr('data-js-tab'))?.[0] == pestaña[0];
-        }).toggle(lleno);
-        pestaña.toggle(lleno);
+        }).toggle(lleno || mostrar_de_todos_modos);
+        pestaña.toggle(lleno || mostrar_de_todos_modos);
       }
       
       llenarPestaña(form.find('[data-canon-variable]'),canon?.canon_variable ?? {});
       llenarPestaña(form.find('[data-canon-fijo-mesas]'),canon?.canon_fijo_mesas ?? {});
       llenarPestaña(form.find('[data-canon-fijo-mesas-adicionales]'),canon?.canon_fijo_mesas_adicionales ?? {});
+      llenarPestaña(form.find('[data-adjuntos]'),canon?.adjuntos ?? {},true);
             
       form.find('[data-js-fecha]').trigger('init.fecha');
       
       M.attr('data-render',0);
-      fill(null,canon);
+      fill(M,null,canon);
       setReadonly();
       
       (mantener_historial?
@@ -161,7 +161,6 @@ $(document).ready(function() {
         return $(t_obj).css('display') != 'none';
       }).eq(0).click();
     };
-    
     
     M.find('[data-js-select-historial]').change(function(e){
       const tgt = $(e.currentTarget);
@@ -228,7 +227,7 @@ $(document).ready(function() {
       form.trigger('recalcular');
     });
     
-    M.find('form[data-js-recalcular]').on('focus','select[readonly],.data-css-deshabilitar-cursor',function(e){
+    M.find('form[data-js-recalcular]').on('focus','select[readonly]',function(e){
       const tgt = $(e.currentTarget);
       const form  = tgt.closest('form[data-js-recalcular]');
       let focusidx = null;
@@ -264,11 +263,89 @@ $(document).ready(function() {
       });
     });
     
+    M.find('form[data-js-recalcular]').on('click','[data-js-click-abrir-val-hermano]',function(e){
+      const tgt = $(e.currentTarget);
+      const sibling_val = tgt.siblings(tgt.attr('data-js-click-abrir-val-hermano')).val();
+      window.open(sibling_val,'_blank');
+    });
+    
+    M.find('form[data-js-recalcular]').on('click','[data-js-borrar-adjunto]',function(e){
+      const tgt = $(e.currentTarget);
+      tgt.closest('[data-adjunto]').remove();
+    });
+    
+    M.find('form[data-js-recalcular]').find('[data-js-agregar-adjunto]').click(function(e){
+      const tgt = $(e.currentTarget);
+      const pestaña = tgt.closest('[data-adjuntos]');
+      
+      let max_idx = -1;
+      pestaña.find('[data-js-contenedor] [data-adjunto]:visible').each(function(_,adj){
+        const idx = parseInt($(adj).attr('data-idx'));
+        if(isNaN(idx) || idx < 0){
+          throw `Error el indice "${idx}" tiene que ser un numero entero positivo o 0`;
+        }
+        max_idx = Math.max(max_idx,idx);
+      });
+      
+      const idx = max_idx+1;//Si no hay max_idx=-1 -> idx=0
+      const parent = tgt.closest('[data-adjunto]');
+      const descripcion_obj = parent.find('[data-descripcion]');
+      const archivo_obj = parent.find('[data-archivo]');
+      
+      const descripcion = parent.find('[data-descripcion]').val();
+      const archivo_dom_obj = parent.find('[data-archivo]')?.[0];
+      const archivo = archivo_dom_obj?.files?.[0];
+      
+      if(!archivo) return;
+      
+      const fileReader = new FileReader();
+      fileReader.onloadend = function (e) {
+        const div = agregarDetallePestaña(pestaña,idx,idx);        
+        div.data('archivo',archivo);
+        
+        const file = new Blob([e.target.result], { type: archivo.type });
+        const fileURL = window.URL.createObjectURL(file);
+        
+        fill(
+          div,
+          'adjuntos['+idx+']',
+          {
+            descripcion: descripcion,
+            nombre_archivo: archivo.name,
+            id_archivo: null,
+            link: fileURL
+          }
+        );
+        
+        descripcion_obj.val('');
+        archivo_obj.val('');
+        
+        div.attr('data-idx',idx);
+        div.attr('data-nuevo-adjunto',true);
+      };
+      
+      fileReader.readAsArrayBuffer(archivo);
+    });
+    
     M.find('[data-js-enviar]').click(function(e){
       const tgt = $(e.currentTarget);
       const url = tgt.attr('data-js-enviar');
-      const fd = AUX.form_entries(M.find('form[data-js-recalcular]')[0]);
-      AUX.POST(url,fd,
+      const form = M.find('form[data-js-recalcular]');
+      const entries = AUX.form_entries(form?.[0]);
+      
+      M.find('[data-adjuntos] [data-js-contenedor] [data-adjunto]:visible').each(function(_,adj_obj){
+        const adj = $(adj_obj);
+        const idx = adj.attr('data-idx');
+        entries[`adjuntos[${idx}][file]`] = adj.data('archivo') ?? null;
+      });
+      
+      //@HACK @TODO: agregar funcionalidad a AUX para convertir objetos a FD
+      const newfd = new FormData();//Necesito FormData si voy a mandar sin procesar (porque mando archivos)
+      for(const k in entries){
+        newfd.append(k,entries[k]);
+      }
+      
+      AUX.POST(url,newfd,
         function(data){
           AUX.mensajeExito('Guardado');
           M.modal('hide');
@@ -276,6 +353,10 @@ $(document).ready(function() {
         },
         function(data){
           AUX.mensajeError('');
+        },
+        {
+          contentType: false,
+          processData: false,
         }
       );
     });
@@ -296,9 +377,17 @@ $(document).ready(function() {
       });
     }).eq(0).click();
   });
-    
+  
+  const reemplazarPorJsonEditor = function(div,valor){
+    div?.empty();
+    const jsoneditor = new JSONEditor(div?.[0], {mode: 'code',modes: ['tree','view','form','code','text','preview']});
+    jsoneditor.set(JSON.parse(valor ?? ''));
+    div?.data('jsoneditor',jsoneditor);
+  }    
+  
   $('#pant_canon,#pant_defecto').each(function(_,pant_obj){
     const pant = $(pant_obj);
+    
     pant.find('[data-js-filtro-tabla]').on('busqueda',function(e,ret,tbody,molde){
       ret.data.forEach(function(obj){
         const fila = molde.clone();
@@ -307,21 +396,29 @@ $(document).ready(function() {
         });
         const id_k = fila.find('[data-table-id]').attr('data-table-id');
         fila.find('button').val(obj[id_k]);
+        
         tbody.append(fila);
+        
+        if(pant.is('#pant_defecto')){
+          reemplazarPorJsonEditor(fila.find('[data-js-jsoneditor]'),obj?.valor ?? '');
+        }
+        else if(pant.is('#pant_canon')){
+          fila.find('[data-estado-visible]').filter(function(_,ev_obj){
+            return !$(ev_obj)?.attr('data-estado-visible')?.toUpperCase()?.split(',').includes(obj.estado.toUpperCase());
+          }).remove();
+        }
       });
       tbody.find('[data-js-borrar]').click(function(e){
         const tgt = $(e.currentTarget);
         const id = tgt.val();
         const url = tgt.attr('data-js-borrar');
-        AUX.DELETE(url,{id: id},
+        const fd = {};
+        fd[tgt.attr('data-table-id')] = id;
+        AUX.DELETE(url,fd,
           function(data){
             pant.find('[data-js-filtro-tabla]').trigger('buscar');
           }
         );
-      });
-      tbody.find('[data-js-trigger-evento-al-insertar]').each(function(_,obj){
-        const o = $(obj);
-        o.trigger(o.attr('data-js-trigger-evento-al-insertar'));
       });
     });
     
@@ -333,6 +430,8 @@ $(document).ready(function() {
       });
     });
   });
+  
+  reemplazarPorJsonEditor($('#pant_defecto').find('[data-js-nuevo-jsoneditor]'),'{}');
      
   $('#pant_canon [data-js-nuevo-canon]').click(function(e){
     const tgt = $(e.currentTarget);
@@ -349,33 +448,51 @@ $(document).ready(function() {
     $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-ver'),tgt.val(),'VER']);
   });
   
-  $('#pant_defecto').on('jsoneditor.crear','[data-js-jsoneditor]',function(e){//@TODO: bindear derecho
+  $('#pant_canon').on('click','[data-js-cambiar-estado]',function(e){//@TODO: bindear derecho
     const tgt = $(e.currentTarget);
-    const json = e.currentTarget.innerHTML;
-    tgt.empty();
-    const jsoneditor = new JSONEditor(e.currentTarget, {mode: 'code',modes: ['tree','view','form','code','text','preview']});
-    jsoneditor.set(JSON.parse(json));
-    tgt.data('jsoneditor',jsoneditor);
+    const url = tgt.attr('data-js-cambiar-estado');
+    AUX.GET(
+      url,
+      {id_canon: tgt.val()},
+      function(data){
+        AUX.mensajeExito(data?.mensaje ?? '');
+      },
+      function(data){
+        AUX.mensajeError(data?.mensaje ?? '');
+      }
+    );
   });
+  
+  const guardarValorPorDefecto = function(url,campo,valor){
+    AUX.POST(
+      url,
+      {
+        campo: campo,
+        valor: valor,
+      },
+      function(data){
+        AUX.mensajeExito('Guardado');
+        $('#pant_defecto').find('[data-js-filtro-tabla]').trigger('buscar');
+      },
+      function(data){
+        AUX.mensajeError(JSON.stringify(data?.responseJSON ?? '{}'));
+      }
+    );
+  }
   
   $('#pant_defecto').on('click','[data-js-guardar]',function(e){//@TODO: bindear derecho
     const tgt = $(e.currentTarget);
     const url = tgt.attr('data-js-guardar');
     const fila = tgt.closest('tr');
-    AUX.POST(
-      url,
-      {
-        campo: fila.find('.campo')[0].innerHTML,
-        valor: fila.find('.valor').data('jsoneditor').getText(),
-      },
-      function(data){
-        AUX.mensajeExito('Guardado');
-        tgt.closest('[data-js-filtro-tabla]').trigger('buscar');
-      },
-      function(data){
-        AUX.mensajeError(JSON.stringify(data?.responseJSON ?? '{}'));
-      } 
-    );
+    guardarValorPorDefecto(url,fila.find('.campo')[0].innerHTML,fila.find('.valor').data('jsoneditor').getText());
+  });
+  
+  $('#pant_defecto').find('[data-js-guardar-nuevo]').click(function(e){
+    const tgt = $(e.currentTarget);
+    const url = tgt.attr('data-js-guardar-nuevo');
+    const form = tgt.closest('form');
+    const fd = AUX.form_entries(tgt.closest('form')?.[0]);
+    guardarValorPorDefecto(url,fd.campo,form.find('[data-js-nuevo-jsoneditor]').data('jsoneditor').getText());
   });
   
   $('[data-js-filtro-tabla]').trigger('buscar');

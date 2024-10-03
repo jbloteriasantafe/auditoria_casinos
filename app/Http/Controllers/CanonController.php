@@ -15,6 +15,7 @@ use File;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UsuarioController;
 use App\Plataforma;
+use App\Archivo;
 
 class CanonController extends Controller
 {
@@ -45,6 +46,7 @@ class CanonController extends Controller
     $ret['fecha_vencimiento'] = $request['fecha_vencimiento'] ?? null;
     $ret['fecha_pago'] = $request['fecha_pago'] ?? null;  
     $ret['es_antiguo'] = $request['es_antiguo'] ?? 0;
+    $ret['adjuntos'] = $request['adjuntos'] ?? [];
     
     if(!empty($ret['año_mes'])){
       $f = explode('-',$ret['año_mes']);
@@ -63,8 +65,6 @@ class CanonController extends Controller
       $ret['fecha_vencimiento'] = $ret['fecha_vencimiento'] ?? $proximo_lunes->format('Y-m-d');
       $ret['fecha_pago'] = $ret['fecha_pago'] ?? $ret['fecha_vencimiento'];
     }
-    
-    
     
     $ret['canon_variable'] = [];
     $ret['canon_fijo_mesas'] = [];
@@ -335,14 +335,19 @@ class CanonController extends Controller
       $created_at = date('Y-m-d h:i:s');
       $id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       
+      $id_canon_anterior = null;
       {
         $canon_viejos = DB::table('canon')
         ->whereNull('deleted_at')
         ->where('año_mes',$request->año_mes ?? null)
         ->where('id_casino',$request->id_casino ?? null)
+        ->orderBy('created_at','desc')
         ->get();
         
-        foreach($canon_viejos as $cv){
+        foreach($canon_viejos as $idx => $cv){
+          if($idx == 0){//Saco todos los id_archivos para pasarselos a la version de canon nueva
+            $id_canon_anterior = $cv->id_canon;
+          }
           $this->borrar_arr(['id_canon' => $cv->id_canon],$created_at,$id_usuario);
         }
       }
@@ -353,7 +358,7 @@ class CanonController extends Controller
       ->insert([
         'año_mes' => $datos['año_mes'] ?? null,
         'id_casino' => $datos['id_casino'] ?? null,
-        'estado' => $datos['estado'] ?? 'ERROR',
+        'estado' => 'Generado',
         'bruto_devengado' => $datos['bruto_devengado'] ?? 0,
         'deduccion' => $datos['deduccion'] ?? 0,
         'devengado' => $datos['devengado'] ?? 0,
@@ -397,6 +402,70 @@ class CanonController extends Controller
         ->insert($datos_cfma);
       }
       
+      //Le transpaso todos los archivos... despues voy quitando/agregando dependiendo de lo que envio
+      {
+        $archivos_existentes = $id_canon_anterior === null? 
+          collect([])
+        : DB::table('canon_archivo as ca')
+        ->select('ca.descripcion','ca.type','a.*')
+        ->join('archivo as a','a.id_archivo','=','ca.id_archivo')
+        ->where('id_canon',$id_canon_anterior)
+        ->get()
+        ->keyBy('id_archivo');
+        
+        $archivos_enviados = collect($datos['adjuntos'] ?? [])->groupBy('id_archivo');
+        $archivos_resultantes = [];
+        foreach($archivos_enviados as $id_archivo_e => $archivos_e){
+          if($id_archivo_e !== ''){//Es "existente"
+            //Se recibio un id archivo que no estaba antes
+            if(!$archivos_existentes->has($id_archivo_e)) continue;
+            
+            $archivo_bd = $archivos_existentes[$id_archivo_e];
+            
+            $archivo = null;//Por si me mando varios con el mismo id_archivo, busco el que tenga mismo nombre de archivo
+            foreach($archivos_e as $ae){
+              if($ae['nombre_archivo'] == $archivo_bd->nombre_archivo){
+                $archivo = $ae;
+                break;
+              }
+            }
+            
+            if($archivo === null) continue;//No encontre, lo ignoro
+                        
+            //El archivo se repite para el nuevo canon pero posiblemente con otra descripcion
+            $archivos_resultantes[] = [
+              'id_archivo'  => $archivo_bd->id_archivo,
+              'id_canon'    => $canon->id_canon,
+              'descripcion' => ($archivo['descripcion'] ?? ''),
+              'type'        => $archivo_bd->type,
+            ];
+          }
+          else{//Archivos nuevos
+            foreach($archivos_e as $a){
+              $file=$a['file'] ?? null;
+              if($file === null) continue;
+              
+              $archivo_bd = new Archivo;
+              $data = base64_encode(file_get_contents($file->getRealPath()));
+              $nombre_archivo = $file->getClientOriginalName();
+              $archivo_bd->nombre_archivo = $nombre_archivo;
+              $archivo_bd->archivo = $data;
+              $archivo_bd->save();
+              
+              $archivos_resultantes[] = [
+                'id_archivo' => $archivo_bd->id_archivo,
+                'id_canon' => $canon->id_canon,
+                'descripcion' => ($a['descripcion'] ?? ''),
+                'type' => $file->getMimeType()
+              ];
+            } 
+          }
+        }
+        
+        DB::table('canon_archivo')
+        ->insert($archivos_resultantes);
+      }
+      
       return 1;
     });
   }
@@ -425,7 +494,48 @@ class CanonController extends Controller
     ->get()
     ->keyBy('tipo');
     
+    $ret['adjuntos'] = DB::table('canon_archivo as ca')
+    ->select('ca.id_canon','ca.descripcion','a.id_archivo','a.nombre_archivo')
+    ->join('archivo as a','a.id_archivo','=','ca.id_archivo')
+    ->where('ca.id_canon',$request['id_canon'])
+    ->orderBy('id_archivo','asc')
+    ->get()
+    ->transform(function(&$adj,$idx){
+      $adj->link = '/Ncanon/archivo?id_canon='.$adj->id_canon.'&nro_archivo='.$idx;
+      return $adj;
+    });
+    
     return $ret;
+  }
+  
+  public function archivo(Request $request){
+    if(($request['id_canon'] ?? null) === null)
+      return null;
+    
+    $archivos = DB::table('canon_archivo as ca')
+    ->select('ca.type','a.*')
+    ->join('archivo as a','a.id_archivo','=','ca.id_archivo')
+    ->where('ca.id_canon',$request['id_canon'])
+    ->orderBy('id_archivo','asc')
+    ->get();
+    
+    if(($request['nro_archivo'] ?? null) === null || !ctype_digit($request['nro_archivo'].''))
+      return null;
+      
+    $nro_archivo = intval($request['nro_archivo']);
+    if($nro_archivo >= $archivos->count())
+      return null;
+      
+    $a = $archivos[$nro_archivo];
+    
+    return \Response::make(
+      base64_decode($a->archivo), 
+      200, 
+      [
+        'Content-Type' => $a->type,
+        'Content-Disposition' => 'inline; filename="'.$a->nombre_archivo.'"'
+      ]
+    );
   }
   
   public function obtener(Request $request){
@@ -537,6 +647,23 @@ class CanonController extends Controller
       ]);
       
       return 1;
+    });
+  }
+  
+  public function cambiarEstado(Request $request){
+    return DB::transaction(function() use ($request){
+      $updateado = DB::table('canon')
+      ->whereNull('deleted_at')
+      ->where('id_canon',$request->id_canon)
+      ->update(['estado' => $request->estado]) == 1;
+      
+      $estado = 200;
+      $ret = ['id_canon' => $request->id_canon,'estado' => $request->estado,'mensaje' => ''];
+      if($updateado != 1){
+        $estado = 422;
+        $ret['mensaje'] = 'Error, canon no encontrado';
+      }
+      return $ret;
     });
   }
   
