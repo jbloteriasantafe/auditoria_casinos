@@ -20,6 +20,7 @@ $(document).ready(function() {
         }
         else{
           const name = subscript(k);
+          console.log(name+'='+val);
           div.find(`[name="${name}"]`).val(val);
         }
       }
@@ -113,7 +114,7 @@ $(document).ready(function() {
       const rerender = M.attr('data-render');
       
       if((rerender ?? 1) == 0){
-        fill(null,canon);
+        fill(M,null,canon);
         setReadonly();
         return;
       }
@@ -172,7 +173,7 @@ $(document).ready(function() {
       M.attr('data-modo',modo.toUpperCase());
       mostrarSegunModo();
       const form = M.find('form[data-js-recalcular]');
-      form.find('[name]').val('');
+      form.find('[name],[data-descripcion],[data-archivo]').val('');
       AUX.GET(url,{id_canon: id_canon},function(canon){       
         if(canon !== null){
           M.attr('data-render',1);

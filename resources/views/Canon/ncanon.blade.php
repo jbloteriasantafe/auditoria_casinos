@@ -486,6 +486,8 @@
           $mesas_domingos = $n('mesas_domingos');
           $dias_todos  = $n('dias_todos');
           $mesas_todos = $n('mesas_todos');
+          $dias_fijos  = $n('dias_fijos');
+          $mesas_fijos = $n('mesas_fijos');
           $total_dolar     = $n('total_dolar');
           $total_euro      = $n('total_euro');
           $total_devengado = $n('total_devengado');
@@ -537,40 +539,47 @@
             <div>
               <h5>DIAS-MESAS L-J</h5>
               <div style="display: flex;flex-direction: column;border: 1px solid grey;">
-                <input class="form-control" data-name="{{$dias_lunes_jueves}}" placeholder="DIAS" data-depende="año_mes" data-readonly='[{"modo": "VER"}]'>
+                <input class="form-control" data-name="{{$dias_lunes_jueves}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
                 <input class="form-control" data-name="{{$mesas_lunes_jueves}}" placeholder="MESAS" data-readonly='[{"modo": "VER"}]'>
               </div>
             </div>
             <div>
               <h5>DIAS-MESAS V-S</h5>
               <div style="display: flex;flex-direction: column;border: 1px solid grey;">
-                <input class="form-control" data-name="{{$dias_viernes_sabados}}" placeholder="DIAS" data-depende="año_mes" data-readonly='[{"modo": "VER"}]'>
+                <input class="form-control" data-name="{{$dias_viernes_sabados}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
                 <input class="form-control" data-name="{{$mesas_viernes_sabados}}" placeholder="MESAS" data-readonly='[{"modo": "VER"}]'>
               </div>
             </div>               
             <div>
               <h5>DIAS-MESAS Dom</h5>
               <div style="display: flex;flex-direction: column;border: 1px solid grey;">
-                <input class="form-control" data-name="{{$dias_domingos}}" placeholder="DIAS" data-depende="año_mes" data-readonly='[{"modo": "VER"}]'>
+                <input class="form-control" data-name="{{$dias_domingos}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
                 <input class="form-control" data-name="{{$mesas_domingos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"}]'>
               </div>
             </div>
             <div>
               <h5>DIAS-MESAS Todos</h5>
               <div style="display: flex;flex-direction: column;border: 1px solid grey;">
-                <input class="form-control" data-name="{{$dias_todos}}" placeholder="DIAS" data-depende="año_mes" data-readonly='[{"modo": "VER"}]'>
+                <input class="form-control" data-name="{{$dias_todos}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
                 <input class="form-control" data-name="{{$mesas_todos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"}]'>
+              </div>
+            </div>
+            <div>
+              <h5>DIAS-MESAS Fijos</h5>
+              <div style="display: flex;flex-direction: column;border: 1px solid grey;">
+                <input class="form-control" data-name="{{$dias_fijos}}" placeholder="DIAS" data-depende="id_casino" data-readonly='[{"modo": "VER"}]'>
+                <input class="form-control" data-name="{{$mesas_fijos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"}]'>
               </div>
             </div>
           </div>
           <div style="display: flex;">
             <div>
               <h5>TOTAL DOLAR</h5>
-              <input class="form-control" data-name="{{$total_dolar}}" data-depende="{{$valor_diario_dolar}},{{$dias_lunes_jueves}},{{$mesas_lunes_jueves}},{{$dias_viernes_sabados}},{{$mesas_viernes_sabados}},{{$dias_domingos}},{{$mesas_domingos}},{{$dias_todos}},{{$mesas_todos}}" data-readonly='[{}]'>
+              <input class="form-control" data-name="{{$total_dolar}}" data-depende="{{$valor_diario_dolar}},{{$dias_lunes_jueves}},{{$mesas_lunes_jueves}},{{$dias_viernes_sabados}},{{$mesas_viernes_sabados}},{{$dias_domingos}},{{$mesas_domingos}},{{$dias_todos}},{{$mesas_todos}},{{$dias_fijos}},{{$mesas_fijos}}" data-readonly='[{}]'>
             </div>
             <div>
               <h5>TOTAL EURO</h5>
-              <input class="form-control" data-name="{{$total_euro}}" data-depende="{{$valor_diario_euro}},{{$dias_lunes_jueves}},{{$mesas_lunes_jueves}},{{$dias_viernes_sabados}},{{$mesas_viernes_sabados}},{{$dias_domingos}},{{$mesas_domingos}},{{$dias_todos}},{{$mesas_todos}}" data-readonly='[{}]'>
+              <input class="form-control" data-name="{{$total_euro}}" data-depende="{{$valor_diario_euro}},{{$dias_lunes_jueves}},{{$mesas_lunes_jueves}},{{$dias_viernes_sabados}},{{$mesas_viernes_sabados}},{{$dias_domingos}},{{$mesas_domingos}},{{$dias_todos}},{{$mesas_todos}},{{$dias_fijos}},{{$mesas_fijos}}" data-readonly='[{}]'>
             </div>
             <div>
               <h5>TOTAL (DEVENGADO)</h5>
