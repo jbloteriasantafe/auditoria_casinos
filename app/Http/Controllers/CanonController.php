@@ -34,18 +34,21 @@ class CanonController extends Controller
   }
   
   public function recalcular(Request $request){
-    $ret = [];
-    $ret['año_mes'] = $request['año_mes'] ?? null;
-    $ret['id_casino'] = $request['id_casino'] ?? null;
-    $ret['estado'] = $request['estado'] ?? 'Nuevo';
-    $ret['fecha_cotizacion'] = $request['fecha_cotizacion'] ?? null;
-    $ret['fecha_vencimiento'] = $request['fecha_vencimiento'] ?? null;
-    $ret['fecha_pago'] = $request['fecha_pago'] ?? null;  
-    $ret['es_antiguo'] = $request['es_antiguo'] ?? 0;
-    $ret['adjuntos'] = $request['adjuntos'] ?? [];
+    $clearEmpty = function($s,$dflt = null) use (&$request){
+      return (($request[$s] ?? null) === null || ($request[$s] == '') || ($request[$s] == []))? $dflt : $request[$s];
+    };
     
-    if(!empty($ret['año_mes'])){
-      $f = explode('-',$ret['año_mes']);
+    $año_mes = $clearEmpty('año_mes');//@RETORNADO
+    $id_casino = $clearEmpty('id_casino');//@RETORNADO
+    $estado = $clearEmpty('estado','Nuevo');//@RETORNADO
+    $fecha_cotizacion = $clearEmpty('fecha_cotizacion');//@RETORNADO
+    $fecha_vencimiento = $clearEmpty('fecha_vencimiento');//@RETORNADO
+    $fecha_pago = $clearEmpty('fecha_pago');//@RETORNADO
+    $es_antiguo = $clearEmpty('es_antiguo',0)? 1 : 0;//@RETORNADO
+    $adjuntos = $clearEmpty('adjuntos',[]);//@RETORNADO
+    
+    if($año_mes !== null && $año_mes !== ''){
+      $f = explode('-',$año_mes);
       $f[2] = '10';
       $f = implode('-',$f);
       $f = new \DateTimeImmutable($f);
@@ -57,109 +60,127 @@ class CanonController extends Controller
       for($break = 9;$break > 0 && in_array($proximo_lunes->format('w'),['0','6']);$break--){
         $proximo_lunes = $proximo_lunes->add(\DateInterval::createFromDateString('1 day'));
       }
-      $ret['fecha_cotizacion'] = $ret['fecha_cotizacion'] ?? $viernes_anterior->format('Y-m-d');
-      $ret['fecha_vencimiento'] = $ret['fecha_vencimiento'] ?? $proximo_lunes->format('Y-m-d');
-      $ret['fecha_pago'] = $ret['fecha_pago'] ?? $ret['fecha_vencimiento'];
+      $fecha_cotizacion = $clearEmpty('fecha_cotizacion',$viernes_anterior->format('Y-m-d'));//@RETORNADO
+      $fecha_vencimiento = $clearEmpty('fecha_vencimiento',$proximo_lunes->format('Y-m-d'));//@RETORNADO
+      $fecha_pago = $clearEmpty('fecha_pago',$fecha_vencimiento);//@RETORNADO
     }
-    
-    $ret['canon_variable'] = [];
-    $ret['canon_fijo_mesas'] = [];
-    $ret['canon_fijo_mesas_adicionales'] = [];
-    if($ret['es_antiguo'] ?? false){
-      $ret['bruto_devengado'] = $request['bruto_devengado'] ?? 0.0;
-      $ret['bruto_pagar'] = $request['bruto_devengado'] ?? 0.0;
+        
+    $bruto_devengado = 0.0;//@RETORNADO
+    $bruto_pagar = 0.0;//@RETORNADO
+    $canon_variable = [];//@RETORNADO
+    $canon_fijo_mesas = [];//@RETORNADO
+    $canon_fijo_mesas_adicionales = [];//@RETORNADO
+    if($es_antiguo){
+      $bruto_devengado = $clearEmpty('bruto_devengado',$bruto_devengado);
+      $bruto_pagar = $clearEmpty('bruto_pagar',$bruto_devengado);
     }
     else{
-      $ret['bruto_devengado'] = 0.0;
-      $ret['bruto_pagar'] = 0.0;
       {//Varios tipos (JOL, Bingo, Maquinas)
-        $defecto = ($this->valorPorDefecto('canon_variable') ?? [])[$ret['id_casino']] ?? [];
+        $defecto = ($this->valorPorDefecto('canon_variable') ?? [])[$id_casino] ?? [];
         foreach(($request['canon_variable'] ?? $defecto ?? []) as $tipo => $_){
-          $ret['canon_variable'][$tipo] = $this->canon_variable_recalcular(
+          $canon_variable[$tipo] = $this->canon_variable_recalcular(
             $tipo,
             $defecto[$tipo] ?? [],
             ($request['canon_variable'] ?? [])[$tipo] ?? []
           );
-          $ret['bruto_devengado'] += $ret['canon_variable'][$tipo]['total_devengado'] ?? 0.0;
-          $ret['bruto_pagar'] += $ret['canon_variable'][$tipo]['total_pagar'] ?? 0.0;
+          $bruto_devengado += $canon_variable[$tipo]['total_devengado'] ?? 0.0;
+          $bruto_pagar += $canon_variable[$tipo]['total_pagar'] ?? 0.0;
         }
       }
       {//Dos tipos muy parecidos (Fijas y Diarias), se hace asi mas que nada para que sea homogeneo
-        $defecto = $this->valorPorDefecto('canon_fijo_mesas')[$ret['id_casino']] ?? [];
+        $defecto = $this->valorPorDefecto('canon_fijo_mesas')[$id_casino] ?? [];
         foreach(($request['canon_fijo_mesas'] ?? $defecto ?? []) as $tipo => $_){
-          $ret['canon_fijo_mesas'][$tipo] = $this->mesas_recalcular(
-            $ret['año_mes'],
-            $ret['id_casino'],
-            $ret['fecha_cotizacion'],
+          $canon_fijo_mesas[$tipo] = $this->mesas_recalcular(
+            $año_mes,
+            $id_casino,
+            $fecha_cotizacion,
             $tipo,
             $defecto[$tipo] ?? [],
             ($request['canon_fijo_mesas'] ?? [])[$tipo] ?? []
           );
-          $ret['bruto_devengado'] += $ret['canon_fijo_mesas'][$tipo]['total_devengado'] ?? 0.0;
-          $ret['bruto_pagar'] += $ret['canon_fijo_mesas'][$tipo]['total_pagar'] ?? 0.0; 
+          $bruto_devengado += $canon_fijo_mesas[$tipo]['total_devengado'] ?? 0.0;
+          $bruto_pagar += $canon_fijo_mesas[$tipo]['total_pagar'] ?? 0.0; 
         }
       }
       {//Las mesas adicionales pueden ser varios tipos (Torneo Truco, Torneo Poker, etc)
-        $defecto = $this->valorPorDefecto('canon_fijo_mesas_adicionales')[$ret['id_casino']] ?? [];
+        $defecto = $this->valorPorDefecto('canon_fijo_mesas_adicionales')[$id_casino] ?? [];
         foreach(($request['canon_fijo_mesas_adicionales'] ?? $defecto ?? []) as $tipo => $_){
-          $ret['canon_fijo_mesas_adicionales'][$tipo] = $this->mesasAdicionales_recalcular(
+          $canon_fijo_mesas_adicionales[$tipo] = $this->mesasAdicionales_recalcular(
             $tipo,
             $defecto[$tipo] ?? [],
-            ($request['mesas_adicionales'] ?? [])[$tipo] ?? []
+            ($request['canon_fijo_mesas_adicionales'] ?? [])[$tipo] ?? []
           );
-          $ret['bruto_devengado'] += $ret['canon_fijo_mesas_adicionales'][$tipo]['total_devengado'] ?? 0.0;
-          $ret['bruto_pagar'] += $ret['canon_fijo_mesas_adicionales'][$tipo]['total_pagar'] ?? 0.0;
+          $bruto_devengado += $canon_fijo_mesas_adicionales[$tipo]['total_devengado'] ?? 0.0;
+          $bruto_pagar += $canon_fijo_mesas_adicionales[$tipo]['total_pagar'] ?? 0.0;
         }
       }
     }
     
-    $ret['deduccion'] = $request['deduccion'] ?? 0.0;
-    $ret['devengado'] = $ret['bruto_devengado'] - $ret['deduccion'];
+    $deduccion = $clearEmpty('deduccion',0.0);//@RETORNADO
+    $devengado = $bruto_devengado - $deduccion;//@RETORNADO
     
-    $ret['porcentaje_seguridad'] = $ret['bruto_devengado'] != 0.0?
-       100.0*($ret['bruto_devengado']-$ret['devengado'])/$ret['bruto_devengado']
+    $porcentaje_seguridad = $bruto_devengado != 0.0?//@RETORNADO
+       100.0*$deduccion/$bruto_devengado
       : null;
     
-    $ret['interes_mora'] = $request['interes_mora'] ?? 0.0;
-    $ret['a_pagar'] = $request['a_pagar'] ?? 0.0;
-    $ret['mora'] = $request['mora'] ?? 0.0;
+    $interes_mora = $clearEmpty('interes_mora',0.0);//@RETORNADO
+    $a_pagar = $clearEmpty('a_pagar',0.0);//@RETORNADO
+    $mora = $clearEmpty('mora',0.0);//@RETORNADO
     
-    if($ret['fecha_vencimiento'] && $ret['fecha_pago']){
-      $timestamp_venc = \DateTimeImmutable::createFromFormat('Y-m-d', $ret['fecha_vencimiento']);
-      $timestamp_pago = \DateTimeImmutable::createFromFormat('Y-m-d', $ret['fecha_pago']);
+    if($bruto_pagar < 0.01){
+      $a_pagar = 0.0;
+      $interes_mora = 0.0;
+      $mora = 0.0;
+    }
+    else{
+      assert($fecha_vencimiento && $fecha_pago);
+      $timestamp_venc = \DateTimeImmutable::createFromFormat('Y-m-d', $fecha_vencimiento);
+      $timestamp_pago = \DateTimeImmutable::createFromFormat('Y-m-d', $fecha_pago);
       $date_interval  = $timestamp_pago->diff($timestamp_venc);
       $cantidad_dias = intval($date_interval->format('%d'));
       if($cantidad_dias < 0){}
-      else if(!is_null($ret['interes_mora'])){//Si envio el interes, calculo el pago
-        $ret['a_pagar'] = $ret['bruto_pagar']*pow(1+$ret['interes_mora']/100.0,$cantidad_dias);
-        $ret['mora'] = $ret['a_pagar'] - $ret['bruto_pagar'];
+      else if($cantidad_dias == 0){
+        $a_pagar = $bruto_pagar;
+        $interes_mora = 0.0;
+        $mora = 0.0;
       }
-      else if(!is_null($ret['a_pagar'])){//Si envio el pago, calculo el interes
-        $coeff = log($ret['a_pagar']/$ret['bruto_pagar'])/($cantidad_dias == 0? 1 : $cantidad_dias);
-        $ret['interes_mora'] = (exp($coeff)-1)*100;
-        $ret['mora'] = $ret['a_pagar'] - $ret['bruto_pagar'];
+      else if($clearEmpty('interes_mora',null) !== null){//Si envio el interes, calculo el pago
+        $a_pagar = $bruto_pagar*pow(1+$interes_mora/100.0,$cantidad_dias);
+        $mora = $a_pagar - $bruto_pagar;
       }
-      else if(!is_null($ret['mora'])){
-        $ret['a_pagar'] = $ret['bruto_pagar']+$ret['mora'];
-        $coeff = log($ret['a_pagar']/$ret['bruto_pagar'])/($cantidad_dias == 0? 1 : $cantidad_dias);
-        $ret['interes_mora'] = (exp($coeff)-1)*100;
+      else if($clearEmpty('a_pagar',null) !== null){//Si envio el pago, calculo el interes
+        $coeff = log($a_pagar/$bruto_pagar)/$cantidad_dias;
+        $interes_mora = (exp($coeff)-1)*100;
+        $mora = $a_pagar - $bruto_pagar;
       }
-      else {
-        $ret['a_pagar'] = $ret['bruto_pagar'];
-        $ret['interes_mora'] = 0;
-        $ret['mora'] = 0;
+      else if($clearEmpty('mora',null) !== null){
+        $a_pagar = $bruto_pagar+$mora;
+        $coeff = log($a_pagar/$bruto_pagar)/$cantidad_dias;
+        $interes_mora = (exp($coeff)-1)*100;
+      }
+      else {//Son todos nulos... asumo interes 0...
+        $a_pagar = $bruto_pagar;
+        $interes_mora = 0.0;
+        $mora = 0.0;
       }
     }
     
-    $ret['pago'] = $request['pago'] ?? 0.0;
-    $ret['diferencia'] = ($ret['pago'] ?? 0) - $ret['a_pagar'];
-    $ret['saldo_anterior'] = (!is_null($ret['año_mes']) && !is_null($ret['id_casino']))? 
-      $this->calcular_saldo_hasta($ret['año_mes'],$ret['id_casino'])
-    : 0;
+    $pago = $clearEmpty('pago',0.0);//@RETORNADO
+    $diferencia = $pago - $a_pagar;//@RETORNADO
+    $saldo_anterior = 0;//@RETORNADO
+    if($año_mes !== null && $id_casino !== null){
+      $saldo_anterior = $this->calcular_saldo_hasta($año_mes,$id_casino);
+    }
     
-    $ret['saldo_posterior'] = $ret['saldo_anterior'] + $ret['diferencia'];
+    $saldo_posterior = $saldo_anterior + $diferencia;//@RETORNADO
     
-    return $ret;
+    return compact(
+      'año_mes','id_casino','estado','es_antiguo',
+      'canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales','adjuntos',
+      'bruto_devengado','deduccion','devengado','porcentaje_seguridad',
+      'bruto_pagar','fecha_vencimiento','fecha_pago','interes_mora','mora',
+      'a_pagar','pago','diferencia','saldo_anterior','saldo_posterior'
+    );
   }
   
   private function calcular_saldo_hasta($año_mes,$id_casino){
@@ -173,22 +194,31 @@ class CanonController extends Controller
   }
   
   public function canon_variable_recalcular($tipo,$valores_defecto,$data){
-    $apostado_sistema = $data['apostado_sistema'] ?? 0.0;
-    $apostado_informado = $data['apostado_informado'] ?? 0.0;
+    $R = function($s,$dflt = null) use (&$data){
+      return (($data[$s] ?? null) === null || ($data[$s] == '') || ($data[$s] == []))? $dflt : $data[$s];
+    };
+    $D = function($s,$dflt = null) use (&$valores_defecto){
+      return (($valores_defecto[$s] ?? null) === null || ($valores_defecto[$s] == '') || ($valores_defecto[$s] == []))? $dflt : $valores_defecto[$s];
+    };
+    $RD = function($s,$dflt = null) use ($R,$D){
+      return $R($s,null) ?? $D($s,null) ?? $dflt;
+    };
+    $apostado_sistema = $R('apostado_sistema',0.0);
+    $apostado_informado = $R('apostado_informado',0.0);
     
-    $apostado_porcentaje_aplicable = $data['apostado_porcentaje_aplicable'] ?? $valores_defecto['apostado_porcentaje_aplicable'] ?? 0.0;
+    $apostado_porcentaje_aplicable = $RD('apostado_porcentaje_aplicable',0.0);
     $base_imponible_devengado = $apostado_sistema*$apostado_porcentaje_aplicable/100.0;
     $base_imponible_pagar     = $apostado_informado*$apostado_porcentaje_aplicable/100.0;
     
-    $apostado_porcentaje_impuesto_ley = $data['apostado_porcentaje_impuesto_ley'] ?? $valores_defecto['apostado_porcentaje_impuesto_ley'] ?? 0.0;
+    $apostado_porcentaje_impuesto_ley = $RD('apostado_porcentaje_impuesto_ley',0.0);
     $impuesto_devengado = $base_imponible_devengado*$apostado_porcentaje_impuesto_ley/100.0;
     $impuesto_pagar = $base_imponible_pagar*$apostado_porcentaje_impuesto_ley/100.0;
     
-    $bruto = $data['bruto'] ?? 0.0;
+    $bruto = $R('bruto',0.0);
     $subtotal_devengado = $bruto - $impuesto_devengado;
     $subtotal_pagar     = $bruto - $impuesto_pagar;
     
-    $alicuota = $data['alicuota'] ?? $valores_defecto['alicuota'] ?? 0.0;
+    $alicuota = $RD('alicuota',0.0);
     $total_devengado = $subtotal_devengado*$alicuota/100.0;
     $total_pagar = $subtotal_pagar*$alicuota/100.0;
     
@@ -205,24 +235,36 @@ class CanonController extends Controller
       $año_mes,$id_casino,
       $fecha_cotizacion,//@RETORNADO
       $tipo,//@RETORNADO
-      $datos_defecto,$data
+      $valores_defecto,
+      $data
   ){
+    $R = function($s,$dflt = null) use (&$data){
+      return (($data[$s] ?? null) === null || ($data[$s] == '') || ($data[$s] == []))? $dflt : $data[$s];
+    };
+    $D = function($s,$dflt = null) use (&$valores_defecto){
+      return (($valores_defecto[$s] ?? null) === null || ($valores_defecto[$s] == '') || ($valores_defecto[$s] == []))? $dflt : $valores_defecto[$s];
+    };
+    $RD = function($s,$dflt = null) use ($R,$D){
+      return $R($s,null) ?? $D($s,null) ?? $dflt;
+    };
     
-    $cotizacion_dolar = 0.0;//@RETORNADO
-    $cotizacion_euro  = 0.0;//@RETORNADO
-    if($fecha_cotizacion !== null){
-      $cotizacion_dolar = $data['cotizacion_dolar'] ?? $this->cotizacion($fecha_cotizacion,2) ?? 0.0;
-      $cotizacion_euro  = $data['cotizacion_euro']  ?? $this->cotizacion($fecha_cotizacion,3) ?? 0.0;
-    }
-
+    $cotizacion_dolar = $R(
+      'cotizacion_dolar',
+      $fecha_cotizacion !== null? $this->cotizacion($fecha_cotizacion,2) : 0.0
+    ) ?? 0.0;//@RETORNADO
+    $cotizacion_euro = $R(
+      'cotizacion_euro',
+      $fecha_cotizacion !== null? $this->cotizacion($fecha_cotizacion,3) : 0.0
+    ) ?? 0.0;//@RETORNADO
+    
     $valor_dolar = 0.0;//@RETORNADO
     $valor_euro  = 0.0;//@RETORNADO
     if($id_casino !== null){
-      $valor_dolar = $data['valor_dolar'] ?? $datos_defecto['valor_dolar'] ?? 0.0;
-      $valor_euro  = $data['valor_euro']  ?? $datos_defecto['valor_euro']  ?? 0.0;
+      $valor_dolar = $RD('valor_dolar',$valor_dolar);
+      $valor_euro  = $RD('valor_euro',$valor_euro);
     }
     
-    $dias_valor = $data['dias_valor'] ?? $datos_defecto['dias_valor'] ?? 0;//@RETORNADO
+    $dias_valor = $RD('dias_valor',0.0);//@RETORNADO
     $valor_diario_dolar = 0.0;//@RETORNADO
     $valor_diario_euro  = 0.0;//@RETORNADO
     if($dias_valor != 0){//No entra si es =0, nulo, o falta
@@ -234,10 +276,11 @@ class CanonController extends Controller
     $dias_viernes_sabados = 0;//@RETORNADO
     $dias_domingos = 0;//@RETORNADO
     $dias_todos = 0;//@RETORNADO
-    $dias_fijos = $data['dias_fijos'] ?? $datos_defecto['dias_fijos'] ?? 0;//@RETORNADO
+    $dias_fijos = $RD('dias_fijos',0);//@RETORNADO
+    
     if($año_mes !== null){
       if($fecha_cotizacion === null){
-        $año_mes_arr = explode('-',$ret['año_mes']);
+        $año_mes_arr = explode('-',$año_mes);
         if($año_mes_arr[1] < 12){
           $año_mes_arr[1] = str_pad(intval($año_mes_arr[1])+1,2,'0',STR_PAD_LEFT);
         }
@@ -248,17 +291,6 @@ class CanonController extends Controller
         $fecha_cotizacion = implode('-',$año_mes_arr);
       }
       
-      $dias = [
-        'dias_lunes_jueves'    => $data['dias_lunes_jueves'] ?? null,
-        'dias_viernes_sabados' => $data['dias_viernes_sabados'] ?? null,
-        'dias_domingos'        => $data['dias_domingos'] ?? null,
-        'dias_todos'           => $data['dias_todos'] ?? null
-      ];
-      
-      $calcular_alguno = array_reduce($dias,function($carry,$item){
-        return $carry || ($item === null);//Si alguno esta vacio, hay que calcular
-      },false);
-      
       $wdmin_wdmax_count_arr = [
         'dias_lunes_jueves'    => [1,4,0],
         'dias_viernes_sabados' => [5,6,0],
@@ -266,7 +298,12 @@ class CanonController extends Controller
         'dias_todos'           => [0,6,0],
       ];
       
-      if($calcular_alguno){
+      $calcular_dias_lunes_jueves = $D('calcular_dias_lunes_jueves',true);
+      $calcular_dias_viernes_sabados = $D('calcular_dias_viernes_sabados',true);
+      $calcular_dias_domingos = $D('calcular_dias_domingos',true);
+      $calcular_dias_todos = $D('calcular_dias_todos',true);
+      //@SPEED: unset K si no hay que calcular?
+      if($calcular_dias_lunes_jueves || $calcular_dias_viernes_sabados || $calcular_dias_domingos || $calcular_dias_todos){
         $año_mes_arr = explode('-',$año_mes);
         $dias_en_el_mes = cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
         for($d=1;$d<=$dias_en_el_mes;$d++){
@@ -274,7 +311,6 @@ class CanonController extends Controller
           $f = new \DateTime(implode('-',$año_mes_arr));
           $wd = $f->format('w');
           foreach($wdmin_wdmax_count_arr as $k => &$wdmin_wdmax_count){
-            if($dias[$k] !== null) continue;//No calcularlo si viene puesto
             if($wd >= $wdmin_wdmax_count[0] && $wd <= $wdmin_wdmax_count[1]){
               $wdmin_wdmax_count[2] = $wdmin_wdmax_count[2] + 1;
             }
@@ -282,25 +318,25 @@ class CanonController extends Controller
         }
       }
       
-      $dias_lunes_jueves    = (($datos_defecto['calcular_dias_lunes_jueves'] ?? true) || ($dias['dias_lunes_jueves'] !== null))? 
-        ($dias['dias_lunes_jueves'] ?? $wdmin_wdmax_count_arr['dias_lunes_jueves'][2])
+      $dias_lunes_jueves = $calcular_dias_lunes_jueves? 
+        $R('dias_lunes_jueves',$wdmin_wdmax_count_arr['dias_lunes_jueves'][2])
       : 0;
-      $dias_viernes_sabados = (($datos_defecto['calcular_dias_viernes_sabados'] ?? true) || ($dias['dias_viernes_sabados'] !== null))? 
-        ($dias['dias_viernes_sabados'] ?? $wdmin_wdmax_count_arr['dias_viernes_sabados'][2])
+      $dias_viernes_sabados = $calcular_dias_viernes_sabados? 
+        $R('dias_viernes_sabados',$wdmin_wdmax_count_arr['dias_viernes_sabados'][2])
       : 0;
-      $dias_domingos    = (($datos_defecto['calcular_dias_domingos'] ?? true) || ($dias['dias_domingos'] !== null))? 
-        ($dias['dias_domingos'] ?? $wdmin_wdmax_count_arr['dias_domingos'][2])
+      $dias_domingos = $calcular_dias_domingos? 
+        $R('dias_domingos',$wdmin_wdmax_count_arr['dias_domingos'][2])
       : 0;
-      $dias_todos    = (($datos_defecto['calcular_dias_todos'] ?? true) || ($dias['dias_todos'] !== null))? 
-        ($dias['dias_todos'] ?? $wdmin_wdmax_count_arr['dias_todos'][2])
+      $dias_todos = $calcular_dias_todos? 
+        $R('dias_todos',$wdmin_wdmax_count_arr['dias_todos'][2])
       : 0;
     }
     
-    $mesas_lunes_jueves      = $data['mesas_lunes_jueves'] ?? 0;//@RETORNADO
-    $mesas_viernes_sabados   = $data['mesas_viernes_sabados'] ?? 0;//@RETORNADO
-    $mesas_domingos          = $data['mesas_domingos'] ?? 0;//@RETORNADO
-    $mesas_todos             = $data['mesas_todos'] ?? 0;//@RETORNADO
-    $mesas_fijos             = $data['mesas_fijos'] ?? 0;//@RETORNADO
+    $mesas_lunes_jueves      = $R('mesas_lunes_jueves',0);//@RETORNADO
+    $mesas_viernes_sabados   = $R('mesas_viernes_sabados',0);//@RETORNADO
+    $mesas_domingos          = $R('mesas_domingos',0);//@RETORNADO
+    $mesas_todos             = $R('mesas_todos',0);//@RETORNADO
+    $mesas_fijos             = $R('mesas_fijos',0);//@RETORNADO
         
     $mesasdias = $dias_lunes_jueves*$mesas_lunes_jueves
     +$dias_viernes_sabados*$mesas_viernes_sabados
@@ -322,26 +358,36 @@ class CanonController extends Controller
     );
   }
   
-  public function mesasAdicionales_recalcular($tipo,$data_tipo,$data){
-    $valor_mensual = $data['valor_mensual'] ?? $data_tipo['valor_mensual'] ?? 0.0;
-    $dias_mes = $data['dias_mes'] ?? $data_tipo['dias_mes'] ?? 0;
-    $horas_dia = $data['horas_dia'] ?? $data_tipo['horas_dia'] ?? 0;
-    $porcentaje = $data['porcentaje'] ?? $data_tipo['porcentaje'] ?? 0.0;
+  public function mesasAdicionales_recalcular($tipo,$valores_defecto,$data){
+    $R = function($s,$dflt = null) use (&$data){
+      return (($data[$s] ?? null) === null || ($data[$s] == '') || ($data[$s] == []))? $dflt : $data[$s];
+    };
+    $D = function($s,$dflt = null) use (&$valores_defecto){
+      return (($valores_defecto[$s] ?? null) === null || ($valores_defecto[$s] == '') || ($valores_defecto[$s] == []))? $dflt : $valores_defecto[$s];
+    };
+    $RD = function($s,$dflt = null) use ($R,$D){
+      return $R($s,null) ?? $D($s,null) ?? $dflt;
+    };
     
-    $valor_diario = 0.0;
-    if($dias_mes != null){
-      $valor_diario = $data['valor_diario'] ?? ($valor_mensual/$dias_mes) ?? 0.0;
+    $valor_mensual = $RD('valor_mensual',0.0);//@RETORNADO
+    $dias_mes      = $RD('dias_mes',0);//@RETORNADO
+    $horas_dia     = $RD('horas_dia',0);//@RETORNADO
+    $porcentaje    = $RD('porcentaje',0.0);//@RETORNADO
+    
+    $valor_diario = 0.0;//@RETORNADO
+    if($dias_mes != 0){
+      $valor_diario = $valor_mensual/$dias_mes;
     }
     
-    $valor_hora = 0.0;
-    if($horas_dia != null){
-      $valor_hora = $data['valor_hora'] ?? ($valor_diario/$horas_dia) ?? 0.0;
+    $valor_hora = 0.0;//@RETORNADO
+    if($horas_dia != 0){
+      $valor_hora = $valor_diario/$horas_dia;
     }
        
-    $horas = $data['horas'] ?? 0;
-    $mesas = $data['mesas'] ?? 0;
-    $total_devengado = $horas*$valor_hora*$mesas*($porcentaje/100.0);
-    $total_pagar = $total_devengado;
+    $horas = $R('horas',0);//@RETORNADO
+    $mesas = $R('mesas',0);//@RETORNADO
+    $total_devengado = $horas*$valor_hora*$mesas*($porcentaje/100.0);//@RETORNADO
+    $total_pagar = $total_devengado;//@RETORNADO
     
     return compact('tipo','valor_mensual','dias_mes','valor_diario','horas_dia','valor_hora','horas','mesas','porcentaje','total_devengado','total_pagar');
   }
@@ -520,6 +566,11 @@ class CanonController extends Controller
       .'&nombre_archivo='.urlencode($adj->nombre_archivo);
       return $adj;
     });
+    
+    $ret['saldo_anterior'] = 0;
+    $ret['saldo_anterior'] = $this->calcular_saldo_hasta($ret['año_mes'],$ret['id_casino']);
+    $ret['diferencia'] = $ret['pago'] - $ret['a_pagar'];
+    $ret['saldo_posterior'] = $ret['saldo_anterior'] + $ret['diferencia'];
     
     return $ret;
   }

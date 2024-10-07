@@ -20,7 +20,6 @@ $(document).ready(function() {
         }
         else{
           const name = subscript(k);
-          console.log(name+'='+val);
           div.find(`[name="${name}"]`).val(val);
         }
       }
