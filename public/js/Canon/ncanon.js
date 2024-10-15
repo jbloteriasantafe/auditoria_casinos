@@ -379,6 +379,7 @@ $(document).ready(function() {
         },
         function(data){
           AUX.mensajeError('');
+          fillError(form,data.responseJSON ?? {});
         },
         {
           contentType: false,

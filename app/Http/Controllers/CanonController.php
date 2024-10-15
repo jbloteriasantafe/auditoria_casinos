@@ -19,18 +19,6 @@ use App\Archivo;
 
 require_once(app_path('BC_extendido.php'));
 
-function numeric_rule(int $digits) {
-  static $cache = [];
-  if($cache[$digits] ?? false) return $cache[$digits];
-  $regex = '-?\d+';
-  if($digits){
-    $digits_regexp = implode('',array_fill(0,$digits,'\d?'));
-    $regex .= '\.?'.$digits_regexp;
-  }
-  $cache[$digits] = 'regex:/^'.$regex.'$/';
-  return $cache[$digits];
-}
-
 class CanonController extends Controller
 {
   static $max_scale = 64;
@@ -48,79 +36,95 @@ class CanonController extends Controller
     return View::make('Canon.ncanon', compact('casinos','plataformas'));
   }
     
-  private function validarCanon(array $request){
+  private function validarCanon(array $request,array $requireds = []){
+    $numeric_rule = function(int $digits) {
+      static $cache = [];
+      if($cache[$digits] ?? false) return $cache[$digits];
+      $regex = '-?\d+';
+      if($digits){
+        $digits_regexp = implode('',array_fill(0,$digits,'\d?'));
+        $regex .= '\.?'.$digits_regexp;
+      }
+      $cache[$digits] = 'regex:/^'.$regex.'$/';
+      return $cache[$digits];
+    };
+    $requireds_f = function(string $s) use ($requireds) {
+      return in_array($s,$requireds)? 'required' : 'nullable';
+    };
+
     Validator::make($request,[
-      'id_canon' => 'nullable|integer|exists:canon,id_canon,deleted_at,NULL',
-      'año_mes' => ['nullable','date','regex:/^\d{4}\-((0\d)|(1[0-2]))\-01$/'],
-      'id_casino' => 'nullable|integer|exists:casino,id_casino,deleted_at,NULL',
-      'estado' => 'nullable|string|max:32',
-      'es_antiguo' => 'nullable|integer|in:1,0',
-      'bruto_devengado' => ['nullable',numeric_rule(2)],
-      'deduccion' => ['nullable',numeric_rule(2)],
-      'devengado' => ['nullable',numeric_rule(2)],
-      'porcentaje_seguridad' => ['nullable',numeric_rule(4)],
-      'fecha_vencimiento' => 'date',
-      'fecha_pago' => 'date',
-      'bruto_pagar' => ['nullable',numeric_rule(2)],
-      'interes_mora'=> ['nullable',numeric_rule(4)],
-      'mora' => ['nullable',numeric_rule(2)],
-      'a_pagar' => ['nullable',numeric_rule(2)],
-      'saldo_anterior' => ['nullable',numeric_rule(2)],
-      'saldo_posterior' => ['nullable',numeric_rule(2)],
+      'id_canon' => ['nullable','integer','exists:canon,id_canon,deleted_at,NULL'],
+      'año_mes' => [$requireds_f('año_mes'),'date','regex:/^\d{4}\-((0\d)|(1[0-2]))\-01$/'],
+      'id_casino' => [$requireds_f('id_casino'),'integer','exists:casino,id_casino,deleted_at,NULL'],
+      'estado' => ['nullable','string','max:32'],
+      'es_antiguo' => [$requireds_f('es_antiguo'),'integer','in:1,0'],
+      'bruto_devengado' => ['nullable',$numeric_rule(2)],
+      'deduccion' => ['nullable',$numeric_rule(2)],
+      'devengado' => ['nullable',$numeric_rule(2)],
+      'porcentaje_seguridad' => ['nullable',$numeric_rule(4)],
+      'fecha_vencimiento' => ['nullable','date'],
+      'fecha_pago' => ['nullable','date'],
+      'bruto_pagar' => ['nullable',$numeric_rule(2)],
+      'interes_mora'=> ['nullable',$numeric_rule(4)],
+      'mora' => ['nullable',$numeric_rule(2)],
+      'a_pagar' => ['nullable',$numeric_rule(2)],
+      'saldo_anterior' => ['nullable',$numeric_rule(2)],
+      'saldo_posterior' => ['nullable',$numeric_rule(2)],
       'canon_variable' => 'array',
-      'canon_variable.*.apostado_sistema' => ['nullable',numeric_rule(2)],
-      'canon_variable.*.apostado_informado' => ['nullable',numeric_rule(2)],
-      'canon_variable.*.apostado_porcentaje_aplicable' => ['nullable',numeric_rule(4)],
-      'canon_variable.*.base_imponible_devengado' => ['nullable',numeric_rule(2)],
-      'canon_variable.*.base_imponible_pagar' => ['nullable',numeric_rule(2)],
-      'canon_variable.*.apostado_porcentaje_impuesto_ley' => ['nullable',numeric_rule(4)],
-      'canon_variable.*.impuesto_devengado' => ['nullable',numeric_rule(2)],
-      'canon_variable.*.impuesto_pagar' => ['nullable',numeric_rule(2)],
-      'canon_variable.*.bruto' => ['nullable',numeric_rule(2)],
-      'canon_variable.*.subtotal_devengado' => ['nullable',numeric_rule(2)],
-      'canon_variable.*.subtotal_pagar' => ['nullable',numeric_rule(2)],
-      'canon_variable.*.alicuota' => ['nullable',numeric_rule(4)],
-      'canon_variable.*.total_devengado' => ['nullable',numeric_rule(2)],
-      'canon_variable.*.total_pagar' => ['nullable',numeric_rule(2)],
+      'canon_variable.*.apostado_sistema' => ['nullable',$numeric_rule(2)],
+      'canon_variable.*.apostado_informado' => ['nullable',$numeric_rule(2)],
+      'canon_variable.*.apostado_porcentaje_aplicable' => ['nullable',$numeric_rule(4)],
+      'canon_variable.*.base_imponible_devengado' => ['nullable',$numeric_rule(2)],
+      'canon_variable.*.base_imponible_pagar' => ['nullable',$numeric_rule(2)],
+      'canon_variable.*.apostado_porcentaje_impuesto_ley' => ['nullable',$numeric_rule(4)],
+      'canon_variable.*.impuesto_devengado' => ['nullable',$numeric_rule(2)],
+      'canon_variable.*.impuesto_pagar' => ['nullable',$numeric_rule(2)],
+      'canon_variable.*.bruto' => ['nullable',$numeric_rule(2)],
+      'canon_variable.*.subtotal_devengado' => ['nullable',$numeric_rule(2)],
+      'canon_variable.*.subtotal_pagar' => ['nullable',$numeric_rule(2)],
+      'canon_variable.*.alicuota' => ['nullable',$numeric_rule(4)],
+      'canon_variable.*.total_devengado' => ['nullable',$numeric_rule(2)],
+      'canon_variable.*.total_pagar' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas' => 'array',
       'canon_fijo_mesas.*.fecha_cotizacion' => 'date',
-      'canon_fijo_mesas.*.cotizacion_dolar' => ['nullable',numeric_rule(2)],
-      'canon_fijo_mesas.*.cotizacion_euro' => ['nullable',numeric_rule(2)],
-      'canon_fijo_mesas.*.valor_dolar' => ['nullable',numeric_rule(2)],
-      'canon_fijo_mesas.*.valor_euro' => ['nullable',numeric_rule(2)],
-      'canon_fijo_mesas.*.dias_valor' => ['nullable',numeric_rule(0)],
-      'canon_fijo_mesas.*.valor_diario_dolar' => ['nullable',numeric_rule(2)],
-      'canon_fijo_mesas.*.valor_diario_euro' => ['nullable',numeric_rule(2)],
-      'canon_fijo_mesas.*.dias_lunes_jueves' => ['nullable',numeric_rule(0)],
-      'canon_fijo_mesas.*.mesas_lunes_jueves' => ['nullable',numeric_rule(0)],
-      'canon_fijo_mesas.*.dias_viernes_sabados' => ['nullable',numeric_rule(0)],
-      'canon_fijo_mesas.*.mesas_viernes_sabados' => ['nullable',numeric_rule(0)],
-      'canon_fijo_mesas.*.dias_domingos' => ['nullable',numeric_rule(0)],
-      'canon_fijo_mesas.*.mesas_domingos' => ['nullable',numeric_rule(0)],
-      'canon_fijo_mesas.*.dias_todos' => ['nullable',numeric_rule(0)],
-      'canon_fijo_mesas.*.mesas_todos' => ['nullable',numeric_rule(0)],
-      'canon_fijo_mesas.*.dias_fijos' => ['nullable',numeric_rule(0)],
-      'canon_fijo_mesas.*.mesas_fijos' => ['nullable',numeric_rule(0)],
-      'canon_fijo_mesas.*.total_dolar' => ['nullable',numeric_rule(2)],
-      'canon_fijo_mesas.*.total_euro' => ['nullable',numeric_rule(2)],
-      'canon_fijo_mesas.*.total_devengado' => ['nullable',numeric_rule(2)],
-      'canon_fijo_mesas.*.total_pagar' => ['nullable',numeric_rule(2)],
+      'canon_fijo_mesas.*.cotizacion_dolar' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas.*.cotizacion_euro' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas.*.valor_dolar' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas.*.valor_euro' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas.*.dias_valor' => ['nullable',$numeric_rule(0)],
+      'canon_fijo_mesas.*.valor_diario_dolar' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas.*.valor_diario_euro' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas.*.dias_lunes_jueves' => ['nullable',$numeric_rule(0)],
+      'canon_fijo_mesas.*.mesas_lunes_jueves' => ['nullable',$numeric_rule(0)],
+      'canon_fijo_mesas.*.dias_viernes_sabados' => ['nullable',$numeric_rule(0)],
+      'canon_fijo_mesas.*.mesas_viernes_sabados' => ['nullable',$numeric_rule(0)],
+      'canon_fijo_mesas.*.dias_domingos' => ['nullable',$numeric_rule(0)],
+      'canon_fijo_mesas.*.mesas_domingos' => ['nullable',$numeric_rule(0)],
+      'canon_fijo_mesas.*.dias_todos' => ['nullable',$numeric_rule(0)],
+      'canon_fijo_mesas.*.mesas_todos' => ['nullable',$numeric_rule(0)],
+      'canon_fijo_mesas.*.dias_fijos' => ['nullable',$numeric_rule(0)],
+      'canon_fijo_mesas.*.mesas_fijos' => ['nullable',$numeric_rule(0)],
+      'canon_fijo_mesas.*.total_dolar' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas.*.total_euro' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas.*.total_devengado' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas.*.total_pagar' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas_adicionales' => 'array',
-      'canon_fijo_mesas_adicionales.*.valor_mensual' => ['nullable',numeric_rule(2)],
-      'canon_fijo_mesas_adicionales.*.dias_mes' => ['nullable',numeric_rule(0)],
-      'canon_fijo_mesas_adicionales.*.valor_diario' => ['nullable',numeric_rule(2)],
-      'canon_fijo_mesas_adicionales.*.horas_dia' => ['nullable',numeric_rule(0)],
-      'canon_fijo_mesas_adicionales.*.valor_hora' => ['nullable',numeric_rule(2)],
-      'canon_fijo_mesas_adicionales.*.horas' => ['nullable',numeric_rule(0)],
-      'canon_fijo_mesas_adicionales.*.mesas' => ['nullable',numeric_rule(0)],
-      'canon_fijo_mesas_adicionales.*.porcentaje' => ['nullable',numeric_rule(4)],
-      'canon_fijo_mesas_adicionales.*.total_devengado' => ['nullable',numeric_rule(2)],
-      'canon_fijo_mesas_adicionales.*.total_pagar' => ['nullable',numeric_rule(2)],
+      'canon_fijo_mesas_adicionales.*.valor_mensual' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas_adicionales.*.dias_mes' => ['nullable',$numeric_rule(0)],
+      'canon_fijo_mesas_adicionales.*.valor_diario' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas_adicionales.*.horas_dia' => ['nullable',$numeric_rule(0)],
+      'canon_fijo_mesas_adicionales.*.valor_hora' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas_adicionales.*.horas' => ['nullable',$numeric_rule(0)],
+      'canon_fijo_mesas_adicionales.*.mesas' => ['nullable',$numeric_rule(0)],
+      'canon_fijo_mesas_adicionales.*.porcentaje' => ['nullable',$numeric_rule(4)],
+      'canon_fijo_mesas_adicionales.*.total_devengado' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas_adicionales.*.total_pagar' => ['nullable',$numeric_rule(2)],
       'adjuntos' => 'array',
-      'adjuntos.*.descripcion' => 'nullable|string|max:256',
-      'adjuntos.*.id_archivo'  => 'nullable|integer|exists:archivo,id_archivo',
+      'adjuntos.*.descripcion' => ['nullable','string','max:256'],
+      'adjuntos.*.id_archivo'  => ['nullable','integer','exists:archivo,id_archivo'],
       'adjuntos.*.file'        => 'file',
     ], [
+      'required' => 'El valor es requerido',
       'regex' => 'Formato incorrecto',
       'date' => 'Tiene que ser una fecha en formato YYYY-MM-DD',
       'max' => 'Supera el limite',
@@ -225,7 +229,7 @@ class CanonController extends Controller
     
     $porcentaje_seguridad = bccomp($bruto_devengado,'0.00') > 0?//@RETORNADO
        bcdiv(bcmul('100.0',$deduccion),$bruto_devengado,4)
-      : null;
+      : '0.00';
     
     $interes_mora = bcadd($R('interes_mora','0.0000'),'0',4);//@RETORNADO
     $a_pagar = bcadd($R('a_pagar','0.00'),'0',2);//@RETORNADO
@@ -512,7 +516,7 @@ class CanonController extends Controller
   }
   
   public function guardar(Request $request){
-    $this->validarCanon($request->all());
+    $this->validarCanon($request->all(),['año_mes','id_casino','es_antiguo']);
     
     return DB::transaction(function() use ($request){
       $created_at = date('Y-m-d h:i:s');
@@ -539,22 +543,22 @@ class CanonController extends Controller
       
       DB::table('canon')
       ->insert([
-        'año_mes' => $datos['año_mes'] ?? null,
-        'id_casino' => $datos['id_casino'] ?? null,
+        'año_mes' => $datos['año_mes'],
+        'id_casino' => $datos['id_casino'],
         'estado' => 'Generado',
-        'bruto_devengado' => $datos['bruto_devengado'] ?? 0,
-        'deduccion' => $datos['deduccion'] ?? 0,
-        'devengado' => $datos['devengado'] ?? 0,
-        'porcentaje_seguridad' => $datos['porcentaje_seguridad'] ?? 0, 
-        'fecha_vencimiento' => $datos['fecha_vencimiento'] ?? null,
-        'fecha_pago' => $datos['fecha_pago'] ?? null,
-        'bruto_pagar' => $datos['bruto_pagar'] ?? 0,
-        'interes_mora' => $datos['interes_mora'] ?? 0,
-        'mora' => $datos['mora'] ?? 0,
-        'a_pagar' => $datos['a_pagar'] ?? 0,
-        'pago' => $datos['pago'] ?? 0,
-        'diferencia' => $datos['diferencia'] ?? 0,
-        'es_antiguo' => ($datos['es_antiguo'] ?? false)? 1 : 0,
+        'bruto_devengado' => $datos['bruto_devengado'],
+        'deduccion' => $datos['deduccion'],
+        'devengado' => $datos['devengado'],
+        'porcentaje_seguridad' => $datos['porcentaje_seguridad'], 
+        'fecha_vencimiento' => $datos['fecha_vencimiento'],
+        'fecha_pago' => $datos['fecha_pago'],
+        'bruto_pagar' => $datos['bruto_pagar'],
+        'interes_mora' => $datos['interes_mora'],
+        'mora' => $datos['mora'],
+        'a_pagar' => $datos['a_pagar'],
+        'pago' => $datos['pago'],
+        'diferencia' => $datos['diferencia'],
+        'es_antiguo' => $datos['es_antiguo'],
         'created_at' => $created_at,
         'created_id_usuario' => $id_usuario,
       ]);
@@ -659,6 +663,8 @@ class CanonController extends Controller
     ->join('usuario as u','u.id_usuario','=','c.created_id_usuario')
     ->where('id_canon',$request['id_canon'])
     ->first();
+    
+    $existe_canon = $ret !== null;
     $ret = $ret ?? [];
         
     $ret['canon_variable'] = DB::table('canon_variable')
@@ -688,12 +694,7 @@ class CanonController extends Controller
       return $adj;
     });
     
-    $ret['saldo_anterior'] = 0;
-    $ret['saldo_anterior'] = $this->calcular_saldo_hasta($ret['año_mes'],$ret['id_casino']);
-    $ret['diferencia'] = $ret['pago'] - $ret['a_pagar'];
-    $ret['saldo_posterior'] = $ret['saldo_anterior'] + $ret['diferencia'];
-    
-    return $ret;
+    return $existe_canon? $ret : $this->recalcular($ret);
   }
   
   public function archivo(Request $request){

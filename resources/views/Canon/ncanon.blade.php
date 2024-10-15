@@ -196,9 +196,10 @@
     font-size: 0.95rem;
     border-color: black;
     height: 1.5rem;
-    width: 5rem;
+    width: 6rem;
     text-align: center;
     font-family: monospace, monospace;
+    padding: 0;
   }
   
   .VerCargarCanon .mostrar_dependencia {
