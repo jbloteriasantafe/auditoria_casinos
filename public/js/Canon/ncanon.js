@@ -24,6 +24,23 @@ $(document).ready(function() {
         }
       }
     };
+    
+    const fillError = function(div,obj){//@HACK @TODO: mover a AUX
+      for(const k in obj){
+        const val = obj[k];
+        if(typeof val == 'object' && !Array.isArray(val)){
+          console.log(k,val,'Valor inesperado');
+        }
+        else{
+          const name_arr = k.split('.');
+          let name = name_arr?.[0] ?? '';
+          for(let idx=1;idx<name_arr.length;idx++){
+            name+='['+name_arr[idx]+']';
+          }
+          mostrarErrorValidacion(div.find(`[name="${name}"]`),Array.isArray(val)? val.join(', ') : val,true);
+        }
+      }
+    };
         
     const setReadonly = function(){
       const modo = M.attr('data-modo');
@@ -112,6 +129,8 @@ $(document).ready(function() {
       const form = M.find('form[data-js-recalcular]');
       const rerender = M.attr('data-render');
       
+      ocultarErrorValidacion(form.find('[name]'));
+      
       if((rerender ?? 1) == 0){
         fill(M,null,canon);
         setReadonly();
@@ -193,13 +212,6 @@ $(document).ready(function() {
       M.attr('data-render',1);
     });
     
-    M.find('form[data-js-recalcular]').on('recalcular',function(e){
-      const form = $(e.currentTarget);
-      AUX.POST(form.attr('data-js-recalcular'),AUX.form_entries(form[0]),function(data){
-        render(data);
-      });
-    });
-    
     M.find('form[data-js-recalcular]').on('change','[name]',function(e){//@TODO: bindear directo
       const tgt = $(e.currentTarget);
       const form = tgt.closest('form[data-js-recalcular]');
@@ -225,6 +237,18 @@ $(document).ready(function() {
       limpiarDependencias(tgt.attr('name'));
       
       form.trigger('recalcular');
+    });
+    
+    M.find('form[data-js-recalcular]').on('recalcular',function(e){
+      const form = $(e.currentTarget);
+      AUX.POST(form.attr('data-js-recalcular'),AUX.form_entries(form[0]),
+        function(data){
+          render(data);
+        },
+        function(data){
+          fillError(form,data.responseJSON ?? {});
+        }
+      );
     });
     
     M.find('form[data-js-recalcular]').on('focus','select[readonly]',function(e){
@@ -336,7 +360,9 @@ $(document).ready(function() {
       M.find('[data-adjuntos] [data-js-contenedor] [data-adjunto]:visible').each(function(_,adj_obj){
         const adj = $(adj_obj);
         const idx = adj.attr('data-idx');
-        entries[`adjuntos[${idx}][file]`] = adj.data('archivo') ?? null;
+        if(adj.data('archivo')){
+          entries[`adjuntos[${idx}][file]`] = adj.data('archivo')
+        }
       });
       
       //@HACK @TODO: agregar funcionalidad a AUX para convertir objetos a FD
