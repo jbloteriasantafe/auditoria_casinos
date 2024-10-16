@@ -22,7 +22,6 @@ require_once(app_path('BC_extendido.php'));
 class CanonController extends Controller
 {
   static $max_scale = 64;
-  private static $atributos = [];
   private static $instance;
 
   public static function getInstancia(){
@@ -35,6 +34,16 @@ class CanonController extends Controller
     $plataformas = Plataforma::all();                 
     return View::make('Canon.ncanon', compact('casinos','plataformas'));
   }
+  
+  private static  $errores = [
+    'required' => 'El valor es requerido',
+    'regex'    => 'Formato incorrecto',
+    'date'     => 'Tiene que ser una fecha en formato YYYY-MM-DD',
+    'min'      => 'Es inferior al limite',
+    'max'      => 'Supera el limite',
+    'integer'  => 'Tiene que ser un número entero',
+    'exists'   => 'El valor es incorrecto',
+  ];
     
   private function validarCanon(array $request,array $requireds = []){
     $numeric_rule = function(int $digits) {
@@ -123,14 +132,7 @@ class CanonController extends Controller
       'adjuntos.*.descripcion' => ['nullable','string','max:256'],
       'adjuntos.*.id_archivo'  => ['nullable','integer','exists:archivo,id_archivo'],
       'adjuntos.*.file'        => 'file',
-    ], [
-      'required' => 'El valor es requerido',
-      'regex' => 'Formato incorrecto',
-      'date' => 'Tiene que ser una fecha en formato YYYY-MM-DD',
-      'max' => 'Supera el limite',
-      'integer' => 'Tiene que ser un número entero',
-      'exists' => 'El valor es incorrecto',
-    ],[])->after(function($validator){
+    ], self::$errores,[])->after(function($validator){
       if($validator->errors()->any()) return;
     })->validate();
   }
@@ -515,10 +517,25 @@ class CanonController extends Controller
     return compact('tipo','valor_mensual','dias_mes','valor_diario','horas_dia','valor_hora','horas','mesas','porcentaje','total_devengado','total_pagar');
   }
   
-  public function guardar(Request $request){
+  public function adjuntar(Request $request){
+    return $this->guardar($request,false);
+  }
+  
+  public function guardar(Request $request,$recalcular = true){
     $this->validarCanon($request->all(),['año_mes','id_casino','es_antiguo']);
     
-    return DB::transaction(function() use ($request){
+    return DB::transaction(function() use ($request,$recalcular){
+      $datos;
+      if($recalcular){
+        $datos = $this->recalcular($request->all());
+        $datos['estado'] = 'Generado';
+      }
+      else{
+        $datos = $this->obtener_arr($request->all());
+        $datos = json_decode(json_encode($datos),true);//obj->array 
+        $datos['adjuntos'] = $request['adjuntos'] ?? [];
+      }
+      
       $created_at = date('Y-m-d h:i:s');
       $id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       
@@ -526,8 +543,8 @@ class CanonController extends Controller
       {
         $canon_viejos = DB::table('canon')
         ->whereNull('deleted_at')
-        ->where('año_mes',$request->año_mes ?? null)
-        ->where('id_casino',$request->id_casino ?? null)
+        ->where('año_mes',$request->año_mes)
+        ->where('id_casino',$request->id_casino)
         ->orderBy('created_at','desc')
         ->get();
         
@@ -538,14 +555,12 @@ class CanonController extends Controller
           $this->borrar_arr(['id_canon' => $cv->id_canon],$created_at,$id_usuario);
         }
       }
-      
-      $datos = $this->recalcular($request->all());
-      
-      DB::table('canon')
-      ->insert([
+            
+      $id_canon = DB::table('canon')
+      ->insertGetId([
         'año_mes' => $datos['año_mes'],
         'id_casino' => $datos['id_casino'],
-        'estado' => 'Generado',
+        'estado' => $datos['estado'],
         'bruto_devengado' => $datos['bruto_devengado'],
         'deduccion' => $datos['deduccion'],
         'devengado' => $datos['devengado'],
@@ -563,31 +578,28 @@ class CanonController extends Controller
         'created_id_usuario' => $id_usuario,
       ]);
       
-      $canon = DB::table('canon')
-      ->where('año_mes',$request->año_mes ?? null)
-      ->where('id_casino',$request->id_casino ?? null)
-      ->whereNull('deleted_at')
-      ->first();
-      
-      foreach(($datos['canon_variable'] ?? []) as $tipo => $datos_cv){
-        $datos_cv['id_canon'] = $canon->id_canon;
-        $datos_cv['tipo'] = $tipo;
+      foreach(($datos['canon_variable'] ?? []) as $tipo => $d){
+        $d['id_canon'] = $id_canon;
+        $d['tipo'] = $tipo;
+        unset($d['id_canon_variable']);
         DB::table('canon_variable')
-        ->insert($datos_cv);
+        ->insert($d);
       }
       
-      foreach(($datos['canon_fijo_mesas'] ?? []) as $tipo => $datos_cfm){
-        $datos_cfm['id_canon'] = $canon->id_canon;
-        $datos_cfm['tipo'] = $tipo;
+      foreach(($datos['canon_fijo_mesas'] ?? []) as $tipo => $d){
+        $d['id_canon'] = $id_canon;
+        $d['tipo'] = $tipo;
+        unset($d['id_canon_fijo_mesas']);
         DB::table('canon_fijo_mesas')
-        ->insert($datos_cfm);
+        ->insert($d);
       }
       
-      foreach(($datos['canon_fijo_mesas_adicionales'] ?? []) as $tipo => $datos_cfma){
-        $datos_cfma['id_canon'] = $canon->id_canon;
-        $datos_cfma['tipo']     = $tipo;
+      foreach(($datos['canon_fijo_mesas_adicionales'] ?? []) as $tipo => $d){
+        $d['id_canon'] = $id_canon;
+        $d['tipo']     = $tipo;
+        unset($d['id_canon_fijo_mesas_adicionales']);
         DB::table('canon_fijo_mesas_adicionales')
-        ->insert($datos_cfma);
+        ->insert($d);
       }
       
       {
@@ -622,7 +634,7 @@ class CanonController extends Controller
             //El archivo se repite para el nuevo canon pero posiblemente con otra descripcion
             $archivos_resultantes[] = [
               'id_archivo'  => $archivo_bd->id_archivo,
-              'id_canon'    => $canon->id_canon,
+              'id_canon'    => $id_canon,
               'descripcion' => ($archivo['descripcion'] ?? ''),
               'type'        => $archivo_bd->type,
             ];
@@ -641,7 +653,7 @@ class CanonController extends Controller
               
               $archivos_resultantes[] = [
                 'id_archivo' => $archivo_bd->id_archivo,
-                'id_canon' => $canon->id_canon,
+                'id_canon' => $id_canon,
                 'descripcion' => ($a['descripcion'] ?? ''),
                 'type' => $file->getMimeType() ?? 'application/octet-stream'
               ];

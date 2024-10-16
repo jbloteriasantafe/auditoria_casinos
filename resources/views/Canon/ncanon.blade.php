@@ -109,7 +109,7 @@
       <td class="saldo_posterior">SALDO</td>
       <td>
         <button class="btn" type="button" data-js-cambiar-estado="/Ncanon/cambiarEstado?estado=Pagado" data-estado-visible="GENERADO" title="CONFIRMAR PAGO"><i class="fa fa-fw fa-check"></i></button>
-        <button class="btn" type="button" data-js-adjuntar="/Ncanon/adjuntar" data-estado-visible="PAGADO" title="ADJUNTAR"><i class="fa fa-fw fa-paperclip"></i></button>
+        <button class="btn" type="button" data-js-adjuntar="/Ncanon/obtener" data-estado-visible="PAGADO" title="ADJUNTAR"><i class="fa fa-fw fa-paperclip"></i></button>
         <button class="btn" type="button" data-js-ver="/Ncanon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
         <button class="btn" type="button" data-js-editar="/Ncanon/obtener" data-estado-visible="GENERADO"  title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
         <button class="btn" type="button" data-js-borrar="/Ncanon/borrar" data-table-id="id_canon" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
@@ -240,7 +240,7 @@
         @component('Components/inputFecha',[
           'attrs' => 'name="año_mes" placeholder="AÑO MES" data-js-empty-si-cambio="[data-canon-variable] [data-js-contenedor],[data-canon-fijo-mesas] [data-js-contenedor],[data-canon-fijo-mesas-adicionales] [data-js-contenedor]"',
           'attrs_dtp' => 'data-date-format="yyyy-mm-01" data-start-view="year" data-min-view="decade"',
-          'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "EDITAR"}]\' style="padding: 0 !important;"'
+          'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "EDITAR"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
         ])
         @endcomponent
       </div>
@@ -248,7 +248,7 @@
         <h5>Casino</h5>
         <select class="form-control" name="id_casino"
           data-js-empty-si-cambio="[data-canon-variable] [data-js-contenedor],[data-canon-fijo-mesas] [data-js-contenedor],[data-canon-fijo-mesas-adicionales] [data-js-contenedor]"
-          data-readonly='[{"modo": "VER"},{"modo": "EDITAR"}]'>
+          data-readonly='[{"modo": "VER"},{"modo": "EDITAR"},{"modo": "ADJUNTAR"}]'>
           <option value="" selected>- SELECCIONE -</option>
           @foreach($casinos as $c)
           <option value="{{$c->id_casino}}">{{$c->nombre}}</option>
@@ -263,7 +263,7 @@
         <h5>ANTIGUO</h5>
         <select class="form-control" name="es_antiguo"
           data-js-empty-si-cambio="[data-canon-variable] [data-js-contenedor],[data-canon-fijo-mesas] [data-js-contenedor],[data-canon-fijo-mesas-adicionales] [data-js-contenedor]"
-          data-readonly='[{"modo": "VER"}]'>
+          data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
           <option value="0" selected>NO</option>
           <option value="1">SI</option>
         </select>      
@@ -294,11 +294,11 @@
         <div style="width: 100%;display: flex;">
           <div>
             <h5>Bruto (DEVENGADO)</h5>
-            <input class="form-control" name="bruto_devengado" data-readonly='[{"modo": "VER"},{"es_antiguo": 0}]'>
+            <input class="form-control" name="bruto_devengado" data-readonly='[{"modo": "VER"},{"es_antiguo": 0},{"modo": "ADJUNTAR"}]'>
           </div>
           <div>
             <h5>Deducción</h5>
-            <input class="form-control" name="deduccion" data-readonly='[{"modo": "VER"}]'>
+            <input class="form-control" name="deduccion" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
           </div>
           <div>
             <h5>Devengado</h5>
@@ -314,7 +314,7 @@
             <h5>F. Vencimiento</h5>
             @component('Components/inputFecha',[
               'attrs' => "name='fecha_vencimiento' data-depende='año_mes'",
-              'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"}]\' style="padding: 0 !important;"'
+              'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
             ])
             @endcomponent
           </div>
@@ -322,7 +322,7 @@
             <h5>F. Pago</h5>
             @component('Components/inputFecha',[
               'attrs' => "name='fecha_pago' data-depende='año_mes'",
-              'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"}]\' style="padding: 0 !important;"'
+              'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
             ])
             @endcomponent
           </div>
@@ -330,25 +330,25 @@
         <div style="width: 100%;display: flex;">
           <div>
             <h5>Bruto (A PAGAR)</h5>
-            <input class="form-control" name="bruto_pagar" data-readonly='[{"modo": "VER"},{"es_antiguo": 0}]'>
+            <input class="form-control" name="bruto_pagar" data-readonly='[{"modo": "VER"},{"es_antiguo": 0},{"modo": "ADJUNTAR"}]'>
           </div>
           <div>
             <h5>Interes Mora</h5>
-            <input class="form-control" name="interes_mora" data-depende="a_pagar,mora,fecha_pago,fecha_vencimiento" data-readonly='[{"modo": "VER"}]'>
+            <input class="form-control" name="interes_mora" data-depende="a_pagar,mora,fecha_pago,fecha_vencimiento" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
           </div>
           <div>
             <h5>Mora</h5>
-            <input class="form-control" name="mora" data-depende="interes_mora,a_pagar,fecha_pago,fecha_vencimiento" data-readonly='[{"modo": "VER"}]'>
+            <input class="form-control" name="mora" data-depende="interes_mora,a_pagar,fecha_pago,fecha_vencimiento" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
           </div>
           <div>
             <h5>A PAGAR</h5>
-            <input class="form-control" name="a_pagar" data-depende="interes_mora,mora,fecha_pago,fecha_vencimiento" data-readonly='[{"modo": "VER"}]'>
+            <input class="form-control" name="a_pagar" data-depende="interes_mora,mora,fecha_pago,fecha_vencimiento" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
           </div>
         </div>
         <div style="width: 100%;display: flex;">
           <div>
             <h5>PAGO</h5>
-            <input class="form-control" name="pago" data-readonly='[{"modo": "VER"}]'>
+            <input class="form-control" name="pago" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
           </div>
           <div>
             <h5>Diferencia</h5>
@@ -397,17 +397,17 @@
               </div>
               <div style="flex: 1;">
                 <h5>APOSTADO SISTEMA</h5>
-                <input class="form-control" data-name="{{$apostado_sistema}}" data-readonly='[{"modo": "VER"}]'>
+                <input class="form-control" data-name="{{$apostado_sistema}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div style="flex: 1;">
                 <h5>APOSTADO INFORMADO</h5>
-                <input class="form-control" data-name="{{$apostado_informado}}" data-readonly='[{"modo": "VER"}]'>
+                <input class="form-control" data-name="{{$apostado_informado}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
             </div>
             <div style="display: flex;">
               <div class="parametro_chico"  style="flex: 1;">
                 <h5>APLICABLE (%)</h5>
-                <input class="form-control" data-name="{{$apostado_porcentaje_aplicable}}" data-depende="id_casino" data-readonly='[{"modo": "VER"}]'>
+                <input class="form-control" data-name="{{$apostado_porcentaje_aplicable}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div style="flex: 1;">
                 <h5>BASE IMPONIBLE (DEVENGADO)</h5>
@@ -421,7 +421,7 @@
             <div style="display: flex;">
               <div class="parametro_chico" style="flex: 1;">
                 <h5>IMPUESTO LEY (%)</h5>
-                <input class="form-control" data-name="{{$apostado_porcentaje_impuesto_ley}}" data-depende="id_casino" data-readonly='[{"modo": "VER"}]'>
+                <input class="form-control" data-name="{{$apostado_porcentaje_impuesto_ley}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div style="flex: 1;">
                 <h5>IMPUESTO (DEVENGADO)</h5>
@@ -435,7 +435,7 @@
             <div style="display: flex;">
               <div style="flex: 1;">
                 <h5>BRUTO</h5>
-                <input class="form-control" data-name="{{$bruto}}" data-depende="id_casino" data-readonly='[{"modo": "VER"}]'>
+                <input class="form-control" data-name="{{$bruto}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div style="flex: 1;">
                 <h5>SUBTOTAL (DEVENGADO)</h5>
@@ -449,7 +449,7 @@
             <div style="display: flex;">
               <div class="parametro_chico" style="flex: 1;">
                 <h5>ALICUOTA (%)</h5>
-                <input class="form-control" data-name="{{$alicuota}}" data-depende="id_casino" data-readonly='[{"modo": "VER"}]'>
+                <input class="form-control" data-name="{{$alicuota}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div style="flex: 1;">
                 <h5>TOTAL (DEVENGADO)</h5>
@@ -501,31 +501,31 @@
               <h5>F. COTIZACIÓN</h5>
               @component('Components/inputFecha',[
                 'attrs' => "data-name='$fecha_cotizacion' data-depende='año_mes'",
-                'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"}]\' style="padding: 0 !important;"'
+                'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
               ])
               @endcomponent
             </div>
             <div>
               <h5>COTIZACIÓN DOLAR</h5>
-              <input class="form-control" data-name="{{$cotizacion_dolar}}" data-depende="{{$fecha_cotizacion}}" data-readonly='[{"modo": "VER"}]'>
+              <input class="form-control" data-name="{{$cotizacion_dolar}}" data-depende="{{$fecha_cotizacion}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div>
               <h5>COTIZACIÓN EURO</h5>
-              <input class="form-control" data-name="{{$cotizacion_euro}}" data-depende="{{$fecha_cotizacion}}" data-readonly='[{"modo": "VER"}]'>
+              <input class="form-control" data-name="{{$cotizacion_euro}}" data-depende="{{$fecha_cotizacion}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
           </div>
           <div style="display: flex;">
             <div>
               <h5>VALOR DOLAR</h5>
-              <input class="form-control" data-name="{{$valor_dolar}}" data-depende="id_casino" data-readonly='[{"modo": "VER"}]'>
+              <input class="form-control" data-name="{{$valor_dolar}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div>
               <h5>VALOR EURO</h5>
-              <input class="form-control" data-name="{{$valor_euro}}" data-depende="id_casino" data-readonly='[{"modo": "VER"}]'>
+              <input class="form-control" data-name="{{$valor_euro}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div class="parametro_chico">
               <h5>DIAS VALOR</h5>
-              <input class="form-control" data-name="{{$dias_valor}}" data-readonly='[{"modo": "VER"}]'>
+              <input class="form-control" data-name="{{$dias_valor}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div>
               <h5>VALOR DIARIO DOLAR</h5>
@@ -540,36 +540,36 @@
             <div>
               <h5>DIAS-MESAS L-J</h5>
               <div style="display: flex;flex-direction: column;border: 1px solid grey;">
-                <input class="form-control" data-name="{{$dias_lunes_jueves}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
-                <input class="form-control" data-name="{{$mesas_lunes_jueves}}" placeholder="MESAS" data-readonly='[{"modo": "VER"}]'>
+                <input class="form-control" data-name="{{$dias_lunes_jueves}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="{{$mesas_lunes_jueves}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
             </div>
             <div>
               <h5>DIAS-MESAS V-S</h5>
               <div style="display: flex;flex-direction: column;border: 1px solid grey;">
-                <input class="form-control" data-name="{{$dias_viernes_sabados}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
-                <input class="form-control" data-name="{{$mesas_viernes_sabados}}" placeholder="MESAS" data-readonly='[{"modo": "VER"}]'>
+                <input class="form-control" data-name="{{$dias_viernes_sabados}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="{{$mesas_viernes_sabados}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
             </div>               
             <div>
               <h5>DIAS-MESAS Dom</h5>
               <div style="display: flex;flex-direction: column;border: 1px solid grey;">
-                <input class="form-control" data-name="{{$dias_domingos}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
-                <input class="form-control" data-name="{{$mesas_domingos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"}]'>
+                <input class="form-control" data-name="{{$dias_domingos}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="{{$mesas_domingos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
             </div>
             <div>
               <h5>DIAS-MESAS Todos</h5>
               <div style="display: flex;flex-direction: column;border: 1px solid grey;">
-                <input class="form-control" data-name="{{$dias_todos}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
-                <input class="form-control" data-name="{{$mesas_todos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"}]'>
+                <input class="form-control" data-name="{{$dias_todos}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="{{$mesas_todos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
             </div>
             <div>
               <h5>DIAS-MESAS Fijos</h5>
               <div style="display: flex;flex-direction: column;border: 1px solid grey;">
-                <input class="form-control" data-name="{{$dias_fijos}}" placeholder="DIAS" data-depende="id_casino" data-readonly='[{"modo": "VER"}]'>
-                <input class="form-control" data-name="{{$mesas_fijos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"}]'>
+                <input class="form-control" data-name="{{$dias_fijos}}" placeholder="DIAS" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="{{$mesas_fijos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
             </div>
           </div>
@@ -617,11 +617,11 @@
           <div style="display: flex;">
             <div>
               <h5>VALOR MENSUAL</h5>
-              <input class="form-control" data-name="{{$valor_mensual}}" data-depende="id_casino" data-readonly='[{"modo": "VER"}]'>
+              <input class="form-control" data-name="{{$valor_mensual}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div class="parametro_chico">
               <h5>DIAS MES</h5>
-              <input class="form-control" data-name="{{$dias_mes}}" data-depende="id_casino" data-readonly='[{"modo": "VER"}]'>
+              <input class="form-control" data-name="{{$dias_mes}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div>
               <h5>VALOR DIARIO</h5>
@@ -629,7 +629,7 @@
             </div>
             <div class="parametro_chico">
               <h5>HORAS DÍAS</h5>
-              <input class="form-control" data-name="{{$horas_dia}}"  data-depende="id_casino" data-readonly='[{"modo": "VER"}]'>
+              <input class="form-control" data-name="{{$horas_dia}}"  data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div>
               <h5>VALOR HORA</h5>
@@ -639,15 +639,15 @@
           <div style="display: flex;">
             <div>
               <h5>HORAS</h5>
-              <input class="form-control" data-name="{{$horas}}" data-readonly='[{"modo": "VER"}]'>
+              <input class="form-control" data-name="{{$horas}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div>
               <h5>MESAS</h5>
-              <input class="form-control" data-name="{{$mesas}}" data-readonly='[{"modo": "VER"}]'>
+              <input class="form-control" data-name="{{$mesas}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div class="parametro_chico">
               <h5>PORCENTAJE</h5>
-              <input class="form-control" data-name="{{$porcentaje}}" data-depende="id_casino" data-readonly='[{"modo": "VER"}]'>
+              <input class="form-control" data-name="{{$porcentaje}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
           </div>
           <div style="display: flex;">
@@ -666,7 +666,7 @@
         <div class="solo_mostrar_h5_del_primero" style="width: 100%;" data-js-contenedor>
         </div>
         <hr>
-        <div style="width: 100%;display: flex;" data-modo-mostrar="NUEVO,EDITAR" data-adjunto>
+        <div style="width: 100%;display: flex;" data-modo-mostrar="NUEVO,EDITAR,ADJUNTAR" data-adjunto>
           <input class="form-control" placeholder="DESCRIPCIÓN" style="flex: 1;text-align: left;" data-descripcion>
           <input class="form-control" type="file" style="flex: 1;text-align: center;" data-archivo>
           <button class="btn" type="button" data-js-agregar-adjunto><i class="fa fa-plus"></i></button>
@@ -688,7 +688,7 @@
               <h5>DESCRIPCIÓN</h5>
               <input style="width: 100%;text-align: left;" class="form-control" data-name="{{$descripcion}}" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
             </div>
-            <div style="flex: 1;" data-modo-mostrar="VER,NUEVO,EDITAR">
+            <div style="flex: 1;" data-modo-mostrar="VER,NUEVO,EDITAR,ADJUNTAR">
               <h5>NOMBRE ARCHIVO</h5>
               <input data-js-click-abrir-val-hermano="[data-es-link]" style="width: 100%;text-align: center;cursor: pointer;" class="form-control" data-name="{{$nombre_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{}]'>
               <input data-es-link data-name="{{$link}}" data-modo-mostrar="">
@@ -697,7 +697,7 @@
               <h5>&nbsp;</h5>
               <input style="flex: 1;" class="form-control" data-name="{{$id_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{}]'>
             </div>
-            <div data-modo-mostrar="NUEVO,EDITAR">
+            <div data-modo-mostrar="NUEVO,EDITAR,ADJUNTAR">
               <h5>&nbsp;</h5>
               <button class="btn" type="button" data-js-borrar-adjunto><i class="fa fa-fw fa-trash-alt"></i></button>
             </div>
@@ -708,6 +708,7 @@
   </form>
   @endslot
   @slot('pie')
+  <button class="btn btn-successAceptar" type="button" data-js-enviar="/Ncanon/adjuntar" data-modo-mostrar="ADJUNTAR">ADJUNTAR</button>
   <button class="btn btn-successAceptar" type="button" data-js-enviar="/Ncanon/guardar" data-modo-mostrar="NUEVO,EDITAR">GUARDAR</button>
   @endslot
 @endcomponent

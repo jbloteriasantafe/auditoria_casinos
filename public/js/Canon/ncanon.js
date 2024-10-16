@@ -470,6 +470,11 @@ $(document).ready(function() {
     $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-editar'),tgt.val(),'EDITAR']);
   });
   
+  $('#pant_canon').on('click','[data-js-adjuntar]',function(e){//@TODO: bindear derecho
+    const tgt = $(e.currentTarget);
+    $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-adjuntar'),tgt.val(),'ADJUNTAR']);
+  });
+  
   $('#pant_canon').on('click','[data-js-ver]',function(e){//@TODO: bindear derecho
     const tgt = $(e.currentTarget);
     $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-ver'),tgt.val(),'VER']);
@@ -483,6 +488,7 @@ $(document).ready(function() {
       {id_canon: tgt.val()},
       function(data){
         AUX.mensajeExito(data?.mensaje ?? '');
+        $('#pant_canon').find('[data-js-filtro-tabla]').trigger('buscar');
       },
       function(data){
         AUX.mensajeError(data?.mensaje ?? '');

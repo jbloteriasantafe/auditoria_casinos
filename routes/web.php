@@ -988,6 +988,7 @@ Route::prefix('Ncanon')->middleware('tiene_algun_permiso','informes_mtm','inform
   Route::get('/obtenerConHistorial','\App\Http\Controllers\CanonController@obtenerConHistorial');
   Route::post('/recalcular','\App\Http\Controllers\CanonController@recalcular_req');
   Route::post('/guardar','\App\Http\Controllers\CanonController@guardar');
+  Route::post('/adjuntar','\App\Http\Controllers\CanonController@adjuntar');
   Route::post('/buscar','\App\Http\Controllers\CanonController@buscar');
   Route::get('/cambiarEstado','\App\Http\Controllers\CanonController@cambiarEstado');
   Route::get('/archivo','\App\Http\Controllers\CanonController@archivo');
