@@ -19,6 +19,17 @@ use App\Archivo;
 
 require_once(app_path('BC_extendido.php'));
 
+function csvstr(array $fields) : string
+{
+    $f = fopen('php://memory', 'r+');
+    if (fputcsv($f, $fields) === false) {
+        return false;
+    }
+    rewind($f);
+    $csv_line = stream_get_contents($f);
+    return rtrim($csv_line);
+}
+
 class CanonController extends Controller
 {
   static $max_scale = 64;
@@ -522,7 +533,8 @@ class CanonController extends Controller
   }
   
   public function guardar(Request $request,$recalcular = true){
-    $this->validarCanon($request->all(),['año_mes','id_casino','es_antiguo']);
+    $requeridos = $recalcular? ['año_mes','id_casino','es_antiguo'] : ['id_canon'];
+    $this->validarCanon($request->all(),$requeridos);
     
     return DB::transaction(function() use ($request,$recalcular){
       $datos;
@@ -531,7 +543,7 @@ class CanonController extends Controller
         $datos['estado'] = 'Generado';
       }
       else{
-        $datos = $this->obtener_arr($request->all());
+        $datos = $this->obtener_arr(['id_canon' => $request['id_canon']]);
         $datos = json_decode(json_encode($datos),true);//obj->array 
         $datos['adjuntos'] = $request['adjuntos'] ?? [];
       }
@@ -671,8 +683,9 @@ class CanonController extends Controller
   
   public function obtener_arr(array $request){
     $ret = (array) DB::table('canon as c')
-    ->select('c.*','u.user_name as usuario')
+    ->select('cas.nombre as casino','c.*','u.user_name as usuario')
     ->join('usuario as u','u.id_usuario','=','c.created_id_usuario')
+    ->join('casino as cas','cas.id_casino','=','c.id_casino')
     ->where('id_canon',$request['id_canon'])
     ->first();
     
@@ -878,5 +891,82 @@ class CanonController extends Controller
       
       return 1;
     });
+  }
+  
+  private function obtener_para_salida($id_canon){
+    $data = json_decode(json_encode($this->obtener_arr(compact('id_canon'))),true);
+    $ret = [];
+    
+    $ret['canon'] = [];
+    foreach(['id_canon','id_casino','created_at','created_id_usuario','deleted_at','deleted_id_usuario','usuario'] as $k){
+      unset($data[$k]);
+    }
+    foreach($data as $k => $v){
+      if(!is_array($v)){
+        $ret['canon'][$k] = $v;
+      }
+    }
+    $ret['canon'] = [$ret['canon']];
+    
+    foreach(['id_canon_variable','id_canon'] as $k){
+      foreach(($data['canon_variable'] ?? []) as $tipo => $_){
+        unset($data['canon_variable'][$tipo][$k]);
+      }
+    }
+    $ret['canon_variable'] = array_values($data['canon_variable'] ?? []);
+    
+    foreach(['id_canon_fijo_mesas','id_canon'] as $k){
+      foreach(($data['canon_fijo_mesas'] ?? []) as $tipo => $_){
+        unset($data['canon_fijo_mesas'][$tipo][$k]);
+      }
+    }
+    $ret['canon_fijo_mesas'] = array_values($data['canon_fijo_mesas'] ?? []);
+    
+    foreach(['id_canon_fijo_mesas_adicionales','id_canon'] as $k){
+      foreach(($data['canon_fijo_mesas_adicionales'] ?? []) as $tipo => $_){
+        unset($data['canon_fijo_mesas_adicionales'][$tipo][$k]);
+      }
+    }
+    $ret['canon_fijo_mesas_adicionales'] = array_values($data['canon_fijo_mesas_adicionales'] ?? []);
+    
+    foreach(['id_archivo','id_canon'] as $k){
+      foreach(($data['adjuntos'] ?? []) as $tipo => $_){
+        unset($data['adjuntos'][$tipo][$k]);
+      }
+    }
+    $ret['adjuntos'] = array_values($data['adjuntos'] ?? []);
+    
+    return $ret;
+  }
+  
+  public function planilla(Request $request){
+    $ret = $this->obtener_para_salida($request->id_canon);
+    $lineas = [];
+    foreach($ret as $tipo => $arreglo){
+      $lineas[] = $tipo;
+      
+      foreach($arreglo as $v){
+        $lineas[] = csvstr(array_keys($v));
+        break;
+      }
+      
+      foreach($arreglo as $v){
+        $lineas[] = csvstr($v);
+      }
+      
+      $lineas[] = '';
+    }
+    
+    $año_mes = $ret['canon'][0]['año_mes'];
+    $casino  = $ret['canon'][0]['casino'];
+    $filename = "Canon-$año_mes-$casino.csv";
+    return \Response::make(
+      implode("\r\n",$lineas), 
+      200, 
+      [
+        'Content-Type' => 'text/plain',
+        'Content-Disposition' => 'inline; filename="'.$filename.'"'
+      ]
+    );
   }
 }

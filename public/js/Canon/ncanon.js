@@ -480,6 +480,20 @@ $(document).ready(function() {
     $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-ver'),tgt.val(),'VER']);
   });
   
+  function encodeQueryData(data){
+    const ret = [];
+    for (let d in data)
+      ret.push(encodeURIComponent(d) + '=' + encodeURIComponent(data[d]));
+    return ret.join('&');
+  }
+  
+  $('#pant_canon').on('click','[data-js-abrir-pestaña]',function(e){//@TODO: bindear derecho
+    const tgt = $(e.currentTarget);
+    const data = {};
+    data[tgt.attr('data-table-id')] = tgt.val();
+    window.open(tgt.attr('data-js-abrir-pestaña')+'?'+encodeQueryData(data),'_blank');
+  });
+  
   $('#pant_canon').on('click','[data-js-cambiar-estado]',function(e){//@TODO: bindear derecho
     const tgt = $(e.currentTarget);
     const url = tgt.attr('data-js-cambiar-estado');

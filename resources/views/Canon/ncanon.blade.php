@@ -113,6 +113,7 @@
         <button class="btn" type="button" data-js-ver="/Ncanon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
         <button class="btn" type="button" data-js-editar="/Ncanon/obtener" data-estado-visible="GENERADO"  title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
         <button class="btn" type="button" data-js-borrar="/Ncanon/borrar" data-table-id="id_canon" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
+        <button class="btn" type="button" data-js-abrir-pestaña="/Ncanon/planilla" data-table-id="id_canon" title="PLANILLA">.csv</button>
       </td>
     </tr>
     @endslot
