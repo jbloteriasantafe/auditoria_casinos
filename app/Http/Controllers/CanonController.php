@@ -168,6 +168,8 @@ class CanonController extends Controller
     $es_antiguo = $R('es_antiguo',0)? 1 : 0;//@RETORNADO
     $adjuntos = $R('adjuntos',[]);//@RETORNADO
     
+    $fecha_cotizacion_devengado = $R('fecha_cotizacion_devengado',$año_mes);
+    
     if($año_mes !== null && $año_mes !== ''){
       $f = explode('-',$año_mes);
       $f[2] = '10';
@@ -181,7 +183,7 @@ class CanonController extends Controller
       for($break = 9;$break > 0 && in_array($proximo_lunes->format('w'),['0','6']);$break--){
         $proximo_lunes = $proximo_lunes->add(\DateInterval::createFromDateString('1 day'));
       }
-      $fecha_cotizacion = $R('fecha_cotizacion',$viernes_anterior->format('Y-m-d'));//@RETORNADO
+      $fecha_cotizacion_pagar = $R('fecha_cotizacion_pagar',$viernes_anterior->format('Y-m-d'));//@RETORNADO
       $fecha_vencimiento = $R('fecha_vencimiento',$proximo_lunes->format('Y-m-d'));//@RETORNADO
       $fecha_pago = $R('fecha_pago',$fecha_vencimiento);//@RETORNADO
     }
@@ -214,7 +216,8 @@ class CanonController extends Controller
           $canon_fijo_mesas[$tipo] = $this->mesas_recalcular(
             $año_mes,
             $id_casino,
-            $fecha_cotizacion,
+            $fecha_cotizacion_devengado,
+            $fecha_cotizacion_pagar,
             $tipo,
             $defecto[$tipo] ?? [],
             ($request['canon_fijo_mesas'] ?? [])[$tipo] ?? []
@@ -367,7 +370,8 @@ class CanonController extends Controller
   
   public function mesas_recalcular(
       $año_mes,$id_casino,
-      $fecha_cotizacion,//@RETORNADO
+      $fecha_cotizacion_devengado,//@RETORNADO
+      $fecha_cotizacion_pagar,//@RETORNADO
       $tipo,//@RETORNADO
       $valores_defecto,
       $data
@@ -382,13 +386,22 @@ class CanonController extends Controller
       return $R($s,null) ?? $D($s,null) ?? $dflt;
     };
     
-    $cotizacion_dolar = bcadd($R(
-      'cotizacion_dolar',
-      $fecha_cotizacion !== null? ($this->cotizacion($fecha_cotizacion,2) ?? '0.00') : '0.00'
+    $cotizacion_dolar_devengado = bcadd($R(
+      'cotizacion_dolar_devengado',
+      $fecha_cotizacion_devengado !== null? ($this->cotizacion($fecha_cotizacion_devengado,2) ?? '0.00') : '0.00'
     ),'0',2);//@RETORNADO
-    $cotizacion_euro = bcadd($R(
-      'cotizacion_euro',
-      $fecha_cotizacion !== null? ($this->cotizacion($fecha_cotizacion,2) ?? '0.00') : '0.00'
+    $cotizacion_euro_devengado = bcadd($R(
+      'cotizacion_euro_devengado',
+      $fecha_cotizacion_devengado !== null? ($this->cotizacion($fecha_cotizacion_devengado,2) ?? '0.00') : '0.00'
+    ),'0',2);//@RETORNADO
+    
+    $cotizacion_dolar_pagar = bcadd($R(
+      'cotizacion_dolar_pagar',
+      $fecha_cotizacion_pagar !== null? ($this->cotizacion($fecha_cotizacion_pagar,2) ?? '0.00') : '0.00'
+    ),'0',2);//@RETORNADO
+    $cotizacion_euro_pagar = bcadd($R(
+      'cotizacion_euro_pagar',
+      $fecha_cotizacion_pagar !== null? ($this->cotizacion($fecha_cotizacion_pagar,2) ?? '0.00') : '0.00'
     ),'0',2);//@RETORNADO
     
     $valor_dolar = '0.00';//@RETORNADO
@@ -399,11 +412,15 @@ class CanonController extends Controller
     }
     
     $dias_valor = $RD('dias_valor',0);//@RETORNADO
-    $valor_diario_dolar = '0.00';//@RETORNADO
-    $valor_diario_euro  = '0.00';//@RETORNADO
+    $valor_diario_dolar_devengado = '0.00';//@RETORNADO
+    $valor_diario_euro_devengado  = '0.00';//@RETORNADO
+    $valor_diario_dolar_pagar = '0.00';//@RETORNADO
+    $valor_diario_euro_pagar  = '0.00';//@RETORNADO
     if($dias_valor != 0){//No entra si es =0, nulo, o falta
-      $valor_diario_dolar = bcdiv(bcmul($cotizacion_dolar,$valor_dolar,self::$max_scale),$dias_valor,2);
-      $valor_diario_euro  = bcdiv(bcmul($cotizacion_euro,$valor_euro,self::$max_scale),$dias_valor,2);
+      $valor_diario_dolar_devengado = bcdiv(bcmul($cotizacion_dolar_devengado,$valor_dolar,self::$max_scale),$dias_valor,2);
+      $valor_diario_euro_devengado  = bcdiv(bcmul($cotizacion_euro_devengado,$valor_euro,self::$max_scale),$dias_valor,2);
+      $valor_diario_dolar_pagar = bcdiv(bcmul($cotizacion_dolar_pagar,$valor_dolar,self::$max_scale),$dias_valor,2);
+      $valor_diario_euro_pagar  = bcdiv(bcmul($cotizacion_euro_pagar,$valor_euro,self::$max_scale),$dias_valor,2);
     }
     
     $dias_lunes_jueves = 0;//@RETORNADO
@@ -412,19 +429,7 @@ class CanonController extends Controller
     $dias_todos = 0;//@RETORNADO
     $dias_fijos = $RD('dias_fijos',0);//@RETORNADO
     
-    if($año_mes !== null){
-      if($fecha_cotizacion === null){
-        $año_mes_arr = explode('-',$año_mes);
-        if($año_mes_arr[1] < 12){
-          $año_mes_arr[1] = str_pad(intval($año_mes_arr[1])+1,2,'0',STR_PAD_LEFT);
-        }
-        else{
-          $año_mes_arr[0] = intval($año_mes_arr[0])+1;
-          $año_mes_arr[1] = '01';
-        }
-        $fecha_cotizacion = implode('-',$año_mes_arr);
-      }
-      
+    if($año_mes !== null){     
       $wdmin_wdmax_count_arr = [
         'dias_lunes_jueves'    => [1,4,0],
         'dias_viernes_sabados' => [5,6,0],
@@ -478,17 +483,26 @@ class CanonController extends Controller
     +$dias_todos*$mesas_todos
     +$dias_fijos*$mesas_fijos;
     
-    $total_dolar = bcmul($valor_diario_dolar,$mesasdias,2);//@RETORNADO
-    $total_euro  = bcmul($valor_diario_euro,$mesasdias,2);//@RETORNADO
-    $total_devengado = bcadd($total_dolar,$total_euro,2);//@RETORNADO
-    $total_pagar = $total_devengado;//@RETORNADO
+    $total_dolar_devengado = bcmul($valor_diario_dolar_devengado,$mesasdias,2);//@RETORNADO
+    $total_euro_devengado  = bcmul($valor_diario_euro_devengado,$mesasdias,2);//@RETORNADO
+    $total_devengado = bcadd($total_dolar_devengado,$total_euro_devengado,2);//@RETORNADO
+    
+    $total_dolar_pagar = bcmul($valor_diario_dolar_pagar,$mesasdias,2);//@RETORNADO
+    $total_euro_pagar  = bcmul($valor_diario_euro_pagar,$mesasdias,2);//@RETORNADO
+    $total_pagar = bcadd($total_dolar_pagar,$total_euro_pagar,2);//@RETORNADO
     
     return compact(
-      'tipo','fecha_cotizacion',
-      'dias_valor','valor_dolar','valor_euro','cotizacion_dolar','cotizacion_euro','valor_diario_dolar','valor_diario_euro',
+      'tipo','dias_valor','valor_dolar','valor_euro',
       'dias_lunes_jueves','mesas_lunes_jueves','dias_viernes_sabados','mesas_viernes_sabados',
       'dias_domingos','mesas_domingos','dias_todos','mesas_todos','dias_fijos','mesas_fijos',
-      'total_dolar','total_euro','total_devengado','total_pagar'
+      
+      'fecha_cotizacion_devengado','cotizacion_dolar_devengado','cotizacion_euro_devengado',
+      'valor_diario_dolar_devengado','valor_diario_euro_devengado',
+      'total_dolar_devengado','total_euro_devengado','total_devengado',
+      
+      'fecha_cotizacion_pagar','cotizacion_dolar_pagar','cotizacion_euro_pagar',
+      'valor_diario_dolar_pagar','valor_diario_euro_pagar',
+      'total_dolar_pagar','total_euro_pagar','total_pagar'
     );
   }
   

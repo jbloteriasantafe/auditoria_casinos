@@ -472,14 +472,9 @@
           $n = function($s) use (&$id_casino,&$t,&$molde_str){
             return "canon_fijo_mesas[$molde_str][$s]";
           };
-          $fecha_cotizacion = $n('fecha_cotizacion');
-          $cotizacion_dolar = $n('cotizacion_dolar');
-          $cotizacion_euro  = $n('cotizacion_euro');
           $valor_dolar = $n('valor_dolar');
           $valor_euro  = $n('valor_euro');
           $dias_valor = $n('dias_valor');
-          $valor_diario_dolar = $n('valor_diario_dolar');
-          $valor_diario_euro  = $n('valor_diario_euro');
           $dias_lunes_jueves  = $n('dias_lunes_jueves');
           $mesas_lunes_jueves = $n('mesas_lunes_jueves');
           $dias_viernes_sabados  = $n('dias_viernes_sabados');
@@ -490,31 +485,25 @@
           $mesas_todos = $n('mesas_todos');
           $dias_fijos  = $n('dias_fijos');
           $mesas_fijos = $n('mesas_fijos');
-          $total_dolar     = $n('total_dolar');
-          $total_euro      = $n('total_euro');
-          $total_devengado = $n('total_devengado');
-          $total_pagar     = $n('total_pagar');
+          $fecha_cotizacion_devengado = $n('fecha_cotizacion_devengado');
+          $cotizacion_dolar_devengado = $n('cotizacion_dolar_devengado');
+          $cotizacion_euro_devengado  = $n('cotizacion_euro_devengado');
+          $valor_diario_dolar_devengado = $n('valor_diario_dolar_devengado');
+          $valor_diario_euro_devengado  = $n('valor_diario_euro_devengado');
+          $total_dolar_devengado = $n('total_dolar_devengado');
+          $total_euro_devengado  = $n('total_euro_devengado');
+          $total_devengado       = $n('total_devengado');
+          $fecha_cotizacion_pagar = $n('fecha_cotizacion_pagar');
+          $cotizacion_dolar_pagar = $n('cotizacion_dolar_pagar');
+          $cotizacion_euro_pagar  = $n('cotizacion_euro_pagar');
+          $valor_diario_dolar_pagar = $n('valor_diario_dolar_pagar');
+          $valor_diario_euro_pagar  = $n('valor_diario_euro_pagar');
+          $total_dolar_pagar = $n('total_dolar_pagar');
+          $total_euro_pagar  = $n('total_euro_pagar');
+          $total_pagar       = $n('total_pagar');
         ?>
         <div style="width: 100%;" data-js-molde="{{$molde_str}}" hidden>
           <h6 data-titulo>TITULO MESAS</h6>
-          <div style="display: flex;">
-            <div>
-              <h5>F. COTIZACIÓN</h5>
-              @component('Components/inputFecha',[
-                'attrs' => "data-name='$fecha_cotizacion' data-depende='año_mes'",
-                'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
-              ])
-              @endcomponent
-            </div>
-            <div>
-              <h5>COTIZACIÓN DOLAR</h5>
-              <input class="form-control" data-name="{{$cotizacion_dolar}}" data-depende="{{$fecha_cotizacion}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-            </div>
-            <div>
-              <h5>COTIZACIÓN EURO</h5>
-              <input class="form-control" data-name="{{$cotizacion_euro}}" data-depende="{{$fecha_cotizacion}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-            </div>
-          </div>
           <div style="display: flex;">
             <div>
               <h5>VALOR DOLAR</h5>
@@ -527,14 +516,6 @@
             <div class="parametro_chico">
               <h5>DIAS VALOR</h5>
               <input class="form-control" data-name="{{$dias_valor}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-            </div>
-            <div>
-              <h5>VALOR DIARIO DOLAR</h5>
-              <input class="form-control" data-name="{{$valor_diario_dolar}}" data-depende="{{$cotizacion_dolar}},{{$valor_dolar}},{{$dias_valor}}" data-readonly='[{}]'>
-            </div>
-            <div>
-              <h5>VALOR DIARIO EURO</h5>
-              <input class="form-control" data-name="{{$valor_diario_euro}}" data-depende="{{$cotizacion_euro}},{{$valor_euro}},{{$dias_valor}}" data-readonly='[{}]'>
             </div>
           </div>
           <div style="display: flex;">
@@ -574,22 +555,92 @@
               </div>
             </div>
           </div>
+          <br>
+          <h7>DEVENGADO</h7>
+          <div style="display: flex;">
+            <div>
+              <h5>F. COTIZACIÓN</h5>
+              @component('Components/inputFecha',[
+                'attrs' => "data-name='$fecha_cotizacion_devengado' data-depende='año_mes'",
+                'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
+              ])
+              @endcomponent
+            </div>
+            <div>
+              <h5>COTIZACIÓN DOLAR</h5>
+              <input class="form-control" data-name="{{$cotizacion_dolar_devengado}}" data-depende="{{$fecha_cotizacion_devengado}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            </div>
+            <div>
+              <h5>COTIZACIÓN EURO</h5>
+              <input class="form-control" data-name="{{$cotizacion_euro_devengado}}" data-depende="{{$fecha_cotizacion_devengado}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            </div>
+          </div>
+          <div style="display: flex;">
+            <div>
+              <h5>VALOR DIARIO DOLAR</h5>
+              <input class="form-control" data-name="{{$valor_diario_dolar_devengado}}" data-depende="{{$cotizacion_dolar_devengado}},{{$valor_dolar}},{{$dias_valor}}" data-readonly='[{}]'>
+            </div>
+            <div>
+              <h5>VALOR DIARIO EURO</h5>
+              <input class="form-control" data-name="{{$valor_diario_euro_devengado}}" data-depende="{{$cotizacion_euro_devengado}},{{$valor_euro}},{{$dias_valor}}" data-readonly='[{}]'>
+            </div>
+          </div>
           <div style="display: flex;">
             <div>
               <h5>TOTAL DOLAR</h5>
-              <input class="form-control" data-name="{{$total_dolar}}" data-depende="{{$valor_diario_dolar}},{{$dias_lunes_jueves}},{{$mesas_lunes_jueves}},{{$dias_viernes_sabados}},{{$mesas_viernes_sabados}},{{$dias_domingos}},{{$mesas_domingos}},{{$dias_todos}},{{$mesas_todos}},{{$dias_fijos}},{{$mesas_fijos}}" data-readonly='[{}]'>
+              <input class="form-control" data-name="{{$total_dolar_devengado}}" data-depende="{{$valor_diario_dolar_devengado}},{{$dias_lunes_jueves}},{{$mesas_lunes_jueves}},{{$dias_viernes_sabados}},{{$mesas_viernes_sabados}},{{$dias_domingos}},{{$mesas_domingos}},{{$dias_todos}},{{$mesas_todos}},{{$dias_fijos}},{{$mesas_fijos}}" data-readonly='[{}]'>
             </div>
             <div>
               <h5>TOTAL EURO</h5>
-              <input class="form-control" data-name="{{$total_euro}}" data-depende="{{$valor_diario_euro}},{{$dias_lunes_jueves}},{{$mesas_lunes_jueves}},{{$dias_viernes_sabados}},{{$mesas_viernes_sabados}},{{$dias_domingos}},{{$mesas_domingos}},{{$dias_todos}},{{$mesas_todos}},{{$dias_fijos}},{{$mesas_fijos}}" data-readonly='[{}]'>
+              <input class="form-control" data-name="{{$total_euro_devengado}}" data-depende="{{$valor_diario_euro_devengado}},{{$dias_lunes_jueves}},{{$mesas_lunes_jueves}},{{$dias_viernes_sabados}},{{$mesas_viernes_sabados}},{{$dias_domingos}},{{$mesas_domingos}},{{$dias_todos}},{{$mesas_todos}},{{$dias_fijos}},{{$mesas_fijos}}" data-readonly='[{}]'>
             </div>
             <div>
-              <h5>TOTAL (DEVENGADO)</h5>
-              <input class="form-control" data-name="{{$total_devengado}}" data-depende="{{$total_dolar}},{{$total_euro}}" data-readonly='[{}]'>
+              <h5>TOTAL</h5>
+              <input class="form-control" data-name="{{$total_devengado}}" data-depende="{{$total_dolar_devengado}},{{$total_euro_devengado}}" data-readonly='[{}]'>
+            </div>
+          </div>
+          <br>
+          <h7>A PAGAR</h7>
+          <div style="display: flex;">
+            <div>
+              <h5>F. COTIZACIÓN</h5>
+              @component('Components/inputFecha',[
+                'attrs' => "data-name='$fecha_cotizacion_pagar' data-depende='año_mes'",
+                'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
+              ])
+              @endcomponent
             </div>
             <div>
-              <h5>TOTAL (A PAGAR)</h5>
-              <input class="form-control" data-name="{{$total_pagar}}" data-depende="{{$total_dolar}},{{$total_euro}}" data-readonly='[{}]'>
+              <h5>COTIZACIÓN DOLAR</h5>
+              <input class="form-control" data-name="{{$cotizacion_dolar_pagar}}" data-depende="{{$fecha_cotizacion_pagar}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            </div>
+            <div>
+              <h5>COTIZACIÓN EURO</h5>
+              <input class="form-control" data-name="{{$cotizacion_euro_pagar}}" data-depende="{{$fecha_cotizacion_pagar}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            </div>
+          </div>
+          <div style="display: flex;">
+            <div>
+              <h5>VALOR DIARIO DOLAR</h5>
+              <input class="form-control" data-name="{{$valor_diario_dolar_pagar}}" data-depende="{{$cotizacion_dolar_pagar}},{{$valor_dolar}},{{$dias_valor}}" data-readonly='[{}]'>
+            </div>
+            <div>
+              <h5>VALOR DIARIO EURO</h5>
+              <input class="form-control" data-name="{{$valor_diario_euro_pagar}}" data-depende="{{$cotizacion_euro_pagar}},{{$valor_euro}},{{$dias_valor}}" data-readonly='[{}]'>
+            </div>
+          </div>
+          <div style="display: flex;">
+            <div>
+              <h5>TOTAL DOLAR</h5>
+              <input class="form-control" data-name="{{$total_dolar_pagar}}" data-depende="{{$valor_diario_dolar_pagar}},{{$dias_lunes_jueves}},{{$mesas_lunes_jueves}},{{$dias_viernes_sabados}},{{$mesas_viernes_sabados}},{{$dias_domingos}},{{$mesas_domingos}},{{$dias_todos}},{{$mesas_todos}},{{$dias_fijos}},{{$mesas_fijos}}" data-readonly='[{}]'>
+            </div>
+            <div>
+              <h5>TOTAL EURO</h5>
+              <input class="form-control" data-name="{{$total_euro_pagar}}" data-depende="{{$valor_diario_euro_pagar}},{{$dias_lunes_jueves}},{{$mesas_lunes_jueves}},{{$dias_viernes_sabados}},{{$mesas_viernes_sabados}},{{$dias_domingos}},{{$mesas_domingos}},{{$dias_todos}},{{$mesas_todos}},{{$dias_fijos}},{{$mesas_fijos}}" data-readonly='[{}]'>
+            </div>
+            <div>
+              <h5>TOTAL</h5>
+              <input class="form-control" data-name="{{$total_pagar}}" data-depende="{{$total_dolar_pagar}},{{$total_euro_pagar}}" data-readonly='[{}]'>
             </div>
           </div>
         </div>
