@@ -563,6 +563,24 @@ class CanonController extends Controller
     $requeridos = $recalcular? ['año_mes','id_casino','es_antiguo'] : ['id_canon'];
     $this->validarCanon($request->all(),$requeridos);
     
+    Validator::make($request->all(),[], self::$errores,[])->after(function($validator){
+      if($validator->errors()->any()) return;
+      $D = $validator->getData();
+      if(!isset($D['id_canon'])){//Nuevo
+        $ya_existe = DB::table('canon')
+        ->whereNull('deleted_at')
+        ->where('año_mes',$D['año_mes'])
+        ->where('id_casino',$D['id_casino'])
+        ->count() > 0;
+        
+        if($ya_existe){
+          $validator->errors()->add('año_mes','Ya existe un canon para ese periodo');
+          $validator->errors()->add('id_casino','Ya existe un canon para ese periodo');
+          return;
+        }
+      }
+    })->validate();
+    
     return DB::transaction(function() use ($request,$recalcular){
       $datos;
       if($recalcular){
