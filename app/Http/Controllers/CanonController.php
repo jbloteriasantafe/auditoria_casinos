@@ -169,6 +169,7 @@ class CanonController extends Controller
     $adjuntos = $R('adjuntos',[]);//@RETORNADO
     
     $fecha_cotizacion_devengado = $R('fecha_cotizacion_devengado',$año_mes);
+    $fecha_cotizacion_pagar = $R('fecha_cotizacion_pagar',$año_mes);
     
     if($año_mes !== null && $año_mes !== ''){
       $f = explode('-',$año_mes);
@@ -417,10 +418,10 @@ class CanonController extends Controller
     $valor_diario_dolar_pagar = '0.00';//@RETORNADO
     $valor_diario_euro_pagar  = '0.00';//@RETORNADO
     if($dias_valor != 0){//No entra si es =0, nulo, o falta
-      $valor_diario_dolar_devengado = bcdiv(bcmul($cotizacion_dolar_devengado,$valor_dolar,self::$max_scale),$dias_valor,2);
-      $valor_diario_euro_devengado  = bcdiv(bcmul($cotizacion_euro_devengado,$valor_euro,self::$max_scale),$dias_valor,2);
-      $valor_diario_dolar_pagar = bcdiv(bcmul($cotizacion_dolar_pagar,$valor_dolar,self::$max_scale),$dias_valor,2);
-      $valor_diario_euro_pagar  = bcdiv(bcmul($cotizacion_euro_pagar,$valor_euro,self::$max_scale),$dias_valor,2);
+      $valor_diario_dolar_devengado = bcdiv(bcmul($cotizacion_dolar_devengado,$valor_dolar,self::$max_scale),$dias_valor,self::$max_scale);
+      $valor_diario_euro_devengado  = bcdiv(bcmul($cotizacion_euro_devengado,$valor_euro,self::$max_scale),$dias_valor,self::$max_scale);
+      $valor_diario_dolar_pagar = bcdiv(bcmul($cotizacion_dolar_pagar,$valor_dolar,self::$max_scale),$dias_valor,self::$max_scale);
+      $valor_diario_euro_pagar  = bcdiv(bcmul($cotizacion_euro_pagar,$valor_euro,self::$max_scale),$dias_valor,self::$max_scale);
     }
     
     $dias_lunes_jueves = 0;//@RETORNADO
@@ -483,13 +484,25 @@ class CanonController extends Controller
     +$dias_todos*$mesas_todos
     +$dias_fijos*$mesas_fijos;
     
-    $total_dolar_devengado = bcmul($valor_diario_dolar_devengado,$mesasdias,2);//@RETORNADO
-    $total_euro_devengado  = bcmul($valor_diario_euro_devengado,$mesasdias,2);//@RETORNADO
-    $total_devengado = bcadd($total_dolar_devengado,$total_euro_devengado,2);//@RETORNADO
+    $total_dolar_devengado = bcmul($valor_diario_dolar_devengado,$mesasdias,self::$max_scale);//@RETORNADO
+    $total_euro_devengado  = bcmul($valor_diario_euro_devengado,$mesasdias,self::$max_scale);//@RETORNADO
+    $total_devengado = bcadd($total_dolar_devengado,$total_euro_devengado,self::$max_scale);//@RETORNADO
     
-    $total_dolar_pagar = bcmul($valor_diario_dolar_pagar,$mesasdias,2);//@RETORNADO
-    $total_euro_pagar  = bcmul($valor_diario_euro_pagar,$mesasdias,2);//@RETORNADO
-    $total_pagar = bcadd($total_dolar_pagar,$total_euro_pagar,2);//@RETORNADO
+    $total_dolar_pagar = bcmul($valor_diario_dolar_pagar,$mesasdias,self::$max_scale);//@RETORNADO
+    $total_euro_pagar  = bcmul($valor_diario_euro_pagar,$mesasdias,self::$max_scale);//@RETORNADO
+    $total_pagar = bcadd($total_dolar_pagar,$total_euro_pagar,self::$max_scale);//@RETORNADO
+    
+    //Redondeo todo
+    $total_dolar_devengado = bcround_ndigits($total_dolar_devengado,2);
+    $total_euro_devengado = bcround_ndigits($total_euro_devengado,2);
+    $total_devengado = bcround_ndigits($total_devengado,2);
+    $total_dolar_pagar = bcround_ndigits($total_dolar_pagar,2);
+    $total_euro_pagar = bcround_ndigits($total_euro_pagar,2);
+    $total_pagar = bcround_ndigits($total_pagar,2);
+    $valor_diario_dolar_devengado = bcround_ndigits($valor_diario_dolar_devengado,2);
+    $valor_diario_euro_devengado  = bcround_ndigits($valor_diario_euro_devengado,2);
+    $valor_diario_dolar_pagar = bcround_ndigits($valor_diario_dolar_pagar,2);
+    $valor_diario_euro_pagar  = bcround_ndigits($valor_diario_euro_pagar,2);
     
     return compact(
       'tipo','dias_valor','valor_dolar','valor_euro',
@@ -802,8 +815,8 @@ class CanonController extends Controller
     ->select('canon.*','casino.nombre as casino')
     ->join('casino','casino.id_casino','=','canon.id_casino')
     ->whereNull('canon.deleted_at')
-    ->orderBy('id_casino','desc')
     ->orderBy('año_mes','desc')
+    ->orderBy('casino.nombre','asc')
     ->paginate($request->page_size ?? 10);
     //Necesito transformar la data paginada pero si llamo transform() elimina toda la data de paginado
     $ret2 = $ret->toArray();
@@ -912,7 +925,7 @@ class CanonController extends Controller
     $ret = [];
     
     $ret['canon'] = [];
-    foreach(['id_canon','id_casino','created_at','created_id_usuario','deleted_at','deleted_id_usuario','usuario'] as $k){
+    foreach(['id_canon','id_casino','created_at','created_id_usuario','deleted_at','deleted_id_usuario','usuario','es_antiguo'] as $k){
       unset($data[$k]);
     }
     foreach($data as $k => $v){
@@ -950,6 +963,10 @@ class CanonController extends Controller
     }
     $ret['adjuntos'] = array_values($data['adjuntos'] ?? []);
     
+    foreach($ret as $k => $d){
+      if(count($d) == 0) unset($ret[$k]);
+    }
+    
     return $ret;
   }
   
@@ -982,5 +999,21 @@ class CanonController extends Controller
         'Content-Disposition' => 'inline; filename="'.$filename.'"'
       ]
     );
+  }
+  
+  public function planillaPDF(Request $request){
+    $datos = $this->obtener_para_salida($request->id_canon);
+    $view = View::make('Canon.planillaSimple', compact('datos'));
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'landscape');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    //$dompdf->getCanvas()->page_text(20, 815, $codigo_casino."/".$fecha, $font, 10, array(0,0,0));
+    //$dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+    $año_mes = $datos['canon'][0]['año_mes'];
+    $casino  = $datos['canon'][0]['casino'];
+    $filename = "Canon-$año_mes-$casino.csv";
+    return $dompdf->stream($filename, Array('Attachment'=>0));
   }
 }

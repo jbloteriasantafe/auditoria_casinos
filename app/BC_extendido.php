@@ -54,18 +54,20 @@ function bcfloor(string $n){
   return bcsub($entero,'1',0);
 }
 
-function bcround(string $n,$modo = null){
+function bcround(string $n,$modo = null){//https://stackoverflow.com/questions/77030709/implementing-bankers-rounding-for-integer-division
+  if($modo == 'CEIL')  return bcceil($n);
+  if($modo == 'FLOOR') return bcfloor($n);
+  
   $parts = explode('.',$n);
   if(count($parts) == 0 || count($parts) == 1) return $n;//sin parte decimal
   
-  $entero = empty($parts[0])? '0' : $parts[0];
-  $decimal = empty($parts[1])? '0' : $parts[1];
-  $punto_medio = '5'.str_repeat('0',strlen($decimal)-2);
-  $decimal_ubicacion = bccomp($decimal,$punto_medio,0);
-  $entero_signo = bcsign($entero);
-  
   $n_signo = bcsign($n);
   if($n_signo == 0) return '0';
+  
+  $entero = empty($parts[0])? '0' : $parts[0];
+  $decimal = '0.'.(empty($parts[1])? '0' : $parts[1]);
+  $decimal_ubicacion = bccomp($decimal,'0.5',bcscale_string($decimal));
+  
   if($n_signo == 1){//positivo
     if($decimal_ubicacion ==  1) return bcadd($entero,'1',0);//redondeo para arriba
     if($decimal_ubicacion == -1) return $entero;//para abajo
@@ -74,10 +76,8 @@ function bcround(string $n,$modo = null){
     if($decimal_ubicacion ==  1) return bcsub($entero,'1',0);//redondeo para abajo
     if($decimal_ubicacion == -1) return $entero;//rdeondeo para arriba
   }
-  //es .5
-  if($modo == 'CEIL')  return bcceil($n);
-  if($modo == 'FLOOR') return bcfloor($n);
   
+  //es .5
   //Redondeo de banquero
   $es_par = bcmod($entero,'2') == '0';
   if($es_par) return $entero;
@@ -189,4 +189,58 @@ function bcln(string $y,int $outscale,int $scale = null){
     }
   }
   return bcadd($x,0,$outscale);
+}
+
+if(defined('BC_EXTENDIDO_TEST')){
+foreach([
+    ['19.501','CEIL','19.51'],
+    ['19.501','FLOOR','19.50'],
+    ['19.501',null,'19.50'],
+    ['19.005','CEIL','19.01'],
+    ['19.005','FLOOR','19.00'],
+    ['19.005',null,'19.00'],
+    ['19.015','CEIL','19.02'],
+    ['19.015','FLOOR','19.01'],
+    ['19.015',null,'19.02'],
+    ['19.025','CEIL','19.03'],
+    ['19.025','FLOOR','19.02'],
+    ['19.025',null,'19.02'],
+    ['-19.015','CEIL','-19.01'],
+    ['-19.015','FLOOR','-19.02'],
+    ['-19.015',null,'-19.02'],
+    ['-19.025','CEIL','-19.02'],
+    ['-19.025','FLOOR','-19.03'],
+    ['-19.025',null,'-19.02'],
+    ['0','CEIL','0'],
+    ['0','FLOOR','0'],
+    ['0',null,'0'],
+    ['-0','CEIL','0'],
+    ['-0','FLOOR','0'],
+    ['-0',null,'0'],
+    ['0.005','CEIL','0.01'],
+    ['0.005','FLOOR','0.00'],
+    ['0.005',null,'0.00'],
+    ['-0.005','CEIL','-0.00'],
+    ['-0.005','FLOOR','-0.01'],
+    ['-0.005',null,'-0.00'],
+    ['0.015','CEIL','0.02'],
+    ['0.015','FLOOR','0.01'],
+    ['0.015',null,'0.02'],
+    ['-0.015','CEIL','-0.01'],
+    ['-0.015','FLOOR','-0.02'],
+    ['-0.015',null,'-0.02'],
+    ['0.025','CEIL','0.03'],
+    ['0.025','FLOOR','0.02'],
+    ['0.025',null,'0.02'],
+    ['-0.025','CEIL','-0.02'],
+    ['-0.025','FLOOR','-0.03'],
+    ['-0.025',null,'-0.02'],
+  ] as $test){
+  $r = bcround_ndigits($test[0],2,$test[1]);
+  $s = $test[0].' '.($test[1] ?? 'BANCO').' = '.$r.' == '.$test[2];
+  dump($s);
+  if(bccomp($r,$test[2],10) != 0){
+    throw new \Exception($s);
+  }
+}
 }

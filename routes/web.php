@@ -990,6 +990,7 @@ Route::prefix('Ncanon')->middleware('tiene_algun_permiso','informes_mtm','inform
   Route::post('/guardar','\App\Http\Controllers\CanonController@guardar');
   Route::post('/adjuntar','\App\Http\Controllers\CanonController@adjuntar');
   Route::get('/planilla','\App\Http\Controllers\CanonController@planilla');
+  Route::get('/planillaPDF','\App\Http\Controllers\CanonController@planillaPDF');
   Route::post('/buscar','\App\Http\Controllers\CanonController@buscar');
   Route::get('/cambiarEstado','\App\Http\Controllers\CanonController@cambiarEstado');
   Route::get('/archivo','\App\Http\Controllers\CanonController@archivo');

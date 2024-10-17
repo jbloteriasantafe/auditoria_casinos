@@ -114,6 +114,7 @@
         <button class="btn" type="button" data-js-editar="/Ncanon/obtener" data-estado-visible="GENERADO"  title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
         <button class="btn" type="button" data-js-borrar="/Ncanon/borrar" data-table-id="id_canon" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
         <button class="btn" type="button" data-js-abrir-pestaña="/Ncanon/planilla" data-table-id="id_canon" title="PLANILLA">.csv</button>
+        <button class="btn" type="button" data-js-abrir-pestaña="/Ncanon/planillaPDF" data-table-id="id_canon" title="PLANILLA PDF"><i class="far fa-fw fa-file-alt"></i></button>
       </td>
     </tr>
     @endslot
@@ -555,7 +556,7 @@
               </div>
             </div>
           </div>
-          <br>
+          <hr>
           <h7>DEVENGADO</h7>
           <div style="display: flex;">
             <div>
@@ -599,7 +600,7 @@
               <input class="form-control" data-name="{{$total_devengado}}" data-depende="{{$total_dolar_devengado}},{{$total_euro_devengado}}" data-readonly='[{}]'>
             </div>
           </div>
-          <br>
+          <hr>
           <h7>A PAGAR</h7>
           <div style="display: flex;">
             <div>
