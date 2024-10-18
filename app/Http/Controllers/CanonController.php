@@ -177,7 +177,7 @@ class CanonController extends Controller
   
   private function recalcular(array $request){
     $R = function($s,$dflt = null) use (&$request){
-      return (($request[$s] ?? null) === null || ($request[$s] == '') || ($request[$s] == []))? $dflt : $request[$s];
+      return (($request[$s] ?? null) === null || ($request[$s] === '') || ($request[$s] === []))? $dflt : $request[$s];
     };
         
     $año_mes = $R('año_mes');//@RETORNADO
@@ -356,10 +356,10 @@ class CanonController extends Controller
   
   public function canon_variable_recalcular($tipo,$valores_defecto,$data){
     $R = function($s,$dflt = null) use (&$data){
-      return (($data[$s] ?? null) === null || ($data[$s] == '') || ($data[$s] == []))? $dflt : $data[$s];
+      return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
     };
     $D = function($s,$dflt = null) use (&$valores_defecto){
-      return (($valores_defecto[$s] ?? null) === null || ($valores_defecto[$s] == '') || ($valores_defecto[$s] == []))? $dflt : $valores_defecto[$s];
+      return (($valores_defecto[$s] ?? null) === null || ($valores_defecto[$s] === '') || ($valores_defecto[$s] === []))? $dflt : $valores_defecto[$s];
     };
     $RD = function($s,$dflt = null) use ($R,$D){
       return $R($s,null) ?? $D($s,null) ?? $dflt;
@@ -402,10 +402,10 @@ class CanonController extends Controller
       $data
   ){
     $R = function($s,$dflt = null) use (&$data){
-      return (($data[$s] ?? null) === null || ($data[$s] == '') || ($data[$s] == []))? $dflt : $data[$s];
+      return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
     };
     $D = function($s,$dflt = null) use (&$valores_defecto){
-      return (($valores_defecto[$s] ?? null) === null || ($valores_defecto[$s] == '') || ($valores_defecto[$s] == []))? $dflt : $valores_defecto[$s];
+      return (($valores_defecto[$s] ?? null) === null || ($valores_defecto[$s] === '') || ($valores_defecto[$s] === []))? $dflt : $valores_defecto[$s];
     };
     $RD = function($s,$dflt = null) use ($R,$D){
       return $R($s,null) ?? $D($s,null) ?? $dflt;
@@ -482,18 +482,10 @@ class CanonController extends Controller
         }
       }
       
-      $dias_lunes_jueves = $calcular_dias_lunes_jueves? 
-        $R('dias_lunes_jueves',$wdmin_wdmax_count_arr['dias_lunes_jueves'][2])
-      : 0;
-      $dias_viernes_sabados = $calcular_dias_viernes_sabados? 
-        $R('dias_viernes_sabados',$wdmin_wdmax_count_arr['dias_viernes_sabados'][2])
-      : 0;
-      $dias_domingos = $calcular_dias_domingos? 
-        $R('dias_domingos',$wdmin_wdmax_count_arr['dias_domingos'][2])
-      : 0;
-      $dias_todos = $calcular_dias_todos? 
-        $R('dias_todos',$wdmin_wdmax_count_arr['dias_todos'][2])
-      : 0;
+      $dias_lunes_jueves = $R('dias_lunes_jueves',$wdmin_wdmax_count_arr['dias_lunes_jueves'][2]);
+      $dias_viernes_sabados = $R('dias_viernes_sabados',$wdmin_wdmax_count_arr['dias_viernes_sabados'][2]);
+      $dias_domingos = $R('dias_domingos',$wdmin_wdmax_count_arr['dias_domingos'][2]);
+      $dias_todos = $R('dias_todos',$wdmin_wdmax_count_arr['dias_todos'][2]);
     }
     
     $mesas_lunes_jueves      = $R('mesas_lunes_jueves',0);//@RETORNADO
@@ -545,10 +537,10 @@ class CanonController extends Controller
   
   public function mesasAdicionales_recalcular($tipo,$valores_defecto,$data){
     $R = function($s,$dflt = null) use (&$data){
-      return (($data[$s] ?? null) === null || ($data[$s] == '') || ($data[$s] == []))? $dflt : $data[$s];
+      return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
     };
     $D = function($s,$dflt = null) use (&$valores_defecto){
-      return (($valores_defecto[$s] ?? null) === null || ($valores_defecto[$s] == '') || ($valores_defecto[$s] == []))? $dflt : $valores_defecto[$s];
+      return (($valores_defecto[$s] ?? null) === null || ($valores_defecto[$s] === '') || ($valores_defecto[$s] === []))? $dflt : $valores_defecto[$s];
     };
     $RD = function($s,$dflt = null) use ($R,$D){
       return $R($s,null) ?? $D($s,null) ?? $dflt;
@@ -653,6 +645,8 @@ class CanonController extends Controller
         'mora' => $datos['mora'],
         'a_pagar' => $datos['a_pagar'],
         'pago' => $datos['pago'],
+        'ajuste' => $datos['ajuste'],
+        'motivo_ajuste' => $datos['motivo_ajuste'],
         'diferencia' => $datos['diferencia'],
         'es_antiguo' => $datos['es_antiguo'],
         'created_at' => $created_at,
