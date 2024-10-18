@@ -7,7 +7,6 @@ table {
   font-family: arial, sans-serif;
   border-collapse: collapse;
   table-layout: fixed;
-  width: 100%;
   word-wrap: break-word !important;
 }
 
@@ -50,11 +49,12 @@ function ucwords_espacios($s){
   foreach($datos as $datos_tabla){
     $max_col_size = max($max_col_size,count($datos_tabla[0] ?? []));
   }
-  $main_col_width = (100/count($datos));
+  $main_col_width = min(100/count($datos),25);
+  $table_width = $main_col_width*count($datos);
   ?>
   
   @if(count($datos) > 0)
-  <table>
+  <table style="width: {{$table_width}}%;">
     <?php
       $maxrows = 0;
     ?>

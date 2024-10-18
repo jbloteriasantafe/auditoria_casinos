@@ -30,6 +30,25 @@ function csvstr(array $fields) : string
     return rtrim($csv_line);
 }
 
+function formatear_decimal(string $val) : string {//number_format castea a float... lo hacemos a pata...
+  $parts   = explode('.',$val);
+  $entero  = $parts[0] ?? '';
+  $decimal = $parts[1] ?? null;
+  $entero_separado = [];
+  for($i=0;$i<strlen($entero);$i++){
+    $bucket = intdiv($i,3);
+    if($i%3 == 0) $entero_separado[$bucket] = '';
+    $entero_separado[$bucket] = $entero[strlen($entero)-1-$i] . $entero_separado[$bucket];
+  }
+
+  $newval = implode('.',array_reverse($entero_separado));
+  $decimal = is_null($decimal)? null : rtrim($decimal,'0');
+  if(!is_null($decimal) && strlen($decimal) > 0){
+    $newval .= ','.$decimal;
+  }
+  return $newval;
+}
+
 class CanonController extends Controller
 {
   static $max_scale = 64;
@@ -88,6 +107,8 @@ class CanonController extends Controller
       'interes_mora'=> ['nullable',$numeric_rule(4)],
       'mora' => ['nullable',$numeric_rule(2)],
       'a_pagar' => ['nullable',$numeric_rule(2)],
+      'ajuste' => ['nullable',$numeric_rule(2)],
+      'motivo_ajuste' => ['nullable','string','max:128'],
       'saldo_anterior' => ['nullable',$numeric_rule(2)],
       'saldo_posterior' => ['nullable',$numeric_rule(2)],
       'canon_variable' => 'array',
@@ -303,7 +324,9 @@ class CanonController extends Controller
     }
     
     $pago = bcadd($R('pago','0.00'),'0',2);//@RETORNADO
-    $diferencia = bcsub($pago,$a_pagar,2);//@RETORNADO
+    $ajuste = bcadd($R('ajuste','0.00'),'0',2);//@RETORNADO
+    $motivo_ajuste = $R('motivo_ajuste','');
+    $diferencia = bcadd(bcsub($pago,$a_pagar,2),$ajuste);//@RETORNADO
     $saldo_anterior = '0.00';//@RETORNADO
     if($año_mes !== null && $id_casino !== null){
       $saldo_anterior = $this->calcular_saldo_hasta($año_mes,$id_casino);
@@ -316,7 +339,7 @@ class CanonController extends Controller
       'canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales','adjuntos',
       'bruto_devengado','deduccion','devengado','porcentaje_seguridad',
       'bruto_pagar','fecha_vencimiento','fecha_pago','interes_mora','mora',
-      'a_pagar','pago','diferencia','saldo_anterior','saldo_posterior'
+      'a_pagar','pago','ajuste','motivo_ajuste','diferencia','saldo_anterior','saldo_posterior'
     );
   }
   
@@ -733,9 +756,15 @@ class CanonController extends Controller
     ->join('casino as cas','cas.id_casino','=','c.id_casino')
     ->where('id_canon',$request['id_canon'])
     ->first();
-    
-    $existe_canon = $ret !== null;
-    $ret = $ret ?? [];
+        
+    if(!empty($ret)){
+      $ret['saldo_anterior']  = $this->calcular_saldo_hasta($ret['año_mes'],$ret['id_casino']);
+      $ret['saldo_posterior'] = bcadd($ret['saldo_anterior'],$ret['diferencia'],'2');
+    }
+    else{
+      $ret['saldo_anterior']  = '';
+      $ret['saldo_posterior'] = '';
+    }
         
     $ret['canon_variable'] = DB::table('canon_variable')
     ->where('id_canon',$request['id_canon'])
@@ -764,7 +793,7 @@ class CanonController extends Controller
       return $adj;
     });
     
-    return $existe_canon? $ret : $this->recalcular($ret);
+    return !empty($ret)? $ret : $this->recalcular($ret);
   }
   
   public function archivo(Request $request){
@@ -839,15 +868,10 @@ class CanonController extends Controller
     //Necesito transformar la data paginada pero si llamo transform() elimina toda la data de paginado
     $ret2 = $ret->toArray();
     
-    //@HACK: asume que esta ordenado por año_mes descendiente
-    //cambiar el algoritmo si se da la posibilidiad de reordenar
-    $saldo_anterior = [];
-    $ret2['data'] = $ret->reverse()->transform(function(&$c) use (&$saldo_anterior){
-      if(($saldo_anterior[$c->id_casino] ?? null) === null){
-        $saldo_anterior[$c->id_casino] = $this->calcular_saldo_hasta($c->año_mes,$c->id_casino);
-      }
-      $c->saldo_posterior = $saldo_anterior[$c->id_casino]+$c->diferencia;
-      $saldo_anterior[$c->id_casino] = $c->saldo_posterior;
+    //@HACK @SLOW: usar algun tipo de cache calculado hasta
+    $ret2['data'] = $ret->reverse()->transform(function(&$c){
+      $c->saldo_anterior  = $this->calcular_saldo_hasta($c->año_mes,$c->id_casino);
+      $c->saldo_posterior = bcadd($c->saldo_anterior,$c->diferencia,'2');
       return $c;
     })->reverse();
     
@@ -983,6 +1007,45 @@ class CanonController extends Controller
     
     foreach($ret as $k => $d){
       if(count($d) == 0) unset($ret[$k]);
+    }
+    
+    $SB = DB::getSchemaBuilder();
+    $types = [];
+    foreach($ret as $tabla => $d){
+      foreach($d as $rowidx => $row){
+        foreach($row as $col => $_){
+          try{
+            $types[$tabla][$col] = $SB->getColumnType($tabla, $col);
+          }
+          catch(\Exception $e){
+            if($tabla == 'canon' && ($col == 'saldo_anterior' || $col == 'saldo_posterior')){
+              $types[$tabla]['saldo_anterior'] = 'decimal';
+              $types[$tabla]['saldo_posterior'] = 'decimal';
+            }
+            else{
+              $types[$tabla][$col] = null;
+            }
+          }
+        }
+        break;
+      }
+    }
+    
+    foreach($ret as $tabla => $d){
+      foreach($d as $rowidx => $row){
+        foreach($row as $col => $val){
+          switch($types[$tabla][$col]){
+            case 'string':{
+              $ret[$tabla][$rowidx][$col] = trim($val);
+            }break;
+            case 'smallint':
+            case 'integer':
+            case 'decimal':{
+              $ret[$tabla][$rowidx][$col] = formatear_decimal((string)$val);//number_format castea a float... lo hacemos a pata...
+            }break;
+          }
+        }
+      }
     }
     
     return $ret;

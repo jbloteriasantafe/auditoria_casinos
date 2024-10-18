@@ -353,12 +353,19 @@
             <input class="form-control" name="pago" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
           </div>
           <div>
-            <h5>Diferencia</h5>
-            <input class="form-control" name="diferencia" data-depende="bruto_pagar,pago" data-readonly='[{}]'>
+            <h5>Ajuste</h5>
+            <input class="form-control" name="ajuste" data-depende="" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            <input placeholder="MOTIVO" class="form-control" name="motivo_ajuste" data-depende="" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
           </div>
           <div>
+            <h5>Diferencia</h5>
+            <input class="form-control" name="diferencia" data-depende="bruto_pagar,pago,ajuste" data-readonly='[{}]'>
+          </div>
+        </div>
+        <div style="width: 100%;display: flex;">
+          <div>
             <h5>Saldo anterior</h5>
-            <input class="form-control" name="saldo_anterior" data-readonly='[{}]'>
+            <input class="form-control" name="saldo_anterior" data-depende="año_mes,id_casino" data-readonly='[{}]'>
           </div>
           <div>
             <h5>Saldo posterior</h5>
