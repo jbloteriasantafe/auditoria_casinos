@@ -348,6 +348,7 @@ class CanonController extends Controller
     ->selectRaw('SUM(diferencia) as saldo')//esto deberia ser DECIMAL asi que retorna un string
     ->where('id_casino',$id_casino)
     ->where('año_mes','<',$año_mes)
+    ->whereNull('deleted_at')
     ->groupBy(DB::raw('"constant"'))
     ->first();
     return $saldo_anterior === null? 0 : $saldo_anterior->saldo;
