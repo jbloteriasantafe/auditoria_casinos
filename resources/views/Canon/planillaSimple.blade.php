@@ -26,7 +26,6 @@ tr:nth-child(even) {
 function ucwords_espacios($s){
   return ucwords(str_replace('_',' ',$s));
 }
-
 ?>
 
 <head>

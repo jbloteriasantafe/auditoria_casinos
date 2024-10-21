@@ -1006,37 +1006,26 @@ class CanonController extends Controller
     
     $SB = DB::getSchemaBuilder();
     $types = [];
+    $types['canon']['saldo_anterior']  = 'decimal';
+    $types['canon']['saldo_posterior'] = 'decimal';
     foreach($ret as $tabla => $d){
-      foreach($d as $rowidx => $row){
-        foreach($row as $col => $_){
-          try{
-            $types[$tabla][$col] = $SB->getColumnType($tabla, $col);
-          }
-          catch(\Exception $e){
-            if($tabla == 'canon' && ($col == 'saldo_anterior' || $col == 'saldo_posterior')){
-              $types[$tabla]['saldo_anterior'] = 'decimal';
-              $types[$tabla]['saldo_posterior'] = 'decimal';
-            }
-            else{
-              $types[$tabla][$col] = null;
-            }
-          }
-        }
-        break;
+      foreach($SB->getColumnListing($tabla) as $cidx => $col){
+        $types[$tabla][$col] = $SB->getColumnType($tabla, $col);
       }
     }
     
     foreach($ret as $tabla => $d){
       foreach($d as $rowidx => $row){
         foreach($row as $col => $val){
-          switch($types[$tabla][$col]){
-            case 'string':{
-              $ret[$tabla][$rowidx][$col] = trim($val);
-            }break;
+          switch($types[$tabla][$col] ?? null){
             case 'smallint':
             case 'integer':
             case 'decimal':{
               $ret[$tabla][$rowidx][$col] = formatear_decimal((string)$val);//number_format castea a float... lo hacemos a pata...
+            }break;
+            default:
+            case 'string':{
+              $ret[$tabla][$rowidx][$col] = trim($val);
             }break;
           }
         }
