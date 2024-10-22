@@ -131,11 +131,11 @@ class CanonController extends Controller
       'canon_fijo_mesas.*.mesas_todos' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas.*.dias_fijos' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas.*.mesas_fijos' => ['nullable',$numeric_rule(0)],
-      'canon_fijo_mesas.*.fecha_cotizacion_devengado' => 'date',
+      'canon_fijo_mesas.*.fecha_cotizacion_devengado' => ['nullable','date'],
       'canon_fijo_mesas.*.cotizacion_dolar_devengado' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas.*.cotizacion_euro_devengado' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas.*.deduccion' => ['nullable',$numeric_rule(2)],
-      'canon_fijo_mesas.*.fecha_cotizacion_pagar' => 'date',
+      'canon_fijo_mesas.*.fecha_cotizacion_pagar' => ['nullable','date'],
       'canon_fijo_mesas.*.cotizacion_dolar_pagar' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas.*.cotizacion_euro_pagar' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas_adicionales' => 'array',
@@ -175,11 +175,13 @@ class CanonController extends Controller
     $es_antiguo = $R('es_antiguo',0)? 1 : 0;//@RETORNADO
     $adjuntos = $R('adjuntos',[]);//@RETORNADO
     
-    $fecha_cotizacion_devengado = $R('fecha_cotizacion_devengado',$año_mes);
-    $fecha_cotizacion_pagar = $R('fecha_cotizacion_pagar',$año_mes);
     
-    if($año_mes !== null && $año_mes !== ''){
+    $fecha_vencimiento = $R('fecha_vencimiento',null);//@RETORNADO    
+    if($año_mes !== null && $año_mes !== '' && $fecha_vencimiento === null){
       $f = explode('-',$año_mes);
+      
+      $f[0] = $f[1] == '12'? intval($f[0])+1 : $f[0];
+      $f[1] = $f[1] == '12'? '01' : str_pad(intval($f[1])+1,2,'0',STR_PAD_LEFT);
       $f[2] = '10';
       $f = implode('-',$f);
       $f = new \DateTimeImmutable($f);
@@ -188,8 +190,9 @@ class CanonController extends Controller
         $proximo_lunes = $proximo_lunes->add(\DateInterval::createFromDateString('1 day'));
       }
       $fecha_vencimiento = $R('fecha_vencimiento',$proximo_lunes->format('Y-m-d'));//@RETORNADO
-      $fecha_pago = $R('fecha_pago',$fecha_vencimiento);//@RETORNADO
     }
+    
+    $fecha_pago = $R('fecha_pago',$fecha_vencimiento);//@RETORNADO
     
     $deduccion = '0.00';//@RETORNADO
     $bruto_devengado = '0.00';//@RETORNADO
@@ -279,7 +282,7 @@ class CanonController extends Controller
       $cantidad_dias = intval($date_interval->format('%d'));
       if($cantidad_dias < 0){}
       else if($cantidad_dias == 0){
-        $a_pagar = $bruto_pagar;
+        $a_pagar = bcround_ndigits($bruto_pagar,2);
         $interes_mora = '0.0000';
         $mora = '0.00';
       }
@@ -300,7 +303,7 @@ class CanonController extends Controller
         $interes_mora = $calcular_interes_mora($a_pagar,$bruto_pagar,$cantidad_dias);
       }
       else {//Son todos nulos... asumo interes 0...
-        $a_pagar = $bruto_pagar;
+        $a_pagar = bcround_ndigits($bruto_pagar,2);
         $interes_mora = '0.0000';
         $mora = '0.00';
       }
@@ -309,7 +312,7 @@ class CanonController extends Controller
     $pago = bcadd($R('pago','0.00'),'0',2);//@RETORNADO
     $ajuste = bcadd($R('ajuste','0.00'),'0',2);//@RETORNADO
     $motivo_ajuste = $R('motivo_ajuste','');
-    $diferencia = bcadd(bcsub($pago,$a_pagar,2),$ajuste);//@RETORNADO
+    $diferencia = bcadd(bcsub($pago,$a_pagar,2),$ajuste,2);//@RETORNADO
     $saldo_anterior = '0.00';//@RETORNADO
     if($año_mes !== null && $id_casino !== null){
       $saldo_anterior = $this->calcular_saldo_hasta($año_mes,$id_casino);
@@ -347,6 +350,7 @@ class CanonController extends Controller
     $RD = function($s,$dflt = null) use ($R,$D){
       return $R($s,null) ?? $D($s,null) ?? $dflt;
     };
+    
     $apostado_sistema = bcadd($R('apostado_sistema','0.00'),'0',2);//@RETORNADO
     $apostado_informado = bcadd($R('apostado_informado','0.00'),'0',2);//@RETORNADO
     
@@ -399,21 +403,29 @@ class CanonController extends Controller
       return $R($s,null) ?? $D($s,null) ?? $dflt;
     };
     
+    $fecha_cotizacion_devengado = $R('fecha_cotizacion_devengado',null);//@RETORNADO
     $fecha_cotizacion_pagar = $R('fecha_cotizacion_pagar',null);//@RETORNADO
-    if($año_mes !== null && $año_mes !== '' && $fecha_cotizacion_pagar === null){
+    if($año_mes !== null && $año_mes !== '' && ($fecha_cotizacion_devengado === null || $fecha_cotizacion_pagar === null)){
       $f = explode('-',$año_mes);
-      $f[2] = '10';
-      $f = implode('-',$f);
-      $f = new \DateTimeImmutable($f);
-      $viernes_anterior = clone $f;
-      for($break = 9;$break > 0 && in_array($viernes_anterior->format('w'),['0','6']);$break--){
-        $viernes_anterior = $viernes_anterior->sub(\DateInterval::createFromDateString('1 day'));
+      
+      $f[0] = $f[1] == '12'? intval($f[0])+1 : $f[0];
+      $f[1] = $f[1] == '12'? '01' : str_pad(intval($f[1])+1,2,'0',STR_PAD_LEFT);
+      
+      if($fecha_cotizacion_devengado === null){
+        $fecha_cotizacion_devengado = implode('-',$f);
       }
       
-      $fecha_cotizacion_pagar = $viernes_anterior->format('Y-m-d');//@RETORNADO
+      if($fecha_cotizacion_pagar === null){
+        $f[2] = '10';
+        $f = implode('-',$f);
+        $f = new \DateTimeImmutable($f);
+        $viernes_anterior = clone $f;
+        for($break = 9;$break > 0 && in_array($viernes_anterior->format('w'),['0','6']);$break--){
+          $viernes_anterior = $viernes_anterior->sub(\DateInterval::createFromDateString('1 day'));
+        }
+        $fecha_cotizacion_pagar = $viernes_anterior->format('Y-m-d');//@RETORNADO
+      }
     }
-    
-    $fecha_cotizacion_devengado = $R('fecha_cotizacion_devengado',$año_mes);//@RETORNADO
     
     $cotizacion_dolar_devengado = bcadd($R(
       'cotizacion_dolar_devengado',
