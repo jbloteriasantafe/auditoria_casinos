@@ -531,6 +531,8 @@
           $devengado_fecha_cotizacion = $n('devengado_fecha_cotizacion');
           $devengado_cotizacion_dolar = $n('devengado_cotizacion_dolar');
           $devengado_cotizacion_euro  = $n('devengado_cotizacion_euro');
+          $devengado_valor_mensual_dolar = $n('devengado_valor_mensual_dolar');
+          $devengado_valor_mensual_euro  = $n('devengado_valor_mensual_euro');
           $devengado_valor_diario_dolar = $n('devengado_valor_diario_dolar');
           $devengado_valor_diario_euro  = $n('devengado_valor_diario_euro');
           $devengado_total_dolar = $n('devengado_total_dolar');
@@ -540,6 +542,8 @@
           $determinado_fecha_cotizacion = $n('determinado_fecha_cotizacion');
           $determinado_cotizacion_dolar = $n('determinado_cotizacion_dolar');
           $determinado_cotizacion_euro  = $n('determinado_cotizacion_euro');
+          $determinado_valor_mensual_dolar = $n('determinado_valor_mensual_dolar');
+          $determinado_valor_mensual_euro  = $n('determinado_valor_mensual_euro');
           $determinado_valor_diario_dolar = $n('determinado_valor_diario_dolar');
           $determinado_valor_diario_euro  = $n('determinado_valor_diario_euro');
           $determinado_total_dolar = $n('determinado_total_dolar');
@@ -625,12 +629,22 @@
           </div>
           <div style="display: flex;">
             <div>
+              <h5>VALOR MENSUAL DOLAR</h5>
+              <input class="form-control" data-name="{{$devengado_valor_mensual_dolar}}" data-depende="{{$devengado_cotizacion_dolar}},{{$valor_dolar}}" data-readonly='[{}]'>
+            </div>
+            <div>
+              <h5>VALOR MENSUAL EURO</h5>
+              <input class="form-control" data-name="{{$devengado_valor_mensual_euro}}" data-depende="{{$devengado_cotizacion_euro}},{{$valor_euro}}" data-readonly='[{}]'>
+            </div>
+          </div>
+          <div style="display: flex;">
+            <div>
               <h5>VALOR DIARIO DOLAR</h5>
-              <input class="form-control" data-name="{{$devengado_valor_diario_dolar}}" data-depende="{{$devengado_cotizacion_dolar}},{{$valor_dolar}},{{$dias_valor}}" data-readonly='[{}]'>
+              <input class="form-control" data-name="{{$devengado_valor_diario_dolar}}" data-depende="{{$devengado_valor_mensual_dolar}},{{$factor_dias_valor}}" data-readonly='[{}]'>
             </div>
             <div>
               <h5>VALOR DIARIO EURO</h5>
-              <input class="form-control" data-name="{{$devengado_valor_diario_euro}}" data-depende="{{$devengado_cotizacion_euro}},{{$valor_euro}},{{$dias_valor}}" data-readonly='[{}]'>
+              <input class="form-control" data-name="{{$devengado_valor_diario_euro}}" data-depende="{{$devengado_valor_mensual_euro}},{{$factor_dias_valor}}" data-readonly='[{}]'>
             </div>
           </div>
           <div style="display: flex;">
@@ -673,12 +687,22 @@
           </div>
           <div style="display: flex;">
             <div>
+              <h5>VALOR MENSUAL DOLAR</h5>
+              <input class="form-control" data-name="{{$determinado_valor_mensual_dolar}}" data-depende="{{$determinado_cotizacion_dolar}},{{$valor_dolar}}" data-readonly='[{}]'>
+            </div>
+            <div>
+              <h5>VALOR MENSUAL EURO</h5>
+              <input class="form-control" data-name="{{$determinado_valor_mensual_euro}}" data-depende="{{$determinado_cotizacion_euro}},{{$valor_euro}}" data-readonly='[{}]'>
+            </div>
+          </div>
+          <div style="display: flex;">
+            <div>
               <h5>VALOR DIARIO DOLAR</h5>
-              <input class="form-control" data-name="{{$determinado_valor_diario_dolar}}" data-depende="{{$determinado_cotizacion_dolar}},{{$valor_dolar}},{{$dias_valor}}" data-readonly='[{}]'>
+              <input class="form-control" data-name="{{$determinado_valor_diario_dolar}}" data-depende="{{$determinado_valor_mensual_dolar}},{{$dias_valor}}" data-readonly='[{}]'>
             </div>
             <div>
               <h5>VALOR DIARIO EURO</h5>
-              <input class="form-control" data-name="{{$determinado_valor_diario_euro}}" data-depende="{{$determinado_cotizacion_euro}},{{$valor_euro}},{{$dias_valor}}" data-readonly='[{}]'>
+              <input class="form-control" data-name="{{$determinado_valor_diario_euro}}" data-depende="{{$determinado_valor_mensual_euro}},{{$dias_valor}}" data-readonly='[{}]'>
             </div>
           </div>
           <div style="display: flex;">

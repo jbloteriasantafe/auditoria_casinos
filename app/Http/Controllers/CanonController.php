@@ -453,22 +453,21 @@ class CanonController extends Controller
     
     $dias_valor = $RD('dias_valor',0);//@RETORNADO
     $factor_dias_valor = $dias_valor != 0? bcdiv('1',$dias_valor,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon
-    $devengado_valor_diario_dolar = '0.0000000000000000';//@RETORNADO
-    $devengado_valor_diario_euro  = '0.0000000000000000';//@RETORNADO
-    $determinado_valor_diario_dolar = '0.0000000000000000';//@RETORNADO
-    $determinado_valor_diario_euro = '0.0000000000000000';//@RETORNADO
+    
+    $devengado_valor_mensual_dolar = bcmul($devengado_cotizacion_dolar,$valor_dolar,4);//2+2
+    $devengado_valor_diario_dolar  = '0.0000000000000000';//@RETORNADO
+    $devengado_valor_mensual_euro  = bcmul($devengado_cotizacion_euro,$valor_euro,4);//2+2
+    $devengado_valor_diario_euro   = '0.0000000000000000';//@RETORNADO
+    $determinado_valor_mensual_dolar = bcmul($determinado_cotizacion_dolar,$valor_dolar,4);//2+2
+    $determinado_valor_diario_dolar  = '0.0000000000000000';//@RETORNADO
+    $determinado_valor_mensual_euro  = bcmul($determinado_cotizacion_euro,$valor_euro,4);//2+2
+    $determinado_valor_diario_euro   = '0.0000000000000000';//@RETORNADO
+    
     if($dias_valor != 0){//No entra si es =0, nulo, o falta
-      $devengado_valor_diario_dolar = bcmul($devengado_cotizacion_dolar,$valor_dolar,4);//2+2 @RETORNADO
-      $devengado_valor_diario_dolar = bcmul($devengado_valor_diario_dolar,$factor_dias_valor,16);//4+12
-      
-      $devengado_valor_diario_euro  = bcmul($devengado_cotizacion_euro,$valor_euro,4);//2+2 @RETORNADO
-      $devengado_valor_diario_euro  = bcmul($devengado_valor_diario_euro,$factor_dias_valor,16);//4+12
-      
-      $determinado_valor_diario_dolar = bcmul($determinado_cotizacion_dolar,$valor_dolar,4);//2+2 @RETORNADO
-      $determinado_valor_diario_dolar = bcmul($determinado_valor_diario_dolar,$factor_dias_valor,16);//4+12
-      
-      $determinado_valor_diario_euro  = bcmul($determinado_cotizacion_euro,$valor_euro,4);//2+2 @RETORNADO
-      $determinado_valor_diario_euro  = bcmul($determinado_valor_diario_euro,$factor_dias_valor,16);//4+12
+      $devengado_valor_diario_dolar = bcmul($devengado_valor_mensual_dolar,$factor_dias_valor,16);//4+12
+      $devengado_valor_diario_euro  = bcmul($devengado_valor_mensual_euro,$factor_dias_valor,16);//4+12
+      $determinado_valor_diario_dolar = bcmul($determinado_valor_mensual_dolar,$factor_dias_valor,16);//4+12
+      $determinado_valor_diario_euro  = bcmul($determinado_valor_mensual_euro,$factor_dias_valor,16);//4+12
     }
     
     $dias_lunes_jueves = 0;//@RETORNADO
@@ -517,19 +516,43 @@ class CanonController extends Controller
     $mesas_todos             = $R('mesas_todos',0);//@RETORNADO
     $mesas_fijos             = $R('mesas_fijos',0);//@RETORNADO
         
-    $mesasdias = $dias_lunes_jueves*$mesas_lunes_jueves
+    $mesas_dias = $dias_lunes_jueves*$mesas_lunes_jueves
     +$dias_viernes_sabados*$mesas_viernes_sabados
     +$dias_domingos*$mesas_domingos
     +$dias_todos*$mesas_todos
     +$dias_fijos*$mesas_fijos;
     
-    $devengado_total_dolar = bcmul($devengado_valor_diario_dolar,$mesasdias,16);//@RETORNADO
-    $devengado_total_euro  = bcmul($devengado_valor_diario_euro,$mesasdias,16);//@RETORNADO
+    $devengado_total_dolar   = '0';//@RETORNADO
+    $devengado_total_euro    = '0';//@RETORNADO
+    $determinado_total_dolar = '0';//@RETORNADO
+    $determinado_total_euro  = '0';//@RETORNADO
+    //Lo desprendo en sumas para hacerlo mas preciso (disminuyo las divisiones)
+    //$total_MONEDA = $valor_diario_MONEDA * $mesas_dias
+    //$total_MONEDA = ($valor_MONEDA*$cotizacion_MONEDA/$dias_valor) * $mesas_dias
+    //$total_MONEDA = $valor_MONEDA*$cotizacion_MONEDA*($mesas_dias/$dias_valor)
+    //$total_MONEDA = ($valor_MONEDA*$cotizacion_MONEDA)*($mesas_dias intdiv $dias_valor + ($mesas_dias % $dias_valor)/$dias_valor)
+    //$total_MONEDA = ($valor_MONEDA*$cotizacion_MONEDA)*($mesas_dias intdiv $dias_valor + ($mesas_dias % $dias_valor)*$factor_dias_valor)
+    //$total_MONEDA = $valor_mensual_MONEDA*($mesas_dias intdiv $dias_valor) + $valor_diario_MONEDA*($mesas_dias % $dias_valor)
+    //$total_MONEDA = $valor_mensual_MONEDA*$mesas_meses + $valor_diario_MONEDA*$mesas_dias_restantes
+    if($dias_valor > 0){
+      $mesas_meses = intdiv($mesas_dias,$dias_valor);
+      $mesas_dias_restantes  = $mesas_dias % $dias_valor;
+      
+      $devengado_total_dolar = bcmul($devengado_valor_mensual_dolar,$mesas_meses,4);
+      $devengado_total_euro  = bcmul($devengado_valor_mensual_euro,$mesas_meses,4);
+      $determinado_total_dolar = bcmul($determinado_valor_mensual_dolar,$mesas_meses,4);
+      $determinado_total_euro  = bcmul($determinado_valor_mensual_euro,$mesas_meses,4);
+      
+      $devengado_total_dolar = bcadd($devengado_total_dolar,bcmul($devengado_valor_diario_dolar,$mesas_dias_restantes,16),16);
+      $devengado_total_euro  = bcadd($devengado_total_euro,bcmul($devengado_valor_diario_euro,$mesas_dias_restantes,16),16);
+      $determinado_total_dolar = bcadd($determinado_total_dolar,bcmul($determinado_valor_diario_dolar,$mesas_dias_restantes,16),16);
+      $determinado_total_euro  = bcadd($determinado_total_euro,bcmul($determinado_valor_diario_euro,$mesas_dias_restantes,16),16);
+    }
+    
+    
     $devengado_total = bcadd($devengado_total_dolar,$devengado_total_euro,16);//@RETORNADO
     $deduccion = bcadd($RD('deduccion','0.00'),'0',2);//@RETORNADO
     
-    $determinado_total_dolar = bcmul($determinado_valor_diario_dolar,$mesasdias,16);//@RETORNADO
-    $determinado_total_euro  = bcmul($determinado_valor_diario_euro,$mesasdias,16);//@RETORNADO
     $determinado_total = bcadd($determinado_total_dolar,$determinado_total_euro,16);//@RETORNADO
         
     return compact(
@@ -538,11 +561,13 @@ class CanonController extends Controller
       'dias_domingos','mesas_domingos','dias_todos','mesas_todos','dias_fijos','mesas_fijos',
       
       'devengado_fecha_cotizacion','devengado_cotizacion_dolar','devengado_cotizacion_euro',
+      'devengado_valor_mensual_dolar','devengado_valor_mensual_euro',
       'devengado_valor_diario_dolar','devengado_valor_diario_euro',
       'devengado_total_dolar','devengado_total_euro','devengado_total',
       'deduccion',
       
       'determinado_fecha_cotizacion','determinado_cotizacion_dolar','determinado_cotizacion_euro',
+      'determinado_valor_mensual_dolar','determinado_valor_mensual_euro',
       'determinado_valor_diario_dolar','determinado_valor_diario_euro',
       'determinado_total_dolar','determinado_total_euro','determinado_total'
     );
