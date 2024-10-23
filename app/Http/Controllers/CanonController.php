@@ -139,7 +139,7 @@ class CanonController extends Controller
       'canon_fijo_mesas.*.cotizacion_dolar_pagar' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas.*.cotizacion_euro_pagar' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas_adicionales' => 'array',
-      'canon_fijo_mesas_adicionales.*.valor_mensual' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas_adicionales.*.valor_mes' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas_adicionales.*.dias_mes' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas_adicionales.*.horas_dia' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas_adicionales.*.horas' => ['nullable',$numeric_rule(0)],
@@ -174,7 +174,6 @@ class CanonController extends Controller
     $fecha_pago = $R('fecha_pago');//@RETORNADO
     $es_antiguo = $R('es_antiguo',0)? 1 : 0;//@RETORNADO
     $adjuntos = $R('adjuntos',[]);//@RETORNADO
-    
     
     $fecha_vencimiento = $R('fecha_vencimiento',null);//@RETORNADO    
     if($año_mes !== null && $año_mes !== '' && $fecha_vencimiento === null){
@@ -562,23 +561,31 @@ class CanonController extends Controller
     
     $dias_mes      = $RD('dias_mes',0);//@RETORNADO
     $horas_dia     = $RD('horas_dia',0);//@RETORNADO
-    $factor_dias_mes  = $dias_mes != 0? bcdiv('1',$dias_mes,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon
-    $factor_horas_dia = $horas_dia != 0? bcdiv('1',$horas_dia,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon
+    
+    $factor_dias_mes  = ($dias_mes != 0)? bcdiv('1',$dias_mes,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon
     $factor_horas_mes = ($horas_dia != 0 && $dias_mes != 0)? bcdiv('1',$horas_dia*$dias_mes,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon
     
-    $valor_mensual = bcadd($RD('valor_mensual','0.00'),'0',2);//@RETORNADO
-    $valor_diario = '0.00000000000000';//12+2 @RETORNADO
-    if($dias_mes != 0){
-      $valor_diario = bcmul($valor_mensual,$factor_dias_mes,14);
-    }
-    $valor_hora = '0.00000000000000';//12+2 @RETORNADO
-    if($dias_mes != 0 && $horas_dia != 0){
-      $valor_hora = bcmul($valor_mensual,$factor_horas_mes,14);
-    }
-       
+    $valor_mes = bcadd($RD('valor_mes','0.00'),'0',2);//@RETORNADO
+    $valor_dia  = bcmul($valor_mes,$factor_dias_mes,14);//2+12 @RETORNADO
+    $valor_hora = bcmul($valor_mes,$factor_horas_mes,14);//2+12 @RETORNADO
+    
     $horas = $R('horas',0);//@RETORNADO
-    $mesas = $R('mesas',0);//@RETORNADO
-    $total_sin_aplicar_porcentaje = bcmul($valor_hora,($horas*$mesas),14);
+    $total_sin_aplicar_porcentaje = '0';
+    {//Sumo de valores mas precisos a menos precisos
+      $horas_restantes = $horas;
+      $horas_mes = bcmul($horas_dia,$dias_mes);
+      while(bccomp($horas_restantes,$horas_mes,0) >= 0){
+        $total_sin_aplicar_porcentaje = bcadd($total_sin_aplicar_porcentaje,$valor_mes,14);
+        $horas_restantes = bcsub($horas_restantes,$horas_mes,0);
+      }
+      while(bccomp($horas_restantes,$horas_dia,0) >= 0){
+        $total_sin_aplicar_porcentaje = bcadd($total_sin_aplicar_porcentaje,$valor_dia,14);
+        $horas_restantes = bcsub($horas_restantes,$horas_dia,0);
+      }
+      $valor_restante = bcmul($valor_hora,$horas_restantes,14);
+      $total_sin_aplicar_porcentaje = bcadd($total_sin_aplicar_porcentaje,$valor_restante,14);
+    }
+    
     $porcentaje = bcadd($RD('porcentaje','0.0000'),'0',4);//@RETORNADO
     $factor_porcentaje = bcdiv($porcentaje,'100',6);
     
@@ -589,10 +596,9 @@ class CanonController extends Controller
     
     return compact(
       'tipo',
-      'dias_mes','horas_dia',
-      'factor_dias_mes','factor_horas_dia','factor_horas_mes',
-      'valor_mensual','valor_diario','valor_hora',
-      'horas','mesas','porcentaje',
+      'dias_mes','horas_dia','factor_dias_mes','factor_horas_mes',
+      'valor_mes','valor_dia','valor_hora',
+      'horas','porcentaje',
       'total_devengado','deduccion','total_pagar'
     );
   }

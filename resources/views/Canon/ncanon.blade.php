@@ -704,16 +704,14 @@
           $n = function($s) use (&$id_casino,&$t,&$molde_str){
             return "canon_fijo_mesas_adicionales[$molde_str][$s]";
           };
-          $valor_mensual = $n('valor_mensual');
           $dias_mes = $n('dias_mes');
-          $valor_diario = $n('valor_diario');
           $horas_dia = $n('horas_dia');
-          $valor_hora = $n('valor_hora');
           $factor_dias_mes = $n('factor_dias_mes');
-          $factor_horas_dia = $n('factor_horas_dia');
           $factor_horas_mes = $n('factor_horas_mes');
+          $valor_mes = $n('valor_mes');
+          $valor_dia = $n('valor_dia');
+          $valor_hora = $n('valor_hora');
           $horas = $n('horas');
-          $mesas = $n('mesas');
           $porcentaje = $n('porcentaje');
           $total_devengado = $n('total_devengado');
           $total_pagar = $n('total_pagar');
@@ -730,15 +728,9 @@
               <h5>HORAS DÍA</h5>
               <input class="form-control" data-name="{{$horas_dia}}"  data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
-          </div>
-          <div style="display: flex;">
             <div class="aproximado">
               <h5>FACTOR DIAS MES ≈ (DÍAS MES)⁻¹</h5>
               <input class="form-control" data-name="{{$factor_dias_mes}}" data-depende="{{$dias_mes}}" data-readonly='[{}]'>
-            </div>
-            <div class="aproximado">
-              <h5>FACTOR HORAS DÍA ≈ (HORAS DÍA)⁻¹</h5>
-              <input class="form-control" data-name="{{$factor_horas_dia}}" data-depende="{{$horas_dia}}" data-readonly='[{}]'>
             </div>
             <div class="aproximado">
               <h5>FACTOR HORAS MES ≈ (DÍAS MES × HORAS DÍA)⁻¹</h5>
@@ -747,26 +739,22 @@
           </div>
           <div style="display: flex;">
             <div>
-              <h5>VALOR MENSUAL</h5>
-              <input class="form-control" data-name="{{$valor_mensual}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              <h5>VALOR MES</h5>
+              <input class="form-control" data-name="{{$valor_mes}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div>
-              <h5>VALOR DIARIO</h5>
-              <input class="form-control" data-name="{{$valor_diario}}" data-depende="{{$valor_mensual}},{{$factor_dias_mes}}" data-readonly='[{}]'>
+              <h5>VALOR DÍA</h5>
+              <input class="form-control" data-name="{{$valor_dia}}" data-depende="{{$valor_mes}},{{$factor_dias_mes}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div>
               <h5>VALOR HORA</h5>
-              <input class="form-control" data-name="{{$valor_hora}}" data-depende="{{$valor_mensual}},{{$factor_horas_mes}}" data-readonly='[{}]'>
+              <input class="form-control" data-name="{{$valor_hora}}" data-depende="{{$valor_mes}},{{$factor_horas_mes}}" data-readonly='[{}]'>
             </div>
           </div>
           <div style="display: flex;">
             <div>
               <h5>HORAS</h5>
               <input class="form-control" data-name="{{$horas}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-            </div>
-            <div>
-              <h5>MESAS</h5>
-              <input class="form-control" data-name="{{$mesas}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div class="parametro_chico">
               <h5>PORCENTAJE</h5>
@@ -776,11 +764,11 @@
           <div style="display: flex;">
             <div>
               <h5>TOTAL (DEVENGADO)</h5>
-              <input class="form-control" data-name="{{$total_devengado}}" data-depende="{{$valor_hora}},{{$horas}},{{$mesas}},{{$porcentaje}}" data-readonly='[{}]'>
+              <input class="form-control" data-name="{{$total_devengado}}" data-depende="{{$valor_mes}},{{$valor_dia}},{{$valor_hora}},{{$horas}},{{$porcentaje}}" data-readonly='[{}]'>
             </div>
             <div>
               <h5>TOTAL (PAGAR)</h5>
-              <input class="form-control" data-name="{{$total_pagar}}" data-depende="{{$valor_hora}},{{$horas}},{{$mesas}},{{$porcentaje}}" data-readonly='[{}]'>
+              <input class="form-control" data-name="{{$total_pagar}}" data-depende="{{$valor_mes}},{{$valor_dia}},{{$valor_hora}},{{$horas}},{{$porcentaje}}" data-readonly='[{}]'>
             </div>
           </div>
           <div style="display: flex;">
