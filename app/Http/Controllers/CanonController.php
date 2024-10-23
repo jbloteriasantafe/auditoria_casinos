@@ -97,14 +97,14 @@ class CanonController extends Controller
       'id_casino' => [$requireds_f('id_casino'),'integer','exists:casino,id_casino,deleted_at,NULL'],
       'estado' => ['nullable','string','max:32'],
       'es_antiguo' => [$requireds_f('es_antiguo'),'integer','in:1,0'],
-      'bruto_devengado' => ['nullable',$numeric_rule(20)],
+      'devengado_bruto' => ['nullable',$numeric_rule(20)],
       'deduccion' => ['nullable',$numeric_rule(2)],
       'fecha_vencimiento' => ['nullable','date'],
       'fecha_pago' => ['nullable','date'],
-      'bruto_pagar' => ['nullable',$numeric_rule(20)],
+      'determinado_bruto' => ['nullable',$numeric_rule(20)],
       'interes_mora'=> ['nullable',$numeric_rule(4)],
       'mora' => ['nullable',$numeric_rule(2)],
-      'a_pagar' => ['nullable',$numeric_rule(2)],
+      'determinado' => ['nullable',$numeric_rule(2)],
       'ajuste' => ['nullable',$numeric_rule(2)],
       'motivo_ajuste' => ['nullable','string','max:128'],
       'saldo_anterior' => ['nullable',$numeric_rule(2)],
@@ -131,13 +131,13 @@ class CanonController extends Controller
       'canon_fijo_mesas.*.mesas_todos' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas.*.dias_fijos' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas.*.mesas_fijos' => ['nullable',$numeric_rule(0)],
-      'canon_fijo_mesas.*.fecha_cotizacion_devengado' => ['nullable','date'],
-      'canon_fijo_mesas.*.cotizacion_dolar_devengado' => ['nullable',$numeric_rule(2)],
-      'canon_fijo_mesas.*.cotizacion_euro_devengado' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas.*.devengado_fecha_cotizacion' => ['nullable','date'],
+      'canon_fijo_mesas.*.devengado_cotizacion_dolar' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas.*.devengado_cotizacion_euro' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas.*.deduccion' => ['nullable',$numeric_rule(2)],
-      'canon_fijo_mesas.*.fecha_cotizacion_pagar' => ['nullable','date'],
-      'canon_fijo_mesas.*.cotizacion_dolar_pagar' => ['nullable',$numeric_rule(2)],
-      'canon_fijo_mesas.*.cotizacion_euro_pagar' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas.*.determinado_fecha_cotizacion' => ['nullable','date'],
+      'canon_fijo_mesas.*.determinado_cotizacion_dolar' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas.*.determinado_cotizacion_euro' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas_adicionales' => 'array',
       'canon_fijo_mesas_adicionales.*.valor_mes' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas_adicionales.*.dias_mes' => ['nullable',$numeric_rule(0)],
@@ -194,15 +194,15 @@ class CanonController extends Controller
     $fecha_pago = $R('fecha_pago',$fecha_vencimiento);//@RETORNADO
     
     $deduccion = '0.00';//@RETORNADO
-    $bruto_devengado = '0.00';//@RETORNADO
-    $bruto_pagar = '0.00';//@RETORNADO
+    $devengado_bruto = '0.00';//@RETORNADO
+    $determinado_bruto = '0.00';//@RETORNADO
     $canon_variable = [];//@RETORNADO
     $canon_fijo_mesas = [];//@RETORNADO
     $canon_fijo_mesas_adicionales = [];//@RETORNADO
     if($es_antiguo){
       $deduccion       = bcadd($R('deduccion',$deduccion),'0',2);
-      $bruto_devengado = bcadd($R('bruto_devengado',$bruto_devengado),'0',2);
-      $bruto_pagar     = bcadd($R('bruto_pagar',$bruto_devengado),'0',2);
+      $devengado_bruto = bcadd($R('devengado_bruto',$devengado_bruto),'0',2);
+      $determinado_bruto = bcadd($R('determinado_bruto',$determinado_bruto),'0',2);
     }
     else{
       {//Varios tipos (JOL, Bingo, Maquinas)
@@ -214,8 +214,8 @@ class CanonController extends Controller
             ($request['canon_variable'] ?? [])[$tipo] ?? []
           );
           $deduccion       = bcadd($deduccion,$canon_variable[$tipo]['deduccion'] ?? '0',2);
-          $bruto_devengado = bcadd($bruto_devengado,$canon_variable[$tipo]['total_devengado'] ?? '0',20);
-          $bruto_pagar     = bcadd($bruto_pagar,$canon_variable[$tipo]['total_pagar'] ?? '0',20);
+          $devengado_bruto = bcadd($devengado_bruto,$canon_variable[$tipo]['devengado_total'] ?? '0',20);
+          $determinado_bruto = bcadd($determinado_bruto,$canon_variable[$tipo]['determinado_total'] ?? '0',20);
         }
       }
       {//Dos tipos muy parecidos (Fijas y Diarias), se hace asi mas que nada para que sea homogeneo
@@ -229,8 +229,8 @@ class CanonController extends Controller
             ($request['canon_fijo_mesas'] ?? [])[$tipo] ?? []
           );
           $deduccion       = bcadd($deduccion,$canon_fijo_mesas[$tipo]['deduccion'] ?? '0',2);
-          $bruto_devengado = bcadd($bruto_devengado,$canon_fijo_mesas[$tipo]['total_devengado'] ?? '0',20);
-          $bruto_pagar     = bcadd($bruto_pagar,$canon_fijo_mesas[$tipo]['total_pagar'] ?? '0',20);
+          $devengado_bruto = bcadd($devengado_bruto,$canon_fijo_mesas[$tipo]['devengado_total'] ?? '0',20);
+          $determinado_bruto = bcadd($determinado_bruto,$canon_fijo_mesas[$tipo]['determinado_total'] ?? '0',20);
         }
       }
       {//Las mesas adicionales pueden ser varios tipos (Torneo Truco, Torneo Poker, etc)
@@ -242,26 +242,26 @@ class CanonController extends Controller
             ($request['canon_fijo_mesas_adicionales'] ?? [])[$tipo] ?? []
           );
           $deduccion       = bcadd($deduccion,$canon_fijo_mesas_adicionales[$tipo]['deduccion'] ?? '0',2);
-          $bruto_devengado = bcadd($bruto_devengado,$canon_fijo_mesas_adicionales[$tipo]['total_devengado'] ?? '0',20);
-          $bruto_pagar     = bcadd($bruto_pagar,$canon_fijo_mesas_adicionales[$tipo]['total_pagar'] ?? '0',20);
+          $devengado_bruto = bcadd($devengado_bruto,$canon_fijo_mesas_adicionales[$tipo]['devengado_total'] ?? '0',20);
+          $determinado_bruto = bcadd($determinado_bruto,$canon_fijo_mesas_adicionales[$tipo]['determinado_total'] ?? '0',20);
         }
       }
     }
     
-    $devengado = bcround_ndigits(bcsub($bruto_devengado,$deduccion,20),2);//@RETORNADO
+    $devengado = bcround_ndigits(bcsub($devengado_bruto,$deduccion,20),2);//@RETORNADO
     
-    $porcentaje_seguridad = bccomp($bruto_devengado,'0.00') > 0?//@RETORNADO
-       bcdiv(bcmul('100.0',$deduccion),$bruto_devengado,4)
+    $porcentaje_seguridad = bccomp($devengado_bruto,'0.00') > 0?//@RETORNADO
+       bcdiv(bcmul('100.0',$deduccion),$devengado_bruto,4)
       : '0.00';
     
     $interes_mora = bcadd($R('interes_mora','0.0000'),'0',4);//@RETORNADO
-    $a_pagar = bcadd($R('a_pagar','0.00'),'0',2);//@RETORNADO
+    $determinado = bcadd($R('determinado','0.00'),'0',2);//@RETORNADO
     $mora = bcadd($R('mora','0.00'),'0',2);//@RETORNADO
     
-    $calcular_interes_mora = function($a_pagar,$bruto_pagar,$cantidad_dias){
-      //$coeff = log($a_pagar/$bruto_pagar)/$cantidad_dias;
+    $calcular_interes_mora = function($determinado,$determinado_bruto,$cantidad_dias){
+      //$coeff = log($determinado/$determinado_bruto)/$cantidad_dias;
       //$interes_mora = (exp($coeff)-1)*100;
-      $coeff = bcln(bcdiv($a_pagar,$bruto_pagar,self::$max_scale),16);
+      $coeff = bcln(bcdiv($determinado,$determinado_bruto,self::$max_scale),16);
       $coeff = bcdiv($coeff,$cantidad_dias,self::$max_scale);
       $interes_mora = bcepow($coeff,self::$max_scale);
       $interes_mora = bcsub($interes_mora,'1',self::$max_scale);
@@ -269,8 +269,8 @@ class CanonController extends Controller
       return bcmul($interes_mora,'100',4);
     };
     
-    if(bccomp($bruto_pagar,'0.00',2) <= 0){
-      $a_pagar = '0.00';
+    if(bccomp($determinado_bruto,'0.00',2) <= 0){
+      $determinado = '0.00';
       $interes_mora = '0.00';
       $mora = '0.00';
     }
@@ -281,28 +281,28 @@ class CanonController extends Controller
       $cantidad_dias = intval($date_interval->format('%d'));
       if($cantidad_dias < 0){}
       else if($cantidad_dias == 0){
-        $a_pagar = bcround_ndigits($bruto_pagar,2);
+        $determinado = bcround_ndigits($determinado_bruto,2);
         $interes_mora = '0.0000';
         $mora = '0.00';
       }
       else if($R('interes_mora',null) !== null){//Si envio el interes, calculo el pago
         $interes_1dia = bcadd('1',bcdiv($interes_mora,'100',6),6);
         $interes_final = bcpowi($interes_1dia,$cantidad_dias.'',self::$max_scale);
-        //$a_pagar = $bruto_pagar*pow(1+$interes_mora/100.0,$cantidad_dias);
-        $a_pagar = bcmul($bruto_pagar,$interes_final,self::$max_scale);
-        $a_pagar = bcround_ndigits($a_pagar,2);
-        $mora = bcsub($a_pagar,$bruto_pagar,2);
+        //$determinado = $determinado_bruto*pow(1+$interes_mora/100.0,$cantidad_dias);
+        $determinado = bcmul($determinado_bruto,$interes_final,self::$max_scale);
+        $determinado = bcround_ndigits($determinado,2);
+        $mora = bcsub($determinado_bruto,$determinado_bruto,2);
       }
-      else if($R('a_pagar',null) !== null){//Si envio el pago, calculo el interes
-        $interes_mora = $calcular_interes_mora($a_pagar,$bruto_pagar,$cantidad_dias);
-        $mora = bcsub($a_pagar,$bruto_pagar,2);//$mora = $a_pagar - $bruto_pagar;
+      else if($R('determinado',null) !== null){//Si envio el pago, calculo el interes
+        $interes_mora = $calcular_interes_mora($determinado,$determinado_bruto,$cantidad_dias);
+        $mora = bcsub($determinado,$determinado_bruto,2);//$mora = $determinado - $determinado_bruto;
       }
       else if($R('mora',null) !== null){
-        $a_pagar = bcadd($bruto_pagar,$mora,2);
-        $interes_mora = $calcular_interes_mora($a_pagar,$bruto_pagar,$cantidad_dias);
+        $determinado = bcadd($determinado_bruto,$mora,2);
+        $interes_mora = $calcular_interes_mora($determinado,$determinado_bruto,$cantidad_dias);
       }
       else {//Son todos nulos... asumo interes 0...
-        $a_pagar = bcround_ndigits($bruto_pagar,2);
+        $determinado = bcround_ndigits($determinado_bruto,2);
         $interes_mora = '0.0000';
         $mora = '0.00';
       }
@@ -311,7 +311,7 @@ class CanonController extends Controller
     $pago = bcadd($R('pago','0.00'),'0',2);//@RETORNADO
     $ajuste = bcadd($R('ajuste','0.00'),'0',2);//@RETORNADO
     $motivo_ajuste = $R('motivo_ajuste','');
-    $diferencia = bcadd(bcsub($pago,$a_pagar,2),$ajuste,2);//@RETORNADO
+    $diferencia = bcadd(bcsub($pago,$determinado,2),$ajuste,2);//@RETORNADO
     $saldo_anterior = '0.00';//@RETORNADO
     if($año_mes !== null && $id_casino !== null){
       $saldo_anterior = $this->calcular_saldo_hasta($año_mes,$id_casino);
@@ -322,9 +322,9 @@ class CanonController extends Controller
     return compact(
       'año_mes','id_casino','estado','es_antiguo',
       'canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales','adjuntos',
-      'bruto_devengado','deduccion','devengado','porcentaje_seguridad',
-      'bruto_pagar','fecha_vencimiento','fecha_pago','interes_mora','mora',
-      'a_pagar','pago','ajuste','motivo_ajuste','diferencia','saldo_anterior','saldo_posterior'
+      'devengado_bruto','deduccion','devengado','porcentaje_seguridad',
+      'determinado_bruto','fecha_vencimiento','fecha_pago','interes_mora','mora',
+      'determinado','pago','ajuste','motivo_ajuste','diferencia','saldo_anterior','saldo_posterior'
     );
   }
   
@@ -356,32 +356,32 @@ class CanonController extends Controller
     $apostado_porcentaje_aplicable = bcadd($RD('apostado_porcentaje_aplicable','0.0000'),'0',4);//@RETORNADO
     $factor_apostado_porcentaje_aplicable = bcdiv($apostado_porcentaje_aplicable,'100',6);
     
-    $base_imponible_devengado = bcmul($apostado_sistema,$factor_apostado_porcentaje_aplicable,8);//2+6 @RETORNADO
-    $base_imponible_pagar     = bcmul($apostado_informado,$factor_apostado_porcentaje_aplicable,8);//2+6 @RETORNADO
+    $devengado_base_imponible = bcmul($apostado_sistema,$factor_apostado_porcentaje_aplicable,8);//2+6 @RETORNADO
+    $determinado_base_imponible = bcmul($apostado_informado,$factor_apostado_porcentaje_aplicable,8);//2+6 @RETORNADO
     
     $apostado_porcentaje_impuesto_ley = bcadd($RD('apostado_porcentaje_impuesto_ley','0.0000'),'0',4);//@RETORNADO
-    $factor_postado_porcentaje_impuesto_ley = bcdiv($apostado_porcentaje_impuesto_ley,'100',6);
+    $factor_apostado_porcentaje_impuesto_ley = bcdiv($apostado_porcentaje_impuesto_ley,'100',6);
     
-    $impuesto_devengado = bcmul($base_imponible_devengado,$factor_postado_porcentaje_impuesto_ley,14);//8+6 @RETORNADO
-    $impuesto_pagar = bcmul($base_imponible_pagar,$factor_postado_porcentaje_impuesto_ley,14);//8+6 @RETORNADO
+    $devengado_impuesto = bcmul($devengado_base_imponible,$factor_apostado_porcentaje_impuesto_ley,14);//8+6 @RETORNADO
+    $determinado_impuesto = bcmul($determinado_base_imponible,$factor_apostado_porcentaje_impuesto_ley,14);//8+6 @RETORNADO
     
     $bruto = bcadd($R('bruto','0.00'),'0',2);//@RETORNADO
-    $subtotal_devengado = bcsub($bruto,$impuesto_devengado,14);//@RETORNADO
-    $subtotal_pagar     = bcsub($bruto,$impuesto_pagar,14);//@RETORNADO
+    $devengado_subtotal = bcsub($bruto,$devengado_impuesto,14);//@RETORNADO
+    $determinado_subtotal = bcsub($bruto,$determinado_impuesto,14);//@RETORNADO
     
     $alicuota = bcadd($RD('alicuota','0.0000'),'0',4);//@RETORNADO
     $factor_alicuota = bcdiv($alicuota,'100',6);
     
-    $total_devengado =  bcmul($subtotal_devengado,$factor_alicuota,20);//6+14 @RETORNADO
-    $total_pagar =  bcmul($subtotal_pagar,$factor_alicuota,20);//6+14 @RETORNADO
+    $devengado_total =  bcmul($devengado_subtotal,$factor_alicuota,20);//6+14 @RETORNADO
+    $determinado_total =  bcmul($determinado_subtotal,$factor_alicuota,20);//6+14 @RETORNADO
     $deduccion = bcadd($RD('deduccion','0.00'),'0',2);
     
     return compact('tipo',
       'apostado_sistema','apostado_informado',
-      'apostado_porcentaje_aplicable','base_imponible_devengado','base_imponible_pagar',
-      'apostado_porcentaje_impuesto_ley','impuesto_devengado','impuesto_pagar',
-      'bruto','subtotal_devengado','subtotal_pagar',
-      'alicuota','total_devengado','deduccion','total_pagar'
+      'apostado_porcentaje_aplicable','devengado_base_imponible','determinado_base_imponible',
+      'apostado_porcentaje_impuesto_ley','devengado_impuesto','determinado_impuesto',
+      'bruto','devengado_subtotal','determinado_subtotal',
+      'alicuota','devengado_total','deduccion','determinado_total'
     );
   }
   
@@ -402,19 +402,19 @@ class CanonController extends Controller
       return $R($s,null) ?? $D($s,null) ?? $dflt;
     };
     
-    $fecha_cotizacion_devengado = $R('fecha_cotizacion_devengado',null);//@RETORNADO
-    $fecha_cotizacion_pagar = $R('fecha_cotizacion_pagar',null);//@RETORNADO
-    if($año_mes !== null && $año_mes !== '' && ($fecha_cotizacion_devengado === null || $fecha_cotizacion_pagar === null)){
+    $devengado_fecha_cotizacion = $R('devengado_fecha_cotizacion',null);//@RETORNADO
+    $determinado_fecha_cotizacion = $R('determinado_fecha_cotizacion',null);//@RETORNADO
+    if($año_mes !== null && $año_mes !== '' && ($devengado_fecha_cotizacion === null || $determinado_fecha_cotizacion === null)){
       $f = explode('-',$año_mes);
       
       $f[0] = $f[1] == '12'? intval($f[0])+1 : $f[0];
       $f[1] = $f[1] == '12'? '01' : str_pad(intval($f[1])+1,2,'0',STR_PAD_LEFT);
       
-      if($fecha_cotizacion_devengado === null){
-        $fecha_cotizacion_devengado = implode('-',$f);
+      if($devengado_fecha_cotizacion === null){
+        $devengado_fecha_cotizacion = implode('-',$f);
       }
       
-      if($fecha_cotizacion_pagar === null){
+      if($determinado_fecha_cotizacion === null){
         $f[2] = '10';
         $f = implode('-',$f);
         $f = new \DateTimeImmutable($f);
@@ -422,26 +422,26 @@ class CanonController extends Controller
         for($break = 9;$break > 0 && in_array($viernes_anterior->format('w'),['0','6']);$break--){
           $viernes_anterior = $viernes_anterior->sub(\DateInterval::createFromDateString('1 day'));
         }
-        $fecha_cotizacion_pagar = $viernes_anterior->format('Y-m-d');//@RETORNADO
+        $determinado_fecha_cotizacion = $viernes_anterior->format('Y-m-d');//@RETORNADO
       }
     }
     
-    $cotizacion_dolar_devengado = bcadd($R(
-      'cotizacion_dolar_devengado',
-      $fecha_cotizacion_devengado !== null? ($this->cotizacion($fecha_cotizacion_devengado,2) ?? '0.00') : '0.00'
+    $devengado_cotizacion_dolar = bcadd($R(
+      'devengado_cotizacion_dolar',
+      $devengado_fecha_cotizacion !== null? ($this->cotizacion($devengado_fecha_cotizacion,2) ?? '0.00') : '0.00'
     ),'0',2);//@RETORNADO
-    $cotizacion_euro_devengado = bcadd($R(
-      'cotizacion_euro_devengado',
-      $fecha_cotizacion_devengado !== null? ($this->cotizacion($fecha_cotizacion_devengado,3) ?? '0.00') : '0.00'
+    $devengado_cotizacion_euro = bcadd($R(
+      'devengado_cotizacion_euro',
+      $devengado_fecha_cotizacion !== null? ($this->cotizacion($devengado_fecha_cotizacion,3) ?? '0.00') : '0.00'
     ),'0',2);//@RETORNADO
     
-    $cotizacion_dolar_pagar = bcadd($R(
-      'cotizacion_dolar_pagar',
-      $fecha_cotizacion_pagar !== null? ($this->cotizacion($fecha_cotizacion_pagar,2) ?? '0.00') : '0.00'
+    $determinado_cotizacion_dolar = bcadd($R(
+      'determinado_cotizacion_dolar',
+      $determinado_fecha_cotizacion !== null? ($this->cotizacion($determinado_fecha_cotizacion,2) ?? '0.00') : '0.00'
     ),'0',2);//@RETORNADO
-    $cotizacion_euro_pagar = bcadd($R(
-      'cotizacion_euro_pagar',
-      $fecha_cotizacion_pagar !== null? ($this->cotizacion($fecha_cotizacion_pagar,3) ?? '0.00') : '0.00'
+    $determinado_cotizacion_euro = bcadd($R(
+      'determinado_cotizacion_euro',
+      $determinado_fecha_cotizacion !== null? ($this->cotizacion($determinado_fecha_cotizacion,3) ?? '0.00') : '0.00'
     ),'0',2);//@RETORNADO
     
     $valor_dolar = '0.00';//@RETORNADO
@@ -453,22 +453,22 @@ class CanonController extends Controller
     
     $dias_valor = $RD('dias_valor',0);//@RETORNADO
     $factor_dias_valor = $dias_valor != 0? bcdiv('1',$dias_valor,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon
-    $valor_diario_dolar_devengado = '0.0000000000000000';//@RETORNADO
-    $valor_diario_euro_devengado  = '0.0000000000000000';//@RETORNADO
-    $valor_diario_dolar_pagar     = '0.0000000000000000';//@RETORNADO
-    $valor_diario_euro_pagar      = '0.0000000000000000';//@RETORNADO
+    $devengado_valor_diario_dolar = '0.0000000000000000';//@RETORNADO
+    $devengado_valor_diario_euro  = '0.0000000000000000';//@RETORNADO
+    $determinado_valor_diario_dolar = '0.0000000000000000';//@RETORNADO
+    $determinado_valor_diario_euro = '0.0000000000000000';//@RETORNADO
     if($dias_valor != 0){//No entra si es =0, nulo, o falta
-      $valor_diario_dolar_devengado = bcmul($cotizacion_dolar_devengado,$valor_dolar,4);//2+2 @RETORNADO
-      $valor_diario_dolar_devengado = bcmul($valor_diario_dolar_devengado,$factor_dias_valor,16);//4+12
+      $devengado_valor_diario_dolar = bcmul($devengado_cotizacion_dolar,$valor_dolar,4);//2+2 @RETORNADO
+      $devengado_valor_diario_dolar = bcmul($devengado_valor_diario_dolar,$factor_dias_valor,16);//4+12
       
-      $valor_diario_euro_devengado  = bcmul($cotizacion_euro_devengado,$valor_euro,4);//2+2 @RETORNADO
-      $valor_diario_euro_devengado  = bcmul($valor_diario_euro_devengado,$factor_dias_valor,16);//4+12
+      $devengado_valor_diario_euro  = bcmul($devengado_cotizacion_euro,$valor_euro,4);//2+2 @RETORNADO
+      $devengado_valor_diario_euro  = bcmul($devengado_valor_diario_euro,$factor_dias_valor,16);//4+12
       
-      $valor_diario_dolar_pagar = bcmul($cotizacion_dolar_pagar,$valor_dolar,4);//2+2 @RETORNADO
-      $valor_diario_dolar_pagar = bcmul($valor_diario_dolar_pagar,$factor_dias_valor,16);//4+12
+      $determinado_valor_diario_dolar = bcmul($determinado_cotizacion_dolar,$valor_dolar,4);//2+2 @RETORNADO
+      $determinado_valor_diario_dolar = bcmul($determinado_valor_diario_dolar,$factor_dias_valor,16);//4+12
       
-      $valor_diario_euro_pagar  = bcmul($cotizacion_euro_pagar,$valor_euro,4);//2+2 @RETORNADO
-      $valor_diario_euro_pagar  = bcmul($valor_diario_euro_pagar,$factor_dias_valor,16);//4+12
+      $determinado_valor_diario_euro  = bcmul($determinado_cotizacion_euro,$valor_euro,4);//2+2 @RETORNADO
+      $determinado_valor_diario_euro  = bcmul($determinado_valor_diario_euro,$factor_dias_valor,16);//4+12
     }
     
     $dias_lunes_jueves = 0;//@RETORNADO
@@ -523,28 +523,28 @@ class CanonController extends Controller
     +$dias_todos*$mesas_todos
     +$dias_fijos*$mesas_fijos;
     
-    $total_dolar_devengado = bcmul($valor_diario_dolar_devengado,$mesasdias,16);//@RETORNADO
-    $total_euro_devengado  = bcmul($valor_diario_euro_devengado,$mesasdias,16);//@RETORNADO
-    $total_devengado = bcadd($total_dolar_devengado,$total_euro_devengado,16);//@RETORNADO
+    $devengado_total_dolar = bcmul($devengado_valor_diario_dolar,$mesasdias,16);//@RETORNADO
+    $devengado_total_euro  = bcmul($devengado_valor_diario_euro,$mesasdias,16);//@RETORNADO
+    $devengado_total = bcadd($devengado_total_dolar,$devengado_total_euro,16);//@RETORNADO
     $deduccion = bcadd($RD('deduccion','0.00'),'0',2);//@RETORNADO
     
-    $total_dolar_pagar = bcmul($valor_diario_dolar_pagar,$mesasdias,16);//@RETORNADO
-    $total_euro_pagar  = bcmul($valor_diario_euro_pagar,$mesasdias,16);//@RETORNADO
-    $total_pagar = bcadd($total_dolar_pagar,$total_euro_pagar,16);//@RETORNADO
+    $determinado_total_dolar = bcmul($determinado_valor_diario_dolar,$mesasdias,16);//@RETORNADO
+    $determinado_total_euro  = bcmul($determinado_valor_diario_euro,$mesasdias,16);//@RETORNADO
+    $determinado_total = bcadd($determinado_total_dolar,$determinado_total_euro,16);//@RETORNADO
         
     return compact(
       'tipo','dias_valor','factor_dias_valor','valor_dolar','valor_euro',
       'dias_lunes_jueves','mesas_lunes_jueves','dias_viernes_sabados','mesas_viernes_sabados',
       'dias_domingos','mesas_domingos','dias_todos','mesas_todos','dias_fijos','mesas_fijos',
       
-      'fecha_cotizacion_devengado','cotizacion_dolar_devengado','cotizacion_euro_devengado',
-      'valor_diario_dolar_devengado','valor_diario_euro_devengado',
-      'total_dolar_devengado','total_euro_devengado','total_devengado',
+      'devengado_fecha_cotizacion','devengado_cotizacion_dolar','devengado_cotizacion_euro',
+      'devengado_valor_diario_dolar','devengado_valor_diario_euro',
+      'devengado_total_dolar','devengado_total_euro','devengado_total',
       'deduccion',
       
-      'fecha_cotizacion_pagar','cotizacion_dolar_pagar','cotizacion_euro_pagar',
-      'valor_diario_dolar_pagar','valor_diario_euro_pagar',
-      'total_dolar_pagar','total_euro_pagar','total_pagar'
+      'determinado_fecha_cotizacion','determinado_cotizacion_dolar','determinado_cotizacion_euro',
+      'determinado_valor_diario_dolar','determinado_valor_diario_euro',
+      'determinado_total_dolar','determinado_total_euro','determinado_total'
     );
   }
   
@@ -589,8 +589,8 @@ class CanonController extends Controller
     $porcentaje = bcadd($RD('porcentaje','0.0000'),'0',4);//@RETORNADO
     $factor_porcentaje = bcdiv($porcentaje,'100',6);
     
-    $total_devengado = bcmul($total_sin_aplicar_porcentaje,$factor_porcentaje,20);//14+6 @RETORNADO
-    $total_pagar = $total_devengado;//@RETORNADO
+    $devengado_total = bcmul($total_sin_aplicar_porcentaje,$factor_porcentaje,20);//14+6 @RETORNADO
+    $determinado_total = $devengado_total;//@RETORNADO
     
     $deduccion = bcadd($RD('deduccion','0.00'),'0',2);//@RETORNADO
     
@@ -599,7 +599,7 @@ class CanonController extends Controller
       'dias_mes','horas_dia','factor_dias_mes','factor_horas_mes',
       'valor_mes','valor_dia','valor_hora',
       'horas','porcentaje',
-      'total_devengado','deduccion','total_pagar'
+      'devengado_total','deduccion','determinado_total'
     );
   }
   
@@ -666,16 +666,16 @@ class CanonController extends Controller
         'año_mes' => $datos['año_mes'],
         'id_casino' => $datos['id_casino'],
         'estado' => $datos['estado'],
-        'bruto_devengado' => $datos['bruto_devengado'],
+        'devengado_bruto' => $datos['devengado_bruto'],
         'deduccion' => $datos['deduccion'],
         'devengado' => $datos['devengado'],
         'porcentaje_seguridad' => $datos['porcentaje_seguridad'], 
         'fecha_vencimiento' => $datos['fecha_vencimiento'],
         'fecha_pago' => $datos['fecha_pago'],
-        'bruto_pagar' => $datos['bruto_pagar'],
+        'determinado_bruto' => $datos['determinado_bruto'],
         'interes_mora' => $datos['interes_mora'],
         'mora' => $datos['mora'],
-        'a_pagar' => $datos['a_pagar'],
+        'determinado' => $datos['determinado'],
         'pago' => $datos['pago'],
         'ajuste' => $datos['ajuste'],
         'motivo_ajuste' => $datos['motivo_ajuste'],
