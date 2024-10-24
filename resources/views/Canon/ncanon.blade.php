@@ -444,7 +444,7 @@
                 <input class="form-control" data-name="{{$devengado_base_imponible}}" data-depende="{{$apostado_sistema}},{{$apostado_porcentaje_aplicable}}" data-readonly='[{}]'>
               </div>
               <div style="flex: 1;">
-                <h5>BASE IMPONIBLE (A PAGAR)</h5>
+                <h5>BASE IMPONIBLE (DETERMINADO)</h5>
                 <input class="form-control" data-name="{{$determinado_base_imponible}}" data-depende="{{$apostado_informado}},{{$apostado_porcentaje_aplicable}}" data-readonly='[{}]'>
               </div>
             </div>
@@ -458,7 +458,7 @@
                 <input class="form-control" data-name="{{$devengado_impuesto}}" data-depende="{{$devengado_base_imponible}},{{$apostado_porcentaje_impuesto_ley}}" data-readonly='[{}]'>
               </div>
               <div style="flex: 1;">
-                <h5>IMPUESTO (A PAGAR)</h5>
+                <h5>IMPUESTO (DETERMINADO)</h5>
                 <input class="form-control" data-name="{{$determinado_impuesto}}" data-depende="{{$determinado_base_imponible}},{{$apostado_porcentaje_impuesto_ley}}" data-readonly='[{}]'>
               </div>
             </div>
@@ -798,7 +798,7 @@
               <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$valor_mes}},{{$valor_dia}},{{$valor_hora}},{{$horas}},{{$porcentaje}}" data-readonly='[{}]'>
             </div>
             <div>
-              <h5>TOTAL (PAGAR)</h5>
+              <h5>TOTAL (DETERMINADO)</h5>
               <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$valor_mes}},{{$valor_dia}},{{$valor_hora}},{{$horas}},{{$porcentaje}}" data-readonly='[{}]'>
             </div>
           </div>

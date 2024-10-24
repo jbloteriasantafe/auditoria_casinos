@@ -126,6 +126,9 @@ $(document).ready(function() {
     }
     
     const formatter = function(n){
+      const negativo = n?.[0] == '-'? '-' : '';
+      n = negativo.length? n.substr(1) : n;
+      
       const partes = n.split('.');
       let entero  = partes?.[0] ?? '';
       
@@ -139,7 +142,7 @@ $(document).ready(function() {
         decimal = ','+decimal;
       }
       
-      return entero+decimal;
+      return negativo+entero+decimal;
     };
     
     const deformatter = function(n){
