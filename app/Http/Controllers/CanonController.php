@@ -520,7 +520,7 @@ class CanonController extends Controller
     +$dias_viernes_sabados*$mesas_viernes_sabados
     +$dias_domingos*$mesas_domingos
     +$dias_todos*$mesas_todos
-    +$dias_fijos*$mesas_fijos;
+    +$dias_fijos*$mesas_fijos;//@RETORNADO
     
     $devengado_total_dolar   = '0';//@RETORNADO
     $devengado_total_euro    = '0';//@RETORNADO
@@ -559,6 +559,7 @@ class CanonController extends Controller
       'tipo','dias_valor','factor_dias_valor','valor_dolar','valor_euro',
       'dias_lunes_jueves','mesas_lunes_jueves','dias_viernes_sabados','mesas_viernes_sabados',
       'dias_domingos','mesas_domingos','dias_todos','mesas_todos','dias_fijos','mesas_fijos',
+      'mesas_dias',
       
       'devengado_fecha_cotizacion','devengado_cotizacion_dolar','devengado_cotizacion_euro',
       'devengado_valor_mensual_dolar','devengado_valor_mensual_euro',
@@ -597,18 +598,21 @@ class CanonController extends Controller
     $horas = $R('horas',0);//@RETORNADO
     $total_sin_aplicar_porcentaje = '0';
     {//Sumo de valores mas precisos a menos precisos
-      $horas_restantes = $horas;
-      $horas_mes = bcmul($horas_dia,$dias_mes);
-      while(bccomp($horas_restantes,$horas_mes,0) >= 0){
-        $total_sin_aplicar_porcentaje = bcadd($total_sin_aplicar_porcentaje,$valor_mes,14);
-        $horas_restantes = bcsub($horas_restantes,$horas_mes,0);
-      }
-      while(bccomp($horas_restantes,$horas_dia,0) >= 0){
-        $total_sin_aplicar_porcentaje = bcadd($total_sin_aplicar_porcentaje,$valor_dia,14);
-        $horas_restantes = bcsub($horas_restantes,$horas_dia,0);
-      }
-      $valor_restante = bcmul($valor_hora,$horas_restantes,14);
-      $total_sin_aplicar_porcentaje = bcadd($total_sin_aplicar_porcentaje,$valor_restante,14);
+      $horas_mes = $horas_dia*$dias_mes;
+      
+      $meses = intdiv($horas,$horas_mes);
+      $restantes = $horas%$horas_mes;
+      
+      $dias = intdiv($restantes,$horas_dia);
+      $restantes = $restantes%$horas_dia;
+      
+      $total_meses = bcmul($valor_mes,$meses,2);
+      $total_dias  = bcmul($valor_dia,$dias,14);
+      $total_horas = bcmul($valor_hora,$restantes,14);
+      
+      $total_sin_aplicar_porcentaje = bcadd($total_sin_aplicar_porcentaje,$total_meses,14);
+      $total_sin_aplicar_porcentaje = bcadd($total_sin_aplicar_porcentaje,$total_dias,14);
+      $total_sin_aplicar_porcentaje = bcadd($total_sin_aplicar_porcentaje,$total_horas,14);
     }
     
     $porcentaje = bcadd($RD('porcentaje','0.0000'),'0',4);//@RETORNADO
