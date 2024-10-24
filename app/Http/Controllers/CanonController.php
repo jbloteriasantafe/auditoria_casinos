@@ -336,7 +336,7 @@ class CanonController extends Controller
     ->whereNull('deleted_at')
     ->groupBy(DB::raw('"constant"'))
     ->first();
-    return $saldo_anterior === null? 0 : $saldo_anterior->saldo;
+    return $saldo_anterior === null? '0.00' : $saldo_anterior->saldo;
   }
   
   public function canon_variable_recalcular($tipo,$valores_defecto,$data){

@@ -125,19 +125,48 @@ $(document).ready(function() {
       return div;
     }
     
-    const simplificarNumeros = function(){//Saca los 0 de sobra a la derecha
-      const inputs = M.find('form[data-js-recalcular] input:not([data-js-texto-no-simplificar])');
-      //Para verlos en debug usar algo tipo inputs.css('color','red');       
+    const formatter = function(n){
+      const partes = n.split('.');
+      let entero  = partes?.[0] ?? '';
+      
+      entero = entero.split('').reverse().join('')//Doy vuelta el numero... 
+      .match(/(.{1,3}|^$)/g).map(function(s){return s.split('').reverse().join('');})//junto los miles y los pongo en orden
+      .reverse().join('.');//Lo pongo en orden correcto y lo uno
+      
+      //Saco los ceros de sobra, y la parte decimal si es solo .000..
+      let decimal = (partes?.[1] ?? '').replaceAll(/0+$/g,'')
+      if(decimal.length){
+        decimal = ','+decimal;
+      }
+      
+      return entero+decimal;
+    };
+    
+    const deformatter = function(n){
+      return n.replaceAll('.','').replaceAll(',','.');
+    };
+    
+    const formatearNumeros = function(){//Saca los 0 de sobra a la derecha
+      const inputs = M.find('form[data-js-recalcular] input:not([data-js-texto-no-simplificar])');//@SPEED: cacheable
+      
+      //Para verlos en debug usar algo tipo inputs.css('color','red');     
       inputs.each(function(_,iobj){
         const i = $(iobj);
-        const partes = i.val().split('.');
-        const entero  = partes?.[0] ?? '';
-        let decimal = (partes?.[1] ?? '').replaceAll(/0+$/g,'')
-        if(decimal.length){
-          decimal = '.'+decimal;
-        }
-        i.val(entero+decimal);
+        i.val(formatter(i.val()));
       });
+    }
+    
+    const deformatearFormData = function(obj){
+      const inputs = new Set(
+        M.find('form[data-js-recalcular] input:not([data-js-texto-no-simplificar])')
+        .map(function(_,i){return i.getAttribute('name');}).toArray()
+      );//@SPEED: cacheable
+      
+      const ret = {};//Necesito FormData si voy a mandar sin procesar (porque mando archivos)
+      for(const k in obj){
+        ret[k] = inputs.has(k)? deformatter(obj[k]) : obj[k];
+      }
+      return ret;
     }
     
     const render = function(canon,mantener_historial = false){
@@ -149,7 +178,7 @@ $(document).ready(function() {
       if((rerender ?? 1) == 0){
         fill(M,null,canon);
         setReadonly();
-        simplificarNumeros();
+        formatearNumeros();
         return;
       }
       
@@ -178,7 +207,7 @@ $(document).ready(function() {
       M.attr('data-render',0);
       fill(M,null,canon);
       setReadonly();
-      simplificarNumeros();
+      formatearNumeros();
       
       (mantener_historial?
          M.find('[data-js-select-historial]')
@@ -229,6 +258,16 @@ $(document).ready(function() {
       M.attr('data-render',1);
     });
     
+    /*M.find('form[data-js-recalcular]').on('focus','input:not([data-js-texto-no-simplificar])',function(e){
+      const tgt = $(e.currentTarget);
+      tgt.val(deformatter(tgt.val()));
+    });
+    
+    M.find('form[data-js-recalcular]').on('focusout','input:not([data-js-texto-no-simplificar])',function(e){
+      const tgt = $(e.currentTarget);
+      tgt.val(formatter(tgt.val()));
+    });*/
+    
     M.find('form[data-js-recalcular]').on('change','[name]',function(e){//@TODO: bindear directo
       const tgt = $(e.currentTarget);
       const form = tgt.closest('form[data-js-recalcular]');
@@ -252,13 +291,13 @@ $(document).ready(function() {
       };
       
       limpiarDependencias(tgt.attr('name'));
-      
+            
       form.trigger('recalcular');
     });
     
     M.find('form[data-js-recalcular]').on('recalcular',function(e){
       const form = $(e.currentTarget);
-      AUX.POST(form.attr('data-js-recalcular'),AUX.form_entries(form[0]),
+      AUX.POST(form.attr('data-js-recalcular'),deformatearFormData(AUX.form_entries(form[0])),
         function(data){
           render(data);
         },
@@ -372,7 +411,7 @@ $(document).ready(function() {
       const tgt = $(e.currentTarget);
       const url = tgt.attr('data-js-enviar');
       const form = M.find('form[data-js-recalcular]');
-      const entries = AUX.form_entries(form?.[0]);
+      const entries = deformatearFormData(AUX.form_entries(form?.[0]));
       
       M.find('[data-adjuntos] [data-js-contenedor] [data-adjunto]:visible').each(function(_,adj_obj){
         const adj = $(adj_obj);
