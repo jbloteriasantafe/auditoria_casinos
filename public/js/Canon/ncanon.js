@@ -125,6 +125,21 @@ $(document).ready(function() {
       return div;
     }
     
+    const simplificarNumeros = function(){//Saca los 0 de sobra a la derecha
+      const inputs = M.find('form[data-js-recalcular] input:not([data-js-texto-no-simplificar])');
+      //Para verlos en debug usar algo tipo inputs.css('color','red');       
+      inputs.each(function(_,iobj){
+        const i = $(iobj);
+        const partes = i.val().split('.');
+        const entero  = partes?.[0] ?? '';
+        let decimal = (partes?.[1] ?? '').replaceAll(/0+$/g,'')
+        if(decimal.length){
+          decimal = '.'+decimal;
+        }
+        i.val(entero+decimal);
+      });
+    }
+    
     const render = function(canon,mantener_historial = false){
       const form = M.find('form[data-js-recalcular]');
       const rerender = M.attr('data-render');
@@ -134,6 +149,7 @@ $(document).ready(function() {
       if((rerender ?? 1) == 0){
         fill(M,null,canon);
         setReadonly();
+        simplificarNumeros();
         return;
       }
       
@@ -162,6 +178,7 @@ $(document).ready(function() {
       M.attr('data-render',0);
       fill(M,null,canon);
       setReadonly();
+      simplificarNumeros();
       
       (mantener_historial?
          M.find('[data-js-select-historial]')
