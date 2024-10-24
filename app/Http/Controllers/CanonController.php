@@ -31,6 +31,9 @@ function csvstr(array $fields) : string
 }
 
 function formatear_decimal(string $val) : string {//number_format castea a float... lo hacemos a pata...
+  $negativo = ($val[0] ?? false) == '-'? '-' : '';
+  $val = strlen($negativo)? substr($val,1) : $val;
+  
   $parts   = explode('.',$val);
   $entero  = $parts[0] ?? '';
   $decimal = $parts[1] ?? null;
@@ -46,7 +49,7 @@ function formatear_decimal(string $val) : string {//number_format castea a float
   if(!is_null($decimal) && strlen($decimal) > 0){
     $newval .= ','.$decimal;
   }
-  return $newval;
+  return $negativo.$newval;
 }
 
 class CanonController extends Controller
