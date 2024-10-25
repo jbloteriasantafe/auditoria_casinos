@@ -317,35 +317,54 @@ class CanonController extends Controller
       }
     }
     
+    
     $pago = bcadd($R('pago','0.00'),'0',2);//@RETORNADO
     $ajuste = bcadd($R('ajuste','0.00'),'0',2);//@RETORNADO
     $motivo_ajuste = $R('motivo_ajuste','');
-    $diferencia = bcadd(bcsub($pago,$determinado,2),$ajuste,2);//@RETORNADO
-    $saldo_anterior = '0.00';//@RETORNADO
-    if($año_mes !== null && $id_casino !== null){
-      $saldo_anterior = $this->calcular_saldo_hasta($año_mes,$id_casino);
-    }
     
-    $saldo_posterior = bcadd($saldo_anterior,$diferencia,2);//@RETORNADO
+    $dinamicos = $this->calcular_campos_dinamicos($año_mes,$id_casino,$determinado,$pago,$ajuste);
+    
+    $saldo_anterior = $dinamicos['saldo_anterior'];//@RETORNADO
+    $a_pagar = $dinamicos['a_pagar'];//@RETORNADO
+    $diferencia = $dinamicos['diferencia'];//@RETORNADO
+    $saldo_posterior = $dinamicos['saldo_posterior'];//@RETORNADO
     
     return compact(
       'año_mes','id_casino','estado','es_antiguo',
       'canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales','adjuntos',
       'devengado_bruto','deduccion','devengado','porcentaje_seguridad',
       'determinado_bruto','fecha_vencimiento','fecha_pago','interes_mora','mora',
-      'determinado','pago','ajuste','motivo_ajuste','diferencia','saldo_anterior','saldo_posterior'
+      'determinado','saldo_anterior','a_pagar','pago','ajuste','motivo_ajuste','diferencia','saldo_posterior'
     );
   }
   
-  private function calcular_saldo_hasta($año_mes,$id_casino){
-    $saldo_anterior = DB::table('canon')
-    ->selectRaw('SUM(diferencia) as saldo')//esto deberia ser DECIMAL asi que retorna un string
+  //@SPEED: cachear en DB
+  private function calcular_campos_dinamicos($año_mes,$id_casino,$determinado,$pago,$ajuste){//Lo pongo en una función para mantener consistente el signo
+    //Se considera que el "saldo" es positivo cuando es a favor del casino
+    //por lo que
+    //a pagar = determinado - saldo_anterior
+    //diferencia = a_pagar - pago + ajuste
+    //saldo posterior = -diferencia
+    
+    $saldo_anterior = '0.00';//@RETORNADO
+    
+    $canons_anteriores = DB::table('canon')
     ->where('id_casino',$id_casino)
     ->where('año_mes','<',$año_mes)
-    ->whereNull('deleted_at')
-    ->groupBy(DB::raw('"constant"'))
-    ->first();
-    return $saldo_anterior === null? '0.00' : $saldo_anterior->saldo;
+    ->whereNull('deleted_at')->get();
+    
+    foreach($canons_anteriores as $c){
+      $a_pagar = bcsub($c->determinado,$saldo_anterior,2);
+      $diferencia = bcadd(bcsub($a_pagar,$c->pago,2),$c->ajuste,2);
+      $saldo_posterior = bcsub('0',$diferencia,2);
+      $saldo_anterior = $saldo_posterior;
+    }
+    
+    $a_pagar = bcsub($determinado,$saldo_anterior,2);//@RETORNADO
+    $diferencia = bcadd(bcsub($a_pagar,$pago,2),$ajuste,2);//@RETORNADO
+    $saldo_posterior = bcsub('0',$diferencia,2);//@RETORNADO
+    
+    return compact('saldo_anterior','a_pagar','diferencia','saldo_posterior');
   }
   
   public function canon_variable_recalcular($tipo,$valores_defecto,$data){
@@ -715,7 +734,6 @@ class CanonController extends Controller
         'pago' => $datos['pago'],
         'ajuste' => $datos['ajuste'],
         'motivo_ajuste' => $datos['motivo_ajuste'],
-        'diferencia' => $datos['diferencia'],
         'es_antiguo' => $datos['es_antiguo'],
         'created_at' => $created_at,
         'created_id_usuario' => $id_usuario,
@@ -821,11 +839,13 @@ class CanonController extends Controller
     ->first();
         
     if(!empty($ret)){
-      $ret['saldo_anterior']  = $this->calcular_saldo_hasta($ret['año_mes'],$ret['id_casino']);
-      $ret['saldo_posterior'] = bcadd($ret['saldo_anterior'],$ret['diferencia'],'2');
+      $dinamicos = $this->calcular_campos_dinamicos($ret['año_mes'],$ret['id_casino'],$ret['determinado'],$ret['pago'],$ret['ajuste']);
+      foreach($dinamicos as $k => $v) $ret[$k] = $v;
     }
     else{
       $ret['saldo_anterior']  = '';
+      $ret['a_pagar']         = '';
+      $ret['diferencia']      = '';
       $ret['saldo_posterior'] = '';
     }
         
@@ -933,8 +953,8 @@ class CanonController extends Controller
     
     //@HACK @SLOW: usar algun tipo de cache calculado hasta
     $ret2['data'] = $ret->reverse()->transform(function(&$c){
-      $c->saldo_anterior  = $this->calcular_saldo_hasta($c->año_mes,$c->id_casino);
-      $c->saldo_posterior = bcadd($c->saldo_anterior,$c->diferencia,'2');
+      $dinamicos = $this->calcular_campos_dinamicos($c->año_mes,$c->id_casino,$c->determinado,$c->pago,$c->ajuste);
+      foreach($dinamicos as $k => $v) $c->{$k} = $v;
       return $c;
     })->reverse();
     
@@ -1076,6 +1096,8 @@ class CanonController extends Controller
     $SB = DB::getSchemaBuilder();
     $types = [];
     $types['canon']['saldo_anterior']  = 'decimal';
+    $types['canon']['a_pagar'] = 'decimal';
+    $types['canon']['diferencia'] = 'decimal';
     $types['canon']['saldo_posterior'] = 'decimal';
     foreach($ret as $tabla => $d){
       foreach($SB->getColumnListing($tabla) as $cidx => $col){

@@ -369,6 +369,16 @@
         </div>
         <div style="width: 100%;display: flex;">
           <div>
+            <h5>Saldo anterior</h5>
+            <input class="form-control" name="saldo_anterior" data-depende="año_mes,id_casino" data-readonly='[{}]'>
+          </div>
+        </div>
+        <div style="width: 100%;display: flex;">
+          <div>
+            <h5>A PAGAR</h5>
+            <input class="form-control" name="a_pagar" data-readonly='[{}]'>
+          </div>
+          <div>
             <h5>PAGO</h5>
             <input class="form-control" name="pago" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
           </div>
@@ -383,10 +393,6 @@
           </div>
         </div>
         <div style="width: 100%;display: flex;">
-          <div>
-            <h5>Saldo anterior</h5>
-            <input class="form-control" name="saldo_anterior" data-depende="año_mes,id_casino" data-readonly='[{}]'>
-          </div>
           <div>
             <h5>Saldo posterior</h5>
             <input class="form-control" name="saldo_posterior" data-depende="diferencia,saldo_anterior" data-readonly='[{}]'>

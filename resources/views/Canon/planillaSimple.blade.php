@@ -53,37 +53,40 @@ function ucwords_espacios($s){
   ?>
   
   @if(count($datos) > 0)
-  <table style="width: {{$table_width}}%;">
+  <table class="borde_cada_dos_columnas" style="width: {{$table_width}}%;">
     <?php
       $maxrows = 0;
     ?>
-    <tr>
-      @foreach($datos as $titulo_tabla => $datos_tabla)
-      <?php
-        foreach($datos_tabla as $d){
-          $maxrows = max($maxrows,count(array_keys($d)));
-        }
-      ?>
-      <th colspan="{{1+count($datos_tabla)}}" class="tablaInicio" style="text-align: center;" width="{{$main_col_width}}%">{{ucwords_espacios($titulo_tabla)}}</th>
-      @endforeach
-    </tr>
-    
-    @for($kidx=0;$kidx<$maxrows;$kidx++)
-    <tr>
-      @foreach($datos as $titulo_tabla => $datos_tabla)
-      <?php 
-        $k = array_keys($datos_tabla[0] ?? [])[$kidx] ?? null ;
-        $col_width = $main_col_width/(1+count($datos_tabla));
-      ?>
-      
-      <th class="tablaInicio" style="text-align: left;" width="{{$col_width}}%">{{$k !== null? ucwords_espacios($k) : '&nbsp;'}}</th>
-      @foreach($datos_tabla as $didx => $d)
-      <td class="tablaCampos" style="text-align: right;" width="{{$col_width}}%">{{$k !== null? $d[$k] : '&nbsp;'}}</td>
-      @endforeach
-      
-      @endforeach
-    </tr>
-    @endfor
+    <thead>
+      <tr>
+        @foreach($datos as $titulo_tabla => $datos_tabla)
+        <?php
+          foreach($datos_tabla as $d){
+            $maxrows = max($maxrows,count(array_keys($d)));
+          }
+        ?>
+        <th colspan="{{1+count($datos_tabla)}}" class="tablaInicio" style="text-align: center;" width="{{$main_col_width}}%">{{ucwords_espacios($titulo_tabla)}}</th>
+        @endforeach
+      </tr>
+    </thead>
+    <tbody>
+      @for($kidx=0;$kidx<$maxrows;$kidx++)
+      <tr>
+        @foreach($datos as $titulo_tabla => $datos_tabla)
+        <?php 
+          $k = array_keys($datos_tabla[0] ?? [])[$kidx] ?? null ;
+          $col_width = $main_col_width/(1+count($datos_tabla));
+        ?>
+        
+        <th class="tablaInicio" style="text-align: left;" width="{{$col_width}}%">{{$k !== null? ucwords_espacios($k) : '&nbsp;'}}</th>
+        @foreach($datos_tabla as $didx => $d)
+        <td class="tablaCampos" style="text-align: right;" width="{{$col_width}}%">{{$k !== null? $d[$k] : '&nbsp;'}}</td>
+        @endforeach
+        
+        @endforeach
+      </tr>
+      @endfor
+    </tbody>
   </table>
   @endif
   
