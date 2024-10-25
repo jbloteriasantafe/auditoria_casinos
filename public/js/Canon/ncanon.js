@@ -261,15 +261,23 @@ $(document).ready(function() {
       M.attr('data-render',1);
     });
     
-    /*M.find('form[data-js-recalcular]').on('focus','input:not([data-js-texto-no-simplificar])',function(e){
-      const tgt = $(e.currentTarget);
-      tgt.val(deformatter(tgt.val()));
+    //No dejar poner '.' en los inputs numericos, si pone reemplazar por una ','. Esto es para homogeineizar el input
+    //Si pega texto no se puede hacer mucho porque habria que adivinar el formato
+    M.find('form[data-js-recalcular]').on('keydown','input:not([datajs-texto-no-simplificar])',function(e){
+      const es_punto = e.charCode || e.keyCode || 0;
+      if(es_punto == 190 || es_punto == 110){
+        const $this = $(this);
+        
+        const val   = $this.val();
+        const start = this.selectionStart;
+        const end   = this.selectionEnd;
+        $this.val(val.substr(0,start) + "," + val.substr(end));
+        
+        this.selectionStart = this.selectionEnd = start + 1;
+        return false;
+      }
+      return true;
     });
-    
-    M.find('form[data-js-recalcular]').on('focusout','input:not([data-js-texto-no-simplificar])',function(e){
-      const tgt = $(e.currentTarget);
-      tgt.val(formatter(tgt.val()));
-    });*/
     
     M.find('form[data-js-recalcular]').on('change','[name]',function(e){//@TODO: bindear directo
       const tgt = $(e.currentTarget);
