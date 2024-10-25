@@ -430,8 +430,8 @@
                 <input class="form-control" data-name="{{$apostado_sistema}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div style="flex: 1;">
-                <h5>APOSTADO INFORMADO</h5>
-                <input class="form-control" data-name="{{$apostado_informado}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <h5>&nbsp;</h5>
+                <h5>&nbsp;</h5>
               </div>
             </div>
             <div style="display: flex;">
@@ -444,8 +444,8 @@
                 <input class="form-control" data-name="{{$devengado_base_imponible}}" data-depende="{{$apostado_sistema}},{{$apostado_porcentaje_aplicable}}" data-readonly='[{}]'>
               </div>
               <div style="flex: 1;">
-                <h5>BASE IMPONIBLE (DETERMINADO)</h5>
-                <input class="form-control" data-name="{{$determinado_base_imponible}}" data-depende="{{$apostado_informado}},{{$apostado_porcentaje_aplicable}}" data-readonly='[{}]'>
+                <h5>&nbsp;</h5>
+                <h5>&nbsp;</h5>
               </div>
             </div>
             <div style="display: flex;">
@@ -459,7 +459,7 @@
               </div>
               <div style="flex: 1;">
                 <h5>IMPUESTO (DETERMINADO)</h5>
-                <input class="form-control" data-name="{{$determinado_impuesto}}" data-depende="{{$determinado_base_imponible}},{{$apostado_porcentaje_impuesto_ley}}" data-readonly='[{}]'>
+                <input class="form-control" data-name="{{$determinado_impuesto}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
             </div>
             <div style="display: flex;">
