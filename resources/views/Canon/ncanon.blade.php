@@ -533,23 +533,23 @@
           $devengado_fecha_cotizacion = $n('devengado_fecha_cotizacion');
           $devengado_cotizacion_dolar = $n('devengado_cotizacion_dolar');
           $devengado_cotizacion_euro  = $n('devengado_cotizacion_euro');
-          $devengado_valor_mensual_dolar = $n('devengado_valor_mensual_dolar');
-          $devengado_valor_mensual_euro  = $n('devengado_valor_mensual_euro');
-          $devengado_valor_diario_dolar = $n('devengado_valor_diario_dolar');
-          $devengado_valor_diario_euro  = $n('devengado_valor_diario_euro');
-          $devengado_total_dolar = $n('devengado_total_dolar');
-          $devengado_total_euro  = $n('devengado_total_euro');
+          $devengado_valor_dolar_cotizado = $n('devengado_valor_dolar_cotizado');
+          $devengado_valor_euro_cotizado  = $n('devengado_valor_euro_cotizado');
+          $devengado_valor_dolar_diario_cotizado = $n('devengado_valor_dolar_diario_cotizado');
+          $devengado_valor_euro_diario_cotizado  = $n('devengado_valor_euro_diario_cotizado');
+          $devengado_total_dolar_cotizado = $n('devengado_total_dolar_cotizado');
+          $devengado_total_euro_cotizado  = $n('devengado_total_euro_cotizado');
           $devengado_total       = $n('devengado_total');
           $deduccion             = $n('deduccion');
           $determinado_fecha_cotizacion = $n('determinado_fecha_cotizacion');
           $determinado_cotizacion_dolar = $n('determinado_cotizacion_dolar');
           $determinado_cotizacion_euro  = $n('determinado_cotizacion_euro');
-          $determinado_valor_mensual_dolar = $n('determinado_valor_mensual_dolar');
-          $determinado_valor_mensual_euro  = $n('determinado_valor_mensual_euro');
-          $determinado_valor_diario_dolar = $n('determinado_valor_diario_dolar');
-          $determinado_valor_diario_euro  = $n('determinado_valor_diario_euro');
-          $determinado_total_dolar = $n('determinado_total_dolar');
-          $determinado_total_euro  = $n('determinado_total_euro');
+          $determinado_valor_dolar_cotizado = $n('determinado_valor_dolar_cotizado');
+          $determinado_valor_euro_cotizado  = $n('determinado_valor_euro_cotizado');
+          $determinado_valor_dolar_diario_cotizado = $n('determinado_valor_dolar_diario_cotizado');
+          $determinado_valor_euro_diario_cotizado  = $n('determinado_valor_euro_diario_cotizado');
+          $determinado_total_dolar_cotizado = $n('determinado_total_dolar_cotizado');
+          $determinado_total_euro_cotizado  = $n('determinado_total_euro_cotizado');
           $determinado_total       = $n('determinado_total');
         ?>
         <div style="width: 100%;" data-js-molde="{{$molde_str}}" hidden>
@@ -597,11 +597,11 @@
               <input class="form-control" data-name="{{$mesas_dias}}" data-depende="{{$dias_lunes_jueves}},{{$mesas_lunes_jueves}},{{$dias_viernes_sabados}},{{$mesas_viernes_sabados}},{{$dias_domingos}},{{$mesas_domingos}},{{$dias_todos}},{{$mesas_todos}},{{$dias_fijos}},{{$mesas_fijos}}" data-readonly='[{}]'>
             </div>
             <div>
-              <h5>VALOR DOLAR</h5>
+              <h5>VALOR DOLAR (USD)</h5>
               <input class="form-control" data-name="{{$valor_dolar}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div>
-              <h5>VALOR EURO</h5>
+              <h5>VALOR EURO (EUR)</h5>
               <input class="form-control" data-name="{{$valor_euro}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div class="parametro_chico">
@@ -635,36 +635,36 @@
           </div>
           <div style="display: flex;">
             <div>
-              <h5>VALOR MENSUAL DOLAR</h5>
-              <input class="form-control" data-name="{{$devengado_valor_mensual_dolar}}" data-depende="{{$devengado_cotizacion_dolar}},{{$valor_dolar}}" data-readonly='[{}]'>
+              <h5>VALOR DOLAR (ARS)</h5>
+              <input class="form-control" data-name="{{$devengado_valor_dolar_cotizado}}" data-depende="{{$devengado_cotizacion_dolar}},{{$valor_dolar}}" data-readonly='[{}]'>
             </div>
             <div>
-              <h5>VALOR MENSUAL EURO</h5>
-              <input class="form-control" data-name="{{$devengado_valor_mensual_euro}}" data-depende="{{$devengado_cotizacion_euro}},{{$valor_euro}}" data-readonly='[{}]'>
-            </div>
-          </div>
-          <div style="display: flex;">
-            <div>
-              <h5>VALOR DIARIO DOLAR</h5>
-              <input class="form-control" data-name="{{$devengado_valor_diario_dolar}}" data-depende="{{$devengado_valor_mensual_dolar}},{{$factor_dias_valor}}" data-readonly='[{}]'>
-            </div>
-            <div>
-              <h5>VALOR DIARIO EURO</h5>
-              <input class="form-control" data-name="{{$devengado_valor_diario_euro}}" data-depende="{{$devengado_valor_mensual_euro}},{{$factor_dias_valor}}" data-readonly='[{}]'>
+              <h5>VALOR EURO (ARS)</h5>
+              <input class="form-control" data-name="{{$devengado_valor_euro_cotizado}}" data-depende="{{$devengado_cotizacion_euro}},{{$valor_euro}}" data-readonly='[{}]'>
             </div>
           </div>
           <div style="display: flex;">
             <div>
-              <h5>TOTAL DOLAR</h5>
-              <input class="form-control" data-name="{{$devengado_total_dolar}}" data-depende="{{$devengado_valor_mensual_dolar}},{{$devengado_valor_diario_dolar}},{{$dias_valor}},{{$mesas_dias}}" data-readonly='[{}]'>
+              <h5>VALOR DOLAR DIARIO (ARS)</h5>
+              <input class="form-control" data-name="{{$devengado_valor_dolar_diario_cotizado}}" data-depende="{{$devengado_valor_dolar_cotizado}},{{$factor_dias_valor}}" data-readonly='[{}]'>
             </div>
             <div>
-              <h5>TOTAL EURO</h5>
-              <input class="form-control" data-name="{{$devengado_total_euro}}" data-depende="{{$devengado_valor_mensual_euro}},{{$devengado_valor_diario_euro}},,{{$dias_valor}},{{$mesas_dias}}" data-readonly='[{}]'>
+              <h5>VALOR EURO DIARIO (ARS)</h5>
+              <input class="form-control" data-name="{{$devengado_valor_euro_diario_cotizado}}" data-depende="{{$devengado_valor_euro_cotizado}},{{$factor_dias_valor}}" data-readonly='[{}]'>
+            </div>
+          </div>
+          <div style="display: flex;">
+            <div>
+              <h5>TOTAL DOLAR (ARS)</h5>
+              <input class="form-control" data-name="{{$devengado_total_dolar_cotizado}}" data-depende="{{$devengado_valor_dolar_cotizado}},{{$devengado_valor_dolar_diario_cotizado}},{{$dias_valor}},{{$mesas_dias}}" data-readonly='[{}]'>
+            </div>
+            <div>
+              <h5>TOTAL EURO (ARS)</h5>
+              <input class="form-control" data-name="{{$devengado_total_euro_cotizado}}" data-depende="{{$devengado_valor_euro_cotizado}},{{$devengado_valor_euro_diario_cotizado}},{{$dias_valor}},{{$mesas_dias}}" data-readonly='[{}]'>
             </div>
             <div>
               <h5>TOTAL</h5>
-              <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_total_dolar}},{{$devengado_total_euro}}" data-readonly='[{}]'>
+              <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_total_dolar_cotizado}},{{$devengado_total_euro_cotizado}}" data-readonly='[{}]'>
             </div>
             <div>
               <h5>DEDUCCIÓN</h5>
@@ -693,36 +693,36 @@
           </div>
           <div style="display: flex;">
             <div>
-              <h5>VALOR MENSUAL DOLAR</h5>
-              <input class="form-control" data-name="{{$determinado_valor_mensual_dolar}}" data-depende="{{$determinado_cotizacion_dolar}},{{$valor_dolar}}" data-readonly='[{}]'>
+              <h5>VALOR DOLAR (ARS)</h5>
+              <input class="form-control" data-name="{{$determinado_valor_dolar_cotizado}}" data-depende="{{$determinado_cotizacion_dolar}},{{$valor_dolar}}" data-readonly='[{}]'>
             </div>
             <div>
-              <h5>VALOR MENSUAL EURO</h5>
-              <input class="form-control" data-name="{{$determinado_valor_mensual_euro}}" data-depende="{{$determinado_cotizacion_euro}},{{$valor_euro}}" data-readonly='[{}]'>
-            </div>
-          </div>
-          <div style="display: flex;">
-            <div>
-              <h5>VALOR DIARIO DOLAR</h5>
-              <input class="form-control" data-name="{{$determinado_valor_diario_dolar}}" data-depende="{{$determinado_valor_mensual_dolar}},{{$dias_valor}}" data-readonly='[{}]'>
-            </div>
-            <div>
-              <h5>VALOR DIARIO EURO</h5>
-              <input class="form-control" data-name="{{$determinado_valor_diario_euro}}" data-depende="{{$determinado_valor_mensual_euro}},{{$dias_valor}}" data-readonly='[{}]'>
+              <h5>VALOR EURO (ARS)</h5>
+              <input class="form-control" data-name="{{$determinado_valor_euro_cotizado}}" data-depende="{{$determinado_cotizacion_euro}},{{$valor_euro}}" data-readonly='[{}]'>
             </div>
           </div>
           <div style="display: flex;">
             <div>
-              <h5>TOTAL DOLAR</h5>
-              <input class="form-control" data-name="{{$determinado_total_dolar}}" data-depende="{{$determinado_valor_mensual_dolar}},{{$determinado_valor_diario_dolar}},{{$dias_valor}},{{$mesas_dias}}" data-readonly='[{}]'>
+              <h5>VALOR DOLAR DIARIO (ARS)</h5>
+              <input class="form-control" data-name="{{$determinado_valor_dolar_diario_cotizado}}" data-depende="{{$determinado_valor_dolar_cotizado}},{{$dias_valor}}" data-readonly='[{}]'>
             </div>
             <div>
-              <h5>TOTAL EURO</h5>
-              <input class="form-control" data-name="{{$determinado_total_euro}}" data-depende="{{$determinado_valor_mensual_euro}},{{$determinado_valor_diario_euro}},{{$dias_valor}},{{$mesas_dias}}" data-readonly='[{}]'>
+              <h5>VALOR EURO DIARIO (ARS)</h5>
+              <input class="form-control" data-name="{{$determinado_valor_euro_diario_cotizado}}" data-depende="{{$determinado_valor_euro_cotizado}},{{$dias_valor}}" data-readonly='[{}]'>
+            </div>
+          </div>
+          <div style="display: flex;">
+            <div>
+              <h5>TOTAL DOLAR (ARS)</h5>
+              <input class="form-control" data-name="{{$determinado_total_dolar_cotizado}}" data-depende="{{$determinado_valor_dolar_cotizado}},{{$determinado_valor_dolar_diario_cotizado}},{{$dias_valor}},{{$mesas_dias}}" data-readonly='[{}]'>
+            </div>
+            <div>
+              <h5>TOTAL EURO (ARS)</h5>
+              <input class="form-control" data-name="{{$determinado_total_euro_cotizado}}" data-depende="{{$determinado_valor_euro_cotizado}},{{$determinado_valor_euro_diario_cotizado}},{{$dias_valor}},{{$mesas_dias}}" data-readonly='[{}]'>
             </div>
             <div>
               <h5>TOTAL</h5>
-              <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_total_dolar}},{{$determinado_total_euro}}" data-readonly='[{}]'>
+              <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_total_dolar_cotizado}},{{$determinado_total_euro_cotizado}}" data-readonly='[{}]'>
             </div>
           </div>
         </div>
