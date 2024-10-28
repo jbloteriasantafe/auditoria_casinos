@@ -3,6 +3,30 @@ import "/js/Components/inputFecha.js";
 import "/js/Components/modal.js";
 import {AUX} from "/js/Components/AUX.js";
 
+function formatter(n){
+  const negativo = n?.[0] == '-'? '-' : '';
+  n = negativo.length? n.substr(1) : n;
+  
+  const partes = n.split('.');
+  let entero  = partes?.[0] ?? '';
+  
+  entero = entero.split('').reverse().join('')//Doy vuelta el numero... 
+  .match(/(.{1,3}|^$)/g).map(function(s){return s.split('').reverse().join('');})//junto los miles y los pongo en orden
+  .reverse().join('.');//Lo pongo en orden correcto y lo uno
+  
+  //Saco los ceros de sobra, y la parte decimal si es solo .000..
+  let decimal = (partes?.[1] ?? '').replaceAll(/0+$/g,'')
+  if(decimal.length){
+    decimal = ','+decimal;
+  }
+  
+  return negativo+entero+decimal;
+};
+
+function deformatter(n){
+  return n.replaceAll('.','').replaceAll(',','.');
+};
+
 $(document).ready(function() {
   $('.tituloSeccionPantalla').text('Canon');
   
@@ -125,49 +149,27 @@ $(document).ready(function() {
       return div;
     }
     
-    const formatter = function(n){
-      const negativo = n?.[0] == '-'? '-' : '';
-      n = negativo.length? n.substr(1) : n;
-      
-      const partes = n.split('.');
-      let entero  = partes?.[0] ?? '';
-      
-      entero = entero.split('').reverse().join('')//Doy vuelta el numero... 
-      .match(/(.{1,3}|^$)/g).map(function(s){return s.split('').reverse().join('');})//junto los miles y los pongo en orden
-      .reverse().join('.');//Lo pongo en orden correcto y lo uno
-      
-      //Saco los ceros de sobra, y la parte decimal si es solo .000..
-      let decimal = (partes?.[1] ?? '').replaceAll(/0+$/g,'')
-      if(decimal.length){
-        decimal = ','+decimal;
+          
+          
+    let inputs_a_formatear     = null;
+    let inputs_a_formatear_Set = null;
+    const formatearNumeros = function(inpts = null){//Saca los 0 de sobra a la derecha
+      if(inpts !== null){
+        inputs_a_formatear = inpts;
+        inputs_a_formatear_Set = new Set(
+          inputs_a_formatear.map(function(_,i){return i.getAttribute('name');}).toArray()
+        );
       }
-      
-      return negativo+entero+decimal;
-    };
-    
-    const deformatter = function(n){
-      return n.replaceAll('.','').replaceAll(',','.');
-    };
-    
-    const formatearNumeros = function(){//Saca los 0 de sobra a la derecha
-      const inputs = M.find('form[data-js-recalcular] input:not([data-js-texto-no-simplificar])');//@SPEED: cacheable
-      
-      //Para verlos en debug usar algo tipo inputs.css('color','red');     
-      inputs.each(function(_,iobj){
+      //Para verlos en debug usar algo tipo .css('color','red');     
+      inputs_a_formatear.each(function(_,iobj){
         const i = $(iobj);
         i.val(formatter(i.val()));
       });
     }
-    
-    const deformatearFormData = function(obj){
-      const inputs = new Set(
-        M.find('form[data-js-recalcular] input:not([data-js-texto-no-simplificar])')
-        .map(function(_,i){return i.getAttribute('name');}).toArray()
-      );//@SPEED: cacheable
-      
-      const ret = {};//Necesito FormData si voy a mandar sin procesar (porque mando archivos)
+    const deformatearFormData = function(obj){      
+      const ret = {};
       for(const k in obj){
-        ret[k] = inputs.has(k)? deformatter(obj[k]) : obj[k];
+        ret[k] = inputs_a_formatear_Set.has(k)? deformatter(obj[k]) : obj[k];
       }
       return ret;
     }
@@ -210,7 +212,7 @@ $(document).ready(function() {
       M.attr('data-render',0);
       fill(M,null,canon);
       setReadonly();
-      formatearNumeros();
+      formatearNumeros(M.find('form[data-js-recalcular] input:not([data-js-texto-no-formatear-numero])'));
       
       (mantener_historial?
          M.find('[data-js-select-historial]')
@@ -263,7 +265,7 @@ $(document).ready(function() {
     
     //No dejar poner '.' en los inputs numericos, si pone reemplazar por una ','. Esto es para homogeineizar el input
     //Si pega texto no se puede hacer mucho porque habria que adivinar el formato
-    M.find('form[data-js-recalcular]').on('keydown','input:not([datajs-texto-no-simplificar])',function(e){
+    M.find('form[data-js-recalcular]').on('keydown','input:not([datajs-texto-no-formatear-numero])',function(e){
       const es_punto = e.charCode || e.keyCode || 0;
       if(es_punto == 190 || es_punto == 110){
         const $this = $(this);
@@ -500,6 +502,10 @@ $(document).ready(function() {
           fila.find('[data-estado-visible]').filter(function(_,ev_obj){
             return !$(ev_obj)?.attr('data-estado-visible')?.toUpperCase()?.split(',').includes(obj.estado.toUpperCase());
           }).remove();
+          fila.find('[data-formatear-numero]').each(function(_,fn_obj){
+            const $fn_obj = $(fn_obj);
+            $fn_obj.text(formatter($fn_obj.text()));
+          });
         }
       });
       tbody.find('[data-js-borrar]').click(function(e){

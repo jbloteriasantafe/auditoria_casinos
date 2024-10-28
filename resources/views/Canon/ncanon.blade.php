@@ -104,11 +104,11 @@
       <td class="año_mes">AÑO MES</td>
       <td class="casino">CASINO</td>
       <td class="estado">ESTADO</td>
-      <td class="devengado">DEVENGADO</td>
-      <td class="determinado">DETERMINADO</td>
-      <td class="pago">PAGO</td>
-      <td class="diferencia">DIFERENCIA</td>
-      <td class="saldo_posterior">SALDO</td>
+      <td class="devengado" data-formatear-numero>DEVENGADO</td>
+      <td class="determinado" data-formatear-numero>DETERMINADO</td>
+      <td class="pago" data-formatear-numero>PAGO</td>
+      <td class="diferencia" data-formatear-numero>DIFERENCIA</td>
+      <td class="saldo_posterior" data-formatear-numero>SALDO</td>
       <td>
         <button class="btn" type="button" data-js-cambiar-estado="/Ncanon/cambiarEstado?estado=Pagado" data-estado-visible="GENERADO" title="CONFIRMAR PAGO"><i class="fa fa-fw fa-check"></i></button>
         <button class="btn" type="button" data-js-adjuntar="/Ncanon/obtener" data-estado-visible="PAGADO" title="ADJUNTAR"><i class="fa fa-fw fa-paperclip"></i></button>
@@ -260,7 +260,7 @@
       <div>
         <h5>AÑO MES</h5>
         @component('Components/inputFecha',[
-          'attrs' => 'data-js-texto-no-simplificar name="año_mes" placeholder="AÑO MES" data-js-empty-si-cambio="[data-canon-variable] [data-js-contenedor],[data-canon-fijo-mesas] [data-js-contenedor],[data-canon-fijo-mesas-adicionales] [data-js-contenedor]"',
+          'attrs' => 'data-js-texto-no-formatear-numero name="año_mes" placeholder="AÑO MES" data-js-empty-si-cambio="[data-canon-variable] [data-js-contenedor],[data-canon-fijo-mesas] [data-js-contenedor],[data-canon-fijo-mesas-adicionales] [data-js-contenedor]"',
           'attrs_dtp' => 'data-date-format="yyyy-mm-01" data-start-view="year" data-min-view="decade"',
           'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "EDITAR"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
         ])
@@ -279,7 +279,7 @@
       </div>
       <div>
         <h5>Estado</h5>
-        <input data-js-texto-no-simplificar class="form-control" name="estado" data-readonly='[{}]'>
+        <input data-js-texto-no-formatear-numero class="form-control" name="estado" data-readonly='[{}]'>
       </div>
       <div>
         <h5>ANTIGUO</h5>
@@ -335,7 +335,7 @@
           <div>
             <h5>F. Vencimiento</h5>
             @component('Components/inputFecha',[
-              'attrs' => "data-js-texto-no-simplificar name='fecha_vencimiento' data-depende='año_mes'",
+              'attrs' => "data-js-texto-no-formatear-numero name='fecha_vencimiento' data-depende='año_mes'",
               'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
             ])
             @endcomponent
@@ -343,7 +343,7 @@
           <div>
             <h5>F. Pago</h5>
             @component('Components/inputFecha',[
-              'attrs' => "data-js-texto-no-simplificar name='fecha_pago' data-depende='año_mes'",
+              'attrs' => "data-js-texto-no-formatear-numero name='fecha_pago' data-depende='año_mes'",
               'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
             ])
             @endcomponent
@@ -385,7 +385,7 @@
           <div>
             <h5>Ajuste</h5>
             <input class="form-control" name="ajuste" data-depende="" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-            <input data-js-texto-no-simplificar placeholder="MOTIVO" class="form-control" name="motivo_ajuste" data-depende="" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            <input data-js-texto-no-formatear-numero placeholder="MOTIVO" class="form-control" name="motivo_ajuste" data-depende="" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
           </div>
           <div>
             <h5>Diferencia</h5>
@@ -625,7 +625,7 @@
             <div>
               <h5>F. COTIZACIÓN</h5>
               @component('Components/inputFecha',[
-                'attrs' => "data-js-texto-no-simplificar data-name='$devengado_fecha_cotizacion' data-depende='año_mes'",
+                'attrs' => "data-js-texto-no-formatear-numero data-name='$devengado_fecha_cotizacion' data-depende='año_mes'",
                 'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
               ])
               @endcomponent
@@ -683,7 +683,7 @@
             <div>
               <h5>F. COTIZACIÓN</h5>
               @component('Components/inputFecha',[
-                'attrs' => "data-js-texto-no-simplificar data-name='$determinado_fecha_cotizacion' data-depende='año_mes'",
+                'attrs' => "data-js-texto-no-formatear-numero data-name='$determinado_fecha_cotizacion' data-depende='año_mes'",
                 'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
               ])
               @endcomponent
@@ -821,8 +821,8 @@
         </div>
         <hr>
         <div style="width: 100%;display: flex;" data-modo-mostrar="NUEVO,EDITAR,ADJUNTAR" data-adjunto>
-          <input data-js-texto-no-simplificar class="form-control" placeholder="DESCRIPCIÓN" style="flex: 1;text-align: left;" data-descripcion>
-          <input data-js-texto-no-simplificar class="form-control" type="file" style="flex: 1;text-align: center;" data-archivo>
+          <input data-js-texto-no-formatear-numero class="form-control" placeholder="DESCRIPCIÓN" style="flex: 1;text-align: left;" data-descripcion>
+          <input data-js-texto-no-formatear-numero class="form-control" type="file" style="flex: 1;text-align: center;" data-archivo>
           <button class="btn" type="button" data-js-agregar-adjunto><i class="fa fa-plus"></i></button>
         </div>
         <?php
@@ -840,16 +840,16 @@
           <div style="display: flex;">
             <div style="flex: 1;">
               <h5>DESCRIPCIÓN</h5>
-              <input data-js-texto-no-simplificar style="width: 100%;text-align: left;" class="form-control" data-name="{{$descripcion}}" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
+              <input data-js-texto-no-formatear-numero style="width: 100%;text-align: left;" class="form-control" data-name="{{$descripcion}}" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
             </div>
             <div style="flex: 1;" data-modo-mostrar="VER,NUEVO,EDITAR,ADJUNTAR">
               <h5>NOMBRE ARCHIVO</h5>
-              <input data-js-texto-no-simplificar data-js-click-abrir-val-hermano="[data-es-link]" style="width: 100%;text-align: center;cursor: pointer;" class="form-control" data-name="{{$nombre_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{}]'>
-              <input data-js-texto-no-simplificar data-es-link data-name="{{$link}}" data-modo-mostrar="">
+              <input data-js-texto-no-formatear-numero data-js-click-abrir-val-hermano="[data-es-link]" style="width: 100%;text-align: center;cursor: pointer;" class="form-control" data-name="{{$nombre_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{}]'>
+              <input data-js-texto-no-formatear-numero data-es-link data-name="{{$link}}" data-modo-mostrar="">
             </div>
             <div data-modo-mostrar="">
               <h5>&nbsp;</h5>
-              <input data-js-texto-no-simplificar style="flex: 1;" class="form-control" data-name="{{$id_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{}]'>
+              <input data-js-texto-no-formatear-numero style="flex: 1;" class="form-control" data-name="{{$id_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{}]'>
             </div>
             <div data-modo-mostrar="NUEVO,EDITAR,ADJUNTAR">
               <h5>&nbsp;</h5>
