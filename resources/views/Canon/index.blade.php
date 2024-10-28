@@ -65,21 +65,30 @@
     <div>
       <a data-js-tab="#pant_canon">Canon</a>
     </div>
+    @if($es_superusuario)
     <div>
       <a data-js-tab="#pant_defecto">Valores por Defecto</a>
     </div>
+    @endif
   </div>
 </div>
 
+
+<style>
+  #pant_canon [data-js-filtro-tabla] th, 
+  #pant_canon [data-js-filtro-tabla] td {
+    width: 11.11%;/* @HACK: poner algun atributo a la tabla para que haya columnas fijas? */
+  }
+</style>
 <div id="pant_canon" hidden>
   @component('Components/FiltroTabla')
     @slot('titulo')
     CANON
-    <button class="btn" type="button" data-js-nuevo-canon="/Ncanon/obtener">NUEVO</button>
+    <button class="btn" type="button" data-js-nuevo-canon="/canon/obtener">NUEVO</button>
     @endslot
     
     @slot('target_buscar')
-    /Ncanon/buscar
+    /canon/buscar
     @endslot
     
     @slot('filtros')
@@ -110,19 +119,26 @@
       <td class="diferencia" data-formatear-numero>DIFERENCIA</td>
       <td class="saldo_posterior" data-formatear-numero>SALDO</td>
       <td>
-        <button class="btn" type="button" data-js-cambiar-estado="/Ncanon/cambiarEstado?estado=Pagado" data-estado-visible="GENERADO" title="CONFIRMAR PAGO"><i class="fa fa-fw fa-check"></i></button>
-        <button class="btn" type="button" data-js-adjuntar="/Ncanon/obtener" data-estado-visible="PAGADO" title="ADJUNTAR"><i class="fa fa-fw fa-paperclip"></i></button>
-        <button class="btn" type="button" data-js-ver="/Ncanon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
-        <button class="btn" type="button" data-js-editar="/Ncanon/obtener" data-estado-visible="GENERADO"  title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
-        <button class="btn" type="button" data-js-borrar="/Ncanon/borrar" data-table-id="id_canon" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
-        <button class="btn" type="button" data-js-abrir-pestaña="/Ncanon/planilla" data-table-id="id_canon" title="PLANILLA">.csv</button>
-        <button class="btn" type="button" data-js-abrir-pestaña="/Ncanon/planillaPDF" data-table-id="id_canon" title="PLANILLA PDF"><i class="far fa-fw fa-file-alt"></i></button>
+        <button class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
+        <button class="btn" type="button" data-js-abrir-pestaña="/canon/planilla" data-table-id="id_canon" title="PLANILLA">.csv</button>
+        <button class="btn" type="button" data-js-abrir-pestaña="/canon/planillaPDF" data-table-id="id_canon" title="PLANILLA PDF"><i class="far fa-fw fa-file-alt"></i></button>
+        @if($puede_cargar)
+        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Pagado" data-estado-visible="GENERADO" title="CONFIRMAR PAGO"><i class="fa fa-fw fa-check"></i></button>
+        <button class="btn" type="button" data-js-adjuntar="/canon/obtener" data-estado-visible="PAGADO" title="ADJUNTAR"><i class="fa fa-fw fa-paperclip"></i></button>
+        <button class="btn" type="button" data-js-editar="/canon/obtener" data-estado-visible="GENERADO"  title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
+        @endif
+        @if($es_superusuario)
+        <button class="btn" type="button" data-js-borrar="/canon/borrar" data-table-id="id_canon" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
+        @else($puede_cargar)
+        <button class="btn" type="button" data-js-borrar="/canon/borrar" data-table-id="id_canon" title="BORRAR" data-estado-visible="GENERADO"><i class="fa fa-fw fa-trash-alt"></i></button>
+        @endif
       </td>
     </tr>
     @endslot
   @endcomponent
 </div>
 
+@if($es_superusuario)
 <div id="pant_defecto" hidden>
   @component('Components/FiltroTabla')
     @slot('titulo')
@@ -131,13 +147,13 @@
       <input class="form-control" name="campo" placeholder="Campo" style="flex: 1;">
       <div data-js-nuevo-jsoneditor style="flex: 2;"></div>
       <div style="flex: 1;">
-        <button class="btn" type="button" data-js-guardar-nuevo="/Ncanon/valoresPorDefecto/ingresar">GUARDAR</button>
+        <button class="btn" type="button" data-js-guardar-nuevo="/canon/valoresPorDefecto/ingresar">GUARDAR</button>
       </div>
     </form>
     @endslot
     
     @slot('target_buscar')
-    /Ncanon/valoresPorDefecto
+    /canon/valoresPorDefecto
     @endslot
     
     @slot('filtros')
@@ -156,13 +172,14 @@
       <td class="campo">-CAMPO-</td>
       <td class="valor" data-js-jsoneditor>-VALOR-</td>
       <td>
-        <button class="btn" type="button" data-js-guardar="/Ncanon/valoresPorDefecto/ingresar" title="GUARDAR"><i class="fa fa-fw fa-check"></i></button>
-        <button class="btn" type="button" data-js-borrar="/Ncanon/valoresPorDefecto/borrar" data-table-id="id_canon_valor_por_defecto" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
+        <button class="btn" type="button" data-js-guardar="/canon/valoresPorDefecto/ingresar" title="GUARDAR"><i class="fa fa-fw fa-check"></i></button>
+        <button class="btn" type="button" data-js-borrar="/canon/valoresPorDefecto/borrar" data-table-id="id_canon_valor_por_defecto" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
       </td>
     </tr>
     @endslot
   @endcomponent
 </div>
+@endif
 
 <style>
   .VerCargarCanon h5, .VerCargarCanon select, .VerCargarCanon input {
@@ -255,7 +272,7 @@
     <select class="form-control" data-js-select-historial style="width: 15rem;">
     </select>
   </div>
-  <form style="display: flex;flex-direction: column;" data-css-id_casino="" data-js-recalcular="/Ncanon/recalcular">
+  <form style="display: flex;flex-direction: column;" data-css-id_casino="" data-js-recalcular="/canon/recalcular">
     <div style="width: 100%;display: flex;">
       <div>
         <h5>AÑO MES</h5>
@@ -862,8 +879,10 @@
   </form>
   @endslot
   @slot('pie')
-  <button class="btn btn-successAceptar" type="button" data-js-enviar="/Ncanon/adjuntar" data-modo-mostrar="ADJUNTAR">ADJUNTAR</button>
-  <button class="btn btn-successAceptar" type="button" data-js-enviar="/Ncanon/guardar" data-modo-mostrar="NUEVO,EDITAR">GUARDAR</button>
+  @if($puede_cargar)
+  <button class="btn btn-successAceptar" type="button" data-js-enviar="/canon/adjuntar" data-modo-mostrar="ADJUNTAR">ADJUNTAR</button>
+  <button class="btn btn-successAceptar" type="button" data-js-enviar="/canon/guardar" data-modo-mostrar="NUEVO,EDITAR">GUARDAR</button>
+  @endif
   @endslot
 @endcomponent
 
@@ -900,6 +919,6 @@
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
   <script src="/js/paginacion.js" charset="utf-8"></script>
   <script src="/js/lib/jsoneditor.js"></script>
-  <script src="/js/Canon/ncanon.js" charset="utf-8" type="module"></script>
+  <script src="/js/Canon/index.js" charset="utf-8" type="module"></script>
 
 @endsection

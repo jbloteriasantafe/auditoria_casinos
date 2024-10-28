@@ -112,10 +112,6 @@ $gestion_hijos = [
         'link' => '/mesas',
         'algun_permiso' => ['m_gestionar_mesas'],
       ],
-      'Canon' => [
-        'link' => '/canon',
-        'algun_permiso' => ['m_ver_seccion_canon'],
-      ],
     ]
   ],
   'Bingo' => [
@@ -383,8 +379,8 @@ $contable_hijos = [
   ],
   'Canon' => [
     'icono' => '<i class="fa fa-dollar-sign"></i>',
-    'link' => '/Ncanon',
-    'algun_permiso' => ['informes_mtm','informes_bingos','informes_mesas'],
+    'link' => '/canon',
+    'algun_permiso' => ['m_ver_seccion_canon'],
   ]
 ];
 $opciones = [

@@ -68,9 +68,11 @@ class CanonController extends Controller
   }
     
   public function index(){
-    $casinos = UsuarioController::getInstancia()->quienSoy()['usuario']->casinos;
-    $plataformas = Plataforma::all();                 
-    return View::make('Canon.ncanon', compact('casinos','plataformas'));
+    $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $casinos = $u->casinos;     
+    $es_superusuario = $u->es_superusuario;
+    $puede_cargar = $es_superusuario || $u->tienePermiso('m_a_pagos');
+    return View::make('Canon.index', compact('casinos','plataformas','es_superusuario','puede_cargar'));
   }
   
   private static  $errores = [
@@ -871,7 +873,7 @@ class CanonController extends Controller
     ->orderBy('id_archivo','asc')
     ->get()
     ->transform(function(&$adj){
-      $adj->link = '/Ncanon/archivo?id_canon='.urlencode($adj->id_canon)
+      $adj->link = '/canon/archivo?id_canon='.urlencode($adj->id_canon)
       .'&nombre_archivo='.urlencode($adj->nombre_archivo);
       return $adj;
     });

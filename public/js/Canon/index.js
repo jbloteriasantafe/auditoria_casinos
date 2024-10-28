@@ -531,7 +531,9 @@ $(document).ready(function() {
     });
   });
   
-  reemplazarPorJsonEditor($('#pant_defecto').find('[data-js-nuevo-jsoneditor]'),'{}');
+  if($('#pant_defecto').length){
+    reemplazarPorJsonEditor($('#pant_defecto').find('[data-js-nuevo-jsoneditor]'),'{}');
+  }
      
   $('#pant_canon [data-js-nuevo-canon]').click(function(e){
     const tgt = $(e.currentTarget);

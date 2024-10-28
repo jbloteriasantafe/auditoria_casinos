@@ -863,25 +863,6 @@ Route::group(['prefix' => 'informeMensual','middleware' => 'tiene_permiso:m_bc_d
   Route::post('obtenerDatos','Mesas\InformesMesas\BCMensualesController@obtenerDatosGraficos');
 });
 
-
-Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_canon'],function(){
-  Route::get('/','Mesas\Canon\BPagosController@index');
-  Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
-    Route::post('crearOModificarPago','Mesas\Canon\APagosController@crearOModificar');
-    Route::delete('borrarPago/{id_detalle}','Mesas\Canon\APagosController@borrar');
-    Route::post('modificarInformeBase','Mesas\Canon\APagosController@modificarInformeBase');
-  });
-  Route::group(['middleware' => 'tiene_permiso:m_b_pagos'], function () {
-    Route::get('getMesesCuotas/{id_casino}/{anio_inicio}', 'Mesas\Canon\BPagosController@mesesCuotasCanon');
-    Route::get('mesesCargados/{id_casino}/{anio_inicio}','Mesas\Canon\BPagosController@mesesCargados');
-    Route::post('buscarPagos','Mesas\Canon\BPagosController@filtros');
-    Route::get('obtenerPago/{id_detalle}','Mesas\Canon\BPagosController@obtenerPago');
-    Route::get('obtenerAnios/{id_casino}','Mesas\Canon\BPagosController@obtenerAnios');
-    Route::get('obtenerInformeBase/{id_casino}','Mesas\Canon\BPagosController@obtenerInformeBase');
-    Route::post('verInforme','Mesas\Canon\BPagosController@verInformeFinalMesas');
-  });
-});
-
 Route::group(['prefix' => 'solicitudImagenes','middleware' => ['tiene_permiso:m_abmc_img_bunker']], function () {
   Route::get('/','Mesas\Bunker\ABMCImgBunkerController@index');
   Route::post('buscar','Mesas\Bunker\ABMCImgBunkerController@filtros');
@@ -982,20 +963,43 @@ Route::group(['prefix' => 'backoffice','middleware' => 'tiene_permiso:informes_m
   Route::post('descargar','BackOfficeController@descargar');
 });
 
-Route::prefix('Ncanon')->middleware('tiene_algun_permiso','informes_mtm','informes_bingos','informes_mesas')->group(function(){
+//Secion canon vieja que nunca fue usada, eliminar cuando este funcionando OK la nueva
+/*
+Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_canon'],function(){
+  Route::get('/','Mesas\Canon\BPagosController@index');
+  Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
+    Route::post('crearOModificarPago','Mesas\Canon\APagosController@crearOModificar');
+    Route::delete('borrarPago/{id_detalle}','Mesas\Canon\APagosController@borrar');
+    Route::post('modificarInformeBase','Mesas\Canon\APagosController@modificarInformeBase');
+  });
+  Route::group(['middleware' => 'tiene_permiso:m_b_pagos'], function () {
+    Route::get('getMesesCuotas/{id_casino}/{anio_inicio}', 'Mesas\Canon\BPagosController@mesesCuotasCanon');
+    Route::get('mesesCargados/{id_casino}/{anio_inicio}','Mesas\Canon\BPagosController@mesesCargados');
+    Route::post('buscarPagos','Mesas\Canon\BPagosController@filtros');
+    Route::get('obtenerPago/{id_detalle}','Mesas\Canon\BPagosController@obtenerPago');
+    Route::get('obtenerAnios/{id_casino}','Mesas\Canon\BPagosController@obtenerAnios');
+    Route::get('obtenerInformeBase/{id_casino}','Mesas\Canon\BPagosController@obtenerInformeBase');
+    Route::post('verInforme','Mesas\Canon\BPagosController@verInformeFinalMesas');
+  });
+});*/
+
+//Reuso los permisos de la sección vieja
+Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_canon'],function(){
   Route::get('/','\App\Http\Controllers\CanonController@index');
+  Route::post('/buscar','\App\Http\Controllers\CanonController@buscar');
   Route::get('/obtener','\App\Http\Controllers\CanonController@obtener');
-  Route::get('/obtenerConHistorial','\App\Http\Controllers\CanonController@obtenerConHistorial');
-  Route::post('/recalcular','\App\Http\Controllers\CanonController@recalcular_req');
-  Route::post('/guardar','\App\Http\Controllers\CanonController@guardar');
-  Route::post('/adjuntar','\App\Http\Controllers\CanonController@adjuntar');
   Route::get('/planilla','\App\Http\Controllers\CanonController@planilla');
   Route::get('/planillaPDF','\App\Http\Controllers\CanonController@planillaPDF');
-  Route::post('/buscar','\App\Http\Controllers\CanonController@buscar');
-  Route::get('/cambiarEstado','\App\Http\Controllers\CanonController@cambiarEstado');
   Route::get('/archivo','\App\Http\Controllers\CanonController@archivo');
-  Route::delete('/borrar','\App\Http\Controllers\CanonController@borrar');
   Route::post('/valoresPorDefecto','\App\Http\Controllers\CanonController@valoresPorDefecto');
-  Route::post('/valoresPorDefecto/ingresar','\App\Http\Controllers\CanonController@valoresPorDefecto_ingresar');
-  Route::delete('/valoresPorDefecto/borrar','\App\Http\Controllers\CanonController@valoresPorDefecto_borrar');
+  Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
+    Route::get('/obtenerConHistorial','\App\Http\Controllers\CanonController@obtenerConHistorial');
+    Route::post('/recalcular','\App\Http\Controllers\CanonController@recalcular_req');
+    Route::post('/guardar','\App\Http\Controllers\CanonController@guardar');
+    Route::post('/adjuntar','\App\Http\Controllers\CanonController@adjuntar');
+    Route::get('/cambiarEstado','\App\Http\Controllers\CanonController@cambiarEstado');
+    Route::delete('/borrar','\App\Http\Controllers\CanonController@borrar');
+    Route::post('/valoresPorDefecto/ingresar','\App\Http\Controllers\CanonController@valoresPorDefecto_ingresar');
+    Route::delete('/valoresPorDefecto/borrar','\App\Http\Controllers\CanonController@valoresPorDefecto_borrar');
+  });
 });
