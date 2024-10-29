@@ -350,10 +350,11 @@ class CanonController extends Controller
     
     $saldo_anterior = '0.00';//@RETORNADO
     
-    $canons_anteriores = DB::table('canon')
+    $canons_anteriores = $id_casino !== null && $año_mes !== null? DB::table('canon')
     ->where('id_casino',$id_casino)
     ->where('año_mes','<',$año_mes)
-    ->whereNull('deleted_at')->get();
+    ->whereNull('deleted_at')->get()
+    : collect([]);
     
     foreach($canons_anteriores as $c){
       $a_pagar = bcsub($c->determinado,$saldo_anterior,2);
@@ -924,11 +925,20 @@ class CanonController extends Controller
     return $ultimo;
   }
   
-  public function borrar(Request $request,$deleted_at = null,$deleted_id_usuario = null){
-    return $this->borrar_arr($request,$deleted_at,$deleted_id_usuario);
+  public function borrar(Request $request){
+    $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $check_estado = $u->es_superusuario? '' : ',estado,Generado,estado,Pagado';
+    
+    Validator::make($request->all(),[
+      'id_canon' => ['required','integer','exists:canon,id_canon,deleted_at,NULL'.$check_estado]
+    ], ['exists' => 'No existe Canon eliminable'],[])->after(function($validator){
+      if($validator->errors()->any()) return;
+    })->validate();
+    
+    return $this->borrar_arr($request->all());
   }
   
-  public function borrar_arr($arr,$deleted_at = null,$deleted_id_usuario = null){
+  public function borrar_arr(array $arr,$deleted_at = null,$deleted_id_usuario = null){
     return DB::transaction(function() use ($arr,$deleted_at,$deleted_id_usuario){
       $deleted_at = $deleted_at ?? date('Y-m-d h:i:s');
       $deleted_id_usuario = $deleted_id_usuario ?? UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
@@ -963,12 +973,29 @@ class CanonController extends Controller
     return $ret2;
   }
   
-  public function cotizacion($fecha_cotizacion,$id_tipo_moneda){
+  private function cotizacion($fecha_cotizacion,$id_tipo_moneda){
     if(empty($fecha_cotizacion) || empty($id_tipo_moneda)) return null;
     return null;//@TODO
   }
   
-  private function valorPorDefecto($k){    
+  public function cambiarEstado(Request $request){
+    return DB::transaction(function() use ($request){
+      $updateado = DB::table('canon')
+      ->whereNull('deleted_at')
+      ->where('id_canon',$request->id_canon)
+      ->update(['estado' => $request->estado]) == 1;
+      
+      $estado = 200;
+      $ret = ['id_canon' => $request->id_canon,'estado' => $request->estado,'mensaje' => ''];
+      if($updateado != 1){
+        $estado = 422;
+        $ret['mensaje'] = 'Error, canon no encontrado';
+      }
+      return $ret;
+    });
+  }
+  
+  private function valorPorDefecto($k){
     $db = DB::table('canon_valores_por_defecto')
     ->whereNull('deleted_at')
     ->where('campo',$k)
@@ -987,7 +1014,7 @@ class CanonController extends Controller
     ->paginate($request->page_size);
   }
   
-  public function valoresPorDefecto_ingresar(Request $request){
+  public function valoresPorDefecto_ingresar(Request $request){    
     return DB::transaction(function() use ($request){
       $created_at = date('Y-m-d h:i:s');
       $id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
@@ -1013,28 +1040,11 @@ class CanonController extends Controller
     });
   }
   
-  public function cambiarEstado(Request $request){
-    return DB::transaction(function() use ($request){
-      $updateado = DB::table('canon')
-      ->whereNull('deleted_at')
-      ->where('id_canon',$request->id_canon)
-      ->update(['estado' => $request->estado]) == 1;
-      
-      $estado = 200;
-      $ret = ['id_canon' => $request->id_canon,'estado' => $request->estado,'mensaje' => ''];
-      if($updateado != 1){
-        $estado = 422;
-        $ret['mensaje'] = 'Error, canon no encontrado';
-      }
-      return $ret;
-    });
+  public function valoresPorDefecto_borrar(Request $request){
+    return $this->valoresPorDefecto_borrar_arr($request->all());
   }
   
-  public function valoresPorDefecto_borrar(Request $request,$deleted_at = null,$deleted_id_usuario = null){
-    return $this->valoresPorDefecto_borrar_arr($request,$deleted_at,$deleted_id_usuario);
-  }
-  
-  public function valoresPorDefecto_borrar_arr($arr,$deleted_at = null,$deleted_id_usuario = null){
+  private function valoresPorDefecto_borrar_arr(array $arr,$deleted_at = null,$deleted_id_usuario = null){
     return DB::transaction(function() use ($arr,$deleted_at,$deleted_id_usuario){
       $deleted_at = $deleted_at ?? date('Y-m-d h:i:s');
       $deleted_id_usuario = $deleted_id_usuario ?? UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;

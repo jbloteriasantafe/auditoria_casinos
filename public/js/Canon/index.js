@@ -2,6 +2,7 @@ import "/js/Components/FiltroTabla.js";
 import "/js/Components/inputFecha.js";
 import "/js/Components/modal.js";
 import {AUX} from "/js/Components/AUX.js";
+import "/js/Components/modalEliminar.js";
 
 function formatter(n){
   const negativo = n?.[0] == '-'? '-' : '';
@@ -21,11 +22,18 @@ function formatter(n){
   }
   
   return negativo+entero+decimal;
-};
+}
 
 function deformatter(n){
   return n.replaceAll('.','').replaceAll(',','.');
-};
+}
+ 
+function encodeQueryData(data){
+  const ret = [];
+  for (let d in data)
+    ret.push(encodeURIComponent(d) + '=' + encodeURIComponent(data[d]));
+  return ret.join('&');
+}
 
 $(document).ready(function() {
   $('.tituloSeccionPantalla').text('Canon');
@@ -510,15 +518,15 @@ $(document).ready(function() {
       });
       tbody.find('[data-js-borrar]').click(function(e){
         const tgt = $(e.currentTarget);
-        const id = tgt.val();
-        const url = tgt.attr('data-js-borrar');
         const fd = {};
-        fd[tgt.attr('data-table-id')] = id;
-        AUX.DELETE(url,fd,
-          function(data){
-            pant.find('[data-js-filtro-tabla]').trigger('buscar');
-          }
-        );
+        fd[tgt.attr('data-table-id')] = tgt.val();
+        
+        $('[data-js-modal-eliminar]').trigger('mostrar',[{
+          url: tgt.attr('data-js-borrar'),
+          url_params: fd,
+          mensaje: 'Esta seguro que desea eliminarlo',
+          success: function(){pant.find('[data-js-filtro-tabla]').trigger('buscar');},
+        }]);
       });
     });
     

@@ -8,6 +8,7 @@ $(function(e){ $('[data-js-modal-eliminar]').each(function(){
   let url = undefined;
   let success = null;
   let error = null;
+  let url_params = {};
   
   M.on('mostrar',function(e,params){
     url = params.url;
@@ -15,12 +16,14 @@ $(function(e){ $('[data-js-modal-eliminar]').each(function(){
     
     success = params.success ?? function(data){};
     error = params.error ?? function(data){console.log(data);};
+    url_params = params.url_params ?? {};
+    
     $M('.mensaje').text(params.mensaje ?? '');
     M.modal('show');
   });
 
   $M('[data-js-modal-eliminar-click-eliminar]').click(function(){
-    AUX.DELETE(url,{},function(data){
+    AUX.DELETE(url,url_params,function(data){
       AUX.mensajeExito('Eliminado con éxito');
       M.modal('hide');
       success(data);

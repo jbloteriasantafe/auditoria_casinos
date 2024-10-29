@@ -73,11 +73,14 @@
   </div>
 </div>
 
-
 <style>
   #pant_canon [data-js-filtro-tabla] th, 
   #pant_canon [data-js-filtro-tabla] td {
     width: 11.11%;/* @HACK: poner algun atributo a la tabla para que haya columnas fijas? */
+  }
+  
+  #pant_canon [data-js-filtro-tabla] td button {
+    padding: 0.3rem;/* @HACK: achivo los botones asi entran que son tantos -___- */
   }
 </style>
 <div id="pant_canon" hidden>
@@ -112,7 +115,13 @@
     <tr>
       <td class="año_mes">AÑO MES</td>
       <td class="casino">CASINO</td>
-      <td class="estado">ESTADO</td>
+      <td>
+        <span class="estado">ESTADO</span>
+        @if($puede_cargar)
+        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Pagado" data-estado-visible="GENERADO" title="CONFIRMAR PAGO"><i class="fas fa-hand-holding-usd"></i></button>
+        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Cerrado" data-estado-visible="PAGADO" title="CERRAR CANON"><i class="fa fa-fw fa-lock"></i></button>
+        @endif
+      </td>
       <td class="devengado" data-formatear-numero>DEVENGADO</td>
       <td class="determinado" data-formatear-numero>DETERMINADO</td>
       <td class="pago" data-formatear-numero>PAGO</td>
@@ -120,17 +129,18 @@
       <td class="saldo_posterior" data-formatear-numero>SALDO</td>
       <td>
         <button class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
-        <button class="btn" type="button" data-js-abrir-pestaña="/canon/planilla" data-table-id="id_canon" title="PLANILLA">.csv</button>
-        <button class="btn" type="button" data-js-abrir-pestaña="/canon/planillaPDF" data-table-id="id_canon" title="PLANILLA PDF"><i class="far fa-fw fa-file-alt"></i></button>
         @if($puede_cargar)
-        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Pagado" data-estado-visible="GENERADO" title="CONFIRMAR PAGO"><i class="fa fa-fw fa-check"></i></button>
         <button class="btn" type="button" data-js-adjuntar="/canon/obtener" data-estado-visible="PAGADO" title="ADJUNTAR"><i class="fa fa-fw fa-paperclip"></i></button>
         <button class="btn" type="button" data-js-editar="/canon/obtener" data-estado-visible="GENERADO"  title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
         @endif
+        <button class="btn" type="button" data-js-abrir-pestaña="/canon/planilla" data-table-id="id_canon" title="DESCARGAR CSV">.csv</button>
+        <button class="btn" type="button" data-js-abrir-pestaña="/canon/planillaPDF" data-table-id="id_canon" title="REPORTE"><i class="fa fa-table"></i></button>
+        <button class="btn" type="button" data-js-abrir-pestaña="/canon/planillaDevengado" data-table-id="id_canon" title="IMPRIMIR DEVENGADO"><i class="far fa-fw fa-file-alt"></i></button>
+        <button class="btn" type="button" data-js-abrir-pestaña="/canon/planillaDeterminado" data-table-id="id_canon" title="IMPRIMIR DETERMINADO"><i class="fa fa fa-print"></i></button>
         @if($es_superusuario)
         <button class="btn" type="button" data-js-borrar="/canon/borrar" data-table-id="id_canon" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
         @else($puede_cargar)
-        <button class="btn" type="button" data-js-borrar="/canon/borrar" data-table-id="id_canon" title="BORRAR" data-estado-visible="GENERADO"><i class="fa fa-fw fa-trash-alt"></i></button>
+        <button class="btn" type="button" data-js-borrar="/canon/borrar" data-table-id="id_canon" title="BORRAR" data-estado-visible="GENERADO,PAGADO"><i class="fa fa-fw fa-trash-alt"></i></button>
         @endif
       </td>
     </tr>
@@ -884,6 +894,9 @@
   <button class="btn btn-successAceptar" type="button" data-js-enviar="/canon/guardar" data-modo-mostrar="NUEVO,EDITAR">GUARDAR</button>
   @endif
   @endslot
+@endcomponent
+
+@component('Components/modalEliminar')
 @endcomponent
 
 <meta name="_token" content="{!! csrf_token() !!}" />

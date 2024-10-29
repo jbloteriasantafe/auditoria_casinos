@@ -991,7 +991,6 @@ Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_c
   Route::get('/planilla','\App\Http\Controllers\CanonController@planilla');
   Route::get('/planillaPDF','\App\Http\Controllers\CanonController@planillaPDF');
   Route::get('/archivo','\App\Http\Controllers\CanonController@archivo');
-  Route::post('/valoresPorDefecto','\App\Http\Controllers\CanonController@valoresPorDefecto');
   Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
     Route::get('/obtenerConHistorial','\App\Http\Controllers\CanonController@obtenerConHistorial');
     Route::post('/recalcular','\App\Http\Controllers\CanonController@recalcular_req');
@@ -999,7 +998,10 @@ Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_c
     Route::post('/adjuntar','\App\Http\Controllers\CanonController@adjuntar');
     Route::get('/cambiarEstado','\App\Http\Controllers\CanonController@cambiarEstado');
     Route::delete('/borrar','\App\Http\Controllers\CanonController@borrar');
-    Route::post('/valoresPorDefecto/ingresar','\App\Http\Controllers\CanonController@valoresPorDefecto_ingresar');
-    Route::delete('/valoresPorDefecto/borrar','\App\Http\Controllers\CanonController@valoresPorDefecto_borrar');
+    Route::group(['middleware' => 'tiene_rol:superusuario'], function () {
+      Route::post('/valoresPorDefecto','\App\Http\Controllers\CanonController@valoresPorDefecto');
+      Route::post('/valoresPorDefecto/ingresar','\App\Http\Controllers\CanonController@valoresPorDefecto_ingresar');
+      Route::delete('/valoresPorDefecto/borrar','\App\Http\Controllers\CanonController@valoresPorDefecto_borrar');
+    });
   });
 });
