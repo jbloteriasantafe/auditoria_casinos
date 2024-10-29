@@ -485,7 +485,7 @@ $(document).ready(function() {
   const reemplazarPorJsonEditor = function(div,valor){
     div?.empty();
     const jsoneditor = new JSONEditor(div?.[0], {mode: 'code',modes: ['tree','view','form','code','text','preview']});
-    jsoneditor.set(JSON.parse(valor ?? ''));
+    jsoneditor.set(JSON.parse(valor ?? '{}'));
     div?.data('jsoneditor',jsoneditor);
   }    
   

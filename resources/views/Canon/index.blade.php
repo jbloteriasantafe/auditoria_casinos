@@ -347,15 +347,15 @@
           </div>
           <div>
             <h5>Deducción</h5>
-            <input class="form-control" name="deduccion" data-readonly='[{"modo": "VER"},{"es_antiguo": 0},{"modo": "ADJUNTAR"}]'>
+            <input class="form-control" name="devengado_deduccion" data-readonly='[{"modo": "VER"},{"es_antiguo": 0},{"modo": "ADJUNTAR"}]'>
           </div>
           <div>
             <h5>Devengado</h5>
-            <input class="form-control" name="devengado" data-depende="devengado_bruto,deduccion" data-readonly="[{}]">
+            <input class="form-control" name="devengado" data-depende="devengado_bruto,devengado_deduccion" data-readonly="[{}]">
           </div>
           <div class="parametro_chico">
             <h5>Porcentaje Seguridad</h5>
-            <input class="form-control" name="porcentaje_seguridad" data-depende="deduccion,devengado_bruto" data-readonly="[{}]">
+            <input class="form-control" name="porcentaje_seguridad" data-depende="devengado_deduccion,devengado_bruto" data-readonly="[{}]">
           </div>
         </div>
         <div style="width: 100%;display: flex;">
@@ -434,17 +434,16 @@
           $n = function($s) use (&$id_casino,&$t,&$molde_str){
             return "canon_variable[$molde_str][$s]";
           };
-          $apostado_sistema = $n('apostado_sistema');
-          $apostado_informado = $n('apostado_informado');
-          $apostado_porcentaje_aplicable = $n('apostado_porcentaje_aplicable');
-          $apostado_porcentaje_impuesto_ley = $n('apostado_porcentaje_impuesto_ley');
           $bruto = $n('bruto');
           $alicuota = $n('alicuota');
-          $deduccion = $n('deduccion');
+          $devengado_apostado_sistema = $n('devengado_apostado_sistema');
+          $devengado_apostado_porcentaje_aplicable = $n('devengado_apostado_porcentaje_aplicable');
+          $devengado_apostado_porcentaje_impuesto_ley = $n('devengado_apostado_porcentaje_impuesto_ley');
           $devengado_base_imponible = $n('devengado_base_imponible');
           $devengado_impuesto = $n('devengado_impuesto');
           $devengado_subtotal = $n('devengado_subtotal');
           $devengado_total = $n('devengado_total');
+          $devengado_deduccion = $n('devengado_deduccion');
           $determinado_base_imponible = $n('determinado_base_imponible');
           $determinado_impuesto = $n('determinado_impuesto');
           $determinado_subtotal = $n('determinado_subtotal');
@@ -460,7 +459,7 @@
               </div>
               <div style="flex: 1;">
                 <h5>APOSTADO SISTEMA</h5>
-                <input class="form-control" data-name="{{$apostado_sistema}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="{{$devengado_apostado_sistema}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div style="flex: 1;">
                 <h5>&nbsp;</h5>
@@ -470,11 +469,11 @@
             <div style="display: flex;">
               <div class="parametro_chico"  style="flex: 1;">
                 <h5>APLICABLE (%)</h5>
-                <input class="form-control" data-name="{{$apostado_porcentaje_aplicable}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="{{$devengado_apostado_porcentaje_aplicable}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div style="flex: 1;">
                 <h5>BASE IMPONIBLE (DEVENGADO)</h5>
-                <input class="form-control" data-name="{{$devengado_base_imponible}}" data-depende="{{$apostado_sistema}},{{$apostado_porcentaje_aplicable}}" data-readonly='[{}]'>
+                <input class="form-control" data-name="{{$devengado_base_imponible}}" data-depende="{{$devengado_apostado_sistema}},{{$devengado_apostado_porcentaje_aplicable}}" data-readonly='[{}]'>
               </div>
               <div style="flex: 1;">
                 <h5>&nbsp;</h5>
@@ -484,11 +483,11 @@
             <div style="display: flex;">
               <div class="parametro_chico" style="flex: 1;">
                 <h5>IMPUESTO LEY (%)</h5>
-                <input class="form-control" data-name="{{$apostado_porcentaje_impuesto_ley}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="{{$devengado_apostado_porcentaje_impuesto_ley}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div style="flex: 1;">
                 <h5>IMPUESTO (DEVENGADO)</h5>
-                <input class="form-control" data-name="{{$devengado_impuesto}}" data-depende="{{$devengado_base_imponible}},{{$apostado_porcentaje_impuesto_ley}}" data-readonly='[{}]'>
+                <input class="form-control" data-name="{{$devengado_impuesto}}" data-depende="{{$devengado_base_imponible}},{{$devengado_apostado_porcentaje_impuesto_ley}}" data-readonly='[{}]'>
               </div>
               <div style="flex: 1;">
                 <h5>IMPUESTO (DETERMINADO)</h5>
@@ -530,7 +529,7 @@
               </div>
               <div style="flex: 1;">
                 <h5>DEDUCCIÓN</h5>
-                <input class="form-control" data-name="{{$deduccion}}" data-depende="id_casino"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="{{$devengado_deduccion}}" data-depende="id_casino"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div style="flex: 1;">
                 <h5>&nbsp;</h5>
@@ -573,7 +572,7 @@
           $devengado_total_dolar_cotizado = $n('devengado_total_dolar_cotizado');
           $devengado_total_euro_cotizado  = $n('devengado_total_euro_cotizado');
           $devengado_total       = $n('devengado_total');
-          $deduccion             = $n('deduccion');
+          $devengado_deduccion   = $n('devengado_deduccion');
           $determinado_fecha_cotizacion = $n('determinado_fecha_cotizacion');
           $determinado_cotizacion_dolar = $n('determinado_cotizacion_dolar');
           $determinado_cotizacion_euro  = $n('determinado_cotizacion_euro');
@@ -701,7 +700,7 @@
             </div>
             <div>
               <h5>DEDUCCIÓN</h5>
-              <input class="form-control" data-name="{{$deduccion}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              <input class="form-control" data-name="{{$devengado_deduccion}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
           </div>
           <hr>
@@ -778,8 +777,8 @@
           $horas = $n('horas');
           $porcentaje = $n('porcentaje');
           $devengado_total = $n('devengado_total');
+          $devengado_deduccion = $n('devengado_deduccion');
           $determinado_total = $n('determinado_total');
-          $deduccion = $n('deduccion');
         ?>
         <div data-js-molde="{{$molde_str}}" hidden>
           <h4 data-titulo>TITULO MESA ADICIONAL</h4>
@@ -838,7 +837,7 @@
           <div style="display: flex;">
             <div>
               <h5>DEDUCCIÓN</h5>
-              <input class="form-control" data-name="{{$deduccion}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              <input class="form-control" data-name="{{$devengado_deduccion}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
           </div>
         </div>

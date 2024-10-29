@@ -55,9 +55,9 @@ function formatear_decimal(string $val) : string {//number_format castea a float
 class CanonController extends Controller
 {
   static $valoresDefecto_fallback = [
-    'canon_variable' => '{"1":{"Maquinas":{"alicuota":21,"apostado_porcentaje_aplicable":0,"apostado_porcentaje_impuesto_ley":0,"deduccion":"250000"},"Bingo":{"alicuota":35,"apostado_porcentaje_aplicable":0,"apostado_porcentaje_impuesto_ley":0,"deduccion":"0"}},"2":{"Maquinas":{"alicuota":25,"apostado_porcentaje_aplicable":0,"apostado_porcentaje_impuesto_ley":0,"deduccion":"500000"},"Bingo":{"alicuota":55,"apostado_porcentaje_aplicable":0,"apostado_porcentaje_impuesto_ley":0,"deduccion":"0"},"JOL":{"alicuota":15,"apostado_porcentaje_aplicable":0,"apostado_porcentaje_impuesto_ley":0,"deduccion":"100000"}},"3":{"Maquinas":{"alicuota":20.56,"apostado_porcentaje_aplicable":19,"apostado_porcentaje_impuesto_ley":0.95,"deduccion":"1000000"},"Bingo":{"alicuota":78.5,"apostado_porcentaje_aplicable":0,"apostado_porcentaje_impuesto_ley":0,"deduccion":"0"},"JOL":{"alicuota":15,"apostado_porcentaje_aplicable":0,"apostado_porcentaje_impuesto_ley":0,"deduccion":"100000"}}}',
-    'canon_fijo_mesas' => '{"1":{"Fijas":{"valor_dolar":1973.92,"valor_euro":2135.92,"dias_valor":30,"calcular_dias_lunes_jueves":false,"calcular_dias_viernes_sabados":false,"calcular_dias_domingos":false,"calcular_dias_todos":false,"dias_fijos":30,"deduccion":"60000"}},"2":{"Diarias":{"valor_dolar":3287.21,"valor_euro":3215.91,"dias_valor":30,"calcular_dias_lunes_jueves":true,"calcular_dias_viernes_sabados":true,"calcular_dias_domingos":true,"calcular_dias_todos":true,"dias_fijos":0,"deduccion":"120000"}},"3":{"Diarias":{"valor_dolar":2881.51,"valor_euro":2569.56,"dias_valor":30,"calcular_dias_lunes_jueves":true,"calcular_dias_viernes_sabados":true,"calcular_dias_domingos":true,"calcular_dias_todos":true,"dias_fijos":0,"deduccion":"240000"}}}',
-    'canon_fijo_mesas_adicionales' => '{"1":{"Mesas Adicionales de Póker":{"valor_mes":3932040.16,"dias_mes":30,"horas_dia":16,"porcentaje":100},"Torneos de Póker y RA":{"valor_mes":3932040.16,"dias_mes":30,"horas_dia":16,"porcentaje":100},"Torneos de Truco":{"valor_mes":5461.16708333,"dias_mes":30,"horas_dia":16,"porcentaje":20}},"2":{"Mesas Adicionales de Póker":{"valor_mes":0,"dias_mes":30,"horas_dia":24,"porcentaje":100},"Torneos":{"valor_mes":6076064.2,"dias_mes":30,"horas_dia":24,"porcentaje":100}},"3":{"Mesas Adicionales de Póker":{"valor_mes":5083455.6,"dias_mes":30,"horas_dia":17,"porcentaje":100},"Torneos":{"valor_mes":5083455.6,"dias_mes":30,"horas_dia":17,"porcentaje":100}}}',
+    'canon_variable' => '{"1":{"Maquinas":{"alicuota":"21","devengado_deduccion":"250000"},"Bingo":{"alicuota":"35"}},"2":{"Maquinas":{"alicuota":"25","devengado_deduccion":"500000"},"Bingo":{"alicuota":"55"},"JOL":{"alicuota":"15","devengado_deduccion":"100000"}},"3":{"Maquinas":{"alicuota":"20.56","devengado_apostado_porcentaje_aplicable":"19","devengado_apostado_porcentaje_impuesto_ley":"0.95","devengado_deduccion":"1000000"},"Bingo":{"alicuota":"78.5"},"JOL":{"alicuota":"15","devengado_deduccion":"100000"}}}',
+    'canon_fijo_mesas' => '{"1":{"Fijas":{"valor_dolar":"1973.92","valor_euro":"2135.92","dias_valor":30,"calcular_dias_lunes_jueves":false,"calcular_dias_viernes_sabados":false,"calcular_dias_domingos":false,"calcular_dias_todos":false,"dias_fijos":30,"devengado_deduccion":"60000"}},"2":{"Diarias":{"valor_dolar":"3287.21","valor_euro":"3215.91","dias_valor":30,"calcular_dias_lunes_jueves":true,"calcular_dias_viernes_sabados":true,"calcular_dias_domingos":true,"calcular_dias_todos":true,"dias_fijos":0,"devengado_deduccion":"120000"}},"3":{"Diarias":{"valor_dolar":"2881.51","valor_euro":"2569.56","dias_valor":30,"calcular_dias_lunes_jueves":true,"calcular_dias_viernes_sabados":true,"calcular_dias_domingos":true,"calcular_dias_todos":true,"dias_fijos":0,"devengado_deduccion":"240000"}}}',
+    'canon_fijo_mesas_adicionales' => '{"1":{"Mesas Adicionales de Póker":{"valor_mes":"3932040.16","dias_mes":30,"horas_dia":16,"porcentaje":"100"},"Torneos de Póker y RA":{"valor_mes":"3932040.16","dias_mes":30,"horas_dia":16,"porcentaje":"100"},"Torneos de Truco":{"valor_mes":"5461.16708333","dias_mes":30,"horas_dia":16,"porcentaje":"20"}},"2":{"Mesas Adicionales de Póker":{"valor_mes":"0","dias_mes":30,"horas_dia":24,"porcentaje":"100"},"Torneos":{"valor_mes":"6076064.2","dias_mes":30,"horas_dia":24,"porcentaje":"100"}},"3":{"Mesas Adicionales de Póker":{"valor_mes":"5083455.6","dias_mes":30,"horas_dia":17,"porcentaje":"100"},"Torneos":{"valor_mes":"5083455.6","dias_mes":30,"horas_dia":17,"porcentaje":"100"}}}',
   ];
   static $max_scale = 64;
   private static $instance;
@@ -108,7 +108,7 @@ class CanonController extends Controller
       'estado' => ['nullable','string','max:32'],
       'es_antiguo' => [$requireds_f('es_antiguo'),'integer','in:1,0'],
       'devengado_bruto' => ['nullable',$numeric_rule(20)],
-      'deduccion' => ['nullable',$numeric_rule(2)],
+      'devengado_deduccion' => ['nullable',$numeric_rule(2)],
       'fecha_vencimiento' => ['nullable','date'],
       'fecha_pago' => ['nullable','date'],
       'determinado_bruto' => ['nullable',$numeric_rule(20)],
@@ -120,14 +120,13 @@ class CanonController extends Controller
       'saldo_anterior' => ['nullable',$numeric_rule(2)],
       'saldo_posterior' => ['nullable',$numeric_rule(2)],
       'canon_variable' => 'array',
-      'canon_variable.*.apostado_sistema' => ['nullable',$numeric_rule(2)],
-      'canon_variable.*.apostado_informado' => ['nullable',$numeric_rule(2)],
-      'canon_variable.*.apostado_porcentaje_aplicable' => ['nullable',$numeric_rule(4)],
-      'canon_variable.*.apostado_porcentaje_impuesto_ley' => ['nullable',$numeric_rule(4)],
+      'canon_variable.*.devengado_apostado_sistema' => ['nullable',$numeric_rule(2)],
+      'canon_variable.*.devengado_apostado_porcentaje_aplicable' => ['nullable',$numeric_rule(4)],
+      'canon_variable.*.devengado_apostado_porcentaje_impuesto_ley' => ['nullable',$numeric_rule(4)],
+      'canon_variable.*.devengado_deduccion' => ['nullable',$numeric_rule(2)],
       'canon_variable.*.determinado_impuesto' => ['nullable',$numeric_rule(2)],
       'canon_variable.*.bruto' => ['nullable',$numeric_rule(2)],
       'canon_variable.*.alicuota' => ['nullable',$numeric_rule(4)],
-      'canon_variable.*.deduccion' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas' => 'array',
       'canon_fijo_mesas.*.valor_dolar' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas.*.valor_euro' => ['nullable',$numeric_rule(2)],
@@ -145,7 +144,7 @@ class CanonController extends Controller
       'canon_fijo_mesas.*.devengado_fecha_cotizacion' => ['nullable','date'],
       'canon_fijo_mesas.*.devengado_cotizacion_dolar' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas.*.devengado_cotizacion_euro' => ['nullable',$numeric_rule(2)],
-      'canon_fijo_mesas.*.deduccion' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas.*.devengado_deduccion' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas.*.determinado_fecha_cotizacion' => ['nullable','date'],
       'canon_fijo_mesas.*.determinado_cotizacion_dolar' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas.*.determinado_cotizacion_euro' => ['nullable',$numeric_rule(2)],
@@ -156,7 +155,7 @@ class CanonController extends Controller
       'canon_fijo_mesas_adicionales.*.horas' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas_adicionales.*.mesas' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas_adicionales.*.porcentaje' => ['nullable',$numeric_rule(4)],
-      'canon_fijo_mesas_adicionales.*.deduccion' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas_adicionales.*.devengado_deduccion' => ['nullable',$numeric_rule(2)],
       'adjuntos' => 'array',
       'adjuntos.*.descripcion' => ['nullable','string','max:256'],
       'adjuntos.*.id_archivo'  => ['nullable','integer','exists:archivo,id_archivo'],
@@ -204,14 +203,14 @@ class CanonController extends Controller
     
     $fecha_pago = $R('fecha_pago',$fecha_vencimiento);//@RETORNADO
     
-    $deduccion = '0.00';//@RETORNADO
+    $devengado_deduccion = '0.00';//@RETORNADO
     $devengado_bruto = '0.00';//@RETORNADO
     $determinado_bruto = '0.00';//@RETORNADO
     $canon_variable = [];//@RETORNADO
     $canon_fijo_mesas = [];//@RETORNADO
     $canon_fijo_mesas_adicionales = [];//@RETORNADO
     if($es_antiguo){
-      $deduccion       = bcadd($R('deduccion',$deduccion),'0',2);
+      $devengado_deduccion = bcadd($R('devengado_deduccion',$devengado_deduccion),'0',2);
       $devengado_bruto = bcadd($R('devengado_bruto',$devengado_bruto),'0',2);
       $determinado_bruto = bcadd($R('determinado_bruto',$determinado_bruto),'0',2);
     }
@@ -224,7 +223,7 @@ class CanonController extends Controller
             $defecto[$tipo] ?? [],
             ($request['canon_variable'] ?? [])[$tipo] ?? []
           );
-          $deduccion       = bcadd($deduccion,$canon_variable[$tipo]['deduccion'] ?? '0',2);
+          $devengado_deduccion = bcadd($devengado_deduccion,$canon_variable[$tipo]['devengado_deduccion'] ?? '0',2);
           $devengado_bruto = bcadd($devengado_bruto,$canon_variable[$tipo]['devengado_total'] ?? '0',20);
           $determinado_bruto = bcadd($determinado_bruto,$canon_variable[$tipo]['determinado_total'] ?? '0',20);
         }
@@ -239,7 +238,7 @@ class CanonController extends Controller
             $defecto[$tipo] ?? [],
             ($request['canon_fijo_mesas'] ?? [])[$tipo] ?? []
           );
-          $deduccion       = bcadd($deduccion,$canon_fijo_mesas[$tipo]['deduccion'] ?? '0',2);
+          $devengado_deduccion = bcadd($devengado_deduccion,$canon_fijo_mesas[$tipo]['devengado_deduccion'] ?? '0',2);
           $devengado_bruto = bcadd($devengado_bruto,$canon_fijo_mesas[$tipo]['devengado_total'] ?? '0',20);
           $determinado_bruto = bcadd($determinado_bruto,$canon_fijo_mesas[$tipo]['determinado_total'] ?? '0',20);
         }
@@ -252,17 +251,17 @@ class CanonController extends Controller
             $defecto[$tipo] ?? [],
             ($request['canon_fijo_mesas_adicionales'] ?? [])[$tipo] ?? []
           );
-          $deduccion       = bcadd($deduccion,$canon_fijo_mesas_adicionales[$tipo]['deduccion'] ?? '0',2);
+          $devengado_deduccion = bcadd($devengado_deduccion,$canon_fijo_mesas_adicionales[$tipo]['devengado_deduccion'] ?? '0',2);
           $devengado_bruto = bcadd($devengado_bruto,$canon_fijo_mesas_adicionales[$tipo]['devengado_total'] ?? '0',20);
           $determinado_bruto = bcadd($determinado_bruto,$canon_fijo_mesas_adicionales[$tipo]['determinado_total'] ?? '0',20);
         }
       }
     }
     
-    $devengado = bcround_ndigits(bcsub($devengado_bruto,$deduccion,20),2);//@RETORNADO
+    $devengado = bcround_ndigits(bcsub($devengado_bruto,$devengado_deduccion,20),2);//@RETORNADO
     
     $porcentaje_seguridad = bccomp($devengado_bruto,'0.00') > 0?//@RETORNADO
-       bcdiv(bcmul('100.0',$deduccion),$devengado_bruto,4)
+       bcdiv(bcmul('100.0',$devengado_deduccion),$devengado_bruto,4)
       : '0.00';
     
     $interes_mora = bcadd($R('interes_mora','0.0000'),'0',4);//@RETORNADO
@@ -334,7 +333,7 @@ class CanonController extends Controller
     return compact(
       'año_mes','id_casino','estado','es_antiguo',
       'canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales','adjuntos',
-      'devengado_bruto','deduccion','devengado','porcentaje_seguridad',
+      'devengado_bruto','devengado_deduccion','devengado','porcentaje_seguridad',
       'determinado_bruto','fecha_vencimiento','fecha_pago','interes_mora','mora',
       'determinado','saldo_anterior','a_pagar','pago','ajuste','motivo_ajuste','diferencia','saldo_posterior'
     );
@@ -381,17 +380,14 @@ class CanonController extends Controller
       return $R($s,null) ?? $D($s,null) ?? $dflt;
     };
     
-    $apostado_sistema = bcadd($R('apostado_sistema','0.00'),'0',2);//@RETORNADO
-    $apostado_informado = bcadd($R('apostado_informado','0.00'),'0',2);//@RETORNADO
+    $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema','0.00'),'0',2);//@RETORNADO    
+    $devengado_apostado_porcentaje_aplicable = bcadd($RD('devengado_apostado_porcentaje_aplicable','0.0000'),'0',4);//@RETORNADO
+    $factor_apostado_porcentaje_aplicable = bcdiv($devengado_apostado_porcentaje_aplicable,'100',6);
     
-    $apostado_porcentaje_aplicable = bcadd($RD('apostado_porcentaje_aplicable','0.0000'),'0',4);//@RETORNADO
-    $factor_apostado_porcentaje_aplicable = bcdiv($apostado_porcentaje_aplicable,'100',6);
+    $devengado_base_imponible = bcmul($devengado_apostado_sistema,$factor_apostado_porcentaje_aplicable,8);//2+6 @RETORNADO
     
-    $devengado_base_imponible = bcmul($apostado_sistema,$factor_apostado_porcentaje_aplicable,8);//2+6 @RETORNADO
-    $determinado_base_imponible = bcmul($apostado_informado,$factor_apostado_porcentaje_aplicable,8);//2+6 @RETORNADO
-    
-    $apostado_porcentaje_impuesto_ley = bcadd($RD('apostado_porcentaje_impuesto_ley','0.0000'),'0',4);//@RETORNADO
-    $factor_apostado_porcentaje_impuesto_ley = bcdiv($apostado_porcentaje_impuesto_ley,'100',6);
+    $devengado_apostado_porcentaje_impuesto_ley = bcadd($RD('devengado_apostado_porcentaje_impuesto_ley','0.0000'),'0',4);//@RETORNADO
+    $factor_apostado_porcentaje_impuesto_ley = bcdiv($devengado_apostado_porcentaje_impuesto_ley,'100',6);
     
     $devengado_impuesto = bcmul($devengado_base_imponible,$factor_apostado_porcentaje_impuesto_ley,14);//8+6 @RETORNADO
     $determinado_impuesto =  bcadd($R('determinado_impuesto','0.00'),'0',2);//@RETORNADO
@@ -405,14 +401,15 @@ class CanonController extends Controller
     
     $devengado_total =  bcmul($devengado_subtotal,$factor_alicuota,20);//6+14 @RETORNADO
     $determinado_total =  bcmul($determinado_subtotal,$factor_alicuota,8);//6+2 @RETORNADO
-    $deduccion = bcadd($RD('deduccion','0.00'),'0',2);
+    $devengado_deduccion = bcadd($RD('devengado_deduccion','0.00'),'0',2);
     
     return compact('tipo',
-      'apostado_sistema','apostado_porcentaje_aplicable','devengado_base_imponible',
-      'apostado_porcentaje_impuesto_ley',
+      'alicuota','bruto',
+      'devengado_apostado_sistema','devengado_apostado_porcentaje_aplicable','devengado_base_imponible',
+      'devengado_apostado_porcentaje_impuesto_ley',
       'devengado_impuesto','determinado_impuesto',
-      'bruto','devengado_subtotal','determinado_subtotal',
-      'alicuota','devengado_total','deduccion','determinado_total'
+      'devengado_total','devengado_deduccion',
+      'devengado_subtotal','determinado_subtotal','determinado_total'
     );
   }
   
@@ -580,7 +577,7 @@ class CanonController extends Controller
       $determinado_total_euro_cotizado  = bcadd($determinado_total_euro_cotizado,bcmul($determinado_valor_euro_diario_cotizado,$mesas_dias_restantes,16),16);
     }
     
-    $deduccion = bcadd($RD('deduccion','0.00'),'0',2);//@RETORNADO
+    $devengado_deduccion = bcadd($RD('devengado_deduccion','0.00'),'0',2);//@RETORNADO
     $devengado_total   = bcadd($devengado_total_dolar_cotizado,$devengado_total_euro_cotizado,16);//@RETORNADO
     $determinado_total = bcadd($determinado_total_dolar_cotizado,$determinado_total_euro_cotizado,16);//@RETORNADO
     
@@ -594,7 +591,7 @@ class CanonController extends Controller
       'devengado_valor_dolar_cotizado','devengado_valor_euro_cotizado',
       'devengado_valor_dolar_diario_cotizado','devengado_valor_euro_diario_cotizado',
       'devengado_total_dolar_cotizado','devengado_total_euro_cotizado','devengado_total',
-      'deduccion',
+      'devengado_deduccion',
       
       'determinado_fecha_cotizacion','determinado_cotizacion_dolar','determinado_cotizacion_euro',
       'determinado_valor_dolar_cotizado','determinado_valor_euro_cotizado',
@@ -650,14 +647,14 @@ class CanonController extends Controller
     $devengado_total = bcmul($total_sin_aplicar_porcentaje,$factor_porcentaje,20);//14+6 @RETORNADO
     $determinado_total = $devengado_total;//@RETORNADO
     
-    $deduccion = bcadd($RD('deduccion','0.00'),'0',2);//@RETORNADO
+    $devengado_deduccion = bcadd($RD('devengado_deduccion','0.00'),'0',2);//@RETORNADO
     
     return compact(
       'tipo',
       'dias_mes','horas_dia','factor_dias_mes','factor_horas_mes',
       'valor_mes','valor_dia','valor_hora',
       'horas','porcentaje',
-      'devengado_total','deduccion','determinado_total'
+      'devengado_total','devengado_deduccion','determinado_total'
     );
   }
   
@@ -725,7 +722,7 @@ class CanonController extends Controller
         'id_casino' => $datos['id_casino'],
         'estado' => $datos['estado'],
         'devengado_bruto' => $datos['devengado_bruto'],
-        'deduccion' => $datos['deduccion'],
+        'devengado_deduccion' => $datos['devengado_deduccion'],
         'devengado' => $datos['devengado'],
         'porcentaje_seguridad' => $datos['porcentaje_seguridad'], 
         'fecha_vencimiento' => $datos['fecha_vencimiento'],
@@ -1015,21 +1012,32 @@ class CanonController extends Controller
   }
   
   public function valoresPorDefecto_ingresar(Request $request){    
+    Validator::make($request->all(),[
+      'campo' => ['required','string'],
+      'valor' => ['required','string'],
+    ], self::$errores,[])->after(function($validator){
+      if($validator->errors()->any()) return;
+      json_decode($validator->getData()['valor']);
+      if(json_last_error() !== JSON_ERROR_NONE){
+        return $validator->errors()->add('valor','Error '.json_last_error_msg());
+      }
+    })->validate();
+    
     return DB::transaction(function() use ($request){
       $created_at = date('Y-m-d h:i:s');
       $id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       
       $vals_viejos = DB::table('canon_valores_por_defecto')
       ->whereNull('deleted_at')
-      ->where('campo',$request->campo ?? '')->get();
+      ->where('campo',$request->campo)->get();
       foreach($vals_viejos as $v){
         $this->valoresPorDefecto_borrar_arr(['id_canon_valor_por_defecto' => $v->id_canon_valor_por_defecto],$created_at,$id_usuario);
       }
       
       DB::table('canon_valores_por_defecto')
       ->insert([
-        'campo' => $request->campo ?? '',
-        'valor' => $request->valor ?? '',
+        'campo' => $request->campo,
+        'valor' => $request->valor,
         'created_at' => $created_at,
         'deleted_at' => null,
         'created_id_usuario' => $id_usuario,
@@ -1183,5 +1191,20 @@ class CanonController extends Controller
     $casino  = $datos['canon'][0]['casino'];
     $filename = "Canon-$año_mes-$casino.csv";
     return $dompdf->stream($filename, Array('Attachment'=>0));
+  }
+  
+  public function planillaDevengado(Request $request){
+    if(!isset($request->id_canon)) return;
+    return $this->planillaInforme('Devengado',$request->id_canon);
+  }
+  
+  public function planillaDeterminado(Request $request){
+    if(!isset($request->id_canon)) return;
+    return $this->planillaInforme('Determinado',$request->id_canon);
+  }
+  
+  private function planillaInforme(string $tipo,int $id_canon){
+    $canon = $this->obtener_para_salida($id_canon);
+    
   }
 }
