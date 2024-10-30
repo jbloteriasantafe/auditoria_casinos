@@ -1233,22 +1233,24 @@ class CanonController extends Controller
     $datos = [];
     foreach($canons as $casino => $canons_casino){
       $datos[$casino] = [];
-      foreach($conceptos as $concepto => $matcheables){ foreach($matcheables as $matcheable){
-        $datos[$casino][$concepto] = null;
-        foreach($canons_casino as $tipo => $canons_casino_tipo){ foreach($canons_casino_tipo as $canon_casino_subtipo){
-            $matchea = ($matcheable[0] === null || $matcheable[0] == $tipo) 
-            && (
-              ($matcheable[1] === null) || ($matcheable[1] === ($canon_casino_subtipo['tipo'] ?? null))
-            );
-            if(!$matchea) continue;
-            
-            $acumulado = $datos[$casino][$concepto] ?? '0.00';
-            $devengado = $canon_casino_subtipo['devengado'] 
-            ?? bcsub($canon_casino_subtipo['devengado_total'],$canon_casino_subtipo['devengado_deduccion'],2);
-            
-            $datos[$casino][$concepto] = bcadd($acumulado,$devengado,2);
-        }}
-      }}
+      foreach($conceptos as $concepto => $matcheables){ 
+        $acumulado = null;
+        foreach($matcheables as $matcheable){
+          foreach($canons_casino as $tipo => $canons_casino_tipo){ foreach($canons_casino_tipo as $canon_casino_subtipo){
+              $matchea = ($matcheable[0] === null || $matcheable[0] == $tipo) 
+              && (
+                ($matcheable[1] === null) || ($matcheable[1] === ($canon_casino_subtipo['tipo'] ?? null))
+              );
+              if(!$matchea) continue;
+              
+              $devengado = $canon_casino_subtipo['devengado'] 
+              ?? bcsub($canon_casino_subtipo['devengado_total'],$canon_casino_subtipo['devengado_deduccion'],2);
+              
+              $acumulado = bcadd($acumulado ?? '0',$devengado,2);
+          }}
+        }
+        $datos[$casino][$concepto] = $acumulado;
+      }
     }
     
     $datos['Total'] = [];
@@ -1264,8 +1266,14 @@ class CanonController extends Controller
       $datos['Total'][$concepto] = $accum;
     }
     
+    foreach($datos as $casino => $datos_casino){
+      foreach($datos_casino as $concepto => $valor_casino_concepto){
+        $datos[$casino][$concepto] = $valor_casino_concepto === null? null : formatear_decimal($valor_casino_concepto);
+      }
+    }
+    
     $view = View::make('Canon.planillaDevengado', compact('conceptos','mes','datos'));
-    return $view;
+    //return $view;
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
