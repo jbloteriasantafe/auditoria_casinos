@@ -1066,7 +1066,7 @@ class CanonController extends Controller
     });
   }
   
-  private function obtener_para_salida($id_canon){
+  private function obtener_para_salida($id_canon,$formatear_decimal = true){
     $data = json_decode(json_encode($this->obtener_arr(compact('id_canon'))),true);
     $ret = [];
     
@@ -1131,7 +1131,7 @@ class CanonController extends Controller
           switch($types[$tabla][$col] ?? null){
             case 'smallint':
             case 'integer':
-            case 'decimal':{
+            case 'decimal': if($formatear_decimal){
               $ret[$tabla][$rowidx][$col] = formatear_decimal((string)$val);//number_format castea a float... lo hacemos a pata...
             }break;
             default:
@@ -1195,16 +1195,129 @@ class CanonController extends Controller
   
   public function planillaDevengado(Request $request){
     if(!isset($request->id_canon)) return;
-    return $this->planillaInforme('Devengado',$request->id_canon);
+    
+    $c_año_mes = DB::table('canon')
+    ->select('año_mes')
+    ->whereNull('deleted_at')
+    ->where('id_canon',$request->id_canon)
+    ->first();
+    
+    if(empty($c_año_mes)) return;
+    
+    $año_mes = explode('-',$c_año_mes->año_mes);
+    
+    $cs = DB::table('canon')
+    ->select('id_canon')->distinct()
+    ->whereNull('deleted_at')
+    ->whereYear('año_mes',$año_mes[0])
+    ->whereMonth('año_mes',$año_mes[1])
+    ->get();
+    
+    $canons = [];
+    foreach($cs as $c){
+      $datac = $this->obtener_para_salida($c->id_canon,false);
+      $canons[$datac['canon'][0]['casino']] = $datac;
+    }
+    
+    $mes = $año_mes[1].'/'.substr($año_mes[0],2);
+    
+    $conceptos = [
+      'Paños' => [['canon_fijo_mesas',null],['canon_fijo_mesas_adicionales',null]],
+      'MTM' => [['canon_variable','Maquinas']],
+      'Bingo' => [['canon_variable','Bingo']],
+      'Total Fisico' => [['canon_variable','Maquinas'],['canon_variable','Bingo'],['canon_fijo_mesas',null],['canon_fijo_mesas_adicionales',null]],
+      'JOL' => [['canon_variable','JOL']],
+      'Total' => [['canon',null]]
+    ];
+    
+    $datos = [];
+    foreach($canons as $casino => $canons_casino){
+      $datos[$casino] = [];
+      foreach($conceptos as $concepto => $matcheables){ foreach($matcheables as $matcheable){
+        $datos[$casino][$concepto] = null;
+        foreach($canons_casino as $tipo => $canons_casino_tipo){ foreach($canons_casino_tipo as $canon_casino_subtipo){
+            $matchea = ($matcheable[0] === null || $matcheable[0] == $tipo) 
+            && (
+              ($matcheable[1] === null) || ($matcheable[1] === ($canon_casino_subtipo['tipo'] ?? null))
+            );
+            if(!$matchea) continue;
+            
+            $acumulado = $datos[$casino][$concepto] ?? '0.00';
+            $devengado = $canon_casino_subtipo['devengado'] 
+            ?? bcsub($canon_casino_subtipo['devengado_total'],$canon_casino_subtipo['devengado_deduccion'],2);
+            
+            $datos[$casino][$concepto] = bcadd($acumulado,$devengado,2);
+        }}
+      }}
+    }
+    
+    $datos['Total'] = [];
+    foreach($conceptos as $concepto => $_){
+      $accum = '0.00';
+      foreach($canons as $casino => $__){
+        $accum = bcadd(
+          $accum,
+          $datos[$casino][$concepto] ?? '0.00',
+          2
+        );
+      }
+      $datos['Total'][$concepto] = $accum;
+    }
+    
+    $view = View::make('Canon.planillaDevengado', compact('conceptos','mes','datos'));
+    return $view;
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    return $dompdf->stream("Devengado-Canon-$mes.pdf", Array('Attachment'=>0));
   }
   
   public function planillaDeterminado(Request $request){
     if(!isset($request->id_canon)) return;
-    return $this->planillaInforme('Determinado',$request->id_canon);
+    return $this->planillaInforme('Canon.planillaDeterminado','determinado','devengado',$request->id_canon);
   }
   
-  private function planillaInforme(string $tipo,int $id_canon){
-    $canon = $this->obtener_para_salida($id_canon);
+  private function planillaInforme(string $planilla,string $tipo,string $sacar,int $id_canon){
+    $datos = $this->obtener_para_salida($id_canon);
+    $sacable = function($s) use ($sacar){
+      return substr($s,0,strlen($sacar)) == $sacar;
+    };
+    $simplificable = function($s) use ($tipo){
+      if(substr($s,0,strlen($tipo)) == $tipo){
+        return substr($s,strlen($tipo)+1);//+1 por el guion bajo
+      }
+      return false;
+    };
+        
+    foreach($datos as $c => $datos_c){
+      foreach($datos_c as $tc => $datos_tc){
+        unset($datos[$c][$tc]['tipo']);
+        foreach($datos_tc as $k => $v){
+          if($sacable($k)){
+            unset($datos[$c][$tc][$k]);
+          }
+          $s = $simplificable($k);
+          if($s !== false){
+            unset($datos[$c][$tc][$k]);
+            $datos[$c][$tc][$s] = $v;
+          }
+        }
+      }
+    }
     
+    $view = View::make($planilla, compact('tipo','datos'));
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    //$dompdf->getCanvas()->page_text(20, 815, $codigo_casino."/".$fecha, $font, 10, array(0,0,0));
+    $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
+    $año_mes = $datos['canon'][0]['año_mes'];
+    $casino  = $datos['canon'][0]['casino'];
+    $filename = "Canon-$año_mes-$casino.pdf";
+    return $dompdf->stream($filename, Array('Attachment'=>0));
   }
 }
