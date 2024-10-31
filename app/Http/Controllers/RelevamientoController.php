@@ -1167,6 +1167,7 @@ class RelevamientoController extends Controller
         $producido += $sign*$c;
       }
     }
+    $producido *= 0.01;//Los contadores estan siempre minimanmente en centavos?
     
     $deno = $m->id_unidad_medida == 2? 1.0 : floatval($m->denominacion);
     return round($producido*$deno,2);
