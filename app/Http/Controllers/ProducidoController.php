@@ -638,8 +638,9 @@ class ProducidoController extends Controller
         ['id_contador_horario','=',$ch->id_contador_horario],['id_maquina','=',$maquina->id_maquina]
       ])->first();
       if(is_null($dch)) continue;
-      
-      return round(($dch->coinin-$dch->coinout-$dch->jackpot-$dch->progresivo)*$dch->denominacion_carga,2);
+      //Ya esta denominado
+      //return round(($dch->coinin-$dch->coinout-$dch->jackpot-$dch->progresivo)*$dch->denominacion_carga,2);
+      return round($dch->coinin-$dch->coinout-$dch->jackpot-$dch->progresivo,2);
     }
     
     return null;    
