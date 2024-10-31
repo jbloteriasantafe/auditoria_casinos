@@ -91,6 +91,14 @@ class AuthenticationController extends Controller
     $request->session()->flush();
   }
 
+  public function usuarioTieneRol($id_usuario,$rol){
+    return !empty(DB::table('rol')
+    ->where('rol.descripcion','=',$rol)
+    ->join('usuario_tiene_rol','usuario_tiene_rol.id_rol','=','rol.id_rol')
+    ->where('usuario_tiene_rol.id_usuario','=',$id_usuario)
+    ->first());
+  }
+  
   public function usuarioTienePermiso($id_usuario,$permiso){
     $result = DB::table('permiso')
     ->where('permiso.descripcion','=',$permiso)

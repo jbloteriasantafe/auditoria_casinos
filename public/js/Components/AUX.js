@@ -16,23 +16,24 @@ export const AUX = {
     this._mensaje($('#mensajeError'),mensaje);
   },
   
-  _aux_ajax(type,url,params = {},success = function(data){},error = function(response){console.log(response);}){
+  _aux_ajax(type,url,params = {},success = function(data){},error = function(response){console.log(response);},ext_params={}){
     $.ajax({
       type: type,
       url: url,
       data: params,
       success: success,
-      error: error
+      error: error,
+      ...ext_params
     });
   },
-  GET(url,params = {},success = function(data){},error = function(response){console.log(response);}){
-    this._aux_ajax('GET',url,params,success,error);
+  GET(url,params = {},success = function(data){},error = function(response){console.log(response);},ext_params={}){
+    this._aux_ajax('GET',url,params,success,error,ext_params);
   },
-  POST(url,params = {},success = function(data){},error = function(response){console.log(response);}){
-    this._aux_ajax('POST',url,params,success,error);
+  POST(url,params = {},success = function(data){},error = function(response){console.log(response);},ext_params={}){
+    this._aux_ajax('POST',url,params,success,error,ext_params);
   },
-  DELETE(url,params = {},success = function(data){},error = function(response){console.log(response);}){
-    this._aux_ajax('DELETE',url,params,success,error);
+  DELETE(url,params = {},success = function(data){},error = function(response){console.log(response);},ext_params={}){
+    this._aux_ajax('DELETE',url,params,success,error,ext_params);
   },
 
   hhmm(hhmmss){
@@ -52,9 +53,12 @@ export const AUX = {
     });
     return data;
   },
-  mostrarErroresNames(jqobject,json){
+  mostrarErroresNames(jqobject,json,check_visible=false){//Si hay campos escondidos con [name], check_visible=true evita que se muestre un error flotando
     Object.keys(json).forEach(function(k){
-      mostrarErrorValidacion(jqobject.find(`[name="${k}"]`),json[k].join(', '),true);
+      const obj = jqobject.find(`[name="${k}"]`);
+      const visible = check_visible? obj.is(':visible') : true;
+      if(visible)
+        mostrarErrorValidacion(obj,json[k].join(', '),true);
     });
   },
   form_entries(form){

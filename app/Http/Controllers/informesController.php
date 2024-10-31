@@ -434,12 +434,6 @@ class informesController extends Controller
     return view('contable_mtm', ['casinos' => $casinos]);
   }
 
-  public function obtenerInformeContableAzar($id_casino){
-        $nro_maquina = $this->obtenerMaquinaAlAzar($id_casino);
-        $informe = $this->obtenerInformeContableDeMaquina($nro_maquina,$id_casino);
-        return $informe;
-  }
-
   public function obtenerInformeContableDeMaquina($id_maquina){
     //modficar para que tome ultimos dias con datos, no solo los ultimos dias
     Validator::make([
@@ -560,14 +554,6 @@ class informesController extends Controller
               'estado_relevamiento' => $estado_relevamiento,
               'estado_producido' => $estado_producido];
       //contador SE MUESTRA POR PANTALLA YA QUE NO SIEMPRE EXISTE RELEVAMIENTO PARA ESA MAQUINA EN ESA FECHA
-  }
-
-  public function obtenerMaquinaAlAzar($id_casino){
-    $resultado = DB::table('maquina')->select('nro_admin')
-                          ->where('maquina.id_casino' , $id_casino)
-                          ->inRandomOrder()
-                          ->first();
-    return $resultados['nro_admin'];
   }
 
   //BUSCA TODA LA INFORMACION PARA CARGAR MODAL

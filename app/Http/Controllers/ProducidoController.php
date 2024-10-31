@@ -25,6 +25,10 @@ class ProducidoController extends Controller
   private static $instance;
 
   private static $atributos=[];
+  
+  public function truncamiento($diferencia){
+    return fmod($diferencia,1000000) == 0;
+  }
 
   private function obtenerDiferencias($id_producido,$id_maquina = null){
     // vvv Comentario viejo que sirve vvv
@@ -285,7 +289,7 @@ class ProducidoController extends Controller
         || ($dif[$contador_inicio] == 0 && $dif[$contador_final] == 0)
       );
       $finales_todos_ceros = $finales_todos_ceros && $dif[$contador_final] == 0;
-      if($sin_cambio_de_deno && $final_menor_que_inicio && fmod($dif['diferencia'],1000000) == 0){
+      if($sin_cambio_de_deno && $final_menor_que_inicio && $this->truncamiento($dif['diferencia'])){
         //Le suma la vuelta de contadores, la diferencia esta en plata, lo paso a creditos
         $vuelta = abs($dif['diferencia']/$dif['denominacion_final']);
         $dif[$contador_final] += $vuelta;
@@ -624,6 +628,22 @@ class ProducidoController extends Controller
    return ['importado' => $importado , 'validado' => $validado, 'detalle' =>$detalle];
   }
 
+  public function calcularProducidoAcumulado($fecha,$maquina){//LLamado desde RelevamientoController
+    $chs = ContadorHorario::where([
+      ['fecha','=',$fecha],['id_casino','=',$maquina->id_casino]
+    ])->orderBy('id_tipo_moneda','asc')->get();
+    
+    foreach($chs as $ch){//busco todas las monedas, me quedo con el primero que encuentre
+      $dch = DetalleContadorHorario::where([
+        ['id_contador_horario','=',$ch->id_contador_horario],['id_maquina','=',$maquina->id_maquina]
+      ])->first();
+      if(is_null($dch)) continue;
+      
+      return round(($dch->coinin-$dch->coinout-$dch->jackpot-$dch->progresivo)*$dch->denominacion_carga,2);
+    }
+    
+    return null;    
+  }
   //Contadores en en creditos, producido en plata, se usa en probarAjusteAutomatico y guardarAjuste
   private function calcularDiferencia($arr){
     $valor_inicio = $arr['coinin_inicio'] - $arr['coinout_inicio'] - $arr['jackpot_inicio'] - $arr['progresivo_inicio'];//credito

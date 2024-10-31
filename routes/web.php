@@ -441,6 +441,7 @@ Relevamientos
 Route::group(['prefix' => 'relevamientos','middleware' => 'tiene_permiso:ver_seccion_relevamientos'], function () {
   Route::get('/','RelevamientoController@buscarTodo');
   Route::post('crearRelevamiento','RelevamientoController@crearRelevamiento');
+  Route::post('descargarRelevamiento','RelevamientoController@descargarRelevamiento');
   Route::post('cargarRelevamiento','RelevamientoController@cargarRelevamiento');
   Route::post('validarRelevamiento','RelevamientoController@validarRelevamiento');
   Route::get('obtenerRelevamiento/{id_relevamiento}','RelevamientoController@obtenerRelevamiento');
@@ -450,7 +451,6 @@ Route::group(['prefix' => 'relevamientos','middleware' => 'tiene_permiso:ver_sec
   Route::post('usarRelevamientoBackUp','RelevamientoController@usarRelevamientoBackUp');
   Route::get('descargarZip/{nombre}','RelevamientoController@descargarZip');
   Route::get('obtenerCantidadMaquinasPorRelevamiento/{id_sector}','RelevamientoController@obtenerCantidadMaquinasPorRelevamiento');
-  Route::get('existeCantidadTemporalMaquinas/{id_sector}/{fecha_desde}/{fecha_hasta}','RelevamientoController@existeCantidadTemporalMaquinas');
   Route::post('crearCantidadMaquinasPorRelevamiento','RelevamientoController@crearCantidadMaquinasPorRelevamiento');
   Route::get('obtenerCantidadMaquinasRelevamientoHoy/{id_sector}','RelevamientoController@obtenerCantidadMaquinasRelevamiento');
   Route::post('eliminarCantidadMaquinasPorRelevamiento','RelevamientoController@eliminarCantidadMaquinasPorRelevamiento');
@@ -463,6 +463,7 @@ Route::group(['prefix' => 'relevamientos','middleware' => 'tiene_permiso:ver_sec
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
   Route::get('obtenerMtmAPedido/{fecha}/{id_sector}','MaquinaAPedidoController@obtenerMtmAPedido');
   Route::get('estadisticas_no_toma/{id}','informesController@mostrarEstadisticasNoToma');
+  Route::post('calcularEstadoDetalleRelevamiento','RelevamientoController@calcularEstadoDetalleRelevamiento');
 });
 /* OBTENER FECHA Y HORA ACTUAL */
 Route::get('obtenerFechaActual',function(){
@@ -564,9 +565,9 @@ Route::group(['prefix' => 'producidos','middleware' => 'tiene_permiso:ver_seccio
 Route::group(['prefix' => 'estadisticas_relevamientos','middleware' => 'tiene_permiso:ver_seccion_estadisticas_relevamientos'],function (){
   Route::get('/','MaquinaAPedidoController@buscarTodoInforme');
   Route::post('guardarMtmAPedido','MaquinaAPedidoController@guardarMtmAPedido');
-  Route::post('obtenerUltimosRelevamientosPorMaquina','RelevamientoController@obtenerUltimosRelevamientosPorMaquina');
+  Route::post('obtenerUltimosRelevamientosPorMaquina','RelevamientoController@obtenerUltimosRelevamientosPorMaquinaNroAdmin');
   Route::post('buscarMaquinasSinRelevamientos','RelevamientoController@buscarMaquinasSinRelevamientos');
-  Route::get('obtenerFechasMtmAPedido/{id}', 'MaquinaAPedidoController@obtenerFechasMtmAPedido');
+  Route::get('obtenerFechasMtmAPedido', 'MaquinaAPedidoController@obtenerFechasMtmAPedido');
   Route::get('buscarMaquinas/{id_casino}','RelevamientoController@buscarMaquinasPorCasino');
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
 });
@@ -598,13 +599,18 @@ Route::group(['prefix' => 'layout_parcial','middleware' => 'tiene_permiso:ver_se
   Route::post('usarLayoutBackup' , 'LayoutController@usarLayoutBackup');
   Route::get('existeLayoutParcial/{id_sector}','LayoutController@existeLayoutParcial');
   Route::get('existeLayoutParcialGenerado/{id_sector}','LayoutController@existeLayoutParcialGenerado');
+  
   Route::get('obtenerLayoutParcial/{id}','LayoutController@obtenerLayoutParcial');
-  Route::get('obtenerLayoutParcialValidar/{id}','LayoutController@obtenerLayoutParcialValidar');
+  Route::get('obtenerLayoutParcialValidar/{id}','LayoutController@obtenerLayoutParcial');
+  
+  Route::post('guardarLayoutParcial' , 'LayoutController@guardarLayoutParcial');
+  Route::post('finalizarLayoutParcial','LayoutController@finalizarLayoutParcial');
+  Route::post('validarLayoutParcial' , 'LayoutController@validarLayoutParcial');
+  
   Route::get('generarPlanillaLayoutParcial/{id}','LayoutController@generarPlanillaLayoutParcial');
+  Route::get('generarPlanillaLayoutParcialCargado/{id}','LayoutController@generarPlanillaLayoutParcialCargado');
   Route::get('descargarLayoutParcialZip/{nombre}','LayoutController@descargarLayoutParcialZip');
   Route::post('buscarLayoutsParciales' , 'LayoutController@buscarLayoutsParciales');
-  Route::post('cargarLayoutParcial' , 'LayoutController@cargarLayoutParcial');
-  Route::post('validarLayoutParcial' , 'LayoutController@validarLayoutParcial');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
   Route::get('usuarioTienePermisos','AuthenticationController@usuarioTienePermisos');
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
@@ -857,25 +863,6 @@ Route::group(['prefix' => 'informeMensual','middleware' => 'tiene_permiso:m_bc_d
   Route::post('obtenerDatos','Mesas\InformesMesas\BCMensualesController@obtenerDatosGraficos');
 });
 
-
-Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_canon'],function(){
-  Route::get('/','Mesas\Canon\BPagosController@index');
-  Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
-    Route::post('crearOModificarPago','Mesas\Canon\APagosController@crearOModificar');
-    Route::delete('borrarPago/{id_detalle}','Mesas\Canon\APagosController@borrar');
-    Route::post('modificarInformeBase','Mesas\Canon\APagosController@modificarInformeBase');
-  });
-  Route::group(['middleware' => 'tiene_permiso:m_b_pagos'], function () {
-    Route::get('getMesesCuotas/{id_casino}/{anio_inicio}', 'Mesas\Canon\BPagosController@mesesCuotasCanon');
-    Route::get('mesesCargados/{id_casino}/{anio_inicio}','Mesas\Canon\BPagosController@mesesCargados');
-    Route::post('buscarPagos','Mesas\Canon\BPagosController@filtros');
-    Route::get('obtenerPago/{id_detalle}','Mesas\Canon\BPagosController@obtenerPago');
-    Route::get('obtenerAnios/{id_casino}','Mesas\Canon\BPagosController@obtenerAnios');
-    Route::get('obtenerInformeBase/{id_casino}','Mesas\Canon\BPagosController@obtenerInformeBase');
-    Route::post('verInforme','Mesas\Canon\BPagosController@verInformeFinalMesas');
-  });
-});
-
 Route::group(['prefix' => 'solicitudImagenes','middleware' => ['tiene_permiso:m_abmc_img_bunker']], function () {
   Route::get('/','Mesas\Bunker\ABMCImgBunkerController@index');
   Route::post('buscar','Mesas\Bunker\ABMCImgBunkerController@filtros');
@@ -974,4 +961,49 @@ Route::group(['prefix' => 'backoffice','middleware' => 'tiene_permiso:informes_m
   Route::get('/','BackOfficeController@index');
   Route::post('buscar','BackOfficeController@buscar');
   Route::post('descargar','BackOfficeController@descargar');
+});
+
+//Secion canon vieja que nunca fue usada, eliminar cuando este funcionando OK la nueva
+/*
+Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_canon'],function(){
+  Route::get('/','Mesas\Canon\BPagosController@index');
+  Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
+    Route::post('crearOModificarPago','Mesas\Canon\APagosController@crearOModificar');
+    Route::delete('borrarPago/{id_detalle}','Mesas\Canon\APagosController@borrar');
+    Route::post('modificarInformeBase','Mesas\Canon\APagosController@modificarInformeBase');
+  });
+  Route::group(['middleware' => 'tiene_permiso:m_b_pagos'], function () {
+    Route::get('getMesesCuotas/{id_casino}/{anio_inicio}', 'Mesas\Canon\BPagosController@mesesCuotasCanon');
+    Route::get('mesesCargados/{id_casino}/{anio_inicio}','Mesas\Canon\BPagosController@mesesCargados');
+    Route::post('buscarPagos','Mesas\Canon\BPagosController@filtros');
+    Route::get('obtenerPago/{id_detalle}','Mesas\Canon\BPagosController@obtenerPago');
+    Route::get('obtenerAnios/{id_casino}','Mesas\Canon\BPagosController@obtenerAnios');
+    Route::get('obtenerInformeBase/{id_casino}','Mesas\Canon\BPagosController@obtenerInformeBase');
+    Route::post('verInforme','Mesas\Canon\BPagosController@verInformeFinalMesas');
+  });
+});*/
+
+//Reuso los permisos de la sección vieja
+Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_canon'],function(){
+  Route::get('/','\App\Http\Controllers\CanonController@index');
+  Route::post('/buscar','\App\Http\Controllers\CanonController@buscar');
+  Route::get('/obtener','\App\Http\Controllers\CanonController@obtener');
+  Route::get('/planilla','\App\Http\Controllers\CanonController@planilla');
+  Route::get('/planillaPDF','\App\Http\Controllers\CanonController@planillaPDF');
+  Route::get('/planillaDevengado','\App\Http\Controllers\CanonController@planillaDevengado');
+  Route::get('/planillaDeterminado','\App\Http\Controllers\CanonController@planillaDeterminado');
+  Route::get('/archivo','\App\Http\Controllers\CanonController@archivo');
+  Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
+    Route::get('/obtenerConHistorial','\App\Http\Controllers\CanonController@obtenerConHistorial');
+    Route::post('/recalcular','\App\Http\Controllers\CanonController@recalcular_req');
+    Route::post('/guardar','\App\Http\Controllers\CanonController@guardar');
+    Route::post('/adjuntar','\App\Http\Controllers\CanonController@adjuntar');
+    Route::get('/cambiarEstado','\App\Http\Controllers\CanonController@cambiarEstado');
+    Route::delete('/borrar','\App\Http\Controllers\CanonController@borrar');
+    Route::group(['middleware' => 'tiene_rol:superusuario'], function () {
+      Route::post('/valoresPorDefecto','\App\Http\Controllers\CanonController@valoresPorDefecto');
+      Route::post('/valoresPorDefecto/ingresar','\App\Http\Controllers\CanonController@valoresPorDefecto_ingresar');
+      Route::delete('/valoresPorDefecto/borrar','\App\Http\Controllers\CanonController@valoresPorDefecto_borrar');
+    });
+  });
 });

@@ -112,10 +112,6 @@ $gestion_hijos = [
         'link' => '/mesas',
         'algun_permiso' => ['m_gestionar_mesas'],
       ],
-      'Canon' => [
-        'link' => '/canon',
-        'algun_permiso' => ['m_ver_seccion_canon'],
-      ],
     ]
   ],
   'Bingo' => [
@@ -380,6 +376,11 @@ $contable_hijos = [
     'icono' => '<i class="fa fa-cloud-download-alt"></i>',
     'link' => '/backoffice',
     'algun_permiso' => ['informes_mtm'],
+  ],
+  'Canon' => [
+    'icono' => '<i class="fa fa-dollar-sign"></i>',
+    'link' => '/canon',
+    'algun_permiso' => ['m_ver_seccion_canon'],
   ]
 ];
 $opciones = [

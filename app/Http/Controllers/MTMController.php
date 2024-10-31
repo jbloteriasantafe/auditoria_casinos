@@ -775,12 +775,11 @@ class MTMController extends Controller
     return $maquinas;
   }
 
-  public function modificarDenominacionYUnidad($id_unidad_medida, $denominacion, $id_maquina){
+  public function modificarDenominacionYUnidad($id_unidad_medida, $id_maquina){
     $maquina = Maquina::find($id_maquina);
-    $maquina->denominacion = $denominacion;
     $maquina->id_unidad_medida = $id_unidad_medida;
     $maquina->save();
-    $razon = "Se cambió cambiar denominacion y unidad medida.";
+    $razon = "Se cambió la unidad medida.";
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,5);//tipo mov denominacion
     return $maquina;
   }
