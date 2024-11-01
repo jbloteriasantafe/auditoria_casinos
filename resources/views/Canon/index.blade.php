@@ -586,38 +586,45 @@
         ?>
         <div style="width: 100%;" data-js-molde="{{$molde_str}}" hidden>
           <h6 data-titulo>TITULO MESAS</h6>
-                    <div style="display: flex;">
+          <div style="display: flex;">
             <div>
-              <h5>DIAS-MESAS L-J</h5>
-              <div style="display: flex;flex-direction: column;border: 1px solid grey;">
+              <h5>&nbsp;</h5>
+              <div style="display: flex;flex-direction: column;width: 6em;">
+                <h5>DIAS</h5>
+                <h5>MESAS</h5>
+              </div>
+            </div>
+            <div>
+              <h5>Lunes-Jueves</h5>
+              <div style="display: flex;flex-direction: column;">
                 <input class="form-control" data-name="{{$dias_lunes_jueves}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 <input class="form-control" data-name="{{$mesas_lunes_jueves}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
             </div>
             <div>
-              <h5>DIAS-MESAS V-S</h5>
-              <div style="display: flex;flex-direction: column;border: 1px solid grey;">
+              <h5>Viernes-Sabados</h5>
+              <div style="display: flex;flex-direction: column;">
                 <input class="form-control" data-name="{{$dias_viernes_sabados}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 <input class="form-control" data-name="{{$mesas_viernes_sabados}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
             </div>               
             <div>
-              <h5>DIAS-MESAS Dom</h5>
-              <div style="display: flex;flex-direction: column;border: 1px solid grey;">
+              <h5>Domingos</h5>
+              <div style="display: flex;flex-direction: column;">
                 <input class="form-control" data-name="{{$dias_domingos}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 <input class="form-control" data-name="{{$mesas_domingos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
             </div>
             <div>
-              <h5>DIAS-MESAS Todos</h5>
-              <div style="display: flex;flex-direction: column;border: 1px solid grey;">
+              <h5>Todos los dias</h5>
+              <div style="display: flex;flex-direction: column;">
                 <input class="form-control" data-name="{{$dias_todos}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 <input class="form-control" data-name="{{$mesas_todos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
             </div>
             <div>
-              <h5>DIAS-MESAS Fijos</h5>
-              <div style="display: flex;flex-direction: column;border: 1px solid grey;">
+              <h5>Fijos</h5>
+              <div style="display: flex;flex-direction: column;">
                 <input class="form-control" data-name="{{$dias_fijos}}" placeholder="DIAS" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 <input class="form-control" data-name="{{$mesas_fijos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>

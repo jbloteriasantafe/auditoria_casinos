@@ -542,7 +542,7 @@ class CanonController extends Controller
     $mesas_viernes_sabados   = $R('mesas_viernes_sabados',0);//@RETORNADO
     $mesas_domingos          = $R('mesas_domingos',0);//@RETORNADO
     $mesas_todos             = $R('mesas_todos',0);//@RETORNADO
-    $mesas_fijos             = $R('mesas_fijos',0);//@RETORNADO
+    $mesas_fijos             = $RD('mesas_fijos',0);//@RETORNADO
         
     $mesas_dias = $dias_lunes_jueves*$mesas_lunes_jueves
     +$dias_viernes_sabados*$mesas_viernes_sabados
