@@ -341,24 +341,24 @@
         <input name="id_canon" class="form-control" data-readonly='[{}]'>
       </div>
     </div>
-    <div class="datos_numericos" style="height: 70vh;overflow-y: scroll;">
-      <div class="tabs" data-js-tabs>
-        <div>
-          <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-total]" tabindex="0">Total</a>
-        </div>
-        <div>
-          <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-canon-variable]" tabindex="0">Canon Variable</a>
-        </div>
-        <div>
-          <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-canon-fijo-mesas]" tabindex="0">Canon Fijo - Mesas</a>
-        </div>
-        <div>
-          <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-canon-fijo-mesas-adicionales]" tabindex="0">Canon Fijo - Mesas Adicionales</a>
-        </div>
-        <div>
-          <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-adjuntos]" tabindex="0">Adjuntos</a>
-        </div>
+    <div class="tabs" data-js-tabs>
+      <div>
+        <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-total]" tabindex="0">Total</a>
       </div>
+      <div>
+        <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-canon-variable]" tabindex="0">Canon Variable</a>
+      </div>
+      <div>
+        <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-canon-fijo-mesas]" tabindex="0">Canon Fijo - Mesas</a>
+      </div>
+      <div>
+        <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-canon-fijo-mesas-adicionales]" tabindex="0">Canon Fijo - Mesas Adicionales</a>
+      </div>
+      <div>
+        <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-adjuntos]" tabindex="0">Adjuntos</a>
+      </div>
+    </div>
+    <div class="datos_numericos" style="height: 70vh;overflow-y: scroll;">
       <div class="pestaña" data-total>
         <div class="bloque_interno">
           <h4>DEVENGADO</h4>

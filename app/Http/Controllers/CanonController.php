@@ -448,7 +448,7 @@ class CanonController extends Controller
       }
       
       if($determinado_fecha_cotizacion === null){
-        $f[2] = '10';
+        $f[2] = '09';
         $f = implode('-',$f);
         $f = new \DateTimeImmutable($f);
         $viernes_anterior = clone $f;
