@@ -1225,15 +1225,17 @@ class CanonController extends Controller
       'Paños' => [['canon_fijo_mesas',null],['canon_fijo_mesas_adicionales',null]],
       'MTM' => [['canon_variable','Maquinas']],
       'Bingo' => [['canon_variable','Bingo']],
-      'Total Fisico' => [['canon_variable','Maquinas'],['canon_variable','Bingo'],['canon_fijo_mesas',null],['canon_fijo_mesas_adicionales',null]],
+      'Total Físico' => [['canon_variable','Maquinas'],['canon_variable','Bingo'],['canon_fijo_mesas',null],['canon_fijo_mesas_adicionales',null]],
       'JOL' => [['canon_variable','JOL']],
       'Total' => [['canon',null]]
     ];
     
+    //Agrupo segun los conceptos
     $datos = [];
     foreach($canons as $casino => $canons_casino){
-      $datos[$casino] = [];
-      foreach($conceptos as $concepto => $matcheables){ 
+      $dcas = [];
+      $max_scale = 2;//Sumo usando la maxima escala posible...
+      foreach($conceptos as $concepto => $matcheables){     
         $acumulado = null;
         foreach($matcheables as $matcheable){
           foreach($canons_casino as $tipo => $canons_casino_tipo){ foreach($canons_casino_tipo as $canon_casino_subtipo){
@@ -1243,37 +1245,58 @@ class CanonController extends Controller
               );
               if(!$matchea) continue;
               
-              $devengado = $canon_casino_subtipo['devengado'] 
-              ?? bcsub($canon_casino_subtipo['devengado_total'],$canon_casino_subtipo['devengado_deduccion'],2);
+              $devengado;
+              if(isset($canon_casino_subtipo['devengado'])){
+                $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo['devengado']));
+                $devengado = $canon_casino_subtipo['devengado'];
+              }
+              else{
+                $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo['devengado_total']));
+                $devengado = bcsub($canon_casino_subtipo['devengado_total'],$canon_casino_subtipo['devengado_deduccion'],$max_scale);
+              }
               
-              $acumulado = bcadd($acumulado ?? '0',$devengado,2);
+              $acumulado = bcadd($acumulado ?? '0',$devengado,$max_scale);
           }}
         }
-        $datos[$casino][$concepto] = $acumulado;
+        $dcas[$concepto] = $acumulado;
+      }
+      
+      //Calculo MTM a partir de los demas redondeados
+      //Esto es asi porque MTM es el mas "aproximado", osea que que este unos centavos arriba o abajo no cambia mucho
+      foreach($dcas as $concepto => $v){
+        $dcas[$concepto] = $v === null? null : bcround_ndigits($v,2);
+      }
+      
+      $valor_MTM_restante = $dcas['Total'];
+      foreach($dcas as $concepto => $vr){
+        if($concepto != 'MTM' && $concepto != 'Total' && $vr !== null){
+          $valor_MTM_restante = bcsub($valor_MTM_restante,$vr,2);
+        }
+      }
+      $dcas['MTM'] = $valor_MTM_restante;
+      
+      $datos[$casino] = $dcas;
+    }
+    
+    {//Agrego una columna Total
+      $total = [];
+      foreach($datos as $casino => $valores_casino){
+        foreach($valores_casino as $concepto => $vr){
+          $total[$concepto] = $total[$concepto] ?? '0.00';
+          $total[$concepto] = bcadd($vr,$total[$concepto],2);
+        }
+      }
+      $datos['Total'] = $total;
+    }
+    
+    foreach($datos as $casino => $valores_casino){//Formateo a español
+      foreach($valores_casino as $concepto => $v){
+        $datos[$casino][$concepto] = $v === null? null : formatear_decimal($v);
       }
     }
     
-    $datos['Total'] = [];
-    foreach($conceptos as $concepto => $_){
-      $accum = '0.00';
-      foreach($canons as $casino => $__){
-        $accum = bcadd(
-          $accum,
-          $datos[$casino][$concepto] ?? '0.00',
-          2
-        );
-      }
-      $datos['Total'][$concepto] = $accum;
-    }
-    
-    foreach($datos as $casino => $datos_casino){
-      foreach($datos_casino as $concepto => $valor_casino_concepto){
-        $datos[$casino][$concepto] = $valor_casino_concepto === null? null : formatear_decimal($valor_casino_concepto);
-      }
-    }
-    
+    $conceptos = array_keys($conceptos);
     $view = View::make('Canon.planillaDevengado', compact('conceptos','mes','datos'));
-    //return $view;
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
