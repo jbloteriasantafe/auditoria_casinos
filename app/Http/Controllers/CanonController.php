@@ -120,12 +120,13 @@ class CanonController extends Controller
       'saldo_anterior' => ['nullable',$numeric_rule(2)],
       'saldo_posterior' => ['nullable',$numeric_rule(2)],
       'canon_variable' => 'array',
+      'canon_variable.*.devengado_bruto' => ['nullable',$numeric_rule(2)],
       'canon_variable.*.devengado_apostado_sistema' => ['nullable',$numeric_rule(2)],
       'canon_variable.*.devengado_apostado_porcentaje_aplicable' => ['nullable',$numeric_rule(4)],
       'canon_variable.*.devengado_apostado_porcentaje_impuesto_ley' => ['nullable',$numeric_rule(4)],
       'canon_variable.*.devengado_deduccion' => ['nullable',$numeric_rule(2)],
+      'canon_variable.*.determinado_bruto' => ['nullable',$numeric_rule(2)],
       'canon_variable.*.determinado_impuesto' => ['nullable',$numeric_rule(2)],
-      'canon_variable.*.bruto' => ['nullable',$numeric_rule(2)],
       'canon_variable.*.alicuota' => ['nullable',$numeric_rule(4)],
       'canon_fijo_mesas' => 'array',
       'canon_fijo_mesas.*.valor_dolar' => ['nullable',$numeric_rule(2)],
@@ -406,9 +407,11 @@ class CanonController extends Controller
     $devengado_deduccion = bcadd($RD('devengado_deduccion','0.00'),'0',2);
     
     return compact('tipo',
-      'alicuota','bruto',
+      'alicuota',
+      'devengado_bruto',
       'devengado_apostado_sistema','devengado_apostado_porcentaje_aplicable','devengado_base_imponible',
       'devengado_apostado_porcentaje_impuesto_ley',
+      'determinado_bruto',
       'devengado_impuesto','determinado_impuesto',
       'devengado_total','devengado_deduccion',
       'devengado_subtotal','determinado_subtotal','determinado_total'
