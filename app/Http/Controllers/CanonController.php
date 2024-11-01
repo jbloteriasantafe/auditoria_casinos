@@ -1171,8 +1171,8 @@ class CanonController extends Controller
       implode("\r\n",$lineas), 
       200, 
       [
-        'Content-Type' => 'text/plain',
-        'Content-Disposition' => 'inline; filename="'.$filename.'"'
+        'Content-Type' => 'text/csv',
+        'Content-Disposition' => 'attachment; filename="'.$filename.'"'
       ]
     );
   }
