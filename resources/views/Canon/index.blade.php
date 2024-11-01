@@ -463,8 +463,8 @@
           $n = function($s) use (&$id_casino,&$t,&$molde_str){
             return "canon_variable[$molde_str][$s]";
           };
-          $bruto = $n('bruto');
           $alicuota = $n('alicuota');
+          $devengado_bruto = $n('devengado_bruto');
           $devengado_apostado_sistema = $n('devengado_apostado_sistema');
           $devengado_apostado_porcentaje_aplicable = $n('devengado_apostado_porcentaje_aplicable');
           $devengado_apostado_porcentaje_impuesto_ley = $n('devengado_apostado_porcentaje_impuesto_ley');
@@ -473,6 +473,7 @@
           $devengado_subtotal = $n('devengado_subtotal');
           $devengado_total = $n('devengado_total');
           $devengado_deduccion = $n('devengado_deduccion');
+          $determinado_bruto = $n('determinado_bruto');
           $determinado_base_imponible = $n('determinado_base_imponible');
           $determinado_impuesto = $n('determinado_impuesto');
           $determinado_subtotal = $n('determinado_subtotal');
@@ -511,11 +512,11 @@
               </div>
               <div style="flex: 1;">
                 <h5>BRUTO</h5>
-                <input class="form-control" data-name="{{$bruto}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="{{$devengado_bruto}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div class="valor_intermedio" style="flex: 1;">
                 <h5>SUBTOTAL</h5>
-                <input class="form-control" data-name="{{$devengado_subtotal}}" data-depende="{{$bruto}},{{$devengado_impuesto}}" data-readonly='[{}]'>
+                <input class="form-control" data-name="{{$devengado_subtotal}}" data-depende="{{$devengado_bruto}},{{$devengado_impuesto}}" data-readonly='[{}]'>
               </div>
               <div style="flex: 1;">
                 <h5>TOTAL</h5>
@@ -544,11 +545,11 @@
               </div>
               <div style="flex: 1;">
                 <h5>BRUTO</h5>
-                <input class="form-control" data-name="{{$bruto}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="{{$determinado_bruto}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div class="valor_intermedio" style="flex: 1;">
                 <h5>SUBTOTAL</h5>
-                <input class="form-control" data-name="{{$determinado_subtotal}}" data-depende="{{$bruto}},{{$determinado_impuesto}}" data-readonly='[{}]'>
+                <input class="form-control" data-name="{{$determinado_subtotal}}" data-depende="{{$determinado_bruto}},{{$determinado_impuesto}}" data-readonly='[{}]'>
               </div>
               <div style="flex: 1;">
                 <h5>TOTAL</h5>

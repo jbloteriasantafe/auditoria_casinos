@@ -392,9 +392,11 @@ class CanonController extends Controller
     $devengado_impuesto = bcmul($devengado_base_imponible,$factor_apostado_porcentaje_impuesto_ley,14);//8+6 @RETORNADO
     $determinado_impuesto =  bcadd($R('determinado_impuesto','0.00'),'0',2);//@RETORNADO
     
-    $bruto = bcadd($R('bruto','0.00'),'0',2);//@RETORNADO
-    $devengado_subtotal = bcsub($bruto,$devengado_impuesto,14);//@RETORNADO
-    $determinado_subtotal = bcsub($bruto,$determinado_impuesto,2);//@RETORNADO
+    $devengado_bruto = bcadd($R('devengado_bruto','0.00'),'0',2);//@RETORNADO
+    $devengado_subtotal = bcsub($devengado_bruto,$devengado_impuesto,14);//@RETORNADO
+    
+    $determinado_bruto = bcadd($R('determinado_bruto','0.00'),'0',2);//@RETORNADO
+    $determinado_subtotal = bcsub($determinado_bruto,$determinado_impuesto,2);//@RETORNADO
     
     $alicuota = bcadd($RD('alicuota','0.0000'),'0',4);//@RETORNADO
     $factor_alicuota = bcdiv($alicuota,'100',6);
