@@ -25,6 +25,9 @@ function formatter(n){
 }
 
 function deformatter(n){
+  const caracteres_validos = /^([0-9]|-|,|\.)$/;
+  n = n.split('').filter(c => caracteres_validos.test(c)).join('');
+  
   return n.replaceAll('.','').replaceAll(',','.');
 }
  
