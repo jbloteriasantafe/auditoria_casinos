@@ -54,6 +54,8 @@ $columnas = count($datos);
     </tr>
     @endforeach
   </table>
+  <br>
+  <p style="text-align: left;font-style: italic;font-size: 0.70em;">La estimación elevada esta sujeta a ajustes que pudiesen corresponder al momento de producirse el ingreso real del Canon correspondiente al numeral 5.1 de los CP 9199, CP 9200, CP 9201, la Ley 14235 y el Dcto 562/24.</p>
 </body>
 
 </html>

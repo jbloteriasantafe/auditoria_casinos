@@ -1381,7 +1381,7 @@ class CanonController extends Controller
       
       $valor_MTM_restante = $dcas['Total'];
       foreach($dcas as $concepto => $vr){
-        if($concepto != 'MTM' && $concepto != 'Total' && $vr !== null){
+        if($concepto != 'MTM' && $concepto != 'Total' && $concepto != 'Total Físico' && $vr !== null){
           $valor_MTM_restante = bcsub($valor_MTM_restante,$vr,2);
         }
       }
