@@ -238,6 +238,8 @@ class CanonController extends Controller
           }
           
           $ret[$tipo] = $this->canon_variable_recalcular(
+            $año_mes,
+            $id_casino,
             $tipo,
             $defecto[$tipo] ?? [],
             $data_request_tipo
@@ -309,6 +311,8 @@ class CanonController extends Controller
           }
           
           $ret[$tipo] = $this->canon_fijo_mesas_adicionales_recalcular(
+            $año_mes,
+            $id_casino,
             $tipo,
             $defecto[$tipo] ?? [],
             $data_request_tipo
@@ -445,7 +449,7 @@ class CanonController extends Controller
     return compact('saldo_anterior','a_pagar','diferencia','saldo_posterior');
   }
   
-  public function canon_variable_recalcular($tipo,$valores_defecto,$data){
+  public function canon_variable_recalcular($año_mes,$id_casino,$tipo,$valores_defecto,$data){
     $R = function($s,$dflt = null) use (&$data){
       return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
     };
@@ -468,10 +472,20 @@ class CanonController extends Controller
     $devengado_impuesto = bcmul($devengado_base_imponible,$factor_apostado_porcentaje_impuesto_ley,14);//8+6 @RETORNADO
     $determinado_impuesto =  bcadd($R('determinado_impuesto','0.00'),'0',2);//@RETORNADO
     
-    $devengado_bruto = bcadd($R('devengado_bruto','0.00'),'0',2);//@RETORNADO
+    $devengado_bruto = $R('devengado_bruto',null);//@RETORNADO
+    if($devengado_bruto === null){
+      $devengado_bruto = $this->bruto($tipo,$año_mes,$id_casino);//@RETORNADO
+    }
+    $devengado_bruto = bcadd($devengado_bruto,'0',2);
+    
     $devengado_subtotal = bcsub($devengado_bruto,$devengado_impuesto,14);//@RETORNADO
     
-    $determinado_bruto = bcadd($R('determinado_bruto','0.00'),'0',2);//@RETORNADO
+    $determinado_bruto = $R('determinado_bruto',null);//@RETORNADO
+    if($determinado_bruto === null){
+      $determinado_bruto = $devengado_bruto;
+    }
+    $determinado_bruto = bcadd($determinado_bruto,'0',2);
+    
     $determinado_subtotal = bcsub($determinado_bruto,$determinado_impuesto,2);//@RETORNADO
     
     $alicuota = bcadd($RD('alicuota','0.0000'),'0',4);//@RETORNADO
@@ -680,7 +694,7 @@ class CanonController extends Controller
     );
   }
   
-  public function canon_fijo_mesas_adicionales_recalcular($tipo,$valores_defecto,$data){
+  public function canon_fijo_mesas_adicionales_recalcular($año_mes,$id_casino,$tipo,$valores_defecto,$data){
     $R = function($s,$dflt = null) use (&$data){
       return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
     };
@@ -1100,7 +1114,44 @@ class CanonController extends Controller
   
   private function cotizacion($fecha_cotizacion,$id_tipo_moneda){
     if(empty($fecha_cotizacion) || empty($id_tipo_moneda)) return null;
-    return null;//@TODO
+    if($id_tipo_moneda == 2){
+      $cotizacion = DB::table('cotizacion as cot')
+      ->where('fecha',$fecha_cotizacion)
+      ->first();
+      return $cotizacion !== null? $cotizacion->valor : null;
+    }
+    return null;//@TODO Euro
+  }
+  
+  private function bruto($tipo,$año_mes,$id_casino){//@TODO: modularizar
+    $año_mes_arr = $año_mes === null? [] : explode('-',$año_mes);
+    switch($tipo){
+      case 'Maquinas':{
+        $resultado = DB::table('beneficio as b')
+        ->selectRaw('SUM(b.valor*IF(b.id_tipo_moneda = 1,1,CAST(cot.valor AS DECIMAL(20,6)))) as valor')
+        ->leftJoin('cotizacion as cot',function($q){
+          return $q->where('b.id_tipo_moneda',2)->on('b.fecha','=','cot.fecha');
+        })
+        ->where('b.id_casino',$id_casino)
+        ->whereYear('b.fecha',$año_mes_arr[0])
+        ->whereMonth('b.fecha',intval($año_mes_arr[1]))
+        ->groupBy(DB::raw('"constant"'))->first();
+        
+        return $resultado === null? $resultado : $resultado->valor;
+      }break;
+      case 'Bingo':{
+        $resultado = DB::table('bingo_importacion as b')
+        ->selectRaw('SUM(b.recaudado-b.premio_bingo-b.premio_linea) as valor')
+        ->where('b.id_casino',$id_casino)
+        ->whereYear('b.fecha',$año_mes_arr[0])
+        ->whereMonth('b.fecha',intval($año_mes_arr[1]))
+        ->groupBy(DB::raw('"constant"'))->first();
+        
+        return $resultado === null? $resultado : $resultado->valor;
+      };
+      case 'JOL': return null;//@TODO JOL
+    }
+    return null;
   }
   
   public function cambiarEstado(Request $request){
