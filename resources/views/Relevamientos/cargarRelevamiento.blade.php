@@ -254,7 +254,7 @@
 @endslot
 
 @slot('pie')
-<button data-js-finalizar-validacion data-js-modo="Validar" data-js-enabled="Validar" type="button" class="btn btn-warningModificar" style="position:absolute;left:20px;">FINALIZAR RELEVAMIENTO</button>
+<button data-js-finalizar-validacion data-js-modo="Validar" data-js-enabled="Validar" type="button" class="btn btn-successAceptar" style="position:absolute;left:20px;">VALIDAR RELEVAMIENTO</button>
 <button data-js-finalizar-carga      data-js-modo="Cargar"  data-js-enabled="Cargar"  type="button" class="btn btn-warningModificar" style="position:absolute;left:20px;">FINALIZAR RELEVAMIENTO</button>
 <button data-js-guardar              data-js-modo="Cargar"  data-js-enabled="Cargar"  type="button" class="btn btn-successAceptar">GUARDAR TEMPORALMENTE</button>
 <button data-js-salir type="button" class="btn btn-default">SALIR</button>
