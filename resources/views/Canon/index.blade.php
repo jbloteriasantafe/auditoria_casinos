@@ -279,12 +279,12 @@
     box-shadow: 0rem 0rem 0.05rem 0.2rem var(--color-fondo-pestaña);
     padding: 0.75rem;
   }
-  .VerCargarCanon .pestaña:hover div.bloque_interno:not(:hover) * {
+  /*.VerCargarCanon .pestaña:hover div.bloque_interno:not(:hover) * {
     opacity: 0.925;
   }
   .VerCargarCanon .pestaña:hover div.bloque_interno:not(:hover) div.valor_intermedio {
     opacity: 0.60;
-  }
+  }*/
   .VerCargarCanon div.valor_intermedio {
     opacity: 0.60;
   }
