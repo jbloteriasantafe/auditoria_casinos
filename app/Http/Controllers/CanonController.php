@@ -1122,7 +1122,8 @@ class CanonController extends Controller
   }
   
   private function bruto($tipo,$año_mes,$id_casino){//@TODO: modularizar
-    $año_mes_arr = $año_mes === null? [] : explode('-',$año_mes);
+    if($año_mes === null || $tipo === null || $id_casino === null) return null;
+    $año_mes_arr = explode('-',$año_mes);
     switch($tipo){
       case 'Maquinas':{
         $resultado = DB::table('beneficio as b')
