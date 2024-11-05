@@ -285,6 +285,18 @@
   .VerCargarCanon div.valor_intermedio:hover {
     opacity: 1.0;
   }
+  
+  .VerCargarCanon .grid_fila_adjunto {
+    display: grid; 
+    grid-template-columns: 20fr 20fr 1fr;
+    grid-template-rows: 1fr; 
+    gap: 0px 0px; 
+    grid-template-areas: 
+      "grid_descripcion grid_archivo grid_boton"; 
+  }
+  .VerCargarCanon .grid_fila_adjunto > .grid_descripcion { grid-area: grid_descripcion; }
+  .VerCargarCanon .grid_fila_adjunto > .grid_archivo { grid-area: grid_archivo; }
+  .VerCargarCanon .grid_fila_adjunto > .grid_boton { grid-area: grid_boton; }
 </style>
 
 @component('Components/modal',[
@@ -968,43 +980,57 @@
         </div>
       </div>
       <div class="pestaña" data-adjuntos>
-        <div class="solo_mostrar_h5_del_primero" style="width: 100%;" data-js-contenedor>
-        </div>
-        <hr>
-        <div style="width: 100%;display: flex;" data-modo-mostrar="NUEVO,EDITAR,ADJUNTAR" data-adjunto>
-          <input data-js-texto-no-formatear-numero class="form-control" placeholder="DESCRIPCIÓN" style="flex: 1;text-align: left;" data-descripcion>
-          <input data-js-texto-no-formatear-numero class="form-control" type="file" style="flex: 1;text-align: center;" data-archivo>
-          <button class="btn" type="button" data-js-agregar-adjunto><i class="fa fa-plus"></i></button>
-        </div>
-        <?php
-          $molde_str = '$adj';
-          $n = function($s) use (&$id_casino,&$t,&$molde_str){
-            return "adjuntos[$molde_str][$s]";
-          };
-          $descripcion = $n('descripcion');
-          $nombre_archivo = $n('nombre_archivo');
-          $id_archivo = $n('id_archivo');
-          $archivo = $n('archivo');
-          $link = $n('link');
-        ?>
-        <div data-js-molde="{{$molde_str}}" data-adjunto hidden>
-          <div style="display: flex;">
-            <div style="flex: 1;">
+        <div class="bloque_interno">
+          <div class="grid_fila_adjunto" style="width: 100%;">
+            <div class="grid_descripcion">
               <h5>DESCRIPCIÓN</h5>
-              <input data-js-texto-no-formatear-numero style="width: 100%;text-align: left;" class="form-control" data-name="{{$descripcion}}" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
             </div>
-            <div style="flex: 1;" data-modo-mostrar="VER,NUEVO,EDITAR,ADJUNTAR">
+            <div class="grid_nombre_archivo">
               <h5>NOMBRE ARCHIVO</h5>
-              <input data-js-texto-no-formatear-numero data-js-click-abrir-val-hermano="[data-es-link]" style="width: 100%;text-align: center;cursor: pointer;" class="form-control" data-name="{{$nombre_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{}]'>
-              <input data-js-texto-no-formatear-numero data-es-link data-name="{{$link}}" data-modo-mostrar="">
             </div>
-            <div data-modo-mostrar="">
+            <div class="grid_boton">
               <h5>&nbsp;</h5>
-              <input data-js-texto-no-formatear-numero style="flex: 1;" class="form-control" data-name="{{$id_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{}]'>
             </div>
-            <div data-modo-mostrar="NUEVO,EDITAR,ADJUNTAR">
-              <h5>&nbsp;</h5>
-              <button class="btn" type="button" data-js-borrar-adjunto><i class="fa fa-fw fa-trash-alt"></i></button>
+          </div>
+          <div style="width: 100%;" data-js-contenedor>
+          </div>
+          <div class="grid_fila_adjunto" style="width: 100%;" data-modo-mostrar="NUEVO,EDITAR,ADJUNTAR" data-adjunto>
+            <div class="grid_descripcion">
+              <input data-js-texto-no-formatear-numero class="form-control" placeholder="DESCRIPCIÓN" style="text-align: left;" data-descripcion>
+            </div>
+            <div class="grid_nombre_archivo">
+              <input data-js-texto-no-formatear-numero class="form-control" type="file" style="text-align: center;" data-archivo>
+            </div>
+            <div class="grid_boton">
+              <button class="btn" type="button" data-js-agregar-adjunto data-modo-mostrar="NUEVO,EDITAR,ADJUNTAR"><i class="fa fa-plus"></i></button>
+            </div>
+          </div>
+          <?php
+            $molde_str = '$adj';
+            $n = function($s) use (&$id_casino,&$t,&$molde_str){
+              return "adjuntos[$molde_str][$s]";
+            };
+            $descripcion = $n('descripcion');
+            $nombre_archivo = $n('nombre_archivo');
+            $id_archivo = $n('id_archivo');
+            $archivo = $n('archivo');
+            $link = $n('link');
+          ?>
+          <div style="width: 100%;" data-js-molde="{{$molde_str}}" data-adjunto data-modo-mostrar="">
+            <div class="grid_fila_adjunto" style="width: 100%;">
+              <div class="grid_descripcion">
+                <input data-js-texto-no-formatear-numero style="width: 100%;text-align: left;" class="form-control" data-name="{{$descripcion}}" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
+              </div>
+              <div class="grid_nombre_archivo">
+                <input data-js-texto-no-formatear-numero data-js-click-abrir-val-hermano="[data-es-link]" style="width: 100%;text-align: center;cursor: pointer;" class="form-control" data-name="{{$nombre_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{}]'>
+                <input data-js-texto-no-formatear-numero data-es-link data-name="{{$link}}" data-modo-mostrar="">
+              </div>
+              <div data-modo-mostrar="">
+                <input data-js-texto-no-formatear-numero style="flex: 1;" class="form-control" data-name="{{$id_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{}]'>
+              </div>
+              <div class="grid_boton">
+                <button class="btn" type="button" data-js-borrar-adjunto data-modo-mostrar="NUEVO,EDITAR"><i class="fa fa-fw fa-trash-alt"></i></button>
+              </div>
             </div>
           </div>
         </div>

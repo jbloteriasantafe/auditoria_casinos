@@ -234,6 +234,7 @@ class CanonController extends Controller
       
       {//Varios tipos (JOL, Bingo, Maquinas)
         $defecto = ($this->valorPorDefecto('canon_variable') ?? [])[$id_casino] ?? [];
+        $ret = [];
         foreach(($request['canon_variable'] ?? $defecto ?? []) as $tipo => $_){
           $data_request_tipo = ($request['canon_variable'] ?? [])[$tipo] ?? [];
           
@@ -262,6 +263,7 @@ class CanonController extends Controller
             
       {//Dos tipos muy parecidos (Fijas y Diarias), se hace asi mas que nada para que sea homogeneo
         $defecto = $this->valorPorDefecto('canon_fijo_mesas')[$id_casino] ?? [];
+        $ret = [];
         foreach(($request['canon_fijo_mesas'] ?? $defecto ?? []) as $tipo => $_){
           $data_request_tipo = ($request['canon_fijo_mesas'] ?? [])[$tipo] ?? [];
           
@@ -291,6 +293,7 @@ class CanonController extends Controller
       }
       {//Las mesas adicionales pueden ser varios tipos (Torneo Truco, Torneo Poker, etc)
         $defecto = $this->valorPorDefecto('canon_fijo_mesas_adicionales')[$id_casino] ?? [];
+        $ret = [];
         foreach(($request['canon_fijo_mesas_adicionales'] ?? $defecto ?? []) as $tipo => $_){
           $data_request_tipo = ($request['canon_fijo_mesas_adicionales'] ?? [])[$tipo] ?? [];
           
