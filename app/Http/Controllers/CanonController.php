@@ -216,12 +216,7 @@ class CanonController extends Controller
     $canon_fijo_mesas = [];//@RETORNADO
     $canon_fijo_mesas_adicionales = [];//@RETORNADO
     
-    if($es_antiguo){
-      $devengado_deduccion = bcadd($R('devengado_deduccion',$devengado_deduccion),'0',2);
-      $devengado_bruto = bcadd($R('devengado_bruto',$devengado_bruto),'0',2);
-      $determinado_bruto = bcadd($R('determinado_bruto',$determinado_bruto),'0',2);
-    }
-    else{
+    {
       //Si falta algun valor... se les asigna el primer valor recibido como por defecto
       $datos_cotizaciones = [
         'devengado_fecha_cotizacion' => null,
@@ -247,6 +242,12 @@ class CanonController extends Controller
             $defecto[$tipo] ?? [],
             $data_request_tipo
           );
+          
+          if($es_antiguo){
+            $ret[$tipo]['devengado_deduccion'] = $data_request_tipo['devengado_deduccion'] ?? '0';
+            $ret[$tipo]['devengado_total'] = $data_request_tipo['devengado_total'] ?? '0';
+            $ret[$tipo]['determinado_total'] = $data_request_tipo['determinado_total'] ?? '0';
+          }
           
           $devengado_deduccion = bcadd($devengado_deduccion,$ret[$tipo]['devengado_deduccion'] ?? '0',2);
           $devengado_bruto = bcadd($devengado_bruto,$ret[$tipo]['devengado_total'] ?? '0',20);
@@ -279,6 +280,12 @@ class CanonController extends Controller
             $data_request_tipo
           );
           
+          if($es_antiguo){
+            $ret[$tipo]['devengado_deduccion'] = $data_request_tipo['devengado_deduccion'] ?? '0';
+            $ret[$tipo]['devengado_total'] = $data_request_tipo['devengado_total'] ?? '0';
+            $ret[$tipo]['determinado_total'] = $data_request_tipo['determinado_total'] ?? '0';
+          }
+          
           $devengado_deduccion = bcadd($devengado_deduccion,$ret[$tipo]['devengado_deduccion'] ?? '0',2);
           $devengado_bruto = bcadd($devengado_bruto,$ret[$tipo]['devengado_total'] ?? '0',20);
           $determinado_bruto = bcadd($determinado_bruto,$ret[$tipo]['determinado_total'] ?? '0',20);
@@ -306,6 +313,12 @@ class CanonController extends Controller
             $defecto[$tipo] ?? [],
             $data_request_tipo
           );
+          
+          if($es_antiguo){
+            $ret[$tipo]['devengado_deduccion'] = $data_request_tipo['devengado_deduccion'] ?? '0';
+            $ret[$tipo]['devengado_total'] = $data_request_tipo['devengado_total'] ?? '0';
+            $ret[$tipo]['determinado_total'] = $data_request_tipo['determinado_total'] ?? '0';
+          }
           
           $devengado_deduccion = bcadd($devengado_deduccion,$ret[$tipo]['devengado_deduccion'] ?? '0',2);
           $devengado_bruto = bcadd($devengado_bruto,$ret[$tipo]['devengado_total'] ?? '0',20);

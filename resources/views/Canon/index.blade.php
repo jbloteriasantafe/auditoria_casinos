@@ -377,11 +377,11 @@
           <div style="width: 100%;display: flex;">
             <div>
               <h5>Bruto</h5>
-              <input class="form-control" name="devengado_bruto" data-readonly='[{"modo": "VER"},{"es_antiguo": 0},{"modo": "ADJUNTAR"}]'>
+              <input class="form-control" name="devengado_bruto" data-readonly='[{}]'>
             </div>
             <div>
               <h5>Deducción</h5>
-              <input class="form-control" name="devengado_deduccion" data-readonly='[{"modo": "VER"},{"es_antiguo": 0},{"modo": "ADJUNTAR"}]'>
+              <input class="form-control" name="devengado_deduccion" data-readonly='[{}]'>
             </div>
             <div>
               <h5>Devengado</h5>
@@ -416,7 +416,7 @@
           <div style="width: 100%;display: flex;">
             <div>
               <h5>Bruto</h5>
-              <input class="form-control" name="determinado_bruto" data-readonly='[{"modo": "VER"},{"es_antiguo": 0},{"modo": "ADJUNTAR"}]'>
+              <input class="form-control" name="determinado_bruto" data-readonly='[{}]'>
             </div>
             <div>
               <h5>Interes Mora</h5>
@@ -428,7 +428,7 @@
             </div>
             <div>
               <h5>Determinado</h5>
-              <input class="form-control" name="determinado" data-depende="interes_mora,mora,fecha_pago,fecha_vencimiento" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              <input class="form-control" name="determinado" data-depende="determinado_bruto,interes_mora,mora,fecha_pago,fecha_vencimiento" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
           </div>
         </div>
@@ -443,7 +443,7 @@
           <div style="width: 100%;display: flex;">
             <div>
               <h5>A PAGAR</h5>
-              <input class="form-control" name="a_pagar" data-readonly='[{}]'>
+              <input class="form-control" name="a_pagar" data-readonly='[{}]' data-depende="saldo_anterior,determinado">
             </div>
             <div>
               <h5>PAGO</h5>
@@ -491,7 +491,6 @@
           $determinado_subtotal = $n('determinado_subtotal');
           $determinado_total = $n('determinado_total');
         ?>
-        <!-- @TODO: usar GRID en vez de divs vacios -->
         <div class="bloque_interno" data-js-molde="{{$molde_str}}" hidden>
           <h6 data-titulo>TITULO CANON VARIABLE</h6>
           <div class="bloque_interno" style="width: 100%;display: flex;">
@@ -533,7 +532,7 @@
                 </div>
                 <div style="grid-area: grid_bruto">
                   <h5>BRUTO</h5>
-                  <input class="form-control" data-name="{{$devengado_bruto}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="{{$devengado_bruto}}" data-depende="id_casino,es_antiguo" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
                 <div style="grid-area: grid_subtotal" class="valor_intermedio">
                   <h5>SUBTOTAL</h5>
@@ -541,7 +540,7 @@
                 </div>
                 <div style="grid-area: grid_total">
                   <h5>TOTAL</h5>
-                  <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_subtotal}},{{$alicuota}}" data-readonly='[{}]'>
+                  <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_subtotal}},{{$alicuota}}" data-readonly='[{"es_antiguo": 0},{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
                 <div style="grid-area: grid_deduccion">
                   <h5>DEDUCCIÓN</h5>
@@ -565,7 +564,7 @@
                 </div>
                 <div style="grid-area: grid_bruto">
                   <h5>BRUTO</h5>
-                  <input class="form-control" data-name="{{$determinado_bruto}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="{{$determinado_bruto}}" data-depende="id_casino,es_antiguo" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
                 <div style="grid-area: grid_subtotal" class="valor_intermedio">
                   <h5>SUBTOTAL</h5>
@@ -573,7 +572,7 @@
                 </div>
                 <div style="grid-area: grid_total">
                   <h5>TOTAL</h5>
-                  <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_subtotal}},{{$alicuota}}" data-readonly='[{}]'>
+                  <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_subtotal}},{{$alicuota}}" data-readonly='[{"es_antiguo": 0},{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
                 <div style="grid-area: grid_deduccion">
                 </div>
@@ -749,7 +748,7 @@
                 </div>
                 <div>
                   <h5>TOTAL</h5>
-                  <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_total_dolar_cotizado}},{{$devengado_total_euro_cotizado}}" data-readonly='[{}]'>
+                  <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_total_dolar_cotizado}},{{$devengado_total_euro_cotizado}}" data-readonly='[{"es_antiguo": 0},{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
                 <div>
                   <h5>DEDUCCIÓN</h5>
@@ -808,7 +807,7 @@
                 </div>
                 <div>
                   <h5>TOTAL</h5>
-                  <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_total_dolar_cotizado}},{{$determinado_total_euro_cotizado}}" data-readonly='[{}]'>
+                  <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_total_dolar_cotizado}},{{$determinado_total_euro_cotizado}}" data-readonly='[{"es_antiguo": 0},{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
               </div>
             </div>
@@ -927,7 +926,7 @@
               <div style="display: flex;">
                 <div>
                   <h5>TOTAL</h5>
-                  <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_valor_mes}},{{$devengado_valor_dia}},{{$devengado_valor_hora}},{{$horas}},{{$porcentaje}}" data-readonly='[{}]'>
+                  <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_valor_mes}},{{$devengado_valor_dia}},{{$devengado_valor_hora}},{{$horas}},{{$porcentaje}}" data-readonly='[{"es_antiguo": 0},{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
                 <div>
                   <h5>DEDUCCIÓN</h5>
@@ -972,7 +971,7 @@
               <div style="display: flex;">
                 <div>
                   <h5>TOTAL</h5>
-                  <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_valor_mes}},{{$determinado_valor_dia}},{{$determinado_valor_hora}},{{$horas}},{{$porcentaje}}" data-readonly='[{}]'>
+                  <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_valor_mes}},{{$determinado_valor_dia}},{{$determinado_valor_hora}},{{$horas}},{{$porcentaje}}" data-readonly='[{"es_antiguo": 0},{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
               </div>
             </div>
