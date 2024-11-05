@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-
-
 use Illuminate\Http\Request;
 use Validator;
 use Illuminate\Support\Facades\DB;
@@ -56,7 +54,7 @@ class CanonController extends Controller
 {
   static $valoresDefecto_fallback = [
     'canon_variable' => '{"1":{"Maquinas":{"alicuota":"21","devengado_deduccion":"250000"},"Bingo":{"alicuota":"35"}},"2":{"Maquinas":{"alicuota":"25","devengado_deduccion":"500000"},"Bingo":{"alicuota":"55"},"JOL":{"alicuota":"15","devengado_deduccion":"100000"}},"3":{"Maquinas":{"alicuota":"20.56","devengado_apostado_porcentaje_aplicable":"19","devengado_apostado_porcentaje_impuesto_ley":"0.95","devengado_deduccion":"1000000"},"Bingo":{"alicuota":"78.5"},"JOL":{"alicuota":"15","devengado_deduccion":"100000"}}}',
-    'canon_fijo_mesas' => '{"1":{"Fijas":{"valor_dolar":"1973.92","valor_euro":"2135.92","dias_valor":30,"calcular_dias_lunes_jueves":false,"calcular_dias_viernes_sabados":false,"calcular_dias_domingos":false,"calcular_dias_todos":false,"dias_fijos":30,"mesas_fijos":15,"devengado_deduccion":"60000"}},"2":{"Diarias":{"valor_dolar":"3287.21","valor_euro":"3215.91","dias_valor":30,"calcular_dias_lunes_jueves":true,"calcular_dias_viernes_sabados":true,"calcular_dias_domingos":true,"calcular_dias_todos":true,"dias_fijos":0,"devengado_deduccion":"120000"}},"3":{"Diarias":{"valor_dolar":"2881.51","valor_euro":"2569.56","dias_valor":30,"calcular_dias_lunes_jueves":true,"calcular_dias_viernes_sabados":true,"calcular_dias_domingos":true,"calcular_dias_todos":true,"dias_fijos":0,"devengado_deduccion":"240000"}}}',
+    'canon_fijo_mesas' => '{"1":{"Fijas":{"valor_dolar":"1973.92","valor_euro":"2135.92","dias_valor":30,"calcular_dias_lunes_jueves":false,"calcular_dias_viernes_sabados":false,"calcular_dias_domingos":false,"calcular_dias_todos":false,"dias_fijos":30,"mesas_fijos":15,"devengado_deduccion":"60000"}},"2":{"Diarias":{"valor_dolar":"3287.21","valor_euro":"3215.91","dias_valor":30,"calcular_dias_lunes_jueves":true,"calcular_dias_viernes_sabados":true,"calcular_dias_domingos":true,"calcular_dias_todos":true,"dias_fijos":0,"devengado_deduccion":"120000","mesas_lunes_jueves":16,"mesas_viernes_sabados":25,"mesas_domingos":21}},"3":{"Diarias":{"valor_dolar":"2881.51","valor_euro":"2569.56","dias_valor":30,"calcular_dias_lunes_jueves":true,"calcular_dias_viernes_sabados":true,"calcular_dias_domingos":true,"calcular_dias_todos":true,"dias_fijos":0,"devengado_deduccion":"240000","mesas_lunes_jueves":40,"mesas_viernes_sabados":50,"mesas_domingos":45}}}',
     'canon_fijo_mesas_adicionales' => '{"1":{"Mesas Adicionales de Póker":{"valor_dolar":"1973.92","valor_euro":"2135.92","dias_mes":30,"horas_dia":16,"porcentaje":"100"},"Torneos de Póker y RA":{"valor_dolar":"1973.92","valor_euro":"2135.92","dias_mes":30,"horas_dia":16,"porcentaje":"100"},"Torneos de Truco":{"valor_dolar":"1973.92","valor_euro":"2135.92","dias_mes":30,"horas_dia":16,"porcentaje":"20"}},"2":{"Mesas Adicionales de Póker":{"valor_dolar":"3287.21","valor_euro":"3215.91","dias_mes":30,"horas_dia":24,"porcentaje":"100"},"Torneos":{"valor_dolar":"3287.21","valor_euro":"3215.91","dias_mes":30,"horas_dia":24,"porcentaje":"100"}},"3":{"Mesas Adicionales de Póker":{"valor_dolar":"2881.51","valor_euro":"2569.56","dias_mes":30,"horas_dia":17,"porcentaje":"100"},"Torneos":{"valor_dolar":"2881.51","valor_euro":"2569.56","dias_mes":30,"horas_dia":17,"porcentaje":"100"}}}',
   ];
   static $max_scale = 64;
@@ -632,10 +630,10 @@ class CanonController extends Controller
       $dias_todos = $R('dias_todos',$wdmin_wdmax_count_arr['dias_todos'][2]);
     }
     
-    $mesas_lunes_jueves      = $R('mesas_lunes_jueves',0);//@RETORNADO
-    $mesas_viernes_sabados   = $R('mesas_viernes_sabados',0);//@RETORNADO
-    $mesas_domingos          = $R('mesas_domingos',0);//@RETORNADO
-    $mesas_todos             = $R('mesas_todos',0);//@RETORNADO
+    $mesas_lunes_jueves      = $RD('mesas_lunes_jueves',0);//@RETORNADO
+    $mesas_viernes_sabados   = $RD('mesas_viernes_sabados',0);//@RETORNADO
+    $mesas_domingos          = $RD('mesas_domingos',0);//@RETORNADO
+    $mesas_todos             = $RD('mesas_todos',0);//@RETORNADO
     $mesas_fijos             = $RD('mesas_fijos',0);//@RETORNADO
         
     $mesas_dias = $dias_lunes_jueves*$mesas_lunes_jueves
