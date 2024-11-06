@@ -1112,13 +1112,83 @@ class CanonController extends Controller
   
   private function cotizacion($fecha_cotizacion,$id_tipo_moneda){
     if(empty($fecha_cotizacion) || empty($id_tipo_moneda)) return null;
-    if($id_tipo_moneda == 2){
+    if($id_tipo_moneda == 1){
+      return 1;
+    }
+    if($id_tipo_moneda == 2){//Busco en las cotizaciones de los auditores
       $cotizacion = DB::table('cotizacion as cot')
       ->where('fecha',$fecha_cotizacion)
       ->first();
-      return $cotizacion !== null? $cotizacion->valor : null;
+      if($cotizacion !== null){
+        return $cotizacion->valor;
+      }
     }
-    return null;//@TODO Euro
+    if($id_tipo_moneda == 2 || $id_tipo_moneda == 3){//Busco en otros canons
+      $fecha_cotizacion_arr = explode('-',$fecha_cotizacion);
+      if($fecha_cotizacion_arr[1] == '01'){
+        $fecha_cotizacion_arr[0] = str_pad(intval($fecha_cotizacion_arr[0])-1,4,'0',STR_PAD_LEFT);
+        $fecha_cotizacion_arr[1] = '12';
+      }
+      else{
+        $fecha_cotizacion_arr[1] = str_pad(intval($fecha_cotizacion_arr[1])-1,2,'0',STR_PAD_LEFT);
+      }
+      $fecha_cotizacion_arr[2] = '01';
+      
+      $q_base = DB::table('canon as c')
+      ->whereNull('c.deleted_at')
+      ->where('c.año_mes',implode('-',$fecha_cotizacion_arr));//Para buscar entre menos
+      
+      $q_cfm = (clone $q_base)
+      ->leftJoin('canon_fijo_mesas as cfm','cfm.id_canon','=','c.id_canon');
+      $q_cfma = (clone $q_base)
+      ->leftJoin('canon_fijo_mesas_adicionales as cfma','cfma.id_canon','=','c.id_canon');
+      
+      $qs = [ 
+        (clone $q_cfm)
+        ->selectRaw('
+          NULLIF(devengado_cotizacion_dolar,"0") as moneda_2,
+          NULLIF(devengado_cotizacion_euro,"0") as moneda_3'
+        )
+        ->where('devengado_fecha_cotizacion','=',$fecha_cotizacion),
+        (clone $q_cfma)
+        ->selectRaw('
+          NULLIF(devengado_cotizacion_dolar,"0") as moneda_2,
+          NULLIF(devengado_cotizacion_euro,"0") as moneda_3'
+        )
+        ->where('devengado_fecha_cotizacion','=',$fecha_cotizacion),
+        (clone $q_cfm)
+        ->selectRaw('
+          NULLIF(determinado_cotizacion_dolar,"0") as moneda_2,
+          NULLIF(determinado_cotizacion_euro,"0") as moneda_3'
+        )
+        ->where('determinado_fecha_cotizacion','=',$fecha_cotizacion),
+        (clone $q_cfma)
+        ->selectRaw('
+          NULLIF(determinado_cotizacion_dolar,"0") as moneda_2,
+          NULLIF(determinado_cotizacion_euro,"0") as moneda_3'
+        )
+        ->where('determinado_fecha_cotizacion','=',$fecha_cotizacion)
+      ];
+      
+      $k = 'moneda_'.$id_tipo_moneda;
+      $ret_val = null;
+      foreach($qs as $q){
+        $vals = $q->get();
+        foreach($vals as $v){
+          $newval = $v->{$k} ?? null;
+          if($ret_val === null){
+            $ret_val = $newval;
+          }
+          else{
+            if($newval !== null && $newval != $ret_val){//Colision entre valores distintos
+              return null;
+            }
+          }
+        }
+      }
+      return $ret_val;
+    }
+    return null;
   }
   
   private function bruto($tipo,$año_mes,$id_casino){//@TODO: modularizar
