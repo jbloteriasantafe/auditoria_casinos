@@ -115,8 +115,14 @@ class CanonController extends Controller
       'determinado' => ['nullable',$numeric_rule(2)],
       'ajuste' => ['nullable',$numeric_rule(2)],
       'motivo_ajuste' => ['nullable','string','max:128'],
-      'saldo_anterior' => ['nullable',$numeric_rule(2)],
-      'saldo_posterior' => ['nullable',$numeric_rule(2)],
+      'devengado_fecha_cotizacion' => ['nullable','date'],
+      
+      'devengado_cotizacion_dolar' => ['nullable',$numeric_rule(2)],
+      'devengado_cotizacion_euro' => ['nullable',$numeric_rule(2)],
+      'determinado_fecha_cotizacion' => ['nullable','date'],
+      'determinado_cotizacion_dolar' => ['nullable',$numeric_rule(2)],
+      'determinado_cotizacion_euro' => ['nullable',$numeric_rule(2)],
+      
       'canon_variable' => 'array',
       'canon_variable.*.devengado_bruto' => ['nullable',$numeric_rule(2)],
       'canon_variable.*.devengado_apostado_sistema' => ['nullable',$numeric_rule(2)],
@@ -140,26 +146,14 @@ class CanonController extends Controller
       'canon_fijo_mesas.*.mesas_todos' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas.*.dias_fijos' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas.*.mesas_fijos' => ['nullable',$numeric_rule(0)],
-      'canon_fijo_mesas.*.devengado_fecha_cotizacion' => ['nullable','date'],
-      'canon_fijo_mesas.*.devengado_cotizacion_dolar' => ['nullable',$numeric_rule(2)],
-      'canon_fijo_mesas.*.devengado_cotizacion_euro' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas.*.devengado_deduccion' => ['nullable',$numeric_rule(2)],
-      'canon_fijo_mesas.*.determinado_fecha_cotizacion' => ['nullable','date'],
-      'canon_fijo_mesas.*.determinado_cotizacion_dolar' => ['nullable',$numeric_rule(2)],
-      'canon_fijo_mesas.*.determinado_cotizacion_euro' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas_adicionales' => 'array',
       'canon_fijo_mesas_adicionales.*.dias_mes' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas_adicionales.*.horas_dia' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas_adicionales.*.horas' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas_adicionales.*.mesas' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas_adicionales.*.porcentaje' => ['nullable',$numeric_rule(4)],
-      'canon_fijo_mesas_adicionales.*.devengado_fecha_cotizacion' => ['nullable','date'],
-      'canon_fijo_mesas_adicionales.*.devengado_cotizacion_dolar' => ['nullable',$numeric_rule(2)],
-      'canon_fijo_mesas_adicionales.*.devengado_cotizacion_euro' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas_adicionales.*.devengado_deduccion' => ['nullable',$numeric_rule(2)],
-      'canon_fijo_mesas_adicionales.*.determinado_fecha_cotizacion' => ['nullable','date'],
-      'canon_fijo_mesas_adicionales.*.determinado_cotizacion_dolar' => ['nullable',$numeric_rule(2)],
-      'canon_fijo_mesas_adicionales.*.determinado_cotizacion_euro' => ['nullable',$numeric_rule(2)],
       'adjuntos' => 'array',
       'adjuntos.*.descripcion' => ['nullable','string','max:256'],
       'adjuntos.*.id_archivo'  => ['nullable','integer','exists:archivo,id_archivo'],
@@ -214,33 +208,61 @@ class CanonController extends Controller
     $canon_fijo_mesas = [];//@RETORNADO
     $canon_fijo_mesas_adicionales = [];//@RETORNADO
     
-    {
-      //Si falta algun valor... se les asigna el primer valor recibido como por defecto
-      $datos_cotizaciones = [
-        'devengado_fecha_cotizacion' => null,
-        'devengado_cotizacion_dolar' => null,
-        'devengado_cotizacion_euro' => null,
-        'determinado_fecha_cotizacion' => null,
-        'determinado_cotizacion_dolar' => null,
-        'determinado_cotizacion_euro' => null,
-      ];
+    $COT = [
+      'devengado_fecha_cotizacion'   => $R('devengado_fecha_cotizacion',null),
+      'devengado_cotizacion_dolar'   => $R('devengado_cotizacion_dolar',null),
+      'devengado_cotizacion_euro'    => $R('devengado_cotizacion_euro',null),
+      'determinado_fecha_cotizacion' => $R('determinado_fecha_cotizacion',null),
+      'determinado_cotizacion_dolar' => $R('determinado_cotizacion_dolar',null),
+      'determinado_cotizacion_euro'  => $R('determinado_cotizacion_euro',null),
+    ];
+    
+    if($año_mes !== null && $año_mes !== '' && ($COT['devengado_fecha_cotizacion'] === null || $COT['determinado_fecha_cotizacion'] === null)){
+      $f = explode('-',$año_mes);
       
+      $f[0] = $f[1] == '12'? intval($f[0])+1 : $f[0];
+      $f[1] = $f[1] == '12'? '01' : str_pad(intval($f[1])+1,2,'0',STR_PAD_LEFT);
+      
+      if($COT['devengado_fecha_cotizacion'] === null){
+        $COT['devengado_fecha_cotizacion'] = implode('-',$f);
+      }
+      
+      if($COT['determinado_fecha_cotizacion'] === null){
+        $f[2] = '09';
+        $f = implode('-',$f);
+        $f = new \DateTimeImmutable($f);
+        $viernes_anterior = clone $f;
+        for($break = 9;$break > 0 && in_array($viernes_anterior->format('w'),['0','6']);$break--){
+          $viernes_anterior = $viernes_anterior->sub(\DateInterval::createFromDateString('1 day'));
+        }
+        $COT['determinado_fecha_cotizacion'] = $viernes_anterior->format('Y-m-d');//@RETORNADO
+      }
+    }
+    
+    if($COT['devengado_fecha_cotizacion'] !== null){
+      $COT['devengado_cotizacion_dolar'] = $COT['devengado_cotizacion_dolar'] ?? $this->cotizacion($COT['devengado_fecha_cotizacion'],2);
+      $COT['devengado_cotizacion_euro']  = $COT['devengado_cotizacion_euro']  ?? $this->cotizacion($COT['devengado_fecha_cotizacion'],3);
+    }
+    
+    if($COT['determinado_fecha_cotizacion'] !== null){
+      $COT['determinado_cotizacion_dolar'] = $COT['determinado_cotizacion_dolar'] ?? $this->cotizacion($COT['determinado_fecha_cotizacion'],2);
+      $COT['determinado_cotizacion_euro']  = $COT['determinado_cotizacion_euro']  ?? $this->cotizacion($COT['determinado_fecha_cotizacion'],3);
+    }
+    
+    {
       {//Varios tipos (JOL, Bingo, Maquinas)
         $defecto = ($this->valorPorDefecto('canon_variable') ?? [])[$id_casino] ?? [];
         $ret = [];
         foreach(($request['canon_variable'] ?? $defecto ?? []) as $tipo => $_){
           $data_request_tipo = ($request['canon_variable'] ?? [])[$tipo] ?? [];
-          
-          foreach($datos_cotizaciones as $k => $v){
-            $data_request_tipo[$k] = $data_request_tipo[$k] ?? $v;
-          }
-          
+                    
           $ret[$tipo] = $this->canon_variable_recalcular(
             $año_mes,
             $id_casino,
             $tipo,
             $defecto[$tipo] ?? [],
-            $data_request_tipo
+            $data_request_tipo,
+            $COT
           );
           
           if($es_antiguo){
@@ -252,32 +274,24 @@ class CanonController extends Controller
           $devengado_deduccion = bcadd($devengado_deduccion,$ret[$tipo]['devengado_deduccion'] ?? '0',2);
           $devengado_bruto = bcadd($devengado_bruto,$ret[$tipo]['devengado_total'] ?? '0',20);
           $determinado_bruto = bcadd($determinado_bruto,$ret[$tipo]['determinado_total'] ?? '0',20);
-          
-          foreach($datos_cotizaciones as $k => $v){
-            $datos_cotizaciones[$k] = $datos_cotizaciones[$k] ?? $ret[$tipo][$k] ?? null;
-          }
         }
         
         $canon_variable = $ret;
         unset($ret);
       }
-            
       {//Dos tipos muy parecidos (Fijas y Diarias), se hace asi mas que nada para que sea homogeneo
         $defecto = $this->valorPorDefecto('canon_fijo_mesas')[$id_casino] ?? [];
         $ret = [];
         foreach(($request['canon_fijo_mesas'] ?? $defecto ?? []) as $tipo => $_){
           $data_request_tipo = ($request['canon_fijo_mesas'] ?? [])[$tipo] ?? [];
           
-          foreach($datos_cotizaciones as $k => $v){
-            $data_request_tipo[$k] = $data_request_tipo[$k] ?? $v;
-          }
-          
           $ret[$tipo] = $this->canon_fijo_mesas_recalcular(
             $año_mes,
             $id_casino,
             $tipo,
             $defecto[$tipo] ?? [],
-            $data_request_tipo
+            $data_request_tipo,
+            $COT
           );
           
           if($es_antiguo){
@@ -289,10 +303,6 @@ class CanonController extends Controller
           $devengado_deduccion = bcadd($devengado_deduccion,$ret[$tipo]['devengado_deduccion'] ?? '0',2);
           $devengado_bruto = bcadd($devengado_bruto,$ret[$tipo]['devengado_total'] ?? '0',20);
           $determinado_bruto = bcadd($determinado_bruto,$ret[$tipo]['determinado_total'] ?? '0',20);
-          
-          foreach($datos_cotizaciones as $k => $v){
-            $datos_cotizaciones[$k] = $datos_cotizaciones[$k] ?? $ret[$tipo][$k] ?? null;
-          }
         }
         
         $canon_fijo_mesas = $ret;
@@ -304,16 +314,13 @@ class CanonController extends Controller
         foreach(($request['canon_fijo_mesas_adicionales'] ?? $defecto ?? []) as $tipo => $_){
           $data_request_tipo = ($request['canon_fijo_mesas_adicionales'] ?? [])[$tipo] ?? [];
           
-          foreach($datos_cotizaciones as $k => $v){
-            $data_request_tipo[$k] = $data_request_tipo[$k] ?? $v;
-          }
-          
           $ret[$tipo] = $this->canon_fijo_mesas_adicionales_recalcular(
             $año_mes,
             $id_casino,
             $tipo,
             $defecto[$tipo] ?? [],
-            $data_request_tipo
+            $data_request_tipo,
+            $COT
           );
           
           if($es_antiguo){
@@ -325,16 +332,20 @@ class CanonController extends Controller
           $devengado_deduccion = bcadd($devengado_deduccion,$ret[$tipo]['devengado_deduccion'] ?? '0',2);
           $devengado_bruto = bcadd($devengado_bruto,$ret[$tipo]['devengado_total'] ?? '0',20);
           $determinado_bruto = bcadd($determinado_bruto,$ret[$tipo]['determinado_total'] ?? '0',20);
-          
-          foreach($datos_cotizaciones as $k => $v){
-            $datos_cotizaciones[$k] = $datos_cotizaciones[$k] ?? $ret[$tipo][$k] ?? null;
-          }
         }
         
         $canon_fijo_mesas_adicionales = $ret;
         unset($ret);
       }
     }
+    
+    $COT = $this->confluir_datos_cotizacion(compact('canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales'));
+    $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'];
+    $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'];
+    $devengado_cotizacion_euro  = $COT['devengado_cotizacion_euro'];
+    $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'];
+    $determinado_cotizacion_dolar = $COT['determinado_cotizacion_dolar'];
+    $determinado_cotizacion_euro  = $COT['determinado_cotizacion_euro'];
     
     $devengado = bcround_ndigits(bcsub($devengado_bruto,$devengado_deduccion,20),2);//@RETORNADO
     
@@ -396,7 +407,6 @@ class CanonController extends Controller
       }
     }
     
-    
     $pago = bcadd($R('pago','0.00'),'0',2);//@RETORNADO
     $ajuste = bcadd($R('ajuste','0.00'),'0',2);//@RETORNADO
     $motivo_ajuste = $R('motivo_ajuste','');
@@ -411,6 +421,8 @@ class CanonController extends Controller
     return compact(
       'año_mes','id_casino','estado','es_antiguo',
       'canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales','adjuntos',
+      'devengado_fecha_cotizacion','devengado_cotizacion_dolar','devengado_cotizacion_euro',
+      'determinado_fecha_cotizacion','determinado_cotizacion_dolar','determinado_cotizacion_euro',
       'devengado_bruto','devengado_deduccion','devengado','porcentaje_seguridad',
       'determinado_bruto','fecha_vencimiento','fecha_pago','interes_mora','mora',
       'determinado','saldo_anterior','a_pagar','pago','ajuste','motivo_ajuste','diferencia','saldo_posterior'
@@ -447,7 +459,7 @@ class CanonController extends Controller
     return compact('saldo_anterior','a_pagar','diferencia','saldo_posterior');
   }
   
-  public function canon_variable_recalcular($año_mes,$id_casino,$tipo,$valores_defecto,$data){
+  public function canon_variable_recalcular($año_mes,$id_casino,$tipo,$valores_defecto,$data,$COT){
     $R = function($s,$dflt = null) use (&$data){
       return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
     };
@@ -510,7 +522,8 @@ class CanonController extends Controller
       $id_casino,
       $tipo,//@RETORNADO
       $valores_defecto,
-      $data
+      $data,
+      $COT
   ){
     $R = function($s,$dflt = null) use (&$data){
       return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
@@ -522,47 +535,12 @@ class CanonController extends Controller
       return $R($s,null) ?? $D($s,null) ?? $dflt;
     };
     
-    $devengado_fecha_cotizacion = $R('devengado_fecha_cotizacion',null);//@RETORNADO
-    $determinado_fecha_cotizacion = $R('determinado_fecha_cotizacion',null);//@RETORNADO
-    if($año_mes !== null && $año_mes !== '' && ($devengado_fecha_cotizacion === null || $determinado_fecha_cotizacion === null)){
-      $f = explode('-',$año_mes);
-      
-      $f[0] = $f[1] == '12'? intval($f[0])+1 : $f[0];
-      $f[1] = $f[1] == '12'? '01' : str_pad(intval($f[1])+1,2,'0',STR_PAD_LEFT);
-      
-      if($devengado_fecha_cotizacion === null){
-        $devengado_fecha_cotizacion = implode('-',$f);
-      }
-      
-      if($determinado_fecha_cotizacion === null){
-        $f[2] = '09';
-        $f = implode('-',$f);
-        $f = new \DateTimeImmutable($f);
-        $viernes_anterior = clone $f;
-        for($break = 9;$break > 0 && in_array($viernes_anterior->format('w'),['0','6']);$break--){
-          $viernes_anterior = $viernes_anterior->sub(\DateInterval::createFromDateString('1 day'));
-        }
-        $determinado_fecha_cotizacion = $viernes_anterior->format('Y-m-d');//@RETORNADO
-      }
-    }
-    
-    $devengado_cotizacion_dolar = bcadd($R(
-      'devengado_cotizacion_dolar',
-      $devengado_fecha_cotizacion !== null? ($this->cotizacion($devengado_fecha_cotizacion,2) ?? '0.00') : '0.00'
-    ),'0',2);//@RETORNADO
-    $devengado_cotizacion_euro = bcadd($R(
-      'devengado_cotizacion_euro',
-      $devengado_fecha_cotizacion !== null? ($this->cotizacion($devengado_fecha_cotizacion,3) ?? '0.00') : '0.00'
-    ),'0',2);//@RETORNADO
-    
-    $determinado_cotizacion_dolar = bcadd($R(
-      'determinado_cotizacion_dolar',
-      $determinado_fecha_cotizacion !== null? ($this->cotizacion($determinado_fecha_cotizacion,2) ?? '0.00') : '0.00'
-    ),'0',2);//@RETORNADO
-    $determinado_cotizacion_euro = bcadd($R(
-      'determinado_cotizacion_euro',
-      $determinado_fecha_cotizacion !== null? ($this->cotizacion($determinado_fecha_cotizacion,3) ?? '0.00') : '0.00'
-    ),'0',2);//@RETORNADO
+    $devengado_fecha_cotizacion = $R('devengado_fecha_cotizacion',$COT['devengado_fecha_cotizacion'] ?? null);//@RETORNADO
+    $determinado_fecha_cotizacion = $R('determinado_fecha_cotizacion',$COT['determinado_fecha_cotizacion'] ?? null);//@RETORNADO
+    $devengado_cotizacion_dolar = bcadd($R('devengado_cotizacion_dolar',$COT['devengado_cotizacion_dolar'] ?? null),'0',2);//@RETORNADO
+    $devengado_cotizacion_euro = bcadd($R('devengado_cotizacion_euro',$COT['devengado_cotizacion_euro'] ?? null),'0',2);//@RETORNADO
+    $determinado_cotizacion_dolar = bcadd($R('determinado_cotizacion_dolar',$COT['determinado_cotizacion_dolar'] ?? null),'0',2);//@RETORNADO
+    $determinado_cotizacion_euro = bcadd($R('determinado_cotizacion_euro',$COT['determinado_cotizacion_euro'] ?? null),'0',2);//@RETORNADO
     
     $valor_dolar = '0.00';//@RETORNADO
     $valor_euro  = '0.00';//@RETORNADO
@@ -692,7 +670,7 @@ class CanonController extends Controller
     );
   }
   
-  public function canon_fijo_mesas_adicionales_recalcular($año_mes,$id_casino,$tipo,$valores_defecto,$data){
+  public function canon_fijo_mesas_adicionales_recalcular($año_mes,$id_casino,$tipo,$valores_defecto,$data,$COT){
     $R = function($s,$dflt = null) use (&$data){
       return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
     };
@@ -714,26 +692,13 @@ class CanonController extends Controller
     $horas = $R('horas',0);//@RETORNADO
     $porcentaje = bcadd($RD('porcentaje','0.0000'),'0',4);//@RETORNADO
     $factor_porcentaje = bcdiv($porcentaje,'100',6);
-    
-    $devengado_fecha_cotizacion = $R('devengado_fecha_cotizacion',null);//@RETORNADO
-    $devengado_cotizacion_dolar = bcadd($R(
-      'devengado_cotizacion_dolar',
-      $devengado_fecha_cotizacion !== null? ($this->cotizacion($devengado_fecha_cotizacion,2) ?? '0.00') : '0.00'
-    ),'0',2);//@RETORNADO
-    $devengado_cotizacion_euro = bcadd($R(
-      'devengado_cotizacion_euro',
-      $devengado_fecha_cotizacion !== null? ($this->cotizacion($devengado_fecha_cotizacion,3) ?? '0.00') : '0.00'
-    ),'0',2);//@RETORNADO
-    
-    $determinado_fecha_cotizacion = $R('determinado_fecha_cotizacion',null);//@RETORNADO
-    $determinado_cotizacion_dolar = bcadd($R(
-      'determinado_cotizacion_dolar',
-      $determinado_fecha_cotizacion !== null? ($this->cotizacion($determinado_fecha_cotizacion,2) ?? '0.00') : '0.00'
-    ),'0',2);//@RETORNADO
-    $determinado_cotizacion_euro = bcadd($R(
-      'determinado_cotizacion_euro',
-      $determinado_fecha_cotizacion !== null? ($this->cotizacion($determinado_fecha_cotizacion,3) ?? '0.00') : '0.00'
-    ),'0',2);//@RETORNADO
+        
+    $devengado_fecha_cotizacion = $R('devengado_fecha_cotizacion',$COT['devengado_fecha_cotizacion'] ?? null);//@RETORNADO
+    $determinado_fecha_cotizacion = $R('determinado_fecha_cotizacion',$COT['determinado_fecha_cotizacion'] ?? null);//@RETORNADO
+    $devengado_cotizacion_dolar = bcadd($R('devengado_cotizacion_dolar',$COT['devengado_cotizacion_dolar'] ?? null),'0',2);//@RETORNADO
+    $devengado_cotizacion_euro = bcadd($R('devengado_cotizacion_euro',$COT['devengado_cotizacion_euro'] ?? null),'0',2);//@RETORNADO
+    $determinado_cotizacion_dolar = bcadd($R('determinado_cotizacion_dolar',$COT['determinado_cotizacion_dolar'] ?? null),'0',2);//@RETORNADO
+    $determinado_cotizacion_euro = bcadd($R('determinado_cotizacion_euro',$COT['determinado_cotizacion_euro'] ?? null),'0',2);//@RETORNADO
     
     $devengado_valor_mes = bcadd(
       bcmul($valor_dolar,$devengado_cotizacion_dolar,4),//2+2
@@ -832,7 +797,6 @@ class CanonController extends Controller
       }
       else{
         $datos = $this->obtener_arr(['id_canon' => $request['id_canon']]);
-        $datos = json_decode(json_encode($datos),true);//obj->array 
         $datos['adjuntos'] = $request['adjuntos'] ?? [];
       }
       
@@ -1016,7 +980,36 @@ class CanonController extends Controller
       return $adj;
     });
     
+    $ret = json_decode(json_encode($ret),true);
+    $COT = $this->confluir_datos_cotizacion([
+      'canon_variable' => $ret['canon_variable'],
+      'canon_fijo_mesas' => $ret['canon_fijo_mesas'],
+      'canon_fijo_mesas_adicionales' => $ret['canon_fijo_mesas_adicionales']
+    ]);
+    foreach($COT as $k => $v) $ret[$k] = $v;
+    
     return !empty($ret)? $ret : $this->recalcular($ret);
+  }
+  
+  private function confluir_datos_cotizacion(array $canon){
+    $ret = [];
+    //Obtengo data de cotización, si no es uniforme devuelvo nulo
+    foreach(['canon_variable','canon_fijo_mesas_adicionales','canon_fijo_mesas_adicionales'] as $tipo_canon){
+      foreach(['devengado_fecha_cotizacion','devengado_cotizacion_dolar','devengado_cotizacion_euro',
+               'determinado_fecha_cotizacion','determinado_cotizacion_dolar','determinado_cotizacion_euro'] as $attr){        
+        foreach($canon[$tipo_canon] as $tipo => $data_canon){
+          if(!isset($data_canon[$attr])) continue;
+          $val = $data_canon[$attr];
+          if(isset($ret[$attr])){//Si es distinto, hay conflicto y pongo en nulo
+            $ret[$attr] = $val != $ret[$attr]? null : $val;
+          }
+          else{
+            $ret[$attr] = $val;
+          }
+        }
+      }
+    }
+    return $ret;
   }
   
   public function archivo(Request $request){
@@ -1109,21 +1102,15 @@ class CanonController extends Controller
     
     return $ret2;
   }
-  
+    
+  private $cotizacion_DB = null;
   private function cotizacion($fecha_cotizacion,$id_tipo_moneda){
     if(empty($fecha_cotizacion) || empty($id_tipo_moneda)) return null;
     if($id_tipo_moneda == 1){
       return 1;
     }
-    if($id_tipo_moneda == 2){//Busco en las cotizaciones de los auditores
-      $cotizacion = DB::table('cotizacion as cot')
-      ->where('fecha',$fecha_cotizacion)
-      ->first();
-      if($cotizacion !== null){
-        return $cotizacion->valor;
-      }
-    }
-    if($id_tipo_moneda == 2 || $id_tipo_moneda == 3){//Busco en otros canons
+    
+    if($this->cotizacion_DB === null){//Armo cotizacion_DB
       $fecha_cotizacion_arr = explode('-',$fecha_cotizacion);
       if($fecha_cotizacion_arr[1] == '01'){
         $fecha_cotizacion_arr[0] = str_pad(intval($fecha_cotizacion_arr[0])-1,4,'0',STR_PAD_LEFT);
@@ -1134,7 +1121,7 @@ class CanonController extends Controller
       }
       $fecha_cotizacion_arr[2] = '01';
       
-      $q_base = DB::table('canon as c')
+      $q_base = DB::table('canon as c')//Busco en otros canons del mismo mes
       ->whereNull('c.deleted_at')
       ->where('c.año_mes',implode('-',$fecha_cotizacion_arr));//Para buscar entre menos
       
@@ -1143,51 +1130,65 @@ class CanonController extends Controller
       $q_cfma = (clone $q_base)
       ->leftJoin('canon_fijo_mesas_adicionales as cfma','cfma.id_canon','=','c.id_canon');
       
-      $qs = [ 
-        (clone $q_cfm)
-        ->selectRaw('
-          NULLIF(devengado_cotizacion_dolar,"0") as moneda_2,
-          NULLIF(devengado_cotizacion_euro,"0") as moneda_3'
-        )
-        ->where('devengado_fecha_cotizacion','=',$fecha_cotizacion),
-        (clone $q_cfma)
-        ->selectRaw('
-          NULLIF(devengado_cotizacion_dolar,"0") as moneda_2,
-          NULLIF(devengado_cotizacion_euro,"0") as moneda_3'
-        )
-        ->where('devengado_fecha_cotizacion','=',$fecha_cotizacion),
-        (clone $q_cfm)
-        ->selectRaw('
-          NULLIF(determinado_cotizacion_dolar,"0") as moneda_2,
-          NULLIF(determinado_cotizacion_euro,"0") as moneda_3'
-        )
-        ->where('determinado_fecha_cotizacion','=',$fecha_cotizacion),
-        (clone $q_cfma)
-        ->selectRaw('
-          NULLIF(determinado_cotizacion_dolar,"0") as moneda_2,
-          NULLIF(determinado_cotizacion_euro,"0") as moneda_3'
-        )
-        ->where('determinado_fecha_cotizacion','=',$fecha_cotizacion)
-      ];
+      $vals_db = collect([])
+      ->merge(
+        (clone $q_cfm)->selectRaw('
+          devengado_fecha_cotizacion as dev_fecha,
+          NULLIF(devengado_cotizacion_dolar,"0") as dev_moneda_2,
+          NULLIF(devengado_cotizacion_euro,"0") as dev_moneda_3,
+          determinado_fecha_cotizacion as det_fecha,
+          NULLIF(determinado_cotizacion_dolar,"0") as det_moneda_2,
+          NULLIF(determinado_cotizacion_euro,"0") as det_moneda_3
+        ')->get()
+      )
+      ->merge(
+        (clone $q_cfma)->selectRaw('
+          devengado_fecha_cotizacion as dev_fecha,
+          NULLIF(devengado_cotizacion_dolar,"0") as dev_moneda_2,
+          NULLIF(devengado_cotizacion_euro,"0") as dev_moneda_3,
+          determinado_fecha_cotizacion as det_fecha,
+          NULLIF(determinado_cotizacion_dolar,"0") as det_moneda_2,
+          NULLIF(determinado_cotizacion_euro,"0") as det_moneda_3
+        ')->get()
+      );
       
-      $k = 'moneda_'.$id_tipo_moneda;
-      $ret_val = null;
-      foreach($qs as $q){
-        $vals = $q->get();
-        foreach($vals as $v){
-          $newval = $v->{$k} ?? null;
-          if($ret_val === null){
-            $ret_val = $newval;
+      $this->cotizacion_DB = [];
+      foreach($vals_db as $v){
+        $this->cotizacion_DB[$v->dev_fecha] = $this->cotizacion_DB[$v->dev_fecha] ?? [2 => [],3 => []];
+        $this->cotizacion_DB[$v->det_fecha] = $this->cotizacion_DB[$v->det_fecha] ?? [2 => [],3 => []];
+        
+        $this->cotizacion_DB[$v->dev_fecha][2][$v->dev_moneda_2] = 1;
+        $this->cotizacion_DB[$v->dev_fecha][3][$v->det_moneda_2] = 1;
+        $this->cotizacion_DB[$v->det_fecha][2][$v->dev_moneda_2] = 1;
+        $this->cotizacion_DB[$v->det_fecha][3][$v->det_moneda_3] = 1;
+      }
+      
+      //Si hay una cotizacion sola para la fecha, la guardo sino pongo en nulo
+      foreach($this->cotizacion_DB as $fcot => $cots){
+        foreach($cots as $id_tipo_moneda => $valores_moneda){
+          if(count($valores_moneda) > 1 || count($valores_moneda) == 0){
+            $this->cotizacion_DB[$fcot][$id_tipo_moneda] = null;
           }
           else{
-            if($newval !== null && $newval != $ret_val){//Colision entre valores distintos
-              return null;
-            }
+            $this->cotizacion_DB[$fcot][$id_tipo_moneda] = array_keys($valores_moneda)[0];
           }
         }
       }
-      return $ret_val;
     }
+    
+    //Si existe una cotización comun en la DB, devuelvo esa
+    $cot = ($this->cotizacion_DB[$fecha_cotizacion] ?? [])[$id_tipo_moneda] ?? null;
+    if($cot !== null) return $cot;
+    
+    if($id_tipo_moneda == 2){//Busco en las cotizaciones de los auditores
+      $cotizacion = DB::table('cotizacion as cot')
+      ->where('fecha',$fecha_cotizacion)
+      ->first();
+      if($cotizacion !== null){
+        return $cotizacion->valor;
+      }
+    }
+    
     return null;
   }
   
@@ -1315,7 +1316,7 @@ class CanonController extends Controller
   }
   
   private function obtener_para_salida($id_canon,$formatear_decimal = true){
-    $data = json_decode(json_encode($this->obtener_arr(compact('id_canon'))),true);
+    $data = $this->obtener_arr(compact('id_canon'));
     $ret = [];
     
     $ret['canon'] = [];

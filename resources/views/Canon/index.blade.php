@@ -610,9 +610,6 @@
           $dias_fijos  = $n('dias_fijos');
           $mesas_fijos = $n('mesas_fijos');
           $mesas_dias  = $n('mesas_dias');
-          $devengado_fecha_cotizacion = $n('devengado_fecha_cotizacion');
-          $devengado_cotizacion_dolar = $n('devengado_cotizacion_dolar');
-          $devengado_cotizacion_euro  = $n('devengado_cotizacion_euro');
           $devengado_valor_dolar_cotizado = $n('devengado_valor_dolar_cotizado');
           $devengado_valor_euro_cotizado  = $n('devengado_valor_euro_cotizado');
           $devengado_valor_dolar_diario_cotizado = $n('devengado_valor_dolar_diario_cotizado');
@@ -621,9 +618,6 @@
           $devengado_total_euro_cotizado  = $n('devengado_total_euro_cotizado');
           $devengado_total       = $n('devengado_total');
           $devengado_deduccion   = $n('devengado_deduccion');
-          $determinado_fecha_cotizacion = $n('determinado_fecha_cotizacion');
-          $determinado_cotizacion_dolar = $n('determinado_cotizacion_dolar');
-          $determinado_cotizacion_euro  = $n('determinado_cotizacion_euro');
           $determinado_valor_dolar_cotizado = $n('determinado_valor_dolar_cotizado');
           $determinado_valor_euro_cotizado  = $n('determinado_valor_euro_cotizado');
           $determinado_valor_dolar_diario_cotizado = $n('determinado_valor_dolar_diario_cotizado');
@@ -709,28 +703,28 @@
                 <div>
                   <h5>F. COTIZACIÓN</h5>
                   @component('Components/inputFecha',[
-                    'attrs' => "data-js-texto-no-formatear-numero data-name='$devengado_fecha_cotizacion' data-depende='año_mes'",
+                    'attrs' => "data-js-texto-no-formatear-numero data-name='devengado_fecha_cotizacion' data-depende='año_mes'",
                     'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
                   ])
                   @endcomponent
                 </div>
                 <div>
                   <h5>COTIZACIÓN DOLAR</h5>
-                  <input class="form-control" data-name="{{$devengado_cotizacion_dolar}}" data-depende="{{$devengado_fecha_cotizacion}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="devengado_cotizacion_dolar" data-depende="devengado_fecha_cotizacion" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
                 <div>
                   <h5>COTIZACIÓN EURO</h5>
-                  <input class="form-control" data-name="{{$devengado_cotizacion_euro}}" data-depende="{{$devengado_fecha_cotizacion}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="devengado_cotizacion_euro" data-depende="devengado_fecha_cotizacion" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
               </div>
               <div style="display: flex;">
                 <div class="valor_intermedio">
                   <h5>VALOR DOLAR (ARS)</h5>
-                  <input class="form-control" data-name="{{$devengado_valor_dolar_cotizado}}" data-depende="{{$devengado_cotizacion_dolar}},{{$valor_dolar}}" data-readonly='[{}]'>
+                  <input class="form-control" data-name="{{$devengado_valor_dolar_cotizado}}" data-depende="devengado_cotizacion_dolar,{{$valor_dolar}}" data-readonly='[{}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>VALOR EURO (ARS)</h5>
-                  <input class="form-control" data-name="{{$devengado_valor_euro_cotizado}}" data-depende="{{$devengado_cotizacion_euro}},{{$valor_euro}}" data-readonly='[{}]'>
+                  <input class="form-control" data-name="{{$devengado_valor_euro_cotizado}}" data-depende="devengado_cotizacion_euro,{{$valor_euro}}" data-readonly='[{}]'>
                 </div>
               </div>
               <div style="display: flex;">
@@ -768,28 +762,28 @@
                 <div>
                   <h5>F. COTIZACIÓN</h5>
                   @component('Components/inputFecha',[
-                    'attrs' => "data-js-texto-no-formatear-numero data-name='$determinado_fecha_cotizacion' data-depende='año_mes'",
+                    'attrs' => "data-js-texto-no-formatear-numero data-name='determinado_fecha_cotizacion' data-depende='año_mes'",
                     'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
                   ])
                   @endcomponent
                 </div>
                 <div>
                   <h5>COTIZACIÓN DOLAR</h5>
-                  <input class="form-control" data-name="{{$determinado_cotizacion_dolar}}" data-depende="{{$determinado_fecha_cotizacion}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="determinado_cotizacion_dolar" data-depende="determinado_fecha_cotizacion" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
                 <div>
                   <h5>COTIZACIÓN EURO</h5>
-                  <input class="form-control" data-name="{{$determinado_cotizacion_euro}}" data-depende="{{$determinado_fecha_cotizacion}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="determinado_cotizacion_euro" data-depende="determinado_fecha_cotizacion" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
               </div>
               <div style="display: flex;">
                 <div class="valor_intermedio">
                   <h5>VALOR DOLAR (ARS)</h5>
-                  <input class="form-control" data-name="{{$determinado_valor_dolar_cotizado}}" data-depende="{{$determinado_cotizacion_dolar}},{{$valor_dolar}}" data-readonly='[{}]'>
+                  <input class="form-control" data-name="{{$determinado_valor_dolar_cotizado}}" data-depende="determinado_cotizacion_dolar,{{$valor_dolar}}" data-readonly='[{}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>VALOR EURO (ARS)</h5>
-                  <input class="form-control" data-name="{{$determinado_valor_euro_cotizado}}" data-depende="{{$determinado_cotizacion_euro}},{{$valor_euro}}" data-readonly='[{}]'>
+                  <input class="form-control" data-name="{{$determinado_valor_euro_cotizado}}" data-depende="determinado_cotizacion_euro,{{$valor_euro}}" data-readonly='[{}]'>
                 </div>
               </div>
               <div style="display: flex;">
@@ -836,17 +830,11 @@
           $porcentaje = $n('porcentaje');
           $valor_dolar = $n('valor_dolar');
           $valor_euro = $n('valor_euro');
-          $devengado_fecha_cotizacion = $n('devengado_fecha_cotizacion');
-          $devengado_cotizacion_dolar = $n('devengado_cotizacion_dolar');
-          $devengado_cotizacion_euro  = $n('devengado_cotizacion_euro');
           $devengado_valor_mes = $n('devengado_valor_mes');
           $devengado_valor_dia = $n('devengado_valor_dia');
           $devengado_valor_hora = $n('devengado_valor_hora');
           $devengado_total = $n('devengado_total');
           $devengado_deduccion = $n('devengado_deduccion');
-          $determinado_fecha_cotizacion = $n('determinado_fecha_cotizacion');
-          $determinado_cotizacion_dolar = $n('determinado_cotizacion_dolar');
-          $determinado_cotizacion_euro  = $n('determinado_cotizacion_euro');
           $determinado_valor_mes = $n('determinado_valor_mes');
           $determinado_valor_dia = $n('determinado_valor_dia');
           $determinado_valor_hora = $n('determinado_valor_hora');
@@ -899,24 +887,6 @@
               <h4>DEVENGADO</h4>
               <div style="display: flex;">
                 <div>
-                  <h5>F. COTIZACIÓN</h5>
-                  @component('Components/inputFecha',[
-                    'attrs' => "data-js-texto-no-formatear-numero data-name='$devengado_fecha_cotizacion' data-depende='año_mes'",
-                    'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
-                  ])
-                  @endcomponent
-                </div>
-                <div>
-                  <h5>COTIZACIÓN DOLAR</h5>
-                  <input class="form-control" data-name="{{$devengado_cotizacion_dolar}}" data-depende="{{$devengado_fecha_cotizacion}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-                </div>
-                <div>
-                  <h5>COTIZACIÓN EURO</h5>
-                  <input class="form-control" data-name="{{$devengado_cotizacion_euro}}" data-depende="{{$devengado_fecha_cotizacion}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-                </div>
-              </div>
-              <div style="display: flex;">
-                <div>
                   <h5>VALOR MES</h5>
                   <input class="form-control" data-name="{{$devengado_valor_mes}}" data-depende="id_casino" data-readonly='[{}]'>
                 </div>
@@ -942,24 +912,6 @@
             </div>
             <div class="bloque_interno" style="flex: 1;">
               <h4>DETERMINADO</h4>
-              <div style="display: flex;">
-                <div>
-                  <h5>F. COTIZACIÓN</h5>
-                  @component('Components/inputFecha',[
-                    'attrs' => "data-js-texto-no-formatear-numero data-name='$determinado_fecha_cotizacion' data-depende='año_mes'",
-                    'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
-                  ])
-                  @endcomponent
-                </div>
-                <div>
-                  <h5>COTIZACIÓN DOLAR</h5>
-                  <input class="form-control" data-name="{{$determinado_cotizacion_dolar}}" data-depende="{{$determinado_fecha_cotizacion}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-                </div>
-                <div>
-                  <h5>COTIZACIÓN EURO</h5>
-                  <input class="form-control" data-name="{{$determinado_cotizacion_euro}}" data-depende="{{$determinado_fecha_cotizacion}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-                </div>
-              </div>
               <div style="display: flex;">
                 <div>
                   <h5>VALOR MES</h5>
