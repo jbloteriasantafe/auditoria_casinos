@@ -32,7 +32,7 @@ $('[data-listas-autocompletar]').each(function(lidx,lObj){
       return $(op).val().substr(0, str.length) === str;
     }).clone());
     
-    filtro_str.attr('list', list);
+    filtro_str.attr('list', origen_str.attr('id'));
     filtro_str.focus();
     
     destino_output_id.val('');
