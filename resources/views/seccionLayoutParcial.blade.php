@@ -518,7 +518,7 @@
 
 @section('scripts')
 <!-- JavaScript personalizado -->
-<script src="js/seccionLayoutParcial.js?5" type="module" charset="utf-8"></script>
+<script src="js/seccionLayoutParcial.js?6" type="module" charset="utf-8"></script>
 <script src="js/paginacion.js" charset="utf-8"></script>
 
 <!-- DateTimePicker JavaScript -->

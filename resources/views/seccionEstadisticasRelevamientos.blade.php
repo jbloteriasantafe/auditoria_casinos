@@ -279,7 +279,7 @@
 <script>
   const CONTADORES = {{$contadores}};
 </script>
-<script src="/js/seccionEstadisticasRelevamientos.js?3" charset="utf-8" type="module"></script>
+<script src="/js/seccionEstadisticasRelevamientos.js?4" charset="utf-8" type="module"></script>
 <!-- DateTimePicker JavaScript -->
 <script type="text/javascript" src="/js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
 <script type="text/javascript" src="/js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
