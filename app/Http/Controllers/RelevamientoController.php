@@ -910,6 +910,7 @@ class RelevamientoController extends Controller
       $maquina->isla = $maq->isla->nro_isla;
     }
     $maquina->nro_admin = $maq->nro_admin;
+    $id_casino = $maq->id_casino;
 
     $tomado     = ['SI' => 'dr.id_tipo_causa_no_toma IS NULL', 'NO' => 'dr.id_tipo_causa_no_toma IS NOT NULL', null => '1'][$request->tomado];
     $diferencia = ['SI' => 'dr.diferencia <> 0'              , 'NO' => 'dr.diferencia = 0'                   , null => '1'][$request->diferencia];
@@ -922,15 +923,12 @@ class RelevamientoController extends Controller
             'dch.coinin','dch.coinout','dch.jackpot','dch.progresivo'
     )
     ->join('relevamiento as r','dr.id_relevamiento','=','r.id_relevamiento')
-    ->join('maquina as m','m.id_maquina','=','dr.id_maquina')
-    ->join('sector as s','s.id_sector','=','s.id_sector')
-    ->leftJoin('contador_horario as ch',function ($q){
-       $q->on('ch.fecha','=','r.fecha')->on('ch.id_casino','=','s.id_casino');
-    })
-    ->leftJoin('detalle_contador_horario as dch','dch.id_contador_horario','=','ch.id_contador_horario')
     ->leftJoin('tipo_causa_no_toma as t','t.id_tipo_causa_no_toma','=','dr.id_tipo_causa_no_toma')
     ->leftJoin('usuario as u','u.id_usuario','=','r.id_usuario_cargador')
-    ->where('m.id_maquina',$maq->id_maquina)
+    ->leftJoin('contador_horario as ch',function ($q) use($id_casino){
+       $q->on('ch.fecha','=','r.fecha')->where('ch.id_casino','=',$id_casino);
+    })
+    ->leftJoin('detalle_contador_horario as dch','dch.id_contador_horario','=','ch.id_contador_horario')
     ->where('dr.id_maquina',$maq->id_maquina)
     ->where('dch.id_maquina',$maq->id_maquina)
     ->whereRaw($tomado)
