@@ -53,6 +53,8 @@ $('#filtrosRelevamientos[data-js-filtro-tabla]').on('busqueda',function(e,ret,_,
   M.find('[name="nro_isla"]').val(ret.maquina.nro_isla);
   M.find('[name="nro_admin"]').val(ret.maquina.nro_admin);
   
+  M.find('[data-js-modal-detalle-maquina-tabla-relevamientos] tbody').empty();
+  
   ret.detalles.forEach(function(d){
     const fila = molde.clone();
     const attrs = ['fecha','coinin','coinout','jackpot','progresivo','producido_importado','diferencia',
