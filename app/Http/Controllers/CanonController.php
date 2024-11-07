@@ -1158,8 +1158,8 @@ class CanonController extends Controller
         $this->cotizacion_DB[$v->det_fecha] = $this->cotizacion_DB[$v->det_fecha] ?? [2 => [],3 => []];
         
         $this->cotizacion_DB[$v->dev_fecha][2][$v->dev_moneda_2] = 1;
-        $this->cotizacion_DB[$v->dev_fecha][3][$v->det_moneda_2] = 1;
-        $this->cotizacion_DB[$v->det_fecha][2][$v->dev_moneda_2] = 1;
+        $this->cotizacion_DB[$v->dev_fecha][3][$v->dev_moneda_3] = 1;
+        $this->cotizacion_DB[$v->det_fecha][2][$v->det_moneda_2] = 1;
         $this->cotizacion_DB[$v->det_fecha][3][$v->det_moneda_3] = 1;
       }
       
