@@ -1166,12 +1166,12 @@ class CanonController extends Controller
       
       //Si hay una cotizacion sola para la fecha, la guardo sino pongo en nulo
       foreach($this->cotizacion_DB as $fcot => $cots){
-        foreach($cots as $id_tipo_moneda => $valores_moneda){
+        foreach($cots as $idtm => $valores_moneda){
           if(count($valores_moneda) > 1 || count($valores_moneda) == 0){
-            $this->cotizacion_DB[$fcot][$id_tipo_moneda] = null;
+            $this->cotizacion_DB[$fcot][$idtm] = null;
           }
           else{
-            $this->cotizacion_DB[$fcot][$id_tipo_moneda] = array_keys($valores_moneda)[0];
+            $this->cotizacion_DB[$fcot][$idtm] = array_keys($valores_moneda)[0];
           }
         }
       }
