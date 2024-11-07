@@ -340,12 +340,12 @@ class CanonController extends Controller
     }
     
     $COT = $this->confluir_datos_cotizacion(compact('canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales'));
-    $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'];
-    $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'];
-    $devengado_cotizacion_euro  = $COT['devengado_cotizacion_euro'];
-    $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'];
-    $determinado_cotizacion_dolar = $COT['determinado_cotizacion_dolar'];
-    $determinado_cotizacion_euro  = $COT['determinado_cotizacion_euro'];
+    $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;
+    $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? null;
+    $devengado_cotizacion_euro  = $COT['devengado_cotizacion_euro'] ?? null;
+    $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;
+    $determinado_cotizacion_dolar = $COT['determinado_cotizacion_dolar'] ?? null;
+    $determinado_cotizacion_euro  = $COT['determinado_cotizacion_euro'] ?? null;
     
     $devengado = bcround_ndigits(bcsub($devengado_bruto,$devengado_deduccion,20),2);//@RETORNADO
     
