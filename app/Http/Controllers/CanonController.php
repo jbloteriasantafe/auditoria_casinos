@@ -1220,7 +1220,43 @@ class CanonController extends Controller
         
         return $resultado === null? $resultado : $resultado->valor;
       };
-      case 'JOL': return null;//@TODO JOL
+      case 'JOL':{
+        $JOL_connect_config = $this->valorPorDefecto('JOL_connect_config') ?? null;
+        $debug = $JOL_connect_config['debug'] ?? false;
+        if(empty($JOL_connect_config)) return $debug? '-0.99' : null;
+        if(empty($JOL_connect_config['ip_port'])) return $debug? '-0.98' : null;
+        if(empty($JOL_connect_config['API-Token']))  return $debug? '-0.97' : null;
+        
+        set_time_limit(5);
+        $ch = curl_init();
+        
+        curl_setopt($ch, CURLOPT_URL, "http://{$JOL_connect_config['ip_port']}/api/bruto");
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(compact('año_mes','id_casino')));
+        //curl_setopt($ch, CURLOPT_HEADER, FALSE);
+        //curl_setopt($ch, CURLOPT_FOLLOWLOCATION, FALSE);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_PROXY, NULL);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+          'API-Token: '.$JOL_connect_config['API-Token']
+        ]);
+        
+        $result = curl_exec($ch);
+        $code   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        
+        if($result === false){//Error de curl https://curl.se/libcurl/c/libcurl-errors.html
+          $ret = $debug? (-curl_errno($ch)).'.99' : null;
+          curl_close($ch);
+          return $ret;
+        }
+        curl_close($ch);
+        
+        if($code != 200){
+          return $debug? (-$code).'.98' : null;
+        }
+                
+        return $result;
+      }break;
     }
     return null;
   }
