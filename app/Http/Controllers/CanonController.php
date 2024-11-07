@@ -240,13 +240,13 @@ class CanonController extends Controller
     }
     
     if($COT['devengado_fecha_cotizacion'] !== null){
-      $COT['devengado_cotizacion_dolar'] = $COT['devengado_cotizacion_dolar'] ?? $this->cotizacion($COT['devengado_fecha_cotizacion'],2);
-      $COT['devengado_cotizacion_euro']  = $COT['devengado_cotizacion_euro']  ?? $this->cotizacion($COT['devengado_fecha_cotizacion'],3);
+      $COT['devengado_cotizacion_dolar'] = $COT['devengado_cotizacion_dolar'] ?? $this->cotizacion($COT['devengado_fecha_cotizacion'],2,$id_casino);
+      $COT['devengado_cotizacion_euro']  = $COT['devengado_cotizacion_euro']  ?? $this->cotizacion($COT['devengado_fecha_cotizacion'],3,$id_casino);
     }
     
     if($COT['determinado_fecha_cotizacion'] !== null){
-      $COT['determinado_cotizacion_dolar'] = $COT['determinado_cotizacion_dolar'] ?? $this->cotizacion($COT['determinado_fecha_cotizacion'],2);
-      $COT['determinado_cotizacion_euro']  = $COT['determinado_cotizacion_euro']  ?? $this->cotizacion($COT['determinado_fecha_cotizacion'],3);
+      $COT['determinado_cotizacion_dolar'] = $COT['determinado_cotizacion_dolar'] ?? $this->cotizacion($COT['determinado_fecha_cotizacion'],2,$id_casino);
+      $COT['determinado_cotizacion_euro']  = $COT['determinado_cotizacion_euro']  ?? $this->cotizacion($COT['determinado_fecha_cotizacion'],3,$id_casino);
     }
     
     {
@@ -1104,7 +1104,7 @@ class CanonController extends Controller
   }
     
   private $cotizacion_DB = null;
-  private function cotizacion($fecha_cotizacion,$id_tipo_moneda){
+  private function cotizacion($fecha_cotizacion,$id_tipo_moneda,$id_casino){
     if(empty($fecha_cotizacion) || empty($id_tipo_moneda)) return null;
     if($id_tipo_moneda == 1){
       return 1;
@@ -1123,6 +1123,7 @@ class CanonController extends Controller
       
       $q_base = DB::table('canon as c')//Busco en otros canons del mismo mes
       ->whereNull('c.deleted_at')
+      ->where('c.id_casino','<>',$id_casino)
       ->where('c.año_mes',implode('-',$fecha_cotizacion_arr));//Para buscar entre menos
       
       $q_cfm = (clone $q_base)
@@ -1155,10 +1156,10 @@ class CanonController extends Controller
       $this->cotizacion_DB = [];
       foreach($vals_db as $v){
         $this->cotizacion_DB[$v->dev_fecha] = $this->cotizacion_DB[$v->dev_fecha] ?? [2 => [],3 => []];
-        $this->cotizacion_DB[$v->det_fecha] = $this->cotizacion_DB[$v->det_fecha] ?? [2 => [],3 => []];
-        
         $this->cotizacion_DB[$v->dev_fecha][2][$v->dev_moneda_2] = 1;
         $this->cotizacion_DB[$v->dev_fecha][3][$v->dev_moneda_3] = 1;
+        
+        $this->cotizacion_DB[$v->det_fecha] = $this->cotizacion_DB[$v->det_fecha] ?? [2 => [],3 => []];
         $this->cotizacion_DB[$v->det_fecha][2][$v->det_moneda_2] = 1;
         $this->cotizacion_DB[$v->det_fecha][3][$v->det_moneda_3] = 1;
       }
