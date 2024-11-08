@@ -470,7 +470,7 @@ class CanonController extends Controller
       return $R($s,null) ?? $D($s,null) ?? $dflt;
     };
     
-    $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema','0.00'),'0',2);//@RETORNADO    
+    $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema',$this->apostado($tipo,$año_mes,$id_casino)),'0',2);//@RETORNADO    
     $devengado_apostado_porcentaje_aplicable = bcadd($RD('devengado_apostado_porcentaje_aplicable','0.0000'),'0',4);//@RETORNADO
     $factor_apostado_porcentaje_aplicable = bcdiv($devengado_apostado_porcentaje_aplicable,'100',6);
     
@@ -1190,6 +1190,27 @@ class CanonController extends Controller
       }
     }
     
+    return null;
+  }
+  
+  private function apostado($tipo,$año_mes,$id_casino){
+    if($año_mes === null || $tipo === null || $id_casino === null) return null;
+    $año_mes_arr = explode('-',$año_mes);
+    switch($tipo){
+      case 'Maquinas':{
+        $resultado = DB::table('beneficio as b')
+        ->selectRaw('SUM(b.coinin*IF(b.id_tipo_moneda = 1,1,CAST(cot.valor AS DECIMAL(20,6)))) as valor')
+        ->leftJoin('cotizacion as cot',function($q){
+          return $q->where('b.id_tipo_moneda',2)->on('b.fecha','=','cot.fecha');
+        })
+        ->where('b.id_casino',$id_casino)
+        ->whereYear('b.fecha',$año_mes_arr[0])
+        ->whereMonth('b.fecha',intval($año_mes_arr[1]))
+        ->groupBy(DB::raw('"constant"'))->first();
+        
+        return $resultado === null? $resultado : $resultado->valor;
+      }break;
+    }
     return null;
   }
   
