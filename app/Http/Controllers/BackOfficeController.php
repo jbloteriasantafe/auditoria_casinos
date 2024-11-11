@@ -369,7 +369,7 @@ class BackOfficeController extends Controller {
           $q = $q->whereIn(DB::raw($select),$recibido);
       }
       else if($tipo == 'input_date_month' && !empty($recibido)){
-        if(is_array($recibido)){
+        if(is_array($recibido) && count($recibido) >= 2){
           $d = explode('-',$recibido[0] ?? '1970-01-01');
           $h = explode('-',$recibido[1] ?? date('Y-m-d'));
           foreach($QS as &$q){
@@ -388,8 +388,11 @@ class BackOfficeController extends Controller {
             });
           }
         }
-        else{
-          $m = array_map(function($s){return intval($s);},explode('-',$recidibo));
+        else {
+          $m = (is_array($recibido) && count($recibido) == 1)?
+            $recibido[0]
+          : $recibido;
+          $m = array_map(function($s){return intval($s);},explode('-',$m));
           foreach($QS as &$q)
             $q = $q->whereYear(DB::raw($select),'=',$m[0])
                    ->whereMonth(DB::raw($select),'=',$m[1]);
