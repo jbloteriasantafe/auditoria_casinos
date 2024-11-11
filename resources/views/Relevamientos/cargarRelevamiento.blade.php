@@ -73,27 +73,31 @@
   </div>
   <br>
   <br>
-  <div class="col-md-12" data-div-tabla-scrollable-errores style="height: 60vh;overflow-y: scroll;overflow-x: clip;width: 100%;">
-    <table data-js-tabla-relevamiento class="tablaRelevamiento table">
+  <div class="col-md-12">
+    <table class="tablaRelevamiento table" style="margin-bottom: 0;">
       <thead>
-        <tr>
-          <th data-js-modo="Ver,Cargar,Validar" width="3%">MTM</th>
+        <tr style="display: flex;">
+          <th data-js-modo="Ver,Cargar,Validar" style="flex: 0.5;">MTM</th>
           @for($c=1;$c<=$CONTADORES;$c++)
-          <th data-js-modo="{{$c<=$CONTADORES_VISIBLES? 'Ver,Cargar,Validar' : ''}}">CONTADOR {{$c}}</th>
+          <th data-js-modo="{{$c<=$CONTADORES_VISIBLES? 'Ver,Cargar,Validar' : ''}}" style="flex: 1;";>CONTADOR {{$c}}</th>
           @endfor
-          <th data-js-modo="Ver,Validar">P. CALCULADO ($)</th>
-          <th data-js-modo="Ver,Validar">P. IMPORTADO ($)</th>
-          <th data-js-modo="Ver,Validar">DIFERENCIA</th>
-          <th data-js-modo="Cargar,Validar">&nbsp;</th>{{-- Estado --}}
-          <th data-js-modo="Ver,Cargar,Validar">CAUSA NO TOMA</th>
-          <th data-js-modo="Ver,Validar">DEN</th>
-          <th data-js-modo="Validar">A PEDIDO</th>
-          <th data-js-modo="Validar">ESTADISTICAS</th>
+          <th data-js-modo="Ver,Validar" style="flex: 1;";>P. CALCULADO ($)</th>
+          <th data-js-modo="Ver,Validar" style="flex: 1;";>P. IMPORTADO ($)</th>
+          <th data-js-modo="Ver,Validar" style="flex: 1;";>DIFERENCIA</th>
+          <th data-js-modo="Cargar,Validar" style="flex: 0.5";>&nbsp;</th>{{-- Estado --}}
+          <th data-js-modo="Ver,Cargar,Validar" style="flex: 1;";>CAUSA NO TOMA</th>
+          <th data-js-modo="Ver,Validar" style="flex: 0.5;";>DEN</th>
+          <th data-js-modo="Validar" style="flex: 0.5;">A PEDIDO</th>
+          <th data-js-modo="Validar" style="flex: 0.5;">ESTADISTICAS</th>
         </tr>
       </thead>
-      <tbody>
-      </tbody>
     </table>
+    <div data-div-tabla-scrollable-errores style="height: 60vh;overflow-y: scroll;overflow-x: clip;width: 100%;">
+      <table data-js-tabla-relevamiento class="tablaRelevamiento table">
+        <tbody>
+        </tbody>
+      </table>
+    </div>
   </div>
   <br>
   <div class="row" data-js-modo="Cargar,Ver,Validar">
@@ -160,26 +164,26 @@
   }
 </style>
 <table hidden>
-  <tr data-js-molde-tabla-relevamiento>
+  <tr data-js-molde-tabla-relevamiento style="display: flex;">
     <td hidden><input data-js-detalle-asignar-name="id_detalle_relevamiento"></td>
     <td hidden><input data-js-detalle-asignar-name="id_unidad_medida"></td>
     <td hidden><input data-js-detalle-asignar-name="denominacion"></td>
-    <td data-js-modo="Ver,Cargar,Validar" data-js-detalle-asignar-name="maquina">XXXX</td>
+    <td data-js-modo="Ver,Cargar,Validar" data-js-detalle-asignar-name="maquina" style="flex: 0.5;">XXXX</td>
     @for($c=1;$c<=$CONTADORES;$c++)
-    <td style="text-align: right;" data-js-modo="{{$c<=$CONTADORES_VISIBLES? 'Ver,Cargar,Validar' : ''}}">
+    <td style="text-align: right;flex: 1;" data-js-modo="{{$c<=$CONTADORES_VISIBLES? 'Ver,Cargar,Validar' : ''}}">
       <input data-contador data-js-enabled="Cargar" data-js-cambio-contador="{{$c}}" data-js-detalle-asignar-name="cont{{$c}}" class="contador cont{{$c}} form-control">
     </td>
     @endfor
-    <td style="text-align: right;" data-js-modo="Ver,Validar">
+    <td style="text-align: right;flex: 1;" data-js-modo="Ver,Validar">
       <input data-js-readonly="Validar" data-js-detalle-asignar-name="producido_calculado_relevado" class="producidoCalculado form-control" style="text-align: right; border: 2px solid rgb(109, 199, 190); color: rgb(109, 199, 190);">
     </td>
-    <td style="text-align: right;" data-js-modo="Ver,Validar">
+    <td style="text-align: right;flex: 1;" data-js-modo="Ver,Validar">
       <input data-js-enabled="Validar" data-js-readonly="Validar" data-js-detalle-asignar-name="producido_importado" class="producido form-control" style="text-align: right; border: 2px solid rgb(109, 199, 190); color: rgb(109, 199, 190);">
     </td>
-    <td style="text-align: right;" data-js-modo="Ver,Validar">
+    <td style="text-align: right;flex: 1;" data-js-modo="Ver,Validar">
       <input data-js-enabled="Validar" data-js-readonly="Validar" data-js-detalle-asignar-name="diferencia" class="diferencia form-control" style="text-align: right;">
     </td>
-    <td data-js-modo="Cargar,Validar" data-js-estado-diferencia style="text-align: center;" class="estado_diferencia">
+    <td data-js-modo="Cargar,Validar" data-js-estado-diferencia style="text-align: center;flex: 0.5;" class="estado_diferencia">
       <a data-js-icono-estado="DIFERENCIA" class="pop" data-content="Contadores incorrectos" data-placement="top" rel="popover" data-trigger="hover" style="display: none;">
         <i class="fa fa-times" style="color: rgb(239, 83, 80); display: inline-block;"></i>
       </a>
@@ -196,7 +200,7 @@
         <i class="pop fa fa-question" style="color: rgb(66, 165, 245); display: inline-block;"></i>
       </a>
     </td>
-    <td style="text-align: center;" data-js-modo="Ver,Cargar,Validar">
+    <td style="text-align: center;flex: 1;" data-js-modo="Ver,Cargar,Validar">
       <select data-js-enabled="Cargar" data-js-cambio-tipo-causa-no-toma data-js-detalle-asignar-name="id_tipo_causa_no_toma" class="tipo_causa_no_toma form-control">
         <option value=""></option>
         @foreach($tipos_causa_no_toma as $t)
@@ -204,10 +208,10 @@
         @endforeach
       </select>
     </td>
-    <td style="text-align: center;" data-js-modo="Ver">
+    <td style="text-align: center;flex: 0.5;" data-js-modo="Ver">
       <input class="form-control" disabled data-js-detalle-asignar-name="denominacion">
     </td>
-    <td data-js-modo="Validar">
+    <td data-js-modo="Validar" style="flex: 0.5;">
       @php
       $popup = function($select){
         $checked1 = $select == 1? 'checked' : '';
@@ -235,7 +239,7 @@
       </button>
       <span data-js-boton-medida="vacio" style="display: none;">&nbsp;</span>
     </td>
-    <td data-js-modo="Validar">
+    <td data-js-modo="Validar" style="flex: 0.5;">
       <select data-js-enabled="Validar" data-js-detalle-asignar-name="a_pedido" class="a_pedido form-control acciones_validacion">
         <option value="" selected>NO</option>
         <option value="1">1 día</option>
@@ -244,7 +248,7 @@
         <option value="15">15 días</option>
       </select>
     </td>
-    <td data-js-modo="Validar">
+    <td data-js-modo="Validar" style="flex: 0.5;">
       <a href="/relevamientos/estadisticas_no_toma" target="_blank" data-js-enabled="Validar" data-js-estadisticas-no-toma class="btn btn-success acciones_validacion" type="button" style="visibility: hidden;">
         <i class="fas fa-fw fa-external-link-square-alt"></i>
       </a>
