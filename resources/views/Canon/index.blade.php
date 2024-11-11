@@ -595,8 +595,6 @@
           $n = function($s) use (&$id_casino,&$t,&$molde_str){
             return "canon_fijo_mesas[$molde_str][$s]";
           };
-          $valor_dolar = $n('valor_dolar');
-          $valor_euro  = $n('valor_euro');
           $dias_valor = $n('dias_valor');
           $factor_dias_valor = $n('factor_dias_valor');
           $dias_lunes_jueves  = $n('dias_lunes_jueves');
@@ -680,11 +678,11 @@
               </div>
               <div>
                 <h5>VALOR DOLAR (USD)</h5>
-                <input class="form-control" data-name="{{$valor_dolar}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="valor_dolar" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div>
                 <h5>VALOR EURO (EUR)</h5>
-                <input class="form-control" data-name="{{$valor_euro}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="valor_euro" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div class="parametro_chico">
                 <h5>DÍAS VALOR</h5>
@@ -720,11 +718,11 @@
               <div style="display: flex;">
                 <div class="valor_intermedio">
                   <h5>VALOR DOLAR (ARS)</h5>
-                  <input class="form-control" data-name="{{$devengado_valor_dolar_cotizado}}" data-depende="devengado_cotizacion_dolar,{{$valor_dolar}}" data-readonly='[{}]'>
+                  <input class="form-control" data-name="{{$devengado_valor_dolar_cotizado}}" data-depende="devengado_cotizacion_dolar,valor_dolar" data-readonly='[{}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>VALOR EURO (ARS)</h5>
-                  <input class="form-control" data-name="{{$devengado_valor_euro_cotizado}}" data-depende="devengado_cotizacion_euro,{{$valor_euro}}" data-readonly='[{}]'>
+                  <input class="form-control" data-name="{{$devengado_valor_euro_cotizado}}" data-depende="devengado_cotizacion_euro,valor_euro" data-readonly='[{}]'>
                 </div>
               </div>
               <div style="display: flex;">
@@ -779,11 +777,11 @@
               <div style="display: flex;">
                 <div class="valor_intermedio">
                   <h5>VALOR DOLAR (ARS)</h5>
-                  <input class="form-control" data-name="{{$determinado_valor_dolar_cotizado}}" data-depende="determinado_cotizacion_dolar,{{$valor_dolar}}" data-readonly='[{}]'>
+                  <input class="form-control" data-name="{{$determinado_valor_dolar_cotizado}}" data-depende="determinado_cotizacion_dolar,valor_dolar" data-readonly='[{}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>VALOR EURO (ARS)</h5>
-                  <input class="form-control" data-name="{{$determinado_valor_euro_cotizado}}" data-depende="determinado_cotizacion_euro,{{$valor_euro}}" data-readonly='[{}]'>
+                  <input class="form-control" data-name="{{$determinado_valor_euro_cotizado}}" data-depende="determinado_cotizacion_euro,valor_euro" data-readonly='[{}]'>
                 </div>
               </div>
               <div style="display: flex;">
@@ -828,8 +826,6 @@
           $factor_horas_mes = $n('factor_horas_mes');
           $horas = $n('horas');
           $porcentaje = $n('porcentaje');
-          $valor_dolar = $n('valor_dolar');
-          $valor_euro = $n('valor_euro');
           $devengado_valor_mes = $n('devengado_valor_mes');
           $devengado_valor_dia = $n('devengado_valor_dia');
           $devengado_valor_hora = $n('devengado_valor_hora');
@@ -859,16 +855,6 @@
               <div class="aproximado valor_intermedio">
                 <h5>FACTOR HORAS MES ≈ (DÍAS MES × HORAS DÍA)⁻¹</h5>
                 <input class="form-control" data-name="{{$factor_horas_mes}}" data-depende="{{$dias_mes}},{{$horas_dia}}" data-readonly='[{}]'>
-              </div>
-            </div>
-            <div style="display: flex;">
-              <div>
-                <h5>VALOR DÓLAR</h5>
-                <input class="form-control" data-name="{{$valor_dolar}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-              </div>
-              <div>
-                <h5>VALOR DÓLAR</h5>
-                <input class="form-control" data-name="{{$valor_euro}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
             </div>
             <div style="display: flex;">
