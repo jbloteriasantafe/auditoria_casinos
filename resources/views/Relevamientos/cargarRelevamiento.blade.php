@@ -83,12 +83,12 @@
           @endfor
           <th data-js-modo="Ver,Validar" style="flex: 1;";>P. CALCULADO ($)</th>
           <th data-js-modo="Ver,Validar" style="flex: 1;";>P. IMPORTADO ($)</th>
-          <th data-js-modo="Ver,Validar" style="flex: 1;";>DIFERENCIA</th>
+          <th data-js-modo="Ver,Validar" style="flex: 1;overflow-wrap: break-word;word-break: break-all;";>DIFERENCIA</th>
           <th data-js-modo="Cargar,Validar" style="flex: 0.5";>&nbsp;</th>{{-- Estado --}}
           <th data-js-modo="Ver,Cargar,Validar" style="flex: 1;";>CAUSA NO TOMA</th>
           <th data-js-modo="Ver,Validar" style="flex: 0.5;";>DEN</th>
           <th data-js-modo="Validar" style="flex: 0.5;">A PEDIDO</th>
-          <th data-js-modo="Validar" style="flex: 0.5;">ESTADISTICAS</th>
+          <th data-js-modo="Validar" style="flex: 0.5;overflow-wrap: break-word;word-break: break-all;">ESTADÍSTICAS</th>
         </tr>
       </thead>
     </table>
