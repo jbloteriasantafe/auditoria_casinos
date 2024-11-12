@@ -118,8 +118,20 @@
       <td>
         <span class="estado">ESTADO</span>
         @if($puede_cargar)
-        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Pagado" data-estado-visible="GENERADO" title="CONFIRMAR PAGO"><i class="fas fa-hand-holding-usd"></i></button>
-        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Cerrado" data-estado-visible="PAGADO" title="CERRAR CANON"><i class="fa fa-fw fa-lock"></i></button>
+        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Pagado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Generado" a "Pagado"?' data-estado-visible="GENERADO" title="CONFIRMAR PAGO">
+          <i class="fas fa-hand-holding-usd"></i>
+        </button>
+        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Cerrado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Pagado" a "Cerrado"?' data-estado-visible="PAGADO" title="CERRAR CANON">
+          <i class="fa fa-fw fa-lock"></i>
+        </button>
+        @endif
+        @if($es_superusuario)
+        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstadoSuperusuario?estado=Generado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Pagado" a "Generado"?' data-estado-visible="PAGADO" title="DESCONFIRMAR PAGO">
+          <i class="fa fa-backward"></i>
+        </button>
+        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstadoSuperusuario?estado=Pagado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Cerrado" a "Pagado"?' data-estado-visible="CERRADO" title="ABRIR CANON">
+          <i class="fa fa-backward"></i>
+        </button>
         @endif
       </td>
       <td class="devengado" data-formatear-numero>DEVENGADO</td>
@@ -990,6 +1002,23 @@
 @endcomponent
 
 @component('Components/modalEliminar')
+@endcomponent
+
+@component('Components/modal',[
+  'clases_modal' => 'modalCambiarEstado',
+  'attrs_modal' => 'data-js-modal-cambiar-estado',
+  'estilo_cabecera' => 'font-family: Roboto-Black; background-color: #F4B400'
+])
+  @slot('titulo')
+    ALERTA
+  @endslot
+  @slot('cuerpo')
+    <h6 class="mensaje" style="color:#000000; font-size: 18px !important; text-align:center !important">
+    </h6>
+  @endslot
+  @slot('pie')
+    <button type="button" class="btn" style="background-color: #F4B400 !important;color: white;" data-js-click-cambiar-estado>CAMBIAR</button>
+  @endslot
 @endcomponent
 
 <meta name="_token" content="{!! csrf_token() !!}" />

@@ -582,18 +582,18 @@ $(document).ready(function() {
   
   $('#pant_canon').on('click','[data-js-cambiar-estado]',function(e){//@TODO: bindear derecho
     const tgt = $(e.currentTarget);
-    const url = tgt.attr('data-js-cambiar-estado');
-    AUX.GET(
-      url,
-      {id_canon: tgt.val()},
-      function(data){
+    $('[data-js-modal-cambiar-estado]').trigger('mostrar',[{
+      url: tgt.attr('data-js-cambiar-estado'),
+      url_params: {id_canon: tgt.val()},
+      mensaje: tgt.attr('data-mensaje-cambiar-estado') ?? '¿Desea cambiar el estado?',
+      success: function(data){
         AUX.mensajeExito(data?.mensaje ?? '');
         $('#pant_canon').find('[data-js-filtro-tabla]').trigger('buscar');
       },
-      function(data){
+      error: function(data){
         AUX.mensajeError(data?.mensaje ?? '');
       }
-    );
+    }]);
   });
   
   const guardarValorPorDefecto = function(url,campo,valor){
@@ -630,3 +630,35 @@ $(document).ready(function() {
   
   $('[data-js-filtro-tabla]').trigger('buscar');
 });
+
+$(function(e){ $('[data-js-modal-cambiar-estado]').each(function(){
+  const  M = $(this);
+  const $M = M.find.bind(M);
+  
+  let url = undefined;
+  let success = null;
+  let error = null;
+  let url_params = {};
+  
+  M.on('mostrar',function(e,params){
+    url = params.url;
+    if(typeof url == 'undefined') throw 'No se recibio una URL';
+    
+    success = params.success ?? function(data){};
+    error = params.error ?? function(data){console.log(data);};
+    url_params = params.url_params ?? {};
+    
+    $M('.mensaje').text(params.mensaje ?? '');
+    M.modal('show');
+  });
+
+  $M('[data-js-click-cambiar-estado]').click(function(){
+    AUX.GET(url,url_params,function(data){
+      M.modal('hide');
+      success(data);
+    },function(data){
+      error(data);
+    });
+  });
+  
+})});
