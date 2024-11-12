@@ -1088,19 +1088,39 @@ class CanonController extends Controller
     });
   }
   
-  public function buscar(){
-    $ret = DB::table('canon')
-    ->select('canon.*','casino.nombre as casino')
-    ->join('casino','casino.id_casino','=','canon.id_casino')
-    ->whereNull('canon.deleted_at')
-    ->orderBy('año_mes','desc')
-    ->orderBy('casino.nombre','asc')
+  public function buscar(Request $request){
+    $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $reglas = [];
+    if(isset($request->id_casino)){
+      $reglas[] = ['c.id_casino','=',$request->id_casino];
+    }
+    $ret = DB::table('canon as c')
+    ->select('c.*','cas.nombre as casino')
+    ->join('casino as cas','cas.id_casino','=','c.id_casino')
+    ->whereRaw(($u->es_superusuario && ($request->eliminados ?? false))?
+      'NOT EXISTS (
+        SELECT * 
+        FROM canon c2 
+        WHERE c2.id_casino = c.id_casino 
+        AND   c2.año_mes   = c.año_mes 
+        AND   (c2.deleted_at IS NULL OR c2.created_at > c.created_at)
+        LIMIT 1
+       )
+       AND c.deleted_at IS NOT NULL'
+    : 'c.deleted_at IS NULL'
+    )
+    ->where($reglas)
+    ->whereIn('c.id_casino',$u->casinos->pluck('id_casino'))
+    ->orderBy('c.año_mes','desc')
+    ->orderBy('cas.nombre','asc')
     ->paginate($request->page_size ?? 10);
+    
     //Necesito transformar la data paginada pero si llamo transform() elimina toda la data de paginado
     $ret2 = $ret->toArray();
     
     //@HACK @SLOW: usar algun tipo de cache calculado hasta
     $ret2['data'] = $ret->reverse()->transform(function(&$c){
+      if($c->deleted_at !== null) return $c;
       $dinamicos = $this->calcular_campos_dinamicos($c->año_mes,$c->id_casino,$c->determinado,$c->pago,$c->ajuste);
       foreach($dinamicos as $k => $v) $c->{$k} = $v;
       return $c;
@@ -1310,18 +1330,26 @@ class CanonController extends Controller
     })->validate();
     
     return DB::transaction(function() use ($request){
-      $updateado = DB::table('canon')
+      DB::table('canon')
       ->whereNull('deleted_at')
       ->where('id_canon',$request->id_canon)
-      ->update(['estado' => $request->estado]) == 1;
+      ->update(['estado' => $request->estado]);
       
-      $estado = 200;
-      $ret = ['id_canon' => $request->id_canon,'estado' => $request->estado,'mensaje' => ''];
-      if($updateado != 1){
-        $estado = 422;
-        $ret['mensaje'] = 'Error, canon no encontrado';
-      }
-      return $ret;
+      return 1;
+    });
+  }
+  
+  public function desborrar(Request $request){//Se valida superusuario en el ruteo
+    Validator::make($request->all(),[
+      'id_canon' => ['required','integer','exists:canon,id_canon'],
+    ],self::$errores,[])->validate();
+    
+    return DB::transaction(function() use ($request){
+      DB::table('canon')
+      ->where('id_canon',$request->id_canon)
+      ->update(['deleted_at' => null]);
+
+      return 1;
     });
   }
   

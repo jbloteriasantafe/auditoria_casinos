@@ -95,6 +95,24 @@
     @endslot
     
     @slot('filtros')
+    <div class="col-md-4">
+      <h5>Casino</h5>
+      <select class="form-control" name="id_casino">
+        <option value='' selected>- TODOS -</option>
+        @foreach($casinos as $c)
+        <option value='{{$c->id_casino}}'>{{$c->nombre}}</option>
+        @endforeach
+      </select>
+    </div>
+    @if($es_superusuario)
+    <div class="col-md-4">
+      <h5>ELIMINADOS</h5>
+      <select class="form-control" name="eliminados">
+        <option value='0' selected>NO</option>
+        <option value='1'>SI</option>
+      </select>
+    </div>
+    @endif
     @endslot
     
     @slot('cabecera')
@@ -150,7 +168,11 @@
         <button class="btn" type="button" data-js-abrir-pestaña="/canon/planillaDevengado" data-table-id="id_canon" title="IMPRIMIR DEVENGADO"><i class="far fa-fw fa-file-alt"></i></button>
         <button class="btn" type="button" data-js-abrir-pestaña="/canon/planillaDeterminado" data-table-id="id_canon" title="IMPRIMIR DETERMINADO"><i class="fa fa fa-print"></i></button>
         @if($es_superusuario)
+        <button data-mostrar-borrado class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
         <button class="btn" type="button" data-js-borrar="/canon/borrar" data-table-id="id_canon" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
+        <button data-mostrar-borrado class="btn" type="button" data-js-cambiar-estado="/canon/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
+          <i class="fa fa-backward"></i>
+        </button>
         @else($puede_cargar)
         <button class="btn" type="button" data-js-borrar="/canon/borrar" data-table-id="id_canon" title="BORRAR" data-estado-visible="GENERADO,PAGADO"><i class="fa fa-fw fa-trash-alt"></i></button>
         @endif

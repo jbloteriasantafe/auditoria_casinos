@@ -502,7 +502,10 @@ $(document).ready(function() {
           fila.find('.'+k).text(obj[k]);
         });
         const id_k = fila.find('[data-table-id]').attr('data-table-id');
-        fila.find('button').val(obj[id_k]);
+        fila.find('button')
+        .val(obj[id_k])
+        .filter(obj.deleted_at? 'button:not([data-mostrar-borrado])' : 'button[data-mostrar-borrado]')
+        .remove();
         
         tbody.append(fila);
         
