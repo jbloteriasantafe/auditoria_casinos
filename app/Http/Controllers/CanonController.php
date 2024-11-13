@@ -987,12 +987,12 @@ class CanonController extends Controller
     });
     
     $ret = json_decode(json_encode($ret),true);
-    $COT = $this->confluir_datos_cotizacion([
+    /*$COT = $this->confluir_datos_cotizacion([
       'canon_variable' => $ret['canon_variable'],
       'canon_fijo_mesas' => $ret['canon_fijo_mesas'],
       'canon_fijo_mesas_adicionales' => $ret['canon_fijo_mesas_adicionales']
     ]);
-    foreach($COT as $k => $v) $ret[$k] = $v;
+    foreach($COT as $k => $v) $ret[$k] = $v;*/
     
     return !empty($ret)? $ret : $this->recalcular($ret);
   }
