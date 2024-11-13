@@ -32,8 +32,12 @@ $columnas = count($datos);
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
 </head>
-<body>  
+<body>
+  @if($tipo_presupuesto == 'devengado')
   <p style="text-align: center;"><b>VALORES DEVENGADOS ESTIMADOS CON CRITERIO CONSERVADOR POR DIFERENCIAS QUE PUDIERAN DARSE</b></p>
+  @elseif($tipo_presupuesto == 'determinado')
+  <p style="text-align: center;"><b>VALORES DETERMINADOS</b></p>
+  @endif
   <table style="width: 100%;">
     <tr>
       <th class="tablaInicio" style="text-align: center;" colspan="{{intval(ceil(($columnas+1)/2.0))}}">Mes</th>
@@ -55,7 +59,9 @@ $columnas = count($datos);
     @endforeach
   </table>
   <br>
+  @if($tipo_presupuesto == 'devengado')
   <p style="text-align: left;font-style: italic;font-size: 0.70em;">La estimación elevada esta sujeta a ajustes que pudiesen corresponder al momento de producirse el ingreso real del Canon correspondiente al numeral 5.1 de los CP 9199, CP 9200, CP 9201, la Ley 14235 y el Dcto 562/24.</p>
+  @endif
 </body>
 
 </html>
