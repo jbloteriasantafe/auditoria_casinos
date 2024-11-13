@@ -1063,12 +1063,21 @@ class CanonController extends Controller
   
   public function borrar(Request $request){
     $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    $check_estado = $u->es_superusuario? '' : ',estado,Generado,estado,Pagado';
+    $check_estado = !$u->es_superusuario;
     
     Validator::make($request->all(),[
-      'id_canon' => ['required','integer','exists:canon,id_canon,deleted_at,NULL'.$check_estado]
-    ], ['exists' => 'No existe Canon eliminable'],[])->after(function($validator){
+      'id_canon' => ['required','integer','exists:canon,id_canon,deleted_at,NULL']
+    ], ['exists' => 'No existe Canon eliminable'],[])->after(function($validator) use ($check_estado){
       if($validator->errors()->any()) return;
+      $estado_bd = DB::table('canon')
+      ->where('id_canon',$validator->getData()['id_canon'])
+      ->whereNull('deleted_at')
+      ->select('estado')
+      ->first()
+      ->estado;
+      if($check_estado && !in_array($estado_bd,['Generado','Pagado'])){
+        return $validator->errors()->add('estado','No puede borrar un Canon en estado '.$estado_bd);
+      }
     })->validate();
     
     return $this->borrar_arr($request->all());
