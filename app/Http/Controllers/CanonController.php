@@ -549,10 +549,10 @@ class CanonController extends Controller
     
     $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;//@RETORNADO
     $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;//@RETORNADO
-    $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? null;//@RETORNADO
-    $devengado_cotizacion_euro = $COT['devengado_cotizacion_euro'] ?? null;//@RETORNADO
-    $determinado_cotizacion_dolar = $COT['determinado_cotizacion_dolar'] ?? null;//@RETORNADO
-    $determinado_cotizacion_euro = $COT['determinado_cotizacion_euro'] ?? null;//@RETORNADO
+    $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? '0';//@RETORNADO
+    $devengado_cotizacion_euro = $COT['devengado_cotizacion_euro'] ?? '0';//@RETORNADO
+    $determinado_cotizacion_dolar = $COT['determinado_cotizacion_dolar'] ?? '0';//@RETORNADO
+    $determinado_cotizacion_euro = $COT['determinado_cotizacion_euro'] ?? '0';//@RETORNADO
     
     $valor_dolar = $COT['valor_dolar'] ?? null;//@RETORNADO
     $valor_euro  = $COT['valor_euro']  ?? null;//@RETORNADO
@@ -703,10 +703,10 @@ class CanonController extends Controller
         
     $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;//@RETORNADO
     $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;//@RETORNADO
-    $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? null;//@RETORNADO
-    $devengado_cotizacion_euro = $COT['devengado_cotizacion_euro'] ?? null;//@$RETORNADO
-    $determinado_cotizacion_dolar = $COT['determinado_cotizacion_dolar'] ?? null;//@RETORNADO
-    $determinado_cotizacion_euro = $COT['determinado_cotizacion_euro'] ?? null;//@RETORNADO
+    $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? '0';//@RETORNADO
+    $devengado_cotizacion_euro = $COT['devengado_cotizacion_euro'] ?? '0';//@$RETORNADO
+    $determinado_cotizacion_dolar = $COT['determinado_cotizacion_dolar'] ?? '0';//@RETORNADO
+    $determinado_cotizacion_euro = $COT['determinado_cotizacion_euro'] ?? '0';//@RETORNADO
     
     $devengado_valor_mes = bcadd(
       bcmul($valor_dolar,$devengado_cotizacion_dolar,4),//2+2
