@@ -1568,7 +1568,7 @@ class CanonController extends Controller
     return $dompdf->stream($filename, Array('Attachment'=>0));
   }
   
-  public function planillaDevengado(Request $request,$tipo_presupuesto = 'devengado'){
+  public function planillaDevengado(Request $request){
     if(!isset($request->id_canon)) return;
     
     $c_año_mes = DB::table('canon')
@@ -1619,17 +1619,17 @@ class CanonController extends Controller
               );
               if(!$matchea) continue;
               
-              $total;
-              if(isset($canon_casino_subtipo[$tipo_presupuesto])){
-                $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo[$tipo_presupuesto]));
-                $total = $canon_casino_subtipo[$tipo_presupuesto];
+              $devengado;
+              if(isset($canon_casino_subtipo['devengado'])){
+                $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo['devengado']));
+                $devengado = $canon_casino_subtipo['devengado'];
               }
               else{
-                $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo[$tipo_presupuesto.'_total']));
-                $total = bcsub($canon_casino_subtipo[$tipo_presupuesto.'_total'],$canon_casino_subtipo[$tipo_presupuesto.'_deduccion'] ?? '0',$max_scale);
+                $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo['devengado_total']));
+                $devengado = bcsub($canon_casino_subtipo['devengado_total'],$canon_casino_subtipo['devengado_deduccion'],$max_scale);
               }
               
-              $acumulado = bcadd($acumulado ?? '0',$total,$max_scale);
+              $acumulado = bcadd($acumulado ?? '0',$devengado,$max_scale);
           }}
         }
         $dcas[$concepto] = $acumulado;
@@ -1670,7 +1670,7 @@ class CanonController extends Controller
     }
     
     $conceptos = array_keys($conceptos);
-    $view = View::make('Canon.planillaDevengado', compact('tipo_presupuesto','conceptos','mes','datos'));
+    $view = View::make('Canon.planillaDevengado', compact('conceptos','mes','datos'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -1680,7 +1680,8 @@ class CanonController extends Controller
   }
   
   public function planillaDeterminado(Request $request){
-    return $this->planillaDevengado($request,'determinado');
+    if(!isset($request->id_canon)) return;
+    return $this->planillaInforme('Canon.planillaDeterminado','determinado','devengado',$request->id_canon);
   }
   
   private function planillaInforme(string $planilla,string $tipo,string $sacar,int $id_canon){
