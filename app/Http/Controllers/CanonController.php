@@ -1624,7 +1624,6 @@ class CanonController extends Controller
               if(isset($canon_casino_subtipo[$tipo_presupuesto])){
                 $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo[$tipo_presupuesto]));
                 $total = $canon_casino_subtipo[$tipo_presupuesto];
-                $total = bcadd($total,$tipo_presupuesto == 'devengado'? '0' : $canon_casino_subtipo['ajuste'],$max_scale);
               }
               else{
                 $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo[$tipo_presupuesto.'_total']));
