@@ -1209,6 +1209,9 @@ class CanonController extends Controller
           }
           else{
             $this->cotizacion_DB[$fcot][$idtm] = array_keys($valores_moneda)[0];
+            $this->cotizacion_DB[$fcot][$idtm] = empty($this->cotizacion_DB[$fcot][$idtm])? 
+            null
+            : $this->cotizacion_DB[$fcot][$idtm];
           }
         }
       }
