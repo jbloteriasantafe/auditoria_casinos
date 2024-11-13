@@ -1611,9 +1611,6 @@ class CanonController extends Controller
       $dcas = [];
       $max_scale = 2;//Sumo usando la maxima escala posible...
       foreach($conceptos as $concepto => $matcheables){     
-        $acumulado = ($concepto == 'Total Físico' && $tipo_presupuesto == 'determinado')?
-          $canons_casino['canon']['ajuste']
-        : null;
         foreach($matcheables as $matcheable){
           foreach($canons_casino as $tipo => $canons_casino_tipo){ foreach($canons_casino_tipo as $canon_casino_subtipo){
               $matchea = ($matcheable[0] === null || $matcheable[0] == $tipo) 
@@ -1626,7 +1623,6 @@ class CanonController extends Controller
               if(isset($canon_casino_subtipo[$tipo_presupuesto])){
                 $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo[$tipo_presupuesto]));
                 $total = $canon_casino_subtipo[$tipo_presupuesto];
-                $total = bcadd($total,$tipo_presupuesto == 'devengado'? '0' : $canon_casino_subtipo['ajuste'],$max_scale);
               }
               else{
                 $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo[$tipo_presupuesto.'_total']));
