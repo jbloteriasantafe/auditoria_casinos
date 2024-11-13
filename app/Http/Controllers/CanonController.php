@@ -1654,6 +1654,7 @@ class CanonController extends Controller
         $ajuste = (($canons_casino['canon'] ?? [])[0] ?? [])['ajuste'] ?? '0';
         $dcas['MTM'] = bcadd($dcas['MTM'],$ajuste,$max_scale);
         $dcas['Total Físico'] = bcadd($dcas['Total Físico'],$ajuste,$max_scale);
+        $dcas['Total'] = bcadd($dcas['Total'],$ajuste,$max_scale);
       }
       
       $datos[$casino] = $dcas;
