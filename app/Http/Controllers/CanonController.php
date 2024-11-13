@@ -1650,6 +1650,12 @@ class CanonController extends Controller
       }
       $dcas['MTM'] = $valor_MTM_restante;
       
+      if($tipo_presupuesto == 'determinado'){
+        $ajuste = (($canons_casino['canon'] ?? [])[0] ?? [])['ajuste'] ?? '0';
+        $dcas['MTM'] = bcadd($dcas['MTM'],$ajuste,$max_scale);
+        $dcas['Total Físico'] = bcadd($dcas['Total Físico'],$ajuste,$max_scale);
+      }
+      
       $datos[$casino] = $dcas;
     }
     
