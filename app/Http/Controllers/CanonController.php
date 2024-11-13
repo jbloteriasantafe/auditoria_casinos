@@ -213,9 +213,10 @@ class CanonController extends Controller
     //despues me entere que eran la misma. De todos modos al guardarse en cada tabla de BD, facilita su recalculo en caso
     //de modificaciones al codigo y lo hace mas robusto, lo malo es que complica un poco el codigo
     //Entonces por ejemplo, si cambia la logica, podemos seguir recalculando cada subcanon independientemente de los demas
+    $COT_D = ($this->valorPorDefecto('valores_confluir') ?? [])[$id_casino] ?? [];
     $COT = [
-      'valor_dolar' => $R('valor_dolar',null),
-      'valor_euro'  => $R('valor_euro',null),
+      'valor_dolar' => $R('valor_dolar',$COT_D['valor_dolar'] ?? null),
+      'valor_euro'  => $R('valor_euro',$COT_D['valor_euro'] ?? null),
       'devengado_fecha_cotizacion'   => $R('devengado_fecha_cotizacion',null),
       'devengado_cotizacion_dolar'   => $R('devengado_cotizacion_dolar',null),
       'devengado_cotizacion_euro'    => $R('devengado_cotizacion_euro',null),
