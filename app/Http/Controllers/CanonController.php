@@ -215,8 +215,8 @@ class CanonController extends Controller
     //Entonces por ejemplo, si cambia la logica, podemos seguir recalculando cada subcanon independientemente de los demas
     $COT_D = ($this->valorPorDefecto('valores_confluir') ?? [])[$id_casino] ?? [];
     $COT = [
-      'valor_dolar' => $R('valor_dolar',$COT_D['valor_dolar'] ?? null),
-      'valor_euro'  => $R('valor_euro',$COT_D['valor_euro'] ?? null),
+      'valor_dolar' => bcadd($R('valor_dolar',$COT_D['valor_dolar'] ?? null),'0',2),
+      'valor_euro'  => bcadd($R('valor_euro',$COT_D['valor_euro'] ?? null),'0',2),
       'devengado_fecha_cotizacion'   => $R('devengado_fecha_cotizacion',null),
       'devengado_cotizacion_dolar'   => $R('devengado_cotizacion_dolar',null),
       'devengado_cotizacion_euro'    => $R('devengado_cotizacion_euro',null),
@@ -546,15 +546,15 @@ class CanonController extends Controller
       return $R($s,null) ?? $D($s,null) ?? $dflt;
     };
     
-    $devengado_fecha_cotizacion = $R('devengado_fecha_cotizacion',$COT['devengado_fecha_cotizacion'] ?? null);//@RETORNADO
-    $determinado_fecha_cotizacion = $R('determinado_fecha_cotizacion',$COT['determinado_fecha_cotizacion'] ?? null);//@RETORNADO
-    $devengado_cotizacion_dolar = bcadd($R('devengado_cotizacion_dolar',$COT['devengado_cotizacion_dolar'] ?? null),'0',2);//@RETORNADO
-    $devengado_cotizacion_euro = bcadd($R('devengado_cotizacion_euro',$COT['devengado_cotizacion_euro'] ?? null),'0',2);//@RETORNADO
-    $determinado_cotizacion_dolar = bcadd($R('determinado_cotizacion_dolar',$COT['determinado_cotizacion_dolar'] ?? null),'0',2);//@RETORNADO
-    $determinado_cotizacion_euro = bcadd($R('determinado_cotizacion_euro',$COT['determinado_cotizacion_euro'] ?? null),'0',2);//@RETORNADO
+    $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;//@RETORNADO
+    $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;//@RETORNADO
+    $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? null;//@RETORNADO
+    $devengado_cotizacion_euro = $COT['devengado_cotizacion_euro'] ?? null;//@RETORNADO
+    $determinado_cotizacion_dolar = $COT['determinado_cotizacion_dolar'] ?? null;//@RETORNADO
+    $determinado_cotizacion_euro = $COT['determinado_cotizacion_euro'] ?? null;//@RETORNADO
     
-    $valor_dolar = bcadd($R('valor_dolar',$COT['valor_dolar'] ?? null),'0',2);//@RETORNADO
-    $valor_euro  = bcadd($R('valor_euro', $COT['valor_euro']  ?? null),'0',2);//@RETORNADO
+    $valor_dolar = $COT['valor_dolar'] ?? null;//@RETORNADO
+    $valor_euro  = $COT['valor_euro']  ?? null;//@RETORNADO
     
     $dias_valor = $RD('dias_valor',0);//@RETORNADO
     $factor_dias_valor = $dias_valor != 0? bcdiv('1',$dias_valor,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon
@@ -694,18 +694,18 @@ class CanonController extends Controller
     $factor_dias_mes  = ($dias_mes != 0)? bcdiv('1',$dias_mes,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon
     $factor_horas_mes = ($horas_dia != 0 && $dias_mes != 0)? bcdiv('1',$horas_dia*$dias_mes,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon
     
-    $valor_dolar = bcadd($R('valor_dolar',$COT['valor_dolar'] ?? null),'0',2);//@RETORNADO
-    $valor_euro  = bcadd($R('valor_euro', $COT['valor_euro']  ?? null),'0',2);//@RETORNADO
+    $valor_dolar = $COT['valor_dolar'] ?? null;//@RETORNADO
+    $valor_euro  = $COT['valor_euro']  ?? null;//@RETORNADO
     $horas = $R('horas',0);//@RETORNADO
     $porcentaje = bcadd($RD('porcentaje','0.0000'),'0',4);//@RETORNADO
     $factor_porcentaje = bcdiv($porcentaje,'100',6);
         
-    $devengado_fecha_cotizacion = $R('devengado_fecha_cotizacion',$COT['devengado_fecha_cotizacion'] ?? null);//@RETORNADO
-    $determinado_fecha_cotizacion = $R('determinado_fecha_cotizacion',$COT['determinado_fecha_cotizacion'] ?? null);//@RETORNADO
-    $devengado_cotizacion_dolar = bcadd($R('devengado_cotizacion_dolar',$COT['devengado_cotizacion_dolar'] ?? null),'0',2);//@RETORNADO
-    $devengado_cotizacion_euro = bcadd($R('devengado_cotizacion_euro',$COT['devengado_cotizacion_euro'] ?? null),'0',2);//@RETORNADO
-    $determinado_cotizacion_dolar = bcadd($R('determinado_cotizacion_dolar',$COT['determinado_cotizacion_dolar'] ?? null),'0',2);//@RETORNADO
-    $determinado_cotizacion_euro = bcadd($R('determinado_cotizacion_euro',$COT['determinado_cotizacion_euro'] ?? null),'0',2);//@RETORNADO
+    $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;//@RETORNADO
+    $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;//@RETORNADO
+    $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? null;//@RETORNADO
+    $devengado_cotizacion_euro = $COT['devengado_cotizacion_euro'] ?? null;//@$RETORNADO
+    $determinado_cotizacion_dolar = $COT['determinado_cotizacion_dolar'] ?? null;//@RETORNADO
+    $determinado_cotizacion_euro = $COT['determinado_cotizacion_euro'] ?? null;//@RETORNADO
     
     $devengado_valor_mes = bcadd(
       bcmul($valor_dolar,$devengado_cotizacion_dolar,4),//2+2
@@ -988,12 +988,12 @@ class CanonController extends Controller
     });
     
     $ret = json_decode(json_encode($ret),true);
-    /*$COT = $this->confluir_datos_cotizacion([
+    $COT = $this->confluir_datos_cotizacion([
       'canon_variable' => $ret['canon_variable'],
       'canon_fijo_mesas' => $ret['canon_fijo_mesas'],
       'canon_fijo_mesas_adicionales' => $ret['canon_fijo_mesas_adicionales']
     ]);
-    foreach($COT as $k => $v) $ret[$k] = $v;*/
+    foreach($COT as $k => $v) $ret[$k] = $v;
     
     return !empty($ret)? $ret : $this->recalcular($ret);
   }
