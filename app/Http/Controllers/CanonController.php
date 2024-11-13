@@ -1142,7 +1142,7 @@ class CanonController extends Controller
     
   private $cotizacion_DB = null;
   private function cotizacion($fecha_cotizacion,$id_tipo_moneda,$id_casino){
-    if(empty($fecha_cotizacion) || empty($id_tipo_moneda)) return null;
+    if(empty($fecha_cotizacion) || empty($id_tipo_moneda)) return '0';
     if($id_tipo_moneda == 1){
       return 1;
     }
@@ -1227,7 +1227,7 @@ class CanonController extends Controller
       }
     }
     
-    return null;
+    return '0';
   }
   
   private function apostado($tipo,$año_mes,$id_casino){
