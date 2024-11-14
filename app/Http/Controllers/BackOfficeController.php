@@ -210,6 +210,10 @@ class BackOfficeController extends Controller {
         'default_order_by' => [
           'bi.fecha' => 'asc'
         ],
+        'count' => DB::table('bingo_importacion as bi')
+        ->selectRaw('COUNT(distinct CONCAT(bi.id_casino,"-",bi.fecha)) as count')
+        ->join('casino as c','c.id_casino','=','bi.id_casino')
+        ->groupBy(DB::raw('"constant"'))
       ],
       'producido_maquinas' => [
         'precols' => 'STRAIGHT_JOIN',
