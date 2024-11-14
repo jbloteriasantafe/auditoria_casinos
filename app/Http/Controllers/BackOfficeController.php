@@ -120,6 +120,7 @@ class BackOfficeController extends Controller {
             SELECT COUNT(distinct CONCAT(didm.siglas_juego,didm.nro_mesa))
             FROM detalle_importacion_diaria_mesas as didm
             WHERE didm.id_importacion_diaria_mesas = idm.id_importacion_diaria_mesas
+            AND didm.deleted_at IS NULL
             AND (
                  IFNULL(didm.droop,0) <> 0 OR IFNULL(didm.droop_tarjeta,0) <> 0 
               OR IFNULL(didm.reposiciones,0) <> 0 OR IFNULL(didm.retiros,0) <> 0 
