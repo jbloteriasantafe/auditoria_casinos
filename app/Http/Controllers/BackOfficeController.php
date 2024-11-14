@@ -158,12 +158,12 @@ class BackOfficeController extends Controller {
         'cols' => [
           ['idm.fecha','fecha','string','input_date_month',[$hoy]],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('importacion_diaria_mesas')],
-          ['SUM(idm.droop*IF(m.id_moneda = 1,1.0,cot.valor))','drop_ars','numeric'],
-          ['SUM(idm.droop_tarjeta*IF(m.id_moneda = 1,1.0,cot.valor))','drop_tarjeta_ars','numeric'],
-          ['SUM(idm.saldo_fichas*IF(m.id_moneda = 1,1.0,cot.valor))','saldo_fichas_ars','numeric'],
-          ['SUM(idm.retiros*IF(m.id_moneda = 1,1.0,cot.valor))','retiros_ars','numeric'],
-          ['SUM(idm.reposiciones*IF(m.id_moneda = 1,1.0,cot.valor))','reposiciones_ars','numeric'],
-          ['SUM(idm.utilidad*IF(m.id_moneda = 1,1.0,cot.valor))','utilidad_ars','numeric'],          
+          ['SUM(idm.droop*IF(m.id_moneda = 1,1.0,cot.valor))','drop','numeric'],
+          ['SUM(idm.droop_tarjeta*IF(m.id_moneda = 1,1.0,cot.valor))','drop_tarjeta','numeric'],
+          ['SUM(idm.saldo_fichas*IF(m.id_moneda = 1,1.0,cot.valor))','saldo_fichas','numeric'],
+          ['SUM(idm.retiros*IF(m.id_moneda = 1,1.0,cot.valor))','retiros','numeric'],
+          ['SUM(idm.reposiciones*IF(m.id_moneda = 1,1.0,cot.valor))','reposiciones','numeric'],
+          ['SUM(idm.utilidad*IF(m.id_moneda = 1,1.0,cot.valor))','utilidad','numeric'],          
         ],
         'indirect_where' => [
           'casino' => 'c.id_casino',
