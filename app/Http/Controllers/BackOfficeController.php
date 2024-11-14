@@ -163,6 +163,7 @@ class BackOfficeController extends Controller {
             FROM detalle_importacion_diaria_mesas as didm
             JOIN importacion_diaria_mesas as idm2
             WHERE idm2.id_casino = idm.id_casino AND idm2.fecha = idm.fecha
+            AND idm2.deleted_at IS NULL AND didm.deleted_at IS NULL
             AND (
                  IFNULL(didm.droop,0) <> 0 OR IFNULL(didm.droop_tarjeta,0) <> 0 
               OR IFNULL(didm.reposiciones,0) <> 0 OR IFNULL(didm.retiros,0) <> 0 
