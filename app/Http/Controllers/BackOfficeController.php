@@ -49,7 +49,7 @@ class BackOfficeController extends Controller {
     }
     
     $this->vistas = [
-      'beneficio_maquinas' => [
+      'beneficio_maquinas_por_moneda' => [
         'cols' => [
           ['b.fecha','fecha','string','input_date_month',[$hoy]],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('beneficio')],
@@ -83,7 +83,35 @@ class BackOfficeController extends Controller {
           'b.fecha' => 'asc'
         ],
       ],
-      'beneficio_mesas' => [
+      'beneficio_maquinas' => [
+        'cols' => [
+          ['b.fecha','fecha','string','input_date_month',[$hoy]],
+          ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('beneficio')],
+          ['(
+              SELECT COUNT(*)
+              FROM producido as p
+              JOIN detalle_producido as dp ON dp.id_producido = p.id_producido
+              WHERE p.fecha = b.fecha AND p.id_casino = b.id_casino
+                AND dp.valor <> 0
+            )','maquinas','integer'],
+          ['SUM(b.coinin*IF(tm.id_tipo_moneda = 1,1.0,cot.valor))','apostado','numeric'],
+          ['SUM(b.coinout*IF(tm.id_tipo_moneda = 1,1.0,cot.valor))','premio','numeric'],
+          ['SUM(b.jackpot*IF(tm.id_tipo_moneda = 1,1.0,cot.valor))','premios_mayores','numeric'],
+          ['SUM(b.valor*IF(tm.id_tipo_moneda = 1,1.0,cot.valor))','beneficio','numeric'],
+        ],
+        'indirect_where' => [
+          'casino' => 'c.id_casino',
+        ],
+        'query' => DB::table('beneficio as b')
+        ->join('casino as c','c.id_casino','=','b.id_casino')
+        ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','b.id_tipo_moneda')
+        ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha')
+        ->groupBy('c.nombre','b.fecha'),
+        'default_order_by' => [
+          'b.fecha' => 'asc'
+        ],
+      ],
+      'beneficio_mesas_por_moneda' => [
         'cols' => [
           ['idm.fecha','fecha','string','input_date_month',[$hoy]],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('importacion_diaria_mesas')],
@@ -122,6 +150,30 @@ class BackOfficeController extends Controller {
         ->join('moneda as m','m.id_moneda','=','idm.id_moneda')
         ->leftJoin('cotizacion as cot','cot.fecha','=','idm.fecha')
         ->whereNull('idm.deleted_at'),
+        'default_order_by' => [
+          'idm.fecha' => 'asc'
+        ],
+      ],
+      'beneficio_mesas' => [
+        'cols' => [
+          ['idm.fecha','fecha','string','input_date_month',[$hoy]],
+          ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('importacion_diaria_mesas')],
+          ['SUM(idm.droop*IF(m.id_moneda = 1,1.0,cot.valor))','drop_ars','numeric'],
+          ['SUM(idm.droop_tarjeta*IF(m.id_moneda = 1,1.0,cot.valor))','drop_tarjeta_ars','numeric'],
+          ['SUM(idm.saldo_fichas*IF(m.id_moneda = 1,1.0,cot.valor))','saldo_fichas_ars','numeric'],
+          ['SUM(idm.retiros*IF(m.id_moneda = 1,1.0,cot.valor))','retiros_ars','numeric'],
+          ['SUM(idm.reposiciones*IF(m.id_moneda = 1,1.0,cot.valor))','reposiciones_ars','numeric'],
+          ['SUM(idm.utilidad*IF(m.id_moneda = 1,1.0,cot.valor))','utilidad_ars','numeric'],          
+        ],
+        'indirect_where' => [
+          'casino' => 'c.id_casino',
+        ],
+        'query' => DB::table('importacion_diaria_mesas as idm')
+        ->join('casino as c','c.id_casino','=','idm.id_casino')
+        ->join('moneda as m','m.id_moneda','=','idm.id_moneda')
+        ->leftJoin('cotizacion as cot','cot.fecha','=','idm.fecha')
+        ->whereNull('idm.deleted_at')
+        ->groupBy('c.nombre','idm.fecha'),
         'default_order_by' => [
           'idm.fecha' => 'asc'
         ],
