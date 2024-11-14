@@ -158,6 +158,18 @@ class BackOfficeController extends Controller {
         'cols' => [
           ['idm.fecha','fecha','string','input_date_month',[$hoy]],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('importacion_diaria_mesas')],
+          ['(
+            SELECT COUNT(distinct CONCAT(didm.siglas_juego,didm.nro_mesa))
+            FROM detalle_importacion_diaria_mesas as didm
+            JOIN importacion_diaria_mesas as idm2
+            WHERE idm2.id_casino = idm.id_casino AND idm2.fecha = idm.fecha
+            AND (
+                 IFNULL(didm.droop,0) <> 0 OR IFNULL(didm.droop_tarjeta,0) <> 0 
+              OR IFNULL(didm.reposiciones,0) <> 0 OR IFNULL(didm.retiros,0) <> 0 
+              OR IFNULL(didm.utilidad,0) <> 0 OR IFNULL(didm.saldo_fichas,0) <> 0 
+              OR IFNULL(didm.propina <> 0,0)
+            )
+          )','mesas','integer'],
           ['SUM(idm.droop*IF(m.id_moneda = 1,1.0,cot.valor))','drop','numeric'],
           ['SUM(idm.droop_tarjeta*IF(m.id_moneda = 1,1.0,cot.valor))','drop_tarjeta','numeric'],
           ['SUM(idm.saldo_fichas*IF(m.id_moneda = 1,1.0,cot.valor))','saldo_fichas','numeric'],
