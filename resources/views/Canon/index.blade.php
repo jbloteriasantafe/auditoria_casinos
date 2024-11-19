@@ -468,7 +468,7 @@
             </div>
             <div class="parametro_chico">
               <h5>Porcentaje Seguridad</h5>
-              <input class="form-control" name="porcentaje_seguridad" data-depende="devengado_deduccion,devengado_bruto" data-readonly="[{}]">
+              <input class="form-control" name="porcentaje_seguridad" data-depende="devengado,determinado" data-readonly="[{}]">
             </div>
           </div>
         </div>
