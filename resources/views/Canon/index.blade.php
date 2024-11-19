@@ -630,6 +630,7 @@
             return "canon_fijo_mesas[$molde_str][$s]";
           };
           $dias_valor = $n('dias_valor');
+          $bruto = $n('bruto');
           $factor_dias_valor = $n('factor_dias_valor');
           $dias_lunes_jueves  = $n('dias_lunes_jueves');
           $mesas_lunes_jueves = $n('mesas_lunes_jueves');
@@ -725,6 +726,10 @@
               <div class="aproximado valor_intermedio">
                 <h5>FACTOR DÍAS VALOR ≈ (DÍAS VALOR)⁻¹</h5>
                 <input class="form-control" data-name="{{$factor_dias_valor}}" data-depende="{{$dias_valor}}" data-readonly='[{}]'>
+              </div>
+              <div>
+                <h5>BRUTO</h5>
+                <input class="form-control" data-name="{{$bruto}}" data-depende="id_casino,año_mes" data-readonly='[{"es_antiguo": 0}]'>
               </div>
             </div>
           </div>

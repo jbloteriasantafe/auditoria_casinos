@@ -658,12 +658,13 @@ class CanonController extends Controller
     $devengado_deduccion = bcadd($RD('devengado_deduccion','0.00'),'0',2);//@RETORNADO
     $devengado_total   = bcadd($devengado_total_dolar_cotizado,$devengado_total_euro_cotizado,16);//@RETORNADO
     $determinado_total = bcadd($determinado_total_dolar_cotizado,$determinado_total_euro_cotizado,16);//@RETORNADO
+    $bruto = bcadd($this->bruto($tipo,$año_mes,$id_casino),'0',2);//@RETORNADO
     
     return compact(
       'tipo','dias_valor','factor_dias_valor','valor_dolar','valor_euro',
       'dias_lunes_jueves','mesas_lunes_jueves','dias_viernes_sabados','mesas_viernes_sabados',
       'dias_domingos','mesas_domingos','dias_todos','mesas_todos','dias_fijos','mesas_fijos',
-      'mesas_dias',
+      'mesas_dias','bruto',
       
       'devengado_fecha_cotizacion','devengado_cotizacion_dolar','devengado_cotizacion_euro',
       'devengado_valor_dolar_cotizado','devengado_valor_euro_cotizado',
@@ -1317,6 +1318,22 @@ class CanonController extends Controller
         }
                 
         return $result;
+      }break;
+      
+      case 'Fijas':
+      case 'Diarias': {
+        $resultado = DB::table('importacion_diaria_mesas as idm')
+        ->selectRaw('SUM(idm.utilidad*IF(idm.id_moneda = 1,1,CAST(cot.valor AS DECIMAL(20,6)))) as valor')
+        ->leftJoin('cotizacion as cot',function($q){
+          return $q->where('idm.id_moneda',2)->on('idm.fecha','=','cot.fecha');
+        })
+        ->whereNull('idm.deleted_at')
+        ->where('idm.id_casino',$id_casino)
+        ->whereYear('idm.fecha',$año_mes_arr[0])
+        ->whereMonth('idm.fecha',intval($año_mes_arr[1]))
+        ->groupBy(DB::raw('"constant"'))->first();
+        
+        return $resultado === null? $resultado : $resultado->valor;
       }break;
     }
     return null;
