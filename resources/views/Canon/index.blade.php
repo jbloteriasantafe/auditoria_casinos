@@ -427,10 +427,6 @@
               <h5>Devengado</h5>
               <input class="form-control" name="devengado" data-depende="devengado_bruto,devengado_deduccion" data-readonly="[{}]">
             </div>
-            <div class="parametro_chico">
-              <h5>Porcentaje Seguridad</h5>
-              <input class="form-control" name="porcentaje_seguridad" data-depende="devengado_deduccion,devengado_bruto" data-readonly="[{}]">
-            </div>
           </div>
         </div>
         <div class="bloque_interno">
@@ -469,6 +465,10 @@
             <div>
               <h5>Determinado</h5>
               <input class="form-control" name="determinado" data-depende="determinado_bruto,interes_mora,mora,fecha_pago,fecha_vencimiento" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            </div>
+            <div class="parametro_chico">
+              <h5>Porcentaje Seguridad</h5>
+              <input class="form-control" name="porcentaje_seguridad" data-depende="devengado_deduccion,devengado_bruto" data-readonly="[{}]">
             </div>
           </div>
         </div>

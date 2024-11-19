@@ -360,10 +360,6 @@ class CanonController extends Controller
     
     $devengado = bcround_ndigits(bcsub($devengado_bruto,$devengado_deduccion,20),2);//@RETORNADO
     
-    $porcentaje_seguridad = bccomp($devengado_bruto,'0.00') > 0?//@RETORNADO
-       bcdiv(bcmul('100.0',$devengado_deduccion),$devengado_bruto,4)
-      : '0.00';
-    
     $interes_mora = bcadd($R('interes_mora','0.0000'),'0',4);//@RETORNADO
     $determinado = bcadd($R('determinado','0.00'),'0',2);//@RETORNADO
     $mora = bcadd($R('mora','0.00'),'0',2);//@RETORNADO
@@ -418,6 +414,10 @@ class CanonController extends Controller
       }
     }
     
+    
+    $porcentaje_seguridad = bccomp($devengado,'0.00') <> 0?//@RETORNADO
+       bcdiv(bcmul('100',bcsub($determinado,$devengado,2),2),$devengado,4)
+      : '0.00';
     $pago = bcadd($R('pago','0.00'),'0',2);//@RETORNADO
     $ajuste = bcadd($R('ajuste','0.00'),'0',2);//@RETORNADO
     $motivo_ajuste = $R('motivo_ajuste','');
