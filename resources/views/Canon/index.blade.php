@@ -705,6 +705,14 @@
                   <input class="form-control" data-name="{{$mesas_fijos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
               </div>
+              <div>
+                <h5>&nbsp;</h5>
+                <input class="form-control" style="opacity: 0;">
+              </div>
+              <div>
+                <h5>BRUTO</h5>
+                <input class="form-control" data-name="{{$bruto}}" data-depende="id_casino,año_mes" data-readonly='[{"es_antiguo": 0}]'>
+              </div>
             </div>
             <div style="display: flex;">
               <div class="valor_intermedio">
@@ -726,10 +734,6 @@
               <div class="aproximado valor_intermedio">
                 <h5>FACTOR DÍAS VALOR ≈ (DÍAS VALOR)⁻¹</h5>
                 <input class="form-control" data-name="{{$factor_dias_valor}}" data-depende="{{$dias_valor}}" data-readonly='[{}]'>
-              </div>
-              <div>
-                <h5>BRUTO</h5>
-                <input class="form-control" data-name="{{$bruto}}" data-depende="id_casino,año_mes" data-readonly='[{"es_antiguo": 0}]'>
               </div>
             </div>
           </div>
