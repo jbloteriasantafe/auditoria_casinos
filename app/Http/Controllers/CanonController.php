@@ -943,7 +943,7 @@ class CanonController extends Controller
     });
   }
   
-  public function obtener_arr(array $request){
+  public function obtener_arr(array $request,$confluir = true){
     $ret = (array) DB::table('canon as c')
     ->select('cas.nombre as casino','c.*','u.user_name as usuario')
     ->join('usuario as u','u.id_usuario','=','c.created_id_usuario')
@@ -990,12 +990,15 @@ class CanonController extends Controller
     });
     
     $ret = json_decode(json_encode($ret),true);
-    $COT = $this->confluir_datos_cotizacion([
-      'canon_variable' => $ret['canon_variable'],
-      'canon_fijo_mesas' => $ret['canon_fijo_mesas'],
-      'canon_fijo_mesas_adicionales' => $ret['canon_fijo_mesas_adicionales']
-    ]);
-    foreach($COT as $k => $v) $ret[$k] = $v;
+    
+    if($confluir){
+      $COT = $this->confluir_datos_cotizacion([
+        'canon_variable' => $ret['canon_variable'],
+        'canon_fijo_mesas' => $ret['canon_fijo_mesas'],
+        'canon_fijo_mesas_adicionales' => $ret['canon_fijo_mesas_adicionales']
+      ]);
+      foreach($COT as $k => $v) $ret[$k] = $v;
+    }
     
     return !empty($ret)? $ret : $this->recalcular($ret);
   }
@@ -1459,7 +1462,7 @@ class CanonController extends Controller
   }
   
   private function obtener_para_salida($id_canon,$formatear_decimal = true){
-    $data = $this->obtener_arr(compact('id_canon'));
+    $data = $this->obtener_arr(compact('id_canon'),false);
     $ret = [];
     
     $ret['canon'] = [];
