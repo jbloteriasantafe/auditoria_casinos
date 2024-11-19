@@ -658,7 +658,7 @@ class CanonController extends Controller
     $devengado_deduccion = bcadd($RD('devengado_deduccion','0.00'),'0',2);//@RETORNADO
     $devengado_total   = bcadd($devengado_total_dolar_cotizado,$devengado_total_euro_cotizado,16);//@RETORNADO
     $determinado_total = bcadd($determinado_total_dolar_cotizado,$determinado_total_euro_cotizado,16);//@RETORNADO
-    $bruto = bcadd($this->bruto($tipo,$año_mes,$id_casino),'0',2);//@RETORNADO
+    $bruto = bcadd($R('bruto',$this->bruto($tipo,$año_mes,$id_casino)),'0',2);//@RETORNADO
     
     return compact(
       'tipo','dias_valor','factor_dias_valor','valor_dolar','valor_euro',
