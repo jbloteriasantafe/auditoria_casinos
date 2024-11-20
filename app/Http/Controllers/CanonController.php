@@ -1598,7 +1598,7 @@ class CanonController extends Controller
     $err_file = storage_path(uniqid().'.err');
     
     //Uso {$dir_path}/* para evitar tener que escapar espacios y cosas asi
-    exec('python3 '.base_path('xlsxmaker.py').' '.escapeshellarg($abs_outfile).' '.escapeshellarg($dir_path)."/* > ".escapeshellarg($log_file)." 2> ".escapeshellarg($err_file));
+    exec('python3 '.base_path('xlsxmaker.py').' '.$abs_outfile.' '.$dir_path.'/* > '.$log_file.' 2> '.$err_file);
     $rmdir($dir_path);
     
     if(is_file($abs_outfile) === false){
