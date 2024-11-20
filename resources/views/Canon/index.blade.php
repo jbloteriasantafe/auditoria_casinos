@@ -163,7 +163,7 @@
         <button class="btn" type="button" data-js-adjuntar="/canon/obtener" data-estado-visible="PAGADO" title="ADJUNTAR"><i class="fa fa-fw fa-paperclip"></i></button>
         <button class="btn" type="button" data-js-editar="/canon/obtener" data-estado-visible="GENERADO"  title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
         @endif
-        <button class="btn" type="button" data-js-abrir-pestaña="/canon/planilla" data-table-id="id_canon" title="DESCARGAR CSV">.csv</button>
+        <button class="btn" type="button" data-js-abrir-pestaña="/canon/planilla" data-table-id="id_canon" title="DESCARGAR XLSX">.xlsx</button>
         <button class="btn" type="button" data-js-abrir-pestaña="/canon/planillaPDF" data-table-id="id_canon" title="REPORTE"><i class="fa fa-table"></i></button>
         <button class="btn" type="button" data-js-abrir-pestaña="/canon/planillaDevengado" data-table-id="id_canon" title="IMPRIMIR DEVENGADO"><i class="far fa-fw fa-file-alt"></i></button>
         <button class="btn" type="button" data-js-abrir-pestaña="/canon/planillaDeterminado" data-table-id="id_canon" title="IMPRIMIR DETERMINADO"><i class="fa fa fa-print"></i></button>

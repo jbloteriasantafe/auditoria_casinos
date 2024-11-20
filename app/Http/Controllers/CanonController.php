@@ -1543,10 +1543,33 @@ class CanonController extends Controller
   
   public function planilla(Request $request){
     $ret = $this->obtener_para_salida($request->id_canon);
-    $lineas = [];
-    foreach($ret as $tipo => $arreglo){
-      $lineas[] = $tipo;
+    $dir_path = storage_path("canon_{$request->id_canon}");
+    
+    $rmdir = function($dir) use(&$rmdir){//Borra recursivamente... cuidado con que se lo llama
+      assert(substr($dir,0,strlen(storage_path())) == storage_path());//Chequea que no se llame con un path raro
+      if(is_dir($dir) === false) return false;
+      $files = array_diff(scandir($dir), ['.', '..']); 
       
+      foreach($files as $f){
+        $fpath = $dir.'/'.$f;
+        if(is_dir($fpath)){
+          $rmdir($fpath);
+        }
+        else{
+          unlink($fpath);
+        }
+      }
+      
+      return rmdir($dir);
+    };
+    
+    $rmdir($dir_path);
+    mkdir($dir_path);
+    
+    $filenames = [];
+    foreach($ret as $tipo => $arreglo){
+      $lineas = [];
+            
       foreach($arreglo as $v){
         $lineas[] = csvstr(array_keys($v));
         break;
@@ -1557,19 +1580,43 @@ class CanonController extends Controller
       }
       
       $lineas[] = '';
+      
+      $fname = $dir_path."/{$tipo}";
+      $fhandler = fopen($fname,"w");
+      fwrite($fhandler,implode("\r\n",$lineas));
+      fclose($fhandler);
+      
+      $filenames[] = $fname;
     }
     
     $año_mes = $ret['canon'][0]['año_mes'];
     $casino  = $ret['canon'][0]['casino'];
-    $filename = "Canon-$año_mes-$casino.csv";
-    return \Response::make(
-      implode("\r\n",$lineas), 
-      200, 
-      [
-        'Content-Type' => 'text/csv',
-        'Content-Disposition' => 'attachment; filename="'.$filename.'"'
-      ]
-    );
+    $outfile = "Canon-$año_mes-$casino.xlsx";
+    $abs_outfile = storage_path($outfile);
+    
+    $log_file = storage_path(uniqid().'.log');
+    $err_file = storage_path(uniqid().'.err');
+    
+    //Uso {$dir_path}/* para evitar tener que escapar espacios y cosas asi
+    exec("ssconvert2 ".escapeshellarg($dir_path)."/* --merge-to=".escapeshellarg($abs_outfile)." > ".escapeshellarg($log_file)." 2> ".escapeshellarg($err_file));
+    $rmdir($dir_path);
+    
+    if(is_file($abs_outfile) === false){
+      echo '<p>','ERROR','</p>';
+      echo '<p>',"====================================",'</p>';
+      echo '<p>',htmlspecialchars($log_file),'</p>';
+      echo '<p>',htmlspecialchars(file_get_contents($log_file)),'</p>';
+      echo '<p>',"====================================",'</p>';
+      echo '<p>',htmlspecialchars($err_file),'</p>';
+      echo '<p>',htmlspecialchars(file_get_contents($err_file)),'</p>';          
+      unlink($log_file);
+      unlink($err_file);
+      return;
+    }
+    
+    unlink($log_file);
+    unlink($err_file);
+    return response()->download($abs_outfile)->deleteFileAfterSend(true);
   }
   
   public function planillaPDF(Request $request){
