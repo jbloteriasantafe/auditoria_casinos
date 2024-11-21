@@ -644,6 +644,16 @@ class CanonController extends Controller
       $mesas_meses = intdiv($mesas_dias,$dias_valor);
       $mesas_dias_restantes  = $mesas_dias % $dias_valor;
       
+      //Esto en teoria aumenta la precision pero puede introducir errores de +-1... prefiero desactivarlo
+      /*
+      //Si es menor o igual a la mitad... lo hago como esta la formula arriba
+      //Si es mayor a la mitad lo hago restando desde un multiplo mas... para disminuir el error de truncamiento
+      if($mesas_dias_restantes > ($dias_valor/2.0)){
+        $mesas_meses += 1;
+        $mesas_dias_restantes = -($dias_valor-$mesas_dias_restantes);
+      }
+      */
+      
       $devengado_total_dolar_cotizado = bcmul($devengado_valor_dolar_cotizado,$mesas_meses,4);
       $devengado_total_euro_cotizado  = bcmul($devengado_valor_euro_cotizado,$mesas_meses,4);
       $determinado_total_dolar_cotizado = bcmul($determinado_valor_dolar_cotizado,$mesas_meses,4);
@@ -731,17 +741,71 @@ class CanonController extends Controller
       $horas_mes = $horas_dia*$dias_mes;
       
       $meses = intdiv($horas,$horas_mes);
-      $restantes = $horas%$horas_mes;
+      $horas_dias_restantes = $horas%$horas_mes;
       
-      $dias = intdiv($restantes,$horas_dia);
-      $restantes = $restantes%$horas_dia;
+      $dias = intdiv($horas_dias_restantes,$horas_dia);
+      $horas_restantes = $horas_dias_restantes%$horas_dia;
+      
+      //Esto es un codigo de prueba para aumentar la precision pero complica demasiado el codigo
+      //Prefiero que sea mas debuggeable
+      /*
+      //Minimizo por dia
+      $mD_meses = $meses;
+      $mD_dias  = $dias;
+      $mD_horas_restantes = $horas_restantes;
+      if($mD_dias > ($dias_mes/2.0)){
+        $mD_meses += 1;
+        $mD_dias = -($dias_mes-$mD_dias-1);//No estoy seguro pq tengo que hacer -1
+        $mD_horas_restantes = -($horas_dia-$mD_horas_restantes);
+      }
+      
+      //Minimizo por hora y despues por dia
+      $mHD_meses = $meses;
+      $mHD_dias  = $dias;
+      $mHD_horas_restantes = $horas_restantes;
+      if($mHD_horas_restantes > ($horas_dia/2.0)){
+        $mHD_dias += 1;
+        $mHD_horas_restantes = -($horas_dia-$mHD_horas_restantes);
+      }
+      if($mHD_dias == $dias_mes){
+        $mHD_meses += 1;
+        $mHD_dias = 0;
+      }
+      
+      //Al estar dividiendo en la aproximación, el redondeo es ~Horas_dia veces peor por Valor Hora que por Valor Dia
+      //generalmente el $costo_mHD < $costo_mD < $costo_normal pero por las dudas lo chequeo
+      {
+        $costo_redondeo_dia  = 1;
+        $costo_redondeo_hora = $costo_redondeo_dia*$horas_dia;
+        
+        $costo_normal = $horas_restantes*$costo_redondeo_hora + $dias*$costo_redondeo_dia;
+        $costo_mD     = abs($mD_horas_restantes)*$costo_redondeo_hora + abs($mD_dias)*$costo_redondeo_dia;
+        $costo_mHD    = abs($mHD_horas_restantes)*$costo_redondeo_hora + abs($mHD_dias)*$costo_redondeo_dia;
+        $costo_min = min($costo_normal,$costo_mD,$costo_mHD);
+        
+        if($costo_min == $costo_normal){
+        }
+        else if($costo_min == $costo_mD){
+          $meses = $mD_meses;
+          $dias  = $mD_dias;
+          $horas_restantes = $mD_horas_restantes;
+        }
+        else if($costo_min == $costo_mHD){
+          $meses = $mHD_meses;
+          $dias  = $mHD_dias;
+          $horas_restantes = $mHD_horas_restantes;
+        }
+        else{
+          throw new \Exception('Unreachable');
+        }
+      }*/
       
       $devengado_total_meses = bcmul($devengado_valor_mes,$meses,4);
       $devengado_total_dias  = bcmul($devengado_valor_dia,$dias,16);
-      $devengado_total_horas = bcmul($devengado_valor_hora,$restantes,16);
+      $devengado_total_horas = bcmul($devengado_valor_hora,$horas_restantes,16);
       $determinado_total_meses = bcmul($determinado_valor_mes,$meses,4);
       $determinado_total_dias  = bcmul($determinado_valor_dia,$dias,16);
-      $determinado_total_horas = bcmul($determinado_valor_hora,$restantes,16);
+      $determinado_total_horas = bcmul($determinado_valor_hora,$horas_restantes,16);
       
       $devengado_total_sin_aplicar_porcentaje = bcadd(
         bcadd(bcadd($devengado_total_sin_aplicar_porcentaje,$devengado_total_meses,16),$devengado_total_dias,16),$devengado_total_horas,16
