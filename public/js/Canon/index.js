@@ -139,7 +139,7 @@ $(document).ready(function() {
     const agregarDetallePestaña = function(pestaña,titulo,replace_idx){
       const div = pestaña.find('[data-js-molde]').clone();
       const replace_str_tipo = div.attr('data-js-molde');
-      div.removeAttr('data-js-molde').show();
+      div.removeAttr('data-js-molde');
       
       div.find('[data-titulo]').text(titulo);
       
@@ -157,11 +157,11 @@ $(document).ready(function() {
       
       pestaña.find('[data-js-contenedor]').append(div);
       
+      div.find('[data-js-fecha]').trigger('init.fecha');
+      
       return div;
     }
     
-          
-          
     let inputs_a_formatear     = null;
     let inputs_a_formatear_Set = null;
     const formatearNumeros = function(inpts = null){//Saca los 0 de sobra a la derecha
@@ -217,8 +217,7 @@ $(document).ready(function() {
       llenarPestaña(form.find('[data-canon-fijo-mesas]'),canon?.canon_fijo_mesas ?? {});
       llenarPestaña(form.find('[data-canon-fijo-mesas-adicionales]'),canon?.canon_fijo_mesas_adicionales ?? {});
       llenarPestaña(form.find('[data-adjuntos]'),canon?.adjuntos ?? {},true);
-            
-      form.find('[data-js-fecha]').trigger('init.fecha');
+      llenarPestaña(form.find('[data-total] [data-pagos]'),canon?.canon_pago ?? [],true);
       
       M.attr('data-render',0);
       fill(M,null,canon);
@@ -468,6 +467,26 @@ $(document).ready(function() {
       );
     });
     
+    M.find('[data-js-agregar-pago]').click(function(e){
+      let max_idx = null;
+      M.find('[data-total] [data-pagos] [data-js-contenedor] [data-pago]').each(function(_,p_obj){
+        max_idx = Math.max(parseInt($(p_obj).attr('data-idx')),max_idx);
+      });
+      
+      agregarDetallePestaña(
+        M.find('[data-total] [data-pagos]'),
+        null,
+        max_idx === null? 0 : (max_idx+1)
+      );
+      
+      M.find('form[data-js-recalcular]').trigger('recalcular');
+    });
+    
+    M.find('form[data-js-recalcular]').on('click','[data-js-borrar-pago]',function(e){
+      const tgt = $(e.currentTarget);
+      tgt.closest('[data-pago]').remove();
+      M.find('form[data-js-recalcular]').trigger('recalcular');
+    });
   });
     
   $('[data-js-tabs]').each(function(_,tab_group_obj){
