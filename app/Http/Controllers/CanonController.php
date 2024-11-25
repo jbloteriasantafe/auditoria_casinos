@@ -358,7 +358,7 @@ class CanonController extends Controller
     $principal = bcadd(bcadd($saldo_anterior,$cargos_adicionales,2),$determinado,2);//@RETORNADO
     
     //PAGOS
-    $canon_pago = $request['canon_pago'] ?? [];
+    $canon_pago = $request['canon_pago'] ?? [[]];//Si no tiene pagos le agrego uno vacio.
     {//Manteno las keys y el orden de las keys... importante para el front cuando se borra/cambia fecha etc
       $ordenado_por_fecha = json_decode(json_encode($canon_pago),true);
       usort($ordenado_por_fecha,function($a,$b){//Lo ordeno por fecha de pago
