@@ -162,25 +162,37 @@ $(document).ready(function() {
       return div;
     }
     
-    let inputs_a_formatear     = null;
-    let inputs_a_formatear_Set = null;
-    const formatearNumeros = function(inpts = null){//Saca los 0 de sobra a la derecha
-      if(inpts !== null){
-        inputs_a_formatear = inpts;
-        inputs_a_formatear_Set = new Set(
-          inputs_a_formatear.map(function(_,i){return i.getAttribute('name');}).toArray()
-        );
-      }
-      //Para verlos en debug usar algo tipo .css('color','red');     
-      inputs_a_formatear.each(function(_,iobj){
-        const i = $(iobj);
-        i.val(formatter(i.val()));
+    let inputs_a_formatear = null;
+    const agregarInputsFormatear = function(inpts){
+      inputs_a_formatear = inputs_a_formatear ?? {};
+      inpts.each(function(_,iobj){
+        inputs_a_formatear[iobj.getAttribute('name')] = $(iobj);
       });
+    };
+    const limpiarInputsFormatear = function(){
+      inputs_a_formatear = null;
+    }
+    const borrarInputsFormatear = function(inpts){
+      if(inputs_a_formatear === null) return;
+      inpts.each(function(_,iobj){
+        const name = iobj.getAttribute('name');
+        if(name in inputs_a_formatear){
+          delete inputs_a_formatear[name];
+        }
+      });
+    };
+    
+    const formatearNumeros = function(inpts = null){//Saca los 0 de sobra a la derecha
+      //Para verlos en debug usar algo tipo .css('color','red');     
+      for(const name in inputs_a_formatear){
+        const i = $(inputs_a_formatear[name]);
+        i.val(formatter(i.val()));
+      }
     }
     const deformatearFormData = function(obj){      
       const ret = {};
       for(const k in obj){
-        ret[k] = inputs_a_formatear_Set.has(k)? deformatter(obj[k]) : obj[k];
+        ret[k] = (k in inputs_a_formatear)? deformatter(obj[k]) : obj[k];
       }
       return ret;
     }
@@ -222,7 +234,10 @@ $(document).ready(function() {
       M.attr('data-render',0);
       fill(M,null,canon);
       setReadonly();
-      formatearNumeros(M.find('form[data-js-recalcular] input:not([data-js-texto-no-formatear-numero])'));
+      
+      limpiarInputsFormatear();
+      agregarInputsFormatear(M.find('form[data-js-recalcular] input[name]:not([data-js-texto-no-formatear-numero])'));
+      formatearNumeros();
       
       (mantener_historial?
          M.find('[data-js-select-historial]')
@@ -473,18 +488,18 @@ $(document).ready(function() {
         max_idx = Math.max(parseInt($(p_obj).attr('data-idx')),max_idx);
       });
       
-      agregarDetallePestaña(
-        M.find('[data-total] [data-pagos]'),
-        null,
-        max_idx === null? 0 : (max_idx+1)
-      );
+      const idx = max_idx === null? 0 : (max_idx+1);
+      const pago = agregarDetallePestaña(M.find('[data-total] [data-pagos]'),null,idx);
+      agregarInputsFormatear(pago.find('input[name]:not([data-js-texto-no-formatear-numero])'));
       
       M.find('form[data-js-recalcular]').trigger('recalcular');
     });
     
     M.find('form[data-js-recalcular]').on('click','[data-js-borrar-pago]',function(e){
       const tgt = $(e.currentTarget);
-      tgt.closest('[data-pago]').remove();
+      const pago = tgt.closest('[data-pago]');
+      borrarInputsFormatear(pago.find('input[name]:not([data-js-texto-no-formatear-numero])'));
+      pago.remove();
       M.find('form[data-js-recalcular]').trigger('recalcular');
     });
   });
