@@ -609,13 +609,13 @@
               <input class="form-control" name="pago" data-readonly='[{}]'>
             </div>
             <div>
-              <h5>Diferencia</h5>
-              <input class="form-control" name="diferencia" data-readonly='[{}]'>
-            </div>
-            <div>
               <h5>Ajuste</h5>
               <input class="form-control" name="ajuste" data-depende="" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               <input data-js-texto-no-formatear-numero placeholder="MOTIVO" class="form-control" name="motivo_ajuste" data-depende="" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            </div>
+            <div>
+              <h5>Diferencia</h5>
+              <input class="form-control" name="diferencia" data-readonly='[{}]'>
             </div>
             <div>
               <h5>Saldo posterior</h5>

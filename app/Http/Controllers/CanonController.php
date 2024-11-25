@@ -353,31 +353,11 @@ class CanonController extends Controller
       : '0.00';
       
     //PRINCIPAL
-    $saldo_anterior = '0';//@TODO: $this->calcular_saldo_anterior($año_mes,$id_casino);
-    $cargos_adicionales = bcadd($R('cargos_adicionales','0'),'0',2);
+    $saldo_anterior = $this->calcular_saldo_anterior($año_mes,$id_casino);//@RETORNADO
+    $cargos_adicionales = bcadd($R('cargos_adicionales','0'),'0',2);//@RETORNADO
     $principal = bcadd(bcadd($saldo_anterior,$cargos_adicionales,2),$determinado,2);//@RETORNADO
     
     //PAGOS
-    $fecha_vencimiento = $R('fecha_vencimiento',null);//@RETORNADO    
-    if($año_mes !== null && $año_mes !== '' && $fecha_vencimiento === null){
-      $f = explode('-',$año_mes);
-      
-      $f[0] = $f[1] == '12'? intval($f[0])+1 : $f[0];
-      $f[1] = $f[1] == '12'? '01' : str_pad(intval($f[1])+1,2,'0',STR_PAD_LEFT);
-      $f[2] = '10';
-      $f = implode('-',$f);
-      $f = new \DateTimeImmutable($f);
-      $proximo_lunes = clone $f;
-      for($break = 9;$break > 0 && in_array($proximo_lunes->format('w'),['0','6']);$break--){
-        $proximo_lunes = $proximo_lunes->add(\DateInterval::createFromDateString('1 day'));
-      }
-      $fecha_vencimiento = $R('fecha_vencimiento',$proximo_lunes->format('Y-m-d'));//@RETORNADO
-    }
-    
-    $timestamp_venc = $fecha_vencimiento?
-      \DateTimeImmutable::createFromFormat('Y-m-d', $fecha_vencimiento)
-    : null;
-    
     $canon_pago = $request['canon_pago'] ?? [];
     {//Manteno las keys y el orden de las keys... importante para el front cuando se borra/cambia fecha etc
       $ordenado_por_fecha = json_decode(json_encode($canon_pago),true);
@@ -401,23 +381,49 @@ class CanonController extends Controller
     $a_pagar = $principal;//@RETORNADO
     $pago = '0';//@RETORNADO
     $canon_pago_defecto = ($this->valorPorDefecto('canon_pago') ?? [])[$id_casino] ?? [];
-    $interes_provincial_diario_simple = $R(
-      'interes_provincial_diario_simple',
-      $canon_pago_defecto['interes_provincial_diario_simple'] ?? '0'
-    );//@RETORNADO
-    $interes_nacional_mensual_compuesto = $R(
-      'interes_nacional_mensual_compuesto',
-      $canon_pago_defecto['interes_nacional_mensual_compuesto'] ?? '0'
-    );//@RETORNADO
     
-    $factor_interes_provincial_diario_simple = bcdiv($interes_provincial_diario_simple,'100',6);
-    $factor_interes_nacional_mensual_compuesto = bcdiv($interes_nacional_mensual_compuesto,'100',6);
+    $PAG = [
+      'interes_provincial_diario_simple' => $R(
+        'interes_provincial_diario_simple',
+        $canon_pago_defecto['interes_provincial_diario_simple'] ?? '0'
+      ),
+      'interes_nacional_mensual_compuesto' => $R(
+        'interes_nacional_mensual_compuesto',
+        $canon_pago_defecto['interes_nacional_mensual_compuesto'] ?? '0'
+      ),
+      'fecha_vencimiento' => $R('fecha_vencimiento',null),
+    ];
+      
+    if($año_mes !== null && $año_mes !== '' && $PAG['fecha_vencimiento'] === null){
+      $f = explode('-',$año_mes);
+      
+      $f[0] = $f[1] == '12'? intval($f[0])+1 : $f[0];
+      $f[1] = $f[1] == '12'? '01' : str_pad(intval($f[1])+1,2,'0',STR_PAD_LEFT);
+      $f[2] = '10';
+      $f = implode('-',$f);
+      $f = new \DateTimeImmutable($f);
+      $proximo_lunes = clone $f;
+      for($break = 9;$break > 0 && in_array($proximo_lunes->format('w'),['0','6']);$break--){
+        $proximo_lunes = $proximo_lunes->add(\DateInterval::createFromDateString('1 day'));
+      }
+      $PAG['fecha_vencimiento'] = $proximo_lunes->format('Y-m-d');//@RETORNADO
+    }
+    
+    $timestamp_venc = $PAG['fecha_vencimiento']?
+      \DateTimeImmutable::createFromFormat('Y-m-d', $PAG['fecha_vencimiento'])
+    : null;
+    $factor_interes_provincial_diario_simple = bcdiv($PAG['interes_provincial_diario_simple'],'100',6);
+    $factor_interes_nacional_mensual_compuesto = bcdiv($PAG['interes_nacional_mensual_compuesto'],'100',6);
     
     $restante = $principal;
     foreach($canon_pago as $idx => &$p){
       $p['capital'] = $restante;
-      $p['fecha_pago'] = $p['fecha_pago'] ?? '';//@HACK: El front no se setea bien si defaulteo a null! 
-      if($timestamp_venc && $p['fecha_pago'] != ''){
+      $p['fecha_pago'] = $p['fecha_pago'] ?? $PAG['fecha_vencimiento'] ?? null;
+      $p['fecha_vencimiento'] = $PAG['fecha_vencimiento'] ?? null;
+      $p['interes_provincial_diario_simple'] = $PAG['interes_provincial_diario_simple'] ?? null;
+      $p['interes_nacional_mensual_compuesto'] = $PAG['interes_nacional_mensual_compuesto'] ?? null;
+      
+      if($timestamp_venc && $p['fecha_pago'] != null){
         $timestamp_pago = \DateTimeImmutable::createFromFormat('Y-m-d', $p['fecha_pago']);
         $date_interval  = $timestamp_pago->diff($timestamp_venc);
         $p['dias_vencidos'] = ($timestamp_pago <= $timestamp_venc)? 0
@@ -448,28 +454,21 @@ class CanonController extends Controller
       $p['pago'] = $p['pago'] ?? '0';
       $p['diferencia'] = bcsub($p['a_pagar'],$p['pago'],2);
       
-      
-    /*
-      else if($R('interes_mora',null) !== null){//Si envio el interes, calculo el pago
-        $interes_1dia = bcadd('1',bcdiv($interes_mora,'100',6),6);
-        $interes_final = bcpowi($interes_1dia,$dias_vencidos.'',self::$max_scale);
-        //$determinado = $determinado_bruto*pow(1+$interes_mora/100.0,$dias_vencidos);
-        $determinado = bcmul($determinado_bruto,$interes_final,self::$max_scale);
-        $determinado = bcround_ndigits($determinado,2);
-        $mora = bcsub($determinado_bruto,$determinado_bruto,2);
-      }
-    }*/
-      
       $a_pagar = bcadd($a_pagar,$p['mora_provincial'],2);
       $a_pagar = bcadd($a_pagar,$p['mora_nacional'],2);
       $pago = bcadd($pago,$p['pago'],2);
       $restante = $p['diferencia'];
     }
     
-    $diferencia = bcsub($a_pagar,$pago,2);//@RETORNADO
+    $PAG = $this->confluir_datos_pago(compact('canon_pago'));
+    $interes_provincial_diario_simple   = $PAG['interes_provincial_diario_simple'] ?? null;//@RETORNADO
+    $interes_nacional_mensual_compuesto = $PAG['interes_nacional_mensual_compuesto'] ?? null;//@RETORNADO
+    $fecha_vencimiento                  = $PAG['fecha_vencimiento'] ?? null;//@RETORNADO
+    
     $ajuste = bcadd($R('ajuste','0.00'),'0',2);//@RETORNADO
     $motivo_ajuste = $R('motivo_ajuste','');//@RETORNADO
-    $saldo_posterior = bcsub('0',$diferencia,2);//@RETORNADO
+    $diferencia = bcadd(bcsub($a_pagar,$pago,2),$ajuste,2);//@RETORNADO
+    $saldo_posterior = bcsub($saldo_anterior,$diferencia,2);//@RETORNADO
     
     return compact(
       'año_mes','id_casino','estado','es_antiguo',
@@ -482,25 +481,21 @@ class CanonController extends Controller
       
       'devengado_bruto','devengado_deduccion','devengado',
       'determinado_bruto','determinado','porcentaje_seguridad',
-      'saldo_anterior','cargos_adicionales','principal',
-      
+      'saldo_anterior',
+      'cargos_adicionales','principal',
+      //Confluidos
+      'fecha_vencimiento','interes_provincial_diario_simple','interes_nacional_mensual_compuesto',
       //Pagos
-      'fecha_vencimiento',
-      'interes_provincial_diario_simple','interes_nacional_mensual_compuesto',
       'canon_pago',
-      'a_pagar','pago','diferencia','ajuste','motivo_ajuste','saldo_posterior'
+      'a_pagar','pago','ajuste','motivo_ajuste','diferencia',
+      'saldo_posterior'
     );
   }
   
-  //@SPEED: cachear en DB
-  private function calcular_campos_dinamicos($año_mes,$id_casino,$determinado,$pago,$ajuste){//Lo pongo en una función para mantener consistente el signo
+  //@SPEED: cachear en DB?
+  private function calcular_saldo_anterior($año_mes,$id_casino){//Lo pongo en una función para mantener consistente el signo
     //Se considera que el "saldo" es positivo cuando es a favor del casino
-    //por lo que
-    //a pagar = determinado - saldo_anterior
-    //diferencia = a_pagar - pago + ajuste
-    //saldo posterior = -diferencia
-    
-    $saldo_anterior = '0.00';//@RETORNADO
+    $saldo = '0.00';//@RETORNADO
     
     $canons_anteriores = $id_casino !== null && $año_mes !== null? DB::table('canon')
     ->where('id_casino',$id_casino)
@@ -509,17 +504,10 @@ class CanonController extends Controller
     : collect([]);
     
     foreach($canons_anteriores as $c){
-      $a_pagar = bcsub($c->determinado,$saldo_anterior,2);
-      $diferencia = bcadd(bcsub($a_pagar,$c->pago,2),$c->ajuste,2);
-      $saldo_posterior = bcsub('0',$diferencia,2);
-      $saldo_anterior = $saldo_posterior;
+      $saldo = bcsub($saldo,$c->diferencia,2);
     }
     
-    $a_pagar = bcsub($determinado,$saldo_anterior,2);//@RETORNADO
-    $diferencia = bcadd(bcsub($a_pagar,$pago,2),$ajuste,2);//@RETORNADO
-    $saldo_posterior = bcsub('0',$diferencia,2);//@RETORNADO
-    
-    return compact('saldo_anterior','a_pagar','diferencia','saldo_posterior');
+    return $saldo;
   }
   
   public function canon_variable_recalcular($año_mes,$id_casino,$tipo,$valores_defecto,$data,$COT){
@@ -952,20 +940,37 @@ class CanonController extends Controller
         'devengado_bruto' => $datos['devengado_bruto'],
         'devengado_deduccion' => $datos['devengado_deduccion'],
         'devengado' => $datos['devengado'],
-        'porcentaje_seguridad' => $datos['porcentaje_seguridad'], 
-        'fecha_vencimiento' => $datos['fecha_vencimiento'],
-        'fecha_pago' => $datos['fecha_pago'],
+        'porcentaje_seguridad' => $datos['porcentaje_seguridad'],
         'determinado_bruto' => $datos['determinado_bruto'],
-        'interes_mora' => $datos['interes_mora'],
-        'mora' => $datos['mora'],
         'determinado' => $datos['determinado'],
+        'cargos_adicionales' => $datos['cargos_adicionales'],
+        'principal' => $datos['principal'],
+        'a_pagar' => $datos['a_pagar'],
         'pago' => $datos['pago'],
         'ajuste' => $datos['ajuste'],
         'motivo_ajuste' => $datos['motivo_ajuste'],
+        'diferencia' => $datos['diferencia'],
         'es_antiguo' => $datos['es_antiguo'],
         'created_at' => $created_at,
         'created_id_usuario' => $id_usuario,
       ]);
+      
+      foreach(($datos['canon_pago'] ?? []) as $idx => $d){
+        DB::table('canon_pago')
+        ->insert([
+          'id_canon' => $id_canon,
+          'capital' => $d['capital'],
+          'fecha_vencimiento' => $d['fecha_vencimiento'],
+          'fecha_pago' => $d['fecha_pago'],
+          'dias_vencidos' => $d['dias_vencidos'],
+          'interes_provincial_diario_simple' => $d['interes_provincial_diario_simple'],
+          'interes_nacional_mensual_compuesto' => $d['interes_nacional_mensual_compuesto'],
+          'mora_provincial' => $d['mora_provincial'],
+          'mora_nacional' => $d['mora_nacional'],
+          'pago' => $d['pago'],
+          'diferencia' => $d['diferencia'],
+        ]);
+      }
       
       foreach(($datos['canon_variable'] ?? []) as $tipo => $d){
         $d['id_canon'] = $id_canon;
@@ -1067,15 +1072,19 @@ class CanonController extends Controller
     ->first();
         
     if(!empty($ret)){
-      $dinamicos = $this->calcular_campos_dinamicos($ret['año_mes'],$ret['id_casino'],$ret['determinado'],$ret['pago'],$ret['ajuste']);
-      foreach($dinamicos as $k => $v) $ret[$k] = $v;
+      $saldo_anterior = $this->calcular_saldo_anterior($ret['año_mes'],$ret['id_casino']);
+      $ret['saldo_anterior'] = $saldo_anterior;
+      $ret['saldo_posterior'] = bcsub($saldo_anterior,$ret['diferencia'],2);
     }
     else{
       $ret['saldo_anterior']  = '';
-      $ret['a_pagar']         = '';
-      $ret['diferencia']      = '';
       $ret['saldo_posterior'] = '';
     }
+    
+    $ret['canon_pago'] = DB::table('canon_pago')
+    ->where('id_canon',$request['id_canon'])
+    ->orderBy('fecha_pago','asc')
+    ->get();
         
     $ret['canon_variable'] = DB::table('canon_variable')
     ->where('id_canon',$request['id_canon'])
@@ -1107,26 +1116,23 @@ class CanonController extends Controller
     $ret = json_decode(json_encode($ret),true);
     
     if($confluir){
-      $COT = $this->confluir_datos_cotizacion([
-        'canon_variable' => $ret['canon_variable'],
-        'canon_fijo_mesas' => $ret['canon_fijo_mesas'],
-        'canon_fijo_mesas_adicionales' => $ret['canon_fijo_mesas_adicionales']
-      ]);
+      $COT = $this->confluir_datos_cotizacion($ret);
+      $PAG = $this->confluir_datos_pago($ret);
       foreach($COT as $k => $v) $ret[$k] = $v;
+      foreach($PAG as $k => $v) $ret[$k] = $v;
     }
     
     return !empty($ret)? $ret : $this->recalcular($ret);
   }
   
-  private function confluir_datos_cotizacion(array $canon){
+  private function confluir_datos(array $canon,array $tablas,array $atributos){
     $ret = [];
     //Obtengo data de cotización, si no es uniforme devuelvo nulo
-    foreach(['canon_variable','canon_fijo_mesas_adicionales','canon_fijo_mesas_adicionales'] as $tipo_canon){
-      foreach(['valor_dolar','valor_euro','devengado_fecha_cotizacion','devengado_cotizacion_dolar','devengado_cotizacion_euro',
-               'determinado_fecha_cotizacion','determinado_cotizacion_dolar','determinado_cotizacion_euro'] as $attr){        
-        foreach($canon[$tipo_canon] as $tipo => $data_canon){
-          if(!isset($data_canon[$attr])) continue;
-          $val = $data_canon[$attr];
+    foreach($tablas as $tabla){
+      foreach($atributos as $attr){
+        foreach($canon[$tabla] as $tipo => $data_tabla){
+          if(!isset($data_tabla[$attr])) continue;
+          $val = $data_tabla[$attr];
           if(isset($ret[$attr])){//Si es distinto, hay conflicto y pongo en nulo
             $ret[$attr] = $val != $ret[$attr]? null : $val;
           }
@@ -1137,6 +1143,27 @@ class CanonController extends Controller
       }
     }
     return $ret;
+  }
+  
+  private function confluir_datos_cotizacion(array $canon){
+    return $this->confluir_datos(
+      $canon,
+      ['canon_variable','canon_fijo_mesas_adicionales','canon_fijo_mesas_adicionales'],
+      [
+        'valor_dolar','valor_euro','devengado_fecha_cotizacion',
+        'determinado_fecha_cotizacion',
+        'devengado_cotizacion_dolar','devengado_cotizacion_euro',
+        'determinado_cotizacion_dolar','determinado_cotizacion_euro'
+      ]
+    );
+  }
+  
+  private function confluir_datos_pago(array $canon){
+    return $this->confluir_datos(
+      $canon,
+      ['canon_pago'],
+      ['fecha_vencimiento','interes_provincial_diario_simple','interes_nacional_mensual_compuesto']
+    );
   }
   
   public function archivo(Request $request){
@@ -1251,8 +1278,8 @@ class CanonController extends Controller
     //@HACK @SLOW: usar algun tipo de cache calculado hasta
     $ret2['data'] = $ret->reverse()->transform(function(&$c){
       if($c->deleted_at !== null) return $c;
-      $dinamicos = $this->calcular_campos_dinamicos($c->año_mes,$c->id_casino,$c->determinado,$c->pago,$c->ajuste);
-      foreach($dinamicos as $k => $v) $c->{$k} = $v;
+      $c->saldo_anterior = $this->calcular_saldo_anterior($c->año_mes,$c->id_casino);
+      $c->saldo_posterior = bcsub($c->saldo_anterior,$c->diferencia,2);
       return $c;
     })->reverse();
     
@@ -1591,6 +1618,13 @@ class CanonController extends Controller
     }
     $ret['canon'] = [$ret['canon']];
     
+    foreach(['id_canon_pago','id_canon'] as $k){
+      foreach(($data['canon_pago'] ?? []) as $tipo => $_){
+        unset($data['canon_pago'][$tipo][$k]);
+      }
+    }
+    $ret['canon_pago'] = array_values($data['canon_pago'] ?? []);
+    
     foreach(['id_canon_variable','id_canon'] as $k){
       foreach(($data['canon_variable'] ?? []) as $tipo => $_){
         unset($data['canon_variable'][$tipo][$k]);
@@ -1626,8 +1660,6 @@ class CanonController extends Controller
     $SB = DB::getSchemaBuilder();
     $types = [];
     $types['canon']['saldo_anterior']  = 'decimal';
-    $types['canon']['a_pagar'] = 'decimal';
-    $types['canon']['diferencia'] = 'decimal';
     $types['canon']['saldo_posterior'] = 'decimal';
     foreach($ret as $tabla => $d){
       foreach($SB->getColumnListing($tabla) as $cidx => $col){
