@@ -76,24 +76,18 @@ $(document).ready(function() {
         }
       }
     };
-        
-    const setReadonly = function(){
-      const modo = M.attr('data-modo');
-      const es_antiguo = M.find('[name="es_antiguo"]').val();
+    
+    const filterFunction = function(attr){
+      const check_params = {
+        modo: M.attr('data-modo'),
+        es_antiguo: M.find('[name="es_antiguo"]').val(),
+        estado: M.find('[name="estado"]').val().toUpperCase()
+      };
       
-      M.find('[data-readonly]:not([data-js-fecha])').each(function(_,r_obj){
-        const r = $(r_obj);
-        const f = r.children('[data-js-fecha]');
-        if(f.length){
-          f[0].readonly(false);  
-        }
-        else{
-          r.removeAttr('readonly');
-        }
-      }).filter(function(_,r_obj){
+      return function(_,r_obj){
         let json_rdata = null;
         try{
-          json_rdata = JSON.parse($(r_obj).attr('data-readonly'));
+          json_rdata = JSON.parse($(r_obj).attr(attr));
         }
         catch(error){
           console.log(r_obj,json_rdata);
@@ -102,38 +96,50 @@ $(document).ready(function() {
         
         if(!Array.isArray(json_rdata)){
           console.log(r_obj,json_rdata);
-          throw 'Valor inesperado de "'+$(r_obj).attr('data-readonly')+'" se esperaba un arreglo de objetos';
+          throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
         }
+        if(json_rdata.length == 0) return true;
         for(const obj of json_rdata){
           if(typeof obj !== 'object'){
             console.log(r_obj,obj);
-            throw 'Valor inesperado de "'+$(r_obj).attr('data-readonly')+'" se esperaba un arreglo de objetos';
+            throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
           }
-          const obj_modo = obj.modo ?? '*';
-          const obj_es_antiguo = obj.es_antiguo ?? '*';
-          if(obj_modo == '*' && obj_es_antiguo == '*') return true;
-          if(obj_modo == '*' && obj_es_antiguo == es_antiguo) return true;
-          if(obj_modo == modo && obj_es_antiguo == '*') return true;
-          if(obj_modo == modo && obj_es_antiguo == es_antiguo) return true;
+          for(const param in check_params){
+            const check_val = check_params[param] ?? null;
+            const obj_val = obj[param] ?? null;
+            if(obj_val == '*') return true;
+            if(obj_val == check_val) return true;
+          }
+          let sin_params 
         }
         return false;
-      }).each(function(_,r_obj){
-        const r = $(r_obj);
-        const f = r.children('[data-js-fecha]');
-        if(f.length){
-          f[0].readonly(true); 
-        }
-        else{
-          r.attr('readonly',true);
-        }
-      });
+      };
+    };
+        
+    const setReadonly = function(){
+      const setReadOnlyObj = function(state){
+        return function(_,r_obj){
+          const r = $(r_obj);
+          const f = r.children('[data-js-fecha]');
+          if(f.length){
+            f[0].readonly(state);  
+          }
+          else{
+            if(state){ r.attr('readonly',true); }
+            else{      r.removeAttr('readonly'); }
+          }
+        };
+      }
+      
+      M.find('[data-readonly]:not([data-js-fecha])')
+      .each(setReadOnlyObj(false))
+      .filter(filterFunction('data-readonly'))
+      .each(setReadOnlyObj(true));
     }
     
-    const mostrarSegunModo = function(){
+    const setVisible = function(){
       const modo = M.attr('data-modo');
-      M.find('[data-modo-mostrar]').hide().filter(function(_,mobj){
-        return $(mobj).attr('data-modo-mostrar').toUpperCase().split(',').includes(modo);
-      }).show();
+      M.find('[data-modo-mostrar]').hide().filter(filterFunction('data-modo-mostrar')).show();
     }
     
     const agregarDetallePestaña = function(pestaña,titulo,replace_idx){
@@ -265,7 +271,7 @@ $(document).ready(function() {
     
     M.on('mostrar.modal',function(e,url,id_canon,modo){      
       M.attr('data-modo',modo.toUpperCase());
-      mostrarSegunModo();
+      setVisible();
       const form = M.find('form[data-js-recalcular]');
       form.find('[name],[data-descripcion],[data-archivo]').val('');
       AUX.GET(url,{id_canon: id_canon},function(canon){       

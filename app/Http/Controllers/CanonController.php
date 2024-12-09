@@ -354,8 +354,9 @@ class CanonController extends Controller
       
     //PRINCIPAL
     $saldo_anterior = $this->calcular_saldo_anterior($año_mes,$id_casino);//@RETORNADO
+    $saldo_anterior_cerrado = $saldo_anterior;//@RETORNADO
     $cargos_adicionales = bcadd($R('cargos_adicionales','0'),'0',2);//@RETORNADO
-    $principal = bcadd(bcadd($saldo_anterior,$cargos_adicionales,2),$determinado,2);//@RETORNADO
+    $principal = bcsub(bcadd($determinado,$cargos_adicionales,2),$saldo_anterior,2);//@RETORNADO
     
     //PAGOS
     $canon_pago = $request['canon_pago'] ?? [[]];//Si no tiene pagos le agrego uno vacio.
@@ -469,6 +470,7 @@ class CanonController extends Controller
     $motivo_ajuste = $R('motivo_ajuste','');//@RETORNADO
     $diferencia = bcadd(bcsub($a_pagar,$pago,2),$ajuste,2);//@RETORNADO
     $saldo_posterior = bcsub($saldo_anterior,$diferencia,2);//@RETORNADO
+    $saldo_posterior_cerrado = $saldo_posterior;//@RETORNADO
     
     return compact(
       'año_mes','id_casino','estado','es_antiguo',
@@ -481,14 +483,14 @@ class CanonController extends Controller
       
       'devengado_bruto','devengado_deduccion','devengado',
       'determinado_bruto','determinado','porcentaje_seguridad',
-      'saldo_anterior',
+      'saldo_anterior','saldo_anterior_cerrado',
       'cargos_adicionales','principal',
       //Confluidos
       'fecha_vencimiento','interes_provincial_diario_simple','interes_nacional_mensual_compuesto',
       //Pagos
       'canon_pago',
       'a_pagar','pago','ajuste','motivo_ajuste','diferencia',
-      'saldo_posterior'
+      'saldo_posterior','saldo_posterior_cerrado'
     );
   }
   
@@ -943,6 +945,7 @@ class CanonController extends Controller
         'porcentaje_seguridad' => $datos['porcentaje_seguridad'],
         'determinado_bruto' => $datos['determinado_bruto'],
         'determinado' => $datos['determinado'],
+        'saldo_anterior_cerrado' => $datos['saldo_anterior_cerrado'],
         'cargos_adicionales' => $datos['cargos_adicionales'],
         'principal' => $datos['principal'],
         'a_pagar' => $datos['a_pagar'],
@@ -950,6 +953,7 @@ class CanonController extends Controller
         'ajuste' => $datos['ajuste'],
         'motivo_ajuste' => $datos['motivo_ajuste'],
         'diferencia' => $datos['diferencia'],
+        'saldo_posterior_cerrado' => $datos['saldo_posterior_cerrado'],
         'es_antiguo' => $datos['es_antiguo'],
         'created_at' => $created_at,
         'created_id_usuario' => $id_usuario,
