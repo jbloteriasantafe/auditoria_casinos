@@ -469,7 +469,7 @@ class CanonController extends Controller
     $ajuste = bcadd($R('ajuste','0.00'),'0',2);//@RETORNADO
     $motivo_ajuste = $R('motivo_ajuste','');//@RETORNADO
     $diferencia = bcadd(bcsub($a_pagar,$pago,2),$ajuste,2);//@RETORNADO
-    $saldo_posterior = bcsub($saldo_anterior,$diferencia,2);//@RETORNADO
+    $saldo_posterior = $diferencia;//@RETORNADO @HACK: Lo mismo que diferencia? el saldo ya esta en el a_pagar
     $saldo_posterior_cerrado = $saldo_posterior;//@RETORNADO
     
     return compact(
