@@ -1079,7 +1079,7 @@ class CanonController extends Controller
     if(!empty($ret)){
       $saldo_anterior = $this->calcular_saldo_anterior($ret['año_mes'],$ret['id_casino']);
       $ret['saldo_anterior'] = $saldo_anterior;
-      $ret['saldo_posterior'] = bcsub($saldo_anterior,$ret['diferencia'],2);
+      $ret['saldo_posterior'] = $ret['diferencia'];//@HACK??
     }
     else{
       $ret['saldo_anterior']  = '';
