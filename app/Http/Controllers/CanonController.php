@@ -967,6 +967,7 @@ class CanonController extends Controller
           'interes_nacional_mensual_compuesto' => $d['interes_nacional_mensual_compuesto'],
           'mora_provincial' => $d['mora_provincial'],
           'mora_nacional' => $d['mora_nacional'],
+          'a_pagar' => $d['a_pagar'],
           'pago' => $d['pago'],
           'diferencia' => $d['diferencia'],
         ]);
