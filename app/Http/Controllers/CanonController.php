@@ -1284,7 +1284,7 @@ class CanonController extends Controller
     $ret2['data'] = $ret->reverse()->transform(function(&$c){
       if($c->deleted_at !== null) return $c;
       $c->saldo_anterior = $this->calcular_saldo_anterior($c->año_mes,$c->id_casino);
-      $c->saldo_posterior = bcsub($c->saldo_anterior,$c->diferencia,2);
+      $c->saldo_posterior = $c->diferencia;//@HACK??
       return $c;
     })->reverse();
     
