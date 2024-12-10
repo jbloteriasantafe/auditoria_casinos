@@ -14,6 +14,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\UsuarioController;
 use App\Plataforma;
 use App\Archivo;
+use App\Casino;
 
 require_once(app_path('BC_extendido.php'));
 
