@@ -495,7 +495,7 @@
             </div>
             <div>
               <h5>Principal</h5>
-              <input class="form-control" name="principal" data-readonly='[{"modo":"*"}]' data-depende="saldo_anterior,cargos_adicionales,determinado">
+              <input class="form-control" name="principal" data-readonly='[{"modo":"*"}]' data-depende="saldo_anterior,saldo_anterior_cerrado,cargos_adicionales,determinado">
             </div>
           </div>
         </div>
@@ -625,11 +625,11 @@
             </div>
             <div data-modo-mostrar='[{"estado": "CERRADO"},{"estado": "PAGADO"}]'>
               <h5>Saldo posterior (CERRADO)</h5>
-              <input class="form-control" name="saldo_posterior_cerrado" data-depende="diferencia,saldo_anterior_cerrado" data-readonly='[{"modo":"*"}]'>
+              <input class="form-control" name="saldo_posterior_cerrado" data-depende="diferencia" data-readonly='[{"modo":"*"}]'>
             </div>
             <div>
               <h5>Saldo posterior</h5>
-              <input class="form-control" name="saldo_posterior" data-depende="diferencia,saldo_anterior" data-readonly='[{"modo":"*"}]'>
+              <input class="form-control" name="saldo_posterior" data-depende="diferencia" data-readonly='[{"modo":"*"}]'>
             </div>
           </div>
         </div>
