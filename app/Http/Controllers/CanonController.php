@@ -355,8 +355,9 @@ class CanonController extends Controller
     //PRINCIPAL
     $saldo_anterior = $this->calcular_saldo_anterior($año_mes,$id_casino);//@RETORNADO
     $saldo_anterior_cerrado = $saldo_anterior;//@RETORNADO
+    
     $cargos_adicionales = bcadd($R('cargos_adicionales','0'),'0',2);//@RETORNADO
-    $principal = bcsub(bcadd($determinado,$cargos_adicionales,2),$saldo_anterior,2);//@RETORNADO
+    $principal = bcsub(bcadd($determinado,$cargos_adicionales,2),$saldo_anterior_cerrado,2);//@RETORNADO
     
     //PAGOS
     $canon_pago = $request['canon_pago'] ?? [[]];//Si no tiene pagos le agrego uno vacio.
@@ -469,7 +470,7 @@ class CanonController extends Controller
     $ajuste = bcadd($R('ajuste','0.00'),'0',2);//@RETORNADO
     $motivo_ajuste = $R('motivo_ajuste','');//@RETORNADO
     $diferencia = bcadd(bcsub($a_pagar,$pago,2),$ajuste,2);//@RETORNADO
-    $saldo_posterior = $diferencia;//@RETORNADO @HACK: Lo mismo que diferencia? el saldo ya esta en el a_pagar
+    $saldo_posterior = bcsub('0',$diferencia,2);//@RETORNADO @HACK: Lo mismo que diferencia? el saldo ya esta en el a_pagar
     $saldo_posterior_cerrado = $saldo_posterior;//@RETORNADO
     
     return compact(
@@ -497,19 +498,33 @@ class CanonController extends Controller
   //@SPEED: cachear en DB?
   private function calcular_saldo_anterior($año_mes,$id_casino){//Lo pongo en una función para mantener consistente el signo
     //Se considera que el "saldo" es positivo cuando es a favor del casino
-    $saldo = '0.00';//@RETORNADO
-    
-    $canons_anteriores = $id_casino !== null && $año_mes !== null? DB::table('canon')
+    $canon_anterior = $id_casino !== null && $año_mes !== null? 
+    DB::table('canon')
     ->where('id_casino',$id_casino)
     ->where('año_mes','<',$año_mes)
+    ->orderBy('año_mes','asc')
     ->whereNull('deleted_at')->get()
     : collect([]);
     
-    foreach($canons_anteriores as $c){
-      $saldo = bcsub($saldo,$c->diferencia,2);
+    $prev_c_saldo_posterior_cerrado = '0';
+    $diferencia_a_favor = '0';
+    
+    //Si hubo una actualizacion en el medio, no coinciden los saldos. La diferencia acumulada la busco y se la sumo
+    foreach($canon_anterior as $idx => $c){
+      if($idx == 0){
+        $prev_c_saldo_posterior_cerrado = $c->saldo_posterior_cerrado;
+      }
+      else{
+        $diferencia_a_favor = bcadd(
+          $diferencia_a_favor,
+          bcsub($prev_c_saldo_posterior_cerrado,$c->saldo_anterior_cerrado,2),
+          2
+        );
+        $prev_c_saldo_posterior_cerrado = $c->saldo_posterior_cerrado;
+      }     
     }
     
-    return $saldo;
+    return bcadd($prev_c_saldo_posterior_cerrado,$diferencia_a_favor,2);
   }
   
   public function canon_variable_recalcular($año_mes,$id_casino,$tipo,$valores_defecto,$data,$COT){
@@ -1077,13 +1092,14 @@ class CanonController extends Controller
     ->first();
         
     if(!empty($ret)){
-      $saldo_anterior = $this->calcular_saldo_anterior($ret['año_mes'],$ret['id_casino']);
-      $ret['saldo_anterior'] = $saldo_anterior;
-      $ret['saldo_posterior'] = $ret['diferencia'];//@HACK??
+      $ret['saldo_anterior'] = $this->calcular_saldo_anterior($ret['año_mes'],$ret['id_casino']);
+      $diffsaldos = bcsub($ret['saldo_anterior'],$ret['saldo_anterior_cerrado'],2);
+      $ret['saldo_posterior'] = bcadd($ret['saldo_posterior_cerrado'],$diffsaldos,2);
     }
     else{
       $ret['saldo_anterior']  = '';
       $ret['saldo_posterior'] = '';
+      $ret['estado'] = 'Nuevo';
     }
     
     $ret['canon_pago'] = DB::table('canon_pago')
@@ -1284,7 +1300,9 @@ class CanonController extends Controller
     $ret2['data'] = $ret->reverse()->transform(function(&$c){
       if($c->deleted_at !== null) return $c;
       $c->saldo_anterior = $this->calcular_saldo_anterior($c->año_mes,$c->id_casino);
-      $c->saldo_posterior = $c->diferencia;//@HACK??
+      $diffsaldos = bcsub($c->saldo_anterior,$c->saldo_anterior_cerrado,2);
+      $c->diferencia = bcsub($c->diferencia,$diffsaldos,2);
+      $c->saldo_posterior = bcsub('0',$c->diferencia,2);
       return $c;
     })->reverse();
     

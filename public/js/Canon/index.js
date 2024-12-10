@@ -83,7 +83,7 @@ $(document).ready(function() {
         es_antiguo: M.find('[name="es_antiguo"]').val(),
         estado: M.find('[name="estado"]').val().toUpperCase()
       };
-      
+            
       return function(_,r_obj){
         let json_rdata = null;
         try{
@@ -98,19 +98,16 @@ $(document).ready(function() {
           console.log(r_obj,json_rdata);
           throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
         }
-        if(json_rdata.length == 0) return true;
         for(const obj of json_rdata){
           if(typeof obj !== 'object'){
             console.log(r_obj,obj);
             throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
           }
           for(const param in check_params){
-            const check_val = check_params[param] ?? null;
-            const obj_val = obj[param] ?? null;
-            if(obj_val == '*') return true;
-            if(obj_val == check_val) return true;
+            const check_val = check_params[param];
+            const obj_val = obj[param] ?? undefined;
+            if(obj_val == '*' || obj_val === check_val) return true;
           }
-          let sin_params 
         }
         return false;
       };
@@ -125,7 +122,7 @@ $(document).ready(function() {
             f[0].readonly(state);  
           }
           else{
-            if(state){ r.attr('readonly',true); }
+            if(state){ r.attr('readonly',true);  }
             else{      r.removeAttr('readonly'); }
           }
         };
@@ -138,7 +135,6 @@ $(document).ready(function() {
     }
     
     const setVisible = function(){
-      const modo = M.attr('data-modo');
       M.find('[data-modo-mostrar]').hide().filter(filterFunction('data-modo-mostrar')).show();
     }
     
@@ -216,6 +212,9 @@ $(document).ready(function() {
         return;
       }
       
+      M.find('[name="estado"]').val(canon?.estado ?? 'Nuevo');
+      setVisible();
+      
       const llenarPestaña = function(pestaña,tipos_obj,mostrar_de_todos_modos = false){
         pestaña.find('[data-js-contenedor]').empty();
         let lleno = false;
@@ -271,14 +270,11 @@ $(document).ready(function() {
     
     M.on('mostrar.modal',function(e,url,id_canon,modo){      
       M.attr('data-modo',modo.toUpperCase());
-      setVisible();
       const form = M.find('form[data-js-recalcular]');
       form.find('[name],[data-descripcion],[data-archivo]').val('');
       AUX.GET(url,{id_canon: id_canon},function(canon){       
-        if(canon !== null){
-          M.attr('data-render',1);
-          render(canon);
-        }
+        M.attr('data-render',1);
+        render(canon);
         
         if(M.is(':hidden')){
           M.modal('show');

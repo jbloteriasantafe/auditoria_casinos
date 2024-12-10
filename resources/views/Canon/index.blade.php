@@ -410,19 +410,19 @@
       </div>
       <div>
         <h5>Estado</h5>
-        <input data-js-texto-no-formatear-numero class="form-control" name="estado" data-readonly='[]'>
+        <input data-js-texto-no-formatear-numero class="form-control" name="estado" data-readonly='[{"modo": "*"}]'>
       </div>
       <div>
         <h5>ANTIGUO</h5>
         <select class="form-control" name="es_antiguo"
           data-js-empty-si-cambio="[data-canon-variable] [data-js-contenedor],[data-canon-fijo-mesas] [data-js-contenedor],[data-canon-fijo-mesas-adicionales] [data-js-contenedor]"
-          data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+          data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"modo": "NUEVO"}]'>
           <option value="0" selected>NO</option>
           <option value="1">SI</option>
         </select>      
       </div>
       <div hidden>
-        <input name="id_canon" class="form-control" data-readonly='[]'>
+        <input name="id_canon" class="form-control" data-readonly='[{"modo":"*"}]'>
       </div>
     </div>
     <div class="tabs" data-js-tabs>
@@ -449,15 +449,15 @@
           <div style="width: 100%;display: flex;">
             <div>
               <h5>Bruto</h5>
-              <input class="form-control" name="devengado_bruto" data-readonly='[]'>
+              <input class="form-control" name="devengado_bruto" data-readonly='[{"modo": "*"}]'>
             </div>
             <div>
               <h5>Deducción</h5>
-              <input class="form-control" name="devengado_deduccion" data-readonly='[]'>
+              <input class="form-control" name="devengado_deduccion" data-readonly='[{"modo": "*"}]'>
             </div>
             <div>
               <h5>Devengado</h5>
-              <input class="form-control" name="devengado" data-depende="devengado_bruto,devengado_deduccion" data-readonly="[]">
+              <input class="form-control" name="devengado" data-depende="devengado_bruto,devengado_deduccion" data-readonly='[{"modo":"*"}]'>
             </div>
           </div>
         </div>
@@ -466,15 +466,15 @@
           <div style="width: 100%;display: flex;">
             <div>
               <h5>Bruto</h5>
-              <input class="form-control" name="determinado_bruto" data-readonly='[]'>
+              <input class="form-control" name="determinado_bruto" data-readonly='[{"modo":"*"}]'>
             </div>
             <div>
               <h5>Determinado</h5>
-              <input class="form-control" name="determinado" data-depende="determinado_bruto,interes_mora,mora,fecha_pago,fecha_vencimiento" data-readonly='[]'>
+              <input class="form-control" name="determinado" data-depende="determinado_bruto,interes_mora,mora,fecha_pago,fecha_vencimiento" data-readonly='[{"modo":"*"}]'>
             </div>
             <div class="parametro_chico">
               <h5>Porcentaje Seguridad</h5>
-              <input class="form-control" name="porcentaje_seguridad" data-depende="devengado,determinado" data-readonly="[]">
+              <input class="form-control" name="porcentaje_seguridad" data-depende="devengado,determinado" data-readonly='[{"modo":"*"}]'>
             </div>
           </div>
         </div>
@@ -483,11 +483,11 @@
           <div style="width: 100%;display: flex;">
             <div>
               <h5>Saldo anterior</h5>
-              <input class="form-control" name="saldo_anterior" data-depende="año_mes,id_casino" data-readonly='[]'>
+              <input class="form-control" name="saldo_anterior" data-depende="año_mes,id_casino" data-readonly='[{"modo":"*"}]'>
             </div>
             <div data-modo-mostrar='[{"estado": "CERRADO"},{"estado": "PAGADO"}]'>
               <h5>Saldo anterior (CERRADO)</h5>
-              <input class="form-control" name="saldo_anterior_cerrado" data-depende="año_mes,id_casino" data-readonly='[]'>
+              <input class="form-control" name="saldo_anterior_cerrado" data-depende="año_mes,id_casino" data-readonly='[{"modo":"*"}]'>
             </div>
             <div>
               <h5>Cargos adicionales</h5>
@@ -495,7 +495,7 @@
             </div>
             <div>
               <h5>Principal</h5>
-              <input class="form-control" name="principal" data-readonly='[]' data-depende="saldo_anterior,cargos_adicionales,determinado">
+              <input class="form-control" name="principal" data-readonly='[{"modo":"*"}]' data-depende="saldo_anterior,cargos_adicionales,determinado">
             </div>
           </div>
         </div>
@@ -570,7 +570,7 @@
             ?>
             <div data-pago data-js-molde="{{$molde_str}}" class="grid_fila_pago" style="width: 100%;">
               <div class="grid_capital valor_intermedio">
-                <input class="form-control" data-name="{{$capital}}" data-readonly='[]'>
+                <input class="form-control" data-name="{{$capital}}" data-readonly='[{"modo":"*"}]'>
               </div>
               <div class="grid_fecha_pago">
                 @component('Components/inputFecha',[
@@ -581,22 +581,22 @@
                 @endcomponent
               </div>
               <div class="grid_dias_vencidos valor_intermedio">
-                <input class="form-control" data-name="{{$dias_vencidos}}" data-depende="fecha_vencimiento,{{$fecha_pago}}" data-readonly='[]'>
+                <input class="form-control" data-name="{{$dias_vencidos}}" data-depende="fecha_vencimiento,{{$fecha_pago}}" data-readonly='[{"modo":"*"}]'>
               </div>
               <div class="grid_mora_provincial valor_intermedio">
-                <input class="form-control" data-name="{{$mora_provincial}}" data-depende="{{$dias_vencidos}},tasa_provincial_diaria_simple" data-readonly='[]'>
+                <input class="form-control" data-name="{{$mora_provincial}}" data-depende="{{$dias_vencidos}},tasa_provincial_diaria_simple" data-readonly='[{"modo":"*"}]'>
               </div>
               <div class="grid_mora_nacional valor_intermedio">
-                <input class="form-control" data-name="{{$mora_nacional}}" data-depende="{{$dias_vencidos}},tasa_nacional_mensual_compuesta" data-readonly='[]'>
+                <input class="form-control" data-name="{{$mora_nacional}}" data-depende="{{$dias_vencidos}},tasa_nacional_mensual_compuesta" data-readonly='[{"modo":"*"}]'>
               </div>
               <div class="grid_a_pagar">
-                <input class="form-control" data-name="{{$a_pagar}}" data-readonly='[]' data-depende="{{$mora_provincial}},{{$mora_nacional}},{{$capital}}">
+                <input class="form-control" data-name="{{$a_pagar}}" data-readonly='[{"modo":"*"}]' data-depende="{{$mora_provincial}},{{$mora_nacional}},{{$capital}}">
               </div>
               <div class="grid_pago">
                 <input class="form-control" data-name="{{$pago}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' data-depende="año_mes,id_casino">
               </div>
               <div class="grid_diferencia">
-                <input class="form-control" data-name="{{$diferencia}}" data-depende="{{$a_pagar}},{{$pago}}" data-readonly='[]'>
+                <input class="form-control" data-name="{{$diferencia}}" data-depende="{{$a_pagar}},{{$pago}}" data-readonly='[{"modo":"*"}]'>
               </div>
               <div class="grid_borrar">
                 <button class="btn" type="button" data-js-borrar-pago data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'><i class="fa fa-fw fa-trash-alt"></i></button>
@@ -606,11 +606,11 @@
           <div style="width: 100%;display: flex;">
             <div>
               <h5>A Pagar</h5>
-              <input class="form-control" name="a_pagar" data-readonly='[]'>
+              <input class="form-control" name="a_pagar" data-readonly='[{"modo":"*"}]'>
             </div>
             <div>
               <h5>Pago</h5>
-              <input class="form-control" name="pago" data-readonly='[]'>
+              <input class="form-control" name="pago" data-readonly='[{"modo":"*"}]'>
             </div>
             <div>
               <h5>Ajuste</h5>
@@ -619,15 +619,15 @@
             </div>
             <div>
               <h5>Diferencia</h5>
-              <input class="form-control" name="diferencia" data-readonly='[]'>
+              <input class="form-control" name="diferencia" data-readonly='[{"modo":"*"}]'>
             </div>
             <div>
               <h5>Saldo posterior</h5>
-              <input class="form-control" name="saldo_posterior" data-depende="diferencia,saldo_anterior" data-readonly='[]'>
+              <input class="form-control" name="saldo_posterior" data-depende="diferencia,saldo_anterior" data-readonly='[{"modo":"*"}]'>
             </div>
             <div data-modo-mostrar='[{"estado": "CERRADO"},{"estado": "PAGADO"}]'>
               <h5>Saldo posterior (CERRADO)</h5>
-              <input class="form-control" name="saldo_posterior_cerrado" data-depende="diferencia,saldo_anterior_cerrado" data-readonly='[]'>
+              <input class="form-control" name="saldo_posterior_cerrado" data-depende="diferencia,saldo_anterior_cerrado" data-readonly='[{"modo":"*"}]'>
             </div>
           </div>
         </div>
@@ -687,13 +687,13 @@
                 </div>
                 <div style="grid-area: grid_base_imponible" class="valor_intermedio">
                   <h5>BASE IMPONIBLE</h5>
-                  <input class="form-control" data-name="{{$devengado_base_imponible}}" data-depende="{{$devengado_apostado_sistema}},{{$devengado_apostado_porcentaje_aplicable}}" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$devengado_base_imponible}}" data-depende="{{$devengado_apostado_sistema}},{{$devengado_apostado_porcentaje_aplicable}}" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div style="grid-area: grid_vacio">
                 </div>
                 <div style="grid-area: grid_impuesto">
                   <h5>IMPUESTO</h5>
-                  <input class="form-control" data-name="{{$devengado_impuesto}}" data-depende="{{$devengado_base_imponible}},{{$devengado_apostado_porcentaje_impuesto_ley}}" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$devengado_impuesto}}" data-depende="{{$devengado_base_imponible}},{{$devengado_apostado_porcentaje_impuesto_ley}}" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div style="grid-area: grid_bruto">
                   <h5>BRUTO</h5>
@@ -701,7 +701,7 @@
                 </div>
                 <div style="grid-area: grid_subtotal" class="valor_intermedio">
                   <h5>SUBTOTAL</h5>
-                  <input class="form-control" data-name="{{$devengado_subtotal}}" data-depende="{{$devengado_bruto}},{{$devengado_impuesto}}" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$devengado_subtotal}}" data-depende="{{$devengado_bruto}},{{$devengado_impuesto}}" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div style="grid-area: grid_total">
                   <h5>TOTAL</h5>
@@ -733,7 +733,7 @@
                 </div>
                 <div style="grid-area: grid_subtotal" class="valor_intermedio">
                   <h5>SUBTOTAL</h5>
-                  <input class="form-control" data-name="{{$determinado_subtotal}}" data-depende="{{$determinado_bruto}},{{$determinado_impuesto}}" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$determinado_subtotal}}" data-depende="{{$determinado_bruto}},{{$determinado_impuesto}}" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div style="grid-area: grid_total">
                   <h5>TOTAL</h5>
@@ -842,7 +842,7 @@
             <div style="display: flex;">
               <div class="valor_intermedio">
                 <h5>MESAS×DIAS</h5>
-                <input class="form-control" data-name="{{$mesas_dias}}" data-depende="{{$dias_lunes_jueves}},{{$mesas_lunes_jueves}},{{$dias_viernes_sabados}},{{$mesas_viernes_sabados}},{{$dias_domingos}},{{$mesas_domingos}},{{$dias_todos}},{{$mesas_todos}},{{$dias_fijos}},{{$mesas_fijos}}" data-readonly='[]'>
+                <input class="form-control" data-name="{{$mesas_dias}}" data-depende="{{$dias_lunes_jueves}},{{$mesas_lunes_jueves}},{{$dias_viernes_sabados}},{{$mesas_viernes_sabados}},{{$dias_domingos}},{{$mesas_domingos}},{{$dias_todos}},{{$mesas_todos}},{{$dias_fijos}},{{$mesas_fijos}}" data-readonly='[{"modo":"*"}]'>
               </div>
               <div>
                 <h5>VALOR DOLAR (USD)</h5>
@@ -858,7 +858,7 @@
               </div>
               <div class="aproximado valor_intermedio">
                 <h5>FACTOR DÍAS VALOR ≈ (DÍAS VALOR)⁻¹</h5>
-                <input class="form-control" data-name="{{$factor_dias_valor}}" data-depende="{{$dias_valor}}" data-readonly='[]'>
+                <input class="form-control" data-name="{{$factor_dias_valor}}" data-depende="{{$dias_valor}}" data-readonly='[{"modo":"*"}]'>
               </div>
             </div>
           </div>
@@ -886,31 +886,31 @@
               <div style="display: flex;">
                 <div class="valor_intermedio">
                   <h5>VALOR DOLAR (ARS)</h5>
-                  <input class="form-control" data-name="{{$devengado_valor_dolar_cotizado}}" data-depende="devengado_cotizacion_dolar,valor_dolar" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$devengado_valor_dolar_cotizado}}" data-depende="devengado_cotizacion_dolar,valor_dolar" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>VALOR EURO (ARS)</h5>
-                  <input class="form-control" data-name="{{$devengado_valor_euro_cotizado}}" data-depende="devengado_cotizacion_euro,valor_euro" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$devengado_valor_euro_cotizado}}" data-depende="devengado_cotizacion_euro,valor_euro" data-readonly='[{"modo":"*"}]'>
                 </div>
               </div>
               <div style="display: flex;">
                 <div class="valor_intermedio">
                   <h5>VALOR DOLAR DIARIO (ARS)</h5>
-                  <input class="form-control" data-name="{{$devengado_valor_dolar_diario_cotizado}}" data-depende="{{$devengado_valor_dolar_cotizado}},{{$factor_dias_valor}}" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$devengado_valor_dolar_diario_cotizado}}" data-depende="{{$devengado_valor_dolar_cotizado}},{{$factor_dias_valor}}" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>VALOR EURO DIARIO (ARS)</h5>
-                  <input class="form-control" data-name="{{$devengado_valor_euro_diario_cotizado}}" data-depende="{{$devengado_valor_euro_cotizado}},{{$factor_dias_valor}}" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$devengado_valor_euro_diario_cotizado}}" data-depende="{{$devengado_valor_euro_cotizado}},{{$factor_dias_valor}}" data-readonly='[{"modo":"*"}]'>
                 </div>
               </div>
               <div style="display: flex;">
                 <div class="valor_intermedio">
                   <h5>TOTAL DOLAR (ARS)</h5>
-                  <input class="form-control" data-name="{{$devengado_total_dolar_cotizado}}" data-depende="{{$devengado_valor_dolar_cotizado}},{{$devengado_valor_dolar_diario_cotizado}},{{$dias_valor}},{{$mesas_dias}}" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$devengado_total_dolar_cotizado}}" data-depende="{{$devengado_valor_dolar_cotizado}},{{$devengado_valor_dolar_diario_cotizado}},{{$dias_valor}},{{$mesas_dias}}" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>TOTAL EURO (ARS)</h5>
-                  <input class="form-control" data-name="{{$devengado_total_euro_cotizado}}" data-depende="{{$devengado_valor_euro_cotizado}},{{$devengado_valor_euro_diario_cotizado}},{{$dias_valor}},{{$mesas_dias}}" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$devengado_total_euro_cotizado}}" data-depende="{{$devengado_valor_euro_cotizado}},{{$devengado_valor_euro_diario_cotizado}},{{$dias_valor}},{{$mesas_dias}}" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div>
                   <h5>TOTAL</h5>
@@ -945,31 +945,31 @@
               <div style="display: flex;">
                 <div class="valor_intermedio">
                   <h5>VALOR DOLAR (ARS)</h5>
-                  <input class="form-control" data-name="{{$determinado_valor_dolar_cotizado}}" data-depende="determinado_cotizacion_dolar,valor_dolar" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$determinado_valor_dolar_cotizado}}" data-depende="determinado_cotizacion_dolar,valor_dolar" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>VALOR EURO (ARS)</h5>
-                  <input class="form-control" data-name="{{$determinado_valor_euro_cotizado}}" data-depende="determinado_cotizacion_euro,valor_euro" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$determinado_valor_euro_cotizado}}" data-depende="determinado_cotizacion_euro,valor_euro" data-readonly='[{"modo":"*"}]'>
                 </div>
               </div>
               <div style="display: flex;">
                 <div class="valor_intermedio">
                   <h5>VALOR DOLAR DIARIO (ARS)</h5>
-                  <input class="form-control" data-name="{{$determinado_valor_dolar_diario_cotizado}}" data-depende="{{$determinado_valor_dolar_cotizado}},{{$dias_valor}}" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$determinado_valor_dolar_diario_cotizado}}" data-depende="{{$determinado_valor_dolar_cotizado}},{{$dias_valor}}" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>VALOR EURO DIARIO (ARS)</h5>
-                  <input class="form-control" data-name="{{$determinado_valor_euro_diario_cotizado}}" data-depende="{{$determinado_valor_euro_cotizado}},{{$dias_valor}}" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$determinado_valor_euro_diario_cotizado}}" data-depende="{{$determinado_valor_euro_cotizado}},{{$dias_valor}}" data-readonly='[{"modo":"*"}]'>
                 </div>
               </div>
               <div style="display: flex;">
                 <div class="valor_intermedio">
                   <h5>TOTAL DOLAR (ARS)</h5>
-                  <input class="form-control" data-name="{{$determinado_total_dolar_cotizado}}" data-depende="{{$determinado_valor_dolar_cotizado}},{{$determinado_valor_dolar_diario_cotizado}},{{$dias_valor}},{{$mesas_dias}}" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$determinado_total_dolar_cotizado}}" data-depende="{{$determinado_valor_dolar_cotizado}},{{$determinado_valor_dolar_diario_cotizado}},{{$dias_valor}},{{$mesas_dias}}" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>TOTAL EURO (ARS)</h5>
-                  <input class="form-control" data-name="{{$determinado_total_euro_cotizado}}" data-depende="{{$determinado_valor_euro_cotizado}},{{$determinado_valor_euro_diario_cotizado}},{{$dias_valor}},{{$mesas_dias}}" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$determinado_total_euro_cotizado}}" data-depende="{{$determinado_valor_euro_cotizado}},{{$determinado_valor_euro_diario_cotizado}},{{$dias_valor}},{{$mesas_dias}}" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div>
                   <h5>TOTAL</h5>
@@ -1018,11 +1018,11 @@
               </div>
               <div class="aproximado valor_intermedio">
                 <h5>FACTOR DIAS MES ≈ (DÍAS MES)⁻¹</h5>
-                <input class="form-control" data-name="{{$factor_dias_mes}}" data-depende="{{$dias_mes}}" data-readonly='[]'>
+                <input class="form-control" data-name="{{$factor_dias_mes}}" data-depende="{{$dias_mes}}" data-readonly='[{"modo":"*"}]'>
               </div>
               <div class="aproximado valor_intermedio">
                 <h5>FACTOR HORAS MES ≈ (DÍAS MES × HORAS DÍA)⁻¹</h5>
-                <input class="form-control" data-name="{{$factor_horas_mes}}" data-depende="{{$dias_mes}},{{$horas_dia}}" data-readonly='[]'>
+                <input class="form-control" data-name="{{$factor_horas_mes}}" data-depende="{{$dias_mes}},{{$horas_dia}}" data-readonly='[{"modo":"*"}]'>
               </div>
             </div>
             <div style="display: flex;">
@@ -1042,15 +1042,15 @@
               <div style="display: flex;">
                 <div>
                   <h5>VALOR MES</h5>
-                  <input class="form-control" data-name="{{$devengado_valor_mes}}" data-depende="id_casino" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$devengado_valor_mes}}" data-depende="id_casino" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>VALOR DÍA</h5>
-                  <input class="form-control" data-name="{{$devengado_valor_dia}}" data-depende="{{$devengado_valor_mes}},{{$factor_dias_mes}}" data-depende="id_casino" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$devengado_valor_dia}}" data-depende="{{$devengado_valor_mes}},{{$factor_dias_mes}}" data-depende="id_casino" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>VALOR HORA</h5>
-                  <input class="form-control" data-name="{{$devengado_valor_hora}}" data-depende="{{$devengado_valor_mes}},{{$factor_horas_mes}}" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$devengado_valor_hora}}" data-depende="{{$devengado_valor_mes}},{{$factor_horas_mes}}" data-readonly='[{"modo":"*"}]'>
                 </div>
               </div>
               <div style="display: flex;">
@@ -1069,15 +1069,15 @@
               <div style="display: flex;">
                 <div>
                   <h5>VALOR MES</h5>
-                  <input class="form-control" data-name="{{$determinado_valor_mes}}" data-depende="id_casino" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$determinado_valor_mes}}" data-depende="id_casino" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>VALOR DÍA</h5>
-                  <input class="form-control" data-name="{{$determinado_valor_dia}}" data-depende="{{$determinado_valor_mes}},{{$factor_dias_mes}}" data-depende="id_casino" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$determinado_valor_dia}}" data-depende="{{$determinado_valor_mes}},{{$factor_dias_mes}}" data-depende="id_casino" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>VALOR HORA</h5>
-                  <input class="form-control" data-name="{{$determinado_valor_hora}}" data-depende="{{$determinado_valor_mes}},{{$factor_horas_mes}}" data-readonly='[]'>
+                  <input class="form-control" data-name="{{$determinado_valor_hora}}" data-depende="{{$determinado_valor_mes}},{{$factor_horas_mes}}" data-readonly='[{"modo":"*"}]'>
                 </div>
               </div>
               <div style="display: flex;">
@@ -1133,11 +1133,11 @@
                 <input data-js-texto-no-formatear-numero style="width: 100%;text-align: left;" class="form-control" data-name="{{$descripcion}}" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
               </div>
               <div class="grid_nombre_archivo">
-                <input data-js-texto-no-formatear-numero data-js-click-abrir-val-hermano="[data-es-link]" style="width: 100%;text-align: center;cursor: pointer;" class="form-control" data-name="{{$nombre_archivo}}" data-depende="id_casino,año_mes" data-readonly='[]'>
+                <input data-js-texto-no-formatear-numero data-js-click-abrir-val-hermano="[data-es-link]" style="width: 100%;text-align: center;cursor: pointer;" class="form-control" data-name="{{$nombre_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{"modo":"*"}]'>
                 <input data-js-texto-no-formatear-numero data-es-link data-name="{{$link}}" hidden>
               </div>
               <div hidden>
-                <input data-js-texto-no-formatear-numero style="flex: 1;" class="form-control" data-name="{{$id_archivo}}" data-depende="id_casino,año_mes" data-readonly='[]'>
+                <input data-js-texto-no-formatear-numero style="flex: 1;" class="form-control" data-name="{{$id_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{"modo":"*"}]'>
               </div>
               <div class="grid_boton">
                 <button class="btn" type="button" data-js-borrar-adjunto data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'><i class="fa fa-fw fa-trash-alt"></i></button>
