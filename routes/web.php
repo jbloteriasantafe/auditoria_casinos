@@ -1006,6 +1006,7 @@ Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_c
       Route::post('/valoresPorDefecto','\App\Http\Controllers\CanonController@valoresPorDefecto');
       Route::post('/valoresPorDefecto/ingresar','\App\Http\Controllers\CanonController@valoresPorDefecto_ingresar');
       Route::delete('/valoresPorDefecto/borrar','\App\Http\Controllers\CanonController@valoresPorDefecto_borrar');
+      Route::get('/recalcularSaldos','\App\Http\Controllers\CanonController@recalcular_saldos_Req');
     });
   });
 });

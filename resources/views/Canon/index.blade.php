@@ -559,6 +559,7 @@
             $n = function($s) use (&$molde_str){
               return "canon_pago[$molde_str][$s]";
             };
+            $id_canon_pago = $n('id_canon_pago');
             $capital = $n('capital');
             $fecha_pago = $n('fecha_pago');
             $dias_vencidos = $n('dias_vencidos');
@@ -569,6 +570,7 @@
             $diferencia = $n('diferencia');
             ?>
             <div data-pago data-js-molde="{{$molde_str}}" class="grid_fila_pago" style="width: 100%;">
+              <input data-name="{{$id_canon_pago}}" data-modo-mostrar='[]'>
               <div class="grid_capital valor_intermedio">
                 <input class="form-control" data-name="{{$capital}}" data-readonly='[{"modo":"*"}]'>
               </div>
@@ -621,13 +623,13 @@
               <h5>Diferencia</h5>
               <input class="form-control" name="diferencia" data-readonly='[{"modo":"*"}]'>
             </div>
-            <div>
-              <h5>Saldo posterior</h5>
-              <input class="form-control" name="saldo_posterior" data-depende="diferencia,saldo_anterior" data-readonly='[{"modo":"*"}]'>
-            </div>
             <div data-modo-mostrar='[{"estado": "CERRADO"},{"estado": "PAGADO"}]'>
               <h5>Saldo posterior (CERRADO)</h5>
               <input class="form-control" name="saldo_posterior_cerrado" data-depende="diferencia,saldo_anterior_cerrado" data-readonly='[{"modo":"*"}]'>
+            </div>
+            <div>
+              <h5>Saldo posterior</h5>
+              <input class="form-control" name="saldo_posterior" data-depende="diferencia,saldo_anterior" data-readonly='[{"modo":"*"}]'>
             </div>
           </div>
         </div>

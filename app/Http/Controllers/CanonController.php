@@ -353,7 +353,14 @@ class CanonController extends Controller
       : '0.00';
       
     //PRINCIPAL
-    $saldo_anterior = $this->calcular_saldo_anterior($año_mes,$id_casino);//@RETORNADO
+    $c_ant = DB::table('canon')
+    ->where('año_mes','<',$año_mes)
+    ->where('id_casino','=',$id_casino)
+    ->whereNull('deleted_at')
+    ->orderBy('año_mes','desc')
+    ->first();
+        
+    $saldo_anterior = ($c_ant !== null)? $c_ant->saldo_posterior : '0';//@RETORNADO
     $saldo_anterior_cerrado = $saldo_anterior;//@RETORNADO
     
     $cargos_adicionales = bcadd($R('cargos_adicionales','0'),'0',2);//@RETORNADO
@@ -960,6 +967,7 @@ class CanonController extends Controller
         'porcentaje_seguridad' => $datos['porcentaje_seguridad'],
         'determinado_bruto' => $datos['determinado_bruto'],
         'determinado' => $datos['determinado'],
+        'saldo_anterior' => $datos['saldo_anterior'],
         'saldo_anterior_cerrado' => $datos['saldo_anterior_cerrado'],
         'cargos_adicionales' => $datos['cargos_adicionales'],
         'principal' => $datos['principal'],
@@ -969,6 +977,7 @@ class CanonController extends Controller
         'motivo_ajuste' => $datos['motivo_ajuste'],
         'diferencia' => $datos['diferencia'],
         'saldo_posterior_cerrado' => $datos['saldo_posterior_cerrado'],
+        'saldo_posterior' => $datos['saldo_posterior'],
         'es_antiguo' => $datos['es_antiguo'],
         'created_at' => $created_at,
         'created_id_usuario' => $id_usuario,
@@ -1079,6 +1088,92 @@ class CanonController extends Controller
         ->insert($archivos_resultantes);
       }
       
+      if($recalcular){
+        $this->recalcular_saldos($datos['saldo_posterior'],$datos['año_mes'],$datos['id_casino']);
+      }
+      
+      return 1;
+    });
+  }
+  
+  //@HACK: usar CoW/SoftDelete?
+  private function recalcular_saldos($saldo_posterior_prev,$año_mes,$id_casino){
+    $canons = DB::table('canon')
+    ->whereNull('deleted_at')
+    ->where('año_mes','>',$año_mes)
+    ->where('id_casino','=',$id_casino)
+    ->orderBy('año_mes','asc')->get();
+    
+    if(count($canons) <= 0) return;
+        
+    foreach($canons as $c){
+      //Si esta cerrado, solo actualizo los saldos "no cerrados" y que se use en un canon proximo
+      if(in_array(strtoupper($c->estado),['PAGADO','CERRADO'])){
+        $c->saldo_anterior = $saldo_posterior_prev;
+        $diffsaldos = bcsub($c->saldo_anterior,$c->saldo_anterior_cerrado,2);
+        $c->saldo_posterior = bcadd($c->saldo_posterior_cerrado,$diffsaldos,2);
+        
+        DB::table('canon')
+        ->where('id_canon',$c->id_canon)
+        ->update([
+          'saldo_anterior' => $c->saldo_anterior,
+          'saldo_posterior' => $c->saldo_posterior
+        ]);
+        
+        $saldo_posterior_prev = $c->saldo_posterior;
+      }
+      else{//El saldo influye en el principal y por ende en todos los calculos de pagos
+        $c_para_recalcular = $this->obtener_arr(['id_canon' => $c->id_canon]);
+        $c_para_recalcular['saldo_anterior'] = $saldo_posterior_prev;
+        $c_para_recalcular['saldo_anterior_cerrado'] = $saldo_posterior_prev;
+                
+        $datos = $this->recalcular($c_para_recalcular);
+        
+        DB::table('canon')
+        ->where('id_canon',$c->id_canon)
+        ->update([
+          'saldo_anterior' => $datos['saldo_anterior'],
+          'saldo_anterior_cerrado' => $datos['saldo_anterior_cerrado'],
+          'principal' => $datos['principal'],
+          'a_pagar' => $datos['a_pagar'],
+          'diferencia' => $datos['diferencia'],
+          'saldo_posterior_cerrado' => $datos['saldo_posterior_cerrado'],
+          'saldo_posterior' => $datos['saldo_posterior'],
+        ]);
+        
+        $pagos_bd = DB::table('canon_pago')
+        ->where('id_canon',$c->id_canon)
+        ->get()->keyBy('id_canon_pago');
+        
+        $pagos_actualizados = collect($datos['canon_pago'])
+        ->keyBy('id_canon_pago');
+        
+        assert($pagos_bd->keys()->sort() == $pagos_actualizados->keys()->sort());
+        
+        foreach($pagos_bd as $id_canon_pago => $pbd){
+          $pact = $pagos_actualizados[$id_canon_pago];
+          
+          DB::table('canon_pago')
+          ->where('id_canon_pago',$id_canon_pago)
+          ->update([
+            'capital' => $pact['capital'],
+            'mora_provincial' => $pact['mora_provincial'],
+            'mora_nacional' => $pact['mora_nacional'],
+            'a_pagar' => $pact['a_pagar'],
+            'diferencia' => $pact['diferencia']
+          ]);
+        }
+        
+        $saldo_posterior_prev = $datos['saldo_posterior'];
+      }
+    }
+  }
+  
+  public function recalcular_saldos_Req(Request $request){
+    DB::transaction(function(){
+      foreach(Casino::all() as $c){
+        $this->recalcular_saldos('0','1970-01-01',$c->id_casino);
+      }
       return 1;
     });
   }
@@ -1090,17 +1185,6 @@ class CanonController extends Controller
     ->join('casino as cas','cas.id_casino','=','c.id_casino')
     ->where('id_canon',$request['id_canon'])
     ->first();
-        
-    if(!empty($ret)){
-      $ret['saldo_anterior'] = $this->calcular_saldo_anterior($ret['año_mes'],$ret['id_casino']);
-      $diffsaldos = bcsub($ret['saldo_anterior'],$ret['saldo_anterior_cerrado'],2);
-      $ret['saldo_posterior'] = bcadd($ret['saldo_posterior_cerrado'],$diffsaldos,2);
-    }
-    else{
-      $ret['saldo_anterior']  = '';
-      $ret['saldo_posterior'] = '';
-      $ret['estado'] = 'Nuevo';
-    }
     
     $ret['canon_pago'] = DB::table('canon_pago')
     ->where('id_canon',$request['id_canon'])
@@ -1293,20 +1377,7 @@ class CanonController extends Controller
     ->orderBy('cas.nombre','asc')
     ->paginate($request->page_size ?? 10);
     
-    //Necesito transformar la data paginada pero si llamo transform() elimina toda la data de paginado
-    $ret2 = $ret->toArray();
-    
-    //@HACK @SLOW: usar algun tipo de cache calculado hasta
-    $ret2['data'] = $ret->reverse()->transform(function(&$c){
-      if($c->deleted_at !== null) return $c;
-      $c->saldo_anterior = $this->calcular_saldo_anterior($c->año_mes,$c->id_casino);
-      $diffsaldos = bcsub($c->saldo_anterior,$c->saldo_anterior_cerrado,2);
-      $c->diferencia = bcsub($c->diferencia,$diffsaldos,2);
-      $c->saldo_posterior = bcsub('0',$c->diferencia,2);
-      return $c;
-    })->reverse();
-    
-    return $ret2;
+    return $ret;
   }
     
   private $cotizacion_DB = null;
@@ -1528,11 +1599,18 @@ class CanonController extends Controller
       }
     })->validate();
     
+    //@HACK: usar CoW/SoftDelete?
     return DB::transaction(function() use ($request){
       DB::table('canon')
       ->whereNull('deleted_at')
       ->where('id_canon',$request->id_canon)
       ->update(['estado' => $request->estado]);
+      
+      $c = DB::table('canon')
+      ->where('id_canon',$request->id_canon)
+      ->first();
+      
+      $this->recalcular_saldos($c->saldo_posterior,$c->año_mes,$c->id_casino);
       
       return 1;
     });
