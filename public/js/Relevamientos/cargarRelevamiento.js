@@ -92,7 +92,8 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       
       for(let c=1;c<=CONTADORES;c++){
         const cont_s = 'cont'+c;
-        const cont = fila.find(`[data-js-cambio-contador="${c}"]`).val(d?.detalle?.[cont_s] ?? '');
+        const cont = fila.find(`[data-js-cambio-contador="${c}"]`).val(d?.detalle?.[cont_s] ?? '')
+        .attr('placeholder',d?.formula?.[cont_s] ?? '');
         cont.prop('readonly',!d?.formula?.[cont_s]);
       }
       

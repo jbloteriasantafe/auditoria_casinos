@@ -1673,8 +1673,6 @@ class CanonController extends Controller
     
     $SB = DB::getSchemaBuilder();
     $types = [];
-    $types['canon']['saldo_anterior']  = 'decimal';
-    $types['canon']['saldo_posterior'] = 'decimal';
     foreach($ret as $tabla => $d){
       foreach($SB->getColumnListing($tabla) as $cidx => $col){
         $types[$tabla][$col] = $SB->getColumnType($tabla, $col);

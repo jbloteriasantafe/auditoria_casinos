@@ -162,6 +162,10 @@
   tr[data-css-colorear!="DIFERENCIA"][data-id_unidad_medida] [data-js-boton-medida="vacio"] {
     display: block !important;
   }
+  
+  tr [data-contador]::placeholder {
+    font-size: 90%;
+  }
 </style>
 <table hidden>
   <tr data-js-molde-tabla-relevamiento style="display: flex;">
