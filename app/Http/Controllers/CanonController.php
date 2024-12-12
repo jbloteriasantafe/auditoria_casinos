@@ -503,38 +503,6 @@ class CanonController extends Controller
     );
   }
   
-  //@SPEED: cachear en DB?
-  private function calcular_saldo_anterior($año_mes,$id_casino){//Lo pongo en una función para mantener consistente el signo
-    //Se considera que el "saldo" es positivo cuando es a favor del casino
-    $canon_anterior = $id_casino !== null && $año_mes !== null? 
-    DB::table('canon')
-    ->where('id_casino',$id_casino)
-    ->where('año_mes','<',$año_mes)
-    ->orderBy('año_mes','asc')
-    ->whereNull('deleted_at')->get()
-    : collect([]);
-    
-    $prev_c_saldo_posterior_cerrado = '0';
-    $diferencia_a_favor = '0';
-    
-    //Si hubo una actualizacion en el medio, no coinciden los saldos. La diferencia acumulada la busco y se la sumo
-    foreach($canon_anterior as $idx => $c){
-      if($idx == 0){
-        $prev_c_saldo_posterior_cerrado = $c->saldo_posterior_cerrado;
-      }
-      else{
-        $diferencia_a_favor = bcadd(
-          $diferencia_a_favor,
-          bcsub($prev_c_saldo_posterior_cerrado,$c->saldo_anterior_cerrado,2),
-          2
-        );
-        $prev_c_saldo_posterior_cerrado = $c->saldo_posterior_cerrado;
-      }     
-    }
-    
-    return bcadd($prev_c_saldo_posterior_cerrado,$diferencia_a_favor,2);
-  }
-  
   public function canon_variable_recalcular($año_mes,$id_casino,$tipo,$valores_defecto,$data,$COT){
     $R = function($s,$dflt = null) use (&$data){
       return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
@@ -555,29 +523,27 @@ class CanonController extends Controller
     $devengado_apostado_porcentaje_impuesto_ley = bcadd($RD('devengado_apostado_porcentaje_impuesto_ley','0.0000'),'0',4);//@RETORNADO
     $factor_apostado_porcentaje_impuesto_ley = bcdiv($devengado_apostado_porcentaje_impuesto_ley,'100',6);
     
-    $devengado_impuesto = bcmul($devengado_base_imponible,$factor_apostado_porcentaje_impuesto_ley,14);//8+6 @RETORNADO
+    $devengado_impuesto   = bcmul($devengado_base_imponible,$factor_apostado_porcentaje_impuesto_ley,14);//8+6 @RETORNADO
     $determinado_impuesto =  bcadd($R('determinado_impuesto','0.00'),'0',2);//@RETORNADO
     
-    $devengado_bruto = $R('devengado_bruto',null);//@RETORNADO
-    if($devengado_bruto === null){
-      $devengado_bruto = $this->bruto($tipo,$año_mes,$id_casino);//@RETORNADO
-    }
-    $devengado_bruto = bcadd($devengado_bruto,'0',2);
-    
-    $devengado_subtotal = bcsub($devengado_bruto,$devengado_impuesto,14);//@RETORNADO
-    
+    $devengado_bruto   = $R('devengado_bruto',null);//@RETORNADO
     $determinado_bruto = $R('determinado_bruto',null);//@RETORNADO
-    if($determinado_bruto === null){
-      $determinado_bruto = $devengado_bruto;
+    if($devengado_bruto === null || $determinado_bruto === null){
+      $bruto = $this->bruto($tipo,$año_mes,$id_casino);
+      $devengado_bruto   = $devengado_bruto   ?? $bruto;
+      $determinado_bruto = $determinado_bruto ?? $bruto;
     }
+    
+    $devengado_bruto   = bcadd($devengado_bruto,'0',2);
     $determinado_bruto = bcadd($determinado_bruto,'0',2);
     
+    $devengado_subtotal   = bcsub($devengado_bruto,$devengado_impuesto,14);//@RETORNADO
     $determinado_subtotal = bcsub($determinado_bruto,$determinado_impuesto,2);//@RETORNADO
     
     $alicuota = bcadd($RD('alicuota','0.0000'),'0',4);//@RETORNADO
     $factor_alicuota = bcdiv($alicuota,'100',6);
     
-    $devengado_total =  bcmul($devengado_subtotal,$factor_alicuota,20);//6+14 @RETORNADO
+    $devengado_total   =  bcmul($devengado_subtotal,$factor_alicuota,20);//6+14 @RETORNADO
     $determinado_total =  bcmul($determinado_subtotal,$factor_alicuota,8);//6+2 @RETORNADO
     $devengado_deduccion = bcadd($RD('devengado_deduccion','0.00'),'0',2);
     
@@ -809,60 +775,6 @@ class CanonController extends Controller
       
       $dias = intdiv($horas_dias_restantes,$horas_dia);
       $horas_restantes = $horas_dias_restantes%$horas_dia;
-      
-      //Esto es un codigo de prueba para aumentar la precision pero complica demasiado el codigo
-      //Prefiero que sea mas debuggeable
-      /*
-      //Minimizo por dia
-      $mD_meses = $meses;
-      $mD_dias  = $dias;
-      $mD_horas_restantes = $horas_restantes;
-      if($mD_dias > ($dias_mes/2.0)){
-        $mD_meses += 1;
-        $mD_dias = -($dias_mes-$mD_dias-1);//No estoy seguro pq tengo que hacer -1
-        $mD_horas_restantes = -($horas_dia-$mD_horas_restantes);
-      }
-      
-      //Minimizo por hora y despues por dia
-      $mHD_meses = $meses;
-      $mHD_dias  = $dias;
-      $mHD_horas_restantes = $horas_restantes;
-      if($mHD_horas_restantes > ($horas_dia/2.0)){
-        $mHD_dias += 1;
-        $mHD_horas_restantes = -($horas_dia-$mHD_horas_restantes);
-      }
-      if($mHD_dias == $dias_mes){
-        $mHD_meses += 1;
-        $mHD_dias = 0;
-      }
-      
-      //Al estar dividiendo en la aproximación, el redondeo es ~Horas_dia veces peor por Valor Hora que por Valor Dia
-      //generalmente el $costo_mHD < $costo_mD < $costo_normal pero por las dudas lo chequeo
-      {
-        $costo_redondeo_dia  = 1;
-        $costo_redondeo_hora = $costo_redondeo_dia*$horas_dia;
-        
-        $costo_normal = $horas_restantes*$costo_redondeo_hora + $dias*$costo_redondeo_dia;
-        $costo_mD     = abs($mD_horas_restantes)*$costo_redondeo_hora + abs($mD_dias)*$costo_redondeo_dia;
-        $costo_mHD    = abs($mHD_horas_restantes)*$costo_redondeo_hora + abs($mHD_dias)*$costo_redondeo_dia;
-        $costo_min = min($costo_normal,$costo_mD,$costo_mHD);
-        
-        if($costo_min == $costo_normal){
-        }
-        else if($costo_min == $costo_mD){
-          $meses = $mD_meses;
-          $dias  = $mD_dias;
-          $horas_restantes = $mD_horas_restantes;
-        }
-        else if($costo_min == $costo_mHD){
-          $meses = $mHD_meses;
-          $dias  = $mHD_dias;
-          $horas_restantes = $mHD_horas_restantes;
-        }
-        else{
-          throw new \Exception('Unreachable');
-        }
-      }*/
       
       $devengado_total_meses = bcmul($devengado_valor_mes,$meses,4);
       $devengado_total_dias  = bcmul($devengado_valor_dia,$dias,16);
