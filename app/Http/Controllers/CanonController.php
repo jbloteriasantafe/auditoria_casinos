@@ -1862,23 +1862,23 @@ class CanonController extends Controller
         $dcas[$concepto] = $acumulado;
       }
       
-      //Calculo MTM a partir de los demas redondeados
-      //Esto es asi porque MTM es el mas "aproximado", osea que que este unos centavos arriba o abajo no cambia mucho
+      //Calculo Paños a partir de los demas redondeados
+      //Esto es asi porque Paños es el mas "aproximado", osea que que este unos centavos arriba o abajo no cambia mucho
       foreach($dcas as $concepto => $v){
         $dcas[$concepto] = $v === null? null : bcround_ndigits($v,2);
       }
       
-      $valor_MTM_restante = $dcas['Total'];
+      $valor_Paños_restante = $dcas['Total'];
       foreach($dcas as $concepto => $vr){
-        if($concepto != 'MTM' && $concepto != 'Total' && $concepto != 'Total Físico' && $vr !== null){
-          $valor_MTM_restante = bcsub($valor_MTM_restante,$vr,2);
+        if($concepto != 'Paños' && $concepto != 'Total' && $concepto != 'Total Físico' && $vr !== null){
+          $valor_Paños_restante = bcsub($valor_Paños_restante,$vr,2);
         }
       }
-      $dcas['MTM'] = $valor_MTM_restante;
+      $dcas['Paños'] = $valor_Paños_restante;
       
-      if($tipo_presupuesto == 'determinado'){
+      if($tipo_presupuesto == 'determinado'){//El ajuste se lo sumo a paños por mismas razones
         $ajuste = (($canons_casino['canon'] ?? [])[0] ?? [])['ajuste'] ?? '0';
-        $dcas['MTM'] = bcadd($dcas['MTM'],$ajuste,$max_scale);
+        $dcas['Paños'] = bcadd($dcas['Paños'],$ajuste,$max_scale);
         $dcas['Total Físico'] = bcadd($dcas['Total Físico'],$ajuste,$max_scale);
         $dcas['Total'] = bcadd($dcas['Total'],$ajuste,$max_scale);
       }
