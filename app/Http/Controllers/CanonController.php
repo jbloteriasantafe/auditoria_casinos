@@ -1002,7 +1002,7 @@ class CanonController extends Controller
       }
       
       if($recalcular){
-        $this->recalcular_saldos($datos['saldo_posterior'],$datos['año_mes'],$datos['id_casino']);
+        $this->cambio_canon_recalcular_saldos($id_canon);
       }
       
       return 1;
@@ -1253,14 +1253,37 @@ class CanonController extends Controller
     return DB::transaction(function() use ($arr,$deleted_at,$deleted_id_usuario){
       $deleted_at = $deleted_at ?? date('Y-m-d h:i:s');
       $deleted_id_usuario = $deleted_id_usuario ?? UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
+      $id_canon = $arr['id_canon'];
       
       DB::table('canon')
       ->whereNull('deleted_at')
-      ->where('id_canon',$arr['id_canon'] ?? null)
+      ->where('id_canon',$id_canon)
       ->update(compact('deleted_at','deleted_id_usuario'));
+      
+      $this->cambio_canon_recalcular_saldos($id_canon);
       
       return 1;
     });
+  }
+  
+  private function cambio_canon_recalcular_saldos($id_canon){
+    $c = DB::table('canon')
+    ->where('id_canon',$id_canon)
+    ->first();
+    
+    $cprev = DB::table('canon')
+    ->where('año_mes','<',$c->año_mes)
+    ->where('id_casino','=',$c->id_casino)
+    ->whereNull('deleted_at')
+    ->orderBy('año_mes','desc')
+    ->first();
+    
+    if($cprev === null){
+      $this->recalcular_saldos('0','1970-01-01',$c->id_casino);
+    }
+    else{
+      $this->recalcular_saldos($cprev->saldo_posterior,$cprev->año_mes,$c->id_casino);
+    }
   }
   
   public function buscar(Request $request){
@@ -1538,7 +1561,9 @@ class CanonController extends Controller
       DB::table('canon')
       ->where('id_canon',$request->id_canon)
       ->update(['deleted_at' => null]);
-
+            
+      $this->cambio_canon_recalcular_saldos($request->id_canon);
+      
       return 1;
     });
   }
