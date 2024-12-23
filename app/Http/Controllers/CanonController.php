@@ -445,6 +445,7 @@ class CanonController extends Controller
       
       $p['mora_provincial'] = bcmul($p['dias_vencidos'],bcmul($p['capital'],$factor_interes_provincial_diario_simple,8),8);
       $p['mora_provincial'] = bcround_ndigits($p['mora_provincial'],2);
+      $p['mora_provincial'] = bcmax($p['mora_provincial'],'0',2);
       
       $p['mora_nacional'] = '0';
       {
@@ -457,7 +458,8 @@ class CanonController extends Controller
         }
         $p['mora_nacional'] = bcsub($capital_final,$p['capital'],$digitos_capital_final);
         $p['mora_nacional'] = bcround_ndigits($p['mora_nacional'],2);
-      } 
+      }
+      $p['mora_nacional'] = bcmax($p['mora_nacional'],'0',2);
       
       $p['a_pagar'] = bcadd($p['capital'],$p['mora_provincial'],2);
       $p['a_pagar'] = bcadd($p['a_pagar'],$p['mora_nacional'],2);
@@ -1313,7 +1315,24 @@ class CanonController extends Controller
     ->orderBy('cas.nombre','asc')
     ->paginate($request->page_size ?? 10);
     
-    return $ret;
+       //Necesito transformar la data paginada pero si llamo transform() elimina toda la data de paginado
+    $ret2 = $ret->toArray();
+    
+    //@HACK @SLOW: usar algun tipo de cache calculado hasta
+    $ret2['data'] = $ret->reverse()->transform(function(&$c){
+      if($c->deleted_at !== null) return $c;
+      $mora = DB::table('canon_pago')
+      ->selectRaw('(SUM(mora_provincial)+SUM(mora_nacional)) as mora')
+      ->where('id_canon',$c->id_canon)
+      ->groupBy(DB::raw('"constant"'))
+      ->first();
+      
+      $c->intereses = $mora === null? '0' : $mora->mora;
+      $c->intereses = bcadd($c->cargos_adicionales,$c->intereses,2);
+      return $c;
+    })->reverse();
+    
+    return $ret2;
   }
     
   private $cotizacion_DB = null;
@@ -1908,15 +1927,52 @@ class CanonController extends Controller
         $dcas['Total'] = bcadd($dcas['Total'],$ajuste,$max_scale);
       }
       
+      /*{//Agrego saldo y cargos adicionales si son != de 0
+        {//Muevo total al final
+          $conceptos['Saldo Anterior'] = null;
+          $conceptos['Cargos Adicionales'] = null;
+          $ctotal = $conceptos['Total'];
+          unset($conceptos['Total']);
+          $conceptos['Total'] = $ctotal;
+        }
+        
+        $total_saldo_anterior = '0';
+        $total_cargos_adicionales = '0';
+                
+        foreach($canons as $casino => $canons_casino){
+          foreach(($canons_casino['canon'] ?? []) as $c){
+            $saldo_anterior_cerrado = $c['saldo_anterior_cerrado'] ?? '0';
+            $cargos_adicionales = $c['cargos_adicionales'] ?? '0';
+            $total_saldo_anterior = bcadd($total_saldo_anterior,$saldo_anterior_cerrado,2);
+            $total_cargos_adicionales = bcadd($total_cargos_adicionales,$cargos_adicionales,2);
+            $dcas['Saldo Anterior'] = $saldo_anterior_cerrado;
+            $dcas['Cargos Adicionales'] = $cargos_adicionales;
+          }
+        }
+        
+        $dcas['Total'] = bcsub($dcas['Total'],$total_saldo_anterior,2);
+        $dcas['Total'] = bcadd($dcas['Total'],$total_cargos_adicionales,2);
+        
+        $sacar_saldo_anterior = bccomp($total_saldo_anterior,'0',2) == 0;
+        $sacar_cargos_adicionales = bccomp($total_cargos_adicionales,'0',2) == 0;
+        
+        if($sacar_saldo_anterior){
+          unset($conceptos['Saldo Anterior']);
+        }
+        if($sacar_cargos_adicionales){
+          unset($conceptos['Cargos Adicionales']);
+        }
+      }*/
+      
       $datos[$casino] = $dcas;
     }
     
     {//Agrego una columna Total
       $total = [];
       foreach($datos as $casino => $valores_casino){
-        foreach($valores_casino as $concepto => $vr){
+        foreach($conceptos as $concepto => $_){
           $total[$concepto] = $total[$concepto] ?? '0.00';
-          $total[$concepto] = bcadd($vr,$total[$concepto],2);
+          $total[$concepto] = bcadd($valores_casino[$concepto],$total[$concepto],2);
         }
       }
       $datos['Total'] = $total;

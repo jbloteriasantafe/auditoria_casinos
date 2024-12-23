@@ -122,8 +122,8 @@
       <th>ESTADO</th>
       <th>DEVENGADO</th>
       <th>DETERMINADO</th>
+      <th>INTERESES</th>
       <th>PAGO</th>
-      <th>DIFERENCIA</th>
       <th>SALDO</th>
       <th>ACCION</th>
     </tr>
@@ -154,8 +154,8 @@
       </td>
       <td class="devengado" data-formatear-numero>DEVENGADO</td>
       <td class="determinado" data-formatear-numero>DETERMINADO</td>
+      <td class="intereses" data-formatear-numero>INTERESES</td>
       <td class="pago" data-formatear-numero>PAGO</td>
-      <td class="diferencia" data-formatear-numero>DIFERENCIA</td>
       <td class="saldo_posterior" data-formatear-numero>SALDO</td>
       <td>
         <button class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
