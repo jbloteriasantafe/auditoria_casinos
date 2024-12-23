@@ -1294,6 +1294,19 @@ class CanonController extends Controller
     if(isset($request->id_casino)){
       $reglas[] = ['c.id_casino','=',$request->id_casino];
     }
+    
+    $sort_by = [
+      'columna' => 'año_mes',
+      'orden' => 'desc'
+    ];
+    
+    if(!empty($request->sort_by) && !empty($request->sort_by['columna'])){
+      $sort_by['columna'] = $request->sort_by['columna'];
+      if(!empty($request->sort_by['orden'])){
+        $sort_by['orden'] = $request->sort_by['orden'];
+      }
+    }
+    
     $ret = DB::table('canon as c')
     ->select('c.*','cas.nombre as casino')
     ->join('casino as cas','cas.id_casino','=','c.id_casino')
@@ -1311,7 +1324,7 @@ class CanonController extends Controller
     )
     ->where($reglas)
     ->whereIn('c.id_casino',$u->casinos->pluck('id_casino'))
-    ->orderBy('c.año_mes','desc')
+    ->orderBy($sort_by['columna'],$sort_by['orden'])
     ->orderBy('cas.nombre','asc')
     ->paginate($request->page_size ?? 10);
     
@@ -1329,6 +1342,7 @@ class CanonController extends Controller
       
       $c->intereses = $mora === null? '0' : $mora->mora;
       $c->intereses = bcadd($c->cargos_adicionales,$c->intereses,2);
+      $c->año_mes = substr($c->año_mes,0,strlen('YYYY-MM'));
       return $c;
     })->reverse();
     

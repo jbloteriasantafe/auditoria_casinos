@@ -117,7 +117,7 @@
     
     @slot('cabecera')
     <tr>
-      <th>AÑO MES</th>
+      <th data-js-sortable="año_mes">AÑO MES</th>
       <th>CASINO</th>
       <th>ESTADO</th>
       <th>DEVENGADO</th>
