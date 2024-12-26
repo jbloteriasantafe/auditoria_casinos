@@ -40,8 +40,9 @@
       con domicilio real en calle <b>{{$ae['domicilio']}}</b> Nº <b>{{$ae['nro_domicilio']}}</b>,
       Teléfono <b>{{$ae['telefono']}}</b> de la localidad de <b>{{$ae['nombre_localidad']}}</b> Provincia de
       <b>{{$ae['nombre_provincia']}}</b>; manifiesto expresamente mi voluntad de finalizar con la autoexclusión,
-      solicitando que se me PERMITA INGRESAR a las Salas de Juego de los Casinos y Bingos de la Provincia de Santa Fe a partir
-      del día siguiente al de cumplimiento efectivo de los 6 meses de la suscripción de la solicitud de autoexclusión, que opera
+      solicitando que se me PERMITA INGRESAR a las Salas de Juego de los Casinos y Bingos
+      y a las plataformas de juego on-line autorizadas en la Provincia de Santa Fe,
+      a partir del día siguiente al de cumplimiento efectivo de los 6 meses de la suscripción de la solicitud de autoexclusión, que opera
       en la siguiente fecha:
     </p>
 
