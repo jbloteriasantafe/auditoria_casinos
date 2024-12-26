@@ -104,7 +104,7 @@ class CanonController extends Controller
     Validator::make($request,[
       //canon
       'id_canon' => ['nullable','integer','exists:canon,id_canon,deleted_at,NULL'],
-      'año_mes' => [$requireds_f('año_mes'),'date','regex:/^\d{4}\-((0\d)|(1[0-2]))\-01$/'],
+      'año_mes' => [$requireds_f('año_mes'),'regex:/^\d{4}\-((0\d)|(1[0-2]))\-01$/'],
       'id_casino' => [$requireds_f('id_casino'),'integer','exists:casino,id_casino,deleted_at,NULL'],
       'estado' => ['nullable','string','max:32'],
       'es_antiguo' => [$requireds_f('es_antiguo'),'integer','in:1,0'],
@@ -349,9 +349,11 @@ class CanonController extends Controller
       bcadd($R('determinado','0.00'),'0',2)
     : bcround_ndigits($determinado_bruto,2);
     
-    $porcentaje_seguridad = bccomp($devengado,'0.00') <> 0?//@RETORNADO
+    $porcentaje_seguridad = bccomp($devengado,'0.00',2) <> 0?//@RETORNADO
        bcdiv(bcmul('100',bcsub($determinado,$devengado,2),2),$devengado,4)
       : '0.00';
+    //@HACK precision de porcentaje_seguridad? 1/MAX_DEVENGADO?
+    $porcentaje_seguridad = bcclamp($porcentaje_seguridad,'-99.9999','99.9999',4);
       
     //PRINCIPAL
     $c_ant = DB::table('canon')
