@@ -184,17 +184,33 @@ $(document).ready(function() {
       });
     };
     
-    const formatearNumeros = function(inpts = null){//Saca los 0 de sobra a la derecha
-      //Para verlos en debug usar algo tipo .css('color','red');     
+    const formatearCampos = function(inpts = null){//Saca los 0 de sobra a la derecha
+      //Para verlos en debug usar algo tipo .css('color','red');
       for(const name in inputs_a_formatear){
-        const i = $(inputs_a_formatear[name]);
-        i.val(formatter(i.val()));
+        const i = inputs_a_formatear[name];
+        if(i.is('[data-js-formatear-año-mes]')){
+          i.val(i.val().substr(0,'YYYY-MM'.length));
+        }
+        else{
+          i.val(formatter(i.val()));
+        }
       }
     }
+    
     const deformatearFormData = function(obj){      
       const ret = {};
       for(const k in obj){
-        ret[k] = (k in inputs_a_formatear)? deformatter(obj[k]) : obj[k];
+        let val = obj[k];
+        if(k in inputs_a_formatear){
+          const i = inputs_a_formatear[k];
+          if(i.is('[data-js-formatear-año-mes]')){
+            val = val+'-01';
+          }
+          else{
+            val = deformatter(val);
+          }
+        }
+        ret[k] = val;
       }
       return ret;
     }
@@ -208,7 +224,7 @@ $(document).ready(function() {
       if((rerender ?? 1) == 0){
         fill(M,null,canon);
         setReadonly();
-        formatearNumeros();
+        formatearCampos();
         return;
       }
       
@@ -242,7 +258,7 @@ $(document).ready(function() {
       
       limpiarInputsFormatear();
       agregarInputsFormatear(M.find('form[data-js-recalcular] input[name]:not([data-js-texto-no-formatear-numero])'));
-      formatearNumeros();
+      formatearCampos();
       
       (mantener_historial?
          M.find('[data-js-select-historial]')

@@ -391,8 +391,8 @@
       <div>
         <h5>AÑO MES</h5>
         @component('Components/inputFecha',[
-          'attrs' => 'data-js-texto-no-formatear-numero name="año_mes" placeholder="AÑO MES" data-js-empty-si-cambio="[data-canon-variable] [data-js-contenedor],[data-canon-fijo-mesas] [data-js-contenedor],[data-canon-fijo-mesas-adicionales] [data-js-contenedor]"',
-          'attrs_dtp' => 'data-date-format="yyyy-mm-01" data-start-view="year" data-min-view="decade"',
+          'attrs' => 'data-js-formatear-año-mes name="año_mes" placeholder="AÑO MES" data-js-empty-si-cambio="[data-canon-variable] [data-js-contenedor],[data-canon-fijo-mesas] [data-js-contenedor],[data-canon-fijo-mesas-adicionales] [data-js-contenedor]"',
+          'attrs_dtp' => 'data-date-format="yyyy-mm" data-start-view="year" data-min-view="decade"',
           'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "EDITAR"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
         ])
         @endcomponent
@@ -1212,6 +1212,6 @@
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
   <script src="/js/paginacion.js" charset="utf-8"></script>
   <script src="/js/lib/jsoneditor.js"></script>
-  <script src="/js/Canon/index.js" charset="utf-8" type="module"></script>
+  <script src="/js/Canon/index.js?1" charset="utf-8" type="module"></script>
 
 @endsection
