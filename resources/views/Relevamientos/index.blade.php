@@ -5,9 +5,14 @@
 @section('contenidoVista')
 <?php
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\AuthenticationController;
 use Illuminate\Http\Request;
 setlocale(LC_TIME, 'es_ES.UTF-8');
 $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+$puede_ver = AuthenticationController::getInstancia()->usuarioTieneAlgunRol(
+  $usuario->id_usuario,
+  ['SUPERUSUARIO','ADMINISTRADOR','AUDITORIA_CALIDAD']
+);
 $CONTADORES_VISIBLES = min(6,$CONTADORES);
 ?>
 
@@ -155,7 +160,7 @@ $CONTADORES_VISIBLES = min(6,$CONTADORES);
         <span data-id-estado-relevamiento="7" hidden>Rel. Visado</span>
       </td>
       <td class="col-xs-3 acciones" style="text-align: left;">
-        @if($usuario->es_administrador || $usuario->es_superusuario)
+        @if($puede_ver)
         <button data-js-mostrar-modal-carga="Ver"     class="btn btn-success verDetalle" type="button" title="VER RELEVAMIENTO" data-id-estado-relevamiento="1,2,3,4,7" style="display: none;">
           <i class="fa fa-fw fa-search-plus"></i>
         </button>

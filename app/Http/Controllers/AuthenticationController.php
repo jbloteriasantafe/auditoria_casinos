@@ -99,6 +99,14 @@ class AuthenticationController extends Controller
     ->first());
   }
   
+  public function usuarioTieneAlgunRol($id_usuario,$roles){
+    return DB::table('rol')
+    ->whereIn('rol.descripcion',$roles)
+    ->join('usuario_tiene_rol','usuario_tiene_rol.id_rol','=','rol.id_rol')
+    ->where('usuario_tiene_rol.id_usuario','=',$id_usuario)
+    ->count() > 0;
+  }
+  
   public function usuarioTienePermiso($id_usuario,$permiso){
     $result = DB::table('permiso')
     ->where('permiso.descripcion','=',$permiso)
