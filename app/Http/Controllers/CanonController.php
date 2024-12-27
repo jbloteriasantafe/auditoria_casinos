@@ -350,11 +350,21 @@ class CanonController extends Controller
     : bcround_ndigits($determinado_bruto,2);
     
     $porcentaje_seguridad = bccomp($devengado,'0.00',2) <> 0?//@RETORNADO
-       bcdiv(bcmul('100',bcsub($determinado,$devengado,2),2),$devengado,4)
+       bcdiv(bcmul('100',bcsub($determinado,$devengado,2),2),$devengado,19)
       : '0.00';
-    //@HACK precision de porcentaje_seguridad? 1/MAX_DEVENGADO?
-    $porcentaje_seguridad = bcclamp($porcentaje_seguridad,'-99.9999','99.9999',4);
       
+    //porcentaje_seguridad es DECIMAL(41,19)
+    //da 22 digitos decimales y 19 de precision (sacando divisiones periodicas o irracionales que se truncan)
+    //esto es porque
+    //MAX porcentaje_seguridad = 100 * MAX num / MIN num = 100 * 9...9[18].99 / 0.01 = 100 * 9....9[20] -> 22
+    //MIN porcentaje_seguridad = 100 * MIN num / MAX num = 100 * 0.01 / 9...9[18].99 > 100 * 0.01 / 10**19 = 10**(-19) -> 19
+    $MAX_PORCENTAJE_SEGURIDAD = str_repeat('9',22).'.'.str_repeat('9',19);//El maximo posible es este... lo clampeo por las dudas
+    $porcentaje_seguridad = bcclamp($porcentaje_seguridad,
+      '-'.$MAX_PORCENTAJE_SEGURIDAD,
+      $MAX_PORCENTAJE_SEGURIDAD,
+      bcscale_string($MAX_PORCENTAJE_SEGURIDAD)
+    );
+    
     //PRINCIPAL
     $c_ant = DB::table('canon')
     ->where('año_mes','<',$año_mes)
@@ -1330,10 +1340,9 @@ class CanonController extends Controller
     ->orderBy('cas.nombre','asc')
     ->paginate($request->page_size ?? 10);
     
-       //Necesito transformar la data paginada pero si llamo transform() elimina toda la data de paginado
+    //Necesito transformar la data paginada pero si llamo transform() elimina toda la data de paginado
     $ret2 = $ret->toArray();
     
-    //@HACK @SLOW: usar algun tipo de cache calculado hasta
     $ret2['data'] = $ret->reverse()->transform(function(&$c){
       if($c->deleted_at !== null) return $c;
       $mora = DB::table('canon_pago')
