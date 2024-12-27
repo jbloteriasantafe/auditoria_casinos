@@ -1291,7 +1291,7 @@ class RelevamientoController extends Controller
     static $u = null;
     $u = $u ?? UsuarioController::getInstancia()->quienSoy()['usuario'];
     static $sacar = null;
-    $sacar = $sacar ?? ($u->tienePermiso('relevamiento_validar')? 
+    $sacar = $sacar ?? (($u->tienePermiso('relevamiento_validar') || $u->tieneRol('AUDITORIA_CALIDAD'))? 
       []
     : ['producido_importado','producido_calculado_relevado','diferencia']);
     

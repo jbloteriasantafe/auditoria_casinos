@@ -79,7 +79,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     };
     
     data.detalles.forEach(function(d,didx){
-      const fila = $M('[ data-js-molde-tabla-relevamiento]').clone().removeAttr('data-js-molde-tabla-relevamiento')
+      const fila = $M('[data-js-molde-tabla-relevamiento]').clone().removeAttr('data-js-molde-tabla-relevamiento')
       .attr('data-id_detalle_relevamiento',d.detalle.id_detalle_relevamiento);
       
       fila.find('[data-js-detalle-asignar-name]').each(function(idx,obj){
