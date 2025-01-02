@@ -152,8 +152,16 @@ class Usuario extends Model
       return AuthenticationController::getInstancia()->usuarioTienePermiso($this->id_usuario,$permiso);
     }
     
+    public function tieneAlgunPermiso($permisos){
+      return AuthenticationController::getInstancia()->usuarioTieneAlgunPermiso($this->id_usuario,$permisos);
+    }
+    
     public function tieneRol($rol){
       return AuthenticationController::getInstancia()->usuarioTieneRol($this->id_usuario,$rol);
+    }
+    
+    public function tieneAlgunRol($roles){
+      return AuthenticationController::getInstancia()->usuarioTieneAlgunRol($this->id_usuario,$roles);
     }
 
     //notificaciones
