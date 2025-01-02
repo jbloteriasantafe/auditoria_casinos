@@ -59,7 +59,7 @@ Route::post('enviarTicket',function(Request $request){
   if ($code != 201) return response()->json($result,422);
   $ticket_id = (int) $result;
   return $ticket_id;
-});
+})->middleware(['tiene_permiso:usar_tickets']);
 
 Route::group(['prefix' => 'configCuenta'], function () {
   Route::get('/','UsuarioController@configUsuario');
