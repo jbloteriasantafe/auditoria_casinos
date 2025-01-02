@@ -939,7 +939,7 @@ Route::group(['prefix' => 'autoexclusion','middleware' => 'tiene_permiso:ver_sec
   Route::get('generarSolicitudAutoexclusion/{id}','Autoexclusion\AutoexclusionController@generarSolicitudAutoexclusion');
   Route::get('generarSolicitudFinalizacionAutoexclusion/{id}','Autoexclusion\AutoexclusionController@generarSolicitudFinalizacionAutoexclusion');
   Route::get('generarConstanciaReingreso/{id}','Autoexclusion\AutoexclusionController@generarConstanciaReingreso');
-  Route::get('BDCSV','Autoexclusion\AutoexclusionController@BDCSV');
+  Route::get('BDCSV','Autoexclusion\AutoexclusionController@BDCSV')->middleware('tiene_permiso:descargar_aes');
   Route::get('{dni?}','Autoexclusion\AutoexclusionController@index');
   Route::post('destruirPapel','Autoexclusion\AutoexclusionController@destruirPapel');
 });

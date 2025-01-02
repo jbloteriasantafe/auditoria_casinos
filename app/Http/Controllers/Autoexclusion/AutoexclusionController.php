@@ -708,9 +708,6 @@ class AutoexclusionController extends Controller
   }
 
   public function BDCSV(){
-    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    if(!$user->es_superusuario && !$user->es_auditor) return 'NO PUEDE ACCEDER A ESA FUNCIÓN';
-
     $filename = 'ae_bd_'.date('Ymdhis').'.csv';
 
     if(!$fhandle = fopen($filename,'w')){

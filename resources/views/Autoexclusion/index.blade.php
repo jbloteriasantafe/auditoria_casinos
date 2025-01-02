@@ -106,7 +106,7 @@ input[required], select[required]{
         </div>
       </a>
     </div>
-    @if($usuario->es_superusuario || $usuario->es_auditor)
+    @if($usuario->tienePermiso('descargar_aes'))
     <div class="col-xl-12 col-md-4">
       <a href="" id="btn-descargar-ae" style="text-decoration: none;">
         <div class="panel panel-default panelBotonNuevo">
