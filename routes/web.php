@@ -927,7 +927,7 @@ AUTOEXCLUSIÓN
 *************/
 Route::group(['prefix' => 'autoexclusion','middleware' => 'tiene_permiso:ver_seccion_ae_alta'], function () {
   Route::get('/','Autoexclusion\AutoexclusionController@index');
-  Route::delete('eliminarAE/{id_autoexcluido}','Autoexclusion\AutoexclusionController@eliminarAE');
+  Route::delete('eliminarAE/{id_autoexcluido}','Autoexclusion\AutoexclusionController@eliminarAE')->middleware('tiene_permiso:borrar_ae');
   Route::post('agregarAE','Autoexclusion\AutoexclusionController@agregarAE');
   Route::post('subirArchivo','Autoexclusion\AutoexclusionController@subirArchivo');
   Route::get('cambiarEstadoAE/{id}/{id_estado}','Autoexclusion\AutoexclusionController@cambiarEstadoAE');

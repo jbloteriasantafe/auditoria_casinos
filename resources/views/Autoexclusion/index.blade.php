@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\UsuarioController;
 use\App\http\Controllers\RelevamientoAmbientalController;
 
-$permitir_borrar = $usuario->es_superusuario;
 $permitir_manejar_papel = false;//Deshabilitado por ahora $usuario->es_superusuario || $usuario->es_administrador;
 ?>
 
@@ -300,7 +299,7 @@ input[required], select[required]{
       <button id="btnGenerarSolicitudFinalizacion" class="btn btn-info imprimir" type="button" value="" title="GENERAR SOLICITUD DE FINALIZACION" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw fa-print"></i>
       </button>
-      @if($permitir_borrar)
+      @if($usuario->tienePermiso('borrar_ae'))
       <button id="btnEliminar" class="btn btn-info info" type="button" value="" title="ELIMINAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw fa-trash"></i>
       </button>
