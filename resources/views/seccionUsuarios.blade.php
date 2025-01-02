@@ -34,7 +34,7 @@
                 <div class="col-md-3">
                   <h5>Casino</h5>
                   <select id="buscadorCasino" class="form-control">
-                    @if($usuario->es_superusuario)
+                    @if(count($casinos) > 1)
                     <option value="">- Todos los casinos -</option>
                     @endif
                     @foreach($casinos as $c)
@@ -143,7 +143,7 @@
                 <div class="col-md-12" id="contenedorRoles">
                   <h5>Roles</h5>
                   @foreach($roles as $rol)
-                  @if($rol != 'SUPERUSUARIO' || ($rol == 'SUPERUSUARIO' && $usuario->es_superusuario))
+                  @if($rol != 'SUPERUSUARIO' || $usuario->es_superusuario)
                   <input style="margin-left:40px;" id="rol{{$rol->id_rol}}" type="checkbox" name="" value="{{$rol->id_rol}}"> {{$rol->descripcion}}
                   @endif
                   @endforeach
