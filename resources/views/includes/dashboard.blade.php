@@ -673,7 +673,7 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
         </div>
         <!-- HASTA ACA -->
 
-        @if($usuario['usuario']->es_superusuario || $usuario['usuario']->es_auditor)
+        @if($usuario['usuario']->tienePermiso('usar_tickets'))
         <div id="modalTicket" class="modal fade in" tabindex="-1" role="dialog" aria-hidden="true">
           <div class="modal-dialog" role="document">
             <div class="modal-content">
