@@ -1,6 +1,3 @@
- <?php
-use App\Http\Controllers\UsuarioController;
-?>
 @extends('includes.dashboard')
 
 @section('headerLogo')
@@ -21,7 +18,7 @@ use App\Http\Controllers\UsuarioController;
 <div class="col-xl-3">
   <div class="row">
     <div class="col-md-12">
-      @if(UsuarioController::getInstancia()->quienSoy()['usuario']->es_superusuario)
+      @if($puede_cargar_casinos)
       <a href="" id="btn-nuevo" dusk="btn-nuevo" style="text-decoration: none;">
         <div class="panel panel-default panelBotonNuevo">
           <center><img class="imgNuevo" src="/img/logos/casinos_white.png"><center>
@@ -276,7 +273,7 @@ use App\Http\Controllers\UsuarioController;
               <input type="text" class="form-control" id="nombreModif" name="nombre" placeholder="Nombre del casino" value="">
             </div>
             <div class="col-xs-3">
-              @if(UsuarioController::getInstancia()->quienSoy()['usuario']->es_superusuario)
+              @if($puede_cargar_casinos)
               <h5>CÓDIGO *</h5>
               <input type="text" class="form-control" id="codigoModif" name="codigo" placeholder="Código del casino" value="">
               @else
@@ -284,7 +281,7 @@ use App\Http\Controllers\UsuarioController;
               @endif
             </div>
             <div class="col-xs-3">
-              @if(UsuarioController::getInstancia()->quienSoy()['usuario']->es_superusuario)
+              @if($puede_cargar_casinos)
               <h5>% SORTEO MESAS *</h5>
               <input type="text" class="form-control" id="porcentajeModif" name="sorteo" placeholder="Porcentaje del casino" value=""/>
               <span class="help-block" style="color: #0D47A1 !important;margin-top:5px !important; font-size:12px !important;padding-left:5px !important">
@@ -294,7 +291,7 @@ use App\Http\Controllers\UsuarioController;
               @endif
             </div>
             <div class="col-xs-3">
-              @if(UsuarioController::getInstancia()->quienSoy()['usuario']->es_superusuario)
+              @if($puede_cargar_casinos)
               <h5>FECHA INICIO *</h5>
               <div class="form-group">
                 <div class='input-group date' id='dtpFechaIni' data-link-field="fecha_inicio" data-date-format="MM yyyy" data-link-format="yyyy-mm-dd" >
