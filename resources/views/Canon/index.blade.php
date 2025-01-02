@@ -142,12 +142,10 @@
         <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Cerrado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Pagado" a "Cerrado"?' data-estado-visible="PAGADO" title="CERRAR CANON">
           <i class="fa fa-fw fa-lock"></i>
         </button>
-        @endif
-        @if($es_superusuario)
-        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstadoSuperusuario?estado=Generado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Pagado" a "Generado"?' data-estado-visible="PAGADO" title="DESCONFIRMAR PAGO">
+        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Generado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Pagado" a "Generado"?' data-estado-visible="PAGADO" title="DESCONFIRMAR PAGO">
           <i class="fa fa-backward"></i>
         </button>
-        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstadoSuperusuario?estado=Pagado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Cerrado" a "Pagado"?' data-estado-visible="CERRADO" title="ABRIR CANON">
+        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Pagado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Cerrado" a "Pagado"?' data-estado-visible="CERRADO" title="ABRIR CANON">
           <i class="fa fa-backward"></i>
         </button>
         @endif

@@ -1558,23 +1558,19 @@ class CanonController extends Controller
     return null;
   }
   
-  public function cambiarEstadoSuperusuario(Request $request){//Se valida en el ruteo
-    return $this->cambiarEstado($request,false);
-  }
-  
-  public function cambiarEstado(Request $request,$validar_estados = true){
+  public function cambiarEstado(Request $request){
     Validator::make($request->all(),[
       'id_canon' => ['required','integer','exists:canon,id_canon,deleted_at,NULL'],
       'estado' => ['required','string','in:Generado,Pagado,Cerrado'],
     ], self::$errores,[
       'in.estado' => 'El valor de estado no es correcto',
-    ])->after(function($validator) use ($validar_estados){
+    ])->after(function($validator){
       if($validator->errors()->any()) return;
       $id_canon = $validator->getData()['id_canon'];
       $estado_db = DB::table('canon')->select('estado')->where('id_canon',$id_canon)->first()->estado;
       $estado = $validator->getData()['estado'];
-      $validos = ['Generado' => 'Pagado','Pagado' => 'Cerrado'];
-      if($validar_estados && (!array_key_exists($estado_db,$validos) || $validos[$estado_db] != $estado)){
+      $validos = ['Generado' => ['Pagado'],'Pagado' => ['Cerrado','Generado'],'Cerrado' => ['Pagado']];
+      if(!in_array($estado,$validos[$estado_db] ?? [])){
         return $validator->errors()->add('estado','Transición de estado incorrecta.');
       }
     })->validate();

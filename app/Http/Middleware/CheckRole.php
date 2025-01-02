@@ -37,7 +37,7 @@ class CheckRole
     private function errorOut($request){
       $url_to_redirect = 'inicio';
       if($request->ajax()){
-        return response()->json(['mensaje' => 'No tiene los roles encesarios para realizar dicha acción.','url' => $url_to_redirect],
+        return response()->json(['mensaje' => 'No tiene los roles necesarios para realizar dicha acción.','url' => $url_to_redirect],
                                 351,[['Content-Type','application/json']]);
       }
       return redirect($url_to_redirect);
