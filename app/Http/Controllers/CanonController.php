@@ -1934,12 +1934,13 @@ class CanonController extends Controller
       }
       
       $valor_Paños_restante = $dcas['Total'];
-      foreach($dcas as $concepto => $vr){
-        if($concepto != 'Paños' && $concepto != 'Total' && $concepto != 'Total Físico' && $vr !== null){
-          $valor_Paños_restante = bcsub($valor_Paños_restante,$vr,2);
-        }
-      }
+      $valor_Paños_restante = bcsub($valor_Paños_restante,$dcas['MTM'] ?? '0',2);
+      $valor_Paños_restante = bcsub($valor_Paños_restante,$dcas['JOL'] ?? '0',2);
+      $valor_Paños_restante = bcsub($valor_Paños_restante,$dcas['Bingo'] ?? '0',2);
       $dcas['Paños'] = $valor_Paños_restante;
+      $dcas['Total Físico'] = $valor_Paños_restante;
+      $dcas['Total Físico'] = bcadd($dcas['Total Físico'],$dcas['MTM'] ?? '0',2);
+      $dcas['Total Físico'] = bcadd($dcas['Total Físico'],$dcas['Bingo'] ?? '0',2);
       
       if($tipo_presupuesto == 'determinado'){//El ajuste se lo sumo a paños por mismas razones
         $ajuste = (($canons_casino['canon'] ?? [])[0] ?? [])['ajuste'] ?? '0';
