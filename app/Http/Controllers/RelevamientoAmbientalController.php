@@ -27,7 +27,7 @@ class RelevamientoAmbientalController extends Controller
   public function buscarTodo(){
       $uc = UsuarioController::getInstancia();
       $usuario = $uc->quienSoy()['usuario'];
-      $casinos = $usuario->casinos;
+      $casinos = $usuario->es_superusuario? Casino::all() : $usuario->casinos;
 
       $fiscalizadores = [];
       foreach($casinos as $c){
@@ -39,12 +39,22 @@ class RelevamientoAmbientalController extends Controller
       }
 
       UsuarioController::getInstancia()->agregarSeccionReciente('Relevamiento Control Ambiental' , 'relevamientosControlAmbiental');
-
+      
       return view('seccionRelevamientosAmbientalMaquinas',[ 
         'casinos' => $casinos,
         'estados' => EstadoRelevamiento::all(),
-        'fiscalizadores' => $fiscalizadores
+        'fiscalizadores' => $fiscalizadores,                
+        'puede_fiscalizar' => $usuario->tienePermiso('relevamiento_ambiental_fiscalizar'),
+        'puede_validar'    => $usuario->tienePermiso('relevamiento_ambiental_validar'),
+        'puede_eliminar'   => $usuario->tienePermiso('relevamiento_ambiental_eliminar'),
       ])->render();
+  }
+  
+  public function obtenerGeneralidades(){
+    $climas = DB::table('clima')->get();
+    $temperaturas = DB::table('temperatura')->get();
+    $eventos = DB::table('evento_control_ambiental')->get();
+    return compact('climas','temperaturas','eventos');
   }
 
   public function buscarRelevamientosAmbiental(Request $request){

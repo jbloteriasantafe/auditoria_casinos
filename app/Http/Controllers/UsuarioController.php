@@ -467,17 +467,4 @@ class UsuarioController extends Controller
 
     return false;
   }
-
-  public function obtenerOpcionesGeneralidades () {
-    $climas = DB::table('clima')->get();
-    $temperaturas = DB::table('temperatura')->get();
-    $eventos = DB::table('evento_control_ambiental')->get();
-
-    $generalidades = array(
-      'climas' => $climas,
-      'temperaturas' => $temperaturas,
-      'eventos' => $eventos
-    );
-    return $generalidades;
-  }
 }
