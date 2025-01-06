@@ -1290,10 +1290,12 @@ class RelevamientoController extends Controller
   private function sacarProducidosSegunPrivilegios($detalle){
     static $u = null;
     $u = $u ?? UsuarioController::getInstancia()->quienSoy()['usuario'];
+    
+    static $tiene_privilegios = null;
+    $tiene_privilegios = $tiene_privilegios ?? $u->tieneAlgunPermiso(['relevamiento_ver','relevamiento_validar']);
+    
     static $sacar = null;
-    $sacar = ($sacar ?? $u->tieneAlgunPermiso(['relevamiento_ver','relevamiento_validar']))? 
-      []
-    : ['producido_importado','producido_calculado_relevado','diferencia'];
+    $sacar = $sacar ?? ($tiene_privilegios? [] : ['producido_importado','producido_calculado_relevado','diferencia']);
     
     $d;
     if(is_array($detalle)){
