@@ -104,6 +104,25 @@
         @endforeach
       </select>
     </div>
+    <div class="col-md-4">
+      <h5>PERÍODO</h5>
+      <div style="display: flex;">
+        @component('Components/inputFecha',[
+          'attrs' => 'name="año_mes[0]"',
+          'attrs_dtp' => 'data-date-format="yyyy-mm" data-start-view="year" data-min-view="decade"',
+          'form_group_attrs' => 'style="padding: 0 !important;flex: 1;"',
+          'placeholder' => 'DESDE'
+        ])
+        @endcomponent
+        @component('Components/inputFecha',[
+          'attrs' => 'name="año_mes[1]"',
+          'attrs_dtp' => 'data-date-format="yyyy-mm" data-start-view="year" data-min-view="decade"',
+          'form_group_attrs' => 'style="padding: 0 !important;flex: 1;"',
+          'placeholder' => 'HASTA'
+        ])
+        @endcomponent
+      </div>
+    </div>
     @if($es_superusuario)
     <div class="col-md-4">
       <h5>ELIMINADOS</h5>

@@ -1307,6 +1307,15 @@ class CanonController extends Controller
       $reglas[] = ['c.id_casino','=',$request->id_casino];
     }
     
+    $desde = '1970-01-01';
+    $hasta = date('Y-m-d');
+    if(isset($request->año_mes)){
+      $desde = isset($request->año_mes[0])? $request->año_mes[0].'-01' : $desde;
+      $hasta = isset($request->año_mes[1])? $request->año_mes[1].'-01' : $hasta;
+    }
+    $reglas[] = ['año_mes','>=',$desde];
+    $reglas[] = ['año_mes','<=',$hasta];
+    
     $sort_by = [
       'columna' => 'año_mes',
       'orden' => 'desc'
