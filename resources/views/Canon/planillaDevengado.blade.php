@@ -38,6 +38,8 @@ $columnas = count($datos);
   @elseif($tipo_presupuesto == 'determinado')
   <p style="text-align: center;"><b>VALORES DETERMINADOS</b></p>
   @endif
+  @foreach($tablas as $t)
+  <h5>{{ucwords($t)}}</h5>
   <table style="width: 100%;">
     <tr>
       <th class="tablaInicio" style="text-align: center;" colspan="{{intval(ceil(($columnas+1)/2.0))}}">Mes</th>
@@ -53,15 +55,17 @@ $columnas = count($datos);
     <tr>
       <td class="tablaCampos" style="text-align: center;">{{$concepto}}</td>
       @foreach($datos as $casino => $datos_concepto)
-      <td class="tablaCampos" style="text-align: center;">{{$datos_concepto[$concepto] ?? ''}}</td>
+      <td class="tablaCampos" style="text-align: center;">{{$datos_concepto[$concepto][$t] ?? ''}}</td>
       @endforeach
     </tr>
     @endforeach
   </table>
   <br>
-  @if($tipo_presupuesto == 'devengado')
+  @if($tipo_presupuesto == 'devengado' && $t == '')
   <p style="text-align: left;font-style: italic;font-size: 0.70em;">La estimación elevada esta sujeta a ajustes que pudiesen corresponder al momento de producirse el ingreso real del Canon correspondiente al numeral 5.1 de los CP 9199, CP 9200, CP 9201, la Ley 14235 y el Dcto 562/24.</p>
+  <br>
   @endif
+  @endforeach
 </body>
 
 </html>

@@ -1897,12 +1897,18 @@ class CanonController extends Controller
     $mes = $año_mes[1].'/'.substr($año_mes[0],2);
     
     $conceptos = [
-      'Paños' => [['canon_fijo_mesas',null],['canon_fijo_mesas_adicionales',null]],
-      'MTM' => [['canon_variable','Maquinas']],
-      'Bingo' => [['canon_variable','Bingo']],
-      'Total Físico' => [['canon_variable','Maquinas'],['canon_variable','Bingo'],['canon_fijo_mesas',null],['canon_fijo_mesas_adicionales',null]],
-      'JOL' => [['canon_variable','JOL']],
-      'Total' => [['canon',null]]
+      'Paños',
+      'MTM',
+      'Bingo',
+      'Total Físico',
+      'JOL',
+      'Total',
+    ];
+    
+    $subcanons = [
+      'MTM' => ['canon_variable','Maquinas'],
+      'Bingo' => ['canon_variable','Bingo'],
+      'JOL' => ['canon_variable','JOL'],
     ];
     
     //Agrupo segun los conceptos
@@ -1910,100 +1916,86 @@ class CanonController extends Controller
     foreach($canons as $casino => $canons_casino){
       $dcas = [];
       $max_scale = 2;//Sumo usando la maxima escala posible...
-      foreach($conceptos as $concepto => $matcheables){     
-        $acumulado = null;
-        foreach($matcheables as $matcheable){
-          foreach($canons_casino as $tipo => $canons_casino_tipo){ foreach($canons_casino_tipo as $canon_casino_subtipo){
-              $matchea = ($matcheable[0] === null || $matcheable[0] == $tipo) 
-              && (
-                ($matcheable[1] === null) || ($matcheable[1] === ($canon_casino_subtipo['tipo'] ?? null))
-              );
-              if(!$matchea) continue;
-              
-              $total;
-              if(isset($canon_casino_subtipo[$tipo_presupuesto])){
-                $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo[$tipo_presupuesto]));
-                $total = $canon_casino_subtipo[$tipo_presupuesto];
-              }
-              else{
-                $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo[$tipo_presupuesto.'_total']));
-                $total = bcsub($canon_casino_subtipo[$tipo_presupuesto.'_total'],$canon_casino_subtipo[$tipo_presupuesto.'_deduccion'] ?? '0',$max_scale);
-              }
-              
-              $acumulado = bcadd($acumulado ?? '0',$total,$max_scale);
-          }}
-        }
-        $dcas[$concepto] = $acumulado;
+      foreach($subcanons as $concepto => $matcheable){
+        $acumulado_bruto = null;
+        $acumulado_deduccion = null;
+        
+        foreach($canons_casino as $tipo => $canons_casino_tipo){ foreach($canons_casino_tipo as $canon_casino_subtipo){
+            $matchea = $matcheable[0] == $tipo && $matcheable[1] == ($canon_casino_subtipo['tipo'] ?? null);
+            if(!$matchea) continue;
+            
+            $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo[$tipo_presupuesto.'_total']));
+            $acumulado_bruto = bcadd($canon_casino_subtipo[$tipo_presupuesto.'_total'] ?? '0',$acumulado_bruto,$max_scale);
+            $acumulado_deduccion = bcadd($canon_casino_subtipo[$tipo_presupuesto.'_deduccion'] ?? '0',$acumulado_deduccion,$max_scale);
+        }}
+        
+        $dcas[$concepto] = [
+          '' => ($acumulado_bruto !== null || $acumulado_deduccion !== null)?
+            bcsub($acumulado_bruto,$acumulado_deduccion,$max_scale)
+          : null,
+          'deduccion' => $acumulado_deduccion
+        ];
       }
       
-      //Calculo Paños a partir de los demas redondeados
-      //Esto es asi porque Paños es el mas "aproximado", osea que que este unos centavos arriba o abajo no cambia mucho
+      $canon = ($canons_casino['canon'] ?? [])[0] ?? [];
+      
+      //Agrego Total
+      $dcas['Total'] = [
+        '' => $canon[$tipo_presupuesto] ?? '0',
+        'deduccion' => $canon[$tipo_presupuesto.'_deduccion'] ?? '0',
+      ];
+      
       foreach($dcas as $concepto => $v){
-        $dcas[$concepto] = $v === null? null : bcround_ndigits($v,2);
+        foreach($v as $aux => $val){
+          $dcas[$concepto][$aux] = $val === null? null : bcround_ndigits($val,2);
+        }
       }
       
-      $valor_Paños_restante = $dcas['Total'];
-      $valor_Paños_restante = bcsub($valor_Paños_restante,$dcas['MTM'] ?? '0',2);
-      $valor_Paños_restante = bcsub($valor_Paños_restante,$dcas['JOL'] ?? '0',2);
-      $valor_Paños_restante = bcsub($valor_Paños_restante,$dcas['Bingo'] ?? '0',2);
-      $dcas['Paños'] = $valor_Paños_restante;
-      $dcas['Total Físico'] = $valor_Paños_restante;
-      $dcas['Total Físico'] = bcadd($dcas['Total Físico'],$dcas['MTM'] ?? '0',2);
-      $dcas['Total Físico'] = bcadd($dcas['Total Físico'],$dcas['Bingo'] ?? '0',2);
+      //Calculo Paños a partir de los demas redondeados. Total Fisico de paso tambien
+      //Esto es asi porque Paños es el mas "aproximado", osea que que este unos centavos arriba o abajo no cambia mucho
+      $paños = $dcas['Total'];//clone
+      $total_fisico = $dcas['Total'];//clone
+      foreach(['','deduccion'] as $t){
+        $paños[$t] = bcsub($paños[$t],($dcas['MTM'] ?? [])[$t] ?? '0',2);
+        $paños[$t] = bcsub($paños[$t],($dcas['JOL'] ?? [])[$t] ?? '0',2);
+        $paños[$t] = bcsub($paños[$t],($dcas['Bingo'] ?? [])[$t] ?? '0',2);
+        
+        $total_fisico[$t] = bcsub($total_fisico[$t],($dcas['JOL'] ?? [])[$t] ?? '0',2);
+      }
+      $dcas['Paños'] = $paños;
+      $dcas['Total Físico'] = $total_fisico;
       
       if($tipo_presupuesto == 'determinado'){//El ajuste se lo sumo a paños por mismas razones
-        $ajuste = (($canons_casino['canon'] ?? [])[0] ?? [])['ajuste'] ?? '0';
-        $dcas['Paños'] = bcadd($dcas['Paños'],$ajuste,$max_scale);
-        $dcas['Total Físico'] = bcadd($dcas['Total Físico'],$ajuste,$max_scale);
-        $dcas['Total'] = bcadd($dcas['Total'],$ajuste,$max_scale);
+        $ajuste = $canon['ajuste'] ?? '0';
+        $dcas['Paños'][''] = bcadd($dcas['Paños'][''],$ajuste,$max_scale);
+        $dcas['Total Físico'][''] = bcadd($dcas['Total Físico'][''],$ajuste,$max_scale);
+        $dcas['Total'][''] = bcadd($dcas['Total'][''],$ajuste,$max_scale);
+        
+        foreach($dcas as $concepto => $vals){
+          $dcas[$concepto]['deduccion'] = null;
+        }
       }
       
-      /*{//Agrego saldo y cargos adicionales si son != de 0
-        {//Muevo total al final
-          $conceptos['Saldo Anterior'] = null;
-          $conceptos['Cargos Adicionales'] = null;
-          $ctotal = $conceptos['Total'];
-          unset($conceptos['Total']);
-          $conceptos['Total'] = $ctotal;
+      {//Reordeno
+        $aux = [];
+        foreach($conceptos as $concepto){
+          $aux[$concepto] = $dcas[$concepto] ?? null;
         }
-        
-        $total_saldo_anterior = '0';
-        $total_cargos_adicionales = '0';
-                
-        foreach($canons as $casino => $canons_casino){
-          foreach(($canons_casino['canon'] ?? []) as $c){
-            $saldo_anterior_cerrado = $c['saldo_anterior_cerrado'] ?? '0';
-            $cargos_adicionales = $c['cargos_adicionales'] ?? '0';
-            $total_saldo_anterior = bcadd($total_saldo_anterior,$saldo_anterior_cerrado,2);
-            $total_cargos_adicionales = bcadd($total_cargos_adicionales,$cargos_adicionales,2);
-            $dcas['Saldo Anterior'] = $saldo_anterior_cerrado;
-            $dcas['Cargos Adicionales'] = $cargos_adicionales;
-          }
-        }
-        
-        $dcas['Total'] = bcsub($dcas['Total'],$total_saldo_anterior,2);
-        $dcas['Total'] = bcadd($dcas['Total'],$total_cargos_adicionales,2);
-        
-        $sacar_saldo_anterior = bccomp($total_saldo_anterior,'0',2) == 0;
-        $sacar_cargos_adicionales = bccomp($total_cargos_adicionales,'0',2) == 0;
-        
-        if($sacar_saldo_anterior){
-          unset($conceptos['Saldo Anterior']);
-        }
-        if($sacar_cargos_adicionales){
-          unset($conceptos['Cargos Adicionales']);
-        }
-      }*/
-      
+        $dcas = $aux;
+      }
+    
       $datos[$casino] = $dcas;
     }
-    
+        
     {//Agrego una columna Total
       $total = [];
       foreach($datos as $casino => $valores_casino){
-        foreach($conceptos as $concepto => $_){
-          $total[$concepto] = $total[$concepto] ?? '0.00';
-          $total[$concepto] = bcadd($valores_casino[$concepto],$total[$concepto],2);
+        foreach($conceptos as $concepto){
+          $total[$concepto] = $total[$concepto] ?? [];
+          foreach(['','deduccion'] as $t){            
+            $total[$concepto][$t] = $total[$concepto][$t] ?? '0.00';
+            $total[$concepto][$t] = bcadd($valores_casino[$concepto][$t],$total[$concepto][$t],2);
+          }
         }
       }
       $datos['Total'] = $total;
@@ -2011,12 +2003,19 @@ class CanonController extends Controller
     
     foreach($datos as $casino => $valores_casino){//Formateo a español
       foreach($valores_casino as $concepto => $v){
-        $datos[$casino][$concepto] = $v === null? null : formatear_decimal($v);
+        $datos[$casino][$concepto]['bruto'] = bcadd($v[''],$v['deduccion'],2);
+        foreach($v as $aux => $val){
+          $datos[$casino][$concepto][$aux] = $val === null? null : formatear_decimal($val);
+        }
       }
     }
     
-    $conceptos = array_keys($conceptos);
-    $view = View::make('Canon.planillaDevengado', compact('tipo_presupuesto','conceptos','mes','datos'));
+    $tablas = ['','deduccion','bruto'];
+    if($tipo_presupuesto == 'determinado'){
+      $tablas = [''];
+    }
+        
+    $view = View::make('Canon.planillaDevengado', compact('tipo_presupuesto','tablas','conceptos','mes','datos'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
