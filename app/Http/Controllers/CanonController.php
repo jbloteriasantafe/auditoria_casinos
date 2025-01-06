@@ -2002,8 +2002,8 @@ class CanonController extends Controller
     }
     
     foreach($datos as $casino => $valores_casino){//Formateo a español
-      foreach($valores_casino as $concepto => $v){
-        $datos[$casino][$concepto]['bruto'] = bcadd($v[''],$v['deduccion'],2);
+      foreach($valores_casino as $concepto => &$v){
+        $v['bruto'] = bcadd($v[''],$v['deduccion'],2);
         foreach($v as $aux => $val){
           $datos[$casino][$concepto][$aux] = $val === null? null : formatear_decimal($val);
         }
