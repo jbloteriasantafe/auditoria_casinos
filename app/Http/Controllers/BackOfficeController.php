@@ -281,7 +281,7 @@ class BackOfficeController extends Controller {
       'totales_mensuales_por_moneda' => $this->vista_totales(true,true),
       'totales_diarios'   => $this->vista_totales(false,false),
       'totales_mensuales' => $this->vista_totales(true,false),
-      'canon_porcentajes' => [
+      'canon' => [
         'cols' => [
           ['DATE_FORMAT(c.año_mes,"%Y-%m")','periodo','string','input_date_month',[null,null]],
           ['cas.nombre','casino','string','select',[0],$this->selectCasinoVals('canon')],
