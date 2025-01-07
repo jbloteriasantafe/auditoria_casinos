@@ -7,6 +7,29 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Validator;
 
+//Mismo que en CanonController
+function formatear_decimal(string $val) : string {//number_format castea a float... lo hacemos a pata...
+  $negativo = ($val[0] ?? false) == '-'? '-' : '';
+  $val = strlen($negativo)? substr($val,1) : $val;
+  
+  $parts   = explode('.',$val);
+  $entero  = $parts[0] ?? '';
+  $decimal = $parts[1] ?? null;
+  $entero_separado = [];
+  for($i=0;$i<strlen($entero);$i++){
+    $bucket = intdiv($i,3);
+    if($i%3 == 0) $entero_separado[$bucket] = '';
+    $entero_separado[$bucket] = $entero[strlen($entero)-1-$i] . $entero_separado[$bucket];
+  }
+
+  $newval = implode('.',array_reverse($entero_separado));
+  $decimal = is_null($decimal)? null : rtrim($decimal,'0');
+  if(!is_null($decimal) && strlen($decimal) > 0){
+    $newval .= ','.$decimal;
+  }
+  return $negativo.$newval;
+}
+
 class BackOfficeController extends Controller {
   //Por algun motivo, las vistas pueden ser exponencialmente mas lentas que una
   //query directa, por eso no queryiero una vista sino una raw query
@@ -258,6 +281,39 @@ class BackOfficeController extends Controller {
       'totales_mensuales_por_moneda' => $this->vista_totales(true,true),
       'totales_diarios'   => $this->vista_totales(false,false),
       'totales_mensuales' => $this->vista_totales(true,false),
+      'canon_porcentajes' => [
+        'cols' => [
+          ['DATE_FORMAT(c.año_mes,"%Y-%m")','periodo','string','input_date_month',[null,null]],
+          ['cas.nombre','casino','string','select',[0],$this->selectCasinoVals('canon')],
+          ['c.devengado','devengado','numeric'],
+          ['c.determinado','determinado','numeric'],
+          ['(
+              c.cargos_adicionales
+              +(
+                SELECT SUM(mora_provincial)+SUM(mora_nacional)
+                FROM canon_pago as cp
+                WHERE cp.id_canon = c.id_canon
+                GROUP BY "constant"
+                LIMIT 1
+              )
+            )',
+            'intereses',
+            'numeric'
+          ],
+          ['c.pago','pago','numeric'],
+          ['c.saldo_posterior','saldo_posterior','numeric'],
+        ],
+        'indirect_where' => [
+          'casino' => 'c.id_casino',
+          'periodo' => 'c.año_mes',
+        ],
+        'query' => DB::table('canon as c')
+        ->join('casino as cas','cas.id_casino','=','c.id_casino')
+        ->whereNull('c.deleted_at'),
+        'default_order_by' => [
+          'c.año_mes' => 'desc'
+        ],
+      ],
     ];
   }
   
@@ -654,9 +710,9 @@ class BackOfficeController extends Controller {
       case 'integer':
         return intval($val);
       case 'numeric':
-        return number_format($val,2,',','.');
+        return formatear_decimal($val);
       case 'numeric3d':
-        return number_format($val,3,',','.');
+        return formatear_decimal($val);
     }
     return $val;
   }

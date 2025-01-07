@@ -1329,7 +1329,21 @@ class CanonController extends Controller
     }
     
     $ret = DB::table('canon as c')
-    ->select('c.*','cas.nombre as casino')
+    ->select('c.id_canon','c.deleted_at',
+      DB::raw('DATE_FORMAT(c.año_mes,"%Y-%m") as año_mes'),
+      'cas.nombre as casino','c.estado','c.devengado','c.determinado',
+      DB::raw('(
+        c.cargos_adicionales
+        +(
+          SELECT SUM(mora_provincial)+SUM(mora_nacional)
+          FROM canon_pago as cp
+          WHERE cp.id_canon = c.id_canon
+          GROUP BY "constant"
+          LIMIT 1
+        )
+      ) as intereses'),
+      'c.pago','c.saldo_posterior'
+    )
     ->join('casino as cas','cas.id_casino','=','c.id_casino')
     ->whereRaw(($u->es_superusuario && ($request->eliminados ?? false))?
       'NOT EXISTS (
@@ -1349,24 +1363,7 @@ class CanonController extends Controller
     ->orderBy('cas.nombre','asc')
     ->paginate($request->page_size ?? 10);
     
-    //Necesito transformar la data paginada pero si llamo transform() elimina toda la data de paginado
-    $ret2 = $ret->toArray();
-    
-    $ret2['data'] = $ret->reverse()->transform(function(&$c){
-      if($c->deleted_at !== null) return $c;
-      $mora = DB::table('canon_pago')
-      ->selectRaw('(SUM(mora_provincial)+SUM(mora_nacional)) as mora')
-      ->where('id_canon',$c->id_canon)
-      ->groupBy(DB::raw('"constant"'))
-      ->first();
-      
-      $c->intereses = $mora === null? '0' : $mora->mora;
-      $c->intereses = bcadd($c->cargos_adicionales,$c->intereses,2);
-      $c->año_mes = substr($c->año_mes,0,strlen('YYYY-MM'));
-      return $c;
-    })->reverse();
-    
-    return $ret2;
+    return $ret;
   }
     
   private $cotizacion_DB = null;

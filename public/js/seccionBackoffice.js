@@ -2,6 +2,26 @@ import {AUX} from "/js/Components/AUX.js";
 import "/js/Components/FiltroTabla.js";
 import "/js/Components/inputFecha.js";
 
+function formatter(n){//Mismo que en Canon/index.js
+  const negativo = n?.[0] == '-'? '-' : '';
+  n = negativo.length? n.substr(1) : n;
+  
+  const partes = n.split('.');
+  let entero  = partes?.[0] ?? '';
+  
+  entero = entero.split('').reverse().join('')//Doy vuelta el numero... 
+  .match(/(.{1,3}|^$)/g).map(function(s){return s.split('').reverse().join('');})//junto los miles y los pongo en orden
+  .reverse().join('.');//Lo pongo en orden correcto y lo uno
+  
+  //Saco los ceros de sobra, y la parte decimal si es solo .000..
+  let decimal = (partes?.[1] ?? '').replaceAll(/0+$/g,'')
+  if(decimal.length){
+    decimal = ','+decimal;
+  }
+  
+  return negativo+entero+decimal;
+}
+
 $(function(){
   $('.tituloSeccionPantalla').text('Backoffice');
   
@@ -28,9 +48,9 @@ $(function(){
         case 'integer':
           return parseInt(val).toLocaleString();
         case 'numeric':
-          return parseFloat(val).toLocaleString(undefined,{ maximumFractionDigits: 2, minimumFractionDigits: 2});
+          return formatter(val);
         case 'numeric3d':
-          return parseFloat(val).toLocaleString(undefined,{ maximumFractionDigits: 3, minimumFractionDigits: 3});
+          return formatter(val);
       }
       return val;
     }
