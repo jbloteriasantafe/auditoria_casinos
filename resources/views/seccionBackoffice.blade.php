@@ -155,5 +155,5 @@
 <script src="js/fileinput.min.js" type="text/javascript"></script>
 <script src="js/locales/es.js" type="text/javascript"></script>
 <script src="/themes/explorer/theme.js" type="text/javascript"></script>
-<script src="js/seccionBackoffice.js" type="module"></script>
+<script src="js/seccionBackoffice.js?1" type="module"></script>
 @endsection
