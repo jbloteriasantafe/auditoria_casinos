@@ -330,12 +330,14 @@
     box-shadow: 0rem 0rem 0.05rem 0.2rem var(--color-fondo-pestaña);
     padding: 0.75rem;
   }
-  /*.VerCargarCanon .pestaña:hover div.bloque_interno:not(:hover) * {
-    opacity: 0.925;
+  
+  .VerCargarCanon div[data-css-devengar="0"]{
+    --fondo: white;
+    --gradiente: rgb(200,200,200);
+    background-color: var(--fondo);
+    opacity: 0.8;
+    background: repeating-linear-gradient(-45deg, var(--gradiente), var(--gradiente) 2px, var(--fondo) 2px, var(--fondo) 10px);
   }
-  .VerCargarCanon .pestaña:hover div.bloque_interno:not(:hover) div.valor_intermedio {
-    opacity: 0.60;
-  }*/
   .VerCargarCanon div.valor_intermedio {
     opacity: 0.60;
   }
@@ -661,6 +663,7 @@
             return "canon_variable[$molde_str][$s]";
           };
           $alicuota = $n('alicuota');
+          $devengar = $n('devengar');
           $devengado_bruto = $n('devengado_bruto');
           $devengado_apostado_sistema = $n('devengado_apostado_sistema');
           $devengado_apostado_porcentaje_aplicable = $n('devengado_apostado_porcentaje_aplicable');
@@ -693,8 +696,14 @@
             </div>
           </div>
           <div style="width: 100%;display: flex;">
-            <div class="bloque_interno" style="flex: 1;">
-              <h4>DEVENGADO</h4>
+            <div class="bloque_interno" data-css-devengar style="flex: 1;">
+              <h4 style="display: flex;">
+                <span>DEVENGADO&nbsp;&nbsp;</span>
+                <select class="form-control" data-name="{{$devengar}}" data-js-devengar style="width: unset;height: unset;padding: 0;">
+                  <option value="1">SI</option>
+                  <option value="0">NO</option>
+                </select>
+              </h4>
               <div style="width: 100%;display: grid; 
                 grid-template-columns: 1fr 1fr 1fr 1fr 1fr; 
                 grid-template-rows: 1fr 1fr; 
@@ -788,6 +797,7 @@
           $dias_fijos  = $n('dias_fijos');
           $mesas_fijos = $n('mesas_fijos');
           $mesas_dias  = $n('mesas_dias');
+          $devengar = $n('devengar');
           $devengado_valor_dolar_cotizado = $n('devengado_valor_dolar_cotizado');
           $devengado_valor_euro_cotizado  = $n('devengado_valor_euro_cotizado');
           $devengado_valor_dolar_diario_cotizado = $n('devengado_valor_dolar_diario_cotizado');
@@ -883,8 +893,14 @@
             </div>
           </div>
           <div style="display: flex;">
-            <div class="bloque_interno" style="flex: 1;">
-              <h4>DEVENGADO</h4>
+            <div class="bloque_interno" data-css-devengar style="flex: 1;">
+              <h4 style="display: flex;">
+                <span>DEVENGADO&nbsp;&nbsp;</span>
+                <select class="form-control" data-name="{{$devengar}}" data-js-devengar style="width: unset;height: unset;padding: 0;">
+                  <option value="1">SI</option>
+                  <option value="0">NO</option>
+                </select>
+              </h4>
               <div style="display: flex;">
                 <div>
                   <h5>F. COTIZACIÓN</h5>
@@ -1014,6 +1030,7 @@
           $factor_horas_mes = $n('factor_horas_mes');
           $horas = $n('horas');
           $porcentaje = $n('porcentaje');
+          $devengar = $n('devengar');
           $devengado_valor_mes = $n('devengado_valor_mes');
           $devengado_valor_dia = $n('devengado_valor_dia');
           $devengado_valor_hora = $n('devengado_valor_hora');
@@ -1057,8 +1074,14 @@
             </div>
           </div>
           <div style="display: flex;">
-            <div class="bloque_interno" style="flex: 1;">
-              <h4>DEVENGADO</h4>
+            <div class="bloque_interno" data-css-devengar style="flex: 1;">
+              <h4 style="display: flex;">
+                <span>DEVENGADO&nbsp;&nbsp;</span>
+                <select class="form-control" data-name="{{$devengar}}" data-js-devengar style="width: unset;height: unset;padding: 0;">
+                  <option value="1">SI</option>
+                  <option value="0">NO</option>
+                </select>
+              </h4>
               <div style="display: flex;">
                 <div>
                   <h5>VALOR MES</h5>
@@ -1230,6 +1253,6 @@
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
   <script src="/js/paginacion.js" charset="utf-8"></script>
   <script src="/js/lib/jsoneditor.js"></script>
-  <script src="/js/Canon/index.js?1" charset="utf-8" type="module"></script>
+  <script src="/js/Canon/index.js?2" charset="utf-8" type="module"></script>
 
 @endsection

@@ -276,6 +276,8 @@ $(document).ready(function() {
       M.find('[data-js-tabs] [data-js-tab]').filter(function(_,t_obj){
         return $(t_obj).css('display') != 'none';
       }).eq(0).click();
+      
+      M.find('[data-js-devengar]').trigger('setearDevengar');
     };
     
     M.find('[data-js-select-historial]').change(function(e){
@@ -519,6 +521,12 @@ $(document).ready(function() {
       borrarInputsFormatear(pago.find('input[name]:not([data-js-texto-no-formatear-numero])'));
       pago.remove();
       M.find('form[data-js-recalcular]').trigger('recalcular');
+    });
+    
+    M.find('form[data-js-recalcular]').on('change setearDevengar','[data-js-devengar]',function(e){
+      $(e.currentTarget)
+      .closest('[data-css-devengar]')
+      .attr('data-css-devengar',parseInt(e.currentTarget.value));
     });
   });
     

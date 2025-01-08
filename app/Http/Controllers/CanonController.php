@@ -264,8 +264,10 @@ class CanonController extends Controller
             $ret[$tipo]['determinado_total'] = $data_request_tipo['determinado_total'] ?? '0';
           }
           
-          $devengado_deduccion = bcadd($devengado_deduccion,$ret[$tipo]['devengado_deduccion'] ?? '0',2);
-          $devengado_bruto = bcadd($devengado_bruto,$ret[$tipo]['devengado_total'] ?? '0',20);
+          if($ret[$tipo]['devengar'] ?? 1){
+            $devengado_deduccion = bcadd($devengado_deduccion,$ret[$tipo]['devengado_deduccion'] ?? '0',2);
+            $devengado_bruto = bcadd($devengado_bruto,$ret[$tipo]['devengado_total'] ?? '0',20);
+          }
           $determinado_bruto = bcadd($determinado_bruto,$ret[$tipo]['determinado_total'] ?? '0',20);
         }
         
@@ -293,8 +295,10 @@ class CanonController extends Controller
             $ret[$tipo]['determinado_total'] = $data_request_tipo['determinado_total'] ?? '0';
           }
           
-          $devengado_deduccion = bcadd($devengado_deduccion,$ret[$tipo]['devengado_deduccion'] ?? '0',2);
-          $devengado_bruto = bcadd($devengado_bruto,$ret[$tipo]['devengado_total'] ?? '0',20);
+          if($ret[$tipo]['devengar'] ?? 1){
+            $devengado_deduccion = bcadd($devengado_deduccion,$ret[$tipo]['devengado_deduccion'] ?? '0',2);
+            $devengado_bruto = bcadd($devengado_bruto,$ret[$tipo]['devengado_total'] ?? '0',20);
+          }
           $determinado_bruto = bcadd($determinado_bruto,$ret[$tipo]['determinado_total'] ?? '0',20);
         }
         
@@ -322,8 +326,10 @@ class CanonController extends Controller
             $ret[$tipo]['determinado_total'] = $data_request_tipo['determinado_total'] ?? '0';
           }
           
-          $devengado_deduccion = bcadd($devengado_deduccion,$ret[$tipo]['devengado_deduccion'] ?? '0',2);
-          $devengado_bruto = bcadd($devengado_bruto,$ret[$tipo]['devengado_total'] ?? '0',20);
+          if($ret[$tipo]['devengar'] ?? 1){
+            $devengado_deduccion = bcadd($devengado_deduccion,$ret[$tipo]['devengado_deduccion'] ?? '0',2);
+            $devengado_bruto = bcadd($devengado_bruto,$ret[$tipo]['devengado_total'] ?? '0',20);
+          }
           $determinado_bruto = bcadd($determinado_bruto,$ret[$tipo]['determinado_total'] ?? '0',20);
         }
         
@@ -528,6 +534,7 @@ class CanonController extends Controller
       return $R($s,null) ?? $D($s,null) ?? $dflt;
     };
     
+    $devengar = $R('devengar',1);
     $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema',$this->apostado($tipo,$año_mes,$id_casino)),'0',2);//@RETORNADO    
     $devengado_apostado_porcentaje_aplicable = bcadd($RD('devengado_apostado_porcentaje_aplicable','0.0000'),'0',4);//@RETORNADO
     $factor_apostado_porcentaje_aplicable = bcdiv($devengado_apostado_porcentaje_aplicable,'100',6);
@@ -562,7 +569,7 @@ class CanonController extends Controller
     $devengado_deduccion = bcadd($RD('devengado_deduccion','0.00'),'0',2);
     
     return compact('tipo',
-      'alicuota',
+      'alicuota','devengar',
       'devengado_bruto',
       'devengado_apostado_sistema','devengado_apostado_porcentaje_aplicable','devengado_base_imponible',
       'devengado_apostado_porcentaje_impuesto_ley',
@@ -591,6 +598,7 @@ class CanonController extends Controller
       return $R($s,null) ?? $D($s,null) ?? $dflt;
     };
     
+    $devengar = $R('devengar',1);
     $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;//@RETORNADO
     $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;//@RETORNADO
     $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? '0';//@RETORNADO
@@ -719,7 +727,7 @@ class CanonController extends Controller
       'dias_lunes_jueves','mesas_lunes_jueves','dias_viernes_sabados','mesas_viernes_sabados',
       'dias_domingos','mesas_domingos','dias_todos','mesas_todos','dias_fijos','mesas_fijos',
       'mesas_dias','bruto',
-      
+      'devengar',
       'devengado_fecha_cotizacion','devengado_cotizacion_dolar','devengado_cotizacion_euro',
       'devengado_valor_dolar_cotizado','devengado_valor_euro_cotizado',
       'devengado_valor_dolar_diario_cotizado','devengado_valor_euro_diario_cotizado',
@@ -756,6 +764,7 @@ class CanonController extends Controller
     $porcentaje = bcadd($RD('porcentaje','0.0000'),'0',4);//@RETORNADO
     $factor_porcentaje = bcdiv($porcentaje,'100',6);
         
+    $devengar = $R('devengar',1);
     $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;//@RETORNADO
     $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;//@RETORNADO
     $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? '0';//@RETORNADO
@@ -815,7 +824,7 @@ class CanonController extends Controller
       'dias_mes','horas_dia','factor_dias_mes','factor_horas_mes',
       'valor_dolar','valor_euro',
       'horas','porcentaje',
-      
+      'devengar',
       'devengado_fecha_cotizacion','devengado_cotizacion_dolar','devengado_cotizacion_euro',
       'devengado_valor_mes','devengado_valor_dia','devengado_valor_hora',
       'devengado_total','devengado_deduccion',
@@ -1919,7 +1928,9 @@ class CanonController extends Controller
         
         foreach($canons_casino as $tipo => $canons_casino_tipo){ foreach($canons_casino_tipo as $canon_casino_subtipo){
             $matchea = $matcheable[0] == $tipo && $matcheable[1] == ($canon_casino_subtipo['tipo'] ?? null);
+            
             if(!$matchea) continue;
+            if($tipo_presupuesto == 'devengado' && ($canon_casino_subtipo['devengar'] ?? 1) == 0) continue;
             
             $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo[$tipo_presupuesto.'_total']));
             $acumulado_bruto = bcadd($canon_casino_subtipo[$tipo_presupuesto.'_total'] ?? '0',$acumulado_bruto,$max_scale);
