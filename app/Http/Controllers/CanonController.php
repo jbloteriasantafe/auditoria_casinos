@@ -1876,19 +1876,13 @@ class CanonController extends Controller
   
   public function totalesCanon($año,$mes){//Usado en backoffice tambien
     $cs = DB::table('canon as c')
-    ->select('c.id_canon','cas.nombre as casino')->distinct()
+    ->select('c.*','cas.nombre as casino')->distinct()
     ->join('casino as cas','cas.id_casino','=','c.id_casino')
     ->whereNull('c.deleted_at')
     ->whereYear('c.año_mes',$año)
     ->whereMonth('c.año_mes',$mes)
     ->get();
-    
-    $canons = [];
-    foreach($cs as $c){
-      $datac = $this->obtener_para_salida($c->id_canon,false);
-      $canons[$c->casino] = $datac;
-    }
-    
+        
     $conceptos = [
       'Paños',
       'MTM',
@@ -1897,60 +1891,50 @@ class CanonController extends Controller
       'JOL',
       'Total',
     ];
-    
+        
     $subcanons = [
-      'MTM' => ['canon_variable','Maquinas'],
-      'Bingo' => ['canon_variable','Bingo'],
-      'JOL' => ['canon_variable','JOL'],
+      'Maquinas' => 'MTM',
+      'Bingo' => 'Bingo',
+      'JOL' => 'JOL',
     ];
     
     //Agrupo segun los conceptos
     $datos = [];
-    foreach($canons as $casino => $canons_casino){
+    foreach($cs as $canon){
       $dcas = [];
       $max_scale = 2;//Sumo usando la maxima escala posible...
-      foreach($subcanons as $concepto => $matcheable){
-        $dev_acumulado_bruto = null;
-        $dev_acumulado_deduccion = null;
-        $det_acumulado = null;
-        
-        foreach($canons_casino as $tipo => $canons_casino_tipo){ foreach($canons_casino_tipo as $canon_casino_subtipo){
-            $matchea = $matcheable[0] == $tipo && $matcheable[1] == ($canon_casino_subtipo['tipo'] ?? null);
-            
-            if(!$matchea) continue;            
-            $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo['devengado_total']));
-            $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo['determinado_total']));
-            
-            if(($canon_casino_subtipo['devengar'] ?? 1) != 0){
-              $dev_acumulado_bruto = bcadd(
-                $canon_casino_subtipo['devengado_total'] ?? '0',$dev_acumulado_bruto,$max_scale
-              );
-              $dev_acumulado_deduccion = bcadd(
-                $canon_casino_subtipo['devengado_deduccion'] ?? '0',$dev_acumulado_deduccion,$max_scale
-              ); 
-            }
-            
-            $det_acumulado = bcadd(
-              $canon_casino_subtipo['determinado_total'] ?? '0',$det_acumulado,$max_scale
-            );
-        }}
-        
+      
+      if(empty($canon)) continue;
+      
+      $acumulados = DB::table('canon_variable')
+      ->select('tipo',
+        DB::raw('SUM(IF(devengar,devengado_total,NULL)) as dev_bruto'),
+        DB::raw('SUM(IF(devengar,devengado_deduccion,NULL)) as dev_deduccion'),
+        DB::raw('SUM(determinado_total) as det')
+      )
+      ->whereIn('tipo',array_keys($subcanons))
+      ->where('id_canon',$canon->id_canon)
+      ->groupBy('tipo')
+      ->get()
+      ->keyBy('tipo');
+      
+      foreach($subcanons as $tipo => $concepto){
+        $cv = $acumulados[$tipo] ?? ((object)['dev_bruto' => null,'dev_deduccion' => null,'det' => null]);
+        $max_scale = max($max_scale,bcscale_string($cv->dev_bruto ?? '0'));
         $dcas[$concepto] = [
-          'devengado' => ($dev_acumulado_bruto !== null || $dev_acumulado_deduccion !== null)?
-            bcsub($dev_acumulado_bruto,$dev_acumulado_deduccion,$max_scale)
+          'devengado' => ($cv->dev_bruto !== null || $cv->dev_deduccion !== null)?
+            bcsub($cv->dev_bruto,$cv->dev_deduccion,$max_scale)
           : null,
-          'deduccion' => $dev_acumulado_deduccion,
-          'determinado' => $det_acumulado
+          'deduccion' => $cv->dev_deduccion,
+          'determinado' => $cv->det
         ];
       }
       
-      $canon = ($canons_casino['canon'] ?? [])[0] ?? [];
-      
       //Agrego Total
       $dcas['Total'] = [
-        'devengado'   => $canon['devengado'] ?? '0',
-        'deduccion'   => $canon['devengado_deduccion'] ?? '0',
-        'determinado' => $canon['determinado'] ?? '0',
+        'devengado'   => $canon->devengado ?? '0',
+        'deduccion'   => $canon->devengado_deduccion ?? '0',
+        'determinado' => $canon->determinado ?? '0',
       ];
       
       foreach($dcas as $concepto => $v){
@@ -1974,7 +1958,7 @@ class CanonController extends Controller
       $dcas['Total Físico'] = $total_fisico;
       
       {//DETERMINADO: El ajuste se lo sumo a paños por mismas razones
-        $ajuste = $canon['ajuste'] ?? '0';
+        $ajuste = $canon->ajuste ?? '0';
         $dcas['Paños']['determinado'] = bcadd($dcas['Paños']['determinado'],$ajuste,2);
         $dcas['Total Físico']['determinado'] = bcadd($dcas['Total Físico']['determinado'],$ajuste,2);
         $dcas['Total']['determinado'] = bcadd($dcas['Total']['determinado'],$ajuste,2);
@@ -1996,7 +1980,7 @@ class CanonController extends Controller
         $dcas = $aux;
       }
     
-      $datos[$casino] = $dcas;
+      $datos[$canon->casino] = $dcas;
     }
     
     {//Agrego una columna Total
