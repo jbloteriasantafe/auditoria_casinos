@@ -7,29 +7,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Validator;
 
-//Mismo que en CanonController
-function formatear_decimal(string $val) : string {//number_format castea a float... lo hacemos a pata...
-  $negativo = ($val[0] ?? false) == '-'? '-' : '';
-  $val = strlen($negativo)? substr($val,1) : $val;
-  
-  $parts   = explode('.',$val);
-  $entero  = $parts[0] ?? '';
-  $decimal = $parts[1] ?? null;
-  $entero_separado = [];
-  for($i=0;$i<strlen($entero);$i++){
-    $bucket = intdiv($i,3);
-    if($i%3 == 0) $entero_separado[$bucket] = '';
-    $entero_separado[$bucket] = $entero[strlen($entero)-1-$i] . $entero_separado[$bucket];
-  }
-
-  $newval = implode('.',array_reverse($entero_separado));
-  $decimal = is_null($decimal)? null : rtrim($decimal,'0');
-  if(!is_null($decimal) && strlen($decimal) > 0){
-    $newval .= ','.$decimal;
-  }
-  return $negativo.$newval;
-}
-
 class BackOfficeController extends Controller {
   //Por algun motivo, las vistas pueden ser exponencialmente mas lentas que una
   //query directa, por eso no queryiero una vista sino una raw query
@@ -285,8 +262,16 @@ class BackOfficeController extends Controller {
         'cols' => [
           ['DATE_FORMAT(c.año_mes,"%Y-%m")','periodo','string','input_date_month',[null,null]],
           ['cas.nombre','casino','string','select',[0],$this->selectCasinoVals('canon')],
-          ['c.devengado','devengado','numeric'],
-          ['c.determinado','determinado','numeric'],
+          ['NULL','dev_MTM','numeric'],//agregados en postprocess
+          ['NULL','dev_paños','numeric'],
+          ['NULL','dev_bingo','numeric'],
+          ['NULL','dev_JOL','numeric'],
+          ['NULL','devengado','numeric'],
+          ['NULL','det_MTM','numeric'],
+          ['NULL','det_paños','numeric'],
+          ['NULL','det_bingo','numeric'],
+          ['NULL','det_JOL','numeric'],
+          ['NULL','determinado','numeric'],
           ['(
               c.cargos_adicionales
               +(
@@ -590,8 +575,8 @@ class BackOfficeController extends Controller {
     }
     
     $data = $data->get()->map(function($r,$rk) use ($request){
-      return collect($r)->map(function($cv,$ck) use ($request){
-        return $this->postprocess($request->vista,$ck,$cv);
+      return collect($r)->map(function($cv,$ck) use ($r,$request){
+        return $this->postprocess($request->vista,$r,$ck,$cv);
       });
     });
     
@@ -617,7 +602,39 @@ class BackOfficeController extends Controller {
     ];
   }
   
-  private function postprocess($vista,$col,$val){
+  private function postprocess($vista,$row,$col,$val){
+    static $canons = null;
+    if($vista == 'canon'){
+      $cols_procesar = [
+        'dev_MTM' => ['MTM','devengado'],
+        'dev_paños' => ['Paños','devengado'],
+        'dev_bingo' => ['Bingo','devengado'],
+        'dev_JOL' => ['JOL','devengado'],
+        'devengado' => ['Total','devengado'],
+        'det_MTM' => ['MTM','determinado'],
+        'det_paños' => ['Paños','determinado'],
+        'det_bingo' => ['Bingo','determinado'],
+        'det_JOL' => ['JOL','determinado'],
+        'determinado' => ['Total','determinado'],
+      ];
+      
+      if(!array_key_exists($col,$cols_procesar)){
+        return $val;
+      }
+      
+      $canons = $canons ?? [];
+      
+      if(!in_array($row->periodo,$canons)){
+        $año_mes  = explode('-',$row->periodo);
+        $canons[$row->periodo] = CanonController::getInstancia()->totalesCanon($año_mes[0],$año_mes[1]);
+      }
+      
+      $dataCasino = $canons[$row->periodo][$row->casino] ?? [];
+      $ks = $cols_procesar[$col];
+      $dataTipo = $dataCasino[$ks[0]] ?? [];
+      return $dataTipo[$ks[1]] ?? null;
+    }
+    
     $col = collect($this->vistas[$vista]['cols'])->where(BO_ALIAS,$col)->first();
     $tipo = $col[BO_TIPO] ?? null;
     if(!is_null($col) && $tipo == 'input_vals_list'){
@@ -710,9 +727,9 @@ class BackOfficeController extends Controller {
       case 'integer':
         return intval($val);
       case 'numeric':
-        return formatear_decimal($val);
+        return CanonController::formatear_decimal($val);
       case 'numeric3d':
-        return formatear_decimal($val);
+        return CanonController::formatear_decimal($val);
     }
     return $val;
   }

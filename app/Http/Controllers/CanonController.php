@@ -29,28 +29,6 @@ function csvstr(array $fields) : string
     return rtrim($csv_line);
 }
 
-function formatear_decimal(string $val) : string {//number_format castea a float... lo hacemos a pata...
-  $negativo = ($val[0] ?? false) == '-'? '-' : '';
-  $val = strlen($negativo)? substr($val,1) : $val;
-  
-  $parts   = explode('.',$val);
-  $entero  = $parts[0] ?? '';
-  $decimal = $parts[1] ?? null;
-  $entero_separado = [];
-  for($i=0;$i<strlen($entero);$i++){
-    $bucket = intdiv($i,3);
-    if($i%3 == 0) $entero_separado[$bucket] = '';
-    $entero_separado[$bucket] = $entero[strlen($entero)-1-$i] . $entero_separado[$bucket];
-  }
-
-  $newval = implode('.',array_reverse($entero_separado));
-  $decimal = is_null($decimal)? null : rtrim($decimal,'0');
-  if(!is_null($decimal) && strlen($decimal) > 0){
-    $newval .= ','.$decimal;
-  }
-  return $negativo.$newval;
-}
-
 class CanonController extends Controller
 {
   static $valoresDefecto_fallback = [
@@ -66,7 +44,29 @@ class CanonController extends Controller
     self::$instance = self::$instance ?? (new self()); 
     return self::$instance;
   }
-      
+  
+  public static function formatear_decimal(string $val) : string {//number_format castea a float... lo hacemos a pata...
+    $negativo = ($val[0] ?? false) == '-'? '-' : '';
+    $val = strlen($negativo)? substr($val,1) : $val;
+    
+    $parts   = explode('.',$val);
+    $entero  = $parts[0] ?? '';
+    $decimal = $parts[1] ?? null;
+    $entero_separado = [];
+    for($i=0;$i<strlen($entero);$i++){
+      $bucket = intdiv($i,3);
+      if($i%3 == 0) $entero_separado[$bucket] = '';
+      $entero_separado[$bucket] = $entero[strlen($entero)-1-$i] . $entero_separado[$bucket];
+    }
+
+    $newval = implode('.',array_reverse($entero_separado));
+    $decimal = is_null($decimal)? null : rtrim($decimal,'0');
+    if(!is_null($decimal) && strlen($decimal) > 0){
+      $newval .= ','.$decimal;
+    }
+    return $negativo.$newval;
+  }
+        
   public function index(){
     $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $casinos = $u->casinos;     
@@ -1766,7 +1766,7 @@ class CanonController extends Controller
             case 'smallint':
             case 'integer':
             case 'decimal': if($formatear_decimal){
-              $ret[$tabla][$rowidx][$col] = formatear_decimal((string)$val);//number_format castea a float... lo hacemos a pata...
+              $ret[$tabla][$rowidx][$col] = self::formatear_decimal((string)$val);//number_format castea a float... lo hacemos a pata...
             }break;
             default:
             case 'string':{
@@ -1874,33 +1874,20 @@ class CanonController extends Controller
     return $dompdf->stream($filename, Array('Attachment'=>0));
   }
   
-  public function planillaDevengado(Request $request,$tipo_presupuesto = 'devengado'){
-    if(!isset($request->id_canon)) return;
-    
-    $c_año_mes = DB::table('canon')
-    ->select('año_mes')
-    ->whereNull('deleted_at')
-    ->where('id_canon',$request->id_canon)
-    ->first();
-    
-    if(empty($c_año_mes)) return;
-    
-    $año_mes = explode('-',$c_año_mes->año_mes);
-    
-    $cs = DB::table('canon')
-    ->select('id_canon')->distinct()
-    ->whereNull('deleted_at')
-    ->whereYear('año_mes',$año_mes[0])
-    ->whereMonth('año_mes',$año_mes[1])
+  public function totalesCanon($año,$mes){//Usado en backoffice tambien
+    $cs = DB::table('canon as c')
+    ->select('c.id_canon','cas.nombre as casino')->distinct()
+    ->join('casino as cas','cas.id_casino','=','c.id_casino')
+    ->whereNull('c.deleted_at')
+    ->whereYear('c.año_mes',$año)
+    ->whereMonth('c.año_mes',$mes)
     ->get();
     
     $canons = [];
     foreach($cs as $c){
       $datac = $this->obtener_para_salida($c->id_canon,false);
-      $canons[$datac['canon'][0]['casino']] = $datac;
+      $canons[$c->casino] = $datac;
     }
-    
-    $mes = $año_mes[1].'/'.substr($año_mes[0],2);
     
     $conceptos = [
       'Paños',
@@ -1923,25 +1910,37 @@ class CanonController extends Controller
       $dcas = [];
       $max_scale = 2;//Sumo usando la maxima escala posible...
       foreach($subcanons as $concepto => $matcheable){
-        $acumulado_bruto = null;
-        $acumulado_deduccion = null;
+        $dev_acumulado_bruto = null;
+        $dev_acumulado_deduccion = null;
+        $det_acumulado = null;
         
         foreach($canons_casino as $tipo => $canons_casino_tipo){ foreach($canons_casino_tipo as $canon_casino_subtipo){
             $matchea = $matcheable[0] == $tipo && $matcheable[1] == ($canon_casino_subtipo['tipo'] ?? null);
             
-            if(!$matchea) continue;
-            if($tipo_presupuesto == 'devengado' && ($canon_casino_subtipo['devengar'] ?? 1) == 0) continue;
+            if(!$matchea) continue;            
+            $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo['devengado_total']));
+            $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo['determinado_total']));
             
-            $max_scale = max($max_scale,bcscale_string($canon_casino_subtipo[$tipo_presupuesto.'_total']));
-            $acumulado_bruto = bcadd($canon_casino_subtipo[$tipo_presupuesto.'_total'] ?? '0',$acumulado_bruto,$max_scale);
-            $acumulado_deduccion = bcadd($canon_casino_subtipo[$tipo_presupuesto.'_deduccion'] ?? '0',$acumulado_deduccion,$max_scale);
+            if(($canon_casino_subtipo['devengar'] ?? 1) != 0){
+              $dev_acumulado_bruto = bcadd(
+                $canon_casino_subtipo['devengado_total'] ?? '0',$dev_acumulado_bruto,$max_scale
+              );
+              $dev_acumulado_deduccion = bcadd(
+                $canon_casino_subtipo['devengado_deduccion'] ?? '0',$dev_acumulado_deduccion,$max_scale
+              ); 
+            }
+            
+            $det_acumulado = bcadd(
+              $canon_casino_subtipo['determinado_total'] ?? '0',$det_acumulado,$max_scale
+            );
         }}
         
         $dcas[$concepto] = [
-          '' => ($acumulado_bruto !== null || $acumulado_deduccion !== null)?
-            bcsub($acumulado_bruto,$acumulado_deduccion,$max_scale)
+          'devengado' => ($dev_acumulado_bruto !== null || $dev_acumulado_deduccion !== null)?
+            bcsub($dev_acumulado_bruto,$dev_acumulado_deduccion,$max_scale)
           : null,
-          'deduccion' => $acumulado_deduccion
+          'deduccion' => $dev_acumulado_deduccion,
+          'determinado' => $det_acumulado
         ];
       }
       
@@ -1949,8 +1948,9 @@ class CanonController extends Controller
       
       //Agrego Total
       $dcas['Total'] = [
-        '' => $canon[$tipo_presupuesto] ?? '0',
-        'deduccion' => $canon[$tipo_presupuesto.'_deduccion'] ?? '0',
+        'devengado'   => $canon['devengado'] ?? '0',
+        'deduccion'   => $canon['devengado_deduccion'] ?? '0',
+        'determinado' => $canon['determinado'] ?? '0',
       ];
       
       foreach($dcas as $concepto => $v){
@@ -1963,7 +1963,7 @@ class CanonController extends Controller
       //Esto es asi porque Paños es el mas "aproximado", osea que que este unos centavos arriba o abajo no cambia mucho
       $paños = $dcas['Total'];//clone
       $total_fisico = $dcas['Total'];//clone
-      foreach(['','deduccion'] as $t){
+      foreach(['devengado','deduccion','determinado'] as $t){
         $paños[$t] = bcsub($paños[$t],($dcas['MTM'] ?? [])[$t] ?? '0',2);
         $paños[$t] = bcsub($paños[$t],($dcas['JOL'] ?? [])[$t] ?? '0',2);
         $paños[$t] = bcsub($paños[$t],($dcas['Bingo'] ?? [])[$t] ?? '0',2);
@@ -1973,17 +1973,21 @@ class CanonController extends Controller
       $dcas['Paños'] = $paños;
       $dcas['Total Físico'] = $total_fisico;
       
-      if($tipo_presupuesto == 'determinado'){//El ajuste se lo sumo a paños por mismas razones
+      {//DETERMINADO: El ajuste se lo sumo a paños por mismas razones
         $ajuste = $canon['ajuste'] ?? '0';
-        $dcas['Paños'][''] = bcadd($dcas['Paños'][''],$ajuste,$max_scale);
-        $dcas['Total Físico'][''] = bcadd($dcas['Total Físico'][''],$ajuste,$max_scale);
-        $dcas['Total'][''] = bcadd($dcas['Total'][''],$ajuste,$max_scale);
-        
-        foreach($dcas as $concepto => $vals){
-          $dcas[$concepto]['deduccion'] = null;
-        }
+        $dcas['Paños']['determinado'] = bcadd($dcas['Paños']['determinado'],$ajuste,2);
+        $dcas['Total Físico']['determinado'] = bcadd($dcas['Total Físico']['determinado'],$ajuste,2);
+        $dcas['Total']['determinado'] = bcadd($dcas['Total']['determinado'],$ajuste,2);
       }
       
+      {//DEVENGADO: calculo el bruto a partir del devengado y la deduccion
+        foreach($dcas as $tipo => &$vals){
+          if($vals['devengado'] !== null || $vals['deduccion'] !== null){
+            $vals['bruto'] = bcadd($vals['devengado'],$vals['deduccion'],2);
+          }
+        }
+      }
+            
       {//Reordeno
         $aux = [];
         foreach($conceptos as $concepto){
@@ -1994,34 +1998,77 @@ class CanonController extends Controller
     
       $datos[$casino] = $dcas;
     }
-        
+    
     {//Agrego una columna Total
       $total = [];
-      foreach($datos as $casino => $valores_casino){
-        foreach($conceptos as $concepto){
-          $total[$concepto] = $total[$concepto] ?? [];
-          foreach(['','deduccion'] as $t){            
-            $total[$concepto][$t] = $total[$concepto][$t] ?? '0.00';
-            $total[$concepto][$t] = bcadd($valores_casino[$concepto][$t],$total[$concepto][$t],2);
+      foreach($datos as $casino => $dcas){
+        foreach($dcas as $tipo => $vals){
+          $total[$tipo] = $total[$tipo] ?? [];
+          foreach(['devengado','deduccion','determinado','bruto'] as $t){
+            $total[$tipo][$t] = $total[$tipo][$t] ?? '0.00';
+            $total[$tipo][$t] = bcadd($vals[$t] ?? '0.00',$total[$tipo][$t],2);
           }
         }
       }
       $datos['Total'] = $total;
     }
     
-    foreach($datos as $casino => $valores_casino){//Formateo a español
-      foreach($valores_casino as $concepto => &$v){
-        $v['bruto'] = bcadd($v[''],$v['deduccion'],2);
-        foreach($v as $aux => $val){
-          $datos[$casino][$concepto][$aux] = $val === null? null : formatear_decimal($val);
+    
+    //Formateo a español los numeros
+    foreach($datos as $id_canon => &$dcas){
+      foreach($dcas as $tipo => &$vals){
+        foreach($vals as $tval => &$v){
+          $v = $v === null? null : self::formatear_decimal($v);
         }
       }
     }
     
-    $tablas = ['','deduccion','bruto'];
-    if($tipo_presupuesto == 'determinado'){
-      $tablas = [''];
+    return $datos;
+  }
+  
+  public function planillaDevengado(Request $request,$tipo_presupuesto = 'devengado'){
+    if(!isset($request->id_canon)) return;
+    
+    $c_año_mes = DB::table('canon')
+    ->select('año_mes')
+    ->whereNull('deleted_at')
+    ->where('id_canon',$request->id_canon)
+    ->first();
+    
+    if(empty($c_año_mes)) return;
+    
+    $año_mes = explode('-',$c_año_mes->año_mes);
+    $mes = $año_mes[1].'/'.substr($año_mes[0],2);
+    
+    $datos = $this->totalesCanon($año_mes[0],$año_mes[1]);
+    
+    $tablas = [];
+    if($tipo_presupuesto == 'devengado'){
+      $tablas = ['','deduccion','bruto'];
+      foreach($datos as $cas => &$t){
+        foreach($t as $nombre_sc => &$subcanon){
+          $subcanon[''] = $subcanon['devengado'];
+          unset($subcanon['devengado']);
+          unset($subcanon['determinado']);
+        }
+      }
     }
+    else if($tipo_presupuesto == 'determinado'){
+      $tablas = [''];
+      foreach($datos as &$t){
+        foreach($t as &$subcanon){
+          $subcanon[''] = $subcanon['determinado'];
+          unset($subcanon['devengado']);
+          unset($subcanon['bruto']);
+          unset($subcanon['deduccion']);
+          unset($subcanon['determinado']);
+        }
+      }
+    }
+    
+    $conceptos = array_keys(array_reduce($datos,function($carry,$item){
+      return array_merge($carry,$item);
+    },[]));
         
     $view = View::make('Canon.planillaDevengado', compact('tipo_presupuesto','tablas','conceptos','mes','datos'));
     $dompdf = new Dompdf();
