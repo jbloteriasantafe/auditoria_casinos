@@ -618,21 +618,19 @@ class BackOfficeController extends Controller {
         'determinado' => ['Total','determinado'],
       ];
       
-      if(!array_key_exists($col,$cols_procesar)){
-        return $val;
-      }
-      
-      $canons = $canons ?? [];
-      
-      if(!in_array($row->periodo,$canons)){
-        $año_mes  = explode('-',$row->periodo);
-        $canons[$row->periodo] = CanonController::getInstancia()->totalesCanon($año_mes[0],$año_mes[1]);
-      }
-      
-      $dataCasino = $canons[$row->periodo][$row->casino] ?? [];
-      $ks = $cols_procesar[$col];
-      $dataTipo = $dataCasino[$ks[0]] ?? [];
-      return $dataTipo[$ks[1]] ?? null;
+      if(array_key_exists($col,$cols_procesar)){
+        $canons = $canons ?? [];
+        
+        if(!in_array($row->periodo,$canons)){
+          $año_mes  = explode('-',$row->periodo);
+          $canons[$row->periodo] = CanonController::getInstancia()->totalesCanon($año_mes[0],$año_mes[1]);
+        }
+        
+        $dataCasino = $canons[$row->periodo][$row->casino] ?? [];
+        $ks = $cols_procesar[$col];
+        $dataTipo = $dataCasino[$ks[0]] ?? [];
+        return $dataTipo[$ks[1]] ?? null;
+      } 
     }
     
     $col = collect($this->vistas[$vista]['cols'])->where(BO_ALIAS,$col)->first();
