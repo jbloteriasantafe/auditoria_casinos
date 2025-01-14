@@ -1309,7 +1309,7 @@ class CanonController extends Controller
     }
   }
   
-  public function buscar(Request $request){
+  public function buscar(Request $request,bool $paginar = true){
     $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $reglas = [];
     if(isset($request->id_casino)){
@@ -1369,8 +1369,14 @@ class CanonController extends Controller
     ->where($reglas)
     ->whereIn('c.id_casino',$u->casinos->pluck('id_casino'))
     ->orderBy($sort_by['columna'],$sort_by['orden'])
-    ->orderBy('cas.nombre','asc')
-    ->paginate($request->page_size ?? 10);
+    ->orderBy('cas.nombre','asc');
+    
+    if($paginar){
+      $ret = $ret->paginate($request->page_size ?? 10);
+    }
+    else {
+      $ret = $ret->get();
+    }
     
     return $ret;
   }
@@ -2107,5 +2113,55 @@ class CanonController extends Controller
     $casino  = $datos['canon'][0]['casino'];
     $filename = "Canon-$año_mes-$casino.pdf";
     return $dompdf->stream($filename, Array('Attachment'=>0));
+  }
+  
+  public function descargar(Request $request){
+    $data = $this->buscar($request,false);
+    
+    $conceptos = [
+      'MTM','Bingo','JOL','Paños'
+    ];
+    
+    $tipo_valores = [
+      'bruto','deduccion','devengado','determinado'
+    ];
+    
+    $arreglo_a_csv = [];
+    $totales_cache = [];//Si busco para un periodo me devuelve todos los casinos por eso lo cacheo
+    foreach($data as $d){
+      $año_mes = explode('-',$d->año_mes);
+      
+      $t = null;
+      if(!array_key_exists($d->año_mes,$totales_cache)){
+        $totales_cache[$d->año_mes] = $this->totalesCanon(intval($año_mes[0]),intval($año_mes[1]));
+      }
+      $t = $totales_cache[$d->año_mes][$d->casino];//Deberia existir porque buscar() lo devolvio
+      
+      $fila = [
+        'año_mes' => $d->año_mes,
+        'casino'  => $d->casino,
+      ];
+      foreach($tipo_valores as $tval){
+        foreach($conceptos as $cncpt){
+          $fila[$tval.'_'.$cncpt] = ($t[$cncpt] ?? [])[$tval] ?? '0';
+        }
+        $fila[$tval] = ($t['Total'] ?? [])[$tval] ?? '0';
+      }
+      $fila['intereses'] = $d->intereses;
+      $fila['pago']      = $d->pago;
+      $fila['saldo_posterior'] = $d->saldo_posterior;
+      $arreglo_a_csv[] = $fila;
+    }
+    
+    $header = array_keys($arreglo_a_csv[0] ?? []);
+    
+    $f = fopen('php://memory', 'r+');//https://stackoverflow.com/questions/13108157/php-array-to-csv
+    fputcsv($f, $header,',','"',"\\");
+    foreach ($arreglo_a_csv as $fila) {
+      fputcsv($f, array_values($fila),',','"',"\\");
+    }
+    rewind($f);
+        
+    return stream_get_contents($f);
   }
 }

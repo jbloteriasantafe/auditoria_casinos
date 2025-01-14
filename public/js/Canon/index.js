@@ -608,6 +608,39 @@ $(document).ready(function() {
   if($('#pant_defecto').length){
     reemplazarPorJsonEditor($('#pant_defecto').find('[data-js-nuevo-jsoneditor]'),'{}');
   }
+  
+  $('#pant_canon [data-js-descargar]').click(function(e){
+    const url = $(e.currentTarget).attr('data-js-descargar');
+    const descargando = $(this).find('[data-js-descargando]').show();
+    AUX.POST(
+      url,
+      $('#pant_canon [data-js-filtro-tabla]:visible')[0].form_data(),
+      function(data){
+        descargando.hide();
+        //https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side
+        const blob = new Blob([data], { type: 'text/csv' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url;
+        
+        const timestamp = (new Date())
+        .toISOString()
+        .split('.')[0]
+        .replaceAll('-','')
+        .replaceAll('T','-')
+        .replaceAll(':','');
+        
+        a.setAttribute('download', 'canon-generado-'+timestamp+'.csv');
+        
+        a.click();
+      },
+      function(data){
+        descargando.hide();
+        console.log(data);
+        AUX.mensajeError();
+      }
+    );
+  });
      
   $('#pant_canon [data-js-nuevo-canon]').click(function(e){
     const tgt = $(e.currentTarget);

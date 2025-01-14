@@ -88,6 +88,7 @@
     @slot('titulo')
     CANON
     <button class="btn" type="button" data-js-nuevo-canon="/canon/obtener">NUEVO</button>
+    <button data-js-descargar="/canon/descargar" class="btn btn-sucess" type="button" style="font-size: 0.9rem;"><i class="fa fa-arrow-circle-down"></i>DESCARGAR<i class="fa fa-spinner fa-spin" data-js-descargando style="display: none;"></i></button> 
     @endslot
     
     @slot('target_buscar')
@@ -1253,6 +1254,6 @@
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
   <script src="/js/paginacion.js" charset="utf-8"></script>
   <script src="/js/lib/jsoneditor.js"></script>
-  <script src="/js/Canon/index.js?2" charset="utf-8" type="module"></script>
+  <script src="/js/Canon/index.js?3" charset="utf-8" type="module"></script>
 
 @endsection

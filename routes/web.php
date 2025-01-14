@@ -987,6 +987,7 @@ Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_c
 Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_canon'],function(){
   Route::get('/','\App\Http\Controllers\CanonController@index');
   Route::post('/buscar','\App\Http\Controllers\CanonController@buscar');
+  Route::post('/descargar','\App\Http\Controllers\CanonController@descargar');
   Route::get('/obtener','\App\Http\Controllers\CanonController@obtener');
   Route::get('/planilla','\App\Http\Controllers\CanonController@planilla');
   Route::get('/planillaPDF','\App\Http\Controllers\CanonController@planillaPDF');
