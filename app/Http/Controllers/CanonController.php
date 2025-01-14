@@ -1914,6 +1914,7 @@ class CanonController extends Controller
       
       $acumulados = DB::table('canon_variable')
       ->select('tipo',
+        DB::raw('SUM(determinado_subtotal) as ben'),//Con el impuesto restado
         DB::raw('SUM(IF(devengar,devengado_total,NULL)) as dev_bruto'),
         DB::raw('SUM(IF(devengar,devengado_deduccion,NULL)) as dev_deduccion'),
         DB::raw('SUM(determinado_total) as det')
@@ -1924,10 +1925,16 @@ class CanonController extends Controller
       ->get()
       ->keyBy('tipo');
       
+      $beneficio_total = null;
       foreach($subcanons as $tipo => $concepto){
-        $cv = $acumulados[$tipo] ?? ((object)['dev_bruto' => null,'dev_deduccion' => null,'det' => null]);
+        $cv = $acumulados[$tipo] ?? ((object)['ben' => null,'dev_bruto' => null,'dev_deduccion' => null,'det' => null]);
         $max_scale = max($max_scale,bcscale_string($cv->dev_bruto ?? '0'));
+        
+        $beneficio_total = $cv->ben !== null? bcadd($beneficio_total,$cv->ben,$max_scale)
+        : $beneficio_total;
+        
         $dcas[$concepto] = [
+          'beneficio' => $cv->ben,
           'devengado' => ($cv->dev_bruto !== null || $cv->dev_deduccion !== null)?
             bcsub($cv->dev_bruto,$cv->dev_deduccion,$max_scale)
           : null,
@@ -1938,6 +1945,7 @@ class CanonController extends Controller
       
       //Agrego Total
       $dcas['Total'] = [
+        'beneficio'   => $beneficio_total,//A completar... tiene los canon variable nomas
         'devengado'   => $canon->devengado ?? '0',
         'deduccion'   => $canon->devengado_deduccion ?? '0',
         'determinado' => $canon->determinado ?? '0',
@@ -1962,6 +1970,29 @@ class CanonController extends Controller
       }
       $dcas['Paños'] = $paños;
       $dcas['Total Físico'] = $total_fisico;
+      
+      //Arreglo los beneficios
+      {
+        $ben_cfm = DB::table('canon_fijo_mesas')
+        ->selectRaw('SUM(bruto) as ben')
+        ->where('id_canon',$canon->id_canon)
+        ->groupBy(DB::raw('"constant"'))
+        ->first();
+        
+        $dcas['Paños']['beneficio'] = $ben_cfm === null? null : $ben_cfm->ben;
+        
+        $dcas['Total']['beneficio'] = bcadd(//Le agrego paños
+          $dcas['Paños']['beneficio'],
+          $dcas['Total']['beneficio'],
+          $max_scale
+        );
+        
+        $dcas['Total Físico']['beneficio'] = bcsub(//Es el total menos online obviamente
+          $dcas['Total']['beneficio'],
+          $dcas['JOL']['beneficio'],
+          $max_scale
+        );
+      }
       
       {//DETERMINADO: El ajuste se lo sumo a paños por mismas razones
         $ajuste = $canon->ajuste ?? '0';
@@ -1994,7 +2025,7 @@ class CanonController extends Controller
       foreach($datos as $casino => $dcas){
         foreach($dcas as $tipo => $vals){
           $total[$tipo] = $total[$tipo] ?? [];
-          foreach(['devengado','deduccion','determinado','bruto'] as $t){
+          foreach(['beneficio','devengado','deduccion','determinado','bruto'] as $t){
             $total[$tipo][$t] = $total[$tipo][$t] ?? '0.00';
             $total[$tipo][$t] = bcadd($vals[$t] ?? '0.00',$total[$tipo][$t],2);
           }
@@ -2038,6 +2069,7 @@ class CanonController extends Controller
       foreach($datos as $cas => &$t){
         foreach($t as $nombre_sc => &$subcanon){
           $subcanon[''] = $subcanon['devengado'];
+          unset($subcanon['beneficio']);
           unset($subcanon['devengado']);
           unset($subcanon['determinado']);
         }
@@ -2048,6 +2080,7 @@ class CanonController extends Controller
       foreach($datos as &$t){
         foreach($t as &$subcanon){
           $subcanon[''] = $subcanon['determinado'];
+          unset($subcanon['beneficio']);
           unset($subcanon['devengado']);
           unset($subcanon['bruto']);
           unset($subcanon['deduccion']);
@@ -2123,7 +2156,7 @@ class CanonController extends Controller
     ];
     
     $tipo_valores = [
-      'bruto','deduccion','devengado','determinado'
+      'beneficio','bruto','deduccion','devengado','determinado'
     ];
     
     $arreglo_a_csv = [];
