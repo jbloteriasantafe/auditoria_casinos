@@ -68,7 +68,7 @@ function nombre_casino($id_casino){
       <div class="col-lg-12 col-xl-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h4>Beneficios - MTM {{nombre_casino($id_casino)}}</h4>
+            <h4>Beneficios - Mesas {{nombre_casino($id_casino)}}</h4>
           </div>
           <div class="panel-body">
             <table class="table table-fixed tablesorter tablaBeneficiosPorCasino">
