@@ -700,7 +700,7 @@
             <div class="bloque_interno" data-css-devengar style="flex: 1;">
               <h4 style="display: flex;">
                 <span>DEVENGADO&nbsp;&nbsp;</span>
-                <select class="form-control" data-name="{{$devengar}}" data-js-devengar style="width: unset;height: unset;padding: 0;">
+                <select class="form-control" data-name="{{$devengar}}" data-js-devengar style="width: unset;height: unset;padding: 0;" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                   <option value="1">SI</option>
                   <option value="0">NO</option>
                 </select>
@@ -897,7 +897,7 @@
             <div class="bloque_interno" data-css-devengar style="flex: 1;">
               <h4 style="display: flex;">
                 <span>DEVENGADO&nbsp;&nbsp;</span>
-                <select class="form-control" data-name="{{$devengar}}" data-js-devengar style="width: unset;height: unset;padding: 0;">
+                <select class="form-control" data-name="{{$devengar}}" data-js-devengar style="width: unset;height: unset;padding: 0;"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                   <option value="1">SI</option>
                   <option value="0">NO</option>
                 </select>
@@ -1078,7 +1078,7 @@
             <div class="bloque_interno" data-css-devengar style="flex: 1;">
               <h4 style="display: flex;">
                 <span>DEVENGADO&nbsp;&nbsp;</span>
-                <select class="form-control" data-name="{{$devengar}}" data-js-devengar style="width: unset;height: unset;padding: 0;">
+                <select class="form-control" data-name="{{$devengar}}" data-js-devengar style="width: unset;height: unset;padding: 0;"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                   <option value="1">SI</option>
                   <option value="0">NO</option>
                 </select>
