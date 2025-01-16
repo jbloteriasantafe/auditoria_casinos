@@ -348,12 +348,8 @@ class CanonController extends Controller
     $determinado_cotizacion_dolar = $COT['determinado_cotizacion_dolar'] ?? null;//@RETORNADO
     $determinado_cotizacion_euro  = $COT['determinado_cotizacion_euro'] ?? null;//@RETORNADO
     
-    $devengado = bcround_ndigits(bcsub($devengado_bruto,$devengado_deduccion,20),2);//@RETORNADO
-    
-    //DETERMINADO
-    $determinado = $es_antiguo?//@RETORNADO
-      bcadd($R('determinado','0.00'),'0',2)
-    : bcround_ndigits($determinado_bruto,2);
+    $devengado   = bcround_ndigits(bcsub($devengado_bruto,$devengado_deduccion,20),2);//@RETORNADO
+    $determinado = bcround_ndigits($determinado_bruto,2);//@RETORNADO
     
     $porcentaje_seguridad = bccomp($devengado,'0.00',2) <> 0?//@RETORNADO
        bcdiv(bcmul('100',bcsub($determinado,$devengado,2),2),$devengado,19)
