@@ -10,6 +10,12 @@
 <link rel="stylesheet" href="/css/paginacion.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/10.1.0/jsoneditor.css"/>
 <style>
+  #mensajeExito {
+    animation: salida 1.5s forwards;
+  }
+  #mensajeError {
+    animation: salida 2s forwards;
+  }
   .tabs {
     --fondo: white;
     --gradiente: rgb(235,235,235);
