@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 <link rel="stylesheet" href="css/zona-file-large.css">
 <link rel="stylesheet" href="/css/perfect-scrollbar.css">
 <!-- Mesaje de notificación -->
-<link rel="stylesheet" href="/css/mensajeExito.css">
+<link rel="stylesheet" href="/css/mensajeExito.css?1">
 <link rel="stylesheet" href="/css/mensajeError.css">
 @endsection
 

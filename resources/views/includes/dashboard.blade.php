@@ -551,7 +551,7 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
     <link rel="stylesheet" href="/css/loadingAnimation.css">
 
     <!-- Mesaje de notificación -->
-    <link rel="stylesheet" href="/css/mensajeExito.css">
+    <link rel="stylesheet" href="/css/mensajeExito.css?1">
     <link rel="stylesheet" href="/css/mensajeError.css">
 
     <!-- Estilos de imagenes en SVG -->
@@ -563,7 +563,7 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
     <link rel="stylesheet" href="/web-fonts-with-css/css/fontawesome-all.css">
 
     <!-- Mesaje de notificación -->
-    <link rel="stylesheet" href="/css/mensajeExito.css">
+    <link rel="stylesheet" href="/css/mensajeExito.css?1">
     <link rel="stylesheet" href="/css/mensajeError.css">
     @section('estilos')
     @show
