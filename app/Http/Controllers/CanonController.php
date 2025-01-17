@@ -252,6 +252,7 @@ class CanonController extends Controller
           $ret[$tipo] = $this->canon_variable_recalcular(
             $año_mes,
             $id_casino,
+            $es_antiguo,
             $tipo,
             $defecto[$tipo] ?? [],
             $data_request_tipo,
@@ -283,6 +284,7 @@ class CanonController extends Controller
           $ret[$tipo] = $this->canon_fijo_mesas_recalcular(
             $año_mes,
             $id_casino,
+            $es_antiguo,
             $tipo,
             $defecto[$tipo] ?? [],
             $data_request_tipo,
@@ -314,6 +316,7 @@ class CanonController extends Controller
           $ret[$tipo] = $this->canon_fijo_mesas_adicionales_recalcular(
             $año_mes,
             $id_casino,
+            $es_antiguo,
             $tipo,
             $defecto[$tipo] ?? [],
             $data_request_tipo,
@@ -519,7 +522,7 @@ class CanonController extends Controller
     );
   }
   
-  public function canon_variable_recalcular($año_mes,$id_casino,$tipo,$valores_defecto,$data,$COT){
+  public function canon_variable_recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$valores_defecto,$data,$COT){
     $R = function($s,$dflt = null) use (&$data){
       return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
     };
@@ -530,7 +533,7 @@ class CanonController extends Controller
       return $R($s,null) ?? $D($s,null) ?? $dflt;
     };
     
-    $devengar = $RD('devengar',1);
+    $devengar = $RD('devengar',$es_antiguo? 0 : 1);
     $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema',$this->apostado($tipo,$año_mes,$id_casino)),'0',2);//@RETORNADO    
     $devengado_apostado_porcentaje_aplicable = bcadd($RD('devengado_apostado_porcentaje_aplicable','0.0000'),'0',4);//@RETORNADO
     $factor_apostado_porcentaje_aplicable = bcdiv($devengado_apostado_porcentaje_aplicable,'100',6);
@@ -579,6 +582,7 @@ class CanonController extends Controller
   public function canon_fijo_mesas_recalcular(
       $año_mes,
       $id_casino,
+      $es_antiguo,
       $tipo,//@RETORNADO
       $valores_defecto,
       $data,
@@ -594,7 +598,7 @@ class CanonController extends Controller
       return $R($s,null) ?? $D($s,null) ?? $dflt;
     };
     
-    $devengar = $RD('devengar',1);
+    $devengar = $RD('devengar',$es_antiguo? 0 : 1);
     $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;//@RETORNADO
     $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;//@RETORNADO
     $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? '0';//@RETORNADO
@@ -737,7 +741,7 @@ class CanonController extends Controller
     );
   }
   
-  public function canon_fijo_mesas_adicionales_recalcular($año_mes,$id_casino,$tipo,$valores_defecto,$data,$COT){
+  public function canon_fijo_mesas_adicionales_recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$valores_defecto,$data,$COT){
     $R = function($s,$dflt = null) use (&$data){
       return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
     };
@@ -760,7 +764,7 @@ class CanonController extends Controller
     $porcentaje = bcadd($RD('porcentaje','0.0000'),'0',4);//@RETORNADO
     $factor_porcentaje = bcdiv($porcentaje,'100',6);
         
-    $devengar = $RD('devengar',1);
+    $devengar = $RD('devengar',$es_antiguo? 0 : 1);
     $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;//@RETORNADO
     $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;//@RETORNADO
     $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? '0';//@RETORNADO
