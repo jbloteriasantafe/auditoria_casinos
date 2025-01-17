@@ -412,8 +412,8 @@ $(document).ready(function() {
       tgt.closest('[data-adjunto]').remove();
     });
     
-    M.find('form[data-js-recalcular]').find('[data-js-agregar-adjunto]').click(function(e){
-      const tgt = $(e.currentTarget);
+    const agregarAdjunto = function(resolve=()=>{},reject=()=>{}){
+      const tgt = M.find('form[data-js-recalcular]').find('[data-js-agregar-adjunto]');
       const pestaña = tgt.closest('[data-adjuntos]');
       
       let max_idx = -1;
@@ -434,7 +434,7 @@ $(document).ready(function() {
       const archivo_dom_obj = parent.find('[data-archivo]')?.[0];
       const archivo = archivo_dom_obj?.files?.[0];
       
-      if(!archivo) return;
+      if(!archivo) return resolve();
       
       const fileReader = new FileReader();
       fileReader.onloadend = function (e) {
@@ -460,12 +460,22 @@ $(document).ready(function() {
         
         div.attr('data-idx',idx);
         div.attr('data-nuevo-adjunto',true);
+        
+        resolve();
       };
       
+      fileReader.onerror = reject;
+      
       fileReader.readAsArrayBuffer(archivo);
+    };
+    
+    M.find('form[data-js-recalcular]').find('[data-js-agregar-adjunto]').click(function(e){
+      agregarAdjunto();
     });
     
-    M.find('[data-js-enviar]').click(function(e){
+    M.find('[data-js-enviar]').click(async function(e){
+      await new Promise(agregarAdjunto);//Agrego archivo si lo dejo seleccionado
+      
       const tgt = $(e.currentTarget);
       const url = tgt.attr('data-js-enviar');
       const form = M.find('form[data-js-recalcular]');
