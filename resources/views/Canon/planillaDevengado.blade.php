@@ -47,14 +47,14 @@ $columnas = count($datos);
     </tr>
     <tr>
       <th class="tablaInicio" style="text-align: center;">CONCEPTO</th>
-      @foreach($datos as $casino => $_)
-      <th class="tablaInicio" style="text-align: center;">{{$casino == 'Total'? '' : 'Casino '}}{{$casino}}</th>
+      @foreach($datos as $cas => $_)
+      <th class="tablaInicio" style="text-align: center;">{{$cas == 'Total'? '' : 'Casino '}}{{$cas}}</th>
       @endforeach
     </tr>
     @foreach($conceptos as $concepto)
     <tr>
       <td class="tablaCampos" style="text-align: center;">{{$concepto}}</td>
-      @foreach($datos as $casino => $datos_concepto)
+      @foreach($datos as $cas => $datos_concepto)
       <td class="tablaCampos" style="text-align: center;">{{$datos_concepto[$concepto][$t] ?? ''}}</td>
       @endforeach
     </tr>

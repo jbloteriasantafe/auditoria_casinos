@@ -1843,11 +1843,13 @@ class CanonController extends Controller
     $err_file = storage_path(uniqid().'.err');
     
     //Uso {$dir_path}/* para evitar tener que escapar espacios y cosas asi
-    exec('python3 '.base_path('xlsxmaker.py').' '.$abs_outfile.' '.$dir_path.'/* > '.$log_file.' 2> '.$err_file);
+    $cmd = 'python3 '.escapeshellarg(base_path('xlsxmaker.py')).' '.escapeshellarg($abs_outfile).' '.escapeshellarg($dir_path).'/* > '.escapeshellarg($log_file).' 2> '.escapeshellarg($err_file);
+    exec($cmd);
     $rmdir($dir_path);
     
     if(is_file($abs_outfile) === false){
       echo '<p>','ERROR','</p>';
+      echo '<p>',$cmd,'</p>';
       echo '<p>',"====================================",'</p>';
       echo '<p>',htmlspecialchars($log_file),'</p>';
       echo '<p>',htmlspecialchars(file_get_contents($log_file)),'</p>';
@@ -2106,6 +2108,68 @@ class CanonController extends Controller
     return $this->planillaDevengado($request,'determinado');
   }
   
+  public function planillaDeterminadoTest(Request $request){
+    if(!isset($request->id_canon)) return;
+    
+    $c_año_mes = DB::table('canon')
+    ->select('año_mes')
+    ->whereNull('deleted_at')
+    ->where('id_canon',$request->id_canon)
+    ->first();
+    
+    if(empty($c_año_mes)) return;
+    
+    $año_mes = explode('-',$c_año_mes->año_mes);
+    $mes = $año_mes[1].'/'.substr($año_mes[0],2);
+    
+    $datos = $this->totalesCanon($año_mes[0],$año_mes[1]);
+    
+    $tablas = [''];
+    foreach($datos as &$t){
+      foreach($t as &$subcanon){
+        $subcanon[''] = $subcanon['determinado'];
+        unset($subcanon['beneficio']);
+        unset($subcanon['devengado']);
+        unset($subcanon['bruto']);
+        unset($subcanon['deduccion']);
+        unset($subcanon['determinado']);
+      }
+    }
+    
+    $conceptos = array_keys(array_reduce($datos,function($carry,$item){
+      return array_merge($carry,$item);
+    },[]));
+    
+    $mes_a_str = ['','Enero','Febrero','Marzo','Abril','Mayo',
+      'Junio','Julio','Agosto','Septiembre',
+      'Octubre','Noviembre','Diciembre'
+    ];
+    $año_mes[1] = $mes_a_str[intval($año_mes[1])];
+    $fecha_planilla = explode('-',date('Y-m-d-w'));
+    $fecha_planilla[1] = $mes_a_str[intval($fecha_planilla[1])];
+    $fecha_planilla[2] = intval($fecha_planilla[2]);
+    $fecha_planilla[3] = ['Domingo','Lunes','Martes',
+      'Miercoles','Jueves','Viernes','Sabado'
+    ][intval($fecha_planilla[3])];
+    $casino = Casino::find(
+      DB::table('canon')
+      ->select('id_casino')
+      ->where('id_canon',$request->id_canon)
+      ->first()->id_casino
+    );
+    $canon = $this->obtener_para_salida($request->id_canon);
+    $COT = $this->confluir_datos_cotizacion($canon);
+    $PAG = $this->confluir_datos_pago($canon);
+    
+    $view = View::make('Canon.planillaDeterminado', compact('tablas','conceptos','mes','datos','año_mes','fecha_planilla','casino','canon','COT','PAG'));
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    return $dompdf->stream("Devengado-Canon-$mes.pdf", Array('Attachment'=>0));
+  }
+  
   private function planillaInforme(string $planilla,string $tipo,string $sacar,int $id_canon){
     $datos = $this->obtener_para_salida($id_canon);
     $sacable = function($s) use ($sacar){
@@ -2196,5 +2260,108 @@ class CanonController extends Controller
     rewind($f);
         
     return stream_get_contents($f);
+  }
+  
+  public function totalesTest(Request $request){
+    $canon = DB::table('canon as c')
+    ->select('c.*','cas.nombre as casino')->distinct()
+    ->join('casino as cas','cas.id_casino','=','c.id_casino')
+    ->whereNull('c.deleted_at')
+    ->where('c.id_canon',$request->id_canon)
+    ->first();
+    
+    $ben_cv        = 'determinado_subtotal';//Con el impuesto restado
+    $ben_cfm       = 'bruto';
+    $ben_cfma      = '"0.00"';
+    $dev_bruto     = 'IF(devengar,devengado_total,"0.00")';
+    $dev_deduccion = 'IF(devengar,devengado_deduccion,"0.00")';
+    $dev           = "NULL";
+    $det           = 'determinado_total';
+            
+    $cv = DB::table('canon_variable')
+    ->select('tipo',
+      DB::raw('"CANON VARIABLE" as grupo'),
+      DB::raw('0 as adicional'),
+      DB::raw('IF(tipo LIKE "JOL","ONLINE","FÍSICO") as origen'),
+      DB::raw("$ben_cv as ben"),
+      DB::raw("$dev as dev"),
+      DB::raw("$dev_bruto as dev_bruto"),
+      DB::raw("$dev_deduccion as dev_deduccion"),
+      DB::raw("$det as det")
+    )
+    ->where('id_canon',$request->id_canon)
+    ->get();
+    
+    $cfm = DB::table('canon_fijo_mesas')
+    ->select('tipo',
+      DB::raw('"CANON FIJO" as grupo'),
+      DB::raw('0 as adicional'),
+      DB::raw('"FÍSICO" as origen'),
+      DB::raw("$ben_cfm as ben"),
+      DB::raw("$dev as dev"),
+      DB::raw("$dev_bruto as dev_bruto"),
+      DB::raw("$dev_deduccion as dev_deduccion"),
+      DB::raw("$det as det")
+    )
+    ->where('id_canon',$request->id_canon)
+    ->get();
+    
+    $cfma = DB::table('canon_fijo_mesas_adicionales')
+    ->select('tipo',
+      DB::raw('"CANON FIJO" as grupo'),
+      DB::raw('1 as adicional'),
+      DB::raw('"FÍSICO" as origen'),
+      DB::raw("$ben_cfma as ben"),
+      DB::raw("$dev as dev"),
+      DB::raw("$dev_bruto as dev_bruto"),
+      DB::raw("$dev_deduccion as dev_deduccion"),
+      DB::raw("$det as det")
+    )
+    ->where('id_canon',$request->id_canon)
+    ->get();
+    
+    $ret = $cv->merge($cfm)->merge($cfma);
+    
+    $attrs = ['ben' => 'redondeado_ben','dev' => 'redondeado_dev','dev_bruto' => 'redondeado_dev_bruto','dev_deduccion' => 'redondeado_dev_deduccion','det' => 'redondeado_det'];
+    
+    $ret = $ret->transform(function(&$t,$tidx) use (&$attrs){
+      $t->dev = bcsub($t->dev_bruto,$t->dev_deduccion,bcscale_string($t->dev_bruto));
+      foreach($attrs as $k => $rk){
+        $t->{$rk} = bcround_ndigits($t->{$k},2);
+      }
+      return $t;
+    });
+    
+    $sumar = function($carry,$item) use (&$attrs){
+      foreach($attrs as $k => $rk){
+        $cv = $carry->{$k} ?? '0';
+        $iv = $item->{$k};
+        $carry->{'sum_'.$k} = bcadd(
+          $cv,
+          $iv,
+          max(bcscale_string($cv),bcscale_string($iv))
+        );
+        $cv = $carry->{$rk} ?? '0';
+        $iv = $item->{$rk};
+        $carry->{'sum_'.$rk} = bcadd(
+          $cv,
+          $iv,
+          2
+        );
+      }
+      return $carry;
+    };
+    
+    $total = $ret->reduce($sumar,(object)[]);
+    $total_fisico = $ret->where('origen','FÍSICO')->reduce($sumar,(object)[]);
+    $total_canon_fijo = $ret->where('grupo','CANON FIJO')->reduce($sumar,(object)[]);
+    $total_canon_variable = $ret->where('grupo','CANON VARIABLE')->reduce($sumar,(object)[]);
+    
+    foreach($attrs as $k => $rk){
+      $total->{'redondeado_sum_'.$k} = bcround_ndigits($total->{'sum_'.$k},2);
+      $total->{'error_'.$k} = bcsub($total->{'redondeado_sum_'.$k},$total->{'sum_redondeado_'.$k},2);
+    }
+    
+    dump($ret,$total);//,$total_fisico,$total_canon_fijo,$total_canon_variable);
   }
 }

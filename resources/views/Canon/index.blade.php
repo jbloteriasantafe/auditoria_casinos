@@ -88,6 +88,13 @@
   #pant_canon [data-js-filtro-tabla] td button {
     padding: 0.3rem;/* @HACK: achivo los botones asi entran que son tantos -___- */
   }
+  
+  #pant_canon [data-content-popover][data-molde-popover] {
+    display: none;
+  }
+  #pant_canon [data-content-popover]:not([data-molde-popover]) {
+    display: flex;
+  }
 </style>
 <div id="pant_canon" hidden>
   @component('Components/FiltroTabla')
@@ -156,10 +163,20 @@
     @endslot
     
     @slot('molde')
-    <tr>
+    <tr data-table-id="id_canon">
       <td class="año_mes">AÑO MES</td>
       <td class="casino">CASINO</td>
       <td>
+        <div data-content-popover data-molde-popover style="flex-direction: column;">
+          <a href="/canon/planilla" target="_blank" title="DESCARGAR XLSX">.xlsx</a>
+          <a href="/canon/planillaPDF" target="_blank" title="REPORTE">Valores</a>
+          <a href="/canon/planillaDevengado" target="_blank" title="IMPRIMIR DEVENGADO">Devengado</a>
+          <a href="/canon/planillaDeterminado"  target="_blank" title="IMPRIMIR DETERMINADO">Determinado</a>
+          @if($es_superusuario)
+          <a href="/canon/planillaDeterminadoTest"  target="_blank" title="IMPRIMIR DETERMINADO">Determinado Test</a>
+          <a href="/canon/totalesTest"  target="_blank" title="IMPRIMIR DETERMINADO">TEST</a>
+          @endif
+        </div>
         <span class="estado">ESTADO</span>
         @if($puede_cargar)
         <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Pagado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Generado" a "Pagado"?' data-estado-visible="GENERADO" title="CONFIRMAR PAGO">
@@ -187,18 +204,17 @@
         <button class="btn" type="button" data-js-adjuntar="/canon/obtener" data-estado-visible="PAGADO" title="ADJUNTAR"><i class="fa fa-fw fa-paperclip"></i></button>
         <button class="btn" type="button" data-js-editar="/canon/obtener" data-estado-visible="GENERADO"  title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
         @endif
-        <button class="btn" type="button" data-js-abrir-pestaña="/canon/planilla" data-table-id="id_canon" title="DESCARGAR XLSX">.xlsx</button>
-        <button class="btn" type="button" data-js-abrir-pestaña="/canon/planillaPDF" data-table-id="id_canon" title="REPORTE"><i class="fa fa-table"></i></button>
-        <button class="btn" type="button" data-js-abrir-pestaña="/canon/planillaDevengado" data-table-id="id_canon" title="IMPRIMIR DEVENGADO"><i class="far fa-fw fa-file-alt"></i></button>
-        <button class="btn" type="button" data-js-abrir-pestaña="/canon/planillaDeterminado" data-table-id="id_canon" title="IMPRIMIR DETERMINADO"><i class="fa fa fa-print"></i></button>
+        <a tabindex="0" class="btn btn-info info" data-toggle="popover" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
+          <i class="fa fa-print"></i>
+        </a>
         @if($es_superusuario)
         <button data-mostrar-borrado class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
-        <button class="btn" type="button" data-js-borrar="/canon/borrar" data-table-id="id_canon" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
+        <button class="btn" type="button" data-js-borrar="/canon/borrar" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
         <button data-mostrar-borrado class="btn" type="button" data-js-cambiar-estado="/canon/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
           <i class="fa fa-backward"></i>
         </button>
         @else($puede_cargar)
-        <button class="btn" type="button" data-js-borrar="/canon/borrar" data-table-id="id_canon" title="BORRAR" data-estado-visible="GENERADO,PAGADO"><i class="fa fa-fw fa-trash-alt"></i></button>
+        <button class="btn" type="button" data-js-borrar="/canon/borrar" title="BORRAR" data-estado-visible="GENERADO,PAGADO"><i class="fa fa-fw fa-trash-alt"></i></button>
         @endif
       </td>
     </tr>
@@ -236,12 +252,12 @@
     @endslot
     
     @slot('molde')
-    <tr>
+    <tr data-table-id="id_canon_valor_por_defecto">
       <td class="campo">-CAMPO-</td>
       <td class="valor" data-js-jsoneditor>-VALOR-</td>
       <td>
         <button class="btn" type="button" data-js-guardar="/canon/valoresPorDefecto/ingresar" title="GUARDAR"><i class="fa fa-fw fa-check"></i></button>
-        <button class="btn" type="button" data-js-borrar="/canon/valoresPorDefecto/borrar" data-table-id="id_canon_valor_por_defecto" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
+        <button class="btn" type="button" data-js-borrar="/canon/valoresPorDefecto/borrar" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
       </td>
     </tr>
     @endslot

@@ -571,11 +571,21 @@ $(document).ready(function() {
         Object.keys(obj).forEach(function(k){
           fila.find('.'+k).text(obj[k]);
         });
-        const id_k = fila.find('[data-table-id]').attr('data-table-id');
+        
+        const id_k = fila.attr('data-table-id');
+        const id = obj[id_k];
+        
         fila.find('button')
-        .val(obj[id_k])
-        .filter(obj.deleted_at? 'button:not([data-mostrar-borrado])' : 'button[data-mostrar-borrado]')
+        .val(id)
+        .filter(obj.deleted_at? ':not([data-mostrar-borrado])' : '[data-mostrar-borrado]')
         .remove();
+        
+        fila.find('a[href]')
+        .each(function(_,obj){
+          const data = {};
+          data[id_k] = id;
+          $(obj).attr('href',$(obj).attr('href')+'?'+encodeQueryData(data));
+        });
         
         tbody.append(fila);
         
@@ -591,6 +601,9 @@ $(document).ready(function() {
             $fn_obj.text(formatter($fn_obj.text()));
           });
         }
+        
+        const popover_html = fila.find('[data-molde-popover]').clone().removeAttr('data-molde-popover')[0]?.outerHTML;
+        fila.find('[data-toggle="popover"]').attr('data-content',popover_html);
       });
       tbody.find('[data-js-borrar]').click(function(e){
         const tgt = $(e.currentTarget);
@@ -604,6 +617,7 @@ $(document).ready(function() {
           success: function(){pant.find('[data-js-filtro-tabla]').trigger('buscar');},
         }]);
       });
+      tbody.find('[data-toggle="popover"]').popover();
     });
     
     pant.find('[data-js-enviar]').click(function(e){
@@ -670,20 +684,6 @@ $(document).ready(function() {
   $('#pant_canon').on('click','[data-js-ver]',function(e){//@TODO: bindear derecho
     const tgt = $(e.currentTarget);
     $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-ver'),tgt.val(),'VER']);
-  });
-  
-  function encodeQueryData(data){
-    const ret = [];
-    for (let d in data)
-      ret.push(encodeURIComponent(d) + '=' + encodeURIComponent(data[d]));
-    return ret.join('&');
-  }
-  
-  $('#pant_canon').on('click','[data-js-abrir-pestaña]',function(e){//@TODO: bindear derecho
-    const tgt = $(e.currentTarget);
-    const data = {};
-    data[tgt.attr('data-table-id')] = tgt.val();
-    window.open(tgt.attr('data-js-abrir-pestaña')+'?'+encodeQueryData(data),'_blank');
   });
   
   $('#pant_canon').on('click','[data-js-cambiar-estado]',function(e){//@TODO: bindear derecho

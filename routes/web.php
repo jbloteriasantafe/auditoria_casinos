@@ -993,6 +993,8 @@ Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_c
   Route::get('/planillaPDF','\App\Http\Controllers\CanonController@planillaPDF');
   Route::get('/planillaDevengado','\App\Http\Controllers\CanonController@planillaDevengado');
   Route::get('/planillaDeterminado','\App\Http\Controllers\CanonController@planillaDeterminado');
+  Route::get('/planillaDeterminadoTest','\App\Http\Controllers\CanonController@planillaDeterminadoTest');
+  Route::get('/totalesTest','\App\Http\Controllers\CanonController@totalesTest');
   Route::get('/archivo','\App\Http\Controllers\CanonController@archivo');
   Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
     Route::get('/obtenerConHistorial','\App\Http\Controllers\CanonController@obtenerConHistorial');

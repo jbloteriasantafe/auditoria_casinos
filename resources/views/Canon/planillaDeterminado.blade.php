@@ -35,14 +35,195 @@ function ucwords_espacios($s){
   <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
 </head>
 <body>
-  <div class="encabezadoImg">
-    <img src="img/logos/banner_2024_landscape.png" width="900">
+  <div style="font-size: 10.5pt;line-height: 12pt;font-family: 'Liberation Serif';font-variant: small-caps;">
+    <p style="text-align: right;">
+      SANTA FE, “Cuna de la Constitución Nacional”, {{$fecha_planilla[3]}} {{$fecha_planilla[2]}} de {{$fecha_planilla[1]}} de {{$fecha_planilla[0]}}.
+    </p>
+    
+    <div style="padding-left: 63.63%;">
+      <span                           ><b>Ref: </b></span>Expte. Nro. XXXXX-XXXXXXX-X<br>
+      <span style="visibility: hidden"><b>Ref: </b></span>Canon  {{$año_mes[1]}} {{$año_mes[0]}}<br>
+      <span style="visibility: hidden"><b>Ref: </b></span>Casino de {{$casino->nombre}} S.A.
+    </div>
+    
+    <div style="font-weight: bold;font-size: 13pt;">
+      <?php
+        $espacios  = str_repeat('&nbsp;',21);
+        $espacios .= '/'.$espacios;
+        $datos_cas = $datos[$casino->nombre] ?? [];
+        $datos_cas = array_map(function(&$v){return $v[''] ?? '0';},$datos_cas);
+        $importe = function($k) use ($datos_cas){ return $datos_cas[$k] ?? '!ERROR!'; };
+        $ch_enum = function($offset){ return chr(ord('a')+$offset); };
+      ?>
+      <p>
+        Sr.<br>
+        Gustavo Rivera<br>
+        Director General<br>
+        de Casinos y Bingos<br>
+        <span><u>S{!! $espacios !!}D</u></span>
+      </p>
+    </div>
+    
+    <p style="text-indent: 27.27%;">
+      El presente informe se emite a raíz del pago del CANON del mes de Agosto de 2024, efectuado por el concesionario Casino de Rosario S.A., el cual venció el Martes 10-09-24.<br>
+    </p>
+    <p style="text-indent: 27.27%;">
+      En ese marco y en función del análisis efectuado se informa:
+    </p>
+    <ul>
+      <li>
+        <div style="font-weight: bold;">
+          <u>CANON FIJO:</u>
+          <br>
+          <p>Cotización Monedas de Cambio Comprador del día {{date_format(date_create($COT['determinado_fecha_cotizacion']),"d/m/y")}}:</p>
+          <p style="padding-left: 6.06%;">
+            Dólar: $ {{$COT['determinado_cotizacion_dolar']}}<br>
+            Euro: $ {{$COT['determinado_cotizacion_euro']}}
+          </p>
+        </div>
+        
+        @foreach($canon['canon_fijo_mesas'] as $cfmidx => $cfm)
+        <p style="padding-left: 6.06%;">
+          {{$ch_enum($cfmidx)}}) Canon Fijo Mesas de Paño:
+        </p>
+        <p>
+          <?php
+            $tipos_dias = [
+              '_viernes_sabados' => 'viernes y sábados',
+              '_domingos' => 'Domingos',
+              '_lunes_jueves' => 'de lunes a jueves',
+              '_todos' => 'en el mes',
+              '_fijos' => 'fijas'
+            ];
+            $tipos_dias = array_filter($tipos_dias,function($v,$k) use ($cfm){
+              return $cfm["mesas{$k}"] > 0;
+            },ARRAY_FILTER_USE_BOTH);
+          ?>
+          @foreach($tipos_dias as $k => $str)
+          <u>Cantidad de Días/Mesas Habilitadas {{$str}}:</u><b> {{$cfm["dias{$k}"]}} días / {{$cfm["mesas{$k}"]}} mesas.-</b>
+          <br>
+          @endforeach
+          <br>
+          <?php
+          $a_ingles = function(string $numero){
+            return str_replace(',','.',str_replace('.','',$numero));
+          };
+          $vd_dolar = $a_ingles($cfm['determinado_valor_dolar_diario_cotizado']);
+          $vd_euro  = $a_ingles($cfm['determinado_valor_euro_diario_cotizado']);
+          $valor_diario = bcadd($vd_dolar,$vd_euro,max(bcscale_string($vd_dolar),bcscale_string($vd_euro)));
+          $valor_diario = bcround_ndigits($valor_diario,2);
+          $valor_diario = App\Http\Controllers\CanonController::formatear_decimal($valor_diario);
+          ?>
+          
+          <b>Valor  diario/mesa 
+          <br>
+          = (U$S {{$cfm['valor_dolar']}} * tipo de cambio comprador al día anterior al pago +  € {{$cfm['valor_euro']}} * tipo de cambio comprador al día anterior al pago) / 30</b>
+          <br>
+          = (U$S {{$cfm['valor_dolar']}} * ${{$COT['determinado_cotizacion_dolar']}} + € {{$cfm['valor_euro']}} * ${{$COT['determinado_cotizacion_dolar']}}) / 30 = $ {{$valor_diario}}
+          <br><br>
+          
+          <b>Total canon mensual
+          <br>
+          = 
+          @foreach($tipos_dias as $k => $str)
+          {{$loop->first? '' : '+'}} diario/mesa *  cant. Días * {{$cfm["mesas$k"]}} mesas
+          @endforeach
+          </b>
+          <br>
+          = 
+          @foreach($tipos_dias as $k => $str)
+          {{$loop->first? '' : '+'}} ${{$valor_diario}} * {{$cfm["dias{$k}"]}} * {{$cfm["mesas{$k}"]}}
+          @endforeach
+        </p>
+        <br>
+        <p style="font-weight: bold;text-align: right;">
+          Valor Canon Fijo Mesas habilitadas - $ XXXXXXXXXXXXX.-
+        </p>
+        @endforeach
+        
+        <?php $rel_cfma_idx = 0; ?>
+        @foreach($canon['canon_fijo_mesas_adicionales'] as $cfmaidx => $cfma)
+        @continue($cfma['horas'] == '0')
+        <p style="padding-left: 6.06%;">
+          {{$ch_enum(count($canon['canon_fijo_mesas'])+($rel_cfma_idx++))}}) Canon Fijo {{$cfma['tipo']}}:
+        </p>
+        <p>
+          <b>Total horas/Mesas Torneos 
+          <br>
+          = Valor Diario por mesa / {{$cfma['horas_dia']}} Horas  * Horas/Mesas Utilizadas</b>
+          <br>
+          = $ {{$cfma['determinado_valor_dia']}} / {{$cfma['horas_dia']}} * {{$cfma['horas']}} horas/mesas
+        </p>
+        <br>
+        <p style="font-weight: bold;text-align: right;">
+          Valor Canon Fijo Torneos de Póker - $ XXXXXXXXXXX
+        </p>
+        @endforeach
+        
+        <br>
+        <p style="font-weight: bold;text-align: right;">
+          TOTAL CANON FIJO MESAS HABILITADAS - $ {{$importe('Paños')}}.-
+        </p>
+      </li>
+      <li>
+        <div style="font-weight: bold;">
+          <u>CANON VARIABLE:</u>
+        </div>
+        <?php
+          $CVnombres = [
+            'maquinas' => 'Máquinas Tragamonedas',
+            'JOL' => 'Juegos On Line',
+            'bingo' => 'Bingo'
+          ];
+          $CVnombres2 = [
+            'maquinas' => 'MTM',
+            'JOL' => 'ON LINE',
+          ];
+          $tipo_a_total = [
+            'Maquinas' => 'MTM',
+          ];
+        ?>
+        @foreach($canon['canon_variable'] as $cvidx => $cv)
+        <?php
+          $tipo = $cv['tipo'] ?? '!ERROR!';
+          $n1 = $CVnombres[$tipo] ?? $tipo;
+          $n2 = strtoupper($CVnombres2[$tipo] ?? $tipo);
+          $t = $tipo_a_total[$tipo] ?? $tipo;
+        ?>
+        <p style="padding-left: 6.06%;">
+          {{$ch_enum($cvidx)}}) {{$n1}}:
+        </p>
+        <p>
+          <b>Valor Canon Variable {{$n2}}<br>
+          = [(Valor Resultado Bruto En Pesos + Valor Resultado Bruto En Dólares convertido a pesos) – (1º y 2º quincena Impuesto s/ Ley 27.346 aplicación RG 4036-E de AFIP)]  * Alícuota Aplicable</b><br>
+          = $ 5.556.935.935,50 ($.5.464.460.653,16+ $.92.475.282,34) - $ 173.504.144,35 ($82.191.860,56 + $91.312.283,79) * 20,56 % = $ 5.383.431.791,15 * 20,56 %
+        </p>
+        <br>
+        <p style="font-weight: bold;text-align: right;">
+          Valor Canon Variable {{$n2}} – $ {{$importe($t)}}
+        </p>
+        @endforeach
+        
+        <br>
+        <p style="font-weight: bold;text-align: right;">
+          VALOR TOTAL CANON VARIABLE - $ 1.627.524.542,57
+        </p>
+      </li>
+    </ul>
+    
+    <br>
+    <p style="font-weight: bold;text-align: right;">
+      TOTAL CANON DETERMINADO MES DE AGOSTO 2024 - $ 1.876.459.737,09
+    </p>
+    
+    <p>
+      Por lo expuesto en el presente informe, se debería imputar como pago del canon del mes de Agosto 2024 al Casino Rosario S.A. las siguientes sumas:<br>
+      * $  1.360.040.713,03 como pago del canon casino físico.<br>
+      * $  516.419.024,06 como pago del canon casino on line.<br>
+      <br>
+      A los fines que estime corresponder, elévese.-	
+    </p>
   </div>
-  <div class="camposTab titulo" style="top: 22px; left: 22px;">Canon ({{ucwords_espacios($tipo)}})</div>
-  <div class="camposTab titulo" style="top: -15px; right:-15px;">FECHA PLANILLA</div>
-  <div class="camposInfo" style="top: 0px; right:0px;"></span><?php $hoy = date('j-m-y / h:i');print_r($hoy); ?></div>
-  
-  <p>El presente informe se emite a ráis del pago del CANON del mes de {{$mes ?? '--MES--'}} de {{$año ?? '--AÑO--'}}, efectuado por el consecionario Casino de {{$casino ?? '--CASINO--'}}, el cual vencio el {{$dia_semanal_vencimiento ?? '--DIA-VENCIMIENTO--'}} {{$fecha_vencimiento ?? '--FECHA-VENCIMIENTO--'}}</p>
 </body>
 
 </html>
