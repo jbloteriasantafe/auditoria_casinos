@@ -2262,7 +2262,11 @@ class CanonController extends Controller
     return stream_get_contents($f);
   }
   
-  public function totalesTest($request){    
+  public function totalesTest(Request $request){
+    return $this->totalesTest_dyn($request);
+  }
+  
+  private function totalesTest_dyn($request){    
     $ben_cv        = 'determinado_subtotal';//Con el impuesto restado
     $ben_cfm       = 'bruto';
     $ben_cfma      = '"0.00"';
