@@ -2357,11 +2357,15 @@ class CanonController extends Controller
     $total_canon_fijo = $ret->where('grupo','CANON FIJO')->reduce($sumar,(object)[]);
     $total_canon_variable = $ret->where('grupo','CANON VARIABLE')->reduce($sumar,(object)[]);
     
-    foreach($attrs as $k => $rk){
-      $total->{'redondeado_sum_'.$k} = bcround_ndigits($total->{'sum_'.$k},2);
-      $total->{'error_'.$k} = bcsub($total->{'redondeado_sum_'.$k},$total->{'sum_redondeado_'.$k},2);
+    $totales = compact('total','total_fisico','total_canon_fijo','total_canon_variable');
+    
+    foreach($totales as $tk => $tot){
+      foreach($attrs as $k => $rk){
+        $tot->{'redondeado_sum_'.$k} = bcround_ndigits($tot->{'sum_'.$k},2);
+        $tot->{'error_'.$k} = bcsub($tot->{'redondeado_sum_'.$k},$tot->{'sum_redondeado_'.$k},2);
+      }
     }
     
-    dump($ret,$total);//,$total_fisico,$total_canon_fijo,$total_canon_variable);
+    return ['detalles' => $ret,'totales' => $totales];
   }
 }
