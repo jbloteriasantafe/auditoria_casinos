@@ -2262,14 +2262,7 @@ class CanonController extends Controller
     return stream_get_contents($f);
   }
   
-  public function totalesTest(Request $request){
-    $canon = DB::table('canon as c')
-    ->select('c.*','cas.nombre as casino')->distinct()
-    ->join('casino as cas','cas.id_casino','=','c.id_casino')
-    ->whereNull('c.deleted_at')
-    ->where('c.id_canon',$request->id_canon)
-    ->first();
-    
+  public function totalesTest($request){    
     $ben_cv        = 'determinado_subtotal';//Con el impuesto restado
     $ben_cfm       = 'bruto';
     $ben_cfma      = '"0.00"';
@@ -2329,6 +2322,7 @@ class CanonController extends Controller
       foreach($attrs as $k => $rk){
         $t->{$rk} = bcround_ndigits($t->{$k},2);
       }
+      $t->error_dev = bcsub($t->redondeado_dev,bcsub($t->redondeado_dev_bruto,$t->redondeado_dev_deduccion,2),2);
       return $t;
     });
     

@@ -258,47 +258,6 @@ class BackOfficeController extends Controller {
       'totales_mensuales_por_moneda' => $this->vista_totales(true,true),
       'totales_diarios'   => $this->vista_totales(false,false),
       'totales_mensuales' => $this->vista_totales(true,false),
-      'canon' => [
-        'cols' => [
-          ['DATE_FORMAT(c.año_mes,"%Y-%m")','periodo','string','input_date_month',[null,null]],
-          ['cas.nombre','casino','string','select',[0],$this->selectCasinoVals('canon')],
-          ['NULL','dev_MTM','numeric'],//agregados en postprocess
-          ['NULL','dev_paños','numeric'],
-          ['NULL','dev_bingo','numeric'],
-          ['NULL','dev_JOL','numeric'],
-          ['NULL','devengado','numeric'],
-          ['NULL','det_MTM','numeric'],
-          ['NULL','det_paños','numeric'],
-          ['NULL','det_bingo','numeric'],
-          ['NULL','det_JOL','numeric'],
-          ['NULL','determinado','numeric'],
-          ['(
-              c.cargos_adicionales
-              +(
-                SELECT SUM(mora_provincial)+SUM(mora_nacional)
-                FROM canon_pago as cp
-                WHERE cp.id_canon = c.id_canon
-                GROUP BY "constant"
-                LIMIT 1
-              )
-            )',
-            'intereses',
-            'numeric'
-          ],
-          ['c.pago','pago','numeric'],
-          ['c.saldo_posterior','saldo_posterior','numeric'],
-        ],
-        'indirect_where' => [
-          'casino' => 'c.id_casino',
-          'periodo' => 'c.año_mes',
-        ],
-        'query' => DB::table('canon as c')
-        ->join('casino as cas','cas.id_casino','=','c.id_casino')
-        ->whereNull('c.deleted_at'),
-        'default_order_by' => [
-          'c.año_mes' => 'desc'
-        ],
-      ],
     ];
   }
   
@@ -602,37 +561,7 @@ class BackOfficeController extends Controller {
     ];
   }
   
-  private function postprocess($vista,$row,$col,$val){
-    static $canons = null;
-    if($vista == 'canon'){
-      $cols_procesar = [
-        'dev_MTM' => ['MTM','devengado'],
-        'dev_paños' => ['Paños','devengado'],
-        'dev_bingo' => ['Bingo','devengado'],
-        'dev_JOL' => ['JOL','devengado'],
-        'devengado' => ['Total','devengado'],
-        'det_MTM' => ['MTM','determinado'],
-        'det_paños' => ['Paños','determinado'],
-        'det_bingo' => ['Bingo','determinado'],
-        'det_JOL' => ['JOL','determinado'],
-        'determinado' => ['Total','determinado'],
-      ];
-      
-      if(array_key_exists($col,$cols_procesar)){
-        $canons = $canons ?? [];
-        
-        if(!in_array($row->periodo,$canons)){
-          $año_mes  = explode('-',$row->periodo);
-          $canons[$row->periodo] = CanonController::getInstancia()->totalesCanon($año_mes[0],$año_mes[1]);
-        }
-        
-        $dataCasino = $canons[$row->periodo][$row->casino] ?? [];
-        $ks = $cols_procesar[$col];
-        $dataTipo = $dataCasino[$ks[0]] ?? [];
-        return $dataTipo[$ks[1]] ?? null;
-      } 
-    }
-    
+  private function postprocess($vista,$row,$col,$val){    
     $col = collect($this->vistas[$vista]['cols'])->where(BO_ALIAS,$col)->first();
     $tipo = $col[BO_TIPO] ?? null;
     if(!is_null($col) && $tipo == 'input_vals_list'){
