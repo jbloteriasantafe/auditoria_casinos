@@ -12,6 +12,10 @@ function bcscale_string(string $n){
   return strlen(explode('.',$n)[1] ?? '');
 }
 
+function bcadd_precise(string $n1,string $n2){
+  return bcadd($n1,$n2,max(bcscale_string($n1),bcscale_string($n2)));
+}
+
 function bcsign(string $n){
   $n = bcadd($n,'0',bcscale_string($n));//Limpia "-0"
   

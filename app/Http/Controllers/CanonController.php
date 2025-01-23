@@ -2318,52 +2318,125 @@ class CanonController extends Controller
     ->get();
     
     $ret = $cv->merge($cfm)->merge($cfma);
-    
-    $attrs = ['ben' => 'redondeado_ben','dev' => 'redondeado_dev','dev_bruto' => 'redondeado_dev_bruto','dev_deduccion' => 'redondeado_dev_deduccion','det' => 'redondeado_det'];
-    
-    $ret = $ret->transform(function(&$t,$tidx) use (&$attrs){
-      $t->dev = bcsub($t->dev_bruto,$t->dev_deduccion,bcscale_string($t->dev_bruto));
-      foreach($attrs as $k => $rk){
-        $t->{$rk} = bcround_ndigits($t->{$k},2);
-      }
-      $t->error_dev = bcsub($t->redondeado_dev,bcsub($t->redondeado_dev_bruto,$t->redondeado_dev_deduccion,2),2);
-      return $t;
+        
+    $ret->transform(function(&$t,$tidx) use (&$attrs){
+      $obj = new \stdClass();
+      $obj->ben = (object)[
+        'exacto' => $t->ben,
+        'redondeado' => bcround_ndigits($t->ben,2),
+      ];
+      $obj->dev_bruto = (object)[
+        'exacto' => $t->dev_bruto,
+        'redondeado' => bcround_ndigits($t->dev_bruto,2),
+      ];
+      $obj->dev_deduccion = (object)[
+        'exacto' => $t->ben,
+        'redondeado' => bcround_ndigits($t->dev_deduccion,2),
+      ];
+      
+      $dev_exacto = bcsub($t->dev_bruto,$t->dev_deduccion,bcscale_string($t->dev_bruto));
+      $dev_preredondeado = bcsub($obj->dev_bruto->redondeado,$obj->dev_deduccion->redondeado,2);
+      $dev_exacto_redondeado = bcround_ndigits($dev_exacto,2);
+      $obj->dev = (object)[
+        'exacto' => $dev_exacto,
+        'preredondeado' => $dev_preredondeado,
+        'posredondeado' => $dev_exacto_redondeado,
+        'error_pos_pre' => bcsub($dev_exacto_redondeado,$dev_preredondeado,2)
+      ];
+      
+      $obj->det = (object)[
+        'exacto' => $t->det,
+        'redondeado' => bcround_ndigits($t->det,2),
+      ];
+      return $obj;
     });
     
-    $sumar = function($carry,$item) use (&$attrs){
-      foreach($attrs as $k => $rk){
-        $cv = $carry->{'sum_'.$k} ?? '0';
-        $iv = $item->{$k};
-        $carry->{'sum_'.$k} = bcadd(
-          $cv,
-          $iv,
-          max(bcscale_string($cv),bcscale_string($iv))
+    
+    $sumar = function($items){
+      $init_carry = (object)[
+        'ben' => (object)[],
+        'dev_bruto' => (object)[],
+        'dev_deduccion' => (object)[],
+        'dev' => (object)[
+          'exacto' => '0',//SUM(bruto - ded)
+          'preredondeado' => '0',//SUM (|bruto| - |ded|) = SUM |bruto| - SUM |ded|
+          'posredondeado' => '0',//SUM |bruto-ded|
+          'error_pos_pre' => '0',//SUM(|bruto-ded|-(|bruto|-|ded|))
+          'posposredondeado' => null,//|SUM bruto-ded|
+          'error_pospos_pos' => null,//|SUM bruto-ded|-SUM |bruto-ded|
+          'error_pospos_pre' => null,//No hace falta calcularlo porque es la suma... lo hago igual...
+          //error_pospos_pre = |SUM bruto-ded| - SUM(|bruto|-|ded|)
+          //error_pospos_pre = |SUM bruto-ded| - SUM |bruto-ded| + SUM |bruto-ded|-SUM(|bruto|-|ded|)
+          //error_pospos_pre =         error_pospos_pos          + SUM (|bruto-ded|-(|bruto|-|ded|))
+          //error_pospos_pre =         error_pospos_pos          + error_pos_pre
+        ],
+        'det' => (object)[],
+      ];
+      
+      $simples = ['ben','dev_bruto','dev_deduccion','det'];
+      $T = $items->reduce(function($carry,$item) use ($simples){
+        foreach($simples as $k){
+          $carry->{$k}->exacto = bcadd_precise(
+            $item->{$k}->exacto,
+            $carry->{$k}->exacto ?? '0'
+          );
+          $carry->{$k}->preredondeado = bcadd(
+            $item->{$k}->redondeado,
+            $carry->{$k}->preredondeado ?? '0',
+            2
+          );
+          $carry->{$k}->posredondeado = null;//Completar sumado todo
+          $carry->{$k}->error_pos_pre = null;//Completar sumado todo
+        }
+                
+        $carry->dev->exacto = bcadd_precise(
+          $item->dev->exacto,
+          $carry->dev->exacto
         );
-        $cv = $carry->{'sum_'.$rk} ?? '0';
-        $iv = $item->{$rk};
-        $carry->{'sum_'.$rk} = bcadd(
-          $cv,
-          $iv,
+        $carry->dev->preredondeado = bcadd(
+          $item->dev->preredondeado,
+          $carry->dev->preredondeado,
           2
         );
+        $carry->dev->posredondeado = bcadd(
+          $item->dev->posredondeado,
+          $carry->dev->posredondeado,
+          2
+        );
+        $carry->dev->error_pos_pre = bcadd(
+          $item->dev->error_pos_pre,
+          $carry->dev->error_pos_pre,
+          2
+        );
+        
+        return $carry;
+      },clone $init_carry);
+ 
+      foreach($simples as $k){
+        $T->{$k}->exacto = $T->{$k}->exacto ?? '0';
+        $T->{$k}->preredondeado = $T->{$k}->preredondeado ?? '0';
+        $T->{$k}->posredondeado = bcround_ndigits($T->{$k}->exacto,2);
+        $T->{$k}->error_pos_pre = bcsub($T->{$k}->posredondeado,$T->{$k}->preredondeado,2);
       }
-      return $carry;
+      
+      $T->dev->posposredondeado = bcround_ndigits($T->dev->exacto,2);
+      $T->dev->error_pospos_pos = bcsub($T->dev->posposredondeado,$T->dev->posredondeado,2);
+      $T->dev->error_pospos_pre = bcsub($T->dev->posposredondeado,$T->dev->preredondeado,2);
+      
+      return $T;
     };
     
-    $total = $ret->reduce($sumar,(object)[]);
-    $total_fisico = $ret->where('origen','FÍSICO')->reduce($sumar,(object)[]);
-    $total_canon_fijo = $ret->where('grupo','CANON FIJO')->reduce($sumar,(object)[]);
-    $total_canon_variable = $ret->where('grupo','CANON VARIABLE')->reduce($sumar,(object)[]);
+    $total = $sumar($ret);
+    $total_fisico = $sumar($ret->where('origen','FÍSICO'));
+    $total_canon_fijo = $sumar($ret->where('grupo','CANON FIJO'));
+    $total_canon_variable = $sumar($ret->where('grupo','CANON VARIABLE'));
     
-    $totales = compact('total','total_fisico','total_canon_fijo','total_canon_variable');
-    
-    foreach($totales as $tk => $tot){
-      foreach($attrs as $k => $rk){
-        $tot->{'redondeado_sum_'.$k} = bcround_ndigits($tot->{'sum_'.$k},2);
-        $tot->{'error_'.$k} = bcsub($tot->{'redondeado_sum_'.$k},$tot->{'sum_redondeado_'.$k},2);
-      }
-    }
-    
-    return ['detalles' => $ret,'totales' => $totales];
+    return [ 
+      'detalles' => $ret,
+      'total' => $total,
+      'total_fisico' => $total_fisico,
+      'total_canon_fijo' => $total_canon_fijo,
+      'total_canon_variable' => $total_canon_variable,
+    ];
   }
 }
