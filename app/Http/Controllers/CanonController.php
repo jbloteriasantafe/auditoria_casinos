@@ -2334,14 +2334,14 @@ class CanonController extends Controller
     
     $sumar = function($carry,$item) use (&$attrs){
       foreach($attrs as $k => $rk){
-        $cv = $carry->{$k} ?? '0';
+        $cv = $carry->{'sum_'.$k} ?? '0';
         $iv = $item->{$k};
         $carry->{'sum_'.$k} = bcadd(
           $cv,
           $iv,
           max(bcscale_string($cv),bcscale_string($iv))
         );
-        $cv = $carry->{$rk} ?? '0';
+        $cv = $carry->{'sum_'.$rk} ?? '0';
         $iv = $item->{$rk};
         $carry->{'sum_'.$rk} = bcadd(
           $cv,
