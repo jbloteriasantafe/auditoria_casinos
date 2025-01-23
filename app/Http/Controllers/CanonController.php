@@ -2292,7 +2292,6 @@ class CanonController extends Controller
     $cfm = DB::table('canon_fijo_mesas')
     ->select('tipo',
       DB::raw('"CANON FIJO" as grupo'),
-      DB::raw('0 as adicional'),
       DB::raw('"FÍSICO" as origen'),
       DB::raw("$ben_cfm as ben"),
       DB::raw("$dev as dev"),
@@ -2305,8 +2304,7 @@ class CanonController extends Controller
     
     $cfma = DB::table('canon_fijo_mesas_adicionales')
     ->select('tipo',
-      DB::raw('"CANON FIJO" as grupo'),
-      DB::raw('1 as adicional'),
+      DB::raw('"CANON FIJO ADICIONAL" as grupo'),
       DB::raw('"FÍSICO" as origen'),
       DB::raw("$ben_cfma as ben"),
       DB::raw("$dev as dev"),
@@ -2321,6 +2319,9 @@ class CanonController extends Controller
         
     $ret->transform(function(&$t,$tidx) use (&$attrs){
       $obj = new \stdClass();
+      $obj->tipo = $t->tipo;
+      $obj->grupo = $t->grupo;
+      $obj->origen = $t->origen;
       $obj->ben = (object)[
         'exacto' => $t->ben,
         'redondeado' => bcround_ndigits($t->ben,2),
@@ -2428,7 +2429,7 @@ class CanonController extends Controller
     
     $total = $sumar($ret);
     $total_fisico = $sumar($ret->where('origen','FÍSICO'));
-    $total_canon_fijo = $sumar($ret->where('grupo','CANON FIJO'));
+    $total_canon_fijo = $sumar($ret->whereIn('grupo',['CANON FIJO','CANON FIJO ADICIONAL']));
     $total_canon_variable = $sumar($ret->where('grupo','CANON VARIABLE'));
     
     return [ 
