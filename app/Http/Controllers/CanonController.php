@@ -1315,9 +1315,6 @@ class CanonController extends Controller
     if(isset($request->id_casino)){
       $reglas[] = ['c.id_casino','=',$request->id_casino];
     }
-    if(isset($request->es_antiguo)){
-      $reglas[] = ['c.es_antiguo','=',$request->es_antiguo];
-    }
     
     $desde = '1970-01-01';
     $hasta = date('Y-m-d');
@@ -1342,6 +1339,7 @@ class CanonController extends Controller
     
     $ret = DB::table('canon as c')
     ->select('c.id_canon','c.deleted_at',
+      DB::raw('IF(c.es_antiguo,"ANT","") as antiguo'),
       DB::raw('DATE_FORMAT(c.año_mes,"%Y-%m") as año_mes'),
       'cas.nombre as casino','c.estado','c.devengado','c.determinado',
       DB::raw('(

@@ -137,14 +137,6 @@
         @endcomponent
       </div>
     </div>
-    <div class="col-md-4">
-      <h5>ANTIGUO</h5>
-      <select class="form-control" name="es_antiguo">
-        <option value='' selected>- TODOS -</option>
-        <option value='0'>NO</option>
-        <option value='1'>SI</option>
-      </select>
-    </div>
     @if($es_superusuario)
     <div class="col-md-4">
       <h5>ELIMINADOS</h5>
@@ -175,7 +167,7 @@
       <td class="año_mes">AÑO MES</td>
       <td class="casino">CASINO</td>
       <td>
-        <div data-content-popover data-molde-popover style="flex-direction: column;">
+        <div data-content-popover data-molde-popover style="flex-direction: column;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
           <a href="/canon/planillaPDF" target="_blank" title="REPORTE">Valores</a>
           <a href="/canon/planillaDevengado" target="_blank" title="IMPRIMIR DEVENGADO">Devengado</a>
           <a href="/canon/planillaDeterminado"  target="_blank" title="IMPRIMIR DETERMINADO">Determinado</a>
@@ -185,6 +177,7 @@
           <a href="/canon/totalesTest"  target="_blank" title="IMPRIMIR DETERMINADO">TEST</a>
           @endif
         </div>
+        <span style="color: blue;font-weight: bold;font-size: 0.8em;padding-right: 0.1em;"><sup class="antiguo">XXX</sup></span>
         <span class="estado">ESTADO</span>
         @if($puede_cargar)
         <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Pagado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Generado" a "Pagado"?' data-estado-visible="GENERADO" title="CONFIRMAR PAGO">
