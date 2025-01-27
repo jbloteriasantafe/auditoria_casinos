@@ -168,11 +168,11 @@
       <td class="casino">CASINO</td>
       <td>
         <div data-content-popover data-molde-popover style="flex-direction: column;">
-          <a href="/canon/planilla" target="_blank" title="DESCARGAR XLSX">.xlsx</a>
           <a href="/canon/planillaPDF" target="_blank" title="REPORTE">Valores</a>
           <a href="/canon/planillaDevengado" target="_blank" title="IMPRIMIR DEVENGADO">Devengado</a>
           <a href="/canon/planillaDeterminado"  target="_blank" title="IMPRIMIR DETERMINADO">Determinado</a>
           @if($es_superusuario)
+          <a href="/canon/planilla" target="_blank" title="DESCARGAR XLSX">.xlsx</a>
           <a href="/canon/planillaDeterminadoTest"  target="_blank" title="IMPRIMIR DETERMINADO">Determinado Test</a>
           <a href="/canon/totalesTest"  target="_blank" title="IMPRIMIR DETERMINADO">TEST</a>
           @endif
