@@ -2214,7 +2214,20 @@ class CanonController extends Controller
   
   public function descargar(Request $request){
     $data = $this->buscar($request,false);
+    /*
+    $tipo_valores = [
+      'beneficio','devengado_bruto','devengado_deduccion','devengado','determinado'
+    ];
     
+    foreach($data as $d){
+      $tots = $this->totalesTest_dyn($d);
+      $fila = [
+        'año_mes' => $d->año_mes,
+        'casino'  => $d->casino,
+      ];
+      
+      
+    }*/
     $conceptos = [
       'MTM','Bingo','JOL','Paños'
     ];
@@ -2280,11 +2293,11 @@ class CanonController extends Controller
       DB::raw('"CANON VARIABLE" as grupo'),
       DB::raw('0 as adicional'),
       DB::raw('IF(tipo LIKE "JOL","ONLINE","FÍSICO") as origen'),
-      DB::raw("$ben_cv as ben"),
-      DB::raw("$dev as dev"),
-      DB::raw("$dev_bruto as dev_bruto"),
-      DB::raw("$dev_deduccion as dev_deduccion"),
-      DB::raw("$det as det")
+      DB::raw("$ben_cv as beneficio"),
+      DB::raw("$dev as devengado"),
+      DB::raw("$dev_bruto as devengado_bruto"),
+      DB::raw("$dev_deduccion as devengado_deduccion"),
+      DB::raw("$det as determinado")
     )
     ->where('id_canon',$request->id_canon)
     ->get();
@@ -2293,11 +2306,11 @@ class CanonController extends Controller
     ->select('tipo',
       DB::raw('"CANON FIJO" as grupo'),
       DB::raw('"FÍSICO" as origen'),
-      DB::raw("$ben_cfm as ben"),
-      DB::raw("$dev as dev"),
-      DB::raw("$dev_bruto as dev_bruto"),
-      DB::raw("$dev_deduccion as dev_deduccion"),
-      DB::raw("$det as det")
+      DB::raw("$ben_cfm as beneficio"),
+      DB::raw("$dev as devengado"),
+      DB::raw("$dev_bruto as devengado_bruto"),
+      DB::raw("$dev_deduccion as devengado_deduccion"),
+      DB::raw("$det as determinado")
     )
     ->where('id_canon',$request->id_canon)
     ->get();
@@ -2306,11 +2319,11 @@ class CanonController extends Controller
     ->select('tipo',
       DB::raw('"CANON FIJO ADICIONAL" as grupo'),
       DB::raw('"FÍSICO" as origen'),
-      DB::raw("$ben_cfma as ben"),
-      DB::raw("$dev as dev"),
-      DB::raw("$dev_bruto as dev_bruto"),
-      DB::raw("$dev_deduccion as dev_deduccion"),
-      DB::raw("$det as det")
+      DB::raw("$ben_cfma as beneficio"),
+      DB::raw("$dev as devengado"),
+      DB::raw("$dev_bruto as devengado_bruto"),
+      DB::raw("$dev_deduccion as devengado_deduccion"),
+      DB::raw("$det as determinado")
     )
     ->where('id_canon',$request->id_canon)
     ->get();
@@ -2322,32 +2335,32 @@ class CanonController extends Controller
       $obj->tipo = $t->tipo;
       $obj->grupo = $t->grupo;
       $obj->origen = $t->origen;
-      $obj->ben = (object)[
-        'exacto' => $t->ben,
-        'redondeado' => bcround_ndigits($t->ben,2),
+      $obj->beneficio = (object)[
+        'exacto' => $t->beneficio,
+        'redondeado' => bcround_ndigits($t->beneficio,2),
       ];
-      $obj->dev_bruto = (object)[
-        'exacto' => $t->dev_bruto,
-        'redondeado' => bcround_ndigits($t->dev_bruto,2),
+      $obj->devengado_bruto = (object)[
+        'exacto' => $t->devengado_bruto,
+        'redondeado' => bcround_ndigits($t->devengado_bruto,2),
       ];
-      $obj->dev_deduccion = (object)[
-        'exacto' => $t->ben,
-        'redondeado' => bcround_ndigits($t->dev_deduccion,2),
+      $obj->devengado_deduccion = (object)[
+        'exacto' => $t->devengado_deduccion,
+        'redondeado' => bcround_ndigits($t->devengado_deduccion,2),
       ];
       
-      $dev_exacto = bcsub($t->dev_bruto,$t->dev_deduccion,bcscale_string($t->dev_bruto));
-      $dev_preredondeado = bcsub($obj->dev_bruto->redondeado,$obj->dev_deduccion->redondeado,2);
+      $dev_exacto = bcsub($t->devengado_bruto,$t->devengado_deduccion,bcscale_string($t->devengado_bruto));
+      $dev_preredondeado = bcsub($obj->devengado_bruto->redondeado,$obj->devengado_bruto->redondeado,2);
       $dev_exacto_redondeado = bcround_ndigits($dev_exacto,2);
-      $obj->dev = (object)[
+      $obj->devengado = (object)[
         'exacto' => $dev_exacto,
         'preredondeado' => $dev_preredondeado,
         'posredondeado' => $dev_exacto_redondeado,
         'error_pos_pre' => bcsub($dev_exacto_redondeado,$dev_preredondeado,2)
       ];
       
-      $obj->det = (object)[
-        'exacto' => $t->det,
-        'redondeado' => bcround_ndigits($t->det,2),
+      $obj->determinado = (object)[
+        'exacto' => $t->determinado,
+        'redondeado' => bcround_ndigits($t->determinado,2),
       ];
       return $obj;
     });
@@ -2355,10 +2368,10 @@ class CanonController extends Controller
     
     $sumar = function($items){
       $init_carry = (object)[
-        'ben' => (object)[],
-        'dev_bruto' => (object)[],
-        'dev_deduccion' => (object)[],
-        'dev' => (object)[
+        'beneficio' => (object)[],
+        'devengado_bruto' => (object)[],
+        'devengado_deduccion' => (object)[],
+        'devengado' => (object)[
           'exacto' => '0',//SUM(bruto - ded)
           'preredondeado' => '0',//SUM (|bruto| - |ded|) = SUM |bruto| - SUM |ded|
           'posredondeado' => '0',//SUM |bruto-ded|
@@ -2371,10 +2384,10 @@ class CanonController extends Controller
           //error_pospos_pre =         error_pospos_pos          + SUM (|bruto-ded|-(|bruto|-|ded|))
           //error_pospos_pre =         error_pospos_pos          + error_pos_pre
         ],
-        'det' => (object)[],
+        'determinado' => (object)[],
       ];
       
-      $simples = ['ben','dev_bruto','dev_deduccion','det'];
+      $simples = ['beneficio','devengado_bruto','devengado_deduccion','determinado'];
       $T = $items->reduce(function($carry,$item) use ($simples){
         foreach($simples as $k){
           $carry->{$k}->exacto = bcadd_precise(
@@ -2390,23 +2403,23 @@ class CanonController extends Controller
           $carry->{$k}->error_pos_pre = null;//Completar sumado todo
         }
                 
-        $carry->dev->exacto = bcadd_precise(
-          $item->dev->exacto,
-          $carry->dev->exacto
+        $carry->devengado->exacto = bcadd_precise(
+          $item->devengado->exacto,
+          $carry->devengado->exacto
         );
-        $carry->dev->preredondeado = bcadd(
-          $item->dev->preredondeado,
-          $carry->dev->preredondeado,
+        $carry->devengado->preredondeado = bcadd(
+          $item->devengado->preredondeado,
+          $carry->devengado->preredondeado,
           2
         );
-        $carry->dev->posredondeado = bcadd(
-          $item->dev->posredondeado,
-          $carry->dev->posredondeado,
+        $carry->devengado->posredondeado = bcadd(
+          $item->devengado->posredondeado,
+          $carry->devengado->posredondeado,
           2
         );
-        $carry->dev->error_pos_pre = bcadd(
-          $item->dev->error_pos_pre,
-          $carry->dev->error_pos_pre,
+        $carry->devengado->error_pos_pre = bcadd(
+          $item->devengado->error_pos_pre,
+          $carry->devengado->error_pos_pre,
           2
         );
         
@@ -2420,9 +2433,9 @@ class CanonController extends Controller
         $T->{$k}->error_pos_pre = bcsub($T->{$k}->posredondeado,$T->{$k}->preredondeado,2);
       }
       
-      $T->dev->posposredondeado = bcround_ndigits($T->dev->exacto,2);
-      $T->dev->error_pospos_pos = bcsub($T->dev->posposredondeado,$T->dev->posredondeado,2);
-      $T->dev->error_pospos_pre = bcsub($T->dev->posposredondeado,$T->dev->preredondeado,2);
+      $T->devengado->posposredondeado = bcround_ndigits($T->devengado->exacto,2);
+      $T->devengado->error_pospos_pos = bcsub($T->devengado->posposredondeado,$T->devengado->posredondeado,2);
+      $T->devengado->error_pospos_pre = bcsub($T->devengado->posposredondeado,$T->devengado->preredondeado,2);
       
       return $T;
     };

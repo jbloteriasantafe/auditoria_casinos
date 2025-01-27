@@ -1276,6 +1276,6 @@
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
   <script src="/js/paginacion.js" charset="utf-8"></script>
   <script src="/js/lib/jsoneditor.js"></script>
-  <script src="/js/Canon/index.js?4" charset="utf-8" type="module"></script>
+  <script src="/js/Canon/index.js?5" charset="utf-8" type="module"></script>
 
 @endsection
