@@ -137,6 +137,14 @@
         @endcomponent
       </div>
     </div>
+    <div class="col-md-4">
+      <h5>ANTIGUO</h5>
+      <select class="form-control" name="es_antiguo">
+        <option value='' selected>- TODOS -</option>
+        <option value='0'>NO</option>
+        <option value='1'>SI</option>
+      </select>
+    </div>
     @if($es_superusuario)
     <div class="col-md-4">
       <h5>ELIMINADOS</h5>
