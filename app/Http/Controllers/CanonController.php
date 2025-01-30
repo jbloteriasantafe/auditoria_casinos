@@ -2123,23 +2123,78 @@ class CanonController extends Controller
     $año_mes = explode('-',$c_año_mes->año_mes);
     $mes = $año_mes[1].'/'.substr($año_mes[0],2);
     
-    $datos = $this->totalesCanon($año_mes[0],$año_mes[1]);
-    
-    $tablas = [''];
-    foreach($datos as &$t){
-      foreach($t as &$subcanon){
-        $subcanon[''] = $subcanon['determinado'];
-        unset($subcanon['beneficio']);
-        unset($subcanon['devengado']);
-        unset($subcanon['bruto']);
-        unset($subcanon['deduccion']);
-        unset($subcanon['determinado']);
+    $sumar_f = null;
+    $valores = null;
+    $datos = DB::table('canon as c')
+    ->select('c.id_canon','cas.nombre as casino')
+    ->join('casino as cas','cas.id_casino','=','c.id_casino')
+    ->whereNull('c.deleted_at')
+    ->whereYear('c.año_mes','=',$año_mes[0])
+    ->whereMonth('c.año_mes','=',$año_mes[1])
+    ->get()
+    ->map(function($c) use (&$sumar_f,&$valores){
+      $d = $this->totalesTest_dyn($c);
+      $sumar_f = $sumar_f ?? $d['sumar_f'];
+      $valores = $valores ?? $d['valores'];
+      $detalles = $d['detalles'];
+      foreach($detalles as &$d){
+        $d->casino = $c->casino;
       }
-    }
+      return $detalles;
+    })->flatten();
     
-    $conceptos = array_keys(array_reduce($datos,function($carry,$item){
-      return array_merge($carry,$item);
-    },[]));
+    $datos_por_casino = $datos->groupBy('casino');
+        
+    $datos_por_casino_por_tipo = $datos_por_casino->map(function($dcas) use ($sumar_f){
+      return $dcas->groupBy(function($d){
+        $G = [
+          'canon_variable' => ['MAQUINAS' => 'MTM','BINGO' => 'Bingo','JOL' => 'JOL'],
+          'canon_fijo_mesas' => ['FIJAS' => 'Mesas','DIARIAS' => 'Mesas'],
+          'canon_fijo_mesas_adicionales' => ['' => 'Mesas Ad.']
+        ][$d->tabla] ?? [];
+        
+        return $G[strtoupper($d->tipo)] ?? $G[''] ?? $d->tipo;
+      })->map($sumar_f);
+    });
+    
+    $datos_por_casino_por_canon = $datos_por_casino->map(function($dcas) use ($sumar_f){
+      return $dcas->groupBy(function($d){
+        $G = [
+          'canon_variable' => ['' => 'Canon Variable'],
+          'canon_fijo_mesas' => ['' => 'Canon Fijo'],
+          'canon_fijo_mesas_adicionales' => ['' => 'Canon Fijo']
+        ][$d->tabla] ?? [];
+        
+        return $G[strtoupper($d->tipo)] ?? $G[''] ?? $d->tipo;
+      })->map($sumar_f);
+    });
+    
+    $datos_por_casino_por_origen = $datos_por_casino->map(function($dcas) use ($sumar_f){
+      return $dcas->groupBy(function($d){
+        $G = [
+          'canon_variable' => ['' => 'Total Físico','JOL' => 'Total Online'],
+          'canon_fijo_mesas' => ['' => 'Total Físico'],
+          'canon_fijo_mesas_adicionales' => ['' => 'Total Físico']
+        ][$d->tabla] ?? [];
+        
+        return $G[strtoupper($d->tipo)] ?? $G[''] ?? $d->tipo;
+      })->map($sumar_f);
+    });
+    
+    $total_por_casino = $datos_por_casino->map(function($dcas) use ($sumar_f){
+      return $dcas->groupBy(function($d){
+        $G = [
+          'canon_variable' => ['' => 'Total'],
+          'canon_fijo_mesas' => ['' => 'Total'],
+          'canon_fijo_mesas_adicionales' => ['' => 'Total']
+        ][$d->tabla] ?? [];
+        
+        return $G[strtoupper($d->tipo)] ?? $G[''] ?? $d->tipo;
+      })->map($sumar_f);
+    });
+    
+    dump($datos_por_casino,$datos_por_casino_por_tipo,$datos_por_casino_por_canon,$datos_por_casino_por_origen,$total_por_casino);
+    return;
     
     $mes_a_str = ['','Enero','Febrero','Marzo','Abril','Mayo',
       'Junio','Julio','Agosto','Septiembre',
@@ -2158,11 +2213,13 @@ class CanonController extends Controller
       ->where('id_canon',$request->id_canon)
       ->first()->id_casino
     );
+    
     $canon = $this->obtener_para_salida($request->id_canon);
     $COT = $this->confluir_datos_cotizacion($canon);
     $PAG = $this->confluir_datos_pago($canon);
     
     $view = View::make('Canon.planillaDeterminado', compact('tablas','conceptos','mes','datos','año_mes','fecha_planilla','casino','canon','COT','PAG'));
+    return $view->render();
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -2215,20 +2272,7 @@ class CanonController extends Controller
   
   public function descargar(Request $request){
     $data = $this->buscar($request,false);
-    /*
-    $tipo_valores = [
-      'beneficio','devengado_bruto','devengado_deduccion','devengado','determinado'
-    ];
     
-    foreach($data as $d){
-      $tots = $this->totalesTest_dyn($d);
-      $fila = [
-        'año_mes' => $d->año_mes,
-        'casino'  => $d->casino,
-      ];
-      
-      
-    }*/
     $conceptos = [
       'MTM','Bingo','JOL','Paños'
     ];
@@ -2288,12 +2332,11 @@ class CanonController extends Controller
     $dev_deduccion = 'IF(devengar,devengado_deduccion,"0.00")';
     $dev           = "NULL";
     $det           = 'determinado_total';
-            
+    
+    $valores = ['beneficio','devengado','devengado_bruto','devengado_deduccion','determinado'];
     $cv = DB::table('canon_variable')
     ->select('tipo',
-      DB::raw('"CANON VARIABLE" as grupo'),
-      DB::raw('0 as adicional'),
-      DB::raw('IF(tipo LIKE "JOL","ONLINE","FÍSICO") as origen'),
+      DB::raw('"canon_variable" as tabla'),
       DB::raw("$ben_cv as beneficio"),
       DB::raw("$dev as devengado"),
       DB::raw("$dev_bruto as devengado_bruto"),
@@ -2305,8 +2348,7 @@ class CanonController extends Controller
     
     $cfm = DB::table('canon_fijo_mesas')
     ->select('tipo',
-      DB::raw('"CANON FIJO" as grupo'),
-      DB::raw('"FÍSICO" as origen'),
+      DB::raw('"canon_fijo_mesas" as tabla'),
       DB::raw("$ben_cfm as beneficio"),
       DB::raw("$dev as devengado"),
       DB::raw("$dev_bruto as devengado_bruto"),
@@ -2318,8 +2360,7 @@ class CanonController extends Controller
     
     $cfma = DB::table('canon_fijo_mesas_adicionales')
     ->select('tipo',
-      DB::raw('"CANON FIJO ADICIONAL" as grupo'),
-      DB::raw('"FÍSICO" as origen'),
+      DB::raw('"canon_fijo_mesas_adicionales" as tabla'),
       DB::raw("$ben_cfma as beneficio"),
       DB::raw("$dev as devengado"),
       DB::raw("$dev_bruto as devengado_bruto"),
@@ -2334,124 +2375,78 @@ class CanonController extends Controller
     $ret->transform(function(&$t,$tidx) use (&$attrs){
       $obj = new \stdClass();
       $obj->tipo = $t->tipo;
-      $obj->grupo = $t->grupo;
-      $obj->origen = $t->origen;
+      $obj->tabla = $t->tabla;
       $obj->beneficio = (object)[
         'exacto' => $t->beneficio,
-        'redondeado' => bcround_ndigits($t->beneficio,2),
+        'redondeos' => [[bcround_ndigits($t->beneficio,2),'0']]
       ];
       $obj->devengado_bruto = (object)[
         'exacto' => $t->devengado_bruto,
-        'redondeado' => bcround_ndigits($t->devengado_bruto,2),
+        'redondeos' => [[bcround_ndigits($t->devengado_bruto,2),'0']]
       ];
       $obj->devengado_deduccion = (object)[
         'exacto' => $t->devengado_deduccion,
-        'redondeado' => bcround_ndigits($t->devengado_deduccion,2),
+        'redondeos' => [[bcround_ndigits($t->devengado_deduccion,2),'0']]
       ];
       
       $dev_exacto = bcsub($t->devengado_bruto,$t->devengado_deduccion,bcscale_string($t->devengado_bruto));
-      $dev_preredondeado = bcsub($obj->devengado_bruto->redondeado,$obj->devengado_bruto->redondeado,2);
+      $dev_preredondeado = bcsub($obj->devengado_bruto->redondeos[0][0],$obj->devengado_deduccion->redondeos[0][0],2);
       $dev_exacto_redondeado = bcround_ndigits($dev_exacto,2);
       $obj->devengado = (object)[
         'exacto' => $dev_exacto,
-        'preredondeado' => $dev_preredondeado,
-        'posredondeado' => $dev_exacto_redondeado,
-        'error_pos_pre' => bcsub($dev_exacto_redondeado,$dev_preredondeado,2)
+        'redondeos' => [
+          [$dev_preredondeado,bcsub($dev_exacto_redondeado,$dev_preredondeado,2)],
+          [$dev_exacto_redondeado,'0'],
+        ],
       ];
       
       $obj->determinado = (object)[
         'exacto' => $t->determinado,
-        'redondeado' => bcround_ndigits($t->determinado,2),
+        'redondeos' => [[bcround_ndigits($t->determinado,2),'0']]
       ];
       return $obj;
     });
     
     
     $sumar = function($items){
-      $init_carry = (object)[
-        'beneficio' => (object)[],
-        'devengado_bruto' => (object)[],
-        'devengado_deduccion' => (object)[],
-        'devengado' => (object)[
-          'exacto' => '0',//SUM(bruto - ded)
-          'preredondeado' => '0',//SUM (|bruto| - |ded|) = SUM |bruto| - SUM |ded|
-          'posredondeado' => '0',//SUM |bruto-ded|
-          'error_pos_pre' => '0',//SUM(|bruto-ded|-(|bruto|-|ded|))
-          'posposredondeado' => null,//|SUM bruto-ded|
-          'error_pospos_pos' => null,//|SUM bruto-ded|-SUM |bruto-ded|
-          'error_pospos_pre' => null,//No hace falta calcularlo porque es la suma... lo hago igual...
-          //error_pospos_pre = |SUM bruto-ded| - SUM(|bruto|-|ded|)
-          //error_pospos_pre = |SUM bruto-ded| - SUM |bruto-ded| + SUM |bruto-ded|-SUM(|bruto|-|ded|)
-          //error_pospos_pre =         error_pospos_pos          + SUM (|bruto-ded|-(|bruto|-|ded|))
-          //error_pospos_pre =         error_pospos_pos          + error_pos_pre
-        ],
-        'determinado' => (object)[],
-      ];
+      if($items->count() == 1) return $items[0];
       
-      $simples = ['beneficio','devengado_bruto','devengado_deduccion','determinado'];
-      $T = $items->reduce(function($carry,$item) use ($simples){
-        foreach($simples as $k){
-          $carry->{$k}->exacto = bcadd_precise(
-            $item->{$k}->exacto,
-            $carry->{$k}->exacto ?? '0'
+      $columnas = ['beneficio' => (object)[],'devengado_bruto' => (object)[],'devengado_deduccion' => (object)[],'devengado' => (object)[],'determinado' => (object)[]];
+      
+      $T = $items->reduce(function($carry,$item) use ($columnas){
+        foreach($columnas as $col => $_){
+          $carry->{$col}->exacto = bcadd_precise(
+            $item->{$col}->exacto,
+            $carry->{$col}->exacto ?? '0'
           );
-          $carry->{$k}->preredondeado = bcadd(
-            $item->{$k}->redondeado,
-            $carry->{$k}->preredondeado ?? '0',
-            2
-          );
-          $carry->{$k}->posredondeado = null;//Completar sumado todo
-          $carry->{$k}->error_pos_pre = null;//Completar sumado todo
+          $carry->{$col}->redondeos = $carry->{$col}->redondeos ?? [];
+          foreach($item->{$col}->redondeos as $idx => $r){
+            $carry->{$col}->redondeos[$idx] = [
+              bcadd($r[0],$carry->{$col}->redondeos[$idx][0] ?? '0',2),
+              bcadd($r[1],$carry->{$col}->redondeos[$idx][1] ?? '0',2)
+            ];
+          }
         }
-                
-        $carry->devengado->exacto = bcadd_precise(
-          $item->devengado->exacto,
-          $carry->devengado->exacto
-        );
-        $carry->devengado->preredondeado = bcadd(
-          $item->devengado->preredondeado,
-          $carry->devengado->preredondeado,
-          2
-        );
-        $carry->devengado->posredondeado = bcadd(
-          $item->devengado->posredondeado,
-          $carry->devengado->posredondeado,
-          2
-        );
-        $carry->devengado->error_pos_pre = bcadd(
-          $item->devengado->error_pos_pre,
-          $carry->devengado->error_pos_pre,
-          2
-        );
         
         return $carry;
-      },clone $init_carry);
- 
-      foreach($simples as $k){
-        $T->{$k}->exacto = $T->{$k}->exacto ?? '0';
-        $T->{$k}->preredondeado = $T->{$k}->preredondeado ?? '0';
-        $T->{$k}->posredondeado = bcround_ndigits($T->{$k}->exacto,2);
-        $T->{$k}->error_pos_pre = bcsub($T->{$k}->posredondeado,$T->{$k}->preredondeado,2);
-      }
+      },(object) $columnas);
       
-      $T->devengado->posposredondeado = bcround_ndigits($T->devengado->exacto,2);
-      $T->devengado->error_pospos_pos = bcsub($T->devengado->posposredondeado,$T->devengado->posredondeado,2);
-      $T->devengado->error_pospos_pre = bcsub($T->devengado->posposredondeado,$T->devengado->preredondeado,2);
+      foreach($columnas as $col => $_){
+        $exacto_redondeado = bcround_ndigits($T->{$col}->exacto,2);
+        $redondeos = $T->{$col}->redondeos;
+        $T->{$col}->redondeos[] = [
+          $exacto_redondeado,
+          bcsub($exacto_redondeado,$redondeos[count($redondeos)-1][0],2)
+        ];
+      }
       
       return $T;
     };
     
-    $total = $sumar($ret);
-    $total_fisico = $sumar($ret->where('origen','FÍSICO'));
-    $total_canon_fijo = $sumar($ret->whereIn('grupo',['CANON FIJO','CANON FIJO ADICIONAL']));
-    $total_canon_variable = $sumar($ret->where('grupo','CANON VARIABLE'));
-    
     return [ 
       'detalles' => $ret,
-      'total' => $total,
-      'total_fisico' => $total_fisico,
-      'total_canon_fijo' => $total_canon_fijo,
-      'total_canon_variable' => $total_canon_variable,
+      'sumar_f' => $sumar,
+      'valores' => $valores
     ];
   }
 }
