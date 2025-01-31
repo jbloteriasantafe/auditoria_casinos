@@ -113,6 +113,7 @@ class CanonController extends Controller
       'determinado_bruto' => ['nullable',$numeric_rule(20)],
       'determinado' => ['nullable',$numeric_rule(2)],
       'cargos_adicionales' => ['nullable',$numeric_rule(2)],
+      'motivo_cargos_adicionales' => ['nullable','string','max:128'],
       'fecha_vencimiento' => ['nullable','date'],
       'interes_provincial_diario_simple' => ['nullable',$numeric_rule(4)],
       'interes_nacional_mensual_compuesto' => ['nullable',$numeric_rule(4)],
@@ -382,6 +383,7 @@ class CanonController extends Controller
     $saldo_anterior_cerrado = $saldo_anterior;//@RETORNADO
     
     $cargos_adicionales = bcadd($R('cargos_adicionales','0'),'0',2);//@RETORNADO
+    $motivo_cargos_adicionales = $R('motivo_cargos_adicionales','');//@RETORNADO
     $principal = bcsub(bcadd($determinado,$cargos_adicionales,2),$saldo_anterior_cerrado,2);//@RETORNADO
     
     //PAGOS
@@ -512,7 +514,7 @@ class CanonController extends Controller
       'devengado_bruto','devengado_deduccion','devengado',
       'determinado_bruto','determinado','porcentaje_seguridad',
       'saldo_anterior','saldo_anterior_cerrado',
-      'cargos_adicionales','principal',
+      'cargos_adicionales','motivo_cargos_adicionales','principal',
       //Confluidos
       'fecha_vencimiento','interes_provincial_diario_simple','interes_nacional_mensual_compuesto',
       //Pagos
@@ -906,6 +908,7 @@ class CanonController extends Controller
         'saldo_anterior' => $datos['saldo_anterior'],
         'saldo_anterior_cerrado' => $datos['saldo_anterior_cerrado'],
         'cargos_adicionales' => $datos['cargos_adicionales'],
+        'motivo_cargos_adicionales' => $datos['motivo_cargos_adicionales'],
         'principal' => $datos['principal'],
         'a_pagar' => $datos['a_pagar'],
         'pago' => $datos['pago'],
