@@ -196,7 +196,7 @@
       </td>
       <td class="devengado" data-formatear-numero>DEVENGADO</td>
       <td class="determinado" data-formatear-numero>DETERMINADO</td>
-      <td class="intereses" data-formatear-numero>INTERESES</td>
+      <td class="intereses_y_cargos" data-formatear-numero>INTERESES Y CARGOS</td>
       <td class="pago" data-formatear-numero>PAGO</td>
       <td class="saldo_posterior" data-formatear-numero>SALDO</td>
       <td>

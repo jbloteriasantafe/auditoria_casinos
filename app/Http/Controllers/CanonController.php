@@ -1354,7 +1354,7 @@ class CanonController extends Controller
           GROUP BY "constant"
           LIMIT 1
         )
-      ) as intereses'),
+      ) as intereses_y_cargos'),
       'c.pago','c.saldo_posterior'
     )
     ->join('casino as cas','cas.id_casino','=','c.id_casino')
