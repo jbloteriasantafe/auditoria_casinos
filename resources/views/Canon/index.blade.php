@@ -155,7 +155,7 @@
       <th>ESTADO</th>
       <th>DEVENGADO</th>
       <th>DETERMINADO</th>
-      <th>INTERESES</th>
+      <th>INTERESES Y CARGOS</th>
       <th>PAGO</th>
       <th>SALDO</th>
       <th>ACCION</th>
