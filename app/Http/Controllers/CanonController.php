@@ -112,8 +112,8 @@ class CanonController extends Controller
       'devengado_deduccion' => ['nullable',$numeric_rule(2)],
       'determinado_bruto' => ['nullable',$numeric_rule(20)],
       'determinado' => ['nullable',$numeric_rule(2)],
-      'cargos_adicionales' => ['nullable',$numeric_rule(2)],
-      'motivo_cargos_adicionales' => ['nullable','string','max:128'],
+      'intereses_y_cargos' => ['nullable',$numeric_rule(2)],
+      'motivo_intereses_y_cargos' => ['nullable','string','max:128'],
       'fecha_vencimiento' => ['nullable','date'],
       'interes_provincial_diario_simple' => ['nullable',$numeric_rule(4)],
       'interes_nacional_mensual_compuesto' => ['nullable',$numeric_rule(4)],
@@ -382,9 +382,9 @@ class CanonController extends Controller
     $saldo_anterior = ($c_ant !== null)? $c_ant->saldo_posterior : '0';//@RETORNADO
     $saldo_anterior_cerrado = $saldo_anterior;//@RETORNADO
     
-    $cargos_adicionales = bcadd($R('cargos_adicionales','0'),'0',2);//@RETORNADO
-    $motivo_cargos_adicionales = $R('motivo_cargos_adicionales','');//@RETORNADO
-    $principal = bcsub(bcadd($determinado,$cargos_adicionales,2),$saldo_anterior_cerrado,2);//@RETORNADO
+    $intereses_y_cargos = bcadd($R('intereses_y_cargos','0'),'0',2);//@RETORNADO
+    $motivo_intereses_y_cargos = $R('motivo_intereses_y_cargos','');//@RETORNADO
+    $principal = bcsub(bcadd($determinado,$intereses_y_cargos,2),$saldo_anterior_cerrado,2);//@RETORNADO
     
     //PAGOS
     $canon_pago = $request['canon_pago'] ?? [[]];//Si no tiene pagos le agrego uno vacio.
@@ -514,7 +514,7 @@ class CanonController extends Controller
       'devengado_bruto','devengado_deduccion','devengado',
       'determinado_bruto','determinado','porcentaje_seguridad',
       'saldo_anterior','saldo_anterior_cerrado',
-      'cargos_adicionales','motivo_cargos_adicionales','principal',
+      'intereses_y_cargos','motivo_intereses_y_cargos','principal',
       //Confluidos
       'fecha_vencimiento','interes_provincial_diario_simple','interes_nacional_mensual_compuesto',
       //Pagos
@@ -907,8 +907,8 @@ class CanonController extends Controller
         'determinado' => $datos['determinado'],
         'saldo_anterior' => $datos['saldo_anterior'],
         'saldo_anterior_cerrado' => $datos['saldo_anterior_cerrado'],
-        'cargos_adicionales' => $datos['cargos_adicionales'],
-        'motivo_cargos_adicionales' => $datos['motivo_cargos_adicionales'],
+        'intereses_y_cargos' => $datos['intereses_y_cargos'],
+        'motivo_intereses_y_cargos' => $datos['motivo_intereses_y_cargos'],
         'principal' => $datos['principal'],
         'a_pagar' => $datos['a_pagar'],
         'pago' => $datos['pago'],
@@ -1346,7 +1346,7 @@ class CanonController extends Controller
       DB::raw('DATE_FORMAT(c.año_mes,"%Y-%m") as año_mes'),
       'cas.nombre as casino','c.estado','c.devengado','c.determinado',
       DB::raw('(
-        c.cargos_adicionales
+        c.intereses_y_cargos
         +(
           SELECT SUM(mora_provincial)+SUM(mora_nacional)
           FROM canon_pago as cp

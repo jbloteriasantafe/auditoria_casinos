@@ -534,13 +534,13 @@
               <input class="form-control" name="saldo_anterior_cerrado" data-depende="año_mes,id_casino" data-readonly='[{"modo":"*"}]'>
             </div>
             <div>
-              <h5>Cargos adicionales</h5>
-              <input class="form-control" name="cargos_adicionales" data-depende="año_mes,id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-              <input data-js-texto-no-formatear-numero placeholder="MOTIVO" class="form-control" name="motivo_cargos_adicionales" data-depende="" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              <h5>Intereses y Cargos</h5>
+              <input class="form-control" name="intereses_y_cargos" data-depende="año_mes,id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              <input data-js-texto-no-formatear-numero placeholder="MOTIVO" class="form-control" name="motivo_intereses_y_cargos" data-depende="" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div>
               <h5>Principal</h5>
-              <input class="form-control" name="principal" data-readonly='[{"modo":"*"}]' data-depende="saldo_anterior,saldo_anterior_cerrado,cargos_adicionales,determinado">
+              <input class="form-control" name="principal" data-readonly='[{"modo":"*"}]' data-depende="saldo_anterior,saldo_anterior_cerrado,intereses_y_cargos,determinado">
             </div>
           </div>
         </div>
