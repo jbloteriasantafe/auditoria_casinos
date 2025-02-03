@@ -2305,7 +2305,7 @@ class CanonController extends Controller
         }
         $fila[$tval] = ($t['Total'] ?? [])[$tval] ?? '0';
       }
-      $fila['intereses'] = self::formatear_decimal($d->intereses);
+      $fila['intereses_y_cargos'] = self::formatear_decimal($d->intereses_y_cargos);
       $fila['pago']      = self::formatear_decimal($d->pago);
       $fila['saldo_posterior'] = self::formatear_decimal($d->saldo_posterior);
       $arreglo_a_csv[] = $fila;
