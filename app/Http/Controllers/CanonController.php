@@ -1908,7 +1908,7 @@ class CanonController extends Controller
         $cv = $acumulados[$tipo] ?? (new \stdClass());
         $max_scale = max($max_scale,bcscale_string($cv->dev ?? '0'));
         
-        $beneficio_total = ($cv->ben ?? null) !== null? bcadd($beneficio_total,$cv->beneficio,$max_scale)
+        $beneficio_total = ($cv->beneficio ?? null) !== null? bcadd($beneficio_total,$cv->beneficio,$max_scale)
         : $beneficio_total;
         
         $dcas[$concepto] = [
