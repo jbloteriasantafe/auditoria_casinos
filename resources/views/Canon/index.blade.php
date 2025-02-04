@@ -513,8 +513,12 @@
               <input class="form-control" name="determinado_bruto" data-readonly='[{"modo":"*"}]'>
             </div>
             <div>
+              <h5>Ajuste</h5>
+              <input class="form-control" name="determinado_ajuste" data-readonly='[{"modo": "*"}]'>
+            </div>
+            <div>
               <h5>Determinado</h5>
-              <input class="form-control" name="determinado" data-depende="determinado_bruto,interes_mora,mora,fecha_pago,fecha_vencimiento" data-readonly='[{"modo":"*"}]'>
+              <input class="form-control" name="determinado" data-depende="determinado_bruto,determinado_ajuste" data-readonly='[{"modo":"*"}]'>
             </div>
             <div class="parametro_chico">
               <h5>Porcentaje Seguridad</h5>
@@ -689,6 +693,7 @@
           };
           $alicuota = $n('alicuota');
           $devengar = $n('devengar');
+          $devengado = $n('devengado');
           $devengado_bruto = $n('devengado_bruto');
           $devengado_apostado_sistema = $n('devengado_apostado_sistema');
           $devengado_apostado_porcentaje_aplicable = $n('devengado_apostado_porcentaje_aplicable');
@@ -703,6 +708,8 @@
           $determinado_impuesto = $n('determinado_impuesto');
           $determinado_subtotal = $n('determinado_subtotal');
           $determinado_total = $n('determinado_total');
+          $determinado_ajuste = $n('determinado_ajuste');
+          $determinado = $n('determinado');
         ?>
         <div class="bloque_interno" data-js-molde="{{$molde_str}}">
           <h6 data-titulo>TITULO CANON VARIABLE</h6>
@@ -731,9 +738,9 @@
               </h4>
               <div style="width: 100%;display: grid; 
                 grid-template-columns: 1fr 1fr 1fr 1fr 1fr; 
-                grid-template-rows: 1fr 1fr; 
+                grid-template-rows: 1fr 1fr 1fr; 
                 gap: 0px 0px; 
-                grid-template-areas: 'grid_apostado grid_base_imponible grid_vacio grid_vacio grid_vacio' 'grid_impuesto grid_bruto grid_subtotal grid_total grid_deduccion';"
+                grid-template-areas: 'grid_apostado grid_base_imponible grid_vacio grid_vacio grid_vacio' 'grid_impuesto grid_bruto grid_subtotal grid_total grid_deduccion' 'grid_devengado grid_vacio2 grid_vacio2 grid_vacio2 grid_vacio2';"
               >
                 <div style="grid-area: grid_apostado">
                   <h5>APOSTADO SISTEMA</h5>
@@ -765,15 +772,21 @@
                   <h5>DEDUCCIÓN</h5>
                   <input class="form-control" data-name="{{$devengado_deduccion}}" data-depende="id_casino"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
+                <div style="grid-area: grid_devengado">
+                  <h5>DEVENGADO</h5>
+                  <input class="form-control" data-name="{{$devengado}}" data-depende="{{$devengado_total}},{{$devengado_deduccion}}" data-readonly='[{"modo": "*"}]'>
+                </div>
+                <div style="grid-area: grid_vacio2">
+                </div>
               </div>
             </div>
             <div class="bloque_interno" style="flex: 1;">
               <h4>DETERMINADO</h4>
               <div style="width: 100%;display: grid; 
                 grid-template-columns: 1fr 1fr 1fr 1fr 1fr; 
-                grid-template-rows: 1fr 1fr; 
+                grid-template-rows: 1fr 1fr 1fr; 
                 gap: 0px 0px; 
-                grid-template-areas: 'grid_vacio grid_vacio grid_vacio grid_vacio grid_vacio' 'grid_impuesto grid_bruto grid_subtotal grid_total grid_deduccion';"
+                grid-template-areas: 'grid_vacio grid_vacio grid_vacio grid_vacio grid_vacio' 'grid_impuesto grid_bruto grid_subtotal grid_total grid_ajuste' 'grid_determinado grid_vacio2 grid_vacio2 grid_vacio2 grid_vacio2';"
               >  
                 <div style="grid-area: grid_vacio">
                 </div>
@@ -793,7 +806,15 @@
                   <h5>TOTAL</h5>
                   <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_subtotal}},{{$alicuota}}" data-readonly='[{"es_antiguo": "0"},{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
-                <div style="grid-area: grid_deduccion">
+                <div style="grid-area: grid_ajuste">
+                  <h5>AJUSTE</h5>
+                  <input class="form-control" data-name="{{$determinado_ajuste}}" data-depende="id_casino"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                </div>
+                <div style="grid-area: grid_determinado">
+                  <h5>DETERMINADO</h5>
+                  <input class="form-control" data-name="{{$determinado}}" data-depende="{{$determinado_total}},{{$determinado_ajuste}}" data-readonly='[{"modo": "*"}]'>
+                </div>
+                <div style="grid-area: grid_vacio2">
                 </div>
               </div>
             </div>
@@ -831,6 +852,7 @@
           $devengado_total_euro_cotizado  = $n('devengado_total_euro_cotizado');
           $devengado_total       = $n('devengado_total');
           $devengado_deduccion   = $n('devengado_deduccion');
+          $devengado             = $n('devengado');
           $determinado_valor_dolar_cotizado = $n('determinado_valor_dolar_cotizado');
           $determinado_valor_euro_cotizado  = $n('determinado_valor_euro_cotizado');
           $determinado_valor_dolar_diario_cotizado = $n('determinado_valor_dolar_diario_cotizado');
@@ -838,6 +860,8 @@
           $determinado_total_dolar_cotizado = $n('determinado_total_dolar_cotizado');
           $determinado_total_euro_cotizado  = $n('determinado_total_euro_cotizado');
           $determinado_total       = $n('determinado_total');
+          $determinado_ajuste      = $n('determinado_ajuste');
+          $determinado             = $n('determinado');
         ?>
         <div class="bloque_interno" style="width: 100%;" data-js-molde="{{$molde_str}}">
           <h6 data-titulo>TITULO MESAS</h6>
@@ -982,6 +1006,12 @@
                   <input class="form-control" data-name="{{$devengado_deduccion}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
               </div>
+              <div style="display: flex;">
+                <div>
+                  <h5>DEVENGADO</h5>
+                  <input class="form-control" data-name="{{$devengado}}" data-depende="{{$devengado_total}},{{$devengado_deduccion}}" data-readonly='[{"modo":"*"}]'>
+                </div>
+              </div>
             </div>
             <div class="bloque_interno" style="flex: 1;">
               <h4>DETERMINADO</h4>
@@ -1036,6 +1066,16 @@
                   <h5>TOTAL</h5>
                   <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_total_dolar_cotizado}},{{$determinado_total_euro_cotizado}}" data-readonly='[{"es_antiguo": "0"},{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
+                <div>
+                  <h5>AJUSTE</h5>
+                  <input class="form-control" data-name="{{$determinado_ajuste}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                </div>
+              </div>
+              <div style="display: flex;">
+                <div>
+                  <h5>DETERMINADO</h5>
+                  <input class="form-control" data-name="{{$determinado}}" data-depende="{{$determinado_total}},{{$determinado_ajuste}}" data-readonly='[{"modo":"*"}]'>
+                </div>
               </div>
             </div>
           </div>
@@ -1061,10 +1101,13 @@
           $devengado_valor_hora = $n('devengado_valor_hora');
           $devengado_total = $n('devengado_total');
           $devengado_deduccion = $n('devengado_deduccion');
+          $devengado = $n('devengado');
           $determinado_valor_mes = $n('determinado_valor_mes');
           $determinado_valor_dia = $n('determinado_valor_dia');
           $determinado_valor_hora = $n('determinado_valor_hora');
           $determinado_total = $n('determinado_total');
+          $determinado_ajuste = $n('determinado_ajuste');
+          $determinado = $n('determinado');
         ?>
         <div class="bloque_interno" data-js-molde="{{$molde_str}}">
           <h6 data-titulo>TITULO MESA ADICIONAL</h6>
@@ -1131,6 +1174,12 @@
                   <input class="form-control" data-name="{{$devengado_deduccion}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
               </div>
+              <div style="display: flex;">
+                <div>
+                  <h5>DEVENGADO</h5>
+                  <input class="form-control" data-name="{{$devengado}}" data-depende="{{$devengado_total}},{{$devengado_deduccion}}" data-readonly='[{"modo": "*"}]'>
+                </div>
+              </div>
             </div>
             <div class="bloque_interno" style="flex: 1;">
               <h4>DETERMINADO</h4>
@@ -1152,6 +1201,16 @@
                 <div>
                   <h5>TOTAL</h5>
                   <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_valor_mes}},{{$determinado_valor_dia}},{{$determinado_valor_hora}},{{$horas}},{{$porcentaje}}" data-readonly='[{"es_antiguo": "0"},{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                </div>
+                <div>
+                  <h5>AJUSTE</h5>
+                  <input class="form-control" data-name="{{$determinado_ajuste}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                </div>
+              </div>
+              <div style="display: flex;">
+                <div>
+                  <h5>DETERMINADO</h5>
+                  <input class="form-control" data-name="{{$determinado}}" data-depende="{{$determinado_total}},{{$determinado_ajuste}}" data-readonly='[{"modo": "*"}]'>
                 </div>
               </div>
             </div>
