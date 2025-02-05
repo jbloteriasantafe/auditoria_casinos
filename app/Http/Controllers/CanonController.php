@@ -2302,6 +2302,8 @@ class CanonController extends Controller
       Casino::whereNotIn('nombre',$casinos)->orderBy('id_casino','asc')->get()->pluck('nombre')
     );
     
+    $casinos->push('TOTAL');
+    
     $datos = DB::table('canon as c')
     ->selectRaw('
       YEAR(c.año_mes) as año,
@@ -2314,7 +2316,23 @@ class CanonController extends Controller
       100*(c.determinado-c.devengado)/c.determinado as variacion_sobre_devengado')
     ->join('casino as cas','cas.id_casino','=','c.id_casino')
     ->orderBy('c.año_mes','asc')
-    ->whereNull('c.deleted_at')->get();
+    ->whereNull('c.deleted_at')->get()
+    ->merge(
+      DB::table('canon as c')
+      ->selectRaw('
+        YEAR(c.año_mes) as año,
+        MONTH(c.año_mes) as mes,
+        "TOTAL" as casino,
+        SUM(c.devengado) as devengado,
+        NULL as variacion_devengado,
+        SUM(c.determinado) as canon,
+        SUM(c.determinado-c.devengado) as diferencia,
+        100*SUM(c.determinado-c.devengado)/SUM(c.determinado) as variacion_sobre_devengado')
+      ->groupBy(DB::raw('YEAR(c.año_mes),MONTH(c.año_mes)'))
+      ->orderBy('año','asc')
+      ->orderBy('mes','asc')
+      ->whereNull('c.deleted_at')->get()
+    );
     
     $datos_anuales = DB::table('canon as c')
     ->selectRaw('
@@ -2329,7 +2347,21 @@ class CanonController extends Controller
     ->whereNull('c.deleted_at')
     ->groupBy(DB::raw('YEAR(c.año_mes),cas.nombre'))
     ->orderBy('año','asc')
-    ->get();
+    ->get()
+    ->merge(
+      DB::table('canon as c')
+      ->selectRaw('
+        YEAR(c.año_mes) as año,
+        "TOTAL" as casino,
+        SUM(c.devengado) as devengado,
+        NULL as variacion_devengado,
+        SUM(c.determinado) as canon,
+        SUM(c.determinado-c.devengado) as diferencia,
+        100*SUM(c.determinado-c.devengado)/SUM(c.determinado) as variacion_sobre_devengado')
+      ->groupBy(DB::raw('YEAR(c.año_mes)'))
+      ->orderBy('año','asc')
+      ->whereNull('c.deleted_at')->get()
+    );
     
     $datos = $datos->groupBy('año')->map(function($c){
       return $c->groupBy('mes')->map(function($c2){
@@ -2357,6 +2389,7 @@ class CanonController extends Controller
     
     $devengado_anterior = [];
     foreach($casinos as $c) $devengado_anterior[$c] = null;
+    $devengado_anterior['TOTAL'] = null;
     
     foreach($datos as $año => &$datos_año){
       foreach($datos_año as $mes => &$datos_año_mes){
@@ -2367,6 +2400,7 @@ class CanonController extends Controller
     }
     
     foreach($casinos as $c) $devengado_anterior[$c] = null;
+    $devengado_anterior['TOTAL'] = null;
     
     foreach($datos_anuales as $año => &$datos_año){
       foreach($datos_año as $cas => &$d){

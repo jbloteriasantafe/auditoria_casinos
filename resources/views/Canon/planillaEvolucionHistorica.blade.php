@@ -106,7 +106,7 @@ th.variacion_sobre_devengado {
   @if(!$loop->first)
   <br>
   @endif
-  <table style="width: 100%;table-layout: fixed">
+  <table style="width: 120%;table-layout: fixed">
     <colgroup>
       <col class="año_mes">
       <col class="devengado">
