@@ -65,23 +65,20 @@ thead th {
 }
 <?php $width_casino = count($casinos)? ((100-4)/count($casinos)) : 0; ?>
 .devengado {
-  width: {{$width_casino/4}}%;
+  width: {{7*$width_casino/24}}%;
 }
 .canon {
-  width: {{$width_casino/4}}%;
+  width: {{7*$width_casino/24}}%;
 }
 .diferencia {
-  width: {{$width_casino/4}}%;
+  width: {{7*$width_casino/24}}%;
 }
 .variacion_devengado {
-  width: {{$width_casino/8}}%;
+  width: {{$width_casino/16}}%;
+  font-size: 0.7em
 }
 .variacion_sobre_devengado {
-  width: {{$width_casino/8}}%;
-}
-
-th.variacion_devengado,
-th.variacion_sobre_devengado {
+  width: {{$width_casino/16}}%;
   font-size: 0.7em
 }
 </style>
@@ -106,7 +103,7 @@ th.variacion_sobre_devengado {
   @if(!$loop->first)
   <br>
   @endif
-  <table style="width: 120%;table-layout: fixed">
+  <table style="width: 200em;table-layout: fixed">
     <colgroup>
       <col class="año_mes">
       <col class="devengado">
