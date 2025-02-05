@@ -3,12 +3,15 @@
 <html>
 
 <style>
+* {
+  padding: 0;margin: 0;
+}
 table {
   font-family: mono;
   border-collapse: collapse;
   table-layout: fixed;
   word-wrap: break-word !important;
-  font-size: 0.8em;
+  font-size: 0.75em;
 }
 
 th {
