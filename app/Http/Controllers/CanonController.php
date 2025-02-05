@@ -2293,6 +2293,90 @@ class CanonController extends Controller
     return stream_get_contents($f);
   }
   
+  public function descargarEvolucionHistorica(Request $request){
+    $casinos = collect([//Orden que venia en la planilla de Excel
+      'Santa Fe','Rosario','Melincué'
+    ]);
+    
+    $casinos = $casinos->merge(//Por si algun dia se agrega otro casino :^)
+      Casino::whereNotIn('nombre',$casinos)->orderBy('id_casino','asc')->get()->pluck('nombre')
+    );
+    
+    $datos = DB::table('canon as c')
+    ->selectRaw('
+      YEAR(c.año_mes) as año,
+      MONTH(c.año_mes) as mes,
+      cas.nombre as casino,
+      c.devengado as devengado,
+      NULL as variacion_devengado,
+      c.determinado as canon,
+      (c.determinado-c.devengado) as diferencia,
+      100*(c.determinado-c.devengado)/c.determinado as variacion_sobre_devengado')
+    ->join('casino as cas','cas.id_casino','=','c.id_casino')
+    ->orderBy('c.año_mes','asc')
+    ->whereNull('c.deleted_at')->get();
+    
+    $datos_anuales = DB::table('canon as c')
+    ->selectRaw('
+      YEAR(c.año_mes) as año,
+      cas.nombre as casino,
+      SUM(c.devengado) as devengado,
+      NULL as variacion_devengado,
+      SUM(c.determinado) as canon,
+      SUM(c.determinado-c.devengado) as diferencia,
+      100*SUM(c.determinado-c.devengado)/SUM(c.determinado) as variacion_sobre_devengado')
+    ->join('casino as cas','cas.id_casino','=','c.id_casino')
+    ->whereNull('c.deleted_at')
+    ->groupBy(DB::raw('YEAR(c.año_mes),cas.nombre'))
+    ->orderBy('año','asc')
+    ->get();
+    
+    $datos = $datos->groupBy('año')->map(function($c){
+      return $c->groupBy('mes')->map(function($c2){
+        return $c2->keyBy('casino');
+      });
+    });
+    
+    $datos_anuales = $datos_anuales->groupBy('año')->map(function($c){
+      return $c->keyBy('casino');
+    });
+        
+    $formatear_detalle = function($cas,&$d,&$devengado_anterior){
+      if($devengado_anterior[$cas] !== null){
+        $d->variacion_devengado = bcmul('100',bcsub(bcdiv($d->devengado,$devengado_anterior[$cas],4),'1',4),2);
+      }
+      $devengado_anterior[$cas] = bccomp($d->devengado,'0') != 0? $d->devengado : $devengado_anterior[$cas];
+      
+      $d->variacion_devengado = $d->variacion_devengado !== null? bcround_ndigits($d->variacion_devengado,2) : null;
+      $d->variacion_sobre_devengado = $d->variacion_sobre_devengado !== null? bcround_ndigits($d->variacion_sobre_devengado,2) : null;
+      
+      foreach(['devengado','variacion_devengado','canon','diferencia','variacion_sobre_devengado'] as $attr){
+        $d->{$attr} = $d->{$attr} !== null? self::formatear_decimal($d->{$attr}) : null;
+      }
+    };
+    
+    $devengado_anterior = [];
+    foreach($casinos as $c) $devengado_anterior[$c] = null;
+    
+    foreach($datos as $año => &$datos_año){
+      foreach($datos_año as $mes => &$datos_año_mes){
+        foreach($datos_año_mes as $cas => &$d){
+          $formatear_detalle($cas,$d,$devengado_anterior);
+        }
+      }
+    }
+    
+    foreach($casinos as $c) $devengado_anterior[$c] = null;
+    
+    foreach($datos_anuales as $año => &$datos_año){
+      foreach($datos_año as $cas => &$d){
+        $formatear_detalle($cas,$d,$devengado_anterior);
+      }
+    }
+    
+    return View::make('Canon.planillaEvolucionHistorica', compact('casinos','datos','datos_anuales'));
+  }
+  
   public function totalesTest(Request $request){
     return $this->totalesTest_dyn($request);
   }
