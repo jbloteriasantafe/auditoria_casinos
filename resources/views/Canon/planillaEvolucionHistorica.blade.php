@@ -75,7 +75,6 @@ thead th {
 }
 .variacion_devengado {
   width: {{$width_casino/8}}%;
-  font-size: 0.7em;
 }
 .variacion_sobre_devengado {
   width: {{$width_casino/8}}%;
