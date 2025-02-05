@@ -106,11 +106,13 @@ thead th {
   <table style="width: 200em;table-layout: fixed">
     <colgroup>
       <col class="año_mes">
+      @foreach($casinos as $cas)
       <col class="devengado">
       <col class="variacion_devengado">
       <col class="canon">
       <col class="diferencia">
       <col class="variacion_sobre_devengado">
+      @endforeach
     </colgroup>
     <thead>
       <tr>
