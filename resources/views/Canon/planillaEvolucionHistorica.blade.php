@@ -84,9 +84,9 @@ thead th {
   <table style="width: 100%;">
     <thead>
       <tr>
-        <th style="width: 10%;border: 1px solid black;">{{$año}}</th>
+        <th style="width: 4%;border: 1px solid black;">{{$año}}</th>
         @foreach($casinos as $cas)
-        <th class="{{$snakecase($cas)}}" colspan="5" style="width: 30%;border-top: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;">{{$cas}}</th>
+        <th class="{{$snakecase($cas)}}" colspan="5" style="width: 32%;border-top: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;">{{$cas}}</th>
         @endforeach
       </tr>
       
