@@ -59,6 +59,32 @@ thead th {
   color: red;
   font-weight: bold;
 }
+
+.año_mes {
+  width: 4%;
+}
+<?php $width_casino = count($casinos)? ((100-4)/count($casinos)) : 0; ?>
+.devengado {
+  width: {{$width_casino/4}}%;
+}
+.canon {
+  width: {{$width_casino/4}}%;
+}
+.diferencia {
+  width: {{$width_casino/4}}%;
+}
+.variacion_devengado {
+  width: {{$width_casino/8}}%;
+  font-size: 0.7em;
+}
+.variacion_sobre_devengado {
+  width: {{$width_casino/8}}%;
+}
+
+th.variacion_devengado,
+th.variacion_sobre_devengado {
+  font-size: 0.7em
+}
 </style>
 
 <head>
@@ -81,24 +107,32 @@ thead th {
   @if(!$loop->first)
   <br>
   @endif
-  <table style="width: 100%;">
+  <table style="width: 100%;table-layout: fixed">
+    <colgroup>
+      <col class="año_mes">
+      <col class="devengado">
+      <col class="variacion_devengado">
+      <col class="canon">
+      <col class="diferencia">
+      <col class="variacion_sobre_devengado">
+    </colgroup>
     <thead>
       <tr>
-        <th style="width: 4%;border: 1px solid black;">{{$año}}</th>
+        <th class="año_mes" style="border: 1px solid black;">{{$año}}</th>
         @foreach($casinos as $cas)
-        <th class="{{$snakecase($cas)}}" colspan="5" style="width: 32%;border-top: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;">{{$cas}}</th>
+        <th class="{{$snakecase($cas)}}" colspan="5" style="border-top: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;">{{$cas}}</th>
         @endforeach
       </tr>
       
       <tr>
-        <th style="border: 1px solid black;">Meses</th>
+        <th class="año_mes" style="border: 1px solid black;">Meses</th>
         @foreach($casinos as $cas)
         <?php $scas = $snakecase($cas); ?>
-        <th class="{{$scas}}">Devengado</th>
-        <th class="{{$scas}}">Var. Devengado</th>
-        <th class="{{$scas}}">Canon</th>
-        <th class="{{$scas}}">Diferencia</th>
-        <th class="{{$scas}}" style="border-right: 1px solid black;">Var. Devengado Sobre Canon</th>
+        <th class="devengado {{$scas}}">Devengado</th>
+        <th class="variacion_devengado {{$scas}}">Var. Devengado</th>
+        <th class="canon {{$scas}}">Canon</th>
+        <th class="diferencia {{$scas}}">Diferencia</th>
+        <th class="variacion_sobre_devengado {{$scas}}" style="border-right: 1px solid black;">Var. Dif. sobre Canon</th>
         @endforeach
       </tr>
     </thead>
@@ -111,27 +145,35 @@ thead th {
       ?>
       @foreach($datos_año as $mes => $datos_año_mes)
       <tr>
-        <th style="border-left: 1px solid black;border-right: 1px solid black;">{{$meses[$mes] ?? $mes}}</th>
+        <th class="año_mes" style="border-left: 1px solid black;border-right: 1px solid black;">{{$meses[$mes] ?? $mes}}</th>
         @foreach($casinos as $cas)
-        <?php $d = $datos_año_mes[$cas] ?? (new \stdClass()); ?>
-        <td>{{ $d->devengado ?? $valor_vacio }}</td>
-        <td class="{{$negativo($d->variacion_devengado ?? null)}}">{{$formatear_porcentaje($d->variacion_devengado ?? null)}}</td>
-        <td>{{ $d->canon ?? $valor_vacio }}</td>
-        <td>{{ $d->diferencia ?? $valor_vacio }}</td>
-        <td class="{{$negativo($d->variacion_sobre_devengado ?? null)}}" style="border-right: 1px solid black;">{{$formatear_porcentaje($d->variacion_sobre_devengado ?? null)}}</td>
+        <?php 
+          $d = $datos_año_mes[$cas] ?? (new \stdClass());
+          $neg_variacion_devengado = $negativo($d->variacion_devengado ?? null);
+          $neg_variacion_sobre_devengado = $negativo($d->variacion_sobre_devengado ?? null);
+         ?>
+        <td class="devengado">{{ $d->devengado ?? $valor_vacio }}</td>
+        <td class="variacion_devengado {{$neg_variacion_devengado}}">{{$formatear_porcentaje($d->variacion_devengado ?? null)}}</td>
+        <td class="canon">{{ $d->canon ?? $valor_vacio }}</td>
+        <td class="diferencia">{{ $d->diferencia ?? $valor_vacio }}</td>
+        <td class="variacion_sobre_devengado {{$neg_variacion_sobre_devengado}}" style="border-right: 1px solid black;">{{$formatear_porcentaje($d->variacion_sobre_devengado ?? null)}}</td>
         @endforeach
       </tr>
       @endforeach
       
       <tr class="total">
-        <th style="border-left: 1px solid black;border-right: 1px solid black;">TOTAL</th>
+        <th class="año_mes" style="border-left: 1px solid black;border-right: 1px solid black;">TOTAL</th>
         @foreach($casinos as $cas)
-        <?php $d = $datos_anuales[$año][$cas] ?? (new \stdClass()); ?>
-        <td>{{ $d->devengado ?? $valor_vacio }}</td>
-        <td class="{{$negativo($d->variacion_devengado ?? null)}}">{{$formatear_porcentaje($d->variacion_devengado ?? null)}}</td>
-        <td>{{ $d->canon ?? $valor_vacio }}</td>
-        <td>{{ $d->diferencia ?? $valor_vacio }}</td>
-        <td class="{{$negativo($d->variacion_sobre_devengado ?? null)}}" style="border-right: 1px solid black;">{{$formatear_porcentaje($d->variacion_sobre_devengado ?? null)}}</td>
+        <?php 
+          $d = $datos_anuales[$año][$cas] ?? (new \stdClass()); 
+          $neg_variacion_devengado = $negativo($d->variacion_devengado ?? null);
+          $neg_variacion_sobre_devengado = $negativo($d->variacion_sobre_devengado ?? null);
+        ?>
+        <td class="devengado">{{ $d->devengado ?? $valor_vacio }}</td>
+        <td class="variacion_devengado {{$neg_variacion_devengado}}">{{$formatear_porcentaje($d->variacion_devengado ?? null)}}</td>
+        <td class="canon">{{ $d->canon ?? $valor_vacio }}</td>
+        <td class="diferencia">{{ $d->diferencia ?? $valor_vacio }}</td>
+        <td class="variacion_sobre_devengado {{$neg_variacion_sobre_devengado}}" style="border-right: 1px solid black;">{{$formatear_porcentaje($d->variacion_sobre_devengado ?? null)}}</td>
         @endforeach
       </tr>
     </tbody>
