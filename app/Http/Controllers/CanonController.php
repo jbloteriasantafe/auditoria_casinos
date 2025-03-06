@@ -137,7 +137,7 @@ class CanonController extends Controller
       'canon_variable.*.determinado_impuesto' => ['nullable',$numeric_rule(2)],
       'canon_variable.*.determinado_bruto' => ['nullable',$numeric_rule(2)],
       //'canon_variable.*.determinado_total' => ['nullable',$numeric_rule(20)],
-      'canon_variable.*.determinado_ajuste' => ['nullable',$numeric_rule(2)],
+      'canon_variable.*.determinado_ajuste' => ['nullable',$numeric_rule(22)],
       'canon_variable.*.alicuota' => ['nullable',$numeric_rule(4)],
       'canon_fijo_mesas' => 'array',
       'canon_fijo_mesas.*.dias_valor' => ['nullable',$numeric_rule(0)],
@@ -152,6 +152,7 @@ class CanonController extends Controller
       'canon_fijo_mesas.*.dias_fijos' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas.*.mesas_fijos' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas.*.devengado_deduccion' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas.*.determinado_ajuste' => ['nullable',$numeric_rule(22)],
       'canon_fijo_mesas.*.bruto' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas_adicionales' => 'array',
       'canon_fijo_mesas_adicionales.*.dias_mes' => ['nullable',$numeric_rule(0)],
@@ -160,6 +161,7 @@ class CanonController extends Controller
       'canon_fijo_mesas_adicionales.*.mesas' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas_adicionales.*.porcentaje' => ['nullable',$numeric_rule(4)],
       'canon_fijo_mesas_adicionales.*.devengado_deduccion' => ['nullable',$numeric_rule(2)],
+      'canon_fijo_mesas_adicionales.*.determinado_ajuste' => ['nullable',$numeric_rule(22)],
       'adjuntos' => 'array',
       'adjuntos.*.descripcion' => ['nullable','string','max:256'],
       'adjuntos.*.id_archivo'  => ['nullable','integer','exists:archivo,id_archivo'],
@@ -273,7 +275,7 @@ class CanonController extends Controller
             $devengado = bcadd($devengado,$retsc[$tipo]['devengado'] ?? 0,22);
           }
           
-          $determinado_ajuste = bcadd($determinado_ajuste,$retsc[$tipo]['determinado_ajuste'] ?? '0',2);
+          $determinado_ajuste = bcadd($determinado_ajuste,$retsc[$tipo]['determinado_ajuste'] ?? '0',22);
           $determinado_bruto = bcadd($determinado_bruto,$retsc[$tipo]['determinado_total'] ?? '0',22);
           $determinado = bcadd($determinado,$retsc[$tipo]['determinado'] ?? '0',22);
         }
@@ -510,7 +512,7 @@ class CanonController extends Controller
     $devengado_total   =  bcmul($devengado_subtotal,$factor_alicuota,20);//6+14 @RETORNADO
     $determinado_total =  bcmul($determinado_subtotal,$factor_alicuota,20);//6+14 @RETORNADO
     $devengado_deduccion = bcadd($RD('devengado_deduccion','0.00'),'0',2);
-    $determinado_ajuste  = bcadd($RD('determinado_ajuste','0.00'),'0',2);
+    $determinado_ajuste  = bcadd($RD('determinado_ajuste','0.00'),'0',20);
     
     if($es_antiguo){
       $devengado_total = $R('devengado_total',$devengado_total);
@@ -670,7 +672,7 @@ class CanonController extends Controller
     }
     
     $devengado_deduccion = bcadd($RD('devengado_deduccion','0.00'),'0',2);//@RETORNADO
-    $determinado_ajuste  = bcadd($RD('determinado_ajuste','0.00'),'0',2);//@RETORNADO
+    $determinado_ajuste  = bcadd($RD('determinado_ajuste','0.00'),'0',16);//@RETORNADO
     $devengado_total   = bcadd($devengado_total_dolar_cotizado,$devengado_total_euro_cotizado,16);//@RETORNADO
     $determinado_total = bcadd($determinado_total_dolar_cotizado,$determinado_total_euro_cotizado,16);//@RETORNADO
     $bruto = bcadd($R('bruto',$this->bruto($tipo,$año_mes,$id_casino)),'0',2);//@RETORNADO
@@ -780,7 +782,7 @@ class CanonController extends Controller
     $determinado_total = bcmul($determinado_total_sin_aplicar_porcentaje,$factor_porcentaje,22);//16+6 @RETORNADO
     
     $devengado_deduccion = bcadd($RD('devengado_deduccion','0.00'),'0',2);//@RETORNADO
-    $determinado_ajuste = bcadd($RD('determinado_ajuste','0.00'),'0',2);//@RETORNADO
+    $determinado_ajuste = bcadd($RD('determinado_ajuste','0.00'),'0',22);//@RETORNADO
     
     if($es_antiguo){
       $devengado_total = $R('devengado_total',$devengado_total);
