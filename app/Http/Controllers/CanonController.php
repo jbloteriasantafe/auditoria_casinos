@@ -1473,7 +1473,7 @@ class CanonController extends Controller
     return null;
   }
   
-  private function bruto($tipo,$año_mes,$id_casino){//@TODO: modularizar
+  public function bruto($tipo,$año_mes,$id_casino){//@TODO: modularizar
     if($año_mes === null || $tipo === null || $id_casino === null) return null;
     $año_mes_arr = explode('-',$año_mes);
     switch($tipo){
@@ -1537,7 +1537,7 @@ class CanonController extends Controller
                 
         return $result;
       }break;
-      
+      case 'Mesas':
       case 'Fijas':
       case 'Diarias': {
         $resultado = DB::table('importacion_diaria_mesas as idm')

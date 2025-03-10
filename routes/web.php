@@ -1013,3 +1013,8 @@ Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_c
     });
   });
 });
+
+Route::group(['prefix' => 'informesGenerales'],function(){//@TODO: agregar permiso
+  Route::get('/beneficios','InformesGeneralesController@beneficios');
+  Route::get('/autoexcluidos','InformesGeneralesController@autoexcluidos');
+});
