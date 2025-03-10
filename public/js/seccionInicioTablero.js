@@ -311,7 +311,9 @@ function generarGraficoColumnasComparativasSubcategorias(div,titulo,
         stacking: 'normal',
         dataLabels: {
           enabled: true,
-          distance: 20,
+          align: 'center',
+          verticalAlign: 'middle',
+          color: 'black',
           style: {
             textOutline: 'none' 
           }
