@@ -60,7 +60,7 @@ function calcularTodosLosGrupos(data, categorias) {//Realiza todas las combinaci
     
     ret.push([
       group_attrs,
-      groups_summed
+      Object.values(groups_summed)
     ]);
   }
 
