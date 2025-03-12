@@ -10,85 +10,63 @@ import "/js/highcharts_11_3_0/export-data.js";
 import "/js/highcharts_11_3_0/accessibility.js";
 import "/js/highcharts_11_3_0/modules/drilldown.js";
 
-function prepararParaPresentar(data, categorias) {
+function calcularTodosLosGrupos(data, categorias) {//Realiza todas las combinaciones posibles de categorias y ya las suma
   categorias.sort();
-  const results = {};
-  {
-    const cats_count = categorias.length;
-    const used = new Array(cats_count).fill('N');
-    let used_count = 0;
-    
-    const recursive = (carry) => {
-      const used_str = used.join('');
-      results[used_str] = results[used_str] || [];
-      results[used_str].push(carry);
-
-      if (used_count === cats_count) {
+  const combinations = new Set();
+  {//Encuentro todas las combinaciones para N categorias
+    const find_combinations = (used,used_count) => {
+      combinations.add(used.join(''));
+      
+      if (used_count === used.length) {
         return;
       }
 
-      for (let cidx = 0; cidx < cats_count; cidx++) {
-        if (used[cidx] === 'S') continue;
-        used[cidx] = 'S';
-        used_count++;
-        carry.push(categorias[cidx]);
-
-        recursive(carry);
-
-        used[cidx] = 'N';
-        used_count--;
-        carry.pop();
+      for (let uidx = 0; uidx < used.length; uidx++) {
+        if (used[uidx] === 'S') continue;
+        used[uidx] = 'S';
+        find_combinations(used,used_count+1);
+        used[uidx] = 'N';
       }
     };
-
-    recursive([]);
+    find_combinations(new Array(categorias.length).fill('N'),0);
   }
   
-  const groups = [];
-  const vals = [];
-
-  Object.keys(results).forEach((usd) => {
-    const comb_cats = [];
-    categorias.forEach((cat, catidx) => {
-      if (usd[catidx] === 'S') comb_cats.push(cat);
+  const ret = [];
+  
+  for(const comb of combinations){
+    const group_attrs = categorias.filter((cat,catidx) => {
+      return comb[catidx] == 'S';
     });
-
-    const comb_groups = data.reduce((acc, item) => {
-      const groupKey = comb_cats.map((cat, catidx) => item[cat]);
-      const key = JSON.stringify(groupKey);
-
-      if (!acc[key]) {
-        acc[key] = {
-          group: groupKey,
-          items: []
-        };
+    
+    const groups_summed = {};
+    for(const d of data){
+      const groupKey = group_attrs.map((gattr) => d[gattr]);
+      const key = groupKey.join('|');
+      
+      if(!groups_summed[key]){
+        groups_summed[key] = {};
+        group_attrs.forEach((gattr) => {
+          groups_summed[key][gattr] = d[gattr];
+        });
+        groups_summed[key].cantidad = Decimal(0);
       }
+      
+      groups_summed[key].cantidad = groups_summed[key].cantidad.plus(Decimal(d.cantidad));
+    }
+    
+    for(const key in groups_summed){
+      groups_summed[key].cantidad = groups_summed[key].cantidad.toFixed(2);
+    }
+    
+    ret.push([
+      group_attrs,
+      groups_summed
+    ]);
+  }
 
-      acc[key].items.push(item);
-      return acc;
-    }, {});
-
-    const comb_groups_mapped = Object.values(comb_groups).map((group) => {
-      const r = {};
-      comb_cats.forEach((cat, cidx) => {
-        r[cat] = group.group[cidx];
-      });
-      r.cantidad = group.items.reduce((carry, item) => {
-        return new Decimal(carry).plus(item.cantidad).toFixed(2);
-      }, 0);
-      return r;
-    });
-
-    groups.push(comb_cats);
-    vals.push(comb_groups_mapped);
-  });
-
-  return { 'groups': groups, 'vals': vals };
+  return ret;
 }
 
-function lexicalComp(s1,s2){
-  return -((s1<s2)+0)+((s1>s2)+0);
-}
 function formatEsp(n){
   n = n+'';
   const negativo = n?.[0] == '-'? '-' : '';
@@ -354,7 +332,7 @@ function generarGraficoColumnasComparativasSubcategorias(div,titulo,
 function keyBy(data,propiedad,val_access = function(x){return x;}){
   return data.reduce((carry, obj) => {
     const key = obj[propiedad];
-    carry[key] = val_access(obj);
+    carry[key] = obj?.cantidad? parseFloat(obj.cantidad) : null;
     return carry;
   }, {});
 }
@@ -370,28 +348,25 @@ function groupBy(data,propiedad){
   }, {});
 }
 
-function nestGroupsBy(data, propiedades, val_access = function(x){return x;}, propidx=0) {
-  if (propidx >= propiedades.length) return null;
-  
-  const last_prop = propidx == (propiedades.length-1);
+function nestGroupsBy(data, propiedades, propidx=0) {
   const propiedad = propiedades[propidx];
-  if(last_prop){
-    return keyBy(data, propiedad, val_access)
+  if(propidx == (propiedades.length-1)){//Si es la ultima propiedad, uso keyby para guardar el valor en vez de un arreglo
+    return keyBy(data, propiedad)
   }
   const agrupado  = groupBy(data, propiedad);
   for (const key in agrupado) {
-    agrupado[key] = nestGroupsBy(agrupado[key], propiedades, val_access,propidx+1);
+    agrupado[key] = nestGroupsBy(agrupado[key], propiedades, propidx+1);
   }
   return agrupado;
 }
 
-function extraerObjeto(data,categorias){
-  const sorted_categorias = [...categorias];
-  sorted_categorias.sort();
-  const gidx = data.groups.findIndex(x => x.toString() == sorted_categorias.toString());//@SLOW?
+function extraerObjeto(grupos,categorias){
+  const sorted_categorias_str = [...categorias].sort().toString();//sort es destructivo, tengo que clonarlo con [...]
+  
+  const gidx = grupos.findIndex(G => G[0].toString() == sorted_categorias_str);//@SLOW?
   if(gidx == -1) return [];
   const access_function = function(x){return x?.cantidad? parseFloat(x.cantidad) : null;};
-  return nestGroupsBy(data.vals[gidx],categorias,access_function);
+  return nestGroupsBy(grupos[gidx][1],categorias);
 }
 
 $(function(){ $('[data-tablero-inicio]').each(function(){
@@ -407,25 +382,19 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
   
   function GET(loadingDiv,url,success = function(data){},error = function(data){}){
     if(loadingDiv.length == 0) return;
-    let progress = 0;
-    const intervalID = setInterval(function(){
-        const message = ['―','/','|','\\'];
-        loadingDiv.css('text-align','center').text(message[progress]);
-        progress = (progress + 1)%4;
-    },100);
+    
+    loadingDiv.css('text-align','center').empty().append($('<i>').addClass('fa fa-spinner fa-spin'));
     
     AUX.GET(
       url,
       {'periodo': [$T('[name="periodo[0]"]').val(),$T('[name="periodo[1]"]').val()]},
       function(data){
-        clearInterval(intervalID);
-        loadingDiv.css('text-align','unset').text('');
+        loadingDiv.css('text-align','unset').empty();
         success(data);
       },
       function(data){
         console.log(data);
-        clearInterval(intervalID);
-        loadingDiv.css('text-align','unset').text(' ERROR DE CARGA ');
+        loadingDiv.css('text-align','unset').empty().text(' ERROR DE CARGA ');
         error(data);
       }
     );
@@ -439,7 +408,7 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
   
   T.on('redraw',function(){
     GET($T('#divBeneficiosAnualesPorCasino,#divBeneficiosAnualesPorActividad,#divBeneficiosMensuales'),'informesGenerales/beneficios',function(data_raw){
-      const data = prepararParaPresentar(data_raw,['Casino','Periodo','Actividad']);
+      const data = calcularTodosLosGrupos(data_raw,['Casino','Periodo','Actividad']);
       
       const totalizado_por_casino = extraerObjeto(data,['Casino']);
       const totalizado_por_casino_actividad = extraerObjeto(data,['Casino','Actividad']);
@@ -480,7 +449,7 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
     });
     
     GET($T('#divAutoexcluidosAnualesPorCasino,#divAutoexcluidosAnualesPorEstado,#divAutoexcluidosMensuales,#divDistribucionAutoexcluidosProvincias,#divDistribucionAutoexcluidosDepartamentos'),'informesGenerales/autoexcluidos',function(data_raw){
-      const data = prepararParaPresentar(data_raw,['Casino','Periodo','Estado','Provincia','Departamento']);
+      const data = calcularTodosLosGrupos(data_raw,['Casino','Periodo','Estado','Provincia','Departamento']);
       
       const totalizado_por_casino = extraerObjeto(data,['Casino']);
       const totalizado_por_casino_estado = extraerObjeto(data,['Casino','Estado']);
