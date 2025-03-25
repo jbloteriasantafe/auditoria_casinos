@@ -1095,6 +1095,7 @@
           $factor_dias_mes = $n('factor_dias_mes');
           $factor_horas_mes = $n('factor_horas_mes');
           $horas = $n('horas');
+          $mesas = $n('mesas');
           $porcentaje = $n('porcentaje');
           $devengar = $n('devengar');
           $devengado_valor_mes = $n('devengado_valor_mes');
@@ -1132,9 +1133,15 @@
               </div>
             </div>
             <div style="display: flex;">
-              <div>
-                <h5>HORAS</h5>
-                <input class="form-control" data-name="{{$horas}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              <div style="width: 14em;">
+                <div style="display: flex;">
+                  <h5 style="flex: 1;">HORAS</h5>
+                  <h5 style="flex: 1;">MESAS</h5>
+                </div>
+                <div style="display: flex;">
+                  <input style="flex: 1;border-bottom-right-radius: 0px;border-top-right-radius: 0px;border-right: 1px dashed gray;" class="form-control" data-name="{{$horas}}"  data-depende="{{$mesas}}"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input style="flex: 1;border-bottom-left-radius: 0px;border-top-left-radius: 0px;border-left: 1px dashed gray;" class="form-control" data-name="{{$mesas}}" data-depende="{{$horas}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                </div>
               </div>
               <div class="parametro_chico">
                 <h5>PORCENTAJE</h5>

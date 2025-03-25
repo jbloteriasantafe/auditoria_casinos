@@ -724,7 +724,12 @@ class CanonController extends Controller
     
     $valor_dolar = $COT['valor_dolar'] ?? null;//@RETORNADO
     $valor_euro  = $COT['valor_euro']  ?? null;//@RETORNADO
+    
     $horas = $R('horas',0);//@RETORNADO
+    $mesas = $R('mesas',0);//@RETORNADO
+    if($horas != 0) $mesas = 0;
+    if($mesas != 0) $horas = 0;
+    
     $porcentaje = bcadd($RD('porcentaje','0.0000'),'0',4);//@RETORNADO
     $factor_porcentaje = bcdiv($porcentaje,'100',6);
         
@@ -755,10 +760,11 @@ class CanonController extends Controller
     $devengado_total_sin_aplicar_porcentaje = '0';
     $determinado_total_sin_aplicar_porcentaje = '0';
     {//Sumo de valores mas precisos a menos precisos
+      $horas_aux = $horas != 0? $horas : bcmul($mesas,$horas_dia,0);
       $horas_mes = $horas_dia*$dias_mes;
       
-      $meses = intdiv($horas,$horas_mes);
-      $horas_dias_restantes = $horas%$horas_mes;
+      $meses = intdiv($horas_aux,$horas_mes);
+      $horas_dias_restantes = $horas_aux%$horas_mes;
       
       $dias = intdiv($horas_dias_restantes,$horas_dia);
       $horas_restantes = $horas_dias_restantes%$horas_dia;
@@ -796,7 +802,7 @@ class CanonController extends Controller
       'tipo',
       'dias_mes','horas_dia','factor_dias_mes','factor_horas_mes',
       'valor_dolar','valor_euro',
-      'horas','porcentaje',
+      'horas','mesas','porcentaje',
       'devengar',
       'devengado_fecha_cotizacion','devengado_cotizacion_dolar','devengado_cotizacion_euro',
       'devengado_valor_mes','devengado_valor_dia','devengado_valor_hora',
