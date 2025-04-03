@@ -181,9 +181,25 @@ class CanonController extends Controller
     $R = function($s,$dflt = null) use (&$request){
       return (($request[$s] ?? null) === null || ($request[$s] === '') || ($request[$s] === []))? $dflt : $request[$s];
     };
-        
+    
     $año_mes = $R('año_mes');//@RETORNADO
     $id_casino = $R('id_casino');//@RETORNADO
+    
+    $canon_anterior = collect([]);//@RETORNADO
+    if($año_mes !== null && $id_casino !== null){
+      $canon_anterior = DB::table('canon')
+      ->select('id_canon')
+      ->whereNull('deleted_at')
+      ->where('id_casino',$id_casino)
+      ->where('año_mes','<',$año_mes)
+      ->orderBy('año_mes','desc')
+      ->first();
+      
+      if($canon_anterior !== null){
+        $canon_anterior = $this->obtener_arr(['id_canon' => $canon_anterior->id_canon]);
+      }
+    }
+    
     $estado = $R('estado','Nuevo');//@RETORNADO
     $fecha_cotizacion = $R('fecha_cotizacion');//@RETORNADO
     $es_antiguo = $R('es_antiguo',0)? 1 : 0;//@RETORNADO
@@ -256,9 +272,9 @@ class CanonController extends Controller
       
       foreach($ret as $subcanon => &$retsc){
         $defecto = ($this->valorPorDefecto($subcanon) ?? [])[$id_casino] ?? [];
+        $subcanon_anterior = $canon_anterior[$subcanon] ?? [];
         foreach(($request[$subcanon] ?? $defecto ?? []) as $tipo => $_){
           $data_request_tipo = ($request[$subcanon] ?? [])[$tipo] ?? [];
-                    
           $retsc[$tipo] = $this->{$subcanon.'_recalcular'}(
             $año_mes,
             $id_casino,
@@ -266,7 +282,8 @@ class CanonController extends Controller
             $tipo,
             $defecto[$tipo] ?? [],
             $data_request_tipo,
-            $COT
+            $COT,
+            $subcanon_anterior[$tipo] ?? []
           );
           
           if($retsc[$tipo]['devengar'] ?? 1){
@@ -447,6 +464,7 @@ class CanonController extends Controller
     $saldo_posterior_cerrado = $saldo_posterior;//@RETORNADO
     
     return compact(
+      'canon_anterior',
       'año_mes','id_casino','estado','es_antiguo',
       'canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales','adjuntos',
       
@@ -468,15 +486,21 @@ class CanonController extends Controller
     );
   }
   
-  public function canon_variable_recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$valores_defecto,$data,$COT){
+  public function canon_variable_recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$valores_defecto,$data,$COT,$anterior){
     $R = function($s,$dflt = null) use (&$data){
       return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
     };
     $D = function($s,$dflt = null) use (&$valores_defecto){
       return (($valores_defecto[$s] ?? null) === null || ($valores_defecto[$s] === '') || ($valores_defecto[$s] === []))? $dflt : $valores_defecto[$s];
     };
+    $A = function($s,$dflt = null) use (&$anterior){
+      return (($anterior[$s] ?? null) === null || ($anterior[$s] === '') || ($anterior[$s] === []))? $dflt : $anterior[$s];
+    };
     $RD = function($s,$dflt = null) use ($R,$D){
       return $R($s,null) ?? $D($s,null) ?? $dflt;
+    };
+    $RAD = function($s,$dflt = null) use ($R,$A,$D){
+      return $R($s,null) ?? $A($s,null) ?? $D($s,null) ?? $dflt;
     };
     
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
@@ -511,7 +535,7 @@ class CanonController extends Controller
     
     $devengado_total   =  bcmul($devengado_subtotal,$factor_alicuota,20);//6+14 @RETORNADO
     $determinado_total =  bcmul($determinado_subtotal,$factor_alicuota,20);//6+14 @RETORNADO
-    $devengado_deduccion = bcadd($RD('devengado_deduccion','0.00'),'0',2);
+    $devengado_deduccion = bcadd($RAD('devengado_deduccion','0.00'),'0',2);
     $determinado_ajuste  = bcadd($RD('determinado_ajuste','0.00'),'0',20);
     
     if($es_antiguo){
@@ -540,7 +564,8 @@ class CanonController extends Controller
       $tipo,//@RETORNADO
       $valores_defecto,
       $data,
-      $COT
+      $COT,
+      $anterior
   ){
     $R = function($s,$dflt = null) use (&$data){
       return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
@@ -548,8 +573,14 @@ class CanonController extends Controller
     $D = function($s,$dflt = null) use (&$valores_defecto){
       return (($valores_defecto[$s] ?? null) === null || ($valores_defecto[$s] === '') || ($valores_defecto[$s] === []))? $dflt : $valores_defecto[$s];
     };
+    $A = function($s,$dflt = null) use (&$anterior){
+      return (($anterior[$s] ?? null) === null || ($anterior[$s] === '') || ($anterior[$s] === []))? $dflt : $anterior[$s];
+    };
     $RD = function($s,$dflt = null) use ($R,$D){
       return $R($s,null) ?? $D($s,null) ?? $dflt;
+    };
+    $RAD = function($s,$dflt = null) use ($R,$A,$D){
+      return $R($s,null) ?? $A($s,null) ?? $D($s,null) ?? $dflt;
     };
     
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
@@ -671,7 +702,7 @@ class CanonController extends Controller
       $determinado_total_euro_cotizado  = bcadd($determinado_total_euro_cotizado,bcmul($determinado_valor_euro_diario_cotizado,$mesas_dias_restantes,16),16);
     }
     
-    $devengado_deduccion = bcadd($RD('devengado_deduccion','0.00'),'0',2);//@RETORNADO
+    $devengado_deduccion = bcadd($RAD('devengado_deduccion','0.00'),'0',2);//@RETORNADO
     $determinado_ajuste  = bcadd($RD('determinado_ajuste','0.00'),'0',16);//@RETORNADO
     $devengado_total   = bcadd($devengado_total_dolar_cotizado,$devengado_total_euro_cotizado,16);//@RETORNADO
     $determinado_total = bcadd($determinado_total_dolar_cotizado,$determinado_total_euro_cotizado,16);//@RETORNADO
@@ -705,15 +736,30 @@ class CanonController extends Controller
     );
   }
   
-  public function canon_fijo_mesas_adicionales_recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$valores_defecto,$data,$COT){
+  public function canon_fijo_mesas_adicionales_recalcular(
+    $año_mes,
+    $id_casino,
+    $es_antiguo,
+    $tipo,
+    $valores_defecto,
+    $data,
+    $COT,
+    $anterior
+  ){
     $R = function($s,$dflt = null) use (&$data){
       return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
     };
     $D = function($s,$dflt = null) use (&$valores_defecto){
       return (($valores_defecto[$s] ?? null) === null || ($valores_defecto[$s] === '') || ($valores_defecto[$s] === []))? $dflt : $valores_defecto[$s];
     };
+    $A = function($s,$dflt = null) use (&$anterior){
+      return (($anterior[$s] ?? null) === null || ($anterior[$s] === '') || ($anterior[$s] === []))? $dflt : $anterior[$s];
+    };
     $RD = function($s,$dflt = null) use ($R,$D){
       return $R($s,null) ?? $D($s,null) ?? $dflt;
+    };
+    $RAD = function($s,$dflt = null) use ($R,$A,$D){
+      return $R($s,null) ?? $A($s,null) ?? $D($s,null) ?? $dflt;
     };
     
     $dias_mes      = $RD('dias_mes',0);//@RETORNADO
@@ -787,7 +833,7 @@ class CanonController extends Controller
     $devengado_total = bcmul($devengado_total_sin_aplicar_porcentaje,$factor_porcentaje,22);//16+6 @RETORNADO
     $determinado_total = bcmul($determinado_total_sin_aplicar_porcentaje,$factor_porcentaje,22);//16+6 @RETORNADO
     
-    $devengado_deduccion = bcadd($RD('devengado_deduccion','0.00'),'0',2);//@RETORNADO
+    $devengado_deduccion = bcadd($RAD('devengado_deduccion','0.00'),'0',2);//@RETORNADO
     $determinado_ajuste = bcadd($RD('determinado_ajuste','0.00'),'0',22);//@RETORNADO
     
     if($es_antiguo){
@@ -856,21 +902,18 @@ class CanonController extends Controller
       $created_at = date('Y-m-d h:i:s');
       $id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       
-      $id_canon_anterior = null;
-      {
-        $canon_viejos = DB::table('canon')
+      $canon_anterior = ($datos['año_mes'] !== null && $datos['id_casino'] !== null)?
+        DB::table('canon')//Necesito la variable para despues sacarle los archivos
+        ->select('id_canon')
         ->whereNull('deleted_at')
-        ->where('año_mes',$request->año_mes)
-        ->where('id_casino',$request->id_casino)
+        ->where('año_mes',$datos['año_mes'])
+        ->where('id_casino',$datos['id_casino'])
         ->orderBy('created_at','desc')
-        ->get();
-        
-        foreach($canon_viejos as $idx => $cv){
-          if($idx == 0){//Saco todos los id_archivos para pasarselos a la version de canon nueva
-            $id_canon_anterior = $cv->id_canon;
-          }
-          $this->borrar_arr(['id_canon' => $cv->id_canon],$created_at,$id_usuario);
-        }
+        ->get()
+      : [];
+      
+      foreach($canon_anterior as $c){
+        $this->borrar_arr(['id_canon' => $c->id_canon],$created_at,$id_usuario);
       }
             
       $id_canon = DB::table('canon')
@@ -945,12 +988,12 @@ class CanonController extends Controller
       }
       
       {
-        $archivos_existentes = $id_canon_anterior === null? 
+        $archivos_existentes = count($canon_anterior) == 0? 
           collect([])
         : DB::table('canon_archivo as ca')
         ->select('ca.descripcion','ca.type','a.*')
         ->join('archivo as a','a.id_archivo','=','ca.id_archivo')
-        ->where('id_canon',$id_canon_anterior)
+        ->where('id_canon',$canon_anterior[0]->id_canon)
         ->get()
         ->keyBy('id_archivo');
         

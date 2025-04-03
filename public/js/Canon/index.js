@@ -608,7 +608,7 @@ $(document).ready(function() {
       tbody.find('[data-js-borrar]').click(function(e){
         const tgt = $(e.currentTarget);
         const fd = {};
-        fd[tgt.attr('data-table-id')] = tgt.val();
+        fd[tgt.closest('[data-table-id]').attr('data-table-id')] = tgt.val();
         
         $('[data-js-modal-eliminar]').trigger('mostrar',[{
           url: tgt.attr('data-js-borrar'),
