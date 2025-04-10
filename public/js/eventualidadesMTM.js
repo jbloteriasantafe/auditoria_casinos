@@ -46,10 +46,22 @@ function initModalNuevaEvMTM(){
     $('#modalNuevaEvMTM').modal('show');
   });
 
-  const casino = $('#casinoNuevaEvMTM').val();
-  $('#inputMTM').generarDataList("eventualidadesMTM/obtenerMTMEnCasino/" + casino, 'maquinas','id_maquina','nro_admin',1,true);
   $('#modalNuevaEvMTM').find('#btn-impr').prop('disabled',true);
+  $('#sentidoMov').change();
 }
+
+$('#sentidoMov').change(function(e){
+  const tgt = $(e.currentTarget);
+  ($('#inputMTM')?.borrarDatalist ?? function(){})();
+  const casino = $('#casinoNuevaEvMTM').val();
+  $('#tablaMTM tbody tr').remove();
+  if(tgt.val() == 'EGRESO TEMPORAL'){
+    $('#inputMTM').generarDataList("eventualidadesMTM/obtenerMTMEnCasinoHabilitadas/" + casino, 'maquinas','id_maquina','nro_admin',1,true);
+  }
+  else if(tgt.val() == 'REINGRESO'){
+    $('#inputMTM').generarDataList("eventualidadesMTM/obtenerMTMEnCasinoEgresadas/" + casino, 'maquinas','id_maquina','nro_admin',1,true);
+  }
+});
 //botón grande para generar la nueva eventualidad de máquina
 $(document).on('click','#btn-nueva-evmaquina',function(e){
   e.preventDefault();
@@ -202,6 +214,22 @@ $(document).on('click','#divRelMov .cargarMaq',function(){
   })
 });
 
+function buildFormData(formData, data, parentKey) {//https://stackoverflow.com/questions/22783108/convert-js-object-to-form-data
+  if (data && typeof data === 'object' && !(data instanceof Date) && !(data instanceof File) && !(data instanceof Blob)) {
+    Object.keys(data).forEach(key => {
+      buildFormData(formData, data[key], parentKey ? `${parentKey}[${key}]` : key);
+    });
+  } else {
+    const value = data == null ? '' : data;
+    formData.append(parentKey, value);
+  }
+}
+function objToFormData(data) {
+  const formData = new FormData();
+  buildFormData(formData, data);
+  return formData;
+}
+
 //BOTÓN GUARDAR dentro del modal cargar eventualidad
 $(document).on('click','#guardarRel',function(){
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
@@ -221,6 +249,7 @@ $(document).on('click','#guardarRel',function(){
     cant_creditos:         datos.creditos,
     fecha_sala:            datos.fecha_ejecucion,
     observaciones:         datos.observaciones,
+    adjunto:               datos.adjunto ?? null,
     mac:                   datos.mac,
     isla_relevada:         datos.isla_rel,
     sector_relevado:       datos.sector_rel,
@@ -231,8 +260,11 @@ $(document).on('click','#guardarRel',function(){
   $.ajax({
     type: 'POST',
     url: 'eventualidadesMTM/cargarTomaRelevamiento',
-    data: formData,
+    data: objToFormData(formData),
     dataType: 'json',
+    processData: false,
+    contentType: false,
+    cache: false,
     success: function (data){
       divRelMovEsconderDetalleRelevamiento();
       divRelMovLimpiar();

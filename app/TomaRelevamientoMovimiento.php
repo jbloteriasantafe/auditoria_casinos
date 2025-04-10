@@ -9,7 +9,7 @@ class TomaRelevMovObserver extends Observers\ParametrizedObserver {
     parent::__construct(
       'vcont1','vcont2','vcont3','vcont4','vcont5','vcont6','vcont7',
       'vcont8', 'juego', 'apuesta_max','cant_lineas', 'porcentaje_devolucion',
-      'denominacion','cant_creditos', 'observaciones'
+      'denominacion','cant_creditos', 'observaciones','id_archivo'
     );
   }
 }
@@ -29,7 +29,7 @@ class TomaRelevamientoMovimiento extends Model
                             'cant_lineas', 'porcentaje_devolucion', 'denominacion',
                              'cant_creditos', 'observaciones','nro_admin',
                              'modelo', 'nro_serie','nro_isla','marca',
-                             'descripcion_sector_relevado','nro_isla_relevada','toma_reingreso');
+                             'descripcion_sector_relevado','nro_isla_relevada','toma_reingreso','id_archivo');
   public $timestamps = false;
 
   public function relevamiento_movimiento(){
@@ -50,5 +50,7 @@ class TomaRelevamientoMovimiento extends Model
   public function detalles_relevamiento_progresivo(){
     return $this->hasMany('App\DetalleRelevamientoProgresivo','id_toma_relev_mov','id_toma_relev_mov');
   }
-
+  public function archivo(){
+    return $this->belongsTo('App\Archivo','id_archivo','id_archivo');
+  }
 }

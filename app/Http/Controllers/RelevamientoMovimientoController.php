@@ -15,6 +15,7 @@ use App\EstadoMovimiento;
 use App\FiscalizacionMov;
 use App\DetalleRelevamientoProgresivo;
 use App\NivelProgresivo;
+use App\Archivo;
 use Illuminate\Support\Facades\DB;
 use Response;
 use PDF;
@@ -178,7 +179,7 @@ class RelevamientoMovimientoController extends Controller
     $id_relevamiento, $nro_toma, $id_cargador, $id_fiscalizador, $fecha_sala,
     $mac, $sector_relevado, $isla_relevada, $contadores, $juego, $apuesta_max,
     $cant_lineas, $porcentaje_devolucion, $denominacion, $cant_creditos, 
-    $progresivos, $observaciones
+    $progresivos, $observaciones, $adjunto
   ){
     $relevamiento = RelevamientoMovimiento::find($id_relevamiento);
     $relevamiento->estado_relevamiento()->associate(3);//finalizado
@@ -212,6 +213,16 @@ class RelevamientoMovimientoController extends Controller
     $toma->denominacion = $denominacion;
     $toma->cant_creditos = $cant_creditos;
     $toma->observaciones = $observaciones;
+    $toma->id_archivo = null;
+    if($adjunto){
+      $archivo=new Archivo;
+      $data=base64_encode(file_get_contents($adjunto->getRealPath()));
+      $nombre_archivo=$adjunto->getClientOriginalName();
+      $archivo->nombre_archivo=$nombre_archivo;
+      $archivo->archivo=$data;
+      $archivo->save();
+      $toma->id_archivo = $archivo->id_archivo;
+    }
     $toma->save();
 
     $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;

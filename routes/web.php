@@ -311,6 +311,7 @@ Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_secci
   Route::get('obtenerRelevamientosFiscalizacion/{id_fiscalizacion_movimiento}','LogMovimientoController@obtenerRelevamientosFiscalizacion');
   Route::get('obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
   Route::post('cargarTomaRelevamiento', 'LogMovimientoController@cargarTomaRelevamiento');
+  Route::get('adjunto/{id_toma}/{id_archivo}','LogMovimientoController@leerAdjuntoDeToma');
   Route::post('nuevoLogMovimiento','LogMovimientoController@nuevoLogMovimiento');
   Route::post('eliminarMovimiento', 'LogMovimientoController@eliminarMovimiento');
   Route::get('obtenerDatos/{id}','LogMovimientoController@obtenerDatos');
@@ -379,7 +380,9 @@ Route::group(['prefix' => 'eventualidadesMTM','middleware' => 'tiene_permiso:ver
   Route::get('relevamientosEvMTM/{id_movimiento}', 'LogMovimientoController@relevamientosEvMTM');
   Route::get('imprimirEventualidadMTM/{id_mov}','LogMovimientoController@imprimirEventualidadMTM');
   Route::post('visarConObservacion', 'LogMovimientoController@visarConObservacion');
-  Route::get('obtenerMTMEnCasino/{id_casino}/{admin}','MTMController@obtenerMTMEnCasino');
+  Route::get('obtenerMTMEnCasinoHabilitadas/{casino}/{id}', 'MTMController@obtenerMTMEnCasinoHabilitadas');
+  Route::get('obtenerMTMEnCasinoEgresadas/{casino}/{id}', 'MTMController@obtenerMTMEnCasinoEgresadas');
+  Route::get('adjunto/{id_toma}/{id_archivo}','LogMovimientoController@leerAdjuntoDeToma');
   Route::get('obtenerMTM/{id}', 'MTMController@obtenerMTM');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
 });

@@ -203,7 +203,16 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
                 <div class="col-lg-12">
                     <textarea id="" class="form-control editable observaciones" style="resize:vertical;"></textarea>
                 </div>
-            </div> <!-- FIN ULTIMO row -->
+            </div>
+            <h6>ADJUNTO</h6>
+            <div class="row">
+              <div class="col-md-12" style="display: flex;">
+                <input type="file" class="form-control editable adjunto" style="width: 20em;" accept="image/*" capture="environment">
+                <span>&nbsp;</span>
+                <img class="imagen_adjunto" style="width: 15em;border: 1px solid #ddd">
+                <button type="button" class="btn btn-link eliminar_adjunto" style="color: red;">X</button>
+              </div>
+            </div>
             <div class="validacion">
             @if($divRelMov_user->es_controlador)
                 <h6>OBSERVACIONES ADMIN:</h6>
