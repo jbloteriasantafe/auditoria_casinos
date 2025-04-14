@@ -218,11 +218,11 @@ class MTMController extends Controller
   }
   
   public function obtenerMTMEnCasinoHabilitadas($id_casino,$nro_admin){
-    return $this->obtenerMTMEnCasino($id_casino,$nro_admin,[1,2]);
+    return $this->obtenerMTMEnCasino($id_casino,$nro_admin,[1,2,4,5,6,7]);
   }
   
   public function obtenerMTMEnCasinoEgresadas($id_casino,$nro_admin){
-    return $this->obtenerMTMEnCasino($id_casino,$nro_admin,[4,5,6,7]);
+    return $this->obtenerMTMEnCasino($id_casino,$nro_admin,[1,2,4,5,6,7]);
   }
 
   public function desasociarFormula($id_formula){
