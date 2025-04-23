@@ -4,13 +4,14 @@ import "/js/Components/inputFecha.js";
 import {AUX} from "/js/Components/AUX.js";
 
 import "/js/highcharts_11_3_0/highcharts.js";
+import "/js/highcharts_11_3_0/highcharts-more.js";
 import "/js/highcharts_11_3_0/highcharts-3d.js";
 import "/js/highcharts_11_3_0/exporting.js";
 import "/js/highcharts_11_3_0/export-data.js";
 import "/js/highcharts_11_3_0/accessibility.js";
 import "/js/highcharts_11_3_0/modules/drilldown.js";
 
-function calcularTodosLosGrupos(data, categorias) {//Realiza todas las combinaciones posibles de categorias y ya las suma
+function calcularTodosLosGrupos(data, categorias,count_key) {//Realiza todas las combinaciones posibles de categorias y ya las suma
   categorias.sort();
   const combinations = new Set();
   {//Encuentro todas las combinaciones para N categorias
@@ -38,29 +39,37 @@ function calcularTodosLosGrupos(data, categorias) {//Realiza todas las combinaci
       return comb[catidx] == 'S';
     });
     
-    const groups_summed = {};
+    const groups_flattened = {};
     for(const d of data){
       const groupKey = group_attrs.map((gattr) => d[gattr]);
       const key = groupKey.join('|');
       
-      if(!groups_summed[key]){
-        groups_summed[key] = {};
+      if(!groups_flattened[key]){
+        groups_flattened[key] = {};
         group_attrs.forEach((gattr) => {
-          groups_summed[key][gattr] = d[gattr];
+          groups_flattened[key][gattr] = d[gattr];
         });
-        groups_summed[key].cantidad = Decimal(0);
+        groups_flattened[key].total = Decimal(0,{precision: 15});
+        groups_flattened[key].count = 0; 
       }
       
-      groups_summed[key].cantidad = groups_summed[key].cantidad.plus(Decimal(d.cantidad));
+      const val = d[count_key] ?? null;
+      if(val !== null){
+        groups_flattened[key].total = groups_flattened[key].total.plus(Decimal(val));
+        groups_flattened[key].count += 1;
+      }
     }
     
-    for(const key in groups_summed){
-      groups_summed[key].cantidad = groups_summed[key].cantidad.toFixed(2);
+    for(const key in groups_flattened){
+      const v = groups_flattened[key];
+      groups_flattened[key].average = (new (Decimal.set({precision: 50}))(0))
+      .plus(v.total).div(v.count).toFixed(4);
+      groups_flattened[key].total   = v.total.toFixed(2);
     }
     
     ret.push([
       group_attrs,
-      Object.values(groups_summed)
+      Object.values(groups_flattened)
     ]);
   }
 
@@ -220,7 +229,7 @@ function generarGraficoColumnasComparativasSubcategorias(div,titulo,
   
   for(const subcat of subcategorias){
     const aux = {
-      name: 'Año-Mes',
+      name: nombre_categoria,
       linkedTo: subcat,
       grouping: false,
       dataLabels: {
@@ -329,10 +338,10 @@ function generarGraficoColumnasComparativasSubcategorias(div,titulo,
 }
 
 //Modificado de https://gist.github.com/holmberd/945375f099cbb4139e37fef8055bc430
-function keyBy(data,propiedad,val_access = function(x){return x;}){
+function keyBy(data,propiedad,extract_key){
   return data.reduce((carry, obj) => {
     const key = obj[propiedad];
-    carry[key] = obj?.cantidad? parseFloat(obj.cantidad) : null;
+    carry[key] = obj[extract_key]? parseFloat(obj[extract_key]) : null;
     return carry;
   }, {});
 }
@@ -348,25 +357,23 @@ function groupBy(data,propiedad){
   }, {});
 }
 
-function nestGroupsBy(data, propiedades, propidx=0) {
+function nestGroupsBy(data, propiedades, propidx, extract_key) {
   const propiedad = propiedades[propidx];
   if(propidx == (propiedades.length-1)){//Si es la ultima propiedad, uso keyby para guardar el valor en vez de un arreglo
-    return keyBy(data, propiedad)
+    return keyBy(data, propiedad, extract_key)
   }
   const agrupado  = groupBy(data, propiedad);
   for (const key in agrupado) {
-    agrupado[key] = nestGroupsBy(agrupado[key], propiedades, propidx+1);
+    agrupado[key] = nestGroupsBy(agrupado[key], propiedades, propidx+1, extract_key);
   }
   return agrupado;
 }
 
-function extraerObjeto(grupos,categorias){
+function extraerObjeto(grupos,categorias,extract_key='total'){
   const sorted_categorias_str = [...categorias].sort().toString();//sort es destructivo, tengo que clonarlo con [...]
-  
   const gidx = grupos.findIndex(G => G[0].toString() == sorted_categorias_str);//@SLOW?
   if(gidx == -1) return [];
-  const access_function = function(x){return x?.cantidad? parseFloat(x.cantidad) : null;};
-  return nestGroupsBy(grupos[gidx][1],categorias);
+  return nestGroupsBy(grupos[gidx][1],categorias,0,extract_key);
 }
 
 $(function(){ $('[data-tablero-inicio]').each(function(){
@@ -408,7 +415,7 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
   
   T.on('redraw',function(){
     GET($T('#divBeneficiosAnualesPorCasino,#divBeneficiosAnualesPorActividad,#divBeneficiosMensuales'),'informesGenerales/beneficios',function(data_raw){
-      const data = calcularTodosLosGrupos(data_raw,['Casino','Periodo','Actividad']);
+      const data = calcularTodosLosGrupos(data_raw,['Casino','Periodo','Actividad'],'cantidad');
       
       const totalizado_por_casino = extraerObjeto(data,['Casino']);
       const totalizado_por_casino_actividad = extraerObjeto(data,['Casino','Actividad']);
@@ -449,7 +456,7 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
     });
     
     GET($T('#divAutoexcluidosAnualesPorCasino,#divAutoexcluidosAnualesPorEstado,#divAutoexcluidosMensuales,#divDistribucionAutoexcluidosProvincias,#divDistribucionAutoexcluidosDepartamentos'),'informesGenerales/autoexcluidos',function(data_raw){
-      const data = calcularTodosLosGrupos(data_raw,['Casino','Periodo','Estado','Provincia','Departamento']);
+      const data = calcularTodosLosGrupos(data_raw,['Casino','Periodo','Estado','Provincia','Departamento'],'cantidad');
       
       const totalizado_por_casino = extraerObjeto(data,['Casino']);
       const totalizado_por_casino_estado = extraerObjeto(data,['Casino','Estado']);
@@ -521,6 +528,243 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
         { yAxis: { min: 1, type: 'logarithmic' } }
       );
     });
+    
+    GET($('#divPorcentajesDevolucion'),'informesGenerales/pdevs',function(pdevs_raw){
+      const apuestaARS = calcularTodosLosGrupos(pdevs_raw,['Casino','Periodo','Fecha'],'ApuestaARS');
+      const premioARS  = calcularTodosLosGrupos(pdevs_raw,['Casino','Periodo','Fecha'],'PremioARS');
+      const apuestaARS_casino_periodo_fecha_total = extraerObjeto(apuestaARS,['Casino','Periodo','Fecha'],'total');
+      const premioARS_casino_periodo_fecha_total  = extraerObjeto(premioARS,['Casino','Periodo','Fecha'],'total');
+      
+      const periodos = [...new Set(
+        Object.keys(extraerObjeto(apuestaARS,['Periodo'],'total')).concat(
+          Object.keys(extraerObjeto(premioARS,['Periodo'],'total'))
+        )
+      )].sort();
+      
+      const casinos = [...new Set(
+        Object.keys(apuestaARS_casino_periodo_fecha_total).concat(
+          Object.keys(premioARS_casino_periodo_fecha_total)
+        )
+      )].sort();
+      
+      const periodo_fechas = {};
+      const pdev_casino_periodo_fecha = {};
+      const D50 = Decimal.set({precision: 50});
+      let min_pdev = new D50(1/0);
+      let max_pdev = new D50(-1/0);
+      let avg_pdev = new D50(0);
+      let pdev_count = 0;
+      for(const c of casinos){//calculo los pdevs y sumo para calcular el promedio
+        pdev_casino_periodo_fecha[c] = pdev_casino_periodo_fecha[c] ?? {};
+        const a_periodo_fecha_total = apuestaARS_casino_periodo_fecha_total[c] ?? {};
+        const p_periodo_fecha_total = premioARS_casino_periodo_fecha_total[c]  ?? {};
+        
+        for(const p of periodos){
+          pdev_casino_periodo_fecha[c][p] = pdev_casino_periodo_fecha[c][p] ?? {};
+          
+          periodo_fechas[p] = [...new Set(
+            Object.keys(a_periodo_fecha_total[p] ?? {}).concat(
+              Object.keys(p_periodo_fecha_total[p] ?? {})
+            )
+          )].sort();
+          
+          for(const f of periodo_fechas[p]){
+            const ap = apuestaARS_casino_periodo_fecha_total[c][p][f] ?? 0;
+            const pr = premioARS_casino_periodo_fecha_total[c][p][f] ?? 0;
+            const pdev = (new D50(pr)).div(ap).mul(100);
+            pdev_casino_periodo_fecha[c][p][f] = pdev;
+            if(!pdev.isNaN()){
+              min_pdev = Decimal.min(min_pdev,pdev);
+              max_pdev = Decimal.max(max_pdev,pdev);
+              avg_pdev = avg_pdev.plus(pdev);
+              pdev_count++;
+            }
+          }
+        }
+      }
+      avg_pdev = avg_pdev.div(pdev_count);
+      
+      let stddev_pdev = new D50(0);
+      const pdev_casino_periodo_sorted = {};
+      for(const c of casinos){//calculo la desviación estandar y tambien los agrupo ordenados por periodo para calcular cuartiles
+        pdev_casino_periodo_sorted[c] = pdev_casino_periodo_sorted[c] ?? {};
+        for(const p of periodos){
+          pdev_casino_periodo_sorted[c][p] = pdev_casino_periodo_sorted[c][p] ?? [];
+          for(const f of periodo_fechas[p]){
+            const pdev = pdev_casino_periodo_fecha[c][p][f];
+            if(pdev !== undefined && !pdev.isNaN()){
+              stddev_pdev = stddev_pdev.plus(pdev.minus(avg_pdev).pow(2));
+              pdev_casino_periodo_sorted[c][p].push(pdev);
+            }
+          }
+          pdev_casino_periodo_sorted[c][p].sort();
+        }
+      }
+      stddev_pdev = stddev_pdev.div(pdev_count).squareRoot();
+      
+      const series_data = [];
+      for(const c of casinos){//Calculo los cuartiles por periodo
+        const s = {
+          id: c,
+          name: c,
+          data: []
+        };
+        for(const pidx in periodos){
+          const p = periodos[pidx];
+          const length = pdev_casino_periodo_sorted?.[c]?.[p].length ?? 0;
+          const max = length-1;
+          const qs = [//No son exactamente cuartiles pero se aproximan cuando n es grande
+            //interp a b
+            [0,0,0],
+            [max*0.25-Math.floor(max*0.25),Math.floor(max*0.25),Math.ceil(max*0.25)],
+            [max*0.50-Math.floor(max*0.50),Math.floor(max*0.50),Math.ceil(max*0.50)],
+            [max*0.75-Math.floor(max*0.75),Math.floor(max*0.75),Math.ceil(max*0.75)],
+            [1,max,max]
+          ].map(function(q){
+            const t = q[0];
+            const DA = pdev_casino_periodo_sorted[c][p][q[1]];
+            const DB = pdev_casino_periodo_sorted[c][p][q[2]];
+            if(length == 0) return null;
+            return parseFloat(DA.mul(1-t).plus(DB.mul(t)).valueOf());
+          });
+                      
+          s.data.push([
+            p,
+            qs[0],
+            qs[1],
+            qs[2],
+            qs[3],
+            qs[4]
+          ]);
+        }
+        
+        series_data.push(s);
+      }
+      //Setup de drilldown para ver los pdevs por periodo
+      for(const c of casinos){
+        const aux = {
+          name: 'Período',
+          linkedTo: c,
+          grouping: false,
+          dataLabels: {
+            enabled: false
+          },
+          data: []
+        };
+        for(const p of periodos){
+          aux.data.push({name: p,drilldown: c+' '+p});
+        }
+        series_data.push(aux);
+      }
+                      
+      const drilldown_series = [];
+      for(const c of casinos){
+        for(const pidx in periodos){
+          const p = periodos[pidx];
+          const length = pdev_casino_periodo_sorted?.[c]?.[p].length ?? 0;           
+          if(length == 0){
+            continue; 
+          }
+          const aux = {
+            id: c+' '+p,
+            name: c+' '+p,
+            type: 'column',
+            data: []
+          };
+          
+          for(const f of periodo_fechas[p]){
+            const pdev = pdev_casino_periodo_fecha?.[c]?.[p]?.[f] ?? null;
+            if(pdev !== null)
+              aux.data.push([f,parseFloat(pdev.valueOf())]);  
+            else
+              aux.data.push([f,null]);  
+          }
+          
+          drilldown_series.push(aux);
+        }
+      }
+      //Calculo los ticks para que esten en avg+n*stddev
+      const tickPositions = (avg_pdev.isNaN() || stddev_pdev.isNaN())? undefined : [];
+      if(tickPositions !== undefined){
+        const low = [];
+        const high = [];
+        
+        let s = avg_pdev.minus(stddev_pdev);
+        do {
+          low.push(parseFloat(s.toFixed(2)));
+          s = s.minus(stddev_pdev)
+        }
+        while(s >= min_pdev);
+        low.push(parseFloat(s.toFixed(2)));
+        
+        s = avg_pdev.plus(stddev_pdev);
+        do {
+          high.push(parseFloat(s.toFixed(2)));
+          s = s.plus(stddev_pdev)
+        }
+        while(s <= max_pdev);
+        high.push(parseFloat(s.toFixed(2)));
+        
+        tickPositions.push(...low.reverse());
+        tickPositions.push(parseFloat(avg_pdev.toFixed(2)));
+        tickPositions.push(...high);
+      }
+      
+      Highcharts.chart($('#divPorcentajesDevolucion')[0], {
+        chart: {
+          type: 'boxplot'
+        },
+        title: {
+          text: 'Evolución de Porcentajes de Devolución de Maquinas'
+        },
+        legend: {
+          enabled: true
+        },
+        xAxis: {
+          type: 'category',
+          title: {
+            text: 'Período'
+          }
+        },
+        tooltip: { 
+          useHTML: true,
+          formatter: function(){
+            const p = this.point;
+            let html = '';
+            if(p.high !== undefined){
+              html += `<b>${p.series.name} ${periodos[p.x]}</b>`;
+              html += '<br>Máximo: '+formatPje(p.high);
+              html += '<br>Q3: '+formatPje(p.q3);
+              html += '<br>Mediana: '+formatPje(p.median);
+              html += '<br>Q1: '+formatPje(p.q1);
+              html += '<br>Mínimo: '+formatPje(p.low);
+            }
+            else{
+              html += `<b>${this.series.name} - ${p.options.name}</b>`;
+              html += '<br>Porcentaje Devolución: '+formatPje(p.y);
+            }
+            return html;
+          }
+        },
+        yAxis: {
+          title: {
+            text: 'Porcentaje Devolución'
+          },
+          tickPositions: tickPositions,
+          startOnTick: true,
+        },
+        series: series_data,
+        drilldown: {
+          activeDataLabelStyle: {
+            textDecoration: 'none',
+          },
+          activeAxisLabelStyle: {
+            textDecoration: 'none',
+          },
+          series: drilldown_series
+        }
+      });
+    });
   });
   
   T.trigger('redraw');
@@ -528,3 +772,4 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
     T.trigger('redraw');
   });
 })});
+

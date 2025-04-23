@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\CacheController;
 use App\Http\Controllers\CanonController;
 use App\Casino;
+require_once(app_path('BC_extendido.php'));
 
 class InformesGeneralesController extends Controller
 {  
@@ -225,6 +226,53 @@ class InformesGeneralesController extends Controller
     ->flatten();
     
     return $aes;
+  }
+  
+  public function pdevs(){
+    $periodo = request()->periodo ?? [];
+    sort($periodo);
+    $periodo[0] = $periodo[0] ?? '1970-01';
+    $periodo[1] = $periodo[1] ?? date('Y-m');
+    $periodo[0] = explode('-',$periodo[0]);
+    $periodo[1] = explode('-',$periodo[1]);
+    $desde_año = intval($periodo[0][0]);
+    $hasta_año = intval($periodo[1][0]);
+    $desde_mes = intval($periodo[0][1]);
+    $hasta_mes = intval($periodo[1][1]);
+    $P = 'producido';//'producido_test_pdevs';
+    $data = DB::table($P.' as p')
+    ->selectRaw('
+      c.nombre as Casino,
+      DATE_FORMAT(p.fecha,"%Y-%m") as Periodo,
+      p.fecha as Fecha,
+      tm.descripcion as Moneda,
+      p.apuesta as Apuesta,
+      p.premio as Premio,
+      IF(p.id_tipo_moneda = 1,1,cot.valor)*p.apuesta as ApuestaARS,
+      IF(p.id_tipo_moneda = 1,1,cot.valor)*p.premio as PremioARS,
+      IF(p.apuesta <> 0,p.premio/p.apuesta,NULL) as Pdev')
+    ->join('casino as c','c.id_casino','=','p.id_casino')
+    ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','p.id_tipo_moneda')
+    ->leftJoin('cotizacion as cot','cot.fecha','=','p.fecha')
+    ->where(function($q) use ($desde_año,$desde_mes){
+      return $q->whereYear('p.fecha','>',$desde_año)
+      ->orWhere(function($q2) use ($desde_año,$desde_mes){
+        return $q2->whereYear('p.fecha','=',$desde_año)
+        ->whereMonth('p.fecha','>=',$desde_mes);
+      });
+    })
+    ->where(function($q) use ($hasta_año,$hasta_mes){
+      return $q->whereYear('p.fecha','<',$hasta_año)
+      ->orWhere(function($q2) use ($hasta_año,$hasta_mes){
+        return $q2->whereYear('p.fecha','=',$hasta_año)
+        ->whereMonth('p.fecha','<=',$hasta_mes);
+      });
+    })
+    ->orderBy('p.fecha','asc')
+    ->orderBy('c.nombre','asc')
+    ->orderBy('p.id_tipo_moneda','asc')->get();
+    
+    return $data;
   }
 }
 

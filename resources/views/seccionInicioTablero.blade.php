@@ -65,6 +65,14 @@
     </div>
   </div>
   @yield('finpanel')
+  
+  @yield('iniciopanel')
+  <div class="row">
+    <div id="divPorcentajesDevolucion" class="col-md-12">
+    </div>
+  </div>
+  @yield('finpanel')
+  
   <script src="/js/seccionInicioTablero.js" type="module"></script>
 </div>
 
