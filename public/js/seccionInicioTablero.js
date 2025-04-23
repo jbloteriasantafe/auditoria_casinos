@@ -752,6 +752,11 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
           },
           tickPositions: tickPositions,
           startOnTick: true,
+          labels: {
+            formatter: function(){
+              return formatPje(this.value);
+            }
+          }
         },
         series: series_data,
         drilldown: {
