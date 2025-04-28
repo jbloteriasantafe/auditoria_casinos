@@ -2363,6 +2363,7 @@ class CanonController extends Controller
       c.devengado as devengado,
       NULL as variacion_devengado,
       c.determinado as canon,
+      NULL as variacion_canon,
       (c.determinado-c.devengado) as diferencia,
       100*(c.determinado-c.devengado)/c.determinado as variacion_sobre_devengado')
     ->join('casino as cas','cas.id_casino','=','c.id_casino')
