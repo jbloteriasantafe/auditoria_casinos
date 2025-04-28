@@ -2439,6 +2439,7 @@ class CanonController extends Controller
       $canon_anterior[$cas] = bccomp($d->canon,'0') != 0? $d->canon : $CA;
       
       $d->variacion_devengado = $d->variacion_devengado !== null? bcround_ndigits($d->variacion_devengado,2) : null;
+      $d->variacion_canon     = $d->variacion_canon !== null? bcround_ndigits($d->variacion_canon,2) : null;
       $d->variacion_sobre_devengado = $d->variacion_sobre_devengado !== null? bcround_ndigits($d->variacion_sobre_devengado,2) : null;
       
       foreach(['devengado','variacion_devengado','canon','diferencia','variacion_sobre_devengado'] as $attr){
