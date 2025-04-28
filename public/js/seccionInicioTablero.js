@@ -543,6 +543,42 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
       return ret;
     }
     
+    const compareDecimal = function(d1,d2){
+      const f1 = parseFloat(d1.valueOf());
+      const f2 = parseFloat(d2.valueOf());
+      if(f1 < f2) return -1;
+      if(f1 > f2) return  1;
+      return 0;
+    };
+    
+    const calculateTickPositions = function(avg,stddev,min,max){
+      const tickPositions = [];
+      const low = [];
+      const high = [];
+      
+      let s = avg.minus(stddev);//@Infinite Loop si stddev = 0 (i.e. N=1)
+      do {
+        low.push(parseFloat(s.toFixed(2)));
+        s = s.minus(stddev)
+      }
+      while(s >= min);
+      low.push(parseFloat(s.toFixed(2)));
+      
+      s = avg.plus(stddev);
+      do {
+        high.push(parseFloat(s.toFixed(2)));
+        s = s.plus(stddev)
+      }
+      while(s <= max);
+      high.push(parseFloat(s.toFixed(2)));
+      
+      tickPositions.push(...low.reverse());
+      tickPositions.push(parseFloat(avg.toFixed(2)));
+      tickPositions.push(...high);
+      
+      return tickPositions;
+    };
+    
     const calcularPdevs = function (apuestaObj, premioObj) {
       const D50 = Decimal.set({precision: 50});
       const pdevObj = {};
@@ -605,12 +641,13 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
             for(const key2 in pObj[key]){
               resultObj[key].push(pObj[key][key2]);
             }
-            resultObj[key].sort();
-            break;
+            resultObj[key].sort(compareDecimal);
           }
-          //Si no es, sigo para adentro
-          resultObj[key] = {};
-          obtenerSorted(pObj[key],resultObj[key]);
+          else{
+            //Si no es, sigo para adentro
+            resultObj[key] = {};
+            obtenerSorted(pObj[key],resultObj[key]);
+          }
         }
       }
       
@@ -666,17 +703,6 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
       
       const pdev_fecha_rango = {};
       const pdevs = calcularPdevs(apuestaARS_fecha_rango,premioARS_fecha_rango);
-      const pdev_fecha_sorted = {};
-      for(const f in pdevs.pdev){
-        pdev_fecha_sorted[f] = pdev_fecha_sorted[f] ?? [];
-        for(const r in pdevs.pdev[f]){
-          const pdev = pdevs.pdev[f][r];
-          if(pdev !== undefined && !pdev.isNaN()){
-            pdev_fecha_sorted[f].push(pdev);
-          }
-        }
-        pdev_fecha_sorted[f].sort();
-      }
       
       const series = {
         id: casino+' '+periodo+' '+semana,
@@ -684,9 +710,10 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
         type: 'boxplot',
         colorIndex: colorIndex,
         data: [],
+        pdevs: pdevs
       };
       
-      const cuartiles = calcularCuartiles(pdev_fecha_sorted);
+      const cuartiles = calcularCuartiles(pdevs.sorted);
       for(const f in cuartiles){
         const qs = cuartiles[f];
         series.data.push({
@@ -727,7 +754,6 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
       )].sort();
       
       const pdevs = calcularPdevs(apuestaARS_casino_periodo_semana_fecha,premioARS_casino_periodo_semana_fecha);
-      console.log(pdevs.sorted);
       const pdev_casino_periodo_sorted = {};
       
       for(const c of casinos){//calculo la desviación estandar y tambien los agrupo ordenados por periodo para calcular cuartiles
@@ -744,7 +770,7 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
             }
           }
           
-          pdev_casino_periodo_sorted[c][p].sort();
+          pdev_casino_periodo_sorted[c][p].sort(compareDecimal);
         }
       }
       
@@ -807,36 +833,24 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
       //Calculo los ticks para que esten en avg+n*stddev
       const tickPositions = (pdevs.avg.isNaN() || pdevs.stddev.isNaN())? undefined : [];
       if(tickPositions !== undefined){
-        const low = [];
-        const high = [];
-        
-        let s = pdevs.avg.minus(pdevs.stddev);
-        do {
-          low.push(parseFloat(s.toFixed(2)));
-          s = s.minus(pdevs.stddev)
-        }
-        while(s >= pdevs.min);
-        low.push(parseFloat(s.toFixed(2)));
-        
-        s = pdevs.avg.plus(pdevs.stddev);
-        do {
-          high.push(parseFloat(s.toFixed(2)));
-          s = s.plus(pdevs.stddev)
-        }
-        while(s <= pdevs.max);
-        high.push(parseFloat(s.toFixed(2)));
-        
-        tickPositions.push(...low.reverse());
-        tickPositions.push(parseFloat(pdevs.avg.toFixed(2)));
-        tickPositions.push(...high);
+        tickPositions.push(...calculateTickPositions(pdevs.avg,pdevs.stddev,pdevs.min,pdevs.max));
       }
       
       const addedSeries = {};
       const titulos_xAxis_nivel = ['Período','Semana','Día','Maquina','Maquina'];
+      const tickPositions_arr   = [tickPositions,tickPositions,undefined,undefined,undefined];
       const actualizarTituloXAxis = function(chart){
         setTimeout(function () {
           const nivel = chart?.series?.[0]?.options?._levelNumber;
           chart.xAxis?.[0]?.setTitle({ text: (titulos_xAxis_nivel?.[nivel] ?? '') });
+        }, 200);//@HACK
+      };
+      const actualizarTickPositions = function(chart){
+        setTimeout(function () {
+          const nivel = chart?.series?.[0]?.options?._levelNumber;
+          chart.yAxis[0].update({
+            tickPositions: tickPositions_arr[nivel],
+          });
         }, 200);//@HACK
       };
       Highcharts.chart($('#divPorcentajesDevolucion')[0], {
@@ -845,8 +859,11 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
             drilldown: function(e){              
               const chart = this;
               actualizarTituloXAxis(chart);
+              actualizarTickPositions(chart);
               
-              if(!e || !e.point || !e.point.drilldown || !e.point.drilldown_async_get_series) return;
+              if(!e || !e.point || !e.point.drilldown || !e.point.drilldown_async_get_series){
+                return;
+              }
               
               for(let pidx=1;pidx<(e?.points?.length ?? 0);pidx++){
                 const p = e.points[pidx];
@@ -871,6 +888,7 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
             drillupall: function(e){
               const chart = this;
               actualizarTituloXAxis(chart);
+              actualizarTickPositions(chart);
               
               if(Object.keys(addedSeries).length){
                 chart.showLoading('Limpiando datos...');
@@ -931,7 +949,13 @@ $(function(){ $('[data-tablero-inicio]').each(function(){
             formatter: function(){
               return formatPje(this.value);
             }
-          }
+          },
+          plotLines: [{
+            value: parseFloat(pdevs.avg.toFixed(2)),
+            color: 'gray',
+            width: 1,
+            dashStyle: 'LongDash'
+          }]
         },
         series: series_data,
         drilldown: {

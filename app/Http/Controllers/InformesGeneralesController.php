@@ -240,7 +240,7 @@ class InformesGeneralesController extends Controller
     $desde_mes = intval($periodo[0][1]);
     $hasta_mes = intval($periodo[1][1]);
     $P = 'producido';
-    //$P = 'producido_test_pdevs';
+    $P = 'producido_test_pdevs';
     $data = DB::table($P.' as p')
     ->selectRaw('
       c.nombre as Casino,
@@ -279,9 +279,9 @@ class InformesGeneralesController extends Controller
     $Mes = $Periodo[1];
     $Semana = request()->Semana;
     $P = 'producido';
-    //$P = 'producido_test_pdevs';
+    $P = 'producido_test_pdevs';
     $DP = 'detalle_producido';
-    //$DP = 'detalle_producido_test_pdevs';
+    $DP = 'detalle_producido_test_pdevs';
     $data = DB::table($P.' as p')
     ->selectRaw('
       p.fecha as Fecha,
