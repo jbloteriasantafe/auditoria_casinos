@@ -65,21 +65,25 @@ thead th {
 }
 <?php $width_casino = count($casinos)? ((100-4)/count($casinos)) : 0; ?>
 .devengado {
-  width: {{7*$width_casino/24}}%;
+  width: {{$width_casino/4}}%;
 }
 .canon {
-  width: {{7*$width_casino/24}}%;
+  width: {{$width_casino/4}}%;
 }
 .diferencia {
-  width: {{7*$width_casino/24}}%;
+  width: {{$width_casino/4}}%;
 }
 .variacion_devengado {
-  width: {{$width_casino/16}}%;
-  font-size: 0.7em
+  width: {{$width_casino/12}}%;
+  font-size: 0.7em;
+}
+.variacion_canon {
+  width: {{$width_casino/12}}%;
+  font-size: 0.7em;
 }
 .variacion_sobre_devengado {
-  width: {{$width_casino/16}}%;
-  font-size: 0.7em
+  width: {{$width_casino/12}}%;
+  font-size: 0.7em;
 }
 </style>
 
@@ -110,6 +114,7 @@ thead th {
       <col class="devengado">
       <col class="variacion_devengado">
       <col class="canon">
+      <col class="variacion_canon">
       <col class="diferencia">
       <col class="variacion_sobre_devengado">
       @endforeach
@@ -118,7 +123,7 @@ thead th {
       <tr>
         <th class="año_mes" style="border: 1px solid black;">{{$año}}</th>
         @foreach($casinos as $cas)
-        <th class="{{$snakecase($cas)}}" colspan="5" style="border-top: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;">{{$cas}}</th>
+        <th class="{{$snakecase($cas)}}" colspan="6" style="border-top: 1px solid black;border-right: 1px solid black;border-bottom: 1px solid black;">{{$cas}}</th>
         @endforeach
       </tr>
       
@@ -129,6 +134,7 @@ thead th {
         <th class="devengado {{$scas}}">Devengado</th>
         <th class="variacion_devengado {{$scas}}">Var. Devengado</th>
         <th class="canon {{$scas}}">Canon</th>
+        <th class="variacion_canon {{$scas}}">Var. Canon</th>
         <th class="diferencia {{$scas}}">Diferencia</th>
         <th class="variacion_sobre_devengado {{$scas}}" style="border-right: 1px solid black;">Var. Dif. sobre Canon</th>
         @endforeach
@@ -148,11 +154,13 @@ thead th {
         <?php 
           $d = $datos_año_mes[$cas] ?? (new \stdClass());
           $neg_variacion_devengado = $negativo($d->variacion_devengado ?? null);
+          $neg_variacion_canon = $negativo($d->variacion_canon ?? null);
           $neg_variacion_sobre_devengado = $negativo($d->variacion_sobre_devengado ?? null);
          ?>
         <td class="devengado">{{ $d->devengado ?? $valor_vacio }}</td>
         <td class="variacion_devengado {{$neg_variacion_devengado}}">{{$formatear_porcentaje($d->variacion_devengado ?? null)}}</td>
         <td class="canon">{{ $d->canon ?? $valor_vacio }}</td>
+        <td class="variacion_canon {{$neg_variacion_canon}}">{{$formatear_porcentaje($d->neg_variacion_canon ?? null)}}</td>
         <td class="diferencia">{{ $d->diferencia ?? $valor_vacio }}</td>
         <td class="variacion_sobre_devengado {{$neg_variacion_sobre_devengado}}" style="border-right: 1px solid black;">{{$formatear_porcentaje($d->variacion_sobre_devengado ?? null)}}</td>
         @endforeach
@@ -165,11 +173,13 @@ thead th {
         <?php 
           $d = $datos_anuales[$año][$cas] ?? (new \stdClass()); 
           $neg_variacion_devengado = $negativo($d->variacion_devengado ?? null);
+          $neg_variacion_canon = $negativo($d->variacion_canon ?? null);
           $neg_variacion_sobre_devengado = $negativo($d->variacion_sobre_devengado ?? null);
         ?>
         <td class="devengado">{{ $d->devengado ?? $valor_vacio }}</td>
         <td class="variacion_devengado {{$neg_variacion_devengado}}">{{$formatear_porcentaje($d->variacion_devengado ?? null)}}</td>
         <td class="canon">{{ $d->canon ?? $valor_vacio }}</td>
+        <td class="variacion_canon {{$neg_variacion_canon}}">{{$formatear_porcentaje($d->neg_variacion_canon ?? null)}}</td>
         <td class="diferencia">{{ $d->diferencia ?? $valor_vacio }}</td>
         <td class="variacion_sobre_devengado {{$neg_variacion_sobre_devengado}}" style="border-right: 1px solid black;">{{$formatear_porcentaje($d->variacion_sobre_devengado ?? null)}}</td>
         @endforeach
