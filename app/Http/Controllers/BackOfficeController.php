@@ -41,7 +41,6 @@ class BackOfficeController extends Controller {
   private $vistas = null;
   function __construct(){
     $hoy = date('Y-m');
-    $hoy_m_1mes = date('Y-m', strtotime('-1 months', strtotime($hoy))); 
     //Directamente vinculado con 'cols', no cambiar el orden si no se cambia el orden de las columnas
     //select, alias, tipo para formateo, tipo de buscador, cantidad de buscadores y valores por defecto, valores (solo select)
     $cols_indexes = ['BO_SELECT','BO_ALIAS','BO_FMT','BO_TIPO','BO_DEFAULTS','BO_VALUES'];
@@ -52,7 +51,7 @@ class BackOfficeController extends Controller {
     $this->vistas = [
       'beneficio_maquinas_por_moneda' => [
         'cols' => [
-          ['b.fecha','fecha','string','input_date_month',[$hoy_m_1mes,$hoy]],
+          ['b.fecha','fecha','string','input_date_month',[$hoy,$hoy]],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('beneficio')],
           ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('beneficio')],
           ['(
@@ -86,7 +85,7 @@ class BackOfficeController extends Controller {
       ],
       'beneficio_maquinas' => [
         'cols' => [
-          ['b.fecha','fecha','string','input_date_month',[$hoy_m_1mes,$hoy]],
+          ['b.fecha','fecha','string','input_date_month',[$hoy,$hoy]],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('beneficio')],
           ['(
               SELECT COUNT(*)
@@ -114,7 +113,7 @@ class BackOfficeController extends Controller {
       ],
       'beneficio_mesas_por_moneda' => [
         'cols' => [
-          ['idm.fecha','fecha','string','input_date_month',[$hoy_m_1mes,$hoy]],
+          ['idm.fecha','fecha','string','input_date_month',[$hoy,$hoy]],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('importacion_diaria_mesas')],
           ['m.siglas','moneda','string','select',[0],$this->selectMonedaVals('importacion_diaria_mesas')],
           ['(
@@ -158,7 +157,7 @@ class BackOfficeController extends Controller {
       ],
       'beneficio_mesas' => [
         'cols' => [
-          ['idm.fecha','fecha','string','input_date_month',[$hoy_m_1mes,$hoy]],
+          ['idm.fecha','fecha','string','input_date_month',[$hoy,$hoy]],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('importacion_diaria_mesas')],
           ['(
             SELECT COUNT(distinct CONCAT(didm.siglas_juego,didm.nro_mesa))
@@ -195,7 +194,7 @@ class BackOfficeController extends Controller {
       ],
       'beneficio_bingos' => [
         'cols' => [
-          ['bi.fecha','fecha','string','input_date_month',[$hoy_m_1mes,$hoy]],
+          ['bi.fecha','fecha','string','input_date_month',[$hoy,$hoy]],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('bingo_importacion')],
           ['SUM(bi.recaudado)','recaudado_informado','numeric'],
           ['SUM(bi.premio_linea)','premio_linea_informado','numeric'],
@@ -219,7 +218,7 @@ class BackOfficeController extends Controller {
       'producido_maquinas' => [
         'precols' => 'STRAIGHT_JOIN',
         'cols' => [
-          ['p.fecha','fecha','string','input_date_month',[$hoy_m_1mes,$hoy]],
+          ['p.fecha','fecha','string','input_date_month',[$hoy,$hoy]],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('producido')],
           ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('producido')],
           ['SUM(dp.valor)','producido','numeric'],
