@@ -2377,6 +2377,7 @@ class CanonController extends Controller
         SUM(c.devengado) as devengado,
         NULL as variacion_devengado,
         SUM(c.determinado) as canon,
+        NULL as variacion_canon,
         SUM(c.determinado-c.devengado) as diferencia,
         100*SUM(c.determinado-c.devengado)/SUM(c.determinado) as variacion_sobre_devengado')
       ->groupBy(DB::raw('YEAR(c.año_mes),MONTH(c.año_mes)'))
