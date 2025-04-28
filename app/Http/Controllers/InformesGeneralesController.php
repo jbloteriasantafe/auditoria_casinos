@@ -228,7 +228,7 @@ class InformesGeneralesController extends Controller
     return $aes;
   }
   
-  public function pdevs(){
+  public function producidos(){
     $periodo = request()->periodo ?? [];
     sort($periodo);
     $periodo[0] = $periodo[0] ?? '1970-01';
@@ -239,20 +239,17 @@ class InformesGeneralesController extends Controller
     $hasta_año = intval($periodo[1][0]);
     $desde_mes = intval($periodo[0][1]);
     $hasta_mes = intval($periodo[1][1]);
-    $P = 'producido';//'producido_test_pdevs';
+    $P = 'producido';
+    //$P = 'producido_test_pdevs';
     $data = DB::table($P.' as p')
     ->selectRaw('
       c.nombre as Casino,
       DATE_FORMAT(p.fecha,"%Y-%m") as Periodo,
       p.fecha as Fecha,
-      tm.descripcion as Moneda,
-      p.apuesta as Apuesta,
-      p.premio as Premio,
-      IF(p.id_tipo_moneda = 1,1,cot.valor)*p.apuesta as ApuestaARS,
-      IF(p.id_tipo_moneda = 1,1,cot.valor)*p.premio as PremioARS,
-      IF(p.apuesta <> 0,p.premio/p.apuesta,NULL) as Pdev')
+      CONCAT("Semana ",WEEK(p.fecha) - WEEK(DATE_FORMAT(p.fecha,"%Y-%m-01"))) as Semana,
+      SUM(IF(p.id_tipo_moneda = 1,1,cot.valor)*p.apuesta) as ApuestaARS,
+      SUM(IF(p.id_tipo_moneda = 1,1,cot.valor)*p.premio) as PremioARS')
     ->join('casino as c','c.id_casino','=','p.id_casino')
-    ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','p.id_tipo_moneda')
     ->leftJoin('cotizacion as cot','cot.fecha','=','p.fecha')
     ->where(function($q) use ($desde_año,$desde_mes){
       return $q->whereYear('p.fecha','>',$desde_año)
@@ -268,9 +265,39 @@ class InformesGeneralesController extends Controller
         ->whereMonth('p.fecha','<=',$hasta_mes);
       });
     })
+    ->groupBy(DB::raw('c.nombre,p.fecha'))
     ->orderBy('p.fecha','asc')
-    ->orderBy('c.nombre','asc')
-    ->orderBy('p.id_tipo_moneda','asc')->get();
+    ->orderBy('c.nombre','asc')->get();
+    
+    return $data;
+  }
+  
+  public function producidos_semana(){
+    $Casino = request()->Casino;
+    $Periodo = explode('-',request()->Periodo);
+    $Año = $Periodo[0];
+    $Mes = $Periodo[1];
+    $Semana = request()->Semana;
+    $P = 'producido';
+    //$P = 'producido_test_pdevs';
+    $DP = 'detalle_producido';
+    //$DP = 'detalle_producido_test_pdevs';
+    $data = DB::table($P.' as p')
+    ->selectRaw('
+      p.fecha as Fecha,
+      CONCAT(500*(m.nro_admin DIV 500),"-",500*(m.nro_admin DIV 500)+499) as RangoMaquina,
+      SUM(IF(p.id_tipo_moneda = 1,1,cot.valor)*dp.apuesta) as ApuestaARS,
+      SUM(IF(p.id_tipo_moneda = 1,1,cot.valor)*dp.premio) as PremioARS')
+    ->join('casino as c','c.id_casino','=','p.id_casino')
+    ->join($DP.' as dp','dp.id_producido','=','p.id_producido')
+    ->join('maquina as m','m.id_maquina','=','dp.id_maquina')
+    ->leftJoin('cotizacion as cot','cot.fecha','=','p.fecha')
+    ->where('c.nombre','=',$Casino)
+    ->whereYear('p.fecha','=',$Año)
+    ->whereMonth('p.fecha','=',$Mes)
+    ->where(DB::raw('CONCAT("Semana ",WEEK(p.fecha) - WEEK(DATE_FORMAT(p.fecha,"%Y-%m-01")))'),'=',$Semana)
+    ->groupBy(DB::raw('p.fecha,CONCAT(500*(m.nro_admin DIV 500),"-",500*(m.nro_admin DIV 500)+499)'))
+    ->get();
     
     return $data;
   }
