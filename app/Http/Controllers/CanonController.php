@@ -2433,13 +2433,13 @@ class CanonController extends Controller
       if($DA !== null){
         $d->variacion_devengado = bcmul('100',bcsub(bcdiv($d->devengado,$DA,4),'1',4),2);
       }
-      $devengado_anterior[$cas] = bccomp($d->devengado,'0') != 0? $d->devengado : $DA;
+      $devengado_anterior[$cas] = bccomp($d->devengado,'0') != 0? $d->devengado : null;
       
       $CA = $canon_anterior[$cas] ?? null;
       if($CA !== null){
         $d->variacion_canon = bcmul('100',bcsub(bcdiv($d->canon,$CA,4),'1',4),2);
       }
-      $canon_anterior[$cas] = bccomp($d->canon,'0') != 0? $d->canon : $CA;
+      $canon_anterior[$cas] = bccomp($d->canon,'0') != 0? $d->canon : null;
       
       $d->variacion_devengado = $d->variacion_devengado !== null? bcround_ndigits($d->variacion_devengado,2) : null;
       $d->variacion_canon     = $d->variacion_canon !== null? bcround_ndigits($d->variacion_canon,2) : null;
