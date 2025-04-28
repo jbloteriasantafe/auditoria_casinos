@@ -160,7 +160,7 @@ thead th {
         <td class="devengado">{{ $d->devengado ?? $valor_vacio }}</td>
         <td class="variacion_devengado {{$neg_variacion_devengado}}">{{$formatear_porcentaje($d->variacion_devengado ?? null)}}</td>
         <td class="canon">{{ $d->canon ?? $valor_vacio }}</td>
-        <td class="variacion_canon {{$neg_variacion_canon}}">{{$formatear_porcentaje($d->neg_variacion_canon ?? null)}}</td>
+        <td class="variacion_canon {{$neg_variacion_canon}}">{{$formatear_porcentaje($d->variacion_canon ?? null)}}</td>
         <td class="diferencia">{{ $d->diferencia ?? $valor_vacio }}</td>
         <td class="variacion_sobre_devengado {{$neg_variacion_sobre_devengado}}" style="border-right: 1px solid black;">{{$formatear_porcentaje($d->variacion_sobre_devengado ?? null)}}</td>
         @endforeach
@@ -179,7 +179,7 @@ thead th {
         <td class="devengado">{{ $d->devengado ?? $valor_vacio }}</td>
         <td class="variacion_devengado {{$neg_variacion_devengado}}">{{$formatear_porcentaje($d->variacion_devengado ?? null)}}</td>
         <td class="canon">{{ $d->canon ?? $valor_vacio }}</td>
-        <td class="variacion_canon {{$neg_variacion_canon}}">{{$formatear_porcentaje($d->neg_variacion_canon ?? null)}}</td>
+        <td class="variacion_canon {{$neg_variacion_canon}}">{{$formatear_porcentaje($d->variacion_canon ?? null)}}</td>
         <td class="diferencia">{{ $d->diferencia ?? $valor_vacio }}</td>
         <td class="variacion_sobre_devengado {{$neg_variacion_sobre_devengado}}" style="border-right: 1px solid black;">{{$formatear_porcentaje($d->variacion_sobre_devengado ?? null)}}</td>
         @endforeach
