@@ -6,10 +6,11 @@ import {AUX} from "/js/Components/AUX.js";
 import "/js/highcharts_11_3_0/highcharts.js";
 import "/js/highcharts_11_3_0/highcharts-more.js";
 import "/js/highcharts_11_3_0/highcharts-3d.js";
-import "/js/highcharts_11_3_0/exporting.js";
-import "/js/highcharts_11_3_0/export-data.js";
-import "/js/highcharts_11_3_0/accessibility.js";
+import "/js/highcharts_11_3_0/modules/exporting.js";
+import "/js/highcharts_11_3_0/modules/export-data.js";
+import "/js/highcharts_11_3_0/modules/accessibility.js";
 import "/js/highcharts_11_3_0/modules/drilldown.js";
+import "/js/highcharts_11_3_0/modules/offline-exporting.js";
 
 function calcularTodosLosGrupos(data, categorias,count_key) {//Realiza todas las combinaciones posibles de categorias y ya las suma
   categorias.sort();

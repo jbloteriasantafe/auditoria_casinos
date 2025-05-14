@@ -1342,8 +1342,16 @@ class CanonController extends Controller
       $reglas[] = ['c.id_casino','=',$request->id_casino];
     }
     
-    $desde = '1970-01-01';
-    $hasta = date('Y-m-d');
+    $desde = date('Y-m-d');
+    $hasta = $desde;
+    {
+      $minmax = DB::table('canon')->selectRaw('MIN(año_mes) as min_año_mes,MAX(año_mes) max_año_mes')
+      ->groupBy(DB::raw('"constant"'))->first();
+      if($minmax !== null){
+        $desde = $minmax->min_año_mes;
+        $hasta = $minmax->max_año_mes;
+      }
+    }
     if(isset($request->año_mes)){
       $desde = isset($request->año_mes[0])? $request->año_mes[0].'-01' : $desde;
       $hasta = isset($request->año_mes[1])? $request->año_mes[1].'-01' : $hasta;
@@ -2343,132 +2351,432 @@ class CanonController extends Controller
         
     return stream_get_contents($f);
   }
-  
-  public function descargarEvolucionHistorica(Request $request){
-    $casinos = collect([//Orden que venia en la planilla de Excel
-      'Santa Fe','Rosario','Melincué'
-    ]);
     
-    $casinos = $casinos->merge(//Por si algun dia se agrega otro casino :^)
-      Casino::whereNotIn('nombre',$casinos)->orderBy('id_casino','asc')->get()->pluck('nombre')
-    );
-    
-    $casinos->push('TOTAL');
-    
-    $datos = DB::table('canon as c')
-    ->selectRaw('
-      YEAR(c.año_mes) as año,
-      MONTH(c.año_mes) as mes,
-      cas.nombre as casino,
-      c.devengado as devengado,
-      NULL as variacion_devengado,
-      c.determinado as canon,
-      NULL as variacion_canon,
-      (c.determinado-c.devengado) as diferencia,
-      100*(c.determinado-c.devengado)/c.determinado as variacion_sobre_devengado')
-    ->join('casino as cas','cas.id_casino','=','c.id_casino')
-    ->orderBy('c.año_mes','asc')
-    ->whereNull('c.deleted_at')->get()
-    ->merge(
-      DB::table('canon as c')
-      ->selectRaw('
-        YEAR(c.año_mes) as año,
-        MONTH(c.año_mes) as mes,
-        "TOTAL" as casino,
-        SUM(c.devengado) as devengado,
-        NULL as variacion_devengado,
-        SUM(c.determinado) as canon,
-        NULL as variacion_canon,
-        SUM(c.determinado-c.devengado) as diferencia,
-        100*SUM(c.determinado-c.devengado)/SUM(c.determinado) as variacion_sobre_devengado')
-      ->groupBy(DB::raw('YEAR(c.año_mes),MONTH(c.año_mes)'))
-      ->orderBy('año','asc')
-      ->orderBy('mes','asc')
-      ->whereNull('c.deleted_at')->get()
-    );
-    
-    $datos_anuales = DB::table('canon as c')
-    ->selectRaw('
-      YEAR(c.año_mes) as año,
-      cas.nombre as casino,
-      SUM(c.devengado) as devengado,
-      NULL as variacion_devengado,
-      SUM(c.determinado) as canon,
-      NULL as variacion_canon,
-      SUM(c.determinado-c.devengado) as diferencia,
-      100*SUM(c.determinado-c.devengado)/SUM(c.determinado) as variacion_sobre_devengado')
-    ->join('casino as cas','cas.id_casino','=','c.id_casino')
-    ->whereNull('c.deleted_at')
-    ->groupBy(DB::raw('YEAR(c.año_mes),cas.nombre'))
-    ->orderBy('año','asc')
-    ->get()
-    ->merge(
-      DB::table('canon as c')
-      ->selectRaw('
-        YEAR(c.año_mes) as año,
-        "TOTAL" as casino,
-        SUM(c.devengado) as devengado,
-        NULL as variacion_devengado,
-        SUM(c.determinado) as canon,
-        NULL as variacion_canon,
-        SUM(c.determinado-c.devengado) as diferencia,
-        100*SUM(c.determinado-c.devengado)/SUM(c.determinado) as variacion_sobre_devengado')
-      ->groupBy(DB::raw('YEAR(c.año_mes)'))
-      ->orderBy('año','asc')
-      ->whereNull('c.deleted_at')->get()
-    );
-    
-    $datos = $datos->groupBy('año')->map(function($c){
-      return $c->groupBy('mes')->map(function($c2){
-        return $c2->keyBy('casino');
-      });
-    });
-    
-    $datos_anuales = $datos_anuales->groupBy('año')->map(function($c){
-      return $c->keyBy('casino');
-    });
+  public function descargarPlanillas(Request $request){
+    $primer_año = null;
+    $ultimo_año = null;
+    $primer_mes = null;
+    $ultimo_mes = null;
+    {
+      $primer_año_mes = DB::table('canon')
+      ->whereNull('deleted_at')
+      ->select('año_mes');
+      $ultimo_año_mes = (clone $primer_año_mes)->orderBy('año_mes','desc')->first();
+      $primer_año_mes = $primer_año_mes->orderBy('año_mes','asc')->first();
+
+      if($primer_año_mes !== null && $ultimo_año_mes !== null){
+        $primer_año_mes = explode('-',$primer_año_mes->año_mes);
+        $ultimo_año_mes = explode('-',$ultimo_año_mes->año_mes);
         
-    $formatear_detalle = function($cas,&$d,&$devengado_anterior,&$canon_anterior){
-      $DA = $devengado_anterior[$cas] ?? null;
-      if($DA !== null){
-        $d->variacion_devengado = bcmul('100',bcsub(bcdiv($d->devengado,$DA,4),'1',4),2);
+        $primer_año = intval($primer_año_mes[0]);
+        $ultimo_año = intval($ultimo_año_mes[0]);
+        $primer_mes = intval($primer_año_mes[1]);
+        $ultimo_mes = intval($ultimo_año_mes[1]);
       }
-      $devengado_anterior[$cas] = bccomp($d->devengado,'0') != 0? $d->devengado : null;
-      
-      $CA = $canon_anterior[$cas] ?? null;
-      if($CA !== null){
-        $d->variacion_canon = bcmul('100',bcsub(bcdiv($d->canon,$CA,4),'1',4),2);
-      }
-      $canon_anterior[$cas] = bccomp($d->canon,'0') != 0? $d->canon : null;
-      
-      $d->variacion_devengado = $d->variacion_devengado !== null? bcround_ndigits($d->variacion_devengado,2) : null;
-      $d->variacion_canon     = $d->variacion_canon !== null? bcround_ndigits($d->variacion_canon,2) : null;
-      $d->variacion_sobre_devengado = $d->variacion_sobre_devengado !== null? bcround_ndigits($d->variacion_sobre_devengado,2) : null;
-      
-      foreach(['devengado','variacion_devengado','canon','diferencia','variacion_sobre_devengado'] as $attr){
-        $d->{$attr} = $d->{$attr} !== null? self::formatear_decimal($d->{$attr}) : null;
-      }
-    };
+    }
     
-    $devengado_anterior = [];
-    $canon_anterior = [];
-    foreach($datos as $año => &$datos_año){
-      foreach($datos_año as $mes => &$datos_año_mes){
-        foreach($datos_año_mes as $cas => &$d){
-          $formatear_detalle($cas,$d,$devengado_anterior,$canon_anterior);
+    $años = [];
+    if($primer_año !== null && $ultimo_año !== null){
+      $años = collect(array_reverse(range($primer_año,$ultimo_año,1)));
+    }
+    $año  = $request->año ?? null;
+    $año  = $año === null? null : intval($año);
+    $año_anterior = $año === null? null : ($año-1);
+    
+    $meses = collect([]);
+    $meses_elegibles = ['Resumen'];//@HACK hasta que agregue un canon diario... despues solo usar $meses
+    $meses_calendario = collect([null,'Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']);
+    unset($meses_calendario[0]);
+    
+    $meses = collect(['Resumen','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']);
+    if($primer_mes !== null && $ultimo_mes !== null){      
+      if($año == $primer_año){
+        foreach($meses as $mnum => $m){
+          if($mnum == 0) continue;
+          if($mnum == $primer_mes){
+            break;
+          }
+          unset($meses[$mnum]);
+        }
+      }
+      else if($año == $ultimo_año){
+        $unsetting = false;
+        foreach($meses as $mnum => $m){
+          if($mnum == 0) continue;
+          if($mnum == $ultimo_mes){
+            $unsetting = true;
+          }
+          else if($unsetting){
+            unset($meses[$mnum]);
+          }
         }
       }
     }
     
-    $devengado_anterior = [];
-    $canon_anterior = [];
-    foreach($datos_anuales as $año => &$datos_año){
-      foreach($datos_año as $cas => &$d){
-        $formatear_detalle($cas,$d,$devengado_anterior,$canon_anterior);
+    $mes  = $request->mes ?? null;
+    $num_mes = $mes !== null? $meses->search(function($m) use ($mes){
+      return $m == $mes;
+    }) : false;
+    $num_mes = $num_mes === false? null: $num_mes;
+    
+    $mes = $num_mes === null? null : $mes;//Si el mes no es uno valido lo saco
+    
+    $planilla  = $request->planilla ?? null;
+    
+    $SFE_MEL = 'Santa Fe - Melincué';
+    $unir_sfe_mel = in_array($planilla,['participacion','jol']);
+    $casinos = Casino::select('id_casino','nombre')
+    ->orderBy('id_casino','asc')
+    ->get()
+    ->groupBy(function($c) use ($SFE_MEL,$unir_sfe_mel){
+      if($unir_sfe_mel && in_array($c->nombre,['Melincué','Santa Fe'])){
+        return $SFE_MEL;
       }
+      return $c->nombre;
+    })
+    ->map(function($cs){
+      return $cs->pluck('id_casino')->toArray();
+    });
+    $casinos['Total'] = Casino::select('id_casino')->get()->pluck('id_casino')->toArray();
+        
+    $plataformas = Plataforma::orderBy('id_plataforma','asc')->get();
+    $relacion_plat_cas = ['CCO' => 'Rosario','BPLAY' => $SFE_MEL];
+    
+    $planillas = [
+      'evolucion_historica' => 'Evolución Historica',
+      'canon_total' => 'Canon Total',
+      'canon_fisico_online' => 'Canon Físico-On Line',
+      'participacion' => 'Particip. % Resultado CF-JOL',
+      //'mtm' => 'Maquinas',
+      //'mesas' => 'Mesas de Paño',
+      //'bingos' => 'Bingos',
+      //'jol' => 'Juegos On Line'
+    ];
+    $planillas_anuales = ['canon_total','canon_fisico_online','participacion','bingos'];
+    $planillas_mensuales = ['mtm','mesas','bingos','jol'];    
+    $es_anual = isset($planilla) && $planilla !== null && in_array($planilla,$planillas_anuales);
+    $es_mensual = isset($planilla) && $planilla !== null && in_array($planilla,$planillas_mensuales);
+    
+    $data = collect([]);
+    $data_anual = collect([]);
+    if(($es_anual && $año !== null) || ($es_mensual && $año !== null && $mes == 'Resumen') || $planilla == 'evolucion_historica'){    
+      $tipos_variables_fisicos = ['Maquinas','Bingo'];
+      $tipos_variables_online = ['JOL'];
+      $tipos_fijos_mesas = DB::table('canon_fijo_mesas')
+      ->select('tipo')->distinct()->get()->pluck('tipo')->values()->toArray();
+      $tipos_fijos_mesas_adicionales = DB::table('canon_fijo_mesas_adicionales')
+      ->select('tipo')->distinct()->get()->pluck('tipo')->values()->toArray();
+      
+      $ranged_sql = function($begin,$end){
+        $ret = "( SELECT $begin as val ";
+        for($i=$begin+1;$i<=$end;$i++){
+          $ret.= 'UNION ALL SELECT '.$i.' ';
+        }
+        return $ret.')';
+      };
+      
+      $meses_sql = $ranged_sql(1,12);
+      $años_sql = $año === null?
+        $ranged_sql($primer_año,$ultimo_año)
+      : $ranged_sql($año-1,$año);
+      
+      $casinos_select = $unir_sfe_mel?
+        'IF(cas.nombre IN ("Santa Fe","Melincué"),"Santa Fe - Melincué",cas.nombre)'
+      : 'cas.nombre';
+      
+      $q = DB::table(DB::raw($meses_sql.' as mes'))
+      ->crossJoin(DB::raw($años_sql.' as año'))
+      ->crossJoin(DB::raw('(
+        SELECT cas.nombre as nombre,cas.id_casino
+        FROM casino as cas
+        WHERE cas.deleted_at IS NULL
+      ) as cas'))
+      ->leftJoin('canon as c',function($j){
+        return $j->whereNull('c.deleted_at')
+        ->on('c.id_casino','=','cas.id_casino')
+        ->on(DB::raw('YEAR(c.año_mes)'),'=','año.val')
+        ->on(DB::raw('MONTH(c.año_mes)'),'=','mes.val');
+      })
+      ->leftJoin('canon as c_yoy',function($j){
+        return $j->whereNull('c_yoy.deleted_at')
+        ->on('c_yoy.id_casino','=','cas.id_casino')
+        ->on(DB::raw('YEAR(c_yoy.año_mes)'),'=',DB::raw('(año.val-1)'))
+        ->on(DB::raw('MONTH(c_yoy.año_mes)'),'=','mes.val');
+      })
+      ->leftJoin('canon as c_mom',function($j){
+        return $j->whereNull('c_mom.deleted_at')
+        ->on('c_mom.id_casino','=','cas.id_casino')
+        ->on(DB::raw('YEAR(c_mom.año_mes)'),'=', DB::raw('IF(
+          mes.val<>1,
+          año.val,
+          año.val-1
+        )'))
+        ->on(DB::raw('MONTH(c_mom.año_mes)'),'=',DB::raw('IF(
+          mes.val<>1,
+          mes.val-1,
+          12
+        )'));
+      });
+      
+      $fisicos = [];
+      $online  = [];
+      $variables = [];
+      $fijos = [];
+      $fijos_adicionales = [];
+      foreach($tipos_variables_fisicos as $tidx => $t){
+        $alias = 'c_fis_v'.$tidx;
+        $q = $q->leftJoin('canon_variable as '.$alias,function($j) use ($alias,$t){
+          return $j->on($alias.'.id_canon','=','c.id_canon')
+          ->where($alias.'.tipo','=',$t);
+        });
+        $fisicos[] = $alias;
+        $variables[] = $alias;
+      }
+      
+      foreach($tipos_variables_online as $tidx => $t){
+        $alias = 'c_ol_v'.$tidx;
+        $q = $q->leftJoin('canon_variable as '.$alias,function($j) use ($alias,$t){
+          return $j->on($alias.'.id_canon','=','c.id_canon')
+          ->where($alias.'.tipo','=',$t);
+        });
+        $online[] = $alias;
+        $variables[] = $alias;
+      }
+      
+      foreach($tipos_fijos_mesas as $tidx => $t){
+        $alias = 'c_fis_mf'.$tidx;
+        $q = $q->leftJoin('canon_fijo_mesas as '.$alias,function($j) use ($alias,$t){
+          return $j->on($alias.'.id_canon','=','c.id_canon')
+          ->where($alias.'.tipo','=',$t);
+        });
+        $fisicos[] = $alias;
+        $fijos[] = $alias;
+      }
+      
+      foreach($tipos_fijos_mesas_adicionales as $tidx => $t){
+        $alias = 'c_fis_mfa'.$tidx;
+        $q = $q->leftJoin('canon_fijo_mesas_adicionales as '.$alias,function($j) use ($alias,$t){
+          return $j->on($alias.'.id_canon','=','c.id_canon')
+          ->where($alias.'.tipo','=',$t);
+        });
+        $fisicos[] = $alias;
+        $fijos_adicionales[] = $alias;
+      }
+              
+      $canon_fisico = 'ROUND('.implode('+',array_map(function($t){
+        return "IFNULL(SUM($t.determinado),0)";
+      },$fisicos)).',2)';
+      
+      $canon_online = 'ROUND('.implode('+',array_map(function($t){
+        return "IFNULL(SUM($t.determinado),0)";
+      },$online)).',2)';
+            
+      if($planilla == 'evolucion_historica'){
+        $sel_aggr = 'SUM(c.devengado) as devengado,
+        SUM(c.determinado) as canon,
+        SUM(c_yoy.devengado) as yoy_devengado,
+        SUM(c_yoy.determinado) as yoy_canon,
+        SUM(c_mom.devengado) as mom_devengado,
+        SUM(c_mom.determinado) as mom_canon,
+        ROUND(100*(SUM(c.devengado)/NULLIF(SUM(c_yoy.devengado),0)-1),2) as variacion_anual_devengado,
+        ROUND(100*(SUM(c.devengado)/NULLIF(SUM(c_mom.devengado),0)-1),2) as variacion_mensual_devengado,
+        ROUND(100*(SUM(c.determinado)/NULLIF(SUM(c_yoy.determinado),0)-1),2) as variacion_anual_canon,
+        ROUND(100*(SUM(c.determinado)/NULLIF(SUM(c_mom.determinado),0)-1),2) as variacion_mensual_canon,
+        (SUM(c.determinado)-SUM(c.devengado)) as diferencia,
+        ROUND(100*(1-SUM(c.devengado)/NULLIF(SUM(c.determinado),0)),2) as variacion_sobre_devengado';
+      }
+      else if($planilla == 'canon_total'){
+        $sel_aggr = 'SUM(c.determinado) as canon_total,
+        100*(SUM(c.determinado)/NULLIF(SUM(c_yoy.determinado),0)-1) as variacion_anual,
+        100*(SUM(c.determinado)/NULLIF(SUM(c_mom.determinado),0)-1) as variacion_mensual';
+      }
+      else if($planilla == 'canon_fisico_online'){
+        $sel_aggr = $canon_fisico.' as canon_fisico,
+        '.$canon_online.' as canon_online,
+        SUM(c.determinado) as canon_total,
+        100*(SUM(c.determinado)/NULLIF(SUM(c_yoy.determinado),0)-1) as variacion_anual,
+        100*(SUM(c.determinado)/NULLIF(SUM(c_mom.determinado),0)-1) as variacion_mensual';
+      }
+      else if($planilla == 'participacion'){
+        $canon_cco = '('.implode('+',array_map(function($t){
+          return "IFNULL(SUM(IF(cas.nombre = 'Rosario',$t.determinado,0)),0)";
+        },$online)).')';
+        $canon_bplay = '('.implode('+',array_map(function($t){
+          return "IFNULL(SUM(IF(cas.nombre IN ('Santa Fe','Melincué'),$t.determinado,0)),0)";
+        },$online)).')';
+        //Como son dos porcentajes el rounding uno siempre compensa tal que sea 100 la suma
+        $sel_aggr = "$canon_online as canon_online,
+        ROUND(100*$canon_fisico/NULLIF($canon_fisico+$canon_online,0),2) as porcentaje_fisico,
+        ROUND(100*$canon_online/NULLIF($canon_fisico+$canon_online,0),2) as porcentaje_online,
+        ROUND(100*$canon_cco/NULLIF($canon_online,0),2) as porcentaje_CCO,
+        ROUND(100*$canon_bplay/NULLIF($canon_online,0),2) as porcentaje_BPLAY";
+      }
+      else if($planilla == 'mtm'){
+        $mtmalias = $variables[array_search('Maquinas',$tipos_variables_fisicos)];
+        $sel_aggr = 
+        "NULL as bruto,
+         NULL as bruto_usd,
+         NULL as bruto_convertido,
+         SUM($mtmalias.determinado_bruto) as bruto_total,
+         SUM($mtmalias.determinado) as canon_total,
+         NULL as variacion_anual";
+      }
+      else if($planilla == 'bingos'){
+        $binalias = $variables[array_search('Bingo',$tipos_variables_fisicos)];
+        $sel_aggr = 
+        "NULL as bruto,
+        SUM($binalias.determinado_bruto) as bruto_total,
+        SUM($binalias.determinado) as canon_total,
+        NULL as variacion_anual";
+      }
+      else if($planilla == 'jol'){
+        $jolalias = $variables[count($tipos_variables_fisicos)+array_search('JOL',$tipos_variables_online)];
+        $sel_aggr = 
+        "NULL as usuarios_online,
+        NULL as resultado_online,
+        NULL as canon_online,
+        NULL as usuarios_poker,
+        NULL as utilidad_poker,
+        NULL as canon_poker,
+        NULL as resultado,
+        SUM($jolalias.determinado) as canon_total,
+        NULL as variacion_anual";
+      }
+      else if($planilla == 'mesas'){
+        $sel_aggr = 
+        "NULL as bruto,
+        SUM($jolalias.determinado_bruto) as bruto_total,
+        SUM($jolalias.determinado) as canon_total,
+        NULL as variacion_anual";
+      }
+      else{
+        throw new \Exception($planilla.' sin implementar');
+      }
+      
+      $años_planilla;
+      if($es_anual || $es_mensual){
+        $años_planilla = [$año_anterior,$año];
+      }
+      else{
+        $años_planilla = $años->toArray();
+      }
+      
+      $data = (clone $q)
+      ->selectRaw(
+        $casinos_select.' as casino,
+        año.val as año,
+        mes.val as mes,
+        '.$sel_aggr
+      )
+      ->groupBy(DB::raw($casinos_select.',año.val,mes.val'))
+      ->orderBy('año','asc')
+      ->orderBy('mes','asc')
+      ->get()
+      ->merge(//Por año por mes
+        (clone $q)
+        ->selectRaw('
+          "Total" as casino,
+          año.val as año,
+          mes.val as mes,
+          '.$sel_aggr
+        )
+        ->groupBy('año.val','mes.val')
+        ->orderBy('año','asc')
+        ->orderBy('mes','asc')
+        ->get()
+      )
+      ->merge(//Por casino por mes
+        (clone $q)
+        ->selectRaw(
+          $casinos_select.' as casino,
+          0 as año,
+          mes.val as mes,
+          '.$sel_aggr
+        )
+        ->groupBy(DB::raw($casinos_select.',mes.val'))
+        ->orderBy('mes','asc')
+        ->get()
+      )
+      ->merge(//Por casino por año
+        (clone $q)
+        ->selectRaw(
+          $casinos_select.' as casino,
+          año.val as año,
+          0 as mes,
+          '.$sel_aggr
+        )
+        ->groupBy(DB::raw($casinos_select.',año.val'))
+        ->orderBy('año','asc')
+        ->get()
+      )
+      ->merge(//Por casino
+        (clone $q)
+        ->selectRaw(
+          $casinos_select.' as casino,
+          0 as año,
+          0 as mes,
+          '.$sel_aggr
+        )
+        ->groupBy(DB::raw($casinos_select))
+        ->get()
+      )
+      ->merge(//Por año
+        (clone $q)
+        ->selectRaw('
+          "Total" as casino,
+          año.val as año,
+          0 as mes,
+          '.$sel_aggr
+        )
+        ->groupBy('año.val')
+        ->orderBy('año','asc')
+        ->get()
+      )
+      ->merge(//Por mes
+        (clone $q)
+        ->selectRaw('
+          "Total" as casino,
+          0 as año,
+          mes.val as mes,
+          '.$sel_aggr
+        )
+        ->groupBy('mes.val')
+        ->orderBy('mes','asc')
+        ->get()
+      )
+      ->merge(//Por nada
+        (clone $q)
+        ->selectRaw('
+          "Total" as casino,
+          0 as año,
+          0 as mes,
+          '.$sel_aggr
+        )
+        ->groupBy(DB::raw('"constant"'))
+        ->get()
+      )
+      ->groupBy('casino')
+      ->map(function($d_cas){
+        return $d_cas->groupBy('año')
+        ->map(function($d_cas_año){
+          return $d_cas_año->keyBy('mes');
+        });
+      });
     }
     
-    return View::make('Canon.planillaEvolucionHistorica', compact('casinos','datos','datos_anuales'));
+    $casinos = collect($casinos->keys());
+    $abbr_casinos = $casinos->map(function($cas) {
+      switch($cas){
+        case 'Melincué': return 'CME';
+        case 'Santa Fe': return 'CSF';
+        case 'Santa Fe - Melincué': return 'CSF-CME';
+        case 'Rosario':  return 'CRO';
+        case 'Total':    return 'TOTAL';
+      }
+      return $cas;
+    });
+    
+    return View::make('Canon.planillaPlanillas',compact('data','data_plataformas','años_planilla','años','año','año_anterior','meses','meses_calendario','meses_elegibles','mes','num_mes','planillas','planilla','es_anual','es_mensual','casinos','abbr_casinos','plataformas','relacion_plat_cas'));
   }
   
   public function totalesTest(Request $request){
