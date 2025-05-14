@@ -52,9 +52,9 @@
         </tr>
       </thead>
       <tbody>
-        @foreach($abbr_meses as $_nmes => $_mes)
+        @for($_nmes=1;$_nmes<=12;$_nmes++)
         <tr>
-          <th class="mes" style="border-right: 1px solid black">{{$_mes}}</th>
+          <th class="mes" style="border-right: 1px solid black">{{$meses_calendario[$_nmes]}}</th>
           @foreach($casinos as $_casino)
           <?php 
             $canon = $dataf($_casino,$año,$_nmes);
@@ -67,7 +67,7 @@
           <td class="variacion_anual {{$N($variacion_anual)}}">{{$variacion_anual}}</td>
           <td class="variacion_mensual {{$N($variacion_mensual)}}">{{$variacion_mensual}}</td>
         </tr>
-        @endforeach
+        @endfor
         <tr>
           <th class="mes celda_especial" style="border-right: 1px solid black;">{{$año}}</th>
           @foreach($abbr_casinos as $_cidx => $_cas)

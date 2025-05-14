@@ -832,7 +832,7 @@
 <script>
   const data = {!! (isset($data) && count($data) > 0)? json_encode($data) : '{}' !!};
   const casinos = {!! (isset($casinos) && count($casinos) > 0)? json_encode($casinos) : '[]' !!};
-  const meses = {!! (isset($meses) && count($meses) > 0)? json_encode($meses) : '[]' !!};
+  const meses = {!! (isset($meses_calendario) && count($meses_calendario) > 0)? json_encode($meses_calendario) : '[]' !!};
 </script>
 <script src="/js/Canon/planillas.js" charset="utf-8" type="module"></script>
 
