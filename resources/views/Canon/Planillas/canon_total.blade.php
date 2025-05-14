@@ -16,7 +16,7 @@
   }
 </style>
 <div style="display: flex;">
-  <div style="width: 70%;">
+  <div style="width: 70%;" data-target-seleccionar-tablas>
     <table style="width: 100%;table-layout: fixed">
       <colgroup>
         <col class="mes">
