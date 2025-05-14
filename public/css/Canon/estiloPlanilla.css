@@ -45,14 +45,21 @@ tr td:nth-last-child(1) {
   border-right: 1px solid black;
 }
 
+:root {
+  --color-CME: #34A853;
+  --color-CSF: #EA4335;
+  --color-CSF-CME: var(--color-CSF);
+  --color-CRO: #FBBC04;
+}
+
 th.santa_fe, th.CSF, th.CSF-CME {
-  background: #EA4335;
+  background: var(--color-CSF);
 }
 th.melincué, th.CME {
-  background: #34A853;
+  background: var(--color-CME);
 }
 th.rosario, th.CRO {
-  background: #FBBC04;
+  background: var(--color-CRO);
 }
 th.JOL {
   background: #89D753;

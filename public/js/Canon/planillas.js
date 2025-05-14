@@ -57,6 +57,10 @@ $(document).ready(function() {
     //navigator.clipboard.writeText(window.getSelection().toString());
   });
   
+  Highcharts.setOptions({
+    colors: colors
+  });
+
   const url = new URL(window.location.href);
   const planilla = url.searchParams.get('planilla');
   const año = url.searchParams.get('año');
@@ -68,18 +72,21 @@ $(document).ready(function() {
     
     const data_series_mensual = [];
     
-    for(const cas of casinos){
+    for(const cidx in casinos){
+      const cas = casinos[cidx];
       if(cas == 'Total') continue;
       
       const canon_anual = data[cas]?.[año]?.[0]?.canon_total ?? null;
       data_series_anual.data.push({
         name: cas,
+        colorIndex: cidx,
         y: canon_anual !== null? parseFloat(canon_anual) : null
       });
       
       const cas_mensual = {
         name: cas,
-        data: []
+        data: [],
+        colorIndex: cidx
       };
       for(let m=1;m<=12;m++){
         const canon_mensual = data[cas]?.[año]?.[m]?.canon_total ?? null;

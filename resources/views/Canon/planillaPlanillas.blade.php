@@ -833,6 +833,12 @@
   const data = {!! (isset($data) && count($data) > 0)? json_encode($data) : '{}' !!};
   const casinos = {!! (isset($casinos) && count($casinos) > 0)? json_encode($casinos) : '[]' !!};
   const meses = {!! (isset($meses_calendario) && count($meses_calendario) > 0)? json_encode($meses_calendario) : '[]' !!};
+  const colors = [
+    @foreach($abbr_casinos as $_cas)
+    @continue($_cas == 'TOTAL')
+    window.getComputedStyle(document.body).getPropertyValue('--color-{!! $_cas !!}'),
+    @endforeach
+  ];
 </script>
 <script src="/js/Canon/planillas.js" charset="utf-8" type="module"></script>
 
