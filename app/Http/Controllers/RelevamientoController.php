@@ -138,7 +138,7 @@ class RelevamientoController extends Controller
         $newdet->detalle->{$c} = $v !== null? self::{$func}($v) : null;
       }
       foreach(['producido_importado','producido_calculado_relevado','diferencia','denominacion'] as $attr){
-        $v = $newdet->detalle->{$attr};
+        $v = $newdet->detalle->{$attr} ?? null;
         $newdet->detalle->{$attr} = $v !== null?
           self::{$func}($v)
         : null;
