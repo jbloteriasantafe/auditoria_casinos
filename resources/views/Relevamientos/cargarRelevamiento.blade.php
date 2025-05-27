@@ -288,7 +288,7 @@
     </td>
     @for($c=1;$c<=$CONTADORES;$c++)
     <td class="td-contador" style="text-align: right;" data-js-modo="{{$c<=$CONTADORES_VISIBLES? 'Ver,Cargar,Validar' : ''}}">
-      <input data-contador data-js-enabled="Cargar" data-js-cambio-contador="{{$c}}" data-js-detalle-asignar-name="[detalle][cont{{$c}}]" data-js-focus-mostrar-formula class="contador cont{{$c}} form-control">
+      <input inputmode="decimal" data-contador data-js-enabled="Cargar" data-js-cambio-contador="{{$c}}" data-js-detalle-asignar-name="[detalle][cont{{$c}}]" data-js-focus-mostrar-formula class="contador cont{{$c}} form-control">
     </td>
     @endfor
     <td class="td-producido-calculado" style="text-align: right;" data-js-modo="Ver,Validar">

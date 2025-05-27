@@ -613,7 +613,7 @@ class RelevamientoController extends Controller
     foreach(($request->detalles ?? []) as $didx => $d){      
       $iddr = $d['detalle']['id_detalle_relevamiento'];
       $drbd = DetalleRelevamiento::find($iddr);
-      $drbd_attrs = $drbd_attrs ?? array_keys($drbd->toArray());
+      $drbd_attrs = $drbd_attrs ?? \Schema::getColumnListing($drbd->getTableName());
       
       $nd = new \stdClass();
       $nd->detalle = (object) $d['detalle'];
