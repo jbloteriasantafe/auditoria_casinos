@@ -197,7 +197,7 @@ $CONTADORES_VISIBLES = min(6,$CONTADORES);
 @component('Relevamientos/relevamientoSinSistema',['casinos' => $usuario->casinos])
 @endcomponent
 
-@component('Relevamientos/cargarRelevamiento',compact('CONTADORES','CONTADORES_VISIBLES','tipos_causa_no_toma'))
+@component('Relevamientos/cargarRelevamiento',compact('CONTADORES','CONTADORES_VISIBLES','tipos_causa_no_toma','denominaciones'))
 @endcomponent
 
 <meta name="_token" content="{!! csrf_token() !!}" />

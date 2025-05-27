@@ -63,6 +63,18 @@ export const AUX = {
   },
   form_entries(form){
     return Object.fromEntries(new FormData(form).entries());
+  },
+  mostrarErroresNamesJSONResponse(jqobject,json,check_visible=false){
+    const new_json = {};
+    Object.keys(json).forEach(function(k){
+      const ks = k.split('.');
+      let name = ks[0];
+      if(ks.length > 1){
+        name+='['+ks.slice(1).join('][')+']'
+      }
+      new_json[name] = json[k];
+    });
+    this.mostrarErroresNames(jqobject,new_json,check_visible);
   }
 };
 

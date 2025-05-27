@@ -65,6 +65,9 @@ class MaquinaAPedidoController extends Controller
     if(isset($request->nro_admin)){
       $reglas[]=['maquina.nro_admin', 'like' ,'%'.$request->nro_admin.'%'];
     }
+    if(isset($request->id_casino)){
+      $reglas[]=['casino.id_casino', '=' , $request->id_casino];
+    }
     if(isset($request->id_sector)){
       $reglas[]=['sector.id_sector', '=' , $request->id_sector];
     }
@@ -146,7 +149,7 @@ class MaquinaAPedidoController extends Controller
 
   public function crearPedidoEn($id_maquina,$dias,$id_relevamiento){
     $mtm_a_pedido= new MaquinaAPedido;
-    $mtm_a_pedido->fecha=   date('Y-m-d', strtotime(date('Y-m-d') . ' + ' . $dias . ' days'));
+    $mtm_a_pedido->fecha = date('Y-m-d', strtotime(date('Y-m-d') . ' + ' . $dias . ' days'));
     $mtm_a_pedido->id_maquina= $id_maquina;
     $mtm_a_pedido->relevamiento()->associate($id_relevamiento);
     $mtm_a_pedido->save();

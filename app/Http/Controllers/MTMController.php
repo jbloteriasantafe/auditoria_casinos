@@ -782,8 +782,9 @@ class MTMController extends Controller
     return $maquinas;
   }
 
-  public function modificarDenominacionYUnidad($id_unidad_medida, $id_maquina){
+  public function modificarDenominacionYUnidad($id_unidad_medida,$denominacion,$id_maquina){
     $maquina = Maquina::find($id_maquina);
+    $maquina->denominacion = $denominacion;
     $maquina->id_unidad_medida = $id_unidad_medida;
     $maquina->save();
     $razon = "Se cambió la unidad medida.";
