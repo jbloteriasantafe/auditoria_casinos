@@ -167,7 +167,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     };
     
     //El calcular le pongo un delay por si teclea muchas teclas... hace mas suave el tipeo porque no tenes javascript seteandote el valor del input
-    const CALCULAR_DELAY_MS = 500;
+    const CALCULAR_DELAY_MS = 1750;
     const cambioContador = function(e){
       const code = e.which || e.keyCode;
       if((code >= 35 && code <= 40)//Inicio, Fin, Flechas
