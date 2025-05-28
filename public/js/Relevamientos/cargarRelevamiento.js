@@ -59,22 +59,12 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       fila.find('[data-contador]').not('[readonly]').removeAttr('disabled');
     }
   };
-    
-  const calcularEstadoDetalleRelevamiento = function(filas,after = function(){}){    
-    const formData = getFormData(filas);
-    
-    AUX.POST('relevamientos/calcularEstadoDetalleRelevamiento',formData,function(estados){
-      for(const idr in estados){
-        const e    = estados[idr];
-        const fila = $M(`tr[data-id_detalle_relevamiento="${idr}"]`);
-        llenarFila(fila,e);
-        after(e);
-      }
-    },function(data){
-      console.log(data);
-      AUX.mostrarErroresNamesJSONResponse(M,data?.responseJSON ?? {},true);
+  
+  const POST_async = async function(url,data,ext_params={}){
+    return new Promise((resolve, reject) => {
+      AUX.POST(url, data, resolve, reject,ext_params);
     });
-  }
+  };
   
   const cambiarDenominacion = function(e){
     const tgt = $(e.target);
@@ -95,6 +85,78 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         AUX.mostrarErroresNamesJSONResponse(M,data?.responseJSON ?? {},true);
       },
     );
+  };
+  
+  let calculo_encolado = null;
+      
+  const _cambioContador = async function(){
+    const selectionMarker = {};//Guardo los numeros al a izquierda y derecha de la selección para restaurarla cuando reemple los valores
+    
+    const filas = $($M('[data-js-tabla-relevamiento] [data-procesado="false"]').map(function(){
+      const id_detalle_relevamiento = $(this).closest('tr').attr('data-id_detalle_relevamiento');
+      
+      const cont = 'cont'+$(this).attr('data-js-cambio-contador');
+      const val = $(this).val();
+      selectionMarker[id_detalle_relevamiento] = selectionMarker[id_detalle_relevamiento] ?? {};
+      selectionMarker[id_detalle_relevamiento][cont] = {
+        obj: this,
+        izq: val.substring(0,this.selectionStart).replaceAll('.',''),
+        der: val.substring(this.selectionStart).replaceAll('.',''),
+      };
+      
+      return $(this).closest('table').find(`tr[data-id_detalle_relevamiento="${id_detalle_relevamiento}"]`).toArray();
+    }).toArray().flat());
+    
+    ocultarErrorValidacion(filas.find('.alerta'));
+    calculo_encolado = null;
+    try {
+      const formData = getFormData(filas);
+      const dets = await POST_async('relevamientos/calcularEstadoDetalleRelevamiento',formData);
+      for(const idr in dets){
+        const d    = dets[idr];
+        const fila = $M(`tr[data-id_detalle_relevamiento="${idr}"]`);
+        llenarFila(fila,d);
+        
+        const selection = selectionMarker?.[d.detalle.id_detalle_relevamiento+''] ?? null;
+        if(selection === null) continue;
+        
+        for(const cont in selection){
+          const sel = selection[cont];
+          const val = d.detalle[cont] ?? '';
+          for(let idx=0;idx<val.length;idx++){
+            const val_izq = val.substring(0,idx).replaceAll('.','');
+            const val_der = val.substring(idx).replaceAll('.','');
+            if(sel.izq == val_izq && sel.der == val_der){
+              sel.obj.selectionStart = idx;
+              sel.obj.selectionEnd   = idx;
+              break;
+            }
+          }
+          $(sel.obj).attr('data-procesado','true');
+        }
+      }
+    }
+    catch(data){
+      console.log(data);
+      AUX.mostrarErroresNamesJSONResponse(M,data?.responseJSON ?? {},true);
+    }
+  };
+  
+  //El calcular le pongo un delay por si teclea muchas teclas... hace mas suave el tipeo porque no tenes javascript seteandote el valor del input
+  const CALCULAR_DELAY_MS = 2500;
+  async function cambioContador(e){
+    const code = e.which || e.keyCode;
+    if((code >= 35 && code <= 40)//Inicio, Fin, Flechas
+    || (code >= 16 && code <= 18)){//Ctrl shift alt
+      return;
+    }
+    
+    $(e.target).attr('data-procesado','false');
+    if(calculo_encolado === null){
+      calculo_encolado = setTimeout(function(){
+        _cambioContador();
+      },CALCULAR_DELAY_MS);
+    }
   };
   
   function cargarTablaRelevamientos(data, tabla){
@@ -133,56 +195,6 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       if(!c.match(/^(,|[0-9])$/)){
         e.preventDefault();
       }
-    };
-    
-    let calcular_encolado = null;
-    const reiniciarCalcular = function(e){
-      calcular_encolado = null;
-    };
-    
-    const _cambioContador = function(e,old_val = null){
-      const tgt = $(e.target);
-      const obj = tgt[0];
-      const val = tgt.val();
-      
-      const c = tgt.attr('data-js-cambio-contador');
-      const val_izq = val.substring(0,obj.selectionStart).replaceAll('.','');
-      const val_der = val.substring(obj.selectionStart).replaceAll('.','');
-      ocultarErrorValidacion(tgt.filter('.alerta'));
-      const id_detalle_relevamiento = tgt.closest('tr').attr('data-id_detalle_relevamiento');
-      const filas = tgt.closest('table').find(`tr[data-id_detalle_relevamiento="${id_detalle_relevamiento}"]`);
-      calcularEstadoDetalleRelevamiento(filas,function(nuevos_contadores){
-        const new_val = nuevos_contadores['cont'+c] ?? '';
-        for(let cidx=0;cidx<new_val.length;cidx++){//Busco donde quedaria el cursor en el nuevo numero
-          const new_val_izq = new_val.substring(0,cidx).replaceAll('.','');
-          const new_val_der = new_val.substring(cidx).replaceAll('.','');
-          if(val_izq == new_val_izq && val_der == new_val_der){
-            obj.selectionStart = cidx;
-            obj.selectionEnd   = cidx;
-            break;
-          }
-        }
-        calcular_encolado = null;
-      });
-    };
-    
-    //El calcular le pongo un delay por si teclea muchas teclas... hace mas suave el tipeo porque no tenes javascript seteandote el valor del input
-    const CALCULAR_DELAY_MS = 1750;
-    const cambioContador = function(e){
-      const code = e.which || e.keyCode;
-      if((code >= 35 && code <= 40)//Inicio, Fin, Flechas
-      || (code >= 16 && code <= 18)){//Ctrl shift alt
-        return;
-      }
-      
-      if(calcular_encolado !== null){//Si estaba algo encolado lo reinicio
-        clearTimeout(calcular_encolado);
-        calcular_encolado = null;
-      }
-      
-      calcular_encolado = setTimeout(function(){
-        _cambioContador(e);
-      },CALCULAR_DELAY_MS);
     };
     
     const sacarErroresContadores = function(e){
@@ -230,7 +242,6 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       });
       fila.find('[data-js-cambio-contador]').on('keypress',filtrarNumeros);
       fila.find('[data-js-cambio-contador]').on('keyup',cambioContador);
-      fila.find('[data-js-cambio-contador]').on('blur',reiniciarCalcular);
       fila.find('[data-js-cambio-cambiar-denominacion]').on('change',cambiarDenominacion);
       fila.find('[data-js-cambio-contador]:not([readonly],[disabled]),[data-js-cambio-tipo-causa-no-toma]').on('focus',sacarErroresContadores);
     }
@@ -320,49 +331,59 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     M.animate({ scrollTop: $M('[data-js-mensaje-salida]').show().offset().top }, 'slow');
   });
 
-  $('[data-js-guardar]').click(function(e){
-    cargarRelevamiento(2,function(){
+  $('[data-js-guardar]').click(async function(e){
+    try {
+      await cargarRelevamiento(2);
       M.trigger('guardo');
       $M('[data-js-salir]').attr('data-guardado',1);
       $M('[data-js-mensaje-salida]').hide();
       AUX.mensajeExito('Relevamiento guardado');
-    });
+    } catch(_){}
   });
   
-  $M('[data-js-finalizar-carga]').click(function(e){
-    cargarRelevamiento(3,function() {
+  $M('[data-js-finalizar-carga]').click(async function(e){
+    try {
+      await cargarRelevamiento(3);
+      AUX.mensajeExito('Relevamiento finalizado');
       M.trigger('finalizo');
       M.modal('hide');
-    });
+    } catch(_){}
   });
   
-  function cargarRelevamiento(estado,success) {
+  async function cargarRelevamiento(estado) {
     const formData = getFormData($M('form'));
     formData.estado = estado;
+    if(calculo_encolado !== null){//Forzar recalculo
+      clearTimeout(calculo_encolado);
+      calculo_encolado = null;
+      await _cambioContador();
+    }
     
-    AUX.POST('relevamientos/cargarRelevamiento',formData,
-      success,
-      function (data) {
-        const response = data.responseJSON ?? {};
-        AUX.mostrarErroresNames(M,response ?? {},true);
-        
-        if(response.id_usuario_fiscalizador !== undefined){
-          mostrarErrorValidacion($M('[data-js-input-usuario-fiscalizador]'),response.id_usuario_fiscalizador.join(', '),true);
-        }
-        
-        AUX.mostrarErroresNamesJSONResponse(M,response,true);
-        
-        const filaError = $M('[data-js-tabla-relevamiento] tbody tr .popAlerta:first').closest('tr');
-        if(filaError.length){
-          const div_scrollable = $M('[data-div-tabla-scrollable-errores]');
-          div_scrollable.animate({ scrollTop: filaError[0].offsetTop }, "slow");
-          M.animate({scrollTop: div_scrollable}, "slow");
-        }
-        else if(Object.keys(response).length > 0){
-          M.animate({ scrollTop: 0 }, "slow");
-        }
+    try {
+      return await POST_async('relevamientos/cargarRelevamiento',formData);
+    }
+    catch(data){
+      console.log(data);
+      const response = data.responseJSON ?? {};
+      
+      if(response.id_usuario_fiscalizador !== undefined){
+        mostrarErrorValidacion($M('[data-js-input-usuario-fiscalizador]'),response.id_usuario_fiscalizador.join(', '),true);
       }
-    );
+      
+      AUX.mostrarErroresNamesJSONResponse(M,response,true);
+      
+      const filaError = $M('[data-js-tabla-relevamiento] tbody tr .popAlerta:first').closest('tr');
+      if(filaError.length){
+        const div_scrollable = $M('[data-div-tabla-scrollable-errores]');
+        div_scrollable.animate({ scrollTop: filaError[0].offsetTop }, "slow");
+        M.animate({scrollTop: div_scrollable}, "slow");
+      }
+      else if(Object.keys(response).length > 0){
+        M.animate({ scrollTop: 0 }, "slow");
+      }
+      
+      throw data;
+    }
   }
   
   //CAMBIOS EN TABLAS RELEVAMIENTOS / MOSTRAR BOTÓN GUARDAR
@@ -376,23 +397,22 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     M.find('[data-js-boton-medida]').popover('hide');
   });
   
-  $M('[data-js-finalizar-validacion]').click(function(e){
-    const formData = AUX.form_entries($M('form')[0]);
+  $M('[data-js-finalizar-validacion]').click(async function(e){    
+    const formData = getFormData($M('form'));
     formData.truncadas = $M('[data-js-tabla-relevamiento]').find('[data-js-icono-estado="icono_truncado"]').length;
+    if(calculo_encolado !== null){//Forzar recalculo
+      clearTimeout(calculo_encolado);
+      calculo_encolado = null;
+      await _cambioContador();
+    }
     
-    AUX.POST('relevamientos/validarRelevamiento',formData,
-      function(data){
-        M.trigger('valido');
-      },
-      function (data){
-        const response = data.responseJSON ?? {};
-        if(response.faltan_contadores !== undefined){
-          AUX.mensajeError(response.faltan_contadores.join(', '));
-        }
-        else{
-          AUX.mensajeError('');
-        }
-      }
-    );
+    try {
+      await POST_async('relevamientos/validarRelevamiento',formData);
+      M.trigger('valido');
+    }
+    catch(data){
+      console.log(data);
+      AUX.mensajeError(data?.responseJSON?.faltan_contadores?.join(', ') ?? '');
+    }
   });
 })});
