@@ -244,6 +244,12 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       fila.find('span').each(function(idx,obj){
         $(obj).attr('title',$(obj).text());
       });
+      fila.find('input').each(function(idx,obj){
+        $(obj).attr('title',$(obj).val());
+      });
+      fila.find('select').each(function(idx,obj){
+        $(obj).attr('title',$(obj).find('option:selected').text());
+      });
       
       fila.find('[data-js-cambio-tipo-causa-no-toma]').on('change',async function(e){
         fila.find('[data-js-cambio-contador]').attr('data-procesado','false');

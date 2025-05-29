@@ -26,14 +26,18 @@
     color: #1E90FF;
   }
   
-  .modalCargarRelevamiento tr[data-css-colorear="DIFERENCIA"] [data-js-boton-medida],
-  .modalCargarRelevamiento tr[data-css-colorear="DIFERENCIA"] [data-js-estadisticas-no-toma],
-  .modalCargarRelevamiento tr[data-css-colorear="NO_TOMA"] [data-js-estadisticas-no-toma] {
-    visibility: visible !important;
+  .modalCargarRelevamiento [data-css-colorear] [data-js-icono-estado],
+  .modalCargarRelevamiento [data-css-colorear] [data-js-estadisticas-no-toma] {
+    display: none;
+  }
+  
+  .modalCargarRelevamiento [data-css-colorear="DIFERENCIA"] [data-js-estadisticas-no-toma],
+  .modalCargarRelevamiento [data-css-colorear="NO_TOMA"] [data-js-estadisticas-no-toma] {
+    display: block;
   }
   
   @foreach(['DIFERENCIA','NO_TOMA','SIN_IMPORTAR','CORRECTO','TRUNCAMIENTO'] as $e)
-  .modalCargarRelevamiento tr[data-css-colorear="{{$e}}"] [data-js-icono-estado="{{$e}}"] {
+  .modalCargarRelevamiento [data-css-colorear="{{$e}}"] [data-js-icono-estado="{{$e}}"] {
     display: block !important;
   }
   @endforeach
@@ -117,9 +121,20 @@
     font-family: Roboto-Regular;
     font-size: 1.143em;
   }
-  
-  .modalCargarRelevamiento .tablaRelevamiento .filaTabla > div {
+    
+  .modalCargarRelevamiento .tablaRelevamiento .filaTabla .filaTablaHeader,
+  .modalCargarRelevamiento .tablaRelevamiento .filaTabla .filaTablaContadores {
+    display: flex;
     padding: 0.57em;
+  }
+  
+  .modalCargarRelevamiento .tablaRelevamiento .filaTabla .filaTablaHeader > div {
+    font-weight: bolder;
+    text-align: left;
+    background: rgb(221, 221, 221);
+    text-shadow: 0px 0px 2px white;
+    border-left: 1px solid rgb(236, 236, 236);
+    border-right: 1px solid rgb(236, 236, 236);
   }
 </style>
 <script>
@@ -214,8 +229,8 @@
 
 <div hidden>
   <div class="filaTabla" data-fila-tabla data-js-molde-tabla-relevamiento>
-    <div class="color-gris" style="display: flex;">
-      <div class="headerTabla centrado" style="width: 15%;">
+    <div class="filaTablaHeader color-gris">
+      <div class="centrado" style="width: 15%;">
         <div>
           <span>MTM:&nbsp;</span>
         </div>
@@ -223,7 +238,7 @@
           <span data-js-detalle-asignar-name="[maquina][nro_admin]"></span>
         </div>
       </div>
-      <div class="headerTabla centrado" style="width: 15%;">
+      <div class="centrado" style="width: 15%;">
         <div style="display: flex;flex-direction: column;justify-content: center;">
           <span>ISLA:&nbsp;</span>
         </div>
@@ -231,7 +246,7 @@
           <span data-js-detalle-asignar-name="[isla][nro_isla]"></span>
         </div>
       </div>
-      <div class="headerTabla centrado" style="width: 26%;">
+      <div class="centrado" style="width: 26%;">
         <div>
           <span>MARCA:&nbsp;</span>
         </div>
@@ -239,7 +254,7 @@
           <span data-js-detalle-asignar-name="[maquina][marca_juego]"></span>
         </div>
       </div>
-      <div class="headerTabla centrado" style="width: 24%;">
+      <div class="centrado" style="width: 24%;">
         <div>
           <span>UNIDAD RELEVADA:&nbsp;</span>
         </div>
@@ -252,7 +267,7 @@
           </select>
         </div>
       </div>
-      <div class="headerTabla centrado" style="width: 20%;">
+      <div class="centrado" style="width: 20%;">
         <div>
           <span>UNIDAD MTM:&nbsp;</span>
         </div>
@@ -266,7 +281,7 @@
         </div>
       </div>
     </div>
-    <div style="display: flex;">
+    <div class="filaTablaContadores">
       <div hidden>
         <input data-js-detalle-asignar-name="[detalle][id_detalle_relevamiento]">
         <input data-js-detalle-asignar-name="[maquina][id_maquina]">
@@ -274,18 +289,22 @@
         <input data-js-detalle-asignar-name="[formula][id_formula]">
       </div>
       @for($c=1;$c<=$CONTADORES;$c++)
-      <div class="td-contador" style="text-align: right;" data-js-modo="{{$c<=$CONTADORES_VISIBLES? 'Ver,Cargar,Validar' : ''}}">
-        <input data-procesado="true" data-contador data-js-enabled="Cargar" data-js-cambio-contador="{{$c}}" data-js-detalle-asignar-name="[detalle][cont{{$c}}]" data-js-focus-mostrar-formula class="contador cont{{$c}} form-control">
+      <div class="td-contador" data-js-modo="{{$c<=$CONTADORES_VISIBLES? 'Ver,Cargar,Validar' : ''}}">
+        <input style="text-align: right;" data-procesado="true" data-contador data-js-enabled="Cargar" data-js-cambio-contador="{{$c}}" data-js-detalle-asignar-name="[detalle][cont{{$c}}]" data-js-focus-mostrar-formula class="contador cont{{$c}} form-control">
+        <span data-js-detalle-asignar-name="[formula][cont{{$c}}]"></span>
       </div>
       @endfor
       <div class="td-producido-calculado" style="text-align: right;" data-js-modo="Ver,Validar">
         <input data-js-readonly="Ver,Validar,Cargar" data-js-detalle-asignar-name="[detalle][producido_calculado_relevado]" class="producidoCalculado form-control" style="text-align: right; border: 2px solid rgb(109, 199, 190); color: rgb(109, 199, 190);">
+        <span style="text-align: center;font-weight: bold;padding-top: 0;">P. CALCULADO ($)</span>
       </div>
       <div class="td-producido-importado" style="text-align: right;" data-js-modo="Ver,Validar">
         <input data-js-readonly="Ver,Validar,Cargar" data-js-detalle-asignar-name="[detalle][producido_importado]" class="producido form-control" style="text-align: right; border: 2px solid rgb(109, 199, 190); color: rgb(109, 199, 190);">
+        <span style="text-align: center;font-weight: bold;padding-top: 0;">P. IMPORTADO ($)</span>
       </div>
       <div class="td-diferencia" style="text-align: right;" data-js-modo="Ver,Validar">
         <input data-js-readonly="Ver,Validar,Cargar" data-js-detalle-asignar-name="[detalle][diferencia]" class="diferencia form-control" style="text-align: right;">
+        <span style="text-align: center;font-weight: bold;padding-top: 0;">DIFERENCIA</span>
       </div>
       <div class="td-estado centrado" data-js-modo="Cargar,Validar" data-js-estado-diferencia style="text-align: center;" class="estado_diferencia">
         <div>
@@ -305,6 +324,7 @@
             <i class="pop fa fa-question" style="color: rgb(66, 165, 245); display: inline-block;"></i>
           </a>
         </div>
+        <span style="padding-top: 0;">&nbsp;</span>
       </div>
       <div class="td-no-toma" style="text-align: center;" data-js-modo="Ver,Cargar,Validar">
         <select data-js-enabled="Cargar" data-js-cambio-tipo-causa-no-toma data-js-detalle-asignar-name="[detalle][id_tipo_causa_no_toma]" class="tipo_causa_no_toma form-control">
@@ -313,6 +333,7 @@
           <option value="{{$t->id_tipo_causa_no_toma}}" {{$t->deprecado? 'disabled' : ''}}>{{$t->descripcion}}</option>
           @endforeach
         </select>
+        <span style="text-align: center;font-weight: bold;padding-top: 0;">NO TOMA</span>
       </div>
       <div class="td-a-pedido" data-js-modo="Validar">
         <select data-js-enabled="Validar" data-js-detalle-asignar-name="[a_pedido]" class="a_pedido form-control acciones_validacion">
@@ -322,26 +343,14 @@
           <option value="10">10 días</option>
           <option value="15">15 días</option>
         </select>
+        <span style="text-align: center;font-weight: bold;padding-top: 0;">A PEDIDO</span>
       </div>
       <div class="td-estadisticas" data-js-modo="Validar">
-        <a title="Estadisticas No Toma" href="/relevamientos/estadisticas_no_toma" target="_blank" data-js-enabled="Validar" data-js-estadisticas-no-toma class="btn btn-success acciones_validacion" type="button" style="visibility: hidden;">
+        <a title="Estadisticas No Toma" href="/relevamientos/estadisticas_no_toma" target="_blank" data-js-enabled="Validar" data-js-estadisticas-no-toma class="btn btn-link acciones_validacion" type="button">
           <i class="fas fa-fw fa-external-link-square-alt"></i>
         </a>
+        <div style="text-align: center;font-weight: bold;padding-top: 0;">&nbsp;</div>
       </div>
-    </div>
-    <div style="display: flex;">
-      @for($c=1;$c<=$CONTADORES;$c++)
-      <div class="td-contador" data-js-modo="{{$c<=$CONTADORES_VISIBLES? 'Ver,Cargar,Validar' : ''}}" style="padding-top: 0;">
-        <span data-js-detalle-asignar-name="[formula][cont{{$c}}]"></span>
-      </div>
-      @endfor
-      <div class="td-producido-calculado" data-js-modo="Ver,Validar" style="text-align: center;font-weight: bold;padding-top: 0;">P. CALCULADO ($)</div>
-      <div class="td-producido-importado" data-js-modo="Ver,Validar" style="text-align: center;font-weight: bold;padding-top: 0;">P. IMPORTADO ($)</div>
-      <div class="td-diferencia" data-js-modo="Ver,Validar" style="text-align: center;font-weight: bold;padding-top: 0;">DIFERENCIA</div>
-      <div class="td-estado" data-js-modo="Cargar,Validar" style="padding-top: 0;">&nbsp;</div>
-      <div class="td-no-toma" data-js-modo="Ver,Cargar,Validar" style="text-align: center;font-weight: bold;padding-top: 0;">NO TOMA</div>
-      <div class="td-a-pedido" data-js-modo="Validar" style="text-align: center;font-weight: bold;padding-top: 0;">A PEDIDO</div>
-      <div class="td-estadisticas" data-js-modo="Validar" style="text-align: center;font-weight: bold;padding-top: 0;">&nbsp;</div>
     </div>
   </div>
 </div>
