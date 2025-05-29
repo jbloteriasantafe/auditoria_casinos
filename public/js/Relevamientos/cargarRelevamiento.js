@@ -347,11 +347,13 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   $('[data-js-guardar]').click(async function(e){
     try {
       await cargarRelevamiento(2);
-      M.trigger('guardo');
       $M('[data-js-salir]').attr('data-guardado',1);
       $M('[data-js-mensaje-salida]').hide();
       AUX.mensajeExito('Relevamiento guardado');
-    } catch(_){}
+      M.trigger('guardo');
+    } catch(_){
+      AUX.mensajeError();
+    }
   });
   
   $M('[data-js-finalizar-carga]').click(async function(e){
@@ -359,8 +361,9 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       await cargarRelevamiento(3);
       AUX.mensajeExito('Relevamiento finalizado');
       M.trigger('finalizo');
-      M.modal('hide');
-    } catch(_){}
+    } catch(_){
+      AUX.mensajeError();
+    }
   });
   
   async function cargarRelevamiento(estado) {     

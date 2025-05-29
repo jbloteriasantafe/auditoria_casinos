@@ -610,42 +610,6 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
         </main>
               <!-- DESDE ACA -->
 
-        <!-- NOTIFICACIÓN DE ÉXITO -->
-          <!--  (*) Para que la animación solo MUESTRE (fije) el mensaje, se agrega la clase 'fijarMensaje' a #mensajeExito-->
-          <!--  (*) Para que la animación MUESTRE Y OCULTE el mensaje, se quita la clase 'fijarMensaje' a #mensajeExito-->
-          <!-- (**) si se quiere mostrar los botones de ACEPTAR o SALIR, se agrega la clase 'mostrarBotones' a #mensajeExito -->
-          <!-- (**) para no mostrarlos, se quita la clase 'mostrarBotones' a #mensajeExito -->
-
-        <div id="mensajeExito" class="" hidden>
-            <div class="cabeceraMensaje">
-              <!-- <i class="fa fa-times" style=""></i> -->
-              <button type="button" class="close" style="font-size:40px;position:relative;top:10px;right:20px;"><span aria-hidden="true">×</span></button>
-            </div>
-            <div class="iconoMensaje">
-              <img src="/img/logos/check.png" alt="imagen_check" >
-            </div>
-            <div class="textoMensaje" >
-                <h3>ÉXITO</h3>
-                <p>El CASINO fue creado con éxito.</p>
-            </div>
-            <div class="botonesMensaje">
-                <button class="btn btn-success confirmar" type="button" name="button">ACEPTAR</button>
-                <button class="btn btn-default salir" type="button" name="button">SALIR</button>
-            </div>
-        </div>
-
-        <!-- Modal Error -->
-        <div id="mensajeError"  hidden>
-            <div class="cabeceraMensaje"></div>
-            <div class="iconoMensaje">
-              <img src="/img/logos/error.png" alt="imagen_error" >
-            </div>
-            <div class="textoMensaje" >
-                <h3>ERROR</h3>
-                <p>No es posible realizar la acción</p>
-            </div>
-
-        </div>
 
         <!-- Modal ayuda -->
         <div class="modal fade" id="modalAyuda" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -742,4 +706,40 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
     @section('scripts')
     @show
   </body>
+  
+  <!-- NOTIFICACIÓN DE ÉXITO -->
+    <!--  (*) Para que la animación solo MUESTRE (fije) el mensaje, se agrega la clase 'fijarMensaje' a #mensajeExito-->
+    <!--  (*) Para que la animación MUESTRE Y OCULTE el mensaje, se quita la clase 'fijarMensaje' a #mensajeExito-->
+    <!-- (**) si se quiere mostrar los botones de ACEPTAR o SALIR, se agrega la clase 'mostrarBotones' a #mensajeExito -->
+    <!-- (**) para no mostrarlos, se quita la clase 'mostrarBotones' a #mensajeExito -->
+
+  <div id="mensajeExito" class="" hidden>
+      <div class="cabeceraMensaje">
+        <!-- <i class="fa fa-times" style=""></i> -->
+        <button type="button" class="close" style="font-size:40px;position:relative;top:10px;right:20px;"><span aria-hidden="true">×</span></button>
+      </div>
+      <div class="iconoMensaje">
+        <img src="/img/logos/check.png" alt="imagen_check" >
+      </div>
+      <div class="textoMensaje" >
+          <h3>ÉXITO</h3>
+          <p>El CASINO fue creado con éxito.</p>
+      </div>
+      <div class="botonesMensaje">
+          <button class="btn btn-success confirmar" type="button" name="button">ACEPTAR</button>
+          <button class="btn btn-default salir" type="button" name="button">SALIR</button>
+      </div>
+  </div>
+
+  <!-- Modal Error -->
+  <div id="mensajeError"  hidden>
+      <div class="cabeceraMensaje"></div>
+      <div class="iconoMensaje">
+        <img src="/img/logos/error.png" alt="imagen_error" >
+      </div>
+      <div class="textoMensaje" >
+          <h3>ERROR</h3>
+          <p>No es posible realizar la acción</p>
+      </div>
+  </div>
 </html>
