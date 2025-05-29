@@ -17,7 +17,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     );
   };
   
-  const llenarFila = function(fila,d){    
+  const llenarFila = function(fila,d){
     fila.find(dname_f('[detalle][id_detalle_relevamiento]')).val(d.detalle.id_detalle_relevamiento);
     fila.find(dname_f('[maquina][id_maquina]')).val(d.maquina.id_maquina);
     fila.find(dname_f('[isla][id_isla]')).val(d.isla.id_isla ?? '');
@@ -58,6 +58,8 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     else{
       fila.find('[data-contador]').not('[readonly]').removeAttr('disabled');
     }
+    
+    fila.find('[data-js-cambio-contador]').attr('data-procesado','true')
   };
   
   const POST_async = async function(url,data,ext_params={}){
@@ -69,14 +71,13 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   const cambiarDenominacion = function(e){
     const tgt = $(e.target);
     const url = tgt.attr('data-js-cambio-cambiar-denominacion');
-    const id_detalle_relevamiento = tgt.closest('tr').attr('data-id_detalle_relevamiento');
-    const filas = tgt.closest('table').find(`tr[data-id_detalle_relevamiento="${id_detalle_relevamiento}"]`);
-    const formData = getFormData(filas);
+    const fila = tgt.closest('[data-fila-tabla]');
+    const formData = getFormData(fila);
     AUX.POST(url,formData,
       function(estados){
         for(const idr in estados){
           const e    = estados[idr];
-          const fila = $M(`tr[data-id_detalle_relevamiento="${idr}"]`);
+          const fila = $M(`[data-fila-tabla="${idr}"]`);
           llenarFila(fila,e);
         }
       },
@@ -88,24 +89,30 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   };
   
   let calculo_encolado = null;
+  const forzarRecalculo = async function(){
+    clearTimeout(calculo_encolado);
+    await _cambioContador();
+  };
       
   const _cambioContador = async function(){
-    const selectionMarker = {};//Guardo los numeros al a izquierda y derecha de la selección para restaurarla cuando reemple los valores
+    const filas = $M('[data-js-tabla-relevamiento] [data-procesado="false"]').closest('[data-fila-tabla]');
     
-    const filas = $($M('[data-js-tabla-relevamiento] [data-procesado="false"]').map(function(){
-      const id_detalle_relevamiento = $(this).closest('tr').attr('data-id_detalle_relevamiento');
+    //Guardo los numeros al a izquierda y derecha de la selección para restaurarla cuando reemple los valores
+    const selectionMarker = {};
+    filas.each(function(fidx,f){
+      const $f = $(f);
+      const id_detalle_relevamiento = $f.attr('data-fila-tabla');
+      selectionMarker[id_detalle_relevamiento] = {};
       
-      const cont = 'cont'+$(this).attr('data-js-cambio-contador');
-      const val = $(this).val();
-      selectionMarker[id_detalle_relevamiento] = selectionMarker[id_detalle_relevamiento] ?? {};
-      selectionMarker[id_detalle_relevamiento][cont] = {
-        obj: this,
-        izq: val.substring(0,this.selectionStart).replaceAll('.',''),
-        der: val.substring(this.selectionStart).replaceAll('.',''),
-      };
-      
-      return $(this).closest('table').find(`tr[data-id_detalle_relevamiento="${id_detalle_relevamiento}"]`).toArray();
-    }).toArray().flat());
+      for(let c=1;c<=CONTADORES;c++){
+        const val = $f.find(`[data-js-cambio-contador="${c}"]`).val();
+        selectionMarker[id_detalle_relevamiento][c] = {
+          obj: f,
+          izq: val.substring(0,f.selectionStart).replaceAll('.',''),
+          der: val.substring(f.selectionStart).replaceAll('.',''),
+        };
+      }
+    });
     
     ocultarErrorValidacion(filas.find('.alerta'));
     calculo_encolado = null;
@@ -114,7 +121,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       const dets = await POST_async('relevamientos/calcularEstadoDetalleRelevamiento',formData);
       for(const idr in dets){
         const d    = dets[idr];
-        const fila = $M(`tr[data-id_detalle_relevamiento="${idr}"]`);
+        const fila = $M(`[data-fila-tabla="${idr}"]`);
         llenarFila(fila,d);
         
         const selection = selectionMarker?.[d.detalle.id_detalle_relevamiento+''] ?? null;
@@ -143,7 +150,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   };
   
   //El calcular le pongo un delay por si teclea muchas teclas... hace mas suave el tipeo porque no tenes javascript seteandote el valor del input
-  const CALCULAR_DELAY_MS = 2500;
+  const CALCULAR_DELAY_MS = 3500;
   async function cambioContador(e){
     const code = e.which || e.keyCode;
     if((code >= 35 && code <= 40)//Inicio, Fin, Flechas
@@ -152,11 +159,12 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     }
     
     $(e.target).attr('data-procesado','false');
-    if(calculo_encolado === null){
-      calculo_encolado = setTimeout(function(){
-        _cambioContador();
-      },CALCULAR_DELAY_MS);
+    if(calculo_encolado !== null){
+      clearTimeout(calculo_encolado);
     }
+    calculo_encolado = setTimeout(function(){
+      _cambioContador();
+    },CALCULAR_DELAY_MS);
   };
   
   function cargarTablaRelevamientos(data, tabla){
@@ -198,13 +206,14 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     };
     
     const sacarErroresContadores = function(e){
-      ocultarErrorValidacion($(e.target).closest('tr').find('[data-js-cambio-contador].alerta'));
+      ocultarErrorValidacion($(e.target).closest('[data-fila-tabla]').find('[data-js-cambio-contador].alerta'));
     };
     
+    tabla.empty();
     for(const didx in data.detalles){
       const d = data.detalles[didx];
       const fila = $M('[data-js-molde-tabla-relevamiento]').clone().removeAttr('data-js-molde-tabla-relevamiento')
-      .attr('data-id_detalle_relevamiento',d.detalle.id_detalle_relevamiento);
+      .attr('data-fila-tabla',d.detalle.id_detalle_relevamiento);
       
       fila.find('[data-js-detalle-asignar-name]').each(function(idx,obj){
         const name = $(obj).attr('data-js-detalle-asignar-name');
@@ -236,9 +245,9 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
         $(obj).attr('title',$(obj).text());
       });
       
-      fila.find('[data-js-cambio-tipo-causa-no-toma]').on('change',function(e){
-        fila.find('[data-js-cambio-contador]').val('');
-        cambioContador(e);
+      fila.find('[data-js-cambio-tipo-causa-no-toma]').on('change',async function(e){
+        fila.find('[data-js-cambio-contador]').attr('data-procesado','false');
+        await forzarRecalculo();
       });
       fila.find('[data-js-cambio-contador]').on('keypress',filtrarNumeros);
       fila.find('[data-js-cambio-contador]').on('keyup',cambioContador);
@@ -290,8 +299,6 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     .filter(checkCSV('data-js-readonly'))
     .attr('readonly',true);
         
-    const tbody = $M('[data-js-tabla-relevamiento] tbody').empty();
-    
     AUX.GET('relevamientos/obtenerRelevamiento/'+id_relevamiento,{},function(data){
       $M('[name="fecha"]').val(data.relevamiento.fecha);
       $M('[name="fecha_generacion"]').val(data.relevamiento.fecha_generacion);
@@ -312,7 +319,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     
       $M('[data-js-salir]').attr('data-guardado',1);
       
-      cargarTablaRelevamientos(data,tbody);
+      cargarTablaRelevamientos(data,$M('[data-js-tabla-relevamiento]'));
     });
   });
   
@@ -350,16 +357,11 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     } catch(_){}
   });
   
-  async function cargarRelevamiento(estado) {
-    const formData = getFormData($M('form'));
-    formData.estado = estado;
-    if(calculo_encolado !== null){//Forzar recalculo
-      clearTimeout(calculo_encolado);
-      calculo_encolado = null;
-      await _cambioContador();
-    }
-    
+  async function cargarRelevamiento(estado) {     
     try {
+      await forzarRecalculo();
+      const formData = getFormData($M('form'));
+      formData.estado = estado;
       return await POST_async('relevamientos/cargarRelevamiento',formData);
     }
     catch(data){
@@ -372,7 +374,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       
       AUX.mostrarErroresNamesJSONResponse(M,response,true);
       
-      const filaError = $M('[data-js-tabla-relevamiento] tbody tr .popAlerta:first').closest('tr');
+      const filaError = $M('[data-js-tabla-relevamiento] .popAlerta:first').closest('[data-fila-tabla]');
       if(filaError.length){
         const div_scrollable = $M('[data-div-tabla-scrollable-errores]');
         div_scrollable.animate({ scrollTop: filaError[0].offsetTop }, "slow");
@@ -397,16 +399,11 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     M.find('[data-js-boton-medida]').popover('hide');
   });
   
-  $M('[data-js-finalizar-validacion]').click(async function(e){    
-    const formData = getFormData($M('form'));
-    formData.truncadas = $M('[data-js-tabla-relevamiento]').find('[data-js-icono-estado="icono_truncado"]').length;
-    if(calculo_encolado !== null){//Forzar recalculo
-      clearTimeout(calculo_encolado);
-      calculo_encolado = null;
-      await _cambioContador();
-    }
-    
+  $M('[data-js-finalizar-validacion]').click(async function(e){
     try {
+      await forzarRecalculo();
+      const formData = getFormData($M('form'));
+      formData.truncadas = $M('[data-js-tabla-relevamiento]').find('[data-js-icono-estado="icono_truncado"]').length;
       await POST_async('relevamientos/validarRelevamiento',formData);
       M.trigger('valido');
     }
