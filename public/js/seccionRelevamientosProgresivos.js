@@ -145,7 +145,7 @@ $('#btn-generar').click(function(e) {
     },
     dataType: 'json',
     success: function(data) {
-      mensajeExito('Generado');
+      mensajeExito('Generado','');
       $('#btn-buscar').trigger('click');
       $('#modalRelevamiento').modal('hide');
     },

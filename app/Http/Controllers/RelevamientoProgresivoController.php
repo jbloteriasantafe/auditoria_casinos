@@ -289,11 +289,16 @@ class RelevamientoProgresivoController extends Controller
   
   public function crearRelevamientoProgresivos(Request $request){
     $fiscalizador = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    
+    $ahora = date('Y-m-d H:i:s');
     Validator::make($request->all(),[
       'id_sector' => 'required|exists:sector,id_sector',
-      'fecha_generacion' => 'required|date|before_or_equal:' . date('Y-m-d H:i:s'),
-    ],[], self::$atributos)->after(function($validator){})->validate();
+      'fecha_generacion' => 'required|date|before_or_equal:'.$ahora,
+    ],[
+      'required' => 'El valor es requerido',
+      'exists' => 'El valor no es valido',
+      'date' => 'Tiene que ser una fecha formato YYYY-MM-DD HH:MM:SS',
+      'before_or_equal' => 'Tiene que ser anterior a '.$ahora,
+    ], self::$atributos)->after(function($validator){})->validate();
 
     $id_pozos = DB::table('pozo')
     ->select('pozo.id_pozo')

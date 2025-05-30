@@ -703,8 +703,25 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
     <script src="/js/createjs-2015.11.26.min.js"></script>
     <script src="/js/Animacion_logo2.js?1517927954849"></script>
     <script type="text/javascript" src="/js/modalTicket.js" charset="utf-8"></script>
+    @if($usuario['usuario']->es_superusuario)
     <script src="/js/eruda.js"></script>
-    <script>eruda.init();eruda.show();</script>
+    <style>
+      .eruda-entry-btn {
+        width: 15px;
+        height: 15px;
+        font-size: 10px;
+      }
+    </style>
+    <script>
+      eruda.init();
+      eruda.get('entryBtn')["_$el"].css({
+        width: '7px',
+        height: '7px',
+        'font-size': '5px',
+      })
+      eruda.position({x: 0, y: window.innerHeight-7});
+    </script>
+    @endif
     @section('scripts')
     @show
   </body>
