@@ -150,8 +150,8 @@ $('#btn-generar').click(function(e) {
       $('#modalRelevamiento').modal('hide');
     },
     error: function(data) {
-      mensajeError('Error al generar');
-      const response = JSON.parse(data.responseText);
+      mensajeError(['Error al generar']);
+      const response = data.responseJSON ?? {};
       if (typeof response.id_sector !== 'undefined') {
         mostrarErrorValidacion($('#sector'),responde.id_sector,true);
       }
