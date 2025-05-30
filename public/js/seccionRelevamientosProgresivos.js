@@ -443,6 +443,15 @@ function setearBordeSeparadorFilaProgresivos(){
   fila.find('td').css('height',altura).css('border-bottom','double gray');
 }
 
+function mensajeExito(titulo,texto) {
+  $('#mensajeExito h3').text(titulo ?? 'ÉXITO');
+  $('#mensajeExito p').text(texto ?? 'Cambios GUARDADOS. ');
+  $('#mensajeExito').hide();
+  setTimeout(function() {
+    $('#mensajeExito').show();
+  }, 250);
+}
+
 function mensajeError(errores) {
   $('#mensajeError .textoMensaje').empty();
   for(const i in errores){
@@ -495,6 +504,7 @@ function enviarFormularioCarga(id_relevamiento_progresivo,modo) {
     data: formData,
     dataType: 'json',
     success: function(data){
+      mensajeExito();
       $('#btn-buscar').click();
       if(modo == "cargar"){
         $('#modalRelevamientoProgresivos').modal('hide');
@@ -618,9 +628,7 @@ $('#btn-guardar-param-relev-progresivos').on('click', function(e) {
     dataType: 'json',
     success: function(data) {
       $('#modalModificarRelev').modal('hide');
-      $('#mensajeExito h3').text('ÉXITO');
-      $('#mensajeExito p').text('Cambios GUARDADOS. ');
-      $('#mensajeExito').show();
+      mensajeExito();
       $('#btn-buscar-apuestas').trigger('click', [1, 10, 'fecha', 'desc']);
     },
     error: function(data) {
