@@ -3,6 +3,7 @@ function formatear_numero_ingles(s){
 }
   
 function formatear_numero_español(s){
+  s = s.replaceAll(/[^0-9\-\.,]/gi,'');
   const negativo = (s?.[0] ?? null) == '-'? '-' : '';
   const abs = negativo.length? s.substring(1) : s;
   
