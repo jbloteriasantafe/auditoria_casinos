@@ -145,11 +145,12 @@ $('#btn-generar').click(function(e) {
     },
     dataType: 'json',
     success: function(data) {
-      mensajeError('Generado');
+      mensajeExito('Generado');
       $('#btn-buscar').trigger('click');
       $('#modalRelevamiento').modal('hide');
     },
     error: function(data) {
+      console.log(data);
       mensajeError(['Error al generar']);
       const response = data.responseJSON ?? {};
       if (typeof response.id_sector !== 'undefined') {
