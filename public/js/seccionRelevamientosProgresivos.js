@@ -154,10 +154,10 @@ $('#btn-generar').click(function(e) {
       mensajeError(['Error al generar']);
       const response = data.responseJSON ?? {};
       if (typeof response.id_sector !== 'undefined') {
-        mostrarErrorValidacion($('#sector'),responde.id_sector,true);
+        mostrarErrorValidacion($('#sector'),response.id_sector,true);
       }
       if (typeof response.fecha_generacion !== 'undefined') {
-        mostrarErrorValidacion($('#fechaRelevamientoInput'),responde.fecha_generacion,true);
+        mostrarErrorValidacion($('#fechaRelevamientoInput'),response.fecha_generacion,true);
       }
     }
   });
