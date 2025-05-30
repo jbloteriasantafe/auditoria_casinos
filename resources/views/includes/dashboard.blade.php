@@ -703,6 +703,8 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
     <script src="/js/createjs-2015.11.26.min.js"></script>
     <script src="/js/Animacion_logo2.js?1517927954849"></script>
     <script type="text/javascript" src="/js/modalTicket.js" charset="utf-8"></script>
+    <script src="/js/eruda.js"></script>
+    <script>eruda.init();eruda.show();</script>
     @section('scripts')
     @show
   </body>

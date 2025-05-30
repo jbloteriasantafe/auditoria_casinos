@@ -145,10 +145,12 @@ $('#btn-generar').click(function(e) {
     },
     dataType: 'json',
     success: function(data) {
+      mensajeError('Generado');
       $('#btn-buscar').trigger('click');
       $('#modalRelevamiento').modal('hide');
     },
     error: function(data) {
+      mensajeError('Error al generar');
       const response = JSON.parse(data.responseText);
       if (typeof response.id_sector !== 'undefined') {
         mostrarErrorValidacion($('#sector'),responde.id_sector,true);
