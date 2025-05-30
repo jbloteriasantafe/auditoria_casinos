@@ -78,11 +78,11 @@ class RelevamientoController extends Controller
     });
   }
   
-  private static function formatear_numero_ingles($s){
+  public static function formatear_numero_ingles($s){
     return str_replace(',','.',preg_replace('/(\.|\s)/','',$s));
   }
   
-  private static function formatear_numero_español($s){
+  public static function formatear_numero_español($s){
     $s = (string) $s;
     $negativo = ($s[0] ?? null) == '-'? '-' : '';
     $abs = strlen($negativo)? substr($s,1) : $s;

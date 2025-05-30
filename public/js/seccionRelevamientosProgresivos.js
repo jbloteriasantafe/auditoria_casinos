@@ -1,3 +1,38 @@
+function formatear_numero_ingles(s){
+  return s.replaceAll(/(\.|\s)/gi,'').replaceAll(',','.')
+}
+  
+function formatear_numero_español(s){
+  const negativo = (s?.[0] ?? null) == '-'? '-' : '';
+  const abs = negativo.length? s.substring(1) : s;
+  
+  const partes = abs.split('.');
+  const entero = partes?.[0] ?? '';
+  const decimal = partes?.[1] ?? null;
+  
+  const entero_separado = [];
+  for(let i=0;i<entero.length;i++){//De atras para adelante voy agregando numeros en baldes
+    const bucket = Math.floor(i/3);
+    
+    if(bucket == entero_separado.length){
+      entero_separado.push('');
+    }
+    
+    const c = entero[entero.length-1-i];
+    entero_separado[bucket] = c+entero_separado[bucket];
+  }
+  
+  //Puede quedar vacio el ultimo por eso chequeo
+  if(entero_separado.length && (entero_separado[entero_separado.length-1]).length == 0){
+    entero_separado.pop();
+  }
+  let ret = negativo+entero_separado.reverse().join('.');
+  if(decimal !== null && parseInt(decimal) != 0){
+    ret+=','+decimal;
+  }
+  return ret;
+}
+
 $(document).ready(function() {
   $('.tituloSeccionPantalla').text('Relevamiento de progresivos');
   const yyyymmdd_hhiiss = {
@@ -252,11 +287,14 @@ function mostrarRelevamiento(id_relevamiento_progresivo,modo){
     }
     detalle.niveles.forEach(function(n,nidx){
       const nivel = fila.find('.nivel'+n.nro_nivel);
-      if (n.nombre_nivel != null){
-        nivel.attr('title',n.nombre_nivel);
-        nivel.attr('placeholder', n.nombre_nivel);
-      }
-      nivel.val(n.valor).attr('data-id', n.id_nivel_progresivo);
+      const nombre_nivel = n?.nombre_nivel ?? ('Nivel '+n.nro_nivel);
+      nivel.attr('title',nombre_nivel)
+      .attr('placeholder',nombre_nivel)
+      .attr('data-id', n.id_nivel_progresivo)
+      .val(formatear_numero_español(n.valor))
+      .change(function(e){
+        nivel.val(formatear_numero_español(formatear_numero_ingles(nivel.val())));
+      });
     });
     fila.attr('idx',didx).addClass(cls);
     return fila;
@@ -441,7 +479,7 @@ function enviarFormularioCarga(id_relevamiento_progresivo,modo) {
     const causaNoToma = f.find('.causaNoToma').val();
     const niveles = f.find(causaNoToma.length > 0? '' :'input:not(:disabled)').map(function(idx, input) {
       const n = $(input);
-      return { valor: n.val(), id_nivel: n.attr('data-id') };
+      return { valor: formatear_numero_ingles(n.val()), id_nivel: n.attr('data-id') };
     }).toArray();
     return {
       id_detalle_relevamiento_progresivo: f.attr('data-id'),

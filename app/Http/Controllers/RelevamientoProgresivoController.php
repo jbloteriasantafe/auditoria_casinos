@@ -167,7 +167,8 @@ class RelevamientoProgresivoController extends Controller
     $rel = $this->obtenerRelevamiento($id_relevamiento_progresivo);
     if($sin){
       foreach(($rel['detalles'] ?? []) as &$d){
-        foreach($d->niveles as &$n) $n->valor = '';
+        foreach($d->niveles as &$n) 
+          $n->valor = '';
         $d->id_tipo_causa_no_toma = null;
         $d->causa_no_toma_progresivo = '';
       }
@@ -175,6 +176,13 @@ class RelevamientoProgresivoController extends Controller
       $rel['relevamiento']->observacion_carga      = null;
       $rel['relevamiento']->fecha_ejecucion        = null;
       $rel['usuario_fiscalizador']                 = null;
+    }
+    else{
+      $RC = \App\Http\Controllers\RelevamientoController::getInstancia();
+      foreach(($rel['detalles'] ?? []) as &$d){
+        foreach($d->niveles as &$n) 
+          $n->valor = $RC::formatear_numero_español($n->valor);
+      }
     }
     $html = false;
     $dompdf = $this->crearPlanillaProgresivos($rel,$html);//poner en true si se quiere ver como html (DEBUG)
