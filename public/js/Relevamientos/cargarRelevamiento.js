@@ -16,7 +16,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     
     const FD = new FormData();
     for(const e of entries){
-      FD.set(e[0],e[1]);
+      FD.set(e[0],e[1]+'');
     }
     
     return FD;
@@ -376,9 +376,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       //Esto al devolver un objecto con claves detalle[idx][attr], Laravel creo que se confunde... y lo manda como url
       //o codificado raro en el cuerpo... solo pasa cuando se manda mucho por algun motivo
       const formData = getFormData($M('form'));
-      formData.set('estado',estado);
-      formData.set('estado',estado);
-      formData.set('estado2',estado);
+      formData.set('estado',estado+'');
       return await POST_async('relevamientos/cargarRelevamiento',formData);
     }
     catch(data){
@@ -422,7 +420,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       const formData = getFormData($M('form'));
       formData.set(
         'truncadas',
-        $M('[data-js-tabla-relevamiento]').find('[data-js-icono-estado="icono_truncado"]').length
+        $M('[data-js-tabla-relevamiento]').find('[data-js-icono-estado="icono_truncado"]').length+''
       );
       await POST_async('relevamientos/validarRelevamiento',formData);
       M.trigger('valido');
