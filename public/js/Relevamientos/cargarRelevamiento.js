@@ -22,6 +22,53 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     return FD;
   };
   
+  const mergeDeep = function(...objects) {
+    const isObject = obj => obj && typeof obj === 'object';
+    
+    return objects.reduce((prev, obj) => {
+      Object.keys(obj).forEach(key => {
+        const pVal = prev[key];
+        const oVal = obj[key];
+        
+        if (Array.isArray(pVal) && Array.isArray(oVal)) {
+          prev[key] = pVal.concat(...oVal);
+        }
+        else if (isObject(pVal) && isObject(oVal)) {
+          prev[key] = mergeDeep(pVal, oVal);
+        }
+        else {
+          prev[key] = oVal;
+        }
+      });
+      
+      return prev;
+    }, {});
+  };
+  
+  const formDataToObj = function(FD){
+    let ret = {};
+    for(const par of FD.entries()){
+      const karr = par[0].split('[');
+      if(karr.length == 1){
+        ret[par[0]] = par[1];
+      }
+      else{
+        const baseObj = {};
+        baseObj[karr[0]] = {};
+        let iterObj = baseObj[karr[0]];
+        
+        for(const k of karr.slice(1,-1)){//Itero hasta la ultima k
+          const properk = k.slice(0,-1);//Le saco el ] a la clave
+          iterObj[properk] = {};
+          iterObj = iterObj[properk];
+        }
+        iterObj[karr[karr.length-1].slice(0,-1)] = par[1];
+        ret = mergeDeep(ret,baseObj);
+      }
+    }
+    return ret;
+  };
+  
   const llenarFila = function(fila,d){
     fila.find(dname_f('[detalle][id_detalle_relevamiento]')).val(d.detalle.id_detalle_relevamiento);
     fila.find(dname_f('[maquina][id_maquina]')).val(d.maquina.id_maquina);
@@ -68,9 +115,9 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   };
   
   const POST_async = async function(url,data,ext_params={
-      cache: false,
+      /*cache: false,
       contentType: false,
-      processData: false
+      processData: false*/
     }){
     return new Promise((resolve, reject) => {
       AUX.POST(url, data, resolve, reject,ext_params);
@@ -81,7 +128,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     const tgt = $(e.target);
     const url = tgt.attr('data-js-cambio-cambiar-denominacion');
     const fila = tgt.closest('[data-fila-tabla]');
-    const formData = getFormData(fila);
+    const formData = formDataToObj(getFormData(fila));
     try{
       const estados = await POST_async(url,formData);
       for(const idr in estados){
@@ -125,7 +172,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     ocultarErrorValidacion(filas.find('.alerta'));
     calculo_encolado = null;
     try {
-      const formData = getFormData(filas);
+      const formData = formDataToObj(getFormData(filas));
       const dets = await POST_async('relevamientos/calcularEstadoDetalleRelevamiento',formData);
       for(const idr in dets){
         const d    = dets[idr];
@@ -379,8 +426,8 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       await forzarRecalculo();
       //Esto al devolver un objecto con claves detalle[idx][attr], Laravel creo que se confunde... y lo manda como url
       //o codificado raro en el cuerpo... solo pasa cuando se manda mucho por algun motivo
-      const formData = getFormData($M('form'));
-      formData.append('estado',estado+'');
+      const formData = formDataToObj(getFormData($M('form')));
+      formData.estado = estado;
       return await POST_async('relevamientos/cargarRelevamiento',formData);
     }
     catch(data){
@@ -421,11 +468,8 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   $M('[data-js-finalizar-validacion]').click(async function(e){
     try {
       await forzarRecalculo();
-      const formData = getFormData($M('form'));
-      formData.append(
-        'truncadas',
-        $M('[data-js-tabla-relevamiento]').find('[data-js-icono-estado="icono_truncado"]').length+''
-      );
+      const formData = formDataToObj(getFormData($M('form')));
+      formData.truncadas = $M('[data-js-tabla-relevamiento]').find('[data-js-icono-estado="icono_truncado"]').length;
       await POST_async('relevamientos/validarRelevamiento',formData);
       M.trigger('valido');
     }
