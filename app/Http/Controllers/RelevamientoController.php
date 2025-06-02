@@ -1422,13 +1422,12 @@ class RelevamientoController extends Controller
       'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
     ],self::$mensajesErrores, self::$atributos)->after(function($validator) use ($detalles,&$r){
       if($validator->errors()->any()) return;
-
       $id_relevamiento = $validator->getData()['id_relevamiento'];
-      $d = count($detalles)? $detalles[$detalles->keys()[0]] : null;
+      /*$d = count($detalles)? $detalles[$detalles->keys()[0]] : null;
       if(is_null($d)) return;
       if($d->detalle->id_relevamiento != $id_relevamiento){//Solo necesito chequear el primero, los demas se chequean en validateDetalles
         return $validator->errors()->add('id_relevamiento','Error de mismatch entre detalles y relevamiento');
-      }
+      }*/
 
       $r = Relevamiento::find($id_relevamiento);
       if($this->validarSector($r->id_sector) === false){
