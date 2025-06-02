@@ -377,6 +377,8 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       //o codificado raro en el cuerpo... solo pasa cuando se manda mucho por algun motivo
       const formData = getFormData($M('form'));
       formData.set('estado',estado);
+      formData.set('estado',estado);
+      formData.set('estado2',estado);
       return await POST_async('relevamientos/cargarRelevamiento',formData);
     }
     catch(data){
