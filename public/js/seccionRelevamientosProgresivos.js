@@ -34,6 +34,43 @@ function formatear_numero_español(s){
   return ret;
 }
 
+function filtrarNumeros(e){
+  const code = e.which || e.keyCode;
+  const c = String.fromCharCode(code);
+  const tgt = $(e.target);
+  const val = tgt.val();
+  
+  if((c == ',' || c == '.') && val.includes(',')){
+    e.preventDefault();
+    return;
+  }
+  if(c == '-' && val.includes('-')){
+    e.preventDefault();
+    return;
+  }
+  
+  if(c == '.'){
+    e.preventDefault();
+    const pos = this.selectionStart;
+    tgt.val(
+      val.substring(0,pos)+','+val.substring(pos)
+    );
+    this.selectionStart = pos+1;
+    this.selectionEnd = pos+1;
+    return;
+  }
+  if(c == '-' && this.selectionStart == 0){
+    e.preventDefault();
+    tgt.val('-'+val.substring(this.selectionEnd));
+    this.selectionStart = 1;
+    this.selectionEnd = 1;
+    return;
+  }
+  if(!c.match(/^(,|[0-9])$/)){
+    e.preventDefault();
+  }
+};
+
 $(document).ready(function() {
   $('.tituloSeccionPantalla').text('Relevamiento de progresivos');
   const yyyymmdd_hhiiss = {
@@ -296,7 +333,8 @@ function mostrarRelevamiento(id_relevamiento_progresivo,modo){
       .attr('placeholder',nombre_nivel)
       .attr('data-id', n.id_nivel_progresivo)
       .val(formatear_numero_español(n.valor))
-      .change(function(e){
+      .on('keypress',filtrarNumeros)
+      .on('change',function(e){
         nivel.val(formatear_numero_español(formatear_numero_ingles(nivel.val())));
       });
     });
