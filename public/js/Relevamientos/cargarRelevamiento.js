@@ -16,7 +16,8 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     
     const FD = new FormData();
     for(const e of entries){
-      FD.append(e[0],e[1]+'');
+      const v = e[1]+'';
+      FD.set(e[0],v);
     }
     
     return FD;

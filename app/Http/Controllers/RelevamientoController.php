@@ -609,11 +609,11 @@ class RelevamientoController extends Controller
   
   private function obtenerDetallesDeRequest($request){
     $dets = collect([]);
-    $drbd_attrs = null;
+    //$drbd_attrs = null;
     foreach(($request->detalles ?? []) as $didx => $d){      
       $iddr = $d['detalle']['id_detalle_relevamiento'];
       $drbd = DetalleRelevamiento::find($iddr);
-      $drbd_attrs = $drbd_attrs ?? \Schema::getColumnListing($drbd->getTableName());
+      //$drbd_attrs = $drbd_attrs ?? \Schema::getColumnListing($drbd->getTableName());
       
       $nd = new \stdClass();
       $nd->detalle = (object) $d['detalle'];
@@ -621,13 +621,13 @@ class RelevamientoController extends Controller
       
       $nd->a_pedido = $d['a_pedido'] ?? null;
       
-      foreach($drbd_attrs as $attr){
+      /*foreach($drbd_attrs as $attr){
         if(isset($nd->detalle->{$attr})) continue;
         $nd->detalle->{$attr} = $drbd->{$attr};
-      }
+      }*/
       
       $nd->detalle->id_unidad_medida = $nd->detalle->denominacion == '1'? 2 : 1;
-            
+      
       $nd->maquina = (object) Maquina::find($d['maquina']['id_maquina'])->toArray();
       $nd->maquina->denominacion = self::formatear_numero_ingles($d['maquina']['denominacion']);
       $nd->maquina->id_unidad_medida = $nd->maquina->denominacion == '1'? 2 : 1;
@@ -636,6 +636,7 @@ class RelevamientoController extends Controller
       $nd->formula = (object) Formula::find($d['formula']['id_formula'])->toArray();
       $dets[$iddr] = $nd;
     }
+    
     return $dets;
   }
   
