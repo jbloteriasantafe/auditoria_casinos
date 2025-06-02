@@ -115,9 +115,9 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   };
   
   const POST_async = async function(url,data,ext_params={
-      /*cache: false,
+      cache: false,
       contentType: false,
-      processData: false*/
+      processData: false
     }){
     return new Promise((resolve, reject) => {
       AUX.POST(url, data, resolve, reject,ext_params);
@@ -128,7 +128,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     const tgt = $(e.target);
     const url = tgt.attr('data-js-cambio-cambiar-denominacion');
     const fila = tgt.closest('[data-fila-tabla]');
-    const formData = formDataToObj(getFormData(fila));
+    const formData = getFormData(fila);
     try{
       const estados = await POST_async(url,formData);
       for(const idr in estados){
@@ -172,7 +172,7 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     ocultarErrorValidacion(filas.find('.alerta'));
     calculo_encolado = null;
     try {
-      const formData = formDataToObj(getFormData(filas));
+      const formData = getFormData(filas);
       const dets = await POST_async('relevamientos/calcularEstadoDetalleRelevamiento',formData);
       for(const idr in dets){
         const d    = dets[idr];
@@ -426,8 +426,8 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
       await forzarRecalculo();
       //Esto al devolver un objecto con claves detalle[idx][attr], Laravel creo que se confunde... y lo manda como url
       //o codificado raro en el cuerpo... solo pasa cuando se manda mucho por algun motivo
-      const formData = formDataToObj(getFormData($M('form')));
-      formData.estado = estado;
+      const formData = getFormData($M('form'));
+      formData.set('estado',estado);
       return await POST_async('relevamientos/cargarRelevamiento',formData);
     }
     catch(data){
@@ -468,8 +468,10 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   $M('[data-js-finalizar-validacion]').click(async function(e){
     try {
       await forzarRecalculo();
-      const formData = formDataToObj(getFormData($M('form')));
-      formData.truncadas = $M('[data-js-tabla-relevamiento]').find('[data-js-icono-estado="icono_truncado"]').length;
+      const formData = getFormData($M('form'));
+      formData.set('truncadas',
+        $M('[data-js-tabla-relevamiento]').find('[data-js-icono-estado="icono_truncado"]').length
+      );
       await POST_async('relevamientos/validarRelevamiento',formData);
       M.trigger('valido');
     }
