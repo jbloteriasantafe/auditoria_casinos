@@ -67,7 +67,11 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     fila.find('[data-js-cambio-contador]').attr('data-procesado','true')
   };
   
-  const POST_async = async function(url,data,ext_params={processData: false,contentType: false}){
+  const POST_async = async function(url,data,ext_params={
+      cache: false,
+      contentType: false,
+      processData: false
+    }){
     return new Promise((resolve, reject) => {
       AUX.POST(url, data, resolve, reject,ext_params);
     });
