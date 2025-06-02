@@ -10,11 +10,16 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   let modo = null;
   
   const getFormData = function(obj){
-    return Object.fromEntries(
-      obj.find('[name]').map(function(_,nobj){
-        return [[$(nobj).attr('name'),$(nobj).val()]];
-      }).toArray()
-    );
+    const entries = obj.find('[name]').map(function(_,nobj){
+      return [[$(nobj).attr('name'),$(nobj).val()]];
+    }).toArray();
+    
+    const FD = new FormData();
+    for(const e of entries){
+      FD.set(e[0],e[1]);
+    }
+    
+    return FD;
   };
   
   const llenarFila = function(fila,d){
@@ -62,30 +67,29 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     fila.find('[data-js-cambio-contador]').attr('data-procesado','true')
   };
   
-  const POST_async = async function(url,data,ext_params={}){
+  const POST_async = async function(url,data,ext_params={processData: false,contentType: false}){
     return new Promise((resolve, reject) => {
       AUX.POST(url, data, resolve, reject,ext_params);
     });
   };
   
-  const cambiarDenominacion = function(e){
+  const cambiarDenominacion = async function(e){
     const tgt = $(e.target);
     const url = tgt.attr('data-js-cambio-cambiar-denominacion');
     const fila = tgt.closest('[data-fila-tabla]');
     const formData = getFormData(fila);
-    AUX.POST(url,formData,
-      function(estados){
-        for(const idr in estados){
-          const e    = estados[idr];
-          const fila = $M(`[data-fila-tabla="${idr}"]`);
-          llenarFila(fila,e);
-        }
-      },
-      function(data){
-        console.log(data);
-        AUX.mostrarErroresNamesJSONResponse(M,data?.responseJSON ?? {},true);
-      },
-    );
+    try{
+      const estados = await POST_async(url,formData);
+      for(const idr in estados){
+        const e    = estados[idr];
+        const fila = $M(`[data-fila-tabla="${idr}"]`);
+        llenarFila(fila,e);
+      }
+    }
+    catch(data){
+      console.log(data);
+      AUX.mostrarErroresNamesJSONResponse(M,data?.responseJSON ?? {},true);
+    }
   };
   
   let calculo_encolado = null;
@@ -369,8 +373,10 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
   async function cargarRelevamiento(estado) {     
     try {
       await forzarRecalculo();
+      //Esto al devolver un objecto con claves detalle[idx][attr], Laravel creo que se confunde... y lo manda como url
+      //o codificado raro en el cuerpo... solo pasa cuando se manda mucho por algun motivo
       const formData = getFormData($M('form'));
-      formData.estado = estado;
+      formData.set('estado',estado);
       return await POST_async('relevamientos/cargarRelevamiento',formData);
     }
     catch(data){
@@ -412,7 +418,10 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     try {
       await forzarRecalculo();
       const formData = getFormData($M('form'));
-      formData.truncadas = $M('[data-js-tabla-relevamiento]').find('[data-js-icono-estado="icono_truncado"]').length;
+      formData.set(
+        'truncadas',
+        $M('[data-js-tabla-relevamiento]').find('[data-js-icono-estado="icono_truncado"]').length
+      );
       await POST_async('relevamientos/validarRelevamiento',formData);
       M.trigger('valido');
     }
