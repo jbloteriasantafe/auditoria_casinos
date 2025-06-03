@@ -895,11 +895,7 @@ class RelevamientoController extends Controller
         ])->first();
         $aux->observacion = $map !== null? "Se pidió para el {$map->fecha}." : '';
         
-        $estado = $this->obtenerEstadoDetalleRelevamiento(
-          $d->detalle->producido_importado,
-          $d->detalle->diferencia,
-          $d->detalle->id_tipo_causa_no_toma
-        );
+        $estado = $d->detalle->estado;
         $estados_contador[$estado] = ($estados_contador[$estado] ?? 0)+1;
         $aux->no_toma = '';
         if($estado == 'CORRECTO'){
