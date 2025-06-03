@@ -1299,11 +1299,13 @@ class RelevamientoController extends Controller
   
   private function __modificarDenominacion(Request $request,$dfunc){
     $detalles = $this->validateDetalles($request,false);
-    $request->merge([
-      'id_relevamiento' => count($detalles)? 
-        $detalles[$detalles->keys()[0]]->detalle->id_relevamiento
-      : null
-    ]);
+    if(count($detalles)){
+      $d = DetalleRelevamiento::find($detalles[$detalles->keys()[0]]->detalle->id_detalle_relevamiento);
+      $request->merge([
+        'id_relevamiento' => $d->id_relevamiento
+      ]);
+    }
+    
     $r = $this->validateRelevamiento($request,$detalles);
     
     return DB::transaction(function() use ($request,$detalles,$r,$dfunc){

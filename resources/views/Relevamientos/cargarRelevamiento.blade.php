@@ -259,7 +259,7 @@
           <span>UNIDAD RELEVADA:&nbsp;</span>
         </div>
         <div style="flex: 1;">
-          <select data-js-detalle-asignar-name="[detalle][denominacion]" class="form-control" data-js-readonly="Ver,Cargar" data-js-cambio-cambiar-denominacion="relevamientos/modificarDenominacionYUnidadDetalle" style="width: 100%;">
+          <select data-js-detalle-asignar-name="[detalle][denominacion]" class="form-control" data-js-readonly="Ver" data-js-cambio-cambiar-denominacion="relevamientos/modificarDenominacionYUnidadDetalle" style="width: 100%;">
             <option value="1" data-id_unidad_medida="2">1 (MONEDA)</option>
             @foreach($denominaciones as $d)
             <option value="{{$d}}" data-id_unidad_medida="1">{{$d}} (CRED)</option>
