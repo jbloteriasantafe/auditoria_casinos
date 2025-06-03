@@ -239,22 +239,52 @@ class RelevamientoController extends Controller
     ->paginate($request->page_size);
   }
   
-  private function obtenerDetalle($id_detalle_relevamiento){
+  private function Find($id,$class,$attrs,$softdeletable){
+    $obj = ($softdeletable? 
+      $class::withTrashed()
+    : $class::where(DB::raw('1'),'=','1')
+    )->find($id);
+    if(is_null($obj)) return null;
+    return (object)(array_intersect_key(
+      $obj->toArray(),
+      $attrs
+    ));
+  }
+  
+  private function FindMaquina($id_maquina){
+    static $attrs = null;
+    $attrs = $attrs ?? array_flip(['id_maquina','nro_admin','denominacion','id_unidad_medida','marca_juego','id_casino','id_isla','id_formula']);
+    return $this->Find($id_maquina,Maquina::class,$attrs,true);
+  }
+  
+  private function FindIsla($id_isla){
+    static $attrs = null;
+    $attrs = $attrs ?? array_flip(['id_isla','nro_isla']);
+    return $this->Find($id_isla,Isla::class,$attrs,true);
+  }
+  
+  private function FindFormula($id_formula){
+    static $attrs = null;
+    $attrs = $attrs ?? array_flip(array_merge(['id_formula'],$this->contadores_formula()->toArray(),$this->operadores_formula()->toArray()));
+    return $this->Find($id_formula,Formula::class,$attrs,false);
+  }
+  
+  private function obtenerDetalle($id_detalle_relevamiento){    
+    $d = new \stdClass();
+    
     $detalle = DetalleRelevamiento::find($id_detalle_relevamiento);
     if(is_null($detalle)) return null;
-    $maquina = $detalle->maquina()->withTrashed()->first();
-    if(is_null($maquina)) return null;
-    $formula = $maquina->formula;
-    if(is_null($formula)) return null;
-    $isla    = $maquina->isla()->withTrashed()->first();
-    if(is_null($isla)) return null;
-    
-    $d = new \stdClass();
     $d->detalle = (object)($detalle->toArray());
-    $d->formula = (object)($formula->toArray());
-    $d->maquina = (object)($maquina->toArray());
-    $d->isla = (object)($isla->toArray());
     
+    $d->maquina = $this->FindMaquina($d->detalle->id_maquina);
+    if(is_null($d->maquina)) return null;
+    
+    $d->formula = $this->FindFormula($d->maquina->id_formula);
+    if(is_null($d->formula)) return null;
+    
+    $d->isla    = $this->FindIsla($d->maquina->id_isla);
+    if(is_null($d->isla)) return null;
+            
     $d->detalle->estado = $this->obtenerEstadoDetalleRelevamiento(
       $d->detalle->producido_importado,
       $d->detalle->diferencia,
@@ -262,10 +292,8 @@ class RelevamientoController extends Controller
     );
     $d->detalle = $this->sacarProducidosSegunPrivilegios($d->detalle);
     
-    $d->maquina->denominacion = $maquina->id_unidad_medida == 2? 1 : $maquina->denominacion;
-    $d->detalle->denominacion = $detalle->id_unidad_medida == 2? 1 : $detalle->denominacion;
-    $d->maquina->id_unidad_medida = $maquina->id_unidad_medida;
-    $d->detalle->id_unidad_medida = $detalle->id_unidad_medida;
+    $d->maquina->denominacion = $d->maquina->id_unidad_medida == 2? 1 : $d->maquina->denominacion;
+    $d->detalle->denominacion = $d->detalle->id_unidad_medida == 2? 1 : $d->detalle->denominacion;
     return $d;
   }
   
@@ -628,12 +656,12 @@ class RelevamientoController extends Controller
       
       $nd->detalle->id_unidad_medida = $nd->detalle->denominacion == '1'? 2 : 1;
       
-      $nd->maquina = (object) Maquina::find($d['maquina']['id_maquina'])->toArray();
+      $nd->maquina = $this->FindMaquina($d['maquina']['id_maquina']);
       $nd->maquina->denominacion = self::formatear_numero_ingles($d['maquina']['denominacion']);
       $nd->maquina->id_unidad_medida = $nd->maquina->denominacion == '1'? 2 : 1;
       
-      $nd->isla = (object) Isla::find($d['isla']['id_isla'])->toArray();
-      $nd->formula = (object) Formula::find($d['formula']['id_formula'])->toArray();
+      $nd->isla = $this->FindIsla($d['isla']['id_isla']);
+      $nd->formula = $this->FindFormula($d['formula']['id_formula']);
       $dets[$iddr] = $nd;
     }
     
@@ -1422,19 +1450,24 @@ class RelevamientoController extends Controller
       'id_relevamiento' => 'required|exists:relevamiento,id_relevamiento',
     ],self::$mensajesErrores, self::$atributos)->after(function($validator) use ($detalles,&$r){
       if($validator->errors()->any()) return;
-      $id_relevamiento = $validator->getData()['id_relevamiento'];
-      /*$d = count($detalles)? $detalles[$detalles->keys()[0]] : null;
-      if(is_null($d)) return;
-      if($d->detalle->id_relevamiento != $id_relevamiento){//Solo necesito chequear el primero, los demas se chequean en validateDetalles
-        return $validator->errors()->add('id_relevamiento','Error de mismatch entre detalles y relevamiento');
-      }*/
-
+      $data = $validator->getData();
+      
+      $id_relevamiento = $data['id_relevamiento'];
       $r = Relevamiento::find($id_relevamiento);
       if($this->validarSector($r->id_sector) === false){
         return $validator->errors()->add('id_relevamiento','No tiene acceso');
       }
       if($this->estaValidado($r)){
         return $validator->errors()->add('id_relevamiento','El relevamiento ya esta validado');
+      }
+      
+      $d = DetalleRelevamiento::whereIn(
+        'id_detalle_relevamiento',
+        array_map(function($d){return $d['detalle']['id_detalle_relevamiento'];},$data['detalles'] ?? [])
+      )->first();//Solo necesito chequear el primero, los demas se chequean en validateDetalles
+      
+      if(!is_null($d) && $d->id_relevamiento != $id_relevamiento){
+        return $validator->errors()->add('id_relevamiento','Error de mismatch entre detalles y relevamiento');
       }
     })->validate();
     
