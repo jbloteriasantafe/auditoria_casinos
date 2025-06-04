@@ -42,8 +42,10 @@
           <th class="mes celda_especial" style="border-right: 1px solid black;">{{$año_anterior}}</th>
           @foreach($abbr_casinos as $_cidx => $_cas)
           <?php
+            $_casino = $casinos[$_cidx] ?? null;
             $total = $dataf($_casino,$año_anterior,0);
             $canon_total = $formatear_decimal($total->canon_total ?? null);
+            $variacion_anual = $formatear_porcentaje($total->variacion_anual ?? null);
           ?>
           <th class="canon {{$_cas}} {{$N($canon_total)}}" style="text-align: right;">{{$canon_total}}</th>
           @endforeach
