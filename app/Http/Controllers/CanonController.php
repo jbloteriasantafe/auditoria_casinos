@@ -2617,16 +2617,16 @@ class CanonController extends Controller
         $porcentaje_fisico = "ROUND(100*$ganancia_fisico/NULLIF($ganancia_total,0),2)";
         $porcentaje_online = "ROUND(100*$ganancia_online/NULLIF($ganancia_total,0),2)";
       
-        $canon_cco = '('.implode('+',array_map(function($t){
-          return "IFNULL(SUM(IF(cas.nombre = 'Rosario',$t.determinado,0)),0)";
+        $ganancia_cco = '('.implode('+',array_map(function($t){
+          return "IFNULL(SUM(IF(cas.nombre = 'Rosario',$t.determinado_subtotal,0)),0)";
         },$online)).')';
         
-        $canon_bplay = '('.implode('+',array_map(function($t){
-          return "IFNULL(SUM(IF(cas.nombre IN ('Santa Fe','Melincué'),$t.determinado,0)),0)";
+        $ganancia_bplay = '('.implode('+',array_map(function($t){
+          return "IFNULL(SUM(IF(cas.nombre IN ('Santa Fe','Melincué'),$t.determinado_subtotal,0)),0)";
         },$online)).')';
         
-        $porcentaje_CCO = "ROUND(100*$canon_cco/NULLIF($canon_online,0),2)";
-        $porcentaje_BPLAY = "ROUND(100*$canon_bplay/NULLIF($canon_online,0),2)";
+        $porcentaje_CCO = "ROUND(100*$ganancia_cco/NULLIF($ganancia_online,0),2)";
+        $porcentaje_BPLAY = "ROUND(100*$ganancia_bplay/NULLIF($ganancia_online,0),2)";
         //Como son dos porcentajes el rounding uno siempre compensa tal que sea 100 la suma
         $sel_aggr = "$canon_online as canon_online,
         $porcentaje_fisico as porcentaje_fisico,
