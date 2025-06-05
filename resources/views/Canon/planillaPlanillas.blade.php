@@ -84,7 +84,7 @@
       <span class="link_planillla_usada">{{$_planilla}}</span>
       @endif
       @endforeach
-      <button data-js-click-seleccionar-tablas="[data-target-seleccionar-tablas]" style="float: right;">Seleccionar tabla</button>
+      <button data-js-click-descargar-tabla="[data-target-descargar-tabla]" style="float: right;">Descargar tabla</button>
     </div>
     @if($es_anual || $es_mensual)
     <div style="padding: 0.5em;">
@@ -109,7 +109,7 @@
     </div>
     @endif
   </div>
-  <div>
+  <div data-target-descargar-tabla>
     <style>
       tr th {
         border-right: 1px solid black;
@@ -829,6 +829,7 @@
   </div>
 </body>
 
+<script src="/js/lib/xlsx.min.js"></script>
 <script>
   const data = {!! (isset($data) && count($data) > 0)? json_encode($data) : '{}' !!};
   const casinos = {!! (isset($casinos) && count($casinos) > 0)? json_encode($casinos) : '[]' !!};
@@ -839,6 +840,11 @@
     window.getComputedStyle(document.body).getPropertyValue('--color-{!! $_cas !!}'),
     @endforeach
   ];
+  
+  const planilla = "{!! isset($planilla)? $planilla : '' !!}";
+  const año = "{!! isset($año)? $año : '' !!}";
+  const mes = "{!! isset($mes)? $mes : '' !!}";
+  const fecha_planilla = "{!! date('Ymdhi') !!}";
 </script>
 <script src="/js/Canon/planillas.js" charset="utf-8" type="module"></script>
 

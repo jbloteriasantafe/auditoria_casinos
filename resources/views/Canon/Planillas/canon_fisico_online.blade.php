@@ -1,4 +1,4 @@
-<div style="width: 100%;"  data-target-seleccionar-tablas><table style="width: 100%;table-layout: fixed">
+<div style="width: 100%;"><table style="width: 100%;table-layout: fixed">
   <colgroup>
     <col class="mes">
     @foreach($abbr_casinos as $_cas)

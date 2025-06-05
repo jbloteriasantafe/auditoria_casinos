@@ -26,7 +26,7 @@ table th {
 }
 </style>
 
-<div style="width: 100%;" data-target-seleccionar-tablas><table style="table-layout: fixed">
+<div style="width: 100%;"><table style="table-layout: fixed">
   <colgroup>
     <col class="año_mes">
     @foreach($casinos as $_cas)
