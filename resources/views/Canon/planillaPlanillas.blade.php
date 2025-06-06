@@ -829,7 +829,6 @@
   </div>
 </body>
 
-<script src="/js/lib/xlsx.min.js"></script>
 <script>
   const data = {!! (isset($data) && count($data) > 0)? json_encode($data) : '{}' !!};
   const casinos = {!! (isset($casinos) && count($casinos) > 0)? json_encode($casinos) : '[]' !!};
