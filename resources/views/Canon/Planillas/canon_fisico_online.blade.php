@@ -17,7 +17,7 @@
         $casinos_simples = ['CME'];
         $casinos_complejos = array_diff($abbr_casinos->toArray(),$casinos_simples);
       ?>
-      <th colspan="{{3+count($casinos_simples)+3*count($casinos_complejos)}}" style="text-align: center;">CANON TOTAL CASINOS - {{$año}} -</th>
+      <th colspan="{{3+count($casinos_simples)+3*count($casinos_complejos)}}" style="text-align: center;">Canon Físico / On Line - {{$año}} -</th>
     </tr>
     <tr>
       <th class="mes" style="border-right: 1px solid black" rowspan="2">MESES</th>

@@ -28,7 +28,7 @@
       </colgroup>
       <thead>
         <tr>
-          <th colspan="{{3+count($casinos)}}" style="text-align: center;">CANON TOTAL CASINOS - {{$año}} -</th>
+          <th colspan="{{3+count($casinos)}}" style="text-align: center;">Canon Total Casinos - {{$año}} -</th>
         </tr>
         <tr>
           <th class="mes" style="border-right: 1px solid black;">MESES</th>

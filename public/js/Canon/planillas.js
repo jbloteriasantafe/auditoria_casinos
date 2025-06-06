@@ -50,22 +50,31 @@ function htmlTableToWorksheet(table) {
   const ws = XLSX.utils.table_to_sheet(table,{raw: true});
   const range = XLSX.utils.decode_range(ws['!ref']);
   {
-    const primeros_headers = table.querySelector('th').closest('tr').querySelectorAll('th');
-    const widths = [];
-    const rootFontSize = parseInt(window.getComputedStyle(document.body).getPropertyValue('font-size').slice(0,-2));
-    primeros_headers.forEach(function(th,thidx){
-      const ch = Math.ceil(th.getBoundingClientRect().width/rootFontSize);
-      return {ch: (ch+'')};
+    const max_columns = Array.from(table.querySelectorAll('tr')).map(function(tr){
+      return tr.querySelectorAll('td,th').length;
+    }).reduce((carry,val) => Math.max(carry,val));
+    
+    const tr = Array.from(table.querySelectorAll('tr')).find(function(tr){
+      return tr.querySelectorAll('td,th').length == max_columns
     });
-    ws['!cols'] = widths;
+    
+    ws['!cols'] = [];
+    tr.querySelectorAll('td,th').forEach(function(tdh,thidx){
+      const style = window.getComputedStyle(tdh);
+      const width = tdh.offsetWidth;
+      const excelWidth = width/7.5;
+      ws['!cols'].push({
+        wch: excelWidth,
+        width: excelWidth // Some versions use 'width' instead of 'wch'
+      });
+    });
   }
   /*
    * Hago todo este barullo porque necesito la esquina superior izquierda de cada celda
    * para estilizarlo bien, y como las celdas pueden tener rowSpan y colSpan hago lo siguiente:
    * 1. Encuentro las dimensiones maximas de la tabla y genero una matriz
-   * 2. Para cada celda, la guardo en su posicion y la extiendo con NULL si tiene colSpan>1 o rowSpan>1
+   * 2. Para cada celda, la marco su posicion y la extiendo si tiene colSpan>1 o rowSpan>1
    *    Notablemente tengo que reencontrar la posición para cada celda buscando desde arriba a la izquierda
-   * 3. Itero sobre la matriz, skipeando los nulos
    * */
   let max_width = -1/0;
   let max_height = 0;
@@ -147,17 +156,34 @@ function getExcelStyleFromHtml(cell) {
     const computedStyle = window.getComputedStyle(cell);
     
     const fontWeight = computedStyle.getPropertyValue('font-weight');
-    if (fontWeight && (fontWeight === 'bold' || parseInt(fontWeight) >= 700)) {
+    if (fontWeight && (fontWeight === 'bold' || parseFloat(fontWeight) >= 700)) {
       style.font = style.font || {};
       style.font.bold = true;
     }
     
-    const rootFontSize = parseInt(window.getComputedStyle(document.body).getPropertyValue('font-size').slice(0,-2));
     const fontSize = computedStyle.getPropertyValue('font-size')?.slice(0,-2);
     if (fontSize) {
       style.font = style.font || {};
-      const rel_sz = parseInt(fontSize)/rootFontSize;
-      style.font.sz = (11*rel_sz)+'';//11 es el default de exportacion
+      const fontSizeValue = parseFloat(fontSize);
+      const fontSizeUnit  = fontSize.match(/[a-z]+$/)?.[0] || 'px';
+      switch(fontSizeUnit){
+        case 'px':{
+          //1pt ~ 1.333px
+          style.font.sz = Math.round(fontSizeValue/1.333*10)/10;//A 1 decimal
+        }break;
+        case 'pt':{
+          style.font.sz = fontSizeValue;
+        }break;
+        default:{//em, rem, etc
+          const rootFontSize = parseFloat(
+            window.getComputedStyle(document.body).getPropertyValue('font-size')
+          );
+          const pxSize = fontSizeValue*rootFontSize;
+          style.font.sz = Math.round(pxSize/1.333*10)/10;//A 1 decimal
+        }break;
+      }
+      
+      style.font.sz = Math.min(Math.max(style.font.sz, 1), 409);//Limites de excel
     }
     
     const bgColor = computedStyle.getPropertyValue('background-color');
