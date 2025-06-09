@@ -92,7 +92,7 @@ class AuthenticationController extends Controller
   }
   
   public function logoutGET(Request $request){
-    $this->logout();
+    $this->logout($request);
     return redirect('inicio');
   }
 
