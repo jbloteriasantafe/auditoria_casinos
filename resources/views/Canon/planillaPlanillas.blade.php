@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <?php
   $valor_vacio = '-';
-  $FD = \App\Http\Controllers\CanonController::class;
+  $FD = \App\Http\Controllers\Canon\CanonController::class;
   $formatear_decimal = function($attr) use ($valor_vacio,$FD){
     return $attr === null? $valor_vacio : $FD::formatear_decimal($attr);
   };

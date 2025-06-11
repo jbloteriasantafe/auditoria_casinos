@@ -174,8 +174,6 @@
           <a href="/canon/planillaDeterminado"  target="_blank" title="IMPRIMIR DETERMINADO">Determinado</a>
           @if($es_superusuario)
           <a href="/canon/planilla" target="_blank" title="DESCARGAR XLSX">.xlsx</a>
-          <a href="/canon/planillaDeterminadoTest"  target="_blank" title="IMPRIMIR DETERMINADO">Determinado Test</a>
-          <a href="/canon/totalesTest"  target="_blank" title="IMPRIMIR DETERMINADO">TEST</a>
           @endif
         </div>
         <span style="color: blue;font-weight: bold;font-size: 0.8em;padding-right: 0.1em;"><sup class="antiguo">XXX</sup></span>
@@ -713,7 +711,15 @@
           $determinado = $n('determinado');
         ?>
         <div class="bloque_interno" data-js-molde="{{$molde_str}}">
-          <h6 data-titulo>TITULO CANON VARIABLE</h6>
+          <div class="bloque_interno"  style="width: 100%;display: flex;align-items: center;">
+            <h6 data-titulo>TITULO CANON VARIABLE</h6>
+            <button type="button" class="btn" data-name="{{$n('id_canon_variable')}}" data-js-click-diario="canon_variable">
+              <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
+              DIARIO
+              <i class="fas fa-fw fa-pencil-alt" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'></i>
+              <i class="fas fa-fw fa-search-plus" data-modo-mostrar='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'></i>
+            </button>
+          </div>
           <div class="bloque_interno" style="width: 100%;display: flex;">
             <div class="parametro_chico"  style="flex: 2;">
               <h5>APLICABLE (%)</h5>
@@ -865,7 +871,15 @@
           $determinado             = $n('determinado');
         ?>
         <div class="bloque_interno" style="width: 100%;" data-js-molde="{{$molde_str}}">
-          <h6 data-titulo>TITULO MESAS</h6>
+          <div class="bloque_interno"  style="width: 100%;display: flex;align-items: center;">
+            <h6 data-titulo>TITULO CANON FIJO MESAS</h6>
+            <button type="button" class="btn" data-name="{{$n('id_canon_fijo_mesas')}}" data-js-click-diario="canon_fijo_mesas">
+              <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
+              DIARIO
+              <i class="fas fa-fw fa-pencil-alt" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'></i>
+              <i class="fas fa-fw fa-search-plus" data-modo-mostrar='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'></i>
+            </button>
+          </div>
           <div class="bloque_interno">
             <div style="display: flex;">
               <div>
@@ -1112,7 +1126,15 @@
           $determinado = $n('determinado');
         ?>
         <div class="bloque_interno" data-js-molde="{{$molde_str}}">
-          <h6 data-titulo>TITULO MESA ADICIONAL</h6>
+          <div class="bloque_interno"  style="width: 100%;display: flex;align-items: center;">
+            <h6 data-titulo>TITULO CANON FIJO MESAS ADICIONALES</h6>
+            <button type="button" class="btn" data-name="{{$n('id_canon_fijo_mesas_adicionales')}}" data-js-click-diario="canon_fijo_mesas_adicionales">
+              <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
+              DIARIO
+              <i class="fas fa-fw fa-pencil-alt" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'></i>
+              <i class="fas fa-fw fa-search-plus" data-modo-mostrar='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'></i>
+            </button>
+          </div>
           <div class="bloque_interno">
             <div style="display: flex;">
               <div class="parametro_chico">
@@ -1289,6 +1311,292 @@
   <button class="btn btn-successAceptar" type="button" data-js-enviar="/canon/adjuntar" data-modo-mostrar='[{"modo": "ADJUNTAR"}]' data-modo-mostrar="ADJUNTAR">ADJUNTAR</button>
   <button class="btn btn-successAceptar" type="button" data-js-enviar="/canon/guardar" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>GUARDAR</button>
   @endif
+  @endslot
+@endcomponent
+
+
+<style>
+  .VerCargarCanon table.sacar-borde-primer-tr,
+  .VerCargarCanon table.sacar-borde-primer-tr tbody tr:first-child td {
+    border-top: 0;
+  }
+  .VerCargarCanon tr.fila-mensual td {
+    background: #f2f2f2;
+    border-top: 4px double #aaa !important;
+  }
+  .VerCargarCanon td.celda_vacia,
+  .VerCargarCanon th.celda_vacia {
+    background: #f2f2f2;
+  }
+</style>
+@component('Components/modal',[
+  'clases_modal' => 'VerCargarCanon',
+  'attrs_modal' => 'data-js-modal-ver-cargar-canon-diario',
+  'estilo_cabecera' => 'background-color: #6dc7be;',
+  'grande' => 98,
+])
+  @slot('titulo')
+  CANON DIARIO
+  @endslot
+  @slot('cuerpo')
+  <div class="row" data-tabla="canon_variable">
+    <div class="row" style="display: flex;padding-bottom: 15px !important;">
+      <div class="parametro_chico"  style="flex: 2;">
+        <h5>APLICABLE (%)</h5>
+        <input class="form-control" data-name="{{$devengado_apostado_porcentaje_aplicable}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+      </div>
+      <div class="parametro_chico" style="flex: 2;">
+        <h5>IMPUESTO LEY (%)</h5>
+        <input class="form-control" data-name="{{$devengado_apostado_porcentaje_impuesto_ley}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+      </div>
+      <div class="parametro_chico" style="flex: 3;">
+        <h5>ALICUOTA (%)</h5>
+        <input class="form-control" data-name="{{$alicuota}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+      </div>
+    </div>
+    <div class="row">
+      <div data-div-devengado="header" class="col-md-12">
+        @section('colgroupCV')
+        <colgroup>
+          <col style="width: 5%;">
+          <col style="width: 15.8333%;">
+          <col style="width: 15.8333%;">
+          <col style="width: 15.8333%;">
+          <col style="width: 15.8333%;">
+          <col style="width: 15.8333%;">
+          <col style="width: 15.8333%;">
+        </colgroup>
+        @endsection
+        <table class="table table-bordered" style="margin-bottom: 0;">
+          @yield('colgroupCV')
+          <thead>
+            <tr>
+              <th rowspan="2" style="text-align: center;">Día</th>
+              <th colspan="6" style="text-align: center;">Devengado</th>
+            </tr>
+            <tr>
+              <th style="text-align: center;">Apostado Sistema</th>
+              <th style="text-align: center;">Base imponible</th>
+              <th style="text-align: center;">Impuesto</th>
+              <th style="text-align: center;">Bruto</th>
+              <th style="text-align: center;">Subtotal</th>
+              <th style="text-align: center;">Total</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+      <div data-div-devengado="diario" class="col-md-12" style="max-height: 25vh;overflow-y: scroll;">
+        <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
+          @yield('colgroupCV')
+          <tbody>
+          </tbody>
+        </table>
+        <table hidden>
+          <tr data-molde-diario>
+            <td><input class="form-control" value="dia" readonly></td>
+            <td><input class="form-control" value="devengado_apostado"></td>
+            <td><input class="form-control" value="devengado_base_imponible" readonly></td>
+            <td><input class="form-control" value="devengado_impuesto" readonly></td>
+            <td><input class="form-control" value="devengado_bruto"></td>
+            <td><input class="form-control" value="devengado_subtotal" readonly></td>
+            <td><input class="form-control" value="devengado_total" readonly></td>
+          </tr>
+        </table>
+      </div>
+      <div data-div-devengado="mensual" class="col-md-12">
+        <table data-tabla-mensual class="sacar-borde-primer-tr table table-bordered">
+          @yield('colgroupCV')
+          <tbody>
+            <tr class="fila-mensual">
+              <td>&nbsp;</td>
+              <td><input class="form-control" value="devengado_apostado" readonly></td>
+              <td><input class="form-control" value="devengado_base_imponible" readonly></td>
+              <td><input class="form-control" value="devengado_impuesto" readonly></td>
+              <td><input class="form-control" value="devengado_bruto" readonly></td>
+              <td><input class="form-control" value="devengado_subtotal" readonly></td>
+              <td><input class="form-control" value="devengado_total" readonly></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="row">
+      <div data-div-determinado="header" class="col-md-12">
+        <table class="table table-bordered" style="margin-bottom: 0;">
+          @yield('colgroupCV')
+          <thead>
+            <tr>
+              <th rowspan="2" style="text-align: center;">Día</th>
+              <th colspan="6" style="text-align: center;">Determinado</th>
+            </tr>
+            <tr>
+              <th class="celda_vacia" colspan="2">&nbsp;</th>
+              <th style="text-align: center;">Proporcional Impuesto</th>
+              <th style="text-align: center;">Bruto</th>
+              <th style="text-align: center;">Subtotal</th>
+              <th style="text-align: center;">Total</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+      <div data-div-determinado="diario" class="col-md-12" style="max-height: 25vh;overflow-y: scroll;">
+        <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
+          @yield('colgroupCV')
+          <tbody>
+          </tbody>
+        </table>
+        <table hidden>
+          <tr data-molde-diario>
+            <td><input class="form-control" value="dia" readonly></td>
+            <td class="celda_vacia" colspan="2">&nbsp;</td>
+            <td><input class="form-control" value="determinado_impuesto" readonly></td>
+            <td><input class="form-control" value="determinado_bruto"></td>
+            <td><input class="form-control" value="determinado_subtotal" readonly></td>
+            <td><input class="form-control" value="determinado_total" readonly></td>
+          </tr>
+        </table>
+      </div>
+      <div data-div-determinado="mensual" class="col-md-12">
+        <table data-tabla-mensual class="sacar-borde-primer-tr table table-bordered">
+          @yield('colgroupCV')
+          <tbody>
+            <tr class="fila-mensual">
+              <td colspan="3">&nbsp;</td>
+              <td><input class="form-control" value="determinado_impuesto" data-readonly='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'></td>
+              <td><input class="form-control" value="determinado_bruto" readonly></td>
+              <td><input class="form-control" value="determinado_subtotal" readonly></td>
+              <td><input class="form-control" value="determinado_total" readonly></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div data-tabla="canon_fijo_mesas">
+    <div class="row">
+      <div data-div-devengado="header" data-div-determinado="header" class="col-md-12">
+        @section('colgroupCF')
+        <colgroup>
+          <col style="width: 5%;">
+          <col style="width: 5%;">
+          <col style="width: 5%;">
+          <col style="width: 5%;">
+          <col style="width: 20%;">
+          <col style="width: 5%;">
+          <col style="width: 20%;">
+          <col style="width: 10%;">
+          <col style="width: 5%;">
+          <col style="width: 20%;">
+        </colgroup>
+        @endsection
+        <table class="table table-bordered" style="margin-bottom: 0;">
+          @yield('colgroupCF')
+          <thead>
+            <tr>
+              <th style="text-align: center;">Día</th>
+              <th style="text-align: center;">LJ/VS/D</th>
+              <th style="text-align: center;">Mesas Habilitadas</th>
+              <th style="text-align: center;">Mesas Usadas ARS</th>
+              <th style="text-align: center;">Bruto ARS</th>
+              <th style="text-align: center;">Mesas Usadas USD</th>
+              <th style="text-align: center;">Bruto USD</th>
+              <th style="text-align: center;">Cotización</th>
+              <th style="text-align: center;">Mesas Usadas</th>
+              <th style="text-align: center;">Bruto</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+      <div data-div-devengado="diario" data-div-determinado="diario" class="col-md-12" style="max-height: 25vh;overflow-y: scroll;">
+        <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
+          @yield('colgroupCF')
+          <tbody>
+          </tbody>
+        </table>
+        <table hidden>
+          <tr data-molde-diario>
+            <td><input class="form-control" value="dia" readonly></td>
+            <td><input class="form-control" value="lj_vs_d" readonly></td>
+            <td><input class="form-control" value="mesas_habilitadas"></td>
+            <td><input class="form-control" value="mesas_usadas_ars"></td>
+            <td><input class="form-control" value="bruto_ars"></td>
+            <td><input class="form-control" value="mesas_usadas_usd"></td>
+            <td><input class="form-control" value="bruto_usd"></td>
+            <td><input class="form-control" value="cotizacion" readonly></td>
+            <td><input class="form-control" value="mesas_usadas" readonly></td>
+            <td><input class="form-control" value="bruto" readonly></td>
+          </tr>
+        </table>
+      </div>
+      <div data-div-devengado="mensual" data-div-determinado="mensual" class="col-md-12">
+        <table data-tabla-mensual class="sacar-borde-primer-tr table table-bordered">
+          @yield('colgroupCF')
+          <tbody>
+            <tr class="fila-mensual">
+              <td colspan="2">&nbsp;</td>
+              <td><input class="form-control" value="mesas_habilitadas" readonly></td>
+              <td><input class="form-control" value="mesas_usadas_ars" readonly></td>
+              <td><input class="form-control" value="bruto_ars" readonly></td>
+              <td><input class="form-control" value="mesas_usadas_usd" readonly></td>
+              <td><input class="form-control" value="bruto_usd" readonly></td>
+              <td><input class="form-control" value="cotizacion" readonly></td>
+              <td><input class="form-control" value="mesas_usadas" readonly></td>
+              <td><input class="form-control" value="bruto" readonly></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div data-tabla="canon_fijo_mesas_adicionales">
+    <div class="row">
+      <div data-div-devengado="header" data-div-determinado="header" class="col-md-8">
+        @section('colgroupCFMA')
+        <colgroup>
+          <col style="width: 10%;">
+          <col style="width: 45%;">
+          <col style="width: 45%;">
+        </colgroup>
+        @endsection
+        <table class="table table-bordered" style="margin-bottom: 0;">
+          @yield('colgroupCFMA')
+          <thead>
+            <tr>
+              <th style="text-align: center;">Día</th>
+              <th style="text-align: center;">Horas</th>
+              <th style="text-align: center;">Mesas</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+      <div data-div-devengado="diario" data-div-determinado="diario" class="col-md-8" style="max-height: 25vh;overflow-y: scroll;">
+        <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
+          @yield('colgroupCFMA')
+          <tbody>
+          </tbody>
+        </table>
+        <table hidden>
+          <tr data-molde-diario>
+            <td><input class="form-control" value="dia" readonly></td>
+            <td><input class="form-control" value="horas"></td>
+            <td><input class="form-control" value="mesas"></td>
+          </tr>
+        </table>
+      </div>
+      <div data-div-devengado="mensual" data-div-determinado="mensual" class="col-md-8">
+        <table data-tabla-mensual class="sacar-borde-primer-tr table table-bordered">
+          @yield('colgroupCFMA')
+          <tbody>
+            <tr class="fila-mensual">
+              <td>&nbsp;</td>
+              <td><input class="form-control" value="horas" readonly></td>
+              <td><input class="form-control" value="mesas" readonly></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
   @endslot
 @endcomponent
 

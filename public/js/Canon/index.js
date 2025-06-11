@@ -38,104 +38,105 @@ function encodeQueryData(data){
   return ret.join('&');
 }
 
+function fill(div,prefix,obj){//@HACK @TODO: mover a AUX
+  const subscript = function(s){
+    return prefix === null? s : (prefix+'['+s+']');
+  };
+  for(const k in obj){
+    const val = obj[k];
+    if(typeof val == 'object'){
+      fill(div,subscript(k),val);
+    }
+    else{
+      const name = subscript(k);
+      div.find(`[name="${name}"]`).val(val);
+    }
+  }
+}
+
+function fillError(div,obj){//@HACK @TODO: mover a AUX
+  for(const k in obj){
+    const val = obj[k];
+    if(typeof val == 'object' && !Array.isArray(val)){
+      console.log(k,val,'Valor inesperado');
+    }
+    else{
+      const name_arr = k.split('.');
+      let name = name_arr?.[0] ?? '';
+      for(let idx=1;idx<name_arr.length;idx++){
+        name+='['+name_arr[idx]+']';
+      }
+      mostrarErrorValidacion(div.find(`[name="${name}"]`),Array.isArray(val)? val.join(', ') : val,true);
+    }
+  }
+};
+
+function filterFunction(M,attr){
+  const check_params = {
+    modo: M.attr('data-modo'),
+    es_antiguo: M.find('[name="es_antiguo"]').val(),
+    estado: M.find('[name="estado"]').val().toUpperCase()
+  };
+        
+  return function(_,r_obj){
+    let json_rdata = null;
+    try{
+      json_rdata = JSON.parse($(r_obj).attr(attr));
+    }
+    catch(error){
+      console.log(r_obj,json_rdata);
+      throw error;
+    }
+    
+    if(!Array.isArray(json_rdata)){
+      console.log(r_obj,json_rdata);
+      throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
+    }
+    for(const obj of json_rdata){
+      if(typeof obj !== 'object'){
+        console.log(r_obj,obj);
+        throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
+      }
+      for(const param in check_params){
+        const check_val = check_params[param];
+        const obj_val = obj[param] ?? undefined;
+        if(obj_val == '*' || obj_val === check_val) return true;
+      }
+    }
+    return false;
+  };
+}
+        
+function setReadonly(M){
+  const setReadOnlyObj = function(state){
+    return function(_,r_obj){
+      const r = $(r_obj);
+      const f = r.children('[data-js-fecha]');
+      if(f.length){
+        f[0].readonly(state);  
+      }
+      else{
+        if(state){ r.attr('readonly',true);  }
+        else{      r.removeAttr('readonly'); }
+      }
+    };
+  }
+  
+  M.find('[data-readonly]:not([data-js-fecha])')
+  .each(setReadOnlyObj(false))
+  .filter(filterFunction(M,'data-readonly'))
+  .each(setReadOnlyObj(true));
+}
+
 $(document).ready(function() {
   $('.tituloSeccionPantalla').text('Canon');
   
   $('[data-js-modal-ver-cargar-canon]').each(function(_,m_obj){
     const M = $(m_obj);
     
-    const fill = function(div,prefix,obj){//@HACK @TODO: mover a AUX
-      const subscript = function(s){
-        return prefix === null? s : (prefix+'['+s+']');
-      };
-      for(const k in obj){
-        const val = obj[k];
-        if(typeof val == 'object'){
-          fill(div,subscript(k),val);
-        }
-        else{
-          const name = subscript(k);
-          div.find(`[name="${name}"]`).val(val);
-        }
-      }
-    };
-    
-    const fillError = function(div,obj){//@HACK @TODO: mover a AUX
-      for(const k in obj){
-        const val = obj[k];
-        if(typeof val == 'object' && !Array.isArray(val)){
-          console.log(k,val,'Valor inesperado');
-        }
-        else{
-          const name_arr = k.split('.');
-          let name = name_arr?.[0] ?? '';
-          for(let idx=1;idx<name_arr.length;idx++){
-            name+='['+name_arr[idx]+']';
-          }
-          mostrarErrorValidacion(div.find(`[name="${name}"]`),Array.isArray(val)? val.join(', ') : val,true);
-        }
-      }
-    };
-    
-    const filterFunction = function(attr){
-      const check_params = {
-        modo: M.attr('data-modo'),
-        es_antiguo: M.find('[name="es_antiguo"]').val(),
-        estado: M.find('[name="estado"]').val().toUpperCase()
-      };
-            
-      return function(_,r_obj){
-        let json_rdata = null;
-        try{
-          json_rdata = JSON.parse($(r_obj).attr(attr));
-        }
-        catch(error){
-          console.log(r_obj,json_rdata);
-          throw error;
-        }
-        
-        if(!Array.isArray(json_rdata)){
-          console.log(r_obj,json_rdata);
-          throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
-        }
-        for(const obj of json_rdata){
-          if(typeof obj !== 'object'){
-            console.log(r_obj,obj);
-            throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
-          }
-          for(const param in check_params){
-            const check_val = check_params[param];
-            const obj_val = obj[param] ?? undefined;
-            if(obj_val == '*' || obj_val === check_val) return true;
-          }
-        }
-        return false;
-      };
-    };
-        
-    const setReadonly = function(){
-      const setReadOnlyObj = function(state){
-        return function(_,r_obj){
-          const r = $(r_obj);
-          const f = r.children('[data-js-fecha]');
-          if(f.length){
-            f[0].readonly(state);  
-          }
-          else{
-            if(state){ r.attr('readonly',true);  }
-            else{      r.removeAttr('readonly'); }
-          }
-        };
-      }
-      
-      M.find('[data-readonly]:not([data-js-fecha])')
-      .each(setReadOnlyObj(false))
-      .filter(filterFunction('data-readonly'))
-      .each(setReadOnlyObj(true));
-    }
     
     const setVisible = function(){
-      M.find('[data-modo-mostrar]').hide().filter(filterFunction('data-modo-mostrar')).show();
+      M.find('[data-modo-mostrar]').hide().filter(filterFunction(M,'data-modo-mostrar')).show();
     }
     
     const agregarDetallePestaña = function(pestaña,titulo,replace_idx){
@@ -223,7 +224,7 @@ $(document).ready(function() {
       
       if((rerender ?? 1) == 0){
         fill(M,null,canon);
-        setReadonly();
+        setReadonly(M);
         formatearCampos();
         return;
       }
@@ -254,7 +255,7 @@ $(document).ready(function() {
       
       M.attr('data-render',0);
       fill(M,null,canon);
-      setReadonly();
+      setReadonly(M);
       
       limpiarInputsFormatear();
       agregarInputsFormatear(M.find('form[data-js-recalcular] input[name]:not([data-js-texto-no-formatear-numero])'));
@@ -538,8 +539,48 @@ $(document).ready(function() {
       .closest('[data-css-devengar]')
       .attr('data-css-devengar',parseInt(e.currentTarget.value));
     });
-  });
     
+    M.find('form[data-js-recalcular]').on('click','[data-js-click-diario]',function(e){
+      $('[data-js-modal-ver-cargar-canon-diario]').trigger('mostrar',[{
+        tabla: $(this).attr('data-js-click-diario'),
+        id: $(this).val(),
+        año_mes: M.find('[name="año_mes"]').val()+'-01'
+      }]);
+    });
+    
+    $('[data-js-modal-ver-cargar-canon-diario]').on('show.bs.modal',function(e){
+      M.css('z-index',
+        $('.modal-backdrop').css('z-index')
+      );
+      $('.modal-backdrop').eq(0).css('opacity','0');
+    });
+    
+    $('[data-js-modal-ver-cargar-canon-diario]').on('hide.bs.modal',function(e){
+      M.css('z-index',
+        $('[data-js-modal-ver-cargar-canon-diario]').css('z-index')
+      );
+      $('.modal-backdrop').eq(0).css('opacity','0.5');
+    });
+  });
+  
+  $('[data-js-modal-ver-cargar-canon-diario]').each(function(_,m_obj){
+    const M = $(m_obj);
+    
+    M.on('mostrar',function(e,params){
+      const div = M.find('[data-tabla]').hide().filter(`[data-tabla="${params.tabla ?? ''}"]`).show();
+      AUX.GET('/canon/diario',params,function(canon){
+        div.find('[data-div-devengado],[data-div-determinado]').each(function(_,divdetdevobj){          
+          const tabla = $(divdetdevobj).find('[data-tabla-diario]');
+          canon.diario.forEach(function(d){
+            const fila = $(divdetdevobj).find('[data-molde-diario]').clone().removeAttr('data-molde-diario');
+            tabla.append(fila);
+          });
+        });
+        M.modal('show');
+      });
+    });
+  });
+  
   $('[data-js-tabs]').each(function(_,tab_group_obj){
     const tab_group = $(tab_group_obj);
     tab_group.find('[data-js-tab]').each(function(__,tobj){

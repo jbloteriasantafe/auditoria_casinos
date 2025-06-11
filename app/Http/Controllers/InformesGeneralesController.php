@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\CacheController;
-use App\Http\Controllers\CanonController;
+use App\Http\Controllers\Canon\CanonController;
 use App\Casino;
 require_once(app_path('BC_extendido.php'));
 
