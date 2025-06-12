@@ -42,33 +42,19 @@ class CanonFijoMesasController extends Controller
     ];
   }
     
-  public function recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$valores_defecto,$data,$COT,$anterior){
-    $R = function($s,$dflt = null) use (&$data){
-      return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
-    };
-    $D = function($s,$dflt = null) use (&$valores_defecto){
-      return (($valores_defecto[$s] ?? null) === null || ($valores_defecto[$s] === '') || ($valores_defecto[$s] === []))? $dflt : $valores_defecto[$s];
-    };
-    $A = function($s,$dflt = null) use (&$anterior){
-      return (($anterior[$s] ?? null) === null || ($anterior[$s] === '') || ($anterior[$s] === []))? $dflt : $anterior[$s];
-    };
-    $RD = function($s,$dflt = null) use ($R,$D){
-      return $R($s,null) ?? $D($s,null) ?? $dflt;
-    };
-    $RAD = function($s,$dflt = null) use ($R,$A,$D){
-      return $R($s,null) ?? $A($s,null) ?? $D($s,null) ?? $dflt;
-    };
+  public function recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$accessors){
+    extract($accessors);
+    
+    $valor_dolar = $COT('valor_dolar');//@RETORNADO
+    $valor_euro  = $COT('valor_euro');//@RETORNADO
+    $devengado_fecha_cotizacion = $COT('devengado_fecha_cotizacion');//@RETORNADO
+    $determinado_fecha_cotizacion = $COT('determinado_fecha_cotizacion');//@RETORNADO
+    $devengado_cotizacion_dolar = $COT('devengado_cotizacion_dolar','0');//@RETORNADO
+    $devengado_cotizacion_euro = $COT('devengado_cotizacion_euro','0');//@$RETORNADO
+    $determinado_cotizacion_dolar = $COT('determinado_cotizacion_dolar','0');//@RETORNADO
+    $determinado_cotizacion_euro = $COT('determinado_cotizacion_euro','0');//@RETORNADO
     
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
-    $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;//@RETORNADO
-    $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;//@RETORNADO
-    $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? '0';//@RETORNADO
-    $devengado_cotizacion_euro = $COT['devengado_cotizacion_euro'] ?? '0';//@RETORNADO
-    $determinado_cotizacion_dolar = $COT['determinado_cotizacion_dolar'] ?? '0';//@RETORNADO
-    $determinado_cotizacion_euro = $COT['determinado_cotizacion_euro'] ?? '0';//@RETORNADO
-    
-    $valor_dolar = $COT['valor_dolar'] ?? null;//@RETORNADO
-    $valor_euro  = $COT['valor_euro']  ?? null;//@RETORNADO
     
     $dias_valor = $RD('dias_valor',0);//@RETORNADO
     $factor_dias_valor = $dias_valor != 0? bcdiv('1',$dias_valor,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon

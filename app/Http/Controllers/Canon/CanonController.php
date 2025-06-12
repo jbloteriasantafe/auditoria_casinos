@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\DB;
 use PDF;
 use Dompdf\Dompdf;
 use View;
-use Zipper;
-use File;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UsuarioController;
 use App\Plataforma;
@@ -154,9 +152,15 @@ class CanonController extends Controller
   }
   
   private function recalcular(array $request){
-    $R = function($s,$dflt = null) use (&$request){
-      return (($request[$s] ?? null) === null || ($request[$s] === '') || ($request[$s] === []))? $dflt : $request[$s];
+    $make_accessor = function(&$arr){
+      return function($k,$dflt = null) use (&$arr){
+        return (!isset($arr[$k]) || $arr[$k] === '' || $arr[$k] === null || $arr[$k] === [])?
+          $dflt
+        : $arr[$k];
+      };
     };
+    
+    $R = $make_accessor($request);
     
     $año_mes = $R('año_mes');//@RETORNADO
     $id_casino = $R('id_casino');//@RETORNADO
@@ -237,6 +241,21 @@ class CanonController extends Controller
     }
     
     $subcanons = [];
+    
+    $make_multiple_accessors = function(&$r,&$d,&$a,&$cot) use ($make_accessor){
+      $R = $make_accessor($r);
+      $D = $make_accessor($d);
+      $A = $make_accessor($a);
+      $COT = $make_accessor($cot);
+      $RD = function($s,$dflt = null) use ($R,$D){
+        return $R($s,null) ?? $D($s,null) ?? $dflt;
+      };
+      $RAD = function($s,$dflt = null) use ($R,$A,$D){
+        return $R($s,null) ?? $A($s,null) ?? $D($s,null) ?? $dflt;
+      };
+      return compact('R','D','A','RD','RAD','COT');
+    };
+    
     foreach($this->subcanons as $subcanon => $scobj){        
       $valorPorDefecto = ($this->valorPorDefecto($subcanon,$scobj->valorPorDefecto) ?? [])[$id_casino] ?? [];
       $data_request = $request[$subcanon] ?? [];
@@ -244,15 +263,16 @@ class CanonController extends Controller
       $retsc = [];
       
       foreach(($request[$subcanon] ?? $defecto ?? []) as $tipo => $_){
+        $data_request_tipo = $data_request[$tipo] ?? [];
+        $defecto_tipo = $defecto[$tipo] ?? [];
+        $anterior_tipo = $subcanon_anterior[$tipo] ?? [];
+                
         $retsc[$tipo] = $scobj->recalcular(
           $año_mes,
           $id_casino,
           $es_antiguo,
           $tipo,
-          $defecto[$tipo] ?? [],
-          $data_request[$tipo] ?? [],
-          $COT,
-          $subcanon_anterior[$tipo] ?? []
+          $make_multiple_accessors($data_request_tipo,$defecto_tipo,$anterior_tipo,$COT)
         );
         
         if($retsc[$tipo]['devengar'] ?? 1){

@@ -56,22 +56,8 @@ class CanonVariableController extends Controller
     return null;
   }
   
-  public function recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$valores_defecto,$data,$COT,$anterior){
-    $R = function($s,$dflt = null) use (&$data){
-      return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
-    };
-    $D = function($s,$dflt = null) use (&$valores_defecto){
-      return (($valores_defecto[$s] ?? null) === null || ($valores_defecto[$s] === '') || ($valores_defecto[$s] === []))? $dflt : $valores_defecto[$s];
-    };
-    $A = function($s,$dflt = null) use (&$anterior){
-      return (($anterior[$s] ?? null) === null || ($anterior[$s] === '') || ($anterior[$s] === []))? $dflt : $anterior[$s];
-    };
-    $RD = function($s,$dflt = null) use ($R,$D){
-      return $R($s,null) ?? $D($s,null) ?? $dflt;
-    };
-    $RAD = function($s,$dflt = null) use ($R,$A,$D){
-      return $R($s,null) ?? $A($s,null) ?? $D($s,null) ?? $dflt;
-    };
+  public function recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$accessors){
+    extract($accessors);
     
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
     $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema',$this->apostado($tipo,$año_mes,$id_casino)),'0',2);//@RETORNADO    

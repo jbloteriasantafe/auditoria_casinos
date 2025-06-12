@@ -34,22 +34,17 @@ class CanonFijoMesasAdicionalesController extends Controller
     ];
   }
   
-  public function recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$valores_defecto,$data,$COT,$anterior){
-    $R = function($s,$dflt = null) use (&$data){
-      return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
-    };
-    $D = function($s,$dflt = null) use (&$valores_defecto){
-      return (($valores_defecto[$s] ?? null) === null || ($valores_defecto[$s] === '') || ($valores_defecto[$s] === []))? $dflt : $valores_defecto[$s];
-    };
-    $A = function($s,$dflt = null) use (&$anterior){
-      return (($anterior[$s] ?? null) === null || ($anterior[$s] === '') || ($anterior[$s] === []))? $dflt : $anterior[$s];
-    };
-    $RD = function($s,$dflt = null) use ($R,$D){
-      return $R($s,null) ?? $D($s,null) ?? $dflt;
-    };
-    $RAD = function($s,$dflt = null) use ($R,$A,$D){
-      return $R($s,null) ?? $A($s,null) ?? $D($s,null) ?? $dflt;
-    };
+  public function recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$accessors){
+    extract($accessors);
+    
+    $valor_dolar = $COT('valor_dolar');//@RETORNADO
+    $valor_euro  = $COT('valor_euro');//@RETORNADO
+    $devengado_fecha_cotizacion = $COT('devengado_fecha_cotizacion');//@RETORNADO
+    $determinado_fecha_cotizacion = $COT('determinado_fecha_cotizacion');//@RETORNADO
+    $devengado_cotizacion_dolar = $COT('devengado_cotizacion_dolar','0');//@RETORNADO
+    $devengado_cotizacion_euro = $COT('devengado_cotizacion_euro','0');//@$RETORNADO
+    $determinado_cotizacion_dolar = $COT('determinado_cotizacion_dolar','0');//@RETORNADO
+    $determinado_cotizacion_euro = $COT('determinado_cotizacion_euro','0');//@RETORNADO
     
     $dias_mes      = $RD('dias_mes',0);//@RETORNADO
     $horas_dia     = $RD('horas_dia',0);//@RETORNADO
@@ -57,8 +52,6 @@ class CanonFijoMesasAdicionalesController extends Controller
     $factor_dias_mes  = ($dias_mes != 0)? bcdiv('1',$dias_mes,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon
     $factor_horas_mes = ($horas_dia != 0 && $dias_mes != 0)? bcdiv('1',$horas_dia*$dias_mes,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon
     
-    $valor_dolar = $COT['valor_dolar'] ?? null;//@RETORNADO
-    $valor_euro  = $COT['valor_euro']  ?? null;//@RETORNADO
     
     $horas = $R('horas',0);//@RETORNADO
     $mesas = $R('mesas',0);//@RETORNADO
@@ -69,12 +62,6 @@ class CanonFijoMesasAdicionalesController extends Controller
     $factor_porcentaje = bcdiv($porcentaje,'100',6);
         
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
-    $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;//@RETORNADO
-    $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;//@RETORNADO
-    $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? '0';//@RETORNADO
-    $devengado_cotizacion_euro = $COT['devengado_cotizacion_euro'] ?? '0';//@$RETORNADO
-    $determinado_cotizacion_dolar = $COT['determinado_cotizacion_dolar'] ?? '0';//@RETORNADO
-    $determinado_cotizacion_euro = $COT['determinado_cotizacion_euro'] ?? '0';//@RETORNADO
     
     $devengado_valor_mes = bcadd(
       bcmul($valor_dolar,$devengado_cotizacion_dolar,4),//2+2
