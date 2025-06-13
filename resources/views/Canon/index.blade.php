@@ -1276,7 +1276,7 @@
           <?php
             $molde_str = '$adj';
             $n = function($s) use (&$id_casino,&$t,&$molde_str){
-              return "adjuntos[$molde_str][$s]";
+              return "canon_archivo[$molde_str][$s]";
             };
             $descripcion = $n('descripcion');
             $nombre_archivo = $n('nombre_archivo');

@@ -11,7 +11,6 @@ use View;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UsuarioController;
 use App\Plataforma;
-use App\Archivo;
 use App\Casino;
 
 require_once(app_path('BC_extendido.php'));
@@ -30,10 +29,12 @@ class CanonController extends Controller
 {
   private static $instance;
   
-  private $canon_pago = null;
   private $subcanons = [];
-  public function __construct($subcanons = null,$canon_pago = null){
+  private $canon_pago = null;
+  private $canon_archivo = null;
+  public function __construct($subcanons = null,$canon_pago = null,$canon_archivo = null){
     $this->canon_pago = $canon_pago ?? CanonPagoController::getInstancia();
+    $this->canon_archivo = $canon_archivo ?? CanonArchivoController::getInstancia();
     $subcanons = $subcanons ?? [
       CanonVariableController::getInstancia(),
       CanonFijoMesasController::getInstancia(),
@@ -49,40 +50,6 @@ class CanonController extends Controller
       self::$instance = new self();
     }
     return self::$instance;
-  }
-  
-  public static function formatear_decimal(string $val) : string {//number_format castea a float... lo hacemos a pata...
-    $negativo = ($val[0] ?? false) == '-'? '-' : '';
-    $val = strlen($negativo)? substr($val,1) : $val;
-    
-    $parts   = explode('.',$val);
-    $entero  = $parts[0] ?? '';
-    $decimal = $parts[1] ?? null;
-    $entero_separado = [];
-    for($i=0;$i<strlen($entero);$i++){
-      $bucket = intdiv($i,3);
-      if($i%3 == 0) $entero_separado[$bucket] = '';
-      $entero_separado[$bucket] = $entero[strlen($entero)-1-$i] . $entero_separado[$bucket];
-    }
-
-    $newval = implode('.',array_reverse($entero_separado));
-    $decimal = is_null($decimal)? null : rtrim($decimal,'0');
-    if(!is_null($decimal) && strlen($decimal) > 0){
-      $newval .= ','.$decimal;
-    }
-    return $negativo.$newval;
-  }
-  
-  public function numeric_rule(int $digits){
-    static $cache = [];
-    if($cache[$digits] ?? false) return $cache[$digits];
-    $regex = '-?\d+';
-    if($digits){
-      $digits_regexp = implode('',array_fill(0,$digits,'\d?'));
-      $regex .= '\.?'.$digits_regexp;
-    }
-    $cache[$digits] = 'regex:/^'.$regex.'$/';
-    return $cache[$digits];
   }
         
   public function index(){
@@ -114,23 +81,19 @@ class CanonController extends Controller
       'id_casino' => [$requireds_f('id_casino'),'integer','exists:casino,id_casino,deleted_at,NULL'],
       'estado' => ['nullable','string','max:32'],
       'es_antiguo' => [$requireds_f('es_antiguo'),'integer','in:1,0'],
-      'intereses_y_cargos' => ['nullable',$this->numeric_rule(2)],
+      'intereses_y_cargos' => ['nullable',AUX::numeric_rule(2)],
       'motivo_intereses_y_cargos' => ['nullable','string','max:128'],
-      'ajuste' => ['nullable',$this->numeric_rule(2)],
+      'ajuste' => ['nullable',AUX::numeric_rule(2)],
       'motivo_ajuste' => ['nullable','string','max:128'],
       //Valores que se "difunden" a cada subcanon >:(
-      'valor_dolar' => ['nullable',$this->numeric_rule(2)],
-      'valor_euro' => ['nullable',$this->numeric_rule(2)],
+      'valor_dolar' => ['nullable',AUX::numeric_rule(2)],
+      'valor_euro' => ['nullable',AUX::numeric_rule(2)],
       'devengado_fecha_cotizacion' => ['nullable','date'],
-      'devengado_cotizacion_dolar' => ['nullable',$this->numeric_rule(2)],
-      'devengado_cotizacion_euro' => ['nullable',$this->numeric_rule(2)],
+      'devengado_cotizacion_dolar' => ['nullable',AUX::numeric_rule(2)],
+      'devengado_cotizacion_euro' => ['nullable',AUX::numeric_rule(2)],
       'determinado_fecha_cotizacion' => ['nullable','date'],
-      'determinado_cotizacion_dolar' => ['nullable',$this->numeric_rule(2)],
-      'determinado_cotizacion_euro' => ['nullable',$this->numeric_rule(2)],
-      'adjuntos' => 'array',
-      'adjuntos.*.descripcion' => ['nullable','string','max:256'],
-      'adjuntos.*.id_archivo'  => ['nullable','integer','exists:archivo,id_archivo'],
-      'adjuntos.*.file'        => 'file',
+      'determinado_cotizacion_dolar' => ['nullable',AUX::numeric_rule(2)],
+      'determinado_cotizacion_euro' => ['nullable',AUX::numeric_rule(2)]
     ];
     
     foreach($this->subcanons as $sc){
@@ -182,7 +145,6 @@ class CanonController extends Controller
     $estado = $R('estado','Nuevo');//@RETORNADO
     $fecha_cotizacion = $R('fecha_cotizacion');//@RETORNADO
     $es_antiguo = $R('es_antiguo',0)? 1 : 0;//@RETORNADO
-    $adjuntos = $R('adjuntos',[]);//@RETORNADO
     
     $devengado_bruto = '0.00';//@RETORNADO
     $devengado_deduccion = '0.00';//@RETORNADO
@@ -321,11 +283,11 @@ class CanonController extends Controller
     $intereses_y_cargos = bcadd($R('intereses_y_cargos','0'),'0',2);//@RETORNADO
     $motivo_intereses_y_cargos = $R('motivo_intereses_y_cargos','');//@RETORNADO
     $principal = bcsub(bcadd($determinado,$intereses_y_cargos,2),$saldo_anterior_cerrado,2);//@RETORNADO
-    $PAG = $this->canon_pago->recalcular($id_casino,$año_mes,$principal,$R);
-    
+        
     $ret = [];
     $ret = array_merge($ret,$subcanons);
-    $ret = array_merge($ret,$PAG);
+    $ret = array_merge($ret,$this->canon_pago->recalcular($id_casino,$año_mes,$principal,$R));
+    $ret = array_merge($ret,$this->canon_archivo->recalcular($id_casino,$año_mes,$principal,$R));
     $ret = array_merge($ret,$this->confluir($ret));
     
     $ajuste = bcadd($R('ajuste','0.00'),'0',2);//@RETORNADO
@@ -336,7 +298,7 @@ class CanonController extends Controller
     
     return array_merge($ret,compact(
       'canon_anterior',
-      'año_mes','id_casino','estado','es_antiguo','adjuntos',
+      'año_mes','id_casino','estado','es_antiguo',
       'devengado_bruto','devengado_deduccion','devengado',
       'determinado_bruto','determinado_ajuste','determinado','porcentaje_seguridad',
       'saldo_anterior','saldo_anterior_cerrado',
@@ -380,7 +342,7 @@ class CanonController extends Controller
       }
       else{
         $datos = $this->obtener_arr_confluido(['id_canon' => $request['id_canon']]);
-        $datos['adjuntos'] = $request['adjuntos'] ?? [];
+        $datos['canon_archivo'] = $request['canon_archivo'] ?? [];
       }
       
       $created_at = date('Y-m-d h:i:s');
@@ -429,90 +391,15 @@ class CanonController extends Controller
         'created_id_usuario' => $id_usuario,
       ]);
       
-      foreach(($datos['canon_pago'] ?? []) as $idx => $d){
-        DB::table('canon_pago')
-        ->insert([
-          'id_canon' => $id_canon,
-          'capital' => $d['capital'],
-          'fecha_vencimiento' => $d['fecha_vencimiento'],
-          'fecha_pago' => $d['fecha_pago'],
-          'dias_vencidos' => $d['dias_vencidos'],
-          'interes_provincial_diario_simple' => $d['interes_provincial_diario_simple'],
-          'interes_nacional_mensual_compuesto' => $d['interes_nacional_mensual_compuesto'],
-          'mora_provincial' => $d['mora_provincial'],
-          'mora_nacional' => $d['mora_nacional'],
-          'a_pagar' => $d['a_pagar'],
-          'pago' => $d['pago'],
-          'diferencia' => $d['diferencia'],
-        ]);
-      }
+      $id_canon_anterior = count($canon_anterior)? $canon_anterior[0]->id_canon : null;
+      
+      $this->canon_pago->guardar($id_canon,$id_canon_anterior,$datos);
       
       foreach($this->subcanons as $scobj){
-        $scobj->guardar($id_canon,$datos);
+        $scobj->guardar($id_canon,$id_canon_anterior,$datos);
       }
       
-      {
-        $archivos_existentes = count($canon_anterior) == 0? 
-          collect([])
-        : DB::table('canon_archivo as ca')
-        ->select('ca.descripcion','ca.type','a.*')
-        ->join('archivo as a','a.id_archivo','=','ca.id_archivo')
-        ->where('id_canon',$canon_anterior[0]->id_canon)
-        ->get()
-        ->keyBy('id_archivo');
-        
-        $archivos_enviados = collect($datos['adjuntos'] ?? [])->groupBy('id_archivo');
-        $archivos_resultantes = [];
-        foreach($archivos_enviados as $id_archivo_e => $archivos_e){
-          if($id_archivo_e !== ''){//Es "existente"
-            //Se recibio un id archivo que no estaba antes
-            if(!$archivos_existentes->has($id_archivo_e)) continue;
-            
-            $archivo_bd = $archivos_existentes[$id_archivo_e];
-            
-            $archivo = null;//Por si me mando varios con el mismo id_archivo, busco el que tenga mismo nombre de archivo
-            foreach($archivos_e as $ae){
-              if($ae['nombre_archivo'] == $archivo_bd->nombre_archivo){
-                $archivo = $ae;
-                break;
-              }
-            }
-            
-            if($archivo === null) continue;//No encontre, lo ignoro
-                        
-            //El archivo se repite para el nuevo canon pero posiblemente con otra descripcion
-            $archivos_resultantes[] = [
-              'id_archivo'  => $archivo_bd->id_archivo,
-              'id_canon'    => $id_canon,
-              'descripcion' => ($archivo['descripcion'] ?? ''),
-              'type'        => $archivo_bd->type,
-            ];
-          }
-          else{//Archivos nuevos
-            foreach($archivos_e as $a){
-              $file=$a['file'] ?? null;
-              if($file === null) continue;
-              
-              $archivo_bd = new Archivo;
-              $data = base64_encode(file_get_contents($file->getRealPath()));
-              $nombre_archivo = $file->getClientOriginalName();
-              $archivo_bd->nombre_archivo = $nombre_archivo;
-              $archivo_bd->archivo = $data;
-              $archivo_bd->save();
-              
-              $archivos_resultantes[] = [
-                'id_archivo' => $archivo_bd->id_archivo,
-                'id_canon' => $id_canon,
-                'descripcion' => ($a['descripcion'] ?? ''),
-                'type' => $file->getMimeType() ?? 'application/octet-stream'
-              ];
-            } 
-          }
-        }
-        
-        DB::table('canon_archivo')
-        ->insert($archivos_resultantes);
-      }
+      $this->canon_archivo->guardar($id_canon,$id_canon_anterior,$datos);
       
       if($recalcular){
         $this->cambio_canon_recalcular_saldos($id_canon);
@@ -616,18 +503,7 @@ class CanonController extends Controller
     foreach($this->subcanons as $scobj){
       $ret = array_merge($ret,$scobj->obtener($request['id_canon']));
     }
-    
-    $ret['adjuntos'] = DB::table('canon_archivo as ca')
-    ->select('ca.id_canon','ca.descripcion','a.id_archivo','a.nombre_archivo')
-    ->join('archivo as a','a.id_archivo','=','ca.id_archivo')
-    ->where('ca.id_canon',$request['id_canon'])
-    ->orderBy('id_archivo','asc')
-    ->get()
-    ->transform(function(&$adj){
-      $adj->link = '/canon/archivo?id_canon='.urlencode($adj->id_canon)
-      .'&nombre_archivo='.urlencode($adj->nombre_archivo);
-      return $adj;
-    });
+    $ret = array_merge($ret,$this->canon_archivo->obtener($request['id_canon']));
     
     $ret = json_decode(json_encode($ret),true);
             
@@ -1009,7 +885,7 @@ class CanonController extends Controller
     });
   }
   
-  private function obtener_para_salida($id_canon,$formatear_decimal = true){
+  private function obtener_para_salida($id_canon){
     $data = $this->obtener_arr(compact('id_canon'));
     $ret = [];
     
@@ -1025,48 +901,18 @@ class CanonController extends Controller
     $ret['canon'] = [$ret['canon']];
     
     $ret = array_merge($ret,$this->canon_pago->procesar_para_salida($data));
+    
     foreach($this->subcanons as $scobj){
       $ret = array_merge($ret,$scobj->procesar_para_salida($data));
     }
     
-    foreach(['id_archivo','id_canon'] as $k){
-      foreach(($data['adjuntos'] ?? []) as $tipo => $_){
-        unset($data['adjuntos'][$tipo][$k]);
-      }
-    }
-    $ret['adjuntos'] = array_values($data['adjuntos'] ?? []);
+    $ret = array_merge($ret,$this->canon_archivo->procesar_para_salida($data));
     
     foreach($ret as $k => $d){
       if(count($d) == 0) unset($ret[$k]);
     }
     
-    $SB = DB::getSchemaBuilder();
-    $types = [];
-    foreach($ret as $tabla => $d){
-      foreach($SB->getColumnListing($tabla) as $cidx => $col){
-        $types[$tabla][$col] = $SB->getColumnType($tabla, $col);
-      }
-    }
-        
-    foreach($ret as $tabla => $d){
-      foreach($d as $rowidx => $row){
-        foreach($row as $col => $val){
-          switch($types[$tabla][$col] ?? null){
-            case 'smallint':
-            case 'integer':
-            case 'decimal': if($formatear_decimal){
-              $ret[$tabla][$rowidx][$col] = self::formatear_decimal((string)$val);//number_format castea a float... lo hacemos a pata...
-            }break;
-            default:
-            case 'string':{
-              $ret[$tabla][$rowidx][$col] = trim($val);
-            }break;
-          }
-        }
-      }
-    }
-    
-    return $ret;
+    return AUX::formatear_datos($ret);
   }
   
   public function planilla(Request $request){
@@ -1322,7 +1168,7 @@ class CanonController extends Controller
     foreach($datos as $id_canon => &$dcas){
       foreach($dcas as $tipo => &$vals){
         foreach($vals as $tval => &$v){
-          $v = $v === null? null : self::formatear_decimal($v);
+          $v = $v === null? null : AUX::formatear_decimal($v);
         }
       }
     }
@@ -1463,9 +1309,9 @@ class CanonController extends Controller
         }
         $fila[$tval] = ($t['Total'] ?? [])[$tval] ?? '0';
       }
-      $fila['intereses_y_cargos'] = self::formatear_decimal($d->intereses_y_cargos);
-      $fila['pago']      = self::formatear_decimal($d->pago);
-      $fila['saldo_posterior'] = self::formatear_decimal($d->saldo_posterior);
+      $fila['intereses_y_cargos'] = AUX::formatear_decimal($d->intereses_y_cargos);
+      $fila['pago']      = AUX::formatear_decimal($d->pago);
+      $fila['saldo_posterior'] = AUX::formatear_decimal($d->saldo_posterior);
       $arreglo_a_csv[] = $fila;
     }
     

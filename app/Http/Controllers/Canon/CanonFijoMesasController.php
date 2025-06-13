@@ -22,23 +22,22 @@ class CanonFijoMesasController extends Controller
   }
       
   public function validar(){
-    $CC = CanonController::getInstancia();
     return [
       'canon_fijo_mesas' => 'array',
-      'canon_fijo_mesas.*.dias_valor' => ['nullable',$CC->numeric_rule(0)],
-      'canon_fijo_mesas.*.dias_lunes_jueves' => ['nullable',$CC->numeric_rule(0)],
-      'canon_fijo_mesas.*.mesas_lunes_jueves' => ['nullable',$CC->numeric_rule(0)],
-      'canon_fijo_mesas.*.dias_viernes_sabados' => ['nullable',$CC->numeric_rule(0)],
-      'canon_fijo_mesas.*.mesas_viernes_sabados' => ['nullable',$CC->numeric_rule(0)],
-      'canon_fijo_mesas.*.dias_domingos' => ['nullable',$CC->numeric_rule(0)],
-      'canon_fijo_mesas.*.mesas_domingos' => ['nullable',$CC->numeric_rule(0)],
-      'canon_fijo_mesas.*.dias_todos' => ['nullable',$CC->numeric_rule(0)],
-      'canon_fijo_mesas.*.mesas_todos' => ['nullable',$CC->numeric_rule(0)],
-      'canon_fijo_mesas.*.dias_fijos' => ['nullable',$CC->numeric_rule(0)],
-      'canon_fijo_mesas.*.mesas_fijos' => ['nullable',$CC->numeric_rule(0)],
-      'canon_fijo_mesas.*.devengado_deduccion' => ['nullable',$CC->numeric_rule(2)],
-      'canon_fijo_mesas.*.determinado_ajuste' => ['nullable',$CC->numeric_rule(22)],
-      'canon_fijo_mesas.*.bruto' => ['nullable',$CC->numeric_rule(2)],
+      'canon_fijo_mesas.*.dias_valor' => ['nullable',AUX::numeric_rule(0)],
+      'canon_fijo_mesas.*.dias_lunes_jueves' => ['nullable',AUX::numeric_rule(0)],
+      'canon_fijo_mesas.*.mesas_lunes_jueves' => ['nullable',AUX::numeric_rule(0)],
+      'canon_fijo_mesas.*.dias_viernes_sabados' => ['nullable',AUX::numeric_rule(0)],
+      'canon_fijo_mesas.*.mesas_viernes_sabados' => ['nullable',AUX::numeric_rule(0)],
+      'canon_fijo_mesas.*.dias_domingos' => ['nullable',AUX::numeric_rule(0)],
+      'canon_fijo_mesas.*.mesas_domingos' => ['nullable',AUX::numeric_rule(0)],
+      'canon_fijo_mesas.*.dias_todos' => ['nullable',AUX::numeric_rule(0)],
+      'canon_fijo_mesas.*.mesas_todos' => ['nullable',AUX::numeric_rule(0)],
+      'canon_fijo_mesas.*.dias_fijos' => ['nullable',AUX::numeric_rule(0)],
+      'canon_fijo_mesas.*.mesas_fijos' => ['nullable',AUX::numeric_rule(0)],
+      'canon_fijo_mesas.*.devengado_deduccion' => ['nullable',AUX::numeric_rule(2)],
+      'canon_fijo_mesas.*.determinado_ajuste' => ['nullable',AUX::numeric_rule(22)],
+      'canon_fijo_mesas.*.bruto' => ['nullable',AUX::numeric_rule(2)],
     ];
   }
     
@@ -198,7 +197,7 @@ class CanonFijoMesasController extends Controller
     );
   }
     
-  public function guardar($id_canon,$datos){
+  public function guardar($id_canon,$id_canon_anterior,$datos){
     foreach(($datos['canon_fijo_mesas'] ?? []) as $tipo => $d){
       $d['id_canon'] = $id_canon;
       $d['tipo'] = $tipo;

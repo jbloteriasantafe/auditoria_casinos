@@ -250,7 +250,7 @@ $(document).ready(function() {
       llenarPestaña(form.find('[data-canon-variable]'),canon?.canon_variable ?? {});
       llenarPestaña(form.find('[data-canon-fijo-mesas]'),canon?.canon_fijo_mesas ?? {});
       llenarPestaña(form.find('[data-canon-fijo-mesas-adicionales]'),canon?.canon_fijo_mesas_adicionales ?? {});
-      llenarPestaña(form.find('[data-adjuntos]'),canon?.adjuntos ?? {},true);
+      llenarPestaña(form.find('[data-adjuntos]'),canon?.canon_archivo ?? {},true);
       llenarPestaña(form.find('[data-total] [data-pagos]'),canon?.canon_pago ?? [],true);
       
       M.attr('data-render',0);
@@ -447,7 +447,7 @@ $(document).ready(function() {
         
         fill(
           div,
-          'adjuntos['+idx+']',
+          'canon_archivo['+idx+']',
           {
             descripcion: descripcion,
             nombre_archivo: archivo.name,
@@ -486,7 +486,7 @@ $(document).ready(function() {
         const adj = $(adj_obj);
         const idx = adj.attr('data-idx');
         if(adj.data('archivo')){
-          entries[`adjuntos[${idx}][file]`] = adj.data('archivo')
+          entries[`canon_archivo[${idx}][file]`] = adj.data('archivo')
         }
       });
       

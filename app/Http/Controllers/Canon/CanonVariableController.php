@@ -20,18 +20,17 @@ class CanonVariableController extends Controller
   }
     
   public function validar(){
-    $CC = CanonController::getInstancia();    
     return [
       'canon_variable' => 'array',
-      'canon_variable.*.devengado_apostado_sistema' => ['nullable',$CC->numeric_rule(2)],
-      'canon_variable.*.devengado_apostado_porcentaje_aplicable' => ['nullable',$CC->numeric_rule(4)],
-      'canon_variable.*.devengado_apostado_porcentaje_impuesto_ley' => ['nullable',$CC->numeric_rule(4)],
-      'canon_variable.*.devengado_bruto' => ['nullable',$CC->numeric_rule(2)],
-      'canon_variable.*.devengado_deduccion' => ['nullable',$CC->numeric_rule(2)],
-      'canon_variable.*.determinado_impuesto' => ['nullable',$CC->numeric_rule(2)],
-      'canon_variable.*.determinado_bruto' => ['nullable',$CC->numeric_rule(2)],
-      'canon_variable.*.determinado_ajuste' => ['nullable',$CC->numeric_rule(22)],
-      'canon_variable.*.alicuota' => ['nullable',$CC->numeric_rule(4)]
+      'canon_variable.*.devengado_apostado_sistema' => ['nullable',AUX::numeric_rule(2)],
+      'canon_variable.*.devengado_apostado_porcentaje_aplicable' => ['nullable',AUX::numeric_rule(4)],
+      'canon_variable.*.devengado_apostado_porcentaje_impuesto_ley' => ['nullable',AUX::numeric_rule(4)],
+      'canon_variable.*.devengado_bruto' => ['nullable',AUX::numeric_rule(2)],
+      'canon_variable.*.devengado_deduccion' => ['nullable',AUX::numeric_rule(2)],
+      'canon_variable.*.determinado_impuesto' => ['nullable',AUX::numeric_rule(2)],
+      'canon_variable.*.determinado_bruto' => ['nullable',AUX::numeric_rule(2)],
+      'canon_variable.*.determinado_ajuste' => ['nullable',AUX::numeric_rule(22)],
+      'canon_variable.*.alicuota' => ['nullable',AUX::numeric_rule(4)]
     ];
   }
   
@@ -113,7 +112,7 @@ class CanonVariableController extends Controller
     );
   }
   
-  public function guardar($id_canon,$datos){
+  public function guardar($id_canon,$id_canon_anterior,$datos){
     foreach(($datos['canon_variable'] ?? []) as $tipo => $d){
       $d['id_canon'] = $id_canon;
       $d['tipo'] = $tipo;

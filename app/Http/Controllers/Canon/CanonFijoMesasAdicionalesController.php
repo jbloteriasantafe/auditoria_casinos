@@ -21,16 +21,15 @@ class CanonFijoMesasAdicionalesController extends Controller
   }
     
   public function validar(){
-    $CC = CanonController::getInstancia();
     return [
       'canon_fijo_mesas_adicionales' => 'array',
-      'canon_fijo_mesas_adicionales.*.dias_mes' => ['nullable',$CC->numeric_rule(0)],
-      'canon_fijo_mesas_adicionales.*.horas_dia' => ['nullable',$CC->numeric_rule(0)],
-      'canon_fijo_mesas_adicionales.*.horas' => ['nullable',$CC->numeric_rule(0)],
-      'canon_fijo_mesas_adicionales.*.mesas' => ['nullable',$CC->numeric_rule(0)],
-      'canon_fijo_mesas_adicionales.*.porcentaje' => ['nullable',$CC->numeric_rule(4)],
-      'canon_fijo_mesas_adicionales.*.devengado_deduccion' => ['nullable',$CC->numeric_rule(2)],
-      'canon_fijo_mesas_adicionales.*.determinado_ajuste' => ['nullable',$CC->numeric_rule(22)],
+      'canon_fijo_mesas_adicionales.*.dias_mes' => ['nullable',AUX::numeric_rule(0)],
+      'canon_fijo_mesas_adicionales.*.horas_dia' => ['nullable',AUX::numeric_rule(0)],
+      'canon_fijo_mesas_adicionales.*.horas' => ['nullable',AUX::numeric_rule(0)],
+      'canon_fijo_mesas_adicionales.*.mesas' => ['nullable',AUX::numeric_rule(0)],
+      'canon_fijo_mesas_adicionales.*.porcentaje' => ['nullable',AUX::numeric_rule(4)],
+      'canon_fijo_mesas_adicionales.*.devengado_deduccion' => ['nullable',AUX::numeric_rule(2)],
+      'canon_fijo_mesas_adicionales.*.determinado_ajuste' => ['nullable',AUX::numeric_rule(22)],
     ];
   }
   
@@ -137,7 +136,7 @@ class CanonFijoMesasAdicionalesController extends Controller
     );
   }
   
-  public function guardar($id_canon,$datos){
+  public function guardar($id_canon,$id_canon_anterior,$datos){
     foreach(($datos['canon_fijo_mesas_adicionales'] ?? []) as $tipo => $d){
       $d['id_canon'] = $id_canon;
       $d['tipo']     = $tipo;

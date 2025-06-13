@@ -20,14 +20,13 @@ class CanonPagoController extends Controller
   }
     
   public function validar(){
-    $CC = CanonController::getInstancia();
     return [
       'fecha_vencimiento' => ['nullable','date'],
-      'interes_provincial_diario_simple' => ['nullable',$CC->numeric_rule(4)],
-      'interes_nacional_mensual_compuesto' => ['nullable',$CC->numeric_rule(4)],
+      'interes_provincial_diario_simple' => ['nullable',AUX::numeric_rule(4)],
+      'interes_nacional_mensual_compuesto' => ['nullable',AUX::numeric_rule(4)],
       'canon_pago' => 'array',
       'canon_pago.*.fecha_pago' => ['nullable','date'],
-      'canon_pago.*.pago' => ['nullable',$CC->numeric_rule(2)],
+      'canon_pago.*.pago' => ['nullable',AUX::numeric_rule(2)],
     ];
   }
   
@@ -168,5 +167,26 @@ class CanonPagoController extends Controller
       ['canon_pago'],
       ['fecha_vencimiento','interes_provincial_diario_simple','interes_nacional_mensual_compuesto']
     );
+  }
+  
+  
+  public function guardar($id_canon,$id_canon_anterior,$datos){
+    foreach(($datos['canon_pago'] ?? []) as $idx => $d){
+      DB::table('canon_pago')
+      ->insert([
+        'id_canon' => $id_canon,
+        'capital' => $d['capital'],
+        'fecha_vencimiento' => $d['fecha_vencimiento'],
+        'fecha_pago' => $d['fecha_pago'],
+        'dias_vencidos' => $d['dias_vencidos'],
+        'interes_provincial_diario_simple' => $d['interes_provincial_diario_simple'],
+        'interes_nacional_mensual_compuesto' => $d['interes_nacional_mensual_compuesto'],
+        'mora_provincial' => $d['mora_provincial'],
+        'mora_nacional' => $d['mora_nacional'],
+        'a_pagar' => $d['a_pagar'],
+        'pago' => $d['pago'],
+        'diferencia' => $d['diferencia'],
+      ]);
+    }
   }
 }
