@@ -1010,9 +1010,9 @@ Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_c
     Route::get('/diario','\App\Http\Controllers\Canon\CanonController@diario');
     Route::group(['middleware' => 'tiene_rol:superusuario'], function () {
       Route::get('/desborrar','\App\Http\Controllers\Canon\CanonController@desborrar');
-      Route::post('/valoresPorDefecto','\App\Http\Controllers\Canon\CanonController@valoresPorDefecto');
-      Route::post('/valoresPorDefecto/ingresar','\App\Http\Controllers\Canon\CanonController@valoresPorDefecto_ingresar');
-      Route::delete('/valoresPorDefecto/borrar','\App\Http\Controllers\Canon\CanonController@valoresPorDefecto_borrar');
+      Route::post('/valoresPorDefecto','\App\Http\Controllers\Canon\CanonValorPorDefectoController@valoresPorDefecto');
+      Route::post('/valoresPorDefecto/ingresar','\App\Http\Controllers\Canon\CanonValorPorDefectoController@valoresPorDefecto_ingresar');
+      Route::delete('/valoresPorDefecto/borrar','\App\Http\Controllers\Canon\CanonValorPorDefectoController@valoresPorDefecto_borrar');
       Route::get('/recalcularSaldos','\App\Http\Controllers\Canon\CanonController@recalcular_saldos_Req');
     });
   });

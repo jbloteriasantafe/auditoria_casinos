@@ -74,7 +74,9 @@ function ucwords_espacios($s){
       <tr>
         @foreach($datos as $titulo_tabla => $datos_tabla)
         <?php 
-          $k = array_keys($datos_tabla[0] ?? [])[$kidx] ?? null ;
+          $tipo0 = array_keys($datos_tabla ?? [])[0] ?? null;
+          $ks = $tipo0 !== null? array_keys($datos_tabla[$tipo0] ?? []) : [];
+          $k  = $ks[$kidx] ?? null ;
           $col_width = $main_col_width/(1+count($datos_tabla));
         ?>
         

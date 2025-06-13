@@ -210,19 +210,38 @@ class CanonFijoMesasController extends Controller
   }
     
   public function obtener($id_canon){
-    return DB::table('canon_fijo_mesas')
+    $ret = [];
+    $ret['canon_fijo_mesas'] = DB::table('canon_fijo_mesas')
     ->where('id_canon',$id_canon)
     ->get()
     ->keyBy('tipo');
+       
+    return $ret;
   }
-  
-  public function obtener_para_salida($data){    
+    
+  public function procesar_para_salida($data){
+    $ret = [];
     foreach(['id_canon_fijo_mesas','id_canon'] as $k){
       foreach(($data['canon_fijo_mesas'] ?? []) as $tipo => $_){
         unset($data['canon_fijo_mesas'][$tipo][$k]);
       }
     }
-    return array_values($data['canon_fijo_mesas'] ?? []);
+    $ret['canon_fijo_mesas'] = $data['canon_fijo_mesas'] ?? [];
+    
+    return $ret;
+  }
+  
+  public function confluir($data){
+    return CanonController::confluir_datos(
+      $data,
+      ['canon_fijo_mesas'],
+      [
+        'valor_dolar','valor_euro','devengado_fecha_cotizacion',
+        'determinado_fecha_cotizacion',
+        'devengado_cotizacion_dolar','devengado_cotizacion_euro',
+        'determinado_cotizacion_dolar','determinado_cotizacion_euro'
+      ]
+    );
   }
 
   public function bruto($tipo,$año_mes,$id_casino){

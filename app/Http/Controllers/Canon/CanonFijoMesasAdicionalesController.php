@@ -146,21 +146,40 @@ class CanonFijoMesasAdicionalesController extends Controller
       ->insert($d);
     }
   }
-    
+  
   public function obtener($id_canon){
-    return DB::table('canon_fijo_mesas_adicionales')
+    $ret = [];
+    $ret['canon_fijo_mesas_adicionales'] = DB::table('canon_fijo_mesas_adicionales')
     ->where('id_canon',$id_canon)
     ->get()
     ->keyBy('tipo');
+       
+    return $ret;
   }
     
-  public function obtener_para_salida($data){
+  public function procesar_para_salida($data){
+    $ret = [];
     foreach(['id_canon_fijo_mesas_adicionales','id_canon'] as $k){
       foreach(($data['canon_fijo_mesas_adicionales'] ?? []) as $tipo => $_){
         unset($data['canon_fijo_mesas_adicionales'][$tipo][$k]);
       }
     }
-    return array_values($data['canon_fijo_mesas_adicionales'] ?? []);
+    $ret['canon_fijo_mesas_adicionales'] = $data['canon_fijo_mesas_adicionales'] ?? [];
+    
+    return $ret;
+  }
+  
+  public function confluir($data){
+    return CanonController::confluir_datos(
+      $data,
+      ['canon_fijo_mesas_adicionales'],
+      [
+        'valor_dolar','valor_euro','devengado_fecha_cotizacion',
+        'determinado_fecha_cotizacion',
+        'devengado_cotizacion_dolar','devengado_cotizacion_euro',
+        'determinado_cotizacion_dolar','determinado_cotizacion_euro'
+      ]
+    );
   }
   
   public function diario($id,$año_mes){

@@ -125,19 +125,29 @@ class CanonVariableController extends Controller
   }
   
   public function obtener($id_canon){
-    return DB::table('canon_variable')
+    $ret = [];
+    $ret['canon_variable'] = DB::table('canon_variable')
     ->where('id_canon',$id_canon)
     ->get()
     ->keyBy('tipo');
+       
+    return $ret;
   }
-  
-  public function obtener_para_salida($data){    
+    
+  public function procesar_para_salida($data){
+    $ret = [];
     foreach(['id_canon_variable','id_canon'] as $k){
       foreach(($data['canon_variable'] ?? []) as $tipo => $_){
         unset($data['canon_variable'][$tipo][$k]);
       }
     }
-    return array_values($data['canon_variable'] ?? []);
+    $ret['canon_variable'] = $data['canon_variable'] ?? [];
+    
+    return $ret;
+  }
+  
+  public function confluir($data){
+    return [];
   }
     
   public function bruto($tipo,$año_mes,$id_casino){
