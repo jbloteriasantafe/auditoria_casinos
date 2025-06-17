@@ -169,7 +169,7 @@ class CanonFijoMesasAdicionalesController extends Controller
   }
   
   public function confluir($data){
-    return CanonController::confluir_datos(
+    return AUX::confluir_datos(
       $data,
       ['canon_fijo_mesas_adicionales'],
       [

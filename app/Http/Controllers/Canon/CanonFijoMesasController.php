@@ -40,7 +40,7 @@ class CanonFijoMesasController extends Controller
       'canon_fijo_mesas.*.bruto' => ['nullable',AUX::numeric_rule(2)],
     ];
   }
-    
+  
   public function recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$accessors){
     extract($accessors);
     
@@ -231,7 +231,7 @@ class CanonFijoMesasController extends Controller
   }
   
   public function confluir($data){
-    return CanonController::confluir_datos(
+    return AUX::confluir_datos(
       $data,
       ['canon_fijo_mesas'],
       [

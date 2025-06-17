@@ -162,7 +162,7 @@ class CanonPagoController extends Controller
   }
 
   public function confluir(array $data){
-    return CanonController::confluir_datos(
+    return AUX::confluir_datos(
       $data,
       ['canon_pago'],
       ['fecha_vencimiento','interes_provincial_diario_simple','interes_nacional_mensual_compuesto']

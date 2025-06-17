@@ -66,4 +66,24 @@ class AUX {
     $cache[$digits] = 'regex:/^'.$regex.'$/';
     return $cache[$digits];
   }
+  
+  public static function confluir_datos(array $canon,array $tablas,array $atributos){
+    $ret = [];
+    foreach($tablas as $tabla){
+      foreach($atributos as $attr){
+        foreach($canon[$tabla] as $tipo => $data_tabla){
+          $data_tabla = (array) $data_tabla;
+          if(!isset($data_tabla[$attr])) continue;
+          $val = $data_tabla[$attr];
+          if(isset($ret[$attr])){//Si es distinto, hay conflicto y pongo en nulo
+            $ret[$attr] = $val != $ret[$attr]? null : $val;
+          }
+          else{
+            $ret[$attr] = $val;
+          }
+        }
+      }
+    }
+    return $ret;
+  }
 }

@@ -531,32 +531,11 @@ class CanonController extends Controller
       return $carry;
     },[]));
     
-    return self::confluir_datos(
+    return AUX::confluir_datos(
       $aux,
       array_keys($aux),
       $attrs
     );
-  }
-  
-  public static function confluir_datos(array $canon,array $tablas,array $atributos){
-    $ret = [];
-    //Obtengo data de cotización, si no es uniforme devuelvo nulo
-    foreach($tablas as $tabla){
-      foreach($atributos as $attr){
-        foreach($canon[$tabla] as $tipo => $data_tabla){
-          $data_tabla = (array) $data_tabla;
-          if(!isset($data_tabla[$attr])) continue;
-          $val = $data_tabla[$attr];
-          if(isset($ret[$attr])){//Si es distinto, hay conflicto y pongo en nulo
-            $ret[$attr] = $val != $ret[$attr]? null : $val;
-          }
-          else{
-            $ret[$attr] = $val;
-          }
-        }
-      }
-    }
-    return $ret;
   }
   
   public function archivo(Request $request){
