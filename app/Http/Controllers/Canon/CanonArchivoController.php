@@ -129,4 +129,28 @@ class CanonArchivoController extends Controller
     DB::table('canon_archivo')
     ->insert($archivos_resultantes);
   }
+  
+  public function GET(Request $request){
+    if(($request['id_canon'] ?? null) === null || ($request['nombre_archivo'] ?? null) === null)
+      return null;
+    
+    $a = DB::table('canon_archivo as ca')
+    ->select('ca.type','a.*')
+    ->join('archivo as a','a.id_archivo','=','ca.id_archivo')
+    ->where('ca.id_canon',$request['id_canon'])
+    ->where('a.nombre_archivo',$request['nombre_archivo'])
+    ->first();
+    
+    if($a === null) 
+      return null;
+    
+    return \Response::make(
+      base64_decode($a->archivo), 
+      200, 
+      [
+        'Content-Type' => $a->type,
+        'Content-Disposition' => 'inline; filename="'.$a->nombre_archivo.'"'
+      ]
+    );
+  }
 }

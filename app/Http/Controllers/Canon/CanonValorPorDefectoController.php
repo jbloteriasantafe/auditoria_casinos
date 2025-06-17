@@ -5,14 +5,8 @@ namespace App\Http\Controllers\Canon;
 use Illuminate\Http\Request;
 use Validator;
 use Illuminate\Support\Facades\DB;
-use PDF;
-use Dompdf\Dompdf;
-use View;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UsuarioController;
-use App\Plataforma;
-use App\Archivo;
-use App\Casino;
 
 class CanonValorPorDefectoController extends Controller
 {

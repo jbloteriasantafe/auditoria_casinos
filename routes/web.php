@@ -999,7 +999,7 @@ Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_c
   Route::get('/planillaPDF','\App\Http\Controllers\Canon\CanonController@planillaPDF');
   Route::get('/planillaDevengado','\App\Http\Controllers\Canon\CanonController@planillaDevengado');
   Route::get('/planillaDeterminado','\App\Http\Controllers\Canon\CanonController@planillaDeterminado');
-  Route::get('/archivo','\App\Http\Controllers\Canon\CanonController@archivo');
+  Route::get('/archivo','\App\Http\Controllers\Canon\CanonArchivoController@GET');
   Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
     Route::get('/obtenerConHistorial','\App\Http\Controllers\Canon\CanonController@obtenerConHistorial');
     Route::post('/recalcular','\App\Http\Controllers\Canon\CanonController@recalcular_req');

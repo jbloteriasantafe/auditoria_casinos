@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers\Canon;
 
-use App\Http\Controllers\Canon\CanonController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 require_once(app_path('BC_extendido.php'));

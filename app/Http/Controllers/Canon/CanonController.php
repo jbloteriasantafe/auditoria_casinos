@@ -349,7 +349,7 @@ class CanonController extends Controller
       $id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       
       $canon_anterior = ($datos['año_mes'] !== null && $datos['id_casino'] !== null)?
-        DB::table('canon')//Necesito la variable para despues sacarle los archivos
+        DB::table('canon')
         ->select('id_canon')
         ->whereNull('deleted_at')
         ->where('año_mes',$datos['año_mes'])
@@ -537,31 +537,7 @@ class CanonController extends Controller
       $attrs
     );
   }
-  
-  public function archivo(Request $request){
-    if(($request['id_canon'] ?? null) === null || ($request['nombre_archivo'] ?? null) === null)
-      return null;
     
-    $a = DB::table('canon_archivo as ca')
-    ->select('ca.type','a.*')
-    ->join('archivo as a','a.id_archivo','=','ca.id_archivo')
-    ->where('ca.id_canon',$request['id_canon'])
-    ->where('a.nombre_archivo',$request['nombre_archivo'])
-    ->first();
-    
-    if($a === null) 
-      return null;
-    
-    return \Response::make(
-      base64_decode($a->archivo), 
-      200, 
-      [
-        'Content-Type' => $a->type,
-        'Content-Disposition' => 'inline; filename="'.$a->nombre_archivo.'"'
-      ]
-    );
-  }
-  
   public function obtener(Request $request){
     return $this->obtener_arr_confluido($request->all());
   }

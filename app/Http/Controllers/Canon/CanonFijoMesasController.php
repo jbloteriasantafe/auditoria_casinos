@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers\Canon;
 
-use App\Http\Controllers\Canon\CanonController;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Plataforma;
-use App\Casino;
 require_once(app_path('BC_extendido.php'));
 
 class CanonFijoMesasController extends Controller

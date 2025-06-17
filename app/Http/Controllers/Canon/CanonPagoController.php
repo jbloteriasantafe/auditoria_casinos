@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers\Canon;
 
-use App\Http\Controllers\Canon\CanonController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 require_once(app_path('BC_extendido.php'));
@@ -168,7 +166,6 @@ class CanonPagoController extends Controller
       ['fecha_vencimiento','interes_provincial_diario_simple','interes_nacional_mensual_compuesto']
     );
   }
-  
   
   public function guardar($id_canon,$id_canon_anterior,$datos){
     foreach(($datos['canon_pago'] ?? []) as $idx => $d){

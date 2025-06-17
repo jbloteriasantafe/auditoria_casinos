@@ -177,7 +177,7 @@ class CanonVariableController extends Controller
         return $resultado === null? $resultado : $resultado->valor;
       };
       case 'JOL':{
-        $JOL_connect_config = CanonController::getInstancia()->valorPorDefecto('JOL_connect_config') ?? null;
+        $JOL_connect_config = CanonValorPorDefectoController::getInstancia()->valorPorDefecto('JOL_connect_config') ?? null;
         $debug = $JOL_connect_config['debug'] ?? false;
         if(empty($JOL_connect_config)) return $debug? '-0.99' : null;
         if(empty($JOL_connect_config['ip_port'])) return $debug? '-0.98' : null;
