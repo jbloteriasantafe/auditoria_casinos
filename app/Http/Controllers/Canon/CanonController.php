@@ -15,16 +15,6 @@ use App\Casino;
 
 require_once(app_path('BC_extendido.php'));
 
-function csvstr(array $fields) : string {
-  $f = fopen('php://memory', 'r+');
-  if (fputcsv($f, $fields) === false) {
-      return false;
-  }
-  rewind($f);
-  $csv_line = stream_get_contents($f);
-  return rtrim($csv_line);
-}
-
 class CanonController extends Controller
 {
   private static $instance;
@@ -900,12 +890,12 @@ class CanonController extends Controller
       $lineas = [];
             
       foreach($arreglo as $v){
-        $lineas[] = csvstr(array_keys($v));
+        $lineas[] = AUX::csvstr(array_keys($v));
         break;
       }
       
       foreach($arreglo as $v){
-        $lineas[] = csvstr($v);
+        $lineas[] = AUX::csvstr($v);
       }
       
       $lineas[] = '';
