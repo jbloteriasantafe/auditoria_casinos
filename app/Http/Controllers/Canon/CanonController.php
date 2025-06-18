@@ -980,8 +980,8 @@ class CanonController extends Controller
     ->get();
         
     $empty_val = ['beneficio' => null,'bruto' => null,'devengado' => null,'deduccion' => null,'determinado' => null];    
-    $conceptos = ['Mesa' => $empty_val,'Maquina' => $empty_val,'Bingo' => $empty_val,'Físico' => $empty_val,'Online' => $empty_val,'' => $empty_val];    
-    $datos = ['' => $conceptos];
+    $conceptos = ['Mesa' => $empty_val,'Maquina' => $empty_val,'Bingo' => $empty_val,'Físico' => $empty_val,'Online' => $empty_val];    
+    $datos = ['' => []];
     
     $sub_f;$add_f;{
       $apply_func_f = function($func)  use ($empty_val){
@@ -1000,52 +1000,34 @@ class CanonController extends Controller
     foreach($cs as $canon){
       if(empty($canon)) continue;
       
-      $total = $this->totales($canon->id_canon);
-      $totales = $conceptos;
-      
+      $totalizados = $conceptos;
       foreach($this->subcanons as $scstr => $sc){
         $T = $sc->totales($canon->id_canon);
-        foreach($totales as $concepto => $tot){          
+        foreach($conceptos as $concepto => $_){
           foreach($T as $tipo => $tot_tipo){
             if($sc->es($tipo,$concepto)){
-              $totales[$concepto][] = (array) $tot_tipo;
+              $totalizados[$concepto] = $add_f($totalizados[$concepto],(array) $tot_tipo);
             }
           }
         }
       }
-      
-      $totalizados = array_map(function($tot) use ($empty_val){
-        $totalizar_func = function($carry,$t){
-          foreach($carry as $ck => $cv){
-            $carry[$ck] = $cv === null && $t[$ck] === null?
-              null
-            : bcadd_precise($cv ?? '0',$t[$ck] ?? '0');
-          }
-          return $carry;
-        };
-        return array_reduce($tot,$totalizar_func,$empty_val);
-      },$totales);
-      
       foreach($totalizados as $concepto => $T){
-        $totalizados[$concepto] = array_map(function($n){
-          return $n === null? null: bcround_ndigits($n ?? '0',2);
-        },$T);
-      }
-      
-      $totalizados[''] = $empty_val;
-      foreach($totalizados as $concepto => $T){
+        foreach($T as $k => $v){
+          $totalizados[$concepto][$k] = $v===null? null: bcround_ndigits($v ?? '0',2);
+        }
         if($concepto != '' && $concepto != 'Físico'){
-          $totalizados[''] = $add_f($totalizados[''],$T);
+          $totalizados[''] = $add_f($totalizados[''] ?? $empty_val,$totalizados[$concepto]);
         }
       }
-      $error_redondeo = $sub_f((array) $total,$totalizados['']);
+      
+      $error_redondeo = $sub_f((array)$this->totales($canon->id_canon),$totalizados['']);
       $totalizados['Mesa']  = $add_f($totalizados['Mesa'],$error_redondeo);//Le meto la diferencia de redondeo a mesas
       $totalizados['Físico'] = $add_f($totalizados['Físico'],$error_redondeo);//Ergo tambien al total fisico
       $totalizados[''] = $add_f($totalizados[''],$error_redondeo);//Ergo tambien al total
       
       $datos[$canon->casino] = $totalizados;
       foreach($totalizados as $concepto => $t){
-        $datos[''][$concepto] = $add_f($datos[''][$concepto],$t);
+        $datos[''][$concepto] = $add_f($datos[''][$concepto] ?? $empty_val,$t);
       }
     }
     
@@ -1080,35 +1062,26 @@ class CanonController extends Controller
     
     $datos = $this->totalesCanon($año_mes[0],$año_mes[1]);
     
-    $tablas = [];
+    $tablas = null;
     if($tipo_presupuesto == 'devengado'){
       $tablas = ['','deduccion','bruto'];
-      foreach($datos as $cas => &$t){
-        foreach($t as $nombre_sc => &$subcanon){
-          $subcanon[''] = $subcanon['devengado'];
-          unset($subcanon['beneficio']);
-          unset($subcanon['devengado']);
-          unset($subcanon['determinado']);
-        }
-      }
     }
     else if($tipo_presupuesto == 'determinado'){
       $tablas = [''];
-      foreach($datos as &$t){
-        foreach($t as &$subcanon){
-          $subcanon[''] = $subcanon['determinado'];
-          unset($subcanon['beneficio']);
-          unset($subcanon['devengado']);
-          unset($subcanon['bruto']);
-          unset($subcanon['deduccion']);
-          unset($subcanon['determinado']);
-        }
+    }
+    
+    $conceptos = [];
+    foreach($datos as $cas => &$t){
+      $conceptos = array_merge($t);
+      foreach($t as $nombre_sc => &$subcanon) {
+        $subcanon[''] = $subcanon[$tipo_presupuesto];
+        foreach($subcanon as $k => $v)
+          if(!in_array($k,$tablas))
+            unset($subcanon[$k]);
       }
     }
     
-    $conceptos = array_keys(array_reduce($datos,function($carry,$item){
-      return array_merge($carry,$item);
-    },[]));
+    $conceptos = array_keys($conceptos);
         
     $view = View::make('Canon.planillaDevengado', compact('tipo_presupuesto','tablas','conceptos','mes','datos'));
     $dompdf = new Dompdf();
