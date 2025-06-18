@@ -956,6 +956,20 @@ class CanonController extends Controller
     return $dompdf->stream($filename, Array('Attachment'=>0));
   }
   
+  
+  public function totales($id_canon){
+    return DB::table('canon')
+    ->select(
+      DB::raw('NULL as beneficio'),
+      DB::raw('SUM(devengado_deduccion+devengado) as bruto'),
+      DB::raw('SUM(devengado_deduccion) as deduccion'),
+      DB::raw('SUM(devengado) as devengado'),
+      DB::raw('SUM(determinado) as determinado')
+    )
+    ->where('id_canon',$id_canon)
+    ->first();
+  }
+  
   public function totalesCanon($año,$mes){//Usado en backoffice tambien
     $cs = DB::table('canon as c')
     ->select('c.*','cas.nombre as casino')->distinct()
@@ -965,149 +979,78 @@ class CanonController extends Controller
     ->whereMonth('c.año_mes',$mes)
     ->get();
         
-    $conceptos = [
-      'Paños',
-      'MTM',
-      'Bingo',
-      'Total Físico',
-      'JOL',
-      'Total',
-    ];
-        
-    $subcanons = [
-      'Maquinas' => 'MTM',
-      'Bingo' => 'Bingo',
-      'JOL' => 'JOL',
-    ];
+    $empty_val = ['beneficio' => null,'bruto' => null,'devengado' => null,'deduccion' => null,'determinado' => null];    
+    $conceptos = ['Mesa' => $empty_val,'Maquina' => $empty_val,'Bingo' => $empty_val,'Físico' => $empty_val,'Online' => $empty_val,'' => $empty_val];    
+    $datos = ['' => $conceptos];
     
-    //Agrupo segun los conceptos
-    $datos = [];
+    $sub_f;$add_f;{
+      $apply_func_f = function($func)  use ($empty_val){
+        return function($ta,$tb) use ($func,$empty_val){
+          $ret = $empty_val;
+          foreach($ret as $k => $_){
+            $ret[$k] = $func($ta[$k] ?? '0',$tb[$k] ??  '0');
+          }
+          return $ret;
+        };
+      };
+      $sub_f = $apply_func_f('bcsub_precise');
+      $add_f = $apply_func_f('bcadd_precise');
+    }
+    
     foreach($cs as $canon){
-      $dcas = [];
-      $max_scale = 2;//Sumo usando la maxima escala posible...
-      
       if(empty($canon)) continue;
       
-      $acumulados = DB::table('canon_variable')
-      ->select('tipo',
-        DB::raw('SUM(determinado_subtotal) as beneficio'),//Con el impuesto restado
-        DB::raw('SUM(IF(devengar,devengado_deduccion,NULL)) as deduccion'),
-        DB::raw('SUM(IF(devengar,devengado,NULL)) as devengado'),
-        DB::raw('SUM(determinado) as determinado')
-      )
-      ->whereIn('tipo',array_keys($subcanons))
-      ->where('id_canon',$canon->id_canon)
-      ->groupBy('tipo')
-      ->get()
-      ->keyBy('tipo');
+      $total = $this->totales($canon->id_canon);
+      $totales = $conceptos;
       
-      $beneficio_total = null;
-      foreach($subcanons as $tipo => $concepto){
-        $cv = $acumulados[$tipo] ?? (new \stdClass());
-        $max_scale = max($max_scale,bcscale_string($cv->dev ?? '0'));
-        
-        $beneficio_total = ($cv->beneficio ?? null) !== null? bcadd($beneficio_total,$cv->beneficio,$max_scale)
-        : $beneficio_total;
-        
-        $dcas[$concepto] = [
-          'beneficio' => $cv->beneficio ?? null,
-          'devengado' => $cv->devengado ?? null,
-          'deduccion' => $cv->deduccion ?? null,
-          'determinado' => $cv->determinado ?? null
-        ];
-      }
-      
-      //Agrego Total
-      $dcas['Total'] = [
-        'beneficio'   => $beneficio_total,//A completar... tiene los canon variable nomas
-        'devengado'   => $canon->devengado ?? '0',
-        'deduccion'   => $canon->devengado_deduccion ?? '0',
-        'determinado' => $canon->determinado ?? '0',
-      ];
-      
-      foreach($dcas as $concepto => $v){
-        foreach($v as $aux => $val){
-          $dcas[$concepto][$aux] = $val === null? null : bcround_ndigits($val,2);
-        }
-      }
-      
-      //Calculo Paños a partir de los demas redondeados. Total Fisico de paso tambien
-      //Esto es asi porque Paños es el mas "aproximado", osea que que este unos centavos arriba o abajo no cambia mucho
-      $paños = $dcas['Total'];//clone
-      $total_fisico = $dcas['Total'];//clone
-      foreach(['devengado','deduccion','determinado'] as $t){
-        $paños[$t] = bcsub($paños[$t],($dcas['MTM'] ?? [])[$t] ?? '0',2);
-        $paños[$t] = bcsub($paños[$t],($dcas['JOL'] ?? [])[$t] ?? '0',2);
-        $paños[$t] = bcsub($paños[$t],($dcas['Bingo'] ?? [])[$t] ?? '0',2);
-        
-        $total_fisico[$t] = bcsub($total_fisico[$t],($dcas['JOL'] ?? [])[$t] ?? '0',2);
-      }
-      $dcas['Paños'] = $paños;
-      $dcas['Total Físico'] = $total_fisico;
-      
-      //Arreglo los beneficios
-      {
-        $ben_cfm = DB::table('canon_fijo_mesas')
-        ->selectRaw('SUM(bruto) as ben')
-        ->where('id_canon',$canon->id_canon)
-        ->groupBy(DB::raw('"constant"'))
-        ->first();
-        
-        $dcas['Paños']['beneficio'] = $ben_cfm === null? null : $ben_cfm->ben;
-        
-        $dcas['Total']['beneficio'] = bcadd(//Le agrego paños
-          $dcas['Paños']['beneficio'],
-          $dcas['Total']['beneficio'],
-          $max_scale
-        );
-        
-        $dcas['Total Físico']['beneficio'] = bcsub(//Es el total menos online obviamente
-          $dcas['Total']['beneficio'],
-          $dcas['JOL']['beneficio'],
-          $max_scale
-        );
-      }
-      
-      {//DETERMINADO: (??) El ajuste final se lo sumo a paños por mismas razones
-        $ajuste = $canon->ajuste ?? '0';
-        $dcas['Paños']['determinado'] = bcadd($dcas['Paños']['determinado'],$ajuste,2);
-        $dcas['Total Físico']['determinado'] = bcadd($dcas['Total Físico']['determinado'],$ajuste,2);
-        $dcas['Total']['determinado'] = bcadd($dcas['Total']['determinado'],$ajuste,2);
-      }
-      
-      {//DEVENGADO: calculo el bruto a partir del devengado y la deduccion
-        foreach($dcas as $tipo => &$vals){
-          if($vals['devengado'] !== null || $vals['deduccion'] !== null){
-            $vals['bruto'] = bcadd($vals['devengado'],$vals['deduccion'],2);
+      foreach($this->subcanons as $scstr => $sc){
+        $T = $sc->totales($canon->id_canon);
+        foreach($totales as $concepto => $tot){          
+          foreach($T as $tipo => $tot_tipo){
+            if($sc->es($tipo,$concepto)){
+              $totales[$concepto][] = (array) $tot_tipo;
+            }
           }
         }
       }
-            
-      {//Reordeno
-        $aux = [];
-        foreach($conceptos as $concepto){
-          $aux[$concepto] = $dcas[$concepto] ?? null;
-        }
-        $dcas = $aux;
-      }
-    
-      $datos[$canon->casino] = $dcas;
-    }
-    
-    {//Agrego una columna Total
-      $total = [];
-      foreach($datos as $casino => $dcas){
-        foreach($dcas as $tipo => $vals){
-          $total[$tipo] = $total[$tipo] ?? [];
-          foreach(['beneficio','devengado','deduccion','determinado','bruto'] as $t){
-            $total[$tipo][$t] = $total[$tipo][$t] ?? '0.00';
-            $total[$tipo][$t] = bcadd($vals[$t] ?? '0.00',$total[$tipo][$t],2);
+      
+      $totalizados = array_map(function($tot) use ($empty_val){
+        $totalizar_func = function($carry,$t){
+          foreach($carry as $ck => $cv){
+            $carry[$ck] = $cv === null && $t[$ck] === null?
+              null
+            : bcadd_precise($cv ?? '0',$t[$ck] ?? '0');
           }
+          return $carry;
+        };
+        return array_reduce($tot,$totalizar_func,$empty_val);
+      },$totales);
+      
+      foreach($totalizados as $concepto => $T){
+        $totalizados[$concepto] = array_map(function($n){
+          return $n === null? null: bcround_ndigits($n ?? '0',2);
+        },$T);
+      }
+      
+      $totalizados[''] = $empty_val;
+      foreach($totalizados as $concepto => $T){
+        if($concepto != '' && $concepto != 'Físico'){
+          $totalizados[''] = $add_f($totalizados[''],$T);
         }
       }
-      $datos['Total'] = $total;
+      $error_redondeo = $sub_f((array) $total,$totalizados['']);
+      $totalizados['Mesa']  = $add_f($totalizados['Mesa'],$error_redondeo);//Le meto la diferencia de redondeo a mesas
+      $totalizados['Físico'] = $add_f($totalizados['Físico'],$error_redondeo);//Ergo tambien al total fisico
+      $totalizados[''] = $add_f($totalizados[''],$error_redondeo);//Ergo tambien al total
+      
+      $datos[$canon->casino] = $totalizados;
+      foreach($totalizados as $concepto => $t){
+        $datos[''][$concepto] = $add_f($datos[''][$concepto],$t);
+      }
     }
     
+    //Muevo la columna total al final... array_shift la saca del principio y despues la vuelvo a asignar para que se ponga al final
+    $datos[''] = array_shift($datos);
     
     //Formateo a español los numeros
     foreach($datos as $id_canon => &$dcas){
@@ -1226,7 +1169,7 @@ class CanonController extends Controller
     $data = $this->buscar($request,false);
     
     $conceptos = [
-      'MTM','Bingo','JOL','Paños'
+      'Maquina','Bingo','Online','Mesa'
     ];
     
     $tipo_valores = [

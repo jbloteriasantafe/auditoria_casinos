@@ -38,6 +38,34 @@ class CanonFijoMesasController extends Controller
     ];
   }
   
+  public function es($tipo,$concepto){
+    static $tipos = null;
+    $tipos = $tipos 
+    ?? DB::table('canon_fijo_mesas')->selectRaw('tipo')->distinct()->pluck('tipo')->toArray();
+    
+    if($concepto == '') return true;
+    
+    $concepto = strtoupper($concepto);
+    
+    return in_array($tipo,$tipos)
+    &&     in_array($concepto,['','MESA','FÍSICO','FíSICO']);
+  }
+  
+  public function totales($id_canon){
+    return DB::table('canon_fijo_mesas')
+    ->select('tipo',
+      DB::raw('SUM(bruto) as beneficio'),
+      DB::raw('SUM(IF(devengar,devengado_deduccion+devengado,NULL)) as bruto'),
+      DB::raw('SUM(IF(devengar,devengado_deduccion,NULL)) as deduccion'),
+      DB::raw('SUM(IF(devengar,devengado,NULL)) as devengado'),
+      DB::raw('SUM(determinado) as determinado')
+    )
+    ->where('id_canon',$id_canon)
+    ->groupBy('tipo')
+    ->get()
+    ->keyBy('tipo')->toArray();
+  }
+  
   public function recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$accessors){
     extract($accessors);
     

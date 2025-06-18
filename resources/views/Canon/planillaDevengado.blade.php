@@ -22,6 +22,13 @@ tr:nth-child(even) {
 
 <?php 
 $columnas = count($datos);
+$cambiar_concepto = function($s){
+  $map = ['Mesa' => 'Paños','Maquina' => 'MTM','Físico' => 'Total Físico', 'Online' => 'JOL', '' => 'Total'];
+  return $map[$s] ?? $s;
+};
+$cambiar_casino = function($s){
+  return empty($s)? 'Total' : ('Casino '.$s);
+};
 ?>
 
 <head>
@@ -48,12 +55,12 @@ $columnas = count($datos);
     <tr>
       <th class="tablaInicio" style="text-align: center;">CONCEPTO</th>
       @foreach($datos as $cas => $_)
-      <th class="tablaInicio" style="text-align: center;">{{$cas == 'Total'? '' : 'Casino '}}{{$cas}}</th>
+      <th class="tablaInicio" style="text-align: center;">{{$cambiar_casino($cas)}}</th>
       @endforeach
     </tr>
     @foreach($conceptos as $concepto)
     <tr>
-      <td class="tablaCampos" style="text-align: center;">{{$concepto}}</td>
+      <td class="tablaCampos" style="text-align: center;">{{$cambiar_concepto($concepto)}}</td>
       @foreach($datos as $cas => $datos_concepto)
       <td class="tablaCampos" style="text-align: center;">{{$datos_concepto[$concepto][$t] ?? ''}}</td>
       @endforeach

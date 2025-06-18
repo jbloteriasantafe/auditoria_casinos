@@ -34,6 +34,41 @@ class CanonVariableController extends Controller
     ];
   }
   
+  public function es($tipo,$concepto){    
+    if($concepto == '') return true;
+    
+    $concepto = strtoupper($concepto);
+    
+    if(in_array($tipo,['JOL','jol','Jol'])){
+      return in_array($concepto,['JOL','ONLINE']);
+    }
+    
+    if(in_array($tipo,['BINGO','bingo','Bingo'])){
+      return in_array($concepto,['BINGO','FíSICO','FÍSICO']);
+    }
+    
+    if(in_array($tipo,['MAQUINAS','maquinas','Maquinas','MAQUINA','Maquina','maquina','MTM','mtm','Mtm'])){
+      return in_array($concepto,['MAQUINA','FíSICO','FÍSICO']);
+    }
+    
+    return false;
+  }
+  
+  public function totales($id_canon){
+    return DB::table('canon_variable')
+    ->select('tipo',
+      DB::raw('SUM(determinado_subtotal) as beneficio'),//Con el impuesto restado
+      DB::raw('SUM(IF(devengar,devengado_deduccion+devengado,NULL)) as bruto'),
+      DB::raw('SUM(IF(devengar,devengado_deduccion,NULL)) as deduccion'),
+      DB::raw('SUM(IF(devengar,devengado,NULL)) as devengado'),
+      DB::raw('SUM(determinado) as determinado')
+    )
+    ->where('id_canon',$id_canon)
+    ->groupBy('tipo')
+    ->get()
+    ->keyBy('tipo')->toArray();
+  }
+  
   private function apostado($tipo,$año_mes,$id_casino){
     if($año_mes === null || $tipo === null || $id_casino === null) return null;
     $año_mes_arr = explode('-',$año_mes);
