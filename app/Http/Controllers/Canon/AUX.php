@@ -87,13 +87,13 @@ class AUX {
     return $ret;
   }
   
-  public static function csvstr(array $fields) : string {
-    $f = fopen('php://memory', 'r+');
-    if (fputcsv($f, $fields) === false) {
-        return false;
+  public static function csvstr(array $header,array $filas,string $filename='php://memory') : string{
+    $file = fopen($filename, 'a+');//https://stackoverflow.com/questions/13108157/php-array-to-csv
+    fputcsv($file, array_values($header));
+    foreach ($filas as $f) {
+      fputcsv($file, array_values($f));
     }
-    rewind($f);
-    $csv_line = stream_get_contents($f);
-    return rtrim($csv_line);
+    rewind($file);        
+    return stream_get_contents($file);
   }
 }

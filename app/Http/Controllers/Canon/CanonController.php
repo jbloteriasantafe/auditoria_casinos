@@ -887,24 +887,20 @@ class CanonController extends Controller
     
     $filenames = [];
     foreach($ret as $tipo => $arreglo){
-      $lineas = [];
+      $header = [];
             
       foreach($arreglo as $v){
-        $lineas[] = AUX::csvstr(array_keys($v));
+        $header = array_keys($v);
         break;
       }
       
-      foreach($arreglo as $v){
-        $lineas[] = AUX::csvstr($v);
+      $lineas = [];
+      foreach($arreglo as $vidx => $v){
+        $lineas[] = array_values($v);
       }
       
-      $lineas[] = '';
-      
       $fname = $dir_path."/{$tipo}";
-      $fhandler = fopen($fname,"w");
-      fwrite($fhandler,implode("\r\n",$lineas));
-      fclose($fhandler);
-      
+      AUX::csvstr($header,$lineas,$fname);      
       $filenames[] = $fname;
     }
     
@@ -1178,14 +1174,7 @@ class CanonController extends Controller
     
     $header = array_keys($arreglo_a_csv[0] ?? []);
     
-    $f = fopen('php://memory', 'r+');//https://stackoverflow.com/questions/13108157/php-array-to-csv
-    fputcsv($f, $header,',','"',"\\");
-    foreach ($arreglo_a_csv as $fila) {
-      fputcsv($f, array_values($fila),',','"',"\\");
-    }
-    rewind($f);
-        
-    return stream_get_contents($f);
+    return AUX::csvstr($header,$arreglo_a_csv);
   }
     
   public function descargarPlanillas(Request $request){
