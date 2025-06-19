@@ -1017,6 +1017,7 @@ class CanonController extends Controller
       }
       
       $error_redondeo = $sub_f((array)$this->totales($canon->id_canon),$totalizados['']);
+      $error_redondeo['beneficio'] = '0';//El canon total no tiene beneficio por lo que para evitar que se cancele lo pongo en cero
       $totalizados['Mesa']  = $add_f($totalizados['Mesa'],$error_redondeo);//Le meto la diferencia de redondeo a mesas
       $totalizados['Físico'] = $add_f($totalizados['Físico'],$error_redondeo);//Ergo tambien al total fisico
       $totalizados[''] = $add_f($totalizados[''],$error_redondeo);//Ergo tambien al total
@@ -1137,13 +1138,8 @@ class CanonController extends Controller
   public function descargar(Request $request){
     $data = $this->buscar($request,false);
     
-    $conceptos = [
-      'Maquina','Bingo','Online','Mesa'
-    ];
-    
-    $tipo_valores = [
-      'beneficio','bruto','deduccion','devengado','determinado'
-    ];
+    $conceptos = [];
+    $tipo_valores = [];
     
     $arreglo_a_csv = [];
     $totales_cache = [];//Si busco para un periodo me devuelve todos los casinos por eso lo cacheo
@@ -1156,15 +1152,31 @@ class CanonController extends Controller
       }
       $t = $totales_cache[$d->año_mes][$d->casino];//Deberia existir porque buscar() lo devolvio
       
+      if(empty($conceptos)){
+        foreach($t as $cncpt => $tcncpt){
+          $conceptos[$cncpt] = true;
+        }
+        $conceptos = array_keys($conceptos);
+      }
+      
+      if(empty($tipo_valores)){
+        foreach($t as $cncpt => $tcncpt){
+          foreach($tcncpt as $tval => $ttval){
+            $tipo_valores[$tval] = true;
+          }
+        }
+        $tipo_valores = array_keys($tipo_valores);
+      }
+      
       $fila = [
         'año_mes' => $d->año_mes,
         'casino'  => $d->casino,
       ];
       foreach($tipo_valores as $tval){
         foreach($conceptos as $cncpt){
-          $fila[$tval.'_'.$cncpt] = ($t[$cncpt] ?? [])[$tval] ?? '0';
+          $suffix = strlen($cncpt)? $tval.'_'.$cncpt : $tval;
+          $fila[$suffix] = ($t[$cncpt] ?? [])[$tval] ?? '0';
         }
-        $fila[$tval] = ($t['Total'] ?? [])[$tval] ?? '0';
       }
       $fila['intereses_y_cargos'] = AUX::formatear_decimal($d->intereses_y_cargos);
       $fila['pago']      = AUX::formatear_decimal($d->pago);
