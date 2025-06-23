@@ -23,8 +23,8 @@
         @foreach($casinos as $_casino)
         <col class="canon_total">
         @endforeach
-        <col class="variacion_anual">
-        <col class="variacion_mensual">
+        <col class="variacion_canon_yoy">
+        <col class="variacion_canon_mom">
       </colgroup>
       <thead>
         <tr>
@@ -35,8 +35,8 @@
           @foreach($abbr_casinos as $_cas)
           <th class="canon_total {{$_cas}}">{{$_cas}}</th>
           @endforeach
-          <th class="variacion_anual">{{$año}}/{{$año_anterior}}</th>
-          <th class="variacion_mensual">Dif. Mes Ant.</th>
+          <th class="variacion_canon_yoy">{{$año}}/{{$año_anterior}}</th>
+          <th class="variacion_canon_mom">Dif. Mes Ant.</th>
         </tr>
         <tr>
           <th class="mes celda_especial" style="border-right: 1px solid black;">{{$año_anterior}}</th>
@@ -44,13 +44,12 @@
           <?php
             $_casino = $casinos[$_cidx] ?? null;
             $total = $dataf($_casino,$año_anterior,0);
-            $canon_total = $formatear_decimal($total->canon_total ?? null);
-            $variacion_anual = $formatear_porcentaje($total->variacion_anual ?? null);
+            $canon = $formatear_decimal($total->canon ?? null);
           ?>
-          <th class="canon {{$_cas}} {{$N($canon_total)}}" style="text-align: right;">{{$canon_total}}</th>
+          <th class="canon {{$_cas}} {{$N($canon)}}" style="text-align: right;">{{$canon}}</th>
           @endforeach
-          <th class="variacion_anual" style="text-align: right;">{{$valor_vacio}}</th>
-          <th class="variacion_mensual" style="text-align: right;">{{$valor_vacio}}</th>
+          <th class="variacion_canon_yoy" style="text-align: right;">{{$valor_vacio}}</th>
+          <th class="variacion_canon_mom" style="text-align: right;">{{$valor_vacio}}</th>
         </tr>
       </thead>
       <tbody>
@@ -59,15 +58,15 @@
           <th class="mes" style="border-right: 1px solid black">{{$meses_calendario[$_nmes]}}</th>
           @foreach($casinos as $_casino)
           <?php 
-            $canon = $dataf($_casino,$año,$_nmes);
-            $canon_total = $formatear_decimal($canon->canon_total ?? null);
-            $variacion_anual = $formatear_porcentaje($canon->variacion_anual ?? null);
-            $variacion_mensual = $formatear_porcentaje($canon->variacion_mensual ?? null);
+            $c = $dataf($_casino,$año,$_nmes);
+            $canon = $formatear_decimal($c->canon ?? null);
+            $variacion_canon_yoy = $formatear_porcentaje($c->variacion_canon_yoy ?? null);
+            $variacion_canon_mom = $formatear_porcentaje($c->variacion_canon_mom ?? null);
           ?>
-          <td class="canon {{$N($canon_total)}}">{{$canon_total}}</td>
+          <td class="canon {{$N($canon)}}">{{$canon}}</td>
           @endforeach
-          <td class="variacion_anual {{$N($variacion_anual)}}">{{$variacion_anual}}</td>
-          <td class="variacion_mensual {{$N($variacion_mensual)}}">{{$variacion_mensual}}</td>
+          <td class="variacion_canon_yoy {{$N($variacion_canon_yoy)}}">{{$variacion_canon_yoy}}</td>
+          <td class="variacion_canon_mom {{$N($variacion_canon_mom)}}">{{$variacion_canon_mom}}</td>
         </tr>
         @endfor
         <tr>
@@ -76,13 +75,13 @@
           <?php
             $_casino = $casinos[$_cidx] ?? null;
             $total = $dataf($_casino,$año,0);
-            $canon_total = $formatear_decimal($total->canon_total ?? null);
-            $variacion_anual = $formatear_porcentaje($total->variacion_anual ?? null);
+            $canon = $formatear_decimal($total->canon ?? null);
+            $variacion_canon_yoy = $formatear_porcentaje($total->variacion_canon_yoy ?? null);
           ?>
-          <th class="canon {{$_cas}} {{$N($canon_total)}}" style="text-align: right;">{{$canon_total}}</th>
+          <th class="canon {{$_cas}} {{$N($canon)}}" style="text-align: right;">{{$canon}}</th>
           @endforeach
-          <th class="variacion_anual {{$N($variacion_anual)}}" style="text-align: right;">{{$variacion_anual}}</th>
-          <th class="variacion_mensual" style="text-align: right;">{{$valor_vacio}}</th>
+          <th class="variacion_canon_yoy {{$N($variacion_canon_yoy)}}" style="text-align: right;">{{$variacion_canon_yoy}}</th>
+          <th class="variacion_canon_mom" style="text-align: right;">{{$valor_vacio}}</th>
         </tr>
       </tbody>
     </table>

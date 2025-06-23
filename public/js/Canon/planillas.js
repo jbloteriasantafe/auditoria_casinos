@@ -74,7 +74,7 @@ $(document).ready(function() {
       const cas = casinos[cidx];
       if(cas == 'Total') continue;
       
-      const canon_anual = data[cas]?.[año]?.[0]?.canon_total ?? null;
+      const canon_anual = data[cas]?.[año]?.[0]?.canon ?? null;
       data_series_anual.data.push({
         name: cas,
         colorIndex: cidx,
@@ -87,7 +87,7 @@ $(document).ready(function() {
         colorIndex: cidx
       };
       for(let m=1;m<=12;m++){
-        const canon_mensual = data[cas]?.[año]?.[m]?.canon_total ?? null;
+        const canon_mensual = data[cas]?.[año]?.[m]?.canon ?? null;
         cas_mensual.data.push({
           name: meses[m],
           y: canon_mensual !== null? parseFloat(canon_mensual) : null
