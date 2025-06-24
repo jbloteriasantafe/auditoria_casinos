@@ -337,4 +337,30 @@ class CanonFijoMesasController extends Controller
     
     return compact('mensual','diario');
   }
+  
+  public function datosCanon($tname){
+    $attrs_canon = [
+      'canon_fisico' => 'SUM(cfm.determinado) as canon_fisico',
+      'canon_online' => '0 as canon_online',
+      'ganancia_fisico' => 'SUM(cfm.bruto) as ganancia_fisico',
+      'ganancia_online' => '0 as ganancia_online',
+      'ganancia' => 'SUM(cfm.bruto) as ganancia',
+      'ganancia_CCO' => '0 as ganancia_CCO',
+      'ganancia_BPLAY' => '0 as ganancia_BPLAY'
+    ];
+    
+    $tname2 = 't'.uniqid();
+    DB::statement("CREATE TEMPORARY TABLE $tname2 AS
+      SELECT $tname.casino,$tname.año,$tname.mes,".implode(',',$attrs_canon)."
+      FROM $tname
+      LEFT JOIN canon_fijo_mesas as cfm ON cfm.id_canon = $tname.id_canon
+      LEFT JOIN canon_fijo_mesas as cfm_yoy ON cfm_yoy.id_canon = $tname.id_canon_yoy AND cfm_yoy.tipo LIKE cfm.tipo
+      LEFT JOIN canon_fijo_mesas as cfm_mom ON cfm_mom.id_canon = $tname.id_canon_mom AND cfm_mom.tipo LIKE cfm.tipo
+      GROUP BY $tname.casino,$tname.año,$tname.mes
+    ");
+    
+    $tables = [$tname2,array_keys($attrs_canon)];
+    
+    return $tables;
+  }
 }

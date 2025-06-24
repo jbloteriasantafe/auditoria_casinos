@@ -297,4 +297,49 @@ class CanonVariableController extends Controller
     
     return compact('mensual','diario');
   }
+  
+  public function datosCanon($tname){
+    $attrs_canon = [
+      'canon_fisico' => 'SUM(IF(cv.tipo LIKE "jol",0,cv.determinado)) as canon_fisico',
+      'canon_online' => 'SUM(IF(cv.tipo LIKE "jol",cv.determinado,0)) as canon_online',
+      'ganancia_fisico' => 'SUM(IF(cv.tipo LIKE "jol",0,cv.determinado_subtotal)) as ganancia_fisico',
+      'ganancia_online' => 'SUM(IF(cv.tipo LIKE "jol",cv.determinado_subtotal,0)) as ganancia_online',
+      'ganancia' => 'SUM(cv.determinado_subtotal) as ganancia',
+      'ganancia_CCO' => 'SUM(IF(
+        cv.tipo LIKE "jol" AND "CCO" IN (
+          SELECT p.codigo 
+          FROM plataforma as p 
+          JOIN plataforma_tiene_casino as pc ON pc.id_plataforma = p.id_plataforma
+          WHERE pc.id_casino = c.id_casino
+        ),
+        cv.determinado_subtotal,
+        0
+      )) as ganancia_CCO',
+      'ganancia_BPLAY' => 'SUM(IF(
+        cv.tipo LIKE "jol" AND "BPLAY" IN (
+          SELECT p.codigo 
+          FROM plataforma as p 
+          JOIN plataforma_tiene_casino as pc ON pc.id_plataforma = p.id_plataforma
+          WHERE pc.id_casino = c.id_casino
+        ),
+        cv.determinado_subtotal,
+        0
+      )) as ganancia_BPLAY'
+    ];
+    
+    $tname2 = 't'.uniqid();
+    DB::statement("CREATE TEMPORARY TABLE $tname2 AS
+      SELECT $tname.casino,$tname.año,$tname.mes,".implode(',',$attrs_canon)."
+      FROM $tname
+      LEFT JOIN canon as c ON c.id_canon = $tname.id_canon
+      LEFT JOIN canon_variable as cv ON cv.id_canon = $tname.id_canon
+      LEFT JOIN canon_variable as cv_yoy ON cv_yoy.id_canon = $tname.id_canon_yoy AND cv_yoy.tipo LIKE cv.tipo
+      LEFT JOIN canon_variable as cv_mom ON cv_mom.id_canon = $tname.id_canon_mom AND cv_mom.tipo LIKE cv.tipo
+      GROUP BY $tname.casino,$tname.año,$tname.mes
+    ");
+    
+    $tables = [$tname2,array_keys($attrs_canon)];
+    
+    return $tables;
+  }
 }

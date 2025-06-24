@@ -6,7 +6,7 @@
       $pje_plats[$_a][$_nmes] = $pje_plats[$_a][$_nmes] ?? [];
       $total = $dataf('Total',$_a,$_nmes);
       foreach($plataformas as $_plat){
-        $pje_plats[$_a][$_nmes][$_plat->codigo] = $total->{'porcentaje_'.$_plat->codigo} ?? null;
+        $pje_plats[$_a][$_nmes][$_plat->codigo] = $total->{'participacion_'.$_plat->codigo} ?? null;
       }
     }
   }
@@ -53,8 +53,8 @@
       <?php
         $_casino = $casinos[$_cidx] ?? null;
         $total = $dataf($_casino,$año_anterior,0);
-        $fisico = $formatear_porcentaje($total->porcentaje_fisico ?? null);
-        $online = $formatear_porcentaje($total->porcentaje_online ?? null);
+        $fisico = $formatear_porcentaje($total->participacion_fisico ?? null);
+        $online = $formatear_porcentaje($total->participacion_online ?? null);
       ?>
       <th class="fisico {{$_cas}} {{$N($fisico)}}" style="text-align: right;">{{$fisico}}</th>
       <th class="online {{$_cas}} {{$N($online)}}" style="text-align: right;">{{$online}}</th>
@@ -76,8 +76,8 @@
       <?php
         $_casino = $casinos[$_cidx] ?? null;
         $canon = $dataf($_casino,$año,$_nmes);
-        $fisico = $formatear_porcentaje($canon->porcentaje_fisico ?? null);
-        $online = $formatear_porcentaje($canon->porcentaje_online ?? null);
+        $fisico = $formatear_porcentaje($canon->participacion_fisico ?? null);
+        $online = $formatear_porcentaje($canon->participacion_online ?? null);
       ?>
       <td class="fisico {{$N($fisico)}}">{{$fisico}}</td>
       <td class="online {{$N($online)}}">{{$online}}</td>
@@ -99,8 +99,8 @@
       <?php
         $_casino = $casinos[$_cidx] ?? null;
         $total = $dataf($_casino,$año,0);
-        $fisico = $formatear_porcentaje($total->porcentaje_fisico ?? null);
-        $online = $formatear_porcentaje($total->porcentaje_online ?? null);
+        $fisico = $formatear_porcentaje($total->participacion_fisico ?? null);
+        $online = $formatear_porcentaje($total->participacion_online ?? null);
       ?>
       <th class="fisico {{$_cas}} {{$N($fisico)}}" style="text-align: right;">{{$fisico}}</th>
       <th class="online {{$_cas}} {{$N($online)}}" style="text-align: right;">{{$online}}</th>
