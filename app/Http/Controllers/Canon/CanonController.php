@@ -1445,6 +1445,23 @@ class CanonController extends Controller
        $join2 
        ORDER BY $tname.casino ASC, $tname.año ASC, $tname.mes ASC");
       
+      $subcanon_aggr_f = function($op,$attr){
+        static $cache = [];
+        $cache[$op] = $cache[$op] ?? [];
+        if(!array_key_exists($attr,$cache[$op])){
+           $cache[$op][$attr] = implode(
+            $op,
+            array_map(
+              function($s) use ($attr){
+                return "$s\$$attr";
+              },
+              array_keys($this->subcanons)
+            )
+          );
+        }
+        return $cache[$op][$attr];
+      };
+      
       $attrs_agregados = [
         'evolucion_historica' => '
           casino,
@@ -1471,8 +1488,8 @@ class CanonController extends Controller
           casino,
           año,
           mes,
-          (canon_variable$canon_fisico+canon_fijo_mesas$canon_fisico+canon_fijo_mesas_adicionales$canon_fisico) as canon_fisico,
-          (canon_variable$canon_online+canon_fijo_mesas$canon_online+canon_fijo_mesas_adicionales$canon_online) as canon_online,
+          ('.$subcanon_aggr_f('+','canon_fisico').') as canon_fisico,
+          ('.$subcanon_aggr_f('+','canon_online').') as canon_online,
           canon$canon as canon,
           canon$variacion_canon_mom as variacion_canon_mom,
           canon$variacion_canon_yoy as variacion_canon_yoy
@@ -1482,20 +1499,20 @@ class CanonController extends Controller
           año,
           mes,
           ROUND(100*
-            (canon_variable$ganancia_fisico+canon_fijo_mesas$ganancia_fisico+canon_fijo_mesas_adicionales$ganancia_fisico)
-           /(canon_variable$ganancia+canon_fijo_mesas$ganancia+canon_fijo_mesas_adicionales$ganancia)
+            ('.$subcanon_aggr_f('+','ganancia_fisico').')
+           /('.$subcanon_aggr_f('+','ganancia').')
           ,2) as participacion_fisico,
           ROUND(100*
-            (canon_variable$ganancia_online+canon_fijo_mesas$ganancia_online+canon_fijo_mesas_adicionales$ganancia_online)
-           /(canon_variable$ganancia+canon_fijo_mesas$ganancia+canon_fijo_mesas_adicionales$ganancia)
+            ('.$subcanon_aggr_f('+','ganancia_online').')
+           /('.$subcanon_aggr_f('+','ganancia').')
           ,2) as participacion_online,
           ROUND(100*
-            (canon_variable$ganancia_CCO+canon_fijo_mesas$ganancia_CCO+canon_fijo_mesas_adicionales$ganancia_CCO)
-           /(canon_variable$ganancia_online+canon_fijo_mesas$ganancia_online+canon_fijo_mesas_adicionales$ganancia_online)
+            ('.$subcanon_aggr_f('+','ganancia_CCO').')
+           /('.$subcanon_aggr_f('+','ganancia_online').')
           ,2) as participacion_CCO,
           ROUND(100*
-            (canon_variable$ganancia_BPLAY+canon_fijo_mesas$ganancia_BPLAY+canon_fijo_mesas_adicionales$ganancia_BPLAY)
-           /(canon_variable$ganancia_online+canon_fijo_mesas$ganancia_online+canon_fijo_mesas_adicionales$ganancia_online)
+            ('.$subcanon_aggr_f('+','ganancia_BPLAY').')
+           /('.$subcanon_aggr_f('+','ganancia_online').')
           ,2) as participacion_BPLAY
         '
       ][$planilla];
