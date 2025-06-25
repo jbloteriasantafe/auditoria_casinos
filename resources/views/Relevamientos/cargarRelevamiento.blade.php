@@ -346,7 +346,7 @@
         <span style="text-align: center;font-weight: bold;padding-top: 0;">A PEDIDO</span>
       </div>
       <div class="td-estadisticas" data-js-modo="Validar">
-        <a title="Estadisticas No Toma" href="/relevamientos/estadisticas_no_toma" target="_blank" data-js-enabled="Validar" data-js-estadisticas-no-toma class="btn btn-link acciones_validacion" type="button">
+        <a title="Estadisticas No Toma" href="" target="_blank" data-js-enabled="Validar" data-js-estadisticas-no-toma="/relevamientos/estadisticas_no_toma" class="btn btn-link acciones_validacion" type="button">
           <i class="fas fa-fw fa-external-link-square-alt"></i>
         </a>
         <div style="text-align: center;font-weight: bold;padding-top: 0;">&nbsp;</div>
