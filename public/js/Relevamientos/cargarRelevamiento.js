@@ -91,7 +91,9 @@ $(function(){ $('[data-js-modal-cargar-relevamiento]').each(function(){
     }
     
     fila.find(dname_f('[detalle][id_tipo_causa_no_toma]')).val(d.detalle.id_tipo_causa_no_toma ?? '');
-    fila.find('[data-js-estadisticas-no-toma]').attr('href',fila.find('[data-js-estadisticas-no-toma]').attr('href')+'/'+d.detalle.id_maquina);
+    fila.find('[data-js-estadisticas-no-toma]').attr('href',
+      fila.find('[data-js-estadisticas-no-toma]').attr('data-js-estadisticas-no-toma')+'/'+d.detalle.id_maquina
+    );
       
     fila.attr('data-css-colorear',d.detalle.estado);
     fila.attr('data-id_unidad_medida',d.detalle.id_unidad_medida);
