@@ -227,7 +227,7 @@ $CONTADORES_VISIBLES = min(6,$CONTADORES);
 
 <!-- JavaScript personalizado -->
 <!-- ?version para forzar que se recarge el script en el navegador del cliente -->
-<script src="/js/Relevamientos/index.js?1" type="module" charset="utf-8"></script>
+<script src="/js/Relevamientos/index.js?2" type="module" charset="utf-8"></script>
 
 <!-- DateTimePicker JavaScript -->
 <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
