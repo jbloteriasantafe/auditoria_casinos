@@ -139,7 +139,7 @@ $(document).ready(function() {
       M.find('[data-modo-mostrar]').hide().filter(filterFunction(M,'data-modo-mostrar')).show();
     }
     
-    const agregarDetallePestaña = function(pestaña,titulo,replace_idx){
+    const agregarDetallePestaña = function(pestaña,titulo,replace_idx,dias){
       const div = pestaña.find('[data-js-molde]').clone();
       const replace_str_tipo = div.attr('data-js-molde');
       div.removeAttr('data-js-molde');
@@ -156,7 +156,26 @@ $(document).ready(function() {
         n.attr('data-depende',n.attr('data-depende').replaceAll(replace_str_tipo,replace_idx));
       });
       
-      div.attr('data-idx',replace_idx);
+      div.find('[data-mensual-diario="diario"]').find('[data-div-devengado],[data-div-determinado]').each(function(_,divdetdevobj){          
+        const tabla = $(divdetdevobj).find('[data-tabla-diario]');
+        const molde = $(divdetdevobj).find('[data-molde-diario]');
+        const replace_str_diario = molde.attr('data-molde-diario');
+        for(let dia=1;dia<=dias;dia++){
+          const fila = molde.clone().removeAttr('data-molde-diario');
+          fila.find('[data-name]').each(function(_,nobj){
+            const n = $(nobj);
+            n.attr(
+              'name',
+              n.attr('data-name')
+              .replaceAll(replace_str_tipo,replace_idx)
+              .replaceAll(replace_str_diario,dia)
+            );
+          });
+          tabla.append(fila);
+        };
+      });
+      
+      div.attr('data-subcanon-tipo',replace_idx);
       
       pestaña.find('[data-js-contenedor]').append(div);
       
@@ -232,12 +251,12 @@ $(document).ready(function() {
       M.find('[name="estado"]').val(canon?.estado ?? 'Nuevo');
       setVisible();
       
-      const llenarPestaña = function(pestaña,tipos_obj,mostrar_de_todos_modos = false){
+      const llenarPestaña = function(pestaña,tipos_obj,dias,mostrar_de_todos_modos = false){
         pestaña.find('[data-js-contenedor]').empty();
         let lleno = false;
         for(const tipo in tipos_obj){
           lleno = true;
-          agregarDetallePestaña(pestaña,tipo.toUpperCase(),tipo);
+          agregarDetallePestaña(pestaña,tipo.toUpperCase(),tipo,dias);
         }
         
         //@HACK: no mostrar la pestaña si no tiene nada
@@ -245,13 +264,22 @@ $(document).ready(function() {
           return $($(tab_obj).attr('data-js-tab'))?.[0] == pestaña[0];
         }).toggle(lleno || mostrar_de_todos_modos);
         pestaña.toggle(lleno || mostrar_de_todos_modos);
+        
+        pestaña.find('[data-mensual-diario="mensual"]').show();
+        pestaña.find('[data-mensual-diario="diario"]').hide();
       }
       
-      llenarPestaña(form.find('[data-canon-variable]'),canon?.canon_variable ?? {});
-      llenarPestaña(form.find('[data-canon-fijo-mesas]'),canon?.canon_fijo_mesas ?? {});
-      llenarPestaña(form.find('[data-canon-fijo-mesas-adicionales]'),canon?.canon_fijo_mesas_adicionales ?? {});
-      llenarPestaña(form.find('[data-adjuntos]'),canon?.canon_archivo ?? {},true);
-      llenarPestaña(form.find('[data-total] [data-pagos]'),canon?.canon_pago ?? [],true);
+      const dias = (function(isoDateString){
+        const date = new Date(isoDateString+'T00:00');
+        const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        return lastDay.getDate();
+      })(canon.año_mes);
+      
+      llenarPestaña(form.find('[data-canon-variable]'),canon?.canon_variable ?? {},dias);
+      llenarPestaña(form.find('[data-canon-fijo-mesas]'),canon?.canon_fijo_mesas ?? {},dias);
+      llenarPestaña(form.find('[data-canon-fijo-mesas-adicionales]'),canon?.canon_fijo_mesas_adicionales ?? {},dias);
+      llenarPestaña(form.find('[data-adjuntos]'),canon?.canon_archivo ?? {},dias,true);
+      llenarPestaña(form.find('[data-total] [data-pagos]'),canon?.canon_pago ?? [],dias,true);
       
       M.attr('data-render',0);
       fill(M,null,canon);
@@ -540,11 +568,17 @@ $(document).ready(function() {
       .attr('data-css-devengar',parseInt(e.currentTarget.value));
     });
     
+    M.find('form[data-js-recalcular]').on('click','[data-js-click-toggle-mensual-diario]',function(e){
+      const div_tipo = $(e.currentTarget).closest('[data-subcanon-tipo]');
+      div_tipo.find('[data-mensual-diario]').toggle();
+    });
+    
     M.find('form[data-js-recalcular]').on('click','[data-js-click-diario]',function(e){
       $('[data-js-modal-ver-cargar-canon-diario]').trigger('mostrar',[{
         tabla: $(this).attr('data-js-click-diario'),
         id: $(this).val(),
-        año_mes: M.find('[name="año_mes"]').val()+'-01'
+        año_mes: M.find('[name="año_mes"]').val()+'-01',
+        id_casino: M.find('[name="id_casino"]').val()
       }]);
     });
     
@@ -568,13 +602,21 @@ $(document).ready(function() {
     
     M.on('mostrar',function(e,params){
       const div = M.find('[data-tabla]').hide().filter(`[data-tabla="${params.tabla ?? ''}"]`).show();
-      AUX.GET('/canon/diario',params,function(canon){
+      AUX.GET('/canon/diario',params,function(canon_diario){;
         div.find('[data-div-devengado],[data-div-determinado]').each(function(_,divdetdevobj){          
           const tabla = $(divdetdevobj).find('[data-tabla-diario]');
-          canon.diario.forEach(function(d){
-            const fila = $(divdetdevobj).find('[data-molde-diario]').clone().removeAttr('data-molde-diario');
+          const molde = $(divdetdevobj).find('[data-molde-diario]');
+          const replace_str_tipo = molde.attr('data-molde-diario');
+          for(const dia in canon_diario){
+            const d = canon_diario[dia];
+            const fila = molde.clone().removeAttr('data-molde-diario');
+            fila.find('[data-name]').each(function(_,nobj){
+              const n = $(nobj);
+              n.attr('name',n.attr('data-name').replaceAll(replace_str_tipo,dia));
+            });
             tabla.append(fila);
-          });
+          };
+          fill(M,params.tabla+'_diario',canon_diario);
         });
         M.modal('show');
       });

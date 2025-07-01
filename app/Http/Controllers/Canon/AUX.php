@@ -96,4 +96,108 @@ class AUX {
     rewind($file);        
     return stream_get_contents($file);
   }
+  
+  public static function ranged_sql($begin,$end){
+    $ret = "( SELECT $begin as val ";
+    for($i=$begin+1;$i<=$end;$i++){
+      $ret.= 'UNION ALL SELECT '.$i.' ';
+    }
+    return $ret.')';
+  }
+  
+  public static function make_accessor($arr){
+    return function($k,$dflt = null) use (&$arr){
+      return (!isset($arr[$k]) || $arr[$k] === '' || $arr[$k] === null || $arr[$k] === [])?
+        $dflt
+      : $arr[$k];
+    };
+  }
+  
+  public static function combine_accessors(...$accessors){
+    return function($s,$dflt = null) use ($accessors){
+      foreach($accessors as $A){
+        $ret = $A($s,null);
+        if($ret !== null) return $ret;
+      }
+      return $dflt;
+    };
+  }
+  
+  public static function cotizacion($fecha_cotizacion,$id_tipo_moneda,$id_casino){
+    static $cotizacion_DB = [];
+    if(empty($fecha_cotizacion) || empty($id_tipo_moneda)) return '0';
+    if($id_tipo_moneda == 1){
+      return 1;
+    }
+    
+    $cot = ($cotizacion_DB[$fecha_cotizacion] ?? [])[$id_tipo_moneda] ?? null;
+    
+    if($cot === null){      
+      $t_fechas_cotizadas = 't'.uniqid();
+      $tf = function($sc,$devdet) use ($id_casino) {
+        $cas_where = empty($id_casino)? '' : "WHERE c.id_casino <> $id_casino";
+        return "(
+          SELECT 
+            sc.{$devdet}_fecha_cotizacion as fecha,
+            sc.{$devdet}_cotizacion_dolar as dolar,
+            sc.{$devdet}_cotizacion_euro  as euro
+          FROM {$sc} as sc
+          JOIN canon as c ON c.id_canon = sc.id_canon AND c.deleted_at IS NULL
+          $cas_where
+        )";
+      };
+      //count distinct no cuenta nulos en MySQL por lo menos
+      //si hay 1 solo MAX es lo mismo que sacar el valor este
+      DB::statement("CREATE TEMPORARY TABLE $t_fechas_cotizadas AS 
+      SELECT 
+        aux.fecha,
+        IF(
+          COUNT(distinct aux.dolar) <> 1,
+          NULL,
+          MAX(aux.dolar)
+        ) as dolar,
+        IF(
+          COUNT(distinct aux.euro) <> 1,
+          NULL,
+          MAX(aux.euro)
+        ) as euro
+      FROM
+      (
+        {$tf('canon_fijo_mesas','devengado')}
+        UNION
+        {$tf('canon_fijo_mesas','determinado')}
+        UNION
+        {$tf('canon_fijo_mesas_adicionales','devengado')}
+        UNION
+        {$tf('canon_fijo_mesas_adicionales','determinado')}
+      ) as aux
+      GROUP BY aux.fecha
+      ORDER BY aux.fecha DESC");
+      
+      $vals_db = DB::table($t_fechas_cotizadas)
+      ->get()
+      ->keyBy('fecha');
+      
+      $cotizacion_DB = [];
+      foreach($vals_db as $v){
+        $cotizacion_DB[$v->fecha] = $cotizacion_DB[$v->fecha] ?? [2 => [],3 => []];
+        $cotizacion_DB[$v->fecha][2] = $v->dolar;
+        $cotizacion_DB[$v->fecha][3] = $v->euro;
+      }
+    }
+    
+    $cot = ($cotizacion_DB[$fecha_cotizacion] ?? [])[$id_tipo_moneda] ?? null;
+    if($cot === null && $id_tipo_moneda == 2){//Busco en las cotizaciones de los auditores
+      $aux = DB::table('cotizacion as cot')
+      ->where('fecha',$fecha_cotizacion)
+      ->first();
+      if($aux !== null){
+        $cotizacion_DB[$fecha_cotizacion] = $cotizacion_DB[$fecha_cotizacion] ?? [];
+        $cotizacion_DB[$fecha_cotizacion][$id_tipo_moneda] = $aux->valor;
+        $cot = $aux->valor;
+      }
+    }
+    
+    return $cot ?? '0';
+  }
 }

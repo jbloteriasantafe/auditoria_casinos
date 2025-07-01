@@ -265,6 +265,131 @@
 </div>
 @endif
 
+
+
+@section('colgroupCV')
+<colgroup>
+  <col style="width: 5%;">
+  <col style="width: 15.8333%;">
+  <col style="width: 15.8333%;">
+  <col style="width: 15.8333%;">
+  <col style="width: 15.8333%;">
+  <col style="width: 15.8333%;">
+  <col style="width: 15.8333%;">
+</colgroup>
+@endsection
+
+@section('canon_variable_diario')
+<div data-tabla="canon_variable" class="bloque_interno" style="width: 100%;">
+  <div class="row">
+    <div data-div-devengado="header" class="col-md-12">
+      <table class="table table-bordered" style="margin-bottom: 0;">
+        @yield('colgroupCV')
+        <thead>
+          <tr>
+            <th rowspan="2" style="text-align: center;">Día</th>
+            <th colspan="6" style="text-align: center;">Devengado</th>
+          </tr>
+          <tr>
+            <th style="text-align: center;">Apostado Sistema</th>
+            <th style="text-align: center;">Base imponible</th>
+            <th style="text-align: center;">Impuesto</th>
+            <th style="text-align: center;">Bruto</th>
+            <th style="text-align: center;">Subtotal</th>
+            <th style="text-align: center;">Total</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+    <div data-div-devengado="diario" class="col-md-12" style="max-height: 25vh;overflow-y: scroll;">
+      <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
+        @yield('colgroupCV')
+        <tbody>
+        </tbody>
+      </table>
+      <table hidden>
+        <tr data-molde-diario="$dia">
+          <td><input class="form-control" data-name="canon_variable[$cv][diario][$dia][dia]" readonly></td>
+          <td><input class="form-control" data-name="canon_variable[$cv][diario][$dia][devengado_apostado_sistema]"></td>
+          <td><input class="form-control" data-name="canon_variable[$cv][diario][$dia][devengado_base_imponible]" readonly></td>
+          <td><input class="form-control" data-name="canon_variable[$cv][diario][$dia][devengado_impuesto]" readonly></td>
+          <td><input class="form-control" data-name="canon_variable[$cv][diario][$dia][devengado_bruto]"></td>
+          <td><input class="form-control" data-name="canon_variable[$cv][diario][$dia][devengado_subtotal]" readonly></td>
+          <td><input class="form-control" data-name="canon_variable[$cv][diario][$dia][devengado_total]" readonly></td>
+        </tr>
+      </table>
+    </div>
+    <div data-div-devengado="mensual" class="col-md-12">
+      <table data-tabla-mensual class="sacar-borde-primer-tr table table-bordered">
+        @yield('colgroupCV')
+        <tbody>
+          <tr class="fila-mensual">
+            <td>&nbsp;</td>
+            <td><input class="form-control" data-name="canon_variable[$cv][mensual][devengado_apostado_sistema]" readonly></td>
+            <td><input class="form-control" data-name="canon_variable[$cv][mensual][devengado_base_imponible]" readonly></td>
+            <td><input class="form-control" data-name="canon_variable[$cv][mensual][devengado_impuesto]" readonly></td>
+            <td><input class="form-control" data-name="canon_variable[$cv][mensual][devengado_bruto]" readonly></td>
+            <td><input class="form-control" data-name="canon_variable[$cv][mensual][devengado_subtotal]" readonly></td>
+            <td><input class="form-control" data-name="canon_variable[$cv][mensual][devengado_total]" readonly></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="row">
+    <div data-div-determinado="header" class="col-md-12">
+      <table class="table table-bordered" style="margin-bottom: 0;">
+        @yield('colgroupCV')
+        <thead>
+          <tr>
+            <th rowspan="2" style="text-align: center;">Día</th>
+            <th colspan="6" style="text-align: center;">Determinado</th>
+          </tr>
+          <tr>
+            <th class="celda_vacia" colspan="2">&nbsp;</th>
+            <th style="text-align: center;">Proporcional Impuesto</th>
+            <th style="text-align: center;">Bruto</th>
+            <th style="text-align: center;">Subtotal</th>
+            <th style="text-align: center;">Total</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+    <div data-div-determinado="diario" class="col-md-12" style="max-height: 25vh;overflow-y: scroll;">
+      <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
+        @yield('colgroupCV')
+        <tbody>
+        </tbody>
+      </table>
+      <table hidden>
+        <tr data-molde-diario="$dia">
+          <td><input class="form-control" data-name="canon_variable[$cv][diario][$dia][dia]"  readonly></td>
+          <td class="celda_vacia" colspan="2">&nbsp;</td>
+          <td><input class="form-control" data-name="canon_variable[$cv][diario][$dia][determinado_impuesto]" readonly></td>
+          <td><input class="form-control" data-name="canon_variable[$cv][diario][$dia][determinado_bruto]"></td>
+          <td><input class="form-control" data-name="canon_variable[$cv][diario][$dia][determinado_subtotal]" readonly></td>
+          <td><input class="form-control" data-name="canon_variable[$cv][diario][$dia][determinado_total]" readonly></td>
+        </tr>
+      </table>
+    </div>
+    <div data-div-determinado="mensual" class="col-md-12">
+      <table data-tabla-mensual class="sacar-borde-primer-tr table table-bordered">
+        @yield('colgroupCV')
+        <tbody>
+          <tr class="fila-mensual">
+            <td colspan="3">&nbsp;</td>
+            <td><input class="form-control" data-name="canon_variable[$cv][mensual][determinado_impuesto]" data-readonly='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'></td>
+            <td><input class="form-control" data-name="canon_variable[$cv][mensual][determinado_bruto]" readonly></td>
+            <td><input class="form-control" data-name="canon_variable[$cv][mensual][determinado_subtotal]" readonly></td>
+            <td><input class="form-control" data-name="canon_variable[$cv][mensual][determinado_total]" readonly></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+@endsection
+
 <style>
   .VerCargarCanon {
     --color-fondo-pestaña: #ececec;
@@ -410,6 +535,19 @@
   
   .VerCargarCanon [data-js-molde] {
     display: none;
+  }
+  
+  .VerCargarCanon table.sacar-borde-primer-tr,
+  .VerCargarCanon table.sacar-borde-primer-tr tbody tr:first-child td {
+    border-top: 0;
+  }
+  .VerCargarCanon tr.fila-mensual td {
+    background: #f2f2f2;
+    border-top: 4px double #aaa !important;
+  }
+  .VerCargarCanon td.celda_vacia,
+  .VerCargarCanon th.celda_vacia {
+    background: #f2f2f2;
   }
 </style>
 
@@ -710,121 +848,132 @@
           $determinado_ajuste = $n('determinado_ajuste');
           $determinado = $n('determinado');
         ?>
-        <div class="bloque_interno" data-js-molde="{{$molde_str}}">
+        <div class="bloque_interno" data-js-molde="{{$molde_str}}" data-subcanon-tipo>
           <div class="bloque_interno"  style="width: 100%;display: flex;align-items: center;">
             <h6 data-titulo>TITULO CANON VARIABLE</h6>
-            <button type="button" class="btn" data-name="{{$n('id_canon_variable')}}" data-js-click-diario="canon_variable">
+            <button data-mensual-diario="mensual" type="button" class="btn" data-name="{{$n('id_canon_variable')}}" data-js-click-toggle-mensual-diario>
               <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
               DIARIO
               <i class="fas fa-fw fa-pencil-alt" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'></i>
               <i class="fas fa-fw fa-search-plus" data-modo-mostrar='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'></i>
             </button>
+            <button data-mensual-diario="diario" type="button" class="btn" data-name="{{$n('id_canon_variable')}}" data-js-click-toggle-mensual-diario>
+              <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
+              MENSUAL
+              <i class="fas fa-fw fa-pencil-alt" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'></i>
+              <i class="fas fa-fw fa-search-plus" data-modo-mostrar='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'></i>
+            </button>
           </div>
-          <div class="bloque_interno" style="width: 100%;display: flex;">
-            <div class="parametro_chico"  style="flex: 2;">
-              <h5>APLICABLE (%)</h5>
-              <input class="form-control" data-name="{{$devengado_apostado_porcentaje_aplicable}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+          <div style="width: 100%;" data-mensual-diario="mensual">
+            <div class="bloque_interno" style="width: 100%;display: flex;">
+              <div class="parametro_chico"  style="flex: 2;">
+                <h5>APLICABLE (%)</h5>
+                <input class="form-control" data-name="{{$devengado_apostado_porcentaje_aplicable}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              </div>
+              <div class="parametro_chico" style="flex: 2;">
+                <h5>IMPUESTO LEY (%)</h5>
+                <input class="form-control" data-name="{{$devengado_apostado_porcentaje_impuesto_ley}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              </div>
+              <div class="parametro_chico" style="flex: 3;">
+                <h5>ALICUOTA (%)</h5>
+                <input class="form-control" data-name="{{$alicuota}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              </div>
             </div>
-            <div class="parametro_chico" style="flex: 2;">
-              <h5>IMPUESTO LEY (%)</h5>
-              <input class="form-control" data-name="{{$devengado_apostado_porcentaje_impuesto_ley}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-            </div>
-            <div class="parametro_chico" style="flex: 3;">
-              <h5>ALICUOTA (%)</h5>
-              <input class="form-control" data-name="{{$alicuota}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-            </div>
-          </div>
-          <div style="width: 100%;display: flex;">
-            <div class="bloque_interno" data-css-devengar style="flex: 1;">
-              <h4 style="display: flex;">
-                <span>DEVENGADO&nbsp;&nbsp;</span>
-                <select class="form-control" data-name="{{$devengar}}" data-js-devengar style="width: unset;height: unset;padding: 0;" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-                  <option value="1">SI</option>
-                  <option value="0">NO</option>
-                </select>
-              </h4>
-              <div style="width: 100%;display: grid; 
-                grid-template-columns: 1fr 1fr 1fr 1fr 1fr; 
-                grid-template-rows: 1fr 1fr 1fr; 
-                gap: 0px 0px; 
-                grid-template-areas: 'grid_apostado grid_base_imponible grid_vacio grid_vacio grid_vacio' 'grid_impuesto grid_bruto grid_subtotal grid_total grid_deduccion' 'grid_devengado grid_vacio2 grid_vacio2 grid_vacio2 grid_vacio2';"
-              >
-                <div style="grid-area: grid_apostado">
-                  <h5>APOSTADO SISTEMA</h5>
-                  <input class="form-control" data-name="{{$devengado_apostado_sistema}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            <div style="width: 100%;display: flex;">
+              <div class="bloque_interno" data-css-devengar style="flex: 1;">
+                <h4 style="display: flex;">
+                  <span>DEVENGADO&nbsp;&nbsp;</span>
+                  <select class="form-control" data-name="{{$devengar}}" data-js-devengar style="width: unset;height: unset;padding: 0;" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                    <option value="1">SI</option>
+                    <option value="0">NO</option>
+                  </select>
+                </h4>
+                <div style="width: 100%;display: grid; 
+                  grid-template-columns: 1fr 1fr 1fr 1fr 1fr; 
+                  grid-template-rows: 1fr 1fr 1fr; 
+                  gap: 0px 0px; 
+                  grid-template-areas: 'grid_apostado grid_base_imponible grid_vacio grid_vacio grid_vacio' 'grid_impuesto grid_bruto grid_subtotal grid_total grid_deduccion' 'grid_devengado grid_vacio2 grid_vacio2 grid_vacio2 grid_vacio2';"
+                >
+                  <div style="grid-area: grid_apostado">
+                    <h5>APOSTADO SISTEMA</h5>
+                    <input class="form-control" data-name="{{$devengado_apostado_sistema}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  </div>
+                  <div style="grid-area: grid_base_imponible" class="valor_intermedio">
+                    <h5>BASE IMPONIBLE</h5>
+                    <input class="form-control" data-name="{{$devengado_base_imponible}}" data-depende="{{$devengado_apostado_sistema}},{{$devengado_apostado_porcentaje_aplicable}}" data-readonly='[{"modo":"*"}]'>
+                  </div>
+                  <div style="grid-area: grid_vacio">
+                  </div>
+                  <div style="grid-area: grid_impuesto">
+                    <h5>IMPUESTO</h5>
+                    <input class="form-control" data-name="{{$devengado_impuesto}}" data-depende="{{$devengado_base_imponible}},{{$devengado_apostado_porcentaje_impuesto_ley}}" data-readonly='[{"modo":"*"}]'>
+                  </div>
+                  <div style="grid-area: grid_bruto">
+                    <h5>BRUTO</h5>
+                    <input class="form-control" data-name="{{$devengado_bruto}}" data-depende="id_casino,es_antiguo" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  </div>
+                  <div style="grid-area: grid_subtotal" class="valor_intermedio">
+                    <h5>SUBTOTAL</h5>
+                    <input class="form-control" data-name="{{$devengado_subtotal}}" data-depende="{{$devengado_bruto}},{{$devengado_impuesto}}" data-readonly='[{"modo":"*"}]'>
+                  </div>
+                  <div style="grid-area: grid_total">
+                    <h5>TOTAL</h5>
+                    <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_subtotal}},{{$alicuota}}" data-readonly='[{"es_antiguo": "0"},{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  </div>
+                  <div style="grid-area: grid_deduccion">
+                    <h5>DEDUCCIÓN</h5>
+                    <input class="form-control" data-name="{{$devengado_deduccion}}" data-depende="id_casino"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  </div>
+                  <div style="grid-area: grid_devengado">
+                    <h5>DEVENGADO</h5>
+                    <input class="form-control" data-name="{{$devengado}}" data-depende="{{$devengado_total}},{{$devengado_deduccion}}" data-readonly='[{"modo": "*"}]'>
+                  </div>
+                  <div style="grid-area: grid_vacio2">
+                  </div>
                 </div>
-                <div style="grid-area: grid_base_imponible" class="valor_intermedio">
-                  <h5>BASE IMPONIBLE</h5>
-                  <input class="form-control" data-name="{{$devengado_base_imponible}}" data-depende="{{$devengado_apostado_sistema}},{{$devengado_apostado_porcentaje_aplicable}}" data-readonly='[{"modo":"*"}]'>
-                </div>
-                <div style="grid-area: grid_vacio">
-                </div>
-                <div style="grid-area: grid_impuesto">
-                  <h5>IMPUESTO</h5>
-                  <input class="form-control" data-name="{{$devengado_impuesto}}" data-depende="{{$devengado_base_imponible}},{{$devengado_apostado_porcentaje_impuesto_ley}}" data-readonly='[{"modo":"*"}]'>
-                </div>
-                <div style="grid-area: grid_bruto">
-                  <h5>BRUTO</h5>
-                  <input class="form-control" data-name="{{$devengado_bruto}}" data-depende="id_casino,es_antiguo" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-                </div>
-                <div style="grid-area: grid_subtotal" class="valor_intermedio">
-                  <h5>SUBTOTAL</h5>
-                  <input class="form-control" data-name="{{$devengado_subtotal}}" data-depende="{{$devengado_bruto}},{{$devengado_impuesto}}" data-readonly='[{"modo":"*"}]'>
-                </div>
-                <div style="grid-area: grid_total">
-                  <h5>TOTAL</h5>
-                  <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_subtotal}},{{$alicuota}}" data-readonly='[{"es_antiguo": "0"},{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-                </div>
-                <div style="grid-area: grid_deduccion">
-                  <h5>DEDUCCIÓN</h5>
-                  <input class="form-control" data-name="{{$devengado_deduccion}}" data-depende="id_casino"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-                </div>
-                <div style="grid-area: grid_devengado">
-                  <h5>DEVENGADO</h5>
-                  <input class="form-control" data-name="{{$devengado}}" data-depende="{{$devengado_total}},{{$devengado_deduccion}}" data-readonly='[{"modo": "*"}]'>
-                </div>
-                <div style="grid-area: grid_vacio2">
+              </div>
+              <div class="bloque_interno" style="flex: 1;">
+                <h4>DETERMINADO</h4>
+                <div style="width: 100%;display: grid; 
+                  grid-template-columns: 1fr 1fr 1fr 1fr 1fr; 
+                  grid-template-rows: 1fr 1fr 1fr; 
+                  gap: 0px 0px; 
+                  grid-template-areas: 'grid_vacio grid_vacio grid_vacio grid_vacio grid_vacio' 'grid_impuesto grid_bruto grid_subtotal grid_total grid_ajuste' 'grid_determinado grid_vacio2 grid_vacio2 grid_vacio2 grid_vacio2';"
+                >  
+                  <div style="grid-area: grid_vacio">
+                  </div>
+                  <div style="grid-area: grid_impuesto">
+                    <h5>IMPUESTO</h5>
+                    <input class="form-control" data-name="{{$determinado_impuesto}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  </div>
+                  <div style="grid-area: grid_bruto">
+                    <h5>BRUTO</h5>
+                    <input class="form-control" data-name="{{$determinado_bruto}}" data-depende="id_casino,es_antiguo" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  </div>
+                  <div style="grid-area: grid_subtotal" class="valor_intermedio">
+                    <h5>SUBTOTAL</h5>
+                    <input class="form-control" data-name="{{$determinado_subtotal}}" data-depende="{{$determinado_bruto}},{{$determinado_impuesto}}" data-readonly='[{"modo":"*"}]'>
+                  </div>
+                  <div style="grid-area: grid_total">
+                    <h5>TOTAL</h5>
+                    <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_subtotal}},{{$alicuota}}" data-readonly='[{"es_antiguo": "0"},{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  </div>
+                  <div style="grid-area: grid_ajuste">
+                    <h5>AJUSTE</h5>
+                    <input class="form-control" data-name="{{$determinado_ajuste}}" data-depende="id_casino"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  </div>
+                  <div style="grid-area: grid_determinado">
+                    <h5>DETERMINADO</h5>
+                    <input class="form-control" data-name="{{$determinado}}" data-depende="{{$determinado_total}},{{$determinado_ajuste}}" data-readonly='[{"modo": "*"}]'>
+                  </div>
+                  <div style="grid-area: grid_vacio2">
+                  </div>
                 </div>
               </div>
             </div>
-            <div class="bloque_interno" style="flex: 1;">
-              <h4>DETERMINADO</h4>
-              <div style="width: 100%;display: grid; 
-                grid-template-columns: 1fr 1fr 1fr 1fr 1fr; 
-                grid-template-rows: 1fr 1fr 1fr; 
-                gap: 0px 0px; 
-                grid-template-areas: 'grid_vacio grid_vacio grid_vacio grid_vacio grid_vacio' 'grid_impuesto grid_bruto grid_subtotal grid_total grid_ajuste' 'grid_determinado grid_vacio2 grid_vacio2 grid_vacio2 grid_vacio2';"
-              >  
-                <div style="grid-area: grid_vacio">
-                </div>
-                <div style="grid-area: grid_impuesto">
-                  <h5>IMPUESTO</h5>
-                  <input class="form-control" data-name="{{$determinado_impuesto}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-                </div>
-                <div style="grid-area: grid_bruto">
-                  <h5>BRUTO</h5>
-                  <input class="form-control" data-name="{{$determinado_bruto}}" data-depende="id_casino,es_antiguo" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-                </div>
-                <div style="grid-area: grid_subtotal" class="valor_intermedio">
-                  <h5>SUBTOTAL</h5>
-                  <input class="form-control" data-name="{{$determinado_subtotal}}" data-depende="{{$determinado_bruto}},{{$determinado_impuesto}}" data-readonly='[{"modo":"*"}]'>
-                </div>
-                <div style="grid-area: grid_total">
-                  <h5>TOTAL</h5>
-                  <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_subtotal}},{{$alicuota}}" data-readonly='[{"es_antiguo": "0"},{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-                </div>
-                <div style="grid-area: grid_ajuste">
-                  <h5>AJUSTE</h5>
-                  <input class="form-control" data-name="{{$determinado_ajuste}}" data-depende="id_casino"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-                </div>
-                <div style="grid-area: grid_determinado">
-                  <h5>DETERMINADO</h5>
-                  <input class="form-control" data-name="{{$determinado}}" data-depende="{{$determinado_total}},{{$determinado_ajuste}}" data-readonly='[{"modo": "*"}]'>
-                </div>
-                <div style="grid-area: grid_vacio2">
-                </div>
-              </div>
-            </div>
+          </div>
+          <div style="width: 100%;" data-mensual-diario="diario">
+            @yield('canon_variable_diario')
           </div>
         </div>
       </div>
@@ -1314,21 +1463,6 @@
   @endslot
 @endcomponent
 
-
-<style>
-  .VerCargarCanon table.sacar-borde-primer-tr,
-  .VerCargarCanon table.sacar-borde-primer-tr tbody tr:first-child td {
-    border-top: 0;
-  }
-  .VerCargarCanon tr.fila-mensual td {
-    background: #f2f2f2;
-    border-top: 4px double #aaa !important;
-  }
-  .VerCargarCanon td.celda_vacia,
-  .VerCargarCanon th.celda_vacia {
-    background: #f2f2f2;
-  }
-</style>
 @component('Components/modal',[
   'clases_modal' => 'VerCargarCanon',
   'attrs_modal' => 'data-js-modal-ver-cargar-canon-diario',
@@ -1339,139 +1473,6 @@
   CANON DIARIO
   @endslot
   @slot('cuerpo')
-  <div class="row" data-tabla="canon_variable">
-    <div class="row" style="display: flex;padding-bottom: 15px !important;">
-      <div class="parametro_chico"  style="flex: 2;">
-        <h5>APLICABLE (%)</h5>
-        <input class="form-control" data-name="{{$devengado_apostado_porcentaje_aplicable}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-      </div>
-      <div class="parametro_chico" style="flex: 2;">
-        <h5>IMPUESTO LEY (%)</h5>
-        <input class="form-control" data-name="{{$devengado_apostado_porcentaje_impuesto_ley}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-      </div>
-      <div class="parametro_chico" style="flex: 3;">
-        <h5>ALICUOTA (%)</h5>
-        <input class="form-control" data-name="{{$alicuota}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-      </div>
-    </div>
-    <div class="row">
-      <div data-div-devengado="header" class="col-md-12">
-        @section('colgroupCV')
-        <colgroup>
-          <col style="width: 5%;">
-          <col style="width: 15.8333%;">
-          <col style="width: 15.8333%;">
-          <col style="width: 15.8333%;">
-          <col style="width: 15.8333%;">
-          <col style="width: 15.8333%;">
-          <col style="width: 15.8333%;">
-        </colgroup>
-        @endsection
-        <table class="table table-bordered" style="margin-bottom: 0;">
-          @yield('colgroupCV')
-          <thead>
-            <tr>
-              <th rowspan="2" style="text-align: center;">Día</th>
-              <th colspan="6" style="text-align: center;">Devengado</th>
-            </tr>
-            <tr>
-              <th style="text-align: center;">Apostado Sistema</th>
-              <th style="text-align: center;">Base imponible</th>
-              <th style="text-align: center;">Impuesto</th>
-              <th style="text-align: center;">Bruto</th>
-              <th style="text-align: center;">Subtotal</th>
-              <th style="text-align: center;">Total</th>
-            </tr>
-          </thead>
-        </table>
-      </div>
-      <div data-div-devengado="diario" class="col-md-12" style="max-height: 25vh;overflow-y: scroll;">
-        <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
-          @yield('colgroupCV')
-          <tbody>
-          </tbody>
-        </table>
-        <table hidden>
-          <tr data-molde-diario>
-            <td><input class="form-control" value="dia" readonly></td>
-            <td><input class="form-control" value="devengado_apostado"></td>
-            <td><input class="form-control" value="devengado_base_imponible" readonly></td>
-            <td><input class="form-control" value="devengado_impuesto" readonly></td>
-            <td><input class="form-control" value="devengado_bruto"></td>
-            <td><input class="form-control" value="devengado_subtotal" readonly></td>
-            <td><input class="form-control" value="devengado_total" readonly></td>
-          </tr>
-        </table>
-      </div>
-      <div data-div-devengado="mensual" class="col-md-12">
-        <table data-tabla-mensual class="sacar-borde-primer-tr table table-bordered">
-          @yield('colgroupCV')
-          <tbody>
-            <tr class="fila-mensual">
-              <td>&nbsp;</td>
-              <td><input class="form-control" value="devengado_apostado" readonly></td>
-              <td><input class="form-control" value="devengado_base_imponible" readonly></td>
-              <td><input class="form-control" value="devengado_impuesto" readonly></td>
-              <td><input class="form-control" value="devengado_bruto" readonly></td>
-              <td><input class="form-control" value="devengado_subtotal" readonly></td>
-              <td><input class="form-control" value="devengado_total" readonly></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="row">
-      <div data-div-determinado="header" class="col-md-12">
-        <table class="table table-bordered" style="margin-bottom: 0;">
-          @yield('colgroupCV')
-          <thead>
-            <tr>
-              <th rowspan="2" style="text-align: center;">Día</th>
-              <th colspan="6" style="text-align: center;">Determinado</th>
-            </tr>
-            <tr>
-              <th class="celda_vacia" colspan="2">&nbsp;</th>
-              <th style="text-align: center;">Proporcional Impuesto</th>
-              <th style="text-align: center;">Bruto</th>
-              <th style="text-align: center;">Subtotal</th>
-              <th style="text-align: center;">Total</th>
-            </tr>
-          </thead>
-        </table>
-      </div>
-      <div data-div-determinado="diario" class="col-md-12" style="max-height: 25vh;overflow-y: scroll;">
-        <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
-          @yield('colgroupCV')
-          <tbody>
-          </tbody>
-        </table>
-        <table hidden>
-          <tr data-molde-diario>
-            <td><input class="form-control" value="dia" readonly></td>
-            <td class="celda_vacia" colspan="2">&nbsp;</td>
-            <td><input class="form-control" value="determinado_impuesto" readonly></td>
-            <td><input class="form-control" value="determinado_bruto"></td>
-            <td><input class="form-control" value="determinado_subtotal" readonly></td>
-            <td><input class="form-control" value="determinado_total" readonly></td>
-          </tr>
-        </table>
-      </div>
-      <div data-div-determinado="mensual" class="col-md-12">
-        <table data-tabla-mensual class="sacar-borde-primer-tr table table-bordered">
-          @yield('colgroupCV')
-          <tbody>
-            <tr class="fila-mensual">
-              <td colspan="3">&nbsp;</td>
-              <td><input class="form-control" value="determinado_impuesto" data-readonly='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'></td>
-              <td><input class="form-control" value="determinado_bruto" readonly></td>
-              <td><input class="form-control" value="determinado_subtotal" readonly></td>
-              <td><input class="form-control" value="determinado_total" readonly></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
   <div data-tabla="canon_fijo_mesas">
     <div class="row">
       <div data-div-devengado="header" data-div-determinado="header" class="col-md-12">

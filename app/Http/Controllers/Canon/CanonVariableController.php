@@ -69,32 +69,11 @@ class CanonVariableController extends Controller
     ->keyBy('tipo')->toArray();
   }
   
-  private function apostado($tipo,$año_mes,$id_casino){
-    if($año_mes === null || $tipo === null || $id_casino === null) return null;
-    $año_mes_arr = explode('-',$año_mes);
-    switch($tipo){
-      case 'Maquinas':{
-        $resultado = DB::table('beneficio as b')
-        ->selectRaw('SUM(b.coinin*IF(b.id_tipo_moneda = 1,1,CAST(cot.valor AS DECIMAL(20,6)))) as valor')
-        ->leftJoin('cotizacion as cot',function($q){
-          return $q->where('b.id_tipo_moneda',2)->on('b.fecha','=','cot.fecha');
-        })
-        ->where('b.id_casino',$id_casino)
-        ->whereYear('b.fecha',$año_mes_arr[0])
-        ->whereMonth('b.fecha',intval($año_mes_arr[1]))
-        ->groupBy(DB::raw('"constant"'))->first();
-        
-        return $resultado === null? $resultado : $resultado->valor;
-      }break;
-    }
-    return null;
-  }
-  
   public function recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$accessors){
     extract($accessors);
     
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
-    $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema',$this->apostado($tipo,$año_mes,$id_casino)),'0',2);//@RETORNADO    
+    $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema',$this->apostado($tipo,$año_mes,$id_casino)->apostado),'0',2);//@RETORNADO    
     $devengado_apostado_porcentaje_aplicable = bcadd($RD('devengado_apostado_porcentaje_aplicable','0.0000'),'0',4);//@RETORNADO
     $factor_apostado_porcentaje_aplicable = bcdiv($devengado_apostado_porcentaje_aplicable,'100',6);
     
@@ -110,8 +89,8 @@ class CanonVariableController extends Controller
     $determinado_bruto = $R('determinado_bruto',null);//@RETORNADO
     if($devengado_bruto === null || $determinado_bruto === null){
       $bruto = $this->bruto($tipo,$año_mes,$id_casino);
-      $devengado_bruto   = $devengado_bruto   ?? $bruto;
-      $determinado_bruto = $determinado_bruto ?? $bruto;
+      $devengado_bruto   = $devengado_bruto   ?? $bruto->bruto;
+      $determinado_bruto = $determinado_bruto ?? $bruto->bruto;
     }
     
     $devengado_bruto   = bcadd($devengado_bruto,'0',2);
@@ -136,6 +115,18 @@ class CanonVariableController extends Controller
     $devengado = bcsub($devengado_total,$devengado_deduccion,20);
     $determinado = bcadd($determinado_total,$determinado_ajuste,20);
     
+    $accesors_diario = [
+      'R' => AUX::make_accessor($R('diario',[])),
+      'A' => AUX::make_accessor($A('diario',[]))
+    ];
+    $accesors_diario['RA'] = AUX::combine_accessors($accesors_diario['R'],$accesors_diario['A']);
+    
+    $diario = $this->recalcular_diario(
+      $año_mes,$id_casino,$es_antiguo,$tipo,
+      $factor_apostado_porcentaje_aplicable,$factor_apostado_porcentaje_impuesto_ley,$factor_alicuota,
+      $accesors_diario
+    );//@RETORNADO
+    
     return compact('tipo',
       'alicuota','devengar',
       'devengado_apostado_sistema','devengado_apostado_porcentaje_aplicable','devengado_base_imponible',
@@ -143,8 +134,78 @@ class CanonVariableController extends Controller
       'devengado_bruto','devengado_impuesto','devengado_subtotal','devengado_total','devengado_deduccion',
       'devengado',
       'determinado_impuesto','determinado_bruto','determinado_subtotal','determinado_total','determinado_ajuste',
-      'determinado'
+      'determinado',
+      'diario'
     );
+  }
+  
+  private function recalcular_diario(
+    $año_mes,$id_casino,$es_antiguo,$tipo,
+    $factor_apostado_porcentaje_aplicable,$factor_apostado_porcentaje_impuesto_ley,$factor_alicuota,
+    $accessors
+  ){
+    extract($accessors);
+    
+    $año_mes = explode('-',$año_mes);
+    $dias = cal_days_in_month(CAL_GREGORIAN,intval($año_mes[1]),intval($año_mes[0]));
+    
+    $ret = [];
+    for($dia=1;$dia<=$dias;$dia++){
+      $D = AUX::make_accessor($R($dia,[]));
+      $fecha = implode('-',[$año_mes[0],$año_mes[1],str_pad($dia,2,'0')]);
+      $apostado = $this->apostado($tipo,$fecha,$id_casino,true);
+      $bruto    = $this->bruto($tipo,$fecha,$id_casino,true);
+      
+      $devengado_apostado_sistema_ARS = bcadd($D('devengado_apostado_sistema_ARS',$apostado->apostado_ARS),'0',2);//@RETORNADO    
+      $devengado_apostado_sistema_USD = bcadd($D('devengado_apostado_sistema_USD',$apostado->apostado_USD),'0',2);//@RETORNADO    
+      $devengado_bruto_ARS = bcadd($D('devengado_bruto_ARS',$bruto->bruto_ARS),'0',2);//@RETORNADO    
+      $devengado_bruto_USD = bcadd($D('devengado_bruto_USD',$bruto->bruto_USD),'0',2);//@RETORNADO    
+      $cotizacion = bcadd($D('cotizacion',$apostado->cotizacion),'0',2);//@RETORNADO    
+      $devengado_apostado_sistema_USD_cotizado = bcmul($devengado_apostado_sistema_USD,$cotizacion,4);//4+2 @RETORNADO
+      $devengado_bruto_USD_cotizado = bcmul($devengado_bruto_USD,$cotizacion,4);//2+2 @RETORNADO
+      
+      $devengado_apostado_sistema = bcadd($devengado_apostado_sistema_ARS,$devengado_apostado_sistema_USD_cotizado,4);//@RETORNADO
+      $devengado_bruto = bcadd($devengado_bruto_ARS,$devengado_bruto_USD_cotizado,4);//@RETORNADO
+      
+      $devengado_base_imponible = bcmul($devengado_apostado_sistema,$factor_apostado_porcentaje_aplicable,10);//4+6 @RETORNADO
+      $devengado_impuesto = bcmul($devengado_base_imponible,$factor_apostado_porcentaje_impuesto_ley,16);//10+6 @RETORNADO
+      $devengado_subtotal = bcsub($devengado_bruto,$devengado_impuesto,16);
+      $devengado_total = bcmul($devengado_subtotal,$factor_alicuota,22);
+      
+      $determinado_bruto_ARS = bcadd($D('determinado_bruto_ARS',$bruto->bruto_ARS),'0',2);//@RETORNADO    
+      $determinado_bruto_USD = bcadd($D('determinado_bruto_USD',$bruto->bruto_USD),'0',2);//@RETORNADO
+      $determinado_bruto_USD_cotizado = bcmul($determinado_bruto_USD,$cotizacion,4);//2+2 @RETORNADO
+      $determinado_bruto = bcadd($determinado_bruto_ARS,$determinado_bruto_USD_cotizado,4);//@RETORNADO
+      
+      $determinado_impuesto = bcadd($D('determinado_impuesto','0.00'),'0',16);//@RETORNADO
+      $determinado_subtotal = bcsub($determinado_bruto,$determinado_impuesto,16);//@RETORNADO
+      $determinado_total =  bcmul($determinado_subtotal,$factor_alicuota,22);// @RETORNADO
+      
+      if($es_antiguo){
+        $devengado_total = $D('devengado_total',$devengado_total);
+        $determinado_total = $D('determinado_total',$determinado_total);
+      }
+      
+      $ret[$dia] = compact(
+        'dia','fecha','cotizacion',
+        'devengado_apostado_sistema_ARS',
+        'devengado_apostado_sistema_USD',
+        'devengado_bruto_ARS',
+        'devengado_bruto_USD',
+        'devengado_apostado_sistema_USD_cotizado',
+        'devengado_bruto_USD_cotizado',
+        'devengado_apostado_sistema',
+        'devengado_bruto',
+        'devengado_impuesto',
+        'devengado_subtotal',
+        'devengado_total',
+        'determinado_impuesto',
+        'determinado_subtotal',
+        'determinado_total'
+      );
+    }
+    
+    return $ret;
   }
   
   public function guardar($id_canon,$id_canon_anterior,$datos){
@@ -184,46 +245,86 @@ class CanonVariableController extends Controller
     return [];
   }
     
-  public function bruto($tipo,$año_mes,$id_casino){
+  public function bruto($tipo,$año_mes,$id_casino,$diario = false){
     if($año_mes === null || $tipo === null || $id_casino === null) return null;
     $año_mes_arr = explode('-',$año_mes);
+    $diario = $diario? 1 : 0;
+    $resultado = null;
     switch($tipo){
       case 'Maquinas':{
         $resultado = DB::table('beneficio as b')
-        ->selectRaw('SUM(b.valor*IF(b.id_tipo_moneda = 1,1,CAST(cot.valor AS DECIMAL(20,6)))) as valor')
-        ->leftJoin('cotizacion as cot',function($q){
-          return $q->where('b.id_tipo_moneda',2)->on('b.fecha','=','cot.fecha');
+        ->leftJoin('cotizacion as cot',function($j){
+          return $j->where('b.id_tipo_moneda',2)
+          ->on('cot.fecha','=','b.fecha');
         })
         ->where('b.id_casino',$id_casino)
         ->whereYear('b.fecha',$año_mes_arr[0])
-        ->whereMonth('b.fecha',intval($año_mes_arr[1]))
+        ->whereMonth('b.fecha',intval($año_mes_arr[1]));
+        if($diario){
+          $resultado = $resultado->whereDay('b.fecha',intval($año_mes_arr[2]));
+        }
+        $resultado = $resultado->selectRaw('
+          SUM(IF(b.id_tipo_moneda = 1,b.valor,0)) as bruto_ARS,
+          SUM(IF(b.id_tipo_moneda = 2,b.valor,0)) as bruto_USD,
+          MAX(IF(b.id_tipo_moneda = 2 AND '.$diario.',cot.valor,NULL)) as cotizacion,
+          SUM(IF(b.id_tipo_moneda = 2,cot.valor*b.valor,0)) as bruto_USD_cotizado,
+          SUM(
+            IF(b.id_tipo_moneda = 1,
+              b.valor,
+              IF(b.id_tipo_moneda = 2,
+                b.valor*cot.valor,
+                NULL
+              )
+            )
+          ) as bruto
+        ')
         ->groupBy(DB::raw('"constant"'))->first();
-        
-        return $resultado === null? $resultado : $resultado->valor;
       }break;
       case 'Bingo':{
         $resultado = DB::table('bingo_importacion as b')
-        ->selectRaw('SUM(b.recaudado-b.premio_bingo-b.premio_linea) as valor')
         ->where('b.id_casino',$id_casino)
         ->whereYear('b.fecha',$año_mes_arr[0])
-        ->whereMonth('b.fecha',intval($año_mes_arr[1]))
+        ->whereMonth('b.fecha',intval($año_mes_arr[1]));
+        if($diario){
+          $resultado = $resultado->whereDay('b.fecha',intval($año_mes_arr[2]));
+        }
+                
+        $resultado = $resultado->selectRaw('
+          SUM(b.recaudado-b.premio_bingo-b.premio_linea) as bruto_ARS,
+          NULL as bruto_USD,
+          NULL as cotizacion,
+          NULL as bruto_USD_cotizado,
+          SUM(b.recaudado-b.premio_bingo-b.premio_linea) as bruto
+        ')
         ->groupBy(DB::raw('"constant"'))->first();
-        
-        return $resultado === null? $resultado : $resultado->valor;
-      };
+      }break;
       case 'JOL':{
+        $err_val = function($v){
+          return ((object)['bruto_ARS' => $v,'bruto_USD' => $v,'cotizacion' => $v,'bruto_USD_cotizado' => $v,'bruto' => $v]);
+        };
         $JOL_connect_config = CanonValorPorDefectoController::getInstancia()->valorPorDefecto('JOL_connect_config') ?? null;
         $debug = $JOL_connect_config['debug'] ?? false;
-        if(empty($JOL_connect_config)) return $debug? '-0.99' : null;
-        if(empty($JOL_connect_config['ip_port'])) return $debug? '-0.98' : null;
-        if(empty($JOL_connect_config['API-Token']))  return $debug? '-0.97' : null;
+        if(empty($JOL_connect_config)){
+          $resultado = $debug? $err_val('-0.99') : null;
+          break;
+        }
+        if(empty($JOL_connect_config['ip_port'])){
+          $resultado = $debug? $err_val('-0.98') : null;
+          break;
+        }
+        if(empty($JOL_connect_config['API-Token'])){
+          $resultado = $debug? $err_val('-0.97') : null;
+          break;
+        }
         
         set_time_limit(5);
         $ch = curl_init();
         
         curl_setopt($ch, CURLOPT_URL, "http://{$JOL_connect_config['ip_port']}/api/bruto");
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(compact('año_mes','id_casino')));
+        $desde = "{$año_mes_arr[0]}-{$año_mes_arr[1]}-01";
+        $hasta = "{$año_mes_arr[0]}-{$año_mes_arr[1]}-".cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(compact('año_mes','id_casino','diario')));
         //curl_setopt($ch, CURLOPT_HEADER, FALSE);
         //curl_setopt($ch, CURLOPT_FOLLOWLOCATION, FALSE);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -236,66 +337,108 @@ class CanonVariableController extends Controller
         $code   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         
         if($result === false){//Error de curl https://curl.se/libcurl/c/libcurl-errors.html
-          $ret = $debug? (-curl_errno($ch)).'.99' : null;
+          $errno = curl_errno($ch);
           curl_close($ch);
-          return $ret;
+          $resultado = $debug? $err_val('-1.'.$errno) : null;
+          break;
         }
         curl_close($ch);
         
         if($code != 200){
-          return $debug? (-$code).'.98' : null;
+          $resultado = $debug? $err_val('-2.'.$code) : null;
+          break;
         }
-                
-        return $result;
+        
+        $resultado = empty($result)? $err_vall(null): json_decode($result);
       }break;
     }
-    return null;
+    
+    return $resultado ?? ((object)['bruto_ARS' => null,'bruto_USD' => NULL,'cotizacion' => null,'bruto_USD_cotizado' => null,'bruto' => null]);
   }
   
-  public function diario($id,$año_mes){
-    $mensual;
-    $diario;
-    if($id !== null){
-      $mensual = DB::table($this->table)->where($this->id,$id)->first();
-      $año_mes = DB::table('canon',$mensual->id_canon)
-      ->first()->año_mes;
-      $dias_mes = intval(date('t',strtotime($año_mes)));
-      $diario = array_map(function($d){//@TODO query tabla diaria
-        return [
-          'dia' => $d,
-          'devengado' => [
-            'bruto' => rand(100,200),
-            'total' => rand(100,200),
-          ],
-          'determinado' => [
-            'bruto' => rand(100,200),
-            'total' => rand(100,200),
-          ]
-        ];
-      },range(1,$dias_mes,1));
-    }
-    else if($año_mes !== null){
-      $mensual = null;
-      $dias_mes = intval(date('t',strtotime($año_mes)));
-      $diario = array_map(function($d){
-        return [
-          'dia' => $d,
-          'devengado' => [
-            'bruto' => rand(100,200),
-            'total' => rand(100,200),
-          ],
-          'determinado' => [
-            'bruto' => rand(100,200),
-            'total' => rand(100,200),
-          ]
-        ];
-      },range(1,$dias_mes,1));
-    }
-    else{
-      throw new \Exception('Unreachable');
+  private function apostado($tipo,$año_mes,$id_casino,$diario = false){
+    if($año_mes === null || $tipo === null || $id_casino === null) return null;
+    $año_mes_arr = explode('-',$año_mes);
+    $diario = $diario? 1 : 0;
+    $resultado = null;
+    switch($tipo){
+      case 'Maquinas':{
+        $resultado = DB::table('beneficio as b')
+        ->leftJoin('cotizacion as cot',function($j){
+          return $j->where('b.id_tipo_moneda',2)
+          ->on('cot.fecha','=','b.fecha');
+        })
+        ->where('b.id_casino',$id_casino)
+        ->whereYear('b.fecha',$año_mes_arr[0])
+        ->whereMonth('b.fecha',intval($año_mes_arr[1]));
+        if($diario){
+          $resultado = $resultado->whereDay('b.fecha',intval($año_mes_arr[2]));
+        }
+        $resultado = $resultado->selectRaw('
+          SUM(IF(b.id_tipo_moneda = 1,b.coinin,0)) as apostado_ARS,
+          SUM(IF(b.id_tipo_moneda = 2,b.coinin,0)) as apostado_USD,
+          MAX(IF(b.id_tipo_moneda = 2 AND '.$diario.',cot.valor,NULL)) as cotizacion,
+          SUM(IF(b.id_tipo_moneda = 2,cot.valor*b.coinin,0)) as apostado_USD_cotizado,
+          SUM(
+            IF(b.id_tipo_moneda = 1,
+              b.coinin,
+              IF(b.id_tipo_moneda = 2,
+                b.coinin*cot.valor,
+                NULL
+              )
+            )
+          ) as apostado
+        ')
+        ->groupBy(DB::raw('"constant"'))->first();
+      }break;
     }
     
-    return compact('mensual','diario');
+    return $resultado ?? ((object)['apostado_ARS' => null,'apostado_USD' => NULL,'cotizacion' => null,'apostado_USD_cotizado' => null,'apostado' => null]);
+  }
+  
+  public function diario($id_casino,$año_mes){
+    $año_mes = explode('-',$año_mes);
+    $dias = AUX::ranged_sql(1,cal_days_in_month(CAL_GREGORIAN,intval($año_mes[1]),intval($año_mes[0])));
+    
+    return DB::table(DB::raw($dias.' as dia'))
+    ->leftJoin('cotizacion as cot',function($j) use ($año_mes,$id_casino){
+      return $j->whereYear('cot.fecha',$año_mes[0])->whereMonth('cot.fecha',$año_mes[1])
+      ->on(DB::raw('DAY(cot.fecha)'),'=','dia.val');
+    })
+    ->leftJoin('beneficio as bp',function($j) use ($año_mes,$id_casino){
+      return $j->whereYear('bp.fecha',$año_mes[0])->whereMonth('bp.fecha',$año_mes[1])
+      ->on(DB::raw('DAY(bp.fecha)'),'=','dia.val')
+      ->where('bp.id_casino',$id_casino)
+      ->where('bp.id_tipo_moneda',1);
+    })
+    ->leftJoin('beneficio as bd',function($j) use ($año_mes,$id_casino){
+      return $j->whereYear('bd.fecha',$año_mes[0])->whereMonth('bd.fecha',$año_mes[1])
+      ->on(DB::raw('DAY(bd.fecha)'),'=','dia.val')
+      ->where('bd.id_casino',$id_casino)
+      ->where('bd.id_tipo_moneda',2);
+    })
+    ->select(
+      DB::raw("CONCAT('{$año_mes[0]}','-','{$año_mes[1]}','-',dia.val) as fecha"),
+      'dia.val as dia',
+      'cot.valor as cotizacion',
+      'bp.coinin as devengado_apostado_ARS',
+      'bp.valor as devengado_bruto_ARS',
+      'bd.coinin as devengado_apostado_USD',
+      'bp.valor as devengado_bruto_USD',
+      DB::raw('(bp.coinin+IFNULL(cot.valor,0)*bd.coinin) as devengado_apostado'),
+      DB::raw('0 as devengado_base_imponible'),
+      DB::raw('0 as devengado_impuesto'),
+      DB::raw('(bp.coinin+IFNULL(cot.valor,0)*bd.coinin) as devengado_bruto'),
+      DB::raw('(bp.coinin+IFNULL(cot.valor,0)*bd.coinin) as devengado_subtotal'),
+      DB::raw('(bp.coinin+IFNULL(cot.valor,0)*bd.coinin) as devengado_total'),
+      DB::raw('0 as determinado_impuesto'),
+      DB::raw('(bp.coinin+IFNULL(cot.valor,0)*bd.coinin) as determinado_bruto'),
+      DB::raw('(bp.coinin+IFNULL(cot.valor,0)*bd.coinin) as determinado_subtotal'),
+      DB::raw('(bp.coinin+IFNULL(cot.valor,0)*bd.coinin) as determinado_total')
+    )
+    ->orderBy('dia.val','asc')
+    ->get()
+    ->keyBy('dia');
   }
   
   public function datosCanon($tname){

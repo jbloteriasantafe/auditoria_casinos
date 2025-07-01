@@ -104,15 +104,7 @@ class CanonController extends Controller
   }
   
   private function recalcular(array $request){
-    $make_accessor = function(&$arr){
-      return function($k,$dflt = null) use (&$arr){
-        return (!isset($arr[$k]) || $arr[$k] === '' || $arr[$k] === null || $arr[$k] === [])?
-          $dflt
-        : $arr[$k];
-      };
-    };
-    
-    $R = $make_accessor($request);
+    $R = AUX::make_accessor($request);
     
     $año_mes = $R('año_mes');//@RETORNADO
     $id_casino = $R('id_casino');//@RETORNADO
@@ -182,28 +174,24 @@ class CanonController extends Controller
     }
     
     if($COT['devengado_fecha_cotizacion'] !== null){
-      $COT['devengado_cotizacion_dolar'] = $COT['devengado_cotizacion_dolar'] ?? $this->cotizacion($COT['devengado_fecha_cotizacion'],2,$id_casino) ?? '0';
-      $COT['devengado_cotizacion_euro']  = $COT['devengado_cotizacion_euro']  ?? $this->cotizacion($COT['devengado_fecha_cotizacion'],3,$id_casino) ?? '0';
+      $COT['devengado_cotizacion_dolar'] = $COT['devengado_cotizacion_dolar'] ?? AUX::cotizacion($COT['devengado_fecha_cotizacion'],2,$id_casino) ?? '0';
+      $COT['devengado_cotizacion_euro']  = $COT['devengado_cotizacion_euro']  ?? AUX::cotizacion($COT['devengado_fecha_cotizacion'],3,$id_casino) ?? '0';
     }
     
     if($COT['determinado_fecha_cotizacion'] !== null){
-      $COT['determinado_cotizacion_dolar'] = $COT['determinado_cotizacion_dolar'] ?? $this->cotizacion($COT['determinado_fecha_cotizacion'],2,$id_casino) ?? '0';
-      $COT['determinado_cotizacion_euro']  = $COT['determinado_cotizacion_euro']  ?? $this->cotizacion($COT['determinado_fecha_cotizacion'],3,$id_casino) ?? '0';
+      $COT['determinado_cotizacion_dolar'] = $COT['determinado_cotizacion_dolar'] ?? AUX::cotizacion($COT['determinado_fecha_cotizacion'],2,$id_casino) ?? '0';
+      $COT['determinado_cotizacion_euro']  = $COT['determinado_cotizacion_euro']  ?? AUX::cotizacion($COT['determinado_fecha_cotizacion'],3,$id_casino) ?? '0';
     }
     
     $subcanons = [];
-    
-    $make_multiple_accessors = function(&$r,&$d,&$a,&$cot) use ($make_accessor){
-      $R = $make_accessor($r);
-      $D = $make_accessor($d);
-      $A = $make_accessor($a);
-      $COT = $make_accessor($cot);
-      $RD = function($s,$dflt = null) use ($R,$D){
-        return $R($s,null) ?? $D($s,null) ?? $dflt;
-      };
-      $RAD = function($s,$dflt = null) use ($R,$A,$D){
-        return $R($s,null) ?? $A($s,null) ?? $D($s,null) ?? $dflt;
-      };
+        
+    $make_multiple_accessors = function(&$r,&$d,&$a,&$cot){
+      $R = AUX::make_accessor($r);
+      $D = AUX::make_accessor($d);
+      $A = AUX::make_accessor($a);
+      $COT = AUX::make_accessor($cot);
+      $RD  = AUX::combine_accessors($R,$D);
+      $RAD = AUX::combine_accessors($R,$A,$D);
       return compact('R','D','A','RD','RAD','COT');
     };
     
@@ -213,9 +201,9 @@ class CanonController extends Controller
       $subcanon_anterior = $canon_anterior[$subcanon] ?? [];
       $retsc = [];
       
-      foreach(($request[$subcanon] ?? $defecto ?? []) as $tipo => $_){
+      foreach(($request[$subcanon] ?? $valorPorDefecto ?? []) as $tipo => $_){
         $data_request_tipo = $data_request[$tipo] ?? [];
-        $defecto_tipo = $defecto[$tipo] ?? [];
+        $defecto_tipo = $valorPorDefecto[$tipo] ?? [];
         $anterior_tipo = $subcanon_anterior[$tipo] ?? [];
                 
         $retsc[$tipo] = $scobj->recalcular(
@@ -685,99 +673,6 @@ class CanonController extends Controller
     }
     
     return $ret;
-  }
-    
-  private $cotizacion_DB = null;
-  private function cotizacion($fecha_cotizacion,$id_tipo_moneda,$id_casino){
-    if(empty($fecha_cotizacion) || empty($id_tipo_moneda)) return '0';
-    if($id_tipo_moneda == 1){
-      return 1;
-    }
-    
-    if($this->cotizacion_DB === null){//Armo cotizacion_DB
-      $fecha_cotizacion_arr = explode('-',$fecha_cotizacion);
-      if($fecha_cotizacion_arr[1] == '01'){
-        $fecha_cotizacion_arr[0] = str_pad(intval($fecha_cotizacion_arr[0])-1,4,'0',STR_PAD_LEFT);
-        $fecha_cotizacion_arr[1] = '12';
-      }
-      else{
-        $fecha_cotizacion_arr[1] = str_pad(intval($fecha_cotizacion_arr[1])-1,2,'0',STR_PAD_LEFT);
-      }
-      $fecha_cotizacion_arr[2] = '01';
-      
-      $q_base = DB::table('canon as c')//Busco en otros canons del mismo mes
-      ->whereNull('c.deleted_at')
-      ->where('c.id_casino','<>',$id_casino)
-      ->where('c.año_mes',implode('-',$fecha_cotizacion_arr));//Para buscar entre menos
-      
-      $q_cfm = (clone $q_base)
-      ->leftJoin('canon_fijo_mesas as cfm','cfm.id_canon','=','c.id_canon');
-      $q_cfma = (clone $q_base)
-      ->leftJoin('canon_fijo_mesas_adicionales as cfma','cfma.id_canon','=','c.id_canon');
-      
-      $vals_db = collect([])
-      ->merge(
-        (clone $q_cfm)->selectRaw('
-          devengado_fecha_cotizacion as dev_fecha,
-          NULLIF(devengado_cotizacion_dolar,"0") as dev_moneda_2,
-          NULLIF(devengado_cotizacion_euro,"0") as dev_moneda_3,
-          determinado_fecha_cotizacion as det_fecha,
-          NULLIF(determinado_cotizacion_dolar,"0") as det_moneda_2,
-          NULLIF(determinado_cotizacion_euro,"0") as det_moneda_3
-        ')->get()
-      )
-      ->merge(
-        (clone $q_cfma)->selectRaw('
-          devengado_fecha_cotizacion as dev_fecha,
-          NULLIF(devengado_cotizacion_dolar,"0") as dev_moneda_2,
-          NULLIF(devengado_cotizacion_euro,"0") as dev_moneda_3,
-          determinado_fecha_cotizacion as det_fecha,
-          NULLIF(determinado_cotizacion_dolar,"0") as det_moneda_2,
-          NULLIF(determinado_cotizacion_euro,"0") as det_moneda_3
-        ')->get()
-      );
-      
-      $this->cotizacion_DB = [];
-      foreach($vals_db as $v){
-        $this->cotizacion_DB[$v->dev_fecha] = $this->cotizacion_DB[$v->dev_fecha] ?? [2 => [],3 => []];
-        $this->cotizacion_DB[$v->dev_fecha][2][$v->dev_moneda_2] = 1;
-        $this->cotizacion_DB[$v->dev_fecha][3][$v->dev_moneda_3] = 1;
-        
-        $this->cotizacion_DB[$v->det_fecha] = $this->cotizacion_DB[$v->det_fecha] ?? [2 => [],3 => []];
-        $this->cotizacion_DB[$v->det_fecha][2][$v->det_moneda_2] = 1;
-        $this->cotizacion_DB[$v->det_fecha][3][$v->det_moneda_3] = 1;
-      }
-      
-      //Si hay una cotizacion sola para la fecha, la guardo sino pongo en nulo
-      foreach($this->cotizacion_DB as $fcot => $cots){
-        foreach($cots as $idtm => $valores_moneda){
-          if(count($valores_moneda) > 1 || count($valores_moneda) == 0){
-            $this->cotizacion_DB[$fcot][$idtm] = null;
-          }
-          else{
-            $this->cotizacion_DB[$fcot][$idtm] = array_keys($valores_moneda)[0];
-            $this->cotizacion_DB[$fcot][$idtm] = empty($this->cotizacion_DB[$fcot][$idtm])? 
-            null
-            : $this->cotizacion_DB[$fcot][$idtm];
-          }
-        }
-      }
-    }
-    
-    //Si existe una cotización comun en la DB, devuelvo esa
-    $cot = ($this->cotizacion_DB[$fecha_cotizacion] ?? [])[$id_tipo_moneda] ?? null;
-    if($cot !== null) return $cot;
-    
-    if($id_tipo_moneda == 2){//Busco en las cotizaciones de los auditores
-      $cotizacion = DB::table('cotizacion as cot')
-      ->where('fecha',$fecha_cotizacion)
-      ->first();
-      if($cotizacion !== null){
-        return $cotizacion->valor;
-      }
-    }
-    
-    return '0';
   }
   
   public function cambiarEstado(Request $request){
@@ -1323,19 +1218,11 @@ class CanonController extends Controller
     
     $data = collect([]);
     $data_anual = collect([]);
-    if(($es_anual && $año !== null) || ($es_mensual && $año !== null && $mes == 'Resumen') || $planilla == 'evolucion_historica'){     
-      $ranged_sql = function($begin,$end){
-        $ret = "( SELECT $begin as val ";
-        for($i=$begin+1;$i<=$end;$i++){
-          $ret.= 'UNION ALL SELECT '.$i.' ';
-        }
-        return $ret.')';
-      };
-      
-      $meses_sql = $ranged_sql(1,12);
+    if(($es_anual && $año !== null) || ($es_mensual && $año !== null && $mes == 'Resumen') || $planilla == 'evolucion_historica'){      
+      $meses_sql = AUX::ranged_sql(1,12);
       $años_sql = $año === null?
-        $ranged_sql($primer_año,$ultimo_año)
-      : $ranged_sql($año-1,$año);
+        AUX::ranged_sql($primer_año,$ultimo_año)
+      : AUX::ranged_sql($año-1,$año);
       
       $casinos_select = $unir_sfe_mel?
         'IF(cas.nombre IN ("Santa Fe","Melincué"),"Santa Fe - Melincué",cas.nombre)'
@@ -1567,11 +1454,30 @@ class CanonController extends Controller
       'año_mes' => ($id !== null?
           ['nullable']
         : ['required','regex:/^\d{4}\-((0\d)|(1[0-2]))\-01$/']
-      )
+      ),
+      'id_casino' => ($id !== null?
+          ['nullable']
+        : ['required','exists:casino,id_casino,deleted_at,NULL']
+      ),
     ], self::$errores,[])->after(function($validator){})->validate();
+    
+    $año_mes;
+    $id_casino;
+    if(!empty($id)){
+      $subcanon = DB::table($tabla)->where('id_'.$tabla,$id)->first();
+      if($subcanon === null) return [];
+      $canon = DB::table('canon')->where('id_canon',$subcanon->id_canon)->first();
+      if($canon === null) return [];
+      $año_mes = $canon->año_mes;
+      $id_casino = $canon->id_casino;
+    }
+    else{
+      $año_mes = $request->año_mes;
+      $id_casino = $request->id_casino;
+    }
     
     $scobj = $this->subcanons[$tabla] ?? null;
     if($scobj === null) return [];
-    return $scobj->diario($id,$año_mes);
+    return $scobj->diario($id_casino,$año_mes);
   }
 }
