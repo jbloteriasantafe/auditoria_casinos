@@ -42,7 +42,7 @@ Route::post('enviarTicket',function(Request $request){
   if(!empty($request->attachments)){
     $data['attachments'] = $request->attachments;
   }
-  
+
   set_time_limit(30);
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, 'http://10.1.121.25/osTicket/api/http.php/tickets.json');
@@ -261,7 +261,7 @@ Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_
   Route::post('guardarMaquina', 'MTMController@guardarMaquina');
   Route::post('modificarMaquina', 'MTMController@modificarMaquina');
   Route::post('buscarMaquinas', 'MTMController@buscarMaquinas');
-  Route::post('cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');  
+  Route::post('cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
   Route::get('obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
   Route::get('buscarExpedientePorCasinoYNumero/{id_casino}/{busqueda}','ExpedienteController@buscarExpedientePorCasinoYNumero');
   Route::group(['prefix' => 'certificadoHard'],function(){
@@ -366,6 +366,17 @@ Route::group(['prefix' => 'eventualidades','middleware' => 'tiene_permiso:ver_se
   Route::get('obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
   Route::get('obtenerMTM/{id}', 'MTMController@obtenerMTM');
   Route::get('obtenerSector/{id_sector}','SectorController@obtenerSector');
+  Route::post('guardarEventualidad','EventualidadController@guardarEventualidad');
+  Route::get('pdf/{id}', 'EventualidadController@PDF');
+  Route::get('obtenerTurnos/{id_casino}', 'EventualidadController@obtenerTurnos');
+  Route::get('ultimas', 'EventualidadController@ultimasIntervenciones');
+  Route::post('subirEventualidad', 'EventualidadController@subirEventualidad');
+  Route::post('guardarObservacion','EventualidadController@guardarObservacion');
+  Route::get('pdfObs/{id}','EventualidadController@PDFObs');
+  Route::get('visarEventualidad/{id_eventualidad}','EventualidadController@visarEventualidad');
+  Route::post('subirObservacion', 'EventualidadController@subirObservacion');
+  Route::get('{evId}/observaciones', 'EventualidadController@getObservaciones');
+  Route::get('observacion/{id_ob}','EventualidadController@eliminarObservacion');
 });
 /**********
 Eventualidades MTM ->intervenciones tecnicas mtm
@@ -603,14 +614,14 @@ Route::group(['prefix' => 'layout_parcial','middleware' => 'tiene_permiso:ver_se
   Route::post('usarLayoutBackup' , 'LayoutController@usarLayoutBackup');
   Route::get('existeLayoutParcial/{id_sector}','LayoutController@existeLayoutParcial');
   Route::get('existeLayoutParcialGenerado/{id_sector}','LayoutController@existeLayoutParcialGenerado');
-  
+
   Route::get('obtenerLayoutParcial/{id}','LayoutController@obtenerLayoutParcial');
   Route::get('obtenerLayoutParcialValidar/{id}','LayoutController@obtenerLayoutParcial');
-  
+
   Route::post('guardarLayoutParcial' , 'LayoutController@guardarLayoutParcial');
   Route::post('finalizarLayoutParcial','LayoutController@finalizarLayoutParcial');
   Route::post('validarLayoutParcial' , 'LayoutController@validarLayoutParcial');
-  
+
   Route::get('generarPlanillaLayoutParcial/{id}','LayoutController@generarPlanillaLayoutParcial');
   Route::get('generarPlanillaLayoutParcialCargado/{id}','LayoutController@generarPlanillaLayoutParcialCargado');
   Route::get('descargarLayoutParcialZip/{nombre}','LayoutController@descargarLayoutParcialZip');
@@ -791,7 +802,7 @@ Route::group(['prefix' => 'aperturas','middleware' => 'tiene_permiso:m_buscar_ap
 });
 
 //Sección Juegos
-Route::group(['prefix' => 'mesas-juegos','middleware' => 'tiene_permiso:m_gestionar_juegos_mesas'], function () {  
+Route::group(['prefix' => 'mesas-juegos','middleware' => 'tiene_permiso:m_gestionar_juegos_mesas'], function () {
   Route::get('/', 'Mesas\Juegos\BuscarJuegoController@buscarTodo');
   Route::post('buscarJuegos', 'Mesas\Juegos\BuscarJuegoController@buscarJuegos');
   Route::post('nuevoJuego', 'Mesas\Juegos\ABMJuegoController@guardar');
