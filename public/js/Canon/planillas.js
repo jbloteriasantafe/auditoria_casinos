@@ -8,6 +8,7 @@ import "/js/highcharts_11_3_0/modules/export-data.js";
 import "/js/highcharts_11_3_0/modules/accessibility.js";
 import "/js/highcharts_11_3_0/modules/drilldown.js";
 import "/js/highcharts_11_3_0/modules/offline-exporting.js";
+import {DescargarTable} from "/js/Components/DescargarTable.js";
 
 function formatEsp(n){
   n = n+'';
@@ -34,27 +35,24 @@ function formatPje(f){
 }
 
 $(document).ready(function() {
-  $('[data-js-click-seleccionar-tablas]').click(function(e){
+  $('[data-js-click-descargar-tabla]').click(function(e){
     const tgt = $(e.currentTarget);
-    const selector = tgt.attr('data-js-click-seleccionar-tablas') ?? null;
+    const selector = tgt.attr('data-js-click-descargar-tabla') ?? null;
     if(selector === null || selector.length == 0) return;
     const div = $(selector);
-    let range = null; 
-    let sel = null;
-    if (document.createRange && window.getSelection) {
-      range = document.createRange();
-      sel   = window.getSelection();
-      sel.removeAllRanges();
-      
-      try {
-        range.selectNodeContents(div[0]);
-        sel.addRange(range);
-      } catch (e) {
-        console.log(e);
-      }
-    }
-    //Copiar manualmente porque mantiene el formato de tabla al pegar el Sistema Operativo/navegador ...
-    //navigator.clipboard.writeText(window.getSelection().toString());
+    const nombre_planilla = 
+      (planilla.length? planilla : 'planilla')
+    + (año.length? ('_'+año) : '')
+    + (mes.length? ('_'+mes) : '')
+    + (fecha_planilla.length? ('_'+fecha_planilla) : '')
+    + '.xlsx';
+    
+    const table = div.find('table')?.[0] ?? null;
+    if(table) DescargarTable.exportToExcel(
+      table,
+      'Hoja 1',
+      nombre_planilla
+    );
   });
   
   Highcharts.setOptions({

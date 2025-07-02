@@ -259,7 +259,7 @@
           <span>UNIDAD RELEVADA:&nbsp;</span>
         </div>
         <div style="flex: 1;">
-          <select data-js-detalle-asignar-name="[detalle][denominacion]" class="form-control" data-js-readonly="Ver,Cargar" data-js-cambio-cambiar-denominacion="relevamientos/modificarDenominacionYUnidadDetalle" style="width: 100%;">
+          <select data-js-detalle-asignar-name="[detalle][denominacion]" class="form-control" data-js-readonly="Ver" data-js-cambio-cambiar-denominacion="relevamientos/modificarDenominacionYUnidadDetalle" style="width: 100%;">
             <option value="1" data-id_unidad_medida="2">1 (MONEDA)</option>
             @foreach($denominaciones as $d)
             <option value="{{$d}}" data-id_unidad_medida="1">{{$d}} (CRED)</option>
@@ -346,7 +346,7 @@
         <span style="text-align: center;font-weight: bold;padding-top: 0;">A PEDIDO</span>
       </div>
       <div class="td-estadisticas" data-js-modo="Validar">
-        <a title="Estadisticas No Toma" href="/relevamientos/estadisticas_no_toma" target="_blank" data-js-enabled="Validar" data-js-estadisticas-no-toma class="btn btn-link acciones_validacion" type="button">
+        <a title="Estadisticas No Toma" href="" target="_blank" data-js-enabled="Validar" data-js-estadisticas-no-toma="/relevamientos/estadisticas_no_toma" class="btn btn-link acciones_validacion" type="button">
           <i class="fas fa-fw fa-external-link-square-alt"></i>
         </a>
         <div style="text-align: center;font-weight: bold;padding-top: 0;">&nbsp;</div>

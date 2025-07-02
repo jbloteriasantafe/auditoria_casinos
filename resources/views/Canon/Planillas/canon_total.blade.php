@@ -16,7 +16,7 @@
   }
 </style>
 <div style="display: flex;">
-  <div style="width: 70%;" data-target-seleccionar-tablas>
+  <div style="width: 70%;">
     <table style="width: 100%;table-layout: fixed">
       <colgroup>
         <col class="mes">
@@ -28,7 +28,7 @@
       </colgroup>
       <thead>
         <tr>
-          <th colspan="{{3+count($casinos)}}" style="text-align: center;">CANON TOTAL CASINOS - {{$año}} -</th>
+          <th colspan="{{3+count($casinos)}}" style="text-align: center;">Canon Total Casinos - {{$año}} -</th>
         </tr>
         <tr>
           <th class="mes" style="border-right: 1px solid black;">MESES</th>
@@ -42,8 +42,10 @@
           <th class="mes celda_especial" style="border-right: 1px solid black;">{{$año_anterior}}</th>
           @foreach($abbr_casinos as $_cidx => $_cas)
           <?php
+            $_casino = $casinos[$_cidx] ?? null;
             $total = $dataf($_casino,$año_anterior,0);
             $canon_total = $formatear_decimal($total->canon_total ?? null);
+            $variacion_anual = $formatear_porcentaje($total->variacion_anual ?? null);
           ?>
           <th class="canon {{$_cas}} {{$N($canon_total)}}" style="text-align: right;">{{$canon_total}}</th>
           @endforeach

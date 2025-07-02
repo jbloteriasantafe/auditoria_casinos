@@ -2562,7 +2562,7 @@ class CanonController extends Controller
         $fisicos[] = $alias;
         $fijos_adicionales[] = $alias;
       }
-              
+      
       $canon_fisico = 'ROUND('.implode('+',array_map(function($t){
         return "IFNULL(SUM($t.determinado),0)";
       },$fisicos)).',2)';
@@ -2598,18 +2598,41 @@ class CanonController extends Controller
         100*(SUM(c.determinado)/NULLIF(SUM(c_mom.determinado),0)-1) as variacion_mensual';
       }
       else if($planilla == 'participacion'){
-        $canon_cco = '('.implode('+',array_map(function($t){
-          return "IFNULL(SUM(IF(cas.nombre = 'Rosario',$t.determinado,0)),0)";
+        $ganancia_total_variable = '('.implode('+',array_map(function($t){
+          return "IFNULL(SUM($t.determinado_subtotal),0)";//Con el impuesto sacado
+        },$variables)).')';
+        
+        $ganancia_online_variable = '('.implode('+',array_map(function($t){
+          return "IFNULL(SUM($t.determinado_subtotal),0)";//Con el impuesto sacado
         },$online)).')';
-        $canon_bplay = '('.implode('+',array_map(function($t){
-          return "IFNULL(SUM(IF(cas.nombre IN ('Santa Fe','Melincué'),$t.determinado,0)),0)";
+              
+        $ganancia_fisico_fijo = '('.implode('+',array_map(function($t){
+          return "IFNULL(SUM($t.bruto),0)";//Con el impuesto sacado
+        },$fijos)).')';
+              
+        $ganancia_online = "($ganancia_online_variable)";
+        $ganancia_total  = "($ganancia_total_variable+$ganancia_fisico_fijo)";
+        $ganancia_fisico = "($ganancia_total-$ganancia_online)";
+        
+        $porcentaje_fisico = "ROUND(100*$ganancia_fisico/NULLIF($ganancia_total,0),2)";
+        $porcentaje_online = "ROUND(100*$ganancia_online/NULLIF($ganancia_total,0),2)";
+      
+        $ganancia_cco = '('.implode('+',array_map(function($t){
+          return "IFNULL(SUM(IF(cas.nombre = 'Rosario',$t.determinado_subtotal,0)),0)";
         },$online)).')';
+        
+        $ganancia_bplay = '('.implode('+',array_map(function($t){
+          return "IFNULL(SUM(IF(cas.nombre IN ('Santa Fe','Melincué'),$t.determinado_subtotal,0)),0)";
+        },$online)).')';
+        
+        $porcentaje_CCO = "ROUND(100*$ganancia_cco/NULLIF($ganancia_online,0),2)";
+        $porcentaje_BPLAY = "ROUND(100*$ganancia_bplay/NULLIF($ganancia_online,0),2)";
         //Como son dos porcentajes el rounding uno siempre compensa tal que sea 100 la suma
         $sel_aggr = "$canon_online as canon_online,
-        ROUND(100*$canon_fisico/NULLIF($canon_fisico+$canon_online,0),2) as porcentaje_fisico,
-        ROUND(100*$canon_online/NULLIF($canon_fisico+$canon_online,0),2) as porcentaje_online,
-        ROUND(100*$canon_cco/NULLIF($canon_online,0),2) as porcentaje_CCO,
-        ROUND(100*$canon_bplay/NULLIF($canon_online,0),2) as porcentaje_BPLAY";
+        $porcentaje_fisico as porcentaje_fisico,
+        $porcentaje_online as porcentaje_online,
+        $porcentaje_CCO as porcentaje_CCO,
+        $porcentaje_BPLAY as porcentaje_BPLAY";
       }
       else if($planilla == 'mtm'){
         $mtmalias = $variables[array_search('Maquinas',$tipos_variables_fisicos)];

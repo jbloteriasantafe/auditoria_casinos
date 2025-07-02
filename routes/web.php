@@ -70,6 +70,7 @@ Route::group(['prefix' => 'configCuenta'], function () {
   Route::get('imagen','UsuarioController@leerImagenUsuario');
 });
 
+Route::get('logout','AuthenticationController@logoutGET');
 Route::post('logout','AuthenticationController@logout');
 Route::post('login','AuthenticationController@login');
 

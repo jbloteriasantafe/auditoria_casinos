@@ -90,6 +90,11 @@ class AuthenticationController extends Controller
     $this->eliminarToken($request->session()->get('id_usuario'),$request->session()->get('token'));
     $request->session()->flush();
   }
+  
+  public function logoutGET(Request $request){
+    $this->logout($request);
+    return redirect('inicio');
+  }
 
   public function usuarioTieneRol($id_usuario,$rol){
     return !empty(DB::table('rol')

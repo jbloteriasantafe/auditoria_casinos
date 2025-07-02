@@ -26,7 +26,7 @@ table th {
 }
 </style>
 
-<div style="width: 100%;" data-target-seleccionar-tablas><table style="table-layout: fixed">
+<div style="width: 100%;"><table style="table-layout: fixed">
   <colgroup>
     <col class="año_mes">
     @foreach($casinos as $_cas)
@@ -42,7 +42,7 @@ table th {
   @foreach(array_reverse($años_planilla) as $a)
   <thead>
     <tr>
-      <th colspan="{{6*count($casinos)+1}}">{{$loop->first? 'EVOLUCIÓN HISTORICA' : '&nbsp;'}}</th>
+      <th colspan="{{6*count($casinos)+1}}">{{$loop->first? 'Evolución Histórica' : '&nbsp;'}}</th>
     </tr>
     <tr>
       <th class="año_mes" style="border-right: 1px solid black;">{{$a}}</th>
