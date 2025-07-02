@@ -62,7 +62,7 @@ function cargarIntervenciones({ page = 1, perPage = 10, fecha, casino, turno, es
       );
     },
     error(err) {
-      console.error('Error cargando intervenciones:', err);
+      console.error('Error cargando eventualidades:', err);
     }
   });
 }
@@ -79,7 +79,7 @@ $(document).ready(function(){
 
   cargarIntervenciones({ page:1, perPage:10 });
 
-  $('.tituloSeccionPantalla').text('Intervenciones Técnicas');
+  $('.tituloSeccionPantalla').text('Eventualidades');
 
   $('#cargaInforme').on('fileerror', function(event, data, msg) {
     // get message
@@ -295,13 +295,13 @@ function generarFilaTabla(ev,controlador) {
         .attr('value', ev.id_eventualidades)
         .attr('data-toggle', 'tooltip')
         .attr('data-placement','bottom')
-        .attr('title', 'ELIMINAR INTERVENCIÓN')
+        .attr('title', 'ELIMINAR EVENTUALIDAD')
         .append($('<i>').addClass('fa fa-trash'));
       tdAcc.append(btnDelete);
     }
   } else if (estado === 2) {
     // **Firmado**: VER, VALIDAR (si rol), BORRAR
-    const pdfUrl = `/storage/EventualidadesAFirmar/${ev.id_archivo}`;
+    const pdfUrl = `/eventualidades/visualizarArchivo/firmado/${ev.id_archivo}`;
     const btnView = $('<a>')
       .addClass('btn btn-success btn-sm mr-1')
       .attr('href', pdfUrl)
@@ -330,7 +330,7 @@ function generarFilaTabla(ev,controlador) {
         .attr('value', ev.id_eventualidades)
         .attr('data-toggle', 'tooltip')
         .attr('data-placement','bottom')
-        .attr('title', 'VISAR INTERVENCIÓN')
+        .attr('title', 'VISAR EVENTUALIDAD')
         .append($('<i>').addClass('fa fa-check'))
         tdAcc.append(btnVisar).append($('<span>').text(' '));
 
@@ -342,13 +342,13 @@ function generarFilaTabla(ev,controlador) {
       .attr('value', ev.id_eventualidades)
       .attr('data-toggle', 'tooltip')
       .attr('data-placement','bottom')
-      .attr('title', 'ELIMINAR INTERVENCIÓN')
+      .attr('title', 'ELIMINAR EVENTUALIDAD')
       .append($('<i>').addClass('fa fa-trash'))
     tdAcc.append(btnDelete);
   }
   } else if(estado===3){
     //visado
-    const pdfUrl = `/storage/EventualidadesFirmadas/${ev.id_archivo}`;
+    const pdfUrl = `/eventualidades/visualizarArchivo/visado/${ev.id_archivo}`;
     const btnView = $('<a>')
       .addClass('btn btn-success btn-sm mr-1')
       .attr('href', pdfUrl)
@@ -366,7 +366,7 @@ function generarFilaTabla(ev,controlador) {
       .attr('value', ev.id_eventualidades)
       .attr('data-toggle', 'tooltip')
       .attr('data-placement','bottom')
-      .attr('title', 'ELIMINAR INTERVENCIÓN')
+      .attr('title', 'ELIMINAR EVENTUALIDAD')
       .append($('<i>').addClass('fa fa-trash'))
 
     tdAcc.append(btnDelete);
@@ -398,7 +398,7 @@ tdAcc.append(butVerObs);
     .attr('value', ev.id_eventualidades)
     .attr('data-toggle', 'tooltip')
     .attr('data-placement','bottom')
-    .attr('title', 'ELIMINAR INTERVENCIÓN')
+    .attr('title', 'ELIMINAR EVENTUALIDAD')
     .append($('<i>').addClass('fa fa-trash'))
   tdAcc.append(btnDelete);
 }

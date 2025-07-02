@@ -21,15 +21,12 @@
     #modalEliminarObservacion + .modal-backdrop {
       z-index: 1999 !important;
     }
-    /* Apunta únicamente a tu tabla de intervenciones */
     #tablaResultadosEv th {
       cursor: default !important;
     }
-    /* Si hay alguna flechita de sorting, la ocultamos también */
     #tablaResultadosEv th:after {
       display: none !important;
     }
-    /* Y eliminamos cualquier cambio de fondo al pasar el ratón */
     #tablaResultadosEv th:hover {
       background-color: transparent !important;
     }
@@ -37,10 +34,7 @@
 
 @endsection
 
-<div class="col-xl-3">
     <!-- Botón nueva eventualidad -->
-  <div class="row">
-    <div class="col-xl-3">
       <div class="row">
         <div class="col-lg-6">
           <a href="#modalCargarEventualidad" data-toggle="modal" style="text-decoration: none;">
@@ -51,7 +45,7 @@
                 <div class="col-xs-12">
                   <center>
                     <h5 class="txtLogo">+</h5>
-                    <h4 class="txtNuevo">GENERAR INTERVENCIÓN TÉCNICA</h4>
+                    <h4 class="txtNuevo">GENERAR EVENTUALIDAD</h4>
                   </center>
                 </div>
               </div>
@@ -67,7 +61,7 @@
                 <div class="col-xs-12">
                   <center>
                     <h5 class="txtLogo">+</h5>
-                    <h4 class="txtNuevo">SUBIR INTERVENCIÓN TÉCNICA FIRMADA</h4>
+                    <h4 class="txtNuevo">SUBIR EVENTUALIDAD FIRMADA</h4>
                   </center>
                 </div>
               </div>
@@ -75,14 +69,10 @@
           </a>
         </div>
 
-      </div>
-    </div>
   </div>  <!-- /#row -->
 
-</div>
 
 
-<div class="col-xl-9">
     <!-- FILTROS -->
     <div class="row">
       <div class="col-md-12">
@@ -142,18 +132,16 @@
               </div>
             </div>
           </div>
-        </div>
 
       </div> <!-- .col-md-12 -->
 
     </div> <!-- .row / FILTROS -->
 
     <!-- TABLA -->
-    <div class="row">
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h4>ÚLTIMAS INTERVENCIONES TÉCNICAS INGRESADAS EN EL SISTEMA</h4>
+            <h4>ÚLTIMAS EVENTUALIDADES INGRESADAS EN EL SISTEMA</h4>
           </div>
           <div class="panel-body">
             <table id="tablaResultadosEv" class="table table-fixed">
@@ -177,7 +165,6 @@
     </div> <!-- .row / TABLA -->
 
 
-  </div> <!-- .col-xl-9  | COLUMNA IZQUIERDA - FILTRO Y TABLA -->
 
 
 
@@ -194,7 +181,7 @@
               <form id="frmEliminar" name="frmCasino" class="form-horizontal" novalidate="">
                   <div class="form-group error ">
                     <div class="col-xs-12">
-                        <strong id="titulo-modal-eliminar">¿Seguro desea eliminar la INTERVENCIÓN?</strong>
+                        <strong id="titulo-modal-eliminar">¿Seguro desea eliminar la EVENTUALIDAD?</strong>
                     </div>
                   </div>
               </form>
@@ -241,7 +228,7 @@
             <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
               <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
               <button id="btn-minimizarVisar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVisar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-              <h3 class="modal-title" style="background-color: #6dc7be;">| VISAR INTERVENCIÓN TÉCNICA</h3>
+              <h3 class="modal-title" style="background-color: #6dc7be;">| VISAR EVENTUALIDAD</h3>
              </div>
 
              <div  id="colapsadoVisar" class="collapse in">
@@ -250,7 +237,7 @@
               <form id="frmVisar" name="frmCasino" class="form-horizontal" novalidate="">
                   <div class="form-group error ">
                     <div class="col-xs-12">
-                        <strong id="titulo-modal-visar">¿Seguro desea VISAR la INTERVENCIÓN?</strong>
+                        <strong id="titulo-modal-visar">¿Seguro desea VISAR la EVENTUALIDAD?</strong>
                     </div>
                   </div>
               </form>
@@ -368,7 +355,7 @@
              <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                <button id="btn-minimizarCrear" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrear" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-               <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVA INTERVENCIÓN TÉCNICA</h3>
+               <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVA EVENTUALIDAD</h3>
               </div>
 
               <div  id="colapsadoCrear" class="collapse in">
@@ -408,7 +395,7 @@
             </div>
           -->
             <div class="col-md-4" >
-              <h5>FECHA DE LA INTERVENCIÓN TÉCNICA</h5>
+              <h5>FECHA DE LA EVENTUALIDAD</h5>
               <div class='input-group date' id='evFecha' data-date-format="yyyy-mm-dd HH:ii:ss" data-link-format="yyyy-mm-dd HH:ii">
                   <input name="fecha_toma" type='text' class="form-control" placeholder="Fecha de ejecución del control" id="fecha_toma" autocomplete="off" style="background-color: rgb(255,255,255);" readonly/>
                   <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
@@ -530,7 +517,7 @@
            <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
              <button id="btn-minimizarSubir" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoSubir" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-             <h3 class="modal-title" style="background-color: #6dc7be;">| SUBIR INTERVENCIÓN TÉCNICA FIRMADA</h3>
+             <h3 class="modal-title" style="background-color: #6dc7be;">| SUBIR EVENTUALIDAD FIRMADA</h3>
             </div>
 
             <div  id="colapsadoSubir" class="collapse in">
@@ -539,7 +526,7 @@
 
                 <div class="col-md-9">
                   <br/>
-                  <h5>Subir intervención técnica firmada</h5>
+                  <h5>Subir eventualidad firmada</h5>
                   <div class="input-group">
                     <span class="input-group-btn">
                       <button class="btn btn-primary" type="button" onclick="$('#upload').click()">
@@ -602,11 +589,11 @@
 
   <!-- Comienza modal de ayuda -->
   @section('tituloDeAyuda')
-  <h3 class="modal-title" style="color: #fff;">| Intervención técnica</h3>
+  <h3 class="modal-title" style="color: #fff;">| Eventualidades</h3>
   @endsection
   @section('contenidoAyuda')
   <div class="col-md-12">
-    <h5>Tarjeta de intervenciones técnicas</h5>
+    <h5>Tarjeta de Eventualidades</h5>
     <p>
       Eventualidades sobre novedades y eventos que alteren el normal funcionamiento.
     </p>

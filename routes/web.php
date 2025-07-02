@@ -378,6 +378,7 @@ Route::group(['prefix' => 'eventualidades','middleware' => 'tiene_permiso:ver_se
   Route::post('subirObservacion', 'EventualidadController@subirObservacion');
   Route::get('{evId}/observaciones', 'EventualidadController@getObservaciones');
   Route::get('observacion/{id_ob}','EventualidadController@eliminarObservacion');
+  Route::get('visualizarArchivo/{estado}/{id_archivo}','EventualidadController@visualizarArchivo');
 });
 /**********
 Eventualidades MTM ->intervenciones tecnicas mtm

@@ -1094,9 +1094,7 @@ public function subirObservacion(Request $request)
         ->values();
 
     $obs->transform(function($o){
-        $o->url = Storage::url(
-            "EventualidadesFirmadas/ObservacionesFirmadas/{$o->id_archivo}"
-        );
+        $o->url = '/eventualidades/visualizarArchivo/observaciones/'.$o->id_archivo;
         return $o;
     });
 
@@ -1131,8 +1129,24 @@ public function subirObservacion(Request $request)
     return 1;
   }
 
+  public function visualizarArchivo($estado,$id_archivo){
+    //@TODO Validar que el id_archivo exista y que el usuario tenga acceso
+    $path = [
+      'firmado' => 'app/public/EventualidadesAFirmar',
+      'visado' => 'app/public/EventualidadesFirmadas',
+      'observaciones' => 'app/public/EventualidadesFirmadas/ObservacionesFirmadas'
+    ];
 
+    if(!array_key_exists($estado,$path)){
+      throw new \Exception('Estado '.$estado.' invalido');
+    }
 
-
-
+    $abs_file = storage_path($path[$estado].'/'.$id_archivo);
+    return response()->stream(function () use ($abs_file) {
+        readfile($abs_file);
+      }, 200, [
+      'Content-Type' => mime_content_type($abs_file),
+      'Content-Disposition' => "inline; filename=\"$id_archivo\""
+    ]);
+  }
 }

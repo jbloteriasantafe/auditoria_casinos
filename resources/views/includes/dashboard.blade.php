@@ -225,7 +225,7 @@ $fiscalizacion_hijos = [
     'link' => '/galeriaImagenesAutoexcluidos',
     'algun_permiso' => ['ver_seccion_ae_informes_galeria']
   ],
-  'Intervenciones Técnicas' => [
+  'Eventualidades' => [
     'icono' => $icono_expedientes,
     'link' => '/eventualidades',
   ],
