@@ -188,7 +188,8 @@ $(document).ready(function() {
     const agregarInputsFormatear = function(inpts){
       inputs_a_formatear = inputs_a_formatear ?? {};
       inpts.each(function(_,iobj){
-        inputs_a_formatear[iobj.getAttribute('name')] = $(iobj);
+        inputs_a_formatear[iobj.getAttribute('name')] = inputs_a_formatear[iobj.getAttribute('name')] ?? [];
+        inputs_a_formatear[iobj.getAttribute('name')].push(iobj);
       });
     };
     const limpiarInputsFormatear = function(){
@@ -196,8 +197,7 @@ $(document).ready(function() {
     }
     const borrarInputsFormatear = function(inpts){
       if(inputs_a_formatear === null) return;
-      inpts.each(function(_,iobj){
-        const name = iobj.getAttribute('name');
+      inpts.each(function(name,_){
         if(name in inputs_a_formatear){
           delete inputs_a_formatear[name];
         }
@@ -207,30 +207,38 @@ $(document).ready(function() {
     const formatearCampos = function(inpts = null){//Saca los 0 de sobra a la derecha
       //Para verlos en debug usar algo tipo .css('color','red');
       for(const name in inputs_a_formatear){
-        const i = inputs_a_formatear[name];
-        if(i.is('[data-js-formatear-año-mes]')){
-          i.val(i.val().substr(0,'YYYY-MM'.length));
-        }
-        else{
-          i.val(formatter(i.val()));
+        for(const i of inputs_a_formatear[name]){
+          const $i = $(i);
+          if($i.is('[data-js-formatear-año-mes]')){
+            $i.val($i.val().substr(0,'YYYY-MM'.length));
+          }
+          else{
+            $i.val(formatter($i.val()));
+          }
         }
       }
     }
     
-    const deformatearFormData = function(obj){      
+    const deformatearVal = function(obj,val){
+      if(obj.is('[data-js-formatear-año-mes]')){
+        return val+'-01';
+      }
+      else{
+        return deformatter(val);
+      }
+    };
+    
+    const deformatearFormData = function(obj){
       const ret = {};
-      for(const k in obj){
-        let val = obj[k];
-        if(k in inputs_a_formatear){
-          const i = inputs_a_formatear[k];
-          if(i.is('[data-js-formatear-año-mes]')){
-            val = val+'-01';
-          }
-          else{
-            val = deformatter(val);
+      for(const name in obj){
+        if(name in inputs_a_formatear){
+          for(const i of inputs_a_formatear[name]){
+            ret[name] = deformatearVal($(i),obj[name]);
           }
         }
-        ret[k] = val;
+        else{
+          ret[name] = deformatearVal(M.find(`[name="${name}"]`),obj[name]);
+        }
       }
       return ret;
     }

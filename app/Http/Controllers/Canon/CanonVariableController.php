@@ -144,6 +144,7 @@ class CanonVariableController extends Controller
     $factor_apostado_porcentaje_aplicable,$factor_apostado_porcentaje_impuesto_ley,$factor_alicuota,
     $accessors
   ){
+    static $cotizaciones = [];//voy guardando por si cambia alguna ya cambia todas...
     extract($accessors);
     
     $año_mes = explode('-',$año_mes);
@@ -152,7 +153,7 @@ class CanonVariableController extends Controller
     $ret = [];
     for($dia=1;$dia<=$dias;$dia++){
       $D = AUX::make_accessor($R($dia,[]));
-      $fecha = implode('-',[$año_mes[0],$año_mes[1],str_pad($dia,2,'0')]);
+      $fecha = implode('-',[$año_mes[0],$año_mes[1],str_pad($dia,2,'0',STR_PAD_LEFT)]);
       $apostado = $this->apostado($tipo,$fecha,$id_casino,true);
       $bruto    = $this->bruto($tipo,$fecha,$id_casino,true);
       
@@ -160,9 +161,13 @@ class CanonVariableController extends Controller
       $devengado_apostado_sistema_USD = bcadd($D('devengado_apostado_sistema_USD',$apostado->apostado_USD),'0',2);//@RETORNADO    
       $devengado_bruto_ARS = bcadd($D('devengado_bruto_ARS',$bruto->bruto_ARS),'0',2);//@RETORNADO    
       $devengado_bruto_USD = bcadd($D('devengado_bruto_USD',$bruto->bruto_USD),'0',2);//@RETORNADO    
-      $cotizacion = bcadd($D('cotizacion',$apostado->cotizacion),'0',2);//@RETORNADO    
-      $devengado_apostado_sistema_USD_cotizado = bcmul($devengado_apostado_sistema_USD,$cotizacion,4);//4+2 @RETORNADO
-      $devengado_bruto_USD_cotizado = bcmul($devengado_bruto_USD,$cotizacion,4);//2+2 @RETORNADO
+      
+      $devengado_cotizacion = bcadd($cotizaciones[$fecha] ?? $D('devengado_cotizacion',$apostado->cotizacion),'0',2);//@RETORNADO    
+      $cotizaciones[$fecha] = $devengado_cotizacion;
+      
+      $determinado_cotizacion = $devengado_cotizacion;
+      $devengado_apostado_sistema_USD_cotizado = bcmul($devengado_apostado_sistema_USD,$determinado_cotizacion,4);//4+2 @RETORNADO
+      $devengado_bruto_USD_cotizado = bcmul($devengado_bruto_USD,$determinado_cotizacion,4);//2+2 @RETORNADO
       
       $devengado_apostado_sistema = bcadd($devengado_apostado_sistema_ARS,$devengado_apostado_sistema_USD_cotizado,4);//@RETORNADO
       $devengado_bruto = bcadd($devengado_bruto_ARS,$devengado_bruto_USD_cotizado,4);//@RETORNADO
@@ -174,7 +179,7 @@ class CanonVariableController extends Controller
       
       $determinado_bruto_ARS = bcadd($D('determinado_bruto_ARS',$bruto->bruto_ARS),'0',2);//@RETORNADO    
       $determinado_bruto_USD = bcadd($D('determinado_bruto_USD',$bruto->bruto_USD),'0',2);//@RETORNADO
-      $determinado_bruto_USD_cotizado = bcmul($determinado_bruto_USD,$cotizacion,4);//2+2 @RETORNADO
+      $determinado_bruto_USD_cotizado = bcmul($determinado_bruto_USD,$determinado_cotizacion,4);//2+2 @RETORNADO
       $determinado_bruto = bcadd($determinado_bruto_ARS,$determinado_bruto_USD_cotizado,4);//@RETORNADO
       
       $determinado_impuesto = bcadd($D('determinado_impuesto','0.00'),'0',16);//@RETORNADO
@@ -187,14 +192,16 @@ class CanonVariableController extends Controller
       }
       
       $ret[$dia] = compact(
-        'dia','fecha','cotizacion',
+        'dia','fecha',
         'devengado_apostado_sistema_ARS',
         'devengado_apostado_sistema_USD',
         'devengado_bruto_ARS',
         'devengado_bruto_USD',
+        'devengado_cotizacion',
         'devengado_apostado_sistema_USD_cotizado',
         'devengado_bruto_USD_cotizado',
         'devengado_apostado_sistema',
+        'determinado_cotizacion',
         'devengado_bruto',
         'devengado_impuesto',
         'devengado_subtotal',
@@ -266,7 +273,7 @@ class CanonVariableController extends Controller
         $resultado = $resultado->selectRaw('
           SUM(IF(b.id_tipo_moneda = 1,b.valor,0)) as bruto_ARS,
           SUM(IF(b.id_tipo_moneda = 2,b.valor,0)) as bruto_USD,
-          MAX(IF(b.id_tipo_moneda = 2 AND '.$diario.',cot.valor,NULL)) as cotizacion,
+          MAX(IF('.$diario.',cot.valor,NULL)) as cotizacion,
           SUM(IF(b.id_tipo_moneda = 2,cot.valor*b.valor,0)) as bruto_USD_cotizado,
           SUM(
             IF(b.id_tipo_moneda = 1,
@@ -299,32 +306,43 @@ class CanonVariableController extends Controller
         ->groupBy(DB::raw('"constant"'))->first();
       }break;
       case 'JOL':{
+        //dump("$tipo,$año_mes,$id_casino,$diario");
+        static $cache = [];
+        //dump($cache);
+        $kañomes = $año_mes_arr[0].'-'.$año_mes_arr[1];
+        $dia = intval($año_mes_arr[2]);
+        $en_cache = $cache[$id_casino] ?? [];
+        if(array_key_exists($kañomes,$en_cache)){
+          $resultado = $en_cache[$kañomes][$diario? $dia : 0] ?? null;
+          break;
+        }
+        
         $err_val = function($v){
           return ((object)['bruto_ARS' => $v,'bruto_USD' => $v,'cotizacion' => $v,'bruto_USD_cotizado' => $v,'bruto' => $v]);
         };
         $JOL_connect_config = CanonValorPorDefectoController::getInstancia()->valorPorDefecto('JOL_connect_config') ?? null;
         $debug = $JOL_connect_config['debug'] ?? false;
         if(empty($JOL_connect_config)){
-          $resultado = $debug? $err_val('-0.99') : null;
+          $resultado = $err_val($debug? '-0.99' : null);
           break;
         }
         if(empty($JOL_connect_config['ip_port'])){
-          $resultado = $debug? $err_val('-0.98') : null;
+          $resultado = $err_val($debug? '-0.98' : null);
           break;
         }
         if(empty($JOL_connect_config['API-Token'])){
-          $resultado = $debug? $err_val('-0.97') : null;
+          $resultado = $err_val($debug? '-0.97' : null);
           break;
         }
         
         set_time_limit(5);
         $ch = curl_init();
-        
         curl_setopt($ch, CURLOPT_URL, "http://{$JOL_connect_config['ip_port']}/api/bruto");
         curl_setopt($ch, CURLOPT_POST, 1);
         $desde = "{$año_mes_arr[0]}-{$año_mes_arr[1]}-01";
-        $hasta = "{$año_mes_arr[0]}-{$año_mes_arr[1]}-".cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(compact('año_mes','id_casino','diario')));
+        $dias_mes = cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
+        $hasta = "{$año_mes_arr[0]}-{$año_mes_arr[1]}-{$dias_mes}";
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(compact('año_mes','id_casino')));
         //curl_setopt($ch, CURLOPT_HEADER, FALSE);
         //curl_setopt($ch, CURLOPT_FOLLOWLOCATION, FALSE);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -339,17 +357,22 @@ class CanonVariableController extends Controller
         if($result === false){//Error de curl https://curl.se/libcurl/c/libcurl-errors.html
           $errno = curl_errno($ch);
           curl_close($ch);
-          $resultado = $debug? $err_val('-1.'.$errno) : null;
+          $resultado = $err_val($debug? ('-999999999'.$errno.'.98') : null);
           break;
         }
         curl_close($ch);
         
         if($code != 200){
-          $resultado = $debug? $err_val('-2.'.$code) : null;
+          $resultado = $err_val($debug? ('-999999999'.$code.'.99') : null);
           break;
         }
         
-        $resultado = empty($result)? $err_vall(null): json_decode($result);
+        $result = json_decode($result);
+        
+        $cache[$id_casino] = $cache[$id_casino] ?? [];
+        $cache[$id_casino][$kañomes] = $result;
+        
+        $resultado = $cache[$id_casino][$kañomes][$diario? $dia : 0] ?? null;
       }break;
     }
     
@@ -365,8 +388,7 @@ class CanonVariableController extends Controller
       case 'Maquinas':{
         $resultado = DB::table('beneficio as b')
         ->leftJoin('cotizacion as cot',function($j){
-          return $j->where('b.id_tipo_moneda',2)
-          ->on('cot.fecha','=','b.fecha');
+          return $j->on('cot.fecha','=','b.fecha');
         })
         ->where('b.id_casino',$id_casino)
         ->whereYear('b.fecha',$año_mes_arr[0])
@@ -377,7 +399,7 @@ class CanonVariableController extends Controller
         $resultado = $resultado->selectRaw('
           SUM(IF(b.id_tipo_moneda = 1,b.coinin,0)) as apostado_ARS,
           SUM(IF(b.id_tipo_moneda = 2,b.coinin,0)) as apostado_USD,
-          MAX(IF(b.id_tipo_moneda = 2 AND '.$diario.',cot.valor,NULL)) as cotizacion,
+          MAX(IF('.$diario.',cot.valor,NULL)) as cotizacion,
           SUM(IF(b.id_tipo_moneda = 2,cot.valor*b.coinin,0)) as apostado_USD_cotizado,
           SUM(
             IF(b.id_tipo_moneda = 1,
