@@ -33,17 +33,22 @@ class CasinoController extends Controller
   }
 
   public function buscarTodo(Request $request){
-    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
+    $UC = UsuarioController::getInstancia();
+    $usuario = $UC->quienSoy()['usuario'] ?? null;
     if($usuario == null){
       return ['error' => 'No se puede acceder a la seccion casinos, usuario inexistente'];
     }
 
-    UsuarioController::getInstancia()->agregarSeccionReciente('Casinos' , 'casinos');
-    return view('Casinos.casinos')->with('casinos',$usuario->casinos);
+    $UC->agregarSeccionReciente('Casinos' , 'casinos');
+    
+    return view('Casinos.casinos',[
+      'casinos' => $usuario->casinos,
+      'puede_cargar_casinos' => $usuario->tienePermiso('cargar_casinos')
+    ]);
   }
 
   public function obtenerCasino(Request $request,$id){
-    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'] ?? null;
     if($usuario == null || !$usuario->usuarioTieneCasino($id)){
       return ['error' => 'El usuario no tiene accesso a ese casino'];
     }
@@ -101,8 +106,8 @@ class CasinoController extends Controller
   }
 
   public function guardarCasino(Request $request){
-    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
-    if($usuario == null || !$usuario->es_superusuario){
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'] ?? null;
+    if($usuario == null || !$usuario->tienePermiso('cargar_casinos')){
       return ['error' => 'El usuario no es superusuario, por ende no puede crear casinos'];
     }
 
@@ -193,7 +198,7 @@ class CasinoController extends Controller
     $casino->porcentaje_sorteo_mesas = $request->porcentaje_sorteo_mesas;
     $casino->save();
 
-    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'] ?? null;
     if($usuario == null || !$usuario->usuarioTieneCasino($casino->id_casino)){
       return ['error' => 'El usuario no tiene accesso a ese casino'];
     }
@@ -249,8 +254,8 @@ private function asociarTurnos($turnos, $casino){
   }
 
   public function eliminarCasino($id){
-    $usuario = UsuarioController::getInstancia()->obtenerUsuario($request);
-    if($usuario == null || !$usuario->es_superusuario){
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'] ?? null;
+    if($usuario == null || !$usuario->tienePermiso('cargar_casinos')){
       return ['error' => 'El usuario no es superusuario, por ende no puede crear casinos'];
     }
 

@@ -200,22 +200,29 @@ class MTMController extends Controller
           ];
   }
 
-  public function obtenerMTMEnCasino($id_casino,$nro_admin){
-      //dado un casino,devuelve maquinas que concuerden con el nro admin dado
-      //usado para busqueda de maquinas
-      if($id_casino == 0){
-        $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-        $id_casino = $usuario->casinos[0]->id_casino;
-        $maquinas  = Maquina::where([['maquina.id_casino' , '=' , $id_casino] ,['maquina.nro_admin' , 'like' , $nro_admin . '%']])->get();
-        return ['maquinas' => $maquinas];
-      }else{
-        $maquinas  = Maquina::where([['maquina.id_casino' , '=' , $id_casino] ,['maquina.nro_admin' , 'like' , $nro_admin . '%']])->get();
-        foreach ($maquinas as $maquina) {
-          $maquina->nro_admin = $maquina->nro_admin;
-        }
-        return ['maquinas' => $maquinas];
-      }
-
+  public function obtenerMTMEnCasino($id_casino,$nro_admin,$estados = null){
+    //dado un casino,devuelve maquinas que concuerden con el nro admin dado
+    //usado para busqueda de maquinas
+    if($id_casino == 0){
+      $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+      $id_casino = $usuario->casinos[0]->id_casino;
+    }
+    
+    $maquinas  = Maquina::where([['maquina.id_casino' , '=' , $id_casino] ,['maquina.nro_admin' , 'like' , $nro_admin . '%']]);
+    
+    if($estados !== null){
+      $maquinas = $maquinas->whereIn('id_estado_maquina',$estados);
+    }
+    $maquinas = $maquinas->get();
+    return compact('maquinas');
+  }
+  
+  public function obtenerMTMEnCasinoHabilitadas($id_casino,$nro_admin){
+    return $this->obtenerMTMEnCasino($id_casino,$nro_admin,[1,2,4,5,6,7]);
+  }
+  
+  public function obtenerMTMEnCasinoEgresadas($id_casino,$nro_admin){
+    return $this->obtenerMTMEnCasino($id_casino,$nro_admin,[1,2,4,5,6,7]);
   }
 
   public function desasociarFormula($id_formula){
@@ -775,12 +782,12 @@ class MTMController extends Controller
     return $maquinas;
   }
 
-  public function modificarDenominacionYUnidad($id_unidad_medida, $denominacion, $id_maquina){
+  public function modificarDenominacionYUnidad($id_unidad_medida,$denominacion,$id_maquina){
     $maquina = Maquina::find($id_maquina);
     $maquina->denominacion = $denominacion;
     $maquina->id_unidad_medida = $id_unidad_medida;
     $maquina->save();
-    $razon = "Se cambió cambiar denominacion y unidad medida.";
+    $razon = "Se cambió la unidad medida.";
     LogMaquinaController::getInstancia()->registrarMovimiento($id_maquina, $razon,5);//tipo mov denominacion
     return $maquina;
   }

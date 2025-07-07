@@ -39,18 +39,31 @@ class BackOfficeController extends Controller {
   }
   
   private $vistas = null;
+  private $mes_actual = [null,null];
   function __construct(){
     $hoy = date('Y-m');
+    {
+      $inicio_mes = $hoy.'-01';
+      $fin_mes=$hoy.'-';
+      {
+        $hoyarr = explode('-',$hoy);
+        $fin_mes .= cal_days_in_month(CAL_GREGORIAN,intval($hoyarr[1]),intval($hoyarr[0]));
+      }
+      $this->mes_actual[0] = $inicio_mes;
+      $this->mes_actual[1] = $fin_mes;
+    }
+    
     //Directamente vinculado con 'cols', no cambiar el orden si no se cambia el orden de las columnas
     //select, alias, tipo para formateo, tipo de buscador, cantidad de buscadores y valores por defecto, valores (solo select)
     $cols_indexes = ['BO_SELECT','BO_ALIAS','BO_FMT','BO_TIPO','BO_DEFAULTS','BO_VALUES'];
     foreach($cols_indexes as $val => $constant){
       define($constant,$val);
     }
+    
     $this->vistas = [
-      'beneficio_maquinas' => [
+      'beneficio_maquinas_por_moneda' => [
         'cols' => [
-          ['b.fecha','fecha','string','input_date_month',[$hoy]],
+          ['b.fecha','fecha','string','input_date',$this->mes_actual],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('beneficio')],
           ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('beneficio')],
           ['(
@@ -65,7 +78,10 @@ class BackOfficeController extends Controller {
           ['b.jackpot','premios_mayores','numeric'],
           ['b.valor','beneficio','numeric'],
           ['IF(tm.id_tipo_moneda = 1,1.0,cot.valor)','cotizacion','numeric3d'],
-          ['IF(tm.id_tipo_moneda = 1,1.0,cot.valor)*b.valor','cotizado','numeric'],
+          ['b.coinin*IF(tm.id_tipo_moneda = 1,1.0,cot.valor)','apostado_ars','numeric'],
+          ['b.coinout*IF(tm.id_tipo_moneda = 1,1.0,cot.valor)','premio_ars','numeric'],
+          ['b.jackpot*IF(tm.id_tipo_moneda = 1,1.0,cot.valor)','premios_mayores_ars','numeric'],
+          ['b.valor*IF(tm.id_tipo_moneda = 1,1.0,cot.valor)','beneficio_ars','numeric'],
         ],
         'indirect_where' => [
           'casino' => 'c.id_casino',
@@ -79,15 +95,44 @@ class BackOfficeController extends Controller {
           'b.fecha' => 'asc'
         ],
       ],
-      'beneficio_mesas' => [
+      'beneficio_maquinas' => [
         'cols' => [
-          ['idm.fecha','fecha','string','input_date_month',[$hoy]],
+          ['b.fecha','fecha','string','input_date',[$inicio_mes,$fin_mes]],
+          ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('beneficio')],
+          ['(
+              SELECT COUNT(*)
+              FROM producido as p
+              JOIN detalle_producido as dp ON dp.id_producido = p.id_producido
+              WHERE p.fecha = b.fecha AND p.id_casino = b.id_casino
+                AND dp.valor <> 0
+            )','maquinas','integer'],
+          ['SUM(b.coinin*IF(tm.id_tipo_moneda = 1,1.0,cot.valor))','apostado','numeric'],
+          ['SUM(b.coinout*IF(tm.id_tipo_moneda = 1,1.0,cot.valor))','premio','numeric'],
+          ['SUM(b.jackpot*IF(tm.id_tipo_moneda = 1,1.0,cot.valor))','premios_mayores','numeric'],
+          ['SUM(b.valor*IF(tm.id_tipo_moneda = 1,1.0,cot.valor))','beneficio','numeric'],
+        ],
+        'indirect_where' => [
+          'casino' => 'c.id_casino',
+        ],
+        'query' => DB::table('beneficio as b')
+        ->join('casino as c','c.id_casino','=','b.id_casino')
+        ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','b.id_tipo_moneda')
+        ->leftJoin('cotizacion as cot','cot.fecha','=','b.fecha')
+        ->groupBy('c.nombre','b.fecha'),
+        'default_order_by' => [
+          'b.fecha' => 'asc'
+        ],
+      ],
+      'beneficio_mesas_por_moneda' => [
+        'cols' => [
+          ['idm.fecha','fecha','string','input_date',$this->mes_actual],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('importacion_diaria_mesas')],
           ['m.siglas','moneda','string','select',[0],$this->selectMonedaVals('importacion_diaria_mesas')],
           ['(
             SELECT COUNT(distinct CONCAT(didm.siglas_juego,didm.nro_mesa))
             FROM detalle_importacion_diaria_mesas as didm
             WHERE didm.id_importacion_diaria_mesas = idm.id_importacion_diaria_mesas
+            AND didm.deleted_at IS NULL
             AND (
                  IFNULL(didm.droop,0) <> 0 OR IFNULL(didm.droop_tarjeta,0) <> 0 
               OR IFNULL(didm.reposiciones,0) <> 0 OR IFNULL(didm.retiros,0) <> 0 
@@ -102,7 +147,12 @@ class BackOfficeController extends Controller {
           ['idm.reposiciones','reposiciones','numeric'],
           ['idm.utilidad','utilidad','numeric'],
           ['IF(m.id_moneda = 1,1.0,cot.valor)','cotizacion','numeric3d'],
-          ['IF(m.id_moneda = 1,1.0,cot.valor)*idm.utilidad','cotizado','numeric'],
+          ['idm.droop*IF(m.id_moneda = 1,1.0,cot.valor)','drop_ars','numeric'],
+          ['idm.droop_tarjeta*IF(m.id_moneda = 1,1.0,cot.valor)','drop_tarjeta_ars','numeric'],
+          ['idm.saldo_fichas*IF(m.id_moneda = 1,1.0,cot.valor)','saldo_fichas_ars','numeric'],
+          ['idm.retiros*IF(m.id_moneda = 1,1.0,cot.valor)','retiros_ars','numeric'],
+          ['idm.reposiciones*IF(m.id_moneda = 1,1.0,cot.valor)','reposiciones_ars','numeric'],
+          ['idm.utilidad*IF(m.id_moneda = 1,1.0,cot.valor)','utilidad_ars','numeric'],          
         ],
         'indirect_where' => [
           'casino' => 'c.id_casino',
@@ -117,9 +167,46 @@ class BackOfficeController extends Controller {
           'idm.fecha' => 'asc'
         ],
       ],
+      'beneficio_mesas' => [
+        'cols' => [
+          ['idm.fecha','fecha','string','input_date',$this->mes_actual],
+          ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('importacion_diaria_mesas')],
+          ['(
+            SELECT COUNT(distinct CONCAT(didm.siglas_juego,didm.nro_mesa))
+            FROM detalle_importacion_diaria_mesas as didm
+            JOIN importacion_diaria_mesas as idm2 ON idm2.id_importacion_diaria_mesas = didm.id_importacion_diaria_mesas
+            WHERE idm2.id_casino = idm.id_casino AND idm2.fecha = idm.fecha
+            AND idm2.deleted_at IS NULL AND didm.deleted_at IS NULL
+            AND (
+                 IFNULL(didm.droop,0) <> 0 OR IFNULL(didm.droop_tarjeta,0) <> 0 
+              OR IFNULL(didm.reposiciones,0) <> 0 OR IFNULL(didm.retiros,0) <> 0 
+              OR IFNULL(didm.utilidad,0) <> 0 OR IFNULL(didm.saldo_fichas,0) <> 0 
+              OR IFNULL(didm.propina <> 0,0)
+            )
+          )','mesas','integer'],
+          ['SUM(idm.droop*IF(m.id_moneda = 1,1.0,cot.valor))','drop','numeric'],
+          ['SUM(idm.droop_tarjeta*IF(m.id_moneda = 1,1.0,cot.valor))','drop_tarjeta','numeric'],
+          ['SUM(idm.saldo_fichas*IF(m.id_moneda = 1,1.0,cot.valor))','saldo_fichas','numeric'],
+          ['SUM(idm.retiros*IF(m.id_moneda = 1,1.0,cot.valor))','retiros','numeric'],
+          ['SUM(idm.reposiciones*IF(m.id_moneda = 1,1.0,cot.valor))','reposiciones','numeric'],
+          ['SUM(idm.utilidad*IF(m.id_moneda = 1,1.0,cot.valor))','utilidad','numeric'],          
+        ],
+        'indirect_where' => [
+          'casino' => 'c.id_casino',
+        ],
+        'query' => DB::table('importacion_diaria_mesas as idm')
+        ->join('casino as c','c.id_casino','=','idm.id_casino')
+        ->join('moneda as m','m.id_moneda','=','idm.id_moneda')
+        ->leftJoin('cotizacion as cot','cot.fecha','=','idm.fecha')
+        ->whereNull('idm.deleted_at')
+        ->groupBy('c.nombre','idm.fecha'),
+        'default_order_by' => [
+          'idm.fecha' => 'asc'
+        ],
+      ],
       'beneficio_bingos' => [
         'cols' => [
-          ['bi.fecha','fecha','string','input_date_month',[$hoy]],
+          ['bi.fecha','fecha','string','input_date',$this->mes_actual],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('bingo_importacion')],
           ['SUM(bi.recaudado)','recaudado_informado','numeric'],
           ['SUM(bi.premio_linea)','premio_linea_informado','numeric'],
@@ -135,11 +222,15 @@ class BackOfficeController extends Controller {
         'default_order_by' => [
           'bi.fecha' => 'asc'
         ],
+        'count' => DB::table('bingo_importacion as bi')
+        ->selectRaw('COUNT(distinct CONCAT(bi.id_casino,"-",bi.fecha)) as count')
+        ->join('casino as c','c.id_casino','=','bi.id_casino')
+        ->groupBy(DB::raw('"constant"'))
       ],
       'producido_maquinas' => [
         'precols' => 'STRAIGHT_JOIN',
         'cols' => [
-          ['p.fecha','fecha','string','input_date_month',[$hoy]],
+          ['p.fecha','fecha','string','input_date',$this->mes_actual],
           ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('producido')],
           ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('producido')],
           ['SUM(dp.valor)','producido','numeric'],
@@ -174,8 +265,143 @@ class BackOfficeController extends Controller {
         ->join('maquina as m','m.id_maquina','=','dp.id_maquina')
         ->join('isla as i','i.id_isla','=','m.id_isla')
         ->groupBy(DB::raw('"constant"'))
-      ]
+      ],
+      'totales_diarios_por_moneda'   => $this->vista_totales(false,true),
+      'totales_mensuales_por_moneda' => $this->vista_totales(true,true),
+      'totales_diarios'   => $this->vista_totales(false,false),
+      'totales_mensuales' => $this->vista_totales(true,false),
     ];
+  }
+  
+  private function vista_totales(bool $total_mensual,bool $por_moneda){
+    $fechas = DB::raw('(
+      SELECT distinct fecha,id_casino,id_tipo_moneda FROM beneficio
+      UNION
+      SELECT distinct fecha,id_casino,id_moneda as id_tipo_moneda FROM importacion_diaria_mesas
+      UNION
+      SELECT distinct fecha,id_casino,1 as id_tipo_moneda FROM bingo_importacion
+    ) as fechas');
+    
+    $query = DB::table($fechas)
+    ->join('casino as c','c.id_casino','=','fechas.id_casino')
+    ->join('tipo_moneda as tm','tm.id_tipo_moneda','=','fechas.id_tipo_moneda')
+    ->leftJoin('cotizacion as cot','cot.fecha','=','fechas.fecha')
+    ->leftJoin('beneficio as b',function($q){
+      return $q->on('fechas.fecha','=','b.fecha')->on('fechas.id_casino','=','b.id_casino')
+      ->on('fechas.id_tipo_moneda','=','b.id_tipo_moneda');
+    })
+    ->leftJoin('importacion_diaria_mesas as idm',function($q){
+      return $q->on('fechas.fecha','=','idm.fecha')->on('fechas.id_casino','=','idm.id_casino')
+      ->on('fechas.id_tipo_moneda','=','idm.id_moneda')//@HACK: no usan la misma tabla para moneda...
+      ->whereNull('idm.deleted_at');
+    })
+    ->leftJoin(DB::raw('(
+      SELECT bi2.fecha,bi2.id_casino,(SUM(bi2.recaudado)-SUM(bi2.premio_linea)-SUM(bi2.premio_bingo)) as beneficio
+      FROM bingo_importacion as bi2
+      GROUP BY bi2.fecha,bi2.id_casino
+    ) as bi'),function($q){
+      return $q->on('fechas.fecha','=','bi.fecha')->on('fechas.id_casino','=','bi.id_casino')
+      ->where('fechas.id_tipo_moneda','=',1);//Bingo solo tiene pesos... que tenga nulo si es en dolares
+    });
+    
+    $count = DB::table($fechas)
+    ->groupBy(DB::raw("'constant'"));
+    
+    $indirect_where = [
+      'casino' => 'fechas.id_casino',
+    ];
+    
+    $cols = [
+      ['c.nombre','casino','string','select',[0],$this->selectCasinoVals('producido')]
+    ];
+    $default_order_by = [];
+    
+    $beneficios = ['b.valor','idm.utilidad','bi.beneficio'];
+    $beneficios_cotizados = array_map(
+      function($s) { return "IF(tm.id_tipo_moneda = 1,1.0,cot.valor)*($s)"; },
+      $beneficios
+    );
+    
+    if($por_moneda){
+      $indirect_where['moneda'] = 'fechas.id_tipo_moneda';
+      $cols[] = ['tm.descripcion','moneda','string','select',[0],$this->selectTipoMonedaVals('producido')];
+      
+      if($total_mensual){
+        $año_mes = "CONCAT(LPAD(YEAR(fechas.fecha),4,'0'),'-',LPAD(MONTH(fechas.fecha),2,'0'))";
+        array_unshift($cols,[$año_mes,'año_mes','string','input_date_month',['','']]);
+        
+        $query = $query->groupBy(DB::raw("$año_mes,c.id_casino,tm.id_tipo_moneda"));
+        $count = $count->selectRaw("COUNT(distinct CONCAT($año_mes,'-',id_casino,'-',id_tipo_moneda)) as count");
+        
+        $indirect_where['año_mes'] = 'fechas.fecha';
+        
+        $default_order_by[$año_mes] = 'desc';
+        
+        $SUM = function($s) { return "SUM($s)"; };
+        $beneficios           = array_map($SUM,$beneficios);
+        $beneficios_cotizados = array_map($SUM,$beneficios_cotizados);
+      }
+      else{
+        array_unshift($cols,['fechas.fecha','fecha','string','input_date',$this->mes_actual]);
+        
+        $count = $count->selectRaw('COUNT(distinct CONCAT(fechas.fecha,"-",id_casino,"-",id_tipo_moneda)) as count');
+        
+        $default_order_by['fechas.fecha'] = 'desc';
+      }
+      
+      $cols = array_merge($cols,
+        [
+          [$beneficios[0],'maq_beneficio','numeric'],
+          [$beneficios_cotizados[0],'maq_cotizado','numeric'],
+          [$beneficios[1],'mesas_beneficio','numeric'],
+          [$beneficios_cotizados[1],'mesas_cotizado','numeric'],
+          [$beneficios[2],'bingo_beneficio','numeric'],
+          [$beneficios_cotizados[2],'bingo_cotizado','numeric'],
+        ]
+      );
+    }
+    else{
+      if($total_mensual){
+        $año_mes = "CONCAT(LPAD(YEAR(fechas.fecha),4,'0'),'-',LPAD(MONTH(fechas.fecha),2,'0'))";
+        array_unshift($cols,[$año_mes,'año_mes','string','input_date_month',['','']]);
+        
+        $query = $query->groupBy(DB::raw("$año_mes,c.id_casino"));
+        $count = $count->selectRaw("COUNT(distinct CONCAT($año_mes,'-',id_casino,'-')) as count");
+        
+        $indirect_where['año_mes'] = 'fechas.fecha';
+        
+        $default_order_by[$año_mes] = 'desc';
+        
+        $SUM = function($s) { return "SUM($s)"; };
+        $beneficios           = array_map($SUM,$beneficios);
+        $beneficios_cotizados = array_map($SUM,$beneficios_cotizados);
+      }
+      else{
+        array_unshift($cols,['fechas.fecha','fecha','string','input_date',$this->mes_actual]);
+        
+        $query = $query->groupBy(DB::raw("fechas.fecha,c.id_casino"));
+        $count = $count->selectRaw('COUNT(distinct CONCAT(fechas.fecha,"-",id_casino)) as count');
+        
+        $default_order_by['fechas.fecha'] = 'desc';
+        
+        $SUM = function($s) { return "SUM($s)"; };
+        $beneficios           = array_map($SUM,$beneficios);
+        $beneficios_cotizados = array_map($SUM,$beneficios_cotizados);
+      }
+      
+      $cols = array_merge($cols,
+        [
+          [$beneficios_cotizados[0],'maq_cotizado','numeric'],
+          [$beneficios_cotizados[1],'mesas_cotizado','numeric'],
+          [$beneficios_cotizados[2],'bingo_cotizado','numeric'],
+        ]
+      );
+    }
+    
+    //Si son todos nulos, sigo queriendo que reporte 0, por eso IFNULL
+    $cols[] = [implode('+',array_map(function($s){ return "IFNULL($s,0)";},$beneficios_cotizados)),'total','numeric'];
+        
+    return compact('cols','indirect_where','query','count','default_order_by');
   }
   
   public function index(Request $request){
@@ -196,7 +422,7 @@ class BackOfficeController extends Controller {
         'columnas' => $columnas,
       ]);
     });
-    
+            
     return view('seccionBackoffice',compact('vistas'));
   }
   
@@ -233,23 +459,30 @@ class BackOfficeController extends Controller {
           $q = $q->whereIn(DB::raw($select),$recibido);
       }
       else if($tipo == 'input_date_month' && !empty($recibido)){
-        if(is_array($recibido) && count($recibido) >= 2 && !empty($recibido[0]) && !empty($recibido[1])){
-          $d = explode('-',$recibido[0]);
-          $h = explode('-',$recibido[1]);
-          foreach($QS as &$q)
-            $q = $q->whereYear(DB::raw($select),'>=',$d[0])
-                   ->whereMonth(DB::raw($select),'>=',$d[1])
-                   ->whereYear(DB::raw($select),'<=',$h[0])
-                   ->whereMonth(DB::raw($select),'<=',$h[1]);
-        } 
-        else if(is_array($recibido) && count($recibido) == 1 && !empty($recibido[0])){
-          $m = explode('-',$recibido[0]);
-          foreach($QS as &$q)
-            $q = $q->whereYear(DB::raw($select),'=',$m[0])
-                   ->whereMonth(DB::raw($select),'=',$m[1]);
+        if(is_array($recibido) && count($recibido) >= 2){
+          $d = explode('-',$recibido[0] ?? '1970-01-01');
+          $h = explode('-',$recibido[1] ?? date('Y-m-d'));
+          foreach($QS as &$q){
+            $q = $q->where(function($q) use ($select,$d){
+              return $q->whereYear(DB::raw($select),'>',$d[0])
+              ->orWhere(function($q) use ($select,$d){
+                return $q->whereYear(DB::raw($select),'=',$d[0])
+                ->whereMonth(DB::raw($select),'>=',$d[1]);
+              });
+            })->where(function($q) use ($select,$h){
+              return $q->whereYear(DB::raw($select),'<',$h[0])
+              ->orWhere(function($q) use ($select,$h){
+                return $q->whereYear(DB::raw($select),'=',$h[0])
+                ->whereMonth(DB::raw($select),'<=',$h[1]);
+              });
+            });
+          }
         }
-        else if(!is_array($recibido)){
-          $m = explode('-',$recibido);
+        else {
+          $m = (is_array($recibido) && count($recibido) == 1)?
+            $recibido[0]
+          : $recibido;
+          $m = array_map(function($s){return intval($s);},explode('-',$m));
           foreach($QS as &$q)
             $q = $q->whereYear(DB::raw($select),'=',$m[0])
                    ->whereMonth(DB::raw($select),'=',$m[1]);
@@ -295,8 +528,8 @@ class BackOfficeController extends Controller {
     
     $query = $QS[0];
     $count = $QS[1];
-    
-    $query = $query->orderBy($sort_by['columna'],$sort_by['orden']);
+        
+    $query = $query->orderBy(DB::raw($sort_by['columna']),$sort_by['orden']);
     
     $page_size = is_numeric($request->page_size)? intval($request->page_size) : 10;
     $page      = is_numeric($request->page)? intval($request->page) : 1;
@@ -313,8 +546,8 @@ class BackOfficeController extends Controller {
     }
     
     $data = $data->get()->map(function($r,$rk) use ($request){
-      return collect($r)->map(function($cv,$ck) use ($request){
-        return $this->postprocess($request->vista,$ck,$cv);
+      return collect($r)->map(function($cv,$ck) use ($r,$request){
+        return $this->postprocess($request->vista,$r,$ck,$cv);
       });
     });
     
@@ -340,7 +573,7 @@ class BackOfficeController extends Controller {
     ];
   }
   
-  private function postprocess($vista,$col,$val){
+  private function postprocess($vista,$row,$col,$val){    
     $col = collect($this->vistas[$vista]['cols'])->where(BO_ALIAS,$col)->first();
     $tipo = $col[BO_TIPO] ?? null;
     if(!is_null($col) && $tipo == 'input_vals_list'){
@@ -427,15 +660,15 @@ class BackOfficeController extends Controller {
   }
   
   private static function val_format($tipo,$val){
-    if(is_null($val) || $val == '' || (is_numeric($val) && is_nan($val)))
+    if($val === null || $val === '')
       return '';
     switch($tipo){
       case 'integer':
         return intval($val);
       case 'numeric':
-        return number_format($val,2,',','.');
+        return CanonController::formatear_decimal($val);
       case 'numeric3d':
-        return number_format($val,3,',','.');
+        return CanonController::formatear_decimal($val);
     }
     return $val;
   }

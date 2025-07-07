@@ -42,7 +42,7 @@ Route::post('enviarTicket',function(Request $request){
   if(!empty($request->attachments)){
     $data['attachments'] = $request->attachments;
   }
-  
+
   set_time_limit(30);
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, 'http://10.1.121.25/osTicket/api/http.php/tickets.json');
@@ -59,7 +59,7 @@ Route::post('enviarTicket',function(Request $request){
   if ($code != 201) return response()->json($result,422);
   $ticket_id = (int) $result;
   return $ticket_id;
-});
+})->middleware(['tiene_permiso:usar_tickets']);
 
 Route::group(['prefix' => 'configCuenta'], function () {
   Route::get('/','UsuarioController@configUsuario');
@@ -70,6 +70,7 @@ Route::group(['prefix' => 'configCuenta'], function () {
   Route::get('imagen','UsuarioController@leerImagenUsuario');
 });
 
+Route::get('logout','AuthenticationController@logoutGET');
 Route::post('logout','AuthenticationController@logout');
 Route::post('login','AuthenticationController@login');
 
@@ -261,7 +262,7 @@ Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_
   Route::post('guardarMaquina', 'MTMController@guardarMaquina');
   Route::post('modificarMaquina', 'MTMController@modificarMaquina');
   Route::post('buscarMaquinas', 'MTMController@buscarMaquinas');
-  Route::post('cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');  
+  Route::post('cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
   Route::get('obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
   Route::get('buscarExpedientePorCasinoYNumero/{id_casino}/{busqueda}','ExpedienteController@buscarExpedientePorCasinoYNumero');
   Route::group(['prefix' => 'certificadoHard'],function(){
@@ -311,6 +312,7 @@ Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_secci
   Route::get('obtenerRelevamientosFiscalizacion/{id_fiscalizacion_movimiento}','LogMovimientoController@obtenerRelevamientosFiscalizacion');
   Route::get('obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
   Route::post('cargarTomaRelevamiento', 'LogMovimientoController@cargarTomaRelevamiento');
+  Route::get('adjunto/{id_toma}/{id_archivo}','LogMovimientoController@leerAdjuntoDeToma');
   Route::post('nuevoLogMovimiento','LogMovimientoController@nuevoLogMovimiento');
   Route::post('eliminarMovimiento', 'LogMovimientoController@eliminarMovimiento');
   Route::get('obtenerDatos/{id}','LogMovimientoController@obtenerDatos');
@@ -365,6 +367,18 @@ Route::group(['prefix' => 'eventualidades','middleware' => 'tiene_permiso:ver_se
   Route::get('obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
   Route::get('obtenerMTM/{id}', 'MTMController@obtenerMTM');
   Route::get('obtenerSector/{id_sector}','SectorController@obtenerSector');
+  Route::post('guardarEventualidad','EventualidadController@guardarEventualidad');
+  Route::get('pdf/{id}', 'EventualidadController@PDF');
+  Route::get('obtenerTurnos/{id_casino}', 'EventualidadController@obtenerTurnos');
+  Route::get('ultimas', 'EventualidadController@ultimasIntervenciones');
+  Route::post('subirEventualidad', 'EventualidadController@subirEventualidad');
+  Route::post('guardarObservacion','EventualidadController@guardarObservacion');
+  Route::get('pdfObs/{id}','EventualidadController@PDFObs');
+  Route::get('visarEventualidad/{id_eventualidad}','EventualidadController@visarEventualidad');
+  Route::post('subirObservacion', 'EventualidadController@subirObservacion');
+  Route::get('{evId}/observaciones', 'EventualidadController@getObservaciones');
+  Route::get('observacion/{id_ob}','EventualidadController@eliminarObservacion');
+  Route::get('visualizarArchivo/{estado}/{id_archivo}','EventualidadController@visualizarArchivo');
 });
 /**********
 Eventualidades MTM ->intervenciones tecnicas mtm
@@ -379,7 +393,9 @@ Route::group(['prefix' => 'eventualidadesMTM','middleware' => 'tiene_permiso:ver
   Route::get('relevamientosEvMTM/{id_movimiento}', 'LogMovimientoController@relevamientosEvMTM');
   Route::get('imprimirEventualidadMTM/{id_mov}','LogMovimientoController@imprimirEventualidadMTM');
   Route::post('visarConObservacion', 'LogMovimientoController@visarConObservacion');
-  Route::get('obtenerMTMEnCasino/{id_casino}/{admin}','MTMController@obtenerMTMEnCasino');
+  Route::get('obtenerMTMEnCasinoHabilitadas/{casino}/{id}', 'MTMController@obtenerMTMEnCasinoHabilitadas');
+  Route::get('obtenerMTMEnCasinoEgresadas/{casino}/{id}', 'MTMController@obtenerMTMEnCasinoEgresadas');
+  Route::get('adjunto/{id_toma}/{id_archivo}','LogMovimientoController@leerAdjuntoDeToma');
   Route::get('obtenerMTM/{id}', 'MTMController@obtenerMTM');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
 });
@@ -433,6 +449,7 @@ Route::group(['prefix' => 'importaciones','middleware' => 'tiene_permiso:ver_sec
 Route::group(['prefix' => 'cotizacion','middleware' => 'tiene_permiso:cotizar_dolar_peso'], function () {
   Route::get('obtenerCotizaciones/{mes}','CotizacionController@obtenerCotizaciones');
   Route::post('guardarCotizacion','CotizacionController@guardarCotizacion');
+  Route::get('dolarOficial','CotizacionController@dolarOficial');
 });
 /************
 Relevamientos
@@ -440,6 +457,7 @@ Relevamientos
 Route::group(['prefix' => 'relevamientos','middleware' => 'tiene_permiso:ver_seccion_relevamientos'], function () {
   Route::get('/','RelevamientoController@buscarTodo');
   Route::post('crearRelevamiento','RelevamientoController@crearRelevamiento');
+  Route::post('descargarRelevamiento','RelevamientoController@descargarRelevamiento');
   Route::post('cargarRelevamiento','RelevamientoController@cargarRelevamiento');
   Route::post('validarRelevamiento','RelevamientoController@validarRelevamiento');
   Route::get('obtenerRelevamiento/{id_relevamiento}','RelevamientoController@obtenerRelevamiento');
@@ -449,11 +467,11 @@ Route::group(['prefix' => 'relevamientos','middleware' => 'tiene_permiso:ver_sec
   Route::post('usarRelevamientoBackUp','RelevamientoController@usarRelevamientoBackUp');
   Route::get('descargarZip/{nombre}','RelevamientoController@descargarZip');
   Route::get('obtenerCantidadMaquinasPorRelevamiento/{id_sector}','RelevamientoController@obtenerCantidadMaquinasPorRelevamiento');
-  Route::get('existeCantidadTemporalMaquinas/{id_sector}/{fecha_desde}/{fecha_hasta}','RelevamientoController@existeCantidadTemporalMaquinas');
   Route::post('crearCantidadMaquinasPorRelevamiento','RelevamientoController@crearCantidadMaquinasPorRelevamiento');
   Route::get('obtenerCantidadMaquinasRelevamientoHoy/{id_sector}','RelevamientoController@obtenerCantidadMaquinasRelevamiento');
   Route::post('eliminarCantidadMaquinasPorRelevamiento','RelevamientoController@eliminarCantidadMaquinasPorRelevamiento');
-  Route::post('modificarDenominacionYUnidad','RelevamientoController@modificarDenominacionYUnidad');
+  Route::post('modificarDenominacionYUnidadDetalle','RelevamientoController@modificarDenominacionYUnidadDetalle');
+  Route::post('modificarDenominacionYUnidadMTM','RelevamientoController@modificarDenominacionYUnidadMTM');
   Route::post('buscarRelevamientos','RelevamientoController@buscarRelevamientos');
   Route::get('verRelevamientoVisado/{id_relevamiento}','RelevamientoController@obtenerRelevamientoVisado');
   Route::get('chequearRolFiscalizador','UsuarioController@chequearRolFiscalizador');
@@ -462,6 +480,7 @@ Route::group(['prefix' => 'relevamientos','middleware' => 'tiene_permiso:ver_sec
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
   Route::get('obtenerMtmAPedido/{fecha}/{id_sector}','MaquinaAPedidoController@obtenerMtmAPedido');
   Route::get('estadisticas_no_toma/{id}','informesController@mostrarEstadisticasNoToma');
+  Route::post('calcularEstadoDetalleRelevamiento','RelevamientoController@calcularEstadoDetalleRelevamiento');
 });
 /* OBTENER FECHA Y HORA ACTUAL */
 Route::get('obtenerFechaActual',function(){
@@ -496,7 +515,7 @@ Route::group(['prefix' => 'relevamientosControlAmbiental','middleware' => 'tiene
   Route::get('generarPlanilla/{id_relevamiento_ambiental}','RelevamientoAmbientalController@generarPlanillaAmbiental');
   Route::get('eliminarRelevamientoAmbiental/{id_relevamiento_ambiental}','RelevamientoAmbientalController@eliminarRelevamientoAmbiental');
   Route::get('obtenerRelevamiento/{id}','RelevamientoAmbientalController@obtenerRelevamiento');
-  Route::get('obtenerGeneralidades','UsuarioController@obtenerOpcionesGeneralidades');
+  Route::get('obtenerGeneralidades','RelevamientoAmbientalController@obtenerGeneralidades');
   Route::post('crearRelevamiento' , 'RelevamientoAmbientalController@crearRelevamientoAmbientalMaquinas');
   Route::post('cargarRelevamiento','RelevamientoAmbientalController@cargarRelevamiento');
   Route::post('guardarTemporalmenteRelevamiento','RelevamientoAmbientalController@guardarTemporalmenteRelevamiento');
@@ -563,9 +582,9 @@ Route::group(['prefix' => 'producidos','middleware' => 'tiene_permiso:ver_seccio
 Route::group(['prefix' => 'estadisticas_relevamientos','middleware' => 'tiene_permiso:ver_seccion_estadisticas_relevamientos'],function (){
   Route::get('/','MaquinaAPedidoController@buscarTodoInforme');
   Route::post('guardarMtmAPedido','MaquinaAPedidoController@guardarMtmAPedido');
-  Route::post('obtenerUltimosRelevamientosPorMaquina','RelevamientoController@obtenerUltimosRelevamientosPorMaquina');
+  Route::post('obtenerUltimosRelevamientosPorMaquina','RelevamientoController@obtenerUltimosRelevamientosPorMaquinaNroAdmin');
   Route::post('buscarMaquinasSinRelevamientos','RelevamientoController@buscarMaquinasSinRelevamientos');
-  Route::get('obtenerFechasMtmAPedido/{id}', 'MaquinaAPedidoController@obtenerFechasMtmAPedido');
+  Route::get('obtenerFechasMtmAPedido', 'MaquinaAPedidoController@obtenerFechasMtmAPedido');
   Route::get('buscarMaquinas/{id_casino}','RelevamientoController@buscarMaquinasPorCasino');
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
 });
@@ -597,13 +616,18 @@ Route::group(['prefix' => 'layout_parcial','middleware' => 'tiene_permiso:ver_se
   Route::post('usarLayoutBackup' , 'LayoutController@usarLayoutBackup');
   Route::get('existeLayoutParcial/{id_sector}','LayoutController@existeLayoutParcial');
   Route::get('existeLayoutParcialGenerado/{id_sector}','LayoutController@existeLayoutParcialGenerado');
+
   Route::get('obtenerLayoutParcial/{id}','LayoutController@obtenerLayoutParcial');
-  Route::get('obtenerLayoutParcialValidar/{id}','LayoutController@obtenerLayoutParcialValidar');
+  Route::get('obtenerLayoutParcialValidar/{id}','LayoutController@obtenerLayoutParcial');
+
+  Route::post('guardarLayoutParcial' , 'LayoutController@guardarLayoutParcial');
+  Route::post('finalizarLayoutParcial','LayoutController@finalizarLayoutParcial');
+  Route::post('validarLayoutParcial' , 'LayoutController@validarLayoutParcial');
+
   Route::get('generarPlanillaLayoutParcial/{id}','LayoutController@generarPlanillaLayoutParcial');
+  Route::get('generarPlanillaLayoutParcialCargado/{id}','LayoutController@generarPlanillaLayoutParcialCargado');
   Route::get('descargarLayoutParcialZip/{nombre}','LayoutController@descargarLayoutParcialZip');
   Route::post('buscarLayoutsParciales' , 'LayoutController@buscarLayoutsParciales');
-  Route::post('cargarLayoutParcial' , 'LayoutController@cargarLayoutParcial');
-  Route::post('validarLayoutParcial' , 'LayoutController@validarLayoutParcial');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
   Route::get('usuarioTienePermisos','AuthenticationController@usuarioTienePermisos');
   Route::get('obtenerSectoresPorCasino/{id_casino}','SectorController@obtenerSectoresPorCasino');
@@ -656,7 +680,7 @@ Informes
 Route::group(['prefix' => 'informeEstadoParque','middleware' => 'tiene_permiso:ver_seccion_estestadoparque'],function(){
   Route::get('/' , 'informesController@obtenerInformeEstadoParque');
   Route::get('obtenerSector/{id_sector}','SectorController@obtenerSector');
-  Route::get('obtenerEstadoParqueDeCasino/{id_casino}','informesController@obtenerInformeEstadoParqueDeParque');
+  Route::get('obtenerEstadoParqueDeCasino','informesController@obtenerInformeEstadoParqueDeParque');
 });
 
 Route::group(['prefix' => 'informeContableMTM','middleware' => 'tiene_permiso:ver_seccion_informecontable'], function () {
@@ -669,6 +693,11 @@ Route::group(['prefix' => 'informesMTM','middleware' => 'tiene_permiso:informes_
   Route::get('/','informesController@obtenerUltimosBeneficiosPorCasino');
   Route::get('generarPlanilla','informesController@generarPlanilla');
   Route::get('generarPlanillaIslasMaquinas','informesController@generarPlanillaIslasMaquinas');
+});
+
+Route::group(['prefix' => 'informesMesas','middleware' => 'tiene_permiso:informes_mesas'], function () {
+  Route::get('/','Mesas\InformesMesas\BCMensualesController@obtenerInformeMesas');
+  Route::get('generarPlanilla','Mesas\InformesMesas\BCMensualesController@generarPlanillaContable');
 });
 
 Route::group(['prefix' => 'informeSector','middleware' => 'tiene_permiso:ver_seccion_informesector'], function () {
@@ -775,7 +804,7 @@ Route::group(['prefix' => 'aperturas','middleware' => 'tiene_permiso:m_buscar_ap
 });
 
 //Sección Juegos
-Route::group(['prefix' => 'mesas-juegos','middleware' => 'tiene_permiso:m_gestionar_juegos_mesas'], function () {  
+Route::group(['prefix' => 'mesas-juegos','middleware' => 'tiene_permiso:m_gestionar_juegos_mesas'], function () {
   Route::get('/', 'Mesas\Juegos\BuscarJuegoController@buscarTodo');
   Route::post('buscarJuegos', 'Mesas\Juegos\BuscarJuegoController@buscarJuegos');
   Route::post('nuevoJuego', 'Mesas\Juegos\ABMJuegoController@guardar');
@@ -831,7 +860,7 @@ Route::group(['prefix' => 'importacionDiaria','middleware' => 'tiene_permiso:m_v
   Route::get('eliminarImportacion/{id_imp}','Mesas\Importaciones\ImportadorController@eliminar');
   Route::get('eliminarImportacionCierres/{id_imp}','Mesas\Importaciones\ImportadorController@eliminarCierres');
   Route::post('ajustarDetalle','Mesas\Importaciones\ImportadorController@ajustarDetalle');
-  Route::get('imprimirMensual','Mesas\Importaciones\ImportadorController@imprimirMensual');
+  Route::get('imprimirMensual','Mesas\InformesMesas\BCMensualesController@imprimirMensual');
   Route::get('superuserActualizarTodosLosCierres','Mesas\Importaciones\ImportadorController@superuserActualizarTodosLosCierres');
 });
 
@@ -849,25 +878,6 @@ Route::group(['prefix' => 'informeMensual','middleware' => 'tiene_permiso:m_bc_d
     return view('Informes.seccionInformesMensuales',['casinos'=>$usuario->casinos]);
   });
   Route::post('obtenerDatos','Mesas\InformesMesas\BCMensualesController@obtenerDatosGraficos');
-});
-
-
-Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_canon'],function(){
-  Route::get('/','Mesas\Canon\BPagosController@index');
-  Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
-    Route::post('crearOModificarPago','Mesas\Canon\APagosController@crearOModificar');
-    Route::delete('borrarPago/{id_detalle}','Mesas\Canon\APagosController@borrar');
-    Route::post('modificarInformeBase','Mesas\Canon\APagosController@modificarInformeBase');
-  });
-  Route::group(['middleware' => 'tiene_permiso:m_b_pagos'], function () {
-    Route::get('getMesesCuotas/{id_casino}/{anio_inicio}', 'Mesas\Canon\BPagosController@mesesCuotasCanon');
-    Route::get('mesesCargados/{id_casino}/{anio_inicio}','Mesas\Canon\BPagosController@mesesCargados');
-    Route::post('buscarPagos','Mesas\Canon\BPagosController@filtros');
-    Route::get('obtenerPago/{id_detalle}','Mesas\Canon\BPagosController@obtenerPago');
-    Route::get('obtenerAnios/{id_casino}','Mesas\Canon\BPagosController@obtenerAnios');
-    Route::get('obtenerInformeBase/{id_casino}','Mesas\Canon\BPagosController@obtenerInformeBase');
-    Route::post('verInforme','Mesas\Canon\BPagosController@verInformeFinalMesas');
-  });
 });
 
 Route::group(['prefix' => 'solicitudImagenes','middleware' => ['tiene_permiso:m_abmc_img_bunker']], function () {
@@ -935,20 +945,21 @@ AUTOEXCLUSIÓN
 Route::group(['prefix' => 'autoexclusion','middleware' => 'tiene_permiso:ver_seccion_ae_alta'], function () {
   Route::get('/','Autoexclusion\AutoexclusionController@index');
   Route::get('/noticias','Autoexclusion\AutoexclusionController@indexNoticias');
-  Route::delete('eliminarAE/{id_autoexcluido}','Autoexclusion\AutoexclusionController@eliminarAE');
+  Route::delete('eliminarAE/{id_autoexcluido}','Autoexclusion\AutoexclusionController@eliminarAE')->middleware('tiene_permiso:borrar_ae');
   Route::post('agregarAE','Autoexclusion\AutoexclusionController@agregarAE');
   Route::post('subirArchivo','Autoexclusion\AutoexclusionController@subirArchivo');
   Route::get('cambiarEstadoAE/{id}/{id_estado}','Autoexclusion\AutoexclusionController@cambiarEstadoAE');
   Route::get('existeAutoexcluido/{dni}','Autoexclusion\AutoexclusionController@existeAutoexcluido');
-  Route::get('buscarAutoexcluidos','Autoexclusion\AutoexclusionController@buscarAutoexcluidos');
+  Route::post('buscarAutoexcluidos','Autoexclusion\AutoexclusionController@buscarAutoexcluidos');
   Route::get('buscarAutoexcluido/{id}','Autoexclusion\AutoexclusionController@buscarAutoexcluido');
   Route::get('mostrarArchivo/{id_importacion}/{tipo_archivo}','Autoexclusion\AutoexclusionController@mostrarArchivo');
   Route::get('mostrarFormulario/{id_formulario}','Autoexclusion\AutoexclusionController@mostrarFormulario');
   Route::get('generarSolicitudAutoexclusion/{id}','Autoexclusion\AutoexclusionController@generarSolicitudAutoexclusion');
   Route::get('generarSolicitudFinalizacionAutoexclusion/{id}','Autoexclusion\AutoexclusionController@generarSolicitudFinalizacionAutoexclusion');
   Route::get('generarConstanciaReingreso/{id}','Autoexclusion\AutoexclusionController@generarConstanciaReingreso');
-  Route::get('BDCSV','Autoexclusion\AutoexclusionController@BDCSV');
+  Route::get('BDCSV','Autoexclusion\AutoexclusionController@BDCSV')->middleware('tiene_permiso:descargar_aes');
   Route::get('{dni?}','Autoexclusion\AutoexclusionController@index');
+  Route::post('destruirPapel','Autoexclusion\AutoexclusionController@destruirPapel');
 });
 
 Route::group(['prefix' => 'informesAutoexcluidos','middleware' => 'tiene_permiso:ver_seccion_ae_informes_listado'], function () {
@@ -970,5 +981,60 @@ Route::group(['prefix' => 'backoffice','middleware' => 'tiene_permiso:informes_m
   Route::post('descargar','BackOfficeController@descargar');
 });
 
+//Secion canon vieja que nunca fue usada, eliminar cuando este funcionando OK la nueva
+/*
+Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_canon'],function(){
+  Route::get('/','Mesas\Canon\BPagosController@index');
+  Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
+    Route::post('crearOModificarPago','Mesas\Canon\APagosController@crearOModificar');
+    Route::delete('borrarPago/{id_detalle}','Mesas\Canon\APagosController@borrar');
+    Route::post('modificarInformeBase','Mesas\Canon\APagosController@modificarInformeBase');
+  });
+  Route::group(['middleware' => 'tiene_permiso:m_b_pagos'], function () {
+    Route::get('getMesesCuotas/{id_casino}/{anio_inicio}', 'Mesas\Canon\BPagosController@mesesCuotasCanon');
+    Route::get('mesesCargados/{id_casino}/{anio_inicio}','Mesas\Canon\BPagosController@mesesCargados');
+    Route::post('buscarPagos','Mesas\Canon\BPagosController@filtros');
+    Route::get('obtenerPago/{id_detalle}','Mesas\Canon\BPagosController@obtenerPago');
+    Route::get('obtenerAnios/{id_casino}','Mesas\Canon\BPagosController@obtenerAnios');
+    Route::get('obtenerInformeBase/{id_casino}','Mesas\Canon\BPagosController@obtenerInformeBase');
+    Route::post('verInforme','Mesas\Canon\BPagosController@verInformeFinalMesas');
+  });
+});*/
 
+//Reuso los permisos de la sección vieja
+Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_canon'],function(){
+  Route::get('/','\App\Http\Controllers\CanonController@index');
+  Route::post('/buscar','\App\Http\Controllers\CanonController@buscar');
+  Route::post('/descargar','\App\Http\Controllers\CanonController@descargar');
+  Route::get('/descargarPlanillas','\App\Http\Controllers\CanonController@descargarPlanillas');
+  Route::get('/obtener','\App\Http\Controllers\CanonController@obtener');
+  Route::get('/planilla','\App\Http\Controllers\CanonController@planilla');
+  Route::get('/planillaPDF','\App\Http\Controllers\CanonController@planillaPDF');
+  Route::get('/planillaDevengado','\App\Http\Controllers\CanonController@planillaDevengado');
+  Route::get('/planillaDeterminado','\App\Http\Controllers\CanonController@planillaDeterminado');
+  Route::get('/planillaDeterminadoTest','\App\Http\Controllers\CanonController@planillaDeterminadoTest');
+  Route::get('/totalesTest','\App\Http\Controllers\CanonController@totalesTest');
+  Route::get('/archivo','\App\Http\Controllers\CanonController@archivo');
+  Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
+    Route::get('/obtenerConHistorial','\App\Http\Controllers\CanonController@obtenerConHistorial');
+    Route::post('/recalcular','\App\Http\Controllers\CanonController@recalcular_req');
+    Route::post('/guardar','\App\Http\Controllers\CanonController@guardar');
+    Route::post('/adjuntar','\App\Http\Controllers\CanonController@adjuntar');
+    Route::get('/cambiarEstado','\App\Http\Controllers\CanonController@cambiarEstado');
+    Route::delete('/borrar','\App\Http\Controllers\CanonController@borrar');
+    Route::group(['middleware' => 'tiene_rol:superusuario'], function () {
+      Route::get('/desborrar','\App\Http\Controllers\CanonController@desborrar');
+      Route::post('/valoresPorDefecto','\App\Http\Controllers\CanonController@valoresPorDefecto');
+      Route::post('/valoresPorDefecto/ingresar','\App\Http\Controllers\CanonController@valoresPorDefecto_ingresar');
+      Route::delete('/valoresPorDefecto/borrar','\App\Http\Controllers\CanonController@valoresPorDefecto_borrar');
+      Route::get('/recalcularSaldos','\App\Http\Controllers\CanonController@recalcular_saldos_Req');
+    });
+  });
+});
 
+Route::group(['prefix' => 'informesGenerales'],function(){//@TODO: agregar permiso
+  Route::get('/beneficios','InformesGeneralesController@beneficios');
+  Route::get('/autoexcluidos','InformesGeneralesController@autoexcluidos');
+  Route::get('/producidos','InformesGeneralesController@producidos');
+  Route::get('/producidos_semana','InformesGeneralesController@producidos_semana');
+});

@@ -1,69 +1,56 @@
-## IMPORTANTE
+## Sistema de auditoria de Casinos Físicos de Lotería Santa Fe
 
-Antes de iniciar el servidor, asegurarse de ..:
+El principal sistema de auditoria. 
 
-To start the scheduler itself, we only need to add one cron job on the server (using the crontab -e command), which executes php /path/to/artisan schedule:run every minute in the day:
-* * * * * php /path/to/artisan schedule:run 1>> /dev/null 2>&1
+Se divide en varios modulos, algunos funcionando como subsistemas cuasi-aislados y otros integrados.
 
-Please note that we need to provide the full path to the Artisan command of our Laravel installation.
+Los modulos de los cuales derivan todos los demas controles son:
 
-To discard the cron output we put /dev/null 2>&1 at the end of the cronjob expression.
+* Expedientes
+* Maquinas
+* Mesas de Paño
+* Bingo
+* Autoexcluidos
+* Canon
 
-De esta forma, se podrá ejecutar con normalidad el schedule de LARAVEL.
-Pero.. por las dudas, ejecutar también uno por uno los comandos que haya, así se evitan errores, porque pueden estar programados para una hora/día en particular y puede pasar mucho tiempo hasta que eso suceda. [Aclarar aquí que comandos no ejecutar.]
+Ortogonalmente, se hallan algunas o todas de las siguientes actividades sobre los modulos:
 
-En la carpeta console/commands se encuentran los comandos y sus descripciones, se ejecutan:
-php artisan nombre:delcomando [si en la descripcion dice algo mas -> ponerlo]
+* Gestión (Carga y Modificación)
+* Fiscalización (Verificación física)
+* Auditoría (Verificación contra datos informados)
+* Informes (Visualización de estado)
 
+Esbozandolo en forma tabular 
 
+| Modulo\Actividad | Gestión                                                                 | Fiscalización                                                   | Auditoría                                                    | Informes                                             |
+| ---------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------- |
+| Expedientes      | Expedientes, Resoluciones, Notas, Disposiciones                         | #N/A                                                            | #N/A                                                         | #N/A                                                 |
+| Maquinas         | Maquinas, Islas, Sectores, Juegos, Formulas, Certificados, Progresivos  | Movimientos, Contadores, Progresivos, Layout, Control Ambiental | Importacion y Validación: Contadores, Producidos, Beneficios | Estado Casino, Relevamiento, Sector, No toma         |
+| Mesas de Paño    | Juegos y Sectores, Mesas                                                | Cierres, Aperturas, Apuestas Minimas, Control Ambiental         | Importación y Validación: Cierres, Producidos                | Informe Diario, Mensual, Anual                       |
+| Bingo            | Premios                                                                 | Sesiones                                                        | Importación y Validación: Sesiones                           | Reportes de Diferencia                               |
+| Autoexcluidos    | Autoexcluidos                                                           | Galería                                                         | #N/A                                                         | Listado                                              |
+| Canon            | Canon                                                                   | #N/A                                                            | #N/A                                                         | Devengado y Determinado                              |
 
-## CONFIGURAR
+Como se nota, hay modulos que se representan en el beneficio del Casino (Maquinas, Mesas, Bingo) y otras auxiliares al funcionamiento del sistema (Expedientes, Canon)
+Se presentan otras pantallas para visualización gerencial de tableros generales o de descarga de datos ("Backoffice") que son auxiliares y abarcan a todo el sistema
+Todo el sistema confluye al cierre del mes en un Canon, donde en el mismo se hace el agregado de todos los datos de beneficio (ganancia) del casino y se calcula el pago mensual de este como canon
 
-CANTIDAD DE DÍAS QUE SE SORTEAN MESAS DE BACK UP EN:
-App\Http\Controllers\Aperturas\ABMCRelevamientosAperturaController $cantidad_dias_backup
+Las relaciones entre los modulos son en grandes razgos
 
-
-## IGNORAR
-
-
-
-<p align="center"><img src="https://laravel.com/assets/img/components/logo-laravel.svg"></p>
-
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
-
-## About Laravel
-
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Laravel attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, yet powerful, providing tools needed for large, robust applications. A superb combination of simplicity, elegance, and innovation give you tools you need to build any application with which you are tasked.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough documentation and video tutorial library of any modern web application framework. The [Laravel documentation](https://laravel.com/docs) is thorough, complete, and makes it a breeze to get started learning the framework.
-
-If you're not in the mood to read, [Laracasts](https://laracasts.com) contains over 900 video tutorials on a range of topics including Laravel, modern PHP, unit testing, JavaScript, and more. Boost the skill level of yourself and your entire team by digging into our comprehensive video library.
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](http://laravel.com/docs/contributions).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell at taylor@laravel.com. All security vulnerabilities will be promptly addressed.
+```mermaid
+graph TD;
+    E[Expedientes]--Informa cambios-->Ma[Maquinas];
+    E[Expedientes]--Informa cambios, eventos-->Me[Mesas de Paño];
+    E[Expedientes]--Informa eventos-->Bi[Bingo];
+    Ma[Maquinas]--Fiscalizado-->Mov[Movimientos];
+    Ma[Maquinas]--Fiscalizado-->Co[Contadores];
+    Ma[Maquinas]--Fiscalizado-->Progresivos;
+    Ma[Maquinas]--Fiscalizado-->Layout;
+    Ma[Maquinas]--Fiscalizado-->CA[Control Ambiental];
+    Mov--Cambia Estado-->Ma;
+    Autoexcluidos;
+```
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
+Open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).

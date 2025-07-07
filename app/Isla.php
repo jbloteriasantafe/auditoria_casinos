@@ -30,7 +30,7 @@ class Isla extends Model
   //IDEM anterior pero con egreso x int tecnica tambien
   public function getCantidadMaquinasYIntTecnicaAttribute(){
     if($this->deleted_at == null){
-    return Maquina::where('id_isla','=',$this->id_isla)->whereIn('id_estado_maquina',[1,2,5,7])->whereNull('deleted_at')->count();
+      return Maquina::where('id_isla','=',$this->id_isla)->whereIn('id_estado_maquina',[1,2,4,5,6,7])->whereNull('deleted_at')->count();
     }else{
       return 0;
     }

@@ -112,10 +112,6 @@ $gestion_hijos = [
         'link' => '/mesas',
         'algun_permiso' => ['m_gestionar_mesas'],
       ],
-      'Canon' => [
-        'link' => '/canon',
-        'algun_permiso' => ['m_ver_seccion_canon'],
-      ],
     ]
   ],
   'Bingo' => [
@@ -130,7 +126,7 @@ $gestion_hijos = [
   'Autoexclusión' => [
     'icono' => $icono_usuario,
     'hijos' => [
-      'Gestion de Excluidos' => [
+      'Gestion de Autoexcluidos' => [
         'link' => '/autoexclusion',
         'algun_permiso' => ['ver_seccion_ae_alta'],
       ],
@@ -167,11 +163,6 @@ $fiscalizacion_hijos = [
             'link' => '/relevamientos_movimientos',
             'algun_permiso' => ['ver_seccion_relevamientos_movimientos'],
           ],
-          'Intervenciones técnicas' => [
-            //'link' => '/eventualidades',
-            'link_style' => 'color:grey;',
-            'algun_permiso' => ['ver_seccion_eventualidades'],
-          ],
           'Intervenciones MTM' => [
             'link' => '/eventualidadesMTM',
             'algun_permiso' => ['ver_seccion_eventualidades_MTM'],
@@ -194,6 +185,7 @@ $fiscalizacion_hijos = [
         'link' => '/relevamientosControlAmbiental',
         'algun_permiso' => ['ver_seccion_relevamientos_control_ambiental'],
       ],
+
       /*'Pruebas' => [
         'hijos' => [
           'Pruebas Juegos' => [
@@ -241,7 +233,26 @@ $fiscalizacion_hijos = [
     'link' => '/galeriaImagenesAutoexcluidos',
     'algun_permiso' => ['ver_seccion_ae_informes_galeria']
   ],
-];
+  'Eventualidades' => [
+    'icono' => $icono_expedientes,
+    'link' => '/eventualidades',
+  ],
+
+      /*'Pruebas' => [
+        'hijos' => [
+          'Pruebas Juegos' => [
+            //'link' => '/prueba_juegos',
+            'link_style' => 'color:grey;',
+            'algun_permiso' => ['ver_seccion_prueba_juegos'],
+          ],
+          'Pruebas Progresivos' => [
+            //'link' => '/prueba_progresivos',
+            'link_style' => 'color:grey;',
+            'algun_permiso' => ['ver_seccion_prueba_progresivos'],
+          ],
+        ]
+      ],*/
+    ];
 $auditoria_hijos = [
   'Importaciones' => [
     'icono' => $icono_expedientes,
@@ -354,6 +365,11 @@ $contable_hijos = [
     'link' => '/informesMTM',
     'algun_permiso' => ['informes_mtm'],
   ],
+  'Mesas' => [
+    'icono' => $icono_mesas,
+    'link' => '/informesMesas',
+    'algun_permiso' => ['informes_mesas'],
+  ],
   'Bingo' => [
     'icono' => $icono_bingos,
     'link' => '/bingo/informe',
@@ -383,6 +399,11 @@ $contable_hijos = [
     'icono' => '<i class="fa fa-cloud-download-alt"></i>',
     'link' => '/backoffice',
     'algun_permiso' => ['informes_mtm'],
+  ],
+  'Canon' => [
+    'icono' => '<i class="fa fa-dollar-sign"></i>',
+    'link' => '/canon',
+    'algun_permiso' => ['m_ver_seccion_canon'],
   ]
 ];
 $opciones = [
@@ -449,7 +470,7 @@ $opciones = [
       if(is_null($new_h)) continue;
       $nuevas_opciones['hijos'][$new_h['k']] = $new_h['opciones'];
     }
-    
+
     if($nivel > 1){
       if(count($nuevas_opciones['hijos']) == 0 && $opciones['link'] == ''){//Si no tiene hijos ni tampoco un link, lo saco
         return null;
@@ -553,7 +574,7 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
     <link rel="stylesheet" href="/css/loadingAnimation.css">
 
     <!-- Mesaje de notificación -->
-    <link rel="stylesheet" href="/css/mensajeExito.css">
+    <link rel="stylesheet" href="/css/mensajeExito.css?1">
     <link rel="stylesheet" href="/css/mensajeError.css">
 
     <!-- Estilos de imagenes en SVG -->
@@ -565,7 +586,7 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
     <link rel="stylesheet" href="/web-fonts-with-css/css/fontawesome-all.css">
 
     <!-- Mesaje de notificación -->
-    <link rel="stylesheet" href="/css/mensajeExito.css">
+    <link rel="stylesheet" href="/css/mensajeExito.css?1">
     <link rel="stylesheet" href="/css/mensajeError.css">
     @section('estilos')
     @show
@@ -612,42 +633,6 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
         </main>
               <!-- DESDE ACA -->
 
-        <!-- NOTIFICACIÓN DE ÉXITO -->
-          <!--  (*) Para que la animación solo MUESTRE (fije) el mensaje, se agrega la clase 'fijarMensaje' a #mensajeExito-->
-          <!--  (*) Para que la animación MUESTRE Y OCULTE el mensaje, se quita la clase 'fijarMensaje' a #mensajeExito-->
-          <!-- (**) si se quiere mostrar los botones de ACEPTAR o SALIR, se agrega la clase 'mostrarBotones' a #mensajeExito -->
-          <!-- (**) para no mostrarlos, se quita la clase 'mostrarBotones' a #mensajeExito -->
-
-        <div id="mensajeExito" class="" hidden>
-            <div class="cabeceraMensaje">
-              <!-- <i class="fa fa-times" style=""></i> -->
-              <button type="button" class="close" style="font-size:40px;position:relative;top:10px;right:20px;"><span aria-hidden="true">×</span></button>
-            </div>
-            <div class="iconoMensaje">
-              <img src="/img/logos/check.png" alt="imagen_check" >
-            </div>
-            <div class="textoMensaje" >
-                <h3>ÉXITO</h3>
-                <p>El CASINO fue creado con éxito.</p>
-            </div>
-            <div class="botonesMensaje">
-                <button class="btn btn-success confirmar" type="button" name="button">ACEPTAR</button>
-                <button class="btn btn-default salir" type="button" name="button">SALIR</button>
-            </div>
-        </div>
-
-        <!-- Modal Error -->
-        <div id="mensajeError"  hidden>
-            <div class="cabeceraMensaje"></div>
-            <div class="iconoMensaje">
-              <img src="/img/logos/error.png" alt="imagen_error" >
-            </div>
-            <div class="textoMensaje" >
-                <h3>ERROR</h3>
-                <p>No es posible realizar la acción</p>
-            </div>
-
-        </div>
 
         <!-- Modal ayuda -->
         <div class="modal fade" id="modalAyuda" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -675,7 +660,7 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
         </div>
         <!-- HASTA ACA -->
 
-        @if($usuario['usuario']->es_superusuario || $usuario['usuario']->es_auditor)
+        @if($usuario['usuario']->tienePermiso('usar_tickets'))
         <div id="modalTicket" class="modal fade in" tabindex="-1" role="dialog" aria-hidden="true">
           <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -741,7 +726,62 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
     <script src="/js/createjs-2015.11.26.min.js"></script>
     <script src="/js/Animacion_logo2.js?1517927954849"></script>
     <script type="text/javascript" src="/js/modalTicket.js" charset="utf-8"></script>
+    @if($usuario['usuario']->es_superusuario)
+    <script src="/js/eruda.js"></script>
+    <style>
+      .eruda-entry-btn {
+        width: 15px;
+        height: 15px;
+        font-size: 10px;
+      }
+    </style>
+    <script>
+      eruda.init();
+      eruda.get('entryBtn')["_$el"].css({
+        width: '7px',
+        height: '7px',
+        'font-size': '5px',
+      })
+      eruda.position({x: 0, y: window.innerHeight-7});
+    </script>
+    @endif
     @section('scripts')
     @show
   </body>
+
+  <!-- NOTIFICACIÓN DE ÉXITO -->
+    <!--  (*) Para que la animación solo MUESTRE (fije) el mensaje, se agrega la clase 'fijarMensaje' a #mensajeExito-->
+    <!--  (*) Para que la animación MUESTRE Y OCULTE el mensaje, se quita la clase 'fijarMensaje' a #mensajeExito-->
+    <!-- (**) si se quiere mostrar los botones de ACEPTAR o SALIR, se agrega la clase 'mostrarBotones' a #mensajeExito -->
+    <!-- (**) para no mostrarlos, se quita la clase 'mostrarBotones' a #mensajeExito -->
+
+  <div id="mensajeExito" class="" hidden>
+      <div class="cabeceraMensaje">
+        <!-- <i class="fa fa-times" style=""></i> -->
+        <button type="button" class="close" style="font-size:40px;position:relative;top:10px;right:20px;"><span aria-hidden="true">×</span></button>
+      </div>
+      <div class="iconoMensaje">
+        <img src="/img/logos/check.png" alt="imagen_check" >
+      </div>
+      <div class="textoMensaje" >
+          <h3>ÉXITO</h3>
+          <p>El CASINO fue creado con éxito.</p>
+      </div>
+      <div class="botonesMensaje">
+          <button class="btn btn-success confirmar" type="button" name="button">ACEPTAR</button>
+          <button class="btn btn-default salir" type="button" name="button">SALIR</button>
+      </div>
+  </div>
+
+  <!-- Modal Error -->
+  <div id="mensajeError"  hidden>
+      <div class="cabeceraMensaje"></div>
+      <div class="iconoMensaje">
+        <img src="/img/logos/error.png" alt="imagen_error" >
+      </div>
+      <div class="textoMensaje" >
+          <h3>ERROR</h3>
+          <p>No es posible realizar la acción</p>
+      </div>
+  </div>
 </html>

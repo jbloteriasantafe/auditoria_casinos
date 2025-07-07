@@ -1,0 +1,85 @@
+* {
+  padding: 0;margin: 0;
+}
+table {
+  font-family: mono;
+  border-collapse: collapse;
+  table-layout: fixed;
+  word-wrap: break-word !important;
+  font-size: 0.75em;
+}
+
+th {
+  text-align: center;
+  text-shadow: white 1px 1px 4px;
+}
+td {
+  text-align: right;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+}
+
+thead tr:first-child th {
+  border-top: 1px solid black;
+}
+
+tr th:first-child,
+tr td:first-child {
+  border-left: 1px solid black;
+}
+
+tr:nth-last-child(1) td,
+tr:nth-last-child(1) th {
+  border-bottom: 1px solid black;
+}
+
+tr:nth-last-child(2) td,
+tr:nth-last-child(2) th {
+  border-bottom: 1px solid black;
+}
+
+tr th:nth-last-child(1),
+tr td:nth-last-child(1) {
+  border-right: 1px solid black;
+}
+
+:root {
+  --color-CME: #34A853;
+  --color-CSF: #EA4335;
+  --color-CSF-CME: var(--color-CSF);
+  --color-CRO: #FBBC04;
+}
+
+th.santa_fe, th.CSF, th.CSF-CME {
+  background: var(--color-CSF);
+}
+th.melincué, th.CME {
+  background: var(--color-CME);
+}
+th.rosario, th.CRO {
+  background: var(--color-CRO);
+}
+th.JOL {
+  background: #89D753;
+}
+th.TOTAL {
+  background: #047CFB;
+}
+th.celda_especial {
+  background: #FFE975;
+}
+
+thead th {
+  border-bottom: 1px solid black;
+}
+
+.negativo {
+  color: red;
+  font-weight: bold;
+}
+
+.texto_pequeño {
+  font-size: 0.7em;
+}

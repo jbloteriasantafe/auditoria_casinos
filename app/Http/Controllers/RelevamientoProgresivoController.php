@@ -167,7 +167,8 @@ class RelevamientoProgresivoController extends Controller
     $rel = $this->obtenerRelevamiento($id_relevamiento_progresivo);
     if($sin){
       foreach(($rel['detalles'] ?? []) as &$d){
-        foreach($d->niveles as &$n) $n->valor = '';
+        foreach($d->niveles as &$n) 
+          $n->valor = '';
         $d->id_tipo_causa_no_toma = null;
         $d->causa_no_toma_progresivo = '';
       }
@@ -175,6 +176,13 @@ class RelevamientoProgresivoController extends Controller
       $rel['relevamiento']->observacion_carga      = null;
       $rel['relevamiento']->fecha_ejecucion        = null;
       $rel['usuario_fiscalizador']                 = null;
+    }
+    else{
+      $RC = \App\Http\Controllers\RelevamientoController::getInstancia();
+      foreach(($rel['detalles'] ?? []) as &$d){
+        foreach($d->niveles as &$n) 
+          $n->valor = $RC::formatear_numero_español($n->valor);
+      }
     }
     $html = false;
     $dompdf = $this->crearPlanillaProgresivos($rel,$html);//poner en true si se quiere ver como html (DEBUG)
@@ -281,11 +289,16 @@ class RelevamientoProgresivoController extends Controller
   
   public function crearRelevamientoProgresivos(Request $request){
     $fiscalizador = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    
+    $ahora = date('Y-m-d H:i:s');
     Validator::make($request->all(),[
       'id_sector' => 'required|exists:sector,id_sector',
-      'fecha_generacion' => 'required|date|before_or_equal:' . date('Y-m-d H:i:s'),
-    ],[], self::$atributos)->after(function($validator){})->validate();
+      'fecha_generacion' => 'required|date|before_or_equal:'.$ahora,
+    ],[
+      'required' => 'El valor es requerido',
+      'exists' => 'El valor no es valido',
+      'date' => 'Tiene que ser una fecha formato YYYY-MM-DD HH:MM:SS',
+      'before_or_equal' => 'Tiene que ser anterior a '.$ahora,
+    ], self::$atributos)->after(function($validator){})->validate();
 
     $id_pozos = DB::table('pozo')
     ->select('pozo.id_pozo')

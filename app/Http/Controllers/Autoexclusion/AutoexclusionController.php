@@ -121,6 +121,12 @@ class AutoexclusionController extends Controller
             // si es fecha_blabla_h
             $reglas[] = [$column, '<=', $request->$key];
             break;
+          case 'papel_destruido':
+            $reglas[]=[DB::raw('ae_estado.id_plataforma IS NULL'),'=','1'];
+            $nulos = $request->papel_destruido == 'SI'? '0' : '1';
+            $reglas[]=[DB::raw('ae_estado.papel_destruido_id_usuario IS NULL'),'=',$nulos];
+            $reglas[]=[DB::raw('ae_estado.papel_destruido_datetime IS NULL'),'=',$nulos];
+            break;
         }
       }
     }
@@ -131,11 +137,21 @@ class AutoexclusionController extends Controller
     
     $resultados = DB::table('ae_datos')
       ->selectRaw('ae_datos.id_autoexcluido, ae_datos.nro_dni, ae_datos.apellido, ae_datos.nombres,
-                    ae_estado.fecha_ae, ae_estado.fecha_renovacion, ae_estado.fecha_vencimiento, ae_estado.fecha_cierre_ae,
-                    ae_estado.id_nombre_estado,ae_estado.id_casino,ae_estado.id_plataforma,ae_nombre_estado.descripcion as desc_estado,
-                    IFNULL(casino.nombre,plataforma.nombre) as casino_plataforma,
-                    ae_importacion.foto1,ae_importacion.foto2,ae_importacion.scandni,
-                    ae_importacion.solicitud_ae,ae_importacion.solicitud_revocacion,ae_importacion.caratula')
+                   ae_estado.fecha_ae, ae_estado.fecha_renovacion, ae_estado.fecha_vencimiento, ae_estado.fecha_cierre_ae,
+                   ae_estado.id_nombre_estado,ae_estado.id_casino,ae_estado.id_plataforma,
+                   
+                   ae_estado.id_usuario as modificado_id_usuario,
+                   IF(ae_estado.id_usuario IS NULL,NULL,(SELECT u2.nombre from usuario as u2 where u2.id_usuario = ae_estado.id_usuario)) as modificado_nombre_usuario,
+                   COALESCE(ae_estado.updated_at,ae_estado.created_at) as modificado_datetime,
+                   
+                   ae_estado.papel_destruido_id_usuario,
+                   IF(ae_estado.papel_destruido_id_usuario IS NULL,NULL,(SELECT u2.nombre from usuario as u2 where u2.id_usuario = ae_estado.papel_destruido_id_usuario)) as papel_destruido_nombre_usuario,
+                   ae_estado.papel_destruido_datetime,
+                   
+                   ae_nombre_estado.descripcion as desc_estado,
+                   IFNULL(casino.nombre,plataforma.nombre) as casino_plataforma,
+                   ae_importacion.foto1,ae_importacion.foto2,ae_importacion.scandni,
+                   ae_importacion.solicitud_ae,ae_importacion.solicitud_revocacion,ae_importacion.caratula')
       ->join('ae_estado'         , 'ae_datos.id_autoexcluido' , '=' , 'ae_estado.id_autoexcluido')
       ->leftJoin('ae_importacion', 'ae_importacion.id_autoexcluido','=','ae_datos.id_autoexcluido')
       ->join('ae_nombre_estado', 'ae_nombre_estado.id_nombre_estado', '=', 'ae_estado.id_nombre_estado')
@@ -198,6 +214,8 @@ class AutoexclusionController extends Controller
       'ae_encuesta.veces'                     => 'nullable|integer',
       'ae_encuesta.tiempo_jugado'             => 'nullable|integer',
       'ae_encuesta.club_jugadores'            => 'nullable|string|max:2',
+      'ae_encuesta.conoce_plataformas'        => 'nullable|string|max:2',
+      'ae_encuesta.utiliza_plataformas'       => 'nullable|string|max:2',
       'ae_encuesta.juego_responsable'         => 'nullable|string|max:2',
       'ae_encuesta.autocontrol_juego'         => 'nullable|string|max:2',
       'ae_encuesta.recibir_informacion'       => 'nullable|string|max:2',
@@ -269,20 +287,21 @@ class AutoexclusionController extends Controller
       foreach($ae_datos as $key => $val){
         $ae->{$key} = $val;
       }
+      
       $ae->save();
-
+      
       $contacto = $ae->contacto;
       if(is_null($contacto)){
         $contacto = new AE\ContactoAE;
         $contacto->id_autoexcluido = $ae->id_autoexcluido;
       }
-
+      
       $ae_datos_contacto = $request['ae_datos_contacto'];
       foreach($ae_datos_contacto as $key => $val){
         $contacto->{$key} = $val;
       }
       $contacto->save();
-
+      
       $estado = $request['ae_estado'];
       $estado['id_usuario'] = $user->id_usuario;
       $this->setearEstado($ae,$estado);
@@ -545,6 +564,8 @@ class AutoexclusionController extends Controller
         'como_asiste' => -1,
         'id_juego_preferido' => -1,
         'club_jugadores' => -1,
+        'conoce_plataformas' => -1,
+        'utiliza_plataformas' => -1,
         'autocontrol_juego' => -1,
         'recibir_informacion' => -1,
         'medio_recibir_informacion' => -1,
@@ -552,7 +573,6 @@ class AutoexclusionController extends Controller
       );
     }
     $contacto = $autoexcluido->contacto;
-
     $view = View::make('Autoexclusion.planillaFormularioAE1', compact('autoexcluido', 'encuesta', 'datos_estado', 'contacto','es_primer_ae'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
@@ -684,8 +704,6 @@ class AutoexclusionController extends Controller
   }
 
   public function eliminarAE($id_autoexcluido){
-    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    if(!$usuario->es_superusuario) return;
     DB::transaction(function() use($id_autoexcluido){
       $ae = AE\Autoexcluido::find($id_autoexcluido);
       if(is_null($ae)) return;
@@ -705,9 +723,6 @@ class AutoexclusionController extends Controller
   }
 
   public function BDCSV(){
-    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    if(!$user->es_superusuario && !$user->es_auditor) return 'NO PUEDE ACCEDER A ESA FUNCIÓN';
-
     $filename = 'ae_bd_'.date('Ymdhis').'.csv';
 
     if(!$fhandle = fopen($filename,'w')){
@@ -746,5 +761,41 @@ class AutoexclusionController extends Controller
       "Content-type" => "text/csv",
     );
     return response()->download($filename,$filename,$headers)->deleteFileAfterSend(true);
+  }
+    
+  public function destruirPapel(Request $request){
+    $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $ae_estado = null;
+    Validator::make($request->all(), [
+      'id_autoexcluido' => 'required|integer|exists:ae_datos,id_autoexcluido',
+    ], [], self::$atributos)->after(function($validator) use ($user,&$ae_estado){
+      if($validator->errors()->any()) return;
+      $id = $validator->getData()['id_autoexcluido'];
+      $ae_estado = AE\Autoexcluido::find($id)->estado;
+      $id_casino = $ae_estado->id_casino;
+      $id_plataforma = $ae_estado->id_plataforma;
+        
+      if(!$user->es_superusuario && !$user->es_administrador)
+        return $validator->errors()->add('privilegios', 'No tiene acceso');
+      
+      if(is_null($id_casino))
+        return $validator->errors()->add('ae_estado.id_casino', 'No tiene casino por ende no tiene papeles.');
+      
+      if($user->es_administrador && !$user->usuarioTieneCasino($id_casino))
+        return $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
+      
+      if(!is_null($ae_estado->papel_destruido_id_usuario))
+        return $validator->errors()->add('ae_estado.papel_destruido_id_usuario','El papel ya fue destruido');
+        
+      if(!is_null($ae_estado->papel_destruido_datetime))
+        return $validator->errors()->add('ae_estado.papel_destruido_datetime','El papel ya fue destruido');
+    })->validate();
+    
+    return DB::transaction(function() use ($user,&$ae_estado){
+      $ae_estado->papel_destruido_id_usuario = $user->id_usuario;
+      $ae_estado->papel_destruido_datetime = date('Y-m-d H:i:s');
+      $ae_estado->save();
+    });
+    return $request->id_autoexcluido;
   }
 }

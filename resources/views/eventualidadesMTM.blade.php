@@ -347,7 +347,7 @@
         <button class="btn btn-info btn_cargarEvmtm" title="CARGAR">
           <i class="fa fa-fw fa-upload"></i>
         </button>
-        @if($usuario->es_controlador || $usuario->es_superusuario)
+        @if($usuario->tienePermiso('eventualidades_validar_borrar'))
         <button class="btn btn-info btn_validarEvmtm" title="VALIDAR">
           <i class="fa fa-fw fa-check"></i>
         </button>

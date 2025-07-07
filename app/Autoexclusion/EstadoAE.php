@@ -14,12 +14,15 @@ class EstadoAE extends Model
   protected $visible = array('id_estado','id_nombre_estado','id_casino','id_plataforma',
                               'fecha_ae','fecha_vencimiento',
                               'fecha_renovacion', 'fecha_cierre_ae', 'fecha_revocacion_ae',
-                              'id_usuario',  'id_autoexcluido','ultima_actualizacion_estado'
+                              'id_usuario',  'id_autoexcluido','ultima_actualizacion_estado',
+                              'papel_destruido_id_usuario','papel_destruido_datetime'
                               );
   protected $fillable = ['id_nombre_estado','id_casino','id_plataforma',
                               'fecha_ae','fecha_vencimiento',
                               'fecha_renovacion', 'fecha_cierre_ae', 'fecha_revocacion_ae',
-                              'id_usuario',  'id_autoexcluido'];
+                              'id_usuario',  'id_autoexcluido',
+                              'papel_destruido_id_usuario','papel_destruido_datetime'
+                              ];
 
   public function ae(){
     return $this->belongsTo('App\Autoexclusion\Autoexcluido','id_autoexcluido','id_autoexcluido');

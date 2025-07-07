@@ -1,6 +1,11 @@
-$(document).ready(function () {
-  $("#barraMenu").attr("aria-expanded", "true");
-  $(".tituloSeccionPantalla").text("Autoexcluidos");
+import '/js/Components/inputFecha.js';
+import '/js/Components/FiltroTabla.js';
+import '/js/Components/modalEliminar.js';
+import {AUX} from "/js/Components/AUX.js";
+
+$(document).ready(function(){
+  $('.tituloSeccionPantalla').text('Autoexcluidos');
+  
   const input_fecha_iso = {
     language: "es",
     todayBtn: 1,
@@ -16,287 +21,123 @@ $(document).ready(function () {
   $("#dtpFechaAutoexclusionEstado").datetimepicker(input_fecha_iso);
   $("#dtpFechaNacimiento").datetimepicker(input_fecha_iso);
   $("#fecha_nacimiento,#fecha_autoexclusion").off("focus keydown keyup"); //Saco los evento de DTP que genera problemas si quiero chequear
-
-  const input_fecha = {
-    language: "es",
-    todayBtn: 1,
-    autoclose: 1,
-    todayHighlight: 1,
-    format: "dd/mm/yy",
-    pickerPosition: "bottom-left",
-    startView: 2,
-    minView: 2,
-    ignoreReadonly: true,
-  };
-
-  $("#dtpFechaAutoexclusionD").datetimepicker(input_fecha);
-  $("#dtpFechaVencimientoD").datetimepicker(input_fecha);
-  $("#dtpFechaRenovacionD").datetimepicker(input_fecha);
-  $("#dtpFechaCierreDefinitivoD").datetimepicker(input_fecha);
-  $("#dtpFechaAutoexclusionH").datetimepicker(input_fecha);
-  $("#dtpFechaVencimientoH").datetimepicker(input_fecha);
-  $("#dtpFechaRenovacionH").datetimepicker(input_fecha);
-  $("#dtpFechaCierreDefinitivoH").datetimepicker(input_fecha);
-  $("#btn-buscar").trigger("click");
-});
-
-//PAGINACION
-$("#btn-buscar").click(function (e, pagina, page_size, columna, orden) {
-  e.preventDefault();
-  const deflt_size = isNaN($("#herramientasPaginacion").getPageSize())
-    ? 10
-    : $("#herramientasPaginacion").getPageSize();
-  const sort_by =
-    columna != null
-      ? { columna: columna, orden: orden }
-      : {
-          columna: $("#tablaAutoexcluidos .activa").attr("value"),
-          orden: $("#tablaAutoexcluidos .activa").attr("estado"),
-        };
-
-  const formData = {
-    nombres: $("#buscadorNombres").val(),
-    apellido: $("#buscadorApellido").val(),
-    dni: $("#buscadorDni").val(),
-    correo: $("#buscadorCorreo").val(),
-    estado: $("#buscadorEstado").val(),
-    casino: $("#buscadorCasino").val() > 0 ? $("#buscadorCasino").val() : "",
-    plataforma:
-      $("#buscadorCasino").val() < 0 ? -$("#buscadorCasino").val() : "",
-    fecha_autoexclusion_d: isoDate($("#dtpFechaAutoexclusionD")),
-    fecha_vencimiento_d: isoDate($("#dtpFechaVencimientoD")),
-    fecha_renovacion_d: isoDate($("#dtpFechaRenovacionD")),
-    fecha_cierre_definitivo_d: isoDate($("#dtpFechaCierreDefinitivoD")),
-    fecha_autoexclusion_h: isoDate($("#dtpFechaAutoexclusionH")),
-    fecha_vencimiento_h: isoDate($("#dtpFechaVencimientoH")),
-    fecha_renovacion_h: isoDate($("#dtpFechaRenovacionH")),
-    fecha_cierre_definitivo_h: isoDate($("#dtpFechaCierreDefinitivoH")),
-    page:
-      pagina != null ? pagina : $("#herramientasPaginacion").getCurrentPage(),
-    sort_by: sort_by,
-    page_size: page_size == null || isNaN(page_size) ? deflt_size : page_size,
-  };
-
-  $.ajaxSetup({
-    headers: {
-      "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content"),
-    },
+  $('[data-js-setear-plataforma]').each(function(){
+    const $t = $(this);
+    $t.on('change',function(){
+      const $plat = $($t.attr('data-js-setear-plataforma'));
+      $plat.val($t.find('option:selected').attr('data-id_plataforma') ?? '');
+    }).trigger('change');
   });
-  $.ajax({
-    type: "GET",
-    url: "/autoexclusion/buscarAutoexcluidos",
-    data: formData,
-    dataType: "json",
-    success: function (resultados) {
-      $("#herramientasPaginacion").generarTitulo(
-        formData.page,
-        formData.page_size,
-        resultados.total,
-        clickIndice
-      );
-      $("#herramientasPaginacion").generarIndices(
-        formData.page,
-        formData.page_size,
-        resultados.total,
-        clickIndice
-      );
 
-      $("#cuerpoTabla tr").not(".filaTabla").remove();
-      for (var i = 0; i < resultados.data.length; i++) {
-        $("#tablaAutoexcluidos tbody").append(
-          generarFilaTabla(resultados.data[i])
-        );
-      }
-    },
-    error: function (data) {
-      console.log("Error:", data);
-    },
-  });
+  $('[data-js-filtro-tabla]').on('busqueda',function(e,ret,tbody,molde){
+    ret.data.forEach(function(ae){
+      tbody.append(generarFilaTabla(molde,ae));
+    });
+    tbody.find('.pop').popover({
+      html:true
+    });
+  }).trigger('buscar');
 });
 
-//Paginacion
-$(document).on("click", "#tablaAutoexcluidos thead tr th[value]", function (e) {
-  $("#tablaAutoexcluidos th").removeClass("activa");
-  if ($(e.currentTarget).children("i").hasClass("fa-sort")) {
-    $(e.currentTarget)
-      .children("i")
-      .removeClass("fa-sort")
-      .addClass("fa fa-sort-desc")
-      .parent()
-      .addClass("activa")
-      .attr("estado", "desc");
-  } else {
-    if ($(e.currentTarget).children("i").hasClass("fa-sort-desc")) {
-      $(e.currentTarget)
-        .children("i")
-        .removeClass("fa-sort-desc")
-        .addClass("fa fa-sort-asc")
-        .parent()
-        .addClass("activa")
-        .attr("estado", "asc");
-    } else {
-      $(e.currentTarget)
-        .children("i")
-        .removeClass("fa-sort-asc")
-        .addClass("fa fa-sort")
-        .parent()
-        .attr("estado", "");
-    }
-  }
-  $("#tablaAutoexcluidos th:not(.activa) i")
-    .removeClass()
-    .addClass("fa fa-sort")
-    .parent()
-    .attr("estado", "");
-  clickIndice(
-    e,
-    $("#herramientasPaginacion").getCurrentPage(),
-    $("#herramientasPaginacion").getPageSize()
-  );
-});
-
-function clickIndice(e, pageNumber, tam) {
-  if (e != null) {
-    e.preventDefault();
-  }
-  var tam = tam != null ? tam : $("#herramientasPaginacion").getPageSize();
-  var columna = $("#tablaAutoexcluidos .activa").attr("value");
-  var orden = $("#tablaAutoexcluidos .activa").attr("estado");
-  $("#btn-buscar").trigger("click", [pageNumber, tam, columna, orden]);
-}
-
-function generarFilaTabla(ae) {
-  let fila = $("#cuerpoTabla .filaTabla")
-    .clone()
-    .removeClass("filaTabla")
-    .show();
-  fila.attr("data-id", ae.id_autoexcluido);
-  fila
-    .find(".casino_plataforma")
-    .text(ae.casino_plataforma)
-    .attr("title", ae.casino_plataforma);
-  fila.find(".dni").text(ae.nro_dni).attr("title", ae.nro_dni);
-  fila.find(".apellido").text(ae.apellido).attr("title", ae.apellido);
-  fila.find(".nombres").text(ae.nombres).attr("title", ae.nombres);
-  fila.find(".estado").text(ae.desc_estado).attr("title", ae.desc_estado);
+function generarFilaTabla(molde,ae) {
+  const fila = molde.clone();
+  fila.attr('data-id', ae.id_autoexcluido);
+  fila.find('.casino_plataforma').text(ae.casino_plataforma).attr('title',ae.casino_plataforma);
+  fila.find('.dni').text(ae.nro_dni).attr('title',ae.nro_dni);
+  fila.find('.apellido').text(ae.apellido).attr('title',ae.apellido);
+  fila.find('.nombres').text(ae.nombres).attr('title',ae.nombres);
+  fila.find('.estado').text(ae.desc_estado).attr('title',ae.desc_estado);
 
   //Lo cambio a otro formato porque es mas corto que entra en pantalla mas chicas
-  const convertir_fecha = function (fecha) {
-    yyyymmdd = fecha.split("-");
-    return yyyymmdd[2] + "/" + yyyymmdd[1] + "/" + yyyymmdd[0].substring(2);
-  };
-  fila
-    .find(".fecha_ae")
-    .text(convertir_fecha(ae.fecha_ae))
-    .attr("title", ae.fecha_ae);
-  fila
-    .find(".fecha_renovacion")
-    .text(convertir_fecha(ae.fecha_renovacion))
-    .attr("title", ae.fecha_renovacion);
-  fila
-    .find(".fecha_vencimiento")
-    .text(convertir_fecha(ae.fecha_vencimiento))
-    .attr("title", ae.fecha_vencimiento);
-  fila
-    .find(".fecha_cierre_ae")
-    .text(convertir_fecha(ae.fecha_cierre_ae))
-    .attr("title", ae.fecha_cierre_ae);
+  const convertir_fecha = function(fecha){
+    const yyyymmdd = fecha.split('-');
+    return yyyymmdd[2] + '/' + yyyymmdd[1] + '/' + yyyymmdd[0].substring(2);
+  }
+  fila.find('.fecha_ae').text(convertir_fecha(ae.fecha_ae)).attr('title',ae.fecha_ae);
+  fila.find('.fecha_renovacion').text(convertir_fecha(ae.fecha_renovacion)).attr('title',ae.fecha_renovacion);
+  fila.find('.fecha_vencimiento').text(convertir_fecha(ae.fecha_vencimiento)).attr('title',ae.fecha_vencimiento);
+  fila.find('.fecha_cierre_ae').text(convertir_fecha(ae.fecha_cierre_ae)).attr('title',ae.fecha_cierre_ae);
 
-  fila.find("button").val(ae.id_autoexcluido);
-  fila.find("button").attr("estado-nuevo", ae.estado_transicionable);
+  fila.find('button').val(ae.id_autoexcluido);
+  fila.find('button').attr('estado-nuevo',ae.estado_transicionable);
 
-  if (
-    (ae.id_casino != null &&
-      $('#id_casino option[value="' + ae.id_casino + '"]').length == 0) ||
-    (ae.id_plataforma != null &&
-      $('#id_casino option[value="-' + ae.id_plataforma + '"]').length == 0)
-  ) {
-    fila.find("#btnEditar").remove();
+  if((ae.id_casino != null && $('#id_casino option[value="'+ae.id_casino+'"]').length == 0)
+  || (ae.id_plataforma != null && $('#id_casino option[value="-'+ae.id_plataforma+'"]').length == 0)
+  ){
+    fila.find('#btnEditar').remove();
   }
   // 1 Vigente, 2 Renovado, 3 Pendiente Valid, 4 Fin por AE,
   // 5 Vencido, 6 RES983 Pendiente, 7 RES983 Verificado
 
   //si no esta vencido oculto el botón constancia de reingreso
   if (ae.id_nombre_estado != 5) {
-    fila.find("#btnGenerarConstanciaReingreso").remove();
+    fila.find('#btnGenerarConstanciaReingreso').remove();
   }
   //si no esta finalizado por AE, oculto el boton
   if (ae.id_nombre_estado != 4) {
-    fila.find("#btnGenerarSolicitudFinalizacion").remove();
+    fila.find('#btnGenerarSolicitudFinalizacion').remove();
   }
 
-  if (!ae.es_primer_ae) {
-    fila.find("td").css("font-style", "italic");
-    fila.find(".fecha_renovacion").text("-").attr("title", "-");
-    fila.find(".fecha_vencimiento").text("-").attr("title", "-");
+  if(!ae.es_primer_ae){
+    fila.find('td').css('font-style','italic');
+    fila.find('.fecha_renovacion').text('-').attr('title','-');
+    fila.find('.fecha_vencimiento').text('-').attr('title','-');
   }
 
-  if (ae.id_nombre_estado == ae.estado_transicionable) {
-    //El estado esta ya correcto
-    fila.find("#btnCambiarEstado").remove();
+  if(ae.id_nombre_estado == ae.estado_transicionable){ //El estado esta ya correcto
+    fila.find('#btnCambiarEstado').remove();
   }
   //Pasar a vigente o renovado, segun si es primero o ya tuvo AE
-  else if (
-    (ae.id_nombre_estado == 3 || ae.id_nombre_estado == 6) &&
-    (ae.estado_transicionable == 1 || ae.estado_transicionable == 2)
-  ) {
-    fila
-      .find("#btnCambiarEstado")
-      .attr("title", "VALIDAR")
-      .find("i")
-      .addClass("fa-check");
-  } else if (ae.estado_transicionable == 4) {
-    fila
-      .find("#btnCambiarEstado")
-      .attr("title", "FINALIZAR POR AE")
-      .find("i")
-      .addClass("fa-ban");
-  } else if (ae.estado_transicionable == 2) {
-    fila
-      .find("#btnCambiarEstado")
-      .attr("title", "RENOVAR")
-      .find("i")
-      .addClass("fa-undo");
-  } else if (ae.estado_transicionable == 5) {
-    fila
-      .find("#btnCambiarEstado")
-      .attr("title", "CERRAR POR VENCIMIENTO")
-      .find("i")
-      .addClass("fa-lock");
-  } else {
-    fila.find("#btnCambiarEstado").remove();
-    fila.find(".estado").css("color", "red"); //Lo marco como inconsistente, hay algun error de logica en algun lado.
+  else if((ae.id_nombre_estado == 3 || ae.id_nombre_estado == 6) && (ae.estado_transicionable == 1 || ae.estado_transicionable == 2)){
+    fila.find('#btnCambiarEstado').attr('title','VALIDAR').find('i').addClass('fa-check');
+  }
+  else if(ae.estado_transicionable == 4){
+    fila.find('#btnCambiarEstado').attr('title','FINALIZAR POR AE').find('i').addClass('fa-ban');
+  }
+  else if(ae.estado_transicionable == 2){
+    fila.find('#btnCambiarEstado').attr('title','RENOVAR').find('i').addClass('fa-undo');
+  }
+  else if(ae.estado_transicionable == 5){
+    fila.find('#btnCambiarEstado').attr('title','CERRAR POR VENCIMIENTO').find('i').addClass('fa-lock');
+  }
+  else {
+    fila.find('#btnCambiarEstado').remove();
+    fila.find('.estado').css('color','red');//Lo marco como inconsistente, hay algun error de logica en algun lado.
   }
 
   const archivos = {
-    foto1: "FOTO #1",
-    foto2: "FOTO #2",
-    scandni: "SCAN DNI",
-    solicitud_ae: "SOLICITUD AE",
-    solicitud_revocacion: "SOLICITUD FINALIZACIÓN",
-    caratula: "CARATULA",
+    foto1: 'FOTO #1',
+    foto2: 'FOTO #2',
+    scandni: 'SCAN DNI',
+    solicitud_ae: 'SOLICITUD AE',
+    solicitud_revocacion: 'SOLICITUD FINALIZACIÓN',
+    caratula: 'CARATULA'
   };
-  const ul = $("<ul>").css("text-align", "left");
-  for (const key in archivos) {
-    //Si ya esta subido el archivo, no lo agrego
-    if (ae[key] !== null) continue;
-    const item = $("<a>")
-      .addClass("subirArchivo")
-      .attr("data-tipo", key)
-      .text(archivos[key]);
-    ul.append($("<li>").append(item));
+  const ul = $('<ul>').css('text-align','left');
+  for(const key in archivos){//Si ya esta subido el archivo, no lo agrego
+    if(ae[key] !== null) continue;
+    const item = $('<a>').addClass('subirArchivo').attr('data-tipo',key).text(archivos[key]);
+    ul.append($('<li>').append(item));
   }
-  if (ae.id_nombre_estado != 4) {
-    //Si no esta finalizado por AE no dejo subir la solicitud de fin.
+  if(ae.id_nombre_estado != 4){//Si no esta finalizado por AE no dejo subir la solicitud de fin.
     ul.find('a[data-tipo="solicitud_revocacion"]').parent().remove();
   }
-  fila.find("#btnSubirArchivos").attr("data-content", ul[0].outerHTML);
-  fila.find("#btnSubirArchivos").popover();
-  if (ul.find("li").length == 0) {
-    //Si ya tiene todos los archivos saco el boton
-    fila.find("#btnSubirArchivos").remove();
+  fila.find('#btnSubirArchivos').attr('data-content',ul[0].outerHTML);
+  fila.find('#btnSubirArchivos').popover();
+  if(ul.find('li').length == 0){//Si ya tiene todos los archivos saco el boton
+    fila.find('#btnSubirArchivos').remove();
   }
-  fila.css("display", "flow-root");
+  
+  let papel_destruido = (ae.papel_destruido_id_usuario != null || ae.papel_destruido_datetime != null)+0;
+  if(ae.id_plataforma != null) papel_destruido = -1;//Si tiene plataforma, no puede tener papel, saco todo
+  
+  fila.find('[data-papel-destruido]').filter(`[data-papel-destruido!="${papel_destruido}"]`).remove();
+  const popover_content = $(`[data-js-molde-popover-papel][data-papel-destruido="${papel_destruido}"]`).clone()
+  .removeAttr('data-js-molde-popover-papel');
+  
+  popover_content.find('.modificado').text(ae.modificado_nombre_usuario + ' ' + ae.modificado_datetime);
+  popover_content.find('.destruido').text(ae.papel_destruido_nombre_usuario + ' ' + ae.papel_destruido_datetime);
+  fila.find('[data-papel-destruido]').attr('data-content',popover_content?.[0]?.outerHTML);
   return fila;
 }
 
@@ -483,22 +324,25 @@ function cargarLocalidadesVinculo() {
 
 //función para actualizar fechas
 $("#fecha_autoexlusion").change(function () {
-  const fecha_autoexclusion = validarDTP($("#dtpFechaAutoexclusionEstado"));
-  if (fecha_autoexclusion == null) {
-    $(
-      "#fecha_renovacion,#fecha_vencimiento_periodo,#fecha_cierre_definitivo"
-    ).val("");
+  const iso = function(f){
+    const mes = f.getMonth()+1;
+    const dia = f.getDate();
+    return f.getFullYear() + (mes<10?'-0':'-') + mes + (dia<10?'-0':'-') + dia;
+  }
+  const fecha_autoexclusion       = validarDTP($('#dtpFechaAutoexclusionEstado'));
+  if(fecha_autoexclusion == null){
+    $("#fecha_renovacion,#fecha_vencimiento_periodo,#fecha_cierre_definitivo" ).val("");
     return;
   }
-  const fecha_renovacion = new Date(fecha_autoexclusion.getTime());
+  const fecha_renovacion          = new Date(fecha_autoexclusion.getTime());
   const fecha_vencimiento_periodo = new Date(fecha_autoexclusion.getTime());
-  const fecha_cierre_definitivo = new Date(fecha_autoexclusion.getTime());
+  const fecha_cierre_definitivo   = new Date(fecha_autoexclusion.getTime());
   fecha_renovacion.setDate(fecha_autoexclusion.getDate() + 150);
   fecha_vencimiento_periodo.setDate(fecha_autoexclusion.getDate() + 180);
   fecha_cierre_definitivo.setDate(fecha_autoexclusion.getDate() + 365);
-  $("#fecha_renovacion").val(isoDate(fecha_renovacion));
-  $("#fecha_vencimiento_periodo").val(isoDate(fecha_vencimiento_periodo));
-  $("#fecha_cierre_definitivo").val(isoDate(fecha_cierre_definitivo));
+  $( "#fecha_renovacion" ).val(iso(fecha_renovacion));
+  $( "#fecha_vencimiento_periodo" ).val(iso(fecha_vencimiento_periodo));
+  $( "#fecha_cierre_definitivo" ).val(iso(fecha_cierre_definitivo));
 });
 
 $("#btn-prev").on("click", function () {
@@ -746,22 +590,23 @@ function validarDNI() {
 
         //precargo el step de la encuesta
         if (data.encuesta != null) {
-          $("#hace_encuesta").prop("checked", true).change();
-          $("#juego_preferido").val(data.encuesta.id_juego_preferido);
-          $("#id_frecuencia_asistencia").val(
-            data.encuesta.id_frecuencia_asistencia
-          );
-          $("#veces").val(data.encuesta.veces);
-          $("#tiempo_jugado").val(data.encuesta.tiempo_jugado);
-          $("#socio_club_jugadores").val(data.encuesta.club_jugadores);
-          $("#juego_responsable").val(data.encuesta.juego_responsable);
-          $("#autocontrol_juego").val(data.encuesta.autocontrol_juego);
-          $("#como_asiste").val(data.encuesta.como_asiste);
-          $("#recibir_informacion").val(data.encuesta.recibir_informacion);
-          $("#medio_recepcion").val(data.encuesta.medio_recibir_informacion);
-          $("#observaciones").val(data.encuesta.observacion);
-        } else {
-          $("#hace_encuesta").prop("checked", false).change();
+          $('#hace_encuesta').prop('checked', true).change();
+          $('#juego_preferido').val(data.encuesta.id_juego_preferido);
+          $('#id_frecuencia_asistencia').val(data.encuesta.id_frecuencia_asistencia);
+          $('#veces').val(data.encuesta.veces);
+          $('#tiempo_jugado').val(data.encuesta.tiempo_jugado);
+          $('#socio_club_jugadores').val(data.encuesta.club_jugadores);
+          $('#conoce_plataformas').val(data.encuesta.conoce_plataformas);
+          $('#utiliza_plataformas').val(data.encuesta.utiliza_plataformas);
+          $('#juego_responsable').val(data.encuesta.juego_responsable);
+          $('#autocontrol_juego').val(data.encuesta.autocontrol_juego);
+          $('#como_asiste').val(data.encuesta.como_asiste);
+          $('#recibir_informacion').val(data.encuesta.recibir_informacion);
+          $('#medio_recepcion').val(data.encuesta.medio_recibir_informacion);
+          $('#observaciones').val(data.encuesta.observacion);
+        }
+        else{
+          $('#hace_encuesta').prop('checked',false).change();
         }
 
         if (data.importacion != null) {
@@ -1068,26 +913,25 @@ $("#btn-guardar").click(function (e) {
   for (const key in ae_estado) {
     formData.append(strRequest("ae_estado", key), ae_estado[key]);
   }
-
-  formData.append("hace_encuesta", $("#hace_encuesta").is(":checked") ? 1 : 0);
+  
+  formData.append('hace_encuesta',$('#hace_encuesta').is(':checked')? 1 : 0);
   const ae_encuesta = {
-    id_juego_preferido: $("#juego_preferido").val(),
-    id_frecuencia_asistencia: $("#id_frecuencia_asistencia").val(),
-    veces: $("#veces").val(),
-    tiempo_jugado: $("#tiempo_jugado").val(),
-    club_jugadores: $("#socio_club_jugadores").val(),
-    juego_responsable: $("#juego_responsable").val(),
-    autocontrol_juego: $("#autocontrol_juego").val(),
-    recibir_informacion: $("#recibir_informacion").val(),
-    medio_recibir_informacion: $("#medio_recepcion").val(),
-    como_asiste: $("#como_asiste").val(),
-    observacion: $("#observaciones").val(),
-  };
-  for (const key in ae_encuesta) {
-    formData.append(
-      strRequest("ae_encuesta", key),
-      clearNullUndef(ae_encuesta[key])
-    );
+    id_juego_preferido: $('#juego_preferido').val(),
+    id_frecuencia_asistencia: $('#id_frecuencia_asistencia').val(),
+    veces: $('#veces').val(),
+    tiempo_jugado: $('#tiempo_jugado').val(),
+    club_jugadores: $('#socio_club_jugadores').val(),
+    conoce_plataformas: $('#conoce_plataformas').val(),
+    utiliza_plataformas: $('#utiliza_plataformas').val(),
+    juego_responsable: $('#juego_responsable').val(),
+    autocontrol_juego: $('#autocontrol_juego').val(),
+    recibir_informacion: $('#recibir_informacion').val(),
+    medio_recibir_informacion: $('#medio_recepcion').val(),
+    como_asiste: $('#como_asiste').val(),
+    observacion: $('#observaciones').val(),
+  }
+  for(const key in ae_encuesta){
+    formData.append(strRequest('ae_encuesta',key),clearNullUndef(ae_encuesta[key]));
   }
 
   const ae_importacion_cargado = {
@@ -1124,23 +968,19 @@ $("#btn-guardar").click(function (e) {
   //dependiendo el valor del botón guarda o edita
   $.ajax({
     type: "POST",
-    url: "/autoexclusion/agregarAE",
+    url: '/autoexclusion/agregarAE',
     data: formData,
     processData: false,
     contentType: false,
     cache: false,
     success: function (data) {
-      $("#modalAgregarAE").modal("hide");
-      $("#btn-buscar").trigger("click");
-      mensajeExito(
-        "La autoexclusión fue " +
-          (data.nuevo ? "GUARDADA" : "EDITADA") +
-          " correctamente."
-      );
+        $('#modalAgregarAE').modal('hide');
+        $('[data-js-filtro-tabla]').trigger('buscar');
+        mensajeExito('La autoexclusión fue '+(data.nuevo? 'GUARDADA' : 'EDITADA') + ' correctamente.');
     },
     error: function (data) {
       console.log(data);
-    },
+    }
   });
 });
 
@@ -1177,31 +1017,29 @@ function mostrarAutoexcluido(id_autoexcluido) {
         $("#infoVinculo").val(data.datos_contacto.vinculo);
       }
 
-      if (data.estado.id_casino != null)
-        $("#infoCasino").val(data.estado.id_casino);
-      else if (data.estado.id_plataforma != null)
-        $("#infoCasino").val(-data.estado.id_plataforma);
+      if(data.estado.id_casino != null) $('#infoCasino').val(data.estado.id_casino);
+      else if(data.estado.id_plataforma != null) $('#infoCasino').val(-data.estado.id_plataforma);
 
-      $("#infoEstado").val(data.estado.id_nombre_estado);
-      $("#infoFechaAutoexclusion").val(data.estado.fecha_ae);
-      $("#infoFechaVencimiento").val(data.estado.fecha_vencimiento);
-      $("#infoFechaRenovacion").val(data.estado.fecha_renovacion);
-      $("#infoFechaCierreDefinitivo").val(data.estado.fecha_cierre_ae);
+      $('#infoEstado').val(data.estado.id_nombre_estado);
+      $('#infoFechaAutoexclusion').val(data.estado.fecha_ae);
+      $('#infoFechaVencimiento').val(data.estado.fecha_vencimiento);
+      $('#infoFechaRenovacion').val(data.estado.fecha_renovacion);
+      $('#infoFechaCierreDefinitivo').val(data.estado.fecha_cierre_ae);
 
       if (data.encuesta != null) {
-        $("#infoJuegoPreferido").val(data.encuesta.id_juego_preferido);
-        $("#infoFrecuenciaAsistencia").val(
-          data.encuesta.id_frecuencia_asistencia
-        );
-        $("#infoVeces").val(data.encuesta.veces);
-        $("#infoTiempoJugado").val(data.encuesta.tiempo_jugado);
-        $("#infoSocioClubJugadores").val(data.encuesta.club_jugadores);
-        $("#infoJuegoResponsable").val(data.encuesta.juego_responsable);
-        $("#infoAutocontrol").val(data.encuesta.autocontrol_juego);
-        $("#infoComoAsiste").val(data.encuesta.como_asiste);
-        $("#infoRecibirInformacion").val(data.encuesta.recibir_informacion);
-        $("#infoMedioRecepcion").val(data.encuesta.medio_recibir_informacion);
-        $("#infoObservaciones").val(data.encuesta.observacion);
+        $('#infoJuegoPreferido').val(data.encuesta.id_juego_preferido);
+        $('#infoFrecuenciaAsistencia').val(data.encuesta.id_frecuencia_asistencia);
+        $('#infoVeces').val(data.encuesta.veces);
+        $('#infoTiempoJugado').val(data.encuesta.tiempo_jugado);
+        $('#infoSocioClubJugadores').val(data.encuesta.club_jugadores);
+        $('#infoConocePlataformas').val(data.encuesta.conoce_plataformas);
+        $('#infoUtilizaPlataformas').val(data.encuesta.utiliza_plataformas);
+        $('#infoJuegoResponsable').val(data.encuesta.juego_responsable);
+        $('#infoAutocontrol').val(data.encuesta.autocontrol_juego);
+        $('#infoComoAsiste').val(data.encuesta.como_asiste);
+        $('#infoRecibirInformacion').val(data.encuesta.recibir_informacion);
+        $('#infoMedioRecepcion').val(data.encuesta.medio_recibir_informacion);
+        $('#infoObservaciones').val(data.encuesta.observacion);
       }
 
       //seteo en el value de los botones de ver mas el id de la importacion, para después
@@ -1253,35 +1091,25 @@ $(document).on("click", "#btnCambiarEstado", function (e) {
   const id = $(this).val();
   const estado = $(this).attr("estado-nuevo");
   $.ajax({
-    type: "GET",
-    url: "/autoexclusion/cambiarEstadoAE/" + id + "/" + estado,
-    dataType: "json",
-    success: function (data) {
-      mensajeExito("Cambio de estado realizado");
-      $("#btn-buscar").click();
-    },
-    error: function (data) {
-      mensajeError("Error al validar");
-      console.log(data);
+    type: 'GET',
+    url: '/autoexclusion/cambiarEstadoAE/'+ id + '/' + estado,
+    dataType: 'json',
+    success: function(data) {
+      mensajeExito('Cambio de estado realizado');
+      $('[data-js-filtro-tabla]').trigger('buscar');
     },
   });
 });
 $(document).on("click", "#btnEliminar", function (e) {
   e.preventDefault();
   const id = $(this).val();
-  $.ajax({
-    type: "DELETE",
-    url: "/autoexclusion/eliminarAE/" + id,
-    dataType: "json",
-    success: function (data) {
-      mensajeExito("Autoexcluido eliminado");
-      $("#btn-buscar").click();
-    },
-    error: function (data) {
-      mensajeError("Error al eliminar");
-      console.log(data);
-    },
-  });
+  $('[data-js-modal-eliminar]').trigger('mostrar',[{
+    mensaje: '¿DESEA ELIMINAR EL AUTOEXCLUIDO?',
+    url: '/autoexclusion/eliminarAE/'+ id,
+    success: function(data){
+      $('[data-js-filtro-tabla]').trigger('buscar');
+    }
+  }]);
 });
 
 $(document).on("click", "#btnGenerarSolicitudAutoexclusion", function (e) {
@@ -1305,6 +1133,21 @@ $(document).on("click", "#btnGenerarSolicitudFinalizacion", function (e) {
   window.open(
     "/autoexclusion/generarSolicitudFinalizacionAutoexclusion/" + $(this).val(),
     "_blank"
+  );
+});
+
+$(document).on('click','.btnDestruirPapel',function(e){
+  AUX.POST(
+    '/autoexclusion/destruirPapel',
+    {id_autoexcluido: $(this).val()},
+    function(data){
+      AUX.mensajeExito('Papel destruido');
+      $('[data-js-filtro-tabla]').trigger('buscar');
+    },
+    function(data){
+      AUX.mensajeError('Error al destruir el papel');
+      console.log(data);
+    }
   );
 });
 
@@ -1345,28 +1188,24 @@ $("#btn-subir-archivo").click(function (e) {
   formData.append("archivo", $("#modalSubirArchivo .archivo")[0].files[0]);
   $.ajax({
     type: "POST",
-    url: "/autoexclusion/subirArchivo",
+    url: '/autoexclusion/subirArchivo',
     data: formData,
     processData: false,
     contentType: false,
     cache: false,
     success: function (data) {
-      $("#modalSubirArchivo").modal("hide");
-      mensajeExito($("#modalSubirArchivo .tipo_archivo").text() + " asignada");
-      $("#btn-buscar").click();
+      $('#modalSubirArchivo').modal('hide');
+      mensajeExito($('#modalSubirArchivo .tipo_archivo').text()+' asignada');
+      $('[data-js-filtro-tabla]').trigger('buscar');
     },
     error: function (data) {
       const json = data.responseJSON;
-      mensajeError("");
-      if ("archivo" in json) {
-        mostrarErrorValidacion(
-          $("#modalSubirArchivo .archivo"),
-          "Archivo faltante o invalido",
-          true
-        );
+      mensajeError('');
+      if("archivo" in json){
+        mostrarErrorValidacion($('#modalSubirArchivo .archivo'),"Archivo faltante o invalido",true);
       }
       console.log(data);
-    },
+    }
   });
 });
 
@@ -1389,7 +1228,7 @@ $(".sacarArchivo").click(function () {
 $("#contenedorFiltros input").on("keypress", function (e) {
   if (e.which == 13) {
     e.preventDefault();
-    $("#btn-buscar").click();
+    $('[data-js-filtro-tabla]').trigger('buscar');
   }
 });
 
@@ -1402,56 +1241,4 @@ $("#hace_encuesta").change(function () {
     .children()
     .not(".no_esconder");
   divs.toggle(show);
-});
-
-$(document).on("click", "#btnEnviarEmail", function (e) {
-  e.preventDefault();
-  const id_autoexcluido = $(this).val();
-  $.get(
-    "/autoexclusion/buscarAutoexcluido/" + id_autoexcluido,
-    function (data) {
-      $.ajaxSetup({
-        headers: {
-          "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content"),
-          "X-API-Key": "base64:TzNlfRUDBa4hqNFm4jSHM60cW+oPhVtGHx6VFYqnrsI=",
-        },
-      });
-
-      var url = "http://10.1.121.24:8000/api/email/rootNotification";
-      var formData = new FormData();
-      formData.append("email", data.autoexcluido.correo);
-      $.ajax({
-        type: "POST",
-        url: url,
-        data: formData,
-        dataType: "json",
-        processData: false,
-        contentType: false,
-        cache: false,
-        success: function (data) {
-          console.log("Success: ", data);
-          $("#mensajeExito h3").text("ENVIO EXITOSO");
-          $("#mensajeExito p").text("El email se envio correctamente");
-          $("#modalSubirNoticia").modal("hide");
-          $("#mensajeExito").show();
-        },
-        error: function (data) {
-          console.log("Error: ", data);
-          var errors = data.responseJSON.errors;
-          if (typeof errors.email !== "undefined") {
-            $("#mensajeError .textoMensaje").empty();
-            $("#mensajeError .textoMensaje").append(
-              $("<h3></h3>").text(
-                "El usuario no existe, o su email en Sistemon es diferente al registrado en SEVA"
-              )
-            );
-            $("#mensajeError").hide();
-            setTimeout(function () {
-              $("#mensajeError").show();
-            }, 250);
-          }
-        },
-      });
-    }
-  );
 });

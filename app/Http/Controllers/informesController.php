@@ -354,7 +354,7 @@ class informesController extends Controller
 
     UsuarioController::getInstancia()->agregarSeccionReciente('Informes MTM' ,'informesMTM');
 
-    return view('seccionInformesMTM',['beneficios_x_casino' => $beneficios_x_casino]);
+    return view('seccionInformesMTM',compact('beneficios_x_casino'));
   }
 
   public function obtenerInformeEstadoParque(){
@@ -368,63 +368,59 @@ class informesController extends Controller
     return view('seccionInformeEstadoParque' , ['casinos' => $casinos]);
   }
 
-  public function obtenerInformeEstadoParqueDeParque($id_casino){
-    //funcion que devuelve cantidad de maquinas total del casino y a su vez maquinas separadas por sector . Tambien separadas en habilitadas y deshabilitadas
-    $casino = Casino::find($id_casino);
-
-    $estados_habilitados = EstadoMaquina::where('descripcion' , 'Ingreso')
-                                          ->orWhere('descripcion' , 'Reingreso')
-                                          ->orWhere('descripcion' , 'Eventualidad Observada')
-                                          ->get();
-
-    foreach ($estados_habilitados as $key => $estado) {
-      $estados_habilitados[$key] = $estado->id_estado_maquina;
-    }
-
-    $cantidad = DB::table('maquina')->select(DB::raw('COUNT(id_maquina) as cantidad'))
+  public function obtenerInformeEstadoParqueDeParque(Request $request){
+    $casino = Casino::find($request->id_casino);
+    if(empty($casino)) return [];
     
-                                              ->where('id_casino' , $casino->id_casino)
-                                              ->whereNull('maquina.deleted_at')
-                                              ->first();
-
-    $cantidad_habilitadas = DB::table('maquina')->select(DB::raw('COUNT(id_maquina) as cantidad'))
-                                                  ->where('id_casino' , $casino->id_casino)->whereIn('id_estado_maquina', $estados_habilitados)
-                                                  ->whereNull('maquina.deleted_at')
-                                                  ->first();
-    $cantidad_deshabilitadas = $cantidad->cantidad - $cantidad_habilitadas->cantidad;
-    $maquina_no_asignadas = DB::table('maquina')
-                              ->select(DB::raw('count(*) as cantidad'))
-                              ->where('maquina.id_casino' , $casino->id_casino)
-                              ->whereNull('maquina.deleted_at')
-                              ->whereNull('maquina.id_isla')
-                              ->first();
-
-    $islas=DB::table("isla")
-                ->where("isla.id_casino","=",$id_casino)
-                ->join("sector","isla.id_sector","=","sector.id_sector")
-                ->whereNotNull("sector.deleted_at")
-                ->whereNull("isla.deleted_at")
-                ->get();
-    $islas_no_asignadas =0;
+    $q_id_estado_maquina = DB::raw('IFNULL(lm.id_estado_maquina,m.id_estado_maquina)');
+    $estados_habilitados = [1,2,7];
+    //@SIN IMPLEMENTAR
+    $fecha_informe = $request->fecha_informe ?? date('Y-m-d');
+    DB::statement('SET @fecha_informe = ?',[$fecha_informe]);
+    $maqs_q = DB::table('maquina as m')
+    ->where('m.id_casino',$casino->id_casino)
+    ->where('m.created_at','<=',$fecha_informe)
+    ->where(function($q) use ($fecha_informe){
+      return $q->where('m.deleted_at','>',$fecha_informe)->orWhereNull('m.deleted_at');
+    })
+    //El log PROXIMO tiene el estado en que estaba
+    ->leftJoin('log_maquina as lm',function($q) use ($fecha_informe){
+      return $q->on('lm.id_maquina','=','m.id_maquina')->where('lm.fecha','>',$fecha_informe);
+    })
+    //Me quedo solo con el mas proximo a esa fecha
+    ->whereRaw('NOT EXISTS (
+      SELECT 1
+      FROM log_maquina as lm2
+      WHERE lm2.id_maquina = m.id_maquina
+      AND (
+        lm2.fecha < lm.fecha
+        OR (lm2.fecha = lm.fecha AND lm2.id_log_maquina < lm.id_log_maquina)
+      )
+      LIMIT 1
+    )');
     
-    foreach($islas as $i){
-      $isl=Isla::Find($i->id_isla);
-      if ($isl->cantidad_maquinas>0){
-        $islas_no_asignadas= $islas_no_asignadas+1;
-      }
-    }  
+    $total_casino = (clone $maqs_q)->count();
+    $total_habilitadas = (clone $maqs_q)->whereIn($q_id_estado_maquina, $estados_habilitados)->count();
+    $total_deshabilitadas = (clone $maqs_q)->whereNotIn($q_id_estado_maquina, $estados_habilitados)->count();
+    $total_no_asignadas = (clone $maqs_q)->whereNull('m.id_isla')->count();
     
-    $sectores = array();
-    foreach ($casino->sectores as $sector) {
-      $sectores[] =  ['id_sector' =>  $sector->id_sector, 'descripcion' => $sector->descripcion, 'cantidad' => $sector->cantidad_maquinas];
-    }
+    //@TODO: Como hacer para buscar el estado de las islas y sectores en $fecha_informe?
+    $islas_no_asignadas = DB::table('isla')->select('isla.id_isla')
+    ->where('isla.id_casino',$casino->id_casino)
+    ->join('sector','isla.id_sector','=','sector.id_sector')
+    ->join('maquina','maquina.id_isla','=','isla.id_isla')
+    ->whereNull('isla.deleted_at')//La isla no esta eliminada
+    ->whereNotNull('sector.deleted_at')//Esta en un sector eliminado
+    ->whereNull('maquina.deleted_at')//La maquina no esta eliminada
+    ->whereIn('maquina.id_estado_maquina',$estados_habilitados)//La maquina esta habilitada
+    ->distinct()->get()->count();
+    
+    $sectores = $casino->sectores->map(function($s){
+      return ['id_sector' => $s->id_sector, 'descripcion' => $s->descripcion, 'cantidad' => $s->cantidad_maquinas];
+    });
 
-    return ['casino' => $casino ,'sectores' => $sectores, 'totales' =>['total_casino' => $cantidad->cantidad,
-                                                                      'total_no_asignadas' => $maquina_no_asignadas->cantidad,
-                                                                      'islas_no_asignadas' => $islas_no_asignadas,
-                                                                      'total_habilitadas'  => $cantidad_habilitadas->cantidad,
-                                                                      'total_deshabilitadas' => $cantidad_deshabilitadas]
-          ];
+    $totales = compact('total_casino','total_no_asignadas','islas_no_asignadas','total_habilitadas','total_deshabilitadas');
+    return compact('casino','sectores','totales');
   }
 
   public function buscarTodoInformeContable(){
@@ -436,12 +432,6 @@ class informesController extends Controller
     UsuarioController::getInstancia()->agregarSeccionReciente('Informe Contable MTM' , 'informeContableMTM');
 
     return view('contable_mtm', ['casinos' => $casinos]);
-  }
-
-  public function obtenerInformeContableAzar($id_casino){
-        $nro_maquina = $this->obtenerMaquinaAlAzar($id_casino);
-        $informe = $this->obtenerInformeContableDeMaquina($nro_maquina,$id_casino);
-        return $informe;
   }
 
   public function obtenerInformeContableDeMaquina($id_maquina){
@@ -564,14 +554,6 @@ class informesController extends Controller
               'estado_relevamiento' => $estado_relevamiento,
               'estado_producido' => $estado_producido];
       //contador SE MUESTRA POR PANTALLA YA QUE NO SIEMPRE EXISTE RELEVAMIENTO PARA ESA MAQUINA EN ESA FECHA
-  }
-
-  public function obtenerMaquinaAlAzar($id_casino){
-    $resultado = DB::table('maquina')->select('nro_admin')
-                          ->where('maquina.id_casino' , $id_casino)
-                          ->inRandomOrder()
-                          ->first();
-    return $resultados['nro_admin'];
   }
 
   //BUSCA TODA LA INFORMACION PARA CARGAR MODAL

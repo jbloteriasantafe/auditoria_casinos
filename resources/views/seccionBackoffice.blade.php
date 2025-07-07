@@ -73,18 +73,19 @@
                 $dflt = $c['default'][$i];
               ?>
               @if($tipo == 'select')
-                <select class="form-control" style="flex: 1;" name="{{$name}}">
+                <select class="form-control" style="flex: 1;" name="{{$name}}" data-dflt-val-test="{{$dflt}}">
+                  <option value="" {{ $dflt == ''? 'selected' : '' }}>- TODOS/AS -</option>
                   @foreach($c['valores'] as $val_idx => $val)
-                  <option value="{{$val->id}}" {{ $dflt==$val_idx? 'selected' : '' }}>{{$val->valor}}</option>
+                  <option value="{{$val->id}}" {{ $dflt===$val_idx? 'selected' : '' }}>{{$val->valor}}</option>
                   @endforeach
-                  <option value="" {{ ($dflt==-1 || $dflt>=count($c['valores']))? 'selected' : '' }}>- TODOS/AS -</option>
                 </select>
               @elseif($tipo == 'input' || $tipo == 'input_vals_list')
                 <input class="form-control" style="flex: 1;" name="{{$name}}">
               @elseif($tipo == 'input_date')
                 @component('Components/inputFecha',[
                   'form_group_attrs' => 'style="flex: 1;"',
-                  'attrs'            => "name={$name}",
+                  'attrs'            => "name='{$name}' value='{$dflt}'",
+                  'attrs_dtp'        => 'data-max-view="decade"',
                 ])
                 @endcomponent
               @elseif($tipo == 'input_date_month')
@@ -155,5 +156,5 @@
 <script src="js/fileinput.min.js" type="text/javascript"></script>
 <script src="js/locales/es.js" type="text/javascript"></script>
 <script src="/themes/explorer/theme.js" type="text/javascript"></script>
-<script src="js/seccionBackoffice.js" type="module"></script>
+<script src="js/seccionBackoffice.js?1" type="module"></script>
 @endsection

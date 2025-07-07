@@ -194,7 +194,7 @@
       @endforelse
     </ul>
   </div>
-  @if($usuario->es_superusuario || $usuario->es_auditor)
+  @if($usuario->tienePermiso('usar_tickets'))
   <div class="card" style="flex:unset;width: 5vw;">
     <a id="ticket" tabindex="-1" href="#">
       @component('includes.barraMenuPrincipal_texto_con_icono',[
