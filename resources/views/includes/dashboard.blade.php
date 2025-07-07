@@ -126,7 +126,7 @@ $gestion_hijos = [
   'Autoexclusión' => [
     'icono' => $icono_usuario,
     'hijos' => [
-      'Gestion de Excluidos' => [
+      'Gestion de Autoexcluidos' => [
         'link' => '/autoexclusion',
         'algun_permiso' => ['ver_seccion_ae_alta'],
       ],
