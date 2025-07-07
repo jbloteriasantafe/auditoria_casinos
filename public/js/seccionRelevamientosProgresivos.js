@@ -1,3 +1,76 @@
+function formatear_numero_ingles(s){
+  return s.replaceAll(/(\.|\s)/gi,'').replaceAll(',','.')
+}
+  
+function formatear_numero_español(s){
+  s = s.replaceAll(/[^0-9\-\.,]/gi,'');
+  const negativo = (s?.[0] ?? null) == '-'? '-' : '';
+  const abs = negativo.length? s.substring(1) : s;
+  
+  const partes = abs.split('.');
+  const entero = partes?.[0] ?? '';
+  const decimal = partes?.[1] ?? null;
+  
+  const entero_separado = [];
+  for(let i=0;i<entero.length;i++){//De atras para adelante voy agregando numeros en baldes
+    const bucket = Math.floor(i/3);
+    
+    if(bucket == entero_separado.length){
+      entero_separado.push('');
+    }
+    
+    const c = entero[entero.length-1-i];
+    entero_separado[bucket] = c+entero_separado[bucket];
+  }
+  
+  //Puede quedar vacio el ultimo por eso chequeo
+  if(entero_separado.length && (entero_separado[entero_separado.length-1]).length == 0){
+    entero_separado.pop();
+  }
+  let ret = negativo+entero_separado.reverse().join('.');
+  if(decimal !== null && parseInt(decimal) != 0){
+    ret+=','+decimal;
+  }
+  return ret;
+}
+
+function filtrarNumeros(e){
+  const code = e.which || e.keyCode;
+  const c = String.fromCharCode(code);
+  const tgt = $(e.target);
+  const val = tgt.val();
+  
+  if((c == ',' || c == '.') && val.includes(',')){
+    e.preventDefault();
+    return;
+  }
+  if(c == '-' && val.includes('-')){
+    e.preventDefault();
+    return;
+  }
+  
+  if(c == '.'){
+    e.preventDefault();
+    const pos = this.selectionStart;
+    tgt.val(
+      val.substring(0,pos)+','+val.substring(pos)
+    );
+    this.selectionStart = pos+1;
+    this.selectionEnd = pos+1;
+    return;
+  }
+  if(c == '-' && this.selectionStart == 0){
+    e.preventDefault();
+    tgt.val('-'+val.substring(this.selectionEnd));
+    this.selectionStart = 1;
+    this.selectionEnd = 1;
+    return;
+  }
+  if(!c.match(/^(,|[0-9])$/)){
+    e.preventDefault();
+  }
+};
+
 $(document).ready(function() {
   $('.tituloSeccionPantalla').text('Relevamiento de progresivos');
   const yyyymmdd_hhiiss = {
@@ -54,7 +127,7 @@ $('#modalRelevamientoProgresivos').on('hidden.bs.modal', function() {
   ocultarErrorValidacion($(this).find('.form-control')); //oculto todos los errores
   $(this).find('.form-control').val('');
   $('#dtpFecha').data('datetimepicker').reset();
-  $(this).find('.cuerpoTablaPozos tr').not('.filaEjemplo').remove();
+  $(this).find('.cuerpoTablaPozos tr').remove();
 });
 
 //MOSTRAR LOS SECTORES ASOCIADOS AL CASINO SELECCIONADO
@@ -110,16 +183,19 @@ $('#btn-generar').click(function(e) {
     },
     dataType: 'json',
     success: function(data) {
+      mensajeExito('Generado','');
       $('#btn-buscar').trigger('click');
       $('#modalRelevamiento').modal('hide');
     },
     error: function(data) {
-      const response = JSON.parse(data.responseText);
+      console.log(data);
+      mensajeError(['Error al generar']);
+      const response = data.responseJSON ?? {};
       if (typeof response.id_sector !== 'undefined') {
-        mostrarErrorValidacion($('#sector'),responde.id_sector,true);
+        mostrarErrorValidacion($('#sector'),response.id_sector,true);
       }
       if (typeof response.fecha_generacion !== 'undefined') {
-        mostrarErrorValidacion($('#fechaRelevamientoInput'),responde.fecha_generacion,true);
+        mostrarErrorValidacion($('#fechaRelevamientoInput'),response.fecha_generacion,true);
       }
     }
   });
@@ -157,7 +233,7 @@ $('#btn-buscar').click(function(e, pagina, page_size, columna, orden) {
     dataType: 'json',
     success: function(resultados) {
       $('#herramientasPaginacion').generarTitulo(page_number, page_size, resultados.total, clickIndice);
-      $('#cuerpoTabla tr:not(.filaEjemplo)').remove();
+      $('#cuerpoTabla tr').remove();
       for(const i in resultados.data){
         $('#cuerpoTabla').append(generarFilaTabla(resultados.data[i]));
       }
@@ -241,22 +317,26 @@ function mostrarRelevamiento(id_relevamiento_progresivo,modo){
   
   const obtenerFila = function(detalle,didx,cls){
     const fila =  $('#modalRelevamientoProgresivos .filaEjemplo').clone();
-    fila.removeClass('filaEjemplo').show().css('display', '');
+    fila.removeClass('filaEjemplo');
     const nombre_prog = detalle.nombre_progresivo + (detalle.pozo_unico? '' : ` (${detalle.nombre_pozo})`);
     fila.find('.nombreProgresivo').text(nombre_prog);
     fila.find('.maquinas').text(detalle.nro_admins);
     fila.find('.isla').text(detalle.nro_islas);  
     fila.attr('data-id', detalle.id_detalle_relevamiento_progresivo);
     if (detalle.id_tipo_causa_no_toma_progresivo != null) {
-      fila.find('.causaNoToma').val(detalle.id_tipo_causa_no_toma_progresivo);
+      fila.find('.causaNoToma select').val(detalle.id_tipo_causa_no_toma_progresivo);
     }
     detalle.niveles.forEach(function(n,nidx){
       const nivel = fila.find('.nivel'+n.nro_nivel);
-      if (n.nombre_nivel != null){
-        nivel.attr('title',n.nombre_nivel);
-        nivel.attr('placeholder', n.nombre_nivel);
-      }
-      nivel.val(n.valor).attr('data-id', n.id_nivel_progresivo);
+      const nombre_nivel = n?.nombre_nivel ?? ('Nivel '+n.nro_nivel);
+      nivel.attr('title',nombre_nivel)
+      .attr('placeholder',nombre_nivel)
+      .attr('data-id', n.id_nivel_progresivo)
+      .val(formatear_numero_español(n.valor))
+      .on('keypress',filtrarNumeros)
+      .on('change',function(e){
+        nivel.val(formatear_numero_español(formatear_numero_ingles(nivel.val())));
+      });
     });
     fila.attr('idx',didx).addClass(cls);
     return fila;
@@ -294,7 +374,7 @@ function mostrarRelevamiento(id_relevamiento_progresivo,modo){
       $('#modalRelevamientoProgresivos').one('shown.bs.modal', setearBordeSeparadorFilaProgresivos);
     });
     tabla.find('.form-control').attr('disabled',!attr.inputs_enabled);
-    tabla.find('tr:not(.filaEjemplo) .causaNoToma').change();
+    tabla.find('tr .causaNoToma select').change();
     
     $('#observacion_carga').attr('disabled',!attr.inputs_enabled)
     .val(data.relevamiento.observacion_carga ?? '');
@@ -350,10 +430,7 @@ $('#mensajeAlerta .cancelar').click(function(){
 });
 
 function generarFilaTabla(relevamiento) {
-  const fila = $('#cuerpoTabla .filaEjemplo').clone().removeClass('filaEjemplo').show();
-  //Se setea el display como table-row por algun motivo :/
-  //Lo saco a pata.
-  fila.css('display', '');
+  const fila = $('#panelBusqueda .filaEjemplo').clone().removeClass('filaEjemplo');
   fila.attr('data-id', relevamiento.id_relevamiento_progresivo);
   fila.find('.fecha').text(relevamiento.fecha_generacion).attr('title',relevamiento.fecha_generacion);
   fila.find('.casino').text(relevamiento.casino).attr('title',relevamiento.casino);
@@ -383,7 +460,7 @@ $('#btn-salir').click(function() {
   $('#modalRelevamientoProgresivos').modal('hide');
 });
 
-$(document).on('change','#modalRelevamientoProgresivos[data-modo="cargar"] tr:not(.filaEjemplo) .causaNoToma:not(:disabled)',function(){
+$(document).on('change','#modalRelevamientoProgresivos[data-modo="cargar"] tr .causaNoToma select:not(:disabled)',function(){
   const fila = $(this).closest('tr');
   const seteado = $(this).val().length > 0;
   if(seteado) fila.find('input[data-id]').val('').removeClass('alerta');
@@ -396,13 +473,22 @@ $(document).on('change','#modalRelevamientoProgresivos[data-modo="cargar"] tr:no
 //Porque tienen alturas distintas y el borde se ve horrible si no. 
 //Tomo la altura de la celda mas grande de la fila.
 function setearBordeSeparadorFilaProgresivos(){
-  const fila = $('#modalRelevamientoProgresivos .cuerpoTablaPozos tr.linkeado').not('.filaEjemplo').last();
+  const fila = $('#modalRelevamientoProgresivos .cuerpoTablaPozos tr.linkeado').last();
   let altura = 0;
   fila.find('td').each(function(){
     altura = Math.max(parseFloat($(this).css('height')),altura);
   });
   fila.addClass('separadorProgresivos');
   fila.find('td').css('height',altura).css('border-bottom','double gray');
+}
+
+function mensajeExito(titulo,texto) {
+  $('#mensajeExito h3').text(titulo ?? 'ÉXITO');
+  $('#mensajeExito p').text(texto ?? 'Cambios GUARDADOS. ');
+  $('#mensajeExito').hide();
+  setTimeout(function() {
+    $('#mensajeExito').show();
+  }, 250);
 }
 
 function mensajeError(errores) {
@@ -436,12 +522,12 @@ function enviarFormularioCarga(id_relevamiento_progresivo,modo) {
     observaciones: $('#observacion_carga').val(),
   };
 
-  formData.detalles = $('#modalRelevamientoProgresivos .cuerpoTablaPozos tr:not(.filaEjemplo)').map(function(idx,tr){
+  formData.detalles = $('#modalRelevamientoProgresivos .cuerpoTablaPozos tr').map(function(idx,tr){
     const f = $(tr);
-    const causaNoToma = f.find('.causaNoToma').val();
+    const causaNoToma = f.find('.causaNoToma select').val();
     const niveles = f.find(causaNoToma.length > 0? '' :'input:not(:disabled)').map(function(idx, input) {
       const n = $(input);
-      return { valor: n.val(), id_nivel: n.attr('data-id') };
+      return { valor: formatear_numero_ingles(n.val()), id_nivel: n.attr('data-id') };
     }).toArray();
     return {
       id_detalle_relevamiento_progresivo: f.attr('data-id'),
@@ -457,6 +543,7 @@ function enviarFormularioCarga(id_relevamiento_progresivo,modo) {
     data: formData,
     dataType: 'json',
     success: function(data){
+      mensajeExito();
       $('#btn-buscar').click();
       if(modo == "cargar"){
         $('#modalRelevamientoProgresivos').modal('hide');
@@ -504,7 +591,7 @@ function validarFormulario() {
     mensajes.push("Ingrese una fecha de ejecución")
   }
 
-  const inputs = $('#modalRelevamientoProgresivos .cuerpoTablaPozos tr:not(.filaEjemplo) input:not([disabled])');
+  const inputs = $('#modalRelevamientoProgresivos .cuerpoTablaPozos tr input:not([disabled])');
   const mensajes = [];
   const vacios = inputs.filter(function(idx,input){
     input = $(input);
@@ -555,7 +642,7 @@ $('.cabeceraTablaPozos th.sortable').click(function() {
 
   const link = $('.cuerpoTablaPozos tr.linkeado').sort(comp);
   const indiv = $('.cuerpoTablaPozos tr.individual').sort(comp);
-  $('.cuerpoTablaPozos tr').not('.filaEjemplo').remove();
+  $('.cuerpoTablaPozos tr').remove();
   $('.cuerpoTablaPozos').append(link);
   $('.cuerpoTablaPozos').append(indiv);
   
@@ -580,9 +667,7 @@ $('#btn-guardar-param-relev-progresivos').on('click', function(e) {
     dataType: 'json',
     success: function(data) {
       $('#modalModificarRelev').modal('hide');
-      $('#mensajeExito h3').text('ÉXITO');
-      $('#mensajeExito p').text('Cambios GUARDADOS. ');
-      $('#mensajeExito').show();
+      mensajeExito();
       $('#btn-buscar-apuestas').trigger('click', [1, 10, 'fecha', 'desc']);
     },
     error: function(data) {

@@ -103,6 +103,22 @@ $(document).on('click','#divRelMov .cargarMaq',function(){
   });
 });
 
+function buildFormData(formData, data, parentKey) {//https://stackoverflow.com/questions/22783108/convert-js-object-to-form-data
+  if (data && typeof data === 'object' && !(data instanceof Date) && !(data instanceof File) && !(data instanceof Blob)) {
+    Object.keys(data).forEach(key => {
+      buildFormData(formData, data[key], parentKey ? `${parentKey}[${key}]` : key);
+    });
+  } else {
+    const value = data == null ? '' : data;
+    formData.append(parentKey, value);
+  }
+}
+function objToFormData(data) {
+  const formData = new FormData();
+  buildFormData(formData, data);
+  return formData;
+}
+
 //BOTÓN GUARDAR
 $(document).on('click','#guardarRel',function(){
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
@@ -122,6 +138,7 @@ $(document).on('click','#guardarRel',function(){
     cant_creditos:               datos.creditos,
     fecha_sala:                  datos.fecha_ejecucion,
     observaciones:               datos.observaciones,
+    adjunto:                     datos.adjunto ?? null,
     mac:                         datos.mac,
     isla_relevada:               datos.isla_rel,
     sector_relevado:             datos.sector_rel,
@@ -132,8 +149,11 @@ $(document).on('click','#guardarRel',function(){
   $.ajax({
     type: 'POST',
     url: '/relevamientos_movimientos/cargarTomaRelevamiento',
-    data: formData,
+    data: objToFormData(formData),
     dataType: 'json',
+    processData: false,
+    contentType: false,
+    cache: false,
     success: function (data) {
       console.log('BIEN');
       console.log(data);

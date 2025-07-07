@@ -33,6 +33,10 @@ class Archivo extends Model
   public function eventualidad(){
     return $this->hasOne('App\Eventualidad','id_archivo','id_archivo');
   }
+  
+  public function tomaRelevamientoMovimiento(){
+    return $this->hasOne('App\TomaRelevamientoMovimiento','id_archivo','id_archivo');
+  }
 
   public static function boot(){
         parent::boot();

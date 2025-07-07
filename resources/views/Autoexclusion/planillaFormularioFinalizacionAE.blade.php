@@ -40,8 +40,9 @@
       con domicilio real en calle <b>{{$ae['domicilio']}}</b> Nº <b>{{$ae['nro_domicilio']}}</b>,
       Teléfono <b>{{$ae['telefono']}}</b> de la localidad de <b>{{$ae['nombre_localidad']}}</b> Provincia de
       <b>{{$ae['nombre_provincia']}}</b>; manifiesto expresamente mi voluntad de finalizar con la autoexclusión,
-      solicitando que se me PERMITA INGRESAR a las Salas de Juego de los Casinos y Bingos de la Provincia de Santa Fe a partir
-      del día siguiente al de cumplimiento efectivo de los 6 meses de la suscripción de la solicitud de autoexclusión, que opera
+      solicitando que se me PERMITA INGRESAR a las Salas de Juego de los Casinos y Bingos
+      y a las plataformas de juego on-line autorizadas en la Provincia de Santa Fe,
+      a partir del día siguiente al de cumplimiento efectivo de los 6 meses de la suscripción de la solicitud de autoexclusión, que opera
       en la siguiente fecha:
     </p>
 
@@ -53,6 +54,13 @@
     Por consiguiente, firmo de conformidad adjuntando al presente fotocopia de mi documento de identidad, a fin de cumplimentar
     con las disposiciones establecidas por la Caja de Asistencia Social - Lotería de Santa Fe - en el marco de la Resolución de
     Vicepresidencia Ejecutiva N° 270/10 y modificaciones.
+    </p>
+    
+    <p class="primerEncabezado" style="font-size:13px">
+    Los datos contenidos en el presente formulario de autoexclusión, se encuentran bajo los
+    términos expresados en la Ley Nacional 25326/00 de protección de los datos
+    personales, particularmente en los artículos 5, 6, 8, 9 y 10 y la Ley Provincial 8525,
+    Capitulo IV, Art. 13, inc. f, deberes del personal.
     </p>
 
     <table class="primerEncabezado" style="table-layout: fixed;width: 100%;margin-top: 20%;">

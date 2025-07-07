@@ -13,14 +13,16 @@ class Encuesta extends Model
   protected $primaryKey = 'id_encuesta';
   protected $visible = array('id_encuesta','id_juego_preferido','id_frecuencia_asistencia',
                               'veces','tiempo_jugado',
-                              'club_jugadores', 'juego_responsable', 'autocontrol_juego',
+                              'club_jugadores', 'conoce_plataformas', 'utiliza_plataformas',
+                              'juego_responsable', 'autocontrol_juego',
                               'decision_ae',  'recibir_informacion',
                               'medio_recibir_informacion', 'id_autoexcluido',
                               'como_asiste', 'observacion'
                               );
   protected $fillable = ['id_juego_preferido','id_frecuencia_asistencia',
                               'veces','tiempo_jugado',
-                              'club_jugadores', 'juego_responsable', 'autocontrol_juego',
+                              'club_jugadores', 'conoce_plataformas', 'utiliza_plataformas',
+                              'juego_responsable', 'autocontrol_juego',
                               'decision_ae',  'recibir_informacion',
                               'medio_recibir_informacion', 'id_autoexcluido',
                               'como_asiste', 'observacion'];

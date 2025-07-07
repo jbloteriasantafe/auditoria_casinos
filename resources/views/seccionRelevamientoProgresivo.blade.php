@@ -18,8 +18,55 @@
 #tablaRelevamientos th, #tablaRelevamientos td {
   text-align: center;  
 }
-#modalRelevamientoProgresivos .cuerpoTablaPozos tr:not(.filaEjemplo) input:not([data-id]):disabled{
+
+#tablaRelevamientos .fecha,
+#tablaRelevamientos .casino,
+#tablaRelevamientos .sector,
+#tablaRelevamientos .estado,
+#tablaRelevamientos .acciones {
+  width: 20%;
+  text-align: center;
+}
+
+#modalRelevamientoProgresivos .cuerpoTablaPozos .nombreProgresivo,
+#modalRelevamientoProgresivos .cuerpoTablaPozos .maquinas,
+#modalRelevamientoProgresivos .cuerpoTablaPozos .isla {
+  overflow-wrap: break-word;
+  display: inline-block;
+  white-space: normal;
+}
+
+#modalRelevamientoProgresivos .cuerpoTablaPozos tr input {
+  text-align: right;
+}
+
+#modalRelevamientoProgresivos .cuerpoTablaPozos tr input:not([data-id]):disabled {
   opacity: 0;
+}
+
+<?php
+  $NIV_WIDTH = 60;
+  $WIDTH_nivel = $NIV_WIDTH/$niveles;
+  $WIDTH_RESTANTE = 100-$NIV_WIDTH;
+  $WIDTH_nombreProgresivo = 5*$WIDTH_RESTANTE/16;
+  $WIDTH_maquinas = 4*$WIDTH_RESTANTE/16;
+  $WIDTH_isla = 2*$WIDTH_RESTANTE/16;
+  $WIDTH_causaNoToma = 5*$WIDTH_RESTANTE/16;
+?>
+#modalRelevamientoProgresivos .nombreProgresivo{
+  width: {{$WIDTH_nombreProgresivo}}%;
+}
+#modalRelevamientoProgresivos .maquinas{
+  width: {{$WIDTH_maquinas}}%;
+}
+#modalRelevamientoProgresivos .isla {
+  width: {{$WIDTH_isla}}%;
+}
+#modalRelevamientoProgresivos .td_nivel {
+  width: {{$WIDTH_nivel}}%;
+}
+#modalRelevamientoProgresivos .causaNoToma {
+  width: {{$WIDTH_causaNoToma}}%;
 }
 </style>
 
@@ -144,54 +191,56 @@
             <div class="panel-heading">
               <h4>RELEVAMIENTO DE PROGRESIVOS GENERADO POR EL SISTEMA</h4>
             </div>
-            <div class="panel-body">
+            <div id="panelBusqueda" class="panel-body">
               <table id="tablaRelevamientos" class="table table-fixed tablesorter">
                 <thead>
                   <tr>
-                    <th class="col-xs-3 activa" value="relevamiento_progresivo.fecha_generacion" estado="desc">FECHA<i class="fa fa-sort-desc"></i></th>
-                    <th class="col-xs-2" value="casino.nombre" estado="">CASINO<i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2" value="sector.descripcion" estado="">SECTOR<i class="fa fa-sort"></i></th>
-                    <th class="col-xs-2" value="estado_relevamiento.descripcion" estado="">ESTADO<i class="fa fa-sort"></i></th>
-                    <th class="col-xs-3">ACCIÓN</th>
+                    <th class="fecha activa" value="relevamiento_progresivo.fecha_generacion" estado="desc">FECHA<i class="fa fa-sort-desc"></i></th>
+                    <th class="casino" value="casino.nombre" estado="">CASINO<i class="fa fa-sort"></i></th>
+                    <th class="sector" value="sector.descripcion" estado="">SECTOR<i class="fa fa-sort"></i></th>
+                    <th class="estado" value="estado_relevamiento.descripcion" estado="">ESTADO<i class="fa fa-sort"></i></th>
+                    <th class="acciones">ACCIÓN</th>
                   </tr>
                 </thead>
                 <tbody id="cuerpoTabla" style="height: 350px;">
-                  <tr class='filaEjemplo' style="display: none;">
-                    <td class="col-xs-3 fecha">01 Ene 9999</td>
-                    <td class="col-xs-2 casino">CASINO</td>
-                    <td class="col-xs-2 sector">SECTOR</td>
-                    <td class="col-xs-2" style="display: flex;">
-                      <i class="fas fa-fw fa-dot-circle iconoEstado"></i>
-                      <span class="textoEstado">ESTADO</span>
-                    </td>
-                    <td class="col-xs-3 acciones" style="text-align: left;">
-                      @if($puede_validar)
-                      <button class="btn btn-success ver" data-modo="ver" type="button" title='Ver Relevamiento'>
-                        <i class="fa fa-fw fa-search-plus"></i>
-                      </button>
-                      <button class="btn btn-success validar" data-modo="validar" type="button" title='Validar Relevamiento'>
-                        <i class="fa fa-fw fa-check"></i>
-                      </button>
-                      @endif
-                      @if($puede_fiscalizar)
-                      <button class="btn btn-warning cargar" data-modo="cargar" type="button" title='Cargar Relevamiento'>
-                        <i class="fa fa-fw fa-upload"></i>
-                      </button>
-                      @endif
-                      <button class="btn btn-info planilla" type="button" title='Ver Planilla'>
-                        <i class="far  fa-fw fa-file-alt"></i>
-                      </button>
-                      <button class="btn btn-info imprimir" type="button" title='Imprimir Planilla'>
-                        <i class="fa fa-fw fa-print"></i>
-                      </button>
-                      @if($puede_eliminar)
-                      <button class="btn btn-success eliminar" type="button" title='Eliminar Relevamiento'>
-                        <i class="fa fa-fw fa-trash"></i>
-                      </button>
-                      @endif
-                    </td>
-                  </tr>
                 </tbody>
+              </table>
+              <table hidden>
+                <tr class='filaEjemplo'>
+                  <td class="fecha">01 Ene 9999</td>
+                  <td class="casino">CASINO</td>
+                  <td class="sector">SECTOR</td>
+                  <td class="estado" style="display: flex;">
+                    <i class="fas fa-fw fa-dot-circle iconoEstado"></i>
+                    <span class="textoEstado">ESTADO</span>
+                  </td>
+                  <td class="acciones" style="text-align: left;">
+                    @if($puede_validar)
+                    <button class="btn btn-success ver" data-modo="ver" type="button" title='Ver Relevamiento'>
+                      <i class="fa fa-fw fa-search-plus"></i>
+                    </button>
+                    <button class="btn btn-success validar" data-modo="validar" type="button" title='Validar Relevamiento'>
+                      <i class="fa fa-fw fa-check"></i>
+                    </button>
+                    @endif
+                    @if($puede_fiscalizar)
+                    <button class="btn btn-warning cargar" data-modo="cargar" type="button" title='Cargar Relevamiento'>
+                      <i class="fa fa-fw fa-upload"></i>
+                    </button>
+                    @endif
+                    <button class="btn btn-info planilla" type="button" title='Ver Planilla'>
+                      <i class="far  fa-fw fa-file-alt"></i>
+                    </button>
+                    <button class="btn btn-info imprimir" type="button" title='Imprimir Planilla'>
+                      <i class="fa fa-fw fa-print"></i>
+                    </button>
+                    @if($puede_eliminar)
+                    <button class="btn btn-success eliminar" type="button" title='Eliminar Relevamiento'>
+                      <i class="fa fa-fw fa-trash"></i>
+                    </button>
+                    @endif
+                  </td>
+                </tr>
               </table>
               <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
             </div>
@@ -334,43 +383,50 @@
                       </div>
 
                       <br><br>
-
-                      <table class="table table-fixed" style="margin-bottom: 0px;">
-                        <thead class="cabeceraTablaPozos">
-                          <th class="col-xs-2 sortable" data-id="nombreProgresivo">Progresivo<i class="fa fa-sort"></i></th>
-                          <th class="col-xs-2 sortable" data-id="maquinas">Maquinas<i class="fa fa-sort"></i></th>
-                          <th class="col-xs-1 sortable" data-id="isla">Isla<i class="fa fa-sort"></i></th>
-                          @for ($i=1;$i<=$niveles;$i++)
-                          <th class="col-xs-1" data-id="nivel{{$i}}">Nivel {{$i}}</th>
-                          @endfor
-                          <th class="col-xs-1" data-id="causaNoToma">Causa no toma</th>
-                        </thead>
-                        <tbody></tbody>
-                      </table>
-                      <div class="" style="overflow: scroll;height: 500px;">
-                      <table class="table table-fixed tablaPozos">
-                        <tbody class="cuerpoTablaPozos">
-                          <tr class="filaEjemplo" style="display: none">
-                            <td class="col-xs-2 nombreProgresivo">PROGRESIVO99</td>
-                            <td class="col-xs-2 maquinas">MAQUINA1/MAQUINA2/...</td>
-                            <td class="col-xs-1 isla">ISLA1/ISLA2/...</td>
-                            @for ($i=1;$i<=$niveles;$i++)
-                            <td class="col-xs-1">
-                              <input class="nivel{{$i}} form-control" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
-                            </td>
-                            @endfor
-                            <td class="col-xs-1">
-                              <select class="causaNoToma form-control">
-                                <option value=""></option>
-                                @foreach($causasNoToma as $causa)
-                                <option value="{{$causa->id_tipo_causa_no_toma_progresivo}}">{{$causa->descripcion}}</option>
-                                @endforeach
-                              </select>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
+                      <div class="row" style="border: 4px solid #ccc;">
+                        <div class="row">
+                          <table class="table table-fixed" style="margin-bottom: 0px;border-bottom: 1px solid #ccc;">
+                            <thead class="cabeceraTablaPozos">
+                              <tr>
+                                <th class="sortable nombreProgresivo" data-id="nombreProgresivo">Progresivo<i class="fa fa-sort"></i></th>
+                                <th class="sortable maquinas" data-id="maquinas">Maquinas<i class="fa fa-sort"></i></th>
+                                <th class="sortable isla" data-id="isla">Isla<i class="fa fa-sort"></i></th>
+                                @for ($i=1;$i<=$niveles;$i++)
+                                <th class="td_nivel" data-id="nivel{{$i}}">Nivel {{$i}}</th>
+                                @endfor
+                                <th class="causaNoToma" data-id="causaNoToma">Causa no toma</th>
+                              </tr>
+                            </thead>
+                            <tbody></tbody>
+                          </table>
+                        </div>
+                        <div class="row" style="overflow: scroll;height: 500px;">
+                          <table class="table table-fixed tablaPozos">
+                            <tbody class="cuerpoTablaPozos">
+                            </tbody>
+                          </table>
+                          <table hidden>
+                            <tr class="filaEjemplo" style="display: table-row;">
+                              <td class="nombreProgresivo">PROGRESIVO99</td>
+                              <td class="maquinas">MAQUINA1/MAQUINA2/..</td>
+                              <td class="isla">ISLA1/ISLA2/...</td>
+                              @for ($i=1;$i<=$niveles;$i++)
+                              <td class="td_nivel">
+                                <input class="nivel{{$i}} form-control" min="0" data-toggle="tooltip" data-placement="down" title="nivel{{$i}}"></input>
+                              </td>
+                              @endfor
+                              <td class="causaNoToma" style="width: {{2*$WIDTH_RESTANTE/8}}%;">
+                                <select class="form-control">
+                                  <option value=""></option>
+                                  @foreach($causasNoToma as $causa)
+                                  <option value="{{$causa->id_tipo_causa_no_toma_progresivo}}">{{$causa->descripcion}}</option>
+                                  @endforeach
+                                </select>
+                              </td>
+                            </tr>
+                          </table>
+                        </div>
+                      </div>
                       <br>
                       <div class="row">
                           <div class="col-md-8 col-md-offset-2">

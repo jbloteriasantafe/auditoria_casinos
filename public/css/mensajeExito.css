@@ -9,7 +9,7 @@
 
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   z-index: 5000 !important;
-  animation: salida 6s forwards;
+  animation: salida 2s forwards;
 }
 /* FIJAR EL MENSAJE (cambia la animación) */
 #mensajeExito.fijarMensaje {

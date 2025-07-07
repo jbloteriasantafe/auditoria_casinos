@@ -5,21 +5,6 @@
 
 @section('contenidoVista')
 
-<?php
-use Illuminate\Http\Request;
-use App\Http\Controllers\UsuarioController;
-use\App\http\Controllers\RelevamientoAmbientalController;
-$user = UsuarioController::getInstancia()->quienSoy()['usuario'];
-$puede_fiscalizar = $user->es_fiscalizador || $user->es_superusuario;
-$puede_validar = $user->es_administrador || $user->es_superusuario || $user->es_control;
-$puede_eliminar = $user->es_administrador || $user->es_superusuario;
-$puede_modificar_valores = $user->es_administrador || $user->es_superusuario;
-$cant_turnos = sizeof($casinos[0]->turnos);
-$climas = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['climas'];
-$temperaturas = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['temperaturas'];
-$eventos = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['eventos'];
-?>
-
 @section('estilos')
 <link rel="stylesheet" href="css/bootstrap-datetimepicker.css">
 <link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
@@ -207,9 +192,8 @@ $eventos = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['ev
                             <h5>CASINO</h5>
                             <select id="casino" class="form-control" name="" style="float:right !important">
                                 <option value="">- Seleccione un casino -</option>
-                                <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))?>
-                                 @foreach ($usuario['usuario']->casinos as $casino)
-                                 <option id="{{$casino->id_casino}}" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                                 @foreach ($casinos as $c)
+                                 <option id="{{$c->id_casino}}" value="{{$c->id_casino}}">{{$c->nombre}}</option>
                                  @endforeach
                             </select>
                             <br> <span id="alertaCasino" class="alertaSpan"></span>
@@ -279,9 +263,8 @@ $eventos = UsuarioController::getInstancia()->obtenerOpcionesGeneralidades()['ev
                             <h5>CASINO</h5>
                             <select id="casinoSinSistema" class="form-control" name="">
                                 <option value="">- Seleccione un casino -</option>
-                                <?php $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario')) ?>
-                                 @foreach ($usuario['usuario']->casinos as $casino)
-                                 <option id="{{$casino->id_casino}}" value="{{$casino->codigo}}">{{$casino->nombre}}</option>
+                                 @foreach($casinos as $c)
+                                 <option id="{{$c->id_casino}}" value="{{$c->codigo}}">{{$c->nombre}}</option>
                                  @endforeach
                             </select>
                             <br> <span id="alertaCasinoSinsistema" class="alertaSpan"></span>

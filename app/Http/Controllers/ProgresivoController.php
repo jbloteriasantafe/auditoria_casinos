@@ -455,10 +455,4 @@ class ProgresivoController extends Controller
     $cant_en_bd = Maquina::where('id_casino','=',$id_casino)->whereIn('id_maquina',$ids)->count();
     return $cant_maquinas == $cant_en_bd;
   }
-
-  public function obtenerProgresivoPorIdMaquina($id_maquina){
-    //ESTO ESTA ASI POR QUE EN LAYOUT PARCIAL ESPERA ESTA RESPUESTA (LayoutController::obtenerLayoutParcial)
-    //NO BORRAR SIN VER BIEN PORQUE (no tuve tiempo de revisarlo)
-    return ['progresivo' => '','niveles' => [],'pozo' => null];
-  }
 }

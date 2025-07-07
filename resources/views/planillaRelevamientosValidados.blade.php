@@ -68,8 +68,6 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                               <th class="tablaInicio" style="text-align: center;">CON DIFERENCIA POR TRUNCAMIENTO</th>
                               <th class="tablaInicio" style="text-align: center;">CON DIFERENCIA POR FALTA DE IMPORTACIÓN</th>
                               <th class="tablaInicio" style="text-align: center;">SIN TOMA DE CONTADORES</th>
-                              
-                              <!--<th class="tablaInicio" style="text-align: center;">SIN ISLA</th> -->
                             </tr>
                             <tr>
                               <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$rel->cantidad_habilitadas}}</td>
@@ -79,8 +77,6 @@ div.breakNow { page-break-inside:avoid; page-break-after:always; }
                               <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$rel->truncadas}}</td>
                               <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$rel->sin_contadorImportado_relevada}}</td>
                               <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$rel->sin_relevar}}</td>
-                              
-                              <!-- <td class="tablaInicio" style="background-color: #fff; text-align: center;">{{$rel->sin_isla}}</td> -->
                             </tr>
                     </table>
                   </div><br>

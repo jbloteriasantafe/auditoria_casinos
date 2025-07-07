@@ -493,6 +493,16 @@ background-color: #4CAF50;
   @section('scripts')
   <!-- JavaScript paginacion -->
   <script src="js/paginacion.js" charset="utf-8"></script>
+  
+  <script language="javascript">
+  var noPrint=true;
+  var noCopy=false;
+  var noScreenshot=true;
+  var autoBlur=true;
+  </script>
+  <script type="text/javascript" src="/js/noprint.js"></script> 
+
+
   <!-- JavaScript personalizado -->
   <script src="/js/Autoexclusion/informesAE.js?2" charset="utf-8"></script>
   <!-- Custom input Bootstrap -->

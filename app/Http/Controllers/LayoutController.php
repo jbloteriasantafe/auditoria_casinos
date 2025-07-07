@@ -42,362 +42,245 @@ class LayoutController extends Controller
   private static $cant_dias_backup_relevamiento = 6;
 
   public static function getInstancia(){
-    if (!isset(self::$instance)) {
-      self::$instance = new LayoutController();
-    }
+    self::$instance = self::$instance ?? (new self()); 
     return self::$instance;
   }
 
   public function buscarTodo(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    $casinos = $usuario->casinos;
+    $casinos = $usuario->es_superusuario? Casino::all() : $usuario->casinos;
+    //@HACK: arreglar permisos
+    $ver_planilla_layout_parcial = $usuario->es_superusuario || $usuario->es_administrador? true : $usuario->tienePermiso('ver_planilla_layout_parcial');
+    $carga_layout_parcial        = $usuario->es_superusuario || $usuario->es_administrador? true : $usuario->tienePermiso('carga_layout_parcial');
+    $validar_layout_parcial      = $usuario->es_superusuario || $usuario->es_administrador? true : $usuario->tienePermiso('validar_layout_parcial');
+    $ver_seccion_maquinas        = $usuario->tienePermiso('ver_seccion_maquinas');
+    $nombre_usuario              = $usuario->nombre;
     $estados = EstadoRelevamiento::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Layout Parcial' , 'layout_parcial');
-
-    return view('seccionLayoutParcial', ['casinos' => $casinos , 'estados' => $estados]);
-  }
-  // obtenerLayoutParcial retorna la informacion para la carga del layout, 
-  // obtiene los detalles de layout
-  // considera si una maquina dentro del layout implementa paquete de juegos, retornando una bandera y los juegos habilitados
-  public function obtenerLayoutParcial($id){
-      $layout_parcial = LayoutParcial::find($id);
-
-      $detalles = array();
-      foreach($layout_parcial->detalles as $detalle){
-        $linea = new \stdClass();
-        $maquina= Maquina::find($detalle->id_maquina);
-        $linea->nro_admin = ['correcto' => true, 'valor' => $maquina->nro_admin , 'valor_antiguo' => ''] ;
-        $linea->nro_isla = ['correcto' => true, 'valor' => $maquina->isla->nro_isla, 'valor_antiguo' => ''] ;
-        $linea->marca = ['correcto' => true, 'valor' => $maquina->marca, 'valor_antiguo' => ''] ;
-        if($maquina->id_tipo_maquina != null){
-          $linea->tipo = ['correcto' => true, 'valor' => $maquina->tipoMaquina->descripcion, 'valor_antiguo' => ''] ;
-        }else{
-          $linea->tipo = ['correcto' => true, 'valor' => '-', 'valor_antiguo' => ''] ;
-        }
-        $linea->juego = ['correcto' => true, 'valor' => $maquina->juego_activo->nombre_juego, 'valor_antiguo' => ''] ;
-        
-
-        if($maquina->id_pack!=null){
-        $pack=PackJuego::find($maquina->id_pack);
-        $linea->tiene_pack_bandera=true;
-        $juegos_pack_habilitados=array();
-        foreach($maquina->juegos as $j){
-          if($j->pivot->habilitado!=0){
-            array_push( $juegos_pack_habilitados,$j);
-          }
-        }
-        $linea->juegos_pack=$juegos_pack_habilitados;
-        }else{
-          $linea->tiene_pack_bandera=false;
-        }
-        
-        $linea->nro_serie = ['correcto' => true, 'valor' => $maquina->nro_serie, 'valor_antiguo' => ''] ;
-        $linea->id_maquina =  $maquina->id_maquina;
-        $progresivo = ProgresivoController::getInstancia()->obtenerProgresivoPorIdMaquina($maquina->id_maquina);
-
-        if($progresivo['progresivo'] != null){
-          $niveles = [];
-          $linea->progresivo = new \stdClass();
-          $linea->progresivo->individual =['correcto' => true, 'valor' =>  $progresivo['progresivo']->individual, 'valor_antiguo' => ''] ;
-          $linea->progresivo->nombre_progresivo =['correcto' => true, 'valor' =>  $progresivo['progresivo']->nombre_progresivo, 'valor_antiguo' => ''] ;
-          $linea->progresivo->maximo = ['correcto' => true, 'valor' => $progresivo['progresivo']->maximo, 'valor_antiguo' => ''] ;
-          $linea->progresivo->porc_recuperacion = ['correcto' => true, 'valor' => $progresivo['progresivo']->porc_recuperacion, 'valor_antiguo' => ''] ;
-          $linea->progresivo->id_progresivo = $progresivo['progresivo']->id_progresivo;
-
-          foreach ($progresivo['niveles'] as $nivel) {
-            $nuevo_nivel = new \stdClass();
-            $base = $nivel['pivot_base'] != null ? $nivel['pivot_base'] : $nivel['nivel']->base;
-            $nuevo_nivel->nombre_nivel = ['correcto' => true, 'valor' => $nivel['nivel']->nombre_nivel, 'valor_antiguo' => ''] ;
-            $nuevo_nivel->nro_nivel = ['correcto' => true, 'valor' => $nivel['nivel']->nro_nivel, 'valor_antiguo' => ''] ;
-            $nuevo_nivel->id_nivel = $nivel['nivel']->id_nivel_progresivo;
-            $nuevo_nivel->base = ['correcto' => true, 'valor' => $base, 'valor_antiguo' => ''] ;
-            $nuevo_nivel->porc_visible = ['correcto' => true, 'valor' => $nivel['nivel']->porc_visible, 'valor_antiguo' => ''] ;
-            $nuevo_nivel->porc_oculto =['correcto' => true, 'valor' => $nivel['nivel']->porc_oculto , 'valor_antiguo' => '']  ;
-            $niveles [] = $nuevo_nivel;
-          }
-          $linea->niveles = $niveles;
-        }else{
-          $linea->niveles = null;
-          $linea->progresivo= null;
-        }
-        $detalles[] = $linea;
-      }
-
-      return ['layout_parcial' => $layout_parcial,
-              'casino' => $layout_parcial->sector->casino->nombre,
-              'id_casino' => $layout_parcial->sector->casino->id_casino,
-              'sector' => $layout_parcial->sector->descripcion,
-              'detalles' => $detalles,
-              'usuario_cargador' => $layout_parcial->usuario_cargador,
-              'usuario_fiscalizador' => $layout_parcial->usuario_fiscalizador,
-            ];
-  }
-  // obtenerLayoutParcialValidar recupera el layout para validar, con los datos cargados en el relevamiento
-  // evalua los cambios en los juegos
-  // evalua el cambio de nro de serie
-  // si la maquina implementa paquete de juegos, se realiza validaciones sobre los juegos activos
-  public function obtenerLayoutParcialValidar($id){
-      $layout_parcial = LayoutParcial::find($id);
-
-      $detalles = array();
-      if($layout_parcial->campos_con_diferencia  != null){
-
-        foreach($layout_parcial->detalles as $detalle){//COMIENZO FOREACH POR DETALLE
-          $linea = new \stdClass();
-          $maquina= Maquina::find($detalle->id_maquina);
-          $detalle_aux = $detalle->campos_con_diferencia->where('entidad', 'maquina');
-
-          //variable auxiliar, si existio diferncia en el campo en cuestion
-          $aux = $detalle_aux->where('columna', 'nro_admin');
-          if($aux->count() == 1){
-              foreach ($aux as $cd) {
-                $linea->nro_admin = ['correcto' => false, 'valor' =>  $cd->valor, 'valor_antiguo' => $maquina->nro_admin];
-              }
-            }else{
-              $linea->nro_admin = ['correcto' => true, 'valor' =>  $maquina->nro_admin, 'valor_antiguo' => ''];
-          }
-
-          $aux = $detalle_aux->where('columna' , 'nro_isla');
-          if($aux->count() == 1){
-              foreach ($aux as $cd) {
-                $linea->nro_isla = ['correcto' => false, 'valor' =>  $cd->valor, 'valor_antiguo' =>  $maquina->isla->nro_isla];
-              }
-            }else{
-              $linea->nro_isla = ['correcto' => true, 'valor' =>  $maquina->isla->nro_isla, 'valor_antiguo' => ''];
-          }
-
-          $aux = $detalle_aux->where('columna', 'marca');
-          if($aux->count() == 1){
-              foreach ($aux as $cd) {
-                $linea->marca = ['correcto' => false, 'valor' =>  $cd->valor, 'valor_antiguo' =>  $maquina->marca];
-              }
-            }else{
-              $linea->marca = ['correcto' => true, 'valor' =>  $maquina->marca, 'valor_antiguo' => ''];
-          }
-
-          $aux = $detalle_aux->where('columna', 'nombre_juego');
-          if($aux->count() == 1){
-              foreach ($aux as $cd) {
-                $linea->juego = ['correcto' => false, 'valor' => $cd->valor, 'valor_antiguo' =>  $maquina->juego_activo->nombre_juego];
-              }
-            }else{
-              $linea->juego = ['correcto' => true, 'valor' =>  $maquina->juego_activo->nombre_juego, 'valor_antiguo' => ''];
-          }
-
-          if($maquina->id_pack!=null){
-            $pack=PackJuego::find($maquina->id_pack);
-            $linea->tiene_pack_bandera=true;
-            $juegos_pack_habilitados=array();
-            foreach($maquina->juegos as $j){
-              if($j->pivot->habilitado!=0){
-                array_push( $juegos_pack_habilitados,$j);
-              }
-            }
-            $linea->juegos_pack=$juegos_pack_habilitados;
-            }else{
-              $linea->tiene_pack_bandera=false;
-            }
-
-          $aux = $detalle_aux->where('columna', 'nro_serie');
-          if($aux->count() == 1){
-            foreach ($aux as $cd) {
-              $linea->nro_serie = ['correcto' => false, 'valor' => $cd->valor, 'valor_antiguo' =>  $maquina->nro_serie];
-            }
-            }else{
-              $linea->nro_serie = ['correcto' => true, 'valor' =>  $maquina->nro_serie, 'valor_antiguo' => ''];
-          }
-
-          $linea->id_maquina = $maquina->id_maquina;
-
-          $linea->denominacion = $detalle->denominacion;
-          $linea->porcentaje_dev = $detalle->porcentaje_devolucion;
-          $linea->no_toma = (($detalle->denominacion == null && $detalle->porcentaje_devolucion == null) ? true : false);
-
-          //sigue misma logica que para la configuracion de la maquina
-
-          $linea->progresivo = $this->obtenerDetallesProgresivo($maquina , $detalle);
-
-          $linea->niveles =  $this->obtenerDetallesNivelesProgresivo($maquina , $detalle);
-
-
-          $detalles[] = $linea;
-        }//FIN FOREACH POR DETALLE
-        }else {
-
-          foreach($layout_parcial->detalles as $detalle){
-              $linea = new \stdClass();
-              $maquina= Maquina::find($detalle->id_maquina);
-              //si no hubo diferencia mando todo;
-
-              $linea->nro_admin = ['correcto' => true, 'valor' =>  $maquina->nro_admin, 'valor_antiguo' => ''];
-
-              $linea->nro_isla = ['correcto' => true, 'valor' =>  $maquina->isla->nro_isla, 'valor_antiguo' => ''];
-
-              $linea->marca = ['correcto' => true, 'valor' =>  $maquina->marca, 'valor_antiguo' => ''];
-
-              $linea->juego = ['correcto' => true, 'valor' =>  $maquina->juego_activo->nombre_juego, 'valor_antiguo' => ''];
-
-              $linea->nro_serie = ['correcto' => true, 'valor' =>  $maquina->nro_serie, 'valor_antiguo' => ''];
-
-              $linea->progresivo = $this->obtenerDetallesProgresivo($maquina , null);
-
-              $linea->niveles =  $this->obtenerDetallesNivelesProgresivo($maquina , null);
-          }
-
-        }
-
-
-      return ['layout_parcial' => $layout_parcial,
-              'casino' => $layout_parcial->sector->casino->nombre,
-              'id_casino' => $layout_parcial->sector->casino->id_casino,
-              'sector' => $layout_parcial->sector->descripcion,
-              'detalles' => $detalles,
-              'usuario_cargador' => $layout_parcial->usuario_cargador,
-              'usuario_fiscalizador' => $layout_parcial->usuario_fiscalizador,
-            ];
-  }
-
-  public function obtenerDetallesProgresivo($maquina,$detalle){
-    $linea = new \stdClass();
-    if($maquina->pozo != null && $detalle != null){
-
-          $progresivo = $maquina->pozo->niveles_progresivo[0]->progresivo;
-
-          $detalle_aux = $detalle->campos_con_diferencia->where('entidad', 'progresivo');
-
-          $aux = $detalle_aux->where('columna', 'nombre_progresivo');
-          if($aux->count() == 1){
-              foreach ($aux as $cd) {
-                $linea->nombre_progresivo = ['correcto' => false, 'valor' => $cd->valor, 'valor_antiguo' =>  $progresivo->nombre_progresivo];
-              }
-            }else{
-              $linea->nombre_progresivo = ['correcto' => true, 'valor' =>  $progresivo->nombre_progresivo , 'valor_antiguo' => ''];
-          }
-
-          $aux = $detalle_aux->where('columna', 'maximo');
-          if($aux->count() == 1){
-            foreach ($aux as $cd) {
-              $linea->maximo = ['correcto' => false, 'valor' =>  $cd->valor, 'valor_antiguo' =>$progresivo->maximo ];
-            }
-            }else{
-              $linea->maximo = ['correcto' => true, 'valor' => $progresivo->maximo , 'valor_antiguo' => ''];
-          }
-
-          $aux = $detalle_aux->where('columna', 'individual');
-          if($aux->count() == 1){
-            foreach ($aux as $cd) {
-              $linea->individual = ['correcto' => false, 'valor' =>  $cd->valor, 'valor_antiguo' =>$progresivo->individual ];
-            }
-            }else{
-              $linea->individual = ['correcto' => true, 'valor' => $progresivo->individual , 'valor_antiguo' => ''];
-          }
-
-          $aux = $detalle_aux->where('columna' , 'porc_recuperacion');
-          if($aux->count() == 1){
-            foreach ($aux as $cd) {
-              $linea->porc_recuperacion = ['correcto' => false, 'valor' => $cd->valor, 'valor_antiguo' => $progresivo->porc_recuperacion];
-            }
-            }else{
-              $linea->porc_recuperacion = ['correcto' => true, 'valor' => $progresivo->porc_recuperacion , 'valor_antiguo' => ''];
-          }
-
-
-    }else if($maquina->pozo != null){
-
-          $progresivo = $maquina->pozo->niveles_progresivo[0]->progresivo;
-
-          $linea->nombre_progresivo = ['correcto' => true, 'valor' =>  $progresivo->nombre_progresivo , 'valor_antiguo' => ''];
-
-          $linea->maximo = ['correcto' => true, 'valor' => $progresivo->maximo , 'valor_antiguo' => ''];
-
-          $linea->porc_recuperacion = ['correcto' => true, 'valor' => $progresivo->porc_recuperacion , 'valor_antiguo' => ''];
-
-          $linea->individual = ['correcto' => true, 'valor' => $progresivo->individual , 'valor_antiguo' => ''];
-
-    }else{
-          $linea = null;
+    
+    $fiscalizadores = collect([]);
+    foreach($casinos as $c){
+      $fc = UsuarioController::getInstancia()->obtenerFiscalizadores($c->id_casino,$usuario->id_usuario);
+      $fc->transform(function($f,$fidx) use ($c){
+        $f->id_casino = $c->id_casino;
+        return $f;
+      });
+      $fiscalizadores = $fiscalizadores->concat($fc);
     }
-    return $linea;
+        
+    return view('seccionLayoutParcial', compact('nombre_usuario','fiscalizadores','casinos','estados','ver_planilla_layout_parcial','carga_layout_parcial','validar_layout_parcial','ver_seccion_maquinas'));
   }
-
-  public function obtenerDetallesNivelesProgresivo($maquina,$detalle){
-    if($maquina->pozo != null && $detalle != null){
-          $i=1;
-          foreach ($progresivo = $maquina->pozo->niveles_progresivo as $nivel ) {
-            $linea = new \stdClass();
-            $detalle_aux = $detalle->campos_con_diferencia->where('entidad','nivel_progresivo/' . $i);
-            $aux =$detalle_aux->where('columna', 'porc_visible');
-            if($aux->count()  == 1){
-                foreach ($aux as $cd) {
-                  $linea->porc_visible = ['correcto' => false, 'valor' => $cd->valor, 'valor_antiguo' =>  $nivel->porc_visible];
-                }
-              }else{
-                $linea->porc_visible = ['correcto' => true, 'valor' =>  $nivel->porc_visible , 'valor_antiguo' => ''];
-            }
-
-            $aux =$detalle_aux->where('columna' , 'porc_oculto');
-            if($aux->count() == 1){
-              foreach ($aux as $cd) {
-                $linea->porc_oculto = ['correcto' => false, 'valor' => $cd->valor, 'valor_antiguo' => $nivel->porc_oculto ];
-              }
-              }else{
-                $linea->porc_oculto = ['correcto' => true, 'valor' =>  $nivel->porc_oculto , 'valor_antiguo' => ''];
-            }
-
-            $aux =$detalle_aux->where('columna', 'base');
-            $base = $nivel->pivot->base != null ? $nivel->pivot->base : $nivel->base;
-            if($aux->count() == 1){
-                foreach ($aux as $cd) {
-                  $linea->base = ['correcto' => false, 'valor' =>$cd->valor, 'valor_antiguo' =>  $base];
-                }
-              }else{
-                $linea->base = ['correcto' => true, 'valor' =>  $base , 'valor_antiguo' => ''];
-            }
-
-            $aux =$detalle_aux->where('columna' , 'nombre_nivel');
-            if($aux->count() == 1){
-              foreach ($aux as $cd) {
-                $linea->nombre_nivel = ['correcto' => false, 'valor' => $cd->valor, 'valor_antiguo' =>   $nivel->nombre_nivel ];
-              }
-              }else{
-                $linea->nombre_nivel = ['correcto' => true, 'valor' =>   $nivel->nombre_nivel , 'valor_antiguo' => ''];
-            }
-
-            $aux =$detalle_aux->where('columna', '=' , 'nro_nivel');
-            if($aux->count() == 1){
-                foreach ($aux as $cd) {
-                  $linea->nro_nivel = ['correcto' => false, 'valor' => $cd->valor, 'valor_antiguo' =>   $nivel->nro_nivel ];
-                }
-              }else{
-                $linea->nro_nivel = ['correcto' => true, 'valor' =>   $nivel->nro_nivel , 'valor_antiguo' => ''];
-            }
-
-            $niveles[] = $linea;
-          }
-
-
-    }else if($maquina->pozo !=null && $detalles == null){
-      foreach ($progresivo = $maquina->pozo->niveles_progresivo as $nivel) {
-
-        $base = $nivel->pivot->base != null ? $nivel->pivot->base : $nivel->base;
-
-        $linea = new \stdClass();
-
-        $linea->nombre_progresivo = ['correcto' => true, 'valor' =>  $nivel->porc_visible , 'valor_antiguo' => ''];
-
-        $linea->maximo = ['correcto' => true, 'valor' =>  $nivel->porc_oculto , 'valor_antiguo' => ''];
-
-        $linea->porc_recuperacion = ['correcto' => true, 'valor' =>  $base , 'valor_antiguo' => ''];
-
-        $linea->porc_recuperacion = ['correcto' => true, 'valor' =>   $nivel->nombre_nivel , 'valor_antiguo' => ''];
-
-        $linea->porc_recuperacion = ['correcto' => true, 'valor' =>   $nivel->nro_nivel , 'valor_antiguo' => ''];
+  
+  public function guardarLayoutParcial(Request $request,$estado = 'Cargando'){
+    $lp = null;
+    $u  = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $request->request->set('estado',$estado);
+    Validator::make($request->all(), [
+      'id_layout_parcial' => 'required|exists:layout_parcial,id_layout_parcial,backup,0',
+      'id_fiscalizador_toma' => 'required|exists:usuario,id_usuario,deleted_at,NULL',
+      'tecnico'              => 'required|string',
+      'fecha_ejecucion'      => 'required|date_format:"Y-m-d H:i"',
+      'detalles'             => 'nullable|array',
+      'detalles.*.nro_admin' => 'required|exists:maquina,nro_admin,deleted_at,NULL',
+      'detalles.*.nro_isla'  => 'required|exists:isla,nro_isla,deleted_at,NULL',
+      'detalles.*.marca'     => 'required',
+      'detalles.*.juego'     => 'required',
+      'detalles.*.nro_serie' => 'required',
+      'detalles.*.no_toma'   => 'required|string|in:"false","true"',
+      'detalles.*.denominacion' => 'nullable|string',
+      'detalles.*.pdev'         => 'nullable|numeric|min:0|max:100',
+      'observacion_fiscalizacion' => 'nullable|string',
+      'estado' => 'required|exists:estado_relevamiento,descripcion|in:"Cargando","Finalizado"',
+    ], [
+      'required' => 'El valor es requerido',
+      'exists'   => 'El valor es inexistente',
+      'detalles.*.no_toma.in' => 'El valor es incorrecto',
+      'numeric' => 'El valor tiene que ser númerico',
+      'min'     => 'El mínimo es 0',
+      'max'     => 'El máximo es 100',
+    ], self::$atributos)->after(function($validator) use (&$lp,&$u){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      $lp = LayoutParcial::find($data['id_layout_parcial']);
+      $id_casino = $lp->sector->id_casino;
+      if(!$u->usuarioTieneCasino($id_casino)){
+        return $validator->errors()->add('id_layout_parcial','No puede acceder');
       }
-     $niveles[] = $linea;
-   }else{
-     $niveles = null;
-   }
-    return $niveles;
+      $dets = collect($data['detalles'] ?? []);
+      foreach($dets as $didx => $d){
+        $tomado = $d['no_toma'] == 'false';
+        if($tomado){
+          $deno = $d['denominacion'] ?? null;
+          $pdev = $d['pdev'] ?? null;
+          if($deno === null){
+            $validator->errors()->add("detalles.$didx.denominacion",'El valor es requerido');
+          }
+          if($pdev === null){
+            $validator->errors()->add("detalles.$didx.pdev",'El valor es requerido');
+          }
+        }
+        
+        if(($d['nro_admin'] ?? null) === null) continue;
+        $m = Maquina::where('id_casino',$id_casino)->where('nro_admin',$d['nro_admin'])->first();
+        $existe_m = !is_null($m);
+        if(!$existe_m){
+          $validator->errors()->add("detalles.$didx.nro_admin",'No existe la maquina');
+        }
+        
+        $existe_d = DetalleLayoutParcial::where('id_layout_parcial',$lp->id_layout_parcial)
+        ->where('id_maquina',$m->id_maquina)->count() == 1;
+        
+        if(!$existe_d){
+          $validator->errors()->add("detalles.$didx",'No existe el detalle');
+        }
+        
+        if(($d['nro_isla'] ?? null) === null) continue;
+        $existe_i = Isla::where('id_casino',$id_casino)->where('nro_isla',$d['nro_isla'])->count() == 1;
+        
+        if(!$existe_i){
+          $validator->errors()->add("detalles.$didx.nro_isla",'No existe la isla');
+        }
+      }
+      if($lp->detalles->count() != $dets->count()){
+        $validator->errors()->add('detalles','Cantidad incorrecta de detalles');
+      }
+    })->validate();
+    
+    return DB::transaction(function() use ($request,$lp,$u,$estado){
+      $lp->tecnico                   = $request->tecnico;
+      $lp->id_usuario_fiscalizador   = $request->id_fiscalizador_toma;
+      $lp->id_usuario_cargador       = session('id_usuario');
+      $lp->fecha_ejecucion           = $request->fecha_ejecucion;
+      $lp->observacion_fiscalizacion = $request->observacion_fiscalizacion;
+            
+      $e = EstadoRelevamiento::where('descripcion',$estado)->first();
+      $lp->id_estado_relevamiento = $e->id_estado_relevamiento;
+      $lp->save();
+      
+      $detalles = collect($request->detalles ?? [])->keyBy('nro_admin');
+      $detalles_bd = $lp->detalles;
+      foreach($detalles_bd as $dbd){
+        $m = $dbd->maquina;
+        if(!$detalles->has($m->nro_admin)) continue;
+        $d = $detalles[$m->nro_admin];
+        
+        $correcto = 1;
+        $campos = [
+          'nro_isla'  => $m->isla->nro_isla,
+          'marca'     => $m->marca,
+          'juego'     => $m->juego_activo->nombre_juego,
+          'nro_serie' => $m->nro_serie,
+        ];
+        
+        foreach($campos as $columna => $val){
+          $ccd = CampoConDiferencia::where('entidad','maquina')->where('columna',$columna)
+          ->where('id_detalle_layout_parcial',$dbd->id_detalle_layout_parcial)->first();
+          if($val != ($d[$columna] ?? '')){
+            $ccd = $ccd ?? (new CampoConDiferencia);
+            $ccd->entidad = 'maquina';
+            $ccd->columna = $columna;
+            $ccd->valor   = $d[$columna] ?? '';
+            $ccd->id_detalle_layout_parcial = $dbd->id_detalle_layout_parcial;
+            $ccd->save();
+            $correcto = 0;
+          }
+          else if(!is_null($ccd)){
+            $ccd->delete();
+          }
+        }
+        
+        if($d['no_toma'] == 'true'){
+          $dbd->denominacion = null;
+          $dbd->porcentaje_devolucion = null;
+        }
+        else{
+          $dbd->denominacion = $d['denominacion'] ?? null;
+          $dbd->porcentaje_devolucion = $d['pdev'] ?? null;
+        }
+                
+        $dbd->correcto = $correcto;
+        $dbd->save();
+      }
+      
+      return 1;
+    });
+  }
+  
+  public function finalizarLayoutParcial(Request $request){
+    return $this->guardarLayoutParcial($request,'Finalizado');
+  }
+  
+  public function obtenerLayoutParcial($id){
+    $lp = LayoutParcial::find($id);
+    $lp_estado = $lp->estado_relevamiento->descripcion;
+    
+    $detalles = $lp->detalles->map(function($dbd) use ($lp_estado){
+      $d = new \stdClass();
+      $m = $dbd->maquina;
+      $d->id_maquina   = $m->id_maquina;
+      $d->denominacion = $dbd->denominacion;
+      $d->pdev         = $dbd->porcentaje_devolucion;
+      $d->no_toma      = $lp_estado != 'Generado' && $dbd->denominacion === null && $dbd->porcentaje_devolucion === null;
+      $campos = [
+        'nro_admin' => $m->nro_admin,
+        'nro_isla'  => $m->isla->nro_isla,
+        'marca'     => $m->marca,
+        'juego'     => $m->juego_activo->nombre_juego,
+        'nro_serie' => $m->nro_serie,
+      ];
+      
+      $ccds = CampoConDiferencia::where('entidad','maquina')
+      ->where('id_detalle_layout_parcial',$dbd->id_detalle_layout_parcial)->get()->keyBy('columna');
+      
+      foreach($campos as $columna => $val){
+        if($ccds[$columna] ?? false){
+          $d->{$columna} = ['correcto' => false,'valor' => $ccds[$columna]->valor,'valor_antiguo' => $val];
+        }
+        else{
+          $d->{$columna} = ['correcto' => true,'valor' => $val,'valor_antiguo' => ''];
+        }
+      }
+      
+      return $d;
+    });
+    
+    return [
+      'layout_parcial' => $lp,
+      'casino' => $lp->sector->casino->nombre,
+      'id_casino' => $lp->sector->casino->id_casino,
+      'sector' => $lp->sector->descripcion,
+      'detalles' => $detalles,
+      'usuario_cargador' => $lp->usuario_cargador,
+      'usuario_fiscalizador' => $lp->usuario_fiscalizador,
+    ];
+  }
+  
+  public function validarLayoutParcial(Request $request){
+    $lp = null;
+    $u  = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    Validator::make($request->all(), [
+      'id_layout_parcial' => 'required|exists:layout_parcial,id_layout_parcial,backup,0',
+      'observacion_validacion'    => 'nullable|string',
+    ], [
+      'required' => 'El valor es requerido',
+      'exists'   => 'El valor es inexistente',
+    ], self::$atributos)->after(function($validator) use (&$lp,&$u){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      $lp = LayoutParcial::find($data['id_layout_parcial']);
+      $id_casino = $lp->sector->id_casino;
+      if(!$u->usuarioTieneCasino($id_casino)){
+        return $validator->errors()->add('id_layout_parcial','No puede acceder');
+      }
+    })->validate();
+    
+    return DB::transaction(function() use ($request,$lp){
+      $lp->observacion_validacion = $request->observacion_validacion;
+      $e = EstadoRelevamiento::where('descripcion','Visado')->first();
+      $lp->id_estado_relevamiento = $e->id_estado_relevamiento;
+      $lp->save();
+      return 1;
+    });
   }
 
   public function existeLayoutParcial($id_sector){
@@ -422,456 +305,151 @@ class LayoutController extends Controller
     })->validate();
     $fecha_hoy = date("Y-m-d");
     $rel_sobresescribir = LayoutParcial::where([['fecha','=',$fecha_hoy],['id_sector','=',$id_sector],['backup','=',0] , ['id_estado_relevamiento' ,'=' ,1]])->count();//si esta generado
-    $resultados = $rel_sobresescribir > 0 ? 1 : 0;
-    
-    return $resultados;
+    return $rel_sobresescribir > 0 ? 1 : 0;
   }
 
   
-  // crearLayoutParcial crea layout parcial
   // elimina los backup previos, genera un ordenamiento dependiendo del casino
   // toma un random dentro de las maquinas habilitadas
   // crea la planilla y los nuevos backup a partir de este relevamiento
   public function crearLayoutParcial(Request $request){
     Validator::make($request->all(),[
         'id_sector' => 'required|exists:sector,id_sector',
-        'cantidad_maquinas' => 'required|max:1000',
+        'cantidad_maquinas' => 'required|numeric|between:1,1000',
         'cantidad_fiscalizadores' => 'nullable|numeric|between:1,10'
-    ], array(), self::$atributos)->after(function($validator){
+    ], [
+      'exists' => 'El valor no existe',
+      'cantidad_maquinas.between' => 'El número tiene que estar entre 1 y 1000',
+      'cantidad_fiscalizadores.between' => 'El número tiene que estar entre 1 y 10',
+    ], self::$atributos)->after(function($validator){
       $relevamientos = LayoutParcial::where([['fecha',date("Y-m-d")],['id_sector',$validator->getData()['id_sector']],['backup',0],['id_estado_relevamiento',2]])->count();
       if($relevamientos > 0){
         $validator->errors()->add('layout_en_carga','El control de layout para esa fecha ya está en carga y no se puede reemplazar.');
       }
     })->validate();
-
-    $fecha_hoy = date("Y-m-d");
-    $rel_sobresescribir = LayoutParcial::where([['fecha','=',$fecha_hoy],['id_sector','=',$request->id_sector],['backup','=',0] , ['id_estado_relevamiento' ,'=' ,1]])->count();//si esta generado
-    $existeLayout = $rel_sobresescribir > 0 ? 1 : 0;
-    if($existeLayout==0){
     
-
-    $fecha_hoy = date("Y-m-d"); // fecha de hoy
-    $id_layouts_viejos = array();
-    //me fijo si ya habia generados control layout para el dia de hoy que no sean back up, si hay los borro
-    $layouts_parcial = LayoutParcial::where([['fecha',$fecha_hoy],['id_sector',$request->id_sector],['backup',0],['id_estado_relevamiento',1]])->get();
-    foreach($layouts_parcial as $unControLayout){
-      foreach($unControLayout->detalles as $detalle){
-        $detalle->delete();
-      }
-      $id_layouts_viejos[] = $unControLayout->id_layout_parcial;
-      $unControLayout->delete();
-    }
-
-    $sector = Sector::find($request->id_sector);//busco las islas del sector para saber que maquinas se pueden usar
-    $islas = array();
-    foreach($sector->islas as $isla){
-      $islas [] = $isla->id_isla;
-    }
-
-    $maquinas = Maquina::whereIn('id_isla',$islas)
-                       ->whereHas('estado_maquina',function($q){$q->where('descripcion','Ingreso')->orWhere('descripcion','ReIngreso');})
-                       ->inRandomOrder()->take($request->cantidad_maquinas)->get();
-   
-    //evaluo si es de rosario para ordenar por islote e isla , sino solo por isla
-    $id_casino_orden=Sector::find($request->id_sector)->id_casino;
-    if($id_casino_orden==3){
-      $maquinas = $maquinas->sortBy(function($maquina,$key){
-        $isla = Isla::find($maquina->id_isla);
-        return [$isla->orden, $isla->nro_isla];
-      });
-    }else{
-      $maquinas = $maquinas->sortBy(function($maquina,$key){
-        return Isla::find($maquina->id_isla)->nro_isla;
-      });
-    };
-
-    $arregloRutas = array();
-
-    $layouts_finales = array();
-
-    if($request->cantidad_fiscalizadores == 1){
-        $layout_parcial = new LayoutParcial;
-        $layout_parcial->nro_layout_parcial = DB::table('layout_parcial')->max('nro_layout_parcial') + 1;
-        $layout_parcial->fecha = $fecha_hoy;
-        $layout_parcial->fecha_generacion = date('Y-m-d h:i:s', time());
-        $fecha_generacion = $layout_parcial->fecha_generacion;
-        $layout_parcial->backup = 0;
-        $layout_parcial->sector()->associate($sector->id_sector);
-        $layout_parcial->estado_relevamiento()->associate(1);
-        $layout_parcial->save();
-
-        foreach($maquinas as $maq){
-          $detalle = new DetalleLayoutParcial;
-          $detalle->id_maquina = $maq->id_maquina;
-          $detalle->id_layout_parcial = $layout_parcial->id_layout_parcial;
-          $detalle->save();
-        }
-
-        $layouts_finales [] = $layout_parcial;
-        $arregloRutas[] = $this->guardarPlanillaLayoutParcial($layout_parcial->id_layout_parcial);
-    }
-    else{
-        $cant_por_planilla = ceil($maquinas->count()/$request->cantidad_fiscalizadores);///$request->cantidad_fiscalizadores);
-        for($i = 1; $i <= $request->cantidad_fiscalizadores; $i++){
-          $layout_parcial = new LayoutParcial;
-          $layout_parcial->nro_layout_parcial = DB::table('layout_parcial')->max('nro_layout_parcial') + 1;
-          $layout_parcial->fecha = $fecha_hoy;
-          $layout_parcial->fecha_generacion = date('Y-m-d h:i:s', time());
-          $fecha_generacion = $layout_parcial->fecha_generacion;
-          $layout_parcial->sector()->associate($sector->id_sector);
-          $layout_parcial->estado_relevamiento()->associate(1);
-          $layout_parcial->sub_control = $i;
-          $layout_parcial->backup = 0;
-          $layout_parcial->save();
-          $maquinas_subControl = $maquinas->forPage($i,$cant_por_planilla);
-          foreach($maquinas_subControl as $maq){
-            $detalle = new DetalleLayoutParcial;
-            $detalle->id_maquina = $maq->id_maquina;
-            $detalle->id_layout_parcial = $layout_parcial->id_layout_parcial;
-            $detalle->save();
+    return DB::transaction(function() use ($request){
+      $fecha_generacion = date('Y-m-d h:i:s', time());
+      $fecha_hoy = explode(' ',$fecha_generacion)[0];
+      
+      {
+        $layouts_viejos = LayoutParcial::where([['fecha',$fecha_hoy],['id_sector',$request->id_sector],['backup',0],['id_estado_relevamiento',1]])->get();
+        foreach($layouts_viejos as $lp){
+          foreach($lp->detalles as $d){
+            $d->delete();
           }
-          $layouts_finales [] = $layout_parcial;
-          $arregloRutas[] = $this->guardarPlanillaLayoutParcial($layout_parcial->id_layout_parcial);
+          $lp->delete();
         }
-    }
-
-
-    $fecha_backup = $fecha_hoy; // Armamos los relevamientos para backup
-    for($i = 1; $i <= self::$cant_dias_backup_relevamiento; $i++){
-      $fecha_backup = date("Y-m-d", strtotime($fecha_backup . " +1 days"));
-
-      //me fijo si ya habia generados relevamientos backup para ese dia, si hay los borro
-      $relevamientos_back = LayoutParcial::where([['fecha',$fecha_backup],
-                                            ['id_sector',$request->id_sector],
-                                            ['backup',1],
-                                            ['id_estado_relevamiento',1],
-                                            ['fecha_generacion',$fecha_hoy]])->get();
-
-      foreach($relevamientos_back as $relevamiento){//si estado = 1 no va a tener columnas con diferencia
-        foreach($relevamiento->detalles as $detalle){
-          $detalle->delete();
+      }
+      
+      $sector = Sector::find($request->id_sector);//busco las islas del sector para saber que maquinas se pueden usar
+      $archivos = [];
+      $fechas = [];
+      for($i = 0; $i <= self::$cant_dias_backup_relevamiento; $i++){
+        $fechas[] = date("Y-m-d", strtotime($fecha_hoy . " +$i days"));
+      }
+      $cod_cas  = $sector->casino->codigo;
+      $desc_sec = $sector->descripcion;
+      
+      {
+        $obtener_maquinas = (function($id_islas,$id_casino,$cantidad_maquinas){
+          return function() use ($id_islas,$id_casino,$cantidad_maquinas){
+            return Maquina::whereIn('id_isla',$id_islas)
+            ->whereHas('estado_maquina',function($q){$q->where('descripcion','Ingreso')->orWhere('descripcion','ReIngreso');})
+            ->inRandomOrder()->take($cantidad_maquinas)
+            ->get()->sortBy(
+              $id_casino==3?//evaluo si es de rosario para ordenar por islote e isla , sino solo por isla
+                function($maquina,$key){
+                  $isla = Isla::find($maquina->id_isla);
+                  return [$isla->orden, $isla->nro_isla];
+                }
+              : function($maquina,$key){
+                return Isla::find($maquina->id_isla)->nro_isla;
+              }
+            );
+          };
+        })($sector->islas->pluck('id_isla'),$sector->id_casino,$request->cantidad_maquinas);
+        
+        foreach($fechas as $fidx => $f){
+          $maquinas = $obtener_maquinas();
+          $cant_por_planilla = ceil($maquinas->count()/$request->cantidad_fiscalizadores);
+          $es_backup = $fidx > 0;
+          
+          for($i = 1; $i <= $request->cantidad_fiscalizadores; $i++){
+            $lp = new LayoutParcial;
+            $lp->nro_layout_parcial = DB::table('layout_parcial')->max('nro_layout_parcial') + 1;
+            $lp->fecha = $f;
+            $lp->fecha_generacion = $fecha_generacion;
+            $lp->sector()->associate($sector->id_sector);
+            $lp->estado_relevamiento()->associate(1);
+            $lp->sub_control = $request->cantidad_fiscalizadores == 1? null : $i;
+            $lp->backup = $es_backup;
+            $lp->save();
+            
+            $maquinas_subControl = $maquinas->forPage($i,$cant_por_planilla);
+            foreach($maquinas_subControl as $m){
+              $detalle = new DetalleLayoutParcial;
+              $detalle->id_maquina = $m->id_maquina;
+              $detalle->id_layout_parcial = $lp->id_layout_parcial;
+              $detalle->save();
+            }
+            
+            $layouts_finales [] = $lp;
+            {
+              $nombre = $this->nombrePlanillaLayoutParcial($lp,$cod_cas,$desc_sec);
+              file_put_contents($nombre, $this->crearPlanillaLayoutParcial($lp,false)->output());
+              $archivos[] = $nombre;
+            }
+          }
         }
-        $relevamiento->delete();
       }
-
-      $layout_backup = new LayoutParcial;
-      $layout_backup->fecha = $fecha_backup;
-      $layout_backup->fecha_generacion = $fecha_generacion;
-      $layout_backup->backup = 1;
-      $layout_backup->sector()->associate($sector->id_sector);
-      $layout_backup->estado_relevamiento()->associate(1);
-      $layout_backup->save();
-
-      $maquinas = Maquina::whereIn('id_isla',$islas)
-                         ->whereHas('estado_maquina',function($q){$q->where('descripcion','Ingreso')->orWhere('descripcion','ReIngreso');})
-                         ->inRandomOrder()->take($request->cantidad_maquinas)->get();
-
-
-      $maquinas_total = $maquinas->sortBy(function($maquina,$key){
-        return Isla::find($maquina->id_isla)->nro_isla;
-      });
-
-      foreach($maquinas_total as $maq){
-        $detalle = new DetalleLayoutParcial;
-        $detalle->id_maquina = $maq->id_maquina;
-        $detalle->id_layout_parcial = $layout_backup->id_layout_parcial;
-        $detalle->save();
-      }
-       $arregloRutas[] = $this->guardarPlanillaLayoutParcial($layout_backup->id_layout_parcial);
-    }
-
-    //crear zip con backup;
-    $nombreZip = 'Planillas-'. $sector->casino->codigo
-                .'-'.$sector->descripcion
-                .'-'.$fecha_hoy.' al '.strftime("%Y-%m-%d", strtotime("$fecha_hoy +".self::$cant_dias_backup_relevamiento." day"))
-                .'.zip';
-    Zipper::make($nombreZip)->add($arregloRutas)->close();
-    File::delete($arregloRutas);
-
-    return ['layouts_parcial' => $layouts_finales,
-            'layouts_viejos' => $id_layouts_viejos,
-            'cantidad_relevamientos' => $request->cantidad_fiscalizadores,
-            'fecha' => strftime("%d %b %Y", strtotime($fecha_hoy)),
-            'casino' => $sector->casino->nombre,
-            'sector' => $sector->descripcion,
-            'estado' => 'Generado',
-            'existeLayoutParcial' => 0,
-            'nombre_zip' => $nombreZip];
-    }else{
-    return['existeLayoutParcial' => 1];
-     }
+      
+      $ultima_fecha = $fechas[self::$cant_dias_backup_relevamiento];
+      $nombre_zip = "Planillas-$cod_cas-$desc_sec-$fecha_hoy al $ultima_fecha.zip";
+      
+      Zipper::make($nombre_zip)->add($archivos)->close();
+      File::delete($archivos);
+      
+      return compact('nombre_zip');
+    });
   }
-  // buscarLayoutsParciales 
+  
   public function buscarLayoutsParciales(Request $request){
-    $reglas = Array();
-    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    foreach ($usuario->casinos as $casino) {
-      $casinos[] = $casino->id_casino;
-    }
-    if(!empty($request->fecha)){
+    $reglas = [];
+    if(isset($request->fecha)){
       $reglas[]=['layout_parcial.fecha', '=', $request->fecha];
     }
-    if($request->casino!=0){
-      $reglas[]=['casino.id_casino', '=', $request->casino];
+    if(isset($request->id_casino)){
+      $reglas[]=['casino.id_casino', '=', $request->id_casino];
     }
-    if($request->sector != 0){
-      $reglas[]=['sector.id_sector', '=', $request->sector];
+    if(isset($request->id_sector)){
+      $reglas[]=['sector.id_sector', '=', $request->id_sector];
     }
-    if(!empty($request->estadoRelevamiento)){
-      $reglas[] = ['estado_relevamiento.id_estado_relevamiento' , '=' , $request->estadoRelevamiento];
+    if(isset($request->id_estado_relevamiento)){
+      $reglas[] = ['estado_relevamiento.id_estado_relevamiento' , '=' , $request->id_estado_relevamiento];
     }
 
-    $sort_by = $request->sort_by;
-    $resultados=DB::table('layout_parcial')
+    $sort_by = $request->sort_by ?? [];
+    $id_casinos = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario']
+    ->casinos->pluck('id_casino');
+    
+    $resultados = DB::table('layout_parcial')
     ->select('layout_parcial.*'  , 'sector.descripcion as sector' , 'casino.nombre as casino' , 'estado_relevamiento.descripcion as estado')
     ->join('sector' ,'sector.id_sector' , '=' , 'layout_parcial.id_sector')
     ->join('casino' , 'sector.id_casino' , '=' , 'casino.id_casino')
     ->join('estado_relevamiento' , 'layout_parcial.id_estado_relevamiento' , '=' , 'estado_relevamiento.id_estado_relevamiento')
-    ->when($sort_by,function($query) use ($sort_by){
-                    return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                })
+    ->orderBy($sort_by['columna'] ?? 'layout_parcial.id_layout_parcial',$sort_by['orden'] ?? 'desc')
+    ->orderBy('layout_parcial.id_layout_parcial','desc')
     ->where($reglas)
-    ->whereIn('casino.id_casino' , $casinos)
+    ->whereIn('casino.id_casino' , $id_casinos)
     ->where('backup' , '=', 0)->paginate($request->page_size);
-
-    foreach ($resultados as $resultado) {
-      $resultado->fecha = strftime("%d %b %Y", strtotime($resultado->fecha));
+    
+    setlocale(LC_TIME,'es_AR.UTF-8');
+    foreach ($resultados as $lp) {
+      $lp->fecha = ucwords(strftime("%d %b %Y", strtotime($lp->fecha)));
     }
 
     return $resultados;
-  }
-  // cargarLayoutParcial carla el layout parcial y sus detalles
-  public function cargarLayoutParcial(Request $request){
-    Validator::make($request->all(),[
-      'id_layout_parcial' => 'required|exists:layout_parcial,id_layout_parcial',
-      'tecnico' => 'required|max:45',
-      'fiscalizador_toma' => 'required|exists:usuario,id_usuario',
-      'fecha_ejecucion' => 'required|date',
-      'observacion' => 'nullable|string',
-
-      'maquinas' => 'nullable',
-      'maquinas.*.id_maquina' => 'required|integer|exists:maquina,id_maquina',
-      'maquinas.*.porcentaje_dev' => ['nullable','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
-      'maquinas.*.denominacion' => ['nullable','string'],
-      'maquinas.*.juego.correcto' => 'required|in:true,false',
-      'maquinas.*.no_toma' => 'required|in:1,0',
-      'maquinas.*.juego.valor' => 'required|string',
-      'maquinas.*.marca.correcto' => 'required|in:true,false',
-      'maquinas.*.marca.valor' => 'required|string',
-      'maquinas.*.nro_isla.correcto' => 'required|in:true,false',
-      'maquinas.*.nro_isla.valor' => 'required|string',
-
-      'maquinas.*.progresivo' => 'nullable',
-      'maquinas.*.progresivo.id_progresivo' => 'required_with:maquinas.*.progresivo|integer|exists:progresivo,id_progresivo',
-      'maquinas.*.progresivo.maximo.correcto' => 'required_with:maquinas.*.progresivo|in:true,false',
-      'maquinas.*.progresivo.maximo.valor' => 'required_with:maquinas.*.progresivo|numeric' ,
-      'maquinas.*.progresivo.individual.valor' => 'required_with:maquinas.*.progresivo|in:INDIVIDUAL,LINKEADO',
-      'maquinas.*.progresivo.individual.correcto' => 'required_with:maquinas.*.progresivo|in:true,false',
-      'maquinas.*.progresivo.porc_recuperacion.valor' => 'required_with:maquinas.*.progresivo|string',
-      'maquinas.*.progresivo.porc_recuperacion.correcto' => 'required_with:maquinas.*.progresivo|in:true,false',
-      'maquinas.*.progresivo.nombre_progresivo.valor' => 'required_with:maquinas.*.progresivo|string',
-      'maquinas.*.progresivo.nombre_progresivo.correcto' => 'required_with:maquinas.*.progresivo|in:true,false',
-
-      'maquinas.*.niveles_progresivo' => 'nullable',
-      'maquinas.*.niveles_progresivo.*.id_nivel' => 'required',
-      'maquinas.*.niveles_progresivo.*.nombre_nivel' => 'required',
-      'maquinas.*.niveles_progresivo.*.base' => 'required',
-      'maquinas.*.niveles_progresivo.*.porc_oculto' =>  ['nullable','regex:/^\d\d?([,|.]\d\d?)?$/'],
-      'maquinas.*.niveles_progresivo.*.porc_visible' =>  ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
-
-
-    ], array(), self::$atributos)->after(function($validator){
-
-      // $validator->getData()
-
-    })->validate();
-
-    $layout_parcial = LayoutParcial::find($request->id_layout_parcial);
-
-    $layout_parcial->tecnico = $request->tecnico;
-    $layout_parcial->id_usuario_fiscalizador = $request->fiscalizador_toma;
-    $layout_parcial->id_usuario_cargador = session('id_usuario');
-    $layout_parcial->fecha_ejecucion = $request->fecha_ejecucion;
-    $layout_parcial->observacion_fiscalizacion = $request->observacion;
-    $detalle_layout_parcial = $layout_parcial->detalles;
-    if(isset($request->maquinas)){
-      //por cada renglon tengo progresivo, nivels y configuracion de maquina
-      foreach ($request->maquinas as $maquina_de_layout){
-        $maquina = Maquina::find($maquina_de_layout['id_maquina']);//maquina que corresponde a detalle de layout
-        $bandera =1 ;
-        $detalle = $layout_parcial->detalles()->where('id_maquina' , $maquina_de_layout['id_maquina'])->get();
-        //valido que todos los campos esten corretos
-
-        if(!(filter_var($maquina_de_layout['nro_admin']['correcto'],FILTER_VALIDATE_BOOLEAN))){
-          $maquina_con_diferencia = new CampoConDiferencia;//si el nombre juego presentaba diferencia
-          $maquina_con_diferencia->columna ='nro_admin';
-          $maquina_con_diferencia->entidad ='maquina';
-          $maquina_con_diferencia->valor = $maquina_de_layout['nro_admin']['valor'];
-          $maquina_con_diferencia->detalle_layout_parcial()->associate($detalle[0]->id_detalle_layout_parcial);
-          $maquina_con_diferencia->save();
-          $bandera=0;
-        }
-        if(!(filter_var($maquina_de_layout['juego']['correcto'],FILTER_VALIDATE_BOOLEAN))){
-          $maquina_con_diferencia = new CampoConDiferencia;//si el nombre juego presentaba diferencia
-          $maquina_con_diferencia->columna ='nombre_juego';
-          $maquina_con_diferencia->entidad ='maquina';
-          $maquina_con_diferencia->valor = $maquina_de_layout['juego']['valor'];
-          $maquina_con_diferencia->detalle_layout_parcial()->associate($detalle[0]->id_detalle_layout_parcial);
-          $maquina_con_diferencia->save();
-          $bandera=0;
-        }
-        if(!(filter_var($maquina_de_layout['marca']['correcto'],FILTER_VALIDATE_BOOLEAN))){//si el marca presentaba diferencia
-          $maquina_con_diferencia = new CampoConDiferencia;
-          $maquina_con_diferencia->columna = 'marca';
-          $maquina_con_diferencia->entidad = 'maquina';
-          $maquina_con_diferencia->valor = $maquina_de_layout['marca']['valor'];
-          $maquina_con_diferencia->detalle_layout_parcial()->associate($detalle[0]->id_detalle_layout_parcial);
-          $maquina_con_diferencia->save();
-          $bandera=0;
-        }
-        if(!(filter_var($maquina_de_layout['nro_isla']['correcto'],FILTER_VALIDATE_BOOLEAN))){//si el numero isla presentaba diferencia
-          $maquina_con_diferencia = new CampoConDiferencia;
-          $maquina_con_diferencia->columna = 'nro_isla';
-          $maquina_con_diferencia->entidad = 'maquina';
-          $maquina_con_diferencia->valor = $maquina_de_layout['nro_isla']['valor'];
-          $maquina_con_diferencia->detalle_layout_parcial()->associate($detalle[0]->id_detalle_layout_parcial);
-          $maquina_con_diferencia->save();
-          $bandera=0;
-        }
-        if(!(filter_var($maquina_de_layout['nro_serie']['correcto'],FILTER_VALIDATE_BOOLEAN))){
-          $maquina_con_diferencia = new CampoConDiferencia;
-          $maquina_con_diferencia->columna = 'nro_serie';
-          $maquina_con_diferencia->entidad = 'maquina';
-          $maquina_con_diferencia->valor = $maquina_de_layout['nro_serie']['valor'];
-          $maquina_con_diferencia->detalle_layout_parcial()->associate($detalle[0]->id_detalle_layout_parcial);
-          $maquina_con_diferencia->save();
-          $bandera=0;
-        }
-
-        //reviso configuracion de progresivo
-        if(isset($maquina_de_layout['progresivo'])){ //configuracion progresivo
-          $progresivo = Progresivo::find($maquina_de_layout['progresivo']['id_progresivo']);
-          $pozo= $maquina->pozo;
-
-          if(!(filter_var($maquina_de_layout['progresivo']['maximo']['correcto'],FILTER_VALIDATE_BOOLEAN))){
-            $progresivos_con_diferencia = new CampoConDiferencia;
-            $progresivos_con_diferencia->columna ='maximo';
-            $progresivos_con_diferencia->entidad ='progresivo';
-            $progresivos_con_diferencia->valor = $maquina_de_layout['progresivo']['maximo']['valor'];
-            $progresivos_con_diferencia->detalle_layout_parcial()->associate($detalle[0]->id_detalle_layout_parcial);
-            $progresivos_con_diferencia->save();
-            $bandera=0;
-          }
-          if(!(filter_var($maquina_de_layout['progresivo']['porc_recuperacion']['correcto'],FILTER_VALIDATE_BOOLEAN))){
-            $progresivos_con_diferencia = new CampoConDiferencia;
-            $progresivos_con_diferencia->columna ='porc_recuperacion';
-            $progresivos_con_diferencia->entidad ='progresivo';
-            $progresivos_con_diferencia->valor = $maquina_de_layout['progresivo']['porc_recuperacion']['valor'];
-            $progresivos_con_diferencia->detalle_layout_parcial()->associate($detalle[0]->id_detalle_layout_parcial);
-            $progresivos_con_diferencia->save();
-            $bandera=0;
-          }
-          if(!(filter_var($maquina_de_layout['progresivo']['nombre_progresivo']['correcto'],FILTER_VALIDATE_BOOLEAN))){
-            $progresivos_con_diferencia = new CampoConDiferencia;
-            $progresivos_con_diferencia->columna ='nombre_progresivo';
-            $progresivos_con_diferencia->entidad ='progresivo';
-            $progresivos_con_diferencia->valor = $maquina_de_layout['progresivo']['nombre_progresivo']['valor'];
-            $progresivos_con_diferencia->detalle_layout_parcial()->associate($detalle[0]->id_detalle_layout_parcial);
-            $progresivos_con_diferencia->save();
-            $bandera=0;
-          }
-          if(!(filter_var($maquina_de_layout['progresivo']['individual']['correcto'],FILTER_VALIDATE_BOOLEAN))){
-            $progresivos_con_diferencia = new CampoConDiferencia;
-            $progresivos_con_diferencia->columna ='individual';
-            $progresivos_con_diferencia->entidad ='progresivo';
-            $progresivos_con_diferencia->valor = $maquina_de_layout['progresivo']['individual']['valor'];
-            $progresivos_con_diferencia->detalle_layout_parcial()->associate($detalle[0]->id_detalle_layout_parcial);
-            $progresivos_con_diferencia->save();
-            $bandera=0;
-          }
-
-          //reviso niveles del progresivo
-          if(isset($maquina_de_layout['niveles'])){
-            $i=1;
-            foreach ($maquina_de_layout['niveles'] as $nivel) {
-              if(!(filter_var($nivel['porc_visible']['correcto'],FILTER_VALIDATE_BOOLEAN))){
-                $niv_con_dif = new CampoConDiferencia;
-                $niv_con_dif->columna ='porc_visible';
-                $niv_con_dif->entidad ='nivel_progresivo/'.$i;
-                $niv_con_dif->valor = $nivel['porc_visible']['valor'];
-                $niv_con_dif->detalle_layout_parcial()->associate($detalle[0]->id_detalle_layout_parcial);
-                $niv_con_dif->save();
-                $bandera=0;
-              }
-              if(!(filter_var($nivel['porc_oculto']['correcto'],FILTER_VALIDATE_BOOLEAN))){
-                $niv_con_dif = new CampoConDiferencia;
-                $niv_con_dif->columna ='porc_oculto';
-                $niv_con_dif->entidad ='nivel_progresivo/'.$i;
-                $niv_con_dif->valor = $nivel['porc_oculto']['valor'];
-                $niv_con_dif->detalle_layout_parcial()->associate($detalle[0]->id_detalle_layout_parcial);
-                $niv_con_dif->save();
-                $bandera=0;
-              }
-              if(!(filter_var($nivel['base']['correcto'],FILTER_VALIDATE_BOOLEAN))){
-                $niv_con_dif = new CampoConDiferencia;
-                $niv_con_dif->columna ='base';
-                $niv_con_dif->entidad ='nivel_progresivo/'.$i;
-                $niv_con_dif->valor = $nivel['base']['valor'];
-                $niv_con_dif->detalle_layout_parcial()->associate($detalle[0]->id_detalle_layout_parcial);
-                $niv_con_dif->save();
-                $bandera=0;
-              }
-              if(!(filter_var($nivel['nombre_nivel']['correcto'],FILTER_VALIDATE_BOOLEAN))){
-                $niv_con_dif = new CampoConDiferencia;
-                $niv_con_dif->columna ='nombre_nivel';
-                $niv_con_dif->entidad ='nivel_progresivo/'.$i;
-                $niv_con_dif->valor = $nivel['nombre_nivel']['valor'];
-
-                $niv_con_dif->detalle_layout_parcial()->associate($detalle[0]->id_detalle_layout_parcial);
-                $niv_con_dif->save();
-                $bandera=0;
-              }
-
-              if(!(filter_var($nivel['base']['correcto'],FILTER_VALIDATE_BOOLEAN))){
-                $niv_con_dif = new CampoConDiferencia;
-                $niv_con_dif->columna ='base';
-                $niv_con_dif->entidad ='nivel_progresivo/'.$i;
-                $niv_con_dif->valor = $nivel['base']['valor'];
-                $niv_con_dif->detalle_layout_parcial()->associate($detalle[0]->id_detalle_layout_parcial);
-                $niv_con_dif->save();
-                $bandera=0;
-              }
-              if(!(filter_var($nivel['nombre_nivel']['correcto'],FILTER_VALIDATE_BOOLEAN))){
-                $niv_con_dif = new CampoConDiferencia;
-                $niv_con_dif->columna ='nombre_nivel';
-                $niv_con_dif->entidad ='nivel_progresivo/'.$i;
-                $niv_con_dif->valor = $nivel['nombre_nivel']['valor'];
-                $niv_con_dif->detalle_layout_parcial()->associate($detalle[0]->id_detalle_layout_parcial);
-                $niv_con_dif->save();
-                $bandera=0;
-              }
-              $i++;
-            }
-          }
-        }
-
-        if($detalle->count() == 1 ){
-          $detalle[0]->correcto=$bandera;
-          $detalle[0]->denominacion = $maquina_de_layout['denominacion'];
-          $porcentaje_devolucion = 
-            (!isset($maquina_de_layout['porcentaje_dev']) || is_null($maquina_de_layout['porcentaje_dev']))?
-            null
-          : str_replace(',','.',$maquina_de_layout['porcentaje_dev']);
-          $detalle[0]->porcentaje_devolucion = $porcentaje_devolucion;
-          $detalle[0]->save();
-        }
-      }
-    }
-    $estado_relevamiento = EstadoRelevamiento::where('descripcion','finalizado')->get();
-    $layout_parcial->id_estado_relevamiento = $estado_relevamiento[0]->id_estado_relevamiento; //finalizado
-    $layout_parcial->save();
-    return ['estado' => $estado_relevamiento[0]->descripcion,
-    'codigo' => 200 ];//codigo ok, dispara boton buscar en vista
   }
 
   public function usarLayoutBackup(Request $request){
@@ -903,74 +481,45 @@ class LayoutController extends Controller
             'sector' => $rel_backup->sector->descripcion,
             'estado' => $rel_backup->estado_relevamiento->descripcion];
   }
-
-  private function guardarPlanillaLayoutParcial($id_layout_parcial){
-    $layout_parcial = LayoutParcial::find($id_layout_parcial);
-    $dompdf = $this->crearPlanillaLayoutParcial($layout_parcial);
-    $output = $dompdf->output();
-    if($layout_parcial->sub_control != null){
-      $ruta = "LayoutParcial-".$layout_parcial->sector->casino->codigo."-".$layout_parcial->sector->descripcion."-".$layout_parcial->fecha."(".$layout_parcial->sub_control.")".".pdf";
-    }else{
-      $ruta = "LayoutParcial-".$layout_parcial->sector->casino->codigo."-".$layout_parcial->sector->descripcion."-".$layout_parcial->fecha.".pdf";
-    }
-
-    file_put_contents($ruta, $output);
-
-    return $ruta;
-  }
+  
   // crearPlanillaLayoutParcial crea la planilla de layout parcial para relevar
   // considera los paquetes de juegos, si tiene, muestra un mensajes que describe
   // sino lo implemtna , muestra el juego activo
-  public function crearPlanillaLayoutParcial($layout_parcial){
+  public function crearPlanillaLayoutParcial($lp,$cargado){
     $rel= new \stdClass();
-    $rel->nro_relevamiento = $layout_parcial->nro_layout_parcial;
-    $rel->casinoCod = $layout_parcial->sector->casino->codigo;
-    $rel->casinoNom = $layout_parcial->sector->casino->nombre;
-    $rel->sector = $layout_parcial->sector->descripcion;
-    $rel->fecha = $layout_parcial->fecha;
-    $rel->fecha_ejecucion = ($layout_parcial->fecha_ejecucion != null) ? $layout_parcial->fecha_ejecucion : $layout_parcial->fecha;
-    $rel->fecha_generacion = $layout_parcial->fecha_generacion;
+    $rel->nro_relevamiento = $lp->nro_layout_parcial;
+    {
+      $s = $lp->sector;
+      $rel->sector         = $s->descripcion;
+      $c = $s->casino;
+      $rel->casinoCod      = $c->codigo;
+      $rel->casinoNom      = $c->nombre;
+    }
+    $rel->fecha            = $lp->fecha;
+    $rel->fecha_ejecucion  = $lp->fecha_ejecucion ?? $lp->fecha;
+    $rel->fecha_generacion = explode(' ',$lp->fecha_generacion)[0];
+  
+    $rel->fecha            = implode('-',array_reverse(explode('-',$rel->fecha)));
+    $rel->fecha_generacion = implode('-',array_reverse(explode('-',$rel->fecha_generacion)));
+    
+    $rel->observacion_fiscalizacion = $cargado? $lp->observacion_fiscalizacion : null;
+    $rel->observacion_validacion    = $cargado? $lp->observacion_validacion    : null;
 
-    $año = substr($rel->fecha,0,4);
-    $mes = substr($rel->fecha,5,2);
-    $dia = substr($rel->fecha,8,2);
-    $rel->fecha = $dia."-".$mes."-".$año;
-
-    $añoG = substr($rel->fecha_generacion,0,4);
-    $mesG = substr($rel->fecha_generacion,5,2);
-    $diaG = substr($rel->fecha_generacion,8,2);
-    //$horaG = substr($rel->fecha_generacion,11,2).":".substr($rel->fecha_generacion,14,2).":".substr($rel->fecha_generacion,17,2);;
-    $rel->fecha_generacion = $diaG."-".$mesG."-".$añoG;//." ".$horaG;
-
-    $detalles = array();
-    $progresivos = array();
-
-    foreach($layout_parcial->detalles as $detalle){
+    $detalles = $lp->detalles->map(function($d) use ($cargado){
       $det = new \stdClass();
-      $det->nro_admin = $detalle->maquina->nro_admin;
-      $det->isla = $detalle->maquina->isla->nro_isla;
-      $det->marca = $detalle->maquina->marca;
-      $det->nro_serie = $detalle->maquina->nro_serie;
-      
-      if($detalle->maquina->id_pack!=null){
-        $pack=PackJuego::find($detalle->maquina->id_pack);
-        $juego_activo=$detalle->maquina->juego_activo;
-        $prefijo=$pack->prefijo;
-        $nombre_juego_activo= $detalle->maquina->juego_activo->nombre_juego;
-        $juego_activo->nombre_juego= "Paquete-Juegos: " . $pack->identificador; 
-      }else{
-        $juego_activo=$detalle->maquina->juego_activo;
-      }
-      $det->juego =$juego_activo;
-      $det->denominacion = $detalle->denominacion;//vacio al momento de carga
-      $det->porcentaje_devolucion = $detalle->porcentaje_devolucion;//vacio al momento de carga
-      $det->diferencias = $detalle->campos_con_diferencia;
-      $progresivo = $this->obtenerProgresivoFormateado($detalle->maquina);//retorna progresivo y sus niveles, formato para planilla
-      $progresivo != null ? $progresivos[] = $progresivo : null;
-      $detalles[] = $det;
-    };
+      $m = $d->maquina;
+      $det->nro_admin = $m->nro_admin;
+      $det->nro_isla  = $m->isla->nro_isla;
+      $det->marca     = $m->marca;
+      $det->nro_serie = $m->nro_serie;
+      $det->juego     = $m->juego_activo->nombre_juego;
+      $det->denominacion          = $cargado? $d->denominacion : null;//vacio al momento de carga
+      $det->porcentaje_devolucion = $cargado? $d->porcentaje_devolucion : null;//vacio al momento de carga
+      $det->diferencias           = $cargado? $d->campos_con_diferencia : collect([]);
+      return $det;
+    });
 
-    $view = View::make('planillaLayoutParcialEdit', compact('detalles','rel','progresivos'));
+    $view = View::make('planillaLayoutParcialEdit', compact('detalles','rel'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -979,75 +528,29 @@ class LayoutController extends Controller
     $dompdf->getCanvas()->page_text(20, 815, (($rel->nro_relevamiento != null) ? $rel->nro_relevamiento : "AUX")."/".$rel->casinoCod."/".$rel->sector."/".$rel->fecha, $font, 10, array(0,0,0));
     $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
     return $dompdf;
-
+  }
+  
+  private function nombrePlanillaLayoutParcial($lp,$cod_cas = null,$desc_sec = null){
+    $cod_cas  = $cod_cas ?? $lp->sector->casino->codigo;
+    $desc_sec = $desc_sec ?? $lp->sector->descripcion;
+    $cod_sub  = is_null($lp->sub_control)? '' : "({$lp->sub_control})";
+    return "LayoutParcial-$cod_cas-$desc_sec-{$lp->fecha}$cod_sub.pdf";;
   }
 
-  public function obtenerProgresivoFormateado($maquina){
-    if($maquina->pozo != null){
-      $det_progresivo = new \stdClass();
-      $progresivo = $maquina->pozo->niveles_progresivo[0]->progresivo;
-      $niveles = array();
-      foreach ($maquina->pozo->niveles_progresivo as $nivel){
-          $det_nivel_progresivo = new \stdClass();
-          $nivel->pivot->base == null ? $det_nivel_progresivo->base = $nivel->base : $nivel->pivot->base;
-          $det_nivel_progresivo->porc_visible = $nivel->porc_visible;
-          $det_nivel_progresivo->porc_oculto  = $nivel->porc_oculto;
-          $det_nivel_progresivo->nombre_nivel = $nivel->nombre_nivel;
-          $det_nivel_progresivo->nro_nivel = $nivel->nro_nivel;
-          $niveles[] = $det_nivel_progresivo;
-      };
-      $det_progresivo->nro_admin = $maquina->nro_admin;
-      $det_progresivo->nombre_progresivo = $progresivo->nombre_progresivo;
-      $det_progresivo->maximo = $progresivo->maximo;
-      $det_progresivo->porc_recuperacion = $progresivo->porc_recuperacion;
-      $det_progresivo->individual = $progresivo->individual;
-      $det_progresivo->niveles = $niveles;
-    }else{
-      $det_progresivo = null;
-    };
-    return $det_progresivo;
-
+  public function generarPlanillaLayoutParcial($id_layout_parcial,$cargado = false){
+    $lp = LayoutParcial::find($id_layout_parcial);
+    $nombre = $this->nombrePlanillaLayoutParcial($lp);
+    return $this->crearPlanillaLayoutParcial($lp,$cargado)->stream($nombre,['Attachment'=>0]);
   }
-
-  public function generarPlanillaLayoutParcial($id_layout_parcial){
-
-    $layout_parcial = LayoutParcial::find($id_layout_parcial);
-    if($layout_parcial->subrelevamiento != null){
-      $ruta = "LayoutParcial-".$layout_parcial->sector->casino->codigo."-".$layout_parcial->sector->descripcion."-".$layout_parcial->fecha."(".$layout_parcial->subrelevamiento.")".".pdf";
-    }else{
-      $ruta = "LayoutParcial-".$layout_parcial->sector->casino->codigo."-".$layout_parcial->sector->descripcion."-".$layout_parcial->fecha.".pdf";
-    }
-    $dompdf = $this->crearPlanillaLayoutParcial($layout_parcial);
-
-    return $dompdf->stream($ruta, Array('Attachment'=>0));
-
+  
+  public function generarPlanillaLayoutParcialCargado($id_layout_parcial){
+    return $this->generarPlanillaLayoutParcial($id_layout_parcial,true);
   }
 
   public function descargarLayoutParcialZip($nombre){
     $file = public_path()."/".$nombre;
-    $headers = array('Content-Type' => 'application/octet-stream',);
+    $headers = ['Content-Type' => 'application/octet-stream'];
     return response()->download($file,$nombre,$headers)->deleteFileAfterSend(true);
-  }
-
-  public function validarLayoutParcial(Request $request){
-    Validator::make($request->all(),[
-        'observacion_validacion' => 'required',
-        'id_layout_parcial' => 'required|exists:layout_parcial,id_layout_parcial',
-    ], array(), self::$atributos)->after(function($validator){
-
-        $layout = LayoutParcial::find($validator->getData()['id_layout_parcial']);
-        if($layout->backup == 1){
-          $validator->errors()->add('layout_backupt','Error. El layout a validar es de backup');
-        }
-
-    })->validate();
-
-    $layout = LayoutParcial::find($request->id_layout_parcial);
-    $layout->observacion_validacion = $request->observacion_validacion;
-    $layout->id_estado_relevamiento =  EstadoRelevamiento::where('descripcion' , 'Visado')->first()->id_estado_relevamiento;
-    $layout->save();
-
-    return ['layout' => $layout];
   }
 
   /*************LAYOUT TOTAL*************/

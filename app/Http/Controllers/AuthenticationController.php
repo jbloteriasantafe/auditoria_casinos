@@ -90,7 +90,28 @@ class AuthenticationController extends Controller
     $this->eliminarToken($request->session()->get('id_usuario'),$request->session()->get('token'));
     $request->session()->flush();
   }
+  
+  public function logoutGET(Request $request){
+    $this->logout($request);
+    return redirect('inicio');
+  }
 
+  public function usuarioTieneRol($id_usuario,$rol){
+    return !empty(DB::table('rol')
+    ->where('rol.descripcion','=',$rol)
+    ->join('usuario_tiene_rol','usuario_tiene_rol.id_rol','=','rol.id_rol')
+    ->where('usuario_tiene_rol.id_usuario','=',$id_usuario)
+    ->first());
+  }
+  
+  public function usuarioTieneAlgunRol($id_usuario,$roles){
+    return DB::table('rol')
+    ->whereIn('rol.descripcion',$roles)
+    ->join('usuario_tiene_rol','usuario_tiene_rol.id_rol','=','rol.id_rol')
+    ->where('usuario_tiene_rol.id_usuario','=',$id_usuario)
+    ->count() > 0;
+  }
+  
   public function usuarioTienePermiso($id_usuario,$permiso){
     $result = DB::table('permiso')
     ->where('permiso.descripcion','=',$permiso)

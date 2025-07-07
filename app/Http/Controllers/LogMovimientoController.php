@@ -672,6 +672,7 @@ class LogMovimientoController extends Controller
         'cant_creditos' => 'required|numeric',
         'fecha_sala' => 'required|date',
         'observaciones' => 'nullable|max:800',
+        'adjunto' => 'nullable|image',
         'mac' => 'nullable|max:100',
         'sector_relevado' => 'required',
         'isla_relevada' => 'required',
@@ -681,45 +682,42 @@ class LogMovimientoController extends Controller
         'progresivos.*.niveles' => 'sometimes|array',
         'progresivos.*.niveles.*.id_nivel_progresivo' => 'nullable|integer|exists:nivel_progresivo,id_nivel_progresivo',
         'progresivos.*.niveles.*.val' => 'nullable|numeric|min:0'
-    ], array(), self::$atributos)->after(function($validator){
-      if(!$validator->errors()->any()){
-        if($validator->getData()['juego']==0 ){
-            $validator->errors()->add('juego', 'No se ha seleccionado el juego.');
-        }
-        $data = $validator->getData();
-        $relevamiento = RelevamientoMovimiento::find($data['id_relev_mov']);
-        $fiscalizacion = $relevamiento->fiscalizacion;
-        $fecha_limite_inferior = null;
-        $fecha_sala = strtotime($data['fecha_sala']);
-        if(!is_null($fiscalizacion)) $fecha_limite_inferior = $fiscalizacion->fecha_envio_fiscalizar;
-        else $fecha_limite_inferior = $relevamiento->log_movimiento->fecha;
-        $fecha_limite_inferior = strtotime($fecha_limite_inferior);
-        if($fecha_sala < $fecha_limite_inferior) $validator->errors()->add('fecha_sala','validation.after');
-        if($fecha_sala > time()) $validator->errors()->add('fecha_sala','validation.before');
+    ], ['image' => 'El archivo tiene que ser una imagen'], self::$atributos)->after(function($validator){
+      if($validator->errors()->any()) return;
+      $data = $validator->getData();
+      $relevamiento = RelevamientoMovimiento::find($data['id_relev_mov']);
+      $fiscalizacion = $relevamiento->fiscalizacion;
+      $fecha_limite_inferior = null;
+      $fecha_sala = strtotime($data['fecha_sala']);
+      if(!is_null($fiscalizacion)) $fecha_limite_inferior = $fiscalizacion->fecha_envio_fiscalizar;
+      else $fecha_limite_inferior = $relevamiento->log_movimiento->fecha;
+      $fecha_limite_inferior = strtotime($fecha_limite_inferior);
+      if($fecha_sala < $fecha_limite_inferior) $validator->errors()->add('fecha_sala','validation.after');
+      if($fecha_sala > time()) $validator->errors()->add('fecha_sala','validation.before');
 
-        $progresivos = [];
-        if(array_key_exists('progresivos',$data)) $progresivos = $data['progresivos'];
-        foreach($progresivos as $idx_p => $p){
-          $pozo = Pozo::find($p['id_pozo']);
-          $causaNoToma = $p['id_tipo_causa_no_toma_progresivo'];
-          if(is_null($causaNoToma)){
-            $valores = [];
-            foreach($pozo->niveles as $idx => $n){
-              $valores[$n->id_nivel_progresivo] = -$n->nro_nivel;
-            }
-            foreach($p['niveles'] as $n){
-              if(!is_null($n['val'])) $valores[$n['id_nivel_progresivo']] = $n['val'];
-            }
-            $strprog = 'progresivos.'.$idx_p;
-            foreach($valores as $id => $val){
-              if($val<0){
-                $validator->errors()->add($strprog.'.niveles.'.(-$val-1).'.val','validation.required');
-              }
+      $progresivos = [];
+      if(array_key_exists('progresivos',$data)) $progresivos = $data['progresivos'];
+      foreach($progresivos as $idx_p => $p){
+        $pozo = Pozo::find($p['id_pozo']);
+        $causaNoToma = $p['id_tipo_causa_no_toma_progresivo'];
+        if(is_null($causaNoToma)){
+          $valores = [];
+          foreach($pozo->niveles as $idx => $n){
+            $valores[$n->id_nivel_progresivo] = -$n->nro_nivel;
+          }
+          foreach($p['niveles'] as $n){
+            if(!is_null($n['val'])) $valores[$n['id_nivel_progresivo']] = $n['val'];
+          }
+          $strprog = 'progresivos.'.$idx_p;
+          foreach($valores as $id => $val){
+            if($val<0){
+              $validator->errors()->add($strprog.'.niveles.'.(-$val-1).'.val','validation.required');
             }
           }
         }
       }
     })->validate();
+        
     $fisFinalizada = false;
     $movFinalizado = false;
     DB::beginTransaction();
@@ -742,7 +740,8 @@ class LogMovimientoController extends Controller
         $request['denominacion'],
         $request['cant_creditos'],
         $request['progresivos'],
-        $request['observaciones']
+        $request['observaciones'],
+        $request['adjunto'] ?? null
       );
 
       $relevamiento = RelevamientoMovimiento::find($request->id_relev_mov);
@@ -1166,6 +1165,14 @@ class LogMovimientoController extends Controller
         $prog_arr['pozo'] = $pozo_arr;
         $progresivos[] = $prog_arr;
       }
+      
+      $toma = (object) $toma->toArray();
+      if($toma->id_archivo !== null){
+        $toma->link_adjunto = 'adjunto/'.$toma->id_toma_relev_mov.'/'.$toma->id_archivo;
+      }
+      else{
+        $toma->link_adjunto = null;
+      }
     }
 
     $datos_ultimo_relev = null;
@@ -1202,6 +1209,26 @@ class LogMovimientoController extends Controller
      'nro_exp_org' => $log->nro_exp_org, 'nro_exp_interno' => $log->nro_exp_interno, 'nro_exp_control' => $log->nro_exp_control,
      'nro_disposicion' => $log->nro_disposicion, 'nro_disposicion_anio' => $log->nro_disposicion_anio,
      'datos_ultimo_relev' => $datos_ultimo_relev ];
+  }
+  
+  public function leerAdjuntoDeToma($id_toma,$id_archivo){
+    $toma =TomaRelevamientoMovimiento::where('id_toma_relev_mov',$id_toma)
+    ->where('id_archivo',$id_archivo)->first();
+    if($toma === null) return 'Archivo no encontrado';
+    $archivo = $toma->archivo;
+    if(empty($archivo)) return 'Archivo invalido';
+    
+    $data = base64_decode($archivo->archivo);
+    
+    $aux_resource = fopen('php://memory',"rw+");
+    fwrite($aux_resource,$data);
+    fseek($aux_resource,0);
+    $mimeType = mime_content_type($aux_resource);
+    
+    return Response::make($data, 200, [
+      'Content-Type' => $mimeType !== false? $mimeType : 'application/octet-stream',
+      'Content-Disposition' => 'inline; filename="'. $archivo->nombre_archivo  . '"'
+    ]);
   }
 
   public function buscarEventualidadesMTMs(Request $request){

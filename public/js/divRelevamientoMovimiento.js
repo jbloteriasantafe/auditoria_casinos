@@ -68,6 +68,7 @@ function divRelMovObtenerDatos(){
         creditos: divRM.find('.creditos').val(),
         progresivos: progresivos,
         observaciones: divRM.find('.observaciones').val(),
+        adjunto: divRM.find('.adjunto')?.[0].files?.[0],
         observacionesAdm: divRM.find('.observacionesAdm').val(),
         nro_exp_org: divRM.find('.exp_org').val(),
         nro_exp_interno: divRM.find('.exp_interno').val(),
@@ -133,6 +134,54 @@ function divRelMovAgregarProgresivos(progresivos){
     divRM.find('.tablaProg tbody input').not('.habilitado').attr('disabled',true);
   });
 }
+
+function divRelMovSetearAdjunto(url,generado){
+  const adjunto = divRM.find('.adjunto').off('change');
+  const imagen_adjunto = divRM.find('.imagen_adjunto').off('click')
+  .removeAttr('src')
+  .css({'cursor':''});
+  const eliminar_adjunto = divRM.find('.eliminar_adjunto').off('click')
+  .attr('disabled',true)
+  .css({'pointer-events':'none'});
+  
+  const sin_url = !url;
+  const con_url = !sin_url;
+  
+  if(con_url){
+    imagen_adjunto.attr('src',url)
+    .css({'cursor':'pointer'})
+    .click(function(e){
+      window.open(url,'_blank');
+    });
+    
+    eliminar_adjunto.removeAttr('disabled')
+    .css({'pointer-events':''})
+    .click(function(e){
+      divRM.find('.adjunto').val('');
+      divRelMovSetearAdjunto(null,generado);
+    });
+  }
+  
+  if(generado){
+    adjunto.change(function(e){
+      const tgt = $(e.currentTarget);
+      if(tgt?.[0]?.files?.[0]){                
+        divRelMovSetearAdjunto(URL.createObjectURL(tgt[0].files[0]),generado);
+      }
+      else{
+        divRelMovSetearAdjunto(null,generado);
+      }
+    }).show();
+    imagen_adjunto.toggle(con_url);
+    eliminar_adjunto.toggle(con_url);
+  }
+  else{//Visualizando un visado por ejemplo
+    adjunto.toggle(sin_url);//Si hay imagen no lo muestro
+    imagen_adjunto.toggle(con_url);
+    eliminar_adjunto.hide();
+  }
+}
+
 function divRelMovSetear(data){
     divRelMovLimpiar();
     //siempre vienen estos datos
@@ -148,6 +197,9 @@ function divRelMovSetear(data){
     data.juegos.forEach(j => {
         divRM.find('.juego').append($('<option>').val(j.id_juego).text(j.nombre_juego));
     });
+    
+    const link_adjunto = data?.toma?.link_adjunto? (window.location.href+'/'+data?.toma?.link_adjunto) : null;
+    divRelMovSetearAdjunto(link_adjunto,data.estado.descripcion == 'Generado');
     if(data.toma != null){
         divRM.find('.juego').val(data.toma.juego? data.toma.juego : 0);
         divRM.find('.apuesta').val(data.toma.apuesta_max);
@@ -155,7 +207,6 @@ function divRelMovSetear(data){
         divRM.find('.devolucion').val(data.toma.porcentaje_devolucion);
         divRM.find('.denominacion').val(data.toma.denominacion);
         divRM.find('.creditos').val(data.toma.cant_creditos);
-        divRM.find('.observaciones').val(data.toma.observaciones);
         divRM.find('.mac').val(data.toma.mac);
         divRM.find('.sector_rel').val(data.toma.descripcion_sector_relevado);
         divRM.find('.isla_rel').val(data.toma.nro_isla_relevada);
@@ -177,7 +228,8 @@ function divRelMovMostrarErrores(response){
         'apuesta_max' : divRM.find('.apuesta'),'cant_lineas' : divRM.find('.cant_lineas'), 'cant_creditos' : divRM.find('.creditos'),
         'porcentaje_devolucion' : divRM.find('.devolucion'),'juego' : divRM.find('.juego'), 'denominacion' : divRM.find('.denominacion'),
         'sector_relevado' : divRM.find('.sector_rel'), 'isla_relevada' :  divRM.find('.isla_rel'), 'mac' : divRM.find('.mac'),
-        'id_fiscalizador' : divRM.find('.fiscaToma'),'fecha_sala' : divRM.find('.fechaRel')
+        'id_fiscalizador' : divRM.find('.fiscaToma'),'fecha_sala' : divRM.find('.fechaRel'),
+        'adjunto': divRM.find('.adjunto')
     };
     let err = false;
     for(const key in errores){
