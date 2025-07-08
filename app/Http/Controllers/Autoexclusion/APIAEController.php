@@ -8,7 +8,7 @@ use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\Autoexclusion\AutoexclusionController;
 use App\Http\Controllers\Autoexclusion\DecryptDataController;
 use Illuminate\Support\Facades\Log;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
 use App\Casino;
 use App\Plataforma;
@@ -17,9 +17,10 @@ use Dompdf\Dompdf;
 use View;
 use PDF;
 use GuzzleHttp\Client;
-
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Carbon\Carbon;
 
 class APIAEController extends Controller
 {
@@ -509,5 +510,80 @@ class APIAEController extends Controller
       ]);
       $content = json_decode($response->getBody(), true);
       return DecryptDataController::decrypt($content['data']);
+    }
+
+    private function getDniByCuil ($cuil){
+      return intval(substr($cuil,3,8));
+    }
+    public function registrar_Encuesta(Request $request){
+      $validator = Validator::make($request->all(), [
+        'cuil' => 'required|string|max:13',
+        'frecuencia' => 'required|string|max:50',
+        'asistencia' => 'required|string|max:50',
+        'horas' => 'required|numeric|between:1,24',
+        'socioClubJugadores' => 'required|boolean',
+        'conocePlataformasOnline' => 'required|boolean',
+        'utilizaPlataformasOnline' => 'required|boolean',
+        'problemasAutocontrol' => 'required|boolean',
+        'deseaRecibirInfo' => 'required|boolean',
+        'maquinasTradicionales' => 'required|boolean',
+        'ruletaElectronica' => 'required|boolean',
+        'carteados' => 'required|boolean',
+        'ruletaAmericana' => 'required|boolean',
+        'dados' => 'required|boolean',
+        'bingo' => 'required|boolean',
+      ]);
+      
+      if($validator->errors()->any()){
+        return response()->json($validator->errors(),422);
+      }
+    
+      $validateData = $validator->getData();
+      $dni = $this->getDniByCuil($validateData['cuil']);
+      try{
+        $userId = DB::table('ae_datos')
+                  ->where('nro_dni',$dni)
+                  ->value('id_autoexcluido');
+        if($userId === null){ 
+          return response()->json(['error' => 'No se encontro el usuario'], 400);
+        }
+        $frecuenciaId = DB::table('frecuencias_encuesta_seva')
+                        ->where('nombre',$validateData['frecuencia'])
+                        ->value('id');
+        if($frecuenciaId === null){ 
+          return response()->json(['error' => 'No se encontro la frecuencia'], 400);
+        }
+        $asistenciaId = DB::table('asistencia_casino_seva')
+                        ->where('nombre',$validateData['asistencia'])
+                        ->value('id');
+         if($asistenciaId === null){ 
+          return response()->json(['error' => 'No se encontro la asistencia'], 400);
+        }
+        $to_insert = [
+          'id_autoexcluido' => $userId,
+          'id_frecuencia' => $frecuenciaId,
+          'id_asistencia' => $asistenciaId,
+          'tiempo_juego' => $validateData['horas'],
+          'maquinas_tradicionales'=> $validateData['maquinasTradicionales'],
+          'ruleta_electronica'=> $validateData['ruletaElectronica'],
+          'carteados' => $validateData['carteados'],
+          'ruleta_americana' => $validateData['ruletaAmericana'],
+          'dados' => $validateData['dados'],
+          'bingo' => $validateData['bingo'],
+          'club_jugadores' => $validateData['socioClubJugadores'],
+          'conoce_plataformas' => $validateData['conocePlataformasOnline'],
+          'utiliza_plataformas' => $validateData['utilizaPlataformasOnline'],
+          'problemas_autocontrol' => $validateData['problemasAutocontrol'],
+          'informacion_juego_responsable' => $validateData['deseaRecibirInfo'],
+          'updated_at' => Carbon::now(),
+        ];
+        $encuestaGuardar = DB::table('encuesta_seva')->insert($to_insert);
+        if(!$encuestaGuardar) return response()->json(['error' => 'No se pudo crear el registro'],500);
+        return response()->json(['mensaje' => 'Registro creado con exito']);
+      }catch(QueryException $e){
+        Log::error('Error en consulta: ' . (string)$e);
+
+        return response()->json(json_decode(json_encode($e),true), 500);
+      }
     }
 }
