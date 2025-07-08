@@ -400,11 +400,6 @@ $contable_hijos = [
     'link' => '/backoffice',
     'algun_permiso' => ['informes_mtm'],
   ],
-  'para caro' => [
-    'icono' => $icono_expedientes,
-    'link' => '/informesContables',
-    'algun_permiso' => ['informes_contables'],
-  ],
   'Canon' => [
     'icono' => '<i class="fa fa-dollar-sign"></i>',
     'link' => '/canon',
