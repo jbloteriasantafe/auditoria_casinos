@@ -126,13 +126,13 @@ $gestion_hijos = [
   'Autoexclusión' => [
     'icono' => $icono_usuario,
     'hijos' => [
-      'Gestion de Autoexcluidos' => [
+      'Autoexcluidos' => [
         'link' => '/autoexclusion',
         'algun_permiso' => ['ver_seccion_ae_alta'],
       ],
-      'Gestion de Noticias' => [
+      'Noticias' => [
         'link' => '/autoexclusion/noticias',
-        'algun_permiso' => ['ver_seccion_ae_alta'],
+        'algun_permiso' => ['ver_seccion_ae_noticias'],
       ]
     ]
   ]
