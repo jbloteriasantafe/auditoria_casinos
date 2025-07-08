@@ -432,6 +432,7 @@
                       'Toma de Progresivos',
                       'Control Ambiental',
                       'Control de Layout Total',
+                      'Control de Layout Parcial',
                       'Egreso y Reingreso de MTM',
                       'Informes de Turnos Extras',
                       'Relevamiento Torneo de Poker',

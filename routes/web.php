@@ -367,6 +367,7 @@ Route::group(['prefix' => 'eventualidades','middleware' => 'tiene_permiso:ver_se
   Route::get('obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
   Route::get('obtenerMTM/{id}', 'MTMController@obtenerMTM');
   Route::get('obtenerSector/{id_sector}','SectorController@obtenerSector');
+  //nuevo modulo eventualidades
   Route::post('guardarEventualidad','EventualidadController@guardarEventualidad');
   Route::get('pdf/{id}', 'EventualidadController@PDF');
   Route::get('obtenerTurnos/{id_casino}', 'EventualidadController@obtenerTurnos');
@@ -802,6 +803,16 @@ Route::group(['prefix' => 'aperturas','middleware' => 'tiene_permiso:m_buscar_ap
   Route::get('generarRelevamiento', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@generarRelevamiento');
   Route::get('descargarZip/{nombre}', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@descargarZip');
 });
+
+//Sección documentación Contable
+Route::group(['prefix' => 'informesContables','middleware' => 'tiene_permiso:informes_contables'], function () {
+  Route::get('/','InformesContablesController@index');
+  Route::post('guardarIva','InformesContablesController@guardarIva');
+  Route::get('ultimasIva', 'InformesContablesController@ultimasIva');
+  Route::get('iva/{id}', 'InformesContablesController@eliminarIva');
+
+});
+
 
 //Sección Juegos
 Route::group(['prefix' => 'mesas-juegos','middleware' => 'tiene_permiso:m_gestionar_juegos_mesas'], function () {
