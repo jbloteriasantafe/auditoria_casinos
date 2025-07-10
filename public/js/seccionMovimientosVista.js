@@ -1,70 +1,58 @@
-$(document).ready(function(){
-  $('#collapseFiltros #B_nro_exp_org').val("");
-  $('#collapseFiltros #B_nro_exp_interno').val("");
-  $('#collapseFiltros #B_nro_exp_control').val("");
-  $('#collapseFiltros #B_TipoMovimiento').val("0");
-  $('#collapseFiltros #dtpFechaMov').val("");
-  $('#collapseFiltros #dtpCasinoMov').val("0");
+$(function(){
+  
+$('#collapseFiltros #B_nro_exp_org').val("");
+$('#collapseFiltros #B_nro_exp_interno').val("");
+$('#collapseFiltros #B_nro_exp_control').val("");
+$('#collapseFiltros #B_TipoMovimiento').val("0");
+$('#collapseFiltros #dtpFechaMov').val("");
+$('#collapseFiltros #dtpCasinoMov').val("0");
 
-  $('#barraMaquinas').attr('aria-expanded','true');
-  $('#maquinas').removeClass();
-  $('#maquinas').addClass('subMenu1 collapse in');
-  $('#procedimientos').removeClass();
-  $('#procedimientos').addClass('subMenu2 collapse in');
-  $('#movimientos').removeClass();
-  $('#movimientos').addClass('subMenu3 collapse in');
+$('.tituloSeccionPantalla').text('Asignación de movimientos a relevar');
 
-  $('.tituloSeccionPantalla').text('Asignación de movimientos a relevar');
-  $('#opcAsignacion').attr('style','border-left: 6px solid #673AB7; background-color: #131836;');
-  $('#opcAsignacion').addClass('opcionesSeleccionado');
-
-  //PAGINACION
-  $('#btn-buscarMovimiento').trigger('click');
- //agregar para que permita seleccionar fecha hasta hoy inclusive
-  $(function(){
-    $('#dtpFechaMov').datetimepicker({
-      language:  'es',
-      todayBtn:  1,
-      autoclose: 1,
-      todayHighlight: 1,
-      format: 'dd / mm / yyyy',
-      pickerPosition: "bottom-left",
-      startView: 4,
-      minView: 2,
-      container:$('main section'),
-    });
+//agregar para que permita seleccionar fecha hasta hoy inclusive
+$(function(){
+  $('#dtpFechaMov').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'dd / mm / yyyy',
+    pickerPosition: "bottom-left",
+    startView: 4,
+    minView: 2,
+    container:$('main section'),
   });
-  $(function(){
-    $('#dtpFechaMDenom').datetimepicker({
-      language:  'es',
-      todayBtn:  1,
-      autoclose: 1,
-      todayHighlight: 1,
-      format: 'yyyy-mm-dd',
-      pickerPosition: "bottom-left",
-      startView: 4,
-      minView: 2,
-      container:$('#modalDenominacion'),
-    });
+});
+$(function(){
+  $('#dtpFechaMDenom').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd',
+    pickerPosition: "bottom-left",
+    startView: 4,
+    minView: 2,
+    container:$('#modalDenominacion'),
   });
-  $(function(){
-    $('#dtpFechaIngreso').datetimepicker({
-      language:  'es',
-      todayBtn:  1,
-      autoclose: 1,
-      todayHighlight: 1,
-      format: 'yyyy-mm-dd',
-      pickerPosition: "bottom-left",
-      startView: 4,
-      minView: 2,
-      container:$('#modalEnviarFiscalizar'),
-    });
+});
+$(function(){
+  $('#dtpFechaIngreso').datetimepicker({
+    language:  'es',
+    todayBtn:  1,
+    autoclose: 1,
+    todayHighlight: 1,
+    format: 'yyyy-mm-dd',
+    pickerPosition: "bottom-left",
+    startView: 4,
+    minView: 2,
+    container:$('#modalEnviarFiscalizar'),
   });
+});
 
-  limpiarModal();
-  divRelMovInit();
-}); //FIN DEL DOCUMENT READY
-
+limpiarModal();
+divRelMovInit();
+  
 /* 
  NUEVO MOVIMIENTO
  ###########################
@@ -469,3 +457,7 @@ $('#collapseFiltros').keypress(function (e) {
     $('#btn-buscarMovimiento').click();
   }
 })
+
+$('#btn-buscarMovimiento').click();
+
+});
