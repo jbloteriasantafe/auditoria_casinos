@@ -582,7 +582,6 @@ class APIAEController extends Controller
         return response()->json(['mensaje' => 'Registro creado con exito']);
       }catch(QueryException $e){
         Log::error('Error en consulta: ' . (string)$e);
-
         return response()->json(json_decode(json_encode($e),true), 500);
       }
     }
