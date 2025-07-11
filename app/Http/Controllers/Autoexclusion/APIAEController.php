@@ -515,7 +515,7 @@ class APIAEController extends Controller
     private function getDniByCuil ($cuil){
       return intval(substr($cuil,3,8));
     }
-    public function registrar_Encuesta(Request $request){
+    public function registrar_encuesta(Request $request){
       $validator = Validator::make($request->all(), [
         'cuil' => 'required|string|max:13',
         'frecuencia' => 'required|string|max:50',
