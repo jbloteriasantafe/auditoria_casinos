@@ -33,6 +33,7 @@ Route::group(['prefix' => 'AE','middleware' => 'check_API_token'],function(){
   Route::post('historial/{DNI}','Autoexclusion\APIAEController@obtener_autoExclusiones');
   Route::post('noticias','Autoexclusion\APIAEController@obtener_noticias');
   Route::post('encuesta','Autoexclusion\APIAEController@registrar_encuesta');
+  Route::get('respondio-encuesta','Autoexclusion\APIAEController@respondio_encuesta');
 });
 
 //Diseñado para que consulte desde el mismo sistemon por eso quite el middleware
