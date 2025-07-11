@@ -591,4 +591,31 @@ class APIAEController extends Controller
         return response()->json(json_decode(json_encode($e),true), 500);
       }
     }
+    public function respondio_encuesta(Request $request){
+      $validator = Validator::make($request->all(),[
+        'cuil' => 'required|string|max:13',
+      ]);
+
+      if($validator->errors()->any()){
+        return response()->json($validator->errors(),422);
+      }
+    
+      $validateData = $validator->getData();
+      $dni = $this->getDniByCuil($validateData['cuil']);
+      try {
+        $userId = DB::table('ae_datos')
+                  ->where('nro_dni',$dni)
+                  ->value('id_autoexcluido');
+        if($userId === null){ 
+          return response()->json(['error' => 'No se encontro el usuario'], 404);
+        }
+        $respondioEncuesta = DB::table('encuesta_seva')
+                              ->where('id_autoexcluido', $userId)
+                              ->exists();
+        return response()->json(["respondioEncuesta" => $respondioEncuesta],200);
+      } catch (QueryException $e) {
+        Log::error('Error en consulta: ' . (string)$e);
+        return response()->json(json_decode(json_encode($e),true), 500);
+      }
+    }
 }
