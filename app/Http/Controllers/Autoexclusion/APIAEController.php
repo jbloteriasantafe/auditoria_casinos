@@ -559,6 +559,12 @@ class APIAEController extends Controller
          if($asistenciaId === null){ 
           return response()->json(['error' => 'No se encontro la asistencia'], 400);
         }
+        $respondioEncuesta = DB::table('encuesta_seva')
+                              ->where('id_autoexcluido', $userId)
+                              ->exists();
+        if($respondioEncuesta){
+          return response()->json(['error' => "La encusta ya fue completada por este usuario"],400);
+        }
         $to_insert = [
           'id_autoexcluido' => $userId,
           'id_frecuencia' => $frecuenciaId,
