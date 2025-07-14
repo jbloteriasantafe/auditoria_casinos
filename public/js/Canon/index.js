@@ -572,65 +572,16 @@ $(document).ready(function() {
     
     M.find('form[data-js-recalcular]').on('change setearDevengar','[data-js-devengar]',function(e){
       $(e.currentTarget)
-      .closest('[data-css-devengar]')
+      .closest('[data-subcanon-tipo]').find('[data-css-devengar]')
       .attr('data-css-devengar',parseInt(e.currentTarget.value));
     });
     
     M.find('form[data-js-recalcular]').on('click','[data-js-click-toggle-mensual-diario]',function(e){
-      const div_tipo = $(e.currentTarget).closest('[data-subcanon-tipo]');
+      const div_tipo = $(e.currentTarget).closest('[data-div-toggle-mensual-diario]');
       div_tipo.find('[data-mensual-diario]').toggle();
     });
-    
-    M.find('form[data-js-recalcular]').on('click','[data-js-click-diario]',function(e){
-      $('[data-js-modal-ver-cargar-canon-diario]').trigger('mostrar',[{
-        tabla: $(this).attr('data-js-click-diario'),
-        id: $(this).val(),
-        año_mes: M.find('[name="año_mes"]').val()+'-01',
-        id_casino: M.find('[name="id_casino"]').val()
-      }]);
-    });
-    
-    $('[data-js-modal-ver-cargar-canon-diario]').on('show.bs.modal',function(e){
-      M.css('z-index',
-        $('.modal-backdrop').css('z-index')
-      );
-      $('.modal-backdrop').eq(0).css('opacity','0');
-    });
-    
-    $('[data-js-modal-ver-cargar-canon-diario]').on('hide.bs.modal',function(e){
-      M.css('z-index',
-        $('[data-js-modal-ver-cargar-canon-diario]').css('z-index')
-      );
-      $('.modal-backdrop').eq(0).css('opacity','0.5');
-    });
   });
-  
-  $('[data-js-modal-ver-cargar-canon-diario]').each(function(_,m_obj){
-    const M = $(m_obj);
     
-    M.on('mostrar',function(e,params){
-      const div = M.find('[data-tabla]').hide().filter(`[data-tabla="${params.tabla ?? ''}"]`).show();
-      AUX.GET('/canon/diario',params,function(canon_diario){;
-        div.find('[data-div-devengado],[data-div-determinado]').each(function(_,divdetdevobj){          
-          const tabla = $(divdetdevobj).find('[data-tabla-diario]');
-          const molde = $(divdetdevobj).find('[data-molde-diario]');
-          const replace_str_tipo = molde.attr('data-molde-diario');
-          for(const dia in canon_diario){
-            const d = canon_diario[dia];
-            const fila = molde.clone().removeAttr('data-molde-diario');
-            fila.find('[data-name]').each(function(_,nobj){
-              const n = $(nobj);
-              n.attr('name',n.attr('data-name').replaceAll(replace_str_tipo,dia));
-            });
-            tabla.append(fila);
-          };
-          fill(M,params.tabla+'_diario',canon_diario);
-        });
-        M.modal('show');
-      });
-    });
-  });
-  
   $('[data-js-tabs]').each(function(_,tab_group_obj){
     const tab_group = $(tab_group_obj);
     tab_group.find('[data-js-tab]').each(function(__,tobj){

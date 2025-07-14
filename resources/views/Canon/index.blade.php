@@ -424,6 +424,19 @@
   .VerCargarCanon th.celda_vacia {
     background: #f2f2f2;
   }
+  
+  .VerCargarCanon [data-canon-variable] [data-subcanon-tipo]:first [data-tabla-diario]:first .es-cotizacion {
+    background: green !important;
+  }
+  .VerCargarCanon [data-canon-variable] [data-subcanon-tipo]:not(:first)  [data-tabla-diario] .es-cotizacion {
+    background: red !important;
+  }
+  .VerCargarCanon div.separar-devengado-determinado {
+    border-right: 1px solid black;
+  }
+  .VerCargarCanon div.separar-devengado-determinado + div {
+    border-left: 1px solid black;
+  }
 </style>
 
 @component('Components/modal',[

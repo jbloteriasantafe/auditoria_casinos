@@ -105,7 +105,7 @@ class CanonFijoMesasController extends Controller
     $dias_todos = 0;//@RETORNADO
     $dias_fijos = $RD('dias_fijos',0);//@RETORNADO
     
-    if($año_mes !== null){     
+    if($año_mes !== null){ 
       $wdmin_wdmax_count_arr = [
         'dias_lunes_jueves'    => [1,4,0],
         'dias_viernes_sabados' => [5,6,0],
@@ -144,6 +144,13 @@ class CanonFijoMesasController extends Controller
     $mesas_domingos          = $RD('mesas_domingos',0);//@RETORNADO
     $mesas_todos             = $RD('mesas_todos',0);//@RETORNADO
     $mesas_fijos             = $RD('mesas_fijos',0);//@RETORNADO
+    
+    if($mesas_fijos != 0){
+      $mesas_lunes_jueves=0;
+      $mesas_viernes_sabados=0;
+      $mesas_domingos=0;
+      $mesas_todos=0;
+    }
         
     $mesas_dias = $dias_lunes_jueves*$mesas_lunes_jueves
     +$dias_viernes_sabados*$mesas_viernes_sabados
@@ -192,7 +199,18 @@ class CanonFijoMesasController extends Controller
     $determinado_ajuste  = bcadd($RD('determinado_ajuste','0.00'),'0',16);//@RETORNADO
     $devengado_total   = bcadd($devengado_total_dolar_cotizado,$devengado_total_euro_cotizado,16);//@RETORNADO
     $determinado_total = bcadd($determinado_total_dolar_cotizado,$determinado_total_euro_cotizado,16);//@RETORNADO
-    $bruto = bcadd($R('bruto',$this->bruto($tipo,$año_mes,$id_casino)),'0',2);//@RETORNADO
+    
+    $bruto = $this->bruto($tipo,$año_mes,$id_casino);
+    $mesas_usadas_ARS = $bruto->mesas_ARS;
+    $mesas_usadas_USD = $bruto->mesas_USD;
+    $mesas_usadas = $bruto->mesas;
+    $bruto_ARS = $bruto->bruto_ARS;
+    $bruto_USD = $bruto->bruto_USD;
+    $bruto_USD_cotizado = $bruto->bruto_USD_cotizado;
+    $bruto = $bruto->bruto;
+    
+    $bruto = bcadd($R('bruto',$this->bruto($tipo,$año_mes,$id_casino)->bruto),'0',2);//@RETORNADO
+    
 
     if($es_antiguo){
       $devengado_total = $R('devengado_total',$devengado_total);
@@ -202,11 +220,27 @@ class CanonFijoMesasController extends Controller
     $devengado   = bcsub($devengado_total,$devengado_deduccion,16);
     $determinado = bcadd($determinado_total,$determinado_ajuste,16);
     
+    $accesors_diario = [
+      'R' => AUX::make_accessor($R('diario',[])),
+      'A' => AUX::make_accessor($A('diario',[]))
+    ];
+    $accesors_diario['RA'] = AUX::combine_accessors($accesors_diario['R'],$accesors_diario['A']);
+    
+    $diario = $this->recalcular_diario(
+      $año_mes,$id_casino,$es_antiguo,$tipo,
+      $accesors_diario,
+      $mesas_lunes_jueves,
+      $mesas_viernes_sabados,
+      $mesas_domingos,
+      $mesas_todos,
+      $mesas_fijos
+    );//@RETORNADO
+    
     return compact(
       'tipo','dias_valor','factor_dias_valor','valor_dolar','valor_euro',
       'dias_lunes_jueves','mesas_lunes_jueves','dias_viernes_sabados','mesas_viernes_sabados',
       'dias_domingos','mesas_domingos','dias_todos','mesas_todos','dias_fijos','mesas_fijos',
-      'mesas_dias','bruto',
+      'mesas_dias',
       'devengar',
       'devengado_fecha_cotizacion','devengado_cotizacion_dolar','devengado_cotizacion_euro',
       'devengado_valor_dolar_cotizado','devengado_valor_euro_cotizado',
@@ -218,8 +252,74 @@ class CanonFijoMesasController extends Controller
       'determinado_valor_dolar_cotizado','determinado_valor_euro_cotizado',
       'determinado_valor_dolar_diario_cotizado','determinado_valor_euro_diario_cotizado',
       'determinado_total_dolar_cotizado','determinado_total_euro_cotizado','determinado_total',
-      'determinado_ajuste','determinado'
+      'determinado_ajuste','determinado',
+      
+      'mesas_usadas_ARS',
+      'mesas_usadas_USD',
+      'mesas_usadas',
+      'bruto_ARS',
+      'bruto_USD',
+      'bruto_USD_cotizado',
+      'bruto',
+      'diario'
     );
+  }
+  
+  private function recalcular_diario(
+    $año_mes,$id_casino,$es_antiguo,$tipo,
+    $accessors,
+    $mesas_lunes_jueves,
+    $mesas_viernes_sabados,
+    $mesas_domingos,
+    $mesas_todos,
+    $mesas_fijos
+  ){
+    static $cotizaciones = [];//voy guardando por si cambia alguna ya cambia todas...
+    extract($accessors);
+    
+    $año_mes = explode('-',$año_mes);
+    $dias = cal_days_in_month(CAL_GREGORIAN,intval($año_mes[1]),intval($año_mes[0]));
+    $dias_semana = ['Do','Lu','Ma','Mi','Ju','Vi','Sa'];
+    $mesas_semana = [
+      $mesas_domingos+$mesas_todos+$mesas_fijos,//Si mesas fijos != 0 las otras son 0 y viceversa
+      $mesas_lunes_jueves+$mesas_todos+$mesas_fijos,
+      $mesas_lunes_jueves+$mesas_todos+$mesas_fijos,
+      $mesas_lunes_jueves+$mesas_todos+$mesas_fijos,
+      $mesas_lunes_jueves+$mesas_todos+$mesas_fijos,
+      $mesas_viernes_sabados+$mesas_todos+$mesas_fijos,
+      $mesas_viernes_sabados+$mesas_todos+$mesas_fijos
+    ];
+    $ret = [];
+    for($dia=1;$dia<=$dias;$dia++){
+      $D = AUX::make_accessor($R($dia,[]));
+      $fecha = implode('-',[$año_mes[0],$año_mes[1],str_pad($dia,2,'0',STR_PAD_LEFT)]);
+      $bruto = $this->bruto($tipo,$fecha,$id_casino,true);
+      
+      $idx_dia_semana = (new \DateTime($fecha))->format('w');
+      $dia_semana = $dias_semana[$idx_dia_semana];
+      $mesas_habilitadas = $mesas_semana[$idx_dia_semana];
+      $mesas_usadas_ars = $bruto->mesas_ARS ?? 0;
+      $bruto_ars = $bruto->bruto_ARS ?? '0';
+      $mesas_usadas_usd = $bruto->mesas_USD ?? 0;
+      $bruto_usd = $bruto->bruto_USD ?? '0';
+      $cotizacion = $bruto->cotizacion ?? '0';
+      $mesas_usadas = $bruto->mesas ?? 0;
+      $bruto_usd_cotizado = bcmul($bruto_usd,$cotizacion,4);
+      $bruto = bcadd($bruto_ars,$bruto_usd_cotizado,4);
+      $ret[$dia] = compact(
+        'dia','fecha','dia_semana','mesas_habilitadas',
+        'mesas_usadas_ars',
+        'bruto_ars',
+        'mesas_usadas_usd',
+        'bruto_usd',
+        'cotizacion',
+        'mesas_usadas',
+        'bruto_usd_cotizado',
+        'bruto'
+      );
+    }
+    
+    return $ret;
   }
     
   public function guardar($id_canon,$id_canon_anterior,$datos){
@@ -268,28 +368,79 @@ class CanonFijoMesasController extends Controller
     );
   }
 
-  public function bruto($tipo,$año_mes,$id_casino){
+  public function bruto($tipo,$año_mes,$id_casino,$diario = false){
     if($año_mes === null || $tipo === null || $id_casino === null) return null;
     $año_mes_arr = explode('-',$año_mes);
+    $resultado = null;
+    $mesas = null;
     switch($tipo){
       case 'Mesas':
       case 'Fijas':
       case 'Diarias': {
         $resultado = DB::table('importacion_diaria_mesas as idm')
-        ->selectRaw('SUM(idm.utilidad*IF(idm.id_moneda = 1,1,CAST(cot.valor AS DECIMAL(20,6)))) as valor')
         ->leftJoin('cotizacion as cot',function($q){
           return $q->where('idm.id_moneda',2)->on('idm.fecha','=','cot.fecha');
         })
         ->whereNull('idm.deleted_at')
         ->where('idm.id_casino',$id_casino)
         ->whereYear('idm.fecha',$año_mes_arr[0])
+        ->whereMonth('idm.fecha',intval($año_mes_arr[1]));
+        
+        //@TODO: modularizar con BCMensualesController?
+        $mesas = DB::table('importacion_diaria_mesas as idm')
+        ->join('detalle_importacion_diaria_mesas as didm','didm.id_importacion_diaria_mesas','=','idm.id_importacion_diaria_mesas')
+        ->whereNull('idm.deleted_at')
+        ->whereNull('didm.deleted_at')
+        ->where('idm.id_casino',$id_casino)
+        ->whereYear('idm.fecha',$año_mes_arr[0])
         ->whereMonth('idm.fecha',intval($año_mes_arr[1]))
+        ->where(function($q){
+        return $q->whereRaw('IFNULL(didm.droop,0) <> 0 OR IFNULL(didm.droop_tarjeta,0) <> 0 OR IFNULL(didm.reposiciones,0) <> 0
+          OR IFNULL(didm.retiros,0) <> 0 OR IFNULL(didm.utilidad,0) <> 0 OR IFNULL(didm.saldo_fichas,0) <> 0 OR IFNULL(didm.propina <> 0,0)');
+        });
+        
+        $mesas;
+        if($diario){
+          $resultado = $resultado->whereDay('idm.fecha',intval($año_mes_arr[2]));
+          $mesas = $mesas->whereDay('idm.fecha',intval($año_mes_arr[2])); 
+        }
+        
+        $cot_valor = 'CAST(cot.valor AS DECIMAL(20,6))';
+        $resultado = $resultado->selectRaw("
+          SUM(IF(idm.id_moneda = 1,idm.utilidad,0)) as bruto_ARS,
+          SUM(IF(idm.id_moneda = 2,idm.utilidad,0)) as bruto_USD,
+          MAX(IF('.$diario.',$cot_valor,NULL)) as cotizacion,
+          SUM(IF(idm.id_moneda = 2,$cot_valor*idm.utilidad,0)) as bruto_USD_cotizado,
+          SUM(
+            IF(idm.id_moneda = 1,
+              idm.utilidad,
+              IF(idm.id_moneda = 2,
+                idm.utilidad*$cot_valor,
+                NULL
+              )
+            )
+          ) as bruto
+        ")
         ->groupBy(DB::raw('"constant"'))->first();
         
-        return $resultado === null? $resultado : $resultado->valor;
+        $codigo = 'CONCAT(didm.siglas_juego,didm.nro_mesa)';
+        //@HACK: contar doble a las mesas que abren en ARS y USD o cuentan una sola vez?
+        $mesas = $mesas->selectRaw("
+          COUNT(distinct IF(idm.id_moneda = 1,$codigo,NULL)) as mesas_ARS,
+          COUNT(distinct IF(idm.id_moneda = 2,$codigo,NULL)) as mesas_USD,
+          COUNT(distinct IF(idm.id_moneda = 1,$codigo,NULL))+COUNT(distinct IF(idm.id_moneda = 2,$codigo,NULL)) as mesas
+        ")
+        ->groupBy(DB::raw('"constant"'))->first();
       }break;
     }
-    return null;
+    
+    $resultado = $resultado ?? ((object)['mesas_ARS' => null,'bruto_ARS' => null,'mesas_USD' => null,'bruto_USD' => NULL,'cotizacion' => null,'bruto_USD_cotizado' => null,'mesas' => null,'bruto' => null]);
+    if($mesas !== null){
+      $resultado->mesas_ARS = $mesas->mesas_ARS;
+      $resultado->mesas_USD = $mesas->mesas_USD;
+      $resultado->mesas     = $mesas->mesas;
+    }
+    return $resultado;
   }
   
   public function diario($id,$año_mes){

@@ -145,6 +145,17 @@ class CanonFijoMesasAdicionalesController extends Controller
     $devengado   = bcsub($devengado_total,$devengado_deduccion,22);
     $determinado = bcadd($determinado_total,$determinado_ajuste,22);
     
+    $accesors_diario = [
+      'R' => AUX::make_accessor($R('diario',[])),
+      'A' => AUX::make_accessor($A('diario',[]))
+    ];
+    $accesors_diario['RA'] = AUX::combine_accessors($accesors_diario['R'],$accesors_diario['A']);
+    
+    $diario = $this->recalcular_diario(
+      $año_mes,$id_casino,$es_antiguo,$tipo,
+      $accesors_diario
+    );//@RETORNADO
+    
     return compact(
       'tipo',
       'dias_mes','horas_dia','factor_dias_mes','factor_horas_mes',
@@ -158,8 +169,32 @@ class CanonFijoMesasAdicionalesController extends Controller
       'determinado_fecha_cotizacion','determinado_cotizacion_dolar','determinado_cotizacion_euro',
       'determinado_valor_mes','determinado_valor_dia','determinado_valor_hora',
       'determinado_total','determinado_ajuste',
-      'determinado'
+      'determinado',
+      'diario'
     );
+  }
+  
+  private function recalcular_diario(
+    $año_mes,$id_casino,$es_antiguo,$tipo,
+    $accessors
+  ){
+    static $cotizaciones = [];//voy guardando por si cambia alguna ya cambia todas...
+    extract($accessors);
+    
+    $año_mes = explode('-',$año_mes);
+    $dias = cal_days_in_month(CAL_GREGORIAN,intval($año_mes[1]),intval($año_mes[0]));
+    
+    $ret = [];
+    for($dia=1;$dia<=$dias;$dia++){
+      $D = AUX::make_accessor($R($dia,[]));
+      $fecha = implode('-',[$año_mes[0],$año_mes[1],str_pad($dia,2,'0',STR_PAD_LEFT)]);
+      
+      $ret[$dia] = compact(
+        'dia','fecha'
+      );
+    }
+    
+    return $ret;
   }
   
   public function guardar($id_canon,$id_canon_anterior,$datos){

@@ -123,14 +123,14 @@ class AUX {
     };
   }
   
+  private static $cotizacion_DB = [];
   public static function cotizacion($fecha_cotizacion,$id_tipo_moneda,$id_casino){
-    static $cotizacion_DB = [];
     if(empty($fecha_cotizacion) || empty($id_tipo_moneda)) return '0';
     if($id_tipo_moneda == 1){
       return 1;
     }
     
-    $cot = ($cotizacion_DB[$fecha_cotizacion] ?? [])[$id_tipo_moneda] ?? null;
+    $cot = (self::$cotizacion_DB[$fecha_cotizacion] ?? [])[$id_tipo_moneda] ?? null;
     
     if($cot === null){      
       $t_fechas_cotizadas = 't'.uniqid();
@@ -178,26 +178,38 @@ class AUX {
       ->get()
       ->keyBy('fecha');
       
-      $cotizacion_DB = [];
+      self::$cotizacion_DB = [];
       foreach($vals_db as $v){
-        $cotizacion_DB[$v->fecha] = $cotizacion_DB[$v->fecha] ?? [2 => [],3 => []];
-        $cotizacion_DB[$v->fecha][2] = $v->dolar;
-        $cotizacion_DB[$v->fecha][3] = $v->euro;
+        self::$cotizacion_DB[$v->fecha] = $cotizacion_DB[$v->fecha] ?? [2 => [],3 => []];
+        self::$cotizacion_DB[$v->fecha][2] = $v->dolar;
+        self::$cotizacion_DB[$v->fecha][3] = $v->euro;
       }
     }
     
-    $cot = ($cotizacion_DB[$fecha_cotizacion] ?? [])[$id_tipo_moneda] ?? null;
+    $cot = (self::$cotizacion_DB[$fecha_cotizacion] ?? [])[$id_tipo_moneda] ?? null;
     if($cot === null && $id_tipo_moneda == 2){//Busco en las cotizaciones de los auditores
       $aux = DB::table('cotizacion as cot')
       ->where('fecha',$fecha_cotizacion)
       ->first();
       if($aux !== null){
-        $cotizacion_DB[$fecha_cotizacion] = $cotizacion_DB[$fecha_cotizacion] ?? [];
-        $cotizacion_DB[$fecha_cotizacion][$id_tipo_moneda] = $aux->valor;
+        self::$cotizacion_DB[$fecha_cotizacion] = self::$cotizacion_DB[$fecha_cotizacion] ?? [];
+        self::$cotizacion_DB[$fecha_cotizacion][$id_tipo_moneda] = $aux->valor;
         $cot = $aux->valor;
       }
     }
     
     return $cot ?? '0';
+  }
+  
+  private static $cotizacion_sesion_DB = [];
+  public static function get_cotizacion_sesion($fecha_cotizacion,$id_tipo_moneda){
+    self::$cotizacion_sesion_DB[$fecha_cotizacion] = self::$cotizacion_sesion_DB[$fecha_cotizacion] ?? [];
+    self::$cotizacion_sesion_DB[$fecha_cotizacion][$id_tipo_moneda] = self::$cotizacion_sesion_DB[$fecha_cotizacion][$id_tipo_moneda] ?? null;
+    return self::$cotizacion_sesion_DB[$fecha_cotizacion][$id_tipo_moneda];
+  }
+  public static function set_cotizacion_sesion($fecha_cotizacion,$id_tipo_moneda,$val){
+    self::$cotizacion_sesion_DB[$fecha_cotizacion] = self::$cotizacion_sesion_DB[$fecha_cotizacion] ?? [];
+    self::$cotizacion_sesion_DB[$fecha_cotizacion][$id_tipo_moneda] = $val;
+    return $val;
   }
 }

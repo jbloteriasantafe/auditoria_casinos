@@ -144,7 +144,6 @@ class CanonVariableController extends Controller
     $factor_apostado_porcentaje_aplicable,$factor_apostado_porcentaje_impuesto_ley,$factor_alicuota,
     $accessors
   ){
-    static $cotizaciones = [];//voy guardando por si cambia alguna ya cambia todas...
     extract($accessors);
     
     $año_mes = explode('-',$año_mes);
@@ -162,8 +161,9 @@ class CanonVariableController extends Controller
       $devengado_bruto_ARS = bcadd($D('devengado_bruto_ARS',$bruto->bruto_ARS),'0',2);//@RETORNADO    
       $devengado_bruto_USD = bcadd($D('devengado_bruto_USD',$bruto->bruto_USD),'0',2);//@RETORNADO    
       
-      $devengado_cotizacion = bcadd($cotizaciones[$fecha] ?? $D('devengado_cotizacion',$apostado->cotizacion),'0',2);//@RETORNADO    
+      $devengado_cotizacion = bcadd(AUX::get_cotizacion_sesion($fecha,2) ?? $D('devengado_cotizacion',$apostado->cotizacion),'0',2);//@RETORNADO    
       $cotizaciones[$fecha] = $devengado_cotizacion;
+      AUX::set_cotizacion_sesion($fecha,2,$devengado_cotizacion);
       
       $determinado_cotizacion = $devengado_cotizacion;
       $devengado_apostado_sistema_USD_cotizado = bcmul($devengado_apostado_sistema_USD,$determinado_cotizacion,4);//4+2 @RETORNADO
