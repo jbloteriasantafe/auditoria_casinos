@@ -29,7 +29,7 @@
     return "canon_fijo_mesas_adicionales[$molde_str][diario][$molde_str_diario][$s]";
   };
 ?>
-<div class="bloque_interno" data-js-molde="{{$molde_str}}">
+<div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon-tipo>
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
   <input data-name="{{$n('id_canon_fijo_mesas_adicionales')}}" hidden>
   <div class="bloque_interno"  style="width: 100%;display: flex;align-items: center;">

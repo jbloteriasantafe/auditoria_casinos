@@ -392,11 +392,14 @@ $(document).ready(function() {
     
     M.find('form[data-js-recalcular]').on('recalcular',function(e){
       const form = $(e.currentTarget);
+      $('.loading_screen').show();
       AUX.POST(form.attr('data-js-recalcular'),deformatearFormData(AUX.form_entries(form[0])),
         function(data){
+          $('.loading_screen').hide();
           render(data);
         },
         function(data){
+          $('.loading_screen').hide();
           fillError(form,data.responseJSON ?? {});
         }
       );

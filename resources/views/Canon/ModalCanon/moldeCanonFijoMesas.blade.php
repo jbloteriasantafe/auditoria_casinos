@@ -47,7 +47,7 @@
     return "canon_fijo_mesas[$molde_str][diario][$molde_str_diario][$s]";
   };
 ?>
-<div class="bloque_interno" style="width: 100%;" data-js-molde="{{$molde_str}}" data-subcanon-tipo>
+<div class="bloque_interno bloque_principal" style="width: 100%;" data-js-molde="{{$molde_str}}" data-subcanon-tipo>
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
   <input data-name="{{$n('id_canon_fijo_mesas')}}" hidden>
   <div class="bloque_interno"  style="width: 100%;display: flex;align-items: center;">

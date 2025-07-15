@@ -188,9 +188,10 @@ class CanonFijoMesasAdicionalesController extends Controller
     for($dia=1;$dia<=$dias;$dia++){
       $D = AUX::make_accessor($R($dia,[]));
       $fecha = implode('-',[$año_mes[0],$año_mes[1],str_pad($dia,2,'0',STR_PAD_LEFT)]);
-      
+      $horas = $D('horas',0);
+      $mesas = $D('mesas',0);
       $ret[$dia] = compact(
-        'dia','fecha'
+        'dia','fecha','horas','mesas'
       );
     }
     

@@ -348,10 +348,18 @@
     font-family: monospace, monospace;
     padding: 0;
   }
+  
   .VerCargarCanon div.bloque_interno {
     background: white;
-    box-shadow: 0rem 0rem 0.05rem 0.2rem var(--color-fondo-pestaña);
+    --color-borde: var(--color-fondo-pestaña);
+    border: 0.2rem solid var(--color-borde);
     padding: 0.75rem;
+  }
+  .VerCargarCanon div.bloque_interno.bloque_principal {
+    --color-borde: #797979;
+  }
+  .VerCargarCanon div.bloque_interno.bloque_principal:hover {
+    --color-borde: orange;
   }
   
   .VerCargarCanon div[data-css-devengar="0"]{
@@ -437,7 +445,27 @@
   .VerCargarCanon div.separar-devengado-determinado + div {
     border-left: 1px solid black;
   }
+  
+  .loading_screen {
+    z-index: 1060;
+    background: rgba(0,0,0,0.2);
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+  } 
 </style>
+
+<div class="loading_screen" hidden>
+  <div style="width: 100%;height: 100%;display: flex;flex-direction: row;flex-wrap: nowrap;justify-content: center;align-items: center;align-content: center;">
+    <div style="width: 100%;height: 100%;display: flex;flex-direction: column;flex-wrap: nowrap;justify-content: center;align-items: center;align-content: center;">
+      <i class="fa fa-spinner fa-spin" style="font-size: 10em;"></i>
+    </div>
+  </div>
+</div>
 
 @component('Components/modal',[
   'clases_modal' => 'VerCargarCanon',

@@ -47,7 +47,7 @@
   $determinado_subtotal = $n('determinado_subtotal');
   $determinado_total = $n('determinado_total');
 ?>
-<div class="bloque_interno" data-js-molde="{{$molde_str}}" data-subcanon-tipo>  
+<div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon-tipo>  
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
   <input data-name="{{$n('id_canon_variable')}}" hidden>
   <div class="bloque_interno"  style="width: 100%;display: flex;align-items: center;">
