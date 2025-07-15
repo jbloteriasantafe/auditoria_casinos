@@ -645,7 +645,7 @@ class APIAEController extends Controller
       }
     
       try {
-        $respondioEncuesta = $encuestaId !== null? 1 : 0;
+        $respondioEncuesta = $encuestaId !== null? true : false;
         return response()->json(['respondioEncuesta' => $respondioEncuesta],200);
       } catch (QueryException $e) {
         Log::error('Error en consulta: ' . (string)$e);
