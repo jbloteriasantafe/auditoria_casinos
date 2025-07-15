@@ -513,13 +513,15 @@ class APIAEController extends Controller
     }
 
     private function getDniByCuil ($cuil){
-      return intval(substr($cuil,3,8));
+      return explode('-',$cuil)[1];
     }
     public function registrar_encuesta(Request $request){
+      $userId = null;
+      
       $validator = Validator::make($request->all(), [
-        'cuil' => 'required|string|max:13',
-        'frecuencia' => 'required|string|max:50',
-        'asistencia' => 'required|string|max:50',
+        'cuil' => 'required|string|regex:/^[0-9]{2}\-[0-9]{5,8}-[0-9]$/',
+        'frecuencia' => 'required|string|max:50|exists:frecuencias_encuesta_seva,nombre',
+        'asistencia' => 'required|string|max:50|exists:asistencia_casino_seva,nombre',
         'horas' => 'required|numeric|between:1,24',
         'socioClubJugadores' => 'required|boolean',
         'conocePlataformasOnline' => 'required|boolean',
@@ -532,39 +534,46 @@ class APIAEController extends Controller
         'ruletaAmericana' => 'required|boolean',
         'dados' => 'required|boolean',
         'bingo' => 'required|boolean',
-      ]);
+      ],[
+        'required' => 'El valor es requerido',
+        'boolean' => 'El valor tiene que ser booleano',
+        'numeric' => 'El valor tiene que ser numerico',
+        'horas.between' => 'Tiene que estar en [1,24]',
+        'cuil.regex' => 'CUIL en formato incorrecto',
+        'frecuencia.exists' => 'No se encontro la frecuencia',
+        'asistencia.exists' => 'No se encontro la asistencia'
+      ],[])->after(function($validator) use (&$userId){
+        if($validator->errors()->any()) return;
+        
+        $validateData = $validator->getData();
+        $dni = $this->getDniByCuil($validateData['cuil']);
+        
+        $userId_y_encuestaId = $this->get_userId_y_encuestaId($dni);
+        
+        if($userId_y_encuestaId[0] === null){ 
+          return $validator->errors()->add('cuil','No se encontro el usuario');
+        }
+        
+        if($userId_y_encuestaId[1] !== null){
+          return $validator->errors()->add('cuil','La encuesta ya fue completada por este usuario');
+        }
+        
+        $userId = $userId_y_encuestaId[0];
+      });
       
       if($validator->errors()->any()){
         return response()->json($validator->errors(),422);
       }
     
       $validateData = $validator->getData();
-      $dni = $this->getDniByCuil($validateData['cuil']);
       try{
-        $userId = DB::table('ae_datos')
-                  ->where('nro_dni',$dni)
-                  ->value('id_autoexcluido');
-        if($userId === null){ 
-          return response()->json(['error' => 'No se encontro el usuario'], 400);
-        }
         $frecuenciaId = DB::table('frecuencias_encuesta_seva')
                         ->where('nombre',$validateData['frecuencia'])
                         ->value('id');
-        if($frecuenciaId === null){ 
-          return response()->json(['error' => 'No se encontro la frecuencia'], 400);
-        }
         $asistenciaId = DB::table('asistencia_casino_seva')
                         ->where('nombre',$validateData['asistencia'])
                         ->value('id');
-         if($asistenciaId === null){ 
-          return response()->json(['error' => 'No se encontro la asistencia'], 400);
-        }
-        $respondioEncuesta = DB::table('encuesta_seva')
-                              ->where('id_autoexcluido', $userId)
-                              ->exists();
-        if($respondioEncuesta){
-          return response()->json(['error' => "La encusta ya fue completada por este usuario"],400);
-        }
+
         $to_insert = [
           'id_autoexcluido' => $userId,
           'id_frecuencia' => $frecuenciaId,
@@ -591,28 +600,53 @@ class APIAEController extends Controller
         return response()->json(json_decode(json_encode($e),true), 500);
       }
     }
+    
+    private function get_userId_y_encuestaId($dni){
+      $userId = DB::table('ae_datos')
+      ->where('nro_dni',$dni)
+      ->whereNull('deleted_at')
+      ->value('id_autoexcluido');
+      
+      if($userId === null){ 
+        return [null,null];
+      }
+      
+      $encuestaId = DB::table('encuesta_seva')
+      ->where('id_autoexcluido', $userId)
+      ->value('id_encuesta');
+      
+      return [$userId,$encuestaId];
+    }
+    
     public function respondio_encuesta(Request $request){
+      $encuestaId = null;
       $validator = Validator::make($request->all(),[
-        'cuil' => 'required|string|max:13',
-      ]);
+        'cuil' => 'required|string|regex:/^[0-9]{2}\-[0-9]{5,8}-[0-9]$/',
+      ],[
+        'required' => 'El valor es requerido',
+        'cuil.regex' => 'CUIL en formato incorrecto',
+      ],[])->after(function($validator) use (&$encuestaId){
+        if($validator->errors()->any()) return;
+        
+        $validateData = $validator->getData();
+        $dni = $this->getDniByCuil($validateData['cuil']);
+        
+        $userId_y_encuestaId = $this->get_userId_y_encuestaId($dni);
+        
+        if($userId_y_encuestaId[0] === null){ 
+          return $validator->errors()->add('cuil','No se encontro el usuario');
+        }
+        
+        $encuestaId = $userId_y_encuestaId[1];
+      });
 
       if($validator->errors()->any()){
         return response()->json($validator->errors(),422);
       }
     
-      $validateData = $validator->getData();
-      $dni = $this->getDniByCuil($validateData['cuil']);
       try {
-        $userId = DB::table('ae_datos')
-                  ->where('nro_dni',$dni)
-                  ->value('id_autoexcluido');
-        if($userId === null){ 
-          return response()->json(['error' => 'No se encontro el usuario'], 404);
-        }
-        $respondioEncuesta = DB::table('encuesta_seva')
-                              ->where('id_autoexcluido', $userId)
-                              ->exists();
-        return response()->json(["respondioEncuesta" => $respondioEncuesta],200);
+        $respondioEncuesta = $encuestaId !== null? 1 : 0;
+        return response()->json(['respondioEncuesta' => $respondioEncuesta],200);
       } catch (QueryException $e) {
         Log::error('Error en consulta: ' . (string)$e);
         return response()->json(json_decode(json_encode($e),true), 500);
