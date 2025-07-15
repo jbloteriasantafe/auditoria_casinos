@@ -126,8 +126,38 @@ class CanonVariableController extends Controller
       $factor_apostado_porcentaje_aplicable,$factor_apostado_porcentaje_impuesto_ley,$factor_alicuota,
       $accesors_diario
     );//@RETORNADO
+        
+    $sumar = [
+      'devengado_apostado_sistema_ARS','devengado_apostado_sistema_USD','devengado_apostado_sistema_USD_cotizado',
+      'devengado_bruto_ARS','devengado_bruto_USD','devengado_bruto_USD_cotizado',
+      'determinado_bruto_ARS','determinado_bruto_USD','determinado_bruto_USD_cotizado',
+    ];
     
-    return compact('tipo',
+    $comparar = [
+      'devengado_apostado_sistema','devengado_base_imponible',
+      'devengado_bruto','devengado_impuesto','devengado_subtotal','devengado_total',
+      'determinado_bruto','determinado_impuesto','determinado_subtotal','determinado_total'
+    ];
+    
+    $aux = [];
+    
+    foreach($diario as $d){
+      foreach($sumar as $attr){
+        $aux[$attr] = bcadd_precise($d[$attr],$aux[$attr] ?? '0');
+      }
+      foreach($comparar as $attr){
+        $aux[$attr] = bcadd_precise($d[$attr],$aux[$attr] ?? '0');
+      }
+    }
+    
+    $errores = [];//@RETORNADO   
+    foreach($comparar as $attr){    
+      if(bccomp_precise($$attr,$aux[$attr] ?? null)){//$$ dereferencia el string por lo que tiene que existir una variable con ese valor
+        $errores[] = $attr;
+      }
+    }
+    
+    $ret = compact('tipo',
       'alicuota','devengar',
       'devengado_apostado_sistema','devengado_apostado_porcentaje_aplicable','devengado_base_imponible',
       'devengado_apostado_porcentaje_impuesto_ley',
@@ -135,8 +165,14 @@ class CanonVariableController extends Controller
       'devengado',
       'determinado_impuesto','determinado_bruto','determinado_subtotal','determinado_total','determinado_ajuste',
       'determinado',
-      'diario'
+      'diario','errores'
     );
+      
+    foreach($sumar as $attr){
+      $ret[$attr] = $aux[$attr] ?? null;
+    }
+    
+    return $ret;
   }
   
   private function recalcular_diario(
@@ -193,19 +229,25 @@ class CanonVariableController extends Controller
       
       $ret[$dia] = compact(
         'dia','fecha',
-        'devengado_apostado_sistema_ARS',
-        'devengado_apostado_sistema_USD',
+        'devengado_cotizacion',
         'devengado_bruto_ARS',
         'devengado_bruto_USD',
-        'devengado_cotizacion',
-        'devengado_apostado_sistema_USD_cotizado',
         'devengado_bruto_USD_cotizado',
-        'devengado_apostado_sistema',
-        'determinado_cotizacion',
         'devengado_bruto',
+        'devengado_apostado_sistema_ARS',
+        'devengado_apostado_sistema_USD',
+        'devengado_apostado_sistema_USD_cotizado',
+        'devengado_apostado_sistema',
+        'devengado_base_imponible',
         'devengado_impuesto',
         'devengado_subtotal',
         'devengado_total',
+        
+        'determinado_cotizacion',
+        'determinado_bruto_ARS',
+        'determinado_bruto_USD',
+        'determinado_bruto_USD_cotizado',
+        'determinado_bruto',
         'determinado_impuesto',
         'determinado_subtotal',
         'determinado_total'

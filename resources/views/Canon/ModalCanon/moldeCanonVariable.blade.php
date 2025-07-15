@@ -206,7 +206,7 @@
               <td><input class="form-control" data-name="{{$nd('determinado_impuesto')}}" readonly></td>
               <td><input class="form-control" data-name="{{$nd('determinado_bruto_ARS')}}"></td>
               <td><input class="form-control" data-name="{{$nd('determinado_bruto_USD')}}"></td>
-              <td><input class="form-control" data-name="{{$nd('determinado_bruto')}}"></td>
+              <td><input class="form-control" data-name="{{$nd('determinado_bruto')}}" readonly></td>
               <td><input class="form-control" data-name="{{$nd('determinado_subtotal')}}" readonly></td>
               <td><input class="form-control" data-name="{{$nd('determinado_total')}}" readonly></td>
             </tr>
@@ -219,7 +219,7 @@
           <tbody>
             <tr class="fila-mensual">
               <td class="celda_vacia" colspan="6">&nbsp;</td>
-              <td><input class="form-control" data-name="{{$determinado_impuesto}}" readonly></td>
+              <td><input class="form-control" data-name="{{$determinado_impuesto}}"></td>
               <td><input class="form-control" data-name="{{$determinado_bruto_ARS}}" readonly></td>
               <td><input class="form-control" data-name="{{$determinado_bruto_USD}}" readonly></td>
               <td><input class="form-control" data-name="{{$determinado_bruto}}" readonly></td>

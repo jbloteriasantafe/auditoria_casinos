@@ -156,7 +156,32 @@ class CanonFijoMesasAdicionalesController extends Controller
       $accesors_diario
     );//@RETORNADO
     
-    return compact(
+    //SE RETORNAN
+    $sumar = [];
+    
+    $comparar = [
+      'horas','mesas'
+    ];
+    
+    $aux = [];
+    
+    foreach($diario as $d){
+      foreach($sumar as $attr){
+        $aux[$attr] = bcadd_precise($d[$attr],$aux[$attr] ?? '0');
+      }
+      foreach($comparar as $attr){
+        $aux[$attr] = bcadd_precise($d[$attr],$aux[$attr] ?? '0');
+      }
+    }
+    
+    $errores = [];//@RETORNADO   
+    foreach($comparar as $attr){    
+      if(bccomp_precise($$attr,$aux[$attr] ?? null)){//$$ dereferencia el string por lo que tiene que existir una variable con ese valor
+        $errores[] = $attr;
+      }
+    }
+    
+    $ret = compact(
       'tipo',
       'dias_mes','horas_dia','factor_dias_mes','factor_horas_mes',
       'valor_dolar','valor_euro',
@@ -170,8 +195,14 @@ class CanonFijoMesasAdicionalesController extends Controller
       'determinado_valor_mes','determinado_valor_dia','determinado_valor_hora',
       'determinado_total','determinado_ajuste',
       'determinado',
-      'diario'
+      'diario','errores'
     );
+      
+    foreach($sumar as $attr){
+      $ret[$attr] = $aux[$attr] ?? null;
+    }
+    
+    return $ret;
   }
   
   private function recalcular_diario(
@@ -241,52 +272,6 @@ class CanonFijoMesasAdicionalesController extends Controller
         'determinado_cotizacion_dolar','determinado_cotizacion_euro'
       ]
     );
-  }
-  
-  public function diario($id,$año_mes){
-    $mensual;
-    $diario;
-    if($id !== null){
-      $mensual = DB::table($this->table)->where($this->id,$id)->first();
-      $año_mes = DB::table('canon',$mensual->id_canon)
-      ->first()->año_mes;
-      $dias_mes = intval(date('t',strtotime($año_mes)));
-      $diario = array_map(function($d){//@TODO query tabla diaria
-        return [
-          'dia' => $d,
-          'devengado' => [
-            'bruto' => rand(100,200),
-            'total' => rand(100,200),
-          ],
-          'determinado' => [
-            'bruto' => rand(100,200),
-            'total' => rand(100,200),
-          ]
-        ];
-      },range(1,$dias_mes,1));
-    }
-    else if($año_mes !== null){
-      $mensual = null;
-      $dias_mes = intval(date('t',strtotime($año_mes)));
-      $diario = array_map(function($d){
-        return [
-          'dia' => $d,
-          'devengado' => [
-            'bruto' => rand(100,200),
-            'total' => rand(100,200),
-          ],
-          'determinado' => [
-            'bruto' => rand(100,200),
-            'total' => rand(100,200),
-          ]
-        ];
-      },range(1,$dias_mes,1));
-    }
-    else{
-      throw new \Exception('Unreachable');
-    }
-    
-    return compact('mensual','diario');
   }
   
   public function datosCanon($tname){

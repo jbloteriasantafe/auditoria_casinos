@@ -236,7 +236,34 @@ class CanonFijoMesasController extends Controller
       $mesas_fijos
     );//@RETORNADO
     
-    return compact(
+    $sumar = [//SE RETORNAN
+      'mesas_habilitadas','mesas_usadas_ARS','mesas_usadas_USD','mesas_usadas',
+      'bruto_ARS','bruto_USD','bruto_USD_cotizado'
+    ];
+    
+    $comparar = [
+      'bruto'
+    ];
+    
+    $aux = [];
+    
+    foreach($diario as $d){
+      foreach($sumar as $attr){
+        $aux[$attr] = bcadd_precise($d[$attr],$aux[$attr] ?? '0');
+      }
+      foreach($comparar as $attr){
+        $aux[$attr] = bcadd_precise($d[$attr],$aux[$attr] ?? '0');
+      }
+    }
+    
+    $errores = [];//@RETORNADO   
+    foreach($comparar as $attr){    
+      if(bccomp_precise($$attr,$aux[$attr] ?? null)){//$$ dereferencia el string por lo que tiene que existir una variable con ese valor
+        $errores[] = $attr;
+      }
+    }
+    
+    $ret = compact(
       'tipo','dias_valor','factor_dias_valor','valor_dolar','valor_euro',
       'dias_lunes_jueves','mesas_lunes_jueves','dias_viernes_sabados','mesas_viernes_sabados',
       'dias_domingos','mesas_domingos','dias_todos','mesas_todos','dias_fijos','mesas_fijos',
@@ -261,8 +288,16 @@ class CanonFijoMesasController extends Controller
       'bruto_USD',
       'bruto_USD_cotizado',
       'bruto',
-      'diario'
+      'diario',
+      
+      'errores'
     );
+      
+    foreach($sumar as $attr){
+      $ret[$attr] = $aux[$attr] ?? null;
+    }
+    
+    return $ret;
   }
   
   private function recalcular_diario(
@@ -298,23 +333,24 @@ class CanonFijoMesasController extends Controller
       $idx_dia_semana = (new \DateTime($fecha))->format('w');
       $dia_semana = $dias_semana[$idx_dia_semana];
       $mesas_habilitadas = $mesas_semana[$idx_dia_semana];
-      $mesas_usadas_ars = $bruto->mesas_ARS ?? 0;
-      $bruto_ars = $bruto->bruto_ARS ?? '0';
-      $mesas_usadas_usd = $bruto->mesas_USD ?? 0;
-      $bruto_usd = $bruto->bruto_USD ?? '0';
+      $mesas_usadas_ARS = $D('mesas_usadas_ARS',$bruto->mesas_ARS ?? 0);
+      $bruto_ARS = $D('bruto_ARS',$bruto->bruto_ARS ?? '0');
+      $mesas_usadas_USD = $D('mesas_usadas_USD',$bruto->mesas_USD ?? 0);
+      $bruto_USD = $D('bruto_USD',$bruto->bruto_USD ?? '0');
       $cotizacion = $bruto->cotizacion ?? '0';
-      $mesas_usadas = $bruto->mesas ?? 0;
-      $bruto_usd_cotizado = bcmul($bruto_usd,$cotizacion,4);
-      $bruto = bcadd($bruto_ars,$bruto_usd_cotizado,4);
+      $bruto_USD_cotizado = bcmul($bruto_USD,$cotizacion,4);
+      $mesas_usadas = bcadd_precise($mesas_usadas_ARS,$mesas_usadas_USD);
+      $bruto = bcadd($bruto_ARS,$bruto_USD_cotizado,4);
       $ret[$dia] = compact(
-        'dia','fecha','dia_semana','mesas_habilitadas',
-        'mesas_usadas_ars',
-        'bruto_ars',
-        'mesas_usadas_usd',
-        'bruto_usd',
+        'dia','fecha','dia_semana',
+        'mesas_habilitadas',
+        'mesas_usadas_ARS',
+        'bruto_ARS',
+        'mesas_usadas_USD',
+        'bruto_USD',
         'cotizacion',
+        'bruto_USD_cotizado',
         'mesas_usadas',
-        'bruto_usd_cotizado',
         'bruto'
       );
     }
