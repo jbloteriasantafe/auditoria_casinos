@@ -66,6 +66,7 @@
     'Bingo Tradicional',
     'Solicitudes de Reemplazo / Licencia',
     'Solicitud de Autoexclusión',
+    'Aperturas de Mesas de Paño',
     'Valores de Apuesta de Mesas de Paño',
   ];
 @endphp

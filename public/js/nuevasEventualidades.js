@@ -26,7 +26,7 @@ function convertirDateTime(input) {
 
 
 
-function cargarIntervenciones({ page = 1, perPage = 10, fecha, casino, turno, estado }) {
+function cargarIntervenciones({ page = 1, perPage = 10, fecha, casino, turno, estado, observado }) {
   $.ajax({
     url: '/eventualidades/ultimas',
     data: {
@@ -35,7 +35,8 @@ function cargarIntervenciones({ page = 1, perPage = 10, fecha, casino, turno, es
       fecha,                     // yyyy-mm-dd
       id_casino: casino,
       nro_turno: turno,
-      estado_eventualidad: estado
+      estado_eventualidad: estado,
+      observados: observado
     },
     dataType: 'json',
     success(res) {
@@ -224,7 +225,8 @@ function leerFiltros() {
     fecha : $('#B_fecha_ev').val() || undefined,
     casino: $('#B_CasinoEv').val() || undefined,
     turno : $('#B_TurnoEventualidad').val() || undefined,
-    estado: $('#B_Estado').val() || undefined
+    estado: $('#B_Estado').val() || undefined,
+    observado: $('#B_Observado').is(':checked') ? 1 : 0
   };
 }
 
@@ -466,6 +468,16 @@ $(document).on('click', '#subirEv', function (){
         $archivo.closest('.col-md-9')
                 .addClass('has-error')
                 .append('<span class="help-block js-error">Esa eventualidad no existe.</span>');
+      }
+      if(res.cod===3){
+        $archivo.closest('.col-md-9')
+                .addClass('has-error')
+                .append('<span class="help-block js-error">Title inválido.</span>');
+      }
+      if(res.cod===2){
+        $archivo.closest('.col-md-9')
+                .addClass('has-error')
+                .append('<span class="help-block js-error">No existe eventualidad con esa ID.</span>');
       }
       else if(res.cod===4){
         $archivo.closest('.col-md-9')

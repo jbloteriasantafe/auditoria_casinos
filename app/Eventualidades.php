@@ -44,6 +44,10 @@ class Eventualidades extends Model
     {
         return $this->belongsTo(Turno::class,'id_turno');
     }
+    public function observaciones()
+    {
+    return $this->hasMany(ObservacionEventualidades::class, 'id_eventualidades', 'id_eventualidades');
+    }
 
 
 }

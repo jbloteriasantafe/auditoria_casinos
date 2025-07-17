@@ -702,13 +702,13 @@ public function PDF($id) {
   $view = View::make('eventualidad', compact('eventualidad'));
   $dompdf = new Dompdf();
   $dompdf->set_paper('A4', 'portrait');
-  $dompdf->loadHtml($view->render());
+  $dompdf->loadHtml($view);
   $dompdf->render();
 
   $canvas = $dompdf->getCanvas();
     $cpdf   = $canvas->get_cpdf();
-    $cpdf->addInfo('Title', $eventualidad->id_eventualidades);
     $cpdf->addInfo('Subject','event_loteria_pdf');
+    $cpdf->addInfo('Title', $id);
 
     $output   = $dompdf->output();
 
@@ -716,8 +716,8 @@ public function PDF($id) {
     if (!file_exists($dir)) {
         mkdir($dir, 0755, true);
     }
-
-    $filename = "eventualidad_{$eventualidad->id_eventualidades}.pdf";
+    $hoy = date('Y_m_d',strtotime($eventualidad->fecha_toma));
+    $filename = "eventualidades{$eventualidad->id_eventualidades}_{$hoy}_{$eventualidad->casino->nombre}_turno_{$eventualidad->turno->nro_turno}.pdf";
     $path     = "{$dir}/{$filename}";
 
     file_put_contents($path, $output);
@@ -760,9 +760,7 @@ public function ultimasIntervenciones(Request $request)
               ->whereIn('id_casino', $allowedCasinoIds)
               ->orderBy('fecha_toma','desc');
 
-    // filtros opcionales según petición
     if ($f_casino = $request->query('id_casino')) {
-      // si además quieres dejar pasar filtro manual, comprueba que esté en allowed
       if (in_array($f_casino, $allowedCasinoIds)) {
         $query->where('id_casino', $f_casino);
       }
@@ -778,6 +776,11 @@ public function ultimasIntervenciones(Request $request)
         $q->where('nro_turno', $f_turno);
       });
     }
+    if ($request->observados == 1) {
+    $query->whereHas('observaciones', function($q){
+        $q->whereNotNull('id_archivo');
+      });
+    }
 
     $total = $query->count();
     $evs   = $query
@@ -785,7 +788,6 @@ public function ultimasIntervenciones(Request $request)
                ->take($perPage)
                ->get();
 
-    // resto de tu código de respuesta…
     $esControlador = $user->roles
         ->pluck('descripcion')
         ->intersect(['ADMINISTRADOR','SUPERUSUARIO'])
@@ -832,31 +834,30 @@ public function subirEventualidad(Request $request)
     if (preg_match('/\/Title\s*\((.*?)\)/', $head, $m)) {
         $title = $m[1];
     }
-
+    $title = preg_replace('/[^\d]/', '', $title);
     // valido que realmente sea un id numerico
     if (! $title || ! ctype_digit($title)) {
+      Storage::disk('public')->delete("EventualidadesAFirmar/{$filename}");
         return response()->json([
             'success' => false,
-            'cod'     => 1,
+            'cod'     => 3,
             'error'   => 'No se encontró un Title válido en los metadatos.'
         ], 422);
     }
 
-      $subject = null;
-  if (preg_match('/\/Subject\s*\(\s*(.*?)\s*\)/', $head, $m2)) {
-      $subject = $m2[1];
+    $subject = null;
+    if (preg_match('/\/Subject\s*\(\s*(.*?)\s*\)/', $head, $m2)) {
+      $subject = preg_replace('/[^\x20-\x7E]/', '', $m2[1]);
   }
 
   if ($subject !== 'event_loteria_pdf') {
-      // borramos el PDF recién subido
       Storage::disk('public')->delete("EventualidadesAFirmar/{$filename}");
       return response()->json([
           'success' => false,
           'cod'     => 4,
-          'error'   => "El PDF no es original."
+          'error'   => "El PDF no es original. Subject: [$subject]"
       ], 422);
   }
-
 
     //modifico el objeto en la base de datos
       $id= (int) $title;
@@ -1003,6 +1004,8 @@ public function PDFObs($id) {
       );
 }
 
+
+
 public function subirObservacion(Request $request)
 {
     $this->validate($request,[
@@ -1022,7 +1025,7 @@ public function subirObservacion(Request $request)
 
     $path = $file->storeAs('public/EventualidadesFirmadas/ObservacionesFirmadas', $filename);
 
-    $fullPath = storage_path("app/{$path}"); // OK: storage/app/public/...
+    $fullPath = storage_path("app/{$path}");
 
     if($file->extension() === "pdf"){
 
@@ -1041,27 +1044,9 @@ public function subirObservacion(Request $request)
         $ob->id_usuario_generador = UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'];
         $ob->id_archivo=$filename;
         $ob->save();
-      }else{
-
-
-      //modifico el objeto en la base de datos
-        $id= (int) $title;
-          $ev = ObservacionEventualidades::with('eventualidad')->find($id);
-          if (! $ev) {
-            return response()->json([
-              'success' => false,
-              'cod'     => 1,
-              'error'   => "No existe observacion con ID $id"
-            ], 404);
-          }
-
-          Storage::disk('public')->delete("EventualidadesFirmadas/Observaciones/observacion_de_eventualidad_{$ev->id_eventualidades}_{$ev->id_observacion_eventualidades}");
-
-
-          $ev->id_archivo = $filename;
-          $ev->save();
-        }
-        }else{
+        return 2;
+      }
+    } else{
           $id = $request->input('id_eventualidades');
 
           $ob = new ObservacionEventualidades();
@@ -1069,8 +1054,8 @@ public function subirObservacion(Request $request)
           $ob->id_usuario_generador = UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'];
           $ob->id_archivo=$filename;
           $ob->save();
-
-        }
+          return 1;
+      }
 
 
 

@@ -103,7 +103,7 @@
                     @endforeach
                   </select>
                 </div>
-                <div class="col-lg-3">
+                <div class="col-lg-2">
                   <h5>Turno</h5>
                   <select class="form-control" id="B_TurnoEventualidad">
                     <option value="">Todos los turnos</option>
@@ -112,7 +112,7 @@
                     <option value="3">3</option>
                   </select>
                 </div>
-                <div class="col-lg-3">
+                <div class="col-lg-2">
                   <h5>Estado</h5>
                   <select class="form-control" id="B_Estado">
                     <option value="">Todos los estados</option>
@@ -121,8 +121,16 @@
                     <option value="3">Visado</option>
                   </select>
                 </div>
+                <div class="col-lg-2">
+                  <h5>Con observaciones</h5>
+                  <input type="checkbox" id="B_Observado" value="1">
+                </div>
               </div>
-              <br>
+            </br>
+              <!--<div class="row">-->
+
+              <!--</div>-->
+
               <div class="row">
                 <div class="col-md-12 text-center">
                   <button id="btn-buscarEventualidades" class="btn btn-infoBuscar">
@@ -403,7 +411,7 @@
               </div>
             </div>
             <div class="col-md-8">
-              <h5>Fiscalizadores en sala<h5>
+              <h5>Fiscalizadores en sala (COMPLETAR CON TODOS LOS FISCALIZADORES)<h5>
               <input type="text" maxlength="299" class="form-control" name="otros_fiscalizadores" value="{{$usuario->nombre}}">
             </div>
 
@@ -439,6 +447,7 @@
                       'Bingo Tradicional',
                       'Solicitudes de Reemplazo / Licencia',
                       'Solicitud de Autoexclusión',
+                      'Aperturas de Mesas de Paño',
                       'Valores de Apuesta de Mesas de Paño',
                     ];
                   @endphp
