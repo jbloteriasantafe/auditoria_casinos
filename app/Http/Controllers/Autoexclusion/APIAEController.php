@@ -8,7 +8,7 @@ use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\Autoexclusion\AutoexclusionController;
 use App\Http\Controllers\Autoexclusion\DecryptDataController;
 use Illuminate\Support\Facades\Log;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
 use App\Casino;
 use App\Plataforma;
@@ -17,9 +17,10 @@ use Dompdf\Dompdf;
 use View;
 use PDF;
 use GuzzleHttp\Client;
-
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Carbon\Carbon;
 
 class APIAEController extends Controller
 {
@@ -509,5 +510,146 @@ class APIAEController extends Controller
       ]);
       $content = json_decode($response->getBody(), true);
       return DecryptDataController::decrypt($content['data']);
+    }
+
+    private function getDniByCuil ($cuil){
+      return explode('-',$cuil)[1];
+    }
+    public function registrar_encuesta(Request $request){
+      $userId = null;
+      
+      $validator = Validator::make($request->all(), [
+        'cuil' => 'required|string|regex:/^[0-9]{2}\-[0-9]{5,8}-[0-9]$/',
+        'frecuencia' => 'required|string|max:50|exists:frecuencias_encuesta_seva,nombre',
+        'asistencia' => 'required|string|max:50|exists:asistencia_casino_seva,nombre',
+        'horas' => 'required|numeric|between:1,24',
+        'socioClubJugadores' => 'required|boolean',
+        'conocePlataformasOnline' => 'required|boolean',
+        'utilizaPlataformasOnline' => 'required|boolean',
+        'problemasAutocontrol' => 'required|boolean',
+        'deseaRecibirInfo' => 'required|boolean',
+        'maquinasTradicionales' => 'required|boolean',
+        'ruletaElectronica' => 'required|boolean',
+        'carteados' => 'required|boolean',
+        'ruletaAmericana' => 'required|boolean',
+        'dados' => 'required|boolean',
+        'bingo' => 'required|boolean',
+      ],[
+        'required' => 'El valor es requerido',
+        'boolean' => 'El valor tiene que ser booleano',
+        'numeric' => 'El valor tiene que ser numerico',
+        'horas.between' => 'Tiene que estar en [1,24]',
+        'cuil.regex' => 'CUIL en formato incorrecto',
+        'frecuencia.exists' => 'No se encontro la frecuencia',
+        'asistencia.exists' => 'No se encontro la asistencia'
+      ],[])->after(function($validator) use (&$userId){
+        if($validator->errors()->any()) return;
+        
+        $validateData = $validator->getData();
+        $dni = $this->getDniByCuil($validateData['cuil']);
+        
+        $userId_y_encuestaId = $this->get_userId_y_encuestaId($dni);
+        
+        if($userId_y_encuestaId[0] === null){ 
+          return $validator->errors()->add('cuil','No se encontro el usuario');
+        }
+        
+        if($userId_y_encuestaId[1] !== null){
+          return $validator->errors()->add('cuil','La encuesta ya fue completada por este usuario');
+        }
+        
+        $userId = $userId_y_encuestaId[0];
+      });
+      
+      if($validator->errors()->any()){
+        return response()->json($validator->errors(),422);
+      }
+    
+      $validateData = $validator->getData();
+      try{
+        $frecuenciaId = DB::table('frecuencias_encuesta_seva')
+                        ->where('nombre',$validateData['frecuencia'])
+                        ->value('id');
+        $asistenciaId = DB::table('asistencia_casino_seva')
+                        ->where('nombre',$validateData['asistencia'])
+                        ->value('id');
+
+        $to_insert = [
+          'id_autoexcluido' => $userId,
+          'id_frecuencia' => $frecuenciaId,
+          'id_asistencia' => $asistenciaId,
+          'tiempo_juego' => $validateData['horas'],
+          'maquinas_tradicionales'=> $validateData['maquinasTradicionales'],
+          'ruleta_electronica'=> $validateData['ruletaElectronica'],
+          'carteados' => $validateData['carteados'],
+          'ruleta_americana' => $validateData['ruletaAmericana'],
+          'dados' => $validateData['dados'],
+          'bingo' => $validateData['bingo'],
+          'club_jugadores' => $validateData['socioClubJugadores'],
+          'conoce_plataformas' => $validateData['conocePlataformasOnline'],
+          'utiliza_plataformas' => $validateData['utilizaPlataformasOnline'],
+          'problemas_autocontrol' => $validateData['problemasAutocontrol'],
+          'informacion_juego_responsable' => $validateData['deseaRecibirInfo'],
+          'updated_at' => Carbon::now(),
+        ];
+        $encuestaGuardar = DB::table('encuesta_seva')->insert($to_insert);
+        if(!$encuestaGuardar) return response()->json(['error' => 'No se pudo crear el registro'],500);
+        return response()->json(['mensaje' => 'Registro creado con exito']);
+      }catch(QueryException $e){
+        Log::error('Error en consulta: ' . (string)$e);
+        return response()->json(json_decode(json_encode($e),true), 500);
+      }
+    }
+    
+    private function get_userId_y_encuestaId($dni){
+      $userId = DB::table('ae_datos')
+      ->where('nro_dni',$dni)
+      ->whereNull('deleted_at')
+      ->value('id_autoexcluido');
+      
+      if($userId === null){ 
+        return [null,null];
+      }
+      
+      $encuestaId = DB::table('encuesta_seva')
+      ->where('id_autoexcluido', $userId)
+      ->value('id_encuesta');
+      
+      return [$userId,$encuestaId];
+    }
+    
+    public function respondio_encuesta(Request $request){
+      $encuestaId = null;
+      $validator = Validator::make($request->all(),[
+        'cuil' => 'required|string|regex:/^[0-9]{2}\-[0-9]{5,8}-[0-9]$/',
+      ],[
+        'required' => 'El valor es requerido',
+        'cuil.regex' => 'CUIL en formato incorrecto',
+      ],[])->after(function($validator) use (&$encuestaId){
+        if($validator->errors()->any()) return;
+        
+        $validateData = $validator->getData();
+        $dni = $this->getDniByCuil($validateData['cuil']);
+        
+        $userId_y_encuestaId = $this->get_userId_y_encuestaId($dni);
+        
+        if($userId_y_encuestaId[0] === null){ 
+          return $validator->errors()->add('cuil','No se encontro el usuario');
+        }
+        
+        $encuestaId = $userId_y_encuestaId[1];
+      });
+
+      if($validator->errors()->any()){
+        return response()->json($validator->errors(),422);
+      }
+    
+      try {
+        $respondioEncuesta = $encuestaId !== null? true : false;
+        return response()->json(['respondioEncuesta' => $respondioEncuesta],200);
+      } catch (QueryException $e) {
+        Log::error('Error en consulta: ' . (string)$e);
+        return response()->json(json_decode(json_encode($e),true), 500);
+      }
     }
 }
