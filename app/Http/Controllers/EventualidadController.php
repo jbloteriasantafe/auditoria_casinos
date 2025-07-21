@@ -772,6 +772,7 @@ public function ultimasIntervenciones(Request $request)
       $query->where('fecha_toma',">=", $f_fecha);
     }
     if ($f_hasta = $request->query('hasta')){
+      $f_hasta++;
       $query->where('fecha_toma',"<=",$f_hasta);
     }
     if ($f_turno = $request->query('nro_turno')) {
