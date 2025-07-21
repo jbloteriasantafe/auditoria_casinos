@@ -26,13 +26,14 @@ function convertirDateTime(input) {
 
 
 
-function cargarIntervenciones({ page = 1, perPage = 10, fecha, casino, turno, estado, observado }) {
+function cargarIntervenciones({ page = 1, perPage = 10, fecha,hasta, casino, turno, estado, observado }) {
   $.ajax({
     url: '/eventualidades/ultimas',
     data: {
       page,
       page_size: perPage,
       fecha,                     // yyyy-mm-dd
+      hasta,
       id_casino: casino,
       nro_turno: turno,
       estado_eventualidad: estado,
@@ -96,6 +97,15 @@ $(document).ready(function(){
       autoclose: true,
       todayBtn: true,
       minView: 2
+    });
+
+  $('#dtpFechaEvHasta').datetimepicker({
+      language: 'es',
+      format: 'yyyy-mm-dd',
+      autoclose: true,
+      todayBtn: true,
+      minView: 2,
+      endDate: '+0d'
     });
 
   $('#evFecha').datetimepicker({
@@ -223,6 +233,7 @@ function limpiarNull(s){
 function leerFiltros() {
   return {
     fecha : $('#B_fecha_ev').val() || undefined,
+    hasta : $('#B_fecha_evhasta').val() || undefined,
     casino: $('#B_CasinoEv').val() || undefined,
     turno : $('#B_TurnoEventualidad').val() || undefined,
     estado: $('#B_Estado').val() || undefined,

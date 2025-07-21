@@ -86,15 +86,23 @@
           <div id="collapseFiltros" class="panel-collapse collapse">
             <div class="panel-body">
               <div class="row">
-                <div class="col-lg-3">
-                  <h5>Fecha</h5>
+                <div class="col-lg-2">
+                  <h5>Fecha desde</h5>
                   <div class="input-group date" id="dtpFechaEv">
                     <input type="text" class="form-control" placeholder="yyyy-mm-dd" id="B_fecha_ev" readonly/>
                     <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                     <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
                   </div>
                 </div>
-                <div class="col-lg-3">
+                <div class="col-lg-2">
+                  <h5>Fecha hasta</h5>
+                  <div class="input-group date" id="dtpFechaEvHasta">
+                    <input type="text" class="form-control" placeholder="yyyy-mm-dd" id="B_fecha_evhasta" readonly/>
+                    <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                    <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                  </div>
+                </div>
+                <div class="col-lg-2">
                   <h5>Casino</h5>
                   <select class="form-control" id="B_CasinoEv">
                     <option value="">Todos los casinos</option>

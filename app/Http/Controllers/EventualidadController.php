@@ -769,7 +769,10 @@ public function ultimasIntervenciones(Request $request)
       $query->where('estado_eventualidad', $f_estado);
     }
     if ($f_fecha = $request->query('fecha')) {
-      $query->whereDate('fecha_toma', $f_fecha);
+      $query->where('fecha_toma',">=", $f_fecha);
+    }
+    if ($f_hasta = $request->query('hasta')){
+      $query->where('fecha_toma',"<=",$f_hasta);
     }
     if ($f_turno = $request->query('nro_turno')) {
       $query->whereHas('turno', function($q) use ($f_turno) {
