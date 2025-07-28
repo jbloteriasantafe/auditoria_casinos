@@ -275,6 +275,11 @@ $(document).ready(function() {
         
         pestaña.find('[data-mensual-diario="mensual"]').show();
         pestaña.find('[data-mensual-diario="diario"]').hide();
+        
+        //Muestro el primer subcanon por defecto
+        pestaña.find('[data-subcanon-toggle-estado]:visible')
+        .eq(0)
+        .attr('data-subcanon-toggle-estado','mostrar');
       }
       
       const dias = (function(isoDateString){
@@ -582,6 +587,15 @@ $(document).ready(function() {
     M.find('form[data-js-recalcular]').on('click','[data-js-click-toggle-mensual-diario]',function(e){
       const div_tipo = $(e.currentTarget).closest('[data-div-toggle-mensual-diario]');
       div_tipo.find('[data-mensual-diario]').toggle();
+    });
+    
+    M.find('form[data-js-recalcular]').on('click','[data-js-click-subcanon-toggle-set]',function(e){
+      const tgt = $(e.currentTarget);
+      const nuevo_estado = tgt.attr('data-js-click-subcanon-toggle-set');
+      tgt.closest('[data-subcanon-toggle-estado]')
+      .attr('data-subcanon-toggle-estado',nuevo_estado)
+      .siblings('[data-subcanon-toggle-estado]')
+      .attr('data-subcanon-toggle-estado','esconder');
     });
   });
     

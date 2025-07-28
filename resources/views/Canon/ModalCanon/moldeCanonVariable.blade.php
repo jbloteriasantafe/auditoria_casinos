@@ -47,187 +47,191 @@
   $determinado_subtotal = $n('determinado_subtotal');
   $determinado_total = $n('determinado_total');
 ?>
-<div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon-tipo>  
+<div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder">  
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
   <input data-name="{{$n('id_canon_variable')}}" hidden>
   <div class="bloque_interno"  style="width: 100%;display: flex;align-items: center;">
     <h6 data-titulo>TITULO TIPO SUBCANON</h6>
+    @component('Canon.ModalCanon.toggleSubcanon')
+    @endcomponent
   </div>
-  <div style="width: 100%;">
-    <div class="bloque_interno" style="width: 100%;display: flex;">
-      <div class="parametro_chico"  style="flex: 2;">
-        <h5>APLICABLE (%)</h5>
-        <input class="form-control" data-name="{{$devengado_apostado_porcentaje_aplicable}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-      </div>
-      <div class="parametro_chico" style="flex: 2;">
-        <h5>IMPUESTO LEY (%)</h5>
-        <input class="form-control" data-name="{{$devengado_apostado_porcentaje_impuesto_ley}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-      </div>
-      <div class="parametro_chico" style="flex: 3;">
-        <h5>ALICUOTA (%)</h5>
-        <input class="form-control" data-name="{{$alicuota}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+  <div data-subcanon-toggle-visible="mostrar" style="width: 100%;display: block;">
+    <div style="width: 100%;">
+      <div class="bloque_interno" style="width: 100%;display: flex;">
+        <div class="parametro_chico"  style="flex: 2;">
+          <h5>APLICABLE (%)</h5>
+          <input class="form-control" data-name="{{$devengado_apostado_porcentaje_aplicable}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+        </div>
+        <div class="parametro_chico" style="flex: 2;">
+          <h5>IMPUESTO LEY (%)</h5>
+          <input class="form-control" data-name="{{$devengado_apostado_porcentaje_impuesto_ley}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+        </div>
+        <div class="parametro_chico" style="flex: 3;">
+          <h5>ALICUOTA (%)</h5>
+          <input class="form-control" data-name="{{$alicuota}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+        </div>
       </div>
     </div>
-  </div>
-  <div style="width: 100%;display: flex;">
-    <div class="bloque_interno" data-css-devengar style="flex: 1;" data-div-toggle-mensual-diario>
-      <h4 style="width: 100%;display: flex;">
-        <span>DEVENGADO&nbsp;&nbsp;</span>
-        <select class="form-control" data-name="{{$devengar}}" data-js-devengar style="width: unset;height: unset;padding: 0;" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-          <option value="1">SI</option>
-          <option value="0">NO</option>
-        </select>
-      </h4>
-      <div style="width: 100%;">
-        @include('Canon.ModalCanon.toggleMensualDiario')
-      </div>
-      <div style="width: 100%;">
-        <table class="table table-bordered" style="margin-bottom: 0;">
-          @section('colgroupCV')
-          <colgroup>
-            <col style="width: 5%;">
-            <col style="width: 5%;">
-            <col style="width: 9%;">
-            <col style="width: 9%;">
-            <col style="width: 9%;">
-            <col style="width: 9%;">
-            <col style="width: 9%;">
-            <col style="width: 9%;">
-            <col style="width: 9%;">
-            <col style="width: 9%;">
-            <col style="width: 9%;">
-            <col style="width: 9%;">
-          </colgroup>
-          @endsection
-          @yield('colgroupCV')
-          <thead>
-            <tr>
-              <th style="text-align: center;">Día</th>
-              <th style="text-align: center;">Cotización</th>
-              <th style="text-align: center;">Apostado (ARS)</th>
-              <th style="text-align: center;">Apostado (USD)</th>
-              <th style="text-align: center;">Apostado</th>
-              <th style="text-align: center;">Base imponible</th>
-              <th style="text-align: center;">Impuesto</th>
-              <th style="text-align: center;">Bruto (ARS)</th>
-              <th style="text-align: center;">Bruto (USD)</th>
-              <th style="text-align: center;">Bruto</th>
-              <th style="text-align: center;">Subtotal</th>
-              <th style="text-align: center;">Total</th>
-            </tr>
-          </thead>
-        </table>
-      </div>
-      <div style="width: 100%;" data-mensual-diario="diario">
-        <div data-div-devengado="diario" style="max-height: 25vh;overflow-y: scroll;">
-          <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
+    <div style="width: 100%;display: flex;">
+      <div class="bloque_interno" data-css-devengar style="flex: 1;" data-div-toggle-mensual-diario>
+        <h4 style="width: 100%;display: flex;">
+          <span>DEVENGADO&nbsp;&nbsp;</span>
+          <select class="form-control" data-name="{{$devengar}}" data-js-devengar style="width: unset;height: unset;padding: 0;" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            <option value="1">SI</option>
+            <option value="0">NO</option>
+          </select>
+        </h4>
+        <div style="width: 100%;">
+          @include('Canon.ModalCanon.toggleMensualDiario')
+        </div>
+        <div style="width: 100%;">
+          <table class="table table-bordered" style="margin-bottom: 0;">
+            @section('colgroupCV')
+            <colgroup>
+              <col style="width: 5%;">
+              <col style="width: 5%;">
+              <col style="width: 9%;">
+              <col style="width: 9%;">
+              <col style="width: 9%;">
+              <col style="width: 9%;">
+              <col style="width: 9%;">
+              <col style="width: 9%;">
+              <col style="width: 9%;">
+              <col style="width: 9%;">
+              <col style="width: 9%;">
+              <col style="width: 9%;">
+            </colgroup>
+            @endsection
+            @yield('colgroupCV')
+            <thead>
+              <tr>
+                <th style="text-align: center;">Día</th>
+                <th style="text-align: center;">Cotización</th>
+                <th style="text-align: center;">Apostado (ARS)</th>
+                <th style="text-align: center;">Apostado (USD)</th>
+                <th style="text-align: center;">Apostado</th>
+                <th style="text-align: center;">Base imponible</th>
+                <th style="text-align: center;">Impuesto</th>
+                <th style="text-align: center;">Bruto (ARS)</th>
+                <th style="text-align: center;">Bruto (USD)</th>
+                <th style="text-align: center;">Bruto</th>
+                <th style="text-align: center;">Subtotal</th>
+                <th style="text-align: center;">Total</th>
+              </tr>
+            </thead>
+          </table>
+        </div>
+        <div style="width: 100%;" data-mensual-diario="diario">
+          <div data-div-devengado="diario" style="max-height: 25vh;overflow-y: scroll;">
+            <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
+              @yield('colgroupCV')
+              <tbody>
+              </tbody>
+            </table>
+            <table hidden>
+              <tr data-molde-diario="{{$molde_str_diario}}">
+                <td><input class="form-control" data-name="{{$nd('dia')}}" readonly></td>
+                <td><input class="form-control es-cotizacion" data-name="{{$nd('devengado_cotizacion')}}"></td>
+                <td><input class="form-control" data-name="{{$nd('devengado_apostado_sistema_ARS')}}"></td>
+                <td><input class="form-control" data-name="{{$nd('devengado_apostado_sistema_USD')}}"></td>
+                <td><input class="form-control" data-name="{{$nd('devengado_apostado_sistema')}}" readonly></td>
+                <td><input class="form-control" data-name="{{$nd('devengado_base_imponible')}}" readonly></td>
+                <td><input class="form-control" data-name="{{$nd('devengado_impuesto')}}" readonly></td>
+                <td><input class="form-control" data-name="{{$nd('devengado_bruto_ARS')}}"></td>
+                <td><input class="form-control" data-name="{{$nd('devengado_bruto_USD')}}"></td>
+                <td><input class="form-control" data-name="{{$nd('devengado_bruto')}}" readonly></td>
+                <td><input class="form-control" data-name="{{$nd('devengado_subtotal')}}" readonly></td>
+                <td><input class="form-control" data-name="{{$nd('devengado_total')}}" readonly></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div style="width: 100%;">
+          <table class="sacar-borde-primer-tr table table-bordered">
             @yield('colgroupCV')
             <tbody>
+              <tr class="fila-mensual">
+                <td colspan="2">&nbsp;</td>
+                <td><input class="form-control" data-name="{{$devengado_apostado_sistema_ARS}}" readonly></td>
+                <td><input class="form-control" data-name="{{$devengado_apostado_sistema_USD}}" readonly></td>
+                <td><input class="form-control" data-name="{{$devengado_apostado_sistema}}" readonly></td>
+                <td><input class="form-control" data-name="{{$devengado_base_imponible}}" readonly></td>
+                <td><input class="form-control" data-name="{{$devengado_impuesto}}" readonly></td>
+                <td><input class="form-control" data-name="{{$devengado_bruto_ARS}}" readonly></td>
+                <td><input class="form-control" data-name="{{$devengado_bruto_USD}}" readonly></td>
+                <td><input class="form-control" data-name="{{$devengado_bruto}}" readonly></td>
+                <td><input class="form-control" data-name="{{$devengado_subtotal}}" readonly></td>
+                <td><input class="form-control" data-name="{{$devengado_total}}" readonly></td>
+              </tr>
             </tbody>
-          </table>
-          <table hidden>
-            <tr data-molde-diario="{{$molde_str_diario}}">
-              <td><input class="form-control" data-name="{{$nd('dia')}}" readonly></td>
-              <td><input class="form-control es-cotizacion" data-name="{{$nd('devengado_cotizacion')}}"></td>
-              <td><input class="form-control" data-name="{{$nd('devengado_apostado_sistema_ARS')}}"></td>
-              <td><input class="form-control" data-name="{{$nd('devengado_apostado_sistema_USD')}}"></td>
-              <td><input class="form-control" data-name="{{$nd('devengado_apostado_sistema')}}" readonly></td>
-              <td><input class="form-control" data-name="{{$nd('devengado_base_imponible')}}" readonly></td>
-              <td><input class="form-control" data-name="{{$nd('devengado_impuesto')}}" readonly></td>
-              <td><input class="form-control" data-name="{{$nd('devengado_bruto_ARS')}}"></td>
-              <td><input class="form-control" data-name="{{$nd('devengado_bruto_USD')}}"></td>
-              <td><input class="form-control" data-name="{{$nd('devengado_bruto')}}" readonly></td>
-              <td><input class="form-control" data-name="{{$nd('devengado_subtotal')}}" readonly></td>
-              <td><input class="form-control" data-name="{{$nd('devengado_total')}}" readonly></td>
-            </tr>
           </table>
         </div>
       </div>
-      <div style="width: 100%;">
-        <table class="sacar-borde-primer-tr table table-bordered">
-          @yield('colgroupCV')
-          <tbody>
-            <tr class="fila-mensual">
-              <td colspan="2">&nbsp;</td>
-              <td><input class="form-control" data-name="{{$devengado_apostado_sistema_ARS}}" readonly></td>
-              <td><input class="form-control" data-name="{{$devengado_apostado_sistema_USD}}" readonly></td>
-              <td><input class="form-control" data-name="{{$devengado_apostado_sistema}}" readonly></td>
-              <td><input class="form-control" data-name="{{$devengado_base_imponible}}" readonly></td>
-              <td><input class="form-control" data-name="{{$devengado_impuesto}}" readonly></td>
-              <td><input class="form-control" data-name="{{$devengado_bruto_ARS}}" readonly></td>
-              <td><input class="form-control" data-name="{{$devengado_bruto_USD}}" readonly></td>
-              <td><input class="form-control" data-name="{{$devengado_bruto}}" readonly></td>
-              <td><input class="form-control" data-name="{{$devengado_subtotal}}" readonly></td>
-              <td><input class="form-control" data-name="{{$devengado_total}}" readonly></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
     </div>
-  </div>
-  <div style="width: 100%;display: flex;">
-    <div class="bloque_interno" style="flex: 1;width: 100%;" data-div-toggle-mensual-diario>
-      <h4 style="display: flex;width: 100%;">
-        <span>DETERMINADO</span>
-      </h4>
-      <div style="width: 100%;">
-        @include('Canon.ModalCanon.toggleMensualDiario')
-      </div>
-      <div style="width: 100%;">
-        <table class="table table-bordered" style="margin-bottom: 0;">
-          @yield('colgroupCV')
-          <thead>
-            <tr>
-              <th style="text-align: center;">Día</th>
-              <th style="text-align: center;">Cotización</th>
-              <th class="celda_vacia" colspan="4">&nbsp;</th>
-              <th style="text-align: center;">Impuesto (Proporcional)</th>
-              <th style="text-align: center;">Bruto (ARS)</th>
-              <th style="text-align: center;">Bruto (USD)</th>
-              <th style="text-align: center;">Bruto</th>
-              <th style="text-align: center;">Subtotal</th>
-              <th style="text-align: center;">Total</th>
-            </tr>
-          </thead>
-        </table>
-      </div>
-      <div style="width: 100%;" data-mensual-diario="diario">
-        <div data-div-determinado="diario" style="max-height: 25vh;overflow-y: scroll;width: 100%;">
-          <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
+    <div style="width: 100%;display: flex;">
+      <div class="bloque_interno" style="flex: 1;width: 100%;" data-div-toggle-mensual-diario>
+        <h4 style="display: flex;width: 100%;">
+          <span>DETERMINADO</span>
+        </h4>
+        <div style="width: 100%;">
+          @include('Canon.ModalCanon.toggleMensualDiario')
+        </div>
+        <div style="width: 100%;">
+          <table class="table table-bordered" style="margin-bottom: 0;">
             @yield('colgroupCV')
-            <tbody>
-            </tbody>
-          </table>
-          <table hidden>
-            <tr data-molde-diario="{{$molde_str_diario}}">
-              <td><input class="form-control" data-name="{{$nd('dia')}}" readonly></td>
-              <td><input class="form-control" data-name="{{$nd('determinado_cotizacion')}}" readonly></td>
-              <td class="celda_vacia" colspan="4">&nbsp;</td>
-              <td><input class="form-control" data-name="{{$nd('determinado_impuesto')}}" readonly></td>
-              <td><input class="form-control" data-name="{{$nd('determinado_bruto_ARS')}}"></td>
-              <td><input class="form-control" data-name="{{$nd('determinado_bruto_USD')}}"></td>
-              <td><input class="form-control" data-name="{{$nd('determinado_bruto')}}" readonly></td>
-              <td><input class="form-control" data-name="{{$nd('determinado_subtotal')}}" readonly></td>
-              <td><input class="form-control" data-name="{{$nd('determinado_total')}}" readonly></td>
-            </tr>
+            <thead>
+              <tr>
+                <th style="text-align: center;">Día</th>
+                <th style="text-align: center;">Cotización</th>
+                <th class="celda_vacia" colspan="4">&nbsp;</th>
+                <th style="text-align: center;">Impuesto (Proporcional)</th>
+                <th style="text-align: center;">Bruto (ARS)</th>
+                <th style="text-align: center;">Bruto (USD)</th>
+                <th style="text-align: center;">Bruto</th>
+                <th style="text-align: center;">Subtotal</th>
+                <th style="text-align: center;">Total</th>
+              </tr>
+            </thead>
           </table>
         </div>
-      </div>
-      <div style="width: 100%;">
-        <table class="sacar-borde-primer-tr table table-bordered">
-          @yield('colgroupCV')
-          <tbody>
-            <tr class="fila-mensual">
-              <td class="celda_vacia" colspan="6">&nbsp;</td>
-              <td><input class="form-control" data-name="{{$determinado_impuesto}}"></td>
-              <td><input class="form-control" data-name="{{$determinado_bruto_ARS}}" readonly></td>
-              <td><input class="form-control" data-name="{{$determinado_bruto_USD}}" readonly></td>
-              <td><input class="form-control" data-name="{{$determinado_bruto}}" readonly></td>
-              <td><input class="form-control" data-name="{{$determinado_subtotal}}" readonly></td>
-              <td><input class="form-control" data-name="{{$determinado_total}}" readonly></td>
-            </tr>
-          </tbody>
-        </table>
+        <div style="width: 100%;" data-mensual-diario="diario">
+          <div data-div-determinado="diario" style="max-height: 25vh;overflow-y: scroll;width: 100%;">
+            <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
+              @yield('colgroupCV')
+              <tbody>
+              </tbody>
+            </table>
+            <table hidden>
+              <tr data-molde-diario="{{$molde_str_diario}}">
+                <td><input class="form-control" data-name="{{$nd('dia')}}" readonly></td>
+                <td><input class="form-control" data-name="{{$nd('determinado_cotizacion')}}" readonly></td>
+                <td class="celda_vacia" colspan="4">&nbsp;</td>
+                <td><input class="form-control" data-name="{{$nd('determinado_impuesto')}}" readonly></td>
+                <td><input class="form-control" data-name="{{$nd('determinado_bruto_ARS')}}"></td>
+                <td><input class="form-control" data-name="{{$nd('determinado_bruto_USD')}}"></td>
+                <td><input class="form-control" data-name="{{$nd('determinado_bruto')}}" readonly></td>
+                <td><input class="form-control" data-name="{{$nd('determinado_subtotal')}}" readonly></td>
+                <td><input class="form-control" data-name="{{$nd('determinado_total')}}" readonly></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div style="width: 100%;">
+          <table class="sacar-borde-primer-tr table table-bordered">
+            @yield('colgroupCV')
+            <tbody>
+              <tr class="fila-mensual">
+                <td class="celda_vacia" colspan="6">&nbsp;</td>
+                <td><input class="form-control" data-name="{{$determinado_impuesto}}"></td>
+                <td><input class="form-control" data-name="{{$determinado_bruto_ARS}}" readonly></td>
+                <td><input class="form-control" data-name="{{$determinado_bruto_USD}}" readonly></td>
+                <td><input class="form-control" data-name="{{$determinado_bruto}}" readonly></td>
+                <td><input class="form-control" data-name="{{$determinado_subtotal}}" readonly></td>
+                <td><input class="form-control" data-name="{{$determinado_total}}" readonly></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
