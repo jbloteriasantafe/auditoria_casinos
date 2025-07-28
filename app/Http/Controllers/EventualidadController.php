@@ -685,7 +685,7 @@ class EventualidadController extends Controller
 
         DB::commit();
 
-        return response()->json(['success' => true, 'id' => $eventualidades->id_eventualidades]);
+        return response()->json(['success' => true, 'id' => $eventualidades->id_eventualidades, 'form' => $request->all()]);
     } catch (\Exception $e) {
         DB::rollBack();
         return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
@@ -699,6 +699,7 @@ public function PDF($id) {
   if (is_string($eventualidad->procedimientos)) {
     $eventualidad->procedimientos = json_decode($eventualidad->procedimientos, true);
   }
+  $eventualidad->fecha_toma = substr($eventualidad->fecha_toma, 0, 16);
   $view = View::make('eventualidad', compact('eventualidad'));
   $dompdf = new Dompdf();
   $dompdf->set_paper('A4', 'portrait');

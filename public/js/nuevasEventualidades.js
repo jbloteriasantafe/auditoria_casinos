@@ -113,7 +113,7 @@ $(document).ready(function(){
     todayBtn:  1,
     autoclose: 1,
     todayHighlight: 1,
-    format: 'yyyy-mm-dd HH:ii:ss',
+    format: 'yyyy-mm-dd HH:ii',
     pickerPosition: "bottom-left",
     startView: 2,
     minView: 0,
