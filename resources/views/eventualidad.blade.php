@@ -71,10 +71,11 @@
     @foreach ($nombresProcedimientos as $i => $nombre)
       @php
         $p = $eventualidad->procedimientos[$i] ?? null;
+        $np = $p['procedimiento'] ?? $nombre;
         $estado = $p['estado'] ?? '*';
       @endphp
       <tr>
-        <td>{{ $nombre }}</td>
+        <td>{{ $np }}</td>
         <td>{{ $estado === '✔' ? '✔' : '' }}</td>
         <td>{{ $estado === '*' ? '*' : '' }}</td>
         <td>{{ $p['observacion'] ?? '' }}</td>
