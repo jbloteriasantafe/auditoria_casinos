@@ -442,27 +442,15 @@
                 </thead>
                 <tbody>
                   @php
-                    $procedimientos = [
-                      'Toma de Contadores',
-                      'Contadores a Pedido',
-                      'Toma de Progresivos',
-                      'Control Ambiental',
-                      'Control de Layout Total',
-                      'Control de Layout Parcial',
-                      'Egreso y Reingreso de MTM',
-                      'Informes de Turnos Extras',
-                      'Relevamiento Torneo de Poker',
-                      'Bingo Tradicional',
-                      'Solicitudes de Reemplazo / Licencia',
-                      'Solicitud de Autoexclusión',
-                      'Aperturas de Mesas de Paño',
-                      'Valores de Apuesta de Mesas de Paño',
-                    ];
+                    $procedimientos = array_values(\App\Http\Controllers\EventualidadController::nombresProcedimientos());
                   @endphp
 
                   @foreach ($procedimientos as $i => $nombre)
                     <tr>
                       <td>{{ $nombre }}</td>
+                      <td hidden>
+                        <input name="procedimientos[{{ $i }}][procedimiento]" value="{{$nombre}}" readonly>
+                      </td>
                       <td class="text-center">
                         <input type="radio" name="procedimientos[{{ $i }}][estado]" value="✔">
                       </td>

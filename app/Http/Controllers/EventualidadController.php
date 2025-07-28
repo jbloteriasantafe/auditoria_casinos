@@ -649,7 +649,7 @@ class EventualidadController extends Controller
         'horario' => 'nullable|string|max:50',
         'id_casino' => 'required|exists:casino,id_casino',
         'procedimientos' => 'required|array',
-        'procedimientos.*.nombre' => 'string',
+        'procedimientos.*.procedimiento' => 'nullable|string',
         'procedimientos.*.check' => 'nullable|boolean',
         'procedimientos.*.asterisco' => 'nullable|boolean',
         'procedimientos.*.observaciones' => 'nullable|string|max:1000',
@@ -1137,5 +1137,37 @@ public function subirObservacion(Request $request)
       'Content-Type' => mime_content_type($abs_file),
       'Content-Disposition' => "inline; filename=\"$id_archivo\""
     ]);
+  }
+  
+  public static function nombresProcedimientos() {
+    return [
+      0 => 'Toma de Contadores',
+      1 => 'Contadores a Pedido',
+      2 => 'Toma de Progresivos',
+      3 => 'Control Ambiental',
+      4 => 'Control de Layout Total',
+      5 =>  'Control de Layout Parcial',
+      6 =>  'Egreso y Reingreso de MTM',
+      7 =>  'Informes de Turnos Extras',
+      8 =>  'Relevamiento Torneo de Poker',
+      9 =>  'Bingo Tradicional',
+      10 =>  'Solicitudes de Reemplazo / Licencia',
+      11 =>  'Solicitud de Autoexclusión',
+      13 =>  'Aperturas de Mesas de Paño',//Esto es asi pq se agrego en el medio
+      12 =>  'Valores de Apuesta de Mesas de Paño',
+    ];
+  }
+  
+  //@ELIMIMAR: función temporal para poner nombres a los procedimientos cargardos en la bd
+  public function ponerNombresProcedimientos(){
+    $nombresProcedimientos = self::nombresProcedimientos();
+    foreach(Eventualidades::all() as $e){
+      $procedimientos = json_decode($e->procedimientos, true);
+      foreach($procedimientos as $pidx => &$p){
+        $procedimientos[$pidx]['procedimiento'] = $nombresProcedimientos[$pidx];
+      }
+      $e->procedimientos = json_encode($procedimientos);
+      $e->save();
+    }
   }
 }
