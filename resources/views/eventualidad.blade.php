@@ -85,12 +85,13 @@
   <tbody>
     @foreach ($nombresProcedimientos as $i => $nombre)
       @php
-        $p = $eventualidad->procedimientos[$i];
+        $p = $eventualidad->procedimientos[$i] ?? null;
+        $estado = $p['estado'] ?? '*';
       @endphp
       <tr>
         <td>{{ $nombre }}</td>
-        <td>{{ $p['estado'] === '✔' ? '✔' : '' }}</td>
-        <td>{{ $p['estado'] === '*' ? '*' : '' }}</td>
+        <td>{{ $estado === '✔' ? '✔' : '' }}</td>
+        <td>{{ $estado === '*' ? '*' : '' }}</td>
         <td>{{ $p['observacion'] ?? '' }}</td>
       </tr>
     @endforeach
