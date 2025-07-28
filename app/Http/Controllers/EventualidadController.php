@@ -1159,7 +1159,7 @@ public function subirObservacion(Request $request)
   }
   
   //@ELIMIMAR: función temporal para poner nombres a los procedimientos cargardos en la bd
-  public function ponerNombresProcedimientos(){
+  /*public function ponerNombresProcedimientos(){
     $nombresProcedimientos = self::nombresProcedimientos();
     foreach(Eventualidades::all() as $e){
       $procedimientos = json_decode($e->procedimientos, true);
@@ -1169,5 +1169,5 @@ public function subirObservacion(Request $request)
       $e->procedimientos = json_encode($procedimientos);
       $e->save();
     }
-  }
+  }*/
 }

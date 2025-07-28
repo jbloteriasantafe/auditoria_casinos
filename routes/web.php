@@ -379,9 +379,9 @@ Route::group(['prefix' => 'eventualidades','middleware' => 'tiene_permiso:ver_se
   Route::get('{evId}/observaciones', 'EventualidadController@getObservaciones');
   Route::get('observacion/{id_ob}','EventualidadController@eliminarObservacion');
   Route::get('visualizarArchivo/{estado}/{id_archivo}','EventualidadController@visualizarArchivo');
-  Route::group(['middleware' => 'tiene_rol:superusuario'], function () {
+  /*Route::group(['middleware' => 'tiene_rol:superusuario'], function () {
     Route::get('/ponerNombresProcedimientos','EventualidadController@ponerNombresProcedimientos');
-  });
+  });*/
 });
 /**********
 Eventualidades MTM ->intervenciones tecnicas mtm
