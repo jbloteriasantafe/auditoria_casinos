@@ -29,7 +29,7 @@
     return "canon_fijo_mesas_adicionales[$molde_str][diario][$molde_str_diario][$s]";
   };
 ?>
-<div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder" data-subcanon-toggle-mensual-diario-estado="mensual">
+<div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder_subcanon" data-subcanon-toggle-mensual-diario-estado="mensual">
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
   <input data-name="{{$n('id_canon_fijo_mesas_adicionales')}}" hidden>
   <div class="bloque_interno"  style="width: 100%;display: flex;align-items: center;">
@@ -37,7 +37,7 @@
     @component('Canon.ModalCanon.toggleSubcanon')
     @endcomponent
   </div>
-  <div data-subcanon-toggle-visible="mostrar" style="width: 100%;display: block;">
+  <div data-subcanon-toggle-visible="mostrar_subcanon" style="width: 100%;display: block;">
     <div class="bloque_interno">
       <div style="display: flex;">
         <div class="parametro_chico">
@@ -108,7 +108,8 @@
       <div class="bloque_interno" style="width: 100%;">
         <div style="width: 100%;">
           <div class="col-md-8 col-md-offset-2">
-            @include('Canon.ModalCanon.toggleMensualDiario')
+            @component('Canon.ModalCanon.toggleMensualDiario')
+            @endcomponent
             <table class="table table-bordered" style="margin-bottom: 0;">
               @section('colgroupCFMA')
               <colgroup>

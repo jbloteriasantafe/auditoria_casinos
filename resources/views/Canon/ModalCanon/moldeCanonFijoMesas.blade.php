@@ -47,7 +47,7 @@
     return "canon_fijo_mesas[$molde_str][diario][$molde_str_diario][$s]";
   };
 ?>
-<div class="bloque_interno bloque_principal" style="width: 100%;" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder" data-subcanon-toggle-mensual-diario-estado="mensual">
+<div class="bloque_interno bloque_principal" style="width: 100%;" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder_subcanon" data-subcanon-toggle-mensual-diario-estado="mensual">
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
   <input data-name="{{$n('id_canon_fijo_mesas')}}" hidden>
   <div class="bloque_interno" style="width: 100%;display: flex;align-items: center;">
@@ -55,7 +55,7 @@
     @component('Canon.ModalCanon.toggleSubcanon')
     @endcomponent
   </div>
-  <div data-subcanon-toggle-visible="mostrar" style="width: 100%;display: block;">
+  <div data-subcanon-toggle-visible="mostrar_subcanon" style="width: 100%;display: block;">
     <div class="bloque_interno">
       <div style="display: flex;width: 100%;">
         <div>
@@ -218,7 +218,8 @@
     <div style="display: flex;width: 100%;">
       <div class="bloque_interno" style="width: 100%;align-items: center;">      
         <div style="width: 100%;display: flex;">
-          @include('Canon.ModalCanon.toggleMensualDiario')
+          @component('Canon.ModalCanon.toggleMensualDiario')
+          @endcomponent
         </div>
         <div data-div-devengado="header" data-div-determinado="header" style="width: 100%;">
           <table class="table table-bordered" style="margin-bottom: 0;">

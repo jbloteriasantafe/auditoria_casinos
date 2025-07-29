@@ -1,16 +1,12 @@
-@component('Components.include_guard',['nombre' => 'Canon_toggleMensualDiario'])
-<style>
-  [data-subcanon-toggle-mensual-diario-estado="mensual"] [data-mensual-diario-toggle-visible="diario"] {
-    display: none !important;
-  }
-  [data-subcanon-toggle-mensual-diario-estado="diario"] [data-mensual-diario-toggle-visible="mensual"] {
-    display: none !important;
-  }
-</style>
+@component(
+  'Canon.ModalCanon.toggle',
+  [
+    'tipo' => 'MensualDiario',
+    'parentSelector' => '[data-subcanon-toggle-mensual-diario-estado]',
+    'parentAttr' => 'data-subcanon-toggle-mensual-diario-estado',
+    'childAttr'  => 'data-mensual-diario-toggle-visible',
+    'estado1' => 'mensual',
+    'estado2' => 'diario'
+  ]
+)
 @endcomponent
-<button type="button" class="btn" data-js-click-subcanon-mensual-diario-toggle-set="mensual" data-mensual-diario-toggle-visible="diario">
-  MENSUAL
-</button>
-<button type="button" class="btn" data-js-click-subcanon-mensual-diario-toggle-set="diario" data-mensual-diario-toggle-visible="mensual">
-  DIARIO
-</button>

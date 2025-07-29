@@ -276,7 +276,7 @@ $(document).ready(function() {
         //Muestro el primer subcanon por defecto
         pestaña.find('[data-subcanon-toggle-estado]:visible')
         .eq(0)
-        .attr('data-subcanon-toggle-estado','mostrar');
+        .attr('data-subcanon-toggle-estado','mostrar_subcanon');
       }
       
       const dias = (function(isoDateString){
@@ -580,21 +580,21 @@ $(document).ready(function() {
       .closest('[data-subcanon-tipo]').find('[data-css-devengar]')
       .attr('data-css-devengar',parseInt(e.currentTarget.value));
     });
-        
-    M.find('form[data-js-recalcular]').on('click','[data-js-click-subcanon-mensual-diario-toggle-set]',function(e){
+    
+    M.find('form[data-js-recalcular]').on('click','[data-js-click-toggle]',function(e){
       const tgt = $(e.currentTarget);
-      const nuevo_estado = tgt.attr('data-js-click-subcanon-mensual-diario-toggle-set');
-      tgt.closest('[data-subcanon-toggle-mensual-diario-estado]')
-      .attr('data-subcanon-toggle-mensual-diario-estado',nuevo_estado);
+      const params = JSON.parse(tgt.attr('data-js-click-toggle'));
+      tgt.closest(params.parentSelector)
+      .attr(params.parentAttr,params.nuevoEstado);
+      tgt.trigger(params.nuevoEstado);
     });
     
-    M.find('form[data-js-recalcular]').on('click','[data-js-click-subcanon-toggle-set]',function(e){
+    M.find('form[data-js-recalcular]').on('mostrar_subcanon','[data-js-click-toggle][data-js-subcanon-mostrar-esconder-siblings]',function(e){
       const tgt = $(e.currentTarget);
-      const nuevo_estado = tgt.attr('data-js-click-subcanon-toggle-set');
-      tgt.closest('[data-subcanon-toggle-estado]')
-      .attr('data-subcanon-toggle-estado',nuevo_estado)
+      const params = JSON.parse(tgt.attr('data-js-click-toggle'));
+      tgt.closest(params.parentSelector)
       .siblings('[data-subcanon-toggle-estado]')
-      .attr('data-subcanon-toggle-estado','esconder');
+      .attr('data-subcanon-toggle-estado','esconder_subcanon');
     });
   });
     
@@ -668,7 +668,7 @@ $(document).ready(function() {
         const fd = {};
         fd[tgt.closest('[data-table-id]').attr('data-table-id')] = tgt.val();
         
-        $('[data-js-modal-eliminar]').trigger('mostrar',[{
+        $('[data-js-modal-eliminar]').trigger('mostrar.modal',[{
           url: tgt.attr('data-js-borrar'),
           url_params: fd,
           mensaje: 'Esta seguro que desea eliminarlo',
@@ -746,7 +746,7 @@ $(document).ready(function() {
   
   $('#pant_canon').on('click','[data-js-cambiar-estado]',function(e){//@TODO: bindear derecho
     const tgt = $(e.currentTarget);
-    $('[data-js-modal-cambiar-estado]').trigger('mostrar',[{
+    $('[data-js-modal-cambiar-estado]').trigger('mostrar.modal',[{
       url: tgt.attr('data-js-cambiar-estado'),
       url_params: {id_canon: tgt.val()},
       mensaje: tgt.attr('data-mensaje-cambiar-estado') ?? '¿Desea cambiar el estado?',
@@ -804,7 +804,7 @@ $(function(e){ $('[data-js-modal-cambiar-estado]').each(function(){
   let error = null;
   let url_params = {};
   
-  M.on('mostrar',function(e,params){
+  M.on('mostrar.modal',function(e,params){
     url = params.url;
     if(typeof url == 'undefined') throw 'No se recibio una URL';
     

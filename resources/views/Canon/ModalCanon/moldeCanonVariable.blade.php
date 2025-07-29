@@ -47,7 +47,7 @@
   $determinado_subtotal = $n('determinado_subtotal');
   $determinado_total = $n('determinado_total');
 ?>
-<div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder">
+<div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder_subcanon">
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
   <input data-name="{{$n('id_canon_variable')}}" hidden>
   <div class="bloque_interno"  style="width: 100%;display: flex;align-items: center;">
@@ -55,7 +55,7 @@
     @component('Canon.ModalCanon.toggleSubcanon')
     @endcomponent
   </div>
-  <div data-subcanon-toggle-visible="mostrar" style="width: 100%;display: block;">
+  <div data-subcanon-toggle-visible="mostrar_subcanon" style="width: 100%;display: block;">
     <div style="width: 100%;">
       <div class="bloque_interno" style="width: 100%;display: flex;">
         <div class="parametro_chico"  style="flex: 2;">
@@ -174,7 +174,8 @@
           <span>DETERMINADO</span>
         </h4>
         <div style="width: 100%;">
-          @include('Canon.ModalCanon.toggleMensualDiario')
+          @component('Canon.ModalCanon.toggleMensualDiario')
+          @endcomponent
         </div>
         <div style="width: 100%;">
           <table class="table table-bordered" style="margin-bottom: 0;">

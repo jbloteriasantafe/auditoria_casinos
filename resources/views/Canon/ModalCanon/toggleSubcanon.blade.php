@@ -1,16 +1,13 @@
-@component('Components.include_guard',['nombre' => 'Canon_toggleSubCanon'])
-<style>
-  [data-subcanon-toggle-estado="esconder"] [data-subcanon-toggle-visible="mostrar"] {
-    display: none !important;
-  }
-  [data-subcanon-toggle-estado="mostrar"] [data-subcanon-toggle-visible="esconder"] {
-    display: none !important;
-  }
-</style>
+@component(
+  'Canon.ModalCanon.toggle',
+  [
+    'tipo' => 'Subcanon',
+    'parentSelector' => '[data-subcanon-toggle-estado]',
+    'parentAttr' => 'data-subcanon-toggle-estado',
+    'childAttr'  => 'data-subcanon-toggle-visible',
+    'estado1' => 'mostrar_subcanon',
+    'estado2' => 'esconder_subcanon',
+    'extraAttrs' => 'data-js-subcanon-mostrar-esconder-siblings'
+  ]
+)
 @endcomponent
-<button type="button" class="btn" data-js-click-subcanon-toggle-set="mostrar" data-subcanon-toggle-visible="esconder" hidden>
-  MOSTRAR
-</button>
-<button type="button" class="btn" data-js-click-subcanon-toggle-set="esconder" data-subcanon-toggle-visible="mostrar" hidden>
-  ESCONDER
-</button>

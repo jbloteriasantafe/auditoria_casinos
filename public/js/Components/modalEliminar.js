@@ -10,7 +10,7 @@ $(function(e){ $('[data-js-modal-eliminar]').each(function(){
   let error = null;
   let url_params = {};
   
-  M.on('mostrar',function(e,params){
+  M.on('mostrar.modal',function(e,params){
     url = params.url;
     if(typeof url == 'undefined') throw 'No se recibio una URL';
     
