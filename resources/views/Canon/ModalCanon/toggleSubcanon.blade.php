@@ -10,4 +10,10 @@
     'extraAttrs' => 'data-js-subcanon-mostrar-esconder-siblings'
   ]
 )
+  @slot('htmlEstado1')
+  <i class="fa fa-dot-circle" style="font-weight: 200;"></i>
+  @endslot
+  @slot('htmlEstado2')
+  <i class="fa fa-circle" style="font-weight: 200;"></i>
+  @endslot
 @endcomponent

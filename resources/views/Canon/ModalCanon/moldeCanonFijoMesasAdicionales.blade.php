@@ -33,9 +33,9 @@
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
   <input data-name="{{$n('id_canon_fijo_mesas_adicionales')}}" hidden>
   <div class="bloque_interno"  style="width: 100%;display: flex;align-items: center;">
-    <h6 data-titulo>TITULO TIPO SUBCANON</h6>
     @component('Canon.ModalCanon.toggleSubcanon')
     @endcomponent
+    <h6 data-titulo>TITULO TIPO SUBCANON</h6>
   </div>
   <div data-subcanon-toggle-visible="mostrar_subcanon" style="width: 100%;display: block;">
     <div class="bloque_interno">
