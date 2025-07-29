@@ -29,7 +29,7 @@
     return "canon_fijo_mesas_adicionales[$molde_str][diario][$molde_str_diario][$s]";
   };
 ?>
-<div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder">
+<div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder" data-subcanon-toggle-mensual-diario-estado="mensual">
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
   <input data-name="{{$n('id_canon_fijo_mesas_adicionales')}}" hidden>
   <div class="bloque_interno"  style="width: 100%;display: flex;align-items: center;">
@@ -104,7 +104,7 @@
         </div>
       </div>
     </div>
-    <div style="display: flex;" data-div-toggle-mensual-diario>
+    <div style="display: flex;">
       <div class="bloque_interno" style="width: 100%;">
         <div style="width: 100%;">
           <div class="col-md-8 col-md-offset-2">
@@ -127,7 +127,7 @@
               </thead>
             </table>
           </div>
-          <div data-mensual-diario="diario">
+          <div data-mensual-diario-toggle-visible="diario">
             <div data-div-determinado="diario" class="col-md-8 col-md-offset-2" style="max-height: 25vh;overflow-y: scroll;">
               <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
                 @yield('colgroupCFMA')
@@ -144,7 +144,7 @@
             </div>
           </div>        
           <div class="col-md-8 col-md-offset-2">
-            <table data-tabla-mensual class="sacar-borde-primer-tr table table-bordered">
+            <table class="sacar-borde-primer-tr table table-bordered">
               @yield('colgroupCFMA')
               <tbody>
                 <tr class="fila-mensual">

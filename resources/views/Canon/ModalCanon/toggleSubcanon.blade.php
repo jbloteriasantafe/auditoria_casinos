@@ -1,4 +1,4 @@
-@component('Components/include_guard',['nombre' => 'Canon_toggleSubCanon'])
+@component('Components.include_guard',['nombre' => 'Canon_toggleSubCanon'])
 <style>
   [data-subcanon-toggle-estado="esconder"] [data-subcanon-toggle-visible="mostrar"] {
     display: none !important;

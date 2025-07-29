@@ -156,7 +156,7 @@ $(document).ready(function() {
         n.attr('data-depende',n.attr('data-depende').replaceAll(replace_str_tipo,replace_idx));
       });
       
-      div.find('[data-mensual-diario="diario"]').find('[data-div-devengado],[data-div-determinado]').each(function(_,divdetdevobj){          
+      div.find('[data-div-devengado="diario"],[data-div-determinado="diario"]').each(function(_,divdetdevobj){          
         const tabla = $(divdetdevobj).find('[data-tabla-diario]');
         const molde = $(divdetdevobj).find('[data-molde-diario]');
         const replace_str_diario = molde.attr('data-molde-diario');
@@ -272,9 +272,6 @@ $(document).ready(function() {
           return $($(tab_obj).attr('data-js-tab'))?.[0] == pestaña[0];
         }).toggle(lleno || mostrar_de_todos_modos);
         pestaña.toggle(lleno || mostrar_de_todos_modos);
-        
-        pestaña.find('[data-mensual-diario="mensual"]').show();
-        pestaña.find('[data-mensual-diario="diario"]').hide();
         
         //Muestro el primer subcanon por defecto
         pestaña.find('[data-subcanon-toggle-estado]:visible')
@@ -583,10 +580,12 @@ $(document).ready(function() {
       .closest('[data-subcanon-tipo]').find('[data-css-devengar]')
       .attr('data-css-devengar',parseInt(e.currentTarget.value));
     });
-    
-    M.find('form[data-js-recalcular]').on('click','[data-js-click-toggle-mensual-diario]',function(e){
-      const div_tipo = $(e.currentTarget).closest('[data-div-toggle-mensual-diario]');
-      div_tipo.find('[data-mensual-diario]').toggle();
+        
+    M.find('form[data-js-recalcular]').on('click','[data-js-click-subcanon-mensual-diario-toggle-set]',function(e){
+      const tgt = $(e.currentTarget);
+      const nuevo_estado = tgt.attr('data-js-click-subcanon-mensual-diario-toggle-set');
+      tgt.closest('[data-subcanon-toggle-mensual-diario-estado]')
+      .attr('data-subcanon-toggle-mensual-diario-estado',nuevo_estado);
     });
     
     M.find('form[data-js-recalcular]').on('click','[data-js-click-subcanon-toggle-set]',function(e){

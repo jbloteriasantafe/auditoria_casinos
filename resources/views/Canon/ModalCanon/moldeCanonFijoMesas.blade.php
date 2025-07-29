@@ -47,7 +47,7 @@
     return "canon_fijo_mesas[$molde_str][diario][$molde_str_diario][$s]";
   };
 ?>
-<div class="bloque_interno bloque_principal" style="width: 100%;" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder">
+<div class="bloque_interno bloque_principal" style="width: 100%;" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder" data-subcanon-toggle-mensual-diario-estado="mensual">
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
   <input data-name="{{$n('id_canon_fijo_mesas')}}" hidden>
   <div class="bloque_interno" style="width: 100%;display: flex;align-items: center;">
@@ -89,7 +89,7 @@
         <div style="display: flex;">
           <div>
             <h5>F. COTIZACIÓN</h5>
-            @component('Components/inputFecha',[
+            @component('Components.inputFecha',[
               'attrs' => "data-js-texto-no-formatear-numero data-name='devengado_fecha_cotizacion' data-depende='año_mes'",
               'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
             ])
@@ -130,7 +130,7 @@
         <div style="display: flex;">
           <div>
             <h5>F. COTIZACIÓN</h5>
-            @component('Components/inputFecha',[
+            @component('Components.inputFecha',[
               'attrs' => "data-js-texto-no-formatear-numero data-name='determinado_fecha_cotizacion' data-depende='año_mes'",
               'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
             ])
@@ -215,7 +215,7 @@
         </div>
       </div>
     </div>
-    <div style="display: flex;width: 100%;" data-div-toggle-mensual-diario>
+    <div style="display: flex;width: 100%;">
       <div class="bloque_interno" style="width: 100%;align-items: center;">      
         <div style="width: 100%;display: flex;">
           @include('Canon.ModalCanon.toggleMensualDiario')
@@ -253,9 +253,9 @@
             </thead>
           </table>
         </div>
-        <div style="width: 100%;max-height: 25vh;overflow-y: scroll;"  data-mensual-diario="diario">
+        <div style="width: 100%;max-height: 25vh;overflow-y: scroll;" data-mensual-diario-toggle-visible="diario">
           <!-- No hay 2 tablas para determinado y devengado... asi que le pongo un solo atributo -->
-          <div data-div-determinado style="width: 100%;">
+          <div data-div-determinado="diario" style="width: 100%;">
             <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
               @yield('colgroupCF')
               <tbody>

@@ -97,7 +97,7 @@
   }
 </style>
 <div id="pant_canon" hidden>
-  @component('Components/FiltroTabla')
+  @component('Components.FiltroTabla')
     @slot('titulo')
     CANON
     <button class="btn" type="button" data-js-nuevo-canon="/canon/obtener">NUEVO</button>
@@ -122,14 +122,14 @@
     <div class="col-md-4">
       <h5>PERÍODO</h5>
       <div style="display: flex;">
-        @component('Components/inputFecha',[
+        @component('Components.inputFecha',[
           'attrs' => 'name="año_mes[0]"',
           'attrs_dtp' => 'data-date-format="yyyy-mm" data-start-view="year" data-min-view="decade"',
           'form_group_attrs' => 'style="padding: 0 !important;flex: 1;"',
           'placeholder' => 'DESDE'
         ])
         @endcomponent
-        @component('Components/inputFecha',[
+        @component('Components.inputFecha',[
           'attrs' => 'name="año_mes[1]"',
           'attrs_dtp' => 'data-date-format="yyyy-mm" data-start-view="year" data-min-view="decade"',
           'form_group_attrs' => 'style="padding: 0 !important;flex: 1;"',
@@ -224,7 +224,7 @@
 
 @if($es_superusuario)
 <div id="pant_defecto" hidden>
-  @component('Components/FiltroTabla')
+  @component('Components.FiltroTabla')
     @slot('titulo')
     <div>VALORES POR DEFECTO</div>
     <form style="display: flex;">
@@ -467,7 +467,7 @@
   </div>
 </div>
 
-@component('Components/modal',[
+@component('Components.modal',[
   'clases_modal' => 'VerCargarCanon',
   'attrs_modal' => 'data-js-modal-ver-cargar-canon',
   'estilo_cabecera' => 'background-color: #6dc7be;',
@@ -486,7 +486,7 @@
     <div style="width: 100%;display: flex;">
       <div>
         <h5>AÑO MES</h5>
-        @component('Components/inputFecha',[
+        @component('Components.inputFecha',[
           'attrs' => 'data-js-formatear-año-mes name="año_mes" placeholder="AÑO MES" data-js-empty-si-cambio="[data-canon-variable] [data-js-contenedor],[data-canon-fijo-mesas] [data-js-contenedor],[data-canon-fijo-mesas-adicionales] [data-js-contenedor]"',
           'attrs_dtp' => 'data-date-format="yyyy-mm" data-start-view="year" data-min-view="decade"',
           'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "EDITAR"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"',
@@ -606,7 +606,7 @@
           <div style="width: 100%;display: flex;">
             <div>
               <h5>F. Vencimiento</h5>
-              @component('Components/inputFecha',[
+              @component('Components.inputFecha',[
                 'attrs' => "data-js-texto-no-formatear-numero name='fecha_vencimiento' data-depende='año_mes'",
                 'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
               ])
@@ -677,7 +677,7 @@
                 <input class="form-control" data-name="{{$capital}}" data-readonly='[{"modo":"*"}]'>
               </div>
               <div class="grid_fecha_pago">
-                @component('Components/inputFecha',[
+                @component('Components.inputFecha',[
                   'attrs' => "data-js-texto-no-formatear-numero data-name='$fecha_pago' data-depende='año_mes'",
                   'attrs_dtp' => 'data-picker-position="top-right"',
                   'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'

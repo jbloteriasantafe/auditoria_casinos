@@ -5,5 +5,11 @@
 $GLOBALS['include_guard'] = $GLOBALS['include_guard'] ?? []; 
 $GLOBALS['include_guard'][] = $nombre;
 ?>
+{{-- <script type="text/javascript">
+  var include_guard;
+  include_guard = include_guard ?? [];
+  include_guard.push("{!! $nombre !!}");
+</script> --}}
 {!! $slot !!}
 @endif
+

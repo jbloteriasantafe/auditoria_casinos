@@ -47,7 +47,7 @@
   $determinado_subtotal = $n('determinado_subtotal');
   $determinado_total = $n('determinado_total');
 ?>
-<div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder">  
+<div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder">
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
   <input data-name="{{$n('id_canon_variable')}}" hidden>
   <div class="bloque_interno"  style="width: 100%;display: flex;align-items: center;">
@@ -72,8 +72,8 @@
         </div>
       </div>
     </div>
-    <div style="width: 100%;display: flex;">
-      <div class="bloque_interno" data-css-devengar style="flex: 1;" data-div-toggle-mensual-diario>
+    <div style="width: 100%;display: flex;" data-subcanon-toggle-mensual-diario-estado="mensual">
+      <div class="bloque_interno" data-css-devengar style="flex: 1;">
         <h4 style="width: 100%;display: flex;">
           <span>DEVENGADO&nbsp;&nbsp;</span>
           <select class="form-control" data-name="{{$devengar}}" data-js-devengar style="width: unset;height: unset;padding: 0;" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
@@ -121,7 +121,7 @@
             </thead>
           </table>
         </div>
-        <div style="width: 100%;" data-mensual-diario="diario">
+        <div style="width: 100%;" data-mensual-diario-toggle-visible="diario">
           <div data-div-devengado="diario" style="max-height: 25vh;overflow-y: scroll;">
             <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
               @yield('colgroupCV')
@@ -168,7 +168,7 @@
         </div>
       </div>
     </div>
-    <div style="width: 100%;display: flex;">
+    <div style="width: 100%;display: flex;" data-subcanon-toggle-mensual-diario-estado="mensual">
       <div class="bloque_interno" style="flex: 1;width: 100%;" data-div-toggle-mensual-diario>
         <h4 style="display: flex;width: 100%;">
           <span>DETERMINADO</span>
@@ -194,7 +194,7 @@
             </thead>
           </table>
         </div>
-        <div style="width: 100%;" data-mensual-diario="diario">
+        <div style="width: 100%;" data-mensual-diario-toggle-visible="diario">
           <div data-div-determinado="diario" style="max-height: 25vh;overflow-y: scroll;width: 100%;">
             <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
               @yield('colgroupCV')
