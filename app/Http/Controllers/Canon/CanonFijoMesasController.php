@@ -368,17 +368,33 @@ class CanonFijoMesasController extends Controller
     }
     return 1;
   }
-    
+  
+  public function obtener_diario($id_canon_fijo_mesas){
+    return DB::table('canon_fijo_mesas_diario')
+    ->where('id_canon_fijo_mesas',$id_canon_fijo_mesas)
+    ->orderBy('fecha','asc')
+    ->get()
+    ->transform(function(&$d){
+      $d->dia = intval(substr($d->fecha,strlen('XXXX-XX-'),2));
+      return $d;
+    })
+    ->keyBy('dia');
+  }
+  
   public function obtener($id_canon){
     $ret = [];
     $ret['canon_fijo_mesas'] = DB::table('canon_fijo_mesas')
     ->where('id_canon',$id_canon)
     ->get()
     ->keyBy('tipo');
+    
+    foreach($ret['canon_fijo_mesas'] as $tipo => $datatipo){
+      $datatipo->diario = $this->obtener_diario($datatipo->id_canon_fijo_mesas);
+    }
        
     return $ret;
   }
-    
+  
   public function procesar_para_salida($data){
     $ret = [];
     foreach(['id_canon_fijo_mesas','id_canon'] as $k){
@@ -404,11 +420,30 @@ class CanonFijoMesasController extends Controller
     );
   }
 
+
   public function bruto($tipo,$año_mes,$id_casino,$diario = false){
     if($año_mes === null || $tipo === null || $id_casino === null) return null;
     $año_mes_arr = explode('-',$año_mes);
+    $diario = $diario? 1 : 0;
+    
+    static $cache = [];
+    
+    $cache[$tipo] = $cache[$tipo] ?? [];
+    $cache[$tipo][$id_casino] = $cache[$tipo][$id_casino] ?? [];
+
+    $kañomes = $año_mes_arr[0].'-'.$año_mes_arr[1];
+    $dia = $diario? intval($año_mes_arr[2]) : 0;
+        
+    $err_val = function($v) use ($diario,$año_mes_arr){
+      return ((object)['dia' => ($diario? $año_mes_arr[2] : 0),'mesas_ARS' => $v,'bruto_ARS' => $v,'mesas_USD' => $v,'bruto_USD' => $v,'cotizacion' => $v,'bruto_USD_cotizado' => $v,'mesas' => $v,'bruto' => $v]);
+    };
+    
+    if(array_key_exists($kañomes,$cache[$tipo][$id_casino]) 
+    && array_key_exists($dia,$cache[$tipo][$id_casino][$kañomes])){
+      return $cache[$tipo][$id_casino][$kañomes][$dia];
+    }
+    
     $resultado = null;
-    $mesas = null;
     switch($tipo){
       case 'Mesas':
       case 'Fijas':
@@ -434,18 +469,13 @@ class CanonFijoMesasController extends Controller
         return $q->whereRaw('IFNULL(didm.droop,0) <> 0 OR IFNULL(didm.droop_tarjeta,0) <> 0 OR IFNULL(didm.reposiciones,0) <> 0
           OR IFNULL(didm.retiros,0) <> 0 OR IFNULL(didm.utilidad,0) <> 0 OR IFNULL(didm.saldo_fichas,0) <> 0 OR IFNULL(didm.propina <> 0,0)');
         });
-        
-        $mesas;
-        if($diario){
-          $resultado = $resultado->whereDay('idm.fecha',intval($año_mes_arr[2]));
-          $mesas = $mesas->whereDay('idm.fecha',intval($año_mes_arr[2])); 
-        }
-        
+                
         $cot_valor = 'CAST(cot.valor AS DECIMAL(20,6))';
         $resultado = $resultado->selectRaw("
+          IF($diario,DAY(idm.fecha),0) as dia,
           SUM(IF(idm.id_moneda = 1,idm.utilidad,0)) as bruto_ARS,
           SUM(IF(idm.id_moneda = 2,idm.utilidad,0)) as bruto_USD,
-          MAX(IF('.$diario.',$cot_valor,NULL)) as cotizacion,
+          MAX(IF($diario,$cot_valor,NULL)) as cotizacion,
           SUM(IF(idm.id_moneda = 2,$cot_valor*idm.utilidad,0)) as bruto_USD_cotizado,
           SUM(
             IF(idm.id_moneda = 1,
@@ -457,26 +487,51 @@ class CanonFijoMesasController extends Controller
             )
           ) as bruto
         ")
-        ->groupBy(DB::raw('"constant"'))->first();
+        ->groupBy(DB::raw("IF($diario,DAY(idm.fecha),0)"))->first();
         
         $codigo = 'CONCAT(didm.siglas_juego,didm.nro_mesa)';
         //@HACK: contar doble a las mesas que abren en ARS y USD o cuentan una sola vez?
         $mesas = $mesas->selectRaw("
+          IF($diario,DAY(idm.fecha),0) as dia,
           COUNT(distinct IF(idm.id_moneda = 1,$codigo,NULL)) as mesas_ARS,
           COUNT(distinct IF(idm.id_moneda = 2,$codigo,NULL)) as mesas_USD,
           COUNT(distinct IF(idm.id_moneda = 1,$codigo,NULL))+COUNT(distinct IF(idm.id_moneda = 2,$codigo,NULL)) as mesas
         ")
-        ->groupBy(DB::raw('"constant"'))->first();
+        ->groupBy(DB::raw("IF($diario,DAY(idm.fecha),0)"))->first();
       }break;
     }
     
-    $resultado = $resultado ?? ((object)['mesas_ARS' => null,'bruto_ARS' => null,'mesas_USD' => null,'bruto_USD' => NULL,'cotizacion' => null,'bruto_USD_cotizado' => null,'mesas' => null,'bruto' => null]);
-    if($mesas !== null){
-      $resultado->mesas_ARS = $mesas->mesas_ARS;
-      $resultado->mesas_USD = $mesas->mesas_USD;
-      $resultado->mesas     = $mesas->mesas;
+    if($resultado !== null){
+      $resultado = $resultado->keyBy('dia');
     }
-    return $resultado;
+    if($mesas !== null){
+      $mesas = $mesas->keyBy('dia');
+    }
+    
+    //JOIN
+    if($diario) for($d=1;$d<=cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));$d++){
+      if($resultado !== null && $mesas !== null && array_key_exists($d,$resultado) && array_key_exists($d,$mesas)){
+        $resultado[$d]->mesas_ARS = $mesas[$d]->mesas_ARS;
+        $resultado[$d]->mesas_USD = $mesas[$d]->mesas_USD;
+        $resultado[$d]->mesas     = $mesas[$d]->mesas;
+      }
+    }
+    else{
+      if($resultado !== null && $mesas !== null && array_key_exists(0,$resultado) && array_key_exists(0,$mesas)){
+        $resultado[0]->mesas_ARS = $mesas[0]->mesas_ARS;
+        $resultado[0]->mesas_USD = $mesas[0]->mesas_USD;
+        $resultado[0]->mesas     = $mesas[0]->mesas;
+      }
+    }
+    
+    if($diario) for($d=1;$d<=cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));$d++){
+      $cache[$tipo][$id_casino][$kañomes][$d] = $resultado[$d] ?? $err_val(null);
+    }
+    else{
+      $cache[$tipo][$id_casino][$kañomes][0] = $resultado[0] ?? $err_val(null);
+    }
+    
+    return $cache[$tipo][$id_casino][$kañomes][$dia];
   }
   
   public function diario($id,$año_mes){

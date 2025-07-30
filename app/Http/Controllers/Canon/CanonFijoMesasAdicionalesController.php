@@ -239,12 +239,28 @@ class CanonFijoMesasAdicionalesController extends Controller
     }
   }
   
+  public function obtener_diario($id_canon_fijo_mesas_adicionales){
+    return DB::table('canon_fijo_mesas_adicionales_diario')
+    ->where('id_canon_fijo_mesas_adicionales',$id_canon_fijo_mesas_adicionales)
+    ->orderBy('fecha','asc')
+    ->get()
+    ->transform(function(&$d){
+      $d->dia = intval(substr($d->fecha,strlen('XXXX-XX-'),2));
+      return $d;
+    })
+    ->keyBy('dia');
+  }
+  
   public function obtener($id_canon){
     $ret = [];
     $ret['canon_fijo_mesas_adicionales'] = DB::table('canon_fijo_mesas_adicionales')
     ->where('id_canon',$id_canon)
     ->get()
     ->keyBy('tipo');
+    
+    foreach($ret['canon_fijo_mesas_adicionales'] as $tipo => $datatipo){
+      $datatipo->diario = $this->obtener_diario($datatipo->id_canon_fijo_mesas_adicionales);
+    }
        
     return $ret;
   }

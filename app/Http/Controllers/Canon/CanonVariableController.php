@@ -268,12 +268,28 @@ class CanonVariableController extends Controller
     return 1;
   }
   
+  public function obtener_diario($id_canon_variable){
+    return DB::table('canon_variable_diario')
+    ->where('id_canon_variable',$id_canon_variable)
+    ->orderBy('fecha','asc')
+    ->get()
+    ->transform(function(&$d){
+      $d->dia = intval(substr($d->fecha,strlen('XXXX-XX-'),2));
+      return $d;
+    })
+    ->keyBy('dia');
+  }
+  
   public function obtener($id_canon){
     $ret = [];
     $ret['canon_variable'] = DB::table('canon_variable')
     ->where('id_canon',$id_canon)
     ->get()
     ->keyBy('tipo');
+    
+    foreach($ret['canon_variable'] as $tipo => $datatipo){
+      $datatipo->diario = $this->obtener_diario($datatipo->id_canon_variable);
+    }
        
     return $ret;
   }
@@ -293,11 +309,29 @@ class CanonVariableController extends Controller
   public function confluir($data){
     return [];
   }
-    
+      
   public function bruto($tipo,$año_mes,$id_casino,$diario = false){
     if($año_mes === null || $tipo === null || $id_casino === null) return null;
     $año_mes_arr = explode('-',$año_mes);
     $diario = $diario? 1 : 0;
+    
+    static $cache = [];
+    
+    $cache[$tipo] = $cache[$tipo] ?? [];
+    $cache[$tipo][$id_casino] = $cache[$tipo][$id_casino] ?? [];
+
+    $kañomes = $año_mes_arr[0].'-'.$año_mes_arr[1];
+    $dia = $diario? intval($año_mes_arr[2]) : 0;
+        
+    $err_val = function($v) use ($diario,$año_mes_arr){
+      return ((object)['dia' => ($diario? $año_mes_arr[2] : 0),'bruto_ARS' => $v,'bruto_USD' => $v,'cotizacion' => $v,'bruto_USD_cotizado' => $v,'bruto' => $v]);
+    };
+    
+    if(array_key_exists($kañomes,$cache[$tipo][$id_casino]) 
+    && array_key_exists($dia,$cache[$tipo][$id_casino][$kañomes])){
+      return $cache[$tipo][$id_casino][$kañomes][$dia];
+    }
+    
     $resultado = null;
     switch($tipo){
       case 'Maquinas':{
@@ -309,13 +343,12 @@ class CanonVariableController extends Controller
         ->where('b.id_casino',$id_casino)
         ->whereYear('b.fecha',$año_mes_arr[0])
         ->whereMonth('b.fecha',intval($año_mes_arr[1]));
-        if($diario){
-          $resultado = $resultado->whereDay('b.fecha',intval($año_mes_arr[2]));
-        }
-        $resultado = $resultado->selectRaw('
+        
+        $resultado = $resultado->selectRaw("
+          IF($diario,DAY(b.fecha),0) as dia,
           SUM(IF(b.id_tipo_moneda = 1,b.valor,0)) as bruto_ARS,
           SUM(IF(b.id_tipo_moneda = 2,b.valor,0)) as bruto_USD,
-          MAX(IF('.$diario.',cot.valor,NULL)) as cotizacion,
+          MAX(IF($diario,cot.valor,NULL)) as cotizacion,
           SUM(IF(b.id_tipo_moneda = 2,cot.valor*b.valor,0)) as bruto_USD_cotizado,
           SUM(
             IF(b.id_tipo_moneda = 1,
@@ -326,55 +359,36 @@ class CanonVariableController extends Controller
               )
             )
           ) as bruto
-        ')
-        ->groupBy(DB::raw('"constant"'))->first();
+        ")
+        ->groupBy(DB::raw('IF('.$diario.',DAY(b.fecha),0)'))->get();
       }break;
       case 'Bingo':{
         $resultado = DB::table('bingo_importacion as b')
         ->where('b.id_casino',$id_casino)
         ->whereYear('b.fecha',$año_mes_arr[0])
         ->whereMonth('b.fecha',intval($año_mes_arr[1]));
-        if($diario){
-          $resultado = $resultado->whereDay('b.fecha',intval($año_mes_arr[2]));
-        }
-                
-        $resultado = $resultado->selectRaw('
+        
+        $resultado = $resultado->selectRaw("
+          IF($diario,DAY(b.fecha),0) as dia,
           SUM(b.recaudado-b.premio_bingo-b.premio_linea) as bruto_ARS,
           NULL as bruto_USD,
           NULL as cotizacion,
           NULL as bruto_USD_cotizado,
           SUM(b.recaudado-b.premio_bingo-b.premio_linea) as bruto
-        ')
-        ->groupBy(DB::raw('"constant"'))->first();
+        ")
+        ->groupBy(DB::raw('IF('.$diario.',DAY(b.fecha),0)'))->get();
       }break;
       case 'JOL':{
-        //dump("$tipo,$año_mes,$id_casino,$diario");
-        static $cache = [];
-        //dump($cache);
-        $kañomes = $año_mes_arr[0].'-'.$año_mes_arr[1];
-        $dia = intval($año_mes_arr[2]);
-        $en_cache = $cache[$id_casino] ?? [];
-        if(array_key_exists($kañomes,$en_cache)){
-          $resultado = $en_cache[$kañomes][$diario? $dia : 0] ?? null;
-          break;
-        }
-        
-        $err_val = function($v){
-          return ((object)['bruto_ARS' => $v,'bruto_USD' => $v,'cotizacion' => $v,'bruto_USD_cotizado' => $v,'bruto' => $v]);
-        };
         $JOL_connect_config = CanonValorPorDefectoController::getInstancia()->valorPorDefecto('JOL_connect_config') ?? null;
         $debug = $JOL_connect_config['debug'] ?? false;
         if(empty($JOL_connect_config)){
-          $resultado = $err_val($debug? '-0.99' : null);
-          break;
+          return $err_val($debug? '-0.99' : null);
         }
         if(empty($JOL_connect_config['ip_port'])){
-          $resultado = $err_val($debug? '-0.98' : null);
-          break;
+          return $err_val($debug? '-0.98' : null);
         }
         if(empty($JOL_connect_config['API-Token'])){
-          $resultado = $err_val($debug? '-0.97' : null);
-          break;
+          return $err_val($debug? '-0.97' : null);
         }
         
         set_time_limit(5);
@@ -393,55 +407,76 @@ class CanonVariableController extends Controller
           'API-Token: '.$JOL_connect_config['API-Token']
         ]);
         
-        $result = curl_exec($ch);
-        $code   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $resultado = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         
-        if($result === false){//Error de curl https://curl.se/libcurl/c/libcurl-errors.html
+        if($resultado === false){//Error de curl https://curl.se/libcurl/c/libcurl-errors.html
           $errno = curl_errno($ch);
           curl_close($ch);
-          $resultado = $err_val($debug? ('-999999999'.$errno.'.98') : null);
-          break;
+          return $err_val($debug? ('-999999999'.$errno.'.98') : null);
         }
         curl_close($ch);
         
         if($code != 200){
-          $resultado = $err_val($debug? ('-999999999'.$code.'.99') : null);
-          break;
+          return $err_val($debug? ('-999999999'.$code.'.99') : null);
         }
         
-        $result = json_decode($result);
-        
-        $cache[$id_casino] = $cache[$id_casino] ?? [];
-        $cache[$id_casino][$kañomes] = $result;
-        
-        $resultado = $cache[$id_casino][$kañomes][$diario? $dia : 0] ?? null;
+        $resultado = json_decode($resultado);
       }break;
     }
     
-    return $resultado ?? ((object)['bruto_ARS' => null,'bruto_USD' => NULL,'cotizacion' => null,'bruto_USD_cotizado' => null,'bruto' => null]);
+    if($resultado !== null)
+      $resultado = $resultado->keyBy('dia');
+    
+    if($diario) for($d=1;$d<=cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));$d++){
+      $cache[$tipo][$id_casino][$kañomes][$d] = $resultado[$d] ?? $err_val(null);
+    }
+    else{
+      $cache[$tipo][$id_casino][$kañomes][0] = $resultado[0] ?? $err_val(null);
+    }
+    
+    return $cache[$tipo][$id_casino][$kañomes][$dia];
   }
   
-  private function apostado($tipo,$año_mes,$id_casino,$diario = false){
+  public function apostado($tipo,$año_mes,$id_casino,$diario = false){
     if($año_mes === null || $tipo === null || $id_casino === null) return null;
     $año_mes_arr = explode('-',$año_mes);
     $diario = $diario? 1 : 0;
+    
+    static $cache = [];
+    
+    $cache[$tipo] = $cache[$tipo] ?? [];
+    $cache[$tipo][$id_casino] = $cache[$tipo][$id_casino] ?? [];
+
+    $kañomes = $año_mes_arr[0].'-'.$año_mes_arr[1];
+    $dia = $diario? intval($año_mes_arr[2]) : 0;
+        
+    $err_val = function($v) use ($diario,$año_mes_arr){
+      return ((object)['dia' => ($diario? $año_mes_arr[2] : 0),'apostado_ARS' => $v,'apostado_USD' => $v,'cotizacion' => $v,'apostado_USD_cotizado' => $v,'apostado' => $v]);
+    };
+    
+    if(array_key_exists($kañomes,$cache[$tipo][$id_casino]) 
+    && array_key_exists($dia,$cache[$tipo][$id_casino][$kañomes])){
+      return $cache[$tipo][$id_casino][$kañomes][$dia];
+    }
+    
     $resultado = null;
     switch($tipo){
       case 'Maquinas':{
         $resultado = DB::table('beneficio as b')
         ->leftJoin('cotizacion as cot',function($j){
-          return $j->on('cot.fecha','=','b.fecha');
+          return $j->where('b.id_tipo_moneda',2)
+          ->on('cot.fecha','=','b.fecha');
         })
         ->where('b.id_casino',$id_casino)
         ->whereYear('b.fecha',$año_mes_arr[0])
         ->whereMonth('b.fecha',intval($año_mes_arr[1]));
-        if($diario){
-          $resultado = $resultado->whereDay('b.fecha',intval($año_mes_arr[2]));
-        }
-        $resultado = $resultado->selectRaw('
+        
+        $resultado = $resultado->selectRaw("
+          IF($diario,DAY(b.fecha),0) as dia,
           SUM(IF(b.id_tipo_moneda = 1,b.coinin,0)) as apostado_ARS,
           SUM(IF(b.id_tipo_moneda = 2,b.coinin,0)) as apostado_USD,
-          MAX(IF('.$diario.',cot.valor,NULL)) as cotizacion,
+          MAX(IF($diario,cot.valor,NULL)) as cotizacion,
           SUM(IF(b.id_tipo_moneda = 2,cot.valor*b.coinin,0)) as apostado_USD_cotizado,
           SUM(
             IF(b.id_tipo_moneda = 1,
@@ -452,14 +487,24 @@ class CanonVariableController extends Controller
               )
             )
           ) as apostado
-        ')
-        ->groupBy(DB::raw('"constant"'))->first();
+        ")
+        ->groupBy(DB::raw('IF('.$diario.',DAY(b.fecha),0)'))->get();
       }break;
     }
     
-    return $resultado ?? ((object)['apostado_ARS' => null,'apostado_USD' => NULL,'cotizacion' => null,'apostado_USD_cotizado' => null,'apostado' => null]);
+    if($resultado !== null)
+      $resultado = $resultado->keyBy('dia');
+    
+    if($diario) for($d=1;$d<=cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));$d++){
+      $cache[$tipo][$id_casino][$kañomes][$d] = $resultado[$d] ?? $err_val(null);
+    }
+    else{
+      $cache[$tipo][$id_casino][$kañomes][0] = $resultado[0] ?? $err_val(null);
+    }
+    
+    return $cache[$tipo][$id_casino][$kañomes][$dia];
   }
-  
+    
   public function diario($id_casino,$año_mes){
     $año_mes = explode('-',$año_mes);
     $dias = AUX::ranged_sql(1,cal_days_in_month(CAL_GREGORIAN,intval($año_mes[1]),intval($año_mes[0])));
