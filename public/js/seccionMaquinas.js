@@ -1,42 +1,13 @@
 $(document).ready(function() {
-  //Muestra el menu desplegado
-  var prueba = window.location.pathname;
-
-  if(prueba == '/maquinas'){
-    $('#barraMaquinas').attr('aria-expanded','true');
-    $('#maquinas').removeClass();
-    $('#maquinas').addClass('subMenu1 collapse in');
-    $('#gestionarMTM').removeClass();
-    $('#gestionarMTM').addClass('subMenu2 collapse in');
-
-    $('#gestionarMTM').siblings('div.opcionesHover').attr('aria-expanded','true');
-
-    $('.tituloSeccionPantalla').text('Gestionar máquinas');
-    $('#gestionarMaquinas').attr('style','border-left: 6px solid #25306b;');
-    $('#opcGestionarMaquinas').attr('style','border-left: 6px solid #25306b; background-color: #131836;');
-    $('#opcGestionarMaquinas').addClass('opcionesSeleccionado');
-  }
-
-  // eventoBusqueda(10,1,null,null,null);
-  var pathname = window.location.pathname; // ej: /maquinas , /maquinas/5
-
-  var arreglo = pathname.split("/");
-
-  switch (arreglo.length) {
-    case 3:
-      if(arreglo[2] !=0){
-          eventoModificar(arreglo[2]);
-          console.log('carga pagina');
-      }
-      break;
-    default:
-
+  $('.tituloSeccionPantalla').text('Gestionar máquinas');
+  
+  const arreglo = window.location.pathname.split("/");  
+  if(arreglo.length == 3){
+    eventoModificar(arreglo[2]);
   }
 
   $('[data-toggle="popover"]').popover();
-
-  $('#btn-buscar').trigger('click', [1, 10 , 'maquina.nro_admin' , 'asc']);
-
+  $('#btn-buscar').trigger('click');
 });
 
 $("#contenedorFiltros").on("keypress" , function(e){
@@ -133,7 +104,7 @@ $('#busqueda_casino').on('change',function(){
   var id_casino = $('option:selected' , this).val();
   var selectCasino = $(this);
 
-  $.get("maquinas/obtenerSectoresPorCasino/" + id_casino, function(data){
+  $.get("/maquinas/obtenerSectoresPorCasino/" + id_casino, function(data){
 
     var selectSector = $('#busqueda_sector');
     selectSector.empty();
@@ -173,7 +144,7 @@ function eventoModificar(id_maquina){
 
   $('#id_maquina').val(id_maquina);
 
-  $.get("maquinas/obtenerMTM/" + id_maquina, function(data){
+  $.get("/maquinas/obtenerMTM/" + id_maquina, function(data){
     console.log(data);
     mostrarMaquina(data , 'modificar');
     //Se asigna al botón el valor "MODIFICAR" y se muestra
@@ -223,7 +194,7 @@ $(document).on('click','#cuerpoTabla .detalle',function(){
 
       var id_maquina = $(this).val();
 
-      $.get("maquinas/obtenerMTM/" + id_maquina, function(data){
+      $.get("/maquinas/obtenerMTM/" + id_maquina, function(data){
         console.log(data);
 
         mostrarMaquina(data,'detalle');

@@ -235,7 +235,6 @@ class MTMController extends Controller
 
   public function buscarMaquinas(Request $request){
     $reglas=array();
-    $reglas[]=['maquina.deleted_at', '=' , null];
     if($request->estado_maquina!=0){
       if($request->estado_maquina==1){
         $estados=array('1','2');
@@ -246,28 +245,28 @@ class MTMController extends Controller
       $estados=array('1','2','3','4','5','6','7');
     }
     if(isset($request->nro_admin)){
-      $reglas[]=['maquina.nro_admin' , 'like' , '%' . $request->nro_admin . '%'];
+      $reglas[]=['m.nro_admin' , 'like' , '%' . $request->nro_admin . '%'];
     }
     if(isset($request->marca)){
-      $reglas[]=['maquina.marca' , 'like' , '%' . $request->marca . '%'];
+      $reglas[]=['m.marca' , 'like' , '%' . $request->marca . '%'];
     }
     if(isset($request->nro_isla)){
-      $reglas[]=['isla.nro_isla' , '=' , $request->nro_isla];
+      $reglas[]=['i.nro_isla' , '=' , $request->nro_isla];
     }
     if($request->id_sector!=0){
-      $reglas[]=['sector.id_sector' , '=' , $request->id_sector];
+      $reglas[]=['s.id_sector' , '=' , $request->id_sector];
     }
     if(isset($request->denominacion)){
-      $reglas[]=['maquina.denominacion' , '=' , $request->denominacion];
+      $reglas[]=['m.denominacion' , '=' , $request->denominacion];
     }
     if(isset($request->nro_isla)){
-      $reglas[]=['isla.nro_isla' , '=' , $request->nro_isla ];
+      $reglas[]=['i.nro_isla' , '=' , $request->nro_isla ];
     }
     if(isset($request->nombre_juego)){
-      $reglas[]=['juego.nombre_juego' , 'like' , '%' . $request->nombre_juego . '%' ];
+      $reglas[]=['j.nombre_juego' , 'like' , '%' . $request->nombre_juego . '%' ];
     }
     if(isset($request->id_tipo_moneda)){
-      $reglas[]=['maquina.id_tipo_moneda','=',$request->id_tipo_moneda];
+      $reglas[]=['m.id_tipo_moneda','=',$request->id_tipo_moneda];
     }
 
     if($request->id_casino==0){
@@ -280,19 +279,25 @@ class MTMController extends Controller
       $casinos[]=$request->id_casino;
     }
     $sort_by = $request->sort_by;
-    $resultados=DB::table('maquina')
-    ->select('maquina.*','juego.*','isla.*','sector.*','casino.*','estado_maquina.descripcion as estado_maquina')
-    ->leftJoin('isla' , 'isla.id_isla','=','maquina.id_isla')
-    ->leftJoin('casino' , 'maquina.id_casino','=','casino.id_casino')
-    ->leftJoin('sector','sector.id_sector','=','isla.id_sector')
-    ->leftJoin('estado_maquina','maquina.id_estado_maquina','=','estado_maquina.id_estado_maquina')
-    ->leftJoin('juego','maquina.id_juego','=','juego.id_juego')
+    $resultados=DB::table('maquina as m')
+    ->select(
+      'm.id_maquina','m.nro_admin','m.id_estado_maquina','m.desc_marca',
+      'm.marca','j.nombre_juego',DB::raw('IF(m.id_unidad_medida=1,m.denominacion,1) as denominacion'),
+      'c.codigo','s.descripcion','i.nro_isla',
+      'em.descripcion as estado_maquina'
+    )
+    ->leftJoin('isla as i' , 'i.id_isla','=','m.id_isla')
+    ->leftJoin('casino as c' ,'c.id_casino','=','m.id_casino')
+    ->leftJoin('sector as s','s.id_sector','=','i.id_sector')
+    ->leftJoin('estado_maquina as em','em.id_estado_maquina','=','m.id_estado_maquina')
+    ->leftJoin('juego as j','j.id_juego','=','m.id_juego')
     ->when($sort_by,function($query) use ($sort_by){
-                    return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-                })
+      return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+    })
     ->where($reglas)
-    ->whereIn('maquina.id_casino',$casinos)
-    ->whereIn('maquina.id_estado_maquina',$estados)
+    ->whereIn('m.id_casino',$casinos)
+    ->whereIn('m.id_estado_maquina',$estados)
+    ->whereNull('m.deleted_at')
     ->paginate($request->page_size);
 
     return $resultados;
