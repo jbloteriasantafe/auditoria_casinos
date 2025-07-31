@@ -435,7 +435,7 @@ class CanonFijoMesasController extends Controller
     $dia = $diario? intval($año_mes_arr[2]) : 0;
         
     $err_val = function($v) use ($diario,$año_mes_arr){
-      return ((object)['dia' => ($diario? $año_mes_arr[2] : 0),'mesas_ARS' => $v,'bruto_ARS' => $v,'mesas_USD' => $v,'bruto_USD' => $v,'cotizacion' => $v,'bruto_USD_cotizado' => $v,'mesas' => $v,'bruto' => $v]);
+      return ((object)['dia' => ($diario? intval($año_mes_arr[2]) : 0),'mesas_ARS' => $v,'bruto_ARS' => $v,'mesas_USD' => $v,'bruto_USD' => $v,'cotizacion' => $v,'bruto_USD_cotizado' => $v,'mesas' => $v,'bruto' => $v]);
     };
     
     if(array_key_exists($kañomes,$cache[$tipo][$id_casino]) 
@@ -532,52 +532,6 @@ class CanonFijoMesasController extends Controller
     }
     
     return $cache[$tipo][$id_casino][$kañomes][$dia];
-  }
-  
-  public function diario($id,$año_mes){
-    $mensual;
-    $diario;
-    if($id !== null){
-      $mensual = DB::table($this->table)->where($this->id,$id)->first();
-      $año_mes = DB::table('canon',$mensual->id_canon)
-      ->first()->año_mes;
-      $dias_mes = intval(date('t',strtotime($año_mes)));
-      $diario = array_map(function($d){//@TODO query tabla diaria
-        return [
-          'dia' => $d,
-          'devengado' => [
-            'bruto' => rand(100,200),
-            'total' => rand(100,200),
-          ],
-          'determinado' => [
-            'bruto' => rand(100,200),
-            'total' => rand(100,200),
-          ]
-        ];
-      },range(1,$dias_mes,1));
-    }
-    else if($año_mes !== null){
-      $mensual = null;
-      $dias_mes = intval(date('t',strtotime($año_mes)));
-      $diario = array_map(function($d){
-        return [
-          'dia' => $d,
-          'devengado' => [
-            'bruto' => rand(100,200),
-            'total' => rand(100,200),
-          ],
-          'determinado' => [
-            'bruto' => rand(100,200),
-            'total' => rand(100,200),
-          ]
-        ];
-      },range(1,$dias_mes,1));
-    }
-    else{
-      throw new \Exception('Unreachable');
-    }
-    
-    return compact('mensual','diario');
   }
   
   public function datosCanon($tname){

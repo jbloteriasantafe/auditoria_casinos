@@ -1007,7 +1007,6 @@ Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_c
     Route::post('/adjuntar','\App\Http\Controllers\Canon\CanonController@adjuntar');
     Route::get('/cambiarEstado','\App\Http\Controllers\Canon\CanonController@cambiarEstado');
     Route::delete('/borrar','\App\Http\Controllers\Canon\CanonController@borrar');
-    Route::get('/diario','\App\Http\Controllers\Canon\CanonController@diario');
     Route::group(['middleware' => 'tiene_rol:superusuario'], function () {
       Route::get('/desborrar','\App\Http\Controllers\Canon\CanonController@desborrar');
       Route::post('/valoresPorDefecto','\App\Http\Controllers\Canon\CanonValorPorDefectoController@valoresPorDefecto');

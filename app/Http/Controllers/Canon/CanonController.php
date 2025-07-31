@@ -1442,42 +1442,4 @@ class CanonController extends Controller
     
     return View::make('Canon.planillaPlanillas',compact('data','data_plataformas','años_planilla','años','año','año_anterior','meses','meses_calendario','meses_elegibles','mes','num_mes','planillas','planilla','es_anual','es_mensual','casinos','abbr_casinos','plataformas','relacion_plat_cas'));
   }
-  
-  public function diario(Request $request){
-    $tabla = $request->tabla ?? '';
-    $id = $request->id ?? null;
-    $año_mes = $request->año_mes ?? null;
-    
-    Validator::make($request->all(),[
-      'tabla' => ['required','in:canon_variable,canon_fijo_mesas,canon_fijo_mesas_adicionales'],
-      'id' => ['nullable','exists:'.$tabla.',id_'.$tabla],
-      'año_mes' => ($id !== null?
-          ['nullable']
-        : ['required','regex:/^\d{4}\-((0\d)|(1[0-2]))\-01$/']
-      ),
-      'id_casino' => ($id !== null?
-          ['nullable']
-        : ['required','exists:casino,id_casino,deleted_at,NULL']
-      ),
-    ], self::$errores,[])->after(function($validator){})->validate();
-    
-    $año_mes;
-    $id_casino;
-    if(!empty($id)){
-      $subcanon = DB::table($tabla)->where('id_'.$tabla,$id)->first();
-      if($subcanon === null) return [];
-      $canon = DB::table('canon')->where('id_canon',$subcanon->id_canon)->first();
-      if($canon === null) return [];
-      $año_mes = $canon->año_mes;
-      $id_casino = $canon->id_casino;
-    }
-    else{
-      $año_mes = $request->año_mes;
-      $id_casino = $request->id_casino;
-    }
-    
-    $scobj = $this->subcanons[$tabla] ?? null;
-    if($scobj === null) return [];
-    return $scobj->diario($id_casino,$año_mes);
-  }
 }

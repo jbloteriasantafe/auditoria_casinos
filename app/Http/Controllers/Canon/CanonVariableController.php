@@ -324,7 +324,7 @@ class CanonVariableController extends Controller
     $dia = $diario? intval($año_mes_arr[2]) : 0;
         
     $err_val = function($v) use ($diario,$año_mes_arr){
-      return ((object)['dia' => ($diario? $año_mes_arr[2] : 0),'bruto_ARS' => $v,'bruto_USD' => $v,'cotizacion' => $v,'bruto_USD_cotizado' => $v,'bruto' => $v]);
+      return ((object)['dia' => ($diario? intval($año_mes_arr[2]) : 0),'bruto_ARS' => $v,'bruto_USD' => $v,'cotizacion' => $v,'bruto_USD_cotizado' => $v,'bruto' => $v]);
     };
     
     if(array_key_exists($kañomes,$cache[$tipo][$id_casino]) 
@@ -503,51 +503,6 @@ class CanonVariableController extends Controller
     }
     
     return $cache[$tipo][$id_casino][$kañomes][$dia];
-  }
-    
-  public function diario($id_casino,$año_mes){
-    $año_mes = explode('-',$año_mes);
-    $dias = AUX::ranged_sql(1,cal_days_in_month(CAL_GREGORIAN,intval($año_mes[1]),intval($año_mes[0])));
-    
-    return DB::table(DB::raw($dias.' as dia'))
-    ->leftJoin('cotizacion as cot',function($j) use ($año_mes,$id_casino){
-      return $j->whereYear('cot.fecha',$año_mes[0])->whereMonth('cot.fecha',$año_mes[1])
-      ->on(DB::raw('DAY(cot.fecha)'),'=','dia.val');
-    })
-    ->leftJoin('beneficio as bp',function($j) use ($año_mes,$id_casino){
-      return $j->whereYear('bp.fecha',$año_mes[0])->whereMonth('bp.fecha',$año_mes[1])
-      ->on(DB::raw('DAY(bp.fecha)'),'=','dia.val')
-      ->where('bp.id_casino',$id_casino)
-      ->where('bp.id_tipo_moneda',1);
-    })
-    ->leftJoin('beneficio as bd',function($j) use ($año_mes,$id_casino){
-      return $j->whereYear('bd.fecha',$año_mes[0])->whereMonth('bd.fecha',$año_mes[1])
-      ->on(DB::raw('DAY(bd.fecha)'),'=','dia.val')
-      ->where('bd.id_casino',$id_casino)
-      ->where('bd.id_tipo_moneda',2);
-    })
-    ->select(
-      DB::raw("CONCAT('{$año_mes[0]}','-','{$año_mes[1]}','-',dia.val) as fecha"),
-      'dia.val as dia',
-      'cot.valor as cotizacion',
-      'bp.coinin as devengado_apostado_ARS',
-      'bp.valor as devengado_bruto_ARS',
-      'bd.coinin as devengado_apostado_USD',
-      'bp.valor as devengado_bruto_USD',
-      DB::raw('(bp.coinin+IFNULL(cot.valor,0)*bd.coinin) as devengado_apostado'),
-      DB::raw('0 as devengado_base_imponible'),
-      DB::raw('0 as devengado_impuesto'),
-      DB::raw('(bp.coinin+IFNULL(cot.valor,0)*bd.coinin) as devengado_bruto'),
-      DB::raw('(bp.coinin+IFNULL(cot.valor,0)*bd.coinin) as devengado_subtotal'),
-      DB::raw('(bp.coinin+IFNULL(cot.valor,0)*bd.coinin) as devengado_total'),
-      DB::raw('0 as determinado_impuesto'),
-      DB::raw('(bp.coinin+IFNULL(cot.valor,0)*bd.coinin) as determinado_bruto'),
-      DB::raw('(bp.coinin+IFNULL(cot.valor,0)*bd.coinin) as determinado_subtotal'),
-      DB::raw('(bp.coinin+IFNULL(cot.valor,0)*bd.coinin) as determinado_total')
-    )
-    ->orderBy('dia.val','asc')
-    ->get()
-    ->keyBy('dia');
   }
   
   public function datosCanon($tname){
