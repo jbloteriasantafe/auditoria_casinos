@@ -269,7 +269,7 @@
       </div>
       <div class="centrado" style="width: 20%;">
         <div>
-          <span>UNIDAD MTM:&nbsp;</span>
+          <span>Denom. Base:&nbsp;</span>
         </div>
         <div style="flex: 1;">
           <select data-js-detalle-asignar-name="[maquina][denominacion]" class="form-control" readonly data-js-cambio-cambiar-denominacion="relevamientos/modificarDenominacionYUnidadMTM" style="width: 100%;">
