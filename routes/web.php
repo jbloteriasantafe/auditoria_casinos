@@ -474,7 +474,8 @@ Route::group(['prefix' => 'relevamientos','middleware' => 'tiene_permiso:ver_sec
   Route::get('obtenerCantidadMaquinasRelevamientoHoy/{id_sector}','RelevamientoController@obtenerCantidadMaquinasRelevamiento');
   Route::post('eliminarCantidadMaquinasPorRelevamiento','RelevamientoController@eliminarCantidadMaquinasPorRelevamiento');
   Route::post('modificarDenominacionYUnidadDetalle','RelevamientoController@modificarDenominacionYUnidadDetalle');
-  Route::post('modificarDenominacionYUnidadMTM','RelevamientoController@modificarDenominacionYUnidadMTM');
+  //Deprecado por Moex... Matias lo puede volver a pedir...
+  //Route::post('modificarDenominacionYUnidadMTM','RelevamientoController@modificarDenominacionYUnidadMTM');
   Route::post('buscarRelevamientos','RelevamientoController@buscarRelevamientos');
   Route::get('verRelevamientoVisado/{id_relevamiento}','RelevamientoController@obtenerRelevamientoVisado');
   Route::get('chequearRolFiscalizador','UsuarioController@chequearRolFiscalizador');
