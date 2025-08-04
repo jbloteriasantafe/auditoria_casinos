@@ -274,7 +274,8 @@ $(document).ready(function() {
         pestaña.toggle(lleno || mostrar_de_todos_modos);
         
         //Muestro el primer subcanon por defecto
-        pestaña.find('[data-subcanon-toggle-estado]:visible')
+        pestaña.find('[data-subcanon-toggle-estado]')
+        .filter(function(_,o){return $(o).css('display') !== 'none';})
         .eq(0)
         .attr('data-subcanon-toggle-estado','mostrar_subcanon');
       }
