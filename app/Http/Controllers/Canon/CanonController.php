@@ -76,14 +76,18 @@ class CanonController extends Controller
       'ajuste' => ['nullable',AUX::numeric_rule(2)],
       'motivo_ajuste' => ['nullable','string','max:128'],
       //Valores que se "difunden" a cada subcanon >:(
-      'valor_dolar' => ['nullable',AUX::numeric_rule(2)],
-      'valor_euro' => ['nullable',AUX::numeric_rule(2)],
+      'cotizaciones' => ['nullable','array'],
+      'cotizaciones.*.dia' => ['required','integer','min:1','max:31'],
+      'cotizaciones.*.USD' => ['required','numeric'],
+      'cotizaciones.*.EUR' => ['required','numeric'],
       'devengado_fecha_cotizacion' => ['nullable','date'],
       'devengado_cotizacion_dolar' => ['nullable',AUX::numeric_rule(2)],
       'devengado_cotizacion_euro' => ['nullable',AUX::numeric_rule(2)],
       'determinado_fecha_cotizacion' => ['nullable','date'],
       'determinado_cotizacion_dolar' => ['nullable',AUX::numeric_rule(2)],
-      'determinado_cotizacion_euro' => ['nullable',AUX::numeric_rule(2)]
+      'determinado_cotizacion_euro' => ['nullable',AUX::numeric_rule(2)],
+      'valor_dolar' => ['nullable',AUX::numeric_rule(2)],
+      'valor_euro' => ['nullable',AUX::numeric_rule(2)],
     ];
     
     foreach($this->subcanons as $sc){
@@ -263,18 +267,15 @@ class CanonController extends Controller
     $principal = bcsub(bcadd($determinado,$intereses_y_cargos,2),$saldo_anterior_cerrado,2);//@RETORNADO
         
     $ret = [];
-    $ret = array_merge($ret,$subcanons);
     $ret = array_merge($ret,$this->canon_pago->recalcular($id_casino,$año_mes,$principal,$R));
-    $ret = array_merge($ret,$this->canon_archivo->recalcular($id_casino,$año_mes,$principal,$R));
-    $ret = array_merge($ret,$this->confluir($ret));
-    
+        
     $ajuste = bcadd($R('ajuste','0.00'),'0',2);//@RETORNADO
     $motivo_ajuste = $R('motivo_ajuste','');//@RETORNADO
     $diferencia = bcadd(bcsub($ret['a_pagar'],$ret['pago'],2),$ajuste,2);//@RETORNADO
     $saldo_posterior = bcsub('0',$diferencia,2);//@RETORNADO @HACK: Lo mismo que diferencia? el saldo ya esta en el a_pagar
     $saldo_posterior_cerrado = $saldo_posterior;//@RETORNADO
     
-    return array_merge($ret,compact(
+    $ret = array_merge($ret,compact(
       'canon_anterior',
       'año_mes','id_casino','estado','es_antiguo',
       'devengado_bruto','devengado_deduccion','devengado',
@@ -284,6 +285,12 @@ class CanonController extends Controller
       'ajuste','motivo_ajuste','diferencia',
       'saldo_posterior','saldo_posterior_cerrado'
     ));
+    
+    $ret = array_merge($ret,$subcanons);
+    $ret = array_merge($ret,$this->canon_archivo->recalcular($id_casino,$año_mes,$principal,$R));
+    $ret = array_merge($ret,$this->confluir($ret));
+    
+    return $ret;
   }
   
   public function adjuntar(Request $request){
@@ -495,6 +502,19 @@ class CanonController extends Controller
   
   private function confluir(array $canon){    
     $aux = [];
+    {
+      $canon_cotizacion_diaria = [];
+      $año_mes_arr = explode('-',$canon['año_mes'] ?? '');
+      $dias_mes = count($año_mes_arr) < 3? 0: cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
+      for($d=1;$d<=$dias_mes;$d++){
+        $canon_cotizacion_diaria[$d] = [
+          'dia' => $d,
+          'USD' => null,
+          'EUR' => null
+        ];
+      }
+      $aux[] = [compact('canon_cotizacion_diaria')];
+    }
     
     $aux[] = [$this->canon_pago->confluir($canon)];
     foreach($this->subcanons as $sc => $scobj){
@@ -509,11 +529,13 @@ class CanonController extends Controller
       return $carry;
     },[]));
     
-    return AUX::confluir_datos(
+    $ret = AUX::confluir_datos(
       $aux,
       array_keys($aux),
       $attrs
     );
+    
+    return $ret;
   }
     
   public function obtener(Request $request){
@@ -645,6 +667,27 @@ class CanonController extends Controller
           LIMIT 1
         )
       ) as intereses_y_cargos'),
+      DB::raw('NOT EXISTS (
+        SELECT 1
+        FROM canon_variable AS sc
+        LEFT JOIN canon_variable_diario AS scd ON scd.id_canon_variable = sc.id_canon_variable
+        WHERE sc.id_canon = c.id_canon AND scd.id_canon_variable IS NULL
+        LIMIT 1
+      )
+      AND NOT EXISTS (
+        SELECT 1
+        FROM canon_fijo_mesas AS sc
+        LEFT JOIN canon_fijo_mesas_diario AS scd ON scd.id_canon_fijo_mesas = sc.id_canon_fijo_mesas
+        WHERE sc.id_canon = c.id_canon AND scd.id_canon_fijo_mesas IS NULL
+        LIMIT 1
+      )
+      AND NOT EXISTS (
+        SELECT 1
+        FROM canon_fijo_mesas_adicionales AS sc
+        LEFT JOIN canon_fijo_mesas_adicionales_diario AS scd ON scd.id_canon_fijo_mesas_adicionales = sc.id_canon_fijo_mesas_adicionales
+        WHERE sc.id_canon = c.id_canon AND scd.id_canon_fijo_mesas_adicionales IS NULL
+        LIMIT 1
+      ) as tiene_diarios'),
       'c.pago','c.saldo_posterior'
     )
     ->join('casino as cas','cas.id_casino','=','c.id_casino')

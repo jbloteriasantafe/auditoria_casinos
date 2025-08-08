@@ -89,24 +89,22 @@
             @section('colgroupCV')
             <colgroup>
               <col style="width: 5%;">
-              <col style="width: 5%;">
-              <col style="width: 9%;">
-              <col style="width: 9%;">
-              <col style="width: 9%;">
-              <col style="width: 9%;">
-              <col style="width: 9%;">
-              <col style="width: 9%;">
-              <col style="width: 9%;">
-              <col style="width: 9%;">
-              <col style="width: 9%;">
-              <col style="width: 9%;">
+              <col style="width: 9.5%;">
+              <col style="width: 9.5%;">
+              <col style="width: 9.5%;">
+              <col style="width: 9.5%;">
+              <col style="width: 9.5%;">
+              <col style="width: 9.5%;">
+              <col style="width: 9.5%;">
+              <col style="width: 9.5%;">
+              <col style="width: 9.5%;">
+              <col style="width: 9.5%;">
             </colgroup>
             @endsection
             @yield('colgroupCV')
             <thead>
               <tr>
                 <th style="text-align: center;">Día</th>
-                <th style="text-align: center;">Cotización</th>
                 <th style="text-align: center;">Apostado (ARS)</th>
                 <th style="text-align: center;">Apostado (USD)</th>
                 <th style="text-align: center;">Apostado</th>
@@ -116,7 +114,7 @@
                 <th style="text-align: center;">Bruto (USD)</th>
                 <th style="text-align: center;">Bruto</th>
                 <th style="text-align: center;">Subtotal</th>
-                <th style="text-align: center;">Total</th>
+                <th style="text-align: center;">Devengado (acumulado)</th>
               </tr>
             </thead>
           </table>
@@ -131,7 +129,6 @@
             <table hidden>
               <tr data-molde-diario="{{$molde_str_diario}}">
                 <td><input class="form-control" data-name="{{$nd('dia')}}" readonly></td>
-                <td><input class="form-control es-cotizacion" data-name="{{$nd('devengado_cotizacion')}}"></td>
                 <td><input class="form-control" data-name="{{$nd('devengado_apostado_sistema_ARS')}}"></td>
                 <td><input class="form-control" data-name="{{$nd('devengado_apostado_sistema_USD')}}"></td>
                 <td><input class="form-control" data-name="{{$nd('devengado_apostado_sistema')}}" readonly></td>
@@ -151,7 +148,7 @@
             @yield('colgroupCV')
             <tbody>
               <tr class="fila-mensual">
-                <td colspan="2">&nbsp;</td>
+                <td>&nbsp;</td>
                 <td><input class="form-control" data-name="{{$devengado_apostado_sistema_ARS}}" readonly></td>
                 <td><input class="form-control" data-name="{{$devengado_apostado_sistema_USD}}" readonly></td>
                 <td><input class="form-control" data-name="{{$devengado_apostado_sistema}}" readonly></td>
@@ -165,6 +162,20 @@
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+    <div style="width: 100%;display: flex;">
+      <div class="bloque_interno" style="flex: 1;width: 100%;">
+        <div style="display: flex;">
+          <div>
+            <h5>DEDUCCIÓN</h5>
+            <input class="form-control" data-name="{{$devengado_deduccion}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+          </div>
+          <div>
+            <h5>DEVENGADO</h5>
+            <input class="form-control" data-name="{{$devengado}}" data-depende="{{$devengado_total}},{{$devengado_deduccion}}" data-readonly='[{"modo": "*"}]'>
+          </div>
         </div>
       </div>
     </div>
@@ -183,14 +194,13 @@
             <thead>
               <tr>
                 <th style="text-align: center;">Día</th>
-                <th style="text-align: center;">Cotización</th>
                 <th class="celda_vacia" colspan="4">&nbsp;</th>
-                <th style="text-align: center;">Impuesto (Proporcional)</th>
+                <th style="text-align: center;">Impuesto (proporcional)</th>
                 <th style="text-align: center;">Bruto (ARS)</th>
                 <th style="text-align: center;">Bruto (USD)</th>
                 <th style="text-align: center;">Bruto</th>
                 <th style="text-align: center;">Subtotal</th>
-                <th style="text-align: center;">Total</th>
+                <th style="text-align: center;">Determinado (acumulado)</th>
               </tr>
             </thead>
           </table>
@@ -205,7 +215,6 @@
             <table hidden>
               <tr data-molde-diario="{{$molde_str_diario}}">
                 <td><input class="form-control" data-name="{{$nd('dia')}}" readonly></td>
-                <td><input class="form-control" data-name="{{$nd('determinado_cotizacion')}}" readonly></td>
                 <td class="celda_vacia" colspan="4">&nbsp;</td>
                 <td><input class="form-control" data-name="{{$nd('determinado_impuesto')}}" readonly></td>
                 <td><input class="form-control" data-name="{{$nd('determinado_bruto_ARS')}}"></td>
@@ -222,7 +231,7 @@
             @yield('colgroupCV')
             <tbody>
               <tr class="fila-mensual">
-                <td class="celda_vacia" colspan="6">&nbsp;</td>
+                <td class="celda_vacia" colspan="5">&nbsp;</td>
                 <td><input class="form-control" data-name="{{$determinado_impuesto}}"></td>
                 <td><input class="form-control" data-name="{{$determinado_bruto_ARS}}" readonly></td>
                 <td><input class="form-control" data-name="{{$determinado_bruto_USD}}" readonly></td>
@@ -232,6 +241,20 @@
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+    <div style="width: 100%;display: flex;">
+      <div class="bloque_interno" style="flex: 1;width: 100%;">
+        <div style="display: flex;">
+          <div>
+            <h5>AJUSTE</h5>
+            <input class="form-control" data-name="{{$determinado_ajuste}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+          </div>
+          <div>
+            <h5>DETERMINADO</h5>
+            <input class="form-control" data-name="{{$determinado}}" data-depende="{{$determinado_total}},{{$determinado_ajuste}}" data-readonly='[{"modo": "*"}]'>
+          </div>
         </div>
       </div>
     </div>

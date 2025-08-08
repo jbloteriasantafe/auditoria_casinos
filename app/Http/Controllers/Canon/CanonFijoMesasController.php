@@ -408,7 +408,7 @@ class CanonFijoMesasController extends Controller
   }
   
   public function confluir($data){
-    return AUX::confluir_datos(
+    $ret = AUX::confluir_datos(
       $data,
       ['canon_fijo_mesas'],
       [
@@ -418,6 +418,18 @@ class CanonFijoMesasController extends Controller
         'determinado_cotizacion_dolar','determinado_cotizacion_euro'
       ]
     );
+    
+    /*$ret['cotizaciones'] = $ret['cotizaciones'] ?? [];
+    foreach((($data['canon_fijo_mesas'] ?? [])['diario'] ?? []) as $d){
+      $ret['cotizaciones'][$d['dia']] = $ret['cotizaciones'][$d['dia']] ?? [
+        'dia' => $d['dia'],'USD' => null,'EUR' => null
+      ];
+      $val_USD = $ret['cotizaciones'][$d['dia']]['USD'];
+      $val_EUR = $ret['cotizaciones'][$d['dia']]['EUR'];
+      $ret['cotizaciones'][$d['dia']]['USD'] = $val_USD !== null && $val_USD != $d['USD']? '' : $d['USD'];
+      $ret['cotizaciones'][$d['dia']]['EUR'] = $val_EUR !== null && $val_EUR != $d['EUR']? '' : $d['EUR'];
+    }*/
+    return $ret;
   }
 
 

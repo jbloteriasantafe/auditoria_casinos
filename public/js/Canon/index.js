@@ -286,6 +286,7 @@ $(document).ready(function() {
         return lastDay.getDate();
       })(canon.año_mes);
       
+      llenarPestaña(form.find('[data-cotizaciones]'),canon?.canon_cotizacion_diaria ?? {},dias,true);
       llenarPestaña(form.find('[data-canon-variable]'),canon?.canon_variable ?? {},dias);
       llenarPestaña(form.find('[data-canon-fijo-mesas]'),canon?.canon_fijo_mesas ?? {},dias);
       llenarPestaña(form.find('[data-canon-fijo-mesas-adicionales]'),canon?.canon_fijo_mesas_adicionales ?? {},dias);
@@ -652,6 +653,7 @@ $(document).ready(function() {
           reemplazarPorJsonEditor(fila.find('[data-js-jsoneditor]'),obj?.valor ?? '');
         }
         else if(pant.is('#pant_canon')){
+          fila.attr('data-css-tiene_diarios',obj.tiene_diarios);
           fila.find('[data-estado-visible]').filter(function(_,ev_obj){
             return !$(ev_obj)?.attr('data-estado-visible')?.toUpperCase()?.split(',').includes(obj.estado.toUpperCase());
           }).remove();

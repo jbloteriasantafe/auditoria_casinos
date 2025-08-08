@@ -87,24 +87,6 @@
           </select>
         </h4>
         <div style="display: flex;">
-          <div>
-            <h5>F. COTIZACIÓN</h5>
-            @component('Components.inputFecha',[
-              'attrs' => "data-js-texto-no-formatear-numero data-name='devengado_fecha_cotizacion' data-depende='año_mes'",
-              'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
-            ])
-            @endcomponent
-          </div>
-          <div>
-            <h5>COTIZACIÓN DOLAR</h5>
-            <input class="form-control" data-name="devengado_cotizacion_dolar" data-depende="devengado_fecha_cotizacion" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-          </div>
-          <div>
-            <h5>COTIZACIÓN EURO</h5>
-            <input class="form-control" data-name="devengado_cotizacion_euro" data-depende="devengado_fecha_cotizacion" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-          </div>
-        </div>
-        <div style="display: flex;">
           <div class="valor_intermedio">
             <h5>VALOR DOLAR (ARS)</h5>
             <input class="form-control" data-name="{{$devengado_valor_dolar_cotizado}}" data-depende="devengado_cotizacion_dolar,valor_dolar" data-readonly='[{"modo":"*"}]'>
@@ -127,24 +109,6 @@
       </div>
       <div class="bloque_interno" style="flex: 1;">
         <h4>DETERMINADO</h4>
-        <div style="display: flex;">
-          <div>
-            <h5>F. COTIZACIÓN</h5>
-            @component('Components.inputFecha',[
-              'attrs' => "data-js-texto-no-formatear-numero data-name='determinado_fecha_cotizacion' data-depende='año_mes'",
-              'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
-            ])
-            @endcomponent
-          </div>
-          <div>
-            <h5>COTIZACIÓN DOLAR</h5>
-            <input class="form-control" data-name="determinado_cotizacion_dolar" data-depende="determinado_fecha_cotizacion" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-          </div>
-          <div>
-            <h5>COTIZACIÓN EURO</h5>
-            <input class="form-control" data-name="determinado_cotizacion_euro" data-depende="determinado_fecha_cotizacion" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-          </div>
-        </div>
         <div style="display: flex;">
           <div class="valor_intermedio">
             <h5>VALOR DOLAR (ARS)</h5>
@@ -227,14 +191,15 @@
             <colgroup>
               <col style="width: 5%;">
               <col style="width: 5%;">
-              <col style="width: 6.25%;">
-              <col style="width: 6.25%;">
-              <col style="width: 17.5%;">
-              <col style="width: 6.25%;">
-              <col style="width: 17.5%;">
-              <col style="width: 10%;">
               <col style="width: 5%;">
-              <col style="width: 20%;">
+              <col style="width: 5%;">
+              <col style="width: 11.25%;">
+              <col style="width: 5%;">
+              <col style="width: 11.25%;">
+              <col style="width: 5%;">
+              <col style="width: 11.25%;">
+              <col style="width: 11.25%;">
+              <col style="width: 11.25%;">
             </colgroup>
             @endsection
             @yield('colgroupCF')
@@ -242,14 +207,16 @@
               <tr>
                 <th style="text-align: center;">Día</th>
                 <th style="text-align: center;">Día Sem</th>
-                <th style="text-align: center;">Mesas Habilitadas</th>
+                <th style="text-align: center;">Mesas Hab.</th>
                 <th style="text-align: center;">Mesas Usadas ARS</th>
                 <th style="text-align: center;">Bruto ARS</th>
                 <th style="text-align: center;">Mesas Usadas USD</th>
                 <th style="text-align: center;">Bruto USD</th>
-                <th style="text-align: center;">Cotización</th>
                 <th style="text-align: center;">Mesas Usadas</th>
                 <th style="text-align: center;">Bruto</th>
+                <th style="text-align: center;">Mesas Hab. (acumulado, ajustado)</th>
+                <th style="text-align: center;">Devengado (acumulado)</th>
+                <th style="text-align: center;">Determinado (acumulado)</th>
               </tr>
             </thead>
           </table>
@@ -271,9 +238,10 @@
                 <td><input class="form-control" data-name="{{$nd('bruto_ARS')}}"></td>
                 <td><input class="form-control" data-name="{{$nd('mesas_usadas_USD')}}"></td>
                 <td><input class="form-control" data-name="{{$nd('bruto_USD')}}"></td>
-                <td><input class="form-control" data-name="{{$nd('cotizacion')}}" readonly></td>
                 <td><input class="form-control" data-name="{{$nd('mesas_usadas')}}" readonly></td>
                 <td><input class="form-control" data-name="{{$nd('bruto')}}" readonly></td>
+                <td><input class="form-control" data-name="{{$nd('devengado_total')}}" readonly></td>
+                <td><input class="form-control" data-name="{{$nd('determinado_total')}}" readonly></td>
               </tr>
             </table>
           </div>
@@ -289,9 +257,9 @@
                 <td><input class="form-control" data-name="{{$bruto_ARS}}" readonly></td>
                 <td><input class="form-control" data-name="{{$mesas_usadas_USD}}" readonly></td>
                 <td><input class="form-control" data-name="{{$bruto_USD}}" readonly></td>
-                <td>&nbsp;</td>
                 <td><input class="form-control" data-name="{{$mesas_usadas}}" readonly></td>
                 <td><input class="form-control" data-name="{{$bruto}}" readonly></td>
+                <td colspan="2">&nbsp;</td>
               </tr>
             </tbody>
           </table>

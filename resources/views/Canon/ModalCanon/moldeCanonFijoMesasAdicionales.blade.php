@@ -114,8 +114,10 @@
               @section('colgroupCFMA')
               <colgroup>
                 <col style="width: 10%;">
-                <col style="width: 45%;">
-                <col style="width: 45%;">
+                <col style="width: 15%;">
+                <col style="width: 15%;">
+                <col style="width: 30%;">
+                <col style="width: 30%;">
               </colgroup>
               @endsection
               @yield('colgroupCFMA')
@@ -124,6 +126,8 @@
                   <th style="text-align: center;">Día</th>
                   <th style="text-align: center;">Horas</th>
                   <th style="text-align: center;">Mesas</th>
+                  <th style="text-align: center;">Devengado (acumulado)</th>
+                  <th style="text-align: center;">Determinado (acumulado)</th>
                 </tr>
               </thead>
             </table>
@@ -140,6 +144,8 @@
                   <td><input class="form-control" data-name="{{$nd('dia')}}" readonly></td>
                   <td><input class="form-control" data-name="{{$nd('horas')}}"></td>
                   <td><input class="form-control" data-name="{{$nd('mesas')}}"></td>
+                  <td><input class="form-control" data-name="{{$nd('devengado_total')}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$nd('determinado_total')}}" readonly></td>
                 </tr>
               </table>
             </div>
@@ -156,6 +162,12 @@
                   <td>
                     <input class="form-control" data-name="{{$mesas}}" data-depende="{{$horas}}" readonly>
                   </td>
+                  <td>
+                    <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_valor_mes}},{{$devengado_valor_dia}},{{$devengado_valor_hora}},{{$horas}},{{$porcentaje}}" readonly>
+                  </td>
+                  <td>
+                    <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_valor_mes}},{{$determinado_valor_dia}},{{$determinado_valor_hora}},{{$horas}},{{$porcentaje}}" readonly>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -166,10 +178,6 @@
     <div style="display: flex;">
       <div class="bloque_interno separar-devengado-determinado" data-css-devengar style="flex: 1;">
         <div style="display: flex;">
-          <div>
-            <h5>TOTAL</h5>
-            <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_valor_mes}},{{$devengado_valor_dia}},{{$devengado_valor_hora}},{{$horas}},{{$porcentaje}}" data-readonly='[{"es_antiguo": "0"},{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-          </div>
           <div>
             <h5>DEDUCCIÓN</h5>
             <input class="form-control" data-name="{{$devengado_deduccion}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
@@ -182,10 +190,6 @@
       </div>
       <div class="bloque_interno" style="flex: 1;">
         <div style="display: flex;">
-          <div>
-            <h5>TOTAL</h5>
-            <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_valor_mes}},{{$determinado_valor_dia}},{{$determinado_valor_hora}},{{$horas}},{{$porcentaje}}" data-readonly='[{"es_antiguo": "0"},{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-          </div>
           <div>
             <h5>AJUSTE</h5>
             <input class="form-control" data-name="{{$determinado_ajuste}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
