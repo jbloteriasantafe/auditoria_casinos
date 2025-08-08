@@ -2565,7 +2565,7 @@ class CanonController extends Controller
       
       $canon_fisico = 'ROUND('.implode('+',array_map(function($t){
         return "IFNULL(SUM($t.determinado),0)";
-      },$fisicos)).',2)';
+      },$fisicos)).'+AVG(c.ajuste),2)';
       
       $canon_online = 'ROUND('.implode('+',array_map(function($t){
         return "IFNULL(SUM($t.determinado),0)";
@@ -2573,29 +2573,29 @@ class CanonController extends Controller
             
       if($planilla == 'evolucion_historica'){
         $sel_aggr = 'SUM(c.devengado) as devengado,
-        SUM(c.determinado) as canon,
+        SUM(c.determinado+c.ajuste) as canon,
         SUM(c_yoy.devengado) as yoy_devengado,
-        SUM(c_yoy.determinado) as yoy_canon,
+        SUM(c_yoy.determinado+c_yoy.ajuste) as yoy_canon,
         SUM(c_mom.devengado) as mom_devengado,
-        SUM(c_mom.determinado) as mom_canon,
+        SUM(c_mom.determinado+c_mom.ajuste) as mom_canon,
         ROUND(100*(SUM(c.devengado)/NULLIF(SUM(c_yoy.devengado),0)-1),2) as variacion_anual_devengado,
         ROUND(100*(SUM(c.devengado)/NULLIF(SUM(c_mom.devengado),0)-1),2) as variacion_mensual_devengado,
-        ROUND(100*(SUM(c.determinado)/NULLIF(SUM(c_yoy.determinado),0)-1),2) as variacion_anual_canon,
-        ROUND(100*(SUM(c.determinado)/NULLIF(SUM(c_mom.determinado),0)-1),2) as variacion_mensual_canon,
+        ROUND(100*(SUM(c.determinado+c.ajuste)/NULLIF(SUM(c_yoy.determinado+c_yoy.ajuste),0)-1),2) as variacion_anual_canon,
+        ROUND(100*(SUM(c.determinado+c.ajuste)/NULLIF(SUM(c_mom.determinado+c_mom.ajuste),0)-1),2) as variacion_mensual_canon,
         (SUM(c.determinado)-SUM(c.devengado)) as diferencia,
         ROUND(100*(1-SUM(c.devengado)/NULLIF(SUM(c.determinado),0)),2) as variacion_sobre_devengado';
       }
       else if($planilla == 'canon_total'){
-        $sel_aggr = 'SUM(c.determinado) as canon_total,
-        100*(SUM(c.determinado)/NULLIF(SUM(c_yoy.determinado),0)-1) as variacion_anual,
-        100*(SUM(c.determinado)/NULLIF(SUM(c_mom.determinado),0)-1) as variacion_mensual';
+        $sel_aggr = 'SUM(c.determinado+c.ajuste) as canon_total,
+        100*(SUM(c.determinado+c.ajuste)/NULLIF(SUM(c_yoy.determinado+c.ajuste),0)-1) as variacion_anual,
+        100*(SUM(c.determinado+c.ajuste)/NULLIF(SUM(c_mom.determinado+c.ajuste),0)-1) as variacion_mensual';
       }
       else if($planilla == 'canon_fisico_online'){
         $sel_aggr = $canon_fisico.' as canon_fisico,
         '.$canon_online.' as canon_online,
-        SUM(c.determinado) as canon_total,
-        100*(SUM(c.determinado)/NULLIF(SUM(c_yoy.determinado),0)-1) as variacion_anual,
-        100*(SUM(c.determinado)/NULLIF(SUM(c_mom.determinado),0)-1) as variacion_mensual';
+        SUM(c.determinado+c.ajuste) as canon_total,
+        100*(SUM(c.determinado+c.ajuste)/NULLIF(SUM(c_yoy.determinado+c_yoy.ajuste),0)-1) as variacion_anual,
+        100*(SUM(c.determinado+c.ajuste)/NULLIF(SUM(c_mom.determinado+c_mom.ajuste),0)-1) as variacion_mensual';
       }
       else if($planilla == 'participacion'){
         $ganancia_total_variable = '('.implode('+',array_map(function($t){
