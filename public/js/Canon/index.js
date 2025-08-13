@@ -44,7 +44,7 @@ function fill(div,prefix,obj){//@HACK @TODO: mover a AUX
   };
   for(const k in obj){
     const val = obj[k];
-    if(typeof val == 'object'){
+    if(val !== null && typeof val == 'object'){
       fill(div,subscript(k),val);
     }
     else{

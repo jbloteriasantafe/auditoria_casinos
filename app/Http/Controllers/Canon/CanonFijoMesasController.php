@@ -83,21 +83,18 @@ class CanonFijoMesasController extends Controller
     $dias_valor = $RD('dias_valor',0);//@RETORNADO
     $factor_dias_valor = $dias_valor != 0? bcdiv('1',$dias_valor,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon
     
-    $devengado_valor_dolar_cotizado = bcmul($devengado_cotizacion_dolar,$valor_dolar,4);//2+2
-    $devengado_valor_dolar_diario_cotizado  = '0.0000000000000000';//@RETORNADO
-    $devengado_valor_euro_cotizado  = bcmul($devengado_cotizacion_euro,$valor_euro,4);//2+2
-    $devengado_valor_euro_diario_cotizado   = '0.0000000000000000';//@RETORNADO
-    $determinado_valor_dolar_cotizado = bcmul($determinado_cotizacion_dolar,$valor_dolar,4);//2+2
-    $determinado_valor_dolar_diario_cotizado  = '0.0000000000000000';//@RETORNADO
-    $determinado_valor_euro_cotizado  = bcmul($determinado_cotizacion_euro,$valor_euro,4);//2+2
-    $determinado_valor_euro_diario_cotizado   = '0.0000000000000000';//@RETORNADO
+    $valor_dolar_diario = bcmul($valor_dolar,$factor_dias_valor,14);//2+12 @RETORNADO
+    $valor_euro_diario  = bcmul( $valor_euro,$factor_dias_valor,14);//2+12 @RETONRADO
     
-    if($dias_valor != 0){//No entra si es =0, nulo, o falta
-      $devengado_valor_dolar_diario_cotizado = bcmul($devengado_valor_dolar_cotizado,$factor_dias_valor,16);//4+12
-      $devengado_valor_euro_diario_cotizado  = bcmul($devengado_valor_euro_cotizado,$factor_dias_valor,16);//4+12
-      $determinado_valor_dolar_diario_cotizado = bcmul($determinado_valor_dolar_cotizado,$factor_dias_valor,16);//4+12
-      $determinado_valor_euro_diario_cotizado  = bcmul($determinado_valor_euro_cotizado,$factor_dias_valor,16);//4+12
-    }
+    $devengado_valor_dolar_cotizado = bcmul($devengado_cotizacion_dolar,$valor_dolar,4);//2+2
+    $devengado_valor_dolar_diario_cotizado = bcmul($devengado_cotizacion_dolar,$valor_dolar_diario,16);//2+14
+    $devengado_valor_euro_cotizado  = bcmul($devengado_cotizacion_euro,$valor_euro,4);//2+2
+    $devengado_valor_euro_diario_cotizado  = bcmul($devengado_cotizacion_euro,$valor_euro_diario,16);//4+12
+    
+    $determinado_valor_dolar_cotizado = bcmul($determinado_cotizacion_dolar,$valor_dolar,4);//2+2
+    $determinado_valor_dolar_diario_cotizado = bcmul($determinado_cotizacion_dolar,$valor_dolar_diario,16);//4+12
+    $determinado_valor_euro_cotizado  = bcmul($determinado_cotizacion_euro,$valor_euro,4);//2+2
+    $determinado_valor_euro_diario_cotizado  = bcmul($determinado_cotizacion_euro,$valor_euro_diario,16);//4+12
     
     $dias_lunes_jueves = 0;//@RETORNADO
     $dias_viernes_sabados = 0;//@RETORNADO
@@ -162,6 +159,10 @@ class CanonFijoMesasController extends Controller
     $devengado_total_euro    = '0';//@RETORNADO
     $determinado_total_dolar = '0';//@RETORNADO
     $determinado_total_euro  = '0';//@RETORNADO
+    $devengado_total_dolar_cotizado = '0';
+    $devengado_total_euro_cotizado  = '0';
+    $determinado_total_dolar_cotizado = '0';
+    $determinado_total_euro_cotizado  = '0';
     //Lo desprendo en sumas para hacerlo mas preciso (disminuyo las divisiones)
     //$total_MONEDA = $valor_diario_MONEDA * $mesas_dias
     //$total_MONEDA = ($valor_MONEDA*$cotizacion_MONEDA/$dias_valor) * $mesas_dias
@@ -210,7 +211,6 @@ class CanonFijoMesasController extends Controller
     $bruto = $bruto->bruto;
     
     $bruto = bcadd($R('bruto',$this->bruto($tipo,$año_mes,$id_casino)->bruto),'0',2);//@RETORNADO
-    
 
     if($es_antiguo){
       $devengado_total = $R('devengado_total',$devengado_total);
@@ -222,7 +222,8 @@ class CanonFijoMesasController extends Controller
     
     $accesors_diario = [
       'R' => AUX::make_accessor($R('diario',[])),
-      'A' => AUX::make_accessor($A('diario',[]))
+      'A' => AUX::make_accessor($A('diario',[])),
+      'COT' => AUX::make_accessor($COT('canon_cotizacion_diaria',[])),
     ];
     $accesors_diario['RA'] = AUX::combine_accessors($accesors_diario['R'],$accesors_diario['A']);
     
@@ -234,15 +235,11 @@ class CanonFijoMesasController extends Controller
       $mesas_domingos,
       $mesas_todos,
       $mesas_fijos
-    );//@RETORNADO
-    
+    )['diario'] ?? [];//@RETORNADO
+        
     $sumar = [//SE RETORNAN
       'mesas_habilitadas','mesas_usadas_ARS','mesas_usadas_USD','mesas_usadas',
       'bruto_ARS','bruto_USD','bruto_USD_cotizado'
-    ];
-    
-    $comparar = [
-      'bruto'
     ];
     
     $aux = [];
@@ -251,20 +248,11 @@ class CanonFijoMesasController extends Controller
       foreach($sumar as $attr){
         $aux[$attr] = bcadd_precise($d[$attr],$aux[$attr] ?? '0');
       }
-      foreach($comparar as $attr){
-        $aux[$attr] = bcadd_precise($d[$attr],$aux[$attr] ?? '0');
-      }
-    }
-    
-    $errores = [];//@RETORNADO   
-    foreach($comparar as $attr){    
-      if(bccomp_precise($$attr,$aux[$attr] ?? null)){//$$ dereferencia el string por lo que tiene que existir una variable con ese valor
-        $errores[] = $attr;
-      }
     }
     
     $ret = compact(
       'tipo','dias_valor','factor_dias_valor','valor_dolar','valor_euro',
+      'valor_dolar_diario','valor_euro_diario',
       'dias_lunes_jueves','mesas_lunes_jueves','dias_viernes_sabados','mesas_viernes_sabados',
       'dias_domingos','mesas_domingos','dias_todos','mesas_todos','dias_fijos','mesas_fijos',
       'mesas_dias',
@@ -289,7 +277,6 @@ class CanonFijoMesasController extends Controller
       'bruto_USD_cotizado',
       'bruto',
       'diario',
-      
       'errores'
     );
       
@@ -324,7 +311,9 @@ class CanonFijoMesasController extends Controller
       $mesas_viernes_sabados+$mesas_todos+$mesas_fijos,
       $mesas_viernes_sabados+$mesas_todos+$mesas_fijos
     ];
-    $ret = [];
+    
+    $diario = [];
+    
     for($dia=1;$dia<=$dias;$dia++){
       $D = AUX::make_accessor($R($dia,[]));
       $fecha = implode('-',[$año_mes[0],$año_mes[1],str_pad($dia,2,'0',STR_PAD_LEFT)]);
@@ -341,7 +330,7 @@ class CanonFijoMesasController extends Controller
       $bruto_USD_cotizado = bcmul($bruto_USD,$cotizacion,4);
       $mesas_usadas = bcadd_precise($mesas_usadas_ARS,$mesas_usadas_USD);
       $bruto = bcadd($bruto_ARS,$bruto_USD_cotizado,4);
-      $ret[$dia] = compact(
+      $diario[$dia] = compact(
         'dia','fecha','dia_semana',
         'mesas_habilitadas',
         'mesas_usadas_ARS',
@@ -355,7 +344,7 @@ class CanonFijoMesasController extends Controller
       );
     }
     
-    return $ret;
+    return compact('diario');
   }
     
   public function guardar($id_canon,$id_canon_anterior,$datos){
@@ -419,16 +408,17 @@ class CanonFijoMesasController extends Controller
       ]
     );
     
-    /*$ret['cotizaciones'] = $ret['cotizaciones'] ?? [];
-    foreach((($data['canon_fijo_mesas'] ?? [])['diario'] ?? []) as $d){
-      $ret['cotizaciones'][$d['dia']] = $ret['cotizaciones'][$d['dia']] ?? [
-        'dia' => $d['dia'],'USD' => null,'EUR' => null
-      ];
-      $val_USD = $ret['cotizaciones'][$d['dia']]['USD'];
-      $val_EUR = $ret['cotizaciones'][$d['dia']]['EUR'];
-      $ret['cotizaciones'][$d['dia']]['USD'] = $val_USD !== null && $val_USD != $d['USD']? '' : $d['USD'];
-      $ret['cotizaciones'][$d['dia']]['EUR'] = $val_EUR !== null && $val_EUR != $d['EUR']? '' : $d['EUR'];
-    }*/
+    $ret['canon_cotizacion_diaria'] = [];
+    foreach(($data['canon_fijo_mesas'] ?? []) as $tipo => $datatipo){
+      foreach(($datatipo['diario'] ?? []) as $dia => $datadia){
+        $ret['canon_cotizacion_diaria'][$dia] = [
+          'dia' => $dia,
+          'USD' => ($datadia['cotizacion_USD'] ?? null),
+          'EUR' => ($datadia['cotizacion_EUR'] ?? null)
+        ];
+      }
+    }
+    
     return $ret;
   }
 

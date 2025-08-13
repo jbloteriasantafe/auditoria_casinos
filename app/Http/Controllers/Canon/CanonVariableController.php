@@ -117,7 +117,8 @@ class CanonVariableController extends Controller
     
     $accesors_diario = [
       'R' => AUX::make_accessor($R('diario',[])),
-      'A' => AUX::make_accessor($A('diario',[]))
+      'A' => AUX::make_accessor($A('diario',[])),
+      'COT' => AUX::make_accessor($COT('canon_cotizacion_diaria',[])),
     ];
     $accesors_diario['RA'] = AUX::combine_accessors($accesors_diario['R'],$accesors_diario['A']);
     
@@ -125,8 +126,8 @@ class CanonVariableController extends Controller
       $año_mes,$id_casino,$es_antiguo,$tipo,
       $factor_apostado_porcentaje_aplicable,$factor_apostado_porcentaje_impuesto_ley,$factor_alicuota,
       $accesors_diario
-    );//@RETORNADO
-        
+    )['diario'] ?? [];//@RETORNADO
+    
     $sumar = [
       'devengado_apostado_sistema_ARS','devengado_apostado_sistema_USD','devengado_apostado_sistema_USD_cotizado',
       'devengado_bruto_ARS','devengado_bruto_USD','devengado_bruto_USD_cotizado',
@@ -165,7 +166,7 @@ class CanonVariableController extends Controller
       'devengado',
       'determinado_impuesto','determinado_bruto','determinado_subtotal','determinado_total','determinado_ajuste',
       'determinado',
-      'diario','errores'
+      'diario','errores','canon_cotizacion_diaria'
     );
       
     foreach($sumar as $attr){
@@ -185,7 +186,8 @@ class CanonVariableController extends Controller
     $año_mes = explode('-',$año_mes);
     $dias = cal_days_in_month(CAL_GREGORIAN,intval($año_mes[1]),intval($año_mes[0]));
     
-    $ret = [];
+    $diario = [];
+    
     for($dia=1;$dia<=$dias;$dia++){
       $D = AUX::make_accessor($R($dia,[]));
       $fecha = implode('-',[$año_mes[0],$año_mes[1],str_pad($dia,2,'0',STR_PAD_LEFT)]);
@@ -227,7 +229,7 @@ class CanonVariableController extends Controller
         $determinado_total = $D('determinado_total',$determinado_total);
       }
       
-      $ret[$dia] = compact(
+      $diario[$dia] = compact(
         'dia','fecha',
         'devengado_cotizacion',
         'devengado_bruto_ARS',
@@ -254,7 +256,7 @@ class CanonVariableController extends Controller
       );
     }
     
-    return $ret;
+    return compact('diario');
   }
   
   public function guardar($id_canon,$id_canon_anterior,$datos){
@@ -307,6 +309,18 @@ class CanonVariableController extends Controller
   }
   
   public function confluir($data){
+    $ret = [];
+    $ret['canon_cotizacion_diaria'] = [];
+    foreach(($data['canon_variable'] ?? []) as $tipo => $datatipo){
+      foreach(($datatipo['diario'] ?? []) as $dia => $datadia){
+        $ret['canon_cotizacion_diaria'][$dia] = [
+          'dia' => $dia,
+          'USD' => ($datadia['cotizacion'] ?? null),
+          'EUR' => null
+        ];
+      }
+    }
+    
     return [];
   }
       

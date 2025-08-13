@@ -1,55 +1,49 @@
 <?php
   $molde_str = '$'.uniqid();
-  $molde_str_diario = '$'.uniqid();
-  $n = function($s) use (&$id_casino,&$t,&$molde_str){
-    return "canon_fijo_mesas[$molde_str][$s]";
-  };
-  $dias_valor = $n('dias_valor');
-  $mesas_usadas_ARS = $n('mesas_usadas_ARS');
-  $bruto_ARS = $n('bruto_ARS');
-  $mesas_usadas_USD = $n('mesas_usadas_USD');
-  $bruto_USD = $n('bruto_USD');
-  $mesas_usadas = $n('mesas_usadas');
-  $bruto = $n('bruto');
-  $factor_dias_valor = $n('factor_dias_valor');
-  $dias_lunes_jueves  = $n('dias_lunes_jueves');
-  $mesas_lunes_jueves = $n('mesas_lunes_jueves');
-  $dias_viernes_sabados  = $n('dias_viernes_sabados');
-  $mesas_viernes_sabados = $n('mesas_viernes_sabados');
-  $dias_domingos  = $n('dias_domingos');
-  $mesas_domingos = $n('mesas_domingos');
-  $dias_todos  = $n('dias_todos');
-  $mesas_todos = $n('mesas_todos');
-  $dias_fijos  = $n('dias_fijos');
-  $mesas_fijos = $n('mesas_fijos');
-  $mesas_dias  = $n('mesas_dias');
-  $devengar = $n('devengar');
-  $devengado_valor_dolar_cotizado = $n('devengado_valor_dolar_cotizado');
-  $devengado_valor_euro_cotizado  = $n('devengado_valor_euro_cotizado');
-  $devengado_valor_dolar_diario_cotizado = $n('devengado_valor_dolar_diario_cotizado');
-  $devengado_valor_euro_diario_cotizado  = $n('devengado_valor_euro_diario_cotizado');
-  $devengado_total_dolar_cotizado = $n('devengado_total_dolar_cotizado');
-  $devengado_total_euro_cotizado  = $n('devengado_total_euro_cotizado');
-  $devengado_total       = $n('devengado_total');
-  $devengado_deduccion   = $n('devengado_deduccion');
-  $devengado             = $n('devengado');
-  $determinado_valor_dolar_cotizado = $n('determinado_valor_dolar_cotizado');
-  $determinado_valor_euro_cotizado  = $n('determinado_valor_euro_cotizado');
-  $determinado_valor_dolar_diario_cotizado = $n('determinado_valor_dolar_diario_cotizado');
-  $determinado_valor_euro_diario_cotizado  = $n('determinado_valor_euro_diario_cotizado');
-  $determinado_total_dolar_cotizado = $n('determinado_total_dolar_cotizado');
-  $determinado_total_euro_cotizado  = $n('determinado_total_euro_cotizado');
-  $determinado_total       = $n('determinado_total');
-  $determinado_ajuste      = $n('determinado_ajuste');
-  $determinado             = $n('determinado');
   
-  $nd = function($s) use (&$molde_str,&$molde_str_diario){
-    return "canon_fijo_mesas[$molde_str][diario][$molde_str_diario][$s]";
-  };
+  foreach([
+    'tipo','id_canon_fijo_mesas',
+    'dias_valor','factor_dias_valor','valor_dolar_diario','valor_euro_diario',
+    'mesas_usadas_ARS','bruto_ARS',
+    'mesas_usadas_USD','bruto_USD',
+    'mesas_usadas','bruto',
+    'dias_lunes_jueves','mesas_lunes_jueves',
+    'dias_viernes_sabados','mesas_viernes_sabados',
+    'dias_domingos','mesas_domingos',
+    'dias_todos','mesas_todos',
+    'dias_fijos','mesas_fijos',
+    'mesas_dias','factor_ajuste_diario_fijas',
+    'mesas_habilitadas_acumuladas',
+    'devengar',
+    'devengado_valor_dolar_cotizado','devengado_valor_euro_cotizado',
+    'devengado_valor_dolar_diario_cotizado','devengado_valor_euro_diario_cotizado',
+    'devengado_valor','devengado_valor_diario',
+    'devengado_total_dolar_cotizado','devengado_total_euro_cotizado',
+    'devengado_total','devengado_deduccion','devengado',
+    'determinado_valor_dolar_cotizado','determinado_valor_euro_cotizado',
+    'determinado_valor_dolar_diario_cotizado','determinado_valor_euro_diario_cotizado',
+    'determinado_valor','determinado_valor_diario',
+    'determinado_total_dolar_cotizado','determinado_total_euro_cotizado',
+    'determinado_total','determinado_ajuste','determinado'
+  ] as $varname){
+    $$varname =  "canon_fijo_mesas[$molde_str][$varname]";
+  }
+  
+  $molde_str_diario = '$'.uniqid();
+  
+  foreach([
+    'dia','bruto_ARS','bruto_USD','bruto','dia_semana',
+    'mesas_habilitadas','mesas_habilitadas_acumuladas',
+    'devengado_valor_diario','devengado_total',
+    'determinado_valor_diario','determinado_total'
+  ] as $varname){
+    $varname_php = 'd_'.$varname;
+    $$varname_php = "canon_fijo_mesas[$molde_str][diario][$molde_str_diario][$varname]";
+  }
 ?>
 <div class="bloque_interno bloque_principal" style="width: 100%;" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder_subcanon" data-subcanon-toggle-mensual-diario-estado="mensual">
-  <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
-  <input data-name="{{$n('id_canon_fijo_mesas')}}" hidden>
+  <input data-tipo data-js-texto-no-formatear-numero data-name="{{$tipo}}" hidden>
+  <input data-name="{{$id_canon_fijo_mesas}}" hidden>
   <div class="bloque_interno" style="width: 100%;display: flex;align-items: center;">
     @component('Canon.ModalCanon.toggleSubcanon')
     @endcomponent
@@ -68,11 +62,21 @@
         </div>
         <div class="parametro_chico">
           <h5>DÍAS VALOR</h5>
-          <input class="form-control" data-name="{{$dias_valor}}" data-depende="{{$id_casino}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+          <input class="form-control" data-name="{{$dias_valor}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
         </div>
         <div class="aproximado valor_intermedio">
           <h5>FACTOR DÍAS VALOR ≈ (DÍAS VALOR)⁻¹</h5>
           <input class="form-control" data-name="{{$factor_dias_valor}}" data-depende="{{$dias_valor}}" data-readonly='[{"modo":"*"}]'>
+        </div>
+      </div>
+      <div style="display: flex;width: 100%;">
+        <div>
+          <h5>VALOR DOLAR DIARIO (USD)</h5>
+          <input class="form-control" data-name="{{$valor_dolar_diario}}" data-depende="{{$factor_dias_valor}},valor_dolar" data-readonly='[{"modo":"*"}]'>
+        </div>
+        <div>
+          <h5>VALOR EURO DIARIO (EUR)</h5>
+          <input class="form-control" data-name="{{$valor_euro_diario}}" data-depende="{{$factor_dias_valor}},valor_euro" data-readonly='[{"modo":"*"}]'>
         </div>
       </div>
       <br>
@@ -95,6 +99,10 @@
             <h5>VALOR EURO (ARS)</h5>
             <input class="form-control" data-name="{{$devengado_valor_euro_cotizado}}" data-depende="devengado_cotizacion_euro,valor_euro" data-readonly='[{"modo":"*"}]'>
           </div>
+          <div class="valor_intermedio">
+            <h5>VALOR (ARS)</h5>
+            <input class="form-control" data-name="{{$devengado_valor}}" data-depende="{{$devengado_valor_dolar_cotizado}},{{$devengado_valor_euro_cotizado}}" data-readonly='[{"modo":"*"}]'>
+          </div>
         </div>
         <div style="display: flex;">
           <div class="valor_intermedio">
@@ -104,6 +112,10 @@
           <div class="valor_intermedio">
             <h5>VALOR EURO DIARIO (ARS)</h5>
             <input class="form-control" data-name="{{$devengado_valor_euro_diario_cotizado}}" data-depende="{{$devengado_valor_euro_cotizado}},{{$factor_dias_valor}}" data-readonly='[{"modo":"*"}]'>
+          </div>
+          <div class="valor_intermedio">
+            <h5>VALOR DIARIO (ARS)</h5>
+            <input class="form-control" data-name="{{$devengado_valor_diario}}" data-depende="{{$devengado_valor}},{{$factor_dias_valor}}" data-readonly='[{"modo":"*"}]'>
           </div>
         </div>
       </div>
@@ -118,15 +130,23 @@
             <h5>VALOR EURO (ARS)</h5>
             <input class="form-control" data-name="{{$determinado_valor_euro_cotizado}}" data-depende="determinado_cotizacion_euro,valor_euro" data-readonly='[{"modo":"*"}]'>
           </div>
+          <div class="valor_intermedio">
+            <h5>VALOR (ARS)</h5>
+            <input class="form-control" data-name="{{$determinado_valor}}" data-depende="{{$determinado_valor_dolar_cotizado}},{{$determinado_valor_euro_cotizado}}" data-readonly='[{"modo":"*"}]'>
+          </div>
         </div>
         <div style="display: flex;">
           <div class="valor_intermedio">
             <h5>VALOR DOLAR DIARIO (ARS)</h5>
-            <input class="form-control" data-name="{{$determinado_valor_dolar_diario_cotizado}}" data-depende="{{$determinado_valor_dolar_cotizado}},{{$dias_valor}}" data-readonly='[{"modo":"*"}]'>
+            <input class="form-control" data-name="{{$determinado_valor_dolar_diario_cotizado}}" data-depende="{{$determinado_valor_dolar_cotizado}},{{$factor_dias_valor}}" data-readonly='[{"modo":"*"}]'>
           </div>
           <div class="valor_intermedio">
             <h5>VALOR EURO DIARIO (ARS)</h5>
-            <input class="form-control" data-name="{{$determinado_valor_euro_diario_cotizado}}" data-depende="{{$determinado_valor_euro_cotizado}},{{$dias_valor}}" data-readonly='[{"modo":"*"}]'>
+            <input class="form-control" data-name="{{$determinado_valor_euro_diario_cotizado}}" data-depende="{{$determinado_valor_euro_cotizado}},{{$factor_dias_valor}}" data-readonly='[{"modo":"*"}]'>
+          </div>
+          <div class="valor_intermedio">
+            <h5>VALOR DIARIO (ARS)</h5>
+            <input class="form-control" data-name="{{$determinado_valor_diario}}" data-depende="{{$determinado_valor}},{{$factor_dias_valor}}" data-readonly='[{"modo":"*"}]'>
           </div>
         </div>
       </div>
@@ -176,6 +196,16 @@
               <input class="form-control" data-name="{{$mesas_fijos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
           </div>
+          <div class="parametro_chico">
+            <h5>Factor Ajuste Diario Fijas</h5>
+            <div style="display: flex;flex-direction: column;">
+              <input class="form-control" data-name="{{$factor_ajuste_diario_fijas}}" data-depende="año_mes" readonly>
+            </div>
+          </div>
+          <div class="valor_intermedio">
+            <h5>MESAS×DIAS</h5>
+            <input class="form-control" data-name="{{$mesas_dias}}" data-depende="{{$dias_lunes_jueves}},{{$mesas_lunes_jueves}},{{$dias_viernes_sabados}},{{$mesas_viernes_sabados}},{{$dias_domingos}},{{$mesas_domingos}},{{$dias_todos}},{{$mesas_todos}},{{$dias_fijos}},{{$mesas_fijos}}" readonly="readonly">
+          </div>
         </div>
       </div>
     </div>
@@ -189,34 +219,38 @@
           <table class="table table-bordered" style="margin-bottom: 0;">
             @section('colgroupCF')
             <colgroup>
-              <col style="width: 5%;">
-              <col style="width: 5%;">
-              <col style="width: 5%;">
-              <col style="width: 5%;">
-              <col style="width: 11.25%;">
-              <col style="width: 5%;">
-              <col style="width: 11.25%;">
-              <col style="width: 5%;">
-              <col style="width: 11.25%;">
-              <col style="width: 11.25%;">
-              <col style="width: 11.25%;">
+              <col style="width: 4%;">
+              <col style="width: 12%;">
+              <col style="width: 12%;">
+              <col style="width: 12%;">
+              <col style="width: 6%;">
+              <col style="width: 7%;">
+              <col style="width: 7%;">
+              <col style="width: 8%;">
+              <col style="width: 12%;">
+              <col style="width: 8%;">
+              <col style="width: 12%;">
             </colgroup>
             @endsection
             @yield('colgroupCF')
             <thead>
               <tr>
+                <th style="text-align: center;" colspan="7">&nbsp;</th>
+                <th style="text-align: center;" colspan="2">Devengado</th>
+                <th style="text-align: center;" colspan="2">Determinado</th>
+              </tr>
+              <tr>
                 <th style="text-align: center;">Día</th>
+                <th style="text-align: center;">Bruto ARS</th>
+                <th style="text-align: center;">Bruto USD</th>
+                <th style="text-align: center;">Bruto</th>
                 <th style="text-align: center;">Día Sem</th>
                 <th style="text-align: center;">Mesas Hab.</th>
-                <th style="text-align: center;">Mesas Usadas ARS</th>
-                <th style="text-align: center;">Bruto ARS</th>
-                <th style="text-align: center;">Mesas Usadas USD</th>
-                <th style="text-align: center;">Bruto USD</th>
-                <th style="text-align: center;">Mesas Usadas</th>
-                <th style="text-align: center;">Bruto</th>
-                <th style="text-align: center;">Mesas Hab. (acumulado, ajustado)</th>
-                <th style="text-align: center;">Devengado (acumulado)</th>
-                <th style="text-align: center;">Determinado (acumulado)</th>
+                <th style="text-align: center;">Mesas Hab. (acumulado)</th>
+                <th style="text-align: center;">Valor Diario</th>
+                <th style="text-align: center;">Total</th>
+                <th style="text-align: center;">Valor Diario</th>
+                <th style="text-align: center;">Total</th>
               </tr>
             </thead>
           </table>
@@ -231,17 +265,17 @@
             </table>
             <table hidden>
               <tr data-molde-diario="{{$molde_str_diario}}">
-                <td><input class="form-control" data-name="{{$nd('dia')}}" readonly></td>
-                <td><input class="form-control" data-name="{{$nd('dia_semana')}}" readonly></td>
-                <td><input class="form-control" data-name="{{$nd('mesas_habilitadas')}}" readonly></td>
-                <td><input class="form-control" data-name="{{$nd('mesas_usadas_ARS')}}"></td>
-                <td><input class="form-control" data-name="{{$nd('bruto_ARS')}}"></td>
-                <td><input class="form-control" data-name="{{$nd('mesas_usadas_USD')}}"></td>
-                <td><input class="form-control" data-name="{{$nd('bruto_USD')}}"></td>
-                <td><input class="form-control" data-name="{{$nd('mesas_usadas')}}" readonly></td>
-                <td><input class="form-control" data-name="{{$nd('bruto')}}" readonly></td>
-                <td><input class="form-control" data-name="{{$nd('devengado_total')}}" readonly></td>
-                <td><input class="form-control" data-name="{{$nd('determinado_total')}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_dia}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_bruto_ARS}}"></td>
+                <td><input class="form-control" data-name="{{$d_bruto_USD}}"></td>
+                <td><input class="form-control" data-name="{{$d_bruto}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_dia_semana}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_mesas_habilitadas}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_mesas_habilitadas_acumuladas}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_devengado_valor_diario}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_devengado_total}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_determinado_valor_diario}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_determinado_total}}" readonly></td>
               </tr>
             </table>
           </div>
@@ -251,15 +285,13 @@
             @yield('colgroupCF')
             <tbody>
               <tr class="fila-mensual">
-                <td colspan="2">&nbsp;</td>
-                <td><input class="form-control" data-name="{{$mesas_dias}}" readonly></td>
-                <td><input class="form-control" data-name="{{$mesas_usadas_ARS}}" readonly></td>
+                <td>&nbsp;</td>
                 <td><input class="form-control" data-name="{{$bruto_ARS}}" readonly></td>
-                <td><input class="form-control" data-name="{{$mesas_usadas_USD}}" readonly></td>
                 <td><input class="form-control" data-name="{{$bruto_USD}}" readonly></td>
-                <td><input class="form-control" data-name="{{$mesas_usadas}}" readonly></td>
                 <td><input class="form-control" data-name="{{$bruto}}" readonly></td>
                 <td colspan="2">&nbsp;</td>
+                <td><input class="form-control" data-name="{{$mesas_habilitadas_acumuladas}}" readonly></td>
+                <td colspan="4">&nbsp;</td>
               </tr>
             </tbody>
           </table>

@@ -76,10 +76,10 @@ class CanonController extends Controller
       'ajuste' => ['nullable',AUX::numeric_rule(2)],
       'motivo_ajuste' => ['nullable','string','max:128'],
       //Valores que se "difunden" a cada subcanon >:(
-      'cotizaciones' => ['nullable','array'],
-      'cotizaciones.*.dia' => ['required','integer','min:1','max:31'],
-      'cotizaciones.*.USD' => ['required','numeric'],
-      'cotizaciones.*.EUR' => ['required','numeric'],
+      'canon_cotizacion_diaria' => ['nullable','array'],
+      'canon_cotizacion_diaria.*.dia' => ['required','integer','min:1','max:31'],
+      'canon_cotizacion_diaria.*.USD' => ['nullable','numeric'],
+      'canon_cotizacion_diaria.*.EUR' => ['nullable','numeric'],
       'devengado_fecha_cotizacion' => ['nullable','date'],
       'devengado_cotizacion_dolar' => ['nullable',AUX::numeric_rule(2)],
       'devengado_cotizacion_euro' => ['nullable',AUX::numeric_rule(2)],
@@ -153,9 +153,10 @@ class CanonController extends Controller
       'determinado_fecha_cotizacion' => $R('determinado_fecha_cotizacion',null),
       'determinado_cotizacion_dolar' => $R('determinado_cotizacion_dolar',null),
       'determinado_cotizacion_euro'  => $R('determinado_cotizacion_euro',null),
+      'canon_cotizacion_diaria'      => $R('canon_cotizacion_diaria',null),
     ];
     
-    if($año_mes !== null && $año_mes !== '' && ($COT['devengado_fecha_cotizacion'] === null || $COT['determinado_fecha_cotizacion'] === null)){
+    if($año_mes !== null && $año_mes !== ''){
       $f = explode('-',$año_mes);
       
       $f[0] = $f[1] == '12'? intval($f[0])+1 : $f[0];
@@ -174,6 +175,22 @@ class CanonController extends Controller
           $viernes_anterior = $viernes_anterior->sub(\DateInterval::createFromDateString('1 day'));
         }
         $COT['determinado_fecha_cotizacion'] = $viernes_anterior->format('Y-m-d');//@RETORNADO
+      }
+      
+      if($COT['canon_cotizacion_diaria'] === null){
+        $COT['canon_cotizacion_diaria'] = [];
+        $dias_mes = count($f) < 3? 0: cal_days_in_month(
+          CAL_GREGORIAN,
+          intval($f[1]),
+          intval($f[0])
+        );
+        for($d=1;$d<=$dias_mes;$d++){
+          $COT['canon_cotizacion_diaria'][$d] = [
+            'dia' => $d,
+            'USD' => null,
+            'EUR' => null
+          ];
+        }
       }
     }
     
@@ -500,21 +517,8 @@ class CanonController extends Controller
     return array_merge($ret,$this->confluir($ret));
   }
   
-  private function confluir(array $canon){    
+  private function confluir(array $canon){   
     $aux = [];
-    {
-      $canon_cotizacion_diaria = [];
-      $año_mes_arr = explode('-',$canon['año_mes'] ?? '');
-      $dias_mes = count($año_mes_arr) < 3? 0: cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
-      for($d=1;$d<=$dias_mes;$d++){
-        $canon_cotizacion_diaria[$d] = [
-          'dia' => $d,
-          'USD' => null,
-          'EUR' => null
-        ];
-      }
-      $aux[] = [compact('canon_cotizacion_diaria')];
-    }
     
     $aux[] = [$this->canon_pago->confluir($canon)];
     foreach($this->subcanons as $sc => $scobj){

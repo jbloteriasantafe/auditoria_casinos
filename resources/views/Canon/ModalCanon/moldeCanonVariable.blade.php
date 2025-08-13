@@ -114,7 +114,7 @@
                 <th style="text-align: center;">Bruto (USD)</th>
                 <th style="text-align: center;">Bruto</th>
                 <th style="text-align: center;">Subtotal</th>
-                <th style="text-align: center;">Devengado (acumulado)</th>
+                <th style="text-align: center;">Total (acumulado)</th>
               </tr>
             </thead>
           </table>
@@ -200,7 +200,7 @@
                 <th style="text-align: center;">Bruto (USD)</th>
                 <th style="text-align: center;">Bruto</th>
                 <th style="text-align: center;">Subtotal</th>
-                <th style="text-align: center;">Determinado (acumulado)</th>
+                <th style="text-align: center;">Total (acumulado)</th>
               </tr>
             </thead>
           </table>

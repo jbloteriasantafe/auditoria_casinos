@@ -59,6 +59,39 @@ class CanonFijoMesasAdicionalesController extends Controller
     ->keyBy('tipo')->toArray();
   }
   
+  private static function calcular_valor_mesa(
+    $cotizacion_dolar,$cotizacion_euro,
+    $valor_dolar,$valor_euro,
+    $factor_dias_mes,$factor_horas_mes
+  ){
+    $valor_mes = bcadd(
+      bcmul($valor_dolar,$cotizacion_dolar,4),//2+2
+      bcmul($valor_euro,$cotizacion_euro,4),//2+2
+      4
+    );
+    $valor_dia  = bcmul($valor_mes,$factor_dias_mes,16);//4+12 @RETORNADO
+    $valor_hora = bcmul($valor_mes,$factor_horas_mes,16);//4+12 @RETORNADO
+    
+    return compact('valor_mes','valor_dia','valor_hora');
+  }
+  
+  //Sumo de valores mas precisos a menos precisos
+  private static function calcular_total($valor_mesa,$horas,$mesas,$horas_dia,$horas_mes,$factor_porcentaje){
+    $horas_totales = ($horas ?? 0) + ($mesas ?? 0)*$horas_dia;
+    
+    $meses = intdiv($horas_totales,$horas_mes);
+    $horas_restantes = $horas_totales%$horas_mes;
+      
+    $dias = intdiv($horas_restantes,$horas_dia);
+    $horas_restantes = $horas_totales%$horas_dia;
+    
+    $total = bcmul($valor_mesa['valor_mes'],$meses,4);
+    $total = bcadd($total,bcmul($valor_mesa['valor_dia'],$dias,16),16);
+    $total = bcadd($total,bcmul($valor_mesa['valor_hora'],$horas_restantes,16),16);
+      
+    return bcmul($total,$factor_porcentaje,22);//16+6 @RETORNADO
+  }
+  
   public function recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$accessors){
     extract($accessors);
     
@@ -77,63 +110,50 @@ class CanonFijoMesasAdicionalesController extends Controller
     $factor_dias_mes  = ($dias_mes != 0)? bcdiv('1',$dias_mes,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon
     $factor_horas_mes = ($horas_dia != 0 && $dias_mes != 0)? bcdiv('1',$horas_dia*$dias_mes,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon
     
-    
     $horas = $R('horas',0);//@RETORNADO
     $mesas = $R('mesas',0);//@RETORNADO
-    if($horas != 0) $mesas = 0;
-    if($mesas != 0) $horas = 0;
-    
+        
     $porcentaje = bcadd($RD('porcentaje','0.0000'),'0',4);//@RETORNADO
     $factor_porcentaje = bcdiv($porcentaje,'100',6);
         
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
     
-    $devengado_valor_mes = bcadd(
-      bcmul($valor_dolar,$devengado_cotizacion_dolar,4),//2+2
-      bcmul($valor_euro,$devengado_cotizacion_euro,4),//2+2
-      4
-    );//@RETORNADO
-    $devengado_valor_dia  = bcmul($devengado_valor_mes,$factor_dias_mes,16);//4+12 @RETORNADO
-    $devengado_valor_hora = bcmul($devengado_valor_mes,$factor_horas_mes,16);//4+12 @RETORNADO
+    $devengado_valor_mesa = self::calcular_valor_mesa(
+      $devengado_cotizacion_dolar,$devengado_cotizacion_euro,
+      $valor_dolar,$valor_euro,
+      $factor_dias_mes,$factor_horas_mes
+    );
     
-    $determinado_valor_mes = bcadd(
-      bcmul($valor_dolar,$determinado_cotizacion_dolar,4),//2+2
-      bcmul($valor_euro,$determinado_cotizacion_euro,4),//2+2
-      4
-    );//@RETORNADO
-    $determinado_valor_dia  = bcmul($determinado_valor_mes,$factor_dias_mes,16);//4+12 @RETORNADO
-    $determinado_valor_hora = bcmul($determinado_valor_mes,$factor_horas_mes,16);//4+12 @RETORNADO
+    $devengado_valor_mes  = $devengado_valor_mesa['valor_mes'];//@RETORNADO
+    $devengado_valor_dia  = $devengado_valor_mesa['valor_dia'];//@RETORNADO
+    $devengado_valor_hora = $devengado_valor_mesa['valor_hora'];//@RETORNADO
     
-    $devengado_total_sin_aplicar_porcentaje = '0';
-    $determinado_total_sin_aplicar_porcentaje = '0';
-    {//Sumo de valores mas precisos a menos precisos
-      $horas_aux = $horas != 0? $horas : bcmul($mesas,$horas_dia,0);
-      $horas_mes = $horas_dia*$dias_mes;
-      
-      $meses = intdiv($horas_aux,$horas_mes);
-      $horas_dias_restantes = $horas_aux%$horas_mes;
-      
-      $dias = intdiv($horas_dias_restantes,$horas_dia);
-      $horas_restantes = $horas_dias_restantes%$horas_dia;
-      
-      $devengado_total_meses = bcmul($devengado_valor_mes,$meses,4);
-      $devengado_total_dias  = bcmul($devengado_valor_dia,$dias,16);
-      $devengado_total_horas = bcmul($devengado_valor_hora,$horas_restantes,16);
-      $determinado_total_meses = bcmul($determinado_valor_mes,$meses,4);
-      $determinado_total_dias  = bcmul($determinado_valor_dia,$dias,16);
-      $determinado_total_horas = bcmul($determinado_valor_hora,$horas_restantes,16);
-      
-      $devengado_total_sin_aplicar_porcentaje = bcadd(
-        bcadd(bcadd($devengado_total_sin_aplicar_porcentaje,$devengado_total_meses,16),$devengado_total_dias,16),$devengado_total_horas,16
-      );
-      $determinado_total_sin_aplicar_porcentaje = bcadd(
-        bcadd(bcadd($determinado_total_sin_aplicar_porcentaje,$determinado_total_meses,16),$determinado_total_dias,16),$determinado_total_horas,16
-      );
-    }
+    $determinado_valor_mesa = self::calcular_valor_mesa(
+      $determinado_cotizacion_dolar,$determinado_cotizacion_euro,
+      $valor_dolar,$valor_euro,
+      $factor_dias_mes,$factor_horas_mes
+    );
+    
+    $determinado_valor_mes  = $determinado_valor_mesa['valor_mes'];//@RETORNADO
+    $determinado_valor_dia  = $determinado_valor_mesa['valor_dia'];//@RETORNADO
+    $determinado_valor_hora = $determinado_valor_mesa['valor_hora'];//@RETORNADO
+    
+    $horas_mes = $horas_dia*$dias_mes;
+    
+    $devengado_total = self::calcular_total(
+      $devengado_valor_mesa,
+      $horas,$mesas,
+      $horas_dia,$horas_mes,
+      $factor_porcentaje
+    );//@RETORNADO
+            
+    $determinado_total = self::calcular_total(
+      $determinado_valor_mesa,
+      $horas,$mesas,
+      $horas_dia,$horas_mes,
+      $factor_porcentaje
+    );//@RETORNADO
         
-    $devengado_total = bcmul($devengado_total_sin_aplicar_porcentaje,$factor_porcentaje,22);//16+6 @RETORNADO
-    $determinado_total = bcmul($determinado_total_sin_aplicar_porcentaje,$factor_porcentaje,22);//16+6 @RETORNADO
-    
     $devengado_deduccion = bcadd($RAD('devengado_deduccion','0.00'),'0',2);//@RETORNADO
     $determinado_ajuste = bcadd($RD('determinado_ajuste','0.00'),'0',22);//@RETORNADO
     
@@ -147,41 +167,20 @@ class CanonFijoMesasAdicionalesController extends Controller
     
     $accesors_diario = [
       'R' => AUX::make_accessor($R('diario',[])),
-      'A' => AUX::make_accessor($A('diario',[]))
+      'A' => AUX::make_accessor($A('diario',[])),
+      'COT' => AUX::make_accessor($COT('canon_cotizacion_diaria',[])),
     ];
     $accesors_diario['RA'] = AUX::combine_accessors($accesors_diario['R'],$accesors_diario['A']);
     
     $diario = $this->recalcular_diario(
       $año_mes,$id_casino,$es_antiguo,$tipo,
-      $accesors_diario
-    );//@RETORNADO
+      $accesors_diario,
+      $valor_dolar,$valor_euro,
+      $horas_dia,$horas_mes,
+      $factor_dias_mes,$factor_horas_mes
+    )['diario'] ?? [];//@RETORNADO
     
-    //SE RETORNAN
-    $sumar = [];
-    
-    $comparar = [
-      'horas','mesas'
-    ];
-    
-    $aux = [];
-    
-    foreach($diario as $d){
-      foreach($sumar as $attr){
-        $aux[$attr] = bcadd_precise($d[$attr],$aux[$attr] ?? '0');
-      }
-      foreach($comparar as $attr){
-        $aux[$attr] = bcadd_precise($d[$attr],$aux[$attr] ?? '0');
-      }
-    }
-    
-    $errores = [];//@RETORNADO   
-    foreach($comparar as $attr){    
-      if(bccomp_precise($$attr,$aux[$attr] ?? null)){//$$ dereferencia el string por lo que tiene que existir una variable con ese valor
-        $errores[] = $attr;
-      }
-    }
-    
-    $ret = compact(
+    return compact(
       'tipo',
       'dias_mes','horas_dia','factor_dias_mes','factor_horas_mes',
       'valor_dolar','valor_euro',
@@ -195,38 +194,65 @@ class CanonFijoMesasAdicionalesController extends Controller
       'determinado_valor_mes','determinado_valor_dia','determinado_valor_hora',
       'determinado_total','determinado_ajuste',
       'determinado',
-      'diario','errores'
+      'diario','canon_cotizacion_diaria','errores'
     );
-      
-    foreach($sumar as $attr){
-      $ret[$attr] = $aux[$attr] ?? null;
-    }
-    
-    return $ret;
   }
   
   private function recalcular_diario(
     $año_mes,$id_casino,$es_antiguo,$tipo,
-    $accessors
+    $accessors,
+    $valor_dolar,$valor_euro,
+    $horas_dia,$horas_mes,
+    $factor_dias_mes,$factor_horas_mes
   ){
-    static $cotizaciones = [];//voy guardando por si cambia alguna ya cambia todas...
     extract($accessors);
     
     $año_mes = explode('-',$año_mes);
     $dias = cal_days_in_month(CAL_GREGORIAN,intval($año_mes[1]),intval($año_mes[0]));
     
-    $ret = [];
+    $diario = [];
+    
+    $horas = 0;
+    $mesas = 0;
+    
+    $año_mes_str = $año_mes[0].'-'.$año_mes[1].'-';
+    
     for($dia=1;$dia<=$dias;$dia++){
       $D = AUX::make_accessor($R($dia,[]));
-      $fecha = implode('-',[$año_mes[0],$año_mes[1],str_pad($dia,2,'0',STR_PAD_LEFT)]);
-      $horas = $D('horas',0);
-      $mesas = $D('mesas',0);
-      $ret[$dia] = compact(
-        'dia','fecha','horas','mesas'
+      $fecha = $año_mes_str.str_pad($dia,2,'0',STR_PAD_LEFT);
+      $horas_diarias = $D('horas_diarias',0);
+      $mesas_diarias = $D('mesas_diarias',0);
+      $horas+=$horas_diarias;
+      $mesas+=$mesas_diarias;
+      
+      $cotizacion_dolar = '0';//@TODO
+      $cotizacion_euro  = '0';//@TODO
+      
+      //Al tener la misma fecha de cotizacion, el total devengado y el total determinado es el mismo
+      $valor_mesa = self::calcular_valor_mesa(
+        $cotizacion_dolar,$cotizacion_euro,
+        $valor_dolar,$valor_euro,
+        $factor_dias_mes,$factor_horas_mes
+      );
+      
+      $devengado_valor_mes  = $valor_mesa['valor_mes'];
+      $devengado_valor_dia  = $valor_mesa['valor_dia'];
+      $devengado_valor_hora = $valor_mesa['valor_hora'];
+      $determinado_valor_mes  = $valor_mesa['valor_mes'];
+      $determinado_valor_dia  = $valor_mesa['valor_dia'];
+      $determinado_valor_hora = $valor_mesa['valor_hora'];
+      
+      $devengado_total   = self::calcular_total($valor_mesa,$horas,$mesas,$horas_dia,$horas_mes,'1');
+      $determinado_total = $devengado_total;
+      
+      $diario[$dia] = compact(
+        'dia','fecha','horas_diarias','mesas_diarias','horas','mesas',
+        'devengado_valor_mes','devengado_valor_dia','devengado_valor_hora','devengado_total',
+        'determinado_valor_mes','determinado_valor_dia','determinado_valor_hora','determinado_total'
       );
     }
     
-    return $ret;
+    return compact('diario');
   }
   
   public function guardar($id_canon,$id_canon_anterior,$datos){
@@ -278,7 +304,7 @@ class CanonFijoMesasAdicionalesController extends Controller
   }
   
   public function confluir($data){
-    return AUX::confluir_datos(
+    $ret = AUX::confluir_datos(
       $data,
       ['canon_fijo_mesas_adicionales'],
       [
@@ -288,6 +314,17 @@ class CanonFijoMesasAdicionalesController extends Controller
         'determinado_cotizacion_dolar','determinado_cotizacion_euro'
       ]
     );
+    
+    $ret['canon_cotizacion_diaria'] = [];
+    foreach(($data['canon_fijo_mesas_adicionales'] ?? []) as $tipo => $datatipo){
+      foreach(($datatipo['diario'] ?? []) as $dia => $datadia){
+        $ret['canon_cotizacion_diaria'][$dia] = [
+          'dia' => $dia,'USD' => null,'EUR' => null
+        ];
+      }
+    }
+    
+    return $ret;
   }
   
   public function datosCanon($tname){
