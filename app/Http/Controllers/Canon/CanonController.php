@@ -204,6 +204,15 @@ class CanonController extends Controller
       $COT['determinado_cotizacion_euro']  = $COT['determinado_cotizacion_euro']  ?? AUX::cotizacion($COT['determinado_fecha_cotizacion'],3,$id_casino) ?? '0';
     }
     
+    if($COT['canon_cotizacion_diaria'] !== null){
+      $año_mes_str = substr($año_mes,0,strlen('XXXX-XX-'));
+      foreach($COT['canon_cotizacion_diaria'] as $d => &$cot){
+        $f = $año_mes.str_pad($d,2,'0',STR_PAD_LEFT);
+        $cot['USD'] = $cot['USD'] ?? AUX::cotizacion($f,2,$id_casino) ?? '0';
+        $cot['EUR'] = $cot['EUR'] ?? AUX::cotizacion($f,3,$id_casino) ?? '0';
+      }
+    }
+    
     $subcanons = [];
         
     $make_multiple_accessors = function(&$r,&$d,&$a,&$cot){

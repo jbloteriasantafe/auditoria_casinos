@@ -146,6 +146,35 @@ class AUX {
           $cas_where
         )";
       };
+      $tfd = function($sc,$devdet) use ($id_casino) {
+        $cas_where = empty($id_casino)? '' : "WHERE c.id_casino <> $id_casino";
+        $sel = null;
+        if($sc == 'canon_variable'){
+          $sel = "
+            scd.{$devdet}_cotizacion_dolar as dolar,
+            NULL as euro
+          ";
+        }
+        else if($sc == 'canon_fijo_mesas' || $sc == 'canon_fijo_mesas_adicionales'){
+          $sel = "
+            scd.{$devdet}_cotizacion_dolar as dolar,
+            scd.{$devdet}_cotizacion_euro as euro
+          ";
+        }
+        else{
+          throw new \Exception("Error caso '$sc' sin implementar");
+        }
+        
+        return "(
+          SELECT 
+            scd.fecha as fecha,
+            {$sel}
+          FROM {$sc} as sc
+          JOIN canon as c ON c.id_canon = sc.id_canon AND c.deleted_at IS NULL
+          JOIN {$sc}_diario as scd ON scd.id_{$sc} = sc.id_{$sc}
+          $cas_where
+        )";
+      };
       //count distinct no cuenta nulos en MySQL por lo menos
       //si hay 1 solo MAX es lo mismo que sacar el valor este
       DB::statement("CREATE TEMPORARY TABLE $t_fechas_cotizadas AS 
@@ -170,6 +199,16 @@ class AUX {
         {$tf('canon_fijo_mesas_adicionales','devengado')}
         UNION
         {$tf('canon_fijo_mesas_adicionales','determinado')}
+        UNION
+        {$tfd('canon_variable','devengado')}
+        UNION
+        {$tfd('canon_fijo_mesas','devengado')}
+        UNION
+        {$tfd('canon_fijo_mesas','determinado')}
+        UNION
+        {$tfd('canon_fijo_mesas_adicionales','devengado')}
+        UNION
+        {$tfd('canon_fijo_mesas_adicionales','determinado')}
       ) as aux
       GROUP BY aux.fecha
       ORDER BY aux.fecha DESC");
@@ -180,7 +219,7 @@ class AUX {
       
       self::$cotizacion_DB = [];
       foreach($vals_db as $v){
-        self::$cotizacion_DB[$v->fecha] = $cotizacion_DB[$v->fecha] ?? [2 => [],3 => []];
+        self::$cotizacion_DB[$v->fecha] = $cotizacion_DB[$v->fecha] ?? [2 => null,3 => null];
         self::$cotizacion_DB[$v->fecha][2] = $v->dolar;
         self::$cotizacion_DB[$v->fecha][3] = $v->euro;
       }
