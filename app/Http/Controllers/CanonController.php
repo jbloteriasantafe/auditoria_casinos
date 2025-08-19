@@ -2444,6 +2444,7 @@ class CanonController extends Controller
     
     $planillas = [
       'evolucion_historica' => 'Evolución Historica',
+      'evolucion_cotizacion' => 'Evolución Cotización',
       'canon_total' => 'Canon Total',
       'canon_fisico_online' => 'Canon Físico-On Line',
       'participacion' => 'Particip. % Resultado CF-JOL',
@@ -2459,7 +2460,7 @@ class CanonController extends Controller
     
     $data = collect([]);
     $data_anual = collect([]);
-    if(($es_anual && $año !== null) || ($es_mensual && $año !== null && $mes == 'Resumen') || $planilla == 'evolucion_historica'){    
+    if(($es_anual && $año !== null) || ($es_mensual && $año !== null && $mes == 'Resumen') || ($planilla == 'evolucion_historica' || $planilla == 'evolucion_cotizacion')){    
       $tipos_variables_fisicos = ['Maquinas','Bingo'];
       $tipos_variables_online = ['JOL'];
       $tipos_fijos_mesas = DB::table('canon_fijo_mesas')
@@ -2572,6 +2573,20 @@ class CanonController extends Controller
       },$online)).',2)';
             
       if($planilla == 'evolucion_historica'){
+        $sel_aggr = 'SUM(c.devengado) as devengado,
+        SUM(c.determinado+c.ajuste) as canon,
+        SUM(c_yoy.devengado) as yoy_devengado,
+        SUM(c_yoy.determinado+c_yoy.ajuste) as yoy_canon,
+        SUM(c_mom.devengado) as mom_devengado,
+        SUM(c_mom.determinado+c_mom.ajuste) as mom_canon,
+        ROUND(100*(SUM(c.devengado)/NULLIF(SUM(c_yoy.devengado),0)-1),2) as variacion_anual_devengado,
+        ROUND(100*(SUM(c.devengado)/NULLIF(SUM(c_mom.devengado),0)-1),2) as variacion_mensual_devengado,
+        ROUND(100*(SUM(c.determinado+c.ajuste)/NULLIF(SUM(c_yoy.determinado+c_yoy.ajuste),0)-1),2) as variacion_anual_canon,
+        ROUND(100*(SUM(c.determinado+c.ajuste)/NULLIF(SUM(c_mom.determinado+c_mom.ajuste),0)-1),2) as variacion_mensual_canon,
+        (SUM(c.determinado)-SUM(c.devengado)) as diferencia,
+        ROUND(100*(1-SUM(c.devengado)/NULLIF(SUM(c.determinado),0)),2) as variacion_sobre_devengado';
+      }
+      else if($planilla == 'evolucion_cotizacion'){
         $sel_aggr = 'SUM(c.devengado) as devengado,
         SUM(c.determinado+c.ajuste) as canon,
         SUM(c_yoy.devengado) as yoy_devengado,
@@ -2799,7 +2814,44 @@ class CanonController extends Controller
       return $cas;
     });
     
-    return View::make('Canon.planillaPlanillas',compact('data','data_plataformas','años_planilla','años','año','año_anterior','meses','meses_calendario','meses_elegibles','mes','num_mes','planillas','planilla','es_anual','es_mensual','casinos','abbr_casinos','plataformas','relacion_plat_cas'));
+    $combine_into_pairs = function($arr1,$arr2){
+      $ks = [];
+      foreach($arr1 as $k => $_)
+        $ks[$k] = 1;
+      foreach($arr2 as $k => $_)
+        $ks[$k] = 1;
+      $ks = array_keys($ks);
+      
+      $ret = [];
+      foreach($ks as $k)
+        $ret[$k] = [$arr1[$k] ?? null,$arr2[$k] ?? null];
+      
+      return $ret;
+    };
+    
+    $botones = [
+      'planilla' => $combine_into_pairs(array_keys($planillas),array_values($planillas))
+    ];
+    
+    if($es_anual || $es_mensual){
+      $_años = $años->count()? $años->toArray() : [];
+      $botones['año'] = $combine_into_pairs($_años,$_años);
+    }
+    
+    if($planilla == 'evolucion_cotizacion'){
+      $_casinos = $casinos->toArray();
+      $tidx = array_search('Total',$_casinos);
+      if($tidx !== false)
+        unset($_casinos[$tidx]);
+      $botones['casino'] = $combine_into_pairs($_casinos,$_casinos);
+      $_años = $años->count()? $años->toArray() : [];
+      $botones['año'] = $combine_into_pairs($_años,$_años);
+      $botones['año'][] = ['total','Total'];
+    }
+    
+    $parametros = $request->all();
+    
+    return View::make('Canon.planillaPlanillas',compact('botones','parametros','data','data_plataformas','años_planilla','años','año','año_anterior','meses','meses_calendario','meses_elegibles','mes','num_mes','planillas','planilla','es_anual','es_mensual','casinos','abbr_casinos','plataformas','relacion_plat_cas'));
   }
   
   public function totalesTest(Request $request){
