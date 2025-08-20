@@ -2803,16 +2803,16 @@ class CanonController extends Controller
     }
     
     $casinos = collect($casinos->keys());
-    $abbr_casinos = $casinos->map(function($cas) {
-      switch($cas){
-        case 'Melincué': return 'CME';
-        case 'Santa Fe': return 'CSF';
-        case 'Santa Fe - Melincué': return 'CSF-CME';
-        case 'Rosario':  return 'CRO';
-        case 'Total':    return 'TOTAL';
-      }
-      return $cas;
-    });
+    $abbr_casinos = array_filter([
+      'Melincué' => 'CME',
+      'Santa Fe' => 'CSF',
+      'Santa Fe - Melincué' => 'CSF-CME',
+      'Rosario' => 'CRO',
+      'Total' => 'TOTAL'
+    ],function($k) use ($casinos){
+      return $casinos->search($k) !== false;
+    },ARRAY_FILTER_USE_KEY);
+    $casinos = collect(array_flip($abbr_casinos));
     
     $combine_into_pairs = function($arr1,$arr2){
       $ks = [];

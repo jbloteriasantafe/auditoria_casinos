@@ -9,9 +9,10 @@ table th {
 
 <?php
   $año = $parametros['año'] ?? null;
+  $casino = $parametros['casino'] ?? '';
 ?>
 
-@if($año === null)
+@if($año === null || empty($casino))
 @elseif($año == 'total')
 <?php 
   $años_por_fila = 3;
@@ -195,7 +196,7 @@ table th {
   </colgroup>
   <thead>
     <tr>
-      <th colspan="12">{{$parametros['casino'] ?? ''}}</th>
+      <th class="{{$abbr_casinos[$casino]}}" colspan="13">{{$casino}}</th>
     </tr>
   </thead>
   <thead>
@@ -242,7 +243,7 @@ table th {
       <td>U$S</td>
     </tr>
     @endfor
-    <tr>
+    <tr class="total">
       <td>Total</td>
       <td>Rdo. Bruto</td>
       <td>Rdo. Bruto</td>
@@ -253,6 +254,35 @@ table th {
       <td>Dólar</td>
       <td>€</td>
       <td>U$S</td>
+    </tr>
+    <tr>
+      <td colspan="13">&nbsp;</td>
+    </tr>
+  </tbody>
+  <thead>
+    <th>Actualización</th>
+    <th>{{$año-1-1}}/{{$año-1}}</th>
+    <th>{{$año-1}}/{{$año}}</th>
+    <th>%</th>
+    <th>Valores CC</th>
+    <th>Valores Nuevos</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Dólar</td>
+      <td>{{$año-1-1}}/{{$año-1}}</td>
+      <td>{{$año-1}}/{{$año}}</td>
+      <td>%</td>
+      <td>Valores CC</td>
+      <td>valores Nuevos</td>
+    </tr>
+    <tr>
+      <td>Euro</td>
+      <td>{{$año-1-1}}/{{$año-1}}</td>
+      <td>{{$año-1}}/{{$año}}</td>
+      <td>%</td>
+      <td>Valores CC</td>
+      <td>valores Nuevos</td>
     </tr>
   </tbody>
 </table>

@@ -90,6 +90,10 @@
       @endif
             
       @endforeach
+      
+      @if($loop->first)
+      <button data-js-click-descargar-tabla="[data-target-descargar-tabla]" style="float: right;">Descargar tabla</button>
+      @endif
     </div>
     <?php
       $url.= urlencode($parametros[$param] ?? '');
