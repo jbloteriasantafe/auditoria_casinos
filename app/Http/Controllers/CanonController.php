@@ -2530,6 +2530,10 @@ class CanonController extends Controller
           return $j->on($alias.'.id_canon','=','c.id_canon')
           ->where($alias.'.tipo','=',$t);
         });
+        $q = $q->leftJoin('canon_variable as '.$alias.'_yoy',function($j) use ($alias,$t){
+          return $j->on($alias.'_yoy.id_canon','=','c_yoy.id_canon')
+          ->where($alias.'_yoy.tipo','=',$t);
+        });
         $fisicos[] = $alias;
         $variables[] = $alias;
       }
@@ -2539,6 +2543,10 @@ class CanonController extends Controller
         $q = $q->leftJoin('canon_variable as '.$alias,function($j) use ($alias,$t){
           return $j->on($alias.'.id_canon','=','c.id_canon')
           ->where($alias.'.tipo','=',$t);
+        });
+        $q = $q->leftJoin('canon_variable as '.$alias.'_yoy',function($j) use ($alias,$t){
+          return $j->on($alias.'_yoy.id_canon','=','c_yoy.id_canon')
+          ->where($alias.'_yoy.tipo','=',$t);
         });
         $online[] = $alias;
         $variables[] = $alias;
@@ -2550,6 +2558,10 @@ class CanonController extends Controller
           return $j->on($alias.'.id_canon','=','c.id_canon')
           ->where($alias.'.tipo','=',$t);
         });
+        $q = $q->leftJoin('canon_fijo_mesas as '.$alias.'_yoy',function($j) use ($alias,$t){
+          return $j->on($alias.'_yoy.id_canon','=','c_yoy.id_canon')
+          ->where($alias.'_yoy.tipo','=',$t);
+        });
         $fisicos[] = $alias;
         $fijos[] = $alias;
       }
@@ -2559,6 +2571,10 @@ class CanonController extends Controller
         $q = $q->leftJoin('canon_fijo_mesas_adicionales as '.$alias,function($j) use ($alias,$t){
           return $j->on($alias.'.id_canon','=','c.id_canon')
           ->where($alias.'.tipo','=',$t);
+        });
+        $q = $q->leftJoin('canon_fijo_mesas_adicionales as '.$alias.'_yoy',function($j) use ($alias,$t){
+          return $j->on($alias.'_yoy.id_canon','=','c_yoy.id_canon')
+          ->where($alias.'_yoy.tipo','=',$t);
         });
         $fisicos[] = $alias;
         $fijos_adicionales[] = $alias;
@@ -2587,18 +2603,56 @@ class CanonController extends Controller
         ROUND(100*(1-SUM(c.devengado)/NULLIF(SUM(c.determinado),0)),2) as variacion_sobre_devengado';
       }
       else if($planilla == 'evolucion_cotizacion'){
-        $sel_aggr = 'SUM(c.devengado) as devengado,
-        SUM(c.determinado+c.ajuste) as canon,
-        SUM(c_yoy.devengado) as yoy_devengado,
-        SUM(c_yoy.determinado+c_yoy.ajuste) as yoy_canon,
-        SUM(c_mom.devengado) as mom_devengado,
-        SUM(c_mom.determinado+c_mom.ajuste) as mom_canon,
-        ROUND(100*(SUM(c.devengado)/NULLIF(SUM(c_yoy.devengado),0)-1),2) as variacion_anual_devengado,
-        ROUND(100*(SUM(c.devengado)/NULLIF(SUM(c_mom.devengado),0)-1),2) as variacion_mensual_devengado,
-        ROUND(100*(SUM(c.determinado+c.ajuste)/NULLIF(SUM(c_yoy.determinado+c_yoy.ajuste),0)-1),2) as variacion_anual_canon,
-        ROUND(100*(SUM(c.determinado+c.ajuste)/NULLIF(SUM(c_mom.determinado+c_mom.ajuste),0)-1),2) as variacion_mensual_canon,
-        (SUM(c.determinado)-SUM(c.devengado)) as diferencia,
-        ROUND(100*(1-SUM(c.devengado)/NULLIF(SUM(c.determinado),0)),2) as variacion_sobre_devengado';
+        if(($request->casino ?? false) && ($request->año ?? null) !== null){
+          if($request->año !== 'total'){
+            $bruto = '('.implode('+',array_map(function($t){
+              return "IFNULL(SUM({$t}.bruto),0)";
+            },$fijos)).')';
+            $bruto_yoy = '('.implode('+',array_map(function($t){
+              return "IFNULL(SUM({$t}_yoy.bruto),0)";
+            },$fijos)).')';
+            $cotizacion_euro = 'MAX(COALESCE('.implode(',',array_map(function($t){
+              return "{$t}.determinado_cotizacion_euro";
+            },$fijos)).'))';
+            $cotizacion_dolar = 'MAX(COALESCE('.implode(',',array_map(function($t){
+              return "{$t}.determinado_cotizacion_dolar";
+            },$fijos)).'))';
+            $cotizacion_euro_yoy = 'MAX(COALESCE('.implode(',',array_map(function($t){
+              return "{$t}_yoy.determinado_cotizacion_euro";
+            },$fijos)).'))';
+            $cotizacion_dolar_yoy = 'MAX(COALESCE('.implode(',',array_map(function($t){
+              return "{$t}_yoy.determinado_cotizacion_dolar";
+            },$fijos)).'))';
+            
+            $bruto_euro = "($bruto/2/$cotizacion_euro)";
+            $bruto_dolar = "($bruto/2/$cotizacion_dolar)";
+            $bruto_euro_yoy = "($bruto_yoy/2/$cotizacion_euro_yoy)";
+            $bruto_dolar_yoy = "($bruto_yoy/2/$cotizacion_dolar_yoy)";
+            $variacion_euro = "100*($bruto_euro/$bruto_euro_yoy-1)";
+            $variacion_dolar = "100*($bruto_dolar/$bruto_dolar_yoy-1)";
+            
+            $sel_aggr = "
+              $bruto as bruto,
+              $bruto_yoy as bruto_yoy,
+              $cotizacion_euro as cotizacion_euro,
+              $cotizacion_dolar as cotizacion_dolar,
+              $cotizacion_euro_yoy as cotizacion_euro_yoy,
+              $cotizacion_dolar_yoy as cotizacion_dolar_yoy,
+              $bruto_euro as bruto_euro,
+              $bruto_dolar as bruto_dolar,
+              $bruto_euro_yoy as bruto_euro_yoy,
+              $bruto_dolar_yoy as bruto_dolar_yoy,
+              $variacion_euro as variacion_euro,
+              $variacion_dolar as variacion_dolar
+            ";
+          }
+          else{
+            $sel_aggr = 'MAX(c.año_mes)';
+          }
+        }
+        else{
+          $sel_aggr = 'MAX(c.año_mes)';
+        }
       }
       else if($planilla == 'canon_total'){
         $sel_aggr = 'SUM(c.determinado+c.ajuste) as canon_total,
