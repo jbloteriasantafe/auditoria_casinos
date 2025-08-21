@@ -37,7 +37,11 @@
     'es_anual','es_mensual','casinos','abbr_casinos',
     'plataformas','relacion_plat_cas','valor_vacio','formatear_decimal','N',
     'formatear_porcentaje','abbr_año','meses_calendario',
-    'abbr_mes','abbr_meses','abbr_num_meses','dias_mes','dataf','parametros'
+    'abbr_mes','abbr_meses','abbr_num_meses','dias_mes','dataf','parametros',
+    'fecha_inicio',
+    'primer_fecha','ultima_fecha',
+    'primer_año','ultimo_año',
+    'primer_mes','ultimo_mes'
   );
 ?>
 <html>

@@ -19,27 +19,12 @@ th.dolar {
   border: 0 !important;
   background: white;
 }
+.celda-oscura {
+  background: grey;
+  border: 1px solid black !important;
+}
 
 .mes {
-  width: 9em;
-}
-.bruto_anterior,
-.bruto_actual {
-  width: 12em;
-}
-.cotizacion_euro_anterior,
-.cotizacion_dolar_anterior,
-.cotizacion_euro_actual,
-.cotizacion_dolar_actual {
-  width: 9em;
-}
-.valor_euro_anterior,
-.valor_dolar_anterior,
-.valor_euro_actual,
-.valor_dolar_actual {
-  width: 9.5em;
-}
-.variacion_euro,.variacion_dolar {
   width: 9em;
 }
 </style>
@@ -55,15 +40,22 @@ th.dolar {
   $años_por_fila = 3;
   $width_año = $años_por_fila? ((100-4)/$años_por_fila) : 0;
 ?>
+<style>
+  .euro,.dolar {
+    width: 8em;
+  }
+  .fecha_cotizacion {
+    width: 9em;
+  }
+</style>
 <div style="width: 100%;display: flex;align-items: baseline;">
-<table style="table-layout: fixed;flex: 1;">
+<table style="table-layout: fixed;">
   <colgroup>
     <col class="mes">
     @for($_a=0;$_a<$años_por_fila;$_a++)
     <col class="euro">
     <col class="dolar">
     <col class="fecha_cotizacion">
-    <col class="fecha_pago">
     @endfor
   </colgroup>
   <thead>
@@ -72,33 +64,40 @@ th.dolar {
     </tr>
   </thead>
   <?php
-    $año_inicio = 2009;
-    $año_fin = 2025;
     $cas = $abbr_casinos[$casino];
   ?>
-  @for($_aabs=$año_inicio;$_aabs<=$año_fin;$_aabs+=$años_por_fila)
+  @for($_aabs=$primer_año;$_aabs<=$ultimo_año;$_aabs+=$años_por_fila)
   <thead>
     <tr>
       <th class="celda_especial" rowspan="2">Mes</th>
       @for($_a=0;$_a<$años_por_fila;$_a++)
-      <?php $_a2 = $_aabs+$_a ?>
-      @if($_a2 <= $año_fin)
-      <th class="{{$cas}}" colspan="4">{{$cas}} {{$_a2}}</th>
+      <?php 
+        $_a2 = $_aabs+$_a;
+        $invalido = ($_a2 < $primer_año)
+                 || ($_a2 > $ultimo_año);
+      ?>
+      @if(!$invalido)
+      <th class="{{$cas}}" colspan="3">{{$cas}} {{$_a2}}</th>
       @else
-      <th class="celda-vacia" colspan="4">&nbsp;</th>
+      <th class="celda-vacia celda-oscura" colspan="3">&nbsp;</th>
       @endif
       @endfor
     </tr>
     <tr>
       @for($_a=0;$_a<$años_por_fila;$_a++)
-      <?php $_a2 = $_aabs+$_a ?>
-      @if($_a2 <= $año_fin)
+      <?php 
+        $_a2 = $_aabs+$_a;
+        $invalido = ($_a2 < $primer_año)
+                 || ($_a2 > $ultimo_año);
+      ?>
+      @if(!$invalido)
       <th class="euro">Euro</th>
       <th class="dolar">Dólar</th>
       <th>Fecha Cotización</th>
-      <th>Fecha de Pago</th>
       @else
-      <th class="celda-vacia" colspan="4">&nbsp;</th>
+      <th class="celda-vacia celda-oscura">&nbsp;</th>
+      <th class="celda-vacia celda-oscura">&nbsp;</th>
+      <th class="celda-vacia celda-oscura">&nbsp;</th>
       @endif
       @endfor
     </tr>
@@ -108,14 +107,21 @@ th.dolar {
     <tr>
       <th>{{$meses_calendario[$_mnum]}}</th>
       @for($_a=0;$_a<$años_por_fila;$_a++)
-      <?php $_a2 = $_aabs+$_a ?>
-      @if($_a2 <= $año_fin)
-      <td>euro</td>
-      <td>dolar</td>
-      <td>fecha_cotizacion</td>
-      <td>fecha_pago</td>
+      <?php 
+        $_a2 = $_aabs+$_a;
+        $invalido = $_a2 < $primer_año || $_a2 > $ultimo_año
+        || ($_a2 == $primer_año && $_mnum < $primer_mes)
+        || ($_a2 == $ultimo_año && $_mnum > $ultimo_mes);
+        $d = $dataf($casino,$_a2,$_mnum);
+      ?>
+      @if(!$invalido)
+      <td>{{$d->cotizacion_euro?? '-'}}</td>
+      <td>{{$d->cotizacion_dolar?? '-'}}</td>
+      <td>{{$d->fecha_cotizacion ?? '-'}}</td>
       @else
-      <td class="celda-vacia" colspan="4">&nbsp;</td>
+      <td class="celda-vacia celda-oscura">&nbsp;</td>
+      <td class="celda-vacia celda-oscura">&nbsp;</td>
+      <td class="celda-vacia celda-oscura">&nbsp;</td>
       @endif
       @endfor
     </tr>
@@ -144,7 +150,7 @@ th.dolar {
     <col class="varrec_dolar_var">
   </colgroup>
   <?php
-    $filas_cuerpo = ($año_fin-$año_inicio+1)*2;
+    $filas_cuerpo = ($ultimo_año-$primer_año+1)*2;
   ?>
   <thead>
     <tr>
@@ -165,19 +171,19 @@ th.dolar {
     </tr>
   </thead>
   <tbody>
-    @for($_aabs=$año_inicio;$_aabs<=$año_fin;$_aabs+=1)
+    @for($_aabs=$primer_año;$_aabs<=$ultimo_año;$_aabs+=1)
     <tr>
-      @if($_aabs == $año_inicio)
+      @if($_aabs == $primer_año)
       <td style="border-bottom: 0;border-left: 0;" rowspan="{{$filas_cuerpo}}">&nbsp;</td>
       @endif
-      <th style="border-bottom: 1px solid black;" rowspan="2">Año {{$_aabs-$año_inicio+1}}</th>
+      <th style="border-bottom: 1px solid black;" rowspan="2">Año {{$_aabs-$primer_año+1}}</th>
       <td>{{$_aabs}}</td>
       <td>cot euro 1</td>
       <td style="border-bottom: 1px solid black;" rowspan="2">%</td>
       <td>{{$_aabs}}</td>
       <td>cot dolar 1</td>
       <td style="border-bottom: 1px solid black;" rowspan="2">%</td>
-      @if($_aabs == $año_inicio)
+      @if($_aabs == $primer_año)
       <td style="border-bottom: 0;" rowspan="{{$filas_cuerpo}}">&nbsp;</td>
       @endif
       <th>{{$_aabs}}/{{$_aabs+1}}</th>
@@ -203,6 +209,27 @@ th.dolar {
 </table>
 </div>
 @else
+<style>
+.bruto_anterior,
+.bruto_actual {
+  width: 12em;
+}
+.cotizacion_euro_anterior,
+.cotizacion_dolar_anterior,
+.cotizacion_euro_actual,
+.cotizacion_dolar_actual {
+  width: 9em;
+}
+.valor_euro_anterior,
+.valor_dolar_anterior,
+.valor_euro_actual,
+.valor_dolar_actual {
+  width: 9.5em;
+}
+.variacion_euro,.variacion_dolar {
+  width: 9em;
+}
+</style>
 <div style="width: 100%;display: flex;align-items: baseline;">
 <table style="table-layout: fixed;">
   <colgroup>
