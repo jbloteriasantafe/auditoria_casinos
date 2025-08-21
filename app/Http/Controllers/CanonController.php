@@ -2637,6 +2637,8 @@ class CanonController extends Controller
         $bruto_dolar = "($bruto/2/$cotizacion_dolar)";
         $bruto_euro_yoy = "($bruto_yoy/2/$cotizacion_euro_yoy)";
         $bruto_dolar_yoy = "($bruto_yoy/2/$cotizacion_dolar_yoy)";
+        $variacion_cotizacion_euro = "100*($cotizacion_euro/$cotizacion_euro_yoy - 1)";
+        $variacion_cotizacion_dolar = "100*($cotizacion_dolar/$cotizacion_dolar_yoy - 1)";
         $variacion_euro = "100*($bruto_euro/$bruto_euro_yoy-1)";
         $variacion_dolar = "100*($bruto_dolar/$bruto_dolar_yoy-1)";
         
@@ -2653,6 +2655,8 @@ class CanonController extends Controller
           $bruto_dolar as bruto_dolar,
           $bruto_euro_yoy as bruto_euro_yoy,
           $bruto_dolar_yoy as bruto_dolar_yoy,
+          $variacion_cotizacion_euro as variacion_cotizacion_euro,
+          $variacion_cotizacion_dolar as variacion_cotizacion_dolar,
           $variacion_euro as variacion_euro,
           $variacion_dolar as variacion_dolar
         ";

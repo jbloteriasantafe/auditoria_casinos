@@ -171,39 +171,86 @@ th.dolar {
     </tr>
   </thead>
   <tbody>
+    <?php
+      $mes_cotizacion = intval(substr($fecha_inicio[$casino],strlen('XXXX-'),strlen('XX')));
+      $mes_cotizacion = ($mes_cotizacion+1)%12;
+      $mes_cotizacion_str = str_pad($mes_cotizacion,2,'0',STR_PAD_LEFT);
+      $primer_cotizacion_euro = null;
+      $ultima_cotizacion_euro = null;
+      $primer_cotizacion_dolar = null;
+      $ultima_cotizacion_dolar = null;
+      $primer_bruto_euro = null;
+      $ultimo_bruto_euro = null;
+      $primer_bruto_dolar = null;
+      $ultimo_bruto_dolar = null;
+      $fdiv = function($a,$b){
+        if($b != 0) return $a/$b;
+        if($a > 0)  return INF;
+        if($a < 0)  return -INF;
+        return NAN;
+      };
+    ?>
     @for($_aabs=$primer_año;$_aabs<=$ultimo_año;$_aabs+=1)
+    <?php
+      $d1 = $dataf($casino,$_aabs,$mes_cotizacion);
+      $d2 = $dataf($casino,$_aabs+1,$mes_cotizacion);
+      $fcot1 = $mes_cotizacion_str.'/'.substr($_aabs,2,2);
+      $fcot2 = $mes_cotizacion_str.'/'.substr($_aabs+1,2,2);
+      $primer_cotizacion_euro = $primer_cotizacion_euro ?? $d1->cotizacion_euro;
+      $primer_cotizacion_dolar = $primer_cotizacion_dolar ?? $d1->cotizacion_dolar;
+      $primer_bruto_euro = $primer_bruto_euro ?? $d1->bruto_euro;
+      $primer_bruto_dolar = $primer_bruto_dolar ?? $d1->bruto_dolar;
+      
+      $ultima_cotizacion_euro = $d1->cotizacion_euro ?? $ultima_cotizacion_euro;
+      $ultima_cotizacion_dolar = $d1->cotizacion_dolar ?? $ultima_cotizacion_dolar;
+      $ultimo_bruto_euro = $d1->bruto_euro ?? $ultimo_bruto_euro;
+      $ultimo_bruto_dolar = $d1->bruto_dolar ?? $ultimo_bruto_dolar;
+    ?>
     <tr>
       @if($_aabs == $primer_año)
       <td style="border-bottom: 0;border-left: 0;" rowspan="{{$filas_cuerpo}}">&nbsp;</td>
       @endif
       <th style="border-bottom: 1px solid black;" rowspan="2">Año {{$_aabs-$primer_año+1}}</th>
-      <td>{{$_aabs}}</td>
-      <td>cot euro 1</td>
-      <td style="border-bottom: 1px solid black;" rowspan="2">%</td>
-      <td>{{$_aabs}}</td>
-      <td>cot dolar 1</td>
-      <td style="border-bottom: 1px solid black;" rowspan="2">%</td>
+      <td>{{$fcot1 ?? ''}}</td>
+      <td>{{$d1->cotizacion_euro ?? '-'}}</td>
+      <td style="border-bottom: 1px solid black;" rowspan="2">{{$d2->variacion_cotizacion_euro ?? '-'}}</td>
+      <td>{{$fcot1 ?? ''}}</td>
+      <td>{{$d1->cotizacion_dolar ?? '-'}}</td>
+      <td style="border-bottom: 1px solid black;" rowspan="2">{{$d2->variacion_cotizacion_dolar ?? '-'}}</td>
       @if($_aabs == $primer_año)
       <td style="border-bottom: 0;" rowspan="{{$filas_cuerpo}}">&nbsp;</td>
       @endif
       <th>{{$_aabs}}/{{$_aabs+1}}</th>
-      <td>rec euro 1</td>
-      <td style="border-bottom: 1px solid black;" rowspan="2">%</td>
-      <td>rec dolar 1</td>
-      <td style="border-bottom: 1px solid black;" rowspan="2">%</td>
+      <td>{{$d1->bruto_euro ?? '-'}}</td>
+      <td style="border-bottom: 1px solid black;" rowspan="2">{{$d2->variacion_euro ?? '-'}}</td>
+      <td>{{$d1->bruto_dolar ?? '-'}}</td>
+      <td style="border-bottom: 1px solid black;" rowspan="2">{{$d2->variacion_dolar ?? '-'}}</td>
     </tr>
     <tr>
-      <td style="border-bottom: 1px solid black;">{{$_aabs+1}}</td>
-      <td style="border-bottom: 1px solid black;">cot euro 2</td>
-      <td style="border-bottom: 1px solid black;">{{$_aabs+1}}</td>
-      <td style="border-bottom: 1px solid black;">cot dolar 2</td>
+      <td style="border-bottom: 1px solid black;">{{$fcot2 ?? ''}}</td>
+      <td style="border-bottom: 1px solid black;">{{$d2->cotizacion_euro ?? '-'}}</td>
+      <td style="border-bottom: 1px solid black;">{{$fcot2 ?? ''}}</td>
+      <td style="border-bottom: 1px solid black;">{{$d2->cotizacion_dolar ?? '-'}}</td>
       <th style="border-bottom: 1px solid black;">{{$_aabs+1}}/{{$_aabs+2}}</th>
-      <td style="border-bottom: 1px solid black;">rec euro 2</td>
-      <td style="border-bottom: 1px solid black;">rec dolar 2</td>
+      <td style="border-bottom: 1px solid black;">{{$d2->bruto_euro ?? '-'}}</td>
+      <td style="border-bottom: 1px solid black;">{{$d2->bruto_dolar ?? '-'}}</td>
     </tr>
     @endfor
     <tr>
-      <td class="celda-vacia" colspan="14">&nbsp;</td>
+      <td class="celda-vacia">&nbsp;</td>
+      <td class="celda-vacia">&nbsp;</td>
+      <td class="celda-vacia">&nbsp;</td>
+      <td class="celda-vacia">&nbsp;</td>
+      <td style="border-left: 1px solid black;">{{100*($fdiv($ultima_cotizacion_euro,$primer_cotizacion_euro) - 1)}}</td>
+      <td class="celda-vacia">&nbsp;</td>
+      <td class="celda-vacia">&nbsp;</td>
+      <td style="border-left: 1px solid black;">{{100*($fdiv($ultima_cotizacion_dolar,$primer_cotizacion_dolar) - 1)}}</td>
+      <td class="celda-vacia">&nbsp;</td>
+      <td class="celda-vacia">&nbsp;</td>
+      <td class="celda-vacia">&nbsp;</td>
+      <td style="border-left: 1px solid black;">{{100*($fdiv($ultimo_bruto_euro,$primer_bruto_euro) - 1)}}</td>
+      <td class="celda-vacia">&nbsp;</td>
+      <td style="border-left: 1px solid black;">{{100*($fdiv($ultimo_bruto_dolar,$primer_bruto_dolar) - 1)}}</td>
     </tr>
   </tbody>
 </table>
