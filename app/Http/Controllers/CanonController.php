@@ -2353,10 +2353,26 @@ class CanonController extends Controller
   }
     
   public function descargarPlanillas(Request $request){
+    $combine_into_pairs = function($arr1,$arr2){
+      $ks = [];
+      foreach($arr1 as $k => $_)
+        $ks[$k] = 1;
+      foreach($arr2 as $k => $_)
+        $ks[$k] = 1;
+      $ks = array_keys($ks);
+      
+      $ret = [];
+      foreach($ks as $k)
+        $ret[$k] = [$arr1[$k] ?? null,$arr2[$k] ?? null];
+      
+      return $ret;
+    };
+    
     $fecha_inicio = [//@TODO: poner en valores por defecto
       'Melincué' => '2007-09-28',
       'Santa Fe' => '2008-08-11',
-      'Rosario'  => '2009-10-15'
+      'Rosario'  => '2009-10-15',
+      'Santa Fe - Melincué' => null
     ];
     
     $primer_fecha = null;
@@ -2364,8 +2380,8 @@ class CanonController extends Controller
       $primer_fecha = $fecha_inicio[$request->casino] ?? 'XXXX-XX-XX';
     }
     else{
-      $primer_fecha = array_reduce($fecha_inicio,function($a,$b){
-        return min($a,$b);
+      $primer_fecha = array_reduce($fecha_inicio,function($carry,$f){
+        return min($carry,$f ?? $carry);
       },'XXXX-99-99');
     }
     
@@ -2482,7 +2498,7 @@ class CanonController extends Controller
       $meses_sql = $ranged_sql(1,12);
       $años_sql = $año === null?
         $ranged_sql($primer_año,$ultimo_año)
-      : $ranged_sql($año-1,$año);
+      : $ranged_sql($año-1,$año+1);
             
       $casinos_select = $unir_sfe_mel?
         'IF(cas.nombre IN ("Santa Fe","Melincué"),"Santa Fe - Melincué",cas.nombre)'
@@ -2651,14 +2667,14 @@ class CanonController extends Controller
           $cotizacion_dolar as cotizacion_dolar,
           $cotizacion_euro_yoy as cotizacion_euro_yoy,
           $cotizacion_dolar_yoy as cotizacion_dolar_yoy,
-          $bruto_euro as bruto_euro,
-          $bruto_dolar as bruto_dolar,
-          $bruto_euro_yoy as bruto_euro_yoy,
-          $bruto_dolar_yoy as bruto_dolar_yoy,
-          $variacion_cotizacion_euro as variacion_cotizacion_euro,
-          $variacion_cotizacion_dolar as variacion_cotizacion_dolar,
-          $variacion_euro as variacion_euro,
-          $variacion_dolar as variacion_dolar
+          ROUND($bruto_euro,2) as bruto_euro,
+          ROUND($bruto_dolar,2) as bruto_dolar,
+          ROUND($bruto_euro_yoy,2) as bruto_euro_yoy,
+          ROUND($bruto_dolar_yoy,2) as bruto_dolar_yoy,
+          ROUND($variacion_cotizacion_euro,3) as variacion_cotizacion_euro,
+          ROUND($variacion_cotizacion_dolar,3) as variacion_cotizacion_dolar,
+          ROUND($variacion_euro,3) as variacion_euro,
+          ROUND($variacion_dolar,3) as variacion_dolar
         ";
       }
       else if($planilla == 'canon_total'){
@@ -2759,7 +2775,7 @@ class CanonController extends Controller
       else{
         $años_planilla = $años->toArray();
       }
-      
+            
       $data = (clone $q)
       ->selectRaw(
         $casinos_select.' as casino,
@@ -2826,6 +2842,7 @@ class CanonController extends Controller
           año.val as año,
           0 as mes,
           '.$sel_aggr
+          .", null as fecha_inicio"
         )
         ->groupBy('año.val')
         ->orderBy('año','asc')
@@ -2854,6 +2871,31 @@ class CanonController extends Controller
         ->groupBy(DB::raw('"constant"'))
         ->get()
       )
+      ->transform(function($d) use ($fecha_inicio){
+        $fini = $fecha_inicio[$d->casino] ?? null;
+        $d->fecha_inicio = $fini;
+        if($fini !== null){
+          $d->rel_mes = ($d->mes-intval(substr($fini,strlen('XXXX-'),2)))%12;
+          $d->rel_mes += $d->rel_mes < 0? 12 : 0;
+          
+          $aux = new \DateTime("{$d->año}-{$d->mes}-01");
+          $aux->modify('-'.$d->rel_mes.' months');
+          $aux = intval($aux->format('Y'))-intval(substr($fini,0,strlen('XXXX')));
+          
+          $d->rel_mes += 1;//Lo paso a [1,12]
+          $d->rel_año = $aux+1;//Base-1
+          
+          if($d->rel_año <= 0){//Si es anterior a la fecha de inicio lo nulifico
+            $d->rel_mes = null;
+            $d->rel_año = null;
+          }
+        }
+        else{
+          $d->rel_mes = null;
+          $d->rel_año = null;
+        }
+        return $d;
+      })
       ->groupBy('casino')
       ->map(function($d_cas){
         return $d_cas->groupBy('año')
@@ -2874,22 +2916,7 @@ class CanonController extends Controller
       return $casinos->search($k) !== false;
     },ARRAY_FILTER_USE_KEY);
     $casinos = collect(array_flip($abbr_casinos));
-    
-    $combine_into_pairs = function($arr1,$arr2){
-      $ks = [];
-      foreach($arr1 as $k => $_)
-        $ks[$k] = 1;
-      foreach($arr2 as $k => $_)
-        $ks[$k] = 1;
-      $ks = array_keys($ks);
-      
-      $ret = [];
-      foreach($ks as $k)
-        $ret[$k] = [$arr1[$k] ?? null,$arr2[$k] ?? null];
-      
-      return $ret;
-    };
-    
+        
     $botones = [
       'planilla' => $combine_into_pairs(array_keys($planillas),array_values($planillas))
     ];
@@ -2907,7 +2934,9 @@ class CanonController extends Controller
       $botones['casino'] = $combine_into_pairs($_casinos,$_casinos);
       if($request->casino ?? false){
         $_años = $años->count()? $años->toArray() : [];
-        $botones['año'] = $combine_into_pairs($_años,$_años);
+        $botones['año'] = $combine_into_pairs(array_map(function($a){
+          return $a;
+        },$_años),$_años);
         $botones['año'][] = ['total','Total'];
       }
     }
