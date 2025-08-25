@@ -261,9 +261,11 @@ th.dolar {
   $_a = $año-1;
   $_m = intval(substr($fecha_inicio[$casino],strlen('XXXX-'),strlen('XX')));
   
-  $first_cot = [
-    'variacion_euro' => null,
-    'variacion_euro' => null,
+  $valores = [
+    'valor_euro' => null,
+    'valor_dolar' => null,
+    'valor_euro_yoy' => null,
+    'valor_dolar_yoy' => null
   ];
   
   $total = [
@@ -277,6 +279,15 @@ th.dolar {
   
   for($_rm=0;$_rm<13;$_rm++){
     $d = $dataf($casino,$_a,$_m);
+    
+    if($_rm == 0 || $_rm == 12){//@TODO: Para el primer y ultimo falta calcular el parcial... necesito canon diario
+      foreach($total as $k => $_){
+        $d->{$k} = null;
+      }
+      $d->variacion_euro = null;
+      $d->variacion_dolar = null;
+    }
+    
     $data_rel[] = $d;
     $_m++;
     if($_m > 12){
@@ -284,12 +295,37 @@ th.dolar {
       $_m=1;
     }
     
-    if($_rm != 0 && $_rm != 13)
     foreach($total as $k => $v){
-      $total[$k] = bcadd_precise($v ?? '0',$d->{$k});
+      $total[$k] = bcadd_precise($v ?? '0',$d->{$k} ?? '0');
+    }
+    
+    foreach($valores as $k => $v){
+      $valores[$k] = $v === null?
+        $d->{$k}
+      : (
+        $v !== $d->{$k}?
+        -1
+        : $v
+      );
     }
   }
   $total = (object) $total;
+  
+  $total->variacion_euro = bcsub_precise(
+    @bcdiv(bcmul_precise('100',$total->bruto_euro),$total->bruto_euro_yoy,3) ?? '100',
+    '100'
+  );
+  $total->variacion_dolar = bcsub_precise(
+    @bcdiv(bcmul_precise('100',$total->bruto_dolar),$total->bruto_dolar_yoy,3) ?? '100',
+    '100'
+  );
+  
+  $total->valor_euro  = $valores['valor_euro'] == -1? null : $valores['valor_euro'];
+  $total->valor_dolar = $valores['valor_dolar'] == -1? null : $valores['valor_dolar'];
+  $total->valor_euro_yoy  = $valores['valor_euro_yoy'] == -1? null : $valores['valor_euro_yoy'];
+  $total->valor_dolar_yoy = $valores['valor_dolar_yoy'] == -1? null : $valores['valor_dolar_yoy'];
+  $total->valor_euro_base = null;
+  $total->valor_dolar_base = null;
 ?>
 <style>
 .bruto_anterior,
@@ -339,7 +375,7 @@ tbody.marcar-primer-penultimo tr:nth-last-child(2) th {
   </colgroup>
   <thead>
     <tr>
-      <th class="{{$abbr_casinos[$casino]}}" colspan="13">{{$casino}}</th>
+      <th class="{{$abbr_casinos[$casino]}}" colspan="13">Actualización {{$casino}} {{$año}}</th>
     </tr>
   </thead>
   <thead>
@@ -370,23 +406,6 @@ tbody.marcar-primer-penultimo tr:nth-last-child(2) th {
   </thead>
   <tbody class="marcar-primer-penultimo">
     @foreach($data_rel as $d)
-    @if($loop->first || $loop->last)
-    <tr><!-- Todo implementar bruto parcial -->
-      <th>{{$meses_calendario[$d->mes]}}</th>
-      <td>-</td>
-      <td>-</td>
-      <td>-</td>
-      <td>-</td>
-      <td>-</td>
-      <td>-</td>
-      <td>-</td>
-      <td>-</td>
-      <td>-</td>
-      <td>-</td>
-      <td>-</td>
-      <td>-</td>
-    </tr>
-    @else
     <tr>
       <th>{{$meses_calendario[$d->mes]}}</th>
       <td>{{$formatear_decimal($d->bruto_yoy ?? null)}}</td>
@@ -402,7 +421,6 @@ tbody.marcar-primer-penultimo tr:nth-last-child(2) th {
       <td>{{$formatear_porcentaje($d->variacion_euro ?? null)}}</td>
       <td>{{$formatear_porcentaje($d->variacion_dolar ?? null)}}</td>
     </tr>
-    @endif
     @endforeach
     <tr>
       <th class="celda_especial">Total</th>
@@ -424,31 +442,45 @@ tbody.marcar-primer-penultimo tr:nth-last-child(2) th {
   </tbody>
   <thead>
     <th>Actualización</th>
-    <th>{{$año-1-1}}/{{$año-1}}</th>
-    <th>{{$año-1}}/{{$año}}</th>
-    <th>%</th>
-    <th>Valores CC</th>
-    <th>Valores Nuevos</th>
-    <th class="celda-vacia" colspan="7">&nbsp;</th>
+    <th>Valores {{$año-1}}/{{$año}}</th>
+    <th>Montos {{$año-1-1}}/{{$año-1}}</th>
+    <th>Montos {{$año-1}}/{{$año}}</th>
+    <th>% Variac.</th>
+    <th>Valores Base {{$año-1}}/{{$año}}</th>
+    <th>Valores Base {{$año}}/{{$año+1}}</th>
+    <th>Valores {{$año}}/{{$año+1}}</th>
+    <th class="celda-vacia" colspan="4">&nbsp;</th>
   </thead>
   <tbody>
     <tr>
       <th class="euro">Euro</th>
-      <td>{{$año-1-1}}/{{$año-1}}</td>
-      <td>{{$año-1}}/{{$año}}</td>
-      <td>%</td>
-      <td>Valores CC</td>
-      <td>valores Nuevos</td>
-      <td class="celda-vacia" colspan="7">&nbsp;</td>
+      <td>{{$formatear_decimal($total->valor_euro_yoy)}}</td>
+      <td>{{$formatear_decimal($total->bruto_euro_yoy ?? null)}}</td>
+      <td>{{$formatear_decimal($total->bruto_euro)}}</td>
+      <td>{{$formatear_porcentaje($total->variacion_euro ?? null)}}</td>
+      <td>{{$formatear_decimal($total->valor_euro_base)}}</td>
+      <td>{{$formatear_decimal(bcmul(
+        $total->valor_euro_base,
+        bcadd_precise('1',bcdiv($total->variacion_euro,'100',5)),
+        2
+      ))}}</td>
+      <td>{{$formatear_decimal($total->valor_euro)}}</td>
+      <td class="celda-vacia" colspan="4">&nbsp;</td>
     </tr>
     <tr>
       <th class="dolar">Dólar</th>
-      <td>{{$año-1-1}}/{{$año-1}}</td>
-      <td>{{$año-1}}/{{$año}}</td>
-      <td>%</td>
-      <td>Valores CC</td>
-      <td>valores Nuevos</td>
-      <td class="celda-vacia" colspan="7">&nbsp;</td>
+      <td>{{$formatear_decimal($total->valor_dolar_yoy)}}</td>
+      <td>{{$formatear_decimal($total->bruto_dolar_yoy ?? null)}}</td>
+      <td>{{$formatear_decimal($total->bruto_dolar ?? null)}}</td>
+      <td>{{$formatear_porcentaje($total->variacion_dolar ?? null)}}</td>
+      <td>{{$formatear_decimal($total->valor_dolar_base)}}</td>
+      <td>{{$formatear_decimal(bcmul(
+        $total->valor_dolar_base,
+        bcadd_precise('1',bcdiv($total->variacion_dolar,'100',5)),
+        2
+      ))}}</td>
+      <td>{{$formatear_decimal($total->valor_dolar)}}</td>
+      <td class="celda-vacia" colspan="4">&nbsp;</td>
     </tr>
   </tbody>
 </table>

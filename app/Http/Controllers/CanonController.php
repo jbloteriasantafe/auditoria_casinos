@@ -2463,7 +2463,7 @@ class CanonController extends Controller
     
     $planillas = [
       'evolucion_historica' => 'Evolución Historica',
-      'evolucion_cotizacion' => 'Evolución Cotización',
+      'actualizacion_valores' => 'Actualización Valores Mesas',
       'canon_total' => 'Canon Total',
       'canon_fisico_online' => 'Canon Físico-On Line',
       'participacion' => 'Particip. % Resultado CF-JOL',
@@ -2479,7 +2479,7 @@ class CanonController extends Controller
     
     $data = collect([]);
     $data_anual = collect([]);
-    if(($es_anual && $año !== null) || ($es_mensual && $año !== null && $mes == 'Resumen') || ($planilla == 'evolucion_historica' || $planilla == 'evolucion_cotizacion')){    
+    if(($es_anual && $año !== null) || ($es_mensual && $año !== null && $mes == 'Resumen') || ($planilla == 'evolucion_historica' || $planilla == 'actualizacion_valores')){    
       $tipos_variables_fisicos = ['Maquinas','Bingo'];
       $tipos_variables_online = ['JOL'];
       $tipos_fijos_mesas = DB::table('canon_fijo_mesas')
@@ -2621,7 +2621,7 @@ class CanonController extends Controller
         (SUM(c.determinado)-SUM(c.devengado)) as diferencia,
         ROUND(100*(1-SUM(c.devengado)/NULLIF(SUM(c.determinado),0)),2) as variacion_sobre_devengado';
       }
-      else if($planilla == 'evolucion_cotizacion'){
+      else if($planilla == 'actualizacion_valores'){
         $bruto = '('.implode('+',array_map(function($t){
           return "IFNULL(SUM({$t}.bruto),0)";
         },$fijos)).')';
@@ -2649,6 +2649,19 @@ class CanonController extends Controller
           return "{$t}_yoy.determinado_cotizacion_dolar";
         },$fijos)).'))';
         
+        $valor_euro = 'MAX(COALESCE('.implode(',',array_map(function($t){
+          return "{$t}.valor_euro";
+        },$fijos)).'))';
+        $valor_dolar = 'MAX(COALESCE('.implode(',',array_map(function($t){
+          return "{$t}.valor_dolar";
+        },$fijos)).'))';
+        $valor_euro_yoy = 'MAX(COALESCE('.implode(',',array_map(function($t){
+          return "{$t}_yoy.valor_euro";
+        },$fijos)).'))';
+        $valor_dolar_yoy = 'MAX(COALESCE('.implode(',',array_map(function($t){
+          return "{$t}_yoy.valor_dolar";
+        },$fijos)).'))';
+        
         $bruto_euro = "($bruto/2/$cotizacion_euro)";
         $bruto_dolar = "($bruto/2/$cotizacion_dolar)";
         $bruto_euro_yoy = "($bruto_yoy/2/$cotizacion_euro_yoy)";
@@ -2674,7 +2687,11 @@ class CanonController extends Controller
           ROUND($variacion_cotizacion_euro,3) as variacion_cotizacion_euro,
           ROUND($variacion_cotizacion_dolar,3) as variacion_cotizacion_dolar,
           ROUND($variacion_euro,3) as variacion_euro,
-          ROUND($variacion_dolar,3) as variacion_dolar
+          ROUND($variacion_dolar,3) as variacion_dolar,
+          $valor_euro as valor_euro,
+          $valor_dolar as valor_dolar,
+          $valor_euro_yoy as valor_euro_yoy,
+          $valor_dolar_yoy as valor_dolar_yoy
         ";
       }
       else if($planilla == 'canon_total'){
@@ -2926,7 +2943,7 @@ class CanonController extends Controller
       $botones['año'] = $combine_into_pairs($_años,$_años);
     }
     
-    if($planilla == 'evolucion_cotizacion'){
+    if($planilla == 'actualizacion_valores'){
       $_casinos = $casinos->toArray();
       $tidx = array_search('Total',$_casinos);
       if($tidx !== false)

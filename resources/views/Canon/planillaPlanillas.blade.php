@@ -117,8 +117,8 @@
       @component('Canon.Planillas.evolucion_historica',$data_arr)
       @endcomponent
     @endif
-    @if($planilla == 'evolucion_cotizacion')
-      @component('Canon.Planillas.evolucion_cotizacion',$data_arr)
+    @if($planilla == 'actualizacion_valores')
+      @component('Canon.Planillas.actualizacion_valores',$data_arr)
       @endcomponent
     @endif
     @if($es_anual && isset($año))
