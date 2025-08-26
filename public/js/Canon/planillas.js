@@ -40,10 +40,7 @@ $(document).ready(function() {
     const selector = tgt.attr('data-js-click-descargar-tabla') ?? null;
     if(selector === null || selector.length == 0) return;
     const div = $(selector);
-    const nombre_planilla = 
-      (planilla?.length? planilla : 'planilla')
-    + (año?.length? ('_'+año) : '')
-    + (mes?.length? ('_'+mes) : '')
+    const nombre_planilla = (nombre_archivo?.length? nombre_archivo : '')
     + (fecha_planilla?.length? ('_'+fecha_planilla) : '')
     + '.xlsx';
     

@@ -830,6 +830,7 @@
 
 <script>
   const data = {!! (isset($data) && count($data) > 0)? json_encode($data) : '{}' !!};
+  const parametros = {!! (isset($parametros) && count($parametros) > 0)? json_encode($parametros) : '{}' !!};
   const casinos = {!! (isset($casinos) && count($casinos) > 0)? json_encode($casinos) : '[]' !!};
   const meses = {!! (isset($meses_calendario) && count($meses_calendario) > 0)? json_encode($meses_calendario) : '[]' !!};
   const colors = [
@@ -843,7 +844,8 @@
   const año = "{!! isset($año)? $año : '' !!}";
   const mes = "{!! isset($mes)? $mes : '' !!}";
   const fecha_planilla = "{!! date('Ymdhi') !!}";
+  const nombre_archivo = "{!! implode('_',$parametros) !!}";
 </script>
-<script src="/js/Canon/planillas.js" charset="utf-8" type="module"></script>
+<script src="/js/Canon/planillas.js?1" charset="utf-8" type="module"></script>
 
 </html>
