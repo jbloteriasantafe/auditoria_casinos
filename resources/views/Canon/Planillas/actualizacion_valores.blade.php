@@ -12,9 +12,6 @@ th.euro {
 th.dolar {
   background: #aff98e;
 }
-.border-bottom {
-  border-bottom: 1px solid black;
-}
 .celda-vacia {
   border: 0 !important;
   background: white;
@@ -22,6 +19,9 @@ th.dolar {
 .celda-oscura {
   background: grey;
   border: 1px solid black !important;
+}
+.border-bottom {
+  border-bottom: 1px solid black !important;
 }
 
 .mes {
@@ -32,11 +32,10 @@ th.dolar {
 <?php
   $año = $parametros['año'] ?? null;
   $casino = $parametros['casino'] ?? '';
-  
-  $_m = intval(substr($fecha_inicio[$casino],strlen('XXXX-'),strlen('XX')));
+  $_m = !empty($casino)? intval(substr($fecha_inicio[$casino],strlen('XXXX-'),strlen('XX'))) : '';
   $data_rel = [];
   $totales = [];
-  foreach($data[$casino] as $_a => $_){
+  foreach(($data[$casino] ?? []) as $_a => $_){
     $valores = [
       'valor_euro' => null,
       'valor_dolar' => null,
@@ -133,16 +132,42 @@ th.dolar {
 <div style="width: 100%;display: flex;align-items: baseline;">
 <table style="table-layout: fixed;">
   <colgroup>
+    <?php 
+      $columnas_cots = $años_por_fila*3+1;
+      $columnas_vars = 13;
+      $columnas = max($columnas_cots,$columnas_vars);
+      $pad_cots = $columnas-$columnas_cots;
+      $pad_vars = $columnas-$columnas_vars;
+    ?>
+    @if($columnas_cots>$columnas_vars)
     <col class="mes">
     @for($_a=0;$_a<$años_por_fila;$_a++)
     <col class="euro">
     <col class="dolar">
     <col class="fecha_cotizacion">
     @endfor
+    @else
+    <col class="varcot_año">
+    <col class="varcot_euro_periodo">
+    <col class="varcot_euro">
+    <col class="varcot_euro_var">
+    <col class="varcot_dolar_periodo">
+    <col class="varcot_dolar">
+    <col class="varcot_dolar_var">
+    <col class="vacia2">
+    <col class="varrec_periodo">
+    <col class="varrec_euro">
+    <col class="varrec_euro_var">
+    <col class="varrec_dolar">
+    <col class="varrec_dolar_var">
+    @endif
   </colgroup>
   <thead>
     <tr>
-      <th colspan="{{4*$años_por_fila+1}}">Cotizaciones</th>
+      <th colspan="{{$años_por_fila*3+1}}">Cotizaciones</th>
+      @if($pad_cots>0)
+      <th class="celda-vacia" colspan="{{$pad_cots}}">&nbsp;</th>
+      @endif
     </tr>
   </thead>
   <?php
@@ -164,6 +189,9 @@ th.dolar {
       <th class="celda-vacia celda-oscura" colspan="3">&nbsp;</th>
       @endif
       @endfor
+      @if($pad_cots>0)
+      <th class="celda-vacia" colspan="{{$pad_cots}}">&nbsp;</th>
+      @endif
     </tr>
     <tr>
       @for($_a=0;$_a<$años_por_fila;$_a++)
@@ -182,6 +210,9 @@ th.dolar {
       <th class="celda-vacia celda-oscura">&nbsp;</th>
       @endif
       @endfor
+      @if($pad_cots>0)
+      <th class="celda-vacia" colspan="{{$pad_cots}}">&nbsp;</th>
+      @endif
     </tr>
   </thead>
   <tbody>
@@ -206,40 +237,33 @@ th.dolar {
       <td class="celda-vacia celda-oscura">&nbsp;</td>
       @endif
       @endfor
+      @if($pad_cots>0)
+      <td class="celda-vacia" colspan="{{$pad_cots}}">&nbsp;</td>
+      @endif
     </tr>
     @endfor
     <tr>
-      <td colspan="{{1+$años_por_fila*4}}">&nbsp;</td>
+      <?php
+        $bb = ($_aabs+$años_por_fila>$ultimo_año)? 'border-bottom' : '';
+      ?>
+      <td class="{{$bb}}" colspan="{{$columnas_cots}}">&nbsp;</td>
+      @if($pad_cots>0)
+      <td class="celda-vacia {{$bb}}" colspan="{{$pad_cots}}">&nbsp;</td>
+      @endif
     </tr>
   </tbody>
   @endfor
-</table>
-<table style="table-layout: fixed;flex: 1;">
-  <colgroup>
-    <col class="vacia1">
-    <col class="varcot_año">
-    <col class="varcot_euro_periodo">
-    <col class="varcot_euro">
-    <col class="varcot_euro_var">
-    <col class="varcot_dolar_periodo">
-    <col class="varcot_dolar">
-    <col class="varcot_dolar_var">
-    <col class="vacia2">
-    <col class="varrec_periodo">
-    <col class="varrec_euro">
-    <col class="varrec_euro_var">
-    <col class="varrec_dolar">
-    <col class="varrec_dolar_var">
-  </colgroup>
   <?php
     $filas_cuerpo = ($ultimo_año-$primer_año+1)*2;
   ?>
   <thead>
     <tr>
-      <th rowspan="2" style="border-left: 0;border-bottom: 0;border-top: 0;">&nbsp;</th>
       <th colspan="7">Variación de cotización de Moneda Extranjera</th>
-      <th rowspan="2"  style="border-bottom: 0;border-top: 0;">&nbsp;</th>
+      <th class="celda-vacia" rowspan="2" style="border-right: 1px solid black !important;">&nbsp;</th>
       <th colspan="5">Variación de recaudación</th>
+      @if($pad_vars>0)
+      <th class="celda-vacia" colspan="{{$pad_vars}}">&nbsp;</th>
+      @endif
     </tr>
     <tr>
       <th class="celda_especial">Año</th>
@@ -247,9 +271,12 @@ th.dolar {
       <th>%</th>
       <th class="dolar" colspan="2">Dólar</th>
       <th>%</th>
-      <th class="celda_especial" >Período</th>
+      <th class="celda_especial">Período</th>
       <th class="euro" colspan="2">Euro</th>
       <th class="dolar" colspan="2">Dólar</th>
+      @if($pad_vars>0)
+      <th class="celda-vacia" colspan="{{$pad_vars}}">&nbsp;</th>
+      @endif
     </tr>
   </thead>
   <tbody>
@@ -291,9 +318,6 @@ th.dolar {
       $primer_bruto_dolar = $primer_bruto_dolar ?? $T->bruto_dolar ?? null;
     ?>
     <tr>
-      @if($_aabs == $primer_año)
-      <td style="border-bottom: 0;border-left: 0;" rowspan="{{$filas_cuerpo}}">&nbsp;</td>
-      @endif
       <th style="border-bottom: 1px solid black;" rowspan="2">Año {{$_aabs-$primer_año+1}}</th>
       <td>{{$fcot1 ?? ''}}</td>
       <td>{{$formatear_decimal($d1->cotizacion_euro ?? null)}}</td>
@@ -302,39 +326,42 @@ th.dolar {
       <td>{{$formatear_decimal($d1->cotizacion_dolar ?? null)}}</td>
       <td style="border-bottom: 1px solid black;" rowspan="2">{{$formatear_porcentaje($d2->variacion_cotizacion_dolar ?? null)}}</td>
       @if($_aabs == $primer_año)
-      <td style="border-bottom: 0;" rowspan="{{$filas_cuerpo}}">&nbsp;</td>
+      <td class="celda-vacia" style="border-right: 1px solid black !important;" rowspan="{{$filas_cuerpo}}">&nbsp;</td>
       @endif
       <th>{{$_aabs}}/{{$_aabs+1}}</th>
       <td>{{$formatear_decimal($T->bruto_euro_yoy ?? null)}}</td>
       <td style="border-bottom: 1px solid black;" rowspan="2">{{$formatear_porcentaje($T->variacion_euro ?? null)}}</td>
       <td>{{$formatear_decimal($T->bruto_dolar_yoy ?? null)}}</td>
       <td style="border-bottom: 1px solid black;" rowspan="2">{{$formatear_porcentaje($T->variacion_dolar ?? null)}}</td>
+      @if($pad_vars>0)
+      <td class="celda-vacia" colspan="{{$pad_vars}}">&nbsp;</td>
+      @endif
     </tr>
     <tr>
       <td style="border-bottom: 1px solid black;">{{$fcot2 ?? ''}}</td>
       <td style="border-bottom: 1px solid black;">{{$d2->cotizacion_euro ?? '-'}}</td>
       <td style="border-bottom: 1px solid black;">{{$fcot2 ?? ''}}</td>
       <td style="border-bottom: 1px solid black;">{{$d2->cotizacion_dolar ?? '-'}}</td>
-      <th style="border-bottom: 1px solid black;">{{$_aabs+1}}/{{$_aabs+2}}</th>
+      <th style="border-bottom: 1px solid black;border-left: 1px solid black;">{{$_aabs+1}}/{{$_aabs+2}}</th>
       <td style="border-bottom: 1px solid black;">{{$formatear_decimal($T->bruto_euro ?? null)}}</td>
       <td style="border-bottom: 1px solid black;">{{$formatear_decimal($T->bruto_dolar ?? null)}}</td>
+      @if($pad_vars>0)
+      <td class="celda-vacia" colspan="{{$pad_vars}}">&nbsp;</td>
+      @endif
     </tr>
     @endforeach
     <tr>
-      <td class="celda-vacia">&nbsp;</td>
-      <td class="celda-vacia">&nbsp;</td>
-      <td class="celda-vacia">&nbsp;</td>
-      <td class="celda-vacia">&nbsp;</td>
+      <td colspan="3" class="celda-vacia" style="border-right: 1px solid black !important;">&nbsp;</td>
       <td style="border-left: 1px solid black;">{{$formatear_porcentaje(100*($fdiv($ultima_cotizacion_euro,$primer_cotizacion_euro) ?? 1 - 1))}}</td>
-      <td class="celda-vacia">&nbsp;</td>
-      <td class="celda-vacia">&nbsp;</td>
+      <td colspan="2" class="celda-vacia" style="border-right: 1px solid black !important;">&nbsp;</td>
       <td style="border-left: 1px solid black;">{{$formatear_porcentaje(100*($fdiv($ultima_cotizacion_dolar,$primer_cotizacion_dolar) ?? 1 - 1))}}</td>
-      <td class="celda-vacia">&nbsp;</td>
-      <td class="celda-vacia">&nbsp;</td>
-      <td class="celda-vacia">&nbsp;</td>
+      <td colspan="3" class="celda-vacia" style="border-right: 1px solid black !important;">&nbsp;</td>
       <td style="border-left: 1px solid black;">{{$formatear_porcentaje(100*($fdiv($ultimo_bruto_euro,$primer_bruto_euro) ?? 1 - 1))}}</td>
-      <td class="celda-vacia">&nbsp;</td>
+      <td class="celda-vacia" style="border-right: 1px solid black !important;">&nbsp;</td>
       <td style="border-left: 1px solid black;">{{$formatear_porcentaje(100*($fdiv($ultimo_bruto_dolar,$primer_bruto_dolar) ?? 1 - 1))}}</td>
+      @if($pad_vars>0)
+      <td class="celda-vacia" colspan="{{$pad_vars}}">&nbsp;</td>
+      @endif
     </tr>
   </tbody>
 </table>
