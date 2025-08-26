@@ -32,10 +32,92 @@ th.dolar {
 <?php
   $año = $parametros['año'] ?? null;
   $casino = $parametros['casino'] ?? '';
+  
+  $_m = intval(substr($fecha_inicio[$casino],strlen('XXXX-'),strlen('XX')));
+  $data_rel = [];
+  $totales = [];
+  foreach($data[$casino] as $_a => $_){
+    $valores = [
+      'valor_euro' => null,
+      'valor_dolar' => null,
+      'valor_euro_yoy' => null,
+      'valor_dolar_yoy' => null
+    ];
+    
+    $total = [
+      'bruto_yoy' => null,
+      'bruto' => null,
+      'bruto_euro_yoy' => null,
+      'bruto_dolar_yoy' => null,
+      'bruto_euro' => null,
+      'bruto_dolar' => null,
+    ];
+    
+    $data_rel2 = [];
+    $_a2 = $_a;
+    for($_rm=0;$_rm<13;$_rm++){
+      $d = $dataf($casino,$_a2,$_m);
+      
+      if($_rm == 0 || $_rm == 12){//@TODO: Para el primer y ultimo falta calcular el parcial... necesito canon diario
+        foreach($total as $k => $_){
+          $d->{$k} = null;
+        }
+        $d->variacion_euro = null;
+        $d->variacion_dolar = null;
+      }
+      
+      $data_rel2[] = $d;
+      $_m++;
+      if($_m > 12){
+        $_a2++;
+        $_m=1;
+      }
+      
+      foreach($total as $k => $v){
+        $total[$k] = bcadd_precise($v ?? '0',$d->{$k} ?? '0');
+      }
+      
+      foreach($valores as $k => $v){
+        if(!isset($d->{$k})) continue;
+        if($v === null){
+          $valores[$k] = $d->{$k};
+          continue;
+        }
+        $valores[$k] = $v !== $d->{$k}? -1 : $v;
+      }
+    }
+    $total = (object) $total;
+    
+    $total->variacion_euro = bcsub_precise(
+      @bcdiv(bcmul_precise('100',$total->bruto_euro),$total->bruto_euro_yoy,3) ?? '100',
+      '100'
+    );
+    $total->variacion_dolar = bcsub_precise(
+      @bcdiv(bcmul_precise('100',$total->bruto_dolar),$total->bruto_dolar_yoy,3) ?? '100',
+      '100'
+    );
+    
+    $total->valor_euro  = $valores['valor_euro'] == -1? null : $valores['valor_euro'];
+    $total->valor_dolar = $valores['valor_dolar'] == -1? null : $valores['valor_dolar'];
+    $total->valor_euro_yoy  = $valores['valor_euro_yoy'] == -1? null : $valores['valor_euro_yoy'];
+    $total->valor_dolar_yoy = $valores['valor_dolar_yoy'] == -1? null : $valores['valor_dolar_yoy'];
+    $total->valor_euro_base = null;
+    $total->valor_dolar_base = null;
+    
+    $totales[$_a] = $total;
+    $data_rel[$_a] = $data_rel2;
+  }
+  
+  $T = null;
+  $D = null;
+  if(intval($año)){
+    $D = $data_rel[$año-1];
+    $T = $totales[$año-1];
+  }
 ?>
 
 @if($año === null || empty($casino))
-@elseif($año == 'total')
+@elseif($año == 'evolucion_cotizacion')
 <?php 
   $años_por_fila = 3;
   $width_año = $años_por_fila? ((100-4)/$años_por_fila) : 0;
@@ -115,8 +197,8 @@ th.dolar {
         $d = $dataf($casino,$_a2,$_mnum);
       ?>
       @if(!$invalido)
-      <td>{{$d->cotizacion_euro?? '-'}}</td>
-      <td>{{$d->cotizacion_dolar?? '-'}}</td>
+      <td>{{$formatear_decimal($d->cotizacion_euro ?? null)}}</td>
+      <td>{{$formatear_decimal($d->cotizacion_dolar ?? null)}}</td>
       <td>{{$d->fecha_cotizacion ?? '-'}}</td>
       @else
       <td class="celda-vacia celda-oscura">&nbsp;</td>
@@ -174,6 +256,7 @@ th.dolar {
     <?php
       $mes_cotizacion = intval(substr($fecha_inicio[$casino],strlen('XXXX-'),strlen('XX')));
       $mes_cotizacion = ($mes_cotizacion+1)%12;
+      $mes_cotizacion = $mes_cotizacion==0? 1 : $mes_cotizacion;
       $mes_cotizacion_str = str_pad($mes_cotizacion,2,'0',STR_PAD_LEFT);
       $primer_cotizacion_euro = null;
       $ultima_cotizacion_euro = null;
@@ -187,24 +270,25 @@ th.dolar {
         if($b != 0) return $a/$b;
         if($a > 0)  return INF;
         if($a < 0)  return -INF;
-        return NAN;
+        return null;
       };
     ?>
-    @for($_aabs=$primer_año;$_aabs<=$ultimo_año;$_aabs+=1)
+    @foreach($totales as $_aabs => $T)
+    @continue($_aabs == 0)
     <?php
       $d1 = $dataf($casino,$_aabs,$mes_cotizacion);
       $d2 = $dataf($casino,$_aabs+1,$mes_cotizacion);
       $fcot1 = $mes_cotizacion_str.'/'.substr($_aabs,2,2);
       $fcot2 = $mes_cotizacion_str.'/'.substr($_aabs+1,2,2);
-      $primer_cotizacion_euro = $primer_cotizacion_euro ?? $d1->cotizacion_euro;
-      $primer_cotizacion_dolar = $primer_cotizacion_dolar ?? $d1->cotizacion_dolar;
-      $primer_bruto_euro = $primer_bruto_euro ?? $d1->bruto_euro;
-      $primer_bruto_dolar = $primer_bruto_dolar ?? $d1->bruto_dolar;
+      $primer_cotizacion_euro = $primer_cotizacion_euro ?? $d1->cotizacion_euro ?? null;
+      $primer_cotizacion_dolar = $primer_cotizacion_dolar ?? $d1->cotizacion_dolar ?? null;
+      $ultima_cotizacion_euro = $d1->cotizacion_euro ?? $ultima_cotizacion_euro ?? null;
+      $ultima_cotizacion_dolar = $d1->cotizacion_dolar ?? $ultima_cotizacion_dolar ?? null;
       
-      $ultima_cotizacion_euro = $d1->cotizacion_euro ?? $ultima_cotizacion_euro;
-      $ultima_cotizacion_dolar = $d1->cotizacion_dolar ?? $ultima_cotizacion_dolar;
-      $ultimo_bruto_euro = $d1->bruto_euro ?? $ultimo_bruto_euro;
-      $ultimo_bruto_dolar = $d1->bruto_dolar ?? $ultimo_bruto_dolar;
+      $ultimo_bruto_euro = $T->bruto_euro ?? $ultimo_bruto_euro ?? null;
+      $ultimo_bruto_dolar = $T->bruto_dolar ?? $ultimo_bruto_dolar ?? null;
+      $primer_bruto_euro = $primer_bruto_euro ?? $T->bruto_euro ?? null;
+      $primer_bruto_dolar = $primer_bruto_dolar ?? $T->bruto_dolar ?? null;
     ?>
     <tr>
       @if($_aabs == $primer_año)
@@ -212,19 +296,19 @@ th.dolar {
       @endif
       <th style="border-bottom: 1px solid black;" rowspan="2">Año {{$_aabs-$primer_año+1}}</th>
       <td>{{$fcot1 ?? ''}}</td>
-      <td>{{$d1->cotizacion_euro ?? '-'}}</td>
-      <td style="border-bottom: 1px solid black;" rowspan="2">{{$d2->variacion_cotizacion_euro ?? '-'}}</td>
+      <td>{{$formatear_decimal($d1->cotizacion_euro ?? null)}}</td>
+      <td style="border-bottom: 1px solid black;" rowspan="2">{{$formatear_porcentaje($d2->variacion_cotizacion_euro ?? null)}}</td>
       <td>{{$fcot1 ?? ''}}</td>
-      <td>{{$d1->cotizacion_dolar ?? '-'}}</td>
-      <td style="border-bottom: 1px solid black;" rowspan="2">{{$d2->variacion_cotizacion_dolar ?? '-'}}</td>
+      <td>{{$formatear_decimal($d1->cotizacion_dolar ?? null)}}</td>
+      <td style="border-bottom: 1px solid black;" rowspan="2">{{$formatear_porcentaje($d2->variacion_cotizacion_dolar ?? null)}}</td>
       @if($_aabs == $primer_año)
       <td style="border-bottom: 0;" rowspan="{{$filas_cuerpo}}">&nbsp;</td>
       @endif
       <th>{{$_aabs}}/{{$_aabs+1}}</th>
-      <td>{{$d1->bruto_euro ?? '-'}}</td>
-      <td style="border-bottom: 1px solid black;" rowspan="2">{{$d2->variacion_euro ?? '-'}}</td>
-      <td>{{$d1->bruto_dolar ?? '-'}}</td>
-      <td style="border-bottom: 1px solid black;" rowspan="2">{{$d2->variacion_dolar ?? '-'}}</td>
+      <td>{{$formatear_decimal($T->bruto_euro_yoy ?? null)}}</td>
+      <td style="border-bottom: 1px solid black;" rowspan="2">{{$formatear_porcentaje($T->variacion_euro ?? null)}}</td>
+      <td>{{$formatear_decimal($T->bruto_dolar_yoy ?? null)}}</td>
+      <td style="border-bottom: 1px solid black;" rowspan="2">{{$formatear_porcentaje($T->variacion_dolar ?? null)}}</td>
     </tr>
     <tr>
       <td style="border-bottom: 1px solid black;">{{$fcot2 ?? ''}}</td>
@@ -232,101 +316,30 @@ th.dolar {
       <td style="border-bottom: 1px solid black;">{{$fcot2 ?? ''}}</td>
       <td style="border-bottom: 1px solid black;">{{$d2->cotizacion_dolar ?? '-'}}</td>
       <th style="border-bottom: 1px solid black;">{{$_aabs+1}}/{{$_aabs+2}}</th>
-      <td style="border-bottom: 1px solid black;">{{$d2->bruto_euro ?? '-'}}</td>
-      <td style="border-bottom: 1px solid black;">{{$d2->bruto_dolar ?? '-'}}</td>
+      <td style="border-bottom: 1px solid black;">{{$formatear_decimal($T->bruto_euro ?? null)}}</td>
+      <td style="border-bottom: 1px solid black;">{{$formatear_decimal($T->bruto_dolar ?? null)}}</td>
     </tr>
-    @endfor
+    @endforeach
     <tr>
       <td class="celda-vacia">&nbsp;</td>
       <td class="celda-vacia">&nbsp;</td>
       <td class="celda-vacia">&nbsp;</td>
       <td class="celda-vacia">&nbsp;</td>
-      <td style="border-left: 1px solid black;">{{100*($fdiv($ultima_cotizacion_euro,$primer_cotizacion_euro) - 1)}}</td>
+      <td style="border-left: 1px solid black;">{{$formatear_porcentaje(100*($fdiv($ultima_cotizacion_euro,$primer_cotizacion_euro) ?? 1 - 1))}}</td>
       <td class="celda-vacia">&nbsp;</td>
       <td class="celda-vacia">&nbsp;</td>
-      <td style="border-left: 1px solid black;">{{100*($fdiv($ultima_cotizacion_dolar,$primer_cotizacion_dolar) - 1)}}</td>
+      <td style="border-left: 1px solid black;">{{$formatear_porcentaje(100*($fdiv($ultima_cotizacion_dolar,$primer_cotizacion_dolar) ?? 1 - 1))}}</td>
       <td class="celda-vacia">&nbsp;</td>
       <td class="celda-vacia">&nbsp;</td>
       <td class="celda-vacia">&nbsp;</td>
-      <td style="border-left: 1px solid black;">{{100*($fdiv($ultimo_bruto_euro,$primer_bruto_euro) - 1)}}</td>
+      <td style="border-left: 1px solid black;">{{$formatear_porcentaje(100*($fdiv($ultimo_bruto_euro,$primer_bruto_euro) ?? 1 - 1))}}</td>
       <td class="celda-vacia">&nbsp;</td>
-      <td style="border-left: 1px solid black;">{{100*($fdiv($ultimo_bruto_dolar,$primer_bruto_dolar) - 1)}}</td>
+      <td style="border-left: 1px solid black;">{{$formatear_porcentaje(100*($fdiv($ultimo_bruto_dolar,$primer_bruto_dolar) ?? 1 - 1))}}</td>
     </tr>
   </tbody>
 </table>
 </div>
 @else
-<?php
-  $data_rel = [];
-  $_a = $año-1;
-  $_m = intval(substr($fecha_inicio[$casino],strlen('XXXX-'),strlen('XX')));
-  
-  $valores = [
-    'valor_euro' => null,
-    'valor_dolar' => null,
-    'valor_euro_yoy' => null,
-    'valor_dolar_yoy' => null
-  ];
-  
-  $total = [
-    'bruto_yoy' => null,
-    'bruto' => null,
-    'bruto_euro_yoy' => null,
-    'bruto_dolar_yoy' => null,
-    'bruto_euro' => null,
-    'bruto_dolar' => null,
-  ];
-  
-  for($_rm=0;$_rm<13;$_rm++){
-    $d = $dataf($casino,$_a,$_m);
-    
-    if($_rm == 0 || $_rm == 12){//@TODO: Para el primer y ultimo falta calcular el parcial... necesito canon diario
-      foreach($total as $k => $_){
-        $d->{$k} = null;
-      }
-      $d->variacion_euro = null;
-      $d->variacion_dolar = null;
-    }
-    
-    $data_rel[] = $d;
-    $_m++;
-    if($_m > 12){
-      $_a++;
-      $_m=1;
-    }
-    
-    foreach($total as $k => $v){
-      $total[$k] = bcadd_precise($v ?? '0',$d->{$k} ?? '0');
-    }
-    
-    foreach($valores as $k => $v){
-      $valores[$k] = $v === null?
-        $d->{$k}
-      : (
-        $v !== $d->{$k}?
-        -1
-        : $v
-      );
-    }
-  }
-  $total = (object) $total;
-  
-  $total->variacion_euro = bcsub_precise(
-    @bcdiv(bcmul_precise('100',$total->bruto_euro),$total->bruto_euro_yoy,3) ?? '100',
-    '100'
-  );
-  $total->variacion_dolar = bcsub_precise(
-    @bcdiv(bcmul_precise('100',$total->bruto_dolar),$total->bruto_dolar_yoy,3) ?? '100',
-    '100'
-  );
-  
-  $total->valor_euro  = $valores['valor_euro'] == -1? null : $valores['valor_euro'];
-  $total->valor_dolar = $valores['valor_dolar'] == -1? null : $valores['valor_dolar'];
-  $total->valor_euro_yoy  = $valores['valor_euro_yoy'] == -1? null : $valores['valor_euro_yoy'];
-  $total->valor_dolar_yoy = $valores['valor_dolar_yoy'] == -1? null : $valores['valor_dolar_yoy'];
-  $total->valor_euro_base = null;
-  $total->valor_dolar_base = null;
-?>
 <style>
 .bruto_anterior,
 .bruto_actual {
@@ -405,7 +418,7 @@ tbody.marcar-primer-penultimo tr:nth-last-child(2) th {
     </tr>
   </thead>
   <tbody class="marcar-primer-penultimo">
-    @foreach($data_rel as $d)
+    @foreach($D as $d)
     <tr>
       <th>{{$meses_calendario[$d->mes]}}</th>
       <td>{{$formatear_decimal($d->bruto_yoy ?? null)}}</td>
@@ -424,15 +437,15 @@ tbody.marcar-primer-penultimo tr:nth-last-child(2) th {
     @endforeach
     <tr>
       <th class="celda_especial">Total</th>
-      <td>{{$formatear_decimal($total->bruto_yoy ?? null)}}</td>
-      <td>{{$formatear_decimal($total->bruto ?? null)}}</td>
+      <td>{{$formatear_decimal($T->bruto_yoy ?? null)}}</td>
+      <td>{{$formatear_decimal($T->bruto ?? null)}}</td>
       <td style="border-top: 1px solid black;border-bottom: 0;" colspan="4">&nbsp;</td>
-      <td>{{$formatear_decimal($total->bruto_euro_yoy ?? null)}}</td>
-      <td>{{$formatear_decimal($total->bruto_dolar_yoy ?? null)}}</td>
-      <td>{{$formatear_decimal($total->bruto_euro ?? null)}}</td>
-      <td>{{$formatear_decimal($total->bruto_dolar ?? null)}}</td>
-      <td>{{$formatear_porcentaje($total->variacion_euro ?? null)}}</td>
-      <td>{{$formatear_porcentaje($total->variacion_dolar ?? null)}}</td>
+      <td>{{$formatear_decimal($T->bruto_euro_yoy ?? null)}}</td>
+      <td>{{$formatear_decimal($T->bruto_dolar_yoy ?? null)}}</td>
+      <td>{{$formatear_decimal($T->bruto_euro ?? null)}}</td>
+      <td>{{$formatear_decimal($T->bruto_dolar ?? null)}}</td>
+      <td>{{$formatear_porcentaje($T->variacion_euro ?? null)}}</td>
+      <td>{{$formatear_porcentaje($T->variacion_dolar ?? null)}}</td>
     </tr>
   </tbody>
   <tbody>
@@ -449,38 +462,41 @@ tbody.marcar-primer-penultimo tr:nth-last-child(2) th {
     <th>Valores Base {{$año-1}}/{{$año}}</th>
     <th>Valores Base {{$año}}/{{$año+1}}</th>
     <th>Valores {{$año}}/{{$año+1}}</th>
-    <th class="celda-vacia" colspan="4">&nbsp;</th>
+    <th class="celda-vacia" colspan="5">&nbsp;</th>
   </thead>
   <tbody>
     <tr>
       <th class="euro">Euro</th>
-      <td>{{$formatear_decimal($total->valor_euro_yoy)}}</td>
-      <td>{{$formatear_decimal($total->bruto_euro_yoy ?? null)}}</td>
-      <td>{{$formatear_decimal($total->bruto_euro)}}</td>
-      <td>{{$formatear_porcentaje($total->variacion_euro ?? null)}}</td>
-      <td>{{$formatear_decimal($total->valor_euro_base)}}</td>
+      <td>{{$formatear_decimal($T->valor_euro_yoy)}}</td>
+      <td>{{$formatear_decimal($T->bruto_euro_yoy ?? null)}}</td>
+      <td>{{$formatear_decimal($T->bruto_euro)}}</td>
+      <td>{{$formatear_porcentaje($T->variacion_euro ?? null)}}</td>
+      <td>{{$formatear_decimal($T->valor_euro_base)}}</td>
       <td>{{$formatear_decimal(bcmul(
-        $total->valor_euro_base,
-        bcadd_precise('1',bcdiv($total->variacion_euro,'100',5)),
+        $T->valor_euro_base,
+        bcadd_precise('1',bcdiv($T->variacion_euro,'100',5)),
         2
       ))}}</td>
-      <td>{{$formatear_decimal($total->valor_euro)}}</td>
-      <td class="celda-vacia" colspan="4">&nbsp;</td>
+      <td>{{$formatear_decimal($T->valor_euro)}}</td>
+      <td class="celda-vacia" colspan="5">&nbsp;</td>
     </tr>
     <tr>
       <th class="dolar">Dólar</th>
-      <td>{{$formatear_decimal($total->valor_dolar_yoy)}}</td>
-      <td>{{$formatear_decimal($total->bruto_dolar_yoy ?? null)}}</td>
-      <td>{{$formatear_decimal($total->bruto_dolar ?? null)}}</td>
-      <td>{{$formatear_porcentaje($total->variacion_dolar ?? null)}}</td>
-      <td>{{$formatear_decimal($total->valor_dolar_base)}}</td>
+      <td>{{$formatear_decimal($T->valor_dolar_yoy)}}</td>
+      <td>{{$formatear_decimal($T->bruto_dolar_yoy ?? null)}}</td>
+      <td>{{$formatear_decimal($T->bruto_dolar ?? null)}}</td>
+      <td>{{$formatear_porcentaje($T->variacion_dolar ?? null)}}</td>
+      <td>{{$formatear_decimal($T->valor_dolar_base)}}</td>
       <td>{{$formatear_decimal(bcmul(
-        $total->valor_dolar_base,
-        bcadd_precise('1',bcdiv($total->variacion_dolar,'100',5)),
+        $T->valor_dolar_base,
+        bcadd_precise('1',bcdiv($T->variacion_dolar,'100',5)),
         2
       ))}}</td>
-      <td>{{$formatear_decimal($total->valor_dolar)}}</td>
-      <td class="celda-vacia" colspan="4">&nbsp;</td>
+      <td>{{$formatear_decimal($T->valor_dolar)}}</td>
+      <td class="celda-vacia" colspan="5">&nbsp;</td>
+    </tr>
+    <tr>
+      <td class="celda-vacia" colspan="13">&nbsp;</td>
     </tr>
   </tbody>
 </table>

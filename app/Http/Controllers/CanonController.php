@@ -2399,7 +2399,7 @@ class CanonController extends Controller
       $años = collect(array_reverse(range($primer_año,$ultimo_año,1)));
     }
     $año  = $request->año ?? null;
-    $año  = $año === null || $año == 'total'? null : intval($año);
+    $año  = $año === null || $año == 'evolucion_cotizacion'? null : intval($año);
     $año_anterior = $año === null? null : ($año-1);
     
     $meses = collect([]);
@@ -2891,7 +2891,7 @@ class CanonController extends Controller
       ->transform(function($d) use ($fecha_inicio){
         $fini = $fecha_inicio[$d->casino] ?? null;
         $d->fecha_inicio = $fini;
-        if($fini !== null){
+        if($fini !== null && $d->año > 0 && $d->mes > 0){
           $d->rel_mes = ($d->mes-intval(substr($fini,strlen('XXXX-'),2)))%12;
           $d->rel_mes += $d->rel_mes < 0? 12 : 0;
           
@@ -2954,7 +2954,7 @@ class CanonController extends Controller
         $botones['año'] = $combine_into_pairs(array_map(function($a){
           return $a;
         },$_años),$_años);
-        $botones['año'][] = ['total','Total'];
+        $botones['año'][] = ['evolucion_cotizacion','Evolución Cotizacion'];
       }
     }
     
