@@ -164,7 +164,7 @@ th.dolar {
   </colgroup>
   <thead>
     <tr>
-      <th colspan="{{$años_por_fila*3+1}}">Cotizaciones</th>
+      <th colspan="{{$columnas_cots}}">Cotizaciones</th>
       @if($pad_cots>0)
       <th class="celda-vacia" colspan="{{$pad_cots}}">&nbsp;</th>
       @endif
@@ -307,15 +307,31 @@ th.dolar {
       $d2 = $dataf($casino,$_aabs+1,$mes_cotizacion);
       $fcot1 = $mes_cotizacion_str.'/'.substr($_aabs,2,2);
       $fcot2 = $mes_cotizacion_str.'/'.substr($_aabs+1,2,2);
-      $primer_cotizacion_euro = $primer_cotizacion_euro ?? $d1->cotizacion_euro ?? null;
-      $primer_cotizacion_dolar = $primer_cotizacion_dolar ?? $d1->cotizacion_dolar ?? null;
-      $ultima_cotizacion_euro = $d1->cotizacion_euro ?? $ultima_cotizacion_euro ?? null;
-      $ultima_cotizacion_dolar = $d1->cotizacion_dolar ?? $ultima_cotizacion_dolar ?? null;
+      $primer_cotizacion_euro = bccomp_precise($primer_cotizacion_euro ?? '0','0') == 0?
+       $d1->cotizacion_euro
+      : $primer_cotizacion_euro;
+      $primer_cotizacion_dolar = bccomp_precise($primer_cotizacion_dolar ?? '0','0') == 0?
+       $d1->cotizacion_dolar
+      : $primer_cotizacion_dolar;
+      $ultima_cotizacion_euro = bccomp_precise($d1->cotizacion_euro ?? '0','0') == 0? 
+       $ultima_cotizacion_euro
+      : $d1->cotizacion_dolar;
+      $ultima_cotizacion_dolar = bccomp_precise($d1->cotizacion_dolar ?? '0','0') == 0? 
+       $ultima_cotizacion_dolar
+      : $d1->cotizacion_dolar;
       
-      $ultimo_bruto_euro = $T->bruto_euro ?? $ultimo_bruto_euro ?? null;
-      $ultimo_bruto_dolar = $T->bruto_dolar ?? $ultimo_bruto_dolar ?? null;
-      $primer_bruto_euro = $primer_bruto_euro ?? $T->bruto_euro ?? null;
-      $primer_bruto_dolar = $primer_bruto_dolar ?? $T->bruto_dolar ?? null;
+      $primer_bruto_euro = bccomp_precise($primer_bruto_euro ?? '0','0') == 0?
+       $T->bruto_euro
+      : $primer_bruto_euro;
+      $primer_bruto_dolar = bccomp_precise($primer_bruto_dolar ?? '0','0') == 0?
+       $T->bruto_dolar
+      : $primer_bruto_dolar;
+      $ultimo_bruto_euro = bccomp_precise($d1->bruto_euro ?? '0','0') == 0? 
+       $ultimo_bruto_euro
+      : $T->bruto_dolar;
+      $ultimo_bruto_dolar = bccomp_precise($d1->bruto_dolar ?? '0','0') == 0? 
+       $ultimo_bruto_dolar
+      : $T->bruto_dolar;
     ?>
     <tr>
       <th style="border-bottom: 1px solid black;" rowspan="2">Año {{$_aabs-$primer_año+1}}</th>
