@@ -150,9 +150,9 @@ $(document).on('click','.borrarMTMCargada',function(e){
 });
 
 function mostrarFiscalizacion(id_mov,modo,refrescando = false){
-  $('#guardarRel').prop('disabled', true);
-  $('#guardarRel').attr('modo',modo).toggle(modo == "CARGAR");
-  $('#guardarRel').attr('data-mov',id_mov);
+  $('.guardarRelMov').prop('disabled', true);
+  $('.guardarRelMov').attr('modo',modo).toggle(modo == "CARGAR");
+  $('.guardarRelMov').attr('data-mov',id_mov);
   divRelMovEsconderDetalleRelevamiento();
   $.get('eventualidadesMTM/relevamientosEvMTM/' + id_mov, function(data){
     divRelMovSetearUsuarios(data.casino,data.fiscalizador_carga,null);
@@ -186,17 +186,17 @@ $('#btn-closeCargar').click(function(e){
 $(document).on('click','#divRelMov .cargarMaq',function(){
   const id_rel = $(this).attr('data-rel');
   const toma = $(this).attr('toma');
-  const modo_ventana = $('#guardarRel').attr('modo');
-  $('#guardarRel').attr('data-rel', id_rel);
-  $('#guardarRel').attr('toma', toma);
+  const modo_ventana = $('.guardarRelMov').attr('modo');
+  $('.guardarRelMov').attr('data-rel', id_rel);
+  $('.guardarRelMov').attr('toma', toma);
   $.get('eventualidadesMTM/obtenerRelevamientoToma/' + id_rel, function(data){
-    $('#guardarRel').prop('disabled', true).hide();
+    $('.guardarRelMov').prop('disabled', true).hide();
     const estado_rel = data.relevamiento.id_estado_relevamiento;
     if (modo_ventana == "CARGAR"){
       //GENERADO || CARGANDO || SIN RELEVAR
       if(estado_rel == 1 || estado_rel == 2 || estado_rel == 5){
         divRelMovSetearModo("CARGAR");
-        $('#guardarRel').prop('disabled', false).show();
+        $('.guardarRelMov').prop('disabled', false).show();
       }
       else divRelMovSetearModo("VER");
     }
@@ -231,13 +231,14 @@ function objToFormData(data) {
 }
 
 //BOTÓN GUARDAR dentro del modal cargar eventualidad
-$(document).on('click','#guardarRel',function(){
+$(document).on('click','.guardarRelMov',function(){
   $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
   const datos = divRelMovObtenerDatos();
   const formData = {
-    id_relev_mov:          $('#guardarRel').attr('data-rel'),
-    toma:                  $('#guardarRel').attr('toma'),
+    id_relev_mov:          $(this).attr('data-rel'),
+    toma:                  $(this).attr('toma'),
+    temporal:              parseInt($(this).attr('data-temporal') ?? '1'),
     id_cargador:           datos.usuario_carga.id_usuario,
     id_fiscalizador:       datos.usuario_toma.id_usuario,
     contadores:            datos.contadores,
@@ -250,6 +251,7 @@ $(document).on('click','#guardarRel',function(){
     fecha_sala:            datos.fecha_ejecucion,
     observaciones:         datos.observaciones,
     adjunto:               datos.adjunto ?? null,
+    link_adjunto:          datos.link_adjunto,
     mac:                   datos.mac,
     isla_relevada:         datos.isla_rel,
     sector_relevado:       datos.sector_rel,
@@ -270,13 +272,13 @@ $(document).on('click','#guardarRel',function(){
       divRelMovLimpiar();
       divRelMovMarcarListaMaq(formData.id_maquina);
       mensajeExito({mensajes :['Los datos se han cargado correctamente']});
-      $('#guardarRel').prop('disabled', true);
+      $('.guardarRelMov').prop('disabled', true);
       $('#btn-buscarEventualidadMTM').click();
       if(data.movFinalizado){
         $('#modalCargarRelMov').modal('hide');
       }
       else{
-        mostrarFiscalizacion($('#guardarRel').attr('data-mov'),$('#guardarRel').attr('modo'),true);
+        mostrarFiscalizacion($('.guardarRelMov').attr('data-mov'),$('.guardarRelMov').attr('modo'),true);
       }
     },
     error: function (data){
@@ -305,7 +307,7 @@ function validar(estado){
 
   const datos = divRelMovObtenerDatos();
   const formData = {
-    id_relev_mov: $('#guardarRel').attr('data-rel'),
+    id_relev_mov: $('.guardarRelMov').attr('data-rel'),
     observacion: datos.observacionesAdm,
     estado: estado,
     nro_exp_org: datos.nro_exp_org,

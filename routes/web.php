@@ -312,7 +312,7 @@ Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_secci
   Route::get('obtenerRelevamientosFiscalizacion/{id_fiscalizacion_movimiento}','LogMovimientoController@obtenerRelevamientosFiscalizacion');
   Route::get('obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
   Route::post('cargarTomaRelevamiento', 'LogMovimientoController@cargarTomaRelevamiento');
-  Route::get('adjunto/{id_toma}/{id_archivo}','LogMovimientoController@leerAdjuntoDeToma');
+  Route::get('adjunto/{id_toma}/{id_archivo}','RelevamientoMovimientoController@leerAdjuntoDeToma');
   Route::post('nuevoLogMovimiento','LogMovimientoController@nuevoLogMovimiento');
   Route::post('eliminarMovimiento', 'LogMovimientoController@eliminarMovimiento');
   Route::get('obtenerDatos/{id}','LogMovimientoController@obtenerDatos');
@@ -343,6 +343,7 @@ Route::group(['prefix' => 'relevamientos_movimientos','middleware' => 'tiene_per
   Route::get('obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
   Route::post('cargarTomaRelevamiento', 'LogMovimientoController@cargarTomaRelevamiento');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
+  Route::get('adjunto/{id_toma}/{id_archivo}','RelevamientoMovimientoController@leerAdjuntoDeToma');
   Route::get('{id}','LogMovimientoController@relevamientosMovimientos');
 });
 
@@ -398,7 +399,7 @@ Route::group(['prefix' => 'eventualidadesMTM','middleware' => 'tiene_permiso:ver
   Route::post('visarConObservacion', 'LogMovimientoController@visarConObservacion');
   Route::get('obtenerMTMEnCasinoHabilitadas/{casino}/{id}', 'MTMController@obtenerMTMEnCasinoHabilitadas');
   Route::get('obtenerMTMEnCasinoEgresadas/{casino}/{id}', 'MTMController@obtenerMTMEnCasinoEgresadas');
-  Route::get('adjunto/{id_toma}/{id_archivo}','LogMovimientoController@leerAdjuntoDeToma');
+  Route::get('adjunto/{id_toma}/{id_archivo}','RelevamientoMovimientoController@leerAdjuntoDeToma');
   Route::get('obtenerMTM/{id}', 'MTMController@obtenerMTM');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
 });

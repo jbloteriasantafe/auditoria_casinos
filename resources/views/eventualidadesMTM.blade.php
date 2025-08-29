@@ -314,7 +314,8 @@
         </div>  <!-- modal body -->
 
         <div class="modal-footer">
-          <button id="guardarRel" type="button" class="btn btn-success guardarRelMov" value="" >GUARDAR</button>
+          <button data-temporal="0" id="guardarRel" type="button" class="btn btn-success btn-warningModificar guardarRelMov" value="" style="float: left;">GUARDAR</button>
+          <button data-temporal="1" id="guardarRelTemporalmente" type="button" class="btn btn-successAceptar guardarRelMov" value="">GUARDAR TEMPORALMENTE</button>
           <button type="button" class="btn btn-default cancelar" data-dismiss="modal" aria-label="Close">SALIR</button>
         </div> <!-- modal footer -->
       </div> <!-- modal colapsado -->
@@ -366,8 +367,8 @@
     <script src="/js/paginacion.js" charset="utf-8"></script>
 
     <!-- JavaScript personalizado -->
-    <script src="js/divRelevamientoMovimiento.js?1" charset="utf-8"></script>
-    <script src="js/eventualidadesMTM.js" charset="utf-8"></script>
+    <script src="js/divRelevamientoMovimiento.js?2" charset="utf-8"></script>
+    <script src="js/eventualidadesMTM.js?1" charset="utf-8"></script>
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
     <script type="text/javascript" src="js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
