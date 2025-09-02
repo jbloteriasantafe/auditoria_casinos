@@ -15,7 +15,7 @@
     <tr>
       <?php 
         $casinos_simples = ['CME'];
-        $casinos_complejos = array_diff($abbr_casinos->toArray(),$casinos_simples);
+        $casinos_complejos = array_diff($abbr_casinos,$casinos_simples);
       ?>
       <th colspan="{{3+count($casinos_simples)+3*count($casinos_complejos)}}" style="text-align: center;">Canon Físico / On Line - {{$año}} -</th>
     </tr>
@@ -42,9 +42,8 @@
     </tr>
     <tr>
       <th class="mes celda_especial" style="border-right: 1px solid black">{{$año_anterior}}</th>
-      @foreach($abbr_casinos as $_cidx => $_cas)
+      @foreach($abbr_casinos as $_casino => $_cas)
       <?php
-        $_casino = $casinos[$_cidx] ?? null;
         $total = $dataf($_casino,$año_anterior,0);
         $canon_fisico = $formatear_decimal($total->canon_fisico ?? null);
         $canon_online = $formatear_decimal($total->canon_online ?? null);
@@ -64,15 +63,14 @@
     @foreach($abbr_meses as $_nmes => $_mes)
     <tr>
       <th class="mes" style="border-right: 1px solid black">{{$_mes}}</th>
-      @foreach($abbr_casinos as $_cidx => $_cas)
+      @foreach($abbr_casinos as $_casino => $_cas)
       <?php
-        $_casino = $casinos[$_cidx] ?? null;
-        $c = $dataf($_casino,$año,$_nmes);
-        $canon_fisico = $formatear_decimal($c->canon_fisico ?? null);
-        $canon_online = $formatear_decimal($c->canon_online ?? null);
-        $canon  = $formatear_decimal($c->canon ?? null);
-        $variacion_canon_yoy = $formatear_porcentaje($c->variacion_canon_yoy ?? null);
-        $variacion_canon_mom = $formatear_porcentaje($c->variacion_canon_mom ?? null);
+        $canon = $dataf($_casino,$año,$_nmes);
+        $canon_fisico = $formatear_decimal($canon->canon_fisico_redondeado ?? null);
+        $canon_online =  $formatear_decimal($canon->canon_online_redondeado ?? null);
+        $variacion_canon_yoy   = $formatear_porcentaje($canon->variacion_canon_yoy ?? null);
+        $variacion_canon_mom = $formatear_porcentaje($canon->variacion_canon_mom ?? null);
+        $canon  =  $formatear_decimal($canon->canon ?? null);
       ?>
       @if($_cas !== 'CME')
       <td class="canon_fisico {{$N($canon_fisico)}}">{{$canon_fisico}}</td>
@@ -86,14 +84,13 @@
     @endforeach
     <tr>
       <th class="mes celda_especial" style="border-right: 1px solid black">{{$año}}</th>
-      @foreach($abbr_casinos as $_cidx => $_cas)
+      @foreach($abbr_casinos as $_casino => $_cas)
       <?php
-        $_casino = $casinos[$_cidx] ?? null;
         $total = $dataf($_casino,$año,0);
-        $canon_fisico = $formatear_decimal($total->canon_fisico ?? null);
-        $canon_online = $formatear_decimal($total->canon_online ?? null);
-        $canon  = $formatear_decimal($total->canon ?? null);
+        $canon_fisico = $formatear_decimal($total->canon_fisico_redondeado ?? null);
+        $canon_online = $formatear_decimal($total->canon_online_redondeado ?? null);
         $variacion_canon_yoy = $formatear_porcentaje($total->variacion_canon_yoy ?? null);
+        $canon  = $formatear_decimal($total->canon ?? null);
       ?>
       @if($_cas != 'CME')
       <th class="canon_fisico {{$_cas}} {{$N($canon_fisico)}}" style="text-align: right;">{{$canon_fisico}}</th>

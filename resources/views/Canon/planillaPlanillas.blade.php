@@ -37,12 +37,12 @@
     'es_anual','es_mensual','casinos','abbr_casinos',
     'plataformas','relacion_plat_cas','valor_vacio','formatear_decimal','N',
     'formatear_porcentaje','abbr_año','meses_calendario',
-    'abbr_mes','abbr_meses','abbr_num_meses','dias_mes','dataf'
+    'abbr_mes','abbr_meses','abbr_num_meses','dias_mes','dataf','parametros',
+    'fecha_inicio',
+    'primer_fecha','ultima_fecha',
+    'primer_año','ultimo_año',
+    'primer_mes','ultimo_mes'
   );
-  
-  $url = function($p,$a,$m){
-    return request()->url().'?año='.($a ?? '').'&mes='.($m ?? '').'&planilla='.($p ?? '');
-  };
 ?>
 <html>
 
@@ -76,38 +76,33 @@
     }
   </style>
   <div style="padding: 0.5em;border-bottom: 4px groove black;background: lightcyan;">
+    <?php
+      $url = request()->url();
+    ?>
+    @foreach($botones as $param => $param_vals)
+    <?php
+      $url.= ($loop->first? '?' : '&').urlencode($param).'=';
+    ?>
+    
     <div style="padding: 0.5em;">
-      @foreach($planillas as $_planilla_param => $_planilla)
-      @if($_planilla_param != $planilla)
-      <a class="link_planilla" href="{{$url($_planilla_param,null,null)}}">{{$_planilla}}</a>
+      @foreach($param_vals as $pk_pv)
+      
+      @if(($parametros[$param] ?? null) == $pk_pv[0])
+      <span class="link_planillla_usada">{{$pk_pv[1] ?? ''}}</span>
       @else
-      <span class="link_planillla_usada">{{$_planilla}}</span>
+      <a class="link_planilla" href="{{$url.urlencode($pk_pv[0] ?? '')}}">{{$pk_pv[1] ?? ''}}</a>
       @endif
+            
       @endforeach
+      
+      @if($loop->first)
       <button data-js-click-descargar-tabla="[data-target-descargar-tabla]" style="float: right;">Descargar tabla</button>
-    </div>
-    @if($es_anual || $es_mensual)
-    <div style="padding: 0.5em;">
-      @foreach(($años ?? []) as $_año)
-      @if($_año != $año)
-      <a class="link_planilla" href="{{$url($planilla ?? null,$_año,null)}}">{{$_año}}</a>
-      @else
-      <span class="link_planillla_usada">{{$_año}}</span>
       @endif
-      @endforeach
     </div>
-    @endif
-    @if(isset($año) && $es_mensual)
-    <div style="padding: 0.5em;">
-      @foreach(($meses_elegibles ?? []) as $_mes)
-      @if($_mes != $mes)
-      <a class="link_planilla" href="{{$url($planilla ?? null,$año ?? null,$_mes)}}">{{$_mes}}</a>
-      @else
-      <span class="link_planillla_usada">{{$_mes}}</span>
-      @endif
-      @endforeach
-    </div>
-    @endif
+    <?php
+      $url.= urlencode($parametros[$param] ?? '');
+    ?>
+    @endforeach
   </div>
   <div data-target-descargar-tabla>
     <style>
@@ -120,6 +115,10 @@
     </style>
     @if($planilla == 'evolucion_historica')
       @component('Canon.Planillas.evolucion_historica',$data_arr)
+      @endcomponent
+    @endif
+    @if($planilla == 'actualizacion_valores')
+      @component('Canon.Planillas.actualizacion_valores',$data_arr)
       @endcomponent
     @endif
     @if($es_anual && isset($año))
@@ -831,6 +830,7 @@
 
 <script>
   const data = {!! (isset($data) && count($data) > 0)? json_encode($data) : '{}' !!};
+  const parametros = {!! (isset($parametros) && count($parametros) > 0)? json_encode($parametros) : '{}' !!};
   const casinos = {!! (isset($casinos) && count($casinos) > 0)? json_encode($casinos) : '[]' !!};
   const meses = {!! (isset($meses_calendario) && count($meses_calendario) > 0)? json_encode($meses_calendario) : '[]' !!};
   const colors = [
@@ -844,7 +844,8 @@
   const año = "{!! isset($año)? $año : '' !!}";
   const mes = "{!! isset($mes)? $mes : '' !!}";
   const fecha_planilla = "{!! date('Ymdhi') !!}";
+  const nombre_archivo = "{!! implode('_',$parametros) !!}";
 </script>
-<script src="/js/Canon/planillas.js" charset="utf-8" type="module"></script>
+<script src="/js/Canon/planillas.js?1" charset="utf-8" type="module"></script>
 
 </html>

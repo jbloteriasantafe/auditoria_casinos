@@ -14,6 +14,7 @@ use PDF;
 use App\Casino;
 use App\Plataforma;
 use App\Autoexclusion as AE;
+use Illuminate\Support\Facades\Log;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -42,7 +43,7 @@ class AutoexclusionController extends Controller
 
       if(!$usuario->tienePermiso('modificar_ae') && !$usuario->tienePermiso('aym_ae_plataformas'))
         $estados_elegibles = AE\NombreEstadoAutoexclusion::where('id_nombre_estado',3)->get();
-
+      
       return view('Autoexclusion.index', ['juegos' => AE\JuegoPreferidoAE::all(),
                                           'ocupaciones' => AE\OcupacionAE::all(),
                                           'casinos' => Casino::all(),
@@ -57,389 +58,409 @@ class AutoexclusionController extends Controller
                                         ]);
     }
 
-    //Función para buscar los autoexcluidos existentes en el sistema
-    public function buscarAutoexcluidos(Request $request){
-      $reglas = Array();
+    public function indexNoticias($dni = ''){
+      UsuarioController::getInstancia()->agregarSeccionReciente('Autoexclusión' , 'autoexclusion');
+      $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
 
-      if(!empty($request->nombres)){
-        $reglas[]=['ae_datos.nombres','LIKE', '%' . $request->nombres . '%'];
-      }
-      if(!empty($request->apellido)){
-        $reglas[]=['ae_datos.apellido','LIKE', '%' . $request->apellido . '%'];
-      }
-      if(!empty($request->correo)){
-        $reglas[]=['ae_datos.correo','LIKE', '%' . $request->correo . '%'];
-      }
-
-      if(!empty($request->dni)){
-        $reglas[]=['ae_datos.nro_dni','=',$request->dni];
-      }
-
-      if(!empty($request->estado)){
-        $reglas[]=['ae_estado.id_nombre_estado','=',$request->estado];
-      }
-
-      if(!empty($request->casino)){
-        $reglas[]=['ae_estado.id_casino','=',$request->casino];
-      }
-      if(!empty($request->plataforma)){
-        $reglas[]=['ae_estado.id_plataforma','=',$request->plataforma];
-      }
-
-      if(!empty($request->fecha_autoexclusion_d)){
-        $reglas[]=['ae_estado.fecha_ae','>=',$request->fecha_autoexclusion_d];
-      }
-      if(!empty($request->fecha_autoexclusion_h)){
-        $reglas[]=['ae_estado.fecha_ae','<=',$request->fecha_autoexclusion_h];
-      }
-
-      if(!empty($request->fecha_vencimiento_d)){
-        $reglas[]=['ae_estado.fecha_vencimiento','>=',$request->fecha_vencimiento_d];
-      }
-      if(!empty($request->fecha_vencimiento_h)){
-        $reglas[]=['ae_estado.fecha_vencimiento','<=',$request->fecha_vencimiento_h];
-      }
-
-      if(!empty($request->fecha_renovacion_d)){
-        $reglas[]=['ae_estado.fecha_renovacion','>=',$request->fecha_renovacion_d];
-      }
-      if(!empty($request->fecha_renovacion_h)){
-        $reglas[]=['ae_estado.fecha_renovacion','<=',$request->fecha_renovacion_h];
-      }
-
-      if(!empty($request->fecha_cierre_definitivo_d)){
-        $reglas[]=['ae_estado.fecha_cierre_ae','>=',$request->fecha_cierre_definitivo_d];
-      }
-      if(!empty($request->fecha_cierre_definitivo_h)){
-        $reglas[]=['ae_estado.fecha_cierre_ae','<=',$request->fecha_cierre_definitivo_h];
-      }
-      if(!empty($request->papel_destruido) && in_array($request->papel_destruido,['SI','NO'])){
-        $reglas[]=[DB::raw('ae_estado.id_plataforma IS NULL'),'=','1'];
-        $nulos = $request->papel_destruido == 'SI'? '0' : '1';
-        $reglas[]=[DB::raw('ae_estado.papel_destruido_id_usuario IS NULL'),'=',$nulos];
-        $reglas[]=[DB::raw('ae_estado.papel_destruido_datetime IS NULL'),'=',$nulos];
-      }
-
-      $sort_by = ['columna' => 'ae_datos.id_autoexcluido', 'orden' => 'desc'];
-      if(!empty($request->sort_by)){
-        $sort_by = $request->sort_by;
-      }
+      if(!$usuario->tienePermiso('modificar_ae') && !$usuario->tienePermiso('aym_ae_plataformas'))
+        $estados_elegibles = AE\NombreEstadoAutoexclusion::where('id_nombre_estado',3)->get();
       
-      $resultados = DB::table('ae_datos')
-        ->selectRaw('ae_datos.id_autoexcluido, ae_datos.nro_dni, ae_datos.apellido, ae_datos.nombres,
-                     ae_estado.fecha_ae, ae_estado.fecha_renovacion, ae_estado.fecha_vencimiento, ae_estado.fecha_cierre_ae,
-                     ae_estado.id_nombre_estado,ae_estado.id_casino,ae_estado.id_plataforma,
-                     
-                     ae_estado.id_usuario as modificado_id_usuario,
-                     IF(ae_estado.id_usuario IS NULL,NULL,(SELECT u2.nombre from usuario as u2 where u2.id_usuario = ae_estado.id_usuario)) as modificado_nombre_usuario,
-                     COALESCE(ae_estado.updated_at,ae_estado.created_at) as modificado_datetime,
-                     
-                     ae_estado.papel_destruido_id_usuario,
-                     IF(ae_estado.papel_destruido_id_usuario IS NULL,NULL,(SELECT u2.nombre from usuario as u2 where u2.id_usuario = ae_estado.papel_destruido_id_usuario)) as papel_destruido_nombre_usuario,
-                     ae_estado.papel_destruido_datetime,
-                     
-                     ae_nombre_estado.descripcion as desc_estado,
-                     IFNULL(casino.nombre,plataforma.nombre) as casino_plataforma,
-                     ae_importacion.foto1,ae_importacion.foto2,ae_importacion.scandni,
-                     ae_importacion.solicitud_ae,ae_importacion.solicitud_revocacion,ae_importacion.caratula')
-        ->join('ae_estado'         , 'ae_datos.id_autoexcluido' , '=' , 'ae_estado.id_autoexcluido')
-        ->leftJoin('ae_importacion', 'ae_importacion.id_autoexcluido','=','ae_datos.id_autoexcluido')
-        ->join('ae_nombre_estado', 'ae_nombre_estado.id_nombre_estado', '=', 'ae_estado.id_nombre_estado')
-        ->leftjoin('casino','ae_estado.id_casino','=','casino.id_casino')
-        ->leftjoin('plataforma','ae_estado.id_plataforma','=','plataforma.id_plataforma')
-        ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at')
-        ->when($sort_by,function($query) use ($sort_by){
-          return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-        })
-        ->where($reglas)
-        ->paginate($request->page_size);
-
-      //Agrego algunos atributos dinamicos utiles para el frontend
-      $resultados->getCollection()->transform(function ($row){
-        $ae = AE\Autoexcluido::find($row->id_autoexcluido);
-        $row->es_primer_ae = $ae->es_primer_ae;
-        $row->estado_transicionable = $ae->estado_transicionable;
-        return $row;
-      });
-      return $resultados;
+      return view('Autoexclusion.indexNoticias', [
+                                          'usuario' => $usuario,
+                                          'dni' => $dni
+                                        ]);
     }
 
-    //Función para agregar un nuevo autoexcluido complet, o editar uno existente
-    //@TODO: Agregar poder enviar la fecha de revocacion si se elige Fin. Por AE en el estado
-    //@TODO: Verificar conflico de fechas segun la fecha_ae, como esta ahora asume que fecha_ae es siempre la ultima AE
-    public function agregarAE(Request $request){
-      $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      Validator::make($request->all(), [
-        'ae_datos.id_autoexcluido'  => 'nullable|integer|exists:ae_datos,id_autoexcluido',
-        'ae_datos.nro_dni'          => 'required|integer',
-        'ae_datos.apellido'         => 'required|string|max:100',
-        'ae_datos.nombres'          => 'required|string|max:150',
-        'ae_datos.fecha_nacimiento' => 'required|date',
-        'ae_datos.id_sexo'          => 'required|integer|exists:ae_sexo,id_sexo',
-        'ae_datos.domicilio'        => 'required|string|max:100',
-        'ae_datos.nro_domicilio'    => 'required|string|max:11',
-        'ae_datos.piso'             => 'nullable|string|max:5',
-        'ae_datos.dpto'             => 'nullable|string|max:5',
-        'ae_datos.codigo_postal'    => 'nullable|string|max:10',
-        'ae_datos.nombre_localidad' => 'required|string|max:200',
-        'ae_datos.nombre_provincia' => 'required|string|max:200',
-        'ae_datos.telefono'         => 'required|string|max:200',
-        'ae_datos.correo'           => 'nullable|string|max:100',
-        'ae_datos.id_ocupacion'     => 'required|integer|exists:ae_ocupacion,id_ocupacion',
-        'ae_datos.id_capacitacion'  => 'required|integer|exists:ae_capacitacion,id_capacitacion',
-        'ae_datos.id_estado_civil'  => 'required|integer|exists:ae_estado_civil,id_estado_civil',
-        'ae_datos_contacto.nombre_apellido'  => 'nullable|string|max:200',
-        'ae_datos_contacto.domicilio'        => 'nullable|string|max:200',
-        'ae_datos_contacto.nombre_localidad' => 'nullable|string|max:200',
-        'ae_datos_contacto.nombre_provincia' => 'nullable|string|max:200',
-        'ae_datos_contacto.telefono'         => 'nullable|string|max:200',
-        'ae_datos_contacto.vinculo'          => 'nullable|string|max:200',
-        'ae_estado.id_nombre_estado'  => 'required|integer|exists:ae_nombre_estado,id_nombre_estado',
-        'ae_estado.id_casino'         => 'nullable|integer|exists:casino,id_casino',
-        'ae_estado.id_plataforma'     => 'nullable|integer|exists:plataforma,id_plataforma',
-        'ae_estado.fecha_ae'          => 'required|date',
-        'hace_encuesta'                         => 'required|boolean',
-        'ae_encuesta.id_juego_preferido'        => 'nullable|integer|exists:ae_juego_preferido,id_juego_preferido',
-        'ae_encuesta.id_frecuencia_asistencia'  => 'nullable|integer|exists:ae_frecuencia_asistencia,id_frecuencia',
-        'ae_encuesta.veces'                     => 'nullable|integer',
-        'ae_encuesta.tiempo_jugado'             => 'nullable|integer',
-        'ae_encuesta.club_jugadores'            => 'nullable|string|max:2',
-        'ae_encuesta.conoce_plataformas'        => 'nullable|string|max:2',
-        'ae_encuesta.utiliza_plataformas'       => 'nullable|string|max:2',
-        'ae_encuesta.juego_responsable'         => 'nullable|string|max:2',
-        'ae_encuesta.autocontrol_juego'         => 'nullable|string|max:2',
-        'ae_encuesta.recibir_informacion'       => 'nullable|string|max:2',
-        'ae_encuesta.medio_recibir_informacion' => 'nullable|string|max:100',
-        'ae_encuesta.como_asiste'               => 'nullable|integer',
-        'ae_encuesta.observacion'               => 'nullable|string|max:200',
-        'ae_importacion.foto1'                => 'nullable|file|mimes:jpg,jpeg,png,pdf',
-        'ae_importacion.foto2'                => 'nullable|file|mimes:jpg,jpeg,png,pdf',
-        'ae_importacion.solicitud_ae'         => 'nullable|file|mimes:jpg,jpeg,png,pdf',
-        'ae_importacion.solicitud_revocacion' => 'nullable|file|mimes:jpg,jpeg,png,pdf',
-        'ae_importacion.scandni'              => 'nullable|file|mimes:jpg,jpeg,png,pdf',
-        'ae_importacion.caratula'              => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+  //Función para buscar los autoexcluidos existentes en el sistema
+  public function buscarAutoexcluidos(Request $request){
+    $reglas = Array();
+    $filters = [
+      'nombres' => 'ae_datos.nombres',
+      'apellido' => 'ae_datos.apellido',
+      'correo' => 'ae_datos.correo',
+      'dni' => 'ae_datos.nro_dni',
+      'estado' => 'ae_estado.id_nombre_estado',
+      'casino' => 'ae_estado.id_casino',
+      'plataforma' => 'ae_estado.id_plataforma',
+      'fecha_autoexclusion_d' => 'ae_estado.fecha_ae',
+      'fecha_autoexclusion_h' => 'ae_estado.fecha_ae',
+      'fecha_vencimiento_d' => 'ae_estado.fecha_vencimiento',
+      'fecha_vencimiento_h' => 'ae_estado.fecha_vencimiento',
+      'fecha_renovacion_d' => 'ae_estado.fecha_renovacion',
+      'fecha_renovacion_h' => 'ae_estado.fecha_renovacion',
+      'fecha_cierre_definitivo_d' => 'ae_estado.fecha_cierre_ae',
+      'fecha_cierre_definitivo_h' => 'ae_estado.fecha_cierre_ae',
+    ]; 
+    foreach($filters as $key => $column){ //echo asi por las dudas si necesito agregar mas tipos de filtros y evitar tanto los if agrupando diferentes tipos de filtros en uno
+      if (!empty($request->$key)) {
+        switch($key){
+          case 'nombres':
+          case 'apellido':
+          case 'correo':
+            // si es nombre , apellido o correo
+            $reglas[] = [$column, 'LIKE','%' . $request->$key . '%'];
+            break;
+          case 'dni':
+          case 'estado':
+          case 'plataforma':
+          case 'casino':
+            // si es dni estado plataforma o casino
+            $reglas[] = [$column, '=', $request->$key];
+            break;
+          case 'fecha_autoexclusion_d':
+          case 'fecha_vencimiento_d':
+          case 'fecha_renovacion_d':
+          case 'fecha_cierre_definitivo_d':
+            // si es fecha _ bla bla _ d 
+            $reglas[] = [$column, '>=', $request->$key];
+            break;
+          case 'fecha_autoexclusion_h':
+          case 'fecha_vencimiento_h':
+          case 'fecha_renovacion_h':
+          case 'fecha_cierre_definitivo_h':
+            // si es fecha_blabla_h
+            $reglas[] = [$column, '<=', $request->$key];
+            break;
+          case 'papel_destruido':
+            $reglas[]=[DB::raw('ae_estado.id_plataforma IS NULL'),'=','1'];
+            $nulos = $request->papel_destruido == 'SI'? '0' : '1';
+            $reglas[]=[DB::raw('ae_estado.papel_destruido_id_usuario IS NULL'),'=',$nulos];
+            $reglas[]=[DB::raw('ae_estado.papel_destruido_datetime IS NULL'),'=',$nulos];
+            break;
+        }
+      }
+    }
+    $sort_by = ['columna' => 'ae_datos.id_autoexcluido', 'orden' => 'desc'];
+    if(!empty($request->sort_by)){
+      $sort_by = $request->sort_by;
+    }
+    
+    $resultados = DB::table('ae_datos')
+      ->selectRaw('ae_datos.id_autoexcluido, ae_datos.nro_dni, ae_datos.apellido, ae_datos.nombres,
+                   ae_estado.fecha_ae, ae_estado.fecha_renovacion, ae_estado.fecha_vencimiento, ae_estado.fecha_cierre_ae,
+                   ae_estado.id_nombre_estado,ae_estado.id_casino,ae_estado.id_plataforma,
+                   
+                   ae_estado.id_usuario as modificado_id_usuario,
+                   IF(ae_estado.id_usuario IS NULL,NULL,(SELECT u2.nombre from usuario as u2 where u2.id_usuario = ae_estado.id_usuario)) as modificado_nombre_usuario,
+                   COALESCE(ae_estado.updated_at,ae_estado.created_at) as modificado_datetime,
+                   
+                   ae_estado.papel_destruido_id_usuario,
+                   IF(ae_estado.papel_destruido_id_usuario IS NULL,NULL,(SELECT u2.nombre from usuario as u2 where u2.id_usuario = ae_estado.papel_destruido_id_usuario)) as papel_destruido_nombre_usuario,
+                   ae_estado.papel_destruido_datetime,
+                   
+                   ae_nombre_estado.descripcion as desc_estado,
+                   IFNULL(casino.nombre,plataforma.nombre) as casino_plataforma,
+                   ae_importacion.foto1,ae_importacion.foto2,ae_importacion.scandni,
+                   ae_importacion.solicitud_ae,ae_importacion.solicitud_revocacion,ae_importacion.caratula')
+      ->join('ae_estado'         , 'ae_datos.id_autoexcluido' , '=' , 'ae_estado.id_autoexcluido')
+      ->leftJoin('ae_importacion', 'ae_importacion.id_autoexcluido','=','ae_datos.id_autoexcluido')
+      ->join('ae_nombre_estado', 'ae_nombre_estado.id_nombre_estado', '=', 'ae_estado.id_nombre_estado')
+      ->leftjoin('casino','ae_estado.id_casino','=','casino.id_casino')
+      ->leftjoin('plataforma','ae_estado.id_plataforma','=','plataforma.id_plataforma')
+      ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at')
+      ->when($sort_by,function($query) use ($sort_by){
+        return $query->orderBy($sort_by['columna'],$sort_by['orden']);
+      })
+      ->where($reglas)
+      ->paginate($request->page_size);
+
+    //Agrego algunos atributos dinamicos utiles para el frontend
+    $resultados->getCollection()->transform(function ($row){
+      $ae = AE\Autoexcluido::find($row->id_autoexcluido);
+      $row->es_primer_ae = $ae->es_primer_ae;
+      $row->estado_transicionable = $ae->estado_transicionable;
+      return $row;
+    });
+    return $resultados;
+  }
+
+  //Función para agregar un nuevo autoexcluido complet, o editar uno existente
+  //@TODO: Agregar poder enviar la fecha de revocacion si se elige Fin. Por AE en el estado
+  //@TODO: Verificar conflico de fechas segun la fecha_ae, como esta ahora asume que fecha_ae es siempre la ultima AE
+  public function agregarAE(Request $request){
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    Validator::make($request->all(), [
+      'ae_datos.id_autoexcluido'  => 'nullable|integer|exists:ae_datos,id_autoexcluido',
+      'ae_datos.nro_dni'          => 'required|integer',
+      'ae_datos.apellido'         => 'required|string|max:100',
+      'ae_datos.nombres'          => 'required|string|max:150',
+      'ae_datos.fecha_nacimiento' => 'required|date',
+      'ae_datos.id_sexo'          => 'required|integer|exists:ae_sexo,id_sexo',
+      'ae_datos.domicilio'        => 'required|string|max:100',
+      'ae_datos.nro_domicilio'    => 'required|string|max:11',
+      'ae_datos.piso'             => 'nullable|string|max:5',
+      'ae_datos.dpto'             => 'nullable|string|max:5',
+      'ae_datos.codigo_postal'    => 'nullable|string|max:10',
+      'ae_datos.nombre_localidad' => 'required|string|max:200',
+      'ae_datos.nombre_provincia' => 'required|string|max:200',
+      'ae_datos.telefono'         => 'required|string|max:200',
+      'ae_datos.correo'           => 'nullable|string|max:100',
+      'ae_datos.id_ocupacion'     => 'required|integer|exists:ae_ocupacion,id_ocupacion',
+      'ae_datos.id_capacitacion'  => 'required|integer|exists:ae_capacitacion,id_capacitacion',
+      'ae_datos.id_estado_civil'  => 'required|integer|exists:ae_estado_civil,id_estado_civil',
+      'ae_datos_contacto.nombre_apellido'  => 'nullable|string|max:200',
+      'ae_datos_contacto.domicilio'        => 'nullable|string|max:200',
+      'ae_datos_contacto.nombre_localidad' => 'nullable|string|max:200',
+      'ae_datos_contacto.nombre_provincia' => 'nullable|string|max:200',
+      'ae_datos_contacto.telefono'         => 'nullable|string|max:200',
+      'ae_datos_contacto.vinculo'          => 'nullable|string|max:200',
+      'ae_estado.id_nombre_estado'  => 'required|integer|exists:ae_nombre_estado,id_nombre_estado',
+      'ae_estado.id_casino'         => 'nullable|integer|exists:casino,id_casino',
+      'ae_estado.id_plataforma'     => 'nullable|integer|exists:plataforma,id_plataforma',
+      'ae_estado.fecha_ae'          => 'required|date',
+      'hace_encuesta'                         => 'required|boolean',
+      'ae_encuesta.id_juego_preferido'        => 'nullable|integer|exists:ae_juego_preferido,id_juego_preferido',
+      'ae_encuesta.id_frecuencia_asistencia'  => 'nullable|integer|exists:ae_frecuencia_asistencia,id_frecuencia',
+      'ae_encuesta.veces'                     => 'nullable|integer',
+      'ae_encuesta.tiempo_jugado'             => 'nullable|integer',
+      'ae_encuesta.club_jugadores'            => 'nullable|string|max:2',
+      'ae_encuesta.conoce_plataformas'        => 'nullable|string|max:2',
+      'ae_encuesta.utiliza_plataformas'       => 'nullable|string|max:2',
+      'ae_encuesta.juego_responsable'         => 'nullable|string|max:2',
+      'ae_encuesta.autocontrol_juego'         => 'nullable|string|max:2',
+      'ae_encuesta.recibir_informacion'       => 'nullable|string|max:2',
+      'ae_encuesta.medio_recibir_informacion' => 'nullable|string|max:100',
+      'ae_encuesta.como_asiste'               => 'nullable|integer',
+      'ae_encuesta.observacion'               => 'nullable|string|max:200',
+      'ae_importacion.foto1'                => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+      'ae_importacion.foto2'                => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+      'ae_importacion.solicitud_ae'         => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+      'ae_importacion.solicitud_revocacion' => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+      'ae_importacion.scandni'              => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+      'ae_importacion.caratula'              => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+    ], array(), self::$atributos)->after(function($validator) use ($user){
+      $data = $validator->getData();
+      $id_casino = $data['ae_estado']['id_casino'];
+      $id_plataforma = $data['ae_estado']['id_plataforma'];
+      $estado = $data['ae_estado']['id_nombre_estado'];
+      if(!$user->es_superusuario){
+        if(!is_null($id_casino) && !$user->usuarioTieneCasino($id_casino)){
+          $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
+        }
+        else if(!is_null($id_plataforma) && !$user->tienePermiso('aym_ae_plataformas')){
+          $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a esa plataforma');
+        }
+        else if(is_null($id_casino) == is_null($id_plataforma)){
+          $validator->errors()->add('ae_estado.id_casino','Error al procesar el casino.');
+        }
+      }
+      if(!is_numeric($data['ae_datos']['nro_domicilio'])){
+        $validator->errors()->add('ae_datos.nro_domicilio','El valor no es numérico');
+      }
+      if($user->es_fiscalizador && $estado != 3){
+        $validator->errors()->add('ae_estado.id_nombre_estado', 'No puede agregar autoexcluidos con ese estado');
+      }
+      if($user->es_fiscalizador && !$data['hace_encuesta']){
+        $validator->errors()->add('hace_encuesta', 'La encuesta no es opcional para los fiscalizadores');
+      }
+
+      $id_ae = $data['ae_datos']['id_autoexcluido'];
+      $todos_vencidos = true;
+      {
+        $aes = AE\Autoexcluido::where('nro_dni','=', $data['ae_datos']['nro_dni'])->get();
+        foreach($aes as $ae){
+          $e = $ae->estado;
+          $vencido = $e->id_nombre_estado == 4 || $e->id_nombre_estado == 5 || $ae->estado_transicionable == 5;
+          $todos_vencidos = $vencido && $todos_vencidos;
+          if(!$todos_vencidos) break;
+        }
+      }
+      //Si es para crear uno nuevo y ya hay uno vigente, error
+      if(is_null($id_ae) && !$todos_vencidos){
+        $validator->errors()->add('ae_datos.nro_dni', 'Ya existe un autoexcluido vigente con ese DNI.');
+      }
+    })->validate();
+    
+    $esNuevo = false;
+    DB::transaction(function() use($request, &$esNuevo, $user){
+      $ae_datos = $request['ae_datos'];
+      $ae = null;
+      if(is_null($ae_datos['id_autoexcluido'])){
+        $ae = new AE\Autoexcluido;
+        $esNuevo = true;
+      }
+      else{
+        $ae = AE\Autoexcluido::find($ae_datos['id_autoexcluido']);
+        $esNuevo = false;
+      }
+
+      foreach($ae_datos as $key => $val){
+        $ae->{$key} = $val;
+      }
+      
+      $ae->save();
+      
+      $contacto = $ae->contacto;
+      if(is_null($contacto)){
+        $contacto = new AE\ContactoAE;
+        $contacto->id_autoexcluido = $ae->id_autoexcluido;
+      }
+      
+      $ae_datos_contacto = $request['ae_datos_contacto'];
+      foreach($ae_datos_contacto as $key => $val){
+        $contacto->{$key} = $val;
+      }
+      $contacto->save();
+      
+      $estado = $request['ae_estado'];
+      $estado['id_usuario'] = $user->id_usuario;
+      $this->setearEstado($ae,$estado);
+
+      $encuesta = $ae->encuesta;
+      if($request['hace_encuesta']){
+        if(is_null($encuesta)){
+          $encuesta = new AE\Encuesta;
+          $encuesta->id_autoexcluido = $ae->id_autoexcluido;
+        }
+        $ae_encuesta = $request['ae_encuesta'];
+        foreach($ae_encuesta as $key => $val){
+          $encuesta->{$key} = $val;
+        }
+        $encuesta->save();
+      }
+      else{
+        if(!is_null($encuesta)){
+          $encuesta->delete();
+        }
+      }
+      $this->subirImportacionArchivos($ae,$request['ae_importacion']);
+    });
+    return ['nuevo' => $esNuevo];
+  }
+
+  public function generarFechas($fecha_ae){//Usado en APIAEController
+    $date_ae = date_create_from_format('Y-m-d',$fecha_ae);
+    $ret = new \stdClass();
+    // @BUG? (definir bien los limites): Si quiero ser compatible
+    // con el el frontend tengo que ponerle 1 dia menos
+    $ret->fecha_renovacion    = (clone $date_ae)->modify('+149 day')->format('Y-m-d');
+    $ret->fecha_vencimiento   = (clone $date_ae)->modify('+179 day')->format('Y-m-d');
+    $ret->fecha_cierre_ae     = (clone $date_ae)->modify('+364 day')->format('Y-m-d');
+    return $ret;
+  }
+
+  public function setearEstado($ae,$ae_estado){//Usado en APIAEController
+    $estado = $ae->estado;
+    if(is_null($estado)){
+      $estado = new AE\EstadoAE;
+      $estado->id_autoexcluido = $ae->id_autoexcluido;
+    }
+
+    //@IMPORTANTE: que cuando se finalize este seteado en algo la fecha de revocacion, para en un futuro saber si finalizo
+    if($ae_estado['id_nombre_estado'] == 4){//Fin por AE
+      if(!empty($estado->fecha_revocacion_ae)){//Si ya tenia una fecha_revocacion_ae, le dejo esa
+        $ae_estado['fecha_revocacion_ae'] = $estado->fecha_revocacion_ae;
+      }
+      else if(empty($ae_estado['fecha_revocacion_ae'])){//Le pongo la de hoy si no me mando una  
+        $ae_estado['fecha_revocacion_ae'] = date('Y-m-d');
+      }
+    }
+    //Si lo modificaron a vencido o estaba vencido y lo corrigieron (ej el apellido, la dirección, etc), mantenerle la fecha de revocacion
+    //@IMPORTANTE: Si se le quiere sacar la fecha_revocacion_ae a un vencido, ponerlo primero en vigente u otro estado
+    else if($ae_estado['id_nombre_estado'] == 5){//Vencido
+      $ae_estado['fecha_revocacion_ae'] = $estado->fecha_revocacion_ae;
+    }
+    //En cualquier otro caso, se le limpia la fecha de revocación
+    else{
+      $ae_estado['fecha_revocacion_ae'] = null;
+    }
+
+    foreach($ae_estado as $key => $val){//Traspasa todos los valores enviados al objeto
+      $estado->{$key} = $val;
+    }
+
+    $fs = $this->generarFechas($estado->fecha_ae);
+    $estado->fecha_renovacion  = $fs->fecha_renovacion;
+    $estado->fecha_vencimiento = $fs->fecha_vencimiento;
+    $estado->fecha_cierre_ae   = $fs->fecha_cierre_ae;
+    $estado->ultima_actualizacion_estado = null;
+    $estado->save();
+  }
+
+  public function subirImportacionArchivos($ae,$ae_importacion) {//Usado en APIAEController
+    $importacion = $ae->importacion;
+    if (is_null($importacion)){
+      $importacion = new AE\ImportacionAE;
+      $importacion->id_autoexcluido = $ae->id_autoexcluido;
+    }
+
+    //consigo el path del directorio raiz del proyecto
+    $pathCons = realpath('../') . '/public/importacionesAutoexcluidos/';
+
+    //fecha actual, sin formatear
+    $ahora = date("dmY");
+
+    $carpeta = ['foto1' => 'fotos/', 
+                'foto2' => 'fotos/',
+                'scandni' => 'documentos/',
+                'solicitud_ae' => 'solicitudes/',
+                'solicitud_revocacion' => 'solicitudes/',
+                'caratula' => 'solicitudes/'
+              ];
+    $numero_identificador = ['foto1' => '1',
+                              'foto2' => '2',
+                              'scandni' => '3', 
+                              'solicitud_ae' => '4',
+                              'solicitud_revocacion' => '5',
+                              'caratula' => 'CAR'];
+    
+    foreach($carpeta as $tipo => $ignorar){
+      if(is_null($ae_importacion) || !array_key_exists($tipo,$ae_importacion)){//Si no viene en el request, lo borro
+        $importacion->{$tipo} = NULL;
+      }
+    }
+    if(!is_null($ae_importacion)) foreach($ae_importacion as $tipo => $file){
+      //No esta en el arreglo de arriba, ignoro
+      if(!array_key_exists($tipo,$carpeta) || !array_key_exists($tipo,$numero_identificador)) continue;
+      if(is_null($file)){//Si viene en el request y es nulo, lo considero que es el mismo archivo
+        continue;
+      }
+      $barra = strpos($file->getMimeType(),'/');
+      $extension = substr($file->getMimeType(),$barra+1);
+      $nombre_archivo = $ahora . '-' . $ae->nro_dni . '-' . $numero_identificador[$tipo] . '.' . $extension;
+      $path = $pathCons . $carpeta[$tipo] . $nombre_archivo;
+      copy($file->getRealPath(),$path);
+      $importacion->{$tipo} = $nombre_archivo;
+    }
+    $importacion->save();
+  }
+
+  public function subirArchivo(Request $request) {
+    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    Validator::make($request->all(), [
+        'id_autoexcluido' => 'required|integer|exists:ae_datos,id_autoexcluido',
+        'tipo_archivo' => ['required','string',Rule::in(['foto1','foto2','scandni','solicitud_ae','solicitud_revocacion','caratula'])],
+        'archivo' => 'required|file|mimes:jpg,jpeg,png,pdf',
       ], array(), self::$atributos)->after(function($validator) use ($user){
-        $data = $validator->getData();
-        $id_casino = $data['ae_estado']['id_casino'];
-        $id_plataforma = $data['ae_estado']['id_plataforma'];
-        $estado = $data['ae_estado']['id_nombre_estado'];
+        $id = $validator->getData()['id_autoexcluido'];
+        $id_casino = AE\Autoexcluido::find($id)->estado->id_casino;
+        $id_plataforma = AE\Autoexcluido::find($id)->estado->id_plataforma;
         if(!$user->es_superusuario){
           if(!is_null($id_casino) && !$user->usuarioTieneCasino($id_casino)){
             $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
+            return;
           }
-          else if(!is_null($id_plataforma) && !$user->tienePermiso('aym_ae_plataformas')){
-            $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a esa plataforma');
-          }
-          else if(is_null($id_casino) == is_null($id_plataforma)){
-            $validator->errors()->add('ae_estado.id_casino','Error al procesar el casino.');
-          }
-        }
-        if(!is_numeric($data['ae_datos']['nro_domicilio'])){
-          $validator->errors()->add('ae_datos.nro_domicilio','El valor no es numérico');
-        }
-        if($user->es_fiscalizador && $estado != 3){
-          $validator->errors()->add('ae_estado.id_nombre_estado', 'No puede agregar autoexcluidos con ese estado');
-        }
-        if($user->es_fiscalizador && !$data['hace_encuesta']){
-          $validator->errors()->add('hace_encuesta', 'La encuesta no es opcional para los fiscalizadores');
-        }
-
-        $id_ae = $data['ae_datos']['id_autoexcluido'];
-        $todos_vencidos = true;
-        {
-          $aes = AE\Autoexcluido::where('nro_dni','=', $data['ae_datos']['nro_dni'])->get();
-          foreach($aes as $ae){
-            $e = $ae->estado;
-            $vencido = $e->id_nombre_estado == 4 || $e->id_nombre_estado == 5 || $ae->estado_transicionable == 5;
-            $todos_vencidos = $vencido && $todos_vencidos;
-            if(!$todos_vencidos) break;
+          if(!is_null($id_plataforma) && !$user->tienePermiso('aym_ae_plataformas')){
+            $validator->errors()->add('ae_estado.id_plataforma', 'No tiene acceso a esa plataforma');
+            return;
           }
         }
-        //Si es para crear uno nuevo y ya hay uno vigente, error
-        if(is_null($id_ae) && !$todos_vencidos){
-          $validator->errors()->add('ae_datos.nro_dni', 'Ya existe un autoexcluido vigente con ese DNI.');
-        }
-      })->validate();
-      
-      $esNuevo = false;
-      DB::transaction(function() use($request, &$esNuevo, $user){
-        $ae_datos = $request['ae_datos'];
-        $ae = null;
-        if(is_null($ae_datos['id_autoexcluido'])){
-          $ae = new AE\Autoexcluido;
-          $esNuevo = true;
-        }
-        else{
-          $ae = AE\Autoexcluido::find($ae_datos['id_autoexcluido']);
-          $esNuevo = false;
-        }
+    })->validate();
 
-        foreach($ae_datos as $key => $val){
-          $ae->{$key} = $val;
-        }
-        $ae->save();
-
-        $contacto = $ae->contacto;
-        if(is_null($contacto)){
-          $contacto = new AE\ContactoAE;
-          $contacto->id_autoexcluido = $ae->id_autoexcluido;
-        }
-
-        $ae_datos_contacto = $request['ae_datos_contacto'];
-        foreach($ae_datos_contacto as $key => $val){
-          $contacto->{$key} = $val;
-        }
-        $contacto->save();
-
-        $estado = $request['ae_estado'];
-        $estado['id_usuario'] = $user->id_usuario;
-        $this->setearEstado($ae,$estado);
-
-        $encuesta = $ae->encuesta;
-        if($request['hace_encuesta']){
-          if(is_null($encuesta)){
-            $encuesta = new AE\Encuesta;
-            $encuesta->id_autoexcluido = $ae->id_autoexcluido;
-          }
-          $ae_encuesta = $request['ae_encuesta'];
-          foreach($ae_encuesta as $key => $val){
-            $encuesta->{$key} = $val;
-          }
-          $encuesta->save();
-        }
-        else{
-          if(!is_null($encuesta)){
-            $encuesta->delete();
-          }
-        }
-        $this->subirImportacionArchivos($ae,$request['ae_importacion']);
-      });
-      return ['nuevo' => $esNuevo];
-    }
-
-    public function generarFechas($fecha_ae){//Usado en APIAEController
-      $date_ae = date_create_from_format('Y-m-d',$fecha_ae);
-      $ret = new \stdClass();
-      // @BUG? (definir bien los limites): Si quiero ser compatible
-      // con el el frontend tengo que ponerle 1 dia menos
-      $ret->fecha_renovacion    = (clone $date_ae)->modify('+149 day')->format('Y-m-d');
-      $ret->fecha_vencimiento   = (clone $date_ae)->modify('+179 day')->format('Y-m-d');
-      $ret->fecha_cierre_ae     = (clone $date_ae)->modify('+364 day')->format('Y-m-d');
-      return $ret;
-    }
-
-    public function setearEstado($ae,$ae_estado){//Usado en APIAEController
-      $estado = $ae->estado;
-      if(is_null($estado)){
-        $estado = new AE\EstadoAE;
-        $estado->id_autoexcluido = $ae->id_autoexcluido;
-      }
-
-      //@IMPORTANTE: que cuando se finalize este seteado en algo la fecha de revocacion, para en un futuro saber si finalizo
-      if($ae_estado['id_nombre_estado'] == 4){//Fin por AE
-        if(!empty($estado->fecha_revocacion_ae)){//Si ya tenia una fecha_revocacion_ae, le dejo esa
-          $ae_estado['fecha_revocacion_ae'] = $estado->fecha_revocacion_ae;
-        }
-        else if(empty($ae_estado['fecha_revocacion_ae'])){//Le pongo la de hoy si no me mando una  
-          $ae_estado['fecha_revocacion_ae'] = date('Y-m-d');
-        }
-      }
-      //Si lo modificaron a vencido o estaba vencido y lo corrigieron (ej el apellido, la dirección, etc), mantenerle la fecha de revocacion
-      //@IMPORTANTE: Si se le quiere sacar la fecha_revocacion_ae a un vencido, ponerlo primero en vigente u otro estado
-      else if($ae_estado['id_nombre_estado'] == 5){//Vencido
-        $ae_estado['fecha_revocacion_ae'] = $estado->fecha_revocacion_ae;
-      }
-      //En cualquier otro caso, se le limpia la fecha de revocación
-      else{
-        $ae_estado['fecha_revocacion_ae'] = null;
-      }
-
-      foreach($ae_estado as $key => $val){//Traspasa todos los valores enviados al objeto
-        $estado->{$key} = $val;
-      }
-
-      $fs = $this->generarFechas($estado->fecha_ae);
-      $estado->fecha_renovacion  = $fs->fecha_renovacion;
-      $estado->fecha_vencimiento = $fs->fecha_vencimiento;
-      $estado->fecha_cierre_ae   = $fs->fecha_cierre_ae;
-      $estado->ultima_actualizacion_estado = null;
-      $estado->save();
-    }
- 
-    public function subirImportacionArchivos($ae,$ae_importacion) {//Usado en APIAEController
-      $importacion = $ae->importacion;
-      if (is_null($importacion)){
-        $importacion = new AE\ImportacionAE;
-        $importacion->id_autoexcluido = $ae->id_autoexcluido;
-      }
-
-      //consigo el path del directorio raiz del proyecto
-      $pathCons = realpath('../') . '/public/importacionesAutoexcluidos/';
-
-      //fecha actual, sin formatear
-      $ahora = date("dmY");
-
-      $carpeta = [ 'foto1' => 'fotos/', 'foto2' => 'fotos/', 'scandni' => 'documentos/',
-       'solicitud_ae' => 'solicitudes/', 'solicitud_revocacion' => 'solicitudes/', 'caratula' => 'solicitudes/' ];
-      $numero_identificador = [ 'foto1' => '1', 'foto2' => '2', 'scandni' => '3', 
-      'solicitud_ae' => '4', 'solicitud_revocacion' => '5', 'caratula' => 'CAR'];
-      foreach($carpeta as $tipo => $ignorar){
-        if(is_null($ae_importacion) || !array_key_exists($tipo,$ae_importacion)){//Si no viene en el request, lo borro
-          $importacion->{$tipo} = NULL;
-        }
-      }
-      if(!is_null($ae_importacion)) foreach($ae_importacion as $tipo => $file){
-        //No esta en el arreglo de arriba, ignoro
-        if(!array_key_exists($tipo,$carpeta) || !array_key_exists($tipo,$numero_identificador)) continue;
-        if(is_null($file)){//Si viene en el request y es nulo, lo considero que es el mismo archivo
-          continue;
-        }
-        $barra = strpos($file->getMimeType(),'/');
-        $extension = substr($file->getMimeType(),$barra+1);
-        $nombre_archivo = $ahora . '-' . $ae->nro_dni . '-' . $numero_identificador[$tipo] . '.' . $extension;
-        $path = $pathCons . $carpeta[$tipo] . $nombre_archivo;
-        copy($file->getRealPath(),$path);
-        $importacion->{$tipo} = $nombre_archivo;
-      }
-      $importacion->save();
-    }
-
-    public function subirArchivo(Request $request) {
-      $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-      Validator::make($request->all(), [
-          'id_autoexcluido' => 'required|integer|exists:ae_datos,id_autoexcluido',
-          'tipo_archivo' => ['required','string',Rule::in(['foto1','foto2','scandni','solicitud_ae','solicitud_revocacion','caratula'])],
-          'archivo' => 'required|file|mimes:jpg,jpeg,png,pdf',
-        ], array(), self::$atributos)->after(function($validator) use ($user){
-          $id = $validator->getData()['id_autoexcluido'];
-          $id_casino = AE\Autoexcluido::find($id)->estado->id_casino;
-          $id_plataforma = AE\Autoexcluido::find($id)->estado->id_plataforma;
-          if(!$user->es_superusuario){
-            if(!is_null($id_casino) && !$user->usuarioTieneCasino($id_casino)){
-              $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
-              return;
-            }
-            if(!is_null($id_plataforma) && !$user->tienePermiso('aym_ae_plataformas')){
-              $validator->errors()->add('ae_estado.id_plataforma', 'No tiene acceso a esa plataforma');
-              return;
-            }
-          }
-      })->validate();
-
-      DB::transaction(function() use ($request){
-        $ae_importacion = [
-          'foto1' => null,//Necesito mandar nulo para que el metodo no lo borre de la BD
-          'foto2' => null,
-          'scandni' => null,
-          'solicitud_ae' => null,
-          'solicitud_revocacion' => null,
-          'caratula' => null,
-        ];
-        $ae_importacion[$request->tipo_archivo] = $request->archivo;
-        $this->subirImportacionArchivos(AE\Autoexcluido::find($request->id_autoexcluido),$ae_importacion);
-      });
-      return ['codigo' => 200];
-    }
+    DB::transaction(function() use ($request){
+      $ae_importacion = [
+        'foto1' => null,//Necesito mandar nulo para que el metodo no lo borre de la BD
+        'foto2' => null,
+        'scandni' => null,
+        'solicitud_ae' => null,
+        'solicitud_revocacion' => null,
+        'caratula' => null,
+      ];
+      $ae_importacion[$request->tipo_archivo] = $request->archivo;
+      $this->subirImportacionArchivos(AE\Autoexcluido::find($request->id_autoexcluido),$ae_importacion);
+    });
+    return ['codigo' => 200];
+  }
 
   public function existeAutoexcluido($dni){//Usado en APIAEController
     $aes = AE\Autoexcluido::where('nro_dni',$dni)->get();
@@ -477,18 +498,17 @@ class AutoexclusionController extends Controller
   public function mostrarArchivo ($id_importacion,$tipo_archivo) {
     $imp = AE\ImportacionAE::where('id_importacion', '=', $id_importacion)->first();
     $pathCons = realpath('../') . '/public/importacionesAutoexcluidos/';
-
     if($id_importacion == 0 && $tipo_archivo == 'sin_foto') return response()->file(realpath('../') . '/public/img/img_user.jpg');
-
     $paths = [
       'foto1' => 'fotos', 'foto2' => 'fotos', 'scandni' => 'documentos', 'solicitud_ae' => 'solicitudes', 'solicitud_revocacion' => 'solicitudes',
       'caratula' => 'solicitudes'
     ];
 
     $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    // Agrege en paths 'scandni' ya que ahora se guardan los documentos.
     if($user->es_casino_ae){
       $paths = [
-        'foto1' => 'fotos', 'foto2' => 'fotos'
+        'foto1' => 'fotos', 'foto2' => 'fotos', 'scandni' => 'documentos'
       ];
     }
 
@@ -615,7 +635,9 @@ class AutoexclusionController extends Controller
   public function cambiarEstadoAE($id,$id_estado){//Usado en APIAEController
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $ae = AE\Autoexcluido::find($id);
+
     if(is_null($ae)) return $this->errorOut(['id_autoexcluido' => 'AE inexistente']);
+    
     $estado = $ae->estado;
 
     $usuario_valido = $usuario->tienePermiso('modificar_ae') || $usuario->tienePermiso('aym_ae_plataformas');
@@ -685,22 +707,17 @@ class AutoexclusionController extends Controller
     DB::transaction(function() use($id_autoexcluido){
       $ae = AE\Autoexcluido::find($id_autoexcluido);
       if(is_null($ae)) return;
-      if(!is_null($ae->contacto)){
-        $ae->contacto->delete();
-      }
-      if(!is_null($ae->estado)){ 
-        $ae->estado->delete();
-      }
-      if(!is_null($ae->importacion)){ 
-        $ae->importacion->delete();
-      }
-      if(!is_null($ae->encuesta)){ 
-        $ae->encuesta->delete();
+      $fields = ['contacto', 'estado', 'importacion', 'encuesta'];
+      foreach($fields as $field){
+        if(!is_null($ae->$field)){
+          $ae->$field->delete();
+        }
       }
       $ae->delete();
     });
     return 1;
   }
+
   private function errorOut($map){
     return response()->json($map,422);
   }
@@ -730,7 +747,8 @@ class AutoexclusionController extends Controller
       $aes2 = json_decode(json_encode($aes), true);
       foreach($aes2 as $ae){
         //$aux = json_decode(json_encode($ae), true);
-        if($primer_ae){//Saco las columnas del primer ae
+        if($primer_ae){
+          //Agrego los nombres de las columnas
           fputcsv($fhandle,array_keys($ae),";",'"',"\\");
           $primer_ae = false;
         }
@@ -744,7 +762,7 @@ class AutoexclusionController extends Controller
     );
     return response()->download($filename,$filename,$headers)->deleteFileAfterSend(true);
   }
-  
+    
   public function destruirPapel(Request $request){
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $ae_estado = null;

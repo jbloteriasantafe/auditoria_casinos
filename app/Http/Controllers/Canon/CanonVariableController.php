@@ -521,8 +521,8 @@ class CanonVariableController extends Controller
   
   public function datosCanon($tname){
     $attrs_canon = [
-      'canon_fisico' => 'SUM(IF(cv.tipo LIKE "jol",0,cv.determinado)) as canon_fisico',
-      'canon_online' => 'SUM(IF(cv.tipo LIKE "jol",cv.determinado,0)) as canon_online',
+      'canon_fisico' => 'SUM(IF(cv.tipo LIKE "jol",0,cv.determinado+cv.determinado_ajuste)) as canon_fisico',
+      'canon_online' => 'SUM(IF(cv.tipo LIKE "jol",cv.determinado+cv.determinado_ajuste,0)) as canon_online',
       'ganancia_fisico' => 'SUM(IF(cv.tipo LIKE "jol",0,cv.determinado_subtotal)) as ganancia_fisico',
       'ganancia_online' => 'SUM(IF(cv.tipo LIKE "jol",cv.determinado_subtotal,0)) as ganancia_online',
       'ganancia' => 'SUM(cv.determinado_subtotal) as ganancia',

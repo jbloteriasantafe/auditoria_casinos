@@ -40,11 +40,8 @@ $(document).ready(function() {
     const selector = tgt.attr('data-js-click-descargar-tabla') ?? null;
     if(selector === null || selector.length == 0) return;
     const div = $(selector);
-    const nombre_planilla = 
-      (planilla.length? planilla : 'planilla')
-    + (año.length? ('_'+año) : '')
-    + (mes.length? ('_'+mes) : '')
-    + (fecha_planilla.length? ('_'+fecha_planilla) : '')
+    const nombre_planilla = (nombre_archivo?.length? nombre_archivo : '')
+    + (fecha_planilla?.length? ('_'+fecha_planilla) : '')
     + '.xlsx';
     
     const table = div.find('table')?.[0] ?? null;
@@ -70,9 +67,11 @@ $(document).ready(function() {
     
     const data_series_mensual = [];
     
-    for(const cidx in casinos){
-      const cas = casinos[cidx];
+    const colorIndex = Object.fromEntries(Object.entries(Object.values(casinos)).map((kv) => kv.reverse()));
+    for(const abbrcas in casinos){
+      const cas = casinos[abbrcas];
       if(cas == 'Total') continue;
+      const cidx = colorIndex[cas];
       
       const canon_anual = data[cas]?.[año]?.[0]?.canon ?? null;
       data_series_anual.data.push({

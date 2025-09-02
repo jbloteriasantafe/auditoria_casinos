@@ -69,6 +69,7 @@ function divRelMovObtenerDatos(){
         progresivos: progresivos,
         observaciones: divRM.find('.observaciones').val(),
         adjunto: divRM.find('.adjunto')?.[0].files?.[0],
+        link_adjunto: divRM.find('.imagen_adjunto').attr('src')?.slice(window.location.pathname.length+1) ?? '',
         observacionesAdm: divRM.find('.observacionesAdm').val(),
         nro_exp_org: divRM.find('.exp_org').val(),
         nro_exp_interno: divRM.find('.exp_interno').val(),
@@ -193,15 +194,15 @@ function divRelMovSetear(data){
     divRM.find('.marca').val(data.maquina.marca);
     divRM.find('.modelo').val(limpiarNullUndef(data.maquina.modelo,''));
     divRelMovAgregarContadores(data.maquina,data.toma);
-    divRM.find('.juego').append($('<option>').val(0).text('Seleccione'));
+    divRM.find('.juego').append($('<option>').val('').text('Seleccione'));
     data.juegos.forEach(j => {
         divRM.find('.juego').append($('<option>').val(j.id_juego).text(j.nombre_juego));
     });
     
-    const link_adjunto = data?.toma?.link_adjunto? (window.location.href+'/'+data?.toma?.link_adjunto) : null;
-    divRelMovSetearAdjunto(link_adjunto,data.estado.descripcion == 'Generado');
+    const link_adjunto = data?.toma?.link_adjunto? (window.location.pathname+'/'+data?.toma?.link_adjunto) : null;
+    divRelMovSetearAdjunto(link_adjunto,data.estado.descripcion == 'Generado' || data.estado.descripcion == 'Cargando');
     if(data.toma != null){
-        divRM.find('.juego').val(data.toma.juego? data.toma.juego : 0);
+        divRM.find('.juego').val(data.toma.juego? data.toma.juego : '');
         divRM.find('.apuesta').val(data.toma.apuesta_max);
         divRM.find('.cant_lineas').val(data.toma.cant_lineas);
         divRM.find('.devolucion').val(data.toma.porcentaje_devolucion);

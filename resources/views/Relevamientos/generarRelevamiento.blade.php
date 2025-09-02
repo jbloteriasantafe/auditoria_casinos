@@ -106,7 +106,7 @@
 
 @slot('pie')
 {{-- Para mostrar errores si no manda nada --}}
-<div data-estado="SIN_CHECKEAR" data-paso="0" hidden> 
+<div data-estado="SIN_CHECKEAR" data-paso="0" hidden>
   <button type="button" class="btn btn-successAceptar" data-js-generar-posta-descargar="crearRelevamiento">GENERAR</button>
   <button type="button" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
 </div>

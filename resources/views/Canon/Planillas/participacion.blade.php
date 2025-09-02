@@ -42,16 +42,15 @@
       @endforeach
       @foreach($plataformas as $_pidx => $_plat)
       <?php
-        $_cas = $abbr_casinos[$casinos->search($relacion_plat_cas[$_plat->codigo])];
+        $_cas = $abbr_casinos[$relacion_plat_cas[$_plat->codigo]];
       ?>
       <th class="JOL{{$_pidx}} {{$_cas}}">{{$_plat->codigo}}</th>
       @endforeach
     </tr>
     <tr>
       <th class="mes celda_especial" style="border-right: 1px solid black">{{$año_anterior}}</th>
-      @foreach($abbr_casinos as $_cidx => $_cas)
+      @foreach($abbr_casinos as $_casino => $_cas)
       <?php
-        $_casino = $casinos[$_cidx] ?? null;
         $total = $dataf($_casino,$año_anterior,0);
         $fisico = $formatear_porcentaje($total->participacion_fisico ?? null);
         $online = $formatear_porcentaje($total->participacion_online ?? null);
@@ -62,7 +61,7 @@
       @foreach($plataformas as $_pidx => $_plat)
       <?php
         $porcentaje = $formatear_porcentaje($pje_plats[$año_anterior][0][$_plat->codigo]);
-        $_cas = $abbr_casinos[$casinos->search($relacion_plat_cas[$_plat->codigo])];
+        $_cas = $abbr_casinos[$relacion_plat_cas[$_plat->codigo]];
       ?>
       <th class="JOL{{$_pidx}} {{$N($porcentaje)}} {{$_cas}}" style="text-align: right;">{{$porcentaje}}</th>
       @endforeach
@@ -72,9 +71,8 @@
     @foreach($abbr_num_meses as $_nmes => $_mes)
     <tr>
       <th class="mes" style="border-right: 1px solid black">{{$_mes}}/{{$abbr_año}}</th>
-      @foreach($abbr_casinos as $_cidx => $_cas)
+      @foreach($abbr_casinos as $_casino => $_cas)
       <?php
-        $_casino = $casinos[$_cidx] ?? null;
         $canon = $dataf($_casino,$año,$_nmes);
         $fisico = $formatear_porcentaje($canon->participacion_fisico ?? null);
         $online = $formatear_porcentaje($canon->participacion_online ?? null);
@@ -95,9 +93,8 @@
     @endforeach
     <tr>
       <th class="mes celda_especial" style="border-right: 1px solid black">{{$año}}</th>
-      @foreach($abbr_casinos as $_cidx => $_cas)
+      @foreach($abbr_casinos as $_casino => $_cas)
       <?php
-        $_casino = $casinos[$_cidx] ?? null;
         $total = $dataf($_casino,$año,0);
         $fisico = $formatear_porcentaje($total->participacion_fisico ?? null);
         $online = $formatear_porcentaje($total->participacion_online ?? null);
@@ -108,7 +105,7 @@
       @foreach($plataformas as $_pidx => $_plat)
       <?php
         $porcentaje = $formatear_porcentaje($pje_plats[$año][0][$_plat->codigo]);
-        $_cas = $abbr_casinos[$casinos->search($relacion_plat_cas[$_plat->codigo])];
+        $_cas = $abbr_casinos[$relacion_plat_cas[$_plat->codigo]];
       ?>
       <th class="JOL{{$_pidx}} {{$N($porcentaje)}} {{$_cas}}" style="text-align: right;">{{$porcentaje}}</th>
       @endforeach

@@ -6,14 +6,15 @@
     "type": "project",
     "require": {
         "php": ">=5.6.4",
-        "barryvdh/laravel-dompdf": "^0.8.0",
+        "barryvdh/laravel-dompdf": "^0.8.2",
         "chumper/zipper": "1.0.x",
+        "guzzlehttp/guzzle": "~6.0",
         "laravel/framework": "5.4.*",
         "laravel/tinker": "~1.0",
         "nothingworks/blade-svg": "^0.2.2",
-        "pusher/pusher-php-server": "^3.0",
-        "guzzlehttp/guzzle": "~6.0"
+        "pusher/pusher-php-server": "^3.0"
     },
+    "optimize-autoloader": false,
     "require-dev": {
         "fzaninotto/faker": "~1.4",
         "mockery/mockery": "0.9.*",
@@ -34,23 +35,29 @@
     },
     "scripts": {
         "post-root-package-install": [
-            "php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+            "php7.0 -r \"file_exists('.env') || copy('.env.example', '.env');\""
         ],
         "post-create-project-cmd": [
-            "php artisan key:generate"
+            "php7.0 artisan key:generate"
         ],
         "post-install-cmd": [
             "Illuminate\\Foundation\\ComposerScripts::postInstall",
-            "php artisan optimize"
+            "php7.0 artisan optimize"
         ],
         "post-update-cmd": [
             "Illuminate\\Foundation\\ComposerScripts::postUpdate",
-            "php artisan optimize"
+            "php7.0 artisan optimize"
         ]
     },
     "config": {
         "preferred-install": "dist",
-        "sort-packages": true
+        "sort-packages": true,
+        "platform": {
+            "php": "7.0"
+        },
+        "allow-plugins": {
+            "kylekatarnls/update-helper": true
+        }
     },
     "repositories": [
     {

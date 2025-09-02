@@ -260,7 +260,7 @@ $id_usuario = session('id_usuario');
                       <h5>Buscar JUEGOS <i class="fa fa-search"></i></h5>
 
                        <div class="input-group lista-datos-group">
-                            <input id="inputJuego" class="form-control " type="text" value="" autocomplete="off" placeholder="Nombre del juego" list="datalistJuegos">
+                            <input id="inputJuego" class="form-control" type="text" value="" autocomplete="off" placeholder="Nombre del juego" list="datalistJuegos">
                             <span class="input-group-btn">
                               <button id="btn-agregarJuego" class="btn btn-default btn-lista-datos" type="button"><i class="fa fa-plus"></i></button>
                             </span>

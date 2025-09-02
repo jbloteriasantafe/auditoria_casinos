@@ -46,8 +46,8 @@ table th {
     </tr>
     <tr>
       <th class="año_mes" style="border-right: 1px solid black;">{{$a}}</th>
-      @foreach($abbr_casinos as $_casidx => $_cas)
-      <th class="{{$_cas}}" colspan="6" style="border-right: 1px solid black;">{{$casinos[$_casidx]}}</th>
+      @foreach($abbr_casinos as $_casino => $_cas)
+      <th class="{{$_cas}}" colspan="6" style="border-right: 1px solid black;">{{$_casino}}</th>
       @endforeach
     </tr>
     

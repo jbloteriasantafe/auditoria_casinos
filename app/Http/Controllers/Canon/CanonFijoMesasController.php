@@ -538,13 +538,24 @@ class CanonFijoMesasController extends Controller
   
   public function datosCanon($tname){
     $attrs_canon = [
-      'canon_fisico' => 'SUM(cfm.determinado) as canon_fisico',
+      'canon_fisico' => 'SUM(cfm.determinado+cfm.determinado_ajuste) as canon_fisico',
       'canon_online' => '0 as canon_online',
       'ganancia_fisico' => 'SUM(cfm.bruto) as ganancia_fisico',
       'ganancia_online' => '0 as ganancia_online',
       'ganancia' => 'SUM(cfm.bruto) as ganancia',
+      'ganancia_yoy' => 'SUM(cfm_yoy.bruto) as ganancia_yoy',
       'ganancia_CCO' => '0 as ganancia_CCO',
-      'ganancia_BPLAY' => '0 as ganancia_BPLAY'
+      'ganancia_BPLAY' => '0 as ganancia_BPLAY',
+      'determinado_fecha_cotizacion' => 'MAX(cfm.determinado_fecha_cotizacion) as determinado_fecha_cotizacion',
+      'determinado_fecha_cotizacion_yoy' => 'MAX(cfm_yoy.determinado_fecha_cotizacion) as determinado_fecha_cotizacion_yoy',
+      'determinado_cotizacion_euro' => 'MAX(cfm.determinado_cotizacion_euro) as determinado_cotizacion_euro',
+      'determinado_cotizacion_euro_yoy' => 'MAX(cfm_yoy.determinado_cotizacion_euro) as determinado_cotizacion_euro_yoy',
+      'determinado_cotizacion_dolar' => 'MAX(cfm.determinado_cotizacion_dolar) as determinado_cotizacion_dolar',
+      'determinado_cotizacion_dolar_yoy' => 'MAX(cfm_yoy.determinado_cotizacion_dolar) as determinado_cotizacion_dolar_yoy',
+      'valor_euro' => 'MAX(cfm.valor_euro) as valor_euro',
+      'valor_euro_yoy' => 'MAX(cfm_yoy.valor_euro) as valor_euro_yoy',
+      'valor_dolar' => 'MAX(cfm.valor_dolar) as valor_dolar',
+      'valor_dolar_yoy' => 'MAX(cfm_yoy.valor_dolar) as valor_dolar_yoy',
     ];
     
     $tname2 = 't'.uniqid();

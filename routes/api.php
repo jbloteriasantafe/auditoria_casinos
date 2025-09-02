@@ -24,6 +24,23 @@ Route::group(['prefix' => 'AE','middleware' => 'check_API_token'],function(){
   Route::get('fechas/{DNI}','Autoexclusion\APIAEController@fechas');
   Route::get('finalizar/{DNI}','Autoexclusion\APIAEController@finalizar');
   Route::post('agregar','Autoexclusion\APIAEController@agregar');
+
+  //Agregado por Ignacio, por favor Verificar!
+  Route::post('importacion/archivos','Autoexclusion\APIAEController@set_importacion_archivos');
+  Route::get('constancia/reingreso/{DNI}','Autoexclusion\APIAEController@reingreso');
+  Route::get('constancia/alta/{DNI}','Autoexclusion\APIAEController@exclusion_registro');
+  Route::get('ultima/{DNI}','Autoexclusion\APIAEController@ultimos_datos');
+  Route::post('historial/{DNI}','Autoexclusion\APIAEController@obtener_autoExclusiones');
+  Route::post('noticias','Autoexclusion\APIAEController@obtener_noticias');
+  Route::post('encuesta','Autoexclusion\APIAEController@registrar_encuesta');
+  Route::get('respondio-encuesta','Autoexclusion\APIAEController@respondio_encuesta');
+});
+
+//Diseñado para que consulte desde el mismo sistemon por eso quite el middleware
+Route::group(['prefix' => 'AE'],function(){
+  Route::post('noticias','Autoexclusion\APIAEController@obtener_noticias');
+  Route::post('noticias/subir','Autoexclusion\APIAEController@subir_noticias');
+  Route::post('noticias/borrar','Autoexclusion\APIAEController@borrar_noticias');
 });
 
 function completarUsuarioParaRetorno(&$u){
@@ -101,4 +118,3 @@ Route::group(['middleware' => ['check_API_token',VerificarPermisoAccederUsuario:
 	  return completarUsuarioParaRetorno($u);
 	});
 });
-

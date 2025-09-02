@@ -125,8 +125,16 @@ $gestion_hijos = [
   ],
   'Autoexclusión' => [
     'icono' => $icono_usuario,
-    'link' => '/autoexclusion',
-    'algun_permiso' => ['ver_seccion_ae_alta'],
+    'hijos' => [
+      'Autoexcluidos' => [
+        'link' => '/autoexclusion',
+        'algun_permiso' => ['ver_seccion_ae_alta'],
+      ],
+      'Noticias' => [
+        'link' => '/autoexclusion/noticias',
+        'algun_permiso' => ['ver_seccion_ae_noticias'],
+      ]
+    ]
   ]
 ];
 $fiscalizacion_hijos = [
@@ -155,11 +163,6 @@ $fiscalizacion_hijos = [
             'link' => '/relevamientos_movimientos',
             'algun_permiso' => ['ver_seccion_relevamientos_movimientos'],
           ],
-          'Intervenciones técnicas' => [
-            //'link' => '/eventualidades',
-            'link_style' => 'color:grey;',
-            'algun_permiso' => ['ver_seccion_eventualidades'],
-          ],
           'Intervenciones MTM' => [
             'link' => '/eventualidadesMTM',
             'algun_permiso' => ['ver_seccion_eventualidades_MTM'],
@@ -182,6 +185,7 @@ $fiscalizacion_hijos = [
         'link' => '/relevamientosControlAmbiental',
         'algun_permiso' => ['ver_seccion_relevamientos_control_ambiental'],
       ],
+
       /*'Pruebas' => [
         'hijos' => [
           'Pruebas Juegos' => [
@@ -229,7 +233,26 @@ $fiscalizacion_hijos = [
     'link' => '/galeriaImagenesAutoexcluidos',
     'algun_permiso' => ['ver_seccion_ae_informes_galeria']
   ],
-];
+  'Eventualidades' => [
+    'icono' => $icono_expedientes,
+    'link' => '/eventualidades',
+  ],
+
+      /*'Pruebas' => [
+        'hijos' => [
+          'Pruebas Juegos' => [
+            //'link' => '/prueba_juegos',
+            'link_style' => 'color:grey;',
+            'algun_permiso' => ['ver_seccion_prueba_juegos'],
+          ],
+          'Pruebas Progresivos' => [
+            //'link' => '/prueba_progresivos',
+            'link_style' => 'color:grey;',
+            'algun_permiso' => ['ver_seccion_prueba_progresivos'],
+          ],
+        ]
+      ],*/
+    ];
 $auditoria_hijos = [
   'Importaciones' => [
     'icono' => $icono_expedientes,
@@ -447,7 +470,7 @@ $opciones = [
       if(is_null($new_h)) continue;
       $nuevas_opciones['hijos'][$new_h['k']] = $new_h['opciones'];
     }
-    
+
     if($nivel > 1){
       if(count($nuevas_opciones['hijos']) == 0 && $opciones['link'] == ''){//Si no tiene hijos ni tampoco un link, lo saco
         return null;
@@ -725,7 +748,7 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
     @section('scripts')
     @show
   </body>
-  
+
   <!-- NOTIFICACIÓN DE ÉXITO -->
     <!--  (*) Para que la animación solo MUESTRE (fije) el mensaje, se agrega la clase 'fijarMensaje' a #mensajeExito-->
     <!--  (*) Para que la animación MUESTRE Y OCULTE el mensaje, se quita la clase 'fijarMensaje' a #mensajeExito-->

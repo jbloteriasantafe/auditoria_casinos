@@ -62,8 +62,8 @@ $(document).ready(function(){
 
   });
   //$('#btn-buscarEventualidad').click();
-  clickIndice(null, 
-    $('#herramientasPaginacion').getCurrentPage(), 
+  clickIndice(null,
+    $('#herramientasPaginacion').getCurrentPage(),
     $('#herramientasPaginacion').getPageSize());
   $('#B_CasinoEv').change();
 });
@@ -84,7 +84,7 @@ $('#btn-nueva-eventualidad').off().click(function(){
   let casinostr = $('#B_CasinoEv').val();
   //Si es 'Todos los casinos', seteamos el proximo que viene.
   if(isNaN(parseInt(casinostr))) casinostr = $('#B_CasinoEv option').eq(1).val();
-  
+
   $.ajaxSetup({
     headers: {
       'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -596,8 +596,8 @@ $('#btn-buscarEventualidad').click(function(e, pagina, page_size){
         $('#tablaResultadosEv #cuerpoTablaEv tr').remove();
         $('#herramientasPaginacion').generarTitulo(
           res.eventualidades.current_page,
-          res.eventualidades.per_page, 
-          res.eventualidades.total, 
+          res.eventualidades.per_page,
+          res.eventualidades.total,
           clickIndice);
           for (var i = 0; i < res.eventualidades.data.length; i++) {
               let filaEventualidad = generarFilaTabla(
@@ -624,8 +624,8 @@ function clickIndice(e, pageNumber, tam=undefined,total=null) {
       e.preventDefault();
   }
   console.log(pageNumber,tam,total);
-  var tam = (isNaN(tam)) ? 
-  $('#herramientasPaginacion').getPageSize() 
+  var tam = (isNaN(tam)) ?
+  $('#herramientasPaginacion').getPageSize()
   : tam;
   var columna = $('#tablaResultadosEv .activa').attr('value');
   var orden = $('#tablaResultadosEv .activa').attr('estado');
@@ -776,7 +776,7 @@ $('#B_CasinoEv').change(function(){
   const todos = $('<option>').val('').text('Todos los sectores');
   sector.empty();
 
-  sector.append(todos); 
+  sector.append(todos);
   sectores.each(function(idx,obj){
     let o = $(obj).clone();
     o.val(o.attr('data-id-sector'));

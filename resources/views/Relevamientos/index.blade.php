@@ -80,15 +80,15 @@ $CONTADORES_VISIBLES = min(6,$CONTADORES);
   </div>
   <div class="col-xl-9"> <!-- columna TABLA CASINOS -->
     @component('Components/FiltroTabla')
-    
+
     @slot('titulo')
     RELEVAMIENTOS
     @endslot
-    
+
     @slot('target_buscar')
     /relevamientos/buscarRelevamientos
     @endslot
-    
+
     @slot('filtros')
     <div class="col-md-3">
       <h5>Fecha de Relevamiento</h5>
@@ -120,7 +120,7 @@ $CONTADORES_VISIBLES = min(6,$CONTADORES);
       </select>
     </div>
     @endslot
-    
+
     @slot('cabecera')
     <tr>
       <th data-js-sortable="relevamiento.fecha" data-js-state="desc" style="text-align: center;">FECHA</th>
@@ -136,7 +136,7 @@ $CONTADORES_VISIBLES = min(6,$CONTADORES);
       }
     </style>
     @endslot
-    
+
     @slot('molde')
     <tr class="filaBusqueda">
       <td class="col-xs-2 fecha">99 MES 99999</td>
@@ -183,7 +183,7 @@ $CONTADORES_VISIBLES = min(6,$CONTADORES);
       </td>
     </tr>
     @endslot
-    
+
     @endcomponent
   </div><!-- /.col-lg-12 col-xl-9 -->
 </div>  <!-- /#row -->

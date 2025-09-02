@@ -42,7 +42,7 @@ Route::post('enviarTicket',function(Request $request){
   if(!empty($request->attachments)){
     $data['attachments'] = $request->attachments;
   }
-  
+
   set_time_limit(30);
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, 'http://10.1.121.25/osTicket/api/http.php/tickets.json');
@@ -262,7 +262,7 @@ Route::group(['prefix' => 'maquinas','middleware' => 'tiene_permiso:ver_seccion_
   Route::post('guardarMaquina', 'MTMController@guardarMaquina');
   Route::post('modificarMaquina', 'MTMController@modificarMaquina');
   Route::post('buscarMaquinas', 'MTMController@buscarMaquinas');
-  Route::post('cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');  
+  Route::post('cargaMasiva', 'LectorCSVController@cargaMasivaMaquinas');
   Route::get('obtenerExpediente/{id}','ExpedienteController@obtenerExpediente');
   Route::get('buscarExpedientePorCasinoYNumero/{id_casino}/{busqueda}','ExpedienteController@buscarExpedientePorCasinoYNumero');
   Route::group(['prefix' => 'certificadoHard'],function(){
@@ -312,7 +312,7 @@ Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_secci
   Route::get('obtenerRelevamientosFiscalizacion/{id_fiscalizacion_movimiento}','LogMovimientoController@obtenerRelevamientosFiscalizacion');
   Route::get('obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
   Route::post('cargarTomaRelevamiento', 'LogMovimientoController@cargarTomaRelevamiento');
-  Route::get('adjunto/{id_toma}/{id_archivo}','LogMovimientoController@leerAdjuntoDeToma');
+  Route::get('adjunto/{id_toma}/{id_archivo}','RelevamientoMovimientoController@leerAdjuntoDeToma');
   Route::post('nuevoLogMovimiento','LogMovimientoController@nuevoLogMovimiento');
   Route::post('eliminarMovimiento', 'LogMovimientoController@eliminarMovimiento');
   Route::get('obtenerDatos/{id}','LogMovimientoController@obtenerDatos');
@@ -343,6 +343,7 @@ Route::group(['prefix' => 'relevamientos_movimientos','middleware' => 'tiene_per
   Route::get('obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
   Route::post('cargarTomaRelevamiento', 'LogMovimientoController@cargarTomaRelevamiento');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
+  Route::get('adjunto/{id_toma}/{id_archivo}','RelevamientoMovimientoController@leerAdjuntoDeToma');
   Route::get('{id}','LogMovimientoController@relevamientosMovimientos');
 });
 
@@ -367,6 +368,21 @@ Route::group(['prefix' => 'eventualidades','middleware' => 'tiene_permiso:ver_se
   Route::get('obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
   Route::get('obtenerMTM/{id}', 'MTMController@obtenerMTM');
   Route::get('obtenerSector/{id_sector}','SectorController@obtenerSector');
+  Route::post('guardarEventualidad','EventualidadController@guardarEventualidad');
+  Route::get('pdf/{id}', 'EventualidadController@PDF');
+  Route::get('obtenerTurnos/{id_casino}', 'EventualidadController@obtenerTurnos');
+  Route::get('ultimas', 'EventualidadController@ultimasIntervenciones');
+  Route::post('subirEventualidad', 'EventualidadController@subirEventualidad');
+  Route::post('guardarObservacion','EventualidadController@guardarObservacion');
+  Route::get('pdfObs/{id}','EventualidadController@PDFObs');
+  Route::get('visarEventualidad/{id_eventualidad}','EventualidadController@visarEventualidad');
+  Route::post('subirObservacion', 'EventualidadController@subirObservacion');
+  Route::get('{evId}/observaciones', 'EventualidadController@getObservaciones');
+  Route::get('observacion/{id_ob}','EventualidadController@eliminarObservacion');
+  Route::get('visualizarArchivo/{estado}/{id_archivo}','EventualidadController@visualizarArchivo');
+  /*Route::group(['middleware' => 'tiene_rol:superusuario'], function () {
+    Route::get('/ponerNombresProcedimientos','EventualidadController@ponerNombresProcedimientos');
+  });*/
 });
 /**********
 Eventualidades MTM ->intervenciones tecnicas mtm
@@ -383,7 +399,7 @@ Route::group(['prefix' => 'eventualidadesMTM','middleware' => 'tiene_permiso:ver
   Route::post('visarConObservacion', 'LogMovimientoController@visarConObservacion');
   Route::get('obtenerMTMEnCasinoHabilitadas/{casino}/{id}', 'MTMController@obtenerMTMEnCasinoHabilitadas');
   Route::get('obtenerMTMEnCasinoEgresadas/{casino}/{id}', 'MTMController@obtenerMTMEnCasinoEgresadas');
-  Route::get('adjunto/{id_toma}/{id_archivo}','LogMovimientoController@leerAdjuntoDeToma');
+  Route::get('adjunto/{id_toma}/{id_archivo}','RelevamientoMovimientoController@leerAdjuntoDeToma');
   Route::get('obtenerMTM/{id}', 'MTMController@obtenerMTM');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
 });
@@ -459,7 +475,8 @@ Route::group(['prefix' => 'relevamientos','middleware' => 'tiene_permiso:ver_sec
   Route::get('obtenerCantidadMaquinasRelevamientoHoy/{id_sector}','RelevamientoController@obtenerCantidadMaquinasRelevamiento');
   Route::post('eliminarCantidadMaquinasPorRelevamiento','RelevamientoController@eliminarCantidadMaquinasPorRelevamiento');
   Route::post('modificarDenominacionYUnidadDetalle','RelevamientoController@modificarDenominacionYUnidadDetalle');
-  Route::post('modificarDenominacionYUnidadMTM','RelevamientoController@modificarDenominacionYUnidadMTM');
+  //Deprecado por Moex... Matias lo puede volver a pedir...
+  //Route::post('modificarDenominacionYUnidadMTM','RelevamientoController@modificarDenominacionYUnidadMTM');
   Route::post('buscarRelevamientos','RelevamientoController@buscarRelevamientos');
   Route::get('verRelevamientoVisado/{id_relevamiento}','RelevamientoController@obtenerRelevamientoVisado');
   Route::get('chequearRolFiscalizador','UsuarioController@chequearRolFiscalizador');
@@ -604,14 +621,14 @@ Route::group(['prefix' => 'layout_parcial','middleware' => 'tiene_permiso:ver_se
   Route::post('usarLayoutBackup' , 'LayoutController@usarLayoutBackup');
   Route::get('existeLayoutParcial/{id_sector}','LayoutController@existeLayoutParcial');
   Route::get('existeLayoutParcialGenerado/{id_sector}','LayoutController@existeLayoutParcialGenerado');
-  
+
   Route::get('obtenerLayoutParcial/{id}','LayoutController@obtenerLayoutParcial');
   Route::get('obtenerLayoutParcialValidar/{id}','LayoutController@obtenerLayoutParcial');
-  
+
   Route::post('guardarLayoutParcial' , 'LayoutController@guardarLayoutParcial');
   Route::post('finalizarLayoutParcial','LayoutController@finalizarLayoutParcial');
   Route::post('validarLayoutParcial' , 'LayoutController@validarLayoutParcial');
-  
+
   Route::get('generarPlanillaLayoutParcial/{id}','LayoutController@generarPlanillaLayoutParcial');
   Route::get('generarPlanillaLayoutParcialCargado/{id}','LayoutController@generarPlanillaLayoutParcialCargado');
   Route::get('descargarLayoutParcialZip/{nombre}','LayoutController@descargarLayoutParcialZip');
@@ -792,7 +809,7 @@ Route::group(['prefix' => 'aperturas','middleware' => 'tiene_permiso:m_buscar_ap
 });
 
 //Sección Juegos
-Route::group(['prefix' => 'mesas-juegos','middleware' => 'tiene_permiso:m_gestionar_juegos_mesas'], function () {  
+Route::group(['prefix' => 'mesas-juegos','middleware' => 'tiene_permiso:m_gestionar_juegos_mesas'], function () {
   Route::get('/', 'Mesas\Juegos\BuscarJuegoController@buscarTodo');
   Route::post('buscarJuegos', 'Mesas\Juegos\BuscarJuegoController@buscarJuegos');
   Route::post('nuevoJuego', 'Mesas\Juegos\ABMJuegoController@guardar');
@@ -932,6 +949,7 @@ AUTOEXCLUSIÓN
 *************/
 Route::group(['prefix' => 'autoexclusion','middleware' => 'tiene_permiso:ver_seccion_ae_alta'], function () {
   Route::get('/','Autoexclusion\AutoexclusionController@index');
+  Route::get('/noticias','Autoexclusion\AutoexclusionController@indexNoticias');
   Route::delete('eliminarAE/{id_autoexcluido}','Autoexclusion\AutoexclusionController@eliminarAE')->middleware('tiene_permiso:borrar_ae');
   Route::post('agregarAE','Autoexclusion\AutoexclusionController@agregarAE');
   Route::post('subirArchivo','Autoexclusion\AutoexclusionController@subirArchivo');

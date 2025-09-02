@@ -40,9 +40,8 @@
         </tr>
         <tr>
           <th class="mes celda_especial" style="border-right: 1px solid black;">{{$año_anterior}}</th>
-          @foreach($abbr_casinos as $_cidx => $_cas)
+          @foreach($abbr_casinos as $_casino => $_cas)
           <?php
-            $_casino = $casinos[$_cidx] ?? null;
             $total = $dataf($_casino,$año_anterior,0);
             $canon = $formatear_decimal($total->canon ?? null);
           ?>
@@ -71,9 +70,8 @@
         @endfor
         <tr>
           <th class="mes celda_especial" style="border-right: 1px solid black;">{{$año}}</th>
-          @foreach($abbr_casinos as $_cidx => $_cas)
+          @foreach($abbr_casinos as $_casino => $_cas)
           <?php
-            $_casino = $casinos[$_cidx] ?? null;
             $total = $dataf($_casino,$año,0);
             $canon = $formatear_decimal($total->canon ?? null);
             $variacion_canon_yoy = $formatear_porcentaje($total->variacion_canon_yoy ?? null);

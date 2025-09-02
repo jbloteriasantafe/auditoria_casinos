@@ -122,13 +122,13 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
                           <table id="tablaMaquinas" class="table table-fixed tablesorter">
                             <thead>
                               <tr>
-                                <th class="col-xs-1 activa" value="maquina.nro_admin" estado="asc">NRO <i class="fas fa-sort-up"></i></th>
-                                <th class="col-xs-1" value="isla.nro_isla" estado="" >ISLA <i class="fas fa-sort"></i></th>
-                                <th class="col-xs-2" value="sector.descripcion" estado="" >CASINO - SECTOR <i class="fas fa-sort"></i></th>
+                                <th class="col-xs-1 activa" value="m.nro_admin" estado="asc">NRO <i class="fas fa-sort-up"></i></th>
+                                <th class="col-xs-1" value="i.nro_isla" estado="" >ISLA <i class="fas fa-sort"></i></th>
+                                <th class="col-xs-2" value="s.descripcion" estado="" >CASINO - SECTOR <i class="fas fa-sort"></i></th>
                                 <th class="col-xs-1">ESTADO </th>
-                                <th class="col-xs-2" value="maquina.marca" estado="">MARCA  <i class="fas fa-sort"></i></th>
-                                <th class="col-xs-2" value="juego.nombre_juego" estado="">JUEGO  <i class="fas fa-sort"></i></th>
-                                <th class="col-xs-1" value="denominacion" estado="">DEN.  <i class="fas fa-sort"></i></th>
+                                <th class="col-xs-2" value="m.marca" estado="">MARCA  <i class="fas fa-sort"></i></th>
+                                <th class="col-xs-2" value="j.nombre_juego" estado="">JUEGO  <i class="fas fa-sort"></i></th>
+                                <th class="col-xs-1" value="m.denominacion" estado="">DEN.  <i class="fas fa-sort"></i></th>
                                 <th class="col-xs-2">ACCIONES</th>
                               </tr>
                             </thead>
@@ -810,7 +810,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy();
     <script src="/js/seccionMaquinas-GliHardNuevo.js?1" charset="utf-8"></script>
     <script src="/js/seccionMaquina-IslaNuevo.js?1" charset="utf-8"></script>
     <script src="/js/seccionMaquinas-Modal.js?1" charset="utf-8"></script>
-    <script src="/js/seccionMaquinas.js?2" charset="utf-8"></script>
+    <script src="/js/seccionMaquinas.js?3" charset="utf-8"></script>
     <script src="/js/utils.js" charset="utf-8"></script>
     <script src="/js/lista-datos.js" type="text/javascript"></script>
 

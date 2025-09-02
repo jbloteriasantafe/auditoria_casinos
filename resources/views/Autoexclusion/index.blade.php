@@ -1,13 +1,9 @@
-  @extends('includes.dashboard')
+@extends('includes.dashboard')
 @section('headerLogo')
-<span class="etiquetaLogoMaquinas">@svg('maquinas','iconoMaquinas')</span>
+<span class="etiquetaLogoMaquinas">@svg('maquinas', 'iconoMaquinas')</span>
 @endsection
 
 <?php
-use Illuminate\Http\Request;
-use App\Http\Controllers\UsuarioController;
-use\App\http\Controllers\RelevamientoAmbientalController;
-
 $permitir_manejar_papel = false;//Deshabilitado por ahora $usuario->es_superusuario || $usuario->es_administrador;
 ?>
 
@@ -127,6 +123,7 @@ input[required], select[required]{
     @endif
   </div>
 </div>
+
 <div class="col-xl-10">
   @component('Components/FiltroTabla')
   
@@ -1020,7 +1017,6 @@ input[required], select[required]{
     </div>
   </div>
 </div>
-
 
 <!--MODAL SUBIR SOLICITUD AE -->
 <div class="modal fade" id="modalSubirArchivo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

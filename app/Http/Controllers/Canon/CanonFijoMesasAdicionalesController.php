@@ -329,7 +329,7 @@ class CanonFijoMesasAdicionalesController extends Controller
   
   public function datosCanon($tname){
     $attrs_canon = [
-      'canon_fisico' => 'SUM(cfma.determinado) as canon_fisico',
+      'canon_fisico' => 'SUM(cfma.determinado+cfma.determinado_ajuste) as canon_fisico',
       'canon_online' => '0 as canon_online',
       'ganancia_fisico' => '0 as ganancia_fisico',
       'ganancia_online' => '0 as ganancia_online',
