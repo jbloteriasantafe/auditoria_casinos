@@ -32,7 +32,7 @@ th.dolar {
 <?php
   $año = $parametros['año'] ?? null;
   $casino = $parametros['casino'] ?? '';
-  $_m = !empty($casino)? intval(substr($fecha_inicio[$casino],strlen('XXXX-'),strlen('XX'))) : '';
+  $_m = !empty($casino)? intval($primer_mes) : '';
   $data_rel = [];
   $totales = [];
   foreach(($data[$casino] ?? []) as $_a => $_){
@@ -281,7 +281,7 @@ th.dolar {
   </thead>
   <tbody>
     <?php
-      $mes_cotizacion = intval(substr($fecha_inicio[$casino],strlen('XXXX-'),strlen('XX')));
+      $mes_cotizacion = intval($primer_mes);
       $mes_cotizacion = ($mes_cotizacion+1)%12;
       $mes_cotizacion = $mes_cotizacion==0? 1 : $mes_cotizacion;
       $mes_cotizacion_str = str_pad($mes_cotizacion,2,'0',STR_PAD_LEFT);

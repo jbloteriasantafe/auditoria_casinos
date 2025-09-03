@@ -2,7 +2,7 @@
 .año_mes {
   width: 4%;
 }
-<?php $width_casino = count($casinos)? ((100-4)/count($casinos)) : 0;  ?>
+<?php $width_casino = count($abbr_casinos)? ((100-4)/count($abbr_casinos)) : 0;  ?>
 .devengado {
   width: {{$width_casino/4}}%;
 }
@@ -29,7 +29,7 @@ table th {
 <div style="width: 100%;"><table style="table-layout: fixed">
   <colgroup>
     <col class="año_mes">
-    @foreach($casinos as $_cas)
+    @foreach($abbr_casinos as $_)
     <col class="devengado">
     <col class="variacion_devengado_mom">
     <col class="canon">
@@ -38,11 +38,11 @@ table th {
     <col class="proporcion_diferencia_canon">
     @endforeach
   </colgroup>
-  
-  @foreach(array_reverse($años_planilla) as $a)
+  @foreach(($data['Total'] ?? []) as $a => $_)
+  @continue($a == 0)
   <thead>
     <tr>
-      <th colspan="{{6*count($casinos)+1}}">{{$loop->first? 'Evolución Histórica' : '&nbsp;'}}</th>
+      <th colspan="{{6*count($abbr_casinos)+1}}">{{$loop->first? 'Evolución Histórica' : '&nbsp;'}}</th>
     </tr>
     <tr>
       <th class="año_mes" style="border-right: 1px solid black;">{{$a}}</th>
@@ -68,11 +68,9 @@ table th {
     @for($_mnum=1;$_mnum<=12;$_mnum++)
     <tr>
       <th class="año_mes" style="border-right: 1px solid black;">{{$meses_calendario[$_mnum] ?? null}}</th>
-      @foreach($casinos as $cas)
+      @foreach($abbr_casinos as $cas => $acas)
       <?php 
-        $d = $data[$cas] ?? [];
-        $d = $d[$a] ?? [];
-        $d = $d[$_mnum] ?? (new \stdClass());
+        $d = $dataf($cas,$a,$_mnum);
         $devengado = $formatear_decimal($d->devengado ?? null);
         $variacion_devengado_mom = $formatear_porcentaje($d->variacion_devengado_mom ?? null);
         $canon = $formatear_decimal($d->canon ?? null);
@@ -92,11 +90,9 @@ table th {
     
     <tr class="total">
       <th class="año_mes celda_especial" style="border-right: 1px solid black;">TOTAL</th>
-      @foreach($casinos as $cas)
+      @foreach($abbr_casinos as $cas => $acas)
       <?php 
-        $d = $data[$cas] ?? [];
-        $d = $d[$a] ?? [];
-        $d = $d[0] ?? (new \stdClass());
+        $d = $dataf($cas,$a,0);
         $devengado = $formatear_decimal($d->devengado ?? null);
         $variacion_devengado_yoy = $formatear_porcentaje($d->variacion_devengado_yoy ?? null);
         $canon = $formatear_decimal($d->canon ?? null);

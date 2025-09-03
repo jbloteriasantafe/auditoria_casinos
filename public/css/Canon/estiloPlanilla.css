@@ -50,6 +50,7 @@ tr td:nth-last-child(1) {
   --color-CSF: #EA4335;
   --color-CSF-CME: var(--color-CSF);
   --color-CRO: #FBBC04;
+  --color-TOTAL: #047CFB;
 }
 
 th.santa_fe, th.CSF, th.CSF-CME {
@@ -64,8 +65,8 @@ th.rosario, th.CRO {
 th.JOL {
   background: #89D753;
 }
-th.TOTAL {
-  background: #047CFB;
+th.total, th.TOTAL {
+  background: var(--color-TOTAL);
 }
 th.celda_especial {
   background: #FFE975;

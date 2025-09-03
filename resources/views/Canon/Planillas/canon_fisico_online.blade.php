@@ -1,3 +1,10 @@
+<?php
+  $abbr_mes = function($num_mes) use ($meses_calendario){
+    return strtoupper(substr($meses_calendario[$num_mes] ?? '',0,3));
+  };
+  $abbr_meses = $meses_calendario->map(function($_,$_nmes) use ($abbr_mes){return $abbr_mes($_nmes) ?? '';})
+  ->filter(function($_abbr){return strlen($_abbr);});
+?>
 <div style="width: 100%;"><table style="width: 100%;table-layout: fixed">
   <colgroup>
     <col class="mes">
@@ -28,7 +35,7 @@
       <th class="canon {{$_cas}}" colspan="3">{{$_cas}}</th>
       @endif
       @endforeach
-      <th class="variacion_canon_yoy" rowspan="2">{{$año}}/{{$año_anterior}}</th>
+      <th class="variacion_canon_yoy" rowspan="2">{{$año}}/{{$año-1}}</th>
       <th class="variacion_canon_mom" rowspan="2">Dif. Mes Ant.</th>
     </tr>
     <tr>
@@ -41,10 +48,10 @@
       @endforeach
     </tr>
     <tr>
-      <th class="mes celda_especial" style="border-right: 1px solid black">{{$año_anterior}}</th>
+      <th class="mes celda_especial" style="border-right: 1px solid black">{{$año-1}}</th>
       @foreach($abbr_casinos as $_casino => $_cas)
       <?php
-        $total = $dataf($_casino,$año_anterior,0);
+        $total = $dataf($_casino,$año-1,0);
         $canon_fisico = $formatear_decimal($total->canon_fisico ?? null);
         $canon_online = $formatear_decimal($total->canon_online ?? null);
         $canon  = $formatear_decimal($total->canon ?? null);

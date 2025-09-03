@@ -20,7 +20,7 @@
     <table style="width: 100%;table-layout: fixed">
       <colgroup>
         <col class="mes">
-        @foreach($casinos as $_casino)
+        @foreach($abbr_casinos as $_cas)
         <col class="canon_total">
         @endforeach
         <col class="variacion_canon_yoy">
@@ -28,21 +28,21 @@
       </colgroup>
       <thead>
         <tr>
-          <th colspan="{{3+count($casinos)}}" style="text-align: center;">Canon Total Casinos - {{$año}} -</th>
+          <th colspan="{{3+count($abbr_casinos)}}" style="text-align: center;">Canon Total Casinos - {{$año}} -</th>
         </tr>
         <tr>
           <th class="mes" style="border-right: 1px solid black;">MESES</th>
           @foreach($abbr_casinos as $_cas)
           <th class="canon_total {{$_cas}}">{{$_cas}}</th>
           @endforeach
-          <th class="variacion_canon_yoy">{{$año}}/{{$año_anterior}}</th>
+          <th class="variacion_canon_yoy">{{$año}}/{{$año-1}}</th>
           <th class="variacion_canon_mom">Dif. Mes Ant.</th>
         </tr>
         <tr>
-          <th class="mes celda_especial" style="border-right: 1px solid black;">{{$año_anterior}}</th>
+          <th class="mes celda_especial" style="border-right: 1px solid black;">{{$año-1}}</th>
           @foreach($abbr_casinos as $_casino => $_cas)
           <?php
-            $total = $dataf($_casino,$año_anterior,0);
+            $total = $dataf($_casino,$año-1,0);
             $canon = $formatear_decimal($total->canon ?? null);
           ?>
           <th class="canon {{$_cas}} {{$N($canon)}}" style="text-align: right;">{{$canon}}</th>
@@ -55,7 +55,7 @@
         @for($_nmes=1;$_nmes<=12;$_nmes++)
         <tr>
           <th class="mes" style="border-right: 1px solid black">{{$meses_calendario[$_nmes]}}</th>
-          @foreach($casinos as $_casino)
+          @foreach($abbr_casinos as $_casino => $_cas)
           <?php 
             $c = $dataf($_casino,$año,$_nmes);
             $canon = $formatear_decimal($c->canon ?? null);

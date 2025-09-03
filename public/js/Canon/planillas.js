@@ -40,9 +40,7 @@ $(document).ready(function() {
     const selector = tgt.attr('data-js-click-descargar-tabla') ?? null;
     if(selector === null || selector.length == 0) return;
     const div = $(selector);
-    const nombre_planilla = (nombre_archivo?.length? nombre_archivo : '')
-    + (fecha_planilla?.length? ('_'+fecha_planilla) : '')
-    + '.xlsx';
+    const nombre_planilla = nombre_archivo + '.xlsx';
     
     const table = div.find('table')?.[0] ?? null;
     if(table) DescargarTable.exportToExcel(
@@ -56,10 +54,8 @@ $(document).ready(function() {
     colors: colors
   });
 
-  const url = new URL(window.location.href);
-  const planilla = url.searchParams.get('planilla');
-  const año = url.searchParams.get('año');
-  if(planilla == 'canon_total'){
+  const parametros = Object.fromEntries(new URL(window.location.href).searchParams.entries());
+  if(parametros?.planilla == 'canon_total' && parametros?.año){
     const data_series_anual = {
       name: 'Anual',
       data: []
@@ -73,7 +69,7 @@ $(document).ready(function() {
       if(cas == 'Total') continue;
       const cidx = colorIndex[cas];
       
-      const canon_anual = data[cas]?.[año]?.[0]?.canon ?? null;
+      const canon_anual = data[cas]?.[parametros.año]?.[0]?.canon ?? null;
       data_series_anual.data.push({
         name: cas,
         colorIndex: cidx,
@@ -86,7 +82,7 @@ $(document).ready(function() {
         colorIndex: cidx
       };
       for(let m=1;m<=12;m++){
-        const canon_mensual = data[cas]?.[año]?.[m]?.canon ?? null;
+        const canon_mensual = data[cas]?.[parametros.año]?.[m]?.canon ?? null;
         cas_mensual.data.push({
           name: meses[m],
           y: canon_mensual !== null? parseFloat(canon_mensual) : null
@@ -100,7 +96,7 @@ $(document).ready(function() {
         type: 'pie'
       },
       title: { 
-        text: 'Canon Total Casinos '+año, 
+        text: 'Canon Total Casinos '+parametros.año, 
         style: {
           fontWeight: 'bold'
         }
@@ -140,7 +136,7 @@ $(document).ready(function() {
         type: 'line'
       },
       title: {
-        text: 'Evolución Canon Por Mes Por Casino '+año
+        text: 'Evolución Canon Por Mes Por Casino '+parametros.año
       },
       xAxis: {
         title: {
