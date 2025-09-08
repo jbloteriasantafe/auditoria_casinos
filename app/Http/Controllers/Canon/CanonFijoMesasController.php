@@ -68,6 +68,7 @@ class CanonFijoMesasController extends Controller
   
   public function recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$accessors){
     extract($accessors);
+    $año_mes_arr = explode('-',$año_mes);
     
     $valor_dolar = $COT('valor_dolar');//@RETORNADO
     $valor_euro  = $COT('valor_euro');//@RETORNADO
@@ -116,7 +117,6 @@ class CanonFijoMesasController extends Controller
       $calcular_dias_todos = $D('calcular_dias_todos',true);
       //@SPEED: unset K si no hay que calcular?
       if($calcular_dias_lunes_jueves || $calcular_dias_viernes_sabados || $calcular_dias_domingos || $calcular_dias_todos){
-        $año_mes_arr = explode('-',$año_mes);
         $dias_en_el_mes = cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
         for($d=1;$d<=$dias_en_el_mes;$d++){
           $año_mes_arr[2] = $d;
@@ -227,6 +227,9 @@ class CanonFijoMesasController extends Controller
     ];
     $accesors_diario['RA'] = AUX::combine_accessors($accesors_diario['R'],$accesors_diario['A']);
     
+    $dias = cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
+    $factor_ajuste_diario_fijas = $tipo == 'Fijas'? bcdiv('30',$dias,12) : '1';
+    
     $diario = $this->recalcular_diario(
       $año_mes,$id_casino,$es_antiguo,$tipo,
       $accesors_diario,
@@ -234,28 +237,20 @@ class CanonFijoMesasController extends Controller
       $mesas_viernes_sabados,
       $mesas_domingos,
       $mesas_todos,
-      $mesas_fijos
+      $mesas_fijos,
+      $dias,
+      $factor_ajuste_diario_fijas,
+      $dias_valor,$factor_dias_valor,
+      $valor_euro,$valor_dolar,
+      $valor_euro_diario,$valor_dolar_diario
     )['diario'] ?? [];//@RETORNADO
-        
-    $sumar = [//SE RETORNAN
-      'mesas_habilitadas','mesas_usadas_ARS','mesas_usadas_USD','mesas_usadas',
-      'bruto_ARS','bruto_USD','bruto_USD_cotizado'
-    ];
-    
-    $aux = [];
-    
-    foreach($diario as $d){
-      foreach($sumar as $attr){
-        $aux[$attr] = bcadd_precise($d[$attr],$aux[$attr] ?? '0');
-      }
-    }
     
     $ret = compact(
       'tipo','dias_valor','factor_dias_valor','valor_dolar','valor_euro',
       'valor_dolar_diario','valor_euro_diario',
       'dias_lunes_jueves','mesas_lunes_jueves','dias_viernes_sabados','mesas_viernes_sabados',
       'dias_domingos','mesas_domingos','dias_todos','mesas_todos','dias_fijos','mesas_fijos',
-      'mesas_dias',
+      'mesas_dias','factor_ajuste_diario_fijas',
       'devengar',
       'devengado_fecha_cotizacion','devengado_cotizacion_dolar','devengado_cotizacion_euro',
       'devengado_valor_dolar_cotizado','devengado_valor_euro_cotizado',
@@ -269,21 +264,11 @@ class CanonFijoMesasController extends Controller
       'determinado_total_dolar_cotizado','determinado_total_euro_cotizado','determinado_total',
       'determinado_ajuste','determinado',
       
-      'mesas_usadas_ARS',
-      'mesas_usadas_USD',
-      'mesas_usadas',
-      'bruto_ARS',
-      'bruto_USD',
-      'bruto_USD_cotizado',
       'bruto',
       'diario',
       'errores'
     );
-      
-    foreach($sumar as $attr){
-      $ret[$attr] = $aux[$attr] ?? null;
-    }
-    
+        
     return $ret;
   }
   
@@ -294,13 +279,17 @@ class CanonFijoMesasController extends Controller
     $mesas_viernes_sabados,
     $mesas_domingos,
     $mesas_todos,
-    $mesas_fijos
+    $mesas_fijos,
+    $dias,
+    $factor_ajuste_diario_fijas,
+    $dias_valor,$factor_dias_valor,
+    $valor_euro,$valor_dolar,
+    $valor_euro_diario,$valor_dolar_diario
   ){
     static $cotizaciones = [];//voy guardando por si cambia alguna ya cambia todas...
     extract($accessors);
     
     $año_mes = explode('-',$año_mes);
-    $dias = cal_days_in_month(CAL_GREGORIAN,intval($año_mes[1]),intval($año_mes[0]));
     $dias_semana = ['Do','Lu','Ma','Mi','Ju','Vi','Sa'];
     $mesas_semana = [
       $mesas_domingos+$mesas_todos+$mesas_fijos,//Si mesas fijos != 0 las otras son 0 y viceversa
@@ -313,10 +302,13 @@ class CanonFijoMesasController extends Controller
     ];
     
     $diario = [];
-    
+    $mesas_habilitadas_acumuladas = 0;
     for($dia=1;$dia<=$dias;$dia++){
       $D = AUX::make_accessor($R($dia,[]));
       $fecha = implode('-',[$año_mes[0],$año_mes[1],str_pad($dia,2,'0',STR_PAD_LEFT)]);
+      $cotizacion_dolar = AUX::get_cotizacion_sesion($fecha,2) ?? '0';
+      $cotizacion_euro  = AUX::get_cotizacion_sesion($fecha,3) ?? '0';
+      
       $bruto = $this->bruto($tipo,$fecha,$id_casino,true);
       
       $idx_dia_semana = (new \DateTime($fecha))->format('w');
@@ -326,12 +318,23 @@ class CanonFijoMesasController extends Controller
       $bruto_ARS = $D('bruto_ARS',$bruto->bruto_ARS ?? '0');
       $mesas_usadas_USD = $D('mesas_usadas_USD',$bruto->mesas_USD ?? 0);
       $bruto_USD = $D('bruto_USD',$bruto->bruto_USD ?? '0');
-      $cotizacion = $bruto->cotizacion ?? '0';
-      $bruto_USD_cotizado = bcmul($bruto_USD,$cotizacion,4);
+      $bruto_USD_cotizado = bcmul($bruto_USD,$cotizacion_dolar,4);
       $mesas_usadas = bcadd_precise($mesas_usadas_ARS,$mesas_usadas_USD);
       $bruto = bcadd($bruto_ARS,$bruto_USD_cotizado,4);
+      
+      $mesas_habilitadas_acumuladas += $mesas_habilitadas;
+      $valor_euro_diario_cotizado  = bcmul_precise($valor_euro_diario,$cotizacion_euro);
+      $valor_dolar_diario_cotizado = bcmul_precise($valor_dolar_diario,$cotizacion_dolar);
+      $valor_diario = bcadd_precise($valor_euro_diario_cotizado,$valor_dolar_diario_cotizado);
+      //@TODO: agregar precision con MOD dias_valor
+      $devengado_determinado_acumulado = bcmul_precise($mesas_habilitadas_acumuladas,$valor_diario);
+      $devengado_determinado_acumulado = bcmul_precise($factor_ajuste_diario_fijas,$devengado_determinado_acumulado);
+      
       $diario[$dia] = compact(
-        'dia','fecha','dia_semana',
+        'dia','fecha',
+        'cotizacion_euro',
+        'cotizacion_dolar',
+        'dia_semana',
         'mesas_habilitadas',
         'mesas_usadas_ARS',
         'bruto_ARS',
@@ -340,7 +343,19 @@ class CanonFijoMesasController extends Controller
         'cotizacion',
         'bruto_USD_cotizado',
         'mesas_usadas',
-        'bruto'
+        'bruto',
+        'valor_euro',
+        'valor_dolar',
+        'dias_valor',
+        'factor_dias_valor',
+        'valor_euro_diario',
+        'valor_dolar_diario',
+        'mesas_habilitadas_acumuladas',
+        'valor_euro_diario_cotizado',
+        'valor_dolar_diario_cotizado',
+        'valor_diario',
+        'factor_ajuste_diario_fijas',
+        'devengado_determinado_acumulado'
       );
     }
     

@@ -207,9 +207,11 @@ class CanonController extends Controller
     if($COT['canon_cotizacion_diaria'] !== null){
       $año_mes_str = substr($año_mes,0,strlen('XXXX-XX-'));
       foreach($COT['canon_cotizacion_diaria'] as $d => &$cot){
-        $f = $año_mes.str_pad($d,2,'0',STR_PAD_LEFT);
+        $f = $año_mes_str.str_pad($d,2,'0',STR_PAD_LEFT);
         $cot['USD'] = $cot['USD'] ?? AUX::cotizacion($f,2,$id_casino) ?? '0';
         $cot['EUR'] = $cot['EUR'] ?? AUX::cotizacion($f,3,$id_casino) ?? '0';
+        AUX::set_cotizacion_sesion($f,2,$cot['USD']);
+        AUX::set_cotizacion_sesion($f,3,$cot['EUR']);
       }
     }
     
@@ -315,7 +317,7 @@ class CanonController extends Controller
     $ret = array_merge($ret,$subcanons);
     $ret = array_merge($ret,$this->canon_archivo->recalcular($id_casino,$año_mes,$principal,$R));
     $ret = array_merge($ret,$this->confluir($ret));
-    
+    $ret = array_merge($ret,$COT);//@HACK: confluir no deberia devolverlo bien?
     return $ret;
   }
   
@@ -1443,15 +1445,14 @@ class CanonController extends Controller
     ->orderBy("$tname2.año",'asc')
     ->orderBy("$tname2.mes",'asc')
     ->get()
-    : collect([]);
-    
-    $data = $data->groupBy('casino')
+    ->groupBy('casino')
     ->map(function($d_cas){
       return $d_cas->groupBy('año')
       ->map(function($d_cas_año){
         return $d_cas_año->keyBy('mes');
       });
-    });
+    })
+    : collect([]);
     
     $relacion_plat_cas = ['CCO' => 'Rosario','BPLAY' => $SFE_MEL];
     

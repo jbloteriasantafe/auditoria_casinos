@@ -146,19 +146,20 @@ class AUX {
           $cas_where
         )";
       };
-      $tfd = function($sc,$devdet) use ($id_casino) {
+      
+      $tfd = function($sc) use ($id_casino) {
         $cas_where = empty($id_casino)? '' : "WHERE c.id_casino <> $id_casino";
         $sel = null;
         if($sc == 'canon_variable'){
           $sel = "
-            scd.{$devdet}_cotizacion_dolar as dolar,
+            scd.cotizacion_dolar as dolar,
             NULL as euro
           ";
         }
         else if($sc == 'canon_fijo_mesas' || $sc == 'canon_fijo_mesas_adicionales'){
           $sel = "
-            scd.{$devdet}_cotizacion_dolar as dolar,
-            scd.{$devdet}_cotizacion_euro as euro
+            scd.cotizacion_dolar as dolar,
+            scd.cotizacion_euro as euro
           ";
         }
         else{
@@ -200,15 +201,11 @@ class AUX {
         UNION
         {$tf('canon_fijo_mesas_adicionales','determinado')}
         UNION
-        {$tfd('canon_variable','devengado')}
+        {$tfd('canon_variable')}
         UNION
-        {$tfd('canon_fijo_mesas','devengado')}
+        {$tfd('canon_fijo_mesas')}
         UNION
-        {$tfd('canon_fijo_mesas','determinado')}
-        UNION
-        {$tfd('canon_fijo_mesas_adicionales','devengado')}
-        UNION
-        {$tfd('canon_fijo_mesas_adicionales','determinado')}
+        {$tfd('canon_fijo_mesas_adicionales')}
       ) as aux
       GROUP BY aux.fecha
       ORDER BY aux.fecha DESC");
@@ -240,7 +237,7 @@ class AUX {
     return $cot ?? '0';
   }
   
-  private static $cotizacion_sesion_DB = [];
+  public static $cotizacion_sesion_DB = [];
   public static function get_cotizacion_sesion($fecha_cotizacion,$id_tipo_moneda){
     self::$cotizacion_sesion_DB[$fecha_cotizacion] = self::$cotizacion_sesion_DB[$fecha_cotizacion] ?? [];
     self::$cotizacion_sesion_DB[$fecha_cotizacion][$id_tipo_moneda] = self::$cotizacion_sesion_DB[$fecha_cotizacion][$id_tipo_moneda] ?? null;

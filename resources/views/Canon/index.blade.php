@@ -439,6 +439,10 @@
     border-left: 1px solid black;
   }
   
+  .VerCargarCanon[data-con-diario="1"] .data-css-visible-sin-diario {
+    display: none;
+  }
+  
   .loading_screen {
     z-index: 1060;
     background: rgba(0,0,0,0.2);
@@ -509,7 +513,13 @@
           data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
           <option value="0" selected>NO</option>
           <option value="1">SI</option>
-        </select>      
+        </select>
+      </div>
+      <div>
+        <h5>&nbsp;</h5>
+        <button type="button" class="btn data-css-visible-sin-diario" data-js-generar-diario>
+          <b>GENERAR DIARIO</b>
+        </button>
       </div>
       <div hidden>
         <input name="id_canon" class="form-control" data-readonly='[{"modo":"*"}]'>

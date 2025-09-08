@@ -4,9 +4,7 @@
   foreach([
     'tipo','id_canon_fijo_mesas',
     'dias_valor','factor_dias_valor','valor_dolar_diario','valor_euro_diario',
-    'mesas_usadas_ARS','bruto_ARS',
-    'mesas_usadas_USD','bruto_USD',
-    'mesas_usadas','bruto',
+    'bruto',
     'dias_lunes_jueves','mesas_lunes_jueves',
     'dias_viernes_sabados','mesas_viernes_sabados',
     'dias_domingos','mesas_domingos',
@@ -34,8 +32,7 @@
   foreach([
     'dia','bruto_ARS','bruto_USD','bruto','dia_semana',
     'mesas_habilitadas','mesas_habilitadas_acumuladas',
-    'devengado_valor_diario','devengado_total',
-    'determinado_valor_diario','determinado_total'
+    'valor_diario','devengado_determinado_acumulado'
   ] as $varname){
     $varname_php = 'd_'.$varname;
     $$varname_php = "canon_fijo_mesas[$molde_str][diario][$molde_str_diario][$varname]";
@@ -220,25 +217,18 @@
             @section('colgroupCF')
             <colgroup>
               <col style="width: 4%;">
-              <col style="width: 12%;">
-              <col style="width: 12%;">
-              <col style="width: 12%;">
-              <col style="width: 6%;">
-              <col style="width: 7%;">
-              <col style="width: 7%;">
-              <col style="width: 8%;">
-              <col style="width: 12%;">
-              <col style="width: 8%;">
-              <col style="width: 12%;">
+              <col style="width: 14.5%;">
+              <col style="width: 14.5%;">
+              <col style="width: 14.5%;">
+              <col style="width: 8.5%;">
+              <col style="width: 9.5%;">
+              <col style="width: 9.5%;">
+              <col style="width: 10.5%;">
+              <col style="width: 14.5%;">
             </colgroup>
             @endsection
             @yield('colgroupCF')
             <thead>
-              <tr>
-                <th style="text-align: center;" colspan="7">&nbsp;</th>
-                <th style="text-align: center;" colspan="2">Devengado</th>
-                <th style="text-align: center;" colspan="2">Determinado</th>
-              </tr>
               <tr>
                 <th style="text-align: center;">Día</th>
                 <th style="text-align: center;">Bruto ARS</th>
@@ -248,9 +238,7 @@
                 <th style="text-align: center;">Mesas Hab.</th>
                 <th style="text-align: center;">Mesas Hab. (acumulado)</th>
                 <th style="text-align: center;">Valor Diario</th>
-                <th style="text-align: center;">Total</th>
-                <th style="text-align: center;">Valor Diario</th>
-                <th style="text-align: center;">Total</th>
+                <th style="text-align: center;">Total (acumulado)</th>
               </tr>
             </thead>
           </table>
@@ -272,10 +260,8 @@
                 <td><input class="form-control" data-name="{{$d_dia_semana}}" readonly></td>
                 <td><input class="form-control" data-name="{{$d_mesas_habilitadas}}" readonly></td>
                 <td><input class="form-control" data-name="{{$d_mesas_habilitadas_acumuladas}}" readonly></td>
-                <td><input class="form-control" data-name="{{$d_devengado_valor_diario}}" readonly></td>
-                <td><input class="form-control" data-name="{{$d_devengado_total}}" readonly></td>
-                <td><input class="form-control" data-name="{{$d_determinado_valor_diario}}" readonly></td>
-                <td><input class="form-control" data-name="{{$d_determinado_total}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_valor_diario}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_devengado_determinado_acumulado}}" readonly></td>
               </tr>
             </table>
           </div>
@@ -285,13 +271,9 @@
             @yield('colgroupCF')
             <tbody>
               <tr class="fila-mensual">
-                <td>&nbsp;</td>
-                <td><input class="form-control" data-name="{{$bruto_ARS}}" readonly></td>
-                <td><input class="form-control" data-name="{{$bruto_USD}}" readonly></td>
+                <td colspan="3">&nbsp;</td>
                 <td><input class="form-control" data-name="{{$bruto}}" readonly></td>
-                <td colspan="2">&nbsp;</td>
-                <td><input class="form-control" data-name="{{$mesas_habilitadas_acumuladas}}" readonly></td>
-                <td colspan="4">&nbsp;</td>
+                <td colspan="7">&nbsp;</td>
               </tr>
             </tbody>
           </table>

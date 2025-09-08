@@ -293,6 +293,13 @@ $(document).ready(function() {
       llenarPestaña(form.find('[data-adjuntos]'),canon?.canon_archivo ?? {},dias,true);
       llenarPestaña(form.find('[data-total] [data-pagos]'),canon?.canon_pago ?? [],dias,true);
       
+      let con_diario = true;
+      //early break lo hace bastante feo al codigo para poca o nula optimizacion
+      for(const sc of ['canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales'])
+      for(const tipo in (canon?.[sc] ?? {}))
+        con_diario = con_diario && (Object.keys(canon?.[sc]?.[tipo]?.diario ?? {}).length > 0);
+      
+      M.attr('data-con-diario',con_diario+0);
       M.attr('data-render',0);
       fill(M,null,canon);
       setReadonly(M);
