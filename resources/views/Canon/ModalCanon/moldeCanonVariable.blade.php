@@ -28,24 +28,6 @@
     $mstrd = $mstrd ?? $molde_str_diario;
     return "canon_variable[$mstr][diario][$mstrd][$s]";
   };
-  
-  $devengado_apostado_sistema_ARS = $n('devengado_apostado_sistema_ARS');
-  $devengado_apostado_sistema_USD = $n('devengado_apostado_sistema_USD');
-  $devengado_apostado_sistema = $n('devengado_apostado_sistema');
-  $devengado_base_imponible = $n('devengado_base_imponible');
-  $devengado_impuesto = $n('devengado_impuesto');
-  $devengado_bruto_ARS = $n('devengado_bruto_USD');
-  $devengado_bruto_USD = $n('devengado_bruto_USD');
-  $devengado_bruto = $n('devengado_bruto');
-  $devengado_subtotal = $n('devengado_subtotal');
-  $devengado_total = $n('devengado_total');
-  
-  $determinado_impuesto = $n('determinado_impuesto');
-  $determinado_bruto_ARS = $n('determinado_bruto_ARS');
-  $determinado_bruto_USD = $n('determinado_bruto_USD');
-  $determinado_bruto = $n('determinado_bruto');
-  $determinado_subtotal = $n('determinado_subtotal');
-  $determinado_total = $n('determinado_total');
 ?>
 <div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder_subcanon">
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
@@ -148,14 +130,11 @@
             @yield('colgroupCV')
             <tbody>
               <tr class="fila-mensual">
-                <td>&nbsp;</td>
-                <td><input class="form-control" data-name="{{$devengado_apostado_sistema_ARS}}" readonly></td>
-                <td><input class="form-control" data-name="{{$devengado_apostado_sistema_USD}}" readonly></td>
+                <td class="celda_vacia" colspan="3">&nbsp;</td>
                 <td><input class="form-control" data-name="{{$devengado_apostado_sistema}}" readonly></td>
                 <td><input class="form-control" data-name="{{$devengado_base_imponible}}" readonly></td>
                 <td><input class="form-control" data-name="{{$devengado_impuesto}}" readonly></td>
-                <td><input class="form-control" data-name="{{$devengado_bruto_ARS}}" readonly></td>
-                <td><input class="form-control" data-name="{{$devengado_bruto_USD}}" readonly></td>
+                <td class="celda_vacia" colspan="2">&nbsp;</td>
                 <td><input class="form-control" data-name="{{$devengado_bruto}}" readonly></td>
                 <td><input class="form-control" data-name="{{$devengado_subtotal}}" readonly></td>
                 <td><input class="form-control" data-name="{{$devengado_total}}" readonly></td>
@@ -233,8 +212,7 @@
               <tr class="fila-mensual">
                 <td class="celda_vacia" colspan="5">&nbsp;</td>
                 <td><input class="form-control" data-name="{{$determinado_impuesto}}"></td>
-                <td><input class="form-control" data-name="{{$determinado_bruto_ARS}}" readonly></td>
-                <td><input class="form-control" data-name="{{$determinado_bruto_USD}}" readonly></td>
+                <td class="celda_vacia"  colspan="2">&nbsp;</td>
                 <td><input class="form-control" data-name="{{$determinado_bruto}}" readonly></td>
                 <td><input class="form-control" data-name="{{$determinado_subtotal}}" readonly></td>
                 <td><input class="form-control" data-name="{{$determinado_total}}" readonly></td>

@@ -73,48 +73,7 @@ class CanonVariableController extends Controller
     extract($accessors);
     
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
-    $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema',$this->apostado($tipo,$año_mes,$id_casino)->apostado),'0',2);//@RETORNADO    
-    $devengado_apostado_porcentaje_aplicable = bcadd($RD('devengado_apostado_porcentaje_aplicable','0.0000'),'0',4);//@RETORNADO
-    $factor_apostado_porcentaje_aplicable = bcdiv($devengado_apostado_porcentaje_aplicable,'100',6);
-    
-    $devengado_base_imponible = bcmul($devengado_apostado_sistema,$factor_apostado_porcentaje_aplicable,8);//2+6 @RETORNADO
-    
-    $devengado_apostado_porcentaje_impuesto_ley = bcadd($RD('devengado_apostado_porcentaje_impuesto_ley','0.0000'),'0',4);//@RETORNADO
-    $factor_apostado_porcentaje_impuesto_ley = bcdiv($devengado_apostado_porcentaje_impuesto_ley,'100',6);
-    
-    $devengado_impuesto   = bcmul($devengado_base_imponible,$factor_apostado_porcentaje_impuesto_ley,14);//8+6 @RETORNADO
-    $determinado_impuesto =  bcadd($R('determinado_impuesto','0.00'),'0',14);//@RETORNADO
-    
-    $devengado_bruto   = $R('devengado_bruto',null);//@RETORNADO
-    $determinado_bruto = $R('determinado_bruto',null);//@RETORNADO
-    if($devengado_bruto === null || $determinado_bruto === null){
-      $bruto = $this->bruto($tipo,$año_mes,$id_casino);
-      $devengado_bruto   = $devengado_bruto   ?? $bruto->bruto;
-      $determinado_bruto = $determinado_bruto ?? $bruto->bruto;
-    }
-    
-    $devengado_bruto   = bcadd($devengado_bruto,'0',2);
-    $determinado_bruto = bcadd($determinado_bruto,'0',2);
-    
-    $devengado_subtotal   = bcsub($devengado_bruto,$devengado_impuesto,14);//@RETORNADO
-    $determinado_subtotal = bcsub($determinado_bruto,$determinado_impuesto,14);//@RETORNADO
-    
-    $alicuota = bcadd($RD('alicuota','0.0000'),'0',4);//@RETORNADO
-    $factor_alicuota = bcdiv($alicuota,'100',6);
-    
-    $devengado_total   =  bcmul($devengado_subtotal,$factor_alicuota,20);//6+14 @RETORNADO
-    $determinado_total =  bcmul($determinado_subtotal,$factor_alicuota,20);//6+14 @RETORNADO
-    $devengado_deduccion = bcadd($RAD('devengado_deduccion','0.00'),'0',2);
-    $determinado_ajuste  = bcadd($RD('determinado_ajuste','0.00'),'0',20);
-    
-    if($es_antiguo){
-      $devengado_total = $R('devengado_total',$devengado_total);
-      $determinado_total = $R('determinado_total',$determinado_total);
-    }
-    
-    $devengado = bcsub($devengado_total,$devengado_deduccion,20);
-    $determinado = bcadd($determinado_total,$determinado_ajuste,20);
-    
+      
     $accesors_diario = [
       'R' => AUX::make_accessor($R('diario',[])),
       'A' => AUX::make_accessor($A('diario',[])),
@@ -122,42 +81,81 @@ class CanonVariableController extends Controller
     ];
     $accesors_diario['RA'] = AUX::combine_accessors($accesors_diario['R'],$accesors_diario['A']);
     
+    $devengado_apostado_porcentaje_aplicable = bcadd($RD('devengado_apostado_porcentaje_aplicable','0.0000'),'0',4);//@RETORNADO
+    $factor_apostado_porcentaje_aplicable = bcdiv($devengado_apostado_porcentaje_aplicable,'100',6);
+    
+    $devengado_apostado_porcentaje_impuesto_ley = bcadd($RD('devengado_apostado_porcentaje_impuesto_ley','0.0000'),'0',4);//@RETORNADO
+    $factor_apostado_porcentaje_impuesto_ley = bcdiv($devengado_apostado_porcentaje_impuesto_ley,'100',6);
+    
+    $alicuota = bcadd($RD('alicuota','0.0000'),'0',4);//@RETORNADO
+    $factor_alicuota = bcdiv($alicuota,'100',6);
+    
+    $año_mes_arr = explode('-',$año_mes);
+    $dias = empty($año_mes)? 0 : cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
+    
     $diario = $this->recalcular_diario(
-      $año_mes,$id_casino,$es_antiguo,$tipo,
+      $año_mes,$id_casino,$es_antiguo,$tipo,$dias,
       $factor_apostado_porcentaje_aplicable,$factor_apostado_porcentaje_impuesto_ley,$factor_alicuota,
       $accesors_diario
     )['diario'] ?? [];//@RETORNADO
     
-    $sumar = [
-      'devengado_apostado_sistema_ARS','devengado_apostado_sistema_USD','devengado_apostado_sistema_USD_cotizado',
-      'devengado_bruto_ARS','devengado_bruto_USD','devengado_bruto_USD_cotizado',
-      'determinado_bruto_ARS','determinado_bruto_USD','determinado_bruto_USD_cotizado',
-    ];
+    $devengado_apostado_sistema = '0';
+    $devengado_base_imponible   = '0';
+    $devengado_impuesto         = '0';
+    $determinado_impuesto       = '0';
+    $devengado_bruto            = '0';
+    $determinado_bruto          = '0';
+    $devengado_bruto            = '0';
+    $determinado_bruto          = '0';
+    $devengado_subtotal         = '0';
+    $determinado_subtotal       = '0';
+    $devengado_total            = '0';
+    $determinado_total          = '0';
     
-    $comparar = [
-      'devengado_apostado_sistema','devengado_base_imponible',
-      'devengado_bruto','devengado_impuesto','devengado_subtotal','devengado_total',
-      'determinado_bruto','determinado_impuesto','determinado_subtotal','determinado_total'
-    ];
-    
-    $aux = [];
-    
-    foreach($diario as $d){
-      foreach($sumar as $attr){
-        $aux[$attr] = bcadd_precise($d[$attr],$aux[$attr] ?? '0');
+    if(empty($diario)){
+      $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema',$this->apostado($tipo,$año_mes,$id_casino)->apostado),'0',2);//@RETORNADO    
+      $devengado_base_imponible = bcmul($devengado_apostado_sistema,$factor_apostado_porcentaje_aplicable,8);//2+6 @RETORNADO
+      $devengado_impuesto   = bcmul($devengado_base_imponible,$factor_apostado_porcentaje_impuesto_ley,14);//8+6 @RETORNADO
+      $determinado_impuesto =  bcadd($R('determinado_impuesto','0.00'),'0',14);//@RETORNADO
+      
+      $devengado_bruto   = $R('devengado_bruto',null);//@RETORNADO
+      $determinado_bruto = $R('determinado_bruto',null);//@RETORNADO
+      if($devengado_bruto === null || $determinado_bruto === null){
+        $bruto = $this->bruto($tipo,$año_mes,$id_casino);
+        $devengado_bruto   = $devengado_bruto   ?? $bruto->bruto;
+        $determinado_bruto = $determinado_bruto ?? $bruto->bruto;
       }
-      foreach($comparar as $attr){
-        $aux[$attr] = bcadd_precise($d[$attr],$aux[$attr] ?? '0');
+      $devengado_bruto   = bcadd($devengado_bruto,'0',2);
+      $determinado_bruto = bcadd($determinado_bruto,'0',2);
+      
+      $devengado_subtotal   = bcsub($devengado_bruto,$devengado_impuesto,14);//@RETORNADO
+      $determinado_subtotal = bcsub($determinado_bruto,$determinado_impuesto,14);//@RETORNADO
+      
+      $devengado_total   =  bcmul($devengado_subtotal,$factor_alicuota,20);//6+14 @RETORNADO
+      $determinado_total =  bcmul($determinado_subtotal,$factor_alicuota,20);//6+14 @RETORNADO
+    }
+    else{
+      foreach($diario as $d){
+        foreach([
+            'devengado_apostado_sistema','devengado_base_imponible',
+            'devengado_impuesto','devengado_bruto','determinado_bruto',
+            'devengado_subtotal','determinado_subtotal','devengado_total','determinado_total'
+        ] as $var){
+          $$var = bcadd_precise($$var,$d[$var] ?? '0');
+        }        
       }
     }
-    
-    $errores = [];//@RETORNADO   
-    foreach($comparar as $attr){    
-      if(bccomp_precise($$attr,$aux[$attr] ?? null)){//$$ dereferencia el string por lo que tiene que existir una variable con ese valor
-        $errores[] = $attr;
-      }
+
+    if($es_antiguo){
+      $devengado_total = $R('devengado_total',$devengado_total);
+      $determinado_total = $R('determinado_total',$determinado_total);
     }
+    $devengado_deduccion = bcadd($RAD('devengado_deduccion','0.00'),'0',2);
+    $determinado_ajuste  = bcadd($RD('determinado_ajuste','0.00'),'0',20);
     
+    $devengado = bcsub($devengado_total,$devengado_deduccion,20);
+    $determinado = bcadd($determinado_total,$determinado_ajuste,20);
+        
     $ret = compact('tipo',
       'alicuota','devengar',
       'devengado_apostado_sistema','devengado_apostado_porcentaje_aplicable','devengado_base_imponible',
@@ -168,29 +166,24 @@ class CanonVariableController extends Controller
       'determinado',
       'diario','errores','canon_cotizacion_diaria'
     );
-      
-    foreach($sumar as $attr){
-      $ret[$attr] = $aux[$attr] ?? null;
-    }
     
     return $ret;
   }
   
   private function recalcular_diario(
-    $año_mes,$id_casino,$es_antiguo,$tipo,
+    $año_mes,$id_casino,$es_antiguo,$tipo,$dias,
     $factor_apostado_porcentaje_aplicable,$factor_apostado_porcentaje_impuesto_ley,$factor_alicuota,
     $accessors
   ){
     extract($accessors);
     
-    $año_mes = explode('-',$año_mes);
-    $dias = cal_days_in_month(CAL_GREGORIAN,intval($año_mes[1]),intval($año_mes[0]));
+    $año_mes_str = substr($año_mes,0,strlen('XXXX-XX-'));
     
     $diario = [];
     
     for($dia=1;$dia<=$dias;$dia++){
       $D = AUX::make_accessor($R($dia,[]));
-      $fecha = implode('-',[$año_mes[0],$año_mes[1],str_pad($dia,2,'0',STR_PAD_LEFT)]);
+      $fecha = $año_mes_str.str_pad($dia,2,'0',STR_PAD_LEFT);
       $apostado = $this->apostado($tipo,$fecha,$id_casino,true);
       $bruto    = $this->bruto($tipo,$fecha,$id_casino,true);
       
@@ -199,7 +192,7 @@ class CanonVariableController extends Controller
       $devengado_bruto_ARS = bcadd($D('devengado_bruto_ARS',$bruto->bruto_ARS),'0',2);//@RETORNADO    
       $devengado_bruto_USD = bcadd($D('devengado_bruto_USD',$bruto->bruto_USD),'0',2);//@RETORNADO    
       
-      $devengado_cotizacion = bcadd(AUX::get_cotizacion_sesion($fecha,2) ?? $D('devengado_cotizacion',$apostado->cotizacion),'0',2);//@RETORNADO    
+      $devengado_cotizacion = AUX::get_cotizacion_sesion($fecha,2) ?? '0';//@RETORNADO    
       $cotizaciones[$fecha] = $devengado_cotizacion;
       AUX::set_cotizacion_sesion($fecha,2,$devengado_cotizacion);
       
