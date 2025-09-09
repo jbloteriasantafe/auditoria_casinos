@@ -195,31 +195,8 @@ class CanonFijoMesasController extends Controller
       $determinado_total_dolar_cotizado = bcadd($determinado_total_dolar_cotizado,bcmul($determinado_valor_dolar_diario_cotizado,$mesas_dias_restantes,16),16);
       $determinado_total_euro_cotizado  = bcadd($determinado_total_euro_cotizado,bcmul($determinado_valor_euro_diario_cotizado,$mesas_dias_restantes,16),16);
     }
-    
-    $devengado_deduccion = bcadd($RAD('devengado_deduccion','0.00'),'0',2);//@RETORNADO
-    $determinado_ajuste  = bcadd($RD('determinado_ajuste','0.00'),'0',16);//@RETORNADO
-    $devengado_total   = bcadd($devengado_total_dolar_cotizado,$devengado_total_euro_cotizado,16);//@RETORNADO
-    $determinado_total = bcadd($determinado_total_dolar_cotizado,$determinado_total_euro_cotizado,16);//@RETORNADO
-    
-    $bruto = $this->bruto($tipo,$año_mes,$id_casino);
-    $mesas_usadas_ARS = $bruto->mesas_ARS;
-    $mesas_usadas_USD = $bruto->mesas_USD;
-    $mesas_usadas = $bruto->mesas;
-    $bruto_ARS = $bruto->bruto_ARS;
-    $bruto_USD = $bruto->bruto_USD;
-    $bruto_USD_cotizado = $bruto->bruto_USD_cotizado;
-    $bruto = $bruto->bruto;
-    
-    $bruto = bcadd($R('bruto',$this->bruto($tipo,$año_mes,$id_casino)->bruto),'0',2);//@RETORNADO
-
-    if($es_antiguo){
-      $devengado_total = $R('devengado_total',$devengado_total);
-      $determinado_total = $R('determinado_total',$determinado_total);
-    }
+   
         
-    $devengado   = bcsub($devengado_total,$devengado_deduccion,16);
-    $determinado = bcadd($determinado_total,$determinado_ajuste,16);
-    
     $accesors_diario = [
       'R' => AUX::make_accessor($R('diario',[])),
       'A' => AUX::make_accessor($A('diario',[])),
@@ -244,6 +221,29 @@ class CanonFijoMesasController extends Controller
       $valor_euro,$valor_dolar,
       $valor_euro_diario,$valor_dolar_diario
     )['diario'] ?? [];//@RETORNADO
+    
+    $bruto = '0';
+    if(empty($diario)){
+      $bruto = bcadd($R('bruto',$this->bruto($tipo,$año_mes,$id_casino)->bruto),'0',2);//@RETORNADO
+    }
+    else{
+      foreach($diario as $d){
+        $bruto = bcadd_precise($bruto,$d['bruto'] ?? '0');
+      }
+    }    
+        
+    $devengado_deduccion = bcadd($RAD('devengado_deduccion','0.00'),'0',2);//@RETORNADO
+    $determinado_ajuste  = bcadd($RD('determinado_ajuste','0.00'),'0',16);//@RETORNADO
+    $devengado_total   = bcadd($devengado_total_dolar_cotizado,$devengado_total_euro_cotizado,16);//@RETORNADO
+    $determinado_total = bcadd($determinado_total_dolar_cotizado,$determinado_total_euro_cotizado,16);//@RETORNADO
+    
+    if($es_antiguo){
+      $devengado_total = $R('devengado_total',$devengado_total);
+      $determinado_total = $R('determinado_total',$determinado_total);
+    }
+    
+    $devengado   = bcsub($devengado_total,$devengado_deduccion,16);
+    $determinado = bcadd($determinado_total,$determinado_ajuste,16);
     
     $ret = compact(
       'tipo','dias_valor','factor_dias_valor','valor_dolar','valor_euro',
