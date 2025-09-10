@@ -206,6 +206,11 @@ Route::group(['prefix' => 'notas','middleware' => 'tiene_permiso:ver_seccion_res
   Route::get('consulta-nota/{id}','NotaController@consultaMovimientosNota');
   Route::delete('eliminar-nota/{id}','NotaController@eliminarNotaCompleta');
 });
+
+//! NUEVA SECCION DE CARGA DE NOTAS PARA CASINOS
+Route::get('cargar-notas','NotasCasino\NotasCasinoController@index');
+
+
  /***********
     GLI soft
  ************/
