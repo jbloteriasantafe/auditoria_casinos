@@ -10,13 +10,26 @@
     <link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="/css/animacionCarga.css">
     <style>
-        #observaciones {
-            width: 100%;
-            /* ocupa todo el ancho disponible */
-            max-width: 100%;
-            /* no se pasa del contenedor */
-            box-sizing: border-box;
-            /* respeta padding y bordes dentro del ancho */
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            display: none;
+        }
+
+        .input-error {
+            border: 1px solid #e74c3c;
+            background-color: #fdecea;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        .asterisco {
+            cursor: help;
         }
     </style>
 @endsection
@@ -166,78 +179,145 @@
                     <div class="modal-body">
                         <div class="row">
                             {{-- ! NRO DE NOTA --}}
-                            <div class="col-lg-12">
-                                <h5>Nro de nota</h5>
-                                <input id="nroNota" class="form-control" required />
+                            <div class="row">
+                                <div class="col-lg-4">
+                                    <h5>Nro de nota <span class="asterisco text-muted text-danger"
+                                            title="Este campo es obligatorio">*</span></h5>
+                                    <input id="nroNota" class="form-control" type="number" required />
+                                    <span class="error-message" id="mensajeErrorNroNota" style="display: none;">Este
+                                        campo es obligatorio y debe
+                                        ser un número
+                                        positivo</span>
+                                </div>
+                                <div class="col-lg-4">
+                                    <h5>Tipo de nota <span class="asterisco text-muted text-danger"
+                                            title="Este campo es obligatorio">*</span></h5>
+                                    <select id="tipoNota" class="form-control" required>
+                                        <option value="" selected disabled>-- Seleccione un tipo de nota --</option>
+                                        @foreach ($tipos_nota as $tipo)
+                                            <option value="{{ $tipo->id_tipo_nota }}">{{ $tipo->tipo_nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-lg-4">
+                                    <h5>Año de nota <span class="asterisco text-muted text-danger"
+                                            title="Este campo es obligatorio">*</span></h5>
+                                    <input id="anioNota" class="form-control" type="number"
+                                        value="{{ $anio }}" disabled required />
+                                </div>
                             </div>
                             {{-- ! NOMBRE DEL EVENTO --}}
                             <div class="col-lg-12">
-                                <h5>Nombrw del evento</h5>
+                                <h5>Nombre del evento <span class="asterisco text-muted text-danger"
+                                        title="Este campo es obligatorio">*</span></h5>
                                 <input id="nombreEvento" class="form-control" required />
                             </div>
                             {{-- ! TIPO EVENTO --}}
                             <div class="col-lg-12">
-                                <h5>Tipo evento</h5>
-                                <input id="tipoEvento" class="form-control" required />
+                                <h5>Tipo evento <span class="asterisco text-muted text-danger"
+                                        title="Este campo es obligatorio">*</span></h5>
+                                <select id="tipoEvento" class="form-control" required>
+                                    <option value="" selected disabled>-- Seleccione un tipo de evento --</option>
+                                    @foreach ($tipos_evento as $tipo)
+                                        <option value="{{ $tipo->idtipoevento }}">{{ $tipo->tipo_nombre }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             {{-- ! CATEGORIA --}}
                             <div class="col-lg-12">
-                                <h5>Categoría</h5>
-                                <input id="categoria" class="form-control" required />
+                                <h5>Categoría <span class="asterisco text-muted text-danger"
+                                        title="Este campo es obligatorio">*</span></h5>
+                                <select id="categoria" name="categoria" class="form-control" required>
+                                    <option value="" selected disabled>-- Seleccione una categoría --</option>
+                                    @foreach ($categorias as $categoria)
+                                        <option value="{{ $categoria->idcategoria }}">{{ $categoria->categoria }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             {{-- ! ADJUNTO PAUTAS --}}
                             <div class="col-lg-12">
                                 <h5>Adjunto pautas</h5>
-                                <div class="zona-file">
-                                    <input id="adjuntoPautas" data-borrado="false" type="file" />
+                                <div class="custom-file">
+                                    <input id="adjuntoPautas" name="adjuntoPautas" data-borrado="false"
+                                        class="custom-file-input" type="file" accept=".pdf,.zip,.rar"
+                                        style="display:none;" />
+                                    <button type="button" id="adjuntoPautasBtn" class="btn btn-primary">Seleccionar
+                                        archivo</button>
+                                    <span id="adjuntoPautasName" class="ms-2">Ningún archivo seleccionado</span>
+                                    <button id="eliminarAdjuntoPautas" type="button"
+                                        class="btn btn-danger btn-sm ms-2">Eliminar</button>
                                 </div>
-
                             </div>
                             {{-- ! ADJUNTO DISEÑO --}}
                             <div class="col-lg-12">
                                 <h5>Adjunto DISEÑO</h5>
-                                <div class="zona-file">
-                                    <input id="temaEvento" type="file" />
+                                <div>
+                                    <input id="adjuntoDisenio" name="adjuntoDisenio" type="file"
+                                        accept=".pdf,.zip,.rar" class="custom-file-input" style="display:none;" />
+                                    <button type="button" id="adjuntoDisenioBtn" class="btn btn-primary">Seleccionar
+                                        archivo</button>
+                                    <span id="adjuntoDisenioName" class="ms-2">Ningún archivo seleccionado</span>
+                                    <button id="eliminarAdjuntoDisenio" type="button"
+                                        class="btn btn-danger btn-sm ms-2">Eliminar</button>
                                 </div>
                             </div>
                             {{-- ! ADJUNTO BASES Y COND. --}}
                             <div class="col-lg-12">
                                 <h5>Adjunto bases y condiciones</h5>
-                                <div class="zona-file">
-                                    <input id="basesyCondiciones" type="file" />
+                                <div>
+                                    <input id="basesyCondiciones" type="file" accept=".pdf,.zip,.rar"
+                                        class="custom-file-input" style="display:none;" />
+                                    <button type="button" id="basesyCondicionesBtn" class="btn btn-primary">Seleccionar
+                                        archivo</button>
+                                    <span id="basesyCondicionesName" class="ms-2">Ningún archivo seleccionado</span>
+                                    <button id="eliminarBasesyCondiciones" type="button"
+                                        class="btn btn-danger btn-sm ms-2">Eliminar</button>
                                 </div>
                             </div>
                             {{-- !ADJUNTO INF. TECNICO --}}
                             <div class="col-lg-12">
                                 <h5>Adjunto inf. técnico</h5>
-                                <div class="zona-file">
-                                    <input id="adjuntoInfTecnico" type="file" />
+                                <div>
+                                    <input id="adjuntoInfTecnico" type="file" accept=".pdf,.zip,.rar"
+                                        class="custom-file-input" style="display:none;" />
+                                    <button type="button" id="adjuntoInfTecnicoBtn" class="btn btn-primary">Seleccionar
+                                        archivo</button>
+                                    <span id="adjuntoInfTecnicoName" class="ms-2">Ningún archivo seleccionado</span>
+                                    <button id="eliminarAdjuntoInfTecnico" type="button"
+                                        class="btn btn-danger btn-sm ms-2">Eliminar</button>
                                 </div>
                             </div>
                             {{-- ! FECHA INICIO EVENTO --}}
                             <div class="col-lg-12">
-                                <h5>Fecha inicio evento</h5>
+                                <h5>Fecha inicio evento <span class="asterisco text-muted text-danger"
+                                        title="Este campo es obligatorio">*</span></h5>
                                 <input id="fechaInicio" class="form-control" type="date" required />
                             </div>
                             {{-- !FECHA FINALIZACION EVENTO --}}
                             <div class="col-lg-12">
-                                <h5>Fecha finalización evento</h5>
+                                <h5>Fecha finalización evento <span class="asterisco text-muted text-danger"
+                                        title="Este campo es obligatorio">*</span></h5>
                                 <input id="fechaFinalizacion" class="form-control" type="date" required />
                             </div>
                             {{-- ! FECHA REFERENCIA EVENTO --}}
                             <div class="col-lg-12">
                                 <h5>Fecha referencia evento</h5>
-                                <input id="fechaReferencia" class="form-control" required />
+                                <input id="fechaReferencia" class="form-control" />
                             </div>
                             {{-- ! MES REFERENCIA EVENTO --}}
                             <div class="col-lg-12">
                                 <h5>Mes referencia evento</h5>
-                                <input id="mesReferencia" class="form-control" required />
+                                <select id="mesReferencia" class="form-control">
+                                    <option value="" selected disabled>-- Seleccione un mes --</option>
+                                    @foreach ($meses as $mes)
+                                        <option value="{{ $mes->id }}">{{ $mes->mes }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             {{-- !AÑO --}}
                             <div class="col-lg-12">
                                 <h5>Año referencia evento</h5>
-                                <input id="anioReferencia" class="form-control" required />
+                                <input id="anioReferencia" class="form-control" type="number" />
                             </div>
 
                         </div>
