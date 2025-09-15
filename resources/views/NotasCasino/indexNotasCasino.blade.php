@@ -35,6 +35,7 @@
 @endsection
 
 @section('contenidoVista')
+    {{-- ! BOTON DE AGREGAR NOTICIAS --}}
     <div class="row">
         <div class="col-xl-12 col-md-12">
             <a href="" id="btn-agregar-nota" style="text-decoration: none;">
@@ -55,6 +56,7 @@
             </a>
         </div>
     </div>
+    {{-- ! FILTRO DE NOTICIAS --}}
     <div class="row">
         <div class="col-md-12">
             <div id="contenedorFiltros" class="panel panel-default">
@@ -114,7 +116,7 @@
             </div>
         </div>
     </div>
-    <!-- TABLA -->
+    {{-- ! TABLA DE NOTICIAS --}}
     <div class="row">
         <div class="col-md-12">
             <div class="panel panel-default">
@@ -162,6 +164,7 @@
         </div>
     </div>
 
+    {{-- ! MODAL DE CARGA DE NOTICIAS --}}
     <div class="modal fade" id="modalSubirNota" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -177,9 +180,10 @@
                 </div>
                 <div id="colapsado" class="collapse in">
                     <div class="modal-body">
-                        <div class="row">
-                            {{-- ! NRO DE NOTA --}}
+                        <form class="row" id="formulario">
+                            {{-- ! FORMADO DE NOTA --}}
                             <div class="row">
+                                {{-- ! NRO DE NOTA --}}
                                 <div class="col-lg-4">
                                     <h5>Nro de nota <span class="asterisco text-muted text-danger"
                                             title="Este campo es obligatorio">*</span></h5>
@@ -189,6 +193,7 @@
                                         ser un número
                                         positivo</span>
                                 </div>
+                                {{-- ! TIPO DE NOTA --}}
                                 <div class="col-lg-4">
                                     <h5>Tipo de nota <span class="asterisco text-muted text-danger"
                                             title="Este campo es obligatorio">*</span></h5>
@@ -198,19 +203,26 @@
                                             <option value="{{ $tipo->id_tipo_nota }}">{{ $tipo->tipo_nombre }}</option>
                                         @endforeach
                                     </select>
+                                    <span class="error-message" style="display: none;" id="mensajeErrorTipoNota">Este
+                                        campo es obligatorio</span>
                                 </div>
+                                {{-- ! AÑO DE NOTA --}}
                                 <div class="col-lg-4">
                                     <h5>Año de nota <span class="asterisco text-muted text-danger"
                                             title="Este campo es obligatorio">*</span></h5>
                                     <input id="anioNota" class="form-control" type="number"
                                         value="{{ $anio }}" disabled required />
+                                    <span class="error-message" style="display: none;" id="mensajeErrorAnioNota">Este
+                                        campo es obligatorio</span>
                                 </div>
                             </div>
                             {{-- ! NOMBRE DEL EVENTO --}}
                             <div class="col-lg-12">
                                 <h5>Nombre del evento <span class="asterisco text-muted text-danger"
                                         title="Este campo es obligatorio">*</span></h5>
-                                <input id="nombreEvento" class="form-control" required />
+                                <input id="nombreEvento" class="form-control" required maxlength="1000" />
+                                <span class="error-message" style="display: none;" id="mensajeErrorNombreEvento">Este
+                                    campo es obligatorio</span>
                             </div>
                             {{-- ! TIPO EVENTO --}}
                             <div class="col-lg-12">
@@ -222,6 +234,8 @@
                                         <option value="{{ $tipo->idtipoevento }}">{{ $tipo->tipo_nombre }}</option>
                                     @endforeach
                                 </select>
+                                <span class="error-message" style="display: none;" id="mensajeErrorTipoEvento">Este
+                                    campo es obligatorio</span>
                             </div>
                             {{-- ! CATEGORIA --}}
                             <div class="col-lg-12">
@@ -233,6 +247,8 @@
                                         <option value="{{ $categoria->idcategoria }}">{{ $categoria->categoria }}</option>
                                     @endforeach
                                 </select>
+                                <span class="error-message" style="display: none;" id="mensajeErrorCategoria">Este
+                                    campo es obligatorio</span>
                             </div>
                             {{-- ! ADJUNTO PAUTAS --}}
                             <div class="col-lg-12">
@@ -247,6 +263,9 @@
                                     <button id="eliminarAdjuntoPautas" type="button"
                                         class="btn btn-danger btn-sm ms-2">Eliminar</button>
                                 </div>
+                                <span class="error-message" style="display: none;" id="mensajeErrorAdjuntoPautas">El
+                                    archivo seleccionado es demasiado grande. El tamaño máximo permitido es de 150
+                                    MB.</span>
                             </div>
                             {{-- ! ADJUNTO DISEÑO --}}
                             <div class="col-lg-12">
@@ -260,6 +279,9 @@
                                     <button id="eliminarAdjuntoDisenio" type="button"
                                         class="btn btn-danger btn-sm ms-2">Eliminar</button>
                                 </div>
+                                <span class="error-message" style="display: none;" id="mensajeErrorAdjuntoDisenio">El
+                                    archivo seleccionado es demasiado grande. El tamaño máximo permitido es de 150
+                                    MB.</span>
                             </div>
                             {{-- ! ADJUNTO BASES Y COND. --}}
                             <div class="col-lg-12">
@@ -273,6 +295,9 @@
                                     <button id="eliminarBasesyCondiciones" type="button"
                                         class="btn btn-danger btn-sm ms-2">Eliminar</button>
                                 </div>
+                                <span class="error-message" style="display: none;" id="mensajeErrorBasesyCondiciones">El
+                                    archivo seleccionado es demasiado grande. El tamaño máximo permitido es de 150
+                                    MB.</span>
                             </div>
                             {{-- !ADJUNTO INF. TECNICO --}}
                             <div class="col-lg-12">
@@ -286,23 +311,31 @@
                                     <button id="eliminarAdjuntoInfTecnico" type="button"
                                         class="btn btn-danger btn-sm ms-2">Eliminar</button>
                                 </div>
+                                <span class="error-message" style="display: none;" id="mensajeErrorAdjuntoInfTecnico">El
+                                    archivo seleccionado es demasiado grande. El tamaño máximo permitido es de 150
+                                    MB.</span>
                             </div>
                             {{-- ! FECHA INICIO EVENTO --}}
                             <div class="col-lg-12">
                                 <h5>Fecha inicio evento <span class="asterisco text-muted text-danger"
                                         title="Este campo es obligatorio">*</span></h5>
                                 <input id="fechaInicio" class="form-control" type="date" required />
+                                <span class="error-message" style="display: none;" id="mensajeErrorFechaInicio">Este
+                                    campo es obligatorio</span>
                             </div>
                             {{-- !FECHA FINALIZACION EVENTO --}}
                             <div class="col-lg-12">
                                 <h5>Fecha finalización evento <span class="asterisco text-muted text-danger"
                                         title="Este campo es obligatorio">*</span></h5>
                                 <input id="fechaFinalizacion" class="form-control" type="date" required />
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorFechaFinalizacion">Este
+                                    campo es obligatorio</span>
                             </div>
                             {{-- ! FECHA REFERENCIA EVENTO --}}
                             <div class="col-lg-12">
                                 <h5>Fecha referencia evento</h5>
-                                <input id="fechaReferencia" class="form-control" />
+                                <input id="fechaReferencia" class="form-control" maxlength="500" />
                             </div>
                             {{-- ! MES REFERENCIA EVENTO --}}
                             <div class="col-lg-12">
@@ -320,7 +353,7 @@
                                 <input id="anioReferencia" class="form-control" type="number" />
                             </div>
 
-                        </div>
+                        </form>
                     </div>
                 </div>
                 <div class="modal-footer" style="padding-top: 7px;">
