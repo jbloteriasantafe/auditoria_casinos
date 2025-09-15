@@ -158,6 +158,22 @@ class CanonController extends Controller
     
     if($año_mes !== null && $año_mes !== ''){
       $f = explode('-',$año_mes);
+            
+      if($COT['canon_cotizacion_diaria'] === null){
+        $COT['canon_cotizacion_diaria'] = [];
+        $dias_mes = count($f) < 3? 0: cal_days_in_month(
+          CAL_GREGORIAN,
+          intval($f[1]),
+          intval($f[0])
+        );
+        for($d=1;$d<=$dias_mes;$d++){
+          $COT['canon_cotizacion_diaria'][$d] = [
+            'dia' => $d,
+            'USD' => null,
+            'EUR' => null
+          ];
+        }
+      }
       
       $f[0] = $f[1] == '12'? intval($f[0])+1 : $f[0];
       $f[1] = $f[1] == '12'? '01' : str_pad(intval($f[1])+1,2,'0',STR_PAD_LEFT);
@@ -175,22 +191,6 @@ class CanonController extends Controller
           $viernes_anterior = $viernes_anterior->sub(\DateInterval::createFromDateString('1 day'));
         }
         $COT['determinado_fecha_cotizacion'] = $viernes_anterior->format('Y-m-d');//@RETORNADO
-      }
-      
-      if($COT['canon_cotizacion_diaria'] === null){
-        $COT['canon_cotizacion_diaria'] = [];
-        $dias_mes = count($f) < 3? 0: cal_days_in_month(
-          CAL_GREGORIAN,
-          intval($f[1]),
-          intval($f[0])
-        );
-        for($d=1;$d<=$dias_mes;$d++){
-          $COT['canon_cotizacion_diaria'][$d] = [
-            'dia' => $d,
-            'USD' => null,
-            'EUR' => null
-          ];
-        }
       }
     }
     

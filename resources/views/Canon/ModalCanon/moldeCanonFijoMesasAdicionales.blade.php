@@ -63,82 +63,35 @@
       </div>
     </div>
     <div style="display: flex;">
-      <div class="bloque_interno  separar-devengado-determinado" data-css-devengar style="flex: 1;">
-        <h4 style="display: flex;">
-          <span>DEVENGADO&nbsp;&nbsp;</span>
-          <select class="form-control" data-name="{{$devengar}}" data-js-devengar style="width: unset;height: unset;padding: 0;"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-            <option value="1">SI</option>
-            <option value="0">NO</option>
-          </select>
-        </h4>
-        <div style="display: flex;">
-          <div>
-            <h5>VALOR MES</h5>
-            <input class="form-control" data-name="{{$devengado_valor_mes}}" data-depende="id_casino" data-readonly='[{"modo":"*"}]'>
-          </div>
-          <div class="valor_intermedio">
-            <h5>VALOR DÍA</h5>
-            <input class="form-control" data-name="{{$devengado_valor_dia}}" data-depende="{{$devengado_valor_mes}},{{$factor_dias_mes}}" data-depende="id_casino" data-readonly='[{"modo":"*"}]'>
-          </div>
-          <div class="valor_intermedio">
-            <h5>VALOR HORA</h5>
-            <input class="form-control" data-name="{{$devengado_valor_hora}}" data-depende="{{$devengado_valor_mes}},{{$factor_horas_mes}}" data-readonly='[{"modo":"*"}]'>
-          </div>
-        </div>
-      </div>
-      <div class="bloque_interno" style="flex: 1;">
-        <h4>DETERMINADO</h4>
-        <div style="display: flex;">
-          <div>
-            <h5>VALOR MES</h5>
-            <input class="form-control" data-name="{{$determinado_valor_mes}}" data-depende="id_casino" data-readonly='[{"modo":"*"}]'>
-          </div>
-          <div class="valor_intermedio">
-            <h5>VALOR DÍA</h5>
-            <input class="form-control" data-name="{{$determinado_valor_dia}}" data-depende="{{$determinado_valor_mes}},{{$factor_dias_mes}}" data-depende="id_casino" data-readonly='[{"modo":"*"}]'>
-          </div>
-          <div class="valor_intermedio">
-            <h5>VALOR HORA</h5>
-            <input class="form-control" data-name="{{$determinado_valor_hora}}" data-depende="{{$determinado_valor_mes}},{{$factor_horas_mes}}" data-readonly='[{"modo":"*"}]'>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div style="display: flex;">
       <div class="bloque_interno" style="width: 100%;">
         <div style="width: 100%;">
-          <div class="col-md-9 col-md-offset-1">
+          <div style="width: 100%;">
             @component('Canon.ModalCanon.toggleMensualDiario')
             @endcomponent
             <table class="table table-bordered" style="margin-bottom: 0;">
               @section('colgroupCFMA')
               <colgroup>
-                <col style="width: 4%;">
-                <col style="width: 10%;">
-                <col style="width: 10%;">
-                <col style="width: 10%;">
-                <col style="width: 10%;">
+                <col style="width: 6%;">
+                <col style="width: 8%;">
+                <col style="width: 8%;">
+                <col style="width: 8%;">
+                <col style="width: 8%;">
                 <col style="width: 14%;">
                 <col style="width: 14%;">
                 <col style="width: 14%;">
-                <col style="width: 14%;">
+                <col style="width: 16%;">
               </colgroup>
               @endsection
               @yield('colgroupCFMA')
               <thead>
-                <tr>
-                  <th style="text-align: center;" colspan="5">&nbsp;</th>
-                  <th style="text-align: center;" colspan="2">Devengado</th>
-                  <th style="text-align: center;" colspan="2">Determinado</th>
-                </tr>
                 <tr>
                   <th style="text-align: center;">Día</th>
                   <th style="text-align: center;">Horas</th>
                   <th style="text-align: center;">Mesas</th>
                   <th style="text-align: center;">Horas (acumulado)</th>
                   <th style="text-align: center;">Mesas (acumulado)</th>
-                  <th style="text-align: center;">Valor Hora</th>
-                  <th style="text-align: center;">Total (acumulado)</th>
+                  <th style="text-align: center;">Valor Mes</th>
+                  <th style="text-align: center;">Valor Día</th>
                   <th style="text-align: center;">Valor Hora</th>
                   <th style="text-align: center;">Total (acumulado)</th>
                 </tr>
@@ -146,7 +99,7 @@
             </table>
           </div>
           <div data-mensual-diario-toggle-visible="diario">
-            <div data-div-determinado="diario" class="col-md-9 col-md-offset-1" style="max-height: 25vh;overflow-y: scroll;">
+            <div data-div-determinado="diario" style="width: 100%;max-height: 25vh;overflow-y: scroll;">
               <table data-tabla-diario class="sacar-borde-primer-tr table table-bordered" style="margin-bottom: 0;">
                 @yield('colgroupCFMA')
                 <tbody>
@@ -159,20 +112,20 @@
                   <td><input class="form-control" data-name="{{$nd('mesas_diarias')}}"></td>
                   <td><input class="form-control" data-name="{{$nd('horas')}}" readonly></td>
                   <td><input class="form-control" data-name="{{$nd('mesas')}}" readonly></td>
-                  <td><input class="form-control" data-name="{{$nd('devengado_valor_hora')}}" readonly></td>
-                  <td><input class="form-control" data-name="{{$nd('devengado_total')}}" readonly></td>
-                  <td><input class="form-control" data-name="{{$nd('determinado_valor_hora')}}" readonly></td>
-                  <td><input class="form-control" data-name="{{$nd('determinado_total')}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$nd('valor_mes')}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$nd('valor_dia')}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$nd('valor_hora')}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$nd('devengado_determinado_acumulado')}}" readonly></td>
                 </tr>
               </table>
             </div>
           </div>        
-          <div class="col-md-9 col-md-offset-1">
+          <div style="width: 100%;">
             <table class="sacar-borde-primer-tr table table-bordered">
               @yield('colgroupCFMA')
               <tbody>
                 <tr class="fila-mensual">
-                  <td colspan="3">&nbsp;</td>
+                  <td colspan="3" style="text-align: right;">Devengado</td>
                   <td>
                     <input class="form-control" data-name="{{$horas}}"  data-depende="{{$mesas}}" readonly>
                   </td>
@@ -180,16 +133,37 @@
                     <input class="form-control" data-name="{{$mesas}}" data-depende="{{$horas}}" readonly>
                   </td>
                   <td>
+                    <input class="form-control" data-name="{{$devengado_valor_mes}}" readonly>
+                  </td>
+                  <td>
+                    <input class="form-control" data-name="{{$devengado_valor_dia}}" data-depende="{{$devengado_valor_mes}},{{$devengado_valor_dia}},{{$devengado_valor_hora}},{{$horas}},{{$porcentaje}}" readonly>
+                  </td>
+                  <td>
                     <input class="form-control" data-name="{{$devengado_valor_hora}}" readonly>
                   </td>
                   <td>
-                    <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_valor_mes}},{{$devengado_valor_dia}},{{$devengado_valor_hora}},{{$horas}},{{$porcentaje}}" readonly>
+                    <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_valor_mes}},{{$horas}},{{$mesas}}" readonly>
+                  </td>
+                </tr>
+                <tr class="fila-mensual">
+                  <td colspan="3" style="text-align: right;">Determinado</td>
+                  <td>
+                    <input class="form-control" data-name="{{$horas}}"  data-depende="{{$mesas}}" readonly>
+                  </td>
+                  <td>
+                    <input class="form-control" data-name="{{$mesas}}" data-depende="{{$horas}}" readonly>
+                  </td>
+                  <td>
+                    <input class="form-control" data-name="{{$determinado_valor_mes}}" readonly>
+                  </td>
+                  <td>
+                    <input class="form-control" data-name="{{$determinado_valor_dia}}" data-depende="{{$determinado_valor_mes}},{{$determinado_valor_dia}},{{$determinado_valor_hora}},{{$horas}},{{$porcentaje}}" readonly>
                   </td>
                   <td>
                     <input class="form-control" data-name="{{$determinado_valor_hora}}" readonly>
                   </td>
                   <td>
-                    <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_valor_mes}},{{$determinado_valor_dia}},{{$determinado_valor_hora}},{{$horas}},{{$porcentaje}}" readonly>
+                    <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_valor_mes}},{{$horas}},{{$mesas}}" readonly>
                   </td>
                 </tr>
               </tbody>
@@ -200,6 +174,13 @@
     </div>
     <div style="display: flex;">
       <div class="bloque_interno separar-devengado-determinado" data-css-devengar style="flex: 1;">
+        <h4 style="display: flex;">
+          <span>DEVENGADO&nbsp;&nbsp;</span>
+          <select class="form-control" data-name="{{$devengar}}" data-js-devengar style="width: unset;height: unset;padding: 0;"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            <option value="1">SI</option>
+            <option value="0">NO</option>
+          </select>
+        </h4>
         <div style="display: flex;">
           <div>
             <h5>DEDUCCIÓN</h5>
@@ -212,6 +193,7 @@
         </div>
       </div>
       <div class="bloque_interno" style="flex: 1;">
+        <h4>DETERMINADO</h4>
         <div style="display: flex;">
           <div>
             <h5>AJUSTE</h5>

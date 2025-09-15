@@ -72,30 +72,24 @@ class CanonFijoMesasController extends Controller
     
     $valor_dolar = $COT('valor_dolar');//@RETORNADO
     $valor_euro  = $COT('valor_euro');//@RETORNADO
-    $devengado_fecha_cotizacion = $COT('devengado_fecha_cotizacion');//@RETORNADO
-    $determinado_fecha_cotizacion = $COT('determinado_fecha_cotizacion');//@RETORNADO
-    $devengado_cotizacion_dolar = $COT('devengado_cotizacion_dolar','0');//@RETORNADO
-    $devengado_cotizacion_euro = $COT('devengado_cotizacion_euro','0');//@$RETORNADO
-    $determinado_cotizacion_dolar = $COT('determinado_cotizacion_dolar','0');//@RETORNADO
-    $determinado_cotizacion_euro = $COT('determinado_cotizacion_euro','0');//@RETORNADO
     
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
     
     $dias_valor = $RD('dias_valor',0);//@RETORNADO
     $factor_dias_valor = $dias_valor != 0? bcdiv('1',$dias_valor,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon
     
-    $valor_dolar_diario = bcmul($valor_dolar,$factor_dias_valor,14);//2+12 @RETORNADO
-    $valor_euro_diario  = bcmul( $valor_euro,$factor_dias_valor,14);//2+12 @RETONRADO
-    
-    $devengado_valor_dolar_cotizado = bcmul($devengado_cotizacion_dolar,$valor_dolar,4);//2+2
-    $devengado_valor_dolar_diario_cotizado = bcmul($devengado_cotizacion_dolar,$valor_dolar_diario,16);//2+14
-    $devengado_valor_euro_cotizado  = bcmul($devengado_cotizacion_euro,$valor_euro,4);//2+2
-    $devengado_valor_euro_diario_cotizado  = bcmul($devengado_cotizacion_euro,$valor_euro_diario,16);//4+12
-    
-    $determinado_valor_dolar_cotizado = bcmul($determinado_cotizacion_dolar,$valor_dolar,4);//2+2
-    $determinado_valor_dolar_diario_cotizado = bcmul($determinado_cotizacion_dolar,$valor_dolar_diario,16);//4+12
-    $determinado_valor_euro_cotizado  = bcmul($determinado_cotizacion_euro,$valor_euro,4);//2+2
-    $determinado_valor_euro_diario_cotizado  = bcmul($determinado_cotizacion_euro,$valor_euro_diario,16);//4+12
+    $devengado_valor_mesa = self::calcular_valor_mesa(
+      $COT('devengado_cotizacion_dolar','0'),
+      $COT('devengado_cotizacion_euro','0'),
+      $valor_dolar,$valor_euro,
+      $factor_dias_valor
+    );
+    $determinado_valor_mesa = self::calcular_valor_mesa(
+      $COT('determinado_cotizacion_dolar','0'),
+      $COT('determinado_cotizacion_euro','0'),
+      $valor_dolar,$valor_euro,
+      $factor_dias_valor
+    );
     
     $dias_lunes_jueves = 0;//@RETORNADO
     $dias_viernes_sabados = 0;//@RETORNADO
@@ -154,48 +148,9 @@ class CanonFijoMesasController extends Controller
     +$dias_domingos*$mesas_domingos
     +$dias_todos*$mesas_todos
     +$dias_fijos*$mesas_fijos;//@RETORNADO
-    
-    $devengado_total_dolar   = '0';//@RETORNADO
-    $devengado_total_euro    = '0';//@RETORNADO
-    $determinado_total_dolar = '0';//@RETORNADO
-    $determinado_total_euro  = '0';//@RETORNADO
-    $devengado_total_dolar_cotizado = '0';
-    $devengado_total_euro_cotizado  = '0';
-    $determinado_total_dolar_cotizado = '0';
-    $determinado_total_euro_cotizado  = '0';
-    //Lo desprendo en sumas para hacerlo mas preciso (disminuyo las divisiones)
-    //$total_MONEDA = $valor_diario_MONEDA * $mesas_dias
-    //$total_MONEDA = ($valor_MONEDA*$cotizacion_MONEDA/$dias_valor) * $mesas_dias
-    //$total_MONEDA = $valor_MONEDA*$cotizacion_MONEDA*($mesas_dias/$dias_valor)
-    //$total_MONEDA = ($valor_MONEDA*$cotizacion_MONEDA)*($mesas_dias intdiv $dias_valor + ($mesas_dias % $dias_valor)/$dias_valor)
-    //$total_MONEDA = ($valor_MONEDA*$cotizacion_MONEDA)*($mesas_dias intdiv $dias_valor + ($mesas_dias % $dias_valor)*$factor_dias_valor)
-    //$total_MONEDA = $valor_mensual_MONEDA*($mesas_dias intdiv $dias_valor) + $valor_diario_MONEDA*($mesas_dias % $dias_valor)
-    //$total_MONEDA = $valor_mensual_MONEDA*$mesas_meses + $valor_diario_MONEDA*$mesas_dias_restantes
-    if($dias_valor > 0){
-      $mesas_meses = intdiv($mesas_dias,$dias_valor);
-      $mesas_dias_restantes  = $mesas_dias % $dias_valor;
-      
-      //Esto en teoria aumenta la precision pero puede introducir errores de +-1... prefiero desactivarlo
-      /*
-      //Si es menor o igual a la mitad... lo hago como esta la formula arriba
-      //Si es mayor a la mitad lo hago restando desde un multiplo mas... para disminuir el error de truncamiento
-      if($mesas_dias_restantes > ($dias_valor/2.0)){
-        $mesas_meses += 1;
-        $mesas_dias_restantes = -($dias_valor-$mesas_dias_restantes);
-      }
-      */
-      
-      $devengado_total_dolar_cotizado = bcmul($devengado_valor_dolar_cotizado,$mesas_meses,4);
-      $devengado_total_euro_cotizado  = bcmul($devengado_valor_euro_cotizado,$mesas_meses,4);
-      $determinado_total_dolar_cotizado = bcmul($determinado_valor_dolar_cotizado,$mesas_meses,4);
-      $determinado_total_euro_cotizado  = bcmul($determinado_valor_euro_cotizado,$mesas_meses,4);
-      
-      $devengado_total_dolar_cotizado = bcadd($devengado_total_dolar_cotizado,bcmul($devengado_valor_dolar_diario_cotizado,$mesas_dias_restantes,16),16);
-      $devengado_total_euro_cotizado  = bcadd($devengado_total_euro_cotizado,bcmul($devengado_valor_euro_diario_cotizado,$mesas_dias_restantes,16),16);
-      $determinado_total_dolar_cotizado = bcadd($determinado_total_dolar_cotizado,bcmul($determinado_valor_dolar_diario_cotizado,$mesas_dias_restantes,16),16);
-      $determinado_total_euro_cotizado  = bcadd($determinado_total_euro_cotizado,bcmul($determinado_valor_euro_diario_cotizado,$mesas_dias_restantes,16),16);
-    }
-   
+        
+    $devengado_total = self::calcular_total($devengado_valor_mesa,$mesas_dias,$dias_valor,'1');//No necesita ajuste porque viene calculado bien el total de mesas
+    $determinado_total = self::calcular_total($determinado_valor_mesa,$mesas_dias,$dias_valor,'1');
         
     $accesors_diario = [
       'R' => AUX::make_accessor($R('diario',[])),
@@ -206,7 +161,6 @@ class CanonFijoMesasController extends Controller
     
     $dias = cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
     $factor_ajuste_diario_fijas = $tipo == 'Fijas'? bcdiv('30',$dias,12) : '1';
-    
     $diario = $this->recalcular_diario(
       $año_mes,$id_casino,$es_antiguo,$tipo,
       $accesors_diario,
@@ -218,33 +172,23 @@ class CanonFijoMesasController extends Controller
       $dias,
       $factor_ajuste_diario_fijas,
       $dias_valor,$factor_dias_valor,
-      $valor_euro,$valor_dolar,
-      $valor_euro_diario,$valor_dolar_diario
+      $valor_euro,$valor_dolar
     )['diario'] ?? [];//@RETORNADO
     
     $bruto = '0';
+    $mesas_habilitadas_acumuladas = 0;
     if(empty($diario)){
       $bruto = bcadd($R('bruto',$this->bruto($tipo,$año_mes,$id_casino)->bruto),'0',2);//@RETORNADO
     }
     else{
       foreach($diario as $d){
         $bruto = bcadd_precise($bruto,$d['bruto'] ?? '0');
+        $mesas_habilitadas_acumuladas += ($d['mesas_habilitadas'] ?? 0);
       }
-    }    
-        
-    $devengado_deduccion = bcadd($RAD('devengado_deduccion','0.00'),'0',2);//@RETORNADO
-    $determinado_ajuste  = bcadd($RD('determinado_ajuste','0.00'),'0',16);//@RETORNADO
-    $devengado_total   = bcadd($devengado_total_dolar_cotizado,$devengado_total_euro_cotizado,16);//@RETORNADO
-    $determinado_total = bcadd($determinado_total_dolar_cotizado,$determinado_total_euro_cotizado,16);//@RETORNADO
-    
-    if($es_antiguo){
-      $devengado_total = $R('devengado_total',$devengado_total);
-      $determinado_total = $R('determinado_total',$determinado_total);
     }
     
-    $devengado   = bcsub($devengado_total,$devengado_deduccion,16);
-    $determinado = bcadd($determinado_total,$determinado_ajuste,16);
-    
+    $devengado_fecha_cotizacion = $COT('devengado_fecha_cotizacion');//@RETORNADO
+    $determinado_fecha_cotizacion = $COT('determinado_fecha_cotizacion');//@RETORNADO
     $ret = compact(
       'tipo','dias_valor','factor_dias_valor','valor_dolar','valor_euro',
       'valor_dolar_diario','valor_euro_diario',
@@ -252,24 +196,101 @@ class CanonFijoMesasController extends Controller
       'dias_domingos','mesas_domingos','dias_todos','mesas_todos','dias_fijos','mesas_fijos',
       'mesas_dias','factor_ajuste_diario_fijas',
       'devengar',
-      'devengado_fecha_cotizacion','devengado_cotizacion_dolar','devengado_cotizacion_euro',
-      'devengado_valor_dolar_cotizado','devengado_valor_euro_cotizado',
-      'devengado_valor_dolar_diario_cotizado','devengado_valor_euro_diario_cotizado',
-      'devengado_total_dolar_cotizado','devengado_total_euro_cotizado','devengado_total',
-      'devengado_deduccion','devengado',
-      
-      'determinado_fecha_cotizacion','determinado_cotizacion_dolar','determinado_cotizacion_euro',
-      'determinado_valor_dolar_cotizado','determinado_valor_euro_cotizado',
-      'determinado_valor_dolar_diario_cotizado','determinado_valor_euro_diario_cotizado',
-      'determinado_total_dolar_cotizado','determinado_total_euro_cotizado','determinado_total',
-      'determinado_ajuste','determinado',
-      
-      'bruto',
+      'devengado_fecha_cotizacion',
+      'determinado_fecha_cotizacion',
+      'bruto','mesas_habilitadas_acumuladas',
       'diario',
       'errores'
     );
-        
+    
+    foreach($devengado_valor_mesa as $k => $v){
+      $ret['devengado_'.$k] = $v;
+    }
+    foreach($determinado_valor_mesa as $k => $v){
+      $ret['determinado_'.$k] = $v;
+    }
+    foreach($devengado_total as $k => $v){
+      $ret['devengado_'.$k] = $v;
+    }
+    foreach($determinado_total as $k => $v){
+      $ret['determinado_'.$k] = $v;
+    }
+    
+    //No importa cual de los dos uso, asi que uso los dos para detectar errores cruzados
+    $ret['valor_dolar_diario'] = $devengado_valor_mesa['valor_dolar_diario'];
+    $ret['valor_euro_diario']  = $determinado_valor_mesa['valor_euro_diario'];
+    
+    $devengado_deduccion = bcadd($RAD('devengado_deduccion','0.00'),'0',2);//@RETORNADO
+    $determinado_ajuste  = bcadd($RD('determinado_ajuste','0.00'),'0',16);//@RETORNADO
+    $devengado_total = $devengado_total['total'];
+    $determinado_total = $determinado_total['total'];
+    if($es_antiguo){
+      $devengado_total = $R('devengado_total',$devengado_total);
+      $determinado_total = $R('determinado_total',$determinado_total);
+    }
+    $devengado   = bcsub($devengado_total,$devengado_deduccion,16);
+    $determinado = bcadd($determinado_total,$determinado_ajuste,16);
+    
+    $ret['devengado_total'] = $devengado_total;
+    $ret['devengado_deduccion'] = $devengado_deduccion;
+    $ret['devengado'] = $devengado;
+    
+    $ret['determinado_total'] = $determinado_total;
+    $ret['determinado_ajuste'] = $determinado_ajuste;
+    $ret['determinado'] = $determinado;
+    
     return $ret;
+  }
+  
+  private static function calcular_valor_mesa(
+    $cotizacion_dolar,$cotizacion_euro,
+    $valor_dolar,$valor_euro,
+    $factor_dias_valor
+  ){
+    $valor_euro_diario = bcmul_precise($valor_euro,$factor_dias_valor);
+    $valor_dolar_diario = bcmul_precise($valor_dolar,$factor_dias_valor);
+        
+    $valor_euro_cotizado = bcmul_precise($valor_euro,$cotizacion_euro);
+    $valor_dolar_cotizado = bcmul_precise($valor_dolar,$cotizacion_dolar);
+    $valor = bcadd_precise($valor_euro_cotizado,$valor_dolar_cotizado);
+    
+    $valor_euro_cotizado_diario = bcmul_precise($valor_euro_cotizado,$factor_dias_valor);
+    $valor_dolar_cotizado_diario = bcmul_precise($valor_dolar_cotizado,$factor_dias_valor);
+    $valor_diario = bcmul_precise($valor,$factor_dias_valor);
+    
+    return compact(
+      'cotizacion_dolar','cotizacion_euro',
+      'valor_dolar','valor_euro',
+      'factor_dias_valor',
+      'valor_dolar_diario','valor_euro_diario',
+      'cotizacion_dolar','cotizacion_euro',
+      'valor_euro_cotizado','valor_dolar_cotizado','valor',
+      'valor_euro_cotizado_diario','valor_dolar_cotizado_diario','valor_diario'
+    );
+  }
+  
+  //Sumo de valores mas precisos a menos precisos
+  private static function calcular_total($valor_mesa,$mesas_dias,$dias_valor,$factor_ajuste_diario_fijas){
+    $total = '0';
+    $total_dolar = '0';
+    $total_euro = '0';
+        
+    if($dias_valor > 0){
+      $mesas_dias = bcmul_precise($mesas_dias,$factor_ajuste_diario_fijas);
+      $meses = bcdiv($mesas_dias,$dias_valor,0);
+      $dias_restantes = bcsub_precise($mesas_dias,bcmul_precise($meses,$dias_valor));
+      
+      $total = bcmul_precise($valor_mesa['valor'],$meses);
+      $total = bcadd_precise($total,bcmul_precise($valor_mesa['valor_diario'],$dias_restantes));
+      
+      $total_dolar = bcmul_precise($valor_mesa['valor_dolar'],$meses);
+      $total_dolar = bcadd_precise($total_dolar,bcmul_precise($valor_mesa['valor_dolar_diario'],$dias_restantes));
+      
+      $total_euro = bcmul_precise($valor_mesa['valor_euro'],$meses);
+      $total_euro = bcadd_precise($total_euro,bcmul_precise($valor_mesa['valor_euro_diario'],$dias_restantes));
+    }
+    
+    return compact('total','total_dolar','total_euro');
   }
   
   private function recalcular_diario(
@@ -283,8 +304,7 @@ class CanonFijoMesasController extends Controller
     $dias,
     $factor_ajuste_diario_fijas,
     $dias_valor,$factor_dias_valor,
-    $valor_euro,$valor_dolar,
-    $valor_euro_diario,$valor_dolar_diario
+    $valor_euro,$valor_dolar
   ){
     static $cotizaciones = [];//voy guardando por si cambia alguna ya cambia todas...
     extract($accessors);
@@ -323,14 +343,15 @@ class CanonFijoMesasController extends Controller
       $bruto = bcadd($bruto_ARS,$bruto_USD_cotizado,4);
       
       $mesas_habilitadas_acumuladas += $mesas_habilitadas;
-      $valor_euro_diario_cotizado  = bcmul_precise($valor_euro_diario,$cotizacion_euro);
-      $valor_dolar_diario_cotizado = bcmul_precise($valor_dolar_diario,$cotizacion_dolar);
-      $valor_diario = bcadd_precise($valor_euro_diario_cotizado,$valor_dolar_diario_cotizado);
-      //@TODO: agregar precision con MOD dias_valor
-      $devengado_determinado_acumulado = bcmul_precise($mesas_habilitadas_acumuladas,$valor_diario);
-      $devengado_determinado_acumulado = bcmul_precise($factor_ajuste_diario_fijas,$devengado_determinado_acumulado);
       
-      $diario[$dia] = compact(
+      $valor_mesa = self::calcular_valor_mesa(
+        $cotizacion_dolar,$cotizacion_euro,
+        $valor_dolar,$valor_euro,
+        $factor_dias_valor
+      );
+      
+      $total = self::calcular_total($valor_mesa,$mesas_habilitadas_acumuladas,$dias_valor,$factor_ajuste_diario_fijas);
+      $aux = compact(
         'dia','fecha',
         'cotizacion_euro',
         'cotizacion_dolar',
@@ -344,19 +365,13 @@ class CanonFijoMesasController extends Controller
         'bruto_USD_cotizado',
         'mesas_usadas',
         'bruto',
-        'valor_euro',
-        'valor_dolar',
         'dias_valor',
         'factor_dias_valor',
-        'valor_euro_diario',
-        'valor_dolar_diario',
         'mesas_habilitadas_acumuladas',
-        'valor_euro_diario_cotizado',
-        'valor_dolar_diario_cotizado',
-        'valor_diario',
-        'factor_ajuste_diario_fijas',
-        'devengado_determinado_acumulado'
+        'factor_ajuste_diario_fijas'
       );
+        
+      $diario[$dia] = array_merge($aux,$valor_mesa,$total);
     }
     
     return compact('diario');
