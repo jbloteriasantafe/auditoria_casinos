@@ -220,7 +220,8 @@
                             <div class="col-lg-12">
                                 <h5>Nombre del evento <span class="asterisco text-muted text-danger"
                                         title="Este campo es obligatorio">*</span></h5>
-                                <input id="nombreEvento" class="form-control" required maxlength="1000" />
+                                <input id="nombreEvento" class="form-control" required maxlength="1000"
+                                    placeholder="Ingrese el nombre del evento (Máximo: 1000 caracteres)" />
                                 <span class="error-message" style="display: none;" id="mensajeErrorNombreEvento">Este
                                     campo es obligatorio</span>
                             </div>
@@ -299,22 +300,6 @@
                                     archivo seleccionado es demasiado grande. El tamaño máximo permitido es de 150
                                     MB.</span>
                             </div>
-                            {{-- !ADJUNTO INF. TECNICO --}}
-                            <div class="col-lg-12">
-                                <h5>Adjunto inf. técnico</h5>
-                                <div>
-                                    <input id="adjuntoInfTecnico" type="file" accept=".pdf,.zip,.rar"
-                                        class="custom-file-input" style="display:none;" />
-                                    <button type="button" id="adjuntoInfTecnicoBtn" class="btn btn-primary">Seleccionar
-                                        archivo</button>
-                                    <span id="adjuntoInfTecnicoName" class="ms-2">Ningún archivo seleccionado</span>
-                                    <button id="eliminarAdjuntoInfTecnico" type="button"
-                                        class="btn btn-danger btn-sm ms-2">Eliminar</button>
-                                </div>
-                                <span class="error-message" style="display: none;" id="mensajeErrorAdjuntoInfTecnico">El
-                                    archivo seleccionado es demasiado grande. El tamaño máximo permitido es de 150
-                                    MB.</span>
-                            </div>
                             {{-- ! FECHA INICIO EVENTO --}}
                             <div class="col-lg-12">
                                 <h5>Fecha inicio evento <span class="asterisco text-muted text-danger"
@@ -335,24 +320,11 @@
                             {{-- ! FECHA REFERENCIA EVENTO --}}
                             <div class="col-lg-12">
                                 <h5>Fecha referencia evento</h5>
-                                <input id="fechaReferencia" class="form-control" maxlength="500" />
+                                <input id="fechaReferencia" class="form-control" maxlength="500"
+                                    placeholder="Ingrese la fecha de referencia (Máximo: 500 caracteres)" />
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorFechaReferencia">Máximo: 500 caracteres</span>
                             </div>
-                            {{-- ! MES REFERENCIA EVENTO --}}
-                            <div class="col-lg-12">
-                                <h5>Mes referencia evento</h5>
-                                <select id="mesReferencia" class="form-control">
-                                    <option value="" selected disabled>-- Seleccione un mes --</option>
-                                    @foreach ($meses as $mes)
-                                        <option value="{{ $mes->id }}">{{ $mes->mes }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            {{-- !AÑO --}}
-                            <div class="col-lg-12">
-                                <h5>Año referencia evento</h5>
-                                <input id="anioReferencia" class="form-control" type="number" />
-                            </div>
-
                         </form>
                     </div>
                 </div>

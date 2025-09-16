@@ -36,10 +36,6 @@ function clearInputs() {
       idSpan: "#basesyCondicionesName",
       idButton: "#eliminarBasesyCondiciones",
     },
-    {
-      idSpan: "#adjuntoInfTecnicoName",
-      idButton: "#eliminarAdjuntoInfTecnico",
-    },
   ];
   $("#formulario")[0].reset();
   for (const { idSpan, idButton } of archivosText) {
@@ -81,6 +77,10 @@ function clearErrors() {
     {
       id: "#fechaFinalizacion",
       error: "#mensajeErrorFechaFinalizacion",
+    },
+    {
+      id: "#fechaReferencia",
+      error: "#mensajeErrorFechaReferencia",
     },
   ];
 
@@ -169,22 +169,6 @@ $("#basesyCondiciones").on("change", function (e) {
   $("#eliminarBasesyCondiciones").show();
 });
 
-$("#adjuntoInfTecnicoBtn").on("click", function (e) {
-  $("#adjuntoInfTecnico").click();
-});
-
-$("#adjuntoInfTecnico").on("change", function (e) {
-  if (!this.files[0]) {
-    const fileName = "Ningún archivo seleccionado";
-    $("#adjuntoInfTecnicoName").text(fileName);
-    $("#eliminarAdjuntoInfTecnico").hide();
-    return;
-  }
-  const fileName = this.files[0].name;
-  $("#adjuntoInfTecnicoName").text(fileName);
-  $("#eliminarAdjuntoInfTecnico").show();
-});
-
 //! SE PODRIA REFACTORIZAR CON UN FOR PARA QUE QUEDE MAS LIMPIO
 //limito el tamaño de los elementos cargados
 const MAX_SIZE_MB = 150;
@@ -217,15 +201,6 @@ $("#basesyCondiciones").on("change", function (e) {
   $("#mensajeErrorBasesyCondiciones").hide();
 });
 
-$("#adjuntoInfTecnico").on("change", function (e) {
-  const archivo = this.files[0];
-  if (archivo && archivo.size > MAX_SIZE_BYTES) {
-    $("#mensajeErrorAdjuntoInfTecnico").show();
-    return;
-  }
-  $("#mensajeErrorAdjuntoInfTecnico").hide();
-});
-
 //! SE PODRIA REFACTORIZAR CON UN FOR PARA QUE QUEDE MAS LIMPIO
 //manejo eliminacion adjuntos
 
@@ -244,12 +219,6 @@ $("#eliminarAdjuntoDisenio").on("click", function (e) {
 $("#eliminarBasesyCondiciones").on("click", function (e) {
   $("#basesyCondiciones").val(null);
   $("#basesyCondicionesName").text("Ningún archivo seleccionado");
-  $(this).hide();
-});
-
-$("#eliminarAdjuntoInfTecnico").on("click", function (e) {
-  $("#adjuntoInfTecnico").val(null);
-  $("#adjuntoInfTecnicoName").text("Ningún archivo seleccionado");
   $(this).hide();
 });
 
@@ -322,7 +291,6 @@ function validarArchivos() {
     { input: "#adjuntoPautas", error: "#mensajeErrorAdjuntoPautas" },
     { input: "#adjuntoDisenio", error: "#mensajeErrorAdjuntoDisenio" },
     { input: "#basesyCondiciones", error: "#mensajeErrorBasesyCondiciones" },
-    { input: "#adjuntoInfTecnico", error: "#mensajeErrorAdjuntoInfTecnico" },
   ];
 
   for (const { input, error } of archivos) {
@@ -338,9 +306,6 @@ function validarArchivos() {
   return esValido;
 }
 
-//TODO: FALTA AGREGAR VALIDACION DE CANTIDAD DE CARACTERES A LOS AÑOS, A NOMBRE EVENTO, FECHA REFERENCIA
-//TODO: PUEDO AGREGAR PLACE HOLDERS QUE DIGAN ESE MAXIMO
-//TODO: MANEJAR EL POSTEO DEL FORMULARIO
 function validarCampos() {
   clearErrors();
 
@@ -365,7 +330,7 @@ function validarCampos() {
     {
       id: "#nombreEvento",
       error: "#mensajeErrorNombreEvento",
-      validar: (value) => value && value.trim() !== "",
+      validar: (value) => value && value.trim() !== "" && value.length <= 1000,
     },
     {
       id: "#tipoEvento",
@@ -377,16 +342,11 @@ function validarCampos() {
       error: "#mensajeErrorCategoria",
       validar: (value) => value,
     },
-    /*     {
+    {
       id: "#fechaReferenciaEvento",
       error: "#mensajeErrorFechaReferenciaEvento",
-      validar: (value) => value,
+      validar: (value) => value?.length <= 500 || !value,
     },
-    {
-      id: "#mesReferenciaEvento",
-      error: "#mensajeErrorMesReferenciaEvento",
-      validar: (value) => value && value > 0,
-    }, */
   ];
 
   for (const { id, error, validar } of campos) {
@@ -418,6 +378,45 @@ $("#btn-guardar-nota").on("click", function (e) {
   if (!isValid) {
     return;
   }
+  let formData = new FormData();
+  const data = {
+    nroNota: $("#nroNota").val(),
+    tipoNota: $("#tipoNota").val(),
+    anioNota: $("#anioNota").val(),
+    nombreEvento: $("#nombreEvento").val(),
+    tipoEvento: $("#tipoEvento").val(),
+    categoria: $("#categoria").val(),
+    adjuntoPautas: $("#adjuntoPautas")[0].files[0],
+    adjuntoDisenio: $("#adjuntoDisenio")[0].files[0],
+    basesyCondiciones: $("#basesyCondiciones")[0].files[0],
+    fechaInicio: $("#fechaInicio").val(),
+    fechaFin: $("#fechaFin").val(),
+    fechaReferenciaEvento: $("#fechaReferenciaEvento").val(),
+  };
+  for (let campo in data) {
+    formData.append(campo, data[campo]);
+  }
+
+  $.ajaxSetup({
+    headers: {
+      "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content"),
+    },
+  });
+
+  $.ajax({
+    url: "/ruta/del/servidor",
+    type: "POST",
+    data: formData,
+    dataType: "json",
+    processData: false,
+    contentType: false,
+    success: function (response) {
+      // Manejar la respuesta del servidor
+    },
+    error: function (error) {
+      // Manejar errores
+    },
+  });
   //SI SE POSTEO CORRECTAMENTE
   clearInputs();
   clearErrors();

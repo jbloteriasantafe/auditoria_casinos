@@ -43,6 +43,10 @@ Route::group(['prefix' => 'AE'],function(){
   Route::post('noticias/borrar','Autoexclusion\APIAEController@borrar_noticias');
 });
 
+Route::group(['prefix' => 'notas-casinos'], function(){
+  Route::post('subir', 'NotasCasino\NotasCasinoController@subirNota');
+});
+
 function completarUsuarioParaRetorno(&$u){
   $roles = $u->roles;
   
