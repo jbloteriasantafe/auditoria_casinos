@@ -95,7 +95,9 @@ class CanonFijoMesasController extends Controller
     $dias_viernes_sabados = 0;//@RETORNADO
     $dias_domingos = 0;//@RETORNADO
     $dias_todos = 0;//@RETORNADO
-    $dias_fijos = $RD('dias_fijos',0);//@RETORNADO
+    //Originalmente eran dos parametros distintos... pero la verdad para que el total devengado y el ultimo dia del mes
+    //den igual con igual cotizacion es necesario que sean iguales... y tiene sentido la verdad
+    $dias_fijos = $dias_valor;//@RETORNADO
     
     if($año_mes !== null){ 
       $wdmin_wdmax_count_arr = [
@@ -160,7 +162,7 @@ class CanonFijoMesasController extends Controller
     $accesors_diario['RA'] = AUX::combine_accessors($accesors_diario['R'],$accesors_diario['A']);
     
     $dias = cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
-    $factor_ajuste_diario_fijas = $tipo == 'Fijas'? bcdiv('30',$dias,12) : '1';
+    $factor_ajuste_diario_fijas = $tipo == 'Fijas'? bcdiv($dias_valor,$dias,12) : '1';
     $diario = $this->recalcular_diario(
       $año_mes,$id_casino,$es_antiguo,$tipo,
       $accesors_diario,
