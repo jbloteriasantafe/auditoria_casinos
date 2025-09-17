@@ -159,6 +159,7 @@ $(document).ready(function() {
       div.find('[data-div-devengado="diario"],[data-div-determinado="diario"]').each(function(_,divdetdevobj){          
         const tabla = $(divdetdevobj).find('[data-tabla-diario]');
         const molde = $(divdetdevobj).find('[data-molde-diario]');
+        molde.find('[data-name][name]').removeAttr('name');//@HACK Le saco el name al molde puesto anteriormente
         const replace_str_diario = molde.attr('data-molde-diario');
         for(let dia=1;dia<=dias;dia++){
           const fila = molde.clone().removeAttr('data-molde-diario');
