@@ -45,6 +45,7 @@ Route::group(['prefix' => 'AE'],function(){
 
 Route::group(['prefix' => 'notas-casinos'], function(){
   Route::post('subir', 'NotasCasino\NotasCasinoController@subirNota');
+  Route::post('paginar', 'NotasCasino\NotasCasinoController@paginarNotas');
 });
 
 function completarUsuarioParaRetorno(&$u){

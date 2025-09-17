@@ -31,6 +31,55 @@
         .asterisco {
             cursor: help;
         }
+
+        .page {
+            display: none;
+        }
+
+        #tablaNotas .col-sm-1 {
+            max-width: 100px;
+            overflow: hidden;
+            /* Oculta el contenido que sobresale */
+            text-overflow: ellipsis;
+            /* Agrega puntos suspensivos al final del texto truncado */
+        }
+
+        .contenedorVistaPrincipal {
+            position: relative;
+            height: auto;
+            /* deja que crezca según el contenido */
+            overflow-y: visible;
+            /* elimina el scroll del contenedor */
+        }
+
+        .tabla-scroll {
+            max-height: 400px;
+            /* altura visible de filas */
+            overflow-y: auto;
+        }
+
+        .tabla-scroll table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            /* columnas con ancho fijo */
+        }
+
+        .tabla-scroll thead th {
+            position: sticky;
+            top: 0;
+            background: #f8f9fa;
+            /* color de fondo del encabezado */
+            z-index: 2;
+            text-align: center;
+        }
+
+        .tabla-scroll tbody td {
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     </style>
 @endsection
 
@@ -124,41 +173,45 @@
                     <h4>LISTADO DE NOTAS</h4>
                 </div>
                 <div class="panel-body">
-                    <table id="tablaNoticias" class="table">
-                        <thead>
-                            {{-- TODO: DEFINIR INFORMACION IMPORTANTE PARA MOSTRAR Y AGREGAR --}}
-                            <tr>
-                                <!-- <i class="fa fa-sort"></i> -->
-                                <th class="col-sm-3" value="titulo_noticias" estado="">TITULO</th>
-                                <th class="col-sm-3" value="abstract_noticias" estado="">ABSTRACT</th>
-                                <th class="col-sm-2" value="foto_noticias" estado="">FOTO</th>
-                                <th class="col-sm-2" value="pdf_noticias" estado="">PDF</th>
-                                <th class="col-sm-2">ACCIONES</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cuerpoTabla">
-                            <tr class="filaTabla" style="display: none">
-                                <td class="col-sm-3 titulo_noticias"></td>
-                                <td class="col-sm-3 abstract_noticias"></td>
-                                <td class="col-sm-2 foto_noticias"></td>
-                                <td class="col-sm-2 pdf_noticias"></td>
-                                <td class="col-sm-2 acciones">
-                                    <button id="btnVerNoticia" class="btn btn-info info" type="button" value=""
-                                        title="VER MÁS" data-toggle="tooltip" data-placement="top"
-                                        data-delay="{'show':'300', 'hide':'100'}">
-                                        <i class="fa fa-fw fa-search-plus"></i>
-                                    </button>
-                                    <button id="btnBorrarNoticias" class="btn btn-info info" type="button"
-                                        value="" title="BORRAR" data-toggle="tooltip" data-placement="top"
-                                        data-delay="{'show':'300', 'hide':'100'}">
-                                        <i class="fa fa-trash" aria-hidden="true"></i>
-                                    </button>
-                                    <span></span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
+                    <div class="tabla-scroll">
+                        <table id="tablaNotas" class="table">
+                            <thead>
+                                <tr>
+                                    <!-- <i class="fa fa-sort"></i> -->
+                                    <th class="col-sm-1 text-center" value="numero_nota" estado="">NRO. DE NOTA</th>
+                                    <th class="col-sm-1 text-center" value="nombre_evento" estado="">NOMBRE EVENTO
+                                    </th>
+                                    <th class="col-sm-1 text-center" value="adjunto_pautas" estado="">ADJ. PAUTAS
+                                    </th>
+                                    <th class="col-sm-1 text-center" value="adjunto_diseño" estado="">ADJ. DISEÑO
+                                    </th>
+                                    <th class="col-sm-1 text-center" value="adjunto_basesycond" estado="">ADJ. BASES
+                                        Y
+                                        CONDICIONES
+                                    </th>
+                                    <th class="col-sm-1 text-center" value="fecha_inicio_evento">FECHA INICIO EVENTO</th>
+                                    <th class="col-sm-1 text-center" value="fecha_finalizacion_evento">FECHA FINALIZACIÓN
+                                        EVENTO</th>
+                                    <th class="col-sm-1 text-center" value="estado">ESTADO</th>
+                                    <th class="col-sm-1 text-center" value="notas_relacionadas">NOTAS RELACIONADAS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpoTabla">
+                                <tr class="filaTabla" style="display: none">
+                                    <td class="col-sm-1 text-center numero_nota"></td>
+                                    <td class="col-sm-1 text-center nombre_evento"></td>
+                                    <td class="col-sm-1 text-center adjunto_pautas"></td>
+                                    <td class="col-sm-1 text-center adjunto_disenio"></td>
+                                    <td class="col-sm-1 text-center adjunto_basesycond"></td>
+                                    <td class="col-sm-1 text-center fecha_inicio_evento"></td>
+                                    <td class="col-sm-1 fecha_finalizacion_evento"></td>
+                                    <td class="col-sm-1 estado"></td>
+                                    <td class="col-sm-1 notas_relacionadas"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
+                    </div>
                 </div>
             </div>
         </div>

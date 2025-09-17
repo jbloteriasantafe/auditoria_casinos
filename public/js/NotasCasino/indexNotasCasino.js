@@ -1,6 +1,7 @@
 $(document).ready(function () {
   $("#barraMenu").attr("aria-expanded", "true");
   $(".tituloSeccionPantalla").text(" Expedientes");
+  cargarNotas();
 });
 
 //SETEO FECHA MINIMA CALENDARIOS
@@ -88,6 +89,74 @@ function clearErrors() {
     $(id).removeClass("input-error");
     $(error).hide();
   }
+}
+
+function generarFilaTabla(nota) {
+  let fila = $("#cuerpoTabla .filaTabla")
+    .clone()
+    .removeClass("filaTabla")
+    .show();
+
+  fila.find(".numero_nota").text(nota.nronota_ev);
+  fila.find(".nombre_evento").text(nota.evento);
+  fila.find(".adjunto_pautas").text(nota.adjunto_pautas);
+  fila.find(".adjunto_disenio").text(nota.adjunto_diseño);
+  fila.find(".adjunto_basesycond").text(nota.adjunto_basesycond);
+  fila.find(".fecha_inicio_evento").text(nota.fecha_evento);
+  fila.find(".fecha_finalizacion_evento").text(nota.fecha_finalizacion);
+  fila.find(".estado").text(nota.estado);
+  fila.find(".notas_relacionadas").text(nota.notas_relacionadas);
+
+  return fila;
+}
+
+function cargarNotas(page = 1, perPage = 5) {
+  let formData = new FormData();
+  formData.append("page", page);
+  formData.append("perPage", perPage);
+
+  $.ajax({
+    type: "POST",
+    url: "/api/notas-casinos/paginar",
+    data: formData,
+    dataType: "json",
+    processData: false,
+    contentType: false,
+    headers: { "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content") },
+    success: function (response) {
+      // Limpiar tabla
+      $("#cuerpoTabla tr").not(".filaTabla").remove();
+
+      // Llenar tabla
+      response.data.forEach(function (nota) {
+        $("#tablaNotas tbody").append(generarFilaTabla(nota));
+      });
+
+      // Actualizar paginación
+      $("#herramientasPaginacion").generarTitulo(
+        response.current_page,
+        response.per_page,
+        response.total,
+        clickIndice
+      );
+      $("#herramientasPaginacion").generarIndices(
+        response.current_page,
+        response.per_page,
+        response.total,
+        clickIndice
+      );
+    },
+    error: function (xhr, status, error) {
+      // Manejar el error
+      console.error("Error al cargar notas:", err);
+    },
+  });
+}
+
+// Función para manejar cambio de página
+function clickIndice(e, pageNumber, page_size) {
+  e && e.preventDefault();
+  cargarNotas(pageNumber, page_size);
 }
 
 //ACCIONES
@@ -305,7 +374,7 @@ function validarArchivos() {
 
   return esValido;
 }
-
+//TODO: VALIDAR QUE EL CAMPO NRO NOTA TENGA COMO MINIMO 3 CARACTERES Y AGREGARSELOS EN CASO DE QUE SU VALOR SEA 0/9 O 10/99
 function validarCampos() {
   clearErrors();
 
@@ -378,6 +447,8 @@ $("#btn-guardar-nota").on("click", function (e) {
   if (!isValid) {
     return;
   }
+
+  $("#btn-guardar-nota").prop("disabled", true).text("PROCESANDO...");
   let formData = new FormData();
   const data = {
     nroNota: $("#nroNota").val(),
@@ -386,15 +457,22 @@ $("#btn-guardar-nota").on("click", function (e) {
     nombreEvento: $("#nombreEvento").val(),
     tipoEvento: $("#tipoEvento").val(),
     categoria: $("#categoria").val(),
-    adjuntoPautas: $("#adjuntoPautas")[0].files[0],
-    adjuntoDisenio: $("#adjuntoDisenio")[0].files[0],
-    basesyCondiciones: $("#basesyCondiciones")[0].files[0],
     fechaInicio: $("#fechaInicio").val(),
-    fechaFin: $("#fechaFin").val(),
-    fechaReferenciaEvento: $("#fechaReferenciaEvento").val(),
+    fechaFinalizacion: $("#fechaFinalizacion").val(),
+    fechaReferencia: $("#fechaReferencia").val(),
   };
   for (let campo in data) {
     formData.append(campo, data[campo]);
+  }
+
+  if ($("#adjuntoPautas")[0].files.length > 0) {
+    formData.append("adjuntoPautas", $("#adjuntoPautas")[0].files[0]);
+  }
+  if ($("#adjuntoDisenio")[0].files.length > 0) {
+    formData.append("adjuntoDisenio", $("#adjuntoDisenio")[0].files[0]);
+  }
+  if ($("#basesyCondiciones")[0].files.length > 0) {
+    formData.append("basesyCondiciones", $("#basesyCondiciones")[0].files[0]);
   }
 
   $.ajaxSetup({
@@ -404,20 +482,44 @@ $("#btn-guardar-nota").on("click", function (e) {
   });
 
   $.ajax({
-    url: "/ruta/del/servidor",
+    url: "api/notas-casinos/subir",
     type: "POST",
     data: formData,
     dataType: "json",
     processData: false,
     contentType: false,
     success: function (response) {
-      // Manejar la respuesta del servidor
+      if (response.success) {
+        $("#mensajeExito h3").text("ÉXITO DE CARGA");
+        $("#mensajeExito p").text("La nota se cargó correctamente");
+        $("#modalSubirNota").modal("hide");
+
+        $("#mensajeExito").hide();
+        $("#mensajeExito").removeAttr("hidden");
+
+        setTimeout(function () {
+          $("#mensajeExito").fadeIn();
+        }, 100);
+
+        $("#btn-guardar-nota").prop("disabled", false).text("ACEPTAR");
+
+        clearInputs();
+        clearErrors();
+      }
     },
     error: function (error) {
-      // Manejar errores
+      $("#btn-guardar-nota").prop("disabled", false).text("ACEPTAR");
+
+      $("#mensajeError .textoMensaje").empty();
+      $("#mensajeError .textoMensaje").append(
+        $("<h3></h3>").text(
+          "Ocurrio un error al guardar la nota, por favor intenta nuevamente."
+        )
+      );
+      $("#mensajeError").hide();
+      setTimeout(function () {
+        $("#mensajeError").show();
+      }, 250);
     },
   });
-  //SI SE POSTEO CORRECTAMENTE
-  clearInputs();
-  clearErrors();
 });
