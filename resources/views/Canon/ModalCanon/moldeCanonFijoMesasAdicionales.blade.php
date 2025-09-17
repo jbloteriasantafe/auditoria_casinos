@@ -115,7 +115,7 @@
                   <td><input class="form-control" data-name="{{$nd('valor_mes')}}" readonly></td>
                   <td><input class="form-control" data-name="{{$nd('valor_dia')}}" readonly></td>
                   <td><input class="form-control" data-name="{{$nd('valor_hora')}}" readonly></td>
-                  <td><input class="form-control" data-name="{{$nd('devengado_determinado_acumulado')}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$nd('total')}}" readonly></td>
                 </tr>
               </table>
             </div>

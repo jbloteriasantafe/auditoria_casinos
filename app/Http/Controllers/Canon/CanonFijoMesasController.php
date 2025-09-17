@@ -69,6 +69,9 @@ class CanonFijoMesasController extends Controller
   public function recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$accessors){
     extract($accessors);
     $año_mes_arr = explode('-',$año_mes);
+    $dias = count($año_mes_arr) >= 2? 
+      cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]))
+    : 0;
     
     $valor_dolar = $COT('valor_dolar');//@RETORNADO
     $valor_euro  = $COT('valor_euro');//@RETORNADO
@@ -107,14 +110,13 @@ class CanonFijoMesasController extends Controller
         'dias_todos'           => [0,6,0],
       ];
       
-      $calcular_dias_lunes_jueves = $D('calcular_dias_lunes_jueves',true);
-      $calcular_dias_viernes_sabados = $D('calcular_dias_viernes_sabados',true);
-      $calcular_dias_domingos = $D('calcular_dias_domingos',true);
-      $calcular_dias_todos = $D('calcular_dias_todos',true);
+      $calcular = $D('calcular_dias_lunes_jueves',true)
+      || $D('calcular_dias_viernes_sabados',true)
+      || $D('calcular_dias_domingos',true)
+      || $D('calcular_dias_todos',true);
       //@SPEED: unset K si no hay que calcular?
-      if($calcular_dias_lunes_jueves || $calcular_dias_viernes_sabados || $calcular_dias_domingos || $calcular_dias_todos){
-        $dias_en_el_mes = cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
-        for($d=1;$d<=$dias_en_el_mes;$d++){
+      if($calcular){
+        for($d=1;$d<=$dias;$d++){
           $año_mes_arr[2] = $d;
           $f = new \DateTime(implode('-',$año_mes_arr));
           $wd = $f->format('w');
@@ -161,7 +163,6 @@ class CanonFijoMesasController extends Controller
     ];
     $accesors_diario['RA'] = AUX::combine_accessors($accesors_diario['R'],$accesors_diario['A']);
     
-    $dias = cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
     $factor_ajuste_diario_fijas = $tipo == 'Fijas'? bcdiv($dias_valor,$dias,12) : '1';
     $diario = $this->recalcular_diario(
       $año_mes,$id_casino,$es_antiguo,$tipo,
@@ -171,6 +172,7 @@ class CanonFijoMesasController extends Controller
       $mesas_domingos,
       $mesas_todos,
       $mesas_fijos,
+      $mesas_dias,
       $dias,
       $factor_ajuste_diario_fijas,
       $dias_valor,$factor_dias_valor,
@@ -303,6 +305,7 @@ class CanonFijoMesasController extends Controller
     $mesas_domingos,
     $mesas_todos,
     $mesas_fijos,
+    $mesas_dias,
     $dias,
     $factor_ajuste_diario_fijas,
     $dias_valor,$factor_dias_valor,
@@ -351,8 +354,14 @@ class CanonFijoMesasController extends Controller
         $valor_dolar,$valor_euro,
         $factor_dias_valor
       );
-      
-      $total = self::calcular_total($valor_mesa,$mesas_habilitadas_acumuladas,$dias_valor,$factor_ajuste_diario_fijas);
+      //Para el ultimo dia, evito la aproximación porque la cantidad de mesas 
+      //(F*MesasAcumuladas) deberia redondear a MesasDias
+      $total = self::calcular_total(
+        $valor_mesa,
+        $dia == $dias? $mesas_dias : $mesas_habilitadas_acumuladas,
+        $dias_valor,
+        $dia == $dias?         '1' : $factor_ajuste_diario_fijas
+      );
       $aux = compact(
         'dia','fecha',
         'cotizacion_euro',
