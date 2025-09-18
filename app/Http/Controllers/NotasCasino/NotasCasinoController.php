@@ -69,7 +69,11 @@ class NotasCasinoController extends Controller
     }
 
     //! EL ORIGEN (CASINO) ESTA HARCODEADO, DESPUES HAY QUE OBTENERLO DE LA SESION DEL USUARIO (DESPUES DE CREAR EL ROL)
-
+    //! FALTARIA:
+    //! CREAR EL ROL DEL USUARIO
+    //! BUSCAR EL ORIGEN DEL USUARIO
+    //! CREAR UNA API PARA PODER OBTENER LOS PDF Y ARREGLAR ESO -> REVISAR DESPUES COMO LOS TRAIGO LINK O ARCHIVO
+    
     public function subirNota (Request $request){
 
         $validator = Validator::make($request->all(),[
