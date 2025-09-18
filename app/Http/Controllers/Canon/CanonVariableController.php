@@ -92,17 +92,17 @@ class CanonVariableController extends Controller
     
     $año_mes_arr = explode('-',$año_mes);
     $dias = empty($año_mes)? 0 : cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
-    
+    $determinado_impuesto       = bcadd($R('determinado_impuesto','0.00'),'0',14);//@RETORNADO
     $diario = $this->recalcular_diario(
       $año_mes,$id_casino,$es_antiguo,$tipo,$dias,
       $factor_apostado_porcentaje_aplicable,$factor_apostado_porcentaje_impuesto_ley,$factor_alicuota,
+      $determinado_impuesto,
       $accesors_diario
     )['diario'] ?? [];//@RETORNADO
     
     $devengado_apostado_sistema = '0';
     $devengado_base_imponible   = '0';
     $devengado_impuesto         = '0';
-    $determinado_impuesto       = '0';
     $devengado_bruto            = '0';
     $determinado_bruto          = '0';
     $devengado_bruto            = '0';
@@ -115,8 +115,7 @@ class CanonVariableController extends Controller
     if(empty($diario)){
       $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema',$this->apostado($tipo,$año_mes,$id_casino)->apostado),'0',2);//@RETORNADO    
       $devengado_base_imponible = bcmul($devengado_apostado_sistema,$factor_apostado_porcentaje_aplicable,8);//2+6 @RETORNADO
-      $devengado_impuesto   = bcmul($devengado_base_imponible,$factor_apostado_porcentaje_impuesto_ley,14);//8+6 @RETORNADO
-      $determinado_impuesto =  bcadd($R('determinado_impuesto','0.00'),'0',14);//@RETORNADO
+      $devengado_impuesto = bcmul($devengado_base_imponible,$factor_apostado_porcentaje_impuesto_ley,14);//8+6 @RETORNADO
       
       $devengado_bruto   = $R('devengado_bruto',null);//@RETORNADO
       $determinado_bruto = $R('determinado_bruto',null);//@RETORNADO
@@ -173,6 +172,7 @@ class CanonVariableController extends Controller
   private function recalcular_diario(
     $año_mes,$id_casino,$es_antiguo,$tipo,$dias,
     $factor_apostado_porcentaje_aplicable,$factor_apostado_porcentaje_impuesto_ley,$factor_alicuota,
+    $determinado_impuesto_total,
     $accessors
   ){
     extract($accessors);
@@ -180,6 +180,7 @@ class CanonVariableController extends Controller
     $año_mes_str = substr($año_mes,0,strlen('XXXX-XX-'));
     
     $diario = [];
+    $devengado_impuesto_total = '0';
     
     for($dia=1;$dia<=$dias;$dia++){
       $D = AUX::make_accessor($R($dia,[]));
@@ -205,6 +206,7 @@ class CanonVariableController extends Controller
       
       $devengado_base_imponible = bcmul($devengado_apostado_sistema,$factor_apostado_porcentaje_aplicable,10);//4+6 @RETORNADO
       $devengado_impuesto = bcmul($devengado_base_imponible,$factor_apostado_porcentaje_impuesto_ley,16);//10+6 @RETORNADO
+      $devengado_impuesto_total = bcadd($devengado_impuesto_total,$devengado_impuesto,16);
       $devengado_subtotal = bcsub($devengado_bruto,$devengado_impuesto,16);
       $devengado_total = bcmul($devengado_subtotal,$factor_alicuota,22);
       
@@ -212,16 +214,7 @@ class CanonVariableController extends Controller
       $determinado_bruto_USD = bcadd($D('determinado_bruto_USD',$bruto->bruto_USD),'0',2);//@RETORNADO
       $determinado_bruto_USD_cotizado = bcmul($determinado_bruto_USD,$determinado_cotizacion,4);//2+2 @RETORNADO
       $determinado_bruto = bcadd($determinado_bruto_ARS,$determinado_bruto_USD_cotizado,4);//@RETORNADO
-      
-      $determinado_impuesto = bcadd($D('determinado_impuesto','0.00'),'0',16);//@RETORNADO
-      $determinado_subtotal = bcsub($determinado_bruto,$determinado_impuesto,16);//@RETORNADO
-      $determinado_total =  bcmul($determinado_subtotal,$factor_alicuota,22);// @RETORNADO
-      
-      if($es_antiguo){
-        $devengado_total = $D('devengado_total',$devengado_total);
-        $determinado_total = $D('determinado_total',$determinado_total);
-      }
-      
+                  
       $diario[$dia] = compact(
         'dia','fecha',
         'devengado_cotizacion',
@@ -242,12 +235,45 @@ class CanonVariableController extends Controller
         'determinado_bruto_ARS',
         'determinado_bruto_USD',
         'determinado_bruto_USD_cotizado',
-        'determinado_bruto',
-        'determinado_impuesto',
-        'determinado_subtotal',
-        'determinado_total'
+        'determinado_bruto'
       );
     }
+    
+    $determinado_impuesto_total_calculado = '0';
+    $devengado_impuesto_total_nulo = bccomp_precise($devengado_impuesto_total,'0') == 0;
+    $didx_impuesto_mas_grande = null;
+    foreach($diario as $didx => &$d){
+      if($devengado_impuesto_total_nulo){
+        $d['determinado_impuesto'] = '0';
+      }
+      else {
+        $d['determinado_impuesto'] = bcdiv(
+          bcmul_precise($d['devengado_impuesto'],$determinado_impuesto_total),
+          $devengado_impuesto_total,
+          16
+        );
+      }
+      $determinado_impuesto_total_calculado = bcadd($determinado_impuesto_total_calculado,$d['determinado_impuesto'],16);
+      $d['determinado_subtotal'] = bcsub($d['determinado_bruto'],$d['determinado_impuesto'],16);//@RETORNADO
+      $d['determinado_total']    = bcmul($d['determinado_subtotal'],$factor_alicuota,22);// @RETORNADO
+      
+      $didx_impuesto_mas_grande = (
+        $didx_impuesto_mas_grande === null
+      || (bccomp($d['determinado_impuesto'],$diario[$didx_impuesto_mas_grande]['determinado_impuesto'],16) > 0)
+      )?
+        $didx
+      : $didx_impuesto_mas_grande;
+    }
+    
+    //Sumo el error global al que tiene el impuesto mas grande (para minimizar el error local)
+    $error = bcsub($determinado_impuesto_total,$determinado_impuesto_total_calculado,16);
+    $diario[$didx_impuesto_mas_grande]['determinado_impuesto'] = bcadd(
+      $diario[$didx_impuesto_mas_grande]['determinado_impuesto'],
+      $error,
+      16
+    );
+    $diario[$didx_impuesto_mas_grande]['determinado_subtotal'] = bcsub($diario[$didx_impuesto_mas_grande]['determinado_bruto'],$diario[$didx_impuesto_mas_grande]['determinado_impuesto'],16);//@RETORNADO
+    $diario[$didx_impuesto_mas_grande]['determinado_total']    = bcmul($diario[$didx_impuesto_mas_grande]['determinado_subtotal'],$factor_alicuota,22);// @RETORNADO
     
     return compact('diario');
   }
