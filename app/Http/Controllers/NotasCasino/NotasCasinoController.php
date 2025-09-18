@@ -69,7 +69,6 @@ class NotasCasinoController extends Controller
     }
 
     //! EL ORIGEN (CASINO) ESTA HARCODEADO, DESPUES HAY QUE OBTENERLO DE LA SESION DEL USUARIO (DESPUES DE CREAR EL ROL)
-    //! PENSAR COMO VALIDAR QUE EL NRO DE NOTA SEA UNICO! -> LO VOY A HACER CON EL NRO DE NOTA QUE AHORA VA A SER UNICO
 
     public function subirNota (Request $request){
 
@@ -110,6 +109,16 @@ class NotasCasinoController extends Controller
             $nota = $formatos[$tipoNota];
         } else {
             $nota = '';
+        }
+
+        try{
+        //verifico si el numero de nota es unico
+        $existeNota = DB::connection('gestion_notas_mysql')->table('eventos')
+            ->where('nronota_ev', $nota)
+            ->exists();
+
+        if($existeNota) {
+            return response()->json(['success' => false, 'error' => 'El número de nota ya existe'], 422);
         }
 
         // obtnego los datos de la request
@@ -161,7 +170,7 @@ class NotasCasinoController extends Controller
             id_categoria, si va //! AGREGAR
             dircarpeta, null
         */
-        try {
+        
             //este guardado es momentaneo ( la idea es que via api se guarden en la otra pc mientras desarrollo los otros modulos )
             //cuando termine el desarrollo se implementara la logica para guardar local
             if ($request->hasFile('adjuntoPautas')) {
@@ -217,7 +226,11 @@ class NotasCasinoController extends Controller
         //me faltaria agregar los filtros para el order by
         $validator = Validator::make($request->all(),[
             'page' => 'nullable|integer|min:1',
-            'perPage' => 'nullable|integer|min:5|max:50'
+            'perPage' => 'nullable|integer|min:5|max:50',
+            'nroNota' => 'nullable|string|max:50',
+            'nombreEvento' => 'nullable|string|max:1000',
+            'fechaInicio' => 'nullable|date',
+            'fechaFin' => 'nullable|date',
         ]);
         if($validator->fails()){
             Log::info($validator->errors());
@@ -226,10 +239,17 @@ class NotasCasinoController extends Controller
 
         $pagina = $request->input('page',1);
         $porPagina = $request->input('perPage',5);
+        $nroNota = $request->input('nroNota');
+        $nombreEvento = $request->input('nombreEvento');
+        $fechaInicio = $request->input('fechaInicio');
+        $fechaFin = $request->input('fechaFin');
+
         try {
-            $notasActuales= DB::connection('gestion_notas_mysql')
+            $query = DB::connection('gestion_notas_mysql')
             ->table('eventos')
+            ->join('estados', 'eventos.idestado', '=', 'estados.idestado')
             ->select(
+                'eventos.idevento',
         'eventos.nronota_ev',
                 'eventos.evento',
                 'eventos.adjunto_pautas',
@@ -239,11 +259,28 @@ class NotasCasinoController extends Controller
                 'eventos.fecha_finalizacion',
                 'estados.estado',
                 'eventos.notas_relacionadas'
-            )
-            ->join('estados', 'eventos.idestado', '=', 'estados.idestado')
-            ->orderBy('eventos.fecha_evento', 'desc')
-            ->paginate($porPagina,['*'],'page',$pagina);
-            
+            );
+
+            if($nroNota) {
+                $query->where('eventos.nronota_ev', 'like', "%$nroNota%");
+            }
+
+            if($nombreEvento) {
+                $query->where('eventos.evento', 'like', "%$nombreEvento%");
+            }
+
+            if ($fechaInicio && $fechaFin) {
+                $query->whereBetween('eventos.fecha_evento', [$fechaInicio, $fechaFin]);
+            } elseif ($fechaInicio) {
+                $query->whereDate('eventos.fecha_evento', '>=', $fechaInicio);
+            } elseif ($fechaFin) {
+                $query->whereDate('eventos.fecha_evento', '<=', $fechaFin);
+            }
+
+         $notasActuales = $query
+            ->orderBy('eventos.idevento', 'desc')
+            ->paginate($porPagina, ['*'], 'page', $pagina);
+
             return response()->json([
                 'current_page' => $notasActuales->currentPage(),
                 'per_page' => $notasActuales->perPage(),

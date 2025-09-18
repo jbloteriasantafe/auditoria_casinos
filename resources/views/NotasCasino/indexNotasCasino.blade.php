@@ -36,14 +36,6 @@
             display: none;
         }
 
-        #tablaNotas .col-sm-1 {
-            max-width: 100px;
-            overflow: hidden;
-            /* Oculta el contenido que sobresale */
-            text-overflow: ellipsis;
-            /* Agrega puntos suspensivos al final del texto truncado */
-        }
-
         .contenedorVistaPrincipal {
             position: relative;
             height: auto;
@@ -53,38 +45,52 @@
         }
 
         .tabla-scroll {
-            max-height: 400px;
-            /* altura visible de filas */
+            max-height: 500px;
+            /* ajusta el alto máximo según necesites */
             overflow-y: auto;
+            overflow-x: hidden;
         }
 
-        .tabla-scroll table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-            /* columnas con ancho fijo */
-        }
-
-        .tabla-scroll thead th {
+        /* Mantener cabecera fija si se quiere */
+        #tablaNotas thead th {
             position: sticky;
             top: 0;
-            background: #f8f9fa;
-            /* color de fondo del encabezado */
+            background: #f8f8f8;
             z-index: 2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: middle;
             text-align: center;
         }
 
-        .tabla-scroll tbody td {
-            text-align: center;
+        #tablaNotas thead th[title] {
+            cursor: help;
+        }
+
+        /* Estilo general de celdas */
+        #tablaNotas td,
+        #tablaNotas th {
+            max-width: 140px;
+            /* ancho máximo de cada celda */
+            max-height: 40px;
+            /* alto máximo de cada celda */
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        /* Tooltip usando el atributo title */
+        #tablaNotas td[title] {
+            cursor: help;
         }
     </style>
 @endsection
 
 @section('contenidoVista')
-    {{-- ! BOTON DE AGREGAR NOTICIAS --}}
+    {{-- ! BOTON DE AGREGAR NOTAS --}}
     <div class="row">
         <div class="col-xl-12 col-md-12">
             <a href="" id="btn-agregar-nota" style="text-decoration: none;">
@@ -105,7 +111,7 @@
             </a>
         </div>
     </div>
-    {{-- ! FILTRO DE NOTICIAS --}}
+    {{-- ! FILTRO DE NOTAS --}}
     <div class="row">
         <div class="col-md-12">
             <div id="contenedorFiltros" class="panel panel-default">
@@ -114,41 +120,36 @@
                 </div>
                 <div id="collapseFiltros" class="panel-collapse collapse">
                     <div class="panel-body">
-                        {{-- TODO: DEFINIR PARAMETROS DE BUSQUEDA Y MODIFICARS --}}
                         <div class="row">
                             <div class="col-md-4">
-                                <h5>Titulo</h5>
-                                <input class="form-control" id="buscarNoticia" value="" />
+                                <h5>NRO. DE NOTA</h5>
+                                <input class="form-control" id="buscarNroNota" value="" />
                             </div>
                             <div class="col-md-4">
-                                <h5>Abstract</h5>
-                                <input class="form-control" id="buscarAbstract" value="" />
+                                <h5>NOMBRE DEL EVENTO</h5>
+                                <input class="form-control" id="buscarNombreEvento" value="" />
                             </div>
                         </div>
                         <div class="row">
-                            <h5>Publicado entre</h5>
-                            <div class="col-md-3">
-                                <h5>Fecha Inicio</h5>
-                                <div class="input-group date" id="rangoinicio">
-                                    <input type="text" class="form-control" placeholder="Fecha de Inicio"
-                                        id="fecha_noticia_inicio" autocomplete="off"
+                            <h5>FECHA INICIO DE LA NOTA ENTRE</h5>
+                            <div class="col-md-4">
+                                <h5>FECHA INICIO</h5>
+                                <div id="rangoinicio">
+                                    <input type="date" class="form-control" placeholder="Fecha de inicio evento"
+                                        id="fecha_nota_inicio" autocomplete="off"
                                         style="background-color: rgb(255,255,255);" data-original-title="" title="">
-                                    <span id="input-times-autoexclusion" class="input-group-addon"
-                                        style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                    <span id="input-calendar-autoexclusion" class="input-group-addon"
-                                        style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                    <span class="error-message" id="mensajeErrorFechaInicioFiltro" style="display: none;">
+                                        La fecha de inicio no puede ser posterior a la fecha de finalización.</span>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <h5>Fecha Fin</h5>
-                                <div class="input-group date" id="rangofin">
-                                    <input type="text" class="form-control" placeholder="Fecha de Fin"
-                                        id="fecha_noticia_fin" autocomplete="off"
-                                        style="background-color: rgb(255,255,255);" data-original-title="" title="">
-                                    <span id="input-times-renovacion" class="input-group-addon"
-                                        style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                                    <span id="input-calendar-renovacion" class="input-group-addon"
-                                        style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                            <div class="col-md-4">
+                                <h5>FECHA FIN</h5>
+                                <div id="rangofin">
+                                    <input type="date" class="form-control" placeholder="Fecha de finalizacion evento"
+                                        id="fecha_nota_fin" autocomplete="off" style="background-color: rgb(255,255,255);"
+                                        data-original-title="" title="">
+                                    <span class="error-message" id="mensajeErrorFechaFinFiltro" style="display: none;">
+                                        La fecha de finalización no puede ser anterior a la fecha de inicio.</span>
                                 </div>
                             </div>
                         </div>
@@ -165,7 +166,7 @@
             </div>
         </div>
     </div>
-    {{-- ! TABLA DE NOTICIAS --}}
+    {{-- ! TABLA DE NOTAS --}}
     <div class="row">
         <div class="col-md-12">
             <div class="panel panel-default">
@@ -173,27 +174,35 @@
                     <h4>LISTADO DE NOTAS</h4>
                 </div>
                 <div class="panel-body">
-                    <div class="tabla-scroll">
+                    <div>
                         <table id="tablaNotas" class="table">
                             <thead>
                                 <tr>
                                     <!-- <i class="fa fa-sort"></i> -->
-                                    <th class="col-sm-1 text-center" value="numero_nota" estado="">NRO. DE NOTA</th>
-                                    <th class="col-sm-1 text-center" value="nombre_evento" estado="">NOMBRE EVENTO
+                                    <th class="col-sm-1 text-center" value="numero_nota" estado=""
+                                        title="Número de nota">NRO. DE NOTA</th>
+                                    <th class="col-sm-1 text-center" value="nombre_evento" estado=""
+                                        title="Nombre de evento">NOMBRE EVENTO
                                     </th>
-                                    <th class="col-sm-1 text-center" value="adjunto_pautas" estado="">ADJ. PAUTAS
+                                    <th class="col-sm-1 text-center" value="adjunto_pautas" estado=""
+                                        title="Adjunto pautas">ADJ. PAUTAS
                                     </th>
-                                    <th class="col-sm-1 text-center" value="adjunto_diseño" estado="">ADJ. DISEÑO
+                                    <th class="col-sm-1 text-center" value="adjunto_diseño" estado=""
+                                        title="Adjunto diseño">ADJ. DISEÑO
                                     </th>
-                                    <th class="col-sm-1 text-center" value="adjunto_basesycond" estado="">ADJ. BASES
+                                    <th class="col-sm-1 text-center" value="adjunto_basesycond" estado=""
+                                        title="Adjunto bases y condiciones">ADJ. BASES
                                         Y
                                         CONDICIONES
                                     </th>
-                                    <th class="col-sm-1 text-center" value="fecha_inicio_evento">FECHA INICIO EVENTO</th>
-                                    <th class="col-sm-1 text-center" value="fecha_finalizacion_evento">FECHA FINALIZACIÓN
+                                    <th class="col-sm-1 text-center" value="fecha_inicio_evento"
+                                        title="Fecha de inicio del evento">FECHA INICIO EVENTO</th>
+                                    <th class="col-sm-1 text-center" value="fecha_finalizacion_evento"
+                                        title="Fecha de finalización del evento">FECHA FINALIZACIÓN
                                         EVENTO</th>
-                                    <th class="col-sm-1 text-center" value="estado">ESTADO</th>
-                                    <th class="col-sm-1 text-center" value="notas_relacionadas">NOTAS RELACIONADAS</th>
+                                    <th class="col-sm-1 text-center" value="estado" title="Estado de la nota">ESTADO</th>
+                                    <th class="col-sm-1 text-center" value="notas_relacionadas"
+                                        title="Notas relacionadas">NOTAS RELACIONADAS</th>
                                 </tr>
                             </thead>
                             <tbody id="cuerpoTabla">
@@ -204,9 +213,9 @@
                                     <td class="col-sm-1 text-center adjunto_disenio"></td>
                                     <td class="col-sm-1 text-center adjunto_basesycond"></td>
                                     <td class="col-sm-1 text-center fecha_inicio_evento"></td>
-                                    <td class="col-sm-1 fecha_finalizacion_evento"></td>
-                                    <td class="col-sm-1 estado"></td>
-                                    <td class="col-sm-1 notas_relacionadas"></td>
+                                    <td class="col-sm-1 text-center fecha_finalizacion_evento"></td>
+                                    <td class="col-sm-1 text-center estado"></td>
+                                    <td class="col-sm-1 text-center notas_relacionadas"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -217,7 +226,7 @@
         </div>
     </div>
 
-    {{-- ! MODAL DE CARGA DE NOTICIAS --}}
+    {{-- ! MODAL DE CARGA DE NOTAS --}}
     <div class="modal fade" id="modalSubirNota" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -240,11 +249,11 @@
                                 <div class="col-lg-4">
                                     <h5>Nro de nota <span class="asterisco text-muted text-danger"
                                             title="Este campo es obligatorio">*</span></h5>
-                                    <input id="nroNota" class="form-control" type="number" required />
+                                    <input id="nroNota" class="form-control" type="number" required
+                                        placeholder="Mínimo 3 dígitos (Por ejemplo: 001)" />
                                     <span class="error-message" id="mensajeErrorNroNota" style="display: none;">Este
                                         campo es obligatorio y debe
-                                        ser un número
-                                        positivo</span>
+                                        tener como mínimo 3 dígitos</span>
                                 </div>
                                 {{-- ! TIPO DE NOTA --}}
                                 <div class="col-lg-4">

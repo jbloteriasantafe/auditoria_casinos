@@ -91,29 +91,97 @@ function clearErrors() {
   }
 }
 
+//paginacion
+
 function generarFilaTabla(nota) {
   let fila = $("#cuerpoTabla .filaTabla")
     .clone()
     .removeClass("filaTabla")
     .show();
 
-  fila.find(".numero_nota").text(nota.nronota_ev);
-  fila.find(".nombre_evento").text(nota.evento);
-  fila.find(".adjunto_pautas").text(nota.adjunto_pautas);
-  fila.find(".adjunto_disenio").text(nota.adjunto_diseño);
-  fila.find(".adjunto_basesycond").text(nota.adjunto_basesycond);
-  fila.find(".fecha_inicio_evento").text(nota.fecha_evento);
-  fila.find(".fecha_finalizacion_evento").text(nota.fecha_finalizacion);
-  fila.find(".estado").text(nota.estado);
-  fila.find(".notas_relacionadas").text(nota.notas_relacionadas);
+  fila
+    .find(".numero_nota")
+    .text(nota.nronota_ev || "No hay información disponible")
+    .attr("title", nota.nronota_ev || "No hay información disponible");
+  fila
+    .find(".nombre_evento")
+    .text(nota.evento || "No hay información disponible")
+    .attr("title", nota.evento || "No hay información disponible");
+  //! ACA TENGO QUE AGREGAR BIEN EL PATH DE DONDE ESTAN LOS ARCHIVOS
+  fila
+    .find(".adjunto_pautas")
+    .html(
+      '<a href="/path/to/file/' +
+        nota.adjunto_pautas +
+        '">' +
+        (nota.adjunto_pautas || "No hay información disponible") +
+        "</a>"
+    )
+    .attr("title", nota.adjunto_pautas || "No hay información disponible");
+  fila
+    .find(".adjunto_disenio")
+    .html(
+      '<a href="/path/to/file/' +
+        nota.adjunto_disenio +
+        '">' +
+        (nota.adjunto_disenio || "No hay información disponible") +
+        "</a>"
+    )
+    .attr("title", nota.adjunto_disenio || "No hay información disponible");
+  fila
+    .find(".adjunto_basesycond")
+    .html(
+      '<a href="/path/to/file/' +
+        nota.adjunto_basesycond +
+        '">' +
+        (nota.adjunto_basesycond || "No hay información disponible") +
+        "</a>"
+    )
+    .attr("title", nota.adjunto_basesycond || "No hay información disponible");
+  fila
+    .find(".fecha_inicio_evento")
+    .text(nota.fecha_evento || "No hay información disponible")
+    .attr("title", nota.fecha_evento || "No hay información disponible");
+  fila
+    .find(".fecha_finalizacion_evento")
+    .text(nota.fecha_finalizacion || "No hay información disponible")
+    .attr("title", nota.fecha_finalizacion || "No hay información disponible");
+  fila
+    .find(".estado")
+    .text(nota.estado || "No hay información disponible")
+    .attr("title", nota.estado || "No hay información disponible");
+  fila
+    .find(".notas_relacionadas")
+    .text(nota.notas_relacionadas || "No hay información disponible")
+    .attr("title", nota.notas_relacionadas || "No hay información disponible");
 
   return fila;
 }
 
-function cargarNotas(page = 1, perPage = 5) {
+function cargarNotas(
+  page = 1,
+  perPage = 5,
+  nroNota,
+  nombreEvento,
+  fechaInicio,
+  fechaFin
+) {
   let formData = new FormData();
   formData.append("page", page);
   formData.append("perPage", perPage);
+
+  if (nroNota) {
+    formData.append("nroNota", nroNota);
+  }
+  if (nombreEvento) {
+    formData.append("nombreEvento", nombreEvento);
+  }
+  if (fechaInicio) {
+    formData.append("fechaInicio", fechaInicio);
+  }
+  if (fechaFin) {
+    formData.append("fechaFin", fechaFin);
+  }
 
   $.ajax({
     type: "POST",
@@ -156,7 +224,21 @@ function cargarNotas(page = 1, perPage = 5) {
 // Función para manejar cambio de página
 function clickIndice(e, pageNumber, page_size) {
   e && e.preventDefault();
-  cargarNotas(pageNumber, page_size);
+  var page_size = $("#size").val() || 5;
+
+  const nroNota = $("#buscarNroNota").val();
+  const nombreEvento = $("#buscarNombreEvento").val();
+  const fechaInicio = $("#fecha_nota_inicio").val();
+  const fechaFin = $("#fecha_nota_fin").val();
+
+  cargarNotas(
+    pageNumber,
+    page_size,
+    nroNota,
+    nombreEvento,
+    fechaInicio,
+    fechaFin
+  );
 }
 
 //ACCIONES
@@ -186,6 +268,23 @@ $("#nroNota").on("keydown", function (e) {
 
 $("#nroNota").on("input", function () {
   this.value = this.value.replace(/[^0-9]/g, "");
+});
+
+$("#nroNota").on("blur", function () {
+  let valor = this.value.trim();
+
+  if (!/^\d+$/.test(valor)) {
+    this.value = "";
+    return;
+  }
+
+  let numero = parseInt(valor, 10);
+
+  if (numero >= 1 && numero <= 99) {
+    this.value = numero.toString().padStart(3, "0");
+  } else {
+    this.value = numero.toString();
+  }
 });
 
 //! SE PODRIA REFACTORIZAR CON UN FOR PARA QUE QUEDE MAS LIMPIO
@@ -374,7 +473,7 @@ function validarArchivos() {
 
   return esValido;
 }
-//TODO: VALIDAR QUE EL CAMPO NRO NOTA TENGA COMO MINIMO 3 CARACTERES Y AGREGARSELOS EN CASO DE QUE SU VALOR SEA 0/9 O 10/99
+
 function validarCampos() {
   clearErrors();
 
@@ -384,7 +483,7 @@ function validarCampos() {
     {
       id: "#nroNota",
       error: "#mensajeErrorNroNota",
-      validar: (value) => value && value > 0,
+      validar: (value) => value && value > 0 && value.length >= 3,
     },
     {
       id: "#tipoNota",
@@ -417,7 +516,6 @@ function validarCampos() {
       validar: (value) => value?.length <= 500 || !value,
     },
   ];
-
   for (const { id, error, validar } of campos) {
     const value = $(id).val();
     if (!validar(value)) {
@@ -505,6 +603,7 @@ $("#btn-guardar-nota").on("click", function (e) {
 
         clearInputs();
         clearErrors();
+        cargarNotas();
       }
     },
     error: function (error) {
@@ -513,7 +612,7 @@ $("#btn-guardar-nota").on("click", function (e) {
       $("#mensajeError .textoMensaje").empty();
       $("#mensajeError .textoMensaje").append(
         $("<h3></h3>").text(
-          "Ocurrio un error al guardar la nota, por favor intenta nuevamente."
+          "Ocurrio un error al guardar la nota o ese número de nota ya existe, por favor intenta nuevamente."
         )
       );
       $("#mensajeError").hide();
@@ -522,4 +621,61 @@ $("#btn-guardar-nota").on("click", function (e) {
       }, 250);
     },
   });
+});
+
+function clearErrorsFiltro() {
+  $("#fecha_nota_inicio").removeClass("input-error");
+  $("#mensajeErrorFechaInicioFiltro").hide();
+
+  $("#fecha_nota_fin").removeClass("input-error");
+  $("#mensajeErrorFechaFinFiltro").hide();
+}
+
+function validarCamposFiltro() {
+  clearErrorsFiltro();
+
+  let esValido = true;
+
+  const fechaInicioStr = $("#fecha_nota_inicio").val();
+  const fechaFinalizacionStr = $("#fecha_nota_fin").val();
+
+  const fechaInicio = new Date(fechaInicioStr);
+  const fechaFinalizacion = new Date(fechaFinalizacionStr);
+
+  fechaInicio.setHours(0, 0, 0, 0);
+  fechaFinalizacion.setHours(0, 0, 0, 0);
+
+  if (fechaInicio > fechaFinalizacion) {
+    $("#fecha_nota_inicio").addClass("input-error");
+    $("#mensajeErrorFechaInicioFiltro").show();
+    esValido = false;
+  }
+
+  if (fechaFinalizacion < fechaInicio) {
+    $("#fecha_nota_fin").addClass("input-error");
+    $("#mensajeErrorFechaFinFiltro").show();
+    esValido = false;
+  }
+
+  return esValido;
+}
+
+$("#btn-buscar").on("click", function (e) {
+  e.preventDefault();
+  const valido = validarCamposFiltro();
+  if (!valido) {
+    return;
+  }
+  $("#btn-buscar").prop("disabled", true).text("BUSCANDO...");
+
+  clearErrorsFiltro();
+
+  const nroNota = $("#buscarNroNota").val();
+  const nombreEvento = $("#buscarNombreEvento").val();
+  const fechaInicio = $("#fecha_nota_inicio").val();
+  const fechaFin = $("#fecha_nota_fin").val();
+
+  cargarNotas(1, 5, nroNota, nombreEvento, fechaInicio, fechaFin);
+
+  $("#btn-buscar").prop("disabled", false).text("BUSCAR");
 });
