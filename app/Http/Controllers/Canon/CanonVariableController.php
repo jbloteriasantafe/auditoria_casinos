@@ -111,27 +111,37 @@ class CanonVariableController extends Controller
     $determinado_subtotal       = '0';
     $devengado_total            = '0';
     $determinado_total          = '0';
-    
+        
     if(empty($diario)){
-      $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema',$this->apostado($tipo,$año_mes,$id_casino)->apostado),'0',2);//@RETORNADO    
-      $devengado_base_imponible = bcmul($devengado_apostado_sistema,$factor_apostado_porcentaje_aplicable,8);//2+6 @RETORNADO
-      $devengado_impuesto = bcmul($devengado_base_imponible,$factor_apostado_porcentaje_impuesto_ley,14);//8+6 @RETORNADO
+      $bruto = $this->bruto($tipo,$año_mes,$id_casino)->bruto;
+      $apostado = $this->apostado($tipo,$año_mes,$id_casino)->apostado;
       
-      $devengado_bruto   = $R('devengado_bruto',null);//@RETORNADO
-      $determinado_bruto = $R('determinado_bruto',null);//@RETORNADO
-      if($devengado_bruto === null || $determinado_bruto === null){
-        $bruto = $this->bruto($tipo,$año_mes,$id_casino);
-        $devengado_bruto   = $devengado_bruto   ?? $bruto->bruto;
-        $determinado_bruto = $determinado_bruto ?? $bruto->bruto;
-      }
-      $devengado_bruto   = bcadd($devengado_bruto,'0',2);
-      $determinado_bruto = bcadd($determinado_bruto,'0',2);
+      $aux = array_intersect_key($this->calcular_devengado(
+        '0',
+        $R('devengado_apostado_sistema',$apostado ?? '0'),'0',
+        $R('devengado_bruto',$bruto ?? '0'),'0',
+        $factor_apostado_porcentaje_impuesto_ley,
+        $factor_apostado_porcentaje_aplicable,
+        $factor_alicuota
+      ),array_flip([
+        'devengado_apostado_sistema','devengado_base_imponible',
+        'devengado_impuesto','devengado_bruto',
+        'devengado_subtotal','devengado_total'
+      ]));
       
-      $devengado_subtotal   = bcsub($devengado_bruto,$devengado_impuesto,14);//@RETORNADO
-      $determinado_subtotal = bcsub($determinado_bruto,$determinado_impuesto,14);//@RETORNADO
+      foreach($aux as $varname => $varvalue) $$varname = $varvalue;
       
-      $devengado_total   =  bcmul($devengado_subtotal,$factor_alicuota,20);//6+14 @RETORNADO
-      $determinado_total =  bcmul($determinado_subtotal,$factor_alicuota,20);//6+14 @RETORNADO
+      $aux = array_intersect_key($this->calcular_determinado(
+        '0',
+        $R('determinado_impuesto','0'),
+        $R('determinado_bruto',$bruto ?? '0'),'0',
+        $factor_alicuota
+      ),array_flip([
+        'determinado_impuesto','determinado_bruto',
+        'determinado_subtotal','determinado_total'
+      ]));
+      
+      foreach($aux as $varname => $varvalue) $$varname = $varvalue;
     }
     else{
       foreach($diario as $d){
@@ -192,51 +202,30 @@ class CanonVariableController extends Controller
       $devengado_apostado_sistema_USD = bcadd($D('devengado_apostado_sistema_USD',$apostado->apostado_USD),'0',2);//@RETORNADO    
       $devengado_bruto_ARS = bcadd($D('devengado_bruto_ARS',$bruto->bruto_ARS),'0',2);//@RETORNADO    
       $devengado_bruto_USD = bcadd($D('devengado_bruto_USD',$bruto->bruto_USD),'0',2);//@RETORNADO    
+      $determinado_bruto_ARS = bcadd($D('determinado_bruto_ARS',$bruto->bruto_ARS),'0',2);
+      $determinado_bruto_USD = bcadd($D('determinado_bruto_USD',$bruto->bruto_USD),'0',2);
       
-      $devengado_cotizacion = AUX::get_cotizacion_sesion($fecha,2) ?? '0';//@RETORNADO    
-      $cotizaciones[$fecha] = $devengado_cotizacion;
-      AUX::set_cotizacion_sesion($fecha,2,$devengado_cotizacion);
-      
-      $determinado_cotizacion = $devengado_cotizacion;
-      $devengado_apostado_sistema_USD_cotizado = bcmul($devengado_apostado_sistema_USD,$determinado_cotizacion,4);//4+2 @RETORNADO
-      $devengado_bruto_USD_cotizado = bcmul($devengado_bruto_USD,$determinado_cotizacion,4);//2+2 @RETORNADO
-      
-      $devengado_apostado_sistema = bcadd($devengado_apostado_sistema_ARS,$devengado_apostado_sistema_USD_cotizado,4);//@RETORNADO
-      $devengado_bruto = bcadd($devengado_bruto_ARS,$devengado_bruto_USD_cotizado,4);//@RETORNADO
-      
-      $devengado_base_imponible = bcmul($devengado_apostado_sistema,$factor_apostado_porcentaje_aplicable,10);//4+6 @RETORNADO
-      $devengado_impuesto = bcmul($devengado_base_imponible,$factor_apostado_porcentaje_impuesto_ley,16);//10+6 @RETORNADO
-      $devengado_impuesto_total = bcadd($devengado_impuesto_total,$devengado_impuesto,16);
-      $devengado_subtotal = bcsub($devengado_bruto,$devengado_impuesto,16);
-      $devengado_total = bcmul($devengado_subtotal,$factor_alicuota,22);
-      
-      $determinado_bruto_ARS = bcadd($D('determinado_bruto_ARS',$bruto->bruto_ARS),'0',2);//@RETORNADO    
-      $determinado_bruto_USD = bcadd($D('determinado_bruto_USD',$bruto->bruto_USD),'0',2);//@RETORNADO
-      $determinado_bruto_USD_cotizado = bcmul($determinado_bruto_USD,$determinado_cotizacion,4);//2+2 @RETORNADO
-      $determinado_bruto = bcadd($determinado_bruto_ARS,$determinado_bruto_USD_cotizado,4);//@RETORNADO
+      $cotizacion_USD = AUX::get_cotizacion_sesion($fecha,2) ?? '0';//@RETORNADO              
                   
-      $diario[$dia] = compact(
-        'dia','fecha',
-        'devengado_cotizacion',
-        'devengado_bruto_ARS',
-        'devengado_bruto_USD',
-        'devengado_bruto_USD_cotizado',
-        'devengado_bruto',
-        'devengado_apostado_sistema_ARS',
-        'devengado_apostado_sistema_USD',
-        'devengado_apostado_sistema_USD_cotizado',
-        'devengado_apostado_sistema',
-        'devengado_base_imponible',
-        'devengado_impuesto',
-        'devengado_subtotal',
-        'devengado_total',
-        
-        'determinado_cotizacion',
-        'determinado_bruto_ARS',
-        'determinado_bruto_USD',
-        'determinado_bruto_USD_cotizado',
-        'determinado_bruto'
+      $diario[$dia] = array_merge(
+        compact('dia','fecha'),
+        $this->calcular_devengado(
+          $cotizacion_USD,
+          $devengado_apostado_sistema_ARS,$devengado_apostado_sistema_USD,
+          $devengado_bruto_ARS,$devengado_bruto_USD,
+          $factor_apostado_porcentaje_impuesto_ley,
+          $factor_apostado_porcentaje_aplicable,
+          $factor_alicuota
+        ),
+        $this->calcular_determinado(
+          $cotizacion_USD,
+          '0',
+          $determinado_bruto_ARS,$determinado_bruto_USD,
+          $factor_alicuota
+        )
       );
+      
+      $devengado_impuesto_total = bcadd($devengado_impuesto_total,$diario[$dia]['devengado_impuesto'],16);
     }
     
     $determinado_impuesto_total_calculado = '0';
@@ -253,10 +242,16 @@ class CanonVariableController extends Controller
           16
         );
       }
-      $determinado_impuesto_total_calculado = bcadd($determinado_impuesto_total_calculado,$d['determinado_impuesto'],16);
-      $d['determinado_subtotal'] = bcsub($d['determinado_bruto'],$d['determinado_impuesto'],16);//@RETORNADO
-      $d['determinado_total']    = bcmul($d['determinado_subtotal'],$factor_alicuota,22);// @RETORNADO
+      foreach($this->calcular_determinado(
+        $d['cotizacion_USD'],
+        $d['determinado_impuesto'],
+        $d['determinado_bruto_ARS'],$d['determinado_bruto_USD'],
+        $d['factor_alicuota']
+      ) as $k => $v){
+        $d[$k] = $v;
+      }
       
+      $determinado_impuesto_total_calculado = bcadd($determinado_impuesto_total_calculado,$d['determinado_impuesto'],16);
       $didx_impuesto_mas_grande = (
         $didx_impuesto_mas_grande === null
       || (bccomp($d['determinado_impuesto'],$diario[$didx_impuesto_mas_grande]['determinado_impuesto'],16) > 0)
@@ -267,15 +262,71 @@ class CanonVariableController extends Controller
     
     //Sumo el error global al que tiene el impuesto mas grande (para minimizar el error local)
     $error = bcsub($determinado_impuesto_total,$determinado_impuesto_total_calculado,16);
-    $diario[$didx_impuesto_mas_grande]['determinado_impuesto'] = bcadd(
-      $diario[$didx_impuesto_mas_grande]['determinado_impuesto'],
-      $error,
-      16
-    );
-    $diario[$didx_impuesto_mas_grande]['determinado_subtotal'] = bcsub($diario[$didx_impuesto_mas_grande]['determinado_bruto'],$diario[$didx_impuesto_mas_grande]['determinado_impuesto'],16);//@RETORNADO
-    $diario[$didx_impuesto_mas_grande]['determinado_total']    = bcmul($diario[$didx_impuesto_mas_grande]['determinado_subtotal'],$factor_alicuota,22);// @RETORNADO
+    {
+      $d = &$diario[$didx_impuesto_mas_grande];
+      $d['determinado_impuesto'] = bcadd($d['determinado_impuesto'],$error,16);
+      foreach($this->calcular_determinado(
+        $d['cotizacion_USD'],
+        $d['determinado_impuesto'],
+        $d['determinado_bruto_ARS'],$d['determinado_bruto_USD'],
+        $d['factor_alicuota']
+      ) as $k => $v){
+        $d[$k] = $v;
+      }
+    }
     
     return compact('diario');
+  }
+  
+  private function calcular_determinado(
+    $cotizacion_USD,
+    $determinado_impuesto,
+    $determinado_bruto_ARS,$determinado_bruto_USD,
+    $factor_alicuota
+  ){
+    $determinado_bruto_USD_cotizado = bcmul($determinado_bruto_USD,$cotizacion_USD,4);//2+2 @RETORNADO
+    $determinado_bruto = bcadd($determinado_bruto_ARS,$determinado_bruto_USD_cotizado,4);//@RETORNADO
+    
+    $determinado_subtotal = bcsub($determinado_bruto,$determinado_impuesto,16);
+    $determinado_total = bcmul($determinado_subtotal,$factor_alicuota,22);
+    
+    return compact(
+      'cotizacion_USD',
+      'determinado_bruto_ARS','determinado_bruto_USD','determinado_bruto_USD_cotizado','determinado_bruto',
+      'factor_alicuota',
+      'determinado_impuesto','determinado_subtotal',
+      'determinado_total'
+    );
+  }
+  
+  private function calcular_devengado(
+    $cotizacion_USD,
+    $devengado_apostado_sistema_ARS,$devengado_apostado_sistema_USD,
+    $devengado_bruto_ARS,$devengado_bruto_USD,
+    $factor_apostado_porcentaje_impuesto_ley,
+    $factor_apostado_porcentaje_aplicable,
+    $factor_alicuota
+  ){
+    $devengado_apostado_sistema_USD_cotizado = bcmul($devengado_apostado_sistema_USD,$cotizacion_USD,4);//4+2 @RETORNADO
+    $devengado_bruto_USD_cotizado = bcmul($devengado_bruto_USD,$cotizacion_USD,4);//2+2 @RETORNADO
+    $devengado_apostado_sistema = bcadd($devengado_apostado_sistema_ARS,$devengado_apostado_sistema_USD_cotizado,4);//@RETORNADO
+    $devengado_bruto = bcadd($devengado_bruto_ARS,$devengado_bruto_USD_cotizado,4);//@RETORNADO
+    
+    $devengado_base_imponible = bcmul($devengado_apostado_sistema,$factor_apostado_porcentaje_aplicable,10);//4+6 @RETORNADO
+    $devengado_impuesto = bcmul($devengado_base_imponible,$factor_apostado_porcentaje_impuesto_ley,16);//10+6 @RETORNADO
+    $devengado_subtotal = bcsub($devengado_bruto,$devengado_impuesto,16);
+    $devengado_total = bcmul($devengado_subtotal,$factor_alicuota,22);
+      
+    return compact(
+      'cotizacion_USD',
+      'devengado_apostado_sistema_ARS','devengado_apostado_sistema_USD','devengado_apostado_sistema_USD_cotizado','devengado_apostado_sistema',
+      'devengado_bruto_ARS','devengado_bruto_USD','devengado_bruto_USD_cotizado','devengado_bruto',
+      'factor_apostado_porcentaje_impuesto_ley',
+      'factor_apostado_porcentaje_aplicable',
+      'factor_alicuota',
+      'devengado_base_imponible','devengado_impuesto','devengado_subtotal',
+      'devengado_total'
+    );
   }
   
   public function guardar($id_canon,$id_canon_anterior,$datos){
