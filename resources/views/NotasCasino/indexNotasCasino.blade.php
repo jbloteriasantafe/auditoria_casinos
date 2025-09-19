@@ -48,7 +48,7 @@
             max-height: 500px;
             /* ajusta el alto máximo según necesites */
             overflow-y: auto;
-            overflow-x: hidden;
+            overflow-x: auto;
         }
 
         /* Mantener cabecera fija si se quiere */
@@ -174,7 +174,7 @@
                     <h4>LISTADO DE NOTAS</h4>
                 </div>
                 <div class="panel-body">
-                    <div>
+                    <div class="tabla-scroll">
                         <table id="tablaNotas" class="table">
                             <thead>
                                 <tr>
@@ -219,8 +219,8 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
                     </div>
+                    <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
                 </div>
             </div>
         </div>

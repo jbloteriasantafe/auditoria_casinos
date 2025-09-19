@@ -185,12 +185,12 @@ function cargarNotas(
 
   $.ajax({
     type: "POST",
-    url: "/api/notas-casinos/paginar",
+    url: "/cargar-notas/paginar",
     data: formData,
     dataType: "json",
     processData: false,
     contentType: false,
-    headers: { "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content") },
+    headers: { "X-CSRF-TOKEN": $('meta[name="_token"]').attr("content") },
     success: function (response) {
       // Limpiar tabla
       $("#cuerpoTabla tr").not(".filaTabla").remove();

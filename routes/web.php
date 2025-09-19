@@ -208,7 +208,11 @@ Route::group(['prefix' => 'notas','middleware' => 'tiene_permiso:ver_seccion_res
 });
 
 //! NUEVA SECCION DE CARGA DE NOTAS PARA CASINOS
-Route::get('cargar-notas','NotasCasino\NotasCasinoController@index');
+Route::group(['prefix' => 'cargar-notas','middleware' => 'tiene_permiso:ver_cargar_notas'], function () {
+  Route::get('/','NotasCasino\NotasCasinoController@index');
+  Route::post('subir', 'NotasCasino\NotasCasinoController@subirNota');
+  Route::post('paginar', 'NotasCasino\NotasCasinoController@paginarNotas');
+});
 
 
  /***********

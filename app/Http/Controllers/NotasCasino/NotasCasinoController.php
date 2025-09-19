@@ -3,14 +3,28 @@
 namespace App\Http\Controllers\NotasCasino;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
+//TODO: REFACTORIZAR EL LLEVAR ARCHIVOS PARA LEVANTAR LOS ARCHIVOS DE LA VM Y GENERAR LOS PDFS
+//TODO: REFACTORIZAR EL GUARDADO DE ARCHIVOS PARA QUE SE GUARDEN EN LA VM 
 class NotasCasinoController extends Controller
 {
+
+    protected $USER;
+
+    public function __construct() {
+        $this->middleware(function ($request, $next) {
+        $this->USER = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+        return $next($request);
+    });
+    }
+
     public function index(){
         try{
             $categorias = DB::connection('gestion_notas_mysql')
@@ -68,12 +82,6 @@ class NotasCasinoController extends Controller
          compact('categorias', 'tipos_evento','tipos_nota', 'anio'));
     }
 
-    //! EL ORIGEN (CASINO) ESTA HARCODEADO, DESPUES HAY QUE OBTENERLO DE LA SESION DEL USUARIO (DESPUES DE CREAR EL ROL)
-    //! FALTARIA:
-    //! CREAR EL ROL DEL USUARIO
-    //! BUSCAR EL ORIGEN DEL USUARIO
-    //! CREAR UNA API PARA PODER OBTENER LOS PDF Y ARREGLAR ESO -> REVISAR DESPUES COMO LOS TRAIGO LINK O ARCHIVO
-    
     public function subirNota (Request $request){
 
         $validator = Validator::make($request->all(),[
@@ -124,6 +132,8 @@ class NotasCasinoController extends Controller
         if($existeNota) {
             return response()->json(['success' => false, 'error' => 'El número de nota ya existe'], 422);
         }
+        $casino = $this->USER->casinos->first();
+        $origen = $this->obtenerCasino($casino);
 
         // obtnego los datos de la request
         $evento = $request->input('nombreEvento');
@@ -131,8 +141,7 @@ class NotasCasinoController extends Controller
         $fechaInicio = $request->input('fechaInicio');
         $fechaFinalizacion = $request->input('fechaFinalizacion');
         $categoria = $request->input('categoria');
-        $origen = 1;
-        $responsable = 4;
+        $responsable = 4; //! HAY QUE CREAR 3 USUARIOS 1 PARA CADA CASINO Y SETEAR ESTE VALOR SEGUN EL USUARIO
         $idEstado = 9; //carga inicial
         $adjuntoPautasPath = null;
         $adjuntoDisenioPath = null;
@@ -221,7 +230,7 @@ class NotasCasinoController extends Controller
             
             return response()->json(['success' => true],200);
         } catch (Exception $e) {
-            Log::info($e);
+            Log::error($e);
             return response()->json(['success' => false, 'error' => $e->getMessage()],500);
         }
     }
@@ -240,14 +249,16 @@ class NotasCasinoController extends Controller
             Log::info($validator->errors());
             return response()->json(['success' => false, 'error' => $validator->errors()],400);
         }
-
+        
         $pagina = $request->input('page',1);
         $porPagina = $request->input('perPage',5);
         $nroNota = $request->input('nroNota');
         $nombreEvento = $request->input('nombreEvento');
         $fechaInicio = $request->input('fechaInicio');
         $fechaFin = $request->input('fechaFin');
-
+        $casino = $this->USER->casinos->first();
+        Log::info($casino->id_casino);
+        $origen = $this->obtenerCasino($casino);
         try {
             $query = DB::connection('gestion_notas_mysql')
             ->table('eventos')
@@ -263,7 +274,8 @@ class NotasCasinoController extends Controller
                 'eventos.fecha_finalizacion',
                 'estados.estado',
                 'eventos.notas_relacionadas'
-            );
+            )
+            ->where('eventos.origen', $origen);
 
             if($nroNota) {
                 $query->where('eventos.nronota_ev', 'like', "%$nroNota%");
@@ -292,8 +304,17 @@ class NotasCasinoController extends Controller
                 'data' => $notasActuales->items()
             ]);
         } catch (Exception $e) {
-            Log::info($e);
+            Log::error($e);
             return response()->json(['success' => false, 'error' => $e->getMessage()],500);
         }
+    }
+
+    private function obtenerCasino ($casino) {
+        $idCasinos = [ 'SANTA-FE' => 1, 'MELINCUE' => 2, 'ROSARIO' => 3, ];
+        $id = null; 
+        if($casino->id_casino == 1){ $id = $idCasinos['MELINCUE']; } 
+        if($casino->id_casino == 2){ $id = $idCasinos['SANTA-FE']; } 
+        if($casino->id_casino == 3){ $id = $idCasinos['ROSARIO']; }
+        return $id;
     }
 }

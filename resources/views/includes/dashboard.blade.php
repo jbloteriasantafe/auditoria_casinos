@@ -59,8 +59,7 @@
              ],
              'Carga de notas' => [
                  'link' => '/cargar-notas',
-                 'algun_permiso' => [],
-                 //TODO: AGREGAR PERMISOS CUANDO TENGA EL NUEVO ROL CON SUS PERMISOS NECESARIOS
+                 'algun_permiso' => ['ver_cargar_notas'],
              ],
          ],
      ],
