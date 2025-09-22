@@ -318,7 +318,7 @@
                                 <h5>Adjunto pautas</h5>
                                 <div class="custom-file">
                                     <input id="adjuntoPautas" name="adjuntoPautas" data-borrado="false"
-                                        class="custom-file-input" type="file" accept=".pdf,.zip,.rar"
+                                        class="custom-file-input" type="file" accept=".pdf,.zip"
                                         style="display:none;" />
                                     <button type="button" id="adjuntoPautasBtn" class="btn btn-primary">Seleccionar
                                         archivo</button>
@@ -334,8 +334,8 @@
                             <div class="col-lg-12">
                                 <h5>Adjunto DISEÑO</h5>
                                 <div>
-                                    <input id="adjuntoDisenio" name="adjuntoDisenio" type="file"
-                                        accept=".pdf,.zip,.rar" class="custom-file-input" style="display:none;" />
+                                    <input id="adjuntoDisenio" name="adjuntoDisenio" type="file" accept=".pdf,.zip"
+                                        class="custom-file-input" style="display:none;" />
                                     <button type="button" id="adjuntoDisenioBtn" class="btn btn-primary">Seleccionar
                                         archivo</button>
                                     <span id="adjuntoDisenioName" class="ms-2">Ningún archivo seleccionado</span>
@@ -350,7 +350,7 @@
                             <div class="col-lg-12">
                                 <h5>Adjunto bases y condiciones</h5>
                                 <div>
-                                    <input id="basesyCondiciones" type="file" accept=".pdf,.zip,.rar"
+                                    <input id="basesyCondiciones" type="file" accept=".pdf,.zip"
                                         class="custom-file-input" style="display:none;" />
                                     <button type="button" id="basesyCondicionesBtn" class="btn btn-primary">Seleccionar
                                         archivo</button>

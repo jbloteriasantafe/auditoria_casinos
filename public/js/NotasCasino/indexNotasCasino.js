@@ -1,3 +1,4 @@
+//seteo nombre de la seccion y traigo notas
 $(document).ready(function () {
   $("#barraMenu").attr("aria-expanded", "true");
   $(".tituloSeccionPantalla").text(" Expedientes");
@@ -92,7 +93,7 @@ function clearErrors() {
 }
 
 //paginacion
-
+//crear bien los links y ahora creo un controlador que se encargue de mostrar el pdf
 function generarFilaTabla(nota) {
   let fila = $("#cuerpoTabla .filaTabla")
     .clone()
@@ -111,31 +112,31 @@ function generarFilaTabla(nota) {
   fila
     .find(".adjunto_pautas")
     .html(
-      '<a href="/path/to/file/' +
-        nota.adjunto_pautas +
-        '">' +
-        (nota.adjunto_pautas || "No hay información disponible") +
-        "</a>"
+      `${
+        !nota.adjunto_pautas
+          ? "No hay información disponible"
+          : `<a href='cargar-notas/notas/archivo/${nota.idevento}/pautas'>${nota.adjunto_pautas}</a>`
+      }`
     )
     .attr("title", nota.adjunto_pautas || "No hay información disponible");
   fila
     .find(".adjunto_disenio")
     .html(
-      '<a href="/path/to/file/' +
-        nota.adjunto_disenio +
-        '">' +
-        (nota.adjunto_disenio || "No hay información disponible") +
-        "</a>"
+      `${
+        !nota.adjunto_diseño
+          ? "No hay información disponible"
+          : `<a href='cargar-notas/notas/archivo/${nota.idevento}/disenio'>${nota.adjunto_diseño}</a>`
+      }`
     )
-    .attr("title", nota.adjunto_disenio || "No hay información disponible");
+    .attr("title", nota.adjunto_diseño || "No hay información disponible");
   fila
     .find(".adjunto_basesycond")
     .html(
-      '<a href="/path/to/file/' +
-        nota.adjunto_basesycond +
-        '">' +
-        (nota.adjunto_basesycond || "No hay información disponible") +
-        "</a>"
+      `${
+        !nota.adjunto_basesycond
+          ? "No hay información disponible"
+          : `<a href='cargar-notas/notas/archivo/${nota.idevento}/basesycond'>${nota.adjunto_basesycond}</a>`
+      }`
     )
     .attr("title", nota.adjunto_basesycond || "No hay información disponible");
   fila
@@ -580,7 +581,7 @@ $("#btn-guardar-nota").on("click", function (e) {
   });
 
   $.ajax({
-    url: "api/notas-casinos/subir",
+    url: "cargar-notas/subir",
     type: "POST",
     data: formData,
     dataType: "json",

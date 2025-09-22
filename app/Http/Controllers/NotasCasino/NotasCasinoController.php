@@ -9,10 +9,9 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
-//TODO: REFACTORIZAR EL LLEVAR ARCHIVOS PARA LEVANTAR LOS ARCHIVOS DE LA VM Y GENERAR LOS PDFS
-//TODO: REFACTORIZAR EL GUARDADO DE ARCHIVOS PARA QUE SE GUARDEN EN LA VM 
+
 class NotasCasinoController extends Controller
 {
 
@@ -91,9 +90,9 @@ class NotasCasinoController extends Controller
             'nombreEvento' => 'required|string|max:1000',
             'tipoEvento' => 'required|integer',
             'categoria' => 'required|integer',
-            'adjuntoPautas' => 'nullable|file|mimes:pdf,zip,rar|max:153600',
-            'adjuntoDisenio' => 'nullable|file|mimes:pdf,zip,rar|max:153600',
-            'basesyCondiciones' => 'nullable|file|mimes:pdf,zip,rar|max:153600',
+            'adjuntoPautas' => 'nullable|file|mimes:pdf,zip|max:153600',
+            'adjuntoDisenio' => 'nullable|file|mimes:pdf,zip|max:153600',
+            'basesyCondiciones' => 'nullable|file|mimes:pdf,zip|max:153600',
             'fechaInicio' => 'required|date',
             'fechaFinalizacion' => 'required|date',
             'fechaReferencia' => 'nullable|string|max:500',
@@ -143,9 +142,6 @@ class NotasCasinoController extends Controller
         $categoria = $request->input('categoria');
         $responsable = 4; //! HAY QUE CREAR 3 USUARIOS 1 PARA CADA CASINO Y SETEAR ESTE VALOR SEGUN EL USUARIO
         $idEstado = 9; //carga inicial
-        $adjuntoPautasPath = null;
-        $adjuntoDisenioPath = null;
-        $basesyCondicionesPath = null;
         $fechaReferencia = null;
 
         if($request->has('fechaReferencia')) {
@@ -183,19 +179,26 @@ class NotasCasinoController extends Controller
             id_categoria, si va //! AGREGAR
             dircarpeta, null
         */
-        
-            //este guardado es momentaneo ( la idea es que via api se guarden en la otra pc mientras desarrollo los otros modulos )
-            //cuando termine el desarrollo se implementara la logica para guardar local
-            if ($request->hasFile('adjuntoPautas')) {
-                $adjuntoPautasPath = $request->file('adjuntoPautas')->store('adjuntos');
-            }
 
-            if ($request->hasFile('adjuntoDisenio')) {
-                $adjuntoDisenioPath = $request->file('adjuntoDisenio')->store('adjuntos');
-            }
+            $archivos = [
+                'adjuntoPautas' => 'Eventos_Pautas',
+                'adjuntoDisenio' => 'Eventos_Diseño',
+                'basesyCondiciones' => 'Eventos_byc',
+            ];
+            $pathsGuardados = [];
+            foreach ($archivos as $input => $subcarpeta) {
+                if ($request->hasFile($input)) {
+                    $archivo = $request->file($input);
+                    $nombreArchivo = $archivo->getClientOriginalName();
+                    // Guardar en el disco notas_casinos dentro de la subcarpeta correspondiente
+                    $rutaGuardada = Storage::disk('notas_casinos')->putFileAs(
+                    $subcarpeta,        // subcarpeta dentro del disco
+                    $archivo,           // archivo a guardar
+                    $nombreArchivo      // conservar el nombre original
+                    );
 
-            if ($request->hasFile('basesyCondiciones')) {
-                $basesyCondicionesPath = $request->file('basesyCondiciones')->store('adjuntos');
+                    $pathsGuardados[$input] = basename($rutaGuardada);
+                }
             }
 
             DB::connection('gestion_notas_mysql')->table('eventos')->insert([
@@ -211,9 +214,9 @@ class NotasCasinoController extends Controller
                 'fecha_referencia_evento' => $fechaReferencia,
                 'mes_referencia_evento' => null,
                 'anio' => null,
-                'adjunto_pautas' => $adjuntoPautasPath,
-                'adjunto_diseño' => $adjuntoDisenioPath,
-                'adjunto_basesycond' => $basesyCondicionesPath,
+                'adjunto_pautas' => isset($pathsGuardados['adjuntoPautas']) ? $pathsGuardados['adjuntoPautas'] : null,
+                'adjunto_diseño' => isset($pathsGuardados['adjuntoDisenio']) ? $pathsGuardados['adjuntoDisenio'] : null,
+                'adjunto_basesycond' => isset($pathsGuardados['basesyCondiciones']) ? $pathsGuardados['basesyCondiciones'] : null,
                 'adjunto_inf_tecnico' => null,
                 'idestado' => $idEstado,
                 'idest_seg' => null,
@@ -257,7 +260,6 @@ class NotasCasinoController extends Controller
         $fechaInicio = $request->input('fechaInicio');
         $fechaFin = $request->input('fechaFin');
         $casino = $this->USER->casinos->first();
-        Log::info($casino->id_casino);
         $origen = $this->obtenerCasino($casino);
         try {
             $query = DB::connection('gestion_notas_mysql')
@@ -307,6 +309,46 @@ class NotasCasinoController extends Controller
             Log::error($e);
             return response()->json(['success' => false, 'error' => $e->getMessage()],500);
         }
+    }
+
+    public function descargarArchivo ($id, $tipo){
+        $nota = DB::connection('gestion_notas_mysql')
+            ->table('eventos')
+            ->where('idevento', $id)
+            ->first();
+
+        if (!$nota) {
+            abort(404);
+        }
+        $rutaArchivo = null;
+        $nombreArchivo = null;
+        switch ($tipo) {
+            case 'pautas':
+                $rutaArchivo = 'Eventos_Pautas/'.$nota->adjunto_pautas;
+                $nombreArchivo = $nota->adjunto_pautas;
+                break;
+            case 'disenio':
+                $rutaArchivo = 'Eventos_Diseño/'.$nota->adjunto_diseño;
+                $nombreArchivo = $nota->adjunto_diseño;
+                break;
+            case 'basesycond':
+                $rutaArchivo =  'Eventos_byc/'.$nota->adjunto_basesycond;
+                $nombreArchivo = $nota->adjunto_basesycond;
+                break;
+            default:
+                abort(404);
+        }
+
+        if(!Storage::disk('notas_casinos')->exists($rutaArchivo)) {
+            abort(404);
+        }
+
+        $rutaCompleta = Storage::disk('notas_casinos')->path($rutaArchivo);
+        $mime = mime_content_type($rutaCompleta);
+        
+        return response()->download($rutaCompleta, $nombreArchivo, [
+            'Content-Type' => $mime,
+        ]);
     }
 
     private function obtenerCasino ($casino) {

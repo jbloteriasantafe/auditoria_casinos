@@ -62,7 +62,11 @@ return [
             'region' => env('AWS_REGION'),
             'bucket' => env('AWS_BUCKET'),
         ],
-
+        'notas_casinos' => [
+            'driver' => 'local',
+            'root' => '/mnt/adjuntos_notas_casinos/notas_casinos',
+        ],
+ 
     ],
 
 ];
