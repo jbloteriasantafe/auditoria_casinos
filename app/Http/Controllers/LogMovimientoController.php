@@ -656,36 +656,50 @@ class LogMovimientoController extends Controller
   // por lo que se los puede asignar directamente, pero hay que tener en cuenta lo de la tercer fila 
   // y si en algun momento se hacen informes/pruebas.
   public function cargarTomaRelevamiento(Request $request){
-    $validator =Validator::make($request->all(), [
+    Validator::make($request->all(),[
+      'temporal' =>  'required|bool',
+    ])->validate();
+    
+    $temporal = $request->temporal != 0;
+    $REQUIRED = $temporal? 'nullable' : 'required';
+    $validator = Validator::make($request->all(), [
         'id_relev_mov' => 'required|integer|exists:relevamiento_movimiento,id_relev_mov',
         'toma' => 'required|integer|min:0',
         'id_cargador' => 'nullable|integer|exists:usuario,id_usuario',
         'id_fiscalizador' => 'required|integer|exists:usuario,id_usuario',
-        'contadores' => 'required',
-        'contadores.*.nombre' =>'nullable',
-        'contadores.*.valor' => ['required_with:contadores.*.nombre','regex:/^\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
-        'juego' => 'required|integer|exists:juego,id_juego',
-        'apuesta_max' => 'required|numeric|max:900000',
-        'cant_lineas' => 'required|numeric|max:100000',
-        'porcentaje_devolucion' => ['required','regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
-        'denominacion' => 'required|string|max:64',
-        'cant_creditos' => 'required|numeric',
         'fecha_sala' => 'required|date',
         'observaciones' => 'nullable|max:800',
         'adjunto' => 'nullable|image',
+        'link_adjunto' => 'nullable|string',
         'mac' => 'nullable|max:100',
-        'sector_relevado' => 'required',
-        'isla_relevada' => 'required',
         'progresivos' => 'sometimes|array',
         'progresivos.*.id_pozo' => 'required|integer|exists:pozo,id_pozo',
-        'progresivos.*.id_tipo_causa_no_toma_progresivo' => 'nullable|integer|exists:tipo_causa_no_toma_progresivo,id_tipo_causa_no_toma_progresivo',
         'progresivos.*.niveles' => 'sometimes|array',
+        'progresivos.*.id_tipo_causa_no_toma_progresivo' => 'nullable|integer|exists:tipo_causa_no_toma_progresivo,id_tipo_causa_no_toma_progresivo',
         'progresivos.*.niveles.*.id_nivel_progresivo' => 'nullable|integer|exists:nivel_progresivo,id_nivel_progresivo',
-        'progresivos.*.niveles.*.val' => 'nullable|numeric|min:0'
-    ], ['image' => 'El archivo tiene que ser una imagen'], self::$atributos)->after(function($validator){
+        'progresivos.*.niveles.*.val' => 'nullable|numeric|min:0',
+        'contadores' => $REQUIRED,
+        //'contadores.*.nombre' => $REQUIRED,
+        'contadores.*.valor' => [$REQUIRED,'regex:/^\d\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?\d?([,|.]\d\d?)?$/'],
+        'juego' => [$REQUIRED,'integer','exists:juego,id_juego'],
+        'apuesta_max' => $REQUIRED.'|numeric|max:900000',
+        'cant_lineas' => $REQUIRED.'|numeric|max:100000',
+        'porcentaje_devolucion' => [$REQUIRED,'regex:/^\d\d?([,|.]\d\d?\d?)?$/'],
+        'denominacion' => $REQUIRED.'|string|max:64',
+        'cant_creditos' => $REQUIRED.'|numeric',
+        'sector_relevado' => $REQUIRED,
+        'isla_relevada' => $REQUIRED
+    ], [
+      'image' => 'El archivo tiene que ser una imagen',
+    ], self::$atributos)->after(function($validator) use ($temporal){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       $relevamiento = RelevamientoMovimiento::find($data['id_relev_mov']);
+      if(!UsuarioController::getInstancia()->quienSoy()['usuario']->usuarioTieneCasino(
+        $relevamiento->log_movimiento->id_casino
+      )){
+        return $validator->errors->add('id_relev_mov','No tiene acceso');
+      }
       $fiscalizacion = $relevamiento->fiscalizacion;
       $fecha_limite_inferior = null;
       $fecha_sala = strtotime($data['fecha_sala']);
@@ -695,9 +709,7 @@ class LogMovimientoController extends Controller
       if($fecha_sala < $fecha_limite_inferior) $validator->errors()->add('fecha_sala','validation.after');
       if($fecha_sala > time()) $validator->errors()->add('fecha_sala','validation.before');
 
-      $progresivos = [];
-      if(array_key_exists('progresivos',$data)) $progresivos = $data['progresivos'];
-      foreach($progresivos as $idx_p => $p){
+      if(!$temporal) foreach(($data['progresivos'] ?? []) as $idx_p => $p){
         $pozo = Pozo::find($p['id_pozo']);
         $causaNoToma = $p['id_tipo_causa_no_toma_progresivo'];
         if(is_null($causaNoToma)){
@@ -723,46 +735,51 @@ class LogMovimientoController extends Controller
     DB::beginTransaction();
     try{ // @TODO: Agregar una forma de guardar temporalmente, estado mov 8, estado rel 2
       $nro_toma = $request->toma <= 0? 1 : $request->toma;
+            
       RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamientoProgs(
         $request->id_relev_mov,
         $nro_toma,
         $request->id_cargador,
         $request->id_fiscalizador,
         $request['fecha_sala'],
-        $request['mac'],
-        $request['sector_relevado'],
-        $request['isla_relevada'],
-        $request['contadores'],
-        $request['juego'],
-        $request['apuesta_max'],
-        $request['cant_lineas'] ,
-        $request['porcentaje_devolucion'],
-        $request['denominacion'],
-        $request['cant_creditos'],
-        $request['progresivos'],
-        $request['observaciones'],
-        $request['adjunto'] ?? null
+        $request['mac'] ?? null,
+        $request['sector_relevado'] ?? null,
+        $request['isla_relevada'] ?? null,
+        $request['contadores'] ?? [],
+        $request['juego'] ?? null,
+        $request['apuesta_max'] ?? null,
+        $request['cant_lineas'] ?? null,
+        $request['porcentaje_devolucion'] ?? null,
+        $request['denominacion'] ?? null,
+        $request['cant_creditos'] ?? null,
+        $request['progresivos'] ?? [],
+        $request['observaciones'] ?? null,
+        $request['adjunto'] ?? null,
+        $request['link_adjunto'] ?? null
       );
-
-      $relevamiento = RelevamientoMovimiento::find($request->id_relev_mov);
+      
+      $relevamiento = RelevamientoMovimiento::find($request->id_relev_mov);      
+      $relevamiento->estado_relevamiento()->associate($temporal? 2 : 3);// Cargando, Finalizado
+      $relevamiento->save();
+      
       $fiscalizacion = $relevamiento->fiscalizacion;
-      $logMov = $relevamiento->log_movimiento;
       $es_intervencion = is_null($fiscalizacion);
       if(!$es_intervencion){
-        if($fiscalizacion->relevamientosCompletados(3)){
+        $fisFinalizada = $fiscalizacion->relevamientosCompletados(3);
+        if($fisFinalizada){
           $fiscalizacion->estado_relevamiento()->associate(3); // Finalizado
-          $fisFinalizada = true;
         }
         else{
-          $fiscalizacion->estado_relevamiento()->associate(2); // Cargando
+          $fiscalizacion->estado_relevamiento()->associate(2);// Cargando
         }
         $fiscalizacion->save();
       }
-
-      if($logMov->relevamientosCompletados($es_intervencion,3)){
+      
+      $logMov = $relevamiento->log_movimiento;
+      $movFinalizado = $logMov->relevamientosCompletados($es_intervencion,3);
+      if($movFinalizado){
         $logMov->estado_relevamiento()->associate(3); // Finalizado
         $logMov->estado_movimiento()->associate(3);  // Notificado
-        $movFinalizado = true;
       }
       else{
         $logMov->estado_relevamiento()->associate(2); // Cargando
@@ -1168,7 +1185,7 @@ class LogMovimientoController extends Controller
       
       $toma = (object) $toma->toArray();
       if($toma->id_archivo !== null){
-        $toma->link_adjunto = 'adjunto/'.$toma->id_toma_relev_mov.'/'.$toma->id_archivo;
+        $toma->link_adjunto = RelevamientoMovimientoController::getInstancia()->linkAdjunto($toma);
       }
       else{
         $toma->link_adjunto = null;
@@ -1211,26 +1228,6 @@ class LogMovimientoController extends Controller
      'datos_ultimo_relev' => $datos_ultimo_relev ];
   }
   
-  public function leerAdjuntoDeToma($id_toma,$id_archivo){
-    $toma =TomaRelevamientoMovimiento::where('id_toma_relev_mov',$id_toma)
-    ->where('id_archivo',$id_archivo)->first();
-    if($toma === null) return 'Archivo no encontrado';
-    $archivo = $toma->archivo;
-    if(empty($archivo)) return 'Archivo invalido';
-    
-    $data = base64_decode($archivo->archivo);
-    
-    $aux_resource = fopen('php://memory',"rw+");
-    fwrite($aux_resource,$data);
-    fseek($aux_resource,0);
-    $mimeType = mime_content_type($aux_resource);
-    
-    return Response::make($data, 200, [
-      'Content-Type' => $mimeType !== false? $mimeType : 'application/octet-stream',
-      'Content-Disposition' => 'inline; filename="'. $archivo->nombre_archivo  . '"'
-    ]);
-  }
-
   public function buscarEventualidadesMTMs(Request $request){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       Validator::make($request->all(), [

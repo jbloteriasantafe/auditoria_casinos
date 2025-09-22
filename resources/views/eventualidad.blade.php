@@ -52,23 +52,8 @@
     </tr>
   </thead>
 </table>
-  @php
-  $nombresProcedimientos = [
-    'Toma de Contadores',
-    'Contadores a Pedido',
-    'Toma de Progresivos',
-    'Control Ambiental',
-    'Control de Layout Total',
-    'Control de Layout Parcial',
-    'Egreso y Reingreso de MTM',
-    'Informes de Turnos Extras',
-    'Relevamiento Torneo de Poker',
-    'Bingo Tradicional',
-    'Solicitudes de Reemplazo / Licencia',
-    'Solicitud de Autoexclusión',
-    'Aperturas de Mesas de Paño',
-    'Valores de Apuesta de Mesas de Paño',
-  ];
+@php
+  $nombresProcedimientos = \App\Http\Controllers\EventualidadController::nombresProcedimientos();
 @endphp
 
 <br/>
@@ -86,10 +71,11 @@
     @foreach ($nombresProcedimientos as $i => $nombre)
       @php
         $p = $eventualidad->procedimientos[$i] ?? null;
+        $np = $p['procedimiento'] ?? $nombre;
         $estado = $p['estado'] ?? '*';
       @endphp
       <tr>
-        <td>{{ $nombre }}</td>
+        <td>{{ $np }}</td>
         <td>{{ $estado === '✔' ? '✔' : '' }}</td>
         <td>{{ $estado === '*' ? '*' : '' }}</td>
         <td>{{ $p['observacion'] ?? '' }}</td>

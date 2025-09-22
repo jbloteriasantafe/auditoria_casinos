@@ -598,7 +598,7 @@ class informesController extends Controller
     $aux->sector = $maquina->isla->sector->descripcion;
     $aux->nro_isla = $maquina->isla->nro_isla;
     $aux->codigo = $maquina->isla->codigo;
-    $aux->denominacion = $maquina->denominacion;
+    $aux->denominacion = $maquina->id_unidad_medida == 1? $maquina->denominacion : 1;
     $aux->porcentaje_devolucion = $maquina->porcentaje_devolucion;
     $aux->id_casino=$maquina->id_casino;
 

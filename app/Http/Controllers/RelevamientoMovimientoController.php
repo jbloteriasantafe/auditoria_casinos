@@ -175,14 +175,37 @@ class RelevamientoMovimientoController extends Controller
       return $progresivos;
     }
 
+  public function linkAdjunto($toma){
+    return 'adjunto/'.$toma->id_toma_relev_mov.'/'.$toma->id_archivo;
+  }
+  
+  public function leerAdjuntoDeToma($id_toma,$id_archivo){
+    $toma = TomaRelevamientoMovimiento::where('id_toma_relev_mov',$id_toma)
+    ->where('id_archivo',$id_archivo)->first();
+    if($toma === null) return 'Archivo no encontrado';
+    $archivo = $toma->archivo;
+    if(empty($archivo)) return 'Archivo invalido';
+    
+    $data = base64_decode($archivo->archivo);
+    
+    $aux_resource = fopen('php://memory',"rw+");
+    fwrite($aux_resource,$data);
+    fseek($aux_resource,0);
+    $mimeType = mime_content_type($aux_resource);
+    
+    return Response::make($data, 200, [
+      'Content-Type' => $mimeType !== false? $mimeType : 'application/octet-stream',
+      'Content-Disposition' => 'inline; filename="'. $archivo->nombre_archivo  . '"'
+    ]);
+  }
+  
   public function cargarTomaRelevamientoProgs(
     $id_relevamiento, $nro_toma, $id_cargador, $id_fiscalizador, $fecha_sala,
     $mac, $sector_relevado, $isla_relevada, $contadores, $juego, $apuesta_max,
     $cant_lineas, $porcentaje_devolucion, $denominacion, $cant_creditos, 
-    $progresivos, $observaciones, $adjunto
+    $progresivos, $observaciones, $adjunto, $link_adjunto
   ){
     $relevamiento = RelevamientoMovimiento::find($id_relevamiento);
-    $relevamiento->estado_relevamiento()->associate(3);//finalizado
     $relevamiento->fecha_relev_sala = $fecha_sala;
     $relevamiento->fecha_carga =  date('Y-m-d h:i:s', time());
     $relevamiento->fiscalizador()->associate($id_fiscalizador);
@@ -213,15 +236,22 @@ class RelevamientoMovimientoController extends Controller
     $toma->denominacion = $denominacion;
     $toma->cant_creditos = $cant_creditos;
     $toma->observaciones = $observaciones;
-    $toma->id_archivo = null;
-    if($adjunto){
-      $archivo=new Archivo;
-      $data=base64_encode(file_get_contents($adjunto->getRealPath()));
-      $nombre_archivo=$adjunto->getClientOriginalName();
-      $archivo->nombre_archivo=$nombre_archivo;
-      $archivo->archivo=$data;
-      $archivo->save();
-      $toma->id_archivo = $archivo->id_archivo;
+    
+    if($adjunto === null && $link_adjunto == $this->linkAdjunto($toma)){
+      //Mantengo el archivo que esta
+    }
+    else {
+      $toma->id_archivo = null;
+      if($adjunto){
+        $archivo=new Archivo;
+        $data=base64_encode(file_get_contents($adjunto->getRealPath()));
+        $nombre_archivo=$adjunto->getClientOriginalName();
+        $archivo->nombre_archivo=$nombre_archivo;
+        $archivo->archivo=$data;
+        $archivo->save();
+        $toma->id_archivo = $archivo->id_archivo;
+        dump($adjunto,$archivo);
+      }
     }
     $toma->save();
 

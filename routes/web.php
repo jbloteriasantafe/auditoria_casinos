@@ -312,7 +312,7 @@ Route::group(['prefix' => 'movimientos','middleware' => 'tiene_permiso:ver_secci
   Route::get('obtenerRelevamientosFiscalizacion/{id_fiscalizacion_movimiento}','LogMovimientoController@obtenerRelevamientosFiscalizacion');
   Route::get('obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
   Route::post('cargarTomaRelevamiento', 'LogMovimientoController@cargarTomaRelevamiento');
-  Route::get('adjunto/{id_toma}/{id_archivo}','LogMovimientoController@leerAdjuntoDeToma');
+  Route::get('adjunto/{id_toma}/{id_archivo}','RelevamientoMovimientoController@leerAdjuntoDeToma');
   Route::post('nuevoLogMovimiento','LogMovimientoController@nuevoLogMovimiento');
   Route::post('eliminarMovimiento', 'LogMovimientoController@eliminarMovimiento');
   Route::get('obtenerDatos/{id}','LogMovimientoController@obtenerDatos');
@@ -343,6 +343,7 @@ Route::group(['prefix' => 'relevamientos_movimientos','middleware' => 'tiene_per
   Route::get('obtenerRelevamientoToma/{id_relevamiento}/{nro_toma?}', 'LogMovimientoController@obtenerRelevamientoToma');
   Route::post('cargarTomaRelevamiento', 'LogMovimientoController@cargarTomaRelevamiento');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
+  Route::get('adjunto/{id_toma}/{id_archivo}','RelevamientoMovimientoController@leerAdjuntoDeToma');
   Route::get('{id}','LogMovimientoController@relevamientosMovimientos');
 });
 
@@ -379,6 +380,9 @@ Route::group(['prefix' => 'eventualidades','middleware' => 'tiene_permiso:ver_se
   Route::get('{evId}/observaciones', 'EventualidadController@getObservaciones');
   Route::get('observacion/{id_ob}','EventualidadController@eliminarObservacion');
   Route::get('visualizarArchivo/{estado}/{id_archivo}','EventualidadController@visualizarArchivo');
+  /*Route::group(['middleware' => 'tiene_rol:superusuario'], function () {
+    Route::get('/ponerNombresProcedimientos','EventualidadController@ponerNombresProcedimientos');
+  });*/
 });
 /**********
 Eventualidades MTM ->intervenciones tecnicas mtm
@@ -395,7 +399,7 @@ Route::group(['prefix' => 'eventualidadesMTM','middleware' => 'tiene_permiso:ver
   Route::post('visarConObservacion', 'LogMovimientoController@visarConObservacion');
   Route::get('obtenerMTMEnCasinoHabilitadas/{casino}/{id}', 'MTMController@obtenerMTMEnCasinoHabilitadas');
   Route::get('obtenerMTMEnCasinoEgresadas/{casino}/{id}', 'MTMController@obtenerMTMEnCasinoEgresadas');
-  Route::get('adjunto/{id_toma}/{id_archivo}','LogMovimientoController@leerAdjuntoDeToma');
+  Route::get('adjunto/{id_toma}/{id_archivo}','RelevamientoMovimientoController@leerAdjuntoDeToma');
   Route::get('obtenerMTM/{id}', 'MTMController@obtenerMTM');
   Route::get('buscarUsuariosPorNombreYCasino/{id_casino}/{nombre}','UsuarioController@buscarUsuariosPorNombreYCasino');
 });
@@ -471,7 +475,8 @@ Route::group(['prefix' => 'relevamientos','middleware' => 'tiene_permiso:ver_sec
   Route::get('obtenerCantidadMaquinasRelevamientoHoy/{id_sector}','RelevamientoController@obtenerCantidadMaquinasRelevamiento');
   Route::post('eliminarCantidadMaquinasPorRelevamiento','RelevamientoController@eliminarCantidadMaquinasPorRelevamiento');
   Route::post('modificarDenominacionYUnidadDetalle','RelevamientoController@modificarDenominacionYUnidadDetalle');
-  Route::post('modificarDenominacionYUnidadMTM','RelevamientoController@modificarDenominacionYUnidadMTM');
+  //Deprecado por Moex... Matias lo puede volver a pedir...
+  //Route::post('modificarDenominacionYUnidadMTM','RelevamientoController@modificarDenominacionYUnidadMTM');
   Route::post('buscarRelevamientos','RelevamientoController@buscarRelevamientos');
   Route::get('verRelevamientoVisado/{id_relevamiento}','RelevamientoController@obtenerRelevamientoVisado');
   Route::get('chequearRolFiscalizador','UsuarioController@chequearRolFiscalizador');
