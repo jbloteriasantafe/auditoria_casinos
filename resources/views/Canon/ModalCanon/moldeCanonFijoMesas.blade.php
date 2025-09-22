@@ -118,12 +118,6 @@
               <input class="form-control" data-name="{{$mesas_fijos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
           </div>
-          <div class="parametro_chico">
-            <h5>Factor Ajuste Diarias/Fijas</h5>
-            <div style="display: flex;flex-direction: column;">
-              <input class="form-control" data-name="{{$factor_ajuste_diario_fijas}}" data-depende="año_mes,id_casino" readonly>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -132,6 +126,12 @@
         <div style="width: 100%;display: flex;">
           @component('Canon.ModalCanon.toggleMensualDiario')
           @endcomponent
+        </div>        
+        <div class="parametro_chico" style="width: 19em;padding-bottom: 1em;" data-mensual-diario-toggle-visible="diario">
+          <h5>Factor Ajuste Diarias/Fijas</h5>
+          <div style="display: flex;flex-direction: column;">
+            <input class="form-control" data-name="{{$factor_ajuste_diario_fijas}}" data-depende="año_mes,id_casino" readonly>
+          </div>
         </div>
         <div data-div-devengado="header" data-div-determinado="header" style="width: 100%;">
           <table class="table table-bordered" style="margin-bottom: 0;">
@@ -141,25 +141,29 @@
               <col style="width: 14.5%;">
               <col style="width: 14.5%;">
               <col style="width: 14.5%;">
-              <col style="width: 8.5%;">
-              <col style="width: 8.5%;">
               <col style="width: 11%;">
               <col style="width: 8%;">
+              <col style="width: 8.5%;">
+              <col style="width: 8.5%;">
               <col style="width: 14.5%;">
             </colgroup>
             @endsection
             @yield('colgroupCF')
             <thead>
               <tr>
+                <th class="celda-vacia" colspan="7">&nbsp;</th>
+                <th colspan="2" style="text-align: center;">Acumulado</th>
+              </tr>
+              <tr>
                 <th style="text-align: center;">Día</th>
                 <th style="text-align: center;">Bruto ARS</th>
                 <th style="text-align: center;">Bruto USD</th>
                 <th style="text-align: center;">Bruto</th>
-                <th style="text-align: center;">Mesas Hab.</th>
-                <th style="text-align: center;">Mesas Hab. (acumulado)</th>
                 <th style="text-align: center;">Valor Mensual</th>
                 <th style="text-align: center;">Valor Diario</th>
-                <th style="text-align: center;">Total (acumulado)</th>
+                <th style="text-align: center;">Mesas Hab.</th>
+                <th style="text-align: center;">Mesas Hab.</th>
+                <th style="text-align: center;">Total</th>
               </tr>
             </thead>
           </table>
@@ -178,10 +182,10 @@
                 <td><input class="form-control" data-name="{{$d_bruto_ARS}}"></td>
                 <td><input class="form-control" data-name="{{$d_bruto_USD}}"></td>
                 <td><input class="form-control" data-name="{{$d_bruto}}" readonly></td>
-                <td><input class="form-control" data-name="{{$d_mesas_habilitadas}}" readonly></td>
-                <td><input class="form-control" data-name="{{$d_mesas_habilitadas_acumuladas}}" readonly></td>
                 <td><input class="form-control" data-name="{{$d_valor}}" readonly></td>
                 <td><input class="form-control" data-name="{{$d_valor_diario}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_mesas_habilitadas}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_mesas_habilitadas_acumuladas}}" readonly></td>
                 <td><input class="form-control" data-name="{{$d_total}}" readonly></td>
               </tr>
             </table>

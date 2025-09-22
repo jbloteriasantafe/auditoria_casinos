@@ -86,6 +86,10 @@
             @yield('colgroupCV')
             <thead>
               <tr>
+                <th class="celda-vacia" colspan="9">&nbsp;</th>
+                <th colspan="2" style="text-align: center;">Acumulado</th>
+              </tr>
+              <tr>
                 <th style="text-align: center;">Día</th>
                 <th style="text-align: center;">Apostado (ARS)</th>
                 <th style="text-align: center;">Apostado (USD)</th>
@@ -96,7 +100,7 @@
                 <th style="text-align: center;">Bruto (USD)</th>
                 <th style="text-align: center;">Bruto</th>
                 <th style="text-align: center;">Subtotal</th>
-                <th style="text-align: center;">Total (acumulado)</th>
+                <th style="text-align: center;">Total</th>
               </tr>
             </thead>
           </table>
@@ -172,6 +176,10 @@
             @yield('colgroupCV')
             <thead>
               <tr>
+                <th class="celda-vacia" colspan="9">&nbsp;</th>
+                <th colspan="2" style="text-align: center;">Acumulado</th>
+              </tr>
+              <tr>
                 <th style="text-align: center;">Día</th>
                 <th class="celda_vacia" colspan="4">&nbsp;</th>
                 <th style="text-align: center;">Impuesto (proporcional)</th>
@@ -179,7 +187,7 @@
                 <th style="text-align: center;">Bruto (USD)</th>
                 <th style="text-align: center;">Bruto</th>
                 <th style="text-align: center;">Subtotal</th>
-                <th style="text-align: center;">Total (acumulado)</th>
+                <th style="text-align: center;">Total</th>
               </tr>
             </thead>
           </table>

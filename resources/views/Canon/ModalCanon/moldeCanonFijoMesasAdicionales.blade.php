@@ -74,26 +74,30 @@
                 <col style="width: 6%;">
                 <col style="width: 8%;">
                 <col style="width: 8%;">
+                <col style="width: 14%;">
+                <col style="width: 14%;">
+                <col style="width: 14%;">
                 <col style="width: 8%;">
                 <col style="width: 8%;">
-                <col style="width: 14%;">
-                <col style="width: 14%;">
-                <col style="width: 14%;">
                 <col style="width: 16%;">
               </colgroup>
               @endsection
               @yield('colgroupCFMA')
               <thead>
                 <tr>
+                  <th class="celda-vacia" colspan="6">&nbsp;</th>
+                  <th colspan="3" style="text-align: center;">Acumulado</th>
+                </tr>
+                <tr>
                   <th style="text-align: center;">Día</th>
                   <th style="text-align: center;">Horas</th>
                   <th style="text-align: center;">Mesas</th>
-                  <th style="text-align: center;">Horas (acumulado)</th>
-                  <th style="text-align: center;">Mesas (acumulado)</th>
                   <th style="text-align: center;">Valor Mes</th>
                   <th style="text-align: center;">Valor Día</th>
                   <th style="text-align: center;">Valor Hora</th>
-                  <th style="text-align: center;">Total (acumulado)</th>
+                  <th style="text-align: center;">Horas</th>
+                  <th style="text-align: center;">Mesas</th>
+                  <th style="text-align: center;">Total</th>
                 </tr>
               </thead>
             </table>

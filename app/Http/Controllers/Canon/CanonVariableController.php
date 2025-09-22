@@ -144,14 +144,19 @@ class CanonVariableController extends Controller
       foreach($aux as $varname => $varvalue) $$varname = $varvalue;
     }
     else{
-      foreach($diario as $d){
+      foreach($diario as &$d){
         foreach([
-            'devengado_apostado_sistema','devengado_base_imponible',
-            'devengado_impuesto','devengado_bruto','determinado_bruto',
-            'devengado_subtotal','determinado_subtotal','devengado_total','determinado_total'
+          'devengado_apostado_sistema','devengado_base_imponible',
+          'devengado_impuesto','devengado_bruto','determinado_bruto',
+          'devengado_subtotal','determinado_subtotal','devengado_total','determinado_total'
         ] as $var){
           $$var = bcadd_precise($$var,$d[$var] ?? '0');
-        }        
+        }
+        foreach([
+          'devengado_subtotal','determinado_subtotal','devengado_total','determinado_total'
+        ] as $var){
+          $d[$var] = $$var;//Guardo el acumulado
+        }
       }
     }
 
