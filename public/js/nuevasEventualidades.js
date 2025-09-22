@@ -105,7 +105,6 @@ $(document).ready(function(){
       autoclose: true,
       todayBtn: true,
       minView: 2,
-      endDate: '+0d'
     });
 
   $('#evFecha').datetimepicker({
@@ -118,7 +117,6 @@ $(document).ready(function(){
     startView: 2,
     minView: 0,
     ignoreReadonly: true,
-    endDate: '+0d',
     container:$('main section'),
 
 
@@ -725,7 +723,6 @@ $(document).on('click', '#guardarObs', function () {
       console.log("Guardado exitoso", respuesta);
       $('#mensajeExitoCarga').removeAttr('hidden');
       $('#mensajeErrorCarga').attr('hidden', true);
-      window.open('/eventualidades/pdfObs/' + respuesta.id, '_blank');
       setTimeout(() => $('#modalObservacion').modal('hide'), 2000);
       $('#btn-buscarEventualidades').click();
     },
@@ -814,16 +811,17 @@ $(document).on('click', '.btn-verObs', function(){
   const evId = $(this).data('id');
   const $ul  = $('#listaPdfs')
                  .empty()
-                 .append('<li>Cargando…</li>')
-                 .data('ev-id', evId);
+                 .append('<li class="list-group-item">Cargando…</li>')
+                 .data('ev-id', evId)
+                 .addClass('list-group');
 
   $.getJSON(`/eventualidades/${evId}/observaciones`, data => {
     const obs = data.obs;
-    const esControlador = data.controlador === 1; // true o false
+    const esControlador = data.controlador === 1;
     $ul.empty();
 
     if (!obs.length) {
-      return $ul.append('<li>No hay observaciones.</li>');
+      return $ul.append('<li class="list-group-item">No hay observaciones.</li>');
     }
 
     obs.forEach(o => {
@@ -832,24 +830,31 @@ $(document).on('click', '.btn-verObs', function(){
       const $link = $('<a>')
         .attr('href', o.url)
         .attr('target','_blank')
-        .text(o.id_archivo);
+        .text(o.id_archivo)
+        .css({display:'inline-block', maxWidth:'calc(100% - 140px)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'});
 
-      const $li = $('<li>').append($link);
+      const $li = $('<li>')
+        .addClass('list-group-item clearfix')
+        .css({marginBottom:'8px'});
 
-      // sólo si es controlador, añado el botón de borrar
+      $li.append($link);
+
       if (esControlador) {
-  const $btnDeleteObs = $('<button>')
-    .addClass('btn btn-danger btn-sm btn-deleteObs')
-    .attr('data-id', o.id_observacion_eventualidades)
-    .attr('data-toggle','tooltip')
-    .attr('data-placement','bottom')
-    .attr('title','ELIMINAR OBSERVACIÓN')
-    .append($('<i>').addClass('fa fa-trash'));
-  $li.append($btnDeleteObs);
-}
+        const $btnDeleteObs = $('<button>')
+          .addClass('btn btn-danger btn-sm btn-deleteObs pull-right')
+          .attr('data-id', o.id_observacion_eventualidades)
+          .attr('data-toggle','tooltip')
+          .attr('data-placement','bottom')
+          .attr('title','ELIMINAR OBSERVACIÓN')
+          .append($('<i>').addClass('fa fa-trash'));
+
+        $li.append($btnDeleteObs);
+      }
 
       $ul.append($li);
     });
+
+
   }).fail(() => {
     $ul.empty().append('<li class="text-danger">Error al cargar.</li>');
   });

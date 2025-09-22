@@ -36,6 +36,13 @@
 <table>
   <thead>
     <tr>
+      <?=
+      $observacion->eventualidad->fecha_toma = substr($observacion->eventualidad->fecha_toma, 0, 11);
+      $observacion->eventualidad->horario = substr($observacion->eventualidad->horario,0, 16);
+      $horaIn = substr($observacion->eventualidad->horario,0,5);
+      $horaFin = substr($observacion->eventualidad->horario,11,16);
+      $observacion->eventualidad->horario = $horaIn . ' a '.$horaFin;
+      ?>
   <th><strong>Fecha:</strong> {{ $observacion->eventualidad->fecha_toma }}</th>
   <th><strong>Turno:</strong> {{ $observacion->eventualidad->turno->nro_turno ?? 'Desconocido' }}</th>
   <th><strong>Horario:</strong> {{ $observacion->eventualidad->horario }}</th>

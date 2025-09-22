@@ -13,6 +13,7 @@ use App\TipoEventualidad;
 use App\Turno;
 use App\Usuario;
 use Dompdf\Dompdf;
+use Dompdf\Options;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 //use Illuminate\Contracts\View\View;
@@ -699,7 +700,13 @@ public function PDF($id) {
   if (is_string($eventualidad->procedimientos)) {
     $eventualidad->procedimientos = json_decode($eventualidad->procedimientos, true);
   }
-  $eventualidad->fecha_toma = substr($eventualidad->fecha_toma, 0, 16);
+  $eventualidad->fecha_toma = substr($eventualidad->fecha_toma, 0, 11);
+  $eventualidad->horario = substr($eventualidad->horario,0, 16);
+  $horaIn = substr($eventualidad->horario,0,5);
+  $horaFin = substr($eventualidad->horario,11,16);
+  $eventualidad->horario = $horaIn . ' a '.$horaFin;
+
+
   $view = View::make('eventualidad', compact('eventualidad'));
   $dompdf = new Dompdf();
   $dompdf->set_paper('A4', 'portrait');
@@ -946,79 +953,66 @@ public function eliminarEventualidad($id){
   return 1;
 }
 
-public function guardarObservacion(Request $request){
+public function guardarObservacion(Request $request)
+{
+    DB::beginTransaction();
+    try {
+        $observacion = new ObservacionEventualidades();
+        $observacion->id_eventualidades    = $request->id_eventualidades;
+        $observacion->observacion          = $request->observacion;
+        $observacion->id_usuario_generador = UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'];
+        $observacion->save();
 
+        $html = \View::make('observacionEventualidad', compact('observacion'))->render();
 
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $dompdf = new Dompdf($options);
+        $dompdf->set_paper('A4', 'portrait');
+        $dompdf->loadHtml($html);
+        $dompdf->render();
 
-  Validator::make($request->all(),[
-      'id_eventualidades' => 'required|integer',
-      'observacion' => 'string|max:5000'
-  ]);
+        $canvas = $dompdf->getCanvas();
+        $cpdf   = $canvas->get_cpdf();
+        $cpdf->addInfo('Title', (string) $observacion->id_observacion_eventualidades);
 
-  try {
-      DB::beginTransaction();
+        $pdfBinary = $dompdf->output();
 
-      $observacion = new ObservacionEventualidades();
-      $observacion->id_eventualidades = $request->id_eventualidades;
-      $observacion->observacion = $request->observacion;
+        $filename = sprintf(
+            'observacion_de_eventualidad_%s_%s.pdf',
+            $observacion->id_eventualidades,
+            $observacion->id_observacion_eventualidades
+        );
+        $relativePath = 'EventualidadesFirmadas/ObservacionesFirmadas/' . $filename;
 
-      $observacion->id_usuario_generador = UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'];
-      $observacion->save();
+        if (!Storage::disk('public')->exists('EventualidadesFirmadas/ObservacionesFirmadas')) {
+            Storage::disk('public')->makeDirectory('EventualidadesFirmadas/ObservacionesFirmadas', 0755, true);
+        }
+        Storage::disk('public')->put($relativePath, $pdfBinary);
 
-      DB::commit();
+        $observacion->id_archivo = $filename;
+        $observacion->save();
 
-      return response()->json(['success' => true, 'id' => $observacion->id_observacion_eventualidades]);
-  } catch (\Exception $e) {
-      DB::rollBack();
-      return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
-  }
+        DB::commit();
 
-}
-
-public function PDFObs($id) {
-  $observacion = ObservacionEventualidades::with(['eventualidad'])->findOrFail($id);
-
-  $view = View::make('observacionEventualidad', compact('observacion'));
-  $dompdf = new Dompdf();
-  $dompdf->set_paper('A4', 'portrait');
-  $dompdf->loadHtml($view->render());
-  $dompdf->render();
-
-  $canvas = $dompdf->getCanvas();
-    $cpdf   = $canvas->get_cpdf();
-    $cpdf->addInfo('Title', $observacion->id_observacion_eventualidades);
-
-    $output   = $dompdf->output();
-
-    $dir = storage_path('app/public/EventualidadesFirmadas/Observaciones');
-    if (!file_exists($dir)) {
-        mkdir($dir, 0755, true);
+        return response()->json([
+            'success'  => true,
+            'id'       => $observacion->id_observacion_eventualidades,
+            'filename' => $filename,
+            'path'     => 'public/' . $relativePath,
+            'url'      => Storage::url($relativePath),
+        ]);
+    } catch (\Throwable $e) {
+        DB::rollBack();
+        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
     }
-
-    $filename = "observacion_de_eventualidad_{$observacion->id_eventualidades}_{$observacion->id_observacion_eventualidades}.pdf";
-    $path     = "{$dir}/{$filename}";
-
-    file_put_contents($path, $output);
-
-
-
-    return response()->download(
-        $path,
-        $filename,
-        ['Content-Type' => 'application/pdf']
-      );
 }
+
 
 
 
 public function subirObservacion(Request $request)
 {
-    $this->validate($request,[
-        'uploadObs' => 'required|file|mimes:pdf,jpeg,jpg,png',
-    ], [
-        'uploadObs.required' => 'Debés seleccionar un archivo.',
-        'uploadObs.mimes'    => 'Solo se permiten archivos PDF o JPEG,JPG,PNG.',
-    ]);
 
     $file = $request->file('uploadObs');
     $filename = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
@@ -1032,36 +1026,13 @@ public function subirObservacion(Request $request)
 
     $fullPath = storage_path("app/{$path}");
 
-    if($file->extension() === "pdf"){
+    $id = $request->input('id_eventualidades');
 
-      $head     = file_get_contents($fullPath, false, null, 0, 8192);
-      $title    = null;
-      if (preg_match('/\/Title\s*\((.*?)\)/', $head, $m)) {
-          $title = $m[1];
-      }
-
-      // valido que realmente sea un id numerico
-      if (! $title || ! ctype_digit($title)) {
-        $id = $request->input('id_eventualidades');
-
-        $ob = new ObservacionEventualidades();
-        $ob->id_eventualidades=$id;
-        $ob->id_usuario_generador = UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'];
-        $ob->id_archivo=$filename;
-        $ob->save();
-        return 2;
-      }
-    } else{
-          $id = $request->input('id_eventualidades');
-
-          $ob = new ObservacionEventualidades();
-          $ob->id_eventualidades=$id;
-          $ob->id_usuario_generador = UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'];
-          $ob->id_archivo=$filename;
-          $ob->save();
-          return 1;
-      }
-
+    $ob = new ObservacionEventualidades();
+    $ob->id_eventualidades=$id;
+    $ob->id_usuario_generador = UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'];
+    $ob->id_archivo=$filename;
+    $ob->save();
 
 
     return response()->json([
