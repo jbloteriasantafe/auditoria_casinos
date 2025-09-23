@@ -573,7 +573,7 @@
             </div>
           </div>
         </div>
-        <div class="bloque_interno" data-pagos>
+        <div class="bloque_interno" data-canon-pago>
           <h4>PAGOS</h4>
           <div style="width: 100%;display: flex;">
             <div>

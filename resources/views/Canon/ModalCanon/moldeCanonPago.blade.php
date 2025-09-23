@@ -45,7 +45,7 @@
   $pago = $n('pago');
   $diferencia = $n('diferencia');
 ?>
-<div data-pago data-js-molde="{{$molde_str}}" style="width: 100%;">
+<div data-subcanon="canon_pago" data-js-molde="{{$molde_str}}" style="width: 100%;">
   <div class="grid_fila_pago" style="width: 100%;">
     <input data-name="{{$id_canon_pago}}" data-modo-mostrar='[]'>
     <div class="grid_capital valor_intermedio">

@@ -292,7 +292,7 @@ $(document).ready(function() {
       llenarPestaña(form.find('[data-canon-fijo-mesas]'),canon?.canon_fijo_mesas ?? {},dias);
       llenarPestaña(form.find('[data-canon-fijo-mesas-adicionales]'),canon?.canon_fijo_mesas_adicionales ?? {},dias);
       llenarPestaña(form.find('[data-adjuntos]'),canon?.canon_archivo ?? {},dias,true);
-      llenarPestaña(form.find('[data-pagos]'),canon?.canon_pago ?? [],dias,true);
+      llenarPestaña(form.find('[data-canon-pago]'),canon?.canon_pago ?? [],dias,true);
       
       let con_diario = true;
       //early break lo hace bastante feo al codigo para poca o nula optimizacion
@@ -566,12 +566,12 @@ $(document).ready(function() {
     
     M.find('[data-js-agregar-pago]').click(function(e){
       let max_idx = null;
-      M.find('[data-pagos] [data-js-contenedor] [data-pago]').each(function(_,p_obj){
+      M.find('[data-canon-pago] [data-js-contenedor] [data-subcanon-tipo]').each(function(_,p_obj){
         max_idx = Math.max(parseInt($(p_obj).attr('data-subcanon-tipo')),max_idx);
       });
       
       const idx = max_idx === null? 0 : (max_idx+1);
-      const pago = agregarDetallePestaña(M.find('[data-pagos]'),null,idx);
+      const pago = agregarDetallePestaña(M.find('[data-canon-pago]'),null,idx);
       agregarInputsFormatear(pago.find('input[name]:not([data-js-texto-no-formatear-numero])'));
       
       M.find('form[data-js-recalcular]').trigger('recalcular');
@@ -579,7 +579,7 @@ $(document).ready(function() {
     
     M.find('form[data-js-recalcular]').on('click','[data-js-borrar-pago]',function(e){
       const tgt = $(e.currentTarget);
-      const pago = tgt.closest('[data-pago]');
+      const pago = tgt.closest('[data-subcanon-tipo]');
       borrarInputsFormatear(pago.find('input[name]:not([data-js-texto-no-formatear-numero])'));
       pago.remove();
       M.find('form[data-js-recalcular]').trigger('recalcular');
