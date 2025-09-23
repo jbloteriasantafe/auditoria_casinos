@@ -29,7 +29,7 @@
     return "canon_variable[$mstr][diario][$mstrd][$s]";
   };
 ?>
-<div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder_subcanon">
+<div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon="canon_variable" data-subcanon-toggle-estado="esconder_subcanon">
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
   <input data-name="{{$n('id_canon_variable')}}" hidden>
   <div class="bloque_interno"  style="width: 100%;display: flex;align-items: center;">

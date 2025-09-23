@@ -33,7 +33,7 @@
     $$varname_php = "canon_fijo_mesas[$molde_str][diario][$molde_str_diario][$varname]";
   }
 ?>
-<div class="bloque_interno bloque_principal" style="width: 100%;" data-js-molde="{{$molde_str}}" data-subcanon-tipo data-subcanon-toggle-estado="esconder_subcanon" data-subcanon-toggle-mensual-diario-estado="mensual">
+<div class="bloque_interno bloque_principal" style="width: 100%;" data-js-molde="{{$molde_str}}" data-subcanon="canon_fijo_mesas" data-subcanon-toggle-estado="esconder_subcanon" data-subcanon-toggle-mensual-diario-estado="mensual">
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$tipo}}" hidden>
   <input data-name="{{$id_canon_fijo_mesas}}" hidden>
   <div class="bloque_interno" style="width: 100%;display: flex;align-items: center;">
