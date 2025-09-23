@@ -201,25 +201,25 @@
                 <td colspan="5">&nbsp;</td>
               </tr>
               <tr class="fila-mensual">
-                <td colspan="5" style="text-align: right;">Devengado</td>
-                <td>
-                  <input class="form-control" data-name="{{$mesas_dias}}" readonly>
-                </td>
+                <td colspan="4" style="text-align: right;">Devengado</td>
                 <td>
                   <input class="form-control" data-name="{{$devengado_valor}}" readonly>
                 </td>
                 <td>
                   <input class="form-control" data-name="{{$devengado_valor_diario}}" readonly>
                 </td>
+                <td rowspan="2">
+                  &nbsp;
+                </td>
+                <td rowspan="2">
+                  <input class="form-control" data-name="{{$mesas_dias}}" readonly>
+                </td>
                 <td>
                   <input class="form-control" data-name="{{$devengado_total}}" readonly>
                 </td>
               </tr>
                 <tr class="fila-mensual">
-                  <td colspan="5" style="text-align: right;">Determinado</td>
-                  <td>
-                    <input class="form-control" data-name="{{$mesas_dias}}" readonly>
-                  </td>
+                  <td colspan="4" style="text-align: right;">Determinado</td>
                   <td>
                     <input class="form-control" data-name="{{$determinado_valor}}" readonly>
                   </td>

@@ -72,11 +72,11 @@
               @section('colgroupCFMA')
               <colgroup>
                 <col style="width: 6%;">
+                <col style="width: 14%;">
+                <col style="width: 14%;">
+                <col style="width: 14%;">
                 <col style="width: 8%;">
                 <col style="width: 8%;">
-                <col style="width: 14%;">
-                <col style="width: 14%;">
-                <col style="width: 14%;">
                 <col style="width: 8%;">
                 <col style="width: 8%;">
                 <col style="width: 16%;">
@@ -90,11 +90,11 @@
                 </tr>
                 <tr>
                   <th style="text-align: center;">Día</th>
-                  <th style="text-align: center;">Horas</th>
-                  <th style="text-align: center;">Mesas</th>
                   <th style="text-align: center;">Valor Mes</th>
                   <th style="text-align: center;">Valor Día</th>
                   <th style="text-align: center;">Valor Hora</th>
+                  <th style="text-align: center;">Horas</th>
+                  <th style="text-align: center;">Mesas</th>
                   <th style="text-align: center;">Horas</th>
                   <th style="text-align: center;">Mesas</th>
                   <th style="text-align: center;">Total</th>
@@ -112,13 +112,13 @@
               <table hidden>
                 <tr data-molde-diario="{{$molde_str_diario}}">
                   <td><input class="form-control" data-name="{{$nd('dia')}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$nd('valor_mes')}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$nd('valor_dia')}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$nd('valor_hora')}}" readonly></td>
                   <td><input class="form-control" data-name="{{$nd('horas_diarias')}}"></td>
                   <td><input class="form-control" data-name="{{$nd('mesas_diarias')}}"></td>
                   <td><input class="form-control" data-name="{{$nd('horas')}}" readonly></td>
                   <td><input class="form-control" data-name="{{$nd('mesas')}}" readonly></td>
-                  <td><input class="form-control" data-name="{{$nd('valor_mes')}}" readonly></td>
-                  <td><input class="form-control" data-name="{{$nd('valor_dia')}}" readonly></td>
-                  <td><input class="form-control" data-name="{{$nd('valor_hora')}}" readonly></td>
                   <td><input class="form-control" data-name="{{$nd('total')}}" readonly></td>
                 </tr>
               </table>
@@ -129,13 +129,7 @@
               @yield('colgroupCFMA')
               <tbody>
                 <tr class="fila-mensual">
-                  <td colspan="3" style="text-align: right;">Devengado</td>
-                  <td>
-                    <input class="form-control" data-name="{{$horas}}"  data-depende="{{$mesas}}" readonly>
-                  </td>
-                  <td>
-                    <input class="form-control" data-name="{{$mesas}}" data-depende="{{$horas}}" readonly>
-                  </td>
+                  <td style="text-align: right;">Devengado</td>
                   <td>
                     <input class="form-control" data-name="{{$devengado_valor_mes}}" readonly>
                   </td>
@@ -145,18 +139,19 @@
                   <td>
                     <input class="form-control" data-name="{{$devengado_valor_hora}}" readonly>
                   </td>
+                  <td colspan="2" rowspan="2">&nbsp;</td>
+                  <td rowspan="2">
+                    <input class="form-control" data-name="{{$horas}}"readonly>
+                  </td>
+                  <td rowspan="2">
+                    <input class="form-control" data-name="{{$mesas}}" readonly>
+                  </td>
                   <td>
                     <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_valor_mes}},{{$horas}},{{$mesas}}" readonly>
                   </td>
                 </tr>
                 <tr class="fila-mensual">
-                  <td colspan="3" style="text-align: right;">Determinado</td>
-                  <td>
-                    <input class="form-control" data-name="{{$horas}}"  data-depende="{{$mesas}}" readonly>
-                  </td>
-                  <td>
-                    <input class="form-control" data-name="{{$mesas}}" data-depende="{{$horas}}" readonly>
-                  </td>
+                  <td style="text-align: right;">Determinado</td>
                   <td>
                     <input class="form-control" data-name="{{$determinado_valor_mes}}" readonly>
                   </td>
