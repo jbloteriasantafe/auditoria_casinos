@@ -183,9 +183,9 @@
                                         title="Número de nota">NRO. DE NOTA</th>
                                     <th class="col-sm-1 text-center" value="nombre_evento" estado=""
                                         title="Nombre de evento">NOMBRE EVENTO
-                                    </th>
+                                    </th>{{-- ! TODO LO QUE DICE NOTAS EN EL CODIGO ESTA COMO PAUTAS --}}
                                     <th class="col-sm-1 text-center" value="adjunto_pautas" estado=""
-                                        title="Adjunto pautas">ADJ. PAUTAS
+                                        title="Adjunto pautas">ADJ. NOTAS
                                     </th>
                                     <th class="col-sm-1 text-center" value="adjunto_diseño" estado=""
                                         title="Adjunto diseño">ADJ. DISEÑO
@@ -313,9 +313,9 @@
                                 <span class="error-message" style="display: none;" id="mensajeErrorCategoria">Este
                                     campo es obligatorio</span>
                             </div>
-                            {{-- ! ADJUNTO PAUTAS --}}
+                            {{-- ! ADJUNTO NOTAS, TODO LO QUE DICE PAUTAS EN TODO EL CODIGO ES DE LAS NOTAS --}}
                             <div class="col-lg-12">
-                                <h5>Adjunto pautas</h5>
+                                <h5>Adjunto NOTAS</h5>
                                 <div class="custom-file">
                                     <input id="adjuntoPautas" name="adjuntoPautas" data-borrado="false"
                                         class="custom-file-input" type="file" accept=".pdf,.zip"
@@ -350,7 +350,7 @@
                             <div class="col-lg-12">
                                 <h5>Adjunto bases y condiciones</h5>
                                 <div>
-                                    <input id="basesyCondiciones" type="file" accept=".pdf,.zip"
+                                    <input id="basesyCondiciones" type="file" accept=".pdf,.zip,.doc,.docx"
                                         class="custom-file-input" style="display:none;" />
                                     <button type="button" id="basesyCondicionesBtn" class="btn btn-primary">Seleccionar
                                         archivo</button>

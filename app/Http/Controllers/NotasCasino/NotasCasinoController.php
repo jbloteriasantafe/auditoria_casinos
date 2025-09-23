@@ -93,7 +93,7 @@ class NotasCasinoController extends Controller
             'categoria' => 'required|integer',
             'adjuntoPautas' => 'nullable|file|mimes:pdf,zip|max:153600',
             'adjuntoDisenio' => 'nullable|file|mimes:pdf,zip|max:153600',
-            'basesyCondiciones' => 'nullable|file|mimes:pdf,zip|max:153600',
+            'basesyCondiciones' => 'nullable|file|mimes:pdf,zip,doc,docx|max:153600',
             'fechaInicio' => 'required|date',
             'fechaFinalizacion' => 'required|date',
             'fechaReferencia' => 'nullable|string|max:500',
@@ -135,107 +135,88 @@ class NotasCasinoController extends Controller
         $casino = $this->USER->casinos->first();
         $origen = $this->obtenerCasino($casino);
 
+        $responsable = null;
+        switch($origen){
+            case 1://CSF
+                $responsable = 28;//santa fe
+                break;
+            case 2://CME
+                $responsable = 29; //melincue
+                break;
+            case 3://CRO
+                $responsable = 27; //rosario
+                break;
+            default:
+                $responsable = 4; //usuario de Mecha
+                break;
+        }
+
         // obtnego los datos de la request
         $evento = $request->input('nombreEvento');
         $tipoEvento = $request->input('tipoEvento');
         $fechaInicio = $request->input('fechaInicio');
         $fechaFinalizacion = $request->input('fechaFinalizacion');
         $categoria = $request->input('categoria');
-        $responsable = 4; //! HAY QUE CREAR 3 USUARIOS 1 PARA CADA CASINO Y SETEAR ESTE VALOR SEGUN EL USUARIO
         $idEstado = 9; //carga inicial
         $fechaReferencia = null;
 
         if($request->has('fechaReferencia')) {
             $fechaReferencia = $request->input('fechaReferencia');
         }
+        $archivos = [
+            'adjuntoPautas' => 'Eventos_Pautas',
+            'adjuntoDisenio' => 'Eventos_Diseño',
+            'basesyCondiciones' => 'Eventos_byc',
+        ];
+        $pathsGuardados = [];
+        foreach ($archivos as $input => $subcarpeta) {
+            if ($request->hasFile($input)) {
+                $archivo = $request->file($input);
+                $nombreArchivo = $archivo->getClientOriginalName();
+                // Guardar en el disco notas_casinos dentro de la subcarpeta correspondiente
+                $rutaGuardada = Storage::disk('notas_casinos')->putFileAs(
+                $subcarpeta,        // subcarpeta dentro del disco
+                $archivo,           // archivo a guardar
+                $nombreArchivo      // conservar el nombre original
+                );
 
-        //? GUARDAR EN LA TABLA EVENTOS,FORMATO:
-        /* 
-            idevento, -> autoincremental  //! AGREGAR
-            responsable, -> null
-            nronota_ev, -> si va//! AGREGAR
-            origen, -> si va//! AGREGAR -> HARCODDEADO
-            evento(nombre), -> si va //! AGREGAR -> NOMBRE EVENTO
-            fecha_nota_recep, -> null 
-            tipo_evento, -> si va //! AGREGAR
-            fecha_evento(inicio),si va //! AGREGAR
-            fecha_finalizacion,si va //! AGREGAR
-            estado_fecha, null
-            fecha_referencia_evento,si va //! AGREGAR
-            mes_referencia_evento,null
-            anio,null
-            adjunto_pautas, si existe va el path | NULL //! AGREGAR
-            adjunto_diseño, si existe va el path | NULL //! AGREGAR
-            adjunto_basesycond, si existe va el path | NULL //! AGREGAR
-            adjunto_inf_tecnico, NULL y sacar del form
-            idestado, ESTADO 9 CARGA INICIAL //! AGREGAR -> HARCODEADO
-            idest_seg, null
-            observaciones, null 
-            obs_segim,null
-            fecha_orden, null
-            material_entrega, null
-            fecha_hora_reg, null
-            fecha_hora_modif, null
-            notas_relacionadas, null
-            id_categoria, si va //! AGREGAR
-            dircarpeta, null
-        */
-
-            $archivos = [
-                'adjuntoPautas' => 'Eventos_Pautas',
-                'adjuntoDisenio' => 'Eventos_Diseño',
-                'basesyCondiciones' => 'Eventos_byc',
-            ];
-            $pathsGuardados = [];
-            foreach ($archivos as $input => $subcarpeta) {
-                if ($request->hasFile($input)) {
-                    $archivo = $request->file($input);
-                    $nombreArchivo = $archivo->getClientOriginalName();
-                    // Guardar en el disco notas_casinos dentro de la subcarpeta correspondiente
-                    $rutaGuardada = Storage::disk('notas_casinos')->putFileAs(
-                    $subcarpeta,        // subcarpeta dentro del disco
-                    $archivo,           // archivo a guardar
-                    $nombreArchivo      // conservar el nombre original
-                    );
-
-                    $pathsGuardados[$input] = basename($rutaGuardada);
-                }
+                $pathsGuardados[$input] = basename($rutaGuardada);
             }
+        }
 
-            DB::connection('gestion_notas_mysql')->table('eventos')->insert([
-                'responsable' => $responsable,
-                'nronota_ev' => $nota,
-                'origen' => $origen,
-                'evento' => $evento,
-                'fecha_nota_recep' => null,
-                'tipo_evento' => $tipoEvento,
-                'fecha_evento' => $fechaInicio,
-                'fecha_finalizacion' => $fechaFinalizacion,
-                'estado_fecha' => null,
-                'fecha_referencia_evento' => $fechaReferencia,
-                'mes_referencia_evento' => null,
-                'anio' => null,
-                'adjunto_pautas' => isset($pathsGuardados['adjuntoPautas']) ? $pathsGuardados['adjuntoPautas'] : null,
-                'adjunto_diseño' => isset($pathsGuardados['adjuntoDisenio']) ? $pathsGuardados['adjuntoDisenio'] : null,
-                'adjunto_basesycond' => isset($pathsGuardados['basesyCondiciones']) ? $pathsGuardados['basesyCondiciones'] : null,
-                'adjunto_inf_tecnico' => null,
-                'idestado' => $idEstado,
-                'idest_seg' => null,
-                'observaciones' => null,
-                'obs_seguim' => null,
-                'fecha_orden' => null,
-                'material_entrega' => null,
-                'fecha_hora_reg' => null,
-                'fecha_hora_modif' => null,
-                'notas_relacionadas' => null,
-                'idcategoria' => $categoria,
-                'dircarpeta' => null
-            ]);
-            
-            return response()->json(['success' => true],200);
+        DB::connection('gestion_notas_mysql')->table('eventos')->insert([
+            'responsable' => $responsable,
+            'nronota_ev' => $nota,
+            'origen' => $origen,
+            'evento' => $evento,
+            'fecha_nota_recep' => null,
+            'tipo_evento' => $tipoEvento,
+            'fecha_evento' => $fechaInicio,
+            'fecha_finalizacion' => $fechaFinalizacion,
+            'estado_fecha' => null,
+            'fecha_referencia_evento' => $fechaReferencia,
+            'mes_referencia_evento' => null,
+            'anio' => null,
+            'adjunto_pautas' => isset($pathsGuardados['adjuntoPautas']) ? $pathsGuardados['adjuntoPautas'] : null,
+            'adjunto_diseño' => isset($pathsGuardados['adjuntoDisenio']) ? $pathsGuardados['adjuntoDisenio'] : null,
+            'adjunto_basesycond' => isset($pathsGuardados['basesyCondiciones']) ? $pathsGuardados['basesyCondiciones'] : null,
+            'adjunto_inf_tecnico' => null,
+            'idestado' => $idEstado,
+            'idest_seg' => null,
+            'observaciones' => null,
+            'obs_seguim' => null,
+            'fecha_orden' => null,
+            'material_entrega' => null,
+            'fecha_hora_reg' => null,
+            'fecha_hora_modif' => null,
+            'notas_relacionadas' => null,
+            'idcategoria' => $categoria,
+            'dircarpeta' => null
+        ]);
+    return response()->json(['success' => true],200);
         } catch (Exception $e) {
-            Log::error($e);
-            return response()->json(['success' => false, 'error' => $e->getMessage()],500);
+        Log::error($e);
+        return response()->json(['success' => false, 'error' => $e->getMessage()],500);
         }
     }
 
