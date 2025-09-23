@@ -115,7 +115,7 @@ function generarFilaTabla(nota) {
       `${
         !nota.adjunto_pautas
           ? "No hay información disponible"
-          : `<a href='cargar-notas/notas/archivo/${nota.idevento}/pautas'>${nota.adjunto_pautas}</a>`
+          : `<a href='cargar-notas/notas/archivo/${nota.idevento_enc}/pautas'>${nota.adjunto_pautas}</a>`
       }`
     )
     .attr("title", nota.adjunto_pautas || "No hay información disponible");
@@ -125,7 +125,7 @@ function generarFilaTabla(nota) {
       `${
         !nota.adjunto_diseño
           ? "No hay información disponible"
-          : `<a href='cargar-notas/notas/archivo/${nota.idevento}/disenio'>${nota.adjunto_diseño}</a>`
+          : `<a href='cargar-notas/notas/archivo/${nota.idevento_enc}/disenio'>${nota.adjunto_diseño}</a>`
       }`
     )
     .attr("title", nota.adjunto_diseño || "No hay información disponible");
@@ -135,7 +135,7 @@ function generarFilaTabla(nota) {
       `${
         !nota.adjunto_basesycond
           ? "No hay información disponible"
-          : `<a href='cargar-notas/notas/archivo/${nota.idevento}/basesycond'>${nota.adjunto_basesycond}</a>`
+          : `<a href='cargar-notas/notas/archivo/${nota.idevento_enc}/basesycond'>${nota.adjunto_basesycond}</a>`
       }`
     )
     .attr("title", nota.adjunto_basesycond || "No hay información disponible");

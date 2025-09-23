@@ -10,6 +10,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Crypt;
 
 
 class NotasCasinoController extends Controller
@@ -267,7 +268,7 @@ class NotasCasinoController extends Controller
             ->join('estados', 'eventos.idestado', '=', 'estados.idestado')
             ->select(
                 'eventos.idevento',
-        'eventos.nronota_ev',
+                'eventos.nronota_ev',
                 'eventos.evento',
                 'eventos.adjunto_pautas',
                 'eventos.adjunto_diseño',
@@ -295,15 +296,22 @@ class NotasCasinoController extends Controller
                 $query->whereDate('eventos.fecha_evento', '<=', $fechaFin);
             }
 
-         $notasActuales = $query
+            $notasActuales = $query
             ->orderBy('eventos.idevento', 'desc')
             ->paginate($porPagina, ['*'], 'page', $pagina);
+
+            //encrypto
+            $data = collect($notasActuales->items())->map(function ($nota) {
+                $nota->idevento_enc = Crypt::encryptString($nota->idevento);
+                return $nota;
+            });
+
 
             return response()->json([
                 'current_page' => $notasActuales->currentPage(),
                 'per_page' => $notasActuales->perPage(),
                 'total' => $notasActuales->total(),
-                'data' => $notasActuales->items()
+                'data' => $data
             ]);
         } catch (Exception $e) {
             Log::error($e);
@@ -312,43 +320,69 @@ class NotasCasinoController extends Controller
     }
 
     public function descargarArchivo ($id, $tipo){
-        $nota = DB::connection('gestion_notas_mysql')
-            ->table('eventos')
-            ->where('idevento', $id)
-            ->first();
-
-        if (!$nota) {
-            abort(404);
-        }
-        $rutaArchivo = null;
-        $nombreArchivo = null;
-        switch ($tipo) {
-            case 'pautas':
-                $rutaArchivo = 'Eventos_Pautas/'.$nota->adjunto_pautas;
-                $nombreArchivo = $nota->adjunto_pautas;
-                break;
-            case 'disenio':
-                $rutaArchivo = 'Eventos_Diseño/'.$nota->adjunto_diseño;
-                $nombreArchivo = $nota->adjunto_diseño;
-                break;
-            case 'basesycond':
-                $rutaArchivo =  'Eventos_byc/'.$nota->adjunto_basesycond;
-                $nombreArchivo = $nota->adjunto_basesycond;
-                break;
-            default:
-                abort(404);
+         try {
+            $idReal = Crypt::decryptString($id);
+        } catch (Exception $e) {
+            abort(404, 'ID inválido');
         }
 
-        if(!Storage::disk('notas_casinos')->exists($rutaArchivo)) {
-            abort(404);
-        }
-
-        $rutaCompleta = Storage::disk('notas_casinos')->path($rutaArchivo);
-        $mime = mime_content_type($rutaCompleta);
-        
-        return response()->download($rutaCompleta, $nombreArchivo, [
-            'Content-Type' => $mime,
+        $validator = Validator::make([
+            'id' => $idReal,
+            'tipo' => $tipo
+        ], [
+            'id' => 'required|integer',
+            'tipo' => 'required|string|in:pautas,disenio,basesycond'
         ]);
+
+        if ($validator->fails()) {
+            abort(404);
+        }
+
+        try {
+            $nota = DB::connection('gestion_notas_mysql')
+                ->table('eventos')
+                ->where('idevento', $idReal)
+                ->first();
+
+            if (!$nota) {
+                abort(404);
+            }
+            $rutaArchivo = null;
+            $nombreArchivo = null;
+            switch ($tipo) {
+                case 'pautas':
+                    $rutaArchivo = 'Eventos_Pautas/'.$nota->adjunto_pautas;
+                    $nombreArchivo = $nota->adjunto_pautas;
+                    break;
+                case 'disenio':
+                    $rutaArchivo = 'Eventos_Diseño/'.$nota->adjunto_diseño;
+                    $nombreArchivo = $nota->adjunto_diseño;
+                    break;
+                case 'basesycond':
+                    $rutaArchivo =  'Eventos_byc/'.$nota->adjunto_basesycond;
+                    $nombreArchivo = $nota->adjunto_basesycond;
+                    break;
+                default:
+                    abort(404);
+            }
+
+            if (empty($nombreArchivo)) {
+                abort(404, 'El archivo no está cargado.');
+            }
+
+            if(!Storage::disk('notas_casinos')->exists($rutaArchivo)) {
+            abort(404);
+            }
+
+            $rutaCompleta = Storage::disk('notas_casinos')->path($rutaArchivo);
+            $mime = mime_content_type($rutaCompleta);
+        
+            return response()->download($rutaCompleta, $nombreArchivo, [
+                'Content-Type' => $mime,
+            ]);
+        } catch (Exception $th) {
+            abort(404);
+        }
     }
 
     private function obtenerCasino ($casino) {
