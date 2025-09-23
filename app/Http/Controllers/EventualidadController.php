@@ -700,7 +700,7 @@ public function PDF($id) {
   if (is_string($eventualidad->procedimientos)) {
     $eventualidad->procedimientos = json_decode($eventualidad->procedimientos, true);
   }
-  $eventualidad->fecha_toma = substr($eventualidad->fecha_toma, 0, 11);
+  $eventualidad->fecha_toma = substr($eventualidad->fecha_toma, 0, 16);
   $eventualidad->horario = substr($eventualidad->horario,0, 16);
   $horaIn = substr($eventualidad->horario,0,5);
   $horaFin = substr($eventualidad->horario,11,16);
@@ -963,44 +963,11 @@ public function guardarObservacion(Request $request)
         $observacion->id_usuario_generador = UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'];
         $observacion->save();
 
-        $html = \View::make('observacionEventualidad', compact('observacion'))->render();
-
-        $options = new Options();
-        $options->set('isRemoteEnabled', true);
-        $dompdf = new Dompdf($options);
-        $dompdf->set_paper('A4', 'portrait');
-        $dompdf->loadHtml($html);
-        $dompdf->render();
-
-        $canvas = $dompdf->getCanvas();
-        $cpdf   = $canvas->get_cpdf();
-        $cpdf->addInfo('Title', (string) $observacion->id_observacion_eventualidades);
-
-        $pdfBinary = $dompdf->output();
-
-        $filename = sprintf(
-            'observacion_de_eventualidad_%s_%s.pdf',
-            $observacion->id_eventualidades,
-            $observacion->id_observacion_eventualidades
-        );
-        $relativePath = 'EventualidadesFirmadas/ObservacionesFirmadas/' . $filename;
-
-        if (!Storage::disk('public')->exists('EventualidadesFirmadas/ObservacionesFirmadas')) {
-            Storage::disk('public')->makeDirectory('EventualidadesFirmadas/ObservacionesFirmadas', 0755, true);
-        }
-        Storage::disk('public')->put($relativePath, $pdfBinary);
-
-        $observacion->id_archivo = $filename;
-        $observacion->save();
-
         DB::commit();
 
         return response()->json([
-            'success'  => true,
-            'id'       => $observacion->id_observacion_eventualidades,
-            'filename' => $filename,
-            'path'     => 'public/' . $relativePath,
-            'url'      => Storage::url($relativePath),
+            'success' => true,
+            'id'      => $observacion->id_observacion_eventualidades,
         ]);
     } catch (\Throwable $e) {
         DB::rollBack();
@@ -1042,32 +1009,60 @@ public function subirObservacion(Request $request)
     ]);
   }
 
+
   public function getObservaciones($id)
+  {
+      $obs = ObservacionEventualidades::where('id_eventualidades', $id)
+          ->orderBy('created_at','desc')
+          ->get(['id_observacion_eventualidades','id_archivo','created_at'])
+          ->values();
+
+      $obs->transform(function($o){
+          if ($o->id_archivo) {
+              $o->url = url('/eventualidades/visualizarArchivo/observaciones/'.$o->id_archivo);
+          } else {
+              $o->url = url('/eventualidades/visualizarObservacion/'.$o->id_observacion_eventualidades);
+          }
+          return $o;
+      });
+
+      $usuario = Usuario::find(session('id_usuario'));
+      $esControlador = $usuario->roles
+          ->pluck('descripcion')
+          ->intersect(['ADMINISTRADOR','SUPERUSUARIO'])
+          ->isNotEmpty() ? 1 : 0;
+
+      return response()->json([
+          'obs'         => $obs,
+          'controlador' => $esControlador,
+      ]);
+  }
+
+  public function verObservacionPdf($id)
 {
-    $obs = ObservacionEventualidades::where('id_eventualidades', $id)
-        ->orderBy('created_at','desc')
-        ->get(['id_observacion_eventualidades','id_archivo','created_at'])
-        // filtramos aquí para quedarnos solo con los que tienen archivo
-        ->filter(function($o) {
-            return ! is_null($o->id_archivo);
-        })
-        // reapilamos índices (opcional, pero a veces útil en JSON)
-        ->values();
+    $observacion = ObservacionEventualidades::with(['eventualidad.turno','eventualidad.casino'])
+        ->findOrFail($id);
 
-    $obs->transform(function($o){
-        $o->url = '/eventualidades/visualizarArchivo/observaciones/'.$o->id_archivo;
-        return $o;
-    });
+    $html = \View::make('observacionEventualidad', compact('observacion'))->render();
 
-    $usuario = Usuario::find(session('id_usuario'));
-    $esControlador = $usuario->roles
-        ->pluck('descripcion')
-        ->intersect(['ADMINISTRADOR','SUPERUSUARIO'])
-        ->isNotEmpty() ? 1 : 0;
+    $options = new Options();
+    $options->set('isRemoteEnabled', true);
+    $dompdf = new Dompdf($options);
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($html);
+    $dompdf->render();
 
-    return response()->json([
-        'obs'           => $obs,
-        'controlador'   => $esControlador,
+    $pdf = $dompdf->output();
+    $filename = sprintf(
+        'observacion_de_eventualidad_%s_%s.pdf',
+        $observacion->id_eventualidades,
+        $observacion->id_observacion_eventualidades
+    );
+
+    return response($pdf, 200, [
+        'Content-Type'        => 'application/pdf',
+        'Content-Disposition' => 'inline; filename="'.$filename.'"',
+        'Cache-Control'       => 'private, no-store, max-age=0, must-revalidate',
     ]);
 }
 
@@ -1110,7 +1105,7 @@ public function subirObservacion(Request $request)
       'Content-Disposition' => "inline; filename=\"$id_archivo\""
     ]);
   }
-  
+
   public static function nombresProcedimientos() {
     return [
       0 => 'Toma de Contadores',
@@ -1129,7 +1124,7 @@ public function subirObservacion(Request $request)
       12 =>  'Valores de Apuesta de Mesas de Paño',
     ];
   }
-  
+
   //@ELIMIMAR: función temporal para poner nombres a los procedimientos cargardos en la bd
   /*public function ponerNombresProcedimientos(){
     $nombresProcedimientos = self::nombresProcedimientos();
