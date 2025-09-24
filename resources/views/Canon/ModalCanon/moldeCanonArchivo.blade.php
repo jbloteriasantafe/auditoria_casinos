@@ -1,6 +1,6 @@
 @component('Components/include_guard',['nombre' => 'moldeCanonArchivo'])
 <style>
-  .VerCargarCanon .grid_fila_adjunto {
+  .VerCargarCanon .grid_fila_archivo {
     display: grid; 
     grid-template-columns: 20fr 20fr 1fr;
     grid-template-rows: 1fr; 
@@ -8,13 +8,14 @@
     grid-template-areas: 
       "grid_descripcion grid_archivo grid_boton"; 
   }
-  .VerCargarCanon .grid_fila_adjunto > .grid_descripcion { grid-area: grid_descripcion; }
-  .VerCargarCanon .grid_fila_adjunto > .grid_archivo { grid-area: grid_archivo; }
-  .VerCargarCanon .grid_fila_adjunto > .grid_boton { grid-area: grid_boton; }
+  .VerCargarCanon .grid_fila_archivo > .grid_descripcion { grid-area: grid_descripcion; }
+  .VerCargarCanon .grid_fila_archivo > .grid_archivo { grid-area: grid_archivo; }
+  .VerCargarCanon .grid_fila_archivo > .grid_boton { grid-area: grid_boton; }
 </style>
 @endcomponent
 
-<div class="grid_fila_adjunto" style="width: 100%;">
+@if($header ?? false)
+<div class="grid_fila_archivo" style="width: 100%;">
   <div class="grid_descripcion">
     <h5>DESCRIPCIÓN</h5>
   </div>
@@ -25,9 +26,8 @@
     <h5>&nbsp;</h5>
   </div>
 </div>
-<div style="width: 100%;" data-js-contenedor>
-</div>
-<div class="grid_fila_adjunto" style="width: 100%;" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"},{"modo": "ADJUNTAR"}]' data-adjunto>
+@else
+<div data-subcanon="canon_archivo" class="grid_fila_archivo" style="width: 100%;" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"},{"modo": "ADJUNTAR"}]'>
   <div class="grid_descripcion">
     <input data-js-texto-no-formatear-numero class="form-control" placeholder="DESCRIPCIÓN" style="text-align: left;" data-descripcion>
   </div>
@@ -35,7 +35,7 @@
     <input data-js-texto-no-formatear-numero class="form-control" type="file" style="text-align: center;" data-archivo>
   </div>
   <div class="grid_boton">
-    <button class="btn" type="button" data-js-agregar-adjunto data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"},{"modo": "ADJUNTAR"}]'><i class="fa fa-plus"></i></button>
+    <button class="btn" type="button" data-js-agregar-archivo data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"},{"modo": "ADJUNTAR"}]'><i class="fa fa-plus"></i></button>
   </div>
 </div>
 <?php
@@ -49,8 +49,8 @@
   $archivo = $n('archivo');
   $link = $n('link');
 ?>
-<div style="width: 100%;" data-js-molde="{{$molde_str}}" data-adjunto>
-  <div class="grid_fila_adjunto" style="width: 100%;">
+<div data-subcanon="canon_archivo" data-js-molde="{{$molde_str}}" style="width: 100%;">
+  <div class="grid_fila_archivo" style="width: 100%;">
     <div class="grid_descripcion">
       <input data-js-texto-no-formatear-numero style="width: 100%;text-align: left;" class="form-control" data-name="{{$descripcion}}" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
     </div>
@@ -62,7 +62,8 @@
       <input data-js-texto-no-formatear-numero style="flex: 1;" class="form-control" data-name="{{$id_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{"modo":"*"}]'>
     </div>
     <div class="grid_boton">
-      <button class="btn" type="button" data-js-borrar-adjunto data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'><i class="fa fa-fw fa-trash-alt"></i></button>
+      <button class="btn" type="button" data-js-borrar-archivo data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'><i class="fa fa-fw fa-trash-alt"></i></button>
     </div>
   </div>
 </div>
+@endif

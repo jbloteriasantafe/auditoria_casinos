@@ -291,8 +291,8 @@ $(document).ready(function() {
       llenarPestaña(form.find('[data-canon-variable]'),canon?.canon_variable ?? {},dias);
       llenarPestaña(form.find('[data-canon-fijo-mesas]'),canon?.canon_fijo_mesas ?? {},dias);
       llenarPestaña(form.find('[data-canon-fijo-mesas-adicionales]'),canon?.canon_fijo_mesas_adicionales ?? {},dias);
-      llenarPestaña(form.find('[data-adjuntos]'),canon?.canon_archivo ?? {},dias,true);
-      llenarPestaña(form.find('[data-canon-pago]'),canon?.canon_pago ?? [],dias,true);
+      llenarPestaña(form.find('[data-canon-archivo]'),canon?.canon_archivo ?? {},dias,true);
+      llenarPestaña(form.find('[data-canon-pago]'),canon?.canon_pago ?? {},dias,true);
       
       let con_diario = true;
       //early break lo hace bastante feo al codigo para poca o nula optimizacion
@@ -459,18 +459,18 @@ $(document).ready(function() {
       window.open(sibling_val,'_blank');
     });
     
-    M.find('form[data-js-recalcular]').on('click','[data-js-borrar-adjunto]',function(e){
+    M.find('form[data-js-recalcular]').on('click','[data-js-borrar-archivo]',function(e){
       const tgt = $(e.currentTarget);
-      tgt.closest('[data-adjunto]').remove();
+      tgt.closest('[data-subcanon-tipo]').remove();
     });
     
-    const agregarAdjunto = function(resolve=()=>{},reject=()=>{}){
-      const tgt = M.find('form[data-js-recalcular]').find('[data-js-agregar-adjunto]');
-      const pestaña = tgt.closest('[data-adjuntos]');
+    const agregarArchivo = function(resolve=()=>{},reject=()=>{}){
+      const tgt = M.find('form[data-js-recalcular]').find('[data-js-agregar-archivo]');
+      const pestaña = tgt.closest('[data-canon-archivo]');
       
       let max_idx = -1;
-      pestaña.find('[data-js-contenedor] [data-adjunto]:visible').each(function(_,adj){
-        const idx = parseInt($(adj).attr('data-idx'));
+      pestaña.find('[data-js-contenedor] [data-subcanon-tipo]:visible').each(function(_,adj){
+        const idx = parseInt($(adj).attr('data-subcanon-tipo'));
         if(isNaN(idx) || idx < 0){
           throw `Error el indice "${idx}" tiene que ser un numero entero positivo o 0`;
         }
@@ -478,13 +478,13 @@ $(document).ready(function() {
       });
       
       const idx = max_idx+1;//Si no hay max_idx=-1 -> idx=0
-      const parent = tgt.closest('[data-adjunto]');
-      const descripcion_obj = parent.find('[data-descripcion]');
-      const archivo_obj = parent.find('[data-archivo]');
+      const parent = tgt.closest('[data-subcanon]');
       
+      const descripcion_obj = parent.find('[data-descripcion]');
       const descripcion = parent.find('[data-descripcion]').val();
-      const archivo_dom_obj = parent.find('[data-archivo]')?.[0];
-      const archivo = archivo_dom_obj?.files?.[0];
+      
+      const archivo_obj = parent.find('[data-archivo]');
+      const archivo = archivo_obj?.[0]?.files?.[0];
       
       if(!archivo) return resolve();
       
@@ -510,8 +510,8 @@ $(document).ready(function() {
         descripcion_obj.val('');
         archivo_obj.val('');
         
-        div.attr('data-idx',idx);
-        div.attr('data-nuevo-adjunto',true);
+        div.attr('data-subcanon-tipo',idx);
+        div.attr('data-nuevo-archivo',true);
         
         resolve();
       };
@@ -521,21 +521,21 @@ $(document).ready(function() {
       fileReader.readAsArrayBuffer(archivo);
     };
     
-    M.find('form[data-js-recalcular]').find('[data-js-agregar-adjunto]').click(function(e){
-      agregarAdjunto();
+    M.find('form[data-js-recalcular]').find('[data-js-agregar-archivo]').click(function(e){
+      agregarArchivo();
     });
     
     M.find('[data-js-enviar]').click(async function(e){
-      await new Promise(agregarAdjunto);//Agrego archivo si lo dejo seleccionado
+      await new Promise(agregarArchivo);//Agrego archivo si lo dejo seleccionado
       
       const tgt = $(e.currentTarget);
       const url = tgt.attr('data-js-enviar');
       const form = M.find('form[data-js-recalcular]');
       const entries = deformatearFormData(AUX.form_entries(form?.[0]));
       
-      M.find('[data-adjuntos] [data-js-contenedor] [data-adjunto]:visible').each(function(_,adj_obj){
+      M.find('[data-canon-archivo] [data-js-contenedor] [data-subcanon-tipo]:visible').each(function(_,adj_obj){
         const adj = $(adj_obj);
-        const idx = adj.attr('data-idx');
+        const idx = adj.attr('data-subcanon-tipo');
         if(adj.data('archivo')){
           entries[`canon_archivo[${idx}][file]`] = adj.data('archivo')
         }

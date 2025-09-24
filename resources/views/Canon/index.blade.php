@@ -508,7 +508,7 @@
         <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-canon-fijo-mesas-adicionales]" tabindex="0">Canon Fijo - Mesas Adicionales</a>
       </div>
       <div>
-        <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-adjuntos]" tabindex="0">Adjuntos</a>
+        <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-canon-archivo]" tabindex="0">Adjuntos</a>
       </div>
     </div>
     <div class="datos_numericos" style="height: 70vh;overflow-y: scroll;">
@@ -594,42 +594,12 @@
             </div>
           </div>
           <div class="bloque_interno">
-            <div class="grid_fila_pago" style="width: 100%;">
-              <div class="grid_capital">
-                <h5>Capital</h5>
-              </div>
-              <div class="grid_fecha_pago">
-                <h5>F. Pago</h5>
-              </div>
-              <div class="grid_dias_vencidos">
-                <h5>Dias vencidos</h5>
-              </div>
-              <div class="grid_mora_provincial">
-                <h5>Mora Provincial</h5>
-              </div>
-              <div class="grid_mora_nacional">
-                <h5>Mora Nacional</h5>
-              </div>
-              <div class="grid_a_pagar">
-                <h5>A PAGAR</h5>
-              </div>
-              <div class="grid_pago">
-                <h5>PAGO</h5>
-              </div>
-              <div class="grid_diferencia">
-                <h5>Diferencia</h5>
-              </div>
-              <div class="grid_borrar">
-                <h5>&nbsp;</h5>
-              </div>
-            </div>
             <div style="width: 100%;" data-canon-pago>
+              @component('Canon.ModalCanon.moldeCanonPago',['header' => true])
+              @endcomponent
               <div style="width: 100%;" data-js-contenedor>
-              </div> 
-              <button class="btn" type="button" data-js-agregar-pago data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]' style="display: inline-block;">
-                <i class="fa fa-plus"></i>
-              </button>
-              @component('Canon.ModalCanon.moldeCanonPago')
+              </div>
+              @component('Canon.ModalCanon.moldeCanonPago',['header' => false])
               @endcomponent
             </div>
           </div>
@@ -686,9 +656,13 @@
         @component('Canon.ModalCanon.moldeCanonFijoMesasAdicionales')
         @endcomponent
       </div>
-      <div class="pestaña" data-adjuntos>
+      <div class="pestaña" data-canon-archivo>
         <div class="bloque_interno">
-          @component('Canon.ModalCanon.moldeCanonArchivo')
+          @component('Canon.ModalCanon.moldeCanonArchivo',['header' => true])
+          @endcomponent
+          <div style="width: 100%;" data-js-contenedor>
+          </div>
+          @component('Canon.ModalCanon.moldeCanonArchivo',['header' => false])
           @endcomponent
         </div>
       </div>
