@@ -238,7 +238,7 @@ $(document).ready(function() {
           }
         }
         else{
-          ret[name] = deformatearVal(M.find(`[name="${name}"]`),obj[name]);
+          ret[name] = obj[name];
         }
       }
       return ret;
