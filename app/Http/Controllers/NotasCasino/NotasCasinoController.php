@@ -361,6 +361,15 @@ class NotasCasinoController extends Controller
             return response()->download($rutaCompleta, $nombreArchivo, [
                 'Content-Type' => $mime,
             ]);
+            
+            if ($mime === 'application/pdf') {
+                return response()->file($rutaCompleta, [
+                    'Content-Type' => $mime,
+                    'Content-Disposition' => 'inline; filename="'.$nombreArchivo.'"'
+                ]);
+            } else {
+                return response()->download($rutaCompleta, $nombreArchivo);
+            } 
         } catch (Exception $th) {
             abort(404);
         }
