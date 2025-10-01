@@ -325,13 +325,13 @@ class CanonFijoMesasController extends Controller
     
     $diario = [];
     $mesas_habilitadas_acumuladas = 0;
-    $dias = count($COT('canon_cotizacion_diaria',[]));
-    
-    for($dia=1;$dia<=$dias;$dia++){
+    $cotizaciones = $COT(null,[]);
+    $dias_restantes = count($cotizaciones);
+    foreach($cotizaciones as $dia => $cot){
       $D = AUX::make_accessor($R($dia,[]));
       $fecha = $año_mes_str.str_pad($dia,2,'0',STR_PAD_LEFT);
-      $cotizacion_dolar = AUX::get_cotizacion_sesion($fecha,2) ?? '0';
-      $cotizacion_euro  = AUX::get_cotizacion_sesion($fecha,3) ?? '0';
+      $cotizacion_dolar = $cot['USD'] ?? '0';
+      $cotizacion_euro  = $cot['EUR'] ?? '0';
       
       $bruto = $this->bruto($tipo,$fecha,$id_casino,true);
       
@@ -355,11 +355,12 @@ class CanonFijoMesasController extends Controller
       );
       //Para el ultimo dia, evito la aproximación porque la cantidad de mesas 
       //(F*MesasAcumuladas) deberia redondear a MesasDias
+      $dias_restantes--;
       $total = self::calcular_total(
         $valor_mesa,
-        $dia == $dias? $mesas_dias : $mesas_habilitadas_acumuladas,
+        $dias_restantes == 0? $mesas_dias : $mesas_habilitadas_acumuladas,
         $dias_valor,
-        $dia == $dias?         '1' : $factor_ajuste_diario_fijas
+        $dias_restantes == 0?         '1' : $factor_ajuste_diario_fijas
       );
       $aux = compact(
         'dia','fecha',

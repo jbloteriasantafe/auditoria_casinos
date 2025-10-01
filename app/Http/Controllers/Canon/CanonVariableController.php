@@ -83,8 +83,6 @@ class CanonVariableController extends Controller
     $alicuota = bcadd($RD('alicuota','0.0000'),'0',4);//@RETORNADO
     $factor_alicuota = bcdiv($alicuota,'100',6);
     
-    $año_mes_arr = explode('-',$año_mes);
-    $dias = empty($año_mes)? 0 : cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
     $determinado_impuesto       = bcadd($R('determinado_impuesto','0.00'),'0',14);//@RETORNADO
     $diario = [];//@RETORNADO
     $devengado_apostado_sistema = '0';
@@ -142,7 +140,6 @@ class CanonVariableController extends Controller
         'COT' => AUX::make_accessor($COT('canon_cotizacion_diaria',[])),
       ];
       $accesors_diario['RA'] = AUX::combine_accessors($accesors_diario['R'],$accesors_diario['A']);
-      
       $diario = $this->recalcular_diario(
         $año_mes,$id_casino,$version,$tipo,
         $factor_apostado_porcentaje_aplicable,$factor_apostado_porcentaje_impuesto_ley,$factor_alicuota,
@@ -192,12 +189,9 @@ class CanonVariableController extends Controller
     extract($accessors);
     
     $año_mes_str = substr($año_mes,0,strlen('XXXX-XX-'));
-    
     $diario = [];
     $devengado_impuesto_total = '0';
-    $dias = count($COT('canon_cotizacion_diaria',[]));
-    
-    for($dia=1;$dia<=$dias;$dia++){
+    foreach($COT(null,[]) as $dia => $cot){
       $D = AUX::make_accessor($R($dia,[]));
       $fecha = $año_mes_str.str_pad($dia,2,'0',STR_PAD_LEFT);
       $apostado = $this->apostado($tipo,$fecha,$id_casino,true);
@@ -210,7 +204,7 @@ class CanonVariableController extends Controller
       $determinado_bruto_ARS = bcadd($D('determinado_bruto_ARS',$bruto->bruto_ARS),'0',2);
       $determinado_bruto_USD = bcadd($D('determinado_bruto_USD',$bruto->bruto_USD),'0',2);
       
-      $cotizacion_USD = AUX::get_cotizacion_sesion($fecha,2) ?? '0';//@RETORNADO              
+      $cotizacion_USD = $cot['USD'] ?? '0';//@RETORNADO              
                   
       $diario[$dia] = array_merge(
         compact('dia','fecha'),

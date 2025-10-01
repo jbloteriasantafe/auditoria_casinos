@@ -158,21 +158,24 @@ class CanonController extends Controller
     
     if($año_mes !== null && $año_mes !== ''){
       $f = explode('-',$año_mes);
-            
-      if($COT['canon_cotizacion_diaria'] === null){
-        $COT['canon_cotizacion_diaria'] = [];
+      
+      if($version == 'diario'){
+        $COT['canon_cotizacion_diaria'] = $COT['canon_cotizacion_diaria'] ?? [];
         $dias_mes = count($f) < 3? 0: cal_days_in_month(
           CAL_GREGORIAN,
           intval($f[1]),
           intval($f[0])
         );
         for($d=1;$d<=$dias_mes;$d++){
-          $COT['canon_cotizacion_diaria'][$d] = [
+          $COT['canon_cotizacion_diaria'][$d] = $COT['canon_cotizacion_diaria'][$d] ?? [
             'dia' => $d,
             'USD' => null,
             'EUR' => null
           ];
         }
+      }
+      else{
+        $COT['canon_cotizacion_diaria'] = [];
       }
       
       $f[0] = $f[1] == '12'? intval($f[0])+1 : $f[0];
@@ -210,8 +213,6 @@ class CanonController extends Controller
         $f = $año_mes_str.str_pad($d,2,'0',STR_PAD_LEFT);
         $cot['USD'] = $cot['USD'] ?? AUX::cotizacion($f,2,$id_casino) ?? '0';
         $cot['EUR'] = $cot['EUR'] ?? AUX::cotizacion($f,3,$id_casino) ?? '0';
-        AUX::set_cotizacion_sesion($f,2,$cot['USD']);
-        AUX::set_cotizacion_sesion($f,3,$cot['EUR']);
       }
     }
     

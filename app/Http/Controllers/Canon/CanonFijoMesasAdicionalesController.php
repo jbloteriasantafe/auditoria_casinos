@@ -176,11 +176,13 @@ class CanonFijoMesasAdicionalesController extends Controller
       $factor_dias_mes,$factor_horas_mes,$factor_porcentaje
     )['diario'] ?? [];//@RETORNADO
         
-    $horas = $R('horas',0);//@RETORNADO
-    $mesas = $R('mesas',0);//@RETORNADO
-    if(!empty($diario)){
-      $horas = 0;
-      $mesas = 0;
+    $horas = 0;//@RETORNADO
+    $mesas = 0;//@RETORNADO
+    if($version == 'mensual' || $version == 'antiguo'){
+      $horas = $R('horas',0);
+      $mesas = $R('mesas',0);
+    }
+    else if($version == 'diario'){
       foreach($diario as $d){
         $horas+=$d['horas_diarias'] ?? 0;
         $mesas+=$d['mesas_diarias'] ?? 0;
@@ -255,8 +257,8 @@ class CanonFijoMesasAdicionalesController extends Controller
     $mesas = 0;
     
     $año_mes_str = $año_mes[0].'-'.$año_mes[1].'-';
-    $dias = count($COT('canon_cotizacion_diaria',[]));
-    for($dia=1;$dia<=$dias;$dia++){
+    $cotizaciones = $COT(null,[]);
+    foreach($cotizaciones as $dia => $cot){
       $D = AUX::make_accessor($R($dia,[]));
       $fecha = $año_mes_str.str_pad($dia,2,'0',STR_PAD_LEFT);
       $horas_diarias = $D('horas_diarias',0);
@@ -264,8 +266,8 @@ class CanonFijoMesasAdicionalesController extends Controller
       $horas+=$horas_diarias;
       $mesas+=$mesas_diarias;
       
-      $cotizacion_euro  = $D('cotizacion_dolar',AUX::get_cotizacion_sesion($fecha,3) ?? '0');
-      $cotizacion_dolar = $D('cotizacion_dolar',AUX::get_cotizacion_sesion($fecha,2) ?? '0');
+      $cotizacion_dolar = $cot['USD'] ?? '0';
+      $cotizacion_euro  = $cot['EUR'] ?? '0';
       
       //Al tener la misma fecha de cotizacion, el total devengado y el total determinado es el mismo
       $valor_mesa = self::calcular_valor_mesa(

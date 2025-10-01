@@ -107,6 +107,7 @@ class AUX {
   
   public static function make_accessor($arr){
     return function($k,$dflt = null) use (&$arr){
+      if($k === null) return $arr;
       return (!isset($arr[$k]) || $arr[$k] === '' || $arr[$k] === null || $arr[$k] === [])?
         $dflt
       : $arr[$k];
