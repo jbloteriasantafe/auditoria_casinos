@@ -92,16 +92,20 @@ function filterFunction(M,attr){
       console.log(r_obj,json_rdata);
       throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
     }
+    
     for(const obj of json_rdata){
       if(typeof obj !== 'object'){
         console.log(r_obj,obj);
         throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
       }
+      let readonly = true;
       for(const param in check_params){
         const check_val = check_params[param];
-        const obj_val = obj[param] ?? undefined;
-        if(obj_val == '*' || obj_val === check_val) return true;
+        const obj_val = obj[param] ?? '*';
+        readonly = readonly && (obj_val == '*' || obj_val === check_val);
+        if(!readonly) break;
       }
+      if(readonly) return true;
     }
     return false;
   };
