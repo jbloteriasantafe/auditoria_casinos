@@ -74,7 +74,7 @@ function fillError(div,obj){//@HACK @TODO: mover a AUX
 function filterFunction(M,attr){
   const check_params = {
     modo: M.attr('data-modo'),
-    es_antiguo: M.find('[name="es_antiguo"]').val(),
+    version: M.find('[name="version"]').val(),
     estado: M.find('[name="estado"]').val().toUpperCase()
   };
         
@@ -133,7 +133,6 @@ $(document).ready(function() {
   
   $('[data-js-modal-ver-cargar-canon]').each(function(_,m_obj){
     const M = $(m_obj);
-    
     
     const setVisible = function(){
       M.find('[data-modo-mostrar]').hide().filter(filterFunction(M,'data-modo-mostrar')).show();
@@ -281,26 +280,20 @@ $(document).ready(function() {
         .attr('data-subcanon-toggle-estado','mostrar_subcanon');
       }
       
-      const dias = (function(isoDateString){
+      /*const dias = (function(isoDateString){
         const date = new Date(isoDateString+'T00:00');
         const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
         return lastDay.getDate();
-      })(canon.año_mes);
+      })(canon.año_mes);*/
       
-      llenarPestaña(form.find('[data-cotizaciones]'),canon?.canon_cotizacion_diaria ?? {},dias,true);
+      const dias = Object.keys(canon?.canon_cotizacion_diaria ?? {}).length;
+      llenarPestaña(form.find('[data-canon-cotizacion-diaria]'),canon?.canon_cotizacion_diaria ?? {},dias,true);
       llenarPestaña(form.find('[data-canon-variable]'),canon?.canon_variable ?? {},dias);
       llenarPestaña(form.find('[data-canon-fijo-mesas]'),canon?.canon_fijo_mesas ?? {},dias);
       llenarPestaña(form.find('[data-canon-fijo-mesas-adicionales]'),canon?.canon_fijo_mesas_adicionales ?? {},dias);
       llenarPestaña(form.find('[data-canon-archivo]'),canon?.canon_archivo ?? {},dias,true);
       llenarPestaña(form.find('[data-canon-pago]'),canon?.canon_pago ?? {},dias,true);
       
-      let con_diario = true;
-      //early break lo hace bastante feo al codigo para poca o nula optimizacion
-      for(const sc of ['canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales'])
-      for(const tipo in (canon?.[sc] ?? {}))
-        con_diario = con_diario && (Object.keys(canon?.[sc]?.[tipo]?.diario ?? {}).length > 0);
-      
-      M.attr('data-con-diario',con_diario+0);
       M.attr('data-render',0);
       fill(M,null,canon);
       setReadonly(M);
@@ -661,7 +654,7 @@ $(document).ready(function() {
           reemplazarPorJsonEditor(fila.find('[data-js-jsoneditor]'),obj?.valor ?? '');
         }
         else if(pant.is('#pant_canon')){
-          fila.attr('data-css-tiene_diarios',obj.tiene_diarios);
+          fila.attr('data-css-version',obj.version ?? '');
           fila.find('[data-estado-visible]').filter(function(_,ev_obj){
             return !$(ev_obj)?.attr('data-estado-visible')?.toUpperCase()?.split(',').includes(obj.estado.toUpperCase());
           }).remove();

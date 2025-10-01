@@ -69,17 +69,10 @@ class CanonVariableController extends Controller
     ->keyBy('tipo')->toArray();
   }
   
-  public function recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$accessors){
+  public function recalcular($año_mes,$id_casino,$version,$tipo,$accessors){
     extract($accessors);
     
-    $devengar = $RD('devengar',$es_antiguo? 0 : 1);
-      
-    $accesors_diario = [
-      'R' => AUX::make_accessor($R('diario',[])),
-      'A' => AUX::make_accessor($A('diario',[])),
-      'COT' => AUX::make_accessor($COT('canon_cotizacion_diaria',[])),
-    ];
-    $accesors_diario['RA'] = AUX::combine_accessors($accesors_diario['R'],$accesors_diario['A']);
+    $devengar = $RD('devengar',1);
     
     $devengado_apostado_porcentaje_aplicable = bcadd($RD('devengado_apostado_porcentaje_aplicable','0.0000'),'0',4);//@RETORNADO
     $factor_apostado_porcentaje_aplicable = bcdiv($devengado_apostado_porcentaje_aplicable,'100',6);
@@ -93,13 +86,7 @@ class CanonVariableController extends Controller
     $año_mes_arr = explode('-',$año_mes);
     $dias = empty($año_mes)? 0 : cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
     $determinado_impuesto       = bcadd($R('determinado_impuesto','0.00'),'0',14);//@RETORNADO
-    $diario = $this->recalcular_diario(
-      $año_mes,$id_casino,$es_antiguo,$tipo,$dias,
-      $factor_apostado_porcentaje_aplicable,$factor_apostado_porcentaje_impuesto_ley,$factor_alicuota,
-      $determinado_impuesto,
-      $accesors_diario
-    )['diario'] ?? [];//@RETORNADO
-    
+    $diario = [];//@RETORNADO
     $devengado_apostado_sistema = '0';
     $devengado_base_imponible   = '0';
     $devengado_impuesto         = '0';
@@ -111,8 +98,8 @@ class CanonVariableController extends Controller
     $determinado_subtotal       = '0';
     $devengado_total            = '0';
     $determinado_total          = '0';
-        
-    if(empty($diario)){
+    
+    if($version == 'mensual' || $version == 'antiguo'){
       $bruto = $this->bruto($tipo,$año_mes,$id_casino)->bruto;
       $apostado = $this->apostado($tipo,$año_mes,$id_casino)->apostado;
       
@@ -142,8 +129,27 @@ class CanonVariableController extends Controller
       ]));
       
       foreach($aux as $varname => $varvalue) $$varname = $varvalue;
+      
+      if($version == 'antiguo'){
+        $devengado_total = $R('devengado_total',$devengado_total);
+        $determinado_total = $R('determinado_total',$determinado_total);
+      }
     }
-    else{
+    else if($version == 'diario'){
+      $accesors_diario = [
+        'R' => AUX::make_accessor($R('diario',[])),
+        'A' => AUX::make_accessor($A('diario',[])),
+        'COT' => AUX::make_accessor($COT('canon_cotizacion_diaria',[])),
+      ];
+      $accesors_diario['RA'] = AUX::combine_accessors($accesors_diario['R'],$accesors_diario['A']);
+      
+      $diario = $this->recalcular_diario(
+        $año_mes,$id_casino,$version,$tipo,
+        $factor_apostado_porcentaje_aplicable,$factor_apostado_porcentaje_impuesto_ley,$factor_alicuota,
+        $determinado_impuesto,
+        $accesors_diario
+      )['diario'] ?? [];
+      
       foreach($diario as &$d){
         foreach([
           'devengado_apostado_sistema','devengado_base_imponible',
@@ -160,17 +166,12 @@ class CanonVariableController extends Controller
       }
     }
 
-    if($es_antiguo){
-      $devengado_total = $R('devengado_total',$devengado_total);
-      $determinado_total = $R('determinado_total',$determinado_total);
-    }
     $devengado_deduccion = bcadd($RAD('devengado_deduccion','0.00'),'0',2);
     $determinado_ajuste  = bcadd($RD('determinado_ajuste','0.00'),'0',20);
-    
     $devengado = bcsub($devengado_total,$devengado_deduccion,20);
     $determinado = bcadd($determinado_total,$determinado_ajuste,20);
         
-    $ret = compact('tipo',
+    return compact('tipo',
       'alicuota','devengar',
       'devengado_apostado_sistema','devengado_apostado_porcentaje_aplicable','devengado_base_imponible',
       'devengado_apostado_porcentaje_impuesto_ley',
@@ -180,12 +181,10 @@ class CanonVariableController extends Controller
       'determinado',
       'diario','errores','canon_cotizacion_diaria'
     );
-    
-    return $ret;
   }
   
   private function recalcular_diario(
-    $año_mes,$id_casino,$es_antiguo,$tipo,$dias,
+    $año_mes,$id_casino,$version,$tipo,
     $factor_apostado_porcentaje_aplicable,$factor_apostado_porcentaje_impuesto_ley,$factor_alicuota,
     $determinado_impuesto_total,
     $accessors
@@ -196,6 +195,7 @@ class CanonVariableController extends Controller
     
     $diario = [];
     $devengado_impuesto_total = '0';
+    $dias = count($COT('canon_cotizacion_diaria',[]));
     
     for($dia=1;$dia<=$dias;$dia++){
       $D = AUX::make_accessor($R($dia,[]));
@@ -267,7 +267,7 @@ class CanonVariableController extends Controller
     
     //Sumo el error global al que tiene el impuesto mas grande (para minimizar el error local)
     $error = bcsub($determinado_impuesto_total,$determinado_impuesto_total_calculado,16);
-    {
+    if($didx_impuesto_mas_grande !== null){
       $d = &$diario[$didx_impuesto_mas_grande];
       $d['determinado_impuesto'] = bcadd($d['determinado_impuesto'],$error,16);
       foreach($this->calcular_determinado(

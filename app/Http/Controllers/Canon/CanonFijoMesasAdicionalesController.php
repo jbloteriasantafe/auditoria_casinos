@@ -127,9 +127,9 @@ class CanonFijoMesasAdicionalesController extends Controller
     return compact('total','total_dolar','total_euro');
   }
   
-  public function recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$accessors){
+  public function recalcular($año_mes,$id_casino,$version,$tipo,$accessors){
     extract($accessors);
-    $devengar = $RD('devengar',$es_antiguo? 0 : 1);
+    $devengar = $RD('devengar',0);
     
     $valor_dolar = $COT('valor_dolar');//@RETORNADO
     $valor_euro  = $COT('valor_euro');//@RETORNADO
@@ -168,9 +168,8 @@ class CanonFijoMesasAdicionalesController extends Controller
       'COT' => AUX::make_accessor($COT('canon_cotizacion_diaria',[])),
     ];
     $accesors_diario['RA'] = AUX::combine_accessors($accesors_diario['R'],$accesors_diario['A']);
-    
     $diario = $this->recalcular_diario(
-      $año_mes,$id_casino,$es_antiguo,$tipo,
+      $año_mes,$id_casino,$version,$tipo,
       $accesors_diario,
       $valor_dolar,$valor_euro,
       $horas_dia,$horas_mes,
@@ -228,7 +227,7 @@ class CanonFijoMesasAdicionalesController extends Controller
     
     $ret['devengado_deduccion'] = bcadd($RAD('devengado_deduccion','0.00'),'0',2);//@RETORNADO
     $ret['determinado_ajuste'] = bcadd($RD('determinado_ajuste','0.00'),'0',22);//@RETORNADO
-    if($es_antiguo){
+    if($version == 'antiguo'){
       $ret['devengado_total'] = $R('devengado_total',$ret['devengado_total']);
       $ret['determinado_total'] = $R('determinado_total',$ret['determinado_total']);
     }
@@ -240,7 +239,7 @@ class CanonFijoMesasAdicionalesController extends Controller
   }
   
   private function recalcular_diario(
-    $año_mes,$id_casino,$es_antiguo,$tipo,
+    $año_mes,$id_casino,$version,$tipo,
     $accessors,
     $valor_dolar,$valor_euro,
     $horas_dia,$horas_mes,
@@ -249,7 +248,6 @@ class CanonFijoMesasAdicionalesController extends Controller
     extract($accessors);
     
     $año_mes = explode('-',$año_mes);
-    $dias = cal_days_in_month(CAL_GREGORIAN,intval($año_mes[1]),intval($año_mes[0]));
     
     $diario = [];
     
@@ -257,7 +255,7 @@ class CanonFijoMesasAdicionalesController extends Controller
     $mesas = 0;
     
     $año_mes_str = $año_mes[0].'-'.$año_mes[1].'-';
-    
+    $dias = count($COT('canon_cotizacion_diaria',[]));
     for($dia=1;$dia<=$dias;$dia++){
       $D = AUX::make_accessor($R($dia,[]));
       $fecha = $año_mes_str.str_pad($dia,2,'0',STR_PAD_LEFT);

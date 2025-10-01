@@ -1,8 +1,3 @@
-@component('Components/include_guard',['nombre' => 'moldeCanonCotizacion'])
-<style>
-</style>
-@endcomponent
-
 <div class="row">
   <div class="col-md-7 col-md-offset-3">
     <table class="table table-bordered" style="margin-bottom: 0;">
@@ -85,7 +80,7 @@
     $EUR = $n('EUR');
   ?>
   <table hidden>
-    <tr data-js-molde="{{$molde_str}}">
+    <tr data-subcanon="canon_cotizacion_diaria" data-js-molde="{{$molde_str}}">
       <td colspan="2"><input class="form-control" data-name="{{$dia}}" style="text-align: center;" readonly></td>
       <td><input class="form-control" data-name="{{$USD}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'></td>
       <td><input class="form-control" data-name="{{$EUR}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'></td>

@@ -67,10 +67,10 @@ class CanonController extends Controller
 
     $validar_arr = [
       'id_canon' => ['nullable','integer','exists:canon,id_canon,deleted_at,NULL'],
+      'version' => [$requireds_f('version'),'string','in:diario,mensual,antiguo'],
       'año_mes' => [$requireds_f('año_mes'),'regex:/^\d{4}\-((0\d)|(1[0-2]))\-01$/'],
       'id_casino' => [$requireds_f('id_casino'),'integer','exists:casino,id_casino,deleted_at,NULL'],
       'estado' => ['nullable','string','max:32'],
-      'es_antiguo' => [$requireds_f('es_antiguo'),'integer','in:1,0'],
       'intereses_y_cargos' => ['nullable',AUX::numeric_rule(2)],
       'motivo_intereses_y_cargos' => ['nullable','string','max:128'],
       'ajuste' => ['nullable',AUX::numeric_rule(2)],
@@ -130,7 +130,7 @@ class CanonController extends Controller
     
     $estado = $R('estado','Nuevo');//@RETORNADO
     $fecha_cotizacion = $R('fecha_cotizacion');//@RETORNADO
-    $es_antiguo = $R('es_antiguo',0)? 1 : 0;//@RETORNADO
+    $version = $R('version','diario');//@RETORNADO
     
     $devengado_bruto = '0.00';//@RETORNADO
     $devengado_deduccion = '0.00';//@RETORNADO
@@ -241,7 +241,7 @@ class CanonController extends Controller
         $retsc[$tipo] = $scobj->recalcular(
           $año_mes,
           $id_casino,
-          $es_antiguo,
+          $version,
           $tipo,
           $make_multiple_accessors($data_request_tipo,$defecto_tipo,$anterior_tipo,$COT)
         );
@@ -305,7 +305,7 @@ class CanonController extends Controller
     
     $ret = array_merge($ret,compact(
       'canon_anterior',
-      'año_mes','id_casino','estado','es_antiguo',
+      'año_mes','id_casino','estado','version',
       'devengado_bruto','devengado_deduccion','devengado',
       'determinado_bruto','determinado_ajuste','determinado','porcentaje_seguridad',
       'saldo_anterior','saldo_anterior_cerrado',
@@ -326,7 +326,7 @@ class CanonController extends Controller
   }
   
   public function guardar(Request $request,$recalcular = true){
-    $requeridos = $recalcular? ['año_mes','id_casino','es_antiguo'] : ['id_canon'];
+    $requeridos = $recalcular? ['año_mes','id_casino','version'] : ['id_canon'];
     $this->validarCanon($request->all(),$requeridos);
     
     Validator::make($request->all(),[], self::$errores,[])->after(function($validator){
@@ -399,7 +399,7 @@ class CanonController extends Controller
         'diferencia' => $datos['diferencia'],
         'saldo_posterior_cerrado' => $datos['saldo_posterior_cerrado'],
         'saldo_posterior' => $datos['saldo_posterior'],
-        'es_antiguo' => $datos['es_antiguo'],
+        'version' => $datos['version'],
         'created_at' => $created_at,
         'created_id_usuario' => $id_usuario,
       ]);
@@ -517,7 +517,6 @@ class CanonController extends Controller
       $ret = array_merge($ret,$scobj->obtener($request['id_canon']));
     }
     $ret = array_merge($ret,$this->canon_archivo->obtener($request['id_canon']));
-    
     $ret = json_decode(json_encode($ret),true);
             
     return !empty($ret)? $ret : $this->recalcular($ret);
@@ -669,7 +668,6 @@ class CanonController extends Controller
     
     $ret = DB::table('canon as c')
     ->select('c.id_canon','c.deleted_at',
-      DB::raw('IF(c.es_antiguo,"ANT","") as antiguo'),
       DB::raw('DATE_FORMAT(c.año_mes,"%Y-%m") as año_mes'),
       'cas.nombre as casino','c.estado','c.devengado','c.determinado',
       DB::raw('(
@@ -682,27 +680,7 @@ class CanonController extends Controller
           LIMIT 1
         )
       ) as intereses_y_cargos'),
-      DB::raw('NOT EXISTS (
-        SELECT 1
-        FROM canon_variable AS sc
-        LEFT JOIN canon_variable_diario AS scd ON scd.id_canon_variable = sc.id_canon_variable
-        WHERE sc.id_canon = c.id_canon AND scd.id_canon_variable IS NULL
-        LIMIT 1
-      )
-      AND NOT EXISTS (
-        SELECT 1
-        FROM canon_fijo_mesas AS sc
-        LEFT JOIN canon_fijo_mesas_diario AS scd ON scd.id_canon_fijo_mesas = sc.id_canon_fijo_mesas
-        WHERE sc.id_canon = c.id_canon AND scd.id_canon_fijo_mesas IS NULL
-        LIMIT 1
-      )
-      AND NOT EXISTS (
-        SELECT 1
-        FROM canon_fijo_mesas_adicionales AS sc
-        LEFT JOIN canon_fijo_mesas_adicionales_diario AS scd ON scd.id_canon_fijo_mesas_adicionales = sc.id_canon_fijo_mesas_adicionales
-        WHERE sc.id_canon = c.id_canon AND scd.id_canon_fijo_mesas_adicionales IS NULL
-        LIMIT 1
-      ) as tiene_diarios'),
+      'c.version',
       'c.pago','c.saldo_posterior'
     )
     ->join('casino as cas','cas.id_casino','=','c.id_casino')
@@ -788,7 +766,7 @@ class CanonController extends Controller
     $ret = [];
     
     $ret['canon'] = [];
-    foreach(['id_canon','id_casino','created_at','created_id_usuario','deleted_at','deleted_id_usuario','usuario','es_antiguo'] as $k){
+    foreach(['id_canon','id_casino','created_at','created_id_usuario','deleted_at','deleted_id_usuario','usuario'] as $k){
       unset($data[$k]);
     }
     foreach($data as $k => $v){

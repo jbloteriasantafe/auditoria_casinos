@@ -66,7 +66,7 @@ class CanonFijoMesasController extends Controller
     ->keyBy('tipo')->toArray();
   }
   
-  public function recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$accessors){
+  public function recalcular($año_mes,$id_casino,$version,$tipo,$accessors){
     extract($accessors);
     $año_mes_arr = explode('-',$año_mes);
     $dias = count($año_mes_arr) >= 2? 
@@ -76,7 +76,7 @@ class CanonFijoMesasController extends Controller
     $valor_dolar = $COT('valor_dolar');//@RETORNADO
     $valor_euro  = $COT('valor_euro');//@RETORNADO
     
-    $devengar = $RD('devengar',$es_antiguo? 0 : 1);
+    $devengar = $RD('devengar',1);
     
     $dias_valor = $RD('dias_valor',0);//@RETORNADO
     $factor_dias_valor = $dias_valor != 0? bcdiv('1',$dias_valor,12) : '0.000000000000';//@RETORNADO Un error de una milesima de peso en 1 billon
@@ -165,7 +165,7 @@ class CanonFijoMesasController extends Controller
     
     $factor_ajuste_diario_fijas = $tipo == 'Fijas'? bcdiv($dias_valor,$dias,12) : '1';
     $diario = $this->recalcular_diario(
-      $año_mes,$id_casino,$es_antiguo,$tipo,
+      $año_mes,$id_casino,$version,$tipo,
       $accesors_diario,
       $mesas_lunes_jueves,
       $mesas_viernes_sabados,
@@ -173,7 +173,6 @@ class CanonFijoMesasController extends Controller
       $mesas_todos,
       $mesas_fijos,
       $mesas_dias,
-      $dias,
       $factor_ajuste_diario_fijas,
       $dias_valor,$factor_dias_valor,
       $valor_euro,$valor_dolar
@@ -181,13 +180,12 @@ class CanonFijoMesasController extends Controller
     
     $bruto = '0';
     $mesas_habilitadas_acumuladas = 0;
-    if(empty($diario)){
+    if($version == 'mensual' || $version == 'antiguo'){
       $bruto = bcadd($R('bruto',$this->bruto($tipo,$año_mes,$id_casino)->bruto),'0',2);//@RETORNADO
     }
-    else{
+    else if($version == 'diario'){
       foreach($diario as $d){
         $bruto = bcadd_precise($bruto,$d['bruto'] ?? '0');
-        $mesas_habilitadas_acumuladas += ($d['mesas_habilitadas'] ?? 0);
       }
     }
     
@@ -202,7 +200,7 @@ class CanonFijoMesasController extends Controller
       'devengar',
       'devengado_fecha_cotizacion',
       'determinado_fecha_cotizacion',
-      'bruto','mesas_habilitadas_acumuladas',
+      'bruto',
       'diario',
       'errores'
     );
@@ -228,7 +226,7 @@ class CanonFijoMesasController extends Controller
     $determinado_ajuste  = bcadd($RD('determinado_ajuste','0.00'),'0',16);//@RETORNADO
     $devengado_total = $devengado_total['total'];
     $determinado_total = $determinado_total['total'];
-    if($es_antiguo){
+    if($version == 'antiguo'){
       $devengado_total = $R('devengado_total',$devengado_total);
       $determinado_total = $R('determinado_total',$determinado_total);
     }
@@ -298,7 +296,7 @@ class CanonFijoMesasController extends Controller
   }
   
   private function recalcular_diario(
-    $año_mes,$id_casino,$es_antiguo,$tipo,
+    $año_mes,$id_casino,$version,$tipo,
     $accessors,
     $mesas_lunes_jueves,
     $mesas_viernes_sabados,
@@ -306,7 +304,6 @@ class CanonFijoMesasController extends Controller
     $mesas_todos,
     $mesas_fijos,
     $mesas_dias,
-    $dias,
     $factor_ajuste_diario_fijas,
     $dias_valor,$factor_dias_valor,
     $valor_euro,$valor_dolar
@@ -314,7 +311,7 @@ class CanonFijoMesasController extends Controller
     static $cotizaciones = [];//voy guardando por si cambia alguna ya cambia todas...
     extract($accessors);
     
-    $año_mes = explode('-',$año_mes);
+    $año_mes_str = substr($año_mes,0,strlen('XXXX-XX-'));
     $dias_semana = ['Do','Lu','Ma','Mi','Ju','Vi','Sa'];
     $mesas_semana = [
       $mesas_domingos+$mesas_todos+$mesas_fijos,//Si mesas fijos != 0 las otras son 0 y viceversa
@@ -328,9 +325,11 @@ class CanonFijoMesasController extends Controller
     
     $diario = [];
     $mesas_habilitadas_acumuladas = 0;
+    $dias = count($COT('canon_cotizacion_diaria',[]));
+    
     for($dia=1;$dia<=$dias;$dia++){
       $D = AUX::make_accessor($R($dia,[]));
-      $fecha = implode('-',[$año_mes[0],$año_mes[1],str_pad($dia,2,'0',STR_PAD_LEFT)]);
+      $fecha = $año_mes_str.str_pad($dia,2,'0',STR_PAD_LEFT);
       $cotizacion_dolar = AUX::get_cotizacion_sesion($fecha,2) ?? '0';
       $cotizacion_euro  = AUX::get_cotizacion_sesion($fecha,3) ?? '0';
       

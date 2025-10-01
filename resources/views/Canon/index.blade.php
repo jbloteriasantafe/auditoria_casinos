@@ -63,10 +63,18 @@
     background-color: var(--fondo);
   }
   
-  #pant_canon [data-js-filtro-tabla] table:not([data-js-filtro-tabla-molde]) tr[data-css-tiene_diarios="0"] {
-    color: darkolivegreen;
-    font-style: italic;
+  @foreach(['diario','mensual','antiguo'] as $v)
+  [data-css-version="{{$v}}"] [data-css-version-visible]:not([data-css-version-visible="{{$v}}"]) {
+    display: none;
   }
+  @endforeach
+  /*
+  #pant_canon [data-js-filtro-tabla] table:not([data-js-filtro-tabla-molde]) tr[data-css-version="mensual"] {
+    color: darkolivegreen;
+  }
+  #pant_canon [data-js-filtro-tabla] table:not([data-js-filtro-tabla-molde]) tr[data-css-version="antiguo"] {
+    color: darkgrey;
+  }*/
 </style>
 @endsection
 @section('contenidoVista')
@@ -169,7 +177,7 @@
     @endslot
     
     @slot('molde')
-    <tr data-table-id="id_canon">
+    <tr data-table-id="id_canon" data-css-version="diario">
       <td class="año_mes">AÑO MES</td>
       <td class="casino">CASINO</td>
       <td>
@@ -181,7 +189,11 @@
           <a href="/canon/planilla" target="_blank" title="DESCARGAR XLSX">.xlsx</a>
           @endif
         </div>
-        <span style="color: blue;font-weight: bold;font-size: 0.8em;padding-right: 0.1em;"><sup class="antiguo">XXX</sup></span>
+        <span style="color: blue;font-family: monospace, monospace;font-weight: bold;font-size: 0.8em;padding-right: 0.1em;">
+          <sup data-css-version-visible="diario">&nbsp;&nbsp;&nbsp;</sup>
+          <sup data-css-version-visible="antiguo">ANT</sup>
+          <sup data-css-version-visible="mensual">MEN</sup>
+        </span>
         <span class="estado">ESTADO</span>
         @if($puede_cargar)
         <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Pagado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Generado" a "Pagado"?' data-estado-visible="GENERADO" title="CONFIRMAR PAGO">
@@ -405,10 +417,6 @@
     border-left: 1px solid black;
   }
   
-  .VerCargarCanon[data-con-diario="1"] .data-css-visible-sin-diario {
-    display: none;
-  }
-  
   .loading_screen {
     z-index: 1060;
     background: rgba(0,0,0,0.2);
@@ -473,22 +481,17 @@
         <input data-js-texto-no-formatear-numero class="form-control" name="estado" data-readonly='[{"modo": "*"}]'>
       </div>
       <div>
-        <h5>ANTIGUO</h5>
-        <select class="form-control" name="es_antiguo"
+        <h5>Versión</h5>
+        <select class="form-control" name="version"
           data-js-empty-si-cambio="[data-canon-variable] [data-js-contenedor],[data-canon-fijo-mesas] [data-js-contenedor],[data-canon-fijo-mesas-adicionales] [data-js-contenedor]"
           data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-          <option value="0" selected>NO</option>
-          <option value="1">SI</option>
+          <option value="diario" select>Diario</option>
+          <option value="mensual" select>Mensual</option>
+          <option value="antiguo" select>Mensual/Antiguo</option>
         </select>
       </div>
-      <div>
-        <h5>&nbsp;</h5>
-        <button type="button" class="btn data-css-visible-sin-diario" data-js-generar-diario>
-          <b>GENERAR DIARIO</b>
-        </button>
-      </div>
       <div hidden>
-        <input name="id_canon" class="form-control" data-readonly='[{"modo":"*"}]'>
+        <input name="id_canon" class="form-control" data-js-texto-no-formatear-numero readonly>
       </div>
     </div>
     <div class="tabs" data-js-tabs>
@@ -496,7 +499,7 @@
         <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-total]" tabindex="0">Total</a>
       </div>
       <div>
-        <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-cotizaciones]" tabindex="0">Cotizaciones</a>
+        <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-canon-cotizacion-diaria]" tabindex="0">Cotizaciones</a>
       </div>
       <div>
         <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-canon-variable]" tabindex="0">Canon Variable</a>
@@ -632,7 +635,7 @@
           </div>
         </div>
       </div>
-      <div class="pestaña" data-cotizaciones>
+      <div class="pestaña" data-canon-cotizacion-diaria>
         <div class="bloque_interno">
           @component('Canon.ModalCanon.moldeCanonCotizacion')
           @endcomponent
