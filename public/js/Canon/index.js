@@ -175,6 +175,15 @@ $(document).ready(function() {
               .replaceAll(replace_str_diario,dia)
             );
           });
+          fila.find('[data-depende]').each(function(_,nobj){
+            const n = $(nobj);
+            n.attr(
+              'data-depende',
+              n.attr('data-depende')
+              .replaceAll(replace_str_tipo,replace_idx)
+              .replaceAll(replace_str_diario,dia)
+            );
+          });
           tabla.append(fila);
         };
       });

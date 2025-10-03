@@ -175,12 +175,12 @@
                 <td><input class="form-control" data-name="{{$d_dia}}" readonly></td>
                 <td><input class="form-control" data-name="{{$d_bruto_ARS}}"></td>
                 <td><input class="form-control" data-name="{{$d_bruto_USD}}"></td>
-                <td><input class="form-control" data-name="{{$d_bruto}}" readonly></td>
-                <td><input class="form-control" data-name="{{$d_valor}}" readonly></td>
-                <td><input class="form-control" data-name="{{$d_valor_diario}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_bruto}}" data-depende="{{$d_bruto_ARS}},{{$d_bruto_USD}},canon_cotizacion_diaria[{{$molde_str_diario}}][USD]" readonly></td>
+                <td><input class="form-control" data-name="{{$d_valor}}" data-depende="valor_dolar,valor_euro,canon_cotizacion_diaria[{{$molde_str_diario}}][USD],canon_cotizacion_diaria[{{$molde_str_diario}}][EUR]" readonly></td>
+                <td><input class="form-control" data-name="{{$d_valor_diario}}" data-depende="{{$d_valor}},año_mes" readonly></td>
                 <td><input class="form-control" data-name="{{$d_mesas_habilitadas}}" readonly></td>
-                <td><input class="form-control" data-name="{{$d_mesas_habilitadas_acumuladas}}" readonly></td>
-                <td><input class="form-control" data-name="{{$d_total}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_mesas_habilitadas_acumuladas}}" data-depende="{{$d_mesas_habilitadas}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_total}}" data-depende="{{$d_mesas_habilitadas_acumuladas}},{{$d_valor_diario}},{{$factor_ajuste_diario_fijas}}" readonly></td>
               </tr>
             </table>
           </div>
@@ -197,16 +197,16 @@
               <tr class="fila-mensual">
                 <td colspan="4" style="text-align: right;">Devengado</td>
                 <td>
-                  <input class="form-control" data-name="{{$devengado_valor}}" readonly>
+                  <input class="form-control" data-name="{{$devengado_valor}}" data-depende="valor_dolar,valor_euro,devengado_cotizacion_dolar,devengado_cotizacion_euro" readonly>
                 </td>
                 <td>
-                  <input class="form-control" data-name="{{$devengado_valor_diario}}" readonly>
+                  <input class="form-control" data-name="{{$devengado_valor_diario}}" data-depende="{{$devengado_valor}},{{$dias_valor}}" readonly>
                 </td>
                 <td rowspan="2">
                   &nbsp;
                 </td>
                 <td rowspan="2">
-                  <input class="form-control" data-name="{{$mesas_dias}}" readonly>
+                  <input class="form-control" data-name="{{$mesas_dias}}" data-depende="{{$dias_lunes_jueves}},{{$mesas_lunes_jueves}},{{$dias_viernes_sabados}},{{$mesas_viernes_sabados}},{{$dias_domingos}},{{$mesas_domingos}},{{$dias_todos}},{{$mesas_todos}},{{$dias_fijos}},{{$mesas_fijos}}" readonly>
                 </td>
                 <td>
                   <input class="form-control" data-name="{{$devengado_total}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"},{"version": "mensual"}]'>
@@ -215,10 +215,10 @@
                 <tr class="fila-mensual">
                   <td colspan="4" style="text-align: right;">Determinado</td>
                   <td>
-                    <input class="form-control" data-name="{{$determinado_valor}}" readonly>
+                    <input class="form-control" data-name="{{$determinado_valor}}" data-depende="valor_dolar,valor_euro,determinado_cotizacion_dolar,determinado_cotizacion_euro" readonly>
                   </td>
                   <td>
-                    <input class="form-control" data-name="{{$determinado_valor_diario}}" readonly>
+                    <input class="form-control" data-name="{{$determinado_valor_diario}}" data-depende="{{$determinado_valor}},{{$dias_valor}}" readonly>
                   </td>
                   <td>
                     <input class="form-control" data-name="{{$determinado_total}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"},{"version": "mensual"}]'>
