@@ -39,15 +39,13 @@
   </div>
 </div>
 <?php
-  $molde_str = '$adj';
-  $n = function($s) use (&$id_casino,&$t,&$molde_str){
-    return "canon_archivo[$molde_str][$s]";
-  };
-  $descripcion = $n('descripcion');
-  $nombre_archivo = $n('nombre_archivo');
-  $id_archivo = $n('id_archivo');
-  $archivo = $n('archivo');
-  $link = $n('link');
+  $molde_str = '$'.uniqid();
+  foreach([
+    'descripcion','nombre_archivo',
+    'id_archivo','archivo','link'
+  ] as $varname){
+    $$varname =  "canon_archivo[$molde_str][$varname]";
+  }
 ?>
 <div data-subcanon="canon_archivo" data-js-molde="{{$molde_str}}" style="width: 100%;">
   <div class="grid_fila_archivo" style="width: 100%;">

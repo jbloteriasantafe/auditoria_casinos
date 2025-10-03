@@ -1,37 +1,36 @@
 <?php
   $molde_str = '$'.uniqid();
-  $molde_str_diario = '$'.uniqid();
-  $n = function($s) use (&$id_casino,&$t,&$molde_str){
-    return "canon_fijo_mesas_adicionales[$molde_str][$s]";
-  };
-  $dias_mes = $n('dias_mes');
-  $horas_dia = $n('horas_dia');
-  $factor_dias_mes = $n('factor_dias_mes');
-  $factor_horas_mes = $n('factor_horas_mes');
-  $horas = $n('horas');
-  $mesas = $n('mesas');
-  $porcentaje = $n('porcentaje');
-  $devengar = $n('devengar');
-  $devengado_valor_mes = $n('devengado_valor_mes');
-  $devengado_valor_dia = $n('devengado_valor_dia');
-  $devengado_valor_hora = $n('devengado_valor_hora');
-  $devengado_total = $n('devengado_total');
-  $devengado_deduccion = $n('devengado_deduccion');
-  $devengado = $n('devengado');
-  $determinado_valor_mes = $n('determinado_valor_mes');
-  $determinado_valor_dia = $n('determinado_valor_dia');
-  $determinado_valor_hora = $n('determinado_valor_hora');
-  $determinado_total = $n('determinado_total');
-  $determinado_ajuste = $n('determinado_ajuste');
-  $determinado = $n('determinado');
+  foreach([
+    'tipo','id_canon_fijo_mesas_adicionales',
+    'dias_mes','horas_dia',
+    'horas','mesas',
+    'porcentaje',
+    'devengar',
+    'devengado_valor_mes','devengado_valor_dia','devengado_valor_hora',
+    'devengado_total','devengado_deduccion',
+    'devengado',
+    'determinado_valor_mes','determinado_valor_dia','determinado_valor_hora',
+    'determinado_total','determinado_ajuste',
+    'determinado'
+  ] as $varname){
+    $$varname = "canon_fijo_mesas_adicionales[$molde_str][$varname]";
+  }
   
-  $nd = function($s) use (&$molde_str,&$molde_str_diario){
-    return "canon_fijo_mesas_adicionales[$molde_str][diario][$molde_str_diario][$s]";
-  };
+  $molde_str_diario = '$'.uniqid();
+  foreach([
+    'dia',
+    'valor_mes','valor_dia','valor_hora',
+    'horas_diarias','mesas_diarias',
+    'horas','mesas',
+    'total'
+  ] as $varname){
+    $varname_php = 'd_'.$varname;
+    $$varname_php = "canon_fijo_mesas_adicionales[$molde_str][diario][$molde_str_diario][$varname]";
+  }
 ?>
 <div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon="canon_fijo_mesas_adicionales" data-subcanon-toggle-estado="esconder_subcanon" data-subcanon-toggle-mensual-diario-estado="mensual">
-  <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
-  <input data-name="{{$n('id_canon_fijo_mesas_adicionales')}}" hidden>
+  <input data-tipo data-js-texto-no-formatear-numero data-name="{{$tipo}}" hidden>
+  <input data-name="{{$id_canon_fijo_mesas_adicionales}}" hidden>
   <div class="bloque_interno"  style="width: 100%;display: flex;align-items: center;">
     @component('Canon.ModalCanon.toggleSubcanon')
     @endcomponent
@@ -47,14 +46,6 @@
         <div class="parametro_chico">
           <h5>HORAS DÍA</h5>
           <input class="form-control" data-name="{{$horas_dia}}"  data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-        </div>
-        <div class="aproximado valor_intermedio">
-          <h5>FACTOR DIAS MES ≈ (DÍAS MES)⁻¹</h5>
-          <input class="form-control" data-name="{{$factor_dias_mes}}" data-depende="{{$dias_mes}}" data-readonly='[{"modo":"*"}]'>
-        </div>
-        <div class="aproximado valor_intermedio">
-          <h5>FACTOR HORAS MES ≈ (DÍAS MES × HORAS DÍA)⁻¹</h5>
-          <input class="form-control" data-name="{{$factor_horas_mes}}" data-depende="{{$dias_mes}},{{$horas_dia}}" data-readonly='[{"modo":"*"}]'>
         </div>
         <div class="parametro_chico">
           <h5>PORCENTAJE</h5>
@@ -111,15 +102,15 @@
               </table>
               <table hidden>
                 <tr data-molde-diario="{{$molde_str_diario}}">
-                  <td><input class="form-control" data-name="{{$nd('dia')}}" readonly></td>
-                  <td><input class="form-control" data-name="{{$nd('valor_mes')}}" readonly></td>
-                  <td><input class="form-control" data-name="{{$nd('valor_dia')}}" readonly></td>
-                  <td><input class="form-control" data-name="{{$nd('valor_hora')}}" readonly></td>
-                  <td><input class="form-control" data-name="{{$nd('horas_diarias')}}"></td>
-                  <td><input class="form-control" data-name="{{$nd('mesas_diarias')}}"></td>
-                  <td><input class="form-control" data-name="{{$nd('horas')}}" readonly></td>
-                  <td><input class="form-control" data-name="{{$nd('mesas')}}" readonly></td>
-                  <td><input class="form-control" data-name="{{$nd('total')}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$d_dia}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$d_valor_mes}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$d_valor_dia}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$d_valor_hora}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$d_horas_diarias}}"></td>
+                  <td><input class="form-control" data-name="{{$d_mesas_diarias}}"></td>
+                  <td><input class="form-control" data-name="{{$d_horas}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$d_mesas}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$d_total}}" readonly></td>
                 </tr>
               </table>
             </div>
@@ -134,20 +125,20 @@
                     <input class="form-control" data-name="{{$devengado_valor_mes}}" readonly>
                   </td>
                   <td>
-                    <input class="form-control" data-name="{{$devengado_valor_dia}}" data-depende="{{$devengado_valor_mes}},{{$devengado_valor_dia}},{{$devengado_valor_hora}},{{$horas}},{{$porcentaje}}" readonly>
+                    <input class="form-control" data-name="{{$devengado_valor_dia}}" data-depende="{{$devengado_valor_mes}},{{$dias_mes}}" readonly>
                   </td>
                   <td>
-                    <input class="form-control" data-name="{{$devengado_valor_hora}}" readonly>
+                    <input class="form-control" data-name="{{$devengado_valor_hora}}" data-depende="{{$devengado_valor_mes}},{{$dias_mes}},{{$horas_dia}}" readonly>
                   </td>
                   <td colspan="2" rowspan="2">&nbsp;</td>
                   <td rowspan="2">
-                    <input class="form-control" data-name="{{$horas}}"readonly>
+                    <input class="form-control" data-name="{{$horas}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"}]'>
                   </td>
                   <td rowspan="2">
-                    <input class="form-control" data-name="{{$mesas}}" readonly>
+                    <input class="form-control" data-name="{{$mesas}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"}]'>
                   </td>
                   <td>
-                    <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_valor_mes}},{{$horas}},{{$mesas}}" readonly>
+                    <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_total}}" data-depende="{{$devengado_valor_mes}},,{{$devengado_valor_dia}}{{$devengado_valor_hora}},{{$horas}},{{$mesas}}"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"},{"version": "mensual"}]'>
                   </td>
                 </tr>
                 <tr class="fila-mensual">
@@ -156,13 +147,13 @@
                     <input class="form-control" data-name="{{$determinado_valor_mes}}" readonly>
                   </td>
                   <td>
-                    <input class="form-control" data-name="{{$determinado_valor_dia}}" data-depende="{{$determinado_valor_mes}},{{$determinado_valor_dia}},{{$determinado_valor_hora}},{{$horas}},{{$porcentaje}}" readonly>
+                    <input class="form-control" data-name="{{$determinado_valor_dia}}" data-depende="{{$determinado_valor_mes}},{{$dias_mes}}" readonly>
                   </td>
                   <td>
-                    <input class="form-control" data-name="{{$determinado_valor_hora}}" readonly>
+                    <input class="form-control" data-name="{{$determinado_valor_hora}}" data-depende="{{$determinado_valor_mes}},{{$dias_mes}},{{$horas_dia}}" readonly>
                   </td>
                   <td>
-                    <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_valor_mes}},{{$horas}},{{$mesas}}" readonly>
+                    <input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_valor_mes}},,{{$determinado_valor_dia}}{{$determinado_valor_hora}},{{$horas}},{{$mesas}}"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"},{"version": "mensual"}]'>
                   </td>
                 </tr>
               </tbody>

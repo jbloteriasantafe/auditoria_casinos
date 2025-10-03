@@ -65,19 +65,15 @@
   <i class="fa fa-plus"></i>
 </button>
 <?php
-  $molde_str = '$pidx';
-  $n = function($s) use (&$molde_str){
-    return "canon_pago[$molde_str][$s]";
-  };
-  $id_canon_pago = $n('id_canon_pago');
-  $capital = $n('capital');
-  $fecha_pago = $n('fecha_pago');
-  $dias_vencidos = $n('dias_vencidos');
-  $mora_provincial = $n('mora_provincial');
-  $mora_nacional = $n('mora_nacional');
-  $a_pagar = $n('a_pagar');
-  $pago = $n('pago');
-  $diferencia = $n('diferencia');
+  $molde_str = '$'.uniqid();
+  foreach([
+    'id_canon_pago',
+    'capital','fecha_pago','dias_vencidos',
+    'mora_provincial','mora_nacional',
+    'a_pagar','pago','diferencia'
+  ] as $varname){
+    $$varname =  "canon_pago[$molde_str][$varname]";
+  }
 ?>
 <div data-subcanon="canon_pago" data-js-molde="{{$molde_str}}" style="width: 100%;">
   <div class="grid_fila_pago" style="width: 100%;">

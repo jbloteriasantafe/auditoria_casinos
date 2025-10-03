@@ -1,9 +1,8 @@
 <?php
   $molde_str = '$'.uniqid();
-  
   foreach([
     'tipo','id_canon_fijo_mesas',
-    'dias_valor','factor_dias_valor','valor_dolar_diario','valor_euro_diario',
+    'dias_valor','valor_dolar_diario','valor_euro_diario',
     'bruto',
     'dias_lunes_jueves','mesas_lunes_jueves',
     'dias_viernes_sabados','mesas_viernes_sabados',
@@ -23,7 +22,6 @@
   }
   
   $molde_str_diario = '$'.uniqid();
-  
   foreach([
     'dia','bruto_ARS','bruto_USD','bruto',
     'mesas_habilitadas','mesas_habilitadas_acumuladas',
@@ -56,19 +54,15 @@
           <h5>DÍAS VALOR</h5>
           <input class="form-control" data-name="{{$dias_valor}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
         </div>
-        <div class="aproximado valor_intermedio">
-          <h5>FACTOR DÍAS VALOR ≈ (DÍAS VALOR)⁻¹</h5>
-          <input class="form-control" data-name="{{$factor_dias_valor}}" data-depende="{{$dias_valor}}" data-readonly='[{"modo":"*"}]'>
-        </div>
       </div>
       <div style="display: flex;width: 100%;">
         <div>
           <h5>VALOR DOLAR DIARIO (USD)</h5>
-          <input class="form-control" data-name="{{$valor_dolar_diario}}" data-depende="{{$factor_dias_valor}},valor_dolar" data-readonly='[{"modo":"*"}]'>
+          <input class="form-control" data-name="{{$valor_dolar_diario}}" data-depende="{{$dias_valor}},valor_dolar" data-readonly='[{"modo":"*"}]'>
         </div>
         <div>
           <h5>VALOR EURO DIARIO (EUR)</h5>
-          <input class="form-control" data-name="{{$valor_euro_diario}}" data-depende="{{$factor_dias_valor}},valor_euro" data-readonly='[{"modo":"*"}]'>
+          <input class="form-control" data-name="{{$valor_euro_diario}}" data-depende="{{$dias_valor}},valor_euro" data-readonly='[{"modo":"*"}]'>
         </div>
       </div>
       <br>
@@ -114,7 +108,7 @@
           <div>
             <h5>Fijos</h5>
             <div style="display: flex;flex-direction: column;">
-              <input class="form-control" data-name="{{$dias_fijos}}" placeholder="DIAS" data-depende="id_casino" readonly>
+              <input class="form-control" data-name="{{$dias_fijos}}" placeholder="DIAS" data-depende="{{$dias_valor}}" readonly>
               <input class="form-control" data-name="{{$mesas_fijos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
           </div>
@@ -215,7 +209,7 @@
                   <input class="form-control" data-name="{{$mesas_dias}}" readonly>
                 </td>
                 <td>
-                  <input class="form-control" data-name="{{$devengado_total}}" readonly>
+                  <input class="form-control" data-name="{{$devengado_total}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"},{"version": "mensual"}]'>
                 </td>
               </tr>
                 <tr class="fila-mensual">
@@ -227,7 +221,7 @@
                     <input class="form-control" data-name="{{$determinado_valor_diario}}" readonly>
                   </td>
                   <td>
-                    <input class="form-control" data-name="{{$determinado_total}}" readonly>
+                    <input class="form-control" data-name="{{$determinado_total}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"},{"version": "mensual"}]'>
                   </td>
                 </tr>
             </tbody>

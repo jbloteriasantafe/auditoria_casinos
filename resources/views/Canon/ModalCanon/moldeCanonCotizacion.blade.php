@@ -72,12 +72,9 @@
 
   <?php
     $molde_str = '$'.uniqid();
-    $n = function($s) use (&$id_casino,&$t,&$molde_str){
-      return "canon_cotizacion_diaria[$molde_str][$s]";
-    };
-    $dia = $n('dia');
-    $USD = $n('USD');
-    $EUR = $n('EUR');
+    foreach(['dia','USD','EUR'] as $varname){
+      $$varname =  "canon_cotizacion_diaria[$molde_str][$varname]";
+    }
   ?>
   <table hidden>
     <tr data-subcanon="canon_cotizacion_diaria" data-js-molde="{{$molde_str}}">

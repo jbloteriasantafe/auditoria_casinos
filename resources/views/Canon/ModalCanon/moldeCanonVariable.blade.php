@@ -1,37 +1,36 @@
 <?php
-  $molde_str = '$'.uniqid();
+  $molde_str = '$'.uniqid();  
+  foreach([
+    'tipo','id_canon_variable',
+    'alicuota','devengar','devengado',
+    'devengado_bruto','devengado_apostado_sistema','devengado_apostado_porcentaje_aplicable',
+    'devengado_apostado_porcentaje_impuesto_ley','devengado_base_imponible',
+    'devengado_impuesto','devengado_subtotal','devengado_total',
+    'devengado_deduccion','determinado_bruto','determinado_base_imponible',
+    'determinado_impuesto','determinado_subtotal','determinado_total',
+    'determinado_ajuste','determinado'
+  ] as $varname){
+    $$varname = "canon_variable[$molde_str][$varname]";
+  }
+  
   $molde_str_diario = '$'.uniqid();
-  $n = function($s) use (&$molde_str){
-    return "canon_variable[$molde_str][$s]";
-  };
-  $alicuota = $n('alicuota');
-  $devengar = $n('devengar');
-  $devengado = $n('devengado');
-  $devengado_bruto = $n('devengado_bruto');
-  $devengado_apostado_sistema = $n('devengado_apostado_sistema');
-  $devengado_apostado_porcentaje_aplicable = $n('devengado_apostado_porcentaje_aplicable');
-  $devengado_apostado_porcentaje_impuesto_ley = $n('devengado_apostado_porcentaje_impuesto_ley');
-  $devengado_base_imponible = $n('devengado_base_imponible');
-  $devengado_impuesto = $n('devengado_impuesto');
-  $devengado_subtotal = $n('devengado_subtotal');
-  $devengado_total = $n('devengado_total');
-  $devengado_deduccion = $n('devengado_deduccion');
-  $determinado_bruto = $n('determinado_bruto');
-  $determinado_base_imponible = $n('determinado_base_imponible');
-  $determinado_impuesto = $n('determinado_impuesto');
-  $determinado_subtotal = $n('determinado_subtotal');
-  $determinado_total = $n('determinado_total');
-  $determinado_ajuste = $n('determinado_ajuste');
-  $determinado = $n('determinado');
-  $nd = function($s,$mstr = null,$mstrd = null) use (&$molde_str,&$molde_str_diario){
-    $mstr = $mstr ?? $molde_str;
-    $mstrd = $mstrd ?? $molde_str_diario;
-    return "canon_variable[$mstr][diario][$mstrd][$s]";
-  };
+  foreach([
+    'dia',
+    'devengado_apostado_sistema_ARS','devengado_apostado_sistema_USD','devengado_apostado_sistema',
+    'devengado_base_imponible','devengado_base_imponible','devengado_impuesto',
+    'devengado_bruto_ARS','devengado_bruto_USD','devengado_bruto',
+    'devengado_subtotal','devengado_total',
+    'determinado_impuesto',
+    'determinado_bruto_ARS','determinado_bruto_USD','determinado_bruto',
+    'determinado_subtotal','determinado_total'
+  ] as $varname){
+    $varname_php = 'd_'.$varname;
+    $$varname_php = "canon_variable[$molde_str][diario][$molde_str_diario][$varname]";
+  }
 ?>
 <div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon="canon_variable" data-subcanon-toggle-estado="esconder_subcanon">
-  <input data-tipo data-js-texto-no-formatear-numero data-name="{{$n('tipo')}}" hidden>
-  <input data-name="{{$n('id_canon_variable')}}" hidden>
+  <input data-tipo data-js-texto-no-formatear-numero data-name="{{$tipo}}" hidden>
+  <input data-name="{{$id_canon_variable}}" hidden>
   <div class="bloque_interno"  style="width: 100%;display: flex;align-items: center;">
     @component('Canon.ModalCanon.toggleSubcanon')
     @endcomponent
@@ -114,17 +113,17 @@
             </table>
             <table hidden>
               <tr data-molde-diario="{{$molde_str_diario}}">
-                <td><input class="form-control" data-name="{{$nd('dia')}}" readonly></td>
-                <td><input class="form-control" data-name="{{$nd('devengado_apostado_sistema_ARS')}}"></td>
-                <td><input class="form-control" data-name="{{$nd('devengado_apostado_sistema_USD')}}"></td>
-                <td><input class="form-control" data-name="{{$nd('devengado_apostado_sistema')}}" readonly></td>
-                <td><input class="form-control" data-name="{{$nd('devengado_base_imponible')}}" readonly></td>
-                <td><input class="form-control" data-name="{{$nd('devengado_impuesto')}}" readonly></td>
-                <td><input class="form-control" data-name="{{$nd('devengado_bruto_ARS')}}"></td>
-                <td><input class="form-control" data-name="{{$nd('devengado_bruto_USD')}}"></td>
-                <td><input class="form-control" data-name="{{$nd('devengado_bruto')}}" readonly></td>
-                <td><input class="form-control" data-name="{{$nd('devengado_subtotal')}}" readonly></td>
-                <td><input class="form-control" data-name="{{$nd('devengado_total')}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_dia}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_devengado_apostado_sistema_ARS}}"></td>
+                <td><input class="form-control" data-name="{{$d_devengado_apostado_sistema_USD}}"></td>
+                <td><input class="form-control" data-name="{{$d_devengado_apostado_sistema}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_devengado_base_imponible}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_devengado_impuesto}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_devengado_bruto_ARS}}"></td>
+                <td><input class="form-control" data-name="{{$d_devengado_bruto_USD}}"></td>
+                <td><input class="form-control" data-name="{{$d_devengado_bruto}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_devengado_subtotal}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_devengado_total}}" readonly></td>
               </tr>
             </table>
           </div>
@@ -135,13 +134,13 @@
             <tbody>
               <tr class="fila-mensual">
                 <td class="celda_vacia" colspan="3">&nbsp;</td>
-                <td><input class="form-control" data-name="{{$devengado_apostado_sistema}}" readonly></td>
-                <td><input class="form-control" data-name="{{$devengado_base_imponible}}" readonly></td>
-                <td><input class="form-control" data-name="{{$devengado_impuesto}}" readonly></td>
+                <td><input class="form-control" data-name="{{$devengado_apostado_sistema}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"}]'></td>
+                <td><input class="form-control" data-name="{{$devengado_base_imponible}}" data-depende="{{$devengado_apostado_sistema}},{{$devengado_apostado_porcentaje_aplicable}}" readonly></td>
+                <td><input class="form-control" data-name="{{$devengado_impuesto}}" data-depende="{{$devengado_base_imponible}},{{$devengado_apostado_porcentaje_impuesto_ley}}" readonly></td>
                 <td class="celda_vacia" colspan="2">&nbsp;</td>
-                <td><input class="form-control" data-name="{{$devengado_bruto}}" readonly></td>
-                <td><input class="form-control" data-name="{{$devengado_subtotal}}" readonly></td>
-                <td><input class="form-control" data-name="{{$devengado_total}}" readonly></td>
+                <td><input class="form-control" data-name="{{$devengado_bruto}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"}]'></td>
+                <td><input class="form-control" data-name="{{$devengado_subtotal}}" data-depende="{{$devengado_bruto}},{{$devengado_impuesto}}" readonly></td>
+                <td><input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_subtotal}},{{$alicuota}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"},{"version": "mensual"}]'></td>
               </tr>
             </tbody>
           </table>
@@ -201,14 +200,14 @@
             </table>
             <table hidden>
               <tr data-molde-diario="{{$molde_str_diario}}">
-                <td><input class="form-control" data-name="{{$nd('dia')}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_dia}}" readonly></td>
                 <td class="celda_vacia" colspan="4">&nbsp;</td>
-                <td><input class="form-control" data-name="{{$nd('determinado_impuesto')}}" readonly></td>
-                <td><input class="form-control" data-name="{{$nd('determinado_bruto_ARS')}}"></td>
-                <td><input class="form-control" data-name="{{$nd('determinado_bruto_USD')}}"></td>
-                <td><input class="form-control" data-name="{{$nd('determinado_bruto')}}" readonly></td>
-                <td><input class="form-control" data-name="{{$nd('determinado_subtotal')}}" readonly></td>
-                <td><input class="form-control" data-name="{{$nd('determinado_total')}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_determinado_impuesto}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_determinado_bruto_ARS}}"></td>
+                <td><input class="form-control" data-name="{{$d_determinado_bruto_USD}}"></td>
+                <td><input class="form-control" data-name="{{$d_determinado_bruto}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_determinado_subtotal}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_determinado_total}}" readonly></td>
               </tr>
             </table>
           </div>
@@ -220,10 +219,10 @@
               <tr class="fila-mensual">
                 <td class="celda_vacia" colspan="5">&nbsp;</td>
                 <td><input class="form-control" data-name="{{$determinado_impuesto}}"></td>
-                <td class="celda_vacia"  colspan="2">&nbsp;</td>
-                <td><input class="form-control" data-name="{{$determinado_bruto}}" readonly></td>
-                <td><input class="form-control" data-name="{{$determinado_subtotal}}" readonly></td>
-                <td><input class="form-control" data-name="{{$determinado_total}}" readonly></td>
+                <td class="celda_vacia" colspan="2">&nbsp;</td>
+                <td><input class="form-control" data-name="{{$determinado_bruto}}" data-depende="año_mes,id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"}]'></td>
+                <td><input class="form-control" data-name="{{$determinado_subtotal}}" data-depende="{{$determinado_bruto}},{{$determinado_impuesto}}" readonly></td>
+                <td><input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_subtotal}},{{$alicuota}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"},{"version": "mensual"}]'></td>
               </tr>
             </tbody>
           </table>
