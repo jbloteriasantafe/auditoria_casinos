@@ -30,6 +30,16 @@
     $varname_php = 'd_'.$varname;
     $$varname_php = "canon_fijo_mesas[$molde_str][diario][$molde_str_diario][$varname]";
   }
+  $prev_d_mesas_habilitadas_acumuladas = "'canon_fijo_mesas[{$molde_str}][diario]['+($molde_str_diario-1)+'][mesas_habilitadas_acumuladas]'";
+  foreach([//No hay meses con mas de 31 dias... asi que puedo hacerlo asi directamente... sin hacerlo dinamicamente
+    'bruto'
+  ] as $varname){
+    $tot_varname = 'tot_'.$varname;
+    $$tot_varname = '';
+    for($d=1;$d<=31;$d++){
+      $$tot_varname .= ($d > 1? ',' : '')."canon_fijo_mesas[{$molde_str}][diario][$d][$varname]";
+    }
+  }
 ?>
 <div class="bloque_interno bloque_principal" style="width: 100%;" data-js-molde="{{$molde_str}}" data-subcanon="canon_fijo_mesas" data-subcanon-toggle-estado="esconder_subcanon" data-subcanon-toggle-mensual-diario-estado="mensual">
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$tipo}}" hidden>
@@ -178,8 +188,8 @@
                 <td><input class="form-control" data-name="{{$d_bruto}}" data-depende="{{$d_bruto_ARS}},{{$d_bruto_USD}},canon_cotizacion_diaria[{{$molde_str_diario}}][USD]" readonly></td>
                 <td><input class="form-control" data-name="{{$d_valor}}" data-depende="valor_dolar,valor_euro,canon_cotizacion_diaria[{{$molde_str_diario}}][USD],canon_cotizacion_diaria[{{$molde_str_diario}}][EUR]" readonly></td>
                 <td><input class="form-control" data-name="{{$d_valor_diario}}" data-depende="{{$d_valor}},año_mes" readonly></td>
-                <td><input class="form-control" data-name="{{$d_mesas_habilitadas}}" readonly></td>
-                <td><input class="form-control" data-name="{{$d_mesas_habilitadas_acumuladas}}" data-depende="{{$d_mesas_habilitadas}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_mesas_habilitadas}}" data-depende="{{$mesas_lunes_jueves}},{{$mesas_viernes_sabados}},{{$mesas_domingos}},{{$mesas_todos}},{{$mesas_fijos}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_mesas_habilitadas_acumuladas}}" data-depende="{{$d_mesas_habilitadas}}" data-depende-dyn="{{$prev_d_mesas_habilitadas_acumuladas}}" readonly></td>
                 <td><input class="form-control" data-name="{{$d_total}}" data-depende="{{$d_mesas_habilitadas_acumuladas}},{{$d_valor_diario}},{{$factor_ajuste_diario_fijas}}" readonly></td>
               </tr>
             </table>
@@ -191,7 +201,7 @@
             <tbody>
               <tr class="fila-mensual">
                 <td colspan="3">&nbsp;</td>
-                <td><input class="form-control" data-name="{{$bruto}}" readonly></td>
+                <td><input class="form-control" data-name="{{$bruto}}" data-depende="año_mes,id_casino,{{$tot_bruto}}"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"}]'></td>
                 <td colspan="5">&nbsp;</td>
               </tr>
               <tr class="fila-mensual">

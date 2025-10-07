@@ -27,6 +27,18 @@
     $varname_php = 'd_'.$varname;
     $$varname_php = "canon_variable[$molde_str][diario][$molde_str_diario][$varname]";
   }
+  $prev_d_devengado_subtotal = "'canon_variable[{$molde_str}][diario]['+($molde_str_diario-1)+'][devengado_subtotal]'";
+  $prev_d_determinado_subtotal = "'canon_variable[{$molde_str}][diario]['+($molde_str_diario-1)+'][determinado_subtotal]'";
+  foreach([//No hay meses con mas de 31 dias... asi que puedo hacerlo asi directamente... sin hacerlo dinamicamente
+    'devengado_apostado_sistema','devengado_bruto',
+    'determinado_bruto'
+  ] as $varname){
+    $tot_varname = 'tot_'.$varname;
+    $$tot_varname = '';
+    for($d=1;$d<=31;$d++){
+      $$tot_varname .= ($d > 1? ',' : '')."canon_variable[{$molde_str}][diario][$d][$varname]";
+    }
+  }
 ?>
 <div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon="canon_variable" data-subcanon-toggle-estado="esconder_subcanon">
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$tipo}}" hidden>
@@ -122,7 +134,7 @@
                 <td><input class="form-control" data-name="{{$d_devengado_bruto_ARS}}"></td>
                 <td><input class="form-control" data-name="{{$d_devengado_bruto_USD}}"></td>
                 <td><input class="form-control" data-name="{{$d_devengado_bruto}}" data-depende="{{$d_devengado_bruto_ARS}},{{$d_devengado_bruto_USD}},canon_cotizacion_diaria[{{$molde_str_diario}}][USD]" readonly></td>
-                <td><input class="form-control" data-name="{{$d_devengado_subtotal}}" data-depende="{{$d_devengado_bruto}},{{$d_devengado_impuesto}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_devengado_subtotal}}" data-depende="{{$d_devengado_bruto}},{{$d_devengado_impuesto}}" data-depende-dyn="{{$prev_d_devengado_subtotal}}" readonly></td>
                 <td><input class="form-control" data-name="{{$d_devengado_total}}" data-depende="{{$d_devengado_subtotal}},{{$alicuota}}" readonly></td>
               </tr>
             </table>
@@ -134,11 +146,11 @@
             <tbody>
               <tr class="fila-mensual">
                 <td class="celda_vacia" colspan="3">&nbsp;</td>
-                <td><input class="form-control" data-name="{{$devengado_apostado_sistema}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"}]'></td>
+                <td><input class="form-control" data-name="{{$devengado_apostado_sistema}}" data-depende="año_mes,id_casino,{{$tot_devengado_apostado_sistema}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"}]'></td>
                 <td><input class="form-control" data-name="{{$devengado_base_imponible}}" data-depende="{{$devengado_apostado_sistema}},{{$devengado_apostado_porcentaje_aplicable}}" readonly></td>
                 <td><input class="form-control" data-name="{{$devengado_impuesto}}" data-depende="{{$devengado_base_imponible}},{{$devengado_apostado_porcentaje_impuesto_ley}}" readonly></td>
                 <td class="celda_vacia" colspan="2">&nbsp;</td>
-                <td><input class="form-control" data-name="{{$devengado_bruto}}" data-depende="año_mes,id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"}]'></td>
+                <td><input class="form-control" data-name="{{$devengado_bruto}}" data-depende="año_mes,id_casino,{{$tot_devengado_bruto}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"}]'></td>
                 <td><input class="form-control" data-name="{{$devengado_subtotal}}" data-depende="{{$devengado_bruto}},{{$devengado_impuesto}}" readonly></td>
                 <td><input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_subtotal}},{{$alicuota}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"},{"version": "mensual"}]'></td>
               </tr>
@@ -206,7 +218,7 @@
                 <td><input class="form-control" data-name="{{$d_determinado_bruto_ARS}}"></td>
                 <td><input class="form-control" data-name="{{$d_determinado_bruto_USD}}"></td>
                 <td><input class="form-control" data-name="{{$d_determinado_bruto}}" data-depende="{{$d_determinado_bruto_ARS}},{{$d_determinado_bruto_USD}},canon_cotizacion_diaria[{{$molde_str_diario}}][USD]" readonly></td>
-                <td><input class="form-control" data-name="{{$d_determinado_subtotal}}" data-depende="{{$d_determinado_bruto}},{{$d_determinado_impuesto}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_determinado_subtotal}}" data-depende="{{$d_determinado_bruto}},{{$d_determinado_impuesto}}"  data-depende-dyn="{{$prev_d_determinado_subtotal}}" readonly></td>
                 <td><input class="form-control" data-name="{{$d_determinado_total}}" data-depende="{{$d_determinado_subtotal}},{{$alicuota}}" readonly></td>
               </tr>
             </table>
@@ -220,7 +232,7 @@
                 <td class="celda_vacia" colspan="5">&nbsp;</td>
                 <td><input class="form-control" data-name="{{$determinado_impuesto}}"></td>
                 <td class="celda_vacia" colspan="2">&nbsp;</td>
-                <td><input class="form-control" data-name="{{$determinado_bruto}}" data-depende="año_mes,id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"}]'></td>
+                <td><input class="form-control" data-name="{{$determinado_bruto}}" data-depende="año_mes,id_casino,{{$tot_determinado_bruto}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"}]'></td>
                 <td><input class="form-control" data-name="{{$determinado_subtotal}}" data-depende="{{$determinado_bruto}},{{$determinado_impuesto}}" readonly></td>
                 <td><input class="form-control" data-name="{{$determinado_total}}" data-depende="{{$determinado_subtotal}},{{$alicuota}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"},{"version": "mensual"}]'></td>
               </tr>

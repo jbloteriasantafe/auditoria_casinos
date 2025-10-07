@@ -27,6 +27,18 @@
     $varname_php = 'd_'.$varname;
     $$varname_php = "canon_fijo_mesas_adicionales[$molde_str][diario][$molde_str_diario][$varname]";
   }
+  
+  $prev_d_horas = "'canon_fijo_mesas_adicionales[{$molde_str}][diario]['+($molde_str_diario-1)+'][horas]'";
+  $prev_d_mesas = "'canon_fijo_mesas_adicionales[{$molde_str}][diario]['+($molde_str_diario-1)+'][mesas]'";
+  foreach([//No hay meses con mas de 31 dias... asi que puedo hacerlo asi directamente... sin hacerlo dinamicamente
+    'horas_diarias','mesas_diarias',
+  ] as $varname){
+    $tot_varname = 'tot_'.$varname;
+    $$tot_varname = '';
+    for($d=1;$d<=31;$d++){
+      $$tot_varname .= ($d > 1? ',' : '')."canon_fijo_mesas_adicionales[{$molde_str}][diario][$d][$varname]";
+    }
+  }
 ?>
 <div class="bloque_interno bloque_principal" data-js-molde="{{$molde_str}}" data-subcanon="canon_fijo_mesas_adicionales" data-subcanon-toggle-estado="esconder_subcanon" data-subcanon-toggle-mensual-diario-estado="mensual">
   <input data-tipo data-js-texto-no-formatear-numero data-name="{{$tipo}}" hidden>
@@ -108,8 +120,8 @@
                   <td><input class="form-control" data-name="{{$d_valor_hora}}" data-depende="{{$d_valor_mes}},{{$dias_mes}},{{$horas_dia}}"  readonly></td>
                   <td><input class="form-control" data-name="{{$d_horas_diarias}}"></td>
                   <td><input class="form-control" data-name="{{$d_mesas_diarias}}"></td>
-                  <td><input class="form-control" data-name="{{$d_horas}}" data-depende="{{$d_horas_diarias}}" readonly></td>
-                  <td><input class="form-control" data-name="{{$d_mesas}}" data-depende="{{$d_mesas_diarias}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$d_horas}}" data-depende="{{$d_horas_diarias}}" data-depende-dyn="{{$prev_d_horas}}" readonly></td>
+                  <td><input class="form-control" data-name="{{$d_mesas}}" data-depende="{{$d_mesas_diarias}}" data-depende-dyn="{{$prev_d_mesas}}" readonly></td>
                   <td><input class="form-control" data-name="{{$d_total}}" data-depende="{{$d_horas_diarias}},{{$d_mesas_diarias}},{{$d_valor_hora}}" readonly></td>
                 </tr>
               </table>
@@ -132,10 +144,10 @@
                   </td>
                   <td colspan="2" rowspan="2">&nbsp;</td>
                   <td rowspan="2">
-                    <input class="form-control" data-name="{{$horas}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"}]'>
+                    <input class="form-control" data-name="{{$horas}}" data-depende="{{$tot_horas_diarias}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"}]'>
                   </td>
                   <td rowspan="2">
-                    <input class="form-control" data-name="{{$mesas}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"}]'>
+                    <input class="form-control" data-name="{{$mesas}}" data-depende="{{$tot_mesas_diarias}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"}]'>
                   </td>
                   <td>
                     <input class="form-control" data-name="{{$devengado_total}}" data-depende="{{$devengado_total}}" data-depende="{{$devengado_valor_mes}},{{$devengado_valor_dia}}{{$devengado_valor_hora}},{{$horas}},{{$mesas}}"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"},{"version": "diario"},{"version": "mensual"}]'>

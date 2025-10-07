@@ -149,15 +149,16 @@ $(document).ready(function() {
       
       div.find('[data-titulo]').text(titulo);
       
-      div.find('[data-name]').each(function(_,nobj){
-        const n = $(nobj);
-        n.attr('name',n.attr('data-name').replaceAll(replace_str_tipo,replace_idx));
-      });
+      const reemplazarStrAtributo = function(objs,attr,str,val){
+        objs.each(function(_,obj){
+          const $obj = $(obj);
+          $obj.attr(attr,$obj.attr(attr).replaceAll(str,val));  
+        });
+      }
       
-      div.find('[data-depende]').each(function(_,nobj){
-        const n = $(nobj);
-        n.attr('data-depende',n.attr('data-depende').replaceAll(replace_str_tipo,replace_idx));
-      });
+      reemplazarStrAtributo(div.find('[data-name]'),'data-name',replace_str_tipo,replace_idx);
+      reemplazarStrAtributo(div.find('[data-depende]'),'data-depende',replace_str_tipo,replace_idx);
+      reemplazarStrAtributo(div.find('[data-depende-dyn]'),'data-depende-dyn',replace_str_tipo,replace_idx);
       
       div.find('[data-div-devengado="diario"],[data-div-determinado="diario"]').each(function(_,divdetdevobj){          
         const tabla = $(divdetdevobj).find('[data-tabla-diario]');
@@ -166,26 +167,26 @@ $(document).ready(function() {
         const replace_str_diario = molde.attr('data-molde-diario');
         for(let dia=1;dia<=dias;dia++){
           const fila = molde.clone().removeAttr('data-molde-diario');
-          fila.find('[data-name]').each(function(_,nobj){
-            const n = $(nobj);
-            n.attr(
-              'name',
-              n.attr('data-name')
-              .replaceAll(replace_str_tipo,replace_idx)
-              .replaceAll(replace_str_diario,dia)
-            );
-          });
-          fila.find('[data-depende]').each(function(_,nobj){
-            const n = $(nobj);
-            n.attr(
-              'data-depende',
-              n.attr('data-depende')
-              .replaceAll(replace_str_tipo,replace_idx)
-              .replaceAll(replace_str_diario,dia)
-            );
-          });
+          reemplazarStrAtributo(fila.find('[data-name]'),'data-name',replace_str_diario,dia);
+          reemplazarStrAtributo(fila.find('[data-depende]'),'data-depende',replace_str_diario,dia);
+          reemplazarStrAtributo(fila.find('[data-depende-dyn]'),'data-depende-dyn',replace_str_diario,dia);
           tabla.append(fila);
         };
+        molde.remove();//Para evitar error al eval() el data-depende-dyn
+      });
+      
+      div.find('[data-name]').each(function(_,nobj){//Seteo los names resueltos
+        const $nobj = $(nobj);
+        $nobj.attr('name',$nobj.attr('data-name'));
+      });
+      div.find('[data-depende-dyn]').each(function(_,dobj){
+        const $dobj = $(dobj);
+        const prevval = $dobj.attr('data-depende');
+        const dynval  = eval($dobj.attr('data-depende-dyn'));
+        $(dobj).attr('data-depende',prevval?.length?
+            (prevval+','+dynval)
+          :  dynval
+        );
       });
       
       div.attr('data-subcanon-tipo',replace_idx);
