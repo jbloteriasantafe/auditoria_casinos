@@ -481,7 +481,7 @@
         <input data-js-texto-no-formatear-numero class="form-control" name="estado" data-readonly='[{"modo": "*"}]'>
       </div>
       <div>
-        <h5>Versión</h5>
+        <h5>Versión de Cálculo</h5>
         <select class="form-control" name="version"
           data-js-empty-si-cambio="[data-canon-variable] [data-js-contenedor],[data-canon-fijo-mesas] [data-js-contenedor],[data-canon-fijo-mesas-adicionales] [data-js-contenedor]"
           data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>

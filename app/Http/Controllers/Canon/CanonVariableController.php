@@ -190,7 +190,7 @@ class CanonVariableController extends Controller
     
     $año_mes_str = substr($año_mes,0,strlen('XXXX-XX-'));
     $diario = [];
-    $devengado_impuesto_total = '0';
+    $devengado_apostado_sistema_total = '0';
     foreach($COT(null,[]) as $dia => $cot){
       $D = AUX::make_accessor($R($dia,[]));
       $fecha = $año_mes_str.str_pad($dia,2,'0',STR_PAD_LEFT);
@@ -224,20 +224,20 @@ class CanonVariableController extends Controller
         )
       );
       
-      $devengado_impuesto_total = bcadd($devengado_impuesto_total,$diario[$dia]['devengado_impuesto'],16);
+      $devengado_apostado_sistema_total = bcadd($devengado_apostado_sistema_total,$diario[$dia]['devengado_apostado_sistema'],16);
     }
     
     $determinado_impuesto_total_calculado = '0';
-    $devengado_impuesto_total_nulo = bccomp_precise($devengado_impuesto_total,'0') == 0;
+    $devengado_apostado_sistema_total_nulo = bccomp_precise($devengado_apostado_sistema_total,'0') == 0;
     $didx_impuesto_mas_grande = null;
     foreach($diario as $didx => &$d){
-      if($devengado_impuesto_total_nulo){
+      if($devengado_apostado_sistema_total_nulo){
         $d['determinado_impuesto'] = '0';
       }
       else {
         $d['determinado_impuesto'] = bcdiv(
-          bcmul_precise($d['devengado_impuesto'],$determinado_impuesto_total),
-          $devengado_impuesto_total,
+          bcmul_precise($d['devengado_apostado_sistema'],$determinado_impuesto_total),
+          $devengado_apostado_sistema_total,
           16
         );
       }
@@ -261,7 +261,7 @@ class CanonVariableController extends Controller
     
     //Sumo el error global al que tiene el impuesto mas grande (para minimizar el error local)
     $error = bcsub($determinado_impuesto_total,$determinado_impuesto_total_calculado,16);
-    if($didx_impuesto_mas_grande !== null){
+    if($didx_impuesto_mas_grande !== null && !$devengado_apostado_sistema_total_nulo){
       $d = &$diario[$didx_impuesto_mas_grande];
       $d['determinado_impuesto'] = bcadd($d['determinado_impuesto'],$error,16);
       foreach($this->calcular_determinado(
@@ -333,8 +333,10 @@ class CanonVariableController extends Controller
       $d['id_canon'] = $id_canon;
       $d['tipo'] = $tipo;
       unset($d['id_canon_variable']);
-      DB::table('canon_variable')
-      ->insert($d);
+      $diario = $d['diario'];
+      unset($d['diario']);
+      $id_canon_variable = DB::table('canon_variable')
+      ->insertGetId($d);
     }
     return 1;
   }

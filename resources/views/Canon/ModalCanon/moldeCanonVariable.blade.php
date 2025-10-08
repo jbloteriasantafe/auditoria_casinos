@@ -214,7 +214,7 @@
               <tr data-molde-diario="{{$molde_str_diario}}">
                 <td><input class="form-control" data-name="{{$d_dia}}" readonly></td>
                 <td class="celda_vacia" colspan="4">&nbsp;</td>
-                <td><input class="form-control" data-name="{{$d_determinado_impuesto}}" data-depende="{{$d_devengado_impuesto}},{{$devengado_impuesto}},{{$determinado_impuesto}}" readonly></td>
+                <td><input class="form-control" data-name="{{$d_determinado_impuesto}}" data-depende="{{$d_devengado_apostado_sistema}},{{$devengado_apostado_sistema}},{{$determinado_impuesto}}" readonly></td>
                 <td><input class="form-control" data-name="{{$d_determinado_bruto_ARS}}"></td>
                 <td><input class="form-control" data-name="{{$d_determinado_bruto_USD}}"></td>
                 <td><input class="form-control" data-name="{{$d_determinado_bruto}}" data-depende="{{$d_determinado_bruto_ARS}},{{$d_determinado_bruto_USD}},canon_cotizacion_diaria[{{$molde_str_diario}}][USD]" readonly></td>
