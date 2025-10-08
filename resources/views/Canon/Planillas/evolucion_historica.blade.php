@@ -39,7 +39,7 @@ table th {
     @endforeach
   </colgroup>
   
-  @foreach(array_reverse($años_planilla) as $a)
+  @foreach($años_planilla as $a)
   <thead>
     <tr>
       <th colspan="{{6*count($casinos)+1}}">{{$loop->first? 'Evolución Histórica' : '&nbsp;'}}</th>
