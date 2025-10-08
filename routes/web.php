@@ -374,6 +374,7 @@ Route::group(['prefix' => 'eventualidades','middleware' => 'tiene_permiso:ver_se
   Route::get('ultimas', 'EventualidadController@ultimasIntervenciones');
   Route::post('subirEventualidad', 'EventualidadController@subirEventualidad');
   Route::post('guardarObservacion','EventualidadController@guardarObservacion');
+  Route::get('visualizarObservacion/{id}','EventualidadController@verObservacionPDF');
   Route::get('pdfObs/{id}','EventualidadController@PDFObs');
   Route::get('visarEventualidad/{id_eventualidad}','EventualidadController@visarEventualidad');
   Route::post('subirObservacion', 'EventualidadController@subirObservacion');
