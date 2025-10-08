@@ -38,7 +38,7 @@ table th {
     <col class="proporcion_diferencia_canon">
     @endforeach
   </colgroup>
-  @foreach(($data['Total'] ?? []) as $a => $_)
+  @foreach(($data['Total'] ?? collect([]))->reverse() as $a => $_)
   @continue($a == 0)
   <thead>
     <tr>
