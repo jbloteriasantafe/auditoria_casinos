@@ -297,10 +297,15 @@ class CanonFijoMesasAdicionalesController extends Controller
       $d['id_canon'] = $id_canon;
       $d['tipo']     = $tipo;
       unset($d['id_canon_fijo_mesas_adicionales']);
-      $diario = $d['diario'];
+      $diario = $d['diario'] ?? [];
       unset($d['diario']);
       $id_canon_fijo_mesas_adicionales = DB::table('canon_fijo_mesas_adicionales')
       ->insertGetId($d);
+      foreach($diario as $d){
+        $d['id_canon_fijo_mesas_adicionales'] = $id_canon_fijo_mesas_adicionales;
+        DB::table('canon_fijo_mesas_adicionales_diario')
+        ->insert($d);
+      }
     }
   }
   

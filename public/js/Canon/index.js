@@ -165,7 +165,7 @@ $(document).ready(function() {
         const molde = $(divdetdevobj).find('[data-molde-diario]');
         molde.find('[data-name][name]').removeAttr('name');//@HACK Le saco el name al molde puesto anteriormente
         const replace_str_diario = molde.attr('data-molde-diario');
-        for(let dia=1;dia<=dias;dia++){
+        for(const dia in dias){
           const fila = molde.clone().removeAttr('data-molde-diario');
           reemplazarStrAtributo(fila.find('[data-name]'),'data-name',replace_str_diario,dia);
           reemplazarStrAtributo(fila.find('[data-depende]'),'data-depende',replace_str_diario,dia);
@@ -273,12 +273,12 @@ $(document).ready(function() {
       M.find('[name="estado"]').val(canon?.estado ?? 'Nuevo');
       setVisible();
       
-      const llenarPestaña = function(pestaña,tipos_obj,dias,mostrar_de_todos_modos = false){
+      const llenarPestaña = function(pestaña,tipos_obj,mostrar_de_todos_modos = false){
         pestaña.find('[data-js-contenedor]').empty();
         let lleno = false;
         for(const tipo in tipos_obj){
           lleno = true;
-          agregarDetallePestaña(pestaña,tipo.toUpperCase(),tipo,dias);
+          agregarDetallePestaña(pestaña,tipo.toUpperCase(),tipo,tipos_obj[tipo].diario ?? {});
         }
         
         //@HACK: no mostrar la pestaña si no tiene nada
@@ -294,19 +294,12 @@ $(document).ready(function() {
         .attr('data-subcanon-toggle-estado','mostrar_subcanon');
       }
       
-      /*const dias = (function(isoDateString){
-        const date = new Date(isoDateString+'T00:00');
-        const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-        return lastDay.getDate();
-      })(canon.año_mes);*/
-      
-      const dias = Object.keys(canon?.canon_cotizacion_diaria ?? {}).length;
-      llenarPestaña(form.find('[data-canon-cotizacion-diaria]'),canon?.canon_cotizacion_diaria ?? {},dias,true);
-      llenarPestaña(form.find('[data-canon-variable]'),canon?.canon_variable ?? {},dias);
-      llenarPestaña(form.find('[data-canon-fijo-mesas]'),canon?.canon_fijo_mesas ?? {},dias);
-      llenarPestaña(form.find('[data-canon-fijo-mesas-adicionales]'),canon?.canon_fijo_mesas_adicionales ?? {},dias);
-      llenarPestaña(form.find('[data-canon-archivo]'),canon?.canon_archivo ?? {},dias,true);
-      llenarPestaña(form.find('[data-canon-pago]'),canon?.canon_pago ?? {},dias,true);
+      llenarPestaña(form.find('[data-canon-cotizacion-diaria]'),canon?.canon_cotizacion_diaria ?? {},true);
+      llenarPestaña(form.find('[data-canon-variable]'),canon?.canon_variable ?? {});
+      llenarPestaña(form.find('[data-canon-fijo-mesas]'),canon?.canon_fijo_mesas ?? {});
+      llenarPestaña(form.find('[data-canon-fijo-mesas-adicionales]'),canon?.canon_fijo_mesas_adicionales ?? {});
+      llenarPestaña(form.find('[data-canon-archivo]'),canon?.canon_archivo ?? {},true);
+      llenarPestaña(form.find('[data-canon-pago]'),canon?.canon_pago ?? {},true);
       
       M.attr('data-render',0);
       fill(M,null,canon);
