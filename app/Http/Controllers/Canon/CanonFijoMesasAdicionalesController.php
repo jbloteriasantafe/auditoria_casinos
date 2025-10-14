@@ -78,21 +78,21 @@ class CanonFijoMesasAdicionalesController extends Controller
   }
   
   private static function calcular_valores_cotizados($cotizacion_dolar,$cotizacion_euro,$valores){
-    $valor_euro_cotizado = bcmul_precise($valores['valor_euro'],$cotizacion_euro);
-    $valor_dolar_cotizado = bcmul_precise($valores['valor_dolar'],$cotizacion_dolar);
-    $valor_mes = bcadd_precise($valor_euro_cotizado,$valor_dolar_cotizado);
+    $valor_euro_cotizado_mes = bcmul_precise($valores['valor_euro'],$cotizacion_euro);
+    $valor_dolar_cotizado_mes = bcmul_precise($valores['valor_dolar'],$cotizacion_dolar);
+    $valor_mes = bcadd_precise($valor_euro_cotizado_mes,$valor_dolar_cotizado_mes);
     
-    $valor_euro_cotizado_dia = bcmul_precise($valor_euro_cotizado,$valores['factor_dias_mes']);
-    $valor_dolar_cotizado_dia = bcmul_precise($valor_dolar_cotizado,$valores['factor_dias_mes']);
+    $valor_euro_cotizado_dia = bcmul_precise($valor_euro_cotizado_mes,$valores['factor_dias_mes']);
+    $valor_dolar_cotizado_dia = bcmul_precise($valor_dolar_cotizado_mes,$valores['factor_dias_mes']);
     $valor_dia  = bcmul_precise($valor_mes,$valores['factor_dias_mes']);
     
-    $valor_euro_cotizado_hora = bcmul_precise($valor_euro_cotizado,$valores['factor_horas_mes']);
-    $valor_dolar_cotizado_hora = bcmul_precise($valor_dolar_cotizado,$valores['factor_horas_mes']);
+    $valor_euro_cotizado_hora = bcmul_precise($valor_euro_cotizado_mes,$valores['factor_horas_mes']);
+    $valor_dolar_cotizado_hora = bcmul_precise($valor_dolar_cotizado_mes,$valores['factor_horas_mes']);
     $valor_hora = bcmul_precise($valor_mes,$valores['factor_horas_mes']);
     
     return compact(
       'cotizacion_dolar','cotizacion_euro',
-      'valor_euro_cotizado','valor_dolar_cotizado','valor_mes',
+      'valor_euro_cotizado_mes','valor_dolar_cotizado_mes','valor_mes',
       'valor_euro_cotizado_dia','valor_dolar_cotizado_dia','valor_dia',
       'valor_euro_cotizado_hora','valor_dolar_cotizado_hora','valor_hora'
     );

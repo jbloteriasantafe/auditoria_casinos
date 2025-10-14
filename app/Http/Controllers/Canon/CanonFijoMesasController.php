@@ -155,7 +155,11 @@ class CanonFijoMesasController extends Controller
     $total_euro  = self::calcular_total($meses_dias,$valores['valor_euro'],$valores['valor_euro_diario']);
     $devengado_total   = self::calcular_total($meses_dias,$devengado_valor_cotizado['valor'],$devengado_valor_cotizado['valor_diario']);
     $determinado_total = self::calcular_total($meses_dias,$determinado_valor_cotizado['valor'],$determinado_valor_cotizado['valor_diario']);
-        
+    $devengado_total_dolar_cotizado = self::calcular_total($meses_dias,$devengado_valor_cotizado['valor_dolar_cotizado'],$devengado_valor_cotizado['valor_dolar_cotizado_diario']);
+    $devengado_total_euro_cotizado = self::calcular_total($meses_dias,$devengado_valor_cotizado['valor_euro_cotizado'],$devengado_valor_cotizado['valor_euro_cotizado_diario']);
+    $determinado_total_dolar_cotizado = self::calcular_total($meses_dias,$determinado_valor_cotizado['valor_dolar_cotizado'],$determinado_valor_cotizado['valor_dolar_cotizado_diario']);
+    $determinado_total_euro_cotizado = self::calcular_total($meses_dias,$determinado_valor_cotizado['valor_euro_cotizado'],$determinado_valor_cotizado['valor_euro_cotizado_diario']);
+    
     $accesors_diario = [
       'R' => AUX::make_accessor($R('diario',[])),
       'A' => AUX::make_accessor($A('diario',[])),
@@ -200,6 +204,8 @@ class CanonFijoMesasController extends Controller
       'devengar',
       'devengado_fecha_cotizacion','devengado_total',
       'determinado_fecha_cotizacion','determinado_total',
+      'devengado_total_dolar_cotizado','devengado_total_euro_cotizado',
+      'determinado_total_dolar_cotizado','determinado_total_euro_cotizado',
       'bruto',
       'diario'
     ),$valores);
