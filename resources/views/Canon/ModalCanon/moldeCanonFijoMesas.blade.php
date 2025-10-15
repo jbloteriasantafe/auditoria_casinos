@@ -23,7 +23,7 @@
   
   $molde_str_diario = '$'.uniqid();
   foreach([
-    'dia','bruto_ARS','bruto_USD','bruto',
+    'dia','bruto_peso','bruto_dolar','bruto',
     'mesas_habilitadas','mesas_habilitadas_acumuladas',
     'valor','valor_diario','total'
   ] as $varname){
@@ -183,10 +183,10 @@
             <table hidden>
               <tr data-molde-diario="{{$molde_str_diario}}">
                 <td><input class="form-control" data-name="{{$d_dia}}" readonly></td>
-                <td><input class="form-control" data-name="{{$d_bruto_ARS}}"></td>
-                <td><input class="form-control" data-name="{{$d_bruto_USD}}"></td>
-                <td><input class="form-control" data-name="{{$d_bruto}}" data-depende="{{$d_bruto_ARS}},{{$d_bruto_USD}},canon_cotizacion_diaria[{{$molde_str_diario}}][USD]" readonly></td>
-                <td><input class="form-control" data-name="{{$d_valor}}" data-depende="valor_dolar,valor_euro,canon_cotizacion_diaria[{{$molde_str_diario}}][USD],canon_cotizacion_diaria[{{$molde_str_diario}}][EUR]" readonly></td>
+                <td><input class="form-control" data-name="{{$d_bruto_peso}}"></td>
+                <td><input class="form-control" data-name="{{$d_bruto_dolar}}"></td>
+                <td><input class="form-control" data-name="{{$d_bruto}}" data-depende="{{$d_bruto_peso}},{{$d_bruto_dolar}},canon_cotizacion_diaria[{{$molde_str_diario}}][dolar]" readonly></td>
+                <td><input class="form-control" data-name="{{$d_valor}}" data-depende="valor_dolar,valor_euro,canon_cotizacion_diaria[{{$molde_str_diario}}][dolar],canon_cotizacion_diaria[{{$molde_str_diario}}][euro]" readonly></td>
                 <td><input class="form-control" data-name="{{$d_valor_diario}}" data-depende="{{$d_valor}},año_mes" readonly></td>
                 <td><input class="form-control" data-name="{{$d_mesas_habilitadas}}" data-depende="{{$mesas_lunes_jueves}},{{$mesas_viernes_sabados}},{{$mesas_domingos}},{{$mesas_todos}},{{$mesas_fijos}}" readonly></td>
                 <td><input class="form-control" data-name="{{$d_mesas_habilitadas_acumuladas}}" data-depende="{{$d_mesas_habilitadas}}" data-depende-dyn="{{$prev_d_mesas_habilitadas_acumuladas}}" readonly></td>

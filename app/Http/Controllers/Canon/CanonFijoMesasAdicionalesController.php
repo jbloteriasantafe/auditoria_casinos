@@ -253,8 +253,8 @@ class CanonFijoMesasAdicionalesController extends Controller
       $horas+=$horas_diarias;
       $mesas+=$mesas_diarias;
       
-      $cotizacion_dolar = $cot['USD'] ?? '0';
-      $cotizacion_euro  = $cot['EUR'] ?? '0';
+      $cotizacion_dolar = $cot['dolar'] ?? '0';
+      $cotizacion_euro  = $cot['euro'] ?? '0';
       
       $meses_dias_horas = self::calcular_meses_dias_horas($horas,$mesas,$valores);
       $valores_cotizados = self::calcular_valores_cotizados($cotizacion_dolar,$cotizacion_euro,$valores);
@@ -363,7 +363,9 @@ class CanonFijoMesasAdicionalesController extends Controller
     foreach(($data['canon_fijo_mesas_adicionales'] ?? []) as $tipo => $datatipo){
       foreach(($datatipo['diario'] ?? []) as $dia => $datadia){
         $ret['canon_cotizacion_diaria'][$dia] = [
-          'dia' => $dia,'USD' => null,'EUR' => null
+          'dia' => $dia,
+          'dolar' => ($datadia['cotizacion_dolar'] ?? null),
+          'euro' =>  ($datadia['cotizacion_euro'] ?? null)
         ];
       }
     }

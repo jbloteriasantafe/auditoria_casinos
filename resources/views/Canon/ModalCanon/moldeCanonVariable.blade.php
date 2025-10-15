@@ -16,12 +16,12 @@
   $molde_str_diario = '$'.uniqid();
   foreach([
     'dia',
-    'devengado_apostado_sistema_ARS','devengado_apostado_sistema_USD','devengado_apostado_sistema',
+    'devengado_apostado_sistema_peso','devengado_apostado_sistema_dolar','devengado_apostado_sistema',
     'devengado_base_imponible','devengado_base_imponible','devengado_impuesto',
-    'devengado_bruto_ARS','devengado_bruto_USD','devengado_bruto',
+    'devengado_bruto_peso','devengado_bruto_dolar','devengado_bruto',
     'devengado_subtotal','devengado_total',
     'determinado_impuesto',
-    'determinado_bruto_ARS','determinado_bruto_USD','determinado_bruto',
+    'determinado_bruto_peso','determinado_bruto_dolar','determinado_bruto',
     'determinado_subtotal','determinado_total'
   ] as $varname){
     $varname_php = 'd_'.$varname;
@@ -126,14 +126,14 @@
             <table hidden>
               <tr data-molde-diario="{{$molde_str_diario}}">
                 <td><input class="form-control" data-name="{{$d_dia}}" readonly></td>
-                <td><input class="form-control" data-name="{{$d_devengado_apostado_sistema_ARS}}"></td>
-                <td><input class="form-control" data-name="{{$d_devengado_apostado_sistema_USD}}"></td>
-                <td><input class="form-control" data-name="{{$d_devengado_apostado_sistema}}" data-depende="{{$d_devengado_apostado_sistema_ARS}},{{$d_devengado_apostado_sistema_USD}},canon_cotizacion_diaria[{{$molde_str_diario}}][USD]" readonly></td>
+                <td><input class="form-control" data-name="{{$d_devengado_apostado_sistema_peso}}"></td>
+                <td><input class="form-control" data-name="{{$d_devengado_apostado_sistema_dolar}}"></td>
+                <td><input class="form-control" data-name="{{$d_devengado_apostado_sistema}}" data-depende="{{$d_devengado_apostado_sistema_peso}},{{$d_devengado_apostado_sistema_dolar}},canon_cotizacion_diaria[{{$molde_str_diario}}][dolar]" readonly></td>
                 <td><input class="form-control" data-name="{{$d_devengado_base_imponible}}" data-depende="{{$d_devengado_apostado_sistema}},{{$devengado_apostado_porcentaje_aplicable}}" readonly></td>
                 <td><input class="form-control" data-name="{{$d_devengado_impuesto}}" data-depende="{{$d_devengado_base_imponible}},{{$devengado_apostado_porcentaje_impuesto_ley}}" readonly></td>
-                <td><input class="form-control" data-name="{{$d_devengado_bruto_ARS}}"></td>
-                <td><input class="form-control" data-name="{{$d_devengado_bruto_USD}}"></td>
-                <td><input class="form-control" data-name="{{$d_devengado_bruto}}" data-depende="{{$d_devengado_bruto_ARS}},{{$d_devengado_bruto_USD}},canon_cotizacion_diaria[{{$molde_str_diario}}][USD]" readonly></td>
+                <td><input class="form-control" data-name="{{$d_devengado_bruto_peso}}"></td>
+                <td><input class="form-control" data-name="{{$d_devengado_bruto_dolar}}"></td>
+                <td><input class="form-control" data-name="{{$d_devengado_bruto}}" data-depende="{{$d_devengado_bruto_peso}},{{$d_devengado_bruto_dolar}},canon_cotizacion_diaria[{{$molde_str_diario}}][dolar]" readonly></td>
                 <td><input class="form-control" data-name="{{$d_devengado_subtotal}}" data-depende="{{$d_devengado_bruto}},{{$d_devengado_impuesto}}" data-depende-dyn="{{$prev_d_devengado_subtotal}}" readonly></td>
                 <td><input class="form-control" data-name="{{$d_devengado_total}}" data-depende="{{$d_devengado_subtotal}},{{$alicuota}}" readonly></td>
               </tr>
@@ -215,9 +215,9 @@
                 <td><input class="form-control" data-name="{{$d_dia}}" readonly></td>
                 <td class="celda_vacia" colspan="4">&nbsp;</td>
                 <td><input class="form-control" data-name="{{$d_determinado_impuesto}}" data-depende="{{$d_devengado_apostado_sistema}},{{$devengado_apostado_sistema}},{{$determinado_impuesto}}" readonly></td>
-                <td><input class="form-control" data-name="{{$d_determinado_bruto_ARS}}"></td>
-                <td><input class="form-control" data-name="{{$d_determinado_bruto_USD}}"></td>
-                <td><input class="form-control" data-name="{{$d_determinado_bruto}}" data-depende="{{$d_determinado_bruto_ARS}},{{$d_determinado_bruto_USD}},canon_cotizacion_diaria[{{$molde_str_diario}}][USD]" readonly></td>
+                <td><input class="form-control" data-name="{{$d_determinado_bruto_peso}}"></td>
+                <td><input class="form-control" data-name="{{$d_determinado_bruto_dolar}}"></td>
+                <td><input class="form-control" data-name="{{$d_determinado_bruto}}" data-depende="{{$d_determinado_bruto_peso}},{{$d_determinado_bruto_dolar}},canon_cotizacion_diaria[{{$molde_str_diario}}][dolar]" readonly></td>
                 <td><input class="form-control" data-name="{{$d_determinado_subtotal}}" data-depende="{{$d_determinado_bruto}},{{$d_determinado_impuesto}}"  data-depende-dyn="{{$prev_d_determinado_subtotal}}" readonly></td>
                 <td><input class="form-control" data-name="{{$d_determinado_total}}" data-depende="{{$d_determinado_subtotal}},{{$alicuota}}" readonly></td>
               </tr>

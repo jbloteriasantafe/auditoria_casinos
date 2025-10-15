@@ -72,15 +72,15 @@
 
   <?php
     $molde_str = '$'.uniqid();
-    foreach(['dia','USD','EUR'] as $varname){
+    foreach(['dia','dolar','euro'] as $varname){
       $$varname =  "canon_cotizacion_diaria[$molde_str][$varname]";
     }
   ?>
   <table hidden>
     <tr data-subcanon="canon_cotizacion_diaria" data-js-molde="{{$molde_str}}">
       <td colspan="2"><input class="form-control" data-name="{{$dia}}" style="text-align: center;" readonly></td>
-      <td><input class="form-control" data-name="{{$USD}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'></td>
-      <td><input class="form-control" data-name="{{$EUR}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'></td>
+      <td><input class="form-control" data-name="{{$dolar}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'></td>
+      <td><input class="form-control" data-name="{{$euro}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'></td>
     </tr>
   </table>
 </div>

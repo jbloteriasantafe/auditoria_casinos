@@ -115,7 +115,7 @@
               <table hidden>
                 <tr data-molde-diario="{{$molde_str_diario}}">
                   <td><input class="form-control" data-name="{{$d_dia}}" readonly></td>
-                  <td><input class="form-control" data-name="{{$d_valor_mes}}" data-depende="valor_dolar,valor_euro,canon_cotizacion_diaria[{{$molde_str_diario}}][USD],canon_cotizacion_diaria[{{$molde_str_diario}}][EUR]" readonly></td>
+                  <td><input class="form-control" data-name="{{$d_valor_mes}}" data-depende="valor_dolar,valor_euro,canon_cotizacion_diaria[{{$molde_str_diario}}][dolar],canon_cotizacion_diaria[{{$molde_str_diario}}][euro]" readonly></td>
                   <td><input class="form-control" data-name="{{$d_valor_dia}}" data-depende="{{$d_valor_mes}},{{$dias_mes}}" readonly></td>
                   <td><input class="form-control" data-name="{{$d_valor_hora}}" data-depende="{{$d_valor_mes}},{{$dias_mes}},{{$horas_dia}}"  readonly></td>
                   <td><input class="form-control" data-name="{{$d_horas_diarias}}"></td>

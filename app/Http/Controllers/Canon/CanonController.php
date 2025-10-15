@@ -78,8 +78,8 @@ class CanonController extends Controller
       //Valores que se "difunden" a cada subcanon >:(
       'canon_cotizacion_diaria' => ['nullable','array'],
       'canon_cotizacion_diaria.*.dia' => ['required','integer','min:1','max:31'],
-      'canon_cotizacion_diaria.*.USD' => ['nullable','numeric'],
-      'canon_cotizacion_diaria.*.EUR' => ['nullable','numeric'],
+      'canon_cotizacion_diaria.*.dolar' => ['nullable','numeric'],
+      'canon_cotizacion_diaria.*.euro' => ['nullable','numeric'],
       'devengado_fecha_cotizacion' => ['nullable','date'],
       'devengado_cotizacion_dolar' => ['nullable',AUX::numeric_rule(2)],
       'devengado_cotizacion_euro' => ['nullable',AUX::numeric_rule(2)],
@@ -169,8 +169,8 @@ class CanonController extends Controller
         for($d=1;$d<=$dias_mes;$d++){
           $COT['canon_cotizacion_diaria'][$d] = $COT['canon_cotizacion_diaria'][$d] ?? [
             'dia' => $d,
-            'USD' => null,
-            'EUR' => null
+            'dolar' => null,
+            'euro' => null
           ];
         }
       }
@@ -211,8 +211,8 @@ class CanonController extends Controller
       $año_mes_str = substr($año_mes,0,strlen('XXXX-XX-'));
       foreach($COT['canon_cotizacion_diaria'] as $d => &$cot){
         $f = $año_mes_str.str_pad($d,2,'0',STR_PAD_LEFT);
-        $cot['USD'] = $cot['USD'] ?? AUX::cotizacion($f,2,$id_casino) ?? '0';
-        $cot['EUR'] = $cot['EUR'] ?? AUX::cotizacion($f,3,$id_casino) ?? '0';
+        $cot['dolar'] = $cot['dolar'] ?? AUX::cotizacion($f,2,$id_casino) ?? '0';
+        $cot['euro']  = $cot['euro'] ?? AUX::cotizacion($f,3,$id_casino) ?? '0';
       }
     }
     

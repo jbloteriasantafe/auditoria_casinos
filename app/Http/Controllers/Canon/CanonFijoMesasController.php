@@ -313,21 +313,21 @@ class CanonFijoMesasController extends Controller
     foreach($cotizaciones as $dia => $cot){
       $D = AUX::make_accessor($R($dia,[]));
       $fecha = $año_mes_str.str_pad($dia,2,'0',STR_PAD_LEFT);
-      $cotizacion_dolar = $cot['USD'] ?? '0';
-      $cotizacion_euro  = $cot['EUR'] ?? '0';
+      $cotizacion_dolar = $cot['dolar'] ?? '0';
+      $cotizacion_euro  = $cot['euro'] ?? '0';
       
       $bruto = $this->bruto($tipo,$fecha,$id_casino,true);
       
       $idx_dia_semana = (new \DateTime($fecha))->format('w');
       $dia_semana = $dias_semana[$idx_dia_semana];
       $mesas_habilitadas = $mesas_semana[$idx_dia_semana];
-      $mesas_usadas_ARS = $D('mesas_usadas_ARS',$bruto->mesas_ARS ?? 0);
-      $bruto_ARS = $D('bruto_ARS',$bruto->bruto_ARS ?? '0');
-      $mesas_usadas_USD = $D('mesas_usadas_USD',$bruto->mesas_USD ?? 0);
-      $bruto_USD = $D('bruto_USD',$bruto->bruto_USD ?? '0');
-      $bruto_USD_cotizado = bcmul($bruto_USD,$cotizacion_dolar,4);
-      $mesas_usadas = bcadd_precise($mesas_usadas_ARS,$mesas_usadas_USD);
-      $bruto = bcadd($bruto_ARS,$bruto_USD_cotizado,4);
+      $mesas_usadas_peso = $D('mesas_usadas_peso',$bruto->mesas_peso ?? 0);
+      $bruto_peso = $D('bruto_peso',$bruto->bruto_peso ?? '0');
+      $mesas_usadas_dolar = $D('mesas_usadas_dolar',$bruto->mesas_dolar ?? 0);
+      $bruto_dolar = $D('bruto_dolar',$bruto->bruto_dolar ?? '0');
+      $bruto_dolar_cotizado = bcmul($bruto_dolar,$cotizacion_dolar,4);
+      $mesas_usadas = bcadd_precise($mesas_usadas_peso,$mesas_usadas_dolar);
+      $bruto = bcadd($bruto_peso,$bruto_dolar_cotizado,4);
       
       $mesas_habilitadas_acumuladas += $mesas_habilitadas;
       
@@ -350,12 +350,11 @@ class CanonFijoMesasController extends Controller
         'cotizacion_dolar',
         'dia_semana',
         'mesas_habilitadas',
-        'mesas_usadas_ARS',
-        'bruto_ARS',
-        'mesas_usadas_USD',
-        'bruto_USD',
-        'cotizacion',
-        'bruto_USD_cotizado',
+        'mesas_usadas_peso',
+        'bruto_peso',
+        'mesas_usadas_dolar',
+        'bruto_dolar',
+        'bruto_dolar_cotizado',
         'mesas_usadas',
         'bruto',
         'dias_valor',
@@ -382,6 +381,11 @@ class CanonFijoMesasController extends Controller
       unset($d['diario']);
       $id_canon_fijo_mesas = DB::table('canon_fijo_mesas')
       ->insertGetId($d);
+      foreach($diario as $d){
+        $d['id_canon_fijo_mesas'] = $id_canon_fijo_mesas;
+        DB::table('canon_fijo_mesas_diario')
+        ->insert($d);
+      }
     }
     return 1;
   }
@@ -441,8 +445,8 @@ class CanonFijoMesasController extends Controller
       foreach(($datatipo['diario'] ?? []) as $dia => $datadia){
         $ret['canon_cotizacion_diaria'][$dia] = [
           'dia' => $dia,
-          'USD' => ($datadia['cotizacion_USD'] ?? null),
-          'EUR' => ($datadia['cotizacion_EUR'] ?? null)
+          'dolar' => ($datadia['cotizacion_dolar'] ?? null),
+          'euro'  => ($datadia['cotizacion_euro'] ?? null)
         ];
       }
     }
@@ -465,7 +469,7 @@ class CanonFijoMesasController extends Controller
     $dia = $diario? intval($año_mes_arr[2]) : 0;
         
     $err_val = function($v) use ($diario,$año_mes_arr){
-      return ((object)['dia' => ($diario? intval($año_mes_arr[2]) : 0),'mesas_ARS' => $v,'bruto_ARS' => $v,'mesas_USD' => $v,'bruto_USD' => $v,'cotizacion' => $v,'bruto_USD_cotizado' => $v,'mesas' => $v,'bruto' => $v]);
+      return ((object)['dia' => ($diario? intval($año_mes_arr[2]) : 0),'mesas_peso' => $v,'bruto_peso' => $v,'mesas_dolar' => $v,'bruto_dolar' => $v,'cotizacion_dolar' => $v,'bruto_dolar_cotizado' => $v,'mesas' => $v,'bruto' => $v]);
     };
     
     if(array_key_exists($kañomes,$cache[$tipo][$id_casino]) 
@@ -503,10 +507,10 @@ class CanonFijoMesasController extends Controller
         $cot_valor = 'CAST(cot.valor AS DECIMAL(20,6))';
         $resultado = $resultado->selectRaw("
           IF($diario,DAY(idm.fecha),0) as dia,
-          SUM(IF(idm.id_moneda = 1,idm.utilidad,0)) as bruto_ARS,
-          SUM(IF(idm.id_moneda = 2,idm.utilidad,0)) as bruto_USD,
-          MAX(IF($diario,$cot_valor,NULL)) as cotizacion,
-          SUM(IF(idm.id_moneda = 2,$cot_valor*idm.utilidad,0)) as bruto_USD_cotizado,
+          SUM(IF(idm.id_moneda = 1,idm.utilidad,0)) as bruto_peso,
+          SUM(IF(idm.id_moneda = 2,idm.utilidad,0)) as bruto_dolar,
+          MAX(IF($diario,$cot_valor,NULL)) as cotizacion_dolar,
+          SUM(IF(idm.id_moneda = 2,$cot_valor*idm.utilidad,0)) as bruto_dolar_cotizado,
           SUM(
             IF(idm.id_moneda = 1,
               idm.utilidad,
@@ -523,8 +527,8 @@ class CanonFijoMesasController extends Controller
         //@HACK: contar doble a las mesas que abren en ARS y USD o cuentan una sola vez?
         $mesas = $mesas->selectRaw("
           IF($diario,DAY(idm.fecha),0) as dia,
-          COUNT(distinct IF(idm.id_moneda = 1,$codigo,NULL)) as mesas_ARS,
-          COUNT(distinct IF(idm.id_moneda = 2,$codigo,NULL)) as mesas_USD,
+          COUNT(distinct IF(idm.id_moneda = 1,$codigo,NULL)) as mesas_peso,
+          COUNT(distinct IF(idm.id_moneda = 2,$codigo,NULL)) as mesas_dolar,
           COUNT(distinct IF(idm.id_moneda = 1,$codigo,NULL))+COUNT(distinct IF(idm.id_moneda = 2,$codigo,NULL)) as mesas
         ")
         ->groupBy(DB::raw("IF($diario,DAY(idm.fecha),0)"))->first();
@@ -541,15 +545,15 @@ class CanonFijoMesasController extends Controller
     //JOIN
     if($diario) for($d=1;$d<=cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));$d++){
       if($resultado !== null && $mesas !== null && array_key_exists($d,$resultado) && array_key_exists($d,$mesas)){
-        $resultado[$d]->mesas_ARS = $mesas[$d]->mesas_ARS;
-        $resultado[$d]->mesas_USD = $mesas[$d]->mesas_USD;
+        $resultado[$d]->mesas_peso = $mesas[$d]->mesas_peso;
+        $resultado[$d]->mesas_dolar = $mesas[$d]->mesas_dolar;
         $resultado[$d]->mesas     = $mesas[$d]->mesas;
       }
     }
     else{
       if($resultado !== null && $mesas !== null && array_key_exists(0,$resultado) && array_key_exists(0,$mesas)){
-        $resultado[0]->mesas_ARS = $mesas[0]->mesas_ARS;
-        $resultado[0]->mesas_USD = $mesas[0]->mesas_USD;
+        $resultado[0]->mesas_peso = $mesas[0]->mesas_peso;
+        $resultado[0]->mesas_dolar = $mesas[0]->mesas_dolar;
         $resultado[0]->mesas     = $mesas[0]->mesas;
       }
     }
