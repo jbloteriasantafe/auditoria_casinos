@@ -1121,8 +1121,8 @@ class CanonController extends Controller
     return AUX::csvstr($header,$arreglo_a_csv);
   }
   
-  private function datosCanon($tname){
-    $attrs_canon = [
+  private function datosCanon(){
+    return [
       'devengado' => 'SUM(c.devengado) as devengado',
       'variacion_devengado_mom' => 'ROUND(100*(SUM(c.devengado)/NULLIF(SUM(c_mom.devengado),0)-1),2) as variacion_devengado_mom',
       'variacion_devengado_yoy' => 'ROUND(100*(SUM(c.devengado)/NULLIF(SUM(c_yoy.devengado),0)-1),2) as variacion_devengado_yoy',
@@ -1132,24 +1132,9 @@ class CanonController extends Controller
       'diferencia' => '(SUM(c.determinado)-SUM(c.devengado)) as diferencia',
       'proporcion_diferencia_canon' => 'ROUND(100*(1-SUM(c.devengado)/NULLIF(SUM(c.determinado),0)),2) as proporcion_diferencia_canon'
     ];
-    
-    $tname2 = 't'.uniqid();
-    DB::statement("CREATE TEMPORARY TABLE $tname2 AS
-      SELECT $tname.casino,$tname.año,$tname.mes,".implode(',',$attrs_canon)."
-      FROM $tname
-      LEFT JOIN canon as c ON c.id_canon = $tname.id_canon
-      LEFT JOIN canon as c_yoy ON c_yoy.id_canon = $tname.id_canon_yoy
-      LEFT JOIN canon as c_mom ON c_mom.id_canon = $tname.id_canon_mom
-      GROUP BY $tname.casino,$tname.año,$tname.mes
-    ");
-    
-    $tables = [$tname2,array_keys($attrs_canon)];
-    
-    return $tables;
   }
     
   public function descargarPlanillas(Request $request){
-    $SFE_MEL = 'Santa Fe - Melincué';
     $fecha_inicio = [//@TODO: poner en valores por defecto
       'Melincué' => '2007-09-28',
       'Santa Fe' => '2008-08-11',
@@ -1183,10 +1168,34 @@ class CanonController extends Controller
     
     $parametros = $request->all();
     $planilla = $parametros['planilla'] ?? null;
-    $unir_sfe_mel = in_array($planilla,['participacion','jol']);
-    $casinos_select = $unir_sfe_mel?
-        "IF(cas.nombre IN ('Santa Fe','Melincué'),'$SFE_MEL',cas.nombre)"
-      : 'cas.nombre';
+    
+    $base_attrs = ['ordencas','id_casino','casino','codigo','abbr','plataforma'];
+    $casinos_sql = "(
+    SELECT 2 as {$base_attrs[0]},3 as {$base_attrs[1]},'Rosario' as {$base_attrs[2]},'ROS' as {$base_attrs[3]},'CRO' as {$base_attrs[4]},'CCO' as {$base_attrs[5]}
+    UNION ALL
+    SELECT 3,1,'Total','TOTAL','TOTAL','BPLAY'
+    UNION ALL
+    SELECT 4,2,'Total','TOTAL','TOTAL','BPLAY'
+    UNION ALL
+    SELECT 5,3,'Total','TOTAL','TOTAL','CCO'
+    UNION ALL";
+    
+    if($planilla == 'participacion'){
+      $casinos_sql .= '
+        SELECT 0,2,"Santa Fe","SFE","CSF","BPLAY"
+        UNION ALL
+        SELECT 1,1,"Santa Fe - Melincué","SFE-MEL","CSF-CME","BPLAY"
+        UNION ALL
+        SELECT 1,2,"Santa Fe - Melincué","SFE-MEL","CSF-CME","BPLAY"
+      )';
+    }
+    else{
+      $casinos_sql .= '
+        SELECT 0,1,"Melincué","MEL","CME","BPLAY"
+        UNION ALL
+        SELECT 1,2,"Santa Fe","SFE","CSF","BPLAY"
+      )';
+    }
     
     $planillas = [
       'evolucion_historica' => 'Evolución Historica',
@@ -1204,16 +1213,13 @@ class CanonController extends Controller
       : AUX::ranged_sql($año-1,$año+1);
       
       $query = "
+        cas.*,
         c.id_canon as id_canon,
         c_yoy.id_canon as id_canon_yoy,
         c_mom.id_canon as id_canon_mom
       FROM $meses_sql as mes
       CROSS JOIN $años_sql as año
-      CROSS JOIN (
-        SELECT cas.nombre as nombre,cas.id_casino
-        FROM casino as cas
-        WHERE cas.deleted_at IS NULL
-      ) as cas
+      CROSS JOIN $casinos_sql as cas
       LEFT JOIN canon as c ON (
         c.deleted_at IS NULL
         AND c.id_casino = cas.id_casino
@@ -1242,14 +1248,11 @@ class CanonController extends Controller
       )";
       
       $unions = '';
-      
-      foreach([$casinos_select,'"Total"'] as $casstr)
       foreach(['año.val','0'] as $añostr)
       foreach(['mes.val','0'] as $messtr){
         $unions .= empty($unions)? '' : 'UNION';
         $unions .= "
           SELECT DISTINCT
-          $casstr as casino,
           $añostr as año,
           $messtr as mes,
           $query
@@ -1282,32 +1285,52 @@ class CanonController extends Controller
       ]
     ][$planilla] ?? [];
     
-    $tname2 = 't'.uniqid();
-    $query2 = "CREATE TEMPORARY TABLE $tname2 AS ";
-    $select2 = "SELECT $tname.casino, $tname.año, $tname.mes";
-    $join2 = "FROM $tname";
-    foreach($attrs_base as $_obj){
-      $tabla_atributos;
-      if($_obj == 'canon'){
-        $tabla_atributos = $this->datosCanon($tname);
+    $arr_to_cols = function($table,$attrs){
+      return implode(', ',array_map(function($a) use ($table){ return "$table.$a"; },$attrs));
+    };
+    $abs_base_attrs = $arr_to_cols($tname,$base_attrs);
+    $arr_abs_attrs = [];
+    $attr_abs_attrs[$tname] = $base_attrs;
+    {
+      foreach($attrs_base as $_obj){
+        $sub_attrs;
+        if($_obj == 'canon'){
+          $sub_attrs = $this->datosCanon();
+        }
+        else{
+          $scobj = $this->subcanons[$_obj] ?? null;
+          if($scobj === null) continue;
+          $sub_attrs = $scobj->datosCanon();
+        }
+        
+        $tname2 = 't'.uniqid();
+        $attr_abs_attrs[$tname] = $sub_attrs;
+        $abs_sub_attrs = $arr_to_cols($tname2,$sub_attrs);
+        
+        DB::statement("CREATE TEMPORARY TABLE $tname2 AS
+          SELECT $abs_base_attrs,$abs_sub_attrs
+          FROM $tname
+          LEFT JOIN canon as c ON c.id_canon = $tname.id_canon
+          LEFT JOIN canon as c_yoy ON c_yoy.id_canon = $tname.id_canon_yoy
+          LEFT JOIN canon as c_mom ON c_mom.id_canon = $tname.id_canon_mom
+          GROUP BY $abs_base_attrs
+        ");
+        
+        $_t = $tabla_atributos[0];
+        foreach($tabla_atributos[1] as $_a){
+          $select2.=", $_t.$_a as {$_obj}\${$_a}";
+        }
+        $join2.=" LEFT JOIN $_t ON $_t.casino = $tname.casino AND $_t.año = $tname.año AND $_t.mes = $tname.mes";
       }
-      else{
-        $scobj = $this->subcanons[$_obj] ?? null;
-        if($scobj === null) continue;
-        $tabla_atributos = $scobj->datosCanon($tname);
-      }
-              
-      $_t = $tabla_atributos[0];
-      foreach($tabla_atributos[1] as $_a){
-        $select2.=", $_t.$_a as {$_obj}\${$_a}";
-      }
-      $join2.=" LEFT JOIN $_t ON $_t.casino = $tname.casino AND $_t.año = $tname.año AND $_t.mes = $tname.mes";
     }
     
+    $select2 = "SELECT $tname.ordencas, $tname.casino, $tname.abbr, $tname.codigo, $tname.plataforma, $tname.año, $tname.mes";
+    $join2 = "FROM $tname";
+    
+    $tname2 = 't'.uniqid();
     DB::statement("CREATE TEMPORARY TABLE $tname2 AS 
      $select2 
-     $join2 
-     ORDER BY $tname.casino ASC, $tname.año ASC, $tname.mes ASC");
+     $join2");
     
     $subcanon_aggr_f = function($op,$attr){
       static $cache = [];
@@ -1328,7 +1351,11 @@ class CanonController extends Controller
     
     $attrs_agregados = [
       'evolucion_historica' => '
+        ordencas,
         casino,
+        abbr,
+        codigo,
+        plataforma,
         año,
         mes,
         canon$devengado as devengado,
@@ -1341,7 +1368,11 @@ class CanonController extends Controller
         canon$proporcion_diferencia_canon as proporcion_diferencia_canon
       ',
       'actualizacion_valores' => '
+        ordencas,
         casino,
+        abbr,
+        codigo,
+        plataforma,
         año,
         mes,
         canon_fijo_mesas$ganancia as bruto,
@@ -1376,7 +1407,11 @@ class CanonController extends Controller
         ) as variacion_dolar
       ',
       'canon_total' => '
+        ordencas,
         casino,
+        abbr,
+        codigo,
+        plataforma,
         año,
         mes,
         canon$canon as canon,
@@ -1384,7 +1419,11 @@ class CanonController extends Controller
         canon$variacion_canon_yoy as variacion_canon_yoy
       ',
       'canon_fisico_online' => '
+        ordencas,
         casino,
+        abbr,
+        codigo,
+        plataforma,
         año,
         mes,
         ('.$subcanon_aggr_f('+','canon_fisico').') as canon_fisico,
@@ -1396,7 +1435,11 @@ class CanonController extends Controller
         canon$variacion_canon_yoy as variacion_canon_yoy
       ',
       'participacion' => '
+        ordencas,
         casino,
+        abbr,
+        codigo,
+        plataforma,
         año,
         mes,
         ROUND(100*
@@ -1420,7 +1463,7 @@ class CanonController extends Controller
     
     $data = $attrs_agregados? DB::table($tname2)
     ->selectRaw($attrs_agregados)
-    ->orderBy("$tname2.casino",'asc')
+    ->orderBy("$tname2.ordencas",'asc')
     ->orderBy("$tname2.año",'asc')
     ->orderBy("$tname2.mes",'asc')
     ->get()
@@ -1433,7 +1476,13 @@ class CanonController extends Controller
     })
     : collect([]);
     
-    $relacion_plat_cas = ['CCO' => 'Rosario','BPLAY' => $SFE_MEL];
+    $relacion_plat_cas = ['CCO' => 'Rosario','BPLAY' => 'Santa Fe - Melincué'];
+    
+    $abbr_casinos = DB::table(DB::raw($casinos_sql.' as cas'))
+    ->select('casino','codigo',DB::raw('MIN(ordencas) as ordencas'))
+    ->groupBy('casino','codigo')
+    ->orderBy('ordencas','asc')
+    ->get();
     
     $abbr_casinos = DB::table('casino as cas')
     ->selectRaw("$casinos_select as nombre,MIN(cas.id_casino) as min_id_casino")
