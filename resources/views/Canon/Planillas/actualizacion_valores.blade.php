@@ -32,7 +32,6 @@ th.dolar {
 <?php
   $año = $parametros['año'] ?? null;
   $casino = $parametros['casino'] ?? '';
-  $_m = !empty($casino)? intval($primer_mes) : '';
   $data_rel = [];
   $totales = [];
   foreach(($data[$casino] ?? []) as $_a => $_){
@@ -54,6 +53,7 @@ th.dolar {
     
     $data_rel2 = [];
     $_a2 = $_a;
+    $_m = intval($primer_mes);
     for($_rm=0;$_rm<13;$_rm++){
       $d = $dataf($casino,$_a2,$_m);
       

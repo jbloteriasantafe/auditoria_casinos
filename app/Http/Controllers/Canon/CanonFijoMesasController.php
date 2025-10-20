@@ -568,40 +568,26 @@ class CanonFijoMesasController extends Controller
     return $cache[$tipo][$id_casino][$kañomes][$dia];
   }
   
-  public function datosCanon($tname){
-    $attrs_canon = [
-      'canon_fisico' => 'SUM(cfm.determinado+cfm.determinado_ajuste) as canon_fisico',
-      'canon_online' => '0 as canon_online',
-      'ganancia_fisico' => 'SUM(cfm.bruto) as ganancia_fisico',
-      'ganancia_online' => '0 as ganancia_online',
-      'ganancia' => 'SUM(cfm.bruto) as ganancia',
-      'ganancia_yoy' => 'SUM(cfm_yoy.bruto) as ganancia_yoy',
-      'ganancia_CCO' => '0 as ganancia_CCO',
-      'ganancia_BPLAY' => '0 as ganancia_BPLAY',
-      'determinado_fecha_cotizacion' => 'MAX(cfm.determinado_fecha_cotizacion) as determinado_fecha_cotizacion',
-      'determinado_fecha_cotizacion_yoy' => 'MAX(cfm_yoy.determinado_fecha_cotizacion) as determinado_fecha_cotizacion_yoy',
-      'determinado_cotizacion_euro' => 'MAX(cfm.determinado_cotizacion_euro) as determinado_cotizacion_euro',
-      'determinado_cotizacion_euro_yoy' => 'MAX(cfm_yoy.determinado_cotizacion_euro) as determinado_cotizacion_euro_yoy',
-      'determinado_cotizacion_dolar' => 'MAX(cfm.determinado_cotizacion_dolar) as determinado_cotizacion_dolar',
-      'determinado_cotizacion_dolar_yoy' => 'MAX(cfm_yoy.determinado_cotizacion_dolar) as determinado_cotizacion_dolar_yoy',
-      'valor_euro' => 'MAX(cfm.valor_euro) as valor_euro',
-      'valor_euro_yoy' => 'MAX(cfm_yoy.valor_euro) as valor_euro_yoy',
-      'valor_dolar' => 'MAX(cfm.valor_dolar) as valor_dolar',
-      'valor_dolar_yoy' => 'MAX(cfm_yoy.valor_dolar) as valor_dolar_yoy',
+  public function datosCanon(){
+    return [
+      'canon_fisico' => 'SUM(subcanon.determinado+subcanon.determinado_ajuste) as canon_fijo_mesas¡canon_fisico',
+      'canon_online' => '0 as canon_fijo_mesas¡canon_online',
+      'ganancia_fisico' => 'SUM(subcanon.bruto) as canon_fijo_mesas¡ganancia_fisico',
+      'ganancia_online' => '0 as canon_fijo_mesas¡ganancia_online',
+      'ganancia' => 'SUM(subcanon.bruto) as canon_fijo_mesas¡ganancia',
+      'ganancia_yoy' => 'SUM(subcanon_yoy.bruto) as canon_fijo_mesas¡ganancia_yoy',
+      'ganancia_CCO' => '0 as canon_fijo_mesas¡ganancia_CCO',
+      'ganancia_BPLAY' => '0 as canon_fijo_mesas¡ganancia_BPLAY',
+      'determinado_fecha_cotizacion' => 'MAX(subcanon.determinado_fecha_cotizacion) as canon_fijo_mesas¡determinado_fecha_cotizacion',
+      'determinado_fecha_cotizacion_yoy' => 'MAX(subcanon_yoy.determinado_fecha_cotizacion) as canon_fijo_mesas¡determinado_fecha_cotizacion_yoy',
+      'determinado_cotizacion_euro' => 'MAX(subcanon.determinado_cotizacion_euro) as canon_fijo_mesas¡determinado_cotizacion_euro',
+      'determinado_cotizacion_euro_yoy' => 'MAX(subcanon_yoy.determinado_cotizacion_euro) as canon_fijo_mesas¡determinado_cotizacion_euro_yoy',
+      'determinado_cotizacion_dolar' => 'MAX(subcanon.determinado_cotizacion_dolar) as canon_fijo_mesas¡determinado_cotizacion_dolar',
+      'determinado_cotizacion_dolar_yoy' => 'MAX(subcanon_yoy.determinado_cotizacion_dolar) as canon_fijo_mesas¡determinado_cotizacion_dolar_yoy',
+      'valor_euro' => 'MAX(subcanon.valor_euro) as canon_fijo_mesas¡valor_euro',
+      'valor_euro_yoy' => 'MAX(subcanon_yoy.valor_euro) as canon_fijo_mesas¡valor_euro_yoy',
+      'valor_dolar' => 'MAX(subcanon.valor_dolar) as canon_fijo_mesas¡valor_dolar',
+      'valor_dolar_yoy' => 'MAX(subcanon_yoy.valor_dolar) as canon_fijo_mesas¡valor_dolar_yoy',
     ];
-    
-    $tname2 = 't'.uniqid();
-    DB::statement("CREATE TEMPORARY TABLE $tname2 AS
-      SELECT $tname.casino,$tname.año,$tname.mes,".implode(',',$attrs_canon)."
-      FROM $tname
-      LEFT JOIN canon_fijo_mesas as cfm ON cfm.id_canon = $tname.id_canon
-      LEFT JOIN canon_fijo_mesas as cfm_yoy ON cfm_yoy.id_canon = $tname.id_canon_yoy AND cfm_yoy.tipo LIKE cfm.tipo
-      LEFT JOIN canon_fijo_mesas as cfm_mom ON cfm_mom.id_canon = $tname.id_canon_mom AND cfm_mom.tipo LIKE cfm.tipo
-      GROUP BY $tname.casino,$tname.año,$tname.mes
-    ");
-    
-    $tables = [$tname2,array_keys($attrs_canon)];
-    
-    return $tables;
   }
 }

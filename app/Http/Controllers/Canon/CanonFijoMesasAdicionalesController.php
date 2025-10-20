@@ -373,29 +373,15 @@ class CanonFijoMesasAdicionalesController extends Controller
     return $ret;
   }
   
-  public function datosCanon($tname){
-    $attrs_canon = [
-      'canon_fisico' => 'SUM(cfma.determinado+cfma.determinado_ajuste) as canon_fisico',
-      'canon_online' => '0 as canon_online',
-      'ganancia_fisico' => '0 as ganancia_fisico',
-      'ganancia_online' => '0 as ganancia_online',
-      'ganancia' => '0 as ganancia',
-      'ganancia_CCO' => '0 as ganancia_CCO',
-      'ganancia_BPLAY' => '0 as ganancia_BPLAY'
+  public function datosCanon(){
+    return [
+      'canon_fisico' => "SUM(subcanon.determinado+subcanon.determinado_ajuste) as canon_fijo_mesas_adicionales¡canon_fisico",
+      'canon_online' => '0 as canon_fijo_mesas_adicionales¡canon_online',
+      'ganancia_fisico' => '0 as canon_fijo_mesas_adicionales¡ganancia_fisico',
+      'ganancia_online' => '0 as canon_fijo_mesas_adicionales¡ganancia_online',
+      'ganancia' => '0 as canon_fijo_mesas_adicionales¡ganancia',
+      'ganancia_CCO' => '0 as canon_fijo_mesas_adicionales¡ganancia_CCO',
+      'ganancia_BPLAY' => '0 as canon_fijo_mesas_adicionales¡ganancia_BPLAY'
     ];
-    
-    $tname2 = 't'.uniqid();
-    DB::statement("CREATE TEMPORARY TABLE $tname2 AS
-      SELECT $tname.casino,$tname.año,$tname.mes,".implode(',',$attrs_canon)."
-      FROM $tname
-      LEFT JOIN canon_fijo_mesas_adicionales as cfma ON cfma.id_canon = $tname.id_canon
-      LEFT JOIN canon_fijo_mesas_adicionales as cfma_yoy ON cfma_yoy.id_canon = $tname.id_canon_yoy AND cfma_yoy.tipo LIKE cfma.tipo
-      LEFT JOIN canon_fijo_mesas_adicionales as cfma_mom ON cfma_mom.id_canon = $tname.id_canon_mom AND cfma_mom.tipo LIKE cfma.tipo
-      GROUP BY $tname.casino,$tname.año,$tname.mes
-    ");
-    
-    $tables = [$tname2,array_keys($attrs_canon)];
-    
-    return $tables;
   }
 }
