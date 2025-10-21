@@ -1103,7 +1103,7 @@ class RelevamientoController extends Controller
     $maquina->casino = $maq->casino->nombre;
     if(!is_null($maq->isla)){
       $maquina->sector = $maq->isla->sector->descripcion;
-      $maquina->isla = $maq->isla->nro_isla;
+      $maquina->nro_isla = $maq->isla->nro_isla;
     }
     $maquina->nro_admin = $maq->nro_admin;
     $id_casino = $request->id_casino;
