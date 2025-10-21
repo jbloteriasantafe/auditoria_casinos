@@ -1027,7 +1027,7 @@ class RelevamientoController extends Controller
 
     if(!is_null($request->id_sector)){
       $reglas_maquinas[]      = ['sector.id_sector','=',$request->id_sector];
-      $reglas_relevamientos[] = ['sector.id_sector','=',$request->id_sector];
+      //__NO__ queremos limitar los relevamientos por sector por si la maquina tiene cambio de sector, no queremos que aparezca
     }
 
     if(!is_null($request->nro_isla)){
