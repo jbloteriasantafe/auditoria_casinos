@@ -172,11 +172,6 @@
           <a href="/canon/planillaPDF" target="_blank" title="REPORTE">Valores</a>
           <a href="/canon/planillaDevengado" target="_blank" title="IMPRIMIR DEVENGADO">Devengado</a>
           <a href="/canon/planillaDeterminado"  target="_blank" title="IMPRIMIR DETERMINADO">Determinado</a>
-          @if($es_superusuario)
-          <a href="/canon/planilla" target="_blank" title="DESCARGAR XLSX">.xlsx</a>
-          <a href="/canon/planillaDeterminadoTest"  target="_blank" title="IMPRIMIR DETERMINADO">Determinado Test</a>
-          <a href="/canon/totalesTest"  target="_blank" title="IMPRIMIR DETERMINADO">TEST</a>
-          @endif
         </div>
         <span style="color: blue;font-weight: bold;font-size: 0.8em;padding-right: 0.1em;"><sup class="antiguo">XXX</sup></span>
         <span class="estado">ESTADO</span>
