@@ -1837,169 +1837,208 @@ class CanonController extends Controller
     return $dompdf->stream($filename, Array('Attachment'=>0));
   }
   
-  public function totalesCanon($año,$mes){//Usado en backoffice tambien
-    $cs = DB::table('canon as c')
-    ->select('c.*','cas.nombre as casino')->distinct()
-    ->join('casino as cas','cas.id_casino','=','c.id_casino')
-    ->whereNull('c.deleted_at')
-    ->whereYear('c.año_mes',$año)
-    ->whereMonth('c.año_mes',$mes)
-    ->get();
-        
-    $conceptos = [
-      'Paños',
-      'MTM',
-      'Bingo',
-      'Total Físico',
-      'JOL',
-      'Total',
-    ];
-        
-    $subcanons = [
-      'Maquinas' => 'MTM',
-      'Bingo' => 'Bingo',
-      'JOL' => 'JOL',
-    ];
-    
-    //Agrupo segun los conceptos
-    $datos = [];
-    foreach($cs as $canon){
-      $dcas = [];
-      $max_scale = 2;//Sumo usando la maxima escala posible...
-      
-      if(empty($canon)) continue;
-      
-      $acumulados = DB::table('canon_variable')
-      ->select('tipo',
-        DB::raw('SUM(determinado_subtotal) as beneficio'),//Con el impuesto restado
-        DB::raw('SUM(IF(devengar,devengado_deduccion,NULL)) as deduccion'),
-        DB::raw('SUM(IF(devengar,devengado,NULL)) as devengado'),
-        DB::raw('SUM(determinado) as determinado')
-      )
-      ->whereIn('tipo',array_keys($subcanons))
-      ->where('id_canon',$canon->id_canon)
-      ->groupBy('tipo')
-      ->get()
-      ->keyBy('tipo');
-      
-      $beneficio_total = null;
-      foreach($subcanons as $tipo => $concepto){
-        $cv = $acumulados[$tipo] ?? (new \stdClass());
-        $max_scale = max($max_scale,bcscale_string($cv->dev ?? '0'));
-        
-        $beneficio_total = ($cv->beneficio ?? null) !== null? bcadd($beneficio_total,$cv->beneficio,$max_scale)
-        : $beneficio_total;
-        
-        $dcas[$concepto] = [
-          'beneficio' => $cv->beneficio ?? null,
-          'devengado' => $cv->devengado ?? null,
-          'deduccion' => $cv->deduccion ?? null,
-          'determinado' => $cv->determinado ?? null
-        ];
-      }
-      
-      //Agrego Total
-      $dcas['Total'] = [
-        'beneficio'   => $beneficio_total,//A completar... tiene los canon variable nomas
-        'devengado'   => $canon->devengado ?? '0',
-        'deduccion'   => $canon->devengado_deduccion ?? '0',
-        'determinado' => $canon->determinado ?? '0',
-      ];
-      
-      foreach($dcas as $concepto => $v){
-        foreach($v as $aux => $val){
-          $dcas[$concepto][$aux] = $val === null? null : bcround_ndigits($val,2);
-        }
-      }
-      
-      //Calculo Paños a partir de los demas redondeados. Total Fisico de paso tambien
-      //Esto es asi porque Paños es el mas "aproximado", osea que que este unos centavos arriba o abajo no cambia mucho
-      $paños = $dcas['Total'];//clone
-      $total_fisico = $dcas['Total'];//clone
-      foreach(['devengado','deduccion','determinado'] as $t){
-        $paños[$t] = bcsub($paños[$t],($dcas['MTM'] ?? [])[$t] ?? '0',2);
-        $paños[$t] = bcsub($paños[$t],($dcas['JOL'] ?? [])[$t] ?? '0',2);
-        $paños[$t] = bcsub($paños[$t],($dcas['Bingo'] ?? [])[$t] ?? '0',2);
-        
-        $total_fisico[$t] = bcsub($total_fisico[$t],($dcas['JOL'] ?? [])[$t] ?? '0',2);
-      }
-      $dcas['Paños'] = $paños;
-      $dcas['Total Físico'] = $total_fisico;
-      
-      //Arreglo los beneficios
-      {
-        $ben_cfm = DB::table('canon_fijo_mesas')
-        ->selectRaw('SUM(bruto) as ben')
-        ->where('id_canon',$canon->id_canon)
-        ->groupBy(DB::raw('"constant"'))
-        ->first();
-        
-        $dcas['Paños']['beneficio'] = $ben_cfm === null? null : $ben_cfm->ben;
-        
-        $dcas['Total']['beneficio'] = bcadd(//Le agrego paños
-          $dcas['Paños']['beneficio'],
-          $dcas['Total']['beneficio'],
-          $max_scale
-        );
-        
-        $dcas['Total Físico']['beneficio'] = bcsub(//Es el total menos online obviamente
-          $dcas['Total']['beneficio'],
-          $dcas['JOL']['beneficio'],
-          $max_scale
-        );
-      }
-      
-      {//DETERMINADO: (??) El ajuste final se lo sumo a paños por mismas razones
-        $ajuste = $canon->ajuste ?? '0';
-        $dcas['Paños']['determinado'] = bcadd($dcas['Paños']['determinado'],$ajuste,2);
-        $dcas['Total Físico']['determinado'] = bcadd($dcas['Total Físico']['determinado'],$ajuste,2);
-        $dcas['Total']['determinado'] = bcadd($dcas['Total']['determinado'],$ajuste,2);
-      }
-      
-      {//DEVENGADO: calculo el bruto a partir del devengado y la deduccion
-        foreach($dcas as $tipo => &$vals){
-          if($vals['devengado'] !== null || $vals['deduccion'] !== null){
-            $vals['bruto'] = bcadd($vals['devengado'],$vals['deduccion'],2);
-          }
-        }
-      }
-            
-      {//Reordeno
-        $aux = [];
-        foreach($conceptos as $concepto){
-          $aux[$concepto] = $dcas[$concepto] ?? null;
-        }
-        $dcas = $aux;
-      }
-    
-      $datos[$canon->casino] = $dcas;
+  private static function totalesCanon_prepare($discriminar_adicionales){
+    static $prepared = null;
+    if($prepared === $discriminar_adicionales){
+      return 'temp_subcanons_redondeados_con_totales_con_mensuales';
     }
     
-    {//Agrego una columna Total
-      $total = [];
-      foreach($datos as $casino => $dcas){
-        foreach($dcas as $tipo => $vals){
-          $total[$tipo] = $total[$tipo] ?? [];
-          foreach(['beneficio','devengado','deduccion','determinado','bruto'] as $t){
-            $total[$tipo][$t] = $total[$tipo][$t] ?? '0.00';
-            $total[$tipo][$t] = bcadd($vals[$t] ?? '0.00',$total[$tipo][$t],2);
-          }
-        }
-      }
-      $datos['Total'] = $total;
-    }
+    $round_bankers = function($val){
+      $abs = "ABS($val)";
+      $tru = "TRUNCATE($val,2)";
+      return "IF(
+        ($abs-$tru) = 0.005,
+        $tru+0.01*(($tru*100) % 2),
+        ROUND($val,2)
+      )";
+    };
     
+    DB::statement('CREATE TEMPORARY TABLE temp_subcanons
+    SELECT
+      c.año_mes as año_mes,
+      c.id_casino as id_casino,
+      IFNULL(sc.concepto,"Total") as concepto,
+      IF(sc.concepto IS NULL,6,CASE
+        WHEN sc.concepto = "Paños"       THEN 0
+        WHEN sc.concepto = "Adicionales" THEN 1
+        WHEN sc.concepto = "MTM"         THEN 2
+        WHEN sc.concepto = "Bingo"       THEN 3
+        WHEN sc.concepto = "JOL"         THEN 5
+        ELSE 99999
+      END) as orden,
+      SUM(sc.beneficio) as beneficio,
+      SUM(sc.bruto) as bruto,
+      SUM(sc.deduccion) as deduccion,
+      SUM(sc.devengado) as devengado,
+      SUM(sc.determinado) as determinado,
+      '.$round_bankers('SUM(sc.beneficio)').' as red_beneficio,
+      '.$round_bankers('SUM(sc.bruto)').' as red_bruto,
+      '.$round_bankers('SUM(sc.deduccion)').' as red_deduccion,
+      '.$round_bankers('SUM(sc.devengado)').' as red_devengado,
+      '.$round_bankers('SUM(sc.determinado)').' as red_determinado,
+      MAX(c.devengado_deduccion) as canon_deduccion,
+      MAX(c.devengado) as canon_devengado,
+      MAX(c.determinado+c.ajuste) as canon_determinado
+    FROM canon as c
+    JOIN (
+      SELECT 
+        sc.id_canon,
+        CASE
+          WHEN tipo = "Maquinas" THEN "MTM"
+          WHEN tipo = "Bingo"    THEN "Bingo"
+          WHEN tipo = "JOL"      THEN "JOL"
+          ELSE tipo
+        END as concepto,
+        sc.determinado_subtotal as beneficio,
+        IF(sc.devengar,sc.devengado_total,NULL) as bruto,
+        IF(sc.devengar,sc.devengado_deduccion,NULL) as deduccion,
+        IF(sc.devengar,sc.devengado,NULL) as devengado,
+        sc.determinado as determinado
+      FROM canon_variable as sc
+      
+      UNION ALL SELECT
+        sc.id_canon,
+        "Paños" as concepto,
+        sc.bruto as beneficio,
+        IF(sc.devengar,sc.devengado_total,NULL) as bruto,
+        IF(sc.devengar,sc.devengado_deduccion,NULL) as deduccion,
+        IF(sc.devengar,sc.devengado,NULL) as devengado,
+        sc.determinado as determinado
+      FROM canon_fijo_mesas AS sc
+      
+      UNION ALL SELECT
+        sc.id_canon,
+        "'.($discriminar_adicionales? 'Adicionales' : 'Paños').'" as concepto,
+        0 as beneficio,
+        IF(sc.devengar,sc.devengado_total,NULL) as bruto,
+        IF(sc.devengar,sc.devengado_deduccion,NULL) as deduccion,
+        IF(sc.devengar,sc.devengado,NULL) as devengado,
+        sc.determinado as determinado
+      FROM canon_fijo_mesas_adicionales AS sc
+    ) as sc ON sc.id_canon = c.id_canon
+    WHERE c.deleted_at IS NULL
+    GROUP BY c.año_mes,c.id_casino,sc.concepto
+    WITH ROLLUP
+    HAVING año_mes IS NOT NULL AND id_casino IS NOT NULL');
     
-    //Formateo a español los numeros
-    foreach($datos as $id_canon => &$dcas){
-      foreach($dcas as $tipo => &$vals){
-        foreach($vals as $tval => &$v){
+    DB::statement('CREATE TEMPORARY TABLE temp_subcanons_total
+    SELECT
+      sc.id_casino,
+      sc.año_mes,
+      sc.red_beneficio,
+      sc.red_bruto,
+      sc.red_deduccion,
+      sc.red_devengado,
+      sc.red_determinado
+    FROM temp_subcanons as sc
+    WHERE sc.concepto = "Total"');
+    
+    DB::statement('CREATE TEMPORARY TABLE temp_subcanons_total_red
+    SELECT
+      sc.id_casino,
+      sc.año_mes,
+      SUM(sc.red_beneficio)   as beneficio,
+      SUM(sc.red_bruto)       as bruto,
+      SUM(sc.red_deduccion)   as deduccion,
+      SUM(sc.red_devengado)   as devengado,
+      SUM(sc.red_determinado) as determinado
+    FROM temp_subcanons as sc
+    WHERE sc.concepto <> "Total"
+    GROUP BY sc.id_casino,sc.año_mes');
+    
+    DB::statement('CREATE TEMPORARY TABLE temp_subcanons_redondeados
+    SELECT
+      sc.id_casino,
+      sc.año_mes,
+      sc.concepto,
+      sc.orden,
+      sc.red_beneficio+(sc.concepto = "Paños")*(T.red_beneficio-Tred.beneficio)   as beneficio,
+      sc.red_bruto+(sc.concepto = "Paños")*(T.red_bruto-Tred.bruto)       as bruto,
+      sc.red_deduccion+(sc.concepto = "Paños")*(sc.canon_deduccion-Tred.deduccion)   as deduccion,
+      sc.red_devengado+(sc.concepto = "Paños")*(sc.canon_devengado-Tred.devengado)   as devengado,
+      sc.red_determinado+(sc.concepto = "Paños")*(sc.canon_determinado-Tred.determinado) as determinado
+    FROM temp_subcanons as sc
+    JOIN temp_subcanons_total as T on T.id_casino = sc.id_casino AND T.año_mes = sc.año_mes
+    JOIN temp_subcanons_total_red as Tred ON Tred.id_casino = sc.id_casino AND Tred.año_mes = sc.año_mes
+    WHERE sc.concepto <> "Total"');
+    
+    DB::statement('CREATE TEMPORARY TABLE temp_subcanons_redondeados_con_totales
+    SELECT *
+    FROM temp_subcanons_redondeados');
+    DB::statement('INSERT INTO temp_subcanons_redondeados_con_totales
+    SELECT 
+      id_casino,
+      año_mes,
+      "Total Físico" as concepto,
+      4 as orden,
+      SUM(beneficio) as beneficio,
+      SUM(bruto) as bruto,
+      SUM(deduccion) as deduccion,
+      SUM(devengado) as devengado,
+      SUM(determinado) as determinado
+    FROM temp_subcanons_redondeados
+    WHERE concepto IN ("Paños","MTM","Bingo","Adicionales")
+    GROUP BY id_casino,año_mes');
+    DB::statement('INSERT INTO temp_subcanons_redondeados_con_totales
+    SELECT 
+      id_casino,
+      año_mes,
+      "Total" as concepto,
+      6 as orden,
+      SUM(beneficio) as beneficio,
+      SUM(bruto) as bruto,
+      SUM(deduccion) as deduccion,
+      SUM(devengado) as devengado,
+      SUM(determinado) as determinado
+    FROM temp_subcanons_redondeados
+    GROUP BY id_casino,año_mes');
+    
+    DB::statement('CREATE TEMPORARY TABLE temp_subcanons_redondeados_con_totales_con_mensuales
+    SELECT * FROM temp_subcanons_redondeados_con_totales');
+    DB::statement('INSERT INTO temp_subcanons_redondeados_con_totales_con_mensuales
+    SELECT
+      0,
+      año_mes,
+      concepto,
+      MAX(orden) as orden,
+      SUM(beneficio) as beneficio,
+      SUM(bruto) as bruto,
+      SUM(deduccion) as deduccion,
+      SUM(devengado) as devengado,
+      SUM(determinado) as determinado
+    FROM temp_subcanons_redondeados_con_totales
+    GROUP BY año_mes,concepto');
+    
+    $prepared = $discriminar_adicionales;
+    return 'temp_subcanons_redondeados_con_totales_con_mensuales';
+  }
+  public function totalesCanon($año,$mes,$discriminar_adicionales){
+    $table = self::totalesCanon_prepare($discriminar_adicionales);
+    $año_mes = str_pad($año,4,'0',STR_PAD_LEFT).'-'.str_pad($mes,2,'0',STR_PAD_LEFT).'-01';
+    $ret = DB::table($table.' as tc')
+    ->select('tc.*',DB::raw('IF(tc.id_casino = 0,"Total",IFNULL(cas.nombre,tc.id_casino)) as casino'))
+    ->where('tc.año_mes',$año_mes)
+    ->leftJoin('casino as cas','cas.id_casino','=','tc.id_casino')
+    ->leftJoin(DB::raw('(
+      SELECT 1 as id_casino,1 as orden
+      UNION ALL
+      SELECT 2 as id_casino,3 as orden
+      UNION ALL
+      SELECT 3 as id_casino,2 as orden
+    ) as orden_cas'),'orden_cas.id_casino','=','tc.id_casino')
+    ->orderBy(DB::raw('IFNULL(orden_cas.orden,100+tc.id_casino)*1000+tc.orden'),'asc')
+    ->get()->groupBy('casino')->map(function($g){
+      return $g->keyBy('concepto')->map(function($obj){
+        $ret = ['beneficio' => null,'bruto' => null,'deduccion' => null,'devengado' => null,'determinado' => null];
+        foreach($ret as $k => &$v){
+          $v = $obj->{$k} ?? null;
           $v = $v === null? null : self::formatear_decimal($v);
         }
-      }
-    }
-    
-    return $datos;
+        return $ret;
+      });
+    })->toArray();
+        
+    return $ret;
   }
   
   public function planillaDevengado(Request $request,$tipo_presupuesto = 'devengado'){
@@ -2016,7 +2055,7 @@ class CanonController extends Controller
     $año_mes = explode('-',$c_año_mes->año_mes);
     $mes = $año_mes[1].'/'.substr($año_mes[0],2);
     
-    $datos = $this->totalesCanon($año_mes[0],$año_mes[1]);
+    $datos = $this->totalesCanon($año_mes[0],$año_mes[1],false);
     
     $tablas = [];
     if($tipo_presupuesto == 'devengado'){
@@ -2044,9 +2083,7 @@ class CanonController extends Controller
       }
     }
     
-    $conceptos = array_keys(array_reduce($datos,function($carry,$item){
-      return array_merge($carry,$item);
-    },[]));
+    $conceptos = ['Paños','MTM','Bingo','Total Físico','JOL','Total'];
         
     $view = View::make('Canon.planillaDevengado', compact('tipo_presupuesto','tablas','conceptos','mes','datos'));
     $dompdf = new Dompdf();
@@ -2107,7 +2144,7 @@ class CanonController extends Controller
     $data = $this->buscar($request,false);
     
     $conceptos = [
-      'MTM','Bingo','JOL','Paños'
+      'MTM','Bingo','JOL','Paños','Adicionales'
     ];
     
     $tipo_valores = [
@@ -2121,7 +2158,7 @@ class CanonController extends Controller
       
       $t = null;
       if(!array_key_exists($d->año_mes,$totales_cache)){
-        $totales_cache[$d->año_mes] = $this->totalesCanon(intval($año_mes[0]),intval($año_mes[1]));
+        $totales_cache[$d->año_mes] = $this->totalesCanon(intval($año_mes[0]),intval($año_mes[1]),true);
       }
       $t = $totales_cache[$d->año_mes][$d->casino];//Deberia existir porque buscar() lo devolvio
       
