@@ -884,95 +884,191 @@ class CanonController extends Controller
     return $dompdf->stream($filename, Array('Attachment'=>0));
   }
   
-  
-  public function totales($id_canon){
-    return DB::table('canon')
-    ->select(
-      DB::raw('NULL as beneficio'),
-      DB::raw('SUM(devengado_deduccion+devengado) as bruto'),
-      DB::raw('SUM(devengado_deduccion) as deduccion'),
-      DB::raw('SUM(devengado) as devengado'),
-      DB::raw('SUM(determinado) as determinado')
-    )
-    ->where('id_canon',$id_canon)
-    ->first();
+  private function totalesCanon_prepare($discriminar_adicionales){
+    static $prepared = null;
+    if($prepared === $discriminar_adicionales){
+      return 'temp_subcanons_redondeados_con_totales_con_mensuales';
+    }
+    
+    $round_bankers = function($val){
+      $abs = "ABS($val)";
+      $tru = "TRUNCATE($val,2)";
+      return "IF(
+        ($abs-$tru) = 0.005,
+        $tru+0.01*(($tru*100) % 2),
+        ROUND($val,2)
+      )";
+    };
+    
+    $q_subcanons = implode(' UNION ALL ',array_map(function($sc) use ($discriminar_adicionales){
+      return '( '.$sc->totalesCanon_query($discriminar_adicionales).' )';
+    },$this->subcanons));
+        
+    DB::statement('CREATE TEMPORARY TABLE temp_subcanons
+    SELECT
+      c.año_mes as año_mes,
+      c.id_casino as id_casino,
+      IFNULL(sc.concepto,"Total") as concepto,
+      IF(sc.concepto IS NULL,6,CASE
+        WHEN sc.concepto = "Paños"       THEN 0
+        WHEN sc.concepto = "Adicionales" THEN 1
+        WHEN sc.concepto = "MTM"         THEN 2
+        WHEN sc.concepto = "Bingo"       THEN 3
+        WHEN sc.concepto = "JOL"         THEN 5
+        ELSE 99999
+      END) as orden,
+      BIT_AND(IFNULL(sc.es_fisico,0)) as es_fisico,
+      IFNULL(sc.concepto = "Paños",0) as sumar_redondeo,
+      SUM(sc.beneficio) as beneficio,
+      SUM(sc.bruto) as bruto,
+      SUM(sc.deduccion) as deduccion,
+      SUM(sc.devengado) as devengado,
+      SUM(sc.determinado) as determinado,
+      '.$round_bankers('SUM(sc.beneficio)').' as red_beneficio,
+      '.$round_bankers('SUM(sc.bruto)').' as red_bruto,
+      '.$round_bankers('SUM(sc.deduccion)').' as red_deduccion,
+      '.$round_bankers('SUM(sc.devengado)').' as red_devengado,
+      '.$round_bankers('SUM(sc.determinado)').' as red_determinado,
+      MAX(c.devengado_deduccion) as canon_deduccion,
+      MAX(c.devengado) as canon_devengado,
+      MAX(c.determinado+c.ajuste) as canon_determinado
+    FROM canon as c
+    JOIN ( '.$q_subcanons.' ) as sc ON sc.id_canon = c.id_canon
+    WHERE c.deleted_at IS NULL
+    GROUP BY c.año_mes,c.id_casino,sc.concepto
+    WITH ROLLUP
+    HAVING año_mes IS NOT NULL AND id_casino IS NOT NULL');
+    
+    DB::statement('CREATE TEMPORARY TABLE temp_subcanons_total
+    SELECT
+      sc.id_casino,
+      sc.año_mes,
+      sc.concepto,
+      sc.orden,
+      sc.es_fisico,
+      sc.red_beneficio,
+      sc.red_bruto,
+      sc.red_deduccion,
+      sc.red_devengado,
+      sc.red_determinado
+    FROM temp_subcanons as sc
+    WHERE sc.concepto = "Total"');
+    
+    DB::statement('CREATE TEMPORARY TABLE temp_subcanons_total_red
+    SELECT
+      sc.id_casino,
+      sc.año_mes,
+      "Total" as concepto,
+      6 as orden,
+      0 as es_fisico,
+      SUM(sc.red_beneficio)   as beneficio,
+      SUM(sc.red_bruto)       as bruto,
+      SUM(sc.red_deduccion)   as deduccion,
+      SUM(sc.red_devengado)   as devengado,
+      SUM(sc.red_determinado) as determinado
+    FROM temp_subcanons as sc
+    WHERE sc.concepto <> "Total"
+    GROUP BY sc.id_casino,sc.año_mes');
+    
+    DB::statement('CREATE TEMPORARY TABLE temp_subcanons_redondeados
+    SELECT
+      sc.id_casino,
+      sc.año_mes,
+      sc.concepto,
+      sc.orden,
+      sc.es_fisico,
+      sc.red_beneficio+sc.sumar_redondeo*(T.red_beneficio-Tred.beneficio)   as beneficio,
+      sc.red_bruto+sc.sumar_redondeo*(T.red_bruto-Tred.bruto)       as bruto,
+      sc.red_deduccion+sc.sumar_redondeo*(sc.canon_deduccion-Tred.deduccion)   as deduccion,
+      sc.red_devengado+sc.sumar_redondeo*(sc.canon_devengado-Tred.devengado)   as devengado,
+      sc.red_determinado+sc.sumar_redondeo*(sc.canon_determinado-Tred.determinado) as determinado
+    FROM temp_subcanons as sc
+    JOIN temp_subcanons_total as T on T.id_casino = sc.id_casino AND T.año_mes = sc.año_mes
+    JOIN temp_subcanons_total_red as Tred ON Tred.id_casino = sc.id_casino AND Tred.año_mes = sc.año_mes
+    WHERE sc.concepto <> "Total"');
+    
+    DB::statement('CREATE TEMPORARY TABLE temp_subcanons_redondeados_con_totales
+    SELECT *
+    FROM temp_subcanons_redondeados');
+    DB::statement('INSERT INTO temp_subcanons_redondeados_con_totales
+    SELECT 
+      id_casino,
+      año_mes,
+      "Total Físico" as concepto,
+      4 as orden,
+      1 as es_fisico,
+      SUM(beneficio) as beneficio,
+      SUM(bruto) as bruto,
+      SUM(deduccion) as deduccion,
+      SUM(devengado) as devengado,
+      SUM(determinado) as determinado
+    FROM temp_subcanons_redondeados
+    WHERE es_fisico
+    GROUP BY id_casino,año_mes');
+    
+    DB::statement('INSERT INTO temp_subcanons_redondeados_con_totales
+    SELECT 
+      id_casino,
+      año_mes,
+      "Total" as concepto,
+      6 as orden,
+      0 as es_fisico,
+      SUM(beneficio) as beneficio,
+      SUM(bruto) as bruto,
+      SUM(deduccion) as deduccion,
+      SUM(devengado) as devengado,
+      SUM(determinado) as determinado
+    FROM temp_subcanons_redondeados
+    GROUP BY id_casino,año_mes');
+    
+    DB::statement('CREATE TEMPORARY TABLE temp_subcanons_redondeados_con_totales_con_mensuales
+    SELECT * FROM temp_subcanons_redondeados_con_totales');
+    DB::statement('INSERT INTO temp_subcanons_redondeados_con_totales_con_mensuales
+    SELECT
+      0,
+      año_mes,
+      concepto,
+      MAX(orden) as orden,
+      BIT_AND(es_fisico) as es_fisico,
+      SUM(beneficio) as beneficio,
+      SUM(bruto) as bruto,
+      SUM(deduccion) as deduccion,
+      SUM(devengado) as devengado,
+      SUM(determinado) as determinado
+    FROM temp_subcanons_redondeados_con_totales
+    GROUP BY año_mes,concepto');
+    
+    $prepared = $discriminar_adicionales;
+    return 'temp_subcanons_redondeados_con_totales_con_mensuales';
   }
   
-  public function totalesCanon($año,$mes){//Usado en backoffice tambien
-    $cs = DB::table('canon as c')
-    ->select('c.*','cas.nombre as casino')->distinct()
-    ->join('casino as cas','cas.id_casino','=','c.id_casino')
-    ->whereNull('c.deleted_at')
-    ->whereYear('c.año_mes',$año)
-    ->whereMonth('c.año_mes',$mes)
-    ->get();
-        
-    $empty_val = ['beneficio' => null,'bruto' => null,'devengado' => null,'deduccion' => null,'determinado' => null];    
-    $conceptos = ['Mesa' => $empty_val,'Maquina' => $empty_val,'Bingo' => $empty_val,'Físico' => $empty_val,'Online' => $empty_val];    
-    $datos = ['' => []];
-    
-    $sub_f;$add_f;{
-      $apply_func_f = function($func)  use ($empty_val){
-        return function($ta,$tb) use ($func,$empty_val){
-          $ret = $empty_val;
-          foreach($ret as $k => $_){
-            $ret[$k] = $func($ta[$k] ?? '0',$tb[$k] ??  '0');
-          }
-          return $ret;
-        };
-      };
-      $sub_f = $apply_func_f('bcsub_precise');
-      $add_f = $apply_func_f('bcadd_precise');
-    }
-    
-    foreach($cs as $canon){
-      if(empty($canon)) continue;
-      
-      $totalizados = $conceptos;
-      foreach($this->subcanons as $scstr => $sc){
-        $T = $sc->totales($canon->id_canon);
-        foreach($conceptos as $concepto => $_){
-          foreach($T as $tipo => $tot_tipo){
-            if($sc->es($tipo,$concepto)){
-              $totalizados[$concepto] = $add_f($totalizados[$concepto],(array) $tot_tipo);
-            }
-          }
-        }
-      }
-      foreach($totalizados as $concepto => $T){
-        foreach($T as $k => $v){
-          $totalizados[$concepto][$k] = $v===null? null: bcround_ndigits($v ?? '0',2);
-        }
-        if($concepto != '' && $concepto != 'Físico'){
-          $totalizados[''] = $add_f($totalizados[''] ?? $empty_val,$totalizados[$concepto]);
-        }
-      }
-      
-      $error_redondeo = $sub_f((array)$this->totales($canon->id_canon),$totalizados['']);
-      $error_redondeo['beneficio'] = '0';//El canon total no tiene beneficio por lo que para evitar que se cancele lo pongo en cero
-      $totalizados['Mesa']  = $add_f($totalizados['Mesa'],$error_redondeo);//Le meto la diferencia de redondeo a mesas
-      $totalizados['Físico'] = $add_f($totalizados['Físico'],$error_redondeo);//Ergo tambien al total fisico
-      $totalizados[''] = $add_f($totalizados[''],$error_redondeo);//Ergo tambien al total
-      
-      $datos[$canon->casino] = $totalizados;
-      foreach($totalizados as $concepto => $t){
-        $datos[''][$concepto] = $add_f($datos[''][$concepto] ?? $empty_val,$t);
-      }
-    }
-    
-    //Muevo la columna total al final... array_shift la saca del principio y despues la vuelvo a asignar para que se ponga al final
-    $datos[''] = array_shift($datos);
-    
-    //Formateo a español los numeros
-    foreach($datos as $id_canon => &$dcas){
-      foreach($dcas as $tipo => &$vals){
-        foreach($vals as $tval => &$v){
+  public function totalesCanon($año,$mes,$discriminar_adicionales){
+    $table = $this->totalesCanon_prepare($discriminar_adicionales);
+    $año_mes = str_pad($año,4,'0',STR_PAD_LEFT).'-'.str_pad($mes,2,'0',STR_PAD_LEFT).'-01';
+    $ret = DB::table($table.' as tc')
+    ->select('tc.*',DB::raw('IF(tc.id_casino = 0,"Total",IFNULL(cas.nombre,tc.id_casino)) as casino'))
+    ->where('tc.año_mes',$año_mes)
+    ->leftJoin('casino as cas','cas.id_casino','=','tc.id_casino')
+    ->leftJoin(DB::raw('(
+      SELECT 1 as id_casino,1 as orden
+      UNION ALL
+      SELECT 2 as id_casino,3 as orden
+      UNION ALL
+      SELECT 3 as id_casino,2 as orden
+    ) as orden_cas'),'orden_cas.id_casino','=','tc.id_casino')
+    ->orderBy(DB::raw('IFNULL(orden_cas.orden,100+tc.id_casino)*10000+tc.orden'),'asc')
+    ->get()->groupBy('casino')->map(function($g){
+      return $g->keyBy('concepto')->map(function($obj){
+        $ret = ['beneficio' => null,'bruto' => null,'deduccion' => null,'devengado' => null,'determinado' => null];
+        foreach($ret as $k => &$v){
+          $v = $obj->{$k} ?? null;
           $v = $v === null? null : AUX::formatear_decimal($v);
         }
-      }
-    }
-    
-    return $datos;
+        return $ret;
+      });
+    })->toArray();
+        
+    return $ret;
   }
   
   public function planillaDevengado(Request $request,$tipo_presupuesto = 'devengado'){
@@ -989,28 +1085,35 @@ class CanonController extends Controller
     $año_mes = explode('-',$c_año_mes->año_mes);
     $mes = $año_mes[1].'/'.substr($año_mes[0],2);
     
-    $datos = $this->totalesCanon($año_mes[0],$año_mes[1]);
+    $datos = $this->totalesCanon($año_mes[0],$año_mes[1],false);
     
-    $tablas = null;
+    $tablas = [];
     if($tipo_presupuesto == 'devengado'){
       $tablas = ['','deduccion','bruto'];
+      foreach($datos as $cas => &$t){
+        foreach($t as $nombre_sc => &$subcanon){
+          $subcanon[''] = $subcanon['devengado'];
+          unset($subcanon['beneficio']);
+          unset($subcanon['devengado']);
+          unset($subcanon['determinado']);
+        }
+      }
     }
     else if($tipo_presupuesto == 'determinado'){
       $tablas = [''];
-    }
-    
-    $conceptos = [];
-    foreach($datos as $cas => &$t){
-      $conceptos = array_merge($t);
-      foreach($t as $nombre_sc => &$subcanon) {
-        $subcanon[''] = $subcanon[$tipo_presupuesto];
-        foreach($subcanon as $k => $v)
-          if(!in_array($k,$tablas))
-            unset($subcanon[$k]);
+      foreach($datos as &$t){
+        foreach($t as &$subcanon){
+          $subcanon[''] = $subcanon['determinado'];
+          unset($subcanon['beneficio']);
+          unset($subcanon['devengado']);
+          unset($subcanon['bruto']);
+          unset($subcanon['deduccion']);
+          unset($subcanon['determinado']);
+        }
       }
     }
     
-    $conceptos = array_keys($conceptos);
+    $conceptos = ['Paños','MTM','Bingo','Total Físico','JOL','Total'];
         
     $view = View::make('Canon.planillaDevengado', compact('tipo_presupuesto','tablas','conceptos','mes','datos'));
     $dompdf = new Dompdf();
@@ -1070,8 +1173,13 @@ class CanonController extends Controller
   public function descargar(Request $request){
     $data = $this->buscar($request,false);
     
-    $conceptos = [];
-    $tipo_valores = [];
+    $conceptos = [
+      'MTM','Bingo','JOL','Paños','Adicionales'
+    ];
+    
+    $tipo_valores = [
+      'beneficio','bruto','deduccion','devengado','determinado'
+    ];
     
     $arreglo_a_csv = [];
     $totales_cache = [];//Si busco para un periodo me devuelve todos los casinos por eso lo cacheo
@@ -1080,25 +1188,9 @@ class CanonController extends Controller
       
       $t = null;
       if(!array_key_exists($d->año_mes,$totales_cache)){
-        $totales_cache[$d->año_mes] = $this->totalesCanon(intval($año_mes[0]),intval($año_mes[1]));
+        $totales_cache[$d->año_mes] = $this->totalesCanon(intval($año_mes[0]),intval($año_mes[1]),true);
       }
       $t = $totales_cache[$d->año_mes][$d->casino];//Deberia existir porque buscar() lo devolvio
-      
-      if(empty($conceptos)){
-        foreach($t as $cncpt => $tcncpt){
-          $conceptos[$cncpt] = true;
-        }
-        $conceptos = array_keys($conceptos);
-      }
-      
-      if(empty($tipo_valores)){
-        foreach($t as $cncpt => $tcncpt){
-          foreach($tcncpt as $tval => $ttval){
-            $tipo_valores[$tval] = true;
-          }
-        }
-        $tipo_valores = array_keys($tipo_valores);
-      }
       
       $fila = [
         'año_mes' => $d->año_mes,
@@ -1106,16 +1198,16 @@ class CanonController extends Controller
       ];
       foreach($tipo_valores as $tval){
         foreach($conceptos as $cncpt){
-          $suffix = strlen($cncpt)? $tval.'_'.$cncpt : $tval;
-          $fila[$suffix] = ($t[$cncpt] ?? [])[$tval] ?? '0';
+          $fila[$tval.'_'.$cncpt] = ($t[$cncpt] ?? [])[$tval] ?? '0';
         }
+        $fila[$tval] = ($t['Total'] ?? [])[$tval] ?? '0';
       }
       $fila['intereses_y_cargos'] = AUX::formatear_decimal($d->intereses_y_cargos);
       $fila['pago']      = AUX::formatear_decimal($d->pago);
       $fila['saldo_posterior'] = AUX::formatear_decimal($d->saldo_posterior);
       $arreglo_a_csv[] = $fila;
     }
-    
+        
     $header = array_keys($arreglo_a_csv[0] ?? []);
     
     return AUX::csvstr($header,$arreglo_a_csv);

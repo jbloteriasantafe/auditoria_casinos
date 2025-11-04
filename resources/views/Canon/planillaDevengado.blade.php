@@ -27,7 +27,7 @@ $cambiar_concepto = function($s){
   return $map[$s] ?? $s;
 };
 $cambiar_casino = function($s){
-  return empty($s)? 'Total' : ('Casino '.$s);
+  return (empty($s) || $s == 'Total')? 'Total' : ('Casino '.$s);
 };
 ?>
 

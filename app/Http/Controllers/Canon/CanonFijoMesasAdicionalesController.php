@@ -44,19 +44,17 @@ class CanonFijoMesasAdicionalesController extends Controller
     &&     in_array($concepto,['','MESA','FÍSICO','FíSICO']);
   }
   
-  public function totales($id_canon){
-    return DB::table('canon_fijo_mesas_adicionales')
-    ->select('tipo',
-      DB::raw('NULL as beneficio'),
-      DB::raw('SUM(IF(devengar,devengado_deduccion+devengado,NULL)) as bruto'),
-      DB::raw('SUM(IF(devengar,devengado_deduccion,NULL)) as deduccion'),
-      DB::raw('SUM(IF(devengar,devengado,NULL)) as devengado'),
-      DB::raw('SUM(determinado) as determinado')
-    )
-    ->where('id_canon',$id_canon)
-    ->groupBy('tipo')
-    ->get()
-    ->keyBy('tipo')->toArray();
+  public function totalesCanon_query($discriminar_adicionales){
+    return 'SELECT
+      sc.id_canon,
+      "'.($discriminar_adicionales? 'Adicionales' : 'Paños').'" as concepto,
+      1 as es_fisico,
+      0 as beneficio,
+      IF(sc.devengar,sc.devengado_total,NULL) as bruto,
+      IF(sc.devengar,sc.devengado_deduccion,NULL) as deduccion,
+      IF(sc.devengar,sc.devengado,NULL) as devengado,
+      sc.determinado as determinado
+    FROM canon_fijo_mesas_adicionales AS sc';
   }
   
   private static function calcular_valores($valor_dolar,$valor_euro,$dias_mes,$horas_dia,$porcentaje){

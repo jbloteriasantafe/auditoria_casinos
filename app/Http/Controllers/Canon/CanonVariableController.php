@@ -54,19 +54,22 @@ class CanonVariableController extends Controller
     return false;
   }
   
-  public function totales($id_canon){
-    return DB::table('canon_variable')
-    ->select('tipo',
-      DB::raw('SUM(determinado_subtotal) as beneficio'),//Con el impuesto restado
-      DB::raw('SUM(IF(devengar,devengado_deduccion+devengado,NULL)) as bruto'),
-      DB::raw('SUM(IF(devengar,devengado_deduccion,NULL)) as deduccion'),
-      DB::raw('SUM(IF(devengar,devengado,NULL)) as devengado'),
-      DB::raw('SUM(determinado) as determinado')
-    )
-    ->where('id_canon',$id_canon)
-    ->groupBy('tipo')
-    ->get()
-    ->keyBy('tipo')->toArray();
+  public function totalesCanon_query($discriminar_adicionales){
+    return 'SELECT 
+      sc.id_canon,
+      CASE
+        WHEN tipo = "Maquinas" THEN "MTM"
+        WHEN tipo = "Bingo"    THEN "Bingo"
+        WHEN tipo = "JOL"      THEN "JOL"
+        ELSE tipo
+      END as concepto,
+      (tipo != "JOL") as es_fisico,
+      sc.determinado_subtotal as beneficio,
+      IF(sc.devengar,sc.devengado_total,NULL) as bruto,
+      IF(sc.devengar,sc.devengado_deduccion,NULL) as deduccion,
+      IF(sc.devengar,sc.devengado,NULL) as devengado,
+      sc.determinado as determinado
+    FROM canon_variable as sc';
   }
   
   public function recalcular($año_mes,$id_casino,$version,$tipo,$accessors){

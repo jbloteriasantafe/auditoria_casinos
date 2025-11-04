@@ -51,19 +51,17 @@ class CanonFijoMesasController extends Controller
     &&     in_array($concepto,['','MESA','FÍSICO','FíSICO']);
   }
   
-  public function totales($id_canon){
-    return DB::table('canon_fijo_mesas')
-    ->select('tipo',
-      DB::raw('SUM(bruto) as beneficio'),
-      DB::raw('SUM(IF(devengar,devengado_deduccion+devengado,NULL)) as bruto'),
-      DB::raw('SUM(IF(devengar,devengado_deduccion,NULL)) as deduccion'),
-      DB::raw('SUM(IF(devengar,devengado,NULL)) as devengado'),
-      DB::raw('SUM(determinado) as determinado')
-    )
-    ->where('id_canon',$id_canon)
-    ->groupBy('tipo')
-    ->get()
-    ->keyBy('tipo')->toArray();
+  public function totalesCanon_query($discriminar_adicionales){
+    return 'SELECT
+      sc.id_canon,
+      "Paños" as concepto,
+      1 as es_fisico,
+      sc.bruto as beneficio,
+      IF(sc.devengar,sc.devengado_total,NULL) as bruto,
+      IF(sc.devengar,sc.devengado_deduccion,NULL) as deduccion,
+      IF(sc.devengar,sc.devengado,NULL) as devengado,
+      sc.determinado as determinado
+    FROM canon_fijo_mesas AS sc';
   }
   
   public function recalcular($año_mes,$id_casino,$version,$tipo,$accessors){
