@@ -785,89 +785,18 @@ class CanonController extends Controller
     
     $ret = array_merge($ret,$this->canon_archivo->procesar_para_salida($data));
     
-    foreach($ret as $k => $d){
-      if(count($d) == 0) unset($ret[$k]);
+    foreach($ret as $k => &$d){
+      foreach($d as $tipo => &$dtipo){
+        unset($dtipo['diario']);
+      }
+      if(count($d) == 0){
+        unset($ret[$k]);
+      }
     }
-    
+        
     return AUX::formatear_datos($ret);
   }
-  
-  public function planilla(Request $request){
-    $ret = $this->obtener_para_salida($request->id_canon);
-    $dir_path = storage_path("canon_{$request->id_canon}");
     
-    $rmdir = function($dir) use(&$rmdir){//Borra recursivamente... cuidado con que se lo llama
-      assert(substr($dir,0,strlen(storage_path())) == storage_path());//Chequea que no se llame con un path raro
-      if(is_dir($dir) === false) return false;
-      $files = array_diff(scandir($dir), ['.', '..']); 
-      
-      foreach($files as $f){
-        $fpath = $dir.'/'.$f;
-        if(is_dir($fpath)){
-          $rmdir($fpath);
-        }
-        else{
-          unlink($fpath);
-        }
-      }
-      
-      return rmdir($dir);
-    };
-    
-    $rmdir($dir_path);
-    mkdir($dir_path);
-    
-    $filenames = [];
-    foreach($ret as $tipo => $arreglo){
-      $header = [];
-            
-      foreach($arreglo as $v){
-        $header = array_keys($v);
-        break;
-      }
-      
-      $lineas = [];
-      foreach($arreglo as $vidx => $v){
-        $lineas[] = array_values($v);
-      }
-      
-      $fname = $dir_path."/{$tipo}";
-      AUX::csvstr($header,$lineas,$fname);      
-      $filenames[] = $fname;
-    }
-    
-    $año_mes = $ret['canon'][0]['año_mes'];
-    $casino  = $ret['canon'][0]['casino'];
-    $outfile = "Canon-$año_mes-$casino.xlsx";
-    $abs_outfile = storage_path($outfile);
-    
-    $log_file = storage_path(uniqid().'.log');
-    $err_file = storage_path(uniqid().'.err');
-    
-    //Uso {$dir_path}/* para evitar tener que escapar espacios y cosas asi
-    $cmd = 'python3 '.escapeshellarg(base_path('xlsxmaker.py')).' '.escapeshellarg($abs_outfile).' '.escapeshellarg($dir_path).'/* > '.escapeshellarg($log_file).' 2> '.escapeshellarg($err_file);
-    exec($cmd);
-    $rmdir($dir_path);
-    
-    if(is_file($abs_outfile) === false){
-      echo '<p>','ERROR','</p>';
-      echo '<p>',$cmd,'</p>';
-      echo '<p>',"====================================",'</p>';
-      echo '<p>',htmlspecialchars($log_file),'</p>';
-      echo '<p>',htmlspecialchars(file_get_contents($log_file)),'</p>';
-      echo '<p>',"====================================",'</p>';
-      echo '<p>',htmlspecialchars($err_file),'</p>';
-      echo '<p>',htmlspecialchars(file_get_contents($err_file)),'</p>';          
-      unlink($log_file);
-      unlink($err_file);
-      return;
-    }
-    
-    unlink($log_file);
-    unlink($err_file);
-    return response()->download($abs_outfile)->deleteFileAfterSend(true);
-  }
-  
   public function planillaPDF(Request $request){
     $datos = $this->obtener_para_salida($request->id_canon);
     $view = View::make('Canon.planillaSimple', compact('datos'));

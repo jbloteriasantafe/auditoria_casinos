@@ -185,9 +185,6 @@
           <a href="/canon/planillaPDF" target="_blank" title="REPORTE">Valores</a>
           <a href="/canon/planillaDevengado" target="_blank" title="IMPRIMIR DEVENGADO">Devengado</a>
           <a href="/canon/planillaDeterminado"  target="_blank" title="IMPRIMIR DETERMINADO">Determinado</a>
-          @if($es_superusuario)
-          <a href="/canon/planilla" target="_blank" title="DESCARGAR XLSX">.xlsx</a>
-          @endif
         </div>
         <span style="color: blue;font-family: monospace, monospace;font-weight: bold;font-size: 0.8em;padding-right: 0.1em;">
           <sup data-css-version-visible="diario">&nbsp;&nbsp;&nbsp;</sup>

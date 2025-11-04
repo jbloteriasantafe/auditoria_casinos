@@ -1013,7 +1013,6 @@ Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_c
   Route::post('/descargar','\App\Http\Controllers\Canon\CanonController@descargar');
   Route::get('/descargarPlanillas','\App\Http\Controllers\Canon\CanonController@descargarPlanillas');
   Route::get('/obtener','\App\Http\Controllers\Canon\CanonController@obtener');
-  Route::get('/planilla','\App\Http\Controllers\Canon\CanonController@planilla');
   Route::get('/planillaPDF','\App\Http\Controllers\Canon\CanonController@planillaPDF');
   Route::get('/planillaDevengado','\App\Http\Controllers\Canon\CanonController@planillaDevengado');
   Route::get('/planillaDeterminado','\App\Http\Controllers\Canon\CanonController@planillaDeterminado');
