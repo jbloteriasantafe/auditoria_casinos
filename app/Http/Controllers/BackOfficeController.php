@@ -666,9 +666,8 @@ class BackOfficeController extends Controller {
       case 'integer':
         return intval($val);
       case 'numeric':
-        return Canon\CanonController::formatear_decimal($val);
       case 'numeric3d':
-        return Canon\CanonController::formatear_decimal($val);
+        return Canon\AUX::formatear_decimal($val);
     }
     return $val;
   }
