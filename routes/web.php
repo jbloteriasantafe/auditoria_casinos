@@ -809,6 +809,320 @@ Route::group(['prefix' => 'aperturas','middleware' => 'tiene_permiso:m_buscar_ap
   Route::get('descargarZip/{nombre}', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@descargarZip');
 });
 
+//Sección documentación Contable
+Route::group(['prefix' => 'documentosContables','middleware' => 'tiene_permiso:ver_documentos_contables'], function () {
+  Route::get('/','documentosContablesController@index');
+  Route::get('visualizarArchivo/{registro}/{id_archivo}','documentosContablesController@visualizarArchivo');
+  Route::get('eliminarArchivo','documentosContablesController@eliminarArchivo');
+//IVA
+  Route::post('guardarIva','documentosContablesController@guardarIva');
+  Route::post('actualizarIva/{id}','documentosContablesController@actualizarIva');
+  Route::get('ultimasIva', 'documentosContablesController@ultimasIva');
+  Route::get('llenarIva/{id}','documentosContablesController@llenarIva');
+  Route::get('eliminarIva/{id}', 'documentosContablesController@eliminarIva');
+  Route::get('descargarIvaXlsx','documentosContablesController@descargarIvaExcel');
+  Route::get('descargarIvaXlsxTodos','documentosContablesController@descargarIvaExcelTodos');
+  Route::get('descargarIvaCsv','documentosContablesController@descargarIvaCsv');
+  Route::get('archivosIva/{id}','documentosContablesController@archivosIva');
+//IIBB
+  Route::post('guardariibb','documentosContablesController@guardariibb');
+  Route::post('actualizariibb/{id}','documentosContablesController@actualizariibb');
+  Route::get('ultimasiibb','documentosContablesController@ultimasiibb');
+  Route::get('eliminariibb/{id}','documentosContablesController@eliminariibb');
+  Route::get('llenariibb/{id}','documentosContablesController@llenariibb');
+  Route::get('llenariibbEdit/{id}','documentosContablesController@llenariibbEdit');
+  Route::get('ultimasAlicuotasiibb','documentosContablesController@ultimasAlicuotasiibb');
+  Route::get('descargariibbXlsx','documentosContablesController@descargariibbXlsx');
+  Route::get('descargariibbXlsxTodos','documentosContablesController@descargariibbXlsxTodos');
+  Route::get('descargariibbCsvRegistros','documentosContablesController@descargariibbCsvRegistros');
+  Route::get('descargariibbCsvActividades','documentosContablesController@descargariibbCsvActividades');
+  Route::get('archivosiibb/{id}','documentosContablesController@archivosiibb');
+//DReI
+  Route::post('guardarDREI','documentosContablesController@guardarDREI');
+  Route::get('ultimasDREI','documentosContablesController@ultimasDREI');
+  Route::get('eliminarDREI/{id}', 'documentosContablesController@eliminarDREI');
+  Route::get('llenarDREI/{id}','documentosContablesController@llenarDREI');
+  Route::get('llenarDREIEdit/{id}','documentosContablesController@llenarDREIEdit');
+  Route::post('actualizarDREI/{id}','documentosContablesController@actualizarDREI');
+  Route::get('archivosDREI/{id}','documentosContablesController@archivosDREI');
+  Route::get('descargarDREICsv','documentosContablesController@descargarDREICsv');
+  Route::get('descargarDREIXlsx','documentosContablesController@descargarDREIXlsx');
+  Route::get('descargarDREIXlsxTodos','documentosContablesController@descargarDREIXlsxTodos');
+//TGI
+  Route::post('guardarRegistroTGI_partida','documentosContablesController@guardarRegistroTGI_partida');
+  Route::post('modificarTGI_partida', 'documentosContablesController@modificarTGI_partida');
+  Route::get('TGIEliminarPartida/{id}','documentosContablesController@EliminarTGI_partida');
+  Route::get('getTGI_partida','documentosContablesController@getTGI_partida');
+  Route::get('getTGI_partidaPorCasino','documentosContablesController@getTGI_partidaPorCasino');
+  Route::post('guardarTGI','documentosContablesController@guardarTGI');
+  Route::post('actualizarTGI/{id}','documentosContablesController@actualizarTGI');
+  Route::get('archivosTGI/{id}','documentosContablesController@archivosTGI');
+  Route::get('llenarTGIEdit/{id}','documentosContablesController@llenarTGIEdit');
+  Route::get('archivosTGI/{id}','documentosContablesController@archivosTGI');
+  Route::get('ultimasTGI', 'documentosContablesController@ultimasTGI');
+  Route::get('eliminarTGI/{id}','documentosContablesController@eliminarTGI');
+  Route::get('llenarTGI/{id}','documentosContablesController@llenarTGI');
+  Route::get('descargarTGICsv','documentosContablesController@descargarTGICsv');
+  Route::get('descargarTGIXlsx','documentosContablesController@descargarTGIXlsx');
+  Route::get('descargarTGIXlsxTodos','documentosContablesController@descargarTGIXlsxTodos');
+//IMPUESTO A APUESTAS ONLINE IMP_AP_OL
+  Route::post('guardarIMP_AP_OL','documentosContablesController@guardarIMP_AP_OL');
+  Route::get('ultimasIMP_AP_OL', 'documentosContablesController@ultimasIMP_AP_OL');
+  Route::get('eliminarIMP_AP_OL/{id}','documentosContablesController@eliminarIMP_AP_OL');
+  Route::post('actualizarIMP_AP_OL/{id}','documentosContablesController@actualizarIMP_AP_OL');
+  Route::get('archivosIMP_AP_OL/{id}','documentosContablesController@archivosIMP_AP_OL');
+  Route::get('llenarIMP_AP_OLEdit/{id}','documentosContablesController@llenarIMP_AP_OLEdit');
+  Route::get('llenarIMP_AP_OL/{id}','documentosContablesController@llenarIMP_AP_OL');
+  Route::get('descargarIMP_AP_OLXlsx','documentosContablesController@descargarIMP_AP_OLXlsx');
+  Route::get('descargarIMP_AP_OLXlsxTodos','documentosContablesController@descargarIMP_AP_OLXlsxTodos');
+  Route::get('descargarIMP_AP_OLCsv','documentosContablesController@descargarIMP_AP_OLCsv');
+//IMPUESTO A APUESTAS MTM IMP_AP_MTM
+  Route::post('guardarIMP_AP_MTM','documentosContablesController@guardarIMP_AP_MTM');
+  Route::get('ultimasIMP_AP_MTM', 'documentosContablesController@ultimasIMP_AP_MTM');
+  Route::get('eliminarIMP_AP_MTM/{id}','documentosContablesController@eliminarIMP_AP_MTM');
+  Route::post('actualizarIMP_AP_MTM/{id}','documentosContablesController@actualizarIMP_AP_MTM');
+  Route::get('archivosIMP_AP_MTM/{id}','documentosContablesController@archivosIMP_AP_MTM');
+  Route::get('llenarIMP_AP_MTMEdit/{id}','documentosContablesController@llenarIMP_AP_MTMEdit');
+  Route::get('llenarIMP_AP_MTM/{id}','documentosContablesController@llenarIMP_AP_MTM');
+  Route::get('descargarIMP_AP_MTMXlsx','documentosContablesController@descargarIMP_AP_MTMXlsx');
+  Route::get('descargarIMP_AP_MTMXlsxTodos','documentosContablesController@descargarIMP_AP_MTMXlsxTodos');
+  Route::get('descargarIMP_AP_MTMCsv','documentosContablesController@descargarIMP_AP_MTMCsv');
+//DEUDA CONSOLIDADA CON EL Estado
+  Route::post('guardarDeudaEstado','documentosContablesController@guardarDeudaEstado');
+  Route::get('ultimasDeudaEstado', 'documentosContablesController@ultimasDeudaEstado');
+  Route::get('eliminarDeudaEstado/{id}','documentosContablesController@eliminarDeudaEstado');
+  Route::get('llenarDeudaEstado/{id}','documentosContablesController@llenarDeudaEstado');
+  Route::post('actualizarDeudaEstado/{id}','documentosContablesController@actualizarDeudaEstado');
+  Route::get('archivosDeudaEstado/{id}','documentosContablesController@archivosDeudaEstado');
+  Route::get('llenarDeudaEstadoEdit/{id}','documentosContablesController@llenarDeudaEstadoEdit');
+  Route::get('descargarDeudaEstadoXlsx','documentosContablesController@descargarDeudaEstadoXlsx');
+  Route::get('descargarDeudaEstadoXlsxTodos','documentosContablesController@descargarDeudaEstadoXlsxTodos');
+  Route::get('descargarDeudaEstadoCsv','documentosContablesController@descargarDeudaEstadoCsv');
+// PAGOS MAYORES MESAS DE PAÑO
+  Route::post('guardarPagosMayoresMesas','documentosContablesController@guardarPagosMayoresMesas');
+  Route::get('ultimasPagosMayoresMesas', 'documentosContablesController@ultimasPagosMayoresMesas');
+  Route::get('eliminarPagosMayoresMesas/{id}','documentosContablesController@eliminarPagosMayoresMesas');
+  Route::get('llenarPagosMayoresMesas/{id}','documentosContablesController@llenarPagosMayoresMesas');
+  Route::post('actualizarPagosMayoresMesas/{id}','documentosContablesController@actualizarPagosMayoresMesas');
+Route::get('archivosPagosMayoresMesas/{id}','documentosContablesController@archivosPagosMayoresMesas');
+Route::get('llenarPagosMayoresMesasEdit/{id}','documentosContablesController@llenarPagosMayoresMesasEdit');
+  Route::get('descargarPagosMayoresMesasXlsx','documentosContablesController@descargarPagosMayoresMesasXlsx');
+  Route::get('descargarPagosMayoresMesasXlsxTodos','documentosContablesController@descargarPagosMayoresMesasXlsxTodos');
+  Route::get('descargarPagosMayoresMesasCsv','documentosContablesController@descargarPagosMayoresMesasCsv');
+//REPORTE DE OPERACIONES Y LAVADO DE ACTIVOS
+  Route::post('guardarReporteYLavado','documentosContablesController@guardarReporteYLavado');
+  Route::get('ultimasReporteYLavado', 'documentosContablesController@ultimasReporteYLavado');
+  Route::get('eliminarReporteYLavado/{id}','documentosContablesController@eliminarReporteYLavado');
+  Route::get('llenarReporteYLavado/{id}','documentosContablesController@llenarReporteYLavado');
+  Route::post('actualizarReporteYLavado/{id}','documentosContablesController@actualizarReporteYLavado');
+  Route::get('archivosReporteYLavado/{id}','documentosContablesController@archivosReporteYLavado');
+  Route::get('llenarReporteYLavadoEdit/{id}','documentosContablesController@llenarReporteYLavadoEdit');
+
+  Route::get('descargarReporteYLavadoXlsx','documentosContablesController@descargarReporteYLavadoXlsx');
+  Route::get('descargarReporteYLavadoXlsxTodos','documentosContablesController@descargarReporteYLavadoXlsxTodos');
+  Route::get('descargarReporteYLavadoCsv','documentosContablesController@descargarReporteYLavadoCsv');
+//REGISTROS CONTABLES
+  Route::post('guardarRegistrosContables','documentosContablesController@guardarRegistrosContables');
+  Route::get('ultimasRegistrosContables', 'documentosContablesController@ultimasRegistrosContables');
+  Route::get('eliminarRegistrosContables/{id}','documentosContablesController@eliminarRegistrosContables');
+  Route::get('llenarRegistrosContables/{id}','documentosContablesController@llenarRegistrosContables');
+  Route::get('descargarRegistrosContablesXlsx','documentosContablesController@descargarRegistrosContablesXlsx');
+
+  Route::post('actualizarRegistrosContables/{id}','documentosContablesController@actualizarRegistrosContables');
+  Route::get('archivosRegistrosContables/{id}','documentosContablesController@archivosRegistrosContables');
+  Route::get('llenarRegistrosContablesEdit/{id}','documentosContablesController@llenarRegistrosContablesEdit');
+  Route::get('descargarRegistrosContablesXlsxTodos','documentosContablesController@descargarRegistrosContablesXlsxTodos');
+  Route::get('descargarRegistrosContablesCsv','documentosContablesController@descargarRegistrosContablesCsv');
+//APORTES PATRONALES
+  Route::post('guardarAportesPatronales','documentosContablesController@guardarAportesPatronales');
+  Route::get('ultimasAportesPatronales', 'documentosContablesController@ultimasAportesPatronales');
+  Route::get('eliminarAportesPatronales/{id}','documentosContablesController@eliminarAportesPatronales');
+  Route::get('llenarAportesPatronales/{id}','documentosContablesController@llenarAportesPatronales');
+
+  Route::post('actualizarAportesPatronales/{id}','documentosContablesController@actualizarAportesPatronales');
+  Route::get('archivosAportesPatronales/{id}','documentosContablesController@archivosAportesPatronales');
+  Route::get('llenarAportesPatronalesEdit/{id}','documentosContablesController@llenarAportesPatronalesEdit');
+  Route::get('descargarAportesPatronalesXlsx','documentosContablesController@descargarAportesPatronalesXlsx');
+  Route::get('descargarAportesPatronalesXlsxTodos','documentosContablesController@descargarAportesPatronalesXlsxTodos');
+  Route::get('descargarAportesPatronalesCsv','documentosContablesController@descargarAportesPatronalesCsv');
+//PROMO TICKETS
+  Route::post('guardarPromoTickets','documentosContablesController@guardarPromoTickets');
+  Route::get('ultimasPromoTickets', 'documentosContablesController@ultimasPromoTickets');
+  Route::get('eliminarPromoTickets/{id}','documentosContablesController@eliminarPromoTickets');
+  Route::get('llenarPromoTickets/{id}','documentosContablesController@llenarPromoTickets');
+  Route::post('actualizarPromoTickets/{id}','documentosContablesController@actualizarPromoTickets');
+  Route::get('archivosPromoTickets/{id}','documentosContablesController@archivosPromoTickets');
+  Route::get('llenarPromoTicketsEdit/{id}','documentosContablesController@llenarPromoTicketsEdit');
+  Route::get('descargarPromoTicketsXlsx','documentosContablesController@descargarPromoTicketsXlsx');
+  Route::get('descargarPromoTicketsXlsxTodos','documentosContablesController@descargarPromoTicketsXlsxTodos');
+  Route::get('descargarPromoTicketsCsv','documentosContablesController@descargarPromoTicketsCsv');
+//POZOS ACUMULADOS LINKEADOS E INDIVIDUALES
+  Route::post('guardarPozosAcumuladosLinkeados','documentosContablesController@guardarPozosAcumuladosLinkeados');
+  Route::get('ultimasPozosAcumuladosLinkeados', 'documentosContablesController@ultimasPozosAcumuladosLinkeados');
+  Route::get('eliminarPozosAcumuladosLinkeados/{id}','documentosContablesController@eliminarPozosAcumuladosLinkeados');
+  Route::get('llenarPozosAcumuladosLinkeados/{id}','documentosContablesController@llenarPozosAcumuladosLinkeados');
+  Route::post('actualizarPozosAcumuladosLinkeados/{id}','documentosContablesController@actualizarPozosAcumuladosLinkeados');
+  Route::get('archivosPozosAcumuladosLinkeados/{id}','documentosContablesController@archivosPozosAcumuladosLinkeados');
+  Route::get('llenarPozosAcumuladosLinkeadosEdit/{id}','documentosContablesController@llenarPozosAcumuladosLinkeadosEdit');
+  Route::get('descargarPozosAcumuladosLinkeadosXlsx','documentosContablesController@descargarPozosAcumuladosLinkeadosXlsx');
+  Route::get('descargarPozosAcumuladosLinkeadosXlsxTodos','documentosContablesController@descargarPozosAcumuladosLinkeadosXlsxTodos');
+  Route::get('descargarPozosAcumuladosLinkeadosCsv','documentosContablesController@descargarPozosAcumuladosLinkeadosCsv');
+//CONTRIBUCION ENTE TURISTICO
+  Route::post('guardarContribEnteTuristico','documentosContablesController@guardarContribEnteTuristico');
+  Route::get('ultimasContribEnteTuristico', 'documentosContablesController@ultimasContribEnteTuristico');
+  Route::get('eliminarContribEnteTuristico/{id}','documentosContablesController@eliminarContribEnteTuristico');
+  Route::get('llenarContribEnteTuristico/{id}','documentosContablesController@llenarContribEnteTuristico');
+  Route::post('actualizarContribEnteTuristico/{id}','documentosContablesController@actualizarContribEnteTuristico');
+  Route::get('archivosContribEnteTuristico/{id}','documentosContablesController@archivosContribEnteTuristico');
+  Route::get('llenarContribEnteTuristicoEdit/{id}','documentosContablesController@llenarContribEnteTuristicoEdit');
+  Route::get('descargarContribEnteTuristicoXlsx','documentosContablesController@descargarContribEnteTuristicoXlsx');
+  Route::get('descargarContribEnteTuristicoXlsxTodos','documentosContablesController@descargarContribEnteTuristicoXlsxTodos');
+  Route::get('descargarContribEnteTuristicoCsv','documentosContablesController@descargarContribEnteTuristicoCsv');
+//RRHH
+  Route::post('guardarRRHH','documentosContablesController@guardarRRHH');
+  Route::get('ultimasRRHH', 'documentosContablesController@ultimasRRHH');
+  Route::post('actualizarRRHH/{id}','documentosContablesController@actualizarRRHH');
+  Route::get('archivosRRHH/{id}','documentosContablesController@archivosRRHH');
+  Route::get('llenarRRHHEdit/{id}','documentosContablesController@llenarRRHHEdit');
+  Route::get('ultimosPersonalRRHH/{id}','documentosContablesController@ultimosPersonalInicioRRHH');
+  Route::get('eliminarRRHH/{id}','documentosContablesController@eliminarRRHH');
+  Route::get('llenarRRHH/{id}','documentosContablesController@llenarRRHH');
+  Route::get('descargarRRHHXlsx','documentosContablesController@descargarRRHHXlsx');
+  Route::get('descargarRRHHXlsxTodos','documentosContablesController@descargarRRHHXlsxTodos');
+  Route::get('descargarRRHHCsv','documentosContablesController@descargarRRHHCsv');
+//GANANCIAS
+  Route::post('guardarGanancias','documentosContablesController@guardarGanancias');
+  Route::post('guardarGanancias_periodo','documentosContablesController@guardarGanancias_periodo');
+  Route::get('ultimasGanancias', 'documentosContablesController@ultimasGanancias');
+  Route::get('ultimasGanancias_periodo', 'documentosContablesController@ultimasGanancias_periodo');
+  Route::get('eliminarGanancias/{id}','documentosContablesController@eliminarGanancias');
+  Route::get('eliminarGanancias_periodo/{id}','documentosContablesController@eliminarGanancias_periodo');
+  Route::get('llenarGanancias/{id}','documentosContablesController@llenarGanancias');
+  Route::get('llenarGanancias_periodo/{id}','documentosContablesController@llenarGanancias_periodo');
+  Route::post('actualizarGanancias/{id}','documentosContablesController@actualizarGanancias');
+  Route::get('archivosGanancias/{id}','documentosContablesController@archivosGanancias');
+  Route::get('llenarGananciasEdit/{id}','documentosContablesController@llenarGananciasEdit');
+  Route::post('actualizarGanancias_periodo/{id}','documentosContablesController@actualizarGanancias_periodo');
+  Route::get('archivosGanancias_periodo/{id}','documentosContablesController@archivosGanancias_periodo');
+  Route::get('llenarGanancias_periodoEdit/{id}','documentosContablesController@llenarGanancias_periodoEdit');
+  Route::get('descargarGananciasXlsx','documentosContablesController@descargarGananciasXlsx');
+  Route::get('descargarGananciasXlsxTodos','documentosContablesController@descargarGananciasXlsxTodos');
+  Route::get('descargarGananciasCsvAnticipos','documentosContablesController@descargarGananciasCsvAnticipos');
+  Route::get('descargarGananciasCsvPeriodos','documentosContablesController@descargarGananciasCsvPeriodos');
+//JACKPOTS PAGADOS
+  Route::post('guardarJackpotsPagados','documentosContablesController@guardarJackpotsPagados');
+  Route::get('ultimasJackpotsPagados', 'documentosContablesController@ultimasJackpotsPagados');
+  Route::get('eliminarJackpotsPagados/{id}','documentosContablesController@eliminarJackpotsPagados');
+  Route::get('llenarJackpotsPagados/{id}','documentosContablesController@llenarJackpotsPagados');
+  Route::post('actualizarJackpotsPagados/{id}','documentosContablesController@actualizarJackpotsPagados');
+  Route::get('archivosJackpotsPagados/{id}','documentosContablesController@archivosJackpotsPagados');
+  Route::get('llenarJackpotsPagadosEdit/{id}','documentosContablesController@llenarJackpotsPagadosEdit');
+  Route::get('descargarJackpotsPagadosXlsx','documentosContablesController@descargarJackpotsPagadosXlsx');
+  Route::get('descargarJackpotsPagadosXlsxTodos','documentosContablesController@descargarJackpotsPagadosXlsxTodos');
+  Route::get('descargarJackpotsPagadosCsv','documentosContablesController@descargarJackpotsPagadosCsv');
+//PREMIOS PAGADOS
+  Route::post('guardarPremiosPagados','documentosContablesController@guardarPremiosPagados');
+  Route::get('ultimasPremiosPagados', 'documentosContablesController@ultimasPremiosPagados');
+  Route::get('eliminarPremiosPagados/{id}','documentosContablesController@eliminarPremiosPagados');
+  Route::get('llenarPremiosPagados/{id}','documentosContablesController@llenarPremiosPagados');
+  Route::post('actualizarPremiosPagados/{id}','documentosContablesController@actualizarPremiosPagados');
+  Route::get('archivosPremiosPagados/{id}','documentosContablesController@archivosPremiosPagados');
+  Route::get('llenarPremiosPagadosEdit/{id}','documentosContablesController@llenarPremiosPagadosEdit');
+  Route::get('descargarPremiosPagadosXlsx','documentosContablesController@descargarPremiosPagadosXlsx');
+  Route::get('descargarPremiosPagadosXlsxTodos','documentosContablesController@descargarPremiosPagadosXlsxTodos');
+  Route::get('descargarPremiosPagadosCsv','documentosContablesController@descargarPremiosPagadosCsv');
+//PREMIOSMTM
+  Route::post('guardarPremiosMTM','documentosContablesController@guardarPremiosMTM');
+  Route::get('ultimasPremiosMTM', 'documentosContablesController@ultimasPremiosMTM');
+  Route::get('eliminarPremiosMTM/{id}','documentosContablesController@eliminarPremiosMTM');
+  Route::get('llenarPremiosMTM/{id}','documentosContablesController@llenarPremiosMTM');
+  Route::post('actualizarPremiosMTM/{id}','documentosContablesController@actualizarPremiosMTM');
+  Route::get('archivosPremiosMTM/{id}','documentosContablesController@archivosPremiosMTM');
+  Route::get('llenarPremiosMTMEdit/{id}','documentosContablesController@llenarPremiosMTMEdit');
+  Route::get('descargarPremiosMTMXlsx','documentosContablesController@descargarPremiosMTMXlsx');
+  Route::get('descargarPremiosMTMXlsxTodos','documentosContablesController@descargarPremiosMTMXlsxTodos');
+  Route::get('descargarPremiosMTMCsv','documentosContablesController@descargarPremiosMTMCsv');
+//Aut. DIRECTORES
+  Route::post('guardarAutDirectores_director','documentosContablesController@guardarAutDirectores_director');
+  Route::post('guardarAutDirectores_autorizacion','documentosContablesController@guardarAutDirectores_autorizacion');
+  Route::get('AutDirectoresHabilitarDirector/{id}', 'documentosContablesController@AutDirectoresHabilitarDirector');
+  Route::get('AutDirectoresEliminarDirector/{id}','documentosContablesController@AutDirectoresEliminarDirector');
+  Route::get('AutDirectoresHabilitadosPorCasino/{casinoId}','documentosContablesController@AutDirectoresHabilitadosPorCasino');
+  Route::get('getAutDirectores','documentosContablesController@getAutDirectores');
+  Route::get('ultimasAutDirectores', 'documentosContablesController@ultimasAutDirectores');
+  Route::post('actualizarAutDirectores/{id}','documentosContablesController@actualizarAutDirectores');
+  Route::post('actualizarAutDirectores_director/{id}','documentosContablesController@actualizarAutDirectores_director');
+  Route::get('archivosAutDirectores/{id}','documentosContablesController@archivosAutDirectores');
+  Route::get('llenarAutDirectoresEdit/{id}','documentosContablesController@llenarAutDirectoresEdit');
+  Route::get('llenarAutDirectores_directorEdit/{id}','documentosContablesController@llenarAutDirectores_directorEdit');
+  Route::get('eliminarAutDirectores/{id}','documentosContablesController@eliminarAutDirectores');
+  Route::get('llenarAutDirectores/{id}','documentosContablesController@llenarAutDirectores');
+  Route::get('descargarAutDirectoresXlsx','documentosContablesController@descargarAutDirectoresXlsx');
+  Route::get('descargarAutDirectoresXlsxTodos','documentosContablesController@descargarAutDirectoresXlsxTodos');
+  Route::get('descargarAutDirectoresCsv','documentosContablesController@descargarAutDirectoresCsv');
+// SEGUROS
+  Route::post('guardarSeguros_tipo','documentosContablesController@guardarSeguros_tipo');
+  Route::post('guardarSeguros','documentosContablesController@guardarSeguros');
+  Route::post('modificarSeguros_tipo', 'documentosContablesController@modificarSeguros_tipo');
+  Route::get('estadoSeguros/{id}','documentosContablesController@estadoSeguros');
+  Route::get('SegurosEliminarTipo/{id}','documentosContablesController@SegurosEliminarTipo');
+  Route::get('getSeguros_tipo','documentosContablesController@getSeguros_tipo');
+  Route::post('actualizarSeguros/{id}','documentosContablesController@actualizarSeguros');
+ Route::get('archivosSeguros/{id}','documentosContablesController@archivosSeguros');
+ Route::get('llenarSegurosEdit/{id}','documentosContablesController@llenarSegurosEdit');
+  Route::get('ultimasSeguros', 'documentosContablesController@ultimasSeguros');
+  Route::get('eliminarSeguros/{id}','documentosContablesController@eliminarSeguros');
+  Route::get('llenarSeguros/{id}','documentosContablesController@llenarSeguros');
+  Route::get('descargarSegurosXlsx','documentosContablesController@descargarSegurosXlsx');
+  Route::get('descargarSegurosXlsxTodos','documentosContablesController@descargarSegurosXlsxTodos');
+  Route::get('descargarSegurosCsv','documentosContablesController@descargarSegurosCsv');
+// DERECHO DE ACCESO
+  Route::post('guardarDerechoAcceso','documentosContablesController@guardarDerechoAcceso');
+  Route::get('ultimasDerechoAcceso', 'documentosContablesController@ultimasDerechoAcceso');
+  Route::get('eliminarDerechoAcceso/{id}','documentosContablesController@eliminarDerechoAcceso');
+  Route::get('llenarDerechoAcceso/{id}','documentosContablesController@llenarDerechoAcceso');
+  Route::post('actualizarDerechoAcceso/{id}','documentosContablesController@actualizarDerechoAcceso');
+  Route::get('archivosDerechoAcceso/{id}','documentosContablesController@archivosDerechoAcceso');
+  Route::get('llenarDerechoAccesoEdit/{id}','documentosContablesController@llenarDerechoAccesoEdit');
+  Route::get('descargarDerechoAccesoXlsx','documentosContablesController@descargarDerechoAccesoXlsx');
+  Route::get('descargarDerechoAccesoXlsxTodos','documentosContablesController@descargarDerechoAccesoXlsxTodos');
+  Route::get('descargarDerechoAccesoCsv','documentosContablesController@descargarDerechoAccesoCsv');
+// PATENTES
+  Route::post('guardarRegistroPatentes_patenteDe','documentosContablesController@guardarRegistroPatentes_patenteDe');
+  Route::post('guardarPatentes','documentosContablesController@guardarPatentes');
+  Route::post('modificarPatentes_patenteDe', 'documentosContablesController@modificarPatentes_patenteDe');
+  Route::get('PatentesEliminarpatenteDe/{id}','documentosContablesController@EliminarPatentes_patenteDe');
+  Route::get('getPatentes_patenteDe','documentosContablesController@getPatentes_patenteDe');
+  Route::get('getPatentes_patenteDeHabilitadosPorCasino/{id}','documentosContablesController@getPatentes_patenteDeHabilitadosPorCasino');
+  Route::post('actualizarPatentes/{id}','documentosContablesController@actualizarPatentes');
+  Route::get('archivosPatentes/{id}','documentosContablesController@archivosPatentes');
+  Route::get('llenarPatentesEdit/{id}','documentosContablesController@llenarPatentesEdit');
+  Route::get('ultimasPatentes', 'documentosContablesController@ultimasPatentes');
+  Route::get('eliminarPatentes/{id}','documentosContablesController@eliminarPatentes');
+  Route::get('llenarPatentes/{id}','documentosContablesController@llenarPatentes');
+  Route::get('descargarPatentesXlsx','documentosContablesController@descargarPatentesXlsx');
+  Route::get('descargarPatentesXlsxTodos','documentosContablesController@descargarPatentesXlsxTodos');
+  Route::get('descargarPatentesCsv','documentosContablesController@descargarPatentesCsv');
+// IMPUESTO INMOBILIARIO
+  Route::post('guardarRegistroImpInmobiliario_partida','documentosContablesController@guardarRegistroImpInmobiliario_partida');
+  Route::post('modificarImpInmobiliario_partida', 'documentosContablesController@modificarImpInmobiliario_partida');
+  Route::get('ImpInmobiliarioEliminarPartida/{id}','documentosContablesController@EliminarImpInmobiliario_partida');
+  Route::get('getImpInmobiliario_partida','documentosContablesController@getImpInmobiliario_partida');
+  Route::get('getImpInmobiliario_partidaPorCasino','documentosContablesController@getImpInmobiliario_partidaPorCasino');
+  Route::post('guardarImpInmobiliario','documentosContablesController@guardarImpInmobiliario');
+  Route::post('actualizarImpInmobiliario/{id}','documentosContablesController@actualizarImpInmobiliario');
+  Route::get('archivosImpInmobiliario/{id}','documentosContablesController@archivosImpInmobiliario');
+  Route::get('llenarImpInmobiliarioEdit/{id}','documentosContablesController@llenarImpInmobiliarioEdit');
+  Route::get('ultimasImpInmobiliario', 'documentosContablesController@ultimasImpInmobiliario');
+  Route::get('eliminarImpInmobiliario/{id}','documentosContablesController@eliminarImpInmobiliario');
+  Route::get('llenarImpInmobiliario/{id}','documentosContablesController@llenarImpInmobiliario');
+  Route::get('descargarImpInmobiliarioXlsx','documentosContablesController@descargarImpInmobiliarioXlsx');
+  Route::get('descargarImpInmobiliarioCsv','documentosContablesController@descargarImpInmobiliarioCsv');
+  Route::get('descargarImpInmobiliarioXlsx','documentosContablesController@descargarImpInmobiliarioXlsx');
+  Route::get('descargarImpInmobiliarioXlsxTodos','documentosContablesController@descargarImpInmobiliarioXlsxTodos');
+
+});
+
 //Sección Juegos
 Route::group(['prefix' => 'mesas-juegos','middleware' => 'tiene_permiso:m_gestionar_juegos_mesas'], function () {
   Route::get('/', 'Mesas\Juegos\BuscarJuegoController@buscarTodo');
