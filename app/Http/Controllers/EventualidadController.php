@@ -549,7 +549,7 @@ class EventualidadController extends Controller
         foreach ($usuarios as $user) {
             $u = Usuario::find($user->id_usuario);
             if ($u != null) {
-                $u->notify(new NuevaIntervencionTecnica($evento));
+                //$u->notify(new NuevaIntervencionTecnica($evento));
             }
         }
 

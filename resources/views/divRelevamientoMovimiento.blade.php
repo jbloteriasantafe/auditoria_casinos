@@ -1,13 +1,13 @@
 <?php
 use App\Http\Controllers\UsuarioController;
 use App\DetalleRelevamientoProgresivo;
-$divRelMov_ucontrol = UsuarioController::getInstancia(); 
+$divRelMov_ucontrol = UsuarioController::getInstancia();
 $divRelMov_user = $divRelMov_ucontrol->quienSoy()['usuario'];
 $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
 ?>
 
 <div id="divRelMov">
-<div class="row"> 
+<div class="row">
     <div class="col-md-3">
         <h5 class="row">Tipo Movimiento</h5>
         <input class="row form-control tipoMov" type="text" autocomplete="off" readonly="">
@@ -83,8 +83,8 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
                     <h5>N° Serie</h5>
                     <input type="text" class="form-control nro_serie" readonly="readonly">
                 </div>
-            </div> 
-            <div class="row"> 
+            </div>
+            <div class="row">
                 <div class="col-lg-6">
                     <h5>Marca</h5>
                     <input type="text" class="form-control marca" readonly="readonly">
@@ -120,10 +120,10 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
                         <tbody>
                         </tbody>
                     </table>
-                </div> 
+                </div>
             </div>
             <h6>TOMA</h6>
-            <div class="row"> 
+            <div class="row">
                 <div class="col-lg-4">
                     <h5>JUEGO</h5>
                     <select class="form-control editable juego">
@@ -247,6 +247,34 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
     </div> <!-- fin detalle -->
 </div>
 </div>
+<div class="modal fade" id="modalDivRelCambios" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                  <h3 class="modal-titleEliminar">ADVERTENCIA</h3>
+                </div>
+
+                <div class="modal-body franjaRojaModal">
+                  <form id="frmEliminar" name="frmCasino" class="form-horizontal" novalidate="">
+                      <div class="form-group error ">
+                        <div class="col-xs-12">
+                            <strong id="titulo-modal-eliminar">Diferencias detectadas desde su egreso</strong>
+
+                            <ul id="listaCambios" class="list-unstyled"></ul>
+                        </div>
+                      </div>
+                  </form>
+                </div>
+
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                  <button type="button" class="btn btn-caution" id="btnConfirmarCambios">Guardar de todos modos</button>
+                </div>
+            </div>
+          </div>
+</div>
+
 <!-- Lo incluyo porque el script lo usa -->
 <script src="js/utils.js" type="text/javascript"></script>
 <script>

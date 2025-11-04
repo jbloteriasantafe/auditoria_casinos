@@ -102,7 +102,7 @@ class CalendarioController extends Controller
     $usuarios = UsuarioController::getInstancia()->obtenerUsuariosRol($request->id_casino, $request->id_rol);
     foreach ($usuarios as $user){
       $u = Usuario::find($user->id_usuario);
-      $u->notify(new CalendarioEvento($evento));
+      //$u->notify(new CalendarioEvento($evento));
     }
 
     return ['evento' => $evento,'tipo' => TipoEvento::find($request->id_tipo_evento)];

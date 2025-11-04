@@ -101,11 +101,11 @@ $(document).on('click','#btn-impr',function(e){
   const formData = {
     sentido: $('#sentidoMov').val(),
     id_casino: $('#casinoNuevaEvMTM').val(),
-    tipos_movimiento: 
+    tipos_movimiento:
       $('#listaTipoMovs .tipo_mov_lista').map(function(){
         return $(this).attr('data-id');
       }).toArray(),
-    maquinas: 
+    maquinas:
       $('#tablaMTM tbody > tr').map(function(){
         return $(this).attr('id');
       }).toArray(),
@@ -191,6 +191,9 @@ $(document).on('click','#divRelMov .cargarMaq',function(){
   $('.guardarRelMov').attr('toma', toma);
   $.get('eventualidadesMTM/obtenerRelevamientoToma/' + id_rel, function(data){
     $('.guardarRelMov').prop('disabled', true).hide();
+    divRelMovLimpiarResaltados();
+    window.__ultimo_data_rel__ = data;
+    console.log(window.__ultimo_data_rel__);
     const estado_rel = data.relevamiento.id_estado_relevamiento;
     if (modo_ventana == "CARGAR"){
       //GENERADO || CARGANDO || SIN RELEVAR
@@ -230,66 +233,218 @@ function objToFormData(data) {
   return formData;
 }
 
-//BOTÓN GUARDAR dentro del modal cargar eventualidad
-$(document).on('click','.guardarRelMov',function(){
-  $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
+$(document).on('click','#btnConfirmarCambios',function(){
+  $('#modalDivRelCambios').modal('hide');
 
-  const datos = divRelMovObtenerDatos();
-  const formData = {
-    id_relev_mov:          $(this).attr('data-rel'),
-    toma:                  $(this).attr('toma'),
-    temporal:              parseInt($(this).attr('data-temporal') ?? '1'),
-    id_cargador:           datos.usuario_carga.id_usuario,
-    id_fiscalizador:       datos.usuario_toma.id_usuario,
-    contadores:            datos.contadores,
-    juego:                 datos.juego,
-    apuesta_max:           datos.apuesta,
-    cant_lineas:           datos.lineas,
-    porcentaje_devolucion: datos.devolucion,
-    denominacion:          datos.denominacion,
-    cant_creditos:         datos.creditos,
-    fecha_sala:            datos.fecha_ejecucion,
-    observaciones:         datos.observaciones,
-    adjunto:               datos.adjunto ?? null,
-    link_adjunto:          datos.link_adjunto,
-    mac:                   datos.mac,
-    isla_relevada:         datos.isla_rel,
-    sector_relevado:       datos.sector_rel,
-    progresivos:           datos.progresivos
-  };
+  var cambios = window.__ultimos_cambios__ || [];
+  if(cambios.length){
+    var $obs  = $('#divRelMov .observaciones'); // textarea principal
+    var base  = ($obs.val() || '');
 
-  divRelMovLimpiarErrores();
-  $.ajax({
-    type: 'POST',
-    url: 'eventualidadesMTM/cargarTomaRelevamiento',
-    data: objToFormData(formData),
-    dataType: 'json',
-    processData: false,
-    contentType: false,
-    cache: false,
-    success: function (data){
-      divRelMovEsconderDetalleRelevamiento();
-      divRelMovLimpiar();
-      divRelMovMarcarListaMaq(formData.id_maquina);
-      mensajeExito({mensajes :['Los datos se han cargado correctamente']});
-      $('.guardarRelMov').prop('disabled', true);
-      $('#btn-buscarEventualidadMTM').click();
-      if(data.movFinalizado){
-        $('#modalCargarRelMov').modal('hide');
+    base = base.replace(/\n*\[CAMBIOS DETECTADOS DESDE SU EGRESO\][\s\S]*$/,'');
+
+    var bloque = '\n\n[CAMBIOS DETECTADOS DESDE SU EGRESO]\n• ' + cambios.join('\n• ');
+
+    var textoNuevo = base.trim().length ? (base.trim() + bloque) : bloque.trim();
+    $obs.val(textoNuevo);
+  }
+
+  const $originalBtn = window.__ultimo_boton_guardar__;
+  if ($originalBtn && $originalBtn.length) {
+    $originalBtn.data('skip-verify', 1);
+    $originalBtn.trigger('click');
+    setTimeout(function () { $originalBtn.data('skip-verify', 0); }, 0);
+  }
+});
+
+
+$(function(){
+  var $hijo = $('#modalDivRelCambios');
+  if($hijo.length){
+    $hijo.appendTo('body');
+    $hijo.modal({ backdrop: 'static', keyboard: false, show: false });
+  }
+});
+
+$(document).off('show.bs.modal.modalstack hidden.bs.modal.modalstack');
+$(document).on('show.bs.modal.modalstack', '.modal', function () {
+  var zIndex = 1040 + (10 * $('.modal:visible').length);
+  $(this).css('z-index', zIndex);
+  setTimeout(function () {
+    $('.modal-backdrop').not('.modal-stack')
+      .css('z-index', zIndex - 1)
+      .addClass('modal-stack');
+  }, 0);
+});
+$(document).on('hidden.bs.modal.modalstack', '.modal', function () {
+  if ($('.modal:visible').length) {
+    $('body').addClass('modal-open');
+  } else {
+    $('body').removeClass('modal-open');
+  }
+});
+
+$(document).off('hide.bs.modal.guard', '#modalCargarRelMov');
+$(document).on('hide.bs.modal.guard', '#modalCargarRelMov', function(e){
+  if($('#modalDivRelCambios').is(':visible')){
+    e.preventDefault();
+  }
+});
+
+$(document).off('click.cerrarHijo', '#modalDivRelCambios [data-dismiss="modal"], #modalDivRelCambios .close');
+$(document).on('click.cerrarHijo', '#modalDivRelCambios [data-dismiss="modal"], #modalDivRelCambios .close', function(e){
+  e.preventDefault();
+  e.stopPropagation();
+
+  $('#modalDivRelCambios')
+    .one('hidden.bs.modal', function(){
+      $('.modal-backdrop.modal-stack').last().remove();
+      if ($('.modal:visible').length){
+        $('body').addClass('modal-open');
+      } else {
+        $('body').removeClass('modal-open');
       }
-      else{
-        mostrarFiscalizacion($('.guardarRelMov').attr('data-mov'),$('.guardarRelMov').attr('modo'),true);
-      }
-    },
-    error: function (data){
-      console.log('ERROR');
-      console.log(data);
-      if(divRelMovMostrarErrores(data.responseJSON)){
-        $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
+    })
+    .modal('hide');
+});
+
+$(document).off('click.confirmarCambios', '#btnConfirmarCambios');
+$(document).on('click.confirmarCambios','#btnConfirmarCambios',function(){
+  var $hijo = $('#modalDivRelCambios');
+  $hijo.one('hidden.bs.modal', function(){
+    const $btn = window.__ultimo_boton_guardar__;
+    if ($btn && $btn.length){
+      $btn.data('skip-verify', 1);
+      $btn.trigger('click');
+      setTimeout(function(){ $btn.data('skip-verify', 0); }, 300);
+    }
+  }).modal('hide');
+});
+
+$(document).off('click.logGuardar','.guardarRelMov');
+$(document).on('click.logGuardar','.guardarRelMov', function(){
+  console.log('[click guardar] visibleHijo=', $('#modalDivRelCambios').is(':visible'),
+              ' modalOpen=', $('body').hasClass('modal-open'),
+              ' disabled=', $(this).prop('disabled'),
+              ' skip=', $(this).data('skip-verify'));
+});
+
+function __enableGuardarBtns__(){
+  var $btns = $('.guardarRelMov');
+  $btns.prop('disabled', false).removeAttr('disabled');
+}
+
+$(document).off('click.memoGuardar', '.guardarRelMov');
+$(document).on('click.memoGuardar', '.guardarRelMov', function(){
+  window.__ultimo_boton_guardar__ = $(this);
+});
+
+$(document).off('click.confirmarCambios', '#btnConfirmarCambios');
+$(document).on('click.confirmarCambios','#btnConfirmarCambios', function(){
+  var $hijo = $('#modalDivRelCambios');
+
+  $hijo.one('hidden.bs.modal', function(){
+    const $btn = window.__ultimo_boton_guardar__;
+    if ($btn && $btn.length){
+      __enableGuardarBtns__();
+      $btn.data('skip-verify', 1);
+      setTimeout(function(){
+        $btn.trigger('click');
+        setTimeout(function(){ $btn.data('skip-verify', 0); }, 200);
+      }, 50);
+    }
+  });
+
+  $hijo.modal('hide');
+});
+
+$(document).off('hidden.bs.modal.hijo', '#modalDivRelCambios');
+$(document).on('hidden.bs.modal.hijo', '#modalDivRelCambios', function(){
+  __enableGuardarBtns__();
+  if ($('.modal:visible').length){
+    $('body').addClass('modal-open');
+  }else{
+    $('body').removeClass('modal-open');
+  }
+});
+
+(function(){
+  var guardarHandler = function(e){
+    window.__ultimo_boton_guardar__ = $(this);
+
+    if($(this).data('skip-verify') !== 1){
+      const original = window.__ultimo_data_rel__;
+      if (original && original.maquina && original.maquina.sentido === 'REINGRESO' && original.maquina.id_casino==2) {
+        const ok = divRelMovVerificarCambios(original);
+        if (!ok) {
+          e.preventDefault();
+          return;
+        }
       }
     }
-  })
-});
+
+    $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
+
+    const datos = divRelMovObtenerDatos();
+    const formData = {
+      id_relev_mov:          $(this).attr('data-rel'),
+      toma:                  $(this).attr('toma'),
+      temporal:              parseInt($(this).attr('data-temporal') ?? '1'),
+      id_cargador:           datos.usuario_carga.id_usuario,
+      id_fiscalizador:       datos.usuario_toma.id_usuario,
+      contadores:            datos.contadores,
+      juego:                 datos.juego,
+      apuesta_max:           datos.apuesta,
+      cant_lineas:           datos.lineas,
+      porcentaje_devolucion: datos.devolucion,
+      denominacion:          datos.denominacion,
+      cant_creditos:         datos.creditos,
+      fecha_sala:            datos.fecha_ejecucion,
+      observaciones:         datos.observaciones,
+      adjunto:               datos.adjunto ?? null,
+      link_adjunto:          datos.link_adjunto,
+      mac:                   datos.mac,
+      isla_relevada:         datos.isla_rel,
+      sector_relevado:       datos.sector_rel,
+      progresivos:           datos.progresivos
+    };
+
+    divRelMovLimpiarErrores();
+    $.ajax({
+      type: 'POST',
+      url: 'eventualidadesMTM/cargarTomaRelevamiento',
+      data: objToFormData(formData),
+      dataType: 'json',
+      processData: false,
+      contentType: false,
+      cache: false,
+      success: function (data){
+        divRelMovEsconderDetalleRelevamiento();
+        divRelMovLimpiar();
+        divRelMovMarcarListaMaq(formData.id_maquina);
+        mensajeExito({mensajes :['Los datos se han cargado correctamente']});
+        $('.guardarRelMov').prop('disabled', true);
+        $('#btn-buscarEventualidadMTM').click();
+        if(data.movFinalizado){
+          $('#modalCargarRelMov').modal('hide');
+        }
+        else{
+          mostrarFiscalizacion($('.guardarRelMov').attr('data-mov'),$('.guardarRelMov').attr('modo'),true);
+        }
+      },
+      error: function (data){
+        console.log('ERROR', data);
+        if(divRelMovMostrarErrores(data.responseJSON)){
+          $("#modalCargarRelMov").animate({ scrollTop: 0 }, "slow");
+        }
+      }
+    });
+  };
+
+  $(document).off('click.guardarRel','.guardarRelMov')
+             .on('click.guardarRel','.guardarRelMov', guardarHandler);
+})();
+
 
 //BOTÓN DE VALIDAR EN CADA FILA
 $(document).on('click','.btn_validarEvmtm',function(){
@@ -377,7 +532,7 @@ $('#btn-buscarEventualidadMTM').click(function(e,pagina,tam,columna,orden){
   }
 
   let sort_by = {
-    columna: noTieneValor(columna)? $('#tablaResultadosEvMTM .activa').attr('value') : columna, 
+    columna: noTieneValor(columna)? $('#tablaResultadosEvMTM .activa').attr('value') : columna,
     orden: noTieneValor(orden)?  $('#tablaResultadosEvMTM .activa').attr('estado') : orden
   };
   if(noTieneValor(sort_by.columna)){
@@ -461,7 +616,7 @@ function generarFilaTabla(event,controlador,superusuario){
   else{
     fila.find('.sentido').text('---');
   }
-  
+
   fila.find('.estado').attr('title',event.estado_rel_descripcion);
   let iclass = 'fa-exclamation';
   let color = 'rgb(255,255,0)';
@@ -482,9 +637,9 @@ function generarFilaTabla(event,controlador,superusuario){
 
   fila.find('.btn_validarEvmtm').toggle((estado == 1 || estado == 2 || estado == 3) && (superusuario || controlador));
   fila.find('.btn_cargarEvmtm').toggle(estado == 1 || estado == 2 );
-  if((event.puede_reingreso == 0 && event.puede_egreso_temporal == 0) 
+  if((event.puede_reingreso == 0 && event.puede_egreso_temporal == 0)
   || event.deprecado == 1
-  || event.sentido == '---' 
+  || event.sentido == '---'
   || estado > 4){
     fila.find('td').css('color','rgb(150,150,150)');
     fila.find('button').not('.btn_verEvmtm,.btn_imprimirEvmtm,.btn_borrarEvmtm').remove();
@@ -502,11 +657,11 @@ $(document).on('click','.btn_borrarEvmtm',function(e){
         'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
       }
     });
-   
+
     const formData = {
       id_log_movimiento: id_log_movimiento
     }
-  
+
     $.ajax({
       type: 'POST',
       url: 'eventualidadesMTM/eliminarEventualidadMTM',
@@ -547,7 +702,7 @@ $(document).on('click','#tablaResultadosEvMTM thead tr th[value]',function(e){
 $('#agregarTipoMov').click(function(e){
   const opcion = $('#tipoMov option:selected');
   if($(`#listaTipoMovs div.tipo_mov_lista[data-id="${opcion.val()}"]`).length == 0){
-    const div = $('<div>').addClass('col-md-4 tipo_mov_lista').text(opcion.text()).attr('data-id',opcion.val());  
+    const div = $('<div>').addClass('col-md-4 tipo_mov_lista').text(opcion.text()).attr('data-id',opcion.val());
     $('#listaTipoMovs').append(div);
   }
 });

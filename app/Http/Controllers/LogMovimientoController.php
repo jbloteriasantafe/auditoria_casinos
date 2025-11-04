@@ -43,9 +43,9 @@ use Illuminate\Support\Facades\Storage;
 /*
 # Nueva forma de trabajo de MOVIMIENTOS (Marzo 2020 - Octavio)
 ¿Que es un movimiento?
-Es un evento que ocurre sobre la maquina en la cual se relevan ciertos datos de la maquina, 
+Es un evento que ocurre sobre la maquina en la cual se relevan ciertos datos de la maquina,
 estos son (y se dividen en):
-  - Manejados por Asignacion/Relevamiento: 
+  - Manejados por Asignacion/Relevamiento:
     - INGRESO INICIAL
     - EGRESO DEFINITIVO
   - Manejados por Intervenciones MTM:
@@ -68,7 +68,7 @@ Los nro_admin NO SE REUSAN por lo que cuando se la da de baja, se le cambia el e
 sigue en el sistema.
 ### Funcionamiento General
 Se crea el movimiento, si es ingreso lo mas probable es que sea de tipo CARGA INDIVIDUAL (carga masiva es con un CSV).
-Se le asignan las maquinas. 
+Se le asignan las maquinas.
 Una vez cargadas el admin le genera un FISCALIZAMIENTO con una fecha a elección.
 Este fiscalizamiento es visible por los fiscalizadores desde la pantalla de RELEVAMIENTO.
 Lo imprimen, relevan los datos de la maquina, lo cargan al sistema.
@@ -106,10 +106,10 @@ Se diferencian entre esas dos categorias porque la intervencion no posee un expe
 Una asignacion en principio tampoco (generalmente se le asigna muucho mas tarde que de la creacion del mismo), pero
 se le asigna uno concepto "expediente_auxiliar_para_movimientos" (hay uno por casino) para diferenciarlo inicialmente.
 Una fiscalizacion_movimiento es creada cuando el admin envia a fiscalizar (las intervenciones MTM NO TIENEN!).
-El relevamiento_movimiento es creado al principio con el movimiento (incluso antes de ser enviado a fiscalizar) 
+El relevamiento_movimiento es creado al principio con el movimiento (incluso antes de ser enviado a fiscalizar)
 y es UNO POR MAQUINA.
 La toma_relev_mov es la que tiene los datos de relevamiento y se crea con el relevamiento. Estan en tablas separados
-porque en un principio los relevamientos tenian 2 tomas, esto se lo cambio a que haya uno solo por relevamiento por 
+porque en un principio los relevamientos tenian 2 tomas, esto se lo cambio a que haya uno solo por relevamiento por
 lo que es redundante; podria estar en la misma tabla.
 El detalle_relevamiento_progresivo es el que tiene los datos del relevamiento (pero la parte de los progresivos),
 puede haber varios por toma ya que una maquina puede estar enlazado en varios progresivos. Es reusado de la parte
@@ -138,7 +138,7 @@ Entonces la estructura de un movimiento de ingreso inicial y egreso definitivo e
                           │ rel4 │ <----+
                           └──────┘
 Para una intervencionMTM
-┌──────┐     ┌──────┐ 
+┌──────┐     ┌──────┐
 │ log  │---> │ rel1 │
 └──────┘     └──────┘
       |      ┌──────┐
@@ -214,9 +214,9 @@ class LogMovimientoController extends Controller
     $casinos=$usuario['usuario']->casinos;
     $tiposMovimientos = TipoMovimiento::all();
     UsuarioController::getInstancia()->agregarSeccionReciente('Asignación Movimientos' ,'movimientos');
-    return view('seccionMovimientos',[ 
-      'logMovimientos'=>$logs , 'tiposMovimientos' => $tiposMovimientos,'monedas'=>$monedas , 
-      'unidades_medida' => $unidad_medida,   'casinos' => $casinos, 'tipos' => $tipos , 
+    return view('seccionMovimientos',[
+      'logMovimientos'=>$logs , 'tiposMovimientos' => $tiposMovimientos,'monedas'=>$monedas ,
+      'unidades_medida' => $unidad_medida,   'casinos' => $casinos, 'tipos' => $tipos ,
       'gabinetes' => $gabinetes , 'estados' => $estados, 'causasNoTomaProgresivo' => TipoCausaNoTomaProgresivo::all()]);
   }
 
@@ -277,7 +277,7 @@ class LogMovimientoController extends Controller
     $resultados = DB::table('log_movimiento')
     ->selectRaw("log_movimiento.*,casino.*,tipo_movimiento.*,estado_movimiento.descripcion as estado,
     IF(STRCMP(expediente.concepto,'expediente_auxiliar_para_movimientos') = 0,
-       CONCAT(log_movimiento.nro_exp_org,'-',log_movimiento.nro_exp_interno,'-',log_movimiento.nro_exp_control), 
+       CONCAT(log_movimiento.nro_exp_org,'-',log_movimiento.nro_exp_interno,'-',log_movimiento.nro_exp_control),
        CONCAT(    expediente.nro_exp_org,'-',    expediente.nro_exp_interno,'-',    expediente.nro_exp_control)
     ) as nro_exp")
     ->join('expediente', 'log_movimiento.id_expediente', '=', 'expediente.id_expediente')
@@ -332,15 +332,15 @@ class LogMovimientoController extends Controller
         $data = $validator->getData();
         $logMov = LogMovimiento::find($data['id_log_movimiento']);
         if(!$user_request->usuarioTieneCasino($logMov->id_casino)){
-          $validator->errors()->add('id_log_movimiento', 'El usuario no puede acceder a ese movimiento.');  
+          $validator->errors()->add('id_log_movimiento', 'El usuario no puede acceder a ese movimiento.');
         }
         if(!array_key_exists('maquinas',$data)){
-          $validator->errors()->add('maquinas', 'No hay máquinas seleccionadas.'); 
+          $validator->errors()->add('maquinas', 'No hay máquinas seleccionadas.');
         }
         else foreach($data['maquinas'] as $m){
           $maq = Maquina::find($m);
           if(!$user_request->usuarioTieneCasino($maq->id_casino)){
-            $validator->errors()->add('maquinas', 'El usuario no puede acceder a la maquina'.$maq->nro_admin.'.');  
+            $validator->errors()->add('maquinas', 'El usuario no puede acceder a la maquina'.$maq->nro_admin.'.');
           }
           $maquinas[] = $maq;
         }
@@ -378,13 +378,13 @@ class LogMovimientoController extends Controller
       $usuarios = UsuarioController::getInstancia()->obtenerFiscalizadores($logMov->casino->id_casino,$user_request->id_usuario);
       foreach ($usuarios as $u){
         $user = Usuario::find($u->id_usuario);
-        if($user != null) $user->notify(new RelevamientoGenerado($fiscalizacion));
+        //if($user != null) $user->notify(new RelevamientoGenerado($fiscalizacion));
       }
-  
+
       $date = date('Y-m-d h:i:s', time());
       $titulo = "Relevamiento Movimientos";
       $descripcion = "El movimiento: ".$logMov->tipo_movimiento_str()." con fecha ".$logMov->fecha.", está listo para fiscalizar.";
-      CalendarioController::getInstancia()->crearEventoMovimiento($date,$date,$titulo,$descripcion,$logMov->id_casino,$fiscalizacion->id_fiscalizacion_movimiento);
+      //CalendarioController::getInstancia()->crearEventoMovimiento($date,$date,$titulo,$descripcion,$logMov->id_casino,$fiscalizacion->id_fiscalizacion_movimiento);
     });
     return 1;
   }
@@ -425,15 +425,15 @@ class LogMovimientoController extends Controller
         $data = $validator->getData();
         $logMov = LogMovimiento::find($data['id_log_movimiento']);
         if(!$user_request->usuarioTieneCasino($logMov->id_casino)){
-          $validator->errors()->add('id_log_movimiento', 'El usuario no puede acceder a ese movimiento.');  
+          $validator->errors()->add('id_log_movimiento', 'El usuario no puede acceder a ese movimiento.');
         }
         if(!array_key_exists('maquinas',$data)){
-          $validator->errors()->add('maquinas', 'No hay máquinas seleccionadas.'); 
+          $validator->errors()->add('maquinas', 'No hay máquinas seleccionadas.');
         }
         else foreach($data['maquinas'] as $m){
           $maq = Maquina::find($m['id_maquina']);
           if(!$user_request->usuarioTieneCasino($maq->id_casino)){
-            $validator->errors()->add('maquinas', 'El usuario no puede acceder a la maquina'.$maq->nro_admin.'.');  
+            $validator->errors()->add('maquinas', 'El usuario no puede acceder a la maquina'.$maq->nro_admin.'.');
           }
           $maquinas[] = $maq;
         }
@@ -455,7 +455,7 @@ class LogMovimientoController extends Controller
       }
       $logMov->save();
     });
-    
+
     return 1;
   }
 
@@ -521,7 +521,7 @@ class LogMovimientoController extends Controller
     $id_usuario = session('id_usuario');
     $user = Usuario::find($id_usuario);
     return ['relevamientos' => $relevamientos_arr,'cargador' => $user,'fiscalizador' => $fiscalizacion->fiscalizador,
-            'tipo_movimiento' => $log->tipo_movimiento_str(), 'sentido' => $log->sentido, 
+            'tipo_movimiento' => $log->tipo_movimiento_str(), 'sentido' => $log->sentido,
             'casino' => $log->casino, 'fiscalizacion' => $fiscalizacion,
             'nro_exp_org' => $log->nro_exp_org,'nro_exp_interno' => $log->nro_exp_interno,'nro_exp_control' => $log->nro_exp_control,
             'nro_disposicion' => $log->nro_disposicion,'nro_disposicion_anio' => $log->nro_disposicion_anio];
@@ -560,7 +560,7 @@ class LogMovimientoController extends Controller
         $casino
       );
     }
-    
+
     return $this->imprimirPlanillaMovimientos($casino->codigo,$logMov->fecha,"intervenciones",$relevamientos);
   }
 
@@ -614,7 +614,7 @@ class LogMovimientoController extends Controller
       $dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
       return $dompdf->stream('planilla.pdf', Array('Attachment'=>0));
     }
-    // Mucho del beneficio es que si tenes 100+ maquinas hay mucho en memoria y crashea o demora, 
+    // Mucho del beneficio es que si tenes 100+ maquinas hay mucho en memoria y crashea o demora,
     // asi se divide un poco y se va haciendo de a partes
 
     // Este valor depende de tu planilla cuantas paginas generas con 1 detalle
@@ -641,11 +641,11 @@ class LogMovimientoController extends Controller
   // Esto va a suceder porque si bien se tenia en cuenta que sea expandible en un principio
   // hay dos limitaciones:
   // - Detalle progresivo solo tiene 6 valores (trivial de solucionar, modificar la estructura de la tabla y cambiar los limites)
-  // - Los ADM cargaron todos los niveles al reves (al nivel mas alto le asignaron el 1), el resultado es que no 
+  // - Los ADM cargaron todos los niveles al reves (al nivel mas alto le asignaron el 1), el resultado es que no
   //   son homogeneos los progresivos (si un progresivo tiene 4 niveles, su nivel mas alto tiene el valor nro_nivel 1
   //   y si otro tiene 6 niveles, su nivel mas alto tiene el valor nro_nivel 1 tambien).
   // Este ultimo punto no fue considerado mucho a la hora de programar la parte de relevamiento de progresivos
-  // porque paso en produccion (aunque los ADM fueron debidamente informados con un manual). 
+  // porque paso en produccion (aunque los ADM fueron debidamente informados con un manual).
   // La idea es hacerlo a partir de ahora para que en el caso de que ocurra no haya que cambiar muchas cosas
   // Ej tabla detalle_relevamiento_progresivo
   // nivel1 | nivel2 | nivel3 | nivel4 | nivel5 | nivel6
@@ -653,13 +653,13 @@ class LogMovimientoController extends Controller
   // 4      | 3      | 2      | 1      | null   | null
   // 7      | 6      | 5      | 4      | 3      | 2     <- te quedas corto, agregar una columna nivel7
   // AHORA, si bien CONCEPTUALMENTE los niveles 1 en realidad son los maximos, en la bd estan cargados con nro_nivel = 1
-  // por lo que se los puede asignar directamente, pero hay que tener en cuenta lo de la tercer fila 
+  // por lo que se los puede asignar directamente, pero hay que tener en cuenta lo de la tercer fila
   // y si en algun momento se hacen informes/pruebas.
   public function cargarTomaRelevamiento(Request $request){
     Validator::make($request->all(),[
       'temporal' =>  'required|bool',
     ])->validate();
-    
+
     $temporal = $request->temporal != 0;
     $REQUIRED = $temporal? 'nullable' : 'required';
     $validator = Validator::make($request->all(), [
@@ -668,7 +668,7 @@ class LogMovimientoController extends Controller
         'id_cargador' => 'nullable|integer|exists:usuario,id_usuario',
         'id_fiscalizador' => 'required|integer|exists:usuario,id_usuario',
         'fecha_sala' => 'required|date',
-        'observaciones' => 'nullable|max:800',
+        'observaciones' => 'nullable|max:1600',
         'adjunto' => 'nullable|image',
         'link_adjunto' => 'nullable|string',
         'mac' => 'nullable|max:100',
@@ -729,13 +729,13 @@ class LogMovimientoController extends Controller
         }
       }
     })->validate();
-        
+
     $fisFinalizada = false;
     $movFinalizado = false;
     DB::beginTransaction();
     try{ // @TODO: Agregar una forma de guardar temporalmente, estado mov 8, estado rel 2
       $nro_toma = $request->toma <= 0? 1 : $request->toma;
-            
+
       RelevamientoMovimientoController::getInstancia()->cargarTomaRelevamientoProgs(
         $request->id_relev_mov,
         $nro_toma,
@@ -757,11 +757,11 @@ class LogMovimientoController extends Controller
         $request['adjunto'] ?? null,
         $request['link_adjunto'] ?? null
       );
-      
-      $relevamiento = RelevamientoMovimiento::find($request->id_relev_mov);      
+
+      $relevamiento = RelevamientoMovimiento::find($request->id_relev_mov);
       $relevamiento->estado_relevamiento()->associate($temporal? 2 : 3);// Cargando, Finalizado
       $relevamiento->save();
-      
+
       $fiscalizacion = $relevamiento->fiscalizacion;
       $es_intervencion = is_null($fiscalizacion);
       if(!$es_intervencion){
@@ -774,7 +774,7 @@ class LogMovimientoController extends Controller
         }
         $fiscalizacion->save();
       }
-      
+
       $logMov = $relevamiento->log_movimiento;
       $movFinalizado = $logMov->relevamientosCompletados($es_intervencion,3);
       if($movFinalizado){
@@ -783,7 +783,7 @@ class LogMovimientoController extends Controller
       }
       else{
         $logMov->estado_relevamiento()->associate(2); // Cargando
-        $logMov->estado_movimiento()->associate(2); // Fiscalizando 
+        $logMov->estado_movimiento()->associate(2); // Fiscalizando
       }
       $logMov->save();
 
@@ -842,7 +842,7 @@ class LogMovimientoController extends Controller
   public function guardarTipoCargaYCantMaq(Request $req){
     $logMov = null;
     $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    
+
     Validator::make($req->all(), [
       'id_log_movimiento' => 'required|exists:log_movimiento,id_log_movimiento',
       'tipoCarga' => 'required|integer|in:1,2',
@@ -856,7 +856,7 @@ class LogMovimientoController extends Controller
         }
       }
     })->validate();
-    
+
     if($this->noEsControlador($usuario->id_usuario,  $logMov)){
       $logMov->controladores()->attach($usuario->id_usuario);
       $logMov->save();
@@ -891,7 +891,7 @@ class LogMovimientoController extends Controller
         $data = $validator->getData();
         $tipo_mov = TipoMovimiento::find($data['id_tipo_movimiento']);
         $id_casino = $data['id_casino'];
-        // Lo que hago es verificar que no sea una intervencion MTM, 
+        // Lo que hago es verificar que no sea una intervencion MTM,
         // por si en algun futuro agregan otro que no sea uno de estos 2.
         if($tipo_mov->es_intervencion_mtm){
           $validator->errors()->add('id_tipo_movimiento', 'No se permite ese tipo de movimiento con esta operacion.');
@@ -1068,7 +1068,7 @@ class LogMovimientoController extends Controller
           $tipo_mov = $log->tipos_movimiento()->first()->id_tipo_movimiento;
           //INGRESO o INGRESO INICIAL
           $tipo_ingreso = $tipo_mov == 1 || $tipo_mov == 11;
-          $tipo_egreso  = $tipo_mov == 2 || $tipo_mov == 12;//Se usa abajo 
+          $tipo_egreso  = $tipo_mov == 2 || $tipo_mov == 12;//Se usa abajo
           if($tipo_ingreso){
             foreach($log->relevamientos_movimientos as $rel){
               $maquina = $rel->maquina;
@@ -1136,7 +1136,14 @@ class LogMovimientoController extends Controller
               ->join('isla','isla.id_isla','=','maquina.id_isla')
               ->join('formula','formula.id_formula','=','maquina.id_formula')
               ->join('relevamiento_movimiento','relevamiento_movimiento.id_maquina','=','maquina.id_maquina')
+              ->join('log_movimiento','log_movimiento.id_log_movimiento','=','relevamiento_movimiento.id_log_movimiento')
               ->where('relevamiento_movimiento.id_relev_mov','=',$id_relevamiento)
+              ->select(
+                  'maquina.*',
+                  'isla.nro_isla',
+                  'formula.*',
+                  'log_movimiento.sentido as sentido'
+              )
               ->get()
               ->first();
 
@@ -1182,7 +1189,7 @@ class LogMovimientoController extends Controller
         $prog_arr['pozo'] = $pozo_arr;
         $progresivos[] = $prog_arr;
       }
-      
+
       $toma = (object) $toma->toArray();
       if($toma->id_archivo !== null){
         $toma->link_adjunto = RelevamientoMovimientoController::getInstancia()->linkAdjunto($toma);
@@ -1191,8 +1198,11 @@ class LogMovimientoController extends Controller
         $toma->link_adjunto = null;
       }
     }
-
     $datos_ultimo_relev = null;
+    $progresivos_aux = null;
+    $datos_egreso = null;
+    $datos_egreso = DB::table('toma_relev_mov')->where('nro_admin','=',$mtm->nro_admin)->orderByDesc('id_toma_relev_mov')->offset(1)->limit(1)->first();
+    if($datos_egreso!=null) $progresivos_aux = DB::table('detalle_relevamiento_progresivo')->where('id_toma_relev_mov','=',$datos_egreso->id_toma_relev_mov)->get();
     //Cuando se genera un Egreso Definitivo y ya estaba en Egreso Temporal
     //A veces no se puede retomar el formulario porque la maquina fue destruida
     //Permito que pueda recargar los mismos datos del ultimo egreso temporal
@@ -1216,7 +1226,7 @@ class LogMovimientoController extends Controller
         }
       }
     }
-    
+
     $mtm->nro_admin .= is_null($mtm->deleted_at)? '' : ' (ELIM.)';
     $log = $rel->log_movimiento;
     return ['relevamiento' => $rel,'maquina' => $mtm, 'juegos' => $juegos,'toma' => $toma,
@@ -1225,9 +1235,9 @@ class LogMovimientoController extends Controller
      'fecha' => $fecha, 'nombre_juego' => $nombre,'progresivos' => $progresivos,
      'nro_exp_org' => $log->nro_exp_org, 'nro_exp_interno' => $log->nro_exp_interno, 'nro_exp_control' => $log->nro_exp_control,
      'nro_disposicion' => $log->nro_disposicion, 'nro_disposicion_anio' => $log->nro_disposicion_anio,
-     'datos_ultimo_relev' => $datos_ultimo_relev ];
+     'datos_ultimo_relev' => $datos_ultimo_relev, 'progresivos_aux' => $progresivos_aux,'datos_egreso' => $datos_egreso, ];
   }
-  
+
   public function buscarEventualidadesMTMs(Request $request){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
       Validator::make($request->all(), [
@@ -1371,7 +1381,7 @@ class LogMovimientoController extends Controller
           $validator->errors()->add('tipo_movimiento', 'El movimiento seleccionado no se puede realizar en ese sentido.');
         }
         if($tipo->deprecado){
-          $validator->errors()->add('tipo_movimiento', 'Tipo de movimiento "'.$tipo->descripcion.'" invalido.');      
+          $validator->errors()->add('tipo_movimiento', 'Tipo de movimiento "'.$tipo->descripcion.'" invalido.');
         }
       }
 
@@ -1512,7 +1522,7 @@ class LogMovimientoController extends Controller
       if(!is_null($relevMov->id_fiscalizacion_movimiento)){
         $fisMov = $relevMov->fiscalizacion;
         $rels_fis = $fisMov->relevamientos_movimientos();
-        if((clone $rels_fis)->count() == 
+        if((clone $rels_fis)->count() ==
            (clone $rels_fis)->whereIn('relevamiento_movimiento.id_estado_relevamiento',[4,6])->count()){
           $fisMov->estado_relevamiento()->associate(4);
           $fisMov->save();
@@ -1520,7 +1530,7 @@ class LogMovimientoController extends Controller
       }
 
       $rels_log = $logMov->relevamientos_movimientos();
-      if((clone $rels_log)->count() == 
+      if((clone $rels_log)->count() ==
          (clone $rels_log)->whereIn('relevamiento_movimiento.id_estado_relevamiento',[4,6])->count()){
         $logMov->estado_relevamiento()->associate(4);
         $logMov->estado_movimiento()->associate(4);
@@ -1573,7 +1583,7 @@ class LogMovimientoController extends Controller
     }
     return ['relError'    => $relevMov->id_estado_relevamiento == 6,
             'relValidado' => $relevMov->id_estado_relevamiento == 4,
-            'movValidado' => $logMov->id_estado_relevamiento == 4, 
+            'movValidado' => $logMov->id_estado_relevamiento == 4,
             'fisValidada' => !is_null($fisMov) && $fisMov->id_estado_relevamiento == 4 ];
   }
 }
