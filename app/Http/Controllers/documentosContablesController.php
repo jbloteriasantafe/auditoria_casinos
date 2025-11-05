@@ -694,6 +694,7 @@ public function descargarIvaCsv(Request $request)
 //iibb
 public function guardariibb(Request $request)
 {
+  try{
     DB::beginTransaction();
 
 
@@ -704,10 +705,10 @@ public function guardariibb(Request $request)
 
         $iibb->casino              = $request->input('casinoiibb');
         $iibb->observacion         = $request->input('obsiibb');
-        $iibb->diferencia_minimo   = $toFloat($request->input('dif_miniibb'));
-        $iibb->deducciones         = $toFloat($request->input('deduccionesiibb'));
-        $iibb->impuesto_total_determinado      = $toFloat($request->input('total_impuesto_iibb'));
-        $iibb->saldo_a_favor_api_contribuyente = $toFloat($request->input('saldo_iibb'));
+        $iibb->diferencia_minimo   = $request->input('dif_miniibb');
+        $iibb->deducciones         = $request->input('deduccionesiibb');
+        $iibb->impuesto_total_determinado      = $request->input('total_impuesto_iibb');
+        $iibb->saldo_a_favor_api_contribuyente = $request->input('saldo_iibb');
         $iibb->usuario             = UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'];
         $iibb->save();
 
@@ -734,9 +735,9 @@ public function guardariibb(Request $request)
         $n = max(count($bases), count($montos), count($aliqs), count($imps));
         for ($i=0; $i<$n; $i++) {
             $obs   = $bases[$i]  ?? null;
-            $monto = $toFloat($montos[$i] ?? null);
-            $ali   = $toFloat($aliqs[$i]  ?? null);
-            $imp   = $toFloat($imps[$i]   ?? null);
+            $monto = $montos[$i] ?? null;
+            $ali   = $aliqs[$i]  ?? null;
+            $imp   = $imps[$i]   ?? null;
 
             if ($monto === null || $ali === null) continue;
             if ($imp === null) $imp = $monto * ($ali / 100);
