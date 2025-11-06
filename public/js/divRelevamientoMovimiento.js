@@ -64,7 +64,7 @@ function divRelMovObtenerDatos(){
         apuesta: divRM.find('.apuesta').val(),
         lineas: divRM.find('.cant_lineas').val(),
         devolucion: divRM.find('.devolucion').val(),
-        denominacion: divRM.find('.denominacion').val(), 
+        denominacion: divRM.find('.denominacion').val(),
         creditos: divRM.find('.creditos').val(),
         progresivos: progresivos,
         observaciones: divRM.find('.observaciones').val(),
@@ -92,21 +92,31 @@ function divRelMovLimpiar(){
     divRM.find('.relFecha').datetimepicker('update','');
     divRM.find('textarea').val('');
 }
-function divRelMovAgregarContadores(maquina,toma){
+function divRelMovAgregarContadores(maquina,toma,ultimo = null){
+  const vcont = [null,
+    ultimo  ? ultimo.vcont1 : '',
+    ultimo  ? ultimo.vcont2 : '',
+    ultimo  ? ultimo.vcont3 : '',
+    ultimo  ? ultimo.vcont4 : '',
+    ultimo  ? ultimo.vcont5 : '',
+    ultimo  ? ultimo.vcont6 : '',
+    ultimo  ? ultimo.vcont7 : '',
+    ultimo  ? ultimo.vcont8 : ''];
     for (let i = 1; i < 7; i++){
         let fila = divRM.find('.filaEjCont').clone().removeClass('filaEjCont');
         let nombre_cont = maquina["cont" + i];
         if(nombre_cont === null) continue;
         let val_cont = null;
-        if(toma != null){
-            val_cont = toma["vcont" + i];
+        if(toma !=null){
+          val_cont = toma["vcont"+i];
         }
         fila.find('.cont').text(nombre_cont).attr('data-contador',nombre_cont);
-        fila.find('.vcont').val(val_cont != null? val_cont : '');
+        (ultimo != null) ? fila.find('.vcont').val(vcont[i] != null ? vcont[i] : '') : fila.find('.vcont').val(val_cont != null? val_cont : '');
         divRM.find('.tablaCont tbody').append(fila);
     }
 }
-function divRelMovAgregarProgresivos(progresivos){
+function divRelMovAgregarProgresivos(progresivos, aux = null, sentido = null){
+  causaNoTomaAux = null;
   if(progresivos === null || progresivos.length == 0){
     divRM.find('.sinProg').show();
     divRM.find('.tablaProg').hide();
@@ -114,26 +124,39 @@ function divRelMovAgregarProgresivos(progresivos){
   }
   divRM.find('.sinProg').hide();
   divRM.find('.tablaProg').show();
-  progresivos.forEach( prog => {
-    let fila = divRM.find('.filaEjProg').clone().removeClass('filaEjProg');
-    let nombre = prog.nombre;
-    if(!prog.pozo.es_unico){ nombre += '(' + prog.pozo.descripcion + ')';}
-    if(prog.es_individual) nombre = 'INDIVIDUAL';
-    fila.find('.nombreProgresivo').text(nombre).attr('title',nombre).attr('data-id-pozo',prog.pozo.id_pozo);
-    prog.pozo.niveles.forEach( niv => {
-      let nivel = fila.find('.nivel'+ niv.nro_nivel);
-      nivel.attr('placeholder',niv.nombre_nivel).addClass('habilitado');
-      nivel.attr('data-id-nivel',niv.id_nivel_progresivo)
-    });
-    const rel_prog = prog.pozo.det_rel_prog;
-    const causaNoToma = rel_prog.id_tipo_causa_no_toma_progresivo;
-    fila.find('.causaNoToma').val(causaNoToma);
-    for(let i = 1;i <= divRelMovMaxLVLProg && causaNoToma === null;i++){
-        fila.find('.nivel'+i).val(rel_prog['nivel'+i]);
+  progresivos.forEach(function(prog, index){
+  let fila = divRM.find('.filaEjProg').clone().removeClass('filaEjProg');
+  let nombre = prog.nombre;
+  if(!prog.pozo.es_unico){ nombre += '(' + prog.pozo.descripcion + ')';}
+  if(prog.es_individual) nombre = 'INDIVIDUAL';
+  fila.find('.nombreProgresivo')
+      .text(nombre)
+      .attr('title', nombre)
+      .attr('data-id-pozo', prog.pozo.id_pozo);
+
+  prog.pozo.niveles.forEach(function(niv){
+    const key = 'nivel' + niv.nro_nivel;
+      const $nivel = fila.find('.' + key);
+    $nivel
+      .attr('placeholder', niv.nombre_nivel)
+      .addClass('habilitado')
+      .attr('data-id-nivel', niv.id_nivel_progresivo);
+
+    if (aux && aux[index] && aux[index][key] != null && aux[index][key] !== '') {
+      if(sentido) {
+        $nivel.val(aux[index][key]);
+      }
+      const causaNoTomaAux = aux[index].id_tipo_causa_no_toma_progresivo;
     }
-    divRM.find('.tablaProg tbody').append(fila);
-    divRM.find('.tablaProg tbody input').not('.habilitado').attr('disabled',true);
+
   });
+
+  const rel_prog = prog.pozo.det_rel_prog;
+  const causaNoToma = rel_prog.id_tipo_causa_no_toma_progresivo;
+  causaNoToma!=null ? fila.find('.causaNoToma').val(causaNoToma) : fila.find('.causaNoToma').val(causaNoTomaAux);
+  divRM.find('.tablaProg tbody').append(fila);
+  divRM.find('.tablaProg tbody input').not('.habilitado').attr('disabled', true);
+});
 }
 
 function divRelMovSetearAdjunto(url,generado){
@@ -144,17 +167,17 @@ function divRelMovSetearAdjunto(url,generado){
   const eliminar_adjunto = divRM.find('.eliminar_adjunto').off('click')
   .attr('disabled',true)
   .css({'pointer-events':'none'});
-  
+
   const sin_url = !url;
   const con_url = !sin_url;
-  
+
   if(con_url){
     imagen_adjunto.attr('src',url)
     .css({'cursor':'pointer'})
     .click(function(e){
       window.open(url,'_blank');
     });
-    
+
     eliminar_adjunto.removeAttr('disabled')
     .css({'pointer-events':''})
     .click(function(e){
@@ -162,11 +185,11 @@ function divRelMovSetearAdjunto(url,generado){
       divRelMovSetearAdjunto(null,generado);
     });
   }
-  
+
   if(generado){
     adjunto.change(function(e){
       const tgt = $(e.currentTarget);
-      if(tgt?.[0]?.files?.[0]){                
+      if(tgt?.[0]?.files?.[0]){
         divRelMovSetearAdjunto(URL.createObjectURL(tgt[0].files[0]),generado);
       }
       else{
@@ -192,32 +215,53 @@ function divRelMovSetear(data){
     divRM.find('.nro_admin').val(data.maquina.nro_admin);
     divRM.find('.nro_serie').val(limpiarNullUndef(data.maquina.nro_serie,''));
     divRM.find('.marca').val(data.maquina.marca);
+    if(data.maquina.casino==2) {divRM.find('.mac').val(data.maquina.mac);}
     divRM.find('.modelo').val(limpiarNullUndef(data.maquina.modelo,''));
-    divRelMovAgregarContadores(data.maquina,data.toma);
+    (data.maquina.sentido=="REINGRESO" && data.maquina.id_casino==2) ? divRelMovAgregarContadores(data.maquina,data.toma,data.datos_egreso) : divRelMovAgregarContadores(data.maquina,data.toma);
+
     divRM.find('.juego').append($('<option>').val('').text('Seleccione'));
     data.juegos.forEach(j => {
         divRM.find('.juego').append($('<option>').val(j.id_juego).text(j.nombre_juego));
     });
-    
+
+
+    divRM.find('.juego').val(data.maquina.id_juego);
+
     const link_adjunto = data?.toma?.link_adjunto? (window.location.pathname+'/'+data?.toma?.link_adjunto) : null;
     divRelMovSetearAdjunto(link_adjunto,data.estado.descripcion == 'Generado' || data.estado.descripcion == 'Cargando');
     if(data.toma != null){
-        divRM.find('.juego').val(data.toma.juego? data.toma.juego : '');
+        if(data.toma.juego != null) {divRM.find('.juego').val(data.toma.juego);}
         divRM.find('.apuesta').val(data.toma.apuesta_max);
         divRM.find('.cant_lineas').val(data.toma.cant_lineas);
         divRM.find('.devolucion').val(data.toma.porcentaje_devolucion);
         divRM.find('.denominacion').val(data.toma.denominacion);
         divRM.find('.creditos').val(data.toma.cant_creditos);
-        divRM.find('.mac').val(data.toma.mac);
+        if(data.toma.mac != null) {divRM.find('.mac').val(data.toma.mac);}
         divRM.find('.sector_rel').val(data.toma.descripcion_sector_relevado);
         divRM.find('.isla_rel').val(data.toma.nro_isla_relevada);
         divRM.find('.observaciones').val(data.toma.observaciones);
     }
-    divRelMovAgregarProgresivos(data.progresivos);
+
+
+    if(data.datos_egreso!=null && data.maquina.sentido=="REINGRESO" && data.maquina.id_casino==2 && data.relevamiento.id_estado_relevamiento!=3 && data.relevamiento.id_estado_relevamiento!=4){
+      divRM.find('.mac').val(data.datos_egreso.mac);
+      divRM.find('.isla_rel').val(data.datos_egreso.nro_isla_relevada);
+      divRM.find('.sector_rel').val(data.datos_egreso.descripcion_sector_relevado);
+      divRM.find('.juego').val(data.datos_egreso.juego);
+      divRM.find('.apuesta').val(data.datos_egreso.apuesta_max);
+      divRM.find('.cant_lineas').val(data.datos_egreso.cant_lineas);
+      divRM.find('.devolucion').val(data.datos_egreso.porcentaje_devolucion);
+      divRM.find('.denominacion').val(data.datos_egreso.denominacion);
+      divRM.find('.creditos').val(data.datos_egreso.cant_creditos);
+      divRM.find('textarea.observaciones').val(data.datos_egreso.observaciones);
+
+    }
+    //data.maquina.sentido=="REINGRESO" ? divRelMovAgregarProgresivos(data.progresivos,data.progresivos_aux) : divRelMovAgregarProgresivos(data.progresivos);
+    divRelMovAgregarProgresivos(data.progresivos,data.progresivos_aux,data.maquina.sentido == "REINGRESO" && data.maquina.id_casino==2);
     if(data.fecha != null){
         divRM.find('.relFecha').datetimepicker('setDate',new Date(data.fecha));
     }
-    if(data.cargador != null) { 
+    if(data.cargador != null) {
         divRM.find('.fiscaCarga').val(data.cargador.nombre).attr('data-id',data.cargador.id_usuario);
     }
     if(data.fiscalizador != null){
@@ -225,7 +269,7 @@ function divRelMovSetear(data){
     }
 }
 function divRelMovMostrarErrores(response){
-    const errores = { 
+    const errores = {
         'apuesta_max' : divRM.find('.apuesta'),'cant_lineas' : divRM.find('.cant_lineas'), 'cant_creditos' : divRM.find('.creditos'),
         'porcentaje_devolucion' : divRM.find('.devolucion'),'juego' : divRM.find('.juego'), 'denominacion' : divRM.find('.denominacion'),
         'sector_relevado' : divRM.find('.sector_rel'), 'isla_relevada' :  divRM.find('.isla_rel'), 'mac' : divRM.find('.mac'),
@@ -303,6 +347,8 @@ function divRelMovCargarRelevamientos(relevamientos,dibujos = {},estado_listo = 
       divRM.find('.tablaMTM tbody').append(fila);
     });
 }
+
+
 function divRelMovEsconderDetalleRelevamiento(){
     divRM.find('.relFecha').parent().hide();
     divRM.find('.fiscaToma').parent().hide();
@@ -404,3 +450,117 @@ $('#divRelMov').find('.cant_lineas,.creditos,.apuesta').focusout(function(e){
         else             $('#divRelMov .cant_lineas').val(div(vals[2],vals[1]));
     }
 });
+
+// -- Marca visual SIN agregar HTML ni mover columnas --
+function divRelMovMarcarCambio($el){
+  if(!$el || !$el.length) return;
+
+  // Pintá el control de forma visible (Bootstrap 3)
+  // bg-warning = fondo amarillo; text-warning = texto ámbar
+  $el.addClass('bg-warning text-warning');
+
+  // Extra: si hay form-group, agrego estado para borde/labels
+  var $fg = $el.closest('.form-group');
+  if($fg.length){
+    $fg.addClass('has-warning');
+  } else {
+    // Si no hay form-group (p.ej. celdas de tabla), marco el contenedor inmediato
+    $el.closest('td,th,.input-group,[class*="col-"]').addClass('has-warning');
+  }
+
+  // console.log('[marcarCambio]', $el.get(0));
+}
+
+// -- Limpia TODOS los resaltados (cuando recargás datos o cerrás) --
+function divRelMovLimpiarResaltados(){
+  if(!divRM) return;
+  divRM.find('.cambio-flag').remove();             // por si quedó alguno de pruebas
+  divRM.find('.bg-warning').removeClass('bg-warning');
+  divRM.find('.text-warning').removeClass('text-warning');
+  divRM.find('.has-warning').removeClass('has-warning');
+}
+
+
+
+function mostrarModalCambios(cambios){
+  // 👇 guardo el listado para usarlo al confirmar
+  window.__ultimos_cambios__ = cambios;
+
+  const lista = $('#listaCambios').empty();
+  cambios.forEach(function(c){
+    lista.append('<li>• ' + c + '</li>');
+  });
+  window.__abrirModalCambios__ ? window.__abrirModalCambios__() : $('#modalDivRelCambios').modal('show');
+}
+
+function divRelMovVerificarCambios(data){
+  const cambios = [];
+  divRelMovLimpiarResaltados(); // limpiar marcas viejas
+
+  const ultimo = data.datos_egreso || data.datos_ultimo_relev || null;
+
+  // --- CONTADORES ---
+  if(ultimo){
+    for(let i=1; i<=8; i++){
+      const $tr = divRM.find('.tablaCont tbody tr').eq(i-1);
+      if($tr.length === 0) break;
+      const $inp = $tr.find('.vcont');
+      const valActual   = ($inp.val() || '').trim();
+      const valOriginal = (ultimo['vcont'+i] == null) ? '' : String(ultimo['vcont'+i]).trim();
+      if(valActual !== valOriginal){
+        const nombreCont = data.maquina && data.maquina['cont'+i] ? data.maquina['cont'+i] : ('#'+i);
+        cambios.push('Contador ' + nombreCont + ': ' + valOriginal + ' → ' + valActual);
+        divRelMovMarcarCambio($inp); // 👈 en lugar de addClass
+      }
+    }
+  }
+
+  // --- PROGRESIVOS (por índice) ---
+  (data.progresivos || []).forEach(function(prog, index){
+    const fila = divRM.find('.tablaProg tbody tr').eq(index);
+    const aux  = (data.progresivos_aux || [])[index];
+    if(!fila.length || !aux) return;
+
+    (prog.pozo?.niveles || []).forEach(function(niv){
+      const key = 'nivel' + niv.nro_nivel;
+      const $inp = fila.find('.' + key);
+      const valActual   = ($inp.val() || '').trim();
+      const valOriginal = (aux[key] == null) ? '' : String(aux[key]).trim();
+      if(valActual !== valOriginal){
+        const etiquetaProg = (prog.pozo && prog.pozo.descripcion) ? prog.pozo.descripcion : (prog.nombre || ('Pozo ' + (index+1)));
+        cambios.push('Progresivo ' + etiquetaProg + ' (' + niv.nombre_nivel + '): ' + valOriginal + ' → ' + valActual);
+        divRelMovMarcarCambio($inp); // 👈 en lugar de addClass
+      }
+    });
+  });
+
+  // --- CAMPOS PRINCIPALES ---
+  const campos = [
+    {sel: '.mac',                   key: 'mac',                         label: 'mac'},
+    {sel: '.isla_rel',              key: 'nro_isla_relevada',               label: 'Isla'},
+    {sel: '.sector_rel',            key: 'descripcion_sector_relevado', label: 'Sector'},
+    {sel: '.juego',                 key: 'juego',                       label: 'Juego'},
+    {sel: '.apuesta',               key: 'apuesta_max',                 label: 'Apuesta maxima'},
+    {sel: '.cant_lineas',           key: 'cant_lineas',                 label: 'Cantidad de lineas'},
+    {sel: '.devolucion',            key: 'porcentaje_devolucion',      label: 'Porcentaje de devolucion'},
+    {sel: '.denominacion',          key: 'denominacion',                label: 'Denominacion'},
+    {sel: '.creditos',              key: 'cant_creditos',               label: 'Cantidad de creditos'},
+  ];
+
+  campos.forEach(function(c){
+    const $el = divRM.find(c.sel);
+    if(!$el.length) return;
+    const valActual   = String($el.val() ?? '').trim();
+    const valOriginal = String((ultimo && ultimo[c.key] != null) ? ultimo[c.key] : '').trim();
+    if(valActual !== valOriginal){
+      cambios.push(c.label + ': ' + valOriginal + ' → ' + valActual);
+      divRelMovMarcarCambio($el); // 👈 en lugar de addClass
+    }
+  });
+
+  if(cambios.length > 0){
+    mostrarModalCambios(cambios);
+    return false;
+  }
+  return true;
+}

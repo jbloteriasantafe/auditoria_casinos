@@ -40,7 +40,7 @@
     @endslot
     
     @slot('target_buscar')
-    /estadisticas_relevamientos/obtenerUltimosRelevamientosPorMaquina
+    /estadisticas_relevamientos/obtenerUltimosRelevamientosPorMaquinaNroAdmin
     @endslot
     
     @slot('filtros')

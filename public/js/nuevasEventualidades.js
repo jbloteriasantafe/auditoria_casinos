@@ -105,7 +105,6 @@ $(document).ready(function(){
       autoclose: true,
       todayBtn: true,
       minView: 2,
-      endDate: '+0d'
     });
 
   $('#evFecha').datetimepicker({
@@ -113,12 +112,11 @@ $(document).ready(function(){
     todayBtn:  1,
     autoclose: 1,
     todayHighlight: 1,
-    format: 'yyyy-mm-dd HH:ii:ss',
+    format: 'yyyy-mm-dd HH:ii',
     pickerPosition: "bottom-left",
     startView: 2,
     minView: 0,
     ignoreReadonly: true,
-    endDate: '+0d',
     container:$('main section'),
 
 
@@ -171,7 +169,8 @@ $('#btn-eliminarEventualidad').click(function (e){
   $.get('eventualidades/eliminarEventualidad/' + id, function(data){
 
       if(data==1){
-        $('#btn-buscarEventualidades').click();
+        const paginaActual = $('#herramientasPaginacion').getCurrentPage();
+        $('#btn-buscarEventualidades').trigger('click', [{ page: paginaActual }]);
         $('#modalEliminarEventualidad').modal('hide');
      }
 
@@ -205,7 +204,8 @@ $('#btn-visarEventualidad').click(function(e) {
   if (!aVisar) return;
   $.get(`/eventualidades/visarEventualidad/${aVisar}`, function(ok) {
     if (ok == 1) {
-      $('#btn-buscarEventualidades').click();    // recarga la tabla
+      const paginaActual = $('#herramientasPaginacion').getCurrentPage();
+      $('#btn-buscarEventualidades').trigger('click', [{ page: paginaActual }]);
     } else {
       alert('No se pudo visarla. ¿Tienes permiso?');
     }
@@ -470,7 +470,8 @@ $(document).on('click', '#subirEv', function (){
       $('#mensajeExito h3').text('EVENTUALIDAD subida');
       $('#mensajeExito p').text('');
       $('#mensajeExito').show();
-      $('#btn-buscarEventualidades').click();
+      const paginaActual = $('#herramientasPaginacion').getCurrentPage();
+      $('#btn-buscarEventualidades').trigger('click', [{ page: paginaActual }]);
     },
     error: function (xhr) {
       const res= xhr.responseJSON || {};
@@ -547,7 +548,8 @@ $(document).on('click', '#subirObs', function (){
       $('#mensajeExito h3').text('OBSERVACIÓN añadida');
       $('#mensajeExito p').text('');
       $('#mensajeExito').show();
-      $('#btn-buscarEventualidades').click();
+      const paginaActual = $('#herramientasPaginacion').getCurrentPage();
+      $('#btn-buscarEventualidades').trigger('click', [{ page: paginaActual }]);
 
     },
     error(xhr) {
@@ -674,7 +676,8 @@ if (boletinText.length > 300) {
       $('#mensajeErrorCarga').attr('hidden', true);
       window.open('/eventualidades/pdf/' + respuesta.id, '_blank');
       setTimeout(() => $('#modalCargarEventualidad').modal('hide'), 1000);
-      $('#btn-buscarEventualidades').click();
+      const paginaActual = $('#herramientasPaginacion').getCurrentPage();
+      $('#btn-buscarEventualidades').trigger('click', [{ page: paginaActual }]);
     },
     error: function (xhr) {
       $('#salir').next('.help-block.js-error').remove();
@@ -723,11 +726,14 @@ $(document).on('click', '#guardarObs', function () {
     },
     success: function (respuesta) {
       console.log("Guardado exitoso", respuesta);
-      $('#mensajeExitoCarga').removeAttr('hidden');
-      $('#mensajeErrorCarga').attr('hidden', true);
-      window.open('/eventualidades/pdfObs/' + respuesta.id, '_blank');
-      setTimeout(() => $('#modalObservacion').modal('hide'), 2000);
-      $('#btn-buscarEventualidades').click();
+
+      setTimeout(() => $('#modalObservacion').modal('hide'), 100);
+      $('#mensajeExito').hide();
+      $('#mensajeExito h3').text('OBSERVACIÓN añadida');
+      $('#mensajeExito p').text('');
+      $('#mensajeExito').show();
+      const paginaActual = $('#herramientasPaginacion').getCurrentPage();
+      $('#btn-buscarEventualidades').trigger('click', [{ page: paginaActual }]);
     },
     error: function (xhr) {
       // Si viene error de validación 422 de Laravel
@@ -800,11 +806,14 @@ $(function(){
   });
 });
 
-$('#btn-buscarEventualidades').click(function(e){
+$('#btn-buscarEventualidades').on('click',function(e,opts){
+
   e.preventDefault();
   const filtros = leerFiltros();
+
+  const page      = (opts && typeof opts.page !== 'undefined') ? opts.page : 1;
   cargarIntervenciones({
-    page: 1,
+    page: page,
     perPage: $('#herramientasPaginacion').getPageSize(),
     ...filtros
   });
@@ -814,42 +823,41 @@ $(document).on('click', '.btn-verObs', function(){
   const evId = $(this).data('id');
   const $ul  = $('#listaPdfs')
                  .empty()
-                 .append('<li>Cargando…</li>')
-                 .data('ev-id', evId);
+                 .append('<li class="list-group-item">Cargando…</li>')
+                 .data('ev-id', evId)
+                 .addClass('list-group');
 
   $.getJSON(`/eventualidades/${evId}/observaciones`, data => {
     const obs = data.obs;
-    const esControlador = data.controlador === 1; // true o false
+    const esControlador = data.controlador === 1;
     $ul.empty();
 
     if (!obs.length) {
-      return $ul.append('<li>No hay observaciones.</li>');
+      return $ul.append('<li class="list-group-item">No hay observaciones.</li>');
     }
 
     obs.forEach(o => {
-      if (!o.url) return;
+  const $link = $('<a>')
+    .attr('href', o.url)
+    .attr('target','_blank')
+    .text(o.id_archivo || `Observación #${o.id_observacion_eventualidades}`);
 
-      const $link = $('<a>')
-        .attr('href', o.url)
-        .attr('target','_blank')
-        .text(o.id_archivo);
+  const $li = $('<li>').addClass('list-group-item clearfix').css({marginBottom:'8px'});
+  $li.append($link);
 
-      const $li = $('<li>').append($link);
+  if (esControlador) {
+    const $btnDeleteObs = $('<button>')
+      .addClass('btn btn-danger btn-sm btn-deleteObs pull-right')
+      .attr('data-id', o.id_observacion_eventualidades)
+      .attr('title','ELIMINAR OBSERVACIÓN')
+      .append($('<i>').addClass('fa fa-trash'));
+    $li.append($btnDeleteObs);
+  }
 
-      // sólo si es controlador, añado el botón de borrar
-      if (esControlador) {
-  const $btnDeleteObs = $('<button>')
-    .addClass('btn btn-danger btn-sm btn-deleteObs')
-    .attr('data-id', o.id_observacion_eventualidades)
-    .attr('data-toggle','tooltip')
-    .attr('data-placement','bottom')
-    .attr('title','ELIMINAR OBSERVACIÓN')
-    .append($('<i>').addClass('fa fa-trash'));
-  $li.append($btnDeleteObs);
-}
+  $ul.append($li);
+});
 
-      $ul.append($li);
-    });
+
   }).fail(() => {
     $ul.empty().append('<li class="text-danger">Error al cargar.</li>');
   });
