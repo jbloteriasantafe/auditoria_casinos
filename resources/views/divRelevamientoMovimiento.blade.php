@@ -70,16 +70,22 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
         </div>
         <h6>DETALLES MTM</h6>
         <form class="" action="index.html" method="post">
-        <div class="row" >
-                <div class="col-lg-4">
+            <div class="row" style="display: flex;">
+                <div style="flex: 1;">
                     <h5>Nro Admin.</h5>
                     <input type="text" class="form-control nro_admin" readonly="readonly">
                 </div>
-                <div class="col-lg-4">
-                    <h5>N° Isla</h5>
+                <div style="flex: 1;">
+                    <h5>N° Isla (Sistema)</h5>
                     <input type="text" class="form-control nro_isla" readonly="readonly">
                 </div>
-                <div class="col-lg-4">
+                @if($divRelMov_user->es_superusuario && $divRelMov_user->tienePermiso('eventualidades_validar_borrar'))
+                <div style="flex: 1;">
+                    <h5>N° Isla (Importado)</h5>
+                    <input type="text" class="form-control nro_isla_importado" readonly="readonly">
+                </div>
+                @endif
+                <div style="flex: 1;">
                     <h5>N° Serie</h5>
                     <input type="text" class="form-control nro_serie" readonly="readonly">
                 </div>
@@ -104,7 +110,7 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
                     <input type="text" class="form-control editable sector_rel">
                 </div>
                 <div class="col-lg-4">
-                    <h5>ISLA</h5>
+                    <h5>N° Isla (Relevado)</h5>
                     <input type="text" class="form-control editable isla_rel">
                 </div>
             </div>

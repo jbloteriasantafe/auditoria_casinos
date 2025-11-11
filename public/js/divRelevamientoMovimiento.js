@@ -48,6 +48,7 @@ function divRelMovObtenerDatos(){
         id_estado_relevamiento: divRM.find('.estado').attr('data-id'),
         nro_admin: divRM.find('.nro_admin').val(),
         isla_maq: divRM.find('.nro_isla').val(),
+        nro_isla_importado: divRM.find('.nro_isla_importado').val(),
         nro_serie: divRM.find('.nro_serie').val(),
         marca: divRM.find('.marca').val(),
         modelo: divRM.find('.modelo').val(),
@@ -212,6 +213,7 @@ function divRelMovSetear(data){
     divRM.find('.estado').val(data.estado.descripcion)
     .attr('data-id',data.estado.id_estado_relevamiento);
     divRM.find('.nro_isla').val(data.maquina.nro_isla);
+    divRM.find('.nro_isla_importado').val((data?.ultima_isla?.fecha && data?.ultima_isla?.isla)? ('('+data.ultima_isla.fecha+') '+data.ultima_isla.isla) : '');
     divRM.find('.nro_admin').val(data.maquina.nro_admin);
     divRM.find('.nro_serie').val(limpiarNullUndef(data.maquina.nro_serie,''));
     divRM.find('.marca').val(data.maquina.marca);
