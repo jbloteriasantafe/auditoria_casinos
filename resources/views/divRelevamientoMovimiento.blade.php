@@ -79,7 +79,7 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
                     <h5>N° Isla (Sistema)</h5>
                     <input type="text" class="form-control nro_isla" readonly="readonly">
                 </div>
-                @if($divRelMov_user->es_superusuario && $divRelMov_user->tienePermiso('eventualidades_validar_borrar'))
+                @if($divRelMov_user->tienePermiso('eventualidades_validar_borrar'))
                 <div style="flex: 1;">
                     <h5>N° Isla (Importado)</h5>
                     <input type="text" class="form-control nro_isla_importado" readonly="readonly">
