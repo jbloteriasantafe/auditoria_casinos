@@ -367,7 +367,7 @@
     <script src="/js/paginacion.js" charset="utf-8"></script>
 
     <!-- JavaScript personalizado -->
-    <script src="js/divRelevamientoMovimiento.js?2" charset="utf-8"></script>
+    <script src="js/divRelevamientoMovimiento.js?3" charset="utf-8"></script>
     <script src="js/eventualidadesMTM.js?1" charset="utf-8"></script>
     <!-- DateTimePicker JavaScript -->
     <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
