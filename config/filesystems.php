@@ -51,7 +51,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => env('APP_URL') . '/storage',
             'visibility' => 'public',
         ],
 
@@ -61,6 +61,10 @@ return [
             'secret' => env('AWS_SECRET'),
             'region' => env('AWS_REGION'),
             'bucket' => env('AWS_BUCKET'),
+        ],
+        'notas_casinos' => [
+            'driver' => 'local',
+            'root' => '/mnt/notas_casinos/wampstack-7.4.24-3/apache2/htdocs/eventos_casinos',
         ],
 
     ],
