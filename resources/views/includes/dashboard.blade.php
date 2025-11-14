@@ -1,4 +1,4 @@
- <?php
+<?php
  use App\Http\Controllers\UsuarioController;
  use App\Http\Controllers\AuthenticationController;
  use Illuminate\Http\Request;
@@ -452,6 +452,100 @@ $opciones = [
   $aux = ['hijos' => $opciones];
   $opciones = $promover_permisos_y_asignar_defaults('',$aux)['hijos'];
 }
+
+{
+  $ac = AuthenticationController::getInstancia();//Saco las opciones segun los permisos que tenga
+  $filtrar_permisos = function($k,&$opciones) use (&$filtrar_permisos,$ac,$id_usuario){
+    $nuevos_hijos = [];
+    $hijos = &$opciones['hijos'];
+    if(!is_null($hijos)) foreach($hijos as $op => $datos){
+      $permisos = $datos['algun_permiso'] ?? [];
+      if(count($permisos) != 0 && !$ac->usuarioTieneAlgunPermiso($id_usuario,$permisos)) continue;
+      $nuevos_hijos[$op] = $filtrar_permisos($op,$datos);
+    }
+    $opciones['hijos'] = $nuevos_hijos;
+    return $opciones;
+  };
+  $aux = ['hijos' => $opciones];
+  $opciones = $filtrar_permisos('',$aux)['hijos'];
+}
+{//Saco los submenues que tienen solo 1 opcion (quedan asi por los permisos de usuario) ej Auditoria -> Validacion -> Mesas -> Mesas para los auditores
+  $simplificar_submenues = function(&$k,&$opciones,$nivel) use (&$simplificar_submenues){
+    $nuevas_opciones = $opciones;//Clone
+    $nuevas_opciones['hijos'] = [];
+    $hijos = &$opciones['hijos'];//Clone
+    if(!is_null($hijos)) foreach($hijos as $h_k => $h){
+      $new_h = $simplificar_submenues($h_k,$h,$nivel+1);
+      if(is_null($new_h)) continue;
+      $nuevas_opciones['hijos'][$new_h['k']] = $new_h['opciones'];
+    }
+
+    if($nivel > 1){
+      if(count($nuevas_opciones['hijos']) == 0 && $opciones['link'] == ''){//Si no tiene hijos ni tampoco un link, lo saco
+        return null;
+      }
+      if(count($nuevas_opciones['hijos']) == 1){//Le dejo el mismo icono
+        $icono = $nuevas_opciones['icono'];
+        $newk = array_keys($nuevas_opciones['hijos'])[0];
+        $nuevo = $nuevas_opciones['hijos'][$newk];
+        $nuevo['icono'] = $icono;
+        $ret = ['k' => $k.' - '.$newk,'opciones' => $nuevo];
+        return $ret;
+      }
+    }
+    return ['k' => $k,'opciones' => $nuevas_opciones];
+  };
+  $aux1 = '';
+  $aux2 = ['hijos' => $opciones];
+  $opciones = $simplificar_submenues($aux1,$aux2,0)['opciones']['hijos'];
+}
+
+//@HACK: Elimino submenues para windows XP porque no se muestran... mando todos los enlaces directos al menu
+//poner true || request()->... etc para probar
+//Instalar un browser moderno backporteado https://retrosystemsrevival.blogspot.com/2019/10/roytam1-browser-installer.html
+if(request()->header('User-Agent') == "Mozilla/5.0 (Windows NT 5.1; rv:52.0) Gecko/20100101 Firefox/52.0"){
+  $array_pop_k = function(&$arr){
+    if(count($arr) == 0) return [null,null];
+    $k = array_keys($arr)[count($arr)-1];
+    $v = $arr[$k];
+    array_pop($arr);
+    return [$k,$v];
+  };
+  foreach($opciones as $op => $submenu){
+    $new_submenu = [];
+    $first = true;
+    $stack = [];
+    $kv = [$op,$submenu];
+    while(!is_null($kv[1]) || $first){
+      while(count($kv[1]['hijos']) > 0){
+        $hijo = $array_pop_k($kv[1]['hijos']);
+        $new_text = $first? $hijo[0] : ($kv[0].' - '.$hijo[0]);
+        $stack[] = [$new_text,$hijo[1]];
+      }
+      $first = false;
+      while(true){
+        $kv = array_pop($stack);
+        if(!empty($kv[1]['link']) && $kv[1]['link'] != '#'){
+          $new_submenu[$kv[0]] = $kv[1];
+        }
+        else{
+          break;
+        }
+      }
+    }
+    $opciones[$op]['hijos'] = $new_submenu;
+  }
+}
+
+$fondo = 'rgb(38, 50, 56)';
+//Fisico
+$casinos_ids = $usuario['usuario']->casinos->map(function($c){return $c->id_casino;})->toArray();
+$cas_random = $casinos_ids[array_rand($casinos_ids,1)];
+$tarjetas = [1 => '/img/tarjetas/banner_MEL.jpg',2 => '/img/tarjetas/banner_CSF.jpg',3 => '/img/tarjetas/banner_ROS.jpg'];
+$tarjeta = $tarjetas[$cas_random] ?? null;
+$tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;background-size: contain;background-repeat: space" : null;
+?>
+
 
  <!DOCTYPE html>
  <html>
