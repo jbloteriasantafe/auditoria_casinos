@@ -206,6 +206,16 @@ Route::group(['prefix' => 'notas','middleware' => 'tiene_permiso:ver_seccion_res
   Route::get('consulta-nota/{id}','NotaController@consultaMovimientosNota');
   Route::delete('eliminar-nota/{id}','NotaController@eliminarNotaCompleta');
 });
+
+//! NUEVA SECCION DE CARGA DE NOTAS PARA CASINOS
+Route::group(['prefix' => 'cargar-notas','middleware' => 'tiene_permiso:ver_cargar_notas'], function () {
+  Route::get('/','NotasCasino\NotasCasinoController@index');
+  Route::get('/notas/archivo/{id}/{tipo}', 'NotasCasino\NotasCasinoController@descargarArchivo');
+  Route::post('subir', 'NotasCasino\NotasCasinoController@subirNota');
+  Route::post('paginar', 'NotasCasino\NotasCasinoController@paginarNotas');
+});
+
+
  /***********
     GLI soft
  ************/
