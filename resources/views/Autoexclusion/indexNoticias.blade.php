@@ -327,8 +327,8 @@
                               <h5 id="abstractEditShow" class="no_visualizable">NUEVO ABSTRACT</h5>
                               <textarea id="noticiaNuevoAbstract" class="form-control no_visualizable" rows="10"
                                   style="resize:vertical; min-height:120px; height:65px;"
-                                  placeholder="Ingresar aquí las una breve descripción (max: 255 caracteres)" required />
-
+                                  placeholder="Ingresar aquí las una breve descripción (max: 255 caracteres)" required/>
+                                
                           </div>
                           <div class="row">
                               <div class="col-md-12">
