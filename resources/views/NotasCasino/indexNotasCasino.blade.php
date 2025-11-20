@@ -203,6 +203,7 @@
                                     <th class="col-sm-1 text-center" value="estado" title="Estado de la nota">ESTADO</th>
                                     <th class="col-sm-1 text-center" value="notas_relacionadas"
                                         title="Notas relacionadas">NOTAS RELACIONADAS</th>
+                                    <th class="col-sm-1 text-center" value="acciones" title="Acciones">ACCIONES</th>
                                 </tr>
                             </thead>
                             <tbody id="cuerpoTabla">
@@ -216,6 +217,7 @@
                                     <td class="col-sm-1 text-center fecha_finalizacion_evento"></td>
                                     <td class="col-sm-1 text-center estado"></td>
                                     <td class="col-sm-1 text-center notas_relacionadas"></td>
+                                    <td class="col-sm-1 text-center acciones"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -393,6 +395,207 @@
                 <div class="modal-footer" style="padding-top: 7px;">
                     <button id="btn-guardar-nota" type="button" value="add"></button>
                     <button id="btn-cancelar-nota" type="button" class="btn btn-default" id="btn-salir"
+                        data-dismiss="modal" aria-label="Close">CANCELAR</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ! MODAL DE EDICION DE NOTAS --}}
+    <div class="modal fade" id="modalEditarNota" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <i class="fa fa-times"></i>
+                    </button>
+                    <h3 class="modal-title" id="myModalLabel">| EDITAR NOTAS </h3>
+                </div>
+                <div id="colapsado" class="collapse in">
+                    <div class="modal-body">
+                        <form class="row" id="formularioEditarNota">
+                            {{-- ! FORMADO DE NOTA --}}
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="alert alert-info"
+                                        style="margin-bottom: 20px;  margin-top:20px; border-left: 4px solid #17a2b8; background-color: #d1ecf1; border-color: #bee5eb;">
+                                        <i class="fa fa-info-circle" style="margin-right: 8px; color: #0c5460;"></i>
+                                        <strong>Información importante:</strong> Para editar la información de las notas
+                                        rellene solo los campos que desea actualizar, no es necesario rellenar todo el
+                                        formulario. <br>
+                                        Si quiere modificar el número de nota debe completar los campos <strong>NRO DE NOTA
+                                            y TIPO
+                                            DE NOTA</strong>, de otra forma el cambio no se efectuará.
+                                    </div>
+                                </div>
+                                {{-- ! NRO DE NOTA --}}
+                                <div class="col-lg-4">
+                                    <h5>Nro de nota</h5>
+                                    <input id="nroNotaEditar" class="form-control" type="number" required
+                                        placeholder="Mínimo 3 dígitos (Por ejemplo: 001)" />
+                                    <span class="error-message" id="mensajeErrorNroNotaEditar"
+                                        style="display: none;">Este
+                                        campo debe
+                                        tener como mínimo 3 dígitos</span>
+                                </div>
+                                {{-- ! TIPO DE NOTA --}}
+                                <div class="col-lg-4">
+                                    <h5>Tipo de nota</h5>
+                                    <select id="tipoNotaEditar" class="form-control" required>
+                                        <option value="" selected disabled>-- Seleccione un tipo de nota --</option>
+                                        @foreach ($tipos_nota as $tipo)
+                                            <option value="{{ $tipo->id_tipo_nota }}">{{ $tipo->tipo_nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                    <span class="error-message" style="display: none;"
+                                        id="mensajeErrorTipoNotaEditar">Este
+                                        campo es obligatorio si quiere cambiar el NRO DE NOTA</span>
+                                </div>
+                                {{-- ! AÑO DE NOTA --}}
+                                <div class="col-lg-4">
+                                    <h5>Año de nota</h5>
+                                    <input id="anioNotaEditar" class="form-control" type="number"
+                                        value="{{ $anio }}" disabled required />
+                                    <span class="error-message" style="display: none;"
+                                        id="mensajeErrorAnioNotaEditar">Este
+                                        campo es obligatorio</span>
+                                </div>
+                                <div class="col-lg-12"><span class="error-message" id="mensajeErrorModificarNroNota"
+                                        style="display: none;">Si
+                                        quiere modificar el
+                                        número de nota debe completar los campos <strong>NRO DE NOTA
+                                            y TIPO
+                                            DE NOTA</strong>, de otra forma el cambio no se efectuará.</span></div>
+                            </div>
+                            {{-- ! NOMBRE DEL EVENTO --}}
+                            <div class="col-lg-12">
+                                <h5>Nombre del evento</h5>
+                                <input id="nombreEventoEditar" class="form-control" required maxlength="1000"
+                                    placeholder="Ingrese el nombre del evento (Máximo: 1000 caracteres)" />
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorNombreEventoEditar">Este
+                                    campo puede tener como máximo 1000 caracteres</span>
+                            </div>
+                            {{-- ! TIPO EVENTO --}}
+                            <div class="col-lg-12">
+                                <h5>Tipo evento</h5>
+                                <select id="tipoEventoEditar" class="form-control" required>
+                                    <option value="" selected disabled>-- Seleccione un tipo de evento --</option>
+                                    @foreach ($tipos_evento as $tipo)
+                                        <option value="{{ $tipo->idtipoevento }}">{{ $tipo->tipo_nombre }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            {{-- ! CATEGORIA --}}
+                            <div class="col-lg-12">
+                                <h5>Categoría</h5>
+                                <select id="categoriaEditar" name="categoria" class="form-control" required>
+                                    <option value="" selected disabled>-- Seleccione una categoría --</option>
+                                    @foreach ($categorias as $categoria)
+                                        <option value="{{ $categoria->idcategoria }}">{{ $categoria->categoria }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            {{-- ! ADJUNTO NOTAS, TODO LO QUE DICE PAUTAS EN TODO EL CODIGO ES DE LAS NOTAS --}}
+                            <div class="col-lg-12">
+                                <h5>Adjunto NOTAS</h5>
+                                <div class="custom-file">
+                                    <input id="adjuntoPautasEditar" name="adjuntoPautas" data-borrado="false"
+                                        class="custom-file-input" type="file" accept=".pdf,.zip"
+                                        style="display:none;" />
+                                    <button type="button" id="adjuntoPautasBtnEditar"
+                                        class="btn btn-primary">Seleccionar
+                                        archivo</button>
+                                    <span id="adjuntoPautasNameEditar" class="ms-2">Ningún archivo seleccionado</span>
+                                    <button id="eliminarAdjuntoPautasEditar" type="button"
+                                        class="btn btn-danger btn-sm ms-2">Eliminar</button>
+                                </div>
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorAdjuntoPautasEditar">El
+                                    archivo seleccionado es demasiado grande. El tamaño máximo permitido es de 150
+                                    MB.</span>
+                            </div>
+                            {{-- ! ADJUNTO DISEÑO --}}
+                            <div class="col-lg-12">
+                                <h5>Adjunto DISEÑO</h5>
+                                <div>
+                                    <input id="adjuntoDisenioEditar" name="adjuntoDisenio" type="file"
+                                        accept=".pdf,.zip" class="custom-file-input" style="display:none;" />
+                                    <button type="button" id="adjuntoDisenioBtnEditar"
+                                        class="btn btn-primary">Seleccionar
+                                        archivo</button>
+                                    <span id="adjuntoDisenioNameEditar" class="ms-2">Ningún archivo seleccionado</span>
+                                    <button id="eliminarAdjuntoDisenioEditar" type="button"
+                                        class="btn btn-danger btn-sm ms-2">Eliminar</button>
+                                </div>
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorAdjuntoDisenioEditar">El
+                                    archivo seleccionado es demasiado grande. El tamaño máximo permitido es de 150
+                                    MB.</span>
+                            </div>
+                            {{-- ! ADJUNTO BASES Y COND. --}}
+                            <div class="col-lg-12">
+                                <h5>Adjunto bases y condiciones</h5>
+                                <div>
+                                    <input id="basesyCondicionesEditar" type="file" accept=".pdf,.zip,.doc,.docx"
+                                        class="custom-file-input" style="display:none;" />
+                                    <button type="button" id="basesyCondicionesBtnEditar"
+                                        class="btn btn-primary">Seleccionar
+                                        archivo</button>
+                                    <span id="basesyCondicionesNameEditar" class="ms-2">Ningún archivo
+                                        seleccionado</span>
+                                    <button id="eliminarBasesyCondicionesEditar" type="button"
+                                        class="btn btn-danger btn-sm ms-2">Eliminar</button>
+                                </div>
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorBasesyCondicionesEditar">El
+                                    archivo seleccionado es demasiado grande. El tamaño máximo permitido es de 150
+                                    MB.</span>
+                            </div>
+                            {{-- ! FECHA INICIO EVENTO --}}
+                            <div class="col-lg-12">
+                                <div class="alert alert-info"
+                                    style="margin-bottom: 20px;  margin-top:20px; border-left: 4px solid #17a2b8; background-color: #d1ecf1; border-color: #bee5eb;">
+                                    <i class="fa fa-info-circle" style="margin-right: 8px; color: #0c5460;"></i>
+                                    <strong>Información importante:</strong> Si quiere modificar las fechas del evento debe
+                                    seleccionar una nueva fecha de inicio y de fin. Si selecciona solo una, el cambio no se
+                                    efectuará.
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <h5>Fecha inicio evento</h5>
+                                <input id="fechaInicioEditar" class="form-control" type="date" required />
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorFechaInicioEditar">Para modificar las fechas debe seleccionar
+                                    ambas</span>
+                            </div>
+                            {{-- !FECHA FINALIZACION EVENTO --}}
+                            <div class="col-lg-12">
+                                <h5>Fecha finalización evento</h5>
+                                <input id="fechaFinalizacionEditar" class="form-control" type="date" required />
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorFechaFinalizacionEditar">Para modificar las fechas debe seleccionar
+                                    ambas</span>
+                            </div>
+                            {{-- ! FECHA REFERENCIA EVENTO --}}
+                            <div class="col-lg-12">
+                                <h5>Fecha referencia evento</h5>
+                                <input id="fechaReferenciaEditar" class="form-control" maxlength="500"
+                                    placeholder="Ingrese la fecha de referencia (Máximo: 500 caracteres)" />
+                                <span class="error-message" style="display: none;"
+                                    id="mensajeErrorFechaReferenciaEditar">Máximo: 500 caracteres</span>
+                            </div>
+                            <div class="col-lg-12">
+                                <span class="error-message" style="display: none;" id="mensajeErrorFormVacio">El
+                                    formulario está vacío</span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding-top: 7px;">
+                    <button id="btn-guardar-nota-editar" type="button" value="add"></button>
+                    <button id="btn-cancelar-nota-editar" type="button" class="btn btn-default" id="btn-salir"
                         data-dismiss="modal" aria-label="Close">CANCELAR</button>
                 </div>
             </div>
