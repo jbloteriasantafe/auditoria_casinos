@@ -135,7 +135,13 @@ $gestion_hijos = [
         'algun_permiso' => ['ver_seccion_ae_noticias'],
       ]
     ]
-  ]
+  ],
+  'Denuncias Alea' => [
+    'icono' => $icono_expedientes,
+    'link' => '/denunciasAlea',
+    'algun_permiso' => ['carga_denunciasAlea'],
+      
+    ]
 ];
 $fiscalizacion_hijos = [
   'Maquinas' => [
