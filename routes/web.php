@@ -809,6 +809,24 @@ Route::group(['prefix' => 'aperturas','middleware' => 'tiene_permiso:m_buscar_ap
   Route::get('descargarZip/{nombre}', 'Mesas\Aperturas\ABMCRelevamientosAperturaController@descargarZip');
 });
 
+//Seccion denuncias Alea
+Route::group(['prefix' => 'denunciasAlea','middleware' => 'tiene_permiso:carga_denunciasAlea'], function () {
+  Route::get('/','denunciasAleaController@index');
+  Route::post('guardarPagina','denunciasAleaController@guardarPagina');
+  Route::get('ultimasDenuncias', 'denunciasAleaController@ultimasDenuncias');
+  Route::get('eliminarDenuncia/{id}', 'denunciasAleaController@eliminarDenuncia');
+  Route::get('llenardenunciasAlea_paginas/{id}', 'denunciasAleaController@llenarPagina');
+  Route::post('actualizarPagina/{id}', 'denunciasAleaController@actualizarPagina');
+  Route::post('export-seleccion','denunciasAleaController@exportSeleccion');
+  Route::post('cambiarEstadoDenuncia/{id}/set','denunciasAleaController@setDenuncia');
+  Route::get('estados', 'denunciasAleaController@estadosJson');
+  Route::post('set-estado/{id}', 'denunciasAleaController@setEstado');
+  Route::get('totales-mensuales', 'denunciasAleaController@totalesMensuales');
+  Route::post('export-totales', 'denunciasAleaController@exportTotales');
+
+  Route::get('probar-disponibilidad/{id}', 'denunciasAleaController@probarDisponibilidad');
+  Route::get('paginas-activas',           'denunciasAleaController@paginasActivas');
+});
 //Sección documentación Contable
 Route::group(['prefix' => 'documentosContables','middleware' => 'tiene_permiso:ver_documentos_contables'], function () {
   Route::get('/','documentosContablesController@index');
