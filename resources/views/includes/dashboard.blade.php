@@ -1,198 +1,203 @@
- <?php
-use App\Http\Controllers\UsuarioController;
-use App\Http\Controllers\AuthenticationController;
-use Illuminate\Http\Request;
+<?php
+ use App\Http\Controllers\UsuarioController;
+ use App\Http\Controllers\AuthenticationController;
+ use Illuminate\Http\Request;
 
-$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
-$id_usuario = $usuario['usuario']->id_usuario;
+ $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
+ $id_usuario = $usuario['usuario']->id_usuario;
 
-$get_svg = function($nombre){
-  return file_get_contents(resource_path()."/assets/svg/$nombre.svg");
-};
-$icono_usuario = $get_svg('usuario');//Para evitar pedir constantemente al disco, lo guardo en una variable
-$icono_expedientes = $get_svg('expedientes');
-$icono_maquinas = $get_svg('maquinas');
-$icono_bingos = $get_svg('bingos');
-$icono_mesas = $get_svg('mesa');
-$icono_tablero = $get_svg('tablero_control');
-$gestion_hijos = [
-  'Casinos' => [
-    'icono' => $get_svg('casinos'),
-    'link' => '/casinos',
-    'algun_permiso' => ['ver_seccion_casinos'],
-  ],
-  'Usuarios' => [
-    'icono' => $icono_usuario,
-    'hijos' => [
-      'Gestionar usuarios' => [
-        'link' => '/usuarios',
-        'algun_permiso' => ['ver_seccion_usuarios'],
-      ],
-      'Roles y permisos' => [
-        'link' => '/roles_permisos',
-        'algun_permiso' => ['ver_seccion_roles_permisos'],
-      ],
-      'Log de actividades' => [
-        'link' => '/logActividades',
-        'algun_permiso' => ['ver_seccion_logs_actividades'],
-      ],
-    ]
-  ],
-  'Expedientes' => [
-    'icono' => $icono_expedientes,
-    'hijos' => [
-      'Gestionar expedientes' => [
-        'link' => '/expedientes',
-        'algun_permiso' => ['ver_seccion_expedientes'],
-      ],
-      'Resoluciones' => [
-        'link' => '/resoluciones',
-        'algun_permiso' => ['ver_seccion_resoluciones'],
-      ],
-      'Notas' => [
-        'link' => '/notas',
-        'algun_permiso' => ['ver_seccion_resoluciones'],
-      ],
-      'Disposiciones' => [
-        'link' => '/disposiciones',
-        'algun_permiso' => ['ver_seccion_disposiciones'],
-      ],
-    ]
-  ],
-  'Máquinas' => [
-    'icono' => $icono_maquinas,
-    'hijos' => [
-      'Máquinas' => [
-        'link' => '/maquinas',
-        'algun_permiso' => ['ver_seccion_juegos'],
-      ],
-      'Progresivos' => [
-        'link' => '/progresivos',
-        'algun_permiso' => ['ver_seccion_progresivos'],
-      ],
-      'Islas' => [
-        'link' => '/islas',
-        'algun_permiso' => ['ver_seccion_islas'],
-      ],
-      'Juegos' => [
-        'link' => '/juegos',
-        'algun_permiso' => ['ver_seccion_juegos'],
-      ],
-      'Fórmulas' => [
-        'link' => '/formulas',
-        'algun_permiso' => ['ver_seccion_formulas'],
-      ],
-      /*'Paquete-Juegos' => [
+ $get_svg = function ($nombre) {
+     return file_get_contents(resource_path() . "/assets/svg/$nombre.svg");
+ };
+ $icono_usuario = $get_svg('usuario'); //Para evitar pedir constantemente al disco, lo guardo en una variable
+ $icono_expedientes = $get_svg('expedientes');
+ $icono_maquinas = $get_svg('maquinas');
+ $icono_bingos = $get_svg('bingos');
+ $icono_mesas = $get_svg('mesa');
+ $icono_tablero = $get_svg('tablero_control');
+ $gestion_hijos = [
+     'Casinos' => [
+         'icono' => $get_svg('casinos'),
+         'link' => '/casinos',
+         'algun_permiso' => ['ver_seccion_casinos'],
+     ],
+     'Usuarios' => [
+         'icono' => $icono_usuario,
+         'hijos' => [
+             'Gestionar usuarios' => [
+                 'link' => '/usuarios',
+                 'algun_permiso' => ['ver_seccion_usuarios'],
+             ],
+             'Roles y permisos' => [
+                 'link' => '/roles_permisos',
+                 'algun_permiso' => ['ver_seccion_roles_permisos'],
+             ],
+             'Log de actividades' => [
+                 'link' => '/logActividades',
+                 'algun_permiso' => ['ver_seccion_logs_actividades'],
+             ],
+         ],
+     ],
+     'Expedientes' => [
+         'icono' => $icono_expedientes,
+         'hijos' => [
+             'Gestionar expedientes' => [
+                 'link' => '/expedientes',
+                 'algun_permiso' => ['ver_seccion_expedientes'],
+             ],
+             'Resoluciones' => [
+                 'link' => '/resoluciones',
+                 'algun_permiso' => ['ver_seccion_resoluciones'],
+             ],
+             'Notas' => [
+                 'link' => '/notas',
+                 'algun_permiso' => ['ver_seccion_resoluciones'],
+             ],
+             'Disposiciones' => [
+                 'link' => '/disposiciones',
+                 'algun_permiso' => ['ver_seccion_disposiciones'],
+             ],
+             'Carga de notas' => [
+                 'link' => '/cargar-notas',
+                 'algun_permiso' => ['ver_cargar_notas'],
+             ],
+         ],
+     ],
+     'Máquinas' => [
+         'icono' => $icono_maquinas,
+         'hijos' => [
+             'Máquinas' => [
+                 'link' => '/maquinas',
+                 'algun_permiso' => ['ver_seccion_juegos'],
+             ],
+             'Progresivos' => [
+                 'link' => '/progresivos',
+                 'algun_permiso' => ['ver_seccion_progresivos'],
+             ],
+             'Islas' => [
+                 'link' => '/islas',
+                 'algun_permiso' => ['ver_seccion_islas'],
+             ],
+             'Juegos' => [
+                 'link' => '/juegos',
+                 'algun_permiso' => ['ver_seccion_juegos'],
+             ],
+             'Fórmulas' => [
+                 'link' => '/formulas',
+                 'algun_permiso' => ['ver_seccion_formulas'],
+             ],
+             /*'Paquete-Juegos' => [
         //'link' => '/packJuegos',
         'link_style' => 'color: grey;',
         'algun_permiso' => ['ver_seccion_juegos'],
       ],*/
-      'Certificados Software' => [
-        'link' => '/certificadoSoft',
-        'algun_permiso' => ['ver_seccion_glisoft'],
-      ],
-      'Certificados Hardware' => [
-        'link' => '/certificadoHard',
-        'algun_permiso' => ['ver_seccion_glihard'],
-      ],
-      'Sectores' => [
-        'link' => '/sectores',
-        'algun_permiso' => ['ver_seccion_sectores'],
-      ],
-    ]
-  ],
-  'Mesas' => [
-    'icono' => $icono_mesas,
-    'hijos' => [
-      'Juegos y Sectores' => [
-        'link' => '/mesas-juegos',
-        'algun_permiso' => ['m_gestionar_juegos_mesas'],
-      ],
-      'Mesas' => [
-        'link' => '/mesas',
-        'algun_permiso' => ['m_gestionar_mesas'],
-      ],
-    ]
-  ],
-  'Bingo' => [
-    'icono' => $icono_bingos,
-    'hijos' => [
-      'Premios' => [
-        'link' => '/bingo/gestionBingo',
-        'algun_permiso' => ['bingo_ver_gestion'],
-      ],
-    ]
-  ],
-  'Autoexclusión' => [
-    'icono' => $icono_usuario,
-    'hijos' => [
-      'Autoexcluidos' => [
-        'link' => '/autoexclusion',
-        'algun_permiso' => ['ver_seccion_ae_alta'],
-      ],
-      'Noticias' => [
-        'link' => '/autoexclusion/noticias',
-        'algun_permiso' => ['ver_seccion_ae_noticias'],
-      ]
-    ]
-  ],
-  'Denuncias Alea' => [
-    'icono' => $icono_expedientes,
-    'link' => '/denunciasAlea',
-    'algun_permiso' => ['carga_denunciasAlea'],
-      
-    ]
-];
-$fiscalizacion_hijos = [
-  'Maquinas' => [
-    'icono' => $icono_maquinas,
-    'hijos' => [
-      'Contadores' => [
-        'link' => '/relevamientos',
-        'algun_permiso' => ['ver_seccion_relevamientos'],
-      ],
-      'Progresivos' => [
-        'link' => '/relevamientosProgresivo',
-        'algun_permiso' => ['ver_seccion_relevamientos_progresivos'],
-      ],
-      'MTM a pedido' => [
-        'link' => '/mtm_a_pedido',
-        'algun_permiso' => ['ver_seccion_mtm_a_pedido'],
-      ],
-      'Movimientos' => [
-        'hijos' => [
-          'Asignacion' => [
-            'link' => '/movimientos',
-            'algun_permiso' => ['ver_seccion_gestionar_movimientos'],
-          ],
-          'Relevamientos' => [
-            'link' => '/relevamientos_movimientos',
-            'algun_permiso' => ['ver_seccion_relevamientos_movimientos'],
-          ],
-          'Intervenciones MTM' => [
-            'link' => '/eventualidadesMTM',
-            'algun_permiso' => ['ver_seccion_eventualidades_MTM'],
-          ],
-        ]
-      ],
-      'Layout' => [
-        'hijos' => [
-          'Total' => [
-            'link' => '/layout_total',
-            'algun_permiso' => ['ver_planilla_layout_total'],
-          ],
-          'Parcial' => [
-            'link' => '/layout_parcial',
-            'algun_permiso' => ['ver_planilla_layout_parcial'],
-          ],
-        ]
-      ],
-      'Control Ambiental' => [
-        'link' => '/relevamientosControlAmbiental',
-        'algun_permiso' => ['ver_seccion_relevamientos_control_ambiental'],
-      ],
+             'Certificados Software' => [
+                 'link' => '/certificadoSoft',
+                 'algun_permiso' => ['ver_seccion_glisoft'],
+             ],
+             'Certificados Hardware' => [
+                 'link' => '/certificadoHard',
+                 'algun_permiso' => ['ver_seccion_glihard'],
+             ],
+             'Sectores' => [
+                 'link' => '/sectores',
+                 'algun_permiso' => ['ver_seccion_sectores'],
+             ],
+         ],
+     ],
+     'Mesas' => [
+         'icono' => $icono_mesas,
+         'hijos' => [
+             'Juegos y Sectores' => [
+                 'link' => '/mesas-juegos',
+                 'algun_permiso' => ['m_gestionar_juegos_mesas'],
+             ],
+             'Mesas' => [
+                 'link' => '/mesas',
+                 'algun_permiso' => ['m_gestionar_mesas'],
+             ],
+         ],
+     ],
+     'Bingo' => [
+         'icono' => $icono_bingos,
+         'hijos' => [
+             'Premios' => [
+                 'link' => '/bingo/gestionBingo',
+                 'algun_permiso' => ['bingo_ver_gestion'],
+             ],
+         ],
+     ],
+     'Autoexclusión' => [
+         'icono' => $icono_usuario,
+         'hijos' => [
+             'Autoexcluidos' => [
+                 'link' => '/autoexclusion',
+                 'algun_permiso' => ['ver_seccion_ae_alta'],
+             ],
+             'Noticias' => [
+                 'link' => '/autoexclusion/noticias',
+                 'algun_permiso' => ['ver_seccion_ae_noticias'],
+             ],
+         ],
+     ],
+     
+     'Denuncias Alea' => [
+       'icono' => $icono_expedientes,
+       'link' => '/denunciasAlea',
+       'algun_permiso' => ['carga_denunciasAlea'],
 
-      /*'Pruebas' => [
+     ],
+ ];
+ $fiscalizacion_hijos = [
+     'Maquinas' => [
+         'icono' => $icono_maquinas,
+         'hijos' => [
+             'Contadores' => [
+                 'link' => '/relevamientos',
+                 'algun_permiso' => ['ver_seccion_relevamientos'],
+             ],
+             'Progresivos' => [
+                 'link' => '/relevamientosProgresivo',
+                 'algun_permiso' => ['ver_seccion_relevamientos_progresivos'],
+             ],
+             'MTM a pedido' => [
+                 'link' => '/mtm_a_pedido',
+                 'algun_permiso' => ['ver_seccion_mtm_a_pedido'],
+             ],
+             'Movimientos' => [
+                 'hijos' => [
+                     'Asignacion' => [
+                         'link' => '/movimientos',
+                         'algun_permiso' => ['ver_seccion_gestionar_movimientos'],
+                     ],
+                     'Relevamientos' => [
+                         'link' => '/relevamientos_movimientos',
+                         'algun_permiso' => ['ver_seccion_relevamientos_movimientos'],
+                     ],
+                     'Intervenciones MTM' => [
+                         'link' => '/eventualidadesMTM',
+                         'algun_permiso' => ['ver_seccion_eventualidades_MTM'],
+                     ],
+                 ],
+             ],
+             'Layout' => [
+                 'hijos' => [
+                     'Total' => [
+                         'link' => '/layout_total',
+                         'algun_permiso' => ['ver_planilla_layout_total'],
+                     ],
+                     'Parcial' => [
+                         'link' => '/layout_parcial',
+                         'algun_permiso' => ['ver_planilla_layout_parcial'],
+                     ],
+                 ],
+             ],
+             'Control Ambiental' => [
+                 'link' => '/relevamientosControlAmbiental',
+                 'algun_permiso' => ['ver_seccion_relevamientos_control_ambiental'],
+             ],
+
+             /*'Pruebas' => [
         'hijos' => [
           'Pruebas Juegos' => [
             //'link' => '/prueba_juegos',
@@ -206,45 +211,45 @@ $fiscalizacion_hijos = [
           ],
         ]
       ],*/
-    ],
-  ],
-  'Mesas' => [
-    'icono' => $icono_mesas,
-    'hijos' => [
-      'Cierres y Aperturas' => [
-        'link' => '/aperturas',
-        'algun_permiso' => ['m_buscar_aperturas'],
-      ],
-      'Apuestas Minimas' => [
-        'link' => '/apuestas',
-        'algun_permiso' => ['m_ver_seccion_apuestas'],
-      ],
-      'Control Ambiental' => [
-        'link' => '/relevamientosControlAmbientalMesas',
-        'algun_permiso' => ['ver_seccion_relevamientos_control_ambiental'],
-      ],
-    ],
-  ],
-  'Bingo' => [
-    'icono' => $icono_bingos,
-    'hijos' => [
-      'Sesiones' => [
-        'link' => '/bingo',
-        'algun_permiso' => ['ver_seccion_sesion_relevamientos'],
-      ],
-    ]
-  ],
-  'Autoexclusión Galería' => [
-    'icono' => $icono_usuario,
-    'link' => '/galeriaImagenesAutoexcluidos',
-    'algun_permiso' => ['ver_seccion_ae_informes_galeria']
-  ],
-  'Eventualidades' => [
-    'icono' => $icono_expedientes,
-    'link' => '/eventualidades',
-  ],
+         ],
+     ],
+     'Mesas' => [
+         'icono' => $icono_mesas,
+         'hijos' => [
+             'Cierres y Aperturas' => [
+                 'link' => '/aperturas',
+                 'algun_permiso' => ['m_buscar_aperturas'],
+             ],
+             'Apuestas Minimas' => [
+                 'link' => '/apuestas',
+                 'algun_permiso' => ['m_ver_seccion_apuestas'],
+             ],
+             'Control Ambiental' => [
+                 'link' => '/relevamientosControlAmbientalMesas',
+                 'algun_permiso' => ['ver_seccion_relevamientos_control_ambiental'],
+             ],
+         ],
+     ],
+     'Bingo' => [
+         'icono' => $icono_bingos,
+         'hijos' => [
+             'Sesiones' => [
+                 'link' => '/bingo',
+                 'algun_permiso' => ['ver_seccion_sesion_relevamientos'],
+             ],
+         ],
+     ],
+     'Autoexclusión Galería' => [
+         'icono' => $icono_usuario,
+         'link' => '/galeriaImagenesAutoexcluidos',
+         'algun_permiso' => ['ver_seccion_ae_informes_galeria'],
+     ],
+     'Eventualidades' => [
+         'icono' => $icono_expedientes,
+         'link' => '/eventualidades',
+     ],
 
-      /*'Pruebas' => [
+     /*'Pruebas' => [
         'hijos' => [
           'Pruebas Juegos' => [
             //'link' => '/prueba_juegos',
@@ -258,31 +263,31 @@ $fiscalizacion_hijos = [
           ],
         ]
       ],*/
-    ];
-$auditoria_hijos = [
-  'Importaciones' => [
-    'icono' => $icono_expedientes,
-    'hijos' => [
-      'Maquinas' => [
-        'link' => '/importaciones',
-        'algun_permiso' => ['ver_seccion_importaciones']
-      ],
-      'Mesas' => [
-        'link' => '/importacionDiaria',
-        'algun_permiso' => ['m_ver_seccion_importaciones']
-      ],
-      'Bingo' => [
-        'link' => '/bingo/importarRelevamiento',
-        'algun_permiso' => ['importar_bingo']
-      ],
-    ],
-  ],
-  'Validación' => [
-    'icono' => '<i class="fa fa-check-square"></i>',
-    'hijos' => [
-      'Maquinas' => [
-        'hijos' => [
-          /*'Contadores' => [
+ ];
+ $auditoria_hijos = [
+     'Importaciones' => [
+         'icono' => $icono_expedientes,
+         'hijos' => [
+             'Maquinas' => [
+                 'link' => '/importaciones',
+                 'algun_permiso' => ['ver_seccion_importaciones'],
+             ],
+             'Mesas' => [
+                 'link' => '/importacionDiaria',
+                 'algun_permiso' => ['m_ver_seccion_importaciones'],
+             ],
+             'Bingo' => [
+                 'link' => '/bingo/importarRelevamiento',
+                 'algun_permiso' => ['importar_bingo'],
+             ],
+         ],
+     ],
+     'Validación' => [
+         'icono' => '<i class="fa fa-check-square"></i>',
+         'hijos' => [
+             'Maquinas' => [
+                 'hijos' => [
+                     /*'Contadores' => [
             'link' => '/alertas_contadores',
             'algun_permiso' => ['ver_seccion_contadores'],
           ],*/
@@ -548,251 +553,268 @@ $tarjeta = $tarjetas[$cas_random] ?? null;
 $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;background-size: contain;background-repeat: space" : null;
 ?>
 
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="_token" content="{!! csrf_token() !!}"/>
 
-    <link rel="icon" type="image/png" sizes="32x32" href="/img/logos/faviconFisico.ico">
-    <title>CAS - Lotería de Santa Fe</title>
+ <!DOCTYPE html>
+ <html>
 
-    <!-- Bootstrap Core CSS -->
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/css/bootstrap-col-xl.css" rel="stylesheet">
+ <head>
+     <meta charset="utf-8">
+     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
+     <meta name="_token" content="{!! csrf_token() !!}" />
 
-    <link href="/css/estilosBotones.css" rel="stylesheet">
-    <link href="/css/estilosModal.css" rel="stylesheet">
-    <link href="/css/estilosFileInput.css" rel="stylesheet">
-    <link href="/css/estilosPopUp.css" rel="stylesheet">
-    <link href="/css/table-fixed.css" rel="stylesheet">
-    <link href="/css/importacionFuentes.css" rel="stylesheet">
-    <link href="/css/tarjetasMenues.css" rel="stylesheet">
-    <link href="/css/flaticon.css" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" href="/css/style.css">
+     <link rel="icon" type="image/png" sizes="32x32" href="/img/logos/faviconFisico.ico">
+     <title>CAS - Lotería de Santa Fe</title>
 
-    <link rel="stylesheet" type="text/css" href="/css/component.css" />
+     <!-- Bootstrap Core CSS -->
+     <link href="/css/bootstrap.min.css" rel="stylesheet">
+     <link href="/css/bootstrap-col-xl.css" rel="stylesheet">
 
-    <!-- Animaciones de los LINKS en MENU -->
-    <link rel="stylesheet" href="/css/animacionesMenu.css">
+     <link href="/css/estilosBotones.css" rel="stylesheet">
+     <link href="/css/estilosModal.css" rel="stylesheet">
+     <link href="/css/estilosFileInput.css" rel="stylesheet">
+     <link href="/css/estilosPopUp.css" rel="stylesheet">
+     <link href="/css/table-fixed.css" rel="stylesheet">
+     <link href="/css/importacionFuentes.css" rel="stylesheet">
+     <link href="/css/tarjetasMenues.css" rel="stylesheet">
+     <link href="/css/flaticon.css" rel="stylesheet" type="text/css">
+     <link rel="stylesheet" href="/css/style.css">
 
-    <!-- Animaciones de alta -->
-    <link rel="stylesheet" href="/css/animacionesAlta.css">
+     <link rel="stylesheet" type="text/css" href="/css/component.css" />
 
-    <!-- Animación de carga de datos -->
-    <link rel="stylesheet" href="/css/loadingAnimation.css">
+     <!-- Animaciones de los LINKS en MENU -->
+     <link rel="stylesheet" href="/css/animacionesMenu.css">
 
-    <!-- Mesaje de notificación -->
-    <link rel="stylesheet" href="/css/mensajeExito.css?1">
-    <link rel="stylesheet" href="/css/mensajeError.css">
+     <!-- Animaciones de alta -->
+     <link rel="stylesheet" href="/css/animacionesAlta.css">
 
-    <!-- Estilos de imagenes en SVG -->
-    <link rel="stylesheet" href="/css/estilosSVG.css">
-    <link rel="stylesheet" href="/css/estiloDashboard.css?2">
-    <link rel="stylesheet" href="/css/estiloDashboard_xs.css?2">
+     <!-- Animación de carga de datos -->
+     <link rel="stylesheet" href="/css/loadingAnimation.css">
 
-    <!-- Custom Fonts -->
-    <link rel="stylesheet" href="/web-fonts-with-css/css/fontawesome-all.css">
+     <!-- Mesaje de notificación -->
+     <link rel="stylesheet" href="/css/mensajeExito.css?1">
+     <link rel="stylesheet" href="/css/mensajeError.css">
 
-    <!-- Mesaje de notificación -->
-    <link rel="stylesheet" href="/css/mensajeExito.css?1">
-    <link rel="stylesheet" href="/css/mensajeError.css">
-    @section('estilos')
-    @show
-  </head>
-  <body>
+     <!-- Estilos de imagenes en SVG -->
+     <link rel="stylesheet" href="/css/estilosSVG.css">
+     <link rel="stylesheet" href="/css/estiloDashboard.css?2">
+     <link rel="stylesheet" href="/css/estiloDashboard_xs.css?2">
 
-    <!-- Contenedor de toda la página -->
-    <div class="contenedor">
-        <!-- Barra superior  -->
-        <header>
-          @component('includes.barraMenuPrincipal',[
-            'usuario' => UsuarioController::getInstancia()->quienSoy()['usuario'],
-            'tiene_imagen' => UsuarioController::getInstancia()->tieneImagen(),
-            'opciones' => $opciones ?? [],
-            'fondo' => $fondo ?? "black",
-          ])
-          @endcomponent
-        </header>
-        @component('includes.menuDesplegable',[
-          'tarjeta_css' => $tarjeta_css,
-          'opciones' => $opciones ?? [],
-          'fondo' => $fondo ?? "black",
-        ])
-        @endcomponent
-        <nav>
-          <ul class="nav nav-tabs nav-justified juegosSec" id="juegosSec" hidden="true">
-            <li id="b_juego"><a href="#pant_juegos" style="font-family:Roboto-condensed;font-size:20px;background: white;">Juegos</a></li>
-            <li id="b_sector"><a href="#pant_sectores" style="font-family:Roboto-condensed;font-size:20px;background: white;">Sectores</a></li>
-          </ul>
-          <ul class="nav nav-tabs nav-justified pestCanon" id="pestCanon" hidden="true">
-            <li id="canon1"><a href="#pant_canon_meses" style="font-family:Roboto-condensed;font-size:20px;background: white;">Recaudado Mensual (Bruto)</a></li>
-            <li id="canon2"><a href="#pant_canon_valores" style="font-family:Roboto-condensed;font-size:20px;background: white;">Valor base y Canon</a></li>
-          </ul>
-        </nav>
+     <!-- Custom Fonts -->
+     <link rel="stylesheet" href="/web-fonts-with-css/css/fontawesome-all.css">
 
-        <!-- Vista de secciones -->
-        <main class="contenedorVistaPrincipal">
-          <section>
-              <div class="container-fluid">
-                @section('contenidoVista')
-                @show
-              </div>
-          </section>
-        </main>
-              <!-- DESDE ACA -->
+     <!-- Mesaje de notificación -->
+     <link rel="stylesheet" href="/css/mensajeExito.css?1">
+     <link rel="stylesheet" href="/css/mensajeError.css">
+     @section('estilos')
+     @show
+ </head>
 
+ <body>
 
-        <!-- Modal ayuda -->
-        <div class="modal fade" id="modalAyuda" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-              <div class="modal-dialog">
-                 <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #1976D2;">
-                     <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                     <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     @section('tituloDeAyuda')
+     <!-- Contenedor de toda la página -->
+     <div class="contenedor">
+         <!-- Barra superior  -->
+         <header>
+             @component('includes.barraMenuPrincipal', [
+                 'usuario' => UsuarioController::getInstancia()->quienSoy()['usuario'],
+                 'tiene_imagen' => UsuarioController::getInstancia()->tieneImagen(),
+                 'opciones' => $opciones ?? [],
+                 'fondo' => $fondo ?? 'black',
+             ])
+             @endcomponent
+         </header>
+         @component('includes.menuDesplegable', [
+             'tarjeta_css' => $tarjeta_css,
+             'opciones' => $opciones ?? [],
+             'fondo' => $fondo ?? 'black',
+         ])
+         @endcomponent
+         <nav>
+             <ul class="nav nav-tabs nav-justified juegosSec" id="juegosSec" hidden="true">
+                 <li id="b_juego"><a href="#pant_juegos"
+                         style="font-family:Roboto-condensed;font-size:20px;background: white;">Juegos</a></li>
+                 <li id="b_sector"><a href="#pant_sectores"
+                         style="font-family:Roboto-condensed;font-size:20px;background: white;">Sectores</a></li>
+             </ul>
+             <ul class="nav nav-tabs nav-justified pestCanon" id="pestCanon" hidden="true">
+                 <li id="canon1"><a href="#pant_canon_meses"
+                         style="font-family:Roboto-condensed;font-size:20px;background: white;">Recaudado Mensual
+                         (Bruto)</a></li>
+                 <li id="canon2"><a href="#pant_canon_valores"
+                         style="font-family:Roboto-condensed;font-size:20px;background: white;">Valor base y Canon</a>
+                 </li>
+             </ul>
+         </nav>
+
+         <!-- Vista de secciones -->
+         <main class="contenedorVistaPrincipal">
+             <section>
+                 <div class="container-fluid">
+                     @section('contenidoVista')
                      @show
-                    </div>
-                    <div  id="colapsado" class="collapse in">
-                    <div class="modal-body modalCuerpo">
-                              <div class="row">
-                                @section('contenidoAyuda')
-                                @show
-                              </div>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-default" data-dismiss="modal">SALIR</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-        </div>
-        <!-- HASTA ACA -->
-
-        @if($usuario['usuario']->tienePermiso('usar_tickets'))
-        <div id="modalTicket" class="modal fade in" tabindex="-1" role="dialog" aria-hidden="true">
-          <div class="modal-dialog" role="document">
-            <div class="modal-content">
-              <div class="modal-header" style="font-family: Robot-Black;background-color: #6dc7be;">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <i class="fa fa-times"></i>
-                </button>
-                <h3 class="modal-title">Crear ticket</h3>
-              </div>
-              <div class="modal-body">
-                <div class="row">
-                  <div class="col-md-12">
-                    <input class="form-control ticket-asunto" placeholder="Asunto"/>
-                  </div>
-                </div>
-                <br>
-                <div class="row">
-                  <div class="col-md-12">
-                    <textarea class="form-control ticket-mensaje" placeholder="Mensaje"></textarea>
-                  </div>
-                </div>
-                <br>
-                <div class="row">
-                  <h5>Adjunto</h5>
-                  <input type="file" class="form-control-file ticket-adjunto" multiple/>
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-primary ticket-enviar">Enviar</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-              </div>
-            </div>
-          </div>
-        </div>
-        @endif
-    </div>
+                 </div>
+             </section>
+         </main>
+         <!-- DESDE ACA -->
 
 
-    <!-- jQuery -->
-    <script src="/js/jquery.js"></script>
+         <!-- Modal ayuda -->
+         <div class="modal fade" id="modalAyuda" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+             aria-hidden="true">
+             <div class="modal-dialog">
+                 <div class="modal-content">
+                     <div class="modal-header modalNuevo" style="background-color: #1976D2;">
+                         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse"
+                             data-minimizar="true" data-target="#colapsado"
+                             style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                         @section('tituloDeAyuda')
+                         @show
+                     </div>
+                     <div id="colapsado" class="collapse in">
+                         <div class="modal-body modalCuerpo">
+                             <div class="row">
+                                 @section('contenidoAyuda')
+                                 @show
+                             </div>
+                         </div>
+                         <div class="modal-footer">
+                             <button type="button" class="btn btn-default" data-dismiss="modal">SALIR</button>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+         <!-- HASTA ACA -->
 
-    <!-- Bootstrap Core JavaScript -->
-    <script src="/js/bootstrap.js"></script>
+         @if ($usuario['usuario']->tienePermiso('usar_tickets'))
+             <div id="modalTicket" class="modal fade in" tabindex="-1" role="dialog" aria-hidden="true">
+                 <div class="modal-dialog" role="document">
+                     <div class="modal-content">
+                         <div class="modal-header" style="font-family: Robot-Black;background-color: #6dc7be;">
+                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                 <i class="fa fa-times"></i>
+                             </button>
+                             <h3 class="modal-title">Crear ticket</h3>
+                         </div>
+                         <div class="modal-body">
+                             <div class="row">
+                                 <div class="col-md-12">
+                                     <input class="form-control ticket-asunto" placeholder="Asunto" />
+                                 </div>
+                             </div>
+                             <br>
+                             <div class="row">
+                                 <div class="col-md-12">
+                                     <textarea class="form-control ticket-mensaje" placeholder="Mensaje"></textarea>
+                                 </div>
+                             </div>
+                             <br>
+                             <div class="row">
+                                 <h5>Adjunto</h5>
+                                 <input type="file" class="form-control-file ticket-adjunto" multiple />
+                             </div>
+                         </div>
+                         <div class="modal-footer">
+                             <button type="button" class="btn btn-primary ticket-enviar">Enviar</button>
+                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         @endif
+     </div>
 
-    <!-- JavaScript ajaxError -->
-    <script src="/js/ajaxError.js"></script>
 
-    <!-- JavaScript personalizado -->
-    <script src="/js/barraNavegacion.js"></script>
+     <!-- jQuery -->
+     <script src="/js/jquery.js"></script>
 
-    <!-- JavaScript de tarjetas animadas -->
-    <script src="/js/anime.min.js"></script>
-    <script src="/js/main.js"></script>
+     <!-- Bootstrap Core JavaScript -->
+     <script src="/js/bootstrap.js"></script>
 
-    <!-- TableSorter -->
-    <script type="text/javascript" src="/js/jquery.tablesorter.js"></script>
-    <script type="text/javascript" src="/js/iconosTableSorter.js"></script>
+     <!-- JavaScript ajaxError -->
+     <script src="/js/ajaxError.js"></script>
 
-    <!-- Collapse JS | Controla el menú -->
-    <script type="text/javascript" src="/js/collapse.js"></script>
+     <!-- JavaScript personalizado -->
+     <script src="/js/barraNavegacion.js"></script>
 
-    <!-- librerias de animate -->
-    <script src="/js/createjs-2015.11.26.min.js"></script>
-    <script src="/js/Animacion_logo2.js?1517927954849"></script>
-    <script type="text/javascript" src="/js/modalTicket.js" charset="utf-8"></script>
-    @if($usuario['usuario']->es_superusuario)
-    <script src="/js/eruda.js"></script>
-    <style>
-      .eruda-entry-btn {
-        width: 15px;
-        height: 15px;
-        font-size: 10px;
-      }
-    </style>
-    <script>
-      eruda.init();
-      eruda.get('entryBtn')["_$el"].css({
-        width: '7px',
-        height: '7px',
-        'font-size': '5px',
-      })
-      eruda.position({x: 0, y: window.innerHeight-7});
-    </script>
-    @endif
-    @section('scripts')
-    @show
-  </body>
+     <!-- JavaScript de tarjetas animadas -->
+     <script src="/js/anime.min.js"></script>
+     <script src="/js/main.js"></script>
 
-  <!-- NOTIFICACIÓN DE ÉXITO -->
-    <!--  (*) Para que la animación solo MUESTRE (fije) el mensaje, se agrega la clase 'fijarMensaje' a #mensajeExito-->
-    <!--  (*) Para que la animación MUESTRE Y OCULTE el mensaje, se quita la clase 'fijarMensaje' a #mensajeExito-->
-    <!-- (**) si se quiere mostrar los botones de ACEPTAR o SALIR, se agrega la clase 'mostrarBotones' a #mensajeExito -->
-    <!-- (**) para no mostrarlos, se quita la clase 'mostrarBotones' a #mensajeExito -->
+     <!-- TableSorter -->
+     <script type="text/javascript" src="/js/jquery.tablesorter.js"></script>
+     <script type="text/javascript" src="/js/iconosTableSorter.js"></script>
 
-  <div id="mensajeExito" class="" hidden>
-      <div class="cabeceraMensaje">
-        <!-- <i class="fa fa-times" style=""></i> -->
-        <button type="button" class="close" style="font-size:40px;position:relative;top:10px;right:20px;"><span aria-hidden="true">×</span></button>
-      </div>
-      <div class="iconoMensaje">
-        <img src="/img/logos/check.png" alt="imagen_check" >
-      </div>
-      <div class="textoMensaje" >
-          <h3>ÉXITO</h3>
-          <p>El CASINO fue creado con éxito.</p>
-      </div>
-      <div class="botonesMensaje">
-          <button class="btn btn-success confirmar" type="button" name="button">ACEPTAR</button>
-          <button class="btn btn-default salir" type="button" name="button">SALIR</button>
-      </div>
-  </div>
+     <!-- Collapse JS | Controla el menú -->
+     <script type="text/javascript" src="/js/collapse.js"></script>
 
-  <!-- Modal Error -->
-  <div id="mensajeError"  hidden>
-      <div class="cabeceraMensaje"></div>
-      <div class="iconoMensaje">
-        <img src="/img/logos/error.png" alt="imagen_error" >
-      </div>
-      <div class="textoMensaje" >
-          <h3>ERROR</h3>
-          <p>No es posible realizar la acción</p>
-      </div>
-  </div>
-</html>
+     <!-- librerias de animate -->
+     <script src="/js/createjs-2015.11.26.min.js"></script>
+     <script src="/js/Animacion_logo2.js?1517927954849"></script>
+     <script type="text/javascript" src="/js/modalTicket.js" charset="utf-8"></script>
+     @if ($usuario['usuario']->es_superusuario)
+         <script src="/js/eruda.js"></script>
+         <style>
+             .eruda-entry-btn {
+                 width: 15px;
+                 height: 15px;
+                 font-size: 10px;
+             }
+         </style>
+         <script>
+             eruda.init();
+             eruda.get('entryBtn')["_$el"].css({
+                 width: '7px',
+                 height: '7px',
+                 'font-size': '5px',
+             })
+             eruda.position({
+                 x: 0,
+                 y: window.innerHeight - 7
+             });
+         </script>
+     @endif
+     @section('scripts')
+     @show
+ </body>
+
+ <!-- NOTIFICACIÓN DE ÉXITO -->
+ <!--  (*) Para que la animación solo MUESTRE (fije) el mensaje, se agrega la clase 'fijarMensaje' a #mensajeExito-->
+ <!--  (*) Para que la animación MUESTRE Y OCULTE el mensaje, se quita la clase 'fijarMensaje' a #mensajeExito-->
+ <!-- (**) si se quiere mostrar los botones de ACEPTAR o SALIR, se agrega la clase 'mostrarBotones' a #mensajeExito -->
+ <!-- (**) para no mostrarlos, se quita la clase 'mostrarBotones' a #mensajeExito -->
+
+ <div id="mensajeExito" class="" hidden>
+     <div class="cabeceraMensaje">
+         <!-- <i class="fa fa-times" style=""></i> -->
+         <button type="button" class="close" style="font-size:40px;position:relative;top:10px;right:20px;"><span
+                 aria-hidden="true">×</span></button>
+     </div>
+     <div class="iconoMensaje">
+         <img src="/img/logos/check.png" alt="imagen_check">
+     </div>
+     <div class="textoMensaje">
+         <h3>ÉXITO</h3>
+         <p>El CASINO fue creado con éxito.</p>
+     </div>
+     <div class="botonesMensaje">
+         <button class="btn btn-success confirmar" type="button" name="button">ACEPTAR</button>
+         <button class="btn btn-default salir" type="button" name="button">SALIR</button>
+     </div>
+ </div>
+
+ <!-- Modal Error -->
+ <div id="mensajeError" hidden>
+     <div class="cabeceraMensaje"></div>
+     <div class="iconoMensaje">
+         <img src="/img/logos/error.png" alt="imagen_error">
+     </div>
+     <div class="textoMensaje">
+         <h3>ERROR</h3>
+         <p>No es posible realizar la acción</p>
+     </div>
+ </div>
+
+ </html>

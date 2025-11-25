@@ -1229,7 +1229,34 @@ class LogMovimientoController extends Controller
 
     $mtm->nro_admin .= is_null($mtm->deleted_at)? '' : ' (ELIM.)';
     $log = $rel->log_movimiento;
-    return ['relevamiento' => $rel,'maquina' => $mtm, 'juegos' => $juegos,'toma' => $toma,
+    
+    $ultima_isla = (object)['fecha' => null,'isla' => null];
+    {
+      $chfecha_con_hora = 'IF(dch.isla IS NULL,NULL,CONCAT(ch.fecha," 07:00:00"))';
+      $ultima_isla->fecha = DB::table('detalle_contador_horario as dch')
+      ->selectRaw("dch.id_maquina, MAX($chfecha_con_hora) as fecha")
+      ->join('contador_horario as ch','ch.id_contador_horario','=','dch.id_contador_horario')
+      ->where('dch.id_maquina',$mtm->id_maquina)
+      ->whereNotNull('dch.isla')
+      ->where(DB::raw($chfecha_con_hora),'<=',$fecha ?? date('Y-m-d h:i:s'))
+      ->groupBy('dch.id_maquina')
+      ->first();
+      if($ultima_isla->fecha !== null){
+        $ultima_isla->fecha = $ultima_isla->fecha->fecha;
+        $ultima_isla->isla  = DB::table('contador_horario as ch')
+        ->select('dch.isla')
+        ->join('detalle_contador_horario as dch','dch.id_contador_horario','=','ch.id_contador_horario')
+        ->where('ch.fecha',explode(' ',$ultima_isla->fecha)[0])
+        ->where('ch.id_casino',$mtm->id_casino)
+        ->where('dch.id_maquina',$mtm->id_maquina)
+        ->first();
+        if($ultima_isla->isla !== null){
+          $ultima_isla->isla = $ultima_isla->isla->isla;
+        }
+      }
+    }
+    
+    return ['relevamiento' => $rel,'maquina' => $mtm,'ultima_isla' => $ultima_isla, 'juegos' => $juegos,'toma' => $toma,
      'fiscalizador' => $fisca,'cargador' => $cargador,
      'tipo_movimiento' =>  $log->tipo_movimiento_str() , 'estado' => $rel->estado_relevamiento,
      'fecha' => $fecha, 'nombre_juego' => $nombre,'progresivos' => $progresivos,
