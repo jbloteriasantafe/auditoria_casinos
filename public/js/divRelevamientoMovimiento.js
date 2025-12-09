@@ -234,9 +234,7 @@ function divRelMovSetear(data){
     //Helper para prioridad: Toma > Egreso > Vacio
     const esReingreso = (data.maquina.sentido == "REINGRESO" && data.maquina.id_casino == 2);
     const egreso = esReingreso ? data.datos_egreso : null;
-    const toma   = data.toma;
-
-    // El helper recibe el campo y el valor por defecto (de la maquina)
+    const toma    = data.toma;
     const val = function(campo, defecto = ""){
         if(toma && toma[campo] != null && toma[campo] !== "") return toma[campo];
         if(egreso && egreso[campo] != null && egreso[campo] !== "") return egreso[campo];
@@ -244,7 +242,7 @@ function divRelMovSetear(data){
         return "";
     };
 
-    //siempre vienen estos datos
+    // --- Datos básicos ---
     divRM.find('.estado').val(data.estado.descripcion)
     .attr('data-id',data.estado.id_estado_relevamiento);
     divRM.find('.nro_isla').val(data.maquina.nro_isla);
@@ -252,31 +250,29 @@ function divRelMovSetear(data){
     divRM.find('.nro_admin').val(data.maquina.nro_admin);
     divRM.find('.nro_serie').val(limpiarNullUndef(data.maquina.nro_serie,''));
     divRM.find('.marca').val(data.maquina.marca);
-
-    // ELIMINADO: divRM.find('.mac').val(data.maquina.mac); -> Se maneja abajo con val()
-
     divRM.find('.modelo').val(limpiarNullUndef(data.maquina.modelo,''));
 
-    //Contadores: Toma > Egreso
+    // --- Contadores ---
     let fuenteContadores = toma;
     if( (!toma || toma.vcont1 == null) && egreso ){ fuenteContadores = egreso; }
     divRelMovAgregarContadores(data.maquina, fuenteContadores, null);
 
+    // --- Juegos ---
     divRM.find('.juego').append($('<option>').val('').text('Seleccione'));
     data.juegos.forEach(j => {
         divRM.find('.juego').append($('<option>').val(j.id_juego).text(j.nombre_juego));
     });
 
-    //Juego: Toma > Egreso > Maquina
     let id_juego = data.maquina.id_juego;
     if(egreso && egreso.juego) id_juego = egreso.juego;
     if(toma && toma.juego) id_juego = toma.juego;
     divRM.find('.juego').val(id_juego);
 
+    // --- Adjunto ---
     const link_adjunto = data?.toma?.link_adjunto? (window.location.pathname+'/'+data?.toma?.link_adjunto) : null;
     divRelMovSetearAdjunto(link_adjunto,data.estado.descripcion == 'Generado' || data.estado.descripcion == 'Cargando');
 
-    //Seteo de campos usando el helper de prioridad
+    // --- Campos Editables ---
     divRM.find('.apuesta').val(val('apuesta_max'));
     divRM.find('.cant_lineas').val(val('cant_lineas'));
     divRM.find('.devolucion').val(val('porcentaje_devolucion', data.maquina.porcentaje_devolucion));
@@ -289,22 +285,39 @@ function divRelMovSetear(data){
     divRM.find('.sector_rel').val(val('descripcion_sector_relevado'));
     divRM.find('.observaciones').val(val('observaciones'));
 
+    // --- Progresivos ---
     divRelMovAgregarProgresivos(data.progresivos,data.progresivos_aux, esReingreso);
 
+    // --- Fecha ---
     if(data.fecha != null){
         divRM.find('.relFecha').datetimepicker('setDate',new Date(data.fecha));
     } else {
         divRM.find('.relFecha').datetimepicker('setDate',new Date());
     }
 
+    // --- Cargador ---
+    // Si hay un cargador guardado, lo respetamos. Si no, ponemos al actual.
     if(data.cargador != null) {
         divRM.find('.fiscaCarga').val(data.cargador.nombre).attr('data-id',data.cargador.id_usuario);
     } else if(data.usuario_actual) {
         divRM.find('.fiscaCarga').val(data.usuario_actual.nombre).attr('data-id',data.usuario_actual.id_usuario);
     }
 
-    if(data.usuario_actual){
-        divRM.find('.fiscaToma').setearElementoSeleccionado(data.usuario_actual.id_usuario,data.usuario_actual.nombre);
+    // --- Fiscalizador Toma (CORREGIDO) ---
+
+    // 1. Base: Seteamos lo que viene de la BD (Historial)
+    if(data.fiscalizador != null){
+        divRM.find('.fiscaToma').setearElementoSeleccionado(data.fiscalizador.id_usuario, data.fiscalizador.nombre);
+    } else {
+        divRM.find('.fiscaToma').setearElementoSeleccionado(0, "");
+    }
+
+    // 2. Sobrescritura: Solo si el campo está habilitado para editar (Modo Carga)
+    // Usamos .is(':disabled') que es más seguro para detectar estado visual
+    if( !divRM.find('.fiscaToma').is(':disabled') ){
+        if(data.usuario_actual){
+            divRM.find('.fiscaToma').setearElementoSeleccionado(data.usuario_actual.id_usuario, data.usuario_actual.nombre);
+        }
     }
 }
 
