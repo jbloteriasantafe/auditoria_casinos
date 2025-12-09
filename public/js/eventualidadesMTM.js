@@ -372,17 +372,28 @@ $(document).on('hidden.bs.modal.hijo', '#modalDivRelCambios', function(){
   var guardarHandler = function(e){
     window.__ultimo_boton_guardar__ = $(this);
 
+    // Si no viene marcado para saltar la verificación...
     if($(this).data('skip-verify') !== 1){
       const original = window.__ultimo_data_rel__;
-      if (original && original.maquina && original.maquina.sentido === 'REINGRESO' && original.maquina.id_casino==2) {
+
+      // Condición 1: Reingreso (Tu lógica original para Casino 2)
+      const esReingreso = (original && original.maquina && original.maquina.sentido === 'REINGRESO' && original.maquina.id_casino==2);
+
+      // Condición 2: Ingreso Inicial o cualquier Ingreso
+      const tipo = (original && original.tipo_movimiento) ? original.tipo_movimiento.toUpperCase() : '';
+      const esIngreso = tipo.indexOf('INGRESO') !== -1;
+
+      // Ejecutamos verificación en cualquiera de los dos casos
+      if (esReingreso || esIngreso) {
         const ok = divRelMovVerificarCambios(original);
         if (!ok) {
           e.preventDefault();
-          return;
+          return; // Detenemos aquí, se abre el modal
         }
       }
     }
 
+    // Si pasó la verificación o se confirmó en el modal:
     $.ajaxSetup({ headers: {'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')}});
 
     const datos = divRelMovObtenerDatos();
@@ -444,7 +455,6 @@ $(document).on('hidden.bs.modal.hijo', '#modalDivRelCambios', function(){
   $(document).off('click.guardarRel','.guardarRelMov')
              .on('click.guardarRel','.guardarRelMov', guardarHandler);
 })();
-
 
 //BOTÓN DE VALIDAR EN CADA FILA
 $(document).on('click','.btn_validarEvmtm',function(){

@@ -515,6 +515,7 @@ class LogMovimientoController extends Controller
                             'estado'          => $rel->estado_relevamiento,
                             'nro_admin'       => $nro_admin,
                             'id_maquina'      => $maquina->id_maquina,
+                            'nro_isla'   => $maquina->isla ? $maquina->isla->nro_isla : null,
                             'tomas'           => $rel->toma_relevamiento_movimiento()->count()
                           ];
     }
@@ -795,7 +796,7 @@ class LogMovimientoController extends Controller
           $u = Usuario::find($user->id_usuario);
           if($u != null) $u->notify(new $notificacion($fiscalizacion));
         }
-        if(!$es_intervencion) CalendarioController::getInstancia()->marcarRealizado($fiscalizacion->evento);
+        //if(!$es_intervencion) CalendarioController::getInstancia()->marcarRealizado($fiscalizacion->evento);
       }
       DB::commit();
     }
@@ -1155,12 +1156,12 @@ class LogMovimientoController extends Controller
     $cargador = null;//fisca cargador
     $nombre = null;
     $progresivos = [];
-
+    $user_actual = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     if($rel->id_fisca != null) $fisca = Usuario::find($rel->id_fisca);
     if($rel->id_cargador != null){
       $cargador = Usuario::find($rel->id_cargador);
     }else{
-      $cargador = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+      $cargador = $user_actual;
     }
 
     if($nro_toma <= 0) $nro_toma = 1;
@@ -1229,7 +1230,7 @@ class LogMovimientoController extends Controller
 
     $mtm->nro_admin .= is_null($mtm->deleted_at)? '' : ' (ELIM.)';
     $log = $rel->log_movimiento;
-    
+
     $ultima_isla = (object)['fecha' => null,'isla' => null];
     {
       $chfecha_con_hora = 'IF(dch.isla IS NULL,NULL,CONCAT(ch.fecha," 07:00:00"))';
@@ -1255,14 +1256,15 @@ class LogMovimientoController extends Controller
         }
       }
     }
-    
+
     return ['relevamiento' => $rel,'maquina' => $mtm,'ultima_isla' => $ultima_isla, 'juegos' => $juegos,'toma' => $toma,
      'fiscalizador' => $fisca,'cargador' => $cargador,
      'tipo_movimiento' =>  $log->tipo_movimiento_str() , 'estado' => $rel->estado_relevamiento,
      'fecha' => $fecha, 'nombre_juego' => $nombre,'progresivos' => $progresivos,
      'nro_exp_org' => $log->nro_exp_org, 'nro_exp_interno' => $log->nro_exp_interno, 'nro_exp_control' => $log->nro_exp_control,
      'nro_disposicion' => $log->nro_disposicion, 'nro_disposicion_anio' => $log->nro_disposicion_anio,
-     'datos_ultimo_relev' => $datos_ultimo_relev, 'progresivos_aux' => $progresivos_aux,'datos_egreso' => $datos_egreso, ];
+     'datos_ultimo_relev' => $datos_ultimo_relev, 'progresivos_aux' => $progresivos_aux,'datos_egreso' => $datos_egreso,
+     'usuario_actual' => $user_actual,];
   }
 
   public function buscarEventualidadesMTMs(Request $request){
@@ -1476,6 +1478,7 @@ class LogMovimientoController extends Controller
                      'estado' => $rel->estado_relevamiento,
                      'nro_admin' => $nro_admin,
                      'id_maquina' => $maquina->id_maquina,
+                     'nro_isla'   => $maquina->isla ? $maquina->isla->nro_isla : null,
                      'tomas' => $rel->toma_relevamiento_movimiento()->count()
                    ];
     }

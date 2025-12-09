@@ -117,47 +117,69 @@ function divRelMovAgregarContadores(maquina,toma,ultimo = null){
     }
 }
 function divRelMovAgregarProgresivos(progresivos, aux = null, sentido = null){
-  causaNoTomaAux = null;
-  if(progresivos === null || progresivos.length == 0){
+    // Limpieza inicial
     divRM.find('.sinProg').show();
     divRM.find('.tablaProg').hide();
-    return;
-  }
-  divRM.find('.sinProg').hide();
-  divRM.find('.tablaProg').show();
-  progresivos.forEach(function(prog, index){
-  let fila = divRM.find('.filaEjProg').clone().removeClass('filaEjProg');
-  let nombre = prog.nombre;
-  if(!prog.pozo.es_unico){ nombre += '(' + prog.pozo.descripcion + ')';}
-  if(prog.es_individual) nombre = 'INDIVIDUAL';
-  fila.find('.nombreProgresivo')
-      .text(nombre)
-      .attr('title', nombre)
-      .attr('data-id-pozo', prog.pozo.id_pozo);
+    divRM.find('.tablaProg tbody').empty(); // Importante limpiar antes
 
-  prog.pozo.niveles.forEach(function(niv){
-    const key = 'nivel' + niv.nro_nivel;
-      const $nivel = fila.find('.' + key);
-    $nivel
-      .attr('placeholder', niv.nombre_nivel)
-      .addClass('habilitado')
-      .attr('data-id-nivel', niv.id_nivel_progresivo);
-
-    if (aux && aux[index] && aux[index][key] != null && aux[index][key] !== '') {
-      if(sentido) {
-        $nivel.val(aux[index][key]);
-      }
-      const causaNoTomaAux = aux[index].id_tipo_causa_no_toma_progresivo;
+    if(progresivos === null || progresivos.length == 0){
+        return;
     }
 
-  });
+    divRM.find('.sinProg').hide();
+    divRM.find('.tablaProg').show();
 
-  const rel_prog = prog.pozo.det_rel_prog;
-  const causaNoToma = rel_prog.id_tipo_causa_no_toma_progresivo;
-  causaNoToma!=null ? fila.find('.causaNoToma').val(causaNoToma) : fila.find('.causaNoToma').val(causaNoTomaAux);
-  divRM.find('.tablaProg tbody').append(fila);
-  divRM.find('.tablaProg tbody input').not('.habilitado').attr('disabled', true);
-});
+    progresivos.forEach(function(prog, index){
+        let fila = divRM.find('.filaEjProg').clone().removeClass('filaEjProg');
+        let nombre = prog.nombre;
+        if(prog.pozo && !prog.pozo.es_unico){ nombre += '(' + prog.pozo.descripcion + ')';}
+        if(prog.es_individual) nombre = 'INDIVIDUAL';
+
+        fila.find('.nombreProgresivo')
+            .text(nombre)
+            .attr('title', nombre)
+            .attr('data-id-pozo', prog.pozo.id_pozo);
+
+        // Obtenemos los datos YA guardados en este relevamiento (temporal o final)
+        const det_guardado = prog.pozo.det_rel_prog;
+
+        prog.pozo.niveles.forEach(function(niv){
+            const key = 'nivel' + niv.nro_nivel;
+            const $nivel = fila.find('.' + key);
+
+            $nivel
+                .attr('placeholder', niv.nombre_nivel)
+                .addClass('habilitado')
+                .attr('data-id-nivel', niv.id_nivel_progresivo);
+
+            // --- LÓGICA DE VISUALIZACIÓN CORREGIDA ---
+
+            // 1. Intentamos mostrar lo que está guardado en base de datos (prioridad absoluta)
+            if (det_guardado && det_guardado[key] != null) {
+                 $nivel.val(det_guardado[key]);
+            }
+            // 2. Si no hay nada guardado y es un reingreso, intentamos mostrar el dato histórico (aux)
+            else if (aux && aux[index] && aux[index][key] != null && aux[index][key] !== '') {
+                if(sentido) {
+                    $nivel.val(aux[index][key]);
+                }
+            }
+        });
+
+        // Recuperar causa no toma guardada o auxiliar
+        let causaNoToma = null;
+        if(det_guardado && det_guardado.id_tipo_causa_no_toma_progresivo != null){
+             causaNoToma = det_guardado.id_tipo_causa_no_toma_progresivo;
+        } else if (aux && aux[index]) {
+             // Si quieres arrastrar la causa del egreso, descomenta esto:
+             // causaNoToma = aux[index].id_tipo_causa_no_toma_progresivo;
+        }
+
+        if(causaNoToma != null) fila.find('.causaNoToma').val(causaNoToma);
+
+        divRM.find('.tablaProg tbody').append(fila);
+        divRM.find('.tablaProg tbody input').not('.habilitado').attr('disabled', true);
+    });
 }
 
 function divRelMovSetearAdjunto(url,generado){
@@ -206,9 +228,22 @@ function divRelMovSetearAdjunto(url,generado){
     eliminar_adjunto.hide();
   }
 }
-
 function divRelMovSetear(data){
     divRelMovLimpiar();
+
+    //Helper para prioridad: Toma > Egreso > Vacio
+    const esReingreso = (data.maquina.sentido == "REINGRESO" && data.maquina.id_casino == 2);
+    const egreso = esReingreso ? data.datos_egreso : null;
+    const toma   = data.toma;
+
+    // El helper recibe el campo y el valor por defecto (de la maquina)
+    const val = function(campo, defecto = ""){
+        if(toma && toma[campo] != null && toma[campo] !== "") return toma[campo];
+        if(egreso && egreso[campo] != null && egreso[campo] !== "") return egreso[campo];
+        if(defecto != null && defecto !== "") return defecto;
+        return "";
+    };
+
     //siempre vienen estos datos
     divRM.find('.estado').val(data.estado.descripcion)
     .attr('data-id',data.estado.id_estado_relevamiento);
@@ -217,59 +252,63 @@ function divRelMovSetear(data){
     divRM.find('.nro_admin').val(data.maquina.nro_admin);
     divRM.find('.nro_serie').val(limpiarNullUndef(data.maquina.nro_serie,''));
     divRM.find('.marca').val(data.maquina.marca);
-    if(data.maquina.casino==2) {divRM.find('.mac').val(data.maquina.mac);}
+
+    // ELIMINADO: divRM.find('.mac').val(data.maquina.mac); -> Se maneja abajo con val()
+
     divRM.find('.modelo').val(limpiarNullUndef(data.maquina.modelo,''));
-    (data.maquina.sentido=="REINGRESO" && data.maquina.id_casino==2) ? divRelMovAgregarContadores(data.maquina,data.toma,data.datos_egreso) : divRelMovAgregarContadores(data.maquina,data.toma);
+
+    //Contadores: Toma > Egreso
+    let fuenteContadores = toma;
+    if( (!toma || toma.vcont1 == null) && egreso ){ fuenteContadores = egreso; }
+    divRelMovAgregarContadores(data.maquina, fuenteContadores, null);
 
     divRM.find('.juego').append($('<option>').val('').text('Seleccione'));
     data.juegos.forEach(j => {
         divRM.find('.juego').append($('<option>').val(j.id_juego).text(j.nombre_juego));
     });
 
-
-    divRM.find('.juego').val(data.maquina.id_juego);
+    //Juego: Toma > Egreso > Maquina
+    let id_juego = data.maquina.id_juego;
+    if(egreso && egreso.juego) id_juego = egreso.juego;
+    if(toma && toma.juego) id_juego = toma.juego;
+    divRM.find('.juego').val(id_juego);
 
     const link_adjunto = data?.toma?.link_adjunto? (window.location.pathname+'/'+data?.toma?.link_adjunto) : null;
     divRelMovSetearAdjunto(link_adjunto,data.estado.descripcion == 'Generado' || data.estado.descripcion == 'Cargando');
-    if(data.toma != null){
-        if(data.toma.juego != null) {divRM.find('.juego').val(data.toma.juego);}
-        divRM.find('.apuesta').val(data.toma.apuesta_max);
-        divRM.find('.cant_lineas').val(data.toma.cant_lineas);
-        divRM.find('.devolucion').val(data.toma.porcentaje_devolucion);
-        divRM.find('.denominacion').val(data.toma.denominacion);
-        divRM.find('.creditos').val(data.toma.cant_creditos);
-        if(data.toma.mac != null) {divRM.find('.mac').val(data.toma.mac);}
-        divRM.find('.sector_rel').val(data.toma.descripcion_sector_relevado);
-        divRM.find('.isla_rel').val(data.toma.nro_isla_relevada);
-        divRM.find('.observaciones').val(data.toma.observaciones);
-    }
 
+    //Seteo de campos usando el helper de prioridad
+    divRM.find('.apuesta').val(val('apuesta_max'));
+    divRM.find('.cant_lineas').val(val('cant_lineas'));
+    divRM.find('.devolucion').val(val('porcentaje_devolucion', data.maquina.porcentaje_devolucion));
+    divRM.find('.denominacion').val(val('denominacion', data.maquina.denominacion));
+    divRM.find('.creditos').val(val('cant_creditos'));
 
-    if(data.datos_egreso!=null && data.maquina.sentido=="REINGRESO" && data.maquina.id_casino==2 && data.relevamiento.id_estado_relevamiento!=3 && data.relevamiento.id_estado_relevamiento!=4){
-      divRM.find('.mac').val(data.datos_egreso.mac);
-      divRM.find('.isla_rel').val(data.datos_egreso.nro_isla_relevada);
-      divRM.find('.sector_rel').val(data.datos_egreso.descripcion_sector_relevado);
-      divRM.find('.juego').val(data.datos_egreso.juego);
-      divRM.find('.apuesta').val(data.datos_egreso.apuesta_max);
-      divRM.find('.cant_lineas').val(data.datos_egreso.cant_lineas);
-      divRM.find('.devolucion').val(data.datos_egreso.porcentaje_devolucion);
-      divRM.find('.denominacion').val(data.datos_egreso.denominacion);
-      divRM.find('.creditos').val(data.datos_egreso.cant_creditos);
-      divRM.find('textarea.observaciones').val(data.datos_egreso.observaciones);
+    divRM.find('.mac').val(val('mac', data.maquina.mac));
+    divRM.find('.isla_rel').val(val('nro_isla_relevada', data.maquina.nro_isla));
 
-    }
-    //data.maquina.sentido=="REINGRESO" ? divRelMovAgregarProgresivos(data.progresivos,data.progresivos_aux) : divRelMovAgregarProgresivos(data.progresivos);
-    divRelMovAgregarProgresivos(data.progresivos,data.progresivos_aux,data.maquina.sentido == "REINGRESO" && data.maquina.id_casino==2);
+    divRM.find('.sector_rel').val(val('descripcion_sector_relevado'));
+    divRM.find('.observaciones').val(val('observaciones'));
+
+    divRelMovAgregarProgresivos(data.progresivos,data.progresivos_aux, esReingreso);
+
     if(data.fecha != null){
         divRM.find('.relFecha').datetimepicker('setDate',new Date(data.fecha));
+    } else {
+        divRM.find('.relFecha').datetimepicker('setDate',new Date());
     }
+
     if(data.cargador != null) {
         divRM.find('.fiscaCarga').val(data.cargador.nombre).attr('data-id',data.cargador.id_usuario);
+    } else if(data.usuario_actual) {
+        divRM.find('.fiscaCarga').val(data.usuario_actual.nombre).attr('data-id',data.usuario_actual.id_usuario);
     }
-    if(data.fiscalizador != null){
-        divRM.find('.fiscaToma').setearElementoSeleccionado(data.fiscalizador.id_usuario,data.fiscalizador.nombre);
+
+    if(data.usuario_actual){
+        divRM.find('.fiscaToma').setearElementoSeleccionado(data.usuario_actual.id_usuario,data.usuario_actual.nombre);
     }
 }
+
+
 function divRelMovMostrarErrores(response){
     const errores = {
         'apuesta_max' : divRM.find('.apuesta'),'cant_lineas' : divRM.find('.cant_lineas'), 'cant_creditos' : divRM.find('.creditos'),
@@ -305,18 +344,54 @@ function divRelMovMostrarErrores(response){
     });
     return err;
 }
-function divRelMovCargarRelevamientos(relevamientos,dibujos = {},estado_listo = -1){
-    const agregarToma = function(fila,id_maquina,id_relevamiento,dibujo,nro_toma,estado_rel){
+function divRelMovCargarRelevamientos(relevamientos, dibujos = {}, estado_listo = -1){
+    // Limpiamos la tabla antes de empezar
+    divRM.find('.tablaMTM tbody').empty();
+
+    if (!relevamientos || !Array.isArray(relevamientos) || relevamientos.length === 0) {
+        return;
+    }
+
+    // --- 1. Funciones Helper para manejar la Isla con seguridad ---
+
+    // Devuelve un valor numérico para ORDENAR (las nulas al fondo)
+    const getIslaSort = (r) => {
+        if (r.nro_isla == null || r.nro_isla === '') return 99999999;
+        const n = parseInt(r.nro_isla);
+        return isNaN(n) ? 99999999 : n;
+    };
+
+    // Devuelve el TEXTO para mostrar en el encabezado
+    const getIslaTexto = (r) => {
+        if (r.nro_isla == null || r.nro_isla === '') return 'SIN ISLA';
+        return 'ISLA ' + r.nro_isla;
+    };
+
+    // --- 2. Ordenar el array (Isla -> Nro Admin) ---
+    relevamientos.sort(function(a, b) {
+        const islaA = getIslaSort(a);
+        const islaB = getIslaSort(b);
+
+        // Primero por Isla
+        if (islaA !== islaB) return islaA - islaB;
+
+        // Si la isla es igual, por Nro Admin (orden natural: 2 antes que 10)
+        const adminA = a.nro_admin ? String(a.nro_admin) : '';
+        const adminB = b.nro_admin ? String(b.nro_admin) : '';
+        return adminA.localeCompare(adminB, undefined, {numeric: true});
+    });
+
+    // --- 3. Función para crear los botones de acción ---
+    const agregarToma = function(fila, id_maquina, id_relevamiento, dibujo, nro_toma){
         fila.append($('<td>')
             .addClass('col-xs-3')
             .append($('<button>')
-            .append($('<i>')
-            .addClass('fa').addClass('fa-fw').addClass(dibujo))
-            .attr('type','button')
-            .addClass('btn btn-info cargarMaq')
-            .attr('data-maq', id_maquina)
-            .attr('data-rel', id_relevamiento)
-            .attr('toma',nro_toma)
+                .append($('<i>').addClass('fa fa-fw').addClass(dibujo))
+                .attr('type','button')
+                .addClass('btn btn-info cargarMaq')
+                .attr('data-maq', id_maquina)
+                .attr('data-rel', id_relevamiento)
+                .attr('toma', nro_toma)
             )
         );
         fila.append($('<td>')
@@ -326,30 +401,63 @@ function divRelMovCargarRelevamientos(relevamientos,dibujos = {},estado_listo = 
             .append($('<i>').addClass('fa fa-fw fa-check faFinalizado'))
         );
     };
-    divRM.find('.tablaMTM tbody').empty();
-    relevamientos.forEach(r => {
-      let fila = $('<tr>');
-      let dibujo = 'fa-upload';
-      const id_estado = r.estado.id_estado_relevamiento;
-      if(!isUndef(dibujos[id_estado])) dibujo = dibujos[id_estado];
-      fila.append($('<td>')
-          .addClass('col-xs-5')
-          .text(r.nro_admin)
-      );
-      let i = 0;//Multiples tomas estan deprecadas pero esto está por compatibilidad para atras
-      for(;i<r.tomas;i++){
-          agregarToma(fila,r.id_maquina,r.id_relevamiento,dibujo,i+1,r.estado.id_estado_relevamiento);
-      }
-      //El relevamiento no tiene tomas, se va a crear una cuando le mande guardar.
-      if(i == 0){
-          agregarToma(fila,r.id_maquina,r.id_relevamiento,dibujo,0,1);
-      }
 
-      fila.find('.listo').toggle(r.id_estado_relevamiento == estado_listo);
-      divRM.find('.tablaMTM tbody').append(fila);
+    let ultima_isla_texto = '###_INICIO_###';
+
+    // --- 4. Renderizar filas ---
+    relevamientos.forEach(r => {
+        // A. Cabecera de Grupo (Isla)
+        const textoActual = getIslaTexto(r);
+
+        if (textoActual !== ultima_isla_texto) {
+            const filaHeader = $('<tr>').css('background-color', '#eeeeee');
+            filaHeader.append($('<td>')
+                .attr('colspan', 3)
+                .css({
+                    'font-weight': 'bold',
+                    'text-align': 'center',
+                    'color': '#333',
+                    'border-top': '2px solid #ccc' // Borde para separar mejor
+                })
+                .text(textoActual)
+            );
+            divRM.find('.tablaMTM tbody').append(filaHeader);
+            ultima_isla_texto = textoActual;
+        }
+
+        // B. Fila de Máquina
+        let fila = $('<tr>');
+        let dibujo = 'fa-upload';
+        const id_estado = r.estado ? r.estado.id_estado_relevamiento : 1;
+
+        // CORRECCIÓN: Usamos 'dibujos' (argumento), no 'drawings'
+        if(typeof dibujos[id_estado] !== 'undefined') {
+            dibujo = dibujos[id_estado];
+        }
+
+        fila.append($('<td>')
+            .addClass('col-xs-5')
+            .text(r.nro_admin || 'S/N')
+            .css('padding-left', '20px') // Sangría para que se note jerarquía
+        );
+
+        // C. Botones de Toma
+        let i = 0;
+        const cant_tomas = r.tomas || 0;
+        for(; i < cant_tomas; i++){
+            agregarToma(fila, r.id_maquina, r.id_relevamiento, dibujo, i+1);
+        }
+        // Si no hay tomas creadas aun, mostramos boton para la toma 1 (0 en indice)
+        if(i == 0){
+            agregarToma(fila, r.id_maquina, r.id_relevamiento, dibujo, 0);
+        }
+
+        // D. Icono de Listo (Check verde)
+        fila.find('.listo').toggle(id_estado == estado_listo);
+
+        divRM.find('.tablaMTM tbody').append(fila);
     });
 }
-
 
 function divRelMovEsconderDetalleRelevamiento(){
     divRM.find('.relFecha').parent().hide();
@@ -485,7 +593,7 @@ function divRelMovLimpiarResaltados(){
 
 
 function mostrarModalCambios(cambios){
-  // 👇 guardo el listado para usarlo al confirmar
+  //  guardo el listado para usarlo al confirmar
   window.__ultimos_cambios__ = cambios;
 
   const lista = $('#listaCambios').empty();
@@ -495,74 +603,135 @@ function mostrarModalCambios(cambios){
   window.__abrirModalCambios__ ? window.__abrirModalCambios__() : $('#modalDivRelCambios').modal('show');
 }
 
+
+
 function divRelMovVerificarCambios(data){
   const cambios = [];
-  divRelMovLimpiarResaltados(); // limpiar marcas viejas
+  divRelMovLimpiarResaltados();
 
-  const ultimo = data.datos_egreso || data.datos_ultimo_relev || null;
+  let ultimo = data.datos_egreso || data.datos_ultimo_relev || null;
 
-  // --- CONTADORES ---
-  if(ultimo){
+  // Detectar si es INGRESO (busca la palabra INGRESO en el tipo de movimiento)
+  const tipoMov = (data.tipo_movimiento || '').toUpperCase();
+  // "INGRESO" matchea tanto "INGRESO INICIAL" como "REINGRESO"
+  // Pero si ya tenemos 'ultimo' (datos_egreso), usamos eso.
+  // Si NO tenemos 'ultimo', asumimos que es un Ingreso Inicial y usamos la DB.
+  const usarDB = !ultimo && tipoMov.indexOf('INGRESO') !== -1;
+
+  // --- LÓGICA DE INGRESO: Crear objeto de comparación usando la DB ---
+  if(usarDB && data.maquina){
+      ultimo = {
+          mac: data.maquina.mac,
+          nro_isla_relevada: data.maquina.nro_isla,
+          descripcion_sector_relevado: data.maquina.descripcion_sector_relevado,
+          juego: data.maquina.id_juego,
+          // Si estos campos no vienen de la DB, asumimos null
+          apuesta_max: data.maquina.apuesta_max || null,
+          cant_lineas: data.maquina.cant_lineas || null,
+          porcentaje_devolucion: data.maquina.porcentaje_devolucion,
+          denominacion: data.maquina.denominacion,
+          cant_creditos: data.maquina.cant_creditos || null
+      };
+  }
+
+  // Si no hay contra qué comparar, guardamos directo.
+  if(!ultimo) return true;
+
+  // --- CONTADORES Y PROGRESIVOS (Solo validamos si NO usamos DB, o sea, si hay historial real) ---
+  if(!usarDB){
+    // Contadores
     for(let i=1; i<=8; i++){
       const $tr = divRM.find('.tablaCont tbody tr').eq(i-1);
       if($tr.length === 0) break;
       const $inp = $tr.find('.vcont');
-      const valActual   = ($inp.val() || '').trim();
+      const valActual    = ($inp.val() || '').trim();
       const valOriginal = (ultimo['vcont'+i] == null) ? '' : String(ultimo['vcont'+i]).trim();
       if(valActual !== valOriginal){
         const nombreCont = data.maquina && data.maquina['cont'+i] ? data.maquina['cont'+i] : ('#'+i);
         cambios.push('Contador ' + nombreCont + ': ' + valOriginal + ' → ' + valActual);
-        divRelMovMarcarCambio($inp); // 👈 en lugar de addClass
+        divRelMovMarcarCambio($inp);
       }
     }
+    // Progresivos
+    (data.progresivos || []).forEach(function(prog, index){
+        const fila = divRM.find('.tablaProg tbody tr').eq(index);
+        const aux  = (data.progresivos_aux || [])[index];
+        if(!fila.length || !aux) return;
+        (prog.pozo?.niveles || []).forEach(function(niv){
+          const key = 'nivel' + niv.nro_nivel;
+          const $inp = fila.find('.' + key);
+          const valActual    = ($inp.val() || '').trim();
+          const valOriginal = (aux[key] == null) ? '' : String(aux[key]).trim();
+          if(valActual !== valOriginal){
+            const etiquetaProg = (prog.pozo && prog.pozo.descripcion) ? prog.pozo.descripcion : (prog.nombre || ('Pozo ' + (index+1)));
+            cambios.push('Progresivo ' + etiquetaProg + ' (' + niv.nombre_nivel + '): ' + valOriginal + ' → ' + valActual);
+            divRelMovMarcarCambio($inp);
+          }
+        });
+    });
   }
 
-  // --- PROGRESIVOS (por índice) ---
-  (data.progresivos || []).forEach(function(prog, index){
-    const fila = divRM.find('.tablaProg tbody tr').eq(index);
-    const aux  = (data.progresivos_aux || [])[index];
-    if(!fila.length || !aux) return;
-
-    (prog.pozo?.niveles || []).forEach(function(niv){
-      const key = 'nivel' + niv.nro_nivel;
-      const $inp = fila.find('.' + key);
-      const valActual   = ($inp.val() || '').trim();
-      const valOriginal = (aux[key] == null) ? '' : String(aux[key]).trim();
-      if(valActual !== valOriginal){
-        const etiquetaProg = (prog.pozo && prog.pozo.descripcion) ? prog.pozo.descripcion : (prog.nombre || ('Pozo ' + (index+1)));
-        cambios.push('Progresivo ' + etiquetaProg + ' (' + niv.nombre_nivel + '): ' + valOriginal + ' → ' + valActual);
-        divRelMovMarcarCambio($inp); // 👈 en lugar de addClass
-      }
-    });
-  });
-
-  // --- CAMPOS PRINCIPALES ---
+  // --- CAMPOS PRINCIPALES (Aplica para TODOS) ---
   const campos = [
-    {sel: '.mac',                   key: 'mac',                         label: 'mac'},
-    {sel: '.isla_rel',              key: 'nro_isla_relevada',               label: 'Isla'},
-    {sel: '.sector_rel',            key: 'descripcion_sector_relevado', label: 'Sector'},
-    {sel: '.juego',                 key: 'juego',                       label: 'Juego'},
-    {sel: '.apuesta',               key: 'apuesta_max',                 label: 'Apuesta maxima'},
-    {sel: '.cant_lineas',           key: 'cant_lineas',                 label: 'Cantidad de lineas'},
-    {sel: '.devolucion',            key: 'porcentaje_devolucion',      label: 'Porcentaje de devolucion'},
-    {sel: '.denominacion',          key: 'denominacion',                label: 'Denominacion'},
-    {sel: '.creditos',              key: 'cant_creditos',               label: 'Cantidad de creditos'},
+    {sel: '.mac',                   key: 'mac',                          label: 'MAC'},
+    {sel: '.isla_rel',              key: 'nro_isla_relevada',            label: 'Isla'},
+    {sel: '.sector_rel',            key: 'descripcion_sector_relevado',  label: 'Sector'},
+    {sel: '.juego',                 key: 'juego',                        label: 'Juego'},
+    {sel: '.apuesta',               key: 'apuesta_max',                  label: 'Apuesta máxima'},
+    {sel: '.cant_lineas',           key: 'cant_lineas',                  label: 'Cant. Líneas'},
+    {sel: '.devolucion',            key: 'porcentaje_devolucion',        label: '% Devolución'},
+    {sel: '.denominacion',          key: 'denominacion',                 label: 'Denominación'},
+    {sel: '.creditos',              key: 'cant_creditos',                label: 'Cant. Créditos'},
   ];
+
+  // Helper para normalizar valores (trim, puntos por comas)
+  const norm = (v) => String(v ?? '').trim().replace(/,/g, '.');
 
   campos.forEach(function(c){
     const $el = divRM.find(c.sel);
     if(!$el.length) return;
-    const valActual   = String($el.val() ?? '').trim();
-    const valOriginal = String((ultimo && ultimo[c.key] != null) ? ultimo[c.key] : '').trim();
+
+    let rawActual = $el.val();
+    let rawOriginal = (ultimo[c.key] !== undefined && ultimo[c.key] !== null) ? ultimo[c.key] : '';
+
+    // Valores normalizados para comparar
+    let valActual = norm(rawActual);
+    let valOriginal = norm(rawOriginal);
+
+    // Comparación especial para JUEGO (IDs vs Strings o IDs numéricos)
+    if(c.key === 'juego') {
+        if(valActual == valOriginal) return;
+    }
+    // Comparación numérica para evitar diferencias por ceros ("20" != "20.00")
+    else if(!isNaN(valActual) && !isNaN(valOriginal) && valActual !== '' && valOriginal !== '') {
+        if(parseFloat(valActual) === parseFloat(valOriginal)) return;
+    }
+
+    // Si llegamos acá y son distintos, marcamos el cambio
     if(valActual !== valOriginal){
-      cambios.push(c.label + ': ' + valOriginal + ' → ' + valActual);
-      divRelMovMarcarCambio($el); // 👈 en lugar de addClass
+        let txtOriginal = rawOriginal;
+        let txtActual = rawActual;
+
+        // Obtener texto legible si es un Select (Juego)
+        if(c.key === 'juego'){
+             const $optActual = $el.find('option:selected');
+             if($optActual.length) txtActual = $optActual.text();
+
+             const $optOrig = $el.find('option[value="'+rawOriginal+'"]');
+             if($optOrig.length) txtOriginal = $optOrig.text();
+             else if(rawOriginal == "") txtOriginal = "Sin asignar";
+        }
+
+        if(txtOriginal === '') txtOriginal = 'Vacío';
+
+        cambios.push(c.label + ': ' + txtOriginal + ' → ' + txtActual);
+        divRelMovMarcarCambio($el);
     }
   });
 
   if(cambios.length > 0){
     mostrarModalCambios(cambios);
-    return false;
+    return false; // Detiene el guardado automático
   }
-  return true;
+  return true; // Permite guardar
 }

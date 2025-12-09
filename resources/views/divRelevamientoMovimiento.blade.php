@@ -8,32 +8,32 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
 
 <div id="divRelMov">
 <div class="row">
-    <div class="col-md-3">
+    <div class="col-sm-3">
         <h5 class="row">Tipo Movimiento</h5>
         <input class="row form-control tipoMov" type="text" autocomplete="off" readonly="">
     </div>
-    <div class="col-md-3">
+    <div class="col-sm-3">
         <h5 class="row">Sentido</h5>
         <input class="row form-control sentidoMov" type="text" autocomplete="off" readonly="" placeholder="Reingreso - Egreso temporal">
     </div>
-    <div class="col-md-4">
+    <div class="col-sm-4">
         <h5 class="row">Expediente</h5>
         <div class="row">
-            <div class="col-md-3"><input class="form-control exp_org" type="text" autocomplete="off" disabled="disabled" placeholder="xxxxx" maxlength=5></div>
-            <div class="col-md-4"><input class="form-control exp_interno" type="text" autocomplete="off" disabled="disabled" placeholder="xxxxxxx" maxlength=7></div>
-            <div class="col-md-3"><input class="form-control exp_control" type="text" autocomplete="off" disabled="disabled" placeholder="x" maxlength=1></div>
+            <div class="col-sm-3"><input class="form-control exp_org" type="text" autocomplete="off" disabled="disabled" placeholder="xxxxx" maxlength=5></div>
+            <div class="col-sm-4"><input class="form-control exp_interno" type="text" autocomplete="off" disabled="disabled" placeholder="xxxxxxx" maxlength=7></div>
+            <div class="col-sm-3"><input class="form-control exp_control" type="text" autocomplete="off" disabled="disabled" placeholder="x" maxlength=1></div>
         </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-sm-2">
         <h5 class="row">Disposicion</h5>
         <div class="row">
-            <div class="col-md-7"><input class="form-control disposicion" type="text" autocomplete="off" disabled="disabled" placeholder="xxx" maxlength=3></div>
-            <div class="col-md-5"><input class="form-control disposicion_anio" type="text" autocomplete="off" disabled="disabled" placeholder="xx" maxlength=2></div>
+            <div class="col-sm-7"><input class="form-control disposicion" type="text" autocomplete="off" disabled="disabled" placeholder="xxx" maxlength=3></div>
+            <div class="col-sm-5"><input class="form-control disposicion_anio" type="text" autocomplete="off" disabled="disabled" placeholder="xx" maxlength=2></div>
         </div>
     </div>
 </div>
 <div class="row"> <!-- row inicial -->
-    <div class="col-md-3" style="overflow-y: scroll; height: 950px;">
+    <div class="col-sm-2" style="overflow-y: scroll; height: 1000px ; border-left: 1px solid #ccc; border-right: 1px solid #ccc;">
         <h5>Máquinas</h5>
         <table class="table tablaMTM">
         <thead>
@@ -45,21 +45,21 @@ $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
         </tbody>
         </table>
     </div> <!-- maquinas -->
-    <div class="col-md-9 detalleRel">
+    <div class="col-sm-10 detalleRel">
         <div class="row">
-            <div class="col-lg-3">
+            <div class="col-sm-3">
                 <h5>Estado</h5>
                 <input type="text" class="form-control estado" readonly="readonly">
             </div>
-            <div class="col-md-3">
+            <div class="col-sm-3">
                 <h5>Fiscalizador Carga: </h5>
                 <input type="text" class="form-control fiscaCarga" disabled="true">
             </div>
-            <div class="col-md-3">
+            <div class="col-sm-3">
                 <h5>Fiscalizador Toma: </h5>
                 <input class="form-control editable fiscaToma" type="text" autocomplete="off">
             </div>
-            <div class="col-md-3">
+            <div class="col-sm-3">
                 <h5>Fecha Ejecución: </h5>
                 <div class='input-group date relFecha' data-date-format="yyyy-mm-dd HH:ii:ss">
                     <input type='text' class="form-control editable fechaRel" placeholder="Fecha de ejecución del relevamiento" data-trigger="manual" data-toggle="popover" data-placement="top" />

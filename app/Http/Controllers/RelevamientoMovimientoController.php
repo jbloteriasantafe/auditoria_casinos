@@ -117,7 +117,7 @@ class RelevamientoMovimientoController extends Controller
         $rel->tomas[] = $t;
      }
      //No tiene tomas (no deberia pasar pq se crea una con la fiscalizacion/intervencion) pero le creo una para que complete
-     if(count($rel->tomas) == 0){ 
+     if(count($rel->tomas) == 0){
       $t = new \stdClass();
       $t->fecha_relev_sala = '';
       $t->conts = [];
@@ -178,31 +178,31 @@ class RelevamientoMovimientoController extends Controller
   public function linkAdjunto($toma){
     return 'adjunto/'.$toma->id_toma_relev_mov.'/'.$toma->id_archivo;
   }
-  
+
   public function leerAdjuntoDeToma($id_toma,$id_archivo){
     $toma = TomaRelevamientoMovimiento::where('id_toma_relev_mov',$id_toma)
     ->where('id_archivo',$id_archivo)->first();
     if($toma === null) return 'Archivo no encontrado';
     $archivo = $toma->archivo;
     if(empty($archivo)) return 'Archivo invalido';
-    
+
     $data = base64_decode($archivo->archivo);
-    
+
     $aux_resource = fopen('php://memory',"rw+");
     fwrite($aux_resource,$data);
     fseek($aux_resource,0);
     $mimeType = mime_content_type($aux_resource);
-    
+
     return Response::make($data, 200, [
       'Content-Type' => $mimeType !== false? $mimeType : 'application/octet-stream',
       'Content-Disposition' => 'inline; filename="'. $archivo->nombre_archivo  . '"'
     ]);
   }
-  
+
   public function cargarTomaRelevamientoProgs(
     $id_relevamiento, $nro_toma, $id_cargador, $id_fiscalizador, $fecha_sala,
     $mac, $sector_relevado, $isla_relevada, $contadores, $juego, $apuesta_max,
-    $cant_lineas, $porcentaje_devolucion, $denominacion, $cant_creditos, 
+    $cant_lineas, $porcentaje_devolucion, $denominacion, $cant_creditos,
     $progresivos, $observaciones, $adjunto, $link_adjunto
   ){
     $relevamiento = RelevamientoMovimiento::find($id_relevamiento);
@@ -212,7 +212,7 @@ class RelevamientoMovimientoController extends Controller
     $relevamiento->cargador()->associate($id_cargador);
     $relevamiento->save();
 
-    if($relevamiento->toma_relevamiento_movimiento()->count() == 0){//Si por algun motivo no tiene tomas, le creo una vacia
+    if($relevamiento->toma_relevamiento_movimiento()->count() == 0){
       TomaRelevamientoMovimientoController::getInstancia()->crearTomaRelevamiento($relevamiento->id_maquina,$relevamiento->id_relev_mov,[],
       null,null,null,
       null,null,null,
@@ -226,9 +226,12 @@ class RelevamientoMovimientoController extends Controller
     $toma->mac = $mac;
     $toma->descripcion_sector_relevado = $sector_relevado;
     $toma->nro_isla_relevada = $isla_relevada;
+
+    // CAMBIO 1: Sintaxis de objeto para contadores
     foreach($contadores as $idx => $c){
-      $toma['vcont'.($idx+1)] = $c['valor'];
+      $toma->{'vcont'.($idx+1)} = $c['valor'];
     }
+
     $toma->juego = $juego;
     $toma->apuesta_max = $apuesta_max;
     $toma->cant_lineas = $cant_lineas;
@@ -236,7 +239,7 @@ class RelevamientoMovimientoController extends Controller
     $toma->denominacion = $denominacion;
     $toma->cant_creditos = $cant_creditos;
     $toma->observaciones = $observaciones;
-    
+
     if($adjunto === null && $link_adjunto == $this->linkAdjunto($toma)){
       //Mantengo el archivo que esta
     }
@@ -250,30 +253,47 @@ class RelevamientoMovimientoController extends Controller
         $archivo->archivo=$data;
         $archivo->save();
         $toma->id_archivo = $archivo->id_archivo;
-        dump($adjunto,$archivo);
+        // dump($adjunto,$archivo); // ELIMINADO para no romper el JSON
       }
     }
     $toma->save();
 
     $maxlvl = (new DetalleRelevamientoProgresivo)->max_lvl;
     $progresivos = is_null($progresivos)? [] : $progresivos;
+
     foreach($progresivos as $pozo){
-      // No deberia haber multiples relevamientos del mismo pozo para una toma.
-      $detalle_prog = $toma->detalles_relevamiento_progresivo()->where('detalle_relevamiento_progresivo.id_pozo','=',$pozo['id_pozo'])->first();
-      $causaNoToma = $pozo['id_tipo_causa_no_toma_progresivo'];
-      $detalle_prog['id_tipo_causa_no_toma_progresivo'] = $causaNoToma;
-      for($i = 1;$i<=$maxlvl;$i++){
-        $detalle_prog['nivel'.$i] = null;
+      // Busqueda directa por ID para asegurar que editamos el objeto correcto
+      $detalle_prog = DetalleRelevamientoProgresivo::where('id_toma_relev_mov', $toma->id_toma_relev_mov)
+                                                   ->where('id_pozo', $pozo['id_pozo'])
+                                                   ->first();
+
+      // Seguridad por si no existe
+      if(!$detalle_prog) {
+          $detalle_prog = new DetalleRelevamientoProgresivo();
+          $detalle_prog->id_toma_relev_mov = $toma->id_toma_relev_mov;
+          $detalle_prog->id_pozo = $pozo['id_pozo'];
       }
+
+      $causaNoToma = $pozo['id_tipo_causa_no_toma_progresivo'];
+
+      // CAMBIO 2: Sintaxis de objeto para progresivos (CRITICO para que guarde)
+      $detalle_prog->id_tipo_causa_no_toma_progresivo = $causaNoToma;
+
+      for($i = 1; $i <= $maxlvl; $i++){
+        $detalle_prog->{'nivel'.$i} = null;
+      }
+
       if(is_null($causaNoToma)){
         foreach($pozo['niveles'] as $nivel){
           $nivelbd = NivelProgresivo::find($nivel['id_nivel_progresivo']);
-          $nro_nivel = $nivelbd->nro_nivel;
-          if($nro_nivel <= $maxlvl){
-            $detalle_prog['nivel'.$nro_nivel] = $nivel['val'];
-          }
-          else{
-            throw new Exception('ERROR SE SUPERO LA CANTIDAD DE NIVELES CARGABLES, AGREGAR UN NIVEL A LA TABLA (y al modelo)');
+          if($nivelbd){
+              $nro_nivel = $nivelbd->nro_nivel;
+              if($nro_nivel <= $maxlvl){
+                $detalle_prog->{'nivel'.$nro_nivel} = $nivel['val'];
+              }
+              else{
+                throw new Exception('ERROR SE SUPERO LA CANTIDAD DE NIVELES CARGABLES, AGREGAR UN NIVEL A LA TABLA (y al modelo)');
+              }
           }
         }
       }

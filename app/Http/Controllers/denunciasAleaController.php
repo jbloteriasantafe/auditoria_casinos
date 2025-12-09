@@ -617,10 +617,29 @@ private function curlFetch($url, $ua, $accept, $lang)
         CURLOPT_HTTPHEADER     => ["Accept: {$accept}", "Accept-Language: {$lang}"],
         CURLOPT_SSL_VERIFYPEER => true,
         CURLOPT_SSL_VERIFYHOST => 2,
-        CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
+        //CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
         CURLOPT_ENCODING       => '',
         CURLOPT_HEADER         => true,
     ]);
+
+    $proxyHost = env('HTTP_PROXY_HOST');
+    $proxyPort = env('HTTP_PROXY_PORT');
+
+    if ($proxyHost && $proxyPort) {
+        $options[CURLOPT_PROXY] = $proxyHost;
+        $options[CURLOPT_PROXYPORT] = $proxyPort;
+
+        $proxyUser = env('HTTP_PROXY_USER');
+        $proxyPass = env('HTTP_PROXY_PASS');
+
+        if ($proxyUser && $proxyPass) {
+            $options[CURLOPT_PROXYUSERPWD] = "$proxyUser:$proxyPass";
+        }
+    }
+    // ------------------------------------------
+
+    curl_setopt_array($ch, $options);
+
     $raw  = curl_exec($ch);
     $errc = curl_errno($ch);
     $errt = curl_error($ch);
