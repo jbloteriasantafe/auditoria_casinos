@@ -89,6 +89,30 @@ class NotasCasinoController extends Controller
     public function subirNota(Request $request)
     {
 
+        $mensajes = [
+            'required' => 'El campo :attribute es obligatorio.',
+            'integer' => 'El campo :attribute debe ser un número entero.',
+            'date' => 'El campo :attribute no es una fecha válida.',
+            'max' => 'El campo :attribute es demasiado grande.',
+
+            // Mensajes específicos para archivos
+            'adjuntoPautas.mimes' => 'El archivo de Pautas debe ser formato .pdf o .zip',
+            'adjuntoPautas.max' => 'El archivo de Pautas supera el tamaño máximo permitido.',
+
+            'adjuntoDisenio.mimes' => 'El archivo de Diseño debe ser formato .pdf o .zip',
+            'adjuntoDisenio.max' => 'El archivo de Diseño supera el tamaño máximo permitido.',
+
+            'basesyCondiciones.mimes' => 'El archivo de Bases y Condiciones debe ser .pdf, .zip, .doc o .docx',
+            'basesyCondiciones.max' => 'El archivo de Bases y Condiciones supera el tamaño máximo permitido.',
+        ];
+
+        $atributos = [
+            'nroNota' => 'Número de Nota',
+            'nombreEvento' => 'Nombre del Evento',
+            'fechaInicio' => 'Fecha de Inicio',
+            'fechaFinalizacion' => 'Fecha de Finalización',
+        ];
+
         $validator = Validator::make($request->all(), [
             'nroNota' => 'required|integer',
             'tipoNota' => 'required|integer',
@@ -102,7 +126,7 @@ class NotasCasinoController extends Controller
             'fechaInicio' => 'required|date',
             'fechaFinalizacion' => 'required|date',
             'fechaReferencia' => 'nullable|string|max:500',
-        ]);
+        ], $mensajes, $atributos);
 
         if ($validator->fails()) {
             Log::info('Validación fallida', $validator->errors()->toArray());
@@ -227,23 +251,47 @@ class NotasCasinoController extends Controller
 
     public function modificarNota(Request $request)
     {
+        $mensajes = [
+            'required' => 'El campo :attribute es obligatorio.',
+            'integer' => 'El campo :attribute debe ser un número entero.',
+            'date' => 'El campo :attribute no es una fecha válida.',
+            'max' => 'El campo :attribute es demasiado grande.',
+
+            // Mensajes específicos para archivos
+            'adjuntoPautas.mimes' => 'El archivo de Pautas debe ser formato .pdf o .zip',
+            'adjuntoPautas.max' => 'El archivo de Pautas supera el tamaño máximo permitido.',
+
+            'adjuntoDisenio.mimes' => 'El archivo de Diseño debe ser formato .pdf o .zip',
+            'adjuntoDisenio.max' => 'El archivo de Diseño supera el tamaño máximo permitido.',
+
+            'basesyCondiciones.mimes' => 'El archivo de Bases y Condiciones debe ser .pdf, .zip, .doc o .docx',
+            'basesyCondiciones.max' => 'El archivo de Bases y Condiciones supera el tamaño máximo permitido.',
+        ];
+
+        $atributos = [
+            'nroNota' => 'Número de Nota',
+            'nombreEvento' => 'Nombre del Evento',
+            'fechaInicio' => 'Fecha de Inicio',
+            'fechaFinalizacion' => 'Fecha de Finalización',
+        ];
+
         $validator = Validator::make($request->all(), [
-            'idNota' => 'required|integer',
-            'nroNota' => 'nullable|string',
-            'tipoNota' => 'nullable|integer',
-            'anioNota' => 'nullable|integer',
-            'nombreEvento' => 'nullable|string|max:1000',
-            'tipoEvento' => 'nullable|integer',
-            'categoria' => 'nullable|integer',
+            'nroNota' => 'required|integer',
+            'tipoNota' => 'required|integer',
+            'anioNota' => 'required|integer',
+            'nombreEvento' => 'required|string|max:1000',
+            'tipoEvento' => 'required|integer',
+            'categoria' => 'required|integer',
             'adjuntoPautas' => 'nullable|file|mimes:pdf,zip|max:153600',
             'adjuntoDisenio' => 'nullable|file|mimes:pdf,zip|max:153600',
             'basesyCondiciones' => 'nullable|file|mimes:pdf,zip,doc,docx|max:153600',
-            'fechaInicio' => 'nullable|date',
-            'fechaFinalizacion' => 'nullable|date',
-            'fechaReferencia' => 'nullable|string|max:500'
-        ]);
+            'fechaInicio' => 'required|date',
+            'fechaFinalizacion' => 'required|date',
+            'fechaReferencia' => 'nullable|string|max:500',
+        ], $mensajes, $atributos);
+
         if ($validator->fails()) {
-            Log::error('Validación fallida', $validator->errors()->toArray());
+            Log::info('Validación fallida', $validator->errors()->toArray());
             return response()->json($validator->errors(), 422);
         }
 

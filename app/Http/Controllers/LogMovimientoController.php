@@ -796,7 +796,7 @@ class LogMovimientoController extends Controller
           $u = Usuario::find($user->id_usuario);
           if($u != null) $u->notify(new $notificacion($fiscalizacion));
         }
-        //if(!$es_intervencion) CalendarioController::getInstancia()->marcarRealizado($fiscalizacion->evento);
+        if(!$es_intervencion && !is_null($fiscalizacion->evento)) CalendarioController::getInstancia()->marcarRealizado($fiscalizacion->evento);
       }
       DB::commit();
     }
