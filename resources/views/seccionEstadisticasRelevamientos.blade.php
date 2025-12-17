@@ -26,7 +26,7 @@
 ])
 @endcomponent
 
-<div class="row"> <!-- row principal -->
+<div class="row" style="display: flex;"> <!-- row principal -->
   <div class="col-lg-3">
     <style>
       #filtrosRelevamientos [data-js-filtro-tabla-tabla] {
