@@ -56,39 +56,61 @@ $rutaImagen = $ruta.$varImg;
                       <center><img src="img/logos/logo_2024_loteria.png" width="90%"></center> <!-- VER -->
                       <br>
                     </div>
-                    <center><p class="login-box-msg">Ingresá los datos de Usuario y Contraseña</p></center>
-
-                    <!-- <form action="" method="post"> -->
-                      <div class="form-group has-feedback">
-                        <input id="user_name" type="text" class="form-control" placeholder="Usuario">
-                        <span class="glyphicon glyphicon-user form-control-feedback"></span>
-                      </div>
-                      <div class="form-group has-feedback">
-                        <input id="password" type="password" class="form-control" placeholder="Contraseña">
-                        <span class="glyphicon glyphicon-lock form-control-feedback"></span>
-                      </div>
-                      <div class="row">
-                        <div class="col-xs-8">
-                          <div class="checkbox icheck">
-                            <label>
-                              <input type="checkbox"> Recordar usuario
-                            </label>
+                    
+                    @if($error !== null || ($error === null && $usuarios === null))
+                      <center><p class="login-box-msg">Ingresá los datos de Usuario y Contraseña</p></center>
+                      <!-- <form action="" method="post"> -->
+                        <div class="form-group has-feedback">
+                          <input id="user_name" type="text" class="form-control" placeholder="Usuario">
+                          <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                        </div>
+                        <div class="form-group has-feedback">
+                          <input id="password" type="password" class="form-control" placeholder="Contraseña">
+                          <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+                        </div>
+                        <div class="row">
+                          <div class="col-xs-8">
+                            <div class="checkbox icheck">
+                              <label>
+                                <input type="checkbox"> Recordar usuario
+                              </label>
+                            </div>
                           </div>
+                          <!-- /.col -->
+                          <div class="col-xs-4">
+                            <button id="btnIngresar" type="submit" class="btn btn-primary btn-block">Entrar</button>
+                          </div>
+                          <!-- /.col -->
                         </div>
-                        <!-- /.col -->
-                        <div class="col-xs-4">
-                          <button id="btnIngresar" type="submit" class="btn btn-primary btn-block">Entrar</button>
+                      <!-- </form> -->
+                      <br>
+                      <legend></legend>
+                      <div class="alert alert-danger" {{ empty($error)? 'hidden' : '' }} role="alert" id="alertaLogin"><span>{{$error ?? ''}}</span></div>
+                      <center><a href="" style="color: #337ab7;">+   Olvidé mi Contraseña</a><br></center>
+                      <br>
+                        <!-- /.social-auth-links -->
+                      <?php $CAS_ENDPOINT = env('CAS_ENDPOINT') ?? request()->CAS_ENDPOINT_TOREMOVE ?? null;//para poder probar en producción ?>
+                      @if(!empty($CAS_ENDPOINT))
+                      <div class="row">
+                        <div class="col-xs-12">
+                          <a role="button" href="{{$CAS_ENDPOINT}}/login?service={{urlencode(url('login'))}}&renew" class="btn btn-block" style="background: #FD7400;color: white;border-color: border-color: #a42e2e;">Ingresar con UID</a>
                         </div>
-                        <!-- /.col -->
                       </div>
-                    <!-- </form> -->
-                    <br>
-                    <!-- /.social-auth-links -->
-                    <legend></legend>
-                    <div class="alert alert-danger" hidden role="alert" id="alertaLogin"><span></span></div>
-                    <center><a href="" style="color: #337ab7;">+   Olvidé mi Contraseña</a><br></center>
-
-
+                      @endif
+                    @else
+                      @if(!empty($usuarios))
+                      <center><p class="login-box-msg">Seleccioná un usuario</p></center>
+                      @else
+                      <center><p class="login-box-msg">No existe usuario asociado a su DNI o Correo</p></center>
+                      @endif
+                      
+                      <div class="row" style="display: flex;flex-direction: column;gap: 1em;padding: 1em;">
+                        @foreach(($usuarios ?? []) as $u)
+                        <a role="button" href="/login?user_name={{urlencode($u->user_name)}}" class="btn" style="background: #FD7400;color: white;border-color: border-color: #a42e2e;font-weight: bolder;text-shadow: 0px 0px 2px #353535;">{{$u->user_name}}</a>
+                        @endforeach
+                        <a role="button" href="/login" class="btn btn-primary" style="width: 5em;">Volver</a>
+                      </div>
+                    @endif
     <!-- /.login-box -->
               </div> <!-- contenedorFormulario -->
             </div> <!-- boxLogo -->
