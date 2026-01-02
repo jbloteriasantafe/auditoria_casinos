@@ -54,6 +54,10 @@ Route::get('login', function (Request $request) {
     $error = $response['error'] ?? null;
   }
   
+  if(count($usuarios ?? []) == 1){//Reentra y se maneja en la parte de arriba
+    return redirect('login?user_name='.urlencode($usuarios[array_keys($usuarios)[0]]->user_name));
+  }
+  
   return view('index',['CAS_ENDPOINT' => $CAS_ENDPOINT,'error' => $error,'usuarios' => $usuarios]);
 });
 
