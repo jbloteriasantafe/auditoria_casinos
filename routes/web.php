@@ -31,7 +31,8 @@ Route::get('login', function (Request $request) {
   
   $usuarios = null;
   $error = null;
-  $CAS_ENDPOINT = env('CAS_ENDPOINT') ?? request()->CAS_ENDPOINT_TOREMOVE ?? null;
+  
+  $CAS_ENDPOINT = env('CAS_ENDPOINT') ?? Cookie::get('CAS_ENDPOINT_TOREMOVE') ?? null;
   if(!empty($request->user_name)){//Solo puede logear con el usuario si tiene el token de sesión correcto
     $response = App\Http\Controllers\AuthenticationController::getInstancia()
     ->loginUserName($request->user_name);
@@ -53,7 +54,7 @@ Route::get('login', function (Request $request) {
     $error = $response['error'] ?? null;
   }
   
-  return view('index',['error' => $error,'usuarios' => $usuarios]);
+  return view('index',['CAS_ENDPOINT' => $CAS_ENDPOINT,'error' => $error,'usuarios' => $usuarios]);
 });
 
 Route::get('inicio', function () {

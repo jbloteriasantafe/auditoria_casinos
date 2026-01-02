@@ -89,8 +89,7 @@ $rutaImagen = $ruta.$varImg;
                       <center><a href="" style="color: #337ab7;">+   Olvidé mi Contraseña</a><br></center>
                       <br>
                         <!-- /.social-auth-links -->
-                      <?php $CAS_ENDPOINT = env('CAS_ENDPOINT') ?? request()->CAS_ENDPOINT_TOREMOVE ?? null;//para poder probar en producción ?>
-                      @if(!empty($CAS_ENDPOINT))
+                      @if($CAS_ENDPOINT)
                       <div class="row">
                         <div class="col-xs-12">
                           <a role="button" href="{{$CAS_ENDPOINT}}/login?service={{urlencode(url('login'))}}&renew" class="btn btn-block" style="background: #FD7400;color: white;border-color: border-color: #a42e2e;">Ingresar con UID</a>
