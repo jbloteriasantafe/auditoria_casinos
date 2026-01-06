@@ -88,7 +88,6 @@ class NotasCasinoController extends Controller
 
     public function subirNota(Request $request)
     {
-
         $mensajes = [
             'required' => 'El campo :attribute es obligatorio.',
             'integer' => 'El campo :attribute debe ser un número entero.',
@@ -114,7 +113,7 @@ class NotasCasinoController extends Controller
         ];
 
         $validator = Validator::make($request->all(), [
-            'nroNota' => 'required|integer',
+            'nroNota' => 'required|string|regex:/^[0-9]+$/',
             'tipoNota' => 'required|integer',
             'anioNota' => 'required|integer',
             'nombreEvento' => 'required|string|max:1000',
