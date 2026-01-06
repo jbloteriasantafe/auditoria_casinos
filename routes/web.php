@@ -22,9 +22,45 @@ Route::get('/', function () {
   $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
   return view('seccionInicio', ['ultimas_visitadas' => $usuario->secciones_recientes]);
 });
-Route::get('login', function () {
-  return view('index');
+
+Route::get('login', function (Request $request) {
+  $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+  if($usuario !== null){
+    return redirect('/');
+  }
+  
+  $usuarios = null;
+  $error = null;
+  
+  $CAS_ENDPOINT = env('CAS_ENDPOINT') ?? Cookie::get('CAS_ENDPOINT_TOREMOVE') ?? null;
+  if(!empty($request->user_name)){//Solo puede logear con el usuario si tiene el token de sesión correcto
+    $response = App\Http\Controllers\AuthenticationController::getInstancia()
+    ->loginUserName($request->user_name);
+    if($response['success']){
+      return redirect('/');
+    }
+    $error = $response['error'] ?? null;
+  }
+  elseif(!empty($request->ticket) && !empty($CAS_ENDPOINT)){//Setea tokens de sesión para todos los usuarios posibles
+    $response = App\Http\Controllers\AuthenticationController::getInstancia()
+    ->loginCASTicket(
+      $CAS_ENDPOINT,
+      url('login'),
+      $request->ticket
+    );
+    if($response['success']){
+      $usuarios = $response['usuarios'] ?? [];
+    }
+    $error = $response['error'] ?? null;
+  }
+  
+  if(count($usuarios ?? []) == 1){//Reentra y se maneja en la parte de arriba
+    return redirect('login?user_name='.urlencode($usuarios[array_keys($usuarios)[0]]->user_name));
+  }
+  
+  return view('index',['CAS_ENDPOINT' => $CAS_ENDPOINT,'error' => $error,'usuarios' => $usuarios]);
 });
+
 Route::get('inicio', function () {
   return redirect('/');
 });

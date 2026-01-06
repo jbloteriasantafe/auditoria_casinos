@@ -1260,7 +1260,7 @@ class RelevamientoController extends Controller
       $cantidad->cantidad    = $request->cantidad_maquinas;
       $cantidad->fecha_desde = $request->fecha_desde;
       $cantidad->fecha_hasta = $request->fecha_hasta;
-      $cantidad->id_tipo_cantidad_maquinas_por_relevamiento = 2;
+      $cantidad->id_tipo_cantidad_maquinas_por_relevamiento = $request->id_tipo_cantidad_maquinas_por_relevamiento;
       $cantidad->save();
       return 1;
     });
