@@ -628,6 +628,10 @@ Route::group(['prefix' => 'producidos', 'middleware' => 'tiene_permiso:ver_secci
   Route::get('datosAjusteMTM/{id_maquina}/{id_producidos}', 'ProducidoController@datosAjusteMTM');
   Route::get('ajustarProducido/{id_producido}', 'ProducidoController@ajustarProducido');
   Route::post('calcularDiferencia', 'ProducidoController@calcularDiferenciaHandlePOST');
+  Route::get('ajusteAutomaticoMasivo/{id_producido}', 'ProducidoController@ajusteAutomaticoMasivo');
+  Route::get('ajusteAutomaticoIndividual/{id_maquina}/{id_producido}', 'ProducidoController@ajusteAutomaticoIndividual');
+  Route::get('obtenerTablaDiferencias/{id_producido}', 'ProducidoController@obtenerTablaDiferencias');
+  Route::post('importarExcelConcesionario/{id_producido}', 'ProducidoController@importarExcelConcesionario');
 });
 
 /***********

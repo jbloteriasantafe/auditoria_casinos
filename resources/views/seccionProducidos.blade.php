@@ -177,6 +177,22 @@ use Illuminate\Http\Request;
           <div class="row" >
             <h6 style="padding-left:15px" id="descripcion_validacion"></h6>
             <h6 style="padding-left:15px">Máquinas con diferencias: <span id="maquinas_con_diferencias">---</span></h6>
+            @if($es_superusuario)
+            <div style="padding-left:15px; margin-bottom:10px;">
+              <button id="btn-ajuste-automatico-masivo" class="btn btn-success" style="margin-right:10px;">
+                <i class="fa fa-magic"></i> AJUSTE AUTOMÁTICO MASIVO
+              </button>
+              <button id="btn-ver-tabla" class="btn btn-info" style="margin-right:10px;">
+                <i class="fa fa-table"></i> VISTA TABLA
+              </button>
+              <button id="btn-importar-excel" class="btn btn-warning" style="margin-right:10px;">
+                <i class="fa fa-file-text-o"></i> COMPARAR CSV
+              </button>
+              <span id="resultado-ajuste-masivo" style="font-weight:bold;"></span>
+            </div>
+            <!-- Input oculto para subir Excel/CSV -->
+            <input type="file" id="input-excel" accept=".xls,.xlsx,.csv" style="display:none;">
+            @endif
           </div>
           <div class="row" >
             <div class="col-md-3">
@@ -195,7 +211,10 @@ use Illuminate\Http\Request;
                 <tr id="filaClon">
                   <td class="col-md-3 nroAdm" value=""> nro admin</td>
                   <td class="col-md-2 idMaqTabla" value="">
-                    <button type="button" class="btn btn-info infoMaq" value=""><i class="fa fa-fw fa-eye"></i></button>
+                    <button type="button" class="btn btn-info infoMaq" value="" title="Ver detalles"><i class="fa fa-fw fa-eye"></i></button>
+                    @if($es_superusuario)
+                    <button type="button" class="btn btn-success btn-ajuste-individual" value="" title="Ajuste automático" style="padding: 2px 6px;"><i class="fa fa-magic"></i></button>
+                    @endif
                   </td>
                 </tr>
               </table>
@@ -347,6 +366,179 @@ use Illuminate\Http\Request;
   </div>  <!-- modal content -->
 </div> <!--  modal dialog -->
 </div> <!-- modal fade -->
+
+<!-- Modal de Reporte de Ajustes Automáticos -->
+<div class="modal fade" id="modalReporteAjustes" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" style="width: 80%;">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color:#4DB6AC; color:white;">
+        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+        <h4 class="modal-title"><i class="fa fa-file-text-o"></i> REPORTE DE AJUSTES AUTOMÁTICOS</h4>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h5 style="color:#66BB6A;"><i class="fa fa-check"></i> AJUSTADAS: <span id="reporte-ajustadas-count">0</span></h5>
+            <div style="max-height:400px; overflow-y:auto;">
+              <table class="table table-condensed table-striped" id="tabla-ajustadas">
+                <thead>
+                  <tr style="background-color:#E8F5E9;">
+                    <th>Nº Admin</th>
+                    <th>Diferencia</th>
+                    <th>Ajuste (Créditos)</th>
+                    <th>COINOUT INI Antes</th>
+                    <th>COINOUT INI Después</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <h5 style="color:#EF5350;"><i class="fa fa-times"></i> NO AJUSTADAS: <span id="reporte-fallidas-count">0</span></h5>
+            <div style="max-height:400px; overflow-y:auto;">
+              <table class="table table-condensed table-striped" id="tabla-fallidas">
+                <thead>
+                  <tr style="background-color:#FFEBEE;">
+                    <th>Nº Admin</th>
+                    <th>Diferencia</th>
+                    <th>Razón</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-primary" id="btn-imprimir-reporte"><i class="fa fa-print"></i> Imprimir</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Vista de Tabla Completa -->
+<div class="modal fade" id="modalTablaCompleta" tabindex="-1" role="dialog">
+  <div class="modal-dialog" style="width: 98%;">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color:#2196F3; color:white;">
+        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+        <h4 class="modal-title"><i class="fa fa-table"></i> VISTA DE TABLA - TODAS LAS DIFERENCIAS</h4>
+      </div>
+      <div class="modal-body">
+        <div class="row" style="margin-bottom:10px;">
+          <div class="col-md-3">
+            <label>Filtrar por diferencia mínima:</label>
+            <input type="number" id="filtro-dif-min" class="form-control" placeholder="Min" value="">
+          </div>
+          <div class="col-md-3">
+            <label>Filtrar por diferencia máxima:</label>
+            <input type="number" id="filtro-dif-max" class="form-control" placeholder="Max" value="">
+          </div>
+          <div class="col-md-3">
+            <label>Mostrar solo ajustables:</label>
+            <select id="filtro-ajustables" class="form-control">
+              <option value="">Todas</option>
+              <option value="si">Solo ajustables auto</option>
+              <option value="no">Solo manuales</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label>&nbsp;</label>
+            <button id="btn-aplicar-filtros" class="btn btn-primary form-control"><i class="fa fa-filter"></i> Filtrar</button>
+          </div>
+        </div>
+        <div style="max-height:500px; overflow-y:auto;">
+          <table class="table table-condensed table-striped table-bordered" id="tabla-diferencias-completa">
+            <thead style="background-color:#E3F2FD;">
+              <tr>
+                <th style="width:5%;">Nº</th>
+                <th style="width:6%;">Diff</th>
+                <th style="width:8%;">CoinIn INI</th>
+                <th style="width:8%;">CoinOut INI</th>
+                <th style="width:8%;">Jack INI</th>
+                <th style="width:8%;">Prog INI</th>
+                <th style="width:8%;">CoinIn FIN</th>
+                <th style="width:8%;">CoinOut FIN</th>
+                <th style="width:8%;">Jack FIN</th>
+                <th style="width:8%;">Prog FIN</th>
+                <th style="width:10%;">Tipo Ajuste</th>
+                <th style="width:5%;">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-tabla-diferencias"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <span id="tabla-total-info" style="float:left; margin-top:7px;"></span>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Comparación con Excel -->
+<div class="modal fade" id="modalComparacionExcel" tabindex="-1" role="dialog">
+  <div class="modal-dialog" style="width: 95%;">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color:#FF9800; color:white;">
+        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+        <h4 class="modal-title"><i class="fa fa-file-excel-o"></i> COMPARACIÓN: SISTEMA vs EXCEL</h4>
+      </div>
+      <div class="modal-body">
+        <div id="estado-excel" style="text-align:center; padding:20px;">
+          <i class="fa fa-spinner fa-spin fa-3x"></i>
+          <p>Procesando Excel...</p>
+        </div>
+        <div id="resultado-excel" style="display:none;">
+          <div class="row" style="margin-bottom:15px;">
+            <div class="col-md-4">
+              <div class="panel panel-info">
+                <div class="panel-heading">Total en Excel</div>
+                <div class="panel-body" style="font-size:24px; text-align:center;" id="excel-total">0</div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="panel panel-primary">
+                <div class="panel-heading">Total en Sistema (con diferencias)</div>
+                <div class="panel-body" style="font-size:24px; text-align:center;" id="sistema-total">0</div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="panel panel-warning">
+                <div class="panel-heading">Con Discrepancias</div>
+                <div class="panel-body" style="font-size:24px; text-align:center;" id="discrepancias-total">0</div>
+              </div>
+            </div>
+          </div>
+          <div style="max-height:400px; overflow-y:auto;">
+            <table class="table table-condensed table-striped table-bordered" id="tabla-comparacion">
+              <thead style="background-color:#FFF3E0;">
+                <tr>
+                  <th>Nº Admin</th>
+                  <th>En Excel</th>
+                  <th>COININ INI (Sist/Excel)</th>
+                  <th>COINOUT INI (Sist/Excel)</th>
+                  <th>COININ FIN (Sist/Excel)</th>
+                  <th>COINOUT FIN (Sist/Excel)</th>
+                  <th>Discrepancias</th>
+                  <th>Usar Excel</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-comparacion"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
     <meta name="_token" content="{!! csrf_token() !!}" />
 

@@ -19,6 +19,7 @@ use App\TipoAjuste;
 use App\Http\Controllers\FormatoController;
 use Illuminate\Validation\Rule;
 use App\PdfParalelo;
+use Excel;
 
 class ProducidoController extends Controller
 {
@@ -129,7 +130,12 @@ class ProducidoController extends Controller
   public function buscarTodo(){
     $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
     UsuarioController::getInstancia()->agregarSeccionReciente('Producidos' ,'producidos') ;
-    return view('seccionProducidos' , ['casinos' => $usuario->casinos, 'producidos' => [],'monedas' => TipoMoneda::all()]);
+    return view('seccionProducidos' , [
+      'casinos' => $usuario->casinos, 
+      'producidos' => [],
+      'monedas' => TipoMoneda::all(),
+      'es_superusuario' => $usuario->es_superusuario
+    ]);
   }
 
   // buscarProducidos
@@ -266,6 +272,285 @@ class ProducidoController extends Controller
               'validado' => ['estaValidado' => $producido->validado],
               'fecha_produccion' => $producido->fecha,
               'moneda' => $producido->tipo_moneda];
+  }
+
+  // Ajuste automático masivo: aplica la fórmula COINOUT_INI -= DIFERENCIAS/DEN_INICIAL a todas las máquinas
+  // Esto es el ajuste manual más común que realizan los auditores
+  // SOLO DISPONIBLE PARA SUPERUSUARIOS
+  public function ajusteAutomaticoMasivo($id_producido){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    if(!$usuario->es_superusuario){
+      return ['error' => 'Solo superusuarios pueden usar esta función', 'ajustadas' => 0, 'fallidas' => 0];
+    }
+    
+    $diferencias = $this->obtenerDiferencias($id_producido);
+    $producido = Producido::find($id_producido);
+    
+    $ajustadas = 0;
+    $fallidas = 0;
+    $detalles_ajustadas = [];
+    $detalles_fallidas = [];
+
+    foreach($diferencias as $diff){
+      $dif = json_decode(json_encode($diff), true);
+      
+      // VALIDACIÓN: No ajustar máquinas con contadores en 0 (requieren ajuste manual)
+      if($dif['coinin_inicio'] == 0 || $dif['coinout_inicio'] == 0 || 
+         $dif['coinin_final'] == 0 || $dif['coinout_final'] == 0) {
+        $fallidas++;
+        $detalles_fallidas[] = [
+          'nro_admin' => $dif['nro_admin'], 
+          'razon' => 'Contadores en 0 (requiere ajuste)',
+          'diferencia' => $dif['diferencia']
+        ];
+        continue;
+      }
+      
+      if($dif['denominacion_inicio'] == 0) {
+        $fallidas++;
+        $detalles_fallidas[] = ['nro_admin' => $dif['nro_admin'], 'razon' => 'Denominación inicial es 0', 'diferencia' => $dif['diferencia']];
+        continue;
+      }
+
+      // LÓGICA DE DETECCIÓN DE RESET (Final menor que Inicial)
+      // El usuario indica: "sumamos los valores iniciales con los finales".
+      // Esto equivale a: Producido_Reset = ((In_Ini - Out_Ini) + (In_Fin - Out_Fin)) * Denom
+      // Nótese que ignoramos Jackpot/Progresivo en esta lógica simplificada de detección primaria, 
+      // pero debemos incluirlos para el cálculo preciso.
+      
+      $es_reset = false;
+      if($dif['coinin_final'] < $dif['coinin_inicio'] || $dif['coinout_final'] < $dif['coinout_inicio']){
+          // Calcular producido asumiendo reset
+          $neto_ini = $dif['coinin_inicio'] - $dif['coinout_inicio'] - $dif['jackpot_inicio'] - $dif['progresivo_inicio'];
+          $neto_fin = $dif['coinin_final'] - $dif['coinout_final'] - $dif['jackpot_final'] - $dif['progresivo_final'];
+          
+          $producido_reset = ($neto_ini + $neto_fin) * $dif['denominacion_inicio'];
+          $diferencia_reset = round($producido_reset - $dif['producido'], 2);
+          
+          // Si la diferencia asumiendo reset es "pequeña" (digamos razonable para un ajuste automático, 
+          // usaremos el mismo criterio que para ajuste normal implícito), entonces procedemos como Reset.
+          // O si es mas pequeña que la diferencia original?
+          // El usuario dice: "Si da cero diferencias, es correcto. si no, hacemos lo usual, la pequeña diferencia va al coin out inicial."
+          
+          // Consideramos reset si mejora la diferencia sustancialmente o si es evidente por los contadores
+          $es_reset = true;
+      }
+      
+      if($es_reset){
+          // CALCULO PARA RESET
+          // 1. Calcular diferencia usando lógica de reset
+          $neto_ini = $dif['coinin_inicio'] - $dif['coinout_inicio'] - $dif['jackpot_inicio'] - $dif['progresivo_inicio'];
+          $neto_fin = $dif['coinin_final'] - $dif['coinout_final'] - $dif['jackpot_final'] - $dif['progresivo_final'];
+          
+          $producido_estimado = ($neto_ini + $neto_fin) * $dif['denominacion_inicio'];
+          $ajuste_necesario_plata = round($producido_estimado - $dif['producido'], 2);
+          $ajuste_creditos = round($ajuste_necesario_plata / $dif['denominacion_inicio'], 0);
+          
+          // 2. Si hay diferencia, ajustamos CoinOut Inicial primero
+          $coinout_ini_original = $dif['coinout_inicio'];
+          if($ajuste_necesario_plata != 0){
+             // Si ajuste_necesario > 0 (Producido Estimado > Real), debemos reducir Producido Estimado.
+             // Reducir Producido Estimado => Reducir Neto Inicial => Aumentar CoinOut Inicial.
+             // Neto_Ini = In - Out. Si subo Out, baja Neto.
+             // Entonces: CoinOut_Nuevo = CoinOut_Viejo + Ajuste_Creditos
+             $dif['coinout_inicio'] = $dif['coinout_inicio'] + $ajuste_creditos;
+             
+             // Recalculamos Neto Inicial con el ajuste
+             $neto_ini = $dif['coinin_inicio'] - $dif['coinout_inicio'] - $dif['jackpot_inicio'] - $dif['progresivo_inicio'];
+          }
+          
+          // 3. Preparar "Contadores Finales Ficticios" para pasar validación del sistema
+          // El sistema espera: (Fin_Ficticio - Ini_Real) * Denom = Producido
+          // Fin_Ficticio = (Producido / Denom) + Ini_Real
+          $delta_esperado_creditos = ($dif['producido'] / $dif['denominacion_inicio']);
+          $neto_final_ficticio = $delta_esperado_creditos + $neto_ini;
+          
+          // Construimos un CoinIn Final Ficticio manteniendo los otros finales reales (o en 0, no importa, solo el neto)
+          // Neto_Fin = In - Out - Jack - Prog
+          // In = Neto_Fin + Out + Jack + Prog
+          $coinin_final_ficticio = $neto_final_ficticio + $dif['coinout_final'] + $dif['jackpot_final'] + $dif['progresivo_final'];
+          
+          // --- GUARDAR ---
+          // A. Si hubo ajuste de CoinOut Ini, guardamos BD
+          if($ajuste_necesario_plata != 0){
+             $detalle_inicio = DetalleContadorHorario::find($dif['id_detalle_contador_inicial']);
+             if($detalle_inicio){
+                 $detalle_inicio->coinout = $dif['coinout_inicio'] * $dif['denominacion_inicio'];
+                 $detalle_inicio->save();
+             }
+          }
+          
+          // B. Guardamos el Producido con Tipo de Ajuste 2 (Reset)
+          // Al ser Tipo 2, usamos los valores ficticios para validar, pero NO se sobreescriben en BD final
+          $detalle_producido = DetalleProducido::find($dif['id_detalle_producido']);
+          $detalle_producido->id_tipo_ajuste = 2; // Reset
+          $detalle_producido->observacion = 'Ajuste aut. Reset'.($ajuste_necesario_plata!=0?' c/ajuste':'');
+          $detalle_producido->save();
+          
+          $ajustadas++;
+          $detalles_ajustadas[] = [
+              'nro_admin' => $dif['nro_admin'], 
+              'diferencia_original' => $diff->diferencia,
+              'ajuste_creditos' => $ajuste_creditos,
+              'coinout_ini_antes' => $coinout_ini_original,
+              'coinout_ini_despues' => $dif['coinout_inicio'],
+              'tipo' => 'Reset'
+          ];
+          
+      } else {
+          // LÓGICA DE AJUSTE NORMAL (NO RESET)
+          $ajuste_creditos = round($dif['diferencia'] / $dif['denominacion_inicio'], 0);
+          $coinout_original = $dif['coinout_inicio'];
+          $dif['coinout_inicio'] = $dif['coinout_inicio'] - $ajuste_creditos;
+          
+          // Verifico que con este ajuste la diferencia sea 0
+          $resultado = $this->calcularDiferencia($dif);
+          
+          if($resultado['diferencia'] == 0){
+            // Guardo el ajuste en la BD
+            $contadores = $this->contadoresDeProducido($id_producido);
+            $detalle_producido = DetalleProducido::find($dif['id_detalle_producido']);
+            
+            // Busco o creo el detalle_contador_inicial
+            $detalle_inicio = DetalleContadorHorario::find($dif['id_detalle_contador_inicial']);
+            if($detalle_inicio == null){
+              $detalle_inicio = new DetalleContadorHorario;
+              $detalle_inicio->id_contador_horario = $contadores['inicial']->id_contador_horario;
+              $detalle_inicio->id_maquina = $detalle_producido->id_maquina;
+            }
+            
+            // Guardo el nuevo coinout_inicio (en plata)
+            $detalle_inicio->coinin     = $dif['coinin_inicio'] * $dif['denominacion_inicio'];
+            $detalle_inicio->coinout    = $dif['coinout_inicio'] * $dif['denominacion_inicio'];
+            $detalle_inicio->jackpot    = $dif['jackpot_inicio'] * $dif['denominacion_inicio'];
+            $detalle_inicio->progresivo = $dif['progresivo_inicio'] * $dif['denominacion_inicio'];
+            $detalle_inicio->denominacion_carga = $dif['denominacion_inicio'];
+            $detalle_inicio->save();
+            
+            // Marco como ajustado con tipo 5 (Cambio de contadores iniciales)
+            $detalle_producido->id_tipo_ajuste = 5;
+            $detalle_producido->observacion = 'Ajuste automático masivo';
+            $detalle_producido->save();
+            
+            $ajustadas++;
+            $detalles_ajustadas[] = [
+              'nro_admin' => $dif['nro_admin'], 
+              'diferencia_original' => $diff->diferencia,
+              'ajuste_creditos' => $ajuste_creditos,
+              'coinout_ini_antes' => $coinout_original,
+              'coinout_ini_despues' => $dif['coinout_inicio'],
+              'tipo' => 'Normal'
+            ];
+          } else {
+            $fallidas++;
+            $detalles_fallidas[] = [
+              'nro_admin' => $dif['nro_admin'], 
+              'razon' => 'Diferencia restante: ' . $resultado['diferencia'],
+              'diferencia' => $diff->diferencia
+            ];
+          }
+      }
+    }
+    
+    // Verifico si todas quedaron ajustadas
+    $diferencias_restantes = $this->obtenerDiferencias($id_producido);
+    if(count($diferencias_restantes) == 0){
+      $producido->validado = 1;
+      $producido->save();
+      $contador_final = $this->contadoresDeProducido($id_producido)['final'];
+      if(!is_null($contador_final)){
+        $contador_final->cerrado = 1;
+        $contador_final->save();
+      }
+    }
+
+    return [
+      'ajustadas' => $ajustadas,
+      'fallidas' => $fallidas,
+      'total' => count($diferencias),
+      'detalles_ajustadas' => $detalles_ajustadas,
+      'detalles_fallidas' => $detalles_fallidas,
+      'todas_validadas' => count($diferencias_restantes) == 0,
+      'pendientes' => count($diferencias_restantes)
+    ];
+  }
+
+  // Ajuste automático individual: aplica la fórmula a UNA sola máquina
+  // SOLO DISPONIBLE PARA SUPERUSUARIOS
+  public function ajusteAutomaticoIndividual($id_maquina, $id_producido){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    if(!$usuario->es_superusuario){
+      return ['success' => false, 'razon' => 'Solo superusuarios pueden usar esta función'];
+    }
+    
+    $diferencias = $this->obtenerDiferencias($id_producido, $id_maquina);
+    
+    if(count($diferencias) == 0){
+      return ['success' => false, 'razon' => 'No se encontró diferencia para esta máquina'];
+    }
+    
+    $diff = $diferencias[0];
+    $dif = json_decode(json_encode($diff), true);
+    
+    // VALIDACIÓN: No ajustar máquinas con contadores en 0
+    if($dif['coinin_inicio'] == 0 || $dif['coinout_inicio'] == 0 || 
+       $dif['coinin_final'] == 0 || $dif['coinout_final'] == 0) {
+      return [
+        'success' => false, 
+        'razon' => 'Contadores en 0 (requiere ajuste)',
+        'nro_admin' => $dif['nro_admin']
+      ];
+    }
+    
+    if($dif['denominacion_inicio'] == 0) {
+      return ['success' => false, 'razon' => 'Denominación inicial es 0'];
+    }
+    
+    $ajuste_creditos = round($dif['diferencia'] / $dif['denominacion_inicio'], 0);
+    $coinout_original = $dif['coinout_inicio'];
+    $dif['coinout_inicio'] = $dif['coinout_inicio'] - $ajuste_creditos;
+    
+    // Verifico que con este ajuste la diferencia sea 0
+    $resultado = $this->calcularDiferencia($dif);
+    
+    if($resultado['diferencia'] != 0){
+      return [
+        'success' => false, 
+        'razon' => 'Diferencia restante: ' . $resultado['diferencia'],
+        'ajuste_intentado' => $ajuste_creditos
+      ];
+    }
+    
+    // Guardo el ajuste en la BD
+    $contadores = $this->contadoresDeProducido($id_producido);
+    $detalle_producido = DetalleProducido::find($dif['id_detalle_producido']);
+    
+    $detalle_inicio = DetalleContadorHorario::find($dif['id_detalle_contador_inicial']);
+    if($detalle_inicio == null){
+      $detalle_inicio = new DetalleContadorHorario;
+      $detalle_inicio->id_contador_horario = $contadores['inicial']->id_contador_horario;
+      $detalle_inicio->id_maquina = $detalle_producido->id_maquina;
+    }
+    
+    $detalle_inicio->coinin     = $dif['coinin_inicio'] * $dif['denominacion_inicio'];
+    $detalle_inicio->coinout    = $dif['coinout_inicio'] * $dif['denominacion_inicio'];
+    $detalle_inicio->jackpot    = $dif['jackpot_inicio'] * $dif['denominacion_inicio'];
+    $detalle_inicio->progresivo = $dif['progresivo_inicio'] * $dif['denominacion_inicio'];
+    $detalle_inicio->denominacion_carga = $dif['denominacion_inicio'];
+    $detalle_inicio->save();
+    
+    $detalle_producido->id_tipo_ajuste = 5;
+    $detalle_producido->observacion = 'Ajuste automático individual';
+    $detalle_producido->save();
+    
+    return [
+      'success' => true,
+      'nro_admin' => $dif['nro_admin'],
+      'diferencia_original' => $diff->diferencia,
+      'ajuste_creditos' => $ajuste_creditos,
+      'coinout_ini_antes' => $coinout_original,
+      'coinout_ini_despues' => $dif['coinout_inicio']
+    ];
   }
 
   // genera los ajustes automaticos que pueden ser calculados numericamente de forma automatica
@@ -658,5 +943,159 @@ class ProducidoController extends Controller
   
   public function calcularDiferenciaHandlePOST(Request $request){
     return $this->calcularDiferencia($request->all());
+  }
+
+  // Obtener todas las diferencias en formato tabla para vista completa
+  // SOLO DISPONIBLE PARA SUPERUSUARIOS
+  public function obtenerTablaDiferencias($id_producido){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    if(!$usuario->es_superusuario){
+      return ['error' => 'Solo superusuarios pueden usar esta función'];
+    }
+    
+    $diferencias = $this->obtenerDiferencias($id_producido);
+    $producido = Producido::find($id_producido);
+    
+    $tabla = [];
+    foreach($diferencias as $diff){
+      // Determinar si es ajustable automáticamente
+      $es_reset = ($diff->coinin_final < $diff->coinin_inicio || $diff->coinout_final < $diff->coinout_inicio);
+      
+      $puede_ajustar = !($diff->coinin_inicio == 0 || $diff->coinout_inicio == 0 || 
+                         $diff->coinin_final == 0 || $diff->coinout_final == 0) || $es_reset;
+      
+      $tabla[] = [
+        'id_maquina' => $diff->id_maquina,
+        'nro_admin' => $diff->nro_admin,
+        'diferencia' => $diff->diferencia,
+        'coinin_inicio' => $diff->coinin_inicio,
+        'coinout_inicio' => $diff->coinout_inicio,
+        'jackpot_inicio' => $diff->jackpot_inicio,
+        'progresivo_inicio' => $diff->progresivo_inicio,
+        'coinin_final' => $diff->coinin_final,
+        'coinout_final' => $diff->coinout_final,
+        'jackpot_final' => $diff->jackpot_final,
+        'progresivo_final' => $diff->progresivo_final,
+        'denominacion' => $diff->denominacion_inicio,
+        'producido' => $diff->producido,
+        'delta' => $diff->delta,
+        'id_detalle_producido' => $diff->id_detalle_producido,
+        'id_detalle_contador_inicial' => $diff->id_detalle_contador_inicial,
+        'id_detalle_contador_final' => $diff->id_detalle_contador_final,
+        'puede_ajustar_auto' => $puede_ajustar,
+        'es_reset' => $es_reset,
+        'razon_no_ajustable' => $puede_ajustar ? null : 'Contadores en 0'
+      ];
+    }
+    
+    return [
+      'tabla' => $tabla,
+      'total' => count($tabla),
+      'producido' => [
+        'fecha' => $producido->fecha,
+        'casino' => $producido->casino->nombre,
+        'moneda' => $producido->tipo_moneda->descripcion
+      ]
+    ];
+  }
+
+  // Importar y comparar Excel del concesionario
+  // SOLO DISPONIBLE PARA SUPERUSUARIOS
+  public function importarExcelConcesionario(Request $request, $id_producido){
+    $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+    if(!$usuario->es_superusuario){
+      return ['error' => 'Solo superusuarios pueden usar esta función'];
+    }
+    
+    if(!$request->hasFile('archivo_excel')){
+      return ['error' => 'No se recibió archivo Excel'];
+    }
+    
+    $archivo = $request->file('archivo_excel');
+    
+    try {
+      // Leer Excel (formato del concesionario: headers en fila 7, datos desde fila 8)
+      $datos_excel = Excel::load($archivo->getRealPath(), function($reader) {
+        $reader->noHeading();
+      })->get();
+      
+      $sheet = $datos_excel->first();
+      if(!$sheet) return ['error' => 'No se pudo leer la hoja de Excel'];
+      
+      $filas = $sheet->toArray();
+      
+      // Parsear datos del Excel (desde fila 7 son los datos, índice 7 en array 0-indexed)
+      $datos_concesionario = [];
+      for($i = 7; $i < count($filas); $i++){
+        $fila = $filas[$i];
+        if(empty($fila[1])) continue; // Saltar filas vacías
+        
+        $nro_admin = trim($fila[1]);
+        if(!is_numeric($nro_admin)) continue;
+        
+        $datos_concesionario[$nro_admin] = [
+          'nro_admin' => $nro_admin,
+          'coinin_inicio' => floatval(str_replace(' ', '', $fila[2] ?? 0)),
+          'coinout_inicio' => floatval(str_replace(' ', '', $fila[3] ?? 0)),
+          'jackpot_inicio' => floatval(str_replace(' ', '', $fila[4] ?? 0)),
+          'progresivo_inicio' => floatval(str_replace(' ', '', $fila[5] ?? 0)),
+          'coinin_final' => floatval(str_replace(' ', '', $fila[6] ?? 0)),
+          'coinout_final' => floatval(str_replace(' ', '', $fila[7] ?? 0)),
+          'jackpot_final' => floatval(str_replace(' ', '', $fila[8] ?? 0)),
+          'progresivo_final' => floatval(str_replace(' ', '', $fila[9] ?? 0)),
+          'beneficio' => floatval(str_replace(' ', '', $fila[10] ?? 0))
+        ];
+      }
+      
+      // Obtener diferencias del sistema
+      $diferencias_sistema = $this->obtenerDiferencias($id_producido);
+      
+      // Comparar
+      $comparacion = [];
+      foreach($diferencias_sistema as $diff){
+        $nro_admin = $diff->nro_admin;
+        $excel = isset($datos_concesionario[$nro_admin]) ? $datos_concesionario[$nro_admin] : null;
+        
+        $item = [
+          'nro_admin' => $nro_admin,
+          'id_maquina' => $diff->id_maquina,
+          'en_sistema' => true,
+          'en_excel' => $excel !== null,
+          'sistema' => [
+            'coinin_inicio' => $diff->coinin_inicio,
+            'coinout_inicio' => $diff->coinout_inicio,
+            'coinin_final' => $diff->coinin_final,
+            'coinout_final' => $diff->coinout_final,
+            'diferencia' => $diff->diferencia
+          ],
+          'excel' => $excel,
+          'discrepancias' => []
+        ];
+        
+        if($excel){
+          // Comparar valores (Excel está en créditos, sistema también en créditos)
+          if($diff->coinin_inicio != $excel['coinin_inicio']) 
+            $item['discrepancias'][] = 'COININ_INI';
+          if($diff->coinout_inicio != $excel['coinout_inicio']) 
+            $item['discrepancias'][] = 'COINOUT_INI';
+          if($diff->coinin_final != $excel['coinin_final']) 
+            $item['discrepancias'][] = 'COININ_FIN';
+          if($diff->coinout_final != $excel['coinout_final']) 
+            $item['discrepancias'][] = 'COINOUT_FIN';
+        }
+        
+        $comparacion[] = $item;
+      }
+      
+      return [
+        'success' => true,
+        'total_excel' => count($datos_concesionario),
+        'total_sistema' => count($diferencias_sistema),
+        'comparacion' => $comparacion
+      ];
+      
+    } catch(\Exception $e){
+      return ['error' => 'Error al procesar Excel: ' . $e->getMessage()];
+    }
   }
 }
