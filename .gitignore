@@ -11,5 +11,10 @@
 /public/importacionesAutoexcluidos/formularios/*
 /public/importacionesAutoexcluidos/documentos/*
 /public/importacionesAutoexcluidos/solicitudes/*
+/php71
+
+# Excel samples del concesionario (no commitear)
+ReporteLoteria*.xls
+ReporteLoteria*.xlsx
 
 
