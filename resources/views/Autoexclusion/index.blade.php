@@ -121,6 +121,27 @@ input[required], select[required]{
       </a>
     </div>
     @endif
+    
+    @if($usuario->tienePermiso('agregar_ae') || $usuario->tienePermiso('aym_ae_plataformas'))
+    <div class="col-xl-12 col-md-4">
+      <a href="" id="btn-importar-masivo" style="text-decoration: none;">
+        <div class="panel panel-default panelBotonNuevo">
+          <center>
+            <img class="imgNuevo" src="/img/logos/CSV_white.png">
+          </center>
+          <div class="backgroundNuevo"></div>
+          <div class="row">
+            <div class="col-xs-12">
+              <center>
+                <h5 class="txtLogo">+</h5>
+                <h4 class="txtNuevo">Carga Masiva</h4>
+              </center>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    @endif
   </div>
 </div>
 
@@ -1096,6 +1117,76 @@ input[required], select[required]{
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" id="btn-salir" data-dismiss="modal" aria-label="Close">SALIR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL IMPORTAR MASIVO -->
+<div class="modal fade" id="modalImportarMasivo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+        <button id="btn-minimizar-importar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoImportar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+        <h3 class="modal-title" id="myModalLabel">| CARGA MASIVA</h3>
+      </div>
+      <div id="colapsadoImportar" class="collapse in">
+        <div class="modal-body modal-Cuerpo">
+            <div class="row">
+                <div class="col-md-12">
+                    <h5>CASINO / PLATAFORMA</h5>
+                    <select id="selectCasinoImportacion" class="form-control">
+                        <option value="">- Seleccione -</option>
+                           <?php 
+                            $cas_creacion = $usuario->es_superusuario? $casinos : $usuario->casinos;
+                            $plats_creacion = $usuario->tienePermiso('aym_ae_plataformas')? $plataformas : [];
+                          ?>
+                          @foreach($cas_creacion as $casino)
+                          <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                          @endforeach
+                          @foreach ($plats_creacion as $p)
+                          <option value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
+                          @endforeach
+                    </select>
+                </div>
+            </div>
+            <br>
+            <div class="row">
+                <div class="col-md-12">
+                    <h5>ARCHIVO (CSV / EXCEL)</h5>
+                    <div class="input-group">
+                        <input id="archivoImportacionText" type="text" class="form-control" placeholder="Seleccione un archivo..." readonly onclick="$('#archivoImportacion').click();">
+                        <span class="input-group-btn">
+                            <label class="btn btn-info fileinput-button" style="background-color: #007bff; border-color: #007bff; color: white;">
+                                <span>Examinar</span>
+                                <input id="archivoImportacion" type="file" name="archivoImportacion" style="display: none;" onchange="$('#archivoImportacionText').val($(this).val());">
+                            </label>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <div id="mensajeExitoImportacion" hidden>
+                <div class="alert alert-success">
+                    <p></p>
+                </div>
+            </div>
+             <div id="mensajeErrorImportacion" hidden>
+                <div class="alert alert-danger">
+                    <p></p>
+                     <ul id="listaErroresImportacion" style="max-height: 100px; overflow-y: auto;"></ul>
+                </div>
+            </div>
+             <div id="loadingImportacion" hidden style="text-align: center;">
+                <i class="fa fa-spinner fa-spin" style="font-size: 40px; color: #6dc7be;"></i>
+                <p>Procesando...</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-successAceptar" id="btn-importar">IMPORTAR</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
         </div>
       </div>
     </div>

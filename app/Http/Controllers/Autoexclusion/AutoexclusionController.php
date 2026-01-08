@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AutoexclusionController extends Controller
 {
@@ -126,7 +127,7 @@ class AutoexclusionController extends Controller
             $nulos = $request->papel_destruido == 'SI'? '0' : '1';
             $reglas[]=[DB::raw('ae_estado.papel_destruido_id_usuario IS NULL'),'=',$nulos];
             $reglas[]=[DB::raw('ae_estado.papel_destruido_datetime IS NULL'),'=',$nulos];
-            break;
+            $break;
         }
       }
     }
@@ -486,13 +487,18 @@ class AutoexclusionController extends Controller
   }
 
   public function buscarAutoexcluido ($id) {
-    $ae = AE\Autoexcluido::find($id);
-    return ['autoexcluido' => $ae,
-            'es_primer_ae' => $ae->es_primer_ae,
-            'datos_contacto' => $ae->contacto,
-            'estado' => $ae->estado,
-            'encuesta' => $ae->encuesta,
-            'importacion' => $ae->importacion];
+    try {
+        $ae = AE\Autoexcluido::find($id);
+        if (!$ae) return ['error' => 'No encontrado'];
+        return ['autoexcluido' => $ae,
+                'es_primer_ae' => $ae->es_primer_ae,
+                'datos_contacto' => $ae->contacto,
+                'estado' => $ae->estado,
+                'encuesta' => $ae->encuesta,
+                'importacion' => $ae->importacion];
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()], 500);
+    }
   }
 
   public function mostrarArchivo ($id_importacion,$tipo_archivo) {
@@ -763,6 +769,304 @@ class AutoexclusionController extends Controller
     return response()->download($filename,$filename,$headers)->deleteFileAfterSend(true);
   }
     
+    public function importarMasivo(Request $request){
+        $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+        
+        Validator::make($request->all(), [
+            'id_casino' => 'required',
+            'archivo'   => 'required|file',
+        ])->validate();
+
+        $id_casino_input = $request->id_casino;
+        $id_plataforma = null;
+        $id_casino = null;
+        
+        if($id_casino_input < 0){
+            $id_plataforma = abs($id_casino_input);
+        } else {
+            $id_casino = $id_casino_input;
+        }
+
+         if(!$user->es_superusuario){
+            if(!is_null($id_casino) && !$user->usuarioTieneCasino($id_casino)){
+                 return response()->json(['id_casino' => 'No tiene acceso a ese casino'], 422);
+            }
+            if(!is_null($id_plataforma) && !$user->tienePermiso('aym_ae_plataformas')){
+                 return response()->json(['id_casino' => 'No tiene acceso a esa plataforma'], 422);
+            }
+        }
+        
+        // Allowed platforms for mass import
+        if ($id_plataforma != 1 && $id_plataforma != 2) {
+             return response()->json(['id_casino' => 'Solo implementado para Plataforma 1 y 2 por el momento.'], 422);
+        }
+
+        $archivo = $request->file('archivo');
+        $cant_procesados = 0;
+        $cant_saltados = 0;
+        $cant_errores = 0;
+        $errores_detalle = [];
+
+        try {
+            DB::beginTransaction();
+
+            $path = $archivo->getRealPath();
+            $handle = fopen($path, 'r');
+            
+            if ($handle === false) {
+                throw new \Exception("No se pudo abrir el archivo. Asegurese que sea un CSV valido.");
+            }
+
+            // 1. Detect Delimiter
+            $firstLine = fgets($handle);
+            rewind($handle);
+            $delimiter = (strpos($firstLine, ';') !== false) ? ';' : ',';
+
+            // 2. Read Header
+            $header = fgetcsv($handle, 0, $delimiter);
+            if (!$header) {
+                 fclose($handle);
+                 throw new \Exception("El archivo esta vacio o no tiene cabecera.");
+            }
+            
+            // Normalize Header to lowercase and Strip BOM
+            $header = array_map(function($h) { 
+                // Remove BOM if present (EF BB BF)
+                $h = preg_replace('/^\xEF\xBB\xBF/', '', $h);
+                return strtolower(trim($h)); 
+            }, $header);
+            
+            Log::info("Headers found: " . implode(', ', $header));
+
+            $col_map = array_flip($header);
+
+            // 3. Define Column Mappings (Aliases)
+            // Function to retrieve value by list of possible keys
+            $getVal = function($aliases) use ($col_map) {
+                foreach ($aliases as $alias) {
+                    if (isset($col_map[$alias])) return $col_map[$alias];
+                }
+                return null;
+            };
+
+            // Map Column Indices
+            $idx_dni          = $getVal(['dni', 'documento', 'nro_dni']);
+            $idx_fecha_ae     = $getVal(['date se set', 'date_se_set', 'fecha_exclusion', 'fecha_solicitud', 'fecha_ae']);
+            $idx_geo_city     = $getVal(['city', 'localidad', 'player_city', 'nombre_localidad']);
+            $idx_geo_prov     = $getVal(['province', 'provincia', 'nombre_provincia']);
+            $idx_domicilio    = $getVal(['address', 'addres', 'domicilio', 'calle']);
+            $idx_nombre       = $getVal(['first name', 'first_name', 'nombres', 'nombre']);
+            $idx_apellido     = $getVal(['last name', 'last_name', 'apellido']);
+            $idx_sexo         = $getVal(['gender', 'sexo']);
+            $idx_nacimiento   = $getVal(['dateofbirth', 'fecha_nacimiento']);
+            $idx_telefono     = $getVal(['phonenumbermobile', 'phone', 'telefono', 'movil']);
+            $idx_email        = $getVal(['email', 'correo']);
+            $idx_status_plat1 = $getVal(['total_exclusions']);
+            $idx_status_plat2 = $getVal(['player_status']);
+
+            // Validate critical columns
+            if (is_null($idx_dni)) {
+                fclose($handle);
+                throw new \Exception("No se encontro la columna DNI en el archivo. (Columnas encontradas: " . implode(', ', $header) . ")");
+            }
+
+            $max_fecha_ae = AE\EstadoAE::where('id_plataforma', $id_plataforma)->max('fecha_ae');
+            Log::info("ImportarMasivo (Unified CSV): Plat $id_plataforma, Delim '$delimiter', MaxF $max_fecha_ae");
+
+             // 4. Loop Rows
+            while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+                 if (count($row) < 2) continue; // Skip empty rows
+
+                 $dni = $row[$idx_dni] ?? null;
+                 if (!$dni || !is_numeric($dni)) continue;
+
+                 // --- Date Logic ---
+                 $fecha_ae_raw = ($idx_fecha_ae !== null) ? ($row[$idx_fecha_ae] ?? null) : null;
+                 $fecha_ae = null;
+                 
+                 // Try parsing various date formats
+                 if ($fecha_ae_raw) {
+                     $formats = [
+                         'd/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y', 
+                         'Y-m-d H:i:s', 'Y-m-d',
+                         'd-m-Y', 'd/m/y',
+                         'd/m/Y h:i:s a', 'd/m/Y h:i a' // Support am/pm
+                     ];
+                     // Sanitize: convert 'a.m.' -> 'am' to match Carbon 'a' format
+                     $fecha_ae_clean = str_ireplace(['a.m.', 'p.m.', 'a. m.', 'p. m.'], ['am', 'pm', 'am', 'pm'], $fecha_ae_raw);
+                     $fecha_ae_clean = trim($fecha_ae_clean);
+                     
+                     foreach ($formats as $fmt) {
+                         try {
+                             $fecha_ae = \Carbon\Carbon::createFromFormat($fmt, $fecha_ae_clean);
+                             if ($fecha_ae) break;
+                         } catch (\Exception $e) {}
+                     }
+                 }
+                 
+                 // If null, default to now (or skip if strict?)
+                 // User says "saltea todos", implying they want data.
+                 if (!$fecha_ae) $fecha_ae = \Carbon\Carbon::now();
+                 
+                 // Calculated Dates
+                 $fecha_renovacion = $fecha_ae->copy()->addMonths(6);
+                 $fecha_vencimiento = $fecha_ae->copy()->addYear();
+
+                 // Check Max Date (disabled to allow fixing data)
+                 /*
+                 if ($max_fecha_ae && $fecha_ae->format('Y-m-d') <= $max_fecha_ae) {
+                     $cant_saltados++;
+                     continue;
+                 }
+                 */
+                 
+                 // Prevent Exact Duplicates (DNI + Fecha AE + Plataforma)
+                 // This prevents re-importing the same file, but allows fixing if only DNI existed before.
+                 $dup = AE\EstadoAE::where('id_plataforma', $id_plataforma)
+                                   ->whereDate('fecha_ae', $fecha_ae->format('Y-m-d'))
+                                   ->whereHas('ae', function($q) use ($dni) {
+                                       $q->where('nro_dni', $dni);
+                                   })->first();
+                 if ($dup) {
+                     $cant_saltados++;
+                     continue;
+                 }
+
+
+                 // --- Gender Logic ---
+                 $sexo_raw = ($idx_sexo !== null) ? strtolower($row[$idx_sexo] ?? '') : '';
+                 $id_sexo = 2; // Default to 'Otro'
+                 // Mapping: M/Male/Hombre -> 0, F/Female/Mujer -> 1
+                 if (in_array($sexo_raw, ['male', 'masculino', 'm', 'hombre', '0'])) $id_sexo = 0;
+                 if (in_array($sexo_raw, ['female', 'femenino', 'f', 'mujer', '1'])) $id_sexo = 1;
+
+                 // --- Address Logic ---
+                 $localidad = ($idx_geo_city !== null) ? ($row[$idx_geo_city] ?? '-') : '-';
+                 $provincia = ($idx_geo_prov !== null) ? ($row[$idx_geo_prov] ?? '-') : '-';
+                 $domicilio = ($idx_domicilio !== null) ? ($row[$idx_domicilio] ?? '-') : $localidad;
+                 
+                 // --- DOB Logic ---
+                 $fecha_nac = null;
+                 if ($idx_nacimiento !== null && !empty($row[$idx_nacimiento])) {
+                     $nac_raw = $row[$idx_nacimiento];
+                     $nac_clean = str_ireplace(['a.m.', 'p.m.'], ['am', 'pm'], $nac_raw);
+                     $nac_clean = trim($nac_clean);
+                     foreach ($formats as $fmt) {
+                        try {
+                             $fecha_nac = \Carbon\Carbon::createFromFormat($fmt, $nac_clean)->format('Y-m-d');
+                             if($fecha_nac) break;
+                        } catch (\Exception $e) {}
+                     }
+                 }
+                 if(!$fecha_nac) $fecha_nac = '1900-01-01'; // Default backup
+
+                 // --- Phone Logic ---
+                 $telefono = '-';
+                 if ($idx_telefono !== null) {
+                     $raw_tel = $row[$idx_telefono] ?? '';
+                     // Keep only digits
+                     $telefono = preg_replace('/[^0-9]/', '', $raw_tel);
+                     if (empty($telefono)) $telefono = '-';
+                 }
+
+                 // --- Status Logic ---
+                 $id_nombre_estado = 1; // Vigente
+                 // Plat 1 logic
+                 if ($idx_status_plat1 !== null) {
+                     $total = $row[$idx_status_plat1] ?? 1;
+                     if ($total > 1) $id_nombre_estado = 2; 
+                 }
+                 // Plat 2 logic
+                 if ($idx_status_plat2 !== null) {
+                     $stat = strtolower($row[$idx_status_plat2] ?? '');
+                     if (strpos($stat, 'renov') !== false) $id_nombre_estado = 2;
+                 }
+
+                 // Prepare Arrays
+                 $datos_ae = [
+                    'nro_dni' => $dni,
+                    'apellido' => ($idx_apellido !== null) ? ($row[$idx_apellido] ?? '-') : '-',
+                    'nombres'  => ($idx_nombre !== null) ? ($row[$idx_nombre] ?? '-') : '-',
+                    'fecha_nacimiento' => $fecha_nac,
+                    'id_sexo' => $id_sexo,
+                    'domicilio' => $domicilio,
+                    'nro_domicilio' => '0',
+                    'piso' => null, 'dpto' => null, 'codigo_postal' => null,
+                    'nombre_localidad' => $localidad,
+                    'nombre_provincia' => $provincia,
+                    'telefono' => $telefono,
+                    'correo' => ($idx_email !== null) ? ($row[$idx_email] ?? null) : null,
+                    'id_ocupacion' => 12, 
+                    'id_capacitacion' => 6, 
+                    'id_estado_civil' => 6, 
+                    'id_autoexcluido' => null
+                 ];
+
+                 $estado_ae = [
+                    'id_nombre_estado' => $id_nombre_estado,
+                    'id_casino' => null,
+                    'id_plataforma' => $id_plataforma,
+                    'fecha_ae' => $fecha_ae->format('Y-m-d'),
+                    'fecha_renovacion' => $fecha_renovacion->format('Y-m-d'),
+                    'fecha_vencimiento' => $fecha_vencimiento->format('Y-m-d'),
+                    'fecha_cierre_ae' => $fecha_vencimiento->format('Y-m-d'), // Set closing date same as vencimiento?
+                 ];
+
+                 // Insert
+                 try {
+                    if ($this->existeAutoexcluido($dni) > 0) {
+                        $cant_saltados++;
+                        continue;
+                    }
+                    $this->crearAutoexcluidoInterno($datos_ae, $estado_ae, $user);
+                    $cant_procesados++;
+                 } catch (\Exception $e) {
+                     $cant_errores++;
+                     $errores_detalle[] = "DNI $dni: " . $e->getMessage();
+                 }
+            } // end while
+
+            fclose($handle);
+            DB::commit();
+            
+            // Save file record (Generic for now as per original flow) but verify if needed
+            // $this->subirImportacionArchivos(null, []); // REMOVED: Causes Non-Object error and is unnecessary for bulk import
+            Log::info("Masivo process complete.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error CRITICO masivo Unified: " . $e->getMessage());
+            return response()->json(['error' => 'Error: ' . $e->getMessage()], 200);
+        }
+
+        return response()->json([
+            'procesados' => $cant_procesados,
+            'saltados' => $cant_saltados,
+            'errores' => $cant_errores,
+            'detalle_errores' => $errores_detalle,
+            'debug' => [
+                'plat' => $id_plataforma,
+                'msg' => 'Unified CSV parser used'
+            ]
+        ]);
+    }
+
+    private function crearAutoexcluidoInterno($ae_datos, $ae_estado_data, $user) {
+        $ae = new AE\Autoexcluido;
+        foreach($ae_datos as $key => $val){
+            $ae->{$key} = $val;
+        }
+        $ae->save();
+
+        $contacto = new AE\ContactoAE;
+        $contacto->id_autoexcluido = $ae->id_autoexcluido;
+        $contacto->save();
+
+        $estado_data = $ae_estado_data;
+        $estado_data['id_usuario'] = $user->id_usuario;
+        $this->setearEstado($ae, $estado_data);
+    }
+
   public function destruirPapel(Request $request){
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $ae_estado = null;

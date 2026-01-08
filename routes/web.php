@@ -1334,6 +1334,7 @@ Route::group(['prefix' => 'autoexclusion', 'middleware' => 'tiene_permiso:ver_se
   Route::delete('eliminarAE/{id_autoexcluido}', 'Autoexclusion\AutoexclusionController@eliminarAE')->middleware('tiene_permiso:borrar_ae');
   Route::post('agregarAE', 'Autoexclusion\AutoexclusionController@agregarAE');
   Route::post('subirArchivo', 'Autoexclusion\AutoexclusionController@subirArchivo');
+  Route::post('importarMasivo', 'Autoexclusion\AutoexclusionController@importarMasivo');
   Route::get('cambiarEstadoAE/{id}/{id_estado}', 'Autoexclusion\AutoexclusionController@cambiarEstadoAE');
   Route::get('existeAutoexcluido/{dni}', 'Autoexclusion\AutoexclusionController@existeAutoexcluido');
   Route::post('buscarAutoexcluidos', 'Autoexclusion\AutoexclusionController@buscarAutoexcluidos');

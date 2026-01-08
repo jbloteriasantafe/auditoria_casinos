@@ -163,6 +163,17 @@ $("#btn-minimizarMaquinas").click(function () {
   }
 });
 
+//Opacidad del modal al minimizar
+$("#btn-minimizar-importar").click(function () {
+  if ($(this).data("minimizar") == true) {
+    $(".modal-backdrop").css("opacity", "0.1");
+    $(this).data("minimizar", false);
+  } else {
+    $(".modal-backdrop").css("opacity", "0.5");
+    $(this).data("minimizar", true);
+  }
+});
+
 $("#columna input").focusin(function () {
   $(this).removeClass("alerta");
 });
@@ -238,6 +249,104 @@ $("#btn-descargar-ae").click(function (e) {
   e.preventDefault();
   window.open("autoexclusion/BDCSV", "_blank");
 });
+
+//Botón importar masivo
+$('#btn-importar-masivo').click(function(e){
+  e.preventDefault();
+  $('#modalImportarMasivo').modal('show');
+  $('#mensajeExitoImportacion').hide();
+  $('#mensajeErrorImportacion').hide();
+  $('#selectCasinoImportacion').val('');
+  $('#archivoImportacion').val('');
+  $('#archivoImportacionText').val('');
+});
+
+
+
+
+
+// Setup CSRF for all ajax 
+$.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+    }
+});
+
+$('#btn-importar').click(function(e){
+    e.preventDefault();
+    const id_casino = $('#selectCasinoImportacion').val();
+    const archivo = $('#archivoImportacion')[0].files[0];
+
+    $('#mensajeExitoImportacion').hide();
+    $('#mensajeErrorImportacion').hide();
+    $('#listaErroresImportacion').empty();
+
+    if(!id_casino || id_casino == ""){
+        mostrarErrorImportacion("Debe seleccionar un Casino/Plataforma.");
+        return;
+    }
+    if(!archivo){
+        mostrarErrorImportacion("Debe subir un archivo.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('id_casino', id_casino);
+    formData.append('archivo', archivo);
+
+    $('#loadingImportacion').show();
+    $('#btn-importar').prop('disabled', true);
+
+    $.ajax({
+        url: 'autoexclusion/importarMasivo',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(data){
+            $('#loadingImportacion').hide();
+            $('#btn-importar').prop('disabled', false);
+            
+            let msg = `Procesados: ${data.procesados} | Saltados: ${data.saltados} | Errores: ${data.errores}`;
+            $('#mensajeExitoImportacion').find('p').text(msg);
+            $('#mensajeExitoImportacion').show();
+            
+            // Show debug info if available
+            if(data.debug) {
+                 console.log("Import Debug:", data.debug);
+                 let debugMsg = `Debug Plat ${data.debug.plat}: Max Fecha ${data.debug.max_fecha}. Keys Found: ${JSON.stringify(data.debug.first_row_keys)}`;
+                 $('#mensajeExitoImportacion').append($('<p>').text(debugMsg).css('font-size', '10px'));
+            }
+
+            if(data.errores > 0 && data.detalle_errores.length > 0){
+                 $('#mensajeErrorImportacion').find('p').text("Algunos registros tuvieron errores:");
+                 data.detalle_errores.forEach(err => {
+                     $('#listaErroresImportacion').append($('<li>').text(err));
+                 });
+                 $('#mensajeErrorImportacion').show();
+            }
+             $('#btn-buscar').trigger('click');
+        },
+        error: function(data){
+             $('#loadingImportacion').hide();
+             $('#btn-importar').prop('disabled', false);
+             console.log(data);
+             let msg = "Error del servidor.";
+             if(data.responseJSON){
+                if(data.responseJSON.id_casino && data.responseJSON.id_casino.length > 0) msg = data.responseJSON.id_casino[0]; // Validation array
+                else if(data.responseJSON.archivo && data.responseJSON.archivo.length > 0) msg = data.responseJSON.archivo[0];
+                else if(data.responseJSON.error) msg = data.responseJSON.error;
+                else if(data.responseJSON.id_casino) msg = data.responseJSON.id_casino; 
+             }
+             mostrarErrorImportacion(msg);
+        }
+    });
+});
+
+function mostrarErrorImportacion(msg){
+    $('#mensajeErrorImportacion').find('p').text(msg);
+    $('#mensajeErrorImportacion').show();
+}
 
 //función para autocompletar el input de provincia
 function cargarProvincias() {
@@ -1044,35 +1153,26 @@ function mostrarAutoexcluido(id_autoexcluido) {
 
       //seteo en el value de los botones de ver mas el id de la importacion, para después
       //buscar en el backend los paths a los archivos y mostrarlos oportunamente
-      $(".archivosImportados button").val(data.importacion.id_importacion);
-      $('.archivosImportados [data-tipo="foto1"]').prop(
-        "disabled",
-        data.importacion.foto1 === null
-      );
-      $('.archivosImportados [data-tipo="foto2"]').prop(
-        "disabled",
-        data.importacion.foto2 === null
-      );
-      $('.archivosImportados [data-tipo="scandni"]').prop(
-        "disabled",
-        data.importacion.scandni === null
-      );
-      $('.archivosImportados [data-tipo="solicitud_ae"]').prop(
-        "disabled",
-        data.importacion.solicitud_ae === null
-      );
-      $('.archivosImportados [data-tipo="solicitud_revocacion"]').prop(
-        "disabled",
-        data.importacion.solicitud_revocacion === null
-      );
-      $('.archivosImportados [data-tipo="caratula"]').prop(
-        "disabled",
-        data.importacion.caratula === null
-      );
+      if(data.importacion != null){
+          $(".archivosImportados button").val(data.importacion.id_importacion);
+          $('.archivosImportados [data-tipo="foto1"]').prop("disabled", data.importacion.foto1 === null);
+          $('.archivosImportados [data-tipo="foto2"]').prop("disabled", data.importacion.foto2 === null);
+          $('.archivosImportados [data-tipo="scandni"]').prop("disabled", data.importacion.scandni === null);
+          $('.archivosImportados [data-tipo="solicitud_ae"]').prop("disabled", data.importacion.solicitud_ae === null);
+          $('.archivosImportados [data-tipo="solicitud_revocacion"]').prop("disabled", data.importacion.solicitud_revocacion === null);
+          $('.archivosImportados [data-tipo="caratula"]').prop("disabled", data.importacion.caratula === null);
+      }
+      else {
+          $(".archivosImportados button").val("");
+          $('.archivosImportados button').prop("disabled", true);
+      }
 
       $("#modalVerMas").modal("show");
     }
-  );
+  ).fail(function(data){
+      console.log(data);
+      alert("Error al obtener los datos del autoexcluido. Ver consola.");
+  });
 }
 
 $(document).on("click", "#btnVerMas", function (e) {
