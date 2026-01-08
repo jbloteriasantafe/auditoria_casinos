@@ -734,8 +734,26 @@ class ProducidoController extends Controller
       $request['producido'] = $detalle_producido->valor;
     }
 
-    $diferencia = $this->calcularDiferencia($request)['diferencia'];
-    if($diferencia != 0) return ['diferencia' => $diferencia,'todas_ajustadas' => 0,'hay_diferencia' => 1];
+    $calculo = $this->calcularDiferencia($request);
+    $diferencia = $calculo['diferencia'];
+    if($diferencia != 0) {
+      return [
+        'diferencia' => $diferencia,
+        'todas_ajustadas' => 0,
+        'hay_diferencia' => 1,
+        'debug' => [
+          'tipo_ajuste' => $request['id_tipo_ajuste'],
+          'producido_usado' => $request['producido'],
+          'coinin_ini' => $request['coinin_inicio'],
+          'coinout_ini' => $request['coinout_inicio'],
+          'coinin_fin' => $request['coinin_final'],
+          'coinout_fin' => $request['coinout_final'],
+          'den_ini' => $request['denominacion_inicio'],
+          'den_fin' => $request['denominacion_final'],
+          'producido_calculado' => $calculo['producido_calculado']
+        ]
+      ];
+    }
       
     $producido = $detalle_producido->producido;
     return DB::transaction(function() 
@@ -976,7 +994,8 @@ class ProducidoController extends Controller
         'coinout_final' => $diff->coinout_final,
         'jackpot_final' => $diff->jackpot_final,
         'progresivo_final' => $diff->progresivo_final,
-        'denominacion' => $diff->denominacion_inicio,
+        'denominacion_inicio' => $diff->denominacion_inicio,
+        'denominacion_final' => $diff->denominacion_final,
         'producido' => $diff->producido,
         'delta' => $diff->delta,
         'id_detalle_producido' => $diff->id_detalle_producido,
@@ -1014,36 +1033,138 @@ class ProducidoController extends Controller
     $archivo = $request->file('archivo_excel');
     
     try {
-      // Leer Excel (formato del concesionario: headers en fila 7, datos desde fila 8)
-      $datos_excel = Excel::load($archivo->getRealPath(), function($reader) {
-        $reader->noHeading();
-      })->get();
+      // TEST MÍNIMO: Solo verificar que podemos responder JSON
+      $archivo = $request->file('archivo_excel');
+      $archivoPath = $archivo->getRealPath();
+      $archivoSize = filesize($archivoPath);
       
-      $sheet = $datos_excel->first();
-      if(!$sheet) return ['error' => 'No se pudo leer la hoja de Excel'];
+      // Leer con maatwebsite/excel - usar all() en vez de toArray()
+      $data = Excel::load($archivoPath)->all();
       
-      $filas = $sheet->toArray();
+      // Convertir a array simple
+      $result = [];
+      if($data){
+        foreach($data as $sheet){
+          if(is_iterable($sheet)){
+            foreach($sheet as $row){
+              if(is_iterable($row)){
+                $rowArray = [];
+                foreach($row as $cell){
+                  $rowArray[] = $cell;
+                }
+                $result[] = $rowArray;
+              }
+            }
+          }
+          break; // Solo primera sheet
+        }
+      }
       
-      // Parsear datos del Excel (desde fila 7 son los datos, índice 7 en array 0-indexed)
-      $datos_concesionario = [];
-      for($i = 7; $i < count($filas); $i++){
-        $fila = $filas[$i];
-        if(empty($fila[1])) continue; // Saltar filas vacías
+      $filas = $result;
+      $raw_debug = [
+        'archivo_size' => $archivoSize,
+        'filas_count' => count($filas)
+      ];
+      
+      if(count($filas) > 0){
+        $raw_debug['fila_0'] = array_slice($filas[0], 0, 5);
+      }
+      if(count($filas) > 7){
+        $raw_debug['fila_7'] = array_slice($filas[7], 0, 5);
+      }
+      if(count($filas) > 8){
+        $raw_debug['fila_8'] = array_slice($filas[8], 0, 5);
+      }
+      
+      // DEBUG: Ver estructura real de las primeras filas
+      $debug_info = [];
+      if(count($filas) > 0){
+        $debug_info['fila_0_keys'] = array_keys($filas[0]);
+        $debug_info['fila_0_values'] = array_slice($filas[0], 0, 5);
+      }
+      if(count($filas) > 7){
+        $debug_info['fila_7_keys'] = array_keys($filas[7]);
+        $debug_info['fila_7_values'] = array_slice($filas[7], 0, 5);
+      }
+      if(count($filas) > 8){
+        $debug_info['fila_8_keys'] = array_keys($filas[8]);
+        $debug_info['fila_8_values'] = array_slice($filas[8], 0, 5);
+      }
+      
+      // Determinar si los keys son numéricos o nombres
+      $keys_are_numeric = isset($filas[0]) && isset($filas[0][0]);
+      $keys_are_named = isset($filas[0]) && !$keys_are_numeric;
+      $debug_info['keys_numeric'] = $keys_are_numeric;
+      $debug_info['keys_named'] = $keys_are_named;
+      
+      // Buscar inicio de datos dinámicamente
+      $inicio_datos = -1;
+      $col_admin = -1; // Puede ser índice numérico o nombre de columna
+      
+      // Iterar primeras 15 filas buscando cabecera
+      for($i = 0; $i < min(15, count($filas)); $i++){
+        if(!is_array($filas[$i])) continue;
         
-        $nro_admin = trim($fila[1]);
+        // Verificar columna B (índice 1) primero
+        if(isset($filas[$i][1])){
+          $txt = trim(strtolower(strval($filas[$i][1])));
+          $debug_info[] = "Fila $i Col B: '$txt'";
+          
+          if(strpos($txt, 'maquina') !== false || strpos($txt, 'máquina') !== false || $txt == 'máquina' || $txt == 'maquina'){
+            $inicio_datos = $i + 1;
+            $col_admin = 1;
+            break;
+          }
+        }
+      }
+      
+      // Si no encontró en col B, buscar en cualquier columna
+      if($inicio_datos == -1){
+        for($i = 0; $i < min(15, count($filas)); $i++){
+          if(!is_array($filas[$i])) continue;
+          foreach($filas[$i] as $k => $celda){
+            if($celda === null) continue;
+            $txt = trim(strtolower(strval($celda)));
+            if(strpos($txt, 'nro admin') !== false || strpos($txt, 'admin') !== false){
+              $inicio_datos = $i + 1;
+              $col_admin = $k;
+              break 2;
+            }
+          }
+        }
+      }
+      
+      // Fallback final
+      if($inicio_datos == -1){
+         $inicio_datos = 8; // Fila 9 en Excel (índice 8)
+         $col_admin = 1;
+      }
+      
+      for($i = $inicio_datos; $i < count($filas); $i++){
+        $fila = $filas[$i];
+        if(!isset($fila[$col_admin]) || $fila[$col_admin] === '') continue; // Saltar filas vacías
+        
+        $nro_admin = trim($fila[$col_admin]);
         if(!is_numeric($nro_admin)) continue;
+        
+        // Casino Rosario agrega 2 dígitos internos al final (ej: 173000 -> 1730)
+        // Quitamos los últimos 2 caracteres si el número tiene más de 4 dígitos
+        if(strlen($nro_admin) > 4){
+          $nro_admin = substr($nro_admin, 0, -2);
+        }
+
         
         $datos_concesionario[$nro_admin] = [
           'nro_admin' => $nro_admin,
-          'coinin_inicio' => floatval(str_replace(' ', '', $fila[2] ?? 0)),
-          'coinout_inicio' => floatval(str_replace(' ', '', $fila[3] ?? 0)),
-          'jackpot_inicio' => floatval(str_replace(' ', '', $fila[4] ?? 0)),
-          'progresivo_inicio' => floatval(str_replace(' ', '', $fila[5] ?? 0)),
-          'coinin_final' => floatval(str_replace(' ', '', $fila[6] ?? 0)),
-          'coinout_final' => floatval(str_replace(' ', '', $fila[7] ?? 0)),
-          'jackpot_final' => floatval(str_replace(' ', '', $fila[8] ?? 0)),
-          'progresivo_final' => floatval(str_replace(' ', '', $fila[9] ?? 0)),
-          'beneficio' => floatval(str_replace(' ', '', $fila[10] ?? 0))
+          'coinin_inicio' => floatval(str_replace(' ', '', $fila[$col_admin+1] ?? 0)),
+          'coinout_inicio' => floatval(str_replace(' ', '', $fila[$col_admin+2] ?? 0)),
+          'jackpot_inicio' => floatval(str_replace(' ', '', $fila[$col_admin+3] ?? 0)),
+          'progresivo_inicio' => floatval(str_replace(' ', '', $fila[$col_admin+4] ?? 0)),
+          'coinin_final' => floatval(str_replace(' ', '', $fila[$col_admin+5] ?? 0)),
+          'coinout_final' => floatval(str_replace(' ', '', $fila[$col_admin+6] ?? 0)),
+          'jackpot_final' => floatval(str_replace(' ', '', $fila[$col_admin+7] ?? 0)),
+          'progresivo_final' => floatval(str_replace(' ', '', $fila[$col_admin+8] ?? 0)),
+          'beneficio' => floatval(str_replace(' ', '', $fila[$col_admin+9] ?? 0))
         ];
       }
       
@@ -1091,7 +1212,14 @@ class ProducidoController extends Controller
         'success' => true,
         'total_excel' => count($datos_concesionario),
         'total_sistema' => count($diferencias_sistema),
-        'comparacion' => $comparacion
+        'comparacion' => $comparacion,
+        'datos_excel' => $datos_concesionario,
+        'debug' => [
+          'inicio_datos' => $inicio_datos,
+          'col_admin' => $col_admin,
+          'filas_leidas' => count($filas),
+          'primeras_celdas' => $debug_info
+        ]
       ];
       
     } catch(\Exception $e){

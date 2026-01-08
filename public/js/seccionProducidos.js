@@ -654,6 +654,119 @@ const TIPOS_AJUSTE = [
   { id: 6, descripcion: 'Multiples Ajustes' }
 ];
 
+// Variable global para almacenar datos Excel
+window.datosExcelRaw = null;
+
+// --- SISTEMA DE UNDO (Ctrl+Z) ---
+window.undoHistory = []; // Stack: [{rowId, field, oldValue}, ...]
+
+function guardarParaUndo(input) {
+  const tr = $(input).closest('tr');
+  const rowId = tr.data('id');
+  if (!rowId) return;
+
+  // Identificar qué campo es por su clase específica
+  let field = '';
+  const classes = ['ip-den-ini', 'ip-coinin-ini', 'ip-coinout-ini', 'ip-jack-ini', 'ip-prog-ini',
+    'ip-den-fin', 'ip-coinin-fin', 'ip-coinout-fin', 'ip-jack-fin', 'ip-prog-fin'];
+  for (let c of classes) {
+    if ($(input).hasClass(c)) {
+      field = c;
+      break;
+    }
+  }
+  if (!field) return;
+
+  const oldValue = $(input).val();
+
+  // Evitar duplicados consecutivos
+  const last = window.undoHistory[window.undoHistory.length - 1];
+  if (last && last.rowId == rowId && last.field == field && last.oldValue == oldValue) return;
+
+  window.undoHistory.push({
+    rowId: rowId,
+    field: field,
+    oldValue: oldValue
+  });
+
+  // Limitar historial a 50 acciones
+  if (window.undoHistory.length > 50) window.undoHistory.shift();
+}
+
+// Capturar valor ANTES de cambiar (focus)
+$(document).on('focus', '#tbody-tabla-diferencias .ip-calc', function () {
+  guardarParaUndo(this);
+});
+
+// Ctrl+Z para deshacer
+$(document).on('keydown', '#modalTablaCompleta', function (e) {
+  if (e.ctrlKey && e.key === 'z') {
+    e.preventDefault();
+    if (window.undoHistory.length === 0) return;
+
+    const last = window.undoHistory.pop();
+    const tr = $('#tbody-tabla-diferencias').find('tr[data-id="' + last.rowId + '"]');
+    if (tr.length > 0) {
+      const input = tr.find('.' + last.field);
+      if (input.length > 0) {
+        input.val(last.oldValue);
+        calcularDiferenciaFila(tr); // Recalcular diferencia
+
+        // Feedback visual
+        input.css('background-color', '#FFF9C4');
+        setTimeout(() => input.css('background-color', ''), 300);
+      }
+    }
+  }
+});
+
+// Botón Importar Excel en Modal
+$(document).on('click', '#btn-importar-excel-modal', function () {
+  $('#input-excel').click();
+});
+
+// Input Excel Change
+$(document).on('change', '#input-excel', function () {
+  if ($(this).val() == '') return;
+
+  const formData = new FormData();
+  formData.append('archivo_excel', $(this)[0].files[0]);
+  formData.append('_token', $('meta[name="_token"]').attr('content'));
+
+  const id_producido = $('#modalCargaProducidos #id_producido').val();
+
+  $('#excel-status-msg').html('<i class="fa fa-spinner fa-spin"></i> Procesando...');
+
+  $.ajax({
+    url: 'producidos/importarExcelConcesionario/' + id_producido,
+    type: 'POST',
+    data: formData,
+    contentType: false,
+    processData: false,
+    success: function (resp) {
+      if (resp.error) {
+        alert(resp.error);
+        $('#excel-status-msg').html('<i class="fa fa-times" style="color:red;"></i> Error');
+      } else {
+        console.log('Excel Debug:', resp.debug); // Debug para ver qué está parseando
+        console.log('Datos Excel:', resp.datos_excel);
+
+        window.datosExcelRaw = resp.datos_excel;
+        $('#excel-status-msg').html('<i class="fa fa-check" style="color:green;"></i> Cargado (' + resp.total_excel + ' registros)');
+
+        // Recargar tabla visualmente si ya hay datos
+        const id_producido_act = $('#modalCargaProducidos #id_producido').val();
+        cargarTablaDiferencias(id_producido_act);
+      }
+    },
+    error: function () {
+      alert('Error de conexión');
+      $('#excel-status-msg').html('<i class="fa fa-times" style="color:red;"></i> Error');
+    }
+  });
+});
+
+
 function renderizarTablaDiferencias(datos) {
   $('#tbody-tabla-diferencias').empty();
 
@@ -663,51 +776,225 @@ function renderizarTablaDiferencias(datos) {
   }
 
   datos.forEach(function (item) {
-    // Filtros
-    const min = parseFloat($('#filtro-dif-min').val());
-    const max = parseFloat($('#filtro-dif-max').val());
-    const ajustables = $('#filtro-ajustables').val();
+    // Reglas de Tipo de Ajuste por Defecto (Solicitud Usuario)
+    // Si CoinIn INI CoinOut INI vienen en cero y CoinIn FIN CoinOut FIN vienen con contadores -> Cambio Iniciales (5)
+    // Si CoinIn INI CoinOut INI vienen con contadores y CoinIn FIN CoinOut FIN vienen en cero -> Cambio Finales (3)
+    // Si todos cero -> Multiples Ajustes (6)
 
-    if (!isNaN(min) && Math.abs(item.diferencia) < min) return;
-    if (!isNaN(max) && Math.abs(item.diferencia) > max) return;
-    if (ajustables === 'si' && !item.puede_ajustar_auto) return;
-    if (ajustables === 'no' && item.puede_ajustar_auto) return;
+    let tipoDefecto = 5; // Default general
 
-    // Detectar posible tipo de ajuste por defecto
-    let tipoDefecto = 5; // Iniciales
-    // Si iniciales es 0, prob. es iniciales. Si finales es 0, prob. es finales.
-    if (item.coinin_final == 0 && item.coinin_inicio != 0) tipoDefecto = 3;
+    const iniCero = (parseFloat(item.coinin_inicio) == 0 && parseFloat(item.coinout_inicio) == 0);
+    const finCero = (parseFloat(item.coinin_final) == 0 && parseFloat(item.coinout_final) == 0);
 
-    // Si el backend marcó como reset
-    if (item.es_reset) tipoDefecto = 2; // Reset de contadores	 
+    if (iniCero && !finCero) tipoDefecto = 5;
+    else if (!iniCero && finCero) tipoDefecto = 3;
+    else if (iniCero && finCero) tipoDefecto = 6;
+    else if (item.es_reset) tipoDefecto = 2; // Mantener detección de reset si no son ceros
 
     let options = '';
     TIPOS_AJUSTE.forEach(t => {
       options += '<option value="' + t.id + '" ' + (t.id == tipoDefecto ? 'selected' : '') + '>' + t.descripcion + '</option>';
     });
 
-    const inputStyle = 'width:100px; padding:2px; height:24px; font-size:11px;';
-    const mkInput = (val, name) => '<input type="number" class="form-control ip-' + name + '" value="' + (val || 0) + '" style="' + inputStyle + '">';
+    const inputStyle = 'width:90px; padding:2px; height:24px; font-size:11px; text-align:right;';
+    const inputStyleDen = 'width:50px; padding:2px; height:24px; font-size:11px; text-align:right;';
+    // Use type="text" to allow math expressions
+    const mkInput = (val, name, style = inputStyle) => '<input type="text" class="form-control ip-calc ip-' + name + '" value="' + (val || 0) + '" style="' + style + '">';
 
-    const status = item.es_reset ? '<br><span class="label label-warning">Reset Detectado</span>' : '';
+    // Fila SISTEMA
+    const magicBtnStyle = 'padding:0; width:22px; height:22px; line-height:20px; font-size:10px; border-radius:50%; margin-left:3px; background-color:#FAFAFA; color:#555; border:1px solid #CCC;';
 
     $('#tbody-tabla-diferencias').append(
-      '<tr data-id="' + item.id_maquina + '" data-iddetpro="' + item.id_detalle_producido + '" data-iddetini="' + item.id_detalle_contador_inicial + '" data-iddetfin="' + item.id_detalle_contador_final + '" data-den="' + item.denominacion + '" data-prod="' + item.producido + '">' +
+      '<tr class="fila-sistema" data-nro="' + item.nro_admin + '" data-id="' + item.id_maquina + '" data-iddetpro="' + item.id_detalle_producido + '" data-iddetini="' + item.id_detalle_contador_inicial + '" data-iddetfin="' + item.id_detalle_contador_final + '" data-prod-importado="' + item.producido + '">' +
       '<td>' + item.nro_admin + '</td>' +
-      '<td style="font-weight:bold; color:' + (item.diferencia != 0 ? 'red' : 'green') + '">' + item.diferencia + status + '</td>' +
+      '<td class="celda-diferencia" style="font-weight:bold; color:' + (item.diferencia != 0 ? 'red' : 'green') + '">' + item.diferencia + '</td>' +
+      '<td>' + mkInput(item.denominacion_inicio, 'den-ini', inputStyleDen) + '</td>' +
       '<td>' + mkInput(item.coinin_inicio, 'coinin-ini') + '</td>' +
-      '<td>' + mkInput(item.coinout_inicio, 'coinout-ini') + '</td>' +
+      '<td><div style="display:flex; align-items:center;">' + mkInput(item.coinout_inicio, 'coinout-ini') +
+      '<button class="btn btn-default btn-magic-calc" title="Ajustar Automático" style="' + magicBtnStyle + '"><i class="fa fa-magic"></i></button></div></td>' +
       '<td>' + mkInput(item.jackpot_inicio, 'jack-ini') + '</td>' +
       '<td>' + mkInput(item.progresivo_inicio, 'prog-ini') + '</td>' +
+      '<td>' + mkInput(item.denominacion_final, 'den-fin', inputStyleDen) + '</td>' +
       '<td>' + mkInput(item.coinin_final, 'coinin-fin') + '</td>' +
       '<td>' + mkInput(item.coinout_final, 'coinout-fin') + '</td>' +
       '<td>' + mkInput(item.jackpot_final, 'jack-fin') + '</td>' +
       '<td>' + mkInput(item.progresivo_final, 'prog-fin') + '</td>' +
-      '<td><select class="form-control ip-tipo-ajuste" style="' + inputStyle + 'width:120px;">' + options + '</select></td>' +
+      '<td><select class="form-control ip-tipo-ajuste" style="width:100px; padding:2px; height:24px; font-size:11px;">' + options + '</select></td>' +
       '<td><button class="btn btn-xs btn-primary btn-guardar-fila" title="Guardar"><i class="fa fa-save"></i></button></td>' +
       '</tr>'
     );
+
+    // Fila EXCEL (si existe)
+    if (window.datosExcelRaw && window.datosExcelRaw[item.nro_admin]) {
+      const exc = window.datosExcelRaw[item.nro_admin];
+      // Estilo readonly
+      const tdStyle = 'padding:4px; font-size:11px; color:#5D4037;';
+      const valStyle = 'text-align:right; font-family:monospace;';
+
+      const mkVal = (v) => '<div style="' + valStyle + '">' + (v || 0) + '</div>';
+
+      // Botón Copiar
+      const btnCopiar = '<button class="btn btn-xs btn-warning btn-copiar-excel" title="Usar datos de Excel"><i class="fa fa-level-up"></i> Usar Excel</button>';
+
+      $('#tbody-tabla-diferencias').append(
+        '<tr class="fila-excel" style="background-color:#FFF3E0; border-bottom:2px solid #ddd;">' +
+        '<td style="text-align:right; font-style:italic;">Excel <i class="fa fa-file-text-o"></i></td>' +
+        '<td style="text-align:center;">' + btnCopiar + '</td>' + // En columna diferencia/status? O mejor acciones? Col 2 es Diferencia. Poner botón ahí es raro pero visible. O en Acción.
+        // Pongamos el botón en columna 'Acción' (última) y aquí un label 'Importado'
+        // Col DenIni (Excel no trae den explicitamente por fila normalmente, asumimos sistema o null)
+        '<td style="' + tdStyle + ' text-align:center;">-</td>' +
+        '<td style="' + tdStyle + '" data-val="' + exc.coinin_inicio + '">' + mkVal(exc.coinin_inicio) + '</td>' +
+        '<td style="' + tdStyle + '" data-val="' + exc.coinout_inicio + '">' + mkVal(exc.coinout_inicio) + '</td>' +
+        '<td style="' + tdStyle + '" data-val="' + exc.jackpot_inicio + '">' + mkVal(exc.jackpot_inicio) + '</td>' +
+        '<td style="' + tdStyle + '" data-val="' + exc.progresivo_inicio + '">' + mkVal(exc.progresivo_inicio) + '</td>' +
+        '<td style="' + tdStyle + ' text-align:center;">-</td>' +
+        '<td style="' + tdStyle + '" data-val="' + exc.coinin_final + '">' + mkVal(exc.coinin_final) + '</td>' +
+        '<td style="' + tdStyle + '" data-val="' + exc.coinout_final + '">' + mkVal(exc.coinout_final) + '</td>' +
+        '<td style="' + tdStyle + '" data-val="' + exc.jackpot_final + '">' + mkVal(exc.jackpot_final) + '</td>' +
+        '<td style="' + tdStyle + '" data-val="' + exc.progresivo_final + '">' + mkVal(exc.progresivo_final) + '</td>' +
+        '<td style="' + tdStyle + '" colspan="2" style="text-align:center;">' + exc.beneficio + ' (Beneficio)</td>' +
+        '</tr>'
+      );
+    }
   });
+}
+
+// Botón Usar Excel (Copiar valores)
+$(document).on('click', '.btn-copiar-excel', function () {
+  const trExcel = $(this).closest('tr');
+  const trSistema = trExcel.prev(); // Asumimos estructura sistema -> excel
+
+  // Copiar valores solo si existen y son diferentes? Copiar TC
+  const map = [
+    { src: 3, dest: '.ip-coinin-ini' }, // Index 3 es coinini (si no me equivoque indices, mejor buscar por data-val si pudiera, pero use tds)
+    // Usar .find('td:eq(index)') es fragil.
+    // Mejor añadir data attributes a los TD del excel
+  ];
+
+  // Mejor lógica:
+  const coinin_ini = trExcel.find('td[data-val]:eq(0)').data('val');
+  const coinout_ini = trExcel.find('td[data-val]:eq(1)').data('val');
+  const jack_ini = trExcel.find('td[data-val]:eq(2)').data('val');
+  const prog_ini = trExcel.find('td[data-val]:eq(3)').data('val');
+
+  const coinin_fin = trExcel.find('td[data-val]:eq(4)').data('val');
+  const coinout_fin = trExcel.find('td[data-val]:eq(5)').data('val');
+  const jack_fin = trExcel.find('td[data-val]:eq(6)').data('val');
+  const prog_fin = trExcel.find('td[data-val]:eq(7)').data('val');
+
+  trSistema.find('.ip-coinin-ini').val(coinin_ini);
+  trSistema.find('.ip-coinout-ini').val(coinout_ini);
+  trSistema.find('.ip-jack-ini').val(jack_ini);
+  trSistema.find('.ip-prog-ini').val(prog_ini);
+
+  trSistema.find('.ip-coinin-fin').val(coinin_fin);
+  trSistema.find('.ip-coinout-fin').val(coinout_fin);
+  trSistema.find('.ip-jack-fin').val(jack_fin);
+  trSistema.find('.ip-prog-fin').val(prog_fin);
+
+  // Disparar recálculo
+  trSistema.find('.ip-calc').first().trigger('change');
+
+  // Animación feedback
+  trSistema.css('background-color', '#FFF8E1');
+  setTimeout(() => trSistema.css('background-color', ''), 500);
+});
+
+// Evaluar expresiones matemáticas en inputs al cambiar
+$(document).on('change', '.ip-calc', function () {
+  let val = $(this).val();
+  // Permitir caracteres de operación y números
+  if (/^[\d\.\+\-\*\/\(\)\s]+$/.test(val)) {
+    try {
+      // Reemplazar comas por puntos si las hubiera (aunque el usuario debería usar puntos en inputs de texto si no está localizado)
+      // Pero js eval usa puntos.
+      val = val.replace(/,/g, '.');
+      const res = eval(val);
+      if (!isNaN(res) && isFinite(res)) {
+        $(this).val(Math.round(res)); // Asumimos enteros para contadores? O decimales? Contadores suelen ser enteros. 
+        // Mejor round(2) si es plata? Contadores son enteros o decimales?
+        // Denominacion es decimal. Contadores son enteros.
+        // Si es denominacion, no redondear.
+        if ($(this).hasClass('ip-den-ini') || $(this).hasClass('ip-den-fin')) {
+          $(this).val(res);
+        } else {
+          $(this).val(Math.round(res));
+        }
+      }
+    } catch (e) { }
+  }
+});
+
+// Botón Mágico Individual en Tabla
+$(document).on('click', '.btn-magic-calc', function () {
+  const tr = $(this).closest('tr');
+
+  // Obtener valores actuales
+  const denIni = parseFloat(tr.find('.ip-den-ini').val()) || 1;
+  if (denIni === 0) return;
+
+  // Calcular Diferencia Actual
+  calcularDiferenciaFila(tr); // Asegurar actualizado
+  const diferencia = parseFloat(tr.find('.celda-diferencia').text());
+
+  if (diferencia === 0) return;
+
+  // *** GUARDAR PARA UNDO antes del cambio ***
+  const coinOutInput = tr.find('.ip-coinout-ini');
+  guardarParaUndo(coinOutInput[0]);
+
+  // Ajuste = D / den
+  // Si Dif > 0, CoinOut debe disminuir. 
+  // Formulas backend: CoinOut_New = CoinOut_Old - (Dif / Den).
+
+  const ajuste = Math.round(diferencia / denIni);
+  const coinOutActual = parseFloat(coinOutInput.val()) || 0;
+
+  coinOutInput.val(coinOutActual - ajuste).trigger('change');
+});
+
+// Recalculo dinámico
+$(document).on('change keyup', '.ip-calc', function () {
+  const tr = $(this).closest('tr');
+  calcularDiferenciaFila(tr);
+});
+
+function calcularDiferenciaFila(tr) {
+  const getVal = (cls) => parseFloat(tr.find('.ip-' + cls).val()) || 0;
+
+  // Inicio
+  const denIni = getVal('den-ini');
+  const inIni = getVal('coinin-ini');
+  const outIni = getVal('coinout-ini');
+  const jackIni = getVal('jack-ini');
+  const progIni = getVal('prog-ini');
+
+  // Fin
+  const denFin = getVal('den-fin');
+  const inFin = getVal('coinin-fin');
+  const outFin = getVal('coinout-fin');
+  const jackFin = getVal('jack-fin');
+  const progFin = getVal('prog-fin');
+
+  // Calculo (todo a plata)
+  const netoIni = (inIni - outIni - jackIni - progIni) * denIni;
+  const netoFin = (inFin - outFin - jackFin - progFin) * denFin;
+
+  const prodCalculado = netoFin - netoIni;
+  const prodImportado = parseFloat(tr.data('prod-importado')) || 0;
+
+  const diferencia = (prodCalculado - prodImportado).toFixed(2);
+
+  const celdaDif = tr.find('.celda-diferencia');
+  celdaDif.text(diferencia);
+
+  // Si hay status (reset), lo mantenemos? O lo quitamos si se arregla? 
+  // Mejor solo mostrar el numero por ahora para que se vea claro
+  if (parseFloat(diferencia) === 0) {
+    celdaDif.css('color', 'green');
+  } else {
+    celdaDif.css('color', 'red');
+  }
 }
 
 // Guardar desde la fila de la tabla
@@ -721,20 +1008,20 @@ $(document).on('click', '.btn-guardar-fila', function () {
     coinout_inicio: tr.find('.ip-coinout-ini').val(),
     jackpot_inicio: tr.find('.ip-jack-ini').val(),
     progresivo_inicio: tr.find('.ip-prog-ini').val(),
-    denominacion_inicio: tr.data('den'),
+    denominacion_inicio: tr.find('.ip-den-ini').val(),
 
     coinin_final: tr.find('.ip-coinin-fin').val(),
     coinout_final: tr.find('.ip-coinout-fin').val(),
     jackpot_final: tr.find('.ip-jack-fin').val(),
     progresivo_final: tr.find('.ip-prog-fin').val(),
-    denominacion_final: tr.data('den'), // Asumo misma den
+    denominacion_final: tr.find('.ip-den-fin').val(),
 
     id_detalle_producido: tr.data('iddetpro'),
     id_detalle_contador_inicial: tr.data('iddetini'),
     id_detalle_contador_final: tr.data('iddetfin'),
 
     id_tipo_ajuste: tr.find('.ip-tipo-ajuste').val(),
-    producido: tr.data('prod'),
+    producido: tr.data('prod-importado'), // Fix: data-prod-importado
     observacion: 'Ajuste manual desde tabla'
   };
 
@@ -757,7 +1044,18 @@ $(document).on('click', '.btn-guardar-fila', function () {
         // El controller retorna 'hay_diferencia' => 1 y 'diferencia' => X si falla
         // Si éxito retorna todo el objeto del producido actualizado o status
         if (resp.hay_diferencia) {
-          alert("Ajuste NO guardado. La diferencia persiste: " + resp.diferencia);
+          let msg = "Ajuste NO guardado. La diferencia persiste: " + resp.diferencia;
+          if (resp.debug) {
+            msg += "\n\n--- DEBUG (valores usados en backend) ---";
+            msg += "\nTipo Ajuste: " + resp.debug.tipo_ajuste;
+            msg += "\nProducido usado: " + resp.debug.producido_usado;
+            msg += "\nProducido calculado: " + resp.debug.producido_calculado;
+            msg += "\nCoinIn INI: " + resp.debug.coinin_ini + " | CoinOut INI: " + resp.debug.coinout_ini;
+            msg += "\nCoinIn FIN: " + resp.debug.coinin_fin + " | CoinOut FIN: " + resp.debug.coinout_fin;
+            msg += "\nDen INI: " + resp.debug.den_ini + " | Den FIN: " + resp.debug.den_fin;
+            console.log('Debug guardarAjuste:', resp.debug);
+          }
+          alert(msg);
           btn.prop('disabled', false).html('<i class="fa fa-save"></i>');
         } else {
           // Exito probable (el controller retorna objeto producido si todo OK)
@@ -824,111 +1122,164 @@ $(document).on('click', '.trigger-ver-maquina', function () {
   }
 });
 
+// Botón FINALIZAR Y VALIDAR PRODUCIDO desde vista tabla
+$(document).on('click', '#btn-validar-producido-tabla', function () {
+  const btn = $(this);
 
-// --- IMPORTACIÓN Y COMPARACIÓN EXCEL ---
+  // Verificar si todas las diferencias son 0
+  let hayDiferencias = false;
+  let totalDif = 0;
 
-$('#btn-importar-excel').on('click', function (e) {
-  e.preventDefault();
-  $('#input-excel').click();
-});
+  $('#tbody-tabla-diferencias .fila-sistema .celda-diferencia').each(function () {
+    const dif = parseFloat($(this).text()) || 0;
+    if (dif !== 0) {
+      hayDiferencias = true;
+      totalDif += Math.abs(dif);
+    }
+  });
 
-$('#input-excel').on('change', function () {
-  if (this.files.length === 0) return;
+  if (hayDiferencias) {
+    alert('No se puede finalizar. Aún hay máquinas con diferencias (Total: ' + totalDif.toFixed(2) + ').\n\nPrimero ajustá las diferencias.');
+    return;
+  }
 
-  const file = this.files[0];
-  const id_producido = $('#modalCargaProducidos #id_producido').val();
+  // Obtener todas las filas que PUEDEN ser guardadas (botón no deshabilitado)
+  const filasParaGuardar = $('#tbody-tabla-diferencias .fila-sistema').filter(function () {
+    const guardarBtn = $(this).find('.guardar-fila');
+    return guardarBtn.length > 0 && !guardarBtn.prop('disabled');
+  });
 
-  $('#modalComparacionExcel').modal('show');
-  $('#estado-excel').show();
-  $('#resultado-excel').hide();
+  if (filasParaGuardar.length > 0) {
+    if (!confirm('Hay ' + filasParaGuardar.length + ' fila(s) sin guardar.\n\n¿Deseas GUARDAR TODAS automáticamente y validar?')) {
+      return;
+    }
 
-  const formData = new FormData();
-  formData.append('archivo_excel', file);
-  formData.append('_token', $('meta[name="_token"]').attr('content'));
+    // Guardar todas las filas pendientes
+    btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Guardando ' + filasParaGuardar.length + ' filas...');
 
-  $.ajax({
-    url: 'producidos/importarExcelConcesionario/' + id_producido,
-    type: 'POST',
-    data: formData,
-    processData: false,
-    contentType: false,
-    success: function (data) {
-      $('#estado-excel').hide();
-      if (data.error) {
-        alert(data.error);
-        $('#modalComparacionExcel').modal('hide');
+    let guardadas = 0;
+    let errores = 0;
+    let todasAjustadas = false;
+    const total = filasParaGuardar.length;
+    const resumen = [];
+
+    // Función para guardar una fila
+    function guardarFila(tr, callback) {
+      const nroAdmin = tr.find('td:first').text();
+      const data = {
+        id_maquina: tr.data('id'),
+        coinin_inicio: tr.find('.ip-coinin-ini').val(),
+        coinout_inicio: tr.find('.ip-coinout-ini').val(),
+        jackpot_inicio: tr.find('.ip-jack-ini').val(),
+        progresivo_inicio: tr.find('.ip-prog-ini').val(),
+        denominacion_inicio: tr.find('.ip-den-ini').val(),
+        coinin_final: tr.find('.ip-coinin-fin').val(),
+        coinout_final: tr.find('.ip-coinout-fin').val(),
+        jackpot_final: tr.find('.ip-jack-fin').val(),
+        progresivo_final: tr.find('.ip-prog-fin').val(),
+        denominacion_final: tr.find('.ip-den-fin').val(),
+        id_detalle_producido: tr.data('iddetpro'),
+        id_detalle_contador_inicial: tr.data('iddetini'),
+        id_detalle_contador_final: tr.data('iddetfin'),
+        id_tipo_ajuste: tr.find('.ip-tipo-ajuste').val(),
+        producido: tr.data('prod-importado'),
+        observacion: 'Ajuste desde tabla (batch)'
+      };
+
+      $.ajax({
+        type: 'POST',
+        url: 'producidos/guardarAjuste',
+        data: data,
+        dataType: 'json',
+        headers: { 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content') },
+        success: function (resp) {
+          if (resp.hay_diferencia) {
+            errores++;
+            resumen.push({ mtm: nroAdmin, estado: 'ERROR', detalle: 'Diferencia: ' + resp.diferencia });
+          } else {
+            guardadas++;
+            tr.find('.guardar-fila').prop('disabled', true).html('<i class="fa fa-check" style="color:green;"></i>');
+            resumen.push({ mtm: nroAdmin, estado: 'OK', detalle: 'Guardado' });
+            // Capturar si todas fueron ajustadas
+            if (resp.todas_ajustadas == 1) {
+              todasAjustadas = true;
+            }
+          }
+          callback();
+        },
+        error: function (xhr) {
+          errores++;
+          resumen.push({ mtm: nroAdmin, estado: 'ERROR', detalle: 'Error de conexión' });
+          callback();
+        }
+      });
+    }
+
+    // Procesar filas secuencialmente
+    let idx = 0;
+    function procesarSiguiente() {
+      if (idx >= total) {
+        // Terminamos - mostrar resumen
+        btn.prop('disabled', false).html('<i class="fa fa-check-circle"></i> FINALIZAR Y VALIDAR PRODUCIDO');
+
+        // Construir mensaje de resumen
+        let msg = '═══════════════════════════════════════\n';
+        msg += '           RESUMEN DE VALIDACIÓN\n';
+        msg += '═══════════════════════════════════════\n\n';
+        msg += '✓ Máquinas guardadas: ' + guardadas + '\n';
+        msg += '✗ Con errores: ' + errores + '\n\n';
+
+        if (todasAjustadas) {
+          msg += '✅ PRODUCIDO VALIDADO EXITOSAMENTE\n';
+          msg += '   El producido pasó al siguiente día.\n';
+        } else if (errores == 0 && guardadas > 0) {
+          msg += '⚠️ GUARDADO PERO NO VALIDADO\n';
+          msg += '   Puede que falten otras máquinas por ajustar\n';
+          msg += '   o que no tengan registro en ajuste_producido.\n';
+        } else if (errores > 0) {
+          msg += '⚠️ HAY ERRORES - REVISAR\n';
+          msg += '   Las siguientes máquinas fallaron:\n';
+          resumen.filter(r => r.estado == 'ERROR').forEach(r => {
+            msg += '   - MTM ' + r.mtm + ': ' + r.detalle + '\n';
+          });
+        }
+
+        msg += '\n═══════════════════════════════════════';
+
+        alert(msg);
+
+        if (errores == 0) {
+          $('#modalTablaCompleta').modal('hide');
+          $('#modalCargaProducidos').modal('hide');
+          location.reload();
+        }
         return;
       }
 
-      mostrarComparacionExcel(data);
-    },
-    error: function (data) {
-      $('#estado-excel').hide();
-      alert('Error al procesar el archivo');
-      $('#modalComparacionExcel').modal('hide');
-    }
-  });
-
-  // Reset input
-  $(this).val('');
-});
-
-function mostrarComparacionExcel(data) {
-  $('#resultado-excel').show();
-  $('#excel-total').text(data.total_excel);
-  $('#sistema-total').text(data.total_sistema);
-
-  let discrepancias = 0;
-  $('#tbody-comparacion').empty();
-
-  data.comparacion.forEach(function (item) {
-    if (item.en_excel && item.discrepancias.length > 0) {
-      discrepancias++;
-
-      const btnUsarExcel = '<button class="btn btn-xs btn-warning btn-usar-excel" data-id="' + item.id_maquina + '" data-nro="' + item.nro_admin + '" data-excel=\'' + JSON.stringify(item.excel) + '\'><i class="fa fa-arrow-right"></i> Usar Excel</button>';
-
-      let detalleDiscrepancia = '';
-      item.discrepancias.forEach(d => {
-        detalleDiscrepancia += '<span class="label label-danger">' + d + '</span> ';
+      btn.html('<i class="fa fa-spinner fa-spin"></i> Guardando ' + (idx + 1) + '/' + total + '...');
+      guardarFila($(filasParaGuardar[idx]), function () {
+        idx++;
+        procesarSiguiente();
       });
-
-      const row = '<tr>' +
-        '<td>' + item.nro_admin + '</td>' +
-        '<td>' + (item.en_excel ? '<i class="fa fa-check text-success"></i>' : '<i class="fa fa-times text-danger"></i>') + '</td>' +
-        '<td class="' + (item.discrepancias.includes('COININ_INI') ? 'danger' : '') + '">' + item.sistema.coinin_inicio + ' / ' + (item.excel ? item.excel.coinin_inicio : '-') + '</td>' +
-        '<td class="' + (item.discrepancias.includes('COINOUT_INI') ? 'danger' : '') + '">' + item.sistema.coinout_inicio + ' / ' + (item.excel ? item.excel.coinout_inicio : '-') + '</td>' +
-        '<td class="' + (item.discrepancias.includes('COININ_FIN') ? 'danger' : '') + '">' + item.sistema.coinin_final + ' / ' + (item.excel ? item.excel.coinin_final : '-') + '</td>' +
-        '<td class="' + (item.discrepancias.includes('COINOUT_FIN') ? 'danger' : '') + '">' + item.sistema.coinout_final + ' / ' + (item.excel ? item.excel.coinout_final : '-') + '</td>' +
-        '<td>' + detalleDiscrepancia + '</td>' +
-        '<td>' + btnUsarExcel + '</td>' +
-        '</tr>';
-
-      $('#tbody-comparacion').append(row);
     }
-  });
 
-  $('#discrepancias-total').text(discrepancias);
-  if (discrepancias === 0) {
-    $('#tbody-comparacion').append('<tr><td colspan="8" style="text-align:center;"><h4>¡No se encontraron discrepancias con el Excel!</h4></td></tr>');
-  }
-}
+    procesarSiguiente();
 
-// Botón "Usar Excel" - Carga datos en variable global y abre la máquina
-$(document).on('click', '.btn-usar-excel', function () {
-  const data = $(this).data('excel');
-  const id_maquina = $(this).data('id');
-
-  window.datosExcelPendientes = {
-    id_maquina: id_maquina,
-    data: data
-  };
-
-  $('#modalComparacionExcel').modal('hide');
-
-  const fila = $('#cuerpoTabla').find('#' + id_maquina);
-  if (fila.length > 0) {
-    fila.find('.infoMaq').click();
   } else {
-    alert('Máquina no encontrada en la lista actual.');
+    // Todas ya guardadas, simplemente cerrar
+    let msg = '═══════════════════════════════════════\n';
+    msg += '           RESUMEN DE VALIDACIÓN\n';
+    msg += '═══════════════════════════════════════\n\n';
+    msg += '✓ Todas las máquinas ya estaban guardadas.\n\n';
+    msg += 'Si el producido no aparece como validado,\n';
+    msg += 'puede que falten máquinas en la lista original\n';
+    msg += 'de ajuste_producido.\n';
+    msg += '\n═══════════════════════════════════════';
+
+    alert(msg);
+    $('#modalTablaCompleta').modal('hide');
+    $('#modalCargaProducidos').modal('hide');
+    location.reload();
   }
 });
+
