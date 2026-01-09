@@ -159,7 +159,7 @@ $('#btn-salir-validado').on('click', function (e) {
   $('#btn-buscar').trigger('click');
 })
 
-// AJUSTE AUTOMÁTICO MASIVO - Aplica fórmula COINOUT_INI -= DIFERENCIAS/DEN_INICIAL a todas las máquinas
+// AJUSTE AUTOMÁTICO - Aplica fórmula COINOUT_INI -= DIFERENCIAS/DEN_INICIAL a todas las máquinas
 $('#btn-ajuste-automatico-masivo').on('click', function (e) {
   e.preventDefault();
   const id_producido = $('#modalCargaProducidos #id_producido').val();
@@ -373,9 +373,9 @@ $(document).on('click', '.infoMaq', function (e) {
     //de momento no esta recuperando el valor del texto de observaciones por lo que se resetea manualmente
     $('#prodObservaciones').val(data.producidos_con_diferencia[0].observacion);
     $('#data-denominacion').val(data.producidos_con_diferencia[0].denominacion_final);
-    $('#data-producido').val(data.producidos_con_diferencia[0].producido_sistema);
+    $('#data-producido').val(data.producidos_con_diferencia[0].id_detalle_producido);
     $('#data-detalle-inicial').val(data.producidos_con_diferencia[0].id_detalle_contador_inicial);
-    $('#data-detalle-final').val(data.producidos_con_diferencia[0].id_detalle_producido);
+    $('#data-detalle-final').val(data.producidos_con_diferencia[0].id_detalle_contador_final);
 
     // Pre-llenar con datos de Excel si hay pendiente
     if (window.datosExcelPendientes && window.datosExcelPendientes.id_maquina == id_maq) {
@@ -819,7 +819,7 @@ function renderizarTablaDiferencias(datos) {
       '<td>' + mkInput(item.coinout_final, 'coinout-fin') + '</td>' +
       '<td>' + mkInput(item.jackpot_final, 'jack-fin') + '</td>' +
       '<td>' + mkInput(item.progresivo_final, 'prog-fin') + '</td>' +
-      '<td><select class="form-control ip-tipo-ajuste" style="width:100px; padding:2px; height:24px; font-size:11px;">' + options + '</select></td>' +
+      '<td><select class="form-control ip-tipo-ajuste" style="width:150px; padding:2px; height:24px; font-size:11px;">' + options + '</select></td>' +
       '<td><button class="btn btn-xs btn-primary btn-guardar-fila" title="Guardar"><i class="fa fa-save"></i></button></td>' +
       '</tr>'
     );
@@ -1044,6 +1044,29 @@ $(document).on('click', '.btn-guardar-fila', function () {
         // El controller retorna 'hay_diferencia' => 1 y 'diferencia' => X si falla
         // Si éxito retorna todo el objeto del producido actualizado o status
         if (resp.hay_diferencia) {
+          // Detectar si el problema es que necesita "Múltiples Ajustes" (tipo 6)
+          const tipoActual = tr.find('.ip-tipo-ajuste').val();
+          const diferenciaGrande = Math.abs(resp.diferencia) > 1000; // Diferencia muy grande
+
+          if (tipoActual != 6 && diferenciaGrande) {
+            // Sugerir y cambiar a Múltiples Ajustes
+            let msg = "⚠️ PROBLEMA DETECTADO\n\n";
+            msg += "La diferencia (" + resp.diferencia + ") es muy grande.\n";
+            msg += "Esto ocurre porque el Tipo Ajuste actual (" + tipoActual + ") usa valores de la BD.\n\n";
+            msg += "Se cambiará automáticamente a 'Múltiples Ajustes' (6) que usa los valores del formulario.\n\n";
+            msg += "Hacé clic en Guardar nuevamente para aplicar.";
+
+            alert(msg);
+
+            // Cambiar automáticamente a tipo 6
+            tr.find('.ip-tipo-ajuste').val(6);
+            tr.find('.ip-tipo-ajuste').css('background-color', '#FFF8E1');
+            setTimeout(() => tr.find('.ip-tipo-ajuste').css('background-color', ''), 2000);
+
+            btn.prop('disabled', false).html('<i class="fa fa-save"></i>');
+            return;
+          }
+
           let msg = "Ajuste NO guardado. La diferencia persiste: " + resp.diferencia;
           if (resp.debug) {
             msg += "\n\n--- DEBUG (valores usados en backend) ---";
@@ -1080,13 +1103,21 @@ function notificarExitoFila(tr) {
   tr.css('background-color', '#C8E6C9');
   tr.find('input, select, button').prop('disabled', true);
   tr.find('.btn-guardar-fila').html('<i class="fa fa-check"></i>');
-  // Recargar tabla después de un momento para actualizar diferencias
-  setTimeout(function () {
-    const id_producido = $('#modalCargaProducidos #id_producido').val();
-    // Actualizar cache local para esta fila o recargar todo
-    // Mejor recargar todo para asegurar consistencia
-    cargarTablaDiferencias(id_producido);
-  }, 1000);
+  tr.find('.celda-diferencia').text('0.00').css('color', 'green');
+
+  // Remover la fila guardada con animación
+  tr.find('td').wrapInner('<div style="display:block;"/>');
+  tr.find('td > div').slideUp(400, function () {
+    tr.remove();
+
+    // Actualizar el contador en el footer
+    const filasRestantes = $('#tbody-tabla-diferencias .fila-sistema').length;
+    let sumDif = 0;
+    $('#tbody-tabla-diferencias .fila-sistema .celda-diferencia').each(function () {
+      sumDif += Math.abs(parseFloat($(this).text()) || 0);
+    });
+    $('#tabla-total-info').text('Total máquinas: ' + filasRestantes + ' | Diferencia acumulada (abs): ' + sumDif.toFixed(2));
+  });
 }
 
 // Filtros
