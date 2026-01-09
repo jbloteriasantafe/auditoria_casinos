@@ -306,17 +306,10 @@ $('#btn-importar').click(function(e){
         success: function(data){
             $('#loadingImportacion').hide();
             $('#btn-importar').prop('disabled', false);
-            
-            let msg = `Procesados: ${data.procesados} | Saltados: ${data.saltados} | Errores: ${data.errores}`;
+            let msg = `Personas nuevas: ${data.resumen.nuevas} | Personas con autoexclusiones previas: ${data.resumen.previas} | Personas con autoexclusiones ya vigentes: ${data.resumen.vigentes} | Errores: ${data.errores}`;
             $('#mensajeExitoImportacion').find('p').text(msg);
-            $('#mensajeExitoImportacion').show();
             
-            // Show debug info if available
-            if(data.debug) {
-                 console.log("Import Debug:", data.debug);
-                 let debugMsg = `Debug Plat ${data.debug.plat}: Max Fecha ${data.debug.max_fecha}. Keys Found: ${JSON.stringify(data.debug.first_row_keys)}`;
-                 $('#mensajeExitoImportacion').append($('<p>').text(debugMsg).css('font-size', '10px'));
-            }
+            $('#mensajeExitoImportacion').show();
 
             if(data.errores > 0 && data.detalle_errores.length > 0){
                  $('#mensajeErrorImportacion').find('p').text("Algunos registros tuvieron errores:");

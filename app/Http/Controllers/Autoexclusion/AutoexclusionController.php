@@ -797,14 +797,22 @@ class AutoexclusionController extends Controller
         }
         
         // Allowed platforms for mass import
+        /*
         if ($id_plataforma != 1 && $id_plataforma != 2) {
              return response()->json(['id_casino' => 'Solo implementado para Plataforma 1 y 2 por el momento.'], 422);
         }
+        */
 
         $archivo = $request->file('archivo');
         $cant_procesados = 0;
         $cant_saltados = 0;
         $cant_errores = 0;
+        
+        // Counters for Report
+        $cant_nuevas = 0;      // New people (DNI not in DB)
+        $cant_reincidentes = 0; // Existing DNI, but previous status was NOT active (expired/finished)
+        $cant_vigentes = 0;     // Existing DNI, and previous status WAS active (1 or 2)
+        
         $errores_detalle = [];
 
         try {
@@ -865,20 +873,38 @@ class AutoexclusionController extends Controller
             $idx_status_plat2 = $getVal(['player_status']);
 
             // Validate critical columns
-            if (is_null($idx_dni)) {
-                fclose($handle);
-                throw new \Exception("No se encontro la columna DNI en el archivo. (Columnas encontradas: " . implode(', ', $header) . ")");
+            if ($idx_dni === null) {
+                 fclose($handle);
+                 // Fallback: try to see if it's single column? No, header detection logs will show.
+                 throw new \Exception("No se encontro la columna DNI en el archivo. (Columnas encontradas: " . implode(',', $header) . ")");
             }
 
-            $max_fecha_ae = AE\EstadoAE::where('id_plataforma', $id_plataforma)->max('fecha_ae');
-            Log::info("ImportarMasivo (Unified CSV): Plat $id_plataforma, Delim '$delimiter', MaxF $max_fecha_ae");
+            // Determine if using incremental date check (Optional, can be disabled)
+            $max_fecha_ae = null;
+            if ($id_plataforma) {
+                $max_fecha_ae = AE\EstadoAE::where('id_plataforma', $id_plataforma)->max('fecha_ae');
+            } else {
+                $max_fecha_ae = AE\EstadoAE::where('id_casino', $id_casino)->max('fecha_ae');
+            }
+            Log::info("ImportarMasivo: Target " . ($id_plataforma ? "Plat $id_plataforma" : "Cas $id_casino") . ", Delim '$delimiter', MaxF $max_fecha_ae");
 
              // 4. Loop Rows
             while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
                  if (count($row) < 2) continue; // Skip empty rows
 
-                 $dni = $row[$idx_dni] ?? null;
-                 if (!$dni || !is_numeric($dni)) continue;
+                 // Define Formats
+                 $formats = [
+                     'd/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y', 
+                     'Y-m-d H:i:s', 'Y-m-d',
+                     'd-m-Y', 'd/m/y',
+                     'd/m/Y h:i:s a', 'd/m/Y h:i a' // Support am/pm
+                 ];
+
+                 $dni_raw = $row[$idx_dni] ?? null;
+                 // Clean DNI: remove dots/spaces/letters
+                 $dni = preg_replace('/[^0-9]/', '', $dni_raw); 
+
+                 if (!$dni) continue;
 
                  // --- Date Logic ---
                  $fecha_ae_raw = ($idx_fecha_ae !== null) ? ($row[$idx_fecha_ae] ?? null) : null;
@@ -886,12 +912,6 @@ class AutoexclusionController extends Controller
                  
                  // Try parsing various date formats
                  if ($fecha_ae_raw) {
-                     $formats = [
-                         'd/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y', 
-                         'Y-m-d H:i:s', 'Y-m-d',
-                         'd-m-Y', 'd/m/y',
-                         'd/m/Y h:i:s a', 'd/m/Y h:i a' // Support am/pm
-                     ];
                      // Sanitize: convert 'a.m.' -> 'am' to match Carbon 'a' format
                      $fecha_ae_clean = str_ireplace(['a.m.', 'p.m.', 'a. m.', 'p. m.'], ['am', 'pm', 'am', 'pm'], $fecha_ae_raw);
                      $fecha_ae_clean = trim($fecha_ae_clean);
@@ -908,28 +928,45 @@ class AutoexclusionController extends Controller
                  // User says "saltea todos", implying they want data.
                  if (!$fecha_ae) $fecha_ae = \Carbon\Carbon::now();
                  
-                 // Calculated Dates
-                 $fecha_renovacion = $fecha_ae->copy()->addMonths(6);
-                 $fecha_vencimiento = $fecha_ae->copy()->addYear();
-
-                 // Check Max Date (disabled to allow fixing data)
-                 /*
-                 if ($max_fecha_ae && $fecha_ae->format('Y-m-d') <= $max_fecha_ae) {
+                 // --- DUPLICATE CHECK (Exact match only) ---
+                 // User request: "CADA registro hay que subir" (Upload every record).
+                 // We will only skip if it's an EXACT duplicate (Same DNI + Same Date + Same Platform/Casino)
+                 // to prevent accidental double-clicks or re-processing the exact same file.
+                 
+                 $query = AE\EstadoAE::whereHas('ae', function($q) use ($dni) {
+                                       $q->where('nro_dni', $dni);
+                                   })
+                                   ->whereDate('fecha_ae', $fecha_ae->format('Y-m-d'));
+                 
+                 if ($id_plataforma) {
+                     $query->where('id_plataforma', $id_plataforma);
+                 } else {
+                     $query->where('id_casino', $id_casino);
+                 }
+                 
+                 if ($query->exists()) {
                      $cant_saltados++;
                      continue;
                  }
-                 */
                  
-                 // Prevent Exact Duplicates (DNI + Fecha AE + Plataforma)
-                 // This prevents re-importing the same file, but allows fixing if only DNI existed before.
-                 $dup = AE\EstadoAE::where('id_plataforma', $id_plataforma)
-                                   ->whereDate('fecha_ae', $fecha_ae->format('Y-m-d'))
-                                   ->whereHas('ae', function($q) use ($dni) {
-                                       $q->where('nro_dni', $dni);
-                                   })->first();
-                 if ($dup) {
-                     $cant_saltados++;
-                     continue;
+                 // --- REPORT CLASSIFICATION LOGIC ---
+                 // Before inserting, check history to classify
+                 $existing_ae = AE\Autoexcluido::where('nro_dni', $dni)->first();
+                 
+                 if (!$existing_ae) {
+                     $cant_nuevas++;
+                 } else {
+                     $historial_query = AE\EstadoAE::where('id_autoexcluido', $existing_ae->id_autoexcluido);
+                     if ($id_plataforma) $historial_query->where('id_plataforma', $id_plataforma);
+                     else $historial_query->where('id_casino', $id_casino);
+                     
+                     $latest = $historial_query->orderBy('fecha_ae', 'desc')->first();
+                     
+                     if ($latest && in_array($latest->id_nombre_estado, [1, 2])) { // 1: Vigente, 2: Renovado
+                         $cant_vigentes++;
+                     } else {
+                         $cant_reincidentes++;
+                     }
                  }
 
 
@@ -970,17 +1007,8 @@ class AutoexclusionController extends Controller
                  }
 
                  // --- Status Logic ---
-                 $id_nombre_estado = 1; // Vigente
-                 // Plat 1 logic
-                 if ($idx_status_plat1 !== null) {
-                     $total = $row[$idx_status_plat1] ?? 1;
-                     if ($total > 1) $id_nombre_estado = 2; 
-                 }
-                 // Plat 2 logic
-                 if ($idx_status_plat2 !== null) {
-                     $stat = strtolower($row[$idx_status_plat2] ?? '');
-                     if (strpos($stat, 'renov') !== false) $id_nombre_estado = 2;
-                 }
+                 // User request: "Ignora el estado que viene de los csv"
+                 $id_nombre_estado = 1; // Default to Vigente
 
                  // Prepare Arrays
                  $datos_ae = [
@@ -1001,23 +1029,21 @@ class AutoexclusionController extends Controller
                     'id_estado_civil' => 6, 
                     'id_autoexcluido' => null
                  ];
+                 
+                 $fecha_cierre_def = $fecha_ae->copy()->addYear(); // 1 year assumption for closure/expiration
 
                  $estado_ae = [
                     'id_nombre_estado' => $id_nombre_estado,
-                    'id_casino' => null,
+                    'id_casino' => $id_casino,
                     'id_plataforma' => $id_plataforma,
                     'fecha_ae' => $fecha_ae->format('Y-m-d'),
-                    'fecha_renovacion' => $fecha_renovacion->format('Y-m-d'),
-                    'fecha_vencimiento' => $fecha_vencimiento->format('Y-m-d'),
-                    'fecha_cierre_ae' => $fecha_vencimiento->format('Y-m-d'), // Set closing date same as vencimiento?
+                    'fecha_renovacion' => null,     // User requested null
+                    'fecha_vencimiento' => null,   // User requested null
+                    'fecha_cierre_ae' => $fecha_cierre_def->format('Y-m-d'), 
                  ];
 
                  // Insert
                  try {
-                    if ($this->existeAutoexcluido($dni) > 0) {
-                        $cant_saltados++;
-                        continue;
-                    }
                     $this->crearAutoexcluidoInterno($datos_ae, $estado_ae, $user);
                     $cant_procesados++;
                  } catch (\Exception $e) {
@@ -1044,11 +1070,12 @@ class AutoexclusionController extends Controller
             'saltados' => $cant_saltados,
             'errores' => $cant_errores,
             'detalle_errores' => $errores_detalle,
-            'debug' => [
-                'plat' => $id_plataforma,
-                'msg' => 'Unified CSV parser used'
+            'resumen' => [
+                'nuevas' => $cant_nuevas,
+                'previas' => $cant_reincidentes,
+                'vigentes' => $cant_vigentes
             ]
-        ]);
+        ], 200);
     }
 
     private function crearAutoexcluidoInterno($ae_datos, $ae_estado_data, $user) {
