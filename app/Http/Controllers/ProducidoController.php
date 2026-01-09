@@ -84,7 +84,7 @@ class ProducidoController extends Controller
       $coinin_fin as coinin_final,  $coinout_fin as coinout_final,
       $jackpot_fin as jackpot_final,$progresivo_fin as progresivo_final,
       $deno_fin as denominacion_final,
-      $delta as delta,$diferencia as diferencia"
+      $delta as delta, $delta as producido_calculado, dp.valor as producido_sistema, $diferencia as diferencia"
     )
     ->join('detalle_producido as dp','dp.id_producido','=','p.id_producido')
     ->join('maquina as m','m.id_maquina','=','dp.id_maquina')
@@ -950,12 +950,26 @@ class ProducidoController extends Controller
   }
   //Contadores en en creditos, producido en plata, se usa en probarAjusteAutomatico y guardarAjuste
   private function calcularDiferencia($arr){
-    $valor_inicio = $arr['coinin_inicio'] - $arr['coinout_inicio'] - $arr['jackpot_inicio'] - $arr['progresivo_inicio'];//credito
-    $valor_inicio *= $arr['denominacion_inicio'];//credito -> plata
-    $valor_final  = $arr['coinin_final']  - $arr['coinout_final']  - $arr['jackpot_final']  - $arr['progresivo_final'];//credito
-    $valor_final *= $arr['denominacion_final'];//credito -> plata
+    $coinin_inicio = floatval($arr['coinin_inicio'] ?? 0);
+    $coinout_inicio = floatval($arr['coinout_inicio'] ?? 0);
+    $jackpot_inicio = floatval($arr['jackpot_inicio'] ?? 0);
+    $progresivo_inicio = floatval($arr['progresivo_inicio'] ?? 0);
+    $denominacion_inicio = floatval($arr['denominacion_inicio'] ?? 1) ?: 1;
+    
+    $coinin_final = floatval($arr['coinin_final'] ?? 0);
+    $coinout_final = floatval($arr['coinout_final'] ?? 0);
+    $jackpot_final = floatval($arr['jackpot_final'] ?? 0);
+    $progresivo_final = floatval($arr['progresivo_final'] ?? 0);
+    $denominacion_final = floatval($arr['denominacion_final'] ?? 1) ?: 1;
+    
+    $producido = floatval($arr['producido'] ?? 0);
+    
+    $valor_inicio = $coinin_inicio - $coinout_inicio - $jackpot_inicio - $progresivo_inicio;//credito
+    $valor_inicio *= $denominacion_inicio;//credito -> plata
+    $valor_final  = $coinin_final  - $coinout_final  - $jackpot_final  - $progresivo_final;//credito
+    $valor_final *= $denominacion_final;//credito -> plata
     $producido_calculado = round($valor_final - $valor_inicio,2);//plata - plata
-    $diferencia = round($producido_calculado - $arr['producido'],2);//plata - plata;
+    $diferencia = round($producido_calculado - $producido,2);//plata - plata;
     return compact('producido_calculado','diferencia');
   }
   
