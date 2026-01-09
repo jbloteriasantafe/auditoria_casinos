@@ -179,19 +179,11 @@ use Illuminate\Http\Request;
             <h6 style="padding-left:15px">Máquinas con diferencias: <span id="maquinas_con_diferencias">---</span></h6>
             @if($es_superusuario)
             <div style="padding-left:15px; margin-bottom:10px;">
-              <button id="btn-ajuste-automatico-masivo" class="btn btn-success" style="margin-right:10px;">
-                <i class="fa fa-magic"></i> AJUSTE AUTOMÁTICO MASIVO
-              </button>
               <button id="btn-ver-tabla" class="btn btn-info" style="margin-right:10px;">
                 <i class="fa fa-table"></i> VISTA TABLA
               </button>
-              <button id="btn-importar-excel" class="btn btn-warning" style="margin-right:10px;">
-                <i class="fa fa-file-text-o"></i> COMPARAR CSV
-              </button>
               <span id="resultado-ajuste-masivo" style="font-weight:bold;"></span>
             </div>
-            <!-- Input oculto para subir Excel/CSV -->
-            <input type="file" id="input-excel" accept=".xls,.xlsx,.csv" style="display:none;">
             @endif
           </div>
           <div class="row" >
@@ -212,9 +204,6 @@ use Illuminate\Http\Request;
                   <td class="col-md-3 nroAdm" value=""> nro admin</td>
                   <td class="col-md-2 idMaqTabla" value="">
                     <button type="button" class="btn btn-info infoMaq" value="" title="Ver detalles"><i class="fa fa-fw fa-eye"></i></button>
-                    @if($es_superusuario)
-                    <button type="button" class="btn btn-success btn-ajuste-individual" value="" title="Ajuste automático" style="padding: 2px 6px;"><i class="fa fa-magic"></i></button>
-                    @endif
                   </td>
                 </tr>
               </table>
@@ -428,42 +417,24 @@ use Illuminate\Http\Request;
         <h4 class="modal-title"><i class="fa fa-table"></i> VISTA DE TABLA - TODAS LAS DIFERENCIAS</h4>
       </div>
       <div class="modal-body">
-        <div class="row" style="margin-bottom:10px;">
-          <div class="col-md-3">
-            <label>Filtrar por diferencia mínima:</label>
-            <input type="number" id="filtro-dif-min" class="form-control" placeholder="Min" value="">
-          </div>
-          <div class="col-md-3">
-            <label>Filtrar por diferencia máxima:</label>
-            <input type="number" id="filtro-dif-max" class="form-control" placeholder="Max" value="">
-          </div>
-          <div class="col-md-3">
-            <label>Mostrar solo ajustables:</label>
-            <select id="filtro-ajustables" class="form-control">
-              <option value="">Todas</option>
-              <option value="si">Solo ajustables auto</option>
-              <option value="no">Solo manuales</option>
-            </select>
-          </div>
-          <div class="col-md-3">
-            <label>&nbsp;</label>
-            <button id="btn-aplicar-filtros" class="btn btn-primary form-control"><i class="fa fa-filter"></i> Filtrar</button>
-          </div>
-        </div>
+        <!-- Comparativa Excel deshabilitada temporalmente -->
+
         <div style="max-height:500px; overflow-y:auto;">
           <table class="table table-condensed table-striped table-bordered" id="tabla-diferencias-completa">
             <thead style="background-color:#E3F2FD;">
               <tr>
-                <th style="width:5%;">Nº</th>
-                <th style="width:6%;">Diff</th>
-                <th style="width:8%;">CoinIn INI</th>
-                <th style="width:8%;">CoinOut INI</th>
-                <th style="width:8%;">Jack INI</th>
-                <th style="width:8%;">Prog INI</th>
-                <th style="width:8%;">CoinIn FIN</th>
-                <th style="width:8%;">CoinOut FIN</th>
-                <th style="width:8%;">Jack FIN</th>
-                <th style="width:8%;">Prog FIN</th>
+                <th style="width:4%;">Nº</th>
+                <th style="width:6%;">Diferencia</th>
+                <th style="width:4%;">Den INI</th>
+                <th style="width:7%;">CoinIn INI</th>
+                <th style="width:7%;">CoinOut INI</th>
+                <th style="width:7%;">Jack INI</th>
+                <th style="width:7%;">Prog INI</th>
+                <th style="width:4%;">Den FIN</th>
+                <th style="width:7%;">CoinIn FIN</th>
+                <th style="width:7%;">CoinOut FIN</th>
+                <th style="width:7%;">Jack FIN</th>
+                <th style="width:7%;">Prog FIN</th>
                 <th style="width:10%;">Tipo Ajuste</th>
                 <th style="width:5%;">Acción</th>
               </tr>
@@ -474,73 +445,23 @@ use Illuminate\Http\Request;
       </div>
       <div class="modal-footer">
         <span id="tabla-total-info" style="float:left; margin-top:7px;"></span>
+        <button type="button" id="btn-validar-producido-tabla" class="btn btn-success" style="margin-right:10px;">
+          <i class="fa fa-check-circle"></i> FINALIZAR Y VALIDAR PRODUCIDO
+        </button>
         <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Modal Comparación con Excel -->
-<div class="modal fade" id="modalComparacionExcel" tabindex="-1" role="dialog">
-  <div class="modal-dialog" style="width: 95%;">
-    <div class="modal-content">
-      <div class="modal-header" style="background-color:#FF9800; color:white;">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <h4 class="modal-title"><i class="fa fa-file-excel-o"></i> COMPARACIÓN: SISTEMA vs EXCEL</h4>
-      </div>
-      <div class="modal-body">
-        <div id="estado-excel" style="text-align:center; padding:20px;">
-          <i class="fa fa-spinner fa-spin fa-3x"></i>
-          <p>Procesando Excel...</p>
-        </div>
-        <div id="resultado-excel" style="display:none;">
-          <div class="row" style="margin-bottom:15px;">
-            <div class="col-md-4">
-              <div class="panel panel-info">
-                <div class="panel-heading">Total en Excel</div>
-                <div class="panel-body" style="font-size:24px; text-align:center;" id="excel-total">0</div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="panel panel-primary">
-                <div class="panel-heading">Total en Sistema (con diferencias)</div>
-                <div class="panel-body" style="font-size:24px; text-align:center;" id="sistema-total">0</div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="panel panel-warning">
-                <div class="panel-heading">Con Discrepancias</div>
-                <div class="panel-body" style="font-size:24px; text-align:center;" id="discrepancias-total">0</div>
-              </div>
-            </div>
-          </div>
-          <div style="max-height:400px; overflow-y:auto;">
-            <table class="table table-condensed table-striped table-bordered" id="tabla-comparacion">
-              <thead style="background-color:#FFF3E0;">
-                <tr>
-                  <th>Nº Admin</th>
-                  <th>En Excel</th>
-                  <th>COININ INI (Sist/Excel)</th>
-                  <th>COINOUT INI (Sist/Excel)</th>
-                  <th>COININ FIN (Sist/Excel)</th>
-                  <th>COINOUT FIN (Sist/Excel)</th>
-                  <th>Discrepancias</th>
-                  <th>Usar Excel</th>
-                </tr>
-              </thead>
-              <tbody id="tbody-comparacion"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
 </div>
 
-    <meta name="_token" content="{!! csrf_token() !!}" />
+<input type="file" id="input-excel" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style="display:none;">
+
+<meta name="_token" content="{!! csrf_token() !!}" />
 
     @endsection
 
