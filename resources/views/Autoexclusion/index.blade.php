@@ -1155,13 +1155,13 @@ input[required], select[required]{
             <br>
             <div class="row">
                 <div class="col-md-12">
-                    <h5>ARCHIVO (CSV)</h5>
+                    <h5>ARCHIVO (CSV / EXCEL)</h5>
                     <div class="input-group">
                         <input id="archivoImportacionText" type="text" class="form-control" placeholder="Seleccione un archivo..." readonly onclick="$('#archivoImportacion').click();">
                         <span class="input-group-btn">
                             <label class="btn btn-info fileinput-button" style="background-color: #007bff; border-color: #007bff; color: white;">
                                 <span>Examinar</span>
-                                <input id="archivoImportacion" type="file" name="archivoImportacion" style="display: none;" onchange="$('#archivoImportacionText').val($(this).val());">
+                                <input id="archivoImportacion" type="file" name="archivoImportacion" style="display: none;" onchange="$('#archivoImportacionText').val($(this).val().replace(/C:\\fakepath\\/i, ''))" accept=".csv, .xlsx, .xls">
                             </label>
                         </span>
                     </div>

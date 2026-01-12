@@ -819,6 +819,31 @@ class AutoexclusionController extends Controller
             DB::beginTransaction();
 
             $path = $archivo->getRealPath();
+            
+            // --- Excel Support ---
+            $extension = $archivo->getClientOriginalExtension();
+            if (in_array(strtolower($extension), ['xlsx', 'xls'])) {
+                try {
+                    // Convert Excel to CSV (no headings, so raw data)
+                    $results = \Excel::load($path, function($reader) {
+                        $reader->noHeading(); 
+                    })->get();
+                    
+                    if ($results->count() > 0) {
+                        $tempCsv = tempnam(sys_get_temp_dir(), 'ae_import_');
+                        $handleWrite = fopen($tempCsv, 'w');
+                        foreach ($results as $row) {
+                            // $row is a CellCollection, convert to array
+                            fputcsv($handleWrite, $row->toArray());
+                        }
+                        fclose($handleWrite);
+                        $path = $tempCsv; // USE THE NEW CSV
+                    }
+                } catch (\Exception $e) {
+                    throw new \Exception("Error al procesar archivo Excel: " . $e->getMessage());
+                }
+            }
+            
             $handle = fopen($path, 'r');
             
             if ($handle === false) {
