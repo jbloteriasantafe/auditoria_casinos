@@ -274,7 +274,7 @@ class ProducidoController extends Controller
               'moneda' => $producido->tipo_moneda];
   }
 
-  // Ajuste automático masivo: aplica la fórmula COINOUT_INI -= DIFERENCIAS/DEN_INICIAL a todas las máquinas
+  // Ajuste automático: aplica la fórmula COINOUT_INI -= DIFERENCIAS/DEN_INICIAL a todas las máquinas
   // Esto es el ajuste manual más común que realizan los auditores
   // SOLO DISPONIBLE PARA SUPERUSUARIOS
   public function ajusteAutomaticoMasivo($id_producido){
@@ -313,7 +313,6 @@ class ProducidoController extends Controller
       }
 
       // LÓGICA DE DETECCIÓN DE RESET (Final menor que Inicial)
-      // El usuario indica: "sumamos los valores iniciales con los finales".
       // Esto equivale a: Producido_Reset = ((In_Ini - Out_Ini) + (In_Fin - Out_Fin)) * Denom
       // Nótese que ignoramos Jackpot/Progresivo en esta lógica simplificada de detección primaria, 
       // pero debemos incluirlos para el cálculo preciso.
@@ -330,8 +329,6 @@ class ProducidoController extends Controller
           // Si la diferencia asumiendo reset es "pequeña" (digamos razonable para un ajuste automático, 
           // usaremos el mismo criterio que para ajuste normal implícito), entonces procedemos como Reset.
           // O si es mas pequeña que la diferencia original?
-          // El usuario dice: "Si da cero diferencias, es correcto. si no, hacemos lo usual, la pequeña diferencia va al coin out inicial."
-          
           // Consideramos reset si mejora la diferencia sustancialmente o si es evidente por los contadores
           $es_reset = true;
       }
@@ -1238,6 +1235,72 @@ class ProducidoController extends Controller
       
     } catch(\Exception $e){
       return ['error' => 'Error al procesar Excel: ' . $e->getMessage()];
+    }
+  }
+  
+  // Nuevo método para importar Excel en vista de tabla (Casino Rosario)
+  public function importarExcelTabla(Request $request){
+    try {
+      if(!$request->hasFile('archivo_excel')){
+        return response()->json(['error' => 'No se recibió archivo'], 400);
+      }
+      
+      $archivo = $request->file('archivo_excel');
+      $archivoPath = $archivo->getRealPath();
+      
+      // Usar PHPExcel directamente
+      $excel = \PHPExcel_IOFactory::load($archivoPath);
+      $sheet = $excel->getActiveSheet();
+      $totalRows = $sheet->getHighestRow();
+      
+      $datos = [];
+      
+      // Extraer fecha del Excel (Row 3, Col B: "Jornada Casino: 3/1/2026")
+      $fechaRaw = $sheet->getCell('B3')->getValue();
+      $fechaExcel = null;
+      if(preg_match('/(\d{1,2})\/(\d{1,2})\/(\d{4})/', $fechaRaw, $matches)){
+        $fechaExcel = $matches[3] . '-' . str_pad($matches[2], 2, '0', STR_PAD_LEFT) . '-' . str_pad($matches[1], 2, '0', STR_PAD_LEFT);
+      }
+      
+      // Estructura conocida: Row 8 = headers, Row 9+ = datos
+      // Col B=MTM (quitar últimos 2 dígitos), C=CoinIn INI, D=CoinOut INI, E=Jack INI, F=Prog INI
+      // Col G=CoinIn FIN, H=CoinOut FIN, I=Jack FIN, J=Prog FIN, K=Beneficio
+      
+      for($i = 9; $i <= $totalRows; $i++){
+        $mtmExcel = $sheet->getCell('B' . $i)->getValue();
+        
+        // Saltar filas vacías o de totales
+        if(empty($mtmExcel) || !is_numeric($mtmExcel)) continue;
+        
+        // Quitar últimos 2 dígitos del MTM (142300 -> 1423)
+        $mtm = floor(intval($mtmExcel) / 100);
+        
+        // Contadores ya vienen en créditos, beneficio en pesos
+        $datos[$mtm] = [
+          'mtm' => $mtm,
+          'mtm_excel' => $mtmExcel,
+          'coinin_inicio' => floatval($sheet->getCell('C' . $i)->getValue()),
+          'coinout_inicio' => floatval($sheet->getCell('D' . $i)->getValue()),
+          'jackpot_inicio' => floatval($sheet->getCell('E' . $i)->getValue()),
+          'progresivo_inicio' => floatval($sheet->getCell('F' . $i)->getValue()),
+          'coinin_final' => floatval($sheet->getCell('G' . $i)->getValue()),
+          'coinout_final' => floatval($sheet->getCell('H' . $i)->getValue()),
+          'jackpot_final' => floatval($sheet->getCell('I' . $i)->getValue()),
+          'progresivo_final' => floatval($sheet->getCell('J' . $i)->getValue()),
+          'beneficio' => floatval($sheet->getCell('K' . $i)->getValue())
+        ];
+      }
+      
+      return response()->json([
+        'success' => true,
+        'total' => count($datos),
+        'fecha_excel' => $fechaExcel,
+        'fecha_raw' => $fechaRaw,
+        'datos' => $datos
+      ]);
+      
+    } catch(\Exception $e){
+      return response()->json(['error' => 'Error al procesar Excel: ' . $e->getMessage()], 500);
     }
   }
 }

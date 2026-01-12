@@ -632,6 +632,7 @@ Route::group(['prefix' => 'producidos', 'middleware' => 'tiene_permiso:ver_secci
   Route::get('ajusteAutomaticoIndividual/{id_maquina}/{id_producido}', 'ProducidoController@ajusteAutomaticoIndividual');
   Route::get('obtenerTablaDiferencias/{id_producido}', 'ProducidoController@obtenerTablaDiferencias');
   Route::post('importarExcelConcesionario/{id_producido}', 'ProducidoController@importarExcelConcesionario');
+  Route::post('importarExcelTabla', 'ProducidoController@importarExcelTabla');
 });
 
 /***********
