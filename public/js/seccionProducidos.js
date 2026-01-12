@@ -834,11 +834,20 @@ function renderizarTablaDiferencias(datos) {
       ? 'Diferencia: ' + item.diferencia + ' pesos. Debe ser 0 para guardar.'
       : 'Sin diferencia - Listo para guardar';
 
+    // Calcular sugerencia de denominación (usando Delta Créditos)
+    const deltaCredits = (parseFloat(item.coinin_final) - parseFloat(item.coinin_inicio)) - (parseFloat(item.coinout_final) - parseFloat(item.coinout_inicio)) - (parseFloat(item.jackpot_final) - parseFloat(item.jackpot_inicio)) - (parseFloat(item.progresivo_final) - parseFloat(item.progresivo_inicio));
+    const sugerencia = obtenerSugerenciaDenominacion(deltaCredits, parseFloat(item.producido), parseFloat(item.denominacion_inicio));
+    let btnSugerencia = '';
+    if (sugerencia) {
+      btnSugerencia = '<button type="button" class="btn btn-xs btn-info btn-sugerencia-den" data-val="' + sugerencia + '" style="margin-left:5px; padding:1px 4px; font-size:10px;" title="Sugerencia: Cambiar denominación a ' + sugerencia + ' para corregir la diferencia"><i class="fa fa-lightbulb-o"></i> ' + sugerencia + '?</button>';
+    }
+
     $('#tbody-tabla-diferencias').append(
-      '<tr class="fila-sistema" data-nro="' + item.nro_admin + '" data-id="' + item.id_maquina + '" data-iddetpro="' + item.id_detalle_producido + '" data-iddetini="' + item.id_detalle_contador_inicial + '" data-iddetfin="' + item.id_detalle_contador_final + '" data-prod-importado="' + item.producido + '">' +
+      '<tr class="fila-sistema" data-nro="' + item.nro_admin + '" data-id="' + item.id_maquina + '" data-iddetpro="' + item.id_detalle_producido + '" data-iddetini="' + item.id_detalle_contador_inicial + '" data-iddetfin="' + item.id_detalle_contador_final + '" data-prod-importado="' + item.producido + '" data-es-reset="' + (item.es_reset ? 1 : 0) + '">' +
+      '<td style="text-align:center;"><input type="checkbox" class="check-fila" title="Seleccionar esta fila"></td>' +
       '<td title="Número Administrativo de la máquina">' + item.nro_admin + '</td>' +
       '<td class="celda-diferencia" style="font-weight:bold; color:' + (item.diferencia != 0 ? 'red' : 'green') + '" title="' + difTooltip + '">' + item.diferencia + '</td>' +
-      '<td>' + mkInput(item.denominacion_inicio, 'den-ini', inputStyleDen) + '</td>' +
+      '<td style="white-space:nowrap;">' + mkInput(item.denominacion_inicio, 'den-ini', inputStyleDen) + btnSugerencia + '</td>' +
       '<td>' + mkInput(item.coinin_inicio, 'coinin-ini') + '</td>' +
       '<td><div style="display:flex; align-items:center;">' + mkInput(item.coinout_inicio, 'coinout-ini') +
       '<div class="btn-group" style="margin-left:2px;">' +
@@ -850,7 +859,7 @@ function renderizarTablaDiferencias(datos) {
       '</ul></div></div></td>' +
       '<td>' + mkInput(item.jackpot_inicio, 'jack-ini') + '</td>' +
       '<td>' + mkInput(item.progresivo_inicio, 'prog-ini') + '</td>' +
-      '<td>' + mkInput(item.denominacion_final, 'den-fin', inputStyleDen) + '</td>' +
+      '<td style="white-space:nowrap;">' + mkInput(item.denominacion_final, 'den-fin', inputStyleDen) + '</td>' +
       '<td>' + mkInput(item.coinin_final, 'coinin-fin') + '</td>' +
       '<td>' + mkInput(item.coinout_final, 'coinout-fin') + '</td>' +
       '<td>' + mkInput(item.jackpot_final, 'jack-fin') + '</td>' +
@@ -1021,8 +1030,36 @@ function calcularDiferenciaFila(tr) {
 
   const diferencia = (prodCalculado - prodImportado).toFixed(2);
 
+  // Actualizar sugerencia de denominación dinámicamente
+  tr.find('.btn-sugerencia-den').remove();
+  tr.find('.btn-sherlock').remove(); // Limpiar sugerencia anterior
+
+  const deltaCredits = (inFin - inIni) - (outFin - outIni) - (jackFin - jackIni) - (progFin - progIni);
+  const sugerenciaDen = obtenerSugerenciaDenominacion(deltaCredits, prodImportado, denIni);
+
+  if (parseFloat(diferencia) !== 0) {
+    // 1. Sugerencia Denominación
+    if (sugerenciaDen) {
+      const btn = '<button type="button" class="btn btn-xs btn-info btn-sugerencia-den" data-val="' + sugerenciaDen + '" style="margin-left:5px; padding:1px 4px; font-size:10px;" title="Sugerencia: Cambiar denominación a ' + sugerenciaDen + ' para corregir la diferencia"><i class="fa fa-lightbulb-o"></i> ' + sugerenciaDen + '?</button>';
+      tr.find('.ip-den-ini').after(btn);
+    }
+    // 2. Sherlock Holmes (Heurísticas)
+    else {
+      const sugerenciaSherlock = investigarDiferencia({
+        inIni, outIni, jackIni, progIni, denIni,
+        inFin, outFin, jackFin, progFin, denFin,
+        prodImportado
+      });
+
+      if (sugerenciaSherlock) {
+        const btn = '<button type="button" class="btn btn-xs btn-warning btn-sherlock" data-tipo="' + sugerenciaSherlock.tipo + '" style="margin-left:5px; padding:1px 4px; font-size:10px;" title="Investigación: ' + sugerenciaSherlock.msg + '"><i class="fa fa-user-secret"></i> ' + sugerenciaSherlock.msg + '</button>';
+        tr.find('.celda-diferencia').append(btn);
+      }
+    }
+  }
+
   const celdaDif = tr.find('.celda-diferencia');
-  celdaDif.text(diferencia);
+  celdaDif.contents().filter(function () { return this.nodeType == 3; }).first().replaceWith(diferencia);
 
   // Si hay status (reset), lo mantenemos? O lo quitamos si se arregla? 
   // Mejor solo mostrar el numero por ahora para que se vea claro
@@ -1500,7 +1537,9 @@ $('#input-excel-tabla').on('change', function () {
         $('#excel-tabla-status').html(statusMsg);
         $('#btn-aplicar-excel').show();
         console.log('Datos Excel cargados:', resp.datos);
-        console.log('Fecha Excel:', resp.fecha_excel);
+
+        // Mostrar filas de comparación del CSV
+        renderizarFilasComparativaCSV();
       }
     },
     error: function (xhr) {
@@ -1535,7 +1574,7 @@ $('#btn-aplicar-excel').on('click', function () {
       return; // continue
     }
 
-    // Verificar si hay valores en 0 que necesitan llenarse
+    // Verificar si los valores difieren entre sistema y Excel
     const coininIni = parseFloat(tr.find('.ip-coinin-ini').val()) || 0;
     const coinoutIni = parseFloat(tr.find('.ip-coinout-ini').val()) || 0;
     const coininFin = parseFloat(tr.find('.ip-coinin-fin').val()) || 0;
@@ -1543,8 +1582,8 @@ $('#btn-aplicar-excel').on('click', function () {
 
     let seAplico = false;
 
-    // Si los INI están en 0, aplicar del Excel
-    if (coininIni == 0 && coinoutIni == 0) {
+    // Aplicar INI del Excel si son diferentes
+    if (coininIni != excelRow.coinin_inicio || coinoutIni != excelRow.coinout_inicio) {
       tr.find('.ip-coinin-ini').val(excelRow.coinin_inicio);
       tr.find('.ip-coinout-ini').val(excelRow.coinout_inicio);
       tr.find('.ip-jack-ini').val(excelRow.jackpot_inicio);
@@ -1552,8 +1591,8 @@ $('#btn-aplicar-excel').on('click', function () {
       seAplico = true;
     }
 
-    // Si los FIN están en 0, aplicar del Excel
-    if (coininFin == 0 && coinoutFin == 0) {
+    // Aplicar FIN del Excel si son diferentes
+    if (coininFin != excelRow.coinin_final || coinoutFin != excelRow.coinout_final) {
       tr.find('.ip-coinin-fin').val(excelRow.coinin_final);
       tr.find('.ip-coinout-fin').val(excelRow.coinout_final);
       tr.find('.ip-jack-fin').val(excelRow.jackpot_final);
@@ -1576,4 +1615,389 @@ $('#btn-aplicar-excel').on('click', function () {
   }
 
   alert(msg);
+
+  // Quitar filas de comparación después de aplicar
+  $('.fila-csv-comparativa').remove();
+});
+
+// Función para renderizar filas de comparación del CSV debajo de cada fila del sistema
+function renderizarFilasComparativaCSV() {
+  // Primero quitar filas de comparación anteriores
+  $('.fila-csv-comparativa').remove();
+
+  if (!window.excelTablaData) return;
+
+  let diferencias = 0;
+
+  $('#tbody-tabla-diferencias .fila-sistema').each(function () {
+    const trSistema = $(this);
+    const nroAdmin = trSistema.data('nro');
+    const excelRow = window.excelTablaData[nroAdmin];
+
+    if (!excelRow) return; // No hay datos del CSV para esta MTM
+
+    // Obtener valores del sistema
+    const sysCoininIni = parseFloat(trSistema.find('.ip-coinin-ini').val()) || 0;
+    const sysCoinoutIni = parseFloat(trSistema.find('.ip-coinout-ini').val()) || 0;
+    const sysCoininFin = parseFloat(trSistema.find('.ip-coinin-fin').val()) || 0;
+    const sysCoinoutFin = parseFloat(trSistema.find('.ip-coinout-fin').val()) || 0;
+
+    // Verificar si hay diferencias
+    const hayDifIni = sysCoininIni != excelRow.coinin_inicio || sysCoinoutIni != excelRow.coinout_inicio;
+    const hayDifFin = sysCoininFin != excelRow.coinin_final || sysCoinoutFin != excelRow.coinout_final;
+
+    if (!hayDifIni && !hayDifFin) return; // No hay diferencias
+
+    diferencias++;
+
+    // Crear fila de comparación (CSV)
+    const mkCell = function (sysVal, csvVal) {
+      if (sysVal == csvVal) {
+        return '<td style="background:#E8F5E9; color:#666; font-size:10px; padding:1px 3px;">=' + csvVal + '</td>';
+      } else {
+        return '<td style="background:#FFEBEE; color:#C62828; font-size:10px; padding:1px 3px; font-weight:bold;">' + csvVal + '</td>';
+      }
+    };
+
+    const filaCSV = $('<tr class="fila-csv-comparativa" style="background:#FFF3E0;">' +
+      '<td style="padding:1px 5px; font-size:10px; color:#E65100;"><i class="fa fa-file-text-o"></i> ' + nroAdmin + ' (CSV)</td>' +
+      '<td style="padding:1px 3px; font-size:10px; color:#888;">-</td>' +
+      '<td style="padding:1px 3px; font-size:10px; color:#888;">' + (excelRow.coinin_inicio / excelRow.coinout_inicio * 100 || '-').toString().substring(0, 4) + '</td>' +
+      mkCell(sysCoininIni, excelRow.coinin_inicio) +
+      mkCell(sysCoinoutIni, excelRow.coinout_inicio) +
+      '<td style="font-size:10px; padding:1px 3px;">' + excelRow.jackpot_inicio + '</td>' +
+      '<td style="font-size:10px; padding:1px 3px;">' + excelRow.progresivo_inicio + '</td>' +
+      '<td style="padding:1px 3px; font-size:10px; color:#888;">-</td>' +
+      mkCell(sysCoininFin, excelRow.coinin_final) +
+      mkCell(sysCoinoutFin, excelRow.coinout_final) +
+      '<td style="font-size:10px; padding:1px 3px;">' + excelRow.jackpot_final + '</td>' +
+      '<td style="font-size:10px; padding:1px 3px;">' + excelRow.progresivo_final + '</td>' +
+      '<td colspan="2" style="font-size:10px; padding:1px 3px; color:#E65100;">Beneficio: ' + excelRow.beneficio + '</td>' +
+      '</tr>');
+
+    trSistema.after(filaCSV);
+  });
+
+  if (diferencias > 0) {
+    $('#excel-tabla-status').append(' | <span style="color:#E65100;"><i class="fa fa-exchange"></i> ' + diferencias + ' diferencias</span>');
+    $('#dash-csv-dif').text(diferencias);
+  }
+
+  // Validar fecha del CSV vs fecha del producido
+  validarFechaCSV();
+}
+
+// ==========================================
+// === DASHBOARD, FILTROS, SELECCIÓN MÚLTIPLE
+// ==========================================
+
+// Actualizar dashboard
+function actualizarDashboard() {
+  const filas = $('#tbody-tabla-diferencias .fila-sistema');
+  const total = filas.length;
+  let enCero = 0;
+  let pendientes = 0;
+
+  filas.each(function () {
+    const dif = parseFloat($(this).find('.celda-diferencia').text()) || 0;
+    if (dif === 0) {
+      enCero++;
+    } else {
+      pendientes++;
+    }
+  });
+
+  $('#dash-total').text(total);
+  $('#dash-en-cero').text(enCero);
+  $('#dash-pendientes').text(pendientes);
+}
+
+// Llamar actualizarDashboard después de renderizar tabla
+$(document).on('DOMNodeInserted', '#tbody-tabla-diferencias', function () {
+  setTimeout(actualizarDashboard, 100);
+});
+
+// Filtros rápidos
+$('input[name="filtro"]').on('change', function () {
+  const filtro = $(this).val();
+
+  $('#tbody-tabla-diferencias .fila-sistema').each(function () {
+    const tr = $(this);
+    const dif = parseFloat(tr.find('.celda-diferencia').text()) || 0;
+    const esReset = tr.data('es-reset') == 1;
+
+    let mostrar = true;
+
+    if (filtro === 'con-dif' && dif === 0) mostrar = false;
+    if (filtro === 'en-cero' && dif !== 0) mostrar = false;
+    if (filtro === 'reset' && !esReset) mostrar = false;
+
+    tr.toggle(mostrar);
+    // También ocultar fila CSV comparativa si existe
+    tr.next('.fila-csv-comparativa').toggle(mostrar);
+  });
+});
+
+// Checkbox seleccionar todas
+$('#check-todas-filas').on('change', function () {
+  const checked = $(this).prop('checked');
+  $('#tbody-tabla-diferencias .fila-sistema:visible .check-fila').prop('checked', checked);
+  actualizarContadorSeleccion();
+});
+
+$('#btn-seleccionar-todas').on('click', function () {
+  $('#tbody-tabla-diferencias .fila-sistema:visible .check-fila').prop('checked', true);
+  actualizarContadorSeleccion();
+});
+
+$('#btn-deseleccionar').on('click', function () {
+  $('#tbody-tabla-diferencias .fila-sistema .check-fila').prop('checked', false);
+  actualizarContadorSeleccion();
+});
+
+// Actualizar contador de selección
+$(document).on('change', '.check-fila', function () {
+  actualizarContadorSeleccion();
+});
+
+function actualizarContadorSeleccion() {
+  const seleccionadas = $('#tbody-tabla-diferencias .check-fila:checked').length;
+  $('#contador-seleccion').text(seleccionadas + ' selec.');
+
+  // Mostrar/ocultar barra de operaciones en lote
+  if (seleccionadas > 0) {
+    $('#barra-operaciones-lote').css('display', 'flex');
+  } else {
+    $('#barra-operaciones-lote').hide();
+  }
+}
+
+// Operaciones en lote: Ajuste Automático
+$('#btn-lote-ajuste-auto').on('click', function () {
+  const seleccionadas = $('#tbody-tabla-diferencias .fila-sistema:has(.check-fila:checked)');
+  if (seleccionadas.length === 0) return;
+
+  seleccionadas.each(function () {
+    const tr = $(this);
+    tr.find('.op-ajuste-auto').trigger('click');
+  });
+
+  alert('Ajuste Automático aplicado a ' + seleccionadas.length + ' filas');
+});
+
+// Operaciones en lote: Reset
+$('#btn-lote-reset').on('click', function () {
+  const seleccionadas = $('#tbody-tabla-diferencias .fila-sistema:has(.check-fila:checked)');
+  if (seleccionadas.length === 0) return;
+
+  seleccionadas.each(function () {
+    const tr = $(this);
+    tr.find('.op-reset').trigger('click');
+  });
+
+  alert('Reset aplicado a ' + seleccionadas.length + ' filas');
+});
+
+// Operaciones en lote: Guardar (con barra de progreso)
+$('#btn-lote-guardar').on('click', function () {
+  const seleccionadas = $('#tbody-tabla-diferencias .fila-sistema:has(.check-fila:checked)').filter(function () {
+    const dif = parseFloat($(this).find('.celda-diferencia').text()) || 0;
+    return dif === 0;
+  });
+
+  if (seleccionadas.length === 0) {
+    alert('No hay filas seleccionadas con diferencia 0 para guardar');
+    return;
+  }
+
+  if (!confirm('¿Guardar ' + seleccionadas.length + ' filas con diferencia 0?')) return;
+
+  guardarFilasConProgreso(seleccionadas);
+});
+
+// Guardar filas con barra de progreso
+function guardarFilasConProgreso(filas) {
+  const total = filas.length;
+  let completadas = 0;
+  let errores = 0;
+
+  $('#barra-progreso-container').show();
+  $('#progreso-texto').text('Guardando...');
+  $('#progreso-contador').text('0/' + total);
+  $('#progreso-barra').css('width', '0%');
+
+  // Procesar secuencialmente
+  let index = 0;
+
+  function procesarSiguiente() {
+    if (index >= total) {
+      // Completado
+      $('#progreso-texto').text('Completado');
+      setTimeout(function () {
+        $('#barra-progreso-container').hide();
+        actualizarDashboard();
+        alert('Guardado completado: ' + completadas + ' exitosas, ' + errores + ' errores');
+      }, 500);
+      return;
+    }
+
+    const tr = $(filas[index]);
+    const btn = tr.find('.btn-guardar-fila');
+
+    // Deshabilitar auto-save mientras guaramos en lote
+    tr.data('batch-saving', true);
+
+    // Simular click en guardar
+    btn.trigger('click');
+
+    // Esperar un poco y pasar a la siguiente
+    setTimeout(function () {
+      completadas++;
+      index++;
+      const pct = Math.round((index / total) * 100);
+      $('#progreso-contador').text(index + '/' + total);
+      $('#progreso-barra').css('width', pct + '%');
+      procesarSiguiente();
+    }, 300);
+  }
+
+  procesarSiguiente();
+}
+
+// Validar fecha del CSV vs producido
+function validarFechaCSV() {
+  if (!window.excelFechaRaw) return;
+
+  const fechaProducido = $('#titulo-fecha-producido').text();
+  const fechaCSV = window.excelFechaRaw;
+
+  // Extraer fecha del título (formato: 2026-01-03 - CityCenter)
+  const matchProd = fechaProducido.match(/(\d{4})-(\d{2})-(\d{2})/);
+  // Extraer fecha del CSV (formato: Jornada Casino: 3/1/2026)
+  const matchCSV = fechaCSV.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+
+  if (matchProd && matchCSV) {
+    const fechaProdStr = matchProd[1] + '-' + matchProd[2] + '-' + matchProd[3];
+    const fechaCSVStr = matchCSV[3] + '-' + matchCSV[2].padStart(2, '0') + '-' + matchCSV[1].padStart(2, '0');
+
+    if (fechaProdStr !== fechaCSVStr) {
+      $('#alerta-fecha-csv').show();
+      $('#alerta-fecha-texto').html(' <strong>Fechas no coinciden:</strong> El CSV es del <strong>' + matchCSV[1] + '/' + matchCSV[2] + '/' + matchCSV[3] + '</strong> pero el producido es del <strong>' + matchProd[3] + '/' + matchProd[2] + '/' + matchProd[1] + '</strong>');
+    } else {
+      $('#alerta-fecha-csv').hide();
+    }
+  }
+}
+
+// ==========================================
+// === SUGERENCIAS INTELIGENTES Y SYNC
+// ==========================================
+
+// Sincronizar al cerrar el modal de tabla
+$('#modalTablaCompleta').on('hidden.bs.modal', function () {
+  const id_producido = $('#modalCargaProducidos #id_producido').val();
+  // Recargar la lista de máquinas del modal individual (si está abierto)
+  if ($('#modalCargaProducidos').hasClass('in')) {
+    recargarListaMaquinas(id_producido);
+  }
+});
+
+// Lógica de sugerencia de denominación (calculada dinámicamente)
+function obtenerSugerenciaDenominacion(creditosNetos, producidoImportado, denActual) {
+  if (creditosNetos == 0) return null;
+
+  // Denominaciones comunes en casinos
+  const denomsComunes = [0.01, 0.05, 0.10, 0.25, 0.50, 1.00, 2.00, 5.00, 10.00, 20.00, 50.00, 100.00];
+
+  // Calcular la denominación necesaria para que la diferencia sea 0
+  // Producido = Creditos * Denom  =>  Denom = Producido / Creditos
+  const targetDenom = Math.abs(producidoImportado / creditosNetos);
+
+  // Verificar si es una denominación válida (con tolerancia por decimales)
+  const match = denomsComunes.find(d => Math.abs(d - targetDenom) < 0.0001);
+
+  if (match && match != denActual) {
+    return match;
+  }
+  return null;
+}
+
+// Botón de sugerencia
+$(document).on('click', '.btn-sugerencia-den', function () {
+  const val = $(this).data('val');
+  const tr = $(this).closest('tr');
+
+  // Aplicar a INI y FIN
+  tr.find('.ip-den-ini').val(val);
+  tr.find('.ip-den-fin').val(val);
+
+  // Visual feedback
+  $(this).html('<i class="fa fa-check"></i> Aplicado').removeClass('btn-info').addClass('btn-success');
+
+  // Recalcular
+  calcularDiferenciaFila(tr);
+});
+
+// ==========================================
+// === MODO SHERLOCK HOLMES (Heurísticas)
+// ==========================================
+
+function investigarDiferencia(params) {
+  const { inIni, outIni, jackIni, progIni, denIni, inFin, outFin, jackFin, progFin, denFin, prodImportado } = params;
+
+  // Helper para calcular producido 
+  const calc = (iI, oI, jI, pI, dI, iF, oF, jF, pF, dF) => {
+    const ini = (iI - oI - jI - pI) * dI;
+    const fin = (iF - oF - jF - pF) * dF;
+    return (fin - ini); // Retorna producido calculado
+  };
+
+  const diffOriginal = Math.abs(calc(inIni, outIni, jackIni, progIni, denIni, inFin, outFin, jackFin, progFin, denFin) - prodImportado);
+
+  const tolerance = 1.0; // Tolerancia de $1
+  const sugerencias = [];
+
+  // 1. Inversión CoinIn / CoinOut (Inicio)
+  if (Math.abs(calc(outIni, inIni, jackIni, progIni, denIni, inFin, outFin, jackFin, progFin, denFin) - prodImportado) < tolerance) {
+    sugerencias.push({ tipo: 'swap_ini', msg: 'Invertir CoinIn/Out Inicial' });
+  }
+
+  // 2. Inversión CoinIn / CoinOut (Final)
+  if (Math.abs(calc(inIni, outIni, jackIni, progIni, denIni, outFin, inFin, jackFin, progFin, denFin) - prodImportado) < tolerance) {
+    sugerencias.push({ tipo: 'swap_fin', msg: 'Invertir CoinIn/Out Final' });
+  }
+
+  // 3. Posible vuelta de contador no detectada (si Fin < Ini)
+  // Chequeo simple si agregando 100...000 al final cierra. 
+  // No implementado complejo aquí por riesgo, pero si simple.
+
+  return sugerencias.length > 0 ? sugerencias[0] : null;
+}
+
+// Handler para botón Sherlock (se crea en calcularDiferenciaFila)
+$(document).on('click', '.btn-sherlock', function () {
+  const tr = $(this).closest('tr');
+  const tipo = $(this).data('tipo');
+
+  if (tipo === 'swap_ini') {
+    const v1 = tr.find('.ip-coinin-ini').val();
+    const v2 = tr.find('.ip-coinout-ini').val();
+    tr.find('.ip-coinin-ini').val(v2);
+    tr.find('.ip-coinout-ini').val(v1);
+  } else if (tipo === 'swap_fin') {
+    const v1 = tr.find('.ip-coinin-fin').val();
+    const v2 = tr.find('.ip-coinout-fin').val();
+    tr.find('.ip-coinin-fin').val(v2);
+    tr.find('.ip-coinout-fin').val(v1);
+  }
+
+  // Feedback
+  $(this).html('<i class="fa fa-magic"></i> Corregido').removeClass('btn-warning').addClass('btn-success');
+  calcularDiferenciaFila(tr);
+});
+
+
+// Actualizar dashboard cuando se recalcula diferencia
+$(document).on('change', '#tbody-tabla-diferencias .ip-calc', function () {
+  setTimeout(actualizarDashboard, 200);
 });

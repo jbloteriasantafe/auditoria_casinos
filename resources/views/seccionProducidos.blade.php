@@ -417,6 +417,86 @@ use Illuminate\Http\Request;
         <h4 class="modal-title"><i class="fa fa-table"></i> VISTA DE TABLA - <span id="titulo-fecha-producido"></span></h4>
       </div>
       <div class="modal-body">
+        <!-- Dashboard Resumen -->
+        <div id="dashboard-resumen" style="margin-bottom:10px; padding:10px; background:linear-gradient(135deg, #1976D2, #2196F3); border-radius:6px; color:white; display:flex; justify-content:space-around; align-items:center;">
+          <div style="text-align:center;">
+            <div style="font-size:24px; font-weight:bold;" id="dash-total">0</div>
+            <div style="font-size:11px; opacity:0.8;">Total</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:24px; font-weight:bold; color:#4CAF50;" id="dash-en-cero">0</div>
+            <div style="font-size:11px; opacity:0.8;">En Cero</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:24px; font-weight:bold; color:#FF9800;" id="dash-pendientes">0</div>
+            <div style="font-size:11px; opacity:0.8;">Pendientes</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:24px; font-weight:bold; color:#E91E63;" id="dash-csv-dif">0</div>
+            <div style="font-size:11px; opacity:0.8;">CSV Dif</div>
+          </div>
+        </div>
+
+        <!-- Alerta de Fecha CSV -->
+        <div id="alerta-fecha-csv" style="display:none; padding:8px 12px; background-color:#FFF3E0; border-left:4px solid #FF9800; margin-bottom:10px; border-radius:4px;">
+          <i class="fa fa-exclamation-triangle" style="color:#FF9800;"></i>
+          <span id="alerta-fecha-texto"></span>
+        </div>
+
+        <!-- Filtros Rápidos -->
+        <div style="margin-bottom:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <span style="font-size:12px; color:#666;">Filtros:</span>
+          <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default btn-sm active" id="filtro-todas">
+              <input type="radio" name="filtro" value="todas" checked> Todas
+            </label>
+            <label class="btn btn-default btn-sm" id="filtro-con-dif">
+              <input type="radio" name="filtro" value="con-dif"> Con Diferencia
+            </label>
+            <label class="btn btn-default btn-sm" id="filtro-en-cero">
+              <input type="radio" name="filtro" value="en-cero"> Diferencia = 0
+            </label>
+            <label class="btn btn-default btn-sm" id="filtro-reset">
+              <input type="radio" name="filtro" value="reset"> Reset Detectado
+            </label>
+          </div>
+          
+          <!-- Selección múltiple -->
+          <span style="margin-left:auto; font-size:12px; color:#666;">Selección:</span>
+          <button type="button" class="btn btn-default btn-sm" id="btn-seleccionar-todas" title="Seleccionar todas las filas visibles">
+            <i class="fa fa-check-square-o"></i> Todas
+          </button>
+          <button type="button" class="btn btn-default btn-sm" id="btn-deseleccionar" title="Quitar selección">
+            <i class="fa fa-square-o"></i> Ninguna
+          </button>
+          <span id="contador-seleccion" style="font-size:12px; color:#1976D2; font-weight:bold;">0 selec.</span>
+        </div>
+
+        <!-- Operaciones en Lote -->
+        <div id="barra-operaciones-lote" style="display:none; padding:8px; background-color:#E3F2FD; border-radius:4px; margin-bottom:10px; display:flex; gap:8px; align-items:center;">
+          <span style="font-size:12px; color:#1976D2;"><i class="fa fa-cogs"></i> Operaciones en lote:</span>
+          <button type="button" class="btn btn-sm btn-primary" id="btn-lote-ajuste-auto" title="Aplicar Ajuste Automático a todas las seleccionadas">
+            <i class="fa fa-magic"></i> Ajuste Auto
+          </button>
+          <button type="button" class="btn btn-sm btn-info" id="btn-lote-reset" title="Aplicar Reset (INI + FIN) a todas las seleccionadas">
+            <i class="fa fa-refresh"></i> Reset
+          </button>
+          <button type="button" class="btn btn-sm btn-success" id="btn-lote-guardar" title="Guardar todas las seleccionadas con diferencia 0">
+            <i class="fa fa-save"></i> Guardar Selec.
+          </button>
+        </div>
+
+        <!-- Barra de Progreso -->
+        <div id="barra-progreso-container" style="display:none; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;">
+            <span id="progreso-texto">Guardando...</span>
+            <span id="progreso-contador">0/0</span>
+          </div>
+          <div class="progress" style="height:20px; margin:0;">
+            <div id="progreso-barra" class="progress-bar progress-bar-striped active" style="width:0%; transition:width 0.3s;"></div>
+          </div>
+        </div>
+
         <!-- Excel Import -->
         <div style="margin-bottom:10px; padding:8px; background-color:#FFF8E1; border-radius:4px; display:flex; align-items:center; gap:10px;">
           <label class="btn btn-sm btn-warning" style="margin:0; cursor:pointer;" title="Cargar CSV/Excel de Casino Rosario para comparar contadores">
@@ -424,8 +504,8 @@ use Illuminate\Http\Request;
             <input type="file" id="input-excel-tabla" accept=".xls,.xlsx,.csv" style="display:none;">
           </label>
           <span id="excel-tabla-status" style="font-size:12px; color:#5D4037;"></span>
-          <button type="button" id="btn-aplicar-excel" class="btn btn-sm btn-success" style="display:none;" title="Aplicar valores del Excel a las filas con valores en 0">
-            <i class="fa fa-check"></i> Aplicar a filas vacías
+          <button type="button" id="btn-aplicar-excel" class="btn btn-sm btn-success" style="display:none;" title="Aplicar valores del CSV a las filas que difieren">
+            <i class="fa fa-check"></i> Aplicar comparativa
           </button>
         </div>
 
@@ -433,6 +513,7 @@ use Illuminate\Http\Request;
           <table class="table table-condensed table-striped table-bordered" id="tabla-diferencias-completa">
             <thead style="background-color:#E3F2FD; position:sticky; top:0; z-index:10;">
               <tr>
+                <th style="width:2%; background-color:#E3F2FD; text-align:center;" title="Seleccionar fila"><input type="checkbox" id="check-todas-filas" title="Sel. todas"></th>
                 <th style="width:4%; background-color:#E3F2FD;" title="Número Administrativo de la máquina en el sistema del casino">Nº</th>
                 <th style="width:6%; background-color:#E3F2FD;" title="Diferencia entre el Producido Calculado y el Producido Reportado. Debe ser 0 para guardar.">Diferencia</th>
                 <th style="width:4%; background-color:#E3F2FD;" title="Denominación Inicial: Factor de conversión de créditos a pesos al inicio del día">Den INI</th>
