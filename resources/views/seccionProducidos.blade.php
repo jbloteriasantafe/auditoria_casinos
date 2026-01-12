@@ -414,29 +414,39 @@ use Illuminate\Http\Request;
     <div class="modal-content">
       <div class="modal-header" style="background-color:#2196F3; color:white;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <h4 class="modal-title"><i class="fa fa-table"></i> VISTA DE TABLA - TODAS LAS DIFERENCIAS</h4>
+        <h4 class="modal-title"><i class="fa fa-table"></i> VISTA DE TABLA - <span id="titulo-fecha-producido"></span></h4>
       </div>
       <div class="modal-body">
-        <!-- Comparativa Excel deshabilitada temporalmente -->
+        <!-- Excel Import -->
+        <div style="margin-bottom:10px; padding:8px; background-color:#FFF8E1; border-radius:4px; display:flex; align-items:center; gap:10px;">
+          <label class="btn btn-sm btn-warning" style="margin:0; cursor:pointer;" title="Cargar CSV/Excel de Casino Rosario para comparar contadores">
+            <i class="fa fa-file-text-o"></i> Cargar CSV
+            <input type="file" id="input-excel-tabla" accept=".xls,.xlsx,.csv" style="display:none;">
+          </label>
+          <span id="excel-tabla-status" style="font-size:12px; color:#5D4037;"></span>
+          <button type="button" id="btn-aplicar-excel" class="btn btn-sm btn-success" style="display:none;" title="Aplicar valores del Excel a las filas con valores en 0">
+            <i class="fa fa-check"></i> Aplicar a filas vacías
+          </button>
+        </div>
 
         <div style="max-height:500px; overflow-y:auto;">
           <table class="table table-condensed table-striped table-bordered" id="tabla-diferencias-completa">
-            <thead style="background-color:#E3F2FD;">
+            <thead style="background-color:#E3F2FD; position:sticky; top:0; z-index:10;">
               <tr>
-                <th style="width:4%;">Nº</th>
-                <th style="width:6%;">Diferencia</th>
-                <th style="width:4%;">Den INI</th>
-                <th style="width:7%;">CoinIn INI</th>
-                <th style="width:7%;">CoinOut INI</th>
-                <th style="width:7%;">Jack INI</th>
-                <th style="width:7%;">Prog INI</th>
-                <th style="width:4%;">Den FIN</th>
-                <th style="width:7%;">CoinIn FIN</th>
-                <th style="width:7%;">CoinOut FIN</th>
-                <th style="width:7%;">Jack FIN</th>
-                <th style="width:7%;">Prog FIN</th>
-                <th style="width:10%;">Tipo Ajuste</th>
-                <th style="width:5%;">Acción</th>
+                <th style="width:4%; background-color:#E3F2FD;" title="Número Administrativo de la máquina en el sistema del casino">Nº</th>
+                <th style="width:6%; background-color:#E3F2FD;" title="Diferencia entre el Producido Calculado y el Producido Reportado. Debe ser 0 para guardar.">Diferencia</th>
+                <th style="width:4%; background-color:#E3F2FD;" title="Denominación Inicial: Factor de conversión de créditos a pesos al inicio del día">Den INI</th>
+                <th style="width:7%; background-color:#E3F2FD;" title="CoinIn Inicial: Total de créditos apostados acumulados al inicio del día">CoinIn INI</th>
+                <th style="width:7%; background-color:#E3F2FD;" title="CoinOut Inicial: Total de créditos pagados acumulados al inicio del día">CoinOut INI</th>
+                <th style="width:7%; background-color:#E3F2FD;" title="Jackpot Inicial: Acumulado de jackpots pagados al inicio del día">Jack INI</th>
+                <th style="width:7%; background-color:#E3F2FD;" title="Progresivo Inicial: Acumulado de premios progresivos al inicio del día">Prog INI</th>
+                <th style="width:4%; background-color:#E3F2FD;" title="Denominación Final: Factor de conversión de créditos a pesos al final del día">Den FIN</th>
+                <th style="width:7%; background-color:#E3F2FD;" title="CoinIn Final: Total de créditos apostados acumulados al final del día">CoinIn FIN</th>
+                <th style="width:7%; background-color:#E3F2FD;" title="CoinOut Final: Total de créditos pagados acumulados al final del día">CoinOut FIN</th>
+                <th style="width:7%; background-color:#E3F2FD;" title="Jackpot Final: Acumulado de jackpots pagados al final del día">Jack FIN</th>
+                <th style="width:7%; background-color:#E3F2FD;" title="Progresivo Final: Acumulado de premios progresivos al final del día">Prog FIN</th>
+                <th style="width:10%; background-color:#E3F2FD;" title="Tipo de Ajuste: Define qué valores se usan para calcular. Múltiples Ajustes usa todos los del formulario.">Tipo Ajuste</th>
+                <th style="width:5%; background-color:#E3F2FD;" title="Guardar: Solo funciona cuando la diferencia es 0">Acción</th>
               </tr>
             </thead>
             <tbody id="tbody-tabla-diferencias"></tbody>
@@ -445,7 +455,7 @@ use Illuminate\Http\Request;
       </div>
       <div class="modal-footer">
         <span id="tabla-total-info" style="float:left; margin-top:7px;"></span>
-        <button type="button" id="btn-validar-producido-tabla" class="btn btn-success" style="margin-right:10px;">
+        <button type="button" id="btn-validar-producido-tabla" class="btn btn-success" style="margin-right:10px;" title="Guarda todas las filas con diferencia 0 y valida el producido si todas las máquinas están ajustadas">
           <i class="fa fa-check-circle"></i> FINALIZAR Y VALIDAR PRODUCIDO
         </button>
         <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>

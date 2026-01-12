@@ -640,6 +640,13 @@ function cargarTablaDiferencias(id_producido) {
     const totalDiff = tablaDiferenciasCache.reduce((acc, curr) => acc + Math.abs(curr.diferencia), 0);
     $('#tabla-total-info').text('Total máquinas: ' + data.total + ' | Diferencia acumulada (abs): ' + totalDiff.toFixed(2));
 
+    // Mostrar fecha y casino en el título del modal
+    let fechaTitulo = 'Todas las Diferencias';
+    if (data.producido && data.producido.fecha) {
+      fechaTitulo = data.producido.fecha + ' - ' + data.producido.casino;
+    }
+    $('#titulo-fecha-producido').text(fechaTitulo);
+
     $('#modalTablaCompleta').modal('show');
   });
 }
@@ -798,20 +805,49 @@ function renderizarTablaDiferencias(datos) {
 
     const inputStyle = 'width:90px; padding:2px; height:24px; font-size:11px; text-align:right;';
     const inputStyleDen = 'width:50px; padding:2px; height:24px; font-size:11px; text-align:right;';
+
+    // Tooltips para cada campo
+    const tooltips = {
+      'den-ini': 'Denominación Inicial: Factor de conversión créditos → pesos al inicio del día',
+      'coinin-ini': 'CoinIn Inicial: Total de créditos apostados al inicio del día',
+      'coinout-ini': 'CoinOut Inicial: Total de créditos pagados al inicio del día',
+      'jack-ini': 'Jackpot Inicial: Acumulado de jackpots al inicio del día',
+      'prog-ini': 'Progresivo Inicial: Acumulado de progresivos al inicio del día',
+      'den-fin': 'Denominación Final: Factor de conversión créditos → pesos al final del día',
+      'coinin-fin': 'CoinIn Final: Total de créditos apostados al final del día',
+      'coinout-fin': 'CoinOut Final: Total de créditos pagados al final del día',
+      'jack-fin': 'Jackpot Final: Acumulado de jackpots al final del día',
+      'prog-fin': 'Progresivo Final: Acumulado de progresivos al final del día'
+    };
+
     // Use type="text" to allow math expressions
-    const mkInput = (val, name, style = inputStyle) => '<input type="text" class="form-control ip-calc ip-' + name + '" value="' + (val || 0) + '" style="' + style + '">';
+    const mkInput = (val, name, style = inputStyle) => {
+      const tip = tooltips[name] || name;
+      return '<input type="text" class="form-control ip-calc ip-' + name + '" value="' + (val || 0) + '" style="' + style + '" title="' + tip + '">';
+    };
 
     // Fila SISTEMA
     const magicBtnStyle = 'padding:0; width:22px; height:22px; line-height:20px; font-size:10px; border-radius:50%; margin-left:3px; background-color:#FAFAFA; color:#555; border:1px solid #CCC;';
 
+    // Tooltip para la diferencia
+    const difTooltip = item.diferencia != 0
+      ? 'Diferencia: ' + item.diferencia + ' pesos. Debe ser 0 para guardar.'
+      : 'Sin diferencia - Listo para guardar';
+
     $('#tbody-tabla-diferencias').append(
       '<tr class="fila-sistema" data-nro="' + item.nro_admin + '" data-id="' + item.id_maquina + '" data-iddetpro="' + item.id_detalle_producido + '" data-iddetini="' + item.id_detalle_contador_inicial + '" data-iddetfin="' + item.id_detalle_contador_final + '" data-prod-importado="' + item.producido + '">' +
-      '<td>' + item.nro_admin + '</td>' +
-      '<td class="celda-diferencia" style="font-weight:bold; color:' + (item.diferencia != 0 ? 'red' : 'green') + '">' + item.diferencia + '</td>' +
+      '<td title="Número Administrativo de la máquina">' + item.nro_admin + '</td>' +
+      '<td class="celda-diferencia" style="font-weight:bold; color:' + (item.diferencia != 0 ? 'red' : 'green') + '" title="' + difTooltip + '">' + item.diferencia + '</td>' +
       '<td>' + mkInput(item.denominacion_inicio, 'den-ini', inputStyleDen) + '</td>' +
       '<td>' + mkInput(item.coinin_inicio, 'coinin-ini') + '</td>' +
       '<td><div style="display:flex; align-items:center;">' + mkInput(item.coinout_inicio, 'coinout-ini') +
-      '<button class="btn btn-default btn-magic-calc" title="Ajustar Automático" style="' + magicBtnStyle + '"><i class="fa fa-magic"></i></button></div></td>' +
+      '<div class="btn-group" style="margin-left:2px;">' +
+      '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" title="Operaciones matemáticas" style="' + magicBtnStyle + '">' +
+      '<i class="fa fa-calculator"></i></button>' +
+      '<ul class="dropdown-menu" style="font-size:12px; min-width:200px;">' +
+      '<li><a href="javascript:void(0)" class="op-ajuste-auto" style="padding:8px 15px;"><i class="fa fa-magic"></i> Ajuste Automático</a></li>' +
+      '<li><a href="javascript:void(0)" class="op-reset" style="padding:8px 15px;"><i class="fa fa-refresh"></i> Reset (INI + FIN)</a></li>' +
+      '</ul></div></div></td>' +
       '<td>' + mkInput(item.jackpot_inicio, 'jack-ini') + '</td>' +
       '<td>' + mkInput(item.progresivo_inicio, 'prog-ini') + '</td>' +
       '<td>' + mkInput(item.denominacion_final, 'den-fin', inputStyleDen) + '</td>' +
@@ -819,8 +855,8 @@ function renderizarTablaDiferencias(datos) {
       '<td>' + mkInput(item.coinout_final, 'coinout-fin') + '</td>' +
       '<td>' + mkInput(item.jackpot_final, 'jack-fin') + '</td>' +
       '<td>' + mkInput(item.progresivo_final, 'prog-fin') + '</td>' +
-      '<td><select class="form-control ip-tipo-ajuste" style="width:150px; padding:2px; height:24px; font-size:11px;">' + options + '</select></td>' +
-      '<td><button class="btn btn-xs btn-primary btn-guardar-fila" title="Guardar"><i class="fa fa-save"></i></button></td>' +
+      '<td><select class="form-control ip-tipo-ajuste" style="width:150px; padding:2px; height:24px; font-size:11px;" title="Tipo de Ajuste: Define qué valores usar para el cálculo. Múltiples Ajustes (6) usa todos los valores del formulario.">' + options + '</select></td>' +
+      '<td><button class="btn btn-xs btn-primary btn-guardar-fila" title="Guardar ajuste: Solo funciona si la diferencia es 0"><i class="fa fa-save"></i></button></td>' +
       '</tr>'
     );
 
@@ -992,8 +1028,19 @@ function calcularDiferenciaFila(tr) {
   // Mejor solo mostrar el numero por ahora para que se vea claro
   if (parseFloat(diferencia) === 0) {
     celdaDif.css('color', 'green');
+
+    // Auto-guardar inmediatamente si la diferencia es 0
+    const btn = tr.find('.btn-guardar-fila');
+    if (!btn.prop('disabled') && !tr.data('auto-saving')) {
+      tr.data('auto-saving', true);
+      celdaDif.html('0 <i class="fa fa-save" style="color:#4CAF50;" title="Guardando..."></i>');
+
+      // Guardar inmediatamente (sin delay)
+      btn.trigger('click');
+    }
   } else {
     celdaDif.css('color', 'red');
+    tr.data('auto-saving', false);
   }
 }
 
@@ -1088,11 +1135,31 @@ $(document).on('click', '.btn-guardar-fila', function () {
         notificarExitoFila(tr);
       }
     },
-    error: function (data) {
-      const response = JSON.parse(data.responseText);
-      let msg = "Error al guardar";
-      if (response.coinin_inicio) msg += "\n" + response.coinin_inicio;
-      // ... otros errores
+    error: function (xhr) {
+      let msg = "Error 422 - Validación fallida\n\n";
+      try {
+        const response = xhr.responseJSON || JSON.parse(xhr.responseText);
+        if (response.errors) {
+          // Laravel validation errors format
+          Object.keys(response.errors).forEach(function (field) {
+            msg += "• " + field + ": " + response.errors[field].join(', ') + "\n";
+          });
+        } else if (typeof response === 'object') {
+          // Flat error format
+          Object.keys(response).forEach(function (field) {
+            if (Array.isArray(response[field])) {
+              msg += "• " + field + ": " + response[field].join(', ') + "\n";
+            } else if (typeof response[field] === 'string') {
+              msg += "• " + field + ": " + response[field] + "\n";
+            }
+          });
+        } else {
+          msg += response;
+        }
+      } catch (e) {
+        msg += xhr.responseText || "Error desconocido";
+      }
+      console.log('Error guardarAjuste:', xhr);
       alert(msg);
       btn.prop('disabled', false).html('<i class="fa fa-save"></i>');
     }
@@ -1314,3 +1381,199 @@ $(document).on('click', '#btn-validar-producido-tabla', function () {
   }
 });
 
+// === OPERACIONES MATEMÁTICAS PARA AJUSTES ===
+
+// 1. Ajuste Automático: Resta la diferencia del CoinOut INI
+$(document).on('click', '.op-ajuste-auto', function (e) {
+  e.preventDefault();
+  const tr = $(this).closest('tr');
+  const celdaDif = tr.find('.celda-diferencia');
+  const diferencia = parseFloat(celdaDif.text()) || 0;
+  const denIni = parseFloat(tr.find('.ip-den-ini').val()) || 1;
+
+  // Convertir la diferencia a créditos y restarla del CoinOut INI
+  const difEnCreditos = diferencia / denIni;
+  const coinoutIni = parseFloat(tr.find('.ip-coinout-ini').val()) || 0;
+  const nuevoValor = Math.round(coinoutIni - difEnCreditos);
+
+  tr.find('.ip-coinout-ini').val(nuevoValor).trigger('change');
+  tr.find('.ip-tipo-ajuste').val(6); // Múltiples Ajustes
+});
+
+// 2. Reset (Vuelta de Contadores): Suma valores INI a los FIN
+$(document).on('click', '.op-reset', function (e) {
+  e.preventDefault();
+  const tr = $(this).closest('tr');
+
+  const coininIni = parseFloat(tr.find('.ip-coinin-ini').val()) || 0;
+  const coinoutIni = parseFloat(tr.find('.ip-coinout-ini').val()) || 0;
+  const jackIni = parseFloat(tr.find('.ip-jack-ini').val()) || 0;
+  const progIni = parseFloat(tr.find('.ip-prog-ini').val()) || 0;
+
+  const coininFin = parseFloat(tr.find('.ip-coinin-fin').val()) || 0;
+  const coinoutFin = parseFloat(tr.find('.ip-coinout-fin').val()) || 0;
+  const jackFin = parseFloat(tr.find('.ip-jack-fin').val()) || 0;
+  const progFin = parseFloat(tr.find('.ip-prog-fin').val()) || 0;
+
+  tr.find('.ip-coinin-fin').val(coininFin + coininIni);
+  tr.find('.ip-coinout-fin').val(coinoutFin + coinoutIni);
+  tr.find('.ip-jack-fin').val(jackFin + jackIni);
+  tr.find('.ip-prog-fin').val(progFin + progIni);
+
+  tr.find('.ip-tipo-ajuste').val(2); // Reset de Contadores
+  tr.find('.ip-coinin-fin').trigger('change');
+});
+
+// 3. Copiar INI a FIN
+$(document).on('click', '.op-copiar-ini-fin', function (e) {
+  e.preventDefault();
+  const tr = $(this).closest('tr');
+
+  tr.find('.ip-coinin-fin').val(tr.find('.ip-coinin-ini').val());
+  tr.find('.ip-coinout-fin').val(tr.find('.ip-coinout-ini').val());
+  tr.find('.ip-jack-fin').val(tr.find('.ip-jack-ini').val());
+  tr.find('.ip-prog-fin').val(tr.find('.ip-prog-ini').val());
+  tr.find('.ip-den-fin').val(tr.find('.ip-den-ini').val());
+
+  tr.find('.ip-tipo-ajuste').val(6); // Múltiples Ajustes
+  tr.find('.ip-coinin-fin').trigger('change');
+});
+
+// 4. Limpiar FIN (poner en 0)
+$(document).on('click', '.op-limpiar-fin', function (e) {
+  e.preventDefault();
+  const tr = $(this).closest('tr');
+
+  tr.find('.ip-coinin-fin').val(0);
+  tr.find('.ip-coinout-fin').val(0);
+  tr.find('.ip-jack-fin').val(0);
+  tr.find('.ip-prog-fin').val(0);
+
+  tr.find('.ip-tipo-ajuste').val(3); // Cambio contadores finales
+  tr.find('.ip-coinin-fin').trigger('change');
+});
+
+// 5. Limpiar INI (poner en 0)
+$(document).on('click', '.op-limpiar-ini', function (e) {
+  e.preventDefault();
+  const tr = $(this).closest('tr');
+
+  tr.find('.ip-coinin-ini').val(0);
+  tr.find('.ip-coinout-ini').val(0);
+  tr.find('.ip-jack-ini').val(0);
+  tr.find('.ip-prog-ini').val(0);
+
+  tr.find('.ip-tipo-ajuste').val(5); // Cambio contadores iniciales
+  tr.find('.ip-coinin-ini').trigger('change');
+});
+
+// === EXCEL UPLOAD PARA TABLA (Casino Rosario) ===
+
+window.excelTablaData = null; // Almacena datos del Excel
+
+$('#input-excel-tabla').on('change', function () {
+  if ($(this).val() == '') return;
+
+  const formData = new FormData();
+  formData.append('archivo_excel', $(this)[0].files[0]);
+  formData.append('_token', $('meta[name="_token"]').attr('content'));
+
+  $('#excel-tabla-status').html('<i class="fa fa-spinner fa-spin"></i> Procesando...');
+  $('#btn-aplicar-excel').hide();
+
+  $.ajax({
+    url: 'producidos/importarExcelTabla',
+    type: 'POST',
+    data: formData,
+    contentType: false,
+    processData: false,
+    success: function (resp) {
+      if (resp.error) {
+        $('#excel-tabla-status').html('<i class="fa fa-times" style="color:red;"></i> ' + resp.error);
+      } else {
+        window.excelTablaData = resp.datos;
+        window.excelFechaRaw = resp.fecha_raw;
+        let statusMsg = '<i class="fa fa-check" style="color:green;"></i> ' + resp.total + ' registros';
+        if (resp.fecha_excel) {
+          statusMsg += ' | Fecha: <strong>' + resp.fecha_raw + '</strong>';
+        }
+        $('#excel-tabla-status').html(statusMsg);
+        $('#btn-aplicar-excel').show();
+        console.log('Datos Excel cargados:', resp.datos);
+        console.log('Fecha Excel:', resp.fecha_excel);
+      }
+    },
+    error: function (xhr) {
+      const msg = xhr.responseJSON?.error || 'Error de conexión';
+      $('#excel-tabla-status').html('<i class="fa fa-times" style="color:red;"></i> ' + msg);
+    }
+  });
+
+  // Reset input para permitir cargar mismo archivo
+  $(this).val('');
+});
+
+// Aplicar datos del Excel a filas con valores en 0
+$('#btn-aplicar-excel').on('click', function () {
+  if (!window.excelTablaData) {
+    alert('No hay datos de Excel cargados');
+    return;
+  }
+
+  let aplicados = 0;
+  let noEncontrados = 0;
+
+  $('#tbody-tabla-diferencias .fila-sistema').each(function () {
+    const tr = $(this);
+    const nroAdmin = tr.data('nro');
+
+    // Buscar en Excel (el MTM puede tener formato diferente)
+    let excelRow = window.excelTablaData[nroAdmin];
+
+    if (!excelRow) {
+      noEncontrados++;
+      return; // continue
+    }
+
+    // Verificar si hay valores en 0 que necesitan llenarse
+    const coininIni = parseFloat(tr.find('.ip-coinin-ini').val()) || 0;
+    const coinoutIni = parseFloat(tr.find('.ip-coinout-ini').val()) || 0;
+    const coininFin = parseFloat(tr.find('.ip-coinin-fin').val()) || 0;
+    const coinoutFin = parseFloat(tr.find('.ip-coinout-fin').val()) || 0;
+
+    let seAplico = false;
+
+    // Si los INI están en 0, aplicar del Excel
+    if (coininIni == 0 && coinoutIni == 0) {
+      tr.find('.ip-coinin-ini').val(excelRow.coinin_inicio);
+      tr.find('.ip-coinout-ini').val(excelRow.coinout_inicio);
+      tr.find('.ip-jack-ini').val(excelRow.jackpot_inicio);
+      tr.find('.ip-prog-ini').val(excelRow.progresivo_inicio);
+      seAplico = true;
+    }
+
+    // Si los FIN están en 0, aplicar del Excel
+    if (coininFin == 0 && coinoutFin == 0) {
+      tr.find('.ip-coinin-fin').val(excelRow.coinin_final);
+      tr.find('.ip-coinout-fin').val(excelRow.coinout_final);
+      tr.find('.ip-jack-fin').val(excelRow.jackpot_final);
+      tr.find('.ip-prog-fin').val(excelRow.progresivo_final);
+      seAplico = true;
+    }
+
+    if (seAplico) {
+      aplicados++;
+      tr.find('.ip-tipo-ajuste').val(6); // Múltiples Ajustes
+      tr.css('background-color', '#E3F2FD');
+      tr.find('.ip-coinin-ini').trigger('change');
+    }
+  });
+
+  let msg = 'Excel aplicado:\n';
+  msg += '✓ ' + aplicados + ' filas actualizadas\n';
+  if (noEncontrados > 0) {
+    msg += '⚠ ' + noEncontrados + ' MTMs no encontradas en Excel';
+  }
+
+  alert(msg);
+});
