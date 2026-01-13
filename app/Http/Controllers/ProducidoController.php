@@ -1272,8 +1272,9 @@ class ProducidoController extends Controller
         // Saltar filas vacías o de totales
         if(empty($mtmExcel) || !is_numeric($mtmExcel)) continue;
         
-        // Quitar últimos 2 dígitos del MTM (142300 -> 1423)
-        $mtm = floor(intval($mtmExcel) / 100);
+        // Quitar últimos 2 dígitos del MTM (142300 -> 1423, 143001 -> 1430)
+        $mtmStr = strval($mtmExcel);
+        $mtm = intval(substr($mtmStr, 0, -2));
         
         // Contadores ya vienen en créditos, beneficio en pesos
         $datos[$mtm] = [
