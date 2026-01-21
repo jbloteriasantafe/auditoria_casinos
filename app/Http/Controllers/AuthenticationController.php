@@ -80,8 +80,8 @@ class AuthenticationController extends Controller
     return ['success' => true,'error' => null,'id_usuario' => $usuario->id_usuario];
   }
   
-  public function loginCASTicket($CAS_ENDPOINT,$service,$ticket){
-    $ret = $this->CASserviceValidate($CAS_ENDPOINT,$service,$ticket);
+  public function loginCASTicket($CAS_ENDPOINT,$service,$ticket,$renew){
+    $ret = $this->CASserviceValidate($CAS_ENDPOINT,$service,$ticket,$renew);
     if(!$ret['success']) return $ret;
     
     $usuarios = [];
@@ -106,10 +106,10 @@ class AuthenticationController extends Controller
       }
     }
     
-    return ['success' => true,'usuarios' => $usuarios];
+    return ['success' => true,'usuarios' => $usuarios,'error' => null];
   }
   
-  private function CASserviceValidate($CAS_ENDPOINT,$service,$ticket){
+  private function CASserviceValidate($CAS_ENDPOINT,$service,$ticket,$renew){
     $params = [
       'service' => $service,
       'ticket'  => $ticket,
@@ -119,7 +119,7 @@ class AuthenticationController extends Controller
     set_time_limit(5);
     $ch = curl_init();
     
-    curl_setopt($ch, CURLOPT_URL, $CAS_ENDPOINT.'/serviceValidate?'.http_build_query($params));
+    curl_setopt($ch, CURLOPT_URL, $CAS_ENDPOINT.'/serviceValidate?'.http_build_query($params).($renew? '&renew' : ''));
     curl_setopt($ch, CURLOPT_HEADER, true);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_PROXY, getenv('HTTP_PROXY') ?? null);
