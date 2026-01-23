@@ -81,6 +81,9 @@ class OlvideMiContrasenaController extends Controller
       $data = $validator->getData();
       
       $email_simplificado = $this->simplificar_email($data['email']);
+      if($email_simplificado === false){
+        return $validator->errors()->add('email','Formato incorrecto de email');
+      }
       $usuarios = $this->obtenerUsuariosPorMailSimplificado($email_simplificado);
       if($usuarios->count() == 0){
         return $validator->errors()->add('email', 'No existe usuario asociado a ese correo');
@@ -405,21 +408,19 @@ class OlvideMiContrasenaController extends Controller
     $local_domain = explode('@', $email);
     $local = $local_domain[0];
     $domain = $local_domain[1];
-    //$domain = idn_to_ascii($local_domain[1]);exit(0);
+    //$domain = idn_to_ascii($local_domain[1]);
     $actual_domain = null;
     
-    //if(preg_match_all("/[a-z0-9.\-]+[.][a-z]{2,4}$/i", $domain, $actual_domain)){
-    if(preg_match_all("/[a-z0-9][a-z0-9\-]{1,63}\.[a-z\.]{2,6}$/i", $domain, $actual_domain)){
+    if(preg_match_all("/[a-z0-9][a-z0-9\-]{1,63}\.[a-z\.]{2,}$/i", $domain, $actual_domain)){
       if(count($actual_domain) == 0 || count($actual_domain[0]) == 0)
         return false;
       $actual_domain = $actual_domain[0][0];  
     }
-    if($actual_domain === null) return false;
+    if($actual_domain === null || count($actual_domain) == 0 || count($actual_domain[0]) == 0) return false;
     
     /*$subdomains = $domain == $actual_domain?
       ''
     : substr($domain,0,strlen($domain)-strlen($actual_domain)-1); //-1 por el punto*/
-        
     $domainname = explode('.',$actual_domain)[0];
     if ($domainname === 'gmail' || $domainname === 'googlemail') {
       $local = str_replace('.', '', $local); // Un mail de mail con . es lo mismo que uno sin (es.un.mail@gmail.com == esunmail@gmail.com)
