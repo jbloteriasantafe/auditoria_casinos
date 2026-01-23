@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Validation\Rule;
 use Illuminate\Contracts\View\View;
-use App\APIToken;
 
 class OlvideMiContrasenaController extends Controller
 {
@@ -20,16 +19,35 @@ class OlvideMiContrasenaController extends Controller
     }
     return self::$instance;
   }
+  
+  public function __construct(){
+    DB::statement('CREATE TABLE IF NOT EXISTS recuperar_contrasena (
+      id_recuperar_contrasena INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+      email VARCHAR(128) NOT NULL,
+      email_simplificado VARCHAR(128) NOT NULL,
+      codigo VARCHAR(16) NOT NULL,
+      token_recuperacion VARCHAR(64) NULL,
+      usuario_id_usuario INT NOT NULL,
+      usuario_user_name VARCHAR(64) NOT NULL,
+      usuario_email VARCHAR(128) NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      verified_at TIMESTAMP NULL,
+      resetted_at TIMESTAMP NULL,
+      expired_at TIMESTAMP NULL,
+      invalidated_at TIMESTAMP NULL,
+      KEY `fk_recuperar_contrasena_usuario` (`usuario_id_usuario`),
+      CONSTRAINT `fk_recuperar_contrasena_usuario` FOREIGN KEY (`usuario_id_usuario`) REFERENCES `usuario` (`id_usuario`)
+    )');
+  }
     
-  private function obtenerUsuariosPorMail($email){
-    $email_partes = $this->simplificar_email($email);
+  private function obtenerUsuariosPorMailSimplificado($email_simplificado){
     return \App\Usuario::where([
-      ['email', 'LIKE', $email_partes['local'].'%'],//chequeos rapidos
-      ['email', 'LIKE', '%'.$email_partes['domain']]
+      ['email', 'LIKE', $email_simplificado['local'].'%'],//chequeos rapidos
+      ['email', 'LIKE', '%'.$email_simplificado['domain']]
     ])->get()
-    ->filter(function($u) use ($email_partes){
+    ->filter(function($u) use ($email_simplificado){
       $ep = $this->simplificar_email($u->email);//Verifico que sean emails equivalentes
-      return ($ep['local'] == $email_partes['local']) && ($ep['domain'] == $email_partes['domain']);
+      return ($ep['local'] == $email_simplificado['local']) && ($ep['domain'] == $email_simplificado['domain']);
     });
   }
   
@@ -51,16 +69,19 @@ class OlvideMiContrasenaController extends Controller
   }
   
   public function enviarCodigo(Request $request){
+    $usuarios = null;
+    $email_simplificado = null;
     $V = Validator::make($request->all(),[
       'email' => 'required|email',
     ], [
       'email.required' => 'El email es requerido',
       'email.email' => 'El email no esta en formato correcto',
-    ], [])->after(function ($validator) {
+    ], [])->after(function ($validator) use (&$usuarios,&$email_simplificado) {
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       
-      $usuarios = $this->obtenerUsuariosPorMail($data['email']);
+      $email_simplificado = $this->simplificar_email($data['email']);
+      $usuarios = $this->obtenerUsuariosPorMailSimplificado($email_simplificado);
       if($usuarios->count() == 0){
         return $validator->errors()->add('email', 'No existe usuario asociado a ese correo');
       }
@@ -70,53 +91,121 @@ class OlvideMiContrasenaController extends Controller
       return ['success' => false,'error' => $this->validatorError($V)];
     }
     
-    $codigo = bin2hex(random_bytes(6));
-    $time = time();
-    $this->guardarCodigoRecuperacion($request->email,$codigo,$time);
-    $ok = $this->enviarMailRecuperacion($request->email,$codigo);
-    
-    if($ok != 0){
-      return ['success' => false,'error' => $ok];
+    try {
+      return DB::transaction(function() use ($request,&$usuarios,&$email_simplificado){
+        $codigo = (function($longitud_codigo,$caracteres_validos){
+          $caracteres_validos_length_m1 = strlen($caracteres_validos)-1;
+          $ret = '';
+          for($cidx = 0;$cidx < $longitud_codigo;$cidx++){
+            $randidx = random_int(0,$caracteres_validos_length_m1);
+            $ret .= $caracteres_validos[$randidx];
+          }
+          return $ret;
+        })(
+          env('RESTAURAR_CONTRASEÑA_LONGITUD_CODIGO',6),
+          env('RESTAURAR_CONTRASEÑA_CARACTERES_CODIDO','0123456789')
+        );
+        
+        $interval_expired_at = new \DateInterval(
+          'PT'.//period
+          env('RESTAURAR_CONTRASEÑA_SEGUNDOS_MAX',21600).//6 minutos => 21600
+          'S'//seconds
+        );
+        
+        $created_at = new \DateTimeImmutable();
+        $expired_at = $created_at->add($interval_expired_at);
+        $created_at_str = $created_at->format('Y-m-d h:i:s');
+        $expired_at_str = $expired_at->format('Y-m-d h:i:s');
+        $email_simplificado_str = implode('@',$email_simplificado);
+        
+        //Invalido el codigo enviado previamente
+        DB::table('recuperar_contrasena')
+        ->where('email_simplificado',$email_simplificado_str)
+        ->whereNull('invalidated_at')
+        ->whereNull('verified_at')
+        ->whereNull('resetted_at')
+        ->whereDate('expired_at','>',$created_at_str)//Que no estan expirados
+        ->update([
+          'invalidated_at' => $created_at_str
+        ]);
+                
+        $recuperar_contraseña = [
+          'email' => $request->email,
+          'email_simplificado' => $email_simplificado_str,
+          'codigo' => $codigo,
+          'token_recuperacion' => NULL,
+          'usuario_id_usuario' => NULL,
+          'usuario_user_name' => NULL,
+          'usuario_email' => NULL,
+          'created_at' => $created_at_str,
+          'verified_at' => NULL,
+          'resetted_at' => NULL,
+          'expired_at' => $expired_at_str,
+          'invalidated_at' => NULL
+        ];
+        
+        foreach($usuarios as $u){
+          $recuperar_contraseña['usuario_id_usuario'] = $u->id_usuario;
+          $recuperar_contraseña['usuario_user_name'] = $u->user_name;//Guardo por si cambia el nombre de usuario
+          $recuperar_contraseña['usuario_email'] = $u->email;//Guardo por si guarda el email de usuario
+          DB::table('recuperar_contrasena')
+          ->insert($recuperar_contraseña);
+        }
+        
+        $link = url('/login').'?'.http_build_query([
+          'accion' => 'olvideMiContraseña_verificarCodigo',
+          'email' => $request->email,
+          'codigo' => $codigo
+        ]);
+        
+        \Illuminate\Support\Facades\Mail::to($email_simplificado_str)
+        ->send(new \App\Mail\RecuperarContrasena($request->email,$link));
+        
+        return ['success' => true,'email' => $request->email,'error' => null];
+      });
     }
-    
-    {
-      //@santafe.gov.ar no permite correos equivalentes con + asi que envio al simplificado
-      $email = implode('@',$this->simplificar_email($request->email));
-      $link = url('/login').'?'.http_build_query([
-        'accion' => 'olvideMiContraseña_verificarCodigo',
-        'email' => $email,
-        'codigo' => $codigo
-      ]);
-      
-      \Illuminate\Support\Facades\Mail::to($email)
-      ->send(new \App\Mail\RecuperarContrasena($email,$request->email,$link));
+    catch(\Exception $e){
+      return ['success' => false, 'error' => $e->getMessage()];
     }
-    
-    return ['success' => true,'error' => null];
   }
   
   public function verificarCodigo(Request $request){
-    $usuarios = null;
+    $rcs = null;
+    $now = new \DateTimeImmutable();
     $V = Validator::make($request->all(),[
-      'email' => 'required|email',
+      'email' => 'required|email|exists:recuperar_contrasena,email,verified_at,NULL',
       'codigo' => 'required'
     ], [
       'email.required' => 'El email es requerido',
       'email.email' => 'El email no esta en formato correcto',
+      'email.exists' => 'No existe sesión de reinicio para ese email',
       'codigo.required' => 'Se necesita el código de validación'
-    ], [])->after(function ($validator) use (&$usuarios){
+    ], [])->after(function ($validator) use (&$rcs,$now){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       
-      $usuarios = $this->obtenerUsuariosPorMail($data['email']);
-      if($usuarios->count() == 0){
-        return $validator->errors()->add('email', 'No existe usuario asociado a ese correo');
+      $email_simplificado = implode('@',$this->simplificar_email($data['email']));
+      
+      $rcs = DB::table('recuperar_contrasena')
+      ->where('email_simplificado',$email_simplificado)
+      ->whereNull('invalidated_at')
+      ->whereNull('verified_at')
+      ->whereNull('resetted_at')
+      ->where('expired_at','>',$now->format('Y-m-d h:i:s'))
+      ->get();
+      
+      if($rcs->count() == 0){
+        return $validator->errors()->add('email','No existe sesión de reinicio para ese email');
       }
       
       $codigo = $data['codigo'] ?? null;
-      $estado = $this->verificarCodigoRecuperacion($data['email'],$codigo);
-      if($estado !== 0) {
-        return $validator->errors()->add('codigo',$estado);
+      
+      $rcs = $rcs->filter(function($_rc) use (&$codigo){
+        return $_rc->codigo == $codigo;
+      });
+      
+      if($rcs->count() == 0){
+        return $validator->errors()->add('codigo','Código incorrecto');
       }
     });
     
@@ -124,65 +213,133 @@ class OlvideMiContrasenaController extends Controller
       return ['success' => false,'error' => $this->validatorError($V)];
     }
     
-    $this->eliminarCodigoRecuperacion($request->email);
-    
-    //Codigo aceptado, guardo un token que marca el inicio del proceso 
-    $token_recuperacion = bin2hex(random_bytes(20));
-    request()->session()->put('token_recuperacion', $token_recuperacion);
-    $time = time();
-    foreach($usuarios as $u){
-      $this->guardarSesionRecuperacion($token_recuperacion,$u->user_name,$time);
-      $u->preferencial = $u->email == $request->email;
+    try {
+      return DB::transaction(function() use ($request,&$rcs,$now){
+        $token_recuperacion = bin2hex(random_bytes(20));
+                
+        $verified_at = $now;
+        $interval_expired_at = new \DateInterval(
+          'PT'.//period
+          env('RESTAURAR_CONTRASEÑA_SEGUNDOS_MAX',21600).//6 minutos => 21600
+          'S'//seconds
+        );
+        $expired_at = $verified_at->add($interval_expired_at);
+        
+        $verified_at_str = $verified_at->format('Y-m-d h:i:s');
+        $expired_at_str = $expired_at->format('Y-m-d h:i:s');
+        
+        DB::table('recuperar_contrasena')
+        ->whereIn('id_recuperar_contrasena',$rcs->pluck('id_recuperar_contrasena'))
+        ->update([
+          'token_recuperacion' => $token_recuperacion,
+          'verified_at' => $verified_at_str,
+          'expired_at' => $expired_at_str
+        ]);
+        
+        request()->session()->put('token_recuperacion', $token_recuperacion);
+        
+        $usuarios = \App\Usuario::whereIn('id_usuario',$rcs->pluck('usuario_id_usuario'))
+        ->get();
+        
+        foreach($usuarios as $u){
+          $u->preferencial = $u->email == $request->email;
+        }
+        
+        return ['success' => true,'usuarios' => $usuarios,'error' => null];
+      });
     }
-    return ['success' => true,'usuarios' => $usuarios,'error' => null];
+    catch(\Exception $e){
+      request()->session()->forget('token_recuperacion');
+      return ['success' => false, 'email' => $request->email,'error' => $e->getMessage()];
+    }
   }
   
   public function verificarSeleccionUsuarios(Request $request){   
+    $rcs = null;
+    $now = new \DateTimeImmutable();
+    $token_recuperacion = session()->get('token_recuperacion') ?? null;
+    
     $V = Validator::make($request->all(),[
       'usuarios' => 'required|array|min:1',
-      'usuarios.*' => 'required|exists:usuario,user_name,deleted_at,NULL',
+      'usuarios.*' => 'required|exists:usuario,id_usuario,deleted_at,NULL',
     ], [
       'usuarios.required' => 'Se necesita al menos un usuario',
       'usuarios.array' => 'Formato incorrecto',
       'usuarios.min' => 'Se necesita al menos un usuario',
       'usuarios.*.required' => 'Se necesita al menos un usuario',
-    ], [])->after(function ($validator) {
+    ], [])->after(function ($validator) use(&$rcs,$token_recuperacion,$now) {
       if($validator->errors()->any()) return;
-      $data = $validator->getData();
-      
-      $token_recuperacion = session()->get('token_recuperacion') ?? null;
       if($token_recuperacion === null){
         return $validator->errors()->add('session','No hay una sesión de recuperacion iniciada');
       }
       
-      foreach($data['usuarios'] as $user_name){//Verifico que exista sesion para ese (token,usuario)
-        $estado = $this->verificarSesionRecuperacion($token_recuperacion,$user_name);
-        if($estado !== 0){
-          return $validator->errors()->add('usuarios',$estado);
-        }
+      $data = $validator->getData();
+      
+      $rcs = DB::table('recuperar_contrasena')
+      ->where('token_recuperacion',$token_recuperacion)
+      ->whereIn('usuario_id_usuario',$data['usuarios'])//enviar/recibir id_recuperar_contrasena nomas?
+      ->whereNull('invalidated_at')
+      ->whereNull('resetted_at')
+      ->where('expired_at','>',$now->format('Y-m-d h:i:s'))
+      ->get();
+      
+      if($rcs->count() == 0){
+        return $validator->errors()->add('session','Selección invalida o sesión expirada');
+      }
+      if(count($data['usuarios']) > $rcs->count()){
+        return $validator->errors()->add('session','Selección invalida para la sesión');
       }
     });
     
-    $token_recuperacion = request()->session()->get('token_recuperacion');
+    $rcs_todos = DB::table('recuperar_contrasena')
+    ->where('token_recuperacion',$token_recuperacion)
+    ->whereNull('invalidated_at')
+    ->whereNull('resetted_at')
+    ->get();
+    //Recreo los usuarios elegibles en la sesion
+    $usuarios_todos = \App\Usuario::whereIn('id_usuario',$rcs_todos->pluck('usuario_id_usuario'))->get();
+      
     if($V->fails()){
-      //Recreo los usuarios elegibles en la sesion
-      $usuarios = \App\Usuario::whereIn('user_name',$this->usuariosSesionRecuperacion($token_recuperacion))->get();
-      return ['success' => false,'usuarios' => $usuarios,'error' => $this->validatorError($V)];
+      return ['success' => false,'usuarios' => $usuarios_todos,'error' => $this->validatorError($V)];
     }
     
-    //Borro las sesiones de usuarios que no eligio
-    //y refresco las cuales eligio
-    $this->eliminarSesionRecuperacion($token_recuperacion);
-    $time = time();
-    foreach($request->usuarios as $user_name){
-      $this->guardarSesionRecuperacion($token_recuperacion,$user_name,$time);
+    try {
+      return DB::transaction(function() use ($request,&$rcs,$now){
+        $rcs_invalidar = DB::table('recuperar_contrasena')
+        ->whereNotIn('id_recuperar_contrasena',$rcs->pluck('id_recuperar_contrasena'))
+        ->whereNull('invalidated_at')
+        ->whereNull('resetted_at')
+        ->update([
+          'invalidated_at' => $now->format('Y-m-d h:i:s')
+        ]);
+        
+        $interval_expired_at = new \DateInterval(
+          'PT'.//period
+          env('RESTAURAR_CONTRASEÑA_SEGUNDOS_MAX',21600).//6 minutos => 21600
+          'S'//seconds
+        );
+        $expired_at = $now->add($interval_expired_at);
+        $expired_at_str = $expired_at->format('Y-m-d h:i:s');
+        
+        DB::table('recuperar_contrasena')
+        ->whereIn('id_recuperar_contrasena',$rcs->pluck('id_recuperar_contrasena'))
+        ->update([
+          'expired_at' => $expired_at_str
+        ]);
+        
+        return ['success' => true,'error' => null];
+      });
     }
-    
-    $usuarios = \App\Usuario::whereIn('user_name',$request->usuarios)->get();
-    return ['success' => true,'usuarios' => $usuarios,'error' => null];
+    catch(\Exception $e){
+      return ['success' => false,'usuarios' => $usuarios_todos,'error' => $e->getMessage()];
+    }
   }
   
   public function resetearPasswords(Request $request){
+    $rcs = null;
+    $now = new \DateTimeImmutable();
+    $token_recuperacion = session()->get('token_recuperacion') ?? null;
+    
     $V = Validator::make($request->all(),[
       'password' => 'required|string|min:8|confirmed',
       'password_confirmation' => 'required'
@@ -191,38 +348,51 @@ class OlvideMiContrasenaController extends Controller
       'password_confirmation.required' => '',
       'password.min' => 'Se necesita una longitud de al menos 8 caracteres',
       'password.confirmed' => 'Tienen que coincidir las contraseñas'
-    ], [])->after(function ($validator) use (&$usuarios,&$email_partes){
+    ], [])->after(function ($validator) use (&$rcs,&$token_recuperacion,$now){
       if($validator->errors()->any()) return;
-      $estado = $this->verificarSesionRecuperacion(session()->get('token_recuperacion') ?? null);
-      if($estado !== 0){
-        return $validator->errors()->add('session',$estado);
+      
+      $rcs = DB::table('recuperar_contrasena')
+      ->where('token_recuperacion',$token_recuperacion)
+      ->whereNull('invalidated_at')
+      ->whereNull('resetted_at')
+      ->where('expired_at','>',$now->format('Y-m-d h:i:s'))
+      ->get();
+      
+      if($rcs->count() == 0){
+        return $validator->errors()->add('sesion','No hay una sesión activa');
       }
     });
     
     if($V->fails()){
       return ['success' => false,'error' => $this->validatorError($V)];
     }
-    
-    $token_recuperacion = request()->session()->get('token_recuperacion');
-    $usuarios = \App\Usuario::whereIn('user_name',$this->usuariosSesionRecuperacion($token_recuperacion))->get();
-    
+        
     try {
-      DB::transaction(function() use (&$usuarios,$request){
+      DB::transaction(function() use (&$rcs,$request,$now){
+        $usuarios = \App\Usuario::whereIn('id_usuario',$rcs->pluck('usuario_id_usuario'))->get();
         foreach($usuarios as $u){
           $u->password = $request->password;
+          //Tengo que setear el id_usuario para guardar el reseteo de password
+          //porque tiene attacheado un Observer que guarda en Log quien modifico la entidad
+          //y si no hay usuario en la sesión, tira un error porque no puede ser
+          //Nulo en la BD
           session()->put('id_usuario',$u->id_usuario);
           $u->save();
           session()->forget('id_usuario');
         }
+        
+        DB::table('recuperar_contrasena')
+        ->whereIn('id_recuperar_contrasena',$rcs->pluck('id_recuperar_contrasena'))
+        ->update([
+          'resetted_at' => $now->format('Y-m-d h:i:s')
+        ]);
       });
     }
     catch(\Exception $e){
       session()->forget('id_usuario');
-      throw $e;
+      return ['success' => false,'error' => $e->getMessage()];
     }
-    
-    $this->eliminarSesionRecuperacion($token_recuperacion);
-    
+        
     return ['success' => true,'mensaje' => 'Contraseña modificada','error' => null];
   }
   //@SAFETY: 
@@ -268,151 +438,5 @@ class OlvideMiContrasenaController extends Controller
       'local' => $local,
       'domain' => $domain
     ];
-  }
-  
-  //@TODO: agregar columna a tabla Usuario con token de recuperación
-  private function __path_restaurandoContrasena(){
-    return storage_path('app/restaurandoContraseña.json');
-  }
-    
-  private function __leerArchivoRecuperacion(){
-    $this->__inicializarArchivoRecuperacion();
-    $f_restaurandoContrasena = $this->__path_restaurandoContrasena();
-    return json_decode(file_get_contents($f_restaurandoContrasena),true);
-  }
-  private function __inicializarArchivoRecuperacion(){
-    $f_restaurandoContrasena = $this->__path_restaurandoContrasena();
-    if(!file_exists($f_restaurandoContrasena)){
-      $this->__guardarArchivoRecuperacion((object)[]);
-    }
-    return 1;
-  }
-  private function __guardarArchivoRecuperacion($obj){
-    $f_restaurandoContrasena = $this->__path_restaurandoContrasena();
-    $fh = fopen($f_restaurandoContrasena,'w');
-    fwrite($fh,json_encode($obj,JSON_PRETTY_PRINT));
-    fclose($fh);
-    return 1;
-  }
-    
-  private function guardarCodigoRecuperacion($email,$codigo,$time){
-    $this->__inicializarArchivoRecuperacion();
-    
-    $restaurandoContrasena = $this->__leerArchivoRecuperacion();
-    $restaurandoContrasena['codigos'] = $restaurandoContrasena['codigos'] ?? [];
-    $restaurandoContrasena['codigos'][$email] = $restaurandoContrasena['codigos'][$email] ?? [];
-    $restaurandoContrasena['codigos'][$email] = compact('codigo','time');
-    
-    $this->__guardarArchivoRecuperacion($restaurandoContrasena);
-    
-    return $time;
-  }
-  private function guardarSesionRecuperacion($token_recuperacion,$user_name,$time){
-    $this->__inicializarArchivoRecuperacion();
-    
-    $restaurandoContrasena = $this->__leerArchivoRecuperacion();
-    $restaurandoContrasena['sesiones'] = $restaurandoContrasena['sesiones'] ?? [];
-    $restaurandoContrasena['sesiones'][$token_recuperacion] = $restaurandoContrasena['sesiones'][$token_recuperacion] ?? [];
-    $restaurandoContrasena['sesiones'][$token_recuperacion][$user_name] = $time;
-    
-    $this->__guardarArchivoRecuperacion($restaurandoContrasena);
-    
-    return $time;
-  }
-  
-  private function usuariosSesionRecuperacion($token_recuperacion){
-    $this->__inicializarArchivoRecuperacion();
-    $restaurandoContrasena = $this->__leerArchivoRecuperacion()['sesiones'] ?? [];
-    return array_keys($restaurandoContrasena[$token_recuperacion] ?? []);
-  }
-  
-  private function verificarCodigoRecuperacion($email,$codigo){
-    $this->__inicializarArchivoRecuperacion();
-    
-    $restaurandoContrasena = $this->__leerArchivoRecuperacion();
-    $stored = $restaurandoContrasena['codigos'] ?? [];
-    $stored = $stored[$email] ?? [];
-    $valido = ($stored['codigo'] ?? null) === $codigo;
-    if(!$valido) return 'Invalido';
-    
-    $RESTAURAR_CONTRASEÑA_SEGUNDOS_MAX =  env('RESTAURAR_CONTRASEÑA_SEGUNDOS_MAX',21600);//6 minutos => 21600
-    $time_valido = (time()-($stored['time'] ?? 0)) < $RESTAURAR_CONTRASEÑA_SEGUNDOS_MAX;
-    if(!$time_valido) return 'Expirado';
-    
-    return 0;
-  }
-    
-  private function verificarSesionRecuperacion($token_recuperacion,$user_name = null){
-    $this->__inicializarArchivoRecuperacion();
-    
-    $restaurandoContrasena = $this->__leerArchivoRecuperacion();
-    
-    $sesiones = $restaurandoContrasena['sesiones'] ?? [];
-    $sesiones_token_recuperacion = $sesiones[$token_recuperacion] ?? null;
-    if($sesiones_token_recuperacion === null){
-      return 'Invalido';
-    }
-    
-    if($user_name !== null){
-      $aux = [];
-      $aux[$user_name] = $sesiones_token_recuperacion[$user_name] ?? null;
-      $sesiones_token_recuperacion = $aux;
-    }
-    
-    $RESTAURAR_CONTRASEÑA_SEGUNDOS_MAX = env('RESTAURAR_CONTRASEÑA_SEGUNDOS_MAX',21600);//6 minutos => 21600
-    $curr_time = time();
-    foreach($sesiones_token_recuperacion as $un => $time){
-      if($time === null) return 'Invalido';
-      
-      $time_valido = ($curr_time-$time) < $RESTAURAR_CONTRASEÑA_SEGUNDOS_MAX;
-      if(!$time_valido) return 'Expirado';
-    }
-    
-    return 0;
-  }
-  
-  private function eliminarCodigoRecuperacion($email){
-    $this->__inicializarArchivoRecuperacion();
-    
-    $restaurandoContrasena = $this->__leerArchivoRecuperacion();
-    $codigos = $restaurandoContrasena['codigos'] ?? [];
-    if(!empty($codigos[$email])){
-      unset($restaurandoContrasena['codigos'][$email]);
-      $this->__guardarArchivoRecuperacion($restaurandoContrasena);
-      return true;
-    }
-    
-    return false;
-  }
-  
-  private function eliminarSesionRecuperacion($token_recuperacion,$user_name = null){
-    $this->__inicializarArchivoRecuperacion();
-    
-    $restaurandoContrasena = $this->__leerArchivoRecuperacion();
-    $sesiones = $restaurandoContrasena['sesiones'] ?? [];
-    $sesiones_token_recuperacion = $sesiones[$token_recuperacion] ?? [];
-    
-    if($user_name !== null) {
-      $aux = [];
-      $aux[$user_name] = $sesiones_token_recuperacion[$user_name] ?? null;
-      $sesiones_token_recuperacion = $aux;
-    }
-    
-    foreach($sesiones_token_recuperacion as $un => $_){
-      unset($restaurandoContrasena['sesiones'][$token_recuperacion][$un]);
-    }
-    
-    if(empty($restaurandoContrasena['sesiones'][$token_recuperacion])){
-      unset($restaurandoContrasena['sesiones'][$token_recuperacion]);
-    }
-    
-    $this->__guardarArchivoRecuperacion($restaurandoContrasena);
-    
-    return false;
-  }
-  
-  private function enviarMailRecuperacion($emails,$codigo){
-    //@TODO implementar
-    return 0;
   }
 }

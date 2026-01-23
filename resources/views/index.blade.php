@@ -141,7 +141,7 @@ $mensaje = $mensaje ?? null;
                         <div class="checkbox icheck data-css-hover" style="width: 100%;">
                           <label style="width: 100%;">
                             <?php $checked = !empty($u->preferencial) || (count($usuarios) == 1);?>
-                            <input type="checkbox" name="usuarios[{{$uidx}}]" value="{{$u->user_name}}" {{$checked? 'checked' : ''}}>
+                            <input type="checkbox" name="usuarios[{{$uidx}}]" value="{{$u->id_usuario}}" {{$checked? 'checked' : ''}}>
                             {{$u->user_name}} ({{$u->email}}) 
                             <br>
                             {{$u->roles->pluck('descripcion')->implode(' - ')}}

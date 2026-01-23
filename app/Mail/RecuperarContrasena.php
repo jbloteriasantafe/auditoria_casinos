@@ -18,13 +18,6 @@ class RecuperarContrasena extends Mailable
     public $email;
     
     /**
-    * El recipiente especificamente ingresado (Que es equivalente en terminos de correo)
-    * Ejemplo pepito@gmail.com === pepito+ABC@gmail.com
-    * @var string
-    */
-    public $email_especifico;
-    
-    /**
     * Link de reset
     * @var string
     */
@@ -34,10 +27,9 @@ class RecuperarContrasena extends Mailable
      *
      * @return void
      */
-    public function __construct(string $email,string $email_especifico,string $link)
+    public function __construct(string $email,string $link)
     {
       $this->email = $email;
-      $this->email_especifico = $email_especifico;
       $this->link = $link;
     }
 

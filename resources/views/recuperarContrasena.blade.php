@@ -20,7 +20,7 @@
 <body>
     <div class="container">
         <h2>Hola,</h2>
-        <p>Has recibido este correo porque se solicitó un restablecimiento de contraseña para tu cuenta: <strong>{{ $email_especifico }}</strong>.</p>
+        <p>Has recibido este correo porque se solicitó un restablecimiento de contraseña para tu cuenta: <strong>{{ $email }}</strong>.</p>
         
         <p>Haz clic en el siguiente botón para restablecerla:</p>
         
