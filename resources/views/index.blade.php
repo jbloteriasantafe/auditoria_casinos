@@ -243,6 +243,6 @@ $mensaje = $mensaje ?? null;
       <!-- iCheck -->
       <script src="js/icheck.min.js"></script>
       <!-- JavaScript personalizado -->
-      <script src="js/index.js?1" charset="utf-8"></script>
+      <script src="js/index.js?2" charset="utf-8"></script>
   </body>
 </html>
