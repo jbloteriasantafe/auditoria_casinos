@@ -149,7 +149,8 @@ class OlvideMiContrasenaController extends Controller
         DB::table('recuperar_contrasena')->insert($rcs);
         
         $link = url('/login').'?'.http_build_query([
-          'accion' => 'olvideMiContraseña_verificarCodigo',
+          'router' => 'olvideMiContrasena',
+          'accion' => 'verificarCodigo',
           'email' => $request->email,
           'codigo' => $codigo
         ]);

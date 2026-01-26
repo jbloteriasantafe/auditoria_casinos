@@ -57,8 +57,7 @@ $mensaje = $mensaje ?? null;
                       <center><img src="img/logos/logo_2024_loteria.png" width="90%"></center>
                       <br>
                     </div>
-                    
-                    @if($form == 'login')
+                    @if(empty($router) && $form == 'login')
                       <center><p class="login-box-msg">Ingresá los datos de Usuario y Contraseña</p></center>
                       <div class="form-group has-feedback">
                         <input id="user_name" type="text" class="form-control" placeholder="Usuario">
@@ -86,16 +85,27 @@ $mensaje = $mensaje ?? null;
                       @if(!empty($mensaje))
                       <div class="alert alert-success"><span>{!! $mensaje !!}</span></div>
                       @endif
-                      <center><a href="/login?accion={{urlencode('olvideMiContraseña_ingresarUser')}}" style="color: #337ab7;">+   Olvidé mi Contraseña</a><br></center>
+                      <?php $q = http_build_query([
+                        'router' => 'olvideMiContrasena',
+                        'accion' => 'ingresarUser'
+                      ]); ?>
+                      <center><a href="/login?{!! $q !!}" style="color: #337ab7;">+   Olvidé mi Contraseña</a><br></center>
                       <br>
                       @if($CAS_ENDPOINT)
                       <div class="row">
                         <div class="col-xs-12">
-                          <a role="button" href="{{$CAS_ENDPOINT}}/login?service={{urlencode($CAS_service)}}{{$CAS_renew? '&renew' : ''}}" class="btn btn-block" style="background: #FD7400;color: white;border-color: border-color: #a42e2e;">Ingresar con UID</a>
+                          <?php //Al API de CAS/login le mandamos la dirección de retorno cuando se logee
+                          //renew marca si tiene que pedir User y Password a pesar de ya estar logeado
+                          //(es mas seguro que _SI_ por si alguien le toca la PC a otra persona con el usuario logeado)
+                          $q = http_build_query([
+                            'service' => $CAS_service
+                          ]); 
+                          ?>
+                          <a role="button" href="{{$CAS_ENDPOINT}}/login?{!! $q !!}{{$CAS_renew? '&renew' : ''}}" class="btn btn-block" style="background: #FD7400;color: white;border-color: border-color: #a42e2e;">Ingresar con UID</a>
                         </div>
                       </div>
                       @endif
-                    @elseif(strpos($form,'olvideMiContraseña_') === 0)
+                    @elseif($router == 'olvideMiContrasena')
                       <style>
                         .data-css-hover:hover {
                           background: rgba(0,0,0,0.1);
@@ -107,24 +117,25 @@ $mensaje = $mensaje ?? null;
                           padding: 0.1em;
                         }
                       </style>
-                      <?php $subform = substr($form,strlen('olvideMiContraseña_')); ?>
                       <form action="/login" method="GET">
-                      @if($subform == 'ingresarUser')
-                        <input name="accion" value="olvideMiContraseña_enviarCodigo" hidden readonly>
+                        <input name="router" value="olvideMiContrasena" hidden readonly>
+                      @if($form == 'ingresarUser')
+                        <input name="accion" value="enviarCodigo" hidden readonly>
                         <div class="form-group has-feedback">
                           <input name="email" type="email" class="form-control" placeholder="Correo Electrónico">
                           <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
                         </div>
                         <button type="submit" class="btn btn-primary" style="width: 100%;">Enviar código</button>
-                      @elseif($subform == 'ingresarCodigo')
-                        <input name="accion" value="olvideMiContraseña_verificarCodigo" hidden readonly>
+                      @elseif($form == 'ingresarCodigo')
+                        <input name="accion" value="verificarCodigo" hidden readonly>
                         <div class="form-group has-feedback">
                           <input value="{{$email}}" name="email" type="email" class="form-control" placeholder="Correo Electrónico" readonly>
                           <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
                         </div>
                         <?php
                           $url_reenviar = url('login').'?'.http_build_query([
-                            'accion' => 'olvideMiContraseña_enviarCodigo',
+                            'router' => 'olvideMiContrasena',
+                            'accion' => 'enviarCodigo',
                             'email' => $email
                           ]);//Ya esta urlencoded asi que lo envio sin escapar
                         ?>
@@ -135,8 +146,8 @@ $mensaje = $mensaje ?? null;
                           <span class="glyphicon form-control-feedback"></span>
                         </div>
                         <button type="submit" class="btn btn-primary" style="width: 100%;">Verificar</button>
-                      @elseif($subform == 'seleccionarUsuarios')
-                        <input name="accion" value="olvideMiContraseña_verificarSeleccionUsuarios" hidden readonly>
+                      @elseif($form == 'seleccionarUsuarios')
+                        <input name="accion" value="verificarSeleccionUsuarios" hidden readonly>
                         @foreach($usuarios as $uidx => $u)
                         <div class="checkbox icheck data-css-hover" style="width: 100%;">
                           <label style="width: 100%;">
@@ -149,8 +160,8 @@ $mensaje = $mensaje ?? null;
                         </div>
                         @endforeach
                         <button type="submit" class="btn btn-primary" style="width: 100%;">Seleccionar</button>
-                      @elseif($subform == 'ingresarPassword')
-                        <input name="accion" value="olvideMiContraseña_resetearPasswords" hidden readonly>
+                      @elseif($form == 'ingresarPassword')
+                        <input name="accion" value="resetearPasswords" hidden readonly>
                         <div class="form-group has-feedback">
                           <input name="password" type="password" class="form-control" placeholder="Contraseña" autocomplete="off">
                           <span class="glyphicon form-control-feedback"></span>
@@ -164,7 +175,8 @@ $mensaje = $mensaje ?? null;
                         <legend></legend>
                         <div class="alert alert-danger" {{ empty($error)? 'hidden' : '' }} role="alert" id="alertaLogin"><span>{!! $error ?? '' !!}</span></div>
                       </form>
-                    @elseif($form == 'CAS_seleccionarUsuario')
+                    @elseif($router == 'CAS')
+                      @if($form == 'seleccionarUsuario')
                       @if(!empty($usuarios))
                       <center><p class="login-box-msg">Seleccioná un usuario</p></center>
                       @else
@@ -174,7 +186,8 @@ $mensaje = $mensaje ?? null;
                         @foreach(($usuarios ?? []) as $u)
                         <?php
                           $url_logear_usuario = url('login').'?'.http_build_query([
-                            'accion' => 'CAS_logearUsuario',
+                            'router' => 'CAS',
+                            'accion' => 'logearUsuario',
                             'user_name' => $u->user_name
                           ]);//Ya esta urlencoded asi que lo envio sin escapar
                         ?>
@@ -187,6 +200,7 @@ $mensaje = $mensaje ?? null;
                         <a role="button" href="/login" class="btn btn-primary" style="width: 5em;">Volver</a>
                       </div>
                     @endif
+                  @endif
               </div> <!-- contenedorFormulario -->
             </div> <!-- boxLogo -->
           </div> <!-- row -->
