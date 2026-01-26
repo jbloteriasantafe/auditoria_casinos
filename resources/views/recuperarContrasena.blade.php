@@ -21,9 +21,10 @@
     <div class="container">
         <h2>Hola,</h2>
         <p>Has recibido este correo porque se solicitó un restablecimiento de contraseña para tu cuenta: <strong>{{ $email }}</strong>.</p>
+        <p>Su código de validación es:</p>
+        <h3>{{ $codigo }}</h3>
         
-        <p>Haz clic en el siguiente botón para restablecerla:</p>
-        
+        <p>O haz clic en el siguiente botón para restablecerla:</p>
         <a href="{{ $link }}" class="button" style="color: white;">Restablecer Contraseña</a>
         
         <p>Si no solicitaste este cambio, puedes ignorar este correo de forma segura.</p>

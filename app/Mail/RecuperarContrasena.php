@@ -22,15 +22,23 @@ class RecuperarContrasena extends Mailable
     * @var string
     */
     public $link;
+    
+    /**
+    * Codigo de reset
+    * @var string
+    */
+    public $codigo;    
+    
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct(string $email,string $link)
+    public function __construct(string $email,string $link,string $codigo)
     {
       $this->email = $email;
       $this->link = $link;
+      $this->codigo = $codigo;
     }
 
     /**

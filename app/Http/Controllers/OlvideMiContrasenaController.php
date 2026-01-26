@@ -40,17 +40,6 @@ class OlvideMiContrasenaController extends Controller
     )');
   }
     
-  private function obtenerUsuariosPorMailSimplificado($email_simplificado){
-    return \App\Usuario::where([
-      ['email', 'LIKE', $email_simplificado['local'].'%'],//chequeos rapidos
-      ['email', 'LIKE', '%'.$email_simplificado['domain']]
-    ])->get()
-    ->filter(function($u) use ($email_simplificado){
-      $ep = $this->simplificar_email($u->email);//Verifico que sean emails equivalentes
-      return ($ep['local'] == $email_simplificado['local']) && ($ep['domain'] == $email_simplificado['domain']);
-    });
-  }
-  
   private function validatorError($V){
     return implode('<br>',array_map(function($errs){
       return implode('<br>',$errs);
@@ -61,7 +50,6 @@ class OlvideMiContrasenaController extends Controller
     //Para deshabilitar setear en .env el mensaje DESHABILITAR_OLVIDE_CONTRASEÑA="Mensaje de error"
     $token_recuperacion = session()->get('token_recuperacion') ?? null;
     if($token_recuperacion !== null){
-      $this->eliminarSesionRecuperacion($token_recuperacion);
       session()->forget('token_recuperacion');
     }
     
@@ -69,6 +57,7 @@ class OlvideMiContrasenaController extends Controller
   }
   
   public function enviarCodigo(Request $request){
+    $now = new \DateTimeImmutable();
     $usuarios = null;
     $email_simplificado = null;
     $V = Validator::make($request->all(),[
@@ -84,7 +73,16 @@ class OlvideMiContrasenaController extends Controller
       if($email_simplificado === false){
         return $validator->errors()->add('email','Formato incorrecto de email');
       }
-      $usuarios = $this->obtenerUsuariosPorMailSimplificado($email_simplificado);
+      
+      $usuarios = \App\Usuario::where([
+        ['email', 'LIKE', $email_simplificado['local'].'%'],//chequeos rapidos
+        ['email', 'LIKE', '%'.$email_simplificado['domain']]
+      ])->get()
+      ->filter(function($u) use ($email_simplificado){
+        $ep = $this->simplificar_email($u->email);//Verifico que sean emails equivalentes
+        return ($ep['local'] == $email_simplificado['local']) && ($ep['domain'] == $email_simplificado['domain']);
+      });
+      
       if($usuarios->count() == 0){
         return $validator->errors()->add('email', 'No existe usuario asociado a ese correo');
       }
@@ -95,7 +93,7 @@ class OlvideMiContrasenaController extends Controller
     }
     
     try {
-      return DB::transaction(function() use ($request,&$usuarios,&$email_simplificado){
+      return DB::transaction(function() use ($request,&$usuarios,&$email_simplificado,$now){
         $codigo = (function($longitud_codigo,$caracteres_validos){
           $caracteres_validos_length_m1 = strlen($caracteres_validos)-1;
           $ret = '';
@@ -111,14 +109,14 @@ class OlvideMiContrasenaController extends Controller
         
         $interval_expired_at = new \DateInterval(
           'PT'.//period
-          env('RESTAURAR_CONTRASEÑA_SEGUNDOS_MAX',21600).//6 minutos => 21600
+          env('RESTAURAR_CONTRASEÑA_SEGUNDOS_MAX',360).//6 minutos
           'S'//seconds
         );
         
-        $created_at = new \DateTimeImmutable();
+        $created_at = $now;
         $expired_at = $created_at->add($interval_expired_at);
-        $created_at_str = $created_at->format('Y-m-d h:i:s');
-        $expired_at_str = $expired_at->format('Y-m-d h:i:s');
+        $created_at_str = $created_at->format('Y-m-d H:i:s');
+        $expired_at_str = $expired_at->format('Y-m-d H:i:s');
         $email_simplificado_str = implode('@',$email_simplificado);
         
         //Invalido el codigo enviado previamente
@@ -127,33 +125,28 @@ class OlvideMiContrasenaController extends Controller
         ->whereNull('invalidated_at')
         ->whereNull('verified_at')
         ->whereNull('resetted_at')
-        ->whereDate('expired_at','>',$created_at_str)//Que no estan expirados
         ->update([
           'invalidated_at' => $created_at_str
         ]);
-                
-        $recuperar_contraseña = [
-          'email' => $request->email,
-          'email_simplificado' => $email_simplificado_str,
-          'codigo' => $codigo,
-          'token_recuperacion' => NULL,
-          'usuario_id_usuario' => NULL,
-          'usuario_user_name' => NULL,
-          'usuario_email' => NULL,
-          'created_at' => $created_at_str,
-          'verified_at' => NULL,
-          'resetted_at' => NULL,
-          'expired_at' => $expired_at_str,
-          'invalidated_at' => NULL
-        ];
         
-        foreach($usuarios as $u){
-          $recuperar_contraseña['usuario_id_usuario'] = $u->id_usuario;
-          $recuperar_contraseña['usuario_user_name'] = $u->user_name;//Guardo por si cambia el nombre de usuario
-          $recuperar_contraseña['usuario_email'] = $u->email;//Guardo por si guarda el email de usuario
-          DB::table('recuperar_contrasena')
-          ->insert($recuperar_contraseña);
-        }
+        $rcs = $usuarios->map(function($u) use ($request,$email_simplificado_str,$codigo,$created_at_str,$expired_at_str){
+          return [
+            'email' => $request->email,
+            'email_simplificado' => $email_simplificado_str,
+            'codigo' => $codigo,
+            'token_recuperacion' => NULL,
+            'usuario_id_usuario' => $u->id_usuario,//Guardo por si cambia el nombre de usuario
+            'usuario_user_name' => $u->user_name,//Guardo por si cambia el email de usuario
+            'usuario_email' => $u->email,
+            'created_at' => $created_at_str,
+            'verified_at' => NULL,
+            'resetted_at' => NULL,
+            'expired_at' => $expired_at_str,
+            'invalidated_at' => NULL
+          ];
+        })->toArray();
+        
+        DB::table('recuperar_contrasena')->insert($rcs);
         
         $link = url('/login').'?'.http_build_query([
           'accion' => 'olvideMiContraseña_verificarCodigo',
@@ -162,7 +155,7 @@ class OlvideMiContrasenaController extends Controller
         ]);
         
         \Illuminate\Support\Facades\Mail::to($email_simplificado_str)
-        ->send(new \App\Mail\RecuperarContrasena($request->email,$link));
+        ->send(new \App\Mail\RecuperarContrasena($request->email,$link,$codigo));
         
         return ['success' => true,'email' => $request->email,'error' => null];
       });
@@ -173,35 +166,33 @@ class OlvideMiContrasenaController extends Controller
   }
   
   public function verificarCodigo(Request $request){
-    $rcs = null;
     $now = new \DateTimeImmutable();
+    $rcs = null;
     $V = Validator::make($request->all(),[
       'email' => 'required|email|exists:recuperar_contrasena,email,verified_at,NULL',
       'codigo' => 'required'
     ], [
       'email.required' => 'El email es requerido',
       'email.email' => 'El email no esta en formato correcto',
-      'email.exists' => 'No existe sesión de reinicio para ese email',
+      'email.exists' => 'No existe código de validación para ese email',
       'codigo.required' => 'Se necesita el código de validación'
     ], [])->after(function ($validator) use (&$rcs,$now){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       
-      $email_simplificado = implode('@',$this->simplificar_email($data['email']));
-      
       $rcs = DB::table('recuperar_contrasena')
-      ->where('email_simplificado',$email_simplificado)
+      ->where('email',$data['email'])
       ->whereNull('invalidated_at')
       ->whereNull('verified_at')
       ->whereNull('resetted_at')
-      ->where('expired_at','>',$now->format('Y-m-d h:i:s'))
+      ->where('expired_at','>',$now->format('Y-m-d H:i:s'))//Busco los que no expiraron
       ->get();
       
       if($rcs->count() == 0){
-        return $validator->errors()->add('email','No existe sesión de reinicio para ese email');
+        return $validator->errors()->add('email','No existe o expiro el código de validación para ese email');
       }
       
-      $codigo = $data['codigo'] ?? null;
+      $codigo = $data['codigo'];
       
       $rcs = $rcs->filter(function($_rc) use (&$codigo){
         return $_rc->codigo == $codigo;
@@ -223,24 +214,21 @@ class OlvideMiContrasenaController extends Controller
         $verified_at = $now;
         $interval_expired_at = new \DateInterval(
           'PT'.//period
-          env('RESTAURAR_CONTRASEÑA_SEGUNDOS_MAX',21600).//6 minutos => 21600
+          env('RESTAURAR_CONTRASEÑA_SEGUNDOS_MAX',360).//6 minutos
           'S'//seconds
         );
         $expired_at = $verified_at->add($interval_expired_at);
-        
-        $verified_at_str = $verified_at->format('Y-m-d h:i:s');
-        $expired_at_str = $expired_at->format('Y-m-d h:i:s');
-        
+                
         DB::table('recuperar_contrasena')
         ->whereIn('id_recuperar_contrasena',$rcs->pluck('id_recuperar_contrasena'))
         ->update([
           'token_recuperacion' => $token_recuperacion,
-          'verified_at' => $verified_at_str,
-          'expired_at' => $expired_at_str
+          'verified_at' => $verified_at->format('Y-m-d H:i:s'),
+          'expired_at' => $expired_at->format('Y-m-d H:i:s')
         ]);
-        
+                
         request()->session()->put('token_recuperacion', $token_recuperacion);
-        
+                
         $usuarios = \App\Usuario::whereIn('id_usuario',$rcs->pluck('usuario_id_usuario'))
         ->get();
         
@@ -257,9 +245,9 @@ class OlvideMiContrasenaController extends Controller
     }
   }
   
-  public function verificarSeleccionUsuarios(Request $request){   
-    $rcs = null;
+  public function verificarSeleccionUsuarios(Request $request){
     $now = new \DateTimeImmutable();
+    $rcs = null;
     $token_recuperacion = session()->get('token_recuperacion') ?? null;
     
     $V = Validator::make($request->all(),[
@@ -280,10 +268,10 @@ class OlvideMiContrasenaController extends Controller
       
       $rcs = DB::table('recuperar_contrasena')
       ->where('token_recuperacion',$token_recuperacion)
-      ->whereIn('usuario_id_usuario',$data['usuarios'])//enviar/recibir id_recuperar_contrasena nomas?
+      ->whereIn('usuario_id_usuario',$data['usuarios'])
       ->whereNull('invalidated_at')
       ->whereNull('resetted_at')
-      ->where('expired_at','>',$now->format('Y-m-d h:i:s'))
+      ->where('expired_at','>',$now->format('Y-m-d H:i:s'))//No expiro
       ->get();
       
       if($rcs->count() == 0){
@@ -307,22 +295,23 @@ class OlvideMiContrasenaController extends Controller
     }
     
     try {
-      return DB::transaction(function() use ($request,&$rcs,$now){
+      return DB::transaction(function() use ($request,&$rcs,$now,$token_recuperacion){
         $rcs_invalidar = DB::table('recuperar_contrasena')
+        ->where('token_recuperacion',$token_recuperacion)
         ->whereNotIn('id_recuperar_contrasena',$rcs->pluck('id_recuperar_contrasena'))
         ->whereNull('invalidated_at')
         ->whereNull('resetted_at')
         ->update([
-          'invalidated_at' => $now->format('Y-m-d h:i:s')
+          'invalidated_at' => $now->format('Y-m-d H:i:s')
         ]);
         
         $interval_expired_at = new \DateInterval(
           'PT'.//period
-          env('RESTAURAR_CONTRASEÑA_SEGUNDOS_MAX',21600).//6 minutos => 21600
+          env('RESTAURAR_CONTRASEÑA_SEGUNDOS_MAX',360).//6 minutos
           'S'//seconds
         );
         $expired_at = $now->add($interval_expired_at);
-        $expired_at_str = $expired_at->format('Y-m-d h:i:s');
+        $expired_at_str = $expired_at->format('Y-m-d H:i:s');
         
         DB::table('recuperar_contrasena')
         ->whereIn('id_recuperar_contrasena',$rcs->pluck('id_recuperar_contrasena'))
@@ -358,11 +347,11 @@ class OlvideMiContrasenaController extends Controller
       ->where('token_recuperacion',$token_recuperacion)
       ->whereNull('invalidated_at')
       ->whereNull('resetted_at')
-      ->where('expired_at','>',$now->format('Y-m-d h:i:s'))
+      ->where('expired_at','>',$now->format('Y-m-d H:i:s'))
       ->get();
       
       if($rcs->count() == 0){
-        return $validator->errors()->add('sesion','No hay una sesión activa');
+        return $validator->errors()->add('sesion','Token expirado o no hay sesión activa');
       }
     });
     
@@ -387,8 +376,10 @@ class OlvideMiContrasenaController extends Controller
         DB::table('recuperar_contrasena')
         ->whereIn('id_recuperar_contrasena',$rcs->pluck('id_recuperar_contrasena'))
         ->update([
-          'resetted_at' => $now->format('Y-m-d h:i:s')
+          'resetted_at' => $now->format('Y-m-d H:i:s')
         ]);
+        
+        session()->forget('token_recuperacion');
       });
     }
     catch(\Exception $e){
