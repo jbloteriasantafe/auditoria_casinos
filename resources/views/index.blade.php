@@ -2,7 +2,11 @@
 /* Secuencia Random de Imagen Index*/
 $ruta = 'imgIndex';
 $varImg= rand(1,3);
-$rutaImagen = $ruta.$varImg;
+
+//Mantener el background constante si esta recuperando la contraseña
+$rutaImagen = session()->get('olvideMiContrasena_rutaImagen',$ruta.$varImg);
+session()->put('olvideMiContrasena_rutaImagen',$rutaImagen);
+
 $error = $error ?? '';
 $CAS_ENDPOINT = $CAS_ENDPOINT ?? null;
 $usuarios = $usuarios ?? null;
@@ -58,6 +62,7 @@ $mensaje = $mensaje ?? null;
                       <br>
                     </div>
                     @if(empty($router) && $form == 'login')
+                      <?php session()->forget('olvideMiContrasena_rutaImagen');//Forget para que se refresque el background en el proximo refresh ?>
                       <center><p class="login-box-msg">Ingresá los datos de Usuario y Contraseña</p></center>
                       <div class="form-group has-feedback">
                         <input id="user_name" type="text" class="form-control" placeholder="Usuario">
@@ -176,6 +181,7 @@ $mensaje = $mensaje ?? null;
                         <div class="alert alert-danger" {{ empty($error)? 'hidden' : '' }} role="alert" id="alertaLogin"><span>{!! $error ?? '' !!}</span></div>
                       </form>
                     @elseif($router == 'CAS')
+                      <?php session()->forget('olvideMiContrasena_rutaImagen'); ?>
                       @if($form == 'seleccionarUsuario')
                       @if(!empty($usuarios))
                       <center><p class="login-box-msg">Seleccioná un usuario</p></center>
