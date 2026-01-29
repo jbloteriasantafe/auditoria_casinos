@@ -955,8 +955,11 @@ Route::group(['prefix' => 'denunciasAlea','middleware' => 'tiene_permiso:carga_d
   Route::get('totales-mensuales', 'denunciasAleaController@totalesMensuales');
   Route::post('export-totales', 'denunciasAleaController@exportTotales');
 
-  Route::get('probar-disponibilidad/{id}', 'denunciasAleaController@probarDisponibilidad');
   Route::get('paginas-activas',           'denunciasAleaController@paginasActivas');
+  Route::post('importar-csv-paginas-activas', 'denunciasAleaController@importarCsvPaginasActivas');
+  Route::post('dar-baja-paginas-inactivas', 'denunciasAleaController@darBajaPaginasInactivas');
+  Route::post('exportar-listado-temporal', 'denunciasAleaController@exportarListadoTemporal');
+  Route::post('modificar-cantidad/{id}', 'denunciasAleaController@modificarCantidad');
 });
 //Sección documentación Contable
 Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:ver_documentos_contables'], function () {

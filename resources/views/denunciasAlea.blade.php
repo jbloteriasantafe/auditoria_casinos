@@ -552,48 +552,88 @@
     <div class="col-md-12">
       <div class="panel panel-default">
         <div class="panel-heading">
-          <button id="btn-chequear-visibles" class="btn btn-infoBuscar">
-            <i class="fa fa-bolt"></i> Chequear visibles
-          </button>
-          <button id="btn-refrescar-pagActivas" class="btn btn-default">
-            <i class="fa fa-refresh"></i> Refrescar
-          </button>
-        <div class="row">
-          <div id="pa-summary" class="small text-muted" >
-            Visibles: <b id="pa-total">0</b> ·
-            Activos: <b id="pa-activos">0</b> ·
-            Desconocidos: <b id="pa-unknown">0</b> ·
-            No disp.: <b id="pa-nodisp">0</b>
+          <div class="form-inline">
+             <div class="form-group">
+                <label for="importarPaginasActivasInput" class="btn btn-default" style="margin-bottom: 0;">
+                    <i class="fa fa-folder-open"></i> Seleccionar Archivo
+                </label>
+                <input type="file" id="importarPaginasActivasInput" accept=".csv" style="display:none;">
+                <span id="nombreArchivoSel" style="font-style:italic; margin-left: 5px; color:#555;">Ningún archivo seleccionado</span>
+             </div>
+             <button id="btn-importar-pagActivas" class="btn btn-infoBuscar" style="margin-left: 10px;">
+               <i class="fa fa-upload"></i> Importar CSV
+             </button>
+             
+             <button id="btn-baja-inactivas" class="btn btn-danger" style="margin-left: 20px;" disabled>
+               <i class="fa fa-trash"></i> Dar de baja a paginas inactivas
+             </button>
+
+             <button id="btn-descargarPagActivasExcel" class="btn btn-infoBuscar pull-right" style="margin-left: 5px;" disabled>
+               <i class="fa fa-download"></i> Exportar a Excel
+             </button>
+             <button id="btn-descargarPagActivasPDF" class="btn btn-infoBuscar pull-right" disabled>
+               <i class="fa fa-download"></i> Exportar a PDF
+             </button>
           </div>
         </div>
-      </div>
 
         <div class="panel-body">
-          <div style="max-height:356px; overflow:auto;">
+          <div style="max-height:500px; overflow:auto;">
             <table id="tablaPagActivas" class="table table-striped table-hover" style="table-layout:fixed; width:100%;">
               <colgroup>
-                <col style="width:20%">
-                <col style="width:14%">
-                <col style="width:46%">
-                <col style="width:20%">
+                <col style="width:4%"> <!-- Checkbox -->
+                <col style="width:10%"> <!-- Fecha -->
+                <col style="width:15%"> <!-- Usuario -->
+                <col style="width:26%"> <!-- URL (reduced) -->
+                <col style="width:10%"> <!-- Estado -->
+                <col style="width:20%"> <!-- Detalle -->
+                <col style="width:15%"> <!-- Plataforma -->
               </colgroup>
               <thead>
                 <tr>
+                  <th class="text-center"><input type="checkbox" id="checkAllPagActivas"></th>
+                  <th>Fecha</th>
                   <th>Usuario</th>
+                  <th>URL</th>
+                  <th>Estado</th>
+                  <th>Detalle</th>
                   <th>Plataforma</th>
-                  <th>Link</th>
-                  <th class="text-center">Disponibilidad</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaPagActivas"></tbody>
             </table>
           </div>
-          <div id="herramientasPaginacionPagActivas" class="row zonaPaginacion"></div>
+          <div id="mensajeImportacion" class="text-info" style="margin-top:10px;"></div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- ... (other panels hidden) ... -->
+
+<!-- MODAL BAJA PAGINAS INACTIVAS -->
+<div class="modal fade" id="modalBajaPaginas" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+     <div class="modal-content">
+       <div class="modal-header" style="background-color: #d9534f; color: #fff">
+         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+         <h3 class="modal-title">Dar de baja páginas inactivas</h3>
+       </div>
+       <div class="modal-body">
+         <p>Se encontraron <b id="cant_baja">0</b> páginas con estado <b>Inactivo</b>.</p>
+         <p>A continuación se listan las páginas que serán procesadas:</p>
+         <ul id="lista_baja" style="max-height: 200px; overflow: auto; border: 1px solid #ccc; padding: 10px; background: #f9f9f9;"></ul>
+         <p class="text-danger"><small>Esta acción buscará los usuarios/urls en la base de datos y actualizará su estado a "Baja".</small></p>
+       </div>
+       <div class="modal-footer">
+         <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+         <button type="button" class="btn btn-danger" id="btn-confirmar-baja">Confirmar Baja</button>
+       </div>
+     </div>
+  </div>
+</div>
+
 
 <div id="pant_estadisticas" hidden>
   <div class="row">
