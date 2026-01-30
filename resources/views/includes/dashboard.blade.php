@@ -61,6 +61,10 @@
                  'link' => '/cargar-notas',
                  'algun_permiso' => ['ver_cargar_notas'],
              ],
+             'Notas Unificadas' => [
+                 'link' => '/notas-unificadas',
+                 // 'algun_permiso' => ['ver_cargar_notas'], 
+             ],
          ],
      ],
      'Máquinas' => [

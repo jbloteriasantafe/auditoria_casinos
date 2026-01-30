@@ -1656,9 +1656,9 @@ function renderizarFilasComparativaCSV() {
     // Crear fila de comparación (CSV)
     const mkCell = function (sysVal, csvVal) {
       if (sysVal == csvVal) {
-        return '<td style="background:#E8F5E9; color:#666; font-size:10px; padding:1px 3px;">=' + csvVal + '</td>';
+        return '<td style="background:#E8F5E9; color:#666; font-size:10px; padding:1px 3px;" title="Coincide con CSV: ' + csvVal + '">=' + csvVal + '</td>';
       } else {
-        return '<td style="background:#FFEBEE; color:#C62828; font-size:10px; padding:1px 3px; font-weight:bold;">' + csvVal + '</td>';
+        return '<td style="background:#FFEBEE; color:#C62828; font-size:10px; padding:1px 3px; font-weight:bold;" title="Difiere de sistema (' + sysVal + ') -> CSV: ' + csvVal + '">' + csvVal + '</td>';
       }
     };
 
