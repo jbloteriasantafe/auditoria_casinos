@@ -1148,6 +1148,7 @@ $(document).on('click', '.btn-guardar-fila', function () {
             setTimeout(() => tr.find('.ip-tipo-ajuste').css('background-color', ''), 2000);
 
             btn.prop('disabled', false).html('<i class="fa fa-save"></i>');
+            tr.data('auto-saving', false); // Reset flag if manual intervention needed
             return;
           }
 
@@ -1163,6 +1164,7 @@ $(document).on('click', '.btn-guardar-fila', function () {
             console.log('Debug guardarAjuste:', resp.debug);
           }
           alert(msg);
+          tr.data('auto-saving', false); // Important: Reset flag on failure
           btn.prop('disabled', false).html('<i class="fa fa-save"></i>');
         } else {
           // Exito probable (el controller retorna objeto producido si todo OK)
@@ -1198,6 +1200,7 @@ $(document).on('click', '.btn-guardar-fila', function () {
       }
       console.log('Error guardarAjuste:', xhr);
       alert(msg);
+      tr.data('auto-saving', false); // Important: Reset flag on error
       btn.prop('disabled', false).html('<i class="fa fa-save"></i>');
     }
   });
@@ -1653,25 +1656,26 @@ function renderizarFilasComparativaCSV() {
     // Crear fila de comparación (CSV)
     const mkCell = function (sysVal, csvVal) {
       if (sysVal == csvVal) {
-        return '<td style="background:#E8F5E9; color:#666; font-size:10px; padding:1px 3px;">=' + csvVal + '</td>';
+        return '<td style="background:#E8F5E9; color:#666; font-size:10px; padding:1px 3px;" title="Coincide con CSV: ' + csvVal + '">=' + csvVal + '</td>';
       } else {
-        return '<td style="background:#FFEBEE; color:#C62828; font-size:10px; padding:1px 3px; font-weight:bold;">' + csvVal + '</td>';
+        return '<td style="background:#FFEBEE; color:#C62828; font-size:10px; padding:1px 3px; font-weight:bold;" title="Difiere de sistema (' + sysVal + ') -> CSV: ' + csvVal + '">' + csvVal + '</td>';
       }
     };
 
     const filaCSV = $('<tr class="fila-csv-comparativa" style="background:#FFF3E0;">' +
+      '<td></td>' + // Checkbox column (empty)
       '<td style="padding:1px 5px; font-size:10px; color:#E65100;"><i class="fa fa-file-text-o"></i> ' + nroAdmin + ' (CSV)</td>' +
-      '<td style="padding:1px 3px; font-size:10px; color:#888;">-</td>' +
-      '<td style="padding:1px 3px; font-size:10px; color:#888;">' + (excelRow.coinin_inicio / excelRow.coinout_inicio * 100 || '-').toString().substring(0, 4) + '</td>' +
-      mkCell(sysCoininIni, excelRow.coinin_inicio) +
-      mkCell(sysCoinoutIni, excelRow.coinout_inicio) +
-      '<td style="font-size:10px; padding:1px 3px;">' + excelRow.jackpot_inicio + '</td>' +
-      '<td style="font-size:10px; padding:1px 3px;">' + excelRow.progresivo_inicio + '</td>' +
-      '<td style="padding:1px 3px; font-size:10px; color:#888;">-</td>' +
-      mkCell(sysCoininFin, excelRow.coinin_final) +
-      mkCell(sysCoinoutFin, excelRow.coinout_final) +
-      '<td style="font-size:10px; padding:1px 3px;">' + excelRow.jackpot_final + '</td>' +
-      '<td style="font-size:10px; padding:1px 3px;">' + excelRow.progresivo_final + '</td>' +
+      '<td style="padding:1px 3px; font-size:10px; color:#888;">' + (excelRow.beneficio || '-') + '</td>' + // Diferencia column (showing beneficio here or just diff?) actually user wants CSV values.
+      '<td style="padding:1px 3px; font-size:10px; color:#888;">-</td>' + // Den INI
+      mkCell(sysCoininIni, excelRow.coinin_inicio) + // CoinIn INI
+      mkCell(sysCoinoutIni, excelRow.coinout_inicio) + // CoinOut INI
+      '<td style="font-size:10px; padding:1px 3px;">' + (excelRow.jackpot_inicio || 0) + '</td>' + // Jack INI
+      '<td style="font-size:10px; padding:1px 3px;">' + (excelRow.progresivo_inicio || 0) + '</td>' + // Prog INI
+      '<td style="padding:1px 3px; font-size:10px; color:#888;">-</td>' + // Den FIN
+      mkCell(sysCoininFin, excelRow.coinin_final) + // CoinIn FIN
+      mkCell(sysCoinoutFin, excelRow.coinout_final) + // CoinOut FIN
+      '<td style="font-size:10px; padding:1px 3px;">' + (excelRow.jackpot_final || 0) + '</td>' + // Jack FIN
+      '<td style="font-size:10px; padding:1px 3px;">' + (excelRow.progresivo_final || 0) + '</td>' + // Prog FIN
       '<td colspan="2" style="font-size:10px; padding:1px 3px; color:#E65100;">Beneficio: ' + excelRow.beneficio + '</td>' +
       '</tr>');
 
@@ -1846,6 +1850,7 @@ function guardarFilasConProgreso(filas) {
 
     // Deshabilitar auto-save mientras guaramos en lote
     tr.data('batch-saving', true);
+    tr.data('auto-saving', false); // Force clear stuck state (fix bug)
 
     // Simular click en guardar
     btn.trigger('click');

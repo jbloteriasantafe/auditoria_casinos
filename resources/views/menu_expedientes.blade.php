@@ -17,6 +17,16 @@ $id_usuario = session('id_usuario');
 
   <div class="container-fluid"> -->
       <div class="row">
+          <div class="col-md-4">
+            <a href="/notas-unificadas" class="tarjetaMenu">
+                <div class="contenedorTarjeta" align="center">
+                      <img class="imagenTarjeta" src="/img/tarjetas/img_Expedientes.jpg" alt="">
+                      <h1 class="tituloTarjeta">NOTAS UNIFICADAS</h1>
+                      <p class="detalleTarjeta">Gestión unificada de Notas, Fiscalización y Marketing.</p>
+                </div>
+            </a>
+          </div>
+
          @if(AuthenticationController::getInstancia()->usuarioTienePermiso($id_usuario,'ver_seccion_expedientes'))
           <div class="col-md-4">
             <a href="expedientes" class="tarjetaMenu">
@@ -111,6 +121,8 @@ $id_usuario = session('id_usuario');
             </a> -->
           </div>
           @endif
+          
+
       </div>
   <!-- </div>
 
