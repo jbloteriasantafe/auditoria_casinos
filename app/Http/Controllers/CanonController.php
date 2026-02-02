@@ -1792,13 +1792,15 @@ class CanonController extends Controller
       if(count($d) == 0) unset($ret[$k]);
     }
     
-    $SB = DB::getSchemaBuilder();
-    $types = [];
-    foreach($ret as $tabla => $d){
-      foreach($SB->getColumnListing($tabla) as $cidx => $col){
-        $types[$tabla][$col] = $SB->getColumnType($tabla, $col);
-      }
-    }
+    //@HACK: Solo para MySQl, lo hago así porque se elimino una dependencia con Doctrine... no quiero tocar el composer.json
+    $types = DB::table(DB::raw('INFORMATION_SCHEMA.COLUMNS'))
+    ->selectRaw("table_name as 'table', column_name as col, data_type as type")
+    ->whereIn('table_name',array_keys($ret))
+    ->get()->groupBy('table')->map(function($tcols){
+      return $tcols->keyBy('col')->map(function($T){
+        return $T->type;
+      });
+    });
     
     foreach($ret as $tabla => $d){
       foreach($d as $rowidx => $row){
@@ -1806,11 +1808,18 @@ class CanonController extends Controller
           switch($types[$tabla][$col] ?? null){
             case 'smallint':
             case 'integer':
+            case 'int':
             case 'decimal': if($formatear_decimal){
               $ret[$tabla][$rowidx][$col] = self::formatear_decimal((string)$val);//number_format castea a float... lo hacemos a pata...
             }break;
-            default:
-            case 'string':{
+            
+            case 'bool':
+            case 'boolean':
+            case 'tinyint':{
+              $ret[$tabla][$rowidx][$col] = intval($val)? 'SÍ' : 'NO';
+            }break;
+            
+            default:{
               $ret[$tabla][$rowidx][$col] = trim($val);
             }break;
           }
