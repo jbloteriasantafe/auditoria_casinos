@@ -2149,6 +2149,30 @@ class CanonController extends Controller
     return $dompdf->stream($filename, Array('Attachment'=>0));
   }
   
+  public function planillaInformeCanon(Request $request){
+    $planilla = 'canon_mensual';
+    
+    $canon = DB::table('canon')
+    ->where('id_canon',$request->id_canon)
+    ->whereNull('deleted_at')
+    ->first();
+    if($canon === null) return 'Canon no existente';
+    
+    $casino = Casino::find($canon->id_casino);
+    if($casino === null) return 'Casino no existente';
+    $casino = $casino->nombre;
+    
+    $meses_calendario = collect([null,'Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']);
+    unset($meses_calendario[0]);
+    $año_mes_arr = explode('-',$canon->año_mes);
+    $año = $año_mes_arr[0];
+    $mes = $meses_calendario[intval($año_mes_arr[1])];
+    
+    $params = http_build_query(compact('planilla','casino','año','mes'));
+    
+    return redirect('/canon/descargarPlanillas?'.$params);
+  }
+  
   public function descargar(Request $request){
     $data = $this->buscar($request,false);
     
@@ -2246,35 +2270,34 @@ class CanonController extends Controller
       $años = collect(array_reverse(range($primer_año,$ultimo_año,1)));
     }
     $año  = $request->año ?? null;
-    $año  = $año === null || $año == 'evolucion_cotizacion'? null : intval($año);
+    $año  = $año === null? null : intval($año);
     $año_anterior = $año === null? null : ($año-1);
     
-    $meses = collect([]);
-    $meses_elegibles = ['Resumen'];//@HACK hasta que agregue un canon diario... despues solo usar $meses
     $meses_calendario = collect([null,'Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']);
     unset($meses_calendario[0]);
     
-    $meses = collect(['Resumen','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']);
-    if($primer_mes !== null && $ultimo_mes !== null){      
-      if($año == $primer_año){
-        foreach($meses as $mnum => $m){
-          if($mnum == 0) continue;
-          if($mnum == $primer_mes){
-            break;
-          }
+    $meses = clone $meses_calendario;
+    if($año == $primer_año){//Queda mas legible en dos loops, mas que unirlo
+      $_mescheck = $primer_mes ?? 1;
+      $_unsetting = true;
+      foreach($meses as $mnum => $m){
+        if($mnum == $_mescheck){
+          $_unsetting = false;
+        }
+        if($_unsetting){
           unset($meses[$mnum]);
         }
       }
-      else if($año == $ultimo_año){
-        $unsetting = false;
-        foreach($meses as $mnum => $m){
-          if($mnum == 0) continue;
-          if($mnum == $ultimo_mes){
-            $unsetting = true;
-          }
-          else if($unsetting){
-            unset($meses[$mnum]);
-          }
+    }
+    elseif($año == $ultimo_año){
+      $_mescheck = $ultimo_mes ?? 12;
+      $_unsetting = false;
+      foreach($meses as $mnum => $m){
+        if($_unsetting){
+          unset($meses[$mnum]);
+        }
+        if($mnum == $_mescheck){
+          $_unsetting = true;
         }
       }
     }
@@ -2285,14 +2308,25 @@ class CanonController extends Controller
     
     $planillas = [
       'evolucion_historica' => 'Evolución Historica',
-      'actualizacion_valores' => 'Actualización Valores Mesas',
       'canon_total' => 'Canon Total',
       'canon_fisico_online' => 'Canon Físico-On Line',
-      'participacion' => 'Particip. % Resultado CF-JOL'
+      'participacion' => 'Particip. % Resultado CF-JOL',
+      'actualizacion_valores' => 'Actualización Valores Mesas',
+      'evolucion_cotizacion' => 'Evolución Cotizacion',
+      'canon_mensual' => 'Canon Mensual'
     ];
-    $planillas_anuales = ['canon_total','canon_fisico_online','participacion','bingos'];
-    $es_anual = isset($planilla) && $planilla !== null && in_array($planilla,$planillas_anuales);
     
+    $planillas_botones = [
+      '' => ['planilla'],
+      'evolucion_historica' => ['planilla'],
+      'canon_total' => ['planilla','año'],
+      'canon_fisico_online' => ['planilla','año'],
+      'participacion' => ['planilla','año'],
+      'actualizacion_valores' => ['planilla','casino','año'],
+      'evolucion_cotizacion' => ['planilla','casino'],
+      'canon_mensual' => ['planilla','casino','año','mes'],
+    ];
+        
     $data = collect([]);
     $data_anual = collect([]);
     $tipos_variables_fisicos = ['Maquinas','Bingo'];
@@ -2461,7 +2495,7 @@ class CanonController extends Controller
       (SUM(c.determinado)-SUM(c.devengado)) as diferencia,
       ROUND(100*(1-SUM(c.devengado)/NULLIF(SUM(c.determinado),0)),2) as variacion_sobre_devengado';
     }
-    else if($planilla == 'actualizacion_valores'){
+    else if($planilla == 'actualizacion_valores' || $planilla == 'evolucion_cotizacion'){
       $bruto = '('.implode('+',array_map(function($t){
         return "IFNULL(SUM({$t}.bruto),0)";
       },$fijos)).')';
@@ -2587,14 +2621,6 @@ class CanonController extends Controller
       $sel_aggr = 'NULL as no_sel';
     }
     
-    $años_planilla;
-    if($es_anual){
-      $años_planilla = [$año_anterior,$año];
-    }
-    else{
-      $años_planilla = $años->toArray();
-    }
-          
     $data = (clone $q)
     ->selectRaw('
       cas.casino,
@@ -2690,29 +2716,38 @@ class CanonController extends Controller
       return $v->codigo;
     });
     $casinos = $abbr_casinos->keys();
+    $casinos_sin_total = $casinos->filter(function($c){return $c != 'Total';});
     $abbr_casinos = $abbr_casinos->toArray();
     
-    $botones = [
-      'planilla' => $combine_into_pairs(array_keys($planillas),array_values($planillas))
-    ];
-    
-    if($es_anual){
-      $_años = $años->count()? $años->toArray() : [];
-      $botones['año'] = $combine_into_pairs($_años,$_años);
-    }
-    
-    if($planilla == 'actualizacion_valores'){
-      $_casinos = $casinos->toArray();
-      $tidx = array_search('Total',$_casinos);
-      if($tidx !== false)
-        unset($_casinos[$tidx]);
-      $botones['casino'] = $combine_into_pairs($_casinos,$_casinos);
-      if($request->casino ?? false){
-        $_años = $años->count()? $años->toArray() : [];
-        $botones['año'] = $combine_into_pairs(array_map(function($a){
-          return $a;
-        },$_años),$_años);
-        $botones['año'][] = ['evolucion_cotizacion','Evolución Cotizacion'];
+    $botones = [];
+    $botones_elegidos = true;{
+      $_pbot = $planillas_botones[$planilla] ?? [];
+      $breaker = false;
+      foreach($_pbot as $_p){
+        switch($_p){
+          case 'planilla':{
+            $botones['planilla'] = $combine_into_pairs(array_keys($planillas),array_values($planillas));
+          }break;
+          case 'casino':{
+            $botones['casino'] = $combine_into_pairs($casinos_sin_total,$casinos_sin_total);
+          }break;
+          case 'año':{
+            $_años = $años->toArray();
+            $botones['año'] = $combine_into_pairs(array_map(function($a){
+              return $a;
+            },$_años),$_años);
+          }break;
+          case 'mes':{
+            $_meses = $meses->toArray();
+            $botones['mes'] = $combine_into_pairs(array_map(function($a){
+              return $a;
+            },$_meses),$_meses);
+          }break;
+        }
+        if(($request[$_p] ?? null) === null){//Falta elegir algun boton para la planilla, asi que corto aca
+          $botones_elegidos = false;
+          break;
+        }
       }
     }
     
@@ -2722,6 +2757,6 @@ class CanonController extends Controller
       'primer_fecha','ultima_fecha',
       'primer_año','ultimo_año',
       'primer_mes','ultimo_mes',
-      'botones','parametros','data','data_plataformas','años_planilla','años','año','año_anterior','meses','meses_calendario','meses_elegibles','planillas','planilla','es_anual','casinos','abbr_casinos','plataformas','relacion_plat_cas'));
+      'botones','botones_elegidos','parametros','data','data_plataformas','años_planilla','años','año','año_anterior','meses','meses_calendario','planillas','planilla','es_anual','casinos','abbr_casinos','plataformas','relacion_plat_cas'));
   }
 }

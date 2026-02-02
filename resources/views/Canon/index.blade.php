@@ -204,6 +204,9 @@
         <a tabindex="0" class="btn btn-info info" data-toggle="popover" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
           <i class="fa fa-print"></i>
         </a>
+        <a tabindex="0" href="/canon/planillaInformeCanon" target="_blank" class="btn btn-info info" title="Informe de Canon">
+          <i class="fa fa-list-ul"></i>
+        </a>
         @if($es_superusuario)
         <button data-mostrar-borrado class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
         <button class="btn" type="button" data-js-borrar="/canon/borrar" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
