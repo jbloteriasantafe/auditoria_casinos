@@ -1940,7 +1940,7 @@
 
 
             <br/><br/>
-            <h4>ÚLTIMOS REGISTROS DE AUTORIZACIONES DE DIRECTORES EN EL SISTEMA</h4>
+            <h4>ÚLTIMOS REGISTROS DE AUTÓNOMOS DE DIRECTORES EN EL SISTEMA</h4>
           </div>
           <div class="panel-body">
             <table id="tablaResultadosAutDirectores" class="table table-fixed">
@@ -7634,7 +7634,7 @@
                   <form id="frmEliminar" name="frmCasino" class="form-horizontal" novalidate="">
                       <div class="form-group error ">
                         <div class="col-xs-12">
-                            <strong id="titulo-modal-eliminar">¿Seguro desea eliminar el registro de la autorización de los directores?</strong>
+                            <strong id="titulo-modal-eliminar">¿Seguro desea eliminar el registro del autónomo de los directores?</strong>
                         </div>
                       </div>
                   </form>
@@ -7728,7 +7728,7 @@
                    <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearAutDirectores_autorizacion" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearAutDirectores_autorizacion" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE AUTORIZACIÓN DE DIRECTORES</h3>
+                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE AUTÓNOMO DE DIRECTORES</h3>
                     </div>
 
                     <div  id="colapsadoCrearAutDirectores_autorizacion" class="collapse in">

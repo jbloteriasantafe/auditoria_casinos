@@ -5,6 +5,26 @@ use App\Http\Controllers\AuthenticationController;
 /***********
 genérico
 ***********/
+
+// DEBUG TRACE
+try {
+    if(!app()->runningInConsole()) {
+         \Log::info('GLOBAL ROUTE HIT: ' . request()->method() . ' ' . request()->path() . ' Payload: ' . request()->header('Content-Length'));
+    }
+} catch(\Throwable $e) {}
+
+// CONFIG DEBUG
+Route::get('/debug-config', function() {
+    return [
+        'post_max_size' => ini_get('post_max_size'),
+        'upload_max_filesize' => ini_get('upload_max_filesize'),
+        'memory_limit' => ini_get('memory_limit'),
+        'loaded_ini' => php_ini_loaded_file(),
+        'error_log' => ini_get('error_log'),
+        'test_log' => \Log::info('Debug Config Hit')
+    ];
+});
+
 /*NOTIF*/
 Route::get('/marcarComoLeidaNotif', function () {
   $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
@@ -329,6 +349,43 @@ Route::group(['prefix' => 'cargar-notas', 'middleware' => 'tiene_permiso:ver_car
   Route::post('subir', 'NotasCasino\NotasCasinoController@subirNota');
   Route::post('paginar', 'NotasCasino\NotasCasinoController@paginarNotas');
   Route::post('modificar', 'NotasCasino\NotasCasinoController@modificarNota');
+});
+
+//! MODULO UNIFICADO DE NOTAS (NUEVO)
+Route::group(['prefix' => 'notas-unificadas', 'middleware' => 'tiene_permiso:ver_cargar_notas'], function () {
+  Route::get('/buscar-activos', 'NotasUnificadasController@buscarActivos'); 
+  Route::get('/obtener-activos-isla/{id_isla}', 'NotasUnificadasController@obtenerActivosIsla');
+  Route::get('/', 'NotasUnificadasController@index');
+  Route::post('/iniciar', 'NotasUnificadasController@store');
+  
+  // Wizard Step 2
+  Route::get('/adjuntar/{id}', 'NotasUnificadasController@vistaAdjuntar');
+  Route::post('/guardar-adjuntos', 'NotasUnificadasController@guardarAdjuntos');
+  Route::post('/upload-archivo', 'NotasUnificadasController@uploadArchivo');
+  Route::post('/quick-update', 'NotasUnificadasController@quickUpdate');
+  Route::get('/movimientos/{id}', 'NotasUnificadasController@getMovimientos');
+  Route::get('/calendar-events', 'NotasUnificadasController@getCalendarEvents');
+Route::post('/add-comment', 'NotasUnificadasController@addComment');
+Route::get('/get-comments/{id}', 'NotasUnificadasController@getComments');
+Route::post('/presence/heartbeat', 'NotasUnificadasController@heartbeat');
+Route::get('/presence/list', 'NotasUnificadasController@getPresence');
+  
+  Route::delete('/eliminar/{id}', 'NotasUnificadasController@destroy');
+  Route::delete('/eliminar-grupo/{id}', 'NotasUnificadasController@destroyGrupo');
+  Route::get('/descargar/{id}/{tipo}', 'NotasUnificadasController@descargarArchivo');
+
+  // Adjuntos por turnos
+  Route::post('/agregar-adjuntos/{id}', 'NotasUnificadasController@agregarAdjuntos');
+  Route::get('/historial-adjuntos/{id}', 'NotasUnificadasController@getHistorialAdjuntos');
+
+  // Modal de Detalle/Edición
+  Route::get('/detalle-grupo/{id}', 'NotasUnificadasController@getDetalleGrupo');
+  Route::get('/detalle-nota/{id}', 'NotasUnificadasController@getDetalleNota');
+  Route::put('/update-nota/{id}', 'NotasUnificadasController@updateNota');
+  Route::post('/comentario/{id}', 'NotasUnificadasController@addComentario');
+  Route::delete('/eliminar-adjunto/{id}/{campo}', 'NotasUnificadasController@deleteAdjunto');
+
+  Route::get('/{id}', 'NotasUnificadasController@show')->where('id', '[0-9]+');
 });
 
 
@@ -955,8 +1012,11 @@ Route::group(['prefix' => 'denunciasAlea','middleware' => 'tiene_permiso:carga_d
   Route::get('totales-mensuales', 'denunciasAleaController@totalesMensuales');
   Route::post('export-totales', 'denunciasAleaController@exportTotales');
 
-  Route::get('probar-disponibilidad/{id}', 'denunciasAleaController@probarDisponibilidad');
   Route::get('paginas-activas',           'denunciasAleaController@paginasActivas');
+  Route::post('importar-csv-paginas-activas', 'denunciasAleaController@importarCsvPaginasActivas');
+  Route::post('dar-baja-paginas-inactivas', 'denunciasAleaController@darBajaPaginasInactivas');
+  Route::post('exportar-listado-temporal', 'denunciasAleaController@exportarListadoTemporal');
+  Route::post('modificar-cantidad/{id}', 'denunciasAleaController@modificarCantidad');
 });
 //Sección documentación Contable
 Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:ver_documentos_contables'], function () {
@@ -1505,4 +1565,25 @@ Route::group(['prefix' => 'informesGenerales'], function () {//@TODO: agregar pe
   Route::get('/autoexcluidos', 'InformesGeneralesController@autoexcluidos');
   Route::get('/producidos', 'InformesGeneralesController@producidos');
   Route::get('/producidos_semana', 'InformesGeneralesController@producidos_semana');
+});
+
+// NOTAS UNIFICADAS ROUTES
+Route::group(['prefix' => 'notas-unificadas', 'middleware' => 'tiene_permiso:ver_cargar_notas'], function () {
+    Route::get('/', 'NotasUnificadasController@index');
+    Route::post('/guardar', 'NotasUnificadasController@store');
+    
+    Route::get('/buscar-activos', 'NotasUnificadasController@buscarActivos');
+    Route::get('/obtener-activos-isla/{id}', 'NotasUnificadasController@obtenerActivosIsla');
+    Route::delete('/eliminar/{id}', 'NotasUnificadasController@destroy');
+    Route::post('/eliminar-masivo', 'NotasUnificadasController@eliminarMasivo');
+    
+    // Presence
+    Route::post('/presence/heartbeat', 'NotasUnificadasController@heartbeat');
+    Route::get('/presence/list', 'NotasUnificadasController@getPresence');
+    
+    // Collaborative Flow
+    Route::post('/flujo-colaborativo', 'NotasUnificadasController@flujoColaborativo');
+
+    // Emergency Fix
+    Route::get('/fix-presence-db', 'NotasUnificadasController@fixPresenceTable');
 });

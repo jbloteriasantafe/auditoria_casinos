@@ -522,49 +522,6 @@ public function exportSeleccion(Request $request)
 
 // dentro de denunciasAleaController
 
-public function probarDisponibilidad($id)
-{
-  $row = \App\DenunciasAlea_paginas::findOrFail($id);
-
- // ⛔️ Solo consultar si estado_denuncia ∈ {0,1}
- $estadoRaw = $row->estado_denuncia;                   // puede venir string/int/null
- $estadoInt = filter_var($estadoRaw, FILTER_VALIDATE_INT);
-
-
-    $user = trim((string)($row->user_pag ?? ''));
-    $link = trim((string)($row->link_pagina ?? ''));
-
-    // 1 = Facebook, 2 = Instagram (ajustá si hace falta)
-    $platform = $row->plataforma == 2 ? 'instagram' : ($row->plataforma == 1 ? 'facebook' : null);
-
-    // Armar URL base
-    $url = $link ?: null;
-    if (!$url && $user !== '') {
-        $u = ltrim($user, '@/');
-        $url = $platform === 'instagram' ? "https://www.instagram.com/{$u}/"
-             : ($platform === 'facebook' ? "https://www.facebook.com/{$u}/"
-             : "https://www.instagram.com/{$u}/");
-    }
-    if (!$url) return response()->json(['ok'=>false,'status'=>'unknown','error'=>'Sin URL ni user'], 422);
-
-    // Fetch sin cURL
-    $resp = $this->httpGetNoCurl($url);
-    if (!$resp['ok']) {
-        return response()->json(['ok'=>false,'status'=>'unknown','error'=>$resp['error']], 502);
-    }
-
-    if (!$platform) $platform = $this->platformFromHost($resp['final_url']);
-list($status, $reason) = $this->decideAvailability($platform, $resp['status'], $resp['body']);
-    return response()->json([
-        'ok'        => true,
-        'id'        => $row->getKey(),
-        'platform'  => $platform,
-        'status'    => $status,      // 'taken' | 'available' | 'unknown'
-        'reason'    => $reason,
-        'http_code' => $resp['status'],
-        'final_url' => $resp['final_url'],
-    ]);
-}
 
 private function httpGetSmart($url)
 {
@@ -765,65 +722,6 @@ private function decideAvailability($platform, $code, $body){
 }
 
 
-public function paginasActivas(\Illuminate\Http\Request $r)
-{
-    // Si viene "all" -> sin paginar
-    $pageRaw = $r->query('page', 1);
-    $sizeRaw = $r->query('page_size', 20);
-    $isAll   = (is_string($sizeRaw) && strtolower($sizeRaw) === 'all') || ((int)$sizeRaw) <= 0;
-
-    // “Último año activo”: el año de la fecha máxima que exista en la tabla
-    $maxFecha  = \App\DenunciasAlea_paginas::max('fecha');
-    $ultimoAno = $maxFecha ? (int)date('Y', strtotime($maxFecha)) : (int)date('Y');
-
-    $q = \App\DenunciasAlea_paginas::with(['plat'])
-        // solo registros del último año activo
-        ->whereRaw('YEAR(fecha) = ?', [$ultimoAno])
-        // estado NULL, 0, 1 o 4
-        ->where(function($w){
-            $w->whereIn('estado_denuncia', [0,1,4])
-              ->orWhereNull('estado_denuncia');
-        })
-        ->orderBy('fecha','desc');
-
-    // (opcionales) filtros rápidos
-    if ($v = trim((string)$r->query('user_pag','')))   $q->where('user_pag','like',"%{$v}%");
-    if (($v = $r->query('plataforma','')) !== '')      $q->where('plataforma',(int)$v);
-    if ($v = trim((string)$r->query('link_pagina',''))) $q->where('link_pagina','like',"%{$v}%");
-
-    if ($isAll) {
-        $rows  = $q->get();
-        $total = $rows->count();
-        $page  = 1;
-        $perPage = $total;
-    } else {
-        $page    = max(1, (int)$pageRaw);
-        $perPage = max(1, min(100000, (int)$sizeRaw)); // cap alto por si acaso
-        $total   = $q->count();
-        $rows    = $q->skip(($page-1)*$perPage)->take($perPage)->get();
-    }
-
-    $data = $rows->map(function($r){
-        return [
-            'id'          => (int)$r->id_denunciasAlea_paginas,
-            'fecha'       => (string)$r->fecha,
-            'user_pag'    => (string)$r->user_pag,
-            'plataforma'  => $r->plat ? $r->plat->plataforma : ($r->plataforma ?: '-'),
-            'link_pagina' => (string)$r->link_pagina,
-            'estado_id'   => is_null($r->estado_denuncia) ? null : (int)$r->estado_denuncia,
-            'disp_init'   => 'Desconocido', // el front lo actualizará con /probar-disponibilidad/{id}
-        ];
-    });
-
-    return response()->json([
-        'registros'  => $data,
-        'pagination' => [
-            'current_page' => $page,
-            'per_page'     => $perPage,
-            'total'        => $total,
-        ],
-    ]);
-}
 
 
 
@@ -1126,4 +1024,264 @@ public function setDenuncia(Request $req, $id)
 
 
 
+
+
+    // --- CSV Import & Bulk Update Logic ---
+
+    public function importarCsvPaginasActivas(Request $request) {
+        if (!$request->hasFile('archivo')) {
+            return response()->json(['error' => 'No se ha subido ningún archivo.'], 400);
+        }
+
+        $file = $request->file('archivo');
+        $path = $file->getRealPath();
+        // Leemos todo el archivo
+        $rawLines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if (!$rawLines) {
+           return response()->json(['registros' => []]);
+        }
+        
+        $data = array_map('str_getcsv', $rawLines);
+        
+        // Asumiendo que la primera línea SIEMPRE es encabezado y la descartamos
+        if (count($data) > 0) {
+            array_shift($data);
+        }
+
+        // AGREGADO: Invertir el orden para que quede (Nuevo -> Viejo)
+        // Asumiendo que el CSV viene cronológico (Viejo -> Nuevo)
+        $data = array_reverse($data);
+
+        $parsedData = [];
+        $idCounter = 1; // ID temporal para el frontend
+
+        foreach ($data as $row) {
+             // Ajustar índices según el CSV real. NUEVO ORDEN:
+             // 0: Fecha
+             // 1: Usuario
+             // 2: Url
+             // 3: Estado
+             // 4: Detalle
+             // 5: Plataforma
+             if (count($row) < 6) continue; // Saltar filas incompletas o vacías
+
+            $parsedData[] = [
+                'id_temp'    => $idCounter++,
+                'fecha'      => $row[0], // Nueva columna
+                'usuario'    => $row[1],
+                'url'        => $row[2],
+                'estado'     => $row[3],
+                'detalle'    => $row[4],
+                'plataforma' => $row[5],
+            ];
+        }
+
+        return response()->json(['registros' => $parsedData]);
+    }
+
+    public function darBajaPaginasInactivas(Request $request) {
+        $items = $request->input('items', []);
+
+        if (empty($items)) {
+            return response()->json(['success' => false, 'message' => 'No se seleccionaron ítems.']);
+        }
+
+        $count = 0;
+        
+        // Buscamos el ID de estado "Baja" o "Inactivo".
+        // Primero intentamos buscar 'Baja'.
+        $estadoBaja = DenunciasAlea_estado::where('estado', 'LIKE', '%Baja%')->first();
+        // Si no, buscamos 'Inactivo' o similar si existiera, pero 'Baja' es lo solicitado.
+        
+        if (!$estadoBaja) {
+             return response()->json(['success' => false, 'message' => 'No se encontró el estado "Baja" en la base de datos para asignar. Asegúrese de que existe.'], 500);
+        }
+        $idBaja = $estadoBaja->id_denunciasAlea_estado;
+
+        foreach ($items as $item) {
+             $url = isset($item['url']) ? trim((string)$item['url']) : '';
+             $user = isset($item['usuario']) ? trim((string)$item['usuario']) : '';
+             
+             if ($url === '' && $user === '') continue;
+
+             $q = DenunciasAlea_paginas::query();
+             
+             // Prioridad URL
+             if ($url !== '') {
+                // Quitamos protocolo para hacer un LIKE más amplio
+                $cleanUrl = preg_replace('#^https?://#', '', $url);
+                // Si la URL es muy corta, cuidado con falsos positivos
+                if (strlen($cleanUrl) > 3) {
+                     $q->where('link_pagina', 'LIKE', '%'.$cleanUrl.'%');
+                } else {
+                     // Fallback exacto si es muy corto
+                     $q->where('link_pagina', $url);
+                }
+             } elseif ($user !== '') {
+                $q->where('user_pag', $user);
+             }
+             
+             // Actualizamos todos los que coincidan
+             $affected = $q->update(['estado_denuncia' => $idBaja]);
+             if ($affected > 0) $count++;
+        }
+
+        return response()->json(['success' => true, 'updated_count' => $count]);
+    }
+
+    public function exportarListadoTemporal(Request $request) {
+        $format = strtolower($request->input('format', 'xlsx'));
+        $data   = $request->input('data', []);
+
+        if (empty($data)) return response('Sin datos para exportar.', 422);
+
+        // Preparamos fecha actual para la columna "Fecha"
+        $fechaHoy = date('Y-m-d');
+
+        if ($format === 'pdf') {
+            $trs = '';
+            foreach ($data as $item) {
+                // Normalizar entrada
+                $item = (array)$item;
+                
+                $u = isset($item['usuario']) ? $item['usuario'] : '';
+                $p = isset($item['plataforma']) ? $item['plataforma'] : '';
+                $l = isset($item['url']) ? $item['url'] : '';
+                $e = isset($item['estado']) ? $item['estado'] : '';
+                
+                // Defaults para columnas que no existen en el CSV importado
+                $fecha          = isset($item['fecha']) ? $item['fecha'] : $fechaHoy;
+                $user_pag       = $u ?: '-';
+                $plataforma     = $p ?: '-';
+                $link_pagina    = $l ?: '-';
+                $denunciada     = 'No'; // Default: no alea
+                $cant_denuncias = '-';  // Desconocido
+                $estado         = $e ?: '-';
+                $lugar          = '-';  // Desconocido
+                
+                $td = function($v){ return htmlspecialchars($v, ENT_QUOTES, 'UTF-8'); };
+
+                $trs .= '<tr>'
+                      . '<td class="nowrap">'.$td($fecha).'</td>'
+                      . '<td>'.$td($user_pag).'</td>'
+                      . '<td>'.$td($plataforma).'</td>'
+                      . '<td>'.$td($link_pagina).'</td>'
+                      . '<td class="center">'.$td($denunciada).'</td>'
+                      . '<td class="center">'.$td($cant_denuncias).'</td>'
+                      . '<td>'.$td($estado).'</td>'
+                      . '<td>'.$td($lugar).'</td>'
+                      . '</tr>';
+            }
+
+            // HTML: Copia exacta del estilo de exportSeleccion
+            $html = '<!doctype html>
+            <html lang="es">
+            <head>
+              <meta charset="utf-8">
+              <title>Listado Importado</title>
+              <style>
+                @page { margin: 16mm 14mm; }
+                body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 11px; color:#222; }
+                h1 { font-size: 16px; margin: 0 0 10px; }
+                table { width:100%; border-collapse: collapse; table-layout: fixed; }
+                thead { display: table-header-group; }
+                tfoot { display: table-row-group; }
+                tbody { display: table-row-group; }
+                th, td { border:1px solid #999; padding:6px 4px; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
+                thead th { background:#f0f0f0; font-weight:700; }
+                .nowrap { white-space: nowrap; }
+                .center { text-align: center; }
+              </style>
+            </head>
+            <body>
+              <h1>Listado de Páginas (Importado)</h1>
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:11%" class="nowrap">Fecha</th>
+                    <th style="width:16%">Usuario de página</th>
+                    <th style="width:14%">Red/Plataforma</th>
+                    <th style="width:25%">Link de la página</th>
+                    <th style="width:9%"  class="center">Denuncia Alea</th>
+                    <th style="width:9%"  class="center">Cant. Denuncias</th>
+                    <th style="width:8%">Estado</th>
+                    <th style="width:8%">Denunciado en</th>
+                  </tr>
+                </thead>
+                <tbody>'.$trs.'</tbody>
+              </table>
+            </body>
+            </html>';
+
+            $dompdf = new \Dompdf\Dompdf();
+            // Mismas opciones que exportSeleccion (aunque no sean cruciales para HTML simple, consistencia)
+            $opt = $dompdf->getOptions();
+            $opt->set('isHtml5ParserEnabled', true);
+            $opt->set('isRemoteEnabled', true);
+            $dompdf->setOptions($opt);
+            
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->loadHtml($html, 'UTF-8');
+            $dompdf->render();
+
+            return response($dompdf->output(), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="listado_importado.pdf"',
+            ]);
+        }
+
+        // Excel: Mismas columnas que exportSeleccion
+        return \Excel::create('listado_importado', function($excel) use ($data, $fechaHoy) {
+            $excel->sheet('Datos', function($sheet) use ($data, $fechaHoy) {
+                $sheet->row(1, [
+                    'Fecha','Usuario de página','Red/Plataforma','Link de la página',
+                    'Denuncia Alea','Cant. Denuncias','Estado','Denunciado en'
+                ]);
+                $i = 2;
+                foreach ($data as $item) {
+                     $item = (array)$item;
+                     $u = isset($item['usuario']) ? $item['usuario'] : '-';
+                     $p = isset($item['plataforma']) ? $item['plataforma'] : '-';
+                     $l = isset($item['url']) ? $item['url'] : '-';
+                     $e = isset($item['estado']) ? $item['estado'] : '-';
+                     $f = isset($item['fecha']) ? $item['fecha'] : $fechaHoy;
+
+                    $sheet->row($i++, [
+                        $f,        // Fecha
+                        $u,        // Usuario
+                        $p,        // Plataforma
+                        $l,        // Link
+                        'No',      // Denuncia Alea
+                        '-',       // Cant
+                        $e,        // Estado
+                        '-'        // Lugar
+                    ]);
+                }
+            });
+        })->export('xlsx');
+    }
+
+
+    public function modificarCantidad(Request $request, $id) {
+        $validator = \Validator::make($request->all(), [
+            'cantidad' => 'required|integer|min:0'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first('cantidad')
+            ]);
+        }
+
+        $row = \App\DenunciasAlea_paginas::find($id);
+        if (!$row) {
+            return response()->json(['success' => false, 'message' => 'Registro no encontrado.']);
+        }
+
+        $row->cant_denuncias = $request->input('cantidad');
+        $row->save();
+
+        return response()->json(['success' => true]);
+    }
 }

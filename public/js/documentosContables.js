@@ -557,7 +557,7 @@ $(function () {
     '#deduccionesiibb',
     '#saldo_iibb',
     '#total_impuesto_iibb',
-  ].join(', '), { decimales: 2 });
+  ].join(', '), { decimales: 2, permitirNegativos: true });
 
   instalarAutoSumaAR({
     sources: ['.iibb-imp'],
@@ -681,7 +681,7 @@ function appendIibbFilaEditar(b, index, container){
 
   $(container).append(html);
 
-  instalarNumeroFlexibleAR('#'+montoId+', #'+aliId+', #'+impId, { decimales: 2 });
+  instalarNumeroFlexibleAR('#'+montoId+', #'+aliId+', #'+impId, { decimales: 2, permitirNegativos: true });
   instalarAutoImpuestoAR({
     base: '#'+montoId,
     alicuota: '#'+aliId,
@@ -1181,7 +1181,7 @@ $(function(){
     '#base_imponible_roDREI', '#alicuota_roDREI',
     '#base_imponibleO_roDREI', '#alicuotaO_roDREI', '#total_roDREI',
     '#publicidadDREI', '#retDREI', '#minDREI', '#rect1DREI', '#rect2DREI','#interesesDREI','#deduccionesDREI'
-  ].join(', '), { decimales: 2 });
+  ].join(', '), { decimales: 2, permitirNegativos: true });
   instalarNumeroFlexibleAR([
 
     '#alicuota_comDREI',
@@ -1189,7 +1189,7 @@ $(function(){
     '#alicuota_explDREI',
     '#alicuota_apyjDREI',
 
-  ].join(', '), { decimales: 3 });
+  ].join(', '), { decimales: 5, permitirNegativos: true });
 
 
     instalarAutoImpuestoAR({
@@ -1250,12 +1250,12 @@ $(function(){
 
   });
     instalarAutoSumaAR({
-    sources: ['#imp_det_comDREI','#imp_det_gasDREI','#imp_det_explDREI','#imp_det_apyjDREI','#garageDREI','-#deduccionesDREI'],
+    sources: ['#imp_det_comDREI','#imp_det_gasDREI','#imp_det_explDREI','#imp_det_apyjDREI','#garageDREI', '#bromatologiaDREI', '#interesesDREI'],
     target:  '#imp_tot_csfDREI',
     decimales: 2
   });
     instalarAutoSumaAR({
-    sources: ['#imp_tot_csfDREI','#bromatologiaDREI','-#deduccionesDREI','#interesesDREI'],
+    sources: ['#imp_tot_csfDREI', '-#deduccionesDREI'],
     target:  '#saldoDREI',
     decimales: 2
   });
@@ -1939,7 +1939,7 @@ $(document).on('shown.bs.modal', '#modalCargarPremiosIVA', function(){
   $('#saldoIva').trigger('input');
 });
 
-instalarNumeroFlexibleAR('#saldoIva');
+instalarNumeroFlexibleAR('#saldoIva', { decimales: 2, permitirNegativos: true });
 
 
 function clickIndiceIva(e, pageNumber, pageSize) {
@@ -2322,7 +2322,7 @@ var TGI_SUPPRESS_CASINO_CHANGE = false;
 $(function(){
   instalarNumeroFlexibleAR([
     '#Cocheras_importeTGI','#Hotel_importeTGI','#Cocheras_importeTGI',
-  ].join(', '), { decimales: 2 });
+  ].join(', '), { decimales: 2, permitirNegativos: true });
 });
 
 function cargarArchivosTGILista(id){
@@ -2613,7 +2613,7 @@ function initPagoRow(idx){
   const $pago  = $('#pago_pago_'+idx);
 
   if (typeof instalarNumeroFlexibleAR === 'function') {
-    instalarNumeroFlexibleAR('#pago_importe_' + idx, { decimales: 2 });
+    instalarNumeroFlexibleAR('#pago_importe_' + idx, { decimales: 2, permitirNegativos: true });
   }
   if (typeof attachYYYYMMDDFormatter === 'function') {
     attachYYYYMMDDFormatter('#pago_vto_'  + idx + ' input');
@@ -4183,8 +4183,8 @@ $('#btn-descargarIMP_AP_MTMCsv').on('click', function () {
 
 //IMPUESTOS A PAGOS MAYORES DE MESAS DE PAÑO
 
-instalarNumeroFlexibleAR('#importe_pesos_PagosMayoresMesas');
-instalarNumeroFlexibleAR('#importe_dolares_PagosMayoresMesas');
+instalarNumeroFlexibleAR('#importe_pesos_PagosMayoresMesas', { decimales: 2, permitirNegativos: true });
+instalarNumeroFlexibleAR('#importe_dolares_PagosMayoresMesas', { decimales: 2, permitirNegativos: true });
 
 function cargarArchivosPagosMayoresMesasLista(id){
   var $m = $('#modalArchivosAsociados');
@@ -5447,9 +5447,9 @@ $('#btn-descargarReporteYLavadoExcel').on('click',function(e){
 
 
 $(function(){
-  instalarNumeroFlexibleAR('#mtm_pesos_RegistrosContables, #mtm_usd_RegistrosContables, #mp_pesos_RegistrosContables');
-  instalarNumeroFlexibleAR('#mp_usd_RegistrosContables, #bingo_RegistrosContables, #jol_RegistrosContables');
-  instalarNumeroFlexibleAR('#total_RegistrosContables, #total_usd_RegistrosContables');
+  instalarNumeroFlexibleAR('#mtm_pesos_RegistrosContables, #mtm_usd_RegistrosContables, #mp_pesos_RegistrosContables', { decimales: 2, permitirNegativos: true });
+  instalarNumeroFlexibleAR('#mp_usd_RegistrosContables, #bingo_RegistrosContables, #jol_RegistrosContables', { decimales: 2, permitirNegativos: true });
+  instalarNumeroFlexibleAR('#total_RegistrosContables, #total_usd_RegistrosContables', { decimales: 2, permitirNegativos: true });
 
   instalarAutoSumaAR({
     sources: ['#mtm_pesos_RegistrosContables','#mp_pesos_RegistrosContables','#bingo_RegistrosContables','#jol_RegistrosContables'],
@@ -5915,7 +5915,7 @@ $('#btn-descargarRegistrosContablesCsv').on('click', function () {
 // APORTES PATRONALES
 
 
-instalarNumeroFlexibleAR('#monto_pagado_AportesPatronales');
+instalarNumeroFlexibleAR('#monto_pagado_AportesPatronales', { decimales: 2, permitirNegativos: true });
 
 function cargarArchivosAportesPatronalesLista(id){
   var $m = $('#modalArchivosAsociados');
@@ -6349,7 +6349,7 @@ $('#btn-descargarAportesPatronalesCsv').on('click', function () {
 
 //PROMO TICKETS
 
-instalarNumeroFlexibleAR('#importe_PromoTickets');
+instalarNumeroFlexibleAR('#importe_PromoTickets', { decimales: 2, permitirNegativos: true });
 
 function cargarArchivosPromoTicketsLista(id){
   var $m = $('#modalArchivosAsociados');
@@ -6768,7 +6768,7 @@ $('#btn-descargarPromoTicketsCsv').on('click', function () {
 
 //POZOS ACUMULADOS LINKEADOS E INDIVIDUALES
 
-instalarNumeroFlexibleAR('#importe_PozosAcumuladosLinkeados');
+instalarNumeroFlexibleAR('#importe_PozosAcumuladosLinkeados', { decimales: 2, permitirNegativos: true });
 
 
 function cargarArchivosPozosAcumuladosLinkeadosLista(id){
@@ -7184,7 +7184,7 @@ $('#btn-descargarPozosAcumuladosLinkeadosCsv').on('click', function () {
 $(function(){
   instalarNumeroFlexibleAR([
     '#base_imponible_ContribEnteTuristico','#alicuota_ContribEnteTuristico','#impuesto_determinado_ContribEnteTuristico','#monto_pagado_ContribEnteTuristico'
-  ].join(', '), { decimales: 2 });
+  ].join(', '), { decimales: 5, permitirNegativos: true });
 
     instalarAutoImpuestoAR({
     base:     '#base_imponible_ContribEnteTuristico',
@@ -8239,7 +8239,7 @@ $('#btn-descargarRRHHCsv').on('click', function () {
 
 
 $(function(){
-  instalarNumeroFlexibleAR('#computa_Ganancias, #abonado_Ganancias, #anticipo_Ganancias');
+  instalarNumeroFlexibleAR('#computa_Ganancias, #abonado_Ganancias, #anticipo_Ganancias', { decimales: 2, permitirNegativos: true });
 
   instalarAutoSumaAR({
     sources: ['#anticipo_Ganancias','-#abonado_Ganancias','-#computa_Ganancias'],
@@ -9072,7 +9072,7 @@ $('#btn-descargarGananciasExcel').on('click',function(e){
 
 //Jackpots PAGADOS
 
-instalarNumeroFlexibleAR('#importe_JackpotsPagados');
+instalarNumeroFlexibleAR('#importe_JackpotsPagados', { decimales: 2, permitirNegativos: true });
 
 function cargarArchivosJackpotsPagadosLista(id){
   var $m = $('#modalArchivosAsociados');
@@ -9481,7 +9481,7 @@ $('#btn-descargarJackpotsPagadosCsv').on('click', function () {
 
 //PREMIOS PAGADOS
 
-instalarNumeroFlexibleAR('#importe_PremiosPagados');
+instalarNumeroFlexibleAR('#importe_PremiosPagados', { decimales: 2, permitirNegativos: true });
 
 function cargarArchivosPremiosPagadosLista(id){
   var $m = $('#modalArchivosAsociados');
@@ -9901,9 +9901,9 @@ $('#btn-descargarPremiosPagadosCsv').on('click', function () {
 //PREMIOS MTM
 
 $(function(){
-  instalarNumeroFlexibleAR('#cancel_PremiosMTM, #jack_PremiosMTM, #progre_PremiosMTM');
-  instalarNumeroFlexibleAR('#cancel_usd_PremiosMTM, #jack_usd_PremiosMTM, #progre_usd_PremiosMTM');
-  instalarNumeroFlexibleAR('#total_PremiosMTM, #total_usd_PremiosMTM');
+  instalarNumeroFlexibleAR('#cancel_PremiosMTM, #jack_PremiosMTM, #progre_PremiosMTM', { decimales: 2, permitirNegativos: true });
+  instalarNumeroFlexibleAR('#cancel_usd_PremiosMTM, #jack_usd_PremiosMTM, #progre_usd_PremiosMTM', { decimales: 2, permitirNegativos: true });
+  instalarNumeroFlexibleAR('#total_PremiosMTM, #total_usd_PremiosMTM', { decimales: 2, permitirNegativos: true });
 
   instalarAutoSumaAR({
     sources: ['#cancel_PremiosMTM','#jack_PremiosMTM','#progre_PremiosMTM'],
@@ -11023,7 +11023,7 @@ $('#btn-descargarAutDirectoresCsv').on('click', function () {
 
 // SEGUROS
 
-instalarNumeroFlexibleAR('#monto_Seguros , #cta_paga_Seguros');
+instalarNumeroFlexibleAR('#monto_Seguros , #cta_paga_Seguros', { decimales: 2, permitirNegativos: true });
 
 $(document).on('click','#Seguros_nuevo_tipo',function(e){
 
@@ -11690,7 +11690,7 @@ $('#btn-descargarSegurosCsv').on('click', function () {
 
 //DERECHO DE ACCESO
 
-instalarNumeroFlexibleAR('#monto_DerechoAcceso');
+instalarNumeroFlexibleAR('#monto_DerechoAcceso', { decimales: 2, permitirNegativos: true });
 
 function cargarArchivosDerechoAccesoLista(id){
   var $m = $('#modalArchivosAsociados');
@@ -12156,7 +12156,7 @@ function initPagoRowPatentes(idx){
   var $fecha = $('#pat_pago_fecha_' + idx);
 
   if (typeof instalarNumeroFlexibleAR === 'function') {
-    instalarNumeroFlexibleAR('#pat_pago_importe_' + idx, { decimales: 2 });
+    instalarNumeroFlexibleAR('#pat_pago_importe_' + idx, { decimales: 2, permitirNegativos: true });
   }
   if (typeof attachYYYYMMDDFormatter === 'function') {
     attachYYYYMMDDFormatter('#pat_pago_fecha_' + idx + ' input');
@@ -12324,7 +12324,7 @@ var $row = $(
   });
 
 
-instalarNumeroFlexibleAR('#total_Patentes');
+instalarNumeroFlexibleAR('#total_Patentes', { decimales: 2, permitirNegativos: true });
 
 $(document).on('click','#Patentes_nuevo_patenteDe',function(e){
 
@@ -12999,7 +12999,7 @@ function initPagoRowImpInmobiliario(idx){
   var $fecha = $('#imp_pago_fecha_' + idx);
 
   if (typeof instalarNumeroFlexibleAR === 'function') {
-    instalarNumeroFlexibleAR('#imp_pago_importe_' + idx, { decimales: 2 });
+    instalarNumeroFlexibleAR('#imp_pago_importe_' + idx, { decimales: 2, permitirNegativos: true });
   }
   if (typeof attachYYYYMMDDFormatter === 'function') {
     attachYYYYMMDDFormatter('#imp_pago_fecha_' + idx + ' input');
@@ -13189,7 +13189,7 @@ $(document)
   });
 
 
-instalarNumeroFlexibleAR('#total_ImpInmobiliario');
+instalarNumeroFlexibleAR('#total_ImpInmobiliario', { decimales: 2, permitirNegativos: true });
 
 $(document).on('click','#ImpInmobiliario_nuevo',function(e){
 
@@ -14201,7 +14201,7 @@ $(function(){
 
             $('#contenedor-inputs-iibb-cargar').append(bloque);
 
-            instalarNumeroFlexibleAR(`#${montoId}, #${aliId}, #${impId}`, { decimales: 2 });
+            instalarNumeroFlexibleAR(`#${montoId}, #${aliId}, #${impId}`, { decimales: 5, permitirNegativos: true });
 
             instalarAutoImpuestoAR({
               base:     `#${montoId}`,

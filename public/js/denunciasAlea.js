@@ -507,7 +507,8 @@ function generarFiladenunciasAlea_paginas(item, controlador) {
         // ⬇️ aquí va el switch en vez del texto
         .append($('<td class="text-center">').append(buildSwitchDenuncia(id, on)))
 
-        .append($('<td>').text(cantDen))
+        // Cantidad editable
+        .append($('<td>').addClass('editable-cant text-center').attr('data-id', id).text(cantDen))
          .append(
           $('<td class="text-center">').append(
              (function(){
@@ -922,168 +923,7 @@ $(document).on('click', '#btn-descargarObsYDenPDF', function(e){
 
 
 
-//paginas activas
 
-
-function generarFilaPagActivas(r){
-  var $tr  = $('<tr>').attr('data-id', r.id);
-  var user = r.user_pag || r.usuario || '-';
-  var plat = r.plataforma || '-';
-  var url  = r.link_pagina || r.link || r.url || '';
-
-  var $href = url
-    ? $('<a>', { href:url, target:'_blank', rel:'noopener', title:url })
-        .css({ display:'inline-block', maxWidth:'100%', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' })
-        .text(url)
-    : document.createTextNode('-');
-
-  var $lbl = $('<span class="lbl-disp" data-status="pending">Chequeando…</span>');
-
-  $tr.append($('<td>').text(user));
-  $tr.append($('<td>').text(plat));
-  $tr.append($('<td>').append($href));
-  $tr.append($('<td class="text-center">').append($lbl));
-  return $tr;
-}
-
-var gPA_SortBy  = 'fecha';
-var gPA_SortDir = 'desc';
-
-// Carga de tabla + paginación + disparo de chequeo
-function cargarPagActivas(params){
-  params = params || {};
-  var page    = params.page    || 1;
-  var perPage = params.perPage || 'all';
-
-  $.ajax({
-    url: '/denunciasAlea/paginas-activas',
-    data: { page: page, page_size: perPage, sort_by: gPA_SortBy, sort_dir: gPA_SortDir },
-    dataType: 'json'
-  }).done(function(res){
-    var items = (res && res.registros) ? res.registros : [];
-    var $tb = $('#cuerpoTablaPagActivas').empty();
-
-    if (!items.length) {
-      $tb.append('<tr><td colspan="4" class="text-center text-muted">Sin resultados.</td></tr>');
-    } else {
-      items.forEach(function(r){ $tb.append(generarFilaPagActivas(r)); });
-    }
-
-    var pag = (res && res.pagination) ? res.pagination : { current_page: page, per_page: perPage, total: items.length };
-
-    $('#herramientasPaginacionPagActivas').generarTitulo(
-      pag.current_page, pag.per_page, pag.total, clickIndicePagActivas
-    );
-    $('#herramientasPaginacionPagActivas').generarIndices(
-      pag.current_page, pag.per_page, pag.total, clickIndicePagActivas
-    );
-
-    // Chequeo + filtro (solo activos o desconocidos "reales")
-    chequearVisiblesPagActivas(3, { prune: true, onDone: updatePagActivasSummary });
-  }).fail(function(err){
-    console.error('[pag-activas] error', err);
-    $('#cuerpoTablaPagActivas').html('<tr><td colspan="4" class="text-center text-danger">Error al cargar.</td></tr>');
-  });
-}
-
-// Paginación
-function clickIndicePagActivas(e, pageNumber, pageSize){
-  if(e) e.preventDefault();
-  cargarPagActivas({ page: pageNumber, perPage: pageSize });
-}
-
-
-
-// Chequeo de disponibilidad para filas visibles
-function chequearVisiblesPagActivas(concurrency, opts){
-  concurrency = concurrency || 3;
-  opts = opts || {};
-  var prune  = !!opts.prune;
-  var onDone = typeof opts.onDone === 'function' ? opts.onDone : function(){};
-
-  var $rows = $('#cuerpoTablaPagActivas tr');
-  var ids   = $rows.map(function(){ return $(this).data('id'); }).get();
-  var ix = 0, enVuelo = 0;
-
-  function allowedUnknown(reason){
-    var r = String(reason || '').toLowerCase();
-    return ['rate-limited','forbidden','captcha','challenge','timeout','timed out','network','dns','ssl','tls','blocked','bloqueo','skipped by state']
-      .some(function(k){ return r.indexOf(k) >= 0; });
-  }
-
-  function maybeFinish(){
-    if (ix >= ids.length && enVuelo === 0){
-      onDone();                 // 👈 actualiza contadores al final
-    }
-  }
-
-  function lanzar(){
-    while(enVuelo < concurrency && ix < ids.length){
-      (function(id){
-        enVuelo++;
-        var $tr  = $('#cuerpoTablaPagActivas tr[data-id="'+id+'"]');
-        var $lbl = $tr.find('.lbl-disp').text('Chequeando…').attr('data-status','pending');
-
-        $.getJSON('/denunciasAlea/probar-disponibilidad/' + id)
-          .done(function(r){
-            var keep=false, label='Desconocido';
-            if (r.status === 'taken')      { keep=true;  label='Activo';        $lbl.attr('data-status','taken'); }
-            else if (r.status === 'available'){ keep=false; label='No disponible'; $lbl.attr('data-status','available'); }
-            else {
-              var ok = allowedUnknown(r.reason);
-              keep = ok; label = ok ? 'Desconocido' : 'No disponible';
-              $lbl.attr('data-status', ok ? 'unknown-ok' : 'unknown-bad');
-            }
-            $lbl.text(label);
-            if (prune && !keep) { $tr.remove(); }
-          })
-          .fail(function(){
-            $lbl.text('Desconocido').attr('data-status','unknown-ok');
-          })
-          .always(function(){
-            enVuelo--;
-            // 👇 si querés ver el número moverse “en vivo”, descomentá:
-             updatePagActivasSummary();
-            lanzar();
-            maybeFinish();
-          });
-      })(ids[ix++]);
-    }
-  }
-  lanzar();
-}
-
-// Botones
-$(document).on('click','#btn-chequear-visibles', function(e){
-  e.preventDefault();
-  chequearVisiblesPagActivas(3);
-});
-
-$(document).on('click','#btn-refrescar-pagActivas', function(e){
-  e.preventDefault();
-  cargarPagActivas({
-    page: $('#herramientasPaginacionPagActivas').getCurrentPage ? $('#herramientasPaginacionPagActivas').getCurrentPage() : 1,
-    perPage: $('#herramientasPaginacionPagActivas').getPageSize ? $('#herramientasPaginacionPagActivas').getPageSize() : 'all'
-  });
-});
-
-function updatePagActivasSummary(){
-  var $tb        = $('#cuerpoTablaPagActivas');
-  var total      = $tb.find('tr').length;
-  var activos    = $tb.find('.lbl-disp[data-status="taken"]').length;
-  var desconoc   = $tb.find('.lbl-disp[data-status="unknown-ok"]').length;
-  var noDisp     = $tb.find('.lbl-disp[data-status="available"], .lbl-disp[data-status="unknown-bad"]').length;
-
-  // Mostrar en algún lado (creá esos <span> en tu HTML)
-  $('#pa-total').text(total);
-  $('#pa-activos').text(activos);
-  $('#pa-unknown').text(desconoc);
-  $('#pa-nodisp').text(noDisp);
-
-  // Recalcular “paginación” para que no siga diciendo 43
-  $('#herramientasPaginacionPagActivas').generarTitulo(1, total, total, clickIndicePagActivas);
-  $('#herramientasPaginacionPagActivas').generarIndices(1, total, total, clickIndicePagActivas);
-}
 
 // Estadisticas
 
@@ -2295,5 +2135,283 @@ if(window.cargarEvolucionAnual) {
     }
 
   });
+// Inline Editing Cantidad Denuncias
+$(document).on('dblclick', '.editable-cant', function() {
+    var $cell = $(this);
+    if ($cell.find('input').length > 0) return; // Ya en edición
+    
+    var currentText = $cell.text().trim();
+    var currentVal = (currentText === '-' || currentText === '') ? 0 : currentText;
+    
+    // Convertir a input
+    var $input = $('<input>', {
+        type: 'number',
+        value: currentVal,
+        class: 'form-control input-sm',
+        style: 'width: 100%; text-align: center;'
+    });
+    
+    $cell.data('original', currentText);
+    $cell.empty().append($input);
+    $input.focus().select();
+});
+
+$(document).on('blur', '.editable-cant input', function() {
+    saveCantDenuncia($(this));
+});
+
+$(document).on('keypress', '.editable-cant input', function(e) {
+    if (e.which === 13) { // Enter
+        $(this).blur();
+    }
+});
+
+function saveCantDenuncia($input) {
+    var $cell = $input.closest('td');
+    var id    = $cell.data('id');
+    var newVal = $input.val();
+    
+    // Validación básica
+    if (newVal === '') { newVal = 0; }
+    
+    $.ajax({
+        url: '/denunciasAlea/modificar-cantidad/' + id,
+        type: 'POST',
+        data: { cantidad: newVal },
+        success: function(res) {
+            if (res.success) {
+                $cell.text(newVal);
+            } else {
+                $cell.text($cell.data('original'));
+                alert('Error al guardar: ' + (res.message || 'Desconocido'));
+            }
+        },
+        error: function(err) {
+            console.error(err);
+            $cell.text($cell.data('original'));
+            alert('Error de conexión al guardar.');
+        }
+    });
+}
+
   $('[data-js-tabs] a').first().trigger('click');
 });
+
+// -----------------------------------------------------------------------------
+// SECCIÓN PÁGINAS ACTIVAS (IMPORTADOR CSV)
+// -----------------------------------------------------------------------------
+
+var gPaginasActivasData = [];
+
+// Mostrar nombre de archivo seleccionado
+$(document).on('change', '#importarPaginasActivasInput', function() {
+    var fileName = $(this).val().split('\\').pop();
+    $('#nombreArchivoSel').text(fileName || 'Ningún archivo seleccionado');
+});
+
+$(document).on('click', '#btn-importar-pagActivas', function(e){
+  e.preventDefault();
+  var input = $('#importarPaginasActivasInput')[0];
+  if (!input.files || !input.files[0]) {
+      alert('Por favor, selecciona un archivo CSV.');
+      return;
+  }
+
+  var formData = new FormData();
+  formData.append('archivo', input.files[0]);
+
+  $('#cuerpoTablaPagActivas').html('<tr><td colspan="6" class="text-center">Importando y procesando...</td></tr>');
+  $('#mensajeImportacion').text('');
+  
+  // Deshabilitar botones de acciones
+  $('#btn-baja-inactivas, #btn-descargarPagActivasExcel, #btn-descargarPagActivasPDF').prop('disabled', true);
+
+  $.ajax({
+      url: '/denunciasAlea/importar-csv-paginas-activas',
+      type: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false,
+      success: function(res) {
+          gPaginasActivasData = res.registros || [];
+          renderTablaPagActivas(gPaginasActivasData);
+          $('#mensajeImportacion').text('Se importaron ' + gPaginasActivasData.length + ' registros.');
+          
+          if (gPaginasActivasData.length > 0) {
+               $('#btn-baja-inactivas, #btn-descargarPagActivasExcel, #btn-descargarPagActivasPDF').prop('disabled', false);
+          }
+      },
+      error: function() {
+          $('#cuerpoTablaPagActivas').html('<tr><td colspan="6" class="text-center text-danger">Error al importar el archivo.</td></tr>');
+      }
+  });
+});
+
+function renderTablaPagActivas(data) {
+  var $tbody = $('#cuerpoTablaPagActivas').empty();
+  
+  if (!data || data.length === 0) {
+      $tbody.html('<tr><td colspan="6" class="text-center">No hay datos.</td></tr>');
+      return;
+  }
+
+  data.forEach(function(item) {
+      // item: {id_temp, usuario, url, estado, detalle, plataforma}
+      var isInactive = String(item.estado || '').toLowerCase().includes('inactiv');
+      var cssClass = isInactive ? 'warning' : ''; 
+      
+      var $tr = $('<tr>').addClass(cssClass).attr('data-id-temp', item.id_temp);
+      
+      $tr.append($('<td class="text-center">').append(
+          $('<input>', {type: 'checkbox', class: 'check-pag-activa', 'data-id-temp': item.id_temp})
+      ));
+      $tr.append($('<td>').text(item.fecha || '-'));
+      $tr.append($('<td>').text(item.usuario || '-'));
+      
+      var urlDisplay = item.url ? $('<a>', {href: item.url, target:'_blank'}).text(item.url) : '-';
+      $tr.append($('<td>').html(urlDisplay));
+      
+      $tr.append($('<td>').text(item.estado || '-'));
+      $tr.append($('<td>').text(item.detalle || '-'));
+      $tr.append($('<td>').text(item.plataforma || '-'));
+      
+      $tbody.append($tr);
+  });
+}
+
+$(document).on('change', '#checkAllPagActivas', function() {
+    $('.check-pag-activa').prop('checked', $(this).is(':checked'));
+});
+
+// Botón "Dar de baja a paginas inactivas" (Modo AUTOMÁTICO con confirmación en Modal)
+var gItemsBaja = [];
+
+$(document).on('click', '#btn-baja-inactivas', function(e) {
+    e.preventDefault();
+    
+    // Filtrar automáticamente las Inactivas
+    gItemsBaja = gPaginasActivasData.filter(function(item) {
+        return String(item.estado || '').toLowerCase().includes('inactiv');
+    });
+    
+    if (gItemsBaja.length === 0) {
+        alert('No se encontraron páginas con estado "Inactivo" en la lista importada.');
+        return;
+    }
+    
+    // Poblar modal
+    $('#cant_baja').text(gItemsBaja.length);
+    var $ul = $('#lista_baja').empty();
+    
+    gItemsBaja.forEach(function(item) {
+        var txt = (item.usuario || 'S/Usr') + ' - ' + (item.url || 'S/Url');
+        $ul.append($('<li>').text(txt));
+    });
+    
+    // Mostrar modal
+    $('#modalBajaPaginas').modal('show');
+});
+
+// Confirmación en Modal
+$(document).on('click', '#btn-confirmar-baja', function(e) {
+    if (gItemsBaja.length === 0) return;
+    
+    // Deshabilitar para evitar doble click
+    var $btn = $(this).prop('disabled', true).text('Procesando...');
+    
+    $.ajax({
+        url: '/denunciasAlea/dar-baja-paginas-inactivas',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ items: gItemsBaja }),
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        success: function(res) {
+            $btn.prop('disabled', false).text('Confirmar Baja');
+            $('#modalBajaPaginas').modal('hide');
+            
+            if (res.success) {
+                alert('Proceso finalizado. Se han dado de baja ' + res.updated_count + ' registros.');
+                
+                // Opcional: Remover los ítems procesados de la tabla visualmente
+                // O marcarlos como "Procesado"
+                // Vamos a eliminarlos de la lista visual para que no se puedan volver a procesar
+                var probIds = gItemsBaja.map(function(i){ return i.id_temp; });
+                gPaginasActivasData = gPaginasActivasData.filter(function(item){
+                    return !probIds.includes(item.id_temp);
+                });
+                renderTablaPagActivas(gPaginasActivasData);
+                $('#mensajeImportacion').text('Quedan ' + gPaginasActivasData.length + ' registros sin procesar.');
+                
+            } else {
+                alert('Ocurrió un error: ' + (res.message || 'Error desconocido'));
+            }
+        },
+        error: function(xhr) {
+            $btn.prop('disabled', false).text('Confirmar Baja');
+            alert('Error al procesar la solicitud.');
+            console.error(xhr);
+        }
+    });
+});
+
+
+// Botones Exportar
+$(document).on('click', '#btn-descargarPagActivasExcel', function(e) {
+    e.preventDefault();
+    exportarPaginasActivas('xlsx');
+});
+
+$(document).on('click', '#btn-descargarPagActivasPDF', function(e) {
+    e.preventDefault();
+    exportarPaginasActivas('pdf');
+});
+
+function exportarPaginasActivas(format) {
+    var selectedIds = $('.check-pag-activa:checked').map(function() {
+        return $(this).data('id-temp'); // esto devuelve number o string del data-attr
+    }).get();
+
+    var dataToExport = [];
+    if (selectedIds.length > 0) {
+        dataToExport = gPaginasActivasData.filter(function(item) {
+            return selectedIds.includes(item.id_temp) || selectedIds.includes(String(item.id_temp));
+        });
+    } else {
+        alert('Por favor, selecciona los registros que deseas exportar.');
+        return;
+    }
+    
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/denunciasAlea/exportar-listado-temporal';
+    form.target = '_blank';
+
+    var token = $('meta[name="csrf-token"]').attr('content');
+    
+    var inputToken = document.createElement('input');
+    inputToken.type = 'hidden';
+    inputToken.name = '_token';
+    inputToken.value = token;
+    form.appendChild(inputToken);
+    
+    var inputFormat = document.createElement('input');
+    inputFormat.type = 'hidden';
+    inputFormat.name = 'format';
+    inputFormat.value = format;
+    form.appendChild(inputFormat);
+    
+    dataToExport.forEach(function(item, index) {
+        Object.keys(item).forEach(function(key) {
+           var i = document.createElement('input');
+           i.type = 'hidden';
+           name = 'data[' + index + '][' + key + ']'; // name must be defined properly
+           i.name = name;
+           i.value = item[key];
+           form.appendChild(i);
+        });
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+}
