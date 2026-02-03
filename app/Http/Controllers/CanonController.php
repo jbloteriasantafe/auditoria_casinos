@@ -2022,11 +2022,11 @@ class CanonController extends Controller
     FROM temp_subcanons_redondeados_con_totales
     GROUP BY año_mes,concepto');
     
-    $prepared = $discriminar_adicionales;
+    $prepared = $agrupar_concepto_adicionales;
     return 'temp_subcanons_redondeados_con_totales_con_mensuales';
   }
   public function totalesCanon($año,$mes,$discriminar_adicionales){
-    $table = self::totalesCanon_prepare($discriminar_adicionales);
+    $table = self::totalesCanon_prepare('Adicionales');
     $año_mes = str_pad($año,4,'0',STR_PAD_LEFT).'-'.str_pad($mes,2,'0',STR_PAD_LEFT).'-01';
     $ret = DB::table($table.' as tc')
     ->select('tc.*',DB::raw('IF(tc.id_casino = 0,"Total",IFNULL(cas.nombre,tc.id_casino)) as casino'))
@@ -2172,9 +2172,35 @@ class CanonController extends Controller
     $año = $año_mes_arr[0];
     $mes = $meses_calendario[intval($año_mes_arr[1])];
     
-    $params = http_build_query(compact('planilla','casino','año','mes'));
+    $abbr_casinos = DB::table(
+      DB::raw('(
+        SELECT 1 as id_casino,"Melincué" as casino,"MEL" as abbr,"CME" as codigo,"BPLAY" as plataforma
+        UNION ALL
+        SELECT 2 as id_casino,"Santa Fe" as casino,"SFE" as abbr,"CSF" as codigo,"BPLAY" as plataforma
+        UNION ALL
+        SELECT 3 as id_casino,"Rosario" as casino,"ROS" as abbr,"CRO" as codigo,"CCO" as plataforma
+        UNION ALL
+        SELECT 1 as id_casino,"Total" as casino,"TOTAL" as abbr,"TOTAL" as codigo,"BPLAY" as plataforma
+        UNION ALL
+        SELECT 2 as id_casino,"Total" as casino,"TOTAL" as abbr,"TOTAL" as codigo,"BPLAY" as plataforma
+        UNION ALL
+        SELECT 3 as id_casino,"Total" as casino,"TOTAL" as abbr,"TOTAL" as codigo,"CCO" as plataforma
+      ) as cas')
+    )
+    ->select('casino','codigo')->distinct()
+    ->get()
+    ->keyBy('casino')
+    ->map(function($v){
+      return $v->codigo;
+    });
     
-    return redirect('/canon/descargarPlanillas?'.$params);
+    return View::make('Canon.planillaInformeCanon',[
+      'casino' => $casino,
+      'año' => $año,
+      'mes' => $mes,
+      'timestamp' => date('Y-m-d'),
+      'abbr_casinos' => $abbr_casinos
+    ]);
   }
   
   public function descargar(Request $request){
