@@ -286,6 +286,45 @@ function generarFilaTabla(ev,controlador) {
   // Columna de ACCIONES
   const tdAcc = $('<td>').addClass('col-xs-2 d-flex flex-wrap');
 
+  if(ev.menores == 'Si' || ev.menores == 'Sí'){
+    const $badge18 = $('<span>')
+      .attr('data-toggle', 'tooltip')
+      .attr('title', 'Menores en sala')
+      .css({
+         'display': 'inline-block',
+         'position': 'relative',
+         'width': '30px',
+         'height': '30px',
+         'border': '2px solid #d9534f', // Rojo
+         'border-radius': '50%',
+         'text-align': 'center',
+         'line-height': '26px', // 30 - 4
+         'margin-right': '5px',
+         'color': '#000', // Negro
+         'font-weight': 'bold',
+         'font-family': 'Arial, sans-serif',
+         'font-size': '12px',
+         'vertical-align': 'middle',
+         'cursor': 'default',
+         'background-color': '#fff'
+      })
+      .text('+18');
+
+      // La linea tachada (roja)
+      const $linea = $('<div>').css({
+        'position': 'absolute',
+        'top': '50%',
+        'left': '50%',
+        'width': '26px',
+        'height': '2px',
+        'background-color': '#d9534f', // Rojo
+        'transform': 'translate(-50%, -50%) rotate(45deg)'
+      });
+
+      $badge18.append($linea);
+      tdAcc.append($badge18);
+  }
+
   // IMPRIMIR
 
   //**GENERADO**
