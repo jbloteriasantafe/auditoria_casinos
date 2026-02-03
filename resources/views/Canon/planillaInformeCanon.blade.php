@@ -64,9 +64,13 @@
     'planilla': 'canon_mensual',
     'casino': '{{$casino}}',
     'año': '{{$año}}',
-    'mes': '{{$mes}}',
-    'timestamp': '{{$timestamp}}'
+    'mes': '{{$mes}}'
   };
+  const nombre_archivo = Object.values(parametros).join('_');
+  const planilla = 'canon_mensual';
+  const año = "{!! isset($año)? $año : '' !!}";
+  const mes = "{!! isset($mes)? $mes : '' !!}";
+  const fecha_planilla = "{!! date('Ymdhi') !!}";
 </script>
 <script src="/js/Canon/planillas.js?1" charset="utf-8" type="module"></script>
 
