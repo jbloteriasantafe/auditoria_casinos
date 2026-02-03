@@ -1,6 +1,6 @@
 <?php
   $pje_plats = [];
-  foreach([$año_anterior,$año] as $_a){
+  foreach([$año-1,$año] as $_a){
     $pje_plats[$_a] = $pje_plats[$_a] ?? [];
     for($_nmes=0;$_nmes<=12;$_nmes++){
       $pje_plats[$_a][$_nmes] = $pje_plats[$_a][$_nmes] ?? [];
@@ -48,10 +48,10 @@
       @endforeach
     </tr>
     <tr>
-      <th class="mes celda_especial" style="border-right: 1px solid black">{{$año_anterior}}</th>
+      <th class="mes celda_especial" style="border-right: 1px solid black">{{$año-1}}</th>
       @foreach($abbr_casinos as $_casino => $_cas)
       <?php
-        $total = $dataf($_casino,$año_anterior,0);
+        $total = $dataf($_casino,$año-1,0);
         $fisico = $formatear_porcentaje($total->porcentaje_fisico ?? null);
         $online = $formatear_porcentaje($total->porcentaje_online ?? null);
       ?>
@@ -60,7 +60,7 @@
       @endforeach
       @foreach($plataformas as $_pidx => $_plat)
       <?php
-        $porcentaje = $formatear_porcentaje($pje_plats[$año_anterior][0][$_plat->codigo]);
+        $porcentaje = $formatear_porcentaje($pje_plats[$año-1][0][$_plat->codigo]);
         $_cas = $abbr_casinos[$relacion_plat_cas[$_plat->codigo]];
       ?>
       <th class="JOL{{$_pidx}} {{$N($porcentaje)}} {{$_cas}}" style="text-align: right;">{{$porcentaje}}</th>

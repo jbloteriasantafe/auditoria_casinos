@@ -27,8 +27,10 @@
   };
     
   $data_arr = compact(
-    'data','data_plataformas','años_planilla','años','año','año_anterior','meses',
-    'meses_elegibles','mes','meses_calendario','num_mes','planillas','planilla',
+    'data','data_plataformas',
+    'años','año',
+    'meses','mes','meses_calendario','num_mes',
+    'planillas','planilla',
     'es_anual','casinos','abbr_casinos',
     'plataformas','relacion_plat_cas','valor_vacio','formatear_decimal','N',
     'formatear_porcentaje','abbr_año','meses_calendario',
@@ -108,6 +110,7 @@
         border-right: 1px solid black;
       }
     </style>
+    @if($botones_elegidos)
     @if($planilla == 'evolucion_historica')
       @component('Canon.Planillas.evolucion_historica',$data_arr)
       @endcomponent
@@ -116,19 +119,22 @@
       @component('Canon.Planillas.actualizacion_valores',$data_arr)
       @endcomponent
     @endif
-    @if($es_anual && isset($año))
-      @if($planilla == 'canon_total')
-        @component('Canon.Planillas.canon_total',$data_arr)
-        @endcomponent
-      @endif
-      @if($planilla == 'canon_fisico_online')
-        @component('Canon.Planillas.canon_fisico_online',$data_arr)
-        @endcomponent
-      @endif
-      @if($planilla == 'participacion')
-        @component('Canon.Planillas.participacion',$data_arr)
-        @endcomponent
-      @endif
+    @if($planilla == 'evolucion_cotizacion')
+      @component('Canon.Planillas.evolucion_cotizacion',$data_arr)
+      @endcomponent
+    @endif
+    @if($planilla == 'canon_total')
+      @component('Canon.Planillas.canon_total',$data_arr)
+      @endcomponent
+    @endif
+    @if($planilla == 'canon_fisico_online')
+      @component('Canon.Planillas.canon_fisico_online',$data_arr)
+      @endcomponent
+    @endif
+    @if($planilla == 'participacion')
+      @component('Canon.Planillas.participacion',$data_arr)
+      @endcomponent
+    @endif
     @endif
   </div>
 </body>
