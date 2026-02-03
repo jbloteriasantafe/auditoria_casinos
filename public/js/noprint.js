@@ -49,26 +49,18 @@ document.body.style.cssText="-webkit-touch-callout: none;-webkit-user-select: no
 
 function toBlur()
 {
-	if (autoBlur)
-	document.body.style.cssText="-webkit-filter: blur(5px);-moz-filter: blur(5px);-ms-filter: blur(5px);-o-filter: blur(5px);filter: blur(5px);"
+	
 }
 
 function toClear()
 {
-	document.body.style.cssText="-webkit-filter: blur(0px);-moz-filter: blur(0px);-ms-filter: blur(0px);-o-filter: blur(0px);filter: blur(0px);"
+	
 }
 
 document.onclick = function(event){
  	toClear();
 }
- 
-document.onmouseleave = function(event){
-	toBlur();
-}
 
-document.onblur = function(event){
- 	toBlur();
-}
 
 document.addEventListener('keyup', (e) => {
     if (e.key == 'PrintScreen') {

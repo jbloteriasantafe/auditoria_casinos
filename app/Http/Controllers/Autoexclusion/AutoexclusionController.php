@@ -953,23 +953,46 @@ class AutoexclusionController extends Controller
                  // User says "saltea todos", implying they want data.
                  if (!$fecha_ae) $fecha_ae = \Carbon\Carbon::now();
                  
-                 // --- DUPLICATE CHECK (Exact match only) ---
-                 // User request: "CADA registro hay que subir" (Upload every record).
-                 // We will only skip if it's an EXACT duplicate (Same DNI + Same Date + Same Platform/Casino)
-                 // to prevent accidental double-clicks or re-processing the exact same file.
+                 // --- DUPLICATE CHECK (Based on DNI + Active Status) ---
+                 // User request: Check if DNI exists and if current status is "active". 
+                 // If active -> Ignore. If not active (expired, etc) -> Create new.
                  
-                 $query = AE\EstadoAE::whereHas('ae', function($q) use ($dni) {
-                                       $q->where('nro_dni', $dni);
-                                   })
-                                   ->whereDate('fecha_ae', $fecha_ae->format('Y-m-d'));
+                 $skip_record = false;
                  
-                 if ($id_plataforma) {
-                     $query->where('id_plataforma', $id_plataforma);
-                 } else {
-                     $query->where('id_casino', $id_casino);
+                 // Buscar el usuario por DNI
+                 $existing_ae = AE\Autoexcluido::where('nro_dni', $dni)->first();
+                 
+                 if ($existing_ae) {
+                     // Si existe, busco su ultimo estado global (independiente de la plataforma/casino del archivo, 
+                     // porque la autoexclusión es personal, aunque el filtro de duplicado original chequeaba plataforma.
+                     // Pero el requerimiento dice: "si el archivo es vigente, que se ignore"
+                     
+                     // Ajuste: Buscamos el último estado asociado a este AE.
+                     // Nota: El sistema parece manejar estados por casino/plataforma en 'ae_estado', 
+                     // pero la logica de negocio general implica que si esta vigente en algun lado, ¿esta vigente?
+                     // El requerimiento dice: "que se fije por DNI si el usuario ya esta excluido"
+                     
+                     // Vamos a buscar el estado MAS RECIENTE de este autoexcluido.
+                     $latest_state = AE\EstadoAE::where('id_autoexcluido', $existing_ae->id_autoexcluido)
+                                    ->orderBy('fecha_ae', 'desc') // Asumo fecha_ae orden cronologico
+                                    ->first();
+                                    
+                     if ($latest_state) {
+                         // IDs de estados vigentes: 
+                         // 1: Vigente
+                         // 2: Renovado
+                         // 7: Vigente (otra variante)
+                         // (Verificaciones previas en codigo sugieren 1 y 7 como vigentes, 2 renovado tambien es activo)
+                         $estados_vigentes = [1, 2, 7]; 
+                         
+                         if (in_array($latest_state->id_nombre_estado, $estados_vigentes)) {
+                             // "si el estado es vigente, que se ignore"
+                             $skip_record = true;
+                         }
+                     }
                  }
                  
-                 if ($query->exists()) {
+                 if ($skip_record) {
                      $cant_saltados++;
                      continue;
                  }
