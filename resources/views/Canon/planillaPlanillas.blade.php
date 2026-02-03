@@ -27,8 +27,10 @@
   };
     
   $data_arr = compact(
-    'data','data_plataformas','años','año','año_anterior','meses',
-    'mes','meses_calendario','num_mes','planillas','planilla',
+    'data','data_plataformas',
+    'años','año',
+    'meses','mes','meses_calendario','num_mes',
+    'planillas','planilla',
     'es_anual','casinos','abbr_casinos',
     'plataformas','relacion_plat_cas','valor_vacio','formatear_decimal','N',
     'formatear_porcentaje','abbr_año','meses_calendario',

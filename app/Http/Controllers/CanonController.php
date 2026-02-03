@@ -1846,21 +1846,25 @@ class CanonController extends Controller
     return $dompdf->stream($filename, Array('Attachment'=>0));
   }
   
-  private static function totalesCanon_prepare($discriminar_adicionales){
+  private static function rawsql_round_bankers($val){
+    $abs = "ABS($val)";
+    $tru = "TRUNCATE($val,2)";
+    return "IF(
+      ($abs-$tru) = 0.005,
+      $tru+0.01*(($tru*100) % 2),
+      ROUND($val,2)
+    )";
+  }
+  
+  private static function totalesCanon_prepare($agrupar_concepto_adicionales = 'concepto'){
     static $prepared = null;
-    if($prepared === $discriminar_adicionales){
+    if($prepared === $agrupar_concepto_adicionales){
       return 'temp_subcanons_redondeados_con_totales_con_mensuales';
     }
     
-    $round_bankers = function($val){
-      $abs = "ABS($val)";
-      $tru = "TRUNCATE($val,2)";
-      return "IF(
-        ($abs-$tru) = 0.005,
-        $tru+0.01*(($tru*100) % 2),
-        ROUND($val,2)
-      )";
-    };
+    if($agrupar_concepto_adicionales !== 'concepto'){
+      $agrupar_concepto_adicionales = '"'.$agrupar_concepto_adicionales.'"';
+    }
     
     DB::statement('CREATE TEMPORARY TABLE temp_subcanons
     SELECT
@@ -1880,11 +1884,11 @@ class CanonController extends Controller
       SUM(sc.deduccion) as deduccion,
       SUM(sc.devengado) as devengado,
       SUM(sc.determinado) as determinado,
-      '.$round_bankers('SUM(sc.beneficio)').' as red_beneficio,
-      '.$round_bankers('SUM(sc.bruto)').' as red_bruto,
-      '.$round_bankers('SUM(sc.deduccion)').' as red_deduccion,
-      '.$round_bankers('SUM(sc.devengado)').' as red_devengado,
-      '.$round_bankers('SUM(sc.determinado)').' as red_determinado,
+      '.self::rawsql_round_bankers('SUM(sc.beneficio)').' as red_beneficio,
+      '.self::rawsql_round_bankers('SUM(sc.bruto)').' as red_bruto,
+      '.self::rawsql_round_bankers('SUM(sc.deduccion)').' as red_deduccion,
+      '.self::rawsql_round_bankers('SUM(sc.devengado)').' as red_devengado,
+      '.self::rawsql_round_bankers('SUM(sc.determinado)').' as red_determinado,
       MAX(c.devengado_deduccion) as canon_deduccion,
       MAX(c.devengado) as canon_devengado,
       MAX(c.determinado+c.ajuste) as canon_determinado
@@ -1917,7 +1921,7 @@ class CanonController extends Controller
       
       UNION ALL SELECT
         sc.id_canon,
-        "'.($discriminar_adicionales? 'Adicionales' : 'Paños').'" as concepto,
+        '.$agrupar_concepto_adicionales.' as concepto,
         0 as beneficio,
         IF(sc.devengar,sc.devengado_total,NULL) as bruto,
         IF(sc.devengar,sc.devengado_deduccion,NULL) as deduccion,
@@ -2222,23 +2226,35 @@ class CanonController extends Controller
         
     return stream_get_contents($f);
   }
+  
+  private static function rawsql_ranged($begin,$end,$step=1){
+    $aux = $begin;
+    $begin = min($begin,$end);
+    $end = max($aux,$end);
     
-  public function descargarPlanillas(Request $request){
-    $combine_into_pairs = function($arr1,$arr2){
-      $ks = [];
-      foreach($arr1 as $k => $_)
-        $ks[$k] = 1;
-      foreach($arr2 as $k => $_)
-        $ks[$k] = 1;
-      $ks = array_keys($ks);
-      
-      $ret = [];
-      foreach($ks as $k)
-        $ret[$k] = [$arr1[$k] ?? null,$arr2[$k] ?? null];
-      
-      return $ret;
-    };
+    $ret = "( SELECT $begin as val ";
+    for($i=$begin+$step;$i<=$end;$i+=$step){
+      $ret.= 'UNION ALL SELECT '.$i.' ';
+    }
+    return $ret.')';
+  }
+  
+  private static function array_from_pairs($arr1,$arr2){
+    $ks = [];
+    foreach($arr1 as $k => $_)
+      $ks[$k] = 1;
+    foreach($arr2 as $k => $_)
+      $ks[$k] = 1;
+    $ks = array_keys($ks);
     
+    $ret = [];
+    foreach($ks as $k)
+      $ret[$k] = [$arr1[$k] ?? null,$arr2[$k] ?? null];
+    
+    return $ret;
+  }
+    
+  public function descargarPlanillas(Request $request){    
     $fecha_inicio = [//@TODO: poner en valores por defecto
       'Melincué' => '2007-09-28',
       'Santa Fe' => '2008-08-11',
@@ -2247,8 +2263,9 @@ class CanonController extends Controller
     ];
     
     $primer_fecha = null;
-    if($request->casino ?? false){
-      $primer_fecha = $fecha_inicio[$request->casino] ?? 'XXXX-XX-XX';
+    $casino = $request->casino ?? null;
+    if($casino !== null){
+      $primer_fecha = $fecha_inicio[$casino] ?? 'XXXX-XX-XX';
     }
     else{
       $primer_fecha = array_reduce($fecha_inicio,function($carry,$f){
@@ -2262,6 +2279,7 @@ class CanonController extends Controller
     $ultimo_año = intval(substr($ultima_fecha,0,strlen('XXXX')));
     $primer_mes = intval(substr($primer_fecha,strlen('XXXX-'),strlen('XX')));
     $ultimo_mes = intval(substr($ultima_fecha,strlen('XXXX-'),strlen('XX')));
+    $planilla  = $request->planilla ?? null;
     
     if($primer_año == 0) return 'Sin configuración de fechas de inicio';
     
@@ -2269,9 +2287,15 @@ class CanonController extends Controller
     if($primer_año !== null && $ultimo_año !== null){
       $años = collect(array_reverse(range($primer_año,$ultimo_año,1)));
     }
+    
     $año  = $request->año ?? null;
     $año  = $año === null? null : intval($año);
-    $año_anterior = $año === null? null : ($año-1);
+    $años_sql = $año === null?
+      self::rawsql_ranged($primer_año,$ultimo_año)
+    : self::rawsql_ranged($año-1,$año+1);
+    
+    $mes  = $request->mes ?? null;
+    $mes  = $mes === null? null : intval($mes);
     
     $meses_calendario = collect([null,'Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']);
     unset($meses_calendario[0]);
@@ -2302,52 +2326,28 @@ class CanonController extends Controller
       }
     }
     
-    $planilla  = $request->planilla ?? null;
-    $plataformas = Plataforma::orderBy('id_plataforma','asc')->get();
-    $relacion_plat_cas = ['CCO' => 'Rosario','BPLAY' => 'Santa Fe - Melincué'];
+    //@SPEED
+    //Para los mensuales resulta en 3 veces la cantidad de querys necesarias
+    //Ej pido Marzo 2023
+    //-> deberia solo obtener Febrero 2023, Marzo 2023, Abril 2023
+    //-> devuelve Febrero 2022,23,24, Marzo 2022,23,24, Abril 2022,23,24
+    //No me molesto en arreglarlo porque no creo que ralentize mucho
+    $meses_sql = null;
+    if($mes === null){
+      $meses_sql = self::rawsql_ranged(1,12);
+    }
+    else{
+      $_prev = ($mes <= 1? 13 : $mes)-1;
+      $_prox = ($mes >= 12? 0 : $mes)+1;
+      $meses_sql = "(
+        SELECT $_prev as val
+        UNION ALL 
+        SELECT $mes as val
+        UNION ALL
+        SELECT $_prox as val
+      )";
+    }
     
-    $planillas = [
-      'evolucion_historica' => 'Evolución Historica',
-      'canon_total' => 'Canon Total',
-      'canon_fisico_online' => 'Canon Físico-On Line',
-      'participacion' => 'Particip. % Resultado CF-JOL',
-      'actualizacion_valores' => 'Actualización Valores Mesas',
-      'evolucion_cotizacion' => 'Evolución Cotizacion',
-      'canon_mensual' => 'Canon Mensual'
-    ];
-    
-    $planillas_botones = [
-      '' => ['planilla'],
-      'evolucion_historica' => ['planilla'],
-      'canon_total' => ['planilla','año'],
-      'canon_fisico_online' => ['planilla','año'],
-      'participacion' => ['planilla','año'],
-      'actualizacion_valores' => ['planilla','casino','año'],
-      'evolucion_cotizacion' => ['planilla','casino'],
-      'canon_mensual' => ['planilla','casino','año','mes'],
-    ];
-        
-    $data = collect([]);
-    $data_anual = collect([]);
-    $tipos_variables_fisicos = ['Maquinas','Bingo'];
-    $tipos_variables_online = ['JOL'];
-    $tipos_fijos_mesas = DB::table('canon_fijo_mesas')
-    ->select('tipo')->distinct()->get()->pluck('tipo')->values()->toArray();
-    $tipos_fijos_mesas_adicionales = DB::table('canon_fijo_mesas_adicionales')
-    ->select('tipo')->distinct()->get()->pluck('tipo')->values()->toArray();
-    
-    $ranged_sql = function($begin,$end){
-      $ret = "( SELECT $begin as val ";
-      for($i=$begin+1;$i<=$end;$i++){
-        $ret.= 'UNION ALL SELECT '.$i.' ';
-      }
-      return $ret.')';
-    };
-    
-    $meses_sql = $ranged_sql(1,12);
-    $años_sql = $año === null?
-      $ranged_sql($primer_año,$ultimo_año)
-    : $ranged_sql($año-1,$año+1);
     $casinos_sql = null;
     if($planilla == 'participacion'){
       $casinos_sql = '(
@@ -2381,7 +2381,76 @@ class CanonController extends Controller
         SELECT 3 as id_casino,"Total" as casino,"TOTAL" as abbr,"TOTAL" as codigo,"CCO" as plataforma
       )';
     }
+        
+    $abbr_casinos = DB::table(DB::raw($casinos_sql.' as cas'))
+    ->select('casino','codigo')->distinct()
+    ->get()
+    ->keyBy('casino')
+    ->map(function($v){
+      return $v->codigo;
+    });
+    $casinos = $abbr_casinos->keys();
+    $casinos_sin_total = $casinos->filter(function($c){return $c != 'Total';});
+    $abbr_casinos = $abbr_casinos->toArray();
+    $plataformas = Plataforma::orderBy('id_plataforma','asc')->get();
+    $relacion_plat_cas = ['CCO' => 'Rosario','BPLAY' => 'Santa Fe - Melincué'];
     
+    $planillas = [
+      'evolucion_historica' => 'Evolución Historica',
+      'canon_total' => 'Canon Total',
+      'canon_fisico_online' => 'Canon Físico-On Line',
+      'participacion' => 'Particip. % Resultado CF-JOL',
+      'actualizacion_valores' => 'Actualización Valores Mesas',
+      'evolucion_cotizacion' => 'Evolución Cotizacion'
+    ];
+    $planillas_botones = [
+      '' => ['planilla'],
+      'evolucion_historica' => ['planilla'],
+      'canon_total' => ['planilla','año'],
+      'canon_fisico_online' => ['planilla','año'],
+      'participacion' => ['planilla','año'],
+      'actualizacion_valores' => ['planilla','casino','año'],
+      'evolucion_cotizacion' => ['planilla','casino']
+    ];
+    $botones = [];
+    $botones_elegidos = true;{
+      $_pbot = $planillas_botones[$planilla] ?? [];
+      $breaker = false;
+      foreach($_pbot as $_p){
+        switch($_p){
+          case 'planilla':{
+            $botones['planilla'] = self::array_from_pairs(array_keys($planillas),array_values($planillas));
+          }break;
+          case 'casino':{
+            $botones['casino'] = self::array_from_pairs($casinos_sin_total,$casinos_sin_total);
+          }break;
+          case 'año':{
+            $_años = $años->toArray();
+            $botones['año'] = self::array_from_pairs(array_map(function($a){
+              return $a;
+            },$_años),$_años);
+          }break;
+          case 'mes':{
+            $_meses = $meses->reverse();
+            $botones['mes'] = self::array_from_pairs($_meses->keys(),$_meses->values());
+          }break;
+        }
+        if(($request[$_p] ?? null) === null){//Falta elegir algun boton para la planilla, asi que corto aca
+          $botones_elegidos = false;
+          break;
+        }
+      }
+    }
+        
+    $data = collect([]);
+    $data_anual = collect([]);
+    $tipos_variables_fisicos = ['Maquinas','Bingo'];
+    $tipos_variables_online = ['JOL'];
+    $tipos_fijos_mesas = DB::table('canon_fijo_mesas')
+    ->select('tipo')->distinct()->get()->pluck('tipo')->values()->toArray();
+    $tipos_fijos_mesas_adicionales = DB::table('canon_fijo_mesas_adicionales')
+    ->select('tipo')->distinct()->get()->pluck('tipo')->values()->toArray();
+                
     $q = DB::table(DB::raw($meses_sql.' as mes'))
     ->crossJoin(DB::raw($años_sql.' as año'))
     ->crossJoin(DB::raw($casinos_sql.' as cas'))
@@ -2410,7 +2479,12 @@ class CanonController extends Controller
         mes.val-1,
         12
       )'));
-    });
+    })
+    ->where(DB::raw('1'),'=',DB::raw($botones_elegidos? '1' : '0'));
+    
+    if($casino !== null){
+      $q = $q->where('cas.casino','=',$casino);
+    }
     
     $fisicos = [];
     $online  = [];
@@ -2495,7 +2569,7 @@ class CanonController extends Controller
       (SUM(c.determinado)-SUM(c.devengado)) as diferencia,
       ROUND(100*(1-SUM(c.devengado)/NULLIF(SUM(c.determinado),0)),2) as variacion_sobre_devengado';
     }
-    else if($planilla == 'actualizacion_valores' || $planilla == 'evolucion_cotizacion'){
+    elseif($planilla == 'actualizacion_valores' || $planilla == 'evolucion_cotizacion'){
       $bruto = '('.implode('+',array_map(function($t){
         return "IFNULL(SUM({$t}.bruto),0)";
       },$fijos)).')';
@@ -2568,19 +2642,19 @@ class CanonController extends Controller
         $valor_dolar_yoy as valor_dolar_yoy
       ";
     }
-    else if($planilla == 'canon_total'){
+    elseif($planilla == 'canon_total'){
       $sel_aggr = 'SUM(c.determinado+c.ajuste) as canon_total,
       100*(SUM(c.determinado+c.ajuste)/NULLIF(SUM(c_yoy.determinado+c.ajuste),0)-1) as variacion_anual,
       100*(SUM(c.determinado+c.ajuste)/NULLIF(SUM(c_mom.determinado+c.ajuste),0)-1) as variacion_mensual';
     }
-    else if($planilla == 'canon_fisico_online'){
+    elseif($planilla == 'canon_fisico_online'){
       $sel_aggr = $canon_fisico.' as canon_fisico,
       '.$canon_online.' as canon_online,
       SUM(c.determinado+c.ajuste) as canon_total,
       100*(SUM(c.determinado+c.ajuste)/NULLIF(SUM(c_yoy.determinado+c_yoy.ajuste),0)-1) as variacion_anual,
       100*(SUM(c.determinado+c.ajuste)/NULLIF(SUM(c_mom.determinado+c_mom.ajuste),0)-1) as variacion_mensual';
     }
-    else if($planilla == 'participacion'){
+    elseif($planilla == 'participacion'){
       $ganancia_total_variable = '('.implode('+',array_map(function($t){
         return "IFNULL(SUM($t.determinado_subtotal),0)";//Con el impuesto sacado
       },$variables)).')';
@@ -2707,49 +2781,6 @@ class CanonController extends Controller
         return $d_cas_año->keyBy('mes');
       });
     });
-    
-    $abbr_casinos = DB::table(DB::raw($casinos_sql.' as cas'))
-    ->select('casino','codigo')->distinct()
-    ->get()
-    ->keyBy('casino')
-    ->map(function($v){
-      return $v->codigo;
-    });
-    $casinos = $abbr_casinos->keys();
-    $casinos_sin_total = $casinos->filter(function($c){return $c != 'Total';});
-    $abbr_casinos = $abbr_casinos->toArray();
-    
-    $botones = [];
-    $botones_elegidos = true;{
-      $_pbot = $planillas_botones[$planilla] ?? [];
-      $breaker = false;
-      foreach($_pbot as $_p){
-        switch($_p){
-          case 'planilla':{
-            $botones['planilla'] = $combine_into_pairs(array_keys($planillas),array_values($planillas));
-          }break;
-          case 'casino':{
-            $botones['casino'] = $combine_into_pairs($casinos_sin_total,$casinos_sin_total);
-          }break;
-          case 'año':{
-            $_años = $años->toArray();
-            $botones['año'] = $combine_into_pairs(array_map(function($a){
-              return $a;
-            },$_años),$_años);
-          }break;
-          case 'mes':{
-            $_meses = $meses->toArray();
-            $botones['mes'] = $combine_into_pairs(array_map(function($a){
-              return $a;
-            },$_meses),$_meses);
-          }break;
-        }
-        if(($request[$_p] ?? null) === null){//Falta elegir algun boton para la planilla, asi que corto aca
-          $botones_elegidos = false;
-          break;
-        }
-      }
-    }
     
     $parametros = $request->all();
     return View::make('Canon.planillaPlanillas',compact(

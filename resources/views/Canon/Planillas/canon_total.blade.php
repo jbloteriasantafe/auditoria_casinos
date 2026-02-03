@@ -35,14 +35,14 @@
           @foreach($abbr_casinos as $_cas)
           <th class="canon_total {{$_cas}}">{{$_cas}}</th>
           @endforeach
-          <th class="variacion_anual">{{$año}}/{{$año_anterior}}</th>
+          <th class="variacion_anual">{{$año}}/{{$año-1}}</th>
           <th class="variacion_mensual">Dif. Mes Ant.</th>
         </tr>
         <tr>
-          <th class="mes celda_especial" style="border-right: 1px solid black;">{{$año_anterior}}</th>
+          <th class="mes celda_especial" style="border-right: 1px solid black;">{{$año-1}}</th>
           @foreach($abbr_casinos as $_casino => $_cas)
           <?php
-            $total = $dataf($_casino,$año_anterior,0);
+            $total = $dataf($_casino,$año-1,0);
             $canon_total = $formatear_decimal($total->canon_total ?? null);
             $variacion_anual = $formatear_porcentaje($total->variacion_anual ?? null);
           ?>
