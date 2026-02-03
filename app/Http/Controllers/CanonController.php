@@ -1856,15 +1856,19 @@ class CanonController extends Controller
     )";
   }
   
-  private static function totalesCanon_prepare($agrupar_concepto_adicionales = 'concepto'){
+  private static function totalesCanon_prepare($agrupar_concepto_adicionales = 'sc.tipo'){
     static $prepared = null;
     if($prepared === $agrupar_concepto_adicionales){
       return 'temp_subcanons_redondeados_con_totales_con_mensuales';
     }
     
-    if($agrupar_concepto_adicionales !== 'concepto'){
+    if($agrupar_concepto_adicionales !== 'sc.tipo'){
       $agrupar_concepto_adicionales = '"'.$agrupar_concepto_adicionales.'"';
     }
+    
+    $tipos_conceptos_adicionales = DB::table('canon_fijo_mesas_adicionales')
+    ->select('tipo')->distinct()
+    ->get();
     
     DB::statement('CREATE TEMPORARY TABLE temp_subcanons
     SELECT
@@ -1874,6 +1878,10 @@ class CanonController extends Controller
       IF(sc.concepto IS NULL,6,CASE
         WHEN sc.concepto = "Paños"       THEN 0
         WHEN sc.concepto = "Adicionales" THEN 1
+        '.$tipos_conceptos_adicionales->map(function($t){
+          return 'WHEN sc.concepto = "'.$t->tipo.'" THEN 1';
+        })
+        ->implode("\r\n").'
         WHEN sc.concepto = "MTM"         THEN 2
         WHEN sc.concepto = "Bingo"       THEN 3
         WHEN sc.concepto = "JOL"         THEN 5
@@ -2022,11 +2030,11 @@ class CanonController extends Controller
     FROM temp_subcanons_redondeados_con_totales
     GROUP BY año_mes,concepto');
     
-    $prepared = $discriminar_adicionales;
+    $prepared = $agrupar_concepto_adicionales;
     return 'temp_subcanons_redondeados_con_totales_con_mensuales';
   }
   public function totalesCanon($año,$mes,$discriminar_adicionales){
-    $table = self::totalesCanon_prepare($discriminar_adicionales);
+    $table = self::totalesCanon_prepare('Adicionales');
     $año_mes = str_pad($año,4,'0',STR_PAD_LEFT).'-'.str_pad($mes,2,'0',STR_PAD_LEFT).'-01';
     $ret = DB::table($table.' as tc')
     ->select('tc.*',DB::raw('IF(tc.id_casino = 0,"Total",IFNULL(cas.nombre,tc.id_casino)) as casino'))
@@ -2166,15 +2174,46 @@ class CanonController extends Controller
     if($casino === null) return 'Casino no existente';
     $casino = $casino->nombre;
     
-    $meses_calendario = collect([null,'Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']);
-    unset($meses_calendario[0]);
     $año_mes_arr = explode('-',$canon->año_mes);
-    $año = $año_mes_arr[0];
-    $mes = $meses_calendario[intval($año_mes_arr[1])];
+    $año = str_pad(intval($año_mes_arr[0]),4,'0',STR_PAD_LEFT);
+    $mes = str_pad(intval($año_mes_arr[1]),2,'0',STR_PAD_LEFT);
     
-    $params = http_build_query(compact('planilla','casino','año','mes'));
+    $abbr_casinos = DB::table(
+      DB::raw('(
+        SELECT 1 as id_casino,"Melincué" as casino,"MEL" as abbr,"CME" as codigo,"BPLAY" as plataforma
+        UNION ALL
+        SELECT 2 as id_casino,"Santa Fe" as casino,"SFE" as abbr,"CSF" as codigo,"BPLAY" as plataforma
+        UNION ALL
+        SELECT 3 as id_casino,"Rosario" as casino,"ROS" as abbr,"CRO" as codigo,"CCO" as plataforma
+        UNION ALL
+        SELECT 1 as id_casino,"Total" as casino,"TOTAL" as abbr,"TOTAL" as codigo,"BPLAY" as plataforma
+        UNION ALL
+        SELECT 2 as id_casino,"Total" as casino,"TOTAL" as abbr,"TOTAL" as codigo,"BPLAY" as plataforma
+        UNION ALL
+        SELECT 3 as id_casino,"Total" as casino,"TOTAL" as abbr,"TOTAL" as codigo,"CCO" as plataforma
+      ) as cas')
+    )
+    ->select('casino','codigo')->distinct()
+    ->get()
+    ->keyBy('casino')
+    ->map(function($v){
+      return $v->codigo;
+    });
     
-    return redirect('/canon/descargarPlanillas?'.$params);
+    $table = self::totalesCanon_prepare();
+    $ret = DB::table($table.' as tc')
+    ->select('tc.*')
+    ->leftJoin('casino as cas','cas.id_casino','=','tc.id_casino')
+    ->where('tc.año_mes',$canon->año_mes)
+    ->where('cas.nombre',$casino)
+    ->get();
+    
+    return View::make('Canon.planillaInformeCanon',[
+      'casino' => $casino,
+      'año' => $año,
+      'mes' => $mes,
+      'abbr_casinos' => $abbr_casinos
+    ]);
   }
   
   public function descargar(Request $request){
