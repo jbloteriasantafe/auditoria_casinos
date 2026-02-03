@@ -466,12 +466,12 @@ function generarFiladenunciasAlea_paginas(item, controlador) {
   // (2) acciones
   var btnEdit = $('<button>')
     .addClass('btn btn-info btn-sm btn-edit-denunciasAlea_paginas')
-    .attr({type:'button','data-toggle':'tooltip','data-placement':'bottom','data-id':id,title:'EDITAR'})
+    .attr({type:'button','data-toggle':'tooltip','data-placement':'bottom','data-id':id,})
     .append($('<i>').addClass('fa fa-edit'));
 
   var btnDelete = $('<button>')
     .addClass('btn btn-danger btn-sm btn-deletedenunciasAlea_paginas')
-    .attr({type:'button','data-toggle':'tooltip','data-placement':'bottom','data-id':id,title:'ELIMINAR DENUNCIA'})
+    .attr({type:'button','data-toggle':'tooltip','data-placement':'bottom','data-id':id})
     .append($('<i>').addClass('fa fa-trash'));
 
   fila.append(
