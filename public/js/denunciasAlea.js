@@ -6,6 +6,11 @@ $.ajaxSetup({
 $(document).ready(function(){
   $('.tituloSeccionPantalla').text('Denuncias Alea');
 
+  // Cargar estados activos para dropdowns
+  $.get('/denunciasAlea/estados', function(data){
+      gEstadosAlea = data;
+  });
+
 
 
 });
@@ -168,7 +173,13 @@ function getFiltrosDenuncias(){
   };
 }
 
-function cargardenunciasAlea_paginas({ page = 1, perPage = 10, desde, hasta } = {}) {
+var gCurrentPage = 1;
+
+function cargardenunciasAlea_paginas({ page, perPage = 10, desde, hasta } = {}) {
+  // Si no se pasa 'page', usar la global. Si se pasa, actualizar la global.
+  if (typeof page === 'undefined') page = gCurrentPage;
+  else gCurrentPage = page;
+
   const fx = getFiltrosDenuncias();
 
   $.ajax({
@@ -426,7 +437,7 @@ $(document).on('click','#guardarRegistrodenunciasAlea_paginas',function(){
     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
     success: function(){
       cargardenunciasAlea_paginas({
-        page: 1,
+        page: $('#herramientasPaginaciondenunciasAlea_paginas').getCurrentPage(),
         perPage: $('#herramientasPaginaciondenunciasAlea_paginas').getPageSize(),
         desde:  $('#fecha_denunciasAlea_paginasDesde').val(),
         hasta:  $('#fecha_denunciasAlea_paginasHasta').val()
@@ -624,6 +635,21 @@ $('#btn-eliminardenunciasAlea_paginas').on('click', function(){
         desde:   $('#fecha_denunciasAlea_paginasDesde').val(),
         hasta:   $('#fecha_denunciasAlea_paginasHasta').val()
       });
+
+      // Si estamos en la vista de importación, remover la fila si corresponde
+      if (typeof gPaginasActivasData !== 'undefined' && gPaginasActivasData.length > 0) {
+          var initialLen = gPaginasActivasData.length;
+          gPaginasActivasData = gPaginasActivasData.filter(function(item){
+              // Si el item tiene un ID de DB (id_existente) y coincide con el borrado, chau
+              if (item.id_existente && item.id_existente == id) return false;
+              return true;
+          });
+          
+          if (gPaginasActivasData.length < initialLen) {
+              renderTablaPagActivas(gPaginasActivasData);
+              $('#mensajeImportacion').text('Quedan ' + gPaginasActivasData.length + ' registros.');
+          }
+      }
     }
   });
 });
@@ -2112,7 +2138,7 @@ $(function(){
       cargarObsYDen({ page: 1, perPage: 10 });
 }
     else if(selector === "#pant_pagActivas"){
-      cargarPagActivas({ page: 1, perPage: 'all' });
+      // No action needed for now, waiting for import
     }
     else if(selector === "#pant_estadisticas"){
       if(window.cargarTableroExito) {
@@ -2202,6 +2228,7 @@ function saveCantDenuncia($input) {
 // -----------------------------------------------------------------------------
 
 var gPaginasActivasData = [];
+var gEstadosAlea = [];
 
 // Mostrar nombre de archivo seleccionado
 $(document).on('change', '#importarPaginasActivasInput', function() {
@@ -2251,33 +2278,197 @@ function renderTablaPagActivas(data) {
   var $tbody = $('#cuerpoTablaPagActivas').empty();
   
   if (!data || data.length === 0) {
-      $tbody.html('<tr><td colspan="6" class="text-center">No hay datos.</td></tr>');
+      $tbody.html('<tr><td colspan="9" class="text-center">No hay datos.</td></tr>');
       return;
   }
 
   data.forEach(function(item) {
-      // item: {id_temp, usuario, url, estado, detalle, plataforma}
+      // item: {id_temp, usuario, url, estado, detalle, plataforma, es_nuevo, estado_db_id}
       var isInactive = String(item.estado || '').toLowerCase().includes('inactiv');
       var cssClass = isInactive ? 'warning' : ''; 
       
       var $tr = $('<tr>').addClass(cssClass).attr('data-id-temp', item.id_temp);
       
+      // 1. Checkbox
       $tr.append($('<td class="text-center">').append(
           $('<input>', {type: 'checkbox', class: 'check-pag-activa', 'data-id-temp': item.id_temp})
       ));
+      // 2. Fecha
       $tr.append($('<td>').text(item.fecha || '-'));
+      // 3. Usuario
       $tr.append($('<td>').text(item.usuario || '-'));
       
-      var urlDisplay = item.url ? $('<a>', {href: item.url, target:'_blank'}).text(item.url) : '-';
-      $tr.append($('<td>').html(urlDisplay));
-      
+      // 4. URL
+      var $urlCol = $('<td>');
+      if (item.url) {
+          $urlCol.append($('<a>', {href: item.url, target:'_blank'}).text(item.url));
+      } else {
+          $urlCol.text('-');
+      }
+      $tr.append($urlCol);
+
+      // 5. Estado Perfil (DB) - Editable si existe
+      var $colEstadoDB = $('<td>');
+      if (item.es_nuevo === false && item.id_existente) {
+          // Dropdown
+          var $sel = $('<select>', {
+              class: 'form-control input-sm select-estado-import',
+              'data-id-db': item.id_existente,
+              'data-id-temp': item.id_temp
+          });
+          
+          // Opción nula/placeholder
+          // $sel.append($('<option>', {value:'', text:'-'}));
+
+          if (gEstadosAlea && gEstadosAlea.length) {
+              gEstadosAlea.forEach(function(est){
+                  var $opt = $('<option>', {value: est.id, text: est.nombre});
+                  if (item.estado_db_id == est.id) $opt.prop('selected', true);
+                  $sel.append($opt);
+              });
+          } else {
+             $sel.append($('<option>', {text: item.estado_db_nombre || '-'})); 
+          }
+           $colEstadoDB.append($sel);
+
+      } else {
+          $colEstadoDB.text('-'); 
+      }
+      $tr.append($colEstadoDB);
+
+      // 6. Estado Página (CSV)
       $tr.append($('<td>').text(item.estado || '-'));
+
+      // 7. Detalle
       $tr.append($('<td>').text(item.detalle || '-'));
+      // 8. Plataforma
       $tr.append($('<td>').text(item.plataforma || '-'));
+
+      // 9. Acciones
+      var $colAcciones = $('<td>').addClass('text-center').attr('style', 'white-space:nowrap');
+      
+      if (item.es_nuevo === false && item.id_existente) {
+          // --- Linked: Standard Buttons (Reuse System Modals) ---
+          
+          // Edit
+          var $btnEdit = $('<button>')
+            .addClass('btn btn-info btn-xs btn-edit-denunciasAlea_paginas') // Standard Class
+            .attr({type:'button', 'data-id': item.id_existente})
+            .append($('<i>').addClass('fa fa-edit'));
+          
+          // Delete
+          var $btnDel = $('<button>')
+            .addClass('btn btn-danger btn-xs btn-deletedenunciasAlea_paginas') // Standard Class
+            .attr({type:'button', 'data-id': item.id_existente})
+            .css('margin-left','5px')
+            .append($('<i>').addClass('fa fa-trash'));
+            
+          $colAcciones.append($btnEdit, $btnDel);
+
+      } else {
+          // --- New: Custom Buttons ---
+          
+          // Edit (Pre-fill Create)
+          var $btnEdit = $('<button>')
+            .addClass('btn btn-info btn-xs btn-edit-import-row')
+            .attr({type:'button', 'data-id-temp': item.id_temp, title: 'Editar (Importar)'})
+            .append($('<i>').addClass('fa fa-pencil'));
+
+          // Delete (List Only)
+          var $btnDel = $('<button>')
+            .addClass('btn btn-danger btn-xs btn-delete-import-row')
+            .attr({type:'button', 'data-id-temp': item.id_temp, title: 'Eliminar de la lista'})
+            .css('margin-left','5px')
+            .append($('<i>').addClass('fa fa-trash'));
+            
+          $colAcciones.append($btnEdit, $btnDel);
+      }
+      
+      $tr.append($colAcciones);
       
       $tbody.append($tr);
   });
 }
+
+// Handler: Eliminar fila de la lista importada
+$(document).on('click', '.btn-delete-import-row', function() {
+    var idTemp = $(this).data('id-temp');
+    if(!confirm('¿Eliminar esta fila de la lista importada?')) return;
+
+    gPaginasActivasData = gPaginasActivasData.filter(function(i){ return i.id_temp != idTemp; });
+    renderTablaPagActivas(gPaginasActivasData);
+    $('#mensajeImportacion').text('Quedan ' + gPaginasActivasData.length + ' registros.');
+});
+
+// Handler: Editar fila nueva (Pre-lanzar Modal Crear)
+$(document).on('click', '.btn-edit-import-row', function() {
+    var idTemp = $(this).data('id-temp');
+    var item = gPaginasActivasData.find(function(i){ return i.id_temp == idTemp; });
+    if (!item) return;
+
+    resetFormdenunciasAlea_paginas();
+    $('#denunciasAlea_paginas_modo').val('create');
+    $('#modalCargardenunciasAlea_paginas .modal-title').text('| NUEVA DENUNCIA (IMPORTAR)');
+    $('#guardarRegistrodenunciasAlea_paginas').text('GUARDAR');
+
+    // Pre-fill
+    // Fecha: CSV format might differ, assuming YYYY-MM-DD or attempt raw
+    $('[name="fecha_denunciasAlea_paginasPres"]').val(item.fecha || '');
+    $('[name="usuariodenunciasAlea_paginas"]').val(item.usuario || '');
+    $('[name="linkPaginadenunciasAlea_paginas"]').val(item.url || '');
+    
+    // Attempt Platform Match
+    var plat = (item.plataforma || '').toLowerCase();
+    if(plat) {
+        $('#plataformadenunciasAlea_paginas option').each(function(){
+            if ($(this).text().toLowerCase().includes(plat)) {
+                $(this).prop('selected', true);
+            }
+        });
+    }
+
+    $('#modalCargardenunciasAlea_paginas').modal('show');
+});
+
+// Handler: Cambiar Estado DB desde la lista importada
+$(document).on('change', '.select-estado-import', function() {
+    var $sel = $(this);
+    var idDB = $sel.data('id-db');
+    var idTemp = $sel.data('id-temp');
+    var newVal = $sel.val();
+
+    // Feedback visual (deshabilitar)
+    $sel.prop('disabled', true);
+
+    $.ajax({
+        url: '/denunciasAlea/set-estado/' + idDB, 
+        // Nota: Endpoint setEstado espera 'estado_id' en POST
+        type: 'POST',
+        data: { estado_id: newVal },
+        success: function(res) {
+            $sel.prop('disabled', false);
+            if(res.ok) {
+                // Actualizar modelo local
+                var item = gPaginasActivasData.find(function(i){ return i.id_temp == idTemp; });
+                if(item) {
+                    item.estado_db_id = res.estado_id;
+                    item.estado_db_nombre = res.estado_nombre;
+                }
+                // Feedback opcional (ej: parpadeo verde)
+                $sel.addClass('success-transition');
+                setTimeout(function(){ $sel.removeClass('success-transition'); }, 500);
+            } else {
+                alert('Error al actualizar: ' + (res.error || '?'));
+            }
+        },
+        error: function(err) {
+            $sel.prop('disabled', false);
+            console.error(err);
+            alert('Error de conexión.');
+        }
+    });
+});
+
 
 $(document).on('change', '#checkAllPagActivas', function() {
     $('.check-pag-activa').prop('checked', $(this).is(':checked'));
