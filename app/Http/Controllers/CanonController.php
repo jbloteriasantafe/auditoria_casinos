@@ -2353,9 +2353,13 @@ class CanonController extends Controller
         $data['Fijo']['Adicionales'][$tcfma] = $aux;
       }
       $data['Fijo']['Adicionales']['Total'] = $adicionales_total;
+      
+      $data['Fijo']['determinado'] = bcadd_precise(
+        @$data['Fijo']['Mesas']['Total']['determinado'] ?? '0',
+        @$data['Fijo']['Adicionales']['Total']['determinado'] ?? '0'
+      ) ?? '0';
     }
     
-    $data['Fijo']['determinado'] = null;
     $data['Canon']['Físico'] = $determinados['Total Físico'];
     $data['Canon']['Online'] = bcsub_precise(
       $determinados['Total'],

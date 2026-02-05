@@ -151,7 +151,7 @@
             <th>Valor Mesa</th>
             <th>Tipo de cambio</th>
             <th>Valor Mesa (Pesos)</th>
-            <th class="celda_vacia nob">&nbsp;</th>
+            <th>Determinado</th>
           </tr>
         </thead>
         <tbody>
@@ -162,7 +162,9 @@
             <td class="{{$loop->last? 'bbottom' : ''}}">{{$DEC($datamon['cotizacion'] ?? null)}}</td>
             <td class="{{$loop->last? 'bbottom' : ''}}">{{$DEC($datamon['pesos'] ?? null)}}</td>
             @if($loop->first)
-            <td class="celda_vacia nob" rowspan="{{$loop->count}}">&nbsp;</td>
+            <td class="bbottom">{{$DEC($data['Fijo']['determinado'] ?? null)}}</td>
+            @else
+            <td class="celda_vacia nob">&nbsp;</td>
             @endif
           </tr>
           @endforeach
