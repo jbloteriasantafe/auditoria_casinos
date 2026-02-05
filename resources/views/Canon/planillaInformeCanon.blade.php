@@ -61,7 +61,7 @@
             border: 1px solid black !important;
           }
           tr > td.nob, tr > th.nob {
-            border: 0 !important;
+            border: unset !important;
           }
           tr > td.celda_vacia,
           tr > th.celda_vacia {
@@ -277,13 +277,13 @@
         @yield('separator')
         <thead>
           <tr>
-            <th colspan="{{$C}}">Totales</th>
+            <th style="text-align: left;" colspan="{{$C}}">Totales</th>
           </tr>
           <tr>
-            <th class="celda_vacia nob" colspan="2" rowspan="3">&nbsp;</th>
+            <th class="celda_vacia nob" rowspan="3">&nbsp;</th>
             <th class="bleft">Canon Físico</th>
             <th>{{$DEC($data['Canon']['Físico'] ?? null)}}</th>
-            <th class="celda_vacia nob" rowspan="3">&nbsp;</th>
+            <th class="celda_vacia nob" colspan="2" rowspan="3">&nbsp;</th>
           </tr>
           <tr>
             <th>Canon Online</th>
