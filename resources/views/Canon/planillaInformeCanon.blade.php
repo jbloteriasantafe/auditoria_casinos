@@ -263,9 +263,9 @@
           @else
           <tr>
             <td class="celda_vacia nob" colspan="2">&nbsp;</td>
-            <td class="bleft">{{$data_tfa['horas'] ?? '-'}}</td>
-            <td>{{$data_tfa['mesas'] ?? '-'}}</td>
-            <td>{{$data_tfa['determinado'] ?? '-'}}</td>
+            <td class="bleft">{{$DEC($data_tfa['horas'] ?? null)}}</td>
+            <td>{{$DEC($data_tfa['mesas'] ?? null)}}</td>
+            <td>{{$DEC($data_tfa['determinado'] ?? null)}}</td>
           </tr>
           @endif
           @endforeach
