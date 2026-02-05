@@ -2178,37 +2178,193 @@ class CanonController extends Controller
     $año = str_pad(intval($año_mes_arr[0]),4,'0',STR_PAD_LEFT);
     $mes = str_pad(intval($año_mes_arr[1]),2,'0',STR_PAD_LEFT);
     
-    $abbr_casinos = DB::table(
-      DB::raw('(
-        SELECT 1 as id_casino,"Melincué" as casino,"MEL" as abbr,"CME" as codigo,"BPLAY" as plataforma
-        UNION ALL
-        SELECT 2 as id_casino,"Santa Fe" as casino,"SFE" as abbr,"CSF" as codigo,"BPLAY" as plataforma
-        UNION ALL
-        SELECT 3 as id_casino,"Rosario" as casino,"ROS" as abbr,"CRO" as codigo,"CCO" as plataforma
-        UNION ALL
-        SELECT 1 as id_casino,"Total" as casino,"TOTAL" as abbr,"TOTAL" as codigo,"BPLAY" as plataforma
-        UNION ALL
-        SELECT 2 as id_casino,"Total" as casino,"TOTAL" as abbr,"TOTAL" as codigo,"BPLAY" as plataforma
-        UNION ALL
-        SELECT 3 as id_casino,"Total" as casino,"TOTAL" as abbr,"TOTAL" as codigo,"CCO" as plataforma
-      ) as cas')
-    )
-    ->select('casino','codigo')->distinct()
-    ->get()
-    ->keyBy('casino')
-    ->map(function($v){
-      return $v->codigo;
-    });
+    $abbr_casinos = collect([
+      'Melincué' => 'CME',
+      'Santa Fe' => 'CSF',
+      'Rosario' => 'CRO',
+      'TOTAL' => 'TOTAL',
+    ]);
     
     $table = self::totalesCanon_prepare();
-    $ret = DB::table($table.' as tc')
-    ->select('tc.*')
+    $determinados = DB::table($table.' as tc')
+    ->select('tc.concepto','tc.determinado')
     ->leftJoin('casino as cas','cas.id_casino','=','tc.id_casino')
     ->where('tc.año_mes',$canon->año_mes)
     ->where('cas.nombre',$casino)
-    ->get();
+    ->get()
+    ->keyBy('concepto')
+    ->map(function($tc){
+      return $tc->determinado;
+    });
+    
+    $datos_canon = $this->obtener_arr(['id_canon' => $canon->id_canon]);
+    //@TODO: generalizar esto... lo hago manualmente para tener una implementación funcionando
+    //medio que si o sí tengo que recalcular todo de vuelta para atras por los redondeos
+    $data = [];
+    $data['Variable'] = [];
+    $data['Variable']['Maquinas']['determinado'] = $determinados['MTM'];
+    $data['Variable']['Maquinas']['alicuota'] = $datos_canon['canon_variable']['Maquinas']['alicuota'];
+    $data['Variable']['Maquinas']['beneficio'] = bcdiv(//Lo calculo para atras... porque tiene el ajuste agregado...
+      $data['Variable']['Maquinas']['determinado'],
+      bcdiv($data['Variable']['Maquinas']['alicuota'],'100',6),
+      2
+    );
+    
+    $data['Variable']['Bingo']['determinado'] = $determinados['Bingo'];
+    $data['Variable']['Bingo']['alicuota'] = $datos_canon['canon_variable']['Bingo']['alicuota'];
+    $data['Variable']['Bingo']['beneficio'] = bcdiv(//Lo calculo para atras... porque tiene el ajuste agregado...
+      $data['Variable']['Bingo']['determinado'],
+      bcdiv($data['Variable']['Bingo']['alicuota'],'100',6),
+      2
+    );
+    
+    $data['Variable']['JOL']['determinado'] = @$determinados['JOL'];
+    $data['Variable']['JOL']['alicuota'] = @$datos_canon['canon_variable']['JOL']['alicuota'];
+    $data['Variable']['JOL']['beneficio'] = @bcdiv(//Lo calculo para atras... porque tiene el ajuste agregado...
+      $data['Variable']['JOL']['determinado'],
+      bcdiv($data['Variable']['JOL']['alicuota'],'100',6),
+      2
+    );
+    
+    $data['Variable']['Total']['determinado'] = bcadd_precise(
+      bcadd_precise(
+        @$data['Variable']['Maquinas']['determinado'] ?? '0',
+        @$data['Variable']['Bingo']['determinado'] ?? '0'
+      ),
+      @$data['Variable']['JOL']['determinado'] ?? '0'
+    );
+    $data['Variable']['Total']['alicuota'] = null;
+    $data['Variable']['Total']['beneficio'] = bcadd_precise(
+      bcadd_precise(
+        @$data['Variable']['Maquinas']['beneficio'] ?? '0',
+        @$data['Variable']['Bingo']['beneficio'] ?? '0'
+      ),
+      @$data['Variable']['JOL']['beneficio'] ?? '0'
+    );
+    {
+      $data_tcfm = $datos_canon['canon_fijo_mesas'];
+      $data_tcfm = @$data_tcfm[array_keys($data_tcfm)[0]] ?? [];
+      $data['Fijo'] = [];
+      $data['Valores'] = [//Para la plantilla necesito los valores unificados... en cada tipo de mesa referencio por clave
+        'mes' => null,
+        'dia' => [],
+        'hora' => []
+      ];
+      {
+        $dmon = [];
+        $dmon['Euro'] = [
+          'valor' => $data_tcfm['valor_euro'] ?? null,
+          'fecha_cotizacion' => $data_tcfm['determinado_fecha_cotizacion'] ?? null,
+          'cotizacion' => $data_tcfm['determinado_cotizacion_euro'] ?? null,
+          'pesos' => $data_tcfm['determinado_valor_euro_cotizado'] ?? null
+        ];
+        $dmon['Dólar'] = [
+          'valor' => $data_tcfm['valor_dolar'] ?? null,
+          'fecha_cotizacion' => $data_tcfm['determinado_fecha_cotizacion'] ?? null,
+          'cotizacion' => $data_tcfm['determinado_cotizacion_dolar'] ?? null,
+          'pesos' => $data_tcfm['determinado_valor_dolar_cotizado'] ?? null
+        ];
+        $data['Fijo']['Monedas'] = $dmon;
+        
+        $data['Valores']['mes'] = @bcadd_precise(
+          $dmon['Euro']['pesos'],
+          $dmon['Dólar']['pesos']
+        ) ?? null;
+        
+        $data['Valores']['dia']['/'.$data_tcfm['dias_valor']] = null;
+        $val_diario = @bcmul_precise(
+          $data['Valores']['mes'] ?? null,
+          $data_tcfm['factor_dias_valor'] ?? null
+        ) ?? null;
+        
+        $kdias = '/'.$data_tcfm['dias_valor'];
+        $data['Valores']['dia'][$kdias] = $val_diario;
+        
+        $data['Fijo']['valor_dia'] = $kdias;
+      }
+      {
+        $data['Fijo']['Mesas'] = [];
+        $data['Fijo']['Mesas']['Lunes-Jueves'] = [
+          'dias' => $data_tcfm['dias_lunes_jueves'] ?? null,
+          'mesas' => $data_tcfm['mesas_lunes_jueves'] ?? null,
+        ];
+        $data['Fijo']['Mesas']['Viernes-Sábados'] = [
+          'dias' => $data_tcfm['dias_viernes_sabados'] ?? null,
+          'mesas' => $data_tcfm['mesas_viernes_sabados'] ?? null,
+        ];
+        $data['Fijo']['Mesas']['Domingos'] = [
+          'dias' => $data_tcfm['dias_domingos'] ?? null,
+          'mesas' => $data_tcfm['mesas_domingos'] ?? null,
+        ];
+        $data['Fijo']['Mesas']['Fijos'] = [
+          'dias' => $data_tcfm['dias_fijos'] ?? null,
+          'mesas' => $data_tcfm['mesas_fijos'] ?? null,
+        ];
+        $data['Fijo']['Mesas']['Todos'] = [
+          'dias' => $data_tcfm['dias_todos'] ?? null,
+          'mesas' => $data_tcfm['mesas_todos'] ?? null,
+        ];
+        $data['Fijo']['Mesas']['Total'] = [
+          'mesas' => $data_tcfm['mesas_dias'] ?? null,
+          'determinado' => @$determinados['Paños'] ?? '0'
+        ];
+      }
+    }
+    {
+      $data['Fijo']['Adicionales'] = [];
+      $adicionales_total = [
+        'horas' => '0',
+        'mesas' => '0',
+        'determinado' => '0'
+      ];
+      foreach($datos_canon['canon_fijo_mesas_adicionales'] as $tcfma => $data_tcfma){
+        $aux = [
+          'horas' => $data_tcfma['horas'],
+          'mesas' => $data_tcfma['mesas'],
+          'determinado' => $determinados[$tcfma]
+        ];
+        $adicionales_total['horas'] = bcadd_precise(
+          $aux['horas'],
+          $adicionales_total['horas']
+        );
+        $adicionales_total['mesas'] = bcadd_precise(
+          $aux['mesas'],
+          $adicionales_total['mesas']
+        );
+        $adicionales_total['determinado'] = bcadd_precise(
+          $aux['determinado'],
+          $adicionales_total['determinado']
+        );
+        
+        $kdias = '/'.$data_tcfma['dias_mes'];
+        $data['Valores']['dia'][$kdias] = bcmul_precise(
+          $data['Valores']['mes'] ?? null,
+          $data_tcfma['factor_dias_mes'] ?? null
+        );
+        $aux['valor_dia']  = $kdias;
+        
+        $khoras = '/'.$data_tcfma['dias_mes'].'/'.$data_tcfma['horas_dia'];
+        $data['Valores']['hora'][$khoras] = bcmul_precise(
+          $data['Valores']['mes'] ?? null,
+          $data_tcfma['factor_horas_mes'] ?? null
+        );
+        $aux['valor_hora'] = $khoras;
+        
+        $data['Fijo']['Adicionales'][$tcfma] = $aux;
+      }
+      $data['Fijo']['Adicionales']['Total'] = $adicionales_total;
+    }
+    
+    $data['Fijo']['determinado'] = null;
+    $data['Canon']['Físico'] = $determinados['Total Físico'];
+    $data['Canon']['Online'] = bcsub_precise(
+      $determinados['Total'],
+      $determinados['Total Físico']
+    );
+    $data['Canon']['Total']  = $determinados['Total'];
     
     return View::make('Canon.planillaInformeCanon',[
+      'data' => $data,
       'casino' => $casino,
       'año' => $año,
       'mes' => $mes,

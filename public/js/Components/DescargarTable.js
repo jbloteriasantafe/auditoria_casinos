@@ -53,7 +53,7 @@ export const DescargarTable = {
     
     const used = Array.from(
       {length: max_height},
-      () => Array.from({length: max_width}, () => false)
+      () => Array.from({length: max_width}, () => null)
     );
     
     for(const child of table.children){
@@ -65,7 +65,7 @@ export const DescargarTable = {
           let found_spot = false;
           for(;row<max_height;row++){
             for(col=0;col<max_width;col++){
-              if(!used[row][col]){
+              if(used[row][col] === null){
                 found_spot = true;
                 break;
               }
@@ -79,35 +79,41 @@ export const DescargarTable = {
             throw 'Unreachable';
           }
           
-          for(let r=0;r<htmlCell.rowSpan;r++){
-            for(let c=0;c<htmlCell.colSpan;c++){
-              used[row+r][col+c] = true;
-            }
-          }
-                  
-          const corners = [[row,col]];
-          
-          if(htmlCell.rowSpan > 1){
-            corners.push([row+htmlCell.rowSpan-1,col]);
-          }
-          if(htmlCell.colSpan > 1){
-            corners.push([row,col+htmlCell.colSpan-1]);
-          }
-          if(htmlCell.rowSpan > 1 && htmlCell.colSpan > 1){
-            corners.push([row+htmlCell.rowSpan-1,col+htmlCell.colSpan-1]);
+          const rowSpan = htmlCell?.rowSpan || 1;
+          const colSpan = htmlCell?.colSpan || 1;
+          if(rowSpan > 1 || colSpan > 1){
+            ws['!merges'] = ws['!merges'] ?? [];
+            ws['!merges'].push({
+              s: {
+                r: row,
+                c: col
+              },
+              e: {
+                r: (row+rowSpan-1),
+                c: (col+colSpan-1),
+              }
+            });
           }
           
-          for(const c of corners){
-            const corner = XLSX.utils.encode_cell({r: c[0], c: c[1]});
-            let excelStyle = this.getExcelStyleFromHtml(htmlCell);
-            if (excelStyle) {
-              ws[corner] = ws[corner] || {t: 's',v: ''};
-              ws[corner].s = excelStyle;
+          const cellIdx = XLSX.utils.encode_cell({r: row, c: col});
+          const excelStyle = this.getExcelStyleFromHtml(htmlCell);
+          if (excelStyle) {
+            ws[cellIdx] = ws[cellIdx] || {t: 's',v: ''};
+            ws[cellIdx].s = excelStyle;
+          }
+          
+          for(let r=0;r<rowSpan;r++){
+            const r2 = row+r;
+            for(let c=0;c<colSpan;c++){
+              const c2 = col+c;
+              used[r2][c2] = htmlCell;
             }
           }
         }
       }
     }
+    
+    console.log(used);
     
     return ws;
   },
