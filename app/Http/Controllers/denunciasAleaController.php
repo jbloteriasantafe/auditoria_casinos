@@ -1035,7 +1035,6 @@ public function setDenuncia(Request $req, $id)
 
         $file = $request->file('archivo');
         $path = $file->getRealPath();
-        // Leemos todo el archivo
         $rawLines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         if (!$rawLines) {
            return response()->json(['registros' => []]);
@@ -1043,36 +1042,87 @@ public function setDenuncia(Request $req, $id)
         
         $data = array_map('str_getcsv', $rawLines);
         
-        // Asumiendo que la primera línea SIEMPRE es encabezado y la descartamos
         if (count($data) > 0) {
             array_shift($data);
         }
 
-        // AGREGADO: Invertir el orden para que quede (Nuevo -> Viejo)
-        // Asumiendo que el CSV viene cronológico (Viejo -> Nuevo)
+        // CSV viene cronológico (Viejo -> Nuevo) => invertir
         $data = array_reverse($data);
 
+        // --- Optimización: Cargar existentes para cruzar ---
+        // Traemos ID, URL, Usuario y Estado (con relación)
+        $existing = \App\DenunciasAlea_paginas::with('estado')->get(); 
+        
+        // Armamos mapas para búsqueda rápida (URL y Usuario)
+        // Nota: Las URLs pueden variar en protocolo/www, así que usamos versiones "limpias" para las keys
+        $mapLinks = [];
+        $mapUsers = [];
+        
+        $clean = function($s) {
+            // Quitar protocolo y www. para normalizar búsqueda
+            return preg_replace('#^https?://(www\.)?#i', '', trim($s));
+        };
+
+        foreach($existing as $ex){
+            if($ex->link_pagina) {
+                $k = $clean($ex->link_pagina);
+                if($k) $mapLinks[$k] = $ex;
+            }
+            if($ex->user_pag) {
+                $mapUsers[trim($ex->user_pag)] = $ex;
+            }
+        }
+
         $parsedData = [];
-        $idCounter = 1; // ID temporal para el frontend
+        $idCounter = 1;
 
         foreach ($data as $row) {
-             // Ajustar índices según el CSV real. NUEVO ORDEN:
-             // 0: Fecha
-             // 1: Usuario
-             // 2: Url
-             // 3: Estado
-             // 4: Detalle
-             // 5: Plataforma
-             if (count($row) < 6) continue; // Saltar filas incompletas o vacías
+             if (count($row) < 6) continue;
+
+             $fecha      = $row[0];
+             $usuario    = trim((string)$row[1]);
+             $url        = trim((string)$row[2]);
+             $estadoCsv  = $row[3];
+             $detalle    = $row[4];
+             $plataforma = $row[5];
+
+             // --- Búsqueda de coincidencia ---
+             $match = null;
+             
+             // 1. Por URL
+             if ($url !== '') {
+                 $k = $clean($url);
+                 if ($k && isset($mapLinks[$k])) {
+                     $match = $mapLinks[$k];
+                 }
+             }
+             // 2. Por Usuario (fallback si no machó por URL)
+             if (!$match && $usuario !== '') {
+                 if (isset($mapUsers[$usuario])) {
+                     $match = $mapUsers[$usuario];
+                 }
+             }
+
+             // Datos del existente
+             $esNuevo       = $match ? false : true;
+             $idExistente   = $match ? $match->id_denunciasAlea_paginas : null;
+             $estadoDbId    = $match ? $match->estado_denuncia : null;
+             $estadoDbNombre= ($match && $match->estado) ? $match->estado->estado : '';
 
             $parsedData[] = [
                 'id_temp'    => $idCounter++,
-                'fecha'      => $row[0], // Nueva columna
-                'usuario'    => $row[1],
-                'url'        => $row[2],
-                'estado'     => $row[3],
-                'detalle'    => $row[4],
-                'plataforma' => $row[5],
+                'fecha'      => $fecha,
+                'usuario'    => $usuario,
+                'url'        => $url,
+                'estado'     => $estadoCsv,
+                'detalle'    => $detalle,
+                'plataforma' => $plataforma,
+                
+                // Info extra para UI
+                'es_nuevo'         => $esNuevo,
+                'id_existente'     => $idExistente,
+                'estado_db_id'     => $estadoDbId,
+                'estado_db_nombre' => $estadoDbNombre,
             ];
         }
 

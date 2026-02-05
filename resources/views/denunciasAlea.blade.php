@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="css/bootstrap-datetimepicker.css">
   <link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
   <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
-  <link rel="stylesheet" href="css/paginacion.css"/>
+  <link rel="stylesheet" href="css/paginacion.css?v=2.0"/>
   <link rel="stylesheet" href="css/lista-datos.css">
 
   <style>
@@ -93,6 +93,19 @@
   .th-sort.active .fa { opacity:1; }
   .th-sort.asc  .fa:before { content:"\f0de"; } /* fa-sort-asc */
   .th-sort.desc .fa:before { content:"\f0dd"; } /* fa-sort-desc */
+  
+  /* Custom Scrollbar for better UX */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #f1f1f1; }
+  ::-webkit-scrollbar-thumb { background: #888; border-radius: 5px; }
+  ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+  /* Table Wrapping */
+  .table-fixed-import td {
+      white-space: normal !important;
+      word-wrap: break-word !important;
+      overflow-wrap: break-word !important;
+  }
   </style>
   <style>
 /* ===== Switch Denuncia Alea (copypaste ready) ===== */
@@ -554,7 +567,7 @@
         <div class="panel-heading">
           <div class="form-inline">
              <div class="form-group">
-                <label for="importarPaginasActivasInput" class="btn btn-default" style="margin-bottom: 0;">
+                <label for="importarPaginasActivasInput" class="btn btn-infoBuscar" style="margin-bottom: 0;">
                     <i class="fa fa-folder-open"></i> Seleccionar Archivo
                 </label>
                 <input type="file" id="importarPaginasActivasInput" accept=".csv" style="display:none;">
@@ -564,7 +577,7 @@
                <i class="fa fa-upload"></i> Importar CSV
              </button>
              
-             <button id="btn-baja-inactivas" class="btn btn-danger" style="margin-left: 20px;" disabled>
+             <button id="btn-baja-inactivas" class="btn btn-dangerEliminar" style="margin-left: 20px;" disabled>
                <i class="fa fa-trash"></i> Dar de baja a paginas inactivas
              </button>
 
@@ -579,15 +592,17 @@
 
         <div class="panel-body">
           <div style="max-height:500px; overflow:auto;">
-            <table id="tablaPagActivas" class="table table-striped table-hover" style="table-layout:fixed; width:100%;">
+            <table id="tablaPagActivas" class="table table-striped table-hover table-fixed-import" style="table-layout:fixed; width:100%;">
               <colgroup>
-                <col style="width:4%"> <!-- Checkbox -->
-                <col style="width:10%"> <!-- Fecha -->
-                <col style="width:15%"> <!-- Usuario -->
-                <col style="width:26%"> <!-- URL (reduced) -->
-                <col style="width:10%"> <!-- Estado -->
-                <col style="width:20%"> <!-- Detalle -->
-                <col style="width:15%"> <!-- Plataforma -->
+                <col style="width:3%"> <!-- Checkbox -->
+                <col style="width:8%"> <!-- Fecha -->
+                <col style="width:11%"> <!-- Usuario -->
+                <col style="width:20%"> <!-- URL -->
+                <col style="width:10%"> <!-- Estado Perfil -->
+                <col style="width:7%"> <!-- Estado Pagina -->
+                <col style="width:10%"> <!-- Detalle (Aggressively Reduced) -->
+                <col style="width:8%"> <!-- Plataforma -->
+                <col style="width:5%"> <!-- Acciones -->
               </colgroup>
               <thead>
                 <tr>
@@ -595,9 +610,11 @@
                   <th>Fecha</th>
                   <th>Usuario</th>
                   <th>URL</th>
-                  <th>Estado</th>
+                  <th>Estado Perfil</th>
+                  <th>Estado Página</th>
                   <th>Detalle</th>
                   <th>Plataforma</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaPagActivas"></tbody>
@@ -741,10 +758,10 @@
   <div class="modal fade" id="modalCargardenunciasAlea_paginas" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog" style="width:45%">
            <div class="modal-content">
-             <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+             <div class="modal-header modalNuevo" style="background-color: #00695c;">
                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                <button id="btn-minimizarCreardenunciasAlea_paginas" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCreardenunciasAlea_paginas" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-               <h3 class="modal-title" style="background-color: #6dc7be;">| Agregar</h3>
+               <h3 class="modal-title" style="background-color: #00695c;">| Agregar</h3>
               </div>
 
               <div  id="colapsadoCreardenunciasAlea_paginas" class="collapse in">
