@@ -2034,7 +2034,7 @@ class CanonController extends Controller
     return 'temp_subcanons_redondeados_con_totales_con_mensuales';
   }
   public function totalesCanon($año,$mes,$discriminar_adicionales){
-    $table = self::totalesCanon_prepare('Adicionales');
+    $table = self::totalesCanon_prepare($discriminar_adicionales? 'Adicionales' : 'Paños');
     $año_mes = str_pad($año,4,'0',STR_PAD_LEFT).'-'.str_pad($mes,2,'0',STR_PAD_LEFT).'-01';
     $ret = DB::table($table.' as tc')
     ->select('tc.*',DB::raw('IF(tc.id_casino = 0,"Total",IFNULL(cas.nombre,tc.id_casino)) as casino'))
