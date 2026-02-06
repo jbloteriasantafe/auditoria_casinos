@@ -20,6 +20,7 @@ $(document).ready(function(){
         
         $('#total_habilitadas').text(data.totales.total_habilitadas);
         $('#total_deshabilitadas').text(data.totales.total_deshabilitadas);
+        $('#total_egresadas').text(data.totales.total_egresadas);
         $('#islas_asignadas').text(data.totales.islas_no_asignadas);
         $('#maquinas_asignadas').text(data.totales.total_no_asignadas);
 
@@ -83,7 +84,7 @@ function generarGraficoTortaHabilitadas(){
     tooltip: { pointFormat: '{point.percentage:.1f}%'},
     plotOptions: {
       pie: {
-        colors: ['#00E676','#FF1744'],
+        colors: ['#00E676','#FF6E17','#FF1744'],
         allowPointSelect: true,
         cursor: 'pointer',
         depth: 35,
@@ -99,7 +100,8 @@ function generarGraficoTortaHabilitadas(){
       name: 'Porcentaje',
       data: [
         ['Habilitadas', parseInt($('#total_habilitadas').text())],
-        ['Deshabilitadas', parseInt($('#total_deshabilitadas').text())]
+        ['Deshabilitadas', parseInt($('#total_deshabilitadas').text())],
+        ['Egresadas', parseInt($('#total_egresadas').text())]
       ]
     }]
   });

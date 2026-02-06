@@ -95,26 +95,58 @@ export const DescargarTable = {
             });
           }
           
+          const excelStyle = this.getExcelStyleFromHtml(htmlCell) ?? {};
           const cellIdx = XLSX.utils.encode_cell({r: row, c: col});
-          const excelStyle = this.getExcelStyleFromHtml(htmlCell);
-          if (excelStyle) {
-            ws[cellIdx] = ws[cellIdx] || {t: 's',v: ''};
-            ws[cellIdx].s = excelStyle;
-          }
-          
           for(let r=0;r<rowSpan;r++){
-            const r2 = row+r;
+            const row2 = row+r;
             for(let c=0;c<colSpan;c++){
-              const c2 = col+c;
-              used[r2][c2] = htmlCell;
+              const col2 = col+c;
+              const cellIdx = XLSX.utils.encode_cell({r: row2, c: col2});
+              used[row2][col2] = excelStyle;
+              ws[cellIdx] = ws[cellIdx] || {t: 's',v: ''};
+              ws[cellIdx].s = excelStyle;
             }
           }
         }
       }
     }
-    
-    console.log(used);
-    
+    /*
+    const clamp = function(x,min,max){
+      return x < min? undefined : (x > max? undefined : x);
+    };
+    const rows = used.length;
+    for(let r = 0;r < rows;r++){
+      const cols = used[r].length;
+      for(let c = 0;c < cols;c++){
+        const prev_row = clamp(r-1,0,rows-1);
+        const prev_col = clamp(c-1,0,cols-1);
+        const next_row = clamp(r+1,0,rows-1);
+        const next_col = clamp(c+1,0,cols-1);
+        const style = used[r][c];
+        const topStyle = used?.[prev_row]?.[c];
+        const leftStyle = used?.[r]?.[prev_col];
+        const rightStyle = used?.[r]?.[next_col];
+        const bottomStyle = used?.[next_row]?.[c];
+        
+        if(style?.border?.top === undefined && topStyle?.border?.bottom !== undefined){          
+          style.border = style.border || {};
+          style.border.top = topStyle.border.bottom;
+        }
+        if(style?.border?.left === undefined && leftStyle?.border?.right !== undefined){          
+          style.border = style.border || {};
+          style.border.left = leftStyle.border.right;
+        }
+        if(style?.border?.right === undefined && rightStyle?.border?.left !== undefined){          
+          style.border = style.border || {};
+          style.border.right = rightStyle.border.left;
+        }
+        if(style?.border?.bottom === undefined && bottomStyle?.border?.top !== undefined){          
+          style.border = style.border || {};
+          style.border.bottom = bottomStyle.border.top;
+        }
+      }
+    }
+    */
     return ws;
   },
   getExcelStyleFromHtml(cell) {
@@ -156,30 +188,25 @@ export const DescargarTable = {
     if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
       style.fill = {
           patternType: "solid",
-          fgColor: { rgb: this.hexToRgb(bgColor) || 'FFFFFF' }
+          fgColor: { rgb: this.hexFromRgb(bgColor) || 'FFFFFF' }
       };
     }
     
     const textColor = computedStyle.getPropertyValue('color');
     if(textColor) {
       style.font = style.font || {};
-      style.font.color = { rgb: this.hexToRgb(textColor) || '000000' };
+      style.font.color = { rgb: this.hexFromRgb(textColor) || '000000' };
     }
-    
-    const borders = ['right','bottom'];
-    if(cell.closest('tr').querySelector('th','td') == cell){
-      borders.push('left');
-    }
-    if(cell.closest('table').querySelector('th','td') == cell){
-      borders.push('top');
-    }
+            
+    const borders = ['right','bottom','left','top'];
         
     for(const b of borders){
-      const border = computedStyle.getPropertyValue(`border-${b}-width`);
-      const color  = computedStyle.getPropertyValue(`border-${b}-color`);
-      if(border && border !== '0px') {
+      const border  = computedStyle.getPropertyValue(`border-${b}-width`);
+      const color   = computedStyle.getPropertyValue(`border-${b}-color`);
+      const bstyle  = computedStyle.getPropertyValue(`border-${b}-style`);
+      if(border && border !== '0px' && bstyle != 'none') {
         style.border = style.border || {};
-        style.border[b] = { style: 'thin', color: { rgb: this.hexToRgb(color) || '000000' } };
+        style.border[b] = { style: 'thin', color: { rgb: this.hexFromRgb(color) || '000000' } };
       }
     }
     
@@ -204,11 +231,11 @@ export const DescargarTable = {
     return Object.keys(style).length > 0 ? style : undefined;
   },
   // Helper function to convert CSS color to Excel RGB format
-  hexToRgb(cssColor) {
+  hexFromRgb(cssColor) {
     // Handle rgb() format
     const rgbMatch = cssColor.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*\d+\.?\d*)?\)$/);
     if(rgbMatch) {
-      const r = parseInt(rgbMatch[1]).toString(16).padStart(2, '0');
+      const r = parseInt(rgbMatch[1]).toString(16).padStart(2, '0');//toString(16) convierte a hex
       const g = parseInt(rgbMatch[2]).toString(16).padStart(2, '0');
       const b = parseInt(rgbMatch[3]).toString(16).padStart(2, '0');
       return r + g + b;

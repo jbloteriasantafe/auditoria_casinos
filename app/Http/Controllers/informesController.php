@@ -372,36 +372,53 @@ class informesController extends Controller
     $casino = Casino::find($request->id_casino);
     if(empty($casino)) return [];
     
-    $q_id_estado_maquina = DB::raw('IFNULL(lm.id_estado_maquina,m.id_estado_maquina)');
-    $estados_habilitados = [1,2,7];
-    //@SIN IMPLEMENTAR
-    $fecha_informe = $request->fecha_informe ?? date('Y-m-d');
-    DB::statement('SET @fecha_informe = ?',[$fecha_informe]);
+    $estados_habilitados = [1,2,4,5,6,7];
+    $fecha_informe;
+    $q_id_estado_maquina;
+    if(empty($request->fecha_informe)){
+      $fecha_informe = date('Y-m-d');
+      $q_id_estado_maquina = 'm.id_estado_maquina';
+    }
+    else{
+      //Evito SQL injection
+      $fecha_informe = \DateTime::createFromFormat('Y-m-d',$request->fecha_informe);
+      if($fecha_informe === false){
+        return response()->json(['fecha_informe' => ['Formato incorrecto']],422);
+      }
+      $fecha_informe = $fecha_informe->format('Y-m-d');
+      
+      //Preferencialmente uso el estado del ultimo log
+      $q_id_estado_maquina = DB::raw('COALESCE(lm.id_estado_maquina,m.id_estado_maquina)');
+    }   
+    
+    DB::statement('SET @fecha_informe = ?',[$fecha_informe]);    
     $maqs_q = DB::table('maquina as m')
+    ->leftJoin('log_maquina as lm','lm.id_maquina','=','m.id_maquina')
     ->where('m.id_casino',$casino->id_casino)
     ->where('m.created_at','<=',$fecha_informe)
-    ->where(function($q) use ($fecha_informe){
-      return $q->where('m.deleted_at','>',$fecha_informe)->orWhereNull('m.deleted_at');
+    ->whereNull('m.deleted_at')
+    ->where(function($q) use ($fecha_informe){//Me quedo con solos los logs anteriores (o si no tiene)
+      return $q->whereNull('lm.id_log_maquina')
+      ->orWhere('lm.fecha','<=',$fecha_informe);
     })
-    //El log PROXIMO tiene el estado en que estaba
-    ->leftJoin('log_maquina as lm',function($q) use ($fecha_informe){
-      return $q->on('lm.id_maquina','=','m.id_maquina')->where('lm.fecha','>',$fecha_informe);
-    })
-    //Me quedo solo con el mas proximo a esa fecha
+    //me aseguro que no existe log posterior al que elegimos
     ->whereRaw('NOT EXISTS (
       SELECT 1
       FROM log_maquina as lm2
       WHERE lm2.id_maquina = m.id_maquina
       AND (
-        lm2.fecha < lm.fecha
-        OR (lm2.fecha = lm.fecha AND lm2.id_log_maquina < lm.id_log_maquina)
+        lm2.fecha > lm.fecha
+        OR (lm2.fecha = lm.fecha AND lm2.id_log_maquina > lm.id_log_maquina)
       )
       LIMIT 1
     )');
     
     $total_casino = (clone $maqs_q)->count();
-    $total_habilitadas = (clone $maqs_q)->whereIn($q_id_estado_maquina, $estados_habilitados)->count();
-    $total_deshabilitadas = (clone $maqs_q)->whereNotIn($q_id_estado_maquina, $estados_habilitados)->count();
+    
+    $total_habilitadas = (clone $maqs_q)->whereIn($q_id_estado_maquina, [1,2])->count();
+    $total_deshabilitadas = (clone $maqs_q)->whereIn($q_id_estado_maquina, [4,5,6,7])->count();
+    $total_egresadas = (clone $maqs_q)->whereIn($q_id_estado_maquina, [3])->count();
+    
     $total_no_asignadas = (clone $maqs_q)->whereNull('m.id_isla')->count();
     
     //@TODO: Como hacer para buscar el estado de las islas y sectores en $fecha_informe?
@@ -419,7 +436,7 @@ class informesController extends Controller
       return ['id_sector' => $s->id_sector, 'descripcion' => $s->descripcion, 'cantidad' => $s->cantidad_maquinas];
     });
 
-    $totales = compact('total_casino','total_no_asignadas','islas_no_asignadas','total_habilitadas','total_deshabilitadas');
+    $totales = compact('total_casino','total_no_asignadas','islas_no_asignadas','total_habilitadas','total_deshabilitadas','total_egresadas');
     return compact('casino','sectores','totales');
   }
 

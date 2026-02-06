@@ -69,7 +69,7 @@
                         font-family: Roboto-Condensed;
                         font-size: 62px;
                     }
-                    .maquinas_habilitadas {
+                    .maquinas_habilitadas, .maquinas_deshabilitadas,.maquinas_egresadas {
                         display: block;
                         font-family: Roboto-Condensed;
                         font-size: 20px;
@@ -98,13 +98,17 @@
                                   <h5>MÁQUINAS DEL CASINO</h5>
                                   <div class="col-md-6" style="position:relative;top:30px;text-align:center;align-items:center;">
 
-                                    <span id="total_habilitadas" class="numero_maquinas" style="color:#00E676;">23</span>
+                                    <span id="total_habilitadas" class="numero_maquinas" style="color: #00E676;">23</span>
                                     <img class="imagen_maquina" src="/img/logos/tragaperras_verde.png" alt="" width="60px">
                                     <span class="maquinas_habilitadas">Máquinas habilitadas</span>
 
-                                    <span id="total_deshabilitadas" class="numero_maquinas" style="color:#FF1744;">6</span>
+                                    <span id="total_deshabilitadas" class="numero_maquinas" style="color: #FF6E17;">6</span>
+                                    <img class="imagen_maquina" src="/img/logos/tragaperras_orange.png" alt="" width="60px">
+                                    <span class="maquinas_deshabilitadas">Máquinas deshabilitadas</span>
+                                    
+                                    <span id="total_egresadas" class="numero_maquinas" style="color: #FF1744;">6</span>
                                     <img class="imagen_maquina" src="/img/logos/tragaperras_rojo.png" alt="" width="60px">
-                                    <span class="maquinas_habilitadas">Máquinas deshabilitadas</span>
+                                    <span class="maquinas_egresadas">Máquinas egresadas</span>
                                   </div>
                                   <div class="col-md-6">
                                       <div id="tortaHabilitadas" style=""></div>
