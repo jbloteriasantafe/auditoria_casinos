@@ -49,30 +49,89 @@
 <h5 style="margin-top: 20px; border-bottom: 2px solid #ddd; padding-bottom: 5px;">Adjuntos</h5>
 <div class="list-group">
     @if($nota->path_pautas)
-    <a href="/notas-unificadas/descargar/{{ $nota->id }}/pautas" target="_blank" class="list-group-item">
-        <i class="fa fa-file-pdf-o fa-lg pull-left text-danger"></i>
-        <h5 class="list-group-item-heading">Pautas</h5>
-        <p class="list-group-item-text"><small>Click para descargar</small></p>
-    </a>
+    <div class="list-group-item">
+        <i class="fa fa-file-pdf-o fa-lg pull-left text-danger" style="margin-right: 10px;"></i>
+        <h5 class="list-group-item-heading">Pautas / Solicitud</h5>
+        <p class="list-group-item-text"><small>{{ basename($nota->path_pautas) }}</small></p>
+        <div class="btn-group btn-group-sm" style="margin-top: 5px;">
+            <a href="/notas-unificadas/visualizar/{{ $nota->id }}/pautas" target="_blank" class="btn btn-primary">
+                <i class="fa fa-eye"></i> Ver
+            </a>
+            <a href="/notas-unificadas/descargar/{{ $nota->id }}/pautas" class="btn btn-default">
+                <i class="fa fa-download"></i> Descargar
+            </a>
+        </div>
+    </div>
     @endif
 
     @if($nota->path_diseno)
-    <a href="/notas-unificadas/descargar/{{ $nota->id }}/diseno" target="_blank" class="list-group-item">
-        <i class="fa fa-file-image-o fa-lg pull-left text-primary"></i>
+    <div class="list-group-item">
+        <i class="fa fa-file-image-o fa-lg pull-left text-primary" style="margin-right: 10px;"></i>
         <h5 class="list-group-item-heading">Diseño</h5>
-        <p class="list-group-item-text"><small>Click para descargar</small></p>
-    </a>
+        <p class="list-group-item-text"><small>{{ basename($nota->path_diseno) }}</small></p>
+        <div class="btn-group btn-group-sm" style="margin-top: 5px;">
+            <a href="/notas-unificadas/visualizar/{{ $nota->id }}/diseno" target="_blank" class="btn btn-primary">
+                <i class="fa fa-eye"></i> Ver
+            </a>
+            <a href="/notas-unificadas/descargar/{{ $nota->id }}/diseno" class="btn btn-default">
+                <i class="fa fa-download"></i> Descargar
+            </a>
+        </div>
+    </div>
     @endif
 
     @if($nota->path_bases)
-    <a href="/notas-unificadas/descargar/{{ $nota->id }}/bases" target="_blank" class="list-group-item">
-        <i class="fa fa-file-text-o fa-lg pull-left text-muted"></i>
+    <div class="list-group-item">
+        <i class="fa fa-file-text-o fa-lg pull-left text-muted" style="margin-right: 10px;"></i>
         <h5 class="list-group-item-heading">Bases y Condiciones</h5>
-        <p class="list-group-item-text"><small>Click para descargar</small></p>
-    </a>
+        <p class="list-group-item-text"><small>{{ basename($nota->path_bases) }}</small></p>
+        <div class="btn-group btn-group-sm" style="margin-top: 5px;">
+            <a href="/notas-unificadas/visualizar/{{ $nota->id }}/bases" target="_blank" class="btn btn-primary">
+                <i class="fa fa-eye"></i> Ver
+            </a>
+            <a href="/notas-unificadas/descargar/{{ $nota->id }}/bases" class="btn btn-default">
+                <i class="fa fa-download"></i> Descargar
+            </a>
+        </div>
+    </div>
+    @endif
+
+    @if($nota->path_varios)
+    <div class="list-group-item">
+        <i class="fa fa-file-archive-o fa-lg pull-left text-warning" style="margin-right: 10px;"></i>
+        <h5 class="list-group-item-heading">Archivos Varios</h5>
+        <p class="list-group-item-text"><small>{{ basename($nota->path_varios) }}</small></p>
+        <div class="btn-group btn-group-sm" style="margin-top: 5px;">
+            <a href="/notas-unificadas/visualizar/{{ $nota->id }}/varios" target="_blank" class="btn btn-primary">
+                <i class="fa fa-eye"></i> Ver
+            </a>
+            <a href="/notas-unificadas/descargar/{{ $nota->id }}/varios" class="btn btn-default">
+                <i class="fa fa-download"></i> Descargar
+            </a>
+        </div>
+    </div>
+    @endif
+
+    @if($nota->path_informe)
+    <div class="list-group-item">
+        <i class="fa fa-file-pdf-o fa-lg pull-left text-success" style="margin-right: 10px;"></i>
+        <h5 class="list-group-item-heading">Informe Técnico</h5>
+        <p class="list-group-item-text"><small>{{ basename($nota->path_informe) }}</small></p>
+        <div class="btn-group btn-group-sm" style="margin-top: 5px;">
+            <a href="/notas-unificadas/visualizar/{{ $nota->id }}/informe" target="_blank" class="btn btn-primary">
+                <i class="fa fa-eye"></i> Ver
+            </a>
+            <a href="/notas-unificadas/descargar/{{ $nota->id }}/informe" class="btn btn-default">
+                <i class="fa fa-download"></i> Descargar
+            </a>
+            <button class="btn btn-info btn-ver-versiones" data-id="{{ $nota->id }}" data-tipo="informe">
+                <i class="fa fa-history"></i> Versiones
+            </button>
+        </div>
+    </div>
     @endif
     
-    @if(!$nota->path_pautas && !$nota->path_diseno && !$nota->path_bases)
+    @if(!$nota->path_pautas && !$nota->path_diseno && !$nota->path_bases && !$nota->path_varios && !$nota->path_informe)
         <div class="alert alert-warning">No hay archivos adjuntos.</div>
     @endif
 </div>
@@ -80,3 +139,4 @@
 <div class="drawer-footer" style="margin-top: 30px;">
     <button class="btn btn-default btn-block" onclick="$('#btnCloseDrawer').click()">Cerrar</button>
 </div>
+@include('Unified.modal_versiones')

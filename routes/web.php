@@ -373,10 +373,16 @@ Route::get('/presence/list', 'NotasUnificadasController@getPresence');
   Route::delete('/eliminar/{id}', 'NotasUnificadasController@destroy');
   Route::delete('/eliminar-grupo/{id}', 'NotasUnificadasController@destroyGrupo');
   Route::get('/descargar/{id}/{tipo}', 'NotasUnificadasController@descargarArchivo');
+  Route::get('/visualizar/{id}/{tipo}', 'NotasUnificadasController@visualizarArchivo');
 
   // Adjuntos por turnos
   Route::post('/agregar-adjuntos/{id}', 'NotasUnificadasController@agregarAdjuntos');
   Route::get('/historial-adjuntos/{id}', 'NotasUnificadasController@getHistorialAdjuntos');
+  
+  // Versionado de archivos
+  Route::get('/versiones/{id}/{tipo}', 'NotasUnificadasController@getVersionesArchivo');
+  Route::get('/visualizar-version/{idVersion}', 'NotasUnificadasController@visualizarVersion');
+  Route::get('/historial-versiones/{id}/{tipo}', 'NotasUnificadasController@getHistorialVersionesAjax');
 
   // Modal de Detalle/Edición
   Route::get('/detalle-grupo/{id}', 'NotasUnificadasController@getDetalleGrupo');
@@ -384,6 +390,14 @@ Route::get('/presence/list', 'NotasUnificadasController@getPresence');
   Route::put('/update-nota/{id}', 'NotasUnificadasController@updateNota');
   Route::post('/comentario/{id}', 'NotasUnificadasController@addComentario');
   Route::delete('/eliminar-adjunto/{id}/{campo}', 'NotasUnificadasController@deleteAdjunto');
+
+  // Sistema de Anotaciones en PDFs
+  Route::get('/pdf-anotaciones/listar/{id_nota}', 'NotasPdfAnotacionesController@listarPdfs');
+  Route::get('/pdf-anotaciones/datos/{id_nota}/{tipo}', 'NotasPdfAnotacionesController@obtenerDatos');
+  Route::post('/pdf-anotaciones/guardar-comentario', 'NotasPdfAnotacionesController@guardarComentario');
+  Route::post('/pdf-anotaciones/resolver-comentario', 'NotasPdfAnotacionesController@resolverComentario');
+  Route::delete('/pdf-anotaciones/eliminar-comentario/{id}', 'NotasPdfAnotacionesController@eliminarComentario');
+  Route::post('/pdf-anotaciones/guardar-anotaciones', 'NotasPdfAnotacionesController@guardarAnotaciones');
 
   Route::get('/{id}', 'NotasUnificadasController@show')->where('id', '[0-9]+');
 });
@@ -1586,4 +1600,27 @@ Route::group(['prefix' => 'notas-unificadas', 'middleware' => 'tiene_permiso:ver
 
     // Emergency Fix
     Route::get('/fix-presence-db', 'NotasUnificadasController@fixPresenceTable');
+});
+Route::get("/fix-db-anotaciones", function() {
+    if(!Schema::hasTable("notas_pdf_anotaciones")) {
+        Schema::create("notas_pdf_anotaciones", function ($table) {
+            $table->increments("id");
+            $table->integer("id_nota_ingreso");
+            $table->string("tipo_archivo", 50);
+            $table->integer("pagina");
+            $table->longText("anotaciones_json")->nullable();
+            $table->timestamps();
+            $table->unique(["id_nota_ingreso", "tipo_archivo", "pagina"], "idx_nota_archivo_pag");
+        });
+        return "Tabla notas_pdf_anotaciones creada";
+    }
+    return "Tabla ya existe";
+});
+Route::get("/fix-db-anotaciones-size", function() {
+    try {
+        DB::statement("ALTER TABLE notas_pdf_anotaciones MODIFY anotaciones_json LONGTEXT");
+        return "Columna anotaciones_json modificada a LONGTEXT exitosamente.";
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
 });

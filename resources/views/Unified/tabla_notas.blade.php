@@ -111,10 +111,7 @@
                 </td>
                 <td>
                     @if($n->expedientes->count() > 0)
-                        <span class="label label-success estado-badge" 
-                              data-toggle="popover" 
-                              data-trigger="hover" 
-                              data-id="{{ $n->id }}">
+                        <span class="label label-success estado-badge">
                               {{ $n->expedientes->first()->estado_actual }}
                         </span>
                     @else
@@ -133,6 +130,12 @@
                             data-tipo-rama="{{ $n->tipo_rama }}"
                             title="Agregar/Ver Adjuntos">
                         <i class="fa fa-paperclip"></i>
+                    </button>
+                    <button class="btn btn-info btn-xs btn-agregar-observaciones" 
+                            data-id="{{ $n->id }}" 
+                            data-nro-nota="{{ $n->nro_nota }}-{{ $n->anio }}"
+                            title="Anotaciones PDF">
+                        <i class="fa fa-edit"></i>
                     </button>
                     <button class="btn btn-danger btn-xs btn-borrar-nota" data-id="{{ $n->id }}" title="Eliminar">
                         <i class="fa fa-trash"></i>

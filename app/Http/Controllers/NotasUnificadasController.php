@@ -733,11 +733,11 @@ class NotasUnificadasController extends Controller
         try {
             // Mapeo de campos de formulario a campos de BD
             $camposArchivos = [
-                'adjuntoSolicitud' => ['campo' => 'path_solicitud', 'folder' => 'solicitudes'],
-                'adjuntoDisenio' => ['campo' => 'path_diseno', 'folder' => 'disenos'],
-                'adjuntoBases' => ['campo' => 'path_bases', 'folder' => 'bases'],
-                'adjuntoInforme' => ['campo' => 'path_informe', 'folder' => 'informes'],
-                'adjuntoVarios' => ['campo' => 'path_varios', 'folder' => 'archivos_varios']
+                'adjuntoSolicitud' => ['campo' => 'path_solicitud', 'folder' => 'solicitudes', 'tipo' => 'solicitud'],
+                'adjuntoDisenio' => ['campo' => 'path_diseno', 'folder' => 'disenos', 'tipo' => 'diseno'],
+                'adjuntoBases' => ['campo' => 'path_bases', 'folder' => 'bases', 'tipo' => 'bases'],
+                'adjuntoInforme' => ['campo' => 'path_informe', 'folder' => 'informes', 'tipo' => 'informe'],
+                'adjuntoVarios' => ['campo' => 'path_varios', 'folder' => 'archivos_varios', 'tipo' => 'varios']
             ];
             
             $archivosSubidos = [];
@@ -747,17 +747,33 @@ class NotasUnificadasController extends Controller
                     $file = $request->file($inputName);
                     $nombreOriginal = $file->getClientOriginalName();
                     $campo = $config['campo'];
+                    $tipoArchivo = $config['tipo'];
+                    
+                    // Guardar archivo físicamente
+                    $path = $storeFile($file, $config['folder']);
+                    
+                    // Guardar versión en tabla de versiones
+                    $version = \App\Models\NotaArchivoVersion::getNextVersion($nota->id, $tipoArchivo);
+                    \App\Models\NotaArchivoVersion::create([
+                        'id_nota_ingreso' => $nota->id,
+                        'tipo_archivo' => $tipoArchivo,
+                        'version' => $version,
+                        'path_archivo' => $path,
+                        'nombre_original' => $nombreOriginal,
+                        'created_at' => \Carbon\Carbon::now(),
+                        'created_by' => $userId
+                    ]);
                     
                     // Determinar si es reemplazo o nuevo
                     $accion = !empty($nota->$campo) ? 'ADJUNTO_REEMPLAZADO' : 'ADJUNTO_AGREGADO';
                     
-                    // Guardar archivo
-                    $nota->$campo = $storeFile($file, $config['folder']);
+                    // Actualizar campo principal (para retrocompatibilidad)
+                    $nota->$campo = $path;
                     
                     // Registrar movimiento
-                    $logMovimiento($nota, $campo, $nombreOriginal, $accion);
+                    $logMovimiento($nota, $campo, "$nombreOriginal (v$version)", $accion);
                     
-                    $archivosSubidos[] = $nombreOriginal;
+                    $archivosSubidos[] = "$nombreOriginal (v$version)";
                 }
             }
             
@@ -952,6 +968,63 @@ class NotasUnificadasController extends Controller
         // Use response()->download() with the correct filename
         return response()->download($fullPath, $filename);
     }
+
+    // ! VISUALIZAR (para mostrar PDFs en el navegador)
+    public function visualizarArchivo($id, $tipo) {
+        $nota = NotaIngreso::findOrFail($id);
+        $path = null;
+        
+        switch($tipo) {
+            case 'pautas': 
+            case 'solicitud': 
+                $path = $nota->path_solicitud; 
+                break;
+            case 'diseno': 
+                $path = $nota->path_diseno; 
+                break;
+            case 'bases':  
+                $path = $nota->path_bases; 
+                break;
+            case 'varios': 
+                $path = $nota->path_varios; 
+                break;
+            case 'informe': 
+                $path = $nota->path_informe; 
+                break;
+        }
+
+        if(!$path || !Storage::disk('public')->exists($path)) {
+            abort(404, 'Archivo no encontrado');
+        }
+
+        $fullPath = Storage::disk('public')->path($path);
+    $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    
+    $mimeType = mime_content_type($fullPath);
+    
+    // Debug
+    // \Log::info("Visualizar archivo: Path=$path, Ext=$extension, Mime=$mimeType");
+
+    // Si es PDF (por mime o por extension), mostrar inline
+    if($mimeType === 'application/pdf' || $extension === 'pdf') {
+        return response()->file($fullPath, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . basename($path) . '"'
+        ]);
+    }
+    
+    // Si es imagen, mostrar inline
+    if(strpos($mimeType, 'image/') === 0) {
+        return response()->file($fullPath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . basename($path) . '"'
+        ]);
+    }
+    
+    // Otros archivos: descargar
+    return response()->download($fullPath, basename($path));
+    }
+
 
     public function getCalendarEvents(Request $request){
         // Fetch notes with dates to show in calendar
@@ -1447,6 +1520,85 @@ class NotasUnificadasController extends Controller
 
             return response()->json(['success' => true]);
 
+        } catch(\Exception $e) {
+            return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
+        }
+    }
+    
+    /**
+     * Obtener versiones de un archivo para comparación
+     */
+    public function getVersionesArchivo($id, $tipo) {
+        try {
+            $versiones = \App\Models\NotaArchivoVersion::getVersions($id, $tipo);
+            
+            return response()->json([
+                'success' => true,
+                'versiones' => $versiones->map(function($v) {
+                    return [
+                        'id' => $v->id,
+                        'version' => $v->version,
+                        'nombre_original' => $v->nombre_original,
+                        'created_at' => $v->created_at->format('d/m/Y H:i'),
+                        'path' => $v->path_archivo
+                    ];
+                })
+            ]);
+        } catch(\Exception $e) {
+            return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
+        }
+    }
+    
+    /**
+     * Visualizar una versión específica de un archivo
+     */
+    public function visualizarVersion($idVersion) {
+        try {
+            $version = \App\Models\NotaArchivoVersion::findOrFail($idVersion);
+            $path = $version->path_archivo;
+            
+            if(!Storage::disk('public')->exists($path)) {
+                abort(404, 'Archivo no encontrado');
+            }
+            
+            $fullPath = Storage::disk('public')->path($path);
+            $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+            
+            if($extension === 'pdf') {
+                return response()->file($fullPath, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="' . basename($path) . '"'
+                ]);
+            }
+            
+            return response()->file($fullPath);
+            
+        } catch(\Exception $e) {
+            abort(404, 'Versión no encontrada');
+        }
+    }
+    /**
+     * Obtener historial de versiones de un archivo (AJAX)
+     */
+    public function getHistorialVersionesAjax($id, $tipo) {
+        try {
+            $versiones = \App\Models\NotaArchivoVersion::where('id_nota_ingreso', $id)
+                ->where('tipo_archivo', $tipo)
+                ->orderBy('version', 'desc')
+                ->get();
+            
+            return response()->json([
+                'success' => true,
+                'versiones' => $versiones->map(function($v) {
+                    return [
+                        'id' => $v->id,
+                        'version' => $v->version,
+                        'nombre_original' => $v->nombre_original,
+                        'created_at' => $v->created_at->format('d/m/Y H:i'),
+                        'path' => $v->path_archivo
+                    ];
+                })
+            ]);
         } catch(\Exception $e) {
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }

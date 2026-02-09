@@ -4,6 +4,7 @@
 @endsection
 
 @section('estilos')
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="/css/lista-datos.css">
@@ -11,7 +12,7 @@
 <!-- CSS Inlined for reliability -->
 <style>
     /* --- HYPER-MODERN INLINE STYLES (DENSE MODE) --- */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    /* @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'); */
 
     .modal-content {
         border-radius: 15px; /* Reduced from 20px */
@@ -353,12 +354,11 @@
                 <!-- CALENDAR CONTAINER -->
                 <div id="divCalendarioNotas" style="display:none; background:white; padding:20px; border:1px solid #ddd;"></div>
 
-                <!-- DRAWER (Off-Canvas Details) -->
-                <div id="drawer-right" class="drawer-right" style="position:fixed; top:0; right:-500px; width:500px; height:100%; background:white; z-index:9999; box-shadow:-2px 0 5px rgba(0,0,0,0.2); transition:right 0.3s; padding:20px; overflow-y:auto; display: block;">
+                <!-- DRAWER (Off-Canvas Details) - DISABLED -->
+                <div id="drawer-right" class="drawer-right" style="position:fixed; top:0; right:-500px; width:500px; height:100%; background:white; z-index:9999; box-shadow:-2px 0 5px rgba(0,0,0,0.2); transition:right 0.3s; padding:20px; overflow-y:auto; display: none;">
                     <button type="button" class="close" id="btnCloseDrawer" style="font-size: 30px;">&times;</button>
                     <div id="drawer-content">
                         <!-- Content loaded via AJAX -->
-                        <h4 class="text-center text-muted"><i class="fa fa-spinner fa-spin"></i> Cargando...</h4>
                     </div>
                 </div>
                 <div id="drawer-backdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.3); z-index:9998;"></div>
@@ -1016,11 +1016,210 @@
 <script src="/js/unified_wizard.js?v={{ time() }}"></script>
 
 <!-- SortableJS -->
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script> -->
+
+<!-- ============================================
+     MODAL: SELECTOR DE PDFs PARA ANOTAR
+============================================ -->
+<div class="modal fade" id="modalSelectorPdfs" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="border-radius: 12px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px 12px 0 0;">
+                <button type="button" class="close" data-dismiss="modal" style="color: white;">&times;</button>
+                <h4 class="modal-title"><i class="fa fa-file-pdf-o"></i> Seleccionar PDF para Anotar</h4>
+            </div>
+            <div class="modal-body" id="listaPdfsDisponibles" style="min-height: 200px;">
+                <div class="text-center"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================
+     MODAL: EDITOR DE ANOTACIONES (FULLSCREEN)
+============================================ -->
+<div class="modal fade" id="modalEditorAnotaciones" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog" role="document" style="width: 95%; max-width: none; height: 95%; margin: 20px auto;">
+        <div class="modal-content" style="height: 100%; border-radius: 8px;">
+            <div class="modal-header" style="background: #2c3e50; color: white; padding: 10px 20px;">
+                <button type="button" class="close" id="btnCerrarEditor" style="color: white;">&times;</button>
+                <h4 class="modal-title" id="editorTitulo"><i class="fa fa-pencil"></i> Editor de Anotaciones</h4>
+            </div>
+            <div class="modal-body" id="editorContent" style="padding: 0; height: calc(100% - 110px); display: flex;">
+                <!-- PDF Canvas (izquierda) -->
+                <div style="flex: 1; background: #34495e; overflow: auto; position: relative;">
+                    <div style="text-align: center; padding: 10px; background: #2c3e50;">
+                        <!-- Herramientas -->
+                        <div class="btn-group" style="margin-right: 20px;">
+                            <button id="btnSelect" class="btn btn-sm btn-default btn-tool active" title="Seleccionar">
+                                <span style="font-size: 18px; font-weight: bold;">⬊</span>
+                            </button>
+                            <button id="btnArrow" class="btn btn-sm btn-default btn-tool" title="Dibujar Flecha">
+                                <span style="font-size: 18px; font-weight: bold;">→</span>
+                            </button>
+                            <button id="btnRect" class="btn btn-sm btn-default btn-tool" title="Dibujar Rectángulo">
+                                <span style="font-size: 18px; font-weight: bold;">▢</span>
+                            </button>
+                            <button id="btnComment" class="btn btn-sm btn-warning btn-tool" title="Agregar Comentario">
+                                <span style="font-size: 18px; font-weight: bold;">💬</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Navegación -->
+                        <div class="btn-group">
+                            <button id="btnPrevPage" class="btn btn-sm btn-default">
+                                <i class="fa fa-chevron-left"></i>
+                            </button>
+                            <button class="btn btn-sm btn-default" disabled id="pageInfo">Página 1 de 1</button>
+                            <button id="btnNextPage" class="btn btn-sm btn-default">
+                                <i class="fa fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        
+                        <button id="btnGuardarTodo" class="btn btn-sm btn-success" style="margin-left: 20px;">
+                            <i class="fa fa-save"></i> Guardar
+                        </button>
+                        
+                        <!-- Controles de Comparación -->
+                        <label class="btn btn-sm btn-default" style="margin-left: 30px; margin-bottom: 0;">
+                            <input type="checkbox" id="check-comparar" style="margin-right: 5px;"> Comparar
+                        </label>
+                        
+                        <div id="controles-comparacion" style="display: none; margin-left: 10px; display: inline-block;">
+                            <select id="select-comparar" class="form-control input-sm" style="width: 200px; display: inline-block;">
+                                <option value="">Seleccionar PDF...</option>
+                            </select>
+                            <span style="margin-left: 10px;">Opacidad:</span>
+                            <input type="range" id="slider-opacidad" min="0" max="1" step="0.01" value="0.5" style="width: 100px; vertical-align: middle;">
+                        </div>
+                    </div>
+                    
+                    
+                    <div style="padding: 20px; text-align: center; background: #34495e;">
+                        <div id="canvasContainer" style="display: inline-block; position: relative; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+                            <canvas id="pdfCanvas"></canvas>
+                            <!-- Onion skin layer -->
+                            <div class="onion-layer" style="position: absolute; top: 0; left: 0; pointer-events: none; display: none; opacity: 0.5; z-index: 999;">
+                                <canvas id="onionCanvas"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Panel de comentarios (derecha) -->
+                <div style="width: 350px; background: #ecf0f1; border-left: 2px solid #bdc3c7; display: flex; flex-direction: column;">
+                    <div style="padding: 15px; background: #f39c12; color: white;">
+                        <h4 style="margin: 0;">
+                            <i class="fa fa-comments"></i> Comentarios
+                        </h4>
+                    </div>
+                    <div id="listaComentarios" style="flex: 1; overflow-y: auto; padding: 10px;">
+                        <!-- Los comentarios se cargarán aquí -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para nuevo comentario -->
+<div class="modal fade" id="modalNuevoComentario" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #f39c12; color: white;">
+                <button type="button" class="close" data-dismiss="modal" style="color: white;">&times;</button>
+                <h4 class="modal-title">
+                    <i class="fa fa-comment"></i> Nuevo Comentario 
+                    <span class="badge" id="comentarioNumero" style="background: white; color: #f39c12;">1</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Mensaje:</label>
+                    <textarea id="comentarioMensaje" class="form-control" rows="4" placeholder="Escribe tu observación aquí..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" id="btnGuardarComentario">
+                    <i class="fa fa-save"></i> Guardar Comentario
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.pdf-selector-item:hover {
+    background-color: #f8f9fa !important;
+    transform: translateX(5px);
+}
+
+.comentario-item {
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.comentario-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.comentario-header .badge {
+    font-size: 14px;
+    padding: 4px 8px;
+}
+
+.comentario-body {
+    padding: 8px 0;
+    color: #2c3e50;
+}
+
+.comentario-footer {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.comentario-respuestas {
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+.respuesta-item {
+    background: #f8f9fa;
+    padding: 8px;
+    border-left: 3px solid #3498db;
+    margin-bottom: 5px;
+    font-size: 13px;
+}
+
+.btn-tool.active {
+    background-color: #3498db !important;
+    color: white !important;
+}
+</style>
+
+<!-- PDF.js y Fabric.js - LOCAL -->
+<script src="/js/libs/pdf.min.js"></script>
+<script src="/js/libs/fabric.min.js"></script>
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/js/libs/pdf.worker.min.js';
+</script>
+<script src="/js/notas_anotaciones.js?v={{ time() }}"></script>
+<script src="/js/notas_versiones_v2.js?v={{ time() }}"></script>
+
 
 <!-- FullCalendar v3 (Compatible with jQuery) -->
+<!-- Commented out to prevent timeout/lag
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/es.js"></script>
+-->
 @endsection

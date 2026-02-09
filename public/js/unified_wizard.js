@@ -420,7 +420,10 @@ $(document).ready(function () {
     let currentStep = 0; // 0=Task, 1=General, 2=Spec, 3=Files, 4=Summary
 
     // Init Tooltips
-    $('[data-toggle="tooltip"]').tooltip();
+    // ============================================
+    // TOOLTIPS DISABLED - Performance optimization
+    // ============================================
+    // $('[data-toggle="tooltip"]').tooltip();
 
     // EXPOSE TO WINDOW FOR ONCLICK IN BLADE
     window.selectTaskType = function (type) {
@@ -875,10 +878,11 @@ $(document).ready(function () {
         });
     }
 
-    // --- DRAWER LOGIC ---
+    // --- DRAWER LOGIC - DISABLED ---
     $(document).on('click', '.btn-ver-nota', function () {
-        let id = $(this).data('id');
-        openDrawer(id);
+        // Drawer disabled for performance
+        // let id = $(this).data('id');
+        // openDrawer(id);
     });
 
     $('#btnCloseDrawer, #drawer-backdrop').click(function () {
@@ -886,17 +890,15 @@ $(document).ready(function () {
     });
 
     function openDrawer(id) {
-        $('#drawer-backdrop').fadeIn();
-        $('#drawer-right').css('right', '0');
-
-        // Load Details via AJAX
-        $('#drawer-content').html('<h4 class="text-center text-muted"><i class="fa fa-spinner fa-spin"></i> Cargando detalles...</h4>');
-
-        $.get('/notas-unificadas/' + id, function (res) {
-            $('#drawer-content').html(res);
-        }).fail(function () {
-            $('#drawer-content').html('<p class="text-danger">Error al cargar detalle.</p>');
-        });
+        // DISABLED - Performance optimization
+        // $('#drawer-backdrop').fadeIn();
+        // $('#drawer-right').css('right', '0');
+        // $('#drawer-content').html('<h4 class="text-center text-muted"><i class="fa fa-spinner fa-spin"></i> Cargando detalles...</h4>');
+        // $.get('/notas-unificadas/' + id, function (res) {
+        //     $('#drawer-content').html(res);
+        // }).fail(function () {
+        //     $('#drawer-content').html('<p class="text-danger">Error al cargar detalle.</p>');
+        // });
     }
 
     function closeDrawer() {
@@ -1195,45 +1197,28 @@ $(document).ready(function () {
     });
 
     // --- TIMELINE TOOLTIP ---
-    // Initialize standard popovers
-    $('[data-toggle="popover"]').popover();
+    // ============================================
+    // ALL POPOVERS / TOOLTIPS DISABLED - Performance optimization
+    // ============================================
+    // $('[data-toggle="popover"]').popover();
 
-    // Hover logic for 'estado-badge' to clear old and fetch new
-    // We delegate using 'body' because badges are dynamic
+    // ============================================
+    // POPOVER DISABLED - Performance optimization
+    // ============================================
+    // Removed hover logic for 'estado-badge' that loads history via AJAX
+    // This was causing performance issues and unnecessary memory usage
+    /*
     $('body').popover({
         selector: '.estado-badge',
         trigger: 'hover',
         html: true,
         placement: 'bottom',
         content: function () {
-            let id = $(this).data('id');
-            // If we already have content, return it
-            if ($(this).data('cached-content')) {
-                return $(this).data('cached-content');
-            }
-
-            // Otherwise show spinner and fetch
-            let $el = $(this);
-            $.get('/movimientos/' + id, function (res) {
-                let html = '<ul style="padding-left:15px; margin-bottom:0;">';
-                res.forEach(m => {
-                    html += `<li><small><b>${m.fecha}</b>: ${m.estado}</small></li>`;
-                });
-                html += '</ul>';
-
-                $el.data('cached-content', html);
-
-                // If still hovering, update the popover
-                let popover = $el.data('bs.popover');
-                if (popover && popover.tip().hasClass('in')) {
-                    popover.options.content = html;
-                    popover.setContent();
-                    popover.$tip.addClass(popover.options.placement);
-                }
-            });
-            return '<i class="fa fa-spinner fa-spin"></i> Cargando historial...';
+            ...
         }
     });
+    */
+
 
     function updateStepperUI(step) {
         // HYPER-MODERN CIRCULAR STEPPER LOGIC
@@ -1969,10 +1954,13 @@ $(document).ready(function () {
 
             if (adj && adj.existe) {
                 html += '<div style="display:flex; align-items:center; padding:8px; background:#d1fae5; border-radius:6px; margin-bottom:6px">' +
-                    '<i class="fa ' + icon + ' text-success" style="margin-right:8px"></i>' +
-                    '<span style="flex:1">' + label + ': <strong>' + adj.nombre + '</strong></span>' +
-                    '<a href="/storage/' + adj.path + '" target="_blank" class="btn btn-xs btn-info" title="Ver"><i class="fa fa-eye"></i></a> ' +
-                    '<button class="btn btn-xs btn-danger btn-eliminar-adjunto" data-id="' + notaId + '" data-campo="path_' + key + '" title="Eliminar"><i class="fa fa-trash"></i></button>' +
+                    '<i class="fa ' + icon + ' text-success" style="margin-right:8px; flex-shrink: 0;"></i>' +
+                    '<span style="flex:1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 10px;" title="' + adj.nombre + '">' + label + ': <strong>' + adj.nombre + '</strong></span>' +
+                    '<div style="flex-shrink: 0; display: flex; gap: 5px;">' +
+                        // FIX: Usar ruta controlada para forzar inline en vez de download
+                        '<a href="/notas-unificadas/visualizar/' + notaId + '/' + key + '" target="_blank" class="btn btn-xs btn-info" style="margin-right: 5px;" title="Ver"><i class="fa fa-eye"></i></a> ' +
+                        '<button class="btn btn-xs btn-danger btn-eliminar-adjunto" data-id="' + notaId + '" data-campo="path_' + key + '" title="Eliminar"><i class="fa fa-trash"></i></button>' +
+                    '</div>' +
                     '</div>';
             } else {
                 html += '<div style="display:flex; align-items:center; padding:8px; background:#fee2e2; border-radius:6px; margin-bottom:6px">' +
