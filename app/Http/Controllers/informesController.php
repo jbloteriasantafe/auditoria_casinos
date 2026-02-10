@@ -372,12 +372,9 @@ class informesController extends Controller
     $casino = Casino::find($request->id_casino);
     if(empty($casino)) return [];
     
-    $estados_habilitados = [1,2,4,5,6,7];
     $fecha_informe;
-    $q_id_estado_maquina;
     if(empty($request->fecha_informe)){
       $fecha_informe = date('Y-m-d');
-      $q_id_estado_maquina = 'm.id_estado_maquina';
     }
     else{
       //Evito SQL injection
@@ -386,42 +383,226 @@ class informesController extends Controller
         return response()->json(['fecha_informe' => ['Formato incorrecto']],422);
       }
       $fecha_informe = $fecha_informe->format('Y-m-d');
-      
-      //Preferencialmente uso el estado del ultimo log
-      $q_id_estado_maquina = DB::raw('COALESCE(lm.id_estado_maquina,m.id_estado_maquina)');
     }   
     
-    DB::statement('SET @fecha_informe = ?',[$fecha_informe]);    
-    $maqs_q = DB::table('maquina as m')
-    ->leftJoin('log_maquina as lm','lm.id_maquina','=','m.id_maquina')
+    
+    //Octavio 2026-02-09
+    //La implementación del código que usa LogMaquina es inconsistente 
+    
+    //En todas las  modificaciones de estado en el sistema, se guarda la maquina previamente
+    //y luego se registra el movimiento. 
+    //Este estado se recupera en LogMaquinaController::registrarMovimiento y se guarda
+    //El resultado es que log_maquina tiene el estado al que se transiciono
+    
+    //La excepción (ver MTMController linea 556)
+    //allí, se registra el movimiento y luego se modifica el estado
+    //por lo que termina guardado el estado anterior
+    
+    $maqs = DB::table('maquina as m')
+    ->selectRaw("
+      m.nro_admin,
+      m.id_isla,
+      m.id_estado_maquina,
+      
+      DATEDIFF('$fecha_informe',lm_prev.fecha) as prev_dias,
+      lm_prev.id_estado_maquina as prev_id_estado_maquina,
+      IF(lm_prev.razon LIKE 'La maquina sufrió modificaciones:%','previo','posterior') as prev_tipo_estado,
+      
+      lm_eq.id_estado_maquina   as eq_id_estado_maquina,
+      
+      DATEDIFF(lm_post.fecha,'$fecha_informe') as post_dias,
+      lm_post.id_estado_maquina as post_id_estado_maquina,
+      IF(lm_post.razon LIKE 'La maquina sufrió modificaciones:%','previo','post') as post_tipo_estado
+    ")
+    ->leftJoin('log_maquina as lm_prev',function($q) use ($fecha_informe){
+      return $q->on('lm_prev.id_maquina','=','m.id_maquina')
+      ->where('lm_prev.fecha','<',$fecha_informe);
+    })
+    ->leftJoin('log_maquina as lm_eq',function($q) use ($fecha_informe){
+      return $q->on('lm_eq.id_maquina','=','m.id_maquina')
+      ->where('lm_eq.fecha','=',$fecha_informe);
+    })
+    ->leftJoin('log_maquina as lm_post',function($q) use ($fecha_informe){
+      return $q->on('lm_eq.id_maquina','=','m.id_maquina')
+      ->where('lm_eq.fecha','>',$fecha_informe);
+    })
     ->where('m.id_casino',$casino->id_casino)
     ->where('m.created_at','<=',$fecha_informe)
     ->whereNull('m.deleted_at')
-    ->where(function($q) use ($fecha_informe){//Me quedo con solos los logs anteriores (o si no tiene)
-      return $q->whereNull('lm.id_log_maquina')
-      ->orWhere('lm.fecha','<=',$fecha_informe);
+    //@TODO: pasar queryes a orWhereNotExists
+    ->where(function($q) use ($fecha_informe){
+      return $q->whereNull('lm_prev.id_log_maquina')
+      ->orWhere(DB::raw("(
+        NOT EXISTS (
+          SELECT 1
+          FROM log_maquina as lm_prev2
+          WHERE lm_prev2.id_maquina = m.id_maquina
+          AND lm_prev2.fecha < '$fecha_informe'
+          AND (
+            lm_prev2.fecha > lm_prev.fecha
+            OR (lm_prev2.fecha = lm_prev.fecha AND lm_prev2.id_log_maquina > lm_prev.id_log_maquina)
+          )
+          LIMIT 1
+        )
+      )"),'=','1');
     })
-    //me aseguro que no existe log posterior al que elegimos
-    ->whereRaw('NOT EXISTS (
-      SELECT 1
-      FROM log_maquina as lm2
-      WHERE lm2.id_maquina = m.id_maquina
-      AND (
-        lm2.fecha > lm.fecha
-        OR (lm2.fecha = lm.fecha AND lm2.id_log_maquina > lm.id_log_maquina)
-      )
-      LIMIT 1
-    )');
+    ->where(function($q) use ($fecha_informe){
+      return $q->whereNull('lm_eq.id_log_maquina')
+      ->orWhere(DB::raw("(
+        NOT EXISTS (
+          SELECT 1
+          FROM log_maquina as lm_eq2
+          WHERE lm_eq2.id_maquina = m.id_maquina
+          AND lm_eq2.fecha = '$fecha_informe'
+          AND lm_eq2.id_log_maquina > lm_eq.id_log_maquina
+          LIMIT 1
+        )
+      )"),'=','1');
+    })
+    ->where(function($q) use ($fecha_informe){
+      return $q->whereNull('lm_post.id_log_maquina')
+      ->orWhere(DB::raw("(
+        NOT EXISTS (
+          SELECT 1
+          FROM log_maquina as lm_post2
+          WHERE lm_post2.id_maquina = m.id_maquina
+          AND lm_post2.fecha > '$fecha_informe'
+          AND (
+            lm_post2.fecha < lm_post.fecha
+            OR (lm_post2.fecha = lm_post.fecha AND lm_post2.id_log_maquina < lm_post.id_log_maquina)
+          )
+          LIMIT 1
+        )
+      )"),'=','1');
+    })->get();
     
-    $total_casino = (clone $maqs_q)->count();
+    $total_no_asignadas = 0;//Sin isla... no puedo obtenerlo de forma certera para tras
+    $total_estados = [];
+    $aproximar_por_log_movimiento = [];
     
-    $total_habilitadas = (clone $maqs_q)->whereIn($q_id_estado_maquina, [1,2])->count();
-    $total_deshabilitadas = (clone $maqs_q)->whereIn($q_id_estado_maquina, [4,5,6,7])->count();
-    $total_egresadas = (clone $maqs_q)->whereIn($q_id_estado_maquina, [3])->count();
+    //Esto se podría mover a MySQL pero quedaria bastante ilegible
+    foreach($maqs as $m){
+      if($m->id_isla === null){
+        $total_no_asignadas++;
+      }
+      
+      $id_estado_maquina;
+      //Si hubo cambios para el mismo día, siempre tomo como prioridad ese
+      if($m->eq_id_estado_maquina !== null){
+        $id_estado_maquina = $m->eq_id_estado_maquina;
+      }
+      //No tuvo cambios la maquina, tomo el estado de la maquina nomas
+      elseif($m->prev_id_estado_maquina === null && $m->post_id_estado_maquina === null){
+        $id_estado_maquina = $m->id_estado_maquina;
+      }
+      //La maquina solo tuvo cambios previos
+      elseif($m->prev_id_estado_maquina !== null && $m->post_id_estado_maquina === null){
+        //Al ser posterior al previo, lo asignamos
+        if($m->prev_tipo_estado == 'posterior'){
+          $id_estado_maquina = $m->prev_id_estado_maquina;
+        }
+        //No tenemos estado posterior asi que asignamos el que tiene la maquina actual
+        elseif($m->prev_tipo_estado == 'previo'){
+          $id_estado_maquina = $m->id_estado_maquina;
+        }
+        else{
+          throw new \Exception('Unreachable');
+        }
+      }
+      //La maquina solo tuvo cambios posteriores
+      elseif($m->prev_id_estado_maquina === null && $m->post_id_estado_maquina !== null){
+        //Al ser posterior al posterior, no podemos averiguarlo por LogMaquina
+        //lo marcamos con null para obtenerlo por log_movimiento
+        if($m->post_tipo_estado == 'posterior'){
+          $id_estado_maquina = null;
+        }
+        //Al ser previo al posterior, lo asignamos nomas
+        elseif($m->post_tipo_estado == 'previo'){
+          $id_estado_maquina = $m->post_id_estado_maquina;
+        }
+        else{
+          throw new \Exception('Unreachable');
+        }
+      }
+      //La maquina tuvo cambios antes y despues (lo mas común)
+      elseif($m->prev_id_estado_maquina !== null && $m->post_id_estado_maquina !== null){
+        if($m->prev_tipo_estado == 'posterior' && $m->post_tipo_estado == 'posterior'){
+          $id_estado_maquina = $m->prev_id_estado_maquina;//Misma logica que arriba
+        }
+        elseif($m->prev_tipo_estado == 'posterior' && $m->post_tipo_estado == 'previo'){
+          //Deberían ser iguales
+          assert($m->prev_id_estado_maquina == $m->post_id_estado_maquina);
+          $id_estado_maquina = $m->prev_id_estado_maquina;
+        }
+        elseif($m->prev_tipo_estado == 'previo' && $m->post_tipo_estado == 'posterior'){
+          //Nos queda un vacio, lo marco con null para averiguarlo mas abajo
+          $id_estado_maquina = null;
+        }
+        elseif($m->prev_tipo_estado == 'previo' && $m->post_tipo_estado == 'previo'){
+          $id_estado_maquina = $m->post_id_estado_maquina;
+        }
+        else{
+          throw new \Exception('Unreachable');
+        }
+      }
+      else{
+        throw new \Exception('Unreachable');
+      }
+      
+      //No pudimos definirlo por LogMaquina, lo tratamos de obtener
+      //por LogMovimiento, esto es menos exacto ya que los movimientos
+      //no necesariamente marcan los estados de las maquinas
+      if($id_estado_maquina === null){
+        $aproximar_por_log_movimiento[] = $m->nro_admin;
+        continue;
+      }
+      
+      $total_estados[$id_estado_maquina] = $total_estados[$id_estado_maquina] ?? 0;
+      $total_estados[$id_estado_maquina]++;
+    }
     
-    $total_no_asignadas = (clone $maqs_q)->whereNull('m.id_isla')->count();
+    if(!empty($aproximar_por_log_movimiento)){
+      $logs = LogMovimientoController::getInstancia()->obtenerEstadosMaquinasAFecha(
+        $request->id_casino,
+        $fecha_informe,
+        $aproximar_por_log_movimiento
+      );
+      foreach($logs as $l){
+        $total_estados[$l->id_estado_maquina] = $total_estados[$l->id_estado_maquina] ?? 0;
+        $total_estados[$l->id_estado_maquina]++;
+      }
+    }
     
+    $total_casino = 0;
+    $total_habilitadas = 0;
+    $total_egresadas = 0;
+    $total_deshabilitadas = 0;
+    $total_sin_estado = 0;
+    
+    $estados_habilitados = [1,2];
+    $estados_egresados = [3];
+    $estados_deshabilitados = [4,5,6,7];
+    
+    foreach($total_estados as $id_estado_maquina => $cantidad){
+      $total_casino+=$cantidad;
+      if(in_array($id_estado_maquina,$estados_habilitados)){
+        $total_habilitadas+=$cantidad;
+      }
+      else if(in_array($id_estado_maquina,$estados_egresados)){
+        $total_egresadas+=$cantidad;
+      }
+      else if(in_array($id_estado_maquina,$estados_deshabilitados)){
+        $total_deshabilitadas+=$cantidad;
+      }
+      else{
+        //Esto deberia ser siempre 0... si empieza a reportar es porque agregamos un estado y no lo manejamos
+        //Prefiero reportarlo en el frontend así los usuarios se quejan
+        $total_sin_estado+=$cantidad;
+      }
+    }
+        
     //@TODO: Como hacer para buscar el estado de las islas y sectores en $fecha_informe?
+    //Islas que tienen maquinas pero no estan asignadas a un sector
     $islas_no_asignadas = DB::table('isla')->select('isla.id_isla')
     ->where('isla.id_casino',$casino->id_casino)
     ->join('sector','isla.id_sector','=','sector.id_sector')
@@ -429,14 +610,24 @@ class informesController extends Controller
     ->whereNull('isla.deleted_at')//La isla no esta eliminada
     ->whereNotNull('sector.deleted_at')//Esta en un sector eliminado
     ->whereNull('maquina.deleted_at')//La maquina no esta eliminada
-    ->whereIn('maquina.id_estado_maquina',$estados_habilitados)//La maquina esta habilitada
+    //La maquina no esta egresada
+    ->whereIn('maquina.id_estado_maquina',array_merge($estados_habilitados,$estados_deshabilitados))
     ->distinct()->get()->count();
     
     $sectores = $casino->sectores->map(function($s){
       return ['id_sector' => $s->id_sector, 'descripcion' => $s->descripcion, 'cantidad' => $s->cantidad_maquinas];
     });
 
-    $totales = compact('total_casino','total_no_asignadas','islas_no_asignadas','total_habilitadas','total_deshabilitadas','total_egresadas');
+    $totales = compact(
+      'total_casino',
+      'total_no_asignadas',
+      'islas_no_asignadas',
+      'total_habilitadas',
+      'total_deshabilitadas',
+      'total_egresadas',
+      'total_sin_estado'
+    );
+    
     return compact('casino','sectores','totales');
   }
 

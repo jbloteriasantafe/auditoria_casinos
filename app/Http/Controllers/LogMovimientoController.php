@@ -1616,4 +1616,11 @@ class LogMovimientoController extends Controller
             'movValidado' => $logMov->id_estado_relevamiento == 4,
             'fisValidada' => !is_null($fisMov) && $fisMov->id_estado_relevamiento == 4 ];
   }
+  
+  public function obtenerEstadosMaquinasAFecha($id_casino,$fecha_informe,array $nro_admins){
+    //@TODO implementar
+    return \App\Maquina::where('id_casino',$id_casino)
+    ->whereIn('nro_admin',$nro_admins)
+    ->get();
+  }
 }

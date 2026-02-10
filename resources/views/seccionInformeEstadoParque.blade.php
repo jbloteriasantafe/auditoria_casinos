@@ -97,18 +97,26 @@
                               <div class="row" style="text-align:center; padding-bottom:25px;">
                                   <h5>MÁQUINAS DEL CASINO</h5>
                                   <div class="col-md-6" style="position:relative;top:30px;text-align:center;align-items:center;">
-
-                                    <span id="total_habilitadas" class="numero_maquinas" style="color: #00E676;">23</span>
-                                    <img class="imagen_maquina" src="/img/logos/tragaperras_verde.png" alt="" width="60px">
-                                    <span class="maquinas_habilitadas">Máquinas habilitadas</span>
-
-                                    <span id="total_deshabilitadas" class="numero_maquinas" style="color: #FF6E17;">6</span>
-                                    <img class="imagen_maquina" src="/img/logos/tragaperras_orange.png" alt="" width="60px">
-                                    <span class="maquinas_deshabilitadas">Máquinas deshabilitadas</span>
-                                    
-                                    <span id="total_egresadas" class="numero_maquinas" style="color: #FF1744;">6</span>
-                                    <img class="imagen_maquina" src="/img/logos/tragaperras_rojo.png" alt="" width="60px">
-                                    <span class="maquinas_egresadas">Máquinas egresadas</span>
+                                    <div style="width: 100%;">
+                                      <span id="total_habilitadas" class="numero_maquinas" style="color: #00E676;">-1</span>
+                                      <img class="imagen_maquina" src="/img/logos/tragaperras_verde.png" alt="" width="60px">
+                                      <span class="maquinas_habilitadas">Máquinas habilitadas</span>
+                                    </div>
+                                    <div style="width: 100%;">
+                                      <span id="total_deshabilitadas" class="numero_maquinas" style="color: #FF6E17;">-1</span>
+                                      <img class="imagen_maquina" src="/img/logos/tragaperras_orange.png" alt="" width="60px">
+                                      <span class="maquinas_deshabilitadas">Máquinas deshabilitadas</span>
+                                    </div>
+                                    <div style="width: 100%;">
+                                      <span id="total_egresadas" class="numero_maquinas" style="color: #FF1744;">-1</span>
+                                      <img class="imagen_maquina" src="/img/logos/tragaperras_rojo.png" alt="" width="60px">
+                                      <span class="maquinas_egresadas">Máquinas egresadas</span>
+                                    </div>
+                                    <div style="width: 100%;">
+                                      <span id="total_sin_estado" class="numero_maquinas" style="color: #000000;">-1</span>
+                                      <img class="imagen_maquina" src="/img/logos/tragaperras_gris.png" alt="" width="60px">
+                                      <span class="maquinas_sin_estado">Máquinas sin estado</span>
+                                    </div>
                                   </div>
                                   <div class="col-md-6">
                                       <div id="tortaHabilitadas" style=""></div>

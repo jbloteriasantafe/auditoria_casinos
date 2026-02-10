@@ -648,7 +648,10 @@ class MTMController extends Controller
         }
         else $MTM->notas()->sync([]);
         LogMaquinaController::getInstancia()->registrarMovimiento($MTM->id_maquina, $razon, $tipo_movimiento);
-        $MTM->save();
+        $MTM->save();//Antes de mover esto antes de registrar
+        //ver informesController::obtenerInformeEstadoParqueDeParque 
+        //recomiendo o cambiar el mensaje ("razon") para que no afecte la query o incluir
+        //en la query la fecha de modificación (creo que la primera es mas razonable..)
         DB::commit();
     } catch (Exception $e) {
         DB::rollBack();
