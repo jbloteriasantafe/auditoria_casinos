@@ -421,8 +421,8 @@ class informesController extends Controller
       ->where('lm_eq.fecha','=',$fecha_informe);
     })
     ->leftJoin('log_maquina as lm_post',function($q) use ($fecha_informe){
-      return $q->on('lm_eq.id_maquina','=','m.id_maquina')
-      ->where('lm_eq.fecha','>',$fecha_informe);
+      return $q->on('lm_post.id_maquina','=','m.id_maquina')
+      ->where('lm_post.fecha','>',$fecha_informe);
     })
     ->where('m.id_casino',$casino->id_casino)
     ->where('m.created_at','<=',$fecha_informe)
@@ -480,7 +480,6 @@ class informesController extends Controller
     //Sin isla... no puedo obtenerlo de forma certera para atras... talvez usando log_movimiento
     $total_no_asignadas = 0;
     $total_estados = [];
-    $aproximar_por_log_movimiento = [];
     
     //Esto se podría mover a MySQL pero quedaria bastante ilegible
     foreach($maqs as $m){
