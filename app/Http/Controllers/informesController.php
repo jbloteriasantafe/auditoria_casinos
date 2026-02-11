@@ -549,9 +549,9 @@ class informesController extends Controller
             $id_estado_maquina = $m->prev_id_estado_maquina;
           }
           else{
-            $id_estado_maquina = $m->prev_dias <= $m->prox_dias?
+            $id_estado_maquina = $m->prev_dias <= $m->post_dias?
               $m->prev_id_estado_maquina
-            : $m->prox_id_estado_maquina;
+            : $m->post_id_estado_maquina;
           }
         }
         else{
