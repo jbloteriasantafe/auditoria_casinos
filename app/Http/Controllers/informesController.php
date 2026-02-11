@@ -410,7 +410,7 @@ class informesController extends Controller
       
       DATEDIFF(lm_post.fecha,'$fecha_informe') as post_dias,
       lm_post.id_estado_maquina as post_id_estado_maquina,
-      IF(lm_post.razon LIKE 'La maquina sufrió modificaciones:%','previo','post') as post_tipo_estado
+      IF(lm_post.razon LIKE 'La maquina sufrió modificaciones:%','previo','posterior') as post_tipo_estado
     ")
     ->leftJoin('log_maquina as lm_prev',function($q) use ($fecha_informe){
       return $q->on('lm_prev.id_maquina','=','m.id_maquina')
@@ -522,13 +522,19 @@ class informesController extends Controller
       }
       //La maquina tuvo cambios antes y despues (lo mas común)
       elseif($m->prev_id_estado_maquina !== null && $m->post_id_estado_maquina !== null){
-        if($m->prev_tipo_estado == 'posterior' && $m->post_tipo_estado == 'posterior'){
+        if($m->prev_tipo_estado == 'posterior'){
+          if($m->post_tipo_estado == 'previo'){
+            //Deberían ser iguales
+            assert($m->prev_id_estado_maquina == $m->post_id_estado_maquina);
+          }
           $id_estado_maquina = $m->prev_id_estado_maquina;//Esto es logica basica
         }
-        elseif($m->prev_tipo_estado == 'posterior' && $m->post_tipo_estado == 'previo'){
-          //Deberían ser iguales
-          assert($m->prev_id_estado_maquina == $m->post_id_estado_maquina);
-          $id_estado_maquina = $m->prev_id_estado_maquina;
+        else if($m->post_tipo_estado == 'previo'){
+          if($m->prev_tipo_estado == 'posterior'){
+            //Deberían ser iguales
+            assert($m->prev_id_estado_maquina == $m->post_id_estado_maquina);
+          }
+          $id_estado_maquina = $m->post_id_estado_maquina;
         }
         elseif($m->prev_tipo_estado == 'previo' && $m->post_tipo_estado == 'posterior'){
           //La maquina tuvo una modificación por modulo MTM y luego un movimiento
@@ -547,9 +553,6 @@ class informesController extends Controller
               $m->prev_id_estado_maquina
             : $m->prox_id_estado_maquina;
           }
-        }
-        elseif($m->prev_tipo_estado == 'previo' && $m->post_tipo_estado == 'previo'){
-          $id_estado_maquina = $m->post_id_estado_maquina;
         }
         else{
           throw new \Exception('Unreachable');
