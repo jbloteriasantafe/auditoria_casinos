@@ -2337,17 +2337,17 @@ class CanonController extends Controller
         );
         
         $kdias = '/'.$data_tcfma['dias_mes'];
-        $data['Valores']['dia'][$kdias] = bcmul_precise(
+        $data['Valores']['dia'][$kdias] = bcround_ndigits(bcmul_precise(
           $data['Valores']['mes'] ?? null,
           $data_tcfma['factor_dias_mes'] ?? null
-        );
-        $aux['valor_dia']  = $kdias;
+        ),2);
+        $aux['valor_dia'] = $kdias;
         
         $khoras = '/'.$data_tcfma['dias_mes'].'/'.$data_tcfma['horas_dia'];
-        $data['Valores']['hora'][$khoras] = bcmul_precise(
+        $data['Valores']['hora'][$khoras] = bcround_ndigits(bcmul_precise(
           $data['Valores']['mes'] ?? null,
           $data_tcfma['factor_horas_mes'] ?? null
-        );
+        ),2);
         $aux['valor_hora'] = $khoras;
         
         $data['Fijo']['Adicionales'][$tcfma] = $aux;
