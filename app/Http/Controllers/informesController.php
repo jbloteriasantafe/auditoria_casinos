@@ -383,8 +383,7 @@ class informesController extends Controller
         return response()->json(['fecha_informe' => ['Formato incorrecto']],422);
       }
       $fecha_informe = $fecha_informe->format('Y-m-d');
-    }   
-    
+    }
     
     //Octavio 2026-02-09
     //La implementación del código que usa LogMaquina es inconsistente 
@@ -397,7 +396,6 @@ class informesController extends Controller
     //La excepción (ver MTMController linea 556)
     //allí, se registra el movimiento y luego se modifica el estado
     //por lo que termina guardado el estado anterior
-    
     $maqs = DB::table('maquina as m')
     ->selectRaw("
       m.nro_admin,
@@ -475,8 +473,12 @@ class informesController extends Controller
         )
       )"),'=','1');
     })->get();
-    
-    $total_no_asignadas = 0;//Sin isla... no puedo obtenerlo de forma certera para tras
+        
+    $estados_habilitados = [1,2];
+    $estados_egresados = [3];
+    $estados_deshabilitados = [4,5,6,7];
+    //Sin isla... no puedo obtenerlo de forma certera para atras... talvez usando log_movimiento
+    $total_no_asignadas = 0;
     $total_estados = [];
     $aproximar_por_log_movimiento = [];
     
@@ -486,7 +488,7 @@ class informesController extends Controller
         $total_no_asignadas++;
       }
       
-      $id_estado_maquina;
+      $id_estado_maquina = -1;
       //Si hubo cambios para el mismo día, siempre tomo como prioridad ese
       if($m->eq_id_estado_maquina !== null){
         $id_estado_maquina = $m->eq_id_estado_maquina;
@@ -497,24 +499,19 @@ class informesController extends Controller
       }
       //La maquina solo tuvo cambios previos
       elseif($m->prev_id_estado_maquina !== null && $m->post_id_estado_maquina === null){
-        //Al ser posterior al previo, lo asignamos
+        //Al ser posterior al previo, y no haber posterior, deberia ser igual al estado actual
         if($m->prev_tipo_estado == 'posterior'){
-          $id_estado_maquina = $m->prev_id_estado_maquina;
+          assert($m->prev_id_estado_maquina == $m->id_estado_maquina);
         }
-        //No tenemos estado posterior asi que asignamos el que tiene la maquina actual
-        elseif($m->prev_tipo_estado == 'previo'){
-          $id_estado_maquina = $m->id_estado_maquina;
-        }
-        else{
-          throw new \Exception('Unreachable');
-        }
+        $id_estado_maquina = $m->id_estado_maquina;
       }
       //La maquina solo tuvo cambios posteriores
       elseif($m->prev_id_estado_maquina === null && $m->post_id_estado_maquina !== null){
-        //Al ser posterior al posterior, no podemos averiguarlo por LogMaquina
-        //lo marcamos con null para obtenerlo por log_movimiento
+        //La maquina se creo manualmente y tuvo una modificacion por movimientos
+        //(porque no hay estado previo ni en la misma fecha)
+        //voy a considerarlo como estado INGRESO...
         if($m->post_tipo_estado == 'posterior'){
-          $id_estado_maquina = null;
+          $id_estado_maquina = 1;
         }
         //Al ser previo al posterior, lo asignamos nomas
         elseif($m->post_tipo_estado == 'previo'){
@@ -527,7 +524,7 @@ class informesController extends Controller
       //La maquina tuvo cambios antes y despues (lo mas común)
       elseif($m->prev_id_estado_maquina !== null && $m->post_id_estado_maquina !== null){
         if($m->prev_tipo_estado == 'posterior' && $m->post_tipo_estado == 'posterior'){
-          $id_estado_maquina = $m->prev_id_estado_maquina;//Misma logica que arriba
+          $id_estado_maquina = $m->prev_id_estado_maquina;//Esto es logica basica
         }
         elseif($m->prev_tipo_estado == 'posterior' && $m->post_tipo_estado == 'previo'){
           //Deberían ser iguales
@@ -535,8 +532,22 @@ class informesController extends Controller
           $id_estado_maquina = $m->prev_id_estado_maquina;
         }
         elseif($m->prev_tipo_estado == 'previo' && $m->post_tipo_estado == 'posterior'){
-          //Nos queda un vacio, lo marco con null para averiguarlo mas abajo
-          $id_estado_maquina = null;
+          //La maquina tuvo una modificación por modulo MTM y luego un movimiento
+          //Considere buscarlo por LogMovimiento pero es practicamente lo mismo
+          //porque LogMovimiento es fuente de LogMaquina
+          //cuando se valida un movimiento, genera un LogMaquina
+          //solo agarraria un caso de un movimiento no validado...
+          //que no sirve mucho deben ser contados con la mano
+          //@HACK: Me quedo con el mas cercano... exceptuando que sea un egreso
+          //definitivo el posterior, en ese caso me quedo con el previo
+          if(in_array($m->post_id_estado_maquina,$estados_egresados)){
+            $id_estado_maquina = $m->prev_id_estado_maquina;
+          }
+          else{
+            $id_estado_maquina = $m->prev_dias <= $m->prox_dias?
+              $m->prev_id_estado_maquina
+            : $m->prox_id_estado_maquina;
+          }
         }
         elseif($m->prev_tipo_estado == 'previo' && $m->post_tipo_estado == 'previo'){
           $id_estado_maquina = $m->post_id_estado_maquina;
@@ -549,39 +560,17 @@ class informesController extends Controller
         throw new \Exception('Unreachable');
       }
       
-      //No pudimos definirlo por LogMaquina, lo tratamos de obtener
-      //por LogMovimiento, esto es menos exacto ya que los movimientos
-      //no necesariamente marcan los estados de las maquinas
-      if($id_estado_maquina === null){
-        $aproximar_por_log_movimiento[] = $m->nro_admin;
-        continue;
-      }
-      
+      assert($id_estado_maquina != -1);
+            
       $total_estados[$id_estado_maquina] = $total_estados[$id_estado_maquina] ?? 0;
       $total_estados[$id_estado_maquina]++;
     }
-    
-    if(!empty($aproximar_por_log_movimiento)){
-      $logs = LogMovimientoController::getInstancia()->obtenerEstadosMaquinasAFecha(
-        $request->id_casino,
-        $fecha_informe,
-        $aproximar_por_log_movimiento
-      );
-      foreach($logs as $l){
-        $total_estados[$l->id_estado_maquina] = $total_estados[$l->id_estado_maquina] ?? 0;
-        $total_estados[$l->id_estado_maquina]++;
-      }
-    }
-    
+        
     $total_casino = 0;
     $total_habilitadas = 0;
     $total_egresadas = 0;
     $total_deshabilitadas = 0;
     $total_sin_estado = 0;
-    
-    $estados_habilitados = [1,2];
-    $estados_egresados = [3];
-    $estados_deshabilitados = [4,5,6,7];
     
     foreach($total_estados as $id_estado_maquina => $cantidad){
       $total_casino+=$cantidad;
@@ -600,7 +589,7 @@ class informesController extends Controller
         $total_sin_estado+=$cantidad;
       }
     }
-        
+            
     //@TODO: Como hacer para buscar el estado de las islas y sectores en $fecha_informe?
     //Islas que tienen maquinas pero no estan asignadas a un sector
     $islas_no_asignadas = DB::table('isla')->select('isla.id_isla')

@@ -1617,10 +1617,128 @@ class LogMovimientoController extends Controller
             'fisValidada' => !is_null($fisMov) && $fisMov->id_estado_relevamiento == 4 ];
   }
   
-  public function obtenerEstadosMaquinasAFecha($id_casino,$fecha_informe,array $nro_admins){
-    //@TODO implementar
-    return \App\Maquina::where('id_casino',$id_casino)
-    ->whereIn('nro_admin',$nro_admins)
-    ->get();
+  //@ELIMINAR? codigo muerto... para obtener estado de parque a una fecha
+  //podria servir...
+  private function __aux_obtenerLogsAFecha($id_casino,$nro_admins){
+    return DB::table('maquina as m')
+    ->selectRaw(
+     'm.nro_admin, 
+     logmov.fecha,
+     logmov.sentido,
+     SUM(tm.descripcion = "INGRESO INICIAL") as ingreso_inicial,
+     SUM(tm.descripcion = "EGRESO DEFINITIVO") as egreso_definitivo,
+     SUM(tomamov.toma_reingreso=0) as deprecado_egreso_temporal,
+     SUM(tomamov.toma_reingreso=1) as deprecado_reingreso'
+    )
+    ->join('relevamiento_movimiento as revmov','revmov.id_maquina','=','m.id_maquina')
+    ->join('log_movimiento as logmov','logmov.id_log_movimiento','=','revmov.id_log_movimiento')
+    ->leftJoin('toma_relev_mov as tomamov','tomamov.id_relevamiento_movimiento','=','revmov.id_relev_mov')
+    ->leftJoin(DB::raw('(
+      SELECT 
+        id_log_movimiento,
+        id_tipo_movimiento
+      FROM log_movimiento
+      WHERE id_tipo_movimiento IS NOT NULL
+      
+      UNION SELECT
+      	id_log_movimiento,
+        id_tipo_movimiento
+      FROM logmov_tipomov
+    ) as lmtm'),'lmtm.id_log_movimiento','=','logmov.id_log_movimiento')
+    ->leftJoin('tipo_movimiento as tm','tm.id_tipo_movimiento','=','lmtm.id_tipo_movimiento')
+    ->where('m.id_casino',$id_casino)
+    ->whereIn('m.nro_admin',$nro_admins)
+    ->groupBy('m.nro_admin','logmov.fecha','logmov.sentido');
+  }
+  public function obtenerUltimosLogsAFecha($id_casino,$fecha_informe,$nro_admins){
+    return $this->__aux_obtenerLogsAFecha($id_casino,$nro_admins)
+    ->where('logmov.fecha','<=',$fecha_informe)
+    //Me quedo con el ultimo log de la maquina
+    //@HACK pasar a whereNotExists
+    ->where(DB::raw("NOT EXISTS (
+      SELECT 1
+      FROM log_movimiento as logmov2
+      JOIN relevamiento_movimiento as revmov2 
+        ON revmov2.id_log_movimiento = logmov2.id_log_movimiento
+      WHERE revmov2.id_maquina = revmov.id_maquina
+      AND logmov2.fecha <= '$fecha_informe'
+      AND (
+        logmov2.fecha > logmov.fecha
+        OR (logmov2.fecha = logmov.fecha AND logmov2.id_log_movimiento > logmov.id_log_movimiento)
+      )
+      LIMIT 1
+    )"),'=','1')->get();
+  }
+  public function obtenerProximosLogsAFecha($id_casino,$fecha_informe,$nro_admins){
+    return $this->__aux_obtenerLogsAFecha($id_casino,$nro_admins)
+    ->where('logmov.fecha','>',$fecha_informe)
+    //Me quedo con el ultimo log de la maquina
+    //@HACK pasar a whereNotExists
+    ->where(DB::raw("NOT EXISTS (
+      SELECT 1
+      FROM log_movimiento as logmov2
+      JOIN relevamiento_movimiento as revmov2 
+        ON revmov2.id_log_movimiento = logmov2.id_log_movimiento
+      WHERE revmov2.id_maquina = revmov.id_maquina
+      AND logmov2.fecha > '$fecha_informe'
+      AND (
+        logmov2.fecha < logmov.fecha
+        OR (logmov2.fecha = logmov.fecha AND logmov2.id_log_movimiento < logmov.id_log_movimiento)
+      )
+      LIMIT 1
+    )"),'=','1')->get();
+  }
+  
+  public function totalizarEstadosLogs($logs,$nro_admins){
+    $total_estados = [
+      'total' => 0,
+      'ingreso_inicial' => 0,
+      'egreso_definitivo' => 0,
+      'habilitadas' => 0,
+      'deshabilitadas' => 0
+    ];
+    $sin_logs = clone $nro_admins;
+    $sin_logs = array_flip($sin_logs);
+    foreach($logs as $l){
+      $total_estados['total']++;
+      unset($sin_logs[$l->nro_admin]);
+      //Si tiene un sentido, nos fijamos cual es
+      if($l->sentido != '---' && $l->sentido !== null){
+        if($l->sentido == 'EGRESO TEMPORAL'){
+          $total_estados['deshabilitadas']++;
+          continue;
+        }
+        elseif($l->sentido == 'REINGRESO'){
+          $total_estados['habilitadas']++;
+          continue;
+        }
+        else{
+          throw new \Exception('Unreachable');
+        }
+      }
+      if(intval($l->ingreso_inicial)){
+        $total_estados['ingreso_inicial']++;
+        continue;
+      }
+      if(intval($l->egreso_definitivo)){
+        $total_estados['egreso_definitivo']++;
+        continue;
+      }
+      //Esto es para los movimientos viejos, tenian dos tomas por movimiento
+      //Uno para el egreso y otro para el reingreso
+      if(intval($l->deprecado_reingreso)){
+        $total_estados['habilitadas']++;
+        continue;
+      }
+      if(intval($l->deprecado_egreso_temporal)){
+        $total_estados['deshabilitadas']++;
+        continue;
+      }
+      throw new \Exception('Unreachable');
+    }
+    
+    $sin_logs = array_keys($nro_admins);
+    
+    return compact('total_estados','sin_logs');
   }
 }

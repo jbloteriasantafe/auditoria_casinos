@@ -232,7 +232,7 @@
 
 @section('scripts')
 <!-- JavaScript personalizado -->
-<script src="js/seccionInformeEstadoParque.js?3" charset="utf-8" type="module"></script>
+<script src="js/seccionInformeEstadoParque.js?4" charset="utf-8" type="module"></script>
 <!-- Highchart -->
 <script src="js/highcharts.js"></script>
 <script src="js/highcharts-3d.js"></script>
