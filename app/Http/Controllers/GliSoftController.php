@@ -150,16 +150,29 @@ class GliSoftController extends Controller
     Validator::make($request->all(), [
       'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:gli_soft,nro_archivo'],
       'observaciones' => 'nullable|string',
-      'file' => 'sometimes|mimes:pdf',
+      'file' => 'sometimes|file',
       'expedientes' => 'nullable',
       'juegos' => 'nullable|string',
-    ], array(), self::$atributos)->after(function ($validator){
+    ], [
+      'file.file' => 'No es un archivo'
+    ], self::$atributos)->after(function ($validator){
+        if($validator->errors()->any()) return;
+        
+        $data = $validator->getData();
+        if($data['file'] ?? false){
+          $ext = $data['file']->getClientOriginalExtension() == 'pdf';
+          $mime = in_array($data['file']->getMimeType(),['application/pdf','application/octet-stream']);
+          if(!$ext || !$mime){
+            return $validator->errors()->add('file','No es un archivo PDF');
+          }
+        }
+        
         $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
         $casinos_ids = [];
         foreach($user->casinos as $c){
           $casinos_ids[] = $c->id_casino;
         }
-        $data = $validator->getData();
+        
         if(isset($data['juegos'])){
           $juegos = explode(",",$data['juegos']);
           $juegos_user = DB::table('casino_tiene_juego')->whereIn('id_casino',$casinos_ids);
@@ -290,11 +303,21 @@ class GliSoftController extends Controller
         'id_gli_soft' => 'required|exists:gli_soft,id_gli_soft',
         'nro_certificado' => ['required','regex:/^\d?\w(.|-|_|\d|\w)*$/','unique:gli_soft,nro_archivo,'.$request->id_gli_soft.',id_gli_soft'],
         'observaciones' => 'nullable|string',
-        'file' => 'sometimes|mimes:pdf',
+        'file' => 'sometimes|file',
         'expedientes' => 'nullable',
         'juegos' => 'nullable|string'
-      ])->after(function ($validator) use ($user,$casinos_ids){
+      ],['file.file' => 'No es un archivo'])->after(function ($validator) use ($user,$casinos_ids){
+        if($validator->errors()->any()) return;
         $data = $validator->getData();
+        
+        if($data['file'] ?? false){
+          $ext = $data['file']->getClientOriginalExtension() == 'pdf';
+          $mime = in_array($data['file']->getMimeType(),['application/pdf','application/octet-stream']);
+          if(!$ext || !$mime){
+            return $validator->errors()->add('file','No es un archivo PDF');
+          }
+        }
+        
         //Verifico que pueda ver el certificado
         $GLI = GliSoft::find($data['id_gli_soft']);
         //Verifico que pueda ver los juegos que me mando
@@ -389,7 +412,9 @@ class GliSoftController extends Controller
               $archivoAnterior=$GLI->archivo;
               $GLI->archivo()->dissociate();
               $GLI->save();
-              $archivoAnterior->delete();
+              if($archivoAnterior !== null){
+                $archivoAnterior->delete();
+              }
             }
         }
   
