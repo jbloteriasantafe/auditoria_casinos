@@ -517,7 +517,6 @@ class informesController extends Controller
     $total_no_asignadas = 0;//Maquinas sin isla
     $total_estados = [];
     $total_sectores = [];
-    $islas_no_asignadas = [];
     
     //Esto se podría mover a MySQL pero quedaria bastante ilegible
     //y es innecesario, por ahora el bottleneck es la query de BD
@@ -639,10 +638,6 @@ class informesController extends Controller
         $_ksector = $sector === null? 'SIN_ASIGNAR' : $sector;
         $total_sectores[$_ksector] = $total_sectores[$_ksector] ?? 0;
         $total_sectores[$_ksector]++;
-        
-        if($_ksector == 'SIN_ASIGNAR' && $nro_isla !== null){
-          $islas_no_asignadas[$nro_isla] = true;
-        }
       }
             
       $total_estados[$id_estado_maquina] = $total_estados[$id_estado_maquina] ?? 0;
@@ -672,8 +667,51 @@ class informesController extends Controller
         $total_sin_estado+=$cantidad;
       }
     }
-       
-    $islas_no_asignadas = count(array_keys($islas_no_asignadas));
+    
+    $islas_no_asignadas = DB::table('isla as i')
+    ->select('i.nro_isla','l.id_log','i.id_sector','dl.campo','dl.valor')
+    ->leftJoin('log as l',function($j) use ($fecha_informe){
+      return $j->on('l.id_entidad','=','i.id_isla')
+      ->where('l.tabla','=','isla')
+      ->where('l.fecha','<=',$fecha_informe.' 23:59:59');
+    })
+    ->leftJoin('detalle_log as dl',function($j) {
+      return $j->on('dl.id_log','=','l.id_log')
+      ->where('dl.campo','=','id_sector');
+    })
+    ->where('i.id_casino',$casino->id_casino)
+    ->where(function($q) use ($fecha_informe){
+      return $q->whereNull('i.created_at')
+      ->orWhere('i.created_at','<=',$fecha_informe.' 23:59:59');
+    })
+    ->where(function($q) use ($fecha_informe){
+      return $q->whereNull('i.deleted_at')
+      ->orWhere('i.deleted_at','>',$fecha_informe.' 23:59:59');
+    })
+    ->where(function($q) use ($fecha_informe){
+      return $q->whereNull('l.id_log')
+      ->orWhere(DB::raw("(
+        NOT EXISTS (
+          SELECT 1
+          FROM log as l2
+          LEFT JOIN detalle_log as dl2 ON dl2.id_log = l2.id_log AND dl2.campo = 'id_sector'
+          WHERE l2.tabla = 'isla' 
+          AND l2.fecha <= '$fecha_informe 23:59:59'
+          AND l2.id_entidad = i.id_isla
+          AND (
+            l2.fecha > l.fecha
+            OR (l2.fecha = l.fecha AND l2.id_log > l.id_log)
+          )
+          LIMIT 1
+        )
+      )"),'=','1');
+    })
+    ->where(DB::raw("(
+      (dl.campo = 'id_sector' AND dl.valor IS NULL)
+      OR
+      (dl.campo IS NULL AND i.id_sector IS NULL)
+    )"),'=','1')
+    ->get()->count();
     
     $sectores = [];
     foreach($total_sectores as $k => $v){
