@@ -141,7 +141,7 @@
                             }
                         </style>
 
-                        <div class="row" style="text-align:center;border-top:1px solid #ccc; padding:20px 0px;" data-js-mostrar-sin-fecha-informe>
+                        <div class="row" style="text-align:center;border-top:1px solid #ccc; padding:20px 0px;">
                             <div class="col-md-6">
                               <h5>ISLAS NO ASIGNADAS</h5>
                               <span id="islas_asignadas" class="islas_noasignadas" style="color:#FF3D00;">1</span>
@@ -154,7 +154,7 @@
                             </div>
                         </div>
                     </div>
-                    <div style="flex: 1;padding:20px 0px; text-align:center;" data-js-mostrar-sin-fecha-informe>
+                    <div style="flex: 1;padding:20px 0px; text-align:center;">
                         <h5>SECTORES DEL CASINO</h5>
 
                         <style media="screen">
