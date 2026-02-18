@@ -827,6 +827,7 @@ class informesController extends Controller
   }
   public function obtenerMTMs(){
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $es_superusuario = $user->es_superusuario;
     $casinos = $user->casinos;
     $sectores = [];
     foreach($casinos as $c){
@@ -869,6 +870,8 @@ class informesController extends Controller
     ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
     ->join('isla as i','m.id_isla','=','i.id_isla')
     ->whereNotNull('i.id_sector')
+    //No tiene sentido mostrar las maquinas borradas al admin
+    ->whereNull($es_superusuario? DB::raw('NULL') : 'm.deleted_at')
     ->orderBy('m.nro_admin','asc')->get()->toArray();
 
     //Necesito sacar la columna de isla de maquina, la otra que queda era listar todas a pata.
@@ -883,6 +886,8 @@ class informesController extends Controller
     ->selectRaw('CONCAT("SIN_ASIGNAR_",m.id_casino) as id_sector,CONCAT("SIN_ISLA_",m.id_casino) as id_isla,'.$expresion_estado.$columnas_str)
     ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
     ->whereNull('m.id_isla')
+    //No tiene sentido mostrar las maquinas borradas al admin
+    ->whereNull($es_superusuario? DB::raw('NULL') : 'm.deleted_at')
     ->orderBy('m.nro_admin','asc')->get()->toArray();
 
     $m_sin_sector = DB::table('maquina as m')
@@ -890,6 +895,8 @@ class informesController extends Controller
     ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
     ->join('isla as i','m.id_isla','=','i.id_isla')
     ->whereNull('i.id_sector')
+    //No tiene sentido mostrar las maquinas borradas al admin
+    ->whereNull($es_superusuario? DB::raw('NULL') : 'm.deleted_at')
     ->orderBy('m.nro_admin','asc')->get()->toArray();
 
     $todas = array_merge($maquinas,$m_sin_isla,$m_sin_sector);
