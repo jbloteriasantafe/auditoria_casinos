@@ -574,7 +574,7 @@ class informesController extends Controller
         }
       }
       //La maquina tuvo cambios antes y despues (lo mas común)
-      elseif( $m->prev_site &&  $m->post_existe){
+      elseif( $m->prev_existe &&  $m->post_existe){
         if($m->prev_tipo_estado == 'posterior'){
           if($m->post_tipo_estado == 'previo'){
             //Deberían ser iguales
