@@ -1870,6 +1870,7 @@ class CanonController extends Controller
     ->select('tipo')->distinct()
     ->get();
     
+    DB::statement('DROP TEMPORARY TABLE IF EXISTS temp_subcanons');
     DB::statement('CREATE TEMPORARY TABLE temp_subcanons
     SELECT
       c.año_mes as año_mes,
@@ -1942,6 +1943,7 @@ class CanonController extends Controller
     WITH ROLLUP
     HAVING año_mes IS NOT NULL AND id_casino IS NOT NULL');
     
+    DB::statement('DROP TEMPORARY TABLE IF EXISTS temp_subcanons_total');
     DB::statement('CREATE TEMPORARY TABLE temp_subcanons_total
     SELECT
       sc.id_casino,
@@ -1954,6 +1956,7 @@ class CanonController extends Controller
     FROM temp_subcanons as sc
     WHERE sc.concepto = "Total"');
     
+    DB::statement('DROP TEMPORARY TABLE IF EXISTS temp_subcanons_total_red');
     DB::statement('CREATE TEMPORARY TABLE temp_subcanons_total_red
     SELECT
       sc.id_casino,
@@ -1967,6 +1970,7 @@ class CanonController extends Controller
     WHERE sc.concepto <> "Total"
     GROUP BY sc.id_casino,sc.año_mes');
     
+    DB::statement('DROP TEMPORARY TABLE IF EXISTS temp_subcanons_redondeados');
     DB::statement('CREATE TEMPORARY TABLE temp_subcanons_redondeados
     SELECT
       sc.id_casino,
@@ -1983,6 +1987,7 @@ class CanonController extends Controller
     JOIN temp_subcanons_total_red as Tred ON Tred.id_casino = sc.id_casino AND Tred.año_mes = sc.año_mes
     WHERE sc.concepto <> "Total"');
     
+    DB::statement('DROP TEMPORARY TABLE IF EXISTS temp_subcanons_redondeados_con_totales');
     DB::statement('CREATE TEMPORARY TABLE temp_subcanons_redondeados_con_totales
     SELECT *
     FROM temp_subcanons_redondeados');
@@ -2014,6 +2019,7 @@ class CanonController extends Controller
     FROM temp_subcanons_redondeados
     GROUP BY id_casino,año_mes');
     
+    DB::statement('DROP TEMPORARY TABLE IF EXISTS temp_subcanons_redondeados_con_totales_con_mensuales');
     DB::statement('CREATE TEMPORARY TABLE temp_subcanons_redondeados_con_totales_con_mensuales
     SELECT * FROM temp_subcanons_redondeados_con_totales');
     DB::statement('INSERT INTO temp_subcanons_redondeados_con_totales_con_mensuales
