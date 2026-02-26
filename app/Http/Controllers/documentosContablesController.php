@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use App\Usuario;
 
 use App\RegistroIva;
@@ -25,6 +26,8 @@ use App\RegistroRRHH;
 use App\RegistroGanancias;
 use App\RegistroGanancias_periodo;
 use App\RegistroJackpotsPagados;
+use App\RegistroEstadoContable;
+use App\ArchivoEstadoContable;
 use App\RegistroPremiosPagados;
 use App\RegistroPremiosMTM;
 use App\RegistroAutDirectores_director;
@@ -217,7 +220,7 @@ public function actualizarIva(Request $request, $id)
 }
 
 
-public function llenarIva($id){
+public function llenarIvaEdit($id){
   $Iva = RegistroIva::findOrFail($id);
   if(is_null($Iva)) return 0;
 
@@ -225,6 +228,20 @@ public function llenarIva($id){
     'fecha' => $Iva->fecha_iva,
     'fecha_pres' => $Iva->fecha_presentacion,
     'casino' => $Iva->casino,
+    'saldo' => $Iva->saldo,
+    'obs' => $Iva->observacion
+  ]);
+
+}
+
+public function llenarIva($id){
+  $Iva = RegistroIva::findOrFail($id);
+  if(is_null($Iva)) return 0;
+
+  return response()->json([
+    'fecha' => $Iva->fecha_iva,
+    'fecha_pres' => $Iva->fecha_presentacion,
+    'casino' => $Iva->casinoIva ? $Iva->casinoIva->nombre : '-',
     'saldo' => $Iva->saldo,
     'obs' => $Iva->observacion
   ]);
@@ -260,6 +277,7 @@ public function ultimasIva(Request $request)
             'casino'              => $r->casinoIva ? $r->casinoIva->nombre : '-',
             'saldo'               => $r->saldo,
             'observacion'         => $r->observacion,
+            'valido'              => $r->valido,
             'tiene_archivos'      => $r->archivos_count > 0,
         ];
     });
@@ -325,7 +343,7 @@ public function descargarIvaExcel(Request $request)
         $query->where('fecha_iva', '<=', $hasta . '-01');
     }
 
-$datos = $query->orderBy('fecha_iva')->get();
+    $datos = $query->orderBy('fecha_iva')->get();
 
     $agrupadoPorAnio = $datos->groupBy('anio');
     $lastRow = count($datos)+2+count($agrupadoPorAnio);
@@ -911,6 +929,7 @@ $datos = $registros->map(function($r) {
         'fecha_iibb'   => $r->fecha_iibb,
         'fecha_presentacion' => $r->fecha_presentacion,
         'casino'      => $r->casinoiibb ? $r->casinoiibb->nombre : '-',
+        'valido'      => $r->valido,
         'tiene_archivos' => $r->archivos_count>0,
     ];
 });
@@ -1720,6 +1739,7 @@ $datos = $registros->map(function($r) {
         'fecha_drei'   => $r->fecha_drei,
         'fecha_presentacion' => $r->fecha_presentacion,
         'casino'      => $r->casinoDREI ? $r->casinoDREI->nombre : '-',
+        'valido'      => $r->valido,
 	       'tiene_archivos' => $r->archivos_count>0,    ];
 });
 
@@ -1992,7 +2012,7 @@ public function descargarDREIXlsx(Request $request)
         DB::raw("apyju_imp_det AS 'Impuesto4'"),
         DB::raw("bromatologia AS 'Bromatologia'"),
         DB::raw("deducciones AS Deducciones"),
-        DB::raw("total_imp_det AS 'Impuesto total determinado'"),
+        DB::raw("total_imp_det AS 'Impuesto Total Determinado'"),
         DB::raw("intereses AS Intereses"),
         DB::raw("saldo AS 'Saldo'"),
         DB::raw("observacion AS Observaciones"),
@@ -2022,9 +2042,9 @@ public function descargarDREIXlsx(Request $request)
         'Base Imponible Otras Actividades', 'Alicuota', 'Impuesto Determinado', 'Saldo', 'Observaciones'
     ],
     2 => [ // Casino 2: CSF
-      'Meses', 'Presentación y Pago', 'Servicio de Playa de Estacionamiento y Garage - Impuesto Determinado', 'Base 1', 'Alicuota1', 'Impuesto1', 'Base 2', 'Alicuota2', 'Impuesto2',
-      'Base 3', 'Alicuota3', 'Impuesto3', 'Base 4', 'Alicuota4', 'Impuesto4',
-      'Bromatologia', 'Deducciones', 'Impuesto total determinado', 'Intereses', 'Saldo a Favor', 'Observaciones'
+      'Meses', 'Presentación y Pago', 'Servicio de Playa de Estacionamiento y Garage - Impuesto Determinado', 'Comercio', 'Alicuota1', 'Impuesto1', 'Gastronomía', 'Alicuota2', 'Impuesto2',
+      'Explotación Casinos y Bingos', 'Alicuota3', 'Impuesto3', 'Apuestas y Juegos de Azar por Plataformas', 'Alicuota4', 'Impuesto4',
+      'Bromatologia', 'Deducciones', 'Impuesto Total Determinado', 'Intereses', 'Saldo a Favor', 'Observaciones'
     ],
     3 => [ // Casino 3: RO
         'Meses', 'Monto Pagado Total', 'Vencimiento Previsto',
@@ -2157,7 +2177,7 @@ public function descargarDREIXlsx(Request $request)
 
               $sheet->setFreeze('A2');
             }
-            else if($casinoId===2){
+            else if($casinoId == 2){
             $sheet->mergeCells("A1:A2");
             $sheet->mergeCells("B1:B2");
             $sheet->mergeCells("C1:C2");
@@ -2445,7 +2465,7 @@ public function descargarDREIXlsxTodos(Request $request)
         DB::raw("apyju_imp_det AS 'Impuesto4'"),
         DB::raw("bromatologia AS 'Bromatologia'"),
         DB::raw("deducciones AS Deducciones"),
-        DB::raw("total_imp_det AS 'Impuesto total determinado'"),
+        DB::raw("total_imp_det AS 'Impuesto Total Determinado'"),
         DB::raw("intereses AS Intereses"),
         DB::raw("saldo AS 'Saldo'"),
         DB::raw("observacion AS Observaciones"),
@@ -2475,9 +2495,9 @@ public function descargarDREIXlsxTodos(Request $request)
           'Base Imponible Otras Actividades', 'Alicuota', 'Impuesto Determinado', 'Saldo', 'Observaciones'
       ],
       2 => [ // Casino 2: CSF
-        'Meses', 'Presentación y Pago', 'Servicio de Playa de Estacionamiento y Garage - Impuesto Determinado', 'Base 1', 'Alicuota1', 'Impuesto1', 'Base 2', 'Alicuota2', 'Impuesto2',
-        'Base 3', 'Alicuota3', 'Impuesto3', 'Base 4', 'Alicuota4', 'Impuesto4',
-        'Bromatologia', 'Deducciones', 'Impuesto total determinado', 'Intereses', 'Saldo a Favor', 'Observaciones'
+        'Meses', 'Presentación y Pago', 'Servicio de Playa de Estacionamiento y Garage - Impuesto Determinado', 'Comercio', 'Alicuota1', 'Impuesto1', 'Gastronomía', 'Alicuota2', 'Impuesto2',
+        'Explotación Casinos y Bingos', 'Alicuota3', 'Impuesto3', 'Apuestas y Juegos de Azar por Plataformas', 'Alicuota4', 'Impuesto4',
+        'Bromatologia', 'Deducciones', 'Impuesto Total Determinado', 'Intereses', 'Saldo a Favor', 'Observaciones'
       ],
       3 => [ // Casino 3: RO
           'Meses', 'Monto Pagado Total', 'Vencimiento Previsto', 'Presentación y Pago',
@@ -3152,7 +3172,8 @@ public function actualizarTGI(Request $request, $id)
             'fecha_TGI'   => $r->fecha_tgi,
             'casino'      => $r->casinoTGI ? $r->casinoTGI->nombre : '-',
             'archivo'     =>$r->archivo,
-        	  'tiene_archivos' => $r->archivos_count>0,
+            'valido'      => $r->valido,
+            'tiene_archivos' => $r->archivos_count>0,
         ];
     });
 
@@ -3359,6 +3380,7 @@ public function descargarTGIXlsx(Request $request)
                $items[] = [
                    'anio'       => $anio,
                    'mes'        => $mesEsp,
+                   'mes_num'    => $ts ? (int)date('n', $ts) : 0,
                    'cuota'      => isset($p->cuota) ? $p->cuota : '',
                    'partida'    => $partidaNombre,
                    'vto'        => $p->fecha_vencimiento ? date('d/m/Y', strtotime($p->fecha_vencimiento)) : '',
@@ -3373,7 +3395,7 @@ public function descargarTGIXlsx(Request $request)
    usort($items, function($a,$b){
        if ($a['anio'] != $b['anio']) return $a['anio'] < $b['anio'] ? -1 : 1;
        if ($a['partida'] != $b['partida']) return strcasecmp($a['partida'],$b['partida']);
-       if ($a['mes'] != $b['mes']) return strcasecmp($a['mes'],$b['mes']);
+       if ($a['mes_num'] != $b['mes_num']) return $a['mes_num'] - $b['mes_num'];
        return strnatcasecmp((string)$a['cuota'], (string)$b['cuota']);
    });
 
@@ -3490,6 +3512,7 @@ public function descargarTGIXlsxTodos(Request $request)
                         $items[] = [
                             'anio'       => $anio,
                             'mes'        => $mesEsp,
+                            'mes_num'    => $ts ? (int)date('n', $ts) : 0,
                             'cuota'      => isset($p->cuota) ? $p->cuota : '',
                             'partida'    => $partidaNombre,
                             'vto'        => $p->fecha_vencimiento ? date('d/m/Y', strtotime($p->fecha_vencimiento)) : '',
@@ -3504,7 +3527,7 @@ public function descargarTGIXlsxTodos(Request $request)
             usort($items, function($a,$b){
                 if ($a['anio'] != $b['anio']) return $a['anio'] < $b['anio'] ? -1 : 1;
                 if ($a['partida'] != $b['partida']) return strcasecmp($a['partida'],$b['partida']);
-                if ($a['mes'] != $b['mes']) return strcasecmp($a['mes'],$b['mes']);
+                if ($a['mes_num'] != $b['mes_num']) return $a['mes_num'] - $b['mes_num'];
                 return strnatcasecmp((string)$a['cuota'], (string)$b['cuota']);
             });
 
@@ -3765,6 +3788,7 @@ public function ultimasIMP_AP_OL(Request $request)
             'casino'      => $r->casinoIMP_AP_OL ? $r->casinoIMP_AP_OL->nombre : '-',
             'qna' => $r->qna,
 	           'tiene_archivos' => $r->archivos_count>0,
+            'valido' => $r->valido,
           ];
     });
 
@@ -4409,6 +4433,7 @@ public function ultimasIMP_AP_MTM(Request $request)
             'cant_mtm' => $r->cant_mtm,
             'casino'      => $r->casinoIMP_AP_MTM ? $r->casinoIMP_AP_MTM->nombre : '-',
             'qna' => $r->qna,
+            'valido'      => $r->valido,
             'tiene_archivos' => $r->archivos_count>0, ];
     });
 
@@ -5050,6 +5075,7 @@ public function ultimasDeudaEstado(Request $request)
             'fecha_presentacion' => $r->fecha_consulta,
             'incumplimiento' => $r->registra_incumplimiento,
             'casino'      => $r->casinoDeudaEstado ? $r->casinoDeudaEstado->nombre : '-',
+            'valido'      => $r->valido,
 	           'tiene_archivos' => $r->archivos_count>0,
           ];
     });
@@ -5527,6 +5553,7 @@ public function ultimasPagosMayoresMesas(Request $request)
             'fecha_presentacion' => $r->fecha_consulta,
             'incumplimiento' => $r->registra_incumplimiento,
             'casino'      => $r->casinoPagosMayoresMesas ? $r->casinoPagosMayoresMesas->nombre : '-',
+            'valido'      => $r->valido,
 	  'tiene_archivos' => $r->archivos_count>0,        ];
     });
 
@@ -6135,6 +6162,7 @@ public function ultimasReporteYLavado(Request $request)
             'reporte_sistematico' => $r->reporte_sistematico,
             'reporte_operaciones' => $r->reporte_operaciones,
             'casino'      => $r->casinoReporteYLavado ? $r->casinoReporteYLavado->nombre : '-',
+            'valido'      => $r->valido,
 	  'tiene_archivos' => $r->archivos_count>0,        ];
     });
 
@@ -6688,6 +6716,7 @@ public function ultimasRegistrosContables(Request $request)
             'total' => $r->total,
             'total_usd' => $r->total_usd,
             'casino'      => $r->casinoRegistrosContables ? $r->casinoRegistrosContables->nombre : '-',
+            'valido'      => $r->valido,
 	  'tiene_archivos' => $r->archivos_count>0,        ];
     });
 
@@ -7359,6 +7388,7 @@ public function ultimasAportesPatronales(Request $request)
             'total' => $r->total,
             'total_usd' => $r->total_usd,
             'casino'      => $r->casinoAportesPatronales ? $r->casinoAportesPatronales->nombre : '-',
+            'valido'      => $r->valido,
 	  'tiene_archivos' => $r->archivos_count>0,        ];
     });
 
@@ -8001,6 +8031,7 @@ public function ultimasPromoTickets(Request $request)
             'cantidad' => $r->cantidad,
             'importe' => $r->importe,
             'casino'      => $r->casinoPromoTickets ? $r->casinoPromoTickets->nombre : '-',
+            'valido'      => $r->valido,
             	  'tiene_archivos' => $r->archivos_count>0,
         ];
     });
@@ -8522,6 +8553,7 @@ public function ultimasPozosAcumuladosLinkeados(Request $request)
             'fecha_PozosAcumuladosLinkeados'   => $r->fecha_PozosAcumuladosLinkeados,
             'importe' => $r->importe,
             'casino'      => $r->casinoPozosAcumuladosLinkeados ? $r->casinoPozosAcumuladosLinkeados->nombre : '-',
+            'valido'      => $r->valido,
 	  'tiene_archivos' => $r->archivos_count>0,        ];
     });
 
@@ -9164,6 +9196,7 @@ public function ultimasContribEnteTuristico(Request $request)
             'fecha_pres' => $r->fecha_pres,
             'monto_pagado' => $r->monto_pagado,
             'casino'      => $r->casinoContribEnteTuristico ? $r->casinoContribEnteTuristico->nombre : '-',
+            'valido'      => $r->valido,
 	  'tiene_archivos' => $r->archivos_count>0,        ];
     });
 
@@ -9717,6 +9750,7 @@ public function ultimasRRHH(Request $request)
             'total' => $r->total_personal,
             'porcentaje' => $r->porcentaje_total_viviendo,
             'casino'      => $r->casinoRRHH ? $r->casinoRRHH->nombre : '-',
+            'valido'      => $r->valido,
 	  'tiene_archivos' => $r->archivos_count>0,        ];
     });
 
@@ -10871,6 +10905,7 @@ public function ultimasGanancias(Request $request)
             'periodo'   => $r->periodo_fiscal,
             'anticipo' => $r->nro_anticipo,
             'casino'      => $r->casinoGanancias ? $r->casinoGanancias->nombre : '-',
+            'valido'      => $r->valido,
 	           'tiene_archivos' => $r->archivos_count>0,
             ];
     });
@@ -10923,6 +10958,7 @@ public function ultimasGanancias_periodo(Request $request)
             'id_registroGanancias_periodo' => $r->id_registroGanancias_periodo,
             'periodo'   => $r->periodo_fiscal,
             'casino'      => $r->casinoGanancias_periodo ? $r->casinoGanancias_periodo->nombre : '-',
+            'valido'      => $r->valido,
         	  'tiene_archivos' => $r->archivos_count>0,
         ];
     });
@@ -11839,6 +11875,7 @@ public function ultimasJackpotsPagados(Request $request)
             'fecha_JackpotsPagados'   => $r->fecha_JackpotsPagados,
             'importe' => $r->importe,
             'casino'      => $r->casinoJackpotsPagados ? $r->casinoJackpotsPagados->nombre : '-',
+            'valido'      => $r->valido,
 	  'tiene_archivos' => $r->archivos_count>0,        ];
     });
 
@@ -12415,6 +12452,7 @@ public function ultimasPremiosPagados(Request $request)
             'cantidad' => $r->cantidad,
             'importe' => $r->importe,
             'casino'      => $r->casinoPremiosPagados ? $r->casinoPremiosPagados->nombre : '-',
+            'valido'      => $r->valido,
 	  'tiene_archivos' => $r->archivos_count>0,        ];
     });
 
@@ -13015,6 +13053,212 @@ public function guardarPremiosMTM(Request $request){
 
 }
 
+public function ultimasPremiosMTM_Unificado(Request $request) {
+    $user = Usuario::find(session('id_usuario'));
+    $allowedCasinoIds = $user->casinos->pluck('id_casino')->toArray();
+
+    $tablas = [
+        'registroPremiosMTM' => 'fecha_PremiosMTM',
+        'registroPromoTickets' => 'fecha_PromoTickets',
+        'registroPozosAcumuladosLinkeados' => 'fecha_PozosAcumuladosLinkeados',
+        'registroJackpotsPagados' => 'fecha_JackpotsPagados',
+        'registroPremiosPagados' => 'fecha_PremiosPagados',
+        'registroPagosMayoresMesas' => 'fecha_PagosMayoresMesas',
+        'registroRegistrosContables' => 'fecha_RegistrosContables',
+    ];
+
+    $uniones = null;
+    foreach ($tablas as $tabla => $colFecha) {
+        $q = DB::table($tabla)->select(DB::raw("DATE_FORMAT($colFecha, '%Y-%m-01') as fecha"), 'casino');
+        if($uniones == null) $uniones = $q;
+        else $uniones->union($q);
+    }
+
+    $query = DB::table(DB::raw("({$uniones->toSql()}) as unificada"))
+        ->mergeBindings($uniones)
+        ->select('fecha', 'casino')
+        ->distinct()
+        ->whereIn('casino', $allowedCasinoIds);
+
+    if ($c = $request->query('id_casino')) {
+        $query->where('casino', $c);
+    }
+    if ($desde = $request->query('desde')) {
+        $query->where('fecha', '>=', $desde . '-01');
+    }
+    if ($hasta = $request->query('hasta')) {
+        $query->where('fecha', '<=', $hasta . '-01');
+    }
+
+    $query->orderBy('fecha', 'desc')->orderBy('casino', 'asc');
+
+    $perPage = max(1, (int)$request->query('page_size', 10));
+    $paginados = $query->paginate($perPage);
+
+    $casinos = Casino::all()->pluck('nombre', 'id_casino');
+
+    foreach ($paginados as $p) {
+        $p->casino_nombre = $casinos[$p->casino] ?? '-';
+        // Fetch specific validation state from the main PremiosMTM table for this grouped row
+        $mainRecord = \DB::table('registroPremiosMTM')
+                        ->where('casino', $p->casino)
+                        ->where(\DB::raw("DATE_FORMAT(fecha_PremiosMTM, '%Y-%m-01')"), '=', $p->fecha)
+                        ->select('id_registroPremiosMTM', 'valido')
+                        ->first();
+        if ($mainRecord) {
+            $p->id_registroPremiosMTM = $mainRecord->id_registroPremiosMTM;
+            $p->valido = $mainRecord->valido;
+        } else {
+            $p->id_registroPremiosMTM = null;
+            $p->valido = 0;
+        }
+    }
+
+    return response()->json([
+        'registros' => $paginados->items(),
+        'pagination' => [
+            'current_page' => $paginados->currentPage(),
+            'per_page' => $paginados->perPage(),
+            'total' => $paginados->total(),
+            'last_page' => $paginados->lastPage(),
+        ]
+    ]);
+}
+
+    public function guardarPremiosMTM_Unificado(Request $request) {
+        try {
+            DB::beginTransaction();
+            $casino = $request->casino_Unificado;
+            $fecha = $request->fecha_Unificado . '-01';
+            $userId = UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'];
+    
+            $config = [
+                'PremiosMTM' => [
+                    'model' => 'App\RegistroPremiosMTM',
+                    'prefix' => 'PremiosMTM',
+                    'date_col' => 'fecha_PremiosMTM',
+                    'fields_map' => [ // Form Field => DB Column
+                        'cancel' => 'cancel', 'cancel_usd' => 'cancel_usd', 
+                        'progresivos' => 'progresivos', 'progresivos_usd' => 'progresivos_usd', 
+                        'jackpots' => 'jackpots', 'jackpots_usd' => 'jackpots_usd', 
+                        'total' => 'total', 'total_usd' => 'total_usd'
+                    ],
+                    'folder' => 'RegistroPremiosMTM'
+                ],
+                'PromoTickets' => [
+                    'model' => 'App\RegistroPromoTickets',
+                    'prefix' => 'PromoTickets',
+                    'date_col' => 'fecha_PromoTickets',
+                    'fields_map' => ['cantidad' => 'cantidad', 'importe' => 'importe'],
+                    'folder' => 'RegistroPromoTickets'
+                ],
+                'Pozos' => [
+                    'model' => 'App\RegistroPozosAcumuladosLinkeados',
+                    'prefix' => 'Pozos',
+                    'date_col' => 'fecha_PozosAcumuladosLinkeados',
+                    'fields_map' => ['importe' => 'importe'], // No cantidad, no importe_usd in DB
+                    'folder' => 'RegistroPozosAcumuladosLinkeados'
+                ],
+                'Jackpots' => [
+                    'model' => 'App\RegistroJackpotsPagados',
+                    'prefix' => 'Jackpots',
+                    'date_col' => 'fecha_JackpotsPagados',
+                    'fields_map' => ['importe' => 'importe', 'importe_usd' => 'importe_usd'], // No cantidad
+                    'folder' => 'RegistroJackpotsPagados'
+                ],
+                'PremiosPagados' => [
+                    'model' => 'App\RegistroPremiosPagados',
+                    'prefix' => 'PremiosPagados',
+                    'date_col' => 'fecha_PremiosPagados',
+                    'fields_map' => ['cantidad' => 'cantidad', 'importe' => 'importe', 'importe_usd' => 'importe_usd'],
+                    'folder' => 'RegistroPremiosPagados'
+                ],
+                'PagosMesas' => [
+                    'model' => 'App\RegistroPagosMayoresMesas',
+                    'prefix' => 'PagosMesas',
+                    'date_col' => 'fecha_PagosMayoresMesas',
+                    'fields_map' => ['cantidad' => 'cant_pagos', 'importe' => 'importe_pesos', 'importe_usd' => 'importe_usd'],
+                    'folder' => 'RegistroPagosMayoresMesas'
+                ],
+                'RegistrosContables' => [
+                    'model' => 'App\RegistroRegistrosContables',
+                    'prefix' => 'RegistrosContables',
+                    'date_col' => 'fecha_RegistrosContables',
+                    'fields_map' => [
+                        'mtm_pesos' => 'mtm', 'mtm_dolares' => 'mtm_usd', 
+                        'mp_pesos' => 'mp', 'mp_dolares' => 'mp_usd', 
+                        'bingo' => 'bingo', 'juego_online' => 'jol',
+                        'total' => 'total', 'total_usd' => 'total_usd'
+                    ],
+                    'folder' => 'RegistroRegistrosContables'
+                ],
+            ];
+    
+            foreach ($config as $key => $cfg) {
+                $data = $request->input($cfg['prefix']);
+                if (empty($data)) continue;
+    
+                $modelClass = $cfg['model'];
+                $reg = $modelClass::where($cfg['date_col'], $fecha)->where('casino', $casino)->first();
+                if (!$reg) {
+                    $reg = new $modelClass();
+                    $reg->{$cfg['date_col']} = $fecha;
+                    $reg->casino = $casino;
+                }
+    
+                foreach ($cfg['fields_map'] as $formField => $dbCol) {
+                    if (isset($data[$formField])) {
+                        $reg->{$dbCol} = $data[$formField];
+                    }
+                }
+    
+                $reg->fecha_toma = date('Y-m-d H:i:s');
+                $reg->usuario = $userId;
+                $reg->save();
+    
+                // Handle Files
+                $files = Arr::wrap($request->file('upload'.$cfg['prefix']));
+                foreach ($files as $file) {
+                    if (!($file instanceof UploadedFile) || !$file->isValid()) continue;
+    
+                    $base = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                    $ext  = $file->getClientOriginalExtension();
+                    $safe = preg_replace('/\s+/', '_', $base);
+                    $filename = time().'_'.Str::random(6).'_'.$safe.($ext?'.'.$ext:'');
+    
+                    $file->storeAs('public/'.$cfg['folder'], $filename);
+    
+                    $reg->archivos()->create([
+                        'path'       => $filename,
+                        'usuario'    => $userId,
+                        'fecha_toma' => date('Y-m-d H:i:s'),
+                    ]);
+                }
+            }
+    
+            DB::commit();
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+public function llenarPremiosMTM_Unificado(Request $request) {
+    $fecha = $request->fecha . '-01';
+    $casino = $request->casino;
+
+    return response()->json([
+        'PremiosMTM' => RegistroPremiosMTM::where('fecha_PremiosMTM', $fecha)->where('casino', $casino)->with('archivos')->first(),
+        'PromoTickets' => RegistroPromoTickets::where('fecha_PromoTickets', $fecha)->where('casino', $casino)->with('archivos')->first(),
+        'Pozos' => RegistroPozosAcumuladosLinkeados::where('fecha_PozosAcumuladosLinkeados', $fecha)->where('casino', $casino)->with('archivos')->first(),
+        'Jackpots' => RegistroJackpotsPagados::where('fecha_JackpotsPagados', $fecha)->where('casino', $casino)->with('archivos')->first(),
+        'PremiosPagados' => RegistroPremiosPagados::where('fecha_PremiosPagados', $fecha)->where('casino', $casino)->with('archivos')->first(),
+        'PagosMesas' => RegistroPagosMayoresMesas::where('fecha_PagosMayoresMesas', $fecha)->where('casino', $casino)->with('archivos')->first(),
+        'RegistrosContables' => RegistroRegistrosContables::where('fecha_RegistrosContables', $fecha)->where('casino', $casino)->with('archivos')->first(),
+    ]);
+}
+
 public function ultimasPremiosMTM(Request $request)
 {
     $page    = max(1, (int)$request->query('page', 1));
@@ -13054,10 +13298,12 @@ public function ultimasPremiosMTM(Request $request)
         return [
             'id_registroPremiosMTM' => $r->id_registroPremiosMTM,
             'fecha_PremiosMTM'   => $r->fecha_PremiosMTM,
-            'total' => $r->total,
-            'total_usd' => $r->total_usd,
+            'total'       => $r->total,
+            'total_usd'   => $r->total_usd,
             'casino'      => $r->casinoPremiosMTM ? $r->casinoPremiosMTM->nombre : '-',
-	  'tiene_archivos' => $r->archivos_count>0,        ];
+            'valido'      => $r->valido,
+            'tiene_archivos' => $r->archivos_count > 0,
+        ];
     });
 
     return response()->json([
@@ -13605,6 +13851,410 @@ public function descargarPremiosMTMXlsxTodos(Request $request)
     })->export('xlsx');
 }
 
+public function descargarPremiosMTMUnificadoXlsx(Request $request)
+{
+    $casinoId = $request->query('casino');
+    $desde = $request->query('desde');
+    $hasta = $request->query('hasta');
+
+    $casino = Casino::findOrFail($casinoId);
+    $filename = "PremiosMTM_Unificado_" . str_replace(' ', '_', strtolower($casino->nombre)) . "_" . date('Ymd_His');
+
+    return Excel::create($filename, function($excel) use ($casino, $casinoId, $desde, $hasta) {
+        
+        $getColor = function($cId) {
+            return $cId == 1 ? '#339966' : ($cId == 2 ? '#ff0000' : '#ffcc00');
+        };
+
+        $applyHeaderStyle = function($sheet, $colRange, $color) {
+            $sheet->cells($colRange, function($cells) use ($color) {
+                $cells->setBackground($color);
+                $cells->setFontColor('#000000');
+                $cells->setFontWeight('bold');
+                $cells->setAlignment('center');
+            });
+            $sheet->getStyle($colRange)->getAlignment()->setWrapText(true)->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            $sheet->setHeight(1, 50);
+            $sheet->getStyle($colRange)->applyFromArray([
+                'borders' => ['allborders' => ['style' => \PHPExcel_Style_Border::BORDER_THICK, 'color' => ['argb' => 'FF000000']]]
+            ]);
+        };
+
+        $applyMonthFormat = function($dateStr) {
+            setlocale(LC_TIME, 'es_ES.UTF-8');
+            return ucfirst(strftime('%B', strtotime($dateStr . ' 1')));
+        };
+
+        $applyBodyBorders = function($sheet, $colRange) {
+            $sheet->getStyle($colRange)->applyFromArray([
+                'borders' => ['allborders' => ['style' => \PHPExcel_Style_Border::BORDER_THIN, 'color' => ['argb' => 'FF000000']]]
+            ]);
+        };
+
+        // 1. Premios MTM
+        $excel->sheet('PremiosMTM', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+            $query = RegistroPremiosMTM::select([
+                DB::raw("YEAR(fecha_PremiosMTM) AS anio"), DB::raw("MONTHNAME(fecha_PremiosMTM) AS Mes"),
+                'cancel', 'cancel_usd', 'progresivos', 'progresivos_usd', 'jackpots', 'jackpots_usd', 'total', 'total_usd'
+            ])->where('casino', $casinoId);
+            if ($desde) $query->where('fecha_PremiosMTM', '>=', $desde . '-01');
+            if ($hasta) $query->where('fecha_PremiosMTM', '<=', $hasta . '-31');
+
+            $datos = $query->orderBy('fecha_PremiosMTM')->get()->groupBy('anio');
+            $fila = 1;
+            $sheet->row($fila, ['Mes', 'Cancel Credits', 'Jackpots', 'Progresivos', 'Total', 'Cancel Credits USD', 'Jackpots USD', 'Progresivos USD', 'Total USD']);
+            $applyHeaderStyle($sheet, "A1:I1", $getColor($casinoId));
+            
+            $sheet->cells("A1:I999", function($cells) { $cells->setFontFamily('Arial'); $cells->setFontSize(10); });
+            $fila++;
+
+            foreach ($datos as $anio => $registros) {
+                $sheet->mergeCells("A{$fila}:I{$fila}");
+                $sheet->setCellValue("A{$fila}", $anio);
+                $sheet->cells("A{$fila}:I{$fila}", function($c) { $c->setBackground('#CCCCCC'); $c->setFontWeight('bold'); $c->setFontSize(13); $c->setAlignment('center'); });
+                $sheet->setHeight($fila, 20);
+                $fila++;
+
+                $totalAnio = ['cancel'=>0, 'jackpots'=>0, 'progresivos'=>0, 'total'=>0, 'cancel_usd'=>0, 'jackpots_usd'=>0, 'progresivos_usd'=>0, 'total_usd'=>0];
+
+                foreach($registros as $d) {
+                    $sheet->row($fila, [
+                        $applyMonthFormat($d->Mes),
+                        "$ " . number_format($d->cancel, 2, ',', '.'),
+                        "$ " . number_format($d->jackpots, 2, ',', '.'),
+                        "$ " . number_format($d->progresivos, 2, ',', '.'),
+                        "$ " . number_format($d->total, 2, ',', '.'),
+                        "USD " . number_format($d->cancel_usd, 2, ',', '.'),
+                        "USD " . number_format($d->jackpots_usd, 2, ',', '.'),
+                        "USD " . number_format($d->progresivos_usd, 2, ',', '.'),
+                        "USD " . number_format($d->total_usd, 2, ',', '.')
+                    ]);
+                    $sheet->cells("A{$fila}", function($c){ $c->setBackground('#FFFF99'); $c->setFontWeight('bold'); $c->setAlignment('left'); });
+                    $sheet->cells("B{$fila}:I{$fila}", function($c){ $c->setAlignment('center'); });
+                    
+                    $totalAnio['cancel'] += $d->cancel; $totalAnio['jackpots'] += $d->jackpots; $totalAnio['progresivos'] += $d->progresivos; $totalAnio['total'] += $d->total;
+                    $totalAnio['cancel_usd'] += $d->cancel_usd; $totalAnio['jackpots_usd'] += $d->jackpots_usd; $totalAnio['progresivos_usd'] += $d->progresivos_usd; $totalAnio['total_usd'] += $d->total_usd;
+                    $fila++;
+                }
+
+                $sheet->row($fila, ['TOTAL ' . $anio, 
+                    "$ " . number_format($totalAnio['cancel'], 2, ',', '.'), "$ " . number_format($totalAnio['jackpots'], 2, ',', '.'), 
+                    "$ " . number_format($totalAnio['progresivos'], 2, ',', '.'), "$ " . number_format($totalAnio['total'], 2, ',', '.'), 
+                    "USD " . number_format($totalAnio['cancel_usd'], 2, ',', '.'), "USD " . number_format($totalAnio['jackpots_usd'], 2, ',', '.'), 
+                    "USD " . number_format($totalAnio['progresivos_usd'], 2, ',', '.'), "USD " . number_format($totalAnio['total_usd'], 2, ',', '.')
+                ]);
+                $sheet->cells("A{$fila}", function($c){ $c->setBackground('#CCCCFF'); $c->setFontWeight('bold'); });
+                $sheet->cells("B{$fila}:I{$fila}", function($c){ $c->setAlignment('center'); $c->setFontWeight('bold'); });
+                $fila++;
+            }
+            $applyBodyBorders($sheet, "A2:I" . ($fila - 1));
+            $anchos = [9, 25, 25, 25, 18, 16, 14, 18, 16];
+            foreach (range('A', 'I') as $i => $col) { $sheet->setWidth($col, $anchos[$i]); }
+        });
+
+        // 2. Promo Tickets
+        $excel->sheet('PromoTickets', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+            $query = RegistroPromoTickets::select([
+                DB::raw("YEAR(fecha_PromoTickets) AS anio"), DB::raw("MONTHNAME(fecha_PromoTickets) AS Mes"),
+                'cantidad', 'importe'
+            ])->where('casino', $casinoId);
+            if ($desde) $query->where('fecha_PromoTickets', '>=', $desde . '-01');
+            if ($hasta) $query->where('fecha_PromoTickets', '<=', $hasta . '-31');
+
+            $datos = $query->orderBy('fecha_PromoTickets')->get()->groupBy('anio');
+            $fila = 1;
+            $sheet->row($fila, ['Mes', 'Cantidad', 'Importe']);
+            $applyHeaderStyle($sheet, "A1:C1", $getColor($casinoId));
+            $sheet->cells("A1:C999", function($cells) { $cells->setFontFamily('Arial'); $cells->setFontSize(10); });
+            $fila++;
+
+            foreach ($datos as $anio => $registros) {
+                $sheet->mergeCells("A{$fila}:C{$fila}");
+                $sheet->setCellValue("A{$fila}", $anio);
+                $sheet->cells("A{$fila}:C{$fila}", function($c) { $c->setBackground('#CCCCCC'); $c->setFontWeight('bold'); $c->setFontSize(13); $c->setAlignment('center'); });
+                $sheet->setHeight($fila, 20);
+                $fila++;
+
+                $totalAnio = ['cantidad'=>0, 'importe'=>0];
+                foreach($registros as $d) {
+                    $sheet->row($fila, [$applyMonthFormat($d->Mes), $d->cantidad, "$ " . number_format($d->importe, 2, ',', '.')]);
+                    $sheet->cells("A{$fila}", function($c){ $c->setBackground('#FFFF99'); $c->setFontWeight('bold'); $c->setAlignment('left'); });
+                    $sheet->cells("B{$fila}:C{$fila}", function($c){ $c->setAlignment('center'); });
+                    $totalAnio['cantidad'] += $d->cantidad; $totalAnio['importe'] += $d->importe;
+                    $fila++;
+                }
+
+                $sheet->row($fila, ['TOTAL ' . $anio, $totalAnio['cantidad'], "$ " . number_format($totalAnio['importe'], 2, ',', '.')]);
+                $sheet->cells("A{$fila}", function($c){ $c->setBackground('#CCCCFF'); $c->setFontWeight('bold'); });
+                $sheet->cells("B{$fila}:C{$fila}", function($c){ $c->setAlignment('center'); $c->setFontWeight('bold'); });
+                $fila++;
+            }
+            $applyBodyBorders($sheet, "A2:C" . ($fila - 1));
+            $anchos = [9, 15, 25];
+            foreach (range('A', 'C') as $i => $col) { $sheet->setWidth($col, $anchos[$i]); }
+        });
+
+        // 3. Pozos Acumulados
+        $excel->sheet('Pozos', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+            $query = RegistroPozosAcumuladosLinkeados::select([
+                DB::raw("YEAR(fecha_PozosAcumuladosLinkeados) AS anio"), DB::raw("MONTHNAME(fecha_PozosAcumuladosLinkeados) AS Mes"),
+                'importe'
+            ])->where('casino', $casinoId);
+            if ($desde) $query->where('fecha_PozosAcumuladosLinkeados', '>=', $desde . '-01');
+            if ($hasta) $query->where('fecha_PozosAcumuladosLinkeados', '<=', $hasta . '-31');
+
+            $datos = $query->orderBy('fecha_PozosAcumuladosLinkeados')->get()->groupBy('anio');
+            $fila = 1;
+            $sheet->row($fila, ['Mes', 'Importe']);
+            $applyHeaderStyle($sheet, "A1:B1", $getColor($casinoId));
+            $sheet->cells("A1:B999", function($cells) { $cells->setFontFamily('Arial'); $cells->setFontSize(10); });
+            $fila++;
+
+            foreach ($datos as $anio => $registros) {
+                $sheet->mergeCells("A{$fila}:B{$fila}");
+                $sheet->setCellValue("A{$fila}", $anio);
+                $sheet->cells("A{$fila}:B{$fila}", function($c) { $c->setBackground('#CCCCCC'); $c->setFontWeight('bold'); $c->setFontSize(13); $c->setAlignment('center'); });
+                $sheet->setHeight($fila, 20);
+                $fila++;
+
+                $totalAnio = ['importe'=>0];
+                foreach($registros as $d) {
+                    $sheet->row($fila, [$applyMonthFormat($d->Mes), "$ " . number_format($d->importe, 2, ',', '.')]);
+                    $sheet->cells("A{$fila}", function($c){ $c->setBackground('#FFFF99'); $c->setFontWeight('bold'); $c->setAlignment('left'); });
+                    $sheet->cells("B{$fila}", function($c){ $c->setAlignment('center'); });
+                    $totalAnio['importe'] += $d->importe;
+                    $fila++;
+                }
+
+                $sheet->row($fila, ['TOTAL ' . $anio, "$ " . number_format($totalAnio['importe'], 2, ',', '.')]);
+                $sheet->cells("A{$fila}", function($c){ $c->setBackground('#CCCCFF'); $c->setFontWeight('bold'); });
+                $sheet->cells("B{$fila}", function($c){ $c->setAlignment('center'); $c->setFontWeight('bold'); });
+                $fila++;
+            }
+            $applyBodyBorders($sheet, "A2:B" . ($fila - 1));
+            $anchos = [9, 25];
+            foreach (range('A', 'B') as $i => $col) { $sheet->setWidth($col, $anchos[$i]); }
+        });
+
+        // 4. Jackpots
+        $excel->sheet('Jackpots', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+            $query = RegistroJackpotsPagados::select([
+                DB::raw("YEAR(fecha_JackpotsPagados) AS anio"), DB::raw("MONTHNAME(fecha_JackpotsPagados) AS Mes"),
+                'importe', 'importe_usd'
+            ])->where('casino', $casinoId);
+            if ($desde) $query->where('fecha_JackpotsPagados', '>=', $desde . '-01');
+            if ($hasta) $query->where('fecha_JackpotsPagados', '<=', $hasta . '-31');
+
+            $datos = $query->orderBy('fecha_JackpotsPagados')->get()->groupBy('anio');
+            $fila = 1;
+            $sheet->row($fila, ['Mes', 'Importe', 'Importe USD']);
+            $applyHeaderStyle($sheet, "A1:C1", $getColor($casinoId));
+            $sheet->cells("A1:C999", function($cells) { $cells->setFontFamily('Arial'); $cells->setFontSize(10); });
+            $fila++;
+
+            foreach ($datos as $anio => $registros) {
+                $sheet->mergeCells("A{$fila}:C{$fila}");
+                $sheet->setCellValue("A{$fila}", $anio);
+                $sheet->cells("A{$fila}:C{$fila}", function($c) { $c->setBackground('#CCCCCC'); $c->setFontWeight('bold'); $c->setFontSize(13); $c->setAlignment('center'); });
+                $sheet->setHeight($fila, 20);
+                $fila++;
+
+                $totalAnio = ['importe'=>0, 'importe_usd'=>0];
+                foreach($registros as $d) {
+                    $sheet->row($fila, [$applyMonthFormat($d->Mes), "$ " . number_format($d->importe, 2, ',', '.'), "USD " . number_format($d->importe_usd, 2, ',', '.')]);
+                    $sheet->cells("A{$fila}", function($c){ $c->setBackground('#FFFF99'); $c->setFontWeight('bold'); $c->setAlignment('left'); });
+                    $sheet->cells("B{$fila}:C{$fila}", function($c){ $c->setAlignment('center'); });
+                    $totalAnio['importe'] += $d->importe; $totalAnio['importe_usd'] += $d->importe_usd;
+                    $fila++;
+                }
+
+                $sheet->row($fila, ['TOTAL ' . $anio, "$ " . number_format($totalAnio['importe'], 2, ',', '.'), "USD " . number_format($totalAnio['importe_usd'], 2, ',', '.')]);
+                $sheet->cells("A{$fila}", function($c){ $c->setBackground('#CCCCFF'); $c->setFontWeight('bold'); });
+                $sheet->cells("B{$fila}:C{$fila}", function($c){ $c->setAlignment('center'); $c->setFontWeight('bold'); });
+                $fila++;
+            }
+            $applyBodyBorders($sheet, "A2:C" . ($fila - 1));
+            $anchos = [9, 25, 25];
+            foreach (range('A', 'C') as $i => $col) { $sheet->setWidth($col, $anchos[$i]); }
+        });
+
+        // 5. Premios Pagados
+        $excel->sheet('PremiosPagados', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+            $query = RegistroPremiosPagados::select([
+                DB::raw("YEAR(fecha_PremiosPagados) AS anio"), DB::raw("MONTHNAME(fecha_PremiosPagados) AS Mes"),
+                'cantidad', 'importe'
+            ])->where('casino', $casinoId);
+            if ($desde) $query->where('fecha_PremiosPagados', '>=', $desde . '-01');
+            if ($hasta) $query->where('fecha_PremiosPagados', '<=', $hasta . '-31');
+
+            $datos = $query->orderBy('fecha_PremiosPagados')->get()->groupBy('anio');
+            $fila = 1;
+            $sheet->row($fila, ['Mes', 'Cantidad', 'Importe']);
+            $applyHeaderStyle($sheet, "A1:C1", $getColor($casinoId));
+            $sheet->cells("A1:C999", function($cells) { $cells->setFontFamily('Arial'); $cells->setFontSize(10); });
+            $fila++;
+
+            foreach ($datos as $anio => $registros) {
+                $sheet->mergeCells("A{$fila}:C{$fila}");
+                $sheet->setCellValue("A{$fila}", $anio);
+                $sheet->cells("A{$fila}:C{$fila}", function($c) { $c->setBackground('#CCCCCC'); $c->setFontWeight('bold'); $c->setFontSize(13); $c->setAlignment('center'); });
+                $sheet->setHeight($fila, 20);
+                $fila++;
+
+                $totalAnio = ['cantidad'=>0, 'importe'=>0];
+                foreach($registros as $d) {
+                    $sheet->row($fila, [$applyMonthFormat($d->Mes), $d->cantidad, "$ " . number_format($d->importe, 2, ',', '.')]);
+                    $sheet->cells("A{$fila}", function($c){ $c->setBackground('#FFFF99'); $c->setFontWeight('bold'); $c->setAlignment('left'); });
+                    $sheet->cells("B{$fila}:C{$fila}", function($c){ $c->setAlignment('center'); });
+                    $totalAnio['cantidad'] += $d->cantidad; $totalAnio['importe'] += $d->importe;
+                    $fila++;
+                }
+
+                $sheet->row($fila, ['TOTAL ' . $anio, $totalAnio['cantidad'], "$ " . number_format($totalAnio['importe'], 2, ',', '.')]);
+                $sheet->cells("A{$fila}", function($c){ $c->setBackground('#CCCCFF'); $c->setFontWeight('bold'); });
+                $sheet->cells("B{$fila}:C{$fila}", function($c){ $c->setAlignment('center'); $c->setFontWeight('bold'); });
+                $fila++;
+            }
+            $applyBodyBorders($sheet, "A2:C" . ($fila - 1));
+            $anchos = [9, 15, 25];
+            foreach (range('A', 'C') as $i => $col) { $sheet->setWidth($col, $anchos[$i]); }
+        });
+
+        // 6. Pagos Mesas
+        $excel->sheet('PagosMesas', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+            
+            $applyHeaderStylePagosMesas = function($sheet, $colRange, $color) {
+                $sheet->cells($colRange, function($cells) use ($color) {
+                    $cells->setBackground($color);
+                    $cells->setFontColor('#000000');
+                    $cells->setFontWeight('bold');
+                    $cells->setAlignment('center');
+                });
+                $sheet->getStyle("A1:D2")->getAlignment()->setWrapText(true)->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $sheet->setHeight(1, 50);
+                $sheet->setHeight(2, 50);
+                $sheet->getStyle($colRange)->applyFromArray([
+                    'borders' => ['allborders' => ['style' => \PHPExcel_Style_Border::BORDER_THICK, 'color' => ['argb' => 'FF000000']]]
+                ]);
+            };
+
+            $query = RegistroPagosMayoresMesas::select([
+                DB::raw("YEAR(fecha_PagosMayoresMesas) AS anio"), DB::raw("MONTHNAME(fecha_PagosMayoresMesas) AS Mes"),
+                'cant_pagos', 'importe_pesos', 'importe_usd'
+            ])->where('casino', $casinoId);
+            if ($desde) $query->where('fecha_PagosMayoresMesas', '>=', $desde . '-01');
+            if ($hasta) $query->where('fecha_PagosMayoresMesas', '<=', $hasta . '-31');
+
+            $datos = $query->orderBy('fecha_PagosMayoresMesas')->get()->groupBy('anio');
+            $fila = 1;
+
+            $sheet->row($fila, ['Pagos de Premios Mayores a $300.000']);
+            $sheet->mergeCells('A1:D1');
+            $fila++;
+            $sheet->row($fila, ['Mes', 'Cantidad de Pagos', 'Importe en Pesos', 'Importe en Dolares']);
+            $applyHeaderStylePagosMesas($sheet, "A1:D2", $getColor($casinoId));
+            $sheet->cells("A1:D999", function($cells) { $cells->setFontFamily('Arial'); $cells->setFontSize(10); });
+            $fila++;
+
+            foreach ($datos as $anio => $registros) {
+                $sheet->mergeCells("A{$fila}:D{$fila}");
+                $sheet->setCellValue("A{$fila}", $anio);
+                $sheet->cells("A{$fila}:D{$fila}", function($c) { $c->setBackground('#CCCCCC'); $c->setFontWeight('bold'); $c->setFontSize(13); $c->setAlignment('center'); });
+                $sheet->setHeight($fila, 20);
+                $fila++;
+
+                $totalAnio = ['importe'=>0, 'importe_usd'=>0];
+                foreach($registros as $d) {
+                    $sheet->row($fila, [$applyMonthFormat($d->Mes), $d->cant_pagos, "$ " . number_format($d->importe_pesos, 2, ',', '.'), "USD " . number_format($d->importe_usd, 2, ',', '.')]);
+                    $sheet->cells("A{$fila}", function($c){ $c->setBackground('#FFFF99'); $c->setFontWeight('bold'); $c->setAlignment('left'); });
+                    $sheet->cells("B{$fila}:D{$fila}", function($c){ $c->setAlignment('center'); });
+                    $totalAnio['importe'] += $d->importe_pesos; $totalAnio['importe_usd'] += $d->importe_usd;
+                    $fila++;
+                }
+
+                $sheet->row($fila, ['TOTAL ' . $anio, '', "$ " . number_format($totalAnio['importe'], 2, ',', '.'), "USD " . number_format($totalAnio['importe_usd'], 2, ',', '.')]);
+                $sheet->cells("A{$fila}", function($c){ $c->setBackground('#CCCCFF'); $c->setFontWeight('bold'); });
+                $sheet->cells("C{$fila}:D{$fila}", function($c){ $c->setAlignment('center'); $c->setFontWeight('bold'); });
+                $fila++;
+            }
+            $applyBodyBorders($sheet, "A3:D" . ($fila - 1));
+            $anchos = [9, 20, 25, 25];
+            foreach (range('A', 'D') as $i => $col) { $sheet->setWidth($col, $anchos[$i]); }
+        });
+
+        // 7. Registros Contables
+        $excel->sheet('RegistrosContables', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+            $query = RegistroRegistrosContables::select([
+                DB::raw("YEAR(fecha_RegistrosContables) AS anio"), DB::raw("MONTHNAME(fecha_RegistrosContables) AS Mes"),
+                'mtm', 'mtm_usd', 'mp', 'mp_usd', 'bingo', 'jol', 'total', 'total_usd'
+            ])->where('casino', $casinoId);
+            if ($desde) $query->where('fecha_RegistrosContables', '>=', $desde . '-01');
+            if ($hasta) $query->where('fecha_RegistrosContables', '<=', $hasta . '-31');
+
+            $datos = $query->orderBy('fecha_RegistrosContables')->get()->groupBy('anio');
+            $fila = 1;
+            
+            $sheet->row($fila, [
+                'Mes',
+                'MTM en Pesos', 'MTM en Dólares',
+                'MP en Pesos', 'MP en Dólares',
+                'Bingo', 'Juego Online',
+                'Total en Pesos', 'Total en Dólares'
+            ]);
+            $applyHeaderStyle($sheet, "A1:I1", $getColor($casinoId));
+            $sheet->cells("A1:I999", function($cells) { $cells->setFontFamily('Arial'); $cells->setFontSize(10); });
+            $fila++;
+
+            foreach ($datos as $anio => $registros) {
+                $sheet->mergeCells("A{$fila}:I{$fila}");
+                $sheet->setCellValue("A{$fila}", $anio);
+                $sheet->cells("A{$fila}:I{$fila}", function($c) { $c->setBackground('#CCCCCC'); $c->setFontWeight('bold'); $c->setFontSize(13); $c->setAlignment('center'); });
+                $sheet->setHeight($fila, 20);
+                $fila++;
+
+                $totalAnio = ['mtm'=>0, 'mtm_usd'=>0, 'mp'=>0, 'mp_usd'=>0, 'bingo'=>0, 'jol'=>0, 'total'=>0, 'total_usd'=>0];
+                foreach($registros as $d) {
+                    $sheet->row($fila, [
+                        $applyMonthFormat($d->Mes),
+                        "$ " . number_format($d->mtm, 2, ',', '.'),
+                        "USD " . number_format($d->mtm_usd, 2, ',', '.'),
+                        "$ " . number_format($d->mp, 2, ',', '.'), 
+                        "USD " . number_format($d->mp_usd, 2, ',', '.'), 
+                        "$ " . number_format($d->bingo, 2, ',', '.'),
+                        "$ " . number_format($d->jol, 2, ',', '.'), 
+                        "$ " . number_format($d->total, 2, ',', '.'),
+                        "USD " . number_format($d->total_usd, 2, ',', '.')
+                    ]);
+                    $sheet->cells("A{$fila}", function($c){ $c->setBackground('#FFFF99'); $c->setFontWeight('bold'); $c->setAlignment('left'); });
+                    $sheet->cells("B{$fila}:I{$fila}", function($c){ $c->setAlignment('center'); });
+                    
+                    $totalAnio['mtm'] += $d->mtm; $totalAnio['mtm_usd'] += $d->mtm_usd; $totalAnio['mp'] += $d->mp; $totalAnio['mp_usd'] += $d->mp_usd;
+                    $totalAnio['bingo'] += $d->bingo; $totalAnio['jol'] += $d->jol; $totalAnio['total'] += $d->total; $totalAnio['total_usd'] += $d->total_usd;
+                    $fila++;
+                }
+
+                $sheet->row($fila, ['TOTAL ' . $anio, 
+                    "$ " . number_format($totalAnio['mtm'], 2, ',', '.'),
+                    "USD " . number_format($totalAnio['mtm_usd'], 2, ',', '.'),
+                    "$ " . number_format($totalAnio['mp'], 2, ',', '.'), 
+                    "USD " . number_format($totalAnio['mp_usd'], 2, ',', '.'), 
+                    "$ " . number_format($totalAnio['bingo'], 2, ',', '.'),
+                    "$ " . number_format($totalAnio['jol'], 2, ',', '.'), 
+                    "$ " . number_format($totalAnio['total'], 2, ',', '.'),
+                    "USD " . number_format($totalAnio['total_usd'], 2, ',', '.')
+                ]);
+                $sheet->cells("A{$fila}", function($c){ $c->setBackground('#CCCCFF'); $c->setFontWeight('bold'); });
+                $sheet->cells("B{$fila}:I{$fila}", function($c){ $c->setAlignment('center'); $c->setFontWeight('bold'); });
+                $fila++;
+            }
+            $applyBodyBorders($sheet, "A2:I" . ($fila - 1));
+            $anchos = [9, 16, 16, 16, 16, 18, 16, 16, 18];
+            foreach (range('A', 'I') as $i => $col) { $sheet->setWidth($col, $anchos[$i]); }
+        });
+
+    })->export('xlsx');
+} 
+
 //AUT. DIRECTORES
 public function guardarAutDirectores_director(Request $request){
 
@@ -13921,6 +14571,7 @@ public function ultimasAutDirectores(Request $request)
             'id_registroAutDirectores' => $r->id_registroAutDirectores,
             'fecha_AutDirectores'   => $r->fecha_AutDirectores,
             'casino'      => $r->casinoAutDirectores ? $r->casinoAutDirectores->nombre : '-',
+            'valido'      => $r->valido,
             'tiene_archivos' => $r->archivos_count>0,
           ];
     });
@@ -13939,6 +14590,10 @@ public function ultimasAutDirectores(Request $request)
 public function eliminarAutDirectores($id){
   $AutDirectores = RegistroAutDirectores::findOrFail($id);
   if(is_null($AutDirectores)) return 0;
+  
+  // Eliminar autorizaciones asociadas para evitar restricción de clave foránea
+  RegistroAutDirectores_autorizacion::where('registro', $id)->delete();
+  
   RegistroAutDirectores::destroy($id);
   return 1;
 }
@@ -14398,6 +15053,10 @@ public function descargarAutDirectoresXlsxTodos(Request $request)
  }
 
  public function SegurosEliminarTipo($id){
+     $inUse = RegistroSeguros::where('tipo', $id)->count();
+     if ($inUse > 0) {
+         return response()->json(['ok' => false, 'error' => 'No se puede eliminar porque existen registros de seguros asociados a este tipo.'], 400);
+     }
      RegistroSeguros_tipo::findOrFail($id)->delete();
      return response()->json(array('ok'=>true));
  }
@@ -14527,6 +15186,7 @@ public function descargarAutDirectoresXlsxTodos(Request $request)
              'estado'       => $r->estado,
              'casino'      => $r->casinoSeguros ? $r->casinoSeguros->nombre : '-',
              'tipo'        => $r->tipoSeguros ? $r->tipoSeguros->tipo : '-',
+             'valido'      => $r->valido,
 	  'tiene_archivos' => $r->archivos_count>0,         ];
      });
 
@@ -14623,6 +15283,16 @@ public function actualizarSeguros(Request $request, $id){
  public function eliminarSeguros($id){
    $Seguros = RegistroSeguros::findOrFail($id);
    if(is_null($Seguros)) return 0;
+   
+   // Delete associated files
+   foreach ($Seguros->archivos as $archivo) {
+       $filePath = storage_path('app/public/RegistroSeguros/'.$archivo->path);
+       if (file_exists($filePath)) {
+           @unlink($filePath);
+       }
+       $archivo->delete();
+   }
+   
    RegistroSeguros::destroy($id);
    return 1;
  }
@@ -15195,6 +15865,7 @@ public function ultimasDerechoAcceso(Request $request)
             'semana' => $r->semana,
             'obs' => $r->observaciones,
             'casino'      => $r->casinoDerechoAcceso ? $r->casinoDerechoAcceso->nombre : '-',
+            'valido'      => $r->valido,
 	  'tiene_archivos' => $r->archivos_count>0,        ];
     });
 
@@ -15751,6 +16422,7 @@ public function ultimasPatentes(Request $request)
             'id_registroPatentes' => $r->id_registroPatentes,
             'fecha_Patentes'      => $r->fecha_Patentes,
             'casino'              => $r->casinoPatentes->nombre ?? '-',
+            'valido'              => $r->valido,
             'tiene_archivos'      => $r->archivos_count > 0,
         ];
     });
@@ -16560,6 +17232,7 @@ public function ultimasImpInmobiliario(Request $request)
             'cuota'   => $r->cuota,
             'casino' => $r->casinoImpInmobiliario ? $r->casinoImpInmobiliario->nombre : '-',
             'partida' => $r->ImpInmobiliario_partida ? $r->ImpInmobiliario_partida->partida : '-',
+            'valido'      => $r->valido,
 	           'tiene_archivos' => $r->archivos_count>0,
              ];
     });
@@ -16890,4 +17563,397 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
 }
 
 
+
+    public function validarDocumento(Request $request){
+      $tipo = $request->tipo;
+      $id = $request->id;
+      $validar = $request->validar; // 1 or 0
+
+      $clase = null;
+      switch($tipo){
+          case 'iva':                 $clase = RegistroIva::class; break;
+          case 'iibb':                $clase = Registroiibb::class; break;
+          case 'drei':                $clase = RegistroDREI::class; break;
+          case 'tgi':                 $clase = RegistroTGI::class; break;
+          case 'imp_ap_ol':           $clase = RegistroIMP_AP_OL::class; break;
+          case 'imp_ap_mtm':          $clase = RegistroIMP_AP_MTM::class; break;
+          case 'deuda_estado':        $clase = RegistroDeudaEstado::class; break;
+          case 'pagos_mayores_mesas': $clase = RegistroPagosMayoresMesas::class; break;
+          case 'reporte_y_lavado':    $clase = RegistroReporteYLavado::class; break;
+          case 'registros_contables': $clase = RegistroRegistrosContables::class; break;
+          case 'aportes_patronales':  $clase = RegistroAportesPatronales::class; break;
+          case 'promo_tickets':       $clase = RegistroPromoTickets::class; break;
+          case 'pozos_acumulados':    $clase = RegistroPozosAcumuladosLinkeados::class; break;
+          case 'contrib_ente_turistico': $clase = RegistroContribEnteTuristico::class; break;
+          case 'rrhh':                $clase = RegistroRRHH::class; break;
+          case 'ganancias':           $clase = RegistroGanancias::class; break;
+          case 'ganancias_periodo':   $clase = RegistroGanancias_periodo::class; break;
+          case 'estado_contable':     $clase = RegistroEstadoContable::class; break;
+          case 'jackpots_pagados':    $clase = RegistroJackpotsPagados::class; break;
+          case 'premios_pagados':     $clase = RegistroPremiosPagados::class; break;
+          case 'premios_mtm':         $clase = RegistroPremiosMTM::class; break;
+          case 'aut_directores':      $clase = RegistroAutDirectores::class; break;
+          case 'seguros':             $clase = RegistroSeguros::class; break;
+          case 'derecho_acceso':      $clase = RegistroDerechoAcceso::class; break;
+          case 'patentes':            $clase = RegistroPatentes::class; break;
+          case 'imp_inmobiliario':    $clase = RegistroImpInmobiliario::class; break;
+          default: return response()->json(['success' => false, 'msg' => 'Tipo inválido'], 400);
+      }
+
+      $doc = $clase::find($id);
+      if(!$doc) return response()->json(['success' => false, 'msg' => 'Documento no encontrado'], 404);
+
+      $doc->valido = $validar;
+      $doc->save();
+
+      return response()->json(['success' => true]);
+  }
+
+    public function obtenerDocumentosValidados(Request $request) {
+        $id_casino = $request->input('id_casino');
+        $desde = $request->input('desde'); // Format: YYYY-MM
+        $hasta = $request->input('hasta'); // Format: YYYY-MM
+
+        if (!$id_casino || !$desde || !$hasta) {
+            return response()->json(['success' => false, 'msg' => 'Faltan parámetros'], 400);
+        }
+
+        $desde_date = $desde . '-01';
+        $hasta_date = $hasta . '-31'; // Safe enough for <= comparison in SQL for ends of months if using just YYYY-MM-DD
+
+        $documentos_config = [
+            'IVA' => ['model' => RegistroIva::class, 'date_col' => 'fecha_iva'],
+            'IIBB' => ['model' => Registroiibb::class, 'date_col' => 'fecha_iibb'],
+            'DREI' => ['model' => RegistroDREI::class, 'date_col' => 'fecha_drei'],
+            'TGI' => ['model' => RegistroTGI::class, 'date_col' => 'fecha_tgi'],
+            'IMP. APUESTAS ONLINE' => ['model' => RegistroIMP_AP_OL::class, 'date_col' => 'fecha_imp_ap_ol'],
+            'IMP. APUESTAS MTM' => ['model' => RegistroIMP_AP_MTM::class, 'date_col' => 'fecha_IMP_AP_MTM'],
+            'DEUDA ESTADO' => ['model' => RegistroDeudaEstado::class, 'date_col' => 'fecha_DeudaEstado'],
+            'PAGOS MESAS DE PAÑO' => ['model' => RegistroPagosMayoresMesas::class, 'date_col' => 'fecha_PagosMayoresMesas'],
+            'REPORTE LAVADO' => ['model' => RegistroReporteYLavado::class, 'date_col' => 'fecha_ReporteYLavado'],
+            'REGISTROS CONTABLES' => ['model' => RegistroRegistrosContables::class, 'date_col' => 'fecha_RegistrosContables'],
+            'APORTES PATRONALES' => ['model' => RegistroAportesPatronales::class, 'date_col' => 'fecha_AportesPatronales'],
+            'PROMO TICKETS' => ['model' => RegistroPromoTickets::class, 'date_col' => 'fecha_PromoTickets'],
+            'POZOS ACUMULADOS' => ['model' => RegistroPozosAcumuladosLinkeados::class, 'date_col' => 'fecha_PozosAcumuladosLinkeados'],
+            'CONTRIB. ENTE (ROS)' => ['model' => RegistroContribEnteTuristico::class, 'date_col' => 'fecha_ContribEnteTuristico'],
+            'RRHH' => ['model' => RegistroRRHH::class, 'date_col' => 'fecha_RRHH'],
+            'GANANCIAS' => ['model' => RegistroGanancias::class, 'date_col' => 'periodo_fiscal'],
+            'JACKPOTS PAGADOS' => ['model' => RegistroJackpotsPagados::class, 'date_col' => 'fecha_JackpotsPagados'],
+            'PREMIOS PAGADOS' => ['model' => RegistroPremiosPagados::class, 'date_col' => 'fecha_PremiosPagados'],
+            'PREMIOS MTM' => ['model' => RegistroPremiosMTM::class, 'date_col' => 'fecha_PremiosMTM'],
+            'AUT. DIRECTORES' => ['model' => RegistroAutDirectores::class, 'date_col' => 'fecha_AutDirectores'],
+            'SEGUROS' => ['model' => RegistroSeguros::class, 'date_col' => 'periodo_inicio'],
+            'DER. ACCESO (ROS)' => ['model' => RegistroDerechoAcceso::class, 'date_col' => 'fecha_DerechoAcceso'],
+            'PATENTES' => ['model' => RegistroPatentes::class, 'date_col' => 'fecha_Patentes'],
+            'IMP. INMOBILIARIO' => ['model' => RegistroImpInmobiliario::class, 'date_col' => 'fecha_ImpInmobiliario'],
+        ];
+
+        $resultados = [];
+
+        setlocale(LC_TIME, 'es_ES.UTF-8','es_AR.UTF-8','es_ES','es_AR');
+
+        foreach ($documentos_config as $doc_name => $config) {
+            $clase = $config['model'];
+            $col_fecha = $config['date_col'];
+
+            $registros = $clase::where('casino', $id_casino)
+                ->where($col_fecha, '>=', $desde_date)
+                ->where($col_fecha, '<=', $hasta_date)
+                ->get([$col_fecha, 'valido']);
+
+            foreach ($registros as $reg) {
+                // Determine format
+                $date_val = $reg->$col_fecha;
+                if (!$date_val) continue;
+
+                $mes = date('n', strtotime($date_val));
+                $anio = date('Y', strtotime($date_val));
+                
+                $meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+                $mes_nombre = $meses[$mes - 1];
+
+                $resultados[] = [
+                    'documento' => $doc_name,
+                    'mes' => $mes_nombre,
+                    'anio' => $anio,
+                    'fecha_real' => is_object($date_val) ? clone($date_val) : $date_val, // For internal sorting
+                    'valido' => $reg->valido ? 1 : 0
+                ];
+            }
+        }
+
+        // Sort by year, month, document name
+        usort($resultados, function($a, $b) {
+            $timeA = strtotime($a['fecha_real']);
+            $timeB = strtotime($b['fecha_real']);
+            if ($timeA == $timeB) {
+                return strcmp($a['documento'], $b['documento']);
+            }
+            return $timeA > $timeB ? 1 : -1;
+        });
+
+        // Clean up fecha_real before sending
+        foreach ($resultados as &$res) {
+            unset($res['fecha_real']);
+        }
+
+        return response()->json(['success' => true, 'data' => $resultados]);
+    }
+
+    // --- ESTADO CONTABLE ---
+
+    public function ultimasEstadoContable(Request $request) {
+        $page    = max(1, (int)$request->query('page', 1));
+        $perPage = max(1, (int)$request->query('page_size', 20));
+
+        $user = Usuario::find(session('id_usuario'));
+        $allowedCasinoIds = $user->casinos->pluck('id_casino')->toArray();
+
+        $query = RegistroEstadoContable::with('casinoEstadoContable')
+                  ->withCount('archivos')
+                  ->whereIn('casino', $allowedCasinoIds)
+                  ->orderBy('fecha_EstadoContable', 'desc');
+
+        if ($c = $request->query('id_casino')) {
+            $query->where('casino', $c);
+        }
+        if ($desde = $request->query('desde')) {
+            $desde = $desde."-01";
+            $query->where('fecha_EstadoContable', ">=", $desde);
+        }
+        if ($hasta = $request->query('hasta')) {
+            $hasta = $hasta."-01";
+            $query->where('fecha_EstadoContable', "<=", $hasta);
+        }
+
+        $total = $query->count();
+        $registros = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        $datos = $registros->map(function($r) {
+            return [
+                'id_registroEstadoContable' => $r->id_registroEstadoContable,
+                'fecha_EstadoContable' => $r->fecha_EstadoContable,
+                'casino'               => $r->casinoEstadoContable ? $r->casinoEstadoContable->nombre : '-',
+                'valido'               => $r->valido,
+                'tiene_archivos'       => $r->archivos_count > 0,
+            ];
+        });
+
+        return response()->json([
+            'registros'  => $datos,
+            'pagination' => [
+                'current_page' => $page,
+                'per_page'     => $perPage,
+                'total'        => $total,
+            ],
+        ]);
+    }
+
+    public function guardarEstadoContable(Request $request) {
+      Validator::make($request->all(), [
+          'casinoEstadoContable' => 'required',
+          'fecha_EstadoContable' => 'required|date',
+          'uploadEstadoContable.*' => 'nullable|file',
+      ], [], [
+          'casinoEstadoContable' => 'Casino',
+          'fecha_EstadoContable' => 'Fecha',
+      ])->setAttributeNames([])->validate();
+
+      DB::beginTransaction();
+      try {
+          $r = new RegistroEstadoContable();
+          
+          // Custom fields set by frontend
+          $r->fecha_EstadoContable = $request->fecha_EstadoContable."-01";
+          $r->casino = $request->casinoEstadoContable;
+          
+          $r->activo_corriente = $request->activo_corriente ?? 0;
+          $r->activo_corriente_reexpresado = $request->activo_corriente_reexpresado ?? 0;
+          $r->activo_nocorriente = $request->activo_nocorriente ?? 0;
+          $r->activo_nocorriente_reexpresado = $request->activo_nocorriente_reexpresado ?? 0;
+          
+          $r->pasivo_corriente = $request->pasivo_corriente ?? 0;
+          $r->pasivo_corriente_reexpresado = $request->pasivo_corriente_reexpresado ?? 0;
+          $r->pasivo_nocorriente = $request->pasivo_nocorriente ?? 0;
+          $r->pasivo_nocorriente_reexpresado = $request->pasivo_nocorriente_reexpresado ?? 0;
+          
+          $r->ingresos = $request->ingresos ?? 0;
+          $r->ingresos_reexpresado = $request->ingresos_reexpresado ?? 0;
+          $r->costos = $request->costos ?? 0;
+          $r->costos_reexpresado = $request->costos_reexpresado ?? 0;
+
+          $r->gastos_comercio = $request->gastos_comercio ?? 0;
+          $r->gastos_comercio_reexpresado = $request->gastos_comercio_reexpresado ?? 0;
+          $r->gastos_adm = $request->gastos_adm ?? 0;
+          $r->gastos_adm_reexpresado = $request->gastos_adm_reexpresado ?? 0;
+          $r->recpam = $request->recpam ?? 0;
+          $r->recpam_reexpresado = $request->recpam_reexpresado ?? 0;
+          $r->otros = $request->otros ?? 0;
+          $r->otros_reexpresado = $request->otros_reexpresado ?? 0;
+          $r->imp_ganancias = $request->imp_ganancias ?? 0;
+          $r->imp_ganancias_reexpresado = $request->imp_ganancias_reexpresado ?? 0;
+
+          $r->fecha_toma = date('Y-m-d h:i:s');
+          $r->usuario = UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'];
+          $r->save();
+
+          $files = Arr::wrap($request->file('uploadEstadoContable'));
+          foreach ($files as $file) {
+              if ($file) {
+                  $archivo = new Archivo();
+                  $data = file_get_contents($file->getRealPath());
+                  $archivo->archivo = $data;
+                  $archivo->save();
+
+                  $r->archivos()->create([
+                      'usuario'    => $r->usuario,
+                      'id_archivo' => $archivo->id_archivo
+                  ]);
+              }
+          }
+          DB::commit();
+          return response()->json(['success' => true]);
+      } catch (Exception $e) {
+          DB::rollBack();
+          throw $e;
+      }
+    }
+
+    public function eliminarEstadoContable($id) {
+        $r = RegistroEstadoContable::findOrFail($id);
+        if (!$r) return 0;
+        
+        DB::beginTransaction();
+        try {
+            foreach ($r->archivos as $archivoEstadoContable) {
+                $archivoReal = $archivoEstadoContable->archivo;
+                if ($archivoReal) {
+                    $archivoEstadoContable->delete();
+                    $archivoReal->delete();
+                }
+            }
+            $r->delete();
+            DB::commit();
+            return 1;
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function llenarEstadoContableEdit($id) {
+        $r = RegistroEstadoContable::with('casinoEstadoContable')->findOrFail($id);
+        if (!$r) return 0;
+        
+        return [
+            'id_registroEstadoContable' => $r->id_registroEstadoContable,
+            'fecha_EstadoContable' => $r->fecha_EstadoContable,
+            'casino' => $r->casino,
+            'casino_nombre' => $r->casinoEstadoContable ? $r->casinoEstadoContable->nombre : '-',
+            
+            'activo_corriente' => $r->activo_corriente,
+            'activo_corriente_reexpresado' => $r->activo_corriente_reexpresado,
+            'activo_nocorriente' => $r->activo_nocorriente,
+            'activo_nocorriente_reexpresado' => $r->activo_nocorriente_reexpresado,
+            
+            'pasivo_corriente' => $r->pasivo_corriente,
+            'pasivo_corriente_reexpresado' => $r->pasivo_corriente_reexpresado,
+            'pasivo_nocorriente' => $r->pasivo_nocorriente,
+            'pasivo_nocorriente_reexpresado' => $r->pasivo_nocorriente_reexpresado,
+            
+            'ingresos' => $r->ingresos,
+            'ingresos_reexpresado' => $r->ingresos_reexpresado,
+            'costos' => $r->costos,
+            'costos_reexpresado' => $r->costos_reexpresado,
+
+            'gastos_comercio' => $r->gastos_comercio,
+            'gastos_comercio_reexpresado' => $r->gastos_comercio_reexpresado,
+            'gastos_adm' => $r->gastos_adm,
+            'gastos_adm_reexpresado' => $r->gastos_adm_reexpresado,
+            'recpam' => $r->recpam,
+            'recpam_reexpresado' => $r->recpam_reexpresado,
+            'otros' => $r->otros,
+            'otros_reexpresado' => $r->otros_reexpresado,
+            'imp_ganancias' => $r->imp_ganancias,
+            'imp_ganancias_reexpresado' => $r->imp_ganancias_reexpresado,
+        ];
+    }
+
+    public function actualizarEstadoContable(Request $request, $id) {
+        Validator::make($request->all(), [
+            'casinoEstadoContable' => 'required',
+            'fecha_EstadoContable' => 'required',
+            'uploadEstadoContable.*' => 'nullable|file',
+        ], [], [
+            'casinoEstadoContable' => 'Casino',
+            'fecha_EstadoContable' => 'Fecha',
+        ])->setAttributeNames([])->validate();
+
+        DB::beginTransaction();
+        try {
+            $r = RegistroEstadoContable::findOrFail($id);
+            
+            $r->fecha_EstadoContable = $request->fecha_EstadoContable."-01";
+            $r->casino = $request->casinoEstadoContable;
+            
+            $r->activo_corriente = $request->activo_corriente ?? 0;
+            $r->activo_corriente_reexpresado = $request->activo_corriente_reexpresado ?? 0;
+            $r->activo_nocorriente = $request->activo_nocorriente ?? 0;
+            $r->activo_nocorriente_reexpresado = $request->activo_nocorriente_reexpresado ?? 0;
+            
+            $r->pasivo_corriente = $request->pasivo_corriente ?? 0;
+            $r->pasivo_corriente_reexpresado = $request->pasivo_corriente_reexpresado ?? 0;
+            $r->pasivo_nocorriente = $request->pasivo_nocorriente ?? 0;
+            $r->pasivo_nocorriente_reexpresado = $request->pasivo_nocorriente_reexpresado ?? 0;
+            
+            $r->ingresos = $request->ingresos ?? 0;
+            $r->ingresos_reexpresado = $request->ingresos_reexpresado ?? 0;
+            $r->costos = $request->costos ?? 0;
+            $r->costos_reexpresado = $request->costos_reexpresado ?? 0;
+
+            $r->gastos_comercio = $request->gastos_comercio ?? 0;
+            $r->gastos_comercio_reexpresado = $request->gastos_comercio_reexpresado ?? 0;
+            $r->gastos_adm = $request->gastos_adm ?? 0;
+            $r->gastos_adm_reexpresado = $request->gastos_adm_reexpresado ?? 0;
+            $r->recpam = $request->recpam ?? 0;
+            $r->recpam_reexpresado = $request->recpam_reexpresado ?? 0;
+            $r->otros = $request->otros ?? 0;
+            $r->otros_reexpresado = $request->otros_reexpresado ?? 0;
+            $r->imp_ganancias = $request->imp_ganancias ?? 0;
+            $r->imp_ganancias_reexpresado = $request->imp_ganancias_reexpresado ?? 0;
+
+            $r->save();
+
+            $files = Arr::wrap($request->file('uploadEstadoContable'));
+            foreach ($files as $file) {
+                if ($file) {
+                    $archivo = new Archivo();
+                    $data = file_get_contents($file->getRealPath());
+                    $archivo->archivo = $data;
+                    $archivo->save();
+
+                    $r->archivos()->create([
+                        'usuario'    => UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'],
+                        'id_archivo' => $archivo->id_archivo
+                    ]);
+                }
+            }
+            DB::commit();
+            return response()->json(['success' => true]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function archivosEstadoContable($id) {
+        $r = RegistroEstadoContable::with('archivos')->findOrFail($id);
+        $files = $r->archivos->map(function($a) {
+            return [
+                'id_archivo' => $a->id_archivo,
+                'nombre'     => "Archivo {$a->id_archivo}"
+            ];
+        });
+        return response()->json($files);
+    }
 }

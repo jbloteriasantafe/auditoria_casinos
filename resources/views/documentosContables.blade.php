@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="css/bootstrap-datetimepicker.css">
   <link href="css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
   <link href="themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
-  <link rel="stylesheet" href="css/paginacion.css"/>
+  <link rel="stylesheet" href="css/paginacion.css?v=2.0"/>
   <link rel="stylesheet" href="css/lista-datos.css">
 
   <style>
@@ -31,15 +31,35 @@
       --texto-tab-seleccionado: #555;
       width: 100%;
       display: flex;
-      overflow-x: auto;
+      flex-direction: column; 
+      overflow-y: auto; 
+      max-height: 75vh;
+      display: block;
 
       margin-bottom: 10px;
-      background: linear-gradient(0deg, var(--gradiente-fondo-inicio) 0%, var(--gradiente-fondo-fin) 100%);
+      padding: 0;
     }
 
+    .icono-validado {
+      color: #4CAF50 !important;
+      font-size: 1.3em !important;
+    }
+    .icono-no-validado {
+      color: #F44336 !important;
+      font-size: 1.3em !important;
+    }
+
+
     .tabs > div {
-      flex: 1;
+      flex: none;
       margin: 0;
+      padding: 0;
+    }
+    
+    div[id^="pant_"] > .row > .col-md-12 {
+      width: 100%; 
+      float: none; 
+      margin: 0; 
       padding: 0;
     }
     .tabs a {
@@ -74,142 +94,109 @@
   @endsection
 
   <div class="row">
-    <div class="tabs" data-js-tabs="">
-      <div>
-        <a data-js-tab="#pant_iva">IVA</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_iibb">IIBB</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_drei">DREI</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_tgi">TGI</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_imp_ap_mtm">IMPUESTO A LAS APUESTAS MTM</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_imp_ap_ol">IMPUESTO A LAS APUESTAS JUEGO ONLINE</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_ganancias">GANANCIAS</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_patentes">PATENTES</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_inmobiliario">IMPUESTO INMOBILIARIO</a>
-      </div>
-      @if($rosario)
-        <div>
-          <a data-js-tab="#pant_contrib_ente">CONTRIBUCIÓN ENTE TURISTICO (ROSARIO) </a>
+    <!-- FILTROS GLOBALES -->
+    <div class="col-md-12">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4>Filtros de Búsqueda Globales</h4>
         </div>
-        <div>
-          <a data-js-tab="#pant_derecho">DERECHO DE ACCESO (ROSARIO) </a>
-        </div>
-      @endif
-      <div>
-        <a data-js-tab="#pant_deuda">DEUDA CONSOLIDADA CON EL ESTADO</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_direct">AUT. DIRECTORES</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_premios_mtm">PREMIOS MTM</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_promoticket">PROMO TICKETS</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_pozos_acumulados">POZOS ACUMULADOS LINKEADOS E INDIVIDUALES</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_jackpots_pagados">JACKPOTS PAGADOS</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_premios_pagados">PREMIOS PAGADOS</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_pagos_mesas">PAGOS MAYORES MESAS DE PAÑO</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_registros">REGISTROS CONTABLES</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_aportes">APORTES PATRONALES</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_rrhh">RRHH</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_oper">REPORTES DE OPERACIONES - LAVADO ACT.</a>
-      </div>
-      <div>
-        <a data-js-tab="#pant_seguros">SEGUROS</a>
-      </div>
-
-    </div>
-  </div>
-
-
-
-  <div id="pant_iva" hidden>
-    <div class="row">
-      <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosIva" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosIva" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoIva">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaIvaDesde" class='input-group date' id='fechaIvaDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_ivaDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_ivaDesde" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaIvaHasta" class='input-group date' id='fechaIvaHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_ivaHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_ivaHasta" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-lg-4">
+              <h5>Casino</h5>
+              <select class="form-control" id="filtro_global_casino">
+                <option value="">Todos los casinos</option>
+                @foreach($casinos as $c)
+                  <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-lg-4">
+              <h5>Fecha mes desde</h5>
+              <div name="FFechaDesde" class='input-group date' id='filtro_global_desde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
+                  <input name="fecha_desde" type='text' class="form-control" placeholder="yyyy-mm" id="filtro_global_desde_input" style="background-color: rgb(255,255,255);"/>
+                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
               </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarIva" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
+            </div>
+            <div class="col-lg-4">
+              <h5>Fecha mes hasta</h5>
+              <div name="FFechaHasta" class='input-group date' id='filtro_global_hasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
+                  <input name="fecha_hasta" type='text' class="form-control" placeholder="yyyy-mm" id="filtro_global_hasta_input" style="background-color: rgb(255,255,255);"/>
+                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
               </div>
             </div>
           </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
+          <br/>
+          <div class="row" style="margin-top: 15px;">
+            <div class="col-md-3">
+              <button id="btn-eliminar-filtros" class="btn btn-dangerEliminar" style="width:100%">
+                <i class="fa fa-trash"></i> ELIMINAR FILTROS
+              </button>
+            </div>
+            <div class="col-md-3">
+              <button id="btn-buscar-global" class="btn btn-infoBuscar" style="width:100%">
+                <i class="fa fa-search"></i> BUSCAR
+              </button>
+            </div>
+            <div class="col-md-3">
+              <button id="btn-ver-validados" class="btn btn-infoBuscar" style="width:100%" disabled>
+                <i class="fa fa-check-square-o"></i> VER DOCUMENTOS VALIDADOS
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="row">
-      <div class="col-md-12">
+  </div>
+
+  <div class="row">
+    <!-- SIDEBAR TABS -->
+    <div class="col-md-2">
+      <div class="tabs" data-js-tabs="" style="flex-direction: column; overflow-y: auto; height: 100%; display: block;">
+              <div><a data-js-tab="#pant_estado_contable" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">ESTADO CONTABLE</a></div>
+  
+      <div><a data-js-tab="#pant_iva" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">IVA</a></div>
+        <div><a data-js-tab="#pant_iibb" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">IIBB</a></div>
+        <div><a data-js-tab="#pant_drei" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">DREI</a></div>
+        <div><a data-js-tab="#pant_inmobiliario" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">IMP. INMOBILIARIO</a></div>
+        <div><a data-js-tab="#pant_tgi" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">TGI</a></div>
+        <div><a data-js-tab="#pant_imp_ap_mtm" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">IMP. APUESTAS MTM</a></div>
+        <div><a data-js-tab="#pant_imp_ap_ol" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">IMP. APUESTAS ONLINE</a></div>
+        <div><a data-js-tab="#pant_ganancias" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">GANANCIAS</a></div>
+        <div><a data-js-tab="#pant_patentes" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">PATENTES</a></div>
+        @if($rosario)
+          <div><a data-js-tab="#pant_contrib_ente" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">CONTRIB. ENTE (ROS)</a></div>
+          <div><a data-js-tab="#pant_derecho" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">DER. ACCESO (ROS)</a></div>
+        @endif
+        <div><a data-js-tab="#pant_deuda" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">DEUDA ESTADO</a></div>
+        <div><a data-js-tab="#pant_direct" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">AUT. DIRECTORES</a></div>
+        <div><a data-js-tab="#pant_premios_mtm" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">REGISTROS CONTABLES Y PREMIOS</a></div>
+        <!--
+        <div><a data-js-tab="#pant_promo_tickets" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">PROMO TICKETS</a></div>
+        <div><a data-js-tab="#pant_pozos_acumulados" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">POZOS ACUMULADOS</a></div>
+        <div><a data-js-tab="#pant_jackpots_pagados" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">JACKPOTS PAGADOS</a></div>
+        <div><a data-js-tab="#pant_premios_pagados" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">PREMIOS PAGADOS</a></div>
+        <div><a data-js-tab="#pant_pagos_mayores_mesas" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">PAGOS MESAS DE PAÑO</a></div>
+        <div><a data-js-tab="#pant_registros" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">REGISTROS CONTABLES</a></div>
+        -->
+        <div><a data-js-tab="#pant_aportes" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">APORTES PATRONALES</a></div>
+        <div><a data-js-tab="#pant_rrhh" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">RRHH</a></div>
+        <div><a data-js-tab="#pant_oper" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">REPORTE LAVADO</a></div>
+        <div><a data-js-tab="#pant_seguros" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">SEGUROS</a></div>
+        <div id="div_tab_validados" hidden><a data-js-tab="#pant_validados" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">VALIDADOS</a></div>
+      </div>
+    </div>
+
+    <!-- CONTENT AREA -->
+    <div class="col-md-10">
+      <div id="pant_iva" hidden>
+        <div class="row">
+          <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="iva_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="iva_nuevo">NUEVO PAGO DE IVA</button>
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE IVA EN EL SISTEMA</h4>
           </div>
@@ -217,12 +204,11 @@
             <table id="tablaResultadosIVA" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-1" estado="">MES</th>
-                  <th class="col-xs-2" estado="">FECHA PRESENTACIÓN DE LA DECLARACIÓN JURADA</th>
-                  <th class="col-xs-1" estado="">CASINO</th>
-                  <th class="col-xs-3" estado="">SALDO A FAVOR ARCA/CONTRIBUYENTE</th>
-                  <th class="col-xs-3" estado="">OBSERVACIÓN</th>
-                  <th class="col-xs-1" estado="">ACCIÓN</th>
+                  <th class="col-xs-2" style="text-align: left !important;" value="fecha_iva" estado="">MES <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-3" style="text-align: left !important;" value="fecha_pres_iva" estado="">FECHA PRESENTACIÓN <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-2" style="text-align: left !important;" value="casino.nombre" estado="">CASINO <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-2" style="text-align: left !important;" value="iva.saldo" estado="">SALDO <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-3" style="text-align: left !important;">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaIVA" style="max-height: 356px;">
@@ -245,63 +231,615 @@
       </div>
     </div>
 
+
+
+
   </div>
 
-  <div id="pant_iibb" hidden>
-    <div class="row">
-      <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosiibb" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosiibb" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoiibb">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>FECHA MES DESDE</h5>
-                  <div name="DFechaiibbDesde" class='input-group date' id='fechaiibbDescDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_iibbDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_iibbDesde" autocomplete="off" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>FECHA MES HASTA</h5>
-                  <div name="DFechaiibbHasta" class='input-group date' id='fechaiibbDescHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_iibbHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_iibbHasta" autocomplete="off" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscariibb" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
+  <div id="pant_estado_contable" hidden>
     <div class="row">
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="iibb_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="estado_contable_nuevo">NUEVO REGISTRO</button>
+            <br/><br/>
+            <h4>ÚLTIMOS REGISTROS DE ESTADO CONTABLE EN EL SISTEMA</h4>
+          </div>
+          <div class="panel-body">
+            <table id="tablaResultadosEstadoContable" class="table table-fixed">
+              <thead>
+                <tr>
+                  <th class="col-xs-4" value="fecha_EstadoContable" estado="">FECHA <i class="fa"></i></th>
+                  <th class="col-xs-4" value="casino.nombre" estado="">CASINO <i class="fa"></i></th>
+                  <th class="col-xs-4">ACCIÓN</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpoTablaEstadoContable" style="max-height: 356px;">
+              </tbody>
+            </table>
+            <div id="herramientasPaginacionEstadoContable" class="row zonaPaginacion"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- MODALES ESTADO CONTABLE -->
+    <div class="modal fade" id="modalCargarEstadoContable" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog" style="width: 70%;">
+             <div class="modal-content">
+               <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                 <button id="btn-minimizarEstadoContable" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoEstadoContable" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                 <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO ESTADO CONTABLE</h3>
+                </div>
+                <!-- TODO: Add missing custom inputs based on specific schema request -->
+                <div id="colapsadoEstadoContable" class="collapse in">
+                  <div class="modal-body modalCuerpo">
+                    <form id="frmEstadoContable" name="frmEstadoContable" class="form-horizontal" novalidate="">
+                            <div class="row">
+                              <div class="col-md-6">
+                                <h5>CASINO</h5>
+                                <select class="form-control" id="casinoEstadoContable" name="casinoEstadoContable">
+                                  <option value="0" selected="-">- Seleccione Casino -</option>
+                                  @foreach ($casinos as $cas)
+                                    <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
+                                  @endforeach
+                                </select>
+                              </div>
+                              <div class="col-md-6">
+                                <h5>FECHA</h5>
+                                <!-- Formato de MES-AÑO -->
+                                <div class='input-group date' id='dtpFechaEstadoContable' data-link-field="fecha_EstadoContable" data-date-format="yyyy-MM" data-link-format="yyyy-mm-dd">
+                                  <input type='text' class="form-control" id="inputFechaEstadoContable" value=""/>
+                                  <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                  <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                </div>
+                                <input type="hidden" id="fecha_EstadoContable" value=""/>
+                              </div>
+                            </div>
+                            
+                            <br>
+                            <hr>
+                            <h4 style="color:#000;">DATOS DEL REPORTE</h4>
+                            <style>
+                              .table-ec { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                              .table-ec th, .table-ec td { border: 1px solid #ccc; padding: 6px 8px; vertical-align: middle; }
+                              .table-ec th { text-align: center; background-color: #f9f9f9; }
+                              .table-ec .total-row { font-weight: bold; background-color: #f5f5f5; }
+                              .table-ec input { width: 100%; text-align: right; }
+                              .table-ec .bg-tot-activo { background-color: #e1f5fe; }
+                              .table-ec .bg-tot-pasivo { background-color: #ffcdd2; }
+                              .table-ec .bg-patrimonio { background-color: #c8e6c9; }
+                              .table-ec .bg-gb { background-color: #f5f5f5; font-weight: bold; }
+                              .table-ec .bg-ge { background-color: #e1bee7; }
+                              .table-ec .bg-gere { background-color: #ffcdd2; }
+                            </style>
+                            <table class="table-ec">
+                              <thead>
+                                <tr>
+                                  <th colspan="2" style="border:none;"></th>
+                                  <th class="ec-anio-actual" style="font-size: 1.1em; border: 2px dashed #000; border-bottom: none; width: 25%;">202X</th>
+                                  <th class="ec-anio-anterior" style="font-size: 1.1em; border: 2px dashed #000; border-bottom: none; border-left: none; width: 25%;">202X Reexpresado</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <!-- Estado de Situacion Patrimonial -->
+                                <tr>
+                                  <td rowspan="7" style="text-align: center; font-weight: bold; width: 15%;">Estado de<br>Situacion<br>Patrimonial</td>
+                                  <td style="width: 35%;">Activo Corriente:</td>
+                                  <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="activo_corriente" name="activo_corriente" value=""></td>
+                                  <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="activo_corriente_reexpresado" name="activo_corriente_reexpresado" value=""></td>
+                                </tr>
+                                <tr>
+                                  <td>Activo No Corriente:</td>
+                                  <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="activo_nocorriente" name="activo_nocorriente" value=""></td>
+                                  <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="activo_nocorriente_reexpresado" name="activo_nocorriente_reexpresado" value=""></td>
+                                </tr>
+                                <tr class="total-row">
+                                  <td>Total Activo:</td>
+                                  <td class="bg-tot-activo" style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="total_activo" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                                  <td class="bg-tot-activo" style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="total_activo_reexpresado" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                                </tr>
+                                <tr>
+                                  <td>Pasivo Corriente:</td>
+                                  <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="pasivo_corriente" name="pasivo_corriente" value=""></td>
+                                  <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="pasivo_corriente_reexpresado" name="pasivo_corriente_reexpresado" value=""></td>
+                                </tr>
+                                <tr>
+                                  <td>Pasivo No Corriente:</td>
+                                  <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="pasivo_nocorriente" name="pasivo_nocorriente" value=""></td>
+                                  <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="pasivo_nocorriente_reexpresado" name="pasivo_nocorriente_reexpresado" value=""></td>
+                                </tr>
+                                <tr class="total-row">
+                                  <td>Total Pasivo:</td>
+                                  <td class="bg-tot-pasivo" style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="total_pasivo" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                                  <td class="bg-tot-pasivo" style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="total_pasivo_reexpresado" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                                </tr>
+                                <tr class="total-row">
+                                  <td>Patrimonio Neto:</td>
+                                  <td class="bg-patrimonio" style="border-left: 2px dashed #000; border-bottom: 2px dashed #000;"><input type="text" class="form-control" id="patrimonio_neto" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                                  <td class="bg-patrimonio" style="border-right: 2px dashed #000; border-bottom: 2px dashed #000;"><input type="text" class="form-control" id="patrimonio_neto_reexpresado" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                                </tr>
+                                <!-- Estado de Resultado -->
+                                <tr>
+                                  <td rowspan="9" style="text-align: center; font-weight: bold;">Estado de<br>Resultado</td>
+                                  <td>Ingresos</td>
+                                  <td style="border-left: 2px dashed #000; border-top: 2px dashed #000;"><input type="text" class="form-control" id="ingresos" name="ingresos" value=""></td>
+                                  <td style="border-right: 2px dashed #000; border-top: 2px dashed #000;"><input type="text" class="form-control" id="ingresos_reexpresado" name="ingresos_reexpresado" value=""></td>
+                                </tr>
+                                <tr>
+                                  <td>Costos</td>
+                                  <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="costos" name="costos" value=""></td>
+                                  <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="costos_reexpresado" name="costos_reexpresado" value=""></td>
+                                </tr>
+                                <tr class="total-row">
+                                  <td>Ganancia Bruta</td>
+                                  <td class="bg-gb" style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="ganancia_bruta" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                                  <td class="bg-gb" style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="ganancia_bruta_reexpresado" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                                </tr>
+                                <tr>
+                                  <td>Gastos comercialización</td>
+                                  <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="gastos_comercio" name="gastos_comercio" value=""></td>
+                                  <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="gastos_comercio_reexpresado" name="gastos_comercio_reexpresado" value=""></td>
+                                </tr>
+                                <tr>
+                                  <td>Gastos Administración</td>
+                                  <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="gastos_adm" name="gastos_adm" value=""></td>
+                                  <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="gastos_adm_reexpresado" name="gastos_adm_reexpresado" value=""></td>
+                                </tr>
+                                <tr>
+                                  <td>RECPAM</td>
+                                  <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="recpam" name="recpam" value=""></td>
+                                  <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="recpam_reexpresado" name="recpam_reexpresado" value=""></td>
+                                </tr>
+                                <tr>
+                                  <td>Otros</td>
+                                  <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="otros" name="otros" value=""></td>
+                                  <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="otros_reexpresado" name="otros_reexpresado" value=""></td>
+                                </tr>
+                                <tr>
+                                  <td>Impuesto a las ganancias</td>
+                                  <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="imp_ganancias" name="imp_ganancias" value=""></td>
+                                  <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="imp_ganancias_reexpresado" name="imp_ganancias_reexpresado" value=""></td>
+                                </tr>
+                                <tr class="total-row">
+                                  <td>Ganancia del Ejercicio:</td>
+                                  <td class="bg-ge" style="border-left: 2px dashed #000; border-bottom: 2px dashed #000;"><input type="text" class="form-control" id="ganancia_ejercicio" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                                  <td class="bg-gere" style="border-right: 2px dashed #000; border-bottom: 2px dashed #000;"><input type="text" class="form-control" id="ganancia_ejercicio_reexpresado" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                                </tr>
+                              </tbody>
+                            </table>
+                            
+                            <br>
+                            <h4 style="color:#000; text-transform: uppercase;">Variaciones Porcentuales</h4>
+                            <style>
+                              .table-vp { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.9em; }
+                              .table-vp th, .table-vp td { border: 1px solid #000; padding: 4px 6px; vertical-align: middle; }
+                              .table-vp th { text-align: center; font-weight: bold; background-color: #f8dbdb; border: 2px solid #000; font-size: 1.1em;}
+                              .table-vp .cat-header { color: red; text-align: center; }
+                              .table-vp .desc-col { color: red; text-align: center; font-weight: bold; }
+                              .table-vp input { width: 100%; text-align: right; border: none; background: transparent; }
+                            </style>
+                            <table class="table-vp">
+                              <thead>
+                                <tr>
+                                  <th colspan="2" style="background-color: #f28b82; color: #000;">VARIACIONES PORCENTUALES</th>
+                                  <th class="ec-anio-actual" style="width: 15%; background-color: #fff;">202X</th>
+                                  <th class="ec-anio-anterior" style="width: 15%; background-color: #fff;">202X Aj.</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td class="cat-header">Ratio de liquidez</td>
+                                  <td class="desc-col">Indice de liquidez corriente (solvencia) act corriente/pasivo corriente (margen positivo entre 1,5 y 2)
+                                    <i class="fa fa-exclamation-triangle text-danger"
+                                      data-toggle="popover"
+                                      data-html="true"
+                                      data-placement="right"
+                                      data-content="Es el índice que indica cómo una empresa puede hacer frente a sus deudas de corto plazo.
+                                        Evalúa  la  capacidad  de  la  empresa  para  cumplir  en  término  con  sus  compromisos financieros, deudas y pasivos de corto plazo. 
+                                        Si es menor al 100% quiere decir que la empresa no llega a cubrir las deudas de un periodo con sus activos del mismo periodo, es decir que tiene baja liquidez.">
+                                    </i>
+                                  </td>
+                                  <td><input type="text" id="vp_liquidez_corr" readonly></td>
+                                  <td><input type="text" id="vp_liquidez_corr_reexpresado" readonly style="color: red;"></td>
+                                </tr>
+                                <tr>
+                                  <td class="cat-header">Ratio de solvencia</td>
+                                  <td class="desc-col">Indice de solvencia (activo/pasivo) - (mayor a 1)</td>
+                                  <td><input type="text" id="vp_solvencia" readonly></td>
+                                  <td><input type="text" id="vp_solvencia_reexpresado" readonly style="color: red;"></td>
+                                </tr>
+                                <tr>
+                                  <td rowspan="4" class="cat-header">Ratio de Endeudamiento</td>
+                                  <td class="desc-col">Indice de endeudamiento (Pasivo/PN) - (aprox, 0,5)</td>
+                                  <td><input type="text" id="vp_endeudamiento" readonly></td>
+                                  <td><input type="text" id="vp_endeudamiento_reexpresado" readonly style="color: red;"></td>
+                                </tr>
+                                <tr>
+                                  <td class="desc-col">Relación porcentual entre Activo/Patrimonio Neto</td>
+                                  <td><input type="text" id="vp_activo_pn" readonly></td>
+                                  <td><input type="text" id="vp_activo_pn_reexpresado" readonly style="color: red;"></td>
+                                </tr>
+                                <tr>
+                                  <td class="desc-col">Relación porcentual entre Resultados/Patrimonio Neto</td>
+                                  <td><input type="text" id="vp_resultado_pn" readonly></td>
+                                  <td><input type="text" id="vp_resultado_pn_reexpresado" readonly style="color: red;"></td>
+                                </tr>
+                                <tr>
+                                  <td class="desc-col">Relacion porcentual entre Resultados/Pasivo</td>
+                                  <td><input type="text" id="vp_resultado_pasivo" readonly></td>
+                                  <td><input type="text" id="vp_resultado_pasivo_reexpresado" readonly style="color: red;"></td>
+                                </tr>
+                                <tr>
+                                  <td rowspan="3" class="cat-header">Ratios de Rentabilidad</td>
+                                  <td class="desc-col">Margen de Utilidad (Ut./Ventas)</td>
+                                  <td><input type="text" id="vp_margen_utilidad" readonly></td>
+                                  <td><input type="text" id="vp_margen_utilidad_reexpresado" readonly></td>
+                                </tr>
+                                <tr>
+                                  <td class="desc-col">ROE (Rentabilidad sobre patrimonio) - (Ut./PN)</td>
+                                  <td><input type="text" id="vp_roe" readonly></td>
+                                  <td><input type="text" id="vp_roe_reexpresado" readonly></td>
+                                </tr>
+                                <tr>
+                                  <td class="desc-col">ROA (Rentabilidad sobre activos) - (Ut./A)</td>
+                                  <td><input type="text" id="vp_roa" readonly></td>
+                                  <td><input type="text" id="vp_roa_reexpresado" readonly></td>
+                                </tr>
+                              </tbody>
+                            </table>
+
+                            <br>
+                            <style>
+                              .table-va { width: 50%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.9em; border: 2px solid #000; }
+                              .table-va th, .table-va td { border: 1px solid #000; padding: 4px 6px; font-weight: bold;}
+                              .table-va input { width: 100%; text-align: right; border: none; background: transparent; }
+                            </style>
+                            <table class="table-va">
+                              <tbody>
+                                <tr>
+                                  <td>Variacion anual del Activo</td>
+                                  <td><input type="text" id="va_activo" readonly></td>
+                                </tr>
+                                <tr>
+                                  <td>Variacion anual del Pasivo</td>
+                                  <td><input type="text" id="va_pasivo" readonly></td>
+                                </tr>
+                                <tr>
+                                  <td>Variacion anual del Patrimonio Neto</td>
+                                  <td><input type="text" id="va_patrimonio" readonly style="color: red;"></td>
+                                </tr>
+                                <tr>
+                                  <td>Variacion anual del Resultado</td>
+                                  <td><input type="text" id="va_resultado" readonly style="color: red;"></td>
+                                </tr>
+                              </tbody>
+                            </table>
+
+                            <br>
+                            <div class="row">
+                              <div class="col-md-3">
+                                <h5>Archivo</h5>
+                              </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group">
+                                <div class="input-group col-md-8">
+                                  <span class="input-group-btn">
+                                    <button class="btn btn-primary" type="button" id="btnPickEstadoContable">
+                                      <i class="fa fa-folder-open"></i> Examinar…
+                                    </button>
+                                  </span>
+                                  <input type="text" id="fileNameEstadoContable" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                  <input type="file" id="uploadEstadoContable" name="uploadEstadoContable[]" multiple style="display:none;">
+                                </div>
+
+                                <div class="table-responsive" id="uploadsEstadoContableWrap" style="margin-top:8px; display:none;">
+                                  <table class="table table-striped table-bordered table-condensed" id="uploadsEstadoContableTable">
+                                    <thead>
+                                      <tr>
+                                        <th style="width:48px;">#</th>
+                                        <th>Archivo</th>
+                                        <th style="width:200px;">Tamaño</th>
+                                        <th style="width:70px;">Acción</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                  </table>
+                                </div>
+                                <div id="uploadsEstadoContableContainer" style="display:none;"></div>
+                              </div>
+                            </div>
+
+                    </form>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-successAceptar" id="btn-guardarEstadoContable" value="nuevo">ACEPTAR</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+                    <input type="hidden" id="id_estado_contable" value="0">
+                  </div>
+                </div>
+              </div>
+            </div>
+      </div>
+
+    <div class="modal fade" id="modalVerEstadoContable" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+         <div class="modal-content">
+           <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+             <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+             <h3 class="modal-title" style="background-color: #6dc7be;">| EL ESTADO CONTABLE</h3>
+            </div>
+            <div class="modal-body modalCuerpo">
+              <div class="row">
+                <div class="col-md-6">
+                  <h5>CASINO</h5>
+                  <input type="text" class="form-control" id="v_casinoEstadoContable" readonly>
+                </div>
+                <div class="col-md-6">
+                  <h5>FECHA</h5>
+                  <input type='text' class="form-control" id="v_fechaEstadoContable" readonly/>
+                </div>
+              </div>
+              
+              <br>
+              <h4 style="color:#000;">DATOS DEL REPORTE</h4>
+              <table class="table-ec">
+                <thead>
+                  <tr>
+                    <th colspan="2" style="border:none;"></th>
+                    <th class="ec-anio-actual" style="font-size: 1.1em; border: 2px dashed #000; border-bottom: none; width:25%;">202X</th>
+                    <th class="ec-anio-anterior" style="font-size: 1.1em; border: 2px dashed #000; border-bottom: none; border-left: none; width:25%;">202X Reexpresado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Estado de Situacion Patrimonial -->
+                  <tr>
+                    <td rowspan="7" style="text-align: center; font-weight: bold; width: 15%;">Estado de<br>Situacion<br>Patrimonial</td>
+                    <td style="width: 35%;">Activo Corriente:</td>
+                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_activo_corriente" readonly></td>
+                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_activo_corriente_reexpresado" readonly></td>
+                  </tr>
+                  <tr>
+                    <td>Activo No Corriente:</td>
+                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_activo_nocorriente" readonly></td>
+                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_activo_nocorriente_reexpresado" readonly></td>
+                  </tr>
+                  <tr class="total-row">
+                    <td>Total Activo:</td>
+                    <td class="bg-tot-activo" style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_total_activo" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                    <td class="bg-tot-activo" style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_total_activo_reexpresado" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                  </tr>
+                  <tr>
+                    <td>Pasivo Corriente:</td>
+                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_pasivo_corriente" readonly></td>
+                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_pasivo_corriente_reexpresado" readonly></td>
+                  </tr>
+                  <tr>
+                    <td>Pasivo No Corriente:</td>
+                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_pasivo_nocorriente" readonly></td>
+                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_pasivo_nocorriente_reexpresado" readonly></td>
+                  </tr>
+                  <tr class="total-row">
+                    <td>Total Pasivo:</td>
+                    <td class="bg-tot-pasivo" style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_total_pasivo" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                    <td class="bg-tot-pasivo" style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_total_pasivo_reexpresado" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                  </tr>
+                  <tr class="total-row">
+                    <td>Patrimonio Neto:</td>
+                    <td class="bg-patrimonio" style="border-left: 2px dashed #000; border-bottom: 2px dashed #000;"><input type="text" class="form-control" id="v_patrimonio_neto" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                    <td class="bg-patrimonio" style="border-right: 2px dashed #000; border-bottom: 2px dashed #000;"><input type="text" class="form-control" id="v_patrimonio_neto_reexpresado" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                  </tr>
+                  <!-- Estado de Resultado -->
+                  <tr>
+                    <td rowspan="9" style="text-align: center; font-weight: bold;">Estado de<br>Resultado</td>
+                    <td>Ingresos</td>
+                    <td style="border-left: 2px dashed #000; border-top: 2px dashed #000;"><input type="text" class="form-control" id="v_ingresos" readonly></td>
+                    <td style="border-right: 2px dashed #000; border-top: 2px dashed #000;"><input type="text" class="form-control" id="v_ingresos_reexpresado" readonly></td>
+                  </tr>
+                  <tr>
+                    <td>Costos</td>
+                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_costos" readonly></td>
+                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_costos_reexpresado" readonly></td>
+                  </tr>
+                  <tr class="total-row">
+                    <td>Ganancia Bruta</td>
+                    <td class="bg-gb" style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_ganancia_bruta" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                    <td class="bg-gb" style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_ganancia_bruta_reexpresado" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                  </tr>
+                  <tr>
+                    <td>Gastos comercialización</td>
+                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_gastos_comercio" readonly></td>
+                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_gastos_comercio_reexpresado" readonly></td>
+                  </tr>
+                  <tr>
+                    <td>Gastos Administración</td>
+                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_gastos_adm" readonly></td>
+                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_gastos_adm_reexpresado" readonly></td>
+                  </tr>
+                  <tr>
+                    <td>RECPAM</td>
+                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_recpam" readonly></td>
+                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_recpam_reexpresado" readonly></td>
+                  </tr>
+                  <tr>
+                    <td>Otros</td>
+                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_otros" readonly></td>
+                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_otros_reexpresado" readonly></td>
+                  </tr>
+                  <tr>
+                    <td>Impuesto a las ganancias</td>
+                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_imp_ganancias" readonly></td>
+                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_imp_ganancias_reexpresado" readonly></td>
+                  </tr>
+                  <tr class="total-row">
+                    <td>Ganancia del Ejercicio:</td>
+                    <td class="bg-ge" style="border-left: 2px dashed #000; border-bottom: 2px dashed #000;"><input type="text" class="form-control" id="v_ganancia_ejercicio" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                    <td class="bg-gere" style="border-right: 2px dashed #000; border-bottom: 2px dashed #000;"><input type="text" class="form-control" id="v_ganancia_ejercicio_reexpresado" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <br>
+              <h4 style="color:#000; text-transform: uppercase;">Variaciones Porcentuales</h4>
+              <table class="table-vp">
+                <thead>
+                  <tr>
+                    <th colspan="2" style="background-color: #f28b82; color: #000;">VARIACIONES PORCENTUALES</th>
+                    <th class="ec-anio-actual" style="width: 15%; background-color: #fff;">202X</th>
+                    <th class="ec-anio-anterior" style="width: 15%; background-color: #fff;">202X Aj.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="cat-header">Ratio de liquidez</td>
+                    <td class="desc-col">Indice de liquidez corriente (solvencia) act corriente/pasivo corriente (margen positivo entre 1,5 y 2)</td>
+                    <td><input type="text" id="v_vp_liquidez_corr" readonly></td>
+                    <td><input type="text" id="v_vp_liquidez_corr_reexpresado" readonly style="color: red;"></td>
+                  </tr>
+                  <tr>
+                    <td class="cat-header">Ratio de solvencia</td>
+                    <td class="desc-col">Indice de solvencia (activo/pasivo) - (mayor a 1)</td>
+                    <td><input type="text" id="v_vp_solvencia" readonly></td>
+                    <td><input type="text" id="v_vp_solvencia_reexpresado" readonly style="color: red;"></td>
+                  </tr>
+                  <tr>
+                    <td rowspan="4" class="cat-header">Ratio de Endeudamiento</td>
+                    <td class="desc-col">Indice de endeudamiento (Pasivo/PN) - (aprox, 0,5)</td>
+                    <td><input type="text" id="v_vp_endeudamiento" readonly></td>
+                    <td><input type="text" id="v_vp_endeudamiento_reexpresado" readonly style="color: red;"></td>
+                  </tr>
+                  <tr>
+                    <td class="desc-col">Relación porcentual entre Activo/Patrimonio Neto</td>
+                    <td><input type="text" id="v_vp_activo_pn" readonly></td>
+                    <td><input type="text" id="v_vp_activo_pn_reexpresado" readonly style="color: red;"></td>
+                  </tr>
+                  <tr>
+                    <td class="desc-col">Relación porcentual entre Resultados/Patrimonio Neto</td>
+                    <td><input type="text" id="v_vp_resultado_pn" readonly></td>
+                    <td><input type="text" id="v_vp_resultado_pn_reexpresado" readonly style="color: red;"></td>
+                  </tr>
+                  <tr>
+                    <td class="desc-col">Relacion porcentual entre Resultados/Pasivo</td>
+                    <td><input type="text" id="v_vp_resultado_pasivo" readonly></td>
+                    <td><input type="text" id="v_vp_resultado_pasivo_reexpresado" readonly style="color: red;"></td>
+                  </tr>
+                  <tr>
+                    <td rowspan="3" class="cat-header">Ratios de Rentabilidad</td>
+                    <td class="desc-col">Margen de Utilidad (Ut./Ventas)</td>
+                    <td><input type="text" id="v_vp_margen_utilidad" readonly></td>
+                    <td><input type="text" id="v_vp_margen_utilidad_reexpresado" readonly></td>
+                  </tr>
+                  <tr>
+                    <td class="desc-col">ROE (Rentabilidad sobre patrimonio) - (Ut./PN)</td>
+                    <td><input type="text" id="v_vp_roe" readonly></td>
+                    <td><input type="text" id="v_vp_roe_reexpresado" readonly></td>
+                  </tr>
+                  <tr>
+                    <td class="desc-col">ROA (Rentabilidad sobre activos) - (Ut./A)</td>
+                    <td><input type="text" id="v_vp_roa" readonly></td>
+                    <td><input type="text" id="v_vp_roa_reexpresado" readonly></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <br>
+              <table class="table-va">
+                <tbody>
+                  <tr>
+                    <td>Variacion anual del Activo</td>
+                    <td><input type="text" id="v_va_activo" readonly></td>
+                  </tr>
+                  <tr>
+                    <td>Variacion anual del Pasivo</td>
+                    <td><input type="text" id="v_va_pasivo" readonly></td>
+                  </tr>
+                  <tr>
+                    <td>Variacion anual del Patrimonio Neto</td>
+                    <td><input type="text" id="v_va_patrimonio" readonly style="color: red;"></td>
+                  </tr>
+                  <tr>
+                    <td>Variacion anual del Resultado</td>
+                    <td><input type="text" id="v_va_resultado" readonly style="color: red;"></td>
+                  </tr>
+                </tbody>
+              </table>
+
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">CERRAR</button>
+            </div>
+          </div>
+        </div>
+    </div>
+
+
+    <!-- Modal Eliminar ESTADO CONTABLE-->
+    <div class="modal fade" id="modalEliminarEstadoContable" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                <h3 class="modal-titleEliminar">ADVERTENCIA</h3>
+              </div>
+
+              <div class="modal-body franjaRojaModal">
+                <form id="frmEliminarEstadoContable" name="frmEstadoContable" class="form-horizontal" novalidate="">
+                    <div class="form-group error ">
+                      <div class="col-xs-12">
+                          <strong id="titulo-modal-eliminarEstadoContable">¿Seguro desea eliminar el ESTADO CONTABLE?</strong>
+                      </div>
+                    </div>
+                </form>
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-dangerEliminar" id="btn-eliminarEstadoContable" value="0">ELIMINAR</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+              </div>
+          </div>
+        </div>
+    </div>
+
+  </div>
+
+
+    <!-- PANE VALIDADOS -->
+    <div id="pant_validados" hidden>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4>DOCUMENTOS VALIDADOS EN EL SISTEMA</h4>
+            </div>
+            <div class="panel-body">
+              <table id="tablaResultadosValidados" class="table table-fixed">
+                <thead>
+                  <tr>
+                    <th class="col-xs-4" style="text-align: left !important;" estado="">DOCUMENTO</th>
+                    <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                    <th class="col-xs-3" style="text-align: left !important;" estado="">AÑO</th>
+                    <th class="col-xs-2" style="text-align: left !important;" estado="">VALIDADO</th>
+                  </tr>
+                </thead>
+                <tbody id="cuerpoTablaValidados" style="max-height: 500px;">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  <div id="pant_iibb" hidden>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <button class="btn" type="button" id="iibb_nuevo">NUEVO PAGO DE IIBB</button>
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE IIBB EN EL SISTEMA</h4>
           </div>
@@ -309,10 +847,10 @@
             <table id="tablaResultadosiibb" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-3" estado="">MES</th>
-                  <th class="col-xs-3" estado="">FECHA PRESENTACIÓN</th>
-                  <th class="col-xs-3" estado="">CASINO</th>
-                  <th class="col-xs-3" estado="">ACCIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">FECHA PRESENTACIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-4" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaiibb" style="max-height: 356px;">
@@ -341,58 +879,11 @@
   <div id="pant_drei" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosDREI" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosDREI" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoDREI">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaDREIDesde" class='input-group date' id='fechaDREIDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_DREIDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_DREIDesde" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaDREIHasta" class='input-group date' id='fechaDREIHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_DREIHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_DREIHasta" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarDREI" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="DREI_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="DREI_nuevo">NUEVO PAGO DE DREI</button>
+            <!-- <button class="btn" type="button" id="DREI_nueva_partida">NUEVA PARTIDA</button> -->
+            <!-- <button class="btn" type="button" id="DREI_partida_gestionar">GESTIONAR PARTIDAS</button> -->
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE DReI EN EL SISTEMA</h4>
           </div>
@@ -400,15 +891,24 @@
             <table id="tablaResultadosDREI" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-3" estado="">MES</th>
-                  <th class="col-xs-3" estado="">FECHA PRESENTACIÓN</th>
-                  <th class="col-xs-3" estado="">CASINO</th>
-                  <th class="col-xs-3" estado="">ACCIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">FECHA PRESENTACIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaDREI" style="max-height: 356px;">
               </tbody>
             </table>
+            <script>
+              // AGGRESSIVE OVERRIDE
+              setInterval(function() {
+                $('#tablaResultadosiibb th, #tablaResultadosDREI th').css({
+                  'text-align': 'left',
+                  'padding-left': '0px'
+                });
+              }, 1000);
+            </script>
             <div class="col-md-12 text-center">
               <button id="btn-descargarDREIExcel" class="btn btn-infoBuscar">
                 <i class="fa fa-download"></i> .xlsx
@@ -428,58 +928,9 @@
   <div id="pant_tgi" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosTGI" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosTGI" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoTGI">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaTGIDesde" class='input-group date' id='fechaTGIDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_TGIDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_TGIDesde" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaTGIHasta" class='input-group date' id='fechaTGIHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_TGIHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_TGIHasta" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarTGI" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="TGI_nuevo">NUEVO PAGO TGI</button>
+            <button class="btn" type="button" id="TGI_nuevo">NUEVO PAGO DE TGI</button>
             <button class="btn" type="button" id="TGI_nueva_partida">NUEVA PARTIDA</button>
             <button class="btn" type="button" id="TGI_partida_gestionar">GESTIONAR PARTIDAS</button>
             <br/><br/>
@@ -489,9 +940,9 @@
             <table id="tablaResultadosTGI" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-4" estado="">MES</th>
-                  <th class="col-xs-4" estado="">CASINO</th>
-                  <th class="col-xs-4" estado="">ACCIÓN</th>
+                  <th class="col-xs-4" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-4" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-5" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaTGI" style="max-height: 356px;">
@@ -518,58 +969,9 @@
   <div id="pant_imp_ap_ol" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosIMP_AP_OL" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosIMP_AP_OL" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoIMP_AP_OL">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaIMP_AP_OLDesde" class='input-group date' id='fechaIMP_AP_OLDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_IMP_AP_OLDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_IMP_AP_OLDesde" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaIMP_AP_OLHasta" class='input-group date' id='fechaIMP_AP_OLHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_IMP_AP_OLHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_IMP_AP_OLHasta" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarIMP_AP_OL" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="IMP_AP_OL_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="IMP_AP_OL_nuevo">NUEVO PAGO DE IMP A APUESTAS ONLINE</button>
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE IMPUESTOS A LAS APUESTAS ONLINE EN EL SISTEMA</h4>
           </div>
@@ -577,11 +979,11 @@
             <table id="tablaResultadosIMP_AP_OL" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-2" estado="">MES</th>
-                  <th class="col-xs-3" estado="">FECHA PRESENTACIÓN DE LA DECLARACIÓN JURADA</th>
-                  <th class="col-xs-2" estado="">CASINO</th>
-                  <th class="col-xs-2" estado="">QNA</th>
-                  <th class="col-xs-2" estado="">ACCIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">FECHA PRESENTACIÓN</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">QNA</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaIMP_AP_OL" style="max-height: 356px;">
@@ -607,58 +1009,9 @@
   <div id="pant_imp_ap_mtm" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosIMP_AP_MTM" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosIMP_AP_MTM" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoIMP_AP_MTM">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaIMP_AP_MTMDesde" class='input-group date' id='fechaIMP_AP_MTMDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_IMP_AP_MTMDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_IMP_AP_MTMDesde" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaIMP_AP_MTMHasta" class='input-group date' id='fechaIMP_AP_MTMHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_IMP_AP_MTMHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_IMP_AP_MTMHasta" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarIMP_AP_MTM" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="IMP_AP_MTM_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="IMP_AP_MTM_nuevo">NUEVO PAGO DE IMP A APUESTAS MTM</button>
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE IMPUESTOS A LAS APUESTAS MTM EN EL SISTEMA</h4>
           </div>
@@ -666,11 +1019,11 @@
             <table id="tablaResultadosIMP_AP_MTM" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-2" estado="">MES</th>
-                  <th class="col-xs-3" estado="">FECHA PRESENTACIÓN DE LA DECLARACIÓN JURADA</th>
-                  <th class="col-xs-2" estado="">CASINO</th>
-                  <th class="col-xs-2" estado="">QNA</th>
-                  <th class="col-xs-2" estado="">ACCIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">FECHA PRESENTACIÓN</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">QNA</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaIMP_AP_MTM" style="max-height: 356px;">
@@ -697,58 +1050,9 @@
   <div id="pant_deuda" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosDeudaEstado" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosDeudaEstado" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoDeudaEstado">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaDeudaEstadoDesde" class='input-group date' id='fechaDeudaEstadoDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_DeudaEstadoDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_DeudaEstadoDesde" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaDeudaEstadoHasta" class='input-group date' id='fechaDeudaEstadoHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_DeudaEstadoHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_DeudaEstadoHasta" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarDeudaEstado" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="DeudaEstado_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="DeudaEstado_nuevo">NUEVO PAGO DE DEUDA </button>
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE DEUDA CONSOLIDADA CON EL ESTADO EN EL SISTEMA</h4>
           </div>
@@ -756,11 +1060,11 @@
             <table id="tablaResultadosDeudaEstado" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-2" estado="">MES</th>
-                  <th class="col-xs-3" estado="">FECHA DE CONSULTA</th>
-                  <th class="col-xs-2" estado="">CASINO</th>
-                  <th class="col-xs-2" estado="">INCUMPLIMIENTO</th>
-                  <th class="col-xs-2" estado="">ACCIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">FECHA DE CONSULTA</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">INCUMPLIMIENTO</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaDeudaEstado" style="max-height: 356px;">
@@ -787,58 +1091,9 @@
   <div id="pant_pagos_mesas" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosPagosMayoresMesas" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosPagosMayoresMesas" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoPagosMayoresMesas">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaPagosMayoresMesasDesde" class='input-group date' id='fechaPagosMayoresMesasDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_PagosMayoresMesasDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_PagosMayoresMesasDesde" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaPagosMayoresMesasHasta" class='input-group date' id='fechaPagosMayoresMesasHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_PagosMayoresMesasHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_PagosMayoresMesasHasta" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarPagosMayoresMesas" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="PagosMayoresMesas_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="PagosMayoresMesas_nuevo">NUEVO PAGO DE MAYOR A MESA DE PAÑO</button>
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE PAGOS MAYORES DE MESAS DE PAÑO EN EL SISTEMA</h4>
           </div>
@@ -846,9 +1101,9 @@
             <table id="tablaResultadosPagosMayoresMesas" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-5" estado="">MES</th>
-                  <th class="col-xs-5" estado="">CASINO</th>
-                  <th class="col-xs-1" estado="">ACCIÓN</th>
+                  <th class="col-xs-4" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-4" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-5" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaPagosMayoresMesas" style="max-height: 356px;">
@@ -875,58 +1130,9 @@
   <div id="pant_oper" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosReporteYLavado" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosReporteYLavado" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoReporteYLavado">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaReporteYLavadoDesde" class='input-group date' id='fechaReporteYLavadoDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_ReporteYLavadoDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_ReporteYLavadoDesde" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaReporteYLavadoHasta" class='input-group date' id='fechaReporteYLavadoHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_ReporteYLavadoHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_ReporteYLavadoHasta" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarReporteYLavado" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="ReporteYLavado_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="ReporteYLavado_nuevo">NUEVO PAGO DE REPORTE DE LAVADO</button>
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE REPORTES DE OPERACIONES Y LAVADO DE ACTIVOS EN EL SISTEMA</h4>
           </div>
@@ -934,11 +1140,11 @@
             <table id="tablaResultadosReporteYLavado" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-2" estado="">MES</th>
-                  <th class="col-xs-2" estado="">CASINO</th>
-                  <th class="col-xs-3" estado="">REPORTE SISTEMATICO</th>
-                  <th class="col-xs-3" estado="">REPORTE DE OPERACIONES</th>
-                  <th class="col-xs-1" estado="">ACCIÓN</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">REPORTE SISTEMATICO</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">REPORTE DE OPERACIONES</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaReporteYLavado" style="max-height: 356px;">
@@ -963,60 +1169,12 @@
   </div>
 
   <div id="pant_registros" hidden>
-    <div class="row">
-      <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosRegistrosContables" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosRegistrosContables" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoRegistrosContables">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaRegistrosContablesDesde" class='input-group date' id='fechaRegistrosContablesDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_RegistrosContablesDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_RegistrosContablesDesde" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaRegistrosContablesHasta" class='input-group date' id='fechaRegistrosContablesHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_RegistrosContablesHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_RegistrosContablesHasta" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarRegistrosContables" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
+    
     <div class="row">
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="RegistrosContables_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="RegistrosContables_nuevo">NUEVO REGISTRO CONTABLE</button>
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE REGISTROS CONTABLES EN EL SISTEMA</h4>
           </div>
@@ -1028,7 +1186,7 @@
                   <th class="col-xs-2" estado="">CASINO</th>
                   <th class="col-xs-3" estado="">TOTAL PESOS</th>
                   <th class="col-xs-3" estado="">TOTAL DÓLARES</th>
-                  <th class="col-xs-1" estado="">ACCIÓN</th>
+                  <th class="col-xs-4" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaRegistrosContables" style="max-height: 356px;">
@@ -1055,58 +1213,9 @@
   <div id="pant_aportes" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosAportesPatronales" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosAportesPatronales" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoAportesPatronales">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaAportesPatronalesDesde" class='input-group date' id='fechaAportesPatronalesDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_AportesPatronalesDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_AportesPatronalesDesde" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaAportesPatronalesHasta" class='input-group date' id='fechaAportesPatronalesHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_AportesPatronalesHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_AportesPatronalesHasta" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarAportesPatronales" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="AportesPatronales_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="AportesPatronales_nuevo">NUEVO APORTE PATRONAL</button>
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE APORTES PATRONALES EN EL SISTEMA</h4>
           </div>
@@ -1143,58 +1252,9 @@
   <div id="pant_promoticket" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosPromoTickets" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosPromoTickets" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoPromoTickets">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaPromoTicketsDesde" class='input-group date' id='fechaPromoTicketsDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_PromoTicketsDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_PromoTicketsDesde" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaPromoTicketsHasta" class='input-group date' id='fechaPromoTicketsHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_PromoTicketsHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_PromoTicketsHasta" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarPromoTickets" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="PromoTickets_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="PromoTickets_nuevo">NUEVO PROMO TICKET</button>
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE PROMO TICKETS EN EL SISTEMA</h4>
           </div>
@@ -1202,11 +1262,11 @@
             <table id="tablaResultadosPromoTickets" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-2" estado="">MES</th>
-                  <th class="col-xs-2" estado="">CASINO</th>
-                  <th class="col-xs-3" estado="">CANTIDAD</th>
-                  <th class="col-xs-3" estado="">IMPORTE</th>
-                  <th class="col-xs-2" estado="">ACCIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">CANTIDAD</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">IMPORTE</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaPromoTickets" style="max-height: 356px;">
@@ -1233,58 +1293,9 @@
   <div id="pant_pozos_acumulados" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosPozosAcumuladosLinkeados" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosPozosAcumuladosLinkeados" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoPozosAcumuladosLinkeados">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaPozosAcumuladosLinkeadosDesde" class='input-group date' id='fechaPozosAcumuladosLinkeadosDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_PozosAcumuladosLinkeadosDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_PozosAcumuladosLinkeadosDesde" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaPozosAcumuladosLinkeadosHasta" class='input-group date' id='fechaPozosAcumuladosLinkeadosHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_PozosAcumuladosLinkeadosHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_PozosAcumuladosLinkeadosHasta" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarPozosAcumuladosLinkeados" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="PozosAcumuladosLinkeados_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="PozosAcumuladosLinkeados_nuevo">NUEVO POZO ACUMULADO</button>
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE POZOS ACUMULADOS LINKEADOS E INDIVIDUALES EN EL SISTEMA</h4>
           </div>
@@ -1292,10 +1303,10 @@
             <table id="tablaResultadosPozosAcumuladosLinkeados" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-2" estado="">MES</th>
-                  <th class="col-xs-2" estado="">CASINO</th>
-                  <th class="col-xs-5" estado="">IMPORTE AL ULT. DIA DE CADA MES</th>
-                  <th class="col-xs-2" estado="">ACCIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">IMPORTE AL ULT. DIA DE CADA MES</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaPozosAcumuladosLinkeados" style="max-height: 356px;">
@@ -1321,49 +1332,9 @@
   <div id="pant_contrib_ente" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosContribEnteTuristico" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosContribEnteTuristico" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaContribEnteTuristicoDesde" class='input-group date' id='fechaContribEnteTuristicoDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_ContribEnteTuristicoDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_ContribEnteTuristicoDesde" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaContribEnteTuristicoHasta" class='input-group date' id='fechaContribEnteTuristicoHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_ContribEnteTuristicoHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_ContribEnteTuristicoHasta" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarContribEnteTuristico" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="ContribEnteTuristico_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="ContribEnteTuristico_nuevo">NUEVO CONTRIBUCIÓN ENTE TURÍSTICO</button>
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE CONTRIBUCIÓN ENTE TURÍSTICO EN EL SISTEMA</h4>
           </div>
@@ -1371,10 +1342,10 @@
             <table id="tablaResultadosContribEnteTuristico" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-3" estado="">MES</th>
-                  <th class="col-xs-3" estado="">FECHA PRESENTACIÓN DE LA DECLARACIÓN JURADA</th>
-                  <th class="col-xs-3" estado="">MONTO PAGADO</th>
-                  <th class="col-xs-2" estado="">ACCIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">FECHA PRESENTACIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">MONTO PAGADO</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaContribEnteTuristico" style="max-height: 356px;">
@@ -1401,58 +1372,9 @@
   <div id="pant_rrhh" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosRRHH" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosRRHH" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoRRHH">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaRRHHDesde" class='input-group date' id='fechaRRHHDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_RRHHDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_RRHHDesde" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaRRHHHasta" class='input-group date' id='fechaRRHHHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_RRHHHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_RRHHHasta" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarRRHH" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="RRHH_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="RRHH_nuevo">NUEVO RECURSOS HUMANOS</button>
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE RECURSOS HUMANOS EN EL SISTEMA</h4>
           </div>
@@ -1460,12 +1382,12 @@
             <table id="tablaResultadosRRHH" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-2" estado="">MES</th>
-                  <th class="col-xs-2" estado="">CASINO</th>
-                  <th class="col-xs-2" estado="">TOTAL PERSONAL</th>
-                  <th class="col-xs-3" estado="">PORCENTAJE VIVIENDO EN SANTA FE</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">TOTAL PERSONAL</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">PORCENTAJE VIVIENDO EN SANTA FE</th>
 
-                  <th class="col-xs-2" estado="">ACCIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaRRHH" style="max-height: 356px;">
@@ -1491,55 +1413,6 @@
 
   <div id="pant_ganancias" hidden>
     <div class="row">
-      <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosGanancias" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosGanancias" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoGanancias">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha período desde</h5>
-                  <div name="FFechaGananciasDesde" class='input-group date' id='fechaGananciasDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input maxlength="4" name="fecha_GananciasDesde" type='text' class="form-control" placeholder="yyyy" id="fecha_GananciasDesde" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha PERÍODO hasta</h5>
-                  <div name="FFechaGananciasHasta" class='input-group date' id='fechaGananciasHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input maxlength="4" name="fecha_GananciasHasta" type='text' class="form-control" placeholder="yyyy" id="fecha_GananciasHasta" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarGanancias" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR ANTICIPOS
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
       <div class="col-md-6">
         <div class="panel panel-default">
           <div class="panel-heading">
@@ -1556,7 +1429,7 @@
                   <th class="col-xs-3" estado="">ANTICIPO</th>
 
                   <th class="col-xs-3" estado="">CASINO</th>
-                  <th class="col-xs-3" estado="">ACCIÓN</th>
+                  <th class="col-xs-4" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaGanancias" style="max-height: 356px;">
@@ -1580,7 +1453,7 @@
       <div class="col-md-6">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="Ganancias_periodo_nuevo">NUEVO PERÍODO(ver nombre)</button>
+            <button class="btn" type="button" id="Ganancias_periodo_nuevo">NUEVO PERÍODO</button>
 
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE PERÍODOS FISCALES EN EL SISTEMA</h4>
@@ -1589,9 +1462,9 @@
             <table id="tablaResultadosGanancias_periodo" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-4" estado="">PERÍODO</th>
-                  <th class="col-xs-4" estado="">CASINO</th>
-                  <th class="col-xs-4" estado="">ACCIÓN</th>
+                  <th class="col-xs-4" style="text-align: left !important;" estado="">PERÍODO</th>
+                  <th class="col-xs-4" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-4" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaGanancias_periodo" style="max-height: 356px;">
@@ -1615,58 +1488,9 @@
   <div id="pant_jackpots_pagados" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosJackpotsPagados" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosJackpotsPagados" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoJackpotsPagados">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaJackpotsPagadosDesde" class='input-group date' id='fechaJackpotsPagadosDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_JackpotsPagadosDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_JackpotsPagadosDesde" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaJackpotsPagadosHasta" class='input-group date' id='fechaJackpotsPagadosHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_JackpotsPagadosHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_JackpotsPagadosHasta" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarJackpotsPagados" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="JackpotsPagados_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="JackpotsPagados_nuevo">NUEVO JACKPOT PAGADO</button>
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE JACKPOTS PAGADOS EN EL SISTEMA</h4>
           </div>
@@ -1674,10 +1498,10 @@
             <table id="tablaResultadosJackpotsPagados" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-3" estado="">MES</th>
-                  <th class="col-xs-3" estado="">CASINO</th>
-                  <th class="col-xs-3" estado="">IMPORTE</th>
-                  <th class="col-xs-3" estado="">ACCIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">IMPORTE</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaJackpotsPagados" style="max-height: 356px;">
@@ -1704,60 +1528,11 @@
   <div id="pant_premios_pagados" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosPremiosPagados" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosPremiosPagados" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoPremiosPagados">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaPremiosPagadosDesde" class='input-group date' id='fechaPremiosPagadosDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_PremiosPagadosDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_PremiosPagadosDesde" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaPremiosPagadosHasta" class='input-group date' id='fechaPremiosPagadosHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_PremiosPagadosHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_PremiosPagadosHasta" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarPremiosPagados" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="PremiosPagados_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="PremiosPagados_nuevo">NUEVO PREMIO PAGADO</button>
             <br/><br/>
-            <h4>ÚLTIMOS REGISTROS DE PREMIOS PAGADOS EN EL SISTEMA</h4>
+            <h4>ÚLTIMOS REGISTROS DE REGISTROS CONTABLES Y PREMIOS EN EL SISTEMA</h4>
           </div>
           <div class="panel-body">
             <table id="tablaResultadosPremiosPagados" class="table table-fixed">
@@ -1767,7 +1542,7 @@
                   <th class="col-xs-2" estado="">CASINO</th>
                   <th class="col-xs-3" estado="">CANTIDAD</th>
                   <th class="col-xs-3" estado="">IMPORTE</th>
-                  <th class="col-xs-2" estado="">ACCIÓN</th>
+                  <th class="col-xs-4" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaPremiosPagados" style="max-height: 356px;">
@@ -1791,72 +1566,22 @@
   </div>
 
   <div id="pant_premios_mtm" hidden>
-    <div class="row">
-      <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosPremiosMTM" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosPremiosMTM" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoPremiosMTM">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaPremiosMTMDesde" class='input-group date' id='fechaPremiosMTMDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_PremiosMTMDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_PremiosMTMDesde" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaPremiosMTMHasta" class='input-group date' id='fechaPremiosMTMHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_PremiosMTMHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_PremiosMTMHasta" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarPremiosMTM" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
+    
     <div class="row">
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="PremiosMTM_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="PremiosMTM_nuevo">NUEVO REGISTRO</button>
             <br/><br/>
-            <h4>ÚLTIMOS REGISTROS DE PREMIOS MTM EN EL SISTEMA</h4>
+            <h4>ÚLTIMOS REGISTROS DE REGISTROS CONTABLES Y PREMIOS EN EL SISTEMA</h4>
           </div>
           <div class="panel-body">
             <table id="tablaResultadosPremiosMTM" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-2" estado="">MES</th>
-                  <th class="col-xs-2" estado="">CASINO</th>
-                  <th class="col-xs-3" estado="">TOTAL</th>
-                  <th class="col-xs-3" estado="">TOTAL USD</th>
-                  <th class="col-xs-2" estado="">ACCIÓN</th>
+                  <th class="col-xs-5" style="text-align: left !important;">MES</th>
+                  <th class="col-xs-5" style="text-align: left !important;">CASINO</th>
+                  <th class="col-xs-3" style="text-align: left !important;">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaPremiosMTM" style="max-height: 356px;">
@@ -1883,58 +1608,9 @@
   <div id="pant_direct" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosAutDirectores" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosAutDirectores" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoAutDirectores">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaAutDirectoresDesde" class='input-group date' id='fechaAutDirectoresDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_AutDirectoresDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_AutDirectoresDesde" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaAutDirectoresHasta" class='input-group date' id='fechaAutDirectoresHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_AutDirectoresHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_AutDirectoresHasta" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarAutDirectores" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="AutDirectores_nuevo_autorizacion">NUEVA AUTORIZACIÓN</button>
+            <button class="btn" type="button" id="AutDirectores_nuevo_autorizacion">NUEVO AUTÓNOMO</button>
             <button class="btn" type="button" id="AutDirectores_nuevo_director">NUEVO DIRECTOR</button>
             <button class="btn" type="button" id="AutDirectores_gestionar_directores">GESTIONAR DIRECTORES</button>
 
@@ -1946,9 +1622,9 @@
             <table id="tablaResultadosAutDirectores" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-4" estado="">MES</th>
-                  <th class="col-xs-4" estado="">CASINO</th>
-                  <th class="col-xs-4" estado="">ACCIÓN</th>
+                  <th class="col-xs-4" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-4" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-4" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaAutDirectores" style="max-height: 356px;">
@@ -1974,55 +1650,6 @@
   <div id="pant_seguros" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosSeguros" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosSeguros" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoSeguros">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha período desde</h5>
-                  <div name="FFechaSegurosDesde" class='input-group date' id='fechaSegurosDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_SegurosDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_SegurosDesde" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha período hasta</h5>
-                  <div name="FFechaSegurosHasta" class='input-group date' id='fechaSegurosHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_SegurosHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_SegurosHasta" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarSeguros" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
             <button class="btn" type="button" id="Seguros_nuevo">NUEVO PAGO DE SEGURO</button>
@@ -2037,12 +1664,12 @@
             <table id="tablaResultadosSeguros" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-2" estado="">PERIODO DESDE</th>
-                  <th class="col-xs-2" estado="">PERIODO HASTA</th>
-                  <th class="col-xs-4" estado="">TIPO DE SEGURO</th>
-                  <th class="col-xs-1" estado="">CASINO</th>
-                  <th class="col-xs-1" estado="">ESTADO</th>
-                  <th class="col-xs-2" estado="">ACCIÓN</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">PERIODO DESDE</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">PERIODO HASTA</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">TIPO DE SEGURO</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">ESTADO</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaSeguros" style="max-height: 356px;">
@@ -2069,49 +1696,9 @@
   <div id="pant_derecho" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosDerechoAcceso" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosDerechoAcceso" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Fecha mes desde</h5>
-                  <div name="FFechaDerechoAccesoDesde" class='input-group date' id='fechaDerechoAccesoDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_DerechoAccesoDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_DerechoAccesoDesde" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha mes hasta</h5>
-                  <div name="FFechaDerechoAccesoHasta" class='input-group date' id='fechaDerechoAccesoHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_DerechoAccesoHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_DerechoAccesoHasta" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarDerechoAcceso" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="DerechoAcceso_nuevo">NUEVO</button>
+            <button class="btn" type="button" id="DerechoAcceso_nuevo">NUEVO DERECHO DE ACCESO</button>
             <br/><br/>
             <h4>ÚLTIMOS REGISTROS DE DERECHOS DE ACCESO</h4>
           </div>
@@ -2119,12 +1706,12 @@
             <table id="tablaResultadosDerechoAcceso" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-1" estado="">MES</th>
-                  <th class="col-xs-1" estado="">SEMANA</th>
-                  <th class="col-xs-2" estado="">FECHA VENC.</th>
-                  <th class="col-xs-2" estado="">MONTO</th>
-                  <th class="col-xs-4" estado="">OBSERVACIONES</th>
-                  <th class="col-xs-2" estado="">ACCIÓN</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">SEMANA</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">FECHA VENC.</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">MONTO</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">OBSERVACIONES</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaDerechoAcceso" style="max-height: 356px;">
@@ -2151,55 +1738,6 @@
   <div id="pant_patentes" hidden>
     <div class="row">
       <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosPatentes" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosPatentes" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoPatentes">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha periodo desde</h5>
-                  <div name="FFechaPatentesDesde" class='input-group date' id='fechaPatentesDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_PatentesDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_PatentesDesde" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha periodo hasta</h5>
-                  <div name="FFechaPatentesHasta" class='input-group date' id='fechaPatentesHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_PatentesHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_PatentesHasta" style="background-color: rgb(255,255,255);" />
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarPatentes" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
-    <div class="row">
-      <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
             <button class="btn" type="button" id="Patentes_nuevo">NUEVO PAGO DE PATENTES</button>
@@ -2214,11 +1752,9 @@
             <table id="tablaResultadosPatentes" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-2" estado="">PERÍODO</th>
-                  <th class="col-xs-1" estado="">CUOTA</th>
-                  <th class="col-xs-1" estado="">CASINO</th>
-                  <th class="col-xs-6" estado="">ELEMENTO PATENTABLE</th>
-                  <th class="col-xs-2" estado="">ACCIÓN</th>
+                  <th class="col-xs-6" estado="">PERÍODO</th>
+                  <th class="col-xs-4" estado="">CASINO</th>
+                  <th class="col-xs-4" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaPatentes" style="max-height: 356px;">
@@ -2242,55 +1778,7 @@
   </div>
 
   <div id="pant_inmobiliario" hidden>
-    <div class="row">
-      <div class="col-md-12">
-        <!-- FILTROS -->
-        <div class="panel panel-default">
-          <div class="panel-heading" data-toggle="collapse" href="#collapseFiltrosImpInmobiliario" style="cursor: pointer">
-            <h4>Filtros de búsqueda <i class="fa fa-fw fa-angle-down"></i></h4>
-          </div>
-          <div id="collapseFiltrosImpInmobiliario" class="panel-collapse collapse">
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-lg-3">
-                  <h5>Casino</h5>
-                  <select class="form-control" id="FCasinoImpInmobiliario">
-                    <option value="">Todos los casinos</option>
-                    @foreach($casinos as $c)
-                      <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha período desde</h5>
-                  <div name="FFechaImpInmobiliarioDesde" class='input-group date' id='fechaImpInmobiliarioDesde' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_ImpInmobiliarioDesde" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_ImpInmobiliarioDesde" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-                <div class="col-lg-3">
-                  <h5>Fecha período hasta</h5>
-                  <div name="FFechaImpInmobiliarioHasta" class='input-group date' id='fechaImpInmobiliarioHasta' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                      <input name="fecha_ImpInmobiliarioHasta" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_ImpInmobiliarioHasta" style="background-color: rgb(255,255,255);"/>
-                      <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                      <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <button id="btn-buscarImpInmobiliario" class="btn btn-infoBuscar">
-                    <i class="fa fa-search"></i> BUSCAR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> <!-- .col-md-12 -->
-      </div> <!-- .row / FILTROS -->
-    </div>
+    
     <div class="row">
       <div class="col-md-12">
         <div class="panel panel-default">
@@ -2309,7 +1797,7 @@
                 <tr>
                   <th class="col-xs-4" estado="">PERÍODO</th>
                   <th class="col-xs-4" estado="">CASINO</th>
-                  <th class="col-xs-4" estado="">ACCIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
               <tbody id="cuerpoTablaImpInmobiliario" style="max-height: 356px;">
@@ -2331,7 +1819,10 @@
       </div>
     </div>
 
-  </div>
+  </div> <!-- close pant_inmobiliario -->
+
+    </div> <!-- Close col-md-10 -->
+  </div> <!-- Close row sidebar+content -->
 
   <!--*************MODALES ********************-->
 
@@ -2387,10 +1878,10 @@
 <div class="modal fade" id="modalCargarIva" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog" style="width:71%">
          <div class="modal-content">
-           <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+           <div class="modal-header modalNuevo" style="background-color: #00695c;">
              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
              <button id="btn-minimizarCrearIva" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearIva" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-             <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE IVA</h3>
+             <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE IVA</h3>
             </div>
 
             <div  id="colapsadoCrearIva" class="collapse in">
@@ -2496,10 +1987,10 @@
 <div class="modal fade" id="modalObsIva" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog" style="width:50%">
          <div class="modal-content">
-           <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+           <div class="modal-header modalNuevo" style="background-color: #00695c;">
              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
              <button id="btn-minimizarObsIva" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoObsIva" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-             <h3 class="modal-title" style="background-color: #6dc7be;">| OBSERVACIÓN DEL REGISTRO DE IVA</h3>
+             <h3 class="modal-title" style="background-color: #00695c;">| OBSERVACIÓN DEL REGISTRO DE IVA</h3>
             </div>
 
             <div  id="colapsadoObsIva" class="collapse in">
@@ -2550,14 +2041,61 @@
     </div>
 </div>
 
+<!-- MODAL VER IVA -->
+<div class="modal fade" id="modalVerIva" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog" style="width:50%">
+    <div class="modal-content">
+      <div class="modal-header modalNuevo" style="background-color: #00695c;">
+        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+        <button id="btn-minimizarVerIva" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerIva" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+        <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO IVA</h3>
+      </div>
+
+      <div id="colapsadoVerIva" class="collapse in">
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-4">
+              <h5>MES</h5>
+              <input type="text" class="form-control" id="ver_fecha_iva" readonly>
+            </div>
+            <div class="col-md-4">
+              <h5>FECHA DE PRESENTACIÓN</h5>
+              <input type="text" class="form-control" id="ver_fecha_pres_iva" readonly>
+            </div>
+            <div class="col-md-4">
+              <h5>CASINO</h5>
+              <input type="text" class="form-control" id="ver_casino_iva" readonly>
+            </div>
+          </div>
+          <br/>
+          <div class="row">
+            <div class="col-md-6">
+              <h5>SALDO A FAVOR ARCA/CONTRIBUYENTE</h5>
+              <input type="text" class="form-control" id="ver_saldo_iva" readonly>
+            </div>
+            <div class="col-md-6">
+              <h5>OBSERVACIONES</h5>
+              <textarea class="form-control" id="ver_obs_iva" readonly></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
+        </div>
+      </div>
+    </div> <!-- modal content -->
+  </div> <!-- modal dialog -->
+</div> <!-- modal fade -->
+
 <!-- MODAL CARGAR IIBB -->
 <div class="modal fade" id="modalCargariibb" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog" style="width:71%">
          <div class="modal-content">
-           <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+           <div class="modal-header modalNuevo" style="background-color: #00695c;">
              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
              <button id="btn-minimizarCreariibb" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCreariibb" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-             <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE IIBB</h3>
+             <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE IIBB</h3>
             </div>
 
             <div  id="colapsadoCreariibb" class="collapse in">
@@ -2717,10 +2255,10 @@
 <div class="modal fade" id="modalVeriibb" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
        <div class="modal-dialog" style="width:71%">
           <div class="modal-content">
-            <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+            <div class="modal-header modalNuevo" style="background-color: #00695c;">
               <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
               <button id="btn-minimizarVeriibb" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVeriibb" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-              <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO IIBB</h3>
+              <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO IIBB</h3>
              </div>
 
              <div  id="colapsadoVeriibb" class="collapse in">
@@ -2749,7 +2287,7 @@
                   <h4>Montos</h4>
                 </div>
                 <div class="col-md-3">
-                  <h4>Alicuotas</h4>
+                  <h4>Alicuotas (%)</h4>
                 </div>
                 <div class="col-md-2">
                   <h4>Impuesto Total</h4>
@@ -2799,10 +2337,10 @@
 <div class="modal fade" id="modalCargarDREI" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog" style="width:71%">
          <div class="modal-content">
-           <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+           <div class="modal-header modalNuevo" style="background-color: #00695c;">
              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
              <button id="btn-minimizarCrearDREI" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearDREI" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-             <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE DReI</h3>
+             <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE DReI</h3>
             </div>
 
             <div  id="colapsadoCrearDREI" class="collapse in">
@@ -2844,7 +2382,9 @@
         <div id="formularioCSF" class="formulario-DREI" style="display: none;">
 
           <div class="row">
-            <h4 class="col-md-6">Comercio</h4>
+            <div class="col-md-12">
+              <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Comercio</h4>
+            </div>
           </div>
           <div class="row">
 
@@ -2853,7 +2393,7 @@
               <input type="text" class="form-control" name="base_imponible_comDREI" id="base_imponible_comDREI">
             </div>
             <div class="col-md-4">
-              <h5>Alicuota</h5>
+              <h5>Alicuota (%)</h5>
               <input type="text" class="form-control" name="alicuota_comDREI" id="alicuota_comDREI">
             </div>
             <div class="col-md-4">
@@ -2863,7 +2403,9 @@
           </div>
           <br/>
           <div class="row">
-            <h4 class="col-md-6">Gastronomía</h4>
+            <div class="col-md-12">
+              <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Gastronomía</h4>
+            </div>
           </div>
           <div class="row">
 
@@ -2872,7 +2414,7 @@
               <input type="text" class="form-control" name="base_imponible_gasDREI" id="base_imponible_gasDREI">
             </div>
             <div class="col-md-4">
-              <h5>Alicuota</h5>
+              <h5>Alicuota (%)</h5>
               <input type="text" class="form-control" name="alicuota_gasDREI" id="alicuota_gasDREI">
             </div>
             <div class="col-md-4">
@@ -2882,7 +2424,9 @@
           </div>
           <br/>
           <div class="row">
-            <h4 class="col-md-6">Explotación Casinos y Bingos</h4>
+            <div class="col-md-12">
+              <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Explotación Casinos y Bingos</h4>
+            </div>
           </div>
           <div class="row">
 
@@ -2891,7 +2435,7 @@
               <input type="text" class="form-control" name="base_imponible_explDREI" id="base_imponible_explDREI">
             </div>
             <div class="col-md-4">
-              <h5>Alicuota</h5>
+              <h5>Alicuota (%)</h5>
               <input type="text" class="form-control" name="alicuota_explDREI" id="alicuota_explDREI">
             </div>
             <div class="col-md-4">
@@ -2901,7 +2445,9 @@
           </div>
           <br/>
           <div class="row">
-            <h4 class="col-md-6">Apuestas y Juegos de Azar por plataformas</h4>
+            <div class="col-md-12">
+              <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Apuestas y Juegos de Azar por plataformas</h4>
+            </div>
           </div>
           <div class="row">
 
@@ -2910,7 +2456,7 @@
               <input type="text" class="form-control" name="base_imponible_apyjDREI" id="base_imponible_apyjDREI">
             </div>
             <div class="col-md-4">
-              <h5>Alicuota</h5>
+              <h5>Alicuota (%)</h5>
               <input type="text" class="form-control" name="alicuota_apyjDREI" id="alicuota_apyjDREI">
             </div>
             <div class="col-md-4">
@@ -2960,9 +2506,9 @@
             </div>
           </br>
             <div class="row">
-              <div class="col-md-6">
-                <h4>Base Imponible Juegos</h4>
-              </div>
+              <div class="col-md-12">
+              <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Base Imponible Juegos</h4>
+            </div>
             </div>
 
             <div class="row">
@@ -2971,7 +2517,7 @@
                 <input type="text" class="form-control" name="base_imponible_melDREI" id="base_imponible_melDREI">
               </div>
               <div class="col-md-4">
-                <h5>Alicuota</h5>
+                <h5>Alicuota (%)</h5>
                 <input type="text" class="form-control" name="alicuota_melDREI" id="alicuota_melDREI">
               </div>
               <div class="col-md-4">
@@ -2979,10 +2525,11 @@
                 <input type="text" class="form-control" name="imp_det_melDREI" id="imp_det_melDREI" >
               </div>
             </div>
+            </br>
 
             <div class="row">
-              <div class="col-md-6">
-                <h4>Base Imponible Otras Actividades</h4>
+              <div class="col-md-12">
+                <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Base Imponible Otras Actividades</h4>
               </div>
             </div>
 
@@ -2992,7 +2539,7 @@
                 <input type="text" class="form-control" name="base_imponibleO_melDREI" id="base_imponibleO_melDREI">
               </div>
               <div class="col-md-4">
-                <h5>Alicuota</h5>
+                <h5>Alicuota (%)</h5>
                 <input type="text" class="form-control" name="alicuotaO_melDREI" id="alicuotaO_melDREI">
               </div>
               <div class="col-md-4">
@@ -3101,10 +2648,10 @@
 <div class="modal fade" id="modalVerCSFDREI" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog" style="width:71%">
          <div class="modal-content">
-           <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+           <div class="modal-header modalNuevo" style="background-color: #00695c;">
              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
              <button id="btn-minimizarVerDREI" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerDREI" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-             <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO DREI</h3>
+             <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO DREI</h3>
             </div>
 
             <div  id="colapsadoVerDREI" class="collapse in">
@@ -3135,7 +2682,7 @@
                    <input type="text" class="form-control" id="ver_com_base_csfDREI" readonly>
                  </div>
                  <div class="col-md-4">
-                   <h5>Alicuota</h5>
+                   <h5>Alicuota (%)</h5>
                    <input type="text" class="form-control" id="ver_com_ali_csfDREI" readonly>
                  </div>
                  <div class="col-md-4">
@@ -3155,7 +2702,7 @@
                  <input type="text" class="form-control" id="ver_gas_base_csfDREI" readonly>
                </div>
                <div class="col-md-4">
-                 <h5>Alicuota</h5>
+                 <h5>Alicuota (%)</h5>
                  <input type="text" class="form-control" id="ver_gas_ali_csfDREI" readonly>
                </div>
                <div class="col-md-4">
@@ -3175,7 +2722,7 @@
                  <input type="text" class="form-control" id="ver_expl_base_csfDREI" readonly>
                </div>
                <div class="col-md-4">
-                 <h5>Alicuota</h5>
+                 <h5>Alicuota (%)</h5>
                  <input type="text" class="form-control" id="ver_expl_ali_csfDREI" readonly>
                </div>
                <div class="col-md-4">
@@ -3195,7 +2742,7 @@
               <input type="text" class="form-control" id="ver_apyju_base_csfDREI" readonly>
             </div>
             <div class="col-md-4">
-              <h5>Alicuota</h5>
+              <h5>Alicuota (%)</h5>
               <input type="text" class="form-control" id="ver_apyju_ali_csfDREI" readonly>
             </div>
             <div class="col-md-4">
@@ -3255,10 +2802,10 @@
 <div class="modal fade" id="modalVerMELDREI" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog" style="width:71%">
          <div class="modal-content">
-           <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+           <div class="modal-header modalNuevo" style="background-color: #00695c;">
              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
              <button id="btn-minimizarVermelDREI" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVermelDREI" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-             <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO DREI</h3>
+             <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO DREI</h3>
             </div>
 
             <div  id="colapsadoVermelDREI" class="collapse in">
@@ -3297,7 +2844,7 @@
                    <input type="text" class="form-control" id="ver_com_base_melDREI" readonly>
                  </div>
                  <div class="col-md-4">
-                   <h5>Alicuota</h5>
+                   <h5>Alicuota (%)</h5>
                    <input type="text" class="form-control" id="ver_com_ali_melDREI" readonly>
                  </div>
                  <div class="col-md-4">
@@ -3317,7 +2864,7 @@
                  <input type="text" class="form-control" id="ver_gas_base_melDREI" readonly>
                </div>
                <div class="col-md-4">
-                 <h5>Alicuota</h5>
+                 <h5>Alicuota (%)</h5>
                  <input type="text" class="form-control" id="ver_gas_ali_melDREI" readonly>
                </div>
                <div class="col-md-4">
@@ -3356,10 +2903,10 @@
 <div class="modal fade" id="modalVerRODREI" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog" style="width:71%">
          <div class="modal-content">
-           <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+           <div class="modal-header modalNuevo" style="background-color: #00695c;">
              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
              <button id="btn-minimizarVerroDREI" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerroDREI" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-             <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO DREI</h3>
+             <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO DREI</h3>
             </div>
 
             <div  id="colapsadoVerroDREI" class="collapse in">
@@ -3446,10 +2993,10 @@
 <div class="modal fade" id="modalCargarTGI_partida" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
               <div class="modal-dialog" style="width:71%">
                    <div class="modal-content">
-                     <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                     <div class="modal-header modalNuevo" style="background-color: #00695c;">
                        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                        <button id="btn-minimizarCrearTGI_partida" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearTGI_partida" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                       <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVA PARTIDA</h3>
+                       <h3 class="modal-title" style="background-color: #00695c;">| NUEVA PARTIDA</h3>
                       </div>
 
                       <div  id="colapsadoCrearTGI_partida" class="collapse in">
@@ -3493,10 +3040,10 @@
 <div class="modal fade" id="modalTGI_partida_gestionar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerpatenteDe_gestionar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerpatenteDe_gestionar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| PARTIDAS </h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| PARTIDAS </h3>
                   </div>
 
                   <div  id="colapsadoVerpatenteDe_gestionar" class="collapse in">
@@ -3564,10 +3111,10 @@
 <div class="modal fade" id="modalModificarTGI_partida" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarModificarTGI_partida" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoModificarTGI_partida" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| MODIFICAR PARTIDA</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| MODIFICAR PARTIDA</h3>
                     </div>
 
                     <div  id="colapsadoModificarTGI_partida" class="collapse in">
@@ -3611,10 +3158,10 @@
 <div class="modal fade" id="modalCargarTGI" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog" style="width:95%">
            <div class="modal-content">
-             <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+             <div class="modal-header modalNuevo" style="background-color: #00695c;">
                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                <button id="btn-minimizarCrearTGI" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearTGI" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-               <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO PAGO DE TGI</h3>
+               <h3 class="modal-title" style="background-color: #00695c;">| NUEVO PAGO DE TGI</h3>
               </div>
 
               <div  id="colapsadoCrearTGI" class="collapse in">
@@ -3651,7 +3198,8 @@
 
 <div class="row">
   <div class="col-md-12">
-    <h4>Pagos por Partida</h4>
+    <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Pagos por Partida</h4>
+
     <div id="pagosTGIContainer"></div>
   </div>
 </div>
@@ -3744,7 +3292,7 @@
 <div class="modal fade" id="modalVerTGICSF" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog" style="width:95%">
            <div class="modal-content">
-             <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+             <div class="modal-header modalNuevo" style="background-color: #00695c;">
                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                <button id="btn-minimizarVerTGICSF" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerTGICSF" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
                <h3 class="modal-title" style="bac kground-color: #6dc7be;">| REGISTRO TGI</h3>
@@ -3795,10 +3343,10 @@
 <div class="modal fade" id="modalCargarIMP_AP_OL" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog" style="width:71%">
              <div class="modal-content">
-               <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+               <div class="modal-header modalNuevo" style="background-color: #00695c;">
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizarCrearIMP_AP_OL" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearIMP_AP_OL" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE IMP_AP_OL</h3>
+                 <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE IMP_AP_OL</h3>
                 </div>
 
                 <div  id="colapsadoCrearIMP_AP_OL" class="collapse in">
@@ -3864,7 +3412,7 @@
                <input type="text" class="form-control" name="monto_apuestasIMP_AP_OL" id="monto_apuestasIMP_AP_OL">
            </div>
           <div class="col-md-4">
-            <h5>Alicuota</h5>
+            <h5>Alicuota (%)</h5>
             <input type="text" class="form-control" name="alicuotaIMP_AP_OL" id="alicuotaIMP_AP_OL">
           </div>
         </div>
@@ -3960,10 +3508,10 @@
 <div class="modal fade" id="modalVerIMP_AP_OL" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog" style="width:71%">
            <div class="modal-content">
-             <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+             <div class="modal-header modalNuevo" style="background-color: #00695c;">
                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                <button id="btn-minimizarVerIMP_AP_OL" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerIMP_AP_OL" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-               <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO IMPUESTO A APUESTAS ONLINE</h3>
+               <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO IMPUESTO A APUESTAS ONLINE</h3>
               </div>
 
               <div  id="colapsadoVerIMP_AP_OL" class="collapse in">
@@ -4005,7 +3553,7 @@
                      <input type="text" class="form-control" id="ver_monto_apuestas_IMP_AP_OL" readonly>
                    </div>
                    <div class="col-md-4">
-                     <h5>ALICUOTA</h5>
+                     <h5>ALICUOTA (%)</h5>
                      <input type="text" class="form-control" id="ver_alicuota_IMP_AP_OL" readonly>
                    </div>
                  </div>
@@ -4036,10 +3584,10 @@
 <div class="modal fade" id="modalCargarIMP_AP_MTM" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarCrearIMP_AP_MTM" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearIMP_AP_MTM" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE IMP_AP_MTM</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE IMP_AP_MTM</h3>
                   </div>
 
                   <div  id="colapsadoCrearIMP_AP_MTM" class="collapse in">
@@ -4111,7 +3659,7 @@
                  <input type="text" class="form-control" name="monto_apuestasIMP_AP_MTM" id="monto_apuestasIMP_AP_MTM">
              </div>
             <div class="col-md-4">
-              <h5>Alicuota</h5>
+              <h5>Alicuota (%)</h5>
               <input type="text" class="form-control" name="alicuotaIMP_AP_MTM" id="alicuotaIMP_AP_MTM">
             </div>
           </div>
@@ -4207,10 +3755,10 @@
 <div class="modal fade" id="modalVerIMP_AP_MTM" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog" style="width:71%">
              <div class="modal-content">
-               <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+               <div class="modal-header modalNuevo" style="background-color: #00695c;">
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizarVerIMP_AP_MTM" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerIMP_AP_MTM" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO IMPUESTO A APUESTAS ONLINE</h3>
+                 <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO IMPUESTO A APUESTAS ONLINE</h3>
                 </div>
 
                 <div  id="colapsadoVerIMP_AP_MTM" class="collapse in">
@@ -4256,7 +3804,7 @@
                        <input type="text" class="form-control" id="ver_monto_apuestas_IMP_AP_MTM" readonly>
                      </div>
                      <div class="col-md-4">
-                       <h5>ALICUOTA </h5>
+                       <h5>ALICUOTA (%)</h5>
                        <input type="text" class="form-control" id="ver_alicuota_IMP_AP_MTM" readonly>
                      </div>
                    </div>
@@ -4287,10 +3835,10 @@
 <div class="modal fade" id="modalCargarDeudaEstado" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarCrearDeudaEstado" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearDeudaEstado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE DEUDA CONSOLIDADA CON EL ESTADO</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE DEUDA CONSOLIDADA CON EL ESTADO</h3>
                   </div>
 
                   <div  id="colapsadoCrearDeudaEstado" class="collapse in">
@@ -4433,10 +3981,10 @@
 <div class="modal fade" id="modalVerDeudaEstado" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog" style="width:71%">
              <div class="modal-content">
-               <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+               <div class="modal-header modalNuevo" style="background-color: #00695c;">
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizarVerDeudaEstado" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerDeudaEstado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title" style="background-color: #6dc7be;">| INCUMPLIMIENTO A LA DEUDA CONSOLIDADA CON EL ESTADO</h3>
+                 <h3 class="modal-title" style="background-color: #00695c;">| INCUMPLIMIENTO A LA DEUDA CONSOLIDADA CON EL ESTADO</h3>
                 </div>
 
                 <div  id="colapsadoVerDeudaEstado" class="collapse in">
@@ -4467,10 +4015,10 @@
 <div class="modal fade" id="modalCargarPagosMayoresMesas" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearPagosMayoresMesas" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearPagosMayoresMesas" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE PAGO MAYOR DE MESA DE PAÑO</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE PAGO MAYOR DE MESA DE PAÑO</h3>
                     </div>
 
                     <div  id="colapsadoCrearPagosMayoresMesas" class="collapse in">
@@ -4600,10 +4148,10 @@
 <div class="modal fade" id="modalVerPagosMayoresMesas" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerPagosMayoresMesas" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerPagosMayoresMesas" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO PAGO MAYOR DE MESA DE PAÑO</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO PAGO MAYOR DE MESA DE PAÑO</h3>
                   </div>
 
                   <div  id="colapsadoVerPagosMayoresMesas" class="collapse in">
@@ -4652,10 +4200,10 @@
 <div class="modal fade" id="modalCargarReporteYLavado" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearReporteYLavado" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearReporteYLavado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE REPORTE DE OPERACION Y LAVADO DE ACTIVOS</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE REPORTE DE OPERACION Y LAVADO DE ACTIVOS</h3>
                     </div>
 
                     <div  id="colapsadoCrearReporteYLavado" class="collapse in">
@@ -4782,10 +4330,10 @@
 <div class="modal fade" id="modalVerReporteYLavado" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerReporteYLavado" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerReporteYLavado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO PAGO MAYOR DE MESA DE PAÑO</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO PAGO MAYOR DE MESA DE PAÑO</h3>
                   </div>
 
                   <div  id="colapsadoVerReporteYLavado" class="collapse in">
@@ -4834,10 +4382,10 @@
 <div class="modal fade" id="modalCargarRegistrosContables" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearRegistrosContables" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearRegistrosContables" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE REGISTROS CONTABLES</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE REGISTROS CONTABLES</h3>
                     </div>
 
                     <div  id="colapsadoCrearRegistrosContables" class="collapse in">
@@ -4869,8 +4417,8 @@
                 <br/>
 
                 <div class="row">
-                  <div class="col-md-10">
-                    <h4>MTM</h4>
+                  <div class="col-md-12">
+                    <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">MTM</h4>
                   </div>
                 </div>
                 <div class="row">
@@ -4886,8 +4434,8 @@
               </div>
             </br>
               <div class="row">
-                <div class="col-md-10">
-                  <h4>MP</h4>
+                <div class="col-md-12">
+                  <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">MP</h4>
                 </div>
               </div>
               <div class="row">
@@ -4903,8 +4451,8 @@
             </div>
           </br>
             <div class="row">
-              <div class="col-md-10">
-                <h4>Bingo</h4>
+              <div class="col-md-12">
+                <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Bingo</h4>
               </div>
             </div>
             <div class="row">
@@ -4916,8 +4464,8 @@
           </div>
         </br>
           <div class="row">
-            <div class="col-md-10">
-              <h4>Juego OnLine</h4>
+            <div class="col-md-12">
+              <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Juego OnLine</h4>
             </div>
           </div>
           <div class="row">
@@ -4929,8 +4477,8 @@
         </div>
 
         <div class="row">
-          <div class="col-md-10">
-            <h4>Totales</h4>
+          <div class="col-md-12">
+            <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Totales</h4>
           </div>
         </div>
         <div class="row">
@@ -5030,10 +4578,10 @@
 <div class="modal fade" id="modalVerRegistrosContables" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerRegistrosContables" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerRegistrosContables" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO CONTABLE</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO CONTABLE</h3>
                   </div>
 
                   <div  id="colapsadoVerRegistrosContables" class="collapse in">
@@ -5051,7 +4599,7 @@
                    </br>
                    <div class="row">
                      <div class="col-md-10">
-                       <h4>MTM</h4>
+                       <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">MTM</h4>
                      </div>
                    </div>
                    <div class="row">
@@ -5068,7 +4616,7 @@
    </br>
                  <div class="row">
                    <div class="col-md-10">
-                     <h4>MP</h4>
+                     <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">MP</h4>
                    </div>
                  </div>
                  <div class="row">
@@ -5085,7 +4633,7 @@
    </br>
                <div class="row">
                  <div class="col-md-10">
-                   <h4>Bingo</h4>
+                   <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Bingo</h4>
                  </div>
                </div>
                <div class="row">
@@ -5098,7 +4646,7 @@
            </br>
              <div class="row">
                <div class="col-md-10">
-                 <h4>Juego OnLine</h4>
+                 <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Juego OnLine</h4>
                </div>
              </div>
              <div class="row">
@@ -5111,7 +4659,7 @@
          </br>
          <div class="row">
            <div class="col-md-10">
-             <h4>Totales</h4>
+             <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Totales</h4>
            </div>
          </div>
          <div class="row">
@@ -5144,10 +4692,10 @@
 <div class="modal fade" id="modalCargarAportesPatronales" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearAportesPatronales" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearAportesPatronales" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE APORTE PATRONAL</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE APORTE PATRONAL</h3>
                     </div>
 
                     <div  id="colapsadoCrearAportesPatronales" class="collapse in">
@@ -5296,10 +4844,10 @@
 <div class="modal fade" id="modalVerAportesPatronales" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerAportesPatronales" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerAportesPatronales" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO APORTE PATRONAL</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO APORTE PATRONAL</h3>
                   </div>
 
                   <div  id="colapsadoVerAportesPatronales" class="collapse in">
@@ -5360,10 +4908,10 @@
 <div class="modal fade" id="modalCargarPromoTickets" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearPromoTickets" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearPromoTickets" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE PROMO TICKET</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE PROMO TICKET</h3>
                     </div>
 
                     <div  id="colapsadoCrearPromoTickets" class="collapse in">
@@ -5489,10 +5037,10 @@
 <div class="modal fade" id="modalVerPromoTickets" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerPromoTickets" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerPromoTickets" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO APORTE PATRONAL</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO APORTE PATRONAL</h3>
                   </div>
 
                   <div  id="colapsadoVerPromoTickets" class="collapse in">
@@ -5550,10 +5098,10 @@
 <div class="modal fade" id="modalCargarPozosAcumuladosLinkeados" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearPozosAcumuladosLinkeados" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearPozosAcumuladosLinkeados" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE POZO ACUMULADO LINKEADO E INDIVIDUAL</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE POZO ACUMULADO LINKEADO E INDIVIDUAL</h3>
                     </div>
 
                     <div  id="colapsadoCrearPozosAcumuladosLinkeados" class="collapse in">
@@ -5679,10 +5227,10 @@
 <div class="modal fade" id="modalVerPozosAcumuladosLinkeados" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerPozosAcumuladosLinkeados" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerPozosAcumuladosLinkeados" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO APORTE PATRONAL</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO APORTE PATRONAL</h3>
                   </div>
 
                   <div  id="colapsadoVerPozosAcumuladosLinkeados" class="collapse in">
@@ -5743,10 +5291,10 @@
 <div class="modal fade" id="modalCargarContribEnteTuristico" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearContribEnteTuristico" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearContribEnteTuristico" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE CONTRIBUCION ENTE TURISTICO</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE CONTRIBUCION ENTE TURISTICO</h3>
                     </div>
 
                     <div  id="colapsadoCrearContribEnteTuristico" class="collapse in">
@@ -5803,7 +5351,7 @@
                     <input type="text" class="form-control" name="base_imponible_ContribEnteTuristico" id="base_imponible_ContribEnteTuristico" >
                   </div>
                   <div class="col-md-4">
-                    <h5>Alicuota</h5>
+                    <h5>Alicuota (%)</h5>
                     <input type="text" class="form-control" name="alicuota_ContribEnteTuristico" id="alicuota_ContribEnteTuristico" >
                   </div>
                   <div class="col-md-4">
@@ -5906,10 +5454,10 @@
 <div class="modal fade" id="modalVerContribEnteTuristico" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerContribEnteTuristico" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerContribEnteTuristico" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO CONTRIBUCIÓN ENTE TURISTICO</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO CONTRIBUCIÓN ENTE TURISTICO</h3>
                   </div>
 
                   <div  id="colapsadoVerContribEnteTuristico" class="collapse in">
@@ -5946,7 +5494,7 @@
                        <input type="text" class="form-control" id="ver_base_imponible_ContribEnteTuristico" readonly>
                      </div>
                      <div class="col-md-4">
-                       <h5>Alicuota</h5>
+                       <h5>Alicuota (%)</h5>
                        <input type="text" class="form-control" id="ver_alicuota_ContribEnteTuristico" readonly>
                      </div>
                      <div class="col-md-4">
@@ -5983,10 +5531,10 @@
 <div class="modal fade" id="modalCargarRRHH" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearRRHH" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearRRHH" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE RRHH</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE RRHH</h3>
                     </div>
 
                     <div  id="colapsadoCrearRRHH" class="collapse in">
@@ -6024,11 +5572,7 @@
                     <h5>Personal al Inicio</h5>
                     <input type="text" class="form-control" name="personal_inicio_RRHH" id="personal_inicio_RRHH" >
                   </div>
-                  <div class="col-md-4">
-                    <h5>Personal al Final</h5>
-                    <input type="text" class="form-control" name="personal_final_RRHH" id="personal_final_RRHH" >
-                  </div>
-              </div>
+                </div>
 
               </br>
               <div class="row">
@@ -6043,6 +5587,15 @@
                 </div>
             </div>
           </br>
+
+            <div class="row">
+                    <div class="col-md-4">
+                      <h5>Personal al Final</h5>
+                      <input type="text" class="form-control" name="personal_final_RRHH" id="personal_final_RRHH" >
+                  </div>
+            </div>
+            </br>
+          
             <div class="row">
 
               <div class="col-md-4">
@@ -6072,7 +5625,7 @@
                    data-html="true"
                    data-placement="right"
                    title="¡Atención!"
-                   data-content="chauu.">
+                   data-content="Cantidad mínima de empleados por oferta/pliego.">
                 </i>
               </h5>
               <input type="text" class="form-control" name="ofertado_adjudicado_RRHH" id="ofertado_adjudicado_RRHH" readonly>
@@ -6122,7 +5675,7 @@
             <input type="text" class="form-control" name="no_ludicos_viviendo_RRHH" id="no_ludicos_viviendo_RRHH" >
           </div>
           <div class="col-md-4">
-            <h5>⠀ ⠀ ⠀⠀⠀ ⠀ ⠀ ⠀ ⠀⠀ ⠀ ⠀ ⠀ ⠀ ⠀ ⠀⠀ ⠀ ⠀ ⠀ ⠀ ⠀ ⠀  Total de personal viviendo en Santa Fe</h5>
+            <h5>Total de personal viviendo en Santa Fe</h5>
             <input type="text" class="form-control" name="total_ludicos_viviendo_RRHH" id="total_ludicos_viviendo_RRHH" >
           </div>
       </div>
@@ -6144,7 +5697,7 @@
                  data-html="true"
                  data-placement="right"
                  title="¡Atención!"
-                 data-content="hola.">
+                 data-content="Cap. 18 del pliego: 80% del personal lúdico debe ser nativo o residente por mínimo 1 año.">
               </i>
             </h5>
             <input type="text" class="form-control" name="porcentaje_total_sf_RRHH" id="porcentaje_total_sf_RRHH" >
@@ -6272,10 +5825,10 @@
 <div class="modal fade" id="modalVerRRHH" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerRRHH" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerRRHH" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO APORTE PATRONAL</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO APORTE PATRONAL</h3>
                   </div>
 
                   <div  id="colapsadoVerRRHH" class="collapse in">
@@ -6388,7 +5941,7 @@
               <input type="text" class="form-control" name="ver_no_ludicos_viviendo_RRHH" id="ver_no_ludicos_viviendo_RRHH"  readonly>
             </div>
             <div class="col-md-4">
-              <h5>⠀ ⠀ ⠀⠀⠀ ⠀ ⠀ ⠀ ⠀⠀ ⠀ ⠀ ⠀ ⠀ ⠀ ⠀⠀ ⠀ ⠀ ⠀ ⠀ ⠀ ⠀  TOTAL de personal viviendo en santa fe</h5>
+              <h5>TOTAL de personal viviendo en santa fe</h5>
               <input type="text" class="form-control" name="ver_total_viviendo_RRHH" id="ver_total_viviendo_RRHH" readonly>
             </div>
           </div>
@@ -6437,10 +5990,10 @@
 <div class="modal fade" id="modalCargarGanancias" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearGanancias" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearGanancias" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE GANANCIAS</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE GANANCIAS</h3>
                     </div>
 
                     <div  id="colapsadoCrearGanancias" class="collapse in">
@@ -6598,10 +6151,10 @@
 <div class="modal fade" id="modalVerGanancias" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerGanancias" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerGanancias" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO GANANCIAS</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO GANANCIAS</h3>
                   </div>
 
                   <div  id="colapsadoVerGanancias" class="collapse in">
@@ -6678,10 +6231,10 @@
 <div class="modal fade" id="modalCargarGanancias_periodo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearGanancias_periodo" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearGanancias_periodo" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE PERÍODO FISCAL - GANANCIAS</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE PERÍODO FISCAL - GANANCIAS</h3>
                     </div>
 
                     <div  id="colapsadoCrearGanancias_periodo" class="collapse in">
@@ -6824,10 +6377,10 @@
 <div class="modal fade" id="modalVerGanancias_periodo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerGanancias_periodo" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerGanancias_periodo" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO PERÍODO FISCAL</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO PERÍODO FISCAL</h3>
                   </div>
 
                   <div  id="colapsadoVerGanancias_periodo" class="collapse in">
@@ -6887,10 +6440,10 @@
 <div class="modal fade" id="modalCargarJackpotsPagados" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearJackpotsPagados" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearJackpotsPagados" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE PROMO TICKET</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE PROMO TICKET</h3>
                     </div>
 
                     <div  id="colapsadoCrearJackpotsPagados" class="collapse in">
@@ -7013,10 +6566,10 @@
 <div class="modal fade" id="modalVerJackpotsPagados" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerJackpotsPagados" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerJackpotsPagados" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO APORTE PATRONAL</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO APORTE PATRONAL</h3>
                   </div>
 
                   <div  id="colapsadoVerJackpotsPagados" class="collapse in">
@@ -7074,10 +6627,10 @@
 <div class="modal fade" id="modalCargarPremiosPagados" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearPremiosPagados" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearPremiosPagados" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE PROMO TICKET</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE PROMO TICKET</h3>
                     </div>
 
                     <div  id="colapsadoCrearPremiosPagados" class="collapse in">
@@ -7203,10 +6756,10 @@
 <div class="modal fade" id="modalVerPremiosPagados" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerPremiosPagados" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerPremiosPagados" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO APORTE PATRONAL</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO APORTE PATRONAL</h3>
                   </div>
 
                   <div  id="colapsadoVerPremiosPagados" class="collapse in">
@@ -7262,139 +6815,333 @@
 <!-- MODAL CARGAR PREMIOS MTM -->
 
 <div class="modal fade" id="modalCargarPremiosMTM" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width:71%">
-                 <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
-                     <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                     <button id="btn-minimizarCrearPremiosMTM" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearPremiosMTM" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE PREMIOS MTM</h3>
-                    </div>
-
-                    <div  id="colapsadoCrearPremiosMTM" class="collapse in">
-
-            <form id="formNuevoRegistroPremiosMTM" novalidate="" method="POST" autocomplete="off">
-              <input type="hidden" id="PremiosMTM_modo" name="PremiosMTM_modo" value="create">
-                  <input type="hidden" id="id_registroPremiosMTM" name="id_registroPremiosMTM" value="">
-
-              <div class="modal-body">
-                <div class="row">
-                  <div class="col-md-4">
-                    <h5>MES</h5>
-                    <div class='input-group date' id='fechaPremiosMTM' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
-                        <input name="fecha_PremiosMTM" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_PremiosMTM" autocomplete="off" style="background-color: rgb(255,255,255);" />
-                        <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
-                        <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
-                    </div>
-                  </div>
-
-                  <div class="col-md-3" >
-                    <h5>Casino</h5>
-                    <select name="casinoPremiosMTM" class="form-control" id="casinoPremiosMTM">
-                      <option value="">Elige un casino</option>
-                      @foreach($casinos as $c)
-                        <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
-                      @endforeach
-                    </select>
-                  </div>
-                </div>
-                <br/>
-
-
-                <div class="row">
-                  <div class="col-md-5">
-                    <h5>Cancel Credits</h5>
-                    <input type="text" class="form-control" name="cancel_PremiosMTM" id="cancel_PremiosMTM" >
-                  </div>
-                  <div class="col-md-5">
-                    <h5>Cancel Credits USD</h5>
-                    <input type="text" class="form-control" name="cancel_usd_PremiosMTM" id="cancel_usd_PremiosMTM" >
-                  </div>
-              </div>
-
-              </br>
-              <div class="row">
-                <div class="col-md-5">
-                  <h5>Jackpots</h5>
-                  <input type="text" class="form-control" name="jack_PremiosMTM" id="jack_PremiosMTM" >
-                </div>
-                <div class="col-md-5">
-                  <h5>Jackpots USD</h5>
-                  <input type="text" class="form-control" name="jack_usd_PremiosMTM" id="jack_usd_PremiosMTM" >
-                </div>
+    <div class="modal-dialog" style="width:80%">
+        <div class="modal-content">
+            <div class="modal-header modalNuevo" style="background-color: #00695c;">
+                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                <button id="btn-minimizarCrearPremiosMTM" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearPremiosMTM" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+                <h3 class="modal-title" id="modalCargarPremiosMTM_titulo" style="background-color: #00695c;">| NUEVO REGISTRO UNIFICADO</h3>
             </div>
 
-            </br>
-            <div class="row">
-              <div class="col-md-5">
-                <h5>Progresivos</h5>
-                <input type="text" class="form-control" name="progre_PremiosMTM" id="progre_PremiosMTM" >
-              </div>
-              <div class="col-md-5">
-                <h5>Progresivos USD</h5>
-                <input type="text" class="form-control" name="progre_usd_PremiosMTM" id="progre_usd_PremiosMTM" >
-              </div>
-          </div>
+            <div id="colapsadoCrearPremiosMTM" class="collapse in">
+                <form id="formNuevoRegistroPremiosMTM_Unificado" novalidate="" method="POST" autocomplete="off">
+                    <input type="hidden" id="PremiosMTM_Unificado_modo" name="PremiosMTM_Unificado_modo" value="create">
+                    <!-- Hidden IDs for all sections -->
+                    <input type="hidden" id="id_registroPremiosMTM_Unified" name="id_registroPremiosMTM" value="">
+                    <input type="hidden" id="id_registroPromoTickets_Unified" name="id_registroPromoTickets" value="">
+                    <input type="hidden" id="id_registroPozos_Unified" name="id_registroPozos" value="">
+                    <input type="hidden" id="id_registroJackpots_Unified" name="id_registroJackpots" value="">
+                    <input type="hidden" id="id_registroPremiosPagados_Unified" name="id_registroPremiosPagados" value="">
+                    <input type="hidden" id="id_registroPagosMesas_Unified" name="id_registroPagosMesas" value="">
+                    <input type="hidden" id="id_registroRegistrosContables_Unified" name="id_registroRegistrosContables" value="">
+                    <div class="modal-body">
+                        <!-- DATOS GENERALES -->
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h5>MES</h5>
+                                <div class='input-group date' id='fechaPremiosMTM_Unificado' data-date-format="yyyy-mm" data-link-format="yyyy-mm">
+                                    <input name="fecha_Unificado" type='text' class="form-control" placeholder="yyyy-mm" id="fecha_Unificado" autocomplete="off" style="background-color: rgb(255,255,255);" />
+                                    <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
+                                    <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <h5>Casino</h5>
+                                <select name="casino_Unificado" class="form-control" id="casino_Unificado">
+                                    <option value="">Elige un casino</option>
+                                    @foreach($casinos as $c)
+                                        <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        </br>
+                        <!-- SECCIONES DINÁMICAS -->
+                        <div id="unified_sections">
 
-          </br>
-          <div class="row">
-            <div class="col-md-5">
-              <h5>Total</h5>
-              <input type="text" class="form-control" name="total_PremiosMTM" id="total_PremiosMTM" >
-            </div>
-            <div class="col-md-5">
-              <h5>Total USD</h5>
-              <input type="text" class="form-control" name="total_usd_PremiosMTM" id="total_usd_PremiosMTM" >
+                            <!-- PREMIOS MTM -->
+                            <div class="prize-section" id="sec_PremiosMTM" style="display: none;">
+                                <div style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px;">
+                                    <h4 style="margin: 0; color: #333;">PREMIOS MTM</h4>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3"><h5>Cancel</h5><input type="text" class="form-control" name="PremiosMTM[cancel]" id="cancel_PremiosMTM_Unified"></div>
+                                    <div class="col-md-3"><h5>Cancel USD</h5><input type="text" class="form-control" name="PremiosMTM[cancel_usd]" id="cancel_usd_PremiosMTM_Unified"></div>
+                                    <div class="col-md-3"><h5>Progresivos</h5><input type="text" class="form-control" name="PremiosMTM[progresivos]" id="progre_PremiosMTM_Unified"></div>
+                                    <div class="col-md-3"><h5>Progresivos USD</h5><input type="text" class="form-control" name="PremiosMTM[progresivos_usd]" id="progre_usd_PremiosMTM_Unified"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3"><h5>Jackpots</h5><input type="text" class="form-control" name="PremiosMTM[jackpots]" id="jack_PremiosMTM_Unified"></div>
+                                    <div class="col-md-3"><h5>Jackpots USD</h5><input type="text" class="form-control" name="PremiosMTM[jackpots_usd]" id="jack_usd_PremiosMTM_Unified"></div>
+                                    <div class="col-md-3"><h5>Total</h5><input type="text" class="form-control" name="PremiosMTM[total]" id="total_PremiosMTM_Unified"></div>
+                                    <div class="col-md-3"><h5>Total USD</h5><input type="text" class="form-control" name="PremiosMTM[total_usd]" id="total_usd_PremiosMTM_Unified"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-11">
+                                        <h5>Archivo</h5>
+                                        <div class="input-group file-group-unified">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-primary btnPickUnified" type="button" data-module="PremiosMTM">
+                                                    <i class="fa fa-folder-open"></i> Examinar…
+                                                </button>
+                                            </span>
+                                            <input type="text" class="form-control displayUnified" id="display_PremiosMTM" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                            <input type="file" class="inputUnified" id="upload_PremiosMTM" name="uploadPremiosMTM[]" multiple style="display:none;">
+                                        </div>
+                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="PremiosMTM" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <div class="table-responsive wrapUnified" id="wrap_PremiosMTM" style="margin-top:8px; display:none;">
+                                            <table class="table table-striped table-bordered table-condensed tableUnified" id="table_PremiosMTM">
+                                                <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="containerUnified" id="container_PremiosMTM" style="display:none;"></div>
+                                    </div>
+                                </div>
+                                <br/>
+                            </div>
+
+                            <!-- PROMO TICKETS -->
+                            <div class="prize-section" id="sec_PromoTickets" style="display: none;">
+                                <div style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px;">
+                                    <h4 style="margin: 0; color: #333;">PROMO TICKETS</h4>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6"><h5>Cantidad</h5><input type="text" class="form-control" name="PromoTickets[cantidad]" id="cant_PromoTickets_Unified"></div>
+                                    <div class="col-md-6"><h5>Importe</h5><input type="text" class="form-control" name="PromoTickets[importe]" id="importe_PromoTickets_Unified"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-11">
+                                        <h5>Archivo</h5>
+                                        <div class="input-group file-group-unified">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-primary btnPickUnified" type="button" data-module="PromoTickets">
+                                                    <i class="fa fa-folder-open"></i> Examinar…
+                                                </button>
+                                            </span>
+                                            <input type="text" class="form-control displayUnified" id="display_PromoTickets" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                            <input type="file" class="inputUnified" id="upload_PromoTickets" name="uploadPromoTickets[]" multiple style="display:none;">
+                                        </div>
+                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="PromoTickets" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <div class="table-responsive wrapUnified" id="wrap_PromoTickets" style="margin-top:8px; display:none;">
+                                            <table class="table table-striped table-bordered table-condensed tableUnified" id="table_PromoTickets">
+                                                <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="containerUnified" id="container_PromoTickets" style="display:none;"></div>
+                                    </div>
+                                </div>
+                                <br/>
+                            </div>
+
+                            <!-- POZOS -->
+                            <div class="prize-section" id="sec_Pozos" style="display: none;">
+                                <div style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px;">
+                                    <h4 style="margin: 0; color: #333;">POZOS ACUMULADOS</h4>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4"><h5>Importe</h5><input type="text" class="form-control" name="Pozos[importe]" id="importe_Pozos_Unified"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-11">
+                                        <h5>Archivo</h5>
+                                        <div class="input-group file-group-unified">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-primary btnPickUnified" type="button" data-module="Pozos">
+                                                    <i class="fa fa-folder-open"></i> Examinar…
+                                                </button>
+                                            </span>
+                                            <input type="text" class="form-control displayUnified" id="display_Pozos" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                            <input type="file" class="inputUnified" id="upload_Pozos" name="uploadPozos[]" multiple style="display:none;">
+                                        </div>
+                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="Pozos" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <div class="table-responsive wrapUnified" id="wrap_Pozos" style="margin-top:8px; display:none;">
+                                            <table class="table table-striped table-bordered table-condensed tableUnified" id="table_Pozos">
+                                                <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="containerUnified" id="container_Pozos" style="display:none;"></div>
+                                    </div>
+                                </div>
+                                <br/>
+                            </div>
+
+                            <!-- JACKPOTS -->
+                            <div class="prize-section" id="sec_Jackpots" style="display: none;">
+                                <div style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px;">
+                                    <h4 style="margin: 0; color: #333;">JACKPOTS</h4>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4"><h5>Importe</h5><input type="text" class="form-control" name="Jackpots[importe]" id="importe_Jackpots_Unified"></div>
+                                    <div class="col-md-4"><h5>Importe USD</h5><input type="text" class="form-control" name="Jackpots[importe_usd]" id="importe_usd_Jackpots_Unified"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-11">
+                                        <h5>Archivo</h5>
+                                        <div class="input-group file-group-unified">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-primary btnPickUnified" type="button" data-module="Jackpots">
+                                                    <i class="fa fa-folder-open"></i> Examinar…
+                                                </button>
+                                            </span>
+                                            <input type="text" class="form-control displayUnified" id="display_Jackpots" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                            <input type="file" class="inputUnified" id="upload_Jackpots" name="uploadJackpots[]" multiple style="display:none;">
+                                        </div>
+                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="Jackpots" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <div class="table-responsive wrapUnified" id="wrap_Jackpots" style="margin-top:8px; display:none;">
+                                            <table class="table table-striped table-bordered table-condensed tableUnified" id="table_Jackpots">
+                                                <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="containerUnified" id="container_Jackpots" style="display:none;"></div>
+                                    </div>
+                                </div>
+                                <br/>
+                            </div>
+
+                            <!-- PREMIOS PAGADOS -->
+                            <div class="prize-section" id="sec_PremiosPagados" style="display: none;">
+                                <div style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px;">
+                                    <h4 style="margin: 0; color: #333;">PREMIOS MAYORES MTM</h4>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4"><h5>Cantidad</h5><input type="text" class="form-control" name="PremiosPagados[cantidad]" id="cant_PremiosPagados_Unified"></div>
+                                    <div class="col-md-4"><h5>Importe</h5><input type="text" class="form-control" name="PremiosPagados[importe]" id="importe_PremiosPagados_Unified"></div>
+                                    <div class="col-md-4"><h5>Importe USD</h5><input type="text" class="form-control" name="PremiosPagados[importe_usd]" id="importe_usd_PremiosPagados_Unified"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-11">
+                                        <h5>Archivo</h5>
+                                        <div class="input-group file-group-unified">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-primary btnPickUnified" type="button" data-module="PremiosPagados">
+                                                    <i class="fa fa-folder-open"></i> Examinar…
+                                                </button>
+                                            </span>
+                                            <input type="text" class="form-control displayUnified" id="display_PremiosPagados" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                            <input type="file" class="inputUnified" id="upload_PremiosPagados" name="uploadPremiosPagados[]" multiple style="display:none;">
+                                        </div>
+                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="PremiosPagados" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <div class="table-responsive wrapUnified" id="wrap_PremiosPagados" style="margin-top:8px; display:none;">
+                                            <table class="table table-striped table-bordered table-condensed tableUnified" id="table_PremiosPagados">
+                                                <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="containerUnified" id="container_PremiosPagados" style="display:none;"></div>
+                                    </div>
+                                </div>
+                                <br/>
+                            </div>
+
+                            <!-- PAGOS MESAS -->
+                            <div class="prize-section" id="sec_PagosMesas" style="display: none;">
+                                <div style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px;">
+                                    <h4 style="margin: 0; color: #333;">PREMIOS MAYORES MESAS DE PAÑO</h4>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4"><h5>Cantidad</h5><input type="text" class="form-control" name="PagosMesas[cantidad]" id="cant_PagosMesas_Unified"></div>
+                                    <div class="col-md-4"><h5>Importe</h5><input type="text" class="form-control" name="PagosMesas[importe]" id="importe_PagosMesas_Unified"></div>
+                                    <div class="col-md-4"><h5>Importe USD</h5><input type="text" class="form-control" name="PagosMesas[importe_usd]" id="importe_usd_PagosMesas_Unified"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-11">
+                                        <h5>Archivo</h5>
+                                        <div class="input-group file-group-unified">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-primary btnPickUnified" type="button" data-module="PagosMesas">
+                                                    <i class="fa fa-folder-open"></i> Examinar…
+                                                </button>
+                                            </span>
+                                            <input type="text" class="form-control displayUnified" id="display_PagosMesas" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                            <input type="file" class="inputUnified" id="upload_PagosMesas" name="uploadPagosMesas[]" multiple style="display:none;">
+                                        </div>
+                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="PagosMesas" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <div class="table-responsive wrapUnified" id="wrap_PagosMesas" style="margin-top:8px; display:none;">
+                                            <table class="table table-striped table-bordered table-condensed tableUnified" id="table_PagosMesas">
+                                                <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="containerUnified" id="container_PagosMesas" style="display:none;"></div>
+                                    </div>
+                                </div>
+                                <br/>
+                            </div>
+
+                            <!-- REGISTROS CONTABLES -->
+                            <div class="prize-section" id="sec_RegistrosContables" style="display: none;">
+                                <div style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px;">
+                                    <h4 style="margin: 0; color: #333;">REGISTROS CONTABLES (MTM, MP, BINGO, JOL)</h4>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3"><h5>MTM Pesos</h5><input type="text" class="form-control" name="RegistrosContables[mtm_pesos]" id="mtm_pesos_RegistrosContables_Unified"></div>
+                                    <div class="col-md-3"><h5>MTM Dólares</h5><input type="text" class="form-control" name="RegistrosContables[mtm_dolares]" id="mtm_usd_RegistrosContables_Unified"></div>
+                                    <div class="col-md-3"><h5>MP Pesos</h5><input type="text" class="form-control" name="RegistrosContables[mp_pesos]" id="mp_pesos_RegistrosContables_Unified"></div>
+                                    <div class="col-md-3"><h5>MP Dólares</h5><input type="text" class="form-control" name="RegistrosContables[mp_dolares]" id="mp_usd_RegistrosContables_Unified"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3"><h5>Bingo</h5><input type="text" class="form-control" name="RegistrosContables[bingo]" id="bingo_RegistrosContables_Unified"></div>
+                                    <div class="col-md-3"><h5>Juego OnLine</h5><input type="text" class="form-control" name="RegistrosContables[juego_online]" id="jol_RegistrosContables_Unified"></div>
+                                    <div class="col-md-3"><h5>Total</h5><input type="text" class="form-control" name="RegistrosContables[total]" id="total_RegistrosContables_Unified"></div>
+                                    <div class="col-md-3"><h5>Total USD</h5><input type="text" class="form-control" name="RegistrosContables[total_usd]" id="total_usd_RegistrosContables_Unified"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-11">
+                                        <h5>Archivo</h5>
+                                        <div class="input-group file-group-unified">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-primary btnPickUnified" type="button" data-module="RegistrosContables">
+                                                    <i class="fa fa-folder-open"></i> Examinar…
+                                                </button>
+                                            </span>
+                                            <input type="text" class="form-control displayUnified" id="display_RegistrosContables" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                            <input type="file" class="inputUnified" id="upload_RegistrosContables" name="uploadRegistrosContables[]" multiple style="display:none;">
+                                        </div>
+                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="RegistrosContables" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <div class="table-responsive wrapUnified" id="wrap_RegistrosContables" style="margin-top:8px; display:none;">
+                                            <table class="table table-striped table-bordered table-condensed tableUnified" id="table_RegistrosContables">
+                                                <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="containerUnified" id="container_RegistrosContables" style="display:none;"></div>
+                                    </div>
+                                </div>
+                                <br/>
+                            </div>
+
+                        </div> <!-- /modal-body -->
+                        <div class="modal-footer">
+                            <button id="btnVerArchivosUnificado" type="button" class="btn btn-info" style="display:none;">VER ARCHIVOS</button>
+                            <button id="guardarRegistroPremiosMTM_Unificado" type="button" class="btn btn-successAceptar">GENERAR</button>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">SALIR</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
+</div>
 
-              </br>
-
-<div class="row">
-        <div class="col-md-3">
-          <h5>Archivo</h5>
-          </div>
+<!-- MODAL VER ARCHIVOS UNIFICADO -->
+<div class="modal fade" id="modalVerArchivosUnified" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="width: 60%;">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #00695c; color: white;">
+                <button type="button" class="close" data-dismiss="modal" style="color:white;"><i class="fa fa-times"></i></button>
+                <h3 class="modal-title">| ARCHIVOS RESPALDATORIOS</h3>
+            </div>
+            <div class="modal-body">
+                <div id="contentVerArchivosUnified"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">CERRAR</button>
+            </div>
         </div>
-        <div class="row">
-            <div class="form-group">
-            <div class="input-group col-md-8">
-              <span class="input-group-btn">
-                <button class="btn btn-primary" type="button" id="btnPickPremiosMTM">
-                  <i class="fa fa-folder-open"></i> Examinar…
-                </button>
-              </span>
-              <input type="text" id="fileNamePremiosMTM" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
-              <input type="file" id="uploadPremiosMTM" name="uploadPremiosMTM[]" multiple style="display:none;">
-            </div>
-
-            <div class="table-responsive" id="uploadsPremiosMTMWrap" style="margin-top:8px; display:none;">
-              <table class="table table-striped table-bordered table-condensed" id="uploadsPremiosMTMTable">
-                <thead>
-                  <tr>
-                    <th style="width:48px;">#</th>
-                    <th>Archivo</th>
-                    <th style="width:200px;">Tamaño</th>
-                    <th style="width:70px;">Acción</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-            </div>
-
-            <div id="uploadsPremiosMTMContainer" style="display:none;"></div>
-            </div>
     </div>
-              </div>
-
-              <div class="modal-footer">
-
-                <button id ="guardarRegistroPremiosMTM" type="button" class="btn btn-successAceptar">GENERAR</button>
-                <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-              </div>
-            </form>
-          </div> <!-- modal content -->
-        </div> <!-- modal dialog -->
-        </div> <!-- modal fade -->
 </div>
 
 <!-- MODAL ELIMINAR PREMIOS MTM -->
@@ -7430,10 +7177,10 @@
 <div class="modal fade" id="modalVerPremiosMTM" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerPremiosMTM" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerPremiosMTM" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO PREMIO MTM</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO PREMIO MTM</h3>
                   </div>
 
                   <div  id="colapsadoVerPremiosMTM" class="collapse in">
@@ -7519,10 +7266,10 @@
 <div class="modal fade" id="modalCargarAutDirectores_director" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearAutDirectores_director" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearAutDirectores_director" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO DIRECTOR</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO DIRECTOR</h3>
                     </div>
 
                     <div  id="colapsadoCrearAutDirectores_director" class="collapse in">
@@ -7571,10 +7318,10 @@
 <div class="modal fade" id="modalModificarAutDirectores_director" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarModificarAutDirectores_director" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoModificarAutDirectores_director" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| MODIFICAR DIRECTOR</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| MODIFICAR DIRECTOR</h3>
                     </div>
 
                     <div  id="colapsadoModificarAutDirectores_director" class="collapse in">
@@ -7653,10 +7400,10 @@
 <div class="modal fade" id="modalAutDirectores_gestionar_directores" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarAutDirectores_gestionar_directores" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoAutDirectores_gestionar_directores" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| DIRECTORES</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| DIRECTORES</h3>
                   </div>
 
                   <div  id="colapsadoVerAutDirectores_gestionar_directores" class="collapse in">
@@ -7725,10 +7472,10 @@
 <div class="modal fade" id="modalCargarAutDirectores_autorizacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearAutDirectores_autorizacion" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearAutDirectores_autorizacion" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE AUTÓNOMO DE DIRECTORES</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE AUTÓNOMO DE DIRECTORES</h3>
                     </div>
 
                     <div  id="colapsadoCrearAutDirectores_autorizacion" class="collapse in">
@@ -7819,10 +7566,10 @@
 <div class="modal fade" id="modalVerAutDirectores_autorizacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerAutDirectores_autorizacion" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerAutDirectores_autorizacion" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO AUT. DIRECTORES</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO AUT. DIRECTORES</h3>
                   </div>
 
                   <div  id="colapsadoVerAutDirectores_autorizacion" class="collapse in">
@@ -7875,10 +7622,10 @@
 <div class="modal fade" id="modalCargarSeguros_tipo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearSeguros_tipo" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearSeguros_tipo" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO TIPO DE SEGURO</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO TIPO DE SEGURO</h3>
                     </div>
 
                     <div  id="colapsadoCrearSeguros_tipo" class="collapse in">
@@ -7897,15 +7644,14 @@
               </div>
 
               <div class="modal-footer">
-
-                <button id ="guardarRegistroSeguros_tipo" type="button" class="btn btn-successAceptar">GENERAR</button>
-                <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
+                <button id="guardarRegistroSeguros_tipo" type="button" class="btn btn-successAceptar">GENERAR</button>
+                <button type="button" id="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
               </div>
             </form>
-          </div> <!-- modal content -->
-        </div> <!-- modal dialog -->
-        </div> <!-- modal fade -->
+          </div> <!-- collapse -->
+        </div> <!-- modal content -->
+      </div> <!-- modal dialog -->
+    </div> <!-- modal fade -->
 </div>
 
 <!-- MODAL GESTIONAR SEGUROS - TIPO -->
@@ -7913,10 +7659,10 @@
 <div class="modal fade" id="modalSeguros_tipo_gestionar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarSeguros_tipo_gestionar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoSeguros_tipo_gestionar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| TIPO DE SEGURO</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| TIPO DE SEGURO</h3>
                   </div>
 
                   <div  id="colapsadoVerSeguros_tipo_gestionar" class="collapse in">
@@ -7982,10 +7728,10 @@
 <div class="modal fade" id="modalModificarSeguros_tipo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarModificarSeguros_tipo" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoModificarSeguros_tipo" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| MODIFICAR TIPO DE SEGURO</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| MODIFICAR TIPO DE SEGURO</h3>
                     </div>
 
                     <div  id="colapsadoModificarSeguros_tipo" class="collapse in">
@@ -8006,26 +7752,24 @@
               </div>
 
               <div class="modal-footer">
-
-                <button id ="guardarModifRegistroSeguros_tipo" type="button" class="btn btn-successAceptar">GUARDAR</button>
-                <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">CANCELAR</button>
-
+                <button id="guardarModifRegistroSeguros_tipo" type="button" class="btn btn-successAceptar">GUARDAR</button>
+                <button type="button" id="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">CANCELAR</button>
               </div>
             </form>
-          </div> <!-- modal content -->
-        </div> <!-- modal dialog -->
-        </div> <!-- modal fade -->
-</div>
+          </div> <!-- collapse -->
+        </div> <!-- modal content -->
+      </div> <!-- modal dialog -->
+    </div> <!-- modal fade -->
 
 <!-- MODAL CARGAR SEGURO -->
 
 <div class="modal fade" id="modalCargarSeguros" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearSeguros" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearSeguros" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE PAGO DE SEGUROS</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE PAGO DE SEGUROS</h3>
                     </div>
 
                     <div  id="colapsadoCrearSeguros" class="collapse in">
@@ -8160,16 +7904,14 @@
               </div>
 
               <div class="modal-footer">
-
-                <button id ="guardarRegistroSeguros" type="button" class="btn btn-successAceptar">GENERAR</button>
-                <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
+                <button id="guardarRegistroSeguros" type="button" class="btn btn-successAceptar">GENERAR</button>
+                <button type="button" id="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
               </div>
             </form>
-          </div> <!-- modal content -->
-        </div> <!-- modal dialog -->
-        </div> <!-- modal fade -->
-</div>
+          </div> <!-- collapse -->
+        </div> <!-- modal content -->
+      </div> <!-- modal dialog -->
+    </div> <!-- modal fade -->
 
 <!-- MODAL ELIMINAR SEGURO -->
 
@@ -8204,10 +7946,10 @@
 <div class="modal fade" id="modalVerSeguros" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarSeguros" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerSeguros" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO SEGUROS</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO SEGUROS</h3>
                   </div>
 
                   <div  id="colapsadoVerSeguros" class="collapse in">
@@ -8299,10 +8041,10 @@
 <div class="modal fade" id="modalCargarDerechoAcceso" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearDerechoAcceso" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearDerechoAcceso" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO REGISTRO DE CONTRIBUCION ENTE TURISTICO</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE CONTRIBUCION ENTE TURISTICO</h3>
                     </div>
 
                     <div  id="colapsadoCrearDerechoAcceso" class="collapse in">
@@ -8405,15 +8147,14 @@
               </div>
 
               <div class="modal-footer">
-
-                <button id ="guardarRegistroDerechoAcceso" type="button" class="btn btn-successAceptar">GENERAR</button>
-                <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
+                <button id="guardarRegistroDerechoAcceso" type="button" class="btn btn-successAceptar">GENERAR</button>
+                <button type="button" id="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
               </div>
             </form>
-          </div> <!-- modal content -->
-        </div> <!-- modal dialog -->
-        </div> <!-- modal fade -->
+          </div> <!-- collapse -->
+        </div> <!-- modal content -->
+      </div> <!-- modal dialog -->
+    </div> <!-- modal fade -->
 </div>
 
 <!-- MODAL ELIMINAR DERECHO DE ACCESO -->
@@ -8449,27 +8190,21 @@
 <div class="modal fade" id="modalVerDerechoAcceso" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog" style="width:50%">
          <div class="modal-content">
-           <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+           <div class="modal-header modalNuevo" style="background-color: #00695c;">
              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
              <button id="btn-minimizarVerDerechoAcceso" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerDerechoAcceso" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-             <h3 class="modal-title" style="background-color: #6dc7be;">| OBSERVACIÓN DEL DERECHO DE ACCESO</h3>
+             <h3 class="modal-title" style="background-color: #00695c;">| OBSERVACIÓN DEL DERECHO DE ACCESO</h3>
             </div>
 
             <div  id="colapsadoVerDerechoAcceso" class="collapse in">
 
               <div class="modal-body">
                 <p id="obsDerechoAcceso"></p>
-              </div>
-
-
-
               <div class="modal-footer">
-
-                <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
+                <button type="button" id="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
               </div>
 
-            </div>
+            </div> <!-- colapsado -->
 
           </div> <!-- modal content -->
     </div> <!-- modal dialog -->
@@ -8480,10 +8215,10 @@
 <div class="modal fade" id="modalCargarPatentes_patenteDe" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
               <div class="modal-dialog" style="width:71%">
                    <div class="modal-content">
-                     <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                     <div class="modal-header modalNuevo" style="background-color: #00695c;">
                        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                        <button id="btn-minimizarCrearPatentes_patenteDe" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearPatentes_patenteDe" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                       <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVA PATENTE</h3>
+                       <h3 class="modal-title" style="background-color: #00695c;">| NUEVA PATENTE</h3>
                       </div>
 
                       <div  id="colapsadoCrearPatentes_patentesDe" class="collapse in">
@@ -8527,10 +8262,10 @@
 <div class="modal fade" id="modalPatentes_patenteDe_gestionar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerpatenteDe_gestionar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerpatenteDe_gestionar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| ELEMENTOS PATENTADO</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| ELEMENTOS PATENTADO</h3>
                   </div>
 
                   <div  id="colapsadoVerpatenteDe_gestionar" class="collapse in">
@@ -8598,10 +8333,10 @@
 <div class="modal fade" id="modalModificarPatentes_patentesDe" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarModificarPatentes_patenteDe" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoModificarPatentes_patenteDe" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| MODIFICAR ELEMENTO PATENTADO</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| MODIFICAR ELEMENTO PATENTADO</h3>
                     </div>
 
                     <div  id="colapsadoModificarPatentes_patenteDe" class="collapse in">
@@ -8681,7 +8416,7 @@
 
             <div class="row">
               <div class="col-md-12">
-                <h4>Pagos por Patente</h4>
+                <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Pagos por Patente</h4>
                 <div id="pagosPatentesContainer"></div>
               </div>
             </div>
@@ -8793,7 +8528,7 @@
 
           <div class="row">
             <div class="col-md-12">
-              <h4>Pagos por Patente</h4>
+              <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Pagos por Patente</h4>
               <div id="ver_pagosPatentesContainer"></div>
             </div>
           </div>
@@ -8815,10 +8550,10 @@
 <div class="modal fade" id="modalCargarImpInmobiliario_partida" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
               <div class="modal-dialog" style="width:71%">
                    <div class="modal-content">
-                     <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                     <div class="modal-header modalNuevo" style="background-color: #00695c;">
                        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                        <button id="btn-minimizarCrearImpInmobiliario_partida" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearImpInmobiliario_partida" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                       <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVA PARTIDA</h3>
+                       <h3 class="modal-title" style="background-color: #00695c;">| NUEVA PARTIDA</h3>
                       </div>
 
                       <div  id="colapsadoCrearPatentes_patentesDe" class="collapse in">
@@ -8862,10 +8597,10 @@
 <div class="modal fade" id="modalImpInmobiliario_partida_gestionar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerpatenteDe_gestionar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerpatenteDe_gestionar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #6dc7be;">| PARTIDAS </h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| PARTIDAS </h3>
                   </div>
 
                   <div  id="colapsadoVerpatenteDe_gestionar" class="collapse in">
@@ -8934,10 +8669,10 @@
 <div class="modal fade" id="modalModificarImpInmobiliario_partida" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog" style="width:71%">
                  <div class="modal-content">
-                   <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+                   <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarModificarImpInmobiliario_partida" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoModificarImpInmobiliario_partida" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #6dc7be;">| MODIFICAR PARTIDA</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| MODIFICAR PARTIDA</h3>
                     </div>
 
                     <div  id="colapsadoModificarImpInmobiliario_partida" class="collapse in">
@@ -8983,10 +8718,10 @@
 <div class="modal fade" id="modalCargarImpInmobiliario" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width:95%">
     <div class="modal-content">
-      <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+      <div class="modal-header modalNuevo" style="background-color: #00695c;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizarCrearImpInmobiliario" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearImpInmobiliario" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO PAGO DE IMPUESTO INMOBILIARIO</h3>
+        <h3 class="modal-title" style="background-color: #00695c;">| NUEVO PAGO DE IMPUESTO INMOBILIARIO</h3>
       </div>
 
       <div id="colapsadoCrearImpInmobiliario" class="collapse in">
@@ -9020,7 +8755,7 @@
 
             <div class="row">
               <div class="col-md-12">
-                <h4>Pagos por Partida</h4>
+                <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Pagos por Partida</h4>
                 <div id="pagosImpInmobiliarioContainer"></div>
               </div>
             </div>
@@ -9106,10 +8841,10 @@
 <div class="modal fade" id="modalVerImpInmobiliario" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width:95%">
     <div class="modal-content">
-      <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+      <div class="modal-header modalNuevo" style="background-color: #00695c;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizarImpInmobiliario" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerImpInmobiliario" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title" style="background-color: #6dc7be;">| REGISTRO IMPUESTO INMOBILIARIO</h3>
+        <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO IMPUESTO INMOBILIARIO</h3>
       </div>
 
       <div id="colapsadoVerImpInmobiliario" class="collapse in">
@@ -9129,7 +8864,7 @@
 
           <div class="row">
             <div class="col-md-12">
-              <h4>Pagos por Partida</h4>
+              <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Pagos por Partida</h4>
               <div id="ver_pagosImpInmobiliarioContainer"></div>
             </div>
           </div>
@@ -9151,10 +8886,10 @@
 @endsection
 @section('scripts')
   <!-- JavaScript paginacion -->
-  <script src="/js/paginaciondocumentosContables.js" charset="utf-8"></script>
+  <script src="/js/paginaciondocumentosContables.js?v={{ time() }}" charset="utf-8"></script>
 
   <!-- JavaScript personalizado -->
-  <script src="js/documentosContables.js" charset="utf-8"></script>
+  <script src="js/documentosContables.js?v={{ time() }}" charset="utf-8"></script>
 
   <!-- DateTimePicker JavaScript -->
   <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
@@ -9163,22 +8898,39 @@
   <!-- Custom input Bootstrap -->
   <script src="js/fileinput.min.js" type="text/javascript"></script>
   <script src="js/locales/es.js" type="text/javascript"></script>
+
+
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
 
   <script src="js/inputSpinner.js" type="text/javascript"></script>
   <script src="js/lista-datos.js" type="text/javascript"></script>
-@endsection
 
-<!-- Comienza modal de ayuda -->
-@section('tituloDeAyuda')
-  <h3 class="modal-title" style="color: #fff;">| Documentos Contables</h3>
-  @endsection
-  @section('contenidoAyuda')
-  <div class="col-md-12">
-  <h5>Tarjeta de Documentos Contables</h5>
-  <p>
-   Documentos contables...
-  </p>
-  </div>
+
+
+<!-- Modal Validation Confirmation -->
+<div class="modal fade" id="modalValidarDocumento" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            <h3 class="modal-titleEliminar">ADVERTENCIA</h3>
+          </div>
+
+          <div class="modal-body franjaRojaModal">
+            <form id="frmValidar" name="frmValidar" class="form-horizontal" novalidate="">
+                <div class="form-group error ">
+                  <div class="col-xs-12">
+                      <strong id="titulo-modal-validar">¿Seguro desea confirmar la validación del documento?</strong>
+                  </div>
+                </div>
+            </form>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button"  id="btn-confirmar-validacion" class="btn btn-dangerEliminar"> CONFIRMAR  </button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+          </div>
+      </div>
+    </div>
+</div>
 @endsection
-<!-- Termina modal de ayuda -->

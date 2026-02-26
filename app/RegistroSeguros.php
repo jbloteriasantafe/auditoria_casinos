@@ -11,6 +11,7 @@ class RegistroSeguros extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'art',
         'archivo',
         'fecha_toma',
