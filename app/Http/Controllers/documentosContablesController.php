@@ -90,6 +90,7 @@ class documentosContablesController extends Controller
         'iibb' => 'app/public/Registroiibb',
         'drei' => 'app/public/RegistroDREI',
         'tgi' => 'app/public/RegistroTGI',
+        'TGI' => 'app/public/RegistroTGI',
         'IMP_AP_OL' => 'app/public/RegistroIMP_AP_OL',
         'IMP_AP_MTM' => 'app/public/RegistroIMP_AP_MTM',
         'DeudaEstado' => 'app/public/RegistroDeudaEstado',
@@ -16393,7 +16394,7 @@ public function actualizarPatentes(Request $request, $id)
                 'registroPatentes' => $r->id_registroPatentes,
                 'patenteDe'       => $pid,
                 'cuota'            => $cuotas[$i]    ?? null,
-                'total'            => $importes[$i]  ?? null,
+                'importe'          => $importes[$i]  ?? null,
                 'fecha_pres'       => $fechas[$i]    ?? null,
                 'observacion'      => $obs[$i]       ?? null,
             ]);

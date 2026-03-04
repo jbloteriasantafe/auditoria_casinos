@@ -3845,6 +3845,7 @@ function generarFilaTGI(TGI, controlador) {
     const btnFiles = $("<button>")
       .addClass("btn btn-info btn-sm mr-1 btn-archivos-TGI")
       .attr("type", "button")
+      .attr("data-id", TGI.id_registroTGI)
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
     tdAcc.append(btnFiles);
@@ -16234,8 +16235,10 @@ function renderFilaPagoPatentes(p) {
   );
 
   $row.find(".pago-cuota").val(p.cuota || "");
-  if (p.importe != null && p.importe !== "")
-    $row.find(".pago-importe").val(p.importe);
+  if (p.importe != null && p.importe !== "") {
+    var valImp = typeof formatoAR === "function" ? formatoAR(p.importe) : p.importe;
+    $row.find(".pago-importe").val(valImp);
+  }
   $row.find(".pago-fecha").val(p.fecha_pres || p.fecha || "");
   $row.find(".pago-observacion").val(p.observacion || p.obs || "");
 
@@ -16247,6 +16250,10 @@ function renderFilaPagoPatentes(p) {
 function initPagoRowPatentes(idx) {
   var $modal = $("#modalCargarPatentes");
   var $fecha = $("#pat_pago_fecha_" + idx);
+  
+  if (typeof aplicarNumerico === "function") {
+    aplicarNumerico("#pat_pago_importe_" + idx);
+  }
 
   if (typeof instalarNumeroFlexibleAR === "function") {
     instalarNumeroFlexibleAR("#pat_pago_importe_" + idx, {
@@ -16380,8 +16387,8 @@ function renderFilaPagoPatentesReadOnly(p) {
       '">' +
       '<div class="col-md-2"><h5>Patente</h5><div class="form-control fc-wrap"></div></div>' +
       '<div class="col-md-1"><h5>Cuota</h5><input type="text" class="form-control" readonly></div>' +
-      '<div class="col-md-2"><h5>Importe</h5><input type="text" class="form-control" readonly></div>' +
-      '<div class="col-md-2"><h5>Fecha</h5><div class="input-group date"><input type="text" class="form-control" readonly></div></div>' +
+      '<div class="col-md-2"><h5>Importe</h5><input type="text" class="form-control ver-pago-importe" readonly></div>' +
+      '<div class="col-md-2"><h5>Fecha</h5><div class="input-group date"><input type="text" class="form-control ver-pago-fecha" readonly></div></div>' +
       '<div class="col-md-5"><h5>Observación</h5><textarea class="form-control" rows="1" readonly></textarea></div>' +
       "</div>"
   );
@@ -16417,10 +16424,8 @@ function renderFilaPagoPatentesReadOnly(p) {
     .first()
     .text(p.patenteDe || p.nombre || "");
   $row.find(".col-md-1 input").val(p.cuota || "");
-  $row.find(".col-md-2 input.form-control").first().val(importeFmt);
-  $row
-    .find(".col-md-2 .input-group.date input")
-    .val(p.fecha_pres || p.fecha || "");
+  $row.find(".ver-pago-importe").val(importeFmt);
+  $row.find(".ver-pago-fecha").val(p.fecha_pres || p.fecha || "");
   $row.find("textarea").val(p.observacion || p.obs || "");
 
   return $row;
@@ -16913,7 +16918,31 @@ $(document)
     if (!valid) return 0;
 
     let formElem = $form[0];
-    let formData = new FormData(formElem);
+    let formData = new FormData();
+
+    $form.serializeArray().forEach(function (p) {
+      let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+      let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+      let val = p.value;
+      if ($inp.length > 0) {
+        let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+        let dataNum = $inp.data("num");
+        let numflex = $inp.data("_numflex_dec");
+        if (!isDate && dataNum !== undefined && dataNum !== null) {
+          val = dataNum;
+        } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        } else if (!isDate && typeof val === 'string') {
+          let cleaned = val.replace(/[$\s%]/g, '');
+          if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+            let parsed = parseNumeroFlexible(val);
+            if (parsed) val = parsed.num !== null ? parsed.num : "";
+          }
+        }
+      }
+      formData.append(p.name, val === null ? "" : val);
+    });
 
     $(
       '#uploadsPatentesContainer input[type="file"][name="uploadPatentes[]"]'
