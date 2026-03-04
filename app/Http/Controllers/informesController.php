@@ -372,54 +372,362 @@ class informesController extends Controller
     $casino = Casino::find($request->id_casino);
     if(empty($casino)) return [];
     
-    $q_id_estado_maquina = DB::raw('IFNULL(lm.id_estado_maquina,m.id_estado_maquina)');
-    $estados_habilitados = [1,2,7];
-    //@SIN IMPLEMENTAR
-    $fecha_informe = $request->fecha_informe ?? date('Y-m-d');
-    DB::statement('SET @fecha_informe = ?',[$fecha_informe]);
-    $maqs_q = DB::table('maquina as m')
+    $fecha_informe;
+    if(empty($request->fecha_informe)){
+      $fecha_informe = date('Y-m-d');
+    }
+    else{
+      //Evito SQL injection
+      $fecha_informe = \DateTime::createFromFormat('Y-m-d',$request->fecha_informe);
+      if($fecha_informe === false){
+        return response()->json(['fecha_informe' => ['Formato incorrecto']],422);
+      }
+      $fecha_informe = $fecha_informe->format('Y-m-d');
+    }
+    
+    //Octavio 2026-02-09
+    //La implementación del código que usa LogMaquina es inconsistente 
+    
+    //En todas las  modificaciones de estado en el sistema, se guarda la maquina previamente
+    //y luego se registra el movimiento. 
+    //Este estado se recupera en LogMaquinaController::registrarMovimiento y se guarda
+    //El resultado es que log_maquina tiene el estado al que se transiciono
+    
+    //La excepción (ver MTMController linea 556)
+    //allí, se registra el movimiento y luego se modifica el estado
+    //por lo que termina guardado el estado anterior
+    $maqs = DB::table('maquina as m')
+    ->selectRaw("
+      m.nro_admin,
+      i.nro_isla,
+      m.id_estado_maquina,
+      s.descripcion as sector,
+      
+      lm_prev.id_log_maquina IS NOT NULL as prev_existe,
+      lm_prev.id_estado_maquina as prev_id_estado_maquina,
+      DATEDIFF('$fecha_informe',lm_prev.fecha) as prev_dias,
+      lm_prev.nro_isla as prev_nro_isla,
+      lm_prev.sector as prev_sector,
+      IF(lm_prev.razon LIKE 'La maquina sufrió modificaciones:%','previo','posterior') as prev_tipo_estado,
+      
+      lm_eq.id_log_maquina IS NOT NULL as eq_existe,
+      lm_eq.id_estado_maquina as eq_id_estado_maquina,
+      DATEDIFF('$fecha_informe',lm_eq.fecha) as eq_dias,
+      lm_eq.nro_isla as eq_nro_isla,
+      lm_eq.sector as eq_sector,
+      IF(lm_eq.razon LIKE 'La maquina sufrió modificaciones:%','previo','posterior') as eq_tipo_estado,
+      
+      lm_post.id_log_maquina IS NOT NULL as post_existe,
+      lm_post.id_estado_maquina as post_id_estado_maquina,
+      DATEDIFF(lm_post.fecha,'$fecha_informe') as post_dias,
+      lm_post.nro_isla as post_nro_isla,
+      lm_post.sector as post_sector,
+      IF(lm_post.razon LIKE 'La maquina sufrió modificaciones:%','previo','posterior') as post_tipo_estado
+    ")
+    ->leftJoin('isla as i',function($q) use ($fecha_informe){
+      return $q->on('i.id_isla','=','m.id_isla')
+      ->where(function($q) use ($fecha_informe){
+        return $q->whereNull('i.created_at')
+        ->orWhere(DB::raw('DATE(i.created_at)'),'<=',$fecha_informe);
+      })
+      ->where(function($q) use ($fecha_informe){
+        return $q->whereNull('i.deleted_at')
+        ->orWhere(DB::raw('DATE(i.deleted_at)'),'>=',$fecha_informe);
+      });
+    })
+    ->leftJoin('sector as s',function($q) use ($fecha_informe){
+      return $q->on('s.id_sector','=','i.id_sector')
+      ->where(function($q) use ($fecha_informe){
+        return $q->whereNull('s.created_at')
+        ->orWhere(DB::raw('DATE(s.created_at)'),'<=',$fecha_informe);
+      })
+      ->where(function($q) use ($fecha_informe){
+        return $q->whereNull('s.deleted_at')
+        ->orWhere(DB::raw('DATE(s.deleted_at)'),'>=',$fecha_informe);
+      });
+    })
+    ->leftJoin('log_maquina as lm_prev',function($q) use ($fecha_informe){
+      return $q->on('lm_prev.id_maquina','=','m.id_maquina')
+      ->where('lm_prev.fecha','<',$fecha_informe);
+    })
+    ->leftJoin('log_maquina as lm_eq',function($q) use ($fecha_informe){
+      return $q->on('lm_eq.id_maquina','=','m.id_maquina')
+      ->where('lm_eq.fecha','=',$fecha_informe);
+    })
+    ->leftJoin('log_maquina as lm_post',function($q) use ($fecha_informe){
+      return $q->on('lm_post.id_maquina','=','m.id_maquina')
+      ->where('lm_post.fecha','>',$fecha_informe);
+    })
     ->where('m.id_casino',$casino->id_casino)
     ->where('m.created_at','<=',$fecha_informe)
+    //Las maquinas NO se deberían borrar, solo pasar a Egreso definitivo
+    //esto las diferencia de las islas y los sectores (que en teoría tampoco)
+    //que el admin tiene esa posibilidad desde la interfaz
+    ->whereNull('m.deleted_at')
+    //@TODO: pasar queryes a orWhereNotExists
     ->where(function($q) use ($fecha_informe){
-      return $q->where('m.deleted_at','>',$fecha_informe)->orWhereNull('m.deleted_at');
+      return $q->whereNull('lm_prev.id_log_maquina')
+      ->orWhere(DB::raw("(
+        NOT EXISTS (
+          SELECT 1
+          FROM log_maquina as lm_prev2
+          WHERE lm_prev2.id_maquina = m.id_maquina
+          AND lm_prev2.fecha < '$fecha_informe'
+          AND (
+            lm_prev2.fecha > lm_prev.fecha
+            OR (lm_prev2.fecha = lm_prev.fecha AND lm_prev2.id_log_maquina > lm_prev.id_log_maquina)
+          )
+          LIMIT 1
+        )
+      )"),'=','1');
     })
-    //El log PROXIMO tiene el estado en que estaba
-    ->leftJoin('log_maquina as lm',function($q) use ($fecha_informe){
-      return $q->on('lm.id_maquina','=','m.id_maquina')->where('lm.fecha','>',$fecha_informe);
+    ->where(function($q) use ($fecha_informe){
+      return $q->whereNull('lm_eq.id_log_maquina')
+      ->orWhere(DB::raw("(
+        NOT EXISTS (
+          SELECT 1
+          FROM log_maquina as lm_eq2
+          WHERE lm_eq2.id_maquina = m.id_maquina
+          AND lm_eq2.fecha = '$fecha_informe'
+          AND lm_eq2.id_log_maquina > lm_eq.id_log_maquina
+          LIMIT 1
+        )
+      )"),'=','1');
     })
-    //Me quedo solo con el mas proximo a esa fecha
-    ->whereRaw('NOT EXISTS (
-      SELECT 1
-      FROM log_maquina as lm2
-      WHERE lm2.id_maquina = m.id_maquina
-      AND (
-        lm2.fecha < lm.fecha
-        OR (lm2.fecha = lm.fecha AND lm2.id_log_maquina < lm.id_log_maquina)
-      )
-      LIMIT 1
-    )');
+    ->where(function($q) use ($fecha_informe){
+      return $q->whereNull('lm_post.id_log_maquina')
+      ->orWhere(DB::raw("(
+        NOT EXISTS (
+          SELECT 1
+          FROM log_maquina as lm_post2
+          WHERE lm_post2.id_maquina = m.id_maquina
+          AND lm_post2.fecha > '$fecha_informe'
+          AND (
+            lm_post2.fecha < lm_post.fecha
+            OR (lm_post2.fecha = lm_post.fecha AND lm_post2.id_log_maquina < lm_post.id_log_maquina)
+          )
+          LIMIT 1
+        )
+      )"),'=','1');
+    })->get();
+        
+    $estados_habilitados = [1,2];
+    $estados_egresados = [3];
+    $estados_deshabilitados = [4,5,6,7];
+    $total_no_asignadas = 0;//Maquinas sin isla
+    $total_estados = [];
+    $total_sectores = [];
     
-    $total_casino = (clone $maqs_q)->count();
-    $total_habilitadas = (clone $maqs_q)->whereIn($q_id_estado_maquina, $estados_habilitados)->count();
-    $total_deshabilitadas = (clone $maqs_q)->whereNotIn($q_id_estado_maquina, $estados_habilitados)->count();
-    $total_no_asignadas = (clone $maqs_q)->whereNull('m.id_isla')->count();
+    //Esto se podría mover a MySQL pero quedaria bastante ilegible
+    //y es innecesario, por ahora el bottleneck es la query de BD
+    foreach($maqs as $m){
+      $sector = false;//Es un STR por BD
+      $nro_isla = false;//Es un INT por BD
+      $id_estado_maquina = false;//Es un INT por BD
+      
+      //Si hubo cambios para el mismo día, siempre tomo como prioridad ese
+      if($m->eq_existe){
+        $id_estado_maquina = $m->eq_id_estado_maquina;
+        $nro_isla = $m->eq_nro_isla;
+        $sector = $m->eq_sector;
+      }
+      //No tuvo cambios la maquina, tomo el estado de la maquina nomas
+      elseif(!$m->prev_existe && !$m->post_existe){
+        $id_estado_maquina = $m->id_estado_maquina;
+        $nro_isla = $m->nro_isla;
+        $sector = $m->sector;
+      }
+      //La maquina solo tuvo cambios previos
+      elseif( $m->prev_existe && !$m->post_existe){
+        //Al ser posterior al previo, y no haber posterior, deberia ser igual al estado actual
+        if($m->prev_tipo_estado == 'posterior'){
+          assert($m->prev_id_estado_maquina == $m->id_estado_maquina);
+          assert($m->prev_nro_isla == $m->nro_isla);
+          assert($m->prev_sector == $m->sector);
+        }
+        $id_estado_maquina = $m->id_estado_maquina;
+        $nro_isla = $m->nro_isla;
+        $sector = $m->sector;
+      }
+      //La maquina solo tuvo cambios posteriores
+      elseif(!$m->prev_existe &&  $m->post_existe){
+        //La maquina se creo manualmente y tuvo una modificacion por movimientos
+        //(porque no hay estado previo ni en la misma fecha)
+        //voy a considerarlo como estado INGRESO...
+        if($m->post_tipo_estado == 'posterior'){
+          $id_estado_maquina = 1;
+          //1. Si es un log_maquina de Modulo Islas, no podemos saber cual es
+          //2. Si es un log_maquina de Modulo de Movimientos, este no modifica la isla
+          //y genera un log_maquina al validarse, ergo esta en post_nro_isla
+          //En ambos casos lo asignamos (en 1. por heuristica)
+          $nro_isla = $m->post_nro_isla;
+          $sector = $m->post_sector;
+        }
+        //Al ser previo al posterior, lo asignamos nomas
+        elseif($m->post_tipo_estado == 'previo'){
+          $id_estado_maquina = $m->post_id_estado_maquina;
+          $nro_isla = $m->post_nro_isla;
+          $sector = $m->post_sector;
+        }
+        else{
+          throw new \Exception('Unreachable');
+        }
+      }
+      //La maquina tuvo cambios antes y despues (lo mas común)
+      elseif( $m->prev_existe &&  $m->post_existe){
+        if($m->prev_tipo_estado == 'posterior'){
+          if($m->post_tipo_estado == 'previo'){
+            //Deberían ser iguales
+            assert($m->prev_id_estado_maquina == $m->post_id_estado_maquina);
+            assert($m->prev_nro_isla == $m->post_nro_isla);
+            assert($m->prev_sector == $m->post_sector);
+          }
+          $id_estado_maquina = $m->prev_id_estado_maquina;//Esto es logica basica
+          $nro_isla = $m->prev_nro_isla;
+          $sector = $m->prev_sector;
+        }
+        else if($m->post_tipo_estado == 'previo'){
+          if($m->prev_tipo_estado == 'posterior'){
+            //Deberían ser iguales
+            assert($m->prev_id_estado_maquina == $m->post_id_estado_maquina);
+            assert($m->prev_nro_isla == $m->post_nro_isla);
+            assert($m->prev_sector == $m->post_sector);
+          }
+          $id_estado_maquina = $m->post_id_estado_maquina;
+          $nro_isla = $m->post_nro_isla;
+          $sector = $m->post_sector;
+        }
+        elseif($m->prev_tipo_estado == 'previo' && $m->post_tipo_estado == 'posterior'){
+          //La maquina tuvo una modificación por modulo MTM y luego un movimiento
+          //Considere buscarlo por LogMovimiento pero es practicamente lo mismo
+          //porque LogMovimiento es fuente de LogMaquina
+          //cuando se valida un movimiento, genera un LogMaquina
+          //solo agarraria un caso de un movimiento no validado...
+          //que no sirve mucho deben ser contados con la mano
+          //@HACK: Me quedo con el mas cercano... exceptuando que sea un egreso
+          //definitivo el posterior, en ese caso me quedo con el previo
+          //porque en teoria las maquinas no pueden volver de un egreso definitivo
+          if($m->prev_dias <= $m->post_dias || in_array($m->post_id_estado_maquina,$estados_egresados)){
+            $id_estado_maquina = $m->prev_id_estado_maquina;
+            $nro_isla = $m->prev_nro_isla;
+            $sector = $m->prev_sector;
+          }
+          else{
+            $id_estado_maquina = $m->post_id_estado_maquina;
+            $nro_isla = $m->post_nro_isla;
+            $sector = $m->post_sector;
+          }
+        }
+        else{
+          throw new \Exception('Unreachable');
+        }
+      }
+      else{
+        throw new \Exception('Unreachable');
+      }
+      
+      assert($id_estado_maquina !== false);
+      assert($nro_isla !== false);
+      assert($sector !== false);
+      
+      if($nro_isla === null){
+        $total_no_asignadas++;
+      }
+      
+      {
+        $_ksector = $sector === null? 'SIN_ASIGNAR' : $sector;
+        $total_sectores[$_ksector] = $total_sectores[$_ksector] ?? 0;
+        $total_sectores[$_ksector]++;
+      }
+            
+      $total_estados[$id_estado_maquina] = $total_estados[$id_estado_maquina] ?? 0;
+      $total_estados[$id_estado_maquina]++;
+    }
+        
+    $total_casino = 0;
+    $total_habilitadas = 0;
+    $total_egresadas = 0;
+    $total_deshabilitadas = 0;
+    $total_sin_estado = 0;
     
-    //@TODO: Como hacer para buscar el estado de las islas y sectores en $fecha_informe?
-    $islas_no_asignadas = DB::table('isla')->select('isla.id_isla')
-    ->where('isla.id_casino',$casino->id_casino)
-    ->join('sector','isla.id_sector','=','sector.id_sector')
-    ->join('maquina','maquina.id_isla','=','isla.id_isla')
-    ->whereNull('isla.deleted_at')//La isla no esta eliminada
-    ->whereNotNull('sector.deleted_at')//Esta en un sector eliminado
-    ->whereNull('maquina.deleted_at')//La maquina no esta eliminada
-    ->whereIn('maquina.id_estado_maquina',$estados_habilitados)//La maquina esta habilitada
-    ->distinct()->get()->count();
+    foreach($total_estados as $id_estado_maquina => $cantidad){
+      $total_casino+=$cantidad;
+      if(in_array($id_estado_maquina,$estados_habilitados)){
+        $total_habilitadas+=$cantidad;
+      }
+      else if(in_array($id_estado_maquina,$estados_egresados)){
+        $total_egresadas+=$cantidad;
+      }
+      else if(in_array($id_estado_maquina,$estados_deshabilitados)){
+        $total_deshabilitadas+=$cantidad;
+      }
+      else{
+        //Esto deberia ser siempre 0... si empieza a reportar es porque agregamos un estado y no lo manejamos
+        //Prefiero reportarlo en el frontend así los usuarios se quejan
+        $total_sin_estado+=$cantidad;
+      }
+    }
     
-    $sectores = $casino->sectores->map(function($s){
-      return ['id_sector' => $s->id_sector, 'descripcion' => $s->descripcion, 'cantidad' => $s->cantidad_maquinas];
-    });
+    $islas_no_asignadas = DB::table('isla as i')
+    ->select('i.nro_isla','l.id_log','i.id_sector','dl.campo','dl.valor')
+    ->leftJoin('log as l',function($j) use ($fecha_informe){
+      return $j->on('l.id_entidad','=','i.id_isla')
+      ->where('l.tabla','=','isla')
+      ->where('l.fecha','<=',$fecha_informe.' 23:59:59');
+    })
+    ->leftJoin('detalle_log as dl',function($j) {
+      return $j->on('dl.id_log','=','l.id_log')
+      ->where('dl.campo','=','id_sector');
+    })
+    ->where('i.id_casino',$casino->id_casino)
+    ->where(function($q) use ($fecha_informe){
+      return $q->whereNull('i.created_at')
+      ->orWhere('i.created_at','<=',$fecha_informe.' 23:59:59');
+    })
+    ->where(function($q) use ($fecha_informe){
+      return $q->whereNull('i.deleted_at')
+      ->orWhere('i.deleted_at','>',$fecha_informe.' 23:59:59');
+    })
+    ->where(function($q) use ($fecha_informe){
+      return $q->whereNull('l.id_log')
+      ->orWhere(DB::raw("(
+        NOT EXISTS (
+          SELECT 1
+          FROM log as l2
+          LEFT JOIN detalle_log as dl2 ON dl2.id_log = l2.id_log AND dl2.campo = 'id_sector'
+          WHERE l2.tabla = 'isla' 
+          AND l2.fecha <= '$fecha_informe 23:59:59'
+          AND l2.id_entidad = i.id_isla
+          AND (
+            l2.fecha > l.fecha
+            OR (l2.fecha = l.fecha AND l2.id_log > l.id_log)
+          )
+          LIMIT 1
+        )
+      )"),'=','1');
+    })
+    ->where(DB::raw("(
+      (dl.campo = 'id_sector' AND dl.valor IS NULL)
+      OR
+      (dl.campo IS NULL AND i.id_sector IS NULL)
+    )"),'=','1')
+    ->get()->count();
+    
+    $sectores = [];
+    foreach($total_sectores as $k => $v){
+      $sectores[] = ['descripcion' => $k,'cantidad' => $v];
+    }
 
-    $totales = compact('total_casino','total_no_asignadas','islas_no_asignadas','total_habilitadas','total_deshabilitadas');
+    $totales = compact(
+      'total_casino',
+      'total_no_asignadas',
+      'islas_no_asignadas',
+      'total_habilitadas',
+      'total_deshabilitadas',
+      'total_egresadas',
+      'total_sin_estado'
+    );
+    
     return compact('casino','sectores','totales');
   }
 
@@ -628,6 +936,7 @@ class informesController extends Controller
   }
   public function obtenerMTMs(){
     $user = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $es_superusuario = $user->es_superusuario;
     $casinos = $user->casinos;
     $sectores = [];
     foreach($casinos as $c){
@@ -670,6 +979,8 @@ class informesController extends Controller
     ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
     ->join('isla as i','m.id_isla','=','i.id_isla')
     ->whereNotNull('i.id_sector')
+    //No tiene sentido mostrar las maquinas borradas al admin
+    ->whereNull($es_superusuario? DB::raw('NULL') : 'm.deleted_at')
     ->orderBy('m.nro_admin','asc')->get()->toArray();
 
     //Necesito sacar la columna de isla de maquina, la otra que queda era listar todas a pata.
@@ -684,6 +995,8 @@ class informesController extends Controller
     ->selectRaw('CONCAT("SIN_ASIGNAR_",m.id_casino) as id_sector,CONCAT("SIN_ISLA_",m.id_casino) as id_isla,'.$expresion_estado.$columnas_str)
     ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
     ->whereNull('m.id_isla')
+    //No tiene sentido mostrar las maquinas borradas al admin
+    ->whereNull($es_superusuario? DB::raw('NULL') : 'm.deleted_at')
     ->orderBy('m.nro_admin','asc')->get()->toArray();
 
     $m_sin_sector = DB::table('maquina as m')
@@ -691,6 +1004,8 @@ class informesController extends Controller
     ->leftJoin('estado_maquina as estado','m.id_estado_maquina','=','estado.id_estado_maquina')
     ->join('isla as i','m.id_isla','=','i.id_isla')
     ->whereNull('i.id_sector')
+    //No tiene sentido mostrar las maquinas borradas al admin
+    ->whereNull($es_superusuario? DB::raw('NULL') : 'm.deleted_at')
     ->orderBy('m.nro_admin','asc')->get()->toArray();
 
     $todas = array_merge($maquinas,$m_sin_isla,$m_sin_sector);

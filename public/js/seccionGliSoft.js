@@ -555,7 +555,7 @@ $('#btn-guardar').click(function (e){
 
           if(typeof response.file !== 'undefined'){
             $('#mensajeError .textoMensaje').empty();
-            $('#mensajeError .textoMensaje').append($('<h3></h3>').text("El archivo no es de tipo PDF."));
+            $('#mensajeError .textoMensaje').append($('<h3></h3>').text(response.file.join('<br>')));
             $('#mensajeError').hide();
             setTimeout(function(){
                 $('#mensajeError').show();

@@ -20,6 +20,10 @@ $(document).ready(function(){
         
         $('#total_habilitadas').text(data.totales.total_habilitadas);
         $('#total_deshabilitadas').text(data.totales.total_deshabilitadas);
+        $('#total_egresadas').text(data.totales.total_egresadas);
+        $('#total_sin_estado').text(data.totales.total_sin_estado)
+        .parent().toggle(!!data.totales.total_sin_estado);
+        
         $('#islas_asignadas').text(data.totales.islas_no_asignadas);
         $('#maquinas_asignadas').text(data.totales.total_no_asignadas);
 
@@ -52,6 +56,20 @@ $(document).ready(function(){
 });
 
 function generarGraficoTortaHabilitadas(){
+  const datos = [
+    ['Habilitadas', parseInt($('#total_habilitadas').text()),'#00E676'],
+    ['Deshabilitadas', parseInt($('#total_deshabilitadas').text()),'#FF6E17'],
+    ['Egresadas', parseInt($('#total_egresadas').text()),'#FF1744']
+  ];
+  
+  const total_sin_estado = parseInt($('#total_sin_estado').text());
+  if(total_sin_estado != 0){
+    datos.push(['Sin Estado',total_sin_estado,'#000000']);
+  }   
+  
+  const colors = datos.map(function(d){return d[2];});
+  const data = datos.map(function(d){return [d[0],d[1]];});
+  
   Highcharts.chart('tortaHabilitadas', {
     chart: {
       spacingBottom: 0,
@@ -83,7 +101,7 @@ function generarGraficoTortaHabilitadas(){
     tooltip: { pointFormat: '{point.percentage:.1f}%'},
     plotOptions: {
       pie: {
-        colors: ['#00E676','#FF1744'],
+        colors: colors,
         allowPointSelect: true,
         cursor: 'pointer',
         depth: 35,
@@ -97,10 +115,7 @@ function generarGraficoTortaHabilitadas(){
     series: [{
       type: 'pie',
       name: 'Porcentaje',
-      data: [
-        ['Habilitadas', parseInt($('#total_habilitadas').text())],
-        ['Deshabilitadas', parseInt($('#total_deshabilitadas').text())]
-      ]
+      data: data
     }]
   });
 }

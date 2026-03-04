@@ -340,33 +340,40 @@ class UsuarioController extends Controller
     $usuario = $this->buscarUsuario(session('id_usuario'));
     $user = Usuario::find($usuario['usuario']->id_usuario);
 
-    //si no tiene creadas las secciones_recientes
-    if($user->secciones_recientes->count() == 0){
-      for($i=1;$i<=4;$i++){
-        $sec1 = new SecRecientes;
-        $sec1->orden = $i;
-        $sec1->seccion = $seccion;
-        $sec1->ruta = $ruta;
-        $sec1->usuario()->associate($user->id_usuario);
-        $sec1->save();
-        $seccion = null;
-        $ruta = null;
-      }
-    }else{
+    $secciones = $user->secciones_recientes;
+    $CANT_SECCIONES = env('CANTIDAD_SECCIONES_RECIENTES',4);
+    if($secciones->count() > $CANT_SECCIONES){//Limpio las secciones si son mas que las maximas
+      $secciones = $secciones->delete();
       $secciones = $user->secciones_recientes;
-      $secciones_nombres = [];
-      foreach($secciones as $s) $secciones_nombres[] = $s->seccion;
-      if(!in_array($seccion,$secciones_nombres)){//Evita repetidos
-        for($i=3;$i>=1;$i--){
-          $secciones[$i]->seccion = $secciones[$i-1]->seccion;
-          $secciones[$i]->ruta    = $secciones[$i-1]->ruta;
-          $secciones[$i]->save();
-        }
-        $secciones[0]->seccion = $seccion;
-        $secciones[0]->ruta    = $ruta;
-        $secciones[0]->save();
+    }
+    
+    for($i=$secciones->count();$i<$CANT_SECCIONES;$i++){
+      $sec1 = new SecRecientes;
+      $sec1->orden = $i+1;
+      $sec1->seccion = null;
+      $sec1->ruta = null;
+      $sec1->usuario()->associate($user->id_usuario);
+      $sec1->save();
+    }
+    
+    $secciones = $user->secciones_recientes()->get();//Lo refresco
+    //Ya se encuentra... evito repetidos
+    foreach($secciones as $s){
+      if($s->seccion == $seccion){
+        return;
       }
     }
+    
+    //Muevo todas para adelante
+    for($i=3;$i>=1;$i--){
+      $secciones[$i]->seccion = $secciones[$i-1]->seccion;
+      $secciones[$i]->ruta    = $secciones[$i-1]->ruta;
+      $secciones[$i]->save();
+    }
+    
+    $secciones[0]->seccion = $seccion;
+    $secciones[0]->ruta    = $ruta;
+    $secciones[0]->save();
   }
 
   public function obtenerUsuariosRol($id_casino, $id_rol){

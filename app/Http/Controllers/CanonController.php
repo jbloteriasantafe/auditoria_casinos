@@ -1870,6 +1870,7 @@ class CanonController extends Controller
     ->select('tipo')->distinct()
     ->get();
     
+    DB::statement('DROP TEMPORARY TABLE IF EXISTS temp_subcanons');
     DB::statement('CREATE TEMPORARY TABLE temp_subcanons
     SELECT
       c.año_mes as año_mes,
@@ -1942,6 +1943,7 @@ class CanonController extends Controller
     WITH ROLLUP
     HAVING año_mes IS NOT NULL AND id_casino IS NOT NULL');
     
+    DB::statement('DROP TEMPORARY TABLE IF EXISTS temp_subcanons_total');
     DB::statement('CREATE TEMPORARY TABLE temp_subcanons_total
     SELECT
       sc.id_casino,
@@ -1954,6 +1956,7 @@ class CanonController extends Controller
     FROM temp_subcanons as sc
     WHERE sc.concepto = "Total"');
     
+    DB::statement('DROP TEMPORARY TABLE IF EXISTS temp_subcanons_total_red');
     DB::statement('CREATE TEMPORARY TABLE temp_subcanons_total_red
     SELECT
       sc.id_casino,
@@ -1967,6 +1970,7 @@ class CanonController extends Controller
     WHERE sc.concepto <> "Total"
     GROUP BY sc.id_casino,sc.año_mes');
     
+    DB::statement('DROP TEMPORARY TABLE IF EXISTS temp_subcanons_redondeados');
     DB::statement('CREATE TEMPORARY TABLE temp_subcanons_redondeados
     SELECT
       sc.id_casino,
@@ -1983,6 +1987,7 @@ class CanonController extends Controller
     JOIN temp_subcanons_total_red as Tred ON Tred.id_casino = sc.id_casino AND Tred.año_mes = sc.año_mes
     WHERE sc.concepto <> "Total"');
     
+    DB::statement('DROP TEMPORARY TABLE IF EXISTS temp_subcanons_redondeados_con_totales');
     DB::statement('CREATE TEMPORARY TABLE temp_subcanons_redondeados_con_totales
     SELECT *
     FROM temp_subcanons_redondeados');
@@ -2014,6 +2019,7 @@ class CanonController extends Controller
     FROM temp_subcanons_redondeados
     GROUP BY id_casino,año_mes');
     
+    DB::statement('DROP TEMPORARY TABLE IF EXISTS temp_subcanons_redondeados_con_totales_con_mensuales');
     DB::statement('CREATE TEMPORARY TABLE temp_subcanons_redondeados_con_totales_con_mensuales
     SELECT * FROM temp_subcanons_redondeados_con_totales');
     DB::statement('INSERT INTO temp_subcanons_redondeados_con_totales_con_mensuales
@@ -2034,7 +2040,7 @@ class CanonController extends Controller
     return 'temp_subcanons_redondeados_con_totales_con_mensuales';
   }
   public function totalesCanon($año,$mes,$discriminar_adicionales){
-    $table = self::totalesCanon_prepare('Adicionales');
+    $table = self::totalesCanon_prepare($discriminar_adicionales? 'Adicionales' : 'Paños');
     $año_mes = str_pad($año,4,'0',STR_PAD_LEFT).'-'.str_pad($mes,2,'0',STR_PAD_LEFT).'-01';
     $ret = DB::table($table.' as tc')
     ->select('tc.*',DB::raw('IF(tc.id_casino = 0,"Total",IFNULL(cas.nombre,tc.id_casino)) as casino'))
@@ -2178,37 +2184,197 @@ class CanonController extends Controller
     $año = str_pad(intval($año_mes_arr[0]),4,'0',STR_PAD_LEFT);
     $mes = str_pad(intval($año_mes_arr[1]),2,'0',STR_PAD_LEFT);
     
-    $abbr_casinos = DB::table(
-      DB::raw('(
-        SELECT 1 as id_casino,"Melincué" as casino,"MEL" as abbr,"CME" as codigo,"BPLAY" as plataforma
-        UNION ALL
-        SELECT 2 as id_casino,"Santa Fe" as casino,"SFE" as abbr,"CSF" as codigo,"BPLAY" as plataforma
-        UNION ALL
-        SELECT 3 as id_casino,"Rosario" as casino,"ROS" as abbr,"CRO" as codigo,"CCO" as plataforma
-        UNION ALL
-        SELECT 1 as id_casino,"Total" as casino,"TOTAL" as abbr,"TOTAL" as codigo,"BPLAY" as plataforma
-        UNION ALL
-        SELECT 2 as id_casino,"Total" as casino,"TOTAL" as abbr,"TOTAL" as codigo,"BPLAY" as plataforma
-        UNION ALL
-        SELECT 3 as id_casino,"Total" as casino,"TOTAL" as abbr,"TOTAL" as codigo,"CCO" as plataforma
-      ) as cas')
-    )
-    ->select('casino','codigo')->distinct()
-    ->get()
-    ->keyBy('casino')
-    ->map(function($v){
-      return $v->codigo;
-    });
+    $abbr_casinos = collect([
+      'Melincué' => 'CME',
+      'Santa Fe' => 'CSF',
+      'Rosario' => 'CRO',
+      'TOTAL' => 'TOTAL',
+    ]);
     
     $table = self::totalesCanon_prepare();
-    $ret = DB::table($table.' as tc')
-    ->select('tc.*')
+    $determinados = DB::table($table.' as tc')
+    ->select('tc.concepto','tc.determinado')
     ->leftJoin('casino as cas','cas.id_casino','=','tc.id_casino')
     ->where('tc.año_mes',$canon->año_mes)
     ->where('cas.nombre',$casino)
-    ->get();
+    ->get()
+    ->keyBy('concepto')
+    ->map(function($tc){
+      return $tc->determinado;
+    });
+    
+    $datos_canon = $this->obtener_arr(['id_canon' => $canon->id_canon]);
+    //@TODO: generalizar esto... lo hago manualmente para tener una implementación funcionando
+    //medio que si o sí tengo que recalcular todo de vuelta para atras por los redondeos
+    $data = [];
+    $data['Variable'] = [];
+    $data['Variable']['Maquinas']['determinado'] = $determinados['MTM'];
+    $data['Variable']['Maquinas']['alicuota'] = $datos_canon['canon_variable']['Maquinas']['alicuota'];
+    $data['Variable']['Maquinas']['beneficio'] = bcdiv(//Lo calculo para atras... porque tiene el ajuste agregado...
+      $data['Variable']['Maquinas']['determinado'],
+      bcdiv($data['Variable']['Maquinas']['alicuota'],'100',6),
+      2
+    );
+    
+    $data['Variable']['Bingo']['determinado'] = $determinados['Bingo'];
+    $data['Variable']['Bingo']['alicuota'] = $datos_canon['canon_variable']['Bingo']['alicuota'];
+    $data['Variable']['Bingo']['beneficio'] = bcdiv(//Lo calculo para atras... porque tiene el ajuste agregado...
+      $data['Variable']['Bingo']['determinado'],
+      bcdiv($data['Variable']['Bingo']['alicuota'],'100',6),
+      2
+    );
+    
+    $data['Variable']['JOL']['determinado'] = @$determinados['JOL'];
+    $data['Variable']['JOL']['alicuota'] = @$datos_canon['canon_variable']['JOL']['alicuota'];
+    $data['Variable']['JOL']['beneficio'] = @bcdiv(//Lo calculo para atras... porque tiene el ajuste agregado...
+      $data['Variable']['JOL']['determinado'],
+      bcdiv($data['Variable']['JOL']['alicuota'],'100',6),
+      2
+    );
+    
+    $data['Variable']['Total']['determinado'] = bcadd_precise(
+      bcadd_precise(
+        @$data['Variable']['Maquinas']['determinado'] ?? '0',
+        @$data['Variable']['Bingo']['determinado'] ?? '0'
+      ),
+      @$data['Variable']['JOL']['determinado'] ?? '0'
+    );
+    $data['Variable']['Total']['alicuota'] = null;
+    $data['Variable']['Total']['beneficio'] = bcadd_precise(
+      bcadd_precise(
+        @$data['Variable']['Maquinas']['beneficio'] ?? '0',
+        @$data['Variable']['Bingo']['beneficio'] ?? '0'
+      ),
+      @$data['Variable']['JOL']['beneficio'] ?? '0'
+    );
+    {
+      $data_tcfm = $datos_canon['canon_fijo_mesas'];
+      $data_tcfm = @$data_tcfm[array_keys($data_tcfm)[0]] ?? [];
+      $data['Fijo'] = [];
+      $data['Valores'] = [//Para la plantilla necesito los valores unificados... en cada tipo de mesa referencio por clave
+        'mes' => null,
+        'dia' => [],
+        'hora' => []
+      ];
+      {
+        $dmon = [];
+        $dmon['Euro'] = [
+          'valor' => $data_tcfm['valor_euro'] ?? null,
+          'fecha_cotizacion' => $data_tcfm['determinado_fecha_cotizacion'] ?? null,
+          'cotizacion' => $data_tcfm['determinado_cotizacion_euro'] ?? null,
+          'pesos' => $data_tcfm['determinado_valor_euro_cotizado'] ?? null
+        ];
+        $dmon['Dólar'] = [
+          'valor' => $data_tcfm['valor_dolar'] ?? null,
+          'fecha_cotizacion' => $data_tcfm['determinado_fecha_cotizacion'] ?? null,
+          'cotizacion' => $data_tcfm['determinado_cotizacion_dolar'] ?? null,
+          'pesos' => $data_tcfm['determinado_valor_dolar_cotizado'] ?? null
+        ];
+        $data['Fijo']['Monedas'] = $dmon;
+        
+        $data['Valores']['mes'] = @bcadd_precise(
+          $dmon['Euro']['pesos'],
+          $dmon['Dólar']['pesos']
+        ) ?? null;
+        
+        $data['Valores']['dia']['/'.$data_tcfm['dias_valor']] = null;
+        $val_diario = @bcmul_precise(
+          $data['Valores']['mes'] ?? null,
+          $data_tcfm['factor_dias_valor'] ?? null
+        ) ?? null;
+        
+        $kdias = '/'.$data_tcfm['dias_valor'];
+        $data['Valores']['dia'][$kdias] = $val_diario;
+        
+        $data['Fijo']['valor_dia'] = $kdias;
+      }
+      {
+        $data['Fijo']['Mesas'] = [];
+        $data['Fijo']['Mesas']['Lunes-Jueves'] = [
+          'dias' => $data_tcfm['dias_lunes_jueves'] ?? null,
+          'mesas' => $data_tcfm['mesas_lunes_jueves'] ?? null,
+        ];
+        $data['Fijo']['Mesas']['Viernes-Sábados'] = [
+          'dias' => $data_tcfm['dias_viernes_sabados'] ?? null,
+          'mesas' => $data_tcfm['mesas_viernes_sabados'] ?? null,
+        ];
+        $data['Fijo']['Mesas']['Domingos'] = [
+          'dias' => $data_tcfm['dias_domingos'] ?? null,
+          'mesas' => $data_tcfm['mesas_domingos'] ?? null,
+        ];
+        $data['Fijo']['Mesas']['Fijos'] = [
+          'dias' => $data_tcfm['dias_fijos'] ?? null,
+          'mesas' => $data_tcfm['mesas_fijos'] ?? null,
+        ];
+        $data['Fijo']['Mesas']['Todos'] = [
+          'dias' => $data_tcfm['dias_todos'] ?? null,
+          'mesas' => $data_tcfm['mesas_todos'] ?? null,
+        ];
+        $data['Fijo']['Mesas']['Total'] = [
+          'mesas' => $data_tcfm['mesas_dias'] ?? null,
+          'determinado' => @$determinados['Paños'] ?? '0'
+        ];
+      }
+    }
+    {
+      $data['Fijo']['Adicionales'] = [];
+      $adicionales_total = [
+        'horas' => '0',
+        'mesas' => '0',
+        'determinado' => '0'
+      ];
+      foreach($datos_canon['canon_fijo_mesas_adicionales'] as $tcfma => $data_tcfma){
+        $aux = [
+          'horas' => $data_tcfma['horas'],
+          'mesas' => $data_tcfma['mesas'],
+          'determinado' => $determinados[$tcfma]
+        ];
+        $adicionales_total['horas'] = bcadd_precise(
+          $aux['horas'],
+          $adicionales_total['horas']
+        );
+        $adicionales_total['mesas'] = bcadd_precise(
+          $aux['mesas'],
+          $adicionales_total['mesas']
+        );
+        $adicionales_total['determinado'] = bcadd_precise(
+          $aux['determinado'],
+          $adicionales_total['determinado']
+        );
+        
+        $kdias = '/'.$data_tcfma['dias_mes'];
+        $data['Valores']['dia'][$kdias] = bcround_ndigits(bcmul_precise(
+          $data['Valores']['mes'] ?? null,
+          $data_tcfma['factor_dias_mes'] ?? null
+        ),2);
+        $aux['valor_dia'] = $kdias;
+        
+        $khoras = '/'.$data_tcfma['dias_mes'].'/'.$data_tcfma['horas_dia'];
+        $data['Valores']['hora'][$khoras] = bcround_ndigits(bcmul_precise(
+          $data['Valores']['mes'] ?? null,
+          $data_tcfma['factor_horas_mes'] ?? null
+        ),2);
+        $aux['valor_hora'] = $khoras;
+        
+        $data['Fijo']['Adicionales'][$tcfma] = $aux;
+      }
+      $data['Fijo']['Adicionales']['Total'] = $adicionales_total;
+      
+      $data['Fijo']['determinado'] = bcadd_precise(
+        @$data['Fijo']['Mesas']['Total']['determinado'] ?? '0',
+        @$data['Fijo']['Adicionales']['Total']['determinado'] ?? '0'
+      ) ?? '0';
+    }
+    
+    $data['Canon']['Físico'] = $determinados['Total Físico'];
+    $data['Canon']['Online'] = bcsub_precise(
+      $determinados['Total'],
+      $determinados['Total Físico']
+    );
+    $data['Canon']['Total']  = $determinados['Total'];
     
     return View::make('Canon.planillaInformeCanon',[
+      'data' => $data,
       'casino' => $casino,
       'año' => $año,
       'mes' => $mes,
