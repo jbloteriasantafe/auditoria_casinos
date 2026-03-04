@@ -11,6 +11,7 @@ class RegistroDerechoAcceso extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_DerechoAcceso',
         'fecha_toma',
         'semana',

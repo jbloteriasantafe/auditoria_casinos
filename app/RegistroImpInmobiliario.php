@@ -11,6 +11,7 @@ class RegistroImpInmobiliario extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'archivo',
         'fecha_ImpInmobiliario',
         'fecha_toma',

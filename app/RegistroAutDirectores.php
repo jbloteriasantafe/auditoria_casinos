@@ -11,6 +11,7 @@ class RegistroAutDirectores extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_AutDirectores',
         'archivo',
         'fecha_toma',

@@ -11,6 +11,7 @@ class RegistroJackpotsPagados extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_JackpotsPagados',
         'fecha_toma',
         'importe',

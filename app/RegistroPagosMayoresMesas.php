@@ -11,6 +11,7 @@ class RegistroPagosMayoresMesas extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_PagosMayoresMesas',
         'fecha_toma',
         'importe_pesos',

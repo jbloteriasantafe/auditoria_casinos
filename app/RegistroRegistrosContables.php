@@ -11,6 +11,7 @@ class RegistroRegistrosContables extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_RegistrosContables',
         'fecha_toma',
         'mtm',

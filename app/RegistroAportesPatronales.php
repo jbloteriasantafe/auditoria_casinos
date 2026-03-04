@@ -11,6 +11,7 @@ class RegistroAportesPatronales extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_AportesPatronales',
         'fecha_toma',
         'fecha_pres',

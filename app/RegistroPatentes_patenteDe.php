@@ -11,6 +11,7 @@ class RegistroPatentes_patenteDe extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_toma',
         'nombre',
         'estado',

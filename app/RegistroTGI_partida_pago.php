@@ -11,6 +11,7 @@ class RegistroTGI_partida_pago extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_toma',
         'partida',
         'cuota',

@@ -11,6 +11,7 @@ class RegistroDREI extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_drei',
         'fecha_presentacion',
         'fecha_toma',

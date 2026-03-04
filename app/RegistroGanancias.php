@@ -11,6 +11,7 @@ class RegistroGanancias extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'archivo',
         'casino',
         'usuario',

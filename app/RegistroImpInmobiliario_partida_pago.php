@@ -11,6 +11,7 @@ class RegistroImpInmobiliario_partida_pago extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'partida',
         'cuota',
         'registroImpInmobiliario',

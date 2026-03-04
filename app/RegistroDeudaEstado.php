@@ -11,6 +11,7 @@ class RegistroDeudaEstado extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_DeudaEstado',
         'fecha_toma',
         'fecha_consulta',

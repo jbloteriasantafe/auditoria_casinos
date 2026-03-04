@@ -11,6 +11,7 @@ class RegistroReporteYLavado extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_ReporteYLavado',
         'fecha_toma',
         'reporte_sistematico',

@@ -853,6 +853,8 @@ Route::group(['prefix' => 'layout_total', 'middleware' => 'tiene_permiso:ver_sec
   Route::get('obtenerLayoutTotal/{id}', 'LayoutController@obtenerLayoutTotal');
   Route::post('validarLayoutTotal', 'LayoutController@validarLayoutTotal');
   Route::post('usarLayoutTotalBackup', 'LayoutController@usarLayoutTotalBackup');
+
+
   Route::get('islasLayoutTotal/{id_layout_total}', 'LayoutController@islasLayoutTotal');
   Route::delete('eliminarLayoutTotal/{id_layout_total}', 'LayoutController@eliminarLayoutTotal');
   Route::get('obtenerTurno/{id}', 'CasinoController@obtenerTurno');
@@ -1037,11 +1039,23 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('/', 'documentosContablesController@index');
   Route::get('visualizarArchivo/{registro}/{id_archivo}', 'documentosContablesController@visualizarArchivo');
   Route::get('eliminarArchivo', 'documentosContablesController@eliminarArchivo');
+  Route::get('eliminarArchivo', 'documentosContablesController@eliminarArchivo');
+  Route::post('validarDocumento', 'documentosContablesController@validarDocumento');
+  Route::get('obtenerDocumentosValidados', 'documentosContablesController@obtenerDocumentosValidados');
+  
+  // ESTADO CONTABLE
+  Route::get('ultimasEstadoContable', 'documentosContablesController@ultimasEstadoContable');
+  Route::post('guardarEstadoContable', 'documentosContablesController@guardarEstadoContable');
+  Route::get('eliminarEstadoContable/{id}', 'documentosContablesController@eliminarEstadoContable');
+  Route::get('llenarEstadoContableEdit/{id}', 'documentosContablesController@llenarEstadoContableEdit');
+  Route::post('actualizarEstadoContable/{id}', 'documentosContablesController@actualizarEstadoContable');
+  Route::get('archivosEstadoContable/{id}', 'documentosContablesController@archivosEstadoContable');
   //IVA
   Route::post('guardarIva', 'documentosContablesController@guardarIva');
   Route::post('actualizarIva/{id}', 'documentosContablesController@actualizarIva');
   Route::get('ultimasIva', 'documentosContablesController@ultimasIva');
   Route::get('llenarIva/{id}', 'documentosContablesController@llenarIva');
+  Route::get('llenarIvaEdit/{id}', 'documentosContablesController@llenarIvaEdit');
   Route::get('eliminarIva/{id}', 'documentosContablesController@eliminarIva');
   Route::get('descargarIvaXlsx', 'documentosContablesController@descargarIvaExcel');
   Route::get('descargarIvaXlsxTodos', 'documentosContablesController@descargarIvaExcelTodos');
@@ -1256,12 +1270,16 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('descargarPremiosPagadosCsv', 'documentosContablesController@descargarPremiosPagadosCsv');
   //PREMIOSMTM
   Route::post('guardarPremiosMTM', 'documentosContablesController@guardarPremiosMTM');
+  Route::post('guardarPremiosMTM_Unificado', 'documentosContablesController@guardarPremiosMTM_Unificado');
   Route::get('ultimasPremiosMTM', 'documentosContablesController@ultimasPremiosMTM');
+  Route::get('ultimasPremiosMTM_Unificado', 'documentosContablesController@ultimasPremiosMTM_Unificado');
+  Route::get('llenarPremiosMTM_Unificado', 'documentosContablesController@llenarPremiosMTM_Unificado');
   Route::get('eliminarPremiosMTM/{id}', 'documentosContablesController@eliminarPremiosMTM');
   Route::get('llenarPremiosMTM/{id}', 'documentosContablesController@llenarPremiosMTM');
   Route::post('actualizarPremiosMTM/{id}', 'documentosContablesController@actualizarPremiosMTM');
   Route::get('archivosPremiosMTM/{id}', 'documentosContablesController@archivosPremiosMTM');
   Route::get('llenarPremiosMTMEdit/{id}', 'documentosContablesController@llenarPremiosMTMEdit');
+  Route::get('descargarPremiosMTMUnificadoXlsx', 'documentosContablesController@descargarPremiosMTMUnificadoXlsx');
   Route::get('descargarPremiosMTMXlsx', 'documentosContablesController@descargarPremiosMTMXlsx');
   Route::get('descargarPremiosMTMXlsxTodos', 'documentosContablesController@descargarPremiosMTMXlsxTodos');
   Route::get('descargarPremiosMTMCsv', 'documentosContablesController@descargarPremiosMTMCsv');

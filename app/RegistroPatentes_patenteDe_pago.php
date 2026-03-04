@@ -11,6 +11,7 @@ class RegistroPatentes_patenteDe_pago extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'patenteDe',
         'cuota',
         'registroPatentes',

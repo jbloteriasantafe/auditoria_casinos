@@ -11,6 +11,7 @@ class RegistroGanancias_periodo extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'casino',
         'usuario',
         'fecha_toma',

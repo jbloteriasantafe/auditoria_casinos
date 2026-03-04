@@ -11,6 +11,7 @@ class RegistroPromoTickets extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_PromoTickets',
         'fecha_toma',
         'importe',

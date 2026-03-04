@@ -11,6 +11,7 @@ class RegistroContribEnteTuristico extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_ContribEnteTuristico',
         'fecha_toma',
         'monto_pagado',

@@ -11,6 +11,7 @@ class RegistroPozosAcumuladosLinkeados extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_PozosAcumuladosLinkeados',
         'fecha_toma',
         'importe',

@@ -11,6 +11,7 @@ class RegistroRRHH extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_RRHH',
         'archivo',
         'casino',

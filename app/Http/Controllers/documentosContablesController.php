@@ -110,8 +110,7 @@ class documentosContablesController extends Controller
         'DerechoAcceso' => 'app/public/RegistroDerechoAcceso',
         'Patentes' => 'app/public/RegistroPatentes',
         'ImpInmobiliario' => 'app/public/RegistroImpInmobiliario',
-
-
+        'EstadoContable' => 'app/public/RegistroEstadoContable',
       ];
 
       if(!array_key_exists($registro,$path)){
@@ -123,7 +122,7 @@ class documentosContablesController extends Controller
           readfile($abs_file);
         }, 200, [
         'Content-Type' => mime_content_type($abs_file),
-        'Content-Disposition' => "inline; filename=\"$id_archivo\""
+        'Content-Disposition' => (preg_match('/\.xlsx?$/i', $id_archivo) ? "attachment" : "inline") . "; filename=\"$id_archivo\""
       ]);
     }
 
@@ -6255,9 +6254,8 @@ public function llenarReporteYLavado($id){
 
     'fecha' => $ReporteYLavado->fecha_ReporteYLavado,
     'casino' => $ReporteYLavado->casinoReporteYLavado ? $ReporteYLavado->casinoReporteYLavado->nombre : '-',
-    'cant_pagos' => $ReporteYLavado->cant_pagos,
-    'importe_pesos' => $ReporteYLavado->importe_pesos,
-    'importe_usd' => $ReporteYLavado->importe_usd,
+    'reporte_sistematico' => $ReporteYLavado->reporte_sistematico,
+    'reporte_operaciones' => $ReporteYLavado->reporte_operaciones,
 
   ]);
 
@@ -13318,10 +13316,20 @@ public function ultimasPremiosMTM(Request $request)
 
 
 public function eliminarPremiosMTM($id){
-  $PremiosMTM = RegistroPremiosMTM::findOrFail($id);
-  if(is_null($PremiosMTM)) return 0;
-  RegistroPremiosMTM::destroy($id);
-  return 1;
+    $PremiosMTM = RegistroPremiosMTM::findOrFail($id);
+    if(is_null($PremiosMTM)) return 0;
+    
+    // Delete associated polymorphic files
+    foreach ($PremiosMTM->archivos as $archivo) {
+        $filePath = storage_path('app/public/RegistroPremiosMTM/'.$archivo->path);
+        if (file_exists($filePath)) {
+            @unlink($filePath);
+        }
+        $archivo->delete();
+    }
+    
+    RegistroPremiosMTM::destroy($id);
+    return 1;
 }
 
 
@@ -14590,6 +14598,15 @@ public function ultimasAutDirectores(Request $request)
 public function eliminarAutDirectores($id){
   $AutDirectores = RegistroAutDirectores::findOrFail($id);
   if(is_null($AutDirectores)) return 0;
+  
+  // Delete associated polymorphic files
+  foreach ($AutDirectores->archivos as $archivo) {
+      $filePath = storage_path('app/public/RegistroAutDirectores/'.$archivo->path);
+      if (file_exists($filePath)) {
+          @unlink($filePath);
+      }
+      $archivo->delete();
+  }
   
   // Eliminar autorizaciones asociadas para evitar restricción de clave foránea
   RegistroAutDirectores_autorizacion::where('registro', $id)->delete();
@@ -16200,7 +16217,7 @@ public function llenarPatentesEdit($id){
         ->map(function($p){
             return [
                 'id'           => $p->id_registroPatentes_patenteDe_pago,
-                'patenteDe_id' => $p->PatenteDe,
+                'patenteDe_id' => $p->patenteDe,
                 'patenteDe'    => $p->PatenteDe ? $p->PatenteDe->nombre : '-',
                 'cuota'        => $p->cuota,
                 'importe'      => $p->importe,
@@ -16442,6 +16459,19 @@ public function ultimasPatentes(Request $request)
 public function eliminarPatentes($id){
   $Patentes = RegistroPatentes::findOrFail($id);
   if(is_null($Patentes)) return 0;
+  
+  // Delete associated polymorphic files
+  foreach ($Patentes->archivos as $archivo) {
+      $filePath = storage_path('app/public/RegistroPatentes/'.$archivo->path);
+      if (file_exists($filePath)) {
+          @unlink($filePath);
+      }
+      $archivo->delete();
+  }
+  
+  // Delete child row mapping
+  RegistroPatentes_patenteDe_pago::where('registroPatentes', $id)->delete();
+  
   RegistroPatentes::destroy($id);
   return 1;
 }
@@ -17797,19 +17827,22 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
           $r->usuario = UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'];
           $r->save();
 
-          $files = Arr::wrap($request->file('uploadEstadoContable'));
+          $files = \Illuminate\Support\Arr::wrap($request->file('uploadEstadoContable'));
           foreach ($files as $file) {
-              if ($file) {
-                  $archivo = new Archivo();
-                  $data = file_get_contents($file->getRealPath());
-                  $archivo->archivo = $data;
-                  $archivo->save();
+              if (!($file instanceof \Illuminate\Http\UploadedFile) || !$file->isValid()) continue;
 
-                  $r->archivos()->create([
-                      'usuario'    => $r->usuario,
-                      'id_archivo' => $archivo->id_archivo
-                  ]);
-              }
+              $base = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+              $ext  = $file->getClientOriginalExtension();
+              $safe = preg_replace('/\s+/', '_', $base);
+              $filename = time().'_'.\Illuminate\Support\Str::random(6).'_'.$safe.($ext?'.'.$ext:'');
+
+              $file->storeAs('public/RegistroEstadoContable', $filename);
+
+              $r->archivos()->create([
+                  'path'       => $filename,
+                  'usuario'    => $r->usuario,
+                  'fecha_toma' => date('Y-m-d H:i:s'),
+              ]);
           }
           DB::commit();
           return response()->json(['success' => true]);
@@ -17826,11 +17859,8 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
         DB::beginTransaction();
         try {
             foreach ($r->archivos as $archivoEstadoContable) {
-                $archivoReal = $archivoEstadoContable->archivo;
-                if ($archivoReal) {
-                    $archivoEstadoContable->delete();
-                    $archivoReal->delete();
-                }
+                \Illuminate\Support\Facades\Storage::delete('public/RegistroEstadoContable/' . $archivoEstadoContable->path);
+                $archivoEstadoContable->delete();
             }
             $r->delete();
             DB::commit();
@@ -17924,19 +17954,22 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
 
             $r->save();
 
-            $files = Arr::wrap($request->file('uploadEstadoContable'));
+            $files = \Illuminate\Support\Arr::wrap($request->file('uploadEstadoContable'));
             foreach ($files as $file) {
-                if ($file) {
-                    $archivo = new Archivo();
-                    $data = file_get_contents($file->getRealPath());
-                    $archivo->archivo = $data;
-                    $archivo->save();
+                if (!($file instanceof \Illuminate\Http\UploadedFile) || !$file->isValid()) continue;
 
-                    $r->archivos()->create([
-                        'usuario'    => UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'],
-                        'id_archivo' => $archivo->id_archivo
-                    ]);
-                }
+                $base = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $ext  = $file->getClientOriginalExtension();
+                $safe = preg_replace('/\s+/', '_', $base);
+                $filename = time().'_'.\Illuminate\Support\Str::random(6).'_'.$safe.($ext?'.'.$ext:'');
+
+                $file->storeAs('public/RegistroEstadoContable', $filename);
+
+                $r->archivos()->create([
+                    'path'       => $filename,
+                    'usuario'    => UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'],
+                    'fecha_toma' => date('Y-m-d H:i:s'),
+                ]);
             }
             DB::commit();
             return response()->json(['success' => true]);
@@ -17950,8 +17983,11 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
         $r = RegistroEstadoContable::with('archivos')->findOrFail($id);
         $files = $r->archivos->map(function($a) {
             return [
-                'id_archivo' => $a->id_archivo,
-                'nombre'     => "Archivo {$a->id_archivo}"
+                'id'         => $a->id_registro_archivo,
+                'id_archivo' => $a->id_registro_archivo,
+                'nombre'     => basename($a->path),
+                'url'        => \Illuminate\Support\Facades\Storage::url($a->path),
+                'fecha'      => $a->fecha_toma,
             ];
         });
         return response()->json($files);

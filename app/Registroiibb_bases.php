@@ -11,6 +11,7 @@ class Registroiibb_bases extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'base',
         'alicuota',
         'impuesto_determinado',

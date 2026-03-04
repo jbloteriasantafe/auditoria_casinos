@@ -11,6 +11,7 @@ class RegistroPremiosPagados extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_PremiosPagados',
         'fecha_toma',
         'importe',

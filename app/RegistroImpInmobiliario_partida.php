@@ -11,6 +11,7 @@ class RegistroImpInmobiliario_partida extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_toma',
         'partida',
         'casino',

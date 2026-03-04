@@ -11,6 +11,7 @@ class RegistroIMP_AP_OL extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_imp_ap_ol',
         'fecha_toma',
         'qna',

@@ -11,6 +11,7 @@ class RegistroSeguros_tipo extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_toma',
         'tipo',
         'usuario',

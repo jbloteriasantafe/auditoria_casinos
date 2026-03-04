@@ -11,6 +11,7 @@ class RegistroPremiosMTM extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_PremiosMTM',
         'fecha_toma',
         'cancel',

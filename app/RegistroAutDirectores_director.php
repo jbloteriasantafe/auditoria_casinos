@@ -11,6 +11,7 @@ class RegistroAutDirectores_director extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'nombre',
         'cuit',
         'habilitado',

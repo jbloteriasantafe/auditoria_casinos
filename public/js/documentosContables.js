@@ -655,6 +655,13 @@ $(document).on("click", "#btn-eliminarArchivo", function () {
 
 $(document).ready(function () {
   $(".tituloSeccionPantalla").text("Documentos Contables");
+  
+  // Inicializar popovers de la vista
+  $('body').popover({
+    selector: '[data-toggle="popover"]',
+    html: true,
+    trigger: 'hover'
+  });
 });
 
 //IIBB
@@ -1039,7 +1046,27 @@ $(document).on("click", "#guardarRegistroiibb", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $('#uploadsiibbContainer input[type="file"][name="uploadiibb[]"]').each(
@@ -2302,7 +2329,27 @@ $(document).on("click", "#guardarRegistroDREI", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $('#uploadsDREIContainer input[type="file"][name="uploadDREI[]"]').each(
@@ -2329,7 +2376,7 @@ $(document).on("click", "#guardarRegistroDREI", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -2412,7 +2459,7 @@ function cargarArchivosIvaLista(id) {
 }
 
 $(document).on("click", ".btn-archivos-iva", function () {
-  var id = $(this).data("id");
+  var id = $(this).data("id") || $(this).val() || $(this).attr("id"); 
   $("#tituloArchivos").text("Archivos del registro IVA");
   cargarArchivosIvaLista(id);
   $("#modalArchivosAsociados").modal("show");
@@ -2572,7 +2619,27 @@ $(document).on("click", "#guardarRegistroIva", function () {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $('#uploadsIvaContainer input[type="file"][name="uploadIva[]"]').each(
@@ -2691,6 +2758,7 @@ function generarFilaIva(iva, controlador) {
     const btnFiles = $("<button>")
       .addClass("btn btn-info btn-sm mr-1 btn-archivos-iva")
       .attr("type", "button")
+      .attr("data-id", iva.id_registroIva)
       .attr("data-toggle", "tooltip")
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
@@ -3618,7 +3686,27 @@ $(document).on("click", "#guardarRegistroTGI", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $('#uploadsTGIContainer input[type="file"][name="uploadTGI[]"]').each(
@@ -3645,7 +3733,7 @@ $(document).on("click", "#guardarRegistroTGI", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -4240,7 +4328,27 @@ $(document).on("click", "#guardarRegistroIMP_AP_OL", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $(
@@ -4267,7 +4375,7 @@ $(document).on("click", "#guardarRegistroIMP_AP_OL", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -4808,7 +4916,27 @@ $(document).on("click", "#guardarRegistroIMP_AP_MTM", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $(
@@ -4835,7 +4963,7 @@ $(document).on("click", "#guardarRegistroIMP_AP_MTM", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -5315,7 +5443,27 @@ $(document).on("click", "#guardarRegistroPagosMayoresMesas", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $(
@@ -5342,7 +5490,7 @@ $(document).on("click", "#guardarRegistroPagosMayoresMesas", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -5807,7 +5955,27 @@ $(document).on("click", "#guardarRegistroDeudaEstado", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $(
@@ -5833,7 +6001,7 @@ $(document).on("click", "#guardarRegistroDeudaEstado", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -6290,7 +6458,11 @@ $(document).on("click", "#guardarRegistroReporteYLavado", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let val = p.value;
+    if (["reporte_sistematico_ReporteYLavado", "reporte_operaciones_ReporteYLavado"].includes(p.name)) {
+      val = parseNumeroFlexible(val)?.num ?? val;
+    }
+    fd.append(p.name, val);
   });
 
   $(
@@ -6316,7 +6488,7 @@ $(document).on("click", "#guardarRegistroReporteYLavado", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -6928,6 +7100,8 @@ $(document).on("click", ".btn-verRegReporteYLavado", function () {
 
     $("#ver_fecha_ReporteYLavado").val(fecha);
     $("#ver_casino_ReporteYLavado").val(data.casino);
+    $("#ver_reporte_sistem_ReporteYLavado").val(data.reporte_sistematico);
+    $("#ver_reporte_oper_ReporteYLavado").val(data.reporte_operaciones);
 
     $("#modalVerReporteYLavado").modal("show");
   });
@@ -7280,7 +7454,27 @@ $(document).on("click", "#guardarRegistroRegistrosContables", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $(
@@ -7307,7 +7501,7 @@ $(document).on("click", "#guardarRegistroRegistrosContables", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -7823,7 +8017,27 @@ $(document).on("click", "#guardarRegistroAportesPatronales", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $(
@@ -7850,7 +8064,7 @@ $(document).on("click", "#guardarRegistroAportesPatronales", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -8324,7 +8538,27 @@ $(document).on("click", "#guardarRegistroPromoTickets", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $(
@@ -8350,7 +8584,7 @@ $(document).on("click", "#guardarRegistroPromoTickets", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -8817,8 +9051,28 @@ $(document).on(
     var fd = new FormData();
 
     $form.serializeArray().forEach(function (p) {
-      fd.append(p.name, p.value);
-    });
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
+  });
 
     $(
       '#uploadsPozosAcumuladosLinkeadosContainer input[type="file"][name="uploadPozosAcumuladosLinkeados[]"]'
@@ -8844,7 +9098,7 @@ $(document).on(
     $.ajax({
       url: url,
       method: "POST",
-      data: formData,
+      data: fd,
       processData: false,
       contentType: false,
       success: function (res) {
@@ -9406,7 +9660,27 @@ $(document).on("click", "#guardarRegistroContribEnteTuristico", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $(
@@ -9433,7 +9707,7 @@ $(document).on("click", "#guardarRegistroContribEnteTuristico", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -10184,6 +10458,15 @@ $(document)
     }
 
     var formData = new FormData($form[0]);
+    $form.serializeArray().forEach(function(p) {
+      if (
+        p.name.includes("RRHH") &&
+        !["casinoRRHH", "fecha_RRHH", "RRHH_modo", "id_registroRRHH"].includes(p.name)
+      ) {
+        let val = parseNumeroFlexible(p.value)?.num ?? p.value;
+        formData.set(p.name, val);
+      }
+    });
     var url =
       $("#RRHH_modo").val() === "edit"
         ? "/documentosContables/actualizarRRHH/" +
@@ -10780,7 +11063,27 @@ $(document).on("click", "#guardarRegistroGanancias", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $(
@@ -10807,7 +11110,7 @@ $(document).on("click", "#guardarRegistroGanancias", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -11018,7 +11321,27 @@ $(document).on("click", "#guardarRegistroGanancias_periodo", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $(
@@ -11044,7 +11367,7 @@ $(document).on("click", "#guardarRegistroGanancias_periodo", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -11717,7 +12040,27 @@ $(document).on("click", "#guardarRegistroJackpotsPagados", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $(
@@ -11743,7 +12086,7 @@ $(document).on("click", "#guardarRegistroJackpotsPagados", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -12207,7 +12550,11 @@ $(document).on("click", "#guardarRegistroPremiosPagados", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let val = p.value;
+    if (["cant_PremiosPagados", "importe_PremiosPagados"].includes(p.name)) {
+      val = parseNumeroFlexible(val)?.num ?? val;
+    }
+    fd.append(p.name, val);
   });
 
   $(
@@ -12233,7 +12580,7 @@ $(document).on("click", "#guardarRegistroPremiosPagados", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -12782,7 +13129,27 @@ $(document).on("click", "#guardarRegistroPremiosMTM", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $(
@@ -12808,7 +13175,7 @@ $(document).on("click", "#guardarRegistroPremiosMTM", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -13586,13 +13953,7 @@ $("#btn-eliminarPremiosMTM").on("click", function () {
     .done((res) => {
       if (res == 1) {
         $("#modalEliminarPremiosMTM").modal("hide");
-        cargarPremiosMTM({
-          page: $("#herramientasPaginacionPremiosMTM").getCurrentPage(),
-          perPage: $("#herramientasPaginacionPremiosMTM").getPageSize(),
-          casino: $("#FCasinoPremiosMTM").val(),
-          desde: $("#fecha_PremiosMTMDesde").val(),
-          hasta: $("#fecha_PremiosMTMHasta").val(),
-        });
+        clickIndicePremiosMTM(null, 1, 15);
       } else {
       }
     })
@@ -14207,8 +14568,28 @@ $(document).on(
     var fd = new FormData();
 
     $form.serializeArray().forEach(function (p) {
-      fd.append(p.name, p.value);
-    });
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
+  });
 
     $(
       '#uploadsAutDirectoresContainer input[type="file"][name="uploadAutDirectores[]"]'
@@ -14234,7 +14615,7 @@ $(document).on(
     $.ajax({
       url: url,
       method: "POST",
-      data: formData,
+      data: fd,
       processData: false,
       contentType: false,
       success: function (res) {
@@ -14954,7 +15335,27 @@ $(document).on("click", "#guardarRegistroSeguros", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $('#uploadsSegurosContainer input[type="file"][name="uploadSeguros[]"]').each(
@@ -14981,7 +15382,7 @@ $(document).on("click", "#guardarRegistroSeguros", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -15488,7 +15889,27 @@ $(document).on("click", "#guardarRegistroDerechoAcceso", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $(
@@ -15515,7 +15936,7 @@ $(document).on("click", "#guardarRegistroDerechoAcceso", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -17550,7 +17971,27 @@ $(document).on("click", "#guardarRegistroImpInmobiliario", function (e) {
   var fd = new FormData();
 
   $form.serializeArray().forEach(function (p) {
-    fd.append(p.name, p.value);
+    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
+    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
+    let val = p.value;
+    if ($inp.length > 0) {
+      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
+      let dataNum = $inp.data("num");
+      let numflex = $inp.data("_numflex_dec");
+      if (!isDate && dataNum !== undefined && dataNum !== null) {
+        val = dataNum;
+      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
+        let parsed = parseNumeroFlexible(val);
+        if (parsed) val = parsed.num !== null ? parsed.num : "";
+      } else if (!isDate && typeof val === 'string') {
+        let cleaned = val.replace(/[$\s%]/g, '');
+        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+          let parsed = parseNumeroFlexible(val);
+          if (parsed) val = parsed.num !== null ? parsed.num : "";
+        }
+      }
+    }
+    fd.append(p.name, val === null ? "" : val);
   });
 
   $(
@@ -17577,7 +18018,7 @@ $(document).on("click", "#guardarRegistroImpInmobiliario", function (e) {
   $.ajax({
     url: url,
     method: "POST",
-    data: formData,
+    data: fd,
     processData: false,
     contentType: false,
     success: function (res) {
@@ -22937,8 +23378,10 @@ $(document).ready(function() {
       cache: false,
       success: function(res) {
         $("#modalCargarEstadoContable").modal("hide");
-        mensajeExito({ title: 'ÉXITO', mensajes: ['Estado Contable cargado correctamente.'] });
-        clickIndiceEstadoContable(null, 1, 20);
+        $("#mensajeExito h3").text("ÉXITO");
+        $("#mensajeExito p").text("El estado contable han sido guardados correctamente.");
+        $("#mensajeExito").show();
+        $("#btn-buscar-global").trigger("click");
       },
       error: function(res) {
         $("#frmEstadoContable .js-error").remove();
@@ -23088,10 +23531,79 @@ $(document).ready(function() {
     });
   });
   
+  function cargarArchivosEstadoContableLista(id) {
+    var $m = $("#modalArchivosAsociados");
+    $m.data("EstadoContableId", id);
+    var $list = $("#listaArchivos")
+      .empty()
+      .append('<div class="list-group-item">Cargando...</div>');
+  
+    $.getJSON("/documentosContables/archivosEstadoContable/" + id)
+      .done(function (res) {
+        var files = Array.isArray(res)
+          ? res
+          : res.data || res.archivos || res.items || [];
+        $list.empty();
+        if (!files.length) {
+          $list.append(
+            '<div class="list-group-item">Sin archivos asociados.</div>'
+          );
+          return;
+        }
+        files.forEach(function (f) {
+          var fid = f.id || f.id_registro_archivo || f.id_archivo;
+          var nombre =
+            f.nombre ||
+            f.archivo ||
+            (f.path ? String(f.path).split("/").pop() : "archivo");
+          var href =
+            "/documentosContables/visualizarArchivo/EstadoContable/" +
+            encodeURIComponent(nombre);
+  
+          var $row = $('<div class="list-group-item clearfix">');
+          var $a = $('<a target="_blank">')
+            .attr("href", href)
+            .text(iconoExt(nombre) + " " + nombre);
+          var $del = $(
+            '<button type="button" data-id="' +
+              fid +
+              '" data-reg-id="' +
+              id +
+              '" data-scope="EstadoContable"  class="btn btn-sm btn-danger btn-del-archivo-EstadoContable" title="Quitar">'
+          )
+            .attr("data-toggle", "tooltip")
+            .attr("data-placement", "bottom")
+            .attr("title", "ELIMINAR ARCHIVO")
+            .css("float", "right")
+            .append($("<i>").addClass("fa fa-trash"));
+  
+          $row.append($a).append($del);
+          $list.append($row);
+        });
+      })
+      .fail(function () {
+        $list
+          .empty()
+          .append(
+            '<div class="list-group-item text-danger">Error al cargar archivos.</div>'
+          );
+      });
+  }
+
   $(document).on("click", ".btn-archivos-EstadoContable", function(e) {
     e.preventDefault();
-    const id = $(this).val();
-    abrirModalArchivos(id, 'estado_contable'); // Make sure abrirModalArchivos supports it, or use generic
+    const id = $(this).data("id") || $(this).val();
+    $("#tituloArchivos").text("Archivos del Estado Contable");
+    cargarArchivosEstadoContableLista(id);
+    $("#modalArchivosAsociados").modal("show");
+  });
+
+  $(document).on("click", ".btn-del-archivo-EstadoContable", function () {
+    const id = $(this).data("id");
+    const regId = $(this).data("regId");
+    const scope = $(this).data("scope");
+    $("#btn-eliminarArchivo").attr("data-id", id);
+    $("#modalEliminarArchivo").data({ id, regId, scope }).modal("show");
   });
 });
 
@@ -23167,7 +23679,7 @@ function generarFilaEstadoContable(est) {
   tdAcc.append(btnView).append(btnEdit).append(btnDel).append(btnValidar);
 
   if (est.tiene_archivos) {
-    const btnFiles = $("<button>").addClass("btn btn-info btn-archivos-EstadoContable").val(est.id_registroEstadoContable).append($("<i>").addClass("fa fa-fw fa-file-alt")).attr("data-toggle", "tooltip").attr("title", "ADJUNTOS");
+    const btnFiles = $("<button>").addClass("btn btn-info btn-sm mr-1 btn-archivos-EstadoContable").attr("data-id", est.id_registroEstadoContable).append($("<i>").addClass("fa fa-fw fa-file")).attr("data-toggle", "tooltip").attr("title", "VER ARCHIVOS ASOCIADOS");
     tdAcc.append(btnFiles);
   }
 

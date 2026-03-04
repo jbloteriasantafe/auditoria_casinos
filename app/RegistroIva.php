@@ -11,6 +11,7 @@ class RegistroIva extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'valido',
         'fecha_iva',
         'fecha_presentacion',
         'fecha_toma',

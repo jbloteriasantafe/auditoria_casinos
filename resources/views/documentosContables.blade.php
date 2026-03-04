@@ -432,59 +432,55 @@
                               <tbody>
                                 <tr>
                                   <td class="cat-header">Ratio de liquidez</td>
-                                  <td class="desc-col">Indice de liquidez corriente (solvencia) act corriente/pasivo corriente (margen positivo entre 1,5 y 2)
-                                    <i class="fa fa-exclamation-triangle text-danger"
-                                      data-toggle="popover"
-                                      data-html="true"
-                                      data-placement="right"
-                                      data-content="Es el índice que indica cómo una empresa puede hacer frente a sus deudas de corto plazo.
-                                        Evalúa  la  capacidad  de  la  empresa  para  cumplir  en  término  con  sus  compromisos financieros, deudas y pasivos de corto plazo. 
-                                        Si es menor al 100% quiere decir que la empresa no llega a cubrir las deudas de un periodo con sus activos del mismo periodo, es decir que tiene baja liquidez.">
-                                    </i>
-                                  </td>
+                                  <td class="desc-col">Indice de liquidez corriente (solvencia) act corriente/pasivo corriente (margen positivo entre 1,5 y 2)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="Es el índice que indica cómo una empresa puede hacer frente a sus deudas 
+                                  de corto plazo.
+                                  Evalúa  la  capacidad  de  la  empresa  para  cumplir  en  término  con  sus  
+                                  compromisos financieros, deudas y pasivos de corto plazo. 
+                                  Si es menor al 100% quiere decir que la empresa no llega a cubrir las deudas de un periodo con sus activos del mismo periodo, es decir que tiene baja liquidez."></i></td>
                                   <td><input type="text" id="vp_liquidez_corr" readonly></td>
                                   <td><input type="text" id="vp_liquidez_corr_reexpresado" readonly style="color: red;"></td>
                                 </tr>
                                 <tr>
                                   <td class="cat-header">Ratio de solvencia</td>
-                                  <td class="desc-col">Indice de solvencia (activo/pasivo) - (mayor a 1)</td>
+                                  <td class="desc-col">Indice de solvencia (activo/pasivo) - (aprox. 1)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="Indica la cantidad de recursos de terceros que fueron necesarios para la inversion realizada en activos. 
+Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propios y mas de terceros, incrementandose mas el pasivo, para invertir en activos."></i></td>
                                   <td><input type="text" id="vp_solvencia" readonly></td>
                                   <td><input type="text" id="vp_solvencia_reexpresado" readonly style="color: red;"></td>
                                 </tr>
                                 <tr>
                                   <td rowspan="4" class="cat-header">Ratio de Endeudamiento</td>
-                                  <td class="desc-col">Indice de endeudamiento (Pasivo/PN) - (aprox, 0,5)</td>
+                                  <td class="desc-col">Indice de endeudamiento (Pasivo/PN) - (aprox. 2)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="Medicion del pasivo (recursos de terceros) en comparacion a los recursos propios o patrimonio neto. Cuando es mayor a 1 quiere decir que se recurre en mayor medida a recursos de terceros para inversiones en activos, tanto corriente como no corrientes."></i></td>
                                   <td><input type="text" id="vp_endeudamiento" readonly></td>
                                   <td><input type="text" id="vp_endeudamiento_reexpresado" readonly style="color: red;"></td>
                                 </tr>
                                 <tr>
-                                  <td class="desc-col">Relación porcentual entre Activo/Patrimonio Neto</td>
+                                  <td class="desc-col">Relación porcentual entre Activo/Patrimonio Neto&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="Medicion de los activos en comparacion con el patrimonio, es decir los recursos propios de la empresa. Es mayor a 1 porque no solo se utilizan recursos propios para su adquisicion sino que se recurren a recursos de terceros."></i></td>
                                   <td><input type="text" id="vp_activo_pn" readonly></td>
                                   <td><input type="text" id="vp_activo_pn_reexpresado" readonly style="color: red;"></td>
                                 </tr>
                                 <tr>
-                                  <td class="desc-col">Relación porcentual entre Resultados/Patrimonio Neto</td>
+                                  <td class="desc-col">Relación porcentual entre Resultados/Patrimonio Neto&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="Fraccion del patrimonio neto que corresponde a los resultados del periodo."></i></td>
                                   <td><input type="text" id="vp_resultado_pn" readonly></td>
                                   <td><input type="text" id="vp_resultado_pn_reexpresado" readonly style="color: red;"></td>
                                 </tr>
                                 <tr>
-                                  <td class="desc-col">Relacion porcentual entre Resultados/Pasivo</td>
+                                  <td class="desc-col">Relacion porcentual entre Resultados/Pasivo&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="Parte del pasivo que se llega a cubrir con el resultado del periodo. No se llega a cubrir en su totalidad porque existe pasivo no corriente, que es largo plazo."></i></td>
                                   <td><input type="text" id="vp_resultado_pasivo" readonly></td>
                                   <td><input type="text" id="vp_resultado_pasivo_reexpresado" readonly style="color: red;"></td>
                                 </tr>
                                 <tr>
                                   <td rowspan="3" class="cat-header">Ratios de Rentabilidad</td>
-                                  <td class="desc-col">Margen de Utilidad (Ut./Ventas)</td>
+                                  <td class="desc-col">Margen de Utilidad (Ut./Ventas)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="Muestra el impacto del beneficio luego de las ventas"></i></td>
                                   <td><input type="text" id="vp_margen_utilidad" readonly></td>
                                   <td><input type="text" id="vp_margen_utilidad_reexpresado" readonly></td>
                                 </tr>
                                 <tr>
-                                  <td class="desc-col">ROE (Rentabilidad sobre patrimonio) - (Ut./PN)</td>
+                                  <td class="desc-col">ROE (Rentabilidad sobre patrimonio) - (Ut./PN)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="Mide la rentabildad de la inversion de los accionistas"></i></td>
                                   <td><input type="text" id="vp_roe" readonly></td>
                                   <td><input type="text" id="vp_roe_reexpresado" readonly></td>
                                 </tr>
                                 <tr>
-                                  <td class="desc-col">ROA (Rentabilidad sobre activos) - (Ut./A)</td>
+                                  <td class="desc-col">ROA (Rentabilidad sobre activos) - (Ut./A)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="Indica la eficiancia de la empresa en la utilizacion de los activos para generar ganancias"></i></td>
                                   <td><input type="text" id="vp_roa" readonly></td>
                                   <td><input type="text" id="vp_roa_reexpresado" readonly></td>
                                 </tr>
@@ -695,50 +691,50 @@
                 <tbody>
                   <tr>
                     <td class="cat-header">Ratio de liquidez</td>
-                    <td class="desc-col">Indice de liquidez corriente (solvencia) act corriente/pasivo corriente (margen positivo entre 1,5 y 2)</td>
+                    <td class="desc-col">Indice de liquidez corriente (solvencia) act corriente/pasivo corriente (margen positivo entre 1,5 y 2)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
                     <td><input type="text" id="v_vp_liquidez_corr" readonly></td>
                     <td><input type="text" id="v_vp_liquidez_corr_reexpresado" readonly style="color: red;"></td>
                   </tr>
                   <tr>
                     <td class="cat-header">Ratio de solvencia</td>
-                    <td class="desc-col">Indice de solvencia (activo/pasivo) - (mayor a 1)</td>
+                    <td class="desc-col">Indice de solvencia (activo/pasivo) - (mayor a 1)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
                     <td><input type="text" id="v_vp_solvencia" readonly></td>
                     <td><input type="text" id="v_vp_solvencia_reexpresado" readonly style="color: red;"></td>
                   </tr>
                   <tr>
                     <td rowspan="4" class="cat-header">Ratio de Endeudamiento</td>
-                    <td class="desc-col">Indice de endeudamiento (Pasivo/PN) - (aprox, 0,5)</td>
+                    <td class="desc-col">Indice de endeudamiento (Pasivo/PN) - (aprox, 0,5)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
                     <td><input type="text" id="v_vp_endeudamiento" readonly></td>
                     <td><input type="text" id="v_vp_endeudamiento_reexpresado" readonly style="color: red;"></td>
                   </tr>
                   <tr>
-                    <td class="desc-col">Relación porcentual entre Activo/Patrimonio Neto</td>
+                    <td class="desc-col">Relación porcentual entre Activo/Patrimonio Neto&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
                     <td><input type="text" id="v_vp_activo_pn" readonly></td>
                     <td><input type="text" id="v_vp_activo_pn_reexpresado" readonly style="color: red;"></td>
                   </tr>
                   <tr>
-                    <td class="desc-col">Relación porcentual entre Resultados/Patrimonio Neto</td>
+                    <td class="desc-col">Relación porcentual entre Resultados/Patrimonio Neto&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
                     <td><input type="text" id="v_vp_resultado_pn" readonly></td>
                     <td><input type="text" id="v_vp_resultado_pn_reexpresado" readonly style="color: red;"></td>
                   </tr>
                   <tr>
-                    <td class="desc-col">Relacion porcentual entre Resultados/Pasivo</td>
+                    <td class="desc-col">Relacion porcentual entre Resultados/Pasivo&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
                     <td><input type="text" id="v_vp_resultado_pasivo" readonly></td>
                     <td><input type="text" id="v_vp_resultado_pasivo_reexpresado" readonly style="color: red;"></td>
                   </tr>
                   <tr>
                     <td rowspan="3" class="cat-header">Ratios de Rentabilidad</td>
-                    <td class="desc-col">Margen de Utilidad (Ut./Ventas)</td>
+                    <td class="desc-col">Margen de Utilidad (Ut./Ventas)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
                     <td><input type="text" id="v_vp_margen_utilidad" readonly></td>
                     <td><input type="text" id="v_vp_margen_utilidad_reexpresado" readonly></td>
                   </tr>
                   <tr>
-                    <td class="desc-col">ROE (Rentabilidad sobre patrimonio) - (Ut./PN)</td>
+                    <td class="desc-col">ROE (Rentabilidad sobre patrimonio) - (Ut./PN)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
                     <td><input type="text" id="v_vp_roe" readonly></td>
                     <td><input type="text" id="v_vp_roe_reexpresado" readonly></td>
                   </tr>
                   <tr>
-                    <td class="desc-col">ROA (Rentabilidad sobre activos) - (Ut./A)</td>
+                    <td class="desc-col">ROA (Rentabilidad sobre activos) - (Ut./A)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
                     <td><input type="text" id="v_vp_roa" readonly></td>
                     <td><input type="text" id="v_vp_roa_reexpresado" readonly></td>
                   </tr>
@@ -4333,7 +4329,7 @@
                  <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerReporteYLavado" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerReporteYLavado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO PAGO MAYOR DE MESA DE PAÑO</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| REPORTE DE LAVADO</h3>
                   </div>
 
                   <div  id="colapsadoVerReporteYLavado" class="collapse in">
@@ -4348,34 +4344,28 @@
                          <input type="text" class="form-control" id="ver_casino_ReporteYLavado" readonly>
                        </div>
                      </div>
-                   </br>
+                   <br>
                      <div class="row">
-                       <div class="col-md-4">
-                         <h5>Cantidad de pagos</h5>
-                         <textarea class="form-control" id="ver_cant_pagos_ReporteYLavado" readonly></textarea>
+                       <div class="col-md-6">
+                         <h5>Reporte Sistemático (Monto)</h5>
+                         <input type="text" class="form-control" id="ver_reporte_sistem_ReporteYLavado" readonly>
                        </div>
-                       <div class="col-md-4">
-                         <h5>Importe en pesos</h5>
-                         <input type="text" class="form-control" id="ver_importe_pesos_ReporteYLavado" readonly>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Importe en dolares</h5>
-                         <input type="text" class="form-control" id="ver_importe_usd_ReporteYLavado" readonly>
+                       <div class="col-md-6">
+                         <h5>Reporte de Operaciones (Monto)</h5>
+                         <input type="text" class="form-control" id="ver_reporte_oper_ReporteYLavado" readonly>
                        </div>
 
                      </div>
 
-                   </div>
+                   </div> <!-- /modal-body -->
 
                     <div class="modal-footer">
-
                       <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
                     </div>
-                  </div> <!-- modal content -->
-                </div> <!-- modal dialog -->
-              </div> <!-- modal fade -->
-</div>
+                  </div> <!-- /colapsado -->
+                 </div> <!-- modal content -->
+               </div> <!-- modal dialog -->
+</div> <!-- modal fade -->
 
 <!-- MODAL CARGAR REGISTROS CONTABLES -->
 
@@ -7115,11 +7105,13 @@
                             </div>
 
                         </div> <!-- /modal-body -->
-                        <div class="modal-footer">
-                            <button id="btnVerArchivosUnificado" type="button" class="btn btn-info" style="display:none;">VER ARCHIVOS</button>
-                            <button id="guardarRegistroPremiosMTM_Unificado" type="button" class="btn btn-successAceptar">GENERAR</button>
-                            <button type="button" class="btn btn-default" data-dismiss="modal">SALIR</button>
-                        </div>
+                    </div> <!-- /unified_sections -->
+                </div> <!-- /colapsado -->
+                <div class="modal-footer">
+                    <button id="btnVerArchivosUnificado" type="button" class="btn btn-info" style="display:none;">VER ARCHIVOS</button>
+                    <button id="guardarRegistroPremiosMTM_Unificado" type="button" class="btn btn-successAceptar">GENERAR</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">SALIR</button>
+                </div>
                     </form>
                 </div>
             </div>
@@ -7298,19 +7290,16 @@
                 </div>
                 <br/>
 
-              </div>
-
+              </div> <!-- /modal-body -->
               <div class="modal-footer">
-
                 <button id ="guardarRegistroAutDirectores_director" type="button" class="btn btn-successAceptar">GENERAR</button>
                 <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
               </div>
             </form>
+          </div> <!-- /colapsado -->
           </div> <!-- modal content -->
         </div> <!-- modal dialog -->
-        </div> <!-- modal fade -->
-</div>
+</div> <!-- modal fade -->
 
 <!-- MODAL MODIFICAR AUT DIRECTORES - DIRECTOR  -->
 
@@ -8200,6 +8189,8 @@
 
               <div class="modal-body">
                 <p id="obsDerechoAcceso"></p>
+              </div>
+
               <div class="modal-footer">
                 <button type="button" id="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
               </div>
@@ -8243,19 +8234,16 @@
                   </div>
                   <br/>
 
-                </div>
-
+                </div> <!-- /modal-body -->
                 <div class="modal-footer">
-
                   <button id ="guardarRegistroPatentes_patenteDe" type="button" class="btn btn-successAceptar">GENERAR</button>
                   <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
                 </div>
               </form>
+             </div> <!-- /colapsado -->
             </div> <!-- modal content -->
           </div> <!-- modal dialog -->
-          </div> <!-- modal fade -->
-  </div>
+</div> <!-- modal fade -->
 
 <!-- MODAL GESTIONAR PATENTES - ELEMENTO PATENTABLE -->
 
