@@ -221,8 +221,8 @@ class AutoexclusionController extends Controller
       'ae_encuesta.autocontrol_juego'         => 'nullable|string|max:2',
       'ae_encuesta.recibir_informacion'       => 'nullable|string|max:2',
       'ae_encuesta.medio_recibir_informacion' => 'nullable|string|max:100',
-      'ae_encuesta.como_asiste'               => 'nullable|integer',
-      'ae_encuesta.observacion'               => 'nullable|string|max:200',
+      'ae_encuesta.como_asiste'               => 'nullable|integer|in:0,1',
+      'ae_encuesta.observacion'               => 'nullable|string|max:1000',
       'ae_importacion.foto1'                => 'nullable|file|mimes:jpg,jpeg,png,pdf',
       'ae_importacion.foto2'                => 'nullable|file|mimes:jpg,jpeg,png,pdf',
       'ae_importacion.solicitud_ae'         => 'nullable|file|mimes:jpg,jpeg,png,pdf',
@@ -248,10 +248,10 @@ class AutoexclusionController extends Controller
       if(!is_numeric($data['ae_datos']['nro_domicilio'])){
         $validator->errors()->add('ae_datos.nro_domicilio','El valor no es numérico');
       }
-      if($user->es_fiscalizador && $estado != 3){
+      if(!$user->es_superusuario && $user->es_fiscalizador && $estado != 3){
         $validator->errors()->add('ae_estado.id_nombre_estado', 'No puede agregar autoexcluidos con ese estado');
       }
-      if($user->es_fiscalizador && !$data['hace_encuesta']){
+      if(!$user->es_superusuario && $user->es_fiscalizador && !$data['hace_encuesta']){
         $validator->errors()->add('hace_encuesta', 'La encuesta no es opcional para los fiscalizadores');
       }
 
@@ -809,9 +809,10 @@ class AutoexclusionController extends Controller
         $cant_errores = 0;
         
         // Counters for Report
-        $cant_nuevas = 0;      // New people (DNI not in DB)
-        $cant_reincidentes = 0; // Existing DNI, but previous status was NOT active (expired/finished)
-        $cant_vigentes = 0;     // Existing DNI, and previous status WAS active (1 or 2)
+        $lista_nuevas = [];      // New people (DNI not in DB)
+        $lista_previas = []; // Existing DNI, but previous status was NOT active (expired/finished)
+        $lista_vigentes_saltadas = [];     // Existing DNI, and previous status WAS active (1 or 2)
+        $lista_repetidas = []; // Existing DNI, same exclusion date
         
         $errores_detalle = [];
 
@@ -953,47 +954,54 @@ class AutoexclusionController extends Controller
                  // User says "saltea todos", implying they want data.
                  if (!$fecha_ae) $fecha_ae = \Carbon\Carbon::now();
                  
+                 $apellido_nombres = (($idx_apellido !== null) ? ($row[$idx_apellido] ?? '-') : '-') . ', ' . (($idx_nombre !== null) ? ($row[$idx_nombre] ?? '-') : '-');
+                 $persona_desc = "Fila " . ($cant_procesados + $cant_saltados + $cant_errores + 1) . ": DNI $dni - $apellido_nombres";
+
                  // --- DUPLICATE CHECK (Based on DNI + Active Status) ---
                  // User request: Check if DNI exists and if current status is "active". 
                  // If active -> Ignore. If not active (expired, etc) -> Create new.
                  
                  $skip_record = false;
+                 $skip_reason = '';
                  
-                 // Buscar el usuario por DNI
-                 $existing_ae = AE\Autoexcluido::where('nro_dni', $dni)->first();
+                 // Buscar TODOS los registros del usuario por DNI
+                 $existentes_ae = AE\Autoexcluido::where('nro_dni', $dni)->get();
                  
-                 if ($existing_ae) {
-                     // Si existe, busco su ultimo estado global (independiente de la plataforma/casino del archivo, 
-                     // porque la autoexclusión es personal, aunque el filtro de duplicado original chequeaba plataforma.
-                     // Pero el requerimiento dice: "si el archivo es vigente, que se ignore"
-                     
-                     // Ajuste: Buscamos el último estado asociado a este AE.
-                     // Nota: El sistema parece manejar estados por casino/plataforma en 'ae_estado', 
-                     // pero la logica de negocio general implica que si esta vigente en algun lado, ¿esta vigente?
-                     // El requerimiento dice: "que se fije por DNI si el usuario ya esta excluido"
-                     
-                     // Vamos a buscar el estado MAS RECIENTE de este autoexcluido.
-                     $latest_state = AE\EstadoAE::where('id_autoexcluido', $existing_ae->id_autoexcluido)
-                                    ->orderBy('fecha_ae', 'desc') // Asumo fecha_ae orden cronologico
-                                    ->first();
-                                    
-                     if ($latest_state) {
-                         // IDs de estados vigentes: 
-                         // 1: Vigente
-                         // 2: Renovado
-                         // 7: Vigente (otra variante)
-                         // (Verificaciones previas en codigo sugieren 1 y 7 como vigentes, 2 renovado tambien es activo)
-                         $estados_vigentes = [1, 2, 7]; 
-                         
-                         if (in_array($latest_state->id_nombre_estado, $estados_vigentes)) {
-                             // "si el estado es vigente, que se ignore"
-                             $skip_record = true;
+                 if ($existentes_ae->count() > 0) {
+                     // Si existen registros, busco si ALGUNO de ellos tiene un estado global vigente o renovado
+                     // O si coincide exactamente la misma fecha de autoexclusión (evita re-ingresar un histórico vencido)
+                     foreach($existentes_ae as $ae_hist) {
+                         $latest_state = AE\EstadoAE::where('id_autoexcluido', $ae_hist->id_autoexcluido)
+                                        ->orderBy('fecha_ae', 'desc')
+                                        ->first();
+                                        
+                         if ($latest_state) {
+                             $estados_vigentes = [1, 2, 7]; 
+                             
+                             // Mismo registro/fecha histórico duplicado en el CSV? -> Saltear
+                             $misma_fecha_ae = $latest_state->fecha_ae == $fecha_ae->format('Y-m-d');
+                             
+                             if (in_array($latest_state->id_nombre_estado, $estados_vigentes)) {
+                                 // "si algún estado es vigente, que se ignore"
+                                 $skip_record = true;
+                                 $skip_reason = 'vigente';
+                                 break; // Con uno que coincida alcanza para saltearlo
+                             } elseif ($misma_fecha_ae) {
+                                 $skip_record = true;
+                                 $skip_reason = 'repetido';
+                                 break;
+                             }
                          }
                      }
                  }
                  
                  if ($skip_record) {
                      $cant_saltados++;
+                     if($skip_reason == 'vigente'){
+                         $lista_vigentes_saltadas[] = $persona_desc . " (Salteada por AE vigente)";
+                     } elseif ($skip_reason == 'repetido'){
+                         $lista_repetidas[] = $persona_desc . " (Salteada por fecha repetida)";
+                     }
                      continue;
                  }
                  
@@ -1002,19 +1010,9 @@ class AutoexclusionController extends Controller
                  $existing_ae = AE\Autoexcluido::where('nro_dni', $dni)->first();
                  
                  if (!$existing_ae) {
-                     $cant_nuevas++;
+                     $lista_nuevas[] = $persona_desc;
                  } else {
-                     $historial_query = AE\EstadoAE::where('id_autoexcluido', $existing_ae->id_autoexcluido);
-                     if ($id_plataforma) $historial_query->where('id_plataforma', $id_plataforma);
-                     else $historial_query->where('id_casino', $id_casino);
-                     
-                     $latest = $historial_query->orderBy('fecha_ae', 'desc')->first();
-                     
-                     if ($latest && in_array($latest->id_nombre_estado, [1, 2])) { // 1: Vigente, 2: Renovado
-                         $cant_vigentes++;
-                     } else {
-                         $cant_reincidentes++;
-                     }
+                     $lista_previas[] = $persona_desc;
                  }
 
 
@@ -1119,9 +1117,13 @@ class AutoexclusionController extends Controller
             'errores' => $cant_errores,
             'detalle_errores' => $errores_detalle,
             'resumen' => [
-                'nuevas' => $cant_nuevas,
-                'previas' => $cant_reincidentes,
-                'vigentes' => $cant_vigentes
+                'nuevas' => count($lista_nuevas),
+                'detalles_nuevas' => $lista_nuevas,
+                'previas' => count($lista_previas),
+                'detalles_previas' => $lista_previas,
+                'vigentes' => count($lista_vigentes_saltadas),
+                'detalles_vigentes' => $lista_vigentes_saltadas,
+                'detalles_repetidas' => $lista_repetidas
             ]
         ], 200);
     }

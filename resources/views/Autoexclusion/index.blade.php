@@ -8,7 +8,7 @@ $permitir_manejar_papel = false;//Deshabilitado por ahora $usuario->es_superusua
 ?>
 
 @section('estilos')
-<link rel="stylesheet" href="/css/paginacion.css">
+<link rel="stylesheet" href="/css/paginacion.css?v=2.0">
 <link rel="stylesheet" href="/css/lista-datos.css">
 <link rel="stylesheet" href="/css/bootstrap-datetimepicker.min.css">
 <link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
@@ -365,7 +365,7 @@ input[required], select[required]{
 <div class="modal fade" id="modalAgregarAE" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+      <div class="modal-header" style="font-family: Roboto-Black; background-color: #00695c; color: #fff">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title" id="myModalLabel">| AGREGAR AUTOEXCLUIDO</h3>
@@ -701,7 +701,7 @@ input[required], select[required]{
                     </div>
                     <div class="col-lg-12">
                       <h5>OBSERVACIONES</h5>
-                      <textarea id="observaciones" class="form-control" placeholder="" value="" data-size="200"></textarea>
+                      <textarea id="observaciones" class="form-control" placeholder="" value="" data-size="1000"></textarea>
                     </div>
                   </div>
                 </div>
@@ -722,6 +722,10 @@ input[required], select[required]{
           <button type="button" class="btn btn-successAceptar" id="btn-guardar" value="nuevo">ENVIAR</button>
           <button type="button" class="btn btn-default" id="btn-cancelar" data-dismiss="modal" aria-label="Close">CANCELAR</button>
           <input type="hidden" id="id_sesion" value="0">
+          <input type="hidden" id="es_superusuario" value="{{$usuario->es_superusuario ? 1 : 0}}">
+          <input type="hidden" id="nombre_usuario" value="{{$usuario->nombre}}">
+          <input type="hidden" id="estado_original_id" value="">
+          <input type="hidden" id="estado_original_texto" value="">
         </div>
       </div>
     </div>
@@ -1043,7 +1047,7 @@ input[required], select[required]{
 <div class="modal fade" id="modalSubirArchivo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width: 37%">
     <div class="modal-content">
-      <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+      <div class="modal-header modalNuevo" style="background-color: #00695c;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizarCrear" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrear" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title" id="myModalLabel">| SUBIR ARCHIVO</h3>
@@ -1076,7 +1080,7 @@ input[required], select[required]{
 <div class="modal fade" id="modalFormulariosAE" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+      <div class="modal-header" style="font-family: Roboto-Black; background-color: #00695c; color: #fff">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title" id="myModalLabel">| VER FORMULARIOS DE AUTOEXCLUSIÓN</h3>
@@ -1124,10 +1128,10 @@ input[required], select[required]{
 </div>
 
 <!-- MODAL IMPORTAR MASIVO -->
-<div class="modal fade" id="modalImportarMasivo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalImportarMasivo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+      <div class="modal-header" style="font-family: Roboto-Black; background-color: #00695c; color: #fff">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizar-importar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoImportar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
         <h3 class="modal-title" id="myModalLabel">| CARGA MASIVA</h3>
@@ -1169,8 +1173,24 @@ input[required], select[required]{
             </div>
             <br>
             <div id="mensajeExitoImportacion" hidden>
-                <div class="alert alert-success">
-                    <p></p>
+                <div class="alert alert-success" style="max-height: 400px; overflow-y: auto;">
+                    <p style="font-weight: bold; font-size: 16px;">Importación finalizada.</p>
+                    <div id="detalleNuevas" hidden>
+                        <h5 style="margin-top: 10px; font-weight: bold; color: #155724;">✅ Nuevas autoexclusiones (<span class="badge">0</span>)</h5>
+                        <ul style="font-size: 12px; margin-bottom: 0;"></ul>
+                    </div>
+                    <div id="detallePrevias" hidden>
+                        <h5 style="margin-top: 10px; font-weight: bold; color: #155724;">⚠️ Con autoexclusión previa (<span class="badge">0</span>)</h5>
+                        <ul style="font-size: 12px; margin-bottom: 0;"></ul>
+                    </div>
+                    <div id="detalleVigentes" hidden>
+                        <h5 style="margin-top: 10px; font-weight: bold; color: #155724;">🚫 Ignoradas por estado vigente (<span class="badge">0</span>)</h5>
+                        <ul style="font-size: 12px; margin-bottom: 0;"></ul>
+                    </div>
+                    <div id="detalleRepetidas" hidden>
+                        <h5 style="margin-top: 10px; font-weight: bold; color: #155724;">📅 Ignoradas por fecha repetida (<span class="badge">0</span>)</h5>
+                        <ul style="font-size: 12px; margin-bottom: 0;"></ul>
+                    </div>
                 </div>
             </div>
              <div id="mensajeErrorImportacion" hidden>
@@ -1187,6 +1207,33 @@ input[required], select[required]{
         <div class="modal-footer">
           <button type="button" class="btn btn-successAceptar" id="btn-importar">IMPORTAR</button>
           <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMACION ESTADO -->
+<div class="modal fade" id="modalConfirmacionEstado" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="font-family: Roboto-Black; background-color: #d9534f; color: #fff">
+        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+        <button id="btn-minimizar-alerta" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoAlerta" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
+        <h3 class="modal-title" id="myModalLabel">| ADVERTENCIA</h3>
+      </div>
+      <div id="colapsadoAlerta" class="collapse in">
+        <div class="modal-body modal-Cuerpo">
+          <div class="row">
+            <div class="col-md-12">
+              <h5 style="color:#d9534f; font-size: 16px;">¿Seguro que desea continuar?</h5>
+              <p style="font-size: 14px;">Este cambio de estado se está realizando fuera de término.</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" id="btn-confirmar-estado">ACEPTAR</button>
+          <button type="button" class="btn btn-default" id="btn-cancelar-estado" data-dismiss="modal">CANCELAR</button>
         </div>
       </div>
     </div>
