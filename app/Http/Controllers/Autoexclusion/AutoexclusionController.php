@@ -231,9 +231,45 @@ class AutoexclusionController extends Controller
       'ae_importacion.caratula'              => 'nullable|file|mimes:jpg,jpeg,png,pdf',
     ], array(), self::$atributos)->after(function($validator) use ($user){
       $data = $validator->getData();
+      $estado = $data['ae_estado']['id_nombre_estado'];
+      $id_ae = $data['ae_datos']['id_autoexcluido'] ?? null;
       $id_casino = $data['ae_estado']['id_casino'];
       $id_plataforma = $data['ae_estado']['id_plataforma'];
-      $estado = $data['ae_estado']['id_nombre_estado'];
+      $estado_bd = $id_ae !== null? 
+        DB::table('ae_estado')->where('id_autoexcluido',$id_ae)->first() 
+      : null;
+      $estado_bd = $estado_bd !== null? $estado_bd->id_nombre_estado : null;
+      
+      if($id_ae !== null && $estado_bd === null){
+        return $validator->errors()->add('ae_datos.id_autoexcluido','Inconsistencia de BD, el autoexcluido no tiene estado');
+      }
+      
+      //Si no es superusuario solo puede modificar los AEs pendientes de validación
+      //Cualquier modificación para correción debe notificarse a los superusarios
+      //por mail (o telefono...)
+      //Fiscalizadores solo pueden modificar pendientes de validación
+      $puede_agregar_modificar = false;
+      if($user->es_superusuario){
+        $puede_agregar_modificar = true;
+      }
+      //Administradores
+      elseif($user->tienePermiso('modificar_ae') || $user->tienePermiso('aym_ae_plataformas')){
+        if(is_null($id_ae) && in_array($estado_bd,[1,3])){
+          $puede_agregar_modificar = true;
+        }
+        elseif(!is_null($id_ae) && in_array($estado_bd,[3])){
+          $puede_agregar_modificar = true;
+        }
+      }
+      //Fiscalizadores
+      elseif(is_null($id_ae) && in_array($estado,[3])){
+        $puede_agregar_modificar = true;
+      }
+      
+      if(!($puede_agregar_modificar)){
+        return $validator->errors()->add('permisos','No puede realizar esta acción');
+      }
+      
       if(!$user->es_superusuario){
         if(!is_null($id_casino) && !$user->usuarioTieneCasino($id_casino)){
           $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
@@ -248,14 +284,10 @@ class AutoexclusionController extends Controller
       if(!is_numeric($data['ae_datos']['nro_domicilio'])){
         $validator->errors()->add('ae_datos.nro_domicilio','El valor no es numérico');
       }
-      if(!$user->es_superusuario && $user->es_fiscalizador && $estado != 3){
-        $validator->errors()->add('ae_estado.id_nombre_estado', 'No puede agregar autoexcluidos con ese estado');
-      }
       if(!$user->es_superusuario && $user->es_fiscalizador && !$data['hace_encuesta']){
         $validator->errors()->add('hace_encuesta', 'La encuesta no es opcional para los fiscalizadores');
       }
 
-      $id_ae = $data['ae_datos']['id_autoexcluido'];
       $todos_vencidos = true;
       {
         $aes = AE\Autoexcluido::where('nro_dni','=', $data['ae_datos']['nro_dni'])->get();

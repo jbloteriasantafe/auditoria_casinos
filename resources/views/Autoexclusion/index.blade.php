@@ -296,8 +296,15 @@ input[required], select[required]{
       <button id="btnVerMas" class="btn btn-info info" type="button" value="" title="VER MÁS" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw fa-search-plus"></i>
       </button>
-      @if($usuario->tienePermiso('modificar_ae'))
-      <button id="btnEditar" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+      @if($usuario->es_superusuario)
+      <button id="btnEditarSuperusuario" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+        <i class="fa fa-fw fa-pencil-alt"></i>
+      </button>
+      <button id="btnCambiarEstado" class="btn btn-info info" type="button" value="" title="" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+        <i class="fa fa-fw"></i>
+      </button>
+      @elseif($usuario->tienePermiso('modificar_ae'))
+      <button id="btnEditarPendientes" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw fa-pencil-alt"></i>
       </button>
       <button id="btnCambiarEstado" class="btn btn-info info" type="button" value="" title="" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
@@ -1271,7 +1278,7 @@ var noSelect=false;
 </script>
 <script type="text/javascript" src="/js/noprint.js?1"></script> 
 
-<script src="/js/Autoexclusion/index.js?4" type="module"  charset="utf-8"></script>
+<script src="/js/Autoexclusion/index.js?5" type="module"  charset="utf-8"></script>
 <!-- JS file -->
 <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>
 <!-- CSS file -->

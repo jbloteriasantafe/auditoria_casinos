@@ -61,13 +61,18 @@ function generarFilaTabla(molde,ae) {
   fila.find('button').val(ae.id_autoexcluido);
   fila.find('button').attr('estado-nuevo',ae.estado_transicionable);
 
-  if((ae.id_casino != null && $('#id_casino option[value="'+ae.id_casino+'"]').length == 0)
-  || (ae.id_plataforma != null && $('#id_casino option[value="-'+ae.id_plataforma+'"]').length == 0)
-  ){
-    fila.find('#btnEditar').remove();
-  }
   // 1 Vigente, 2 Renovado, 3 Pendiente Valid, 4 Fin por AE,
   // 5 Vencido, 6 RES983 Pendiente, 7 RES983 Verificado
+  
+  //Tiene el casino
+  if((ae.id_casino != null && $('#id_casino option[value="'+ae.id_casino+'"]').length == 0)
+  //Tiene la plata forma
+  || (ae.id_plataforma != null && $('#id_casino option[value="-'+ae.id_plataforma+'"]').length == 0)
+  //Solo pendientes de validación son editables
+  || (ae.id_nombre_estado != 3) 
+  ){
+    fila.find('#btnEditarPendientes').remove();
+  }
 
   //si no esta vencido oculto el botón constancia de reingreso
   if (ae.id_nombre_estado != 5) {
@@ -1262,7 +1267,7 @@ $(document).on("click", "#btnVerMas", function (e) {
   mostrarAutoexcluido($(this).val());
 });
 
-$(document).on("click", "#btnEditar", function (e) {
+$(document).on("click", "#btnEditarSuperusuario,#btnEditarPendientes", function (e) {
   e.preventDefault();
   const dni = $(this).parent().parent().find(".dni").text();
   modalAgregarEditarAE(dni, $(this).val());
