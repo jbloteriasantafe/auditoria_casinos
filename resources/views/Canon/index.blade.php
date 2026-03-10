@@ -465,7 +465,7 @@
         </select>      
       </div>
       <div hidden>
-        <input name="id_canon" class="form-control" data-readonly='[{"modo":"*"}]'>
+        <input name="id_canon" class="form-control" data-js-texto-no-formatear-numero data-readonly='[{"modo":"*"}]'>
       </div>
     </div>
     <div class="tabs" data-js-tabs>
