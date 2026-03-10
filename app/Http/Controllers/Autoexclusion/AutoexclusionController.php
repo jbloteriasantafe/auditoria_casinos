@@ -51,12 +51,12 @@ class AutoexclusionController extends Controller
       
       $casinos_usuario = $usuario->casinos;
       //@TODO: Agregar relación por entidad?
-      $plataformas_usuario = Plataforma::whereIn(
+      $plataformas_usuario = $usuario->tienePermiso('aym_ae_plataformas')? Plataforma::whereIn(
         'id_plataforma',
         DB::table('plataforma_tiene_casino')
         ->whereIn('id_casino',$casinos_usuario->pluck('id_casino'))
         ->get()->pluck('id_plataforma')
-      )->get();
+      )->get() : [];
       return view('Autoexclusion.index', ['juegos' => AE\JuegoPreferidoAE::all(),
                                           'ocupaciones' => AE\OcupacionAE::all(),
                                           'casinos' => Casino::all(),
