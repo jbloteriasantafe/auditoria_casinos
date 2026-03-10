@@ -529,10 +529,18 @@ input[required], select[required]{
                       <div class="col-lg-6">
                         <h5>ESTADO</h5>
                         <select id="id_estado" class="form-control" required>
-                          <option selected="" value="" required>- Seleccione un estado -</option>
-                          @foreach ($estados_elegibles as $estado)
+                          @if(count($estados_elegibles) > 1)
+                            <option selected="" value="" required>- Seleccione un estado -</option>
+                            @foreach ($estados_elegibles as $estado)
                             <option id="{{$estado->id_nombre_estado}}" value="{{$estado->id_nombre_estado}}">{{$estado->descripcion}}</option>
-                          @endforeach
+                            @endforeach
+                          @elseif(count($estados_elegibles) == 1)
+                            @foreach ($estados_elegibles as $estado)
+                            <option selected id="{{$estado->id_nombre_estado}}" value="{{$estado->id_nombre_estado}}">{{$estado->descripcion}}</option>
+                            @endforeach
+                          @else
+                            <option selected="" value="" required>- Seleccione un estado -</option>
+                          @endif
                         </select>
                       </div>
                       <div class="col-lg-6">

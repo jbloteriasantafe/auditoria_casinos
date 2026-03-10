@@ -664,10 +664,12 @@ function validarDNI() {
           //AE nuevo, muestro las fechas de renovacion/vencimiento
           $("#fecha_vencimiento_periodo").parent().css("opacity", "");
           $("#fecha_renovacion").parent().css("opacity", "");
+          $("#id_estado").val($("#id_estado option:first").val());
         } else if (data < 0) {
           //El AE es cargable pero ya tuvo uno, le escondo las fechas de renovacion/vencimiento
           $("#fecha_vencimiento_periodo").parent().css("opacity", "0");
           $("#fecha_renovacion").parent().css("opacity", "0");
+          $("#id_estado").val($("#id_estado option:first").val());
         }
       } else if (typeof data == "object") {
         $("#apellido").val(data.autoexcluido.apellido);

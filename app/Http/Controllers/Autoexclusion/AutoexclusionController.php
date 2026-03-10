@@ -40,10 +40,14 @@ class AutoexclusionController extends Controller
       UsuarioController::getInstancia()->agregarSeccionReciente('Autoexclusión' , 'autoexclusion');
       $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
       $estados_autoexclusion = AE\NombreEstadoAutoexclusion::all();
-      $estados_elegibles = AE\NombreEstadoAutoexclusion::where('deprecado',0)->get();
-
-      if(!$usuario->tienePermiso('modificar_ae') && !$usuario->tienePermiso('aym_ae_plataformas'))
-        $estados_elegibles = AE\NombreEstadoAutoexclusion::where('id_nombre_estado',3)->get();
+      
+      $estados_elegibles;
+      if($usuario->es_superusuario){
+        $estados_elegibles = AE\NombreEstadoAutoexclusion::where('deprecado',0)->get();
+      }
+      else{
+        $estados_elegibles = AE\NombreEstadoAutoexclusion::whereIn('id_nombre_estado',[3])->get();
+      }
       
       return view('Autoexclusion.index', ['juegos' => AE\JuegoPreferidoAE::all(),
                                           'ocupaciones' => AE\OcupacionAE::all(),
@@ -244,25 +248,12 @@ class AutoexclusionController extends Controller
         return $validator->errors()->add('ae_datos.id_autoexcluido','Inconsistencia de BD, el autoexcluido no tiene estado');
       }
       
-      //Si no es superusuario solo puede modificar los AEs pendientes de validación
-      //Cualquier modificación para correción debe notificarse a los superusarios
-      //por mail (o telefono...)
-      //Fiscalizadores solo pueden modificar pendientes de validación
+      //Solo se modifican los pendientes de validación a menos que sea el superusuario
       $puede_agregar_modificar = false;
       if($user->es_superusuario){
         $puede_agregar_modificar = true;
       }
-      //Administradores
-      elseif($user->tienePermiso('modificar_ae') || $user->tienePermiso('aym_ae_plataformas')){
-        if(is_null($id_ae) && in_array($estado_bd,[1,3])){
-          $puede_agregar_modificar = true;
-        }
-        elseif(!is_null($id_ae) && in_array($estado_bd,[3])){
-          $puede_agregar_modificar = true;
-        }
-      }
-      //Fiscalizadores
-      elseif(is_null($id_ae) && in_array($estado,[3])){
+      elseif(in_array($estado,[3])){
         $puede_agregar_modificar = true;
       }
       
