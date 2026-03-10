@@ -514,14 +514,10 @@ input[required], select[required]{
                         <h5>CASINO</h5>
                         <select id="id_casino" class="form-control" required>
                           <option selected="" value="">- Seleccione un casino -</option>
-                          <?php 
-                            $cas_creacion = $usuario->es_superusuario? $casinos : $usuario->casinos;
-                            $plats_creacion = $usuario->tienePermiso('aym_ae_plataformas')? $plataformas : [];
-                          ?>
-                          @foreach($cas_creacion as $casino)
+                          @foreach($casinos_usuario as $casino)
                           <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                           @endforeach
-                          @foreach ($plats_creacion as $p)
+                          @foreach ($plataformas_usuario as $p)
                           <option id="-{{$p->id_plataforma}}" value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
                           @endforeach
                         </select>
