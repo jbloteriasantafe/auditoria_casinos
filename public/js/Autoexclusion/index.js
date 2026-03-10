@@ -306,8 +306,30 @@ $('#btn-importar').click(function(e){
         success: function(data){
             $('#loadingImportacion').hide();
             $('#btn-importar').prop('disabled', false);
-            let msg = `Personas nuevas: ${data.resumen.nuevas} | Personas con autoexclusiones previas: ${data.resumen.previas} | Personas con autoexclusiones ya vigentes: ${data.resumen.vigentes} | Errores: ${data.errores}`;
-            $('#mensajeExitoImportacion').find('p').text(msg);
+            
+            // Clean previous lists
+            $('#detalleNuevas ul').empty();
+            $('#detallePrevias ul').empty();
+            $('#detalleVigentes ul').empty();
+            $('#detalleRepetidas ul').empty();
+            
+            // Function to populate generic lists
+            const fillList = (selector, dataArr, countElement) => {
+                if(dataArr && dataArr.length > 0){
+                    $(selector).show();
+                    $(countElement).text(dataArr.length);
+                    dataArr.forEach(item => {
+                        $(selector + ' ul').append($('<li>').text(item));
+                    });
+                } else {
+                    $(selector).hide();
+                }
+            };
+
+            fillList('#detalleNuevas', data.resumen.detalles_nuevas, '#detalleNuevas .badge');
+            fillList('#detallePrevias', data.resumen.detalles_previas, '#detallePrevias .badge');
+            fillList('#detalleVigentes', data.resumen.detalles_vigentes, '#detalleVigentes .badge');
+            fillList('#detalleRepetidas', data.resumen.detalles_repetidas, '#detalleRepetidas .badge');
             
             $('#mensajeExitoImportacion').show();
 
@@ -318,7 +340,7 @@ $('#btn-importar').click(function(e){
                  });
                  $('#mensajeErrorImportacion').show();
             }
-             $('#btn-buscar').trigger('click');
+             $('[data-js-buscar]').trigger('click');
         },
         error: function(data){
              $('#loadingImportacion').hide();
@@ -677,6 +699,18 @@ function validarDNI() {
           $("#id_casino").val(-data.estado.id_plataforma);
 
         $("#id_estado").val(data.estado.id_nombre_estado);
+        
+        // Guardar estado original para verificar si cambia manualmente
+        $("#estado_original_id").val(data.estado.id_nombre_estado);
+        $("#estado_original_texto").val($("#id_estado option:selected").text());
+        
+        // Restricción: Si no es superusuario, deshabilitar o bloquear cambios manuales de estado
+        if ($("#es_superusuario").val() == "0") {
+            $("#id_estado").prop("disabled", true);
+        } else {
+            $("#id_estado").prop("disabled", false);
+        }
+
         $("#fecha_autoexlusion").val(data.estado.fecha_ae);
         $("#fecha_vencimiento_periodo").val(data.estado.fecha_vencimiento);
         $("#fecha_renovacion").val(data.estado.fecha_renovacion);
@@ -774,6 +808,61 @@ function validarDNI() {
 
   return valid;
 }
+
+// Event listener para detectar cambios manuales en el estado
+$("#id_estado").change(function () {
+    const estado_original_id = $("#estado_original_id").val();
+    
+    // Si no hay estado original guardado (ej: alta nueva), o no cambió el estado, no hacer nada.
+    if (estado_original_id === "" || $(this).val() == estado_original_id) return;
+    
+    // Si es superusuario y hace un cambio de estado en edición
+    if ($("#es_superusuario").val() == "1" && $("#modalAgregarAE").attr("modo") == "editar") {
+        $("#modalConfirmacionEstado").modal("show");
+    }
+});
+
+// Confirmar cambio de estado
+$("#btn-confirmar-estado").click(function() {
+    $("#modalConfirmacionEstado").modal("hide");
+    
+    const estado_original_texto = $("#estado_original_texto").val();
+    const estado_nuevo_texto = $("#id_estado option:selected").text();
+    const nombre_usuario = $("#nombre_usuario").val();
+    
+    // formatear fecha actual
+    const date = new Date();
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const strDate = day + '-' + month + '-' + year;
+    
+    const mensaje_obs = "El usuario " + nombre_usuario + " ha cambiado el estado de " + estado_original_texto + " a " + estado_nuevo_texto + " el dia " + strDate + ".\n";
+    
+    // Agregar mensaje a las observaciones
+    const obs_actual = $("#observaciones").val();
+    if (obs_actual.indexOf(mensaje_obs) === -1) {
+        $("#observaciones").val(obs_actual + (obs_actual ? "\n" : "") + mensaje_obs);
+    }
+    
+    // Actualizar el "original" al nuevo para que si vuelve a cambiar en la misma sesión, lo tome bien.
+    $("#estado_original_id").val($("#id_estado").val());
+    $("#estado_original_texto").val(estado_nuevo_texto);
+});
+
+// Cancelar cambio de estado
+$("#btn-cancelar-estado, #modalConfirmacionEstado .close").click(function() {
+    const estado_original_id = $("#estado_original_id").val();
+    $("#id_estado").val(estado_original_id);
+});
+
+// Fix para el scroll de modales anidados: al cerrar el modal de confirmación, 
+// devolverle la clase 'modal-open' al body porque el modal padre sigue abierto.
+$('#modalConfirmacionEstado').on('hidden.bs.modal', function () {
+    if ($('#modalAgregarAE').is(':visible')) {
+        $('body').addClass('modal-open');
+    }
+});
 
 function validarDatosPersonales() {
   let valid = 1;
