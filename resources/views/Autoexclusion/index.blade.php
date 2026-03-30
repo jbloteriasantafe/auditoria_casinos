@@ -265,15 +265,15 @@ input[required], select[required]{
   
   @slot('cabecera')
   <tr>
-    <th value="casino_plataforma" estado="">CASINO<i class="fa fa-sort"></i></th>
-    <th value="ae_datos.nro_dni" estado="">DNI<i class="fa fa-sort"></i></th>
-    <th value="ae_datos.apellido" estado="">APELLIDO<i class="fa fa-sort"></i></th>
-    <th value="ae_datos.nombres" estado="">NOMBRES<i class="fa fa-sort"></i></th>
-    <th class="smalltext" value="ae_nombre_estado.descripcion" estado="">ESTADO<i class="fa fa-sort"></i></th>
-    <th class="smalltext" value="ae_estado.fecha_ae" estado="">F. AE<i class="fa fa-sort"></i></th>
-    <th class="smalltext " value="ae_estado.fecha_renovacion" estado="">F. RENOV<i class="fa fa-sort"></i></th>
-    <th class="smalltext" value="ae_estado.fecha_vencimiento" estado="">F. VENC<i class="fa fa-sort"></i></th>
-    <th class="smalltext" value="ae_estado.fecha_cierre_ae" estado="">F. CIERRE<i class="fa fa-sort"></i></th>
+    <th>CASINO</th>
+    <th>DNI</th>
+    <th>APELLIDO</th>
+    <th>NOMBRES</th>
+    <th class="smalltext">ESTADO</th>
+    <th class="smalltext" data-js-sortable="ae_estado.fecha_ae" data-js-state="desc">F. AE</th>
+    <th class="smalltext">F. RENOV</th>
+    <th class="smalltext">F. VENC</th>
+    <th class="smalltext">F. CIERRE</th>
     <th style="flex: 2;">ACCIONES</th>
     @if($permitir_manejar_papel)
     <th>PAPEL</th>
@@ -1282,7 +1282,7 @@ var noSelect=false;
 </script>
 <script type="text/javascript" src="/js/noprint.js?1"></script> 
 
-<script src="/js/Autoexclusion/index.js?5" type="module"  charset="utf-8"></script>
+<script src="/js/Autoexclusion/index.js?6" type="module"  charset="utf-8"></script>
 <!-- JS file -->
 <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>
 <!-- CSS file -->
