@@ -1244,12 +1244,9 @@ function mostrarAutoexcluido(id_autoexcluido) {
       //buscar en el backend los paths a los archivos y mostrarlos oportunamente
       if(data.importacion != null){
           $(".archivosImportados button").val(data.importacion.id_importacion);
-          $('.archivosImportados [data-tipo="foto1"]').prop("disabled", data.importacion.foto1 === null);
-          $('.archivosImportados [data-tipo="foto2"]').prop("disabled", data.importacion.foto2 === null);
-          $('.archivosImportados [data-tipo="scandni"]').prop("disabled", data.importacion.scandni === null);
-          $('.archivosImportados [data-tipo="solicitud_ae"]').prop("disabled", data.importacion.solicitud_ae === null);
-          $('.archivosImportados [data-tipo="solicitud_revocacion"]').prop("disabled", data.importacion.solicitud_revocacion === null);
-          $('.archivosImportados [data-tipo="caratula"]').prop("disabled", data.importacion.caratula === null);
+          for(const archivo of ['foto1','foto2','scandni','solicitud_ae','solicitud_revocacion','caratula']){
+            $(`.archivosImportados [data-tipo="${archivo}"]`).prop("disabled", !!data?.importacion?.[archivo]);
+          }
       }
       else {
           $(".archivosImportados button").val("");
