@@ -145,7 +145,7 @@ class AutoexclusionController extends Controller
         }
       }
     }
-    $sort_by = ['columna' => 'ae_datos.id_autoexcluido', 'orden' => 'desc'];
+    $sort_by = ['columna' => 'ae_estado.fecha_ae', 'orden' => 'desc'];
     if(!empty($request->sort_by)){
       $sort_by = $request->sort_by;
     }
@@ -176,8 +176,7 @@ class AutoexclusionController extends Controller
       ->when($sort_by,function($query) use ($sort_by){
         return $query->orderBy($sort_by['columna'],$sort_by['orden']);
       })
-      //->orderBy('ae_datos.id_autoexcluido','desc')
-      ->orderBy('ae_estado.fecha_ae','desc')
+      ->orderBy('ae_datos.id_autoexcluido','desc')
       ->where($reglas)
       ->paginate($request->page_size);
 
