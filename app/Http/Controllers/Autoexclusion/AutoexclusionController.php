@@ -176,6 +176,8 @@ class AutoexclusionController extends Controller
       ->when($sort_by,function($query) use ($sort_by){
         return $query->orderBy($sort_by['columna'],$sort_by['orden']);
       })
+      ->orderBy('ae_estado.fecha_ae','desc')
+      ->orderBy('ae_datos.id_autoexcluido','desc')
       ->where($reglas)
       ->paginate($request->page_size);
 
