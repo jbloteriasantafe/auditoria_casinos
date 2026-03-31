@@ -61,13 +61,18 @@ function generarFilaTabla(molde,ae) {
   fila.find('button').val(ae.id_autoexcluido);
   fila.find('button').attr('estado-nuevo',ae.estado_transicionable);
 
-  if((ae.id_casino != null && $('#id_casino option[value="'+ae.id_casino+'"]').length == 0)
-  || (ae.id_plataforma != null && $('#id_casino option[value="-'+ae.id_plataforma+'"]').length == 0)
-  ){
-    fila.find('#btnEditar').remove();
-  }
   // 1 Vigente, 2 Renovado, 3 Pendiente Valid, 4 Fin por AE,
   // 5 Vencido, 6 RES983 Pendiente, 7 RES983 Verificado
+  
+  //Tiene el casino
+  if((ae.id_casino != null && $('#id_casino option[value="'+ae.id_casino+'"]').length == 0)
+  //Tiene la plata forma
+  || (ae.id_plataforma != null && $('#id_casino option[value="-'+ae.id_plataforma+'"]').length == 0)
+  //Solo pendientes de validación son editables
+  || (ae.id_nombre_estado != 3) 
+  ){
+    fila.find('#btnEditarPendientes').remove();
+  }
 
   //si no esta vencido oculto el botón constancia de reingreso
   if (ae.id_nombre_estado != 5) {
@@ -659,10 +664,12 @@ function validarDNI() {
           //AE nuevo, muestro las fechas de renovacion/vencimiento
           $("#fecha_vencimiento_periodo").parent().css("opacity", "");
           $("#fecha_renovacion").parent().css("opacity", "");
+          $("#id_estado").val($("#id_estado option:first").val());
         } else if (data < 0) {
           //El AE es cargable pero ya tuvo uno, le escondo las fechas de renovacion/vencimiento
           $("#fecha_vencimiento_periodo").parent().css("opacity", "0");
           $("#fecha_renovacion").parent().css("opacity", "0");
+          $("#id_estado").val($("#id_estado option:first").val());
         }
       } else if (typeof data == "object") {
         $("#apellido").val(data.autoexcluido.apellido);
@@ -1237,12 +1244,9 @@ function mostrarAutoexcluido(id_autoexcluido) {
       //buscar en el backend los paths a los archivos y mostrarlos oportunamente
       if(data.importacion != null){
           $(".archivosImportados button").val(data.importacion.id_importacion);
-          $('.archivosImportados [data-tipo="foto1"]').prop("disabled", data.importacion.foto1 === null);
-          $('.archivosImportados [data-tipo="foto2"]').prop("disabled", data.importacion.foto2 === null);
-          $('.archivosImportados [data-tipo="scandni"]').prop("disabled", data.importacion.scandni === null);
-          $('.archivosImportados [data-tipo="solicitud_ae"]').prop("disabled", data.importacion.solicitud_ae === null);
-          $('.archivosImportados [data-tipo="solicitud_revocacion"]').prop("disabled", data.importacion.solicitud_revocacion === null);
-          $('.archivosImportados [data-tipo="caratula"]').prop("disabled", data.importacion.caratula === null);
+          for(const archivo of ['foto1','foto2','scandni','solicitud_ae','solicitud_revocacion','caratula']){
+            $(`.archivosImportados [data-tipo="${archivo}"]`).prop("disabled", !!data?.importacion?.[archivo]);
+          }
       }
       else {
           $(".archivosImportados button").val("");
@@ -1262,7 +1266,7 @@ $(document).on("click", "#btnVerMas", function (e) {
   mostrarAutoexcluido($(this).val());
 });
 
-$(document).on("click", "#btnEditar", function (e) {
+$(document).on("click", "#btnEditarSuperusuario,#btnEditarPendientes", function (e) {
   e.preventDefault();
   const dni = $(this).parent().parent().find(".dni").text();
   modalAgregarEditarAE(dni, $(this).val());

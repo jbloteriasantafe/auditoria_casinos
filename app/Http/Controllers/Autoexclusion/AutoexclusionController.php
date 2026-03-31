@@ -40,15 +40,29 @@ class AutoexclusionController extends Controller
       UsuarioController::getInstancia()->agregarSeccionReciente('Autoexclusión' , 'autoexclusion');
       $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
       $estados_autoexclusion = AE\NombreEstadoAutoexclusion::all();
-      $estados_elegibles = AE\NombreEstadoAutoexclusion::where('deprecado',0)->get();
-
-      if(!$usuario->tienePermiso('modificar_ae') && !$usuario->tienePermiso('aym_ae_plataformas'))
-        $estados_elegibles = AE\NombreEstadoAutoexclusion::where('id_nombre_estado',3)->get();
       
+      $estados_elegibles;
+      if($usuario->es_superusuario){
+        $estados_elegibles = AE\NombreEstadoAutoexclusion::where('deprecado',0)->get();
+      }
+      else{
+        $estados_elegibles = AE\NombreEstadoAutoexclusion::whereIn('id_nombre_estado',[3])->get();
+      }
+      
+      $casinos_usuario = $usuario->casinos;
+      //@TODO: Agregar relación por entidad?
+      $plataformas_usuario = $usuario->tienePermiso('aym_ae_plataformas')? Plataforma::whereIn(
+        'id_plataforma',
+        DB::table('plataforma_tiene_casino')
+        ->whereIn('id_casino',$casinos_usuario->pluck('id_casino'))
+        ->get()->pluck('id_plataforma')
+      )->get() : [];
       return view('Autoexclusion.index', ['juegos' => AE\JuegoPreferidoAE::all(),
                                           'ocupaciones' => AE\OcupacionAE::all(),
                                           'casinos' => Casino::all(),
+                                          'casinos_usuario' => $casinos_usuario,
                                           'plataformas' => Plataforma::all(),
+                                          'plataformas_usuario' => $plataformas_usuario,
                                           'usuario' => $usuario,
                                           'frecuencias' => AE\FrecuenciaAsistenciaAE::all(),
                                           'estados_autoexclusion' => $estados_autoexclusion,
@@ -131,7 +145,7 @@ class AutoexclusionController extends Controller
         }
       }
     }
-    $sort_by = ['columna' => 'ae_datos.id_autoexcluido', 'orden' => 'desc'];
+    $sort_by = ['columna' => 'ae_estado.fecha_ae', 'orden' => 'desc'];
     if(!empty($request->sort_by)){
       $sort_by = $request->sort_by;
     }
@@ -162,6 +176,7 @@ class AutoexclusionController extends Controller
       ->when($sort_by,function($query) use ($sort_by){
         return $query->orderBy($sort_by['columna'],$sort_by['orden']);
       })
+      ->orderBy('ae_datos.id_autoexcluido','desc')
       ->where($reglas)
       ->paginate($request->page_size);
 
@@ -231,9 +246,32 @@ class AutoexclusionController extends Controller
       'ae_importacion.caratula'              => 'nullable|file|mimes:jpg,jpeg,png,pdf',
     ], array(), self::$atributos)->after(function($validator) use ($user){
       $data = $validator->getData();
+      $estado = $data['ae_estado']['id_nombre_estado'];
+      $id_ae = $data['ae_datos']['id_autoexcluido'] ?? null;
       $id_casino = $data['ae_estado']['id_casino'];
       $id_plataforma = $data['ae_estado']['id_plataforma'];
-      $estado = $data['ae_estado']['id_nombre_estado'];
+      $estado_bd = $id_ae !== null? 
+        DB::table('ae_estado')->where('id_autoexcluido',$id_ae)->first() 
+      : null;
+      $estado_bd = $estado_bd !== null? $estado_bd->id_nombre_estado : null;
+      
+      if($id_ae !== null && $estado_bd === null){
+        return $validator->errors()->add('ae_datos.id_autoexcluido','Inconsistencia de BD, el autoexcluido no tiene estado');
+      }
+      
+      //Solo se modifican los pendientes de validación a menos que sea el superusuario
+      $puede_agregar_modificar = false;
+      if($user->es_superusuario){
+        $puede_agregar_modificar = true;
+      }
+      elseif(in_array($estado,[3])){
+        $puede_agregar_modificar = true;
+      }
+      
+      if(!($puede_agregar_modificar)){
+        return $validator->errors()->add('permisos','No puede realizar esta acción');
+      }
+      
       if(!$user->es_superusuario){
         if(!is_null($id_casino) && !$user->usuarioTieneCasino($id_casino)){
           $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
@@ -248,14 +286,10 @@ class AutoexclusionController extends Controller
       if(!is_numeric($data['ae_datos']['nro_domicilio'])){
         $validator->errors()->add('ae_datos.nro_domicilio','El valor no es numérico');
       }
-      if(!$user->es_superusuario && $user->es_fiscalizador && $estado != 3){
-        $validator->errors()->add('ae_estado.id_nombre_estado', 'No puede agregar autoexcluidos con ese estado');
-      }
       if(!$user->es_superusuario && $user->es_fiscalizador && !$data['hace_encuesta']){
         $validator->errors()->add('hace_encuesta', 'La encuesta no es opcional para los fiscalizadores');
       }
 
-      $id_ae = $data['ae_datos']['id_autoexcluido'];
       $todos_vencidos = true;
       {
         $aes = AE\Autoexcluido::where('nro_dni','=', $data['ae_datos']['nro_dni'])->get();

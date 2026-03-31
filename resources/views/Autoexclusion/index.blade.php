@@ -265,15 +265,15 @@ input[required], select[required]{
   
   @slot('cabecera')
   <tr>
-    <th value="casino_plataforma" estado="">CASINO<i class="fa fa-sort"></i></th>
-    <th value="ae_datos.nro_dni" estado="">DNI<i class="fa fa-sort"></i></th>
-    <th value="ae_datos.apellido" estado="">APELLIDO<i class="fa fa-sort"></i></th>
-    <th value="ae_datos.nombres" estado="">NOMBRES<i class="fa fa-sort"></i></th>
-    <th class="smalltext" value="ae_nombre_estado.descripcion" estado="">ESTADO<i class="fa fa-sort"></i></th>
-    <th class="smalltext" value="ae_estado.fecha_ae" estado="">F. AE<i class="fa fa-sort"></i></th>
-    <th class="smalltext " value="ae_estado.fecha_renovacion" estado="">F. RENOV<i class="fa fa-sort"></i></th>
-    <th class="smalltext" value="ae_estado.fecha_vencimiento" estado="">F. VENC<i class="fa fa-sort"></i></th>
-    <th class="smalltext" value="ae_estado.fecha_cierre_ae" estado="">F. CIERRE<i class="fa fa-sort"></i></th>
+    <th>CASINO</th>
+    <th>DNI</th>
+    <th>APELLIDO</th>
+    <th>NOMBRES</th>
+    <th class="smalltext">ESTADO</th>
+    <th class="smalltext" data-js-sortable="ae_estado.fecha_ae" data-js-state="desc">F. AE</th>
+    <th class="smalltext">F. RENOV</th>
+    <th class="smalltext">F. VENC</th>
+    <th class="smalltext">F. CIERRE</th>
     <th style="flex: 2;">ACCIONES</th>
     @if($permitir_manejar_papel)
     <th>PAPEL</th>
@@ -296,8 +296,15 @@ input[required], select[required]{
       <button id="btnVerMas" class="btn btn-info info" type="button" value="" title="VER MÁS" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw fa-search-plus"></i>
       </button>
-      @if($usuario->tienePermiso('modificar_ae'))
-      <button id="btnEditar" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+      @if($usuario->es_superusuario)
+      <button id="btnEditarSuperusuario" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+        <i class="fa fa-fw fa-pencil-alt"></i>
+      </button>
+      <button id="btnCambiarEstado" class="btn btn-info info" type="button" value="" title="" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+        <i class="fa fa-fw"></i>
+      </button>
+      @elseif($usuario->tienePermiso('modificar_ae'))
+      <button id="btnEditarPendientes" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw fa-pencil-alt"></i>
       </button>
       <button id="btnCambiarEstado" class="btn btn-info info" type="button" value="" title="" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
@@ -507,14 +514,10 @@ input[required], select[required]{
                         <h5>CASINO</h5>
                         <select id="id_casino" class="form-control" required>
                           <option selected="" value="">- Seleccione un casino -</option>
-                          <?php 
-                            $cas_creacion = $usuario->es_superusuario? $casinos : $usuario->casinos;
-                            $plats_creacion = $usuario->tienePermiso('aym_ae_plataformas')? $plataformas : [];
-                          ?>
-                          @foreach($cas_creacion as $casino)
+                          @foreach($casinos_usuario as $casino)
                           <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                           @endforeach
-                          @foreach ($plats_creacion as $p)
+                          @foreach ($plataformas_usuario as $p)
                           <option id="-{{$p->id_plataforma}}" value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
                           @endforeach
                         </select>
@@ -522,10 +525,18 @@ input[required], select[required]{
                       <div class="col-lg-6">
                         <h5>ESTADO</h5>
                         <select id="id_estado" class="form-control" required>
-                          <option selected="" value="" required>- Seleccione un estado -</option>
-                          @foreach ($estados_elegibles as $estado)
+                          @if(count($estados_elegibles) > 1)
+                            <option selected="" value="" required>- Seleccione un estado -</option>
+                            @foreach ($estados_elegibles as $estado)
                             <option id="{{$estado->id_nombre_estado}}" value="{{$estado->id_nombre_estado}}">{{$estado->descripcion}}</option>
-                          @endforeach
+                            @endforeach
+                          @elseif(count($estados_elegibles) == 1)
+                            @foreach ($estados_elegibles as $estado)
+                            <option selected id="{{$estado->id_nombre_estado}}" value="{{$estado->id_nombre_estado}}">{{$estado->descripcion}}</option>
+                            @endforeach
+                          @else
+                            <option selected="" value="" required>- Seleccione un estado -</option>
+                          @endif
                         </select>
                       </div>
                       <div class="col-lg-6">
@@ -1271,7 +1282,7 @@ var noSelect=false;
 </script>
 <script type="text/javascript" src="/js/noprint.js?1"></script> 
 
-<script src="/js/Autoexclusion/index.js?4" type="module"  charset="utf-8"></script>
+<script src="/js/Autoexclusion/index.js?6" type="module"  charset="utf-8"></script>
 <!-- JS file -->
 <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>
 <!-- CSS file -->
