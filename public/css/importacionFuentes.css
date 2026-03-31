@@ -1,48 +1,23 @@
-@font-face {
- font-family: Roboto-Thin;
- font-style: normal;
- font-weight: normal;
- src: url("/fonts/Roboto/Roboto-Thin.ttf") format('truetype');
-}
-
-@font-face {
- font-family: Roboto-Black;
- font-style: normal;
- font-weight: normal;
- src: url("/fonts/Roboto/Roboto-Black.ttf") format('truetype');
-}
-
-@font-face {
- font-family: Roboto-Condensed;
- font-style: normal;
- font-weight: normal;
- src: url("/fonts/Roboto/Roboto-Condensed.ttf") format('truetype');
-}
-
-@font-face {
-  font-family: Roboto-BoldCondensed;
-  font-style: normal;
-  font-weight: normal;
-  src: url("/fonts/Roboto/Roboto-BoldCondensed.ttf") format('truetype');
-}
-
-@font-face {
-  font-family: Roboto-Light;
-  font-style: normal;
-  font-weight: normal;
-  src: url("/fonts/Roboto/Roboto-Light.ttf") format('truetype');
-}
-
-@font-face {
-  font-family: Roboto-LightItalic;
-  font-style: normal;
-  font-weight: normal;
-  src: url("/fonts/Roboto/Roboto-LightItalic.ttf") format('truetype');
-}
+/* Solo las 2 variantes Roboto que se usan en estiloDashboard.css */
+/* woff2 primero (50kB vs 155kB TTF), TTF como fallback */
 
 @font-face {
   font-family: Roboto-Regular;
   font-style: normal;
   font-weight: normal;
-  src: url("/fonts/Roboto/Roboto-Regular.ttf") format('truetype');
+  font-display: swap;
+  src: url("/fonts/Roboto/Roboto-Regular.woff2") format('woff2'),
+       url("/fonts/Roboto/Roboto-Regular.ttf") format('truetype');
 }
+
+@font-face {
+  font-family: Roboto-Condensed;
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+  src: url("/fonts/Roboto/Roboto-Condensed.woff2") format('woff2'),
+       url("/fonts/Roboto/Roboto-Condensed.ttf") format('truetype');
+}
+
+/* Variantes no usadas en el sistema - eliminadas para reducir carga */
+/* Roboto-Thin, Roboto-Black, Roboto-BoldCondensed, Roboto-Light, Roboto-LightItalic */

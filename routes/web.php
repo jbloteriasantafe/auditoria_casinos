@@ -367,9 +367,6 @@ Route::group(['prefix' => 'notas-unificadas', 'middleware' => 'tiene_permiso:ver
   Route::get('/calendar-events', 'NotasUnificadasController@getCalendarEvents');
 Route::post('/add-comment', 'NotasUnificadasController@addComment');
 Route::get('/get-comments/{id}', 'NotasUnificadasController@getComments');
-Route::post('/presence/heartbeat', 'NotasUnificadasController@heartbeat');
-Route::get('/presence/list', 'NotasUnificadasController@getPresence');
-  
   Route::delete('/eliminar/{id}', 'NotasUnificadasController@destroy');
   Route::delete('/eliminar-grupo/{id}', 'NotasUnificadasController@destroyGrupo');
   Route::get('/descargar/{id}/{tipo}', 'NotasUnificadasController@descargarArchivo');
@@ -389,7 +386,21 @@ Route::get('/presence/list', 'NotasUnificadasController@getPresence');
   Route::get('/detalle-nota/{id}', 'NotasUnificadasController@getDetalleNota');
   Route::put('/update-nota/{id}', 'NotasUnificadasController@updateNota');
   Route::post('/comentario/{id}', 'NotasUnificadasController@addComentario');
+  Route::delete('/comentario/{id}', 'NotasUnificadasController@deleteComentario');
+  Route::post('/activos/{id}', 'NotasUnificadasController@addActivos');
+  Route::delete('/activo/{id}', 'NotasUnificadasController@removeActivo');
   Route::delete('/eliminar-adjunto/{id}/{campo}', 'NotasUnificadasController@deleteAdjunto');
+
+  // Relación entre grupos (nota padre/hija)
+  Route::get('/buscar-grupos', 'NotasUnificadasController@buscarGrupos');
+  Route::post('/asignar-grupo-padre', 'NotasUnificadasController@asignarGrupoPadre');
+  Route::post('/quitar-grupo-padre', 'NotasUnificadasController@quitarGrupoPadre');
+
+  // Notas de Aprobación (a nivel de grupo)
+  Route::post('/nota-aprobacion/subir', 'NotasUnificadasController@subirNotaAprobacion');
+  Route::get('/nota-aprobacion/visualizar/{id}', 'NotasUnificadasController@visualizarNotaAprobacion');
+  Route::get('/nota-aprobacion/descargar/{id}', 'NotasUnificadasController@descargarNotaAprobacion');
+  Route::delete('/nota-aprobacion/eliminar/{id}', 'NotasUnificadasController@eliminarNotaAprobacion');
 
   // Sistema de Anotaciones en PDFs
   Route::get('/pdf-anotaciones/listar/{id_nota}', 'NotasPdfAnotacionesController@listarPdfs');
@@ -398,6 +409,7 @@ Route::get('/presence/list', 'NotasUnificadasController@getPresence');
   Route::post('/pdf-anotaciones/resolver-comentario', 'NotasPdfAnotacionesController@resolverComentario');
   Route::delete('/pdf-anotaciones/eliminar-comentario/{id}', 'NotasPdfAnotacionesController@eliminarComentario');
   Route::post('/pdf-anotaciones/guardar-anotaciones', 'NotasPdfAnotacionesController@guardarAnotaciones');
+  Route::post('/pdf-anotaciones/subir-version', 'NotasPdfAnotacionesController@subirNuevaVersion');
 
   Route::get('/{id}', 'NotasUnificadasController@show')->where('id', '[0-9]+');
 });
@@ -1609,15 +1621,8 @@ Route::group(['prefix' => 'notas-unificadas', 'middleware' => 'tiene_permiso:ver
     Route::delete('/eliminar/{id}', 'NotasUnificadasController@destroy');
     Route::post('/eliminar-masivo', 'NotasUnificadasController@eliminarMasivo');
     
-    // Presence
-    Route::post('/presence/heartbeat', 'NotasUnificadasController@heartbeat');
-    Route::get('/presence/list', 'NotasUnificadasController@getPresence');
-    
     // Collaborative Flow
     Route::post('/flujo-colaborativo', 'NotasUnificadasController@flujoColaborativo');
-
-    // Emergency Fix
-    Route::get('/fix-presence-db', 'NotasUnificadasController@fixPresenceTable');
 });
 Route::get("/fix-db-anotaciones", function() {
     if(!Schema::hasTable("notas_pdf_anotaciones")) {

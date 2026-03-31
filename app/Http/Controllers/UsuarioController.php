@@ -24,6 +24,7 @@ class UsuarioController extends Controller
   ];
 
   private static $instance;
+  private $usuarioCache = []; // [id_usuario => ['usuario'=>..., 'roles'=>..., 'casinos'=>...]]
 
   public static function getInstancia() {
       if (!isset(self::$instance)) {
@@ -258,8 +259,11 @@ class UsuarioController extends Controller
   public function buscarUsuario($id_usuario){
     //@BUG si id_usuario = 0
     if(empty($id_usuario) && $id_usuario !== 0) return ['usuario' => null, 'roles' => null, 'casinos' => null];
+    if(isset($this->usuarioCache[$id_usuario])) return $this->usuarioCache[$id_usuario];
     $usuario = Usuario::find($id_usuario);
-    return ['usuario' => $usuario, 'roles' => $usuario->roles , 'casinos' => $usuario->casinos];
+    $result = ['usuario' => $usuario, 'roles' => $usuario->roles , 'casinos' => $usuario->casinos];
+    $this->usuarioCache[$id_usuario] = $result;
+    return $result;
   }
 
   public function configUsuario(){
@@ -277,10 +281,8 @@ class UsuarioController extends Controller
   }
 
   public function tieneImagen(){
-    $file = Usuario::find(session('id_usuario'));
-    $data = $file->imagen;
-
-    return $data != null;
+    $usuario = $this->buscarUsuario(session('id_usuario'))['usuario'];
+    return $usuario && $usuario->imagen != null;
   }
 
   public function buscarCasinoDelUsuario($id_usuario){

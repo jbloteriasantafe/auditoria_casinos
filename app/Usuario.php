@@ -19,9 +19,17 @@ class Usuario extends Model
     protected $hidden = array('imagen','password','token');
     protected $appends = array('es_superusuario','es_controlador','elimina_cya','es_administrador','es_fiscalizador','es_control','es_despacho','es_casino_ae','es_auditor','es_carga_ae');
 
+    // Helper: check role by ID using loaded relation if available (avoids extra DB query)
+    private function tieneRolId($id_rol) {
+      if ($this->relationLoaded('roles')) {
+        return $this->relations['roles']->contains('id_rol', $id_rol);
+      }
+      return count($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',$id_rol)->get()) > 0;
+    }
+
     //en cierres y aperturas de mesas
     public function getEliminaCyaAttribute(){
-      $roles = $this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->get();
+      $roles = $this->relationLoaded('roles') ? $this->relations['roles'] : $this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->get();
       foreach ($roles as $rol) {
         foreach ($rol->permisos as $p) {
           if($p->descripcion == 'm_eliminar_cierres_y_aperturas'){
@@ -32,40 +40,17 @@ class Usuario extends Model
       return false;
     }
 
-    public function getEsSuperusuarioAttribute(){
-      return (count($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',1)->get()) > 0);
-    }
-
-    public function getEsAdministradorAttribute(){
-      return (count($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',2)->get()) > 0);
-    }
-
-    public function getEsControlAttribute(){
-      return (count($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',4)->get()) > 0);
-    }
+    public function getEsSuperusuarioAttribute(){ return $this->tieneRolId(1); }
+    public function getEsAdministradorAttribute(){ return $this->tieneRolId(2); }
+    public function getEsFiscalizadorAttribute(){ return $this->tieneRolId(3); }
+    public function getEsControlAttribute(){ return $this->tieneRolId(4); }
+    public function getEsAuditorAttribute(){ return $this->tieneRolId(5); }
+    public function getEsDespachoAttribute(){ return $this->tieneRolId(6); }
+    public function getEsCasinoAeAttribute(){ return $this->tieneRolId(9); }
+    public function getEsCargaAeAttribute(){ return $this->tieneRolId(10); }
 
     public function getEsControladorAttribute(){
       return $this->es_administrador || $this->es_superusuario || $this->es_control;
-    }
-
-    public function getEsFiscalizadorAttribute(){
-      return (count($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',3)->get()) > 0);
-    }
-
-    public function getEsDespachoAttribute(){
-      return (count($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',6)->get()) > 0);
-    }
-
-    public function getEsCasinoAeAttribute(){
-      return (count($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',9)->get()) > 0);
-    }
-
-    public function getEsCargaAeAttribute(){
-      return (count($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',10)->get()) > 0);
-    }
-
-    public function getEsAuditorAttribute(){
-      return (count($this->belongsToMany('App\Rol','usuario_tiene_rol','id_usuario','id_rol')->where('rol.id_rol','=',5)->get()) > 0);
     }
 
     public function relevamientos_apuestas(){

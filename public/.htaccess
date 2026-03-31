@@ -1,14 +1,62 @@
-<FilesMatch "\.(ttf|ttc|otf|eot|woff)$">
+<FilesMatch "\.(ttf|ttc|otf|eot|woff|woff2)$">
     <IfModule mod_headers.c>
         Header set Access-Control-Allow-Origin "*"
     </IfModule>
 </FilesMatch>
 
-<FilesMatch "\.(jpg)$">
+<FilesMatch "\.(jpg|jpeg|png|gif|ico|svg|webp)$">
     <IfModule mod_headers.c>
-        Header set Cache-Control "max-age=3600, public"
+        Header set Cache-Control "max-age=2592000, public"
     </IfModule>
 </FilesMatch>
+
+# Gzip compression (reduces JS/CSS/HTML sizes by 60-80%)
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE font/woff2
+    AddOutputFilterByType DEFLATE font/woff
+    AddOutputFilterByType DEFLATE font/ttf
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# Browser caching for static assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access 1 month"
+    ExpiresByType image/jpg "access 1 month"
+    ExpiresByType image/png "access 1 month"
+    ExpiresByType image/gif "access 1 month"
+    ExpiresByType image/svg+xml "access 1 month"
+    ExpiresByType image/x-icon "access 1 year"
+    ExpiresByType font/woff2 "access 1 year"
+    ExpiresByType font/woff "access 1 year"
+    ExpiresByType font/ttf "access 1 year"
+    ExpiresByType application/font-woff "access 1 year"
+    ExpiresByType text/css "access 1 week"
+    ExpiresByType application/javascript "access 1 week"
+    ExpiresByType text/javascript "access 1 week"
+</IfModule>
+
+# Cache-Control headers for fonts (long-lived, they never change)
+<FilesMatch "\.(woff|woff2|ttf|eot|otf)$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "max-age=31536000, public"
+    </IfModule>
+</FilesMatch>
+
+# Límites de subida de archivos (200 MB) - mod_php 8.2
+php_value upload_max_filesize 200M
+php_value post_max_size 250M
+php_value max_execution_time 300
+php_value max_input_time 300
 
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
@@ -32,10 +80,5 @@
 </IfModule>
 
 AddType font/ttf .ttf
+AddType font/woff2 .woff2
 AddType text/cache-manifest .appcache
-
-<IfModule mod_expires.c>
-ExpiresActive On
-ExpiresByType image/jpeg "access 1 month"
-ExpiresByType image/jpg "access 1 month"
-</IfModule>

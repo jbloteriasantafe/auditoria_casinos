@@ -88,13 +88,13 @@
             language: 'es',
             showUpload: false,
             allowedFileExtensions: ['pdf', 'zip'],
-            maxFileSize: 15360,
+            maxFileSize: 204800,
         });
         $("#adjuntoDisenio").fileinput({
             language: 'es',
             showUpload: false,
             allowedFileExtensions: ['pdf', 'zip'],
-            maxFileSize: 15360,
+            maxFileSize: 204800,
         });
         
         @if($nota->tipo_solicitud == 'EVENTO')
@@ -102,7 +102,7 @@
             language: 'es',
             showUpload: false,
             allowedFileExtensions: ['pdf', 'zip', 'doc', 'docx'],
-            maxFileSize: 15360,
+            maxFileSize: 204800,
         });
         @endif
 

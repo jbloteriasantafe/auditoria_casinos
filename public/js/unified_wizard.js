@@ -1,14 +1,83 @@
+// Modal de confirmación personalizado (reemplaza confirm() nativo)
+(function () {
+    var modalHtml =
+        '<div class="modal fade" id="modalConfirmar" tabindex="-1" role="dialog" style="z-index: 99999;">' +
+        '  <div class="modal-dialog modal-sm" role="document">' +
+        '    <div class="modal-content" style="border-radius: 10px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">' +
+        '      <div class="modal-header" id="modalConfirmarHeader" style="background: #d9534f; color: white; border: none; padding: 15px 20px;">' +
+        '        <h4 class="modal-title" style="margin: 0; font-size: 16px;"><i class="fa fa-exclamation-triangle"></i> <span id="modalConfirmarTitulo">Confirmar</span></h4>' +
+        '      </div>' +
+        '      <div class="modal-body" style="padding: 20px; font-size: 14px;">' +
+        '        <p id="modalConfirmarMensaje" style="margin: 0;"></p>' +
+        '      </div>' +
+        '      <div class="modal-footer" style="border-top: 1px solid #eee; padding: 12px 20px;">' +
+        '        <button type="button" class="btn btn-default" id="btnConfirmarCancelar" data-dismiss="modal">Cancelar</button>' +
+        '        <button type="button" class="btn btn-danger" id="btnConfirmarAceptar">Aceptar</button>' +
+        '      </div>' +
+        '    </div>' +
+        '  </div>' +
+        '</div>';
+    if ($('#modalConfirmar').length === 0) {
+        $('body').append(modalHtml);
+    }
+})();
+
+function confirmar(mensaje, callback, opciones) {
+    opciones = opciones || {};
+    var titulo = opciones.titulo || 'Confirmar';
+    var color = opciones.color || '#d9534f';
+    var textoBoton = opciones.textoBoton || 'Aceptar';
+
+    $('#modalConfirmarTitulo').text(titulo);
+    $('#modalConfirmarMensaje').html(mensaje);
+    $('#modalConfirmarHeader').css('background', color);
+    $('#btnConfirmarAceptar').text(textoBoton).removeClass('btn-danger btn-warning btn-primary').addClass(
+        color === '#f0ad4e' ? 'btn-warning' : color === '#337ab7' ? 'btn-primary' : 'btn-danger'
+    );
+
+    // Limpiar handlers previos
+    $('#btnConfirmarAceptar').off('click').on('click', function () {
+        $('#modalConfirmar').modal('hide');
+        if (callback) callback();
+    });
+
+    $('#modalConfirmar').modal('show');
+}
+
 $(document).ready(function () {
+    $('.tituloSeccionPantalla').text('Notas Unificadas');
     let activos = [];
+
+    // --- ESPACIADO DEL WIZARD STEP 2 ---
+    (function fixStep2Spacing() {
+        var $s = $('#step2Content');
+        if (!$s.length) return;
+        // Aplicar margin-bottom a cada hijo directo que sea un contenedor de campo
+        $s.children('div').not('[style*="margin-top"]').each(function () {
+            $(this).css('margin-bottom', '25px');
+        });
+        // Labels: más espacio abajo, bold
+        $s.find('label').each(function () {
+            $(this).css({
+                'display': 'block',
+                'margin-bottom': '8px',
+                'margin-top': '0',
+                'font-weight': '600',
+                'font-size': '12px',
+                'text-transform': 'uppercase',
+                'color': '#374151',
+                'letter-spacing': '0.3px'
+            });
+        });
+    })();
 
     // --- INIT & HELPERS ---
     function actualizarTiposActivo() {
-        let option = $('#selCasino option:selected');
-        let nombre = (option.data('nombre') || '').toUpperCase();
         let select = $('#selTipoActivo');
         select.empty();
 
-        if (nombre.includes('ONLINE') || nombre.includes('BPLAY') || nombre.includes('CITYCENTER')) {
+        var casinoId = parseInt($('#selCasino').val()) || 0;
+        if (casinoId >= (window.PLATAFORMA_ID_OFFSET || 100)) {
             select.append('<option value="JUEGO_ONLINE">Juego Online</option>');
             $('#inpIdActivo').attr('placeholder', 'ID o Codigo de Juego');
         } else {
@@ -26,6 +95,38 @@ $(document).ready(function () {
 
     $('#selCasino').change(function () {
         actualizarTiposActivo();
+        filtrarTipoEventoFISC();
+    });
+
+    function filtrarTipoEventoFISC() {
+        var casinoId = parseInt($('#selCasino').val()) || 0;
+        var esPlataforma = casinoId >= (window.PLATAFORMA_ID_OFFSET || 100);
+        $('#selTipoEventoFISC option').each(function () {
+            var ctx = $(this).data('contexto');
+            if (!ctx || ctx === 'todos') {
+                $(this).show();
+            } else if (ctx === 'fisico') {
+                $(this).toggle(!esPlataforma);
+            } else if (ctx === 'plataforma') {
+                $(this).toggle(esPlataforma);
+            }
+        });
+        var $sel = $('#selTipoEventoFISC');
+        if ($sel.find('option:selected').is(':hidden')) {
+            $sel.val('');
+        }
+    }
+
+    // Ocultar activos cuando el tipo evento FISC es un Alta (no existe el activo aún)
+    $('#selTipoEventoFISC').change(function () {
+        var texto = $(this).find('option:selected').text().trim().toUpperCase();
+        if (texto.indexOf('ALTA') === 0) {
+            $('#secActivosAsociados').slideUp();
+            activos = [];
+            $('#tablaActivos tbody').empty();
+        } else if ($('#selTipoTarea').val() === 'FISCALIZACION') {
+            $('#secActivosAsociados').slideDown();
+        }
     });
 
     $('#selTipoActivo').change(function () {
@@ -63,6 +164,10 @@ $(document).ready(function () {
             $('#selTipoEventoLegacy').attr('required', false);
             $('#selCategoriaLegacy').attr('required', false);
 
+            // Fecha fin obligatoria para MKT
+            $('#inpFechaFin').attr('required', true);
+            $('#lblFechaFin').html('Fecha Fin * <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Cuándo finaliza la vigencia."></i>');
+
             // Trigger sub-logic
             $('#selTipoSolicitud').trigger('change');
 
@@ -79,7 +184,14 @@ $(document).ready(function () {
             $('#selTipoEventoLegacy').attr('required', true);
             $('#selCategoriaLegacy').attr('required', true);
 
-            // Always show assets for Fiscalizacion? Assuming yes
+            // Fecha fin opcional para FISC
+            $('#inpFechaFin').attr('required', false);
+            $('#lblFechaFin').html('Fecha Fin <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Cuándo finaliza la vigencia (opcional)."></i>');
+
+            // Filtrar tipos evento según casino seleccionado
+            filtrarTipoEventoFISC();
+
+            // Mostrar activos (salvo que sea Alta)
             $('#secActivosAsociados').slideDown();
         }
         updateProgressBar();
@@ -90,19 +202,11 @@ $(document).ready(function () {
     });
 
     $('#selTipoSolicitud').on('change input', function () {
-        // Only relevant if visible
         if ($('#selTipoTarea').val() !== 'MARKETING') return;
-
-        let val = $(this).val();
-        if (val === 'PUBLICIDAD') {
-            $('#secActivosAsociados').slideUp();
-            $('#helpTipoSolicitud').html('<i class="fa fa-info-circle"></i> Solo se activará el circuito de Marketing.');
-            activos = [];
-            $('#tablaActivos tbody').empty();
-        } else {
-            $('#secActivosAsociados').slideDown();
-            $('#helpTipoSolicitud').html('<i class="fa fa-info-circle"></i> Se habilitará la carga de activos.');
-        }
+        // MKT siempre es PUBLICIDAD — ocultar activos
+        $('#secActivosAsociados').slideUp();
+        activos = [];
+        $('#tablaActivos tbody').empty();
         updateProgressBar();
     });
 
@@ -349,17 +453,20 @@ $(document).ready(function () {
             }
         }
 
+        let tipoTarea = $('#selTipoTarea').val();
+        let isMkt = tipoTarea === 'MARKETING';
         let formData = {
             nro_nota: $('input[name="nro_nota"]').val(),
             anio: $('input[name="anio"]').val(),
             titulo: $('input[name="titulo"]').val(),
             id_casino: $('select[name="id_casino"]').val(),
-            tipo_tarea: $('#selTipoTarea').val(),
+            tipo_tarea: tipoTarea,
             tipo_solicitud: $('#selTipoSolicitud').val(),
-            id_tipo_evento: $('#selTipoEventoLegacy').val(),
-            id_categoria: $('#selCategoriaLegacy').val(),
-            fecha_inicio_evento: $('#inpFechaInicioEvento').val(),
-            fecha_fin_evento: $('#inpFechaFinEvento').val(),
+            id_tipo_evento: isMkt ? $('#selTipoEventoMKT').val() : $('#selTipoEventoFISC').val(),
+            id_categoria: isMkt ? $('#selCategoriaMKT').val() : $('#selCategoriaFISC').val(),
+            fecha_inicio_evento: $('input[name="fecha_inicio_evento"]').val(),
+            fecha_fin_evento: $('input[name="fecha_fin_evento"]').val(),
+            fecha_referencia: $('input[name="fecha_referencia"]').val() || '',
             activos: activos,
             _token: $('input[name="_token"]').val()
         };
@@ -546,54 +653,58 @@ $(document).ready(function () {
         // Show Current Step
         if (step === 0) $('#step0Content').fadeIn();
         if (step === 1) $('#step1Content').fadeIn();
-        if (step === 2) $('#step2Content').fadeIn();
+        if (step === 2) {
+            $('#step2Content').fadeIn();
+            // Aplicar espaciado a los campos del paso 2
+            $('#step2Content').children('div, h4').each(function () {
+                if (!$(this).is('[style*="display:none"], [style*="display: none"]')) {
+                    $(this).css('margin-bottom', '24px');
+                }
+            });
+            $('#step2Content').find('label').css({
+                'display': 'block',
+                'margin-bottom': '8px'
+            });
+        }
 
         if (step === 3) {
-            // STEP 3: ATTACHMENTS (Create Draft)
-            // Only trigger creation if we are coming from step 2
-            if (currentStep === 2) {
-                crearNotaBorrador(() => {
-                    // Show correct attachment sections based on task type
-                    let tipoTarea = $('#selTipoTarea').val(); // MARKETING or FISCALIZACION
-                    let tipoSolicitud = $('#selTipoSolicitud').val(); // PUBLICIDAD or EVENTO
-                    let isComplementing = $('#idGrupoExistente').val() !== '';
+            // STEP 3: ATTACHMENTS
+            // Función para mostrar las secciones de adjuntos correctas
+            let _mostrarSeccionesAdjuntos = function () {
+                let tipoTarea = $('#selTipoTarea').val();
+                let tipoSolicitud = $('#selTipoSolicitud').val();
+                let isComplementing = $('#idGrupoExistente').val() !== '';
 
-                    console.log('STEP 3: tipoTarea=', tipoTarea, ', tipoSolicitud=', tipoSolicitud, ', isComplementing=', isComplementing);
+                console.log('STEP 3: tipoTarea=', tipoTarea, ', tipoSolicitud=', tipoSolicitud, ', isComplementing=', isComplementing);
 
-                    // Reset all sections
-                    $('.section-marketing').hide();
-                    $('.section-fiscalizacion').hide();
-                    $('.section-informe').hide();
+                $('.section-marketing').hide();
+                $('.section-fiscalizacion').hide();
+                $('.section-informe').hide();
 
-                    // Show sections based on task type
-                    if (isComplementing) {
-                        // STRICT MODE: If complementing, ONLY show the specific branch being added
-                        if (tipoTarea === 'MARKETING') {
-                            $('.section-marketing').show();
-                        } else if (tipoTarea === 'FISCALIZACION') {
-                            $('.section-fiscalizacion').show();
-                        }
-                    } else {
-                        // NORMAL FLOW: Evento activates both
-                        if (tipoTarea === 'MARKETING') {
-                            $('.section-marketing').show();
-                            if (tipoSolicitud === 'EVENTO') {
-                                // EVENTO crea MKT + FISC, mostrar ambas secciones
-                                $('.section-fiscalizacion').show();
-                            }
-                        } else if (tipoTarea === 'FISCALIZACION') {
-                            $('.section-fiscalizacion').show();
-                        }
+                if (isComplementing) {
+                    if (tipoTarea === 'MARKETING') $('.section-marketing').show();
+                    else if (tipoTarea === 'FISCALIZACION') $('.section-fiscalizacion').show();
+                } else {
+                    if (tipoTarea === 'MARKETING') {
+                        $('.section-marketing').show();
+                    } else if (tipoTarea === 'FISCALIZACION') {
+                        $('.section-fiscalizacion').show();
                     }
+                }
 
-                    $('#step3Content').fadeIn();
-                    currentStep = 3;
-                    updateStepperUI(3);
-                    updateButtonsUI(3);
-                });
+                $('#step3Content').fadeIn();
+                currentStep = 3;
+                updateStepperUI(3);
+                updateButtonsUI(3);
+            };
+
+            // Solo crear borrador si aún no existe
+            if (!window._draftGrupoId) {
+                crearNotaBorrador(_mostrarSeccionesAdjuntos);
                 return; // Wait for callback
             } else {
-                $('#step3Content').fadeIn();
+                _mostrarSeccionesAdjuntos();
+                return;
             }
         }
 
@@ -611,6 +722,8 @@ $(document).ready(function () {
     function resetWizard() {
         console.log('RESET WIZARD');
         currentStep = 0;
+        window._draftGrupoId = null;
+        window._wizardFinished = false;
 
         // Hide all steps, show Step 0
         $('#step1Content, #step2Content, #step3Content, #step4Content').hide();
@@ -622,6 +735,11 @@ $(document).ready(function () {
         // Clear hidden inputs
         $('#idGrupoExistente').val('');
         $('#hidIdActivo').val('');
+        $('#hidIdGrupoPadre').val('');
+        $('#notaPadreSeleccionada').hide();
+        $('#buscadorNotaPadre').show();
+        $('#inpBuscarNotaPadre').val('');
+        $('#resultadosBusquedaPadre').hide().empty();
         activos = []; // Global array
         $('#tablaActivos tbody').empty();
 
@@ -724,10 +842,13 @@ $(document).ready(function () {
             id_tipo_evento_mkt: $('select[name="id_tipo_evento_mkt"]').val(),
             id_categoria_mkt: $('select[name="id_categoria_mkt"]').val(),
             id_tipo_evento_fisc: $('select[name="id_tipo_evento_fisc"]').val(),
-            id_categoria_fisc: $('select[name="id_categoria_fisc"]').val(),
 
+            fecha_pretendida_aprobacion: $('#inpFechaPretendida').val() || '',
             fecha_inicio_evento: $('#inpFechaInicio').val(),
             fecha_fin_evento: $('#inpFechaFin').val(),
+            fecha_referencia: $('input[name="fecha_referencia"]').val() || '',
+            id_grupo_padre: $('#hidIdGrupoPadre').val() || '',
+            activos: activos,
             _token: $('input[name="_token"]').val()
         };
 
@@ -745,6 +866,9 @@ $(document).ready(function () {
                 $('#frmNuevaNota input[name="id_nota"]').remove();
                 $('#frmNuevaNota input[name="id_nota_mkt"]').remove();
                 $('#frmNuevaNota input[name="id_nota_fisc"]').remove();
+
+                // Track the created grupo for cancel/cleanup
+                window._draftGrupoId = data.id_grupo || null;
 
                 // If dual notes (MKT/FISC), store IDs
                 if (data.ids_notas.mkt) {
@@ -771,11 +895,14 @@ $(document).ready(function () {
                 notificacion('error', 'Error al crear la nota.');
             }
             $('.btn-wizard-next').attr('disabled', false).text("Siguiente (Crear Borrador)");
+            // Volver al step anterior para que no quede todo oculto
+            goToStep(2);
         });
     }
 
     // --- UI HELPERS ---
 
+    window.notificacion = notificacion;
     function notificacion(tipo, mensaje) {
         // Simple Custom Notification
         // Check if container exists
@@ -805,6 +932,23 @@ $(document).ready(function () {
         }, 4000);
     }
 
+    // Botón "quitar archivo" para inputs file
+    $(document).on('change', 'input[type="file"]', function () {
+        var $input = $(this);
+        // No aplicar dentro del editor de anotaciones
+        if ($input.attr('id') === 'inputNuevaVersion') return;
+        // Quitar botón previo si existe
+        $input.next('.btn-quitar-archivo').remove();
+        if ($input.val()) {
+            var $btn = $('<a href="javascript:void(0)" class="btn-quitar-archivo" style="display:inline-block; margin-top:4px; font-size:12.5px; color:#d9534f; cursor:pointer;"><i class="fa fa-times"></i> quitar</a>');
+            $btn.on('click', function () {
+                $input.val('');
+                $(this).remove();
+            });
+            $input.after($btn);
+        }
+    });
+
     function mostrarCargando(show) {
         // Implementar un overlay global si se desea, por ahora no bloqueante
     }
@@ -814,7 +958,10 @@ $(document).ready(function () {
     let gridState = {
         q: '',
         id_casino: '',
-        tipo: '',
+        rama: '',
+        estado: '',
+        fecha_desde: '',
+        fecha_hasta: '',
         page: 1,
         sort_by: 'id',
         order: 'desc'
@@ -825,14 +972,17 @@ $(document).ready(function () {
     $('#inpBusqueda').on('input', function () {
         clearTimeout(searchTimeout);
         gridState.q = $(this).val();
-        gridState.page = 1; // Reset to page 1
+        gridState.page = 1;
         searchTimeout = setTimeout(ajaxLoadTable, 300);
     });
 
-    // 2. Filters
-    $('#selFiltroCasino, #selFiltroTipo').change(function () {
-        gridState.id_casino = $('#selFiltroCasino').val();
-        gridState.tipo = $('#selFiltroTipo').val();
+    // 2. Filters (all selects + date inputs with class .filtro-tabla)
+    $(document).on('change', '.filtro-tabla', function () {
+        gridState.id_casino   = $('#selFiltroCasino').val();
+        gridState.rama        = $('#selFiltroRama').val();
+        gridState.estado      = $('#selFiltroEstado').val();
+        gridState.fecha_desde = $('#inpFechaDesde').val();
+        gridState.fecha_hasta = $('#inpFechaHasta').val();
         gridState.page = 1;
         ajaxLoadTable();
     });
@@ -906,55 +1056,102 @@ $(document).ready(function () {
         $('#drawer-backdrop').fadeOut();
     }
     // --- INLINE EDITING ---
+    // Recalcular badges de estado en la fila padre
+    function actualizarEstadosPadre(grupoId) {
+        var estados = [];
+        $('tr.nota-hija[data-parent-grupo="' + grupoId + '"]').each(function () {
+            var badge = $(this).find('.estado-badge');
+            var txt = badge.length ? badge.text().trim() : '';
+            if (!txt) {
+                // Si no tiene badge, buscar label-warning (PENDIENTE)
+                var lbl = $(this).find('.label-warning');
+                txt = lbl.length ? lbl.text().trim() : '';
+            }
+            if (txt && estados.indexOf(txt) === -1) {
+                estados.push(txt);
+            }
+        });
+        var td = $('td.grupo-estados[data-grupo-id="' + grupoId + '"]');
+        td.empty();
+        for (var i = 0; i < estados.length; i++) {
+            td.append('<span class="label label-info" style="margin-right:2px;">' + estados[i] + '</span>');
+        }
+    }
+
     $(document).on('click', '.estado-badge', function (e) {
-        e.stopPropagation(); // Prevent row click
+        e.stopPropagation();
         let span = $(this);
         let current = span.text().trim();
         let id = span.data('id');
+        let notaRow = span.closest('tr.nota-hija');
+        let grupoId = notaRow.length ? notaRow.data('parent-grupo') : null;
 
-        // Prevent double click
         if (span.hasClass('editing')) return;
+
+        // Determinar opciones permitidas según rol (desde OPCIONES_ESTADO y TRANSICIONES_ESTADO)
+        var opciones = [];
+        var allEstados = (window.OPCIONES_ESTADO || []).map(function(e) { return e.descripcion; });
+        var trans = window.TRANSICIONES_ESTADO || {};
+
+        if (window.NIVEL_ESTADO === 'admin') {
+            opciones = allEstados;
+        } else {
+            var nivel = window.NIVEL_ESTADO || 'regular';
+            var mapa = trans[nivel] || {};
+            if (!mapa[current]) { notificacion('warning', 'No puede cambiar este estado'); return; }
+            opciones = mapa[current];
+        }
+
         span.addClass('editing');
 
-        let select = $('<select class="form-control input-sm" style="width:110px; display:inline-block; padding: 2px;"><option value="PENDIENTE">PENDIENTE</option><option value="INICIO">INICIO</option><option value="NOTIFICADO">NOTIFICADO</option><option value="RESP. CASINO">RESP. CASINO</option><option value="FINALIZADO">FINALIZADO</option></select>');
-        select.val(current);
-
-        span.replaceWith(select);
+        let wrapper = $('<span class="estado-edit-wrap" style="white-space:nowrap;"></span>');
+        let select = $('<select class="form-control input-sm" style="width:auto; display:inline-block; padding: 2px; font-size: 11px;"></select>');
+        opciones.forEach(function(op) { select.append('<option value="' + op + '">' + op + '</option>'); });
+        select.val(opciones[0]);
+        let btnConfirm = $('<button class="btn btn-success btn-xs" style="margin-left:3px;" title="Confirmar"><i class="fa fa-check"></i></button>');
+        let btnCancel = $('<button class="btn btn-danger btn-xs" style="margin-left:2px;" title="Cancelar"><i class="fa fa-times"></i></button>');
+        wrapper.append(select).append(btnConfirm).append(btnCancel);
+        span.replaceWith(wrapper);
         select.focus();
 
-        function saveAndClose() {
-            let newVal = select.val();
-            let color = getBalanceColor(newVal);
-            let newSpan = $(`<span class="label label-${color} estado-badge" data-id="${id}" data-toggle="popover" data-trigger="hover">${newVal}</span>`);
-            select.replaceWith(newSpan);
+        function restoreBadge(text) {
+            let color = getBalanceColor(text);
+            let newSpan = $('<span class="label label-' + color + ' estado-badge" data-id="' + id + '" data-toggle="popover" data-trigger="hover">' + text + '</span>');
+            wrapper.replaceWith(newSpan);
+        }
 
+        btnConfirm.on('click', function (ev) {
+            ev.stopPropagation();
+            let newVal = select.val();
+            restoreBadge(newVal);
             if (newVal !== current) {
-                // AJAX Update
                 $.post('/notas-unificadas/quick-update', {
                     _token: $('input[name="_token"]').val(),
                     id: id,
                     field: 'estado',
                     value: newVal
-                }, function (res) {
+                }, function () {
                     notificacion('success', 'Estado actualizado.');
+                    if (grupoId) actualizarEstadosPadre(grupoId);
                 }).fail(function () {
                     notificacion('error', 'Error al actualizar.');
-                    newSpan.text(current); // Revert visual
                 });
             }
-        }
+        });
 
-        select.on('blur', saveAndClose);
-        select.on('keydown', function (e) {
-            if (e.key === 'Enter') { $(this).blur(); }
+        btnCancel.on('click', function (ev) {
+            ev.stopPropagation();
+            restoreBadge(current);
+        });
+
+        select.on('keydown', function (ev) {
+            if (ev.key === 'Enter') { btnConfirm.click(); }
+            if (ev.key === 'Escape') { btnCancel.click(); }
         });
     });
 
     function getBalanceColor(status) {
-        if (status === 'FINALIZADO') return 'success';
-        if (status === 'PENDIENTE') return 'warning';
-        if (status === 'INICIO') return 'primary';
-        return 'default';
+        return getEstadoClass(status);
     }
 
     // --- KANBAN & CALENDAR VIEW TOGGLE ---
@@ -1033,26 +1230,25 @@ $(document).ready(function () {
 
         if (ids.length === 0) return;
 
-        if (!confirm('¿Está seguro de eliminar las ' + ids.length + ' notas seleccionadas?')) return;
-
-        $.ajax({
-            url: '/notas-unificadas/eliminar-masivo',
-            type: 'POST',
-            data: {
-                _token: $('input[name="_token"]').val(), // Ensure this exists on main page too
-                ids: ids
-            },
-            success: function (res) {
-                notificacion('success', res.mensaje || 'Notas eliminadas');
-                // Reload table
-                ajaxLoadTable();
-                $('#bulkToolbar').fadeOut();
-                $('#checkAll').prop('checked', false);
-            },
-            error: function (err) {
-                notificacion('error', 'Error al eliminar notas.');
-            }
-        });
+        confirmar('¿Está seguro de eliminar las ' + ids.length + ' notas seleccionadas?', function () {
+            $.ajax({
+                url: '/notas-unificadas/eliminar-masivo',
+                type: 'POST',
+                data: {
+                    _token: $('input[name="_token"]').val(),
+                    ids: ids
+                },
+                success: function (res) {
+                    notificacion('success', res.mensaje || 'Notas eliminadas');
+                    ajaxLoadTable();
+                    $('#bulkToolbar').fadeOut();
+                    $('#checkAll').prop('checked', false);
+                },
+                error: function (err) {
+                    notificacion('error', 'Error al eliminar notas.');
+                }
+            });
+        }, { titulo: 'Eliminar notas' });
     });
 
     // 4. Calendar Logic (Rest of code...)
@@ -1148,13 +1344,14 @@ $(document).ready(function () {
         if (action === 'ver') {
             openDrawer(id);
         } else if (action === 'eliminar') {
-            if (!confirm('¿Eliminar esta nota?')) return;
-            $.ajax({
-                url: '/notas-unificadas/eliminar/' + id,
-                type: 'DELETE',
-                data: { _token: $('input[name="_token"]').val() },
-                success: function () { ajaxLoadTable(); notificacion('success', 'Eliminado'); }
-            });
+            confirmar('¿Eliminar esta nota?', function () {
+                $.ajax({
+                    url: '/notas-unificadas/eliminar/' + id,
+                    type: 'DELETE',
+                    data: { _token: $('input[name="_token"]').val() },
+                    success: function () { ajaxLoadTable(); notificacion('success', 'Eliminado'); }
+                });
+            }, { titulo: 'Eliminar nota' });
         } else if (action === 'descargar-todo') {
             // For MVP, maybe open all links? Or create a ZIP endpoint later. 
             // Currently just notify
@@ -1171,26 +1368,31 @@ $(document).ready(function () {
             $(this).removeClass('btn-default').addClass('btn-primary');
         }
 
-        // Reset logic
+        // Limpiar todo primero
         gridState.q = '';
-        $('#inpBusqueda').val('');
+        gridState.quick_filter = '';
         gridState.page = 1;
+        $('#inpBusqueda').val('');
 
-        if (filter === 'pendientes') {
-            gridState.q = 'PENDIENTE';
-            $('#inpBusqueda').val('PENDIENTE');
-        } else if (filter === 'hoy') {
+        if (filter === 'hoy') {
             gridState.quick_filter = 'hoy';
-        } else if (filter === 'eventos_activos') {
-            gridState.tipo = 'EVENTO';
-            $('#selFiltroTipo').val('EVENTO');
-            gridState.q = 'INICIO'; // Assume status INICIO
+        } else if (filter === 'proximos') {
+            gridState.quick_filter = 'proximos';
+        } else if (filter === 'por_vencer') {
+            gridState.quick_filter = 'por_vencer';
         } else if (filter === 'reset') {
+            // Reset completo de todos los filtros
             gridState.id_casino = '';
-            $('#selFiltroCasino').val('');
-            gridState.tipo = '';
-            $('#selFiltroTipo').val('');
+            gridState.rama = '';
+            gridState.estado = '';
+            gridState.fecha_desde = '';
+            gridState.fecha_hasta = '';
             gridState.quick_filter = '';
+            $('#selFiltroCasino').val('');
+            $('#selFiltroRama').val('');
+            $('#selFiltroEstado').val('');
+            $('#inpFechaDesde').val('');
+            $('#inpFechaHasta').val('');
         }
 
         ajaxLoadTable();
@@ -1262,58 +1464,6 @@ $(document).ready(function () {
         }
     }
 
-    // --- PRESENCE SYSTEM ---
-    function updatePresence() {
-        // Send heartbeat
-        let token = $('input[name="_token"]').val();
-        if (!token) return; // Prevent 500 if token missing
-
-        $.post('/notas-unificadas/presence/heartbeat', {
-            _token: token,
-            ubicacion: 'Listado Notas'
-        });
-
-        // Get list
-        $.get('/notas-unificadas/presence/list', function (users) {
-            let html = '';
-            users.forEach(u => {
-                // Generate initials
-                let initials = u.user_name.substring(0, 2).toUpperCase();
-                let color = '#' + (Math.random() * 0xFFFFFF << 0).toString(16); // Random color for now or hash username
-
-                html += `
-                    <div title="${u.user_name}" style="
-                        display:inline-flex; 
-                        align-items:center; 
-                        justify-content:center; 
-                        width:35px; height:35px; 
-                        border-radius:50%; 
-                        background:${color}; 
-                        color:white; 
-                        font-weight:bold; 
-                        margin-right:-10px; 
-                        border: 2px solid white;
-                        cursor:help;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                        font-size: 12px;
-                    ">
-                        ${initials}
-                    </div>
-                `;
-            });
-
-            // Container for avatars (Create if not exists)
-            if ($('#presenceContainer').length === 0) {
-                $('.tituloSeccion').parent().append('<div id="presenceContainer" style="float:right; padding-right:20px; display:flex;"></div>');
-            }
-            $('#presenceContainer').html(html);
-        });
-    }
-
-    // Poll every 15 seconds
-    setInterval(updatePresence, 15000);
-    setTimeout(updatePresence, 2000); // Initial call
-
     // --- PHASE 4: AUTO-SAVE REMOVED AS REQUESTED ---
     /*
     const STORAGE_KEY = 'draft_nueva_nota';
@@ -1321,14 +1471,46 @@ $(document).ready(function () {
     */
 
     // --- FINALIZAR ---
+    window._wizardFinished = false;
+    window._draftGrupoId = null;
+
     window.wizardFinish = function () {
-        // Just close and refresh, as the note was already "saved" in Step 2/3 (Create Draft)
-        // Ideally we should update status to 'FINALIZADO' or similar if needed.
-        // For now, reload to show in dashboard.
+        window._wizardFinished = true;
         $('#modalNuevaNota').modal('hide');
         notificacion('success', 'Trámite finalizado exitosamente.');
         setTimeout(() => location.reload(), 1000);
     };
+
+    // --- CANCELAR: limpiar borrador al cerrar modal sin finalizar ---
+    $('#modalNuevaNota').on('hidden.bs.modal', function () {
+        if (window._wizardFinished) {
+            // Finalizó correctamente, no borrar nada
+            window._wizardFinished = false;
+            window._draftGrupoId = null;
+            resetWizard();
+            return;
+        }
+
+        var grupoId = window._draftGrupoId;
+        if (grupoId) {
+            // Hay un borrador creado que no se finalizó → eliminarlo
+            $.ajax({
+                url: '/notas-unificadas/eliminar-grupo/' + grupoId,
+                type: 'DELETE',
+                data: { _token: $('input[name="_token"]').val() },
+                success: function () {
+                    console.log('Borrador grupo ' + grupoId + ' eliminado por cancelación.');
+                },
+                error: function (err) {
+                    console.error('Error al eliminar borrador:', err);
+                }
+            });
+            window._draftGrupoId = null;
+        }
+
+        // Siempre resetear el wizard al cerrar
+        resetWizard();
+    });
 
     // --- SUMMARY GENERATOR ---
     window.generateSummary = function () {
@@ -1367,20 +1549,18 @@ $(document).ready(function () {
         `;
 
         // Add Specifics
-        if (tipoTarea == 'FISCALIZACION' || tipoSolicitud == 'EVENTO') {
-            let inicio = $('#inpFechaInicio').val();
-            let fin = $('#inpFechaFin').val();
-            let tipoEvento = $('#selTipoEventoLegacy option:selected').text();
-
+        let inicio = $('#inpFechaInicio').val();
+        let fin = $('#inpFechaFin').val();
+        if (inicio || fin) {
             html += `
                 <div class="alert alert-info" style="background:#f0f9ff; border:1px solid #bae6fd; color:#0369a1;">
-                    <strong><i class="fa fa-calendar"></i> Evento:</strong> ${tipoEvento}<br>
-                    <span style="font-size:13px; margin-left:20px;">Del <b>${inicio}</b> al <b>${fin}</b></span>
+                    <strong><i class="fa fa-calendar"></i> Fechas:</strong>
+                    <span style="font-size:13px; margin-left:10px;">Del <b>${inicio || '—'}</b> al <b>${fin || '—'}</b></span>
                 </div>
              `;
         }
 
-        $('#step4Content').html('<h4 class="text-center" style="margin-bottom:20px; font-weight:700; color:#475569;">Resumen de la Solicitud</h4>' + html + '<div class="alert alert-success text-center"><i class="fa fa-info-circle"></i> Verifique que todos los datos sean correctos antes de confirmar.</div>');
+        $('#step4Content').html('<h4 class="text-center" style="margin-bottom:20px; font-weight:700; color:#475569;">Resumen de la Solicitud</h4>' + html + '<div class="alert alert-success text-center" style="margin-top:-5px; margin-bottom:20px; padding:8px;"><i class="fa fa-info-circle"></i> Verifique que todos los datos sean correctos antes de confirmar.</div>');
     }
 
     // =====================================================
@@ -1391,59 +1571,55 @@ $(document).ready(function () {
     $(document).on('click', '.btn-borrar-nota', function (e) {
         e.preventDefault();
         let id = $(this).data('id');
-        let row = $(this).closest('tr');
 
-        if (!confirm('¿Está seguro de eliminar esta nota? Esta acción no se puede deshacer.')) {
-            return;
-        }
-
-        $.ajax({
-            url: '/notas-unificadas/eliminar/' + id,
-            type: 'DELETE',
-            headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() },
-            success: function (res) {
-                if (res.success) {
-                    notificacion('success', 'Nota eliminada correctamente');
-                    row.fadeOut(300, function () { $(this).remove(); });
-                } else {
-                    notificacion('error', res.msg || 'Error al eliminar');
+        confirmar('¿Está seguro de eliminar esta nota? Esta acción no se puede deshacer.', function () {
+            $.ajax({
+                url: '/notas-unificadas/eliminar/' + id,
+                type: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() },
+                success: function (res) {
+                    if (res.success) {
+                        notificacion('success', 'Nota eliminada correctamente');
+                        ajaxLoadTable();
+                    } else {
+                        notificacion('error', res.msg || 'Error al eliminar');
+                    }
+                },
+                error: function (err) {
+                    notificacion('error', 'Error al eliminar la nota');
+                    console.error(err);
                 }
-            },
-            error: function (err) {
-                notificacion('error', 'Error al eliminar la nota');
-                console.error(err);
-            }
-        });
+            });
+        }, { titulo: 'Eliminar nota' });
     });
 
     // Context Menu Delete Action
     $(document).on('click', '.ctx-action[data-action="eliminar"]', function (e) {
         e.preventDefault();
         let id = $(this).closest('#custom-context-menu').data('target-id');
-        let row = $('tr[data-id="' + id + '"]');
 
         $('#custom-context-menu').hide();
 
-        if (!id || !confirm('¿Está seguro de eliminar esta nota?')) {
-            return;
-        }
+        if (!id) return;
 
-        $.ajax({
-            url: '/notas-unificadas/eliminar/' + id,
-            type: 'DELETE',
-            headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() },
-            success: function (res) {
-                if (res.success) {
-                    notificacion('success', 'Nota eliminada');
-                    row.fadeOut(300, function () { $(this).remove(); });
-                } else {
-                    notificacion('error', res.msg || 'Error al eliminar');
+        confirmar('¿Está seguro de eliminar esta nota?', function () {
+            $.ajax({
+                url: '/notas-unificadas/eliminar/' + id,
+                type: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() },
+                success: function (res) {
+                    if (res.success) {
+                        notificacion('success', 'Nota eliminada');
+                        ajaxLoadTable();
+                    } else {
+                        notificacion('error', res.msg || 'Error al eliminar');
+                    }
+                },
+                error: function (err) {
+                    notificacion('error', 'Error al eliminar');
                 }
-            },
-            error: function (err) {
-                notificacion('error', 'Error al eliminar');
-            }
-        });
+            });
+        }, { titulo: 'Eliminar nota' });
     });
 
     // Bulk Delete Button
@@ -1458,17 +1634,14 @@ $(document).ready(function () {
             return;
         }
 
-        if (!confirm('¿Está seguro de eliminar ' + ids.length + ' nota(s)? Esta acción no se puede deshacer.')) {
-            return;
-        }
-
-        $.ajax({
-            url: '/notas-unificadas/eliminar-masivo',
-            type: 'POST',
-            headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() },
-            data: { ids: ids },
-            success: function (res) {
-                if (res.success) {
+        confirmar('¿Está seguro de eliminar ' + ids.length + ' nota(s)? Esta acción no se puede deshacer.', function () {
+            $.ajax({
+                url: '/notas-unificadas/eliminar-masivo',
+                type: 'POST',
+                headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() },
+                data: { ids: ids },
+                success: function (res) {
+                    if (res.success) {
                     notificacion('success', res.deleted + ' nota(s) eliminada(s)');
                     ids.forEach(function (id) {
                         $('tr[data-id="' + id + '"]').fadeOut(300, function () { $(this).remove(); });
@@ -1483,6 +1656,7 @@ $(document).ready(function () {
                 notificacion('error', 'Error al eliminar notas');
             }
         });
+        }, { titulo: 'Eliminar notas' });
     });
 
     // Check All toggle
@@ -1562,33 +1736,25 @@ $(document).ready(function () {
     $(document).on('click', '.btn-borrar-grupo', function (e) {
         e.preventDefault();
         let grupoId = $(this).data('id');
-        let grupoRow = $(this).closest('tr');
-        let childRows = $('tr.nota-hija[data-parent-grupo="' + grupoId + '"]');
 
-        if (!confirm('¿Está seguro de eliminar este grupo y TODAS sus notas asociadas? Esta acción no se puede deshacer.')) {
-            return;
-        }
-
-        $.ajax({
-            url: '/notas-unificadas/eliminar-grupo/' + grupoId,
-            type: 'DELETE',
-            headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() },
-            success: function (res) {
-                if (res.success) {
-                    notificacion('success', 'Grupo eliminado correctamente');
-                    childRows.fadeOut(200);
-                    grupoRow.fadeOut(300, function () {
-                        childRows.remove();
-                        $(this).remove();
-                    });
-                } else {
-                    notificacion('error', res.msg || 'Error al eliminar');
+        confirmar('¿Está seguro de eliminar este grupo y <strong>TODAS</strong> sus notas asociadas? Esta acción no se puede deshacer.', function () {
+            $.ajax({
+                url: '/notas-unificadas/eliminar-grupo/' + grupoId,
+                type: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() },
+                success: function (res) {
+                    if (res.success) {
+                        notificacion('success', 'Grupo eliminado correctamente');
+                        ajaxLoadTable();
+                    } else {
+                        notificacion('error', res.msg || 'Error al eliminar');
+                    }
+                },
+                error: function (err) {
+                    notificacion('error', 'Error al eliminar el grupo');
                 }
-            },
-            error: function (err) {
-                notificacion('error', 'Error al eliminar el grupo');
-            }
-        });
+            });
+        }, { titulo: 'Eliminar grupo' });
     });
 
     // =====================================================
@@ -1774,7 +1940,7 @@ $(document).ready(function () {
     // Función para abrir modal con datos de grupo
     function abrirModalDetalleGrupo(grupoId) {
         // Reset modal
-        $('#grupoInfoPanel, #grupoResumenPanel').html('<p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i> Cargando...</p>');
+        $('#grupoInfoPanel, #grupoResumenPanel, #grupoAprobacionPanel, #grupoRelacionPanel').html('<p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i> Cargando...</p>');
         $('#mktContenido, #fiscContenido').html('<p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i> Cargando...</p>');
 
         // Show all tabs
@@ -1789,7 +1955,6 @@ $(document).ready(function () {
                 $('#detalleHeaderTitulo').text(res.grupo.titulo || 'Trámite #' + res.grupo.id);
                 $('#detalleHeaderMeta').html(
                     '<i class="fa fa-building"></i> ' + (res.grupo.casino || 'N/A') +
-                    ' &nbsp;|&nbsp; <i class="fa fa-tag"></i> ' + (res.grupo.tipo_tarea || 'N/A') +
                     ' &nbsp;|&nbsp; <i class="fa fa-calendar"></i> ' + (res.grupo.created_at || 'N/A')
                 );
 
@@ -1798,7 +1963,7 @@ $(document).ready(function () {
                     '<h5 style="color:#333; font-weight:bold; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:5px;">Información del Grupo</h5>' +
                     '<table class="table table-condensed" style="margin:0">' +
                     '<tr><td><strong>ID:</strong></td><td>' + res.grupo.id + '</td></tr>' +
-                    '<tr><td><strong>Tipo:</strong></td><td>' + (res.grupo.tipo_tarea || 'N/A') + '</td></tr>' +
+                    '<tr><td><strong>Tipo Solicitud:</strong></td><td>' + (res.grupo.tipo_solicitud || 'N/A') + '</td></tr>' +
                     '<tr><td><strong>Título:</strong></td><td>' + (res.grupo.titulo || 'Sin título') + '</td></tr>' +
                     '<tr><td><strong>Casino:</strong></td><td>' + (res.grupo.casino || 'N/A') + '</td></tr>' +
                     '<tr><td><strong>Creado:</strong></td><td>' + (res.grupo.created_at || 'N/A') + '</td></tr>' +
@@ -1814,7 +1979,7 @@ $(document).ready(function () {
                         '<span class="label label-' + getEstadoClass(res.mkt.estado) + '">Estado: ' + res.mkt.estado + '</span>' +
                         '</li>';
                 }
-                if (res.fisc) {
+                if (res.fisc && window.NIVEL_ESTADO !== 'funcionario') {
                     resumenHtml += '<li style="padding:8px; background:#d1fae5; border-radius:6px">' +
                         '<i class="fa fa-gavel text-success"></i> <strong style="color:#064e3b;">Fiscalización:</strong> ' +
                         '<span class="label label-' + getEstadoClass(res.fisc.estado) + '">Estado: ' + res.fisc.estado + '</span>' +
@@ -1823,21 +1988,29 @@ $(document).ready(function () {
                 resumenHtml += '</ul>';
                 $('#grupoResumenPanel').html(resumenHtml);
 
+                // Notas Relacionadas
+                renderRelaciones(res.grupo_padre, res.grupos_hijos || [], res.grupo.id);
+
+                // Notas de Aprobación
+                renderNotasAprobacion(res.notas_aprobacion || [], res.grupo.id);
+
                 // Tab MKT
                 if (res.mkt) {
                     $('#mktContenido').html(renderizarNotaDetalle(res.mkt, '#3b82f6'));
+                    _scrollPanelsToBottom('#mktContenido');
                     $('#tabMktLi').show();
                 } else {
                     $('#mktContenido').html('<p class="text-muted text-center">No hay nota de Marketing asociada.</p>');
                     $('#tabMktLi').hide();
                 }
 
-                // Tab FISC
-                if (res.fisc) {
+                // Tab FISC (oculto para funcionarios)
+                if (res.fisc && window.NIVEL_ESTADO !== 'funcionario') {
                     $('#fiscContenido').html(renderizarNotaDetalle(res.fisc, '#10b981'));
+                    _scrollPanelsToBottom('#fiscContenido');
                     $('#tabFiscLi').show();
                 } else {
-                    $('#fiscContenido').html('<p class="text-muted text-center">No hay nota de Fiscalización asociada.</p>');
+                    $('#fiscContenido').html('');
                     $('#tabFiscLi').hide();
                 }
             } else {
@@ -1850,7 +2023,13 @@ $(document).ready(function () {
 
     // Función para abrir modal con datos de nota individual
     function abrirModalDetalleNota(notaId, tipoRama) {
-        $('#grupoInfoPanel, #grupoResumenPanel').html('<p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i> Cargando...</p>');
+        // Funcionario no puede ver notas FISC
+        if (window.NIVEL_ESTADO === 'funcionario' && tipoRama === 'FISC') {
+            notificacion('warning', 'No tiene permisos para ver notas de Fiscalización');
+            return;
+        }
+
+        $('#grupoInfoPanel, #grupoResumenPanel, #grupoAprobacionPanel, #grupoRelacionPanel').html('<p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i> Cargando...</p>');
         $('#mktContenido, #fiscContenido').html('<p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i> Cargando...</p>');
 
         // Hide grupo tab, show only relevant tab
@@ -1893,8 +2072,10 @@ $(document).ready(function () {
 
                 if (nota.tipo_rama === 'MKT') {
                     $('#mktContenido').html(contenidoHtml);
+                    _scrollPanelsToBottom('#mktContenido');
                 } else {
                     $('#fiscContenido').html(contenidoHtml);
+                    _scrollPanelsToBottom('#fiscContenido');
                 }
             } else {
                 notificacion('error', res.msg || 'Error al cargar nota');
@@ -1904,38 +2085,254 @@ $(document).ready(function () {
         });
     }
 
+    // ==================== NOTAS DE APROBACIÓN ====================
+
+    var currentGrupoIdAprobacion = null;
+
+    function renderNotasAprobacion(notas, grupoId) {
+        currentGrupoIdAprobacion = grupoId;
+        var panel = $('#grupoAprobacionPanel');
+
+        if (!notas || notas.length === 0) {
+            panel.html('<h5 style="color:#333; font-weight:bold; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:5px;">Notas de Aprobación</h5>' +
+                '<p class="text-muted text-center">No hay notas de aprobación cargadas.</p>');
+            return;
+        }
+
+        var html = '<h5 style="color:#333; font-weight:bold; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:5px;">Notas de Aprobación</h5>';
+        html += '<ul style="list-style:none; padding-left:0; margin:0">';
+        notas.forEach(function (na) {
+            var ramaColor = na.tipo_rama === 'MKT' ? '#3b82f6' : '#10b981';
+            var ramaLabel = na.tipo_rama === 'MKT' ? 'Marketing' : 'Fiscalización';
+            var ramaIcon = na.tipo_rama === 'MKT' ? 'fa-bullhorn' : 'fa-gavel';
+
+            html += '<li style="padding:8px 10px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between;">' +
+                '<div>' +
+                '<i class="fa ' + ramaIcon + '" style="color:' + ramaColor + '"></i> ' +
+                '<span class="label" style="background:' + ramaColor + '; color:white;">' + ramaLabel + '</span> ' +
+                '<strong>' + na.nombre_original + '</strong>' +
+                '<small class="text-muted" style="margin-left:8px;">' + (na.created_at || '') + '</small>' +
+                '</div>' +
+                '<div>' +
+                '<a href="/notas-unificadas/nota-aprobacion/visualizar/' + na.id + '" target="_blank" class="btn btn-xs btn-info" title="Ver"><i class="fa fa-eye"></i></a> ' +
+                '<a href="/notas-unificadas/nota-aprobacion/descargar/' + na.id + '" class="btn btn-xs btn-default" title="Descargar"><i class="fa fa-download"></i></a> ' +
+                (window.PUEDE_ELIMINAR ? '<button class="btn btn-xs btn-danger btn-eliminar-nota-aprobacion" data-id="' + na.id + '" title="Eliminar"><i class="fa fa-trash"></i></button>' : '') +
+                '</div>' +
+                '</li>';
+        });
+        html += '</ul>';
+        panel.html(html);
+    }
+
+    // Selección de rama con botonera tipo card
+    $(document).on('click', '.btn-rama-aprobacion', function () {
+        // Deseleccionar todos
+        $('.btn-rama-aprobacion').css({ border: '2px solid #e5e7eb', background: '#f8fafc' });
+        // Marcar seleccionado
+        var rama = $(this).data('rama');
+        var borderColor = rama === 'MKT' ? '#3b82f6' : '#10b981';
+        var bgColor = rama === 'MKT' ? '#eff6ff' : '#ecfdf5';
+        $(this).css({ border: '2px solid ' + borderColor, background: bgColor });
+        $('#aprobacionTipoRama').val(rama);
+        // Mostrar input de archivos
+        $('#aprobacionArchivoWrap').slideDown(200);
+    });
+
+    // Botón "Agregar" nota de aprobación — cerrar modal detalle primero
+    $(document).on('click', '.btn-agregar-nota-aprobacion', function () {
+        if (!currentGrupoIdAprobacion) {
+            notificacion('error', 'No se pudo determinar el grupo');
+            return;
+        }
+        var grupoId = currentGrupoIdAprobacion;
+        // Cerrar modal de detalle y abrir el de aprobación cuando termine de cerrarse
+        $('#modalDetalleTramite').modal('hide');
+        $('#modalDetalleTramite').one('hidden.bs.modal', function () {
+            $('#frmNotaAprobacion')[0].reset();
+            $('#aprobacionGrupoId').val(grupoId);
+            $('#aprobacionTipoRama').val('');
+            // Reset botonera visual
+            $('.btn-rama-aprobacion').css({ border: '2px solid #e5e7eb', background: '#f8fafc' });
+            $('#aprobacionArchivoWrap').hide();
+            $('#modalNotaAprobacion').modal('show');
+        });
+    });
+
+    // Al cerrar modal de aprobación, reabrir el de detalle
+    $('#modalNotaAprobacion').on('hidden.bs.modal', function () {
+        if (currentGrupoIdAprobacion) {
+            abrirModalDetalleGrupo(currentGrupoIdAprobacion);
+        }
+    });
+
+    // Subir nota de aprobación
+    $('#btnGuardarNotaAprobacion').on('click', function () {
+        var form = $('#frmNotaAprobacion')[0];
+        var formData = new FormData(form);
+        var btn = $(this);
+
+        if (!$('#aprobacionTipoRama').val()) {
+            notificacion('error', 'Seleccione una rama (Marketing o Fiscalización)');
+            return;
+        }
+        if (!$('#inputAprobacionArchivos').val()) {
+            notificacion('error', 'Seleccione al menos un archivo');
+            return;
+        }
+
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Subiendo...');
+
+        $.ajax({
+            url: '/notas-unificadas/nota-aprobacion/subir',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                if (res.success) {
+                    notificacion('exito', res.msg);
+                    $('#modalNotaAprobacion').modal('hide');
+                    // Recargar panel de aprobación
+                    recargarNotasAprobacion(currentGrupoIdAprobacion);
+                } else {
+                    notificacion('error', res.msg || 'Error al subir');
+                }
+            },
+            error: function (xhr) {
+                var msg = xhr.responseJSON ? xhr.responseJSON.msg : 'Error de conexión';
+                notificacion('error', msg);
+            },
+            complete: function () {
+                btn.prop('disabled', false).html('<i class="fa fa-upload"></i> Subir');
+            }
+        });
+    });
+
+    // Eliminar nota de aprobación
+    $(document).on('click', '.btn-eliminar-nota-aprobacion', function () {
+        var id = $(this).data('id');
+        confirmar('¿Eliminar esta nota de aprobación?', function () {
+            $.ajax({
+                url: '/notas-unificadas/nota-aprobacion/eliminar/' + id,
+                method: 'DELETE',
+                data: { _token: $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val() },
+                success: function (res) {
+                    if (res.success) {
+                        notificacion('exito', 'Nota de aprobación eliminada');
+                        recargarNotasAprobacion(currentGrupoIdAprobacion);
+                    } else {
+                        notificacion('error', res.msg || 'Error al eliminar');
+                    }
+                },
+                error: function () {
+                    notificacion('error', 'Error de conexión');
+                }
+            });
+        }, { titulo: 'Eliminar nota de aprobación' });
+    });
+
+    // Recargar solo el panel de notas de aprobación
+    function recargarNotasAprobacion(grupoId) {
+        $.get('/notas-unificadas/detalle-grupo/' + grupoId, function (res) {
+            if (res.success) {
+                renderNotasAprobacion(res.notas_aprobacion || [], grupoId);
+            }
+        });
+    }
+
+    // ==================== FIN NOTAS DE APROBACIÓN ====================
+
     // Renderizar contenido de una nota
     function renderizarNotaDetalle(nota, color) {
         let template = $('#templateNotaDetalle').html();
+        if (!template) {
+            console.error('templateNotaDetalle not found');
+            return '<p class="text-danger">Error: template no encontrado</p>';
+        }
+
+        // Safe replace helper (avoids $ special chars in replacement strings)
+        function sr(str, placeholder, value) {
+            return str.split(placeholder).join(value);
+        }
 
         // Replace placeholders
-        let html = template
-            .replace(/{{id}}/g, nota.id)
-            .replace(/{{color}}/g, color)
-            .replace(/{{tipo_rama}}/g, nota.tipo_rama)
-            .replace(/{{nro_nota}}/g, nota.nro_nota || 'N/A')
-            .replace(/{{tipo_solicitud}}/g, nota.tipo_solicitud || 'N/A')
-            .replace(/{{descripcion}}/g, nota.descripcion || 'Sin descripción')
-            .replace(/{{fecha_inicio}}/g, nota.fecha_inicio || 'N/A')
-            .replace(/{{fecha_fin}}/g, nota.fecha_fin || 'N/A')
-            .replace(/{{estado}}/g, nota.estado || 'INGRESADO')
-            .replace(/{{estadoClass}}/g, getEstadoClass(nota.estado))
-            .replace(/{{adjuntosHtml}}/g, renderAdjuntos(nota.adjuntos, nota.id, nota.tipo_rama))
-            .replace(/{{activosHtml}}/g, renderActivos(nota.activos))
-            .replace(/{{comentariosHtml}}/g, renderComentarios(nota.movimientos))
-            .replace(/{{historialHtml}}/g, renderHistorial(nota.movimientos));
+        var adjuntosHtml = renderAdjuntos(nota.adjuntos, nota.id, nota.tipo_rama);
+        var activosHtml = renderActivos(nota.activos);
+        var comentariosHtml = renderComentarios(nota.movimientos);
+        var historialHtml = renderHistorial(nota.movimientos);
+
+        let html = template;
+        html = sr(html, '{{id}}', nota.id);
+        html = sr(html, '{{color}}', color);
+        html = sr(html, '{{tipo_rama}}', nota.tipo_rama || '');
+        html = sr(html, '{{nro_nota}}', nota.nro_nota || 'N/A');
+        html = sr(html, '{{anio}}', nota.anio || '');
+        html = sr(html, '{{casino}}', nota.casino || 'N/A');
+        html = sr(html, '{{tipo_solicitud}}', nota.tipo_solicitud || 'N/A');
+        html = sr(html, '{{tipo_evento}}', nota.tipo_evento || 'N/A');
+        html = sr(html, '{{id_tipo_evento}}', nota.id_tipo_evento || '');
+        html = sr(html, '{{categoria}}', nota.categoria || 'N/A');
+        html = sr(html, '{{id_categoria}}', nota.id_categoria || '');
+        html = sr(html, '{{descripcion}}', nota.descripcion || 'Sin descripción');
+        html = sr(html, '{{fecha_inicio}}', nota.fecha_inicio || 'N/A');
+        html = sr(html, '{{fecha_fin}}', nota.fecha_fin || 'N/A');
+        html = sr(html, '{{fecha_pretendida_aprobacion}}', nota.fecha_pretendida_aprobacion || 'N/A');
+        html = sr(html, '{{fecha_referencia}}', nota.fecha_referencia || 'N/A');
+        html = sr(html, '{{estado}}', nota.estado || 'INGRESADO');
+        html = sr(html, '{{estadoClass}}', getEstadoClass(nota.estado));
+        html = sr(html, '{{created_at}}', nota.created_at || 'N/A');
+        html = sr(html, '{{id_casino}}', nota.id_casino || '');
+        html = sr(html, '{{adjuntosHtml}}', adjuntosHtml);
+        html = sr(html, '{{activosHtml}}', activosHtml);
+        html = sr(html, '{{comentariosHtml}}', comentariosHtml);
+        html = sr(html, '{{historialHtml}}', historialHtml);
+
+        // Si MKT, ocultar panel de activos y fecha referencia
+        if (nota.tipo_rama === 'MKT') {
+            var $tmp = $('<div>').html(html);
+            $tmp.find('.panel-activos-wrap').remove();
+            $tmp.find('.row-fecha-referencia').remove();
+            html = $tmp.html();
+        }
+        // Si FISC, ocultar fecha pretendida y categoría
+        if (nota.tipo_rama !== 'MKT') {
+            var $tmp2 = $('<div>').html(html);
+            $tmp2.find('.row-fecha-pretendida').remove();
+            $tmp2.find('.row-categoria').remove();
+            html = $tmp2.html();
+        }
+
+        // Solo admin puede editar datos de nota
+        if (window.NIVEL_ESTADO !== 'admin') {
+            var $tmp3 = $('<div>').html(html);
+            $tmp3.find('.btn-editar-nota').remove();
+            html = $tmp3.html();
+        }
+
+        // No-admin (funcionario y regular): ocultar historial
+        if (window.NIVEL_ESTADO !== 'admin') {
+            var $tmp5 = $('<div>').html(html);
+            $tmp5.find('.timeline-movimientos').closest('.panel').remove();
+            html = $tmp5.html();
+        }
+
+        // FUNCIONARIO: ocultar botón adjuntar
+        if (window.NIVEL_ESTADO === 'funcionario') {
+            var $tmp4 = $('<div>').html(html);
+            $tmp4.find('.btn-agregar-adj-modal').remove();
+            html = $tmp4.html();
+        }
 
         return html;
     }
 
-    // Helper para clase de estado
+    // Helper para clase de estado (desde DB via OPCIONES_ESTADO)
     function getEstadoClass(estado) {
         if (!estado) return 'default';
-        estado = estado.toUpperCase();
-        if (estado.includes('APROB') || estado.includes('COMPLET')) return 'success';
-        if (estado.includes('RECHAZ') || estado.includes('CANCEL')) return 'danger';
-        if (estado.includes('PROCESO') || estado.includes('REVIS')) return 'warning';
-        if (estado.includes('INGRES')) return 'info';
+        var opciones = window.OPCIONES_ESTADO || [];
+        for (var i = 0; i < opciones.length; i++) {
+            if (opciones[i].descripcion === estado) return opciones[i].color;
+        }
         return 'default';
     }
 
@@ -1944,7 +2341,7 @@ $(document).ready(function () {
         if (!adjuntos) return '<p class="text-muted">No hay adjuntos</p>';
 
         let campos = tipoRama === 'MKT'
-            ? [['solicitud', 'Solicitud', 'fa-file-pdf-o'], ['diseno', 'Diseño', 'fa-image'], ['bases', 'Bases', 'fa-file-text-o'], ['informe', 'Informe', 'fa-clipboard']]
+            ? [['solicitud', 'Solicitud', 'fa-file-pdf-o'], ['diseno', 'Diseño', ''], ['bases', 'Bases', 'fa-file-text-o'], ['informe', 'Informe', '']]
             : [['solicitud', 'Solicitud', 'fa-file-pdf-o'], ['varios', 'Archivos Varios', 'fa-archive'], ['informe', 'Informe', 'fa-clipboard']];
 
         let html = '';
@@ -1959,7 +2356,7 @@ $(document).ready(function () {
                     '<div style="flex-shrink: 0; display: flex; gap: 5px;">' +
                         // FIX: Usar ruta controlada para forzar inline en vez de download
                         '<a href="/notas-unificadas/visualizar/' + notaId + '/' + key + '" target="_blank" class="btn btn-xs btn-info" style="margin-right: 5px;" title="Ver"><i class="fa fa-eye"></i></a> ' +
-                        '<button class="btn btn-xs btn-danger btn-eliminar-adjunto" data-id="' + notaId + '" data-campo="path_' + key + '" title="Eliminar"><i class="fa fa-trash"></i></button>' +
+                        (window.PUEDE_ELIMINAR ? '<button class="btn btn-xs btn-danger btn-eliminar-adjunto" data-id="' + notaId + '" data-campo="path_' + key + '" title="Eliminar"><i class="fa fa-trash"></i></button>' : '') +
                     '</div>' +
                     '</div>';
             } else {
@@ -1973,18 +2370,37 @@ $(document).ready(function () {
         return html;
     }
 
-    // Renderizar activos
+    // Renderizar activos como lista/tabla
     function renderActivos(activos) {
         if (!activos || activos.length === 0) return '<p class="text-muted text-center" style="padding:10px"><i class="fa fa-info-circle"></i> No hay activos asociados a esta nota</p>';
 
-        let html = '<ul style="list-style:none; padding:0; margin:0">';
-        activos.forEach(function (act) {
+        let html = '<ul style="list-style:none; padding:0; margin:0;">';
+        activos.forEach(function (act, idx) {
             let tipoLabel = act.tipo_activo || 'ISLA';
-            let tipoClass = tipoLabel === 'MESA' ? 'label-success' : 'label-info';
-            html += '<li style="padding:8px 10px; border-bottom:1px solid #eee; display:flex; align-items:center">' +
-                '<i class="fa fa-gamepad" style="margin-right:8px; color:#8b5cf6"></i> ' +
-                '<span class="label ' + tipoClass + '" style="margin-right:8px">' + tipoLabel + '</span> ' +
-                '<strong>' + (act.id_activo || 'N/A') + '</strong>' +
+            let icon = 'fa-gamepad';
+            let badgeBg = '#17a2b8';
+            if (tipoLabel === 'MTM') { icon = 'fa-desktop'; badgeBg = '#8b5cf6'; }
+            else if (tipoLabel === 'MESA') { icon = 'fa-table'; badgeBg = '#28a745'; }
+            else if (tipoLabel === 'BINGO') { icon = 'fa-th'; badgeBg = '#e67e22'; }
+
+            let bgRow = idx % 2 === 0 ? '#fafafa' : '#fff';
+            let nro = act.nro_admin || act.id_activo || 'N/A';
+
+            let detalle = [];
+            if (act.marca) detalle.push(act.marca);
+            if (act.nro_isla) detalle.push('Isla ' + act.nro_isla);
+            let detalleStr = detalle.length > 0 ? ' <small style="color:#9ca3af">' + detalle.join(' | ') + '</small>' : '';
+
+            html += '<li data-activo-id="' + act.id + '" style="position:relative; padding:7px 50px 7px 10px; border-bottom:1px solid #f0f0f0; background:' + bgRow + ';">' +
+                '<span style="background:' + badgeBg + '; color:#fff; font-size:9px; font-weight:600; padding:2px 6px; border-radius:3px; margin-right:6px;"><i class="fa ' + icon + '"></i> ' + tipoLabel + '</span>' +
+                '<b style="font-size:13px;">' + nro + '</b>' + detalleStr +
+                (window.PUEDE_ELIMINAR ? '<span style="position:absolute; right:8px; top:50%; transform:translateY(-50%);">' +
+                    '<button class="btn btn-xs btn-danger btn-ask-remove-activo" data-activo-id="' + act.id + '" title="Eliminar" style="padding:2px 7px; font-size:11px;"><i class="fa fa-trash"></i></button>' +
+                    '<span class="confirm-remove-activo" style="display:none;">' +
+                        '<button class="btn btn-xs btn-success btn-confirm-remove-activo" data-activo-id="' + act.id + '" title="Confirmar" style="padding:2px 7px; font-size:11px;"><i class="fa fa-check"></i></button> ' +
+                        '<button class="btn btn-xs btn-default btn-cancel-remove-activo" title="Cancelar" style="padding:2px 7px; font-size:11px;"><i class="fa fa-times"></i></button>' +
+                    '</span>' +
+                '</span>' : '') +
                 '</li>';
         });
         html += '</ul>';
@@ -1992,6 +2408,14 @@ $(document).ready(function () {
     }
 
     // Renderizar comentarios (solo movimientos tipo COMENTARIO)
+    function _avatarHtml(userImagen, size) {
+        size = size || 32;
+        if (userImagen) {
+            return '<img src="data:image/jpeg;base64,' + userImagen + '" style="width:' + size + 'px; height:' + size + 'px; border-radius:50%; object-fit:cover; flex-shrink:0;">';
+        }
+        return '<div style="width:' + size + 'px; height:' + size + 'px; border-radius:50%; background:#bdc3c7; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="fa fa-user" style="color:white; font-size:' + (size * 0.45) + 'px;"></i></div>';
+    }
+
     function renderComentarios(movimientos) {
         if (!movimientos || movimientos.length === 0) return '<p class="text-muted text-center" style="padding:20px">No hay comentarios aún</p>';
 
@@ -2000,23 +2424,32 @@ $(document).ready(function () {
 
         let html = '';
         comentarios.forEach(function (c) {
-            html += '<div style="padding:8px; background:#fce7f3; border-radius:6px; margin-bottom:6px">' +
-                '<strong>' + c.usuario + '</strong> <small class="text-muted">(' + c.fecha + ')</small><br>' +
-                '<span>' + c.comentario + '</span>' +
+            var puedeEliminarComentario = window.PUEDE_ELIMINAR || (c.id_usuario == window.CURRENT_USER_ID);
+            html += '<div class="comentario-item" data-mov-id="' + c.id + '" style="display:flex; align-items:flex-start; gap:8px; padding:8px; background:#fce7f3; border-radius:8px; margin-bottom:6px; position:relative;">' +
+                _avatarHtml(c.user_imagen, 30) +
+                '<div style="flex:1; min-width:0;">' +
+                    '<strong style="font-size:12px;">' + c.usuario + '</strong> <small class="text-muted">(' + c.fecha + ')</small>' +
+                    (puedeEliminarComentario ? '<button class="btn btn-xs btn-danger btn-borrar-comentario" data-mov-id="' + c.id + '" style="padding:1px 5px; font-size:10px; float:right; margin-top:-2px;" title="Eliminar"><i class="fa fa-trash"></i></button>' : '') +
+                    '<div style="font-size:13px; margin-top:2px; color:#1f2937;">' + c.comentario + '</div>' +
+                '</div>' +
                 '</div>';
         });
         return html;
     }
 
-    // Renderizar historial
+    // Renderizar historial (orden cronológico: más antiguo arriba, más reciente abajo)
     function renderHistorial(movimientos) {
         if (!movimientos || movimientos.length === 0) return '<p class="text-muted text-center">Sin historial</p>';
 
+        // Invertir para orden cronológico (el backend viene desc)
+        var items = movimientos.slice().reverse();
+
         let html = '';
-        movimientos.forEach(function (m) {
+        items.forEach(function (m) {
             let iconClass = 'fa-circle text-muted';
             if (m.accion.includes('INGRES')) iconClass = 'fa-plus-circle text-success';
-            else if (m.accion.includes('EDIT')) iconClass = 'fa-pencil text-info';
+            else if (m.accion.includes('MODIFIC')) iconClass = 'fa-exchange-alt text-info';
+            else if (m.accion.includes('EDIT')) iconClass = 'fa-pencil-alt text-info';
             else if (m.accion.includes('ADJUNTO')) iconClass = 'fa-paperclip text-warning';
             else if (m.accion.includes('COMENT')) iconClass = 'fa-comment text-primary';
             else if (m.accion.includes('ELIMIN')) iconClass = 'fa-trash text-danger';
@@ -2028,6 +2461,22 @@ $(document).ready(function () {
                 '</div>';
         });
         return html;
+    }
+
+    // Scroll comentarios y historial al fondo (más reciente abajo)
+    function _scrollPanelsToBottom(containerSelector) {
+        function doScroll() {
+            $(containerSelector).find('.comentarios-lista').each(function () {
+                this.scrollTop = this.scrollHeight;
+            });
+            $(containerSelector).find('.timeline-movimientos').each(function () {
+                var $panel = $(this).closest('.panel-body');
+                if ($panel.length) $panel[0].scrollTop = $panel[0].scrollHeight;
+            });
+        }
+        // Ejecutar ahora y también cuando el modal sea visible
+        setTimeout(doScroll, 100);
+        $('#modalDetalleTramite').one('shown.bs.modal', doScroll);
     }
 
     // Enviar comentario
@@ -2052,14 +2501,21 @@ $(document).ready(function () {
                 $btn.prop('disabled', false);
                 if (res.success) {
                     $input.val('');
-                    // Add comment to list
+                    // Agregar comentario al final de la lista y scrollear abajo
                     let $lista = $('.comentarios-lista[data-id="' + notaId + '"]');
-                    $lista.prepend(
-                        '<div style="padding:8px; background:#fce7f3; border-radius:6px; margin-bottom:6px">' +
-                        '<strong>' + res.movimiento.usuario + '</strong> <small class="text-muted">(' + res.movimiento.fecha + ')</small><br>' +
-                        '<span>' + res.movimiento.comentario + '</span>' +
-                        '</div>'
+                    // Quitar placeholder si existe
+                    $lista.find('.text-muted.text-center').remove();
+                    var m = res.movimiento;
+                    $lista.append(
+                        '<div class="comentario-item" data-mov-id="' + m.id + '" style="display:flex; align-items:flex-start; gap:8px; padding:8px; background:#fce7f3; border-radius:8px; margin-bottom:6px; position:relative;">' +
+                        _avatarHtml(m.user_imagen, 30) +
+                        '<div style="flex:1; min-width:0;">' +
+                            '<strong style="font-size:12px;">' + m.usuario + '</strong> <small class="text-muted">(' + m.fecha + ')</small>' +
+                            '<button class="btn btn-xs btn-danger btn-borrar-comentario" data-mov-id="' + m.id + '" style="padding:1px 5px; font-size:10px; float:right; margin-top:-2px;" title="Eliminar"><i class="fa fa-trash"></i></button>' +
+                            '<div style="font-size:13px; margin-top:2px; color:#1f2937;">' + m.comentario + '</div>' +
+                        '</div></div>'
                     );
+                    $lista[0].scrollTop = $lista[0].scrollHeight;
                     notificacion('success', 'Comentario agregado');
                 } else {
                     notificacion('error', res.msg || 'Error');
@@ -2079,30 +2535,320 @@ $(document).ready(function () {
         }
     });
 
+    // Borrar comentario
+    $(document).on('click', '.btn-borrar-comentario', function () {
+        var btn = $(this);
+        var movId = btn.data('mov-id');
+        var item = btn.closest('.comentario-item');
+
+        if (btn.hasClass('confirming')) {
+            // Segundo click: borrar
+            btn.prop('disabled', true);
+            $.ajax({
+                url: '/notas-unificadas/comentario/' + movId,
+                type: 'DELETE',
+                data: { _token: $('input[name="_token"]').first().val() },
+                success: function (res) {
+                    if (res.success) {
+                        item.fadeOut(200, function () { item.remove(); });
+                        notificacion('success', 'Comentario eliminado');
+                    } else {
+                        notificacion('error', res.msg || 'Error');
+                        btn.prop('disabled', false);
+                    }
+                },
+                error: function () {
+                    notificacion('error', 'Error de conexión');
+                    btn.prop('disabled', false);
+                }
+            });
+        } else {
+            // Primer click: confirmar
+            btn.addClass('confirming').html('<i class="fa fa-check"></i> Confirmar');
+            setTimeout(function () {
+                if (btn.hasClass('confirming')) {
+                    btn.removeClass('confirming').html('<i class="fa fa-trash"></i>');
+                }
+            }, 3000);
+        }
+    });
+
     // Eliminar adjunto
     $(document).on('click', '.btn-eliminar-adjunto', function () {
-        let notaId = $(this).data('id');
-        let campo = $(this).data('campo');
-        let $row = $(this).closest('div');
+        var notaId = $(this).data('id');
+        var campo = $(this).data('campo');
+        var $contenedor = $(this).closest('.nota-detalle-content');
 
-        if (!confirm('¿Está seguro de eliminar este adjunto?')) return;
+        confirmar('Se eliminarán el archivo y todas sus versiones anteriores. ¿Desea continuar?', function () {
+            $.ajax({
+                url: '/notas-unificadas/eliminar-adjunto/' + notaId + '/' + campo,
+                type: 'DELETE',
+                data: { _token: $('input[name="_token"]').first().val() },
+                success: function (res) {
+                    if (res.success) {
+                        notificacion('success', 'Adjunto y versiones eliminados');
+                        // Refrescar adjuntos e historial
+                        $.get('/notas-unificadas/detalle-nota/' + notaId, function (detRes) {
+                            if (detRes.success) {
+                                var nota = detRes.nota;
+                                $contenedor.find('.adjuntos-lista').html(renderAdjuntos(nota.adjuntos, nota.id, nota.tipo_rama));
+                                $contenedor.find('.timeline-movimientos').html(renderHistorial(nota.movimientos));
+                            }
+                        });
+                    } else {
+                        notificacion('error', res.msg || 'Error');
+                    }
+                },
+                error: function () {
+                    notificacion('error', 'Error de conexión');
+                }
+            });
+        }, { titulo: 'Eliminar adjunto', textoBoton: 'Eliminar todo' });
+    });
+
+    // === ACTIVOS EN DETALLE ===
+
+    // Lista temporal de activos pendientes (no guardados aún)
+    var activosPendientes = [];
+
+    function limpiarFormActivos(form) {
+        activosPendientes = [];
+        form.find('.det-inp-activo').val('');
+        form.find('.det-hid-activo').val('');
+        form.find('.det-pendientes-lista').empty();
+        form.find('.det-pendientes-actions').hide();
+        form.find('.det-resultados-busqueda').hide().empty();
+    }
+
+    function actualizarContadorPendientes(form) {
+        var n = activosPendientes.length;
+        var actions = form.find('.det-pendientes-actions');
+        if (n > 0) {
+            actions.show();
+            form.find('.det-pendientes-count').text(n + (n === 1 ? ' activo pendiente' : ' activos pendientes'));
+        } else {
+            actions.hide();
+        }
+    }
+
+    // Toggle form de agregar activo
+    $(document).on('click', '.btn-toggle-add-activo', function (e) {
+        e.stopPropagation();
+        var panel = $(this).closest('.panel-activos-wrap');
+        var form = panel.find('.activos-add-form');
+        if (form.is(':visible')) {
+            limpiarFormActivos(form);
+            form.slideUp(200);
+        } else {
+            form.slideDown(200);
+        }
+    });
+
+    // Cambiar placeholder según tipo
+    $(document).on('change', '.det-sel-tipo-activo', function () {
+        var form = $(this).closest('.activos-add-form');
+        var inp = form.find('.det-inp-activo');
+        var tipo = $(this).val();
+        if (tipo === 'MTM') inp.attr('placeholder', 'Nro admin de la máquina...');
+        else if (tipo === 'ISLA') inp.attr('placeholder', 'Nro de isla...');
+        else if (tipo === 'MESA') inp.attr('placeholder', 'Nro de mesa...');
+        else if (tipo === 'BINGO') inp.attr('placeholder', 'Nro de bingo...');
+        inp.val('');
+        form.find('.det-hid-activo').val('');
+        form.find('.det-resultados-busqueda').hide().empty();
+    });
+
+    // Búsqueda de activos en detalle (con debounce)
+    var detActivoTimeout = null;
+    $(document).on('keyup', '.det-inp-activo', function () {
+        var input = $(this);
+        var val = input.val().trim();
+        var form = input.closest('.activos-add-form');
+        var tipo = form.find('.det-sel-tipo-activo').val();
+        var idCasino = form.data('casino-id');
+        var resultsDiv = form.find('.det-resultados-busqueda');
+
+        form.find('.det-hid-activo').val('');
+
+        if (val.length < 1) { resultsDiv.hide().empty(); return; }
+
+        clearTimeout(detActivoTimeout);
+        detActivoTimeout = setTimeout(function () {
+            $.get('/notas-unificadas/buscar-activos', { q: val, tipo: tipo, id_casino: idCasino }, function (data) {
+                resultsDiv.empty();
+                if (data.length === 0) {
+                    resultsDiv.append('<div class="list-group-item text-muted" style="padding:8px 12px;">Sin resultados</div>');
+                } else {
+                    data.forEach(function (item) {
+                        var info = item.info ? '<br><small class="text-muted">' + item.info + '</small>' : '';
+                        resultsDiv.append('<a class="list-group-item det-result-item" href="#" data-id="' + item.id + '" data-text="' + item.text + '" style="padding:8px 12px;">' + item.text + info + '</a>');
+                    });
+                }
+                // Posicionar dropdown debajo del input
+                var inputWrap = input.closest('.det-input-wrap');
+                var rect = inputWrap[0].getBoundingClientRect();
+                resultsDiv.css({
+                    top: rect.bottom + 'px',
+                    left: rect.left + 'px',
+                    width: rect.width + 'px'
+                });
+                resultsDiv.show();
+            });
+        }, 300);
+    });
+
+    // Seleccionar resultado de búsqueda
+    $(document).on('click', '.det-result-item', function (e) {
+        e.preventDefault();
+        var form = $(this).closest('.activos-add-form');
+        form.find('.det-inp-activo').val($(this).data('text'));
+        form.find('.det-hid-activo').val($(this).data('id'));
+        form.find('.det-resultados-busqueda').hide();
+    });
+
+    // Cerrar resultados al hacer click fuera
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('.det-inp-activo, .det-resultados-busqueda').length) {
+            $('.det-resultados-busqueda').hide();
+        }
+    });
+
+    // Agregar activo a lista PENDIENTE (no guarda aún)
+    $(document).on('click', '.det-btn-agregar-activo', function () {
+        var form = $(this).closest('.activos-add-form');
+        var tipo = form.find('.det-sel-tipo-activo').val();
+        var id = form.find('.det-hid-activo').val() || form.find('.det-inp-activo').val();
+        var texto = form.find('.det-inp-activo').val();
+
+        if (!id) { notificacion('warning', 'Busque y seleccione un activo.'); return; }
+
+        // Evitar duplicados en pendientes
+        for (var i = 0; i < activosPendientes.length; i++) {
+            if (activosPendientes[i].tipo === tipo && activosPendientes[i].id == id) {
+                notificacion('warning', 'Ya está en la lista pendiente.');
+                return;
+            }
+        }
+
+        activosPendientes.push({ tipo: tipo, id: id, texto: texto });
+
+        // Render fila pendiente
+        var icon = 'fa-gamepad', color = '#17a2b8';
+        if (tipo === 'MTM') { icon = 'fa-desktop'; color = '#8b5cf6'; }
+        else if (tipo === 'MESA') { icon = 'fa-table'; color = '#28a745'; }
+        else if (tipo === 'ISLA') { icon = 'fa-sitemap'; color = '#f59e0b'; }
+        else if (tipo === 'BINGO') { icon = 'fa-th'; color = '#e67e22'; }
+
+        var idx = activosPendientes.length - 1;
+        form.find('.det-pendientes-lista').append(
+            '<div class="det-pendiente-row" data-idx="' + idx + '" style="display:flex; align-items:center; padding:6px 8px; background:#fefce8; border:1px dashed #d4a017; border-radius:4px; margin-bottom:4px;">' +
+                '<i class="fa ' + icon + '" style="color:' + color + '; margin-right:8px;"></i>' +
+                '<span style="background:' + color + '; color:#fff; font-size:10px; font-weight:600; padding:2px 7px; border-radius:3px; margin-right:8px;">' + tipo + '</span>' +
+                '<span style="flex:1; font-size:12px;">' + texto + '</span>' +
+                '<button class="btn btn-xs btn-default det-btn-quitar-pendiente" data-idx="' + idx + '"><i class="fa fa-times"></i></button>' +
+            '</div>'
+        );
+
+        form.find('.det-inp-activo').val('');
+        form.find('.det-hid-activo').val('');
+        actualizarContadorPendientes(form);
+    });
+
+    // Quitar un pendiente de la lista
+    $(document).on('click', '.det-btn-quitar-pendiente', function () {
+        var idx = $(this).data('idx');
+        activosPendientes[idx] = null; // marcar como removido
+        $(this).closest('.det-pendiente-row').fadeOut(150, function () { $(this).remove(); });
+        var form = $(this).closest('.activos-add-form');
+        // Recontar solo los no-null
+        var count = 0;
+        for (var i = 0; i < activosPendientes.length; i++) { if (activosPendientes[i]) count++; }
+        if (count === 0) {
+            form.find('.det-pendientes-actions').hide();
+        } else {
+            form.find('.det-pendientes-count').text(count + (count === 1 ? ' activo pendiente' : ' activos pendientes'));
+        }
+    });
+
+    // CONFIRMAR: guardar todos los pendientes
+    $(document).on('click', '.det-btn-confirmar-activos', function () {
+        var form = $(this).closest('.activos-add-form');
+        var notaId = form.data('nota-id');
+        var btn = $(this);
+
+        // Filtrar nulls
+        var toSave = [];
+        for (var i = 0; i < activosPendientes.length; i++) {
+            if (activosPendientes[i]) toSave.push(activosPendientes[i]);
+        }
+        if (toSave.length === 0) { notificacion('warning', 'No hay activos pendientes.'); return; }
+
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Guardando...');
+
+        $.post('/notas-unificadas/activos/' + notaId, {
+            _token: $('input[name="_token"]').first().val(),
+            activos: toSave
+        }, function (res) {
+            btn.prop('disabled', false).html('<i class="fa fa-check"></i> Confirmar');
+            if (res.success) {
+                notificacion('success', toSave.length + ' activo(s) guardado(s).');
+                var lista = form.closest('.panel-body').find('.activos-lista-detalle');
+                lista.html(renderActivos(res.activos));
+                limpiarFormActivos(form);
+                form.slideUp(200);
+            } else {
+                notificacion('error', res.msg || 'Error al guardar.');
+            }
+        }).fail(function () {
+            btn.prop('disabled', false).html('<i class="fa fa-check"></i> Confirmar');
+            notificacion('error', 'Error de conexión.');
+        });
+    });
+
+    // CANCELAR: descartar pendientes y cerrar form
+    $(document).on('click', '.det-btn-cancelar-activos', function () {
+        var form = $(this).closest('.activos-add-form');
+        limpiarFormActivos(form);
+        form.slideUp(200);
+    });
+
+    // --- ELIMINAR ACTIVOS EXISTENTES (individual con confirm/cancel inline) ---
+
+    // Click en trash muestra confirm/cancel
+    $(document).on('click', '.btn-ask-remove-activo', function () {
+        $(this).hide();
+        $(this).siblings('.confirm-remove-activo').show();
+    });
+
+    // Cancelar eliminación
+    $(document).on('click', '.btn-cancel-remove-activo', function () {
+        var wrap = $(this).closest('.confirm-remove-activo');
+        wrap.hide();
+        wrap.siblings('.btn-ask-remove-activo').show();
+    });
+
+    // Confirmar eliminación
+    $(document).on('click', '.btn-confirm-remove-activo', function () {
+        var activoId = $(this).data('activo-id');
+        var li = $(this).closest('li');
+        var lista = li.closest('.activos-lista-detalle');
 
         $.ajax({
-            url: '/notas-unificadas/eliminar-adjunto/' + notaId + '/' + campo,
+            url: '/notas-unificadas/activo/' + activoId,
             type: 'DELETE',
             data: { _token: $('input[name="_token"]').first().val() },
             success: function (res) {
                 if (res.success) {
-                    $row.css('background', '#fee2e2').find('strong').html('<em>Eliminado</em>');
-                    $row.find('.btn-eliminar-adjunto, .btn-info').remove();
-                    notificacion('success', 'Adjunto eliminado');
+                    li.fadeOut(200, function () {
+                        li.remove();
+                        lista.html(renderActivos(res.activos || []));
+                    });
+                    notificacion('success', 'Activo eliminado.');
                 } else {
                     notificacion('error', res.msg || 'Error');
                 }
             },
-            error: function () {
-                notificacion('error', 'Error de conexión');
-            }
+            error: function () { notificacion('error', 'Error de conexión.'); }
         });
     });
 
@@ -2191,6 +2937,8 @@ $(document).ready(function () {
 
     // Habilitar edición inline
     function habilitarEdicion($panel, notaId) {
+        var tipoRama = $panel.closest('.nota-detalle-content').data('tipo-rama') || 'MKT';
+
         $panel.find('.editable').each(function () {
             let $span = $(this);
             let field = $span.data('field');
@@ -2200,8 +2948,33 @@ $(document).ready(function () {
             let inputHtml = '';
             if (field === 'descripcion') {
                 inputHtml = '<textarea class="form-control edit-input" data-field="' + field + '" rows="2" style="font-size: 13px;">' + currentValue + '</textarea>';
-            } else if (field === 'fecha_inicio' || field === 'fecha_fin') {
+            } else if (field === 'fecha_inicio' || field === 'fecha_fin' || field === 'fecha_pretendida_aprobacion') {
                 inputHtml = '<input type="date" class="form-control edit-input" data-field="' + field + '" value="' + currentValue + '" style="font-size: 13px;">';
+            } else if (field === 'id_tipo_evento') {
+                var opciones = window.OPCIONES_TIPO_EVENTO[tipoRama] || [];
+                var selectedId = $span.data('value') || '';
+                var idCasino = parseInt($panel.closest('.nota-detalle-content').data('id-casino')) || 0;
+                var esPlataforma = idCasino >= (window.PLATAFORMA_ID_OFFSET || 100);
+                inputHtml = '<select class="form-control edit-input" data-field="' + field + '" style="font-size: 13px;"><option value="">-- Seleccione --</option>';
+                opciones.forEach(function(o) {
+                    var ctx = o.contexto || 'todos';
+                    if (ctx === 'fisico' && esPlataforma) return;
+                    if (ctx === 'plataforma' && !esPlataforma) return;
+                    inputHtml += '<option value="' + o.id + '"' + (o.id == selectedId ? ' selected' : '') + '>' + o.nombre + '</option>';
+                });
+                inputHtml += '</select>';
+            } else if (field === 'id_categoria') {
+                var opciones = window.OPCIONES_CATEGORIA[tipoRama] || [];
+                var selectedId = $span.data('value') || '';
+                inputHtml = '<select class="form-control edit-input" data-field="' + field + '" style="font-size: 13px;"><option value="">-- Seleccione --</option>';
+                opciones.forEach(function(o) { inputHtml += '<option value="' + o.id + '"' + (o.id == selectedId ? ' selected' : '') + '>' + o.nombre + '</option>'; });
+                inputHtml += '</select>';
+            } else if (field === 'estado') {
+                var estadoActual = $span.data('value') || '';
+                var opciones = window.OPCIONES_ESTADO || [];
+                inputHtml = '<select class="form-control edit-input" data-field="' + field + '" style="font-size: 13px;">';
+                opciones.forEach(function(e) { inputHtml += '<option value="' + e.descripcion + '"' + (e.descripcion === estadoActual ? ' selected' : '') + '>' + e.descripcion + '</option>'; });
+                inputHtml += '</select>';
             } else {
                 inputHtml = '<input type="text" class="form-control edit-input" data-field="' + field + '" value="' + currentValue + '" style="font-size: 13px;">';
             }
@@ -2251,10 +3024,23 @@ $(document).ready(function () {
                 if (res.success) {
                     // Update display values
                     $panel.find('.edit-input').each(function () {
-                        let field = $(this).data('field');
-                        let value = $(this).val() || 'N/A';
-                        $(this).prev('.editable').text(value).show();
-                        $(this).remove();
+                        var $input = $(this);
+                        var field = $input.data('field');
+                        var $editable = $input.prev('.editable');
+                        var displayValue;
+                        if (field === 'estado') {
+                            var estadoVal = $input.val();
+                            $editable.data('value', estadoVal);
+                            $editable.html('<span class="label label-' + getEstadoClass(estadoVal) + '">' + estadoVal + '</span>').show();
+                        } else if ($input.is('select')) {
+                            displayValue = $input.find('option:selected').text() || 'N/A';
+                            $editable.data('value', $input.val());
+                            $editable.text(displayValue).show();
+                        } else {
+                            displayValue = $input.val() || 'N/A';
+                            $editable.text(displayValue).show();
+                        }
+                        $input.remove();
                     });
                     $panel.find('.edit-actions').remove();
                     $panel.find('.btn-editar-nota').removeClass('editing').html('<i class="fa fa-pencil"></i> Editar');
@@ -2321,7 +3107,10 @@ $(document).ready(function () {
             $('#selCasino').val(g.id_casino).trigger('change').prop('disabled', true);
             $('#inpTitulo').val(g.titulo).prop('readonly', true);
 
-            if (g.tipo_solicitud) {
+            if (rama === 'MKT') {
+                // MKT siempre usa PUBLICIDAD
+                $('#selTipoSolicitud').val('PUBLICIDAD').trigger('change');
+            } else if (g.tipo_solicitud) {
                 $('#selTipoSolicitud').val(g.tipo_solicitud).trigger('change').prop('disabled', true);
             }
             if (g.fecha_inicio_evento) $('#inpFechaInicio').val(g.fecha_inicio_evento);
@@ -2341,5 +3130,222 @@ $(document).ready(function () {
             notificacion('error', 'Error de conexión');
         });
     }
+
+    // =========================================================================
+    // RELACIÓN ENTRE NOTAS (PADRE / HIJOS)
+    // =========================================================================
+
+    // --- Búsqueda de nota padre en Wizard (paso 2) ---
+    var _buscarPadreTimer = null;
+    $(document).on('keyup', '#inpBuscarNotaPadre', function () {
+        var q = $(this).val().trim();
+        if (q.length < 2) { $('#resultadosBusquedaPadre').hide().empty(); return; }
+        clearTimeout(_buscarPadreTimer);
+        _buscarPadreTimer = setTimeout(function () {
+            $.get('/notas-unificadas/buscar-grupos', { q: q }, function (data) {
+                var $res = $('#resultadosBusquedaPadre').empty();
+                if (!data || data.length === 0) {
+                    $res.html('<div class="list-group-item text-muted text-center">Sin resultados</div>').show();
+                    return;
+                }
+                data.forEach(function (g) {
+                    var ramas = (g.ramas || []).map(function (r) {
+                        return r === 'MKT' ? '<span class="label label-primary" style="font-size:9px">MKT</span>' : '<span class="label label-success" style="font-size:9px">FISC</span>';
+                    }).join(' ');
+                    $res.append(
+                        '<a href="#" class="list-group-item resultado-nota-padre" data-id="' + g.id + '" data-nro="' + g.nro_nota + '" data-anio="' + g.anio + '" data-titulo="' + (g.titulo || '') + '" data-casino="' + (g.casino || '') + '" style="padding:8px 12px;">' +
+                        '<strong>' + g.nro_nota + '-' + g.anio + '</strong> ' + ramas +
+                        '<br><small class="text-muted">' + (g.titulo || 'Sin título') + ' | ' + (g.casino || '') + '</small>' +
+                        '</a>'
+                    );
+                });
+                $res.show();
+            });
+        }, 300);
+    });
+
+    // Seleccionar nota padre desde búsqueda del wizard
+    $(document).on('click', '.resultado-nota-padre', function (e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var nro = $(this).data('nro');
+        var anio = $(this).data('anio');
+        var titulo = $(this).data('titulo');
+        var casino = $(this).data('casino');
+        seleccionarNotaPadreWizard(id, nro + '-' + anio, titulo, casino);
+    });
+
+    function seleccionarNotaPadreWizard(id, nroAnio, titulo, casino) {
+        $('#hidIdGrupoPadre').val(id);
+        $('#lblNotaPadreNro').text(nroAnio);
+        $('#lblNotaPadreTitulo').text(titulo || 'Sin título');
+        $('#lblNotaPadreCasino').text(casino || '');
+        $('#notaPadreSeleccionada').show();
+        $('#buscadorNotaPadre').hide();
+        $('#resultadosBusquedaPadre').hide().empty();
+        $('#inpBuscarNotaPadre').val('');
+    }
+
+    // Quitar nota padre en wizard
+    $(document).on('click', '#btnQuitarNotaPadreWizard', function () {
+        $('#hidIdGrupoPadre').val('');
+        $('#notaPadreSeleccionada').hide();
+        $('#buscadorNotaPadre').show();
+    });
+
+    // Cerrar resultados al hacer click fuera
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('#buscadorNotaPadre').length) {
+            $('#resultadosBusquedaPadre').hide();
+        }
+        if (!$(e.target).closest('#buscadorVincularDetalle').length) {
+            $('#resultadosVincularDetalle').hide();
+        }
+    });
+
+    // --- Panel de relaciones en el Detalle ---
+    function renderRelaciones(grupoPadre, gruposHijos, grupoId) {
+        var html = '';
+
+        // Nota padre
+        if (grupoPadre) {
+            html += '<div style="margin-bottom:10px;">' +
+                '<small style="color:#9ca3af; text-transform:uppercase; font-weight:600; font-size:10px;">Nota Origen</small>' +
+                '<div style="display:flex; align-items:center; gap:10px; background:#ede9fe; padding:10px 14px; border-radius:8px; border:1px solid #c4b5fd; margin-top:4px; cursor:pointer;" class="link-grupo-detalle" data-id="' + grupoPadre.id + '">' +
+                '<i class="fa fa-level-up" style="color:#7c3aed; font-size:16px;"></i>' +
+                '<div style="flex:1;">' +
+                '<strong style="color:#5b21b6;">' + grupoPadre.nro_nota + '-' + grupoPadre.anio + '</strong>' +
+                '<span style="color:#6b7280; margin-left:8px;">' + (grupoPadre.titulo || '') + '</span>' +
+                '<small class="text-muted" style="margin-left:8px;">' + (grupoPadre.casino || '') + '</small>' +
+                '</div>' +
+                '<button type="button" class="btn btn-xs btn-danger btn-quitar-relacion-padre" data-grupo="' + grupoId + '" title="Desvincular"><i class="fa fa-times"></i></button>' +
+                '</div></div>';
+        }
+
+        // Notas hijas
+        if (gruposHijos && gruposHijos.length > 0) {
+            html += '<div style="margin-bottom:6px;">' +
+                '<small style="color:#9ca3af; text-transform:uppercase; font-weight:600; font-size:10px;">Notas Derivadas (' + gruposHijos.length + ')</small></div>';
+            gruposHijos.forEach(function (gh) {
+                html += '<div style="display:flex; align-items:center; gap:10px; background:#dbeafe; padding:8px 14px; border-radius:8px; border:1px solid #93c5fd; margin-bottom:6px; cursor:pointer;" class="link-grupo-detalle" data-id="' + gh.id + '">' +
+                    '<i class="fa fa-level-down" style="color:#2563eb; font-size:14px;"></i>' +
+                    '<div style="flex:1;">' +
+                    '<strong style="color:#1e3a8a;">' + gh.nro_nota + '-' + gh.anio + '</strong>' +
+                    '<span style="color:#6b7280; margin-left:8px;">' + (gh.titulo || '') + '</span>' +
+                    '<small class="text-muted" style="margin-left:8px;">' + (gh.casino || '') + '</small>' +
+                    '</div>' +
+                    '<i class="fa fa-chevron-right" style="color:#93c5fd;"></i>' +
+                    '</div>';
+            });
+        }
+
+        if (!grupoPadre && (!gruposHijos || gruposHijos.length === 0)) {
+            html = '<p class="text-muted text-center" style="padding:8px; margin:0;"><i class="fa fa-info-circle"></i> Sin notas relacionadas</p>';
+        }
+
+        $('#grupoRelacionPanel').html(html);
+    }
+
+    // Click en nota relacionada → navegar al detalle de ese grupo
+    $(document).on('click', '.link-grupo-detalle', function (e) {
+        if ($(e.target).closest('.btn-quitar-relacion-padre').length) return; // no navegar si se hizo click en X
+        var id = $(this).data('id');
+        abrirModalDetalleGrupo(id);
+    });
+
+    // Desvincular padre desde el detalle
+    $(document).on('click', '.btn-quitar-relacion-padre', function (e) {
+        e.stopPropagation();
+        var grupoId = $(this).data('grupo');
+        confirmar('¿Desvincular esta nota de su nota origen?', function () {
+        $.post('/notas-unificadas/quitar-grupo-padre', {
+            id_grupo: grupoId,
+            _token: $('input[name="_token"]').val()
+        }, function (res) {
+            if (res.success) {
+                notificacion('success', 'Relación eliminada');
+                abrirModalDetalleGrupo(grupoId);
+            } else {
+                notificacion('error', res.msg || 'Error');
+            }
+        });
+        }, { titulo: 'Desvincular nota', color: '#f0ad4e', textoBoton: 'Desvincular' });
+    });
+
+    // --- Vincular nota desde el detalle (botón "Vincular") ---
+    var _currentGrupoIdVincular = null;
+
+    $(document).on('click', '.btn-vincular-nota', function () {
+        _currentGrupoIdVincular = currentGrupoIdAprobacion; // reuse the tracked grupo ID
+        var $panel = $('#grupoRelacionPanel');
+        // Check if search box already open
+        if ($panel.find('#buscadorVincularDetalle').length) {
+            $panel.find('#buscadorVincularDetalle').remove();
+            $panel.css('overflow', '').closest('.panel').css('overflow', '');
+            return;
+        }
+        $panel.css('overflow', 'visible').closest('.panel').css('overflow', 'visible');
+        $panel.append(
+            '<div id="buscadorVincularDetalle" style="margin-top:10px; position:relative;">' +
+            '<input type="text" class="form-control" id="inpVincularDetalle" placeholder="Buscar nota por número o título..." autocomplete="off">' +
+            '<div id="resultadosVincularDetalle" class="list-group" style="position:absolute; top:100%; left:0; right:0; z-index:99999; max-height:220px; overflow-y:auto; display:none; box-shadow:0 10px 20px rgba(0,0,0,0.15); background:#fff;"></div>' +
+            '</div>'
+        );
+        $('#inpVincularDetalle').focus();
+    });
+
+    var _vincularDetalleTimer = null;
+    $(document).on('keyup', '#inpVincularDetalle', function () {
+        var q = $(this).val().trim();
+        if (q.length < 2) { $('#resultadosVincularDetalle').hide().empty(); return; }
+        clearTimeout(_vincularDetalleTimer);
+        _vincularDetalleTimer = setTimeout(function () {
+            $.get('/notas-unificadas/buscar-grupos', { q: q }, function (data) {
+                var $res = $('#resultadosVincularDetalle').empty();
+                if (!data || data.length === 0) {
+                    $res.html('<div class="list-group-item text-muted text-center">Sin resultados</div>').show();
+                    return;
+                }
+                data.forEach(function (g) {
+                    // No mostrar el grupo actual
+                    if (g.id == _currentGrupoIdVincular) return;
+                    var ramas = (g.ramas || []).map(function (r) {
+                        return r === 'MKT' ? '<span class="label label-primary" style="font-size:9px">MKT</span>' : '<span class="label label-success" style="font-size:9px">FISC</span>';
+                    }).join(' ');
+                    $res.append(
+                        '<a href="#" class="list-group-item resultado-vincular-detalle" data-id="' + g.id + '" style="padding:8px 12px;">' +
+                        '<strong>' + g.nro_nota + '-' + g.anio + '</strong> ' + ramas +
+                        '<br><small class="text-muted">' + (g.titulo || 'Sin título') + ' | ' + (g.casino || '') + '</small>' +
+                        '</a>'
+                    );
+                });
+                $res.show();
+            });
+        }, 300);
+    });
+
+    // Seleccionar nota padre desde el detalle
+    $(document).on('click', '.resultado-vincular-detalle', function (e) {
+        e.preventDefault();
+        var padreId = $(this).data('id');
+        var grupoId = _currentGrupoIdVincular;
+        if (!grupoId) { notificacion('error', 'Error: grupo no identificado'); return; }
+        $.post('/notas-unificadas/asignar-grupo-padre', {
+            id_grupo: grupoId,
+            id_grupo_padre: padreId,
+            _token: $('input[name="_token"]').val()
+        }).done(function (res) {
+            if (res.success) {
+                notificacion('success', 'Nota vinculada correctamente');
+                abrirModalDetalleGrupo(grupoId);
+            } else {
+                notificacion('error', res.msg || 'Error al vincular');
+            }
+        }).fail(function (xhr) {
+            var msg = 'Error de conexión';
+            if (xhr.responseJSON && xhr.responseJSON.msg) msg = xhr.responseJSON.msg;
+            notificacion('error', msg);
+        });
+    });
 
 });

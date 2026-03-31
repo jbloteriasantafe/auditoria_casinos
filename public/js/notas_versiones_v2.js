@@ -2,171 +2,251 @@
 console.log('Script de versiones V2 cargado (con onion skin)');
 
 // Variables globales para onion skin
-var onionCanvas = null;
 var onionPdf = null;
 var currentOnionPage = 1;
+var onionVersionId = null;
+var onionAnotacionesCache = null;
+
+window.modoComparacion = false;
 
 window.poblarSelectComparacion = function(nota) {
-    var select = $('#select-comparar');
-    select.empty();
-    select.append('<option value="">Seleccionar versión anterior...</option>');
-    
-    // INTENTAR OBTENER ID DE MULTIPLES FUENTES
     var idNota = null;
     if (nota && nota.id) idNota = nota.id;
     else if (nota && nota.id_nota_ingreso) idNota = nota.id_nota_ingreso;
     else if (typeof currentIdNota !== 'undefined' && currentIdNota) idNota = currentIdNota;
-    
-    var tipo = null;
-    if (typeof currentTipoArchivo !== 'undefined' && currentTipoArchivo) tipo = currentTipoArchivo;
-    
-    console.log('DEBUG VERSIONES => Objeto nota:', nota, 'ID final:', idNota, 'Tipo:', tipo);
-    
+
+    var tipo = (typeof currentTipoArchivo !== 'undefined') ? currentTipoArchivo : null;
+
     if(!idNota || !tipo) {
         console.error('ERROR: No se pudo determinar ID de nota o tipo de archivo para versiones');
         return;
     }
-    
-    $.ajax({
-        url: `/notas-unificadas/historial-versiones/${idNota}/${tipo}`,
-        method: 'GET',
-        success: function(response) {
-            console.log('Versiones recibidas:', response);
-            
-            if(response.success && response.versiones && response.versiones.length > 0) {
-                var versionesDisponibles = response.versiones;
-                
-                if(versionesDisponibles.length <= 1) {
-                    select.append('<option disabled>No hay versiones anteriores disponibles</option>');
+
+    // Cargar versiones disponibles en el select de comparación
+    function cargarVersionesComparacion() {
+        var select = $('#select-comparar');
+        select.empty().append('<option value="">Seleccionar versión...</option>');
+
+        $.ajax({
+            url: '/notas-unificadas/historial-versiones/' + idNota + '/' + tipo,
+            method: 'GET',
+            success: function(response) {
+                if(response.success && response.versiones && response.versiones.length > 0) {
+                    var versiones = response.versiones;
+                    if(versiones.length <= 1) {
+                        select.append('<option disabled>No hay versiones anteriores disponibles</option>');
+                    } else {
+                        versiones.forEach(function(v, index) {
+                            select.append('<option value="version-' + v.id + '" data-id="' + v.id + '">v' + v.version + ' — ' + v.created_at + '</option>');
+                        });
+                    }
                 } else {
-                    versionesDisponibles.forEach(function(v, index) {
-                        // Omitir la versión más reciente (index 0)
-                        if(index === 0) return; 
-                        
-                        var label = `Versión ${v.version} - ${v.nombre_original} (${v.created_at})`;
-                        select.append(`<option value="version-${v.id}" data-id="${v.id}">Versión ${v.version} (${v.created_at})</option>`);
-                    });
+                    select.append('<option disabled>No hay historial de versiones</option>');
                 }
-            } else {
-                select.append('<option disabled>No hay historial de versiones</option>');
             }
-        },
-        error: function(xhr, status, error) {
-            console.error('Error cargando versiones:', error);
-            select.append('<option disabled>Error al cargar versiones</option>');
+        });
+    }
+
+    // Checkbox: activar modo comparación
+    $('#check-comparar').off('change').on('change', function() {
+        if($(this).is(':checked')) {
+            cargarVersionesComparacion();
+            // Actualizar label de versión actual
+            var textoVersionActual = $('#selectVersion option:selected').text() || '—';
+            $('#labelVersionActual').text(textoVersionActual);
+            // Mostrar layout comparación
+            $('#layoutSinComparar').hide();
+            $('#layoutComparando').css('display', 'flex');
+        } else {
+            salirComparacion();
         }
     });
 
-    // EVENTO DE CAMBIO EN EL SELECT (ONION SKIN)
-    select.off('change').on('change', function() {
+    // Botón cancelar comparación
+    $('#btnCancelarComparar').off('click').on('click', function() {
+        salirComparacion();
+    });
+
+    // Cambio en select de versión a comparar
+    $('#select-comparar').off('change').on('change', function() {
         var valor = $(this).val();
         if(!valor) {
             limpiarOnionSkin();
+            window.modoComparacion = false;
+            _desbloquearHerramientas();
+            if(typeof window.mostrarComentariosComparacion === 'function') window.mostrarComentariosComparacion([]);
             return;
         }
-
-        // Si es una versión
         if(valor.startsWith('version-')) {
-            var idVersion = $(this).find(':selected').data('id'); 
-            // Como el value es "version-ID", podemos extraer el ID también del value
+            var idVersion = $(this).find(':selected').data('id');
             if(!idVersion) idVersion = valor.replace('version-', '');
-            
             activarOnionSkin(idVersion);
+            // Bloquear herramientas de dibujo durante comparación
+            window.modoComparacion = true;
+            _bloquearHerramientas();
         }
     });
 
-    // Evento Checkbox Comparar
-    $('#check-comparar').off('change').on('change', function() {
-        if($(this).is(':checked')) {
-            $('#controles-comparacion').show();
-        } else {
-            $('#controles-comparacion').hide();
-            $('#select-comparar').val(''); // Reset select
-            limpiarOnionSkin(); // Clean overlay
-        }
-    });
-
-    // Resetear estado inicial al abrir (ocultar si no está chequeado)
-    if(!$('#check-comparar').is(':checked')) {
-        $('#controles-comparacion').hide();
-    }
-
-    // Evento Slider Opacidad
+    // Slider opacidad: 0% = solo versión actual, 100% = solo versión comparada
     $('#slider-opacidad').off('input change').on('input change', function() {
-        var opacidad = $(this).val();
-        $('#onionCanvas').css('opacity', opacidad);
+        var pct = parseInt($(this).val(), 10);
+        $('.onion-layer').css('opacity', pct / 100);
+        $('#slider-opacidad-label').text(pct + '%');
     });
+
+    // Estado inicial
+    $('#layoutComparando').hide();
+    $('#layoutSinComparar').show();
+    $('#check-comparar').prop('checked', false);
+    limpiarOnionSkin();
 };
 
-function activarOnionSkin(idVersion) {
-    console.log("Activando Onion Skin para versión:", idVersion);
-    var url = `/notas-unificadas/visualizar-version/${idVersion}`;
-    console.log("URL de la versión:", url);
-    cargarPdfOnion(url);
+function salirComparacion() {
+    $('#check-comparar').prop('checked', false);
+    $('#layoutComparando').hide();
+    $('#layoutSinComparar').show();
+    $('#select-comparar').val('');
+    limpiarOnionSkin();
+    window.modoComparacion = false;
+    _desbloquearHerramientas();
+    // Limpiar comentarios de comparación
+    if(typeof window.mostrarComentariosComparacion === 'function') window.mostrarComentariosComparacion([]);
 }
-function cargarPdfOnion(url) {
-    pdfjsLib.getDocument(url).promise.then(function(pdf) {
-        onionPdf = pdf;
-        currentOnionPage = currentPage || 1; // Usar página actual del editor
-        renderOnionLayer(currentOnionPage);
+
+function _bloquearHerramientas() {
+    $('#grupoHerramientas .btn-tool').prop('disabled', true).css('opacity', 0.4);
+    $('#btnComment').prop('disabled', true).css('opacity', 0.4);
+    $('#btnDeleteSelected').prop('disabled', true).css('opacity', 0.4);
+}
+
+function _desbloquearHerramientas() {
+    $('#grupoHerramientas .btn-tool').prop('disabled', false).css('opacity', 1);
+    $('#btnComment').prop('disabled', false).css('opacity', 1);
+    $('#btnDeleteSelected').prop('disabled', false).css('opacity', 1);
+}
+
+function activarOnionSkin(idVersion) {
+    onionVersionId = idVersion;
+    onionAnotacionesCache = null;
+    var pdfRenderedPage = null;
+
+    // Inicializar slider al 50%
+    $('#slider-opacidad').val(50);
+    $('#slider-opacidad-label').text('50%');
+    $('.onion-layer').css('opacity', 0.5);
+
+    var idNota = (typeof currentIdNota !== 'undefined') ? currentIdNota : null;
+    var tipo   = (typeof currentTipoArchivo !== 'undefined') ? currentTipoArchivo : null;
+
+    if(idNota && tipo) {
+        $.get('/notas-unificadas/pdf-anotaciones/datos/' + idNota + '/' + tipo + '?version_id=' + idVersion, function(data) {
+            onionAnotacionesCache = data.anotaciones || [];
+            // Mostrar comentarios de la versión comparada (solo lectura)
+            var compLabel = $('#select-comparar option:selected').text().match(/^(v\d+)/);
+            compLabel = compLabel ? compLabel[1] : '';
+            if(typeof window.mostrarComentariosComparacion === 'function') {
+                window.mostrarComentariosComparacion(data.comentarios || [], compLabel);
+            }
+            if(pdfRenderedPage !== null) {
+                dibujarAnotacionesOnion(pdfRenderedPage);
+            }
+        });
+    }
+
+    cargarPdfOnion('/notas-unificadas/visualizar-version/' + idVersion, function(pageNum) {
+        pdfRenderedPage = pageNum;
+        if(onionAnotacionesCache !== null) {
+            dibujarAnotacionesOnion(pageNum);
+        }
     });
 }
 
-function renderOnionLayer(pageNum) {
-    if(!onionPdf) return;
-    
-    onionPdf.getPage(pageNum).then(function(page) {
-        var scale = 1.5; // Debe coincidir con el scale del editor principal
-        var viewport = page.getViewport({scale: scale});
-        
-        // Usar contenedor principal directo
-        var container = $('#canvasContainer');
-        var onionCanvasEl = $('#onionCanvas');
-        
-        // Asegurar que el contenedor tenga position relative
-        if(container.css('position') === 'static') {
-            container.css('position', 'relative');
-        }
+function cargarPdfOnion(url, onRendered) {
+    pdfjsLib.getDocument(url).promise.then(function(pdf) {
+        onionPdf = pdf;
+        currentOnionPage = (typeof currentPage !== 'undefined' ? currentPage : 1) || 1;
+        renderOnionLayer(currentOnionPage, onRendered);
+    });
+}
 
-        if(onionCanvasEl.length === 0) {
-            // Crear canvas
-            container.append('<canvas id="onionCanvas" style="position: absolute; top: 0; left: 0; z-index: 10000; pointer-events: none; opacity: 0.5; border: 4px solid green;"></canvas>');
-            onionCanvasEl = $('#onionCanvas');
+function renderOnionLayer(pageNum, onRendered) {
+    if(!onionPdf) return;
+
+    onionPdf.getPage(pageNum).then(function(page) {
+        var scale = 1.5;
+        var viewport = page.getViewport({scale: scale});
+
+        var onionEl = document.getElementById('onionCanvas');
+        if(!onionEl) return;
+
+        var ctx = onionEl.getContext('2d');
+        onionEl.width  = viewport.width;
+        onionEl.height = viewport.height;
+        $(onionEl).css({ width: viewport.width + 'px', height: viewport.height + 'px' });
+        ctx.clearRect(0, 0, onionEl.width, onionEl.height);
+
+        page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function() {
+            $('.onion-layer').show();
+            if(typeof onRendered === 'function') onRendered(pageNum);
+        });
+    });
+}
+
+function dibujarAnotacionesOnion(pageNum) {
+    if(!onionAnotacionesCache) return;
+
+    var paginaData = onionAnotacionesCache.find(function(a) { return a.pagina == pageNum; });
+    if(!paginaData || !paginaData.anotaciones_json) return;
+
+    var onionEl = document.getElementById('onionCanvas');
+    if(!onionEl) return;
+
+    var json;
+    try { json = JSON.parse(paginaData.anotaciones_json); } catch(e) { return; }
+    if(!json || !json.objects || json.objects.length === 0) return;
+
+    var tempId = 'onionFabricTemp_' + Date.now();
+    var tempEl = document.createElement('canvas');
+    tempEl.id = tempId;
+    tempEl.width  = onionEl.width;
+    tempEl.height = onionEl.height;
+    tempEl.style.cssText = 'position:absolute; left:-9999px; top:-9999px;';
+    document.body.appendChild(tempEl);
+
+    var tempFabric = new fabric.StaticCanvas(tempId, {
+        width:  onionEl.width,
+        height: onionEl.height
+    });
+
+    tempFabric.loadFromJSON(json, function() {
+        tempFabric.renderAll();
+        var ctx = onionEl.getContext('2d');
+        ctx.drawImage(tempFabric.lowerCanvasEl, 0, 0);
+        tempFabric.dispose();
+        // StaticCanvas NO crea wrapper, tempEl sigue siendo hijo directo de document.body
+        if(document.body.contains(tempEl)) {
+            document.body.removeChild(tempEl);
         }
-        
-        var canvas = onionCanvasEl[0];
-        var ctx = canvas.getContext('2d');
-        
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-        
-        // Importante: dimensiones CSS deben coincidir
-        $(canvas).css({
-            width: viewport.width + 'px',
-            height: viewport.height + 'px'
-        });
-        
-        var renderContext = {
-            canvasContext: ctx,
-            viewport: viewport
-        };
-        
-        console.log('Iniciando renderizado Onion...');
-        
-        page.render(renderContext).promise.then(function() {
-            console.log('Capa Onion renderizada');
-            onionCanvasEl.show();
-            // Asegurar que el contenedor padre (si existe, ej: .onion-layer) también sea visible
-            onionCanvasEl.parents('.onion-layer').show();
-        });
     });
 }
 
 function limpiarOnionSkin() {
-    $('#onionCanvas').remove();
+    var onionEl = document.getElementById('onionCanvas');
+    if(onionEl) {
+        var ctx = onionEl.getContext('2d');
+        ctx.clearRect(0, 0, onionEl.width, onionEl.height);
+    }
+    $('.onion-layer').hide();
     onionPdf = null;
+    onionVersionId = null;
+    onionAnotacionesCache = null;
 }
 
-// Hook para actualizar onion skin cuando cambia la página en el editor principal
-// Esto requiere que el editor principal llame a un evento o variable global, 
-// pero por ahora lo dejamos simple.
+// Llamar al cambiar de página en el editor principal
+window.actualizarOnionPagina = function(pageNum) {
+    if(onionPdf) {
+        renderOnionLayer(pageNum, function(p) {
+            if(onionAnotacionesCache !== null) dibujarAnotacionesOnion(p);
+        });
+    }
+};

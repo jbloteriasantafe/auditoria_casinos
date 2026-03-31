@@ -48,16 +48,17 @@
 
 <h5 style="margin-top: 20px; border-bottom: 2px solid #ddd; padding-bottom: 5px;">Adjuntos</h5>
 <div class="list-group">
-    @if($nota->path_pautas)
+    @php $pathSolicitud = $nota->path_solicitud ?? $nota->path_pautas; @endphp
+    @if($pathSolicitud)
     <div class="list-group-item">
         <i class="fa fa-file-pdf-o fa-lg pull-left text-danger" style="margin-right: 10px;"></i>
-        <h5 class="list-group-item-heading">Pautas / Solicitud</h5>
-        <p class="list-group-item-text"><small>{{ basename($nota->path_pautas) }}</small></p>
+        <h5 class="list-group-item-heading">Solicitud Concesionario</h5>
+        <p class="list-group-item-text"><small>{{ basename($pathSolicitud) }}</small></p>
         <div class="btn-group btn-group-sm" style="margin-top: 5px;">
-            <a href="/notas-unificadas/visualizar/{{ $nota->id }}/pautas" target="_blank" class="btn btn-primary">
+            <a href="/notas-unificadas/visualizar/{{ $nota->id }}/solicitud" target="_blank" class="btn btn-primary">
                 <i class="fa fa-eye"></i> Ver
             </a>
-            <a href="/notas-unificadas/descargar/{{ $nota->id }}/pautas" class="btn btn-default">
+            <a href="/notas-unificadas/descargar/{{ $nota->id }}/solicitud" class="btn btn-default">
                 <i class="fa fa-download"></i> Descargar
             </a>
         </div>
@@ -131,7 +132,7 @@
     </div>
     @endif
     
-    @if(!$nota->path_pautas && !$nota->path_diseno && !$nota->path_bases && !$nota->path_varios && !$nota->path_informe)
+    @if(!($nota->path_solicitud ?? $nota->path_pautas) && !$nota->path_diseno && !$nota->path_bases && !$nota->path_varios && !$nota->path_informe)
         <div class="alert alert-warning">No hay archivos adjuntos.</div>
     @endif
 </div>

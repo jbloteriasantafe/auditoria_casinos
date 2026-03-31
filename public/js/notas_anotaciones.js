@@ -10,9 +10,34 @@ var totalPages = 0;
 var canvas = null;
 var currentIdNota = null;
 var currentTipoArchivo = null;
+var currentVersionId = null;
+var currentVersionLabel = '';
 var currentNroNota = '';
 var comentariosDB = [];
 var nextComRef = 1;
+
+// ============================================
+// CARGA DIFERIDA DE LIBRERÍAS
+// ============================================
+var _libsAnotacionesCargadas = false;
+
+function cargarLibsAnotaciones(callback) {
+    if (_libsAnotacionesCargadas) { callback(); return; }
+
+    var pdfScript = document.createElement('script');
+    pdfScript.src = '/js/lib/pdf.min.js';
+    pdfScript.onload = function() {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/js/lib/pdf.worker.min.js';
+        var fabricScript = document.createElement('script');
+        fabricScript.src = '/js/lib/fabric.min.js';
+        fabricScript.onload = function() {
+            _libsAnotacionesCargadas = true;
+            callback();
+        };
+        document.head.appendChild(fabricScript);
+    };
+    document.head.appendChild(pdfScript);
+}
 
 // ============================================
 // INICIALIZACIÓN
@@ -21,88 +46,89 @@ var nextComRef = 1;
 $(document).on('click', '.btn-agregar-observaciones', function() {
     var idNota = $(this).data('id');
     var nroNota = $(this).data('nro-nota');
-    
+
     currentIdNota = idNota;
     currentNroNota = nroNota;
-    
-    // Cargar lista de PDFs disponibles
-    $.get(`/notas-unificadas/pdf-anotaciones/listar/${idNota}`, function(pdfs) {
-        if(pdfs.length === 0) {
-            alert('Esta nota no tiene PDFs adjuntos para anotar.');
-            return;
-        }
-        
-        mostrarSelectorPdfs(pdfs);
-    }).fail(function() {
-        alert('Error al cargar los PDFs de esta nota.');
+
+    // Cargar librerías solo si no están cargadas aún
+    cargarLibsAnotaciones(function() {
+        // Cargar lista de PDFs disponibles
+        $.get(`/notas-unificadas/pdf-anotaciones/listar/${idNota}`, function(pdfs) {
+            if(pdfs.length === 0) {
+                notificacion('warning', 'Esta nota no tiene PDFs adjuntos para anotar.');
+                return;
+            }
+            mostrarSelectorPdfs(pdfs);
+        }).fail(function() {
+            notificacion('error', 'Error al cargar los PDFs de esta nota.');
+        });
     });
 });
 
 function mostrarSelectorPdfs(pdfs) {
     var html = '<div class="list-group" style="max-height: 400px; overflow-y: auto;">';
-    
+
     pdfs.forEach(function(pdf) {
-        var icon = pdf.nombre.includes('Solicitud') ? 'file-pdf-o' : 
-                   pdf.nombre.includes('Diseño') ? 'image' : 
-                   pdf.nombre.includes('Bases') ? 'file-text-o' : 
-                   pdf.nombre.includes('Varios') ? 'archive' : 
+        var icon = pdf.nombre.includes('Solicitud') ? 'file-pdf-o' :
+                   pdf.nombre.includes('Dise') ? 'image' :
+                   pdf.nombre.includes('Bases') ? 'file-text-o' :
+                   pdf.nombre.includes('Varios') ? 'archive' :
                    'file-pdf-o';
-        
-        html += `
-            <a href="javascript:void(0)" class="list-group-item pdf-selector-item" 
-               data-tipo="${pdf.tipo}" 
-               style="cursor: pointer; transition: all 0.2s;">
-                <i class="fa fa-${icon} fa-2x pull-left" style="margin-right: 15px; color: #e74c3c;"></i>
-                <h4 class="list-group-item-heading">${pdf.nombre}</h4>
-                <p class="list-group-item-text text-muted">${pdf.archivo}</p>
-            </a>
-        `;
+
+        html += '<a href="javascript:void(0)" class="list-group-item pdf-selector-item"' +
+                ' data-tipo="' + pdf.tipo + '"' +
+                ' data-version-id="' + (pdf.version_id || '') + '"' +
+                ' style="cursor: pointer; transition: all 0.2s;">' +
+                '<i class="fa fa-' + icon + ' fa-2x pull-left" style="margin-right: 15px; color: #e74c3c;"></i>' +
+                '<h4 class="list-group-item-heading">' + pdf.nombre + '</h4>' +
+                '<p class="list-group-item-text text-muted">' + pdf.archivo + '</p>' +
+                '</a>';
     });
-    
+
     html += '</div>';
-    
+
     $('#listaPdfsDisponibles').html(html);
     $('#modalSelectorPdfs').modal('show');
 }
 
 $(document).on('click', '.pdf-selector-item', function() {
     var tipo = $(this).data('tipo');
+    var versionId = $(this).data('version-id') || null;
     $('#modalSelectorPdfs').modal('hide');
-    abrirEditorPdf(currentIdNota, tipo);
+    abrirEditorPdf(currentIdNota, tipo, versionId);
 });
 
-function abrirEditorPdf(idNota, tipo) {
+function abrirEditorPdf(idNota, tipo, versionId) {
     currentTipoArchivo = tipo;
-    
-    // Mostrar modal primero (sin reemplazar contenido)
+    currentVersionId = versionId || null;
+
     $('#modalEditorAnotaciones').modal('show');
-    
-    // Mostrar overlay de loading sin eliminar el canvas
+
+    // Limpiar overlay previo si quedó colgado
+    $('#pdfLoadingOverlay').remove();
     var loadingOverlay = $('<div id="pdfLoadingOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(52, 73, 94, 0.95); z-index: 10000; display: flex; align-items: center; justify-content: center;"><div class="text-center" style="color: white;"><i class="fa fa-spinner fa-spin fa-3x"></i><p style="margin-top: 20px; font-size: 16px;">Cargando PDF...</p></div></div>');
     $('#editorContent').append(loadingOverlay);
-    
-    $('#modalEditorAnotaciones').on('shown.bs.modal', function onModalShown() {
-        $(this).off('shown.bs.modal', onModalShown);
-        console.log('Modal mostrado, cargando PDF...');
-        $.get(`/notas-unificadas/pdf-anotaciones/datos/${idNota}/${tipo}`, function(data) {
-            console.log('Datos del PDF recibidos:', data);
-            window.notaActual = data.nota;
-            $('#pdfLoadingOverlay').remove();
-            inicializarEditor(data);
-            setTimeout(function() {
-                if(typeof poblarSelectComparacion === 'function') poblarSelectComparacion(data.nota);
-            }, 500);
-        }).fail(function(xhr, status, error) {
-            console.error('Error al cargar PDF:', status, error);
-            $('#pdfLoadingOverlay').remove();
-            alert('Error al cargar el PDF: ' + error);
-            $('#modalEditorAnotaciones').modal('hide');
-        });
+
+    var ajaxUrl = '/notas-unificadas/pdf-anotaciones/datos/' + idNota + '/' + tipo;
+    if(currentVersionId) ajaxUrl += '?version_id=' + currentVersionId;
+
+    $.get(ajaxUrl, function(data) {
+        window.notaActual = data.nota;
+        $('#pdfLoadingOverlay').remove();
+        inicializarEditor(data);
+        setTimeout(function() {
+            if(typeof poblarSelectComparacion === 'function') poblarSelectComparacion(data.nota);
+        }, 500);
+    }).fail(function(xhr) {
+        $('#pdfLoadingOverlay').remove();
+        var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'Error desconocido';
+        notificacion('error', 'Error al cargar el PDF: ' + msg);
+        $('#modalEditorAnotaciones').modal('hide');
     });
 }
 function inicializarEditor(data) {
     comentariosDB = data.comentarios || [];
-    
+
     // Calcular siguiente número de referencia
     nextComRef = 1;
     comentariosDB.forEach(function(c) {
@@ -110,14 +136,32 @@ function inicializarEditor(data) {
             nextComRef = c.numero_ref + 1;
         }
     });
-    
+
     // Actualizar header
-    $('#editorTitulo').html(`
-        <i class="fa fa-file-pdf-o"></i> 
-        Nota #${currentNroNota} - ${data.nota.titulo || 'Sin título'}
-        <small class="text-muted"> | ${getCurrentTipoNombre()}</small>
-    `);
-    
+    $('#editorTitulo').html(
+        '<i class="fa fa-file-pdf-o"></i> ' +
+        'Nota #' + currentNroNota + ' - ' + (data.nota.titulo || 'Sin título') +
+        '<small class="text-muted"> | ' + getCurrentTipoNombre() + '</small>'
+    );
+
+    // Poblar selector de versiones
+    var versiones = data.versiones || [];
+    if(versiones.length >= 1) {
+        var versionHtml = '';
+        versiones.forEach(function(v, idx) {
+            var esCurrent = currentVersionId ? (v.id == currentVersionId) : (idx === 0);
+            if(esCurrent) currentVersionLabel = 'v' + v.version;
+            var label = 'v' + v.version + ' — ' + v.nombre_original +
+                        (v.created_at ? ' (' + v.created_at + ')' : '') +
+                        (idx === 0 ? ' ★' : '');
+            versionHtml += '<option value="' + v.id + '"' + (esCurrent ? ' selected' : '') + '>' + label + '</option>';
+        });
+        $('#selectVersion').html(versionHtml);
+        $('#contenedorVersiones').css('display', 'flex');
+    } else {
+        $('#contenedorVersiones').hide();
+    }
+
     // Cargar PDF
     var loadingTask = pdfjsLib.getDocument(data.url);
     
@@ -133,7 +177,7 @@ function inicializarEditor(data) {
         
     }).catch(function(error) {
         console.error('Error loading PDF:', error);
-        alert('Error al cargar el PDF: ' + error.message);
+        notificacion('error', 'Error al cargar el PDF: ' + error.message);
     });
 }
 
@@ -234,14 +278,30 @@ function aplicarEstilosUnificados() {
             obj.set({
                 stroke: '#ff0000',
                 strokeWidth: 4,
-                selectable: true
+                selectable: true,
+                evented: true
             });
         } else if(obj.type === 'rect') {
             obj.set({
                 stroke: '#ff0000',
                 strokeWidth: 3,
                 fill: 'transparent',
-                selectable: true
+                selectable: true,
+                evented: true,
+                lockMovementX: false,
+                lockMovementY: false,
+                hasControls: false,
+                hasBorders: true
+            });
+        } else if(obj.type === 'path') {
+            obj.set({
+                selectable: true,
+                evented: true,
+                hasControls: false,
+                hasBorders: false,
+                perPixelTargetFind: true,
+                lockMovementX: false,
+                lockMovementY: false
             });
         } else if(obj.type === 'circle' && obj.commentRef) {
             obj.set({
@@ -254,8 +314,14 @@ function aplicarEstilosUnificados() {
 }
 
 function cargarComentariosPagina(pageNum, comentariosDB) {
+    // Recopilar commentRef que ya existen en el canvas (cargados desde JSON)
+    var existentes = {};
+    canvas.getObjects().forEach(function(obj) {
+        if (obj.commentRef) existentes[obj.commentRef] = true;
+    });
+
     comentariosDB.forEach(function(c) {
-        if(c.pagina == pageNum && c.pos_x && c.pos_y) {
+        if(c.pagina == pageNum && c.pos_x && c.pos_y && !existentes[c.numero_ref]) {
             agregarGlobitoEnCanvas(c.pos_x, c.pos_y, c.numero_ref, c.id);
         }
     });
@@ -296,6 +362,45 @@ $('#btnComment').click(function() {
     $(this).addClass('active');
 });
 
+$('#btnDeleteSelected').click(function() {
+    if(!canvas) return;
+    var activeObject = canvas.getActiveObject();
+    if(activeObject && !activeObject.commentRef) {
+        canvas.remove(activeObject);
+        canvas.renderAll();
+        guardarAnotacionesAutomatico();
+    }
+});
+
+// Cambiar versión desde el selector dentro del editor
+$(document).on('change', '#selectVersion', function() {
+    var versionId = $(this).val();
+    if(!versionId || !currentIdNota) return;
+    currentVersionId = versionId;
+
+    var ajaxUrl = '/notas-unificadas/pdf-anotaciones/datos/' + currentIdNota + '/' + currentTipoArchivo + '?version_id=' + versionId;
+    $.get(ajaxUrl, function(data) {
+        // Actualizar comentarios de la nueva versión
+        comentariosDB = data.comentarios || [];
+        nextComRef = 1;
+        comentariosDB.forEach(function(c) {
+            if(c.numero_ref && c.numero_ref >= nextComRef) nextComRef = c.numero_ref + 1;
+        });
+        mostrarComentarios(comentariosDB);
+
+        var loadingTask = pdfjsLib.getDocument(data.url);
+        loadingTask.promise.then(function(pdf) {
+            pdfDoc = pdf;
+            totalPages = pdf.numPages;
+            currentPage = 1;
+            $('#pageInfo').text('Página ' + currentPage + ' de ' + totalPages);
+            renderPage(pdf, currentPage, data.anotaciones, comentariosDB);
+        });
+    }).fail(function() {
+        notificacion('error', 'Error al cargar la versión seleccionada.');
+    });
+});
+
 // Detectar tecla Delete/Backspace para eliminar objetos seleccionados
 $(document).on('keydown', function(e) {
     if((e.keyCode === 46 || e.keyCode === 8) && canvas) {
@@ -314,122 +419,195 @@ var isDown = false;
 var origX, origY;
 var currentShape = null;
 
+// ============================================
+// HELPERS DE FLECHA
+// ============================================
+
+/**
+ * Crea un fabric.Path de flecha con arrowhead.
+ * selectable=false para preview durante el dibujo.
+ */
+function _buildArrowPath(x1, y1, x2, y2, finalizado) {
+    var dx = x2 - x1, dy = y2 - y1;
+    var len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 2) len = 2;
+
+    var angle = Math.atan2(dy, dx);
+    var headLen = Math.min(22, len * 0.35);
+    var headAngle = Math.PI / 6; // 30°
+
+    var hx1 = x2 - headLen * Math.cos(angle - headAngle);
+    var hy1 = y2 - headLen * Math.sin(angle - headAngle);
+    var hx2 = x2 - headLen * Math.cos(angle + headAngle);
+    var hy2 = y2 - headLen * Math.sin(angle + headAngle);
+
+    var pathStr = 'M ' + x1 + ' ' + y1 +
+                  ' L ' + x2 + ' ' + y2 +
+                  ' M ' + x2 + ' ' + y2 +
+                  ' L ' + hx1 + ' ' + hy1 +
+                  ' M ' + x2 + ' ' + y2 +
+                  ' L ' + hx2 + ' ' + hy2;
+
+    return new fabric.Path(pathStr, {
+        stroke: '#e53e3e',
+        strokeWidth: 3,
+        fill: '',
+        strokeLineCap: 'round',
+        strokeLineJoin: 'round',
+        selectable: !!finalizado,
+        evented: !!finalizado,
+        hasControls: false,
+        hasBorders: false,
+        perPixelTargetFind: true,
+        lockRotation: true,
+        lockScalingX: true,
+        lockScalingY: true,
+        padding: 4
+    });
+}
+
+/**
+ * Deshabilita interactividad en todos los objetos existentes del canvas.
+ * Guarda el estado previo en obj._prevSelectable para restaurar después.
+ */
+function _lockCanvas() {
+    canvas.selection = false;
+    canvas.getObjects().forEach(function(obj) {
+        obj._prevSelectable = obj.selectable;
+        obj._prevEvented    = obj.evented;
+        obj.selectable = false;
+        obj.evented    = false;
+    });
+}
+
+/**
+ * Restaura la interactividad de los objetos del canvas.
+ */
+function _unlockCanvas() {
+    canvas.selection = true;
+    canvas.getObjects().forEach(function(obj) {
+        if (obj._prevSelectable !== undefined) {
+            obj.selectable = obj._prevSelectable;
+            obj.evented    = obj._prevEvented;
+            delete obj._prevSelectable;
+            delete obj._prevEvented;
+        }
+    });
+}
+
 // Definir eventos del canvas (se adjuntarán después de que canvas se inicialice)
 function attachCanvasEvents() {
     if (!canvas) {
         console.warn('Canvas no inicializado, no se pueden adjuntar eventos');
         return;
     }
-    
+
     canvas.on('mouse:down', function(o) {
         if(modoActual === 'select') return;
-        
+        if(window.modoComparacion) return; // No dibujar durante comparación
+
+        // Bloquear todo mientras se dibuja
+        _lockCanvas();
+
         isDown = true;
         var pointer = canvas.getPointer(o.e);
         origX = pointer.x;
         origY = pointer.y;
-        
+
         if(modoActual === 'arrow') {
-            // Crear solo línea durante el dibujo
-            var points = [origX, origY, origX, origY];
-            currentShape = new fabric.Line(points, {
-                strokeWidth: 4,
-                fill: '#ff0000',
-                stroke: '#ff0000',
-                originX: 'center',
-                originY: 'center',
-                selectable: false,
-                evented: false
-            });
-            
+            currentShape = _buildArrowPath(origX, origY, origX + 1, origY + 1, false);
             canvas.add(currentShape);
-            
+
         } else if(modoActual === 'rect') {
             currentShape = new fabric.Rect({
                 left: origX,
                 top: origY,
                 width: 0,
                 height: 0,
-                stroke: '#ff0000',
+                stroke: '#e53e3e',
                 strokeWidth: 3,
-                fill: 'transparent',
-                selectable: true
+                fill: 'rgba(229, 62, 62, 0.05)',
+                selectable: false,
+                evented: false,
+                hasControls: false,
+                hasBorders: false
             });
             canvas.add(currentShape);
-            
+
         } else if(modoActual === 'comment') {
+            _unlockCanvas();
             agregarComentario(origX, origY);
             isDown = false;
         }
     });
-    
+
     canvas.on('mouse:move', function(o) {
         if(!isDown || modoActual === 'select' || modoActual === 'comment') return;
-        
+
         var pointer = canvas.getPointer(o.e);
-        
+
         if(modoActual === 'arrow' && currentShape) {
-            // Solo actualizar el endpoint de la línea
-            currentShape.set({ x2: pointer.x, y2: pointer.y });
+            // Recrear el path con arrowhead en vivo
+            canvas.remove(currentShape);
+            currentShape = _buildArrowPath(origX, origY, pointer.x, pointer.y, false);
+            canvas.add(currentShape);
             canvas.renderAll();
-            
+
         } else if(modoActual === 'rect' && currentShape) {
             var width = pointer.x - origX;
             var height = pointer.y - origY;
             currentShape.set({width: Math.abs(width), height: Math.abs(height)});
-            
+
             if(width < 0) currentShape.set({left: pointer.x});
             if(height < 0) currentShape.set({top: pointer.y});
-            
+
             canvas.renderAll();
         }
     });
-    
-    canvas.on('mouse:up', function() {
+
+    canvas.on('mouse:up', function(o) {
         isDown = false;
-        
-        // Agrupar flecha cuando se termina de dibujar
+        _unlockCanvas();
+
         if(modoActual === 'arrow' && currentShape) {
-            let line = currentShape;
-            let dx = line.x2 - line.x1;
-            let dy = line.y2 - line.y1;
-            
-            // Evitar clicks accidentales
+            var pointer = canvas.getPointer(o.e);
+            var dx = pointer.x - origX;
+            var dy = pointer.y - origY;
+
+            // Descartar clicks accidentales (movimiento < 5px)
             if(Math.abs(dx) < 5 && Math.abs(dy) < 5) {
-                canvas.remove(line);
-                if(line.arrowHead) canvas.remove(line.arrowHead);
+                canvas.remove(currentShape);
                 currentShape = null;
                 return;
             }
-            
-            // Crear grupo con la línea y la punta
-            let angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
-            var head = new fabric.Triangle({
-                fill: '#ff0000',
-                width: 20,
-                height: 20,
-                left: line.x2,
-                top: line.y2,
-                angle: angle,
-                originX: 'center',
-                originY: 'center'
-            });
-            
-            var group = new fabric.Group([line, head], {
-                selectable: true
-            });
-            
-            canvas.remove(line);
-            if(line.arrowHead) canvas.remove(line.arrowHead);
-            canvas.add(group);
-            canvas.setActiveObject(group);
+
+            // Reemplazar el preview por la flecha final (seleccionable)
+            canvas.remove(currentShape);
+            var finalArrow = _buildArrowPath(origX, origY, pointer.x, pointer.y, true);
+            canvas.add(finalArrow);
+            canvas.setActiveObject(finalArrow);
             
             // Guardar automáticamente
             guardarAnotacionesAutomatico();
         }
         
-        // Guardar rectángulos también
+        // Finalizar rectángulo: hacerlo seleccionable y guardar
         if(modoActual === 'rect' && currentShape) {
+            // El rect fue creado con selectable:false (durante el dibujo), hay que activarlo
+            currentShape.set({
+                selectable: true,
+                evented: true,
+                hasControls: false,
+                hasBorders: true,
+                borderColor: '#3498db',
+                borderScaleFactor: 2,
+                lockRotation: true,
+                lockScalingX: true,
+                lockScalingY: true,
+                padding: 6
+            });
+            canvas.setActiveObject(currentShape);
+            canvas.renderAll();
             guardarAnotacionesAutomatico();
         }
         
@@ -451,65 +629,89 @@ function attachCanvasEvents() {
 
 function agregarComentario(x, y) {
     var numeroRef = nextComRef++;
-    
-    // Agregar globito visual
-    agregarGlobitoEnCanvas(x, y, numeroRef);
-    
+
+    // NO agregar globito aún — se agrega solo si se confirma
     // Mostrar modal para el mensaje
     $('#comentarioNumero').text(numeroRef);
     $('#comentarioMensaje').val('');
     $('#modalNuevoComentario').modal('show');
-    
+    $('#modalNuevoComentario').one('shown.bs.modal', function() {
+        $('#comentarioMensaje').focus();
+    });
+
     // Guardar posición temporal
     window.tempComentario = {x: x, y: y, numero_ref: numeroRef};
+
+    // Si cancela el modal, revertir el contador
+    $('#modalNuevoComentario').one('hidden.bs.modal', function() {
+        if (window.tempComentario && window.tempComentario.numero_ref === numeroRef) {
+            // No se guardó — revertir
+            nextComRef = numeroRef;
+            window.tempComentario = null;
+        }
+    });
 }
 
 function agregarGlobitoEnCanvas(x, y, numeroRef, comentarioId) {
+    var r = 14;
     var circle = new fabric.Circle({
-        left: x - 20,
-        top: y - 20,
-        radius: 20,
-        fill: '#ff0000',
-        stroke: '#cc0000',
-        strokeWidth: 3,
+        radius: r,
+        fill: '#e53e3e',
+        stroke: '#9b2c2c',
+        strokeWidth: 2,
         originX: 'center',
-        originY: 'center'
+        originY: 'center',
+        left: 0,
+        top: 0
     });
-    
+
+    var fontSize = numeroRef.toString().length === 1 ? 15 : 12;
     var text = new fabric.Text(numeroRef.toString(), {
-        left: x - 8,
-        top: y - 12,
-        fontSize: 20,
+        fontSize: fontSize,
         fill: 'white',
         fontWeight: 'bold',
         fontFamily: 'Arial',
         originX: 'center',
-        originY: 'center'
+        originY: 'center',
+        left: 0,
+        top: 0
     });
-    
+
     var group = new fabric.Group([circle, text], {
         left: x,
         top: y,
-        selectable: false,  // NO se puede seleccionar ni mover
+        originX: 'center',
+        originY: 'center',
+        selectable: false,
+        evented: true,
         hoverCursor: 'pointer',
+        hasControls: false,
+        hasBorders: false,
         commentRef: numeroRef,
         commentId: comentarioId || null
     });
-    
+
     canvas.add(group);
     canvas.renderAll();
-    
-    // Click en globito para ver comentario
+
     group.on('mousedown', function() {
         mostrarDetalleComentario(numeroRef);
     });
 }
 
+// Enter para guardar comentario
+$('#comentarioMensaje').on('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        $('#btnGuardarComentario').click();
+    }
+});
+
 $('#btnGuardarComentario').click(function() {
     var mensaje = $('#comentarioMensaje').val().trim();
     
     if(!mensaje) {
-        alert('El mensaje no puede estar vacío');
+        notificacion('warning', 'El mensaje no puede estar vacío.');
         return;
     }
     
@@ -532,6 +734,7 @@ $('#btnGuardarComentario').click(function() {
         data: {
             id_nota_ingreso: currentIdNota,
             tipo_archivo: currentTipoArchivo,
+            version_id: currentVersionId || '',
             pagina: currentPage,
             pos_x: temp.x,
             pos_y: temp.y,
@@ -543,14 +746,15 @@ $('#btnGuardarComentario').click(function() {
             console.log('Comentario guardado exitosamente:', comentario);
             comentariosDB.push(comentario);
             mostrarComentarios(comentariosDB);
+
+            // Agregar globito ahora que se confirmó el guardado
+            agregarGlobitoEnCanvas(temp.x, temp.y, temp.numero_ref, comentario.id);
+
+            // Limpiar tempComentario ANTES de cerrar el modal para que
+            // el handler hidden.bs.modal no revierta nextComRef
+            window.tempComentario = null;
+
             $('#modalNuevoComentario').modal('hide');
-            
-            // Actualizar globito con ID real
-            canvas.getObjects().forEach(function(obj) {
-                if(obj.commentRef === temp.numero_ref && !obj.commentId) {
-                    obj.commentId = comentario.id;
-                }
-            });
         },
         error: function(xhr, status, error) {
             console.error('Error al guardar comentario:', {
@@ -559,60 +763,114 @@ $('#btnGuardarComentario').click(function() {
                 responseText: xhr.responseText,
                 error: error
             });
-            alert('Error al guardar el comentario: ' + (xhr.responseJSON?.error || error));
+            notificacion('error', 'Error al guardar el comentario: ' + (xhr.responseJSON?.error || error));
         }
     });
 });
 
+function _avatarHtml(userImagen, size) {
+    size = size || 32;
+    if (userImagen) {
+        return '<img src="data:image/jpeg;base64,' + userImagen + '" style="width:' + size + 'px; height:' + size + 'px; border-radius:50%; object-fit:cover; flex-shrink:0;">';
+    }
+    return '<div style="width:' + size + 'px; height:' + size + 'px; border-radius:50%; background:#bdc3c7; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="fa fa-user" style="color:white; font-size:' + (size * 0.45) + 'px;"></i></div>';
+}
+
 function mostrarComentarios(comentarios) {
     var html = '';
-    
+
     comentarios.forEach(function(c) {
-        if(c.padre_id) return; // Solo hilos principales
-        
-        var resuelto = c.resuelto ? 'style="opacity: 0.6; text-decoration: line-through;"' : '';
-        
-        html += `
-            <div class="comentario-item" data-id="${c.id}" ${resuelto}>
-                <div class="comentario-header">
-                    <span class="badge" style="background: #f39c12;">${c.numero_ref}</span>
-                    <strong>${c.usuario}</strong>
-                    <small class="text-muted">Pág. ${c.pagina}</small>
-                </div>
-                <div class="comentario-body">
-                    ${c.mensaje}
-                </div>
-                <div class="comentario-actions">
-                    <button class="btn btn-xs btn-resolver" data-id="${c.id}" title="${c.resuelto ? 'Reabrir' : 'Resolver'}">
-                        <i class="fa fa-${c.resuelto ? 'undo' : 'check'}"></i>
-                    </button>
-                    <button class="btn btn-xs btn-danger btn-eliminar" data-id="${c.id}" title="Eliminar">
-                        <i class="fa fa-trash"></i>
-                    </button>
-                    <button class="btn btn-xs btn-primary btn-responder" data-id="${c.id}" data-ref="${c.numero_ref}" title="Responder">
-                        <i class="fa fa-reply"></i>
-                    </button>
-                </div>
-        `;
-        
-        // Mostrar respuestas si existen
+        if(c.padre_id) return;
+
+        var resueltoStyle = c.resuelto ? 'opacity:0.5;' : '';
+        var resueltoText = c.resuelto ? 'text-decoration:line-through;' : '';
+
+        html += '<div class="comentario-item" data-id="' + c.id + '" style="margin-bottom:12px; padding:10px; background:#f8f9fa; border-radius:8px; border-left:3px solid #e53e3e; ' + resueltoStyle + '">';
+
+        // Header con avatar + badge + nombre
+        html += '<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">';
+        html += '<span class="badge" style="background:#e53e3e; font-size:11px; min-width:22px;">' + c.numero_ref + '</span>';
+        html += _avatarHtml(c.user_imagen, 28);
+        html += '<div style="flex:1; min-width:0;">';
+        html += '<strong style="font-size:12px;">' + c.usuario + '</strong> ';
+        html += '<small class="text-muted">Pág. ' + c.pagina + '</small>';
+        if(currentVersionLabel) html += ' <span style="background:#3b82f6; color:#fff; font-size:9px; padding:1px 5px; border-radius:3px;">' + currentVersionLabel + '</span>';
+        html += '</div>';
+        html += '</div>';
+
+        // Mensaje
+        html += '<div style="margin-left:60px; font-size:13px; ' + resueltoText + '">' + c.mensaje + '</div>';
+
+        // Acciones (autor propio o admin puede eliminar)
+        if (window.PUEDE_ELIMINAR || c.id_usuario == window.CURRENT_USER_ID) {
+            html += '<div style="margin-left:60px; margin-top:6px; display:flex; gap:6px; align-items:center;">';
+            html += '<button class="btn btn-xs btn-danger btn-eliminar" data-id="' + c.id + '" title="Eliminar"><i class="fa fa-trash"></i></button>';
+            html += '</div>';
+        }
+
+        // Respuestas existentes + campo de reply (siempre visible)
+        html += '<div style="margin-left:40px; margin-top:8px; border-left:2px solid #e2e8f0; padding-left:10px;">';
         if(c.respuestas && c.respuestas.length > 0) {
-            html += '<div class="comentario-respuestas" style="margin-left: 20px; margin-top: 10px;">';
             c.respuestas.forEach(function(r) {
-                html += `
-                    <div class="comentario-respuesta" style="background: #f8f9fa; padding: 8px; margin-bottom: 5px; border-radius: 5px;">
-                        <strong style="font-size: 11px;">${r.usuario}:</strong>
-                        <p style="margin: 5px 0; font-size: 12px;">${r.mensaje}</p>
-                    </div>
-                `;
+                html += '<div style="display:flex; align-items:flex-start; gap:8px; margin-bottom:6px;">';
+                html += _avatarHtml(r.user_imagen, 24);
+                html += '<div style="flex:1; background:#fff; padding:6px 10px; border-radius:8px; border:1px solid #e5e7eb;">';
+                html += '<strong style="font-size:11px;">' + r.usuario + '</strong>';
+                html += '<div style="font-size:12px; color:#374151;">' + r.mensaje + '</div>';
+                html += '</div></div>';
+            });
+        }
+        // Input de reply siempre visible
+        html += '<div style="display:flex; align-items:center; gap:6px; margin-top:4px;">';
+        html += '<input type="text" class="form-control input-sm input-reply-inline" data-id="' + c.id + '" data-ref="' + c.numero_ref + '" placeholder="Responder..." style="flex:1; border-radius:20px; font-size:12px; height:30px;">';
+        html += '<button class="btn btn-xs btn-default btn-enviar-reply" data-id="' + c.id + '" data-ref="' + c.numero_ref + '" style="border:1px solid #ccc; border-radius:4px; padding:2px 8px;"><i class="fa fa-paper-plane" style="color:#e53e3e;"></i></button>';
+        html += '</div>';
+        html += '</div>';
+
+        html += '</div>';
+    });
+
+    $('#listaComentarios').html(html || '<p class="text-muted text-center">No hay comentarios aún</p>');
+    if(window._comentariosComparacion && window._comentariosComparacion.length > 0) {
+        _appendComentariosComparacion(window._comentariosComparacion);
+    }
+}
+
+// Muestra los comentarios de la versión comparada (solo lectura) al final del panel
+window.mostrarComentariosComparacion = function(comentarios, versionLabel) {
+    window._comentariosComparacion = comentarios || [];
+    window._comparacionVersionLabel = versionLabel || '';
+    // Quitar sección previa de comparación
+    $('#seccionComentariosComparacion').remove();
+    if(!comentarios || comentarios.length === 0) return;
+    _appendComentariosComparacion(comentarios, versionLabel);
+};
+
+function _appendComentariosComparacion(comentarios, versionLabel) {
+    $('#seccionComentariosComparacion').remove();
+    if(!comentarios || comentarios.length === 0) return;
+    versionLabel = versionLabel || window._comparacionVersionLabel || '';
+    var html = '<div id="seccionComentariosComparacion">';
+    html += '<hr style="margin:8px 0;"><p class="text-muted"><small><i class="fa fa-eye"></i> Versión comparada' + (versionLabel ? ' (' + versionLabel + ')' : '') + ' (solo lectura)</small></p>';
+    comentarios.forEach(function(c) {
+        if(c.padre_id) return;
+        var resuelto = c.resuelto ? 'style="opacity:0.6; text-decoration:line-through;"' : '';
+        html += '<div class="comentario-item" ' + resuelto + '>';
+        html += '<div class="comentario-header"><span class="badge">' + c.numero_ref + '</span> <strong>' + c.usuario + '</strong> <small class="text-muted">Pág. ' + c.pagina + '</small>';
+        if(versionLabel) html += ' <span style="background:#f59e0b; color:#fff; font-size:9px; padding:1px 5px; border-radius:3px;">' + versionLabel + '</span>';
+        html += '</div>';
+        html += '<div class="comentario-body">' + c.mensaje + '</div>';
+        if(c.respuestas && c.respuestas.length > 0) {
+            html += '<div class="comentario-respuestas" style="margin-left:15px; margin-top:5px;">';
+            c.respuestas.forEach(function(r) {
+                html += '<div class="well well-sm" style="margin-bottom:4px; padding:5px;"><strong>' + r.usuario + ':</strong> ' + r.mensaje + '</div>';
             });
             html += '</div>';
         }
-        
         html += '</div>';
     });
-    
-    $('#listaComentarios').html(html || '<p class="text-muted text-center">No hay comentarios aún</p>');
+    html += '</div>';
+    $('#listaComentarios').append(html);
 }
 
 $(document).on('click', '.btn-resolver', function() {
@@ -646,25 +904,42 @@ $(document).on('click', '.btn-eliminar', function() {
             comentariosDB = comentariosDB.filter(c => c.id != id);
             mostrarComentarios(comentariosDB);
             
-            canvas.getObjects().forEach(function(obj) {
-                if(obj.commentId == id) canvas.remove(obj);
+            // Recolectar primero, luego eliminar (no modificar array durante iteración)
+            var toRemove = canvas.getObjects().filter(function(obj) {
+                return obj.commentId == id;
             });
+            toRemove.forEach(function(obj) { canvas.remove(obj); });
             canvas.renderAll();
         },
         error: function() {
-            alert('Error al eliminar el comentario');
+            notificacion('error', 'Error al eliminar el comentario.');
         }
     });
 });
 
-// Responder a comentario
-$(document).on('click', '.btn-responder', function() {
+// Enviar reply con click en botón
+$(document).on('click', '.btn-enviar-reply', function() {
     var padreId = $(this).data('id');
     var numeroRef = $(this).data('ref');
-    
-    var mensaje = prompt('Escribe tu respuesta:');
-    if(!mensaje) return;
-    
+    var $input = $(this).siblings('.input-reply-inline');
+    _enviarReply(padreId, numeroRef, $input);
+});
+
+// Enviar reply con Enter
+$(document).on('keydown', '.input-reply-inline', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        var padreId = $(this).data('id');
+        var numeroRef = $(this).data('ref');
+        _enviarReply(padreId, numeroRef, $(this));
+    }
+});
+
+function _enviarReply(padreId, numeroRef, $input) {
+    var mensaje = $input.val().trim();
+    if (!mensaje) return;
+    $input.prop('disabled', true);
+
     $.ajax({
         url: '/notas-unificadas/pdf-anotaciones/guardar-comentario',
         method: 'POST',
@@ -672,6 +947,7 @@ $(document).on('click', '.btn-responder', function() {
         data: {
             id_nota_ingreso: currentIdNota,
             tipo_archivo: currentTipoArchivo,
+            version_id: currentVersionId || '',
             pagina: currentPage,
             numero_ref: numeroRef,
             mensaje: mensaje,
@@ -689,10 +965,11 @@ $(document).on('click', '.btn-responder', function() {
             mostrarComentarios(comentariosDB);
         },
         error: function() {
-            alert('Error al guardar la respuesta');
+            notificacion('error', 'Error al guardar la respuesta.');
+            $input.prop('disabled', false);
         }
     });
-});
+}
 
 function mostrarDetalleComentario(numeroRef) {
     var comentario = comentariosDB.find(c => c.numero_ref == numeroRef);
@@ -717,7 +994,8 @@ $('#btnPrevPage').click(function() {
         guardarAnotacionesPagina(currentPage);
         currentPage--;
         renderPage(pdfDoc, currentPage, [], comentariosDB);
-        $('#pageInfo').text(`Página ${currentPage} de ${totalPages}`);
+        $('#pageInfo').text('Página ' + currentPage + ' de ' + totalPages);
+        if(typeof window.actualizarOnionPagina === 'function') window.actualizarOnionPagina(currentPage);
     }
 });
 
@@ -726,7 +1004,8 @@ $('#btnNextPage').click(function() {
         guardarAnotacionesPagina(currentPage);
         currentPage++;
         renderPage(pdfDoc, currentPage, [], comentariosDB);
-        $('#pageInfo').text(`Página ${currentPage} de ${totalPages}`);
+        $('#pageInfo').text('Página ' + currentPage + ' de ' + totalPages);
+        if(typeof window.actualizarOnionPagina === 'function') window.actualizarOnionPagina(currentPage);
     }
 });
 
@@ -742,7 +1021,7 @@ function guardarAnotacionesAutomatico() {
 function guardarAnotacionesPagina(pageNum, generarLog = false) {
     if(!canvas) return;
     
-    var json = JSON.stringify(canvas.toJSON());
+    var json = JSON.stringify(canvas.toJSON(['commentRef', 'commentId']));
     
     $.ajax({
         url: '/notas-unificadas/pdf-anotaciones/guardar-anotaciones',
@@ -751,6 +1030,7 @@ function guardarAnotacionesPagina(pageNum, generarLog = false) {
         data: {
             id_nota_ingreso: currentIdNota,
             tipo_archivo: currentTipoArchivo,
+            version_id: currentVersionId || '',
             pagina: pageNum,
             anotaciones: json,
             generar_log: generarLog ? 1 : 0
@@ -764,7 +1044,10 @@ function guardarAnotacionesPagina(pageNum, generarLog = false) {
 
 $('#btnGuardarTodo').click(function() {
     guardarAnotacionesPagina(currentPage, true); // Log Manual
-    alert('Cambios guardados correctamente');
+    notificacion('success', 'Cambios guardados correctamente.');
+    $('#modalEditorAnotaciones').modal('hide');
+    if(canvas) { canvas.dispose(); canvas = null; }
+    pdfDoc = null; currentIdNota = null; currentTipoArchivo = null; currentVersionId = null;
 });
 
 $('#btnCerrarEditor').click(function() {
@@ -779,6 +1062,7 @@ $('#btnCerrarEditor').click(function() {
     pdfDoc = null;
     currentIdNota = null;
     currentTipoArchivo = null;
+    currentVersionId = null;
 });
 
 // Borrar elemento seleccionado
@@ -790,4 +1074,56 @@ $(document).keydown(function(e) {
             guardarAnotacionesAutomatico();
         }
     }
+});
+
+// ============================================
+// SUBIR NUEVA VERSIÓN DESDE EL EDITOR
+// ============================================
+
+$('#btnSubirNuevaVersion').on('click', function() {
+    $('#inputNuevaVersion').val('').trigger('click');
+});
+
+$('#inputNuevaVersion').on('change', function() {
+    var file = this.files[0];
+    if (!file) return;
+    if (!currentIdNota || !currentTipoArchivo) {
+        notificacion('error', 'Error: no hay nota/tipo activo.');
+        return;
+    }
+
+    var formData = new FormData();
+    formData.append('archivo', file);
+    formData.append('id_nota', currentIdNota);
+    formData.append('tipo_archivo', currentTipoArchivo);
+    formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+
+    var $btn = $('#btnSubirNuevaVersion');
+    $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Subiendo...');
+
+    $.ajax({
+        url: '/notas-unificadas/pdf-anotaciones/subir-version',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(res) {
+            if (res.success) {
+                // Recargar el editor con la nueva versión
+                abrirEditorPdf(currentIdNota, currentTipoArchivo, res.version_id);
+                // Notificar (usar la función del wizard si está disponible, sino alert)
+                notificacion('success', res.msg || 'Nueva versión subida');
+            } else {
+                notificacion('error', res.msg || 'Error al subir');
+            }
+        },
+        error: function(xhr) {
+            var msg = (xhr.responseJSON && xhr.responseJSON.msg) ? xhr.responseJSON.msg : 'Error al subir archivo';
+            notificacion('error', msg);
+        },
+        complete: function() {
+            $btn.prop('disabled', false).html('<i class="fa fa-upload"></i> Nueva versión');
+            $('#inputNuevaVersion').val('');
+        }
+    });
 });

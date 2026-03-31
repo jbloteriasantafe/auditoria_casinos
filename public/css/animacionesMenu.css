@@ -3,21 +3,19 @@
  font-family: AbrilFatface;
  font-style: normal;
  font-weight: normal;
+ font-display: swap;
  src: url("/fonts/AbrilFatFace/AbrilFatface-Regular.ttf") format('truetype');
 }
 
-@font-face {
-  font-family: Roboto-Regular;
-  font-style: normal;
-  font-weight: normal;
-  src: url("/fonts/Roboto/Roboto-Regular.ttf") format('truetype');
-}
+/* Roboto-Regular: definido en importacionFuentes.css con woff2 + font-display:swap - no redefinir aqui */
 
 @font-face {
  font-family: Roboto-Black;
  font-style: normal;
  font-weight: normal;
- src: url("/fonts/Roboto/Roboto-Black.ttf") format('truetype');
+ font-display: swap;
+ src: url("/fonts/Roboto/Roboto-Black.woff2") format('woff2'),
+      url("/fonts/Roboto/Roboto-Black.ttf") format('truetype');
 }
 
 /* LA MÁS GRANDE */

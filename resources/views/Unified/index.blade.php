@@ -8,7 +8,7 @@
 <link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="/css/lista-datos.css">
-<link rel="stylesheet" href="/css/hyper_modal.css?v={{ time() }}">
+<link rel="stylesheet" href="/css/hyper_modal.css?v={{ filemtime(public_path('css/hyper_modal.css')) }}">
 <!-- CSS Inlined for reliability -->
 <style>
     /* --- HYPER-MODERN INLINE STYLES (DENSE MODE) --- */
@@ -127,6 +127,39 @@
         padding: 8px 15px;
         border-radius: 0 8px 8px 0;
     }
+
+    /* Wizard Step 2 — Responsive form layout */
+    .wiz-label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #374151;
+        letter-spacing: 0.3px;
+    }
+    .wiz-field {
+        margin-bottom: 20px;
+    }
+    .wiz-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .wiz-col {
+        flex: 1 1 200px;
+        min-width: 0;
+    }
+    @media (max-width: 576px) {
+        .wiz-row {
+            flex-direction: column;
+            gap: 0;
+        }
+        .wiz-col {
+            margin-bottom: 15px;
+        }
+    }
 </style>
 <script>
     // Global function called by Card Clicks
@@ -184,6 +217,7 @@
     font-size: 13px;
     border-bottom: 1px solid rgba(255,255,255,0.2);
     margin: 0;
+    overflow: hidden;
 }
 #modalDetalleTramite .panel-body {
     padding: 15px;
@@ -289,63 +323,68 @@
             <div class="panel-body">
                 <div class="row">
                     <div class="col-md-3">
+                        @if($nivelEstado !== 'funcionario')
                         <button id="btn-nueva-nota" class="btn btn-success" type="button" data-toggle="modal" data-target="#modalNuevaNota">
                             <i class="fa fa-plus"></i> Nueva Nota
                         </button>
+                        @endif
                     </div>
                 </div>
                 <br>
                 <!-- TOOLBAR (Search & Filters) -->
-                <div class="row" style="margin-bottom: 15px;">
-                    <div class="col-md-4">
+                <div class="row" style="margin-bottom: 12px;">
+                    <div class="col-md-5">
                         <div class="input-group">
                             <span class="input-group-addon"><i class="fa fa-search"></i></span>
                             <input type="text" class="form-control" id="inpBusqueda" placeholder="Buscar por Nota, Título...">
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <select class="form-control" id="selFiltroCasino">
-                            <option value="">- Todos los Casinos -</option>
+                    <div class="col-md-3" style="padding-left:20px;">
+                        <select class="form-control filtro-tabla" id="selFiltroCasino">
+                            <option value="">- Casino/Plataforma -</option>
                             @foreach($casinos as $c)
                                 <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <select class="form-control" id="selFiltroTipo">
-                            <option value="">- Todos los Tipos -</option>
-                            <option value="EVENTO">Evento</option>
-                            <option value="PUBLICIDAD">Publicidad</option>
+                    <div class="col-md-2" style="padding-left:20px;">
+                        <select class="form-control filtro-tabla" id="selFiltroRama">
+                            <option value="">- Rama -</option>
+                            <option value="MKT">Marketing</option>
+                            <option value="FISC">Fiscalización</option>
                         </select>
                     </div>
-                    <div class="col-md-2 text-right">
-                         <!-- View Toggles -->
-                         <div class="btn-group" data-toggle="buttons">
-                            <label class="btn btn-default active" id="btnViewTable">
-                                <input type="radio" name="options" autocomplete="off" checked> <i class="fa fa-list"></i>
-                            </label>
-                            {{-- Kanban y Calendario deshabilitados por ahora --}}
-                            {{-- <label class="btn btn-default" id="btnViewKanban">
-                                <input type="radio" name="options" autocomplete="off"> <i class="fa fa-columns"></i>
-                            </label>
-                            <label class="btn btn-default" id="btnViewCalendar">
-                                <input type="radio" name="options" autocomplete="off"> <i class="fa fa-calendar"></i>
-                            </label> --}}
+                    <div class="col-md-2" style="padding-left:20px;">
+                        <select class="form-control filtro-tabla" id="selFiltroEstado">
+                            <option value="">- Estado -</option>
+                            @foreach($estados as $est)
+                                <option value="{{ $est->descripcion }}">{{ $est->descripcion }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <br>
+                <div class="row" style="margin-bottom: 20px;">
+                    <div class="col-md-2" style="padding-right:20px;">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon" style="font-size:11px;">Desde</span>
+                            <input type="date" class="form-control filtro-tabla" id="inpFechaDesde">
                         </div>
                     </div>
-                </div>
-
-                <!-- Saved Filters (Quick Views) -->
-                <div class="row" style="margin-bottom: 10px;">
-                    <div class="col-md-12">
-                        <span class="text-muted" style="margin-right: 10px;"><i class="fa fa-filter"></i> Vistas Rápidas:</span>
-                        <button class="btn btn-xs btn-default btn-quick-filter" data-filter="pendientes">Mis Pendientes</button>
-                        <button class="btn btn-xs btn-default btn-quick-filter" data-filter="hoy">Ingresadas Hoy</button>
-                        <button class="btn btn-xs btn-default btn-quick-filter" data-filter="eventos_activos">Eventos Activos</button>
-                        <button class="btn btn-xs btn-link btn-quick-filter" data-filter="reset">Limpiar Filtros</button>
+                    <div class="col-md-2" style="padding-left:20px;">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon" style="font-size:11px;">Hasta</span>
+                            <input type="date" class="form-control filtro-tabla" id="inpFechaHasta">
+                        </div>
+                    </div>
+                    <div class="col-md-8" style="padding-left:30px;">
+                        <button class="btn btn-xs btn-default btn-quick-filter" data-filter="hoy" style="margin-right:5px;"><i class="fa fa-calendar-check-o"></i> Hoy</button>
+                        <button class="btn btn-xs btn-default btn-quick-filter" data-filter="proximos" style="margin-right:5px;"><i class="fa fa-clock-o"></i> Próximos</button>
+                        <button class="btn btn-xs btn-default btn-quick-filter" data-filter="por_vencer" style="margin-right:5px;"><i class="fa fa-exclamation-triangle"></i> Por vencer (7 días)</button>
+                        <button class="btn btn-xs btn-link btn-quick-filter" data-filter="reset"><i class="fa fa-times"></i> Limpiar Filtros</button>
                     </div>
                 </div>
-
+                <br>
                 <!-- TABLE CONTAINER (Partial View) -->
                 <div id="divTablaNotas">
                     @include('Unified.tabla_notas')
@@ -375,7 +414,7 @@
                 <div id="bulkToolbar" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:white; padding:10px 20px; border-radius:30px; box-shadow:0 10px 25px rgba(0,0,0,0.2); z-index:9990; align-items:center; gap:15px; border:1px solid #e2e8f0;">
                     <span style="font-weight:600; color:#475569; font-size:13px;"><span id="bulkCount">0</span> Seleccionados</span>
                     <div style="height:20px; width:1px; background:#e2e8f0;"></div>
-                    <button class="btn btn-danger btn-sm" id="btnBulkDelete" style="border-radius:20px; padding:5px 15px;"><i class="fa fa-trash"></i> Eliminar</button>
+                    @if($puedeEliminar)<button class="btn btn-danger btn-sm" id="btnBulkDelete" style="border-radius:20px; padding:5px 15px;"><i class="fa fa-trash"></i> Eliminar</button>@endif
                     <button class="btn btn-default btn-sm" id="btnBulkCancel" style="border-radius:20px; border:none; color:#94a3b8;"><i class="fa fa-times"></i></button>
                 </div>
 
@@ -401,7 +440,7 @@
                     
                     <!-- Steps Circles -->
                     <div class="stepper-circle active" id="stepIndicator0" style="left: 0%;">
-                        <i class="fa fa-mouse-pointer"></i>
+                        <i class="fa fa-hand-pointer"></i>
                     </div>
                     <div class="stepper-circle" id="stepIndicator1" style="left: 25%;">
                         1
@@ -453,7 +492,7 @@
                     </div>
 
                     <!-- STEP 1: GENERAL DATA -->
-                    <div id="step1Content" style="display:none; max-width: 850px; margin: 0 auto;">
+                    <div id="step1Content" style="display:none; max-width: 95%; margin: 0 auto;">
                         <h4 class="step-title">Datos Administrativos</h4>
                         <div class="row">
                             <!-- Compressed Row 1: Nota / Año / Casino -->
@@ -466,7 +505,7 @@
                                 <input type="number" class="form-control" name="anio" id="inpAnio" value="{{ date('Y') }}" required>
                             </div>
                             <div class="col-md-5">
-                                <label>Casino * <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Casino al que afecta este trámite."></i></label>
+                                <label>Casino/Plataforma * <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Casino o plataforma al que afecta este trámite."></i></label>
                                 <select class="form-control" name="id_casino" id="selCasino" required>
                                     @foreach($casinos as $c)
                                     <option value="{{ $c->id_casino }}" data-nombre="{{ $c->nombre }}">{{ $c->nombre }}</option>
@@ -479,95 +518,113 @@
                     </div>
                 
                     <!-- STEP 2: CLASSIFICATIONS & DATES -->
-                    <div id="step2Content" style="display:none; max-width: 850px; margin: 0 auto;">
-                        <h4 class="step-title">Clasificación y Fechas</h4>
+                    <div id="step2Content" style="display:none; max-width: 95%; margin: 0 auto; padding: 15px 10px; box-sizing: border-box;">
+                        <h4 style="margin-bottom: 25px;">Clasificación y Fechas</h4>
 
-                        <!-- DYNAMIC FIELDS: MARKETING -->
-                        <div class="row section-marketing">
-                             <div class="col-md-6">
-                                 <label>Tipo Solicitud * <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Define si es una pauta publicitaria o un evento presencial."></i></label>
-                                 <select class="form-control" name="tipo_solicitud" id="selTipoSolicitud">
-                                     <option value="PUBLICIDAD">Publicidad</option>
-                                     <option value="EVENTO">Evento / Promo</option>
-                                 </select>
-                            </div>
+                        <!-- TIPO SOLICITUD (MARKETING) -->
+                        <div class="section-marketing wiz-field">
+                            <label class="wiz-label">Tipo Solicitud * <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Define si es una pauta publicitaria o un evento presencial."></i></label>
+                            <select class="form-control" name="tipo_solicitud" id="selTipoSolicitud">
+                                <option value="PUBLICIDAD">Publicidad / Evento / Promo</option>
+                            </select>
                         </div>
-    
-                        <!-- DYNAMIC FIELDS: MARKETING -->
-                        <div class="row section-marketing">
-                             <div class="col-md-6">
-                                 <label>Tipo Evento (MKT) *</label>
-                                 <select class="form-control" name="id_tipo_evento_mkt" id="selTipoEventoMKT">
-                                     <option value="">-- Seleccione --</option>
-                                     @foreach($tipos_evento as $t)
-                                        @if(($t->tipo_tarea ?? 'MKT') == 'MKT')
-                                            <option value="{{ $t->idtipoevento }}">{{ $t->tipo_nombre }}</option>
+
+                        <!-- TIPO EVENTO + CATEGORÍA (MKT) -->
+                        <div class="section-marketing wiz-row">
+                            <div class="wiz-col">
+                                <label class="wiz-label">Tipo Evento (MKT) *</label>
+                                <select class="form-control" name="id_tipo_evento_mkt" id="selTipoEventoMKT">
+                                    <option value="">-- Seleccione --</option>
+                                    @foreach($tipos_evento as $t)
+                                        @if($t->tipo_tarea == 'MKT')
+                                            <option value="{{ $t->id }}">{{ $t->descripcion }}</option>
                                         @endif
-                                     @endforeach
-                                 </select>
+                                    @endforeach
+                                </select>
                             </div>
-                             <div class="col-md-6">
-                                 <label>Categoría (MKT) *</label>
-                                 <select class="form-control" name="id_categoria_mkt" id="selCategoriaMKT">
-                                     <option value="">-- Seleccione --</option>
-                                     @foreach($categorias as $c)
-                                        @if(($c->tipo_tarea ?? 'MKT') == 'MKT')
-                                            <option value="{{ $c->idcategoria }}">{{ $c->categoria }}</option>
+                            <div class="wiz-col">
+                                <label class="wiz-label">Categoría (MKT) *</label>
+                                <select class="form-control" name="id_categoria_mkt" id="selCategoriaMKT">
+                                    <option value="">-- Seleccione --</option>
+                                    @foreach($categorias as $c)
+                                        @if($c->tipo_tarea == 'MKT')
+                                            <option value="{{ $c->id }}">{{ $c->descripcion }}</option>
                                         @endif
-                                     @endforeach
-                                 </select>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
 
-                        <!-- DYNAMIC FIELDS: FISCALIZACION -->
-                        <div class="row section-fiscalizacion" style="display:none;">
-                             <div class="col-md-6">
-                                 <label>Tipo Evento (Técnico) *</label>
-                                 <select class="form-control" name="id_tipo_evento_fisc" id="selTipoEventoFISC">
-                                     <option value="">-- Seleccione --</option>
-                                     @foreach($tipos_evento as $t)
-                                        @if(($t->tipo_tarea ?? 'MKT') == 'FISC')
-                                            <option value="{{ $t->idtipoevento }}">{{ $t->tipo_nombre }}</option>
+                        <!-- TIPO EVENTO (FISCALIZACIÓN) -->
+                        <div class="section-fiscalizacion" style="display:none;">
+                            <div class="wiz-field">
+                                <label class="wiz-label">Tipo Evento (Técnico) *</label>
+                                <select class="form-control" name="id_tipo_evento_fisc" id="selTipoEventoFISC">
+                                    <option value="">-- Seleccione --</option>
+                                    @foreach($tipos_evento as $t)
+                                        @if($t->tipo_tarea == 'FISC')
+                                            <option value="{{ $t->id }}" data-contexto="{{ $t->contexto ?? 'todos' }}">{{ $t->descripcion }}</option>
                                         @endif
-                                     @endforeach
-                                 </select>
-                            </div>
-                             <div class="col-md-6">
-                                 <label>Categoría (Técnico) *</label>
-                                 <select class="form-control" name="id_categoria_fisc" id="selCategoriaFISC">
-                                     <option value="">-- Seleccione --</option>
-                                     @foreach($categorias as $c)
-                                        @if(($c->tipo_tarea ?? 'MKT') == 'FISC')
-                                            <option value="{{ $c->idcategoria }}">{{ $c->categoria }}</option>
-                                        @endif
-                                     @endforeach
-                                 </select>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
 
-                        <div class="row" style="margin-top:20px;">
-                            <div class="col-md-12">
-                                <label>Título / Asunto * <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Breve descripción identificatoria del trámite."></i></label>
-                                <input type="text" class="form-control" name="titulo" id="inpTitulo" required maxlength="255" placeholder="Descripción breve...">
+                        <!-- TÍTULO -->
+                        <div class="wiz-field">
+                            <label class="wiz-label">Título / Asunto * <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Breve descripción identificatoria del trámite."></i></label>
+                            <input type="text" class="form-control" name="titulo" id="inpTitulo" required maxlength="255" placeholder="Descripción breve...">
+                        </div>
+
+                        <!-- FECHA PRETENDIDA DE APROBACIÓN (solo MKT) -->
+                        <div class="section-marketing wiz-field">
+                            <label class="wiz-label">Fecha Pretendida de Aprobación</label>
+                            <input type="date" class="form-control wiz-date-click" name="fecha_pretendida_aprobacion" id="inpFechaPretendida">
+                        </div>
+
+                        <!-- FECHAS -->
+                        <div class="wiz-row">
+                            <div class="wiz-col">
+                                <label class="wiz-label">Fecha Inicio * <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Cuándo comienza la vigencia."></i></label>
+                                <input type="date" class="form-control wiz-date-click" name="fecha_inicio_evento" id="inpFechaInicio">
+                            </div>
+                            <div class="wiz-col">
+                                <label class="wiz-label" id="lblFechaFin">Fecha Fin * <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Cuándo finaliza la vigencia."></i></label>
+                                <input type="date" class="form-control wiz-date-click" name="fecha_fin_evento" id="inpFechaFin">
                             </div>
                         </div>
 
-                        <!-- DATE FIELDS -->
-                        <div class="row" style="margin-top:15px; margin-bottom: 30px;">
-                            <div class="col-md-6">
-                                <label>Fecha Inicio <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Cuándo comienza la vigencia."></i></label>
-                                <input type="date" class="form-control" name="fecha_inicio_evento" id="inpFechaInicio">
-                            </div>
-                            <div class="col-md-6">
-                                <label>Fecha Fin <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Cuándo finaliza la vigencia (opcional)."></i></label>
-                                <input type="date" class="form-control" name="fecha_fin_evento" id="inpFechaFin">
-                            </div>
+                        <!-- FECHA REFERENCIA (FISC) -->
+                        <div class="section-fiscalizacion wiz-field" style="display:none;">
+                            <label class="wiz-label">Fecha Referencia <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Fecha histórica o de referencia externa."></i></label>
+                            <input type="text" class="form-control" name="fecha_referencia" placeholder="Texto libre o fecha">
                         </div>
-                        
-                        <div class="row section-fiscalizacion" style="margin-top:10px; display:none;">
-                            <div class="col-md-12">
-                                <label>Fecha Referencia <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Fecha histórica o de referencia externa."></i></label>
-                                <input type="text" class="form-control" name="fecha_referencia" placeholder="Texto libre o fecha">
+
+                        <!-- RELACIÓN CON NOTA ANTERIOR -->
+                        <div style="margin-top: 10px; margin-bottom: 20px;">
+                            <hr style="margin-top: 10px; margin-bottom: 15px;">
+                            <h5 style="color:#64748b; margin-bottom: 15px;"><i class="fa fa-link"></i> Relacionar con Nota Anterior <small class="text-muted">(opcional)</small></h5>
+                            <div style="background:#f8fafc; padding:15px; border-radius:10px; border: 1px solid #e2e8f0;">
+                                <input type="hidden" name="id_grupo_padre" id="hidIdGrupoPadre" value="">
+                                <div id="notaPadreSeleccionada" style="display:none; margin-bottom:10px;">
+                                    <div style="display:flex; align-items:center; gap:10px; background:#ede9fe; padding:10px 15px; border-radius:8px; border:1px solid #c4b5fd;">
+                                        <i class="fa fa-link" style="color:#7c3aed; font-size:16px;"></i>
+                                        <div style="flex:1;">
+                                            <strong id="lblNotaPadreNro" style="color:#5b21b6;"></strong>
+                                            <span id="lblNotaPadreTitulo" style="color:#6b7280; margin-left:8px;"></span>
+                                            <small id="lblNotaPadreCasino" class="text-muted" style="margin-left:8px;"></small>
+                                        </div>
+                                        <button type="button" class="btn btn-xs btn-danger" id="btnQuitarNotaPadreWizard" title="Quitar relación">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="buscadorNotaPadre">
+                                    <div style="position: relative;">
+                                        <input type="text" class="form-control" id="inpBuscarNotaPadre" placeholder="Buscar por número o título..." autocomplete="off">
+                                        <div id="resultadosBusquedaPadre" class="list-group" style="position:absolute; top:100%; left:0; right:0; z-index:10000; max-height:220px; overflow-y:auto; display:none; box-shadow:0 10px 20px rgba(0,0,0,0.15);"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -608,7 +665,7 @@
                     </div>
                     
                     <!-- STEP 3: ADJUNTOS (Nueva Estructura) -->
-                    <div id="step3Content" style="display:none; max-width: 900px; margin: 0 auto; padding-bottom: 30px;">
+                    <div id="step3Content" style="display:none; max-width: 95%; margin: 0 auto; padding-bottom: 30px;">
                         <input type="hidden" id="hidIdNotaFisc" name="id_nota_fisc">
                         <input type="hidden" id="hidIdNotaMkt" name="id_nota_mkt">
 
@@ -701,16 +758,16 @@
                     </div>
 
                     <!-- STEP 4: SUMMARY (Merged) -->
-                    <div id="step4Content" style="display:none; max-width: 850px; margin: 0 auto;">
+                    <div id="step4Content" style="display:none; max-width: 95%; margin: 0 auto; padding-bottom: 20px;">
                          <h4 class="text-center" style="margin-bottom:20px; font-weight:700; color:#475569;">Resumen de la Solicitud</h4>
-                        <div class="alert alert-success text-center">
+                        <div class="alert alert-success text-center" style="margin-top: 15px; margin-bottom: 0;">
                             <i class="fa fa-info-circle"></i> Verifique que todos los datos sean correctos antes de confirmar.
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar / Finalizar</button>
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i class="fa fa-times"></i> Cancelar</button>
                 <div style="float: right;">
                     <button type="button" class="btn btn-default btn-wizard-prev" style="display:none;" onclick="wizardPrev()">Atrás</button>
                     
@@ -735,7 +792,7 @@
                 <button type="button" class="close" data-dismiss="modal" style="color: white;">&times;</button>
                 <h4 class="modal-title"><i class="fa fa-paperclip"></i> Agregar Adjuntos - <span id="labelTipoRama"></span></h4>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="overflow-y: auto; max-height: calc(80vh - 120px);">
                 <form id="frmAgregarAdjuntos" enctype="multipart/form-data">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
                     <input type="hidden" id="adjNotaId" name="id_nota">
@@ -817,6 +874,56 @@
     </div>
 </div>
 
+<!-- Modal: Agregar Nota de Aprobación -->
+<div class="modal fade" id="modalNotaAprobacion" tabindex="-1" role="dialog" style="z-index: 1060;">
+    <div class="modal-dialog" role="document" style="max-width: 520px;">
+        <div class="modal-content" style="border-radius: 12px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; border-radius: 12px 12px 0 0;">
+                <button type="button" class="close" data-dismiss="modal" style="color: white;">&times;</button>
+                <h4 class="modal-title"><i class="fa fa-check-circle"></i> Agregar Nota de Aprobación</h4>
+            </div>
+            <div class="modal-body">
+                <form id="frmNotaAprobacion" enctype="multipart/form-data">
+                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                    <input type="hidden" id="aprobacionGrupoId" name="id_grupo">
+                    <input type="hidden" id="aprobacionTipoRama" name="tipo_rama" value="">
+
+                    <!-- Botonera de selección de rama -->
+                    <label style="margin-bottom: 10px;">Seleccione la rama</label>
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <div class="btn-rama-aprobacion" data-rama="MKT" style="flex:1; cursor:pointer; text-align:center; padding:20px 10px; border-radius:10px; background:#f8fafc; border:2px solid #e5e7eb; transition: all 0.2s;">
+                            <div style="width:50px; height:50px; margin:0 auto 10px; border-radius:50%; background:#eff6ff; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa fa-bullhorn" style="font-size:22px; color:#3b82f6;"></i>
+                            </div>
+                            <strong style="display:block; font-size:13px; color:#333;">Marketing / Publicidad</strong>
+                        </div>
+                        <div class="btn-rama-aprobacion" data-rama="FISC" style="flex:1; cursor:pointer; text-align:center; padding:20px 10px; border-radius:10px; background:#f8fafc; border:2px solid #e5e7eb; transition: all 0.2s;">
+                            <div style="width:50px; height:50px; margin:0 auto 10px; border-radius:50%; background:#ecfdf5; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa fa-cogs" style="font-size:22px; color:#10b981;"></i>
+                            </div>
+                            <strong style="display:block; font-size:13px; color:#333;">Fiscalización / Técnico</strong>
+                        </div>
+                    </div>
+
+                    <!-- Archivos (oculto hasta seleccionar rama) -->
+                    <div id="aprobacionArchivoWrap" style="display: none;">
+                        <div class="form-group">
+                            <label><i class="fa fa-file-pdf-o"></i> Archivos (puede seleccionar varios)</label>
+                            <input type="file" name="archivos_aprobacion[]" id="inputAprobacionArchivos" class="form-control" accept=".pdf,.doc,.docx,.zip" multiple>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-success" id="btnGuardarNotaAprobacion">
+                    <i class="fa fa-upload"></i> Subir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- =====================================================
      MODAL: DETALLE/EDITAR TRÁMITE
      ===================================================== -->
@@ -864,7 +971,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="panel panel-default" style="border-radius: 8px;">
-                                    <div class="panel-heading" style="background: #667eea; color: white; border-radius: 8px 8px 0 0;">
+                                    <div class="panel-heading" style="background: #667eea !important; color: white !important; border-radius: 8px 8px 0 0;">
                                         <i class="fa fa-info-circle"></i> Información del Grupo
                                     </div>
                                     <div class="panel-body" id="grupoInfoPanel">
@@ -874,7 +981,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="panel panel-default" style="border-radius: 8px;">
-                                    <div class="panel-heading" style="background: #f59e0b; color: white; border-radius: 8px 8px 0 0;">
+                                    <div class="panel-heading" style="background: #f59e0b !important; color: white !important; border-radius: 8px 8px 0 0;">
                                         <i class="fa fa-tasks"></i> Resumen de Notas
                                     </div>
                                     <div class="panel-body" id="grupoResumenPanel">
@@ -883,8 +990,46 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Notas Relacionadas -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="panel panel-default" style="border-radius: 8px;">
+                                    <div class="panel-heading" style="background: #7c3aed !important; color: white !important; border-radius: 8px 8px 0 0;">
+                                        <i class="fa fa-link"></i> Notas Relacionadas
+                                        @if($nivelEstado !== 'funcionario')
+                                        <button class="btn btn-xs btn-default pull-right btn-vincular-nota" style="margin-top: -3px;">
+                                            <i class="fa fa-plus"></i> Vincular
+                                        </button>
+                                        @endif
+                                    </div>
+                                    <div class="panel-body" id="grupoRelacionPanel" style="padding: 10px;">
+                                        <p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i> Cargando...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notas de Aprobación -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="panel panel-default" style="border-radius: 8px;">
+                                    <div class="panel-heading" style="background: #059669 !important; color: white !important; border-radius: 8px 8px 0 0;">
+                                        <i class="fa fa-check-circle"></i> Notas de Aprobación
+                                        @if($nivelEstado === 'admin')
+                                        <button class="btn btn-xs btn-default pull-right btn-agregar-nota-aprobacion" style="margin-top: -3px;">
+                                            <i class="fa fa-plus"></i> Agregar
+                                        </button>
+                                        @endif
+                                    </div>
+                                    <div class="panel-body" id="grupoAprobacionPanel">
+                                        <p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i> Cargando...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    
+
                     <!-- TAB: MARKETING -->
                     <div class="tab-pane fade" id="tabMkt">
                         <div id="mktContenido">
@@ -917,12 +1062,13 @@
 <!-- Template para contenido de nota (MKT o FISC) -->
 @verbatim
 <script type="text/template" id="templateNotaDetalle">
+<div class="nota-detalle-content" data-nota-id="{{id}}" data-tipo-rama="{{tipo_rama}}" data-id-casino="{{id_casino}}">
 <div class="row">
     <!-- Columna Izquierda: Datos y Adjuntos -->
     <div class="col-md-7">
         <!-- Datos Generales -->
         <div class="panel panel-default" style="border-radius: 8px; margin-bottom: 15px;">
-            <div class="panel-heading" style="background: {{color}}; color: white; border-radius: 8px 8px 0 0;">
+            <div class="panel-heading" style="background: {{color}} !important; color: white !important; border-radius: 8px 8px 0 0;">
                 <i class="fa fa-file-text"></i> Datos de la Nota
                 <button class="btn btn-xs btn-default pull-right btn-editar-nota" data-id="{{id}}" style="margin-top: -3px;">
                     <i class="fa fa-pencil"></i> Editar
@@ -930,19 +1076,25 @@
             </div>
             <div class="panel-body">
                 <table class="table table-condensed" style="margin-bottom: 0;">
-                    <tr><td style="width: 140px;"><strong>Nro Nota:</strong></td><td><span class="editable" data-field="nro_nota_ing">{{nro_nota}}</span></td></tr>
-                    <tr><td><strong>Tipo Solicitud:</strong></td><td><span class="editable" data-field="tipo_solicitud">{{tipo_solicitud}}</span></td></tr>
+                    <tr><td style="width: 140px;"><strong>Nro Nota:</strong></td><td><span class="editable" data-field="nro_nota_ing">{{nro_nota}}</span> <small class="text-muted">/ {{anio}}</small></td></tr>
+                    <tr><td><strong>Casino/Plataforma:</strong></td><td>{{casino}}</td></tr>
+                    <tr><td><strong>Tipo Solicitud:</strong></td><td>{{tipo_solicitud}}</td></tr>
+                    <tr><td><strong>Tipo Evento:</strong></td><td><span class="editable" data-field="id_tipo_evento" data-value="{{id_tipo_evento}}">{{tipo_evento}}</span></td></tr>
+                    <tr class="row-categoria"><td><strong>Categoría:</strong></td><td><span class="editable" data-field="id_categoria" data-value="{{id_categoria}}">{{categoria}}</span></td></tr>
                     <tr><td><strong>Descripción:</strong></td><td><span class="editable" data-field="descripcion">{{descripcion}}</span></td></tr>
                     <tr><td><strong>Fecha Inicio:</strong></td><td><span class="editable" data-field="fecha_inicio">{{fecha_inicio}}</span></td></tr>
                     <tr><td><strong>Fecha Fin:</strong></td><td><span class="editable" data-field="fecha_fin">{{fecha_fin}}</span></td></tr>
-                    <tr><td><strong>Estado:</strong></td><td><span class="label label-{{estadoClass}}">{{estado}}</span></td></tr>
+                    <tr class="row-fecha-pretendida"><td><strong>Fecha Est. Aprob.:</strong></td><td><span class="editable" data-field="fecha_pretendida_aprobacion">{{fecha_pretendida_aprobacion}}</span></td></tr>
+                    <tr class="row-fecha-referencia"><td><strong>Fecha Ref.:</strong></td><td>{{fecha_referencia}}</td></tr>
+                    <tr><td><strong>Estado:</strong></td><td><span class="editable" data-field="estado" data-value="{{estado}}"><span class="label label-{{estadoClass}}">{{estado}}</span></span></td></tr>
+                    <tr><td><strong>Creado:</strong></td><td>{{created_at}}</td></tr>
                 </table>
             </div>
         </div>
         
         <!-- Adjuntos -->
         <div class="panel panel-default" style="border-radius: 8px; margin-bottom: 15px;">
-            <div class="panel-heading" style="background: #6b7280; color: white; border-radius: 8px 8px 0 0;">
+            <div class="panel-heading" style="background: #6b7280 !important; color: white !important; border-radius: 8px 8px 0 0;">
                 <i class="fa fa-paperclip"></i> Archivos Adjuntos
                 <button class="btn btn-xs btn-success pull-right btn-agregar-adj-modal" data-id="{{id}}" data-tipo-rama="{{tipo_rama}}" style="margin-top: -3px;">
                     <i class="fa fa-plus"></i> Agregar
@@ -953,22 +1105,13 @@
             </div>
         </div>
         
-        <!-- Activos -->
-        <div class="panel panel-default" style="border-radius: 8px;">
-            <div class="panel-heading" style="background: #8b5cf6; color: white; border-radius: 8px 8px 0 0;">
-                <i class="fa fa-gamepad"></i> Activos Asociados
-            </div>
-            <div class="panel-body">
-                {{activosHtml}}
-            </div>
-        </div>
     </div>
-    
-    <!-- Columna Derecha: Comentarios e Historial -->
+
+    <!-- Columna Derecha: Comentarios, Historial y Activos -->
     <div class="col-md-5">
         <!-- Comentarios -->
         <div class="panel panel-default" style="border-radius: 8px; margin-bottom: 15px;">
-            <div class="panel-heading" style="background: #ec4899; color: white; border-radius: 8px 8px 0 0;">
+            <div class="panel-heading" style="background: #ec4899 !important; color: white !important; border-radius: 8px 8px 0 0;">
                 <i class="fa fa-comments"></i> Comentarios
             </div>
             <div class="panel-body" style="padding: 10px;">
@@ -978,24 +1121,62 @@
                 <div class="input-group">
                     <input type="text" class="form-control input-comentario" placeholder="Escribir comentario..." data-id="{{id}}">
                     <span class="input-group-btn">
-                        <button class="btn btn-primary btn-enviar-comentario" data-id="{{id}}">
-                            <i class="fa fa-send"></i>
+                        <button class="btn btn-default btn-enviar-comentario" data-id="{{id}}" style="border:1px solid #ccc;">
+                            <i class="fa fa-paper-plane" style="color:#ec4899;"></i>
                         </button>
                     </span>
                 </div>
             </div>
         </div>
-        
+
         <!-- Historial -->
-        <div class="panel panel-default" style="border-radius: 8px;">
-            <div class="panel-heading" style="background: #374151; color: white; border-radius: 8px 8px 0 0;">
+        <div class="panel panel-default" style="border-radius: 8px; margin-bottom: 15px;">
+            <div class="panel-heading" style="background: #374151 !important; color: white !important; border-radius: 8px 8px 0 0;">
                 <i class="fa fa-history"></i> Historial de Movimientos
             </div>
             <div class="panel-body" style="padding: 10px; max-height: 250px; overflow-y: auto;">
                 <div class="timeline-movimientos">{{historialHtml}}</div>
             </div>
         </div>
+
+        <!-- Activos (solo visible en FISC) -->
+        <div class="panel panel-default panel-activos-wrap" style="border-radius: 8px;">
+            <div class="panel-heading" style="background: #8b5cf6 !important; color: white !important; border-radius: 8px 8px 0 0;">
+                <i class="fa fa-desktop"></i> <strong>Máquinas / Islas Asociadas</strong>
+                <button class="btn btn-xs btn-default pull-right btn-toggle-add-activo" data-id="{{id}}" style="margin-top: -3px;">
+                    <i class="fa fa-plus"></i> Agregar
+                </button>
+            </div>
+            <div class="panel-body" style="padding: 0;">
+                <div class="activos-add-form" data-nota-id="{{id}}" data-casino-id="{{id_casino}}" style="display:none; padding:10px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+                    <select class="form-control det-sel-tipo-activo" style="margin-bottom:8px;">
+                        <option value="MTM">Máquina (MTM)</option>
+                        <option value="ISLA">Isla (todas las MTM)</option>
+                        <option value="MESA">Mesa de Paño</option>
+                        <option value="BINGO">Bingo</option>
+                    </select>
+                    <div class="input-group det-input-wrap">
+                        <input type="text" class="form-control det-inp-activo" placeholder="Nro admin de la máquina..." autocomplete="off">
+                        <input type="hidden" class="det-hid-activo">
+                        <span class="input-group-btn">
+                            <button class="btn btn-primary det-btn-agregar-activo"><i class="fa fa-plus"></i> Agregar a lista</button>
+                        </span>
+                    </div>
+                    <div class="det-resultados-busqueda list-group" style="position:fixed; z-index:99999; max-height:250px; overflow-y:auto; display:none; box-shadow:0 8px 30px rgba(0,0,0,0.25); border:1px solid #ccc; background:#fff;"></div>
+                    <div class="det-pendientes-lista" style="margin-top:8px;"></div>
+                    <div class="det-pendientes-actions" style="display:none; margin-top:8px; text-align:right; border-top:1px solid #e2e8f0; padding-top:8px;">
+                        <span class="det-pendientes-count text-muted" style="float:left; line-height:30px; font-size:12px;"></span>
+                        <button class="btn btn-default btn-sm det-btn-cancelar-activos" style="margin-right:5px;"><i class="fa fa-times"></i> Cancelar</button>
+                        <button class="btn btn-success btn-sm det-btn-confirmar-activos"><i class="fa fa-check"></i> Confirmar</button>
+                    </div>
+                </div>
+                <div class="activos-lista-detalle">
+                    {{activosHtml}}
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 </div>
 </script>
 @endverbatim
@@ -1003,7 +1184,7 @@
 @endsection
 
 @section('tituloDeAyuda')
-<h3 class="modal-title" style="color: #fff;">Ayuda Módulo Unificado</h3>
+<h3 class="modal-title" style="color: #fff;">| Notas Unificadas</h3>
 @endsection
 @section('contenidoAyuda')
 <div class="col-md-12">
@@ -1013,7 +1194,77 @@
 
 @section('scripts')
 <!-- JS Manual para Wizard -->
-<script src="/js/unified_wizard.js?v={{ time() }}"></script>
+<script>
+var PUEDE_ELIMINAR = {{ $puedeEliminar ? 'true' : 'false' }};
+var NIVEL_ESTADO = '{{ $nivelEstado }}';
+var CURRENT_USER_ID = {{ session('id_usuario', 0) }};
+var PLATAFORMA_ID_OFFSET = {{ \App\Http\Controllers\NotasUnificadasController::PLATAFORMA_ID_OFFSET }};
+var OPCIONES_TIPO_EVENTO = {
+    MKT: [
+        @foreach($tipos_evento as $t)
+            @if($t->tipo_tarea == 'MKT')
+                {id: {{ $t->id }}, nombre: '{{ addslashes($t->descripcion) }}'},
+            @endif
+        @endforeach
+    ],
+    FISC: [
+        @foreach($tipos_evento as $t)
+            @if($t->tipo_tarea == 'FISC')
+                {id: {{ $t->id }}, nombre: '{{ addslashes($t->descripcion) }}', contexto: '{{ $t->contexto ?? 'todos' }}'},
+            @endif
+        @endforeach
+    ]
+};
+var OPCIONES_CATEGORIA = {
+    MKT: [
+        @foreach($categorias as $c)
+            @if($c->tipo_tarea == 'MKT')
+                {id: {{ $c->id }}, nombre: '{{ addslashes($c->descripcion) }}'},
+            @endif
+        @endforeach
+    ],
+    FISC: []
+};
+var OPCIONES_ESTADO = [
+    @foreach($estados as $est)
+        {descripcion: '{{ $est->descripcion }}', color: '{{ $est->color }}'},
+    @endforeach
+];
+var TRANSICIONES_ESTADO = {
+    funcionario: {
+        @foreach(\App\Models\NotaEstado::transicionesFuncionario() as $desde => $destinos)
+            '{{ $desde }}': [{!! collect($destinos)->map(function($d){ return "'" . $d . "'"; })->implode(',') !!}],
+        @endforeach
+    },
+    regular: {
+        @foreach(\App\Models\NotaEstado::transicionesRegular() as $desde => $destinos)
+            '{{ $desde }}': [{!! collect($destinos)->map(function($d){ return "'" . $d . "'"; })->implode(',') !!}],
+        @endforeach
+    }
+};
+</script>
+<script src="/js/unified_wizard.js?v={{ filemtime(public_path('js/unified_wizard.js')) }}"></script>
+<script>
+/* Espaciado wizard paso 2 - inline para evitar cache */
+$(function(){
+    $(document).on('shown.bs.modal', '#modalNuevaNota, #modalNuevoTramite', function(){
+        setTimeout(function(){ _fixStep2Spacing(); }, 200);
+    });
+    var _origNext = window.wizardNext;
+    var _fixStep2Spacing = function(){
+        /* Spacing is now handled by wiz-* CSS classes — no JS overrides needed */
+    };
+    /* Observer: detectar cuando step2Content se hace visible */
+    var obs = new MutationObserver(function(){
+        if ($('#step2Content').is(':visible')) _fixStep2Spacing();
+    });
+    var target = document.getElementById('step2Content');
+    if (target) obs.observe(target, {attributes: true, attributeFilter: ['style']});
+
+    /* Abrir calendario al clickear en cualquier parte del input date */
+    $(document).on('click', 'input[type="date"]', function(){ this.showPicker(); });
+});
+</script>
 
 <!-- SortableJS -->
 <!-- <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script> -->
@@ -1047,59 +1298,90 @@
             </div>
             <div class="modal-body" id="editorContent" style="padding: 0; height: calc(100% - 110px); display: flex;">
                 <!-- PDF Canvas (izquierda) -->
-                <div style="flex: 1; background: #34495e; overflow: auto; position: relative;">
-                    <div style="text-align: center; padding: 10px; background: #2c3e50;">
-                        <!-- Herramientas -->
-                        <div class="btn-group" style="margin-right: 20px;">
-                            <button id="btnSelect" class="btn btn-sm btn-default btn-tool active" title="Seleccionar">
-                                <span style="font-size: 18px; font-weight: bold;">⬊</span>
+                <div style="flex: 1; background: #34495e; overflow: auto; display: flex; flex-direction: column; position: relative;">
+                    <div style="padding: 8px 15px; background: #2c3e50; flex-shrink: 0; position: sticky; top: 0; z-index: 10;">
+                        <!-- Fila 1: Herramientas + Navegación + Guardar -->
+                        <div style="display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap;">
+                            <div class="btn-group" id="grupoHerramientas">
+                                <button id="btnSelect" class="btn btn-sm btn-default btn-tool active" title="Seleccionar">
+                                    <i class="fa fa-hand-pointer"></i>
+                                </button>
+                                <button id="btnArrow" class="btn btn-sm btn-default btn-tool" title="Dibujar Flecha">
+                                    <i class="fa fa-long-arrow-alt-right"></i>
+                                </button>
+                                <button id="btnRect" class="btn btn-sm btn-default btn-tool" title="Dibujar Rectángulo">
+                                    <i class="far fa-square"></i>
+                                </button>
+                                <button id="btnComment" class="btn btn-sm btn-warning btn-tool" title="Agregar Comentario">
+                                    <i class="far fa-comment"></i>
+                                </button>
+                            </div>
+                            <button id="btnDeleteSelected" class="btn btn-sm btn-danger" title="Eliminar figura seleccionada (Supr)">
+                                <i class="fa fa-trash"></i>
                             </button>
-                            <button id="btnArrow" class="btn btn-sm btn-default btn-tool" title="Dibujar Flecha">
-                                <span style="font-size: 18px; font-weight: bold;">→</span>
-                            </button>
-                            <button id="btnRect" class="btn btn-sm btn-default btn-tool" title="Dibujar Rectángulo">
-                                <span style="font-size: 18px; font-weight: bold;">▢</span>
-                            </button>
-                            <button id="btnComment" class="btn btn-sm btn-warning btn-tool" title="Agregar Comentario">
-                                <span style="font-size: 18px; font-weight: bold;">💬</span>
+                            <div class="btn-group">
+                                <button id="btnPrevPage" class="btn btn-sm btn-default"><i class="fa fa-chevron-left"></i></button>
+                                <button class="btn btn-sm btn-default" disabled id="pageInfo">Página 1 de 1</button>
+                                <button id="btnNextPage" class="btn btn-sm btn-default"><i class="fa fa-chevron-right"></i></button>
+                            </div>
+                            <button id="btnGuardarTodo" class="btn btn-sm btn-success">
+                                <i class="fa fa-save"></i> Guardar
                             </button>
                         </div>
-                        
-                        <!-- Navegación -->
-                        <div class="btn-group">
-                            <button id="btnPrevPage" class="btn btn-sm btn-default">
-                                <i class="fa fa-chevron-left"></i>
-                            </button>
-                            <button class="btn btn-sm btn-default" disabled id="pageInfo">Página 1 de 1</button>
-                            <button id="btnNextPage" class="btn btn-sm btn-default">
-                                <i class="fa fa-chevron-right"></i>
-                            </button>
-                        </div>
-                        
-                        <button id="btnGuardarTodo" class="btn btn-sm btn-success" style="margin-left: 20px;">
-                            <i class="fa fa-save"></i> Guardar
-                        </button>
-                        
-                        <!-- Controles de Comparación -->
-                        <label class="btn btn-sm btn-default" style="margin-left: 30px; margin-bottom: 0;">
-                            <input type="checkbox" id="check-comparar" style="margin-right: 5px;"> Comparar
-                        </label>
-                        
-                        <div id="controles-comparacion" style="display: none; margin-left: 10px; display: inline-block;">
-                            <select id="select-comparar" class="form-control input-sm" style="width: 200px; display: inline-block;">
-                                <option value="">Seleccionar PDF...</option>
-                            </select>
-                            <span style="margin-left: 10px;">Opacidad:</span>
-                            <input type="range" id="slider-opacidad" min="0" max="1" step="0.01" value="0.5" style="width: 100px; vertical-align: middle;">
+
+                        <!-- Fila 2: Versión + Comparar -->
+                        <div style="display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:8px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px; min-height:36px;">
+
+                            <!-- Vista SIN comparación -->
+                            <div id="layoutSinComparar" style="display:flex; align-items:center; gap:10px;">
+                                <span id="contenedorVersiones" style="display:none; align-items:center; gap:5px;">
+                                    <i class="fa fa-history" style="color:#bdc3c7;"></i>
+                                    <select id="selectVersion" class="form-control input-sm" style="width:210px;"></select>
+                                </span>
+                                <button type="button" id="btnSubirNuevaVersion" class="btn btn-xs btn-success" title="Subir nueva versión de este archivo" style="white-space:nowrap;">
+                                    <i class="fa fa-upload"></i> Subir nueva versión
+                                </button>
+                                <input type="file" id="inputNuevaVersion" style="display:none;" accept=".pdf,.png,.jpg,.jpeg">
+                                <label class="text-muted" style="margin:0; font-weight:normal; cursor:pointer; display:flex; align-items:center; gap:5px; white-space:nowrap;">
+                                    <input type="checkbox" id="check-comparar"> Comparar versiones
+                                </label>
+                            </div>
+
+                            <!-- Vista CON comparación activa -->
+                            <div id="layoutComparando" style="display:none; align-items:center; gap:10px; flex-wrap:wrap; justify-content:center;">
+                                <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+                                    <small class="text-muted">Versión actual</small>
+                                    <span id="labelVersionActual" class="label label-default" style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block;">—</span>
+                                </div>
+
+                                <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+                                    <div style="display:flex; align-items:center; gap:4px;">
+                                        <small class="text-muted">Actual</small>
+                                        <input type="range" id="slider-opacidad" min="0" max="100" step="1" value="50" style="width:100px;">
+                                        <small class="text-muted">Comparado</small>
+                                    </div>
+                                    <small class="text-muted" id="slider-opacidad-label">50%</small>
+                                </div>
+
+                                <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+                                    <small class="text-muted">Comparando con</small>
+                                    <select id="select-comparar" class="form-control input-sm" style="width:210px;"></select>
+                                </div>
+
+                                <button id="btnCancelarComparar" class="btn btn-xs btn-default" title="Salir de comparación">
+                                    <i class="fa fa-times"></i> Salir
+                                </button>
+                            </div>
+
                         </div>
                     </div>
                     
                     
-                    <div style="padding: 20px; text-align: center; background: #34495e;">
-                        <div id="canvasContainer" style="display: inline-block; position: relative; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; background: #34495e;">
+                        <div id="canvasContainer" style="position: relative; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
                             <canvas id="pdfCanvas"></canvas>
                             <!-- Onion skin layer -->
-                            <div class="onion-layer" style="position: absolute; top: 0; left: 0; pointer-events: none; display: none; opacity: 0.5; z-index: 999;">
+                            <div class="onion-layer" style="position: absolute; top: 0; left: 0; pointer-events: none; display: none; opacity: 0.5; z-index: 5;">
                                 <canvas id="onionCanvas"></canvas>
                             </div>
                         </div>
@@ -1205,14 +1487,9 @@
 }
 </style>
 
-<!-- PDF.js y Fabric.js - LOCAL -->
-<script src="/js/libs/pdf.min.js"></script>
-<script src="/js/libs/fabric.min.js"></script>
-<script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = '/js/libs/pdf.worker.min.js';
-</script>
-<script src="/js/notas_anotaciones.js?v={{ time() }}"></script>
-<script src="/js/notas_versiones_v2.js?v={{ time() }}"></script>
+<!-- PDF.js y Fabric.js - carga diferida (solo al abrir anotaciones) -->
+<script src="/js/notas_anotaciones.js?v={{ filemtime(public_path('js/notas_anotaciones.js')) }}"></script>
+<script src="/js/notas_versiones_v2.js?v={{ filemtime(public_path('js/notas_versiones_v2.js')) }}"></script>
 
 
 <!-- FullCalendar v3 (Compatible with jQuery) -->

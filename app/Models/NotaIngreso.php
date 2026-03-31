@@ -27,6 +27,7 @@ class NotaIngreso extends Model
         // Evento
         'fecha_inicio_evento',
         'fecha_fin_evento',
+        'fecha_pretendida_aprobacion',
         'id_tipo_evento',
         'id_categoria',
         'fecha_referencia'

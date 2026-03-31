@@ -581,7 +581,7 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
      <link href="/css/table-fixed.css" rel="stylesheet">
      <link href="/css/importacionFuentes.css" rel="stylesheet">
      <link href="/css/tarjetasMenues.css" rel="stylesheet">
-     <link href="/css/flaticon.css" rel="stylesheet" type="text/css">
+     {{-- flaticon.css eliminado: nunca se usa (flaticon-* no aparece en ninguna vista) --}}
      <link rel="stylesheet" href="/css/style.css">
 
      <link rel="stylesheet" type="text/css" href="/css/component.css" />
@@ -743,23 +743,32 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
      <!-- JavaScript personalizado -->
      <script src="/js/barraNavegacion.js"></script>
 
-     <!-- JavaScript de tarjetas animadas -->
-     <script src="/js/anime.min.js"></script>
-     <script src="/js/main.js"></script>
+     <!-- JavaScript de tarjetas animadas (defer: no bloquean el render) -->
+     <script src="/js/anime.min.js" defer></script>
+     <script src="/js/main.js" defer></script>
 
-     <!-- TableSorter -->
-     <script type="text/javascript" src="/js/jquery.tablesorter.js"></script>
-     <script type="text/javascript" src="/js/iconosTableSorter.js"></script>
+     <!-- TableSorter (defer: se carga en paralelo, ejecuta tras parseo HTML) -->
+     <script src="/js/jquery.tablesorter.js" defer></script>
+     <script src="/js/iconosTableSorter.js" defer></script>
 
      <!-- Collapse JS | Controla el menú -->
      <script type="text/javascript" src="/js/collapse.js"></script>
 
-     <!-- librerias de animate -->
-     <script src="/js/createjs-2015.11.26.min.js"></script>
-     <script src="/js/Animacion_logo2.js?1517927954849"></script>
+     <!-- Animación de logo: carga diferida tras window.load (no bloquea DOMContentLoaded) -->
+     <script>
+         window.addEventListener('load', function() {
+             var cjs = document.createElement('script');
+             cjs.src = '/js/createjs-2015.11.26.min.js';
+             cjs.onload = function() {
+                 var anim = document.createElement('script');
+                 anim.src = '/js/Animacion_logo2.js?1517927954849';
+                 document.head.appendChild(anim);
+             };
+             document.head.appendChild(cjs);
+         });
+     </script>
      <script type="text/javascript" src="/js/modalTicket.js" charset="utf-8"></script>
      @if ($usuario['usuario']->es_superusuario)
-         <script src="/js/eruda.js"></script>
          <style>
              .eruda-entry-btn {
                  width: 15px;
@@ -768,15 +777,23 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
              }
          </style>
          <script>
-             eruda.init();
-             eruda.get('entryBtn')["_$el"].css({
-                 width: '7px',
-                 height: '7px',
-                 'font-size': '5px',
-             })
-             eruda.position({
-                 x: 0,
-                 y: window.innerHeight - 7
+             // Carga diferida de eruda (debug tool) para no bloquear DOMContentLoaded
+             window.addEventListener('load', function() {
+                 var s = document.createElement('script');
+                 s.src = '/js/eruda.js';
+                 s.onload = function() {
+                     eruda.init();
+                     eruda.get('entryBtn')["_$el"].css({
+                         width: '7px',
+                         height: '7px',
+                         'font-size': '5px',
+                     });
+                     eruda.position({
+                         x: 0,
+                         y: window.innerHeight - 7
+                     });
+                 };
+                 document.head.appendChild(s);
              });
          </script>
      @endif
