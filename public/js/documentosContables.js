@@ -3829,7 +3829,7 @@ function generarFilaTGI(TGI, controlador) {
     .append($("<td>").addClass("col-xs-4").text(casino));
 
   // Columna de ACCIONES
-  const tdAcc = $("<td>").addClass("col-xs-5 d-flex flex-wrap");
+  const tdAcc = $("<td>").addClass("col-xs-4 d-flex flex-wrap");
 
   const btnView = $("<a>")
     .addClass("btn btn-success btn-sm btn-verRegTGI")
@@ -4474,7 +4474,7 @@ function generarFilaIMP_AP_OL(IMP_AP_OL, controlador) {
     .append($("<td>").addClass("col-xs-2").html(qna));
 
   // Columna de ACCIONES
-  const tdAcc = $("<td>").addClass("col-xs-3 d-flex flex-wrap");
+  const tdAcc = $("<td>").addClass("col-xs-2 d-flex flex-wrap");
 
   const btnView = $("<a>")
     .addClass("btn btn-success btn-sm btn-verRegIMP_AP_OL")
