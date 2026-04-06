@@ -166,6 +166,34 @@ class APIAEController extends Controller
     }
     
     public function agregar(Request $request){
+        $getimage = function($base64value){
+            $type_value = explode(',',$base64value);//strip data:image/jpeg;base64,
+            $realvalue = null;
+            if(count($type_value) == 2){
+              $realvalue = $type_value[1];
+            }
+            else if(count($type_value) == 1){//Sino sin type
+              $realvalue = $base64value;
+            }
+            else{
+              return ['filehandle' => false,'mime' => null];
+            }
+            $image = base64_decode($realvalue,true);
+            
+            if($image === false) return ['filehandle' => false,'mime' => null];
+            $tmpfile = tmpfile();
+            fwrite($tmpfile,$image);
+            rewind($tmpfile);
+            $mime = mime_content_type(
+              stream_get_meta_data($tmpfile)['uri']
+            );
+            return ['filehandle' => $tmpfile,'mime' => $mime];
+        };
+        Validator::extend('imageBase64',function($attribute, $value, $params, $validator) use ($getimage){
+          $fh_mime = $getimage($value);
+          if($fh_mime['filehandle'] === false) return false;
+          return in_array($fh_mime['mime'],['image/png','image/jpeg','image/webp']);
+        });
         $validator = Validator::make($request->all(), [
           'ae_datos.nro_dni'          => 'required|integer',
           'ae_datos.apellido'         => 'required|string|max:100',
@@ -186,6 +214,9 @@ class APIAEController extends Controller
           'ae_datos.estado_civil'     => 'nullable|string|max:4|exists:ae_estado_civil,codigo',
           'ae_estado.fecha_ae'        => 'required|date',
           'ae_estado.fecha_revocacion_ae' => 'nullable|date',
+          'ae_importacion.foto1' => 'nullable|imageBase64',
+          'ae_importacion.foto2' => 'nullable|imageBase64',
+          'ae_importacion.scandni' => 'nullable|imageBase64'
         ], array(), self::$atributos)->after(function($validator){
           if($validator->errors()->any()) return;
           $data = $validator->getData();
@@ -230,7 +261,7 @@ class APIAEController extends Controller
           if(!array_key_exists($key,$request['ae_datos'])) $request['ae_datos'][$key] = $defecto[2];
         }
         $api_token = AuthenticationController::getInstancia()->obtenerAPIToken();
-        DB::transaction(function() use($request,$api_token,$except){
+        DB::transaction(function() use($request,$api_token,$except,$getimage){
           $ae = new AE\Autoexcluido;
           $ae_datos = $request['ae_datos'];
     
@@ -259,7 +290,27 @@ class APIAEController extends Controller
           $ae_estado['id_plataforma'] = ($api_token->metadata ?? [])['id_plataforma'] ?? null;
           $AEC = AutoexclusionController::getInstancia(false);
           $AEC->setearEstado($ae,$ae_estado);
-          $AEC->subirImportacionArchivos($ae,[]);
+          
+          $ae_importacion = [];
+          //Convierto el string base64 a un archivo temporal y creo un UploadedFile
+          foreach(['foto1','foto2','scandni'] as $tipo){
+            $fh_mime = $getimage($request['ae_importacion'][$tipo]);
+            $extension = '.'.explode('/',$fh_mime['mime'])[1];
+            
+            //No se fclosea tmphandler para que no desaparezca el archivo
+            $archivo_nuevo = new \Illuminate\Http\UploadedFile(
+                stream_get_meta_data($fh_mime['filehandle'])['uri'], //abs path
+                $tipo.$extension, //filename
+                $fh_mime['mime'],
+                null, //constante de error
+                false //modo test
+            );
+            //por las dudas seteo el handler asi se mantiene la referencia y el GC no lo borra
+            $archivo_nuevo->NODELETE_tmphandler = $fh_mime['filehandle'];
+            
+            $ae_importacion[$tipo] = $archivo_nuevo;
+          }
+          $AEC->subirImportacionArchivos($ae,$ae_importacion);
         });
     
         return response()->json('Agregado',200);
