@@ -27,6 +27,44 @@ class NotasUnificadasController extends Controller
     // Offset para IDs de plataformas online (plataforma.id_plataforma + OFFSET = id_casino virtual)
     const PLATAFORMA_ID_OFFSET = 100;
 
+    // URL base de la API del sistema online
+    const API_ONLINE_URL = 'http://10.1.121.24:8004/api/auditoria';
+    const API_ONLINE_TOKEN = 'TokenParaJuego';
+
+    /**
+     * Obtener plataformas y juegos desde la API online (cacheado 1 hora)
+     */
+    private static function obtenerDatosOnline()
+    {
+        return \Illuminate\Support\Facades\Cache::remember('api_datos_online_v2', 3600, function() {
+            try {
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, self::API_ONLINE_URL . '/plataformasYJuegos');
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_PROXY, null);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'API-Token: ' . self::API_ONLINE_TOKEN
+                ]);
+                $response = curl_exec($ch);
+                $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+                if ($code != 200 || $response === false) {
+                    \Log::error("API Online error: HTTP $code");
+                    return [];
+                }
+                return json_decode($response) ?: [];
+            } catch (\Exception $e) {
+                \Log::error("API Online error: " . $e->getMessage());
+                return [];
+            }
+        });
+    }
+
+    private static function obtenerPlataformasOnline()
+    {
+        return self::obtenerDatosOnline();
+    }
+
     /**
      * Resolver nombre de casino/plataforma por id_casino
      */
@@ -40,15 +78,13 @@ class NotasUnificadasController extends Controller
             return $casino ? $casino->nombre : 'Casino #' . $id_casino;
         }
 
-        // Plataforma online
+        // Plataforma online (desde API)
         $id_plataforma = $id_casino - self::PLATAFORMA_ID_OFFSET;
-        try {
-            $plataforma = \App\Models\CasinoOnline::find($id_plataforma);
-            if ($plataforma) {
-                return str_replace('.bet.ar', '', $plataforma->nombre) . ' (' . $plataforma->codigo . ')';
+        $plataformas = self::obtenerPlataformasOnline();
+        foreach ($plataformas as $p) {
+            if ($p->id_plataforma == $id_plataforma) {
+                return str_replace('.bet.ar', '', $p->nombre) . ' (' . $p->codigo . ')';
             }
-        } catch (\Exception $e) {
-            \Log::warning("resolverNombreCasino: error buscando plataforma $id_plataforma: " . $e->getMessage());
         }
         return 'Plataforma #' . $id_casino;
     }
@@ -175,46 +211,39 @@ class NotasUnificadasController extends Controller
         // Quick Filters
         if ($request->has('quick_filter')) {
             if($request->quick_filter === 'hoy') {
-                $gruposQuery->whereDate('created_at', \Carbon\Carbon::today());
+                // Grupos que tienen alguna nota creada hoy
+                $gruposQuery->whereHas('notas', function($q) {
+                    $q->whereDate('created_at', \Carbon\Carbon::today());
+                });
             }
             if($request->quick_filter === 'proximos') {
-                // Solo grupos que tienen nota MKT con fecha_pretendida_aprobacion >= hoy
+                // Grupos con alguna nota (MKT o FISC) con fecha_pretendida_aprobacion >= hoy
                 $hoy = \Carbon\Carbon::today()->toDateString();
                 $gruposQuery->whereHas('notas', function($q) use ($hoy) {
-                    $q->where('tipo_rama', 'MKT')
-                      ->whereDate('fecha_pretendida_aprobacion', '>=', $hoy);
+                    $q->whereDate('fecha_pretendida_aprobacion', '>=', $hoy);
                 });
-                // Ordenar por proximidad (más cercano primero) — campo está en notas_ingreso
                 $gruposQuery->orderByRaw('(
                     SELECT MIN(ni.fecha_pretendida_aprobacion)
                     FROM notas_ingreso ni
                     WHERE ni.id_grupo = grupos_tramites.id
-                      AND ni.tipo_rama = ?
                       AND ni.fecha_pretendida_aprobacion >= ?
-                ) ASC', ['MKT', $hoy]);
+                ) ASC', [$hoy]);
             }
             if($request->quick_filter === 'por_vencer') {
-                // Grupos con fecha_pretendida_aprobacion entre hoy y hoy+7 días
+                // Grupos con fecha_pretendida_aprobacion entre hoy y hoy+7 días (cualquier estado)
                 $hoy = \Carbon\Carbon::today()->toDateString();
                 $en7dias = \Carbon\Carbon::today()->addDays(7)->toDateString();
                 $gruposQuery->whereHas('notas', function($q) use ($hoy, $en7dias) {
                     $q->whereDate('fecha_pretendida_aprobacion', '>=', $hoy)
-                      ->whereDate('fecha_pretendida_aprobacion', '<=', $en7dias)
-                      ->whereHas('expedientes', function($e) {
-                          $e->whereIn('estado_actual', [NotaEstado::CONTROL_INICIADO, NotaEstado::OBS_CORREGIDA]);
-                      });
+                      ->whereDate('fecha_pretendida_aprobacion', '<=', $en7dias);
                 });
-                // Ordenar por más próximo a vencer primero
-                $estadosVencer = [NotaEstado::CONTROL_INICIADO, NotaEstado::OBS_CORREGIDA];
                 $gruposQuery->orderByRaw('(
                     SELECT MIN(ni.fecha_pretendida_aprobacion)
                     FROM notas_ingreso ni
-                    INNER JOIN expedientes_notas exp ON exp.id_nota_ingreso = ni.id
                     WHERE ni.id_grupo = grupos_tramites.id
                       AND ni.fecha_pretendida_aprobacion >= ?
                       AND ni.fecha_pretendida_aprobacion <= ?
-                      AND exp.estado_actual IN (?, ?)
-                ) ASC', [$hoy, $en7dias, $estadosVencer[0], $estadosVencer[1]]);
+                ) ASC', [$hoy, $en7dias]);
             }
         }
 
@@ -269,48 +298,29 @@ class NotasUnificadasController extends Controller
         }
 
         // Casinos físicos (excluir los que están duplicados como plataforma)
-        $casinos = \Illuminate\Support\Facades\Cache::remember('all_casinos_filtered', 300, function() {
-            // Obtener nombres de plataformas para excluirlas de casinos físicos
-            $nombresPlataforma = [];
-            try {
-                $nombresPlataforma = \App\Models\CasinoOnline::pluck('nombre')
-                    ->map(function($n) { return str_replace('.bet.ar', '', $n); })
-                    ->toArray();
-            } catch (\Exception $e) {}
+        $plataformasOnline = self::obtenerPlataformasOnline();
+        $nombresPlataforma = array_map(function($p) {
+            return str_replace('.bet.ar', '', $p->nombre);
+        }, (array) $plataformasOnline);
 
-            return \App\Casino::all()->filter(function($c) use ($nombresPlataforma) {
-                return !in_array($c->nombre, $nombresPlataforma);
-            })->values();
-        });
+        $casinos = \App\Casino::all()->filter(function($c) use ($nombresPlataforma) {
+            return !in_array($c->nombre, $nombresPlataforma);
+        })->values();
         $casinos_original = $casinos;
 
         // Tipos de evento y categorías desde BD
         $categorias = NotaCategoria::activasPorRama();
         $tipos_evento = NotaTipoEvento::activosPorRama();
 
-        // Inject Online Casinos for the UI
-        try {
-            $plataformas = \App\Models\CasinoOnline::all();
-            
-            $casinos_online = $plataformas->map(function($p) {
-                $c = new \stdClass();
-                $c->id_casino = $p->id_plataforma + self::PLATAFORMA_ID_OFFSET;
-                $c->nombre = str_replace('.bet.ar', '', $p->nombre) . ' (' . $p->codigo . ')';
-                $c->codigo = $p->codigo;
-                return $c;
-            });
-
-            // \Log::info("Plataformas Online encontradas: " . $casinos_online->count());
-
-        } catch(\Exception $e) {
-            \Log::error("CRITICAL: Error connecting to Online DB: " . $e->getMessage());
-            $casinos_online = collect([]); 
-        }
-
-        // Merge Online Casinos
-        if(isset($casinos_online)) {
-            $casinos = $casinos->concat($casinos_online);
-        }
+        // Inyectar plataformas online como casinos virtuales
+        $casinos_online = collect($plataformasOnline)->map(function($p) {
+            $c = new \stdClass();
+            $c->id_casino = $p->id_plataforma + self::PLATAFORMA_ID_OFFSET;
+            $c->nombre = str_replace('.bet.ar', '', $p->nombre) . ' (' . $p->codigo . ')';
+            $c->codigo = $p->codigo;
+            return $c;
+        });
+        $casinos = $casinos->concat($casinos_online);
 
         // Filtrar dropdown de casinos según permisos del usuario
         if ($casinosPermitidos !== null) {
@@ -648,20 +658,33 @@ class NotasUnificadasController extends Controller
                     return ['id' => $m->id_mesa_de_panio, 'text' => $texto, 'info' => $info_str, 'data' => $data];
                 });
         } elseif($tipo == 'JUEGO_ONLINE') {
-             // Usar la conexion online
-             $resultados = \App\JuegoOnline::where('nombre_juego', 'like', '%' . $busqueda . '%')
-             ->with('categoria_juego')
-             ->take(20)->get()->map(function($j){
+             // Buscar juegos desde cache (datos de API online)
+             $id_plataforma = intval($id_casino) - self::PLATAFORMA_ID_OFFSET;
+             $datos = self::obtenerDatosOnline();
+             $juegos = [];
+             foreach ($datos as $plat) {
+                 if ($plat->id_plataforma == $id_plataforma && isset($plat->juegos)) {
+                     $juegos = $plat->juegos;
+                     break;
+                 }
+             }
+             // Filtrar por búsqueda localmente
+             $busquedaLower = mb_strtolower($busqueda);
+             $filtrados = array_filter($juegos, function($j) use ($busquedaLower) {
+                 return mb_strpos(mb_strtolower($j->nombre_juego), $busquedaLower) !== false
+                     || mb_strpos(mb_strtolower($j->cod_juego ?? ''), $busquedaLower) !== false;
+             });
+             $resultados = array_map(function($j) {
                  $data = [
                      'Cod Juego' => $j->cod_juego ?? '-',
                      'Juego' => $j->nombre_juego,
-                     'Categoria' => $j->categoria_juego ? $j->categoria_juego->nombre : '-',
+                     'Categoria' => $j->categoria ?? '-',
                      '% Dev' => $j->porcentaje_devolucion ?? '-',
                      'Plataforma' => ($j->escritorio ? 'PC ' : '') . ($j->movil ? 'Movil' : '')
                  ];
                  $info_str = "Cat: {$data['Categoria']} | %Dev: {$data['% Dev']}";
                  return ['id' => $j->id_juego, 'text' => $j->nombre_juego, 'info' => $info_str, 'data' => $data];
-             });
+             }, array_slice(array_values($filtrados), 0, 20));
         }
         
         return response()->json($resultados);

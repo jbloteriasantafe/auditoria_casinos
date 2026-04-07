@@ -1142,7 +1142,7 @@
         <!-- Activos (solo visible en FISC) -->
         <div class="panel panel-default panel-activos-wrap" style="border-radius: 8px;">
             <div class="panel-heading" style="background: #8b5cf6 !important; color: white !important; border-radius: 8px 8px 0 0;">
-                <i class="fa fa-desktop"></i> <strong>Máquinas / Islas Asociadas</strong>
+                <i class="fa fa-desktop"></i> <strong class="activos-titulo">Máquinas / Islas Asociadas</strong>
                 <button class="btn btn-xs btn-default pull-right btn-toggle-add-activo" data-id="{{id}}" style="margin-top: -3px;">
                     <i class="fa fa-plus"></i> Agregar
                 </button>

@@ -96,6 +96,9 @@ $(document).ready(function () {
     $('#selCasino').change(function () {
         actualizarTiposActivo();
         filtrarTipoEventoFISC();
+        // Limpiar activos al cambiar de casino/plataforma
+        activos = [];
+        $('#tablaActivos tbody').empty();
     });
 
     function filtrarTipoEventoFISC() {
@@ -364,7 +367,7 @@ $(document).ready(function () {
         } else {
             row += `<td>${texto}</td>`;
         }
-        row += `<td><button class='btn btn-xs btn-danger btn-borrar-activo'>X</button></td></tr>`;
+        row += `<td><button class='btn btn-xs btn-danger btn-borrar-activo' style='background-color:#d9534f !important; color:#fff !important; border-color:#d43f3a !important; opacity:1 !important;'>X</button></td></tr>`;
 
         $('#tablaActivos tbody').append(row);
         return true;
@@ -412,15 +415,10 @@ $(document).ready(function () {
     });
 
     $('#tablaActivos').on('click', '.btn-borrar-activo', function () {
-        // Note: For full robustness, remove from 'activos' array logic needs to be exact by index or id/type match.
-        // For prototype we just visual remove, array sync might be needed if re-adding.
-        // Simple sync:
         let tr = $(this).closest('tr');
-        // This is weak, but sufficient for Mvp if we just clear array on Reset. 
-        // Better:
-        // activos = activos.filter(...) - requires storing ID in TR.
+        let idx = tr.index();
+        activos.splice(idx, 1);
         tr.remove();
-        // TODO: Sync array properly if strict validation needed.
     });
 
     // --- FORM SUBMISSION & STEPPER ---
@@ -2299,6 +2297,12 @@ $(document).ready(function () {
             var $tmp2 = $('<div>').html(html);
             $tmp2.find('.row-fecha-pretendida').remove();
             $tmp2.find('.row-categoria').remove();
+            // Si es plataforma, solo mostrar Juego Online y cambiar título
+            var idCasino = parseInt(nota.id_casino) || 0;
+            if (idCasino >= (window.PLATAFORMA_ID_OFFSET || 100)) {
+                $tmp2.find('.det-sel-tipo-activo').html('<option value="JUEGO_ONLINE">Juego Online</option>');
+                $tmp2.find('.activos-titulo').text('Juegos Asociados');
+            }
             html = $tmp2.html();
         }
 
