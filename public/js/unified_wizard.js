@@ -72,12 +72,26 @@ $(document).ready(function () {
     })();
 
     // --- INIT & HELPERS ---
+    function esPlataformaSeleccionada(selector) {
+        return $(selector).find('option:selected').data('es-plataforma') == '1';
+    }
+
+    function actualizarHiddenCasino() {
+        var opt = $('#selCasino').find('option:selected');
+        if (opt.data('es-plataforma') == '1') {
+            $('#hidCasinoId').val('');
+            $('#hidPlataformaId').val(opt.val());
+        } else {
+            $('#hidCasinoId').val(opt.val());
+            $('#hidPlataformaId').val('');
+        }
+    }
+
     function actualizarTiposActivo() {
         let select = $('#selTipoActivo');
         select.empty();
 
-        var casinoId = parseInt($('#selCasino').val()) || 0;
-        if (casinoId >= (window.PLATAFORMA_ID_OFFSET || 100)) {
+        if (esPlataformaSeleccionada('#selCasino')) {
             select.append('<option value="JUEGO_ONLINE">Juego Online</option>');
             $('#inpIdActivo').attr('placeholder', 'ID o Codigo de Juego');
         } else {
@@ -90,10 +104,12 @@ $(document).ready(function () {
     }
 
     actualizarTiposActivo();
+    actualizarHiddenCasino();
 
     // --- EVENT HANDLERS STEP 1 ---
 
     $('#selCasino').change(function () {
+        actualizarHiddenCasino();
         actualizarTiposActivo();
         filtrarTipoEventoFISC();
         // Limpiar activos al cambiar de casino/plataforma
@@ -102,8 +118,7 @@ $(document).ready(function () {
     });
 
     function filtrarTipoEventoFISC() {
-        var casinoId = parseInt($('#selCasino').val()) || 0;
-        var esPlataforma = casinoId >= (window.PLATAFORMA_ID_OFFSET || 100);
+        var esPlataforma = esPlataformaSeleccionada('#selCasino');
         $('#selTipoEventoFISC option').each(function () {
             var ctx = $(this).data('contexto');
             if (!ctx || ctx === 'todos') {
@@ -287,7 +302,12 @@ $(document).ready(function () {
         clearTimeout(timeout);
         let val = $(this).val();
         let tipo = $('#selTipoActivo').val();
-        let id_casino = $('#selCasino').val();
+        let params = { q: val, tipo: tipo };
+        if (esPlataformaSeleccionada('#selCasino')) {
+            params.id_plataforma = $('#selCasino').val();
+        } else {
+            params.id_casino = $('#selCasino').val();
+        }
 
         if (val.length < 1) {
             $('#resultadosBusqueda').hide();
@@ -295,7 +315,7 @@ $(document).ready(function () {
         }
 
         timeout = setTimeout(function () {
-            $.get('/notas-unificadas/buscar-activos', { q: val, tipo: tipo, id_casino: id_casino }, function (data) {
+            $.get('/notas-unificadas/buscar-activos', params, function (data) {
                 $('#resultadosBusqueda').empty();
 
                 if (data.length === 0) {
@@ -956,6 +976,7 @@ $(document).ready(function () {
     let gridState = {
         q: '',
         id_casino: '',
+        id_plataforma: '',
         rama: '',
         estado: '',
         fecha_desde: '',
@@ -976,7 +997,14 @@ $(document).ready(function () {
 
     // 2. Filters (all selects + date inputs with class .filtro-tabla)
     $(document).on('change', '.filtro-tabla', function () {
-        gridState.id_casino   = $('#selFiltroCasino').val();
+        var filtroVal = $('#selFiltroCasino').val();
+        if (filtroVal && filtroVal.toString().indexOf('p_') === 0) {
+            gridState.id_casino = '';
+            gridState.id_plataforma = filtroVal.replace('p_', '');
+        } else {
+            gridState.id_casino = filtroVal;
+            gridState.id_plataforma = '';
+        }
         gridState.rama        = $('#selFiltroRama').val();
         gridState.estado      = $('#selFiltroEstado').val();
         gridState.fecha_desde = $('#inpFechaDesde').val();
@@ -1381,6 +1409,7 @@ $(document).ready(function () {
         } else if (filter === 'reset') {
             // Reset completo de todos los filtros
             gridState.id_casino = '';
+            gridState.id_plataforma = '';
             gridState.rama = '';
             gridState.estado = '';
             gridState.fecha_desde = '';
@@ -2280,6 +2309,7 @@ $(document).ready(function () {
         html = sr(html, '{{estadoClass}}', getEstadoClass(nota.estado));
         html = sr(html, '{{created_at}}', nota.created_at || 'N/A');
         html = sr(html, '{{id_casino}}', nota.id_casino || '');
+        html = sr(html, '{{id_plataforma}}', nota.id_plataforma || '');
         html = sr(html, '{{adjuntosHtml}}', adjuntosHtml);
         html = sr(html, '{{activosHtml}}', activosHtml);
         html = sr(html, '{{comentariosHtml}}', comentariosHtml);
@@ -2298,8 +2328,7 @@ $(document).ready(function () {
             $tmp2.find('.row-fecha-pretendida').remove();
             $tmp2.find('.row-categoria').remove();
             // Si es plataforma, solo mostrar Juego Online y cambiar título
-            var idCasino = parseInt(nota.id_casino) || 0;
-            if (idCasino >= (window.PLATAFORMA_ID_OFFSET || 100)) {
+            if (nota.id_plataforma) {
                 $tmp2.find('.det-sel-tipo-activo').html('<option value="JUEGO_ONLINE">Juego Online</option>');
                 $tmp2.find('.activos-titulo').text('Juegos Asociados');
             }
@@ -2670,15 +2699,23 @@ $(document).ready(function () {
         var form = input.closest('.activos-add-form');
         var tipo = form.find('.det-sel-tipo-activo').val();
         var idCasino = form.data('casino-id');
+        var idPlataforma = form.data('plataforma-id');
         var resultsDiv = form.find('.det-resultados-busqueda');
 
         form.find('.det-hid-activo').val('');
 
         if (val.length < 1) { resultsDiv.hide().empty(); return; }
 
+        var params = { q: val, tipo: tipo };
+        if (idPlataforma) {
+            params.id_plataforma = idPlataforma;
+        } else {
+            params.id_casino = idCasino;
+        }
+
         clearTimeout(detActivoTimeout);
         detActivoTimeout = setTimeout(function () {
-            $.get('/notas-unificadas/buscar-activos', { q: val, tipo: tipo, id_casino: idCasino }, function (data) {
+            $.get('/notas-unificadas/buscar-activos', params, function (data) {
                 resultsDiv.empty();
                 if (data.length === 0) {
                     resultsDiv.append('<div class="list-group-item text-muted" style="padding:8px 12px;">Sin resultados</div>');
@@ -2957,8 +2994,7 @@ $(document).ready(function () {
             } else if (field === 'id_tipo_evento') {
                 var opciones = window.OPCIONES_TIPO_EVENTO[tipoRama] || [];
                 var selectedId = $span.data('value') || '';
-                var idCasino = parseInt($panel.closest('.nota-detalle-content').data('id-casino')) || 0;
-                var esPlataforma = idCasino >= (window.PLATAFORMA_ID_OFFSET || 100);
+                var esPlataforma = !!$panel.closest('.nota-detalle-content').data('id-plataforma');
                 inputHtml = '<select class="form-control edit-input" data-field="' + field + '" style="font-size: 13px;"><option value="">-- Seleccione --</option>';
                 opciones.forEach(function(o) {
                     var ctx = o.contexto || 'todos';

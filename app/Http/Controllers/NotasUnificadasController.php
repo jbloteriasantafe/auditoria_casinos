@@ -21,43 +21,45 @@ use App\Isla; // Importar modelo Isla (Legacy)
 
 class NotasUnificadasController extends Controller
 {
-    // Roles
-    const ROL_FUNCIONARIO = 17;
-
-    // Offset para IDs de plataformas online (plataforma.id_plataforma + OFFSET = id_casino virtual)
-    const PLATAFORMA_ID_OFFSET = 100;
-
     // URL base de la API del sistema online
-    const API_ONLINE_URL = 'http://10.1.121.24:8004/api/auditoria';
+    const API_ONLINE_URL = 'http://10.1.121.30:8003/api/auditoria';
     const API_ONLINE_TOKEN = 'TokenParaJuego';
+    // Prueba: API_ONLINE_URL = 'http://10.1.121.24:8004/api/auditoria'
 
     /**
      * Obtener plataformas y juegos desde la API online (cacheado 1 hora)
      */
+    private static $datosOnline = null;
+
     private static function obtenerDatosOnline()
     {
-        return \Illuminate\Support\Facades\Cache::remember('api_datos_online_v2', 3600, function() {
-            try {
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, self::API_ONLINE_URL . '/plataformasYJuegos');
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_PROXY, null);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                    'API-Token: ' . self::API_ONLINE_TOKEN
-                ]);
-                $response = curl_exec($ch);
-                $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                curl_close($ch);
-                if ($code != 200 || $response === false) {
-                    \Log::error("API Online error: HTTP $code");
-                    return [];
-                }
-                return json_decode($response) ?: [];
-            } catch (\Exception $e) {
-                \Log::error("API Online error: " . $e->getMessage());
+        if (self::$datosOnline !== null) {
+            return self::$datosOnline;
+        }
+
+        try {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, self::API_ONLINE_URL . '/plataformasYJuegos');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_PROXY, null);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'API-Token: ' . self::API_ONLINE_TOKEN
+            ]);
+            $response = curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            if ($code != 200 || $response === false) {
+                \Log::error("API Online error: HTTP $code");
+                self::$datosOnline = [];
                 return [];
             }
-        });
+            self::$datosOnline = json_decode($response) ?: [];
+            return self::$datosOnline;
+        } catch (\Exception $e) {
+            \Log::error("API Online error: " . $e->getMessage());
+            self::$datosOnline = [];
+            return [];
+        }
     }
 
     private static function obtenerPlataformasOnline()
@@ -66,27 +68,26 @@ class NotasUnificadasController extends Controller
     }
 
     /**
-     * Resolver nombre de casino/plataforma por id_casino
+     * Resolver nombre de casino o plataforma
      */
-    public static function resolverNombreCasino($id_casino)
+    public static function resolverNombreCasino($id_casino, $id_plataforma = null)
     {
-        if (!$id_casino) return '---';
+        if ($id_plataforma) {
+            $plataformas = self::obtenerPlataformasOnline();
+            foreach ($plataformas as $p) {
+                if ($p->id_plataforma == $id_plataforma) {
+                    return str_replace('.bet.ar', '', $p->nombre) . ' (' . $p->codigo . ')';
+                }
+            }
+            return 'Plataforma #' . $id_plataforma;
+        }
 
-        // Casino físico
-        if ($id_casino < self::PLATAFORMA_ID_OFFSET) {
+        if ($id_casino) {
             $casino = \App\Casino::find($id_casino);
             return $casino ? $casino->nombre : 'Casino #' . $id_casino;
         }
 
-        // Plataforma online (desde API)
-        $id_plataforma = $id_casino - self::PLATAFORMA_ID_OFFSET;
-        $plataformas = self::obtenerPlataformasOnline();
-        foreach ($plataformas as $p) {
-            if ($p->id_plataforma == $id_plataforma) {
-                return str_replace('.bet.ar', '', $p->nombre) . ' (' . $p->codigo . ')';
-            }
-        }
-        return 'Plataforma #' . $id_casino;
+        return '---';
     }
 
     /**
@@ -109,11 +110,12 @@ class NotasUnificadasController extends Controller
 
         // --- PERMISOS DE CASINO POR USUARIO ---
         // Superusuarios/controladores ven todo; otros solo sus casinos asignados o plataforma por rol
-        $casinosPermitidos = null; // null = sin filtro (super/admin/control)
-        $authCtrl = new AuthenticationController();
+        // Permisos: null = sin filtro (super/admin/control)
+        $casinosPermitidos = null;
+        $plataformasPermitidas = null;
 
         if (!$usuario->es_superusuario && !$usuario->es_controlador) {
-            // Buscar roles de plataforma (CARGA_NOTAS_*) y matchear contra plataforma.codigo
+            // Buscar roles de plataforma (CARGA_NOTAS_*) y matchear contra API
             $rolesPlataforma = DB::table('usuario_tiene_rol')
                 ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
                 ->where('usuario_tiene_rol.id_usuario', $id_usuario)
@@ -122,12 +124,15 @@ class NotasUnificadasController extends Controller
                 ->toArray();
 
             if (!empty($rolesPlataforma)) {
-                $casinosPermitidos = [];
+                $plataformasPermitidas = [];
+                $plataformasOnlineData = self::obtenerPlataformasOnline();
                 foreach ($rolesPlataforma as $rolDesc) {
                     $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
-                    $plat = \App\Plataforma::where('codigo', $codigo)->first();
-                    if ($plat) {
-                        $casinosPermitidos[] = $plat->id_plataforma + self::PLATAFORMA_ID_OFFSET;
+                    foreach ($plataformasOnlineData as $p) {
+                        if ($p->codigo === $codigo) {
+                            $plataformasPermitidas[] = $p->id_plataforma;
+                            break;
+                        }
                     }
                 }
             } else {
@@ -139,21 +144,16 @@ class NotasUnificadasController extends Controller
             }
         }
 
-        // Si el usuario tiene rol FUNCIONARIO, se le restringen cosas
-        $rolesUsuario = DB::table('usuario_tiene_rol')
-            ->where('id_usuario', $id_usuario)
-            ->pluck('id_rol')
-            ->toArray();
-        $esFuncionario = in_array(self::ROL_FUNCIONARIO, $rolesUsuario);
+        $esFuncionario = $usuario->tieneRol('FUNCIONARIO');
 
-        // --- LEGACY DATA FOR FISCALIZACION (hardcoded, gestion_notas_mysql removed - times out) ---
-        // 2. Obtener Grupos de Trámite (con notas hijas)
-        // -------------------------------------
+        // Obtener Grupos de Trámite (con notas hijas)
         $gruposQuery = \App\Models\GrupoTramite::with(['notas', 'notas.expedientes', 'casino']);
 
-        // Filtrar por casinos permitidos del usuario
+        // Filtrar por casinos/plataformas permitidos del usuario
         if ($casinosPermitidos !== null) {
             $gruposQuery->whereIn('id_casino', $casinosPermitidos);
+        } elseif ($plataformasPermitidas !== null) {
+            $gruposQuery->whereIn('id_plataforma', $plataformasPermitidas);
         }
 
         // Funcionario: excluir grupos que SOLO tienen notas FISC (sin MKT)
@@ -183,7 +183,9 @@ class NotasUnificadasController extends Controller
         }
 
         // Filters
-        if ($request->has('id_casino') && !empty($request->id_casino)) {
+        if ($request->has('id_plataforma') && !empty($request->id_plataforma)) {
+            $gruposQuery->where('id_plataforma', $request->id_plataforma);
+        } elseif ($request->has('id_casino') && !empty($request->id_casino)) {
             $gruposQuery->where('id_casino', $request->id_casino);
         }
         // Rama (MKT / FISC)
@@ -279,6 +281,8 @@ class NotasUnificadasController extends Controller
             ->whereNull('id_grupo');
         if ($casinosPermitidos !== null) {
             $notasSueltasQuery->whereIn('id_casino', $casinosPermitidos);
+        } elseif ($plataformasPermitidas !== null) {
+            $notasSueltasQuery->whereIn('id_plataforma', $plataformasPermitidas);
         }
         $notasSueltas = $notasSueltasQuery->orderBy('id', 'desc')->limit(50)->get();
 
@@ -297,37 +301,39 @@ class NotasUnificadasController extends Controller
             return view('Unified.tabla_notas', compact('grupos', 'notasSueltas', 'puedeEliminar', 'esFuncionario'));
         }
 
-        // Casinos físicos (excluir los que están duplicados como plataforma)
+        // Casinos físicos
+        $casinos = \App\Casino::all()->map(function($c) {
+            $c->es_plataforma = false;
+            return $c;
+        });
+
+        // Plataformas online (desde API)
         $plataformasOnline = self::obtenerPlataformasOnline();
-        $nombresPlataforma = array_map(function($p) {
-            return str_replace('.bet.ar', '', $p->nombre);
-        }, (array) $plataformasOnline);
-
-        $casinos = \App\Casino::all()->filter(function($c) use ($nombresPlataforma) {
-            return !in_array($c->nombre, $nombresPlataforma);
-        })->values();
-        $casinos_original = $casinos;
-
-        // Tipos de evento y categorías desde BD
-        $categorias = NotaCategoria::activasPorRama();
-        $tipos_evento = NotaTipoEvento::activosPorRama();
-
-        // Inyectar plataformas online como casinos virtuales
         $casinos_online = collect($plataformasOnline)->map(function($p) {
             $c = new \stdClass();
-            $c->id_casino = $p->id_plataforma + self::PLATAFORMA_ID_OFFSET;
+            $c->id_casino = null;
+            $c->id_plataforma = $p->id_plataforma;
             $c->nombre = str_replace('.bet.ar', '', $p->nombre) . ' (' . $p->codigo . ')';
             $c->codigo = $p->codigo;
+            $c->es_plataforma = true;
             return $c;
         });
         $casinos = $casinos->concat($casinos_online);
 
-        // Filtrar dropdown de casinos según permisos del usuario
+        // Filtrar dropdown según permisos del usuario
         if ($casinosPermitidos !== null) {
             $casinos = $casinos->filter(function($c) use ($casinosPermitidos) {
-                return in_array($c->id_casino, $casinosPermitidos);
+                return !$c->es_plataforma && in_array($c->id_casino, $casinosPermitidos);
+            })->values();
+        } elseif ($plataformasPermitidas !== null) {
+            $casinos = $casinos->filter(function($c) use ($plataformasPermitidas) {
+                return $c->es_plataforma && in_array($c->id_plataforma, $plataformasPermitidas);
             })->values();
         }
+
+        // Tipos de evento y categorías desde BD
+        $categorias = NotaCategoria::activasPorRama();
+        $tipos_evento = NotaTipoEvento::activosPorRama();
 
         $estados = NotaEstado::activos();
 
@@ -449,7 +455,8 @@ class NotasUnificadasController extends Controller
                 $grupo = new \App\Models\GrupoTramite();
                 $grupo->nro_nota = $request->nro_nota;
                 $grupo->anio = $request->anio;
-                $grupo->id_casino = $request->id_casino;
+                $grupo->id_casino = $request->id_plataforma ? null : $request->id_casino;
+                $grupo->id_plataforma = $request->id_plataforma ?: null;
                 $grupo->titulo = $request->titulo;
                 $grupo->tipo_solicitud = $request->tipo_solicitud;
                 $grupo->fecha_inicio_evento = $request->fecha_inicio_evento;
@@ -471,7 +478,8 @@ class NotasUnificadasController extends Controller
                 $nota->nro_nota = $request->nro_nota; // Mismo número, no prefijos
                 $nota->anio = $request->anio;
                 $nota->fecha_ingreso = \Carbon\Carbon::now();
-                $nota->id_casino = $request->id_casino;
+                $nota->id_casino = $request->id_plataforma ? null : $request->id_casino;
+                $nota->id_plataforma = $request->id_plataforma ?: null;
                 $nota->titulo = $request->titulo;
                 $nota->tipo_solicitud = $tipo_solicitud;
                 $nota->tipo_rama = $tipo_rama;
@@ -659,7 +667,7 @@ class NotasUnificadasController extends Controller
                 });
         } elseif($tipo == 'JUEGO_ONLINE') {
              // Buscar juegos desde cache (datos de API online)
-             $id_plataforma = intval($id_casino) - self::PLATAFORMA_ID_OFFSET;
+             $id_plataforma = $request->id_plataforma ?: $id_casino;
              $datos = self::obtenerDatosOnline();
              $juegos = [];
              foreach ($datos as $plat) {
@@ -1029,10 +1037,7 @@ class NotasUnificadasController extends Controller
                 $usuario_data = UsuarioController::getInstancia()->buscarUsuario($id_usuario);
                 $usuario = $usuario_data['usuario'];
 
-                $esFuncionario = DB::table('usuario_tiene_rol')
-                    ->where('id_usuario', $id_usuario)
-                    ->where('id_rol', self::ROL_FUNCIONARIO)
-                    ->exists();
+                $esFuncionario = $usuario->tieneRol('FUNCIONARIO');
                 $esAdmin = !$esFuncionario && ($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control);
 
                 $nivel = $esAdmin ? 'admin' : ($esFuncionario ? 'funcionario' : 'regular');
@@ -1374,7 +1379,7 @@ class NotasUnificadasController extends Controller
                         'nro_nota' => $gp->nro_nota,
                         'anio' => $gp->anio,
                         'titulo' => $gp->titulo,
-                        'casino' => $gp->casino ? $gp->casino->nombre : self::resolverNombreCasino($gp->id_casino),
+                        'casino' => $gp->casino ? $gp->casino->nombre : self::resolverNombreCasino($gp->id_casino, $gp->id_plataforma),
                     ];
                 }
             }
@@ -1388,7 +1393,7 @@ class NotasUnificadasController extends Controller
                         'nro_nota' => $gh->nro_nota,
                         'anio' => $gh->anio,
                         'titulo' => $gh->titulo,
-                        'casino' => $gh->casino ? $gh->casino->nombre : self::resolverNombreCasino($gh->id_casino),
+                        'casino' => $gh->casino ? $gh->casino->nombre : self::resolverNombreCasino($gh->id_casino, $gh->id_plataforma),
                     ];
                 });
 
@@ -1399,11 +1404,12 @@ class NotasUnificadasController extends Controller
                     'nro_nota' => $grupo->nro_nota,
                     'anio' => $grupo->anio,
                     'id_casino' => $grupo->id_casino,
+                    'id_plataforma' => $grupo->id_plataforma,
                     'tipo_solicitud' => $grupo->tipo_solicitud,
                     'fecha_inicio_evento' => $grupo->fecha_inicio_evento,
                     'fecha_fin_evento' => $grupo->fecha_fin_evento,
                     'titulo' => $grupo->titulo,
-                    'casino' => $grupo->casino ? $grupo->casino->nombre : self::resolverNombreCasino($grupo->id_casino),
+                    'casino' => $grupo->casino ? $grupo->casino->nombre : self::resolverNombreCasino($grupo->id_casino, $grupo->id_plataforma),
                     'created_at' => $grupo->created_at ? $grupo->created_at->format('d/m/Y H:i') : null,
                 ],
                 'grupo_padre' => $grupoPadre,
@@ -1482,7 +1488,7 @@ class NotasUnificadasController extends Controller
         ];
         
         // Resolver nombre de casino/plataforma
-        $casinoNombre = self::resolverNombreCasino($nota->id_casino);
+        $casinoNombre = self::resolverNombreCasino($nota->id_casino, $nota->id_plataforma);
 
         // Resolver tipo_evento y categoría por ID desde BD
         $tipoEventoNombre = $nota->id_tipo_evento ? NotaTipoEvento::nombrePorId($nota->id_tipo_evento) : null;
@@ -1497,6 +1503,7 @@ class NotasUnificadasController extends Controller
             'descripcion' => $nota->titulo ?? 'Sin descripción',
             'casino' => $casinoNombre,
             'id_casino' => $nota->id_casino,
+            'id_plataforma' => $nota->id_plataforma,
             'estado' => $estado,
             'tipo_evento' => $tipoEventoNombre,
             'id_tipo_evento' => $nota->id_tipo_evento,
@@ -1561,10 +1568,7 @@ class NotasUnificadasController extends Controller
                 $estadoActual = $exp->estado_actual;
 
                 if ($nuevoEstado !== $estadoActual) {
-                    $esFuncionario = DB::table('usuario_tiene_rol')
-                        ->where('id_usuario', $id_usuario)
-                        ->where('id_rol', self::ROL_FUNCIONARIO)
-                        ->exists();
+                    $esFuncionario = $usuarioEdit->tieneRol('FUNCIONARIO');
                     $esAdmin = !$esFuncionario && ($usuarioEdit->es_superusuario || $usuarioEdit->es_administrador || $usuarioEdit->es_auditor || $usuarioEdit->es_despacho || $usuarioEdit->es_control);
 
                     $nivel = $esAdmin ? 'admin' : ($esFuncionario ? 'funcionario' : 'regular');
@@ -2064,7 +2068,7 @@ class NotasUnificadasController extends Controller
                     'nro_nota' => $g->nro_nota,
                     'anio' => $g->anio,
                     'titulo' => $g->titulo,
-                    'casino' => $g->casino ? $g->casino->nombre : self::resolverNombreCasino($g->id_casino),
+                    'casino' => $g->casino ? $g->casino->nombre : self::resolverNombreCasino($g->id_casino, $g->id_plataforma),
                     'ramas' => $ramas,
                 ];
             });
