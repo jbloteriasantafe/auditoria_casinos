@@ -115,13 +115,27 @@ class NotasUnificadasController extends Controller
         $plataformasPermitidas = null;
 
         if (!$usuario->es_superusuario && !$usuario->es_controlador) {
-            // Buscar roles de plataforma (CARGA_NOTAS_*) y matchear contra API
-            $rolesPlataforma = DB::table('usuario_tiene_rol')
+            // Buscar roles de notas unificadas del usuario
+            $rolesNotas = DB::table('usuario_tiene_rol')
                 ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
                 ->where('usuario_tiene_rol.id_usuario', $id_usuario)
                 ->where('rol.descripcion', 'LIKE', 'CARGA_NOTAS_%')
                 ->pluck('rol.descripcion')
                 ->toArray();
+
+            // CARGA_NOTAS_UNIFICADAS = acceso a casinos físicos asignados
+            $tieneCasinos = in_array('CARGA_NOTAS_UNIFICADAS', $rolesNotas);
+            // Otros roles CARGA_NOTAS_* = acceso a plataformas (ej: CARGA_NOTAS_BPLAY, CARGA_NOTAS_CCO)
+            $rolesPlataforma = array_filter($rolesNotas, function($r) {
+                return $r !== 'CARGA_NOTAS_UNIFICADAS';
+            });
+
+            if ($tieneCasinos) {
+                $casinosPermitidos = DB::table('usuario_tiene_casino')
+                    ->where('id_usuario', $id_usuario)
+                    ->pluck('id_casino')
+                    ->toArray();
+            }
 
             if (!empty($rolesPlataforma)) {
                 $plataformasPermitidas = [];
@@ -135,12 +149,12 @@ class NotasUnificadasController extends Controller
                         }
                     }
                 }
-            } else {
-                // Usuario normal: solo sus casinos físicos asignados
-                $casinosPermitidos = DB::table('usuario_tiene_casino')
-                    ->where('id_usuario', $id_usuario)
-                    ->pluck('id_casino')
-                    ->toArray();
+            }
+
+            // Si no tiene ningún rol de notas, no ve nada
+            if (!$tieneCasinos && empty($rolesPlataforma)) {
+                $casinosPermitidos = [];
+                $plataformasPermitidas = [];
             }
         }
 
@@ -150,10 +164,15 @@ class NotasUnificadasController extends Controller
         $gruposQuery = \App\Models\GrupoTramite::with(['notas', 'notas.expedientes', 'casino']);
 
         // Filtrar por casinos/plataformas permitidos del usuario
-        if ($casinosPermitidos !== null) {
-            $gruposQuery->whereIn('id_casino', $casinosPermitidos);
-        } elseif ($plataformasPermitidas !== null) {
-            $gruposQuery->whereIn('id_plataforma', $plataformasPermitidas);
+        if ($casinosPermitidos !== null || $plataformasPermitidas !== null) {
+            $gruposQuery->where(function($q) use ($casinosPermitidos, $plataformasPermitidas) {
+                if ($casinosPermitidos !== null && !empty($casinosPermitidos)) {
+                    $q->orWhereIn('id_casino', $casinosPermitidos);
+                }
+                if ($plataformasPermitidas !== null && !empty($plataformasPermitidas)) {
+                    $q->orWhereIn('id_plataforma', $plataformasPermitidas);
+                }
+            });
         }
 
         // Funcionario: excluir grupos que SOLO tienen notas FISC (sin MKT)
@@ -279,10 +298,15 @@ class NotasUnificadasController extends Controller
         // Notas sueltas sin grupo (legacy) - limitadas para no traer todo
         $notasSueltasQuery = NotaIngreso::with(['casino', 'expedientes'])
             ->whereNull('id_grupo');
-        if ($casinosPermitidos !== null) {
-            $notasSueltasQuery->whereIn('id_casino', $casinosPermitidos);
-        } elseif ($plataformasPermitidas !== null) {
-            $notasSueltasQuery->whereIn('id_plataforma', $plataformasPermitidas);
+        if ($casinosPermitidos !== null || $plataformasPermitidas !== null) {
+            $notasSueltasQuery->where(function($q) use ($casinosPermitidos, $plataformasPermitidas) {
+                if ($casinosPermitidos !== null && !empty($casinosPermitidos)) {
+                    $q->orWhereIn('id_casino', $casinosPermitidos);
+                }
+                if ($plataformasPermitidas !== null && !empty($plataformasPermitidas)) {
+                    $q->orWhereIn('id_plataforma', $plataformasPermitidas);
+                }
+            });
         }
         $notasSueltas = $notasSueltasQuery->orderBy('id', 'desc')->limit(50)->get();
 
@@ -321,13 +345,15 @@ class NotasUnificadasController extends Controller
         $casinos = $casinos->concat($casinos_online);
 
         // Filtrar dropdown según permisos del usuario
-        if ($casinosPermitidos !== null) {
-            $casinos = $casinos->filter(function($c) use ($casinosPermitidos) {
-                return !$c->es_plataforma && in_array($c->id_casino, $casinosPermitidos);
-            })->values();
-        } elseif ($plataformasPermitidas !== null) {
-            $casinos = $casinos->filter(function($c) use ($plataformasPermitidas) {
-                return $c->es_plataforma && in_array($c->id_plataforma, $plataformasPermitidas);
+        if ($casinosPermitidos !== null || $plataformasPermitidas !== null) {
+            $casinos = $casinos->filter(function($c) use ($casinosPermitidos, $plataformasPermitidas) {
+                if (!$c->es_plataforma && $casinosPermitidos !== null) {
+                    return in_array($c->id_casino, $casinosPermitidos);
+                }
+                if ($c->es_plataforma && $plataformasPermitidas !== null) {
+                    return in_array($c->id_plataforma, $plataformasPermitidas);
+                }
+                return false;
             })->values();
         }
 
