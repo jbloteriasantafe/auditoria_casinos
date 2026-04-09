@@ -63,7 +63,7 @@
              ],
              'Notas Unificadas' => [
                  'link' => '/notas-unificadas',
-                 // 'algun_permiso' => ['ver_cargar_notas'], 
+                 'algun_permiso' => ['ver_notas_unificadas'],
              ],
          ],
      ],

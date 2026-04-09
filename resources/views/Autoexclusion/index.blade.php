@@ -1282,7 +1282,7 @@ var noSelect=false;
 </script>
 <script type="text/javascript" src="/js/noprint.js?1"></script> 
 
-<script src="/js/Autoexclusion/index.js?6" type="module"  charset="utf-8"></script>
+<script src="/js/Autoexclusion/index.js?7" type="module"  charset="utf-8"></script>
 <!-- JS file -->
 <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>
 <!-- CSS file -->

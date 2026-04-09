@@ -36,7 +36,7 @@
                 </td>
                 <td><b>{{ $grupo->nro_nota }}-{{ $grupo->anio }}</b></td>
                 <td>
-                    {{ $grupo->casino ? $grupo->casino->nombre : \App\Http\Controllers\NotasUnificadasController::resolverNombreCasino($grupo->id_casino) }}
+                    {{ $grupo->casino ? $grupo->casino->nombre : \App\Http\Controllers\NotasUnificadasController::resolverNombreCasino($grupo->id_casino, $grupo->id_plataforma) }}
                 </td>
                 <td>{{ $grupo->titulo }}</td>
                 <td>

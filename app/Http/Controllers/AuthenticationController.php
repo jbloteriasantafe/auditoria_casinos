@@ -17,8 +17,6 @@ class AuthenticationController extends Controller
     'password' => 'Contraseña'
   ];
   private static $instance;
-  private $permisosCache = []; // [id_usuario => [permiso1, permiso2, ...]]
-  private $tokenCache = [];   // ["id:token" => bool]
 
   public static function getInstancia() {
       if (!isset(self::$instance)) {
@@ -26,31 +24,6 @@ class AuthenticationController extends Controller
       }
       return self::$instance;
   }
-
-  private function cargarPermisosUsuario($id_usuario) {
-      if (!isset($this->permisosCache[$id_usuario])) {
-          // Check session cache (persists across requests, max 5 minutes)
-          $sessionKey = 'permisos_cache_' . $id_usuario;
-          $tsKey = 'permisos_cache_ts_' . $id_usuario;
-          $cached = request()->session()->get($sessionKey);
-          $ts = request()->session()->get($tsKey, 0);
-          if ($cached !== null && (time() - $ts) < 300) {
-              $this->permisosCache[$id_usuario] = $cached;
-          } else {
-              $permisos = DB::table('usuario_tiene_rol')
-                  ->join('rol_tiene_permiso', 'usuario_tiene_rol.id_rol', '=', 'rol_tiene_permiso.id_rol')
-                  ->join('permiso', 'permiso.id_permiso', '=', 'rol_tiene_permiso.id_permiso')
-                  ->where('usuario_tiene_rol.id_usuario', '=', $id_usuario)
-                  ->pluck('permiso.descripcion')
-                  ->toArray();
-              $this->permisosCache[$id_usuario] = $permisos;
-              request()->session()->put($sessionKey, $permisos);
-              request()->session()->put($tsKey, time());
-          }
-      }
-      return $this->permisosCache[$id_usuario];
-  }
-
   //generarToken
   private function generarToken(){
     $length = 20;
@@ -65,27 +38,12 @@ class AuthenticationController extends Controller
   }
   //verficar TOKEN
   public function verificarToken($id_usuario, $token){
-    $key = $id_usuario . ':' . $token;
-    if(isset($this->tokenCache[$key])) return $this->tokenCache[$key];
-    // Session cache: valid for 2 minutes, avoids 1 DB query per request
-    $sessionKey = 'token_valid_' . $key;
-    $sessionTs  = 'token_valid_ts_' . $key;
-    $ts = request()->session()->get($sessionTs, 0);
-    if((time() - $ts) < 120 && request()->session()->get($sessionKey) === true) {
-        $this->tokenCache[$key] = true;
-        return true;
-    }
     $users = DB::table('usuario')->where([
-        ['id_usuario', '=', $id_usuario],
-        ['token', '=', $token],
-    ])->first();
-    $result = !empty($users);
-    $this->tokenCache[$key] = $result;
-    if($result) {
-        request()->session()->put($sessionKey, true);
-        request()->session()->put($sessionTs, time());
-    }
-    return $result;
+      ['id_usuario', '=',$id_usuario],
+      ['token', '=',$token],
+      ])->first();
+
+      return !empty($users);
   }
   //eliminar TOKEN
   public function eliminarToken($id_usuario, $token){
@@ -273,14 +231,26 @@ class AuthenticationController extends Controller
     ->count() > 0;
   }
   
-  public function usuarioTienePermiso($id_usuario, $permiso){
-      $todosLosPermisos = $this->cargarPermisosUsuario($id_usuario);
-      return in_array($permiso, $todosLosPermisos);
+  public function usuarioTienePermiso($id_usuario,$permiso){
+    $result = DB::table('permiso')
+    ->where('permiso.descripcion','=',$permiso)
+    ->join('rol_tiene_permiso','permiso.id_permiso','=','rol_tiene_permiso.id_permiso')
+    ->join('usuario_tiene_rol','rol_tiene_permiso.id_rol','=','usuario_tiene_rol.id_rol')
+    ->where('usuario_tiene_rol.id_usuario','=',$id_usuario)
+    ->first();
+
+    return !empty($result);
   }
 
-  public function usuarioTieneAlgunPermiso($id_usuario, $permisos){
-      $todosLosPermisos = $this->cargarPermisosUsuario($id_usuario);
-      return count(array_intersect($permisos, $todosLosPermisos)) > 0;
+  public function usuarioTieneAlgunPermiso($id_usuario,$permisos){
+    $result = DB::table('usuario_tiene_rol')
+    ->join('rol_tiene_permiso','usuario_tiene_rol.id_rol','=','rol_tiene_permiso.id_rol')
+    ->join('permiso','permiso.id_permiso','=','rol_tiene_permiso.id_permiso')
+    ->whereIn('permiso.descripcion',$permisos)
+    ->where('usuario_tiene_rol.id_usuario','=',$id_usuario)
+    ->count();
+
+    return $result > 0;
   }
 
   public function usuarioTienePermisos(Request $request){

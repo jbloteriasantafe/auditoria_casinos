@@ -1245,7 +1245,7 @@ function mostrarAutoexcluido(id_autoexcluido) {
       if(data.importacion != null){
           $(".archivosImportados button").val(data.importacion.id_importacion);
           for(const archivo of ['foto1','foto2','scandni','solicitud_ae','solicitud_revocacion','caratula']){
-            $(`.archivosImportados [data-tipo="${archivo}"]`).prop("disabled", !!data?.importacion?.[archivo]);
+            $(`.archivosImportados [data-tipo="${archivo}"]`).prop("disabled", !data?.importacion?.[archivo]);
           }
       }
       else {

@@ -352,7 +352,7 @@ Route::group(['prefix' => 'cargar-notas', 'middleware' => 'tiene_permiso:ver_car
 });
 
 //! MODULO UNIFICADO DE NOTAS (NUEVO)
-Route::group(['prefix' => 'notas-unificadas', 'middleware' => 'tiene_permiso:ver_cargar_notas'], function () {
+Route::group(['prefix' => 'notas-unificadas', 'middleware' => 'tiene_permiso:ver_notas_unificadas'], function () {
   Route::get('/buscar-activos', 'NotasUnificadasController@buscarActivos'); 
   Route::get('/obtener-activos-isla/{id_isla}', 'NotasUnificadasController@obtenerActivosIsla');
   Route::get('/', 'NotasUnificadasController@index');
@@ -1612,7 +1612,7 @@ Route::group(['prefix' => 'informesGenerales'], function () {//@TODO: agregar pe
 });
 
 // NOTAS UNIFICADAS ROUTES
-Route::group(['prefix' => 'notas-unificadas', 'middleware' => 'tiene_permiso:ver_cargar_notas'], function () {
+Route::group(['prefix' => 'notas-unificadas', 'middleware' => 'tiene_permiso:ver_notas_unificadas'], function () {
     Route::get('/', 'NotasUnificadasController@index');
     Route::post('/guardar', 'NotasUnificadasController@store');
     

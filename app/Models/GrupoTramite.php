@@ -12,6 +12,7 @@ class GrupoTramite extends Model
         'nro_nota',
         'anio',
         'id_casino',
+        'id_plataforma',
         'titulo',
         'fecha_inicio_evento',
         'fecha_fin_evento',
@@ -56,6 +57,11 @@ class GrupoTramite extends Model
     public function casino()
     {
         return $this->belongsTo(\App\Casino::class, 'id_casino');
+    }
+
+    public function esPlataforma()
+    {
+        return !is_null($this->id_plataforma);
     }
 
 }
