@@ -22,9 +22,10 @@ use App\Isla; // Importar modelo Isla (Legacy)
 class NotasUnificadasController extends Controller
 {
     // URL base de la API del sistema online
-    const API_ONLINE_URL = 'http://10.1.121.30:8003/api/auditoria';
+    //const API_ONLINE_URL = 'http://10.1.121.30:8003/api/auditoria';
     const API_ONLINE_TOKEN = 'TokenParaJuego';
-    // Prueba: API_ONLINE_URL = 'http://10.1.121.24:8004/api/auditoria'
+    // Prueba: 
+    const API_ONLINE_URL = 'http://10.1.121.24:8004/api/auditoria';
 
     /**
      * Obtener plataformas y juegos desde la API online (cacheado 1 hora)
@@ -396,9 +397,16 @@ class NotasUnificadasController extends Controller
             'nro_nota' => 'required',
             'anio' => 'required|integer',
             'titulo' => 'required|string',
-            'id_casino' => 'required|integer',
             'tipo_solicitud' => 'required|in:EVENTO,PUBLICIDAD',
         ];
+
+        // Debe tener casino O plataforma (no ambos, no ninguno)
+        if (!$request->id_casino && !$request->id_plataforma) {
+            return response()->json([
+                'success' => false,
+                'msg' => 'Debe seleccionar un Casino o Plataforma'
+            ], 422);
+        }
         
         if($request->tipo_solicitud == 'EVENTO') {
             $rules['fecha_inicio_evento'] = 'required|date';
@@ -416,8 +424,6 @@ class NotasUnificadasController extends Controller
             'anio.required' => 'El Año es requerido',
             'anio.integer' => 'El Año debe ser un número entero',
             'titulo.required' => 'El Título es requerido',
-            'id_casino.required' => 'Debe seleccionar un Casino/Plataforma',
-            'id_casino.integer' => 'El Casino/Plataforma debe ser un valor numérico',
             'tipo_solicitud.required' => 'Debe seleccionar un Tipo de Solicitud (EVENTO o PUBLICIDAD)',
             'tipo_solicitud.in' => 'El Tipo de Solicitud debe ser EVENTO o PUBLICIDAD',
             'fecha_inicio_evento.required' => 'La Fecha de Inicio es requerida para eventos',
@@ -443,10 +449,14 @@ class NotasUnificadasController extends Controller
         }
         
         if(!$grupo) {
-             $grupo = \App\Models\GrupoTramite::where('nro_nota', $request->nro_nota)
-                    ->where('anio', $request->anio)
-                    ->where('id_casino', $request->id_casino)
-                    ->first();
+             $q = \App\Models\GrupoTramite::where('nro_nota', $request->nro_nota)
+                    ->where('anio', $request->anio);
+             if ($request->id_plataforma) {
+                 $q->where('id_plataforma', $request->id_plataforma);
+             } else {
+                 $q->where('id_casino', $request->id_casino);
+             }
+             $grupo = $q->first();
         }
         
         // Determinar qué ramas crear basándose en tipo_tarea
@@ -693,7 +703,7 @@ class NotasUnificadasController extends Controller
                 });
         } elseif($tipo == 'JUEGO_ONLINE') {
              // Buscar juegos desde cache (datos de API online)
-             $id_plataforma = $request->id_plataforma ?: $id_casino;
+             $id_plataforma = $request->id_plataforma;
              $datos = self::obtenerDatosOnline();
              $juegos = [];
              foreach ($datos as $plat) {
