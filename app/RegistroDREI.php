@@ -49,6 +49,11 @@ class RegistroDREI extends Model
 
 
 
+    public function bases()
+    {
+        return $this->hasMany(RegistroDREIBases::class, 'id_registroDREI', 'id_registroDREI');
+    }
+
     public function casinoDREI()
     {
         return $this->belongsTo(Casino::class,'casino', 'id_casino');

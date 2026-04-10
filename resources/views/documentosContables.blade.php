@@ -2149,12 +2149,19 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <input type="text" class="form-control" name="dif_miniibb" id="dif_miniibb">
           </div>
           <div class="col-md-4">
-            <h5>Deducciones</h5>
-            <input type="text" class="form-control" name="deduccionesiibb" id="deduccionesiibb">
-          </div>
-          <div class="col-md-4">
             <h5>Observaciones</h5>
             <textarea class="form-control" name="obsiibb" maxlength="3999" rows="1"></textarea>
+          </div>
+        </div>
+        <br/>
+        <div class="row">
+          <div class="col-md-12">
+            <h5>Deducciones</h5>
+            <div id="contenedor-deducciones-iibb"></div>
+            <div style="margin-top:8px;">
+              <button type="button" id="agregar-deduccion-iibb" class="btn btn-success btn-sm"><i class="fa fa-plus"></i> Agregar deducción</button>
+            </div>
+            <input type="hidden" name="deduccionesiibb" id="deduccionesiibb" value="0">
           </div>
         </div>
 
@@ -2293,6 +2300,13 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 
                 <div class="row">
+                  <div class="col-md-8">
+                    <h5>Deducciones</h5>
+                    <div id="contenedor-deducciones-ver-iibb"></div>
+                  </div>
+                </div>
+              </br>
+                <div class="row">
                   <div class="col-md-4">
                     <h5>Impuesto total determinado</h5>
                     <input type="text" class="form-control" id="ver_impuestoTotal_iibb" readonly>
@@ -2300,10 +2314,6 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <div class="col-md-4">
                     <h5>Diferencia mínimo</h5>
                     <input type="text" class="form-control" id="ver_diferencia_iibb" readonly>
-                  </div>
-                  <div class="col-md-4">
-                    <h5>Deducciones</h5>
-                    <input type="text" class="form-control" id="ver_deduccion_iibb" readonly>
                   </div>
                 </div>
               </br>
@@ -2461,7 +2471,15 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
           </div>
 
-
+          </br>
+          <div id="contenedor-inputs-drei-extra-csf"></div>
+          <div class="row" style="margin-top:8px; margin-bottom:12px;">
+            <div class="col-md-12 text-center">
+              <button type="button" class="btn btn-success btn-sm agregar-bloque-drei" data-container="#contenedor-inputs-drei-extra-csf">
+                <i class="fa fa-plus"></i> Agregar base
+              </button>
+            </div>
+          </div>
 
           </br>
             <div class="row">
@@ -2543,6 +2561,17 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                 <input type="text" class="form-control" name="imp_det0_melDREI" id="imp_det0_melDREI">
               </div>
             </div>
+
+          </br>
+          <div id="contenedor-inputs-drei-extra-mel"></div>
+          <div class="row" style="margin-top:8px; margin-bottom:12px;">
+            <div class="col-md-12 text-center">
+              <button type="button" class="btn btn-success btn-sm agregar-bloque-drei" data-container="#contenedor-inputs-drei-extra-mel">
+                <i class="fa fa-plus"></i> Agregar base
+              </button>
+            </div>
+          </div>
+
           </br>
           <div class="row">
             <div class="col-md-4">
@@ -2567,6 +2596,16 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               </div>
             </br>
 
+            <div id="contenedor-inputs-drei-extra-ro"></div>
+            <div class="row" style="margin-top:8px; margin-bottom:12px;">
+              <div class="col-md-12 text-center">
+                <button type="button" class="btn btn-success btn-sm agregar-bloque-drei" data-container="#contenedor-inputs-drei-extra-ro">
+                  <i class="fa fa-plus"></i> Agregar base
+                </button>
+              </div>
+            </div>
+
+            </br>
             <div class="row">
               <div class="col-md-6">
                 <h5>Monto Pagado Total</h5>
@@ -2774,6 +2813,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
          </div>
        </br>
+         <div id="ver-bases-extra-csf-drei" style="display:none;">
+           <div class="row"><div class="col-md-12"><h4>Otras bases</h4></div></div>
+           <div id="ver-bases-extra-csf-drei-body"></div>
+         </div>
+       </br>
          <div class="row">
            <div class="col-md-5">
              <h5>Observaciones</h5>
@@ -2871,6 +2915,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 
        </br>
+         <div id="ver-bases-extra-mel-drei" style="display:none;">
+           <div class="row"><div class="col-md-12"><h4>Otras bases</h4></div></div>
+           <div id="ver-bases-extra-mel-drei-body"></div>
+         </div>
+       </br>
          <div class="row">
 
            <div class="col-md-4">
@@ -2935,6 +2984,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               </div>
 
 
+   </br>
+         <div id="ver-bases-extra-ro-drei" style="display:none;">
+           <div class="row"><div class="col-md-12"><h4>Otras bases</h4></div></div>
+           <div id="ver-bases-extra-ro-drei-body"></div>
+         </div>
    </br>
          <div class="row">
 

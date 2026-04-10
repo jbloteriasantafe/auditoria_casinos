@@ -671,7 +671,6 @@ $(function () {
     [
       ".js-num-ar",
       "#dif_miniibb",
-      "#deduccionesiibb",
       "#saldo_iibb",
       "#total_impuesto_iibb",
     ].join(", "),
@@ -878,6 +877,49 @@ function appendIibbFilaEditar(b, index, container) {
   $("#" + montoId).trigger("input");
 }
 
+var contadorDeduccionIibb = 0;
+
+function appendDeduccionIibbFila(d, index) {
+  d = d || {};
+  var id = d.id != null ? d.id : "";
+  var label = d.label || "";
+  var montoNum = d.monto != null ? (parseNumeroFlexible(d.monto) ? parseNumeroFlexible(d.monto).num : null) : null;
+  var montoFmt = montoNum != null ? formatoAR(montoNum, 2) : "";
+  var montoId = "deduccion_monto_iibb_" + index;
+
+  // Si es la primera fila, agregar headers
+  if ($("#contenedor-deducciones-iibb .deduccion-iibb-fila").length === 0) {
+    $("#contenedor-deducciones-iibb").append(
+      '<div class="row deduccion-iibb-headers">' +
+      '  <div class="col-md-5"><h5>Detalle</h5></div>' +
+      '  <div class="col-md-5"><h5>Monto deducción</h5></div>' +
+      '  <div class="col-md-2"></div>' +
+      '</div>'
+    );
+  }
+
+  var html =
+    '<br/><div class="deduccion-iibb-fila" data-ded-id="' + id + '">' +
+    '  <div class="row">' +
+    '    <div class="col-md-5">' +
+    '      <input type="hidden" name="deduccion_id[]" value="' + id + '">' +
+    '      <input type="text" name="deduccion_label[]" class="form-control" placeholder="Concepto deducción" value="' + label + '">' +
+    '    </div>' +
+    '    <div class="col-md-5">' +
+    '      <input type="text" id="' + montoId + '" name="deduccion_monto[]" class="form-control js-num-ar deduccion-monto-iibb" placeholder="$" inputmode="decimal" value="' + montoFmt + '">' +
+    '    </div>' +
+    '    <div class="col-md-2">' +
+    '      <button type="button" class="btn btn-danger btn-sm eliminar-deduccion-iibb">X</button>' +
+    '    </div>' +
+    '  </div>' +
+    '</div>';
+
+  $("#contenedor-deducciones-iibb").append(html);
+
+  instalarNumeroFlexibleAR("#" + montoId, { decimales: 2, permitirNegativos: true });
+  $("#" + montoId).trigger("input");
+}
+
 function abrirModaliibbEditar(id) {
   resetFormiibb();
   $("#iibb_modo").val("edit");
@@ -895,7 +937,6 @@ function abrirModaliibbEditar(id) {
     $("#casinoiibb").val(d.casino).trigger("change");
 
     $("#dif_miniibb").val(formatoAR(d.diferencia ?? ""));
-    $("#deduccionesiibb").val(formatoAR(d.deducciones ?? ""));
     $("#saldo_iibb").val(formatoAR(d.saldo));
     $("#total_impuesto_iibb").val(formatoAR(d.impuesto_total));
 
@@ -911,6 +952,19 @@ function abrirModaliibbEditar(id) {
     } else {
       appendIibbFilaEditar({}, ++idx, "#contenedor-inputs-iibb-cargar");
     }
+
+    // Cargar deducciones
+    $("#contenedor-deducciones-iibb").empty();
+    contadorDeduccionIibb = 0;
+    var deds = Array.isArray(d.deducciones_list) ? d.deducciones_list : [];
+    if (deds.length) {
+      deds.forEach(function(dd) {
+        contadorDeduccionIibb++;
+        appendDeduccionIibbFila(dd, contadorDeduccionIibb);
+      });
+    }
+    // Actualizar hidden con suma
+    recalcularSumaDeduccionesIibb();
 
     $(".iibb-imp").first().trigger("input");
 
@@ -933,6 +987,22 @@ function resetFormiibb() {
   $("#uploadsiibbTable tbody").empty();
   $("#uploadsiibbWrap").hide();
   $("#fileNameiibb").val("No se ha seleccionado ningún archivo");
+  $("#contenedor-deducciones-iibb").empty();
+  contadorDeduccionIibb = 0;
+  $("#deduccionesiibb").val(0);
+}
+
+function recalcularSumaDeduccionesIibb() {
+  var suma = 0;
+  $("#contenedor-deducciones-iibb .deduccion-monto-iibb").each(function() {
+    var n = $(this).data("num");
+    if (n !== undefined && n !== null) suma += parseFloat(n) || 0;
+    else {
+      var parsed = parseNumeroFlexible($(this).val());
+      if (parsed && parsed.num !== null) suma += parsed.num;
+    }
+  });
+  $("#deduccionesiibb").val(suma).data("num", suma).trigger("num:changed", [suma]);
 }
 
 function abrirModaliibbCrear() {
@@ -1001,12 +1071,16 @@ $(document).on("click", "#guardarRegistroiibb", function (e) {
     );
   });
 
-  valid = validarCampoNum(
-    'input[name="deduccionesiibb"]',
-    ".col-md-4",
-    "La deducción es requerida.",
-    valid
-  );
+  $("#contenedor-deducciones-iibb .deduccion-iibb-fila").each(function () {
+    const $fila = $(this);
+    const $monto = $fila.find('input[name="deduccion_monto[]"]');
+    valid = validarCampoNumSiHayValor(
+      $monto,
+      ".col-md-5",
+      "El monto de deducción debe ser numérico.",
+      valid
+    );
+  });
 
   valid = validarCampoNum(
     'input[name="dif_miniibb"]',
@@ -1305,10 +1379,29 @@ $(document).on("click", ".btn-verRegiibb", function () {
           `;
       $("#contenedor-bases-ver-iibb").append(bloque);
     });
-    $("#ver_deduccion_iibb").val("$ " + formatoAR(data.deducciones));
+    // Render deducciones en modal ver
+    $("#contenedor-deducciones-ver-iibb").empty();
+    var dedsList = Array.isArray(data.deducciones_list) ? data.deducciones_list : [];
+    if (dedsList.length) {
+      $("#contenedor-deducciones-ver-iibb").append(
+        '<div class="row"><div class="col-md-6"><h5>Detalle</h5></div><div class="col-md-6"><h5>Monto deducción</h5></div></div>'
+      );
+      dedsList.forEach(function(dd) {
+        var bloqueDed = '<div class="row" style="margin-bottom:4px;">' +
+          '<div class="col-md-6"><input type="text" class="form-control" value="' + (dd.label || '') + '" readonly></div>' +
+          '<div class="col-md-6"><input type="text" class="form-control" value="$ ' + formatoAR(dd.monto) + '" readonly></div>' +
+          '</div>';
+        $("#contenedor-deducciones-ver-iibb").append(bloqueDed);
+      });
+    } else if (data.deducciones) {
+      // Retrocompatibilidad: si no hay filas pero hay valor legacy
+      $("#contenedor-deducciones-ver-iibb").append(
+        '<div class="row"><div class="col-md-6"><h5>Monto deducción</h5></div></div>' +
+        '<div class="row"><div class="col-md-6"><input type="text" class="form-control" value="$ ' + formatoAR(data.deducciones) + '" readonly></div></div>'
+      );
+    }
     $("#ver_impuestoTotal_iibb").val("$ " + formatoAR(data.impuesto_total));
     $("#ver_diferencia_iibb").val("$ " + formatoAR(data.diferencia));
-
     $("#ver_saldo_iibb").val("$ " + formatoAR(data.saldo));
     $("#ver_obs_iibb").val(data.obs);
 
@@ -1542,6 +1635,7 @@ instalarAutoSumaAR({
     "#garageDREI",
     "#bromatologiaDREI",
     "#interesesDREI",
+    "#contenedor-inputs-drei-extra-csf .drei-imp",
   ],
   target: "#imp_tot_csfDREI",
   decimales: 2,
@@ -1552,7 +1646,12 @@ instalarAutoSumaAR({
   decimales: 2,
 });
 instalarAutoSumaAR({
-  sources: ["#imp_det0_melDREI", "#imp_det_melDREI", "-#monto_pagado_melDREI"],
+  sources: [
+    "#imp_det0_melDREI",
+    "#imp_det_melDREI",
+    "-#monto_pagado_melDREI",
+    "#contenedor-inputs-drei-extra-mel .drei-imp",
+  ],
   target: "#saldo_melDREI",
   decimales: 2,
 });
@@ -1630,6 +1729,87 @@ $(document).on("click", ".btn-del-archivo-DREI", function () {
   $("#btn-eliminarArchivo").attr("data-id", id);
   $("#modalEliminarArchivo").data({ id, regId, scope }).modal("show");
 });
+var contadorDreiExtra = 0;
+
+function appendDreiExtraFila(b, index, container) {
+  container = container || "#contenedor-inputs-drei-extra-csf";
+
+  var id      = b && b.id   != null ? b.id   : "";
+  var obs     = b && b.obs  ? b.obs  : "";
+
+  var montoNum = b && b.monto    != null ? (parseNumeroFlexible(b.monto)    ? parseNumeroFlexible(b.monto).num    : null) : null;
+  var aliNum   = b && b.alicuota != null ? (parseNumeroFlexible(b.alicuota) ? parseNumeroFlexible(b.alicuota).num : null) : null;
+  var impNum   = b && b.imp      != null ? (parseNumeroFlexible(b.imp)      ? parseNumeroFlexible(b.imp).num      : null) : null;
+
+  if (impNum == null && montoNum != null && aliNum != null) {
+    impNum = montoNum * (aliNum / 100);
+  }
+
+  var montoFmt = montoNum != null ? formatoAR(montoNum, 2) : "";
+  var aliFmt   = aliNum   != null ? formatoAR(aliNum, 5)   : "";
+  var impFmt   = impNum   != null ? formatoAR(impNum, 2)   : "";
+
+  var montoId = "monto_drei_" + index;
+  var aliId   = "ali_drei_"   + index;
+  var impId   = "imp_drei_"   + index;
+
+  var html =
+    '<div class="bases-drei-extra" data-id="' + index + '" data-base-id="' + id + '" style="margin-top:12px; border-top:1px solid #eee; padding-top:10px;">' +
+    '  <input type="hidden" name="base_id_drei[]" value="' + id + '">' +
+    '  <div class="row">' +
+    '    <div class="col-md-3"><h5>Concepto</h5></div>' +
+    '    <div class="col-md-3"><h5>Base imponible</h5></div>' +
+    '    <div class="col-md-2"><h5>Alicuota (%)</h5></div>' +
+    '    <div class="col-md-3"><h5>Impuesto Determinado</h5></div>' +
+    '    <div class="col-md-1"></div>' +
+    '  </div>' +
+    '  <div class="row">' +
+    '    <div class="col-md-3">' +
+    '      <textarea name="label_drei[]" class="form-control" rows="2" maxlength="255" placeholder="Concepto">' + obs + '</textarea>' +
+    '    </div>' +
+    '    <div class="col-md-3">' +
+    '      <input type="text" id="' + montoId + '" name="monto_drei[]" class="form-control js-num-ar drei-monto" placeholder="$" inputmode="decimal" value="' + montoFmt + '">' +
+    '    </div>' +
+    '    <div class="col-md-2">' +
+    '      <input type="text" id="' + aliId + '" name="alicuota_drei[]" class="form-control js-num-ar drei-ali" placeholder="%" inputmode="decimal" value="' + aliFmt + '">' +
+    '    </div>' +
+    '    <div class="col-md-3">' +
+    '      <input type="text" id="' + impId + '" name="impuesto_drei[]" class="form-control js-num-ar drei-imp" inputmode="decimal" value="' + impFmt + '">' +
+    '    </div>' +
+    '    <div class="col-md-1">' +
+    '      <button type="button" class="btn btn-danger btn-sm eliminar-bloque-drei">X</button>' +
+    '    </div>' +
+    '  </div>' +
+    '</div>';
+
+  $(container).append(html);
+
+  instalarNumeroFlexibleAR("#" + montoId, { decimales: 2, permitirNegativos: true });
+  instalarNumeroFlexibleAR("#" + aliId,   { decimales: 5, permitirNegativos: true });
+  instalarNumeroFlexibleAR("#" + impId,   { decimales: 2, permitirNegativos: true });
+
+  instalarAutoImpuestoAR({
+    base:           "#" + montoId,
+    alicuota:       "#" + aliId,
+    impuesto:       "#" + impId,
+    aliEsPorcentaje: true,
+    decImp:          2,
+  });
+
+  $("#" + montoId).trigger("input");
+}
+
+$(document).on("click", ".agregar-bloque-drei", function (e) {
+  e.preventDefault();
+  contadorDreiExtra++;
+  var container = $(this).data("container");
+  appendDreiExtraFila({}, contadorDreiExtra, container);
+});
+
+$(document).on("click", ".eliminar-bloque-drei", function () {
+  $(this).closest(".bases-drei-extra").remove();
+});
+
 function abrirModalDREIEditar(id) {
   resetFormDREI();
   $("#DREI_modo").val("edit");
@@ -1760,6 +1940,18 @@ function abrirModalDREIEditar(id) {
 
       $("#total_roDREI").val("$ " + formatoAR(d.saldo));
     }
+
+    // Cargar bases extra dinámicas
+    var containerMap = { "1": "#contenedor-inputs-drei-extra-mel", "2": "#contenedor-inputs-drei-extra-csf", "3": "#contenedor-inputs-drei-extra-ro" };
+    var container = containerMap[tipo] || "#contenedor-inputs-drei-extra-csf";
+    $("#contenedor-inputs-drei-extra-csf, #contenedor-inputs-drei-extra-mel, #contenedor-inputs-drei-extra-ro").empty();
+    contadorDreiExtra = 0;
+    if (d.bases && d.bases.length) {
+      d.bases.forEach(function (b) {
+        contadorDreiExtra++;
+        appendDreiExtraFila(b, contadorDreiExtra, container);
+      });
+    }
   });
 }
 
@@ -1775,6 +1967,8 @@ function resetFormDREI() {
   $("#uploadsDREITable tbody").empty();
   $("#uploadsDREIWrap").hide();
   $("#fileNameDREI").val("No se ha seleccionado ningún archivo");
+  $("#contenedor-inputs-drei-extra-csf, #contenedor-inputs-drei-extra-mel, #contenedor-inputs-drei-extra-ro").empty();
+  contadorDreiExtra = 0;
 }
 
 function abrirModalDREICrear() {
@@ -1782,6 +1976,10 @@ function abrirModalDREICrear() {
   $("#id_registroDREI").val("");
   $("#modalCargarDREI .modal-title").text("| NUEVO REGISTRO DE DREI");
   $("#guardarRegistroDREI").text("GENERAR");
+  // Limpiar bases extra y resetear casino
+  $("#contenedor-inputs-drei-extra-csf, #contenedor-inputs-drei-extra-mel, #contenedor-inputs-drei-extra-ro").empty();
+  contadorDreiExtra = 0;
+  $("#casinoDREI").val("").trigger("change");
   $("#modalCargarDREI").modal("show");
 }
 
@@ -2061,6 +2259,24 @@ $(document).on("click", ".btn-verRegDREI", function () {
       $("#ver_saldo_csfDREI").val("$ " + formatoAR(data.saldo));
       $("#ver_obs_csfDREI").val(data.obs);
 
+      // Mostrar bases extra
+      $("#ver-bases-extra-csf-drei-body").empty();
+      if (data.bases && data.bases.length) {
+        data.bases.forEach(function(b) {
+          $("#ver-bases-extra-csf-drei-body").append(
+            '<div class="row" style="margin-bottom:4px;">' +
+            '<div class="col-md-3"><input type="text" class="form-control" readonly value="' + (b.label || '') + '"></div>' +
+            '<div class="col-md-3"><input type="text" class="form-control" readonly value="$ ' + formatoAR(b.monto) + '"></div>' +
+            '<div class="col-md-2"><input type="text" class="form-control" readonly value="' + formatoAR(b.alicuota, 5) + ' %"></div>' +
+            '<div class="col-md-3"><input type="text" class="form-control" readonly value="$ ' + formatoAR(b.imp) + '"></div>' +
+            '</div>'
+          );
+        });
+        $("#ver-bases-extra-csf-drei").show();
+      } else {
+        $("#ver-bases-extra-csf-drei").hide();
+      }
+
       $("#modalVerCSFDREI").modal("show");
     } else if (data.casino === "Melincué") {
       $("#ver_fecha_melDREI").val(fecha);
@@ -2079,6 +2295,24 @@ $(document).on("click", ".btn-verRegDREI", function () {
       $("#ver_saldo_melDREI").val("$ " + formatoAR(data.saldo));
       $("#ver_obs_melDREI").val(data.obs);
 
+      // Mostrar bases extra
+      $("#ver-bases-extra-mel-drei-body").empty();
+      if (data.bases && data.bases.length) {
+        data.bases.forEach(function(b) {
+          $("#ver-bases-extra-mel-drei-body").append(
+            '<div class="row" style="margin-bottom:4px;">' +
+            '<div class="col-md-3"><input type="text" class="form-control" readonly value="' + (b.label || '') + '"></div>' +
+            '<div class="col-md-3"><input type="text" class="form-control" readonly value="$ ' + formatoAR(b.monto) + '"></div>' +
+            '<div class="col-md-2"><input type="text" class="form-control" readonly value="' + formatoAR(b.alicuota, 5) + ' %"></div>' +
+            '<div class="col-md-3"><input type="text" class="form-control" readonly value="$ ' + formatoAR(b.imp) + '"></div>' +
+            '</div>'
+          );
+        });
+        $("#ver-bases-extra-mel-drei").show();
+      } else {
+        $("#ver-bases-extra-mel-drei").hide();
+      }
+
       $("#modalVerMELDREI").modal("show");
     } else {
       $("#ver_fecha_roDREI").val(fecha);
@@ -2088,6 +2322,24 @@ $(document).on("click", ".btn-verRegDREI", function () {
 
       $("#ver_saldo_roDREI").val("$ " + formatoAR(data.saldo));
       $("#ver_obs_roDREI").val(data.obs);
+
+      // Mostrar bases extra
+      $("#ver-bases-extra-ro-drei-body").empty();
+      if (data.bases && data.bases.length) {
+        data.bases.forEach(function(b) {
+          $("#ver-bases-extra-ro-drei-body").append(
+            '<div class="row" style="margin-bottom:4px;">' +
+            '<div class="col-md-3"><input type="text" class="form-control" readonly value="' + (b.label || '') + '"></div>' +
+            '<div class="col-md-3"><input type="text" class="form-control" readonly value="$ ' + formatoAR(b.monto) + '"></div>' +
+            '<div class="col-md-2"><input type="text" class="form-control" readonly value="' + formatoAR(b.alicuota, 5) + ' %"></div>' +
+            '<div class="col-md-3"><input type="text" class="form-control" readonly value="$ ' + formatoAR(b.imp) + '"></div>' +
+            '</div>'
+          );
+        });
+        $("#ver-bases-extra-ro-drei").show();
+      } else {
+        $("#ver-bases-extra-ro-drei").hide();
+      }
 
       $("#modalVerRODREI").modal("show");
     }
@@ -4103,6 +4355,17 @@ $(function () {
     aliEsPorcentaje: 1,
     esIndirecto: true,
   });
+
+  $("#casinoIMP_AP_OL").on("change", function () {
+    var casinoId = $(this).val();
+    if (!casinoId || $("#IMP_AP_OL_modo").val() !== "create") return;
+    $.getJSON("/documentosContables/ultimasAlicuotasIMP_AP_OL", { casino_id: casinoId }, function (data) {
+      if (data.alicuota == null) return;
+      var n = parseFloat(data.alicuota) || 0;
+      var decs = $("#alicuotaIMP_AP_OL").data("_numflex_dec") || 5;
+      $("#alicuotaIMP_AP_OL").val(formatoAR(n, decs)).data("num", n).trigger("num:changed", [n]);
+    });
+  });
 });
 
 function cargarArchivosIMP_AP_OLLista(id) {
@@ -4683,6 +4946,17 @@ $(function () {
     decImp: 2,
     aliEsPorcentaje: 1,
     esIndirecto: true,
+  });
+
+  $("#casinoIMP_AP_MTM").on("change", function () {
+    var casinoId = $(this).val();
+    if (!casinoId || $("#IMP_AP_MTM_modo").val() !== "create") return;
+    $.getJSON("/documentosContables/ultimasAlicuotasIMP_AP_MTM", { casino_id: casinoId }, function (data) {
+      if (data.alicuota == null) return;
+      var n = parseFloat(data.alicuota) || 0;
+      var decs = $("#alicuotaIMP_AP_MTM").data("_numflex_dec") || 5;
+      $("#alicuotaIMP_AP_MTM").val(formatoAR(n, decs)).data("num", n).trigger("num:changed", [n]);
+    });
   });
 });
 
@@ -8518,15 +8792,15 @@ $(document).on("click", "#guardarRegistroPromoTickets", function (e) {
     valid
   );
 
-  valid = validarCampoNum(
-    "input[name='cant_PromoTickets']",
+  valid = validarCampoNumSiHayValor(
+    $("input[name='cant_PromoTickets']"),
     ".col-md-5",
     "La cantidad es requerida.",
     valid
   );
 
-  valid = validarCampoNum(
-    "input[name='importe_PromoTickets']",
+  valid = validarCampoNumSiHayValor(
+    $("input[name='importe_PromoTickets']"),
     ".col-md-5",
     "El importe es requerido.",
     valid
@@ -12530,15 +12804,15 @@ $(document).on("click", "#guardarRegistroPremiosPagados", function (e) {
     valid
   );
 
-  valid = validarCampoNum(
-    "input[name='cant_PremiosPagados']",
+  valid = validarCampoNumSiHayValor(
+    $("input[name='cant_PremiosPagados']"),
     ".col-md-5",
     "La cantidad es requerida.",
     valid
   );
 
-  valid = validarCampoNum(
-    "input[name='importe_PremiosPagados']",
+  valid = validarCampoNumSiHayValor(
+    $("input[name='importe_PremiosPagados']"),
     ".col-md-5",
     "El importe es requerido.",
     valid
@@ -13467,6 +13741,7 @@ $(document).on("click", ".btnPickUnified", function () {
 $(document).on("change", ".inputUnified", function () {
   if (!this.files || !this.files.length) return;
   const mod = $(this).closest(".prize-section").attr("id").replace("sec_", "");
+  const $inputGroup = $(this).closest(".input-group");
   const gid =
     "lote_" +
     (Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
@@ -13485,7 +13760,7 @@ $(document).on("change", ".inputUnified", function () {
       mod +
       '[]" multiple style="display:none;">'
   );
-  $(this).closest(".input-group").append($new);
+  $inputGroup.append($new);
 });
 
 function renderUnifiedUploads(mod) {
@@ -13896,10 +14171,10 @@ $(document).on("click", ".btn-ver-archivos-unified", function () {
   const idMap = {
     PremiosMTM: "#id_registroPremiosMTM_Unified",
     PromoTickets: "#id_registroPromoTickets_Unified",
-    Pozos: "#id_registroPozos_Unified",
-    Jackpots: "#id_registroJackpots_Unified",
+    PozosAcumuladosLinkeados: "#id_registroPozos_Unified",
+    JackpotsPagados: "#id_registroJackpots_Unified",
     PremiosPagados: "#id_registroPremiosPagados_Unified",
-    PagosMesas: "#id_registroPagosMesas_Unified",
+    PagosMayoresMesas: "#id_registroPagosMesas_Unified",
     RegistrosContables: "#id_registroRegistrosContables_Unified",
   };
   const id = $(idMap[type]).val();
@@ -13909,10 +14184,10 @@ $(document).on("click", ".btn-ver-archivos-unified", function () {
   const funcMap = {
     PremiosMTM: "cargarArchivosPremiosMTMLista",
     PromoTickets: "cargarArchivosPromoTicketsLista",
-    Pozos: "cargarArchivosPozosAcumuladosLinkeadosLista", // Most likely
-    Jackpots: "cargarArchivosJackpotsPagadosLista",
+    PozosAcumuladosLinkeados: "cargarArchivosPozosAcumuladosLinkeadosLista",
+    JackpotsPagados: "cargarArchivosJackpotsPagadosLista",
     PremiosPagados: "cargarArchivosPremiosPagadosLista",
-    PagosMesas: "cargarArchivosPagosMayoresMesasLista", // Likely
+    PagosMayoresMesas: "cargarArchivosPagosMayoresMesasLista",
     RegistrosContables: "cargarArchivosRegistrosContablesLista",
   };
   const funcName = funcMap[type];
@@ -18744,12 +19019,57 @@ $(function () {
                 .trigger("num:changed", [0]);
           });
 
+        // Agregar deducción
+        $(document).off("click.iibb", "#agregar-deduccion-iibb")
+          .on("click.iibb", "#agregar-deduccion-iibb", function(e) {
+            e.preventDefault();
+            contadorDeduccionIibb++;
+            appendDeduccionIibbFila({}, contadorDeduccionIibb);
+          });
+
+        // Eliminar deducción
+        $(document).off("click.iibb", ".eliminar-deduccion-iibb")
+          .on("click.iibb", ".eliminar-deduccion-iibb", function() {
+            $(this).closest(".deduccion-iibb-fila").remove();
+            if ($("#contenedor-deducciones-iibb .deduccion-iibb-fila").length === 0) {
+              $("#contenedor-deducciones-iibb .deduccion-iibb-headers").remove();
+            }
+            recalcularSumaDeduccionesIibb();
+          });
+
+        // Recalcular suma deducciones cuando cambia un monto
+        $(document).off("num:changed.iibb-ded", ".deduccion-monto-iibb")
+          .on("num:changed.iibb-ded", ".deduccion-monto-iibb", function() {
+            recalcularSumaDeduccionesIibb();
+          });
+
+        // Auto-fill bases del mes anterior al cambiar casino (solo en modo create)
+        $(document).off("change.iibb-casino", "#casinoiibb")
+          .on("change.iibb-casino", "#casinoiibb", function() {
+            var casinoId = $(this).val();
+            if (!casinoId || $("#iibb_modo").val() !== "create") return;
+            $.getJSON("/documentosContables/ultimasAlicuotasiibb", { casino_id: casinoId }, function(data) {
+              var bases = Array.isArray(data.bases) ? data.bases : [];
+              if (!bases.length) return;
+              $("#contenedor-inputs-iibb-cargar").empty();
+              contador = 0;
+              bases.forEach(function(b) {
+                contador++;
+                appendIibbFilaEditar({ obs: b.obs, alicuota: b.alicuota }, contador, "#contenedor-inputs-iibb-cargar");
+              });
+              $(document).trigger("iibb:set-contador", [contador]);
+            });
+          });
+
         $("#modalCargariibb").on("hidden.bs.modal", function () {
           $("#contenedor-inputs-iibb-cargar").empty();
+          $("#contenedor-deducciones-iibb").empty();
+          contadorDeduccionIibb = 0;
           contador = 0;
           const f = document.getElementById("formNuevoRegistroiibb");
           if (f) f.reset();
           $("#total_impuesto_iibb").val(formatoAR(0, 2)).data("num", 0);
+          $("#deduccionesiibb").val(0).data("num", 0);
         });
       })();
     } else if (selector === "#pant_drei") {
@@ -18846,12 +19166,37 @@ $(function () {
 
           $(".formulario-DREI").hide();
 
+          // Limpiar bases extra al cambiar casino
+          $("#contenedor-inputs-drei-extra-csf, #contenedor-inputs-drei-extra-mel, #contenedor-inputs-drei-extra-ro").empty();
+          contadorDreiExtra = 0;
+
           if (tipo == "1") {
             $("#formularioMEL").show();
           } else if (tipo == "2") {
             $("#formularioCSF").show();
           } else if (tipo == "3") {
             $("#formularioRO").show();
+          }
+
+          // Auto-completar alicuotas del mes anterior para el casino seleccionado
+          if (tipo && $("#DREI_modo").val() === "create") {
+            $.getJSON("/documentosContables/ultimasAlicuotasDREI", { casino_id: tipo }, function (data) {
+              function setAlicuota(sel, val) {
+                if (val == null) return;
+                var n = parseFloat(val) || 0;
+                var decs = $(sel).data("_numflex_dec") || 5;
+                $(sel).val(formatoAR(n, decs)).data("num", n).trigger("num:changed", [n]);
+              }
+              if (tipo == "2") {
+                setAlicuota("#alicuota_comDREI",   data.com_alicuota);
+                setAlicuota("#alicuota_gasDREI",   data.gas_alicuota);
+                setAlicuota("#alicuota_explDREI",  data.expl_alicuota);
+                setAlicuota("#alicuota_apyjDREI",  data.apyju_alicuota);
+              } else if (tipo == "1") {
+                setAlicuota("#alicuota_melDREI",  data.com_alicuota);
+                setAlicuota("#alicuotaO_melDREI", data.gas_alicuota);
+              }
+            });
           }
         });
       });
