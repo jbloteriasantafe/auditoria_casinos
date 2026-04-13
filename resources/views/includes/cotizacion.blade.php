@@ -112,7 +112,7 @@ use App\Http\Controllers\UsuarioController;
         error: function(data){
           tbody.empty();
           const fila = M.find('[data-cotizacion-bna-molde]').clone().removeAttr('data-cotizacion-bna-molde');
-          fila.find('[data-cotizacion-bna-col="fecha"]').append('ERROR <br>' + (data?.responseText ?? ''));
+          fila.find('[data-cotizacion-bna-col="fecha"]').empty().append('ERROR <br>' + (data?.responseText ?? ''));
           fila.find('[data-cotizacion-bna-col="dolar-compra"]').text('-');
           fila.find('[data-cotizacion-bna-col="dolar-venta"]').text('-');
           fila.find('[data-cotizacion-bna-col="euro-compra"]').text('-');

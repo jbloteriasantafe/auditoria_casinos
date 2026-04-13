@@ -84,14 +84,15 @@ class CotizacionController extends Controller
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
-        $proxy = env('https_proxy',null);
-        if($proxy === null){
+        $proxy_url  = env('HTTP_PROXY_URL',null);
+        $proxy_port = env('HTTP_PROXY_PORT',null);
+        if($proxy === null || $proxy_port === null){
           curl_setopt($ch, CURLOPT_PROXY, null);
         }
         else{
           $proxy_url = explode(':',$proxy);
-          curl_setopt($ch, CURLOPT_PROXY, $proxy_url[0]);
-          curl_setopt($ch, CURLOPT_PROXYPORT, intval($proxy_url[1]));
+          curl_setopt($ch, CURLOPT_PROXY, $proxy_url);
+          curl_setopt($ch, CURLOPT_PROXYPORT, $proxy_port);
         }
         
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
