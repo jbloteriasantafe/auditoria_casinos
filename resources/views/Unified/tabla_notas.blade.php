@@ -186,7 +186,7 @@
                     <td>{{ \Carbon\Carbon::parse($n->fecha_ingreso)->format('d/m/Y') }}</td>
                     <td><span class="text-muted">—</span></td>
                     <td><b>{{ $n->nro_nota }}-{{ $n->anio }}</b></td>
-                    <td>{{ $n->casino ? $n->casino->nombre : '---' }}</td>
+                    <td>{{ $n->casino ? $n->casino->nombre : \App\Http\Controllers\NotasUnificadasController::resolverNombreCasino($n->id_casino, $n->id_plataforma) }}</td>
                     <td>{{ $n->titulo }}</td>
                     <td>{{ $n->tipo_solicitud }}</td>
                     <td>

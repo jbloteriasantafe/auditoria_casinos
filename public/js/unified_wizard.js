@@ -477,7 +477,8 @@ $(document).ready(function () {
             nro_nota: $('input[name="nro_nota"]').val(),
             anio: $('input[name="anio"]').val(),
             titulo: $('input[name="titulo"]').val(),
-            id_casino: $('select[name="id_casino"]').val(),
+            id_casino: $('#hidCasinoId').val(),
+            id_plataforma: $('#hidPlataformaId').val(),
             tipo_tarea: tipoTarea,
             tipo_solicitud: $('#selTipoSolicitud').val(),
             id_tipo_evento: isMkt ? $('#selTipoEventoMKT').val() : $('#selTipoEventoFISC').val(),
@@ -852,7 +853,8 @@ $(document).ready(function () {
             nro_nota: $('input[name="nro_nota"]').val(),
             anio: $('input[name="anio"]').val(),
             titulo: $('input[name="titulo"]').val(),
-            id_casino: $('select[name="id_casino"]').val(),
+            id_casino: $('#hidCasinoId').val(),
+            id_plataforma: $('#hidPlataformaId').val(),
             tipo_tarea: $('#selTipoTarea').val(),
             tipo_solicitud: $('#selTipoSolicitud').val(),
 
@@ -3144,7 +3146,25 @@ $(document).ready(function () {
             // 4. Llenar campos
             $('#inpNroNota').val(g.nro_nota).prop('readonly', true);
             $('#inpAnio').val(g.anio).prop('disabled', true);
-            $('#selCasino').val(g.id_casino).trigger('change').prop('disabled', true);
+
+            // Seleccionar casino o plataforma según corresponda
+            if (g.id_plataforma) {
+                // Buscar la option de plataforma por data-es-plataforma y valor
+                $('#selCasino option').each(function() {
+                    if ($(this).data('es-plataforma') == '1' && $(this).val() == g.id_plataforma) {
+                        $(this).prop('selected', true);
+                        return false;
+                    }
+                });
+                $('#hidCasinoId').val('');
+                $('#hidPlataformaId').val(g.id_plataforma);
+            } else {
+                $('#selCasino').val(g.id_casino);
+                $('#hidCasinoId').val(g.id_casino);
+                $('#hidPlataformaId').val('');
+            }
+            $('#selCasino').trigger('change').prop('disabled', true);
+
             $('#inpTitulo').val(g.titulo).prop('readonly', true);
 
             if (rama === 'MKT') {
