@@ -72,12 +72,26 @@ $(document).ready(function () {
     })();
 
     // --- INIT & HELPERS ---
+    function esPlataformaSeleccionada(selector) {
+        return $(selector).find('option:selected').data('es-plataforma') == '1';
+    }
+
+    function actualizarHiddenCasino() {
+        var opt = $('#selCasino').find('option:selected');
+        if (opt.data('es-plataforma') == '1') {
+            $('#hidCasinoId').val('');
+            $('#hidPlataformaId').val(opt.val());
+        } else {
+            $('#hidCasinoId').val(opt.val());
+            $('#hidPlataformaId').val('');
+        }
+    }
+
     function actualizarTiposActivo() {
         let select = $('#selTipoActivo');
         select.empty();
 
-        var casinoId = parseInt($('#selCasino').val()) || 0;
-        if (casinoId >= (window.PLATAFORMA_ID_OFFSET || 100)) {
+        if (esPlataformaSeleccionada('#selCasino')) {
             select.append('<option value="JUEGO_ONLINE">Juego Online</option>');
             $('#inpIdActivo').attr('placeholder', 'ID o Codigo de Juego');
         } else {
@@ -90,17 +104,21 @@ $(document).ready(function () {
     }
 
     actualizarTiposActivo();
+    actualizarHiddenCasino();
 
     // --- EVENT HANDLERS STEP 1 ---
 
     $('#selCasino').change(function () {
+        actualizarHiddenCasino();
         actualizarTiposActivo();
         filtrarTipoEventoFISC();
+        // Limpiar activos al cambiar de casino/plataforma
+        activos = [];
+        $('#tablaActivos tbody').empty();
     });
 
     function filtrarTipoEventoFISC() {
-        var casinoId = parseInt($('#selCasino').val()) || 0;
-        var esPlataforma = casinoId >= (window.PLATAFORMA_ID_OFFSET || 100);
+        var esPlataforma = esPlataformaSeleccionada('#selCasino');
         $('#selTipoEventoFISC option').each(function () {
             var ctx = $(this).data('contexto');
             if (!ctx || ctx === 'todos') {
@@ -284,7 +302,12 @@ $(document).ready(function () {
         clearTimeout(timeout);
         let val = $(this).val();
         let tipo = $('#selTipoActivo').val();
-        let id_casino = $('#selCasino').val();
+        let params = { q: val, tipo: tipo };
+        if (esPlataformaSeleccionada('#selCasino')) {
+            params.id_plataforma = $('#selCasino').val();
+        } else {
+            params.id_casino = $('#selCasino').val();
+        }
 
         if (val.length < 1) {
             $('#resultadosBusqueda').hide();
@@ -292,7 +315,7 @@ $(document).ready(function () {
         }
 
         timeout = setTimeout(function () {
-            $.get('/notas-unificadas/buscar-activos', { q: val, tipo: tipo, id_casino: id_casino }, function (data) {
+            $.get('/notas-unificadas/buscar-activos', params, function (data) {
                 $('#resultadosBusqueda').empty();
 
                 if (data.length === 0) {
@@ -364,7 +387,7 @@ $(document).ready(function () {
         } else {
             row += `<td>${texto}</td>`;
         }
-        row += `<td><button class='btn btn-xs btn-danger btn-borrar-activo'>X</button></td></tr>`;
+        row += `<td><button class='btn btn-xs btn-danger btn-borrar-activo' style='background-color:#d9534f !important; color:#fff !important; border-color:#d43f3a !important; opacity:1 !important;'>X</button></td></tr>`;
 
         $('#tablaActivos tbody').append(row);
         return true;
@@ -412,15 +435,10 @@ $(document).ready(function () {
     });
 
     $('#tablaActivos').on('click', '.btn-borrar-activo', function () {
-        // Note: For full robustness, remove from 'activos' array logic needs to be exact by index or id/type match.
-        // For prototype we just visual remove, array sync might be needed if re-adding.
-        // Simple sync:
         let tr = $(this).closest('tr');
-        // This is weak, but sufficient for Mvp if we just clear array on Reset. 
-        // Better:
-        // activos = activos.filter(...) - requires storing ID in TR.
+        let idx = tr.index();
+        activos.splice(idx, 1);
         tr.remove();
-        // TODO: Sync array properly if strict validation needed.
     });
 
     // --- FORM SUBMISSION & STEPPER ---
@@ -459,7 +477,8 @@ $(document).ready(function () {
             nro_nota: $('input[name="nro_nota"]').val(),
             anio: $('input[name="anio"]').val(),
             titulo: $('input[name="titulo"]').val(),
-            id_casino: $('select[name="id_casino"]').val(),
+            id_casino: $('#hidCasinoId').val(),
+            id_plataforma: $('#hidPlataformaId').val(),
             tipo_tarea: tipoTarea,
             tipo_solicitud: $('#selTipoSolicitud').val(),
             id_tipo_evento: isMkt ? $('#selTipoEventoMKT').val() : $('#selTipoEventoFISC').val(),
@@ -834,7 +853,8 @@ $(document).ready(function () {
             nro_nota: $('input[name="nro_nota"]').val(),
             anio: $('input[name="anio"]').val(),
             titulo: $('input[name="titulo"]').val(),
-            id_casino: $('select[name="id_casino"]').val(),
+            id_casino: $('#hidCasinoId').val(),
+            id_plataforma: $('#hidPlataformaId').val(),
             tipo_tarea: $('#selTipoTarea').val(),
             tipo_solicitud: $('#selTipoSolicitud').val(),
 
@@ -958,11 +978,13 @@ $(document).ready(function () {
     let gridState = {
         q: '',
         id_casino: '',
+        id_plataforma: '',
         rama: '',
         estado: '',
         fecha_desde: '',
         fecha_hasta: '',
         page: 1,
+        page_size: 10,
         sort_by: 'id',
         order: 'desc'
     };
@@ -978,7 +1000,14 @@ $(document).ready(function () {
 
     // 2. Filters (all selects + date inputs with class .filtro-tabla)
     $(document).on('change', '.filtro-tabla', function () {
-        gridState.id_casino   = $('#selFiltroCasino').val();
+        var filtroVal = $('#selFiltroCasino').val();
+        if (filtroVal && filtroVal.toString().indexOf('p_') === 0) {
+            gridState.id_casino = '';
+            gridState.id_plataforma = filtroVal.replace('p_', '');
+        } else {
+            gridState.id_casino = filtroVal;
+            gridState.id_plataforma = '';
+        }
         gridState.rama        = $('#selFiltroRama').val();
         gridState.estado      = $('#selFiltroEstado').val();
         gridState.fecha_desde = $('#inpFechaDesde').val();
@@ -999,23 +1028,29 @@ $(document).ready(function () {
         ajaxLoadTable();
     });
 
-    // 4. Pagination
-    $(document).on('click', '.pagination a', function (e) {
-        e.preventDefault();
-        let url = $(this).attr('href');
-        if (url) {
-            let page = url.split('page=')[1];
-            gridState.page = page;
-            ajaxLoadTable();
-        }
-    });
+    // 4. Pagination — callback para paginacion.js
+    function clickIndice(e, page, size) {
+        gridState.page = page;
+        if (size) gridState.page_size = parseInt(size);
+        ajaxLoadTable();
+    }
+
+    // Paginación inicial (primer render sin AJAX)
+    if (typeof TOTAL_GRUPOS_INICIAL !== 'undefined' && $.fn.generarTitulo) {
+        $('#herramientasPaginacion').generarTitulo(1, gridState.page_size, TOTAL_GRUPOS_INICIAL, clickIndice);
+        $('#herramientasPaginacion2').generarIndices(1, gridState.page_size, TOTAL_GRUPOS_INICIAL, clickIndice);
+    }
 
     // Core Load Function
     function ajaxLoadTable() {
-        $('#divTablaNotas').css('opacity', '0.5'); // Skelethon effect
+        $('#divTablaNotas').css('opacity', '0.5');
 
-        $.get('/notas-unificadas', gridState, function (html) {
-            $('#divTablaNotas').html(html).css('opacity', '1');
+        $.get('/notas-unificadas', gridState, function (res) {
+            $('#divTablaNotas').html(res.html).css('opacity', '1');
+
+            // Paginación estilo sistema
+            $('#herramientasPaginacion').generarTitulo(gridState.page, gridState.page_size, res.total, clickIndice);
+            $('#herramientasPaginacion2').generarIndices(gridState.page, gridState.page_size, res.total, clickIndice);
 
             // Re-render sort icons
             $('.sortable').find('i').removeClass('fa-sort-asc fa-sort-desc').addClass('fa-sort');
@@ -1074,7 +1109,7 @@ $(document).ready(function () {
         var td = $('td.grupo-estados[data-grupo-id="' + grupoId + '"]');
         td.empty();
         for (var i = 0; i < estados.length; i++) {
-            td.append('<span class="label label-info" style="margin-right:2px;">' + estados[i] + '</span>');
+            td.append('<span class="label" style="' + getEstadoStyle(estados[i]) + ' margin-right:2px;">' + estados[i] + '</span>');
         }
     }
 
@@ -1115,8 +1150,7 @@ $(document).ready(function () {
         select.focus();
 
         function restoreBadge(text) {
-            let color = getBalanceColor(text);
-            let newSpan = $('<span class="label label-' + color + ' estado-badge" data-id="' + id + '" data-toggle="popover" data-trigger="hover">' + text + '</span>');
+            let newSpan = $('<span class="label estado-badge" data-id="' + id + '" data-toggle="popover" data-trigger="hover" style="' + getEstadoStyle(text) + '">' + text + '</span>');
             wrapper.replaceWith(newSpan);
         }
 
@@ -1165,7 +1199,7 @@ $(document).ready(function () {
 
         if (isKanban) {
             gridState.view_mode = 'kanban';
-            gridState.per_page = 50;
+            gridState.page_size = 50;
             ajaxLoadTable();
 
             // Wait for partial to load then Init Sortable
@@ -1184,7 +1218,7 @@ $(document).ready(function () {
         } else {
             // Table
             gridState.view_mode = 'table';
-            gridState.per_page = 10;
+            gridState.page_size = 10;
             ajaxLoadTable();
         }
     });
@@ -1383,6 +1417,7 @@ $(document).ready(function () {
         } else if (filter === 'reset') {
             // Reset completo de todos los filtros
             gridState.id_casino = '';
+            gridState.id_plataforma = '';
             gridState.rama = '';
             gridState.estado = '';
             gridState.fecha_desde = '';
@@ -1976,13 +2011,13 @@ $(document).ready(function () {
                 if (res.mkt) {
                     resumenHtml += '<li style="padding:8px; background:#dbeafe; border-radius:6px; margin-bottom:8px">' +
                         '<i class="fa fa-bullhorn text-primary"></i> <strong style="color:#1e3a8a;">Marketing:</strong> ' +
-                        '<span class="label label-' + getEstadoClass(res.mkt.estado) + '">Estado: ' + res.mkt.estado + '</span>' +
+                        '<span class="label" style="' + getEstadoStyle(res.mkt.estado) + '">Estado: ' + res.mkt.estado + '</span>' +
                         '</li>';
                 }
                 if (res.fisc && window.NIVEL_ESTADO !== 'funcionario') {
                     resumenHtml += '<li style="padding:8px; background:#d1fae5; border-radius:6px">' +
                         '<i class="fa fa-gavel text-success"></i> <strong style="color:#064e3b;">Fiscalización:</strong> ' +
-                        '<span class="label label-' + getEstadoClass(res.fisc.estado) + '">Estado: ' + res.fisc.estado + '</span>' +
+                        '<span class="label" style="' + getEstadoStyle(res.fisc.estado) + '">Estado: ' + res.fisc.estado + '</span>' +
                         '</li>';
                 }
                 resumenHtml += '</ul>';
@@ -2279,9 +2314,10 @@ $(document).ready(function () {
         html = sr(html, '{{fecha_pretendida_aprobacion}}', nota.fecha_pretendida_aprobacion || 'N/A');
         html = sr(html, '{{fecha_referencia}}', nota.fecha_referencia || 'N/A');
         html = sr(html, '{{estado}}', nota.estado || 'INGRESADO');
-        html = sr(html, '{{estadoClass}}', getEstadoClass(nota.estado));
+        html = sr(html, '{{estadoStyle}}', getEstadoStyle(nota.estado));
         html = sr(html, '{{created_at}}', nota.created_at || 'N/A');
         html = sr(html, '{{id_casino}}', nota.id_casino || '');
+        html = sr(html, '{{id_plataforma}}', nota.id_plataforma || '');
         html = sr(html, '{{adjuntosHtml}}', adjuntosHtml);
         html = sr(html, '{{activosHtml}}', activosHtml);
         html = sr(html, '{{comentariosHtml}}', comentariosHtml);
@@ -2299,6 +2335,11 @@ $(document).ready(function () {
             var $tmp2 = $('<div>').html(html);
             $tmp2.find('.row-fecha-pretendida').remove();
             $tmp2.find('.row-categoria').remove();
+            // Si es plataforma, solo mostrar Juego Online y cambiar título
+            if (nota.id_plataforma) {
+                $tmp2.find('.det-sel-tipo-activo').html('<option value="JUEGO_ONLINE">Juego Online</option>');
+                $tmp2.find('.activos-titulo').text('Juegos Asociados');
+            }
             html = $tmp2.html();
         }
 
@@ -2326,13 +2367,16 @@ $(document).ready(function () {
         return html;
     }
 
-    // Helper para clase de estado (desde DB via OPCIONES_ESTADO)
+    // Helper para estilo inline de estado
+    function getEstadoStyle(estado) {
+        if (!estado) return 'background:#999;color:#fff;';
+        if (estado.indexOf('APROBADO') !== -1) return 'background:#28a745;color:#fff;';
+        if (estado === 'VISTO CON OBSERVACIONES') return 'background:#dc3545;color:#fff;';
+        if (estado === 'VENCIDO') return 'background:#999;color:#fff;';
+        return 'background:#5bc0de;color:#fff;';
+    }
+    // Compat: mantiene nombre viejo para no romper nada
     function getEstadoClass(estado) {
-        if (!estado) return 'default';
-        var opciones = window.OPCIONES_ESTADO || [];
-        for (var i = 0; i < opciones.length; i++) {
-            if (opciones[i].descripcion === estado) return opciones[i].color;
-        }
         return 'default';
     }
 
@@ -2666,15 +2710,23 @@ $(document).ready(function () {
         var form = input.closest('.activos-add-form');
         var tipo = form.find('.det-sel-tipo-activo').val();
         var idCasino = form.data('casino-id');
+        var idPlataforma = form.data('plataforma-id');
         var resultsDiv = form.find('.det-resultados-busqueda');
 
         form.find('.det-hid-activo').val('');
 
         if (val.length < 1) { resultsDiv.hide().empty(); return; }
 
+        var params = { q: val, tipo: tipo };
+        if (idPlataforma) {
+            params.id_plataforma = idPlataforma;
+        } else {
+            params.id_casino = idCasino;
+        }
+
         clearTimeout(detActivoTimeout);
         detActivoTimeout = setTimeout(function () {
-            $.get('/notas-unificadas/buscar-activos', { q: val, tipo: tipo, id_casino: idCasino }, function (data) {
+            $.get('/notas-unificadas/buscar-activos', params, function (data) {
                 resultsDiv.empty();
                 if (data.length === 0) {
                     resultsDiv.append('<div class="list-group-item text-muted" style="padding:8px 12px;">Sin resultados</div>');
@@ -2953,8 +3005,7 @@ $(document).ready(function () {
             } else if (field === 'id_tipo_evento') {
                 var opciones = window.OPCIONES_TIPO_EVENTO[tipoRama] || [];
                 var selectedId = $span.data('value') || '';
-                var idCasino = parseInt($panel.closest('.nota-detalle-content').data('id-casino')) || 0;
-                var esPlataforma = idCasino >= (window.PLATAFORMA_ID_OFFSET || 100);
+                var esPlataforma = !!$panel.closest('.nota-detalle-content').data('id-plataforma');
                 inputHtml = '<select class="form-control edit-input" data-field="' + field + '" style="font-size: 13px;"><option value="">-- Seleccione --</option>';
                 opciones.forEach(function(o) {
                     var ctx = o.contexto || 'todos';
@@ -3031,7 +3082,7 @@ $(document).ready(function () {
                         if (field === 'estado') {
                             var estadoVal = $input.val();
                             $editable.data('value', estadoVal);
-                            $editable.html('<span class="label label-' + getEstadoClass(estadoVal) + '">' + estadoVal + '</span>').show();
+                            $editable.html('<span class="label" style="' + getEstadoStyle(estadoVal) + '">' + estadoVal + '</span>').show();
                         } else if ($input.is('select')) {
                             displayValue = $input.find('option:selected').text() || 'N/A';
                             $editable.data('value', $input.val());
@@ -3104,7 +3155,25 @@ $(document).ready(function () {
             // 4. Llenar campos
             $('#inpNroNota').val(g.nro_nota).prop('readonly', true);
             $('#inpAnio').val(g.anio).prop('disabled', true);
-            $('#selCasino').val(g.id_casino).trigger('change').prop('disabled', true);
+
+            // Seleccionar casino o plataforma según corresponda
+            if (g.id_plataforma) {
+                // Buscar la option de plataforma por data-es-plataforma y valor
+                $('#selCasino option').each(function() {
+                    if ($(this).data('es-plataforma') == '1' && $(this).val() == g.id_plataforma) {
+                        $(this).prop('selected', true);
+                        return false;
+                    }
+                });
+                $('#hidCasinoId').val('');
+                $('#hidPlataformaId').val(g.id_plataforma);
+            } else {
+                $('#selCasino').val(g.id_casino);
+                $('#hidCasinoId').val(g.id_casino);
+                $('#hidPlataformaId').val('');
+            }
+            $('#selCasino').trigger('change').prop('disabled', true);
+
             $('#inpTitulo').val(g.titulo).prop('readonly', true);
 
             if (rama === 'MKT') {

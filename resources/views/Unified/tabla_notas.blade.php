@@ -1,3 +1,11 @@
+@php
+function colorEstado($estado) {
+    if (str_contains($estado, 'APROBADO')) return 'background:#28a745;color:#fff;';
+    if ($estado === 'VISTO CON OBSERVACIONES') return 'background:#dc3545;color:#fff;';
+    if ($estado === 'VENCIDO') return 'background:#999;color:#fff;';
+    return 'background:#5bc0de;color:#fff;';
+}
+@endphp
 <div class="table-responsive">
     <table class="table table-striped table-hover table-bordered" style="font-size: 13px;">
         <thead>
@@ -36,7 +44,7 @@
                 </td>
                 <td><b>{{ $grupo->nro_nota }}-{{ $grupo->anio }}</b></td>
                 <td>
-                    {{ $grupo->casino ? $grupo->casino->nombre : \App\Http\Controllers\NotasUnificadasController::resolverNombreCasino($grupo->id_casino) }}
+                    {{ $grupo->casino ? $grupo->casino->nombre : \App\Http\Controllers\NotasUnificadasController::resolverNombreCasino($grupo->id_casino, $grupo->id_plataforma) }}
                 </td>
                 <td>{{ $grupo->titulo }}</td>
                 <td>
@@ -62,7 +70,7 @@
                         })->unique();
                     @endphp
                     @foreach($estados as $est)
-                        <span class="label label-info" style="margin-right:2px;">{{ $est }}</span>
+                        <span class="label" style="{{ colorEstado($est) }} margin-right:2px;">{{ $est }}</span>
                     @endforeach
                 </td>
                 <td>
@@ -122,7 +130,7 @@
                 </td>
                 <td>
                     @if($n->expedientes->count() > 0)
-                        <span class="label label-success estado-badge" data-id="{{ $n->id }}">
+                        <span class="label estado-badge" data-id="{{ $n->id }}" style="{{ colorEstado($n->expedientes->first()->estado_actual) }}">
                               {{ $n->expedientes->first()->estado_actual }}
                         </span>
                     @else
@@ -186,12 +194,12 @@
                     <td>{{ \Carbon\Carbon::parse($n->fecha_ingreso)->format('d/m/Y') }}</td>
                     <td><span class="text-muted">—</span></td>
                     <td><b>{{ $n->nro_nota }}-{{ $n->anio }}</b></td>
-                    <td>{{ $n->casino ? $n->casino->nombre : '---' }}</td>
+                    <td>{{ $n->casino ? $n->casino->nombre : \App\Http\Controllers\NotasUnificadasController::resolverNombreCasino($n->id_casino, $n->id_plataforma) }}</td>
                     <td>{{ $n->titulo }}</td>
                     <td>{{ $n->tipo_solicitud }}</td>
                     <td>
                         @if($n->expedientes->count() > 0)
-                            <span class="label label-success">{{ $n->expedientes->first()->estado_actual }}</span>
+                            <span class="label" style="{{ colorEstado($n->expedientes->first()->estado_actual) }}">{{ $n->expedientes->first()->estado_actual }}</span>
                         @else
                             <span class="label label-warning">PENDIENTE</span>
                         @endif
@@ -214,10 +222,7 @@
         </tbody>
     </table>
     
-    {{-- Paginación --}}
-    <div class="pull-right">
-        {{ $grupos->links() }}
-    </div>
+
 </div>
 
 <style>

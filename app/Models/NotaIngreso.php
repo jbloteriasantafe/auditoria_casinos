@@ -9,7 +9,8 @@ class NotaIngreso extends Model
     protected $table = 'notas_ingreso';
     protected $fillable = [
         'id_grupo',  // FK al grupo padre
-        'id_casino', 
+        'id_casino',
+        'id_plataforma',
         'fecha_ingreso', 
         'nro_nota', 
         'anio', 

@@ -8,6 +8,7 @@
 <link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="/css/lista-datos.css">
+<link rel="stylesheet" href="/css/paginacion.css">
 <link rel="stylesheet" href="/css/hyper_modal.css?v={{ filemtime(public_path('css/hyper_modal.css')) }}">
 <!-- CSS Inlined for reliability -->
 <style>
@@ -343,7 +344,7 @@
                         <select class="form-control filtro-tabla" id="selFiltroCasino">
                             <option value="">- Casino/Plataforma -</option>
                             @foreach($casinos as $c)
-                                <option value="{{ $c->id_casino }}">{{ $c->nombre }}</option>
+                                <option value="{{ $c->es_plataforma ? 'p_' . $c->id_plataforma : $c->id_casino }}" data-es-plataforma="{{ $c->es_plataforma ? '1' : '0' }}" data-id-plataforma="{{ $c->es_plataforma ? $c->id_plataforma : '' }}">{{ $c->nombre }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -386,9 +387,11 @@
                 </div>
                 <br>
                 <!-- TABLE CONTAINER (Partial View) -->
+                <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
                 <div id="divTablaNotas">
                     @include('Unified.tabla_notas')
                 </div>
+                <div id="herramientasPaginacion2" class="row zonaPaginacion"></div>
                 
                 <!-- CALENDAR CONTAINER -->
                 <div id="divCalendarioNotas" style="display:none; background:white; padding:20px; border:1px solid #ddd;"></div>
@@ -506,11 +509,13 @@
                             </div>
                             <div class="col-md-5">
                                 <label>Casino/Plataforma * <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Casino o plataforma al que afecta este trámite."></i></label>
-                                <select class="form-control" name="id_casino" id="selCasino" required>
+                                <select class="form-control" id="selCasino" required>
                                     @foreach($casinos as $c)
-                                    <option value="{{ $c->id_casino }}" data-nombre="{{ $c->nombre }}">{{ $c->nombre }}</option>
+                                    <option value="{{ $c->es_plataforma ? $c->id_plataforma : $c->id_casino }}" data-es-plataforma="{{ $c->es_plataforma ? '1' : '0' }}" data-nombre="{{ $c->nombre }}">{{ $c->nombre }}</option>
                                     @endforeach
                                 </select>
+                                <input type="hidden" name="id_casino" id="hidCasinoId">
+                                <input type="hidden" name="id_plataforma" id="hidPlataformaId">
                             </div>
                          </div>
                     
@@ -1062,7 +1067,7 @@
 <!-- Template para contenido de nota (MKT o FISC) -->
 @verbatim
 <script type="text/template" id="templateNotaDetalle">
-<div class="nota-detalle-content" data-nota-id="{{id}}" data-tipo-rama="{{tipo_rama}}" data-id-casino="{{id_casino}}">
+<div class="nota-detalle-content" data-nota-id="{{id}}" data-tipo-rama="{{tipo_rama}}" data-id-casino="{{id_casino}}" data-id-plataforma="{{id_plataforma}}">
 <div class="row">
     <!-- Columna Izquierda: Datos y Adjuntos -->
     <div class="col-md-7">
@@ -1086,7 +1091,7 @@
                     <tr><td><strong>Fecha Fin:</strong></td><td><span class="editable" data-field="fecha_fin">{{fecha_fin}}</span></td></tr>
                     <tr class="row-fecha-pretendida"><td><strong>Fecha Est. Aprob.:</strong></td><td><span class="editable" data-field="fecha_pretendida_aprobacion">{{fecha_pretendida_aprobacion}}</span></td></tr>
                     <tr class="row-fecha-referencia"><td><strong>Fecha Ref.:</strong></td><td>{{fecha_referencia}}</td></tr>
-                    <tr><td><strong>Estado:</strong></td><td><span class="editable" data-field="estado" data-value="{{estado}}"><span class="label label-{{estadoClass}}">{{estado}}</span></span></td></tr>
+                    <tr><td><strong>Estado:</strong></td><td><span class="editable" data-field="estado" data-value="{{estado}}"><span class="label" style="{{estadoStyle}}">{{estado}}</span></span></td></tr>
                     <tr><td><strong>Creado:</strong></td><td>{{created_at}}</td></tr>
                 </table>
             </div>
@@ -1142,13 +1147,13 @@
         <!-- Activos (solo visible en FISC) -->
         <div class="panel panel-default panel-activos-wrap" style="border-radius: 8px;">
             <div class="panel-heading" style="background: #8b5cf6 !important; color: white !important; border-radius: 8px 8px 0 0;">
-                <i class="fa fa-desktop"></i> <strong>Máquinas / Islas Asociadas</strong>
+                <i class="fa fa-desktop"></i> <strong class="activos-titulo">Máquinas / Islas Asociadas</strong>
                 <button class="btn btn-xs btn-default pull-right btn-toggle-add-activo" data-id="{{id}}" style="margin-top: -3px;">
                     <i class="fa fa-plus"></i> Agregar
                 </button>
             </div>
             <div class="panel-body" style="padding: 0;">
-                <div class="activos-add-form" data-nota-id="{{id}}" data-casino-id="{{id_casino}}" style="display:none; padding:10px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+                <div class="activos-add-form" data-nota-id="{{id}}" data-casino-id="{{id_casino}}" data-plataforma-id="{{id_plataforma}}" style="display:none; padding:10px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
                     <select class="form-control det-sel-tipo-activo" style="margin-bottom:8px;">
                         <option value="MTM">Máquina (MTM)</option>
                         <option value="ISLA">Isla (todas las MTM)</option>
@@ -1198,7 +1203,6 @@
 var PUEDE_ELIMINAR = {{ $puedeEliminar ? 'true' : 'false' }};
 var NIVEL_ESTADO = '{{ $nivelEstado }}';
 var CURRENT_USER_ID = {{ session('id_usuario', 0) }};
-var PLATAFORMA_ID_OFFSET = {{ \App\Http\Controllers\NotasUnificadasController::PLATAFORMA_ID_OFFSET }};
 var OPCIONES_TIPO_EVENTO = {
     MKT: [
         @foreach($tipos_evento as $t)
@@ -1242,7 +1246,9 @@ var TRANSICIONES_ESTADO = {
         @endforeach
     }
 };
+var TOTAL_GRUPOS_INICIAL = {{ $totalGrupos }};
 </script>
+<script src="/js/paginacion.js"></script>
 <script src="/js/unified_wizard.js?v={{ filemtime(public_path('js/unified_wizard.js')) }}"></script>
 <script>
 /* Espaciado wizard paso 2 - inline para evitar cache */
