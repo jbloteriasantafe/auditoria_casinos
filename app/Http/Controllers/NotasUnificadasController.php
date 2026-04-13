@@ -290,8 +290,8 @@ class NotasUnificadasController extends Controller
             }
         }
 
-        // Pagination (simplePaginate skips the COUNT query, saving 1 DB round-trip)
-        $grupos = $gruposQuery->simplePaginate(10);
+        $pageSize = $request->page_size ?: 10;
+        $grupos = $gruposQuery->paginate($pageSize);
         
         // Preserve params
         $grupos->appends($request->all());
@@ -321,9 +321,15 @@ class NotasUnificadasController extends Controller
 
         if ($request->ajax()) {
             if ($request->get('view_mode') === 'kanban') {
-                return view('Unified.kanban_notas', compact('grupos', 'notasSueltas', 'puedeEliminar'));
+                return response()->json([
+                    'html' => view('Unified.kanban_notas', compact('grupos', 'notasSueltas', 'puedeEliminar'))->render(),
+                    'total' => $grupos->total(),
+                ]);
             }
-            return view('Unified.tabla_notas', compact('grupos', 'notasSueltas', 'puedeEliminar', 'esFuncionario'));
+            return response()->json([
+                'html' => view('Unified.tabla_notas', compact('grupos', 'notasSueltas', 'puedeEliminar', 'esFuncionario'))->render(),
+                'total' => $grupos->total(),
+            ]);
         }
 
         // Casinos físicos
@@ -364,8 +370,10 @@ class NotasUnificadasController extends Controller
 
         $estados = NotaEstado::activos();
 
+        $totalGrupos = $grupos->total();
+
         // Retornar vista principal (Bandejas)
-        return view('Unified.index', compact('grupos', 'notasSueltas', 'casinos', 'categorias', 'tipos_evento', 'estados', 'puedeEliminar', 'nivelEstado', 'esFuncionario'));
+        return view('Unified.index', compact('grupos', 'notasSueltas', 'casinos', 'categorias', 'tipos_evento', 'estados', 'puedeEliminar', 'nivelEstado', 'esFuncionario', 'totalGrupos'));
     }
 
     /**

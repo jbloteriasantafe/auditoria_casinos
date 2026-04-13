@@ -984,6 +984,7 @@ $(document).ready(function () {
         fecha_desde: '',
         fecha_hasta: '',
         page: 1,
+        page_size: 10,
         sort_by: 'id',
         order: 'desc'
     };
@@ -1027,23 +1028,29 @@ $(document).ready(function () {
         ajaxLoadTable();
     });
 
-    // 4. Pagination
-    $(document).on('click', '.pagination a', function (e) {
-        e.preventDefault();
-        let url = $(this).attr('href');
-        if (url) {
-            let page = url.split('page=')[1];
-            gridState.page = page;
-            ajaxLoadTable();
-        }
-    });
+    // 4. Pagination — callback para paginacion.js
+    function clickIndice(e, page, size) {
+        gridState.page = page;
+        if (size) gridState.page_size = parseInt(size);
+        ajaxLoadTable();
+    }
+
+    // Paginación inicial (primer render sin AJAX)
+    if (typeof TOTAL_GRUPOS_INICIAL !== 'undefined' && $.fn.generarTitulo) {
+        $('#herramientasPaginacion').generarTitulo(1, gridState.page_size, TOTAL_GRUPOS_INICIAL, clickIndice);
+        $('#herramientasPaginacion2').generarIndices(1, gridState.page_size, TOTAL_GRUPOS_INICIAL, clickIndice);
+    }
 
     // Core Load Function
     function ajaxLoadTable() {
-        $('#divTablaNotas').css('opacity', '0.5'); // Skelethon effect
+        $('#divTablaNotas').css('opacity', '0.5');
 
-        $.get('/notas-unificadas', gridState, function (html) {
-            $('#divTablaNotas').html(html).css('opacity', '1');
+        $.get('/notas-unificadas', gridState, function (res) {
+            $('#divTablaNotas').html(res.html).css('opacity', '1');
+
+            // Paginación estilo sistema
+            $('#herramientasPaginacion').generarTitulo(gridState.page, gridState.page_size, res.total, clickIndice);
+            $('#herramientasPaginacion2').generarIndices(gridState.page, gridState.page_size, res.total, clickIndice);
 
             // Re-render sort icons
             $('.sortable').find('i').removeClass('fa-sort-asc fa-sort-desc').addClass('fa-sort');
@@ -1102,7 +1109,7 @@ $(document).ready(function () {
         var td = $('td.grupo-estados[data-grupo-id="' + grupoId + '"]');
         td.empty();
         for (var i = 0; i < estados.length; i++) {
-            td.append('<span class="label label-info" style="margin-right:2px;">' + estados[i] + '</span>');
+            td.append('<span class="label" style="' + getEstadoStyle(estados[i]) + ' margin-right:2px;">' + estados[i] + '</span>');
         }
     }
 
@@ -1143,8 +1150,7 @@ $(document).ready(function () {
         select.focus();
 
         function restoreBadge(text) {
-            let color = getBalanceColor(text);
-            let newSpan = $('<span class="label label-' + color + ' estado-badge" data-id="' + id + '" data-toggle="popover" data-trigger="hover">' + text + '</span>');
+            let newSpan = $('<span class="label estado-badge" data-id="' + id + '" data-toggle="popover" data-trigger="hover" style="' + getEstadoStyle(text) + '">' + text + '</span>');
             wrapper.replaceWith(newSpan);
         }
 
@@ -1193,7 +1199,7 @@ $(document).ready(function () {
 
         if (isKanban) {
             gridState.view_mode = 'kanban';
-            gridState.per_page = 50;
+            gridState.page_size = 50;
             ajaxLoadTable();
 
             // Wait for partial to load then Init Sortable
@@ -1212,7 +1218,7 @@ $(document).ready(function () {
         } else {
             // Table
             gridState.view_mode = 'table';
-            gridState.per_page = 10;
+            gridState.page_size = 10;
             ajaxLoadTable();
         }
     });
@@ -2005,13 +2011,13 @@ $(document).ready(function () {
                 if (res.mkt) {
                     resumenHtml += '<li style="padding:8px; background:#dbeafe; border-radius:6px; margin-bottom:8px">' +
                         '<i class="fa fa-bullhorn text-primary"></i> <strong style="color:#1e3a8a;">Marketing:</strong> ' +
-                        '<span class="label label-' + getEstadoClass(res.mkt.estado) + '">Estado: ' + res.mkt.estado + '</span>' +
+                        '<span class="label" style="' + getEstadoStyle(res.mkt.estado) + '">Estado: ' + res.mkt.estado + '</span>' +
                         '</li>';
                 }
                 if (res.fisc && window.NIVEL_ESTADO !== 'funcionario') {
                     resumenHtml += '<li style="padding:8px; background:#d1fae5; border-radius:6px">' +
                         '<i class="fa fa-gavel text-success"></i> <strong style="color:#064e3b;">Fiscalización:</strong> ' +
-                        '<span class="label label-' + getEstadoClass(res.fisc.estado) + '">Estado: ' + res.fisc.estado + '</span>' +
+                        '<span class="label" style="' + getEstadoStyle(res.fisc.estado) + '">Estado: ' + res.fisc.estado + '</span>' +
                         '</li>';
                 }
                 resumenHtml += '</ul>';
@@ -2308,7 +2314,7 @@ $(document).ready(function () {
         html = sr(html, '{{fecha_pretendida_aprobacion}}', nota.fecha_pretendida_aprobacion || 'N/A');
         html = sr(html, '{{fecha_referencia}}', nota.fecha_referencia || 'N/A');
         html = sr(html, '{{estado}}', nota.estado || 'INGRESADO');
-        html = sr(html, '{{estadoClass}}', getEstadoClass(nota.estado));
+        html = sr(html, '{{estadoStyle}}', getEstadoStyle(nota.estado));
         html = sr(html, '{{created_at}}', nota.created_at || 'N/A');
         html = sr(html, '{{id_casino}}', nota.id_casino || '');
         html = sr(html, '{{id_plataforma}}', nota.id_plataforma || '');
@@ -2361,13 +2367,16 @@ $(document).ready(function () {
         return html;
     }
 
-    // Helper para clase de estado (desde DB via OPCIONES_ESTADO)
+    // Helper para estilo inline de estado
+    function getEstadoStyle(estado) {
+        if (!estado) return 'background:#999;color:#fff;';
+        if (estado.indexOf('APROBADO') !== -1) return 'background:#28a745;color:#fff;';
+        if (estado === 'VISTO CON OBSERVACIONES') return 'background:#dc3545;color:#fff;';
+        if (estado === 'VENCIDO') return 'background:#999;color:#fff;';
+        return 'background:#5bc0de;color:#fff;';
+    }
+    // Compat: mantiene nombre viejo para no romper nada
     function getEstadoClass(estado) {
-        if (!estado) return 'default';
-        var opciones = window.OPCIONES_ESTADO || [];
-        for (var i = 0; i < opciones.length; i++) {
-            if (opciones[i].descripcion === estado) return opciones[i].color;
-        }
         return 'default';
     }
 
@@ -3073,7 +3082,7 @@ $(document).ready(function () {
                         if (field === 'estado') {
                             var estadoVal = $input.val();
                             $editable.data('value', estadoVal);
-                            $editable.html('<span class="label label-' + getEstadoClass(estadoVal) + '">' + estadoVal + '</span>').show();
+                            $editable.html('<span class="label" style="' + getEstadoStyle(estadoVal) + '">' + estadoVal + '</span>').show();
                         } else if ($input.is('select')) {
                             displayValue = $input.find('option:selected').text() || 'N/A';
                             $editable.data('value', $input.val());

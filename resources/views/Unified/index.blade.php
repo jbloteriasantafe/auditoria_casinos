@@ -8,6 +8,7 @@
 <link href="/css/fileinput.css" media="all" rel="stylesheet" type="text/css"/>
 <link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="/css/lista-datos.css">
+<link rel="stylesheet" href="/css/paginacion.css">
 <link rel="stylesheet" href="/css/hyper_modal.css?v={{ filemtime(public_path('css/hyper_modal.css')) }}">
 <!-- CSS Inlined for reliability -->
 <style>
@@ -386,9 +387,11 @@
                 </div>
                 <br>
                 <!-- TABLE CONTAINER (Partial View) -->
+                <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
                 <div id="divTablaNotas">
                     @include('Unified.tabla_notas')
                 </div>
+                <div id="herramientasPaginacion2" class="row zonaPaginacion"></div>
                 
                 <!-- CALENDAR CONTAINER -->
                 <div id="divCalendarioNotas" style="display:none; background:white; padding:20px; border:1px solid #ddd;"></div>
@@ -1088,7 +1091,7 @@
                     <tr><td><strong>Fecha Fin:</strong></td><td><span class="editable" data-field="fecha_fin">{{fecha_fin}}</span></td></tr>
                     <tr class="row-fecha-pretendida"><td><strong>Fecha Est. Aprob.:</strong></td><td><span class="editable" data-field="fecha_pretendida_aprobacion">{{fecha_pretendida_aprobacion}}</span></td></tr>
                     <tr class="row-fecha-referencia"><td><strong>Fecha Ref.:</strong></td><td>{{fecha_referencia}}</td></tr>
-                    <tr><td><strong>Estado:</strong></td><td><span class="editable" data-field="estado" data-value="{{estado}}"><span class="label label-{{estadoClass}}">{{estado}}</span></span></td></tr>
+                    <tr><td><strong>Estado:</strong></td><td><span class="editable" data-field="estado" data-value="{{estado}}"><span class="label" style="{{estadoStyle}}">{{estado}}</span></span></td></tr>
                     <tr><td><strong>Creado:</strong></td><td>{{created_at}}</td></tr>
                 </table>
             </div>
@@ -1243,7 +1246,9 @@ var TRANSICIONES_ESTADO = {
         @endforeach
     }
 };
+var TOTAL_GRUPOS_INICIAL = {{ $totalGrupos }};
 </script>
+<script src="/js/paginacion.js"></script>
 <script src="/js/unified_wizard.js?v={{ filemtime(public_path('js/unified_wizard.js')) }}"></script>
 <script>
 /* Espaciado wizard paso 2 - inline para evitar cache */
