@@ -13,7 +13,7 @@ class CacheController extends Controller
       }
       return self::$instance;
   }
-  public function buscar($codigo = null,$subcodigo = null,$antes_de = null,$dependencias = null,$get = true){
+  private function buscar($codigo = null,$subcodigo = null,$antes_de = null,$dependencias = null,$get = true){
     $reglas = [];
     if(!is_null($codigo)) $reglas[] = ['codigo','=',$codigo];
     if(!is_null($subcodigo)) $reglas[] = ['subcodigo','=',$subcodigo];
