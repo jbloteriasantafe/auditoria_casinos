@@ -27,37 +27,35 @@ class CotizacionController extends Controller
     public function guardarCotizacion(request $cotizacion){
       $validator = Validator::make($cotizacion->all(), [
         'fecha' => 'required|date',
-        'valor' => 'required|numeric|min:25',
-      ])->validate();
+        'valor' => 'required|regex:/^\d+(,\d{1,3})?$/',
+      ],[
+        'required' => 'El valor es requerido',
+        'date' => 'El valor tiene que tener formato YYYY-MM-DD',
+        'valor.regex' => 'El valor tiene que tener que ser un valor numerico, positivo, con maximo 3 números decimales',
+      ],[])->validate();
 
       $cot = Cotizacion::Find($cotizacion['fecha']);
+      $valor = str_replace(',','.',$cotizacion['valor']);
       if($cot){
-        $cot->valor=$cotizacion['valor'];
+        $cot->valor=$valor;
         $cot->save();
       }else{
         $nuevaCotizacion= new Cotizacion;
         $nuevaCotizacion->fecha=$cotizacion['fecha'];
-        $nuevaCotizacion->valor=$cotizacion['valor'];
+        $nuevaCotizacion->valor=$valor;
         $nuevaCotizacion->save();
       }
       return "OK";
     }
     
-    public function cotizacionesBNA(Request $request){
-      $validator = Validator::make($request->all(), [
-        'año_mes' => ['required','regex:/^\d{4}\-((0\d)|(1[0-2]))$/'],
-      ],[
-        'required' => 'El valor es requerido',
-        'año_mes.regex' => 'Tiene que tener formato YYYY-MM'
-      ],[])->validate();
-                  
+    public function _cotizacionesBNA(string $año_mes){
       $CC = \App\Http\Controllers\CacheController::getInstancia();
       
-      $fechaDesde = $request->año_mes.'-01';
+      $fechaDesde = $año_mes.'-01';
       $fechaHasta = date("Y-m-t",strtotime($fechaDesde));
       
       $CACHE_CODIGO = 'cotizacionesBNA';
-      $CACHE_SUBCODIGO = $request->año_mes;
+      $CACHE_SUBCODIGO = $año_mes;
       //Dentro de los ultimos 30 minutos
       $cache = $CC->buscarUltimoDentroDeSegundos($CACHE_CODIGO,$CACHE_SUBCODIGO,60*30);
       if(!is_null($cache)){
@@ -200,5 +198,16 @@ class CotizacionController extends Controller
       $CC->agregar($CACHE_CODIGO,$CACHE_SUBCODIGO,json_encode($merged),[]);
       
       return $merged;
+    }
+    
+    public function cotizacionesBNA(Request $request){
+      $validator = Validator::make($request->all(), [
+        'año_mes' => ['required','regex:/^\d{4}\-((0\d)|(1[0-2]))$/'],
+      ],[
+        'required' => 'El valor es requerido',
+        'año_mes.regex' => 'Tiene que tener formato YYYY-MM'
+      ],[])->validate();
+                  
+      return $this->_cotizacionesBNA($request->año_mes);
     }
 }

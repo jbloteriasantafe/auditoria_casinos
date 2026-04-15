@@ -47,16 +47,19 @@ use App\Http\Controllers\UsuarioController;
               </tbody>
             </table>
             <table hidden>
-              <tr data-cotizacion-bna-fila data-cotizacion-bna-molde style="border-top: 1px solid grey;">
+              <tr data-cotizacion-bna-fila data-cotizacion-bna-molde="datos" style="border-top: 1px solid grey;">
                 <td data-cotizacion-bna-col="fecha" rowspan="2" style="text-align: left;border-right: 1px solid grey;">YYYY-MM-DD</td>
                 <td style="text-align: center;background: #89E1A1;">Dólar</td>
                 <td data-cotizacion-bna-col="dolar-compra" style="text-align: right;background: #89E1A1;">1111</td>
                 <td data-cotizacion-bna-col="dolar-venta" style="text-align: right;background: #89E1A1;">2222</td>
               </tr>
-              <tr data-cotizacion-bna-fila data-cotizacion-bna-molde style="border-bottom: 1px solid grey;">
+              <tr data-cotizacion-bna-fila data-cotizacion-bna-molde="datos" style="border-bottom: 1px solid grey;">
                 <td style="text-align: center;background: #8EB8FF;">Euro</td>
                 <td data-cotizacion-bna-col="euro-compra" style="text-align: right;background: #8EB8FF;">3333</td>
                 <td data-cotizacion-bna-col="euro-venta" style="text-align: right;background: #8EB8FF;">4444</td>
+              </tr>
+              <tr data-cotizacion-bna-fila data-cotizacion-bna-molde="celda" style="border-bottom: 1px solid grey;">
+                <td data-cotizacion-bna-col="celda" colspan="4">&nbsp;</td>
               </tr>
             </table>
           </div>
@@ -65,7 +68,7 @@ use App\Http\Controllers\UsuarioController;
       </div>
       <div class="modal-footer">
         <label id="labelCotizacion" for="number"> </label>
-        <input id="valorCotizacion" type="number" step="0.001" min="25" max="200" placeholder="xx,xxx">
+        <input id="valorCotizacion" placeholder="xx,xxx">
         <button type="button" class="btn btn-successAceptar" id="guardarCotizacion">GUARDAR</button>
       </div> 
     </div>
@@ -78,9 +81,10 @@ use App\Http\Controllers\UsuarioController;
       const M = $(e.currentTarget);
       const tbody  = M.find('[data-cotizacion-bna-tbody]').empty();
       {
-        const fspin = M.find('[data-cotizacion-bna-molde]').clone().removeAttr('data-cotizacion-bna-molde');
-        fspin.find('td').empty().append('<i class="fa fa-spinner fa-spin"></i>');
-        tbody.append(fspin);
+        const fila = M.find('[data-cotizacion-bna-molde="celda"]').clone().removeAttr('data-cotizacion-bna-molde');
+        fila.attr('data-cotizacion-bna-fila','CARGANDO');
+        fila.find('[data-cotizacion-bna-col="celda"]').empty().append('<i class="fa fa-spinner fa-spin"></i>');
+        tbody.append(fila);
       }
       $.ajax({
         url: '/cotizacion/cotizacionesBNA',
@@ -89,18 +93,16 @@ use App\Http\Controllers\UsuarioController;
         success: function(data){
           tbody.empty();
           if(Object.entries(data ?? {}).length == 0){
-            const fila = M.find('[data-cotizacion-bna-molde]').clone().removeAttr('data-cotizacion-bna-molde');
-            fila.find('[data-cotizacion-bna-col="fecha"]').text('SIN DATOS');
-            fila.find('[data-cotizacion-bna-col="dolar-compra"]').text('-');
-            fila.find('[data-cotizacion-bna-col="dolar-venta"]').text('-');
-            fila.find('[data-cotizacion-bna-col="euro-compra"]').text('-');
-            fila.find('[data-cotizacion-bna-col="euro-venta"]').text('-');
+            const fila = M.find('[data-cotizacion-bna-molde="celda"]').clone().removeAttr('data-cotizacion-bna-molde');
+            fila.attr('data-cotizacion-bna-fila','SIN-DATOS');
+            fila.find('[data-cotizacion-bna-col="celda"]').text('SIN DATOS');
             tbody.append(fila);
             return;
           }
           for(const fecha_cotizacion in data){
-            const fila = M.find('[data-cotizacion-bna-molde]').clone().removeAttr('data-cotizacion-bna-molde');
+            const fila = M.find('[data-cotizacion-bna-molde="datos"]').clone().removeAttr('data-cotizacion-bna-molde');
             const d = data[fecha_cotizacion] ?? {};
+            fila.attr('data-cotizacion-bna-fila',fecha_cotizacion);
             fila.find('[data-cotizacion-bna-col="fecha"]').text(fecha_cotizacion);
             fila.find('[data-cotizacion-bna-col="dolar-compra"]').text(d?.dolar?.compra ?? '-');
             fila.find('[data-cotizacion-bna-col="dolar-venta"]').text(d?.dolar?.venta ?? '-');
@@ -111,12 +113,11 @@ use App\Http\Controllers\UsuarioController;
         },
         error: function(data){
           tbody.empty();
-          const fila = M.find('[data-cotizacion-bna-molde]').clone().removeAttr('data-cotizacion-bna-molde');
-          fila.find('[data-cotizacion-bna-col="fecha"]').empty().append('ERROR <br>' + (data?.responseText ?? ''));
-          fila.find('[data-cotizacion-bna-col="dolar-compra"]').text('-');
-          fila.find('[data-cotizacion-bna-col="dolar-venta"]').text('-');
-          fila.find('[data-cotizacion-bna-col="euro-compra"]').text('-');
-          fila.find('[data-cotizacion-bna-col="euro-venta"]').text('-');
+          const fila = M.find('[data-cotizacion-bna-molde="celda"]').clone().removeAttr('data-cotizacion-bna-molde');
+          fila.attr('data-cotizacion-bna-fila','ERROR');
+          fila.find('[data-cotizacion-bna-col="celda"]').empty()
+          .append('ERROR <br>' + (data?.responseText ?? ''))
+          .css('background','lightred');
           tbody.append(fila);
         }
       });
@@ -126,12 +127,16 @@ use App\Http\Controllers\UsuarioController;
 
 <script type="module" defer>  
   $(document).ready(function(){
+    let cotizacionesCalendario = {};
     $('#btn-cotizacion').on('click', function(e){
       e.preventDefault();
       //limpio modal
       $('#labelCotizacion').html("");
       $('#labelCotizacion').attr("data-fecha","");
-      $('#valorCotizacion').val("");
+      $('#valorCotizacion').val("").hide();
+      ocultarErrorValidacion($('#valorCotizacion'));
+      $('#guardarCotizacion').hide();
+      cotizacionesCalendario = {};
       //inicio calendario
       $('#calendarioCotizacion').fullCalendar({  // assign calendar
         locale: 'es',
@@ -150,36 +155,26 @@ use App\Http\Controllers\UsuarioController;
             $(cbna).trigger('mostrar',año_mes);
           });
         },
-        customButtons: {
-          nextCustom: {
-            text: 'Siguiente',
-            click: function() {
-              cambioMes('next');
-            }
-          },
-          prevCustom: {
-            text: 'Anterior',
-            click: function() {
-              cambioMes('prev');
-            }
-          },
-        },
         header: {
           left: 'prev,next',
           center: 'title',
           right: 'month',
         },
         events: function(start, end, timezone, callback) {
+          ocultarErrorValidacion($('#valorCotizacion'));
           $.ajax({
             url: 'cotizacion/obtenerCotizaciones/'+ start.format('YYYY-MM'),
             type:"GET",
             success: function(doc) {
+              cotizacionesCalendario = {};
               var events = [];
               $(doc).each(function() {
-                var numero=""+$(this).attr('valor');
+                const fecha  = $(this).attr('fecha');
+                const numero = (""+$(this).attr('valor')).replace(".", ",");
+                cotizacionesCalendario[fecha] = numero;
                 events.push({
-                  title:"" + numero.replace(".", ","),
-                  start: $(this).attr('fecha')
+                  title: numero,
+                  start: fecha
                 });
               });
               callback(events);
@@ -187,31 +182,20 @@ use App\Http\Controllers\UsuarioController;
           });
         },
         dayClick: function(date) {
-          $('#labelCotizacion').html('Guardar cotización para el día '+ '<u>'  +date.format('DD/M/YYYY') + '</u>' );
-          $('#labelCotizacion').attr("data-fecha",date.format('YYYY-MM-DD'));
-          const isodate = function(_d){
-            return _d.toISOString().split('T')[0];
-          };
-          const nd = new Date(date._d);
-          let valor = '';
-          //Va para atras hasta encontrar el ultimo valor
-          //Esto es porque los sabados, domingos y feriados no tienen mercado de cambios
-          while(primer_dia !== null){
-            const isond = isodate(nd);
-            valor = cotizacionBNA[isond] ?? ''; 
-            if(isond == primer_dia || valor !== ''){
-              break;
-            }
-            nd.setDate(nd.getDate()-1);
-          }
-          $('#valorCotizacion').val(valor);
-          $('#valorCotizacion').focus();
+          const fecha = date.format('YYYY-MM-DD');
+          $('#labelCotizacion').html('Guardar cotización para el día '+'<u>'+ fecha+'</u>' );
+          $('#labelCotizacion').attr("data-fecha",fecha);          
+          $('#valorCotizacion').val(cotizacionesCalendario[fecha] ?? '');
+          ocultarErrorValidacion($('#valorCotizacion'));
+          $('#guardarCotizacion').show();
+          $('#valorCotizacion').show().focus();
         },
       });
       $('#modal-cotizacion').modal('show')
     });
     
     $('#guardarCotizacion').click(function(){
+      ocultarErrorValidacion($('#valorCotizacion'));
       $.ajax({
         type: 'POST',
         url: 'cotizacion/guardarCotizacion',
@@ -223,7 +207,17 @@ use App\Http\Controllers\UsuarioController;
           $('#calendarioCotizacion').fullCalendar('refetchEvents');
           $('#labelCotizacion').html("");//limpio modal
           $('#labelCotizacion').attr("data-fecha","");
-          $('#valorCotizacion').val("");
+          $('#valorCotizacion').val("").hide();
+          $('#guardarCotizacion').hide();
+          cotizacionesCalendario[$('#labelCotizacion').attr('data-fecha')] = $('#valorCotizacion').val();
+        },
+        error: function(data){
+          const errores = data.responseJSON;
+          const error_arr = [];
+          for(const campo in errores){
+            error_arr.push(campo+': '+errores[campo].join(', '));
+          }
+          mostrarErrorValidacion($('#valorCotizacion'),error_arr.join(" | "),true);
         }
       });
     });
