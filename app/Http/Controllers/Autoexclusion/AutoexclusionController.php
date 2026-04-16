@@ -763,10 +763,15 @@ class AutoexclusionController extends Controller
   }
 
   public function BDCSV(){
-    $filename = 'ae_bd_'.date('Ymdhis').'.csv';
-
-    if(!$fhandle = fopen($filename,'w')){
-      return 'NO SE PUEDE CREAR EL ARCHIVO';
+    $filename = 'ae_bd_'.date('Ymdhis');
+    $filepath = storage_path('app/'.$filename);
+    $filepathcsv = $filepath.'.csv';
+    $filepathmd5 = $filepath.'.md5';
+    $filenamezip = $filename.'.zip';
+    $filepathzip = $filepath.'.zip';
+    
+    if(!$fhandle = fopen($filepathcsv,'w')){
+      return response()->json(['error' => ['NO SE PUEDE CREAR EL ARCHIVO']],500);
     }
 
     $primer_ae = true;
@@ -796,11 +801,26 @@ class AutoexclusionController extends Controller
       }
     });
     fclose($fhandle);
-
-    $headers = array(
-      "Content-type" => "text/csv",
-    );
-    return response()->download($filename,$filename,$headers)->deleteFileAfterSend(true);
+    
+    $archivos = [$filepathcsv];
+    
+    $md5 = md5_file($filepathcsv);
+    if(!$fhandle = fopen($filepathmd5,'w')){
+      \File::delete($archivos);
+      return response()->json(['error' => ['NO SE PUEDE CREAR EL ARCHIVO MD5']],500);
+    }
+    fwrite($fhandle,$md5);
+    fclose($fhandle);
+    
+    $archivos[] = $filepathmd5;
+    
+    \Zipper::make($filepathzip)->add($archivos)->close();
+    \File::delete($archivos);
+    
+    $headers = [
+      "Content-type" => "application/zip",
+    ];
+    return response()->download($filepathzip,$filenamezip,$headers)->deleteFileAfterSend(true);
   }
     
     public function importarMasivo(Request $request){
