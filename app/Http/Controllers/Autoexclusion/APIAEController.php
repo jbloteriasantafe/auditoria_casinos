@@ -717,4 +717,8 @@ class APIAEController extends Controller
         return response()->json(json_decode(json_encode($e),true), 500);
       }
     }
+    
+    public function descargar(){
+      return AutoexclusionController::getInstancia()->BDCSV();
+    }
 }
