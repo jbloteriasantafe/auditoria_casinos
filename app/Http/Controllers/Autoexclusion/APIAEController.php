@@ -166,19 +166,31 @@ class APIAEController extends Controller
     }
     
     public function agregar(Request $request){
-        $getimage = function($base64value){
-            $type_value = explode(',',$base64value);//strip data:image/jpeg;base64,
-            $realvalue = null;
-            if(count($type_value) == 2){
-              $realvalue = $type_value[1];
-            }
-            else if(count($type_value) == 1){//Sino sin type
-              $realvalue = $base64value;
+        $content_type = trim(explode(';',$request->header('Content-Type', 'application/json'))[0]);
+        if(!in_array($content_type,['application/x-www-form-urlencoded','multipart/form-data','application/json'])){
+          return $this->errorOut(['Header.ContentType' => ['ContentType '.$content_type.' no permitido']]);
+        }
+        $files_are_base64 = $content_type != 'multipart/form-data';
+        
+        $getimage = function($base64value_or_file) use ($files_are_base64){
+            $image = null;
+            if($files_are_base64){
+              $type_value = explode(',',$base64value_or_file);//strip data:image/jpeg;base64,
+              $realvalue = null;
+              if(count($type_value) == 2){
+                $realvalue = $type_value[1];
+              }
+              else if(count($type_value) == 1){//Sino sin type
+                $realvalue = $base64value_or_file;
+              }
+              else{
+                return ['filehandle' => false,'mime' => null];
+              }
+              $image = base64_decode($realvalue,true);
             }
             else{
-              return ['filehandle' => false,'mime' => null];
+              $image = file_get_contents($base64value_or_file->getPathName());
             }
-            $image = base64_decode($realvalue,true);
             
             if($image === false) return ['filehandle' => false,'mime' => null];
             $tmpfile = tmpfile();
@@ -189,6 +201,8 @@ class APIAEController extends Controller
             );
             return ['filehandle' => $tmpfile,'mime' => $mime];
         };
+        
+        //Uso un validador unificado, si es por URL o JSON, tengo que decodificarlo, sino lo envio de recho
         Validator::extend('imageBase64',function($attribute, $value, $params, $validator) use ($getimage){
           $fh_mime = $getimage($value);
           if($fh_mime['filehandle'] === false) return false;
