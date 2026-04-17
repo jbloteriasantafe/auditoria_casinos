@@ -103,7 +103,7 @@ input[required], select[required]{
     </div>
     @if($usuario->tienePermiso('descargar_aes'))
     <div class="col-xl-12 col-md-4">
-      <a href="" id="btn-descargar-ae" style="text-decoration: none;">
+      <a href="" id="btn-descargar-ae" style="text-decoration: none;width: 100%;">
         <div class="panel panel-default panelBotonNuevo">
           <center>
             <img class="imgNuevo" src="/img/logos/CSV_white.png">
@@ -117,6 +117,13 @@ input[required], select[required]{
               </center>
             </div>
           </div>
+        </div>
+      </a>
+      <a href="/autoexclusion/logsDescarga" target="_blank"rel="noopener noreferrer" style="text-decoration: none;">
+        <div class="panel panel-default" style="text-align: center;">
+          <span style="width: 100%;">
+            <i class="fa fa-fw fa-search"></i> VER LOGS DE DESCARGA
+          </span>
         </div>
       </a>
     </div>

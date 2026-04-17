@@ -820,33 +820,56 @@ class AutoexclusionController extends Controller
       "Content-type" => "application/zip",
     ];
     {
-      DB::statement('CREATE TABLE IF NOT EXISTS ae_bd_descargas (
-        id_ae_bd_descargas INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
-        data TEXT NOT NULL
-      )');
+      $this->_asegurarTablaLogsDescarga();
       $AC = AuthenticationController::getInstancia();
       
       $id_usuario = $AC->obtenerIdUsuario();
       $usuario    = \App\Usuario::withTrashed()->find($id_usuario);
       $user_name  = $usuario? $usuario->user_name : null;
       
-      $API_token  = $AC->obtenerAPIToken();
+      $API_token    = $AC->obtenerAPIToken();
       $id_api_token = $API_token? $API_token->id_api_token : null;
       $token        = $API_token? $API_token->token : null;
       $ip           = request()->ip() ?? null;
       
       $timestamp    = $timestamp->format('Y-m-d\TH:i:s.uP');
+      //@ATENCION!
+      //Cada vez que realizen un cambio a lo guardado, incrementar este número
+      $version = 1;
+      
       DB::table('ae_bd_descargas')->insert([
         'data' => json_encode(compact(
           'id_usuario','user_name',
           'id_api_token','token','ip',
-          'timestamp','md5'
+          'filenamezip','md5',
+          'timestamp','version'
         ))
       ]);
     }
     //tempnam no elimina automaticamente el archivo, pero se crea en /tmp
     //pero si se reinician las pcs y queda algun archivo dando vueltas se elimina solo
     return response()->download($filepathzip,$filenamezip,$headers)->deleteFileAfterSend(true);
+  }
+  
+  private function _asegurarTablaLogsDescarga(){
+    DB::statement('CREATE TABLE IF NOT EXISTS ae_bd_descargas (
+      id_ae_bd_descargas INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+      data TEXT NOT NULL
+    )');
+  }
+  
+  public function logsDescarga(Request $request){
+    $this->_asegurarTablaLogsDescarga();
+    return DB::table('ae_bd_descargas')->orderBy('id_ae_bd_descargas','desc')->get()->transform(function(&$l){
+      $decoded = json_decode($l->data,true);
+      if($decoded === null){
+        $l->invalid_json = 1;
+      }
+      else{
+        $l->data = $decoded;
+      }
+      return $l;
+    });
   }
     
     public function importarMasivo(Request $request){
