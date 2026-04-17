@@ -4,7 +4,13 @@
 @endsection
 
 <?php
-$permitir_manejar_papel = false;//Deshabilitado por ahora $usuario->es_superusuario || $usuario->es_administrador;
+$puede_manejar_papel = false;//Deshabilitado por ahora $usuario->es_superusuario || $usuario->es_administrador;
+$puede_agregar   = $usuario->es_superusuario || $usuario->tienePermiso('agregar_ae') || $usuario->tienePermiso('aym_ae_plataformas');
+$puede_modificar = $usuario->es_superusuario || $usuario->tienePermiso('modificar_ae') || $usuario->tienePermiso('aym_ae_plataformas');
+$puede_ver_formularios = $puede_agregar || $puede_modificar;
+$puede_descargar = $usuario->es_superusuario || $usuario->tienePermiso('descargar_aes');
+$puede_borrar    = $usuario->es_superusuario || $usuario->tienePermiso('borrar_ae');
+$puede_ver_logs_descargas = $usuario->es_superusuario || $usuario->tienePermiso('logs_descargar_aes');
 ?>
 
 @section('estilos')
@@ -63,7 +69,7 @@ input[required], select[required]{
 @section('contenidoVista')
 <div class="col-xl-2">
   <div class="row">
-    @if($usuario->tienePermiso('agregar_ae') || $usuario->tienePermiso('aym_ae_plataformas'))
+    @if($puede_agregar)
     <div class="col-xl-12 col-md-4">
       <a href="" id="btn-agregar-ae" style="text-decoration: none;">
         <div class="panel panel-default panelBotonNuevo">
@@ -83,6 +89,7 @@ input[required], select[required]{
       </a>
     </div>
     @endif
+    @if($puede_ver_formularios)
     <div class="col-xl-12 col-md-4">
       <a href="" id="btn-ver-formularios-ae" style="text-decoration: none;">
         <div class="panel panel-default panelBotonNuevo">
@@ -101,7 +108,8 @@ input[required], select[required]{
         </div>
       </a>
     </div>
-    @if($usuario->tienePermiso('descargar_aes'))
+    @endif
+    @if($puede_descargar)
     <div class="col-xl-12 col-md-4">
       <a href="" id="btn-descargar-ae" style="text-decoration: none;width: 100%;">
         <div class="panel panel-default panelBotonNuevo">
@@ -119,6 +127,7 @@ input[required], select[required]{
           </div>
         </div>
       </a>
+      @if($puede_ver_logs_descargas)
       <a href="/autoexclusion/logsDescarga" target="_blank"rel="noopener noreferrer" style="text-decoration: none;">
         <div class="panel panel-default" style="text-align: center;">
           <span style="width: 100%;">
@@ -126,10 +135,11 @@ input[required], select[required]{
           </span>
         </div>
       </a>
+      @endif
     </div>
     @endif
     
-    @if($usuario->tienePermiso('agregar_ae') || $usuario->tienePermiso('aym_ae_plataformas'))
+    @if($puede_agregar)
     <div class="col-xl-12 col-md-4">
       <a href="" id="btn-importar-masivo" style="text-decoration: none;">
         <div class="panel panel-default panelBotonNuevo">
@@ -255,7 +265,7 @@ input[required], select[required]{
       @endcomponent
     </div>
   </div>
-  @if($permitir_manejar_papel)
+  @if($puede_manejar_papel)
   <div class="row">
     <div class="col-md-3">
       <h5>PAPEL DESTRUIDO</h5>
@@ -282,7 +292,7 @@ input[required], select[required]{
     <th class="smalltext">F. VENC</th>
     <th class="smalltext">F. CIERRE</th>
     <th style="flex: 2;">ACCIONES</th>
-    @if($permitir_manejar_papel)
+    @if($puede_manejar_papel)
     <th>PAPEL</th>
     @endif
   </tr>
@@ -303,21 +313,21 @@ input[required], select[required]{
       <button id="btnVerMas" class="btn btn-info info" type="button" value="" title="VER MÁS" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw fa-search-plus"></i>
       </button>
+      @if($puede_modificar)
       @if($usuario->es_superusuario)
       <button id="btnEditarSuperusuario" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw fa-pencil-alt"></i>
       </button>
-      <button id="btnCambiarEstado" class="btn btn-info info" type="button" value="" title="" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
-        <i class="fa fa-fw"></i>
-      </button>
-      @elseif($usuario->tienePermiso('modificar_ae'))
+      @else
       <button id="btnEditarPendientes" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw fa-pencil-alt"></i>
       </button>
+      @endif
       <button id="btnCambiarEstado" class="btn btn-info info" type="button" value="" title="" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw"></i>
       </button>
       @endif
+      @if($puede_agregar)
       <a tabindex="0" id="btnSubirArchivos" class="btn btn-info info" role="button" value="" title="SUBIR ARCHIVOS" data-toggle="popover" data-html="true" data-trigger="focus" 
          data-content="">
         <i class="fa fa-fw fa-folder-open"></i>
@@ -331,13 +341,14 @@ input[required], select[required]{
       <button id="btnGenerarSolicitudFinalizacion" class="btn btn-info imprimir" type="button" value="" title="GENERAR SOLICITUD DE FINALIZACION" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw fa-print"></i>
       </button>
-      @if($usuario->tienePermiso('borrar_ae'))
+      @endif      
+      @if($puede_borrar)
       <button id="btnEliminar" class="btn btn-info info" type="button" value="" title="ELIMINAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw fa-trash"></i>
       </button>
       @endif
     </td>
-    @if($permitir_manejar_papel)
+    @if($puede_manejar_papel)
     <td style="flex: 0.8;">
       <button class="btn btn-info btnDestruirPapel" title="DESTRUIR PAPEL" data-papel-destruido="0">
         <i class="fa fa-indent" style="transform: rotate(67deg);"></i>
@@ -359,6 +370,7 @@ input[required], select[required]{
   @endcomponent
 </div> <!-- col-xs-10 -->
 
+@if($puede_manejar_papel)
 <div hidden>
   <div data-js-molde-popover-papel data-papel-destruido="-1">
     <p>AE ONLINE // SIN PAPELES</p>
@@ -374,7 +386,9 @@ input[required], select[required]{
     <p>Destruido: <span class="destruido">YYYY-MM-DD HH:mm:SS USUARIO</span></p>
   </div>
 </div>
+@endif
 
+@if($puede_agregar)
 <!-- MODAL AGREGAR AE-->
 <div class="modal fade" id="modalAgregarAE" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
@@ -749,6 +763,7 @@ input[required], select[required]{
     </div>
   </div>
 </div>
+@endif
 
 <div class="modal fade" id="modalVerMas" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
@@ -1094,6 +1109,7 @@ input[required], select[required]{
   </div>
 </div>
 
+@if($puede_ver_formularios)
 <!--MODAL VER FORMULARIOS AE -->
 <div class="modal fade" id="modalFormulariosAE" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
@@ -1144,7 +1160,9 @@ input[required], select[required]{
     </div>
   </div>
 </div>
+@endif
 
+@if($puede_agregar)
 <!-- MODAL IMPORTAR MASIVO -->
 <div class="modal fade" id="modalImportarMasivo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
   <div class="modal-dialog">
@@ -1230,7 +1248,9 @@ input[required], select[required]{
     </div>
   </div>
 </div>
+@endif
 
+@if($puede_modificar)
 <!-- MODAL CONFIRMACION ESTADO -->
 <div class="modal fade" id="modalConfirmacionEstado" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -1257,6 +1277,7 @@ input[required], select[required]{
     </div>
   </div>
 </div>
+@endif
 
 @component('Components/modalEliminar')
 @endcomponent
