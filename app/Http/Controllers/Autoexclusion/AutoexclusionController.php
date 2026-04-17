@@ -764,8 +764,9 @@ class AutoexclusionController extends Controller
     return response()->json($map,422);
   }
 
-  public function BDCSV(){    
-    $filename = 'ae_bd_'.date('Ymdhis');
+  public function BDCSV(){
+    $timestamp = new \DateTimeImmutable();
+    $filename = 'ae_bd_'.$timestamp->format('Ymdhis');
 
     if(!$csvfhandle = tmpfile()){//No necesito manejar el close() de un tmpfile
       return response()->json(['error' => ['NO SE PUEDE CREAR EL ARCHIVO']],500);
@@ -818,7 +819,31 @@ class AutoexclusionController extends Controller
     $headers = [
       "Content-type" => "application/zip",
     ];
-    
+    {
+      DB::statement('CREATE TABLE IF NOT EXISTS ae_bd_descargas (
+        id_ae_bd_descargas INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        data TEXT NOT NULL
+      )');
+      $AC = AuthenticationController::getInstancia();
+      
+      $id_usuario = $AC->obtenerIdUsuario();
+      $usuario    = \App\Usuario::withTrashed()->find($id_usuario);
+      $user_name  = $usuario? $usuario->user_name : null;
+      
+      $API_token  = $AC->obtenerAPIToken();
+      $id_api_token = $API_token? $API_token->id_api_token : null;
+      $token        = $API_token? $API_token->token : null;
+      $ip           = request()->ip() ?? null;
+      
+      $timestamp    = $timestamp->format('Y-m-d\TH:i:s.uP');
+      DB::table('ae_bd_descargas')->insert([
+        'data' => json_encode(compact(
+          'id_usuario','user_name',
+          'id_api_token','token','ip',
+          'timestamp','md5'
+        ))
+      ]);
+    }
     //tempnam no elimina automaticamente el archivo, pero se crea en /tmp
     //pero si se reinician las pcs y queda algun archivo dando vueltas se elimina solo
     return response()->download($filepathzip,$filenamezip,$headers)->deleteFileAfterSend(true);
