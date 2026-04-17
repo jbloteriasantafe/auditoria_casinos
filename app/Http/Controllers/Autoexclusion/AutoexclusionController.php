@@ -724,6 +724,7 @@ class AutoexclusionController extends Controller
         if($nuevo_estado == 5){//Vencido
           $v->id_nombre_estado = 5;
         }
+        $v->no_logear_update = true;//Esta flag se chequea en el observer para evitar cargarlo en la tabla de logs
         $v->save();        
       }
     });
@@ -738,6 +739,7 @@ class AutoexclusionController extends Controller
         if($nuevo_estado == 5){//Vencido
           $e->id_nombre_estado = 5;
         }
+        $e->no_logear_update = true;//Esta flag se chequea en el observer para evitar cargarlo en la tabla de logs
         $e->save();
       }
     });

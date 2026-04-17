@@ -20,7 +20,7 @@ class EntityObserver
       $this->guardarLog($entidad,'Eliminación');
     }
 
-    private function guardarLog($entidad,$accion){
+    protected function guardarLog($entidad,$accion){
       $log = LogController::getInstancia()->guardarLog($accion,$entidad->getTableName(),$entidad->getId());
       DetalleLogController::getInstancia()->guardarDetalleLog($this->getDetalles($entidad),$log->id_log);
     }

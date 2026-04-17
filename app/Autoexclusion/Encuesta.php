@@ -29,6 +29,19 @@ class Encuesta extends Model
 
   public $timestamps = false;
   
+  public static function boot(){
+    parent::boot();
+    self::observe(new \App\Observers\FullObserver());
+  }
+  
+  public function getTableName(){
+    return $this->table;
+  }
+
+  public function getId(){
+    return $this->{$this->primaryKey};
+  }
+  
   public function ae(){
     return $this->belongsTo('App\Autoexclusion\Autoexcluido','id_autoexcluido','id_autoexcluido');
   }

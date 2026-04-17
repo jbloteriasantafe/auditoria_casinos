@@ -4,6 +4,18 @@ namespace App\Autoexclusion;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+//Necesito un Observer particular para que no logee en cada
+//actualización de estado automatica al verificar vencimientos
+//dado que estas no son modificaciones echas por el usuario
+class EstadoAEObserver extends \App\Observers\FullObserver {
+  public function updating($entidad){
+    if($entidad->no_logear_update ?? false){
+      return;
+    }
+    $this->guardarLog($entidad,'Modificación');
+  }
+}
+
 class EstadoAE extends Model
 {
   use SoftDeletes;
@@ -23,7 +35,22 @@ class EstadoAE extends Model
                               'id_usuario',  'id_autoexcluido',
                               'papel_destruido_id_usuario','papel_destruido_datetime'
                               ];
+                              
+  public $no_logear_update = false;
 
+  public static function boot(){
+    parent::boot();
+    self::observe(new EstadoAEObserver());
+  }
+  
+  public function getTableName(){
+    return $this->table;
+  }
+
+  public function getId(){
+    return $this->{$this->primaryKey};
+  }
+  
   public function ae(){
     return $this->belongsTo('App\Autoexclusion\Autoexcluido','id_autoexcluido','id_autoexcluido');
   }
