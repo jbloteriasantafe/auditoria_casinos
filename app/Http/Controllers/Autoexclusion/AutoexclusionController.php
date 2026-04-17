@@ -764,15 +764,10 @@ class AutoexclusionController extends Controller
     return response()->json($map,422);
   }
 
-  public function BDCSV(){
+  public function BDCSV(){    
     $filename = 'ae_bd_'.date('Ymdhis');
-    $filepath = storage_path('app/'.$filename);
-    $filepathcsv = $filepath.'.csv';
-    $filepathmd5 = $filepath.'.md5';
-    $filenamezip = $filename.'.zip';
-    $filepathzip = $filepath.'.zip';
-    
-    if(!$fhandle = fopen($filepathcsv,'w')){
+
+    if(!$csvfhandle = tmpfile()){//No necesito manejar el close() de un tmpfile
       return response()->json(['error' => ['NO SE PUEDE CREAR EL ARCHIVO']],500);
     }
 
@@ -790,38 +785,42 @@ class AutoexclusionController extends Controller
     ->join('ae_sexo as s','s.id_sexo','=','ad.id_sexo')
     ->join('ae_estado as ae','ae.id_autoexcluido','=','ad.id_autoexcluido')
     ->join('ae_nombre_estado as ane','ane.id_nombre_estado','=','ae.id_nombre_estado')
-    ->whereNull('ad.deleted_at')->whereNull('ae.deleted_at')->orderBy('ae.fecha_ae','desc')->chunk(1000,function($aes) use (&$fhandle,&$primer_ae){
+    ->whereNull('ad.deleted_at')->whereNull('ae.deleted_at')->orderBy('ae.fecha_ae','desc')->chunk(1000,function($aes) use (&$csvfhandle,&$primer_ae){
       $aes2 = json_decode(json_encode($aes), true);
       foreach($aes2 as $ae){
         //$aux = json_decode(json_encode($ae), true);
         if($primer_ae){
           //Agrego los nombres de las columnas
-          fputcsv($fhandle,array_keys($ae),";",'"',"\\");
+          fputcsv($csvfhandle,array_keys($ae),";",'"',"\\");
           $primer_ae = false;
         }
-        fputcsv($fhandle,array_values($ae),";",'"',"\\");
+        fputcsv($csvfhandle,array_values($ae),";",'"',"\\");
       }
     });
-    fclose($fhandle);
     
-    $archivos = [$filepathcsv];
-    
+    $filepathcsv = stream_get_meta_data($csvfhandle)['uri'];
     $md5 = md5_file($filepathcsv);
-    if(!$fhandle = fopen($filepathmd5,'w')){
-      \File::delete($archivos);
-      return response()->json(['error' => ['NO SE PUEDE CREAR EL ARCHIVO MD5']],500);
+    if($md5 === false){
+      return response()->json(['error' => ['NO SE PUEDE CREAR EL MD5']],500);
     }
-    fwrite($fhandle,$md5);
-    fclose($fhandle);
     
-    $archivos[] = $filepathmd5;
+    $filenamezip = $filename.'.zip';
+    $filepathzip = tempnam('','');
+    $zip = new \ZipArchive();
+    if($zip->open($filepathzip,\ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true){
+      return response()->json(['error' => ['NO SE PUEDE CREAR EL ZIP']],500);
+    }
     
-    \Zipper::make($filepathzip)->add($archivos)->close();
-    \File::delete($archivos);
-    
+    $zip->addFromString($filename.'.md5',$md5);
+    $zip->addFile(stream_get_meta_data($csvfhandle)['uri'],$filename.'.csv');
+    $zip->close();
+        
     $headers = [
       "Content-type" => "application/zip",
     ];
+    
+    //tempnam no elimina automaticamente el archivo, pero se crea en /tmp
+    //pero si se reinician las pcs y queda algun archivo dando vueltas se elimina solo
     return response()->download($filepathzip,$filenamezip,$headers)->deleteFileAfterSend(true);
   }
     
