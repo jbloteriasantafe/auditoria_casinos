@@ -3,6 +3,8 @@ function colorEstado($estado) {
     if (str_contains($estado, 'APROBADO')) return 'background:#28a745;color:#fff;';
     if ($estado === 'VISTO CON OBSERVACIONES') return 'background:#dc3545;color:#fff;';
     if ($estado === 'VENCIDO') return 'background:#999;color:#fff;';
+    if ($estado === 'CON INFORME') return 'background:#f0ad4e;color:#fff;';
+    if ($estado === 'CON INFORME NEGATIVO') return 'background:#f0ad4e;color:#000;';
     return 'background:#5bc0de;color:#fff;';
 }
 @endphp
@@ -13,14 +15,15 @@ function colorEstado($estado) {
                 <th width="3%" class="text-center">
                     {{-- Expand/Collapse --}}
                 </th>
-                <th width="8%" class="sortable" data-sort="created_at">Fecha Subida <i class="fa fa-sort"></i></th>
-                <th width="8%" class="sortable" data-sort="fecha_pretendida_aprobacion">Fecha Est. Aprob. <i class="fa fa-sort"></i></th>
-                <th width="10%" class="sortable" data-sort="nro_nota">Nro Nota <i class="fa fa-sort"></i></th>
-                <th width="12%" class="sortable" data-sort="id_casino">Casino/Plataforma <i class="fa fa-sort"></i></th>
-                <th width="20%">Título / Tema</th>
-                <th width="7%">Ramas</th>
-                <th width="8%">Estado</th>
-                <th width="10%">Acciones</th>
+                <th width="7%" class="sortable th-filterable" data-sort="created_at" data-filter="fecha">Fecha Subida <i class="fa fa-sort"></i> <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
+                <th width="7%" class="sortable" data-sort="fecha_pretendida_aprobacion">Fecha Est. Aprob. <i class="fa fa-sort"></i></th>
+                <th width="8%" class="sortable" data-sort="nro_nota">Nro Nota <i class="fa fa-sort"></i></th>
+                <th width="10%" class="sortable th-filterable" data-sort="id_casino" data-filter="casino">Casino/Plat. <i class="fa fa-sort"></i> <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
+                <th width="18%">Título / Tema</th>
+                <th width="7%" class="th-filterable" data-filter="rama" style="cursor:pointer;">Ramas <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
+                <th width="8%" class="th-filterable" data-filter="estado" style="cursor:pointer;">Estado <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
+                <th width="10%">Nro Aprob.</th>
+                <th width="9%">Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -50,7 +53,7 @@ function colorEstado($estado) {
                 <td>
                     {{-- Badges para cada rama --}}
                     @foreach($grupo->notas as $nota)
-                        @if(isset($esFuncionario) && $esFuncionario && $nota->tipo_rama == 'FISC')
+                        @if(isset($rolVista) && $rolVista === 'funcionario1' && !(isset($verTodo) && $verTodo) && $nota->tipo_rama == 'FISC')
                             @continue
                         @endif
                         @if($nota->tipo_rama == 'MKT')
@@ -62,7 +65,7 @@ function colorEstado($estado) {
                 </td>
                 <td class="grupo-estados" data-grupo-id="{{ $grupo->id }}">
                     @php
-                        $notasFiltradas = isset($esFuncionario) && $esFuncionario
+                        $notasFiltradas = (isset($rolVista) && $rolVista === 'funcionario1' && !(isset($verTodo) && $verTodo))
                             ? $grupo->notas->where('tipo_rama', 'MKT')
                             : $grupo->notas;
                         $estados = $notasFiltradas->map(function($n) {
@@ -71,6 +74,33 @@ function colorEstado($estado) {
                     @endphp
                     @foreach($estados as $est)
                         <span class="label" style="{{ colorEstado($est) }} margin-right:2px;">{{ $est }}</span>
+                    @endforeach
+                </td>
+                <td>
+                    @php
+                        $aprobs = isset($aprobacionesPorGrupo[$grupo->id]) ? $aprobacionesPorGrupo[$grupo->id] : [];
+                        // Ordenar siguiendo el orden de ramas del grupo (igual que estados)
+                        $ordenRamas = $notasFiltradas->pluck('tipo_rama')->unique()->values()->toArray();
+                        usort($aprobs, function($a, $b) use ($ordenRamas) {
+                            $posA = array_search($a->tipo_rama, $ordenRamas);
+                            $posB = array_search($b->tipo_rama, $ordenRamas);
+                            if ($posA === false) $posA = 99;
+                            if ($posB === false) $posB = 99;
+                            return $posA - $posB;
+                        });
+                    @endphp
+                    @foreach($aprobs as $ap)
+                        @if(isset($rolVista) && $rolVista === 'funcionario1' && !(isset($verTodo) && $verTodo) && $ap->tipo_rama === 'FISC')
+                            @continue
+                        @endif
+                        @php
+                            $prefijo = ($ap->tipo_documento === 'DISPOSICION') ? 'D' : 'N';
+                            $nroAp = $ap->numero_documento ? $prefijo . ' ' . $ap->numero_documento . '-' . $ap->anio_documento : '';
+                            $colorAp = ($ap->tipo_rama === 'MKT') ? '#3b82f6' : '#10b981';
+                        @endphp
+                        @if($nroAp)
+                            <span class="label" style="background:{{ $colorAp }}; color:#fff; display:inline-block; margin-bottom:2px;">{{ $nroAp }}</span>
+                        @endif
                     @endforeach
                 </td>
                 <td>
@@ -108,7 +138,7 @@ function colorEstado($estado) {
             
             {{-- NOTAS HIJAS (Colapsadas por defecto) --}}
             @foreach($grupo->notas as $n)
-            @if(isset($esFuncionario) && $esFuncionario && $n->tipo_rama == 'FISC')
+            @if(isset($rolVista) && $rolVista === 'funcionario1' && !(isset($verTodo) && $verTodo) && $n->tipo_rama == 'FISC')
                 @continue
             @endif
             <tr class="nota-hija" data-parent-grupo="{{ $grupo->id }}" style="display: none; background: {{ $n->tipo_rama == 'MKT' ? '#eff6ff' : '#ecfdf5' }};">
@@ -137,6 +167,7 @@ function colorEstado($estado) {
                         <span class="label label-warning">PENDIENTE</span>
                     @endif
                 </td>
+                <td></td>
                 <td>
                     <button class="btn btn-info btn-xs btn-ver-detalle-nota" 
                             data-nota-id="{{ $n->id }}" 
@@ -204,6 +235,7 @@ function colorEstado($estado) {
                             <span class="label label-warning">PENDIENTE</span>
                         @endif
                     </td>
+                    <td></td>
                     <td>
                         <button class="btn btn-info btn-xs btn-ver-nota" data-id="{{ $n->id }}" title="Ver"><i class="fa fa-eye"></i></button>
                         @if($puedeEliminar)<button class="btn btn-danger btn-xs btn-borrar-nota" data-id="{{ $n->id }}" title="Eliminar"><i class="fa fa-trash"></i></button>@endif
@@ -211,10 +243,10 @@ function colorEstado($estado) {
                 </tr>
                 @endforeach
             @endif
-            
+
             @if($grupos->count() == 0 && (!isset($notasSueltas) || $notasSueltas->count() == 0))
             <tr>
-                <td colspan="8" class="text-center">
+                <td colspan="10" class="text-center">
                     <h4><i class="fa fa-search"></i> No se encontraron resultados.</h4>
                 </td>
             </tr>

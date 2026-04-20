@@ -324,73 +324,85 @@
             <div class="panel-body">
                 <div class="row">
                     <div class="col-md-3">
-                        @if($nivelEstado !== 'funcionario')
+                        @if(!in_array($nivelEstado, ['funcionario1', 'funcionario2']))
                         <button id="btn-nueva-nota" class="btn btn-success" type="button" data-toggle="modal" data-target="#modalNuevaNota">
                             <i class="fa fa-plus"></i> Nueva Nota
                         </button>
                         @endif
                     </div>
+                    <div class="col-md-9 text-right">
+                        @if(!empty($puedeExportar))
+                        <div class="btn-group" style="margin-right:8px;">
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" style="border-radius:8px;">
+                                <i class="fa fa-download"></i> Exportar <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" id="btnExportPdf"><i class="fa fa-file-pdf-o text-danger"></i> Exportar PDF</a></li>
+                                <li><a href="#" id="btnExportExcel"><i class="fa fa-file-excel-o text-success"></i> Exportar Excel</a></li>
+                            </ul>
+                        </div>
+                        @endif
+                        @if(!empty($puedeGestionarMails))
+                        <button class="btn btn-default" type="button" data-toggle="modal" data-target="#modalGestionMails" style="border-radius:8px;">
+                            <i class="fa fa-envelope-o"></i> Gestionar envío de mails
+                        </button>
+                        @endif
+                    </div>
                 </div>
                 <br>
-                <!-- TOOLBAR (Search & Filters) -->
-                <div class="row" style="margin-bottom: 12px;">
+                <!-- TOOLBAR (Search & Quick Filters) -->
+                <div class="row" style="margin-bottom: 0; display:flex; align-items:center;">
                     <div class="col-md-5">
                         <div class="input-group">
                             <span class="input-group-addon"><i class="fa fa-search"></i></span>
-                            <input type="text" class="form-control" id="inpBusqueda" placeholder="Buscar por Nota, Título...">
+                            <input type="text" class="form-control" id="inpBusqueda" placeholder="Buscar por Nro de Nota, Título o Nro de Aprobación...">
                         </div>
                     </div>
-                    <div class="col-md-3" style="padding-left:20px;">
-                        <select class="form-control filtro-tabla" id="selFiltroCasino">
-                            <option value="">- Casino/Plataforma -</option>
-                            @foreach($casinos as $c)
-                                <option value="{{ $c->es_plataforma ? 'p_' . $c->id_plataforma : $c->id_casino }}" data-es-plataforma="{{ $c->es_plataforma ? '1' : '0' }}" data-id-plataforma="{{ $c->es_plataforma ? $c->id_plataforma : '' }}">{{ $c->nombre }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-2" style="padding-left:20px;">
-                        <select class="form-control filtro-tabla" id="selFiltroRama">
-                            <option value="">- Rama -</option>
-                            <option value="MKT">Marketing</option>
-                            <option value="FISC">Fiscalización</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2" style="padding-left:20px;">
-                        <select class="form-control filtro-tabla" id="selFiltroEstado">
-                            <option value="">- Estado -</option>
-                            @foreach($estados as $est)
-                                <option value="{{ $est->descripcion }}">{{ $est->descripcion }}</option>
-                            @endforeach
-                        </select>
+                    <div class="col-md-7" style="padding-left:15px;">
+                        <button class="btn btn-sm btn-default btn-quick-filter" data-filter="hoy" style="margin-right:4px; border-radius:15px; padding:4px 14px;"><i class="fa fa-calendar-check-o"></i> Hoy</button>
+                        <button class="btn btn-sm btn-default btn-quick-filter" data-filter="proximos" style="margin-right:4px; border-radius:15px; padding:4px 14px;"><i class="fa fa-clock-o"></i> Próximos</button>
+                        <button class="btn btn-sm btn-default btn-quick-filter" data-filter="por_vencer" style="margin-right:4px; border-radius:15px; padding:4px 14px;"><i class="fa fa-exclamation-triangle"></i> Por vencer (7 días)</button>
+                        @if(isset($muestraVerTodo) && $muestraVerTodo)
+                        <button class="btn btn-sm btn-default btn-quick-filter" data-filter="ver_todo" style="margin-right:4px; border-radius:15px; padding:4px 14px;"><i class="fa fa-eye"></i> Ver todo</button>
+                        @endif
+                        <button class="btn btn-sm btn-quick-filter" data-filter="reset" style="border-radius:15px; padding:4px 14px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:#fff; border:none;"><i class="fa fa-refresh"></i> Limpiar</button>
                     </div>
                 </div>
-                <br>
-                <div class="row" style="margin-bottom: 20px;">
-                    <div class="col-md-2" style="padding-right:20px;">
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-addon" style="font-size:11px;">Desde</span>
-                            <input type="date" class="form-control filtro-tabla" id="inpFechaDesde">
-                        </div>
-                    </div>
-                    <div class="col-md-2" style="padding-left:20px;">
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-addon" style="font-size:11px;">Hasta</span>
-                            <input type="date" class="form-control filtro-tabla" id="inpFechaHasta">
-                        </div>
-                    </div>
-                    <div class="col-md-8" style="padding-left:30px;">
-                        <button class="btn btn-xs btn-default btn-quick-filter" data-filter="hoy" style="margin-right:5px;"><i class="fa fa-calendar-check-o"></i> Hoy</button>
-                        <button class="btn btn-xs btn-default btn-quick-filter" data-filter="proximos" style="margin-right:5px;"><i class="fa fa-clock-o"></i> Próximos</button>
-                        <button class="btn btn-xs btn-default btn-quick-filter" data-filter="por_vencer" style="margin-right:5px;"><i class="fa fa-exclamation-triangle"></i> Por vencer (7 días)</button>
-                        <button class="btn btn-xs btn-link btn-quick-filter" data-filter="reset"><i class="fa fa-times"></i> Limpiar Filtros</button>
-                    </div>
+
+                <!-- Hidden filter selects (used by gridState) -->
+                <div style="display:none;">
+                    <select id="selFiltroCasino">
+                        <option value="">-</option>
+                        @foreach($casinos as $c)
+                            <option value="{{ $c->es_plataforma ? 'p_' . $c->id_plataforma : $c->id_casino }}">{{ $c->nombre }}</option>
+                        @endforeach
+                    </select>
+                    <select id="selFiltroRama">
+                        <option value="">-</option>
+                        <option value="MKT">Marketing</option>
+                        <option value="FISC">Fiscalización</option>
+                    </select>
+                    <select id="selFiltroEstado">
+                        <option value="">-</option>
+                        @foreach($estados as $est)
+                            <option value="{{ $est->descripcion }}">{{ $est->descripcion }}</option>
+                        @endforeach
+                    </select>
+                    <input type="date" id="inpFechaDesde">
+                    <input type="date" id="inpFechaHasta">
+                </div>
+
+                <!-- Active filters indicator -->
+                <div id="activeFiltersBar" style="display:none; margin-bottom:10px;">
+                    <span style="font-size:12px; color:#64748b; margin-right:8px;"><i class="fa fa-filter"></i> Filtros activos:</span>
+                    <span id="activeFilterTags"></span>
                 </div>
                 <br>
                 <!-- TABLE CONTAINER (Partial View) -->
-                <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
                 <div id="divTablaNotas">
                     @include('Unified.tabla_notas')
                 </div>
+                <div id="herramientasPaginacion" class="row zonaPaginacion"></div>
                 <div id="herramientasPaginacion2" class="row zonaPaginacion"></div>
                 
                 <!-- CALENDAR CONTAINER -->
@@ -578,13 +590,21 @@
                         <!-- TÍTULO -->
                         <div class="wiz-field">
                             <label class="wiz-label">Título / Asunto * <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Breve descripción identificatoria del trámite."></i></label>
-                            <input type="text" class="form-control" name="titulo" id="inpTitulo" required maxlength="255" placeholder="Descripción breve...">
+                            <input type="text" class="form-control" name="titulo" id="inpTitulo" required maxlength="255">
                         </div>
 
                         <!-- FECHA PRETENDIDA DE APROBACIÓN (solo MKT) -->
                         <div class="section-marketing wiz-field">
                             <label class="wiz-label">Fecha Pretendida de Aprobación</label>
                             <input type="date" class="form-control wiz-date-click" name="fecha_pretendida_aprobacion" id="inpFechaPretendida">
+                        </div>
+
+                        <!-- COMPARTIR CON ADMINISTRADOR (solo MKT) -->
+                        <div class="section-marketing wiz-field">
+                            <label style="display:inline-flex; align-items:center; cursor:pointer; font-weight:normal; gap:8px;">
+                                <input type="checkbox" name="compartir_administrador" id="chkCompartirAdmin" value="1" style="width:18px; height:18px; cursor:pointer;">
+                                <span style="font-size:13px;">Compartir con el administrador</span>
+                            </label>
                         </div>
 
                         <!-- FECHAS -->
@@ -599,10 +619,10 @@
                             </div>
                         </div>
 
-                        <!-- FECHA REFERENCIA (FISC) -->
-                        <div class="section-fiscalizacion wiz-field" style="display:none;">
-                            <label class="wiz-label">Fecha Referencia <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Fecha histórica o de referencia externa."></i></label>
-                            <input type="text" class="form-control" name="fecha_referencia" placeholder="Texto libre o fecha">
+                        <!-- FECHA REFERENCIA (ambas ramas, opcional) -->
+                        <div class="wiz-field" style="margin-top: 10px;">
+                            <label class="wiz-label">Fecha Referencia <i class="fa fa-question-circle text-muted" data-toggle="tooltip" title="Texto libre: fecha o período de referencia."></i></label>
+                            <input type="text" class="form-control" name="fecha_referencia">
                         </div>
 
                         <!-- RELACIÓN CON NOTA ANTERIOR -->
@@ -893,25 +913,61 @@
                     <input type="hidden" id="aprobacionGrupoId" name="id_grupo">
                     <input type="hidden" id="aprobacionTipoRama" name="tipo_rama" value="">
 
-                    <!-- Botonera de selección de rama -->
+                    <!-- Botonera de selección de rama (estilo wizard principal) -->
                     <label style="margin-bottom: 10px;">Seleccione la rama</label>
-                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-                        <div class="btn-rama-aprobacion" data-rama="MKT" style="flex:1; cursor:pointer; text-align:center; padding:20px 10px; border-radius:10px; background:#f8fafc; border:2px solid #e5e7eb; transition: all 0.2s;">
-                            <div style="width:50px; height:50px; margin:0 auto 10px; border-radius:50%; background:#eff6ff; display:flex; align-items:center; justify-content:center;">
-                                <i class="fa fa-bullhorn" style="font-size:22px; color:#3b82f6;"></i>
+                    <div class="row" style="margin-bottom: 15px;">
+                        <div class="col-md-6" style="cursor:pointer;">
+                            <div class="btn-rama-aprobacion" data-rama="MKT" style="border-radius:15px; border:2px solid transparent; transition:all 0.3s; text-align:center; padding:20px; background:white;">
+                                <div style="background:#eff6ff; width:60px; height:60px; border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa fa-bullhorn" style="font-size:24px; color:#3b82f6;"></i>
+                                </div>
+                                <strong style="display:block; font-size:14px; font-weight:700; color:#1e293b;">Marketing / Publicidad</strong>
                             </div>
-                            <strong style="display:block; font-size:13px; color:#333;">Marketing / Publicidad</strong>
                         </div>
-                        <div class="btn-rama-aprobacion" data-rama="FISC" style="flex:1; cursor:pointer; text-align:center; padding:20px 10px; border-radius:10px; background:#f8fafc; border:2px solid #e5e7eb; transition: all 0.2s;">
-                            <div style="width:50px; height:50px; margin:0 auto 10px; border-radius:50%; background:#ecfdf5; display:flex; align-items:center; justify-content:center;">
-                                <i class="fa fa-cogs" style="font-size:22px; color:#10b981;"></i>
+                        <div class="col-md-6" style="cursor:pointer;">
+                            <div class="btn-rama-aprobacion" data-rama="FISC" style="border-radius:15px; border:2px solid transparent; transition:all 0.3s; text-align:center; padding:20px; background:white;">
+                                <div style="background:#f0fdf4; width:60px; height:60px; border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa fa-cogs" style="font-size:24px; color:#10b981;"></i>
+                                </div>
+                                <strong style="display:block; font-size:14px; font-weight:700; color:#1e293b;">Fiscalización / Técnico</strong>
                             </div>
-                            <strong style="display:block; font-size:13px; color:#333;">Fiscalización / Técnico</strong>
                         </div>
                     </div>
 
-                    <!-- Archivos (oculto hasta seleccionar rama) -->
-                    <div id="aprobacionArchivoWrap" style="display: none;">
+                    <!-- Tipo de documento + número + año (oculto hasta seleccionar rama) -->
+                    <div id="aprobacionDatosWrap" style="display: none;">
+                        <input type="hidden" id="aprobacionTipoDocumento" name="tipo_documento" value="">
+                        <label style="margin-bottom: 8px;">Tipo de documento</label>
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <div class="btn-tipo-documento" data-tipo="NOTA" style="flex:1; cursor:pointer; text-align:center; padding:10px 8px; border-radius:8px; background:white; border:2px solid transparent; transition: all 0.2s;">
+                                <div style="width:32px; height:32px; margin:0 auto 5px; border-radius:50%; background:#fef3c7; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa fa-file-alt" style="font-size:14px; color:#d97706;"></i>
+                                </div>
+                                <strong style="display:block; font-size:11px; color:#333;">Nota</strong>
+                            </div>
+                            <div class="btn-tipo-documento" data-tipo="DISPOSICION" style="flex:1; cursor:pointer; text-align:center; padding:10px 8px; border-radius:8px; background:white; border:2px solid transparent; transition: all 0.2s;">
+                                <div style="width:32px; height:32px; margin:0 auto 5px; border-radius:50%; background:#e0e7ff; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa fa-gavel" style="font-size:14px; color:#4f46e5;"></i>
+                                </div>
+                                <strong style="display:block; font-size:11px; color:#333;">Disposición</strong>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Número</label>
+                                    <input type="text" id="aprobacionNumeroDoc" name="numero_documento" class="form-control" placeholder="Ej: 001">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Año</label>
+                                    <input type="text" id="aprobacionAnioDoc" name="anio_documento" class="form-control" value="{{ date('Y') }}">
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-group">
                             <label><i class="fa fa-file-pdf-o"></i> Archivos (puede seleccionar varios)</label>
                             <input type="file" name="archivos_aprobacion[]" id="inputAprobacionArchivos" class="form-control" accept=".pdf,.doc,.docx,.zip" multiple>
@@ -1002,7 +1058,7 @@
                                 <div class="panel panel-default" style="border-radius: 8px;">
                                     <div class="panel-heading" style="background: #7c3aed !important; color: white !important; border-radius: 8px 8px 0 0;">
                                         <i class="fa fa-link"></i> Notas Relacionadas
-                                        @if($nivelEstado !== 'funcionario')
+                                        @if(!in_array($nivelEstado, ['funcionario1', 'funcionario2']))
                                         <button class="btn btn-xs btn-default pull-right btn-vincular-nota" style="margin-top: -3px;">
                                             <i class="fa fa-plus"></i> Vincular
                                         </button>
@@ -1090,7 +1146,8 @@
                     <tr><td><strong>Fecha Inicio:</strong></td><td><span class="editable" data-field="fecha_inicio">{{fecha_inicio}}</span></td></tr>
                     <tr><td><strong>Fecha Fin:</strong></td><td><span class="editable" data-field="fecha_fin">{{fecha_fin}}</span></td></tr>
                     <tr class="row-fecha-pretendida"><td><strong>Fecha Est. Aprob.:</strong></td><td><span class="editable" data-field="fecha_pretendida_aprobacion">{{fecha_pretendida_aprobacion}}</span></td></tr>
-                    <tr class="row-fecha-referencia"><td><strong>Fecha Ref.:</strong></td><td>{{fecha_referencia}}</td></tr>
+                    <tr class="row-compartir-admin"><td><strong>Compartir Admin.:</strong></td><td><span class="editable editable-toggle" data-field="compartir_administrador" data-value="{{compartir_administrador}}">{{compartir_administrador_label}}</span></td></tr>
+                    <tr class="row-fecha-referencia"><td><strong>Fecha Ref.:</strong></td><td><span class="editable" data-field="fecha_referencia">{{fecha_referencia}}</span></td></tr>
                     <tr><td><strong>Estado:</strong></td><td><span class="editable" data-field="estado" data-value="{{estado}}"><span class="label" style="{{estadoStyle}}">{{estado}}</span></span></td></tr>
                     <tr><td><strong>Creado:</strong></td><td>{{created_at}}</td></tr>
                 </table>
@@ -1114,8 +1171,11 @@
 
     <!-- Columna Derecha: Comentarios, Historial y Activos -->
     <div class="col-md-5">
-        <!-- Comentarios -->
-        <div class="panel panel-default" style="border-radius: 8px; margin-bottom: 15px;">
+        <!-- Comentarios (oculto para casinos/plataformas) -->
+@endverbatim
+@if(isset($puedeVerComentarios) && $puedeVerComentarios)
+@verbatim
+        <div class="panel panel-default panel-comentarios-wrap" style="border-radius: 8px; margin-bottom: 15px;">
             <div class="panel-heading" style="background: #ec4899 !important; color: white !important; border-radius: 8px 8px 0 0;">
                 <i class="fa fa-comments"></i> Comentarios
             </div>
@@ -1133,6 +1193,9 @@
                 </div>
             </div>
         </div>
+@endverbatim
+@endif
+@verbatim
 
         <!-- Historial -->
         <div class="panel panel-default" style="border-radius: 8px; margin-bottom: 15px;">
@@ -1202,6 +1265,9 @@
 <script>
 var PUEDE_ELIMINAR = {{ $puedeEliminar ? 'true' : 'false' }};
 var NIVEL_ESTADO = '{{ $nivelEstado }}';
+var ROL_VISTA = '{{ $rolVista ?? "all" }}';
+var PUEDE_VER_COMENTARIOS = {{ (isset($puedeVerComentarios) && $puedeVerComentarios) ? 'true' : 'false' }};
+var MUESTRA_VER_TODO = {{ (isset($muestraVerTodo) && $muestraVerTodo) ? 'true' : 'false' }};
 var CURRENT_USER_ID = {{ session('id_usuario', 0) }};
 var OPCIONES_TIPO_EVENTO = {
     MKT: [
@@ -1235,8 +1301,13 @@ var OPCIONES_ESTADO = [
     @endforeach
 ];
 var TRANSICIONES_ESTADO = {
-    funcionario: {
-        @foreach(\App\Models\NotaEstado::transicionesFuncionario() as $desde => $destinos)
+    funcionario1: {
+        @foreach(\App\Models\NotaEstado::transicionesFuncionario1() as $desde => $destinos)
+            '{{ $desde }}': [{!! collect($destinos)->map(function($d){ return "'" . $d . "'"; })->implode(',') !!}],
+        @endforeach
+    },
+    funcionario2: {
+        @foreach(\App\Models\NotaEstado::transicionesFuncionario2() as $desde => $destinos)
             '{{ $desde }}': [{!! collect($destinos)->map(function($d){ return "'" . $d . "'"; })->implode(',') !!}],
         @endforeach
     },
@@ -1250,6 +1321,8 @@ var TOTAL_GRUPOS_INICIAL = {{ $totalGrupos }};
 </script>
 <script src="/js/paginacion.js"></script>
 <script src="/js/unified_wizard.js?v={{ filemtime(public_path('js/unified_wizard.js')) }}"></script>
+<script>window.ESADMIN_MAILS = {{ !empty($esAdminMails) ? 'true' : 'false' }};</script>
+<script src="/js/notas_mails.js?v={{ filemtime(public_path('js/notas_mails.js')) }}"></script>
 <script>
 /* Espaciado wizard paso 2 - inline para evitar cache */
 $(function(){
@@ -1394,7 +1467,7 @@ $(function(){
                     </div>
                 </div>
                 
-                <!-- Panel de comentarios (derecha) -->
+                <!-- Panel de comentarios (derecha) - anotaciones PDF, visible para todos -->
                 <div style="width: 350px; background: #ecf0f1; border-left: 2px solid #bdc3c7; display: flex; flex-direction: column;">
                     <div style="padding: 15px; background: #f39c12; color: white;">
                         <h4 style="margin: 0;">
@@ -1410,14 +1483,14 @@ $(function(){
     </div>
 </div>
 
-<!-- Modal para nuevo comentario -->
+<!-- Modal para nuevo comentario (anotaciones PDF, visible para todos) -->
 <div class="modal fade" id="modalNuevoComentario" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header" style="background: #f39c12; color: white;">
                 <button type="button" class="close" data-dismiss="modal" style="color: white;">&times;</button>
                 <h4 class="modal-title">
-                    <i class="fa fa-comment"></i> Nuevo Comentario 
+                    <i class="fa fa-comment"></i> Nuevo Comentario
                     <span class="badge" id="comentarioNumero" style="background: white; color: #f39c12;">1</span>
                 </h4>
             </div>
@@ -1492,6 +1565,206 @@ $(function(){
     color: white !important;
 }
 </style>
+
+<style>
+.btn-edit-dest:hover { background: #27ae60 !important; }
+</style>
+<!-- ===================== MODAL GESTIÓN DE MAILS ===================== -->
+<div class="modal fade" id="modalGestionMails" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document" style="width:70%;">
+        <div class="modal-content" style="border-radius:15px; border:none; box-shadow:0 15px 35px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; border-radius:15px 15px 0 0; padding:15px 25px;">
+                <button type="button" class="close" data-dismiss="modal" style="color:white; opacity:0.8;"><span>&times;</span></button>
+                <h4 class="modal-title" style="font-weight:600;"><i class="fa fa-envelope"></i> Gestión de Envío de Mails</h4>
+            </div>
+            <div class="modal-body" style="padding:20px 30px; background:#f8fafc;">
+
+                <!-- Selector tipo cards (igual que fisc/mkt) -->
+                <div style="margin-bottom:15px;">
+                    <h5 style="margin:0 0 15px; font-weight:700; color:#2c3e50;"><i class="fa fa-users"></i> Seleccione a quién notificar</h5>
+                    <div class="row" style="display:flex; justify-content:center; gap:10px;">
+                        @if(!empty($esAdminMails))
+                        <div class="col-xs-3" style="cursor:pointer;" onclick="seleccionarCatMail('auditoria')">
+                            <div class="panel panel-default card-cat-mail" data-cat="auditoria" style="border-radius:12px; border:2px solid transparent; text-align:center; padding:15px 10px; transition:all 0.3s; margin:0;">
+                                <div style="background:#eff6ff; width:50px; height:50px; border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa fa-balance-scale fa-2x" style="color:#3b82f6;"></i>
+                                </div>
+                                <h5 style="font-weight:700; color:#1e293b; margin:0; font-size:13px;">Auditoría / Despacho</h5>
+                            </div>
+                        </div>
+                        @endif
+                        <div class="col-xs-3" style="cursor:pointer;" onclick="seleccionarCatMail('casino')">
+                            <div class="panel panel-default card-cat-mail" data-cat="casino" style="border-radius:12px; border:2px solid transparent; text-align:center; padding:15px 10px; transition:all 0.3s; margin:0;">
+                                <div style="background:#fef3c7; width:50px; height:50px; border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa fa-building fa-2x" style="color:#f59e0b;"></i>
+                                </div>
+                                <h5 style="font-weight:700; color:#1e293b; margin:0; font-size:13px;">Casino / Plataforma</h5>
+                            </div>
+                        </div>
+                        @if(!empty($esAdminMails))
+                        <div class="col-xs-3" style="cursor:pointer;" onclick="seleccionarCatMail('funcionario1')">
+                            <div class="panel panel-default card-cat-mail" data-cat="funcionario1" style="border-radius:12px; border:2px solid transparent; text-align:center; padding:15px 10px; transition:all 0.3s; margin:0;">
+                                <div style="background:#f0fdf4; width:50px; height:50px; border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa fa-user-tie fa-2x" style="color:#10b981;"></i>
+                                </div>
+                                <h5 style="font-weight:700; color:#1e293b; margin:0; font-size:13px;">Funcionario 1</h5>
+                            </div>
+                        </div>
+                        <div class="col-xs-3" style="cursor:pointer;" onclick="seleccionarCatMail('funcionario2')">
+                            <div class="panel panel-default card-cat-mail" data-cat="funcionario2" style="border-radius:12px; border:2px solid transparent; text-align:center; padding:15px 10px; transition:all 0.3s; margin:0;">
+                                <div style="background:#fdf2f8; width:50px; height:50px; border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa fa-user-tie fa-2x" style="color:#ec4899;"></i>
+                                </div>
+                                <h5 style="font-weight:700; color:#1e293b; margin:0; font-size:13px;">Funcionario 2</h5>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Panel que aparece al elegir categoría -->
+                <div id="panelDestinatarios" style="display:none;">
+                    <h5 style="margin:0 0 15px; color:#2c3e50; font-weight:700;" id="tituloCatMail"></h5>
+
+                    <!-- TRANSICIONES de esta categoría -->
+                    <div style="margin-bottom:20px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                            <span style="font-weight:600; font-size:13px; color:#475569;"><i class="fa fa-exchange"></i> Transiciones que envían mail</span>
+                            @if(!empty($esAdminMails))
+                            <button class="btn btn-xs btn-primary" id="btnNuevaTransicion" style="border-radius:15px; padding:3px 12px;">
+                                <i class="fa fa-plus"></i> Agregar
+                            </button>
+                            @endif
+                        </div>
+                        <div id="panelNuevaTransicion" style="display:none; background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:8px;">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label style="font-size:11px;">Estado Origen</label>
+                                    <select class="form-control" id="selTransOrigen">
+                                        <option value="0">AL CREAR</option>
+                                        @foreach($estados as $e)
+                                        <option value="{{ $e->id }}">{{ $e->descripcion }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label style="font-size:11px;">Estado Destino</label>
+                                    <select class="form-control" id="selTransDestino">
+                                        @foreach($estados as $e)
+                                        <option value="{{ $e->id }}">{{ $e->descripcion }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label style="font-size:11px;">Tipo de</label>
+                                    <select class="form-control" id="selTransTipoEvento" style="font-size:12px;">
+                                        <option value="0">Todos</option>
+                                        <optgroup label="Marketing">
+                                        @foreach($tiposEventoMkt ?? [] as $te)
+                                        <option value="{{ $te->id }}">{{ $te->descripcion }}</option>
+                                        @endforeach
+                                        </optgroup>
+                                        <optgroup label="Fiscalización">
+                                        @foreach($tiposEventoFisc ?? [] as $te)
+                                        <option value="{{ $te->id }}">{{ $te->descripcion }}</option>
+                                        @endforeach
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <div class="col-md-2" style="padding-top:22px;">
+                                    <button class="btn btn-success btn-sm" id="btnGuardarTransicion" style="border-radius:8px; width:100%;"><i class="fa fa-check"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; overflow:hidden;">
+                            <table class="table table-hover" style="margin:0; font-size:13px; table-layout:fixed; width:100%;">
+                                <colgroup>
+                                    <col style="width:33%;">
+                                    <col style="width:5%;">
+                                    <col style="width:33%;">
+                                    <col style="width:19%;">
+                                    <col style="width:10%;">
+                                </colgroup>
+                                <thead style="background:#f1f5f9;">
+                                    <tr>
+                                        <th style="padding:8px 15px;">Estado Origen</th>
+                                        <th style="padding:8px 15px; text-align:center;"></th>
+                                        <th style="padding:8px 15px;">Estado Destino</th>
+                                        <th style="padding:8px 15px;">Tipo de</th>
+                                        <th style="padding:8px 15px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyTransiciones"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <hr style="border-color:#e2e8f0; margin:15px 0;">
+
+                    <!-- DESTINATARIOS de esta categoría -->
+                    <div>
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                            <span style="font-weight:600; font-size:13px; color:#475569;"><i class="fa fa-envelope-o"></i> Destinatarios</span>
+                            <button class="btn btn-xs btn-primary" id="btnNuevoDestinatario" style="border-radius:15px; padding:3px 12px;">
+                                <i class="fa fa-plus"></i> Agregar
+                            </button>
+                        </div>
+                        <div id="panelNuevoDestinatario" style="display:none; background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:8px;">
+                            <div class="row">
+                                <div class="col-md-3" id="divDestCasino" style="display:none;">
+                                    <label style="font-size:11px;">Casino/Plataforma</label>
+                                    <select class="form-control" id="selDestCasino">
+                                        <option value="0">— Todos —</option>
+                                        @foreach($casinos as $c)
+                                        <option value="{{ $c->es_plataforma ? 'p_' . $c->id_plataforma : 'c_' . $c->id_casino }}">{{ $c->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-3" id="colDestNombre">
+                                    <label style="font-size:11px;">Nombre</label>
+                                    <input type="text" class="form-control" id="inpDestNombre" placeholder="Ej: Juan Pérez">
+                                </div>
+                                <div class="col-md-4" id="colDestEmail">
+                                    <label style="font-size:11px;">Email</label>
+                                    <input type="email" class="form-control" id="inpDestEmail" placeholder="correo@ejemplo.com">
+                                </div>
+                                <div class="col-md-2" style="padding-top:22px;">
+                                    <button class="btn btn-success btn-sm" id="btnGuardarDestinatario" style="border-radius:8px; width:100%;"><i class="fa fa-check"></i> Guardar</button>
+                                </div>
+                            </div>
+                            <input type="hidden" id="hidDestId" value="">
+                        </div>
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; overflow:hidden;">
+                            <table class="table table-hover" style="margin:0; font-size:13px; table-layout:fixed; width:100%;">
+                                <colgroup id="colgroupDest">
+                                    <col style="width:30%;">
+                                    <col style="width:35%;">
+                                    <col style="width:25%;" class="col-dest-casino">
+                                    <col style="width:10%;">
+                                </colgroup>
+                                <thead style="background:#f1f5f9;">
+                                    <tr>
+                                        <th style="padding:8px 15px;" class="th-dest-casino">Casino/Plataforma</th>
+                                        <th style="padding:8px 15px;">Nombre</th>
+                                        <th style="padding:8px 15px;">Email</th>
+                                        <th style="padding:8px 15px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyDestinatarios">
+                                    <tr><td colspan="3" class="text-center text-muted" style="padding:20px;">Seleccione una categoría</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer" style="border-radius:0 0 15px 15px; background:#f8fafc;">
+                <button type="button" class="btn btn-default" data-dismiss="modal" style="border-radius:8px;">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- PDF.js y Fabric.js - carga diferida (solo al abrir anotaciones) -->
 <script src="/js/notas_anotaciones.js?v={{ filemtime(public_path('js/notas_anotaciones.js')) }}"></script>
