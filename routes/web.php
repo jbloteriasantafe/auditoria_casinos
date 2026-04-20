@@ -353,7 +353,7 @@ Route::group(['prefix' => 'cargar-notas', 'middleware' => 'tiene_permiso:ver_car
 
 //! MODULO UNIFICADO DE NOTAS (NUEVO)
 Route::group(['prefix' => 'notas-unificadas', 'middleware' => 'tiene_permiso:ver_notas_unificadas'], function () {
-  Route::get('/buscar-activos', 'NotasUnificadasController@buscarActivos'); 
+  Route::get('/buscar-activos', 'NotasUnificadasController@buscarActivos');
   Route::get('/obtener-activos-isla/{id_isla}', 'NotasUnificadasController@obtenerActivosIsla');
   Route::get('/', 'NotasUnificadasController@index');
   Route::post('/iniciar', 'NotasUnificadasController@store');
@@ -396,6 +396,9 @@ Route::get('/get-comments/{id}', 'NotasUnificadasController@getComments');
   Route::post('/asignar-grupo-padre', 'NotasUnificadasController@asignarGrupoPadre');
   Route::post('/quitar-grupo-padre', 'NotasUnificadasController@quitarGrupoPadre');
 
+  // Exportar listado
+  Route::get('/exportar', 'NotasUnificadasController@exportar');
+
   // Notas de Aprobación (a nivel de grupo)
   Route::post('/nota-aprobacion/subir', 'NotasUnificadasController@subirNotaAprobacion');
   Route::get('/nota-aprobacion/visualizar/{id}', 'NotasUnificadasController@visualizarNotaAprobacion');
@@ -410,6 +413,15 @@ Route::get('/get-comments/{id}', 'NotasUnificadasController@getComments');
   Route::delete('/pdf-anotaciones/eliminar-comentario/{id}', 'NotasPdfAnotacionesController@eliminarComentario');
   Route::post('/pdf-anotaciones/guardar-anotaciones', 'NotasPdfAnotacionesController@guardarAnotaciones');
   Route::post('/pdf-anotaciones/subir-version', 'NotasPdfAnotacionesController@subirNuevaVersion');
+
+  // Gestión de Mails
+  Route::get('/mail/destinatarios', 'NotasUnificadasController@getMailDestinatarios');
+  Route::post('/mail/destinatarios', 'NotasUnificadasController@storeMailDestinatario');
+  Route::put('/mail/destinatarios/{id}', 'NotasUnificadasController@updateMailDestinatario');
+  Route::delete('/mail/destinatarios/{id}', 'NotasUnificadasController@deleteMailDestinatario');
+  Route::get('/mail/transiciones', 'NotasUnificadasController@getMailTransiciones');
+  Route::post('/mail/transiciones', 'NotasUnificadasController@storeMailTransicion');
+  Route::delete('/mail/transiciones/{id}', 'NotasUnificadasController@deleteMailTransicion');
 
   Route::get('/{id}', 'NotasUnificadasController@show')->where('id', '[0-9]+');
 });

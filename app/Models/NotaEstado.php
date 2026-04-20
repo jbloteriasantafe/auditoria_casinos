@@ -24,6 +24,8 @@ class NotaEstado extends Model
     const APROBADO_FUNCIONARIO    = 'APROBADO POR FUNCIONARIO';
     const APROBADO_NOTA           = 'APROBADO - NOTA/DISPOSICION';
     const VENCIDO                 = 'VENCIDO';
+    const CON_INFORME             = 'CON INFORME';
+    const CON_INFORME_NEGATIVO    = 'CON INFORME NEGATIVO';
     const PENDIENTE_ADJUNTOS      = 'PENDIENTE_ADJUNTOS';
 
     /**
@@ -44,9 +46,9 @@ class NotaEstado extends Model
     }
 
     /**
-     * Transiciones permitidas para funcionarios: estado_origen => [estados_destino]
+     * Transiciones permitidas para FUNCIONARIO_1
      */
-    public static function transicionesFuncionario()
+    public static function transicionesFuncionario1()
     {
         return [
             self::CONTROL_INICIADO => [self::APROBADO_FUNCIONARIO, self::VISTO_CON_OBSERVACIONES],
@@ -55,7 +57,27 @@ class NotaEstado extends Model
     }
 
     /**
-     * Transiciones permitidas para usuarios regulares: estado_origen => [estados_destino]
+     * Transiciones permitidas para FUNCIONARIO_2 (igual que F1 + CON INFORME NEGATIVO)
+     */
+    public static function transicionesFuncionario2()
+    {
+        return [
+            self::CONTROL_INICIADO     => [self::APROBADO_FUNCIONARIO, self::VISTO_CON_OBSERVACIONES],
+            self::OBS_CORREGIDA        => [self::APROBADO_FUNCIONARIO, self::VISTO_CON_OBSERVACIONES],
+            self::CON_INFORME_NEGATIVO => [self::APROBADO_FUNCIONARIO, self::VISTO_CON_OBSERVACIONES],
+        ];
+    }
+
+    /**
+     * Alias para compatibilidad — devuelve transiciones de funcionario1
+     */
+    public static function transicionesFuncionario()
+    {
+        return self::transicionesFuncionario1();
+    }
+
+    /**
+     * Transiciones permitidas para usuarios regulares (casino/plataforma)
      */
     public static function transicionesRegular()
     {
@@ -71,9 +93,16 @@ class NotaEstado extends Model
     {
         if ($nivel === 'admin') return true;
 
-        $mapa = ($nivel === 'funcionario')
-            ? self::transicionesFuncionario()
-            : self::transicionesRegular();
+        if ($nivel === 'funcionario1') {
+            $mapa = self::transicionesFuncionario1();
+        } elseif ($nivel === 'funcionario2') {
+            $mapa = self::transicionesFuncionario2();
+        } elseif ($nivel === 'funcionario') {
+            // Fallback genérico: usar funcionario1
+            $mapa = self::transicionesFuncionario1();
+        } else {
+            $mapa = self::transicionesRegular();
+        }
 
         return isset($mapa[$estadoActual]) && in_array($nuevoEstado, $mapa[$estadoActual]);
     }

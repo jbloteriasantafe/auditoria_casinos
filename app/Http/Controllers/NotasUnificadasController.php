@@ -22,10 +22,10 @@ use App\Isla; // Importar modelo Isla (Legacy)
 class NotasUnificadasController extends Controller
 {
     // URL base de la API del sistema online
-    //const API_ONLINE_URL = 'http://10.1.121.30:8003/api/auditoria';
+    const API_ONLINE_URL = 'http://10.1.121.30:8003/api/auditoria';
     const API_ONLINE_TOKEN = 'TokenParaJuego';
     // Prueba: 
-    const API_ONLINE_URL = 'http://10.1.121.24:8004/api/auditoria';
+    //const API_ONLINE_URL = 'http://10.1.121.24:8004/api/auditoria';
 
     /**
      * Obtener plataformas y juegos desde la API online (cacheado 1 hora)
@@ -69,6 +69,20 @@ class NotasUnificadasController extends Controller
     }
 
     /**
+     * Intentar formatear fecha, devuelve '' si no es válida
+     */
+    private static function safeDateFormat($value, $format = 'd/m/Y')
+    {
+        if (!$value)
+            return '';
+        try {
+            return \Carbon\Carbon::parse($value)->format($format);
+        } catch (\Exception $e) {
+            return '';
+        }
+    }
+
+    /**
      * Resolver nombre de casino o plataforma
      */
     public static function resolverNombreCasino($id_casino, $id_plataforma = null)
@@ -92,6 +106,239 @@ class NotasUnificadasController extends Controller
     }
 
     /**
+     * Crea el transporte SMTP con credenciales propias (no usa .env)
+     */
+    private static function crearMailer()
+    {
+        $transport = new \Swift_SmtpTransport('correo.santafe.gov.ar', 587, 'tls');
+        $transport->setUsername('no-reply-loteria');
+        $transport->setPassword('C0ntr0l_L0t3r14');
+        $transport->setTimeout(5);
+        return new \Swift_Mailer($transport);
+    }
+
+    /**
+     * Wrapper que llama a notificarCambioEstado recibiendo id en vez de objeto
+     */
+    private static function notificarCambioEstadoDiferido($idEstadoOrigen, $idEstadoDestino, $descEstadoOrigen, $descEstadoDestino, $notaId, $nombreUsuario)
+    {
+        $nota = NotaIngreso::find($notaId);
+        if ($nota) {
+            self::notificarCambioEstado($idEstadoOrigen, $idEstadoDestino, $descEstadoOrigen, $descEstadoDestino, $nota, $nombreUsuario);
+        }
+    }
+
+    /**
+     * Genera el HTML del mail de cambio de estado
+     */
+    private static function htmlCambioEstado($usuario, $nroNota, $tipoNota, $estadoAnterior, $estadoNuevo, $casino, $titulo = '')
+    {
+        $colorEstado = function ($estado) {
+            $lower = mb_strtolower($estado);
+            if (strpos($lower, 'aprobado') !== false)
+                return ['bg' => '#27ae60', 'fg' => '#fff'];
+            if (strpos($lower, 'observacion') !== false)
+                return ['bg' => '#e74c3c', 'fg' => '#fff'];
+            if (strpos($lower, 'vencido') !== false)
+                return ['bg' => '#95a5a6', 'fg' => '#fff'];
+            if ($estado === 'CON INFORME')
+                return ['bg' => '#f0ad4e', 'fg' => '#fff'];
+            if ($estado === 'CON INFORME NEGATIVO')
+                return ['bg' => '#f0ad4e', 'fg' => '#000'];
+            return ['bg' => '#3498db', 'fg' => '#fff'];
+        };
+
+        $colorNuevo = $colorEstado($estadoNuevo);
+        $esCreacion = ($estadoAnterior === 'AL CREAR');
+        $subtitulo = $esCreacion ? 'Nueva nota ingresada' : 'Notificaci&oacute;n de cambio de estado';
+        $mensaje = $esCreacion
+            ? 'El usuario <strong>' . e($usuario) . '</strong> ha subido una nueva nota al sistema.'
+            : 'El usuario <strong>' . e($usuario) . '</strong> ha modificado el estado de una nota.';
+
+        return '
+        <div style="font-family: Arial, Helvetica, sans-serif; max-width: 600px; margin: 0 auto;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px 30px; border-radius: 8px 8px 0 0;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 600;">
+                    Sistema de Notas Unificadas
+                </h1>
+                <p style="color: #e0d4f7; margin: 5px 0 0; font-size: 13px;">' . $subtitulo . '</p>
+            </div>
+
+            <!-- Body -->
+            <div style="background: #ffffff; padding: 30px; border-left: 1px solid #e0e0e0; border-right: 1px solid #e0e0e0;">
+                <p style="color: #333; font-size: 15px; margin: 0 0 20px; line-height: 1.5;">
+                    ' . $mensaje . '
+                </p>
+
+                <!-- Detalle -->
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <tr>
+                        <td style="padding: 10px 14px; background: #f8f9fa; border: 1px solid #e9ecef; color: #666; font-size: 13px; width: 140px;">Nota N&deg;</td>
+                        <td style="padding: 10px 14px; background: #ffffff; border: 1px solid #e9ecef; font-size: 14px; font-weight: 600; color: #2c3e50;">' . e($nroNota) . '</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 14px; background: #f8f9fa; border: 1px solid #e9ecef; color: #666; font-size: 13px;">Tipo</td>
+                        <td style="padding: 10px 14px; background: #ffffff; border: 1px solid #e9ecef; font-size: 14px; color: #2c3e50;">' . e($tipoNota) . '</td>
+                    </tr>' .
+            ($titulo ? '
+                    <tr>
+                        <td style="padding: 10px 14px; background: #f8f9fa; border: 1px solid #e9ecef; color: #666; font-size: 13px;">T&iacute;tulo</td>
+                        <td style="padding: 10px 14px; background: #ffffff; border: 1px solid #e9ecef; font-size: 14px; color: #2c3e50;">' . e($titulo) . '</td>
+                    </tr>' : '') . '
+                    <tr>
+                        <td style="padding: 10px 14px; background: #f8f9fa; border: 1px solid #e9ecef; color: #666; font-size: 13px;">Casino / Plataforma</td>
+                        <td style="padding: 10px 14px; background: #ffffff; border: 1px solid #e9ecef; font-size: 14px; color: #2c3e50;">' . e($casino) . '</td>
+                    </tr>
+                </table>
+
+                <!-- Estado -->
+                <div style="text-align: center; padding: 15px 0;">' .
+            ($esCreacion
+                ? '<span style="display: inline-block; background: ' . $colorNuevo['bg'] . '; color: ' . $colorNuevo['fg'] . '; padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600;">' . e($estadoNuevo) . '</span>'
+                : '<span style="display: inline-block; background: #ecf0f1; color: #7f8c8d; padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600;">' . e($estadoAnterior) . '</span>
+                    <span style="display: inline-block; padding: 0 12px; color: #bbb; font-size: 20px;">&rarr;</span>
+                    <span style="display: inline-block; background: ' . $colorNuevo['bg'] . '; color: ' . $colorNuevo['fg'] . '; padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600;">' . e($estadoNuevo) . '</span>'
+            ) . '
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="background: #f8f9fa; padding: 15px 30px; border-radius: 0 0 8px 8px; border: 1px solid #e0e0e0; border-top: none;">
+                <p style="color: #999; font-size: 11px; margin: 0; text-align: center;">
+                    Este es un mensaje autom&aacute;tico del sistema de auditor&iacute;a. No responda a este correo.
+                </p>
+            </div>
+        </div>';
+    }
+
+
+
+    /**
+     * Envía mails de notificación según transiciones y destinatarios configurados.
+     * $idEstadoOrigen: id del estado anterior (0 = al crear)
+     * $idEstadoDestino: id del estado nuevo (o null, se busca por descripción)
+     * $descEstadoOrigen: descripción del estado anterior (para el HTML)
+     * $descEstadoDestino: descripción del estado nuevo
+     * $nota: instancia de NotaIngreso
+     * $nombreUsuario: nombre del usuario que hizo el cambio
+     */
+    private static function notificarCambioEstado($idEstadoOrigen, $idEstadoDestino, $descEstadoOrigen, $descEstadoDestino, $nota, $nombreUsuario)
+    {
+        try {
+            \Log::info("notificarCambioEstado: origen=$idEstadoOrigen, destino=$idEstadoDestino, nota=" . $nota->id);
+
+            // Buscar categorías que tengan esta transición configurada
+            // Filtrar por id_tipo_evento: 0 = todos, o debe coincidir con el tipo_evento de la nota
+            $idTipoEventoNota = (int) $nota->id_tipo_evento;
+            $categorias = DB::table('nota_mail_transiciones')
+                ->where('id_estado_origen', $idEstadoOrigen)
+                ->where('id_estado_destino', $idEstadoDestino)
+                ->where('activo', 1)
+                ->where(function ($q) use ($idTipoEventoNota) {
+                    $q->where('id_tipo_evento', 0)
+                        ->orWhere('id_tipo_evento', $idTipoEventoNota);
+                })
+                ->pluck('categoria')
+                ->toArray();
+
+            \Log::info("notificarCambioEstado: categorias=" . json_encode($categorias) . " idTipoEvento=$idTipoEventoNota");
+            if (empty($categorias))
+                return;
+
+            // Expandir categorías agrupadas
+            $catsBuscar = [];
+            foreach ($categorias as $cat) {
+                if ($cat === 'auditoria') {
+                    $catsBuscar[] = 'auditoria';
+                    $catsBuscar[] = 'despacho';
+                } elseif ($cat === 'casino') {
+                    $catsBuscar[] = 'casino';
+                    $catsBuscar[] = 'plataforma';
+                } else {
+                    $catsBuscar[] = $cat;
+                }
+            }
+
+            // Armar datos de la nota
+            $grupo = $nota->grupo;
+            $notaCasinoId = $grupo ? $grupo->id_casino : $nota->id_casino;
+            $notaPlataformaId = $grupo ? $grupo->id_plataforma : $nota->id_plataforma;
+
+            // Buscar destinatarios, filtrando por casino/plataforma para la categoría "casino"
+            $destinatarios = DB::table('nota_mail_destinatarios')
+                ->where('activo', 1)
+                ->whereIn('categoria', $catsBuscar)
+                ->where(function ($q) use ($notaCasinoId, $notaPlataformaId) {
+                    $q->where(function ($q2) {
+                        // Categorías que no son casino/plataforma: siempre incluir
+                        $q2->whereNotIn('categoria', ['casino', 'plataforma']);
+                    })->orWhere(function ($q2) use ($notaCasinoId, $notaPlataformaId) {
+                        // Categoría casino/plataforma: solo si coincide el casino o es "Todos" (null/null)
+                        $q2->whereIn('categoria', ['casino', 'plataforma'])
+                            ->where(function ($q3) use ($notaCasinoId, $notaPlataformaId) {
+                            $q3->where(function ($q4) {
+                                // "Todos": sin casino ni plataforma asignados
+                                $q4->whereNull('id_casino')->whereNull('id_plataforma');
+                            });
+                            if ($notaCasinoId) {
+                                $q3->orWhere('id_casino', $notaCasinoId);
+                            }
+                            if ($notaPlataformaId) {
+                                $q3->orWhere('id_plataforma', $notaPlataformaId);
+                            }
+                        });
+                    });
+                })
+                ->get();
+
+            if ($destinatarios->isEmpty())
+                return;
+
+            $tipoAbrev = strtoupper($nota->tipo_rama ?: 'FISC');
+            $nroNota = ($grupo ? $grupo->nro_nota : $nota->nro_nota) . '-' . ($grupo ? $grupo->anio : date('Y'));
+            $tipoNota = ($tipoAbrev === 'MKT') ? 'Marketing' : 'Fiscalización';
+            $casino = self::resolverNombreCasino($notaCasinoId, $notaPlataformaId);
+
+            $titulo = $grupo ? $grupo->titulo : '';
+            $html = self::htmlCambioEstado($nombreUsuario, $nroNota, $tipoNota, $descEstadoOrigen, $descEstadoDestino, $casino, $titulo);
+
+            $emailsRaw = $destinatarios->pluck('email')->unique()->toArray();
+            $emails = [];
+            $emailsDescartados = [];
+            foreach ($emailsRaw as $em) {
+                $em = trim((string) $em);
+                if (filter_var($em, FILTER_VALIDATE_EMAIL)) {
+                    $emails[] = $em;
+                } else {
+                    $emailsDescartados[] = $em;
+                }
+            }
+            if (!empty($emailsDescartados)) {
+                \Log::warning("notificarCambioEstado: emails inválidos descartados: " . implode(', ', $emailsDescartados));
+            }
+            if (empty($emails)) {
+                \Log::warning("notificarCambioEstado: no hay emails válidos para enviar, abortando.");
+                return;
+            }
+
+            $esCreacion = ($descEstadoOrigen === 'AL CREAR');
+            $subject = $esCreacion ? 'Nueva nota - ' . $nroNota : 'Cambio de estado - Nota ' . $nroNota;
+
+            $message = (new \Swift_Message($subject))
+                ->setFrom(['no-reply-loteria@santafe.gov.ar' => 'Control Sistemas Loteria'])
+                ->setTo($emails)
+                ->setBody($html, 'text/html');
+
+            self::crearMailer()->send($message);
+
+            \Log::info("MAIL ENVIADO: $nroNota [$descEstadoOrigen -> $descEstadoDestino] a " . implode(', ', $emails));
+        } catch (\Exception $e) {
+            \Log::error("ERROR ENVIO MAIL: " . $e->getMessage());
+        }
+    }
+
+    /**
      * Display a listing of the resource.
      * Bandeja de entrada según ROL (FISC / MKT / CONCESIONARIO)
      */
@@ -99,15 +346,16 @@ class NotasUnificadasController extends Controller
     {
         // LEGACY AUTHENTICATION COMPATIBILITY
         $id_usuario = session('id_usuario');
-        if(!$id_usuario) return redirect('login');
-        
+        if (!$id_usuario)
+            return redirect('login');
+
         $usuario_data = UsuarioController::getInstancia()->buscarUsuario($id_usuario);
         $usuario = $usuario_data['usuario'];
 
         // $usuario = Auth::user(); // DEPRECATED for this system
-         if(!$usuario) {
-             return redirect('login');
-         }
+        if (!$usuario) {
+            return redirect('login');
+        }
 
         // --- PERMISOS DE CASINO POR USUARIO ---
         // Superusuarios/controladores ven todo; otros solo sus casinos asignados o plataforma por rol
@@ -115,31 +363,37 @@ class NotasUnificadasController extends Controller
         $casinosPermitidos = null;
         $plataformasPermitidas = null;
 
-        if (!$usuario->es_superusuario && !$usuario->es_controlador) {
-            // Buscar roles de notas unificadas del usuario
+        // Roles que ven TODO sin filtro de casino: superusuario, auditor, despacho
+        // Administradores, casinos, plataformas y funcionarios: solo ven sus casinos asignados
+        $sinFiltroCasino = $usuario->es_superusuario || $usuario->es_auditor || $usuario->es_despacho;
+
+        if (!$sinFiltroCasino) {
+            // Buscar todos los roles CARGA_NOTAS_* del usuario
             $rolesNotas = DB::table('usuario_tiene_rol')
                 ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
                 ->where('usuario_tiene_rol.id_usuario', $id_usuario)
-                ->where('rol.descripcion', 'LIKE', 'CARGA_NOTAS_%')
+                ->where('rol.descripcion', 'LIKE', 'CARGA\_NOTAS\_%')
                 ->pluck('rol.descripcion')
                 ->toArray();
 
             // CARGA_NOTAS_UNIFICADAS = acceso a casinos físicos asignados
-            $tieneCasinos = in_array('CARGA_NOTAS_UNIFICADAS', $rolesNotas);
-            // Otros roles CARGA_NOTAS_* = acceso a plataformas (ej: CARGA_NOTAS_BPLAY, CARGA_NOTAS_CCO)
-            $rolesPlataforma = array_filter($rolesNotas, function($r) {
+            $tieneCasinosFisicos = in_array('CARGA_NOTAS_UNIFICADAS', $rolesNotas);
+
+            // Otros roles CARGA_NOTAS_* = acceso a plataformas (BPLAY, CCO, etc.)
+            $rolesPlataforma = array_filter($rolesNotas, function ($r) {
                 return $r !== 'CARGA_NOTAS_UNIFICADAS';
             });
 
-            if ($tieneCasinos) {
+            $casinosPermitidos = [];
+            if ($tieneCasinosFisicos) {
                 $casinosPermitidos = DB::table('usuario_tiene_casino')
                     ->where('id_usuario', $id_usuario)
                     ->pluck('id_casino')
                     ->toArray();
             }
 
+            $plataformasPermitidas = [];
             if (!empty($rolesPlataforma)) {
-                $plataformasPermitidas = [];
                 $plataformasOnlineData = self::obtenerPlataformasOnline();
                 foreach ($rolesPlataforma as $rolDesc) {
                     $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
@@ -151,53 +405,91 @@ class NotasUnificadasController extends Controller
                     }
                 }
             }
-
-            // Si no tiene ningún rol de notas, no ve nada
-            if (!$tieneCasinos && empty($rolesPlataforma)) {
-                $casinosPermitidos = [];
-                $plataformasPermitidas = [];
-            }
         }
 
-        $esFuncionario = $usuario->tieneRol('FUNCIONARIO');
+        // Detectar roles de funcionario (tienen prioridad, incluso sobre superusuario)
+        $esFuncionario1 = $usuario->tieneRol('FUNCIONARIO_1');
+        $esFuncionario2 = $usuario->tieneRol('FUNCIONARIO_2');
+        $esFuncionario = $esFuncionario1 || $esFuncionario2;
+        $esAdministradorRol = $usuario->es_administrador && !$esFuncionario;
+
+        // rolVista determina el filtro por defecto
+        // funcionario1 = solo MKT, funcionario2 = Contratos + CON INFORME NEGATIVO, administrador = FISC + compartir_admin MKT, all = todo
+        if ($esFuncionario1) {
+            $rolVista = 'funcionario1';
+        } elseif ($esFuncionario2) {
+            $rolVista = 'funcionario2';
+        } elseif ($esAdministradorRol) {
+            $rolVista = 'administrador';
+        } else {
+            $rolVista = 'all';
+        }
+
+        // "Ver todo" desactiva filtros de rol
+        $verTodo = $request->has('ver_todo') && $request->ver_todo == '1';
+
+        // Mostrar botón "Ver todo" solo a administradores y funcionarios
+        $muestraVerTodo = $esFuncionario || $esAdministradorRol;
 
         // Obtener Grupos de Trámite (con notas hijas)
         $gruposQuery = \App\Models\GrupoTramite::with(['notas', 'notas.expedientes', 'casino']);
 
         // Filtrar por casinos/plataformas permitidos del usuario
         if ($casinosPermitidos !== null || $plataformasPermitidas !== null) {
-            $gruposQuery->where(function($q) use ($casinosPermitidos, $plataformasPermitidas) {
-                if ($casinosPermitidos !== null && !empty($casinosPermitidos)) {
-                    $q->orWhereIn('id_casino', $casinosPermitidos);
-                }
-                if ($plataformasPermitidas !== null && !empty($plataformasPermitidas)) {
-                    $q->orWhereIn('id_plataforma', $plataformasPermitidas);
-                }
-            });
+            $hayCasinos = !empty($casinosPermitidos);
+            $hayPlataformas = !empty($plataformasPermitidas);
+            if (!$hayCasinos && !$hayPlataformas) {
+                $gruposQuery->whereRaw('0 = 1');
+            } else {
+                $gruposQuery->where(function ($q) use ($casinosPermitidos, $plataformasPermitidas, $hayCasinos, $hayPlataformas) {
+                    if ($hayCasinos)
+                        $q->orWhereIn('id_casino', $casinosPermitidos);
+                    if ($hayPlataformas)
+                        $q->orWhereIn('id_plataforma', $plataformasPermitidas);
+                });
+            }
         }
 
-        // Funcionario: excluir grupos que SOLO tienen notas FISC (sin MKT)
-        if ($esFuncionario) {
-            $gruposQuery->whereHas('notas', function($q) {
-                $q->where('tipo_rama', 'MKT');
-            });
+        // Filtros por rol (se omiten si "ver_todo" está activo)
+        if (!$verTodo) {
+            if ($rolVista === 'funcionario1') {
+                // Funcionario 1: solo grupos con notas MKT
+                $gruposQuery->whereHas('notas', function ($q) {
+                    $q->where('tipo_rama', 'MKT');
+                });
+            } elseif ($rolVista === 'funcionario2') {
+                // Funcionario 2: notas con tipo_evento o categoria "Contratos" O estado "CON INFORME NEGATIVO"
+                $gruposQuery->where(function ($q) {
+                    $q->whereHas('notas', function ($q2) {
+                        $q2->where('id_tipo_evento', 6)  // Contratos (tipo_evento MKT)
+                            ->orWhere('id_categoria', 3);  // Contratos (categoria MKT)
+                    })->orWhereHas('notas.expedientes', function ($q2) {
+                        $q2->where('estado_actual', 'CON INFORME NEGATIVO');
+                    });
+                });
+            } elseif ($rolVista === 'administrador') {
+                // Administrador: notas FISC + MKT con compartir_administrador
+                $gruposQuery->whereHas('notas', function ($q) {
+                    $q->where('tipo_rama', 'FISC')
+                        ->orWhere(function ($q2) {
+                            $q2->where('tipo_rama', 'MKT')
+                                ->where('compartir_administrador', 1);
+                        });
+                });
+            }
+            // rolVista === 'all': sin filtro de rol
         }
-        
+
         // Search - buscar en datos del grupo y en las notas hijas
         if ($request->has('q') && !empty($request->q)) {
             $q = $request->q;
             $gruposQuery->where(function ($sub) use ($q) {
                 $sub->where('nro_nota', 'LIKE', "%$q%")
                     ->orWhere('titulo', 'LIKE', "%$q%")
-                    ->orWhere('anio', 'LIKE', "%$q%")
-                    ->orWhereHas('casino', function ($c) use ($q) {
-                        $c->where('nombre', 'LIKE', "%$q%");
-                    })
-                    ->orWhereHas('notas', function ($n) use ($q) {
-                        $n->where('tipo_solicitud', 'LIKE', "%$q%");
-                    })
-                    ->orWhereHas('notas.expedientes', function ($e) use ($q) {
-                        $e->where('estado_actual', 'LIKE', "%$q%");
+                    ->orWhereIn('id', function ($subq) use ($q) {
+                        $subq->select('id_grupo')
+                            ->from('grupo_notas_aprobacion')
+                            ->where('numero_documento', 'LIKE', "%$q%");
                     });
             });
         }
@@ -211,14 +503,14 @@ class NotasUnificadasController extends Controller
         // Rama (MKT / FISC)
         if ($request->has('rama') && !empty($request->rama)) {
             $rama = $request->rama;
-            $gruposQuery->whereHas('notas', function($q) use ($rama) {
+            $gruposQuery->whereHas('notas', function ($q) use ($rama) {
                 $q->where('tipo_rama', $rama);
             });
         }
         // Estado del expediente
         if ($request->has('estado') && !empty($request->estado)) {
             $estado = $request->estado;
-            $gruposQuery->whereHas('notas.expedientes', function($q) use ($estado) {
+            $gruposQuery->whereHas('notas.expedientes', function ($q) use ($estado) {
                 $q->where('estado_actual', $estado);
             });
         }
@@ -232,16 +524,16 @@ class NotasUnificadasController extends Controller
 
         // Quick Filters
         if ($request->has('quick_filter')) {
-            if($request->quick_filter === 'hoy') {
+            if ($request->quick_filter === 'hoy') {
                 // Grupos que tienen alguna nota creada hoy
-                $gruposQuery->whereHas('notas', function($q) {
+                $gruposQuery->whereHas('notas', function ($q) {
                     $q->whereDate('created_at', \Carbon\Carbon::today());
                 });
             }
-            if($request->quick_filter === 'proximos') {
+            if ($request->quick_filter === 'proximos') {
                 // Grupos con alguna nota (MKT o FISC) con fecha_pretendida_aprobacion >= hoy
                 $hoy = \Carbon\Carbon::today()->toDateString();
-                $gruposQuery->whereHas('notas', function($q) use ($hoy) {
+                $gruposQuery->whereHas('notas', function ($q) use ($hoy) {
                     $q->whereDate('fecha_pretendida_aprobacion', '>=', $hoy);
                 });
                 $gruposQuery->orderByRaw('(
@@ -251,13 +543,13 @@ class NotasUnificadasController extends Controller
                       AND ni.fecha_pretendida_aprobacion >= ?
                 ) ASC', [$hoy]);
             }
-            if($request->quick_filter === 'por_vencer') {
+            if ($request->quick_filter === 'por_vencer') {
                 // Grupos con fecha_pretendida_aprobacion entre hoy y hoy+7 días (cualquier estado)
                 $hoy = \Carbon\Carbon::today()->toDateString();
                 $en7dias = \Carbon\Carbon::today()->addDays(7)->toDateString();
-                $gruposQuery->whereHas('notas', function($q) use ($hoy, $en7dias) {
+                $gruposQuery->whereHas('notas', function ($q) use ($hoy, $en7dias) {
                     $q->whereDate('fecha_pretendida_aprobacion', '>=', $hoy)
-                      ->whereDate('fecha_pretendida_aprobacion', '<=', $en7dias);
+                        ->whereDate('fecha_pretendida_aprobacion', '<=', $en7dias);
                 });
                 $gruposQuery->orderByRaw('(
                     SELECT MIN(ni.fecha_pretendida_aprobacion)
@@ -273,7 +565,8 @@ class NotasUnificadasController extends Controller
         if (!$request->has('quick_filter') || !in_array($request->quick_filter, ['proximos', 'por_vencer'])) {
             $sort = $request->get('sort_by', 'id');
             $order = $request->get('order', 'desc');
-            if(!in_array($order, ['asc','desc'])) $order = 'desc';
+            if (!in_array($order, ['asc', 'desc']))
+                $order = 'desc';
 
             // Columnas que están en notas_ingreso, no en grupos_tramites
             if ($sort === 'fecha_pretendida_aprobacion') {
@@ -285,29 +578,47 @@ class NotasUnificadasController extends Controller
             } else {
                 // Validar columnas permitidas de grupos_tramites
                 $columnasPermitidas = ['id', 'created_at', 'nro_nota', 'id_casino', 'anio', 'titulo', 'tipo_solicitud'];
-                if (!in_array($sort, $columnasPermitidas)) $sort = 'id';
+                if (!in_array($sort, $columnasPermitidas))
+                    $sort = 'id';
                 $gruposQuery->orderBy($sort, $order);
             }
         }
 
         $pageSize = $request->page_size ?: 10;
         $grupos = $gruposQuery->paginate($pageSize);
-        
+
         // Preserve params
         $grupos->appends($request->all());
+
+        // Cargar notas de aprobación para los grupos de esta página
+        $grupoIds = $grupos->pluck('id')->toArray();
+        $aprobacionesPorGrupo = [];
+        if (!empty($grupoIds)) {
+            $aprobs = DB::table('grupo_notas_aprobacion')
+                ->whereIn('id_grupo', $grupoIds)
+                ->orderBy('created_at', 'desc')
+                ->get();
+            foreach ($aprobs as $a) {
+                $aprobacionesPorGrupo[$a->id_grupo][] = $a;
+            }
+        }
 
         // Notas sueltas sin grupo (legacy) - limitadas para no traer todo
         $notasSueltasQuery = NotaIngreso::with(['casino', 'expedientes'])
             ->whereNull('id_grupo');
         if ($casinosPermitidos !== null || $plataformasPermitidas !== null) {
-            $notasSueltasQuery->where(function($q) use ($casinosPermitidos, $plataformasPermitidas) {
-                if ($casinosPermitidos !== null && !empty($casinosPermitidos)) {
-                    $q->orWhereIn('id_casino', $casinosPermitidos);
-                }
-                if ($plataformasPermitidas !== null && !empty($plataformasPermitidas)) {
-                    $q->orWhereIn('id_plataforma', $plataformasPermitidas);
-                }
-            });
+            $hayCasinos = !empty($casinosPermitidos);
+            $hayPlataformas = !empty($plataformasPermitidas);
+            if (!$hayCasinos && !$hayPlataformas) {
+                $notasSueltasQuery->whereRaw('0 = 1');
+            } else {
+                $notasSueltasQuery->where(function ($q) use ($casinosPermitidos, $plataformasPermitidas, $hayCasinos, $hayPlataformas) {
+                    if ($hayCasinos)
+                        $q->orWhereIn('id_casino', $casinosPermitidos);
+                    if ($hayPlataformas)
+                        $q->orWhereIn('id_plataforma', $plataformasPermitidas);
+                });
+            }
         }
         $notasSueltas = $notasSueltasQuery->orderBy('id', 'desc')->limit(50)->get();
 
@@ -315,9 +626,20 @@ class NotasUnificadasController extends Controller
         // Funcionario NO puede eliminar; los demás roles admin sí
         $puedeEliminar = !$esFuncionario && ($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control);
 
+        // Comentarios: visibles para todos MENOS casinos/plataformas (regular sin rol admin)
+        $puedeVerComentarios = $esFuncionario || $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control;
+
         // Nivel de permisos para cambio de estado: funcionario tiene prioridad sobre admin
         $esAdmin = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control;
-        $nivelEstado = $esFuncionario ? 'funcionario' : ($esAdmin ? 'admin' : 'regular');
+        if ($esFuncionario1) {
+            $nivelEstado = 'funcionario1';
+        } elseif ($esFuncionario2) {
+            $nivelEstado = 'funcionario2';
+        } elseif ($esAdmin) {
+            $nivelEstado = 'admin';
+        } else {
+            $nivelEstado = 'regular';
+        }
 
         if ($request->ajax()) {
             if ($request->get('view_mode') === 'kanban') {
@@ -327,20 +649,20 @@ class NotasUnificadasController extends Controller
                 ]);
             }
             return response()->json([
-                'html' => view('Unified.tabla_notas', compact('grupos', 'notasSueltas', 'puedeEliminar', 'esFuncionario'))->render(),
+                'html' => view('Unified.tabla_notas', compact('grupos', 'notasSueltas', 'puedeEliminar', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'verTodo', 'aprobacionesPorGrupo'))->render(),
                 'total' => $grupos->total(),
             ]);
         }
 
         // Casinos físicos
-        $casinos = \App\Casino::all()->map(function($c) {
+        $casinos = \App\Casino::all()->map(function ($c) {
             $c->es_plataforma = false;
             return $c;
         });
 
         // Plataformas online (desde API)
         $plataformasOnline = self::obtenerPlataformasOnline();
-        $casinos_online = collect($plataformasOnline)->map(function($p) {
+        $casinos_online = collect($plataformasOnline)->map(function ($p) {
             $c = new \stdClass();
             $c->id_casino = null;
             $c->id_plataforma = $p->id_plataforma;
@@ -353,7 +675,7 @@ class NotasUnificadasController extends Controller
 
         // Filtrar dropdown según permisos del usuario
         if ($casinosPermitidos !== null || $plataformasPermitidas !== null) {
-            $casinos = $casinos->filter(function($c) use ($casinosPermitidos, $plataformasPermitidas) {
+            $casinos = $casinos->filter(function ($c) use ($casinosPermitidos, $plataformasPermitidas) {
                 if (!$c->es_plataforma && $casinosPermitidos !== null) {
                     return in_array($c->id_casino, $casinosPermitidos);
                 }
@@ -370,10 +692,420 @@ class NotasUnificadasController extends Controller
 
         $estados = NotaEstado::activos();
 
+        // Tipos de evento separados para el modal de mails
+        $tiposEventoMkt = DB::table('nota_tipos_evento')->where('activo', 1)->where('tipo_tarea', 'MKT')->orderBy('descripcion')->get();
+        $tiposEventoFisc = DB::table('nota_tipos_evento')->where('activo', 1)->where('tipo_tarea', 'FISC')->orderBy('descripcion')->get();
+
         $totalGrupos = $grupos->total();
 
         // Retornar vista principal (Bandejas)
-        return view('Unified.index', compact('grupos', 'notasSueltas', 'casinos', 'categorias', 'tipos_evento', 'estados', 'puedeEliminar', 'nivelEstado', 'esFuncionario', 'totalGrupos'));
+        $esAdminMails = $esAdmin;
+
+        // Puede gestionar mails: admin o cualquier rol CARGA_NOTAS_*
+        $tieneRolCargaNotas = DB::table('usuario_tiene_rol')
+            ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
+            ->where('usuario_tiene_rol.id_usuario', $id_usuario)
+            ->where('rol.descripcion', 'LIKE', 'CARGA\_NOTAS\_%')
+            ->exists();
+        $puedeGestionarMails = $esAdmin || $tieneRolCargaNotas;
+
+        // Puede exportar: admin o funcionario
+        $puedeExportar = $esAdmin || $esFuncionario;
+
+        return view('Unified.index', compact('grupos', 'notasSueltas', 'casinos', 'categorias', 'tipos_evento', 'estados', 'puedeEliminar', 'nivelEstado', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'muestraVerTodo', 'verTodo', 'totalGrupos', 'tiposEventoMkt', 'tiposEventoFisc', 'aprobacionesPorGrupo', 'puedeVerComentarios', 'esAdminMails', 'puedeGestionarMails', 'puedeExportar'));
+    }
+
+    /**
+     * Exportar listado en PDF o Excel
+     */
+    public function exportar(Request $request)
+    {
+        // Reusar la misma lógica de filtros del index
+        $request->merge(['export' => '1']);
+        // Forzar sin paginación: traemos todos
+        $id_usuario = session('id_usuario');
+        $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuario'];
+
+        // Exportar solo para admin / superusuario / auditor / funcionario
+        $puedeExportar = $usuario->es_superusuario || $usuario->es_administrador
+            || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control
+            || $usuario->tieneRol('FUNCIONARIO_1') || $usuario->tieneRol('FUNCIONARIO_2');
+        if (!$puedeExportar) {
+            return response()->json(['success' => false, 'msg' => 'No tiene permisos para exportar'], 403);
+        }
+
+        $sinFiltroCasino = $usuario->es_superusuario || $usuario->es_auditor || $usuario->es_despacho;
+        $casinosPermitidos = null;
+        $plataformasPermitidas = null;
+
+        if (!$sinFiltroCasino) {
+            $rolesNotas = DB::table('usuario_tiene_rol')
+                ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
+                ->where('usuario_tiene_rol.id_usuario', $id_usuario)
+                ->where(function ($q) {
+                    $q->where('rol.descripcion', 'CARGA_NOTAS')
+                        ->orWhere('rol.descripcion', 'LIKE', 'CARGA\_NOTAS\_%');
+                })
+                ->pluck('rol.descripcion')->toArray();
+
+            $tieneCasinosFisicos = in_array('CARGA_NOTAS', $rolesNotas);
+            $rolesPlataforma = array_filter($rolesNotas, function ($r) {
+                return $r !== 'CARGA_NOTAS';
+            });
+
+            $casinosPermitidos = [];
+            if ($tieneCasinosFisicos) {
+                $casinosPermitidos = DB::table('usuario_tiene_casino')->where('id_usuario', $id_usuario)->pluck('id_casino')->toArray();
+            }
+            $plataformasPermitidas = [];
+            if (!empty($rolesPlataforma)) {
+                $plataformasOnlineData = self::obtenerPlataformasOnline();
+                foreach ($rolesPlataforma as $rolDesc) {
+                    $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
+                    foreach ($plataformasOnlineData as $p) {
+                        if ($p->codigo === $codigo) {
+                            $plataformasPermitidas[] = $p->id_plataforma;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!$tieneCasinosFisicos && empty($rolesPlataforma)) {
+                $casinosPermitidos = DB::table('usuario_tiene_casino')->where('id_usuario', $id_usuario)->pluck('id_casino')->toArray();
+            }
+        }
+
+        $esFuncionario1 = $usuario->tieneRol('FUNCIONARIO_1');
+        $esFuncionario2 = $usuario->tieneRol('FUNCIONARIO_2');
+        $esFuncionario = $esFuncionario1 || $esFuncionario2;
+        $verTodo = $request->has('ver_todo') && $request->ver_todo == '1';
+
+        if ($esFuncionario1)
+            $rolVista = 'funcionario1';
+        elseif ($esFuncionario2)
+            $rolVista = 'funcionario2';
+        elseif ($usuario->es_administrador && !$esFuncionario)
+            $rolVista = 'administrador';
+        else
+            $rolVista = 'all';
+
+        $gruposQuery = \App\Models\GrupoTramite::with(['notas', 'notas.expedientes', 'notas.expedientes.movimientos.usuario', 'casino']);
+
+        if ($casinosPermitidos !== null || $plataformasPermitidas !== null) {
+            $gruposQuery->where(function ($q) use ($casinosPermitidos, $plataformasPermitidas) {
+                if (!empty($casinosPermitidos))
+                    $q->orWhereIn('id_casino', $casinosPermitidos);
+                if (!empty($plataformasPermitidas))
+                    $q->orWhereIn('id_plataforma', $plataformasPermitidas);
+            });
+        }
+
+        // Filtros de rol
+        if (!$verTodo) {
+            if ($rolVista === 'funcionario1') {
+                $gruposQuery->whereHas('notas', function ($q) {
+                    $q->where('tipo_rama', 'MKT');
+                });
+            } elseif ($rolVista === 'funcionario2') {
+                $gruposQuery->where(function ($q) {
+                    $q->whereHas('notas', function ($q2) {
+                        $q2->where('id_tipo_evento', 6)->orWhere('id_categoria', 3);
+                    })->orWhereHas('notas.expedientes', function ($q2) {
+                        $q2->where('estado_actual', 'CON INFORME NEGATIVO');
+                    });
+                });
+            } elseif ($rolVista === 'administrador') {
+                $gruposQuery->whereHas('notas', function ($q) {
+                    $q->where('tipo_rama', 'FISC')
+                        ->orWhere(function ($q2) {
+                            $q2->where('tipo_rama', 'MKT')->where('compartir_administrador', 1);
+                        });
+                });
+            }
+        }
+
+        // Filtros de búsqueda
+        if ($request->has('q') && !empty($request->q)) {
+            $q = $request->q;
+            $gruposQuery->where(function ($sub) use ($q) {
+                $sub->where('nro_nota', 'LIKE', "%$q%")
+                    ->orWhere('titulo', 'LIKE', "%$q%")
+                    ->orWhereIn('id', function ($subq) use ($q) {
+                        $subq->select('id_grupo')->from('grupo_notas_aprobacion')->where('numero_documento', 'LIKE', "%$q%");
+                    });
+            });
+        }
+        if ($request->has('id_plataforma') && $request->id_plataforma) {
+            $gruposQuery->where('id_plataforma', $request->id_plataforma);
+        } elseif ($request->has('id_casino') && $request->id_casino) {
+            $gruposQuery->where('id_casino', $request->id_casino);
+        }
+        if ($request->has('rama') && $request->rama) {
+            $rama = $request->rama;
+            $gruposQuery->whereHas('notas', function ($q) use ($rama) {
+                $q->where('tipo_rama', $rama);
+            });
+        }
+        if ($request->has('estado') && $request->estado) {
+            $estado = $request->estado;
+            $gruposQuery->whereHas('notas.expedientes', function ($q) use ($estado) {
+                $q->where('estado_actual', $estado);
+            });
+        }
+        if ($request->has('fecha_desde') && $request->fecha_desde) {
+            $gruposQuery->whereDate('created_at', '>=', $request->fecha_desde);
+        }
+        if ($request->has('fecha_hasta') && $request->fecha_hasta) {
+            $gruposQuery->whereDate('created_at', '<=', $request->fecha_hasta);
+        }
+
+        // Quick filters
+        if ($request->has('quick_filter') && $request->quick_filter) {
+            if ($request->quick_filter === 'hoy') {
+                $gruposQuery->whereHas('notas', function ($q) {
+                    $q->whereDate('created_at', \Carbon\Carbon::today());
+                });
+            }
+            if ($request->quick_filter === 'proximos') {
+                $hoy = \Carbon\Carbon::today()->toDateString();
+                $gruposQuery->whereHas('notas', function ($q) use ($hoy) {
+                    $q->whereDate('fecha_pretendida_aprobacion', '>=', $hoy);
+                });
+            }
+            if ($request->quick_filter === 'por_vencer') {
+                $hoy = \Carbon\Carbon::today()->toDateString();
+                $en7dias = \Carbon\Carbon::today()->addDays(7)->toDateString();
+                $gruposQuery->whereHas('notas', function ($q) use ($hoy, $en7dias) {
+                    $q->whereDate('fecha_pretendida_aprobacion', '>=', $hoy)->whereDate('fecha_pretendida_aprobacion', '<=', $en7dias);
+                });
+            }
+        }
+
+        $sort = $request->get('sort_by', 'id');
+        $order = $request->get('order', 'desc');
+        $gruposQuery->orderBy($sort, $order);
+
+        $grupos = $gruposQuery->get();
+
+        // Cargar aprobaciones
+        $grupoIds = $grupos->pluck('id')->toArray();
+        $aprobaciones = [];
+        if (!empty($grupoIds)) {
+            $aprobs = DB::table('grupo_notas_aprobacion')->whereIn('id_grupo', $grupoIds)->get();
+            foreach ($aprobs as $a) {
+                $aprobaciones[$a->id_grupo][] = $a;
+            }
+        }
+
+        // Determinar si puede ver comentarios
+        $puedeVerComentarios = $esFuncionario || $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control;
+
+        // Construir filas — una fila por cada nota hija (MKT y FISC son filas separadas)
+        $rows = [];
+        $meses = [
+            '01' => 'Enero',
+            '02' => 'Febrero',
+            '03' => 'Marzo',
+            '04' => 'Abril',
+            '05' => 'Mayo',
+            '06' => 'Junio',
+            '07' => 'Julio',
+            '08' => 'Agosto',
+            '09' => 'Septiembre',
+            '10' => 'Octubre',
+            '11' => 'Noviembre',
+            '12' => 'Diciembre'
+        ];
+
+        foreach ($grupos as $grupo) {
+            if ($grupo->notas->isEmpty())
+                continue;
+
+            $casinoNombre = $grupo->casino ? $grupo->casino->nombre : self::resolverNombreCasino($grupo->id_casino, $grupo->id_plataforma);
+
+            // Notas de aprobación del grupo (filtradas por rama)
+            $aprobsGrupo = isset($aprobaciones[$grupo->id]) ? $aprobaciones[$grupo->id] : [];
+
+            foreach ($grupo->notas as $nota) {
+                // Filtrar FISC para funcionario1 sin ver_todo
+                if ($rolVista === 'funcionario1' && !$verTodo && $nota->tipo_rama === 'FISC')
+                    continue;
+
+                // Estado
+                $estado = '';
+                if ($nota->expedientes->count() > 0) {
+                    $estado = $nota->expedientes->first()->estado_actual;
+                }
+
+                // Adjuntos propios de esta nota
+                $adjSolicitud = $nota->path_solicitud ? basename($nota->path_solicitud) : '';
+                $adjDiseno = $nota->path_diseno ? basename($nota->path_diseno) : '';
+                $adjBases = $nota->path_bases ? basename($nota->path_bases) : '';
+                $adjInforme = $nota->path_informe ? basename($nota->path_informe) : '';
+                $adjVarios = $nota->path_varios ? basename($nota->path_varios) : '';
+
+                // Tipo evento y categoría
+                $tipoEventoNombre = $nota->id_tipo_evento ? NotaTipoEvento::nombrePorId($nota->id_tipo_evento) : '';
+                $categoriaNombre = $nota->id_categoria ? NotaCategoria::nombrePorId($nota->id_categoria) : '';
+
+                // Fecha referencia y mes
+                $fechaRef = $nota->fecha_referencia;
+                $mesRef = '';
+                $anioRef = '';
+                $fechaRefValida = false;
+                if ($fechaRef) {
+                    try {
+                        $dr = \Carbon\Carbon::parse($fechaRef);
+                        $mesRef = $meses[$dr->format('m')] ?? '';
+                        $anioRef = $dr->format('Y');
+                        $fechaRefValida = true;
+                    } catch (\Exception $e) {
+                    }
+                }
+
+                // Comentarios de esta nota (solo si puede verlos)
+                $comentariosStr = '';
+                if ($puedeVerComentarios) {
+                    $comentarios = [];
+                    foreach ($nota->expedientes as $exp) {
+                        foreach ($exp->movimientos as $mov) {
+                            if ($mov->accion === 'COMENTARIO' && !$mov->deleted_at) {
+                                $nombreUsuario = $mov->usuario ? $mov->usuario->nombre : 'Sistema';
+                                $fecha = $mov->fecha_movimiento ? (is_string($mov->fecha_movimiento) ? $mov->fecha_movimiento : $mov->fecha_movimiento->format('d/m/Y H:i')) : '';
+                                $comentarios[] = $nombreUsuario . ' (' . $fecha . '): ' . $mov->comentario;
+                            }
+                        }
+                    }
+                    $comentariosStr = implode("\n", $comentarios);
+                }
+
+                // Notas de aprobación de esta rama
+                $aprobStr = '';
+                $aprobParts = [];
+                foreach ($aprobsGrupo as $ap) {
+                    if ($ap->tipo_rama === $nota->tipo_rama && $ap->numero_documento) {
+                        $pref = $ap->tipo_documento === 'DISPOSICION' ? 'D' : 'N';
+                        $aprobParts[] = $pref . ' ' . $ap->numero_documento . '-' . $ap->anio_documento;
+                    }
+                }
+                $aprobStr = implode(', ', $aprobParts);
+
+                // Fecha modificación
+                $fechaModif = $nota->updated_at ? $nota->updated_at->format('d/m/Y H:i') : '';
+
+                $rows[] = [
+                    'nro_nota' => $grupo->nro_nota . '-' . $grupo->anio,
+                    'tema' => $grupo->titulo,
+                    'tipo_evento' => $tipoEventoNombre,
+                    'origen' => $casinoNombre,
+                    'fecha_recepcion' => self::safeDateFormat($nota->fecha_ingreso ?: $grupo->created_at),
+                    'categoria' => $nota->tipo_rama === 'FISC' ? ($nota->tipo_solicitud ?: '') : $categoriaNombre,
+                    'adj_solicitud' => $adjSolicitud,
+                    'adj_diseno' => $nota->tipo_rama === 'MKT' ? $adjDiseno : $adjVarios,
+                    'adj_bases' => $adjBases,
+                    'adj_informe' => $adjInforme,
+                    'fecha_inicio' => self::safeDateFormat($nota->fecha_inicio_evento),
+                    'fecha_fin' => self::safeDateFormat($nota->fecha_fin_evento),
+                    'fecha_referencia' => $fechaRefValida ? $dr->format('d/m/Y') : ($fechaRef ?: ''),
+                    'mes_referencia' => $mesRef,
+                    'anio' => $anioRef ?: $grupo->anio,
+                    'estado' => $estado,
+                    'comentarios' => nl2br(e($comentariosStr)),
+                    'comentarios_raw' => $comentariosStr,
+                    'notas_aprobacion' => $aprobStr,
+                    'notas_relacionadas' => '',
+                    'fecha_modif' => $fechaModif,
+                    // Extras para display
+                    'tipo_rama' => $nota->tipo_rama,
+                ];
+            }
+        }
+
+        $formato = $request->get('formato', 'pdf');
+
+        if ($formato === 'excel') {
+            return $this->exportarExcel($rows);
+        }
+
+        // PDF
+        $pdf = \Dompdf\Dompdf::class;
+        $dompdf = new $pdf();
+        $html = view('Unified.export_pdf', compact('rows'))->render();
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A3', 'landscape');
+        $dompdf->render();
+        return $dompdf->stream('notas_unificadas_' . date('Y-m-d') . '.pdf');
+    }
+
+    private function exportarExcel($rows)
+    {
+        $headers = [
+            'Nro de Nota',
+            'Rama',
+            'Tema del Evento',
+            'Tipo Evento',
+            'Origen',
+            'Fecha Recepción',
+            'Categoría',
+            'Adj. Solicitud',
+            'Adj. Diseño/Varios',
+            'Adj. Bases y Cond.',
+            'Adj. Inf. Técnico',
+            'Fecha Inicio Evento',
+            'Fecha Finalización',
+            'Fecha Referencia',
+            'Año',
+            'Estado',
+            'Comentarios',
+            'Notas Aprobación',
+            'Fecha Modif.'
+        ];
+
+        $data = [];
+        foreach ($rows as $row) {
+            $data[] = [
+                $row['nro_nota'],
+                $row['tipo_rama'],
+                $row['tema'],
+                $row['tipo_evento'],
+                $row['origen'],
+                $row['fecha_recepcion'],
+                $row['categoria'],
+                $row['adj_solicitud'],
+                $row['adj_diseno'],
+                $row['adj_bases'],
+                $row['adj_informe'],
+                $row['fecha_inicio'],
+                $row['fecha_fin'],
+                $row['fecha_referencia'],
+                $row['anio'],
+                $row['estado'],
+                $row['comentarios_raw'],
+                $row['notas_aprobacion'],
+                $row['fecha_modif'],
+            ];
+        }
+
+        $filename = 'notas_unificadas_' . date('Y-m-d');
+
+        return \Excel::create($filename, function ($excel) use ($headers, $data) {
+            $excel->sheet('Notas', function ($sheet) use ($headers, $data) {
+                $sheet->row(1, $headers);
+                $sheet->row(1, function ($row) {
+                    $row->setBackground('#2c3e50');
+                    $row->setFontColor('#ffffff');
+                    $row->setFontWeight('bold');
+                    $row->setFontSize(10);
+                });
+                $rowNum = 2;
+                foreach ($data as $d) {
+                    $sheet->row($rowNum, $d);
+                    $rowNum++;
+                }
+                $sheet->setAutoSize(true);
+                $sheet->freezeFirstRow();
+            });
+        })->download('xlsx');
     }
 
     /**
@@ -383,20 +1115,20 @@ class NotasUnificadasController extends Controller
     public function store(Request $request)
     {
         \Log::info("STORE: Request Data = " . json_encode($request->all()));
-        
+
         // 0. Pre-Process: If FISCALIZACION, set tipo_solicitud = EVENTO
-        if($request->tipo_tarea === 'FISCALIZACION') {
+        if ($request->tipo_tarea === 'FISCALIZACION') {
             $request->merge(['tipo_solicitud' => 'EVENTO']);
             // Merge FISC specific inputs to generic names for validation
             $request->merge([
                 'id_tipo_evento' => $request->id_tipo_evento_fisc,
-                'id_categoria'   => null,
+                'id_categoria' => null,
             ]);
         } elseif ($request->tipo_tarea === 'MARKETING') {
             // Merge MKT specific inputs to generic names for validation
             $request->merge([
                 'id_tipo_evento' => $request->id_tipo_evento_mkt,
-                'id_categoria'   => $request->id_categoria_mkt,
+                'id_categoria' => $request->id_categoria_mkt,
             ]);
         }
 
@@ -415,17 +1147,17 @@ class NotasUnificadasController extends Controller
                 'msg' => 'Debe seleccionar un Casino o Plataforma'
             ], 422);
         }
-        
-        if($request->tipo_solicitud == 'EVENTO') {
+
+        if ($request->tipo_solicitud == 'EVENTO') {
             $rules['fecha_inicio_evento'] = 'required|date';
             // Fecha fin obligatoria solo para MKT, opcional para FISC
-            if($request->tipo_tarea === 'FISCALIZACION') {
+            if ($request->tipo_tarea === 'FISCALIZACION') {
                 $rules['fecha_fin_evento'] = 'nullable|date';
             } else {
                 $rules['fecha_fin_evento'] = 'required|date';
             }
         }
-        
+
         // Custom messages for better UX
         $messages = [
             'nro_nota.required' => 'El Número de Nota es requerido',
@@ -437,7 +1169,7 @@ class NotasUnificadasController extends Controller
             'fecha_inicio_evento.required' => 'La Fecha de Inicio es requerida para eventos',
             'fecha_fin_evento.required' => 'La Fecha de Fin es requerida para eventos',
         ];
-        
+
         // Use manual validation to capture and return errors
         $validator = \Validator::make($request->all(), $rules, $messages);
         if ($validator->fails()) {
@@ -447,46 +1179,46 @@ class NotasUnificadasController extends Controller
                 'msg' => 'Error de validación: ' . implode(', ', $validator->errors()->all())
             ], 422);
         }
-        
+
         // (Validación extra de EVENTO eliminada — ya no existe esa opción)
 
         // 0.B Buscar o Crear Grupo de Trámite
         $grupo = null;
-        if($request->has('id_grupo_existente') && $request->id_grupo_existente) {
-             $grupo = \App\Models\GrupoTramite::find($request->id_grupo_existente);
+        if ($request->has('id_grupo_existente') && $request->id_grupo_existente) {
+            $grupo = \App\Models\GrupoTramite::find($request->id_grupo_existente);
         }
-        
-        if(!$grupo) {
-             $q = \App\Models\GrupoTramite::where('nro_nota', $request->nro_nota)
-                    ->where('anio', $request->anio);
-             if ($request->id_plataforma) {
-                 $q->where('id_plataforma', $request->id_plataforma);
-             } else {
-                 $q->where('id_casino', $request->id_casino);
-             }
-             $grupo = $q->first();
+
+        if (!$grupo) {
+            $q = \App\Models\GrupoTramite::where('nro_nota', $request->nro_nota)
+                ->where('anio', $request->anio);
+            if ($request->id_plataforma) {
+                $q->where('id_plataforma', $request->id_plataforma);
+            } else {
+                $q->where('id_casino', $request->id_casino);
+            }
+            $grupo = $q->first();
         }
-        
+
         // Determinar qué ramas crear basándose en tipo_tarea
         $ramasACrear = [];
-        if($request->tipo_tarea === 'MARKETING') {
+        if ($request->tipo_tarea === 'MARKETING') {
             $ramasACrear = ['MKT'];
-        } elseif($request->tipo_tarea === 'FISCALIZACION') {
+        } elseif ($request->tipo_tarea === 'FISCALIZACION') {
             $ramasACrear = ['FISC'];
         }
 
         // Si el grupo ya existe, verificar qué ramas faltan
-        if($grupo) {
+        if ($grupo) {
             $ramasExistentes = $grupo->notas->pluck('tipo_rama')->toArray();
             $ramasNuevas = array_diff($ramasACrear, $ramasExistentes);
-            
-            if(empty($ramasNuevas)) {
+
+            if (empty($ramasNuevas)) {
                 return response()->json([
-                    'success' => false, 
+                    'success' => false,
                     'msg' => 'Ya existen notas para las ramas solicitadas en este trámite (Nota ' . $request->nro_nota . '-' . $request->anio . ').'
                 ], 422);
             }
-            
+
             $ramasACrear = $ramasNuevas; // Solo crear las que faltan
             \Log::info("GRUPO EXISTENTE: Anidando ramas " . implode(',', $ramasACrear) . " bajo grupo #" . $grupo->id);
         }
@@ -495,7 +1227,7 @@ class NotasUnificadasController extends Controller
 
         try {
             // Si no existe el grupo, crearlo
-            if(!$grupo) {
+            if (!$grupo) {
                 $grupo = new \App\Models\GrupoTramite();
                 $grupo->nro_nota = $request->nro_nota;
                 $grupo->anio = $request->anio;
@@ -511,12 +1243,12 @@ class NotasUnificadasController extends Controller
                     $grupo->id_grupo_padre = $request->id_grupo_padre;
                 }
                 $grupo->save();
-                
+
                 \Log::info("GRUPO NUEVO CREADO: ID " . $grupo->id);
             }
 
             // Helper Closure to Create Note (child of grupo)
-            $createNota = function($tipo_solicitud, $tipo_rama) use ($request, $grupo) {
+            $createNota = function ($tipo_solicitud, $tipo_rama) use ($request, $grupo) {
                 $nota = new NotaIngreso();
                 $nota->id_grupo = $grupo->id;  // FK al grupo padre
                 $nota->nro_nota = $request->nro_nota; // Mismo número, no prefijos
@@ -527,11 +1259,11 @@ class NotasUnificadasController extends Controller
                 $nota->titulo = $request->titulo;
                 $nota->tipo_solicitud = $tipo_solicitud;
                 $nota->tipo_rama = $tipo_rama;
-                
+
                 // Clasificación
                 $nota->id_tipo_evento = $request->id_tipo_evento;
                 $nota->id_categoria = $request->id_categoria;
-                
+
                 // Fechas
                 $nota->fecha_inicio_evento = $request->fecha_inicio_evento;
                 $nota->fecha_fin_evento = $request->fecha_fin_evento;
@@ -539,7 +1271,10 @@ class NotasUnificadasController extends Controller
                 if ($tipo_rama === 'MKT' && $request->fecha_pretendida_aprobacion) {
                     $nota->fecha_pretendida_aprobacion = $request->fecha_pretendida_aprobacion;
                 }
-                
+                if ($tipo_rama === 'MKT') {
+                    $nota->compartir_administrador = $request->compartir_administrador ? 1 : 0;
+                }
+
                 $nota->save();
 
                 // Asociar Activos
@@ -572,19 +1307,33 @@ class NotasUnificadasController extends Controller
             $main_nota = null;
 
             // Crear las notas según las ramas determinadas
-            foreach($ramasACrear as $rama) {
+            foreach ($ramasACrear as $rama) {
                 $tipoSol = $request->tipo_solicitud ?: 'PUBLICIDAD';
 
                 $nota = $createNota($tipoSol, $rama);
                 $ids_notas[strtolower($rama)] = $nota->id;
-                
-                if(!$main_nota) $main_nota = $nota;
+
+                if (!$main_nota)
+                    $main_nota = $nota;
             }
 
             DB::commit();
-            
+
+            // Notificar "AL CREAR" (id_estado_origen = 0)
+            $idDestino = DB::table('nota_estados')->where('descripcion', NotaEstado::CARGA_INICIAL)->where('activo', 1)->value('id') ?: 0;
+            $usuarioCreador = \App\Usuario::find(session('id_usuario'));
+            $nombreCreador = $usuarioCreador ? $usuarioCreador->nombre : 'Usuario';
+            \Log::info("MAIL AL CREAR: idDestino=$idDestino, ramas=" . implode(',', $ramasACrear) . ", ids=" . json_encode($ids_notas));
+            foreach ($ramasACrear as $rama) {
+                $notaCreada = NotaIngreso::find($ids_notas[strtolower($rama)]);
+                \Log::info("MAIL AL CREAR NOTA: rama=$rama, notaId=" . ($notaCreada ? $notaCreada->id : 'NULL') . ", grupoId=" . ($notaCreada && $notaCreada->grupo ? $notaCreada->grupo->id : 'NULL'));
+                if ($notaCreada) {
+                    self::notificarCambioEstado(0, $idDestino, 'AL CREAR', NotaEstado::CARGA_INICIAL, $notaCreada, $nombreCreador);
+                }
+            }
+
             return response()->json([
-                'success' => true, 
+                'success' => true,
                 'id_grupo' => $grupo->id,
                 'ids_notas' => $ids_notas,
                 'nro_nota' => $grupo->nro_nota,
@@ -593,7 +1342,7 @@ class NotasUnificadasController extends Controller
                 'tipo_solicitud' => $request->tipo_solicitud,
                 'ramas_creadas' => $ramasACrear
             ]);
-        
+
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error("STORE ERROR: " . $e->getMessage() . " | Trace: " . $e->getTraceAsString());
@@ -645,37 +1394,38 @@ class NotasUnificadasController extends Controller
     /**
      * Buscar Activos (AJAX)
      */
-    public function buscarActivos(Request $request) {
+    public function buscarActivos(Request $request)
+    {
         $busqueda = $request->q;
         $id_casino = $request->id_casino;
         $tipo = $request->tipo;
         $resultados = [];
 
-        if($tipo == 'ISLA') {
+        if ($tipo == 'ISLA') {
             $resultados = \App\Isla::where('id_casino', $id_casino)
                 ->where('nro_isla', 'like', $busqueda . '%')
                 ->with('sector')
                 ->withCount('maquinas')
-                ->take(20)->get()->map(function($i){
+                ->take(20)->get()->map(function ($i) {
                     $texto = 'Isla ' . $i->nro_isla . ' (Sector ' . ($i->sector->descripcion ?? 'N/A') . ')';
-                    
+
                     // Structured Data
                     $data = [
                         'Nro Isla' => $i->nro_isla,
                         'Sector' => $i->sector ? $i->sector->descripcion : '-',
                         'Cant. Maquinas' => $i->maquinas_count
                     ];
-                    
+
                     $info = 'Cant. Maquinas: ' . $i->maquinas_count;
                     return ['id' => $i->id_isla, 'text' => $texto, 'info' => $info, 'data' => $data];
                 });
-        } elseif($tipo == 'MTM') {
+        } elseif ($tipo == 'MTM') {
             $resultados = \App\Maquina::where('id_casino', $id_casino)
                 ->where('nro_admin', 'like', $busqueda . '%')
-                ->with(['isla.sector', 'juego_activo', 'unidad_medida', 'tipoMaquina']) 
-                ->take(20)->get()->map(function($m){
+                ->with(['isla.sector', 'juego_activo', 'unidad_medida', 'tipoMaquina'])
+                ->take(20)->get()->map(function ($m) {
                     $texto = 'MTM ' . $m->nro_admin . ' - ' . $m->marca;
-                    
+
                     // Structured Data for Dynamic Columns
                     $data = [
                         'Nro Admin' => $m->nro_admin,
@@ -686,89 +1436,91 @@ class NotasUnificadasController extends Controller
                         'Juego' => $m->juego_activo ? $m->juego_activo->nombre_juego : '-',
                         '% Dev' => $m->obtenerPorcentajeDevolucion() ?? '-',
                     ];
-                    
+
                     // Keep 'info' str for search list preview, but send data for table
                     $info_str = "Isla: {$data['Isla']} | Juego: {$data['Juego']} | %Dev: {$data['% Dev']}";
-                    
+
                     return ['id' => $m->id_maquina, 'text' => $texto, 'info' => $info_str, 'data' => $data];
                 });
-        } elseif($tipo == 'MESA') {
+        } elseif ($tipo == 'MESA') {
             $resultados = \App\Mesas\Mesa::where('id_casino', $id_casino)
                 ->where('nro_mesa', 'like', $busqueda . '%')
                 ->with(['juego', 'sector', 'moneda'])
-                ->take(20)->get()->map(function($m){
+                ->take(20)->get()->map(function ($m) {
                     $texto = 'Mesa ' . $m->nro_mesa . ' - ' . ($m->juego->nombre_juego ?? 'Sin Juego');
-                    
+
                     $data = [
                         'Nro Mesa' => $m->nro_mesa,
                         'Juego' => $m->juego->nombre_juego ?? '-',
-                        'Sector' => $m->sector ? $m->sector->descripcion : '-', 
+                        'Sector' => $m->sector ? $m->sector->descripcion : '-',
                         'Moneda' => $m->moneda ? $m->moneda->descripcion : '-'
                     ];
-                    
+
                     $info_str = "Juego: {$data['Juego']} | Sec: {$data['Sector']}";
                     return ['id' => $m->id_mesa_de_panio, 'text' => $texto, 'info' => $info_str, 'data' => $data];
                 });
-        } elseif($tipo == 'JUEGO_ONLINE') {
-             // Buscar juegos desde cache (datos de API online)
-             $id_plataforma = $request->id_plataforma;
-             $datos = self::obtenerDatosOnline();
-             $juegos = [];
-             foreach ($datos as $plat) {
-                 if ($plat->id_plataforma == $id_plataforma && isset($plat->juegos)) {
-                     $juegos = $plat->juegos;
-                     break;
-                 }
-             }
-             // Filtrar por búsqueda localmente
-             $busquedaLower = mb_strtolower($busqueda);
-             $filtrados = array_filter($juegos, function($j) use ($busquedaLower) {
-                 return mb_strpos(mb_strtolower($j->nombre_juego), $busquedaLower) !== false
-                     || mb_strpos(mb_strtolower($j->cod_juego ?? ''), $busquedaLower) !== false;
-             });
-             $resultados = array_map(function($j) {
-                 $data = [
-                     'Cod Juego' => $j->cod_juego ?? '-',
-                     'Juego' => $j->nombre_juego,
-                     'Categoria' => $j->categoria ?? '-',
-                     '% Dev' => $j->porcentaje_devolucion ?? '-',
-                     'Plataforma' => ($j->escritorio ? 'PC ' : '') . ($j->movil ? 'Movil' : '')
-                 ];
-                 $info_str = "Cat: {$data['Categoria']} | %Dev: {$data['% Dev']}";
-                 return ['id' => $j->id_juego, 'text' => $j->nombre_juego, 'info' => $info_str, 'data' => $data];
-             }, array_slice(array_values($filtrados), 0, 20));
+        } elseif ($tipo == 'JUEGO_ONLINE') {
+            // Buscar juegos desde cache (datos de API online)
+            $id_plataforma = $request->id_plataforma;
+            $datos = self::obtenerDatosOnline();
+            $juegos = [];
+            foreach ($datos as $plat) {
+                if ($plat->id_plataforma == $id_plataforma && isset($plat->juegos)) {
+                    $juegos = $plat->juegos;
+                    break;
+                }
+            }
+            // Filtrar por búsqueda localmente
+            $busquedaLower = mb_strtolower($busqueda);
+            $filtrados = array_filter($juegos, function ($j) use ($busquedaLower) {
+                return mb_strpos(mb_strtolower($j->nombre_juego), $busquedaLower) !== false
+                    || mb_strpos(mb_strtolower($j->cod_juego ?? ''), $busquedaLower) !== false;
+            });
+            $resultados = array_map(function ($j) {
+                $data = [
+                    'Cod Juego' => $j->cod_juego ?? '-',
+                    'Juego' => $j->nombre_juego,
+                    'Categoria' => $j->categoria ?? '-',
+                    '% Dev' => $j->porcentaje_devolucion ?? '-',
+                    'Plataforma' => ($j->escritorio ? 'PC ' : '') . ($j->movil ? 'Movil' : '')
+                ];
+                $info_str = "Cat: {$data['Categoria']} | %Dev: {$data['% Dev']}";
+                return ['id' => $j->id_juego, 'text' => $j->nombre_juego, 'info' => $info_str, 'data' => $data];
+            }, array_slice(array_values($filtrados), 0, 20));
         }
-        
+
         return response()->json($resultados);
     }
 
-    public function obtenerActivosIsla($id_isla) {
+    public function obtenerActivosIsla($id_isla)
+    {
         $mtms = \App\Maquina::where('id_isla', $id_isla)
-        ->with(['isla.sector', 'juego_activo', 'unidad_medida', 'tipoMaquina']) 
-        ->get()->map(function($m){
-            $texto = 'MTM ' . $m->nro_admin . ' - ' . $m->marca;
-            
-            // Format MATCHES MTM Search logic exactly
-            $data = [
-                'Nro Admin' => $m->nro_admin,
-                'Marca' => $m->marca,
-                'Modelo' => $m->modelo,
-                'Isla' => $m->isla ? $m->isla->nro_isla : '-',
-                'Juego' => $m->juego_activo ? $m->juego_activo->nombre_juego : '-',
-                '% Dev' => $m->obtenerPorcentajeDevolucion() ?? '-',
-            ];
-            
-            $info_str = "Isla: {$data['Isla']} | Juego: {$data['Juego']} | %Dev: {$data['% Dev']}";
-            
-            return ['id' => $m->id_maquina, 'text' => $texto, 'info' => $info_str, 'data' => $data, 'tipo' => 'MTM'];
-        });
+            ->with(['isla.sector', 'juego_activo', 'unidad_medida', 'tipoMaquina'])
+            ->get()->map(function ($m) {
+                $texto = 'MTM ' . $m->nro_admin . ' - ' . $m->marca;
+
+                // Format MATCHES MTM Search logic exactly
+                $data = [
+                    'Nro Admin' => $m->nro_admin,
+                    'Marca' => $m->marca,
+                    'Modelo' => $m->modelo,
+                    'Isla' => $m->isla ? $m->isla->nro_isla : '-',
+                    'Juego' => $m->juego_activo ? $m->juego_activo->nombre_juego : '-',
+                    '% Dev' => $m->obtenerPorcentajeDevolucion() ?? '-',
+                ];
+
+                $info_str = "Isla: {$data['Isla']} | Juego: {$data['Juego']} | %Dev: {$data['% Dev']}";
+
+                return ['id' => $m->id_maquina, 'text' => $texto, 'info' => $info_str, 'data' => $data, 'tipo' => 'MTM'];
+            });
 
         return response()->json($mtms);
     }
     /**
      * Wizard Step 2: Vista de Adjuntos
      */
-    public function vistaAdjuntar($id) {
+    public function vistaAdjuntar($id)
+    {
         $nota = NotaIngreso::findOrFail($id);
         return view('Unified.wizard_step_2', compact('nota'));
     }
@@ -789,46 +1541,47 @@ class NotasUnificadasController extends Controller
      * FISC (Fiscalización):
      *   - path_varios: Archivos Varios (.zip con todo)
      */
-    public function guardarAdjuntos(Request $request) {
+    public function guardarAdjuntos(Request $request)
+    {
         \Log::info("UPLOAD: METHOD ENTRY - RAW INPUTS: " . json_encode($request->only(['id_nota_mkt', 'id_nota_fisc'])));
-        $disk = 'public'; 
-        
+        $disk = 'public';
+
         // IDs recibidos del frontend
-        $id_nota_fisc = $request->id_nota_fisc; 
-        $id_nota_mkt = $request->id_nota_mkt;   
+        $id_nota_fisc = $request->id_nota_fisc;
+        $id_nota_mkt = $request->id_nota_mkt;
 
         \Log::info("WIZARD UPLOAD START: MKT=" . ($id_nota_mkt ?? 'null') . ", FISC=" . ($id_nota_fisc ?? 'null'));
-        
+
         // Helper function to store file with original name + timestamp
-        $storeFile = function($file, $folder) use ($disk) {
+        $storeFile = function ($file, $folder) use ($disk) {
             $originalName = $file->getClientOriginalName();
             $extension = $file->getClientOriginalExtension();
             $baseName = pathinfo($originalName, PATHINFO_FILENAME);
             $uniqueName = time() . '_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $baseName) . '.' . $extension;
             return $file->storeAs($folder, $uniqueName, $disk);
         };
-        
+
         try {
             // ===================================================
             // ! GUARDAR ADJUNTOS MKT (Marketing)
             // ===================================================
             // Helper para registrar versión (reutilizado en ambas ramas)
-            $crearVersion = function($nota, $tipo, $path, $nombreOriginal) {
+            $crearVersion = function ($nota, $tipo, $path, $nombreOriginal) {
                 $v = \App\Models\NotaArchivoVersion::getNextVersion($nota->id, $tipo);
                 \App\Models\NotaArchivoVersion::create([
                     'id_nota_ingreso' => $nota->id,
-                    'tipo_archivo'    => $tipo,
-                    'version'         => $v,
-                    'path_archivo'    => $path,
+                    'tipo_archivo' => $tipo,
+                    'version' => $v,
+                    'path_archivo' => $path,
                     'nombre_original' => $nombreOriginal,
-                    'created_at'      => \Carbon\Carbon::now(),
-                    'created_by'      => session('id_usuario') ?? 1,
+                    'created_at' => \Carbon\Carbon::now(),
+                    'created_by' => session('id_usuario') ?? 1,
                 ]);
             };
 
-            if($id_nota_mkt && is_numeric($id_nota_mkt)) {
+            if ($id_nota_mkt && is_numeric($id_nota_mkt)) {
                 $notaMkt = NotaIngreso::find($id_nota_mkt);
-                if($notaMkt) {
+                if ($notaMkt) {
                     if ($request->hasFile('adjuntoSolicitud') && $request->file('adjuntoSolicitud')->isValid()) {
                         $f = $request->file('adjuntoSolicitud');
                         $notaMkt->path_solicitud = $p = $storeFile($f, 'solicitudes');
@@ -857,9 +1610,9 @@ class NotasUnificadasController extends Controller
             // ===================================================
             // ! GUARDAR ADJUNTOS FISC (Fiscalización)
             // ===================================================
-            if($id_nota_fisc && is_numeric($id_nota_fisc)) {
+            if ($id_nota_fisc && is_numeric($id_nota_fisc)) {
                 $notaFisc = NotaIngreso::find($id_nota_fisc);
-                if($notaFisc) {
+                if ($notaFisc) {
                     if ($request->hasFile('adjuntoSolicitudFisc') && $request->file('adjuntoSolicitudFisc')->isValid()) {
                         $f = $request->file('adjuntoSolicitudFisc');
                         $notaFisc->path_solicitud = $p = $storeFile($f, 'solicitudes');
@@ -892,7 +1645,8 @@ class NotasUnificadasController extends Controller
      * Agregar adjuntos a una nota existente (por turnos)
      * Permite que MKT o FISC suban sus archivos en diferentes momentos
      */
-    public function agregarAdjuntos(Request $request, $id) {
+    public function agregarAdjuntos(Request $request, $id)
+    {
         $disk = 'public';
         $nota = NotaIngreso::findOrFail($id);
         $userId = session('id_usuario') ?? Auth::id() ?? 1;
@@ -900,7 +1654,7 @@ class NotasUnificadasController extends Controller
         $nombreAdj = $usuarioAdj ? $usuarioAdj->nombre : 'Usuario';
 
         // Helper para guardar archivo
-        $storeFile = function($file, $folder) use ($disk) {
+        $storeFile = function ($file, $folder) use ($disk) {
             $originalName = $file->getClientOriginalName();
             $extension = $file->getClientOriginalExtension();
             $baseName = pathinfo($originalName, PATHINFO_FILENAME);
@@ -909,16 +1663,16 @@ class NotasUnificadasController extends Controller
         };
 
         // Helper para registrar movimiento
-        $logMovimiento = function($nota, $campo, $nombreArchivo, $accion = 'ADJUNTO_AGREGADO') use ($userId, $nombreAdj) {
+        $logMovimiento = function ($nota, $campo, $nombreArchivo, $accion = 'ADJUNTO_AGREGADO') use ($userId, $nombreAdj) {
             // Obtener o crear expediente para la nota
             $expediente = $nota->expedientes->first();
-            if(!$expediente) {
+            if (!$expediente) {
                 $expediente = Expediente::create([
                     'id_nota_ingreso' => $nota->id,
                     'estado_actual' => 'EN_PROCESO'
                 ]);
             }
-            
+
             $camposLegibles = [
                 'path_solicitud' => 'Solicitud Concesionario',
                 'path_diseno' => 'Diseño',
@@ -926,7 +1680,7 @@ class NotasUnificadasController extends Controller
                 'path_informe' => 'Informe Técnico',
                 'path_varios' => 'Archivos Varios'
             ];
-            
+
             $mov = new Movimiento;
             $mov->id_expediente_nota = $expediente->id;
             $mov->id_usuario = $userId;
@@ -937,7 +1691,7 @@ class NotasUnificadasController extends Controller
                 . ': "' . $nombreArchivo . '"';
             $mov->save();
         };
-        
+
         try {
             // Mapeo de campos de formulario a campos de BD
             $camposArchivos = [
@@ -947,19 +1701,19 @@ class NotasUnificadasController extends Controller
                 'adjuntoInforme' => ['campo' => 'path_informe', 'folder' => 'informes', 'tipo' => 'informe'],
                 'adjuntoVarios' => ['campo' => 'path_varios', 'folder' => 'archivos_varios', 'tipo' => 'varios']
             ];
-            
+
             $archivosSubidos = [];
-            
-            foreach($camposArchivos as $inputName => $config) {
-                if($request->hasFile($inputName) && $request->file($inputName)->isValid()) {
+
+            foreach ($camposArchivos as $inputName => $config) {
+                if ($request->hasFile($inputName) && $request->file($inputName)->isValid()) {
                     $file = $request->file($inputName);
                     $nombreOriginal = $file->getClientOriginalName();
                     $campo = $config['campo'];
                     $tipoArchivo = $config['tipo'];
-                    
+
                     // Guardar archivo físicamente
                     $path = $storeFile($file, $config['folder']);
-                    
+
                     // Guardar versión en tabla de versiones
                     $version = \App\Models\NotaArchivoVersion::getNextVersion($nota->id, $tipoArchivo);
                     \App\Models\NotaArchivoVersion::create([
@@ -971,29 +1725,29 @@ class NotasUnificadasController extends Controller
                         'created_at' => \Carbon\Carbon::now(),
                         'created_by' => $userId
                     ]);
-                    
+
                     // Determinar si es reemplazo o nuevo
                     $accion = !empty($nota->$campo) ? 'ADJUNTO_REEMPLAZADO' : 'ADJUNTO_AGREGADO';
-                    
+
                     // Actualizar campo principal (para retrocompatibilidad)
                     $nota->$campo = $path;
-                    
+
                     // Registrar movimiento
                     $logMovimiento($nota, $campo, "$nombreOriginal (v$version)", $accion);
-                    
+
                     $archivosSubidos[] = "$nombreOriginal (v$version)";
                 }
             }
-            
+
             $nota->save();
-            
+
             return response()->json([
-                'success' => true, 
+                'success' => true,
                 'msg' => count($archivosSubidos) . ' archivo(s) subido(s) correctamente',
                 'archivos' => $archivosSubidos
             ]);
-            
-        } catch(\Throwable $e) {
+
+        } catch (\Throwable $e) {
             \Log::error("Error agregarAdjuntos: " . $e->getMessage());
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
@@ -1002,27 +1756,29 @@ class NotasUnificadasController extends Controller
     /**
      * Obtener historial de adjuntos/movimientos de una nota
      */
-    public function getHistorialAdjuntos($id) {
+    public function getHistorialAdjuntos($id)
+    {
         try {
             $nota = NotaIngreso::with('expedientes.movimientos.usuario')->findOrFail($id);
-            
+
             $historial = [];
-            foreach($nota->expedientes as $exp) {
-                if(!$exp->movimientos) continue;
-                
-                foreach($exp->movimientos as $mov) {
+            foreach ($nota->expedientes as $exp) {
+                if (!$exp->movimientos)
+                    continue;
+
+                foreach ($exp->movimientos as $mov) {
                     // Filtrar solo movimientos de adjuntos
                     $comentario = $mov->comentario ?? '';
                     $accion = $mov->accion ?? '';
-                    
-                    if(strpos($accion, 'ADJUNTO') !== false || strpos($comentario, 'Agregó') !== false || strpos($comentario, 'Reemplazó') !== false) {
+
+                    if (strpos($accion, 'ADJUNTO') !== false || strpos($comentario, 'Agregó') !== false || strpos($comentario, 'Reemplazó') !== false) {
                         $fecha = $mov->fecha_movimiento;
-                        if($fecha && !is_string($fecha)) {
+                        if ($fecha && !is_string($fecha)) {
                             $fechaStr = $fecha->format('d/m/Y H:i');
                         } else {
                             $fechaStr = $fecha ?? date('d/m/Y H:i');
                         }
-                        
+
                         $historial[] = [
                             'fecha' => $fechaStr,
                             'usuario' => $mov->usuario->nombre ?? 'Usuario',
@@ -1032,12 +1788,12 @@ class NotasUnificadasController extends Controller
                     }
                 }
             }
-            
+
             // Ordenar por fecha desc
-            usort($historial, function($a, $b) {
+            usort($historial, function ($a, $b) {
                 return strtotime($b['fecha']) - strtotime($a['fecha']);
             });
-            
+
             // Include current attachment status
             $adjuntos = [
                 'solicitud' => $nota->path_solicitud ? ['existe' => true, 'nombre' => basename($nota->path_solicitud)] : ['existe' => false],
@@ -1046,11 +1802,11 @@ class NotasUnificadasController extends Controller
                 'informe' => $nota->path_informe ? ['existe' => true, 'nombre' => basename($nota->path_informe)] : ['existe' => false],
                 'varios' => $nota->path_varios ? ['existe' => true, 'nombre' => basename($nota->path_varios)] : ['existe' => false],
             ];
-            
+
             return response()->json(['success' => true, 'historial' => $historial, 'adjuntos' => $adjuntos, 'nota_id' => $id]);
-        } catch(\Throwable $e) {
+        } catch (\Throwable $e) {
             \Log::error("Error getHistorialAdjuntos ID={$id}: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
-            
+
             // Return empty object (not array) so JS can check properties
             $emptyAdjuntos = [
                 'solicitud' => ['existe' => false],
@@ -1066,25 +1822,37 @@ class NotasUnificadasController extends Controller
     /**
      * Inline Update (Quick Edit)
      */
-    public function quickUpdate(Request $request) {
+    public function quickUpdate(Request $request)
+    {
         try {
             $nota = NotaIngreso::findOrFail($request->id);
             $field = $request->field;
             $value = $request->value;
 
-            if($field === 'estado') {
+            if ($field === 'estado') {
                 $exp = $nota->expedientes->first();
-                if(!$exp) return response()->json(['success' => false, 'msg' => 'Sin expediente'], 400);
+                if (!$exp)
+                    return response()->json(['success' => false, 'msg' => 'Sin expediente'], 400);
 
                 $estadoActual = $exp->estado_actual;
                 $id_usuario = session('id_usuario');
                 $usuario_data = UsuarioController::getInstancia()->buscarUsuario($id_usuario);
                 $usuario = $usuario_data['usuario'];
 
-                $esFuncionario = $usuario->tieneRol('FUNCIONARIO');
+                $esFuncionario1 = $usuario->tieneRol('FUNCIONARIO_1');
+                $esFuncionario2 = $usuario->tieneRol('FUNCIONARIO_2');
+                $esFuncionario = $esFuncionario1 || $esFuncionario2;
                 $esAdmin = !$esFuncionario && ($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control);
 
-                $nivel = $esAdmin ? 'admin' : ($esFuncionario ? 'funcionario' : 'regular');
+                if ($esFuncionario1)
+                    $nivel = 'funcionario1';
+                elseif ($esFuncionario2)
+                    $nivel = 'funcionario2';
+                elseif ($esAdmin)
+                    $nivel = 'admin';
+                else
+                    $nivel = 'regular';
+
                 if (!NotaEstado::transicionPermitida($estadoActual, $value, $nivel)) {
                     return response()->json(['success' => false, 'msg' => 'No tiene permisos para esta transición de estado'], 403);
                 }
@@ -1099,10 +1867,15 @@ class NotasUnificadasController extends Controller
                 $mov->accion = 'MODIFICACION';
                 $mov->comentario = $usuario->nombre . ' cambió estado a: ' . $value;
                 $mov->save();
+
+                // Notificar por mail
+                $idOrigen = DB::table('nota_estados')->where('descripcion', $estadoActual)->where('activo', 1)->value('id') ?: 0;
+                $idDestino = DB::table('nota_estados')->where('descripcion', $value)->where('activo', 1)->value('id') ?: 0;
+                self::notificarCambioEstadoDiferido($idOrigen, $idDestino, $estadoActual, $value, $nota->id, $usuario->nombre);
             }
 
             return response()->json(['success' => true]);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
     }
@@ -1110,25 +1883,26 @@ class NotasUnificadasController extends Controller
     /**
      * Upload Single File (Drag & Drop)
      */
-    public function uploadArchivo(Request $request) {
+    public function uploadArchivo(Request $request)
+    {
         try {
             $nota = NotaIngreso::findOrFail($request->id_nota);
             $tipo = $request->tipo; // pautas, diseno, bases
-            
-            if(!$request->hasFile('file')) {
+
+            if (!$request->hasFile('file')) {
                 return response()->json(['success' => false, 'msg' => 'No file provided'], 400);
             }
 
             $disk = 'public';
             $path = null;
 
-            if($tipo == 'pautas') {
+            if ($tipo == 'pautas') {
                 $path = $request->file('file')->store('pautas', $disk);
                 $nota->path_pautas = $path;
-            } elseif($tipo == 'diseno') {
+            } elseif ($tipo == 'diseno') {
                 $path = $request->file('file')->store('disenos', $disk);
                 $nota->path_diseno = $path;
-            } elseif($tipo == 'bases') {
+            } elseif ($tipo == 'bases') {
                 $path = $request->file('file')->store('bases', $disk);
                 $nota->path_bases = $path;
             } else {
@@ -1138,7 +1912,7 @@ class NotasUnificadasController extends Controller
             $nota->save();
 
             return response()->json(['success' => true]);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
     }
@@ -1146,16 +1920,20 @@ class NotasUnificadasController extends Controller
     /**
      * Get Last Movements for Tooltip
      */
-    public function getMovimientos($id) {
-        $nota = NotaIngreso::with(['expedientes.movimientos' => function($q){
-            $q->orderBy('id', 'desc')->take(3);
-        }])->find($id);
+    public function getMovimientos($id)
+    {
+        $nota = NotaIngreso::with([
+            'expedientes.movimientos' => function ($q) {
+                $q->orderBy('id', 'desc')->take(3);
+            }
+        ])->find($id);
 
-        if(!$nota) return response()->json([]);
+        if (!$nota)
+            return response()->json([]);
 
         $movs = [];
-        if($nota->expedientes->count() > 0) {
-            foreach($nota->expedientes->first()->movimientos as $m) {
+        if ($nota->expedientes->count() > 0) {
+            foreach ($nota->expedientes->first()->movimientos as $m) {
                 $movs[] = [
                     'fecha' => \Carbon\Carbon::parse($m->fecha_movimiento)->format('d/m H:i'),
                     'estado' => $m->accion // Or $m->estado_actual ??
@@ -1167,86 +1945,95 @@ class NotasUnificadasController extends Controller
 
 
     // ! DESCARGAR
-    public function descargarArchivo($id, $tipo) {
+    public function descargarArchivo($id, $tipo)
+    {
         $nota = NotaIngreso::findOrFail($id);
         $path = null;
-        
-        switch($tipo) {
-            case 'pautas': $path = $nota->path_pautas; break;
-            case 'diseno': $path = $nota->path_diseno; break;
-            case 'bases':  $path = $nota->path_bases; break;
+
+        switch ($tipo) {
+            case 'pautas':
+                $path = $nota->path_pautas;
+                break;
+            case 'diseno':
+                $path = $nota->path_diseno;
+                break;
+            case 'bases':
+                $path = $nota->path_bases;
+                break;
         }
 
-        if(!$path || !Storage::disk('public')->exists($path)) {
+        if (!$path || !Storage::disk('public')->exists($path)) {
             return redirect()->back()->with('error', 'Archivo no encontrado');
         }
 
         // Get the full path and original filename
         $fullPath = Storage::disk('public')->getDriver()->getAdapter()->applyPathPrefix($path);
         $filename = basename($path); // Extract original filename with extension
-        
+
         // Use response()->download() with the correct filename
         return response()->download($fullPath, $filename);
     }
 
     // ! VISUALIZAR (para mostrar PDFs en el navegador)
-    public function visualizarArchivo($id, $tipo) {
+    public function visualizarArchivo($id, $tipo)
+    {
         $nota = NotaIngreso::findOrFail($id);
         $path = null;
-        
-        switch($tipo) {
-            case 'pautas': 
-            case 'solicitud': 
-                $path = $nota->path_solicitud; 
+
+        switch ($tipo) {
+            case 'pautas':
+            case 'solicitud':
+                $path = $nota->path_solicitud;
                 break;
-            case 'diseno': 
-                $path = $nota->path_diseno; 
+            case 'diseno':
+                $path = $nota->path_diseno;
                 break;
-            case 'bases':  
-                $path = $nota->path_bases; 
+            case 'bases':
+                $path = $nota->path_bases;
                 break;
-            case 'varios': 
-                $path = $nota->path_varios; 
+            case 'varios':
+                $path = $nota->path_varios;
                 break;
-            case 'informe': 
-                $path = $nota->path_informe; 
+            case 'informe':
+                $path = $nota->path_informe;
                 break;
         }
 
-        if(!$path || !Storage::disk('public')->exists($path)) {
+        if (!$path || !Storage::disk('public')->exists($path)) {
             abort(404, 'Archivo no encontrado');
         }
 
         $fullPath = Storage::disk('public')->path($path);
-    $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-    
-    $mimeType = mime_content_type($fullPath);
-    
-    // Debug
-    // \Log::info("Visualizar archivo: Path=$path, Ext=$extension, Mime=$mimeType");
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
-    // Si es PDF (por mime o por extension), mostrar inline
-    if($mimeType === 'application/pdf' || $extension === 'pdf') {
-        return response()->file($fullPath, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . basename($path) . '"'
-        ]);
-    }
-    
-    // Si es imagen, mostrar inline
-    if(strpos($mimeType, 'image/') === 0) {
-        return response()->file($fullPath, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . basename($path) . '"'
-        ]);
-    }
-    
-    // Otros archivos: descargar
-    return response()->download($fullPath, basename($path));
+        $mimeType = mime_content_type($fullPath);
+
+        // Debug
+        // \Log::info("Visualizar archivo: Path=$path, Ext=$extension, Mime=$mimeType");
+
+        // Si es PDF (por mime o por extension), mostrar inline
+        if ($mimeType === 'application/pdf' || $extension === 'pdf') {
+            return response()->file($fullPath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . basename($path) . '"'
+            ]);
+        }
+
+        // Si es imagen, mostrar inline
+        if (strpos($mimeType, 'image/') === 0) {
+            return response()->file($fullPath, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . basename($path) . '"'
+            ]);
+        }
+
+        // Otros archivos: descargar
+        return response()->download($fullPath, basename($path));
     }
 
 
-    public function getCalendarEvents(Request $request){
+    public function getCalendarEvents(Request $request)
+    {
         // Fetch notes with dates to show in calendar
         $notas = DB::table('nota')
             ->join('expediente', 'nota.id_expediente', '=', 'expediente.id_expediente')
@@ -1255,11 +2042,11 @@ class NotasUnificadasController extends Controller
             ->get();
 
         $events = [];
-        foreach($notas as $n){
+        foreach ($notas as $n) {
             $titulo = "Nota " . $n->identificacion;
             // Add some info
-            if($n->nro_exp_org){
-               $titulo .= " | Exp: " . $n->nro_exp_org . "-" . $n->nro_exp_interno;
+            if ($n->nro_exp_org) {
+                $titulo .= " | Exp: " . $n->nro_exp_org . "-" . $n->nro_exp_interno;
             }
 
             $events[] = [
@@ -1274,14 +2061,21 @@ class NotasUnificadasController extends Controller
     }
 
     // ! COMENTARIOS ("POST-ITS")
-    public function addComment(Request $request){
+    public function addComment(Request $request)
+    {
         $request->validate([
             'id_nota' => 'required|integer',
             'comentario' => 'required|string|max:500'
         ]);
 
         $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-        
+
+        // Solo admin/funcionarios/auditores/despacho/superusuario pueden comentar
+        $puedeComentarios = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control || $usuario->tieneRol('FUNCIONARIO_1') || $usuario->tieneRol('FUNCIONARIO_2');
+        if (!$puedeComentarios) {
+            return response()->json(['status' => 'error', 'msg' => 'No tiene permisos para agregar comentarios'], 403);
+        }
+
         $comentario = new \App\NotaComentario;
         $comentario->id_nota = $request->id_nota;
         $comentario->id_usuario = $usuario->id_usuario;
@@ -1289,53 +2083,65 @@ class NotasUnificadasController extends Controller
         $comentario->save();
 
         return response()->json([
-            'status' => 'success', 
+            'status' => 'success',
             'comentario' => $comentario->load('usuario')
         ]);
     }
 
-    public function getComments($id){
+    public function getComments($id)
+    {
+        // Solo admin/funcionarios/auditores/despacho/superusuario pueden ver comentarios
+        $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+        $puedeComentarios = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control || $usuario->tieneRol('FUNCIONARIO_1') || $usuario->tieneRol('FUNCIONARIO_2');
+        if (!$puedeComentarios) {
+            return response()->json([]);
+        }
+
         $comentarios = \App\NotaComentario::where('id_nota', $id)
-                        ->with('usuario')
-                        ->orderBy('created_at', 'desc')
-                        ->get();
+            ->with('usuario')
+            ->orderBy('created_at', 'desc')
+            ->get();
         return response()->json($comentarios);
     }
 
 
 
 
-    public function show($id) {
+    public function show($id)
+    {
         $nota = NotaIngreso::with(['casino', 'expedientes'])->findOrFail($id);
-        
+
         if (request()->ajax()) {
             return view('Unified.detalle_nota_drawer', compact('nota'));
         }
 
-        return view('Unified.detalle_nota_drawer', compact('nota')); 
+        return view('Unified.detalle_nota_drawer', compact('nota'));
     }
     /**
      * Verifica si el usuario actual puede eliminar notas/adjuntos
      */
-    private function puedeEliminar() {
+    private function puedeEliminar()
+    {
         $id_usuario = session('id_usuario');
-        if (!$id_usuario) return false;
+        if (!$id_usuario)
+            return false;
         $usuario_data = UsuarioController::getInstancia()->buscarUsuario($id_usuario);
         $u = $usuario_data['usuario'];
         return $u->es_superusuario || $u->es_administrador || $u->es_auditor || $u->es_despacho || $u->es_control;
     }
 
-    public function destroy($id) {
+    public function destroy($id)
+    {
         if (!$this->puedeEliminar()) {
             return response()->json(['success' => false, 'msg' => 'No tiene permisos para eliminar'], 403);
         }
         try {
-            DB::transaction(function() use ($id){
+            DB::transaction(function () use ($id) {
                 $nota = NotaIngreso::findOrFail($id);
                 $nota->delete();
             });
             return response()->json(['success' => true]);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
     }
@@ -1343,18 +2149,19 @@ class NotasUnificadasController extends Controller
     /**
      * Eliminar un Grupo de Trámite y todas sus notas hijas
      */
-    public function destroyGrupo($id) {
+    public function destroyGrupo($id)
+    {
         if (!$this->puedeEliminar()) {
             return response()->json(['success' => false, 'msg' => 'No tiene permisos para eliminar'], 403);
         }
         try {
-            DB::transaction(function() use ($id) {
+            DB::transaction(function () use ($id) {
                 $grupo = \App\Models\GrupoTramite::findOrFail($id);
-                
+
                 // Eliminar todas las notas hijas primero
-                foreach($grupo->notas as $nota) {
+                foreach ($grupo->notas as $nota) {
                     // Eliminar expedientes y movimientos asociados
-                    foreach($nota->expedientes as $exp) {
+                    foreach ($nota->expedientes as $exp) {
                         \App\Models\Movimiento::where('id_expediente_nota', $exp->id)->delete();
                         $exp->delete();
                     }
@@ -1362,13 +2169,13 @@ class NotasUnificadasController extends Controller
                     NotaTieneActivo::where('id_nota_ingreso', $nota->id)->delete();
                     $nota->delete();
                 }
-                
+
                 // Eliminar el grupo
                 $grupo->delete();
             });
-            
+
             return response()->json(['success' => true]);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             \Log::error("Error al eliminar grupo: " . $e->getMessage());
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
@@ -1381,32 +2188,36 @@ class NotasUnificadasController extends Controller
     /**
      * Obtener detalle completo de un Grupo de Trámite
      */
-    public function getDetalleGrupo($id) {
+    public function getDetalleGrupo($id)
+    {
         try {
             $grupo = \App\Models\GrupoTramite::with(['notas.expedientes.movimientos.usuario', 'notas.activos'])
                 ->findOrFail($id);
-            
+
             $notaMkt = null;
             $notaFisc = null;
-            
-            foreach($grupo->notas as $nota) {
+
+            foreach ($grupo->notas as $nota) {
                 $notaData = $this->formatNotaDetalle($nota);
-                if($nota->tipo_rama === 'MKT') {
+                if ($nota->tipo_rama === 'MKT') {
                     $notaMkt = $notaData;
                 } else {
                     $notaFisc = $notaData;
                 }
             }
-            
+
             // Notas de aprobación del grupo
             $notasAprobacion = DB::table('grupo_notas_aprobacion')
                 ->where('id_grupo', $grupo->id)
                 ->orderBy('created_at', 'desc')
                 ->get()
-                ->map(function($na) {
+                ->map(function ($na) {
                     return [
                         'id' => $na->id,
                         'tipo_rama' => $na->tipo_rama,
+                        'tipo_documento' => isset($na->tipo_documento) ? $na->tipo_documento : '',
+                        'numero_documento' => isset($na->numero_documento) ? $na->numero_documento : '',
+                        'anio_documento' => isset($na->anio_documento) ? $na->anio_documento : '',
                         'nombre_original' => $na->nombre_original,
                         'created_at' => $na->created_at ? \Carbon\Carbon::parse($na->created_at)->format('d/m/Y H:i') : null,
                         'url' => '/notas-unificadas/nota-aprobacion/visualizar/' . $na->id,
@@ -1431,7 +2242,7 @@ class NotasUnificadasController extends Controller
             $gruposHijos = \App\Models\GrupoTramite::with('casino')
                 ->where('id_grupo_padre', $grupo->id)
                 ->get()
-                ->map(function($gh) {
+                ->map(function ($gh) {
                     return [
                         'id' => $gh->id,
                         'nro_nota' => $gh->nro_nota,
@@ -1462,7 +2273,7 @@ class NotasUnificadasController extends Controller
                 'fisc' => $notaFisc,
                 'notas_aprobacion' => $notasAprobacion,
             ]);
-        } catch(\Throwable $e) {
+        } catch (\Throwable $e) {
             \Log::error("getDetalleGrupo error: " . $e->getMessage() . " | " . $e->getFile() . ":" . $e->getLine());
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
@@ -1471,11 +2282,12 @@ class NotasUnificadasController extends Controller
     /**
      * Obtener detalle de una Nota individual
      */
-    public function getDetalleNota($id) {
+    public function getDetalleNota($id)
+    {
         try {
             $nota = NotaIngreso::with(['expedientes.movimientos.usuario', 'activos', 'grupo'])
                 ->findOrFail($id);
-            
+
             return response()->json([
                 'success' => true,
                 'nota' => $this->formatNotaDetalle($nota),
@@ -1485,7 +2297,7 @@ class NotasUnificadasController extends Controller
                     'titulo' => $nota->grupo->titulo,
                 ] : null
             ]);
-        } catch(\Throwable $e) {
+        } catch (\Throwable $e) {
             \Log::error("getDetalleNota error: " . $e->getMessage());
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
@@ -1494,17 +2306,26 @@ class NotasUnificadasController extends Controller
     /**
      * Formatear nota para el modal de detalle
      */
-    private function formatNotaDetalle($nota) {
+    private function formatNotaDetalle($nota)
+    {
         // Obtener estado del último movimiento
         $estado = 'INGRESADO';
         $movimientos = [];
-        
-        if($nota->expedientes && $nota->expedientes->count() > 0) {
+
+        // Determinar si el usuario puede ver comentarios
+        $usuarioActual = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+        $puedeVerComentarios = $usuarioActual->es_superusuario || $usuarioActual->es_administrador || $usuarioActual->es_auditor || $usuarioActual->es_despacho || $usuarioActual->es_control || $usuarioActual->tieneRol('FUNCIONARIO_1') || $usuarioActual->tieneRol('FUNCIONARIO_2');
+
+        if ($nota->expedientes && $nota->expedientes->count() > 0) {
             $exp = $nota->expedientes->first();
             $estado = $exp->estado_actual ?: $estado;
-            if($exp->movimientos && $exp->movimientos->count() > 0) {
-                
-                foreach($exp->movimientos->sortByDesc('id') as $mov) {
+            if ($exp->movimientos && $exp->movimientos->count() > 0) {
+
+                foreach ($exp->movimientos->sortByDesc('id') as $mov) {
+                    // Ocultar comentarios para casinos/plataformas
+                    if (!$puedeVerComentarios && $mov->accion === 'COMENTARIO')
+                        continue;
+
                     $usuario = $mov->usuario;
                     $movimientos[] = [
                         'id' => $mov->id,
@@ -1518,10 +2339,10 @@ class NotasUnificadasController extends Controller
                 }
             }
         }
-        
+
         // Activos asociados (enriquecer con datos reales)
         $activos = $this->enriquecerActivos($nota->activos);
-        
+
         // Adjuntos
         $adjuntos = [
             'solicitud' => $nota->path_solicitud ? ['existe' => true, 'nombre' => basename($nota->path_solicitud), 'path' => $nota->path_solicitud] : ['existe' => false],
@@ -1530,7 +2351,7 @@ class NotasUnificadasController extends Controller
             'informe' => $nota->path_informe ? ['existe' => true, 'nombre' => basename($nota->path_informe), 'path' => $nota->path_informe] : ['existe' => false],
             'varios' => $nota->path_varios ? ['existe' => true, 'nombre' => basename($nota->path_varios), 'path' => $nota->path_varios] : ['existe' => false],
         ];
-        
+
         // Resolver nombre de casino/plataforma
         $casinoNombre = self::resolverNombreCasino($nota->id_casino, $nota->id_plataforma);
 
@@ -1557,6 +2378,7 @@ class NotasUnificadasController extends Controller
             'fecha_fin' => $nota->fecha_fin_evento,
             'fecha_referencia' => $nota->fecha_referencia,
             'fecha_pretendida_aprobacion' => $nota->fecha_pretendida_aprobacion,
+            'compartir_administrador' => (int) $nota->compartir_administrador,
             'created_at' => $nota->created_at ? $nota->created_at->format('d/m/Y H:i') : null,
             'adjuntos' => $adjuntos,
             'activos' => $activos,
@@ -1567,10 +2389,11 @@ class NotasUnificadasController extends Controller
     /**
      * Actualizar campos de una Nota
      */
-    public function updateNota(Request $request, $id) {
+    public function updateNota(Request $request, $id)
+    {
         try {
             $nota = NotaIngreso::findOrFail($id);
-            
+
             // Campos editables (mappeo de frontend a DB)
             $campoMapping = [
                 'nro_nota_ing' => 'nro_nota',
@@ -1579,15 +2402,17 @@ class NotasUnificadasController extends Controller
                 'fecha_fin' => 'fecha_fin_evento',
                 'id_tipo_evento' => 'id_tipo_evento',
                 'id_categoria' => 'id_categoria',
-                'fecha_pretendida_aprobacion' => 'fecha_pretendida_aprobacion'
+                'fecha_pretendida_aprobacion' => 'fecha_pretendida_aprobacion',
+                'compartir_administrador' => 'compartir_administrador',
+                'fecha_referencia' => 'fecha_referencia'
             ];
-            
-            foreach($campoMapping as $frontendCampo => $dbCampo) {
-                if($request->has($frontendCampo)) {
+
+            foreach ($campoMapping as $frontendCampo => $dbCampo) {
+                if ($request->has($frontendCampo)) {
                     $nota->$dbCampo = $request->$frontendCampo;
                 }
             }
-            
+
             $nota->save();
 
             // Registrar movimiento de edición
@@ -1596,7 +2421,7 @@ class NotasUnificadasController extends Controller
             $usuarioEdit = \App\Usuario::find($id_usuario);
             $nombreEdit = $usuarioEdit ? $usuarioEdit->nombre : 'Usuario';
 
-            if($exp) {
+            if ($exp) {
                 Movimiento::create([
                     'id_expediente_nota' => $exp->id,
                     'id_usuario' => $id_usuario ?? 1,
@@ -1612,10 +2437,20 @@ class NotasUnificadasController extends Controller
                 $estadoActual = $exp->estado_actual;
 
                 if ($nuevoEstado !== $estadoActual) {
-                    $esFuncionario = $usuarioEdit->tieneRol('FUNCIONARIO');
+                    $esFuncionario1 = $usuarioEdit->tieneRol('FUNCIONARIO_1');
+                    $esFuncionario2 = $usuarioEdit->tieneRol('FUNCIONARIO_2');
+                    $esFuncionario = $esFuncionario1 || $esFuncionario2;
                     $esAdmin = !$esFuncionario && ($usuarioEdit->es_superusuario || $usuarioEdit->es_administrador || $usuarioEdit->es_auditor || $usuarioEdit->es_despacho || $usuarioEdit->es_control);
 
-                    $nivel = $esAdmin ? 'admin' : ($esFuncionario ? 'funcionario' : 'regular');
+                    if ($esFuncionario1)
+                        $nivel = 'funcionario1';
+                    elseif ($esFuncionario2)
+                        $nivel = 'funcionario2';
+                    elseif ($esAdmin)
+                        $nivel = 'admin';
+                    else
+                        $nivel = 'regular';
+
                     if (!NotaEstado::transicionPermitida($estadoActual, $nuevoEstado, $nivel)) {
                         return response()->json(['success' => false, 'msg' => 'No tiene permisos para esta transición de estado'], 403);
                     }
@@ -1630,11 +2465,16 @@ class NotasUnificadasController extends Controller
                         'accion' => 'MODIFICACION',
                         'comentario' => $nombreEdit . ' cambió estado a: ' . $nuevoEstado
                     ]);
+
+                    // Notificar por mail
+                    $idOrigen = DB::table('nota_estados')->where('descripcion', $estadoActual)->where('activo', 1)->value('id') ?: 0;
+                    $idDestino = DB::table('nota_estados')->where('descripcion', $nuevoEstado)->where('activo', 1)->value('id') ?: 0;
+                    self::notificarCambioEstadoDiferido($idOrigen, $idDestino, $estadoActual, $nuevoEstado, $nota->id, $nombreEdit);
                 }
             }
 
             return response()->json(['success' => true, 'msg' => 'Nota actualizada']);
-        } catch(\Throwable $e) {
+        } catch (\Throwable $e) {
             \Log::error("updateNota error: " . $e->getMessage());
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
@@ -1643,7 +2483,8 @@ class NotasUnificadasController extends Controller
     /**
      * Agregar activos a una Nota existente
      */
-    public function addActivos(Request $request, $id) {
+    public function addActivos(Request $request, $id)
+    {
         try {
             $nota = NotaIngreso::findOrFail($id);
             $activos = $request->activos ?: [];
@@ -1653,7 +2494,7 @@ class NotasUnificadasController extends Controller
             $nota->load('activos');
             $lista = $this->enriquecerActivos($nota->activos);
             return response()->json(['success' => true, 'activos' => $lista]);
-        } catch(\Throwable $e) {
+        } catch (\Throwable $e) {
             \Log::error("addActivos error: " . $e->getMessage());
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
@@ -1662,17 +2503,18 @@ class NotasUnificadasController extends Controller
     /**
      * Enriquecer colección de activos con datos de máquina/isla
      */
-    private function enriquecerActivos($activos) {
+    private function enriquecerActivos($activos)
+    {
         $lista = [];
-        foreach($activos as $activo) {
+        foreach ($activos as $activo) {
             $info = [
                 'id' => $activo->id,
                 'id_activo' => $activo->id_activo ?? 'N/A',
                 'tipo_activo' => $activo->tipo_activo ?? 'ISLA',
             ];
-            if($activo->tipo_activo === 'MTM' && $activo->id_activo) {
+            if ($activo->tipo_activo === 'MTM' && $activo->id_activo) {
                 $maq = \App\Maquina::find($activo->id_activo);
-                if($maq) {
+                if ($maq) {
                     $info['nro_admin'] = $maq->nro_admin;
                     $info['marca'] = $maq->marca ?? '';
                     $isla = $maq->id_isla ? \App\Isla::find($maq->id_isla) : null;
@@ -1687,7 +2529,8 @@ class NotasUnificadasController extends Controller
     /**
      * Eliminar un activo de una Nota
      */
-    public function removeActivo($id) {
+    public function removeActivo($id)
+    {
         try {
             $activo = NotaTieneActivo::findOrFail($id);
             $notaId = $activo->id_nota_ingreso;
@@ -1697,7 +2540,7 @@ class NotasUnificadasController extends Controller
             $activos = $this->enriquecerActivos($restantes);
 
             return response()->json(['success' => true, 'activos' => $activos]);
-        } catch(\Throwable $e) {
+        } catch (\Throwable $e) {
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
     }
@@ -1705,15 +2548,16 @@ class NotasUnificadasController extends Controller
     /**
      * Agregar comentario a una Nota
      */
-    public function addComentario(Request $request, $id) {
+    public function addComentario(Request $request, $id)
+    {
         try {
             $nota = NotaIngreso::with('expedientes')->findOrFail($id);
             $exp = $nota->expedientes->first();
-            
-            if(!$exp) {
+
+            if (!$exp) {
                 return response()->json(['success' => false, 'msg' => 'No se encontró expediente'], 400);
             }
-            
+
             $mov = Movimiento::create([
                 'id_expediente_nota' => $exp->id,
                 'id_usuario' => session('id_usuario') ?? 1,
@@ -1721,10 +2565,10 @@ class NotasUnificadasController extends Controller
                 'accion' => 'COMENTARIO',
                 'comentario' => $request->comentario
             ]);
-            
+
             // Get user name
             $usuario = \App\Usuario::find(session('id_usuario'));
-            
+
             return response()->json([
                 'success' => true,
                 'movimiento' => [
@@ -1737,7 +2581,7 @@ class NotasUnificadasController extends Controller
                     'user_imagen' => $usuario ? $usuario->imagen : null,
                 ]
             ]);
-        } catch(\Throwable $e) {
+        } catch (\Throwable $e) {
             \Log::error("addComentario error: " . $e->getMessage());
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
@@ -1746,7 +2590,8 @@ class NotasUnificadasController extends Controller
     /**
      * Eliminar un comentario (movimiento)
      */
-    public function deleteComentario($id) {
+    public function deleteComentario($id)
+    {
         try {
             $mov = Movimiento::where('accion', 'COMENTARIO')
                 ->findOrFail($id);
@@ -1760,7 +2605,7 @@ class NotasUnificadasController extends Controller
 
             $mov->delete();
             return response()->json(['success' => true]);
-        } catch(\Throwable $e) {
+        } catch (\Throwable $e) {
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
     }
@@ -1768,24 +2613,25 @@ class NotasUnificadasController extends Controller
     /**
      * Eliminar un adjunto específico
      */
-    public function deleteAdjunto($id, $campo) {
+    public function deleteAdjunto($id, $campo)
+    {
         if (!$this->puedeEliminar()) {
             return response()->json(['success' => false, 'msg' => 'No tiene permisos para eliminar'], 403);
         }
         try {
             $nota = NotaIngreso::findOrFail($id);
-            
+
             $camposPermitidos = ['path_solicitud', 'path_diseno', 'path_bases', 'path_informe', 'path_varios'];
-            if(!in_array($campo, $camposPermitidos)) {
+            if (!in_array($campo, $camposPermitidos)) {
                 return response()->json(['success' => false, 'msg' => 'Campo inválido'], 400);
             }
-            
+
             $campoTipoMap = [
                 'path_solicitud' => 'solicitud',
-                'path_diseno'    => 'diseno',
-                'path_bases'     => 'bases',
-                'path_informe'   => 'informe',
-                'path_varios'    => 'varios',
+                'path_diseno' => 'diseno',
+                'path_bases' => 'bases',
+                'path_informe' => 'informe',
+                'path_varios' => 'varios',
             ];
             $tipo = $campoTipoMap[$campo];
 
@@ -1793,7 +2639,7 @@ class NotasUnificadasController extends Controller
             $versiones = \App\Models\NotaArchivoVersion::where('id_nota_ingreso', $nota->id)
                 ->where('tipo_archivo', $tipo)
                 ->get();
-            foreach($versiones as $v) {
+            foreach ($versiones as $v) {
                 Storage::disk('public')->delete($v->path_archivo);
             }
             \App\Models\NotaArchivoVersion::where('id_nota_ingreso', $nota->id)
@@ -1802,71 +2648,75 @@ class NotasUnificadasController extends Controller
 
             // Eliminar archivo del campo principal y limpiar BD
             $pathActual = $nota->$campo;
-            if($pathActual) {
+            if ($pathActual) {
                 Storage::disk('public')->delete($pathActual);
                 $nota->$campo = null;
                 $nota->save();
 
                 $exp = $nota->expedientes->first();
-                if($exp) {
+                if ($exp) {
                     $usuarioDel = \App\Usuario::find(session('id_usuario'));
                     $nombreDel = $usuarioDel ? $usuarioDel->nombre : 'Usuario';
                     Movimiento::create([
                         'id_expediente_nota' => $exp->id,
-                        'id_usuario'         => session('id_usuario') ?? 1,
-                        'fecha_movimiento'   => \Carbon\Carbon::now(),
-                        'accion'             => 'ADJUNTO_ELIMINADO',
-                        'comentario'         => $nombreDel . " eliminó adjunto: " . basename($pathActual)
+                        'id_usuario' => session('id_usuario') ?? 1,
+                        'fecha_movimiento' => \Carbon\Carbon::now(),
+                        'accion' => 'ADJUNTO_ELIMINADO',
+                        'comentario' => $nombreDel . " eliminó adjunto: " . basename($pathActual)
                     ]);
                 }
             }
-            
+
             return response()->json(['success' => true, 'msg' => 'Adjunto eliminado']);
-        } catch(\Throwable $e) {
+        } catch (\Throwable $e) {
             \Log::error("deleteAdjunto error: " . $e->getMessage());
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
     }
 
-    public function eliminarMasivo(Request $request) {
+    public function eliminarMasivo(Request $request)
+    {
         if (!$this->puedeEliminar()) {
             return response()->json(['success' => false, 'msg' => 'No tiene permisos para eliminar'], 403);
         }
         try {
             $ids = $request->ids;
-            if(!is_array($ids) || count($ids) == 0) return response()->json(['success' => false, 'msg' => 'No IDs provided'], 400);
+            if (!is_array($ids) || count($ids) == 0)
+                return response()->json(['success' => false, 'msg' => 'No IDs provided'], 400);
 
-            DB::transaction(function() use ($ids){
+            DB::transaction(function () use ($ids) {
                 NotaIngreso::whereIn('id', $ids)->delete();
             });
-            
+
             return response()->json(['success' => true]);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
     }
 
 
     // ! COLLABORATIVE FLOW
-    public function flujoColaborativo(Request $request) {
+    public function flujoColaborativo(Request $request)
+    {
         try {
             $id_nota = $request->id_nota;
             $accion = $request->accion;
-            
-            if(!$id_nota) return response()->json(['success' => false, 'msg' => 'ID missing'], 400);
 
-            DB::transaction(function() use ($id_nota, $accion){
+            if (!$id_nota)
+                return response()->json(['success' => false, 'msg' => 'ID missing'], 400);
+
+            DB::transaction(function () use ($id_nota, $accion) {
                 // We update the state of the note's first expediente
                 $nota = NotaIngreso::findOrFail($id_nota);
-                
+
                 // Assuming we use Expediente status for tracking workflow
                 $exp = $nota->expedientes()->first(); // Or orderBy created_at dest
-                
-                if($exp) {
-                    if($accion == 'SOLICITAR_MKT') {
+
+                if ($exp) {
+                    if ($accion == 'SOLICITAR_MKT') {
                         $exp->estado_actual = NotaEstado::PENDIENTE_ADJUNTOS;
                         $exp->save();
-                    
+
                         // Create movement log
                         $mov = new \App\Models\Movimiento();
                         $mov->id_expediente_nota = $exp->id;
@@ -1882,21 +2732,22 @@ class NotasUnificadasController extends Controller
 
             return response()->json(['success' => true]);
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
     }
-    
+
     /**
      * Obtener versiones de un archivo para comparación
      */
-    public function getVersionesArchivo($id, $tipo) {
+    public function getVersionesArchivo($id, $tipo)
+    {
         try {
             $versiones = \App\Models\NotaArchivoVersion::getVersions($id, $tipo);
-            
+
             return response()->json([
                 'success' => true,
-                'versiones' => $versiones->map(function($v) {
+                'versiones' => $versiones->map(function ($v) {
                     return [
                         'id' => $v->id,
                         'version' => $v->version,
@@ -1906,52 +2757,54 @@ class NotasUnificadasController extends Controller
                     ];
                 })
             ]);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
     }
-    
+
     /**
      * Visualizar una versión específica de un archivo
      */
-    public function visualizarVersion($idVersion) {
+    public function visualizarVersion($idVersion)
+    {
         try {
             $version = \App\Models\NotaArchivoVersion::findOrFail($idVersion);
             $path = $version->path_archivo;
-            
-            if(!Storage::disk('public')->exists($path)) {
+
+            if (!Storage::disk('public')->exists($path)) {
                 abort(404, 'Archivo no encontrado');
             }
-            
+
             $fullPath = Storage::disk('public')->path($path);
             $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-            
-            if($extension === 'pdf') {
+
+            if ($extension === 'pdf') {
                 return response()->file($fullPath, [
                     'Content-Type' => 'application/pdf',
                     'Content-Disposition' => 'inline; filename="' . basename($path) . '"'
                 ]);
             }
-            
+
             return response()->file($fullPath);
-            
-        } catch(\Exception $e) {
+
+        } catch (\Exception $e) {
             abort(404, 'Versión no encontrada');
         }
     }
     /**
      * Obtener historial de versiones de un archivo (AJAX)
      */
-    public function getHistorialVersionesAjax($id, $tipo) {
+    public function getHistorialVersionesAjax($id, $tipo)
+    {
         try {
             $versiones = \App\Models\NotaArchivoVersion::where('id_nota_ingreso', $id)
                 ->where('tipo_archivo', $tipo)
                 ->orderBy('version', 'desc')
                 ->get();
-            
+
             return response()->json([
                 'success' => true,
-                'versiones' => $versiones->map(function($v) {
+                'versiones' => $versiones->map(function ($v) {
                     return [
                         'id' => $v->id,
                         'version' => $v->version,
@@ -1961,7 +2814,7 @@ class NotasUnificadasController extends Controller
                     ];
                 })
             ]);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
     }
@@ -1976,11 +2829,28 @@ class NotasUnificadasController extends Controller
         try {
             $idGrupo = $request->input('id_grupo');
             $tipoRama = $request->input('tipo_rama'); // MKT o FISC
+            $tipoDocumento = $request->input('tipo_documento', ''); // NOTA o DISPOSICION
+            $numeroDocumento = $request->input('numero_documento', '');
+            $anioDocumento = $request->input('anio_documento', date('Y'));
             $disk = 'public';
             $userId = session('id_usuario') ?? Auth::id() ?? 1;
 
             if (!$idGrupo || !$tipoRama) {
                 return response()->json(['success' => false, 'msg' => 'Faltan datos requeridos'], 400);
+            }
+            if (!$tipoDocumento || !$numeroDocumento) {
+                return response()->json(['success' => false, 'msg' => 'El tipo y número de documento son obligatorios'], 400);
+            }
+
+            // Validar unicidad: no puede existir otro registro con mismo tipo_documento + numero_documento + anio_documento
+            $existe = DB::table('grupo_notas_aprobacion')
+                ->where('tipo_documento', $tipoDocumento)
+                ->where('numero_documento', $numeroDocumento)
+                ->where('anio_documento', $anioDocumento)
+                ->exists();
+            if ($existe) {
+                $label = $tipoDocumento === 'DISPOSICION' ? 'Disposición' : 'Nota';
+                return response()->json(['success' => false, 'msg' => "Ya existe una {$label} N° {$numeroDocumento}-{$anioDocumento}. El número debe ser único."], 400);
             }
 
             $grupo = \App\Models\GrupoTramite::findOrFail($idGrupo);
@@ -1992,7 +2862,8 @@ class NotasUnificadasController extends Controller
             }
 
             foreach ($archivos as $file) {
-                if (!$file || !$file->isValid()) continue;
+                if (!$file || !$file->isValid())
+                    continue;
 
                 $originalName = $file->getClientOriginalName();
                 $extension = $file->getClientOriginalExtension();
@@ -2003,6 +2874,9 @@ class NotasUnificadasController extends Controller
                 DB::table('grupo_notas_aprobacion')->insert([
                     'id_grupo' => $idGrupo,
                     'tipo_rama' => $tipoRama,
+                    'tipo_documento' => $tipoDocumento,
+                    'numero_documento' => $numeroDocumento,
+                    'anio_documento' => $anioDocumento,
                     'path_archivo' => $path,
                     'nombre_original' => $originalName,
                     'created_by' => $userId,
@@ -2030,10 +2904,12 @@ class NotasUnificadasController extends Controller
     public function visualizarNotaAprobacion($id)
     {
         $registro = DB::table('grupo_notas_aprobacion')->where('id', $id)->first();
-        if (!$registro) abort(404);
+        if (!$registro)
+            abort(404);
 
         $disk = Storage::disk('public');
-        if (!$disk->exists($registro->path_archivo)) abort(404);
+        if (!$disk->exists($registro->path_archivo))
+            abort(404);
 
         $fullPath = $disk->path($registro->path_archivo);
         $mime = $disk->mimeType($registro->path_archivo);
@@ -2050,10 +2926,12 @@ class NotasUnificadasController extends Controller
     public function descargarNotaAprobacion($id)
     {
         $registro = DB::table('grupo_notas_aprobacion')->where('id', $id)->first();
-        if (!$registro) abort(404);
+        if (!$registro)
+            abort(404);
 
         $disk = Storage::disk('public');
-        if (!$disk->exists($registro->path_archivo)) abort(404);
+        if (!$disk->exists($registro->path_archivo))
+            abort(404);
 
         return response()->download($disk->path($registro->path_archivo), $registro->nombre_original);
     }
@@ -2097,15 +2975,15 @@ class NotasUnificadasController extends Controller
         }
 
         $resultados = \App\Models\GrupoTramite::with('casino')
-            ->where(function($query) use ($q) {
+            ->where(function ($query) use ($q) {
                 $query->where('nro_nota', 'like', '%' . $q . '%')
-                      ->orWhere('titulo', 'like', '%' . $q . '%');
+                    ->orWhere('titulo', 'like', '%' . $q . '%');
             })
             ->orderBy('anio', 'desc')
             ->orderBy('nro_nota', 'desc')
             ->take(15)
             ->get()
-            ->map(function($g) {
+            ->map(function ($g) {
                 $ramas = $g->notas()->pluck('tipo_rama')->toArray();
                 return [
                     'id' => $g->id,
@@ -2168,5 +3046,289 @@ class NotasUnificadasController extends Controller
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
+    }
+
+    // =============================================
+    // GESTIÓN DE MAILS — ABM Destinatarios y Transiciones
+    // =============================================
+
+    /**
+     * Alcance del usuario actual sobre destinatarios de mail.
+     * Retorna ['sinFiltro' => bool, 'casinos' => int[], 'plataformas' => int[], 'esAdmin' => bool]
+     * sinFiltro=true => ve/edita todo (super, auditor, despacho, administrador, control)
+     */
+    private function obtenerAlcanceMails($usuario, $id_usuario)
+    {
+        $esAdmin = $usuario->es_superusuario || $usuario->es_administrador
+            || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control;
+        $sinFiltro = $esAdmin;
+
+        if ($sinFiltro) {
+            return ['sinFiltro' => true, 'casinos' => [], 'plataformas' => [], 'esAdmin' => true];
+        }
+
+        $rolesNotas = DB::table('usuario_tiene_rol')
+            ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
+            ->where('usuario_tiene_rol.id_usuario', $id_usuario)
+            ->where('rol.descripcion', 'LIKE', 'CARGA\_NOTAS\_%')
+            ->pluck('rol.descripcion')
+            ->toArray();
+
+        $casinos = [];
+        if (in_array('CARGA_NOTAS_UNIFICADAS', $rolesNotas)) {
+            $casinos = DB::table('usuario_tiene_casino')
+                ->where('id_usuario', $id_usuario)
+                ->pluck('id_casino')
+                ->map(function ($v) {
+                    return (int) $v;
+                })
+                ->toArray();
+        }
+
+        $rolesPlataforma = array_filter($rolesNotas, function ($r) {
+            return $r !== 'CARGA_NOTAS_UNIFICADAS';
+        });
+        $plataformas = [];
+        if (!empty($rolesPlataforma)) {
+            $plataformasOnlineData = self::obtenerPlataformasOnline();
+            foreach ($rolesPlataforma as $rolDesc) {
+                $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
+                foreach ($plataformasOnlineData as $p) {
+                    if ($p->codigo === $codigo) {
+                        $plataformas[] = (int) $p->id_plataforma;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return ['sinFiltro' => false, 'casinos' => $casinos, 'plataformas' => $plataformas, 'esAdmin' => false];
+    }
+
+    /**
+     * Chequea si el usuario puede operar sobre un destinatario (por id_casino/id_plataforma del registro).
+     */
+    private function destinatarioEnAlcance($idCasino, $idPlataforma, array $alcance)
+    {
+        if ($alcance['sinFiltro'])
+            return true;
+        if ($idCasino !== null && in_array((int) $idCasino, $alcance['casinos'], true))
+            return true;
+        if ($idPlataforma !== null && in_array((int) $idPlataforma, $alcance['plataformas'], true))
+            return true;
+        return false;
+    }
+
+    public function getMailDestinatarios()
+    {
+        $id_usuario = session('id_usuario');
+        $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuario'];
+        $alcance = $this->obtenerAlcanceMails($usuario, $id_usuario);
+
+        $query = DB::table('nota_mail_destinatarios')->where('activo', 1);
+
+        if (!$alcance['sinFiltro']) {
+            $hayC = !empty($alcance['casinos']);
+            $hayP = !empty($alcance['plataformas']);
+            if (!$hayC && !$hayP) {
+                $query->whereRaw('0 = 1');
+            } else {
+                $query->where(function ($q) use ($alcance, $hayC, $hayP) {
+                    if ($hayC)
+                        $q->orWhereIn('id_casino', $alcance['casinos']);
+                    if ($hayP)
+                        $q->orWhereIn('id_plataforma', $alcance['plataformas']);
+                });
+            }
+        }
+
+        $destinatarios = $query->orderBy('categoria')->orderBy('nombre')->get();
+
+        // Resolver nombre de casino/plataforma
+        foreach ($destinatarios as $d) {
+            $d->nombre_casino = null;
+            if ($d->id_casino) {
+                $casino = \App\Casino::find($d->id_casino);
+                $d->nombre_casino = $casino ? $casino->nombre : 'Casino #' . $d->id_casino;
+            } elseif ($d->id_plataforma) {
+                $plat = DB::table('plataforma')->where('id_plataforma', $d->id_plataforma)->first();
+                $d->nombre_casino = $plat ? $plat->nombre : 'Plataforma #' . $d->id_plataforma;
+            }
+        }
+
+        return response()->json($destinatarios);
+    }
+
+    public function storeMailDestinatario(Request $request)
+    {
+        $id_usuario = session('id_usuario');
+        $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuario'];
+        $alcance = $this->obtenerAlcanceMails($usuario, $id_usuario);
+
+        $idCasino = null;
+        $idPlataforma = null;
+        if ($request->id_casino_plat) {
+            $val = $request->id_casino_plat;
+            if (strpos($val, 'p_') === 0) {
+                $idPlataforma = (int) str_replace('p_', '', $val);
+            } elseif (strpos($val, 'c_') === 0) {
+                $idCasino = (int) str_replace('c_', '', $val);
+            }
+        }
+
+        if (!$this->destinatarioEnAlcance($idCasino, $idPlataforma, $alcance)) {
+            return response()->json(['success' => false, 'msg' => 'No tiene permisos sobre ese casino/plataforma'], 403);
+        }
+
+        $id = DB::table('nota_mail_destinatarios')->insertGetId([
+            'email' => $request->email,
+            'nombre' => $request->nombre,
+            'categoria' => $request->categoria,
+            'id_casino' => $idCasino,
+            'id_plataforma' => $idPlataforma,
+            'activo' => 1,
+            'created_at' => \Carbon\Carbon::now(),
+            'updated_at' => \Carbon\Carbon::now(),
+        ]);
+        return response()->json(['success' => true, 'id' => $id]);
+    }
+
+    public function updateMailDestinatario(Request $request, $id)
+    {
+        $id_usuario = session('id_usuario');
+        $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuario'];
+        $alcance = $this->obtenerAlcanceMails($usuario, $id_usuario);
+
+        $actual = DB::table('nota_mail_destinatarios')->where('id', $id)->first();
+        if (!$actual) {
+            return response()->json(['success' => false, 'msg' => 'Destinatario no encontrado'], 404);
+        }
+        if (!$this->destinatarioEnAlcance($actual->id_casino, $actual->id_plataforma, $alcance)) {
+            return response()->json(['success' => false, 'msg' => 'No tiene permisos sobre este destinatario'], 403);
+        }
+
+        $idCasino = null;
+        $idPlataforma = null;
+        if ($request->id_casino_plat) {
+            $val = $request->id_casino_plat;
+            if (strpos($val, 'p_') === 0) {
+                $idPlataforma = (int) str_replace('p_', '', $val);
+            } elseif (strpos($val, 'c_') === 0) {
+                $idCasino = (int) str_replace('c_', '', $val);
+            }
+        }
+
+        if (!$this->destinatarioEnAlcance($idCasino, $idPlataforma, $alcance)) {
+            return response()->json(['success' => false, 'msg' => 'No tiene permisos sobre ese casino/plataforma'], 403);
+        }
+
+        DB::table('nota_mail_destinatarios')->where('id', $id)->update([
+            'email' => $request->email,
+            'nombre' => $request->nombre,
+            'categoria' => $request->categoria,
+            'id_casino' => $idCasino,
+            'id_plataforma' => $idPlataforma,
+            'updated_at' => \Carbon\Carbon::now(),
+        ]);
+        return response()->json(['success' => true]);
+    }
+
+    public function deleteMailDestinatario($id)
+    {
+        $id_usuario = session('id_usuario');
+        $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuario'];
+        $alcance = $this->obtenerAlcanceMails($usuario, $id_usuario);
+
+        $actual = DB::table('nota_mail_destinatarios')->where('id', $id)->first();
+        if (!$actual) {
+            return response()->json(['success' => false, 'msg' => 'Destinatario no encontrado'], 404);
+        }
+        if (!$this->destinatarioEnAlcance($actual->id_casino, $actual->id_plataforma, $alcance)) {
+            return response()->json(['success' => false, 'msg' => 'No tiene permisos sobre este destinatario'], 403);
+        }
+
+        DB::table('nota_mail_destinatarios')->where('id', $id)->update([
+            'activo' => 0,
+            'updated_at' => \Carbon\Carbon::now(),
+        ]);
+        return response()->json(['success' => true]);
+    }
+
+    public function getMailTransiciones(Request $request)
+    {
+        $query = DB::table('nota_mail_transiciones as t')
+            ->leftJoin('nota_estados as eo', 'eo.id', '=', 't.id_estado_origen')
+            ->join('nota_estados as ed', 'ed.id', '=', 't.id_estado_destino')
+            ->leftJoin('nota_tipos_evento as te', 'te.id', '=', 't.id_tipo_evento')
+            ->where('t.activo', 1)
+            ->select(
+                't.id',
+                't.id_estado_origen',
+                't.id_estado_destino',
+                't.categoria',
+                't.id_tipo_evento',
+                DB::raw("IFNULL(eo.descripcion, 'AL CREAR') as estado_origen"),
+                'ed.descripcion as estado_destino',
+                'te.descripcion as tipo_evento_nombre',
+                DB::raw("IFNULL(eo.orden, 0) as orden_origen")
+            )
+            ->orderBy('orden_origen');
+
+        if ($request->categoria) {
+            $query->where('t.categoria', $request->categoria);
+        }
+
+        return response()->json($query->get());
+    }
+
+    public function storeMailTransicion(Request $request)
+    {
+        $id_usuario = session('id_usuario');
+        $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuario'];
+        $alcance = $this->obtenerAlcanceMails($usuario, $id_usuario);
+        if (!$alcance['esAdmin']) {
+            return response()->json(['success' => false, 'msg' => 'No tiene permisos para editar transiciones'], 403);
+        }
+
+        $idTipoEvento = (int) ($request->id_tipo_evento ?: 0);
+
+        // Evitar duplicados
+        $existe = DB::table('nota_mail_transiciones')
+            ->where('id_estado_origen', $request->id_estado_origen)
+            ->where('id_estado_destino', $request->id_estado_destino)
+            ->where('categoria', $request->categoria)
+            ->where('id_tipo_evento', $idTipoEvento)
+            ->where('activo', 1)
+            ->exists();
+        if ($existe) {
+            return response()->json(['success' => false, 'msg' => 'Esa transición ya existe para esta categoría y tipo'], 422);
+        }
+
+        $id = DB::table('nota_mail_transiciones')->insertGetId([
+            'id_estado_origen' => $request->id_estado_origen,
+            'id_estado_destino' => $request->id_estado_destino,
+            'categoria' => $request->categoria,
+            'id_tipo_evento' => $idTipoEvento,
+            'activo' => 1,
+            'created_at' => \Carbon\Carbon::now(),
+            'updated_at' => \Carbon\Carbon::now(),
+        ]);
+        return response()->json(['success' => true, 'id' => $id]);
+    }
+
+    public function deleteMailTransicion($id)
+    {
+        $id_usuario = session('id_usuario');
+        $usuario = UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuario'];
+        $alcance = $this->obtenerAlcanceMails($usuario, $id_usuario);
+        if (!$alcance['esAdmin']) {
+            return response()->json(['success' => false, 'msg' => 'No tiene permisos para editar transiciones'], 403);
+        }
+
+        DB::table('nota_mail_transiciones')->where('id', $id)->update([
+            'activo' => 0,
+            'updated_at' => \Carbon\Carbon::now(),
+        ]);
+        return response()->json(['success' => true]);
     }
 }

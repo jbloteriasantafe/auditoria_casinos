@@ -354,18 +354,85 @@ $(document).ready(function () {
     });
 
     // --- TABLE & ASSET ADDITION ---
-    function updateTableHeaders(tipo, sampleData) {
-        let thead = $('#tablaActivos thead tr');
+    var tipoLabels = {
+        'MTM': 'Máquinas Tragamonedas',
+        'MESA': 'Mesas de Paño',
+        'ISLA': 'Islas',
+        'BINGO': 'Bingo',
+        'JUEGO_ONLINE': 'Juegos Online'
+    };
+
+    function renderTablaActivos() {
+        var thead = $('#tablaActivos thead tr');
+        var tbody = $('#tablaActivos tbody');
         thead.empty();
-        thead.append('<th>Tipo</th>');
-        if (sampleData) {
-            Object.keys(sampleData).forEach(k => {
-                thead.append(`<th>${k}</th>`);
-            });
-        } else {
-            thead.append('<th>Descripción</th>');
+        tbody.empty();
+
+        if (activos.length === 0) {
+            thead.append('<th>Tipo</th><th>ID</th><th>Acción</th>');
+            return;
         }
-        thead.append('<th>Acción</th>');
+
+        // Agrupar por tipo manteniendo orden de aparición
+        var tiposOrden = [];
+        var grupos = {};
+        activos.forEach(function(a) {
+            if (!grupos[a.tipo]) {
+                grupos[a.tipo] = [];
+                tiposOrden.push(a.tipo);
+            }
+            grupos[a.tipo].push(a);
+        });
+
+        // Calcular max columnas entre todos los tipos
+        var maxCols = 0;
+        tiposOrden.forEach(function(tipo) {
+            var keys = Object.keys(grupos[tipo][0].data || {});
+            if (keys.length > maxCols) maxCols = keys.length;
+        });
+        maxCols += 1; // +1 por columna acción
+        thead.append('<th colspan="' + maxCols + '" style="display:none;"></th>');
+
+        tiposOrden.forEach(function(tipo) {
+            var items = grupos[tipo];
+            var sample = items[0].data || {};
+            var keys = Object.keys(sample);
+            var extraCols = maxCols - keys.length - 1; // celdas vacías para rellenar
+
+            // Sub-header de grupo
+            tbody.append(
+                '<tr class="activo-group-header">' +
+                    '<td colspan="' + maxCols + '" style="background:#f1f5f9; font-weight:700; font-size:12px; padding:8px 12px; color:#2c3e50; border-bottom:2px solid #cbd5e1;">' +
+                        '<i class="fa fa-caret-down" style="color:#3498db;"></i> ' + (tipoLabels[tipo] || tipo) +
+                        ' <span style="font-weight:400; color:#94a3b8;">(' + items.length + ')</span>' +
+                    '</td>' +
+                '</tr>'
+            );
+
+            // Header de columnas para este tipo
+            var headerRow = '<tr style="background:#f8fafc;">';
+            keys.forEach(function(k) {
+                headerRow += '<th style="padding:5px 10px; font-size:11px; color:#64748b; font-weight:600;">' + k + '</th>';
+            });
+            for (var i = 0; i < extraCols; i++) { headerRow += '<th></th>'; }
+            headerRow += '<th style="padding:5px 10px; font-size:11px; width:40px;"></th></tr>';
+            tbody.append(headerRow);
+
+            // Filas de datos
+            items.forEach(function(a) {
+                var row = '<tr data-tipo="' + a.tipo + '" data-id="' + a.id + '">';
+                if (keys.length > 0) {
+                    keys.forEach(function(k) {
+                        row += '<td style="padding:4px 10px; font-size:12px;">' + (a.data[k] || '-') + '</td>';
+                    });
+                } else {
+                    row += '<td style="padding:4px 10px; font-size:12px;">' + (a.texto || a.id) + '</td>';
+                }
+                for (var i = 0; i < extraCols; i++) { row += '<td></td>'; }
+                row += '<td style="padding:4px 10px;"><button class="btn btn-xs btn-borrar-activo" style="background:#e2e8f0; color:#64748b; border:1px solid #cbd5e1; border-radius:4px; font-weight:bold; transition:all 0.15s;" onmouseover="this.style.background=\'#d9534f\';this.style.color=\'#fff\';this.style.borderColor=\'#d43f3a\';" onmouseout="this.style.background=\'#e2e8f0\';this.style.color=\'#64748b\';this.style.borderColor=\'#cbd5e1\';">X</button></td></tr>';
+                tbody.append(row);
+            });
+        });
     }
 
     function agregarFila(tipo, id, texto, data) {
@@ -373,23 +440,8 @@ $(document).ready(function () {
             return false;
         }
 
-        if ($('#tablaActivos tbody tr').length === 0) {
-            updateTableHeaders(tipo, data);
-        }
-
-        activos.push({ tipo: tipo, id: id });
-
-        let row = `<tr><td>${tipo}</td>`;
-        if (Object.keys(data).length > 0) {
-            Object.values(data).forEach(v => {
-                row += `<td>${v}</td>`;
-            });
-        } else {
-            row += `<td>${texto}</td>`;
-        }
-        row += `<td><button class='btn btn-xs btn-danger btn-borrar-activo' style='background-color:#d9534f !important; color:#fff !important; border-color:#d43f3a !important; opacity:1 !important;'>X</button></td></tr>`;
-
-        $('#tablaActivos tbody').append(row);
+        activos.push({ tipo: tipo, id: id, texto: texto, data: data || {} });
+        renderTablaActivos();
         return true;
     }
 
@@ -436,9 +488,12 @@ $(document).ready(function () {
 
     $('#tablaActivos').on('click', '.btn-borrar-activo', function () {
         let tr = $(this).closest('tr');
-        let idx = tr.index();
-        activos.splice(idx, 1);
-        tr.remove();
+        let tipo = tr.data('tipo');
+        let id = tr.data('id');
+        activos = activos.filter(function(a) {
+            return !(a.tipo == tipo && a.id == id);
+        });
+        renderTablaActivos();
     });
 
     // --- FORM SUBMISSION & STEPPER ---
@@ -864,6 +919,7 @@ $(document).ready(function () {
             id_tipo_evento_fisc: $('select[name="id_tipo_evento_fisc"]').val(),
 
             fecha_pretendida_aprobacion: $('#inpFechaPretendida').val() || '',
+            compartir_administrador: $('#chkCompartirAdmin').is(':checked') ? 1 : 0,
             fecha_inicio_evento: $('#inpFechaInicio').val(),
             fecha_fin_evento: $('#inpFechaFin').val(),
             fecha_referencia: $('input[name="fecha_referencia"]').val() || '',
@@ -983,6 +1039,7 @@ $(document).ready(function () {
         estado: '',
         fecha_desde: '',
         fecha_hasta: '',
+        ver_todo: '',
         page: 1,
         page_size: 10,
         sort_by: 'id',
@@ -998,26 +1055,11 @@ $(document).ready(function () {
         searchTimeout = setTimeout(ajaxLoadTable, 300);
     });
 
-    // 2. Filters (all selects + date inputs with class .filtro-tabla)
-    $(document).on('change', '.filtro-tabla', function () {
-        var filtroVal = $('#selFiltroCasino').val();
-        if (filtroVal && filtroVal.toString().indexOf('p_') === 0) {
-            gridState.id_casino = '';
-            gridState.id_plataforma = filtroVal.replace('p_', '');
-        } else {
-            gridState.id_casino = filtroVal;
-            gridState.id_plataforma = '';
-        }
-        gridState.rama        = $('#selFiltroRama').val();
-        gridState.estado      = $('#selFiltroEstado').val();
-        gridState.fecha_desde = $('#inpFechaDesde').val();
-        gridState.fecha_hasta = $('#inpFechaHasta').val();
-        gridState.page = 1;
-        ajaxLoadTable();
-    });
+    // 2. Filters — now handled by header filter popups (see HEADER FILTER POPUPS section)
 
-    // 3. Sorting
-    $(document).on('click', '.sortable', function () {
+    // 3. Sorting (skip if clicking filter icon)
+    $(document).on('click', '.sortable', function (e) {
+        if ($(e.target).hasClass('th-filter-icon') || $(e.target).closest('.th-filter-icon').length) return;
         let field = $(this).data('sort');
         if (gridState.sort_by === field) {
             gridState.order = (gridState.order === 'desc') ? 'asc' : 'desc';
@@ -1026,6 +1068,195 @@ $(document).ready(function () {
             gridState.order = 'desc'; // Default new sort
         }
         ajaxLoadTable();
+    });
+
+    // ========== HEADER FILTER POPUPS ==========
+
+    // Build filter popup content based on filter type
+    function buildFilterPopup(filterType) {
+        var html = '<div class="header-filter-popup" data-filter-type="' + filterType + '" style="position:absolute; z-index:9999; background:#fff; border:1px solid #e2e8f0; border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,0.15); padding:14px; min-width:220px; font-size:12px;">';
+        html += '<div style="font-weight:700; color:#334155; margin-bottom:10px; font-size:13px; border-bottom:1px solid #f1f5f9; padding-bottom:8px;">';
+
+        if (filterType === 'casino') {
+            html += '<i class="fa fa-building"></i> Casino / Plataforma</div>';
+            html += '<div style="max-height:200px; overflow-y:auto; margin-bottom:10px;">';
+            var currentVal = $('#selFiltroCasino').val();
+            html += '<label style="display:block; padding:4px 0; cursor:pointer; font-weight:400;"><input type="radio" name="fp_casino" value="" ' + (!currentVal ? 'checked' : '') + '> <span style="color:#64748b;">Todos</span></label>';
+            $('#selFiltroCasino option').each(function () {
+                if ($(this).val() === '') return;
+                var checked = ($(this).val() === currentVal) ? 'checked' : '';
+                html += '<label style="display:block; padding:4px 0; cursor:pointer; font-weight:400;"><input type="radio" name="fp_casino" value="' + $(this).val() + '" ' + checked + '> ' + $(this).text() + '</label>';
+            });
+            html += '</div>';
+        } else if (filterType === 'rama') {
+            html += '<i class="fa fa-code-fork"></i> Rama</div>';
+            var currentRama = gridState.rama;
+            html += '<label style="display:block; padding:5px 0; cursor:pointer; font-weight:400;"><input type="radio" name="fp_rama" value="" ' + (!currentRama ? 'checked' : '') + '> <span style="color:#64748b;">Todas</span></label>';
+            html += '<label style="display:block; padding:5px 0; cursor:pointer; font-weight:400;"><input type="radio" name="fp_rama" value="MKT" ' + (currentRama === 'MKT' ? 'checked' : '') + '> <span class="label label-primary">MKT</span> Marketing</label>';
+            html += '<label style="display:block; padding:5px 0; cursor:pointer; font-weight:400;"><input type="radio" name="fp_rama" value="FISC" ' + (currentRama === 'FISC' ? 'checked' : '') + '> <span class="label label-success">FISC</span> Fiscalización</label>';
+        } else if (filterType === 'estado') {
+            html += '<i class="fa fa-flag"></i> Estado</div>';
+            html += '<div style="max-height:250px; overflow-y:auto; margin-bottom:10px;">';
+            var currentEstado = gridState.estado;
+            html += '<label style="display:block; padding:4px 0; cursor:pointer; font-weight:400;"><input type="radio" name="fp_estado" value="" ' + (!currentEstado ? 'checked' : '') + '> <span style="color:#64748b;">Todos</span></label>';
+            $('#selFiltroEstado option').each(function () {
+                if ($(this).val() === '') return;
+                var checked = ($(this).val() === currentEstado) ? 'checked' : '';
+                html += '<label style="display:block; padding:4px 0; cursor:pointer; font-weight:400;"><input type="radio" name="fp_estado" value="' + $(this).val() + '" ' + checked + '> <span class="label" style="' + getEstadoStyle($(this).val()) + '">' + $(this).text() + '</span></label>';
+            });
+            html += '</div>';
+        } else if (filterType === 'fecha') {
+            html += '<i class="fa fa-calendar"></i> Fecha Subida</div>';
+            html += '<div style="margin-bottom:8px;"><label style="font-weight:600; font-size:11px; color:#64748b;">Desde</label><input type="date" class="form-control input-sm fp-fecha-desde" value="' + (gridState.fecha_desde || '') + '"></div>';
+            html += '<div style="margin-bottom:8px;"><label style="font-weight:600; font-size:11px; color:#64748b;">Hasta</label><input type="date" class="form-control input-sm fp-fecha-hasta" value="' + (gridState.fecha_hasta || '') + '"></div>';
+        }
+
+        html += '<div style="text-align:right; border-top:1px solid #f1f5f9; padding-top:10px; margin-top:5px;">';
+        html += '<button class="btn btn-xs btn-default fp-clear" style="margin-right:5px; border-radius:12px;">Limpiar</button>';
+        html += '<button class="btn btn-xs fp-apply" style="border-radius:12px; background:linear-gradient(135deg, #667eea, #764ba2); color:#fff; border:none; padding:3px 14px;">Aplicar</button>';
+        html += '</div></div>';
+        return html;
+    }
+
+    // Show/hide popup on filter icon or non-sortable filterable header click
+    function openFilterPopup(th) {
+        var filterType = th.data('filter');
+        if (!filterType) return;
+
+        // Close any open popup
+        $('.header-filter-popup').remove();
+
+        var popup = $(buildFilterPopup(filterType));
+
+        // Position below the header
+        $('body').append(popup);
+        var offset = th.offset();
+        popup.css({
+            top: offset.top + th.outerHeight() + 2,
+            left: Math.min(offset.left, $(window).width() - popup.outerWidth() - 20)
+        });
+
+        th.find('.th-filter-icon').css('color', '#764ba2');
+    }
+
+    // Click filter icon on sortable+filterable headers
+    $(document).on('click', '.th-filter-icon', function (e) {
+        e.stopPropagation();
+        openFilterPopup($(this).closest('.th-filterable'));
+    });
+
+    // Click anywhere on non-sortable filterable headers (Ramas, Estado)
+    $(document).on('click', '.th-filterable:not(.sortable)', function (e) {
+        e.stopPropagation();
+        openFilterPopup($(this));
+    });
+
+    // Close popup on outside click
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('.header-filter-popup, .th-filterable').length) {
+            $('.header-filter-popup').remove();
+        }
+    });
+
+    // Apply filter from popup
+    $(document).on('click', '.fp-apply', function () {
+        var popup = $(this).closest('.header-filter-popup');
+        var type = popup.data('filter-type');
+
+        if (type === 'casino') {
+            var val = popup.find('input[name="fp_casino"]:checked').val() || '';
+            $('#selFiltroCasino').val(val);
+        } else if (type === 'rama') {
+            var val = popup.find('input[name="fp_rama"]:checked').val() || '';
+            $('#selFiltroRama').val(val);
+            gridState.rama = val;
+        } else if (type === 'estado') {
+            var val = popup.find('input[name="fp_estado"]:checked').val() || '';
+            $('#selFiltroEstado').val(val);
+            gridState.estado = val;
+        } else if (type === 'fecha') {
+            gridState.fecha_desde = popup.find('.fp-fecha-desde').val() || '';
+            gridState.fecha_hasta = popup.find('.fp-fecha-hasta').val() || '';
+            $('#inpFechaDesde').val(gridState.fecha_desde);
+            $('#inpFechaHasta').val(gridState.fecha_hasta);
+        }
+
+        syncGridStateFromSelects();
+        gridState.page = 1;
+        ajaxLoadTable();
+        updateActiveFilters();
+        popup.remove();
+    });
+
+    // Clear single filter
+    $(document).on('click', '.fp-clear', function () {
+        var popup = $(this).closest('.header-filter-popup');
+        var type = popup.data('filter-type');
+
+        if (type === 'casino') { popup.find('input[name="fp_casino"][value=""]').prop('checked', true); }
+        else if (type === 'rama') { popup.find('input[name="fp_rama"][value=""]').prop('checked', true); }
+        else if (type === 'estado') { popup.find('input[name="fp_estado"][value=""]').prop('checked', true); }
+        else if (type === 'fecha') { popup.find('.fp-fecha-desde, .fp-fecha-hasta').val(''); }
+    });
+
+    function syncGridStateFromSelects() {
+        var filtroVal = $('#selFiltroCasino').val();
+        if (filtroVal && filtroVal.toString().indexOf('p_') === 0) {
+            gridState.id_casino = '';
+            gridState.id_plataforma = filtroVal.replace('p_', '');
+        } else {
+            gridState.id_casino = filtroVal || '';
+            gridState.id_plataforma = '';
+        }
+        gridState.rama = $('#selFiltroRama').val() || '';
+        gridState.estado = $('#selFiltroEstado').val() || '';
+        gridState.fecha_desde = $('#inpFechaDesde').val() || '';
+        gridState.fecha_hasta = $('#inpFechaHasta').val() || '';
+    }
+
+    // Show active filter tags bar
+    function updateActiveFilters() {
+        var tags = '';
+        var casinoText = $('#selFiltroCasino option:selected').text();
+        if (gridState.id_casino || gridState.id_plataforma) {
+            tags += '<span class="active-filter-tag" data-clear="casino" style="display:inline-block; background:#ede9fe; color:#6d28d9; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">' + casinoText + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
+        }
+        if (gridState.rama) {
+            tags += '<span class="active-filter-tag" data-clear="rama" style="display:inline-block; background:#dbeafe; color:#1e40af; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">' + (gridState.rama === 'MKT' ? 'Marketing' : 'Fiscalización') + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
+        }
+        if (gridState.estado) {
+            tags += '<span class="active-filter-tag" data-clear="estado" style="display:inline-block; background:#fef3c7; color:#92400e; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">' + gridState.estado + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
+        }
+        if (gridState.fecha_desde || gridState.fecha_hasta) {
+            var fechaLabel = (gridState.fecha_desde || '...') + ' → ' + (gridState.fecha_hasta || '...');
+            tags += '<span class="active-filter-tag" data-clear="fecha" style="display:inline-block; background:#d1fae5; color:#065f46; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">' + fechaLabel + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
+        }
+
+        if (tags) {
+            $('#activeFilterTags').html(tags);
+            $('#activeFiltersBar').slideDown(150);
+        } else {
+            $('#activeFiltersBar').slideUp(150);
+        }
+
+        // Update header filter icons color
+        $('.th-filter-icon').css('color', '#cbd5e1');
+        if (gridState.id_casino || gridState.id_plataforma) $('[data-filter="casino"] .th-filter-icon').css('color', '#764ba2');
+        if (gridState.rama) $('[data-filter="rama"] .th-filter-icon').css('color', '#764ba2');
+        if (gridState.estado) $('[data-filter="estado"] .th-filter-icon').css('color', '#764ba2');
+        if (gridState.fecha_desde || gridState.fecha_hasta) $('[data-filter="fecha"] .th-filter-icon').css('color', '#764ba2');
+    }
+
+    // Click active filter tag to remove it
+    $(document).on('click', '.active-filter-tag', function () {
+        var clear = $(this).data('clear');
+        if (clear === 'casino') { $('#selFiltroCasino').val(''); gridState.id_casino = ''; gridState.id_plataforma = ''; }
+        else if (clear === 'rama') { $('#selFiltroRama').val(''); gridState.rama = ''; }
+        else if (clear === 'estado') { $('#selFiltroEstado').val(''); gridState.estado = ''; }
+        else if (clear === 'fecha') { $('#inpFechaDesde').val(''); $('#inpFechaHasta').val(''); gridState.fecha_desde = ''; gridState.fecha_hasta = ''; }
+        gridState.page = 1;
+        ajaxLoadTable();
+        updateActiveFilters();
     });
 
     // 4. Pagination — callback para paginacion.js
@@ -1041,6 +1272,29 @@ $(document).ready(function () {
         $('#herramientasPaginacion2').generarIndices(1, gridState.page_size, TOTAL_GRUPOS_INICIAL, clickIndice);
     }
 
+    // Expose for external use (avoid location.reload)
+    window.refreshTable = function () { ajaxLoadTable(); };
+
+    // Highlight de texto buscado solo en columnas: Nro Nota (4), Título (6), Nro Aprob (9)
+    function highlightSearch(term) {
+        var escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        var regex = new RegExp('(' + escaped + ')', 'gi');
+        var cols = [3, 5, 8]; // índices 0-based: col 4, col 6, col 9
+        $('#divTablaNotas tbody tr').each(function () {
+            var $tds = $(this).children('td');
+            cols.forEach(function (colIdx) {
+                var $td = $tds.eq(colIdx);
+                if (!$td.length) return;
+                $td.find('.label, b, strong').addBack().contents().filter(function () {
+                    return this.nodeType === 3 && regex.test(this.nodeValue);
+                }).each(function () {
+                    var $span = $('<span>').html(this.nodeValue.replace(regex, '<mark style="background:#fde68a; padding:0 2px; border-radius:2px;">$1</mark>'));
+                    $(this).replaceWith($span);
+                });
+            });
+        });
+    }
+
     // Core Load Function
     function ajaxLoadTable() {
         $('#divTablaNotas').css('opacity', '0.5');
@@ -1048,20 +1302,44 @@ $(document).ready(function () {
         $.get('/notas-unificadas', gridState, function (res) {
             $('#divTablaNotas').html(res.html).css('opacity', '1');
 
+            // Highlight búsqueda en la tabla
+            if (gridState.q && $.trim(gridState.q).length >= 2) {
+                highlightSearch(gridState.q);
+            }
+
             // Paginación estilo sistema
             $('#herramientasPaginacion').generarTitulo(gridState.page, gridState.page_size, res.total, clickIndice);
             $('#herramientasPaginacion2').generarIndices(gridState.page, gridState.page_size, res.total, clickIndice);
 
             // Re-render sort icons
-            $('.sortable').find('i').removeClass('fa-sort-asc fa-sort-desc').addClass('fa-sort');
+            $('.sortable').find('i.fa-sort, i.fa-sort-asc, i.fa-sort-desc').removeClass('fa-sort-asc fa-sort-desc').addClass('fa-sort');
             let activeHeader = $(`.sortable[data-sort="${gridState.sort_by}"]`);
             let icon = (gridState.order === 'asc') ? 'fa-sort-asc' : 'fa-sort-desc';
-            activeHeader.find('i').removeClass('fa-sort').addClass(icon);
+            activeHeader.find('i.fa-sort').removeClass('fa-sort').addClass(icon);
+
+            // Re-color filter icons for active filters
+            updateActiveFilters();
         }).fail(function () {
             notificacion('error', 'Error al cargar listado.');
             $('#divTablaNotas').css('opacity', '1');
         });
     }
+
+    // --- EXPORTAR PDF / EXCEL ---
+    function buildExportUrl(formato) {
+        var params = $.extend({}, gridState, { formato: formato, export: '1' });
+        delete params.page;
+        delete params.page_size;
+        return '/notas-unificadas/exportar?' + $.param(params);
+    }
+    $('#btnExportPdf').on('click', function (e) {
+        e.preventDefault();
+        window.open(buildExportUrl('pdf'), '_blank');
+    });
+    $('#btnExportExcel').on('click', function (e) {
+        e.preventDefault();
+        window.open(buildExportUrl('excel'), '_blank');
+    });
 
     // --- DRAWER LOGIC - DISABLED ---
     $(document).on('click', '.btn-ver-nota', function () {
@@ -1123,26 +1401,29 @@ $(document).ready(function () {
 
         if (span.hasClass('editing')) return;
 
-        // Determinar opciones permitidas según rol (desde OPCIONES_ESTADO y TRANSICIONES_ESTADO)
-        var opciones = [];
+        // Determinar opciones permitidas según rol
         var allEstados = (window.OPCIONES_ESTADO || []).map(function(e) { return e.descripcion; });
         var trans = window.TRANSICIONES_ESTADO || {};
+        var permitidos = [];
 
         if (window.NIVEL_ESTADO === 'admin') {
-            opciones = allEstados;
+            permitidos = allEstados;
         } else {
             var nivel = window.NIVEL_ESTADO || 'regular';
             var mapa = trans[nivel] || {};
-            if (!mapa[current]) { notificacion('warning', 'No puede cambiar este estado'); return; }
-            opciones = mapa[current];
+            permitidos = mapa[current] || [];
         }
 
         span.addClass('editing');
 
         let wrapper = $('<span class="estado-edit-wrap" style="white-space:nowrap;"></span>');
         let select = $('<select class="form-control input-sm" style="width:auto; display:inline-block; padding: 2px; font-size: 11px;"></select>');
-        opciones.forEach(function(op) { select.append('<option value="' + op + '">' + op + '</option>'); });
-        select.val(opciones[0]);
+        // Mostrar todos los estados: los permitidos habilitados, los demás deshabilitados y grises
+        allEstados.forEach(function(op) {
+            var enabled = (permitidos.indexOf(op) !== -1) || (op === current);
+            select.append('<option value="' + op + '"' + (!enabled ? ' disabled style="color:#ccc;"' : '') + '>' + op + '</option>');
+        });
+        select.val(current);
         let btnConfirm = $('<button class="btn btn-success btn-xs" style="margin-left:3px;" title="Confirmar"><i class="fa fa-check"></i></button>');
         let btnCancel = $('<button class="btn btn-danger btn-xs" style="margin-left:2px;" title="Cancelar"><i class="fa fa-times"></i></button>');
         wrapper.append(select).append(btnConfirm).append(btnCancel);
@@ -1397,12 +1678,18 @@ $(document).ready(function () {
     $('.btn-quick-filter').click(function () {
         let filter = $(this).data('filter');
         $('.btn-quick-filter').removeClass('btn-primary').addClass('btn-default');
+        // Restore "Limpiar" purple gradient (not btn-primary/btn-default)
+        $('.btn-quick-filter[data-filter="reset"]').css({'background':'linear-gradient(135deg, #667eea 0%, #764ba2 100%)','color':'#fff'});
 
         if (filter !== 'reset') {
             $(this).removeClass('btn-default').addClass('btn-primary');
+            // If it's "ver_todo", give it a distinct style
+            if (filter === 'ver_todo') {
+                $(this).css({'background':'#e74c3c','color':'#fff','border-color':'#c0392b'});
+            }
         }
 
-        // Limpiar todo primero
+        // Limpiar quick filters primero
         gridState.q = '';
         gridState.quick_filter = '';
         gridState.page = 1;
@@ -1410,12 +1697,18 @@ $(document).ready(function () {
 
         if (filter === 'hoy') {
             gridState.quick_filter = 'hoy';
+            gridState.ver_todo = '';
         } else if (filter === 'proximos') {
             gridState.quick_filter = 'proximos';
+            gridState.ver_todo = '';
         } else if (filter === 'por_vencer') {
             gridState.quick_filter = 'por_vencer';
+            gridState.ver_todo = '';
+        } else if (filter === 'ver_todo') {
+            // "Ver todo" activa el flag, sin cambiar otros filtros
+            gridState.ver_todo = '1';
         } else if (filter === 'reset') {
-            // Reset completo de todos los filtros
+            // Reset completo: vuelve a filtros por defecto del rol (sin ver_todo)
             gridState.id_casino = '';
             gridState.id_plataforma = '';
             gridState.rama = '';
@@ -1423,6 +1716,7 @@ $(document).ready(function () {
             gridState.fecha_desde = '';
             gridState.fecha_hasta = '';
             gridState.quick_filter = '';
+            gridState.ver_todo = '';
             $('#selFiltroCasino').val('');
             $('#selFiltroRama').val('');
             $('#selFiltroEstado').val('');
@@ -1431,6 +1725,7 @@ $(document).ready(function () {
         }
 
         ajaxLoadTable();
+        updateActiveFilters();
     });
 
     // --- TIMELINE TOOLTIP ---
@@ -1513,7 +1808,7 @@ $(document).ready(function () {
         window._wizardFinished = true;
         $('#modalNuevaNota').modal('hide');
         notificacion('success', 'Trámite finalizado exitosamente.');
-        setTimeout(() => location.reload(), 1000);
+        setTimeout(() => ajaxLoadTable(), 500);
     };
 
     // --- CANCELAR: limpiar borrador al cerrar modal sin finalizar ---
@@ -1817,15 +2112,18 @@ $(document).ready(function () {
             $('#adjCamposFisc').show();
         }
 
-        // Clear previous files
+        // Clear ALL previous state - re-enable everything first
+        $('#frmAgregarAdjuntos input').prop('disabled', false);
+        $('#frmAgregarAdjuntos')[0].reset();
         $('#frmAgregarAdjuntos input[type="file"]').val('');
+        $('#frmAgregarAdjuntos .btn-quitar-archivo').remove();
+        $('#adjuntosActuales').html('');
+        $('#timelineAdjuntos').html('');
 
         // Load history timeline
         $('#timelineAdjuntos').html('<p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i> Cargando historial...</p>');
 
         $.get('/notas-unificadas/historial-adjuntos/' + notaId, function (res) {
-            console.log('DEBUG historial-adjuntos response:', res);
-            console.log('DEBUG adjuntos:', res.adjuntos);
 
             // Display current attachments
             if (res.adjuntos) {
@@ -1934,18 +2232,21 @@ $(document).ready(function () {
             success: function (res) {
                 console.log('DEBUG: Upload response:', res);
                 btn.attr('disabled', false).html('<i class="fa fa-upload"></i> Subir Adjuntos');
+                // Re-enable all inputs
+                $('#frmAgregarAdjuntos input').prop('disabled', false);
                 if (res.success) {
                     notificacion('success', res.msg);
                     $('#modalAgregarAdjuntos').modal('hide');
                     // Refresh table
                     if (window.refreshTable) window.refreshTable();
-                    else location.reload();
                 } else {
                     notificacion('error', res.msg || 'Error al subir adjuntos');
                 }
             },
             error: function (err) {
                 btn.attr('disabled', false).html('<i class="fa fa-upload"></i> Subir Adjuntos');
+                // Re-enable all inputs
+                $('#frmAgregarAdjuntos input').prop('disabled', false);
                 notificacion('error', 'Error al subir adjuntos: ' + (err.responseJSON?.msg || 'Error desconocido'));
             }
         });
@@ -2025,6 +2326,9 @@ $(document).ready(function () {
 
                 // Notas Relacionadas
                 renderRelaciones(res.grupo_padre, res.grupos_hijos || [], res.grupo.id);
+
+                // Trackear ramas del grupo
+                currentGrupoRamas = { mkt: !!res.mkt, fisc: !!res.fisc };
 
                 // Notas de Aprobación
                 renderNotasAprobacion(res.notas_aprobacion || [], res.grupo.id);
@@ -2123,6 +2427,7 @@ $(document).ready(function () {
     // ==================== NOTAS DE APROBACIÓN ====================
 
     var currentGrupoIdAprobacion = null;
+    var currentGrupoRamas = { mkt: false, fisc: false };
 
     function renderNotasAprobacion(notas, grupoId) {
         currentGrupoIdAprobacion = grupoId;
@@ -2140,11 +2445,21 @@ $(document).ready(function () {
             var ramaColor = na.tipo_rama === 'MKT' ? '#3b82f6' : '#10b981';
             var ramaLabel = na.tipo_rama === 'MKT' ? 'Marketing' : 'Fiscalización';
             var ramaIcon = na.tipo_rama === 'MKT' ? 'fa-bullhorn' : 'fa-gavel';
+            // Tipo documento badge
+            var tipoDocLabel = '';
+            if (na.tipo_documento) {
+                var tdColor = na.tipo_documento === 'NOTA' ? '#d97706' : '#4f46e5';
+                var tdText = na.tipo_documento === 'NOTA' ? 'Nota' : 'Disposición';
+                var numDoc = na.numero_documento ? ' N° ' + na.numero_documento : '';
+                var anioDoc = na.anio_documento ? '/' + na.anio_documento : '';
+                tipoDocLabel = ' <span class="label" style="background:' + tdColor + '; color:white;">' + tdText + numDoc + anioDoc + '</span>';
+            }
 
             html += '<li style="padding:8px 10px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between;">' +
                 '<div>' +
                 '<i class="fa ' + ramaIcon + '" style="color:' + ramaColor + '"></i> ' +
-                '<span class="label" style="background:' + ramaColor + '; color:white;">' + ramaLabel + '</span> ' +
+                '<span class="label" style="background:' + ramaColor + '; color:white;">' + ramaLabel + '</span>' +
+                tipoDocLabel + ' ' +
                 '<strong>' + na.nombre_original + '</strong>' +
                 '<small class="text-muted" style="margin-left:8px;">' + (na.created_at || '') + '</small>' +
                 '</div>' +
@@ -2159,18 +2474,29 @@ $(document).ready(function () {
         panel.html(html);
     }
 
-    // Selección de rama con botonera tipo card
+    // Selección de rama con botonera tipo card (estilo wizard)
     $(document).on('click', '.btn-rama-aprobacion', function () {
-        // Deseleccionar todos
-        $('.btn-rama-aprobacion').css({ border: '2px solid #e5e7eb', background: '#f8fafc' });
-        // Marcar seleccionado
+        $('.btn-rama-aprobacion').css({ border: '2px solid transparent', background: 'white' });
         var rama = $(this).data('rama');
         var borderColor = rama === 'MKT' ? '#3b82f6' : '#10b981';
         var bgColor = rama === 'MKT' ? '#eff6ff' : '#ecfdf5';
         $(this).css({ border: '2px solid ' + borderColor, background: bgColor });
         $('#aprobacionTipoRama').val(rama);
-        // Mostrar input de archivos
-        $('#aprobacionArchivoWrap').slideDown(200);
+        // Reset tipo documento
+        $('.btn-tipo-documento').css({ border: '2px solid transparent', background: 'white' });
+        $('#aprobacionTipoDocumento').val('');
+        $('#aprobacionNumeroDoc').val('');
+        $('#aprobacionDatosWrap').slideDown(200);
+    });
+
+    // Selección de tipo documento (Nota / Disposición)
+    $(document).on('click', '.btn-tipo-documento', function () {
+        $('.btn-tipo-documento').css({ border: '2px solid transparent', background: 'white' });
+        var tipo = $(this).data('tipo');
+        var borderColor = tipo === 'NOTA' ? '#d97706' : '#4f46e5';
+        var bgColor = tipo === 'NOTA' ? '#fffbeb' : '#eef2ff';
+        $(this).css({ border: '2px solid ' + borderColor, background: bgColor });
+        $('#aprobacionTipoDocumento').val(tipo);
     });
 
     // Botón "Agregar" nota de aprobación — cerrar modal detalle primero
@@ -2186,10 +2512,22 @@ $(document).ready(function () {
             $('#frmNotaAprobacion')[0].reset();
             $('#aprobacionGrupoId').val(grupoId);
             $('#aprobacionTipoRama').val('');
-            // Reset botonera visual
-            $('.btn-rama-aprobacion').css({ border: '2px solid #e5e7eb', background: '#f8fafc' });
-            $('#aprobacionArchivoWrap').hide();
+            $('#aprobacionTipoDocumento').val('');
+            // Reset botoneras visuales
+            $('.btn-rama-aprobacion').css({ border: '2px solid transparent', background: 'white' });
+            $('.btn-tipo-documento').css({ border: '2px solid transparent', background: 'white' });
+            $('#aprobacionDatosWrap').hide();
+            // Restaurar año actual
+            $('#aprobacionAnioDoc').val(new Date().getFullYear());
             $('#modalNotaAprobacion').modal('show');
+
+            // Preseleccionar rama si el grupo tiene solo MKT o solo FISC
+            var soloMkt = currentGrupoRamas.mkt && !currentGrupoRamas.fisc;
+            var soloFisc = !currentGrupoRamas.mkt && currentGrupoRamas.fisc;
+            if (soloMkt || soloFisc) {
+                var rama = soloMkt ? 'MKT' : 'FISC';
+                $('.btn-rama-aprobacion[data-rama="' + rama + '"]').trigger('click');
+            }
         });
     });
 
@@ -2210,6 +2548,20 @@ $(document).ready(function () {
             notificacion('error', 'Seleccione una rama (Marketing o Fiscalización)');
             return;
         }
+        if (!$('#aprobacionTipoDocumento').val()) {
+            notificacion('error', 'Seleccione el tipo de documento (Nota o Disposición)');
+            return;
+        }
+        if (!$.trim($('#aprobacionNumeroDoc').val())) {
+            notificacion('error', 'Ingrese el número de documento');
+            $('#aprobacionNumeroDoc').focus();
+            return;
+        }
+        if (!$.trim($('#aprobacionAnioDoc').val())) {
+            notificacion('error', 'Ingrese el año del documento');
+            $('#aprobacionAnioDoc').focus();
+            return;
+        }
         if (!$('#inputAprobacionArchivos').val()) {
             notificacion('error', 'Seleccione al menos un archivo');
             return;
@@ -2227,8 +2579,10 @@ $(document).ready(function () {
                 if (res.success) {
                     notificacion('exito', res.msg);
                     $('#modalNotaAprobacion').modal('hide');
-                    // Recargar panel de aprobación
+                    // Recargar panel de aprobación y tabla principal
                     recargarNotasAprobacion(currentGrupoIdAprobacion);
+                    if (typeof ajaxLoadTable === 'function') ajaxLoadTable();
+                    else if (typeof window.refreshTable === 'function') window.refreshTable();
                 } else {
                     notificacion('error', res.msg || 'Error al subir');
                 }
@@ -2255,6 +2609,7 @@ $(document).ready(function () {
                     if (res.success) {
                         notificacion('exito', 'Nota de aprobación eliminada');
                         recargarNotasAprobacion(currentGrupoIdAprobacion);
+                        if (typeof window.refreshTable === 'function') window.refreshTable();
                     } else {
                         notificacion('error', res.msg || 'Error al eliminar');
                     }
@@ -2312,6 +2667,8 @@ $(document).ready(function () {
         html = sr(html, '{{fecha_inicio}}', nota.fecha_inicio || 'N/A');
         html = sr(html, '{{fecha_fin}}', nota.fecha_fin || 'N/A');
         html = sr(html, '{{fecha_pretendida_aprobacion}}', nota.fecha_pretendida_aprobacion || 'N/A');
+        html = sr(html, '{{compartir_administrador}}', nota.compartir_administrador ? '1' : '0');
+        html = sr(html, '{{compartir_administrador_label}}', nota.compartir_administrador ? '<span style="color:#5cb85c;"><i class="fa fa-check-circle"></i> Sí</span>' : '<span style="color:#999;"><i class="fa fa-times-circle"></i> No</span>');
         html = sr(html, '{{fecha_referencia}}', nota.fecha_referencia || 'N/A');
         html = sr(html, '{{estado}}', nota.estado || 'INGRESADO');
         html = sr(html, '{{estadoStyle}}', getEstadoStyle(nota.estado));
@@ -2323,17 +2680,17 @@ $(document).ready(function () {
         html = sr(html, '{{comentariosHtml}}', comentariosHtml);
         html = sr(html, '{{historialHtml}}', historialHtml);
 
-        // Si MKT, ocultar panel de activos y fecha referencia
+        // Si MKT, ocultar panel de activos
         if (nota.tipo_rama === 'MKT') {
             var $tmp = $('<div>').html(html);
             $tmp.find('.panel-activos-wrap').remove();
-            $tmp.find('.row-fecha-referencia').remove();
             html = $tmp.html();
         }
         // Si FISC, ocultar fecha pretendida y categoría
         if (nota.tipo_rama !== 'MKT') {
             var $tmp2 = $('<div>').html(html);
             $tmp2.find('.row-fecha-pretendida').remove();
+            $tmp2.find('.row-compartir-admin').remove();
             $tmp2.find('.row-categoria').remove();
             // Si es plataforma, solo mostrar Juego Online y cambiar título
             if (nota.id_plataforma) {
@@ -2373,6 +2730,8 @@ $(document).ready(function () {
         if (estado.indexOf('APROBADO') !== -1) return 'background:#28a745;color:#fff;';
         if (estado === 'VISTO CON OBSERVACIONES') return 'background:#dc3545;color:#fff;';
         if (estado === 'VENCIDO') return 'background:#999;color:#fff;';
+        if (estado === 'CON INFORME') return 'background:#f0ad4e;color:#fff;';
+        if (estado === 'CON INFORME NEGATIVO') return 'background:#f0ad4e;color:#000;';
         return 'background:#5bc0de;color:#fff;';
     }
     // Compat: mantiene nombre viejo para no romper nada
@@ -2439,7 +2798,7 @@ $(document).ready(function () {
                 '<span style="background:' + badgeBg + '; color:#fff; font-size:9px; font-weight:600; padding:2px 6px; border-radius:3px; margin-right:6px;"><i class="fa ' + icon + '"></i> ' + tipoLabel + '</span>' +
                 '<b style="font-size:13px;">' + nro + '</b>' + detalleStr +
                 (window.PUEDE_ELIMINAR ? '<span style="position:absolute; right:8px; top:50%; transform:translateY(-50%);">' +
-                    '<button class="btn btn-xs btn-danger btn-ask-remove-activo" data-activo-id="' + act.id + '" title="Eliminar" style="padding:2px 7px; font-size:11px;"><i class="fa fa-trash"></i></button>' +
+                    '<button class="btn btn-xs btn-ask-remove-activo" data-activo-id="' + act.id + '" title="Eliminar" style="padding:2px 7px; font-size:11px; background:#e2e8f0; color:#64748b; border:1px solid #cbd5e1; transition:all 0.15s;" onmouseover="this.style.background=\'#d9534f\';this.style.color=\'#fff\';this.style.borderColor=\'#d43f3a\';" onmouseout="this.style.background=\'#e2e8f0\';this.style.color=\'#64748b\';this.style.borderColor=\'#cbd5e1\';"><i class="fa fa-trash"></i></button>' +
                     '<span class="confirm-remove-activo" style="display:none;">' +
                         '<button class="btn btn-xs btn-success btn-confirm-remove-activo" data-activo-id="' + act.id + '" title="Confirmar" style="padding:2px 7px; font-size:11px;"><i class="fa fa-check"></i></button> ' +
                         '<button class="btn btn-xs btn-default btn-cancel-remove-activo" title="Cancelar" style="padding:2px 7px; font-size:11px;"><i class="fa fa-times"></i></button>' +
@@ -2925,7 +3284,13 @@ $(document).ready(function () {
                 $('#adjCamposFisc').show();
             }
 
+            // Clear ALL previous state - re-enable everything first
+            $('#frmAgregarAdjuntos input').prop('disabled', false);
+            $('#frmAgregarAdjuntos')[0].reset();
             $('#frmAgregarAdjuntos input[type="file"]').val('');
+            $('#frmAgregarAdjuntos .btn-quitar-archivo').remove();
+            $('#adjuntosActuales').html('');
+            $('#timelineAdjuntos').html('');
             $('#timelineAdjuntos').html('<p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i> Cargando historial...</p>');
 
             $.get('/notas-unificadas/historial-adjuntos/' + notaId, function (res) {
@@ -3020,11 +3385,25 @@ $(document).ready(function () {
                 inputHtml = '<select class="form-control edit-input" data-field="' + field + '" style="font-size: 13px;"><option value="">-- Seleccione --</option>';
                 opciones.forEach(function(o) { inputHtml += '<option value="' + o.id + '"' + (o.id == selectedId ? ' selected' : '') + '>' + o.nombre + '</option>'; });
                 inputHtml += '</select>';
+            } else if (field === 'compartir_administrador') {
+                var checked = ($span.data('value') == 1) ? ' checked' : '';
+                inputHtml = '<label style="display:inline-flex; align-items:center; gap:6px; font-weight:normal; cursor:pointer; margin:0;"><input type="checkbox" class="edit-input edit-input-check" data-field="' + field + '"' + checked + ' style="width:16px; height:16px;"> <span style="font-size:13px;">Sí</span></label>';
             } else if (field === 'estado') {
                 var estadoActual = $span.data('value') || '';
-                var opciones = window.OPCIONES_ESTADO || [];
+                var allOpciones = window.OPCIONES_ESTADO || [];
+                var trans = window.TRANSICIONES_ESTADO || {};
+                var permitidos = [];
+                if (window.NIVEL_ESTADO === 'admin') {
+                    permitidos = allOpciones.map(function(e) { return e.descripcion; });
+                } else {
+                    var mapa = trans[window.NIVEL_ESTADO] || {};
+                    permitidos = mapa[estadoActual] || [];
+                }
                 inputHtml = '<select class="form-control edit-input" data-field="' + field + '" style="font-size: 13px;">';
-                opciones.forEach(function(e) { inputHtml += '<option value="' + e.descripcion + '"' + (e.descripcion === estadoActual ? ' selected' : '') + '>' + e.descripcion + '</option>'; });
+                allOpciones.forEach(function(e) {
+                    var enabled = (permitidos.indexOf(e.descripcion) !== -1) || (e.descripcion === estadoActual);
+                    inputHtml += '<option value="' + e.descripcion + '"' + (e.descripcion === estadoActual ? ' selected' : '') + (!enabled ? ' disabled style="color:#ccc;"' : '') + '>' + e.descripcion + '</option>';
+                });
                 inputHtml += '</select>';
             } else {
                 inputHtml = '<input type="text" class="form-control edit-input" data-field="' + field + '" value="' + currentValue + '" style="font-size: 13px;">';
@@ -3045,6 +3424,7 @@ $(document).ready(function () {
 
     // Cancelar edición
     function cancelarEdicion($panel, notaId) {
+        $panel.find('.edit-input-check').closest('label').remove();
         $panel.find('.edit-input').remove();
         $panel.find('.edit-actions').remove();
         $panel.find('.editable').each(function () {
@@ -3061,7 +3441,7 @@ $(document).ready(function () {
         let datos = {};
         $panel.find('.edit-input').each(function () {
             let field = $(this).data('field');
-            let value = $(this).val();
+            let value = $(this).is(':checkbox') ? ($(this).is(':checked') ? 1 : 0) : $(this).val();
             datos[field] = value;
         });
 
@@ -3077,9 +3457,15 @@ $(document).ready(function () {
                     $panel.find('.edit-input').each(function () {
                         var $input = $(this);
                         var field = $input.data('field');
-                        var $editable = $input.prev('.editable');
+                        var $editable = $input.is(':checkbox') ? $input.closest('label').prev('.editable') : $input.prev('.editable');
                         var displayValue;
-                        if (field === 'estado') {
+                        if (field === 'compartir_administrador') {
+                            var val = $input.is(':checked') ? 1 : 0;
+                            $editable.data('value', val);
+                            $editable.html(val ? '<span style="color:#5cb85c;"><i class="fa fa-check-circle"></i> Sí</span>' : '<span style="color:#999;"><i class="fa fa-times-circle"></i> No</span>').show();
+                            $input.closest('label').remove();
+                            return;
+                        } else if (field === 'estado') {
                             var estadoVal = $input.val();
                             $editable.data('value', estadoVal);
                             $editable.html('<span class="label" style="' + getEstadoStyle(estadoVal) + '">' + estadoVal + '</span>').show();
