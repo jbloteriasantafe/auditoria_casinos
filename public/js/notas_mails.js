@@ -197,11 +197,20 @@
 
   // ========== ABM DESTINATARIOS ==========
 
+  function defaultCasinoSel(){
+    // Si el usuario no es admin, la opción "Todos" (value="0") no existe;
+    // seleccionar el primer casino disponible.
+    var $sel = $('#selDestCasino');
+    if ($sel.find('option[value="0"]').length) return '0';
+    var first = $sel.find('option').first().val();
+    return first || '';
+  }
+
   $(document).on('click', '#btnNuevoDestinatario', function(){
     $('#hidDestId').val('');
     $('#inpDestNombre').val('');
     $('#inpDestEmail').val('');
-    $('#selDestCasino').val('0');
+    $('#selDestCasino').val(defaultCasinoSel());
     $('#panelNuevoDestinatario').slideDown(200);
   });
 
@@ -209,7 +218,7 @@
     $('#hidDestId').val($(this).data('id'));
     $('#inpDestNombre').val($(this).data('nombre'));
     $('#inpDestEmail').val($(this).data('email'));
-    $('#selDestCasino').val($(this).data('casino') || '0');
+    $('#selDestCasino').val($(this).data('casino') || defaultCasinoSel());
     $('#panelNuevoDestinatario').slideDown(200);
   });
 
