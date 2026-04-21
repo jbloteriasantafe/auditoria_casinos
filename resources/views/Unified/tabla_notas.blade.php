@@ -18,7 +18,7 @@ function colorEstado($estado) {
                 <th width="7%" class="sortable th-filterable" data-sort="created_at" data-filter="fecha">Fecha Subida <i class="fa fa-sort"></i> <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
                 <th width="7%" class="sortable" data-sort="fecha_pretendida_aprobacion">Fecha Est. Aprob. <i class="fa fa-sort"></i></th>
                 <th width="8%" class="sortable" data-sort="nro_nota">Nro Nota <i class="fa fa-sort"></i></th>
-                <th width="10%" class="sortable th-filterable" data-sort="id_casino" data-filter="casino">Casino/Plat. <i class="fa fa-sort"></i> <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
+                <th width="10%" class="th-filterable" data-filter="casino" style="cursor:pointer;">Casino/Plat. <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
                 <th width="18%">Título / Tema</th>
                 <th width="7%" class="th-filterable" data-filter="rama" style="cursor:pointer;">Ramas <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
                 <th width="8%" class="th-filterable" data-filter="estado" style="cursor:pointer;">Estado <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
@@ -51,16 +51,18 @@ function colorEstado($estado) {
                 </td>
                 <td>{{ $grupo->titulo }}</td>
                 <td>
-                    {{-- Badges para cada rama --}}
+                    {{-- Badges para cada rama (apilados verticalmente) --}}
                     @foreach($grupo->notas as $nota)
                         @if(isset($rolVista) && $rolVista === 'funcionario1' && !(isset($verTodo) && $verTodo) && $nota->tipo_rama == 'FISC')
                             @continue
                         @endif
-                        @if($nota->tipo_rama == 'MKT')
-                            <span class="label label-primary" style="margin-right:3px;">MKT</span>
-                        @else
-                            <span class="label label-success" style="margin-right:3px;">FISC</span>
-                        @endif
+                        <div style="margin-bottom:2px;">
+                            @if($nota->tipo_rama == 'MKT')
+                                <span class="label label-primary">MKT</span>
+                            @else
+                                <span class="label label-success">FISC</span>
+                            @endif
+                        </div>
                     @endforeach
                 </td>
                 <td class="grupo-estados" data-grupo-id="{{ $grupo->id }}">
@@ -73,7 +75,9 @@ function colorEstado($estado) {
                         })->unique();
                     @endphp
                     @foreach($estados as $est)
-                        <span class="label" style="{{ colorEstado($est) }} margin-right:2px;">{{ $est }}</span>
+                        <div style="margin-bottom:2px;">
+                            <span class="label" style="{{ colorEstado($est) }}">{{ $est }}</span>
+                        </div>
                     @endforeach
                 </td>
                 <td>
@@ -96,10 +100,12 @@ function colorEstado($estado) {
                         @php
                             $prefijo = ($ap->tipo_documento === 'DISPOSICION') ? 'D' : 'N';
                             $nroAp = $ap->numero_documento ? $prefijo . ' ' . $ap->numero_documento . '-' . $ap->anio_documento : '';
-                            $colorAp = ($ap->tipo_rama === 'MKT') ? '#3b82f6' : '#10b981';
+                            $claseRama = ($ap->tipo_rama === 'MKT') ? 'label-primary' : 'label-success';
                         @endphp
                         @if($nroAp)
-                            <span class="label" style="background:{{ $colorAp }}; color:#fff; display:inline-block; margin-bottom:2px;">{{ $nroAp }}</span>
+                            <div style="margin-bottom:2px;">
+                                <span class="label {{ $claseRama }}">{{ $nroAp }}</span>
+                            </div>
                         @endif
                     @endforeach
                 </td>

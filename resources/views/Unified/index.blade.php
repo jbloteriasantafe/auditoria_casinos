@@ -1569,6 +1569,20 @@ $(function(){
 <style>
 .btn-edit-dest:hover { background: #27ae60 !important; }
 </style>
+<!-- ===================== MODAL CONFIRMAR ACOPLE / RAMA DUPLICADA ===================== -->
+<div class="modal fade" id="modalWizardAcople" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="border-radius:15px; border:none; box-shadow:0 15px 35px rgba(0,0,0,0.2);">
+            <div id="wizardAcopleHeader" class="modal-header" style="color:white; border-radius:15px 15px 0 0; padding:15px 25px;">
+                <button type="button" class="close" data-dismiss="modal" style="color:white; opacity:0.9;"><span>&times;</span></button>
+                <h4 class="modal-title" style="font-weight:600;" id="wizardAcopleTitle"></h4>
+            </div>
+            <div class="modal-body" style="padding:20px 25px; background:#f8fafc;" id="wizardAcopleBody"></div>
+            <div class="modal-footer" style="border-top:1px solid #e2e8f0; padding:12px 25px;" id="wizardAcopleFooter"></div>
+        </div>
+    </div>
+</div>
+
 <!-- ===================== MODAL GESTIÓN DE MAILS ===================== -->
 <div class="modal fade" id="modalGestionMails" tabindex="-1" role="dialog" data-backdrop="static">
     <div class="modal-dialog modal-lg" role="document" style="width:70%;">
@@ -1714,7 +1728,9 @@ $(function(){
                                 <div class="col-md-3" id="divDestCasino" style="display:none;">
                                     <label style="font-size:11px;">Casino/Plataforma</label>
                                     <select class="form-control" id="selDestCasino">
+                                        @if(!empty($esAdminMails))
                                         <option value="0">— Todos —</option>
+                                        @endif
                                         @foreach($casinos as $c)
                                         <option value="{{ $c->es_plataforma ? 'p_' . $c->id_plataforma : 'c_' . $c->id_casino }}">{{ $c->nombre }}</option>
                                         @endforeach

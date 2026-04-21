@@ -369,6 +369,7 @@ Route::post('/add-comment', 'NotasUnificadasController@addComment');
 Route::get('/get-comments/{id}', 'NotasUnificadasController@getComments');
   Route::delete('/eliminar/{id}', 'NotasUnificadasController@destroy');
   Route::delete('/eliminar-grupo/{id}', 'NotasUnificadasController@destroyGrupo');
+  Route::post('/eliminar-masivo', 'NotasUnificadasController@eliminarMasivo');
   Route::get('/descargar/{id}/{tipo}', 'NotasUnificadasController@descargarArchivo');
   Route::get('/visualizar/{id}/{tipo}', 'NotasUnificadasController@visualizarArchivo');
 
@@ -393,6 +394,7 @@ Route::get('/get-comments/{id}', 'NotasUnificadasController@getComments');
 
   // Relación entre grupos (nota padre/hija)
   Route::get('/buscar-grupos', 'NotasUnificadasController@buscarGrupos');
+  Route::get('/verificar-grupo-existente', 'NotasUnificadasController@verificarGrupoExistente');
   Route::post('/asignar-grupo-padre', 'NotasUnificadasController@asignarGrupoPadre');
   Route::post('/quitar-grupo-padre', 'NotasUnificadasController@quitarGrupoPadre');
 
@@ -1623,19 +1625,6 @@ Route::group(['prefix' => 'informesGenerales'], function () {//@TODO: agregar pe
   Route::get('/producidos_semana', 'InformesGeneralesController@producidos_semana');
 });
 
-// NOTAS UNIFICADAS ROUTES
-Route::group(['prefix' => 'notas-unificadas', 'middleware' => 'tiene_permiso:ver_notas_unificadas'], function () {
-    Route::get('/', 'NotasUnificadasController@index');
-    Route::post('/guardar', 'NotasUnificadasController@store');
-    
-    Route::get('/buscar-activos', 'NotasUnificadasController@buscarActivos');
-    Route::get('/obtener-activos-isla/{id}', 'NotasUnificadasController@obtenerActivosIsla');
-    Route::delete('/eliminar/{id}', 'NotasUnificadasController@destroy');
-    Route::post('/eliminar-masivo', 'NotasUnificadasController@eliminarMasivo');
-    
-    // Collaborative Flow
-    Route::post('/flujo-colaborativo', 'NotasUnificadasController@flujoColaborativo');
-});
 Route::get("/fix-db-anotaciones", function() {
     if(!Schema::hasTable("notas_pdf_anotaciones")) {
         Schema::create("notas_pdf_anotaciones", function ($table) {
