@@ -150,7 +150,7 @@ class informesController extends Controller
       [DB::raw('DAY(p.fecha)'),'>=',$dia_desde],[DB::raw('DAY(p.fecha)'),'<=',$dia_hasta]
     ];
 
-    $cantidad_maquinas = 'COUNT(distinct m.id_maquina)';
+    $cantidad_maquinas = 'COUNT(distinct m.nro_admin)';
     $suma_a = 'SUM(IF(p.apuesta IS NULL OR m.id_maquina IS NULL,NULL,IFNULL(dp.apuesta,0)))';
     $suma_p = 'SUM(IF(p.premio IS NULL OR m.id_maquina IS NULL,NULL,IFNULL(dp.premio,0)))';;
     $suma_v = 'SUM(IF(m.id_maquina IS NULL,0,IFNULL(dp.valor,0)))';
@@ -176,7 +176,7 @@ class informesController extends Controller
     ->leftJoin('maquina as m',function($j) use ($nro_admins){
       $j->on('m.id_maquina','=','dp.id_maquina');
       if(is_null($nro_admins)) return;
-      return $j->whereIn('m.nro_admin',$nro_admins);
+      return $j->whereIn('m.nro_admin',$nro_admins)->whereNull('m.deleted_at');
     })
     ->where($condicion)->where('dp.valor','<>',0)->groupBy('p.id_producido')->orderBy('p.fecha','asc')->get();
     
