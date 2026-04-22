@@ -248,6 +248,7 @@ class informesController extends Controller
       }
     };
     $current_min = $lista[0] ?? null;
+    $n = $current_min;
     for($idx = 1;$idx < count($lista);$idx++){
       $n = $lista[$idx];
       if($n == ($lista[$idx-1]+1)){//Si es mas grande por 1, sigue estando OK el rango
@@ -256,9 +257,8 @@ class informesController extends Controller
       $agregar_rango($rangos,$current_min,$lista[$idx-1]);
       $current_min = $n;
     }
-    //Caso especial para el ultimo rango si fueron todos consecutivos nunca lo agrego
-    if($current_min !== null && $current_min === $lista[0]){
-      $agregar_rango($rangos,$lista[0],end($lista));
+    if($current_min !== null){
+      $agregar_rango($rangos,$current_min,$n);
     }
     return implode(',',$rangos);
   }
