@@ -405,6 +405,15 @@ class NotasUnificadasController extends Controller
                     }
                 }
             }
+
+            // Fallback para administradores/control sin rol CARGA_NOTAS_*:
+            // usar sus casinos asignados en usuario_tiene_casino.
+            if (empty($rolesNotas) && ($usuario->es_administrador || $usuario->es_control)) {
+                $casinosPermitidos = DB::table('usuario_tiene_casino')
+                    ->where('id_usuario', $id_usuario)
+                    ->pluck('id_casino')
+                    ->toArray();
+            }
         }
 
         // Detectar roles de funcionario (tienen prioridad, incluso sobre superusuario)
@@ -2962,6 +2971,53 @@ class NotasUnificadasController extends Controller
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Verificar si existe un grupo con los datos ingresados en el wizard.
+     * Responde: { existe, grupo: {id,nro_nota,anio,titulo,casino,ramas}, rama_ya_existe }
+     */
+    public function verificarGrupoExistente(Request $request)
+    {
+        $nroNota = $request->nro_nota;
+        $anio = $request->anio;
+        $idCasino = $request->id_casino;
+        $idPlataforma = $request->id_plataforma;
+        $tipoTarea = $request->tipo_tarea;
+
+        if (!$nroNota || !$anio || (!$idCasino && !$idPlataforma)) {
+            return response()->json(['existe' => false]);
+        }
+
+        $q = \App\Models\GrupoTramite::with('casino')
+            ->where('nro_nota', $nroNota)
+            ->where('anio', $anio);
+        if ($idPlataforma) {
+            $q->where('id_plataforma', $idPlataforma);
+        } else {
+            $q->where('id_casino', $idCasino);
+        }
+        $grupo = $q->first();
+
+        if (!$grupo) {
+            return response()->json(['existe' => false]);
+        }
+
+        $ramas = $grupo->notas()->pluck('tipo_rama')->toArray();
+        $ramaNueva = ($tipoTarea === 'MARKETING') ? 'MKT' : (($tipoTarea === 'FISCALIZACION') ? 'FISC' : null);
+
+        return response()->json([
+            'existe' => true,
+            'rama_ya_existe' => $ramaNueva ? in_array($ramaNueva, $ramas) : false,
+            'grupo' => [
+                'id' => $grupo->id,
+                'nro_nota' => $grupo->nro_nota,
+                'anio' => $grupo->anio,
+                'titulo' => $grupo->titulo,
+                'casino' => $grupo->casino ? $grupo->casino->nombre : self::resolverNombreCasino($grupo->id_casino, $grupo->id_plataforma),
+                'ramas' => $ramas,
+            ],
+        ]);
     }
 
     /**

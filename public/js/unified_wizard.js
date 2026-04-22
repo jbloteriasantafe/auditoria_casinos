@@ -637,9 +637,103 @@ $(document).ready(function () {
             return;
         }
 
+        // ! INTERCEPT FOR STEP 1 (Datos admin) -> 2
+        // Verifica dos casos contra el backend:
+        //   a) rama_ya_existe -> bloquea con modal de error.
+        //   b) existe (mismo nro+año+casino) pero otra rama -> pide confirmación de acople.
+        if (currentStep === 1 && !$('#idGrupoExistente').val()) {
+            $.get('/notas-unificadas/verificar-grupo-existente', {
+                nro_nota: $('#inpNroNota').val(),
+                anio: $('#inpAnio').val(),
+                id_casino: $('#hidCasinoId').val() || '',
+                id_plataforma: $('#hidPlataformaId').val() || '',
+                tipo_tarea: $('#selTipoTarea').val()
+            }).done(function (res) {
+                if (res && res.existe && res.rama_ya_existe) {
+                    mostrarModalAcople('duplicada', res.grupo, $('#selTipoTarea').val());
+                    return;
+                }
+                if (res && res.existe && !res.rama_ya_existe) {
+                    mostrarModalAcople('acoplar', res.grupo, $('#selTipoTarea').val(), function () {
+                        goToStep(currentStep + 1);
+                    });
+                    return;
+                }
+                goToStep(currentStep + 1);
+            }).fail(function () {
+                // si falla la verificación, no bloquear el flujo
+                goToStep(currentStep + 1);
+            });
+            return;
+        }
+
         let nextStep = currentStep + 1;
         goToStep(nextStep);
     };
+
+    // Modal personalizado para aviso de acople / rama duplicada
+    // modo: 'acoplar' (confirm con callback) | 'duplicada' (solo cerrar)
+    function mostrarModalAcople(modo, grupo, tipoTarea, onConfirm) {
+        grupo = grupo || {};
+        var ramaNueva = tipoTarea === 'MARKETING' ? 'MKT' : (tipoTarea === 'FISCALIZACION' ? 'FISC' : '');
+        var ramasBadges = (grupo.ramas || []).map(function (r) {
+            var cls = r === 'MKT' ? 'label-primary' : 'label-success';
+            return '<span class="label ' + cls + '" style="margin-right:4px;">' + r + '</span>';
+        }).join('') || '<span class="text-muted">—</span>';
+
+        var $header = $('#wizardAcopleHeader');
+        var $title = $('#wizardAcopleTitle');
+        var $body = $('#wizardAcopleBody');
+        var $footer = $('#wizardAcopleFooter');
+
+        if (modo === 'duplicada') {
+            $header.css('background', 'linear-gradient(135deg, #ef4444, #b91c1c)');
+            $title.html('<i class="fa fa-ban"></i> Ya existe una nota ' + ramaNueva);
+            $body.html(
+                '<p style="margin:0 0 12px; color:#334155;">' +
+                'El trámite <strong>Nro ' + grupo.nro_nota + '-' + grupo.anio + '</strong> ' +
+                'de <strong>' + (grupo.casino || '—') + '</strong> ya tiene una nota <strong>' + ramaNueva + '</strong>.' +
+                '</p>' +
+                '<div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:12px; font-size:13px;">' +
+                (grupo.titulo ? '<div style="margin-bottom:6px;"><strong>Título:</strong> ' + grupo.titulo + '</div>' : '') +
+                '<div><strong>Ramas existentes:</strong> ' + ramasBadges + '</div>' +
+                '</div>' +
+                '<p style="margin:14px 0 0; color:#64748b; font-size:12.5px;">' +
+                'No podés crear otra nota ' + ramaNueva + ' para el mismo trámite. Cambiá el Nro de Nota, el año o el casino, o complementá el trámite existente desde la grilla.' +
+                '</p>'
+            );
+            $footer.html(
+                '<button type="button" class="btn btn-default" data-dismiss="modal" style="border-radius:8px;">Entendido</button>'
+            );
+        } else {
+            $header.css('background', 'linear-gradient(135deg, #f59e0b, #d97706)');
+            $title.html('<i class="fa fa-link"></i> Se va a acoplar a un trámite existente');
+            $body.html(
+                '<p style="margin:0 0 12px; color:#334155;">' +
+                'Ya existe el trámite <strong>Nro ' + grupo.nro_nota + '-' + grupo.anio + '</strong> ' +
+                'para <strong>' + (grupo.casino || '—') + '</strong>.' +
+                '</p>' +
+                '<div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:12px; font-size:13px;">' +
+                (grupo.titulo ? '<div style="margin-bottom:6px;"><strong>Título:</strong> ' + grupo.titulo + '</div>' : '') +
+                '<div><strong>Ramas existentes:</strong> ' + ramasBadges + '</div>' +
+                '</div>' +
+                '<p style="margin:14px 0 0; color:#334155;">' +
+                'Si continuás, esta nota <strong>' + ramaNueva + '</strong> se va a <strong>acoplar</strong> al trámite existente ' +
+                '(no se crea un trámite nuevo).' +
+                '</p>'
+            );
+            $footer.html(
+                '<button type="button" class="btn btn-default" data-dismiss="modal" style="border-radius:8px;">Cancelar</button> ' +
+                '<button type="button" id="btnConfirmarAcople" class="btn btn-warning" style="border-radius:8px;"><i class="fa fa-link"></i> Acoplar y continuar</button>'
+            );
+            $('#btnConfirmarAcople').off('click').on('click', function () {
+                $('#modalWizardAcople').modal('hide');
+                if (typeof onConfirm === 'function') onConfirm();
+            });
+        }
+
+        $('#modalWizardAcople').modal('show');
+    }
 
     function uploadAdjuntos(callback) {
         let formData = new FormData();
@@ -2445,25 +2539,26 @@ $(document).ready(function () {
             var ramaColor = na.tipo_rama === 'MKT' ? '#3b82f6' : '#10b981';
             var ramaLabel = na.tipo_rama === 'MKT' ? 'Marketing' : 'Fiscalización';
             var ramaIcon = na.tipo_rama === 'MKT' ? 'fa-bullhorn' : 'fa-gavel';
-            // Tipo documento badge
+            // Tipo documento badge: usa el mismo color que la rama
             var tipoDocLabel = '';
             if (na.tipo_documento) {
-                var tdColor = na.tipo_documento === 'NOTA' ? '#d97706' : '#4f46e5';
                 var tdText = na.tipo_documento === 'NOTA' ? 'Nota' : 'Disposición';
                 var numDoc = na.numero_documento ? ' N° ' + na.numero_documento : '';
                 var anioDoc = na.anio_documento ? '/' + na.anio_documento : '';
-                tipoDocLabel = ' <span class="label" style="background:' + tdColor + '; color:white;">' + tdText + numDoc + anioDoc + '</span>';
+                tipoDocLabel = ' <span class="label" style="background:' + ramaColor + '; color:white;">' + tdText + numDoc + anioDoc + '</span>';
             }
 
-            html += '<li style="padding:8px 10px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between;">' +
-                '<div>' +
+            html += '<li style="padding:8px 10px; border-bottom:1px solid #f3f4f6; display:flex; align-items:flex-start; gap:10px;">' +
+                '<div style="flex:1 1 auto; min-width:0;">' +
+                '<div style="margin-bottom:4px;">' +
                 '<i class="fa ' + ramaIcon + '" style="color:' + ramaColor + '"></i> ' +
                 '<span class="label" style="background:' + ramaColor + '; color:white;">' + ramaLabel + '</span>' +
-                tipoDocLabel + ' ' +
-                '<strong>' + na.nombre_original + '</strong>' +
+                tipoDocLabel +
                 '<small class="text-muted" style="margin-left:8px;">' + (na.created_at || '') + '</small>' +
                 '</div>' +
-                '<div>' +
+                '<div style="word-break:break-word; overflow-wrap:anywhere;"><strong>' + na.nombre_original + '</strong></div>' +
+                '</div>' +
+                '<div style="flex:0 0 auto; white-space:nowrap;">' +
                 '<a href="/notas-unificadas/nota-aprobacion/visualizar/' + na.id + '" target="_blank" class="btn btn-xs btn-info" title="Ver"><i class="fa fa-eye"></i></a> ' +
                 '<a href="/notas-unificadas/nota-aprobacion/descargar/' + na.id + '" class="btn btn-xs btn-default" title="Descargar"><i class="fa fa-download"></i></a> ' +
                 (window.PUEDE_ELIMINAR ? '<button class="btn btn-xs btn-danger btn-eliminar-nota-aprobacion" data-id="' + na.id + '" title="Eliminar"><i class="fa fa-trash"></i></button>' : '') +
@@ -3801,6 +3896,14 @@ $(document).ready(function () {
             if (xhr.responseJSON && xhr.responseJSON.msg) msg = xhr.responseJSON.msg;
             notificacion('error', msg);
         });
+    });
+
+    // Fix Bootstrap 3: al cerrar un modal apilado, restaurar modal-open y el padding
+    // en el body para que el modal de atrás mantenga el scroll habilitado.
+    $(document).on('hidden.bs.modal', '.modal', function () {
+        if ($('.modal.in').length > 0) {
+            $('body').addClass('modal-open');
+        }
     });
 
 });
