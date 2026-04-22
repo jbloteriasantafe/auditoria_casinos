@@ -22,10 +22,10 @@ use App\Isla; // Importar modelo Isla (Legacy)
 class NotasUnificadasController extends Controller
 {
     // URL base de la API del sistema online
-    //const API_ONLINE_URL = 'http://10.1.121.30:8003/api/auditoria';
+    const API_ONLINE_URL = 'http://10.1.121.30:8003/api/auditoria';
     const API_ONLINE_TOKEN = 'TokenParaJuego';
     // Prueba: 
-    const API_ONLINE_URL = 'http://10.1.121.24:8004/api/auditoria';
+    //const API_ONLINE_URL = 'http://10.1.121.24:8004/api/auditoria';
 
     /**
      * Obtener plataformas y juegos desde la API online (cacheado 1 hora)

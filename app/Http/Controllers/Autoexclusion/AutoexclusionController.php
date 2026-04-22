@@ -928,9 +928,40 @@ class AutoexclusionController extends Controller
             $extension = $archivo->getClientOriginalExtension();
             if (in_array(strtolower($extension), ['xlsx', 'xls'])) {
                 try {
-                    // Convert Excel to CSV (no headings, so raw data)
+                    // Algunos generadores (exportadores de reguladores, Telerik, etc.) producen XLSX
+                    // con Target absoluto en los .rels ("/xl/workbook.xml"). PHPExcel 1.x no los
+                    // normaliza y el workbook queda vacío. Reescribimos los .rels sacando la barra inicial.
+                    if (strtolower($extension) === 'xlsx') {
+                        $zipFix = new \ZipArchive();
+                        if ($zipFix->open($path) === true) {
+                            $relsToFix = [];
+                            for ($i = 0; $i < $zipFix->numFiles; $i++) {
+                                $name = $zipFix->getNameIndex($i);
+                                if (substr($name, -5) === '.rels') {
+                                    $contenido = $zipFix->getFromName($name);
+                                    $fixed = preg_replace('#Target="/(?!/)#', 'Target="', $contenido);
+                                    if ($fixed !== $contenido) {
+                                        $relsToFix[$name] = $fixed;
+                                    }
+                                }
+                            }
+                            foreach ($relsToFix as $name => $contenidoFixed) {
+                                $zipFix->deleteName($name);
+                                $zipFix->addFromString($name, $contenidoFixed);
+                            }
+                            $zipFix->close();
+                        }
+                    }
+
+                    // Convert Excel to CSV (no headings, so raw data).
+                    // setDateColumns(-1): desactiva la auto-deteccion de fechas de Maatwebsite.
+                    // Sin esto, celdas con formato de fecha aplicado (incluso headers de texto
+                    // "fecha_exclusion") se convierten a HOY y destruyen el mapeo de columnas.
+                    // Con date detection desactivada, las fechas llegan como serial Excel crudo
+                    // (ej. 45593) y el fallback numerico en el parser las convierte correctamente.
                     $results = \Excel::load($path, function($reader) {
-                        $reader->noHeading(); 
+                        $reader->noHeading();
+                        $reader->setDateColumns(-1);
                     })->get();
                     
                     if ($results->count() > 0) {
@@ -1044,21 +1075,34 @@ class AutoexclusionController extends Controller
                      // Sanitize: convert 'a.m.' -> 'am' to match Carbon 'a' format
                      $fecha_ae_clean = str_ireplace(['a.m.', 'p.m.', 'a. m.', 'p. m.'], ['am', 'pm', 'am', 'pm'], $fecha_ae_raw);
                      $fecha_ae_clean = trim($fecha_ae_clean);
-                     
+
                      foreach ($formats as $fmt) {
                          try {
                              $fecha_ae = \Carbon\Carbon::createFromFormat($fmt, $fecha_ae_clean);
                              if ($fecha_ae) break;
                          } catch (\Exception $e) {}
                      }
+
+                     // Fallback: Excel serial date (celda "General" sin formato de fecha aplicado).
+                     // Rango 10000-80000 cubre ~1927-2119, evita confundir DNIs o IDs pequeños.
+                     if (!$fecha_ae && is_numeric($fecha_ae_clean)
+                         && $fecha_ae_clean >= 10000 && $fecha_ae_clean <= 80000) {
+                         try {
+                             $phpDate = \PHPExcel_Shared_Date::ExcelToPHPObject((float)$fecha_ae_clean);
+                             $fecha_ae = \Carbon\Carbon::instance($phpDate);
+                         } catch (\Exception $e) {}
+                     }
                  }
-                 
+
                  // If null, default to now (or skip if strict?)
                  // User says "saltea todos", implying they want data.
-                 if (!$fecha_ae) $fecha_ae = \Carbon\Carbon::now();
+                 if (!$fecha_ae) {
+                     Log::warning("ImportarMasivo: fecha_ae no parseada, cae a HOY. DNI=$dni raw=".json_encode($fecha_ae_raw)." clean=".json_encode($fecha_ae_clean ?? null)." is_numeric=".(is_numeric($fecha_ae_clean ?? '')?'1':'0'));
+                     $fecha_ae = \Carbon\Carbon::now();
+                 }
                  
                  $apellido_nombres = (($idx_apellido !== null) ? ($row[$idx_apellido] ?? '-') : '-') . ', ' . (($idx_nombre !== null) ? ($row[$idx_nombre] ?? '-') : '-');
-                 $persona_desc = "Fila " . ($cant_procesados + $cant_saltados + $cant_errores + 1) . ": DNI $dni - $apellido_nombres";
+                 $persona_desc = "Fila " . ($cant_procesados + $cant_saltados + $cant_errores + 1) . ": DNI $dni - $apellido_nombres - Fecha AE: " . $fecha_ae->format('d/m/Y');
 
                  // --- DUPLICATE CHECK (Based on DNI + Active Status) ---
                  // User request: Check if DNI exists and if current status is "active". 
@@ -1142,6 +1186,15 @@ class AutoexclusionController extends Controller
                              $fecha_nac = \Carbon\Carbon::createFromFormat($fmt, $nac_clean)->format('Y-m-d');
                              if($fecha_nac) break;
                         } catch (\Exception $e) {}
+                     }
+
+                     // Fallback: serial Excel (mismo criterio que fecha_ae)
+                     if (!$fecha_nac && is_numeric($nac_clean)
+                         && $nac_clean >= 10000 && $nac_clean <= 80000) {
+                         try {
+                             $phpDate = \PHPExcel_Shared_Date::ExcelToPHPObject((float)$nac_clean);
+                             $fecha_nac = $phpDate->format('Y-m-d');
+                         } catch (\Exception $e) {}
                      }
                  }
                  if(!$fecha_nac) $fecha_nac = '1900-01-01'; // Default backup
