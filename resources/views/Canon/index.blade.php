@@ -217,13 +217,18 @@
         @endif
         @if($puede_deseliminar)
         <button data-mostrar-borrado class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
-        <button class="btn" type="button" data-js-borrar="/canon/borrar" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
         <button data-mostrar-borrado class="btn" type="button" data-js-cambiar-estado="/canon/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
           <i class="fa fa-backward"></i>
         </button>
         @endif
-        @if($puede_agregarmodificar)
-        <button class="btn" type="button" data-js-borrar="/canon/borrar" title="BORRAR" data-estado-visible="GENERADO,PAGADO"><i class="fa fa-fw fa-trash-alt"></i></button>
+        @if($puede_agregarmodificar || $puede_deseliminar)
+        <button class="btn" type="button" data-js-borrar="/canon/borrar" title="BORRAR" 
+          @if($puede_deseliminar)
+          data-estado-visible="GENERADO,PAGADO"
+          @endif
+        >
+          <i class="fa fa-fw fa-trash-alt"></i>
+        </button>
         @endif
       </td>
     </tr>
