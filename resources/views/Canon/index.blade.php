@@ -100,9 +100,13 @@
   @component('Components/FiltroTabla')
     @slot('titulo')
     CANON
+    @if($puede_agregarmodificar)
     <button class="btn" type="button" data-js-nuevo-canon="/canon/obtener">NUEVO</button>
+    @endif
+    @if($puede_ver)
     <button data-js-descargar="/canon/descargar" class="btn btn-sucess" type="button" style="font-size: 0.9rem;"><i class="fa fa-arrow-circle-down"></i>DESCARGAR<i class="fa fa-spinner fa-spin" data-js-descargando style="display: none;"></i></button> 
     <a href="/canon/descargarPlanillas" target="_blank" class="btn btn-sucess" role="button" style="font-size: 0.9rem;"><i class="fa fa-arrow-circle-down"></i>PLANILLAS</a>
+    @endif
     @endslot
     
     @slot('target_buscar')
@@ -175,7 +179,7 @@
         </div>
         <span style="color: blue;font-weight: bold;font-size: 0.8em;padding-right: 0.1em;"><sup class="antiguo">XXX</sup></span>
         <span class="estado">ESTADO</span>
-        @if($puede_cargar)
+        @if($puede_agregarmodificar)
         <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Pagado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Generado" a "Pagado"?' data-estado-visible="GENERADO" title="CONFIRMAR PAGO">
           <i class="fas fa-hand-holding-usd"></i>
         </button>
@@ -196,24 +200,29 @@
       <td class="pago" data-formatear-numero>PAGO</td>
       <td class="saldo_posterior" data-formatear-numero>SALDO</td>
       <td>
+        @if($puede_ver)
         <button class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
-        @if($puede_cargar)
+        @endif
+        @if($puede_agregarmodificar)
         <button class="btn" type="button" data-js-adjuntar="/canon/obtener" data-estado-visible="PAGADO" title="ADJUNTAR"><i class="fa fa-fw fa-paperclip"></i></button>
         <button class="btn" type="button" data-js-editar="/canon/obtener" data-estado-visible="GENERADO"  title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
         @endif
+        @if($puede_ver)
         <a tabindex="0" class="btn btn-info info" data-toggle="popover" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
           <i class="fa fa-print"></i>
         </a>
         <a tabindex="0" href="/canon/planillaInformeCanon" target="_blank" class="btn btn-info info" title="Informe de Canon">
           <i class="fa fa-list-ul"></i>
         </a>
-        @if($es_superusuario)
+        @endif
+        @if($puede_deseliminar)
         <button data-mostrar-borrado class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
         <button class="btn" type="button" data-js-borrar="/canon/borrar" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
         <button data-mostrar-borrado class="btn" type="button" data-js-cambiar-estado="/canon/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
           <i class="fa fa-backward"></i>
         </button>
-        @else($puede_cargar)
+        @endif
+        @if($puede_agregarmodificar)
         <button class="btn" type="button" data-js-borrar="/canon/borrar" title="BORRAR" data-estado-visible="GENERADO,PAGADO"><i class="fa fa-fw fa-trash-alt"></i></button>
         @endif
       </td>
@@ -265,6 +274,7 @@
 </div>
 @endif
 
+@if($puede_ver || $puede_agregarmodificar)
 <style>
   .VerCargarCanon {
     --color-fondo-pestaña: #ececec;
@@ -1283,16 +1293,20 @@
   </form>
   @endslot
   @slot('pie')
-  @if($puede_cargar)
+  @if($puede_agregarmodificar)
   <button class="btn btn-successAceptar" type="button" data-js-enviar="/canon/adjuntar" data-modo-mostrar='[{"modo": "ADJUNTAR"}]' data-modo-mostrar="ADJUNTAR">ADJUNTAR</button>
   <button class="btn btn-successAceptar" type="button" data-js-enviar="/canon/guardar" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>GUARDAR</button>
   @endif
   @endslot
 @endcomponent
+@endif
 
+@if($puede_agregarmodificar)
 @component('Components/modalEliminar')
 @endcomponent
+@endif
 
+@if($puede_agregarmodificar)
 @component('Components/modal',[
   'clases_modal' => 'modalCambiarEstado',
   'attrs_modal' => 'data-js-modal-cambiar-estado',
@@ -1309,6 +1323,7 @@
     <button type="button" class="btn" style="background-color: #F4B400 !important;color: white;" data-js-click-cambiar-estado>CAMBIAR</button>
   @endslot
 @endcomponent
+@endif
 
 <meta name="_token" content="{!! csrf_token() !!}" />
 

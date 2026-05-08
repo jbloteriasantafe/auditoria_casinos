@@ -71,8 +71,10 @@ class CanonController extends Controller
     $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $casinos = $u->casinos;     
     $es_superusuario = $u->es_superusuario;
-    $puede_cargar = $es_superusuario || $u->tienePermiso('m_a_pagos');
-    return View::make('Canon.index', compact('casinos','plataformas','es_superusuario','puede_cargar'));
+    $puede_deseliminar = $es_superusuario;
+    $puede_ver = $es_superusuario || $u->tienePermiso('m_b_pagos');
+    $puede_agregarmodificar = $es_superusuario || $u->tienePermiso('m_a_pagos');
+    return View::make('Canon.index', compact('casinos','plataformas','es_superusuario','puede_deseliminar','puede_ver','puede_agregarmodificar'));
   }
   
   private static  $errores = [

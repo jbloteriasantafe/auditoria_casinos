@@ -1594,16 +1594,18 @@ Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_c
 Route::group(['prefix' => 'canon', 'middleware' => 'tiene_permiso:m_ver_seccion_canon'], function () {
   Route::get('/', '\App\Http\Controllers\CanonController@index');
   Route::post('/buscar', '\App\Http\Controllers\CanonController@buscar');
-  Route::post('/descargar', '\App\Http\Controllers\CanonController@descargar');
-  Route::get('/descargarPlanillas', '\App\Http\Controllers\CanonController@descargarPlanillas');
-  Route::get('/obtener', '\App\Http\Controllers\CanonController@obtener');
-  Route::get('/planillaPDF', '\App\Http\Controllers\CanonController@planillaPDF');
-  Route::get('/planillaDevengado', '\App\Http\Controllers\CanonController@planillaDevengado');
-  Route::get('/planillaDeterminado', '\App\Http\Controllers\CanonController@planillaDeterminado');
-  Route::get('/planillaInformeCanon', '\App\Http\Controllers\CanonController@planillaInformeCanon');
-  Route::get('/archivo', '\App\Http\Controllers\CanonController@archivo');
-  Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
+  Route::group(['middleware' => 'tiene_permiso:m_b_pagos'],function () {
+    Route::post('/descargar', '\App\Http\Controllers\CanonController@descargar');
+    Route::get('/descargarPlanillas', '\App\Http\Controllers\CanonController@descargarPlanillas');
+    Route::get('/obtener', '\App\Http\Controllers\CanonController@obtener');
+    Route::get('/planillaPDF', '\App\Http\Controllers\CanonController@planillaPDF');
+    Route::get('/planillaDevengado', '\App\Http\Controllers\CanonController@planillaDevengado');
+    Route::get('/planillaDeterminado', '\App\Http\Controllers\CanonController@planillaDeterminado');
+    Route::get('/planillaInformeCanon', '\App\Http\Controllers\CanonController@planillaInformeCanon');
+    Route::get('/archivo', '\App\Http\Controllers\CanonController@archivo');
     Route::get('/obtenerConHistorial', '\App\Http\Controllers\CanonController@obtenerConHistorial');
+  });
+  Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
     Route::post('/recalcular', '\App\Http\Controllers\CanonController@recalcular_req');
     Route::post('/guardar', '\App\Http\Controllers\CanonController@guardar');
     Route::post('/adjuntar', '\App\Http\Controllers\CanonController@adjuntar');
