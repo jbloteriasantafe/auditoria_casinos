@@ -2145,6 +2145,10 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
         <br/>
         <div class="row">
           <div class="col-md-4">
+          <h5>IMpuesto Total</h5>
+          <input type="text" id="total_impuesto_iibb" class="form-control" name="total_impuesto_iibb">
+        </div>
+          <div class="col-md-4">
             <h5>Diferencia minimo </h5>
             <input type="text" class="form-control" name="dif_miniibb" id="dif_miniibb">
           </div>
@@ -2156,7 +2160,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
         <br/>
         <div class="row">
           <div class="col-md-12">
-            <h5>Deducciones</h5>
+            <h4>Deducciones</h4>
             <div id="contenedor-deducciones-iibb"></div>
             <div style="margin-top:8px;">
               <button type="button" id="agregar-deduccion-iibb" class="btn btn-success btn-sm"><i class="fa fa-plus"></i> Agregar deducción</button>
@@ -2168,10 +2172,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
       </br>
 
       <div class="row">
-        <div class="col-md-6">
-          <h5>IMpuesto Total</h5>
-          <input type="text" id="total_impuesto_iibb" class="form-control" name="total_impuesto_iibb">
-        </div>
+        
         <div class="col-md-6">
           <h5>Saldo a favor API/Contribuyente</h5>
           <input type="text" id="saldo_iibb" class="form-control" name="saldo_iibb">
@@ -2297,20 +2298,22 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                 </div>
               </div>
               <div id="contenedor-bases-ver-iibb"></div>
-
-
+              <div class="row">
+                <div class="col-md-4">
+                    <h5>Impuesto total determinado</h5>
+                    <input type="text" class="form-control" id="ver_impuestoTotal_iibb" readonly>
+                  </div>
+            </div>
+            </br>
                 <div class="row">
                   <div class="col-md-8">
-                    <h5>Deducciones</h5>
+                    <h4>Deducciones</h4>
                     <div id="contenedor-deducciones-ver-iibb"></div>
                   </div>
                 </div>
               </br>
                 <div class="row">
-                  <div class="col-md-4">
-                    <h5>Impuesto total determinado</h5>
-                    <input type="text" class="form-control" id="ver_impuestoTotal_iibb" readonly>
-                  </div>
+                  
                   <div class="col-md-4">
                     <h5>Diferencia mínimo</h5>
                     <input type="text" class="form-control" id="ver_diferencia_iibb" readonly>

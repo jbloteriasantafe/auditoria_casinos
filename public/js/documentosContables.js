@@ -1384,13 +1384,14 @@ $(document).on("click", ".btn-verRegiibb", function () {
     var dedsList = Array.isArray(data.deducciones_list) ? data.deducciones_list : [];
     if (dedsList.length) {
       $("#contenedor-deducciones-ver-iibb").append(
-        '<div class="row"><div class="col-md-6"><h5>Detalle</h5></div><div class="col-md-6"><h5>Monto deducción</h5></div></div>'
+        '<div class="row"><div class="col-md-6"><h5>Detalle</h5></div><div class="col-md-6"><h5>Monto deducción</h5></div></div> '
       );
       dedsList.forEach(function(dd) {
         var bloqueDed = '<div class="row" style="margin-bottom:4px;">' +
           '<div class="col-md-6"><input type="text" class="form-control" value="' + (dd.label || '') + '" readonly></div>' +
           '<div class="col-md-6"><input type="text" class="form-control" value="$ ' + formatoAR(dd.monto) + '" readonly></div>' +
-          '</div>';
+          '</div>' +
+          '</br>';
         $("#contenedor-deducciones-ver-iibb").append(bloqueDed);
       });
     } else if (data.deducciones) {
