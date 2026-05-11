@@ -45,5 +45,9 @@ class Registroiibb extends Model
       return $this->hasMany(Registroiibb_bases::class, 'id_registroiibb', 'id_registroiibb');
     }
 
+    public function deducciones_rel()
+    {
+      return $this->hasMany(Registroiibb_deducciones::class, 'id_registroiibb', 'id_registroiibb');
+    }
 
 }
