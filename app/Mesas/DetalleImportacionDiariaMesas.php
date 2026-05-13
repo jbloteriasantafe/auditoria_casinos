@@ -86,6 +86,18 @@ class DetalleImportacionDiariaMesas extends Model
     return $mesa;
   }
   
+  public function deslinkearCierres(){
+    $imp = $this->importacion_diaria_mesas;
+    
+    if($imp->validado){//Si esta validado, retorno lo que esta    
+      throw new \Exception('Importacion validada, no puede eliminar los cierres');
+    }
+    
+    $this->id_cierre_mesa =  null;
+    $this->id_cierre_mesa_anterior =  null;
+    $this->save();
+  }
+  
   public function actualizarCierres($forzar_actualizacion = false){
     $imp = $this->importacion_diaria_mesas;
     

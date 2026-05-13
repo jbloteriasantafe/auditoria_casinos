@@ -105,6 +105,13 @@ class Cierre extends Model
   public function importacion(){
     return $this->belongsTo('App\Mesas\ImportacionDiariaCierres','id_cierre_mesa','id_cierre_mesa');
   }
+  
+  public function detalle_importacion_diaria_mesas(){
+    return $this->belongsTo('App\Mesas\DetalleImportacionDiariaMesas','id_cierre_mesa','id_cierre_mesa');
+  }
+  public function detalle_importacion_diaria_mesas_anterior(){
+    return $this->belongsTo('App\Mesas\DetalleImportacionDiariaMesas','id_cierre_mesa','id_cierre_mesa_anterior');
+  }
 
   public function getTableName(){
     return $this->table;

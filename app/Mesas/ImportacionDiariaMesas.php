@@ -77,6 +77,12 @@ class ImportacionDiariaMesas extends Model
       $d->actualizarCierres($forzar_actualizacion);
     }
   }
+  
+  public function deslinkearCierres(){
+    foreach($this->detalles as $d){
+      $d->deslinkearCierres();
+    }
+  }
 
   public function moneda(){
     return $this->belongsTo('App\Mesas\Moneda','id_moneda','id_moneda');

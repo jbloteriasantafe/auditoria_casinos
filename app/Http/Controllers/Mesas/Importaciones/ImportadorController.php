@@ -108,14 +108,6 @@ class ImportadorController extends Controller
   return ['importacion' => $importacion,'casino' => $importacion->casino,'detalles' => $detalles,'moneda' => $importacion->moneda];
 }
 
-private function eliminarCierres_internal($importacion){
-  $CC = new BCCierreController;
-  foreach($importacion->cierres as $cierre){
-    $CC->eliminarCierre_internal($cierre,true);
-  }
-  $importacion->delete();
-}
-
 public function importarCierres(Request $request){
   $header_esperado = ['nro_admin','cod_juego','hora_apertura','hora_cierre','anticipos','total'];
   $fichas_totales = 1;
@@ -211,7 +203,7 @@ public function importarCierres(Request $request){
         ['fecha','=',$fecha]
       ])->get();
       foreach($idcs as $i){
-        $this->eliminarCierres_internal($i);
+        $this->eliminarImportacionDiariaCierres($i->id_importacion_diaria_cierres);
       }
     }
     
@@ -301,6 +293,7 @@ public function importarCierres(Request $request){
   DB::commit();
   return 0;
 }
+
 
 private function crearCierre($id_importacion_diaria_cierres,$id_usuario,$fecha,$id_casino,$id_moneda,$nro_admin,$cod_juego,$hora_apertura,$hora_cierre,$anticipos,$total,$fichas){
   $mesa = Mesa::where('mesa_de_panio.id_casino','=',$id_casino)
@@ -655,10 +648,21 @@ public function importarDiario(Request $request){
     return 1;
   }
   
-  public function eliminarCierres($id){
+  public function eliminarImportacionDiariaCierres($id){
     DB::transaction(function() use ($id){
       $imp = ImportacionDiariaCierres::find($id);
-      $this->eliminarCierres_internal($imp);
+      foreach($imp->cierres as $c){//Verificar esto, @HACK chequear si esta validado algo?
+        $d = $c->detalle_importacion_diaria_mesas;
+        $d->deslinkearCierres();
+        $d = $c->detalle_importacion_diaria_mesas_anterior;
+        $d->deslinkearCierres();
+      }
+      
+      $CC = new BCCierreController;
+      foreach($imp->cierres as $c){
+        $CC->eliminarCierre_internal($c,true);
+      }
+      $imp->delete();
     });
     return 1;
   }
