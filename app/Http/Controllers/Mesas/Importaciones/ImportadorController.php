@@ -118,21 +118,15 @@ private function eliminarCierres_internal($importacion){
 
 public function importarCierres(Request $request){
   $header_esperado = ['nro_admin','cod_juego','hora_apertura','hora_cierre','anticipos','total'];
-  $fichas_totales = 16;
-  for($i=1;$i<=$fichas_totales;$i++){
-    $header_esperado[] = 'ficha_valor'.$i;
-    $header_esperado[] = 'importe'.$i;
-  }
-  $header_esperado_inv = [];
-  foreach($header_esperado as $idx => $nombre) $header_esperado_inv[$nombre] = $idx;
-
+  $fichas_totales = 1;
+  
   $validator =  Validator::make($request->all(),[
     'id_casino' => 'required|exists:casino,id_casino',
     'id_moneda' => 'required|exists:moneda,id_moneda',
     'fecha' => 'required|date',
     'archivo' => 'required|file',
     'md5' => 'required|string|max:32',
-  ], array(), self::$atributos)->after(function($validator) use ($header_esperado){
+  ], array(), self::$atributos)->after(function($validator) use (&$header_esperado,&$fichas_totales){
     if($validator->errors()->any()) return;
     $fecha = $validator->getData()['fecha'];
     if($fecha >= date('Y-m-d')){
@@ -143,18 +137,62 @@ public function importarCierres(Request $request){
     $headers = [];
     $handle = fopen($archivo->getRealPath(), 'r');
 
-    $recibido = fgetcsv($handle,1600,';','"');
-    $recibido2 = [];//Lo convierto porque lo mandan en un encoding raro, me figura como binaria la cadena
-    foreach($recibido as $h) $recibido2[] = utf8_encode($h);
+    $primera_linea = fgetcsv($handle,1600,';','"');
+    $header_recibido = [];//Lo convierto porque lo mandan en un encoding raro, me figura como binaria la cadena
+    foreach($primera_linea as $idx => $col){
+      $header_recibido[] = utf8_encode($col);
+      if($idx == 0){// Limpia el BOM si existe
+        $header_recibido[$idx] = str_replace("\xEF\xBB\xBF", '', $col);
+      }
+    }
     
-    if($recibido2 != $header_esperado){
+    {//La cantidad de ficha_valor,importe lo hago dinamico porque agregan fichas a lo loco
+      $col_esperada = 'ficha_valor';
+      $num_esperado = 1;
+      //De header en adelante son todas fichas
+      for($idx=count($header_esperado);$idx<count($header_recibido);$idx++){
+        $h = $header_recibido[$idx];
+        $col = substr($h,0,strlen($col_esperada));
+        $num = substr($h,strlen($col_esperada));
+        $num = ctype_digit($num)? intval($num) : $num;
+        if($col == $col_esperada){
+          if($num == $num_esperado){
+            $header_esperado[] = $h;
+            if($col_esperada == 'ficha_valor'){
+              $col_esperada = 'importe';
+            }
+            else if ($col_esperada == 'importe'){
+              $col_esperada = 'ficha_valor';
+              $num_esperado++;
+            }
+            else{
+              return $validator->errors()->add('archivo',"Error UNREACHABLE $col_esperada");
+            }
+          }
+          else{
+            return $validator->errors()->add('archivo',"I Columna inesperada $idx:'$h' se esperaba la columna '{$col_esperada}{$num_esperado}'");
+          }
+        }
+        else{
+          return $validator->errors()->add('archivo',"C Columna inesperada $idx:'$h' se esperaba la columna '{$col_esperada}{$num_esperado}'");
+        }
+      }
+      $fichas_totales = $num_esperado - 1;//Suma una de mas en la ultima iteracion
+    }
+    
+    if($header_recibido != $header_esperado){
       $validator->errors()->add('archivo', 'El formato del archivo no es correcto.');
+      $validator->errors()->add('archivo','Header esperado: '.implode(';',$header_esperado));
+      $validator->errors()->add('archivo','Header recibido: '.implode(';',$header_recibido));
       fclose($handle);
       return;
     }
     fclose($handle);
   })->validate();
-
+  
+  $header_esperado_inv = [];
+  foreach($header_esperado as $idx => $nombre) $header_esperado_inv[$nombre] = $idx;
+  
   $id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
   $id_casino = $request->id_casino;
   $id_moneda = $request->id_moneda;
