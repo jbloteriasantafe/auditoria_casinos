@@ -653,9 +653,13 @@ public function importarDiario(Request $request){
       $imp = ImportacionDiariaCierres::find($id);
       foreach($imp->cierres as $c){//Verificar esto, @HACK chequear si esta validado algo?
         $d = $c->detalle_importacion_diaria_mesas;
-        $d->deslinkearCierres();
+        if($d !== null){
+          $d->deslinkearCierres();
+        }
         $d = $c->detalle_importacion_diaria_mesas_anterior;
-        $d->deslinkearCierres();
+        if($d !== null){
+          $d->deslinkearCierres();
+        }
       }
       
       $CC = new BCCierreController;
