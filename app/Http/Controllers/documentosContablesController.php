@@ -9,6 +9,7 @@ use App\Usuario;
 use App\RegistroIva;
 use App\Registroiibb;
 use App\RegistroDREI;
+use App\RegistroDREIBases;
 use App\RegistroTGI;
 use App\RegistroTGI_partida;
 use App\RegistroTGI_partida_pago;
@@ -724,7 +725,7 @@ public function guardariibb(Request $request)
         $iibb->casino              = $request->input('casinoiibb');
         $iibb->observacion         = $request->input('obsiibb');
         $iibb->diferencia_minimo   = $request->input('dif_miniibb');
-        $iibb->deducciones         = $request->input('deduccionesiibb');
+        $iibb->deducciones         = $request->input('deduccionesiibb') ?: 0;
         $iibb->impuesto_total_determinado      = $request->input('total_impuesto_iibb');
         $iibb->saldo_a_favor_api_contribuyente = $request->input('saldo_iibb');
         $iibb->usuario             = UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'];
@@ -768,6 +769,24 @@ public function guardariibb(Request $request)
             ]);
         }
 
+        // Deducciones dinámicas
+        $dedLabels = \Illuminate\Support\Arr::wrap($request->input('deduccion_label', []));
+        $dedMontos = \Illuminate\Support\Arr::wrap($request->input('deduccion_monto', []));
+        $sumaDeduccion = 0;
+        for ($i = 0; $i < count($dedLabels); $i++) {
+            $lbl = $dedLabels[$i] ?? null;
+            $mnt = $dedMontos[$i] ?? null;
+            if ($mnt === null && $lbl === null) continue;
+            $iibb->deducciones_rel()->create([
+                'label' => $lbl,
+                'monto' => $mnt,
+                'valido' => 1,
+            ]);
+            $sumaDeduccion += floatval($mnt);
+        }
+        $iibb->deducciones = $sumaDeduccion;
+        $iibb->save();
+
         DB::commit();
         return response()->json(['success' => true, 'id' => $iibb->id_registroiibb]);
     } catch (\Throwable $e) {
@@ -787,7 +806,7 @@ public function actualizariibb(Request $request, $id)
         $r->fecha_presentacion                 = $request->input('fecha_iibbPres');
         $r->casino                             = $request->input('casinoiibb');
         $r->diferencia_minimo                  = $request->input('dif_miniibb');
-        $r->deducciones                        = $request->input('deduccionesiibb');
+        $r->deducciones                        = $request->input('deduccionesiibb') ?: 0;
         $r->observacion                        = $request->input('obsiibb');
         $r->impuesto_total_determinado         = $request->input('total_impuesto_iibb');
         $r->saldo_a_favor_api_contribuyente    = $request->input('saldo_iibb');
@@ -854,6 +873,43 @@ public function actualizariibb(Request $request, $id)
             $r->bases()->whereIn('id_registroiibb_bases', $toDelete)->delete();
         }
 
+        // Deducciones dinámicas
+        $existingDedIds = $r->deducciones_rel()->pluck('id_registroiibb_deducciones')->toArray();
+        $keepDedIds = [];
+
+        $dedIds    = (array) $request->input('deduccion_id', []);
+        $dedLabels = (array) $request->input('deduccion_label', []);
+        $dedMontos = (array) $request->input('deduccion_monto', []);
+
+        $sumaDeduccion = 0;
+        $nDed = max(count($dedIds), count($dedLabels), count($dedMontos));
+        for ($i = 0; $i < $nDed; $i++) {
+            $did = isset($dedIds[$i]) ? $dedIds[$i] : null;
+            $lbl = isset($dedLabels[$i]) ? $dedLabels[$i] : null;
+            $mnt = isset($dedMontos[$i]) ? $dedMontos[$i] : null;
+
+            $payload = ['label' => $lbl, 'monto' => $mnt, 'valido' => 1];
+            $sumaDeduccion += floatval($mnt);
+
+            if ($did) {
+                $r->deducciones_rel()->where('id_registroiibb_deducciones', $did)->update($payload);
+                $keepDedIds[] = $did;
+            } else {
+                $nuevo = $r->deducciones_rel()->create($payload);
+                if ($nuevo && isset($nuevo->id_registroiibb_deducciones)) {
+                    $keepDedIds[] = $nuevo->id_registroiibb_deducciones;
+                }
+            }
+        }
+
+        $toDeleteDed = array_diff($existingDedIds, $keepDedIds);
+        if (!empty($toDeleteDed)) {
+            $r->deducciones_rel()->whereIn('id_registroiibb_deducciones', $toDeleteDed)->delete();
+        }
+
+        $r->deducciones = $sumaDeduccion;
+        $r->save();
+
         DB::commit();
         return response()->json(['success' => true, 'id' => $r->id_registroiibb]);
     } catch (\Exception $e) {
@@ -868,7 +924,7 @@ public function actualizariibb(Request $request, $id)
 
 
 public function llenariibbEdit($id){
-  $iibb = Registroiibb::with('casinoiibb','bases')->findOrFail($id);
+  $iibb = Registroiibb::with('casinoiibb','bases','deducciones_rel')->findOrFail($id);
   if(is_null($iibb)) return 0;
 
   return response()->json([
@@ -887,6 +943,13 @@ public function llenariibbEdit($id){
         'monto'     => $b->base,
         'alicuota'  => $b->alicuota,
         'imp' => $b->impuesto_determinado,
+      ];
+    }),
+    'deducciones_list' => $iibb->deducciones_rel->map(function($d){
+      return [
+        'id'    => $d->id_registroiibb_deducciones,
+        'label' => $d->label,
+        'monto' => $d->monto,
       ];
     }),
   ]);
@@ -971,7 +1034,7 @@ public function archivosiibb($id)
 
 
 public function llenariibb($id){
-  $iibb = Registroiibb::with('casinoiibb','bases')->findOrFail($id);
+  $iibb = Registroiibb::with('casinoiibb','bases','deducciones_rel')->findOrFail($id);
   if(is_null($iibb)) return 0;
 
   return response()->json([
@@ -983,7 +1046,14 @@ public function llenariibb($id){
     'diferencia' => $iibb->diferencia_minimo,
     'deducciones' => $iibb->deducciones,
     'saldo' => $iibb->saldo_a_favor_api_contribuyente,
-    'obs' => $iibb->observacion
+    'obs' => $iibb->observacion,
+    'deducciones_list' => $iibb->deducciones_rel->map(function($d){
+      return [
+        'id'    => $d->id_registroiibb_deducciones,
+        'label' => $d->label,
+        'monto' => $d->monto,
+      ];
+    }),
   ]);
 
 }
@@ -1451,14 +1521,25 @@ public function descargariibbCsvRegistros(Request $request)
 
 public function ultimasAlicuotasiibb(Request $request)
 {
-    $ultima = Registroiibb::orderBy('id_registroiibb', 'desc')->first();
+    $casinoId = $request->input('casino_id');
+    $query = Registroiibb::with('bases')->orderBy('id_registroiibb', 'desc');
+    if ($casinoId) {
+        $query->where('casino', $casinoId);
+    }
+    $ultima = $query->first();
 
-    return response()->json([
-        'alicuota_1' => $ultima ? $ultima->alicuota_1 : null,
-        'alicuota_2' => $ultima ? $ultima->alicuota_2 : null,
-        'alicuota_3' => $ultima ? $ultima->alicuota_3 : null,
+    if (!$ultima) {
+        return response()->json(['bases' => []]);
+    }
 
-    ]);
+    $bases = $ultima->bases->map(function($b){
+        return [
+            'obs'      => $b->observacion,
+            'alicuota' => $b->alicuota,
+        ];
+    });
+
+    return response()->json(['bases' => $bases]);
 }
 
 
@@ -1542,6 +1623,22 @@ public function guardarDREI(Request $request){
 
 
           $DREI->save();
+
+          // Guardar bases extra dinámicas
+          $labels = $request->input('label_drei', []);
+          $montos = $request->input('monto_drei', []);
+          $alics  = $request->input('alicuota_drei', []);
+          $imps   = $request->input('impuesto_drei', []);
+          foreach ($labels as $i => $label) {
+              $DREI->bases()->create([
+                  'label'                => $label,
+                  'base_imponible'       => isset($montos[$i]) && $montos[$i] !== '' ? $montos[$i] : null,
+                  'alicuota'             => isset($alics[$i])  && $alics[$i]  !== '' ? $alics[$i]  : null,
+                  'impuesto_determinado' => isset($imps[$i])   && $imps[$i]   !== '' ? $imps[$i]   : null,
+                  'valido'               => 1,
+              ]);
+          }
+
           $files = Arr::wrap($request->file('uploadDREI'));
           foreach ($files as $file) {
               if (!($file instanceof UploadedFile) || !$file->isValid()) continue;
@@ -1677,6 +1774,45 @@ public function actualizarDREI(Request $request, $id)
 
     $DREI->save();
 
+    // Upsert de bases extra dinámicas
+    $labels   = $request->input('label_drei', []);
+    $montos   = $request->input('monto_drei', []);
+    $alics    = $request->input('alicuota_drei', []);
+    $imps     = $request->input('impuesto_drei', []);
+    $baseIds  = $request->input('base_id_drei', []);
+    $idsMantenidos = [];
+
+    foreach ($labels as $i => $label) {
+        $existeId = isset($baseIds[$i]) && $baseIds[$i] ? (int)$baseIds[$i] : null;
+        if ($existeId) {
+            $base = RegistroDREIBases::find($existeId);
+            if ($base && $base->id_registroDREI == $DREI->id_registroDREI) {
+                $base->label                = $label;
+                $base->base_imponible       = isset($montos[$i]) && $montos[$i] !== '' ? $montos[$i] : null;
+                $base->alicuota             = isset($alics[$i])  && $alics[$i]  !== '' ? $alics[$i]  : null;
+                $base->impuesto_determinado = isset($imps[$i])   && $imps[$i]   !== '' ? $imps[$i]   : null;
+                $base->save();
+                $idsMantenidos[] = $existeId;
+                continue;
+            }
+        }
+        $nueva = $DREI->bases()->create([
+            'label'                => $label,
+            'base_imponible'       => isset($montos[$i]) && $montos[$i] !== '' ? $montos[$i] : null,
+            'alicuota'             => isset($alics[$i])  && $alics[$i]  !== '' ? $alics[$i]  : null,
+            'impuesto_determinado' => isset($imps[$i])   && $imps[$i]   !== '' ? $imps[$i]   : null,
+            'valido'               => 1,
+        ]);
+        $idsMantenidos[] = $nueva->id_registroDREI_bases;
+    }
+
+    // Eliminar bases que ya no están en el form
+    if (!empty($idsMantenidos)) {
+        $DREI->bases()->whereNotIn('id_registroDREI_bases', $idsMantenidos)->delete();
+    } else {
+        $DREI->bases()->delete();
+    }
+
     $saved = 0;
     $files = Arr::wrap($request->file('uploadDREI'));
     foreach ($files as $file) {
@@ -1772,7 +1908,7 @@ public function archivosDREI($id)
 }
 
 public function llenarDREIEdit($id){
-  $DREI = RegistroDREI::findOrFail($id);
+  $DREI = RegistroDREI::with('bases')->findOrFail($id);
 
   return response()->json([
     'fecha'      => is_string($DREI->fecha_drei) ? substr($DREI->fecha_drei,0,7)
@@ -1822,6 +1958,17 @@ public function llenarDREIEdit($id){
     'min_gral'              => $DREI->min_gral,
     'rectificativa_1'       => $DREI->rectificativa_1,
     'rectificativa_2'       => $DREI->rectificativa_2,
+
+    // Bases extra dinámicas
+    'bases' => $DREI->bases->map(function($b) {
+        return [
+            'id'        => $b->id_registroDREI_bases,
+            'label'     => $b->label,
+            'monto'     => $b->base_imponible,
+            'alicuota'  => $b->alicuota,
+            'imp'       => $b->impuesto_determinado,
+        ];
+    })->values(),
   ]);
 }
 
@@ -1835,7 +1982,7 @@ public function eliminarDREI($id){
 }
 
 public function llenarDREI($id){
-  $DREI = RegistroDREI::with('casinoDREI')->findOrFail($id);
+  $DREI = RegistroDREI::with('casinoDREI', 'bases')->findOrFail($id);
   if(is_null($DREI)) return 0;
 
   return response()->json([
@@ -1869,20 +2016,34 @@ public function llenarDREI($id){
     'min_gral' => $DREI->min_gral,
     'rect1' => $DREI->rectificativa_1,
     'rect2' => $DREI->rectificativa_2,
+    'bases' => $DREI->bases->map(function($b) {
+        return [
+            'id'       => $b->id_registroDREI_bases,
+            'label'    => $b->label,
+            'monto'    => $b->base_imponible,
+            'alicuota' => $b->alicuota,
+            'imp'      => $b->impuesto_determinado,
+        ];
+    })->values(),
   ]);
 
 }
 
 public function ultimasAlicuotasDREI(Request $request)
 {
-    $ultima = RegistroDREI::orderBy('id_registrodrei', 'desc')->first();
+    $casinoId = $request->input('casino_id');
+
+    $query = RegistroDREI::orderBy('id_registroDREI', 'desc');
+    if ($casinoId) {
+        $query->where('casino', $casinoId);
+    }
+    $ultima = $query->first();
 
     return response()->json([
-        'com_alicuota' => $ultima ? $ultima->com_alicuota : null,
-        'gas_alicuota' => $ultima ? $ultima->gas_alicuota : null,
-        'expl_alicuota' => $ultima ? $ultima->expl_alicuota : null,
+        'com_alicuota'   => $ultima ? $ultima->com_alicuota   : null,
+        'gas_alicuota'   => $ultima ? $ultima->gas_alicuota   : null,
+        'expl_alicuota'  => $ultima ? $ultima->expl_alicuota  : null,
         'apyju_alicuota' => $ultima ? $ultima->apyju_alicuota : null,
-
     ]);
 }
 public function descargarDREICsv(Request $request)
@@ -1894,7 +2055,7 @@ public function descargarDREICsv(Request $request)
     $user = Usuario::find(session('id_usuario'));
     $allowedCasinoIds = $user->casinos->pluck('id_casino')->toArray();
 
-    $registros = RegistroDREI::with('casinoDREI')
+    $registros = RegistroDREI::with('casinoDREI', 'bases')
         ->whereIn('casino', $allowedCasinoIds)
         ->when($casinoId && (int)$casinoId !== 4, function ($q) use ($casinoId) {
             $q->where('casino', $casinoId);
@@ -1936,6 +2097,12 @@ public function descargarDREICsv(Request $request)
             $push('Otras Actividades','Base Imponible', $r->gas_base_imponible);
             $push('Otras Actividades','Alicuota', $r->gas_alicuota);
             $push('Otras Actividades','Impuesto Determinado', $r->gas_imp_det);
+            foreach ($r->bases as $b) {
+                $rubro = $b->label ?: 'Base adicional';
+                $push($rubro, 'Base Imponible', $b->base_imponible);
+                $push($rubro, 'Alicuota', $b->alicuota);
+                $push($rubro, 'Impuesto Determinado', $b->impuesto_determinado);
+            }
             $push('General','Saldo', $r->saldo);
         } elseif ((int)$r->casino === 2) {
             $push('Comercio','Base Imponible', $r->com_base_imponible);
@@ -1950,6 +2117,12 @@ public function descargarDREICsv(Request $request)
             $push('Apuestas y Juegos','Base Imponible', $r->apyju_base_imponible);
             $push('Apuestas y Juegos','Alicuota', $r->apyju_alicuota);
             $push('Apuestas y Juegos','Impuesto Determinado', $r->apyju_imp_det);
+            foreach ($r->bases as $b) {
+                $rubro = $b->label ?: 'Base adicional';
+                $push($rubro, 'Base Imponible', $b->base_imponible);
+                $push($rubro, 'Alicuota', $b->alicuota);
+                $push($rubro, 'Impuesto Determinado', $b->impuesto_determinado);
+            }
             $push('General','Impuesto Est. y Garage', $r->imp_est_y_garage);
             $push('General','Bromatología', $r->bromatologia);
             $push('General','Deducciones', $r->deducciones);
@@ -1958,7 +2131,12 @@ public function descargarDREICsv(Request $request)
             $push('General','Saldo', $r->saldo);
         } else {
             $push('General','Monto Pagado', $r->monto_pagado);
-
+            foreach ($r->bases as $b) {
+                $rubro = $b->label ?: 'Base adicional';
+                $push($rubro, 'Base Imponible', $b->base_imponible);
+                $push($rubro, 'Alicuota', $b->alicuota);
+                $push($rubro, 'Impuesto Determinado', $b->impuesto_determinado);
+            }
             $push('General','Saldo', $r->saldo);
         }
     }
@@ -1994,6 +2172,7 @@ public function descargarDREIXlsx(Request $request)
     $casino = Casino::findOrFail($casinoId);
 
     $query = RegistroDREI::select([
+        DB::raw("id_registroDREI"),
         DB::raw("YEAR(fecha_drei) AS anio"),
         DB::raw("MONTHNAME(fecha_drei) AS Mes"),
         DB::raw("DATE_FORMAT(fecha_presentacion,'%d/%m/%Y') AS `Fecha Presentación`"),
@@ -2035,7 +2214,6 @@ public function descargarDREIXlsx(Request $request)
         $query->where('fecha_drei', '<=', $hasta . '-31');
     }
 
-
     $columnasPorCasino = [
     1 => [ // Casino 1: MEL
         'Meses', 'Monto Pagado', 'Presentación y Pago', 'Base Imponible Juegos', 'Alicuota', 'Impuesto Determinado',
@@ -2062,13 +2240,13 @@ public function descargarDREIXlsx(Request $request)
 
     $datos = $query->orderBy('fecha_drei')->get()->groupBy('anio');
 
-
-
+    $ids = $datos->flatten()->pluck('id_registroDREI')->filter()->all();
+    $basesMap = \App\RegistroDREIBases::whereIn('id_registroDREI', $ids)->get()->groupBy('id_registroDREI');
 
     $filename = "registro_DREI_" . str_replace(' ', '_', strtolower($casino->nombre));
 
-    return Excel::create($filename, function($excel) use ($datos, $casino, $casinoId, $columnasPorCasino) {
-        $excel->sheet('DREI', function($sheet) use ($datos, $casino, $casinoId, $columnasPorCasino) {
+    return Excel::create($filename, function($excel) use ($datos, $casino, $casinoId, $columnasPorCasino, $basesMap) {
+        $excel->sheet('DREI', function($sheet) use ($datos, $casino, $casinoId, $columnasPorCasino, $basesMap) {
             $fila = 1;
 
             if($casinoId==1){
@@ -2144,6 +2322,25 @@ public function descargarDREIXlsx(Request $request)
 
                       $sheet->getStyle("A{$fila}:U{$fila}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                       $fila++;
+
+                      foreach ($basesMap->get($r->id_registroDREI, collect()) as $b) {
+                          $sheet->row($fila, [
+                              '',
+                              '↳ ' . $b->label,
+                              '',
+                              '$ ' . number_format($b->base_imponible, 2, '.', ''),
+                              number_format($b->alicuota, 2, '.', '') . ' %',
+                              '$ ' . number_format($b->impuesto_determinado, 2, '.', ''),
+                          ]);
+                          $sheet->cells("A{$fila}:K{$fila}", function($cells) {
+                              $cells->setBackground('#F5F5F5');
+                              $cells->setAlignment('center');
+                          });
+                          $sheet->cells("B{$fila}", function($cells) {
+                              $cells->setAlignment('left');
+                          });
+                          $fila++;
+                      }
                   }
               }
 
@@ -2281,6 +2478,25 @@ public function descargarDREIXlsx(Request $request)
 
                     $sheet->getStyle("A{$fila}:U{$fila}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                     $fila++;
+
+                    foreach ($basesMap->get($r->id_registroDREI, collect()) as $b) {
+                        $sheet->row($fila, [
+                            '',
+                            '↳ ' . $b->label,
+                            '',
+                            '$ ' . number_format($b->base_imponible, 2, '.', ''),
+                            number_format($b->alicuota, 2, '.', '') . ' %',
+                            '$ ' . number_format($b->impuesto_determinado, 2, '.', ''),
+                        ]);
+                        $sheet->cells("A{$fila}:U{$fila}", function($cells) {
+                            $cells->setBackground('#F5F5F5');
+                            $cells->setAlignment('center');
+                        });
+                        $sheet->cells("B{$fila}", function($cells) {
+                            $cells->setAlignment('left');
+                        });
+                        $fila++;
+                    }
                 }
             }
 
@@ -2400,6 +2616,25 @@ public function descargarDREIXlsx(Request $request)
 
                     $sheet->getStyle("A{$fila}:F{$fila}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                     $fila++;
+
+                    foreach ($basesMap->get($r->id_registroDREI, collect()) as $b) {
+                        $sheet->row($fila, [
+                            '',
+                            '↳ ' . $b->label,
+                            '',
+                            '$ ' . number_format($b->base_imponible, 2, '.', ''),
+                            number_format($b->alicuota, 2, '.', '') . ' %',
+                            '$ ' . number_format($b->impuesto_determinado, 2, '.', ''),
+                        ]);
+                        $sheet->cells("A{$fila}:F{$fila}", function($cells) {
+                            $cells->setBackground('#F5F5F5');
+                            $cells->setAlignment('center');
+                        });
+                        $sheet->cells("B{$fila}", function($cells) {
+                            $cells->setAlignment('left');
+                        });
+                        $fila++;
+                    }
                 }
             }
 
@@ -2478,6 +2713,7 @@ public function descargarDREIXlsxTodos(Request $request)
         DB::raw("rectificativa_1 AS 'Rectificativa 1'"),
         DB::raw("rectificativa_2 AS 'Rectificativa 2'"),
         DB::raw("casino AS Casino"),
+        DB::raw("id_registroDREI"),
 
     ])
       ->when($desde, function($q) use ($desde) {
@@ -2488,6 +2724,9 @@ public function descargarDREIXlsxTodos(Request $request)
       })
       ->orderBy('fecha_drei')
       ->get();
+
+    $idsTodos = $datos->pluck('id_registroDREI')->filter()->all();
+    $basesMap = \App\RegistroDREIBases::whereIn('id_registroDREI', $idsTodos)->get()->groupBy('id_registroDREI');
 
       $columnasPorCasino = [
       1 => [ // Casino 1: MEL
@@ -2509,11 +2748,11 @@ public function descargarDREIXlsxTodos(Request $request)
               'Observaciones'
       ]
   ];
-    return Excel::create('registro_DREI_todos', function($excel) use ($casinos, $datos, $columnasPorCasino) {
+    return Excel::create('registro_DREI_todos', function($excel) use ($casinos, $datos, $columnasPorCasino, $basesMap) {
         foreach($casinos as $casinoId => $casinoNombre){
 
           if($casinoNombre=="Rosario"){
-            $excel->sheet($casinoNombre, function($sheet) use ($datos, $casinoId, $columnasPorCasino) {
+            $excel->sheet($casinoNombre, function($sheet) use ($datos, $casinoId, $columnasPorCasino, $basesMap) {
               $datosFiltrados = $datos->where('Casino', $casinoId)->groupBy('anio');
               $fila = 1;
               $sheet->row($fila,$columnasPorCasino[$casinoId]);
@@ -2596,6 +2835,25 @@ public function descargarDREIXlsxTodos(Request $request)
 
                       $sheet->getStyle("A{$fila}:F{$fila}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                       $fila++;
+
+                      foreach ($basesMap->get($r->id_registroDREI, collect()) as $b) {
+                          $sheet->row($fila, [
+                              '',
+                              '↳ ' . $b->label,
+                              '',
+                              '$ ' . number_format($b->base_imponible, 2, '.', ''),
+                              number_format($b->alicuota, 2, '.', '') . ' %',
+                              '$ ' . number_format($b->impuesto_determinado, 2, '.', ''),
+                          ]);
+                          $sheet->cells("A{$fila}:F{$fila}", function($cells) {
+                              $cells->setBackground('#F5F5F5');
+                              $cells->setAlignment('center');
+                          });
+                          $sheet->cells("B{$fila}", function($cells) {
+                              $cells->setAlignment('left');
+                          });
+                          $fila++;
+                      }
                   }
               }
 
@@ -2630,7 +2888,7 @@ public function descargarDREIXlsxTodos(Request $request)
               $sheet->setFreeze('A2');
             });
           }else if($casinoNombre=="Melincué"){
-            $excel->sheet($casinoNombre, function($sheet) use ($datos, $casinoId, $columnasPorCasino) {
+            $excel->sheet($casinoNombre, function($sheet) use ($datos, $casinoId, $columnasPorCasino, $basesMap) {
               $datosFiltrados = $datos->where('Casino', $casinoId)->groupBy('anio');
               $fila = 1;
               $sheet->row($fila,$columnasPorCasino[$casinoId]);
@@ -2705,6 +2963,25 @@ public function descargarDREIXlsxTodos(Request $request)
 
                       $sheet->getStyle("A{$fila}:U{$fila}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                       $fila++;
+
+                      foreach ($basesMap->get($r->id_registroDREI, collect()) as $b) {
+                          $sheet->row($fila, [
+                              '',
+                              '↳ ' . $b->label,
+                              '',
+                              '$ ' . number_format($b->base_imponible, 2, '.', ''),
+                              number_format($b->alicuota, 2, '.', '') . ' %',
+                              '$ ' . number_format($b->impuesto_determinado, 2, '.', ''),
+                          ]);
+                          $sheet->cells("A{$fila}:K{$fila}", function($cells) {
+                              $cells->setBackground('#F5F5F5');
+                              $cells->setAlignment('center');
+                          });
+                          $sheet->cells("B{$fila}", function($cells) {
+                              $cells->setAlignment('left');
+                          });
+                          $fila++;
+                      }
                   }
               }
 
@@ -2739,7 +3016,7 @@ public function descargarDREIXlsxTodos(Request $request)
               $sheet->setFreeze('A2');
             });
           }else{
-            $excel->sheet($casinoNombre, function($sheet) use ($datos, $casinoId, $columnasPorCasino) {
+            $excel->sheet($casinoNombre, function($sheet) use ($datos, $casinoId, $columnasPorCasino, $basesMap) {
               $datosFiltrados = $datos->where('Casino', $casinoId)->groupBy('anio');
               $fila =1;
               $sheet->mergeCells("A1:A2");
@@ -2845,6 +3122,25 @@ public function descargarDREIXlsxTodos(Request $request)
 
                       $sheet->getStyle("A{$fila}:U{$fila}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                       $fila++;
+
+                      foreach ($basesMap->get($r->id_registroDREI, collect()) as $b) {
+                          $sheet->row($fila, [
+                              '',
+                              '↳ ' . $b->label,
+                              '',
+                              '$ ' . number_format($b->base_imponible, 2, '.', ''),
+                              number_format($b->alicuota, 2, '.', '') . ' %',
+                              '$ ' . number_format($b->impuesto_determinado, 2, '.', ''),
+                          ]);
+                          $sheet->cells("A{$fila}:U{$fila}", function($cells) {
+                              $cells->setBackground('#F5F5F5');
+                              $cells->setAlignment('center');
+                          });
+                          $sheet->cells("B{$fila}", function($cells) {
+                              $cells->setAlignment('left');
+                          });
+                          $fila++;
+                      }
                   }
               }
 
@@ -3744,6 +4040,19 @@ public function guardarIMP_AP_OL(Request $request){
 
 }
 
+public function ultimasAlicuotasIMP_AP_OL(Request $request)
+{
+    $casinoId = $request->input('casino_id');
+    $query = RegistroIMP_AP_OL::orderBy('id_registroIMP_AP_OL', 'desc');
+    if ($casinoId) {
+        $query->where('casino', $casinoId);
+    }
+    $ultima = $query->first();
+    return response()->json([
+        'alicuota' => $ultima ? $ultima->alicuota : null,
+    ]);
+}
+
 public function ultimasIMP_AP_OL(Request $request)
 {
     $page    = max(1, (int)$request->query('page', 1));
@@ -4387,6 +4696,19 @@ public function guardarIMP_AP_MTM(Request $request){
           return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
       }
 
+}
+
+public function ultimasAlicuotasIMP_AP_MTM(Request $request)
+{
+    $casinoId = $request->input('casino_id');
+    $query = RegistroIMP_AP_MTM::orderBy('id_registroIMP_AP_MTM', 'desc');
+    if ($casinoId) {
+        $query->where('casino', $casinoId);
+    }
+    $ultima = $query->first();
+    return response()->json([
+        'alicuota' => $ultima ? $ultima->alicuota : null,
+    ]);
 }
 
 public function ultimasIMP_AP_MTM(Request $request)

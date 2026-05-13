@@ -1111,6 +1111,7 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('descargarDREICsv', 'documentosContablesController@descargarDREICsv');
   Route::get('descargarDREIXlsx', 'documentosContablesController@descargarDREIXlsx');
   Route::get('descargarDREIXlsxTodos', 'documentosContablesController@descargarDREIXlsxTodos');
+  Route::get('ultimasAlicuotasDREI', 'documentosContablesController@ultimasAlicuotasDREI');
   //TGI
   Route::post('guardarRegistroTGI_partida', 'documentosContablesController@guardarRegistroTGI_partida');
   Route::post('modificarTGI_partida', 'documentosContablesController@modificarTGI_partida');
@@ -1130,6 +1131,7 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('descargarTGIXlsxTodos', 'documentosContablesController@descargarTGIXlsxTodos');
   //IMPUESTO A APUESTAS ONLINE IMP_AP_OL
   Route::post('guardarIMP_AP_OL', 'documentosContablesController@guardarIMP_AP_OL');
+  Route::get('ultimasAlicuotasIMP_AP_OL', 'documentosContablesController@ultimasAlicuotasIMP_AP_OL');
   Route::get('ultimasIMP_AP_OL', 'documentosContablesController@ultimasIMP_AP_OL');
   Route::get('eliminarIMP_AP_OL/{id}', 'documentosContablesController@eliminarIMP_AP_OL');
   Route::post('actualizarIMP_AP_OL/{id}', 'documentosContablesController@actualizarIMP_AP_OL');
@@ -1141,6 +1143,7 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('descargarIMP_AP_OLCsv', 'documentosContablesController@descargarIMP_AP_OLCsv');
   //IMPUESTO A APUESTAS MTM IMP_AP_MTM
   Route::post('guardarIMP_AP_MTM', 'documentosContablesController@guardarIMP_AP_MTM');
+  Route::get('ultimasAlicuotasIMP_AP_MTM', 'documentosContablesController@ultimasAlicuotasIMP_AP_MTM');
   Route::get('ultimasIMP_AP_MTM', 'documentosContablesController@ultimasIMP_AP_MTM');
   Route::get('eliminarIMP_AP_MTM/{id}', 'documentosContablesController@eliminarIMP_AP_MTM');
   Route::post('actualizarIMP_AP_MTM/{id}', 'documentosContablesController@actualizarIMP_AP_MTM');
