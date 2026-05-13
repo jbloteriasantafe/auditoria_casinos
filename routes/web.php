@@ -1448,7 +1448,7 @@ Route::group(['prefix' => 'importacionDiaria', 'middleware' => 'tiene_permiso:m_
   Route::get('imprimir/{id}', 'Mesas\Importaciones\ImportadorController@imprimirDiario');
   Route::post('guardar', 'Mesas\Importaciones\ImportadorController@guardarImportacionDiaria');
   Route::get('eliminarImportacion/{id_imp}', 'Mesas\Importaciones\ImportadorController@eliminar');
-  Route::get('eliminarImportacionCierres/{id_imp}', 'Mesas\Importaciones\ImportadorController@eliminarCierres');
+  Route::get('eliminarImportacionCierres/{id_imp}', 'Mesas\Importaciones\ImportadorController@eliminarImportacionDiariaCierres');
   Route::post('ajustarDetalle', 'Mesas\Importaciones\ImportadorController@ajustarDetalle');
   Route::get('imprimirMensual', 'Mesas\InformesMesas\BCMensualesController@imprimirMensual');
   Route::get('superuserActualizarTodosLosCierres', 'Mesas\Importaciones\ImportadorController@superuserActualizarTodosLosCierres');
