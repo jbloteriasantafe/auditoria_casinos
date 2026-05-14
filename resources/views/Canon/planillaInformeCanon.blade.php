@@ -30,9 +30,10 @@
       cursor: pointer;
     }
   </style>
-  <div style="padding: 0.5em;border-bottom: 4px groove black;background: lightcyan;">
-    &nbsp;
+  <div style="padding: 0.5em;border-bottom: 4px groove black;background: lightcyan;display: flex;flex-direction: row-reverse;">
     <button data-js-click-descargar-tabla="[data-target-descargar-tabla]" style="float: right;">Descargar tabla</button>
+    <span>&nbsp;&nbsp;</span>
+    <button data-js-click-descargar-pdf="/canon/planillaInformeCanonPDF">Descargar PDF</button>
   </div>
   <div data-target-descargar-tabla>
     <style>
@@ -319,7 +320,16 @@
     window.getComputedStyle(document.body).getPropertyValue('--color-{!! $_cas !!}'),
     @endforeach
   ];
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll('[data-js-click-descargar-pdf]').forEach(function(b){
+      b.addEventListener("click",function(e){
+        const new_url = e.currentTarget.getAttribute('data-js-click-descargar-pdf');
+        const params = new URLSearchParams(window.location.search);
+        window.open(new_url+'?'+params.toString(),'_blank');
+      });
+    });
+  });
 </script>
 <script src="/js/Canon/planillas.js?1" charset="utf-8" type="module"></script>
-
 </html>

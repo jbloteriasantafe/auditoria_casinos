@@ -1605,6 +1605,7 @@ Route::group(['prefix' => 'canon', 'middleware' => 'tiene_permiso:m_ver_seccion_
     Route::get('/planillaDevengado', '\App\Http\Controllers\CanonController@planillaDevengado');
     Route::get('/planillaDeterminado', '\App\Http\Controllers\CanonController@planillaDeterminado');
     Route::get('/planillaInformeCanon', '\App\Http\Controllers\CanonController@planillaInformeCanon');
+    Route::get('/planillaInformeCanonPDF', '\App\Http\Controllers\CanonController@planillaInformeCanonPDF');
     Route::get('/archivo', '\App\Http\Controllers\CanonController@archivo');
     Route::get('/obtenerConHistorial', '\App\Http\Controllers\CanonController@obtenerConHistorial');
   });

@@ -2169,9 +2169,32 @@ class CanonController extends Controller
     return $dompdf->stream($filename, Array('Attachment'=>0));
   }
   
-  public function planillaInformeCanon(Request $request){
-    $planilla = 'canon_mensual';
+   public function planillaInformeCanonPDF(Request $request){
+    $data = $this->planillaInformeCanonData($request);
+    if(is_string($data)) return $data;//String de Error
+    if(!is_array($data)) return 'Error inesperado';
     
+    $fecha_planilla = new \DateTimeImmutable();
+    $data['fecha_planilla'] = $fecha_planilla;
+    $view = View::make('Canon.planillaInformeCanonPDF',$data);
+    $dompdf = new Dompdf();
+    $dompdf->set_paper('A4', 'portrait');
+    $dompdf->loadHtml($view->render());
+    $dompdf->render();
+    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    $tag_fecha_planilla = $fecha_planilla->format('Ymdhis');
+    $filename = "Canon-{$data['casino']}-{$data['año']}{$data['mes']}-$tag_fecha_planilla.pdf";
+    return $dompdf->stream($filename, Array('Attachment'=>0));
+  }
+  
+  public function planillaInformeCanon(Request $request){
+    $data = $this->planillaInformeCanonData($request);
+    if(is_string($data)) return $data;//String de Error
+    if(!is_array($data)) return 'Error inesperado';
+    return View::make('Canon.planillaInformeCanon',$data);
+  }
+  
+  private function planillaInformeCanonData(Request $request){
     $canon = DB::table('canon')
     ->where('id_canon',$request->id_canon)
     ->whereNull('deleted_at')
@@ -2375,13 +2398,13 @@ class CanonController extends Controller
     );
     $data['Canon']['Total']  = $determinados['Total'];
     
-    return View::make('Canon.planillaInformeCanon',[
+    return [
       'data' => $data,
       'casino' => $casino,
       'año' => $año,
       'mes' => $mes,
       'abbr_casinos' => $abbr_casinos
-    ]);
+    ];
   }
   
   public function descargar(Request $request){
