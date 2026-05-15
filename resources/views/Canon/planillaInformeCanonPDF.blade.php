@@ -75,203 +75,269 @@ $PJE = function($val){
   <link href="css/estiloPlanillaPortrait.css" rel="stylesheet">
 </head>
 
-<body style="width: 100%;">
-  <p style="float: right;font-size: 0.8em;"><span>Generado: <?php $hoy = date('j-m-y / h:i');print_r($hoy);?></span></p>
-  <p style="text-align: center;"><b>Canon Mensual - {{$casino}} - {{$año}}/{{$mes}}</b></p>
-  <h4>Canon Variable</h4>
-  <div style="padding-left: 1em;">
-    <table style="width: 100%;">
-      <thead>
-        <tr>
-          <th>Detalle</th>
-          <th>Beneficio</th>
-          <th>Alícuota</th>
-          <th>Determinado</th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach($data['Variable'] as $tvar => $dvar)
-          @if($tvar != 'Total')
-          <tr>
-            <th>{{$tvar}}</td>
-            <td>{{$DEC($dvar['beneficio'] ?? null)}}</td>
-            <td>{{$PJE($dvar['alicuota'] ?? null)}}</td>
-            <td>{{$DEC($dvar['determinado'] ?? null)}}</td>
-          </tr>
-          @else
-          <tr>
-            <th class="nob">&nbsp;</th>
-            <td>{{$DEC($dvar['beneficio'] ?? null)}}</td>
-            <td class="nob">&nbsp;</td>
-            <td>{{$DEC($dvar['determinado'] ?? null)}}</td>
-          </tr>
-          @endif
-        @endforeach
-      </tbody>
-    </table>
-  </div>          
-  <br>
-  <h4>Canon Fijo</h4>
-  <div style="padding-left: 1em;">
-    <table style="width: 100%;">
-      <thead>
-        <tr>
-          <th>Moneda</th>
-          <th>Valor Mesa</th>
-          <th>Tipo de cambio</th>
-          <th>Valor Mesa (Pesos)</th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach($data['Fijo']['Monedas'] as $mon => $datamon)
-        <tr>
-          <th>{{$mon}}</th>
-          <td>{{$DEC($datamon['valor'] ?? null)}}</td>
-          <td>{{$DEC($datamon['cotizacion'] ?? null)}}</td>
-          <td>{{$DEC($datamon['pesos'] ?? null)}}</td>
-        </tr>
-        @endforeach
-      </tbody>
-    </table>
-    <br>
-    <table style="width: 22em;">
-      <thead>
-        <tr>
-          <th>Valor Mensual</th>
-          <td>{{$DEC($data['Valores']['mes'] ?? null)}}</td>
-        </tr>
-        @foreach($data['Valores']['dia'] as $div => $val)
-        <tr>
-          <th>Valor Diario {{$loop->count > 1? ('('.$div.')') : ''}}</th>
-          <td>{{$DEC($val ?? null)}}</td>
-        </tr>
-        @endforeach
-        @foreach($data['Valores']['hora'] as $div => $val)
-          <tr>
-            <th>Valor Hora {{$loop->count > 1? ('('.$div.')') : ''}}</th>
-            <td>{{$DEC($val ?? null)}}</td>
-          </tr>
-        @endforeach
-      </thead>
-    </table>
-    
-    <br>
-    <table style="width: 22em;">
-      <thead>
-        <tr>
-          <th>Determinado</th>
-          <td>{{$DEC($data['Fijo']['determinado'] ?? null)}}</td>
-        </tr>
-      </thead>
-    </table>
-    
-    <h4>Mesas</h4>
+<style>
+  @page {
+    margin: 150px 50px;
+  }
+  header {
+    position: fixed;
+    top: -150px;
+    left: 0px;
+    right: 0px;
+  }
+  footer {
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+  }
+  main {
+    position: fixed;
+    top: 0px;
+    height: 500px;
+    overflow: clip;
+    font-size: 0.87rem;
+  }
+</style>
+
+<body style="width: 100%;height: 100%;">
+  <header>
+    <img src="img/logos/hoja_membretada_cabeza_2026.png" style="width: 100%;">
+  </header>
+  <footer>
+    <img src="img/logos/hoja_membretada_pie_2026.png" style="width: 100%;">
+  </footer>
+  <main style="width: 100%">
+    <p style="text-align: center;"><b>Canon Mensual - {{$casino}} - {{$año}}/{{$mes}}</b></p>
+    <h4>Canon Variable</h4>
     <div style="padding-left: 1em;">
-      <table style="width: 29em;">
+      <table style="width: 100%;">
         <thead>
           <tr>
-            <th>Día semana</th>
-            <th>Días</th>
-            <th>Mesas</th>
+            <th>Detalle</th>
+            <th>Beneficio</th>
+            <th>Alícuota</th>
+            <th>Determinado</th>
           </tr>
         </thead>
         <tbody>
-          <?php $mesas = $data['Fijo']['Mesas']; ?>
+          <?php $bbottom = array_keys($data['Variable'])[count($data['Variable'])-2]; ?>
+          @foreach($data['Variable'] as $tvar => $dvar)
+            @if($tvar != 'Total')
+            <tr>
+              <th>{{$tvar}}</td>
+              <td>{{$DEC($dvar['beneficio'] ?? null)}}</td>
+              <td>{{$PJE($dvar['alicuota'] ?? null)}}</td>
+              <td class="{{$tvar == $bbottom? 'bbottom' : ''}}">{{$DEC($dvar['determinado'] ?? null)}}</td>
+            </tr>
+            @else
+            <tr>
+              <th class="nob">&nbsp;</th>
+              <td>{{$DEC($dvar['beneficio'] ?? null)}}</td>
+              <td class="nob">&nbsp;</td>
+              <td class="b">{{$DEC($dvar['determinado'] ?? null)}}</td>
+            </tr>
+            @endif
+          @endforeach
+        </tbody>
+      </table>
+    </div>          
+    <br>
+    <h4>Canon Fijo</h4>
+    <div style="padding-left: 1em;">
+      <table style="width: 100%;">
+        <thead>
           <tr>
-            <th>Lunes-Jueves</th>
-            <td>{{$DEC($mesas['Lunes-Jueves']['dias'] ?? null)}}</td>
-            <td>{{$DEC($mesas['Lunes-Jueves']['mesas'] ?? null)}}</td>
+            <th>Moneda</th>
+            <th>Valor Mesa</th>
+            <th>Tipo de cambio</th>
+            <th>Valor Mesa (Pesos)</th>
           </tr>
+        </thead>
+        <tbody>
+          @foreach($data['Fijo']['Monedas'] as $mon => $datamon)
           <tr>
-            <th>Viernes-Sábados</th>
-            <td>{{$DEC($mesas['Viernes-Sábados']['dias'] ?? null)}}</td>
-            <td>{{$DEC($mesas['Viernes-Sábados']['mesas'] ?? null)}}</td>
+            <th>{{$mon}}</th>
+            <td>{{$DEC($datamon['valor'] ?? null)}}</td>
+            <td>{{$DEC($datamon['cotizacion'] ?? null)}}</td>
+            <td>{{$DEC($datamon['pesos'] ?? null)}}</td>
           </tr>
-          <tr>
-            <th>Domingos</th>
-            <td>{{$DEC($mesas['Domingos']['dias'] ?? null)}}</td>
-            <td>{{$DEC($mesas['Domingos']['mesas'] ?? null)}}</td>
-          </tr>
-          <tr>
-            <th>Todos</th>
-            <td>{{$DEC($mesas['Todos']['dias'] ?? null)}}</td>
-            <td>{{$DEC($mesas['Todos']['mesas'] ?? null)}}</td>
-          </tr>
-          <tr>
-            <th>Fijos</th>
-            <td>{{$DEC($mesas['Fijos']['dias'] ?? null)}}</td>
-            <td>{{$DEC($mesas['Fijos']['mesas'] ?? null)}}</td>
-          </tr>
-          <tr>
-            <td class="nob" colspan="2">&nbsp;</td>
-            <td>{{$DEC($mesas['Total']['mesas'] ?? null)}}</td>
-          </tr>
+          @endforeach
         </tbody>
       </table>
       <br>
       <table style="width: 22em;">
         <thead>
           <tr>
-            <th>Determinado</th>
-            <td>{{$DEC($mesas['Total']['determinado'] ?? null)}}</td>
+            <th>Valor Mensual</th>
+            <td>{{$DEC($data['Valores']['mes'] ?? null)}}</td>
           </tr>
+          <?php 
+            $aclarar_dia = count($data['Valores']['dia']) > 1; 
+            $aclarar_hora = count($data['Valores']['hora']) > 1; 
+          ?>
+          @foreach($data['Valores']['dia'] as $div => $val)
+          <tr>
+            <th>Valor Diario {{$aclarar_dia? ('('.$div.')') : ''}}</th>
+            <td>{{$DEC($val ?? null)}}</td>
+          </tr>
+          @endforeach
+          @foreach($data['Valores']['hora'] as $div => $val)
+            <tr>
+              <th>Valor Hora {{$aclarar_hora? ('('.$div.')') : ''}}</th>
+              <td>{{$DEC($val ?? null)}}</td>
+            </tr>
+          @endforeach
         </thead>
       </table>
-    </div>
-    
-    <h4>Mesas Adicionales</h4>
-    <div style="padding-left: 1em;">
-      <table style="width: 100%;">
+      
+      <br>
+      <table style="width: 22em;">
         <thead>
           <tr>
-            <th>Detalle</th>
-            <th>Horas</th>
-            <th>Mesas</th>
-            <th>Determinado</th>
+            <th class="b">Determinado</th>
+            <td class="b">{{$DEC($data['Fijo']['determinado'] ?? null)}}</td>
           </tr>
         </thead>
-        <tbody>
-          @foreach($data['Fijo']['Adicionales'] as $tfa => $data_tfa)
-          @if($tfa != 'Total')
-          <tr>
-            <th>{{$tfa}}</th>
-            <td>{{$DEC($data_tfa['horas'] ?? null)}}</td>
-            <td>{{$DEC($data_tfa['mesas'] ?? null)}}</td>
-            <td>{{$DEC($data_tfa['determinado'] ?? null)}}</td>
-          </tr>
-          @else
-          <tr>
-            <td class="nob">&nbsp;</td>
-            <td>{{$DEC($data_tfa['horas'] ?? null)}}</td>
-            <td>{{$DEC($data_tfa['mesas'] ?? null)}}</td>
-            <td>{{$DEC($data_tfa['determinado'] ?? null)}}</td>
-          </tr>
-          @endif
-          @endforeach
-        </tbody>
       </table>
+      
+      <h4>Mesas</h4>
+      <div style="padding-left: 1em;">
+        <table style="width: 29em;">
+          <thead>
+            <tr>
+              <th>Día semana</th>
+              <th>Días</th>
+              <th>Mesas</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php $mesas = $data['Fijo']['Mesas']; ?>
+            <tr>
+              <th>Lunes-Jueves</th>
+              <td>{{$DEC($mesas['Lunes-Jueves']['dias'] ?? null)}}</td>
+              <td>{{$DEC($mesas['Lunes-Jueves']['mesas'] ?? null)}}</td>
+            </tr>
+            <tr>
+              <th>Viernes-Sábados</th>
+              <td>{{$DEC($mesas['Viernes-Sábados']['dias'] ?? null)}}</td>
+              <td>{{$DEC($mesas['Viernes-Sábados']['mesas'] ?? null)}}</td>
+            </tr>
+            <tr>
+              <th>Domingos</th>
+              <td>{{$DEC($mesas['Domingos']['dias'] ?? null)}}</td>
+              <td>{{$DEC($mesas['Domingos']['mesas'] ?? null)}}</td>
+            </tr>
+            <tr>
+              <th>Todos</th>
+              <td>{{$DEC($mesas['Todos']['dias'] ?? null)}}</td>
+              <td>{{$DEC($mesas['Todos']['mesas'] ?? null)}}</td>
+            </tr>
+            <tr>
+              <th>Fijos</th>
+              <td>{{$DEC($mesas['Fijos']['dias'] ?? null)}}</td>
+              <td>{{$DEC($mesas['Fijos']['mesas'] ?? null)}}</td>
+            </tr>
+            <tr>
+              <td class="nob" colspan="2">&nbsp;</td>
+              <td>{{$DEC($mesas['Total']['mesas'] ?? null)}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <br>
+        <table style="width: 22em;">
+          <thead>
+            <tr>
+              <th class="b">Determinado</th>
+              <td class="b">{{$DEC($mesas['Total']['determinado'] ?? null)}}</td>
+            </tr>
+          </thead>
+        </table>
+      </div>
+      
+      <h4>Mesas Adicionales</h4>
+      <div style="padding-left: 1em;">
+        <table style="width: 100%;">
+          <thead>
+            <tr>
+              <th>Detalle</th>
+              <th>Horas</th>
+              <th>Mesas</th>
+              <th>Determinado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php $bbottom = array_keys($data['Fijo']['Adicionales'])[count($data['Fijo']['Adicionales'])-2]; ?>
+            @foreach($data['Fijo']['Adicionales'] as $tfa => $data_tfa)
+            @if($tfa != 'Total')
+            <tr>
+              <?php $aclarar = $aclarar_dia || $aclarar_hora; ?>
+              <th>{{$tfa}}{{$aclarar? ('('.$data_tfa['valor_hora'].')') : ''}}</th>
+              <td>{{$DEC($data_tfa['horas'] ?? null)}}</td>
+              <td>{{$DEC($data_tfa['mesas'] ?? null)}}</td>
+              <td class="{{$tfa == $bbottom? 'bbottom' : ''}}">{{$DEC($data_tfa['determinado'] ?? null)}}</td>
+            </tr>
+            @else
+            <tr>
+              <td class="nob">&nbsp;</td>
+              <td>{{$DEC($data_tfa['horas'] ?? null)}}</td>
+              <td class="bright">{{$DEC($data_tfa['mesas'] ?? null)}}</td>
+              <td class="b">{{$DEC($data_tfa['determinado'] ?? null)}}</td>
+            </tr>
+            @endif
+            @endforeach
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
-  
-  <h4>Totales</h4>
-  <div style="padding-left: 1em;">
-    <table style="width: 22em;">
-      <thead>
-        <tr>
-          <th>Canon Físico</th>
-          <td>{{$DEC($data['Canon']['Físico'] ?? null)}}</td>
-        </tr>
-        <tr>
-          <th>Canon Online</th>
-          <td>{{$DEC($data['Canon']['Online'] ?? null)}}</td>
-        </tr>
-        <tr>
-          <th>Canon</th>
-          <td>{{$DEC($data['Canon']['Total'] ?? null)}}</td>
-        </tr>
-      </thead>
-    </table>
-  </div>
+    
+    <div style="width: 100%;">
+      <div style="width: 43%;float: left;">
+        <h4>Totales</h4>
+        <div style="padding-left: 1em;width: 22em;">
+          <table style="width: 100%;">
+            <thead>
+              <tr>
+                <th class="b">Canon Físico</th>
+                <td class="b">{{$DEC($data['Canon']['Físico'] ?? null)}}</td>
+              </tr>
+              <tr>
+                <th class="b">Canon Online</th>
+                <td class="b">{{$DEC($data['Canon']['Online'] ?? null)}}</td>
+              </tr>
+              <tr>
+                <th class="b">Canon</th>
+                <td class="b">{{$DEC($data['Canon']['Total'] ?? null)}}</td>
+              </tr>
+            </thead>
+          </table>
+        </div>
+      </div>
+      <div style="margin-left: 43%;width: 57%;float: right;">
+        <h4>&nbsp;</h4>
+        <table style="padding-left: 1em;width: 100%;">
+          <thead>
+            <tr>
+              <td class="nob" style="text-align: left;width: 20%;">Firma</td>
+              <td class="nob" style="text-align: left;width: 80%;">{{str_repeat('.',90)}}</td>
+            </tr>
+            <tr>
+              <th class="nob">&nbsp;</th>
+              <td class="nob">&nbsp;</td>
+            </tr>
+            <tr>
+              <th class="nob">&nbsp;</th>
+              <td class="nob">&nbsp;</td>
+            </tr>
+            <tr>
+              <td class="nob" style="text-align: left;">Aclaración</td>
+              <td class="nob" style="text-align: left;">{{str_repeat('.',90)}}</td>
+            </tr>
+          </thead>
+        </table>
+      </div>
+    </div>
+  </main>
 </body>
 
 </html>

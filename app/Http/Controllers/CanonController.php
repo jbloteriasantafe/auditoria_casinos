@@ -2170,18 +2170,26 @@ class CanonController extends Controller
   }
   
    public function planillaInformeCanonPDF(Request $request){
+    $fecha_planilla = new \DateTimeImmutable();
     $data = $this->planillaInformeCanonData($request);
     if(is_string($data)) return $data;//String de Error
     if(!is_array($data)) return 'Error inesperado';
     
-    $fecha_planilla = new \DateTimeImmutable();
-    $data['fecha_planilla'] = $fecha_planilla;
+    
+    $timestamp_planilla = $fecha_planilla->format('Y-m-d h:i:s');
+    $timestamp_canon = $data['datos_canon']['created_at'];
+    $usuario_canon = \App\Usuario::find($data['datos_canon']['created_id_usuario'])->nombre;
+    $usuario_planilla = UsuarioController::getInstancia()->quienSoy()['usuario']->nombre;
+    
     $view = View::make('Canon.planillaInformeCanonPDF',$data);
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
     $dompdf->render();
     $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+    $dompdf->getCanvas()->page_text(30, 818, "Ultima modificación: $timestamp_canon ($usuario_canon)", $font, 6, array(0,0,0));
+    $dompdf->getCanvas()->page_text(30, 825, "Planilla generada: $timestamp_planilla ($usuario_planilla)", $font, 6, array(0,0,0));
+    //$dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 9, array(0,0,0));
     $tag_fecha_planilla = $fecha_planilla->format('Ymdhis');
     $filename = "Canon-{$data['casino']}-{$data['año']}{$data['mes']}-$tag_fecha_planilla.pdf";
     return $dompdf->stream($filename, Array('Attachment'=>0));
@@ -2403,7 +2411,8 @@ class CanonController extends Controller
       'casino' => $casino,
       'año' => $año,
       'mes' => $mes,
-      'abbr_casinos' => $abbr_casinos
+      'abbr_casinos' => $abbr_casinos,
+      'datos_canon' => $datos_canon
     ];
   }
   
