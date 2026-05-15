@@ -108,7 +108,22 @@ $PJE = function($val){
     <img src="img/logos/hoja_membretada_pie_2026.png" style="width: 100%;">
   </footer>
   <main style="width: 100%">
-    <p style="text-align: center;"><b>Canon Mensual - {{$casino}} - {{$año}}/{{$mes}}</b></p>
+    <?php
+      $titulo;
+      if($casino == 'Rosario'){
+        $titulo = "Casino $casino S.A.";
+      }
+      elseif($casino == 'Melincué'){
+        $titulo = "Casino $casino S.A.";
+      }
+      elseif($casino == 'Santa Fe'){
+        $titulo = "Casino Puerto $casino S.A.";
+      }
+      else{
+        $titulo = $casino;
+      }
+    ?>
+    <p style="text-align: center;"><b>Informe de Cálculo&nbsp;&nbsp;—&nbsp;&nbsp;{{$titulo}}&nbsp;&nbsp;—&nbsp;&nbsp;{{$año}}/{{$mes}}</b></p>
     <h4>Canon Variable</h4>
     <div style="padding-left: 1em;">
       <table style="width: 100%;">

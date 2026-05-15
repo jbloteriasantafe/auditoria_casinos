@@ -2178,7 +2178,7 @@ class CanonController extends Controller
     
     $timestamp_planilla = $fecha_planilla->format('Y-m-d h:i:s');
     $timestamp_canon = $data['datos_canon']['created_at'];
-    $usuario_canon = \App\Usuario::find($data['datos_canon']['created_id_usuario'])->nombre;
+    $usuario_canon = \App\Usuario::withTrashed()->find($data['datos_canon']['created_id_usuario'])->nombre;
     $usuario_planilla = UsuarioController::getInstancia()->quienSoy()['usuario']->nombre;
     
     $view = View::make('Canon.planillaInformeCanonPDF',$data);
