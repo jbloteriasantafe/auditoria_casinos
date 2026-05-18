@@ -170,6 +170,10 @@ $(document).ready(function () {
     function updateSectionVisibility() {
         let tarea = $('#selTipoTarea').val(); // MARKETING or FISCALIZACION
 
+        // Cambiar de tipo de tarea reinicia los activos (evita arrastrar juegos entre ramas)
+        activos = [];
+        renderTablaActivos();
+
         if (tarea === 'MARKETING') {
             $('.section-marketing').show();
             $('.section-fiscalizacion').hide();
@@ -221,12 +225,25 @@ $(document).ready(function () {
 
     $('#selTipoSolicitud').on('change input', function () {
         if ($('#selTipoTarea').val() !== 'MARKETING') return;
-        // MKT siempre es PUBLICIDAD — ocultar activos
-        $('#secActivosAsociados').slideUp();
-        activos = [];
-        $('#tablaActivos tbody').empty();
-        updateProgressBar();
+        // MKT: el panel de activos depende del tilde "¿Involucra Juegos?"
+        toggleActivosMkt();
     });
+
+    // MKT: muestra/oculta el panel de activos según el tilde "¿Involucra Juegos?"
+    function toggleActivosMkt() {
+        if ($('#selTipoTarea').val() !== 'MARKETING') return;
+        if ($('#chkInvolucraJuegos').is(':checked')) {
+            actualizarTiposActivo();
+            $('#secActivosAsociados').slideDown();
+        } else {
+            $('#secActivosAsociados').slideUp();
+            activos = [];
+            renderTablaActivos();
+        }
+        updateProgressBar();
+    }
+
+    $('#chkInvolucraJuegos').change(toggleActivosMkt);
 
     // --- NON-LINEAR PROGRESS BAR & ANIMATIONS ---
     function updateProgressBar() {
@@ -910,6 +927,7 @@ $(document).ready(function () {
         $('#resultadosBusquedaPadre').hide().empty();
         activos = []; // Global array
         $('#tablaActivos tbody').empty();
+        $('#secActivosAsociados').hide();
 
         // Reset validators/classes
         $('.form-group').removeClass('has-error');
@@ -1014,6 +1032,7 @@ $(document).ready(function () {
 
             fecha_pretendida_aprobacion: $('#inpFechaPretendida').val() || '',
             compartir_administrador: $('#chkCompartirAdmin').is(':checked') ? 1 : 0,
+            involucra_juegos: $('#chkInvolucraJuegos').is(':checked') ? 1 : 0,
             fecha_inicio_evento: $('#inpFechaInicio').val(),
             fecha_fin_evento: $('#inpFechaFin').val(),
             fecha_referencia: $('input[name="fecha_referencia"]').val() || '',
@@ -2775,25 +2794,23 @@ $(document).ready(function () {
         html = sr(html, '{{comentariosHtml}}', comentariosHtml);
         html = sr(html, '{{historialHtml}}', historialHtml);
 
-        // Si MKT, ocultar panel de activos
-        if (nota.tipo_rama === 'MKT') {
-            var $tmp = $('<div>').html(html);
+        // Panel de activos: visible en FISC siempre; en MKT solo si la nota involucra juegos
+        var mostrarActivos = (nota.tipo_rama !== 'MKT') || (nota.involucra_juegos == 1);
+        var $tmp = $('<div>').html(html);
+        if (!mostrarActivos) {
             $tmp.find('.panel-activos-wrap').remove();
-            html = $tmp.html();
+        } else if (nota.id_plataforma) {
+            // Plataforma: el activo asociado solo puede ser Juego Online
+            $tmp.find('.det-sel-tipo-activo').html('<option value="JUEGO_ONLINE">Juego Online</option>');
+            $tmp.find('.activos-titulo').text('Juegos Asociados');
         }
-        // Si FISC, ocultar fecha pretendida y categoría
+        // Campos exclusivos de MKT que FISC no usa
         if (nota.tipo_rama !== 'MKT') {
-            var $tmp2 = $('<div>').html(html);
-            $tmp2.find('.row-fecha-pretendida').remove();
-            $tmp2.find('.row-compartir-admin').remove();
-            $tmp2.find('.row-categoria').remove();
-            // Si es plataforma, solo mostrar Juego Online y cambiar título
-            if (nota.id_plataforma) {
-                $tmp2.find('.det-sel-tipo-activo').html('<option value="JUEGO_ONLINE">Juego Online</option>');
-                $tmp2.find('.activos-titulo').text('Juegos Asociados');
-            }
-            html = $tmp2.html();
+            $tmp.find('.row-fecha-pretendida').remove();
+            $tmp.find('.row-compartir-admin').remove();
+            $tmp.find('.row-categoria').remove();
         }
+        html = $tmp.html();
 
         // Solo admin puede editar datos de nota
         if (window.NIVEL_ESTADO !== 'admin') {

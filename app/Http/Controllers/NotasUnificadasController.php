@@ -635,6 +635,9 @@ class NotasUnificadasController extends Controller
         // Funcionario NO puede eliminar; los demás roles admin sí
         $puedeEliminar = !$esFuncionario && ($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control);
 
+        // Los roles administrador NO pueden eliminar notas (sí adjuntos / comentarios)
+        $puedeEliminarNotas = $puedeEliminar && !$usuario->es_administrador;
+
         // Comentarios: visibles para todos MENOS casinos/plataformas (regular sin rol admin)
         $puedeVerComentarios = $esFuncionario || $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control;
 
@@ -658,7 +661,7 @@ class NotasUnificadasController extends Controller
                 ]);
             }
             return response()->json([
-                'html' => view('Unified.tabla_notas', compact('grupos', 'notasSueltas', 'puedeEliminar', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'verTodo', 'aprobacionesPorGrupo'))->render(),
+                'html' => view('Unified.tabla_notas', compact('grupos', 'notasSueltas', 'puedeEliminar', 'puedeEliminarNotas', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'verTodo', 'aprobacionesPorGrupo'))->render(),
                 'total' => $grupos->total(),
             ]);
         }
@@ -721,7 +724,7 @@ class NotasUnificadasController extends Controller
         // Puede exportar: admin o funcionario
         $puedeExportar = $esAdmin || $esFuncionario;
 
-        return view('Unified.index', compact('grupos', 'notasSueltas', 'casinos', 'categorias', 'tipos_evento', 'estados', 'puedeEliminar', 'nivelEstado', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'muestraVerTodo', 'verTodo', 'totalGrupos', 'tiposEventoMkt', 'tiposEventoFisc', 'aprobacionesPorGrupo', 'puedeVerComentarios', 'esAdminMails', 'puedeGestionarMails', 'puedeExportar'));
+        return view('Unified.index', compact('grupos', 'notasSueltas', 'casinos', 'categorias', 'tipos_evento', 'estados', 'puedeEliminar', 'puedeEliminarNotas', 'nivelEstado', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'muestraVerTodo', 'verTodo', 'totalGrupos', 'tiposEventoMkt', 'tiposEventoFisc', 'aprobacionesPorGrupo', 'puedeVerComentarios', 'esAdminMails', 'puedeGestionarMails', 'puedeExportar'));
     }
 
     /**
@@ -1282,6 +1285,7 @@ class NotasUnificadasController extends Controller
                 }
                 if ($tipo_rama === 'MKT') {
                     $nota->compartir_administrador = $request->compartir_administrador ? 1 : 0;
+                    $nota->involucra_juegos = $request->involucra_juegos ? 1 : 0;
                 }
 
                 $nota->save();
@@ -2139,9 +2143,23 @@ class NotasUnificadasController extends Controller
         return $u->es_superusuario || $u->es_administrador || $u->es_auditor || $u->es_despacho || $u->es_control;
     }
 
+    /**
+     * Permiso para eliminar NOTAS (destroy individual / eliminación masiva).
+     * Igual base que puedeEliminar() pero los roles administrador quedan excluidos.
+     */
+    private function puedeEliminarNotas()
+    {
+        $id_usuario = session('id_usuario');
+        if (!$id_usuario)
+            return false;
+        $usuario_data = UsuarioController::getInstancia()->buscarUsuario($id_usuario);
+        $u = $usuario_data['usuario'];
+        return ($u->es_superusuario || $u->es_auditor || $u->es_despacho || $u->es_control) && !$u->es_administrador;
+    }
+
     public function destroy($id)
     {
-        if (!$this->puedeEliminar()) {
+        if (!$this->puedeEliminarNotas()) {
             return response()->json(['success' => false, 'msg' => 'No tiene permisos para eliminar'], 403);
         }
         try {
@@ -2388,6 +2406,7 @@ class NotasUnificadasController extends Controller
             'fecha_referencia' => $nota->fecha_referencia,
             'fecha_pretendida_aprobacion' => $nota->fecha_pretendida_aprobacion,
             'compartir_administrador' => (int) $nota->compartir_administrador,
+            'involucra_juegos' => (int) $nota->involucra_juegos,
             'created_at' => $nota->created_at ? $nota->created_at->format('d/m/Y H:i') : null,
             'adjuntos' => $adjuntos,
             'activos' => $activos,
@@ -2685,7 +2704,7 @@ class NotasUnificadasController extends Controller
 
     public function eliminarMasivo(Request $request)
     {
-        if (!$this->puedeEliminar()) {
+        if (!$this->puedeEliminarNotas()) {
             return response()->json(['success' => false, 'msg' => 'No tiene permisos para eliminar'], 403);
         }
         try {

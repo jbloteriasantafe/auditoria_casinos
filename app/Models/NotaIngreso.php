@@ -18,6 +18,7 @@ class NotaIngreso extends Model
         'id_nota_rectificada', 
         'tipo_solicitud',
         'tipo_rama',  // MKT o FISC
+        'involucra_juegos',  // MKT: nota asociada a juegos / activos
         // Adjuntos
         'path_solicitud',   // Solicitud Concesionario (común)
         'path_pautas',      // Legacy - ya no se usa
