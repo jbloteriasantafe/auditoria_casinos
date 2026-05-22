@@ -284,6 +284,10 @@
                  'link' => '/bingo/importarRelevamiento',
                  'algun_permiso' => ['importar_bingo'],
              ],
+             'Registros DNI' => [
+                 'link' => '/registrosDNI',
+                 'algun_permiso' => ['m_ver_seccion_importaciones'],
+             ],
          ],
      ],
      'Validación' => [

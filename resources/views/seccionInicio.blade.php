@@ -157,6 +157,7 @@ $usuario = \App\Http\Controllers\UsuarioController::getInstancia()->buscarUsuari
             'bingo' => [null,'bingos','iconoInformesModif'],
             'diferencia-bingo' => ['bingo/reportesDiferencia','bingos','iconoInformesModif'],
             'estado-bingo' => ['bingo/reportesEstado','bingos','iconoInformesModif'],
+            'registrosDNI' => [null,'usuario','iconoUsuarios'],
             'importacion-bingo' => ['bingo/importarRelevamiento','bingos','iconoInformesModif'],
             'informe-bingo' => ['bingo/informe','bingos','iconoInformesModif'],
             'relevamientosControlAmbiental' => [null,'maquinas','iconoMaquinas'],

@@ -46,6 +46,9 @@ $(document).on('init.fecha','[data-js-fecha]',function(e){
     readonly = JSON.parse(tgt.attr('data-readonly'));
   }
   catch (e) {}
+  
+  tgt_obj.disabled(disabled);
+  tgt_obj.readonly(readonly);
 });
 
 $(function(e){

@@ -5,7 +5,7 @@ export const AUX = {
   _mensaje(modal,mensaje){
     modal.hide();
     setTimeout(function(){
-      modal.find('p').text(mensaje);
+      modal.find('.textoMensaje > p').empty().append(mensaje);
       modal.show();
     },100);
   },

@@ -15,7 +15,7 @@ $id = $id ?? uniqid();
 
 <div id="{{$id}}" class="form-group" {!! $form_group_attrs ?? '' !!}>
   <div class='input-group date' style="width: 100%;" data-disabled="{!! $disabled ?? 0 !!}" data-readonly="{!! $readonly ?? 0 !!}" data-js-fecha {!! $attrs_dtp ?? '' !!}>
-    <input type='text' class="form-control" placeholder="{{ $placeholder ?? 'aaaa-mm-dd' }}" {!! $attrs ?? '' !!} />
+    <input type='text' class="form-control" placeholder="{{ $placeholder ?? 'aaaa-mm-dd' }}" {!! $attrs ?? '' !!}>
     <span class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
     <span class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
   </div>

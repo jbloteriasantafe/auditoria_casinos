@@ -1632,6 +1632,16 @@ Route::group(['prefix' => 'informesGenerales'], function () {//@TODO: agregar pe
   Route::get('/producidos_semana', 'InformesGeneralesController@producidos_semana');
 });
 
+//Permiso de importaciones... tal vez hay que crear uno especifico
+Route::group(['prefix' => 'registrosDNI', 'middleware' => 'tiene_permiso:m_ver_seccion_importaciones'],function(){//@TODO: agregar permiso
+  Route::get('/', 'RegistrosDNIController@index');
+  Route::post('/buscar/importaciones', 'RegistrosDNIController@buscar_importaciones');
+  Route::post('/buscar/registros', 'RegistrosDNIController@buscar_registros');
+  Route::post('/importar', 'RegistrosDNIController@importar');
+  Route::get('/descargar', 'RegistrosDNIController@descargar');
+  Route::delete('/borrar/{id_registros_dni_importacion}','RegistrosDNIController@borrar_importacion');
+});
+
 Route::get("/fix-db-anotaciones", function() {
     if(!Schema::hasTable("notas_pdf_anotaciones")) {
         Schema::create("notas_pdf_anotaciones", function ($table) {

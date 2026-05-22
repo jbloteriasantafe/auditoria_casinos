@@ -9,6 +9,7 @@ $(function(e){ $('[data-js-modal-eliminar]').each(function(){
   let success = null;
   let error = null;
   let url_params = {};
+  let ext_params = {};
   
   M.on('mostrar',function(e,params){
     url = params.url;
@@ -17,6 +18,7 @@ $(function(e){ $('[data-js-modal-eliminar]').each(function(){
     success = params.success ?? function(data){};
     error = params.error ?? function(data){console.log(data);};
     url_params = params.url_params ?? {};
+    ext_params = params.ext_params ?? {};
     
     $M('.mensaje').text(params.mensaje ?? '');
     M.modal('show');
@@ -30,7 +32,7 @@ $(function(e){ $('[data-js-modal-eliminar]').each(function(){
     },function(data){
       AUX.mensajeError('Error al eliminar');
       error(data);
-    });
+    },ext_params);
   });
   
 })});
