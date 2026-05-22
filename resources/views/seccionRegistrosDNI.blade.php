@@ -24,7 +24,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
   [data-visualizando="registros"] [data-visible]:not([data-visible="registros"]) {
     display: none;
   }
-  select[readonly] {
+  select[readonly], input[readonly], textarea[readonly] {
     pointer-events: none;
   }
   [data-js-filtro-tabla-filtro] {
@@ -53,6 +53,17 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
               <option value="registros">Registros</option>
             </select>
           </div>
+          <?php $idClearImportacion = uniqid(); ?>
+          <div class="col-md-2" data-visible="registros">          
+            <h5>Importación</h5>
+            <div style="display: flex;">
+              <input id="{{$idClearImportacion}}" class="form-control" name="md5" readonly style="width: 20em;" placeholder="IMPORTACIÓN">
+              <button class="btn" type="button" title="ver" data-js-click-asignar>
+                <i class="fa fa-times"></i>
+                <span hidden data-key="md5"></span>
+              </button>
+            </div>
+          </div>
         </div>
         <?php 
           $id_casino_change_set   = "#{$idFiltroTablaImportaciones} [name='id_casino'],#{$idFiltroTablaRegistros} [name='id_casino'],#{$idModalImportar} [name='id_casino']";
@@ -67,7 +78,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
         <div class="row">
           <div class="col-md-2">
             <h5>Casino</h5>
-            <select data-js-change-set="{!! $id_casino_change_set !!}" data-js-change-trigger-buscar="{!! $filtros !!}" class="form-control" value="{{ count($casinos)? $casinos[0]->id_casino : '' }}">
+            <select data-js-change-clear="#{{$idClearImportacion}}" data-js-change-set="{!! $id_casino_change_set !!}" data-js-change-trigger-buscar="{!! $filtros !!}" class="form-control" value="{{ count($casinos)? $casinos[0]->id_casino : '' }}">
               @foreach(($casinos ?? []) as $c)
               <option value='{{$c->id_casino}}'>{{$c->nombre}}</option>
               @endforeach
@@ -77,14 +88,14 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
             <h5>Informado</h5>
             <div style="display: flex;">
               @component('Components/inputFecha',[
-                'attrs' => 'data-js-change-set="'.$informado_change_set_0.'"',
+                'attrs' => 'data-js-change-set="'.$informado_change_set_0.'" data-js-change-clear="#'.$idClearImportacion.'"',
                 'attrs_dtp' => 'data-date-format="yyyy-mm-dd" data-start-view="year" data-min-view="month"',
                 'form_group_attrs' => 'style="padding: 0 !important;flex: 1;"',
                 'placeholder' => 'DESDE'
               ])
               @endcomponent
               @component('Components/inputFecha',[
-                'attrs' => 'data-js-change-set="'.$informado_change_set_1.'"',
+                'attrs' => 'data-js-change-set="'.$informado_change_set_1.'" data-js-change-clear="#'.$idClearImportacion.'"',
                 'attrs_dtp' => 'data-date-format="yyyy-mm-dd" data-start-view="year" data-min-view="month"',
                 'form_group_attrs' => 'style="padding: 0 !important;flex: 1;"',
                 'placeholder' => 'HASTA'
@@ -229,8 +240,11 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
         <td data-key="cantidad_registros">CANT. REGISTROS</td>
         <td data-key="cantidad_menores">CANT. MENORES</td>
         <td>
-          <button class="btn" type="button">Menores</button>
-          <button class="btn" type="button" data-js-click-borrar="/registrosDNI/borrar">Borrar</button>
+          <button class="btn" type="button" title="ver" data-js-click-asignar>
+            <i class="fa fa-fw fa-search-plus"></i>
+            <span hidden data-key="md5"></span>
+          </button>
+          <button class="btn" type="button" data-js-click-borrar="/registrosDNI/borrar" title="borrar"><i class="fa fa-fw fa-trash-alt"></i></button>
         </td>
       </tr>
       @endslot
@@ -252,7 +266,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
         @yield('filtrosComunes')
         <div class="col-md-3">
           <h5>Importación</h5>
-          <input class="form-control" name="importacion" readonly>
+          <input class="form-control" name="md5" readonly>
         </div>
       </div>
       @endslot

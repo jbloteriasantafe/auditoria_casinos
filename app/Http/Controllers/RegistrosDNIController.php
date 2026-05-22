@@ -181,6 +181,10 @@ class RegistrosDNIController extends Controller
       }
     }
     
+    if(isset($request->md5)){
+      $reglas[] = ['ri.md5','=',$request->md5];
+    }
+    
     $sort_by = [
       'columna' => 'r.timestamp',
       'orden' => 'desc'
