@@ -134,7 +134,7 @@ function colorEstado($estado) {
                         </button>
                     @endif
 
-                    @if($puedeEliminar)
+                    @if($puedeEliminarNotas)
                     <button class="btn btn-danger btn-xs btn-borrar-grupo" data-id="{{ $grupo->id }}" title="Eliminar Grupo">
                         <i class="fa fa-trash"></i>
                     </button>
@@ -195,7 +195,7 @@ function colorEstado($estado) {
                             title="Anotaciones PDF">
                         <i class="fa fa-edit"></i>
                     </button>
-                    @if($puedeEliminar)
+                    @if($puedeEliminarNotas)
                     <button class="btn btn-danger btn-xs btn-borrar-nota" data-id="{{ $n->id }}" title="Eliminar">
                         <i class="fa fa-trash"></i>
                     </button>
@@ -244,7 +244,7 @@ function colorEstado($estado) {
                     <td></td>
                     <td>
                         <button class="btn btn-info btn-xs btn-ver-nota" data-id="{{ $n->id }}" title="Ver"><i class="fa fa-eye"></i></button>
-                        @if($puedeEliminar)<button class="btn btn-danger btn-xs btn-borrar-nota" data-id="{{ $n->id }}" title="Eliminar"><i class="fa fa-trash"></i></button>@endif
+                        @if($puedeEliminarNotas)<button class="btn btn-danger btn-xs btn-borrar-nota" data-id="{{ $n->id }}" title="Eliminar"><i class="fa fa-trash"></i></button>@endif
                     </td>
                 </tr>
                 @endforeach
