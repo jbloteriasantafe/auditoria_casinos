@@ -21,6 +21,11 @@ class RegistrosDNIController extends Controller
     return self::$instance;
   }
   
+  private function resumen_hash(array $args){
+    $concat_ws_args = implode(',',array_map(function($a){return "IFNULL($a,'')";},$args));
+    return "UNHEX(SHA1(CONCAT_WS('|',$concat_ws_args)))";
+  }
+  
   public function __construct(){
     //Cambiar el default de la version si hay alguna modificación estructural 
     //que diferencie los registros anteriores de los nuevos
@@ -74,8 +79,19 @@ class RegistrosDNIController extends Controller
       hora INT NULL,
       edad INT NULL,
       cantidad INT NOT NULL,
+      resumen_hash BINARY(20) GENERATED ALWAYS AS ('.
+        $this->resumen_hash([
+          'id_casino',
+          'id_registros_dni_importacion',
+          'dia',
+          'hora',
+          'edad'
+        ])
+      .') STORED NOT NULL,
       -- UNIQUE INDEX para que soporte los campos NULL de los totales
       UNIQUE KEY uniq_registros_dni_resumen (id_casino, id_registros_dni_importacion, dia, hora, edad),
+      -- En teoria es practicamente imposible una colision hash de SHA1...
+      UNIQUE KEY uniq_registros_dni_resumen_hash (resumen_hash),
       KEY `fk_registros_dni_resumen_importacion` (`id_registros_dni_importacion`),
       KEY `fk_registros_dni_id_casino` (`id_casino`)
       -- Sin FK para facilitar el borrado
@@ -490,8 +506,7 @@ class RegistrosDNIController extends Controller
           AND r.dia  IS NOT NULL 
           AND r.hora IS NOT NULL 
           AND r.edad IS NOT NULL 
-        GROUP BY r.id_casino, r.id_registros_dni_importacion, r.dia, r.hora
-        ",
+        GROUP BY r.id_casino, r.id_registros_dni_importacion, r.dia, r.hora",
         $ids_a_agregar
       );
       
@@ -613,57 +628,41 @@ class RegistrosDNIController extends Controller
         $ids_a_agregar
       );
       
-      //Si no existe una entrada para el resumen del casino la creo
-      DB::statement("
-        INSERT INTO registros_dni_resumen 
-        (id_casino,id_registros_dni_importacion,dia,hora,edad,cantidad)
+      //Todos los totales los agrego al total del casino
+      // El DUPLICATE KEY ocurre por resumen_hash
+      // el UNIQUE KEY(id_casino,id...) no triggerea porque NULL != NULL
+      // Para esto necesitamos el resumen_hash
+      DB::statement("INSERT INTO registros_dni_resumen 
+        (id_casino, id_registros_dni_importacion, dia, hora, edad, cantidad)
         SELECT 
           r.id_casino,
           NULL,
           r.dia,
           r.hora,
           r.edad,
-          0
-        FROM registros_dni_resumen as r
+          r.cantidad
+        FROM registros_dni_resumen AS r
         WHERE r.id_registros_dni_importacion IN ($placeholders)
-        AND NOT EXISTS ( -- No puedo usar una clausula ON DUPLICATE IGNORE porque NULL != NULL y me duplica las entradas
-          SELECT 1
-          FROM registros_dni_resumen as rcas
-          WHERE  rcas.id_casino = r.id_casino
-            AND IFNULL(rcas.dia,'0000-01-01') = IFNULL(r.dia,'0000-01-01')
-            AND IFNULL(rcas.hora,-1)          = IFNULL(r.hora,-1)
-            AND IFNULL(rcas.edad,-1)          = IFNULL(r.edad,-1)
-            AND rcas.id_registros_dni_importacion IS NULL
-          LIMIT 1
-        )
-      ",$ids_a_agregar);
-      //Sumo a las entradas creadas
-      DB::statement("
-        UPDATE registros_dni_resumen as resumen_casino
-        INNER JOIN registros_dni_resumen as resumen_importacion
-            ON                resumen_casino.id_casino  = resumen_importacion.id_casino
-            AND IFNULL(resumen_casino.dia,'0000-01-01') = IFNULL(resumen_importacion.dia,'0000-01-01')
-            AND IFNULL(resumen_casino.hora,-1)          = IFNULL(resumen_importacion.hora,-1)
-            AND IFNULL(resumen_casino.edad,-1)          = IFNULL(resumen_importacion.edad,-1)
-        SET resumen_casino.cantidad = resumen_casino.cantidad + resumen_importacion.cantidad
-        WHERE resumen_casino.id_registros_dni_importacion IS NULL
-          AND resumen_importacion.id_registros_dni_importacion IN ($placeholders)", 
+        ON DUPLICATE KEY UPDATE 
+        registros_dni_resumen.cantidad = registros_dni_resumen.cantidad + VALUES(cantidad)",
         $ids_a_agregar
       );
-      //No deberia nunca quedar ninguno en 0 porque por definicion solo habia resumenes de importación
-      //si habia registros
     }
     
     if(count($ids_a_eliminar)){
       $placeholders = implode(',', array_fill(0, count($ids_a_eliminar), '?'));
       //Borro del total del casino restando
+      //Tengo que rehashear la columna... podría guardarlo pero la verdad solo se usa cuando se borra
       DB::statement("
         UPDATE registros_dni_resumen as resumen_casino
         INNER JOIN registros_dni_resumen as resumen_importacion
-            ON                resumen_casino.id_casino  = resumen_importacion.id_casino
-            AND IFNULL(resumen_casino.dia,'0000-01-01') = IFNULL(resumen_importacion.dia,'0000-01-01')
-            AND IFNULL(resumen_casino.hora,-1)          = IFNULL(resumen_importacion.hora,-1)
-            AND IFNULL(resumen_casino.edad,-1)          = IFNULL(resumen_importacion.edad,-1)
+          ON resumen_casino.resumen_hash = ".$this->resumen_hash([
+            'resumen_importacion.id_casino',
+            'NULL',
+            'resumen_importacion.dia',
+            'resumen_importacion.hora',
+            'resumen_importacion.edad'
+          ])."
         SET resumen_casino.cantidad = resumen_casino.cantidad - resumen_importacion.cantidad
         WHERE resumen_casino.id_registros_dni_importacion IS NULL
           AND resumen_importacion.id_registros_dni_importacion IN ($placeholders)", 
