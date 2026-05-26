@@ -135,4 +135,14 @@ $(document).ready(function(){
     tbody.find('[data-js-click-borrar]').click(f_click_borrar);
     tbody.find('[data-js-click-asignar-md5]').click(f_click_asignar);
   }).trigger('buscar'); });
+  
+  $('[data-js-click-descargar]').click(function(e){
+    const o = e.currentTarget;
+    const form = $(o).closest('[data-js-filtro-tabla]').find('[data-js-filtro-tabla-filtro] form');
+    const url = $(o).attr('data-js-click-descargar');
+    const fd = new FormData(form?.[0]);
+    const params = (new URLSearchParams(fd)).toString();
+    window.open(url+'?'+params,'_blank');
+  });
+  
 });

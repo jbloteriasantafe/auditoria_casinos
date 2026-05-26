@@ -258,7 +258,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
     @component('Components/FiltroTabla',['id' => $idFiltroTablaRegistros])
       @slot('titulo')
       Registros DNI
-      <button class="btn" type="button" data-js-descargar="/registrosDNI/descargar">DESCARGAR</button>
+      <button hidden class="btn" type="button" data-js-click-descargar="/registrosDNI/descargar/registros">DESCARGAR</button>
       @endslot
       
       @slot('target_buscar')

@@ -54,6 +54,8 @@ class RegistrosDNIController extends Controller
       fecha_nacimiento DATE NOT NULL,
       timestamp DATETIME NOT NULL,
       edad INT GENERATED ALWAYS AS (TIMESTAMPDIFF(YEAR, fecha_nacimiento, timestamp)) STORED NOT NULL,
+      reportado_edad INT NOT NULL, -- Solo para que quede lo que esta en el archivo... no se deberia usar salvo que reportado <> calculado
+      reportado_mayor_edad TINYINT(1) NOT NULL,  -- Solo para que quede lo que esta en el archivo... no se deberia usar salvo que reportado <> calculado
       PRIMARY KEY (id_registros_dni, id_casino),
       INDEX idx_importacion_timestamp (id_registros_dni_importacion,timestamp),
       KEY `fk_registros_dni_importacion` (`id_registros_dni_importacion`),
@@ -165,6 +167,7 @@ class RegistrosDNIController extends Controller
           AND rr.dia IS NULL
           AND rr.hora IS NULL
           AND rr.edad >= {$request->edad[0]}
+          LIMIT 1
         ))"),'=','1'];
       }
       if(isset($request->edad[1]) && ctype_digit($request->edad[1])){
@@ -175,6 +178,7 @@ class RegistrosDNIController extends Controller
           AND rr.dia IS NULL
           AND rr.hora IS NULL
           AND rr.edad <= {$request->edad[1]}
+          LIMIT 1
         ))"),'=','1'];
       }
     }
@@ -480,20 +484,36 @@ class RegistrosDNIController extends Controller
         'created_by' => $user->id_usuario
       ]);
       
-      $datos_a_insertar = array_fill(0,count($datos),[
-        'id_casino' => $request->id_casino,
-        'id_registros_dni_importacion' => $id_registros_dni_importacion,
-        'fecha_nacimiento' => null,
-        'timestamp' => null
-      ]);      
-      foreach($datos as $didx => $d){
-        $datos_a_insertar[$didx]['fecha_nacimiento'] = $d['fecha_nac'];
-        $datos_a_insertar[$didx]['timestamp'] = $d['timestamp'];
-        //edad se calcula solo como columna generada
-      }
-      DB::table('registros_dni')->insert($datos_a_insertar);
+      $tmpFile = tmpfile();
+      $metaData = stream_get_meta_data($tmpFile);
+      $filepath = $metaData['uri']; // Get the actual system path to this temp file
       
-      $registros = count($datos);
+      $registros = 0;
+      foreach($datos as $didx => $d){
+        fputcsv($tmpFile,[
+          $request->id_casino,
+          $id_registros_dni_importacion,
+          $d['fecha_nac'] ?? null,
+          $d['timestamp'] ?? null,
+          $d['edad'] ?? null,
+          $d['mayor_edad'] ?? null,
+        ],',', '"', '\\');
+        $registros++;
+      }
+      
+      $pdo = DB::connection()->getPdo();
+      // Ensure the PDO client allows local infiles
+      $pdo->setAttribute(\PDO::MYSQL_ATTR_LOCAL_INFILE, true);
+      $query = "
+          LOAD DATA LOCAL INFILE " . $pdo->quote($filepath) . "
+          INTO TABLE registros_dni
+          FIELDS TERMINATED BY ',' 
+          OPTIONALLY ENCLOSED BY '\"'
+          LINES TERMINATED BY '\n'
+          (id_casino, id_registros_dni_importacion, fecha_nacimiento, timestamp, reportado_edad, reportado_mayor_edad)
+      ";
+      $pdo->exec($query);
+            
       $desde = $min_timestamp;
       $hasta = $max_timestamp;
       $mensaje = $registros?
@@ -504,6 +524,11 @@ class RegistrosDNIController extends Controller
       
       return compact('registros','desde','hasta','mensaje');
     });
+  }
+  
+  public function descargar_registros(Request $request){
+    //@TODO: implementar descargar? nose que tan util sea
+    return $this->buscar_registros($request);
   }
   
   private function recalcular_resumenes(){
