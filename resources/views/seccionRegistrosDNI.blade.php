@@ -24,7 +24,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
   [data-visualizando="registros"] [data-visible]:not([data-visible="registros"]) {
     display: none;
   }
-  select[readonly], input[readonly], textarea[readonly] {
+  select[readonly] {
     pointer-events: none;
   }
   [data-js-filtro-tabla-filtro] {
@@ -57,8 +57,8 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
           <div class="col-md-2" data-visible="registros">          
             <h5>Importación</h5>
             <div style="display: flex;">
-              <input id="{{$idClearImportacion}}" class="form-control" name="md5" readonly style="width: 20em;" placeholder="IMPORTACIÓN">
-              <button class="btn" type="button" title="ver" data-js-click-asignar>
+              <input data-js-change-trigger-buscar id="{{$idClearImportacion}}" class="form-control" name="md5" readonly style="width: 20em;" placeholder="IMPORTACIÓN">
+              <button class="btn" type="button" title="ver" data-js-click-asignar-md5>
                 <i class="fa fa-times"></i>
                 <span hidden data-key="md5"></span>
               </button>
@@ -73,12 +73,13 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
           $reportado_change_set_1 = "#{$idFiltroTablaImportaciones} [name='reportado[1]'],#{$idFiltroTablaRegistros} [name='reportado[1]']";
           $edad_change_set_0      = "#{$idFiltroTablaImportaciones} [name='edad[0]'],#{$idFiltroTablaRegistros} [name='edad[0]']";
           $edad_change_set_1      = "#{$idFiltroTablaImportaciones} [name='edad[1]'],#{$idFiltroTablaRegistros} [name='edad[1]']";
-          $filtros = "#$idFiltroTablaImportaciones,#$idFiltroTablaRegistros"; 
+          $filtros = "#$idFiltroTablaImportaciones,#$idFiltroTablaRegistros";
+          $clearMD5 = "#$idClearImportacion,#{$idFiltroTablaImportaciones} [name='md5'],#{$idFiltroTablaRegistros} [name='md5']";
         ?>
         <div class="row">
           <div class="col-md-2">
             <h5>Casino</h5>
-            <select data-js-change-clear="#{{$idClearImportacion}}" data-js-change-set="{!! $id_casino_change_set !!}" data-js-change-trigger-buscar="{!! $filtros !!}" class="form-control" value="{{ count($casinos)? $casinos[0]->id_casino : '' }}">
+            <select data-js-change-trigger-buscar="{!! $filtros !!}" data-js-change-clear="{{$clearMD5}}" data-js-change-set="{!! $id_casino_change_set !!}" class="form-control" value="{{ count($casinos)? $casinos[0]->id_casino : '' }}">
               @foreach(($casinos ?? []) as $c)
               <option value='{{$c->id_casino}}'>{{$c->nombre}}</option>
               @endforeach
@@ -240,7 +241,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
         <td data-key="cantidad_registros">CANT. REGISTROS</td>
         <td data-key="cantidad_menores">CANT. MENORES</td>
         <td>
-          <button class="btn" type="button" title="ver" data-js-click-asignar>
+          <button class="btn" type="button" title="ver" data-js-click-asignar-md5>
             <i class="fa fa-fw fa-search-plus"></i>
             <span hidden data-key="md5"></span>
           </button>

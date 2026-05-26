@@ -14,11 +14,11 @@ $(document).ready(function(){
     selec.attr('data-visualizando',$(o).val());
   }).trigger('change');
   
-  /*$('[data-js-change-clear]').change(function(e){
+  $('[data-js-change-clear]').change(function(e){
     const o = e.currentTarget;
     const selec = $($(o).attr('data-js-change-clear'));  
     $(selec).val('').trigger('onlyset');
-  });*/
+  });
   
   $('[data-js-change-set]').on('change onlyset',function(e){
     const o = e.currentTarget;
@@ -118,7 +118,7 @@ $(document).ready(function(){
   };
   
   //Para el boton limpiar
-  $('[data-js-click-asignar]').click(f_click_asignar);
+  $('[data-js-click-asignar-md5]').click(f_click_asignar);
   
   $('[data-js-filtro-tabla]').each(function(idx,fObj){ $(fObj).on('busqueda',function(e,ret,tbody,molde){  
     ret.data.forEach(function(r){
@@ -132,6 +132,6 @@ $(document).ready(function(){
       tbody.append(fila);
     });
     tbody.find('[data-js-click-borrar]').click(f_click_borrar);
-    tbody.find('[data-js-click-asignar]').click(f_click_asignar);
+    tbody.find('[data-js-click-asignar-md5]').click(f_click_asignar);
   }).trigger('buscar'); });
 });
