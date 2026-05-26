@@ -244,8 +244,8 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
         <td data-key="cantidad_registros">CANT. REGISTROS</td>
         <td data-key="cantidad_menores">CANT. MENORES</td>
         <td>
-          <button class="btn" type="button" title="ver" data-js-click-asignar-md5="registros">
-            <i class="fa fa-fw fa-search-plus"></i>
+          <button class="btn" type="button" title="Ver Registros" data-js-click-asignar-md5="registros">
+            <i class="fa fa-bars"></i>
             <span hidden data-key="md5"></span>
           </button>
           <button class="btn" type="button" data-js-click-borrar="/registrosDNI/borrar" title="borrar"><i class="fa fa-fw fa-trash-alt"></i></button>
@@ -288,8 +288,8 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
         <td data-key="edad">EDAD</td>
         <td data-key="fecha_informado">F. INFORMADO</td>
         <td>
-          <button class="btn" type="button" title="ver" data-js-click-asignar-md5="importaciones">
-            <i class="fa fa-fw fa-search-plus"></i>
+          <button class="btn" type="button" title="Ver Importación" data-js-click-asignar-md5="importaciones">
+            <i class="fa fa-reply-all"></i>
             <span hidden data-key="md5"></span>
           </button>
         </td>
