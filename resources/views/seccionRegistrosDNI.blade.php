@@ -40,6 +40,17 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
   $idFiltroTablaImportaciones = uniqid();
   $idFiltroTablaRegistros = uniqid();
   $idModalImportar = uniqid();
+  $idClearImportacion = uniqid();
+  
+  $id_casino_change_set   = "#{$idFiltroTablaImportaciones} [name='id_casino'],#{$idFiltroTablaRegistros} [name='id_casino'],#{$idModalImportar} [name='id_casino']";
+  $informado_change_set_0 = "#{$idFiltroTablaImportaciones} [name='informado[0]'],#{$idFiltroTablaRegistros} [name='informado[0]']";
+  $informado_change_set_1 = "#{$idFiltroTablaImportaciones} [name='informado[1]'],#{$idFiltroTablaRegistros} [name='informado[1]']";
+  $reportado_change_set_0 = "#{$idFiltroTablaImportaciones} [name='reportado[0]'],#{$idFiltroTablaRegistros} [name='reportado[0]']";
+  $reportado_change_set_1 = "#{$idFiltroTablaImportaciones} [name='reportado[1]'],#{$idFiltroTablaRegistros} [name='reportado[1]']";
+  $edad_change_set_0      = "#{$idFiltroTablaImportaciones} [name='edad[0]'],#{$idFiltroTablaRegistros} [name='edad[0]']";
+  $edad_change_set_1      = "#{$idFiltroTablaImportaciones} [name='edad[1]'],#{$idFiltroTablaRegistros} [name='edad[1]']";
+  $filtros = "#$idFiltroTablaImportaciones,#$idFiltroTablaRegistros";
+  $clearMD5 = "#$idClearImportacion,#{$idFiltroTablaImportaciones} [name='md5'],#{$idFiltroTablaRegistros} [name='md5']";
 ?>
 <div class="row" data-visualizando="importaciones" id="{{$idParentFiltros}}">
   <div  class="col-md-12">
@@ -53,30 +64,6 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
               <option value="registros">Registros</option>
             </select>
           </div>
-          <?php $idClearImportacion = uniqid(); ?>
-          <div class="col-md-2" data-visible="registros">          
-            <h5>Importación</h5>
-            <div style="display: flex;">
-              <input data-js-change-trigger-buscar id="{{$idClearImportacion}}" class="form-control" name="md5" readonly style="width: 20em;" placeholder="IMPORTACIÓN">
-              <button class="btn" type="button" title="ver" data-js-click-asignar-md5>
-                <i class="fa fa-times"></i>
-                <span hidden data-key="md5"></span>
-              </button>
-            </div>
-          </div>
-        </div>
-        <?php 
-          $id_casino_change_set   = "#{$idFiltroTablaImportaciones} [name='id_casino'],#{$idFiltroTablaRegistros} [name='id_casino'],#{$idModalImportar} [name='id_casino']";
-          $informado_change_set_0 = "#{$idFiltroTablaImportaciones} [name='informado[0]'],#{$idFiltroTablaRegistros} [name='informado[0]']";
-          $informado_change_set_1 = "#{$idFiltroTablaImportaciones} [name='informado[1]'],#{$idFiltroTablaRegistros} [name='informado[1]']";
-          $reportado_change_set_0 = "#{$idFiltroTablaImportaciones} [name='reportado[0]'],#{$idFiltroTablaRegistros} [name='reportado[0]']";
-          $reportado_change_set_1 = "#{$idFiltroTablaImportaciones} [name='reportado[1]'],#{$idFiltroTablaRegistros} [name='reportado[1]']";
-          $edad_change_set_0      = "#{$idFiltroTablaImportaciones} [name='edad[0]'],#{$idFiltroTablaRegistros} [name='edad[0]']";
-          $edad_change_set_1      = "#{$idFiltroTablaImportaciones} [name='edad[1]'],#{$idFiltroTablaRegistros} [name='edad[1]']";
-          $filtros = "#$idFiltroTablaImportaciones,#$idFiltroTablaRegistros";
-          $clearMD5 = "#$idClearImportacion,#{$idFiltroTablaImportaciones} [name='md5'],#{$idFiltroTablaRegistros} [name='md5']";
-        ?>
-        <div class="row">
           <div class="col-md-2">
             <h5>Casino</h5>
             <select data-js-change-trigger-buscar="{!! $filtros !!}" data-js-change-clear="{{$clearMD5}}" data-js-change-set="{!! $id_casino_change_set !!}" class="form-control" value="{{ count($casinos)? $casinos[0]->id_casino : '' }}">
@@ -85,18 +72,30 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
               @endforeach
             </select>
           </div>
+          <div class="col-md-2" data-visible="registros">          
+            <h5>Importación</h5>
+            <div style="display: flex;">
+              <input id="{{$idClearImportacion}}" class="form-control" name="md5" readonly style="width: 20em;" placeholder="IMPORTACIÓN">
+              <button class="btn" type="button" title="ver" data-js-click-asignar-md5="importaciones">
+                <i class="fa fa-times"></i>
+                <span hidden data-key="md5"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
           <div class="col-md-3">
             <h5>Informado</h5>
             <div style="display: flex;">
               @component('Components/inputFecha',[
-                'attrs' => 'data-js-change-set="'.$informado_change_set_0.'" data-js-change-clear="#'.$idClearImportacion.'"',
+                'attrs' => 'data-js-change-trigger-buscar="'.$filtros.'" data-js-change-set="'.$informado_change_set_0.'" data-js-change-clear="'.$clearMD5.'"',
                 'attrs_dtp' => 'data-date-format="yyyy-mm-dd" data-start-view="year" data-min-view="month"',
                 'form_group_attrs' => 'style="padding: 0 !important;flex: 1;"',
                 'placeholder' => 'DESDE'
               ])
               @endcomponent
               @component('Components/inputFecha',[
-                'attrs' => 'data-js-change-set="'.$informado_change_set_1.'" data-js-change-clear="#'.$idClearImportacion.'"',
+                'attrs' => 'data-js-change-trigger-buscar="'.$filtros.'" data-js-change-set="'.$informado_change_set_1.'" data-js-change-clear="'.$clearMD5.'"',
                 'attrs_dtp' => 'data-date-format="yyyy-mm-dd" data-start-view="year" data-min-view="month"',
                 'form_group_attrs' => 'style="padding: 0 !important;flex: 1;"',
                 'placeholder' => 'HASTA'
@@ -108,14 +107,14 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
             <h5>Reportado</h5>
             <div style="display: flex;">
               @component('Components/inputFecha',[
-                'attrs' => 'data-js-change-set="'.$reportado_change_set_0.'"',
+                'attrs' => 'data-js-change-trigger-buscar="'.$filtros.'" data-js-change-set="'.$reportado_change_set_0.'"',
                 'attrs_dtp' => 'data-date-format="yyyy-mm-dd" data-start-view="year" data-min-view="month"',
                 'form_group_attrs' => 'style="padding: 0 !important;flex: 1;"',
                 'placeholder' => 'DESDE'
               ])
               @endcomponent
               @component('Components/inputFecha',[
-                'attrs' => 'data-js-change-set="'.$reportado_change_set_1.'"',
+                'attrs' => 'data-js-change-trigger-buscar="'.$filtros.'" data-js-change-set="'.$reportado_change_set_1.'"',
                 'attrs_dtp' => 'data-date-format="yyyy-mm-dd" data-start-view="year" data-min-view="month"',
                 'form_group_attrs' => 'style="padding: 0 !important;flex: 1;"',
                 'placeholder' => 'HASTA'
@@ -127,10 +126,10 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
             <h5>Edad (a fecha de reporte)</h5>
             <div style="display: flex;">
               <div style="padding: 0 !important;flex: 1;">
-                <input class="form-control" data-js-change-set="{!! $edad_change_set_0 !!}">
+                <input class="form-control" data-js-change-trigger-buscar="{!! $filtros !!}" data-js-change-set="{!! $edad_change_set_0 !!}">
               </div>
               <div style="padding: 0 !important;flex: 1;">
-                <input class="form-control" data-js-change-set="{!! $edad_change_set_1 !!}">
+                <input class="form-control" data-js-change-trigger-buscar="{!! $filtros !!}" data-js-change-set="{!! $edad_change_set_1 !!}">
               </div>
             </div>
           </div>
@@ -241,7 +240,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
         <td data-key="cantidad_registros">CANT. REGISTROS</td>
         <td data-key="cantidad_menores">CANT. MENORES</td>
         <td>
-          <button class="btn" type="button" title="ver" data-js-click-asignar-md5>
+          <button class="btn" type="button" title="ver" data-js-click-asignar-md5="registros">
             <i class="fa fa-fw fa-search-plus"></i>
             <span hidden data-key="md5"></span>
           </button>

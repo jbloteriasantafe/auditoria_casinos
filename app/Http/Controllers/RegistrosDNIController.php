@@ -132,7 +132,26 @@ class RegistrosDNIController extends Controller
         $reglas[] = ['ri.fecha_informado','<=',$request->informado[1]];
       }
     }
-       
+    
+    if(isset($request->reportado) && is_array($request->reportado)){
+      if(\DateTime::createFromFormat('Y-m-d',$request->reportado[0]) !== false){
+        if(!empty($request->reportado[0])){
+          $reglas[] = [DB::raw("(
+                '{$request->reportado[0]} 00:00:00' <= ri.desde
+            OR  '{$request->reportado[0]} 00:00:00' <= ri.hasta
+          )"),'=','1'];
+        }
+      }
+      if(\DateTime::createFromFormat('Y-m-d',$request->reportado[1]) !== false){
+        if(!empty($request->reportado[1])){
+          $reglas[] = [DB::raw("(
+                '{$request->reportado[1]} 23:59:59' >= ri.desde 
+            OR  '{$request->reportado[1]} 23:59:59' >= ri.hasta
+          )"),'=','1'];
+        }
+      }
+    }
+    
     $sort_by = [
       'columna' => 'ri.fecha_informado',
       'orden' => 'desc'

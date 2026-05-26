@@ -113,7 +113,8 @@ $(document).ready(function(){
     const o = e.currentTarget;
     const md5 = $(o).find('[data-key="md5"]').text();
     $('input[name="md5"]').val(md5);
-    $('[data-js-change-visualizando]').val('registros').trigger('change');
+    const target_view = $(o).attr('data-js-click-asignar-md5');
+    $('[data-js-change-visualizando]').val(target_view).trigger('change');
     $('[data-js-filtro-tabla]').trigger('buscar');
   };
   
