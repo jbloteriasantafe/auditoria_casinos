@@ -134,21 +134,48 @@ class RegistrosDNIController extends Controller
     }
     
     if(isset($request->reportado) && is_array($request->reportado)){
-      if(\DateTime::createFromFormat('Y-m-d',$request->reportado[0]) !== false){
-        if(!empty($request->reportado[0])){
+      if(!empty($request->reportado[0])){
+        if(\DateTime::createFromFormat('Y-m-d',$request->reportado[0]) !== false){
           $reglas[] = [DB::raw("(
                 '{$request->reportado[0]} 00:00:00' <= ri.desde
             OR  '{$request->reportado[0]} 00:00:00' <= ri.hasta
           )"),'=','1'];
         }
       }
-      if(\DateTime::createFromFormat('Y-m-d',$request->reportado[1]) !== false){
-        if(!empty($request->reportado[1])){
+      if(!empty($request->reportado[1])){
+        if(\DateTime::createFromFormat('Y-m-d',$request->reportado[1]) !== false){
           $reglas[] = [DB::raw("(
                 '{$request->reportado[1]} 23:59:59' >= ri.desde 
             OR  '{$request->reportado[1]} 23:59:59' >= ri.hasta
           )"),'=','1'];
         }
+      }
+    }
+    
+    if(isset($request->md5)){
+      $reglas[] = ['ri.md5','=',$request->md5];
+    }
+    
+    if(isset($request->edad) && is_array($request->edad)){
+      if(isset($request->edad[0]) && ctype_digit($request->edad[0])){
+        $reglas[] = [DB::raw("(EXISTS (
+          SELECT 1
+          FROM registros_dni_resumen as rr
+          WHERE rr.id_registros_dni_importacion = ri.id_registros_dni_importacion
+          AND rr.dia IS NULL
+          AND rr.hora IS NULL
+          AND rr.edad >= {$request->edad[0]}
+        ))"),'=','1'];
+      }
+      if(isset($request->edad[1]) && ctype_digit($request->edad[1])){
+        $reglas[] = [DB::raw("(EXISTS (
+          SELECT 1
+          FROM registros_dni_resumen as rr
+          WHERE rr.id_registros_dni_importacion = ri.id_registros_dni_importacion
+          AND rr.dia IS NULL
+          AND rr.hora IS NULL
+          AND rr.edad <= {$request->edad[1]}
+        ))"),'=','1'];
       }
     }
     
@@ -216,6 +243,15 @@ class RegistrosDNIController extends Controller
       }
     }
     
+    if(isset($request->edad) && is_array($request->edad)){
+      if(!empty($request->edad[0])){
+        $reglas[] = ['r.edad','>=',$request->edad[0]];
+      }
+      if(!empty($request->edad[1])){
+        $reglas[] = ['r.edad','<=',$request->edad[1]];
+      }
+    }
+    
     if(isset($request->md5)){
       $reglas[] = ['ri.md5','=',$request->md5];
     }
@@ -233,7 +269,7 @@ class RegistrosDNIController extends Controller
     }
     
     $ret = DB::table('registros_dni as r')
-    ->select('r.*','ri.fecha_informado')
+    ->select('r.*','ri.fecha_informado','ri.md5')
     ->join('registros_dni_importacion as ri','ri.id_registros_dni_importacion','=','r.id_registros_dni_importacion')
     ->where($reglas)
     ->whereIn('r.id_casino',$u->casinos->pluck('id_casino'))

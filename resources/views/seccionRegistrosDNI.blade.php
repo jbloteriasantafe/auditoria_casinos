@@ -72,7 +72,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
               @endforeach
             </select>
           </div>
-          <div class="col-md-2" data-visible="registros">          
+          <div class="col-md-2">          
             <h5>Importación</h5>
             <div style="display: flex;">
               <input id="{{$idClearImportacion}}" class="form-control" name="md5" readonly style="width: 20em;" placeholder="IMPORTACIÓN">
@@ -212,6 +212,10 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
             </div>
           </div>
         </div>
+        <div class="col-md-3">
+          <h5>Importación</h5>
+          <input class="form-control" name="md5" readonly>
+        </div>
         @endsection
         @yield('filtrosComunes')
       </div>
@@ -264,10 +268,6 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
       @slot('filtros')
       <div class="col-md-12">
         @yield('filtrosComunes')
-        <div class="col-md-3">
-          <h5>Importación</h5>
-          <input class="form-control" name="md5" readonly>
-        </div>
       </div>
       @endslot
       
@@ -277,6 +277,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
         <th data-js-sortable="fecha_nacimiento">F. NAC</th>
         <th data-js-sortable="edad">EDAD</th>
         <th data-js-sortable="fecha_informado">F. INFORMADO</th>
+        <th>ACCION</th>
       </tr>
       @endslot
       
@@ -286,6 +287,12 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
         <td data-key="fecha_nacimiento">F. NAC</td>
         <td data-key="edad">EDAD</td>
         <td data-key="fecha_informado">F. INFORMADO</td>
+        <td>
+          <button class="btn" type="button" title="ver" data-js-click-asignar-md5="importaciones">
+            <i class="fa fa-fw fa-search-plus"></i>
+            <span hidden data-key="md5"></span>
+          </button>
+        </td>
       </tr>
       @endslot
     @endcomponent
