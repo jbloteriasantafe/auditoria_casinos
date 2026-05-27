@@ -3106,12 +3106,19 @@ $(document).ready(function () {
 
         let html = '';
         items.forEach(function (m) {
+            // Orden: las acciones más específicas deben evaluarse ANTES que las genéricas
+            // (p.ej. NOTA_APROBACION antes de ELIMIN; GRUPO_PADRE antes de cualquier match).
             let iconClass = 'fa-circle text-muted';
             if (m.accion.includes('INGRES')) iconClass = 'fa-plus-circle text-success';
             else if (m.accion.includes('MODIFIC')) iconClass = 'fa-exchange-alt text-info';
             else if (m.accion.includes('EDIT')) iconClass = 'fa-pencil-alt text-info';
+            else if (m.accion.includes('NOTA_APROBACION')) iconClass = 'fa-certificate text-warning';
+            else if (m.accion.includes('GRUPO_PADRE_ASIGNADO')) iconClass = 'fa-link text-info';
+            else if (m.accion.includes('GRUPO_PADRE_QUITADO')) iconClass = 'fa-unlink text-warning';
             else if (m.accion.includes('ADJUNTO')) iconClass = 'fa-paperclip text-warning';
             else if (m.accion.includes('COMENT')) iconClass = 'fa-comment text-primary';
+            else if (m.accion.includes('BORRADOR')) iconClass = 'fa-sticky-note text-info';
+            else if (m.accion.includes('ACTIVO')) iconClass = 'fa-desktop text-info';
             else if (m.accion.includes('ELIMIN')) iconClass = 'fa-trash text-danger';
 
             html += '<div style="padding:6px 0; border-bottom:1px solid #f3f4f6">' +

@@ -1439,7 +1439,6 @@
                                         <tr><td><strong>Fecha Fin:</strong></td><td><span class="editable" data-field="fecha_fin">{{fecha_fin}}</span></td></tr>
                                         <tr class="row-fecha-pretendida"><td><strong>Fecha Est. Aprob.:</strong></td><td><span class="editable" data-field="fecha_pretendida_aprobacion">{{fecha_pretendida_aprobacion}}</span></td></tr>
                                         <tr class="row-compartir-admin"><td><strong>Compartir Admin.:</strong></td><td><span class="editable editable-toggle" data-field="compartir_administrador" data-value="{{compartir_administrador}}">{{compartir_administrador_label}}</span></td></tr>
-                                        {{-- 'Fecha Ref.' eliminada del modal (borrado lógico). Los 7 registros históricos con fecha_referencia siguen en BD. --}}
                                         <tr><td><strong>Estado:</strong></td><td><span class="editable" data-field="estado" data-value="{{estado}}"><span class="label" style="{{estadoStyle}}">{{estado}}</span></span></td></tr>
                                         <tr><td><strong>Creado:</strong></td><td>{{created_at}}</td></tr>
                                     </table>

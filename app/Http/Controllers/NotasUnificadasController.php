@@ -106,6 +106,47 @@ class NotasUnificadasController extends Controller
     }
 
     /**
+     * Registrar un movimiento en el expediente de la nota dada.
+     * Helper de dominio: evita repetir el patrón Movimiento::create + lookup de usuario.
+     * Public porque también lo usa NotasPdfAnotacionesController para trazar las anotaciones PDF.
+     * Si la nota no tiene expediente o no hay sesión, no registra y devuelve false.
+     */
+    public static function registrarMovimiento($nota, $accion, $comentario)
+    {
+        if (!$nota) return false;
+        $exp = $nota->expedientes()->first();
+        if (!$exp) return false;
+
+        $idUsuario = session('id_usuario');
+        $usuario = $idUsuario ? \App\Usuario::find($idUsuario) : null;
+        $nombre = $usuario ? $usuario->nombre : 'Usuario';
+
+        Movimiento::create([
+            'id_expediente_nota' => $exp->id,
+            'id_usuario' => $idUsuario ?? 1,
+            'fecha_movimiento' => \Carbon\Carbon::now(),
+            'accion' => $accion,
+            'comentario' => $nombre . ' ' . $comentario,
+        ]);
+        return true;
+    }
+
+    /**
+     * Registrar un movimiento en TODAS las notas de un grupo (MKT + FISC).
+     * Útil para operaciones a nivel grupo (vínculo padre/hijo, nota de aprobación):
+     * el evento queda trazado en cada nota hija del grupo afectado.
+     */
+    public static function registrarMovimientoEnGrupo($grupo, $accion, $comentario)
+    {
+        if (!$grupo) return false;
+        $grupo->load('notas');
+        foreach ($grupo->notas as $nota) {
+            self::registrarMovimiento($nota, $accion, $comentario);
+        }
+        return true;
+    }
+
+    /**
      * Estado binario de una MTM derivado de id_estado_maquina.
      * Activa = Ingreso (1) o Reingreso (2). Inactiva = Egreso{Definitivo,Temporal,por Intervención},
      * Inhabilitada, Eventualidad Observada. Si la máquina no tiene estado cargado -> '—'.
@@ -1931,6 +1972,7 @@ class NotasUnificadasController extends Controller
 
             $disk = 'public';
             $path = null;
+            $nombreOriginal = $request->file('file')->getClientOriginalName();
 
             if ($tipo == 'pautas') {
                 $path = $request->file('file')->store('pautas', $disk);
@@ -1946,6 +1988,12 @@ class NotasUnificadasController extends Controller
             }
 
             $nota->save();
+
+            self::registrarMovimiento(
+                $nota,
+                'ADJUNTO_AGREGADO',
+                'subió archivo "' . $nombreOriginal . '" (' . $tipo . ')'
+            );
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
@@ -2634,6 +2682,7 @@ class NotasUnificadasController extends Controller
             }
 
             $nota = NotaIngreso::findOrFail($id);
+            $anterior = (string) ($nota->borrador ?? '');
             $valor = $request->has('borrador') ? trim((string) $request->borrador) : '';
             // Cap a 500 caracteres (definición de columna).
             if (mb_strlen($valor) > 500) {
@@ -2641,6 +2690,18 @@ class NotasUnificadasController extends Controller
             }
             $nota->borrador = $valor === '' ? null : $valor;
             $nota->save();
+
+            // Registrar en historial solo si cambió el contenido.
+            if ($valor !== $anterior) {
+                if ($anterior === '' && $valor !== '') {
+                    $comentario = 'agregó borrador: "' . $valor . '"';
+                } elseif ($valor === '') {
+                    $comentario = 'borró el borrador';
+                } else {
+                    $comentario = 'modificó el borrador: "' . $valor . '"';
+                }
+                self::registrarMovimiento($nota, 'BORRADOR', $comentario);
+            }
 
             return response()->json([
                 'success' => true,
@@ -2660,7 +2721,22 @@ class NotasUnificadasController extends Controller
         try {
             $nota = NotaIngreso::findOrFail($id);
             $activos = $request->activos ?: [];
+            $cantPrevia = $nota->activos()->count();
             $this->procesarActivos($nota, $activos);
+
+            // Registrar en historial cuánto y de qué tipo se agregó.
+            // (procesarActivos "explota" islas en MTMs; tomamos el delta real post-insert.)
+            $cantPosterior = $nota->activos()->count();
+            $delta = $cantPosterior - $cantPrevia;
+            if ($delta > 0) {
+                $tipos = collect($activos)->pluck('tipo')->map(function ($t) { return strtoupper($t); })->unique()->values()->all();
+                $tiposTxt = implode(', ', $tipos);
+                self::registrarMovimiento(
+                    $nota,
+                    'ACTIVO_AGREGADO',
+                    'agregó ' . $delta . ' activo(s)' . ($tiposTxt !== '' ? ' (' . $tiposTxt . ')' : '')
+                );
+            }
 
             // Recargar y devolver la lista actualizada (misma lógica que getDetalleNota)
             $nota->load('activos');
@@ -2757,7 +2833,17 @@ class NotasUnificadasController extends Controller
         try {
             $activo = NotaTieneActivo::findOrFail($id);
             $notaId = $activo->id_nota_ingreso;
+            $tipo = $activo->tipo_activo ?? 'activo';
+            $idDelActivo = $activo->id_activo ?? '-';
             $activo->delete();
+
+            // Registrar en historial qué se quitó.
+            $notaParaHistorial = NotaIngreso::find($notaId);
+            self::registrarMovimiento(
+                $notaParaHistorial,
+                'ACTIVO_ELIMINADO',
+                'quitó activo (' . $tipo . ' #' . $idDelActivo . ')'
+            );
 
             $restantes = NotaTieneActivo::where('id_nota_ingreso', $notaId)->get();
             $activos = $this->enriquecerActivos($restantes);
@@ -3110,6 +3196,15 @@ class NotasUnificadasController extends Controller
                 $subidos[] = $originalName;
             }
 
+            if (count($subidos) > 0) {
+                $label = $tipoDocumento === 'DISPOSICION' ? 'Disposición' : 'Nota';
+                self::registrarMovimientoEnGrupo(
+                    $grupo,
+                    'NOTA_APROBACION_AGREGADA',
+                    'subió ' . $label . ' de aprobación N° ' . $numeroDocumento . '-' . $anioDocumento . ' (' . $tipoRama . ')'
+                );
+            }
+
             return response()->json([
                 'success' => true,
                 'msg' => count($subidos) . ' nota(s) de aprobación subida(s)',
@@ -3180,6 +3275,17 @@ class NotasUnificadasController extends Controller
             }
 
             DB::table('grupo_notas_aprobacion')->where('id', $id)->delete();
+
+            // Trazar en todas las notas del grupo afectado.
+            $grupo = \App\Models\GrupoTramite::find($registro->id_grupo);
+            if ($grupo) {
+                $label = (isset($registro->tipo_documento) && $registro->tipo_documento === 'DISPOSICION') ? 'Disposición' : 'Nota';
+                self::registrarMovimientoEnGrupo(
+                    $grupo,
+                    'NOTA_APROBACION_ELIMINADA',
+                    'eliminó ' . $label . ' de aprobación N° ' . ($registro->numero_documento ?? '?') . '-' . ($registro->anio_documento ?? '?') . ' (' . ($registro->tipo_rama ?? '?') . ')'
+                );
+            }
 
             return response()->json(['success' => true]);
         } catch (\Throwable $e) {
@@ -3296,6 +3402,21 @@ class NotasUnificadasController extends Controller
             $grupo->id_grupo_padre = $padreId;
             $grupo->save();
 
+            // Trazar en ambos extremos: las notas del hijo (este grupo) y las del padre.
+            $padre = $padreId ? \App\Models\GrupoTramite::find($padreId) : null;
+            if ($padre) {
+                self::registrarMovimientoEnGrupo(
+                    $grupo,
+                    'GRUPO_PADRE_ASIGNADO',
+                    'vinculó este trámite como hijo de N° ' . $padre->nro_nota . '-' . $padre->anio
+                );
+                self::registrarMovimientoEnGrupo(
+                    $padre,
+                    'GRUPO_PADRE_ASIGNADO',
+                    'vinculó el trámite N° ' . $grupo->nro_nota . '-' . $grupo->anio . ' como hijo'
+                );
+            }
+
             return response()->json(['success' => true]);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
@@ -3309,8 +3430,24 @@ class NotasUnificadasController extends Controller
     {
         try {
             $grupo = \App\Models\GrupoTramite::findOrFail($request->id_grupo);
+            $exPadreId = $grupo->id_grupo_padre;
             $grupo->id_grupo_padre = null;
             $grupo->save();
+
+            // Trazar en ambos extremos si había un padre.
+            $exPadre = $exPadreId ? \App\Models\GrupoTramite::find($exPadreId) : null;
+            if ($exPadre) {
+                self::registrarMovimientoEnGrupo(
+                    $grupo,
+                    'GRUPO_PADRE_QUITADO',
+                    'quitó el vínculo como hijo de N° ' . $exPadre->nro_nota . '-' . $exPadre->anio
+                );
+                self::registrarMovimientoEnGrupo(
+                    $exPadre,
+                    'GRUPO_PADRE_QUITADO',
+                    'se quitó el vínculo con el trámite hijo N° ' . $grupo->nro_nota . '-' . $grupo->anio
+                );
+            }
 
             return response()->json(['success' => true]);
         } catch (\Throwable $e) {
