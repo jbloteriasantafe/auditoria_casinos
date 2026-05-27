@@ -553,11 +553,12 @@ $(document).ready(function () {
             id_plataforma: $('#hidPlataformaId').val(),
             tipo_tarea: tipoTarea,
             tipo_solicitud: $('#selTipoSolicitud').val(),
-            id_tipo_evento: isMkt ? $('#selTipoEventoMKT').val() : $('#selTipoEventoFISC').val(),
+            // MKT: Tipo Evento eliminado de la UI → siempre null. FISC mantiene su Tipo Evento Técnico.
+            id_tipo_evento: isMkt ? null : $('#selTipoEventoFISC').val(),
             id_categoria: isMkt ? $('#selCategoriaMKT').val() : $('#selCategoriaFISC').val(),
             fecha_inicio_evento: $('input[name="fecha_inicio_evento"]').val(),
             fecha_fin_evento: $('input[name="fecha_fin_evento"]').val(),
-            fecha_referencia: $('input[name="fecha_referencia"]').val() || '',
+            // fecha_referencia eliminada de la UI; el backend recibirá null.
             activos: activos,
             _token: $('input[name="_token"]').val()
         };
@@ -1025,8 +1026,7 @@ $(document).ready(function () {
             tipo_tarea: $('#selTipoTarea').val(),
             tipo_solicitud: $('#selTipoSolicitud').val(),
 
-            // New Inputs for Split MKT/FISC
-            id_tipo_evento_mkt: $('select[name="id_tipo_evento_mkt"]').val(),
+            // Inputs MKT/FISC. 'id_tipo_evento_mkt' eliminado del UI (queda NULL en BD).
             id_categoria_mkt: $('select[name="id_categoria_mkt"]').val(),
             id_tipo_evento_fisc: $('select[name="id_tipo_evento_fisc"]').val(),
 
@@ -1035,7 +1035,7 @@ $(document).ready(function () {
             involucra_juegos: $('#chkInvolucraJuegos').is(':checked') ? 1 : 0,
             fecha_inicio_evento: $('#inpFechaInicio').val(),
             fecha_fin_evento: $('#inpFechaFin').val(),
-            fecha_referencia: $('input[name="fecha_referencia"]').val() || '',
+            // fecha_referencia eliminada del UI; el backend recibirá null.
             id_grupo_padre: $('#hidIdGrupoPadre').val() || '',
             activos: activos,
             _token: $('input[name="_token"]').val()
@@ -2201,6 +2201,120 @@ $(document).ready(function () {
     });
 
     // =====================================================
+    // BORRADOR INLINE (anotaciones rápidas por nota hija)
+    // =====================================================
+    // Doble click: el span con el texto se reemplaza por un input + Save/Cancel.
+    // Save guarda contra POST /notas-unificadas/borrador/{id} y restaura el span con el nuevo valor.
+    // Cancel restaura el valor previo (guardado en data-borrador).
+
+    function _restaurarSpanBorrador(notaId, valor) {
+        // Mismo estilo que el render server-side: word-wrap + sin nowrap para que el texto baje
+        // a renglones siguientes en vez de expandir la celda y empujar las columnas vecinas.
+        var styleWrap = {
+            cursor: 'pointer',
+            'font-size': '11px',
+            display: 'block',
+            'word-wrap': 'break-word',
+            'overflow-wrap': 'anywhere',
+            'word-break': 'break-word'
+        };
+        var html;
+        if (valor && valor.length > 0) {
+            html = $('<span class="texto-borrador">')
+                .attr('data-nota-id', notaId)
+                .attr('data-borrador', valor)
+                .attr('title', valor)
+                .css(styleWrap)
+                .text(valor);
+        } else {
+            html = $('<span class="texto-borrador">')
+                .attr('data-nota-id', notaId)
+                .attr('data-borrador', '')
+                .attr('title', 'Doble click para agregar')
+                .css(styleWrap)
+                .html('<small class="text-muted" style="font-style:italic; font-size:10px;">— doble click —</small>');
+        }
+        return html;
+    }
+
+    $(document).on('dblclick', '.texto-borrador', function (e) {
+        e.stopPropagation();  // Evita que la grupo-row capture el click (toggling expand)
+        var $span = $(this);
+        var notaId = $span.data('nota-id');
+        var valor = $span.attr('data-borrador') || '';
+
+        var $wrap = $(
+            '<div class="edit-borrador-wrap" style="display:flex; gap:2px; align-items:center;">' +
+                '<input type="text" class="form-control input-borrador" maxlength="500" ' +
+                       'style="font-size:11px; padding:1px 4px; height:22px; flex:1; min-width:0;">' +
+                '<button class="btn btn-success btn-xs btn-save-borrador" title="Guardar (Enter)" ' +
+                        'style="padding:1px 5px; font-size:11px; line-height:1.2;"><i class="fa fa-check"></i></button>' +
+                '<button class="btn btn-default btn-xs btn-cancel-borrador" title="Cancelar (Esc)" ' +
+                        'style="padding:1px 5px; font-size:11px; line-height:1.2;"><i class="fa fa-times"></i></button>' +
+            '</div>'
+        );
+        $wrap.attr('data-nota-id', notaId).attr('data-original', valor);
+        $wrap.find('.input-borrador').val(valor);
+        $span.replaceWith($wrap);
+        $wrap.find('.input-borrador').focus().select();
+    });
+
+    $(document).on('click', '.btn-save-borrador', function (e) {
+        e.stopPropagation();
+        var $btn = $(this);
+        var $wrap = $btn.closest('.edit-borrador-wrap');
+        var notaId = $wrap.data('nota-id');
+        var valor = $wrap.find('.input-borrador').val();
+
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+
+        $.ajax({
+            url: '/notas-unificadas/borrador/' + notaId,
+            type: 'POST',
+            data: { _token: $('input[name="_token"]').first().val(), borrador: valor },
+            success: function (res) {
+                if (res.success) {
+                    var nuevo = res.borrador || '';
+                    $wrap.replaceWith(_restaurarSpanBorrador(notaId, nuevo));
+                    notificacion('success', 'Borrador guardado');
+                } else {
+                    notificacion('error', res.msg || 'Error al guardar');
+                    $btn.prop('disabled', false).html('<i class="fa fa-check"></i>');
+                }
+            },
+            error: function (xhr) {
+                var msg = (xhr.responseJSON && xhr.responseJSON.msg) || 'Error al guardar';
+                notificacion('error', msg);
+                $btn.prop('disabled', false).html('<i class="fa fa-check"></i>');
+            }
+        });
+    });
+
+    $(document).on('click', '.btn-cancel-borrador', function (e) {
+        e.stopPropagation();
+        var $wrap = $(this).closest('.edit-borrador-wrap');
+        var notaId = $wrap.data('nota-id');
+        var original = $wrap.attr('data-original') || '';
+        $wrap.replaceWith(_restaurarSpanBorrador(notaId, original));
+    });
+
+    // Enter -> guardar; Escape -> cancelar
+    $(document).on('keydown', '.input-borrador', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            $(this).closest('.edit-borrador-wrap').find('.btn-save-borrador').click();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            $(this).closest('.edit-borrador-wrap').find('.btn-cancel-borrador').click();
+        }
+    });
+
+    // El wrap está dentro de una nota-hija; evita que un click dentro del wrap colapse el grupo padre.
+    $(document).on('click', '.edit-borrador-wrap, .input-borrador, .texto-borrador', function (e) {
+        e.stopPropagation();
+    });
+
+    // =====================================================
     // MODAL AGREGAR ADJUNTOS
     // =====================================================
 
@@ -2783,7 +2897,6 @@ $(document).ready(function () {
         html = sr(html, '{{fecha_pretendida_aprobacion}}', nota.fecha_pretendida_aprobacion || 'N/A');
         html = sr(html, '{{compartir_administrador}}', nota.compartir_administrador ? '1' : '0');
         html = sr(html, '{{compartir_administrador_label}}', nota.compartir_administrador ? '<span style="color:#5cb85c;"><i class="fa fa-check-circle"></i> Sí</span>' : '<span style="color:#999;"><i class="fa fa-times-circle"></i> No</span>');
-        html = sr(html, '{{fecha_referencia}}', nota.fecha_referencia || 'N/A');
         html = sr(html, '{{estado}}', nota.estado || 'INGRESADO');
         html = sr(html, '{{estadoStyle}}', getEstadoStyle(nota.estado));
         html = sr(html, '{{created_at}}', nota.created_at || 'N/A');
@@ -2809,6 +2922,9 @@ $(document).ready(function () {
             $tmp.find('.row-fecha-pretendida').remove();
             $tmp.find('.row-compartir-admin').remove();
             $tmp.find('.row-categoria').remove();
+        } else {
+            // En MKT 'Tipo Evento' está borrado lógicamente; FISC sigue mostrando su Tipo Evento Técnico.
+            $tmp.find('.row-tipo-evento').remove();
         }
         html = $tmp.html();
 
@@ -2885,40 +3001,69 @@ $(document).ready(function () {
         return html;
     }
 
-    // Renderizar activos como lista/tabla
+    // Renderizar activos como tabla: Tipo · Nombre · ID · Estado · % Dev · Acción.
+    // El backend devuelve nombre / id_display / estado / porcentaje_devolucion uniformes
+    // para los 4 tipos (MTM, MESA, BINGO, JUEGO_ONLINE).
     function renderActivos(activos) {
         if (!activos || activos.length === 0) return '<p class="text-muted text-center" style="padding:10px"><i class="fa fa-info-circle"></i> No hay activos asociados a esta nota</p>';
 
-        let html = '<ul style="list-style:none; padding:0; margin:0;">';
+        var tipoMeta = {
+            'MTM':          { icon: 'fa-desktop', bg: '#8b5cf6' },
+            'MESA':         { icon: 'fa-table',   bg: '#28a745' },
+            'BINGO':        { icon: 'fa-th',      bg: '#e67e22' },
+            'JUEGO_ONLINE': { icon: 'fa-gamepad', bg: '#0ea5e9' },
+            'ISLA':         { icon: 'fa-server',  bg: '#17a2b8' }
+        };
+
+        function estadoBadge(estado) {
+            // white-space:nowrap + display:inline-block: el badge no rompe a 'Activ\na' cuando la columna es angosta.
+            if (estado === 'Activa')   return '<span style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; white-space:nowrap; display:inline-block;">Activa</span>';
+            if (estado === 'Inactiva') return '<span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; white-space:nowrap; display:inline-block;">Inactiva</span>';
+            return '<span style="color:#9ca3af;">—</span>';
+        }
+
+        var html =
+            '<table class="table table-condensed" style="margin:0; font-size:12px;">' +
+                '<thead><tr style="background:#f8fafc;">' +
+                    '<th style="font-size:11px; color:#64748b; padding:6px 8px;">Tipo</th>' +
+                    '<th style="font-size:11px; color:#64748b; padding:6px 8px;">Nombre</th>' +
+                    '<th style="font-size:11px; color:#64748b; padding:6px 4px; white-space:nowrap;">ID</th>' +
+                    '<th style="font-size:11px; color:#64748b; padding:6px 4px; white-space:nowrap;">Estado</th>' +
+                    '<th style="font-size:11px; color:#64748b; padding:6px 4px; white-space:nowrap;">% Dev</th>' +
+                    (window.PUEDE_ELIMINAR ? '<th style="width:32px; padding:6px 4px;"></th>' : '') +
+                '</tr></thead>' +
+                '<tbody>';
+
         activos.forEach(function (act, idx) {
-            let tipoLabel = act.tipo_activo || 'ISLA';
-            let icon = 'fa-gamepad';
-            let badgeBg = '#17a2b8';
-            if (tipoLabel === 'MTM') { icon = 'fa-desktop'; badgeBg = '#8b5cf6'; }
-            else if (tipoLabel === 'MESA') { icon = 'fa-table'; badgeBg = '#28a745'; }
-            else if (tipoLabel === 'BINGO') { icon = 'fa-th'; badgeBg = '#e67e22'; }
+            var tipo = act.tipo_activo || 'ISLA';
+            var meta = tipoMeta[tipo] || { icon: 'fa-cube', bg: '#64748b' };
+            var bgRow = idx % 2 === 0 ? '#fafafa' : '#fff';
+            var pdev = (act.porcentaje_devolucion !== undefined && act.porcentaje_devolucion !== null && act.porcentaje_devolucion !== '—' && act.porcentaje_devolucion !== '')
+                ? act.porcentaje_devolucion + '%'
+                : '<span style="color:#9ca3af;">—</span>';
 
-            let bgRow = idx % 2 === 0 ? '#fafafa' : '#fff';
-            let nro = act.nro_admin || act.id_activo || 'N/A';
+            var nombre = act.nombre || '—';
+            // Nombre con max-width + ellipsis: nombres largos ('DA VINCI DIAMONDS') no se cortan en dos líneas
+            // y dejan ancho para que ID/Estado no se rompan. El tooltip muestra el nombre completo.
+            var nombreCell = '<td style="padding:6px 8px; max-width:120px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:12px;" title="' + nombre.replace(/"/g, '&quot;') + '">' + nombre + '</td>';
 
-            let detalle = [];
-            if (act.marca) detalle.push(act.marca);
-            if (act.nro_isla) detalle.push('Isla ' + act.nro_isla);
-            let detalleStr = detalle.length > 0 ? ' <small style="color:#9ca3af">' + detalle.join(' | ') + '</small>' : '';
-
-            html += '<li data-activo-id="' + act.id + '" style="position:relative; padding:7px 50px 7px 10px; border-bottom:1px solid #f0f0f0; background:' + bgRow + ';">' +
-                '<span style="background:' + badgeBg + '; color:#fff; font-size:9px; font-weight:600; padding:2px 6px; border-radius:3px; margin-right:6px;"><i class="fa ' + icon + '"></i> ' + tipoLabel + '</span>' +
-                '<b style="font-size:13px;">' + nro + '</b>' + detalleStr +
-                (window.PUEDE_ELIMINAR ? '<span style="position:absolute; right:8px; top:50%; transform:translateY(-50%);">' +
-                    '<button class="btn btn-xs btn-ask-remove-activo" data-activo-id="' + act.id + '" title="Eliminar" style="padding:2px 7px; font-size:11px; background:#e2e8f0; color:#64748b; border:1px solid #cbd5e1; transition:all 0.15s;" onmouseover="this.style.background=\'#d9534f\';this.style.color=\'#fff\';this.style.borderColor=\'#d43f3a\';" onmouseout="this.style.background=\'#e2e8f0\';this.style.color=\'#64748b\';this.style.borderColor=\'#cbd5e1\';"><i class="fa fa-trash"></i></button>' +
+            html += '<tr data-activo-id="' + act.id + '" style="background:' + bgRow + ';">' +
+                '<td style="padding:6px 8px; white-space:nowrap;"><span style="background:' + meta.bg + '; color:#fff; font-size:10px; font-weight:600; padding:2px 6px; border-radius:3px;"><i class="fa ' + meta.icon + '"></i> ' + tipo + '</span></td>' +
+                nombreCell +
+                '<td style="padding:6px 4px; white-space:nowrap;"><b>' + (act.id_display || act.id_activo || '—') + '</b></td>' +
+                '<td style="padding:6px 4px; white-space:nowrap;">' + estadoBadge(act.estado) + '</td>' +
+                '<td style="padding:6px 4px; white-space:nowrap;">' + pdev + '</td>' +
+                (window.PUEDE_ELIMINAR ? '<td style="padding:4px 2px; white-space:nowrap; text-align:center;">' +
+                    '<button class="btn btn-xs btn-ask-remove-activo" data-activo-id="' + act.id + '" title="Eliminar" style="padding:1px 5px; font-size:10px; line-height:1.2; background:#e2e8f0; color:#64748b; border:1px solid #cbd5e1; transition:all 0.15s;" onmouseover="this.style.background=\'#d9534f\';this.style.color=\'#fff\';this.style.borderColor=\'#d43f3a\';" onmouseout="this.style.background=\'#e2e8f0\';this.style.color=\'#64748b\';this.style.borderColor=\'#cbd5e1\';"><i class="fa fa-trash"></i></button>' +
                     '<span class="confirm-remove-activo" style="display:none;">' +
-                        '<button class="btn btn-xs btn-success btn-confirm-remove-activo" data-activo-id="' + act.id + '" title="Confirmar" style="padding:2px 7px; font-size:11px;"><i class="fa fa-check"></i></button> ' +
-                        '<button class="btn btn-xs btn-default btn-cancel-remove-activo" title="Cancelar" style="padding:2px 7px; font-size:11px;"><i class="fa fa-times"></i></button>' +
+                        '<button class="btn btn-xs btn-success btn-confirm-remove-activo" data-activo-id="' + act.id + '" title="Confirmar" style="padding:1px 5px; font-size:10px;"><i class="fa fa-check"></i></button> ' +
+                        '<button class="btn btn-xs btn-default btn-cancel-remove-activo" title="Cancelar" style="padding:1px 5px; font-size:10px;"><i class="fa fa-times"></i></button>' +
                     '</span>' +
-                '</span>' : '') +
-                '</li>';
+                '</td>' : '') +
+                '</tr>';
         });
-        html += '</ul>';
+
+        html += '</tbody></table>';
         return html;
     }
 
@@ -3353,8 +3498,10 @@ $(document).ready(function () {
     // Confirmar eliminación
     $(document).on('click', '.btn-confirm-remove-activo', function () {
         var activoId = $(this).data('activo-id');
-        var li = $(this).closest('li');
-        var lista = li.closest('.activos-lista-detalle');
+        // El render de activos ahora es <table>; antes era <li>. Buscamos el contenedor por clase
+        // (.activos-lista-detalle es el wrap del template) para no depender de la etiqueta.
+        var fila = $(this).closest('tr, li');
+        var lista = $(this).closest('.activos-lista-detalle');
 
         $.ajax({
             url: '/notas-unificadas/activo/' + activoId,
@@ -3362,8 +3509,8 @@ $(document).ready(function () {
             data: { _token: $('input[name="_token"]').first().val() },
             success: function (res) {
                 if (res.success) {
-                    li.fadeOut(200, function () {
-                        li.remove();
+                    fila.fadeOut(200, function () {
+                        fila.remove();
                         lista.html(renderActivos(res.activos || []));
                     });
                     notificacion('success', 'Activo eliminado.');
@@ -3479,6 +3626,10 @@ $(document).ready(function () {
                 inputHtml = '<textarea class="form-control edit-input" data-field="' + field + '" rows="2" style="font-size: 13px;">' + currentValue + '</textarea>';
             } else if (field === 'fecha_inicio' || field === 'fecha_fin' || field === 'fecha_pretendida_aprobacion') {
                 inputHtml = '<input type="date" class="form-control edit-input" data-field="' + field + '" value="' + currentValue + '" style="font-size: 13px;">';
+            } else if (field === 'anio') {
+                inputHtml = '<input type="number" class="form-control edit-input" data-field="' + field + '" value="' + currentValue + '" min="2000" max="2100" step="1" style="font-size: 13px; width: 80px; display: inline-block;">';
+            } else if (field === 'nro_nota_ing') {
+                inputHtml = '<input type="text" class="form-control edit-input" data-field="' + field + '" value="' + currentValue + '" style="font-size: 13px; width: 120px; display: inline-block;">';
             } else if (field === 'id_tipo_evento') {
                 var opciones = window.OPCIONES_TIPO_EVENTO[tipoRama] || [];
                 var selectedId = $span.data('value') || '';
@@ -3594,13 +3745,23 @@ $(document).ready(function () {
                     $panel.find('.edit-actions').remove();
                     $panel.find('.btn-editar-nota').removeClass('editing').html('<i class="fa fa-pencil"></i> Editar');
                     notificacion('success', 'Nota actualizada correctamente');
+
+                    // Si el cambio tocó campos compartidos con el grupo (nro_nota,
+                    // anio, titulo), refrescar la tabla detrás del modal para que
+                    // la fila del grupo muestre los nuevos valores sin recargar.
+                    if (res.grupo_actualizado && typeof window.refreshTable === 'function') {
+                        window.refreshTable();
+                    }
                 } else {
                     notificacion('error', res.msg || 'Error al guardar');
                     $btn.prop('disabled', false).html('<i class="fa fa-save"></i> Guardar');
                 }
             },
             error: function (xhr) {
-                notificacion('error', 'Error de conexión');
+                // Mostrar el mensaje específico del backend (422 de validación,
+                // 403 de permiso, choque de nro_nota+anio con otro grupo, etc.).
+                var msg = (xhr.responseJSON && xhr.responseJSON.msg) || 'Error de conexión';
+                notificacion('error', msg);
                 $btn.prop('disabled', false).html('<i class="fa fa-save"></i> Guardar');
             }
         });
