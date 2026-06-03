@@ -52,33 +52,30 @@
     </tr>
   </thead>
 </table>
-@php
-  $nombresProcedimientos = \App\Http\Controllers\EventualidadController::nombresProcedimientos();
-@endphp
-
 <br/>
 
 <table>
   <thead>
     <tr>
-      <th class="opciones">Procedimientos realizados</th>
-      <th class="opciones">✔</th>
-      <th class="opciones">*</th>
+      <th class="opciones">Procedimiento</th>
+      <th class="opciones" style="text-align:center; width:130px;">Estado</th>
       <th class="opciones">Observaciones</th>
     </tr>
   </thead>
   <tbody>
-    @foreach ($nombresProcedimientos as $i => $nombre)
-      @php
-        $p = $eventualidad->procedimientos[$i] ?? null;
-        $np = $p['procedimiento'] ?? $nombre;
-        $estado = $p['estado'] ?? '*';
-      @endphp
+    @foreach ($eventualidad->procedimientosRealizados as $p)
       <tr>
-        <td>{{ $np }}</td>
-        <td>{{ $estado === '✔' ? '✔' : '' }}</td>
-        <td>{{ $estado === '*' ? '*' : '' }}</td>
-        <td>{{ $p['observacion'] ?? '' }}</td>
+        <td>{{ $p->nombre }}</td>
+        <td style="text-align:center;">
+          @if ($p->pivot->estado === 'realizado')
+            <span style="color:#3c763d; font-weight:bold;">REALIZADO</span>
+          @elseif ($p->pivot->estado === 'no_realizado')
+            <span style="color:#a94442; font-weight:bold;">NO REALIZADO</span>
+          @else
+            <span style="color:#999;">—</span>
+          @endif
+        </td>
+        <td>{{ $p->pivot->observacion }}</td>
       </tr>
     @endforeach
   </tbody>

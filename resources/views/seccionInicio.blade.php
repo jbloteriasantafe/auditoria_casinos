@@ -149,6 +149,9 @@ $usuario = \App\Http\Controllers\UsuarioController::getInstancia()->buscarUsuari
             'relevamientos_movimientos' => [null,'maquinas','iconoMaquinas'],
             'eventualidades' => [null,'maquinas','iconoMaquinas'],
             'eventualidadesMTM' => [null,'maquinas','iconoMaquinas'],
+            // El token 'resumen_diario' (ResumenDiarioController@index) no es la ruta real;
+            // sin override el tile apuntaba a "/resumen_diario" (404). La ruta es con guion y prefijo.
+            'resumen_diario' => ['eventualidades/resumen-diario','maquinas','iconoMaquinas'],
             'estadisticasGenerales' => [null,'tablero_modif','iconoTableroModif'],
             'estadisticasPorCasino' => [null,'tablero_modif','iconoTableroModif'],
             'interanuales' => [null,'tablero_control','iconoTableroModif'],
