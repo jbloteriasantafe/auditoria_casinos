@@ -17,17 +17,22 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
 <link href="/themes/explorer/theme.css" media="all" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="/css/animacionCarga.css">
 
+<?php $modos = ['importaciones','registros','estadisticas']; ?>
 <style>
-  [data-visualizando="importaciones"] [data-visible]:not([data-visible="importaciones"]) {
+  @foreach($modos as $m)
+  [data-visualizando="{{$m}}"] [data-visible]:not([data-visible="{{$m}}"]) {
     display: none;
   }
-  [data-visualizando="registros"] [data-visible]:not([data-visible="registros"]) {
-    display: none;
-  }
+  @endforeach
+  
   select[readonly] {
     pointer-events: none;
   }
   [data-js-filtro-tabla-filtro] {
+    display: none;
+  }
+  
+  [data-visible="estadisticas"] .zonaPaginacion {
     display: none;
   }
 </style>
@@ -39,29 +44,32 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
   $idParentFiltros = uniqid();
   $idFiltroTablaImportaciones = uniqid();
   $idFiltroTablaRegistros = uniqid();
+  $idFiltroTablaEstadisticas = uniqid();
+  
   $idModalImportar = uniqid();
   $idClearImportacion = uniqid();
   
-  $id_casino_change_set   = "#{$idFiltroTablaImportaciones} [name='id_casino'],#{$idFiltroTablaRegistros} [name='id_casino'],#{$idModalImportar} [name='id_casino']";
-  $informado_change_set_0 = "#{$idFiltroTablaImportaciones} [name='informado[0]'],#{$idFiltroTablaRegistros} [name='informado[0]']";
-  $informado_change_set_1 = "#{$idFiltroTablaImportaciones} [name='informado[1]'],#{$idFiltroTablaRegistros} [name='informado[1]']";
-  $reportado_change_set_0 = "#{$idFiltroTablaImportaciones} [name='reportado[0]'],#{$idFiltroTablaRegistros} [name='reportado[0]']";
-  $reportado_change_set_1 = "#{$idFiltroTablaImportaciones} [name='reportado[1]'],#{$idFiltroTablaRegistros} [name='reportado[1]']";
-  $edad_change_set_0      = "#{$idFiltroTablaImportaciones} [name='edad[0]'],#{$idFiltroTablaRegistros} [name='edad[0]']";
-  $edad_change_set_1      = "#{$idFiltroTablaImportaciones} [name='edad[1]'],#{$idFiltroTablaRegistros} [name='edad[1]']";
-  $filtros = "#$idFiltroTablaImportaciones,#$idFiltroTablaRegistros";
-  $clearMD5 = "#$idClearImportacion,#{$idFiltroTablaImportaciones} [name='md5'],#{$idFiltroTablaRegistros} [name='md5']";
+  $id_casino_change_set   = "#$idFiltroTablaImportaciones [name='id_casino'],#$idFiltroTablaRegistros [name='id_casino'],#$idFiltroTablaEstadisticas [name='id_casino'],#$idModalImportar [name='id_casino']";
+  $informado_change_set_0 = "#$idFiltroTablaImportaciones [name='informado[0]'],#$idFiltroTablaRegistros [name='informado[0]'],#$idFiltroTablaEstadisticas [name='informado[0]']";
+  $informado_change_set_1 = "#$idFiltroTablaImportaciones [name='informado[1]'],#$idFiltroTablaRegistros [name='informado[1]'],#$idFiltroTablaEstadisticas [name='informado[1]']";
+  $reportado_change_set_0 = "#$idFiltroTablaImportaciones [name='reportado[0]'],#$idFiltroTablaRegistros [name='reportado[0]'],#$idFiltroTablaEstadisticas [name='reportado[0]']";
+  $reportado_change_set_1 = "#$idFiltroTablaImportaciones [name='reportado[1]'],#$idFiltroTablaRegistros [name='reportado[1]'],#$idFiltroTablaEstadisticas [name='reportado[1]']";
+  $edad_change_set_0      = "#$idFiltroTablaImportaciones [name='edad[0]'],#$idFiltroTablaRegistros [name='edad[0]'],#$idFiltroTablaEstadisticas [name='edad[0]']";
+  $edad_change_set_1      = "#$idFiltroTablaImportaciones [name='edad[1]'],#$idFiltroTablaRegistros [name='edad[1]'],#$idFiltroTablaEstadisticas [name='edad[1]']";
+  $filtros  = "#$idFiltroTablaImportaciones,#$idFiltroTablaRegistros,#$idFiltroTablaEstadisticas,#$idFiltroTablaEstadisticas";
+  $clearMD5 = "#$idClearImportacion,#$idFiltroTablaImportaciones [name='md5'],#$idFiltroTablaRegistros [name='md5'],#$idFiltroTablaEstadisticas [name='md5'],#$idFiltroTablaEstadisticas [name='md5']";
 ?>
-<div class="row" data-visualizando="importaciones" id="{{$idParentFiltros}}">
+<div class="row" data-visualizando="{{$m[0]}}" id="{{$idParentFiltros}}">
   <div  class="col-md-12">
     <div class="row panel panel-default">
       <div class="panel-body">
         <div class="row">
           <div class="col-md-2">
             <h5>Visualizar</h5>
-            <select class="form-control" data-js-change-visualizando="#{{$idParentFiltros}}" value="importaciones">
-              <option value="importaciones">Importaciones</option>
-              <option value="registros">Registros</option>
+            <select class="form-control" data-js-change-visualizando="#{{$idParentFiltros}}" value="{{$m[0]}}">
+              @foreach($modos as $m)
+              <option value="{{$m}}">{{ucwords($m)}}</option>
+              @endforeach
             </select>
           </div>
           <div class="col-md-2">
@@ -151,7 +159,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
       @slot('filtros')
       <div class="col-md-12">
         @section('filtrosComunes')
-        <div class="col-md-3" hidden>
+        <div class="col-md-3">
           <h5>Casino</h5>
           <select readonly class="form-control" name="id_casino" value="{{ count($casinos)? $casinos[0]->id_casino : '' }}">
             @foreach(($casinos ?? []) as $c)
@@ -159,7 +167,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
             @endforeach
           </select>
         </div>
-        <div class="col-md-3" hidden>
+        <div class="col-md-3">
           <h5>Informado</h5>
           <div style="display: flex;">
             @component('Components/inputFecha',[
@@ -180,7 +188,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
             @endcomponent
           </div>
         </div>
-        <div class="col-md-3" hidden>
+        <div class="col-md-3">
           <h5>Reportado</h5>
           <div style="display: flex;">
             @component('Components/inputFecha',[
@@ -201,7 +209,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
             @endcomponent
           </div>
         </div>
-        <div class="col-md-3" hidden>
+        <div class="col-md-3">
           <h5>Edad (a fecha de reporte)</h5>
           <div style="display: flex;">
             <div style="padding: 0 !important;flex: 1;">
@@ -297,9 +305,39 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
       @endslot
     @endcomponent
   </div>
+  
+  <div data-visible="estadisticas" class="col-md-12">
+    @component('Components/FiltroTabla',['id' => $idFiltroTablaEstadisticas])
+      @slot('titulo')
+      Estadísticas
+      @endslot
+      
+      @slot('target_buscar')
+      /registrosDNI/estadisticas
+      @endslot
+      
+      @slot('filtros')
+      <div class="col-md-12">
+        @yield('filtrosComunes')
+      </div>
+      @endslot
+      
+      @slot('cabecera')
+      <tr>
+        <th>&nbsp;</th>
+      </tr>
+      @endslot
+      
+      @slot('molde')
+      <tr>
+        <td>
+          <div data-key="totales_AÑO_MES_SEMANA_GRUPOETARIO" style="width: 100%;"></div>
+        </td>
+      </tr>
+      @endslot
+    @endcomponent
+  </div>
 </div>
-
-
 
 @component('Components/modal',[
   'id' => $idModalImportar,
@@ -351,8 +389,6 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
 
 @component('Components/modalEliminar')
 @endcomponent
-
-
 
 @component('Components/modal',[
   'clases_modal' => 'modalCargando',

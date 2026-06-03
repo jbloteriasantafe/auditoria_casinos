@@ -1640,6 +1640,7 @@ Route::group(['prefix' => 'registrosDNI', 'middleware' => 'tiene_permiso:m_ver_s
   Route::post('/importar', 'RegistrosDNIController@importar');
   Route::get('/descargar/registros', 'RegistrosDNIController@descargar_registros');
   Route::delete('/borrar/{id_registros_dni_importacion}','RegistrosDNIController@borrar_importacion');
+  Route::post('/estadisticas','RegistrosDNIController@estadisticas');
 });
 
 Route::get("/fix-db-anotaciones", function() {
