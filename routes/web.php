@@ -386,6 +386,7 @@ Route::get('/get-comments/{id}', 'NotasUnificadasController@getComments');
   Route::get('/detalle-grupo/{id}', 'NotasUnificadasController@getDetalleGrupo');
   Route::get('/detalle-nota/{id}', 'NotasUnificadasController@getDetalleNota');
   Route::put('/update-nota/{id}', 'NotasUnificadasController@updateNota');
+  Route::post('/borrador/{id}', 'NotasUnificadasController@updateBorrador');
   Route::post('/comentario/{id}', 'NotasUnificadasController@addComentario');
   Route::delete('/comentario/{id}', 'NotasUnificadasController@deleteComentario');
   Route::post('/activos/{id}', 'NotasUnificadasController@addActivos');

@@ -106,6 +106,60 @@ class NotasUnificadasController extends Controller
     }
 
     /**
+     * Registrar un movimiento en el expediente de la nota dada.
+     * Helper de dominio: evita repetir el patrón Movimiento::create + lookup de usuario.
+     * Public porque también lo usa NotasPdfAnotacionesController para trazar las anotaciones PDF.
+     * Si la nota no tiene expediente o no hay sesión, no registra y devuelve false.
+     */
+    public static function registrarMovimiento($nota, $accion, $comentario)
+    {
+        if (!$nota) return false;
+        $exp = $nota->expedientes()->first();
+        if (!$exp) return false;
+
+        $idUsuario = session('id_usuario');
+        $usuario = $idUsuario ? \App\Usuario::find($idUsuario) : null;
+        $nombre = $usuario ? $usuario->nombre : 'Usuario';
+
+        Movimiento::create([
+            'id_expediente_nota' => $exp->id,
+            'id_usuario' => $idUsuario ?? 1,
+            'fecha_movimiento' => \Carbon\Carbon::now(),
+            'accion' => $accion,
+            'comentario' => $nombre . ' ' . $comentario,
+        ]);
+        return true;
+    }
+
+    /**
+     * Registrar un movimiento en TODAS las notas de un grupo (MKT + FISC).
+     * Útil para operaciones a nivel grupo (vínculo padre/hijo, nota de aprobación):
+     * el evento queda trazado en cada nota hija del grupo afectado.
+     */
+    public static function registrarMovimientoEnGrupo($grupo, $accion, $comentario)
+    {
+        if (!$grupo) return false;
+        $grupo->load('notas');
+        foreach ($grupo->notas as $nota) {
+            self::registrarMovimiento($nota, $accion, $comentario);
+        }
+        return true;
+    }
+
+    /**
+     * Estado binario de una MTM derivado de id_estado_maquina.
+     * Activa = Ingreso (1) o Reingreso (2). Inactiva = Egreso{Definitivo,Temporal,por Intervención},
+     * Inhabilitada, Eventualidad Observada. Si la máquina no tiene estado cargado -> '—'.
+     */
+    private static function estadoMtmBinario($idEstadoMaquina)
+    {
+        if ($idEstadoMaquina === null || $idEstadoMaquina === '') {
+            return '—';
+        }
+        return in_array((int) $idEstadoMaquina, [1, 2], true) ? 'Activa' : 'Inactiva';
+    }
+
+    /**
      * Crea el transporte SMTP con credenciales propias (no usa .env)
      */
     private static function crearMailer()
@@ -641,6 +695,10 @@ class NotasUnificadasController extends Controller
         // Comentarios: visibles para todos MENOS casinos/plataformas (regular sin rol admin)
         $puedeVerComentarios = $esFuncionario || $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control;
 
+        // Editar el "borrador" (anotaciones rápidas inline por nota hija) lo pueden hacer
+        // solo superusuario / administrador / auditor / despacho. Control queda excluido por pedido.
+        $puedeEditarBorrador = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho;
+
         // Nivel de permisos para cambio de estado: funcionario tiene prioridad sobre admin
         $esAdmin = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control;
         if ($esFuncionario1) {
@@ -661,7 +719,7 @@ class NotasUnificadasController extends Controller
                 ]);
             }
             return response()->json([
-                'html' => view('Unified.tabla_notas', compact('grupos', 'notasSueltas', 'puedeEliminar', 'puedeEliminarNotas', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'verTodo', 'aprobacionesPorGrupo'))->render(),
+                'html' => view('Unified.tabla_notas', compact('grupos', 'notasSueltas', 'puedeEliminar', 'puedeEliminarNotas', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'verTodo', 'aprobacionesPorGrupo', 'puedeEditarBorrador'))->render(),
                 'total' => $grupos->total(),
             ]);
         }
@@ -724,7 +782,7 @@ class NotasUnificadasController extends Controller
         // Puede exportar: admin o funcionario
         $puedeExportar = $esAdmin || $esFuncionario;
 
-        return view('Unified.index', compact('grupos', 'notasSueltas', 'casinos', 'categorias', 'tipos_evento', 'estados', 'puedeEliminar', 'puedeEliminarNotas', 'nivelEstado', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'muestraVerTodo', 'verTodo', 'totalGrupos', 'tiposEventoMkt', 'tiposEventoFisc', 'aprobacionesPorGrupo', 'puedeVerComentarios', 'esAdminMails', 'puedeGestionarMails', 'puedeExportar'));
+        return view('Unified.index', compact('grupos', 'notasSueltas', 'casinos', 'categorias', 'tipos_evento', 'estados', 'puedeEliminar', 'puedeEliminarNotas', 'nivelEstado', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'muestraVerTodo', 'verTodo', 'totalGrupos', 'tiposEventoMkt', 'tiposEventoFisc', 'aprobacionesPorGrupo', 'puedeVerComentarios', 'esAdminMails', 'puedeGestionarMails', 'puedeExportar', 'puedeEditarBorrador'));
     }
 
     /**
@@ -1445,13 +1503,13 @@ class NotasUnificadasController extends Controller
                         'Marca' => $m->marca,
                         'Modelo' => $m->modelo,
                         'Isla' => $m->isla ? $m->isla->nro_isla : '-',
-                        // 'Sector' => $m->isla && $m->isla->sector ? $m->isla->sector->descripcion : '-', // Too wide?
                         'Juego' => $m->juego_activo ? $m->juego_activo->nombre_juego : '-',
                         '% Dev' => $m->obtenerPorcentajeDevolucion() ?? '-',
+                        'Estado' => self::estadoMtmBinario($m->id_estado_maquina),
                     ];
 
                     // Keep 'info' str for search list preview, but send data for table
-                    $info_str = "Isla: {$data['Isla']} | Juego: {$data['Juego']} | %Dev: {$data['% Dev']}";
+                    $info_str = "Isla: {$data['Isla']} | Juego: {$data['Juego']} | %Dev: {$data['% Dev']} | {$data['Estado']}";
 
                     return ['id' => $m->id_maquina, 'text' => $texto, 'info' => $info_str, 'data' => $data];
                 });
@@ -1466,10 +1524,12 @@ class NotasUnificadasController extends Controller
                         'Nro Mesa' => $m->nro_mesa,
                         'Juego' => $m->juego->nombre_juego ?? '-',
                         'Sector' => $m->sector ? $m->sector->descripcion : '-',
-                        'Moneda' => $m->moneda ? $m->moneda->descripcion : '-'
+                        'Moneda' => $m->moneda ? $m->moneda->descripcion : '-',
+                        // mesa_de_panio no tiene flag de activo; las soft-deleted no aparecen en la query.
+                        'Estado' => 'Activa',
                     ];
 
-                    $info_str = "Juego: {$data['Juego']} | Sec: {$data['Sector']}";
+                    $info_str = "Juego: {$data['Juego']} | Sec: {$data['Sector']} | {$data['Estado']}";
                     return ['id' => $m->id_mesa_de_panio, 'text' => $texto, 'info' => $info_str, 'data' => $data];
                 });
         } elseif ($tipo == 'JUEGO_ONLINE') {
@@ -1490,14 +1550,17 @@ class NotasUnificadasController extends Controller
                     || mb_strpos(mb_strtolower($j->cod_juego ?? ''), $busquedaLower) !== false;
             });
             $resultados = array_map(function ($j) {
+                // El endpoint /plataformasYJuegos filtra ya por estado_juego='Activo' y
+                // descarta deleted_at, así que todos los juegos que llegan son activos.
                 $data = [
                     'Cod Juego' => $j->cod_juego ?? '-',
                     'Juego' => $j->nombre_juego,
                     'Categoria' => $j->categoria ?? '-',
                     '% Dev' => $j->porcentaje_devolucion ?? '-',
-                    'Plataforma' => ($j->escritorio ? 'PC ' : '') . ($j->movil ? 'Movil' : '')
+                    'Plataforma' => ($j->escritorio ? 'PC ' : '') . ($j->movil ? 'Movil' : ''),
+                    'Estado' => 'Activa',
                 ];
-                $info_str = "Cat: {$data['Categoria']} | %Dev: {$data['% Dev']}";
+                $info_str = "Cat: {$data['Categoria']} | %Dev: {$data['% Dev']} | Activa";
                 return ['id' => $j->id_juego, 'text' => $j->nombre_juego, 'info' => $info_str, 'data' => $data];
             }, array_slice(array_values($filtrados), 0, 20));
         }
@@ -1520,9 +1583,10 @@ class NotasUnificadasController extends Controller
                     'Isla' => $m->isla ? $m->isla->nro_isla : '-',
                     'Juego' => $m->juego_activo ? $m->juego_activo->nombre_juego : '-',
                     '% Dev' => $m->obtenerPorcentajeDevolucion() ?? '-',
+                    'Estado' => self::estadoMtmBinario($m->id_estado_maquina),
                 ];
 
-                $info_str = "Isla: {$data['Isla']} | Juego: {$data['Juego']} | %Dev: {$data['% Dev']}";
+                $info_str = "Isla: {$data['Isla']} | Juego: {$data['Juego']} | %Dev: {$data['% Dev']} | {$data['Estado']}";
 
                 return ['id' => $m->id_maquina, 'text' => $texto, 'info' => $info_str, 'data' => $data, 'tipo' => 'MTM'];
             });
@@ -1908,6 +1972,7 @@ class NotasUnificadasController extends Controller
 
             $disk = 'public';
             $path = null;
+            $nombreOriginal = $request->file('file')->getClientOriginalName();
 
             if ($tipo == 'pautas') {
                 $path = $request->file('file')->store('pautas', $disk);
@@ -1923,6 +1988,12 @@ class NotasUnificadasController extends Controller
             }
 
             $nota->save();
+
+            self::registrarMovimiento(
+                $nota,
+                'ADJUNTO_AGREGADO',
+                'subió archivo "' . $nombreOriginal . '" (' . $tipo . ')'
+            );
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
@@ -2416,15 +2487,22 @@ class NotasUnificadasController extends Controller
 
     /**
      * Actualizar campos de una Nota
+     *
+     * Los campos nro_nota, anio y titulo viven duplicados en `notas_ingreso` y
+     * `grupos_tramites` (el wizard los crea sincronizados). Si alguno de esos
+     * cambia, propagamos al grupo padre y a todas las notas hermanas para
+     * mantener el invariante. Validamos previamente que el nuevo nro_nota+anio
+     * no choque con otro grupo del mismo casino/plataforma.
      */
     public function updateNota(Request $request, $id)
     {
         try {
-            $nota = NotaIngreso::findOrFail($id);
+            $nota = NotaIngreso::with('grupo')->findOrFail($id);
 
             // Campos editables (mappeo de frontend a DB)
             $campoMapping = [
                 'nro_nota_ing' => 'nro_nota',
+                'anio' => 'anio',
                 'descripcion' => 'titulo',
                 'fecha_inicio' => 'fecha_inicio_evento',
                 'fecha_fin' => 'fecha_fin_evento',
@@ -2435,6 +2513,66 @@ class NotasUnificadasController extends Controller
                 'fecha_referencia' => 'fecha_referencia'
             ];
 
+            // Validación defensiva: nro_nota, anio y titulo son NOT NULL en BD.
+            // Si vienen vacíos rechazamos antes de tocar nada.
+            if ($request->has('nro_nota_ing') && trim((string) $request->nro_nota_ing) === '') {
+                return response()->json(['success' => false, 'msg' => 'El Nº de nota no puede quedar vacío'], 422);
+            }
+            if ($request->has('anio') && (int) $request->anio <= 0) {
+                return response()->json(['success' => false, 'msg' => 'El año no es válido'], 422);
+            }
+            if ($request->has('descripcion') && trim((string) $request->descripcion) === '') {
+                return response()->json(['success' => false, 'msg' => 'El título/descripción no puede quedar vacío'], 422);
+            }
+
+            // Detectar cambios en campos compartidos con grupos_tramites
+            $grupo = $nota->grupo;
+            $nuevosCompartidos = [];
+
+            if ($grupo) {
+                if ($request->has('nro_nota_ing')) {
+                    $nuevoNro = trim((string) $request->nro_nota_ing);
+                    if ($nuevoNro !== (string) $grupo->nro_nota) {
+                        $nuevosCompartidos['nro_nota'] = $nuevoNro;
+                    }
+                }
+                if ($request->has('anio')) {
+                    $nuevoAnio = (int) $request->anio;
+                    if ($nuevoAnio !== (int) $grupo->anio) {
+                        $nuevosCompartidos['anio'] = $nuevoAnio;
+                    }
+                }
+                if ($request->has('descripcion')) {
+                    $nuevoTit = trim((string) $request->descripcion);
+                    if ($nuevoTit !== (string) $grupo->titulo) {
+                        $nuevosCompartidos['titulo'] = $nuevoTit;
+                    }
+                }
+
+                // Validar choque con otro grupo si cambia nro_nota o anio
+                if (isset($nuevosCompartidos['nro_nota']) || isset($nuevosCompartidos['anio'])) {
+                    $nroFinal = $nuevosCompartidos['nro_nota'] ?? $grupo->nro_nota;
+                    $anioFinal = $nuevosCompartidos['anio'] ?? $grupo->anio;
+
+                    $q = \App\Models\GrupoTramite::where('nro_nota', $nroFinal)
+                        ->where('anio', $anioFinal)
+                        ->where('id', '!=', $grupo->id);
+                    if ($grupo->id_plataforma) {
+                        $q->where('id_plataforma', $grupo->id_plataforma);
+                    } else {
+                        $q->where('id_casino', $grupo->id_casino);
+                    }
+                    if ($q->exists()) {
+                        return response()->json([
+                            'success' => false,
+                            'msg' => 'Ya existe otro trámite con Nº ' . $nroFinal . '-' . $anioFinal . ' para el mismo casino/plataforma. Verifique el número o el año.'
+                        ], 422);
+                    }
+                }
+            }
+
+            DB::beginTransaction();
+
             foreach ($campoMapping as $frontendCampo => $dbCampo) {
                 if ($request->has($frontendCampo)) {
                     $nota->$dbCampo = $request->$frontendCampo;
@@ -2442,6 +2580,18 @@ class NotasUnificadasController extends Controller
             }
 
             $nota->save();
+
+            // Propagar nro_nota / anio / titulo al grupo y a las notas hermanas
+            if ($grupo && !empty($nuevosCompartidos)) {
+                foreach ($nuevosCompartidos as $col => $val) {
+                    $grupo->$col = $val;
+                }
+                $grupo->save();
+
+                NotaIngreso::where('id_grupo', $grupo->id)->update($nuevosCompartidos);
+            }
+
+            DB::commit();
 
             // Registrar movimiento de edición
             $exp = $nota->expedientes->first();
@@ -2501,9 +2651,64 @@ class NotasUnificadasController extends Controller
                 }
             }
 
-            return response()->json(['success' => true, 'msg' => 'Nota actualizada']);
+            return response()->json([
+                'success' => true,
+                'msg' => 'Nota actualizada',
+                'grupo_actualizado' => !empty($nuevosCompartidos),
+            ]);
         } catch (\Throwable $e) {
+            // Si la transacción quedó abierta (excepción después de beginTransaction
+            // y antes de commit), rollback. Si nunca se abrió o ya hubo commit, no-op.
+            try {
+                if (DB::transactionLevel() > 0) DB::rollBack();
+            } catch (\Throwable $ignored) {}
+
             \Log::error("updateNota error: " . $e->getMessage());
+            return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Guardar/limpiar el "borrador" (anotación rápida inline) de una nota hija.
+     * Permitido solo para superusuario/administrador/auditor/despacho.
+     */
+    public function updateBorrador(Request $request, $id)
+    {
+        try {
+            $usuario_data = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
+            $usuario = $usuario_data['usuario'] ?? null;
+            if (!$usuario || !($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho)) {
+                return response()->json(['success' => false, 'msg' => 'Sin permiso para editar borrador'], 403);
+            }
+
+            $nota = NotaIngreso::findOrFail($id);
+            $anterior = (string) ($nota->borrador ?? '');
+            $valor = $request->has('borrador') ? trim((string) $request->borrador) : '';
+            // Cap a 500 caracteres (definición de columna).
+            if (mb_strlen($valor) > 500) {
+                $valor = mb_substr($valor, 0, 500);
+            }
+            $nota->borrador = $valor === '' ? null : $valor;
+            $nota->save();
+
+            // Registrar en historial solo si cambió el contenido.
+            if ($valor !== $anterior) {
+                if ($anterior === '' && $valor !== '') {
+                    $comentario = 'agregó borrador: "' . $valor . '"';
+                } elseif ($valor === '') {
+                    $comentario = 'borró el borrador';
+                } else {
+                    $comentario = 'modificó el borrador: "' . $valor . '"';
+                }
+                self::registrarMovimiento($nota, 'BORRADOR', $comentario);
+            }
+
+            return response()->json([
+                'success' => true,
+                'borrador' => $nota->borrador,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error("updateBorrador error: " . $e->getMessage());
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
     }
@@ -2516,7 +2721,22 @@ class NotasUnificadasController extends Controller
         try {
             $nota = NotaIngreso::findOrFail($id);
             $activos = $request->activos ?: [];
+            $cantPrevia = $nota->activos()->count();
             $this->procesarActivos($nota, $activos);
+
+            // Registrar en historial cuánto y de qué tipo se agregó.
+            // (procesarActivos "explota" islas en MTMs; tomamos el delta real post-insert.)
+            $cantPosterior = $nota->activos()->count();
+            $delta = $cantPosterior - $cantPrevia;
+            if ($delta > 0) {
+                $tipos = collect($activos)->pluck('tipo')->map(function ($t) { return strtoupper($t); })->unique()->values()->all();
+                $tiposTxt = implode(', ', $tipos);
+                self::registrarMovimiento(
+                    $nota,
+                    'ACTIVO_AGREGADO',
+                    'agregó ' . $delta . ' activo(s)' . ($tiposTxt !== '' ? ' (' . $tiposTxt . ')' : '')
+                );
+            }
 
             // Recargar y devolver la lista actualizada (misma lógica que getDetalleNota)
             $nota->load('activos');
@@ -2529,26 +2749,77 @@ class NotasUnificadasController extends Controller
     }
 
     /**
-     * Enriquecer colección de activos con datos de máquina/isla
+     * Enriquecer colección de activos con datos del activo subyacente (MTM/Mesa/Bingo/Juego Online).
+     * Devuelve para cada activo: nombre, id_display, estado (Activa/Inactiva/—) y porcentaje_devolucion
+     * para que el modal de detalle muestre una tabla uniforme. Conserva los campos legacy
+     * (nro_admin, marca, nro_isla) por compat con renders previos.
      */
     private function enriquecerActivos($activos)
     {
         $lista = [];
         foreach ($activos as $activo) {
+            $tipo = $activo->tipo_activo ?? 'ISLA';
             $info = [
                 'id' => $activo->id,
                 'id_activo' => $activo->id_activo ?? 'N/A',
-                'tipo_activo' => $activo->tipo_activo ?? 'ISLA',
+                'tipo_activo' => $tipo,
+                'nombre' => '—',
+                'id_display' => $activo->id_activo ?? '—',
+                'estado' => '—',
+                'porcentaje_devolucion' => '—',
             ];
-            if ($activo->tipo_activo === 'MTM' && $activo->id_activo) {
-                $maq = \App\Maquina::find($activo->id_activo);
+
+            if ($tipo === 'MTM' && $activo->id_activo) {
+                $maq = \App\Maquina::with('juego_activo')->find($activo->id_activo);
                 if ($maq) {
                     $info['nro_admin'] = $maq->nro_admin;
                     $info['marca'] = $maq->marca ?? '';
                     $isla = $maq->id_isla ? \App\Isla::find($maq->id_isla) : null;
                     $info['nro_isla'] = $isla ? $isla->nro_isla : null;
+
+                    $info['nombre'] = $maq->juego_activo ? $maq->juego_activo->nombre_juego : ($maq->marca ?: 'MTM');
+                    $info['id_display'] = $maq->nro_admin ?: $maq->id_maquina;
+                    $info['estado'] = self::estadoMtmBinario($maq->id_estado_maquina);
+                    $pdev = $maq->obtenerPorcentajeDevolucion();
+                    $info['porcentaje_devolucion'] = $pdev !== null ? $pdev : '—';
+                }
+            } elseif ($tipo === 'MESA' && $activo->id_activo) {
+                $mesa = \App\Mesas\Mesa::with('juego')->find($activo->id_activo);
+                if ($mesa) {
+                    $info['nombre'] = $mesa->juego ? $mesa->juego->nombre_juego : ($mesa->nombre ?: 'Mesa');
+                    $info['id_display'] = $mesa->nro_mesa ?: $mesa->id_mesa_de_panio;
+                    // mesa_de_panio no tiene flag activo/inactivo; las soft-deleted no aparecen aquí.
+                    $info['estado'] = 'Activa';
+                }
+            } elseif ($tipo === 'BINGO') {
+                $info['nombre'] = 'Bingo (general)';
+            } elseif ($tipo === 'JUEGO_ONLINE' && $activo->id_activo) {
+                // Buscar el juego en el cache de la API (id_activo == id_juego en la API).
+                // El endpoint solo devuelve juegos activos (server filtra estado_juego='Activo'
+                // y deleted_at IS NULL). Si esta nota referencia un id que ya no aparece,
+                // asumimos que el juego fue dado de baja en la plataforma -> Inactiva.
+                $datos = self::obtenerDatosOnline();
+                $encontrado = false;
+                foreach ($datos as $plat) {
+                    if (!isset($plat->juegos))
+                        continue;
+                    foreach ($plat->juegos as $j) {
+                        if ((int) $j->id_juego === (int) $activo->id_activo) {
+                            $info['nombre'] = $j->nombre_juego;
+                            $info['id_display'] = $j->cod_juego ?? $activo->id_activo;
+                            $info['estado'] = 'Activa';
+                            $info['porcentaje_devolucion'] = $j->porcentaje_devolucion ?? '—';
+                            $encontrado = true;
+                            break 2;
+                        }
+                    }
+                }
+                if (!$encontrado) {
+                    $info['nombre'] = 'Juego #' . $activo->id_activo . ' (baja en plataforma)';
+                    $info['estado'] = 'Inactiva';
                 }
             }
+
             $lista[] = $info;
         }
         return $lista;
@@ -2562,7 +2833,17 @@ class NotasUnificadasController extends Controller
         try {
             $activo = NotaTieneActivo::findOrFail($id);
             $notaId = $activo->id_nota_ingreso;
+            $tipo = $activo->tipo_activo ?? 'activo';
+            $idDelActivo = $activo->id_activo ?? '-';
             $activo->delete();
+
+            // Registrar en historial qué se quitó.
+            $notaParaHistorial = NotaIngreso::find($notaId);
+            self::registrarMovimiento(
+                $notaParaHistorial,
+                'ACTIVO_ELIMINADO',
+                'quitó activo (' . $tipo . ' #' . $idDelActivo . ')'
+            );
 
             $restantes = NotaTieneActivo::where('id_nota_ingreso', $notaId)->get();
             $activos = $this->enriquecerActivos($restantes);
@@ -2915,6 +3196,15 @@ class NotasUnificadasController extends Controller
                 $subidos[] = $originalName;
             }
 
+            if (count($subidos) > 0) {
+                $label = $tipoDocumento === 'DISPOSICION' ? 'Disposición' : 'Nota';
+                self::registrarMovimientoEnGrupo(
+                    $grupo,
+                    'NOTA_APROBACION_AGREGADA',
+                    'subió ' . $label . ' de aprobación N° ' . $numeroDocumento . '-' . $anioDocumento . ' (' . $tipoRama . ')'
+                );
+            }
+
             return response()->json([
                 'success' => true,
                 'msg' => count($subidos) . ' nota(s) de aprobación subida(s)',
@@ -2985,6 +3275,17 @@ class NotasUnificadasController extends Controller
             }
 
             DB::table('grupo_notas_aprobacion')->where('id', $id)->delete();
+
+            // Trazar en todas las notas del grupo afectado.
+            $grupo = \App\Models\GrupoTramite::find($registro->id_grupo);
+            if ($grupo) {
+                $label = (isset($registro->tipo_documento) && $registro->tipo_documento === 'DISPOSICION') ? 'Disposición' : 'Nota';
+                self::registrarMovimientoEnGrupo(
+                    $grupo,
+                    'NOTA_APROBACION_ELIMINADA',
+                    'eliminó ' . $label . ' de aprobación N° ' . ($registro->numero_documento ?? '?') . '-' . ($registro->anio_documento ?? '?') . ' (' . ($registro->tipo_rama ?? '?') . ')'
+                );
+            }
 
             return response()->json(['success' => true]);
         } catch (\Throwable $e) {
@@ -3101,6 +3402,21 @@ class NotasUnificadasController extends Controller
             $grupo->id_grupo_padre = $padreId;
             $grupo->save();
 
+            // Trazar en ambos extremos: las notas del hijo (este grupo) y las del padre.
+            $padre = $padreId ? \App\Models\GrupoTramite::find($padreId) : null;
+            if ($padre) {
+                self::registrarMovimientoEnGrupo(
+                    $grupo,
+                    'GRUPO_PADRE_ASIGNADO',
+                    'vinculó este trámite como hijo de N° ' . $padre->nro_nota . '-' . $padre->anio
+                );
+                self::registrarMovimientoEnGrupo(
+                    $padre,
+                    'GRUPO_PADRE_ASIGNADO',
+                    'vinculó el trámite N° ' . $grupo->nro_nota . '-' . $grupo->anio . ' como hijo'
+                );
+            }
+
             return response()->json(['success' => true]);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
@@ -3114,8 +3430,24 @@ class NotasUnificadasController extends Controller
     {
         try {
             $grupo = \App\Models\GrupoTramite::findOrFail($request->id_grupo);
+            $exPadreId = $grupo->id_grupo_padre;
             $grupo->id_grupo_padre = null;
             $grupo->save();
+
+            // Trazar en ambos extremos si había un padre.
+            $exPadre = $exPadreId ? \App\Models\GrupoTramite::find($exPadreId) : null;
+            if ($exPadre) {
+                self::registrarMovimientoEnGrupo(
+                    $grupo,
+                    'GRUPO_PADRE_QUITADO',
+                    'quitó el vínculo como hijo de N° ' . $exPadre->nro_nota . '-' . $exPadre->anio
+                );
+                self::registrarMovimientoEnGrupo(
+                    $exPadre,
+                    'GRUPO_PADRE_QUITADO',
+                    'se quitó el vínculo con el trámite hijo N° ' . $grupo->nro_nota . '-' . $grupo->anio
+                );
+            }
 
             return response()->json(['success' => true]);
         } catch (\Throwable $e) {

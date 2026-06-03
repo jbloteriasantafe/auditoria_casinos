@@ -16,11 +16,13 @@ class NotaCategoria extends Model
     ];
 
     /**
-     * Nombre legible por ID
+     * Nombre legible por ID. No filtra por activo=1: una nota vieja con id_categoria
+     * desactivada igual debe mostrar la descripción histórica. La selección en el alta
+     * sigue restringiéndose a categorías activas (ver activasPorRama).
      */
     public static function nombrePorId($id)
     {
-        $cat = static::where('id', $id)->where('activo', 1)->first();
+        $cat = static::where('id', $id)->first();
         return $cat ? $cat->descripcion : null;
     }
 

@@ -656,30 +656,34 @@
                             <div class="row" style="display:flex; justify-content:center; gap:20px;">
 
                                 <!-- Card Marketing -->
-                                <div class="col-md-5" style="cursor:pointer;" onclick="selectTaskType('MARKETING')">
+                                <div class="col-md-5" style="cursor:pointer; display:flex;" onclick="selectTaskType('MARKETING')">
                                     <div class="panel panel-default card-type"
-                                        style="border-radius:15px; border:2px solid transparent; transition:all 0.3s; text-align:center; padding:30px;">
+                                        style="border-radius:15px; border:2px solid transparent; transition:all 0.3s; text-align:center; padding:30px; width:100%; display:flex; flex-direction:column;">
                                         <div
-                                            style="background:#eff6ff; width:80px; height:80px; border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center;">
+                                            style="background:#eff6ff; width:80px; height:80px; border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                                             <i class="fa fa-bullhorn fa-3x" style="color:#3b82f6;"></i>
                                         </div>
                                         <h4 style="font-weight:700; color:#1e293b;">Marketing / Publicidad</h4>
-                                        <p class="text-muted">Gestión de eventos, promociones y pautas publicitarias.</p>
+                                        <p class="text-muted" style="text-align:left;">Gestión de eventos, promociones y pautas publicitarias.</p>
                                     </div>
                                 </div>
 
-                                <!-- Card Fiscalización -->
-                                <div class="col-md-5" style="cursor:pointer;" onclick="selectTaskType('FISCALIZACION')">
+                                <!-- Card Fiscalización / Aspectos Técnicos -->
+                                <div class="col-md-5" style="cursor:pointer; display:flex;" onclick="selectTaskType('FISCALIZACION')">
                                     <div class="panel panel-default card-type"
-                                        style="border-radius:15px; border:2px solid transparent; transition:all 0.3s; text-align:center; padding:30px;">
+                                        style="border-radius:15px; border:2px solid transparent; transition:all 0.3s; text-align:center; padding:30px; width:100%; display:flex; flex-direction:column;">
                                         <div
-                                            style="background:#f0fdf4; width:80px; height:80px; border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center;">
+                                            style="background:#f0fdf4; width:80px; height:80px; border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                                             <i class="fa fa-cogs fa-3x" style="color:#10b981;"></i>
                                         </div>
-                                        <h4 style="font-weight:700; color:#1e293b;">Fiscalización / Técnico</h4>
-                                        <p class="text-muted">Fiscalización | Técnico | Juego Online
-                                            Movimientos de MTM | Cambios de Layout | Técnica
-                                            Altas | Bajas | Mod. de JOL
+                                        <h4 style="font-weight:700; color:#1e293b;">Aspectos Técnicos</h4>
+                                        <p class="text-muted" style="text-align:left; margin-bottom:10px;">
+                                            <strong style="color:#1e293b;">CASINOS FÍSICOS:</strong>
+                                            Altas/Bajas/Modificaciones de MTM, Cambios de juegos, Promociones y Torneos sin publicidad, Mesas, Bingo, etc.
+                                        </p>
+                                        <p class="text-muted" style="text-align:left; margin-bottom:0;">
+                                            <strong style="color:#1e293b;">PLATAFORMAS JOL:</strong>
+                                            Altas/Bajas/modificaciones varias de Juegos.
                                         </p>
                                     </div>
                                 </div>
@@ -739,30 +743,21 @@
                         </select>
                     </div>
 
-                    <!-- TIPO EVENTO + CATEGORÍA (MKT) -->
-                    <div class="section-marketing wiz-row">
-                        <div class="wiz-col">
-                            <label class="wiz-label">Tipo Evento (MKT) *</label>
-                            <select class="form-control" name="id_tipo_evento_mkt" id="selTipoEventoMKT">
-                                <option value="">-- Seleccione --</option>
-                                @foreach($tipos_evento as $t)
-                                    @if($t->tipo_tarea == 'MKT')
-                                        <option value="{{ $t->id }}">{{ $t->descripcion }}</option>
-                                    @endif
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="wiz-col">
-                            <label class="wiz-label">Categoría (MKT) *</label>
-                            <select class="form-control" name="id_categoria_mkt" id="selCategoriaMKT">
-                                <option value="">-- Seleccione --</option>
-                                @foreach($categorias as $c)
-                                    @if($c->tipo_tarea == 'MKT')
-                                        <option value="{{ $c->id }}">{{ $c->descripcion }}</option>
-                                    @endif
-                                @endforeach
-                            </select>
-                        </div>
+                    {{-- 'Tipo Evento (MKT)' eliminado de la UI (borrado lógico).
+                         La columna id_tipo_evento se mantiene en BD y se guarda
+                         como NULL en notas MKT nuevas. --}}
+
+                    <!-- CATEGORÍA (MKT) -->
+                    <div class="section-marketing wiz-field">
+                        <label class="wiz-label">Categoría (MKT) *</label>
+                        <select class="form-control" name="id_categoria_mkt" id="selCategoriaMKT">
+                            <option value="">-- Seleccione --</option>
+                            @foreach($categorias as $c)
+                                @if($c->tipo_tarea == 'MKT')
+                                    <option value="{{ $c->id }}">{{ $c->descripcion }}</option>
+                                @endif
+                            @endforeach
+                        </select>
                     </div>
 
                     <!-- TIPO EVENTO (FISCALIZACIÓN) -->
@@ -822,12 +817,9 @@
                             </div>
                         </div>
 
-                        <!-- FECHA REFERENCIA (ambas ramas, opcional) -->
-                        <div class="wiz-field" style="margin-top: 10px;">
-                            <label class="wiz-label">Fecha Referencia <i class="fa fa-question-circle text-muted"
-                                    data-toggle="tooltip" title="Texto libre: fecha o período de referencia."></i></label>
-                            <input type="text" class="form-control" name="fecha_referencia">
-                        </div>
+                        {{-- 'Fecha Referencia' eliminada de la UI (borrado lógico).
+                             La columna fecha_referencia (nullable) sigue en BD y los
+                             7 registros históricos que la tienen se preservan. --}}
 
                         <!-- RELACIÓN CON NOTA ANTERIOR -->
                         <div style="margin-top: 10px; margin-bottom: 20px;">
@@ -1437,17 +1429,16 @@
                                 </div>
                                 <div class="panel-body">
                                     <table class="table table-condensed" style="margin-bottom: 0;">
-                                        <tr><td style="width: 140px;"><strong>Nro Nota:</strong></td><td><span class="editable" data-field="nro_nota_ing">{{nro_nota}}</span> <small class="text-muted">/ {{anio}}</small></td></tr>
+                                        <tr><td style="width: 140px;"><strong>Nro Nota:</strong></td><td><span class="editable" data-field="nro_nota_ing">{{nro_nota}}</span> <small class="text-muted">/ <span class="editable" data-field="anio">{{anio}}</span></small></td></tr>
                                         <tr><td><strong>Casino/Plataforma:</strong></td><td>{{casino}}</td></tr>
                                         <tr><td><strong>Tipo Solicitud:</strong></td><td>{{tipo_solicitud}}</td></tr>
-                                        <tr><td><strong>Tipo Evento:</strong></td><td><span class="editable" data-field="id_tipo_evento" data-value="{{id_tipo_evento}}">{{tipo_evento}}</span></td></tr>
+                                        <tr class="row-tipo-evento"><td><strong>Tipo Evento:</strong></td><td><span class="editable" data-field="id_tipo_evento" data-value="{{id_tipo_evento}}">{{tipo_evento}}</span></td></tr>
                                         <tr class="row-categoria"><td><strong>Categoría:</strong></td><td><span class="editable" data-field="id_categoria" data-value="{{id_categoria}}">{{categoria}}</span></td></tr>
                                         <tr><td><strong>Descripción:</strong></td><td><span class="editable" data-field="descripcion">{{descripcion}}</span></td></tr>
                                         <tr><td><strong>Fecha Inicio:</strong></td><td><span class="editable" data-field="fecha_inicio">{{fecha_inicio}}</span></td></tr>
                                         <tr><td><strong>Fecha Fin:</strong></td><td><span class="editable" data-field="fecha_fin">{{fecha_fin}}</span></td></tr>
                                         <tr class="row-fecha-pretendida"><td><strong>Fecha Est. Aprob.:</strong></td><td><span class="editable" data-field="fecha_pretendida_aprobacion">{{fecha_pretendida_aprobacion}}</span></td></tr>
                                         <tr class="row-compartir-admin"><td><strong>Compartir Admin.:</strong></td><td><span class="editable editable-toggle" data-field="compartir_administrador" data-value="{{compartir_administrador}}">{{compartir_administrador_label}}</span></td></tr>
-                                        <tr class="row-fecha-referencia"><td><strong>Fecha Ref.:</strong></td><td><span class="editable" data-field="fecha_referencia">{{fecha_referencia}}</span></td></tr>
                                         <tr><td><strong>Estado:</strong></td><td><span class="editable" data-field="estado" data-value="{{estado}}"><span class="label" style="{{estadoStyle}}">{{estado}}</span></span></td></tr>
                                         <tr><td><strong>Creado:</strong></td><td>{{created_at}}</td></tr>
                                     </table>

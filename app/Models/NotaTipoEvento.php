@@ -16,11 +16,13 @@ class NotaTipoEvento extends Model
     ];
 
     /**
-     * Nombre legible por ID
+     * Nombre legible por ID. No filtra por activo=1: las notas históricas con
+     * id_tipo_evento desactivado deben seguir mostrando la descripción correcta.
+     * El select del alta se restringe a activos vía activosPorRama.
      */
     public static function nombrePorId($id)
     {
-        $te = static::where('id', $id)->where('activo', 1)->first();
+        $te = static::where('id', $id)->first();
         return $te ? $te->descripcion : null;
     }
 

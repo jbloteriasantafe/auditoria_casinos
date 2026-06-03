@@ -173,7 +173,25 @@ function colorEstado($estado) {
                         <span class="label label-warning">PENDIENTE</span>
                     @endif
                 </td>
-                <td></td>
+                {{-- Celda "borrador" (anotación rápida inline). Editable solo si $puedeEditarBorrador.
+                     width fijo + word-wrap: el texto crece hacia abajo, nunca empuja las columnas vecinas. --}}
+                <td class="celda-borrador" style="width:140px; max-width:140px; padding:4px 6px; vertical-align:top; word-wrap:break-word; overflow-wrap:anywhere; word-break:break-word;">
+                    @php $borrador = $n->borrador ?? ''; @endphp
+                    @if(isset($puedeEditarBorrador) && $puedeEditarBorrador)
+                        <span class="texto-borrador"
+                              data-nota-id="{{ $n->id }}"
+                              data-borrador="{{ e($borrador) }}"
+                              style="cursor:pointer; font-size:11px; display:block; word-wrap:break-word; overflow-wrap:anywhere; word-break:break-word;"
+                              title="{{ $borrador !== '' ? $borrador : 'Doble click para agregar' }}">
+                            @if($borrador !== '')
+                                {{ $borrador }}
+                            @else
+                                <small class="text-muted" style="font-style:italic; font-size:10px;">— doble click —</small>
+                            @endif
+                        </span>
+                    @endif
+                    {{-- Sin permiso: la celda queda vacía. El borrador es privado para roles privilegiados. --}}
+                </td>
                 <td>
                     <button class="btn btn-info btn-xs btn-ver-detalle-nota" 
                             data-nota-id="{{ $n->id }}" 

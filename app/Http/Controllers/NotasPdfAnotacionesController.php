@@ -207,8 +207,17 @@ class NotasPdfAnotacionesController extends Controller
 
             $nuevo = DB::table('notas_pdf_comentarios')->where('id', $id)->first();
             $nuevo->user_imagen = $userImagen;
+
+            // Trazar en el historial de la nota: comentario nuevo en PDF.
+            $notaEloquent = NotaIngreso::find($request->id_nota_ingreso);
+            \App\Http\Controllers\NotasUnificadasController::registrarMovimiento(
+                $notaEloquent,
+                'COMENTARIO_PDF_AGREGADO',
+                'agregó un comentario en ' . strtoupper($request->tipo_archivo) . ' pág. ' . $request->pagina
+            );
+
             return response()->json($nuevo);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -224,11 +233,25 @@ class NotasPdfAnotacionesController extends Controller
     {
         $id = $request->id;
         $resuelto = $request->resuelto ? 1 : 0;
-        
+
+        $comentario = DB::table('notas_pdf_comentarios')->where('id', $id)->first();
+
         DB::table('notas_pdf_comentarios')
             ->where('id', $id)
             ->update(['resuelto' => $resuelto]);
-        
+
+        // Trazar en el historial de la nota.
+        if ($comentario) {
+            $notaEloquent = NotaIngreso::find($comentario->id_nota_ingreso);
+            $accion = $resuelto ? 'COMENTARIO_PDF_RESUELTO' : 'COMENTARIO_PDF_REABIERTO';
+            $verbo = $resuelto ? 'marcó como resuelto' : 'reabrió';
+            \App\Http\Controllers\NotasUnificadasController::registrarMovimiento(
+                $notaEloquent,
+                $accion,
+                $verbo . ' un comentario en ' . strtoupper($comentario->tipo_archivo) . ' pág. ' . $comentario->pagina
+            );
+        }
+
         return response()->json(['success' => true]);
     }
 
@@ -255,6 +278,15 @@ class NotasPdfAnotacionesController extends Controller
         }
 
         DB::table('notas_pdf_comentarios')->where('id', $id)->delete();
+
+        // Trazar en el historial de la nota.
+        $notaEloquent = NotaIngreso::find($comentario->id_nota_ingreso);
+        \App\Http\Controllers\NotasUnificadasController::registrarMovimiento(
+            $notaEloquent,
+            'COMENTARIO_PDF_ELIMINADO',
+            'eliminó un comentario en ' . strtoupper($comentario->tipo_archivo) . ' pág. ' . $comentario->pagina
+        );
+
         return response()->json(['success' => true]);
     }
 
