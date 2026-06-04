@@ -557,24 +557,29 @@ class NotasUnificadasController extends Controller
             });
         }
 
-        // Filters
-        if ($request->has('id_plataforma') && !empty($request->id_plataforma)) {
-            $gruposQuery->where('id_plataforma', $request->id_plataforma);
-        } elseif ($request->has('id_casino') && !empty($request->id_casino)) {
-            $gruposQuery->where('id_casino', $request->id_casino);
-        }
-        // Rama (MKT / FISC)
-        if ($request->has('rama') && !empty($request->rama)) {
-            $rama = $request->rama;
-            $gruposQuery->whereHas('notas', function ($q) use ($rama) {
-                $q->where('tipo_rama', $rama);
+        // Filters — soportan selección múltiple (arrays) o valor único
+        $idCasinoFiltro = array_values(array_filter((array) $request->input('id_casino', []), 'strlen'));
+        $idPlataformaFiltro = array_values(array_filter((array) $request->input('id_plataforma', []), 'strlen'));
+        if (!empty($idCasinoFiltro) || !empty($idPlataformaFiltro)) {
+            $gruposQuery->where(function ($q) use ($idCasinoFiltro, $idPlataformaFiltro) {
+                if (!empty($idCasinoFiltro))
+                    $q->orWhereIn('id_casino', $idCasinoFiltro);
+                if (!empty($idPlataformaFiltro))
+                    $q->orWhereIn('id_plataforma', $idPlataformaFiltro);
             });
         }
-        // Estado del expediente
-        if ($request->has('estado') && !empty($request->estado)) {
-            $estado = $request->estado;
-            $gruposQuery->whereHas('notas.expedientes', function ($q) use ($estado) {
-                $q->where('estado_actual', $estado);
+        // Rama (MKT / FISC) — múltiple
+        $ramaFiltro = array_values(array_filter((array) $request->input('rama', []), 'strlen'));
+        if (!empty($ramaFiltro)) {
+            $gruposQuery->whereHas('notas', function ($q) use ($ramaFiltro) {
+                $q->whereIn('tipo_rama', $ramaFiltro);
+            });
+        }
+        // Estado del expediente — múltiple
+        $estadoFiltro = array_values(array_filter((array) $request->input('estado', []), 'strlen'));
+        if (!empty($estadoFiltro)) {
+            $gruposQuery->whereHas('notas.expedientes', function ($q) use ($estadoFiltro) {
+                $q->whereIn('estado_actual', $estadoFiltro);
             });
         }
         // Rango de fechas (fecha de carga)
@@ -905,21 +910,27 @@ class NotasUnificadasController extends Controller
                     });
             });
         }
-        if ($request->has('id_plataforma') && $request->id_plataforma) {
-            $gruposQuery->where('id_plataforma', $request->id_plataforma);
-        } elseif ($request->has('id_casino') && $request->id_casino) {
-            $gruposQuery->where('id_casino', $request->id_casino);
-        }
-        if ($request->has('rama') && $request->rama) {
-            $rama = $request->rama;
-            $gruposQuery->whereHas('notas', function ($q) use ($rama) {
-                $q->where('tipo_rama', $rama);
+        // Filtros — soportan selección múltiple (arrays) o valor único
+        $idCasinoFiltro = array_values(array_filter((array) $request->input('id_casino', []), 'strlen'));
+        $idPlataformaFiltro = array_values(array_filter((array) $request->input('id_plataforma', []), 'strlen'));
+        if (!empty($idCasinoFiltro) || !empty($idPlataformaFiltro)) {
+            $gruposQuery->where(function ($q) use ($idCasinoFiltro, $idPlataformaFiltro) {
+                if (!empty($idCasinoFiltro))
+                    $q->orWhereIn('id_casino', $idCasinoFiltro);
+                if (!empty($idPlataformaFiltro))
+                    $q->orWhereIn('id_plataforma', $idPlataformaFiltro);
             });
         }
-        if ($request->has('estado') && $request->estado) {
-            $estado = $request->estado;
-            $gruposQuery->whereHas('notas.expedientes', function ($q) use ($estado) {
-                $q->where('estado_actual', $estado);
+        $ramaFiltro = array_values(array_filter((array) $request->input('rama', []), 'strlen'));
+        if (!empty($ramaFiltro)) {
+            $gruposQuery->whereHas('notas', function ($q) use ($ramaFiltro) {
+                $q->whereIn('tipo_rama', $ramaFiltro);
+            });
+        }
+        $estadoFiltro = array_values(array_filter((array) $request->input('estado', []), 'strlen'));
+        if (!empty($estadoFiltro)) {
+            $gruposQuery->whereHas('notas.expedientes', function ($q) use ($estadoFiltro) {
+                $q->whereIn('estado_actual', $estadoFiltro);
             });
         }
         if ($request->has('fecha_desde') && $request->fecha_desde) {
@@ -2826,6 +2837,74 @@ class NotasUnificadasController extends Controller
     }
 
     /**
+     * Exportar a CSV/Excel los activos (máquinas/juegos) asociados a una nota.
+     * Columnas: Tipo, Nombre, ID/Nro Admin, Estado, % Devolución, Isla, Casino/Plataforma, Nro de Nota.
+     */
+    public function exportarActivos(Request $request, $id)
+    {
+        $formato = strtolower($request->input('formato', 'xlsx'));
+        if (!in_array($formato, ['csv', 'xlsx'])) {
+            $formato = 'xlsx';
+        }
+
+        $nota = NotaIngreso::findOrFail($id);
+        $activos = $this->enriquecerActivos($nota->activos);
+
+        $casinoNombre = self::resolverNombreCasino($nota->id_casino, $nota->id_plataforma);
+        $nroNota = ($nota->nro_nota ?: '') . ($nota->anio ? '/' . $nota->anio : '');
+
+        $tipoNombre = [
+            'MTM' => 'Máquina (MTM)',
+            'MESA' => 'Mesa de Paño',
+            'BINGO' => 'Bingo',
+            'JUEGO_ONLINE' => 'Juego Online',
+            'ISLA' => 'Isla',
+        ];
+
+        $headers = ['Tipo', 'Nombre', 'ID / Nro Admin', 'Estado', '% Devolución', 'Isla', 'Casino / Plataforma', 'Nro de Nota'];
+
+        $data = [];
+        foreach ($activos as $a) {
+            $tipo = isset($a['tipo_activo']) ? $a['tipo_activo'] : '';
+            $pdev = (isset($a['porcentaje_devolucion']) && $a['porcentaje_devolucion'] !== '—' && $a['porcentaje_devolucion'] !== '' && $a['porcentaje_devolucion'] !== null)
+                ? $a['porcentaje_devolucion'] : '';
+            $isla = (isset($a['nro_isla']) && $a['nro_isla']) ? ('N° ' . $a['nro_isla']) : '';
+            $estado = (isset($a['estado']) && $a['estado'] !== '—') ? $a['estado'] : '';
+            $data[] = [
+                isset($tipoNombre[$tipo]) ? $tipoNombre[$tipo] : $tipo,
+                isset($a['nombre']) ? $a['nombre'] : '',
+                isset($a['id_display']) ? $a['id_display'] : (isset($a['id_activo']) ? $a['id_activo'] : ''),
+                $estado,
+                $pdev,
+                $isla,
+                $casinoNombre,
+                $nroNota,
+            ];
+        }
+
+        $filename = 'activos_nota_' . ($nota->nro_nota ?: $nota->id) . '_' . date('Y-m-d');
+
+        return \Excel::create($filename, function ($excel) use ($headers, $data) {
+            $excel->sheet('Activos', function ($sheet) use ($headers, $data) {
+                $sheet->row(1, $headers);
+                $sheet->row(1, function ($row) {
+                    $row->setBackground('#2c3e50');
+                    $row->setFontColor('#ffffff');
+                    $row->setFontWeight('bold');
+                    $row->setFontSize(10);
+                });
+                $rowNum = 2;
+                foreach ($data as $d) {
+                    $sheet->row($rowNum, $d);
+                    $rowNum++;
+                }
+                $sheet->setAutoSize(true);
+                $sheet->freezeFirstRow();
+            });
+        })->download($formato);
+    }
+
+    /**
      * Eliminar un activo de una Nota
      */
     public function removeActivo($id)
@@ -3151,11 +3230,17 @@ class NotasUnificadasController extends Controller
                 return response()->json(['success' => false, 'msg' => 'El tipo y número de documento son obligatorios'], 400);
             }
 
-            // Validar unicidad: no puede existir otro registro con mismo tipo_documento + numero_documento + anio_documento
+            // Normalizar número a 4 dígitos con ceros (ej: "4" -> "0004")
+            $numeroDocumento = $this->normalizarNumeroAprobacion($numeroDocumento);
+            if (!$numeroDocumento) {
+                return response()->json(['success' => false, 'msg' => 'El número de documento debe ser numérico'], 400);
+            }
+
+            // Validar unicidad numérica por (tipo_documento, año), ignorando rama/casino: "4" y "0004" cuentan como el mismo
             $existe = DB::table('grupo_notas_aprobacion')
                 ->where('tipo_documento', $tipoDocumento)
-                ->where('numero_documento', $numeroDocumento)
                 ->where('anio_documento', $anioDocumento)
+                ->whereRaw('CAST(numero_documento AS UNSIGNED) = ?', [(int) $numeroDocumento])
                 ->exists();
             if ($existe) {
                 $label = $tipoDocumento === 'DISPOSICION' ? 'Disposición' : 'Nota';
@@ -3291,6 +3376,121 @@ class NotasUnificadasController extends Controller
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Normaliza el número de documento de una nota de aprobación a 4 dígitos con ceros (ej: "4" -> "0004").
+     * Devuelve null si no contiene dígitos o equivale a 0.
+     */
+    private function normalizarNumeroAprobacion($numero)
+    {
+        $digitos = preg_replace('/\D/', '', (string) $numero);
+        if ($digitos === '' || (int) $digitos === 0) {
+            return null;
+        }
+        // Quitar ceros a la izquierda y rellenar a un mínimo de 4 dígitos
+        return str_pad(ltrim($digitos, '0'), 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Editar los datos (rama, tipo, número, año) de una nota de aprobación existente.
+     * Revalida la unicidad del número por (tipo_documento, año) excluyendo el propio registro.
+     */
+    public function updateNotaAprobacion(Request $request, $id)
+    {
+        try {
+            $registro = DB::table('grupo_notas_aprobacion')->where('id', $id)->first();
+            if (!$registro) {
+                return response()->json(['success' => false, 'msg' => 'No encontrado'], 404);
+            }
+
+            $tipoRama = $request->input('tipo_rama', $registro->tipo_rama);
+            $tipoDocumento = $request->input('tipo_documento', $registro->tipo_documento);
+            $numeroDocumento = $request->input('numero_documento', $registro->numero_documento);
+            $anioDocumento = $request->input('anio_documento', $registro->anio_documento);
+
+            if (!$tipoRama || !$tipoDocumento || !$numeroDocumento || !$anioDocumento) {
+                return response()->json(['success' => false, 'msg' => 'Faltan datos requeridos'], 400);
+            }
+
+            // Normalizar número a 4 dígitos con ceros (ej: "4" -> "0004")
+            $numeroDocumento = $this->normalizarNumeroAprobacion($numeroDocumento);
+            if (!$numeroDocumento) {
+                return response()->json(['success' => false, 'msg' => 'El número de documento debe ser numérico'], 400);
+            }
+
+            // Unicidad numérica por (tipo_documento, año), excluyendo este mismo registro
+            $existe = DB::table('grupo_notas_aprobacion')
+                ->where('id', '<>', $id)
+                ->where('tipo_documento', $tipoDocumento)
+                ->where('anio_documento', $anioDocumento)
+                ->whereRaw('CAST(numero_documento AS UNSIGNED) = ?', [(int) $numeroDocumento])
+                ->exists();
+            if ($existe) {
+                $label = $tipoDocumento === 'DISPOSICION' ? 'Disposición' : 'Nota';
+                return response()->json(['success' => false, 'msg' => "Ya existe una {$label} N° {$numeroDocumento}-{$anioDocumento}. El número debe ser único."], 400);
+            }
+
+            DB::table('grupo_notas_aprobacion')->where('id', $id)->update([
+                'tipo_rama' => $tipoRama,
+                'tipo_documento' => $tipoDocumento,
+                'numero_documento' => $numeroDocumento,
+                'anio_documento' => $anioDocumento,
+                'updated_at' => \Carbon\Carbon::now(),
+            ]);
+
+            // Trazar el cambio en el grupo (solo si efectivamente cambió la identidad del documento)
+            $grupo = \App\Models\GrupoTramite::find($registro->id_grupo);
+            if ($grupo) {
+                $labelAnt = ($registro->tipo_documento === 'DISPOSICION') ? 'Disposición' : 'Nota';
+                $labelNue = ($tipoDocumento === 'DISPOSICION') ? 'Disposición' : 'Nota';
+                $antes = $labelAnt . ' N° ' . ($registro->numero_documento ?: '?') . '-' . ($registro->anio_documento ?: '?') . ' (' . $registro->tipo_rama . ')';
+                $despues = $labelNue . ' N° ' . $numeroDocumento . '-' . $anioDocumento . ' (' . $tipoRama . ')';
+                if ($antes !== $despues) {
+                    self::registrarMovimientoEnGrupo(
+                        $grupo,
+                        'NOTA_APROBACION_EDITADA',
+                        'editó nota de aprobación: ' . $antes . ' → ' . $despues
+                    );
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'msg' => 'Nota de aprobación actualizada',
+                'numero_documento' => $numeroDocumento,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error("Error updateNotaAprobacion: " . $e->getMessage());
+            return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Devuelve el próximo número correlativo (4 dígitos) para una nota de aprobación.
+     * El correlativo es por (tipo_documento, año), ignorando rama y casino.
+     */
+    public function proximoNumeroAprobacion(Request $request)
+    {
+        $tipoDocumento = $request->input('tipo_documento');
+        $anioDocumento = $request->input('anio_documento', date('Y'));
+
+        if (!$tipoDocumento) {
+            return response()->json(['success' => false, 'msg' => 'Falta el tipo de documento'], 400);
+        }
+
+        $maximo = DB::table('grupo_notas_aprobacion')
+            ->where('tipo_documento', $tipoDocumento)
+            ->where('anio_documento', $anioDocumento)
+            ->max(DB::raw('CAST(numero_documento AS UNSIGNED)'));
+
+        $proximo = (int) $maximo + 1;
+
+        return response()->json([
+            'success' => true,
+            'numero' => str_pad($proximo, 4, '0', STR_PAD_LEFT),
+            'numero_int' => $proximo,
+        ]);
     }
 
     /**

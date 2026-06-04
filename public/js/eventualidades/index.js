@@ -144,7 +144,9 @@ $('#modalCargarEventualidad').on('hidden.bs.modal', function() {
     ocultarErrorValidacion($('.form-control'));
   $("#modalCargarEventualidad #cargaInforme").fileinput('destroy');
   $('#select_event').prop('disabled', false);
-
+  // Al cerrar, suelto el borrador en edición (evita que un id_borrador viejo —ya finalizado—
+  // se reenvíe en el próximo guardado). Continuar/Nueva vuelven a setearlo según corresponda.
+  $('#id_borrador').val('');
 })
 
 $('#cargaInforme').on('fileclear', function(event) {
@@ -260,6 +262,10 @@ function generarFilaTabla(ev,controlador) {
 
     let estadoIcon, estadoTexto;
     switch (ev.estado_eventualidad) {
+      case 0:
+        estadoIcon  = '<i class="fas fa-fw fa-dot-circle iconoEstado faSinTerminar"></i>';
+        estadoTexto = 'Sin terminar';
+        break;
       case 1:
         estadoIcon  = '<i class="fas fa-fw fa-dot-circle iconoEstado faGenerado"></i>';
         estadoTexto = 'Generado';
@@ -423,26 +429,27 @@ function generarFilaTabla(ev,controlador) {
 
     tdAcc.append(btnDelete);
 
-    const butObs = $('<button>')
-      .addClass('btn btn-info btn-sm')
-      .attr('id', 'btn-obs')
-      .attr('data-id', ev.id_eventualidades)
-      .attr('data-toggle', 'tooltip')
-      .attr('data-placement','bottom')
-      .attr('title', 'AGREGAR OBSERVACIÓN')
-      .append($('<i>').addClass('fa fa-edit'))
-
-    tdAcc.append(butObs);
   }
-  const butVerObs = $('<button>')
-  .addClass('btn btn-warning btn-sm mr-1 btn-verObs')
-  .attr('data-id', ev.id_eventualidades)
-  .attr('data-toggle', 'tooltip')
-  .attr('data-placement','bottom')
-  .attr('title', 'VER OBSERVACIONES')
-  .append($('<i>').addClass('fa fa-eye'));
-tdAcc.append(butVerObs);
 
+} else if (estado === 0) {
+  // Borrador "sin terminar": continuar (reabre el form precargado) + eliminar.
+  const btnContinuar = $('<button>')
+    .addClass('btn btn-warning btn-sm mr-1 btn-continuarEvent')
+    .attr('value', ev.id_eventualidades)
+    .attr('data-toggle', 'tooltip')
+    .attr('data-placement','bottom')
+    .attr('title', 'CONTINUAR')
+    .append($('<i>').addClass('fa fa-pencil-alt'));
+  tdAcc.append(btnContinuar).append($('<span>').text(' '));
+  const btnDelete = $('<button>')
+    .addClass('btn btn-danger btn-sm')
+    .attr('id', 'btn-eliminarEvent')
+    .attr('value', ev.id_eventualidades)
+    .attr('data-toggle', 'tooltip')
+    .attr('data-placement','bottom')
+    .attr('title', 'ELIMINAR')
+    .append($('<i>').addClass('fa fa-trash'));
+  tdAcc.append(btnDelete);
 } else {
   const btnDelete = $('<button>')
     .addClass('btn btn-danger btn-sm')
@@ -453,6 +460,19 @@ tdAcc.append(butVerObs);
     .attr('title', 'ELIMINAR EVENTUALIDAD')
     .append($('<i>').addClass('fa fa-trash'))
   tdAcc.append(btnDelete);
+}
+
+// Botón VER / AGREGAR observaciones: disponible desde FIRMADA (estado 2) y en VISADA (3).
+// (El modal #modalVerObservaciones ya trae el form de alta.)
+if (estado === 2 || estado === 3) {
+  const butVerObs = $('<button>')
+    .addClass('btn btn-warning btn-sm mr-1 btn-verObs')
+    .attr('data-id', ev.id_eventualidades)
+    .attr('data-toggle', 'tooltip')
+    .attr('data-placement', 'bottom')
+    .attr('title', 'OBSERVACIONES')
+    .append($('<i>').addClass('fa fa-comments'));
+  tdAcc.append(butVerObs);
 }
 
 
@@ -497,12 +517,9 @@ $(document).on('click', '#subirEv', function (){
                 .append('<span class="help-block js-error">Esa eventualidad ya fue visada.</span>');
         return;
       }
-      if (respuesta.cod === 4) {
-        $archivo.closest('.col-md-9')
-                .addClass('has-error')
-                .append('<span class="help-block js-error">El archivo no es original.</span>');
-        return;
-      }
+      // // cod 4 ("el archivo no es original") ya no lo devuelve el backend:
+      // // se quitó la validación de "PDF original" en subirEventualidad.
+      // if (respuesta.cod === 4) { ... }
       console.log("Guardado exitoso", respuesta);
       setTimeout(() => $('#modalSubirEventualidad').modal('hide'), 100);
       $('#mensajeExito').hide();
@@ -513,33 +530,22 @@ $(document).on('click', '#subirEv', function (){
       $('#btn-buscarEventualidades').trigger('click', [{ page: paginaActual }]);
     },
     error: function (xhr) {
-      const res= xhr.responseJSON || {};
+      const res = xhr.responseJSON || {};
       console.error("Error al guardar:", xhr);
-      if(res.cod===1){
-        $archivo.closest('.col-md-9')
-                .addClass('has-error')
-                .append('<span class="help-block js-error">Esa eventualidad no existe.</span>');
+      // Mostramos directamente el mensaje del backend cuando viene (es el más preciso).
+      // cod 2 = 404 (id detectado pero no existe) · cod 3 = 422 (no se pudo detectar el PDF).
+      // // cod 1 ("no existe") y cod 4 ("no original") ya no los devuelve el backend.
+      let msg;
+      if (res.cod === 2) {
+        msg = res.error || 'No existe eventualidad con esa ID.';
+      } else if (res.cod === 3) {
+        msg = res.error || 'No se pudo detectar a qué eventualidad pertenece el PDF.';
+      } else {
+        msg = res.error || 'Error subiendo eventualidad.';
       }
-      if(res.cod===3){
-        $archivo.closest('.col-md-9')
-                .addClass('has-error')
-                .append('<span class="help-block js-error">Title inválido.</span>');
-      }
-      if(res.cod===2){
-        $archivo.closest('.col-md-9')
-                .addClass('has-error')
-                .append('<span class="help-block js-error">No existe eventualidad con esa ID.</span>');
-      }
-      else if(res.cod===4){
-        $archivo.closest('.col-md-9')
-                .addClass('has-error')
-                .append('<span class="help-block js-error">Ese archivo no es original.</span>');
-      }
-      else{
-        $archivo.closest('.col-md-9')
+      $archivo.closest('.col-md-9')
               .addClass('has-error')
-              .append('<span class="help-block js-error">Error subiendo eventualidad.</span>');
-            }
+              .append('<span class="help-block js-error">' + msg + '</span>');
       $('#mensajeExitoCarga').attr('hidden', true);
       $('#mensajeErrorCarga').removeAttr('hidden');
     }
@@ -616,92 +622,92 @@ $(document).on('click', '#subirObs', function (){
 });
 
 
-$(document).on('click', '#guardarEv', function () {
+// Valida el form. modo='final' (GENERAR, completo) | 'borrador' (GUARDAR TEMPORAL, relajado).
+// En borrador sólo es obligatorio el encabezado (casino, turno, fecha) — el resto se completa después.
+function validarFormEventualidad(modo) {
+  var esBorrador = (modo === 'borrador');
   var $form = $('#formNuevaEventualidad');
   var valid = true;
 
-  // 1) Limpio errores previos
+  // Limpio errores previos
   $form.find('.has-error').removeClass('has-error');
   $form.find('.help-block.js-error').remove();
+  $form.find('.alert.js-error').remove();
+  $('#tbodyProcedimientos > tr').removeClass('danger');
 
-  // 2) Valido Casino
+  // Casino (siempre)
   var $casino = $form.find('select[name="id_casino"]');
   if (!$casino.val()) {
-    $casino.closest('.col-md-4')
-           .addClass('has-error')
+    $casino.closest('.col-md-4').addClass('has-error')
            .append('<span class="help-block js-error">El casino es requerido.</span>');
     valid = false;
   }
-
-  // 3) Valido Turno
+  // Turno (siempre — columna NOT NULL)
   var $turno = $form.find('select[name="turno"]');
   if (!$turno.val()) {
-    $turno.closest('.col-md-4')
-           .addClass('has-error')
+    $turno.closest('.col-md-4').addClass('has-error')
            .append('<span class="help-block js-error">El turno es requerido.</span>');
     valid = false;
   }
-
-
-  // 4) Valido Fecha de intervención (fecha_toma)
-  const $fechaToma = $form.find('input[name="fecha_toma"]');
+  // Fecha de la eventualidad (siempre — columna NOT NULL)
+  var $fechaToma = $form.find('input[name="fecha_toma"]');
   if (!$fechaToma.val()) {
-    $fechaToma.closest('.col-md-4')
-               .addClass('has-error')
+    $fechaToma.closest('.col-md-4').addClass('has-error')
                .append('<span class="help-block js-error">La fecha es requerida.</span>');
-    valid = false;
-  }
-
-  // 4.5 valido Fiscalizadores
-  var $fiscales = $form.find('input[name="otros_fiscalizadores"]');
-  if (!$fiscales.val().trim()) {
-    $fiscales.closest('.col-md-8')
-      .addClass('has-error')
-      .append('<span class="help-block js-error">El/Los fiscalizador/es es/son requerido/s.</span>');
     valid = false;
   }
   $('#salir').next('.help-block.js-error').remove();
 
-  // 5) Valido que cada fila de procedimientos tenga un radio marcado
-  $form.find('table tbody tr').each(function(){
-    var name = $(this).find('input[type=radio]').first().attr('name');
-    if (name && !$form.find('input[name="'+name+'"]:checked').length) {
-      // marco la celda de "✔"
-      $(this).find('td').eq(0)
-        .addClass('has-error')
-        .append('<span class="help-block js-error">Requerido</span>');
+  if (!esBorrador) {
+    // Fiscalizadores (sólo en el guardado final)
+    var $fiscales = $form.find('input[name="otros_fiscalizadores"]');
+    if (!$fiscales.val().trim()) {
+      $fiscales.closest('.col-md-8').addClass('has-error')
+        .append('<span class="help-block js-error">El/Los fiscalizador/es es/son requerido/s.</span>');
       valid = false;
     }
-  });
+    // Procedimientos: todos respondidos (sólo en el guardado final; en borrador se permite parcial)
+    var $filasProc = $('#tbodyProcedimientos > tr').filter(function () {
+      return $(this).find('input[type=radio]').length > 0;
+    });
+    if (!$filasProc.length) {
+      $('#tbodyProcedimientos').closest('.table-responsive')
+        .before('<div class="alert alert-danger js-error" style="margin-bottom:8px;">El casino seleccionado no tiene procedimientos asignados.</div>');
+      valid = false;
+    } else {
+      var procIncompletos = 0;
+      $filasProc.each(function () {
+        var $tr = $(this);
+        if (!$tr.find('input[type=radio]:checked').length) {
+          $tr.addClass('danger');
+          procIncompletos++;
+        }
+      });
+      if (procIncompletos > 0) {
+        $('#tbodyProcedimientos').closest('.table-responsive')
+          .before('<div class="alert alert-danger js-error" style="margin-bottom:8px;">Debés marcar <strong>Realizado</strong> o <strong>No realizado</strong> en todos los procedimientos (' + procIncompletos + ' sin responder).</div>');
+        valid = false;
+      }
+    }
+  }
 
-  // 6 valido el boletin adjunto
+  // Boletín adjunto: opcional, sólo límite de longitud (siempre)
   var $boletin = $form.find('input[name="boletin_adjunto"]');
-  if (!$boletin.val().trim()) {
-    $boletin.closest('.col-md-6')
-      .addClass('has-error')
-      .append('<span class="help-block js-error">El boletín es requerido.</span>');
+  var boletinText = $boletin.val() ? $boletin.val().trim() : '';
+  if (boletinText.length > 300) {
+    $boletin.closest('.col-md-6').addClass('has-error')
+      .append('<span class="help-block js-error text-danger">El máximo de caracteres es de 300.</span>');
     valid = false;
   }
-  var boletinText = $boletin.val() ? $boletin.val().trim() : '';
-if (boletinText.length > 300) {
-  // Quito errores anteriores
-  $boletin.closest('.col-md-6')
-    .find('.help-block.js-error').remove();
 
-  // Marco el error
-  $boletin.closest('.col-md-6')
-    .addClass('has-error')
-    .append('<span class="help-block js-error text-danger">El máximo de caracteres es de 300.</span>');
-  valid = false;
+  return valid;
 }
 
-  // 7) Si hay errores, no seguimos al AJAX
-  if (!valid) {
-    return;
-  }
-
-  let formElem = $form[0];
-  let formData = new FormData(formElem);
+// Envía el form. esBorrador=true → estado 0 (sin terminar), no descarga PDF y deja el modal abierto.
+function enviarEventualidad(esBorrador) {
+  var $form = $('#formNuevaEventualidad');
+  var formData = new FormData($form[0]); // incluye el hidden id_borrador
+  formData.append('borrador', esBorrador ? 1 : 0);
 
   $.ajax({
     url: '/eventualidades/guardarEventualidad',
@@ -710,23 +716,97 @@ if (boletinText.length > 300) {
     processData: false,
     contentType: false,
     success: function (respuesta) {
-      console.log("Guardado exitoso", respuesta);
-      $('#mensajeExitoCarga').removeAttr('hidden');
       $('#mensajeErrorCarga').attr('hidden', true);
-      window.open('/eventualidades/pdf/' + respuesta.id, '_blank');
-      setTimeout(() => $('#modalCargarEventualidad').modal('hide'), 1000);
-      const paginaActual = $('#herramientasPaginacion').getCurrentPage();
-      $('#btn-buscarEventualidades').trigger('click', [{ page: paginaActual }]);
+      var paginaActual = $('#herramientasPaginacion').getCurrentPage();
+      if (esBorrador) {
+        // Borrador: guardo el id para seguir editando el MISMO, dejo el modal abierto.
+        $('#id_borrador').val(respuesta.id);
+        $('#guardarTemporal').next('.js-tempok').remove();
+        $('#guardarTemporal').after('<span class="help-block js-tempok text-success" style="color:green;"> Guardado temporal ✔</span>');
+        setTimeout(function () { $('#guardarTemporal').next('.js-tempok').remove(); }, 2500);
+        $('#btn-buscarEventualidades').trigger('click', [{ page: paginaActual }]);
+      } else {
+        $('#mensajeExitoCarga').removeAttr('hidden');
+        window.open('/eventualidades/pdf/' + respuesta.id, '_blank');
+        setTimeout(function () { $('#modalCargarEventualidad').modal('hide'); }, 1000);
+        $('#btn-buscarEventualidades').trigger('click', [{ page: paginaActual }]);
+        $(document).trigger('reporteDiario:refresh');
+      }
     },
     error: function (xhr) {
       $('#salir').next('.help-block.js-error').remove();
-      $('#salir')
-        .after('<span class="help-block js-error text-danger" style="color:red;" >Ocurrió un error.</span>');
+      $('#salir').after('<span class="help-block js-error text-danger" style="color:red;" >Ocurrió un error.</span>');
       console.error("Error al guardar:", xhr);
       $('#mensajeExitoCarga').attr('hidden', true);
       $('#mensajeErrorCarga').removeAttr('hidden');
     }
   });
+}
+
+// Deja el form en blanco para una eventualidad NUEVA (limpia el id_borrador y los procedimientos).
+function resetFormEventualidad() {
+  var $form = $('#formNuevaEventualidad');
+  if ($form.length) $form[0].reset();
+  $('#id_borrador').val('');
+  $form.find('.has-error').removeClass('has-error');
+  $form.find('.help-block.js-error, .alert.js-error, .js-tempok').remove();
+  $('#tbodyProcedimientos > tr').removeClass('danger');
+  $form.find('select[name="turno"]').empty().append('<option value="">- Seleccione un turno -</option>');
+  $('#tbodyProcedimientos').empty().append('<tr><td colspan="3" class="text-center text-muted">Seleccione un casino para ver los procedimientos.</td></tr>');
+  $('#modalCargarEventualidad .modal-title').text('| NUEVA EVENTUALIDAD');
+}
+
+// GENERAR (guardado final)
+$(document).on('click', '#guardarEv', function () {
+  if (validarFormEventualidad('final')) enviarEventualidad(false);
+});
+
+// GUARDAR TEMPORAL (borrador / "sin terminar")
+$(document).on('click', '#guardarTemporal', function () {
+  if (validarFormEventualidad('borrador')) enviarEventualidad(true);
+});
+
+// Abrir el modal para una eventualidad NUEVA → limpio el form (el modal lo abre data-toggle).
+$(document).on('click', '#btnNuevaEventualidad', function () {
+  resetFormEventualidad();
+});
+
+// CONTINUAR un borrador → traigo sus datos y precargo el form.
+$(document).on('click', '.btn-continuarEvent', function () {
+  var id = $(this).val();
+  $.getJSON('/eventualidades/borrador/' + id)
+    .done(function (d) {
+      resetFormEventualidad();
+      $('#modalCargarEventualidad .modal-title').text('| CONTINUAR EVENTUALIDAD');
+      var $form = $('#formNuevaEventualidad');
+      $('#id_borrador').val(d.id);
+      $form.find('select[name="id_casino"]').val(d.id_casino);
+      // Espero a que carguen turnos + procedimientos antes de setear los valores dependientes.
+      $.when(cargarTurnosCasino(d.id_casino), cargarProcedimientosCasino(d.id_casino)).done(function () {
+        $form.find('select[name="turno"]').val(d.id_turno);
+        $form.find('input[name="horario"]').val(d.horario || '');
+        $form.find('input[name="fecha_toma"]').val(d.fecha_toma ? (d.fecha_toma + '').substring(0, 16) : '');
+        $form.find('select[name="menores"]').val(d.menores || 'No');
+        $form.find('select[name="fumadores"]').val(d.fumadores || 'No');
+        $form.find('input[name="boletin_adjunto"]').val(d.boletin_adjunto || '');
+        $form.find('textarea[name="observaciones"]').val(d.observaciones || '');
+        $form.find('input[name="otros_fiscalizadores"]').val(d.otros_fiscalizadores || '');
+        var procs = d.procedimientos || {};
+        Object.keys(procs).forEach(function (idProc) {
+          var p = procs[idProc];
+          if (p.estado === 'realizado' || p.estado === 'no_realizado') {
+            var val = (p.estado === 'realizado') ? '✔' : '*';
+            $('input[name="procedimientos[' + idProc + '][estado]"][value="' + val + '"]')
+              .prop('checked', true).closest('label').addClass('active');
+          }
+          if (p.observacion) {
+            $('input[name="procedimientos[' + idProc + '][observacion]"]').val(p.observacion);
+          }
+        });
+      });
+      $('#modalCargarEventualidad').modal('show');
+    })
+    .fail(function () { alert('No se pudo cargar el borrador.'); });
 });
 
 $(document).on('click', '#guardarObs', function () {
@@ -798,38 +878,97 @@ $(document).on('click', '#guardarObs', function () {
 });
 
 
-$(function(){
-  // Cuando cambias el casino, cargas turnos “normales”
-  $('#formNuevaEventualidad').on('change', 'select[name="id_casino"]', function(){
-    const idCasino = $(this).val();
-    const $turno   = $('#formNuevaEventualidad').find('select[name="turno"]');
-
-    $turno
-      .empty()
-      .append('<option value="">- Seleccione un turno -</option>');
-
-    if (!idCasino) return;
-
-    $.getJSON(`/eventualidades/obtenerTurnos/${idCasino}`, json => {
-      json.turnos.forEach(t => {
-        $turno.append(
-          $('<option>')
-            .val(t.id_turno)
-            .text(t.nro_turno)
-            .attr('data-horario', t.entrada + ' a ' + t.salida)
-        );
-      });
+// Carga los turnos del casino en el select del form. Devuelve la promise del getJSON
+// (para poder esperar a que termine al "Continuar" un borrador).
+function cargarTurnosCasino(idCasino) {
+  const $turno = $('#formNuevaEventualidad').find('select[name="turno"]');
+  $turno.empty().append('<option value="">- Seleccione un turno -</option>');
+  if (!idCasino) return $.Deferred().resolve().promise();
+  return $.getJSON('/eventualidades/obtenerTurnos/' + idCasino, function (json) {
+    json.turnos.forEach(function (t) {
+      $turno.append(
+        $('<option>').val(t.id_turno).text(t.nro_turno)
+          .attr('data-horario', t.entrada + ' a ' + t.salida)
+          // data-nro = nro_turno (1/2/3). El value es id_turno (PK), que NO coincide con
+          // el nro de turno; el caso "noche" se detecta por nro_turno, no por el value.
+          .attr('data-nro', t.nro_turno)
+      );
     });
+  });
+}
+
+// Carga los procedimientos del casino en la tabla del form. Devuelve la promise del getJSON.
+function cargarProcedimientosCasino(idCasino) {
+  const $tbody = $('#tbodyProcedimientos');
+  $tbody.empty().append('<tr><td colspan="3" class="text-center text-muted">Cargando…</td></tr>');
+  if (!idCasino) {
+    $tbody.empty().append('<tr><td colspan="3" class="text-center text-muted">Seleccione un casino para ver los procedimientos.</td></tr>');
+    return $.Deferred().resolve().promise();
+  }
+  return $.getJSON('/eventualidades/procedimientosPorCasino/' + idCasino, function (res) {
+    $tbody.empty();
+    if (!res.procedimientos.length) {
+      $tbody.append('<tr><td colspan="3" class="text-center text-warning">'
+        + 'Este casino no tiene procedimientos asignados. Solicitar al administrador.</td></tr>');
+      return;
+    }
+    res.procedimientos.forEach(function (p) {
+      const id = p.id_procedimiento;
+      const nombre = $('<div>').text(p.nombre).html();
+      $tbody.append(
+        '<tr>' +
+          '<td>' + nombre + '</td>' +
+          '<td class="text-center" style="white-space:nowrap;">' +
+            '<div class="btn-group btn-group-sm">' +
+              '<label class="btn btn-default btn-respuesta-si">' +
+                '<input type="radio" name="procedimientos[' + id + '][estado]" value="✔" autocomplete="off">' +
+                '<i class="fa fa-check"></i>Realizado' +
+              '</label>' +
+              '<label class="btn btn-default btn-respuesta-no">' +
+                '<input type="radio" name="procedimientos[' + id + '][estado]" value="*" autocomplete="off">' +
+                '<i class="fa fa-times"></i>No realizado' +
+              '</label>' +
+            '</div>' +
+          '</td>' +
+          '<td><input type="text" class="form-control form-control-sm" name="procedimientos[' + id + '][observacion]" placeholder="Observación"></td>' +
+        '</tr>'
+      );
+    });
+  });
+}
+
+$(function(){
+  // Cuando cambias el casino: cargo turnos + procedimientos del casino
+  $('#formNuevaEventualidad').on('change', 'select[name="id_casino"]', function(){
+    cargarTurnosCasino($(this).val());
+    cargarProcedimientosCasino($(this).val());
+  });
+
+  // Toggle manual de la clase .active sobre los <label> del btn-group de procedimientos.
+  // Bootstrap 3 data-toggle=buttons no bindea de forma confiable sobre nodos insertados
+  // dinámicamente vía $tbody.append, así que lo manejamos a mano.
+  $(document).on('click', '#tbodyProcedimientos label.btn', function (e) {
+    var $lbl   = $(this);
+    var $input = $lbl.find('input[type=radio]');
+    if (!$input.length) return;
+    var name = $input.attr('name');
+    $('input[name="' + name + '"]').each(function () {
+      $(this).prop('checked', false).closest('label').removeClass('active');
+    });
+    $input.prop('checked', true);
+    $lbl.addClass('active');
+    $lbl.closest('tr').removeClass('danger');
   });
 
   $('#formNuevaEventualidad').on('change', 'select[name="turno"]', function() {
     const idCasino = $('#formNuevaEventualidad')
                       .find('select[name="id_casino"]').val();
-    const turnoSel = $(this).val();
+    const $sel     = $(this).find('option:selected');
+    const nroTurno = parseInt($sel.data('nro'), 10); // nro_turno real (no el id_turno del value)
     const $horario = $('#formNuevaEventualidad')
                       .find('input[name="horario"]');
 
-    if (turnoSel === '3') {
+    if (nroTurno === 3) {
       $.getJSON(`/eventualidades/obtenerTurnos/${idCasino}?useYesterday=1`, json => {
         const t = json.turnos.find(x => x.nro_turno == 3);
         if (t) {
@@ -856,83 +995,6 @@ $('#btn-buscarEventualidades').on('click',function(e,opts){
     perPage: $('#herramientasPaginacion').getPageSize(),
     ...filtros
   });
+  $(document).trigger('reporteDiario:refresh');
 });
 
-$(document).on('click', '.btn-verObs', function(){
-  const evId = $(this).data('id');
-  const $ul  = $('#listaPdfs')
-                 .empty()
-                 .append('<li class="list-group-item">Cargando…</li>')
-                 .data('ev-id', evId)
-                 .addClass('list-group');
-
-  $.getJSON(`/eventualidades/${evId}/observaciones`, data => {
-    const obs = data.obs;
-    const esControlador = data.controlador === 1;
-    $ul.empty();
-
-    if (!obs.length) {
-      return $ul.append('<li class="list-group-item">No hay observaciones.</li>');
-    }
-
-    obs.forEach(o => {
-  const $link = $('<a>')
-    .attr('href', o.url)
-    .attr('target','_blank')
-    .text(o.id_archivo || `Observación #${o.id_observacion_eventualidades}`);
-
-  const $li = $('<li>').addClass('list-group-item clearfix').css({marginBottom:'8px'});
-  $li.append($link);
-
-  if (esControlador) {
-    const $btnDeleteObs = $('<button>')
-      .addClass('btn btn-danger btn-sm btn-deleteObs pull-right')
-      .attr('data-id', o.id_observacion_eventualidades)
-      .attr('title','ELIMINAR OBSERVACIÓN')
-      .append($('<i>').addClass('fa fa-trash'));
-    $li.append($btnDeleteObs);
-  }
-
-  $ul.append($li);
-});
-
-
-  }).fail(() => {
-    $ul.empty().append('<li class="text-danger">Error al cargar.</li>');
-  });
-
-  $('#modalVerObservaciones').modal('show');
-});
-
-
-//boton borrar en fila
-$(document).on('click','.btn-deleteObs',function(e){
-
-    aEliminar= $(this).data('id');
-
-    $('#modalEliminarObservacion').modal('show');
-
-});
-
-
-$('#btn-eliminarObservacion').off('click').on('click', function(){
-  $.ajax({
-    url: `/eventualidades/observacion/${aEliminar}`,
-    method: 'GET'
-  }).done(res => {
-    if (res == 1) {
-      $('#modalEliminarObservacion').modal('hide');
-      // vuelvo a disparar el click de verObs para recargar la lista
-      const evId = $('#listaPdfs').data('ev-id');
-      $(`.btn-verObs[data-id="${evId}"]`).trigger('click');
-    } else {
-    }
-  }).fail(() => {
-
-  });
-});
-
-$('#uploadObs').on('change', function() {
-  var full = $(this).val().split('\\').pop();
-  $('#fileNameObs').val(full || 'No se ha seleccionado ningún archivo');
-});

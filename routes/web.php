@@ -390,6 +390,7 @@ Route::get('/get-comments/{id}', 'NotasUnificadasController@getComments');
   Route::post('/comentario/{id}', 'NotasUnificadasController@addComentario');
   Route::delete('/comentario/{id}', 'NotasUnificadasController@deleteComentario');
   Route::post('/activos/{id}', 'NotasUnificadasController@addActivos');
+  Route::get('/activos/exportar/{id}', 'NotasUnificadasController@exportarActivos');
   Route::delete('/activo/{id}', 'NotasUnificadasController@removeActivo');
   Route::delete('/eliminar-adjunto/{id}/{campo}', 'NotasUnificadasController@deleteAdjunto');
 
@@ -404,6 +405,8 @@ Route::get('/get-comments/{id}', 'NotasUnificadasController@getComments');
 
   // Notas de Aprobación (a nivel de grupo)
   Route::post('/nota-aprobacion/subir', 'NotasUnificadasController@subirNotaAprobacion');
+  Route::get('/nota-aprobacion/proximo-numero', 'NotasUnificadasController@proximoNumeroAprobacion');
+  Route::post('/nota-aprobacion/editar/{id}', 'NotasUnificadasController@updateNotaAprobacion');
   Route::get('/nota-aprobacion/visualizar/{id}', 'NotasUnificadasController@visualizarNotaAprobacion');
   Route::get('/nota-aprobacion/descargar/{id}', 'NotasUnificadasController@descargarNotaAprobacion');
   Route::delete('/nota-aprobacion/eliminar/{id}', 'NotasUnificadasController@eliminarNotaAprobacion');
@@ -575,7 +578,7 @@ Route::group(['prefix' => 'relevamientos_movimientos', 'middleware' => 'tiene_pe
 Eventualidades ->intervenciones tecnicas
 ***********/
 Route::group(['prefix' => 'eventualidades', 'middleware' => 'tiene_permiso:ver_seccion_eventualidades'], function () {
-  Route::get('/', 'EventualidadController@buscarTodoDesdeFiscalizador');
+  Route::get('/', 'Eventualidades\EventualidadesController@buscarTodoDesdeFiscalizador');
   Route::post('buscarPorTipoFechaCasinoTurno', 'EventualidadController@buscarPorTipoFechaCasinoTurno');
   Route::get('crearEventualidad/{id_casino}', 'EventualidadController@crearEventualidad');
   Route::get('verPlanillaVacia/{id}', 'EventualidadController@verPlanillaVacia');
@@ -583,7 +586,7 @@ Route::group(['prefix' => 'eventualidades', 'middleware' => 'tiene_permiso:ver_s
   Route::get('obtenerIslaEnCasino/{id_casino}/{nro_isla}', 'EventualidadController@obtenerIslaEnCasino');
   Route::post('CargarYGuardarEventualidad', 'EventualidadController@CargarYGuardarEventualidad');
   Route::get('visualizarEventualidadID/{id_ev}', 'EventualidadController@visualizarEventualidadID');
-  Route::get('eliminarEventualidad/{id_ev}', 'EventualidadController@eliminarEventualidad');
+  Route::get('eliminarEventualidad/{id_ev}', 'Eventualidades\EventualidadesController@eliminarEventualidad');
   Route::get('visado/{id_ev}', 'EventualidadController@validarEventualidad');
   Route::post('buscarEventualidadesMTMs', 'LogMovimientoController@buscarEventualidadesMTMs');
   Route::get('leerArchivoEventualidad/{id}', 'EventualidadController@leerArchivoEventualidad');
@@ -592,19 +595,55 @@ Route::group(['prefix' => 'eventualidades', 'middleware' => 'tiene_permiso:ver_s
   Route::get('obtenerMTMEnCasino/{casino}/{id}', 'MTMController@obtenerMTMEnCasino');
   Route::get('obtenerMTM/{id}', 'MTMController@obtenerMTM');
   Route::get('obtenerSector/{id_sector}', 'SectorController@obtenerSector');
-  Route::post('guardarEventualidad', 'EventualidadController@guardarEventualidad');
-  Route::get('pdf/{id}', 'EventualidadController@PDF');
-  Route::get('obtenerTurnos/{id_casino}', 'EventualidadController@obtenerTurnos');
-  Route::get('ultimas', 'EventualidadController@ultimasIntervenciones');
-  Route::post('subirEventualidad', 'EventualidadController@subirEventualidad');
-  Route::post('guardarObservacion', 'EventualidadController@guardarObservacion');
-  Route::get('visualizarObservacion/{id}', 'EventualidadController@verObservacionPDF');
-  Route::get('pdfObs/{id}', 'EventualidadController@PDFObs');
-  Route::get('visarEventualidad/{id_eventualidad}', 'EventualidadController@visarEventualidad');
-  Route::post('subirObservacion', 'EventualidadController@subirObservacion');
-  Route::get('{evId}/observaciones', 'EventualidadController@getObservaciones');
-  Route::get('observacion/{id_ob}', 'EventualidadController@eliminarObservacion');
-  Route::get('visualizarArchivo/{estado}/{id_archivo}', 'EventualidadController@visualizarArchivo');
+  Route::post('guardarEventualidad', 'Eventualidades\EventualidadesController@guardarEventualidad');
+  Route::get('borrador/{id}', 'Eventualidades\EventualidadesController@obtenerBorrador');
+  Route::get('pdf/{id}', 'Eventualidades\EventualidadesController@PDF');
+  Route::get('obtenerTurnos/{id_casino}', 'Eventualidades\EventualidadesController@obtenerTurnos');
+  Route::get('ultimas', 'Eventualidades\EventualidadesController@ultimasIntervenciones');
+  Route::post('subirEventualidad', 'Eventualidades\EventualidadesController@subirEventualidad');
+  Route::post('guardarObservacion', 'Eventualidades\EventualidadesController@guardarObservacion');
+  Route::post('agregarObservacion', 'Eventualidades\EventualidadesController@agregarObservacion');
+  Route::get('visualizarObservacion/{id}', 'Eventualidades\EventualidadesController@verObservacionPDF');
+  // Route::get('pdfObs/{id}', 'EventualidadController@PDFObs'); // ZOMBI: el método PDFObs no existe en ningún controller y ningún JS llama a esta ruta
+  Route::get('visarEventualidad/{id_eventualidad}', 'Eventualidades\EventualidadesController@visarEventualidad');
+  Route::post('subirObservacion', 'Eventualidades\EventualidadesController@subirObservacion');
+  Route::get('{evId}/observaciones', 'Eventualidades\EventualidadesController@getObservaciones');
+  Route::get('observacion/{id_ob}', 'Eventualidades\EventualidadesController@eliminarObservacion');
+  Route::get('visualizarArchivo/{estado}/{id_archivo}', 'Eventualidades\EventualidadesController@visualizarArchivo');
+  Route::get('procedimientosPorCasino/{id_casino}', 'Eventualidades\EventualidadesController@procedimientosPorCasino');
+  Route::get('reporteDiario',        'Eventualidades\EventualidadesController@reporteDiario');
+  Route::get('reporteDiarioDetalle', 'Eventualidades\EventualidadesController@reporteDiarioDetalle');
+
+  // Página "Resumen Diario" (sólo admin/super). El reporte se carga por AJAX (reporteDiario).
+  Route::get('resumen-diario', 'Eventualidades\ResumenDiarioController@index')
+      ->middleware('tiene_permiso:visar_resumen_diario');
+
+  // Resumen diario: estado (visado / no visado) + observaciones
+  Route::group(['prefix' => 'resumen-diario'], function () {
+    Route::get('{idCasino}/{fecha}/observaciones',   'Eventualidades\ResumenDiarioController@listarObservaciones');
+    Route::get('{idCasino}/{fecha}/eventualidades',  'Eventualidades\ResumenDiarioController@eventualidadesDelDia');
+    Route::post('observacion/agregar',             'Eventualidades\ResumenDiarioController@agregarObservacion');
+    Route::post('observacion/guardar',             'Eventualidades\ResumenDiarioController@guardarObservacion');
+    Route::post('observacion/subir',               'Eventualidades\ResumenDiarioController@subirObservacion');
+    Route::delete('observacion/{id}',              'Eventualidades\ResumenDiarioController@eliminarObservacion');
+    Route::get('archivo/{filename}',               'Eventualidades\ResumenDiarioController@verArchivo');
+
+    Route::group(['middleware' => 'tiene_permiso:visar_resumen_diario'], function () {
+      Route::post('visar',    'Eventualidades\ResumenDiarioController@visar');
+      Route::post('desvisar', 'Eventualidades\ResumenDiarioController@desvisar');
+    });
+  });
+
+  Route::group(['prefix' => 'procedimientos_abm', 'middleware' => 'tiene_permiso:abm_procedimientos'], function () {
+    Route::get('data',             'ProcedimientoController@data');
+    Route::get('get/{id}',         'ProcedimientoController@get');
+    Route::post('guardar',         'ProcedimientoController@guardar');
+    Route::post('modificar',       'ProcedimientoController@modificar');
+    Route::delete('eliminar/{id}', 'ProcedimientoController@eliminar');
+    // toggleCasino: el activo por casino ahora se setea desde el form (guardar/modificar),
+    // no por un toggle inline. Ruta/método en desuso.
+    // Route::post('toggleCasino',    'ProcedimientoController@toggleCasino');
+  });
   /*Route::group(['middleware' => 'tiene_rol:superusuario'], function () {
     Route::get('/ponerNombresProcedimientos','EventualidadController@ponerNombresProcedimientos');
   });*/

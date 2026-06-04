@@ -71,6 +71,18 @@ class Casino extends Model
     return $this->belongsToMany('App\Juego','casino_tiene_juego','id_casino','id_juego');
   }
 
+  public function procedimientos(){
+    return $this->belongsToMany('App\Procedimiento','casino_tiene_procedimiento','id_casino','id_procedimiento')
+                ->withPivot('activo');
+  }
+
+  public function procedimientosActivos(){
+    return $this->procedimientos()
+                ->where('procedimiento.activo', 1)
+                ->wherePivot('activo', 1)
+                ->orderBy('procedimiento.orden');
+  }
+
   public function mesas(){
     return $this->hasMany('App\Mesas\Mesa','id_casino','id_casino');
   }

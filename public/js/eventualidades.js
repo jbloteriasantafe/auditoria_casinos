@@ -1,3 +1,5 @@
+/* ZOMBI: archivo del flujo viejo de Eventualidad (intervenciones MTM). Cero referencias en blades. Comentado, no borrado.
+/*
 var aEliminar=0;
 $(document).ready(function(){
 
@@ -807,3 +809,4 @@ $('#B_Sector').change(function(){
     isla.append(o);
   });
 });
+*/
