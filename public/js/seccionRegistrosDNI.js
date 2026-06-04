@@ -84,7 +84,8 @@ function getQuantile(sorted_arr, q){
   };
 }
 
-function totales_AÑO_MES_SEMANA_GRUPOETARIO(div,claves,data){ 
+function estadisticas(div,data){ 
+  const claves = totales_claves(data);
   let meses = [];
   let inv_gini = [];
   let reportes_por_mes = [];
@@ -223,7 +224,13 @@ function totales_AÑO_MES_SEMANA_GRUPOETARIO(div,claves,data){
   if(meses.length != reportes_por_dia.length){
     throw 'Error de implementación';
   }
-  Highcharts.chart(div, {
+  const div_diario      = $('<div>').css('width','100%').attr('data-key','diario');
+  const div_uniformidad = $('<div>').css('width','100%').attr('data-key','uniformidad');
+  $(div).append(div_diario);
+  $(div).append(div_uniformidad);
+  //$(div).append(div_completitud);
+    
+  const highcharts_obj_base = {
     chart: {
       zoomType: 'xy'
     },
@@ -271,23 +278,7 @@ function totales_AÑO_MES_SEMANA_GRUPOETARIO(div,claves,data){
         return s;
       }
     },
-    title: {
-      text: 'Uniformidad | Reportes diarios'
-    },
-    plotOptions: {
-      columnrange: {
-        // Al quitar stacking:normal y grouping:false, permitimos que Highcharts maneje
-        // de forma nativa el ancho de la columna del mes.
-        borderWidth: 0,
-        pointPadding: 0.05, // Controla qué tan pegados están los meses entre sí
-        groupPadding: 0.1
-      },
-      boxplot: {
-        maxPointWidth: 30 // Caps the width at 30 pixels so they look slim and elegant
-      }
-    },
     xAxis: [{
-      // PASAMOS LOS MESES DIRECTOS COMO CATEGORÍAS PLANAS
       categories: meses, 
       crosshair: true,
       plotLines: plotLines,
@@ -299,27 +290,69 @@ function totales_AÑO_MES_SEMANA_GRUPOETARIO(div,claves,data){
         }
       }
     }],
+    legend: {
+      enabled: true,
+    }
+  };
+  
+  Highcharts.chart(div_diario[0], {
+    ...highcharts_obj_base,
+    title: {
+      text: 'Reportes diarios'
+    },
+    plotOptions: {
+      boxplot: {
+        maxPointWidth: 30 // Caps the width at 30 pixels so they look slim and elegant
+      }
+    },
+    yAxis: [{
+      title: { text: 'Reportes por día' },
+      min: 0,
+      max: max_reportes_diarios,
+      //opposite: true
+    }],
+    series: [
+      {
+        id: 'reportes-dia-qs',
+        name: 'Cuartiles',
+        type: 'boxplot',
+        yAxis: 0,
+        data: reportes_por_dia_qs,
+        color: 'rgb(0,0,100)',
+        showInLegend: true,
+        zIndex: 2
+      },
+      {
+        id: 'reportes-dia',
+        name: 'Reportes por día',
+        type: 'spline',
+        yAxis: 0,
+        data: reportes_por_dia,
+        color: 'rgb(50,50,50)',
+        showInLegend: true,
+        zIndex: 3
+      },
+    ]
+  });
+  
+  Highcharts.chart(div_uniformidad[0], {
+    ...highcharts_obj_base,
+    title: {
+      text: 'Uniformidad y % reportado'
+    },
     yAxis: [{
       title: { text: 'Uniformidad de reportes diarios' },
       min: 0,
       max: 1,
-    }, {
-      title: { text: 'Reportes por día' },
-      min: 0,
-      max: max_reportes_diarios,
-      opposite: true
     }],
-    legend: {
-      enabled: true,
-    },
     colorAxis: {
-        min: 0,
-        max: 1,
-        stops: [
-          [0, 'rgb(255,50,0)'],   // 0.0: Vibrant Red (Low uniformity)
-          [0.5, 'rgb(255,255,0)'], // 0.5: Bright Yellow (Midpoint bypasses brown!)
-          [1, 'rgb(0,255,0)']    // 1.0: Emerald Green (High uniformity)
-        ]
+      min: 0,
+      max: 1,
+      stops: [
+        [0, 'rgb(255,50,0)'],   // 0.0: Vibrant Red (Low uniformity)
+        [0.5, 'rgb(255,255,0)'], // 0.5: Bright Yellow (Midpoint bypasses brown!)
+        [1, 'rgb(0,255,0)']    // 1.0: Emerald Green (High uniformity)
+      ]
     },
     series: [
       {
@@ -331,29 +364,7 @@ function totales_AÑO_MES_SEMANA_GRUPOETARIO(div,claves,data){
         colorKey: 'custom.p',
         showInLegend: true,
         zIndex: 1
-      },
-      {
-        id: 'reportes-dia-qs',
-        name: 'Cuartiles',
-        type: 'boxplot',
-        yAxis: 1,
-        data: reportes_por_dia_qs,
-        color: 'rgb(0,0,100)',
-        colorKey: false,
-        showInLegend: true,
-        zIndex: 2
-      },
-      {
-        id: 'reportes-dia',
-        name: 'Reportes por día',
-        type: 'spline',
-        yAxis: 1,
-        data: reportes_por_dia,
-        color: 'rgb(50,50,50)',
-        colorKey: false,
-        showInLegend: true,
-        zIndex: 3
-      },
+      }
     ]
   });
 }
@@ -494,9 +505,8 @@ $(document).ready(function(){
   $('[data-visible="estadisticas"]').find('[data-js-filtro-tabla]').each(function(idx,fObj){
     $(fObj).on('busqueda',function(e,ret,tbody,molde){  
       const tr = molde.clone();
-      const div = tr.find('[data-key="totales_AÑO_MES_SEMANA_GRUPOETARIO"]');
-      const claves = totales_claves(ret.data);
-      totales_AÑO_MES_SEMANA_GRUPOETARIO(div[0],claves,ret.data);
+      const div = tr.find('[data-key="estadisticas"]');
+      estadisticas(div[0],ret.data);
       tbody.append(tr);
     });
   });
