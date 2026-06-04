@@ -1168,13 +1168,14 @@
                     <div class="modal-header"
                         style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; border-radius: 12px 12px 0 0;">
                         <button type="button" class="close" data-dismiss="modal" style="color: white;">&times;</button>
-                        <h4 class="modal-title"><i class="fa fa-check-circle"></i> Agregar Nota de Aprobación</h4>
+                        <h4 class="modal-title" id="tituloModalNotaAprobacion"><i class="fa fa-check-circle"></i> Agregar Nota de Aprobación</h4>
                     </div>
                     <div class="modal-body">
                         <form id="frmNotaAprobacion" enctype="multipart/form-data">
                             <input type="hidden" name="_token" value="{{ csrf_token() }}">
                             <input type="hidden" id="aprobacionGrupoId" name="id_grupo">
                             <input type="hidden" id="aprobacionTipoRama" name="tipo_rama" value="">
+                            <input type="hidden" id="aprobacionEditId" name="edit_id" value="">
 
                             <!-- Botonera de selección de rama (estilo wizard principal) -->
                             <label style="margin-bottom: 10px;">Seleccione la rama</label>
@@ -1244,7 +1245,7 @@
                                     </div>
                                 </div>
 
-                                <div class="form-group">
+                                <div class="form-group" id="aprobacionArchivoWrap">
                                     <label><i class="fa fa-file-pdf-o"></i> Archivos (puede seleccionar varios)</label>
                                     <input type="file" name="archivos_aprobacion[]" id="inputAprobacionArchivos"
                                         class="form-control" accept=".pdf,.doc,.docx,.zip" multiple>
@@ -1501,10 +1502,18 @@
                         <!-- Activos (FISC siempre; MKT si involucra juegos) -->
                         <div class="panel panel-default panel-activos-wrap" style="border-radius: 8px;">
                             <div class="panel-heading" style="background: #8b5cf6 !important; color: white !important; border-radius: 8px 8px 0 0;">
-                                <i class="fa fa-desktop"></i> <strong class="activos-titulo">Máquinas / Islas Asociadas</strong>
-                                <button class="btn btn-xs btn-default pull-right btn-toggle-add-activo" data-id="{{id}}" style="margin-top: -3px;">
-                                    <i class="fa fa-plus"></i> Agregar
-                                </button>
+                                <div><i class="fa fa-desktop"></i> <strong class="activos-titulo">Máquinas / Islas Asociadas</strong></div>
+                                <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">
+                                    <button class="btn btn-xs btn-toggle-add-activo" data-id="{{id}}" style="background:#fff; color:#8b5cf6; border:none; border-radius:6px; font-weight:600; padding:4px 12px; box-shadow:0 1px 2px rgba(0,0,0,0.15);" onmouseover="this.style.background='#f3e8ff'" onmouseout="this.style.background='#fff'">
+                                        <i class="fa fa-plus"></i> Agregar
+                                    </button>
+                                    <button class="btn btn-xs btn-export-activos" data-id="{{id}}" data-formato="xlsx" style="background:rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.45); border-radius:6px; font-weight:600; padding:4px 11px;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" title="Exportar máquinas/juegos a Excel">
+                                        <i class="fa fa-file-excel-o"></i> Excel
+                                    </button>
+                                    <button class="btn btn-xs btn-export-activos" data-id="{{id}}" data-formato="csv" style="background:rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.45); border-radius:6px; font-weight:600; padding:4px 11px;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" title="Exportar máquinas/juegos a CSV">
+                                        <i class="fa fa-file-text-o"></i> CSV
+                                    </button>
+                                </div>
                             </div>
                             <div class="panel-body" style="padding: 0;">
                                 <div class="activos-add-form" data-nota-id="{{id}}" data-casino-id="{{id_casino}}" data-plataforma-id="{{id_plataforma}}" style="display:none; padding:10px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">

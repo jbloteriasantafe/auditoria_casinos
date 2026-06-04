@@ -390,6 +390,7 @@ Route::get('/get-comments/{id}', 'NotasUnificadasController@getComments');
   Route::post('/comentario/{id}', 'NotasUnificadasController@addComentario');
   Route::delete('/comentario/{id}', 'NotasUnificadasController@deleteComentario');
   Route::post('/activos/{id}', 'NotasUnificadasController@addActivos');
+  Route::get('/activos/exportar/{id}', 'NotasUnificadasController@exportarActivos');
   Route::delete('/activo/{id}', 'NotasUnificadasController@removeActivo');
   Route::delete('/eliminar-adjunto/{id}/{campo}', 'NotasUnificadasController@deleteAdjunto');
 
@@ -404,6 +405,8 @@ Route::get('/get-comments/{id}', 'NotasUnificadasController@getComments');
 
   // Notas de Aprobación (a nivel de grupo)
   Route::post('/nota-aprobacion/subir', 'NotasUnificadasController@subirNotaAprobacion');
+  Route::get('/nota-aprobacion/proximo-numero', 'NotasUnificadasController@proximoNumeroAprobacion');
+  Route::post('/nota-aprobacion/editar/{id}', 'NotasUnificadasController@updateNotaAprobacion');
   Route::get('/nota-aprobacion/visualizar/{id}', 'NotasUnificadasController@visualizarNotaAprobacion');
   Route::get('/nota-aprobacion/descargar/{id}', 'NotasUnificadasController@descargarNotaAprobacion');
   Route::delete('/nota-aprobacion/eliminar/{id}', 'NotasUnificadasController@eliminarNotaAprobacion');

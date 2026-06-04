@@ -795,8 +795,20 @@ $(document).ready(function () {
 
         // UX: Show loading on button
         let btn = $('.btn-wizard-next');
-        let originalText = btn.text();
+
+        // Guard anti doble-submit: si ya hay una subida en curso, no disparar otra.
+        if (btn.data('uploading')) {
+            console.warn('uploadAdjuntos: ya hay una subida en curso, se ignora el click.');
+            return;
+        }
+        btn.data('uploading', true);
         btn.attr('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Subiendo...');
+
+        // Re-habilita SIEMPRE el botón pase lo que pase (éxito, error, timeout) → nunca queda clavado.
+        function rehabilitar() {
+            btn.data('uploading', false);
+            btn.attr('disabled', false).text('Siguiente');
+        }
 
         $.ajax({
             url: '/notas-unificadas/guardar-adjuntos',
@@ -804,15 +816,32 @@ $(document).ready(function () {
             data: formData,
             processData: false,
             contentType: false,
+            timeout: 180000, // 3 min: si el server no responde, no deja el botón colgado para siempre
             success: function (res) {
                 console.log("Upload success", res);
-                btn.attr('disabled', false).text(originalText);
+                // Si el backend reporta fallo lógico, no avanzar.
+                if (res && res.success === false) {
+                    rehabilitar();
+                    notificacion('error', 'No se pudieron subir los adjuntos: ' + (res.msg || 'Error desconocido'));
+                    return;
+                }
+                rehabilitar();
                 callback();
             },
-            error: function (err) {
-                console.error("Upload error", err);
-                notificacion('error', 'Error al subir los adjuntos: ' + (err.responseJSON?.msg || 'Error desconocido'));
-                btn.attr('disabled', false).text(originalText);
+            error: function (xhr, textStatus) {
+                console.error("Upload error", textStatus, xhr.status, xhr.responseText);
+                rehabilitar();
+                var msg;
+                if (textStatus === 'timeout') {
+                    msg = 'La subida tardó demasiado y se canceló. Revisá tu conexión o probá con archivos más livianos.';
+                } else if (xhr.status === 413) {
+                    msg = 'Los archivos son demasiado grandes para el servidor (límite de subida superado).';
+                } else if (xhr.status === 419 || xhr.status === 401) {
+                    msg = 'Tu sesión expiró. Recargá la página e iniciá sesión de nuevo.';
+                } else {
+                    msg = (xhr.responseJSON && xhr.responseJSON.msg) ? xhr.responseJSON.msg : ('Error al subir los adjuntos (HTTP ' + xhr.status + ').');
+                }
+                notificacion('error', msg);
             }
         });
     }
@@ -1146,10 +1175,11 @@ $(document).ready(function () {
     // State
     let gridState = {
         q: '',
-        id_casino: '',
-        id_plataforma: '',
-        rama: '',
-        estado: '',
+        id_casino: [],        // múltiple
+        id_plataforma: [],    // múltiple
+        casinoKeys: [],       // helper UI: valores crudos del popup ("5", "p_3")
+        rama: [],             // múltiple
+        estado: [],           // múltiple
         fecha_desde: '',
         fecha_hasta: '',
         ver_todo: '',
@@ -1191,31 +1221,28 @@ $(document).ready(function () {
         html += '<div style="font-weight:700; color:#334155; margin-bottom:10px; font-size:13px; border-bottom:1px solid #f1f5f9; padding-bottom:8px;">';
 
         if (filterType === 'casino') {
-            html += '<i class="fa fa-building"></i> Casino / Plataforma</div>';
+            html += '<i class="fa fa-building"></i> Casino / Plataforma <span style="font-weight:400; color:#94a3b8; font-size:11px;">(podés elegir varios)</span></div>';
             html += '<div style="max-height:200px; overflow-y:auto; margin-bottom:10px;">';
-            var currentVal = $('#selFiltroCasino').val();
-            html += '<label style="display:block; padding:4px 0; cursor:pointer; font-weight:400;"><input type="radio" name="fp_casino" value="" ' + (!currentVal ? 'checked' : '') + '> <span style="color:#64748b;">Todos</span></label>';
+            var keysCasino = gridState.casinoKeys || [];
             $('#selFiltroCasino option').each(function () {
                 if ($(this).val() === '') return;
-                var checked = ($(this).val() === currentVal) ? 'checked' : '';
-                html += '<label style="display:block; padding:4px 0; cursor:pointer; font-weight:400;"><input type="radio" name="fp_casino" value="' + $(this).val() + '" ' + checked + '> ' + $(this).text() + '</label>';
+                var checked = (keysCasino.indexOf($(this).val()) >= 0) ? 'checked' : '';
+                html += '<label style="display:block; padding:4px 0; cursor:pointer; font-weight:400;"><input type="checkbox" name="fp_casino" value="' + $(this).val() + '" ' + checked + '> ' + $(this).text() + '</label>';
             });
             html += '</div>';
         } else if (filterType === 'rama') {
-            html += '<i class="fa fa-code-fork"></i> Rama</div>';
-            var currentRama = gridState.rama;
-            html += '<label style="display:block; padding:5px 0; cursor:pointer; font-weight:400;"><input type="radio" name="fp_rama" value="" ' + (!currentRama ? 'checked' : '') + '> <span style="color:#64748b;">Todas</span></label>';
-            html += '<label style="display:block; padding:5px 0; cursor:pointer; font-weight:400;"><input type="radio" name="fp_rama" value="MKT" ' + (currentRama === 'MKT' ? 'checked' : '') + '> <span class="label label-primary">MKT</span> Marketing</label>';
-            html += '<label style="display:block; padding:5px 0; cursor:pointer; font-weight:400;"><input type="radio" name="fp_rama" value="FISC" ' + (currentRama === 'FISC' ? 'checked' : '') + '> <span class="label label-success">FISC</span> Fiscalización</label>';
+            html += '<i class="fa fa-code-fork"></i> Rama <span style="font-weight:400; color:#94a3b8; font-size:11px;">(podés elegir varias)</span></div>';
+            var ramasSel = gridState.rama || [];
+            html += '<label style="display:block; padding:5px 0; cursor:pointer; font-weight:400;"><input type="checkbox" name="fp_rama" value="MKT" ' + (ramasSel.indexOf('MKT') >= 0 ? 'checked' : '') + '> <span class="label label-primary">MKT</span> Marketing</label>';
+            html += '<label style="display:block; padding:5px 0; cursor:pointer; font-weight:400;"><input type="checkbox" name="fp_rama" value="FISC" ' + (ramasSel.indexOf('FISC') >= 0 ? 'checked' : '') + '> <span class="label label-success">FISC</span> Fiscalización</label>';
         } else if (filterType === 'estado') {
-            html += '<i class="fa fa-flag"></i> Estado</div>';
+            html += '<i class="fa fa-flag"></i> Estado <span style="font-weight:400; color:#94a3b8; font-size:11px;">(podés elegir varios)</span></div>';
             html += '<div style="max-height:250px; overflow-y:auto; margin-bottom:10px;">';
-            var currentEstado = gridState.estado;
-            html += '<label style="display:block; padding:4px 0; cursor:pointer; font-weight:400;"><input type="radio" name="fp_estado" value="" ' + (!currentEstado ? 'checked' : '') + '> <span style="color:#64748b;">Todos</span></label>';
+            var estadosSel = gridState.estado || [];
             $('#selFiltroEstado option').each(function () {
                 if ($(this).val() === '') return;
-                var checked = ($(this).val() === currentEstado) ? 'checked' : '';
-                html += '<label style="display:block; padding:4px 0; cursor:pointer; font-weight:400;"><input type="radio" name="fp_estado" value="' + $(this).val() + '" ' + checked + '> <span class="label" style="' + getEstadoStyle($(this).val()) + '">' + $(this).text() + '</span></label>';
+                var checked = (estadosSel.indexOf($(this).val()) >= 0) ? 'checked' : '';
+                html += '<label style="display:block; padding:4px 0; cursor:pointer; font-weight:400;"><input type="checkbox" name="fp_estado" value="' + $(this).val() + '" ' + checked + '> <span class="label" style="' + getEstadoStyle($(this).val()) + '">' + $(this).text() + '</span></label>';
             });
             html += '</div>';
         } else if (filterType === 'fecha') {
@@ -1277,16 +1304,12 @@ $(document).ready(function () {
         var type = popup.data('filter-type');
 
         if (type === 'casino') {
-            var val = popup.find('input[name="fp_casino"]:checked').val() || '';
-            $('#selFiltroCasino').val(val);
+            var keys = popup.find('input[name="fp_casino"]:checked').map(function () { return $(this).val(); }).get();
+            aplicarCasinoKeys(keys);
         } else if (type === 'rama') {
-            var val = popup.find('input[name="fp_rama"]:checked').val() || '';
-            $('#selFiltroRama').val(val);
-            gridState.rama = val;
+            gridState.rama = popup.find('input[name="fp_rama"]:checked').map(function () { return $(this).val(); }).get();
         } else if (type === 'estado') {
-            var val = popup.find('input[name="fp_estado"]:checked').val() || '';
-            $('#selFiltroEstado').val(val);
-            gridState.estado = val;
+            gridState.estado = popup.find('input[name="fp_estado"]:checked').map(function () { return $(this).val(); }).get();
         } else if (type === 'fecha') {
             gridState.fecha_desde = popup.find('.fp-fecha-desde').val() || '';
             gridState.fecha_hasta = popup.find('.fp-fecha-hasta').val() || '';
@@ -1294,7 +1317,6 @@ $(document).ready(function () {
             $('#inpFechaHasta').val(gridState.fecha_hasta);
         }
 
-        syncGridStateFromSelects();
         gridState.page = 1;
         ajaxLoadTable();
         updateActiveFilters();
@@ -1306,40 +1328,42 @@ $(document).ready(function () {
         var popup = $(this).closest('.header-filter-popup');
         var type = popup.data('filter-type');
 
-        if (type === 'casino') { popup.find('input[name="fp_casino"][value=""]').prop('checked', true); }
-        else if (type === 'rama') { popup.find('input[name="fp_rama"][value=""]').prop('checked', true); }
-        else if (type === 'estado') { popup.find('input[name="fp_estado"][value=""]').prop('checked', true); }
+        if (type === 'casino') { popup.find('input[name="fp_casino"]').prop('checked', false); }
+        else if (type === 'rama') { popup.find('input[name="fp_rama"]').prop('checked', false); }
+        else if (type === 'estado') { popup.find('input[name="fp_estado"]').prop('checked', false); }
         else if (type === 'fecha') { popup.find('.fp-fecha-desde, .fp-fecha-hasta').val(''); }
     });
 
-    function syncGridStateFromSelects() {
-        var filtroVal = $('#selFiltroCasino').val();
-        if (filtroVal && filtroVal.toString().indexOf('p_') === 0) {
-            gridState.id_casino = '';
-            gridState.id_plataforma = filtroVal.replace('p_', '');
-        } else {
-            gridState.id_casino = filtroVal || '';
-            gridState.id_plataforma = '';
-        }
-        gridState.rama = $('#selFiltroRama').val() || '';
-        gridState.estado = $('#selFiltroEstado').val() || '';
-        gridState.fecha_desde = $('#inpFechaDesde').val() || '';
-        gridState.fecha_hasta = $('#inpFechaHasta').val() || '';
+    // Reparte las claves crudas del popup de casino ("5", "p_3") en id_casino[] / id_plataforma[]
+    function aplicarCasinoKeys(keys) {
+        keys = keys || [];
+        gridState.casinoKeys = keys;
+        gridState.id_casino = keys.filter(function (k) { return k.toString().indexOf('p_') !== 0; });
+        gridState.id_plataforma = keys.filter(function (k) { return k.toString().indexOf('p_') === 0; })
+            .map(function (k) { return k.replace('p_', ''); });
+    }
+
+    // Texto de una clave de casino/plataforma según el option correspondiente
+    function casinoKeyText(key) {
+        var t = '';
+        $('#selFiltroCasino option').each(function () {
+            if ($(this).val() === key) { t = $(this).text(); return false; }
+        });
+        return t || key;
     }
 
     // Show active filter tags bar
     function updateActiveFilters() {
         var tags = '';
-        var casinoText = $('#selFiltroCasino option:selected').text();
-        if (gridState.id_casino || gridState.id_plataforma) {
-            tags += '<span class="active-filter-tag" data-clear="casino" style="display:inline-block; background:#ede9fe; color:#6d28d9; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">' + casinoText + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
-        }
-        if (gridState.rama) {
-            tags += '<span class="active-filter-tag" data-clear="rama" style="display:inline-block; background:#dbeafe; color:#1e40af; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">' + (gridState.rama === 'MKT' ? 'Marketing' : 'Fiscalización') + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
-        }
-        if (gridState.estado) {
-            tags += '<span class="active-filter-tag" data-clear="estado" style="display:inline-block; background:#fef3c7; color:#92400e; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">' + gridState.estado + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
-        }
+        (gridState.casinoKeys || []).forEach(function (key) {
+            tags += '<span class="active-filter-tag" data-clear="casino" data-val="' + key + '" style="display:inline-block; background:#ede9fe; color:#6d28d9; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">' + casinoKeyText(key) + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
+        });
+        (gridState.rama || []).forEach(function (r) {
+            tags += '<span class="active-filter-tag" data-clear="rama" data-val="' + r + '" style="display:inline-block; background:#dbeafe; color:#1e40af; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">' + (r === 'MKT' ? 'Marketing' : 'Fiscalización') + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
+        });
+        (gridState.estado || []).forEach(function (est) {
+            tags += '<span class="active-filter-tag" data-clear="estado" data-val="' + est + '" style="display:inline-block; background:#fef3c7; color:#92400e; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">' + est + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
+        });
         if (gridState.fecha_desde || gridState.fecha_hasta) {
             var fechaLabel = (gridState.fecha_desde || '...') + ' → ' + (gridState.fecha_hasta || '...');
             tags += '<span class="active-filter-tag" data-clear="fecha" style="display:inline-block; background:#d1fae5; color:#065f46; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">' + fechaLabel + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
@@ -1354,19 +1378,26 @@ $(document).ready(function () {
 
         // Update header filter icons color
         $('.th-filter-icon').css('color', '#cbd5e1');
-        if (gridState.id_casino || gridState.id_plataforma) $('[data-filter="casino"] .th-filter-icon').css('color', '#764ba2');
-        if (gridState.rama) $('[data-filter="rama"] .th-filter-icon').css('color', '#764ba2');
-        if (gridState.estado) $('[data-filter="estado"] .th-filter-icon').css('color', '#764ba2');
+        if ((gridState.casinoKeys || []).length) $('[data-filter="casino"] .th-filter-icon').css('color', '#764ba2');
+        if ((gridState.rama || []).length) $('[data-filter="rama"] .th-filter-icon').css('color', '#764ba2');
+        if ((gridState.estado || []).length) $('[data-filter="estado"] .th-filter-icon').css('color', '#764ba2');
         if (gridState.fecha_desde || gridState.fecha_hasta) $('[data-filter="fecha"] .th-filter-icon').css('color', '#764ba2');
     }
 
-    // Click active filter tag to remove it
+    // Click active filter tag to remove it (quita solo ese valor)
     $(document).on('click', '.active-filter-tag', function () {
         var clear = $(this).data('clear');
-        if (clear === 'casino') { $('#selFiltroCasino').val(''); gridState.id_casino = ''; gridState.id_plataforma = ''; }
-        else if (clear === 'rama') { $('#selFiltroRama').val(''); gridState.rama = ''; }
-        else if (clear === 'estado') { $('#selFiltroEstado').val(''); gridState.estado = ''; }
-        else if (clear === 'fecha') { $('#inpFechaDesde').val(''); $('#inpFechaHasta').val(''); gridState.fecha_desde = ''; gridState.fecha_hasta = ''; }
+        var val = ($(this).data('val') !== undefined) ? $(this).data('val').toString() : '';
+        if (clear === 'casino') {
+            aplicarCasinoKeys((gridState.casinoKeys || []).filter(function (k) { return k !== val; }));
+        } else if (clear === 'rama') {
+            gridState.rama = (gridState.rama || []).filter(function (r) { return r !== val; });
+        } else if (clear === 'estado') {
+            gridState.estado = (gridState.estado || []).filter(function (e) { return e !== val; });
+        } else if (clear === 'fecha') {
+            $('#inpFechaDesde').val(''); $('#inpFechaHasta').val('');
+            gridState.fecha_desde = ''; gridState.fecha_hasta = '';
+        }
         gridState.page = 1;
         ajaxLoadTable();
         updateActiveFilters();
@@ -1822,17 +1853,15 @@ $(document).ready(function () {
             gridState.ver_todo = '1';
         } else if (filter === 'reset') {
             // Reset completo: vuelve a filtros por defecto del rol (sin ver_todo)
-            gridState.id_casino = '';
-            gridState.id_plataforma = '';
-            gridState.rama = '';
-            gridState.estado = '';
+            gridState.id_casino = [];
+            gridState.id_plataforma = [];
+            gridState.casinoKeys = [];
+            gridState.rama = [];
+            gridState.estado = [];
             gridState.fecha_desde = '';
             gridState.fecha_hasta = '';
             gridState.quick_filter = '';
             gridState.ver_todo = '';
-            $('#selFiltroCasino').val('');
-            $('#selFiltroRama').val('');
-            $('#selFiltroEstado').val('');
             $('#inpFechaDesde').val('');
             $('#inpFechaHasta').val('');
         }
@@ -1919,9 +1948,36 @@ $(document).ready(function () {
 
     window.wizardFinish = function () {
         window._wizardFinished = true;
-        $('#modalNuevaNota').modal('hide');
-        notificacion('success', 'Trámite finalizado exitosamente.');
-        setTimeout(() => ajaxLoadTable(), 500);
+
+        // Animación de cierre: la barra de progreso "viaja" hasta la bandera y la bandera festeja, recién ahí se cierra.
+        var $fill = $('#progressFill');
+        var $flag = $('#stepIndicator4');
+
+        // El relleno arranca lleno hasta el final de la línea (80% del contenedor);
+        // 133.33% lo lleva hasta el círculo de la bandera (100% del contenedor).
+        $fill.css('width', '100%');
+        setTimeout(function () {
+            $fill.css('width', '133.33%');
+            // La bandera se pone verde y "salta"
+            $flag.removeClass('active').css({
+                'background': 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                'color': '#fff',
+                'border': 'none',
+                'transform': 'translate(-50%, -50%) scale(1.3)',
+                'box-shadow': '0 12px 26px rgba(16,185,129,0.55)'
+            });
+        }, 60);
+        // pequeño rebote final de la bandera
+        setTimeout(function () {
+            $flag.css('transform', 'translate(-50%, -50%) scale(1.15)');
+        }, 620);
+
+        // Cerrar recién cuando termina la animación
+        setTimeout(function () {
+            $('#modalNuevaNota').modal('hide');
+            notificacion('success', 'Trámite finalizado exitosamente.');
+            setTimeout(() => ajaxLoadTable(), 400);
+        }, 950);
     };
 
     // --- CANCELAR: limpiar borrador al cerrar modal sin finalizar ---
@@ -1957,53 +2013,123 @@ $(document).ready(function () {
 
     // --- SUMMARY GENERATOR ---
     window.generateSummary = function () {
-        let tipoTarea = $('#selTipoTarea').val();
-        let tipoSolicitud = $('#selTipoSolicitud').val();
-        let titulo = $('#inpTitulo').val();
-        let anio = $('#inpAnio').val();
-        let casino = $('#selCasino option:selected').text();
-        let nro_nota = $('#inpNroNota').val();
+        // Texto de la opción seleccionada de un <select> (vacío si no hay valor)
+        function selText(sel) {
+            var $s = $(sel);
+            if (!$s.length || !$s.val()) return '';
+            return $.trim($s.find('option:selected').text());
+        }
+        function esc(s) { return (s === undefined || s === null) ? '' : String(s).replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
-        let html = `
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="panel panel-default" style="border:none; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                        <div class="panel-body">
-                            <h5 style="color:#94a3b8; font-weight:bold; text-transform:uppercase; font-size:11px;">Trámite</h5>
-                            <p style="font-size:16px; font-weight:600; color:#475569;">${tipoTarea || '-'} / ${tipoSolicitud || '-'}</p>
-                            
-                            <h5 style="color:#94a3b8; font-weight:bold; text-transform:uppercase; font-size:11px; margin-top:15px;">Nota Referencia</h5>
-                            <p style="font-size:16px; font-weight:bold; color:#3b82f6;">${nro_nota || 'S/N'}-${anio || '-'}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                     <div class="panel panel-default" style="border:none; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                        <div class="panel-body">
-                            <h5 style="color:#94a3b8; font-weight:bold; text-transform:uppercase; font-size:11px;">Casino</h5>
-                            <p style="font-size:16px; font-weight:600; color:#475569;">${casino || '-'}</p>
-                            
-                            <h5 style="color:#94a3b8; font-weight:bold; text-transform:uppercase; font-size:11px; margin-top:15px;">Título</h5>
-                            <p style="font-size:15px; color:#64748b;">${titulo || 'Sin Título'}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+        var tipoTareaRaw = $('#selTipoTarea').val();
+        var tipoTarea = tipoTareaRaw === 'MARKETING' ? 'Marketing / Publicidad'
+            : (tipoTareaRaw === 'FISCALIZACION' ? 'Aspectos Técnicos' : (tipoTareaRaw || '—'));
 
-        // Add Specifics
-        let inicio = $('#inpFechaInicio').val();
-        let fin = $('#inpFechaFin').val();
-        if (inicio || fin) {
-            html += `
-                <div class="alert alert-info" style="background:#f0f9ff; border:1px solid #bae6fd; color:#0369a1;">
-                    <strong><i class="fa fa-calendar"></i> Fechas:</strong>
-                    <span style="font-size:13px; margin-left:10px;">Del <b>${inicio || '—'}</b> al <b>${fin || '—'}</b></span>
-                </div>
-             `;
+        var tipoSolicitud = selText('#selTipoSolicitud');
+        var categoriaMkt = selText('#selCategoriaMKT');
+        var eventoFisc = selText('#selTipoEventoFISC');
+        var titulo = $.trim($('#inpTitulo').val());
+        var anio = $('#inpAnio').val();
+        var casino = $.trim($('#selCasino option:selected').text());
+        var nroNota = $('#inpNroNota').val();
+        var fechaPret = $('#inpFechaPretendida').val();
+        var fInicio = $('#inpFechaInicio').val();
+        var fFin = $('#inpFechaFin').val();
+        var compartir = $('#chkCompartirAdmin').is(':checked');
+        var involucra = $('#chkInvolucraJuegos').is(':checked');
+        var notaPadre = $('#hidIdGrupoPadre').val()
+            ? ($.trim($('#inpBuscarNotaPadre').val()) || ('Trámite #' + $('#hidIdGrupoPadre').val()))
+            : '';
+
+        // Construcción de filas "etiqueta : valor"
+        var rows = '';
+        function addRow(icon, label, value) {
+            if (value === undefined || value === null || value === '') return;
+            rows +=
+                '<div style="display:flex; align-items:flex-start; padding:9px 4px; border-bottom:1px solid #f1f5f9;">' +
+                    '<div style="flex:0 0 195px; color:#94a3b8; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.3px;"><i class="fa ' + icon + '" style="width:16px; color:#a5b4fc;"></i> ' + label + '</div>' +
+                    '<div style="flex:1; color:#334155; font-size:14px; font-weight:600; word-break:break-word;">' + esc(value) + '</div>' +
+                '</div>';
         }
 
-        $('#step4Content').html('<h4 class="text-center" style="margin-bottom:20px; font-weight:700; color:#475569;">Resumen de la Solicitud</h4>' + html + '<div class="alert alert-success text-center" style="margin-top:-5px; margin-bottom:20px; padding:8px;"><i class="fa fa-info-circle"></i> Verifique que todos los datos sean correctos antes de confirmar.</div>');
+        addRow('fa-folder-open', 'Tipo de trámite', tipoTarea);
+        addRow('fa-list', 'Tipo de solicitud', tipoSolicitud);
+        if (categoriaMkt) addRow('fa-tag', 'Categoría', categoriaMkt);
+        if (eventoFisc) addRow('fa-cogs', 'Tipo de evento', eventoFisc);
+        addRow('fa-bookmark', 'Nota referencia', (nroNota || 'S/N') + '-' + (anio || '—'));
+        addRow('fa-building', 'Casino / Plataforma', casino);
+        addRow('fa-pencil', 'Título', titulo || 'Sin título');
+        addRow('fa-calendar', 'Fecha pretendida aprob.', fechaPret);
+        if (fInicio || fFin) addRow('fa-calendar', 'Fechas del evento', 'Del ' + (fInicio || '—') + ' al ' + (fFin || '—'));
+        addRow('fa-share-alt', 'Compartir c/ administrador', compartir ? 'Sí' : 'No');
+        addRow('fa-gamepad', 'Involucra juegos', involucra ? 'Sí' : 'No');
+        if (notaPadre) addRow('fa-link', 'Se acopla a', notaPadre);
+
+        var html =
+            '<div class="panel panel-default" style="border:none; box-shadow:0 4px 10px rgba(0,0,0,0.06); border-radius:12px;">' +
+                '<div class="panel-body" style="padding:8px 18px;">' + rows + '</div>' +
+            '</div>';
+
+        // Activos asociados (máquinas / juegos / islas)
+        if (typeof activos !== 'undefined' && activos && activos.length) {
+            var actHtml = '';
+            activos.forEach(function (a) {
+                actHtml +=
+                    '<span style="display:inline-block; background:#f3e8ff; color:#6d28d9; border:1px solid #e9d5ff; padding:3px 10px; border-radius:12px; font-size:12px; margin:0 6px 6px 0;">' +
+                        '<b>' + esc(a.tipo) + '</b> ' + esc(a.texto || a.id) +
+                    '</span>';
+            });
+            html +=
+                '<div class="panel panel-default" style="border:none; box-shadow:0 4px 10px rgba(0,0,0,0.06); border-radius:12px; margin-top:14px;">' +
+                    '<div class="panel-body" style="padding:14px 18px;">' +
+                        '<h5 style="color:#94a3b8; font-weight:bold; text-transform:uppercase; font-size:11px; margin:0 0 10px;"><i class="fa fa-desktop"></i> Máquinas / Juegos asociados (' + activos.length + ')</h5>' +
+                        actHtml +
+                    '</div>' +
+                '</div>';
+        }
+
+        // Adjuntos seleccionados
+        var adjuntosMap = [
+            ['adjuntoSolicitud', 'Solicitud Concesionario (MKT)'],
+            ['adjuntoDisenio', 'Diseño (MKT)'],
+            ['adjuntoBases', 'Bases y Condiciones (MKT)'],
+            ['adjuntoInformeMkt', 'Informe Técnico (MKT)'],
+            ['adjuntoSolicitudFisc', 'Solicitud Concesionario (FISC)'],
+            ['adjuntoVarios', 'Archivos Varios (FISC)'],
+            ['adjuntoInformeFisc', 'Informe Técnico (FISC)']
+        ];
+        var adjHtml = '';
+        adjuntosMap.forEach(function (m) {
+            var el = document.getElementById(m[0]);
+            if (el && el.files && el.files[0]) {
+                adjHtml +=
+                    '<div style="display:flex; align-items:center; padding:6px 4px; border-bottom:1px solid #f1f5f9; font-size:13px;">' +
+                        '<i class="fa fa-paperclip" style="color:#10b981; width:18px;"></i>' +
+                        '<span style="flex:0 0 230px; color:#475569; font-weight:600;">' + m[1] + '</span>' +
+                        '<span style="flex:1; color:#64748b; word-break:break-all;">' + esc(el.files[0].name) + '</span>' +
+                    '</div>';
+            }
+        });
+        if (adjHtml) {
+            html +=
+                '<div class="panel panel-default" style="border:none; box-shadow:0 4px 10px rgba(0,0,0,0.06); border-radius:12px; margin-top:14px;">' +
+                    '<div class="panel-body" style="padding:14px 18px;">' +
+                        '<h5 style="color:#94a3b8; font-weight:bold; text-transform:uppercase; font-size:11px; margin:0 0 8px;"><i class="fa fa-paperclip"></i> Adjuntos cargados</h5>' +
+                        adjHtml +
+                    '</div>' +
+                '</div>';
+        } else {
+            html +=
+                '<div class="alert alert-warning" style="margin-top:14px; padding:8px 14px; font-size:13px;">' +
+                    '<i class="fa fa-exclamation-circle"></i> No se cargó ningún adjunto. Podés finalizar igual y agregarlos después.' +
+                '</div>';
+        }
+
+        $('#step4Content').html(
+            '<h4 class="text-center" style="margin-bottom:20px; font-weight:700; color:#475569;">Resumen de la Solicitud</h4>' +
+            html +
+            '<div class="alert alert-success text-center" style="margin-top:16px; margin-bottom:20px; padding:8px;"><i class="fa fa-info-circle"></i> Verifique que todos los datos sean correctos antes de confirmar.</div>'
+        );
     }
 
     // =====================================================
@@ -2656,6 +2782,40 @@ $(document).ready(function () {
     var currentGrupoIdAprobacion = null;
     var currentGrupoRamas = { mkt: false, fisc: false };
 
+    // Formatea un número de documento a 4 dígitos con ceros (ej: "4" -> "0004").
+    function padNumeroAprobacion(n) {
+        var s = ('' + (n == null ? '' : n)).replace(/\D/g, '');
+        if (s === '') return ('' + (n == null ? '' : n));
+        s = s.replace(/^0+/, '') || '0';
+        while (s.length < 4) s = '0' + s;
+        return s;
+    }
+
+    // Autocompleta el próximo número correlativo (por tipo + año). Solo al crear, no al editar.
+    function autocompletarNumeroAprobacion() {
+        var tipo = $('#aprobacionTipoDocumento').val();
+        var anio = $.trim($('#aprobacionAnioDoc').val());
+        if (!tipo || !anio) return;
+        var $num = $('#aprobacionNumeroDoc');
+        $num.attr('placeholder', 'Calculando…');
+        $.get('/notas-unificadas/nota-aprobacion/proximo-numero', { tipo_documento: tipo, anio_documento: anio })
+            .done(function (res) {
+                if (res && res.success) {
+                    $num.val(res.numero).attr('placeholder', res.numero);
+                } else {
+                    $num.attr('placeholder', 'Ej: 0001');
+                    console.warn('proximo-numero sin éxito:', res);
+                }
+            })
+            .fail(function (xhr) {
+                $num.attr('placeholder', 'Ej: 0001');
+                console.warn('Autocompletar número de aprobación falló:', xhr.status, xhr.responseText);
+                if (typeof notificacion === 'function') {
+                    notificacion('error', 'No se pudo calcular el próximo número (HTTP ' + xhr.status + ')');
+                }
+            });
+    }
+
     function renderNotasAprobacion(notas, grupoId) {
         currentGrupoIdAprobacion = grupoId;
         var panel = $('#grupoAprobacionPanel');
@@ -2676,7 +2836,7 @@ $(document).ready(function () {
             var tipoDocLabel = '';
             if (na.tipo_documento) {
                 var tdText = na.tipo_documento === 'NOTA' ? 'Nota' : 'Disposición';
-                var numDoc = na.numero_documento ? ' N° ' + na.numero_documento : '';
+                var numDoc = na.numero_documento ? ' N° ' + padNumeroAprobacion(na.numero_documento) : '';
                 var anioDoc = na.anio_documento ? '/' + na.anio_documento : '';
                 tipoDocLabel = ' <span class="label" style="background:' + ramaColor + '; color:white;">' + tdText + numDoc + anioDoc + '</span>';
             }
@@ -2694,6 +2854,9 @@ $(document).ready(function () {
                 '<div style="flex:0 0 auto; white-space:nowrap;">' +
                 '<a href="/notas-unificadas/nota-aprobacion/visualizar/' + na.id + '" target="_blank" class="btn btn-xs btn-info" title="Ver"><i class="fa fa-eye"></i></a> ' +
                 '<a href="/notas-unificadas/nota-aprobacion/descargar/' + na.id + '" class="btn btn-xs btn-default" title="Descargar"><i class="fa fa-download"></i></a> ' +
+                '<button class="btn btn-xs btn-warning btn-editar-nota-aprobacion" title="Editar" ' +
+                'data-id="' + na.id + '" data-rama="' + (na.tipo_rama || '') + '" data-tipo="' + (na.tipo_documento || '') + '" ' +
+                'data-numero="' + (na.numero_documento || '') + '" data-anio="' + (na.anio_documento || '') + '"><i class="fa fa-edit"></i></button> ' +
                 (window.PUEDE_ELIMINAR ? '<button class="btn btn-xs btn-danger btn-eliminar-nota-aprobacion" data-id="' + na.id + '" title="Eliminar"><i class="fa fa-trash"></i></button>' : '') +
                 '</div>' +
                 '</li>';
@@ -2713,7 +2876,7 @@ $(document).ready(function () {
         // Reset tipo documento
         $('.btn-tipo-documento').css({ border: '2px solid transparent', background: 'white' });
         $('#aprobacionTipoDocumento').val('');
-        $('#aprobacionNumeroDoc').val('');
+        $('#aprobacionNumeroDoc').val('').attr('placeholder', 'Elegí Nota o Disposición ↑');
         $('#aprobacionDatosWrap').slideDown(200);
     });
 
@@ -2725,6 +2888,17 @@ $(document).ready(function () {
         var bgColor = tipo === 'NOTA' ? '#fffbeb' : '#eef2ff';
         $(this).css({ border: '2px solid ' + borderColor, background: bgColor });
         $('#aprobacionTipoDocumento').val(tipo);
+        // Al crear (no editar): autocompletar el próximo número correlativo, editable
+        if (!$('#aprobacionEditId').val()) {
+            autocompletarNumeroAprobacion();
+        }
+    });
+
+    // Si cambian el año al crear, recalcular el próximo número correlativo
+    $(document).on('change', '#aprobacionAnioDoc', function () {
+        if (!$('#aprobacionEditId').val() && $('#aprobacionTipoDocumento').val()) {
+            autocompletarNumeroAprobacion();
+        }
     });
 
     // Botón "Agregar" nota de aprobación — cerrar modal detalle primero
@@ -2741,6 +2915,11 @@ $(document).ready(function () {
             $('#aprobacionGrupoId').val(grupoId);
             $('#aprobacionTipoRama').val('');
             $('#aprobacionTipoDocumento').val('');
+            // Modo CREAR: limpiar id de edición y restaurar título, botón y carga de archivo
+            $('#aprobacionEditId').val('');
+            $('#tituloModalNotaAprobacion').html('<i class="fa fa-check-circle"></i> Agregar Nota de Aprobación');
+            $('#btnGuardarNotaAprobacion').html('<i class="fa fa-upload"></i> Subir');
+            $('#aprobacionArchivoWrap').show();
             // Reset botoneras visuales
             $('.btn-rama-aprobacion').css({ border: '2px solid transparent', background: 'white' });
             $('.btn-tipo-documento').css({ border: '2px solid transparent', background: 'white' });
@@ -2756,6 +2935,40 @@ $(document).ready(function () {
                 var rama = soloMkt ? 'MKT' : 'FISC';
                 $('.btn-rama-aprobacion[data-rama="' + rama + '"]').trigger('click');
             }
+        });
+    });
+
+    // Botón "Editar" nota de aprobación — reutiliza el modal en modo edición
+    $(document).on('click', '.btn-editar-nota-aprobacion', function () {
+        var $b = $(this);
+        var data = {
+            id: $b.data('id'),
+            rama: ('' + ($b.data('rama') || '')),
+            tipo: ('' + ($b.data('tipo') || '')),
+            numero: ('' + ($b.data('numero') || '')),
+            anio: ('' + ($b.data('anio') || ''))
+        };
+        var grupoId = currentGrupoIdAprobacion;
+        $('#modalDetalleTramite').modal('hide');
+        $('#modalDetalleTramite').one('hidden.bs.modal', function () {
+            $('#frmNotaAprobacion')[0].reset();
+            $('#aprobacionGrupoId').val(grupoId);
+            // Modo EDITAR: id, título, botón y ocultar carga de archivo (solo se editan los datos)
+            $('#aprobacionEditId').val(data.id);
+            $('#tituloModalNotaAprobacion').html('<i class="fa fa-edit"></i> Editar Nota de Aprobación');
+            $('#btnGuardarNotaAprobacion').html('<i class="fa fa-save"></i> Guardar cambios');
+            $('#aprobacionArchivoWrap').hide();
+            // Reset botoneras visuales y mostrar datos
+            $('.btn-rama-aprobacion').css({ border: '2px solid transparent', background: 'white' });
+            $('.btn-tipo-documento').css({ border: '2px solid transparent', background: 'white' });
+            $('#aprobacionDatosWrap').hide();
+            $('#modalNotaAprobacion').modal('show');
+            // Preseleccionar rama y tipo según el registro (en modo edición no autocompleta el número)
+            if (data.rama) $('.btn-rama-aprobacion[data-rama="' + data.rama + '"]').trigger('click');
+            if (data.tipo) $('.btn-tipo-documento[data-tipo="' + data.tipo + '"]').trigger('click');
+            // Cargar número y año DESPUÉS de los triggers (el handler de rama limpia el número)
+            $('#aprobacionNumeroDoc').val(padNumeroAprobacion(data.numero));
+            $('#aprobacionAnioDoc').val(data.anio);
         });
     });
 
@@ -2790,15 +3003,16 @@ $(document).ready(function () {
             $('#aprobacionAnioDoc').focus();
             return;
         }
-        if (!$('#inputAprobacionArchivos').val()) {
+        var editId = $('#aprobacionEditId').val();
+        if (!editId && !$('#inputAprobacionArchivos').val()) {
             notificacion('error', 'Seleccione al menos un archivo');
             return;
         }
 
-        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Subiendo...');
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> ' + (editId ? 'Guardando...' : 'Subiendo...'));
 
         $.ajax({
-            url: '/notas-unificadas/nota-aprobacion/subir',
+            url: editId ? '/notas-unificadas/nota-aprobacion/editar/' + editId : '/notas-unificadas/nota-aprobacion/subir',
             method: 'POST',
             data: formData,
             processData: false,
@@ -2820,7 +3034,7 @@ $(document).ready(function () {
                 notificacion('error', msg);
             },
             complete: function () {
-                btn.prop('disabled', false).html('<i class="fa fa-upload"></i> Subir');
+                btn.prop('disabled', false).html(editId ? '<i class="fa fa-save"></i> Guardar cambios' : '<i class="fa fa-upload"></i> Subir');
             }
         });
     });
@@ -3022,15 +3236,28 @@ $(document).ready(function () {
             return '<span style="color:#9ca3af;">—</span>';
         }
 
+        // Etiqueta corta para el badge de tipo (evita que 'JUEGO_ONLINE' desborde su columna)
+        var tipoLabel = { 'MTM': 'MTM', 'MESA': 'MESA', 'BINGO': 'BINGO', 'JUEGO_ONLINE': 'ONLINE', 'ISLA': 'ISLA' };
+
+        // table-layout:fixed + colgroup: la tabla nunca supera el ancho del panel,
+        // así la columna de eliminar siempre queda visible (sin scroll y sin que el overflow:hidden del modal la recorte).
         var html =
-            '<table class="table table-condensed" style="margin:0; font-size:12px;">' +
+            '<table class="table table-condensed" style="margin:0; font-size:12px; width:100%; table-layout:fixed;">' +
+                '<colgroup>' +
+                    '<col style="width:62px;">' +
+                    '<col>' +
+                    '<col style="width:52px;">' +
+                    '<col style="width:72px;">' +
+                    '<col style="width:46px;">' +
+                    (window.PUEDE_ELIMINAR ? '<col style="width:34px;">' : '') +
+                '</colgroup>' +
                 '<thead><tr style="background:#f8fafc;">' +
-                    '<th style="font-size:11px; color:#64748b; padding:6px 8px;">Tipo</th>' +
-                    '<th style="font-size:11px; color:#64748b; padding:6px 8px;">Nombre</th>' +
-                    '<th style="font-size:11px; color:#64748b; padding:6px 4px; white-space:nowrap;">ID</th>' +
-                    '<th style="font-size:11px; color:#64748b; padding:6px 4px; white-space:nowrap;">Estado</th>' +
-                    '<th style="font-size:11px; color:#64748b; padding:6px 4px; white-space:nowrap;">% Dev</th>' +
-                    (window.PUEDE_ELIMINAR ? '<th style="width:32px; padding:6px 4px;"></th>' : '') +
+                    '<th style="font-size:11px; color:#64748b; padding:6px 6px;">Tipo</th>' +
+                    '<th style="font-size:11px; color:#64748b; padding:6px 6px;">Nombre</th>' +
+                    '<th style="font-size:11px; color:#64748b; padding:6px 4px;">ID</th>' +
+                    '<th style="font-size:11px; color:#64748b; padding:6px 4px;">Estado</th>' +
+                    '<th style="font-size:11px; color:#64748b; padding:6px 4px;">% Dev</th>' +
+                    (window.PUEDE_ELIMINAR ? '<th style="padding:6px 4px;"></th>' : '') +
                 '</tr></thead>' +
                 '<tbody>';
 
@@ -3048,16 +3275,17 @@ $(document).ready(function () {
             var nombreCell = '<td style="padding:6px 8px; max-width:120px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:12px;" title="' + nombre.replace(/"/g, '&quot;') + '">' + nombre + '</td>';
 
             html += '<tr data-activo-id="' + act.id + '" style="background:' + bgRow + ';">' +
-                '<td style="padding:6px 8px; white-space:nowrap;"><span style="background:' + meta.bg + '; color:#fff; font-size:10px; font-weight:600; padding:2px 6px; border-radius:3px;"><i class="fa ' + meta.icon + '"></i> ' + tipo + '</span></td>' +
+                '<td style="padding:6px 6px; white-space:nowrap; overflow:hidden;"><span style="background:' + meta.bg + '; color:#fff; font-size:10px; font-weight:600; padding:2px 6px; border-radius:3px;"><i class="fa ' + meta.icon + '"></i> ' + (tipoLabel[tipo] || tipo) + '</span></td>' +
                 nombreCell +
-                '<td style="padding:6px 4px; white-space:nowrap;"><b>' + (act.id_display || act.id_activo || '—') + '</b></td>' +
-                '<td style="padding:6px 4px; white-space:nowrap;">' + estadoBadge(act.estado) + '</td>' +
-                '<td style="padding:6px 4px; white-space:nowrap;">' + pdev + '</td>' +
-                (window.PUEDE_ELIMINAR ? '<td style="padding:4px 2px; white-space:nowrap; text-align:center;">' +
+                '<td style="padding:6px 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><b>' + (act.id_display || act.id_activo || '—') + '</b></td>' +
+                '<td style="padding:6px 4px; white-space:nowrap; overflow:hidden;">' + estadoBadge(act.estado) + '</td>' +
+                '<td style="padding:6px 4px; white-space:nowrap; overflow:hidden;">' + pdev + '</td>' +
+                (window.PUEDE_ELIMINAR ? '<td style="padding:4px 2px; white-space:nowrap; text-align:center; position:relative;">' +
                     '<button class="btn btn-xs btn-ask-remove-activo" data-activo-id="' + act.id + '" title="Eliminar" style="padding:1px 5px; font-size:10px; line-height:1.2; background:#e2e8f0; color:#64748b; border:1px solid #cbd5e1; transition:all 0.15s;" onmouseover="this.style.background=\'#d9534f\';this.style.color=\'#fff\';this.style.borderColor=\'#d43f3a\';" onmouseout="this.style.background=\'#e2e8f0\';this.style.color=\'#64748b\';this.style.borderColor=\'#cbd5e1\';"><i class="fa fa-trash"></i></button>' +
-                    '<span class="confirm-remove-activo" style="display:none;">' +
-                        '<button class="btn btn-xs btn-success btn-confirm-remove-activo" data-activo-id="' + act.id + '" title="Confirmar" style="padding:1px 5px; font-size:10px;"><i class="fa fa-check"></i></button> ' +
-                        '<button class="btn btn-xs btn-default btn-cancel-remove-activo" title="Cancelar" style="padding:1px 5px; font-size:10px;"><i class="fa fa-times"></i></button>' +
+                    // Confirmación flotante: position:absolute anclada a la derecha para que los 2 botones (✓/✗) no se recorten por el ancho fijo de la columna ni el overflow:hidden del modal.
+                    '<span class="confirm-remove-activo" style="display:none; position:absolute; top:50%; right:4px; transform:translateY(-50%); background:#fff; padding:3px 5px; border-radius:6px; box-shadow:0 1px 6px rgba(0,0,0,0.22); white-space:nowrap; z-index:10;">' +
+                        '<button class="btn btn-xs btn-success btn-confirm-remove-activo" data-activo-id="' + act.id + '" title="Confirmar" style="padding:1px 6px; font-size:11px;"><i class="fa fa-check"></i></button> ' +
+                        '<button class="btn btn-xs btn-default btn-cancel-remove-activo" title="Cancelar" style="padding:1px 6px; font-size:11px;"><i class="fa fa-times"></i></button>' +
                     '</span>' +
                 '</td>' : '') +
                 '</tr>';
@@ -3066,6 +3294,17 @@ $(document).ready(function () {
         html += '</tbody></table>';
         return html;
     }
+
+    // Exportar los activos (máquinas/juegos) de la nota a CSV / Excel
+    $(document).on('click', '.btn-export-activos', function () {
+        var id = $(this).data('id');
+        var formato = $(this).data('formato') || 'xlsx';
+        if (!id) {
+            notificacion('error', 'No se pudo determinar la nota');
+            return;
+        }
+        window.location = '/notas-unificadas/activos/exportar/' + id + '?formato=' + formato;
+    });
 
     // Renderizar comentarios (solo movimientos tipo COMENTARIO)
     function _avatarHtml(userImagen, size) {
