@@ -62,6 +62,8 @@ $usuario = \App\Http\Controllers\UsuarioController::getInstancia()->buscarUsuari
                   #{!! $idWidgetClima !!}, #{!! $idWidgetClima !!} * {
                     all: revert;
                     box-sizing: border-box;
+                  }
+                  #{!! $idWidgetClima !!} { 
                     width: 100%;
                   }
                   #{!! $idWidgetClima !!}.weather-widget {
