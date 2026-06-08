@@ -150,12 +150,6 @@
                                         <h3>{{$rol->descripcion}}</h3>
                                       </li>
                                     @endforeach
-                                    <!-- <li>
-                                      <h3>ADMINISTRADOR</h3>
-                                    </li>
-                                    <li>
-                                      <h3>CONTROL</h3>
-                                    </li> -->
                                   </ul>
                               </div>
                           </div>
@@ -208,6 +202,15 @@
                       </div>
                   </div>
               </div>
+          </div>
+          
+          <div class="row">            
+            <div class="col-md-12">
+              <div class="col-md-3 col-md-offset-9">
+                @component('Components.pronosticoMetereologico')
+                @endcomponent
+              </div>
+            </div>
           </div>
         </div>
     </div>
