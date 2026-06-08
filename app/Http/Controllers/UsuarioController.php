@@ -487,6 +487,17 @@ class UsuarioController extends Controller
       ).', Argentina'
     );
     
+    $CC = \App\Http\Controllers\CacheController::getInstancia();
+    
+    $CACHE_CODIGO = 'pronosticoMetereologico';
+    $CACHE_SUBCODIGO = sha1($locacion);//Limita a 40 caracteres la locación, practicamene imposible de colisión
+    //Dentro de los ultimos 30 minutos
+    $cache = $CC->buscarUltimoDentroDeSegundos($CACHE_CODIGO,$CACHE_SUBCODIGO,60*30);
+    if(!is_null($cache)){
+      $data = json_decode($cache->data);
+      return response($data->response,$data->httpCode);
+    }
+    
     set_time_limit(5);
     $ch = curl_init();
     $params = http_build_query([
@@ -532,6 +543,8 @@ class UsuarioController extends Controller
       ][strtolower($message)] ?? $message;//Agregar mapeos español-ingles aca
       return response()->json(['error' => [$message]],$httpCode);
     }
+    
+    $CC->agregar($CACHE_CODIGO,$CACHE_SUBCODIGO,json_encode(compact('response','httpCode')),[]);
     return response($response,$httpCode);
   }
 }
