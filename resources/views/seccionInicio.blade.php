@@ -131,6 +131,7 @@ $usuario = \App\Http\Controllers\UsuarioController::getInstancia()->buscarUsuari
                     align-items: center;
                     justify-content: center;
                     gap: 10px;
+                    width: 100%;
                   }
 
                   #{!! $idWidgetClima !!} .weather-icon {
@@ -144,6 +145,7 @@ $usuario = \App\Http\Controllers\UsuarioController::getInstancia()->buscarUsuari
                     margin: 0;
                     font-weight: 300;
                     flex: 1;
+                    text-align: left;
                   }
 
                   #{!! $idWidgetClima !!} .weather-desc {
@@ -208,14 +210,8 @@ $usuario = \App\Http\Controllers\UsuarioController::getInstancia()->buscarUsuari
                     </div>
                   </div>
                 </div>
-                <?php $ucas = $usuario->casinos()->get(); ?>
                 <script>
                   document.addEventListener("DOMContentLoaded", () => {
-                    const API_KEY = "811ba10f4d162ae5df7ebbc91b102435";
-                    const DEFAULT_CITY = "{!! $ucas->count() > 1? 'Santa Fe' : $ucas->first()->nombre !!}, Argentina";
-                    const UNITS = "metric"; // Use 'imperial' for Fahrenheit/mph
-                    const LANG = "es";
-
                     const widget = document.getElementById("{!! $idWidgetClima !!}");
                     const cityEl = widget.getElementsByClassName("weather-city")?.[0];
                     const tempEl = widget.getElementsByClassName("weather-temp")?.[0];
@@ -226,66 +222,56 @@ $usuario = \App\Http\Controllers\UsuarioController::getInstancia()->buscarUsuari
                     const searchInput = widget.getElementsByClassName("weather-search-input")?.[0];
                     const searchBtn = widget.getElementsByClassName("weather-search-btn")?.[0];
                     
-                    const updateDOM = function(data) {
-                      if(cityEl){
-                        cityEl.textContent = `${data?.name}, ${data?.sys?.country}`;
-                      }
-                      if(tempEl){
-                        tempEl.textContent = `${Math.round(data?.main?.temp)}°${UNITS === "metric" ? "C" : "F"}`;
-                      }
-                      if(descEl){
-                        descEl.textContent = data?.weather?.[0]?.description;
-                      }
-                      if(humidityEl){
-                        humidityEl.textContent = `${data?.main?.humidity}%`;
-                      }
-                      if(windEl){
-                        windEl.textContent = `${data?.wind?.speed} ${UNITS === "metric" ? "m/s" : "mph"}`;
-                      }
-                      
-                      // Set Weather Icon directly from OpenWeather CDN
-                      const iconCode = data?.weather[0]?.icon;
-                      if(iconEl){
-                        iconEl.src = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
-                      }
-                    }
-                    
-                    const fetchWeather = async function (url) {
+                    searchBtn?.addEventListener("click", async () => {
+                      const url = "/configCuenta/pronosticoMetereologico/"+searchInput.value.trim();
                       try {
                         const response = await fetch(url);
-                        if (!response.ok) throw new Error("Locación no encontrada");
-                        const data = await response.json();
-                        updateDOM(data);
-                      } catch (error) {
+                        if (!response.ok){
+                          if(cityEl){
+                            const data = await response.json();
+                            if(cityEl){
+                              cityEl.textContent = data?.error?.join(', ') ?? 'ERROR';
+                            }
+                          }
+                        }
+                        else{
+                          const data = await response.json();
+                          if(cityEl){
+                            cityEl.textContent = `${data?.name}, ${data?.sys?.country}`;
+                          }
+                          if(tempEl){
+                            tempEl.textContent = `${Math.round(data?.main?.temp)}°C`;
+                          }
+                          if(descEl){
+                            descEl.textContent = data?.weather?.[0]?.description;
+                          }
+                          if(humidityEl){
+                            humidityEl.textContent = `${data?.main?.humidity}%`;
+                          }
+                          if(windEl){
+                            windEl.textContent = `${data?.wind?.speed} m/s`;
+                          }
+                          
+                          // Set Weather Icon directly from OpenWeather CDN
+                          const iconCode = data?.weather[0]?.icon;
+                          if(iconEl){
+                            iconEl.src = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+                          }
+                        }
+                      }
+                      catch (error) {
                         cityEl.textContent = "Error al cargar el tiempo";
                         console.error(error);
-                      }
-                    }
-                    
-                    const getWeatherByCoords = function(lat, lon) {
-                      const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=${UNITS}&lang=${LANG}`;
-                      fetchWeather(url);
-                    }
-
-                    const getWeatherByCity = function (city) {
-                      const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=${UNITS}&lang=${LANG}`;
-                      fetchWeather(url);
-                    }
-
-                    // Handle Search Input
-                    searchBtn?.addEventListener("click", () => {
-                      if (searchInput?.value?.trim()) {
-                        getWeatherByCity(searchInput.value.trim());
                       }
                     });
 
                     searchInput?.addEventListener("keypress", (e) => {
-                      if (e.key === "Enter" && searchInput?.value?.trim()) {
-                        getWeatherByCity(searchInput.value.trim());
+                      if (e.key === "Enter") {
+                        searchBtn?.dispatchEvent(new Event('click'));
                       }
                     });
                     
-                    getWeatherByCity(DEFAULT_CITY);
+                    searchBtn?.dispatchEvent(new Event('click'));
                   });
                 </script>
               </div>

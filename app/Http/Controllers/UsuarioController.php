@@ -476,4 +476,62 @@ class UsuarioController extends Controller
 
     return false;
   }
+  
+  public function pronosticoMetereologico(Request $request,string $locacion = null){
+    $u = $this->quienSoy()['usuario'];
+    $locacion = $locacion ?? (
+      (
+        $u->casinos->count() > 1? 
+        'Santa Fe' : 
+        $u->casinos->first()->nombre
+      ).', Argentina'
+    );
+    
+    set_time_limit(5);
+    $ch = curl_init();
+    $params = http_build_query([
+      'q' => $locacion,
+      'appid' => env('OPENWEATHERMAP_API_KEY',''),
+      'units' => 'metric',
+      'lang' => 'es'
+    ]);
+    $url = "https://api.openweathermap.org/data/2.5/weather";
+    curl_setopt($ch, CURLOPT_URL, $url.'?'.$params);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
+    $proxy_url  = env('HTTP_PROXY_URL',null);
+    $proxy_port = env('HTTP_PROXY_PORT',null);
+    if($proxy_url !== null && $proxy_port !== null){
+      curl_setopt($ch, CURLOPT_PROXY, $proxy_url);
+      curl_setopt($ch, CURLOPT_PROXYPORT, $proxy_port);
+    }
+    
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+      'Content-Type: application/x-www-form-urlencoded'
+    ]);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    
+    if(curl_errno($ch)){
+      $response = curl_error($ch);
+      curl_close($ch);
+      return response()->json(['error' => [$response]],500);
+    }
+    curl_close($ch);
+    if($httpCode < 200 || $httpCode > 299){
+      $json_response = json_decode($response,true);
+      $message = $json_response === null? $response : ($json_response['message'] ?? $response);
+      $message = [
+        'city not found' => 'Ciudad no encontrada',
+        'nothing to geocode' => 'Especificar una ciudad',
+        'invalid api key' => 'API Key invalida (1), informar al administrador',
+        'invalid api key. please see https://openweathermap.org/faq#error401 for more info.' =>  'API Key invalida (2), informar al administrador',
+        'your account is suspended.' => 'API Key suspendida, informar al administrador',
+        'your account is blocked due to exceeding of requests limit.' => 'Se excedio el límite de solicitudes diarios',
+        'internal error' => 'Error interno de OpenWeatherMap'
+      ][strtolower($message)] ?? $message;//Agregar mapeos español-ingles aca
+      return response()->json(['error' => [$message]],$httpCode);
+    }
+    return response($response,$httpCode);
+  }
 }
