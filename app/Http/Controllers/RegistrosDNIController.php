@@ -231,27 +231,35 @@ class RegistrosDNIController extends Controller
     }
     if(isset($request->informado) && is_array($request->informado)){
       if(!empty($request->informado[0])){
-        $reglas[] = ['ri.fecha_informado','>=',$request->informado[0]];
+        if(\DateTime::createFromFormat('Y-m-d',$request->informado[0]) !== false){
+          $reglas[] = ['ri.fecha_informado','>=',$request->informado[0]];
+        }
       }
       if(!empty($request->informado[1])){
-        $reglas[] = ['ri.fecha_informado','<=',$request->informado[1]];
+        if(\DateTime::createFromFormat('Y-m-d',$request->informado[1]) !== false){
+          $reglas[] = ['ri.fecha_informado','<=',$request->informado[1]];
+        }
       }
     }
     
     if(isset($request->reportado) && is_array($request->reportado)){
       if(!empty($request->reportado[0])){
-        $reglas[] = ['r.timestamp','>=',$request->reportado[0].' 00:00:00'];
+        if(\DateTime::createFromFormat('Y-m-d',$request->reportado[0]) !== false){
+          $reglas[] = ['r.timestamp','>=',$request->reportado[0].' 00:00:00'];
+        }
       }
       if(!empty($request->reportado[1])){
-        $reglas[] = ['r.timestamp','<=',$request->reportado[1].' 23:59:59'];
+        if(\DateTime::createFromFormat('Y-m-d',$request->reportado[1]) !== false){
+          $reglas[] = ['r.timestamp','<=',$request->reportado[1].' 23:59:59'];
+        }
       }
     }
     
     if(isset($request->edad) && is_array($request->edad)){
-      if(!empty($request->edad[0])){
+      if(isset($request->edad[0]) && ctype_digit($request->edad[0])){
         $reglas[] = ['r.edad','>=',$request->edad[0]];
       }
-      if(!empty($request->edad[1])){
+      if(isset($request->edad[1]) && ctype_digit($request->edad[1])){
         $reglas[] = ['r.edad','<=',$request->edad[1]];
       }
     }
@@ -777,5 +785,171 @@ class RegistrosDNIController extends Controller
       $this->recalcular_resumenes();
       return ['mensaje' => 'Importación borrada'];
     });
+  }
+  
+  private function sorted_int_arr_to_range_arr(array $sorted_int_arr){
+    $ranges = [];
+    if(count($sorted_int_arr)){
+      $r = [$sorted_int_arr[0],$sorted_int_arr[0]];
+      for($idx = 1;$idx<count($sorted_int_arr);$idx++){
+        $i = $sorted_int_arr[$idx];
+        if($i == ($r[1]+1)){
+          $r[1] = $i;
+        }
+        else{
+          $ranges[] = $r;
+          $r = [$i,$i];
+        }
+      }
+      $ranges[] = $r;
+    }
+    return $ranges;
+  }
+  
+  public function estadisticas(Request $request){
+    $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    $reglas = [];//@TODO: refactorizar validaciones/reglas comunes
+    if(isset($request->id_casino)){
+      $reglas[] = ['rr.id_casino','=',$request->id_casino];
+    }
+    
+    $reportado = [null,null];
+    if(isset($request->reportado) && is_array($request->reportado)){
+      if(!empty($request->reportado[0])){
+        if(\DateTime::createFromFormat('Y-m-d',$request->reportado[0]) !== false){
+          $reportado[0] = $request->reportado[0];
+          $reglas[] = ['rr.dia','>=',$request->reportado[0].' 00:00:00'];
+        }
+      }
+      if(!empty($request->reportado[1])){
+        if(\DateTime::createFromFormat('Y-m-d',$request->reportado[1]) !== false){
+          $reportado[1] = $request->reportado[1];
+          $reglas[] = ['rr.dia','<=',$request->reportado[1].' 23:59:59'];
+        }
+      }
+    }
+    
+    if(isset($request->edad) && is_array($request->edad)){
+      if(isset($request->edad[0]) && ctype_digit($request->edad[0])){
+        $reglas[] = ['rr.edad','>=',$request->edad[0]];
+      }
+      if(isset($request->edad[1]) && ctype_digit($request->edad[1])){
+        $reglas[] = ['rr.edad','<=',$request->edad[1]];
+      }
+    }
+    
+    $importacion = null;
+    if(isset($request->md5)){
+      $importacion = DB::table('registros_dni_importacion as ri')
+      ->where('id_casino',$request->id_casino)
+      ->where('md5',$request->md5)->first();
+      //Si manda un md5 cualquiera quiero que devuelva vacio
+      $importacion = $importacion !== null? $importacion 
+      : ((object)['id_registros_dni_importacion' => -1]);
+    }
+    
+    $necesita_importacion = false;
+    if($importacion !== null){
+      $reglas[] = ['rr.id_registros_dni_importacion','=',$importacion->id_registros_dni_importacion];
+      $necesita_importacion = true;
+    }
+    
+    if(isset($request->informado) && is_array($request->informado)){
+      if(!empty($request->informado[0])){
+        if(\DateTime::createFromFormat('Y-m-d',$request->informado[0]) !== false){
+          $reglas[] = ['ri.fecha_informado','>=',$request->informado[0]];
+          $necesita_importacion = true;
+        }
+      }
+      if(!empty($request->informado[1])){
+        if(\DateTime::createFromFormat('Y-m-d',$request->informado[1]) !== false){
+          $reglas[] = ['ri.fecha_informado','<=',$request->informado[1]];
+          $necesita_importacion = true;
+        }
+      }
+    }
+       
+    $sort_by = [
+      'columna' => 'r.timestamp',
+      'orden' => 'desc'
+    ];
+    
+    $grupo_etario = "(CASE
+      WHEN rr.edad <= 17 THEN '00-17'
+      WHEN rr.edad <= 21 THEN '18-21'
+      WHEN rr.edad <= 24 THEN '21-24'
+      WHEN rr.edad <= 28 THEN '25-28'
+      ELSE '29+'
+    END)";
+    
+    $resultado = DB::table('registros_dni_resumen as rr')
+    ->selectRaw("
+      YEAR(rr.dia) as anio,
+      MONTH(rr.dia) as mes,
+      DAY(rr.dia) as dia,
+      $grupo_etario as grupo_etario,
+      SUM(rr.cantidad) as cantidad
+    ");
+    
+    if($necesita_importacion){
+      $resultado = $resultado->join('registros_dni_importacion as ri','ri.id_registros_dni_importacion','=','rr.id_registros_dni_importacion');
+    }
+    else{
+      $resultado = $resultado->whereNull('rr.id_registros_dni_importacion');
+    }
+    
+    $resultado = $resultado
+    ->where($reglas)
+    ->whereNotNull('rr.dia')
+    ->whereNull('rr.hora')
+    ->whereNotNull('rr.edad')
+    ->groupBy('rr.dia',DB::raw($grupo_etario))
+    ->orderBy('rr.dia','asc')
+    ->orderBy(DB::raw($grupo_etario),'asc')
+    ->get();
+           
+    $resultado_agrupado = $resultado->groupBy('anio')->map(function($por_anio){
+      return $por_anio->groupBy('mes')->map(function($por_mes){
+        return $por_mes->groupBy('dia')->map(function($por_dia){
+          return $por_dia->keyBy('grupo_etario')->map(function($por_ge){
+            return intval($por_ge->cantidad);
+          });
+        });
+        /*$dias_reportados_mensuales = [];
+        $reportes = 0;
+        
+        $grupos_etarios = $por_mes->keyBy('grupo_etario')->map(function($g_ets) use (&$dias_reportados_mensuales,&$reportes){
+          $r = intval($g_ets->cantidad);
+          $dias_reportados = explode(',',$g_ets->dias_reportados ?? '');
+          foreach($dias_reportados as &$d){
+            $d = intval($d);
+            $dias_reportados_mensuales[$d] = true;
+          }
+          return (object) [
+            'dias_reportados' => $this->sorted_int_arr_to_range_arr($dias_reportados),
+            'reportes' => $r
+          ];
+        });
+        
+        $dias_reportados_mensuales = array_keys($dias_reportados_mensuales);
+        sort($dias_reportados_mensuales);
+          
+        return (object)[
+          'reportes' => $reportes,
+          'dias_reportados' => $this->sorted_int_arr_to_range_arr($dias_reportados_mensuales),
+          'grupos_etarios' => $grupos_etarios
+        ];*/
+        return $por_mes;
+      });
+    });
+    
+    return [
+      'current_page' => 1,
+      'data' => $resultado_agrupado,
+      'last_page' => 1,
+      'total' => 1,
+      'per_page' => 1,
+      'to' => 1
+    ];
   }
 }

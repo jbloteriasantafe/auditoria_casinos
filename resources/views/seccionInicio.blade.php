@@ -57,7 +57,236 @@ $usuario = \App\Http\Controllers\UsuarioController::getInstancia()->buscarUsuari
           <div class="panel-body">
             <div class="row">
               <div class="col-lg-12">
-                <span style="margin-top:6px;"><div id="cont_1b69ec28a0054c43833bebaf9168811f"><script type="text/javascript" async src="https://www.meteored.com.ar/wid_loader/1b69ec28a0054c43833bebaf9168811f"></script></div></span>
+                <?php $idWidgetClima = 'id'.uniqid(); ?>
+                <style>
+                  #{!! $idWidgetClima !!}, #{!! $idWidgetClima !!} * {
+                    all: revert;
+                    box-sizing: border-box;
+                  }
+                  #{!! $idWidgetClima !!} { 
+                    width: 100%;
+                  }
+                  #{!! $idWidgetClima !!}.weather-widget {
+                    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    background: linear-gradient(135deg, #2c3e50, #3498db);
+                    color: #ffffff;
+                    border-radius: 16px;
+                    padding: 20px;
+                    width: 100%;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+                    box-sizing: border-box;
+                  }
+
+                  #{!! $idWidgetClima !!} .weather-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 10px;
+                    margin-bottom: 15px;
+                  }
+
+                  #{!! $idWidgetClima !!} .weather-city {
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+                  }
+
+                  #{!! $idWidgetClima !!} .weather-search-box {
+                    display: flex;
+                    background: rgba(255, 255, 255, 0.2);
+                    border-radius: 20px;
+                    padding: 4px 8px;
+                    align-items: center;
+                  }
+
+                  #{!! $idWidgetClima !!} .weather-search-input {
+                    background: transparent;
+                    border: none;
+                    color: white;
+                    font-size: 0.85rem;
+                    width: 90px;
+                    outline: none;
+                  }
+
+                  #{!! $idWidgetClima !!} .weather-search-input::placeholder {
+                    color: rgba(255, 255, 255, 0.7);
+                  }
+
+                  #{!! $idWidgetClima !!} .weather-search-btn {
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    padding: 0 4px;
+                  }
+
+                  #{!! $idWidgetClima !!} .weather-body {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    margin: 15px 0;
+                  }
+
+                  #{!! $idWidgetClima !!} .weather-main {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                  }
+
+                  #{!! $idWidgetClima !!} .weather-icon {
+                    width: 64px;
+                    height: 64px;
+                    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.15));
+                  }
+
+                  #{!! $idWidgetClima !!} .weather-temp {
+                    font-size: 3rem;
+                    margin: 0;
+                    font-weight: 300;
+                    flex: 1;
+                  }
+
+                  #{!! $idWidgetClima !!} .weather-desc {
+                    font-size: 1rem;
+                    text-transform: capitalize ! important;
+                    color: rgba(255, 255, 255, 0.9);
+                    text-align: center;
+                  }
+
+                  #{!! $idWidgetClima !!} .weather-footer {
+                    display: flex;
+                    justify-content: space-around;
+                    border-top: 1px solid rgba(255, 255, 255, 0.2);
+                    padding-top: 15px;
+                    margin-top: 10px;
+                  }
+
+                  #{!! $idWidgetClima !!} .info-item {
+                    flex: 1;
+                    text-align: center;
+                  }
+
+                  #{!! $idWidgetClima !!} .info-item .label {
+                    display: block;
+                    font-size: 0.75rem;
+                    color: rgba(255, 255, 255, 0.7);
+                    margin-bottom: 4px;
+                  }
+
+                  #{!! $idWidgetClima !!} .info-item .value {
+                    font-size: 0.95rem;
+                    font-weight: 600;
+                  }
+                </style>
+                <div id="{{$idWidgetClima}}" class="weather-widget">
+                  <div class="weather-header">
+                    <div class="location-box">
+                      <span class="weather-city">Detectando locación</span>
+                    </div>
+                    <div class="weather-search-box">
+                      <input type="text" class="weather-search-input" placeholder="Buscar ciudad">
+                      <button class="weather-search-btn">🔍</button>
+                    </div>
+                  </div>
+                  <div class="weather-body">
+                    <div class="weather-main">
+                      <div style="flex: 1;display: flex;justify-content: right;align-items: center;">
+                        <img class="weather-icon" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'></svg>" alt="Icono del clima">
+                      </div>
+                      <h2 class="weather-temp">--°C</h2>
+                    </div>
+                    <div class="weather-desc">--</div>
+                  </div>
+                  <div class="weather-footer">
+                    <div class="info-item">
+                      <span class="label">Humedad</span>
+                      <span class="weather-humidity value">--%</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="label">Viento</span>
+                      <span class="weather-wind value">-- m/s</span>
+                    </div>
+                  </div>
+                </div>
+                <script>
+                  document.addEventListener("DOMContentLoaded", () => {
+                    const API_KEY = "811ba10f4d162ae5df7ebbc91b102435";
+                    const DEFAULT_CITY = "Santa Fe, AR";
+                    const UNITS = "metric"; // Use 'imperial' for Fahrenheit/mph
+                    const LANG = "es";
+
+                    const widget = document.getElementById("{!! $idWidgetClima !!}");
+                    const cityEl = widget.getElementsByClassName("weather-city")?.[0];
+                    const tempEl = widget.getElementsByClassName("weather-temp")?.[0];
+                    const descEl = widget.getElementsByClassName("weather-desc")?.[0];
+                    const iconEl = widget.getElementsByClassName("weather-icon")?.[0];
+                    const humidityEl = widget.getElementsByClassName("weather-humidity")?.[0];
+                    const windEl = widget.getElementsByClassName("weather-wind")?.[0];
+                    const searchInput = widget.getElementsByClassName("weather-search-input")?.[0];
+                    const searchBtn = widget.getElementsByClassName("weather-search-btn")?.[0];
+                    
+                    const updateDOM = function(data) {
+                      if(cityEl){
+                        cityEl.textContent = `${data?.name}, ${data?.sys?.country}`;
+                      }
+                      if(tempEl){
+                        tempEl.textContent = `${Math.round(data?.main?.temp)}°${UNITS === "metric" ? "C" : "F"}`;
+                      }
+                      if(descEl){
+                        descEl.textContent = data?.weather?.[0]?.description;
+                      }
+                      if(humidityEl){
+                        humidityEl.textContent = `${data?.main?.humidity}%`;
+                      }
+                      if(windEl){
+                        windEl.textContent = `${data?.wind?.speed} ${UNITS === "metric" ? "m/s" : "mph"}`;
+                      }
+                      
+                      // Set Weather Icon directly from OpenWeather CDN
+                      const iconCode = data?.weather[0]?.icon;
+                      if(iconEl){
+                        iconEl.src = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+                      }
+                    }
+                    
+                    const fetchWeather = async function (url) {
+                      try {
+                        const response = await fetch(url);
+                        if (!response.ok) throw new Error("Locación no encontrada");
+                        const data = await response.json();
+                        updateDOM(data);
+                      } catch (error) {
+                        cityEl.textContent = "Error al cargar el tiempo";
+                        console.error(error);
+                      }
+                    }
+                    
+                    const getWeatherByCoords = function(lat, lon) {
+                      const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=${UNITS}&lang=${LANG}`;
+                      fetchWeather(url);
+                    }
+
+                    const getWeatherByCity = function (city) {
+                      const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=${UNITS}&lang=${LANG}`;
+                      fetchWeather(url);
+                    }
+
+                    // Handle Search Input
+                    searchBtn?.addEventListener("click", () => {
+                      if (searchInput?.value?.trim()) {
+                        getWeatherByCity(searchInput.value.trim());
+                      }
+                    });
+
+                    searchInput?.addEventListener("keypress", (e) => {
+                      if (e.key === "Enter" && searchInput?.value?.trim()) {
+                        getWeatherByCity(searchInput.value.trim());
+                      }
+                    });
+                    
+                    getWeatherByCity(DEFAULT_CITY);
+                  });
+                </script>
               </div>
             </div>
           </div> <!-- panel-body -->
