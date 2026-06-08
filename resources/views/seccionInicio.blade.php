@@ -208,10 +208,11 @@ $usuario = \App\Http\Controllers\UsuarioController::getInstancia()->buscarUsuari
                     </div>
                   </div>
                 </div>
+                <?php $ucas = $usuario->casinos()->get(); ?>
                 <script>
                   document.addEventListener("DOMContentLoaded", () => {
                     const API_KEY = "811ba10f4d162ae5df7ebbc91b102435";
-                    const DEFAULT_CITY = "Santa Fe, AR";
+                    const DEFAULT_CITY = "{!! $ucas->count() > 1? 'Santa Fe' : $ucas->first()->nombre !!}, Argentina";
                     const UNITS = "metric"; // Use 'imperial' for Fahrenheit/mph
                     const LANG = "es";
 
