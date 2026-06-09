@@ -1,12 +1,15 @@
 @php
 function colorEstado($estado) {
-    if (str_contains($estado, 'APROBADO')) return 'background:#28a745;color:#fff;';
-    if ($estado === 'VISTO CON OBSERVACIONES') return 'background:#dc3545;color:#fff;';
-    if ($estado === 'VENCIDO') return 'background:#999;color:#fff;';
-    if ($estado === 'CON INFORME') return 'background:#f0ad4e;color:#fff;';
-    if ($estado === 'CON INFORME NEGATIVO') return 'background:#f0ad4e;color:#000;';
-    return 'background:#5bc0de;color:#fff;';
+    // Color manejado por la columna `color` de nota_estados (no hardcodeado por nombre).
+    return \App\Models\NotaEstado::estilo($estado);
 }
+@endphp
+@php
+    // Para administradores la columna de fecha muestra "Fecha propuesta de realización" (FISC)
+    // en lugar de "Fecha Est. Aprob." (MKT).
+    $esAdm = isset($esAdministrador) && $esAdministrador;
+    $colFechaLabel = $esAdm ? 'Fecha prop. realiz.' : 'Fecha Est. Aprob.';
+    $colFechaSort  = $esAdm ? 'fecha_propuesta_realizacion' : 'fecha_pretendida_aprobacion';
 @endphp
 <div class="table-responsive">
     <table class="table table-striped table-hover table-bordered" style="font-size: 13px;">
@@ -16,7 +19,7 @@ function colorEstado($estado) {
                     {{-- Expand/Collapse --}}
                 </th>
                 <th width="7%" class="sortable th-filterable" data-sort="created_at" data-filter="fecha">Fecha Subida <i class="fa fa-sort"></i> <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
-                <th width="7%" class="sortable" data-sort="fecha_pretendida_aprobacion">Fecha Est. Aprob. <i class="fa fa-sort"></i></th>
+                <th width="7%" class="sortable" data-sort="{{ $colFechaSort }}">{{ $colFechaLabel }} <i class="fa fa-sort"></i></th>
                 <th width="8%" class="sortable" data-sort="nro_nota">Nro Nota <i class="fa fa-sort"></i></th>
                 <th width="10%" class="th-filterable" data-filter="casino" style="cursor:pointer;">Casino/Plat. <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
                 <th width="18%">Título / Tema</th>
@@ -31,16 +34,22 @@ function colorEstado($estado) {
             @forelse($grupos as $grupo)
             @php
                 $notaMkt = $grupo->notas->where('tipo_rama', 'MKT')->first();
-                $fechaAprobMkt = $notaMkt && $notaMkt->fecha_pretendida_aprobacion ? \Carbon\Carbon::parse($notaMkt->fecha_pretendida_aprobacion) : null;
+                $notaFisc = $grupo->notas->where('tipo_rama', 'FISC')->first();
+                // Admin: fecha propuesta de realización (FISC). Resto: fecha estimada de aprobación (MKT).
+                if ($esAdm) {
+                    $fechaCol = ($notaFisc && $notaFisc->fecha_propuesta_realizacion) ? \Carbon\Carbon::parse($notaFisc->fecha_propuesta_realizacion) : null;
+                } else {
+                    $fechaCol = ($notaMkt && $notaMkt->fecha_pretendida_aprobacion) ? \Carbon\Carbon::parse($notaMkt->fecha_pretendida_aprobacion) : null;
+                }
             @endphp
-            <tr class="grupo-row" data-grupo-id="{{ $grupo->id }}" data-fecha-aprob="{{ $fechaAprobMkt ? $fechaAprobMkt->format('Y-m-d') : '' }}" style="background: #f8fafc; cursor: pointer;">
+            <tr class="grupo-row" data-grupo-id="{{ $grupo->id }}" data-fecha-aprob="{{ $fechaCol ? $fechaCol->format('Y-m-d') : '' }}" style="background: #f8fafc; cursor: pointer;">
                 <td class="text-center toggle-grupo">
                     <i class="fa fa-chevron-right toggle-icon"></i>
                 </td>
                 <td>{{ \Carbon\Carbon::parse($grupo->created_at)->format('d/m/Y') }}</td>
                 <td>
-                    @if($fechaAprobMkt)
-                        {{ $fechaAprobMkt->format('d/m/Y') }}
+                    @if($fechaCol)
+                        {{ $fechaCol->format('d/m/Y') }}
                     @else
                         <span class="text-muted">—</span>
                     @endif
@@ -134,7 +143,20 @@ function colorEstado($estado) {
                         </button>
                     @endif
 
-                    @if($puedeEliminarNotas)
+                    @php
+                        // Concesionario: puede borrar la nota padre (grupo) solo si TODAS sus notas
+                        // (la única que haya, o ambas) están en estado CARGA INICIAL.
+                        $todasCargaInicial = $grupo->notas->count() > 0;
+                        foreach ($grupo->notas as $__n) {
+                            $__e = $__n->expedientes->first();
+                            if (!$__e || $__e->estado_actual !== \App\Models\NotaEstado::CARGA_INICIAL) {
+                                $todasCargaInicial = false;
+                                break;
+                            }
+                        }
+                        $concesionarioPuedeBorrarGrupo = isset($esConcesionario) && $esConcesionario && $todasCargaInicial;
+                    @endphp
+                    @if($puedeEliminarNotas || $concesionarioPuedeBorrarGrupo)
                     <button class="btn btn-danger btn-xs btn-borrar-grupo" data-id="{{ $grupo->id }}" title="Eliminar Grupo">
                         <i class="fa fa-trash"></i>
                     </button>
@@ -150,7 +172,8 @@ function colorEstado($estado) {
             <tr class="nota-hija" data-parent-grupo="{{ $grupo->id }}" style="display: none; background: {{ $n->tipo_rama == 'MKT' ? '#eff6ff' : '#ecfdf5' }};">
                 <td style="background: {{ $n->tipo_rama == 'MKT' ? '#3b82f6' : '#10b981' }};"></td>
                 <td><small>{{ \Carbon\Carbon::parse($n->fecha_ingreso)->format('d/m/Y') }}</small></td>
-                <td><small>{{ $n->fecha_pretendida_aprobacion ? \Carbon\Carbon::parse($n->fecha_pretendida_aprobacion)->format('d/m/Y') : '—' }}</small></td>
+                @php $fechaHija = $esAdm ? $n->fecha_propuesta_realizacion : $n->fecha_pretendida_aprobacion; @endphp
+                <td><small>{{ $fechaHija ? \Carbon\Carbon::parse($fechaHija)->format('d/m/Y') : '—' }}</small></td>
                 <td>
                     @if($n->tipo_rama == 'MKT')
                         <span class="label label-primary">Marketing</span>
@@ -213,7 +236,12 @@ function colorEstado($estado) {
                             title="Anotaciones PDF">
                         <i class="fa fa-edit"></i>
                     </button>
-                    @if($puedeEliminarNotas)
+                    @php
+                        // Concesionario/casino: puede borrar SUS notas solo mientras estén en CARGA INICIAL.
+                        $estadoN = $n->expedientes->count() ? $n->expedientes->first()->estado_actual : null;
+                        $concesionarioPuedeGestionarN = isset($esConcesionario) && $esConcesionario && $estadoN === \App\Models\NotaEstado::CARGA_INICIAL;
+                    @endphp
+                    @if($puedeEliminarNotas || $concesionarioPuedeGestionarN)
                     <button class="btn btn-danger btn-xs btn-borrar-nota" data-id="{{ $n->id }}" title="Eliminar">
                         <i class="fa fa-trash"></i>
                     </button>

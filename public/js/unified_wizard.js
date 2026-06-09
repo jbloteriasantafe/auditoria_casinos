@@ -464,43 +464,103 @@ $(document).ready(function () {
 
     $('#btnAgregarActivo').click(function () {
         let tipo = $('#selTipoActivo').val();
-        let texto = $('#inpIdActivo').val();
-        let id = $('#hidIdActivo').val();
+        let texto = $.trim($('#inpIdActivo').val());
+        let idSel = $('#hidIdActivo').val();
         let data = $('#inpIdActivo').data('selected-data') || {};
 
-        if (!id && texto.length > 0) id = texto;
-
-        if (id) {
-            if (tipo == 'ISLA') {
-                mostrarCargando(true);
-                $.get('/notas-unificadas/obtener-activos-isla/' + id, function (mtms) {
-                    mostrarCargando(false);
-                    if (mtms.length > 0) {
-                        let addedCount = 0;
-                        mtms.forEach(function (m) {
-                            if (agregarFila('MTM', m.id, m.text, m.data)) {
-                                addedCount++;
-                            }
-                        });
-                        notificacion('success', 'Se agregaron ' + addedCount + ' máquinas.');
-                    } else {
-                        notificacion('error', 'La isla no tiene máquinas activas.');
-                    }
-                }).fail(function () { mostrarCargando(false); notificacion('error', 'Error al obtener isla'); });
-            } else if (tipo == 'BINGO') {
-                let data = { 'Descripción': 'Aplica a todas las sesiones / actividad general de Bingo' };
-                agregarFila(tipo, id, texto, data);
-                $('#inpIdActivo').val('');
-            } else {
-                if (!agregarFila(tipo, id, texto, data)) {
-                    notificacion('warning', 'Este activo ya está en la lista.');
-                } else {
-                    $('#inpIdActivo').val('');
-                    $('#inpIdActivo').data('selected-data', null);
-                    $('#hidIdActivo').val('');
-                }
-            }
+        function limpiar() {
+            $('#inpIdActivo').val('');
+            $('#inpIdActivo').data('selected-data', null);
+            $('#hidIdActivo').val('');
         }
+
+        // Explota una isla (ya resuelta) en sus MTMs.
+        function explotarIsla(idIsla) {
+            mostrarCargando(true);
+            $.get('/notas-unificadas/obtener-activos-isla/' + idIsla, function (mtms) {
+                mostrarCargando(false);
+                if (mtms.length > 0) {
+                    let n = 0;
+                    mtms.forEach(function (m) { if (agregarFila('MTM', m.id, m.text, m.data)) n++; });
+                    notificacion('success', 'Se agregaron ' + n + ' máquinas.');
+                } else {
+                    notificacion('error', 'La isla no tiene máquinas activas.');
+                }
+            }).fail(function () { mostrarCargando(false); notificacion('error', 'Error al obtener isla'); });
+        }
+
+        // BINGO: actividad general, no requiere validar un id real.
+        if (tipo === 'BINGO') {
+            agregarFila(tipo, idSel || 'BINGO', texto || 'Bingo (general)', { 'Descripción': 'Aplica a todas las sesiones / actividad general de Bingo' });
+            limpiar();
+            return;
+        }
+
+        // Si eligió del desplegable, el id ya es canónico/válido.
+        if (idSel) {
+            if (tipo === 'ISLA') { explotarIsla(idSel); limpiar(); return; }
+            if (!agregarFila(tipo, idSel, texto || idSel, data)) notificacion('warning', 'Este activo ya está en la lista.');
+            else limpiar();
+            return;
+        }
+
+        if (!texto) { notificacion('warning', 'Buscá y seleccioná un activo (o escribí su ID/código).'); return; }
+
+        // No eligió: RESOLVER el valor tipeado contra los datos reales. No se agregan números inventados.
+        var params = { _token: $('meta[name="csrf-token"]').attr('content'), tipo: tipo, valores: [texto] };
+        if (esPlataformaSeleccionada('#selCasino')) params.id_plataforma = $('#selCasino').val();
+        else params.id_casino = $('#selCasino').val();
+        $.post('/notas-unificadas/resolver-activos', params, function (res) {
+            if (res.resueltos && res.resueltos.length) {
+                var r = res.resueltos[0];
+                if (tipo === 'ISLA') { explotarIsla(r.id); limpiar(); return; }
+                agregarFila(tipo, r.id, r.nombre, {});
+                limpiar();
+            } else if (res.ambiguos && res.ambiguos.length) {
+                notificacion('warning', '"' + texto + '" coincide con varios; elegilo del buscador.');
+            } else {
+                notificacion('error', '"' + texto + '" no corresponde a ningún activo de este casino/plataforma.');
+            }
+        }).fail(function () { notificacion('error', 'Error al validar el activo.'); });
+    });
+
+    // Wizard — carga masiva: mostrar/ocultar textarea
+    $(document).on('click', '#wizToggleMasiva', function () {
+        $('#wizMasivaWrap').slideToggle(150);
+    });
+
+    // Wizard — carga masiva: resolver lista pegada y agregar los válidos
+    $(document).on('click', '#wizBtnResolverMasiva', function () {
+        var tipo = $('#selTipoActivo').val();
+        var raw = $('#wizMasivaText').val() || '';
+        var valores = raw.split(/[\r\n,;]+/).map(function (s) { return s.trim(); }).filter(function (s) { return s.length; });
+        if (!valores.length) { notificacion('warning', 'Pegá al menos un ID o código.'); return; }
+
+        var $btn = $(this);
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Resolviendo...');
+        var params = { _token: $('meta[name="csrf-token"]').attr('content'), tipo: tipo, valores: valores };
+        if (esPlataformaSeleccionada('#selCasino')) params.id_plataforma = $('#selCasino').val();
+        else params.id_casino = $('#selCasino').val();
+
+        $.post('/notas-unificadas/resolver-activos', params, function (res) {
+            $btn.prop('disabled', false).html('<i class="fa fa-magic"></i> Resolver y agregar');
+            var ag = 0, dup = 0;
+            (res.resueltos || []).forEach(function (r) { if (agregarFila(tipo, r.id, r.nombre, {})) ag++; else dup++; });
+            var rep = '<div style="color:#166534;"><b>' + ag + '</b> agregados' + (dup ? ' · ' + dup + ' ya estaban' : '') + '</div>';
+            if (res.no_encontrados && res.no_encontrados.length) {
+                rep += '<div style="color:#991b1b; margin-top:4px;"><b>No encontrados (' + res.no_encontrados.length + '):</b> ' + res.no_encontrados.map(escAdj).join(', ') + '</div>';
+            }
+            if (res.ambiguos && res.ambiguos.length) {
+                rep += '<div style="color:#92400e; margin-top:4px;"><b>Ambiguos (' + res.ambiguos.length + ') — elegilos del buscador:</b> ' + res.ambiguos.map(function (a) { return escAdj(a.valor); }).join(', ') + '</div>';
+            }
+            $('#wizMasivaReporte').html(rep);
+            // Dejar en el textarea solo los problemáticos
+            var problem = (res.no_encontrados || []).concat((res.ambiguos || []).map(function (a) { return a.valor; }));
+            $('#wizMasivaText').val(problem.join('\n'));
+        }).fail(function () {
+            $btn.prop('disabled', false).html('<i class="fa fa-magic"></i> Resolver y agregar');
+            notificacion('error', 'Error al resolver la lista.');
+        });
     });
 
     $('#tablaActivos').on('click', '.btn-borrar-activo', function () {
@@ -766,32 +826,25 @@ $(document).ready(function () {
         formData.append('id_nota_mkt', id_nota_mkt);
         formData.append('id_nota_fisc', id_nota_fisc);
 
-        // ===========================================
-        // ADJUNTOS MKT (Marketing)
-        // ===========================================
-        let solicitudMkt = $('#adjuntoSolicitud')[0]?.files[0];
-        if (solicitudMkt) formData.append('adjuntoSolicitud', solicitudMkt);
-
-        let diseno = $('#adjuntoDisenio')[0]?.files[0];
-        if (diseno) formData.append('adjuntoDisenio', diseno);
-
-        let bases = $('#adjuntoBases')[0]?.files[0];
-        if (bases) formData.append('adjuntoBases', bases);
-
-        let informeMkt = $('#adjuntoInformeMkt')[0]?.files[0];
-        if (informeMkt) formData.append('adjuntoInformeMkt', informeMkt);
-
-        // ===========================================
-        // ADJUNTOS FISC (Fiscalización)
-        // ===========================================
-        let solicitudFisc = $('#adjuntoSolicitudFisc')[0]?.files[0];
-        if (solicitudFisc) formData.append('adjuntoSolicitudFisc', solicitudFisc);
-
-        let varios = $('#adjuntoVarios')[0]?.files[0];
-        if (varios) formData.append('adjuntoVarios', varios);
-
-        let informeFisc = $('#adjuntoInformeFisc')[0]?.files[0];
-        if (informeFisc) formData.append('adjuntoInformeFisc', informeFisc);
+        // Adjunta TODOS los archivos de cada input (soporta selección múltiple) como inputName[].
+        function appendFiles(inputId, fieldName) {
+            var el = document.getElementById(inputId);
+            if (!el || !el.files) return;
+            for (var i = 0; i < el.files.length; i++) {
+                formData.append(fieldName + '[]', el.files[i]);
+            }
+        }
+        // MKT
+        appendFiles('adjuntoSolicitud', 'adjuntoSolicitud');
+        appendFiles('adjuntoDisenio', 'adjuntoDisenio');
+        appendFiles('adjuntoBases', 'adjuntoBases');
+        appendFiles('adjuntoInformeMkt', 'adjuntoInformeMkt');
+        appendFiles('adjuntoAnexosMkt', 'adjuntoAnexosMkt');
+        // FISC
+        appendFiles('adjuntoSolicitudFisc', 'adjuntoSolicitudFisc');
+        appendFiles('adjuntoVarios', 'adjuntoVarios');
+        appendFiles('adjuntoInformeFisc', 'adjuntoInformeFisc');
+        appendFiles('adjuntoAnexosFisc', 'adjuntoAnexosFisc');
 
         // UX: Show loading on button
         let btn = $('.btn-wizard-next');
@@ -1060,6 +1113,7 @@ $(document).ready(function () {
             id_tipo_evento_fisc: $('select[name="id_tipo_evento_fisc"]').val(),
 
             fecha_pretendida_aprobacion: $('#inpFechaPretendida').val() || '',
+            fecha_propuesta_realizacion: $('#inpFechaPropuestaReal').val() || '',
             compartir_administrador: $('#chkCompartirAdmin').is(':checked') ? 1 : 0,
             involucra_juegos: $('#chkInvolucraJuegos').is(':checked') ? 1 : 0,
             fecha_inicio_evento: $('#inpFechaInicio').val(),
@@ -1423,6 +1477,8 @@ $(document).ready(function () {
     function highlightSearch(term) {
         var escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         var regex = new RegExp('(' + escaped + ')', 'gi');
+        var reTest = new RegExp(escaped, 'i'); // no-global para .test() (evita el bug de lastIndex)
+        var marca = '<mark style="background:#fde68a; padding:0 2px; border-radius:2px;">$1</mark>';
         var cols = [3, 5, 8]; // índices 0-based: col 4, col 6, col 9
         $('#divTablaNotas tbody tr').each(function () {
             var $tds = $(this).children('td');
@@ -1430,12 +1486,34 @@ $(document).ready(function () {
                 var $td = $tds.eq(colIdx);
                 if (!$td.length) return;
                 $td.find('.label, b, strong').addBack().contents().filter(function () {
-                    return this.nodeType === 3 && regex.test(this.nodeValue);
+                    return this.nodeType === 3 && reTest.test(this.nodeValue);
                 }).each(function () {
-                    var $span = $('<span>').html(this.nodeValue.replace(regex, '<mark style="background:#fde68a; padding:0 2px; border-radius:2px;">$1</mark>'));
+                    var $span = $('<span>').html(this.nodeValue.replace(regex, marca));
                     $(this).replaceWith($span);
                 });
             });
+        });
+        // Resaltar también el "borrador" (anotación) de cada nota hija
+        $('#divTablaNotas .texto-borrador').contents().filter(function () {
+            return this.nodeType === 3 && reTest.test(this.nodeValue);
+        }).each(function () {
+            var $span = $('<span>').html(this.nodeValue.replace(regex, marca));
+            $(this).replaceWith($span);
+        });
+    }
+
+    // Si el match cae en una nota hija (p.ej. el borrador), expandir su nota padre
+    // para que el campo resaltado quede a la vista.
+    function expandirCoincidenciasEnHijas() {
+        var grupos = {};
+        $('#divTablaNotas tr.nota-hija').each(function () {
+            if ($(this).find('mark').length) {
+                grupos[$(this).data('parent-grupo')] = true;
+            }
+        });
+        Object.keys(grupos).forEach(function (grupoId) {
+            $('tr.grupo-row[data-grupo-id="' + grupoId + '"]').addClass('expanded');
+            $('tr.nota-hija[data-parent-grupo="' + grupoId + '"]').show();
         });
     }
 
@@ -1446,9 +1524,10 @@ $(document).ready(function () {
         $.get('/notas-unificadas', gridState, function (res) {
             $('#divTablaNotas').html(res.html).css('opacity', '1');
 
-            // Highlight búsqueda en la tabla
+            // Highlight búsqueda en la tabla + expandir notas padre con match en una hija (borrador)
             if (gridState.q && $.trim(gridState.q).length >= 2) {
                 highlightSearch(gridState.q);
+                expandirCoincidenciasEnHijas();
             }
 
             // Paginación estilo sistema
@@ -2033,6 +2112,7 @@ $(document).ready(function () {
         var casino = $.trim($('#selCasino option:selected').text());
         var nroNota = $('#inpNroNota').val();
         var fechaPret = $('#inpFechaPretendida').val();
+        var fechaPropReal = $('#inpFechaPropuestaReal').val();
         var fInicio = $('#inpFechaInicio').val();
         var fFin = $('#inpFechaFin').val();
         var compartir = $('#chkCompartirAdmin').is(':checked');
@@ -2060,6 +2140,7 @@ $(document).ready(function () {
         addRow('fa-building', 'Casino / Plataforma', casino);
         addRow('fa-pencil', 'Título', titulo || 'Sin título');
         addRow('fa-calendar', 'Fecha pretendida aprob.', fechaPret);
+        addRow('fa-calendar', 'Fecha propuesta realiz.', fechaPropReal);
         if (fInicio || fFin) addRow('fa-calendar', 'Fechas del evento', 'Del ' + (fInicio || '—') + ' al ' + (fFin || '—'));
         addRow('fa-share-alt', 'Compartir c/ administrador', compartir ? 'Sí' : 'No');
         addRow('fa-gamepad', 'Involucra juegos', involucra ? 'Sí' : 'No');
@@ -2094,19 +2175,25 @@ $(document).ready(function () {
             ['adjuntoDisenio', 'Diseño (MKT)'],
             ['adjuntoBases', 'Bases y Condiciones (MKT)'],
             ['adjuntoInformeMkt', 'Informe Técnico (MKT)'],
+            ['adjuntoAnexosMkt', 'Anexos (MKT)'],
             ['adjuntoSolicitudFisc', 'Solicitud Concesionario (FISC)'],
             ['adjuntoVarios', 'Archivos Varios (FISC)'],
-            ['adjuntoInformeFisc', 'Informe Técnico (FISC)']
+            ['adjuntoInformeFisc', 'Informe Técnico (FISC)'],
+            ['adjuntoAnexosFisc', 'Anexos (FISC)']
         ];
         var adjHtml = '';
+        var totalArchivos = 0;
         adjuntosMap.forEach(function (m) {
             var el = document.getElementById(m[0]);
-            if (el && el.files && el.files[0]) {
+            if (!el || !el.files || el.files.length === 0) return;
+            // Listar TODOS los archivos seleccionados de cada campo (no solo el primero)
+            for (var i = 0; i < el.files.length; i++) {
+                totalArchivos++;
                 adjHtml +=
                     '<div style="display:flex; align-items:center; padding:6px 4px; border-bottom:1px solid #f1f5f9; font-size:13px;">' +
                         '<i class="fa fa-paperclip" style="color:#10b981; width:18px;"></i>' +
                         '<span style="flex:0 0 230px; color:#475569; font-weight:600;">' + m[1] + '</span>' +
-                        '<span style="flex:1; color:#64748b; word-break:break-all;">' + esc(el.files[0].name) + '</span>' +
+                        '<span style="flex:1; color:#64748b; word-break:break-all;">' + esc(el.files[i].name) + '</span>' +
                     '</div>';
             }
         });
@@ -2114,7 +2201,7 @@ $(document).ready(function () {
             html +=
                 '<div class="panel panel-default" style="border:none; box-shadow:0 4px 10px rgba(0,0,0,0.06); border-radius:12px; margin-top:14px;">' +
                     '<div class="panel-body" style="padding:14px 18px;">' +
-                        '<h5 style="color:#94a3b8; font-weight:bold; text-transform:uppercase; font-size:11px; margin:0 0 8px;"><i class="fa fa-paperclip"></i> Adjuntos cargados</h5>' +
+                        '<h5 style="color:#94a3b8; font-weight:bold; text-transform:uppercase; font-size:11px; margin:0 0 8px;"><i class="fa fa-paperclip"></i> Archivos a subir (' + totalArchivos + ')</h5>' +
                         adjHtml +
                     '</div>' +
                 '</div>';
@@ -3088,7 +3175,7 @@ $(document).ready(function () {
         }
 
         // Replace placeholders
-        var adjuntosHtml = renderAdjuntos(nota.adjuntos, nota.id, nota.tipo_rama);
+        var adjuntosHtml = renderAdjuntos(nota.documentos, nota.id, nota.tipo_rama);
         var activosHtml = renderActivos(nota.activos);
         var comentariosHtml = renderComentarios(nota.movimientos);
         var historialHtml = renderHistorial(nota.movimientos);
@@ -3109,6 +3196,7 @@ $(document).ready(function () {
         html = sr(html, '{{fecha_inicio}}', nota.fecha_inicio || 'N/A');
         html = sr(html, '{{fecha_fin}}', nota.fecha_fin || 'N/A');
         html = sr(html, '{{fecha_pretendida_aprobacion}}', nota.fecha_pretendida_aprobacion || 'N/A');
+        html = sr(html, '{{fecha_propuesta_realizacion}}', nota.fecha_propuesta_realizacion || 'N/A');
         html = sr(html, '{{compartir_administrador}}', nota.compartir_administrador ? '1' : '0');
         html = sr(html, '{{compartir_administrador_label}}', nota.compartir_administrador ? '<span style="color:#5cb85c;"><i class="fa fa-check-circle"></i> Sí</span>' : '<span style="color:#999;"><i class="fa fa-times-circle"></i> No</span>');
         html = sr(html, '{{estado}}', nota.estado || 'INGRESADO');
@@ -3118,6 +3206,7 @@ $(document).ready(function () {
         html = sr(html, '{{id_plataforma}}', nota.id_plataforma || '');
         html = sr(html, '{{adjuntosHtml}}', adjuntosHtml);
         html = sr(html, '{{activosHtml}}', activosHtml);
+        html = sr(html, '{{activosCount}}', (nota.activos ? nota.activos.length : 0));
         html = sr(html, '{{comentariosHtml}}', comentariosHtml);
         html = sr(html, '{{historialHtml}}', historialHtml);
 
@@ -3139,11 +3228,15 @@ $(document).ready(function () {
         } else {
             // En MKT 'Tipo Evento' está borrado lógicamente; FISC sigue mostrando su Tipo Evento Técnico.
             $tmp.find('.row-tipo-evento').remove();
+            // 'Fecha propuesta de realización' es exclusiva de FISC.
+            $tmp.find('.row-fecha-propuesta').remove();
         }
         html = $tmp.html();
 
-        // Solo admin puede editar datos de nota
-        if (window.NIVEL_ESTADO !== 'admin') {
+        // Editar datos de nota: lo puede el staff admin SIEMPRE; el concesionario SOLO si la nota está en CARGA INICIAL.
+        var puedeEditarEstaNota = (window.NIVEL_ESTADO === 'admin') ||
+            (window.ES_CONCESIONARIO && nota.estado === window.ESTADO_CARGA_INICIAL);
+        if (!puedeEditarEstaNota) {
             var $tmp3 = $('<div>').html(html);
             $tmp3.find('.btn-editar-nota').remove();
             html = $tmp3.html();
@@ -3167,14 +3260,23 @@ $(document).ready(function () {
     }
 
     // Helper para estilo inline de estado
+    // Color del badge segun la columna `color` de la BD (via OPCIONES_ESTADO). Mismo criterio que NotaEstado::cssPorColor.
+    function cssPorColorEstado(color) {
+        switch (color) {
+            case 'danger': return 'background:#dc3545;color:#fff;';
+            case 'success': return 'background:#28a745;color:#fff;';
+            case 'warning':
+            case 'warning-white': return 'background:#f0ad4e;color:#fff;';
+            case 'warning-black': return 'background:#f0ad4e;color:#000;';
+            case 'info': return 'background:#5bc0de;color:#fff;';
+            default: return 'background:#5bc0de;color:#fff;';
+        }
+    }
     function getEstadoStyle(estado) {
-        if (!estado) return 'background:#999;color:#fff;';
-        if (estado.indexOf('APROBADO') !== -1) return 'background:#28a745;color:#fff;';
-        if (estado === 'VISTO CON OBSERVACIONES') return 'background:#dc3545;color:#fff;';
-        if (estado === 'VENCIDO') return 'background:#999;color:#fff;';
-        if (estado === 'CON INFORME') return 'background:#f0ad4e;color:#fff;';
-        if (estado === 'CON INFORME NEGATIVO') return 'background:#f0ad4e;color:#000;';
-        return 'background:#5bc0de;color:#fff;';
+        if (!estado) return 'background:#5bc0de;color:#fff;';
+        var color = 'default';
+        (window.OPCIONES_ESTADO || []).forEach(function (e) { if (e.descripcion === estado) color = e.color; });
+        return cssPorColorEstado(color);
     }
     // Compat: mantiene nombre viejo para no romper nada
     function getEstadoClass(estado) {
@@ -3182,38 +3284,175 @@ $(document).ready(function () {
     }
 
     // Renderizar adjuntos
-    function renderAdjuntos(adjuntos, notaId, tipoRama) {
-        if (!adjuntos) return '<p class="text-muted">No hay adjuntos</p>';
+    function escAdj(s) {
+        if (s === undefined || s === null) return '';
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
 
-        let campos = tipoRama === 'MKT'
-            ? [['solicitud', 'Solicitud', 'fa-file-pdf-o'], ['diseno', 'Diseño', ''], ['bases', 'Bases', 'fa-file-text-o'], ['informe', 'Informe', '']]
-            : [['solicitud', 'Solicitud', 'fa-file-pdf-o'], ['varios', 'Archivos Varios', 'fa-archive'], ['informe', 'Informe', 'fa-clipboard']];
+    // Render anidado: Tipo -> Documentos -> (última versión + acceso a versiones). Incluye "Anexos".
+    function renderAdjuntos(documentos, notaId, tipoRama) {
+        documentos = documentos || {};
 
-        let html = '';
-        campos.forEach(function (c) {
-            let key = c[0], label = c[1], icon = c[2];
-            let adj = adjuntos[key];
+        // Cada tipo lleva su propio color para que el encabezado sea bien distintivo.
+        var tipos = (tipoRama === 'MKT')
+            ? [['solicitud', 'Solicitud', 'fa-file-pdf-o', '#3b82f6'], ['diseno', 'Diseño', 'fa-image', '#8b5cf6'], ['bases', 'Bases', 'fa-file-text-o', '#0ea5e9'], ['informe', 'Informe', 'fa-clipboard', '#f59e0b']]
+            : [['solicitud', 'Solicitud', 'fa-file-pdf-o', '#3b82f6'], ['varios', 'Archivos Varios', 'fa-archive', '#10b981'], ['informe', 'Informe', 'fa-clipboard', '#f59e0b']];
+        tipos.push(['anexo', 'Anexos', 'fa-paperclip', '#64748b']);
 
-            if (adj && adj.existe) {
-                html += '<div style="display:flex; align-items:center; padding:8px; background:#d1fae5; border-radius:6px; margin-bottom:6px">' +
-                    '<i class="fa ' + icon + ' text-success" style="margin-right:8px; flex-shrink: 0;"></i>' +
-                    '<span style="flex:1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 10px;" title="' + adj.nombre + '">' + label + ': <strong>' + adj.nombre + '</strong></span>' +
-                    '<div style="flex-shrink: 0; display: flex; gap: 5px;">' +
-                        // FIX: Usar ruta controlada para forzar inline en vez de download
-                        '<a href="/notas-unificadas/visualizar/' + notaId + '/' + key + '" target="_blank" class="btn btn-xs btn-info" style="margin-right: 5px;" title="Ver"><i class="fa fa-eye"></i></a> ' +
-                        (window.PUEDE_ELIMINAR ? '<button class="btn btn-xs btn-danger btn-eliminar-adjunto" data-id="' + notaId + '" data-campo="path_' + key + '" title="Eliminar"><i class="fa fa-trash"></i></button>' : '') +
-                    '</div>' +
-                    '</div>';
+        var html = '';
+        tipos.forEach(function (t) {
+            var key = t[0], label = t[1], icon = t[2], color = t[3];
+            var docs = documentos[key] || [];
+            var esAnexo = (key === 'anexo');
+
+            // Cada tipo es su propio panel, con encabezado de color (¡!important para ganarle a la regla global de .panel-heading!)
+            html += '<div class="panel panel-default" style="border-radius:8px; margin-bottom:10px; border:1px solid #e2e8f0;">';
+            html += '<div class="panel-heading" style="display:flex !important; align-items:center; padding:9px 12px; background:' + color + ' !important; color:#fff !important; border-radius:8px 8px 0 0; border-bottom:none;">' +
+                '<i class="fa ' + icon + '" style="margin-right:8px; color:#fff !important; font-size:14px;"></i>' +
+                '<strong style="flex:1; font-size:13px; color:#fff !important; letter-spacing:.3px; text-transform:uppercase;">' + label + ' <span style="opacity:.85; font-weight:400; text-transform:none;">(' + docs.length + ')</span></strong>' +
+                '<button class="btn btn-xs btn-add-documento" data-nota="' + notaId + '" data-tipo="' + key + '" title="Agregar ' + (esAnexo ? 'anexo' : 'documento') + '" style="background:rgba(255,255,255,0.92) !important; color:' + color + ' !important; border:none; border-radius:5px; font-weight:600; padding:3px 9px;"><i class="fa fa-plus"></i> ' + (esAnexo ? 'Anexo' : 'Doc') + '</button>' +
+                '</div>';
+            html += '<div class="panel-body" style="padding:8px;">';
+            if (docs.length === 0) {
+                html += '<div style="padding:4px 6px; color:#9ca3af; font-size:12px; text-align:center;"><em>' + (esAnexo ? 'Sin anexos' : 'No cargado') + '</em></div>';
             } else {
-                html += '<div style="display:flex; align-items:center; padding:8px; background:#fee2e2; border-radius:6px; margin-bottom:6px">' +
-                    '<i class="fa ' + icon + ' text-muted" style="margin-right:8px"></i>' +
-                    '<span style="flex:1; color:#9ca3af">' + label + ': <em>No cargado</em></span>' +
-                    '</div>';
+                docs.forEach(function (doc) { html += renderDocumentoRow(doc, key, notaId); });
             }
+            html += '</div></div>';
         });
 
         return html;
     }
+
+    function renderDocumentoRow(doc, tipo, notaId) {
+        var ult = doc.ultima;
+        var nombreArch = ult ? (ult.nombre_original || ult.path || '') : '';
+        var esPdf = ult && /\.pdf$/i.test(nombreArch);
+        var verUrl = ult ? '/notas-unificadas/visualizar-version/' + ult.version_id : '#';
+
+        // Etiqueta principal = nombre del archivo (no "Documento N")
+        var primary = ult ? escAdj(ult.nombre_original || nombreArch) : '<em>sin archivo</em>';
+        var sub = ult ? ('v' + ult.version + (doc.cant_versiones > 1 ? ' · ' + doc.cant_versiones + ' versiones' : '')) : '';
+
+        var h = '<div class="doc-item" data-doc="' + doc.id + '" style="background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:6px 8px; margin-bottom:6px;">';
+        h += '<div style="display:flex; align-items:center;">';
+        h += '<div style="flex:1; min-width:0;">' +
+            '<div style="font-weight:600; font-size:12px; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="' + escAdj(nombreArch) + '">' + primary + '</div>' +
+            (sub ? '<div style="font-size:11px; color:#94a3b8;">' + sub + '</div>' : '') +
+            '</div>';
+        // Botones compactos
+        var bs = 'padding:2px 7px; font-size:11px; line-height:1.4;';
+        h += '<div style="flex-shrink:0; display:flex; gap:3px; margin-left:6px;">';
+        if (ult) h += '<a href="' + verUrl + '" target="_blank" class="btn btn-xs btn-info" title="Ver" style="' + bs + '"><i class="fa fa-eye"></i></a>';
+        if (esPdf && ult) h += '<button class="btn btn-xs btn-warning btn-anotar-doc" data-nota="' + notaId + '" data-tipo="' + tipo + '" data-version="' + ult.version_id + '" title="Anotar PDF" style="' + bs + '"><i class="fa fa-edit"></i></button>';
+        h += '<button class="btn btn-xs btn-default btn-nueva-version-doc" data-doc="' + doc.id + '" title="Subir nueva versión" style="' + bs + '"><i class="fa fa-upload"></i></button>';
+        if (doc.cant_versiones > 1) h += '<button class="btn btn-xs btn-default btn-ver-versiones-doc" data-doc="' + doc.id + '" title="Ver versiones" style="' + bs + '"><i class="fa fa-history"></i></button>';
+        if (window.PUEDE_ELIMINAR) h += '<button class="btn btn-xs btn-danger btn-eliminar-doc" data-doc="' + doc.id + '" title="Eliminar documento" style="' + bs + '"><i class="fa fa-trash"></i></button>';
+        h += '</div></div>';
+        h += '<div class="doc-versiones" data-doc="' + doc.id + '" style="display:none; margin-top:6px; border-top:1px solid #e2e8f0; padding-top:6px;"></div>';
+        h += '</div>'; // cierra .doc-item (sin esto, el siguiente tipo quedaba anidado adentro)
+        return h;
+    }
+
+    // Re-renderiza el panel de adjuntos a partir de la estructura documentos devuelta por el backend.
+    function refrescarAdjuntos($scope, documentos) {
+        var $content = $scope.closest('.nota-detalle-content');
+        var notaId = $content.data('nota-id');
+        var rama = $content.data('tipo-rama');
+        $content.find('.adjuntos-lista').html(renderAdjuntos(documentos, notaId, rama));
+    }
+
+    // Subida genérica vía input file temporal (documento nuevo o nueva versión).
+    function _subirArchivoVia(url, extra, $scope) {
+        var $inp = $('<input type="file" style="display:none">');
+        $('body').append($inp);
+        $inp.on('change', function () {
+            var file = this.files[0];
+            if (!file) { $inp.remove(); return; }
+            var fd = new FormData();
+            fd.append('archivo', file);
+            fd.append('_token', $('meta[name="csrf-token"]').attr('content'));
+            for (var k in extra) { if (extra.hasOwnProperty(k) && extra[k] != null) fd.append(k, extra[k]); }
+            notificacion('info', 'Subiendo archivo…');
+            $.ajax({
+                url: url, type: 'POST', data: fd, processData: false, contentType: false,
+                success: function (res) {
+                    if (res && res.success) {
+                        notificacion('success', 'Archivo subido');
+                        if ($scope) refrescarAdjuntos($scope, res.documentos);
+                    } else {
+                        notificacion('error', (res && res.msg) || 'Error al subir');
+                    }
+                },
+                error: function (xhr) {
+                    notificacion('error', (xhr.responseJSON && xhr.responseJSON.msg) || 'Error al subir (HTTP ' + xhr.status + ')');
+                },
+                complete: function () { $inp.remove(); }
+            });
+        });
+        $inp.trigger('click');
+    }
+
+    // Agregar documento (o anexo). El nombre del documento = nombre del archivo (lo pone el backend).
+    $(document).on('click', '.btn-add-documento', function () {
+        var notaId = $(this).data('nota');
+        var tipo = $(this).data('tipo');
+        _subirArchivoVia('/notas-unificadas/documentos/' + notaId + '/' + tipo, {}, $(this));
+    });
+
+    // Subir nueva versión a un documento existente
+    $(document).on('click', '.btn-nueva-version-doc', function () {
+        var docId = $(this).data('doc');
+        _subirArchivoVia('/notas-unificadas/documento/' + docId + '/version', {}, $(this));
+    });
+
+    // Eliminar documento completo (todas sus versiones)
+    $(document).on('click', '.btn-eliminar-doc', function () {
+        var docId = $(this).data('doc');
+        var $scope = $(this);
+        confirmar('Se eliminará este documento y TODAS sus versiones. ¿Continuar?', function () {
+            $.ajax({
+                url: '/notas-unificadas/documento/' + docId, type: 'DELETE',
+                data: { _token: $('meta[name="csrf-token"]').attr('content') },
+                success: function (res) {
+                    if (res && res.success) { notificacion('success', 'Documento eliminado'); refrescarAdjuntos($scope, res.documentos); }
+                    else notificacion('error', (res && res.msg) || 'Error');
+                },
+                error: function () { notificacion('error', 'Error de conexión'); }
+            });
+        }, { titulo: 'Eliminar documento', textoBoton: 'Eliminar' });
+    });
+
+    // Ver versiones de un documento (toggle inline)
+    $(document).on('click', '.btn-ver-versiones-doc', function () {
+        var docId = $(this).data('doc');
+        var $cont = $(this).closest('.nota-detalle-content').find('.doc-versiones[data-doc="' + docId + '"]');
+        if ($cont.is(':visible')) { $cont.slideUp(150); return; }
+        $cont.html('<div class="text-muted" style="font-size:11px;"><i class="fa fa-spinner fa-spin"></i> Cargando…</div>').slideDown(150);
+        $.get('/notas-unificadas/documento/' + docId + '/versiones', function (res) {
+            if (!res || !res.success) { $cont.html('<span class="text-danger" style="font-size:11px;">Error al cargar versiones</span>'); return; }
+            var h = '';
+            res.versiones.forEach(function (v) {
+                h += '<div style="display:flex; align-items:center; font-size:11px; padding:2px 0;">' +
+                    '<span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">v' + v.version + ' · ' + escAdj(v.nombre_original) + ' <span style="opacity:.6;">' + (v.created_at || '') + '</span></span>' +
+                    '<a href="/notas-unificadas/visualizar-version/' + v.version_id + '" target="_blank" class="btn btn-xs btn-info" title="Ver"><i class="fa fa-eye"></i></a>' +
+                    '</div>';
+            });
+            $cont.html(h || '<em class="text-muted" style="font-size:11px;">Sin versiones</em>');
+        });
+    });
+
+    // Anotar el documento (abre el editor PDF en su última versión)
+    $(document).on('click', '.btn-anotar-doc', function () {
+        var notaId = $(this).data('nota');
+        var tipo = $(this).data('tipo');
+        var versionId = $(this).data('version');
+        if (typeof abrirEditorPdf === 'function') {
+            abrirEditorPdf(notaId, tipo, versionId);
+        } else {
+            notificacion('error', 'Editor de anotaciones no disponible');
+        }
+    });
 
     // Renderizar activos como tabla: Tipo · Nombre · ID · Estado · % Dev · Acción.
     // El backend devuelve nombre / id_display / estado / porcentaje_devolucion uniformes
@@ -3244,17 +3483,19 @@ $(document).ready(function () {
         var html =
             '<table class="table table-condensed" style="margin:0; font-size:12px; width:100%; table-layout:fixed;">' +
                 '<colgroup>' +
-                    '<col style="width:62px;">' +
+                    '<col style="width:58px;">' +
                     '<col>' +
-                    '<col style="width:52px;">' +
-                    '<col style="width:72px;">' +
-                    '<col style="width:46px;">' +
+                    '<col style="width:50px;">' +
+                    '<col style="width:42px;">' +
+                    '<col style="width:70px;">' +
+                    '<col style="width:44px;">' +
                     (window.PUEDE_ELIMINAR ? '<col style="width:34px;">' : '') +
                 '</colgroup>' +
                 '<thead><tr style="background:#f8fafc;">' +
                     '<th style="font-size:11px; color:#64748b; padding:6px 6px;">Tipo</th>' +
                     '<th style="font-size:11px; color:#64748b; padding:6px 6px;">Nombre</th>' +
                     '<th style="font-size:11px; color:#64748b; padding:6px 4px;">ID</th>' +
+                    '<th style="font-size:11px; color:#64748b; padding:6px 4px; text-align:center;">Isla</th>' +
                     '<th style="font-size:11px; color:#64748b; padding:6px 4px;">Estado</th>' +
                     '<th style="font-size:11px; color:#64748b; padding:6px 4px;">% Dev</th>' +
                     (window.PUEDE_ELIMINAR ? '<th style="padding:6px 4px;"></th>' : '') +
@@ -3274,10 +3515,16 @@ $(document).ready(function () {
             // y dejan ancho para que ID/Estado no se rompan. El tooltip muestra el nombre completo.
             var nombreCell = '<td style="padding:6px 8px; max-width:120px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:12px;" title="' + nombre.replace(/"/g, '&quot;') + '">' + nombre + '</td>';
 
+            // Isla: solo aplica a MTM (las máquinas pertenecen a una isla). El resto muestra '—'.
+            var islaCell = (tipo === 'MTM' && act.nro_isla !== undefined && act.nro_isla !== null && act.nro_isla !== '')
+                ? '<b>' + act.nro_isla + '</b>'
+                : '<span style="color:#9ca3af;">—</span>';
+
             html += '<tr data-activo-id="' + act.id + '" style="background:' + bgRow + ';">' +
                 '<td style="padding:6px 6px; white-space:nowrap; overflow:hidden;"><span style="background:' + meta.bg + '; color:#fff; font-size:10px; font-weight:600; padding:2px 6px; border-radius:3px;"><i class="fa ' + meta.icon + '"></i> ' + (tipoLabel[tipo] || tipo) + '</span></td>' +
                 nombreCell +
                 '<td style="padding:6px 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><b>' + (act.id_display || act.id_activo || '—') + '</b></td>' +
+                '<td style="padding:6px 4px; white-space:nowrap; overflow:hidden; text-align:center;">' + islaCell + '</td>' +
                 '<td style="padding:6px 4px; white-space:nowrap; overflow:hidden;">' + estadoBadge(act.estado) + '</td>' +
                 '<td style="padding:6px 4px; white-space:nowrap; overflow:hidden;">' + pdev + '</td>' +
                 (window.PUEDE_ELIMINAR ? '<td style="padding:4px 2px; white-space:nowrap; text-align:center; position:relative;">' +
@@ -3293,6 +3540,11 @@ $(document).ready(function () {
 
         html += '</tbody></table>';
         return html;
+    }
+
+    // Mantiene el contador del título del panel sincronizado al agregar/eliminar activos.
+    function actualizarContadorActivos(count) {
+        $('.panel-activos-wrap .activos-contador').text(count);
     }
 
     // Exportar los activos (máquinas/juegos) de la nota a CSV / Excel
@@ -3497,7 +3749,7 @@ $(document).ready(function () {
                         $.get('/notas-unificadas/detalle-nota/' + notaId, function (detRes) {
                             if (detRes.success) {
                                 var nota = detRes.nota;
-                                $contenedor.find('.adjuntos-lista').html(renderAdjuntos(nota.adjuntos, nota.id, nota.tipo_rama));
+                                $contenedor.find('.adjuntos-lista').html(renderAdjuntos(nota.documentos, nota.id, nota.tipo_rama));
                                 $contenedor.find('.timeline-movimientos').html(renderHistorial(nota.movimientos));
                             }
                         });
@@ -3628,44 +3880,106 @@ $(document).ready(function () {
     });
 
     // Agregar activo a lista PENDIENTE (no guarda aún)
-    $(document).on('click', '.det-btn-agregar-activo', function () {
-        var form = $(this).closest('.activos-add-form');
-        var tipo = form.find('.det-sel-tipo-activo').val();
-        var id = form.find('.det-hid-activo').val() || form.find('.det-inp-activo').val();
-        var texto = form.find('.det-inp-activo').val();
-
-        if (!id) { notificacion('warning', 'Busque y seleccione un activo.'); return; }
-
-        // Evitar duplicados en pendientes
+    // Agrega un activo YA RESUELTO (id canónico) a la lista pendiente. Devuelve false si era duplicado.
+    function agregarPendiente(form, tipo, id, texto) {
         for (var i = 0; i < activosPendientes.length; i++) {
-            if (activosPendientes[i].tipo === tipo && activosPendientes[i].id == id) {
-                notificacion('warning', 'Ya está en la lista pendiente.');
-                return;
-            }
+            if (activosPendientes[i] && activosPendientes[i].tipo === tipo && activosPendientes[i].id == id) return false;
         }
-
         activosPendientes.push({ tipo: tipo, id: id, texto: texto });
-
-        // Render fila pendiente
         var icon = 'fa-gamepad', color = '#17a2b8';
         if (tipo === 'MTM') { icon = 'fa-desktop'; color = '#8b5cf6'; }
         else if (tipo === 'MESA') { icon = 'fa-table'; color = '#28a745'; }
         else if (tipo === 'ISLA') { icon = 'fa-sitemap'; color = '#f59e0b'; }
         else if (tipo === 'BINGO') { icon = 'fa-th'; color = '#e67e22'; }
-
         var idx = activosPendientes.length - 1;
         form.find('.det-pendientes-lista').append(
             '<div class="det-pendiente-row" data-idx="' + idx + '" style="display:flex; align-items:center; padding:6px 8px; background:#fefce8; border:1px dashed #d4a017; border-radius:4px; margin-bottom:4px;">' +
                 '<i class="fa ' + icon + '" style="color:' + color + '; margin-right:8px;"></i>' +
                 '<span style="background:' + color + '; color:#fff; font-size:10px; font-weight:600; padding:2px 7px; border-radius:3px; margin-right:8px;">' + tipo + '</span>' +
-                '<span style="flex:1; font-size:12px;">' + texto + '</span>' +
+                '<span style="flex:1; font-size:12px;">' + escAdj(texto) + '</span>' +
                 '<button class="btn btn-xs btn-default det-btn-quitar-pendiente" data-idx="' + idx + '"><i class="fa fa-times"></i></button>' +
             '</div>'
         );
-
-        form.find('.det-inp-activo').val('');
-        form.find('.det-hid-activo').val('');
         actualizarContadorPendientes(form);
+        return true;
+    }
+
+    // Scope (casino/plataforma) del form para el resolver.
+    function scopeActivos(form) {
+        return { id_casino: form.data('casino-id') || '', id_plataforma: form.data('plataforma-id') || '' };
+    }
+
+    $(document).on('click', '.det-btn-agregar-activo', function () {
+        var form = $(this).closest('.activos-add-form');
+        var tipo = form.find('.det-sel-tipo-activo').val();
+        var idSel = form.find('.det-hid-activo').val();
+        var texto = $.trim(form.find('.det-inp-activo').val());
+
+        // Si eligió del desplegable, el id ya es canónico → agregar directo.
+        if (idSel) {
+            if (agregarPendiente(form, tipo, idSel, texto || idSel)) {
+                form.find('.det-inp-activo').val(''); form.find('.det-hid-activo').val('');
+            } else { notificacion('warning', 'Ya está en la lista pendiente.'); }
+            return;
+        }
+        if (!texto) { notificacion('warning', 'Escribí o seleccioná un activo.'); return; }
+
+        // No eligió: RESOLVER el valor tipeado (id o código) contra los datos reales. Nunca se guarda texto crudo.
+        var sc = scopeActivos(form);
+        $.post('/notas-unificadas/resolver-activos', {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            tipo: tipo, id_casino: sc.id_casino, id_plataforma: sc.id_plataforma, valores: [texto]
+        }, function (res) {
+            if (res.resueltos && res.resueltos.length) {
+                var r = res.resueltos[0];
+                agregarPendiente(form, tipo, r.id, r.nombre);
+                form.find('.det-inp-activo').val(''); form.find('.det-hid-activo').val('');
+            } else if (res.ambiguos && res.ambiguos.length) {
+                notificacion('warning', '"' + texto + '" coincide con varios; elegilo del buscador.');
+            } else {
+                notificacion('error', '"' + texto + '" no corresponde a ningún activo de este casino/plataforma.');
+            }
+        }).fail(function () { notificacion('error', 'Error al resolver el activo.'); });
+    });
+
+    // Carga masiva: mostrar/ocultar el textarea
+    $(document).on('click', '.det-toggle-masiva', function () {
+        $(this).closest('.activos-add-form').find('.det-masiva-wrap').slideToggle(150);
+    });
+
+    // Carga masiva: resolver lista pegada y agregar los resueltos
+    $(document).on('click', '.det-btn-resolver-masiva', function () {
+        var form = $(this).closest('.activos-add-form');
+        var tipo = form.find('.det-sel-tipo-activo').val();
+        var raw = form.find('.det-masiva-text').val() || '';
+        var valores = raw.split(/[\r\n,;]+/).map(function (s) { return s.trim(); }).filter(function (s) { return s.length; });
+        if (!valores.length) { notificacion('warning', 'Pegá al menos un ID o código.'); return; }
+
+        var $btn = $(this);
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Resolviendo...');
+        var sc = scopeActivos(form);
+        $.post('/notas-unificadas/resolver-activos', {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            tipo: tipo, id_casino: sc.id_casino, id_plataforma: sc.id_plataforma, valores: valores
+        }, function (res) {
+            $btn.prop('disabled', false).html('<i class="fa fa-magic"></i> Resolver y agregar');
+            var agregados = 0, dup = 0;
+            (res.resueltos || []).forEach(function (r) { if (agregarPendiente(form, tipo, r.id, r.nombre)) agregados++; else dup++; });
+            var rep = '<div style="color:#166534;"><b>' + agregados + '</b> agregados' + (dup ? ' · ' + dup + ' ya estaban' : '') + '</div>';
+            if (res.no_encontrados && res.no_encontrados.length) {
+                rep += '<div style="color:#991b1b; margin-top:4px;"><b>No encontrados (' + res.no_encontrados.length + '):</b> ' + res.no_encontrados.map(escAdj).join(', ') + '</div>';
+            }
+            if (res.ambiguos && res.ambiguos.length) {
+                rep += '<div style="color:#92400e; margin-top:4px;"><b>Ambiguos (' + res.ambiguos.length + ') — elegilos del buscador:</b> ' + res.ambiguos.map(function (a) { return escAdj(a.valor); }).join(', ') + '</div>';
+            }
+            form.find('.det-masiva-reporte').html(rep);
+            // Dejar en el textarea solo los problemáticos (no encontrados + ambiguos)
+            var problem = (res.no_encontrados || []).concat((res.ambiguos || []).map(function (a) { return a.valor; }));
+            form.find('.det-masiva-text').val(problem.join('\n'));
+        }).fail(function () {
+            $btn.prop('disabled', false).html('<i class="fa fa-magic"></i> Resolver y agregar');
+            notificacion('error', 'Error al resolver la lista.');
+        });
     });
 
     // Quitar un pendiente de la lista
@@ -3708,6 +4022,7 @@ $(document).ready(function () {
                 notificacion('success', toSave.length + ' activo(s) guardado(s).');
                 var lista = form.closest('.panel-body').find('.activos-lista-detalle');
                 lista.html(renderActivos(res.activos));
+                actualizarContadorActivos((res.activos || []).length);
                 limpiarFormActivos(form);
                 form.slideUp(200);
             } else {
@@ -3758,6 +4073,7 @@ $(document).ready(function () {
                     fila.fadeOut(200, function () {
                         fila.remove();
                         lista.html(renderActivos(res.activos || []));
+                        actualizarContadorActivos((res.activos || []).length);
                     });
                     notificacion('success', 'Activo eliminado.');
                 } else {
@@ -3870,7 +4186,7 @@ $(document).ready(function () {
             let inputHtml = '';
             if (field === 'descripcion') {
                 inputHtml = '<textarea class="form-control edit-input" data-field="' + field + '" rows="2" style="font-size: 13px;">' + currentValue + '</textarea>';
-            } else if (field === 'fecha_inicio' || field === 'fecha_fin' || field === 'fecha_pretendida_aprobacion') {
+            } else if (field === 'fecha_inicio' || field === 'fecha_fin' || field === 'fecha_pretendida_aprobacion' || field === 'fecha_propuesta_realizacion') {
                 inputHtml = '<input type="date" class="form-control edit-input" data-field="' + field + '" value="' + currentValue + '" style="font-size: 13px;">';
             } else if (field === 'anio') {
                 inputHtml = '<input type="number" class="form-control edit-input" data-field="' + field + '" value="' + currentValue + '" min="2000" max="2100" step="1" style="font-size: 13px; width: 80px; display: inline-block;">';

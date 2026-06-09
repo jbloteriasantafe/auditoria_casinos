@@ -46,6 +46,40 @@ class NotaEstado extends Model
     }
 
     /**
+     * Mapea el nombre de color de la BD (default/info/warning/success/danger/...) a estilo CSS del badge.
+     * Fuente única de colores: la columna `color` de nota_estados (así un estado nuevo NO necesita tocar código).
+     */
+    public static function cssPorColor($color)
+    {
+        switch ($color) {
+            case 'danger':        return 'background:#dc3545;color:#fff;';
+            case 'success':       return 'background:#28a745;color:#fff;';
+            case 'warning':       return 'background:#f0ad4e;color:#fff;';
+            case 'warning-white': return 'background:#f0ad4e;color:#fff;';
+            case 'warning-black': return 'background:#f0ad4e;color:#000;';
+            case 'info':          return 'background:#5bc0de;color:#fff;';
+            default:              return 'background:#5bc0de;color:#fff;';
+        }
+    }
+
+    /**
+     * Estilo CSS del badge para una descripción de estado, leyendo la columna `color` de la BD.
+     * (Cacheado por request para no consultar por cada fila.)
+     */
+    public static function estilo($descripcion)
+    {
+        static $mapa = null;
+        if ($mapa === null) {
+            $mapa = [];
+            foreach (static::all() as $e) {
+                $mapa[$e->descripcion] = $e->color;
+            }
+        }
+        $color = isset($mapa[$descripcion]) ? $mapa[$descripcion] : 'default';
+        return self::cssPorColor($color);
+    }
+
+    /**
      * Transiciones permitidas para FUNCIONARIO_1
      */
     public static function transicionesFuncionario1()

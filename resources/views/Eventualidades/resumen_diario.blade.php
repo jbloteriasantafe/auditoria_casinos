@@ -325,10 +325,10 @@
   <script type="text/javascript" src="/js/bootstrap-datetimepicker.es.js" charset="UTF-8"></script>
 
   <!-- JavaScript del módulo (?v= = cache-bust: forzar al navegador a bajar la versión nueva) -->
-  <script src="/js/eventualidades/observaciones_eventualidad.js?v=6" charset="utf-8"></script>
-  <script src="/js/eventualidades/resumen_diario.js?v=5" charset="utf-8"></script>
+  <script src="/js/eventualidades/observaciones_eventualidad.js?v=7" charset="utf-8"></script>
+  <script src="/js/eventualidades/resumen_diario.js?v=6" charset="utf-8"></script>
   @if(isset($usuario) && $usuario->tienePermiso('abm_procedimientos'))
-    <script src="/js/eventualidades/abm_procedimientos.js?v=4" charset="utf-8"></script>
+    <script src="/js/eventualidades/abm_procedimientos.js?v=5" charset="utf-8"></script>
   @endif
 @endsection
 

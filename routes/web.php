@@ -357,6 +357,7 @@ Route::group(['prefix' => 'cargar-notas', 'middleware' => 'tiene_permiso:ver_car
 //! MODULO UNIFICADO DE NOTAS (NUEVO)
 Route::group(['prefix' => 'notas-unificadas', 'middleware' => 'tiene_permiso:ver_notas_unificadas'], function () {
   Route::get('/buscar-activos', 'NotasUnificadasController@buscarActivos');
+  Route::post('/resolver-activos', 'NotasUnificadasController@resolverActivos');
   Route::get('/obtener-activos-isla/{id_isla}', 'NotasUnificadasController@obtenerActivosIsla');
   Route::get('/', 'NotasUnificadasController@index');
   Route::post('/iniciar', 'NotasUnificadasController@store');
@@ -384,6 +385,12 @@ Route::get('/get-comments/{id}', 'NotasUnificadasController@getComments');
   Route::get('/versiones/{id}/{tipo}', 'NotasUnificadasController@getVersionesArchivo');
   Route::get('/visualizar-version/{idVersion}', 'NotasUnificadasController@visualizarVersion');
   Route::get('/historial-versiones/{id}/{tipo}', 'NotasUnificadasController@getHistorialVersionesAjax');
+
+  // Adjuntos multi-documento (Tipo -> Documento -> Versión + Anexos)
+  Route::post('/documentos/{idNota}/{tipo}', 'NotasUnificadasController@subirDocumento');
+  Route::post('/documento/{idDoc}/version', 'NotasUnificadasController@subirVersionDocumento');
+  Route::get('/documento/{idDoc}/versiones', 'NotasUnificadasController@getVersionesDocumento');
+  Route::delete('/documento/{idDoc}', 'NotasUnificadasController@eliminarDocumento');
 
   // Modal de Detalle/Edición
   Route::get('/detalle-grupo/{id}', 'NotasUnificadasController@getDetalleGrupo');

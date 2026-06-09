@@ -690,8 +690,8 @@
   </script>
 
   <!-- JavaScript personalizado -->
-  <script src="/js/eventualidades/observaciones_eventualidad.js?v=6" charset="utf-8"></script>
-  <script src="/js/eventualidades/index.js?v=2" charset="utf-8"></script>
+  <script src="/js/eventualidades/observaciones_eventualidad.js?v=7" charset="utf-8"></script>
+  <script src="/js/eventualidades/index.js?v=3" charset="utf-8"></script>
 
   <!-- DateTimePicker JavaScript -->
   <script type="text/javascript" src="js/bootstrap-datetimepicker.js" charset="UTF-8"></script>

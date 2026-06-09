@@ -85,7 +85,7 @@ $(document).ready(function(){
 
   $('#cargaInforme').on('fileerror', function(event, data, msg) {
     // get message
-    alert(msg);
+    avisoEv(msg);
   });
 
   $('#alertaArchivo').hide();
@@ -209,11 +209,11 @@ $('#btn-visarEventualidad').click(function(e) {
       const paginaActual = $('#herramientasPaginacion').getCurrentPage();
       $('#btn-buscarEventualidades').trigger('click', [{ page: paginaActual }]);
     } else {
-      alert('No se pudo visarla. ¿Tienes permiso?');
+      avisoEv('No se pudo visarla. ¿Tienes permiso?');
     }
     $('#modalVisarEventualidad').modal('hide');
   }).fail(() => {
-    alert('Error en la petición al servidor.');
+    avisoEv('Error en la petición al servidor.');
     $('#modalVisarEventualidad').modal('hide');
   });
 });
@@ -806,7 +806,7 @@ $(document).on('click', '.btn-continuarEvent', function () {
       });
       $('#modalCargarEventualidad').modal('show');
     })
-    .fail(function () { alert('No se pudo cargar el borrador.'); });
+    .fail(function () { avisoEv('No se pudo cargar el borrador.'); });
 });
 
 $(document).on('click', '#guardarObs', function () {

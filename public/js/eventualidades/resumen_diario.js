@@ -238,7 +238,7 @@ $(function () {
     })
     .fail(function (xhr) {
       var msg = (xhr.responseJSON && xhr.responseJSON.error) || 'No se pudo actualizar el estado.';
-      alert(msg);
+      avisoEv(msg);
     })
     .always(function () { $btn.prop('disabled', false); });
   });
@@ -325,6 +325,21 @@ $(function () {
     var html = '<ul class="list-group" style="margin-bottom:0;">';
     lista.forEach(function (ev) {
       var turno = ev.turno ? 'Turno ' + ev.turno : 'Turno —';
+      // PDF: si la eventualidad ya está firmada (2) o visada (3) y tiene archivo subido,
+      // mostramos el PDF SUBIDO (para ver la firma). Si está sólo generada (1, sin firmar),
+      // mostramos la recreación a partir de los datos.
+      var estadoEv = parseInt(ev.estado, 10);
+      var pdfUrl, pdfTitle;
+      if (estadoEv === 2 && ev.id_archivo) {
+        pdfUrl   = '/eventualidades/visualizarArchivo/firmado/' + encodeURIComponent(ev.id_archivo);
+        pdfTitle = 'VER PDF FIRMADO';
+      } else if (estadoEv === 3 && ev.id_archivo) {
+        pdfUrl   = '/eventualidades/visualizarArchivo/visado/' + encodeURIComponent(ev.id_archivo);
+        pdfTitle = 'VER PDF FIRMADO';
+      } else {
+        pdfUrl   = '/eventualidades/pdf/' + ev.id;   // sin firmar → recreación
+        pdfTitle = 'ABRIR PDF (sin firmar)';
+      }
       // Estilos inline (no via clase): el tema global resetea .btn { background:none } y, según
       // cómo se sirva el HTML, el override por clase puede no llegar. Inline garantiza el color.
       // flex + align-items:center centra verticalmente los botones en la fila (antes caían abajo).
@@ -340,11 +355,11 @@ $(function () {
             // SIN clase .btn a propósito: el tema resetea .btn { background:none } y escala los iconos
             // (.btn i { scale 1.5 }). Sin esa clase, nada en las hojas de estilo toca estos elementos
             // y los estilos inline mandan al 100%.
-            '<a href="/eventualidades/pdf/' + ev.id + '" target="_blank" ' +
+            '<a href="' + pdfUrl + '" target="_blank" ' +
                'style="display:inline-block; background:#0067b1; color:#fff; border:1px solid #005a99; ' +
                       'border-radius:3px; padding:3px 10px; font-size:12px; font-weight:bold; line-height:1.4; ' +
                       'text-decoration:none; vertical-align:middle;" ' +
-               'data-toggle="tooltip" data-placement="bottom" title="ABRIR PDF">' +
+               'data-toggle="tooltip" data-placement="bottom" title="' + pdfTitle + '">' +
               '<i class="fa fa-file-pdf-o" style="margin-right:3px;"></i>PDF' +
             '</a> ' +
             '<button type="button" class="btn-verObsDesdeResumen" ' +
@@ -424,7 +439,7 @@ $(function () {
     var texto = ($('#obsResumenTexto').val() || '').trim();
     var files = $('#obsResumenFile')[0].files;
     if (!texto && (!files || !files.length)) {
-      alert('Escribí una observación o adjuntá un archivo.');
+      avisoEv('Escribí una observación o adjuntá un archivo.');
       return;
     }
 
@@ -451,7 +466,7 @@ $(function () {
     })
     .fail(function (xhr) {
       var msg = (xhr.responseJSON && xhr.responseJSON.error) || 'No se pudo guardar.';
-      alert(msg);
+      avisoEv(msg);
     });
   });
 
@@ -470,7 +485,7 @@ $(function () {
       })
       .fail(function (xhr) {
         var msg = (xhr.responseJSON && xhr.responseJSON.error) || 'No se pudo eliminar.';
-        alert(msg);
+        avisoEv(msg);
       });
     });
   });
