@@ -385,20 +385,25 @@
             padding: 0 10px;
         }
 
-        /* Adjuntos list styling */
-        #modalDetalleTramite .adjuntos-lista>div {
-            transition: all 0.2s ease;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            padding: 10px 12px;
-            border: 1px solid #e2e8f0;
-            background: #f8fafc;
+        /* Adjuntos: cada tipo es su propio panel; sin efecto hover que mueva nada */
+        #modalDetalleTramite .adjuntos-lista>.panel {
+            margin-bottom: 10px;
             overflow: hidden;
         }
 
-        #modalDetalleTramite .adjuntos-lista>div:hover {
-            transform: translateX(3px);
-            border-color: #cbd5e1;
+        /* Wizard paso 3: dropzones en grilla flex pareja con separación (Anexos ya no "se pasea") */
+        #step3Content .row {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        #step3Content .row > [class*="col-"] {
+            margin-bottom: 15px;
+            display: flex;
+        }
+
+        #step3Content .dropzone {
+            width: 100%;
         }
 
         /* Nombre de archivo más legible */
@@ -791,6 +796,13 @@
                             id="inpFechaPretendida">
                     </div>
 
+                    <!-- FECHA PROPUESTA DE REALIZACIÓN (solo FISC) -->
+                    <div class="section-fiscalizacion wiz-field">
+                        <label class="wiz-label">Fecha propuesta de realización</label>
+                        <input type="date" class="form-control wiz-date-click" name="fecha_propuesta_realizacion"
+                            id="inpFechaPropuestaReal">
+                    </div>
+
                     <!-- COMPARTIR CON ADMINISTRADOR (solo MKT) -->
                     <div class="section-marketing wiz-field">
                         <label
@@ -892,6 +904,15 @@
                                     <button type="button" class="btn btn-primary btn-block" id="btnAgregarActivo"
                                         style="padding:6px;">Agregar</button>
                                 </div>
+                                <!-- Carga masiva: pegar lista de IDs o códigos -->
+                                <div class="col-md-12" style="margin-top:8px;">
+                                    <a href="javascript:void(0)" id="wizToggleMasiva" style="font-size:12px;"><i class="fa fa-list"></i> Pegar lista (varios IDs o códigos)</a>
+                                    <div id="wizMasivaWrap" style="display:none; margin-top:6px;">
+                                        <textarea id="wizMasivaText" class="form-control" rows="4" placeholder="Un ID o código por línea (o separados por coma)." style="font-size:12px;"></textarea>
+                                        <button type="button" class="btn btn-info btn-sm" id="wizBtnResolverMasiva" style="margin-top:6px;"><i class="fa fa-magic"></i> Resolver y agregar</button>
+                                        <div id="wizMasivaReporte" style="margin-top:6px; font-size:12px;"></div>
+                                    </div>
+                                </div>
                             </div>
                             <table class="table table-condensed table-striped" id="tablaActivos"
                                 style="margin-top:5px; font-size:12px;">
@@ -932,9 +953,9 @@
                                         style="border: 2px dashed #3b82f6; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
                                         <label style="font-weight: 600; color: #1e40af;"><i class="fa fa-file-pdf-o"></i>
                                             Solicitud Concesionario</label>
-                                        <input id="adjuntoSolicitud" name="adjuntoSolicitud" type="file" class="form-control"
-                                            accept=".pdf,.zip" style="margin-top:10px;">
-                                        <small class="text-muted">PDF o ZIP</small>
+                                        <input id="adjuntoSolicitud" name="adjuntoSolicitud[]" type="file" class="form-control"
+                                            accept=".pdf,.zip" multiple style="margin-top:10px;">
+                                        <small class="text-muted">PDF o ZIP · podés elegir varios</small>
                                     </div>
                                 </div>
                                 <!-- Diseño MKT -->
@@ -943,9 +964,9 @@
                                         style="border: 2px dashed #3b82f6; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
                                         <label style="font-weight: 600; color: #1e40af;"><i class="fa fa-image"></i> Adjunto
                                             Diseño</label>
-                                        <input id="adjuntoDisenio" name="adjuntoDisenio" type="file" class="form-control"
-                                            accept=".pdf,.zip,.jpg,.png" style="margin-top:10px;">
-                                        <small class="text-muted">PDF, ZIP, JPG, PNG</small>
+                                        <input id="adjuntoDisenio" name="adjuntoDisenio[]" type="file" class="form-control"
+                                            accept=".pdf,.zip,.jpg,.png" multiple style="margin-top:10px;">
+                                        <small class="text-muted">PDF, ZIP, JPG, PNG · podés elegir varios</small>
                                     </div>
                                 </div>
                                 <!-- Bases y Condiciones MKT -->
@@ -954,9 +975,19 @@
                                         style="border: 2px dashed #3b82f6; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
                                         <label style="font-weight: 600; color: #1e40af;"><i class="fa fa-file-text-o"></i> Bases
                                             y Condiciones</label>
-                                        <input id="adjuntoBases" name="adjuntoBases" type="file" class="form-control"
-                                            accept=".pdf,.doc,.docx,.zip" style="margin-top:10px;">
-                                        <small class="text-muted">PDF, DOC, DOCX, ZIP</small>
+                                        <input id="adjuntoBases" name="adjuntoBases[]" type="file" class="form-control"
+                                            accept=".pdf,.doc,.docx,.zip" multiple style="margin-top:10px;">
+                                        <small class="text-muted">PDF, DOC, DOCX, ZIP · podés elegir varios</small>
+                                    </div>
+                                </div>
+                                <!-- Anexos MKT (múltiples) -->
+                                <div class="col-md-4">
+                                    <div class="dropzone"
+                                        style="border: 2px dashed #64748b; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
+                                        <label style="font-weight: 600; color: #475569;"><i class="fa fa-paperclip"></i> Anexos</label>
+                                        <input id="adjuntoAnexosMkt" name="adjuntoAnexosMkt[]" type="file" class="form-control"
+                                            multiple style="margin-top:10px;">
+                                        <small class="text-muted">Uno o varios archivos</small>
                                     </div>
                                 </div>
                             </div>
@@ -978,9 +1009,9 @@
                                         style="border: 2px dashed #10b981; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
                                         <label style="font-weight: 600; color: #047857;"><i class="fa fa-file-pdf-o"></i>
                                             Solicitud Concesionario</label>
-                                        <input id="adjuntoSolicitudFisc" name="adjuntoSolicitudFisc" type="file"
-                                            class="form-control" accept=".pdf,.zip" style="margin-top:10px;">
-                                        <small class="text-muted">PDF o ZIP</small>
+                                        <input id="adjuntoSolicitudFisc" name="adjuntoSolicitudFisc[]" type="file"
+                                            class="form-control" accept=".pdf,.zip" multiple style="margin-top:10px;">
+                                        <small class="text-muted">PDF o ZIP · podés elegir varios</small>
                                     </div>
                                 </div>
                                 <!-- Archivos Varios FISC -->
@@ -989,9 +1020,19 @@
                                         style="border: 2px dashed #10b981; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
                                         <label style="font-weight: 600; color: #047857;"><i class="fa fa-archive"></i> Archivos
                                             Varios</label>
-                                        <input id="adjuntoVarios" name="adjuntoVarios" type="file" class="form-control"
-                                            accept=".zip,.rar,.pdf,.doc,.docx,.xlsx" style="margin-top:10px;">
-                                        <small class="text-muted">ZIP con todos los archivos adjuntos</small>
+                                        <input id="adjuntoVarios" name="adjuntoVarios[]" type="file" class="form-control"
+                                            accept=".zip,.rar,.pdf,.doc,.docx,.xlsx" multiple style="margin-top:10px;">
+                                        <small class="text-muted">Podés elegir varios archivos</small>
+                                    </div>
+                                </div>
+                                <!-- Anexos FISC (múltiples) -->
+                                <div class="col-md-6">
+                                    <div class="dropzone"
+                                        style="border: 2px dashed #64748b; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
+                                        <label style="font-weight: 600; color: #475569;"><i class="fa fa-paperclip"></i> Anexos</label>
+                                        <input id="adjuntoAnexosFisc" name="adjuntoAnexosFisc[]" type="file" class="form-control"
+                                            multiple style="margin-top:10px;">
+                                        <small class="text-muted">Uno o varios archivos</small>
                                     </div>
                                 </div>
                             </div>
@@ -1012,8 +1053,8 @@
                                         style="border: 2px dashed #f59e0b; border-radius: 10px; padding: 15px; text-align: center;">
                                         <label style="font-weight: 600; color: #d97706;"><i class="fa fa-file-text"></i> Informe
                                             Técnico (MKT)</label>
-                                        <input id="adjuntoInformeMkt" name="adjuntoInformeMkt" type="file" class="form-control"
-                                            accept=".pdf,.doc,.docx" style="margin-top:10px;">
+                                        <input id="adjuntoInformeMkt" name="adjuntoInformeMkt[]" type="file" class="form-control"
+                                            accept=".pdf,.doc,.docx" multiple style="margin-top:10px;">
                                     </div>
                                 </div>
                                 <div class="col-md-6 section-fiscalizacion" style="display:none;">
@@ -1021,8 +1062,8 @@
                                         style="border: 2px dashed #f59e0b; border-radius: 10px; padding: 15px; text-align: center;">
                                         <label style="font-weight: 600; color: #d97706;"><i class="fa fa-file-text"></i> Informe
                                             Técnico (FISC)</label>
-                                        <input id="adjuntoInformeFisc" name="adjuntoInformeFisc" type="file"
-                                            class="form-control" accept=".pdf,.doc,.docx" style="margin-top:10px;">
+                                        <input id="adjuntoInformeFisc" name="adjuntoInformeFisc[]" type="file"
+                                            class="form-control" accept=".pdf,.doc,.docx" multiple style="margin-top:10px;">
                                     </div>
                                 </div>
                             </div>
@@ -1092,21 +1133,27 @@
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label><i class="fa fa-file-pdf-o"></i> Solicitud Concesionario</label>
-                                            <input type="file" name="adjuntoSolicitud" class="form-control" accept=".pdf,.zip">
+                                            <input type="file" name="adjuntoSolicitud[]" class="form-control" accept=".pdf,.zip" multiple>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label><i class="fa fa-image"></i> Diseño</label>
-                                            <input type="file" name="adjuntoDisenio" class="form-control"
-                                                accept=".pdf,.zip,.jpg,.png">
+                                            <input type="file" name="adjuntoDisenio[]" class="form-control"
+                                                accept=".pdf,.zip,.jpg,.png" multiple>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label><i class="fa fa-file-text-o"></i> Bases y Condiciones</label>
-                                            <input type="file" name="adjuntoBases" class="form-control"
-                                                accept=".pdf,.doc,.docx,.zip">
+                                            <input type="file" name="adjuntoBases[]" class="form-control"
+                                                accept=".pdf,.doc,.docx,.zip" multiple>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label><i class="fa fa-paperclip"></i> Anexos</label>
+                                            <input type="file" name="adjuntoAnexos[]" class="form-control" multiple>
                                         </div>
                                     </div>
                                 </div>
@@ -1120,14 +1167,20 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label><i class="fa fa-file-pdf-o"></i> Solicitud Concesionario</label>
-                                            <input type="file" name="adjuntoSolicitud" class="form-control" accept=".pdf,.zip">
+                                            <input type="file" name="adjuntoSolicitud[]" class="form-control" accept=".pdf,.zip" multiple>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label><i class="fa fa-archive"></i> Archivos Varios (ZIP)</label>
-                                            <input type="file" name="adjuntoVarios" class="form-control"
-                                                accept=".zip,.rar,.pdf,.doc,.docx,.xlsx">
+                                            <label><i class="fa fa-archive"></i> Archivos Varios</label>
+                                            <input type="file" name="adjuntoVarios[]" class="form-control"
+                                                accept=".zip,.rar,.pdf,.doc,.docx,.xlsx" multiple>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label><i class="fa fa-paperclip"></i> Anexos</label>
+                                            <input type="file" name="adjuntoAnexos[]" class="form-control" multiple>
                                         </div>
                                     </div>
                                 </div>
@@ -1137,7 +1190,7 @@
                             <div class="row" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc;">
                                 <div class="col-md-12">
                                     <h5 style="color: #f59e0b;"><i class="fa fa-clipboard"></i> Informe Técnico (Opcional)</h5>
-                                    <input type="file" name="adjuntoInforme" class="form-control" accept=".pdf,.doc,.docx">
+                                    <input type="file" name="adjuntoInforme[]" class="form-control" accept=".pdf,.doc,.docx" multiple>
                                 </div>
                             </div>
                         </form>
@@ -1418,7 +1471,7 @@
             <script type="text/template" id="templateNotaDetalle">
                     <div class="nota-detalle-content" data-nota-id="{{id}}" data-tipo-rama="{{tipo_rama}}" data-id-casino="{{id_casino}}" data-id-plataforma="{{id_plataforma}}">
                     <div class="row">
-                        <!-- Columna Izquierda: Datos y Adjuntos -->
+                        <!-- Columna Izquierda: Datos y Máquinas/Islas (panel ancho) -->
                         <div class="col-md-7">
                             <!-- Datos Generales -->
                             <div class="panel panel-default" style="border-radius: 8px; margin-bottom: 15px;">
@@ -1439,6 +1492,7 @@
                                         <tr><td><strong>Fecha Inicio:</strong></td><td><span class="editable" data-field="fecha_inicio">{{fecha_inicio}}</span></td></tr>
                                         <tr><td><strong>Fecha Fin:</strong></td><td><span class="editable" data-field="fecha_fin">{{fecha_fin}}</span></td></tr>
                                         <tr class="row-fecha-pretendida"><td><strong>Fecha Est. Aprob.:</strong></td><td><span class="editable" data-field="fecha_pretendida_aprobacion">{{fecha_pretendida_aprobacion}}</span></td></tr>
+                                        <tr class="row-fecha-propuesta"><td><strong>Fecha prop. realiz.:</strong></td><td><span class="editable" data-field="fecha_propuesta_realizacion">{{fecha_propuesta_realizacion}}</span></td></tr>
                                         <tr class="row-compartir-admin"><td><strong>Compartir Admin.:</strong></td><td><span class="editable editable-toggle" data-field="compartir_administrador" data-value="{{compartir_administrador}}">{{compartir_administrador_label}}</span></td></tr>
                                         <tr><td><strong>Estado:</strong></td><td><span class="editable" data-field="estado" data-value="{{estado}}"><span class="label" style="{{estadoStyle}}">{{estado}}</span></span></td></tr>
                                         <tr><td><strong>Creado:</strong></td><td>{{created_at}}</td></tr>
@@ -1446,13 +1500,66 @@
                                 </div>
                             </div>
 
-                            <!-- Adjuntos -->
+                            <!-- Máquinas / Islas Asociadas (panel, columna izquierda — más ancho para los botones) -->
+                            <div class="panel panel-default panel-activos-wrap" style="border-radius: 8px; margin-bottom: 15px;">
+                                <div class="panel-heading" style="background: #8b5cf6 !important; color: white !important; border-radius: 8px 8px 0 0;">
+                                    <div><i class="fa fa-desktop"></i> <strong class="activos-titulo">Máquinas / Islas Asociadas</strong> <span class="activos-contador" style="display:inline-block; background:rgba(255,255,255,0.28); color:#fff; font-weight:700; font-size:12px; padding:1px 9px; border-radius:10px; margin-left:4px;">{{activosCount}}</span></div>
+                                    <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">
+                                        <button class="btn btn-xs btn-toggle-add-activo" data-id="{{id}}" style="background:#fff; color:#8b5cf6; border:none; border-radius:6px; font-weight:600; padding:4px 12px; box-shadow:0 1px 2px rgba(0,0,0,0.15);" onmouseover="this.style.background='#f3e8ff'" onmouseout="this.style.background='#fff'">
+                                            <i class="fa fa-plus"></i> Agregar
+                                        </button>
+                                        <button class="btn btn-xs btn-export-activos" data-id="{{id}}" data-formato="xlsx" style="background:rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.45); border-radius:6px; font-weight:600; padding:4px 11px;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" title="Exportar máquinas/juegos a Excel">
+                                            <i class="fa fa-file-excel-o"></i> Excel
+                                        </button>
+                                        <button class="btn btn-xs btn-export-activos" data-id="{{id}}" data-formato="csv" style="background:rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.45); border-radius:6px; font-weight:600; padding:4px 11px;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" title="Exportar máquinas/juegos a CSV">
+                                            <i class="fa fa-file-text-o"></i> CSV
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="panel-body" style="padding: 0;">
+                                    <div class="activos-add-form" data-nota-id="{{id}}" data-casino-id="{{id_casino}}" data-plataforma-id="{{id_plataforma}}" style="display:none; padding:10px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+                                        <select class="form-control det-sel-tipo-activo" style="margin-bottom:8px;">
+                                            <option value="MTM">Máquina (MTM)</option>
+                                            <option value="ISLA">Isla (todas las MTM)</option>
+                                            <option value="MESA">Mesa de Paño</option>
+                                            <option value="BINGO">Bingo</option>
+                                        </select>
+                                        <div class="input-group det-input-wrap">
+                                            <input type="text" class="form-control det-inp-activo" placeholder="Nro admin de la máquina..." autocomplete="off">
+                                            <input type="hidden" class="det-hid-activo">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-primary det-btn-agregar-activo"><i class="fa fa-plus"></i> Agregar a lista</button>
+                                            </span>
+                                        </div>
+                                        <div class="det-resultados-busqueda list-group" style="position:fixed; z-index:99999; max-height:250px; overflow-y:auto; display:none; box-shadow:0 8px 30px rgba(0,0,0,0.25); border:1px solid #ccc; background:#fff;"></div>
+
+                                        <!-- Carga masiva: pegar lista de IDs o códigos -->
+                                        <div style="margin-top:8px; border-top:1px dashed #e2e8f0; padding-top:8px;">
+                                            <a href="javascript:void(0)" class="det-toggle-masiva" style="font-size:12px;"><i class="fa fa-list"></i> Pegar lista (varios IDs o códigos)</a>
+                                            <div class="det-masiva-wrap" style="display:none; margin-top:6px;">
+                                                <textarea class="form-control det-masiva-text" rows="4" placeholder="Un ID o código por línea (o separados por coma). Ej:&#10;4011086&#10;4006001" style="font-size:12px;"></textarea>
+                                                <button class="btn btn-info btn-sm det-btn-resolver-masiva" style="margin-top:6px;"><i class="fa fa-magic"></i> Resolver y agregar</button>
+                                                <div class="det-masiva-reporte" style="margin-top:6px; font-size:12px;"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="det-pendientes-lista" style="margin-top:8px;"></div>
+                                        <div class="det-pendientes-actions" style="display:none; margin-top:8px; text-align:right; border-top:1px solid #e2e8f0; padding-top:8px;">
+                                            <span class="det-pendientes-count text-muted" style="float:left; line-height:30px; font-size:12px;"></span>
+                                            <button class="btn btn-default btn-sm det-btn-cancelar-activos" style="margin-right:5px;"><i class="fa fa-times"></i> Cancelar</button>
+                                            <button class="btn btn-success btn-sm det-btn-confirmar-activos"><i class="fa fa-check"></i> Confirmar</button>
+                                        </div>
+                                    </div>
+                                    <div class="activos-lista-detalle">
+                                        {{activosHtml}}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Archivos Adjuntos: panel general + un panel por cada tipo adentro -->
                             <div class="panel panel-default" style="border-radius: 8px; margin-bottom: 15px;">
                                 <div class="panel-heading" style="background: #6b7280 !important; color: white !important; border-radius: 8px 8px 0 0;">
                                     <i class="fa fa-paperclip"></i> Archivos Adjuntos
-                                    <button class="btn btn-xs btn-success pull-right btn-agregar-adj-modal" data-id="{{id}}" data-tipo-rama="{{tipo_rama}}" style="margin-top: -3px;">
-                                        <i class="fa fa-plus"></i> Agregar
-                                    </button>
                                 </div>
                                 <div class="panel-body" style="padding: 10px;">
                                     <div class="adjuntos-lista">{{adjuntosHtml}}</div>
@@ -1461,7 +1568,7 @@
 
                         </div>
 
-                        <!-- Columna Derecha: Comentarios, Historial y Activos -->
+                        <!-- Columna Derecha: Comentarios, Historial -->
                         <div class="col-md-5">
                             <!-- Comentarios (oculto para casinos/plataformas) -->
         @endverbatim
@@ -1499,50 +1606,6 @@
                             </div>
                         </div>
 
-                        <!-- Activos (FISC siempre; MKT si involucra juegos) -->
-                        <div class="panel panel-default panel-activos-wrap" style="border-radius: 8px;">
-                            <div class="panel-heading" style="background: #8b5cf6 !important; color: white !important; border-radius: 8px 8px 0 0;">
-                                <div><i class="fa fa-desktop"></i> <strong class="activos-titulo">Máquinas / Islas Asociadas</strong></div>
-                                <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">
-                                    <button class="btn btn-xs btn-toggle-add-activo" data-id="{{id}}" style="background:#fff; color:#8b5cf6; border:none; border-radius:6px; font-weight:600; padding:4px 12px; box-shadow:0 1px 2px rgba(0,0,0,0.15);" onmouseover="this.style.background='#f3e8ff'" onmouseout="this.style.background='#fff'">
-                                        <i class="fa fa-plus"></i> Agregar
-                                    </button>
-                                    <button class="btn btn-xs btn-export-activos" data-id="{{id}}" data-formato="xlsx" style="background:rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.45); border-radius:6px; font-weight:600; padding:4px 11px;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" title="Exportar máquinas/juegos a Excel">
-                                        <i class="fa fa-file-excel-o"></i> Excel
-                                    </button>
-                                    <button class="btn btn-xs btn-export-activos" data-id="{{id}}" data-formato="csv" style="background:rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.45); border-radius:6px; font-weight:600; padding:4px 11px;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" title="Exportar máquinas/juegos a CSV">
-                                        <i class="fa fa-file-text-o"></i> CSV
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="panel-body" style="padding: 0;">
-                                <div class="activos-add-form" data-nota-id="{{id}}" data-casino-id="{{id_casino}}" data-plataforma-id="{{id_plataforma}}" style="display:none; padding:10px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
-                                    <select class="form-control det-sel-tipo-activo" style="margin-bottom:8px;">
-                                        <option value="MTM">Máquina (MTM)</option>
-                                        <option value="ISLA">Isla (todas las MTM)</option>
-                                        <option value="MESA">Mesa de Paño</option>
-                                        <option value="BINGO">Bingo</option>
-                                    </select>
-                                    <div class="input-group det-input-wrap">
-                                        <input type="text" class="form-control det-inp-activo" placeholder="Nro admin de la máquina..." autocomplete="off">
-                                        <input type="hidden" class="det-hid-activo">
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-primary det-btn-agregar-activo"><i class="fa fa-plus"></i> Agregar a lista</button>
-                                        </span>
-                                    </div>
-                                    <div class="det-resultados-busqueda list-group" style="position:fixed; z-index:99999; max-height:250px; overflow-y:auto; display:none; box-shadow:0 8px 30px rgba(0,0,0,0.25); border:1px solid #ccc; background:#fff;"></div>
-                                    <div class="det-pendientes-lista" style="margin-top:8px;"></div>
-                                    <div class="det-pendientes-actions" style="display:none; margin-top:8px; text-align:right; border-top:1px solid #e2e8f0; padding-top:8px;">
-                                        <span class="det-pendientes-count text-muted" style="float:left; line-height:30px; font-size:12px;"></span>
-                                        <button class="btn btn-default btn-sm det-btn-cancelar-activos" style="margin-right:5px;"><i class="fa fa-times"></i> Cancelar</button>
-                                        <button class="btn btn-success btn-sm det-btn-confirmar-activos"><i class="fa fa-check"></i> Confirmar</button>
-                                    </div>
-                                </div>
-                                <div class="activos-lista-detalle">
-                                    {{activosHtml}}
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 </div>
@@ -1569,6 +1632,9 @@
         var PUEDE_VER_COMENTARIOS = {{ (isset($puedeVerComentarios) && $puedeVerComentarios) ? 'true' : 'false' }};
         var MUESTRA_VER_TODO = {{ (isset($muestraVerTodo) && $muestraVerTodo) ? 'true' : 'false' }};
         var CURRENT_USER_ID = {{ session('id_usuario', 0) }};
+        // Concesionario/casino: puede editar/borrar SUS notas solo en estado CARGA INICIAL.
+        var ES_CONCESIONARIO = {{ (isset($esConcesionario) && $esConcesionario) ? 'true' : 'false' }};
+        var ESTADO_CARGA_INICIAL = '{{ \App\Models\NotaEstado::CARGA_INICIAL }}';
         var OPCIONES_TIPO_EVENTO = {
             MKT: [
                 @foreach($tipos_evento as $t)

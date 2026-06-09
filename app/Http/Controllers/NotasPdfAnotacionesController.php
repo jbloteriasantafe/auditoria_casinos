@@ -21,44 +21,52 @@ class NotasPdfAnotacionesController extends Controller
 
         $pdfs = [];
 
-        $tipos = [
-            'solicitud' => ['nombre' => 'Solicitud Concesionario', 'campos' => ['path_solicitud', 'path_pautas']],
-            'diseno'    => ['nombre' => 'Diseño/Arte',             'campos' => ['path_diseno']],
-            'bases'     => ['nombre' => 'Bases y Condiciones',     'campos' => ['path_bases']],
-            'varios'    => ['nombre' => 'Archivos Varios',         'campos' => ['path_varios']],
-            'informe'   => ['nombre' => 'Informe Técnico',         'campos' => ['path_informe']],
+        $tipoNombre = [
+            'solicitud' => 'Solicitud Concesionario', 'diseno' => 'Diseño/Arte',
+            'bases' => 'Bases y Condiciones', 'varios' => 'Archivos Varios',
+            'informe' => 'Informe Técnico', 'anexo' => 'Anexo',
         ];
 
-        foreach($tipos as $tipoKey => $tipoInfo) {
-            // Mostrar solo la versión más reciente por tipo (las demás se ven dentro del editor)
-            $ultima = \App\Models\NotaArchivoVersion::where('id_nota_ingreso', $id_nota)
-                ->where('tipo_archivo', $tipoKey)
-                ->orderBy('version', 'desc')
-                ->first();
-
-            if($ultima && $this->esPdf($ultima->path_archivo)) {
+        // Modelo nuevo: una entrada por DOCUMENTO (su última versión).
+        $docs = \App\Models\NotaArchivoDocumento::where('id_nota_ingreso', $id_nota)
+            ->orderBy('tipo_archivo')->orderBy('orden')->orderBy('id')->get();
+        $tiposConDoc = [];
+        foreach ($docs as $doc) {
+            $tiposConDoc[$doc->tipo_archivo] = true;
+            $ultima = \App\Models\NotaArchivoVersion::where('id_documento', $doc->id)
+                ->orderBy('version', 'desc')->first();
+            if ($ultima && $this->esPdf($ultima->path_archivo)) {
                 $pdfs[] = [
-                    'tipo'       => $tipoKey,
-                    'version_id' => $ultima->id,
-                    'nombre'     => $tipoInfo['nombre'],
-                    'archivo'    => $ultima->nombre_original ?? basename($ultima->path_archivo),
-                    'url'        => "/notas-unificadas/visualizar-version/{$ultima->id}",
+                    'tipo'         => $doc->tipo_archivo,
+                    'id_documento' => $doc->id,
+                    'version_id'   => $ultima->id,
+                    'nombre'       => ($tipoNombre[$doc->tipo_archivo] ?? $doc->tipo_archivo) . ' — ' . ($doc->nombre ?: 'Documento'),
+                    'archivo'      => $ultima->nombre_original ?? basename($ultima->path_archivo),
+                    'url'          => "/notas-unificadas/visualizar-version/{$ultima->id}",
                 ];
-            } else {
-                // Retrocompatibilidad: notas sin historial de versiones
-                $path = null;
-                foreach($tipoInfo['campos'] as $campo) {
-                    if(!empty($nota->$campo)) { $path = $nota->$campo; break; }
-                }
-                if($path && $this->esPdf($path)) {
-                    $pdfs[] = [
-                        'tipo'       => $tipoKey,
-                        'version_id' => null,
-                        'nombre'     => $tipoInfo['nombre'],
-                        'archivo'    => basename($path),
-                        'url'        => "/notas-unificadas/visualizar/{$id_nota}/{$tipoKey}",
-                    ];
-                }
+            }
+        }
+
+        // Retrocompatibilidad: tipos con path_* pero sin documento (datos no migrados).
+        $campos = [
+            'solicitud' => ['path_solicitud', 'path_pautas'], 'diseno' => ['path_diseno'],
+            'bases' => ['path_bases'], 'varios' => ['path_varios'], 'informe' => ['path_informe'],
+        ];
+        foreach ($campos as $tipoKey => $cols) {
+            if (isset($tiposConDoc[$tipoKey])) continue;
+            $path = null;
+            foreach ($cols as $campo) {
+                if (!empty($nota->$campo)) { $path = $nota->$campo; break; }
+            }
+            if ($path && $this->esPdf($path)) {
+                $pdfs[] = [
+                    'tipo'         => $tipoKey,
+                    'id_documento' => null,
+                    'version_id'   => null,
+                    'nombre'       => $tipoNombre[$tipoKey] ?? $tipoKey,
+                    'archivo'      => basename($path),
+                    'url'          => "/notas-unificadas/visualizar/{$id_nota}/{$tipoKey}",
+                ];
             }
         }
 
@@ -137,9 +145,22 @@ class NotasPdfAnotacionesController extends Controller
             }
         }
         
-        // Versiones disponibles para este tipo (para el selector dentro del editor)
-        $versiones = \App\Models\NotaArchivoVersion::where('id_nota_ingreso', $id_nota)
-            ->where('tipo_archivo', $tipo)
+        // Documento al que pertenece la versión abierta (para scopear el selector).
+        $idDocumento = null;
+        if ($versionId) {
+            $vObj = \App\Models\NotaArchivoVersion::find($versionId);
+            $idDocumento = $vObj ? $vObj->id_documento : null;
+        }
+
+        // Versiones disponibles para el selector: del MISMO documento si se conoce;
+        // si no (legado), todas las del tipo.
+        $versionesQuery = \App\Models\NotaArchivoVersion::query();
+        if ($idDocumento) {
+            $versionesQuery->where('id_documento', $idDocumento);
+        } else {
+            $versionesQuery->where('id_nota_ingreso', $id_nota)->where('tipo_archivo', $tipo);
+        }
+        $versiones = $versionesQuery
             ->orderBy('version', 'desc')
             ->get()
             ->map(function($v) {
@@ -166,6 +187,7 @@ class NotasPdfAnotacionesController extends Controller
             ],
             'tipo_archivo'   => $tipo,
             'version_id'     => $versionId,
+            'id_documento'   => $idDocumento,
             'url'            => $url,
             'versiones'      => $versiones,
             'anotaciones'    => $anotaciones,
@@ -325,8 +347,22 @@ class NotasPdfAnotacionesController extends Controller
             // LOG DE AUDITORIA
             // Solo si se solicita explícitamente (Botón Guardar)
             $generarLog = $request->input('generar_log');
-            
-            if($generarLog == 1) {
+
+            // Red de seguridad: aunque llegue generar_log=1, no registrar el movimiento
+            // si el canvas no tiene anotaciones REALES. Los globitos de comentario llevan
+            // 'commentRef'; las anotaciones reales (flechas/rectángulos) no.
+            $tieneAnotacionesReales = false;
+            $dataAnotaciones = json_decode($json, true);
+            if (is_array($dataAnotaciones) && !empty($dataAnotaciones['objects'])) {
+                foreach ($dataAnotaciones['objects'] as $obj) {
+                    if (!isset($obj['commentRef']) || $obj['commentRef'] === null) {
+                        $tieneAnotacionesReales = true;
+                        break;
+                    }
+                }
+            }
+
+            if($generarLog == 1 && $tieneAnotacionesReales) {
                 try {
                     $nota = NotaIngreso::find($id_nota);
                     
@@ -405,16 +441,25 @@ class NotasPdfAnotacionesController extends Controller
             $folder = $folders[$tipo] ?? 'archivos_varios';
             $path = $file->storeAs($folder, $uniqueName, 'public');
 
-            // Crear versión
-            $version = \App\Models\NotaArchivoVersion::getNextVersion($nota->id, $tipo);
+            // Crear versión colgada de su documento (modelo Tipo->Documento->Versión).
+            // Si la UI manda id_documento, se respeta; si no, cae al "Documento 1" del tipo.
+            $userIdV = session('id_usuario') ?? 1;
+            $doc = $request->id_documento
+                ? \App\Models\NotaArchivoDocumento::find($request->id_documento)
+                : null;
+            if (!$doc) {
+                $doc = \App\Models\NotaArchivoDocumento::obtenerOCrearPorDefecto($nota->id, $tipo, $userIdV);
+            }
+            $version = \App\Models\NotaArchivoVersion::getNextVersion($nota->id, $tipo, $doc->id);
             $nuevaVersion = \App\Models\NotaArchivoVersion::create([
                 'id_nota_ingreso' => $nota->id,
+                'id_documento' => $doc->id,
                 'tipo_archivo' => $tipo,
                 'version' => $version,
                 'path_archivo' => $path,
                 'nombre_original' => $nombreOriginal,
                 'created_at' => \Carbon\Carbon::now(),
-                'created_by' => session('id_usuario') ?? 1
+                'created_by' => $userIdV
             ]);
 
             // Actualizar campo principal de la nota (retrocompatibilidad)

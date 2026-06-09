@@ -245,6 +245,7 @@ class ResumenDiarioController extends Controller
             ->get([
                 'ev.id_eventualidades as id',
                 'ev.estado_eventualidad as estado',
+                'ev.id_archivo',   // para servir el PDF firmado/visado subido (no la recreación)
                 DB::raw('t.nro_turno as turno'),
                 DB::raw('COALESCE(u.nombre, u.user_name, "—") as creador'),
             ]);

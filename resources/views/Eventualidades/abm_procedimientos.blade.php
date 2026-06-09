@@ -52,13 +52,12 @@
           <thead class="thead-light">
             <tr>
               <th>NOMBRE</th>
-              <th style="width:70px;">ORDEN</th>
               <th style="width:150px;">ACTIVO EN</th>
               <th style="width:110px;">ACCIÓN</th>
             </tr>
           </thead>
           <tbody id="tbodyABMProcedimientos">
-            <tr><td colspan="4" class="text-center text-muted">Cargando…</td></tr>
+            <tr><td colspan="3" class="text-center text-muted">Cargando…</td></tr>
           </tbody>
         </table>
       </div>

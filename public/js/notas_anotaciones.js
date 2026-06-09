@@ -11,10 +11,14 @@ var canvas = null;
 var currentIdNota = null;
 var currentTipoArchivo = null;
 var currentVersionId = null;
+var currentIdDocumento = null;
 var currentVersionLabel = '';
 var currentNroNota = '';
 var comentariosDB = [];
 var nextComRef = 1;
+// Flag de sesión: solo se prende ante una edición REAL de anotación (dibujar/borrar).
+// Sirve para no registrar el movimiento "Realizó anotaciones" por solo abrir/ver el PDF.
+var anotacionesModificadas = false;
 
 // ============================================
 // CARGA DIFERIDA DE LIBRERÍAS
@@ -101,6 +105,9 @@ $(document).on('click', '.pdf-selector-item', function() {
 function abrirEditorPdf(idNota, tipo, versionId) {
     currentTipoArchivo = tipo;
     currentVersionId = versionId || null;
+    anotacionesModificadas = false; // nueva sesión: aún no hubo edición real
+
+
 
     $('#modalEditorAnotaciones').modal('show');
 
@@ -128,6 +135,7 @@ function abrirEditorPdf(idNota, tipo, versionId) {
 }
 function inicializarEditor(data) {
     comentariosDB = data.comentarios || [];
+    currentIdDocumento = data.id_documento || null; // documento al que pertenece la versión abierta
 
     // Calcular siguiente número de referencia
     nextComRef = 1;
@@ -368,6 +376,7 @@ $('#btnDeleteSelected').click(function() {
     if(activeObject && !activeObject.commentRef) {
         canvas.remove(activeObject);
         canvas.renderAll();
+        anotacionesModificadas = true;
         guardarAnotacionesAutomatico();
     }
 });
@@ -586,8 +595,9 @@ function attachCanvasEvents() {
             var finalArrow = _buildArrowPath(origX, origY, pointer.x, pointer.y, true);
             canvas.add(finalArrow);
             canvas.setActiveObject(finalArrow);
-            
+
             // Guardar automáticamente
+            anotacionesModificadas = true;
             guardarAnotacionesAutomatico();
         }
         
@@ -608,6 +618,7 @@ function attachCanvasEvents() {
             });
             canvas.setActiveObject(currentShape);
             canvas.renderAll();
+            anotacionesModificadas = true;
             guardarAnotacionesAutomatico();
         }
         
@@ -1043,7 +1054,8 @@ function guardarAnotacionesPagina(pageNum, generarLog = false) {
 }
 
 $('#btnGuardarTodo').click(function() {
-    guardarAnotacionesPagina(currentPage, true); // Log Manual
+    // Solo registra el movimiento si hubo una edición real de anotación en la sesión.
+    guardarAnotacionesPagina(currentPage, anotacionesModificadas);
     notificacion('success', 'Cambios guardados correctamente.');
     $('#modalEditorAnotaciones').modal('hide');
     if(canvas) { canvas.dispose(); canvas = null; }
@@ -1051,7 +1063,8 @@ $('#btnGuardarTodo').click(function() {
 });
 
 $('#btnCerrarEditor').click(function() {
-    guardarAnotacionesPagina(currentPage, true); // Log al cerrar
+    // Solo registra el movimiento si hubo una edición real de anotación en la sesión.
+    guardarAnotacionesPagina(currentPage, anotacionesModificadas);
     $('#modalEditorAnotaciones').modal('hide');
     
     // Limpiar
@@ -1071,6 +1084,7 @@ $(document).keydown(function(e) {
         var activeObject = canvas.getActiveObject();
         if(activeObject && !activeObject.commentRef) {
             canvas.remove(activeObject);
+            anotacionesModificadas = true;
             guardarAnotacionesAutomatico();
         }
     }
@@ -1096,6 +1110,7 @@ $('#inputNuevaVersion').on('change', function() {
     formData.append('archivo', file);
     formData.append('id_nota', currentIdNota);
     formData.append('tipo_archivo', currentTipoArchivo);
+    if (currentIdDocumento) formData.append('id_documento', currentIdDocumento); // mantener la versión en el mismo documento
     formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
 
     var $btn = $('#btnSubirNuevaVersion');

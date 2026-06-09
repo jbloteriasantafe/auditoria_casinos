@@ -19,7 +19,7 @@
   function renderTabla(procedimientos, asignaciones) {
     const $tb = $('#tbodyABMProcedimientos').empty();
     if (!procedimientos.length) {
-      $tb.append('<tr><td colspan="4" class="text-center text-muted">Sin procedimientos.</td></tr>');
+      $tb.append('<tr><td colspan="3" class="text-center text-muted">Sin procedimientos.</td></tr>');
       return;
     }
     procedimientos.forEach(function (p) {
@@ -31,7 +31,6 @@
       $tb.append(
         '<tr>' +
           '<td>' + htmlEscape(p.nombre) + '</td>' +
-          '<td>' + p.orden + '</td>' +
           '<td>' + badge + '</td>' +
           '<td>' +
             '<button class="btn btn-warning btn-sm btnModificarProc" data-id="' + p.id_procedimiento + '" data-toggle="tooltip" data-placement="bottom" title="MODIFICAR"><i class="fa fa-pencil-alt"></i></button> ' +
@@ -86,7 +85,7 @@
   }
 
   function cargarData() {
-    $('#tbodyABMProcedimientos').empty().append('<tr><td colspan="4" class="text-center text-muted">Cargando…</td></tr>');
+    $('#tbodyABMProcedimientos').empty().append('<tr><td colspan="3" class="text-center text-muted">Cargando…</td></tr>');
     return $.getJSON('/eventualidades/procedimientos_abm/data')
       .done(function (res) {
         _casinosCache = res.casinos || [];
@@ -97,7 +96,7 @@
       .fail(function (xhr) {
         const msg = (xhr.responseJSON && xhr.responseJSON.error) || 'Error cargando procedimientos.';
         $('#tbodyABMProcedimientos').empty().append(
-          '<tr><td colspan="4" class="text-center text-danger">' + msg + '</td></tr>'
+          '<tr><td colspan="3" class="text-center text-danger">' + msg + '</td></tr>'
         );
       });
   }
@@ -143,7 +142,7 @@
         renderCasinosForm(res.casinos || []);
       })
       .fail(function () {
-        alert('No se pudo cargar el procedimiento.');
+        avisoEv('No se pudo cargar el procedimiento.');
         $('#modalProcedimiento').modal('hide');
       });
   }
@@ -194,7 +193,7 @@
           $('#abmAlertaNombre').text(errs.nombre[0]).show();
         } else {
           const msg = (xhr.responseJSON && xhr.responseJSON.error) || 'Error al guardar.';
-          alert(msg);
+          avisoEv(msg);
         }
       }
     });
@@ -211,7 +210,7 @@
       },
       error: function (xhr) {
         const msg = (xhr.responseJSON && xhr.responseJSON.error) || 'Error al eliminar.';
-        alert(msg);
+        avisoEv(msg);
         $('#modalEliminarProcedimiento').modal('hide');
       }
     });

@@ -9,6 +9,45 @@ if ($.fn.tooltip && $.fn.tooltip.Constructor && $.fn.tooltip.Constructor.DEFAULT
   $.fn.tooltip.Constructor.DEFAULTS.container = 'body';
 }
 
+// ---------------------------------------------------------------------
+// Modal de AVISO / ERROR reutilizable. Reemplaza al alert() nativo del
+// navegador en toda la sección Eventualidades (este archivo se carga antes
+// que index.js / resumen_diario.js / abm_procedimientos.js, así que la
+// función window.avisoEv() queda disponible para todos).
+//   avisoEv('mensaje');                          // título por defecto "Aviso"
+//   avisoEv('mensaje', { titulo: 'Error' });     // título custom
+// ---------------------------------------------------------------------
+(function () {
+  if (window.avisoEv) return;
+  function ensureModal() {
+    if (document.getElementById('modalAvisoEv')) return;
+    $('body').append(
+      '<div class="modal fade" id="modalAvisoEv" tabindex="-1" role="dialog" aria-hidden="true" style="z-index:1080;">' +
+        '<div class="modal-dialog" role="document">' +
+          '<div class="modal-content">' +
+            '<div class="modal-header">' +
+              '<button type="button" class="close" data-dismiss="modal" aria-label="Cerrar"><span aria-hidden="true">&times;</span></button>' +
+              '<h4 class="modal-title" id="modalAvisoEvTitulo">Aviso</h4>' +
+            '</div>' +
+            '<div class="modal-body"><p id="modalAvisoEvMsg" style="margin:0; white-space:pre-line;"></p></div>' +
+            '<div class="modal-footer">' +
+              '<button type="button" class="btn btn-primary" data-dismiss="modal">ENTENDIDO</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+  window.avisoEv = function (mensaje, opts) {
+    opts = opts || {};
+    ensureModal();
+    $('#modalAvisoEvTitulo').text(opts.titulo || 'Aviso');
+    $('#modalAvisoEvMsg').text(mensaje == null ? '' : String(mensaje));
+    // z-index alto para que quede por encima de un modal de formulario ya abierto.
+    $('#modalAvisoEv').css('z-index', 1080).modal('show');
+  };
+})();
+
 function htmlEscapeE(s){ return $('<div>').text(s == null ? '' : s).html(); }
 
 // Avatar del autor: la imagen va guardada como base64 en usuario.imagen (mismo método que
@@ -129,7 +168,7 @@ $(document).on('click', '#btnGuardarObsEv', function(){
   var texto = ($('#obsEvTexto').val() || '').trim();
   var files = $('#obsEvFile')[0].files;
   if (!texto && (!files || !files.length)) {
-    alert('Escribí una observación o adjuntá un archivo.');
+    avisoEv('Escribí una observación o adjuntá un archivo.');
     return;
   }
 
@@ -160,7 +199,7 @@ $(document).on('click', '#btnGuardarObsEv', function(){
   })
   .fail(function(xhr){
     var msg = (xhr.responseJSON && xhr.responseJSON.error) || 'No se pudo guardar.';
-    alert(msg);
+    avisoEv(msg);
   });
 });
 
@@ -176,9 +215,9 @@ $(document).on('click', '.btn-elimObsEv', function(){
       if (res == 1) {
         cargarObservacionesEv();
       } else {
-        alert('No se pudo eliminar.');
+        avisoEv('No se pudo eliminar.');
       }
     })
-    .fail(function(){ alert('No se pudo eliminar.'); });
+    .fail(function(){ avisoEv('No se pudo eliminar.'); });
   });
 });
