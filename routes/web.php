@@ -163,8 +163,9 @@ Route::get('inicio', function () {
   return redirect('/');
 });
 
+//Deprecado
 Route::post('enviarTicket', function (Request $request) {
-  $usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
+  /*$usuario = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
   $data = array(
     'name' => $usuario->nombre,
     'email' => $usuario->email,
@@ -193,7 +194,8 @@ Route::post('enviarTicket', function (Request $request) {
   if ($code != 201)
     return response()->json($result, 422);
   $ticket_id = (int) $result;
-  return $ticket_id;
+  return $ticket_id;*/
+  return 1;
 })->middleware(['tiene_permiso:usar_tickets']);
 
 Route::group(['prefix' => 'configCuenta'], function () {
@@ -203,6 +205,7 @@ Route::group(['prefix' => 'configCuenta'], function () {
   Route::post('modificarDatos', 'UsuarioController@modificarDatos');
   Route::get('buscarUsuario/{id_usuario}', 'UsuarioController@buscarUsuario');
   Route::get('imagen', 'UsuarioController@leerImagenUsuario');
+  Route::get('pronosticoMetereologico/{locacion?}','UsuarioController@pronosticoMetereologico');
 });
 
 Route::get('logout', 'AuthenticationController@logoutGET');

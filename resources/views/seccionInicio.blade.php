@@ -54,10 +54,11 @@ $usuario = \App\Http\Controllers\UsuarioController::getInstancia()->buscarUsuari
               echo $date;
             ?></h4>
           </div>
-          <div class="panel-body">
+          <div class="panel-body">    
             <div class="row">
-              <div class="col-lg-12">
-                <span style="margin-top:6px;"><div id="cont_1b69ec28a0054c43833bebaf9168811f"><script type="text/javascript" async src="https://www.meteored.com.ar/wid_loader/1b69ec28a0054c43833bebaf9168811f"></script></div></span>
+              <div class="col-lg-12">        
+                @component('Components.pronosticoMetereologico')
+                @endcomponent
               </div>
             </div>
           </div> <!-- panel-body -->

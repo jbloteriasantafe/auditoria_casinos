@@ -331,7 +331,7 @@ $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
       @slot('molde')
       <tr>
         <td>
-          <div data-key="totales_AÑO_MES_SEMANA_GRUPOETARIO" style="width: 100%;"></div>
+          <div data-key="estadisticas" style="width: 100%;"></div>
         </td>
       </tr>
       @endslot
