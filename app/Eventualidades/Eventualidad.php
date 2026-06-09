@@ -1,10 +1,14 @@
 <?php
 
-namespace App;
+namespace App\Eventualidades;
 
+use App\Casino;
+use App\Procedimiento;
+use App\Turno;
+use App\Usuario;
 use Illuminate\Database\Eloquent\Model;
 
-class Eventualidades extends Model
+class Eventualidad extends Model
 {
     protected $table = 'eventualidades';
     protected $primaryKey = 'id_eventualidades';
@@ -16,7 +20,6 @@ class Eventualidades extends Model
         'id_turno',
         'horario',
         'id_casino',
-        'procedimientos',
         'id_usuario_generador',
         'otros_fiscalizadores',
         'estado_eventualidad',
@@ -25,10 +28,6 @@ class Eventualidades extends Model
         'boletin_adjunto',
         'observaciones',
         'id_archivo'
-    ];
-
-    protected $casts = [
-        'procedimientos' => 'array',
     ];
 
     public function casino()
@@ -46,8 +45,15 @@ class Eventualidades extends Model
     }
     public function observaciones()
     {
-    return $this->hasMany(ObservacionEventualidades::class, 'id_eventualidades', 'id_eventualidades');
+    return $this->hasMany(Observacion::class, 'id_eventualidades', 'id_eventualidades');
     }
 
-
+    public function procedimientosRealizados()
+    {
+        return $this->belongsToMany(Procedimiento::class,
+                'eventualidad_tiene_procedimiento',
+                'id_eventualidades', 'id_procedimiento')
+            ->withPivot('estado','observacion')
+            ->orderBy('procedimiento.orden');
+    }
 }

@@ -21,11 +21,13 @@ use App\Isla; // Importar modelo Isla (Legacy)
 
 class NotasUnificadasController extends Controller
 {
-    // URL base de la API del sistema online
+    // URL base de la API del sistema online (/plataformasYJuegos)
+    // PRODUCCIÓN: 10.1.121.30:8003 con token 'ElTokenParaBruto'.
     const API_ONLINE_URL = 'http://10.1.121.30:8003/api/auditoria';
-    const API_ONLINE_TOKEN = 'TokenParaJuego';
-    // Prueba: 
-    //const API_ONLINE_URL = 'http://10.1.121.24:8004/api/auditoria';
+    const API_ONLINE_TOKEN = 'ElTokenParaBruto';
+    // Otros entornos (prueba): 10.1.121.24:8003 con token 'TokenParaJuego'
+    //const API_ONLINE_URL = 'http://10.1.121.24:8003/api/auditoria';
+    //const API_ONLINE_TOKEN = 'TokenParaJuego';
 
     /**
      * Obtener plataformas y juegos desde la API online (cacheado 1 hora)
@@ -546,7 +548,9 @@ class NotasUnificadasController extends Controller
         // Search - buscar en datos del grupo y en las notas hijas
         if ($request->has('q') && !empty($request->q)) {
             $q = $request->q;
-            $gruposQuery->where(function ($sub) use ($q) {
+            // El borrador es privado para roles privilegiados; solo ellos lo buscan/ven.
+            $verBorrador = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho;
+            $gruposQuery->where(function ($sub) use ($q, $verBorrador) {
                 $sub->where('nro_nota', 'LIKE', "%$q%")
                     ->orWhere('titulo', 'LIKE', "%$q%")
                     ->orWhereIn('id', function ($subq) use ($q) {
@@ -554,27 +558,38 @@ class NotasUnificadasController extends Controller
                             ->from('grupo_notas_aprobacion')
                             ->where('numero_documento', 'LIKE', "%$q%");
                     });
+                // También busca en el "borrador" (anotación) de cada nota hija
+                if ($verBorrador) {
+                    $sub->orWhereHas('notas', function ($qn) use ($q) {
+                        $qn->where('borrador', 'LIKE', "%$q%");
+                    });
+                }
             });
         }
 
-        // Filters
-        if ($request->has('id_plataforma') && !empty($request->id_plataforma)) {
-            $gruposQuery->where('id_plataforma', $request->id_plataforma);
-        } elseif ($request->has('id_casino') && !empty($request->id_casino)) {
-            $gruposQuery->where('id_casino', $request->id_casino);
-        }
-        // Rama (MKT / FISC)
-        if ($request->has('rama') && !empty($request->rama)) {
-            $rama = $request->rama;
-            $gruposQuery->whereHas('notas', function ($q) use ($rama) {
-                $q->where('tipo_rama', $rama);
+        // Filters — soportan selección múltiple (arrays) o valor único
+        $idCasinoFiltro = array_values(array_filter((array) $request->input('id_casino', []), 'strlen'));
+        $idPlataformaFiltro = array_values(array_filter((array) $request->input('id_plataforma', []), 'strlen'));
+        if (!empty($idCasinoFiltro) || !empty($idPlataformaFiltro)) {
+            $gruposQuery->where(function ($q) use ($idCasinoFiltro, $idPlataformaFiltro) {
+                if (!empty($idCasinoFiltro))
+                    $q->orWhereIn('id_casino', $idCasinoFiltro);
+                if (!empty($idPlataformaFiltro))
+                    $q->orWhereIn('id_plataforma', $idPlataformaFiltro);
             });
         }
-        // Estado del expediente
-        if ($request->has('estado') && !empty($request->estado)) {
-            $estado = $request->estado;
-            $gruposQuery->whereHas('notas.expedientes', function ($q) use ($estado) {
-                $q->where('estado_actual', $estado);
+        // Rama (MKT / FISC) — múltiple
+        $ramaFiltro = array_values(array_filter((array) $request->input('rama', []), 'strlen'));
+        if (!empty($ramaFiltro)) {
+            $gruposQuery->whereHas('notas', function ($q) use ($ramaFiltro) {
+                $q->whereIn('tipo_rama', $ramaFiltro);
+            });
+        }
+        // Estado del expediente — múltiple
+        $estadoFiltro = array_values(array_filter((array) $request->input('estado', []), 'strlen'));
+        if (!empty($estadoFiltro)) {
+            $gruposQuery->whereHas('notas.expedientes', function ($q) use ($estadoFiltro) {
+                $q->whereIn('estado_actual', $estadoFiltro);
             });
         }
         // Rango de fechas (fecha de carga)
@@ -607,20 +622,25 @@ class NotasUnificadasController extends Controller
                 ) ASC', [$hoy]);
             }
             if ($request->quick_filter === 'por_vencer') {
-                // Grupos con fecha_pretendida_aprobacion entre hoy y hoy+7 días (cualquier estado)
+                // Grupos con fecha estimada de aprobación (MKT) O fecha propuesta de realización (FISC)
+                // entre hoy y hoy+7 días (cualquier estado).
                 $hoy = \Carbon\Carbon::today()->toDateString();
                 $en7dias = \Carbon\Carbon::today()->addDays(7)->toDateString();
                 $gruposQuery->whereHas('notas', function ($q) use ($hoy, $en7dias) {
-                    $q->whereDate('fecha_pretendida_aprobacion', '>=', $hoy)
-                        ->whereDate('fecha_pretendida_aprobacion', '<=', $en7dias);
+                    $q->where(function ($w) use ($hoy, $en7dias) {
+                        $w->whereDate('fecha_pretendida_aprobacion', '>=', $hoy)
+                            ->whereDate('fecha_pretendida_aprobacion', '<=', $en7dias);
+                    })->orWhere(function ($w) use ($hoy, $en7dias) {
+                        $w->whereDate('fecha_propuesta_realizacion', '>=', $hoy)
+                            ->whereDate('fecha_propuesta_realizacion', '<=', $en7dias);
+                    });
                 });
-                $gruposQuery->orderByRaw('(
-                    SELECT MIN(ni.fecha_pretendida_aprobacion)
-                    FROM notas_ingreso ni
-                    WHERE ni.id_grupo = grupos_tramites.id
-                      AND ni.fecha_pretendida_aprobacion >= ?
-                      AND ni.fecha_pretendida_aprobacion <= ?
-                ) ASC', [$hoy, $en7dias]);
+                $gruposQuery->orderByRaw('LEAST(
+                    COALESCE((SELECT MIN(ni.fecha_pretendida_aprobacion) FROM notas_ingreso ni
+                        WHERE ni.id_grupo = grupos_tramites.id AND ni.fecha_pretendida_aprobacion >= ? AND ni.fecha_pretendida_aprobacion <= ?), \'9999-12-31\'),
+                    COALESCE((SELECT MIN(ni.fecha_propuesta_realizacion) FROM notas_ingreso ni
+                        WHERE ni.id_grupo = grupos_tramites.id AND ni.fecha_propuesta_realizacion >= ? AND ni.fecha_propuesta_realizacion <= ?), \'9999-12-31\')
+                ) ASC', [$hoy, $en7dias, $hoy, $en7dias]);
             }
         }
 
@@ -632,9 +652,10 @@ class NotasUnificadasController extends Controller
                 $order = 'desc';
 
             // Columnas que están en notas_ingreso, no en grupos_tramites
-            if ($sort === 'fecha_pretendida_aprobacion') {
+            if ($sort === 'fecha_pretendida_aprobacion' || $sort === 'fecha_propuesta_realizacion') {
+                $col = $sort; // ambos son literales whitelisteados (columnas de notas_ingreso)
                 $gruposQuery->orderByRaw('(
-                    SELECT MIN(ni.fecha_pretendida_aprobacion)
+                    SELECT MIN(ni.' . $col . ')
                     FROM notas_ingreso ni
                     WHERE ni.id_grupo = grupos_tramites.id
                 ) ' . $order);
@@ -693,7 +714,7 @@ class NotasUnificadasController extends Controller
         $puedeEliminarNotas = $puedeEliminar && !$usuario->es_administrador;
 
         // Comentarios: visibles para todos MENOS casinos/plataformas (regular sin rol admin)
-        $puedeVerComentarios = $esFuncionario || $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control;
+        $puedeVerComentarios = true; // Los comentarios de las notas son visibles para todos (pedido del usuario)
 
         // Editar el "borrador" (anotaciones rápidas inline por nota hija) lo pueden hacer
         // solo superusuario / administrador / auditor / despacho. Control queda excluido por pedido.
@@ -701,6 +722,21 @@ class NotasUnificadasController extends Controller
 
         // Nivel de permisos para cambio de estado: funcionario tiene prioridad sobre admin
         $esAdmin = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control;
+
+        // ¿Tiene algún rol CARGA_NOTAS_*? (casino físico o plataforma online)
+        $tieneRolCargaNotas = DB::table('usuario_tiene_rol')
+            ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
+            ->where('usuario_tiene_rol.id_usuario', $id_usuario)
+            ->where('rol.descripcion', 'LIKE', 'CARGA\_NOTAS\_%')
+            ->exists();
+        // Concesionario/casino: carga notas pero NO es staff interno ni funcionario.
+        // Habilitado a editar/borrar SUS notas mientras estén en estado CARGA INICIAL.
+        $esConcesionario = $tieneRolCargaNotas && !$esAdmin && !$esFuncionario;
+
+        // Administrador "puro": en la tabla ve "Fecha propuesta de realización" (FISC)
+        // en lugar de "Fecha Est. Aprob." (MKT).
+        $esAdministrador = $usuario->es_administrador;
+
         if ($esFuncionario1) {
             $nivelEstado = 'funcionario1';
         } elseif ($esFuncionario2) {
@@ -719,7 +755,7 @@ class NotasUnificadasController extends Controller
                 ]);
             }
             return response()->json([
-                'html' => view('Unified.tabla_notas', compact('grupos', 'notasSueltas', 'puedeEliminar', 'puedeEliminarNotas', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'verTodo', 'aprobacionesPorGrupo', 'puedeEditarBorrador'))->render(),
+                'html' => view('Unified.tabla_notas', compact('grupos', 'notasSueltas', 'puedeEliminar', 'puedeEliminarNotas', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'verTodo', 'aprobacionesPorGrupo', 'puedeEditarBorrador', 'esConcesionario', 'esAdministrador'))->render(),
                 'total' => $grupos->total(),
             ]);
         }
@@ -771,18 +807,13 @@ class NotasUnificadasController extends Controller
         // Retornar vista principal (Bandejas)
         $esAdminMails = $esAdmin;
 
-        // Puede gestionar mails: admin o cualquier rol CARGA_NOTAS_*
-        $tieneRolCargaNotas = DB::table('usuario_tiene_rol')
-            ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
-            ->where('usuario_tiene_rol.id_usuario', $id_usuario)
-            ->where('rol.descripcion', 'LIKE', 'CARGA\_NOTAS\_%')
-            ->exists();
+        // Puede gestionar mails: admin o cualquier rol CARGA_NOTAS_* (calculado arriba)
         $puedeGestionarMails = $esAdmin || $tieneRolCargaNotas;
 
         // Puede exportar: admin o funcionario
         $puedeExportar = $esAdmin || $esFuncionario;
 
-        return view('Unified.index', compact('grupos', 'notasSueltas', 'casinos', 'categorias', 'tipos_evento', 'estados', 'puedeEliminar', 'puedeEliminarNotas', 'nivelEstado', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'muestraVerTodo', 'verTodo', 'totalGrupos', 'tiposEventoMkt', 'tiposEventoFisc', 'aprobacionesPorGrupo', 'puedeVerComentarios', 'esAdminMails', 'puedeGestionarMails', 'puedeExportar', 'puedeEditarBorrador'));
+        return view('Unified.index', compact('grupos', 'notasSueltas', 'casinos', 'categorias', 'tipos_evento', 'estados', 'puedeEliminar', 'puedeEliminarNotas', 'nivelEstado', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'muestraVerTodo', 'verTodo', 'totalGrupos', 'tiposEventoMkt', 'tiposEventoFisc', 'aprobacionesPorGrupo', 'puedeVerComentarios', 'esAdminMails', 'puedeGestionarMails', 'puedeExportar', 'puedeEditarBorrador', 'esConcesionario', 'esAdministrador'));
     }
 
     /**
@@ -897,29 +928,41 @@ class NotasUnificadasController extends Controller
         // Filtros de búsqueda
         if ($request->has('q') && !empty($request->q)) {
             $q = $request->q;
-            $gruposQuery->where(function ($sub) use ($q) {
+            $verBorrador = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho;
+            $gruposQuery->where(function ($sub) use ($q, $verBorrador) {
                 $sub->where('nro_nota', 'LIKE', "%$q%")
                     ->orWhere('titulo', 'LIKE', "%$q%")
                     ->orWhereIn('id', function ($subq) use ($q) {
                         $subq->select('id_grupo')->from('grupo_notas_aprobacion')->where('numero_documento', 'LIKE', "%$q%");
                     });
+                if ($verBorrador) {
+                    $sub->orWhereHas('notas', function ($qn) use ($q) {
+                        $qn->where('borrador', 'LIKE', "%$q%");
+                    });
+                }
             });
         }
-        if ($request->has('id_plataforma') && $request->id_plataforma) {
-            $gruposQuery->where('id_plataforma', $request->id_plataforma);
-        } elseif ($request->has('id_casino') && $request->id_casino) {
-            $gruposQuery->where('id_casino', $request->id_casino);
-        }
-        if ($request->has('rama') && $request->rama) {
-            $rama = $request->rama;
-            $gruposQuery->whereHas('notas', function ($q) use ($rama) {
-                $q->where('tipo_rama', $rama);
+        // Filtros — soportan selección múltiple (arrays) o valor único
+        $idCasinoFiltro = array_values(array_filter((array) $request->input('id_casino', []), 'strlen'));
+        $idPlataformaFiltro = array_values(array_filter((array) $request->input('id_plataforma', []), 'strlen'));
+        if (!empty($idCasinoFiltro) || !empty($idPlataformaFiltro)) {
+            $gruposQuery->where(function ($q) use ($idCasinoFiltro, $idPlataformaFiltro) {
+                if (!empty($idCasinoFiltro))
+                    $q->orWhereIn('id_casino', $idCasinoFiltro);
+                if (!empty($idPlataformaFiltro))
+                    $q->orWhereIn('id_plataforma', $idPlataformaFiltro);
             });
         }
-        if ($request->has('estado') && $request->estado) {
-            $estado = $request->estado;
-            $gruposQuery->whereHas('notas.expedientes', function ($q) use ($estado) {
-                $q->where('estado_actual', $estado);
+        $ramaFiltro = array_values(array_filter((array) $request->input('rama', []), 'strlen'));
+        if (!empty($ramaFiltro)) {
+            $gruposQuery->whereHas('notas', function ($q) use ($ramaFiltro) {
+                $q->whereIn('tipo_rama', $ramaFiltro);
+            });
+        }
+        $estadoFiltro = array_values(array_filter((array) $request->input('estado', []), 'strlen'));
+        if (!empty($estadoFiltro)) {
+            $gruposQuery->whereHas('notas.expedientes', function ($q) use ($estadoFiltro) {
+                $q->whereIn('estado_actual', $estadoFiltro);
             });
         }
         if ($request->has('fecha_desde') && $request->fecha_desde) {
@@ -946,7 +989,11 @@ class NotasUnificadasController extends Controller
                 $hoy = \Carbon\Carbon::today()->toDateString();
                 $en7dias = \Carbon\Carbon::today()->addDays(7)->toDateString();
                 $gruposQuery->whereHas('notas', function ($q) use ($hoy, $en7dias) {
-                    $q->whereDate('fecha_pretendida_aprobacion', '>=', $hoy)->whereDate('fecha_pretendida_aprobacion', '<=', $en7dias);
+                    $q->where(function ($w) use ($hoy, $en7dias) {
+                        $w->whereDate('fecha_pretendida_aprobacion', '>=', $hoy)->whereDate('fecha_pretendida_aprobacion', '<=', $en7dias);
+                    })->orWhere(function ($w) use ($hoy, $en7dias) {
+                        $w->whereDate('fecha_propuesta_realizacion', '>=', $hoy)->whereDate('fecha_propuesta_realizacion', '<=', $en7dias);
+                    });
                 });
             }
         }
@@ -968,7 +1015,7 @@ class NotasUnificadasController extends Controller
         }
 
         // Determinar si puede ver comentarios
-        $puedeVerComentarios = $esFuncionario || $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control;
+        $puedeVerComentarios = true; // Los comentarios de las notas son visibles para todos (pedido del usuario)
 
         // Construir filas — una fila por cada nota hija (MKT y FISC son filas separadas)
         $rows = [];
@@ -1341,6 +1388,10 @@ class NotasUnificadasController extends Controller
                 if ($tipo_rama === 'MKT' && $request->fecha_pretendida_aprobacion) {
                     $nota->fecha_pretendida_aprobacion = $request->fecha_pretendida_aprobacion;
                 }
+                // Fecha propuesta de realización: equivalente FISC de la fecha estimada de aprobación
+                if ($tipo_rama === 'FISC' && $request->fecha_propuesta_realizacion) {
+                    $nota->fecha_propuesta_realizacion = $request->fecha_propuesta_realizacion;
+                }
                 if ($tipo_rama === 'MKT') {
                     $nota->compartir_administrador = $request->compartir_administrador ? 1 : 0;
                     $nota->involucra_juegos = $request->involucra_juegos ? 1 : 0;
@@ -1568,6 +1619,107 @@ class NotasUnificadasController extends Controller
         return response()->json($resultados);
     }
 
+    /**
+     * Resolver una lista de IDs/códigos tipeados o pegados a su ID canónico (carga masiva o alta directa).
+     * Acepta tanto el id como el código de cada activo; nunca guarda un valor sin resolver.
+     * Devuelve { resueltos:[{valor,id,nombre}], no_encontrados:[valor], ambiguos:[{valor,opciones:[{id,nombre,cod}]}] }
+     */
+    public function resolverActivos(Request $request)
+    {
+        $tipo = strtoupper((string) $request->tipo);
+        $idCasino = $request->id_casino;
+        $idPlataforma = $request->id_plataforma;
+        $valores = $request->valores ?: [];
+        if (!is_array($valores))
+            $valores = preg_split('/[\r\n,;]+/', (string) $valores); // por si llega como texto pegado
+
+        // normalizar: trim, sin vacíos, únicos
+        $valores = array_values(array_unique(array_filter(array_map(function ($v) {
+            return trim((string) $v);
+        }, $valores), 'strlen')));
+
+        $resueltos = [];
+        $noEncontrados = [];
+        $ambiguos = [];
+
+        $esNum = function ($v) { return preg_match('/^\d+$/', (string) $v) === 1; };
+
+        if ($tipo === 'JUEGO_ONLINE') {
+            // Juegos de la plataforma de la nota (acota colisiones id/código a esa plataforma)
+            $juegos = [];
+            foreach (self::obtenerDatosOnline() as $plat) {
+                if ($plat->id_plataforma == $idPlataforma && isset($plat->juegos)) {
+                    $juegos = $plat->juegos;
+                    break;
+                }
+            }
+            foreach ($valores as $v) {
+                $matches = [];
+                foreach ($juegos as $j) {
+                    if (($esNum($v) && (int) $j->id_juego === (int) $v) || (string) ($j->cod_juego ?? '') === (string) $v) {
+                        $matches[$j->id_juego] = ['id' => $j->id_juego, 'nombre' => $j->nombre_juego, 'cod' => $j->cod_juego ?? null];
+                    }
+                }
+                $this->clasificarResolucion($v, array_values($matches), $resueltos, $noEncontrados, $ambiguos);
+            }
+        } elseif ($tipo === 'MTM') {
+            foreach ($valores as $v) {
+                $rows = \App\Maquina::where('id_casino', $idCasino)
+                    ->where(function ($w) use ($v, $esNum) {
+                        $w->where('nro_admin', $v);
+                        if ($esNum($v)) $w->orWhere('id_maquina', (int) $v);
+                    })->get();
+                $matches = $rows->keyBy('id_maquina')->map(function ($m) {
+                    return ['id' => $m->id_maquina, 'nombre' => 'MTM ' . $m->nro_admin . ' - ' . $m->marca, 'cod' => $m->nro_admin];
+                })->values()->all();
+                $this->clasificarResolucion($v, $matches, $resueltos, $noEncontrados, $ambiguos);
+            }
+        } elseif ($tipo === 'MESA') {
+            foreach ($valores as $v) {
+                $rows = \App\Mesas\Mesa::where('id_casino', $idCasino)
+                    ->where(function ($w) use ($v, $esNum) {
+                        $w->where('nro_mesa', $v);
+                        if ($esNum($v)) $w->orWhere('id_mesa_de_panio', (int) $v);
+                    })->with('juego')->get();
+                $matches = $rows->keyBy('id_mesa_de_panio')->map(function ($m) {
+                    return ['id' => $m->id_mesa_de_panio, 'nombre' => 'Mesa ' . $m->nro_mesa, 'cod' => $m->nro_mesa];
+                })->values()->all();
+                $this->clasificarResolucion($v, $matches, $resueltos, $noEncontrados, $ambiguos);
+            }
+        } elseif ($tipo === 'ISLA') {
+            foreach ($valores as $v) {
+                $rows = \App\Isla::where('id_casino', $idCasino)
+                    ->where(function ($w) use ($v, $esNum) {
+                        $w->where('nro_isla', $v);
+                        if ($esNum($v)) $w->orWhere('id_isla', (int) $v);
+                    })->get();
+                $matches = $rows->keyBy('id_isla')->map(function ($i) {
+                    return ['id' => $i->id_isla, 'nombre' => 'Isla ' . $i->nro_isla, 'cod' => $i->nro_isla];
+                })->values()->all();
+                $this->clasificarResolucion($v, $matches, $resueltos, $noEncontrados, $ambiguos);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'resueltos' => $resueltos,
+            'no_encontrados' => $noEncontrados,
+            'ambiguos' => $ambiguos,
+        ]);
+    }
+
+    /** Clasifica las coincidencias de un valor en resuelto / no_encontrado / ambiguo. */
+    private function clasificarResolucion($valor, array $matches, array &$resueltos, array &$noEncontrados, array &$ambiguos)
+    {
+        if (count($matches) === 0) {
+            $noEncontrados[] = $valor;
+        } elseif (count($matches) === 1) {
+            $resueltos[] = ['valor' => $valor, 'id' => $matches[0]['id'], 'nombre' => $matches[0]['nombre']];
+        } else {
+            $ambiguos[] = ['valor' => $valor, 'opciones' => $matches];
+        }
+    }
+
     public function obtenerActivosIsla($id_isla)
     {
         $mtms = \App\Maquina::where('id_isla', $id_isla)
@@ -1642,43 +1794,26 @@ class NotasUnificadasController extends Controller
             // ===================================================
             // ! GUARDAR ADJUNTOS MKT (Marketing)
             // ===================================================
-            // Helper para registrar versión (reutilizado en ambas ramas)
-            $crearVersion = function ($nota, $tipo, $path, $nombreOriginal) {
-                $v = \App\Models\NotaArchivoVersion::getNextVersion($nota->id, $tipo);
-                \App\Models\NotaArchivoVersion::create([
-                    'id_nota_ingreso' => $nota->id,
-                    'tipo_archivo' => $tipo,
-                    'version' => $v,
-                    'path_archivo' => $path,
-                    'nombre_original' => $nombreOriginal,
-                    'created_at' => \Carbon\Carbon::now(),
-                    'created_by' => session('id_usuario') ?? 1,
-                ]);
+            // Procesa un input (posiblemente con varios archivos) creando UN DOCUMENTO por archivo.
+            $procesar = function ($nota, $inputName, $tipo) use ($request) {
+                if (!$request->hasFile($inputName)) return;
+                $files = $request->file($inputName);
+                if (!is_array($files)) $files = [$files]; // soporta input simple o múltiple
+                foreach ($files as $f) {
+                    if ($f && $f->isValid()) {
+                        $this->crearDocumentoConArchivo($nota, $tipo, $f);
+                    }
+                }
             };
 
             if ($id_nota_mkt && is_numeric($id_nota_mkt)) {
                 $notaMkt = NotaIngreso::find($id_nota_mkt);
                 if ($notaMkt) {
-                    if ($request->hasFile('adjuntoSolicitud') && $request->file('adjuntoSolicitud')->isValid()) {
-                        $f = $request->file('adjuntoSolicitud');
-                        $notaMkt->path_solicitud = $p = $storeFile($f, 'solicitudes');
-                        $crearVersion($notaMkt, 'solicitud', $p, $f->getClientOriginalName());
-                    }
-                    if ($request->hasFile('adjuntoDisenio') && $request->file('adjuntoDisenio')->isValid()) {
-                        $f = $request->file('adjuntoDisenio');
-                        $notaMkt->path_diseno = $p = $storeFile($f, 'disenos');
-                        $crearVersion($notaMkt, 'diseno', $p, $f->getClientOriginalName());
-                    }
-                    if ($request->hasFile('adjuntoBases') && $request->file('adjuntoBases')->isValid()) {
-                        $f = $request->file('adjuntoBases');
-                        $notaMkt->path_bases = $p = $storeFile($f, 'bases');
-                        $crearVersion($notaMkt, 'bases', $p, $f->getClientOriginalName());
-                    }
-                    if ($request->hasFile('adjuntoInformeMkt') && $request->file('adjuntoInformeMkt')->isValid()) {
-                        $f = $request->file('adjuntoInformeMkt');
-                        $notaMkt->path_informe = $p = $storeFile($f, 'informes');
-                        $crearVersion($notaMkt, 'informe', $p, $f->getClientOriginalName());
-                    }
+                    $procesar($notaMkt, 'adjuntoSolicitud', 'solicitud');
+                    $procesar($notaMkt, 'adjuntoDisenio', 'diseno');
+                    $procesar($notaMkt, 'adjuntoBases', 'bases');
+                    $procesar($notaMkt, 'adjuntoInformeMkt', 'informe');
+                    $procesar($notaMkt, 'adjuntoAnexosMkt', 'anexo');
                     $notaMkt->save();
                     \Log::info("MKT Files Saved for Note " . $notaMkt->id);
                 }
@@ -1690,21 +1825,10 @@ class NotasUnificadasController extends Controller
             if ($id_nota_fisc && is_numeric($id_nota_fisc)) {
                 $notaFisc = NotaIngreso::find($id_nota_fisc);
                 if ($notaFisc) {
-                    if ($request->hasFile('adjuntoSolicitudFisc') && $request->file('adjuntoSolicitudFisc')->isValid()) {
-                        $f = $request->file('adjuntoSolicitudFisc');
-                        $notaFisc->path_solicitud = $p = $storeFile($f, 'solicitudes');
-                        $crearVersion($notaFisc, 'solicitud', $p, $f->getClientOriginalName());
-                    }
-                    if ($request->hasFile('adjuntoVarios') && $request->file('adjuntoVarios')->isValid()) {
-                        $f = $request->file('adjuntoVarios');
-                        $notaFisc->path_varios = $p = $storeFile($f, 'archivos_varios');
-                        $crearVersion($notaFisc, 'varios', $p, $f->getClientOriginalName());
-                    }
-                    if ($request->hasFile('adjuntoInformeFisc') && $request->file('adjuntoInformeFisc')->isValid()) {
-                        $f = $request->file('adjuntoInformeFisc');
-                        $notaFisc->path_informe = $p = $storeFile($f, 'informes');
-                        $crearVersion($notaFisc, 'informe', $p, $f->getClientOriginalName());
-                    }
+                    $procesar($notaFisc, 'adjuntoSolicitudFisc', 'solicitud');
+                    $procesar($notaFisc, 'adjuntoVarios', 'varios');
+                    $procesar($notaFisc, 'adjuntoInformeFisc', 'informe');
+                    $procesar($notaFisc, 'adjuntoAnexosFisc', 'anexo');
                     $notaFisc->save();
                     \Log::info("FISC Files Saved for Note " . $notaFisc->id);
                 }
@@ -1770,49 +1894,26 @@ class NotasUnificadasController extends Controller
         };
 
         try {
-            // Mapeo de campos de formulario a campos de BD
-            $camposArchivos = [
-                'adjuntoSolicitud' => ['campo' => 'path_solicitud', 'folder' => 'solicitudes', 'tipo' => 'solicitud'],
-                'adjuntoDisenio' => ['campo' => 'path_diseno', 'folder' => 'disenos', 'tipo' => 'diseno'],
-                'adjuntoBases' => ['campo' => 'path_bases', 'folder' => 'bases', 'tipo' => 'bases'],
-                'adjuntoInforme' => ['campo' => 'path_informe', 'folder' => 'informes', 'tipo' => 'informe'],
-                'adjuntoVarios' => ['campo' => 'path_varios', 'folder' => 'archivos_varios', 'tipo' => 'varios']
+            // Cada input (posiblemente con varios archivos) crea UN DOCUMENTO por archivo.
+            $mapa = [
+                'adjuntoSolicitud' => 'solicitud',
+                'adjuntoDisenio'   => 'diseno',
+                'adjuntoBases'     => 'bases',
+                'adjuntoInforme'   => 'informe',
+                'adjuntoVarios'    => 'varios',
+                'adjuntoAnexos'    => 'anexo',
             ];
 
             $archivosSubidos = [];
-
-            foreach ($camposArchivos as $inputName => $config) {
-                if ($request->hasFile($inputName) && $request->file($inputName)->isValid()) {
-                    $file = $request->file($inputName);
-                    $nombreOriginal = $file->getClientOriginalName();
-                    $campo = $config['campo'];
-                    $tipoArchivo = $config['tipo'];
-
-                    // Guardar archivo físicamente
-                    $path = $storeFile($file, $config['folder']);
-
-                    // Guardar versión en tabla de versiones
-                    $version = \App\Models\NotaArchivoVersion::getNextVersion($nota->id, $tipoArchivo);
-                    \App\Models\NotaArchivoVersion::create([
-                        'id_nota_ingreso' => $nota->id,
-                        'tipo_archivo' => $tipoArchivo,
-                        'version' => $version,
-                        'path_archivo' => $path,
-                        'nombre_original' => $nombreOriginal,
-                        'created_at' => \Carbon\Carbon::now(),
-                        'created_by' => $userId
-                    ]);
-
-                    // Determinar si es reemplazo o nuevo
-                    $accion = !empty($nota->$campo) ? 'ADJUNTO_REEMPLAZADO' : 'ADJUNTO_AGREGADO';
-
-                    // Actualizar campo principal (para retrocompatibilidad)
-                    $nota->$campo = $path;
-
-                    // Registrar movimiento
-                    $logMovimiento($nota, $campo, "$nombreOriginal (v$version)", $accion);
-
-                    $archivosSubidos[] = "$nombreOriginal (v$version)";
+            foreach ($mapa as $inputName => $tipoArchivo) {
+                if (!$request->hasFile($inputName)) continue;
+                $files = $request->file($inputName);
+                if (!is_array($files)) $files = [$files]; // soporta input simple o múltiple
+                foreach ($files as $file) {
+                    if (!$file || !$file->isValid()) continue;
+                    $doc = $this->crearDocumentoConArchivo($nota, $tipoArchivo, $file);
+                    $this->logMovimientoAdjunto($nota, 'ADJUNTO_AGREGADO', $tipoArchivo, $doc->nombre, $file->getClientOriginalName());
+                    $archivosSubidos[] = $file->getClientOriginalName();
                 }
             }
 
@@ -2228,15 +2329,163 @@ class NotasUnificadasController extends Controller
         return ($u->es_superusuario || $u->es_auditor || $u->es_despacho || $u->es_control) && !$u->es_administrador;
     }
 
+    /**
+     * Devuelve el modelo del usuario logueado (o null).
+     */
+    private function usuarioActual()
+    {
+        $id = session('id_usuario');
+        if (!$id)
+            return null;
+        $data = UsuarioController::getInstancia()->buscarUsuario($id);
+        return isset($data['usuario']) ? $data['usuario'] : null;
+    }
+
+    /**
+     * ¿El usuario es un concesionario/casino/plataforma? = tiene algún rol CARGA_NOTAS_*
+     * y NO es staff interno (super/admin/auditor/despacho/control) ni funcionario.
+     */
+    private function esConcesionarioActual($u = null)
+    {
+        $u = $u ?: $this->usuarioActual();
+        if (!$u)
+            return false;
+        $esStaff = $u->es_superusuario || $u->es_administrador || $u->es_auditor || $u->es_despacho || $u->es_control;
+        $esFunc = $u->tieneRol('FUNCIONARIO_1') || $u->tieneRol('FUNCIONARIO_2');
+        if ($esStaff || $esFunc)
+            return false;
+        return DB::table('usuario_tiene_rol')
+            ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
+            ->where('usuario_tiene_rol.id_usuario', $u->id_usuario)
+            ->where('rol.descripcion', 'LIKE', 'CARGA\_NOTAS\_%')
+            ->exists();
+    }
+
+    /**
+     * Casinos y plataformas a las que el usuario tiene acceso (su "scope").
+     * Devuelve [arrayCasinoIds, arrayPlataformaIds]. Misma lógica que index().
+     */
+    private function casinosPlataformasPermitidos($u)
+    {
+        $casinos = [];
+        $plataformas = [];
+        if (!$u)
+            return [$casinos, $plataformas];
+
+        $roles = DB::table('usuario_tiene_rol')
+            ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
+            ->where('usuario_tiene_rol.id_usuario', $u->id_usuario)
+            ->where('rol.descripcion', 'LIKE', 'CARGA\_NOTAS\_%')
+            ->pluck('rol.descripcion')
+            ->toArray();
+
+        if (in_array('CARGA_NOTAS_UNIFICADAS', $roles)) {
+            $casinos = DB::table('usuario_tiene_casino')
+                ->where('id_usuario', $u->id_usuario)
+                ->pluck('id_casino')
+                ->toArray();
+        }
+
+        $rolesPlataforma = array_filter($roles, function ($r) {
+            return $r !== 'CARGA_NOTAS_UNIFICADAS';
+        });
+        if (!empty($rolesPlataforma)) {
+            $online = self::obtenerPlataformasOnline();
+            foreach ($rolesPlataforma as $rolDesc) {
+                $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
+                foreach ($online as $p) {
+                    if ($p->codigo === $codigo) {
+                        $plataformas[] = $p->id_plataforma;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Fallback admin/control sin rol CARGA_NOTAS_*: sus casinos asignados.
+        if (empty($roles) && ($u->es_administrador || $u->es_control)) {
+            $casinos = DB::table('usuario_tiene_casino')
+                ->where('id_usuario', $u->id_usuario)
+                ->pluck('id_casino')
+                ->toArray();
+        }
+
+        return [$casinos, $plataformas];
+    }
+
+    /**
+     * Un concesionario puede editar/borrar SOLO sus propias notas que estén
+     * en estado CARGA INICIAL (recién cargadas, antes de que control las tome).
+     */
+    private function concesionarioPuedeGestionarNota($nota)
+    {
+        $u = $this->usuarioActual();
+        if (!$u || !$nota)
+            return false;
+        if (!$this->esConcesionarioActual($u))
+            return false;
+
+        // Solo estado CARGA INICIAL
+        $exp = $nota->expedientes()->first();
+        if (!$exp || $exp->estado_actual !== NotaEstado::CARGA_INICIAL)
+            return false;
+
+        // Solo notas dentro de su scope de casinos/plataformas
+        list($casinos, $plataformas) = $this->casinosPlataformasPermitidos($u);
+        $enScope = (is_array($casinos) && in_array($nota->id_casino, $casinos))
+            || ($nota->id_plataforma && is_array($plataformas) && in_array($nota->id_plataforma, $plataformas));
+        return (bool) $enScope;
+    }
+
+    /**
+     * Un concesionario puede borrar el GRUPO (nota padre) solo si TODAS sus notas
+     * (la única que haya, o ambas) están en estado CARGA INICIAL y el grupo es de su scope.
+     */
+    private function concesionarioPuedeGestionarGrupo($grupo)
+    {
+        $u = $this->usuarioActual();
+        if (!$u || !$grupo)
+            return false;
+        if (!$this->esConcesionarioActual($u))
+            return false;
+
+        $grupo->load('notas.expedientes');
+        if ($grupo->notas->isEmpty())
+            return false;
+
+        // TODAS las notas del grupo deben estar en CARGA INICIAL
+        foreach ($grupo->notas as $nota) {
+            $exp = $nota->expedientes->first();
+            if (!$exp || $exp->estado_actual !== NotaEstado::CARGA_INICIAL)
+                return false;
+        }
+
+        // El grupo debe estar dentro de su scope de casinos/plataformas
+        list($casinos, $plataformas) = $this->casinosPlataformasPermitidos($u);
+        $enScope = (is_array($casinos) && in_array($grupo->id_casino, $casinos))
+            || ($grupo->id_plataforma && is_array($plataformas) && in_array($grupo->id_plataforma, $plataformas));
+        return (bool) $enScope;
+    }
+
     public function destroy($id)
     {
-        if (!$this->puedeEliminarNotas()) {
-            return response()->json(['success' => false, 'msg' => 'No tiene permisos para eliminar'], 403);
+        $nota = NotaIngreso::find($id);
+        if (!$nota) {
+            return response()->json(['success' => false, 'msg' => 'Nota no encontrada'], 404);
+        }
+        // Staff con permiso de borrado, O concesionario sobre su propia nota en CARGA INICIAL.
+        if (!$this->puedeEliminarNotas() && !$this->concesionarioPuedeGestionarNota($nota)) {
+            return response()->json(['success' => false, 'msg' => 'No tiene permisos para eliminar esta nota'], 403);
         }
         try {
-            DB::transaction(function () use ($id) {
-                $nota = NotaIngreso::findOrFail($id);
+            DB::transaction(function () use ($nota) {
+                $grupo = $nota->grupo;
                 $nota->delete();
+                // Si era la única nota del grupo, eliminar también el padre
+                // (no dejar un grupo/nota padre huérfano y vacío).
+                if ($grupo && $grupo->notas()->count() === 0) {
+                    $grupo->delete();
+                }
             });
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
@@ -2249,13 +2498,16 @@ class NotasUnificadasController extends Controller
      */
     public function destroyGrupo($id)
     {
-        if (!$this->puedeEliminar()) {
-            return response()->json(['success' => false, 'msg' => 'No tiene permisos para eliminar'], 403);
+        $grupo = \App\Models\GrupoTramite::find($id);
+        if (!$grupo) {
+            return response()->json(['success' => false, 'msg' => 'Grupo no encontrado'], 404);
+        }
+        // Staff con permiso, O concesionario si TODAS las notas del grupo están en CARGA INICIAL.
+        if (!$this->puedeEliminar() && !$this->concesionarioPuedeGestionarGrupo($grupo)) {
+            return response()->json(['success' => false, 'msg' => 'No tiene permisos para eliminar este trámite'], 403);
         }
         try {
-            DB::transaction(function () use ($id) {
-                $grupo = \App\Models\GrupoTramite::findOrFail($id);
-
+            DB::transaction(function () use ($grupo) {
                 // Eliminar todas las notas hijas primero
                 foreach ($grupo->notas as $nota) {
                     // Eliminar expedientes y movimientos asociados
@@ -2412,7 +2664,7 @@ class NotasUnificadasController extends Controller
 
         // Determinar si el usuario puede ver comentarios
         $usuarioActual = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-        $puedeVerComentarios = $usuarioActual->es_superusuario || $usuarioActual->es_administrador || $usuarioActual->es_auditor || $usuarioActual->es_despacho || $usuarioActual->es_control || $usuarioActual->tieneRol('FUNCIONARIO_1') || $usuarioActual->tieneRol('FUNCIONARIO_2');
+        $puedeVerComentarios = true; // Los comentarios de las notas son visibles para todos (pedido del usuario)
 
         if ($nota->expedientes && $nota->expedientes->count() > 0) {
             $exp = $nota->expedientes->first();
@@ -2441,7 +2693,7 @@ class NotasUnificadasController extends Controller
         // Activos asociados (enriquecer con datos reales)
         $activos = $this->enriquecerActivos($nota->activos);
 
-        // Adjuntos
+        // Adjuntos (estructura vieja: 1 por tipo desde path_*) — se mantiene para compatibilidad
         $adjuntos = [
             'solicitud' => $nota->path_solicitud ? ['existe' => true, 'nombre' => basename($nota->path_solicitud), 'path' => $nota->path_solicitud] : ['existe' => false],
             'diseno' => $nota->path_diseno ? ['existe' => true, 'nombre' => basename($nota->path_diseno), 'path' => $nota->path_diseno] : ['existe' => false],
@@ -2449,6 +2701,9 @@ class NotasUnificadasController extends Controller
             'informe' => $nota->path_informe ? ['existe' => true, 'nombre' => basename($nota->path_informe), 'path' => $nota->path_informe] : ['existe' => false],
             'varios' => $nota->path_varios ? ['existe' => true, 'nombre' => basename($nota->path_varios), 'path' => $nota->path_varios] : ['existe' => false],
         ];
+
+        // Estructura nueva anidada: tipo -> [documentos -> versiones]
+        $documentos = $this->documentosDeNota($nota->id);
 
         // Resolver nombre de casino/plataforma
         $casinoNombre = self::resolverNombreCasino($nota->id_casino, $nota->id_plataforma);
@@ -2476,13 +2731,54 @@ class NotasUnificadasController extends Controller
             'fecha_fin' => $nota->fecha_fin_evento,
             'fecha_referencia' => $nota->fecha_referencia,
             'fecha_pretendida_aprobacion' => $nota->fecha_pretendida_aprobacion,
+            'fecha_propuesta_realizacion' => $nota->fecha_propuesta_realizacion,
             'compartir_administrador' => (int) $nota->compartir_administrador,
             'involucra_juegos' => (int) $nota->involucra_juegos,
             'created_at' => $nota->created_at ? $nota->created_at->format('d/m/Y H:i') : null,
             'adjuntos' => $adjuntos,
+            'documentos' => $documentos,
             'activos' => $activos,
             'movimientos' => $movimientos,
         ];
+    }
+
+    /**
+     * Devuelve los adjuntos de una nota en el modelo nuevo Tipo -> Documentos -> Versiones.
+     * Estructura: [ tipo => [ { id, nombre, orden, cant_versiones, ultima{...}, versiones[...] }, ... ], ... ]
+     */
+    private function documentosDeNota($idNota)
+    {
+        $docs = \App\Models\NotaArchivoDocumento::where('id_nota_ingreso', $idNota)
+            ->orderBy('tipo_archivo')->orderBy('orden')->orderBy('id')
+            ->get();
+
+        $out = [];
+        foreach ($docs as $doc) {
+            $versiones = \App\Models\NotaArchivoVersion::where('id_documento', $doc->id)
+                ->orderBy('version', 'desc')->get();
+            $ultima = $versiones->first();
+
+            $mapVer = function ($v) {
+                return [
+                    'version_id' => $v->id,
+                    'version' => $v->version,
+                    'nombre_original' => $v->nombre_original ?: basename($v->path_archivo),
+                    'path' => $v->path_archivo,
+                    'created_at' => $v->created_at ? $v->created_at->format('d/m/Y H:i') : null,
+                ];
+            };
+
+            $out[$doc->tipo_archivo][] = [
+                'id' => $doc->id,
+                'nombre' => $doc->nombre ?: 'Documento',
+                'orden' => $doc->orden,
+                'cant_versiones' => $versiones->count(),
+                'ultima' => $ultima ? $mapVer($ultima) : null,
+                'versiones' => $versiones->map($mapVer)->values(),
+            ];
+        }
+
+        return $out;
     }
 
     /**
@@ -2499,6 +2795,14 @@ class NotasUnificadasController extends Controller
         try {
             $nota = NotaIngreso::with('grupo')->findOrFail($id);
 
+            // Autorización: staff interno (nivel admin) puede editar siempre;
+            // un concesionario solo puede editar SUS notas en estado CARGA INICIAL.
+            $u = $this->usuarioActual();
+            $esAdmin = $u && ($u->es_superusuario || $u->es_administrador || $u->es_auditor || $u->es_despacho || $u->es_control);
+            if (!$esAdmin && !$this->concesionarioPuedeGestionarNota($nota)) {
+                return response()->json(['success' => false, 'msg' => 'No tiene permisos para editar esta nota'], 403);
+            }
+
             // Campos editables (mappeo de frontend a DB)
             $campoMapping = [
                 'nro_nota_ing' => 'nro_nota',
@@ -2509,6 +2813,7 @@ class NotasUnificadasController extends Controller
                 'id_tipo_evento' => 'id_tipo_evento',
                 'id_categoria' => 'id_categoria',
                 'fecha_pretendida_aprobacion' => 'fecha_pretendida_aprobacion',
+                'fecha_propuesta_realizacion' => 'fecha_propuesta_realizacion',
                 'compartir_administrador' => 'compartir_administrador',
                 'fecha_referencia' => 'fecha_referencia'
             ];
@@ -2798,13 +3103,16 @@ class NotasUnificadasController extends Controller
                 // El endpoint solo devuelve juegos activos (server filtra estado_juego='Activo'
                 // y deleted_at IS NULL). Si esta nota referencia un id que ya no aparece,
                 // asumimos que el juego fue dado de baja en la plataforma -> Inactiva.
+                // Matchea por id_juego primero y, como red de seguridad, por cod_juego.
+                // (Notas viejas guardaron el cod_juego como id_activo -> así se rescatan.)
                 $datos = self::obtenerDatosOnline();
                 $encontrado = false;
+                $valor = (string) $activo->id_activo;
                 foreach ($datos as $plat) {
                     if (!isset($plat->juegos))
                         continue;
                     foreach ($plat->juegos as $j) {
-                        if ((int) $j->id_juego === (int) $activo->id_activo) {
+                        if ((int) $j->id_juego === (int) $activo->id_activo || (string) ($j->cod_juego ?? '') === $valor) {
                             $info['nombre'] = $j->nombre_juego;
                             $info['id_display'] = $j->cod_juego ?? $activo->id_activo;
                             $info['estado'] = 'Activa';
@@ -2823,6 +3131,74 @@ class NotasUnificadasController extends Controller
             $lista[] = $info;
         }
         return $lista;
+    }
+
+    /**
+     * Exportar a CSV/Excel los activos (máquinas/juegos) asociados a una nota.
+     * Columnas: Tipo, Nombre, ID/Nro Admin, Estado, % Devolución, Isla, Casino/Plataforma, Nro de Nota.
+     */
+    public function exportarActivos(Request $request, $id)
+    {
+        $formato = strtolower($request->input('formato', 'xlsx'));
+        if (!in_array($formato, ['csv', 'xlsx'])) {
+            $formato = 'xlsx';
+        }
+
+        $nota = NotaIngreso::findOrFail($id);
+        $activos = $this->enriquecerActivos($nota->activos);
+
+        $casinoNombre = self::resolverNombreCasino($nota->id_casino, $nota->id_plataforma);
+        $nroNota = ($nota->nro_nota ?: '') . ($nota->anio ? '/' . $nota->anio : '');
+
+        $tipoNombre = [
+            'MTM' => 'Máquina (MTM)',
+            'MESA' => 'Mesa de Paño',
+            'BINGO' => 'Bingo',
+            'JUEGO_ONLINE' => 'Juego Online',
+            'ISLA' => 'Isla',
+        ];
+
+        $headers = ['Tipo', 'Nombre', 'ID / Nro Admin', 'Estado', '% Devolución', 'Isla', 'Casino / Plataforma', 'Nro de Nota'];
+
+        $data = [];
+        foreach ($activos as $a) {
+            $tipo = isset($a['tipo_activo']) ? $a['tipo_activo'] : '';
+            $pdev = (isset($a['porcentaje_devolucion']) && $a['porcentaje_devolucion'] !== '—' && $a['porcentaje_devolucion'] !== '' && $a['porcentaje_devolucion'] !== null)
+                ? $a['porcentaje_devolucion'] : '';
+            $isla = (isset($a['nro_isla']) && $a['nro_isla']) ? ('N° ' . $a['nro_isla']) : '';
+            $estado = (isset($a['estado']) && $a['estado'] !== '—') ? $a['estado'] : '';
+            $data[] = [
+                isset($tipoNombre[$tipo]) ? $tipoNombre[$tipo] : $tipo,
+                isset($a['nombre']) ? $a['nombre'] : '',
+                isset($a['id_display']) ? $a['id_display'] : (isset($a['id_activo']) ? $a['id_activo'] : ''),
+                $estado,
+                $pdev,
+                $isla,
+                $casinoNombre,
+                $nroNota,
+            ];
+        }
+
+        $filename = 'activos_nota_' . ($nota->nro_nota ?: $nota->id) . '_' . date('Y-m-d');
+
+        return \Excel::create($filename, function ($excel) use ($headers, $data) {
+            $excel->sheet('Activos', function ($sheet) use ($headers, $data) {
+                $sheet->row(1, $headers);
+                $sheet->row(1, function ($row) {
+                    $row->setBackground('#2c3e50');
+                    $row->setFontColor('#ffffff');
+                    $row->setFontWeight('bold');
+                    $row->setFontSize(10);
+                });
+                $rowNum = 2;
+                foreach ($data as $d) {
+                    $sheet->row($rowNum, $d);
+                    $rowNum++;
+                }
+                $sheet->setAutoSize(true);
+                $sheet->freezeFirstRow();
+            });
+        })->download($formato);
     }
 
     /**
@@ -2979,6 +3355,226 @@ class NotasUnificadasController extends Controller
             return response()->json(['success' => true, 'msg' => 'Adjunto eliminado']);
         } catch (\Throwable $e) {
             \Log::error("deleteAdjunto error: " . $e->getMessage());
+            return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
+        }
+    }
+
+    // =========================================================================
+    // ! ADJUNTOS — modelo Tipo -> Documento -> Versión (varios docs por tipo + Anexos)
+    // =========================================================================
+
+    /** Carpeta de storage por tipo de adjunto. */
+    private function folderPorTipo($tipo)
+    {
+        $map = [
+            'solicitud' => 'solicitudes', 'diseno' => 'disenos', 'bases' => 'bases',
+            'informe' => 'informes', 'varios' => 'archivos_varios', 'anexo' => 'anexos',
+        ];
+        return isset($map[$tipo]) ? $map[$tipo] : 'archivos_varios';
+    }
+
+    /** Columna path_* "actual" por tipo (los Anexos no tienen columna -> null). */
+    private function campoPorTipo($tipo)
+    {
+        $map = [
+            'solicitud' => 'path_solicitud', 'diseno' => 'path_diseno', 'bases' => 'path_bases',
+            'informe' => 'path_informe', 'varios' => 'path_varios',
+        ];
+        return isset($map[$tipo]) ? $map[$tipo] : null;
+    }
+
+    /** Guarda el archivo físico con nombre único y devuelve el path relativo. */
+    private function guardarArchivoFisico($file, $folder)
+    {
+        $originalName = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+        $baseName = pathinfo($originalName, PATHINFO_FILENAME);
+        $uniqueName = time() . '_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $baseName) . '.' . $extension;
+        return $file->storeAs($folder, $uniqueName, 'public');
+    }
+
+    /** Registra un movimiento de adjunto en el expediente de la nota. */
+    private function logMovimientoAdjunto($nota, $accion, $tipo, $nombreDoc, $nombreArchivo)
+    {
+        $exp = $nota->expedientes()->first();
+        if (!$exp) return;
+        $userId = session('id_usuario') ?? 1;
+        $u = \App\Usuario::find($userId);
+        $nombreUsr = $u ? $u->nombre : 'Usuario';
+        $tipoLabel = [
+            'solicitud' => 'Solicitud', 'diseno' => 'Diseño', 'bases' => 'Bases',
+            'informe' => 'Informe', 'varios' => 'Archivos Varios', 'anexo' => 'Anexo',
+        ];
+        $verbo = $accion === 'ADJUNTO_REEMPLAZADO' ? 'subió nueva versión de'
+            : ($accion === 'ADJUNTO_ELIMINADO' ? 'eliminó' : 'agregó');
+        Movimiento::create([
+            'id_expediente_nota' => $exp->id,
+            'id_usuario' => $userId,
+            'fecha_movimiento' => \Carbon\Carbon::now(),
+            'accion' => $accion,
+            'comentario' => $nombreUsr . ' ' . $verbo . ' ' . ($tipoLabel[$tipo] ?? $tipo)
+                . ' "' . $nombreDoc . '"' . ($nombreArchivo ? ': ' . $nombreArchivo : ''),
+        ]);
+    }
+
+    /**
+     * Crea un NUEVO documento de un tipo con su primer archivo (versión 1).
+     * Setea path_* en la nota (el caller hace save()). Devuelve el documento.
+     * Lo usan subirDocumento (detalle), el wizard y el modal "Agregar Adjuntos".
+     */
+    private function crearDocumentoConArchivo($nota, $tipo, $file, $nombre = null)
+    {
+        $userId = session('id_usuario') ?? 1;
+        $path = $this->guardarArchivoFisico($file, $this->folderPorTipo($tipo));
+        $nombreDoc = ($nombre !== null && trim((string) $nombre) !== '') ? trim((string) $nombre) : $file->getClientOriginalName();
+
+        $doc = \App\Models\NotaArchivoDocumento::create([
+            'id_nota_ingreso' => $nota->id,
+            'tipo_archivo' => $tipo,
+            'nombre' => $nombreDoc,
+            'orden' => \App\Models\NotaArchivoDocumento::siguienteOrden($nota->id, $tipo),
+            'created_at' => \Carbon\Carbon::now(),
+            'created_by' => $userId,
+        ]);
+
+        \App\Models\NotaArchivoVersion::create([
+            'id_nota_ingreso' => $nota->id,
+            'id_documento' => $doc->id,
+            'tipo_archivo' => $tipo,
+            'version' => 1,
+            'path_archivo' => $path,
+            'nombre_original' => $file->getClientOriginalName(),
+            'created_at' => \Carbon\Carbon::now(),
+            'created_by' => $userId,
+        ]);
+
+        $campo = $this->campoPorTipo($tipo);
+        if ($campo) {
+            $nota->$campo = $path; // el caller hace save()
+        }
+
+        return $doc;
+    }
+
+    /** Crea un NUEVO documento de un tipo con su primer archivo (versión 1). */
+    public function subirDocumento(Request $request, $idNota, $tipo)
+    {
+        try {
+            $nota = NotaIngreso::findOrFail($idNota);
+            $tiposValidos = ['solicitud', 'diseno', 'bases', 'informe', 'varios', 'anexo'];
+            if (!in_array($tipo, $tiposValidos)) {
+                return response()->json(['success' => false, 'msg' => 'Tipo inválido'], 400);
+            }
+            if (!$request->hasFile('archivo') || !$request->file('archivo')->isValid()) {
+                return response()->json(['success' => false, 'msg' => 'Archivo no válido'], 422);
+            }
+
+            $file = $request->file('archivo');
+            $doc = $this->crearDocumentoConArchivo($nota, $tipo, $file, $request->input('nombre'));
+            $nota->save();
+            $this->logMovimientoAdjunto($nota, 'ADJUNTO_AGREGADO', $tipo, $doc->nombre, $file->getClientOriginalName());
+
+            return response()->json(['success' => true, 'documentos' => $this->documentosDeNota($idNota)]);
+        } catch (\Throwable $e) {
+            \Log::error("subirDocumento error: " . $e->getMessage());
+            return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
+        }
+    }
+
+    /** Sube una NUEVA versión a un documento existente. */
+    public function subirVersionDocumento(Request $request, $idDoc)
+    {
+        try {
+            $doc = \App\Models\NotaArchivoDocumento::findOrFail($idDoc);
+            $nota = NotaIngreso::findOrFail($doc->id_nota_ingreso);
+            if (!$request->hasFile('archivo') || !$request->file('archivo')->isValid()) {
+                return response()->json(['success' => false, 'msg' => 'Archivo no válido'], 422);
+            }
+
+            $userId = session('id_usuario') ?? 1;
+            $file = $request->file('archivo');
+            $path = $this->guardarArchivoFisico($file, $this->folderPorTipo($doc->tipo_archivo));
+
+            $version = \App\Models\NotaArchivoVersion::getNextVersion($nota->id, $doc->tipo_archivo, $doc->id);
+            \App\Models\NotaArchivoVersion::create([
+                'id_nota_ingreso' => $nota->id,
+                'id_documento' => $doc->id,
+                'tipo_archivo' => $doc->tipo_archivo,
+                'version' => $version,
+                'path_archivo' => $path,
+                'nombre_original' => $file->getClientOriginalName(),
+                'created_at' => \Carbon\Carbon::now(),
+                'created_by' => $userId,
+            ]);
+
+            $campo = $this->campoPorTipo($doc->tipo_archivo);
+            if ($campo) {
+                $nota->$campo = $path;
+                $nota->save();
+            }
+
+            $this->logMovimientoAdjunto($nota, 'ADJUNTO_REEMPLAZADO', $doc->tipo_archivo, $doc->nombre, $file->getClientOriginalName());
+
+            return response()->json(['success' => true, 'documentos' => $this->documentosDeNota($nota->id)]);
+        } catch (\Throwable $e) {
+            \Log::error("subirVersionDocumento error: " . $e->getMessage());
+            return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
+        }
+    }
+
+    /** Versiones de un documento (para el desplegable de versiones). */
+    public function getVersionesDocumento($idDoc)
+    {
+        $versiones = \App\Models\NotaArchivoVersion::getVersionsByDocumento($idDoc);
+        return response()->json([
+            'success' => true,
+            'versiones' => $versiones->map(function ($v) {
+                return [
+                    'version_id' => $v->id,
+                    'version' => $v->version,
+                    'nombre_original' => $v->nombre_original ?: basename($v->path_archivo),
+                    'path' => $v->path_archivo,
+                    'created_at' => $v->created_at ? \Carbon\Carbon::parse($v->created_at)->format('d/m/Y H:i') : null,
+                ];
+            })->values(),
+        ]);
+    }
+
+    /** Elimina un documento completo: sus versiones, archivos físicos y el registro. */
+    public function eliminarDocumento($idDoc)
+    {
+        if (!$this->puedeEliminar()) {
+            return response()->json(['success' => false, 'msg' => 'No tiene permisos para eliminar'], 403);
+        }
+        try {
+            $doc = \App\Models\NotaArchivoDocumento::findOrFail($idDoc);
+            $nota = NotaIngreso::find($doc->id_nota_ingreso);
+            $tipo = $doc->tipo_archivo;
+
+            $versiones = \App\Models\NotaArchivoVersion::where('id_documento', $idDoc)->get();
+            foreach ($versiones as $v) {
+                Storage::disk('public')->delete($v->path_archivo);
+            }
+            \App\Models\NotaArchivoVersion::where('id_documento', $idDoc)->delete();
+            $nombreDoc = $doc->nombre;
+            $doc->delete();
+
+            // Recalcular path_* del tipo: apuntar al último archivo que quede (o null).
+            if ($nota) {
+                $campo = $this->campoPorTipo($tipo);
+                if ($campo) {
+                    $ultima = \App\Models\NotaArchivoVersion::where('id_nota_ingreso', $nota->id)
+                        ->where('tipo_archivo', $tipo)
+                        ->orderBy('version', 'desc')->orderBy('id', 'desc')->first();
+                    $nota->$campo = $ultima ? $ultima->path_archivo : null;
+                    $nota->save();
+                }
+                $this->logMovimientoAdjunto($nota, 'ADJUNTO_ELIMINADO', $tipo, $nombreDoc, null);
+            }
+
+            return response()->json(['success' => true, 'documentos' => $nota ? $this->documentosDeNota($nota->id) : []]);
+        } catch (\Throwable $e) {
+            \Log::error("eliminarDocumento error: " . $e->getMessage());
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
     }
@@ -3151,11 +3747,17 @@ class NotasUnificadasController extends Controller
                 return response()->json(['success' => false, 'msg' => 'El tipo y número de documento son obligatorios'], 400);
             }
 
-            // Validar unicidad: no puede existir otro registro con mismo tipo_documento + numero_documento + anio_documento
+            // Normalizar número a 4 dígitos con ceros (ej: "4" -> "0004")
+            $numeroDocumento = $this->normalizarNumeroAprobacion($numeroDocumento);
+            if (!$numeroDocumento) {
+                return response()->json(['success' => false, 'msg' => 'El número de documento debe ser numérico'], 400);
+            }
+
+            // Validar unicidad numérica por (tipo_documento, año), ignorando rama/casino: "4" y "0004" cuentan como el mismo
             $existe = DB::table('grupo_notas_aprobacion')
                 ->where('tipo_documento', $tipoDocumento)
-                ->where('numero_documento', $numeroDocumento)
                 ->where('anio_documento', $anioDocumento)
+                ->whereRaw('CAST(numero_documento AS UNSIGNED) = ?', [(int) $numeroDocumento])
                 ->exists();
             if ($existe) {
                 $label = $tipoDocumento === 'DISPOSICION' ? 'Disposición' : 'Nota';
@@ -3291,6 +3893,121 @@ class NotasUnificadasController extends Controller
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Normaliza el número de documento de una nota de aprobación a 4 dígitos con ceros (ej: "4" -> "0004").
+     * Devuelve null si no contiene dígitos o equivale a 0.
+     */
+    private function normalizarNumeroAprobacion($numero)
+    {
+        $digitos = preg_replace('/\D/', '', (string) $numero);
+        if ($digitos === '' || (int) $digitos === 0) {
+            return null;
+        }
+        // Quitar ceros a la izquierda y rellenar a un mínimo de 4 dígitos
+        return str_pad(ltrim($digitos, '0'), 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Editar los datos (rama, tipo, número, año) de una nota de aprobación existente.
+     * Revalida la unicidad del número por (tipo_documento, año) excluyendo el propio registro.
+     */
+    public function updateNotaAprobacion(Request $request, $id)
+    {
+        try {
+            $registro = DB::table('grupo_notas_aprobacion')->where('id', $id)->first();
+            if (!$registro) {
+                return response()->json(['success' => false, 'msg' => 'No encontrado'], 404);
+            }
+
+            $tipoRama = $request->input('tipo_rama', $registro->tipo_rama);
+            $tipoDocumento = $request->input('tipo_documento', $registro->tipo_documento);
+            $numeroDocumento = $request->input('numero_documento', $registro->numero_documento);
+            $anioDocumento = $request->input('anio_documento', $registro->anio_documento);
+
+            if (!$tipoRama || !$tipoDocumento || !$numeroDocumento || !$anioDocumento) {
+                return response()->json(['success' => false, 'msg' => 'Faltan datos requeridos'], 400);
+            }
+
+            // Normalizar número a 4 dígitos con ceros (ej: "4" -> "0004")
+            $numeroDocumento = $this->normalizarNumeroAprobacion($numeroDocumento);
+            if (!$numeroDocumento) {
+                return response()->json(['success' => false, 'msg' => 'El número de documento debe ser numérico'], 400);
+            }
+
+            // Unicidad numérica por (tipo_documento, año), excluyendo este mismo registro
+            $existe = DB::table('grupo_notas_aprobacion')
+                ->where('id', '<>', $id)
+                ->where('tipo_documento', $tipoDocumento)
+                ->where('anio_documento', $anioDocumento)
+                ->whereRaw('CAST(numero_documento AS UNSIGNED) = ?', [(int) $numeroDocumento])
+                ->exists();
+            if ($existe) {
+                $label = $tipoDocumento === 'DISPOSICION' ? 'Disposición' : 'Nota';
+                return response()->json(['success' => false, 'msg' => "Ya existe una {$label} N° {$numeroDocumento}-{$anioDocumento}. El número debe ser único."], 400);
+            }
+
+            DB::table('grupo_notas_aprobacion')->where('id', $id)->update([
+                'tipo_rama' => $tipoRama,
+                'tipo_documento' => $tipoDocumento,
+                'numero_documento' => $numeroDocumento,
+                'anio_documento' => $anioDocumento,
+                'updated_at' => \Carbon\Carbon::now(),
+            ]);
+
+            // Trazar el cambio en el grupo (solo si efectivamente cambió la identidad del documento)
+            $grupo = \App\Models\GrupoTramite::find($registro->id_grupo);
+            if ($grupo) {
+                $labelAnt = ($registro->tipo_documento === 'DISPOSICION') ? 'Disposición' : 'Nota';
+                $labelNue = ($tipoDocumento === 'DISPOSICION') ? 'Disposición' : 'Nota';
+                $antes = $labelAnt . ' N° ' . ($registro->numero_documento ?: '?') . '-' . ($registro->anio_documento ?: '?') . ' (' . $registro->tipo_rama . ')';
+                $despues = $labelNue . ' N° ' . $numeroDocumento . '-' . $anioDocumento . ' (' . $tipoRama . ')';
+                if ($antes !== $despues) {
+                    self::registrarMovimientoEnGrupo(
+                        $grupo,
+                        'NOTA_APROBACION_EDITADA',
+                        'editó nota de aprobación: ' . $antes . ' → ' . $despues
+                    );
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'msg' => 'Nota de aprobación actualizada',
+                'numero_documento' => $numeroDocumento,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error("Error updateNotaAprobacion: " . $e->getMessage());
+            return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Devuelve el próximo número correlativo (4 dígitos) para una nota de aprobación.
+     * El correlativo es por (tipo_documento, año), ignorando rama y casino.
+     */
+    public function proximoNumeroAprobacion(Request $request)
+    {
+        $tipoDocumento = $request->input('tipo_documento');
+        $anioDocumento = $request->input('anio_documento', date('Y'));
+
+        if (!$tipoDocumento) {
+            return response()->json(['success' => false, 'msg' => 'Falta el tipo de documento'], 400);
+        }
+
+        $maximo = DB::table('grupo_notas_aprobacion')
+            ->where('tipo_documento', $tipoDocumento)
+            ->where('anio_documento', $anioDocumento)
+            ->max(DB::raw('CAST(numero_documento AS UNSIGNED)'));
+
+        $proximo = (int) $maximo + 1;
+
+        return response()->json([
+            'success' => true,
+            'numero' => str_pad($proximo, 4, '0', STR_PAD_LEFT),
+            'numero_int' => $proximo,
+        ]);
     }
 
     /**

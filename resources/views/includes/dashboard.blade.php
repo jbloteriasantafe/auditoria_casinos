@@ -250,7 +250,19 @@
      ],
      'Eventualidades' => [
          'icono' => $icono_expedientes,
-         'link' => '/eventualidades',
+         'hijos' => [
+             'Eventualidades' => [
+                 'link' => '/eventualidades',
+                 // Sin esto el padre heredaba SOLO el permiso del hijo 'Resumen diario'
+                 // (visar_resumen_diario) y la sección se ocultaba a quien tiene
+                 // ver_seccion_eventualidades pero no visar_resumen_diario.
+                 'algun_permiso' => ['ver_seccion_eventualidades'],
+             ],
+             'Resumen diario' => [
+                 'link' => '/eventualidades/resumen-diario',
+                 'algun_permiso' => ['visar_resumen_diario'],
+             ],
+         ],
      ],
 
      /*'Pruebas' => [

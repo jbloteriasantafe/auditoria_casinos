@@ -469,6 +469,21 @@ i.faValidado {
   left: -9px;
   color: #69F0AE;
 }
+i.faVisado {
+  position: relative;
+  left: -9px;
+  color: #2962FF;
+}
+i.faSinTerminar {
+  position: relative;
+  left: -9px;
+  color: #d9534f;
+}
+i.faNoVisado {
+  position: relative;
+  left: -9px;
+  color: #9e9e9e;
+}
 
 .footer-links {
   display: block;
