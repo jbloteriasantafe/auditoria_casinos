@@ -21,15 +21,13 @@ use App\Isla; // Importar modelo Isla (Legacy)
 
 class NotasUnificadasController extends Controller
 {
-    // URL base de la API del sistema online
-    // PRUEBA: la API accesible/funcional desde este entorno es 10.1.121.24:8003 (responde 200).
-    // 10.1.121.30:8003 devuelve 422 "Token o IP invalida" desde acá (no whitelisteado) -> por eso fallaban los juegos online.
-    // EN PRODUCCIÓN esta URL debe apuntar a la API JOL de producción.
-    const API_ONLINE_URL = 'http://10.1.121.24:8003/api/auditoria';
-    const API_ONLINE_TOKEN = 'TokenParaJuego';
-    // Otros entornos:
-    //const API_ONLINE_URL = 'http://10.1.121.30:8003/api/auditoria';
-    //const API_ONLINE_URL = 'http://10.1.121.24:8004/api/auditoria';
+    // URL base de la API del sistema online (/plataformasYJuegos)
+    // PRODUCCIÓN: 10.1.121.30:8003 con token 'ElTokenParaBruto'.
+    const API_ONLINE_URL = 'http://10.1.121.30:8003/api/auditoria';
+    const API_ONLINE_TOKEN = 'ElTokenParaBruto';
+    // Otros entornos (prueba): 10.1.121.24:8003 con token 'TokenParaJuego'
+    //const API_ONLINE_URL = 'http://10.1.121.24:8003/api/auditoria';
+    //const API_ONLINE_TOKEN = 'TokenParaJuego';
 
     /**
      * Obtener plataformas y juegos desde la API online (cacheado 1 hora)

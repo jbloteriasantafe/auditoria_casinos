@@ -3485,7 +3485,7 @@ $(document).ready(function () {
                 '<colgroup>' +
                     '<col style="width:58px;">' +
                     '<col>' +
-                    '<col style="width:50px;">' +
+                    '<col style="width:80px;">' +
                     '<col style="width:42px;">' +
                     '<col style="width:70px;">' +
                     '<col style="width:44px;">' +
@@ -3523,7 +3523,7 @@ $(document).ready(function () {
             html += '<tr data-activo-id="' + act.id + '" style="background:' + bgRow + ';">' +
                 '<td style="padding:6px 6px; white-space:nowrap; overflow:hidden;"><span style="background:' + meta.bg + '; color:#fff; font-size:10px; font-weight:600; padding:2px 6px; border-radius:3px;"><i class="fa ' + meta.icon + '"></i> ' + (tipoLabel[tipo] || tipo) + '</span></td>' +
                 nombreCell +
-                '<td style="padding:6px 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><b>' + (act.id_display || act.id_activo || '—') + '</b></td>' +
+                '<td style="padding:6px 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="' + (act.id_display || act.id_activo || '') + '"><b>' + (act.id_display || act.id_activo || '—') + '</b></td>' +
                 '<td style="padding:6px 4px; white-space:nowrap; overflow:hidden; text-align:center;">' + islaCell + '</td>' +
                 '<td style="padding:6px 4px; white-space:nowrap; overflow:hidden;">' + estadoBadge(act.estado) + '</td>' +
                 '<td style="padding:6px 4px; white-space:nowrap; overflow:hidden;">' + pdev + '</td>' +
