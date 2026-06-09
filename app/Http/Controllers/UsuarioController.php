@@ -477,36 +477,17 @@ class UsuarioController extends Controller
     return false;
   }
   
-  public function pronosticoMetereologico(Request $request,string $locacion = null){
-    $u = $this->quienSoy()['usuario'];
-    $locacion = $locacion ?? (
-      (
-        $u->casinos->count() > 1? 
-        'Santa Fe' : 
-        $u->casinos->first()->nombre
-      ).', Argentina'
-    );
-    
-    $CC = \App\Http\Controllers\CacheController::getInstancia();
-    
-    $CACHE_CODIGO = 'pronosticoMetereologico';
-    $CACHE_SUBCODIGO = sha1($locacion);//Limita a 40 caracteres la locación, practicamene imposible de colisión
-    //Dentro de los ultimos 30 minutos
-    $cache = $CC->buscarUltimoDentroDeSegundos($CACHE_CODIGO,$CACHE_SUBCODIGO,60*30);
-    if(!is_null($cache)){
-      $data = json_decode($cache->data);
-      return response($data->response,$data->httpCode);
-    }
-    
+  private function _curl_openweathermap(string $endpoint,string $locacion){
     set_time_limit(5);
     $ch = curl_init();
     $params = http_build_query([
       'q' => $locacion,
       'appid' => env('OPENWEATHERMAP_API_KEY',''),
       'units' => 'metric',
-      'lang' => 'es'
+      'lang' => 'es',
+      'exclude' => 'minutely,alerts'
     ]);
-    $url = "https://api.openweathermap.org/data/2.5/weather";
+    $url = "https://api.openweathermap.org/data/2.5/".$endpoint;
     curl_setopt($ch, CURLOPT_URL, $url.'?'.$params);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
@@ -520,15 +501,19 @@ class UsuarioController extends Controller
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
       'Content-Type: application/x-www-form-urlencoded'
     ]);
+    
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error    = false;
     
     if(curl_errno($ch)){
       $response = curl_error($ch);
-      curl_close($ch);
-      return response()->json(['error' => [$response]],500);
+      $error    = true;
+      $httpCode = 500;
     }
+    
     curl_close($ch);
+    
     if($httpCode < 200 || $httpCode > 299){
       $json_response = json_decode($response,true);
       $message = $json_response === null? $response : ($json_response['message'] ?? $response);
@@ -541,10 +526,54 @@ class UsuarioController extends Controller
         'your account is blocked due to exceeding of requests limit.' => 'Se excedio el límite de solicitudes diarios',
         'internal error' => 'Error interno de OpenWeatherMap'
       ][strtolower($message)] ?? $message;//Agregar mapeos español-ingles aca
-      return response()->json(['error' => [$message]],$httpCode);
+      $error = true;
+      $response = ['errors' => [$message]];
+    }
+    else{
+      $response = json_decode($response,true);
     }
     
-    $CC->agregar($CACHE_CODIGO,$CACHE_SUBCODIGO,json_encode(compact('response','httpCode')),[]);
-    return response($response,$httpCode);
+    return compact('response','httpCode','error');
+  }
+  
+  private function pronosticoMetereologico(Request $request,string $endpoint){
+    static $u = null;
+    $u = $u ?? $this->quienSoy()['usuario'];
+    
+    $locacion = $request->locacion ?? null;
+    $locacion = $locacion ?? (
+      (
+        $u->casinos->count() > 1? 
+        'Santa Fe' : 
+        $u->casinos->first()->nombre
+      ).', Argentina'
+    );
+    
+    $CC = \App\Http\Controllers\CacheController::getInstancia();
+    
+    $CACHE_CODIGO = 'pronosticoMetereologico';
+    $CACHE_SUBCODIGO = sha1($endpoint.$locacion);//Limita a 40 caracteres la locación, practicamene imposible de colisión
+    //$CC->invalidar($CACHE_CODIGO,$CACHE_SUBCODIGO);//Para testing
+    //Dentro de los ultimos 30 minutos
+    $cache = $CC->buscarUltimoDentroDeSegundos($CACHE_CODIGO,$CACHE_SUBCODIGO,60*30);
+    $data = null;
+    $httpCode = null;
+    if(is_null($cache)){
+      $data = $this->_curl_openweathermap($endpoint,$locacion);
+      $CC->agregar($CACHE_CODIGO,$CACHE_SUBCODIGO,json_encode($data),[]);
+    }
+    else{
+      $data = json_decode($cache->data,true);
+    }
+    
+    return response($data['response'],$data['httpCode']);
+  }
+  
+  public function pronosticoMetereologicoAhora(Request $request){
+    return $this->pronosticoMetereologico($request,'weather');
+  }
+  
+  public function pronosticoMetereologicoPronostico(Request $request){
+    return $this->pronosticoMetereologico($request,'forecast');
   }
 }
