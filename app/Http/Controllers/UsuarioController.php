@@ -611,7 +611,7 @@ class UsuarioController extends Controller
     $cache = $CC->buscarUltimoDentroDeSegundos($CACHE_CODIGO,$CACHE_SUBCODIGO,60*60*8);
     $data = null;
     if(is_null($cache)){
-      $response = $this->_curl_GET('https://openweathermap.org/img/wn/'.$icon,null,[
+      $response = $this->_curl_GET('http://openweathermap.org/img/wn/'.$icon,null,[
         CURLOPT_SSL_VERIFYPEER => false, //Usar verificación SSL cuando upgrademos el backend. La versión de SSL es muy vieja
         CURLOPT_SSL_VERIFYHOST => false
       ]);
