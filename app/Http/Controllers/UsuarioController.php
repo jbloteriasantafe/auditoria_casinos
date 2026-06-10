@@ -477,14 +477,17 @@ class UsuarioController extends Controller
     return false;
   }
   
-  private function _curl_GET($url,$params = null){
+  private function _curl_GET($url,$params = null,$opts = []){
     set_time_limit(5);
     $ch = curl_init();
     $params = $params !== null? ('?'.http_build_query($params)) : '';
     curl_setopt($ch, CURLOPT_URL, $url.$params);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
-    curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
+    //curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
+    foreach($opts as $opt => $val){
+      curl_setopt($ch, $opt, $val);
+    }
     $proxy_url  = env('HTTP_PROXY_URL',null);
     $proxy_port = env('HTTP_PROXY_PORT',null);
     if($proxy_url !== null && $proxy_port !== null){
@@ -608,7 +611,10 @@ class UsuarioController extends Controller
     $cache = $CC->buscarUltimoDentroDeSegundos($CACHE_CODIGO,$CACHE_SUBCODIGO,60*60*8);
     $data = null;
     if(is_null($cache)){
-      $response = $this->_curl_GET('https://openweathermap.org/img/wn/'.$icon);
+      $response = $this->_curl_GET('https://openweathermap.org/img/wn/'.$icon,null,[
+        CURLOPT_SSL_VERIFYPEER => false, //Usar verificación SSL cuando upgrademos el backend. La versión de SSL es muy vieja
+        CURLOPT_SSL_VERIFYHOST => false
+      ]);
       if($response['curlError'] !== null){
         return response($response['curlError'],500);
       }
