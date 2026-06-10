@@ -3,7 +3,7 @@
   $id = $id ?? 'id'.uniqid(); 
   $ahoraUrl = $queryUrl ?? "/configCuenta/pronosticoMetereologicoAhora";
   $pronosticoUrl = $queryUrl ?? "/configCuenta/pronosticoMetereologicoPronostico";
-  $iconPreUrl = $iconPreUrl ?? "https://openweathermap.org/img/wn/";
+  $iconPreUrl = $iconPreUrl ?? "/configCuenta/pronosticoMetereologicoIcon/";
   $iconPostUrl = $iconPostUrl ?? "@2x.png";
 ?>
 @component('Components.include_guard',['nombre' => 'weather_widget_style'])
@@ -19,6 +19,18 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
     box-sizing: border-box;
   }
+  
+  /*
+  .weather-widget.day {
+    background: linear-gradient(135deg, #3498db, #8e44ad); /* Bright Day Blue into Soft Purple */
+    box-shadow: 0 8px 32px rgba(52, 152, 219, 0.3);
+  }
+  
+  .weather-widget.night {
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); /* Deep Midnight/Dark Navy */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  }
+  */
   
   .weather-widget * {
     all: revert;
@@ -311,6 +323,8 @@
       if(iconEl){
         iconEl.src = "{!! $iconPreUrl !!}"+data?.weather?.[0]?.icon+"{!! $iconPostUrl !!}";
       }
+      
+      wti.setAttribute('data-pod',data?.sys?.pod ?? data?.weather?.[0]?.icon?.slice(-1) ?? '');
     };
     
     document.querySelectorAll('.weather-widget').forEach((widget) => {
@@ -330,7 +344,7 @@
           return {
             name: 'ERROR',
             dt_txt: 'ERROR',
-            sys: {country: '---'},
+            sys: {country: '---',pod: ''},
             main: {temp: 999, humidity: 999,temp_min: 999,temp_max: 999,feels_like: 999},
             wind: {speed: 999},
             weather: [{description: '---', icon: ''}]
@@ -398,15 +412,34 @@
           console.error(error);
         }
         
+        widget?.querySelectorAll('.weather-loading')?.forEach(function(el){
+          el.classList.remove('weather-loading');
+        });
         for(const idx in data){
-          pronosticoEls?.[idx]?.querySelectorAll('[data-set-loading]')?.forEach(function(el){
-            el.classList.remove('weather-loading');
-          });
           fillWeatherTableItem(
             pronosticoEls?.[idx],
             data[idx]
           );
         }
+        //Tengo el un día completo, se podría interpolar en base a esto el background
+        /*
+        {
+          let first_000000_found = null;
+          let first_210000_found = null;
+          for(const wti_idx in pronosticoEls){
+            const timestamp = pronosticoEls[wti_idx].querySelector('.weather-title')?.textContent?.trim() ?? '';  
+            const time = timestamp.slice(-("XX:XX:XX".length));
+            if(first_000000_found === null && time == '00:00:00'){
+              first_000000_found = wti_idx; 
+            }
+            if(first_000000_found !== null && first_210000_found === null && time == '21:00:00'){
+              first_210000_found = wti_idx; 
+              break;
+            }
+          }
+          //Tengo el ciclo día noche
+        }
+        */
       });
       
       searchInput?.addEventListener("keypress", (e) => {

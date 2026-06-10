@@ -477,18 +477,11 @@ class UsuarioController extends Controller
     return false;
   }
   
-  private function _curl_openweathermap(string $endpoint,string $locacion){
+  private function _curl_GET($url,$params = null){
     set_time_limit(5);
     $ch = curl_init();
-    $params = http_build_query([
-      'q' => $locacion,
-      'appid' => env('OPENWEATHERMAP_API_KEY',''),
-      'units' => 'metric',
-      'lang' => 'es',
-      'exclude' => 'minutely,alerts'
-    ]);
-    $url = "https://api.openweathermap.org/data/2.5/".$endpoint;
-    curl_setopt($ch, CURLOPT_URL, $url.'?'.$params);
+    $params = $params !== null? ('?'.http_build_query($params)) : '';
+    curl_setopt($ch, CURLOPT_URL, $url.$params);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
     $proxy_url  = env('HTTP_PROXY_URL',null);
@@ -502,21 +495,46 @@ class UsuarioController extends Controller
       'Content-Type: application/x-www-form-urlencoded'
     ]);
     
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error    = false;
+    $response  = curl_exec($ch);
+    $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error     = false;
+    $curlError = null;
     
     if(curl_errno($ch)){
-      $response = curl_error($ch);
-      $error    = true;
-      $httpCode = 500;
+      $curlError = curl_error($ch);
+      $error     = true;
+      $httpCode  = 500;
     }
     
     curl_close($ch);
     
-    if($httpCode < 200 || $httpCode > 299){
-      $json_response = json_decode($response,true);
-      $message = $json_response === null? $response : ($json_response['message'] ?? $response);
+    $error = $httpCode < 200 || $httpCode > 299;
+    return compact('response','httpCode','error','curlError');
+  }
+  
+  private function _curl_openweathermap(string $endpoint,string $locacion){
+    $params = [
+      'q' => $locacion,
+      'appid' => env('OPENWEATHERMAP_API_KEY',''),
+      'units' => 'metric',
+      'lang' => 'es',
+      'exclude' => 'minutely,alerts'
+    ];
+    $url = "https://api.openweathermap.org/data/2.5/".$endpoint;
+    $get = $this->_curl_GET($url,$params);
+    
+    if($get['curlError'] !== null){
+      return [
+        'response' => ['errors' => [$get['curlError']]],
+        'httpCode' => 500,
+        'error'    => true
+      ];
+    }
+    
+    $json_response = json_decode($get['response'],true) ?? $get['response'];
+    
+    if($get['error']){
+      $message = $json_response['message'] ?? $json_response;
       $message = [
         'city not found' => 'Ciudad no encontrada',
         'nothing to geocode' => 'Especificar una ciudad',
@@ -525,15 +543,20 @@ class UsuarioController extends Controller
         'your account is suspended.' => 'API Key suspendida, informar al administrador',
         'your account is blocked due to exceeding of requests limit.' => 'Se excedio el límite de solicitudes diarios',
         'internal error' => 'Error interno de OpenWeatherMap'
-      ][strtolower($message)] ?? $message;//Agregar mapeos español-ingles aca
-      $error = true;
-      $response = ['errors' => [$message]];
-    }
-    else{
-      $response = json_decode($response,true);
+      ][@strtolower($message) ?? ''] ?? $message;//Agregar mapeos español-ingles aca
+      
+      return [
+        'response' => ['errors' => [$message]],
+        'httpCode' => $get['httpCode'],
+        'error'    => true
+      ];
     }
     
-    return compact('response','httpCode','error');
+    return [ 
+      'response' => $json_response,
+      'httpCode' => $get['httpCode'],
+      'error'    => false
+    ];
   }
   
   private function pronosticoMetereologico(Request $request,string $endpoint){
@@ -557,7 +580,6 @@ class UsuarioController extends Controller
     //Dentro de los ultimos 30 minutos
     $cache = $CC->buscarUltimoDentroDeSegundos($CACHE_CODIGO,$CACHE_SUBCODIGO,60*30);
     $data = null;
-    $httpCode = null;
     if(is_null($cache)){
       $data = $this->_curl_openweathermap($endpoint,$locacion);
       $CC->agregar($CACHE_CODIGO,$CACHE_SUBCODIGO,json_encode($data),[]);
@@ -575,5 +597,43 @@ class UsuarioController extends Controller
   
   public function pronosticoMetereologicoPronostico(Request $request){
     return $this->pronosticoMetereologico($request,'forecast');
+  }
+  
+  public function pronosticoMetereologicoIcon(Request $request,string $icon){
+    $CC = \App\Http\Controllers\CacheController::getInstancia();
+    $CACHE_CODIGO = 'pronosticoMetereologico';
+    $CACHE_SUBCODIGO = sha1('icon'.$icon);//Limita a 40 caracteres la locación, practicamene imposible de colisión
+    //$CC->invalidar($CACHE_CODIGO,$CACHE_SUBCODIGO);//Para testing
+    $cache = $CC->buscarUltimoDentroDeSegundos($CACHE_CODIGO,$CACHE_SUBCODIGO,60*60*8);
+    $data = null;
+    if(is_null($cache)){
+      $response = $this->_curl_GET('https://openweathermap.org/img/wn/'.$icon);
+      if($response['curlError'] !== null){
+        return response($response['curlError'],500);
+      }
+      if($response['error']){
+        return response($response['response'],$response['httpCode']);
+      }
+      $data = $response['response'];
+      $CC->agregar($CACHE_CODIGO,$CACHE_SUBCODIGO,base64_encode($data),[]);
+    }
+    else{
+      $data = base64_decode($cache->data);
+    }
+    
+    $tmpfile = tmpfile();
+    fwrite($tmpfile,$data);
+    $path = stream_get_meta_data($tmpfile)['uri'];
+    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+    $mimeType = $finfo->file($path);
+    
+    return response()->stream(function() use ($tmpfile){
+      rewind($tmpfile);
+      fpassthru($tmpfile);// Pone lo que esta en el archivo en stdout
+      fclose($tmpfile); // Cierra el archivo
+    }, 200, [
+      'Content-Type' => $mimeType,
+      'Content-Length' => filesize($path),
+    ]);
   }
 }
