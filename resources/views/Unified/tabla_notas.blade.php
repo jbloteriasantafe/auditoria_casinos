@@ -10,6 +10,9 @@ function colorEstado($estado) {
     $esAdm = isset($esAdministrador) && $esAdministrador;
     $colFechaLabel = $esAdm ? 'Fecha prop. realiz.' : 'Fecha Est. Aprob.';
     $colFechaSort  = $esAdm ? 'fecha_propuesta_realizacion' : 'fecha_pretendida_aprobacion';
+    // FISC oculto en la carga inicial para funcionario1 (con "ver todo" sí lo ve) y SIEMPRE
+    // para juego_responsable (este rol no tiene nada que ver con FISC). funcionario2 ve FISC.
+    $ocultarFisc = isset($rolVista) && in_array($rolVista, ['funcionario1', 'juego_responsable']) && !(isset($verTodo) && $verTodo);
 @endphp
 <div class="table-responsive">
     <table class="table table-striped table-hover table-bordered" style="font-size: 13px;">
@@ -62,7 +65,7 @@ function colorEstado($estado) {
                 <td>
                     {{-- Badges para cada rama (apilados verticalmente) --}}
                     @foreach($grupo->notas as $nota)
-                        @if(isset($rolVista) && $rolVista === 'funcionario1' && !(isset($verTodo) && $verTodo) && $nota->tipo_rama == 'FISC')
+                        @if($ocultarFisc && $nota->tipo_rama == 'FISC')
                             @continue
                         @endif
                         <div style="margin-bottom:2px;">
@@ -76,7 +79,7 @@ function colorEstado($estado) {
                 </td>
                 <td class="grupo-estados" data-grupo-id="{{ $grupo->id }}">
                     @php
-                        $notasFiltradas = (isset($rolVista) && $rolVista === 'funcionario1' && !(isset($verTodo) && $verTodo))
+                        $notasFiltradas = $ocultarFisc
                             ? $grupo->notas->where('tipo_rama', 'MKT')
                             : $grupo->notas;
                         $estados = $notasFiltradas->map(function($n) {
@@ -103,7 +106,7 @@ function colorEstado($estado) {
                         });
                     @endphp
                     @foreach($aprobs as $ap)
-                        @if(isset($rolVista) && $rolVista === 'funcionario1' && !(isset($verTodo) && $verTodo) && $ap->tipo_rama === 'FISC')
+                        @if($ocultarFisc && $ap->tipo_rama === 'FISC')
                             @continue
                         @endif
                         @php
@@ -136,7 +139,7 @@ function colorEstado($estado) {
                             <i class="fa fa-plus" style="font-size:9px;"></i> MKT
                         </button>
                     @endif
-                    @if($faltaFisc && !(isset($esFuncionario) && $esFuncionario))
+                    @if($faltaFisc && !(isset($esFuncionario) && $esFuncionario) && !$ocultarFisc)
                         <button class="btn btn-xs btn-complementar-grupo" data-grupo-id="{{ $grupo->id }}" data-rama="FISC" title="Agregar Nota Fiscalización"
                             style="background:linear-gradient(135deg,#0ba360,#3cba92); color:#fff; border:none; border-radius:10px; padding:2px 8px; font-size:10px; font-weight:600; letter-spacing:0.3px;">
                             <i class="fa fa-plus" style="font-size:9px;"></i> FISC
@@ -166,7 +169,7 @@ function colorEstado($estado) {
             
             {{-- NOTAS HIJAS (Colapsadas por defecto) --}}
             @foreach($grupo->notas as $n)
-            @if(isset($rolVista) && $rolVista === 'funcionario1' && !(isset($verTodo) && $verTodo) && $n->tipo_rama == 'FISC')
+            @if($ocultarFisc && $n->tipo_rama == 'FISC')
                 @continue
             @endif
             <tr class="nota-hija" data-parent-grupo="{{ $grupo->id }}" style="display: none; background: {{ $n->tipo_rama == 'MKT' ? '#eff6ff' : '#ecfdf5' }};">

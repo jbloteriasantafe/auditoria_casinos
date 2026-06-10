@@ -27,6 +27,7 @@ class NotaEstado extends Model
     const CON_INFORME             = 'CON INFORME';
     const CON_INFORME_NEGATIVO    = 'CON INFORME NEGATIVO';
     const PENDIENTE_ADJUNTOS      = 'PENDIENTE_ADJUNTOS';
+    const RECHAZADO               = 'RECHAZADO';
 
     /**
      * Todos los estados activos ordenados
@@ -121,6 +122,22 @@ class NotaEstado extends Model
     }
 
     /**
+     * Transiciones para el rol JUEGO_RESPONSABLE: se mueve libremente entre
+     * CARGA INICIAL, CONTROL INICIADO, VISTO CON OBSERVACIONES y RECHAZADO.
+     */
+    public static function transicionesJuegoResponsable()
+    {
+        $libres = [self::CARGA_INICIAL, self::CONTROL_INICIADO, self::VISTO_CON_OBSERVACIONES, self::RECHAZADO];
+        $mapa = [];
+        foreach ($libres as $desde) {
+            $mapa[$desde] = array_values(array_filter($libres, function ($x) use ($desde) {
+                return $x !== $desde;
+            }));
+        }
+        return $mapa;
+    }
+
+    /**
      * Verifica si una transición es válida para un nivel dado
      */
     public static function transicionPermitida($estadoActual, $nuevoEstado, $nivel)
@@ -134,6 +151,8 @@ class NotaEstado extends Model
         } elseif ($nivel === 'funcionario') {
             // Fallback genérico: usar funcionario1
             $mapa = self::transicionesFuncionario1();
+        } elseif ($nivel === 'juego_responsable') {
+            $mapa = self::transicionesJuegoResponsable();
         } else {
             $mapa = self::transicionesRegular();
         }

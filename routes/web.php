@@ -368,6 +368,7 @@ Route::group(['prefix' => 'notas-unificadas', 'middleware' => 'tiene_permiso:ver
   Route::post('/upload-archivo', 'NotasUnificadasController@uploadArchivo');
   Route::post('/quick-update', 'NotasUnificadasController@quickUpdate');
   Route::get('/movimientos/{id}', 'NotasUnificadasController@getMovimientos');
+  Route::get('/log-global', 'NotasUnificadasController@logGlobalMovimientos');
   Route::get('/calendar-events', 'NotasUnificadasController@getCalendarEvents');
 Route::post('/add-comment', 'NotasUnificadasController@addComment');
 Route::get('/get-comments/{id}', 'NotasUnificadasController@getComments');

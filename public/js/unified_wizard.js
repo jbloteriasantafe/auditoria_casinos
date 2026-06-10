@@ -1637,6 +1637,11 @@ $(document).ready(function () {
             permitidos = mapa[current] || [];
         }
 
+        // "APROBADO - NOTA/DISPOSICION" solo Superusuario o Despacho.
+        if (!window.PUEDE_APROBAR_NOTA) {
+            permitidos = permitidos.filter(function (e) { return e !== window.ESTADO_APROBADO_NOTA; });
+        }
+
         span.addClass('editing');
 
         let wrapper = $('<span class="estado-edit-wrap" style="white-space:nowrap;"></span>');
@@ -2755,7 +2760,7 @@ $(document).ready(function () {
                         '<span class="label" style="' + getEstadoStyle(res.mkt.estado) + '">Estado: ' + res.mkt.estado + '</span>' +
                         '</li>';
                 }
-                if (res.fisc && window.NIVEL_ESTADO !== 'funcionario') {
+                if (res.fisc && !window.OCULTA_FISC) {
                     resumenHtml += '<li style="padding:8px; background:#d1fae5; border-radius:6px">' +
                         '<i class="fa fa-gavel text-success"></i> <strong style="color:#064e3b;">Fiscalización:</strong> ' +
                         '<span class="label" style="' + getEstadoStyle(res.fisc.estado) + '">Estado: ' + res.fisc.estado + '</span>' +
@@ -2783,8 +2788,8 @@ $(document).ready(function () {
                     $('#tabMktLi').hide();
                 }
 
-                // Tab FISC (oculto para funcionarios)
-                if (res.fisc && window.NIVEL_ESTADO !== 'funcionario') {
+                // Tab FISC (oculto para funcionarios y juego_responsable)
+                if (res.fisc && !window.OCULTA_FISC) {
                     $('#fiscContenido').html(renderizarNotaDetalle(res.fisc, '#10b981'));
                     _scrollPanelsToBottom('#fiscContenido');
                     $('#tabFiscLi').show();
@@ -2802,8 +2807,8 @@ $(document).ready(function () {
 
     // Función para abrir modal con datos de nota individual
     function abrirModalDetalleNota(notaId, tipoRama) {
-        // Funcionario no puede ver notas FISC
-        if (window.NIVEL_ESTADO === 'funcionario' && tipoRama === 'FISC') {
+        // Funcionarios y juego_responsable no pueden ver notas FISC
+        if (window.OCULTA_FISC && tipoRama === 'FISC') {
             notificacion('warning', 'No tiene permisos para ver notas de Fiscalización');
             return;
         }
@@ -4223,6 +4228,10 @@ $(document).ready(function () {
                 } else {
                     var mapa = trans[window.NIVEL_ESTADO] || {};
                     permitidos = mapa[estadoActual] || [];
+                }
+                // "APROBADO - NOTA/DISPOSICION" solo Superusuario o Despacho.
+                if (!window.PUEDE_APROBAR_NOTA) {
+                    permitidos = permitidos.filter(function (e) { return e !== window.ESTADO_APROBADO_NOTA; });
                 }
                 inputHtml = '<select class="form-control edit-input" data-field="' + field + '" style="font-size: 13px;">';
                 allOpciones.forEach(function(e) {
