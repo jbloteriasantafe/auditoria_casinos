@@ -327,6 +327,13 @@
       wti.setAttribute('data-pod',data?.sys?.pod ?? data?.weather?.[0]?.icon?.slice(-1) ?? '');
     };
     
+    const dataGetTime = (dt,timezone) => {
+      const date = (new Date(dt * 1000 + timezone * 1000)).toISOString();
+      const dia = date.slice(0,'YYYY-MM-DD'.length);
+      const hora = date.slice('YYYY-MM-DDT'.length,-('.000Z'.length));
+      return dia+' '+hora;
+    };
+    
     document.querySelectorAll('.weather-widget').forEach((widget) => {
       const searchInput = widget.getElementsByClassName("weather-search-input")?.[0];
       const searchBtn = widget.getElementsByClassName("weather-search-btn")?.[0];
@@ -380,7 +387,9 @@
           el.classList.remove('weather-loading');
         });
         
-        data.dt_txt = 'AHORA';
+        const timezone = data.timezone;
+        
+        data.dt_txt = 'AHORA ('+dataGetTime(data.dt,timezone)+')';
         fillWeatherTableItem(
           ahoraEl,
           data
@@ -415,31 +424,14 @@
         widget?.querySelectorAll('.weather-loading')?.forEach(function(el){
           el.classList.remove('weather-loading');
         });
+        
         for(const idx in data){
+          data[idx].dt_txt = dataGetTime(data[idx].dt,timezone);
           fillWeatherTableItem(
             pronosticoEls?.[idx],
             data[idx]
           );
         }
-        //Tengo el un día completo, se podría interpolar en base a esto el background
-        /*
-        {
-          let first_000000_found = null;
-          let first_210000_found = null;
-          for(const wti_idx in pronosticoEls){
-            const timestamp = pronosticoEls[wti_idx].querySelector('.weather-title')?.textContent?.trim() ?? '';  
-            const time = timestamp.slice(-("XX:XX:XX".length));
-            if(first_000000_found === null && time == '00:00:00'){
-              first_000000_found = wti_idx; 
-            }
-            if(first_000000_found !== null && first_210000_found === null && time == '21:00:00'){
-              first_210000_found = wti_idx; 
-              break;
-            }
-          }
-          //Tengo el ciclo día noche
-        }
-        */
       });
       
       searchInput?.addEventListener("keypress", (e) => {
