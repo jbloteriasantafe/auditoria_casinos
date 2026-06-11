@@ -71,6 +71,58 @@ class NotasUnificadasController extends Controller
     }
 
     /**
+     * Plataformas de apuestas deportivas (tabla local, cacheada por request).
+     * Son opciones de casino/plataforma SOLO para cargar notas: no asocian
+     * juegos ni MTM. Sus ids (>= 1001) comparten la columna id_plataforma
+     * con las plataformas online de la API (rangos disjuntos).
+     */
+    private static $plataformasDeportivas = null;
+
+    public static function obtenerPlataformasDeportivas()
+    {
+        if (self::$plataformasDeportivas === null) {
+            self::$plataformasDeportivas = \App\Models\PlataformaApuestaDeportiva::orderBy('nombre')->get();
+        }
+        return self::$plataformasDeportivas;
+    }
+
+    /**
+     * ¿El id_plataforma corresponde a una plataforma de apuestas deportivas?
+     */
+    public static function esPlataformaDeportiva($id_plataforma)
+    {
+        if (!$id_plataforma) {
+            return false;
+        }
+        foreach (self::obtenerPlataformasDeportivas() as $d) {
+            if ($d->id_plataforma == $id_plataforma) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Resuelve el código de un rol CARGA_NOTAS_<COD> a un id_plataforma,
+     * buscando en las plataformas online (API) y en las de apuestas
+     * deportivas (tabla local). Devuelve null si no matchea ninguna.
+     */
+    private static function idPlataformaPorCodigo($codigo)
+    {
+        foreach (self::obtenerPlataformasOnline() as $p) {
+            if ($p->codigo === $codigo) {
+                return $p->id_plataforma;
+            }
+        }
+        foreach (self::obtenerPlataformasDeportivas() as $d) {
+            if ($d->codigo === $codigo) {
+                return $d->id_plataforma;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Intentar formatear fecha, devuelve '' si no es válida
      */
     private static function safeDateFormat($value, $format = 'd/m/Y')
@@ -94,6 +146,12 @@ class NotasUnificadasController extends Controller
             foreach ($plataformas as $p) {
                 if ($p->id_plataforma == $id_plataforma) {
                     return str_replace('.bet.ar', '', $p->nombre) . ' (' . $p->codigo . ')';
+                }
+            }
+            // Plataformas de apuestas deportivas (tabla local, ids >= 1001)
+            foreach (self::obtenerPlataformasDeportivas() as $d) {
+                if ($d->id_plataforma == $id_plataforma) {
+                    return $d->nombre;
                 }
             }
             return 'Plataforma #' . $id_plataforma;
@@ -450,14 +508,12 @@ class NotasUnificadasController extends Controller
 
             $plataformasPermitidas = [];
             if (!empty($rolesPlataforma)) {
-                $plataformasOnlineData = self::obtenerPlataformasOnline();
                 foreach ($rolesPlataforma as $rolDesc) {
                     $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
-                    foreach ($plataformasOnlineData as $p) {
-                        if ($p->codigo === $codigo) {
-                            $plataformasPermitidas[] = $p->id_plataforma;
-                            break;
-                        }
+                    // Matchea contra plataformas online (API) y de apuestas deportivas (tabla local)
+                    $idPlat = self::idPlataformaPorCodigo($codigo);
+                    if ($idPlat !== null) {
+                        $plataformasPermitidas[] = $idPlat;
                     }
                 }
             }
@@ -799,6 +855,21 @@ class NotasUnificadasController extends Controller
         });
         $casinos = $casinos->concat($casinos_online);
 
+        // Plataformas de apuestas deportivas (tabla local). Viajan por el mismo
+        // carril que las plataformas online (id_plataforma), pero NO asocian
+        // juegos/MTM (flag es_deportiva para que el wizard lo bloquee).
+        $casinos_deportivas = self::obtenerPlataformasDeportivas()->map(function ($p) {
+            $c = new \stdClass();
+            $c->id_casino = null;
+            $c->id_plataforma = $p->id_plataforma;
+            $c->nombre = $p->nombre;
+            $c->codigo = $p->codigo;
+            $c->es_plataforma = true;
+            $c->es_deportiva = true;
+            return $c;
+        });
+        $casinos = $casinos->concat($casinos_deportivas);
+
         // Filtrar dropdown según permisos del usuario
         if ($casinosPermitidos !== null || $plataformasPermitidas !== null) {
             $casinos = $casinos->filter(function ($c) use ($casinosPermitidos, $plataformasPermitidas) {
@@ -880,14 +951,12 @@ class NotasUnificadasController extends Controller
             }
             $plataformasPermitidas = [];
             if (!empty($rolesPlataforma)) {
-                $plataformasOnlineData = self::obtenerPlataformasOnline();
                 foreach ($rolesPlataforma as $rolDesc) {
                     $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
-                    foreach ($plataformasOnlineData as $p) {
-                        if ($p->codigo === $codigo) {
-                            $plataformasPermitidas[] = $p->id_plataforma;
-                            break;
-                        }
+                    // Matchea contra plataformas online (API) y de apuestas deportivas (tabla local)
+                    $idPlat = self::idPlataformaPorCodigo($codigo);
+                    if ($idPlat !== null) {
+                        $plataformasPermitidas[] = $idPlat;
                     }
                 }
             }
@@ -1303,6 +1372,14 @@ class NotasUnificadasController extends Controller
                 'success' => false,
                 'msg' => 'Debe seleccionar un Casino o Plataforma'
             ], 422);
+        }
+
+        // Plataformas de apuestas deportivas: NO asocian juegos ni MTM, ni
+        // "involucran sala de casino físico" (compartir con administrador).
+        // El wizard ya lo oculta; esto es la red de seguridad server-side.
+        if ($request->id_plataforma && self::esPlataformaDeportiva($request->id_plataforma)) {
+            $request->merge(['involucra_juegos' => 0, 'compartir_administrador' => 0]);
+            $request->request->remove('activos');
         }
 
         if ($request->tipo_solicitud == 'EVENTO') {
@@ -2553,14 +2630,12 @@ class NotasUnificadasController extends Controller
             return $r !== 'CARGA_NOTAS_UNIFICADAS';
         });
         if (!empty($rolesPlataforma)) {
-            $online = self::obtenerPlataformasOnline();
             foreach ($rolesPlataforma as $rolDesc) {
                 $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
-                foreach ($online as $p) {
-                    if ($p->codigo === $codigo) {
-                        $plataformas[] = $p->id_plataforma;
-                        break;
-                    }
+                // Matchea contra plataformas online (API) y de apuestas deportivas (tabla local)
+                $idPlat = self::idPlataformaPorCodigo($codigo);
+                if ($idPlat !== null) {
+                    $plataformas[] = $idPlat;
                 }
             }
         }
@@ -3195,6 +3270,15 @@ class NotasUnificadasController extends Controller
     {
         try {
             $nota = NotaIngreso::findOrFail($id);
+
+            // Plataformas de apuestas deportivas: NO asocian juegos ni MTM
+            if ($nota->id_plataforma && self::esPlataformaDeportiva($nota->id_plataforma)) {
+                return response()->json([
+                    'success' => false,
+                    'msg' => 'Las plataformas de apuestas deportivas no asocian juegos/MTM'
+                ], 422);
+            }
+
             $activos = $request->activos ?: [];
             $cantPrevia = $nota->activos()->count();
             $this->procesarActivos($nota, $activos);
@@ -4384,14 +4468,12 @@ class NotasUnificadasController extends Controller
         });
         $plataformas = [];
         if (!empty($rolesPlataforma)) {
-            $plataformasOnlineData = self::obtenerPlataformasOnline();
             foreach ($rolesPlataforma as $rolDesc) {
                 $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
-                foreach ($plataformasOnlineData as $p) {
-                    if ($p->codigo === $codigo) {
-                        $plataformas[] = (int) $p->id_plataforma;
-                        break;
-                    }
+                // Matchea contra plataformas online (API) y de apuestas deportivas (tabla local)
+                $idPlat = self::idPlataformaPorCodigo($codigo);
+                if ($idPlat !== null) {
+                    $plataformas[] = (int) $idPlat;
                 }
             }
         }
@@ -4446,6 +4528,10 @@ class NotasUnificadasController extends Controller
                 $d->nombre_casino = $casino ? $casino->nombre : 'Casino #' . $d->id_casino;
             } elseif ($d->id_plataforma) {
                 $plat = DB::table('plataforma')->where('id_plataforma', $d->id_plataforma)->first();
+                if (!$plat) {
+                    // Plataformas de apuestas deportivas (ids >= 1001)
+                    $plat = DB::table('plataformas_apuestas_deportivas')->where('id_plataforma', $d->id_plataforma)->first();
+                }
                 $d->nombre_casino = $plat ? $plat->nombre : 'Plataforma #' . $d->id_plataforma;
             }
         }

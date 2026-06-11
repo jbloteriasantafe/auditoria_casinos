@@ -726,6 +726,7 @@
                                         @foreach($casinos as $c)
                                             <option value="{{ $c->es_plataforma ? $c->id_plataforma : $c->id_casino }}"
                                                 data-es-plataforma="{{ $c->es_plataforma ? '1' : '0' }}"
+                                                data-es-deportiva="{{ !empty($c->es_deportiva) ? '1' : '0' }}"
                                                 data-nombre="{{ $c->nombre }}">{{ $c->nombre }}</option>
                                         @endforeach
                                     </select>
@@ -807,8 +808,8 @@
                             id="inpFechaPropuestaReal">
                     </div>
 
-                    <!-- COMPARTIR CON ADMINISTRADOR (solo MKT) -->
-                    <div class="section-marketing wiz-field">
+                    <!-- COMPARTIR CON ADMINISTRADOR (solo MKT; oculto para plataformas de apuestas deportivas) -->
+                    <div class="section-marketing wiz-field" id="secCompartirAdmin">
                         <label
                             style="display:inline-flex; align-items:center; cursor:pointer; font-weight:normal; gap:8px;">
                             <input type="checkbox" name="compartir_administrador" id="chkCompartirAdmin" value="1"
@@ -871,8 +872,8 @@
                             </div>
                         </div>
 
-                        <!-- INVOLUCRA JUEGOS (solo MKT) -->
-                        <div class="section-marketing wiz-field" style="margin-top: 10px;">
+                        <!-- INVOLUCRA JUEGOS (solo MKT; oculto para plataformas de apuestas deportivas) -->
+                        <div class="section-marketing wiz-field" id="secInvolucraJuegos" style="margin-top: 10px;">
                             <label
                                 style="display:inline-flex; align-items:center; cursor:pointer; font-weight:normal; gap:8px;">
                                 <input type="checkbox" name="involucra_juegos" id="chkInvolucraJuegos" value="1"
