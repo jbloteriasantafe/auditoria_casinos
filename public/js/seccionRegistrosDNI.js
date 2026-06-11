@@ -100,7 +100,8 @@ function estadisticas(div,data){
   let comenzo_final = false;
   
   let x = 0;
-  let max_reportes_diarios = 100;
+  let max_reportes_diarios = 0;
+  let min_reportes_diarios = 1/0;
   for(const a of claves.años){
     for(const m of claves.meses){
       const label = `${(a+'').padStart(4,'0')}-${(m+'').padStart(2,'0')}`;
@@ -116,7 +117,6 @@ function estadisticas(div,data){
           for(const g of claves.grupos_etarios){
             reporte_diario += (dias_reportados?.[d]?.[g] ?? 0);
           }
-          max_reportes_diarios = Math.max(max_reportes_diarios,reporte_diario);
           reportes_mensuales += reporte_diario;
           rd[d] = reporte_diario;
         }
@@ -154,6 +154,9 @@ function estadisticas(div,data){
         getQuantile(sorted_reportes_diarios,0.75),
         getQuantile(sorted_reportes_diarios,1.00)
       ];
+      
+      max_reportes_diarios = Math.max(max_reportes_diarios,qs[4].q);
+      min_reportes_diarios = Math.min(min_reportes_diarios,qs[0].q);
       
       reportes_por_dia_qs.push({
         x: x,
@@ -195,12 +198,7 @@ function estadisticas(div,data){
       const p = dias_reportados_length/dias_mes_totales;
       reportes_por_mes.push({
         x: x,
-        //name: label,
         y: reportes_mensuales,
-        color: 'rgb('+c_to_rgb(bezierColor(p)).join(',')+')',
-        custom: {
-          porcentaje: Math.round(p*100*100)/100.0
-        }
       });
       
       plotLines.push({
@@ -220,16 +218,20 @@ function estadisticas(div,data){
   //meses_estados = meses_estados.slice(skip_inicial ?? 0,meses_estados.length-skip_final);
   //meses_estados = meses_estados.flat();
   reportes_por_dia = reportes_por_dia.slice(skip_inicial ?? 0,reportes_por_dia.length-skip_final);
+  console.log(max_reportes_diarios);
   
   if(meses.length != reportes_por_dia.length){
     throw 'Error de implementación';
   }
+  
+  const div_mensual     = $('<div>').css('width','100%').attr('data-key','mensual');
   const div_diario      = $('<div>').css('width','100%').attr('data-key','diario');
   const div_uniformidad = $('<div>').css('width','100%').attr('data-key','uniformidad');
+  $(div).append(div_mensual);
   $(div).append(div_diario);
   $(div).append(div_uniformidad);
   //$(div).append(div_completitud);
-    
+  
   const highcharts_obj_base = {
     chart: {
       zoomType: 'xy'
@@ -240,6 +242,9 @@ function estadisticas(div,data){
       formatter: function(){
         let s = '';
         const x = this.points[0].point.x;
+        const reportes_mes = this.points.filter(function(p){
+          return p.series.options.id == 'reportes-mes';
+        })?.[0]?.series;
         const uniformidad_mes = this.points.filter(function(p){
           return p.series.options.id == 'uniformidad-mes';
         })?.[0]?.series;
@@ -251,6 +256,12 @@ function estadisticas(div,data){
         })?.[0]?.series;
         
         const r2d = (f) => Math.round(f*100)/100.0;
+        
+        s += '<div style="width: 100%;">';
+        reportes_mes?.points?.filter(p => p.x === x).forEach(function(point){
+          s += '<p><b>Reportes:</b> '+point.y+'</p>';
+        });
+        s += '</div>';
         
         s += '<div style="width: 100%;">';
         uniformidad_mes?.points?.filter(p => p.x === x).forEach(function(point){
@@ -291,14 +302,35 @@ function estadisticas(div,data){
       }
     }],
     legend: {
-      enabled: true,
+      enabled: true
     }
   };
+  
+  Highcharts.chart(div_mensual[0], {
+    ...highcharts_obj_base,
+    title: {
+      text: 'Reportes mensuales'
+    },
+    yAxis: [{
+      title: { text: 'Reportes' },
+    }],
+    series: [
+      {
+        id: 'reportes-mes',
+        name: 'Reportes mensuales',
+        type: 'column',
+        yAxis: 0,
+        data: reportes_por_mes,
+        showInLegend: true,
+        zIndex: 1
+      }
+    ]
+  });
   
   Highcharts.chart(div_diario[0], {
     ...highcharts_obj_base,
     title: {
-      text: 'Reportes diarios'
+      text: 'Reportes por día'
     },
     plotOptions: {
       boxplot: {
@@ -306,10 +338,12 @@ function estadisticas(div,data){
       }
     },
     yAxis: [{
-      title: { text: 'Reportes por día' },
+      title: { text: 'Reportes' },
       min: 0,
       max: max_reportes_diarios,
-      //opposite: true
+      maxPadding: 0.1,
+      endOnTick: false,
+      startOnTick: false
     }],
     series: [
       {
@@ -341,7 +375,7 @@ function estadisticas(div,data){
       text: 'Uniformidad y % reportado'
     },
     yAxis: [{
-      title: { text: 'Uniformidad de reportes diarios' },
+      title: { text: 'Uniformidad' },
       min: 0,
       max: 1,
     }],
@@ -352,7 +386,18 @@ function estadisticas(div,data){
         [0, 'rgb(255,50,0)'],   // 0.0: Vibrant Red (Low uniformity)
         [0.5, 'rgb(255,255,0)'], // 0.5: Bright Yellow (Midpoint bypasses brown!)
         [1, 'rgb(0,255,0)']    // 1.0: Emerald Green (High uniformity)
-      ]
+      ],
+      labels: {
+        align: 'left',
+        overflow: 'allow',
+        reserveSpace: true,
+        formatter: function () {
+          if (this.value === 0) return 'Sin';
+          if (this.value === 1) return 'Todos';
+          // Return nothing (or this.value) for numbers in between
+          return ''; 
+        }
+      },
     },
     series: [
       {
