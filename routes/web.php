@@ -205,7 +205,9 @@ Route::group(['prefix' => 'configCuenta'], function () {
   Route::post('modificarDatos', 'UsuarioController@modificarDatos');
   Route::get('buscarUsuario/{id_usuario}', 'UsuarioController@buscarUsuario');
   Route::get('imagen', 'UsuarioController@leerImagenUsuario');
-  Route::get('pronosticoMetereologico/{locacion?}','UsuarioController@pronosticoMetereologico');
+  Route::get('pronosticoMetereologicoAhora','UsuarioController@pronosticoMetereologicoAhora');
+  Route::get('pronosticoMetereologicoPronostico','UsuarioController@pronosticoMetereologicoPronostico');
+  Route::get('pronosticoMetereologicoIcon/{img}','UsuarioController@pronosticoMetereologicoIcon');
 });
 
 Route::get('logout', 'AuthenticationController@logoutGET');

@@ -125,6 +125,7 @@
     <div class="row">
         <div class="col-md-12">
           <div class="panel panel-default">
+            <div class="col-md-9">
               <div class="panel-heading">
 
               </div>
@@ -202,14 +203,10 @@
                       </div>
                   </div>
               </div>
-          </div>
-          
-          <div class="row">            
-            <div class="col-md-12">
-              <div class="col-md-3 col-md-offset-9">
-                @component('Components.pronosticoMetereologico')
-                @endcomponent
-              </div>
+            </div>
+            <div class="col-md-3">
+              @component('Components.pronosticoMetereologico')
+              @endcomponent
             </div>
           </div>
         </div>

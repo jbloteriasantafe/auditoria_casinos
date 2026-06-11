@@ -214,6 +214,13 @@ $(document).on('click', '.btn-elimObsEv', function(){
     .done(function(res){
       if (res == 1) {
         cargarObservacionesEv();
+        // Igual que el alta (más arriba): refrescar la tabla (index) y el reporte (resumen
+        // diario) — con el filtro "con observaciones" activo, el borrado puede sacar filas del set.
+        if ($('#cuerpoTablaEv').length) {
+          var paginaActual = $('#herramientasPaginacion').getCurrentPage();
+          $('#btn-buscarEventualidades').trigger('click', [{ page: paginaActual }]);
+        }
+        $(document).trigger('reporteDiario:refresh');
       } else {
         avisoEv('No se pudo eliminar.');
       }
