@@ -11,6 +11,7 @@ $puede_ver_formularios = $puede_agregar || $puede_modificar;
 $puede_descargar = $usuario->es_superusuario || $usuario->tienePermiso('descargar_aes');
 $puede_borrar    = $usuario->es_superusuario || $usuario->tienePermiso('borrar_ae');
 $puede_ver_logs_descargas = $usuario->es_superusuario || $usuario->tienePermiso('logs_descargar_aes');
+$puede_subir_archivos = true;//Cualquiera con acceso a la sección puede subir/reemplazar las imágenes
 ?>
 
 @section('estilos')
@@ -327,11 +328,13 @@ input[required], select[required]{
         <i class="fa fa-fw"></i>
       </button>
       @endif
-      @if($puede_agregar)
-      <a tabindex="0" id="btnSubirArchivos" class="btn btn-info info" role="button" value="" title="SUBIR ARCHIVOS" data-toggle="popover" data-html="true" data-trigger="focus" 
+      @if($puede_subir_archivos)
+      <a tabindex="0" id="btnSubirArchivos" class="btn btn-info info" role="button" value="" title="SUBIR ARCHIVOS" data-toggle="popover" data-html="true" data-trigger="focus"
          data-content="">
         <i class="fa fa-fw fa-folder-open"></i>
       </a>
+      @endif
+      @if($puede_agregar)
       <button id="btnGenerarSolicitudAutoexclusion" class="btn btn-info info" type="button" value="" title="GENERAR SOLICITUD AE" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="far fa-fw fa-file-alt"></i>
       </button>

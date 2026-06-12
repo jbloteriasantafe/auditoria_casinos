@@ -119,19 +119,24 @@ function generarFilaTabla(molde,ae) {
     caratula: 'CARATULA'
   };
   const ul = $('<ul>').css('text-align','left');
-  for(const key in archivos){//Si ya esta subido el archivo, no lo agrego
-    if(ae[key] !== null) continue;
+  for(const key in archivos){//Se listan todos los tipos, los ya subidos se pueden reemplazar
+    //if(ae[key] !== null) continue;//Ahora se permite reemplazar los ya subidos
     const item = $('<a>').addClass('subirArchivo').attr('data-tipo',key).text(archivos[key]);
-    ul.append($('<li>').append(item));
+    const li = $('<li>').append(item);
+    if(ae[key] !== null){//Marca de "ya subido", fuera del <a> para no ensuciar el titulo del modal
+      li.append($('<span>').css('color','#00C853').text(' ✔'));
+    }
+    ul.append(li);
   }
   if(ae.id_nombre_estado != 4){//Si no esta finalizado por AE no dejo subir la solicitud de fin.
     ul.find('a[data-tipo="solicitud_revocacion"]').parent().remove();
   }
   fila.find('#btnSubirArchivos').attr('data-content',ul[0].outerHTML);
   fila.find('#btnSubirArchivos').popover();
-  if(ul.find('li').length == 0){//Si ya tiene todos los archivos saco el boton
-    fila.find('#btnSubirArchivos').remove();
-  }
+  //Antes se sacaba el boton si ya estaban todos los archivos; ahora queda para poder reemplazarlos
+  //if(ul.find('li').length == 0){//Si ya tiene todos los archivos saco el boton
+  //  fila.find('#btnSubirArchivos').remove();
+  //}
   
   let papel_destruido = (ae.papel_destruido_id_usuario != null || ae.papel_destruido_datetime != null)+0;
   if(ae.id_plataforma != null) papel_destruido = -1;//Si tiene plataforma, no puede tener papel, saco todo

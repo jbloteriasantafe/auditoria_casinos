@@ -334,9 +334,10 @@ public function ultimasIntervenciones(Request $request)
       });
     }
     if ($request->observados == 1) {
-    $query->whereHas('observaciones', function($q){
-        $q->whereNotNull('id_archivo');
-      });
+      // Alcanza con que exista la observación: las nuevas no llevan id_archivo (sus adjuntos
+      // van en archivo_observacion_eventualidad); filtrar por id_archivo dejaba afuera todas
+      // las observaciones cargadas con el flujo nuevo.
+      $query->whereHas('observaciones');
     }
 
     $total = $query->count();
@@ -383,12 +384,37 @@ public function reporteDiario(Request $request)
         return response()->json(['rows' => [], 'pagination' => ['current_page' => 1, 'per_page' => $perPage, 'total' => 0]]);
     }
 
+    // Filtro "con observaciones": el día (casino, fecha) tiene al menos una observación, sea
+    // del resumen diario o de alguna eventualidad de ese día. La condición es uniforme dentro
+    // del grupo (mira el día completo, no la fila): si filtrara por la eventualidad de la fila,
+    // los COUNT del grupo quedarían recortados.
+    $conObs = $request->query('observados') == 1;
+    $filtroConObs = function ($q) {
+        return $q->where(function ($qq) {
+            $qq->whereExists(function ($s) {
+                $s->selectRaw('1')
+                  ->from('observacion_resumen_diario as obr')
+                  ->join('resumen_diario as rd2', 'rd2.id_resumen_diario', '=', 'obr.id_resumen_diario')
+                  ->whereRaw('rd2.id_casino = ev.id_casino')
+                  ->whereRaw('rd2.fecha = DATE(ev.fecha_toma)');
+            })->orWhereExists(function ($s) {
+                $s->selectRaw('1')
+                  ->from('observacion_eventualidades as obe')
+                  ->join('eventualidades as ev2', 'ev2.id_eventualidades', '=', 'obe.id_eventualidades')
+                  ->where('ev2.estado_eventualidad', '>', 0) // los borradores no cuentan acá tampoco
+                  ->whereRaw('ev2.id_casino = ev.id_casino')
+                  ->whereRaw('DATE(ev2.fecha_toma) = DATE(ev.fecha_toma)');
+            });
+        });
+    };
+
     // Total de grupos (casino, fecha) en el rango — para la paginación.
     $totalRow = DB::table('eventualidades as ev')
         ->whereIn('ev.id_casino', $casinos)
         ->where('ev.estado_eventualidad', '>', 0) // excluye borradores ("sin terminar")
         ->when($desde, function ($q) use ($desde) { return $q->whereDate('ev.fecha_toma', '>=', $desde); })
         ->when($hasta, function ($q) use ($hasta) { return $q->whereDate('ev.fecha_toma', '<=', $hasta); })
+        ->when($conObs, $filtroConObs)
         ->selectRaw('COUNT(DISTINCT ev.id_casino, DATE(ev.fecha_toma)) as total')
         ->first();
     $total = $totalRow ? (int) $totalRow->total : 0;
@@ -414,6 +440,7 @@ public function reporteDiario(Request $request)
         ->when($hasta, function ($q) use ($hasta) {
             return $q->whereDate('ev.fecha_toma','<=',$hasta);
         })
+        ->when($conObs, $filtroConObs)
         ->selectRaw('
             ev.id_casino,
             c.nombre as casino,

@@ -71,6 +71,58 @@ class NotasUnificadasController extends Controller
     }
 
     /**
+     * Plataformas de apuestas deportivas (tabla local, cacheada por request).
+     * Son opciones de casino/plataforma SOLO para cargar notas: no asocian
+     * juegos ni MTM. Sus ids (>= 1001) comparten la columna id_plataforma
+     * con las plataformas online de la API (rangos disjuntos).
+     */
+    private static $plataformasDeportivas = null;
+
+    public static function obtenerPlataformasDeportivas()
+    {
+        if (self::$plataformasDeportivas === null) {
+            self::$plataformasDeportivas = \App\Models\PlataformaApuestaDeportiva::orderBy('nombre')->get();
+        }
+        return self::$plataformasDeportivas;
+    }
+
+    /**
+     * ¿El id_plataforma corresponde a una plataforma de apuestas deportivas?
+     */
+    public static function esPlataformaDeportiva($id_plataforma)
+    {
+        if (!$id_plataforma) {
+            return false;
+        }
+        foreach (self::obtenerPlataformasDeportivas() as $d) {
+            if ($d->id_plataforma == $id_plataforma) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Resuelve el código de un rol CARGA_NOTAS_<COD> a un id_plataforma,
+     * buscando en las plataformas online (API) y en las de apuestas
+     * deportivas (tabla local). Devuelve null si no matchea ninguna.
+     */
+    private static function idPlataformaPorCodigo($codigo)
+    {
+        foreach (self::obtenerPlataformasOnline() as $p) {
+            if ($p->codigo === $codigo) {
+                return $p->id_plataforma;
+            }
+        }
+        foreach (self::obtenerPlataformasDeportivas() as $d) {
+            if ($d->codigo === $codigo) {
+                return $d->id_plataforma;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Intentar formatear fecha, devuelve '' si no es válida
      */
     private static function safeDateFormat($value, $format = 'd/m/Y')
@@ -94,6 +146,12 @@ class NotasUnificadasController extends Controller
             foreach ($plataformas as $p) {
                 if ($p->id_plataforma == $id_plataforma) {
                     return str_replace('.bet.ar', '', $p->nombre) . ' (' . $p->codigo . ')';
+                }
+            }
+            // Plataformas de apuestas deportivas (tabla local, ids >= 1001)
+            foreach (self::obtenerPlataformasDeportivas() as $d) {
+                if ($d->id_plataforma == $id_plataforma) {
+                    return $d->nombre;
                 }
             }
             return 'Plataforma #' . $id_plataforma;
@@ -421,7 +479,7 @@ class NotasUnificadasController extends Controller
 
         // Roles que ven TODO sin filtro de casino: superusuario, auditor, despacho
         // Administradores, casinos, plataformas y funcionarios: solo ven sus casinos asignados
-        $sinFiltroCasino = $usuario->es_superusuario || $usuario->es_auditor || $usuario->es_despacho;
+        $sinFiltroCasino = $usuario->es_superusuario || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE');
 
         if (!$sinFiltroCasino) {
             // Buscar todos los roles CARGA_NOTAS_* del usuario
@@ -450,14 +508,12 @@ class NotasUnificadasController extends Controller
 
             $plataformasPermitidas = [];
             if (!empty($rolesPlataforma)) {
-                $plataformasOnlineData = self::obtenerPlataformasOnline();
                 foreach ($rolesPlataforma as $rolDesc) {
                     $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
-                    foreach ($plataformasOnlineData as $p) {
-                        if ($p->codigo === $codigo) {
-                            $plataformasPermitidas[] = $p->id_plataforma;
-                            break;
-                        }
+                    // Matchea contra plataformas online (API) y de apuestas deportivas (tabla local)
+                    $idPlat = self::idPlataformaPorCodigo($codigo);
+                    if ($idPlat !== null) {
+                        $plataformasPermitidas[] = $idPlat;
                     }
                 }
             }
@@ -477,21 +533,28 @@ class NotasUnificadasController extends Controller
         $esFuncionario2 = $usuario->tieneRol('FUNCIONARIO_2');
         $esFuncionario = $esFuncionario1 || $esFuncionario2;
         $esAdministradorRol = $usuario->es_administrador && !$esFuncionario;
+        $esJuegoResponsable = $usuario->tieneRol('JUEGO_RESPONSABLE');
 
         // rolVista determina el filtro por defecto
-        // funcionario1 = solo MKT, funcionario2 = Contratos + CON INFORME NEGATIVO, administrador = FISC + compartir_admin MKT, all = todo
+        // funcionario1 = solo MKT, funcionario2 = Contratos + CON INFORME NEGATIVO, administrador = FISC + compartir_admin MKT, juego_responsable = solo MKT, all = todo
         if ($esFuncionario1) {
             $rolVista = 'funcionario1';
         } elseif ($esFuncionario2) {
             $rolVista = 'funcionario2';
         } elseif ($esAdministradorRol) {
             $rolVista = 'administrador';
+        } elseif ($esJuegoResponsable) {
+            $rolVista = 'juego_responsable';
         } else {
             $rolVista = 'all';
         }
 
         // "Ver todo" desactiva filtros de rol
         $verTodo = $request->has('ver_todo') && $request->ver_todo == '1';
+        // Juego Responsable no puede saltarse su filtro de rama (solo MKT)
+        if ($esJuegoResponsable) {
+            $verTodo = false;
+        }
 
         // Mostrar botón "Ver todo" solo a administradores y funcionarios
         $muestraVerTodo = $esFuncionario || $esAdministradorRol;
@@ -540,6 +603,11 @@ class NotasUnificadasController extends Controller
                             $q2->where('tipo_rama', 'MKT')
                                 ->where('compartir_administrador', 1);
                         });
+                });
+            } elseif ($rolVista === 'juego_responsable') {
+                // Juego Responsable: solo grupos con notas MKT
+                $gruposQuery->whereHas('notas', function ($q) {
+                    $q->where('tipo_rama', 'MKT');
                 });
             }
             // rolVista === 'all': sin filtro de rol
@@ -737,12 +805,20 @@ class NotasUnificadasController extends Controller
         // en lugar de "Fecha Est. Aprob." (MKT).
         $esAdministrador = $usuario->es_administrador;
 
+        // Solo superusuarios ven el log global de movimientos del módulo.
+        $esSuperusuario = $usuario->es_superusuario;
+
+        // El estado "APROBADO - NOTA/DISPOSICION" solo lo pueden poner Superusuario o Despacho.
+        $puedeAprobarNota = $usuario->es_superusuario || $usuario->es_despacho;
+
         if ($esFuncionario1) {
             $nivelEstado = 'funcionario1';
         } elseif ($esFuncionario2) {
             $nivelEstado = 'funcionario2';
         } elseif ($esAdmin) {
             $nivelEstado = 'admin';
+        } elseif ($usuario->tieneRol('JUEGO_RESPONSABLE')) {
+            $nivelEstado = 'juego_responsable';
         } else {
             $nivelEstado = 'regular';
         }
@@ -779,6 +855,21 @@ class NotasUnificadasController extends Controller
         });
         $casinos = $casinos->concat($casinos_online);
 
+        // Plataformas de apuestas deportivas (tabla local). Viajan por el mismo
+        // carril que las plataformas online (id_plataforma), pero NO asocian
+        // juegos/MTM (flag es_deportiva para que el wizard lo bloquee).
+        $casinos_deportivas = self::obtenerPlataformasDeportivas()->map(function ($p) {
+            $c = new \stdClass();
+            $c->id_casino = null;
+            $c->id_plataforma = $p->id_plataforma;
+            $c->nombre = $p->nombre;
+            $c->codigo = $p->codigo;
+            $c->es_plataforma = true;
+            $c->es_deportiva = true;
+            return $c;
+        });
+        $casinos = $casinos->concat($casinos_deportivas);
+
         // Filtrar dropdown según permisos del usuario
         if ($casinosPermitidos !== null || $plataformasPermitidas !== null) {
             $casinos = $casinos->filter(function ($c) use ($casinosPermitidos, $plataformasPermitidas) {
@@ -813,7 +904,7 @@ class NotasUnificadasController extends Controller
         // Puede exportar: admin o funcionario
         $puedeExportar = $esAdmin || $esFuncionario;
 
-        return view('Unified.index', compact('grupos', 'notasSueltas', 'casinos', 'categorias', 'tipos_evento', 'estados', 'puedeEliminar', 'puedeEliminarNotas', 'nivelEstado', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'muestraVerTodo', 'verTodo', 'totalGrupos', 'tiposEventoMkt', 'tiposEventoFisc', 'aprobacionesPorGrupo', 'puedeVerComentarios', 'esAdminMails', 'puedeGestionarMails', 'puedeExportar', 'puedeEditarBorrador', 'esConcesionario', 'esAdministrador'));
+        return view('Unified.index', compact('grupos', 'notasSueltas', 'casinos', 'categorias', 'tipos_evento', 'estados', 'puedeEliminar', 'puedeEliminarNotas', 'nivelEstado', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'muestraVerTodo', 'verTodo', 'totalGrupos', 'tiposEventoMkt', 'tiposEventoFisc', 'aprobacionesPorGrupo', 'puedeVerComentarios', 'esAdminMails', 'puedeGestionarMails', 'puedeExportar', 'puedeEditarBorrador', 'esConcesionario', 'esAdministrador', 'esJuegoResponsable', 'esSuperusuario', 'puedeAprobarNota'));
     }
 
     /**
@@ -835,7 +926,7 @@ class NotasUnificadasController extends Controller
             return response()->json(['success' => false, 'msg' => 'No tiene permisos para exportar'], 403);
         }
 
-        $sinFiltroCasino = $usuario->es_superusuario || $usuario->es_auditor || $usuario->es_despacho;
+        $sinFiltroCasino = $usuario->es_superusuario || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE');
         $casinosPermitidos = null;
         $plataformasPermitidas = null;
 
@@ -860,14 +951,12 @@ class NotasUnificadasController extends Controller
             }
             $plataformasPermitidas = [];
             if (!empty($rolesPlataforma)) {
-                $plataformasOnlineData = self::obtenerPlataformasOnline();
                 foreach ($rolesPlataforma as $rolDesc) {
                     $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
-                    foreach ($plataformasOnlineData as $p) {
-                        if ($p->codigo === $codigo) {
-                            $plataformasPermitidas[] = $p->id_plataforma;
-                            break;
-                        }
+                    // Matchea contra plataformas online (API) y de apuestas deportivas (tabla local)
+                    $idPlat = self::idPlataformaPorCodigo($codigo);
+                    if ($idPlat !== null) {
+                        $plataformasPermitidas[] = $idPlat;
                     }
                 }
             }
@@ -879,7 +968,11 @@ class NotasUnificadasController extends Controller
         $esFuncionario1 = $usuario->tieneRol('FUNCIONARIO_1');
         $esFuncionario2 = $usuario->tieneRol('FUNCIONARIO_2');
         $esFuncionario = $esFuncionario1 || $esFuncionario2;
+        $esJuegoResponsable = $usuario->tieneRol('JUEGO_RESPONSABLE');
         $verTodo = $request->has('ver_todo') && $request->ver_todo == '1';
+        if ($esJuegoResponsable) {
+            $verTodo = false;
+        }
 
         if ($esFuncionario1)
             $rolVista = 'funcionario1';
@@ -887,6 +980,8 @@ class NotasUnificadasController extends Controller
             $rolVista = 'funcionario2';
         elseif ($usuario->es_administrador && !$esFuncionario)
             $rolVista = 'administrador';
+        elseif ($esJuegoResponsable)
+            $rolVista = 'juego_responsable';
         else
             $rolVista = 'all';
 
@@ -921,6 +1016,10 @@ class NotasUnificadasController extends Controller
                         ->orWhere(function ($q2) {
                             $q2->where('tipo_rama', 'MKT')->where('compartir_administrador', 1);
                         });
+                });
+            } elseif ($rolVista === 'juego_responsable') {
+                $gruposQuery->whereHas('notas', function ($q) {
+                    $q->where('tipo_rama', 'MKT');
                 });
             }
         }
@@ -1044,8 +1143,8 @@ class NotasUnificadasController extends Controller
             $aprobsGrupo = isset($aprobaciones[$grupo->id]) ? $aprobaciones[$grupo->id] : [];
 
             foreach ($grupo->notas as $nota) {
-                // Filtrar FISC para funcionario1 sin ver_todo
-                if ($rolVista === 'funcionario1' && !$verTodo && $nota->tipo_rama === 'FISC')
+                // Filtrar FISC para funcionario1 / juego_responsable sin ver_todo
+                if (($rolVista === 'funcionario1' || $rolVista === 'juego_responsable') && !$verTodo && $nota->tipo_rama === 'FISC')
                     continue;
 
                 // Estado
@@ -1249,6 +1348,16 @@ class NotasUnificadasController extends Controller
             ]);
         }
 
+        // JUEGO_RESPONSABLE solo opera sobre la rama MKT: no puede crear notas FISC.
+        $idUsuarioStore = session('id_usuario');
+        $usuarioStore = $idUsuarioStore ? \App\Usuario::find($idUsuarioStore) : null;
+        if ($usuarioStore && $usuarioStore->tieneRol('JUEGO_RESPONSABLE') && $request->tipo_tarea === 'FISCALIZACION') {
+            return response()->json([
+                'success' => false,
+                'msg' => 'Su rol solo permite crear notas de Marketing (MKT)'
+            ], 403);
+        }
+
         // 1. Validar request
         $rules = [
             'nro_nota' => 'required',
@@ -1263,6 +1372,14 @@ class NotasUnificadasController extends Controller
                 'success' => false,
                 'msg' => 'Debe seleccionar un Casino o Plataforma'
             ], 422);
+        }
+
+        // Plataformas de apuestas deportivas: NO asocian juegos ni MTM, ni
+        // "involucran sala de casino físico" (compartir con administrador).
+        // El wizard ya lo oculta; esto es la red de seguridad server-side.
+        if ($request->id_plataforma && self::esPlataformaDeportiva($request->id_plataforma)) {
+            $request->merge(['involucra_juegos' => 0, 'compartir_administrador' => 0]);
+            $request->request->remove('activos');
         }
 
         if ($request->tipo_solicitud == 'EVENTO') {
@@ -2028,11 +2145,18 @@ class NotasUnificadasController extends Controller
                     $nivel = 'funcionario2';
                 elseif ($esAdmin)
                     $nivel = 'admin';
+                elseif ($usuario->tieneRol('JUEGO_RESPONSABLE'))
+                    $nivel = 'juego_responsable';
                 else
                     $nivel = 'regular';
 
                 if (!NotaEstado::transicionPermitida($estadoActual, $value, $nivel)) {
                     return response()->json(['success' => false, 'msg' => 'No tiene permisos para esta transición de estado'], 403);
+                }
+
+                // El estado "APROBADO - NOTA/DISPOSICION" solo lo pueden poner Superusuario o Despacho.
+                if ($value === NotaEstado::APROBADO_NOTA && !($usuario->es_superusuario || $usuario->es_despacho)) {
+                    return response()->json(['success' => false, 'msg' => 'Solo Superusuario o Despacho pueden aprobar por Nota/Disposición'], 403);
                 }
 
                 $exp->estado_actual = $value;
@@ -2128,6 +2252,122 @@ class NotasUnificadasController extends Controller
         return response()->json($movs);
     }
 
+
+    /**
+     * Log GLOBAL de movimientos de TODO el módulo (todas las notas), orden cronológico.
+     * Solo superusuarios que NO sean funcionarios. Con filtros y paginación.
+     */
+    public function logGlobalMovimientos(Request $request)
+    {
+        $idUsuario = session('id_usuario');
+        $usuario = $idUsuario ? \App\Usuario::find($idUsuario) : null;
+        // Los funcionarios también son superusuarios, pero NO deben ver el log.
+        $esFuncionario = $usuario && ($usuario->tieneRol('FUNCIONARIO_1') || $usuario->tieneRol('FUNCIONARIO_2'));
+        if (!$usuario || !$usuario->es_superusuario || $esFuncionario) {
+            return response()->json(['success' => false, 'msg' => 'No autorizado'], 403);
+        }
+
+        // Filtros
+        $q      = trim((string) $request->input('q', ''));
+        $rama   = (string) $request->input('rama', '');
+        $accion = (string) $request->input('accion', '');
+        $desde  = (string) $request->input('desde', '');
+        $hasta  = (string) $request->input('hasta', '');
+
+        // Paginación
+        $perPage = (int) $request->input('per_page', 50);
+        if ($perPage < 10)  $perPage = 10;
+        if ($perPage > 200) $perPage = 200;
+        $page = (int) $request->input('page', 1);
+        if ($page < 1) $page = 1;
+
+        $base = DB::table('movimientos_expedientes as m')
+            ->leftJoin('expedientes_notas as e', 'e.id', '=', 'm.id_expediente_nota')
+            ->leftJoin('notas_ingreso as n', 'n.id', '=', 'e.id_nota_ingreso')
+            ->leftJoin('grupos_tramites as g', 'g.id', '=', 'n.id_grupo')
+            ->leftJoin('usuario as u', 'u.id_usuario', '=', 'm.id_usuario')
+            ->whereNull('m.deleted_at');
+
+        if ($rama !== '')   $base->where('e.tipo_rama', $rama);
+        if ($accion !== '') $base->where('m.accion', $accion);
+        if ($desde !== '')  $base->whereDate('m.fecha_movimiento', '>=', $desde);
+        if ($hasta !== '')  $base->whereDate('m.fecha_movimiento', '<=', $hasta);
+        if ($q !== '') {
+            $like = '%' . $q . '%';
+            $base->where(function ($w) use ($like) {
+                $w->where('u.nombre', 'like', $like)
+                    ->orWhere('m.accion', 'like', $like)
+                    ->orWhere('m.comentario', 'like', $like)
+                    ->orWhere('g.nro_nota', 'like', $like)
+                    ->orWhere('g.titulo', 'like', $like)
+                    ->orWhere('n.nro_nota', 'like', $like)
+                    ->orWhere('n.titulo', 'like', $like);
+            });
+        }
+
+        $total = (clone $base)->count();
+
+        $filas = $base
+            ->orderBy('m.fecha_movimiento', 'desc')
+            ->orderBy('m.id', 'desc')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get([
+                'm.fecha_movimiento', 'm.accion', 'm.comentario',
+                'u.nombre as usuario_nombre',
+                'e.tipo_rama as exp_rama',
+                'n.nro_nota as nota_nro', 'n.anio as nota_anio', 'n.titulo as nota_titulo', 'n.tipo_rama as nota_rama',
+                'g.nro_nota as grupo_nro', 'g.anio as grupo_anio', 'g.titulo as grupo_titulo',
+                'g.id_casino as id_casino', 'g.id_plataforma as id_plataforma',
+            ]);
+
+        $data = [];
+        foreach ($filas as $f) {
+            $casino = ($f->id_casino || $f->id_plataforma)
+                ? self::resolverNombreCasino($f->id_casino, $f->id_plataforma)
+                : '';
+            if ($f->grupo_nro) {
+                $nroNota = $f->grupo_nro . '-' . $f->grupo_anio;
+                $titulo  = $f->grupo_titulo;
+            } elseif ($f->nota_nro) {
+                $nroNota = $f->nota_nro . '-' . $f->nota_anio;
+                $titulo  = $f->nota_titulo;
+            } else {
+                $nroNota = '';
+                $titulo  = '';
+            }
+
+            $data[] = [
+                'fecha'      => $f->fecha_movimiento ? \Carbon\Carbon::parse($f->fecha_movimiento)->format('d/m/Y H:i') : '',
+                'usuario'    => $f->usuario_nombre ?: 'Sistema',
+                'accion'     => $f->accion,
+                'comentario' => $f->comentario,
+                'nro_nota'   => $nroNota,
+                'titulo'     => $titulo,
+                'rama'       => $f->exp_rama ?: $f->nota_rama,
+                'casino'     => $casino,
+            ];
+        }
+
+        // Acciones existentes (para poblar el filtro). Cacheable, pero es barato.
+        $acciones = DB::table('movimientos_expedientes')
+            ->whereNull('deleted_at')
+            ->distinct()
+            ->orderBy('accion')
+            ->pluck('accion')
+            ->filter()
+            ->values();
+
+        return response()->json([
+            'success'       => true,
+            'page'          => $page,
+            'per_page'      => $perPage,
+            'total'         => $total,
+            'total_paginas' => (int) ceil($total / max(1, $perPage)),
+            'acciones'      => $acciones,
+            'movimientos'   => $data,
+        ]);
+    }
 
     // ! DESCARGAR
     public function descargarArchivo($id, $tipo)
@@ -2390,14 +2630,12 @@ class NotasUnificadasController extends Controller
             return $r !== 'CARGA_NOTAS_UNIFICADAS';
         });
         if (!empty($rolesPlataforma)) {
-            $online = self::obtenerPlataformasOnline();
             foreach ($rolesPlataforma as $rolDesc) {
                 $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
-                foreach ($online as $p) {
-                    if ($p->codigo === $codigo) {
-                        $plataformas[] = $p->id_plataforma;
-                        break;
-                    }
+                // Matchea contra plataformas online (API) y de apuestas deportivas (tabla local)
+                $idPlat = self::idPlataformaPorCodigo($codigo);
+                if ($idPlat !== null) {
+                    $plataformas[] = $idPlat;
                 }
             }
         }
@@ -2931,11 +3169,18 @@ class NotasUnificadasController extends Controller
                         $nivel = 'funcionario2';
                     elseif ($esAdmin)
                         $nivel = 'admin';
+                    elseif ($usuarioEdit->tieneRol('JUEGO_RESPONSABLE'))
+                        $nivel = 'juego_responsable';
                     else
                         $nivel = 'regular';
 
                     if (!NotaEstado::transicionPermitida($estadoActual, $nuevoEstado, $nivel)) {
                         return response()->json(['success' => false, 'msg' => 'No tiene permisos para esta transición de estado'], 403);
+                    }
+
+                    // El estado "APROBADO - NOTA/DISPOSICION" solo lo pueden poner Superusuario o Despacho.
+                    if ($nuevoEstado === NotaEstado::APROBADO_NOTA && !($usuarioEdit->es_superusuario || $usuarioEdit->es_despacho)) {
+                        return response()->json(['success' => false, 'msg' => 'Solo Superusuario o Despacho pueden aprobar por Nota/Disposición'], 403);
                     }
 
                     $exp->estado_actual = $nuevoEstado;
@@ -3025,6 +3270,15 @@ class NotasUnificadasController extends Controller
     {
         try {
             $nota = NotaIngreso::findOrFail($id);
+
+            // Plataformas de apuestas deportivas: NO asocian juegos ni MTM
+            if ($nota->id_plataforma && self::esPlataformaDeportiva($nota->id_plataforma)) {
+                return response()->json([
+                    'success' => false,
+                    'msg' => 'Las plataformas de apuestas deportivas no asocian juegos/MTM'
+                ], 422);
+            }
+
             $activos = $request->activos ?: [];
             $cantPrevia = $nota->activos()->count();
             $this->procesarActivos($nota, $activos);
@@ -4214,14 +4468,12 @@ class NotasUnificadasController extends Controller
         });
         $plataformas = [];
         if (!empty($rolesPlataforma)) {
-            $plataformasOnlineData = self::obtenerPlataformasOnline();
             foreach ($rolesPlataforma as $rolDesc) {
                 $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
-                foreach ($plataformasOnlineData as $p) {
-                    if ($p->codigo === $codigo) {
-                        $plataformas[] = (int) $p->id_plataforma;
-                        break;
-                    }
+                // Matchea contra plataformas online (API) y de apuestas deportivas (tabla local)
+                $idPlat = self::idPlataformaPorCodigo($codigo);
+                if ($idPlat !== null) {
+                    $plataformas[] = (int) $idPlat;
                 }
             }
         }
@@ -4276,6 +4528,10 @@ class NotasUnificadasController extends Controller
                 $d->nombre_casino = $casino ? $casino->nombre : 'Casino #' . $d->id_casino;
             } elseif ($d->id_plataforma) {
                 $plat = DB::table('plataforma')->where('id_plataforma', $d->id_plataforma)->first();
+                if (!$plat) {
+                    // Plataformas de apuestas deportivas (ids >= 1001)
+                    $plat = DB::table('plataformas_apuestas_deportivas')->where('id_plataforma', $d->id_plataforma)->first();
+                }
                 $d->nombre_casino = $plat ? $plat->nombre : 'Plataforma #' . $d->id_plataforma;
             }
         }

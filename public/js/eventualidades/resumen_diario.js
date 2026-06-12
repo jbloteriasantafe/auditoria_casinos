@@ -107,15 +107,25 @@ $(function () {
 
     // Filtros: se toman del panel "Filtros de búsqueda" de arriba.
     $.getJSON('/eventualidades/reporteDiario', {
-      desde:     $('#B_fecha_ev').val()     || undefined,
-      hasta:     $('#B_fecha_evhasta').val() || undefined,
-      id_casino: $('#B_CasinoEv').val()     || undefined,
-      page:      page,
-      page_size: pageSize,
+      desde:      $('#B_fecha_ev').val()     || undefined,
+      hasta:      $('#B_fecha_evhasta').val() || undefined,
+      id_casino:  $('#B_CasinoEv').val()     || undefined,
+      observados: $('#B_ObservadoResumen').is(':checked') ? 1 : undefined,
+      page:       page,
+      page_size:  pageSize,
     })
     .done(function (res) {
       $tb.empty();
       if (!res.rows || !res.rows.length) {
+        // Página fuera de rango: con el filtro "con observaciones" activo, borrar la última
+        // observación de un día achica el set y la página actual puede quedar vacía.
+        // En ese caso saltamos a la última página válida en vez de mostrar "Sin datos".
+        var p = res.pagination || {};
+        var ultima = Math.max(1, Math.ceil((p.total || 0) / (p.per_page || pageSize)));
+        if (p.total > 0 && page > ultima) {
+          cargarReporteDiario({ page: ultima });
+          return;
+        }
         $tb.append('<tr><td colspan="6" class="text-center text-muted">Sin datos en el rango.</td></tr>');
         pintarPaginacionReporte(res.pagination);
         return;

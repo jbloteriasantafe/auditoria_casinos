@@ -690,7 +690,7 @@
   </script>
 
   <!-- JavaScript personalizado -->
-  <script src="/js/eventualidades/observaciones_eventualidad.js?v=7" charset="utf-8"></script>
+  <script src="/js/eventualidades/observaciones_eventualidad.js?v=8" charset="utf-8"></script>
   <script src="/js/eventualidades/index.js?v=3" charset="utf-8"></script>
 
   <!-- DateTimePicker JavaScript -->

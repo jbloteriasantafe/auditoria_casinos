@@ -541,7 +541,9 @@
                         <select id="selFiltroRama">
                             <option value="">-</option>
                             <option value="MKT">Marketing</option>
+                            @if(empty($esJuegoResponsable))
                             <option value="FISC">Fiscalización</option>
+                            @endif
                         </select>
                         <select id="selFiltroEstado">
                             <option value="">-</option>
@@ -673,6 +675,7 @@
                                     </div>
                                 </div>
 
+                                @if(empty($esJuegoResponsable))
                                 <!-- Card Fiscalización / Aspectos Técnicos -->
                                 <div class="col-md-5" style="cursor:pointer; display:flex;" onclick="selectTaskType('FISCALIZACION')">
                                     <div class="panel panel-default card-type"
@@ -692,6 +695,7 @@
                                         </p>
                                     </div>
                                 </div>
+                                @endif
 
                             </div>
                             <input type="hidden" name="tipo_tarea" id="selTipoTarea">
@@ -722,6 +726,7 @@
                                         @foreach($casinos as $c)
                                             <option value="{{ $c->es_plataforma ? $c->id_plataforma : $c->id_casino }}"
                                                 data-es-plataforma="{{ $c->es_plataforma ? '1' : '0' }}"
+                                                data-es-deportiva="{{ !empty($c->es_deportiva) ? '1' : '0' }}"
                                                 data-nombre="{{ $c->nombre }}">{{ $c->nombre }}</option>
                                         @endforeach
                                     </select>
@@ -803,8 +808,8 @@
                             id="inpFechaPropuestaReal">
                     </div>
 
-                    <!-- COMPARTIR CON ADMINISTRADOR (solo MKT) -->
-                    <div class="section-marketing wiz-field">
+                    <!-- COMPARTIR CON ADMINISTRADOR (solo MKT; oculto para plataformas de apuestas deportivas) -->
+                    <div class="section-marketing wiz-field" id="secCompartirAdmin">
                         <label
                             style="display:inline-flex; align-items:center; cursor:pointer; font-weight:normal; gap:8px;">
                             <input type="checkbox" name="compartir_administrador" id="chkCompartirAdmin" value="1"
@@ -867,8 +872,8 @@
                             </div>
                         </div>
 
-                        <!-- INVOLUCRA JUEGOS (solo MKT) -->
-                        <div class="section-marketing wiz-field" style="margin-top: 10px;">
+                        <!-- INVOLUCRA JUEGOS (solo MKT; oculto para plataformas de apuestas deportivas) -->
+                        <div class="section-marketing wiz-field" id="secInvolucraJuegos" style="margin-top: 10px;">
                             <label
                                 style="display:inline-flex; align-items:center; cursor:pointer; font-weight:normal; gap:8px;">
                                 <input type="checkbox" name="involucra_juegos" id="chkInvolucraJuegos" value="1"
@@ -1244,6 +1249,7 @@
                                             / Publicidad</strong>
                                     </div>
                                 </div>
+                                @if(empty($esJuegoResponsable))
                                 <div class="col-md-6" style="cursor:pointer;">
                                     <div class="btn-rama-aprobacion" data-rama="FISC"
                                         style="border-radius:15px; border:2px solid transparent; transition:all 0.3s; text-align:center; padding:20px; background:white;">
@@ -1256,6 +1262,7 @@
                                             / Técnico</strong>
                                     </div>
                                 </div>
+                                @endif
                             </div>
 
                             <!-- Tipo de documento + número + año (oculto hasta seleccionar rama) -->
@@ -1612,6 +1619,93 @@
                 </script>
             @endverbatim
 
+    @if(!empty($esSuperusuario) && empty($esFuncionario))
+    {{-- Botón discreto (superusuarios NO funcionarios): log global de movimientos del módulo --}}
+    <button type="button" id="btnLogGlobalMov" title="Log global de movimientos"
+        data-toggle="modal" data-target="#modalLogGlobalMov"
+        style="position:fixed; bottom:8px; right:10px; z-index:1030; background:transparent; border:none; color:#bbb; font-size:11px; padding:2px 6px; cursor:pointer;"
+        onmouseover="this.style.color='#666';" onmouseout="this.style.color='#bbb';">
+        <i class="fa fa-history"></i> log
+    </button>
+
+    {{-- Modal: log global de movimientos (orden cronológico) --}}
+    <div class="modal fade" id="modalLogGlobalMov" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document" style="width:92%; max-width:1150px;">
+            <div class="modal-content">
+                <div class="modal-header" style="background:#2c3e50; color:#fff; border-top-left-radius:6px; border-top-right-radius:6px;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:#fff; opacity:0.9; text-shadow:none;"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" style="color:#fff;"><i class="fa fa-history"></i> Log global de movimientos</h4>
+                    <small id="logGlobalMovInfo" style="color:#cbd5e1;">Todos los movimientos del módulo, del más reciente al más antiguo.</small>
+                </div>
+                <div class="modal-body">
+                    {{-- Filtros --}}
+                    <div class="row" style="margin-bottom:10px;">
+                        <div class="col-md-4" style="margin-bottom:6px;">
+                            <input type="text" id="logFiltroQ" class="form-control input-sm" placeholder="Buscar: nota, título, usuario, comentario…">
+                        </div>
+                        <div class="col-md-2" style="margin-bottom:6px;">
+                            <select id="logFiltroRama" class="form-control input-sm">
+                                <option value="">Rama: todas</option>
+                                <option value="MKT">Marketing</option>
+                                <option value="FISC">Fiscalización</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3" style="margin-bottom:6px;">
+                            <select id="logFiltroAccion" class="form-control input-sm">
+                                <option value="">Acción: todas</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3" style="margin-bottom:6px;">
+                            <div class="input-group input-group-sm" title="Rango de fechas">
+                                <input type="date" id="logFiltroDesde" class="form-control input-sm" style="padding:2px 4px;">
+                                <span class="input-group-addon">a</span>
+                                <input type="date" id="logFiltroHasta" class="form-control input-sm" style="padding:2px 4px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="max-height:60vh; overflow-y:auto; border:1px solid #eee; border-radius:4px;">
+                        <div id="logGlobalMovLoading" class="text-center text-muted" style="padding:20px; display:none;">
+                            <i class="fa fa-spinner fa-spin"></i> Cargando…
+                        </div>
+                        <table class="table table-striped table-condensed" style="font-size:12px; margin-bottom:0;">
+                            <thead>
+                                <tr>
+                                    <th style="white-space:nowrap;">Fecha</th>
+                                    <th>Usuario</th>
+                                    <th>Nota</th>
+                                    <th>Casino / Plataforma</th>
+                                    <th>Rama</th>
+                                    <th>Acción</th>
+                                    <th>Comentario</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logGlobalMovBody"></tbody>
+                        </table>
+                    </div>
+
+                    {{-- Paginación --}}
+                    <div class="row" style="margin-top:10px; align-items:center;">
+                        <div class="col-md-4">
+                            <select id="logPerPage" class="form-control input-sm" style="width:auto; display:inline-block;">
+                                <option value="25">25 / pág.</option>
+                                <option value="50" selected>50 / pág.</option>
+                                <option value="100">100 / pág.</option>
+                                <option value="200">200 / pág.</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8 text-right">
+                            <button type="button" id="logBtnPrev" class="btn btn-default btn-sm"><i class="fa fa-chevron-left"></i></button>
+                            <span id="logPagInfo" style="margin:0 8px; font-size:12px; color:#555;">—</span>
+                            <button type="button" id="logBtnNext" class="btn btn-default btn-sm"><i class="fa fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
 @endsection
 
 @section('tituloDeAyuda')
@@ -1629,6 +1723,11 @@
         var PUEDE_ELIMINAR = {{ $puedeEliminar ? 'true' : 'false' }};
         var NIVEL_ESTADO = '{{ $nivelEstado }}';
         var ROL_VISTA = '{{ $rolVista ?? "all" }}';
+        // Solo juego_responsable no ve NUNCA la rama FISC (los funcionarios sí pueden verla).
+        var OCULTA_FISC = {{ (isset($rolVista) && $rolVista === 'juego_responsable') ? 'true' : 'false' }};
+        // "APROBADO - NOTA/DISPOSICION" solo lo pueden poner Superusuario o Despacho.
+        var PUEDE_APROBAR_NOTA = {{ !empty($puedeAprobarNota) ? 'true' : 'false' }};
+        var ESTADO_APROBADO_NOTA = 'APROBADO - NOTA/DISPOSICION';
         var PUEDE_VER_COMENTARIOS = {{ (isset($puedeVerComentarios) && $puedeVerComentarios) ? 'true' : 'false' }};
         var MUESTRA_VER_TODO = {{ (isset($muestraVerTodo) && $muestraVerTodo) ? 'true' : 'false' }};
         var CURRENT_USER_ID = {{ session('id_usuario', 0) }};
@@ -1681,6 +1780,12 @@
             },
         regular: {
             @foreach(\App\Models\NotaEstado::transicionesRegular() as $desde => $destinos)
+                        '{{ $desde }}': [{!! collect($destinos)->map(function ($d) {
+                return "'" . $d . "'"; })->implode(',') !!}],
+            @endforeach
+            },
+        juego_responsable: {
+            @foreach(\App\Models\NotaEstado::transicionesJuegoResponsable() as $desde => $destinos)
                         '{{ $desde }}': [{!! collect($destinos)->map(function ($d) {
                 return "'" . $d . "'"; })->implode(',') !!}],
             @endforeach
@@ -2226,4 +2331,117 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/es.js"></script>
         -->
+
+    @if(!empty($esSuperusuario) && empty($esFuncionario))
+    {{-- Log global de movimientos (superusuarios NO funcionarios): carga al abrir el modal --}}
+    <script>
+        (function () {
+            function escapeHtml(s) {
+                return String(s == null ? '' : s)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            }
+            function ramaBadge(r) {
+                if (r === 'MKT') return '<span class="label label-primary">MKT</span>';
+                if (r === 'FISC') return '<span class="label label-success">FISC</span>';
+                return '';
+            }
+
+            var logPage = 1;
+            var logTotalPaginas = 1;
+            var logAccionesCargadas = false;
+            var logDebounce = null;
+
+            function cargarLog() {
+                var $body = $('#logGlobalMovBody');
+                var $loading = $('#logGlobalMovLoading');
+                var $info = $('#logGlobalMovInfo');
+                var params = {
+                    page: logPage,
+                    per_page: $('#logPerPage').val(),
+                    q: $.trim($('#logFiltroQ').val()),
+                    rama: $('#logFiltroRama').val(),
+                    accion: $('#logFiltroAccion').val(),
+                    desde: $('#logFiltroDesde').val(),
+                    hasta: $('#logFiltroHasta').val()
+                };
+                $body.empty();
+                $loading.show();
+                $('#logBtnPrev, #logBtnNext').prop('disabled', true);
+
+                $.getJSON('/notas-unificadas/log-global', params)
+                    .done(function (res) {
+                        $loading.hide();
+                        if (!res || !res.success) {
+                            $body.html('<tr><td colspan="7" class="text-center text-danger">No se pudo cargar el log.</td></tr>');
+                            return;
+                        }
+                        // Poblar acciones una sola vez
+                        if (!logAccionesCargadas && res.acciones) {
+                            var $acc = $('#logFiltroAccion');
+                            for (var k = 0; k < res.acciones.length; k++) {
+                                $acc.append('<option value="' + escapeHtml(res.acciones[k]) + '">' + escapeHtml(res.acciones[k]) + '</option>');
+                            }
+                            logAccionesCargadas = true;
+                        }
+
+                        logTotalPaginas = res.total_paginas || 1;
+                        logPage = res.page || 1;
+
+                        var movs = res.movimientos || [];
+                        if (!movs.length) {
+                            $body.html('<tr><td colspan="7" class="text-center text-muted">Sin movimientos para el filtro.</td></tr>');
+                        } else {
+                            var html = '';
+                            for (var i = 0; i < movs.length; i++) {
+                                var m = movs[i];
+                                html += '<tr>' +
+                                    '<td style="white-space:nowrap;">' + escapeHtml(m.fecha) + '</td>' +
+                                    '<td>' + escapeHtml(m.usuario) + '</td>' +
+                                    '<td style="white-space:nowrap;"><b>' + escapeHtml(m.nro_nota) + '</b>' +
+                                        (m.titulo ? '<br><small class="text-muted">' + escapeHtml(m.titulo) + '</small>' : '') + '</td>' +
+                                    '<td>' + escapeHtml(m.casino) + '</td>' +
+                                    '<td>' + ramaBadge(m.rama) + '</td>' +
+                                    '<td>' + escapeHtml(m.accion) + '</td>' +
+                                    '<td>' + escapeHtml(m.comentario) + '</td>' +
+                                    '</tr>';
+                            }
+                            $body.html(html);
+                        }
+
+                        $info.text(res.total + ' movimientos en total, del más reciente al más antiguo.');
+                        $('#logPagInfo').text('Página ' + logPage + ' de ' + logTotalPaginas);
+                        $('#logBtnPrev').prop('disabled', logPage <= 1);
+                        $('#logBtnNext').prop('disabled', logPage >= logTotalPaginas);
+                    })
+                    .fail(function () {
+                        $loading.hide();
+                        $body.html('<tr><td colspan="7" class="text-center text-danger">Error de conexión.</td></tr>');
+                    });
+            }
+
+            // Cambiar filtro vuelve a página 1
+            function recargarDesdeFiltro() {
+                logPage = 1;
+                cargarLog();
+            }
+
+            $('#modalLogGlobalMov').on('shown.bs.modal', function () {
+                logPage = 1;
+                cargarLog();
+            });
+            $('#logFiltroRama, #logFiltroAccion, #logFiltroDesde, #logFiltroHasta, #logPerPage').on('change', recargarDesdeFiltro);
+            $('#logFiltroQ').on('input', function () {
+                clearTimeout(logDebounce);
+                logDebounce = setTimeout(recargarDesdeFiltro, 350);
+            });
+            $('#logBtnPrev').on('click', function () {
+                if (logPage > 1) { logPage--; cargarLog(); }
+            });
+            $('#logBtnNext').on('click', function () {
+                if (logPage < logTotalPaginas) { logPage++; cargarLog(); }
+            });
+        })();
+    </script>
+    @endif
 @endsection

@@ -76,6 +76,11 @@ $(document).ready(function () {
         return $(selector).find('option:selected').data('es-plataforma') == '1';
     }
 
+    // Plataforma de apuestas deportivas: opción de casino/plataforma que NO asocia juegos/MTM
+    function esDeportivaSeleccionada() {
+        return $('#selCasino').find('option:selected').data('es-deportiva') == '1';
+    }
+
     function actualizarHiddenCasino() {
         var opt = $('#selCasino').find('option:selected');
         if (opt.data('es-plataforma') == '1') {
@@ -91,6 +96,11 @@ $(document).ready(function () {
         let select = $('#selTipoActivo');
         select.empty();
 
+        // Apuestas deportivas: sin juegos/MTM asociables
+        if (esDeportivaSeleccionada()) {
+            return;
+        }
+
         if (esPlataformaSeleccionada('#selCasino')) {
             select.append('<option value="JUEGO_ONLINE">Juego Online</option>');
             $('#inpIdActivo').attr('placeholder', 'ID o Codigo de Juego');
@@ -105,6 +115,7 @@ $(document).ready(function () {
 
     actualizarTiposActivo();
     actualizarHiddenCasino();
+    aplicarRestriccionDeportiva();
 
     // --- EVENT HANDLERS STEP 1 ---
 
@@ -112,10 +123,29 @@ $(document).ready(function () {
         actualizarHiddenCasino();
         actualizarTiposActivo();
         filtrarTipoEventoFISC();
+        aplicarRestriccionDeportiva();
         // Limpiar activos al cambiar de casino/plataforma
         activos = [];
         $('#tablaActivos tbody').empty();
     });
+
+    // Apuestas deportivas: no asocian juegos/MTM — se oculta el tilde
+    // "¿Involucra Juegos?" (MKT), el panel de activos asociados y el tilde
+    // "¿Involucra a sala de Casino Físico?" (compartir con administrador).
+    function aplicarRestriccionDeportiva() {
+        if (esDeportivaSeleccionada()) {
+            $('#chkInvolucraJuegos').prop('checked', false);
+            $('#secInvolucraJuegos').hide();
+            $('#chkCompartirAdmin').prop('checked', false);
+            $('#secCompartirAdmin').hide();
+            $('#secActivosAsociados').hide();
+            activos = [];
+            renderTablaActivos();
+        } else {
+            $('#secInvolucraJuegos').show();
+            $('#secCompartirAdmin').show();
+        }
+    }
 
     function filtrarTipoEventoFISC() {
         var esPlataforma = esPlataformaSeleccionada('#selCasino');
@@ -142,7 +172,7 @@ $(document).ready(function () {
             $('#secActivosAsociados').slideUp();
             activos = [];
             $('#tablaActivos tbody').empty();
-        } else if ($('#selTipoTarea').val() === 'FISCALIZACION') {
+        } else if ($('#selTipoTarea').val() === 'FISCALIZACION' && !esDeportivaSeleccionada()) {
             $('#secActivosAsociados').slideDown();
         }
     });
@@ -177,6 +207,9 @@ $(document).ready(function () {
         if (tarea === 'MARKETING') {
             $('.section-marketing').show();
             $('.section-fiscalizacion').hide();
+            // Re-aplicar: el show() de .section-marketing vuelve a mostrar
+            // el tilde "¿Involucra Juegos?" aunque sea apuestas deportivas
+            aplicarRestriccionDeportiva();
 
             // Apply gradient for Marketing
             $('.wizard-sidebar').css('background', 'linear-gradient(160deg, #3b82f6 0%, #8b5cf6 100%)');
@@ -213,8 +246,10 @@ $(document).ready(function () {
             // Filtrar tipos evento según casino seleccionado
             filtrarTipoEventoFISC();
 
-            // Mostrar activos (salvo que sea Alta)
-            $('#secActivosAsociados').slideDown();
+            // Mostrar activos (salvo que sea Alta o apuestas deportivas)
+            if (!esDeportivaSeleccionada()) {
+                $('#secActivosAsociados').slideDown();
+            }
         }
         updateProgressBar();
     }
@@ -232,7 +267,7 @@ $(document).ready(function () {
     // MKT: muestra/oculta el panel de activos según el tilde "¿Involucra Juegos?"
     function toggleActivosMkt() {
         if ($('#selTipoTarea').val() !== 'MARKETING') return;
-        if ($('#chkInvolucraJuegos').is(':checked')) {
+        if ($('#chkInvolucraJuegos').is(':checked') && !esDeportivaSeleccionada()) {
             actualizarTiposActivo();
             $('#secActivosAsociados').slideDown();
         } else {
@@ -1637,6 +1672,11 @@ $(document).ready(function () {
             permitidos = mapa[current] || [];
         }
 
+        // "APROBADO - NOTA/DISPOSICION" solo Superusuario o Despacho.
+        if (!window.PUEDE_APROBAR_NOTA) {
+            permitidos = permitidos.filter(function (e) { return e !== window.ESTADO_APROBADO_NOTA; });
+        }
+
         span.addClass('editing');
 
         let wrapper = $('<span class="estado-edit-wrap" style="white-space:nowrap;"></span>');
@@ -2755,7 +2795,7 @@ $(document).ready(function () {
                         '<span class="label" style="' + getEstadoStyle(res.mkt.estado) + '">Estado: ' + res.mkt.estado + '</span>' +
                         '</li>';
                 }
-                if (res.fisc && window.NIVEL_ESTADO !== 'funcionario') {
+                if (res.fisc && !window.OCULTA_FISC) {
                     resumenHtml += '<li style="padding:8px; background:#d1fae5; border-radius:6px">' +
                         '<i class="fa fa-gavel text-success"></i> <strong style="color:#064e3b;">Fiscalización:</strong> ' +
                         '<span class="label" style="' + getEstadoStyle(res.fisc.estado) + '">Estado: ' + res.fisc.estado + '</span>' +
@@ -2783,8 +2823,8 @@ $(document).ready(function () {
                     $('#tabMktLi').hide();
                 }
 
-                // Tab FISC (oculto para funcionarios)
-                if (res.fisc && window.NIVEL_ESTADO !== 'funcionario') {
+                // Tab FISC (oculto para funcionarios y juego_responsable)
+                if (res.fisc && !window.OCULTA_FISC) {
                     $('#fiscContenido').html(renderizarNotaDetalle(res.fisc, '#10b981'));
                     _scrollPanelsToBottom('#fiscContenido');
                     $('#tabFiscLi').show();
@@ -2802,8 +2842,8 @@ $(document).ready(function () {
 
     // Función para abrir modal con datos de nota individual
     function abrirModalDetalleNota(notaId, tipoRama) {
-        // Funcionario no puede ver notas FISC
-        if (window.NIVEL_ESTADO === 'funcionario' && tipoRama === 'FISC') {
+        // Funcionarios y juego_responsable no pueden ver notas FISC
+        if (window.OCULTA_FISC && tipoRama === 'FISC') {
             notificacion('warning', 'No tiene permisos para ver notas de Fiscalización');
             return;
         }
@@ -4223,6 +4263,10 @@ $(document).ready(function () {
                 } else {
                     var mapa = trans[window.NIVEL_ESTADO] || {};
                     permitidos = mapa[estadoActual] || [];
+                }
+                // "APROBADO - NOTA/DISPOSICION" solo Superusuario o Despacho.
+                if (!window.PUEDE_APROBAR_NOTA) {
+                    permitidos = permitidos.filter(function (e) { return e !== window.ESTADO_APROBADO_NOTA; });
                 }
                 inputHtml = '<select class="form-control edit-input" data-field="' + field + '" style="font-size: 13px;">';
                 allOpciones.forEach(function(e) {
