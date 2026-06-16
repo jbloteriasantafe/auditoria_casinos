@@ -769,9 +769,9 @@ class LectorCSVController extends Controller
     $query = sprintf("INSERT INTO detalle_producido (apuesta,premio,valor,id_maquina,id_producido)
                       SELECT prod.apuesta,prod.premio,prod.valor, mtm.id_maquina, prod.id_producido
                       FROM producido_temporal AS prod
-                      JOIN maquina as mtm on (mtm.nro_admin = prod.maquina and mtm.deleted_at IS NULL and mtm.id_tipo_moneda = '%d')
+                      JOIN maquina as mtm on (mtm.nro_admin = prod.maquina and mtm.deleted_at IS NULL)
                       WHERE prod.id_producido = '%d'
-                      AND mtm.id_casino = 3",$id_tipo_moneda,$producido->id_producido);
+                      AND mtm.id_casino = 3",$producido->id_producido);
 
     $pdo->exec($query);
 
