@@ -1173,7 +1173,7 @@ $(document).on("click", "#guardarRegistroiibb", function (e) {
     headers: { "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content") },
     success: function () {
       cargariibb({
-        page: 1,
+        page: $("#herramientasPaginacioniibb").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacioniibb").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -2634,7 +2634,7 @@ $(document).on("click", "#guardarRegistroDREI", function (e) {
     contentType: false,
     success: function (res) {
       cargarDREI({
-        page: 1,
+        page: $("#herramientasPaginacionDREI").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionDREI").getPageSize(),
         casino: $("#filtro_global_casino").val(),
       });
@@ -2925,7 +2925,7 @@ $(document).on("click", "#guardarRegistroIva", function () {
     headers: { "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content") },
     success: function () {
       cargarIva({
-        page: 1,
+        page: $("#herramientasPaginacionIVA").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionIVA").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -3991,7 +3991,7 @@ $(document).on("click", "#guardarRegistroTGI", function (e) {
     contentType: false,
     success: function (res) {
       cargarTGI({
-        page: 1,
+        page: $("#herramientasPaginacionTGI").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionTGI").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -4645,7 +4645,7 @@ $(document).on("click", "#guardarRegistroIMP_AP_OL", function (e) {
     contentType: false,
     success: function (res) {
       cargarIMP_AP_OL({
-        page: 1,
+        page: $("#herramientasPaginacionIMP_AP_OL").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionIMP_AP_OL").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -5244,7 +5244,7 @@ $(document).on("click", "#guardarRegistroIMP_AP_MTM", function (e) {
     contentType: false,
     success: function (res) {
       cargarIMP_AP_MTM({
-        page: 1,
+        page: $("#herramientasPaginacionIMP_AP_MTM").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionIMP_AP_MTM").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -5771,7 +5771,7 @@ $(document).on("click", "#guardarRegistroPagosMayoresMesas", function (e) {
     contentType: false,
     success: function (res) {
       cargarPagosMayoresMesas({
-        page: 1,
+        page: $("#herramientasPaginacionPagosMayoresMesas").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionPagosMayoresMesas").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -6282,7 +6282,7 @@ $(document).on("click", "#guardarRegistroDeudaEstado", function (e) {
     contentType: false,
     success: function (res) {
       cargarDeudaEstado({
-        page: 1,
+        page: $("#herramientasPaginacionDeudaEstado").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionDeudaEstado").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -6769,7 +6769,7 @@ $(document).on("click", "#guardarRegistroReporteYLavado", function (e) {
     contentType: false,
     success: function (res) {
       cargarReporteYLavado({
-        page: 1,
+        page: $("#herramientasPaginacionReporteYLavado").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionReporteYLavado").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -7043,7 +7043,8 @@ function buscarGlobal() {
   buscarPestana(activeTab);
 }
 
-function buscarPestana(tabId) {
+function buscarPestana(tabId, preservePage) {
+  preservePage = preservePage || false;
   if (!tabId) return;
 
   // Obtener valores globales (convertir vacíos a undefined para que el backend use defaults)
@@ -7057,6 +7058,26 @@ function buscarPestana(tabId) {
   // existan y acepten los parametros.
 
   // Quitamos 'pant_' para obtener el nombre clave
+
+  function getPg(funcName) {
+    if (!preservePage) return 1;
+    // We can infer paginator ID from the function name (e.g. cargarIva -> herramientasPaginacionIVA)
+    // Actually, it is easier to find the active paginator inside the tab
+    var $pag = $(tabId).find(".zonaPaginacion");
+    if ($pag.length > 0 && typeof $pag.getCurrentPage === "function") {
+        return $pag.getCurrentPage() || 1;
+    }
+    return 1;
+  }
+  
+  function getSz(funcName) {
+    var $pag = $(tabId).find(".zonaPaginacion");
+    if ($pag.length > 0 && typeof $pag.getPageSize === "function") {
+        return $pag.getPageSize() || 10;
+    }
+    return 10;
+  }
+
   var key = tabId.replace("#pant_", "");
 
   // Casos especiales de nombres
@@ -7065,8 +7086,8 @@ function buscarPestana(tabId) {
   switch (key) {
     case "iva":
       cargarIva({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarIva),
+        perPage: getSz(cargarIva),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7074,8 +7095,8 @@ function buscarPestana(tabId) {
       break;
     case "iibb":
       cargariibb({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargariibb),
+        perPage: getSz(cargariibb),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7083,8 +7104,8 @@ function buscarPestana(tabId) {
       break;
     case "drei":
       cargarDREI({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarDREI),
+        perPage: getSz(cargarDREI),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7092,8 +7113,8 @@ function buscarPestana(tabId) {
       break;
     case "tgi":
       cargarTGI({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarTGI),
+        perPage: getSz(cargarTGI),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7101,8 +7122,8 @@ function buscarPestana(tabId) {
       break;
     case "imp_ap_mtm":
       cargarIMP_AP_MTM({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarIMP_AP_MTM),
+        perPage: getSz(cargarIMP_AP_MTM),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7110,8 +7131,8 @@ function buscarPestana(tabId) {
       break;
     case "imp_ap_ol":
       cargarIMP_AP_OL({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarIMP_AP_OL),
+        perPage: getSz(cargarIMP_AP_OL),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7119,15 +7140,15 @@ function buscarPestana(tabId) {
       break;
     case "ganancias":
       cargarGanancias({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarGanancias),
+        perPage: getSz(cargarGanancias),
         casino: casino,
         desde: desde,
         hasta: hasta,
       });
       cargarGanancias_periodo({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarGanancias_periodo),
+        perPage: getSz(cargarGanancias_periodo),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7135,8 +7156,8 @@ function buscarPestana(tabId) {
       break;
     case "patentes":
       cargarPatentes({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarPatentes),
+        perPage: getSz(cargarPatentes),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7144,8 +7165,8 @@ function buscarPestana(tabId) {
       break;
     case "inmobiliario":
       cargarImpInmobiliario({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarImpInmobiliario),
+        perPage: getSz(cargarImpInmobiliario),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7153,8 +7174,8 @@ function buscarPestana(tabId) {
       break;
     case "deuda":
       cargarDeudaEstado({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarDeudaEstado),
+        perPage: getSz(cargarDeudaEstado),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7162,8 +7183,8 @@ function buscarPestana(tabId) {
       break;
     case "direct":
       cargarAutDirectores({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarAutDirectores),
+        perPage: getSz(cargarAutDirectores),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7171,8 +7192,8 @@ function buscarPestana(tabId) {
       break;
     case "premios_mtm":
       cargarPremiosMTM({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarPremiosMTM),
+        perPage: getSz(cargarPremiosMTM),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7180,8 +7201,8 @@ function buscarPestana(tabId) {
       break;
     case "promoticket":
       cargarPromoTickets({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarPromoTickets),
+        perPage: getSz(cargarPromoTickets),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7189,8 +7210,8 @@ function buscarPestana(tabId) {
       break;
     case "pozos_acumulados":
       cargarPozosAcumuladosLinkeados({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarPozosAcumuladosLinkeados),
+        perPage: getSz(cargarPozosAcumuladosLinkeados),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7198,8 +7219,8 @@ function buscarPestana(tabId) {
       break;
     case "jackpots_pagados":
       cargarJackpotsPagados({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarJackpotsPagados),
+        perPage: getSz(cargarJackpotsPagados),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7207,8 +7228,8 @@ function buscarPestana(tabId) {
       break;
     case "premios_pagados":
       cargarPremiosPagados({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarPremiosPagados),
+        perPage: getSz(cargarPremiosPagados),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7216,8 +7237,8 @@ function buscarPestana(tabId) {
       break;
     case "pagos_mesas":
       cargarPagosMayoresMesas({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarPagosMayoresMesas),
+        perPage: getSz(cargarPagosMayoresMesas),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7225,8 +7246,8 @@ function buscarPestana(tabId) {
       break;
     case "registros":
       cargarRegistrosContables({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarRegistrosContables),
+        perPage: getSz(cargarRegistrosContables),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7234,8 +7255,8 @@ function buscarPestana(tabId) {
       break;
     case "aportes":
       cargarAportesPatronales({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarAportesPatronales),
+        perPage: getSz(cargarAportesPatronales),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7243,8 +7264,8 @@ function buscarPestana(tabId) {
       break;
     case "rrhh":
       cargarRRHH({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarRRHH),
+        perPage: getSz(cargarRRHH),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7252,8 +7273,8 @@ function buscarPestana(tabId) {
       break;
     case "oper":
       cargarReporteYLavado({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarReporteYLavado),
+        perPage: getSz(cargarReporteYLavado),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7261,8 +7282,8 @@ function buscarPestana(tabId) {
       break;
     case "seguros":
       cargarSeguros({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarSeguros),
+        perPage: getSz(cargarSeguros),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7270,8 +7291,8 @@ function buscarPestana(tabId) {
       break;
     case "contrib_ente":
       cargarContribEnteTuristico({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarContribEnteTuristico),
+        perPage: getSz(cargarContribEnteTuristico),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7279,8 +7300,8 @@ function buscarPestana(tabId) {
       break;
     case "derecho":
       cargarDerechoAcceso({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarDerechoAcceso),
+        perPage: getSz(cargarDerechoAcceso),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7288,8 +7309,8 @@ function buscarPestana(tabId) {
       break;
     case "estado_contable":
       cargarEstadoContable({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarEstadoContable),
+        perPage: getSz(cargarEstadoContable),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7873,7 +7894,7 @@ $(document).on("click", "#guardarRegistroRegistrosContables", function (e) {
     contentType: false,
     success: function (res) {
       cargarRegistrosContables({
-        page: 1,
+        page: $("#herramientasPaginacionRegistrosContables").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionRegistrosContables").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -8436,7 +8457,7 @@ $(document).on("click", "#guardarRegistroAportesPatronales", function (e) {
     contentType: false,
     success: function (res) {
       cargarAportesPatronales({
-        page: 1,
+        page: $("#herramientasPaginacionAportesPatronales").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionAportesPatronales").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -8956,7 +8977,7 @@ $(document).on("click", "#guardarRegistroPromoTickets", function (e) {
     contentType: false,
     success: function (res) {
       cargarPromoTickets({
-        page: 1,
+        page: $("#herramientasPaginacionPromoTickets").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionPromoTickets").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -10079,7 +10100,7 @@ $(document).on("click", "#guardarRegistroContribEnteTuristico", function (e) {
     contentType: false,
     success: function (res) {
       cargarContribEnteTuristico({
-        page: 1,
+        page: $("#herramientasPaginacionContribEnteTuristico").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionContribEnteTuristico").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -10848,7 +10869,7 @@ $(document)
       contentType: false,
       success: function () {
         cargarRRHH({
-          page: 1,
+          page: $("#herramientasPaginacionRRHH").getCurrentPage() || 1,
           perPage: $("#herramientasPaginacionRRHH").getPageSize(),
           casino: $("#filtro_global_casino").val(),
           desde: $("#filtro_global_desde_input").val(),
@@ -11482,7 +11503,7 @@ $(document).on("click", "#guardarRegistroGanancias", function (e) {
     contentType: false,
     success: function (res) {
       cargarGanancias({
-        page: 1,
+        page: $("#herramientasPaginacionGanancias").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionGanancias").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -11739,7 +11760,7 @@ $(document).on("click", "#guardarRegistroGanancias_periodo", function (e) {
     contentType: false,
     success: function (res) {
       cargarGanancias_periodo({
-        page: 1,
+        page: $("#herramientasPaginacionGanancias_periodo").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionGanancias_periodo").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -12107,7 +12128,7 @@ $("#btn-buscarGanancias").on("click", function (e) {
     hasta: $("#filtro_global_hasta_input").val(),
   });
   cargarGanancias_periodo({
-    page: 1,
+    page: $("#herramientasPaginacionGanancias").getCurrentPage() || 1,
     perPage: $("#herramientasPaginacionGanancias").getPageSize(),
     casino: $("#filtro_global_casino").val(),
     desde: $("#filtro_global_desde_input").val(),
@@ -12458,7 +12479,7 @@ $(document).on("click", "#guardarRegistroJackpotsPagados", function (e) {
     contentType: false,
     success: function (res) {
       cargarJackpotsPagados({
-        page: 1,
+        page: $("#herramientasPaginacionJackpotsPagados").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionJackpotsPagados").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -12952,7 +12973,7 @@ $(document).on("click", "#guardarRegistroPremiosPagados", function (e) {
     contentType: false,
     success: function (res) {
       cargarPremiosPagados({
-        page: 1,
+        page: $("#herramientasPaginacionPremiosPagados").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionPremiosPagados").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -13547,7 +13568,7 @@ $(document).on("click", "#guardarRegistroPremiosMTM", function (e) {
     contentType: false,
     success: function (res) {
       cargarPremiosMTM({
-        page: 1,
+        page: $("#herramientasPaginacionPremiosMTM").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionPremiosMTM").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -14321,7 +14342,7 @@ $("#btn-eliminarPremiosMTM").on("click", function () {
     .done((res) => {
       if (res == 1) {
         $("#modalEliminarPremiosMTM").modal("hide");
-        clickIndicePremiosMTM(null, 1, 15);
+        clickIndicePremiosMTM(null, $("#herramientasPaginacionPremiosMTM").getCurrentPage() || 1, 15);
       } else {
       }
     })
@@ -14884,7 +14905,7 @@ $(document).on("click", "#guardarRegistroAutDirectores_director", function (e) {
     contentType: false,
     success: function (res) {
       cargarAutDirectores({
-        page: 1,
+        page: $("#herramientasPaginacionAutDirectores").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionAutDirectores").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -14988,7 +15009,7 @@ $(document).on(
       contentType: false,
       success: function (res) {
         cargarAutDirectores({
-          page: 1,
+          page: $("#herramientasPaginacionAutDirectores").getCurrentPage() || 1,
           perPage: $("#herramientasPaginacionAutDirectores").getPageSize(),
           casino: $("#filtro_global_casino").val(),
           desde: $("#filtro_global_desde_input").val(),
@@ -15755,7 +15776,7 @@ $(document).on("click", "#guardarRegistroSeguros", function (e) {
     contentType: false,
     success: function (res) {
       cargarSeguros({
-        page: 1,
+        page: $("#herramientasPaginacionSeguros").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionSeguros").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -16309,7 +16330,7 @@ $(document).on("click", "#guardarRegistroDerechoAcceso", function (e) {
     contentType: false,
     success: function (res) {
       cargarDerechoAcceso({
-        page: 1,
+        page: $("#herramientasPaginacionDerechoAcceso").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionDerechoAcceso").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -17339,7 +17360,7 @@ $(document)
       contentType: false,
       success: function (res) {
         cargarPatentes({
-          page: 1,
+          page: $("#herramientasPaginacionPatentes").getCurrentPage() || 1,
           perPage: $("#herramientasPaginacionPatentes").getPageSize(),
           casino: $("#filtro_global_casino").val(),
           desde: $("#filtro_global_desde_input").val(),
@@ -18419,7 +18440,7 @@ $(document).on("click", "#guardarRegistroImpInmobiliario", function (e) {
     contentType: false,
     success: function (res) {
       cargarImpInmobiliario({
-        page: 1,
+        page: $("#herramientasPaginacionImpInmobiliario").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionImpInmobiliario").getPageSize(),
         casino: $("#filtro_global_casino").val(),
         desde: $("#filtro_global_desde_input").val(),
@@ -23676,8 +23697,10 @@ $(document).on("click", "#btn-confirmar-validacion", function () {
     },
     success: function (data) {
       $("#modalValidarDocumento").modal("hide");
-      // Refresh
-      $("#btn-buscar-global").trigger("click");
+      // Refresh preserving page
+      var activeTab = $("[data-js-tabs] a.active").attr("data-js-tab");
+      if (!activeTab) activeTab = $("[data-js-tabs] a").first().attr("data-js-tab");
+      buscarPestana(activeTab, true);
     },
     error: function (data) {
       console.log(data);
@@ -23847,7 +23870,7 @@ $(document).ready(function() {
         $("#mensajeExito h3").text("ÉXITO");
         $("#mensajeExito p").text("El estado contable han sido guardados correctamente.");
         $("#mensajeExito").show();
-        $("#btn-buscar-global").trigger("click");
+        clickIndiceEstadoContable(null, $("#herramientasPaginacionEstadoContable").getCurrentPage() || 1, 20);
       },
       error: function(res) {
         $("#frmEstadoContable .js-error").remove();
@@ -23873,7 +23896,7 @@ $(document).ready(function() {
       url: "documentosContables/eliminarEstadoContable/" + $(this).val(),
       success: function(res) {
         $("#modalEliminarEstadoContable").modal("hide");
-        clickIndiceEstadoContable(null, 1, 20);
+        clickIndiceEstadoContable(null, $("#herramientasPaginacionEstadoContable").getCurrentPage() || 1, 20);
       },
       error: function() { console.log("Error consultando eliminaci\u00f3n estado contable"); }
     });
