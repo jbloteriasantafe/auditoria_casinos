@@ -329,7 +329,7 @@ input[required], select[required]{
       </button>
       @endif
       @if($puede_subir_archivos)
-      <a tabindex="0" id="btnSubirArchivos" class="btn btn-info info" role="button" value="" title="SUBIR ARCHIVOS" data-toggle="popover" data-html="true" data-trigger="focus"
+      <a tabindex="0" id="btnSubirArchivos" class="btn btn-info info" role="button" value="" title="SUBIR ARCHIVOS" data-toggle="popover" data-html="true" data-trigger="focus" data-placement="left"
          data-content="">
         <i class="fa fa-fw fa-folder-open"></i>
       </a>
@@ -1081,7 +1081,7 @@ input[required], select[required]{
 
 <!--MODAL SUBIR SOLICITUD AE -->
 <div class="modal fade" id="modalSubirArchivo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog" style="width: 37%">
+  <div class="modal-dialog" style="width: 400px;">
     <div class="modal-content">
       <div class="modal-header modalNuevo" style="background-color: #00695c;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
@@ -1091,18 +1091,27 @@ input[required], select[required]{
       <div id="colapsadoCrear" class="collapse in">
         <div class="modal-body modalCuerpo">
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-12">
               <h5>NÚMERO DE DOCUMENTO</h5>
               <input type="text" class="form-control nro_dni" placeholder="" value="" required disabled>
               <br>
             </div>
-            <div class="col-md-6">
-              <h5 class="tipo_archivo">ARCHIVO</h5>
-              <input type="file" class="archivo">
+            <div class="col-md-12">
+              <div class="dropzone" style="border: 2px dashed #00695c; border-radius: 10px; padding: 15px; text-align: center; background-color: #f8fafc; min-height: 120px; transition: all 0.3s ease; position: relative; overflow: hidden;">
+                 <input type="file" id="archivoSubir" class="archivo form-control" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10;" onchange="document.getElementById('filenameDisplay').innerText = this.files.length > 0 ? this.files[0].name : 'Arrastre el archivo aquí o haga click en Seleccionar Archivo'; document.getElementById('filenameDisplay').style.color = this.files.length > 0 ? '#1e40af' : '#64748b'; document.getElementById('filenameDisplay').style.fontWeight = this.files.length > 0 ? 'bold' : 'normal';">
+                 <div style="pointer-events: none; position: relative; z-index: 1; margin-top: 10px;">
+                     <label style="font-weight: 600; color: #00695c; font-size: 1.2em; display:block; cursor: pointer;">
+                        <i class="fa fa-cloud-upload" style="font-size: 1.5em; margin-bottom: 5px;"></i><br>
+                        <span class="tipo_archivo">ARCHIVO</span>
+                     </label>
+                     <span id="filenameDisplay" style="color:#64748b; font-size: 13px;">Arrastre el archivo aquí o haga click en Seleccionar Archivo</span>
+                 </div>
+              </div>
               <br>
             </div>
           </div>
         </div>
+</br>
         <div class="modal-footer">
           <button type="button" class="btn btn-successAceptar" id="btn-subir-archivo">SUBIR ARCHIVO</button>
           <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>

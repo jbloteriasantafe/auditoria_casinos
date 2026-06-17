@@ -1360,12 +1360,16 @@ $(".btn-ver-mas").click(function () {
 $(document).on("click", ".subirArchivo", function () {
   $("#modalSubirArchivo input").val("");
   ocultarErrorValidacion($("#modalSubirArchivo input"));
+  $("#filenameDisplay").text("Arrastre el archivo aquí o haga click en Seleccionar Archivo").css({'color': '#64748b', 'font-weight': 'normal'});
   //Esto es bastante ridiculo pero bueno...
   const tr = $(this).parent().parent().parent().parent().parent().parent();
   $("#modalSubirArchivo .nro_dni").val(tr.find(".dni").text());
   $("#modalSubirArchivo .tipo_archivo").text($(this).text());
   $("#btn-subir-archivo").attr("data-id", tr.attr("data-id"));
   $("#btn-subir-archivo").attr("data-tipo", $(this).attr("data-tipo"));
+  
+
+
   //muestra modal
   $("#modalSubirArchivo").modal("show");
 });
