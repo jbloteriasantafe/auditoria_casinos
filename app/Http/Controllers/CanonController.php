@@ -66,15 +66,22 @@ class CanonController extends Controller
     }
     return $negativo.$newval;
   }
-        
+  
+  private $u = null;
+  public function __construct(){
+    $this->middleware(function ($request, $next) {
+      $this->u = UsuarioController::getInstancia()->quienSoy()['usuario'];
+      return $next($request);
+    });
+  }
+          
   public function index(){
-    $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    $casinos = $u->casinos;     
-    $es_superusuario = $u->es_superusuario;
+    $casinos = $this->u->casinos;     
+    $es_superusuario = $this->u->es_superusuario;
     $puede_deseliminar = $es_superusuario;
-    $puede_ver = $es_superusuario || $u->tienePermiso('m_b_pagos');
-    $puede_agregarmodificar = $es_superusuario || $u->tienePermiso('m_a_pagos');
-    return View::make('Canon.index', compact('casinos','plataformas','es_superusuario','puede_deseliminar','puede_ver','puede_agregarmodificar'));
+    $puede_ver = $es_superusuario || $this->u->tienePermiso('m_b_pagos');
+    $puede_agregarmodificar = $es_superusuario || $this->u->tienePermiso('m_a_pagos');
+    return View::make('Canon.index', compact('casinos','apuestas_deportivas','plataformas','es_superusuario','puede_deseliminar','puede_ver','puede_agregarmodificar'));
   }
   
   private static  $errores = [
@@ -902,7 +909,7 @@ class CanonController extends Controller
       }
       
       $created_at = date('Y-m-d h:i:s');
-      $id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
+      $id_usuario = $this->u->id_usuario;
       
       $canon_anterior = ($datos['año_mes'] !== null && $datos['id_casino'] !== null)?
         DB::table('canon')//Necesito la variable para despues sacarle los archivos
@@ -1279,8 +1286,7 @@ class CanonController extends Controller
   }
   
   public function borrar(Request $request){
-    $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
-    $check_estado = !$u->es_superusuario;
+    $check_estado = !$this->u->es_superusuario;
     
     Validator::make($request->all(),[
       'id_canon' => ['required','integer','exists:canon,id_canon,deleted_at,NULL']
@@ -1303,7 +1309,7 @@ class CanonController extends Controller
   public function borrar_arr(array $arr,$deleted_at = null,$deleted_id_usuario = null){
     return DB::transaction(function() use ($arr,$deleted_at,$deleted_id_usuario){
       $deleted_at = $deleted_at ?? date('Y-m-d h:i:s');
-      $deleted_id_usuario = $deleted_id_usuario ?? UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
+      $deleted_id_usuario = $deleted_id_usuario ?? $this->u->id_usuario;
       $id_canon = $arr['id_canon'];
       
       DB::table('canon')
@@ -1338,7 +1344,6 @@ class CanonController extends Controller
   }
   
   public function buscar(Request $request,bool $paginar = true){
-    $u = UsuarioController::getInstancia()->quienSoy()['usuario'];
     $reglas = [];
     if(isset($request->id_casino)){
       $reglas[] = ['c.id_casino','=',$request->id_casino];
@@ -1391,7 +1396,7 @@ class CanonController extends Controller
       'c.pago','c.saldo_posterior'
     )
     ->join('casino as cas','cas.id_casino','=','c.id_casino')
-    ->whereRaw(($u->es_superusuario && ($request->eliminados ?? false))?
+    ->whereRaw(($this->u->es_superusuario && ($request->eliminados ?? false))?
       'NOT EXISTS (
         SELECT * 
         FROM canon c2 
@@ -1404,7 +1409,7 @@ class CanonController extends Controller
     : 'c.deleted_at IS NULL'
     )
     ->where($reglas)
-    ->whereIn('c.id_casino',$u->casinos->pluck('id_casino'))
+    ->whereIn('c.id_casino',$this->u->casinos->pluck('id_casino'))
     ->orderBy($sort_by['columna'],$sort_by['orden'])
     ->orderBy('cas.nombre','asc');
     
@@ -2005,7 +2010,11 @@ class CanonController extends Controller
       SUM(devengado) as devengado,
       SUM(determinado) as determinado
     FROM temp_subcanons_redondeados
-    WHERE concepto IN ("Paños","MTM","Bingo","Adicionales")
+    WHERE concepto IN ("Paños","MTM","Bingo","Adicionales"'.(
+      $tipos_conceptos_adicionales->count()? 
+      (',"'.$tipos_conceptos_adicionales->pluck('tipo')->implode('","').'"')
+      : ''
+    ).')
     GROUP BY id_casino,año_mes');
     DB::statement('INSERT INTO temp_subcanons_redondeados_con_totales
     SELECT 
@@ -2179,7 +2188,7 @@ class CanonController extends Controller
     $timestamp_planilla = $fecha_planilla->format('Y-m-d h:i:s');
     $timestamp_canon = $data['datos_canon']['created_at'];
     $usuario_canon = \App\Usuario::withTrashed()->find($data['datos_canon']['created_id_usuario'])->nombre;
-    $usuario_planilla = UsuarioController::getInstancia()->quienSoy()['usuario']->nombre;
+    $usuario_planilla = $this->u->nombre;
     
     $view = View::make('Canon.planillaInformeCanonPDF',$data);
     $dompdf = new Dompdf();
@@ -2360,7 +2369,7 @@ class CanonController extends Controller
         $aux = [
           'horas' => $data_tcfma['horas'],
           'mesas' => $data_tcfma['mesas'],
-          'determinado' => $determinados[$tcfma]
+          'determinado' => $determinados[$tcfma] ?? '0'
         ];
         $adicionales_total['horas'] = bcadd_precise(
           $aux['horas'],
