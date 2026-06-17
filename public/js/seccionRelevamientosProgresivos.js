@@ -438,7 +438,7 @@ function generarFilaTabla(relevamiento) {
   fila.find('.textoEstado').text(relevamiento.estado).attr('title',relevamiento.estado);
   //Estado e Iconos a mostrar
   fila.find('.textoEstado').text(relevamiento.estado);
-  fila.find('.fa-dot-circle').addClass(relevamiento.estado=='Visado'? 'faValidado' : (`fa${relevamiento.estado}`));
+  fila.find('.fa-dot-circle').addClass(relevamiento.estado=='Visado'? 'faVisado' : (`fa${relevamiento.estado}`));
   fila.find('button').val(relevamiento.id_relevamiento_progresivo).hide();
   fila.find('.eliminar').show();
   switch(relevamiento.estado){

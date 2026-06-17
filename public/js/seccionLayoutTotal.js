@@ -773,11 +773,7 @@ function generarFilaTabla(layout_total){
   //Siempre muestro el de la planilla
   fila.find('.acciones button').hide();
   fila.find('.planilla,.imprimir,.eliminar').show();
-  //Hack... la clase se llama faValidado y el estado Visado... todas las demas estan bien estructuradas
-  if(layout_total.estado == 'Visado') fila.find('.icono_estado').addClass('faValidado');
-  else{
-    fila.find('.icono_estado').addClass(`fa${layout_total.estado}`);
-  }
+  fila.find('.icono_estado').addClass(`fa${layout_total.estado}`);
 
   const estado_a_acciones = {'Generado':['carga'],'Cargando':['carga'],'Finalizado':['ver','validar'],'Visado':['ver']};
   if(!(layout_total.estado in estado_a_acciones)) return;
