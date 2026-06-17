@@ -1121,7 +1121,9 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('eliminarArchivo', 'documentosContablesController@eliminarArchivo');
   Route::post('validarDocumento', 'documentosContablesController@validarDocumento');
   Route::get('obtenerDocumentosValidados', 'documentosContablesController@obtenerDocumentosValidados');
-  
+  Route::get('obtenerControlDocumentos', 'documentosContablesController@obtenerControlDocumentos');
+  Route::get('descargarControlDocumentosXlsx', 'documentosContablesController@descargarControlDocumentosXlsx');
+
   // ESTADO CONTABLE
   Route::get('ultimasEstadoContable', 'documentosContablesController@ultimasEstadoContable');
   Route::post('guardarEstadoContable', 'documentosContablesController@guardarEstadoContable');
