@@ -140,9 +140,16 @@
                 <i class="fa fa-search"></i> BUSCAR
               </button>
             </div>
+          <!--
             <div class="col-md-3">
               <button id="btn-ver-validados" class="btn btn-infoBuscar" style="width:100%" disabled>
                 <i class="fa fa-check-square-o"></i> VER DOCUMENTOS VALIDADOS
+              </button>
+            </div>
+  -->
+            <div class="col-md-3">
+              <button id="btn-control-documentos" class="btn btn-infoBuscar" style="width:100%" disabled>
+                <i class="fa fa-table"></i> CONTROL DE DOCUMENTOS
               </button>
             </div>
           </div>
@@ -186,6 +193,7 @@
         <div><a data-js-tab="#pant_oper" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">REPORTE LAVADO</a></div>
         <div><a data-js-tab="#pant_seguros" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">SEGUROS</a></div>
         <div id="div_tab_validados" hidden><a data-js-tab="#pant_validados" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">VALIDADOS</a></div>
+        <div id="div_tab_control_documentos" hidden><a data-js-tab="#pant_control_documentos" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">CONTROL DOCUMENTOS</a></div>
       </div>
     </div>
 
@@ -823,6 +831,39 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                 <tbody id="cuerpoTablaValidados" style="max-height: 500px;">
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANE CONTROL DE DOCUMENTOS -->
+    <div id="pant_control_documentos" hidden>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4>CONTROL DE DOCUMENTOS <small id="subtituloControlDocumentos"></small></h4>
+              <span style="margin-right: 15px;"><i class="fa fa-check icono-validado"></i> Válido</span>
+              <span style="margin-right: 15px;"><i class="fa fa-times icono-no-validado"></i> No válido</span>
+              <span style="margin-right: 15px;"><i class="fa fa-minus" style="color: #999;"></i> No subido</span>
+            </div>
+            <div class="panel-body">
+              <div style="overflow: auto; max-height: 550px;">
+                <table id="tablaControlDocumentos" class="table table-bordered" style="margin-bottom: 0;">
+                  <thead id="cabeceraTablaControlDocumentos">
+                  </thead>
+                  <tbody id="cuerpoTablaControlDocumentos">
+                  </tbody>
+                </table>
+              </div>
+              <div class="row" style="margin-top: 15px;">
+                <div class="col-md-12 text-center">
+                  <button id="btn-descargarControlDocumentos" class="btn btn-infoBuscar" disabled>
+                    <i class="fa fa-file-excel-o"></i> EXPORTAR EXCEL
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
