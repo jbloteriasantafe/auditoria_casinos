@@ -1173,11 +1173,11 @@ $(document).on("click", "#guardarRegistroiibb", function (e) {
     headers: { "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content") },
     success: function () {
       cargariibb({
-        page: 1,
+        page: $("#herramientasPaginacioniibb").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacioniibb").getPageSize(),
-        casino: $("#FCasinoiibb").val(),
-        desde: $("#fecha_iibbDesde").val(),
-        hasta: $("#fecha_iibbHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargariibb").modal("hide"), 1000);
       resetFormiibb();
@@ -1234,9 +1234,9 @@ function clickIndiceiibb(e, pageNumber, pageSize) {
   cargariibb({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoiibb").val(),
-    desde: $("#fecha_iibbDesde").val(),
-    hasta: $("#fecha_iibbHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -1323,9 +1323,9 @@ $("#btn-eliminariibb").on("click", function () {
         cargariibb({
           page: $("#herramientasPaginacioniibb").getCurrentPage(),
           perPage: $("#herramientasPaginacioniibb").getPageSize(),
-          casino: $("#FCasinoiibb").val(),
-          desde: $("#fecha_iibbDesde").val(),
-          hasta: $("#fecha_iibbHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -1415,9 +1415,9 @@ $("#btn-buscariibb").on("click", function (e) {
   cargariibb({
     page: 1,
     perPage: $("#herramientasPaginacioniibb").getPageSize(),
-    casino: $("#FCasinoiibb").val(),
-    desde: $("#fecha_iibbDesde").val(),
-    hasta: $("#fecha_iibbHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -2089,9 +2089,9 @@ $("#btn-eliminarDREI").on("click", function () {
         cargarDREI({
           page: $("#herramientasPaginacionDREI").getCurrentPage(),
           perPage: $("#herramientasPaginacionDREI").getPageSize(),
-          casino: $("#FCasinoDREI").val(),
-          desde: $("#fecha_DREIDesde").val(),
-          hasta: $("#fecha_DREIHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -2104,9 +2104,9 @@ $("#btn-buscarDREI").on("click", function (e) {
   cargarDREI({
     page: 1,
     perPage: $("#herramientasPaginacionDREI").getPageSize(),
-    casino: $("#FCasinoDREI").val(),
-    desde: $("#fecha_DREIDesde").val(),
-    hasta: $("#fecha_DREIHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -2115,9 +2115,9 @@ function clickIndiceDREI(e, pageNumber, pageSize) {
   cargarDREI({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoDREI").val(),
-    desde: $("#fecha_DREIDesde").val(),
-    hasta: $("#fecha_DREIHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -2634,9 +2634,9 @@ $(document).on("click", "#guardarRegistroDREI", function (e) {
     contentType: false,
     success: function (res) {
       cargarDREI({
-        page: 1,
+        page: $("#herramientasPaginacionDREI").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionDREI").getPageSize(),
-        casino: $("#FCasinoDREI").val(),
+        casino: $("#filtro_global_casino").val(),
       });
       setTimeout(() => $("#modalCargarDREI").modal("hide"), 1000);
       resetFormDREI();
@@ -2740,9 +2740,9 @@ function clickIndiceIva(e, pageNumber, pageSize) {
   cargarIva({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoIva").val(),
-    desde: $("#fecha_ivaDesde").val(),
-    hasta: $("#fecha_ivaHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -2925,11 +2925,11 @@ $(document).on("click", "#guardarRegistroIva", function () {
     headers: { "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content") },
     success: function () {
       cargarIva({
-        page: 1,
+        page: $("#herramientasPaginacionIVA").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionIVA").getPageSize(),
-        casino: $("#FCasinoIva").val(),
-        desde: $("#fecha_ivaDesde").val(),
-        hasta: $("#fecha_ivaHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       $("#modalCargarIva").modal("hide");
       resetFormIva();
@@ -3061,9 +3061,9 @@ $("#btn-eliminarIva").on("click", function () {
         cargarIva({
           page: $("#herramientasPaginacionIVA").getCurrentPage(),
           perPage: $("#herramientasPaginacionIVA").getPageSize(),
-          casino: $("#FCasinoIva").val(),
-          desde: $("#fecha_ivaDesde").val(),
-          hasta: $("#fecha_ivaHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -3105,9 +3105,9 @@ $("#btn-buscarIva").on("click", function (e) {
   cargarIva({
     page: 1,
     perPage: $("#herramientasPaginacionIVA").getPageSize(),
-    casino: $("#FCasinoIva").val(),
-    desde: $("#fecha_ivaDesde").val(),
-    hasta: $("#fecha_ivaHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -3991,11 +3991,11 @@ $(document).on("click", "#guardarRegistroTGI", function (e) {
     contentType: false,
     success: function (res) {
       cargarTGI({
-        page: 1,
+        page: $("#herramientasPaginacionTGI").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionTGI").getPageSize(),
-        casino: $("#FCasinoTGI").val(),
-        desde: $("#fecha_TGIDesde").val(),
-        hasta: $("#fecha_TGIHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       resetFormTGI();
 
@@ -4016,9 +4016,9 @@ $("#btn-buscarTGI").on("click", function (e) {
   cargarTGI({
     page: 1,
     perPage: $("#herramientasPaginacionTGI").getPageSize(),
-    casino: $("#FCasinoTGI").val(),
-    desde: $("#fecha_TGIDesde").val(),
-    hasta: $("#fecha_TGIHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -4027,9 +4027,9 @@ function clickIndiceTGI(e, pageNumber, pageSize) {
   cargarTGI({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoTGI").val(),
-    desde: $("#fecha_TGIDesde").val(),
-    hasta: $("#fecha_TGIHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -4147,9 +4147,9 @@ $("#btn-eliminarTGI").on("click", function () {
         cargarTGI({
           page: $("#herramientasPaginacionTGI").getCurrentPage(),
           perPage: $("#herramientasPaginacionTGI").getPageSize(),
-          casino: $("#FCasinoTGI").val(),
-          desde: $("#fecha_TGIDesde").val(),
-          hasta: $("#fecha_TGIHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -4645,11 +4645,11 @@ $(document).on("click", "#guardarRegistroIMP_AP_OL", function (e) {
     contentType: false,
     success: function (res) {
       cargarIMP_AP_OL({
-        page: 1,
+        page: $("#herramientasPaginacionIMP_AP_OL").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionIMP_AP_OL").getPageSize(),
-        casino: $("#FCasinoIMP_AP_OL").val(),
-        desde: $("#fecha_IMP_AP_OLDesde").val(),
-        hasta: $("#fecha_IMP_AP_OLHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargarIMP_AP_OL").modal("hide"), 1000);
       resetFormIMP_AP_OL();
@@ -4669,9 +4669,9 @@ $("#btn-buscarIMP_AP_OL").on("click", function (e) {
   cargarIMP_AP_OL({
     page: 1,
     perPage: $("#herramientasPaginacionIMP_AP_OL").getPageSize(),
-    casino: $("#FCasinoIMP_AP_OL").val(),
-    desde: $("#fecha_IMP_AP_OLDesde").val(),
-    hasta: $("#fecha_IMP_AP_OLHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -4680,9 +4680,9 @@ function clickIndiceIMP_AP_OL(e, pageNumber, pageSize) {
   cargarIMP_AP_OL({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoIMP_AP_OL").val(),
-    desde: $("#fecha_IMP_AP_OLDesde").val(),
-    hasta: $("#fecha_IMP_AP_OLHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -4810,9 +4810,9 @@ $("#btn-eliminarIMP_AP_OL").on("click", function () {
         cargarIMP_AP_OL({
           page: $("#herramientasPaginacionIMP_AP_OL").getCurrentPage(),
           perPage: $("#herramientasPaginacionIMP_AP_OL").getPageSize(),
-          casino: $("#FCasinoIMP_AP_OL").val(),
-          desde: $("#fecha_IMP_AP_OLDesde").val(),
-          hasta: $("#fecha_IMP_AP_OLHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -5244,11 +5244,11 @@ $(document).on("click", "#guardarRegistroIMP_AP_MTM", function (e) {
     contentType: false,
     success: function (res) {
       cargarIMP_AP_MTM({
-        page: 1,
+        page: $("#herramientasPaginacionIMP_AP_MTM").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionIMP_AP_MTM").getPageSize(),
-        casino: $("#FCasinoIMP_AP_MTM").val(),
-        desde: $("#fecha_IMP_AP_MTMDesde").val(),
-        hasta: $("#fecha_IMP_AP_MTMHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargarIMP_AP_MTM").modal("hide"), 1000);
       resetFormIMP_AP_MTM();
@@ -5268,9 +5268,9 @@ $("#btn-buscarIMP_AP_MTM").on("click", function (e) {
   cargarIMP_AP_MTM({
     page: 1,
     perPage: $("#herramientasPaginacionIMP_AP_MTM").getPageSize(),
-    casino: $("#FCasinoIMP_AP_MTM").val(),
-    desde: $("#fecha_IMP_AP_MTMDesde").val(),
-    hasta: $("#fecha_IMP_AP_MTMHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -5279,9 +5279,9 @@ function clickIndiceIMP_AP_MTM(e, pageNumber, pageSize) {
   cargarIMP_AP_MTM({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoIMP_AP_MTM").val(),
-    desde: $("#fecha_IMP_AP_MTMDesde").val(),
-    hasta: $("#fecha_IMP_AP_MTMHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -5407,9 +5407,9 @@ $("#btn-eliminarIMP_AP_MTM").on("click", function () {
         cargarIMP_AP_MTM({
           page: $("#herramientasPaginacionIMP_AP_MTM").getCurrentPage(),
           perPage: $("#herramientasPaginacionIMP_AP_MTM").getPageSize(),
-          casino: $("#FCasinoIMP_AP_MTM").val(),
-          desde: $("#fecha_IMP_AP_MTMDesde").val(),
-          hasta: $("#fecha_IMP_AP_MTMHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -5771,11 +5771,11 @@ $(document).on("click", "#guardarRegistroPagosMayoresMesas", function (e) {
     contentType: false,
     success: function (res) {
       cargarPagosMayoresMesas({
-        page: 1,
+        page: $("#herramientasPaginacionPagosMayoresMesas").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionPagosMayoresMesas").getPageSize(),
-        casino: $("#FCasinoPagosMayoresMesas").val(),
-        desde: $("#fecha_PagosMayoresMesasDesde").val(),
-        hasta: $("#fecha_PagosMayoresMesasHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargarPagosMayoresMesas").modal("hide"), 1000);
       resetFormPagosMayoresMesas();
@@ -5795,9 +5795,9 @@ $("#btn-buscarPagosMayoresMesas").on("click", function (e) {
   cargarPagosMayoresMesas({
     page: $("#herramientasPaginacionPagosMayoresMesas").getCurrentPage(), // antes: PAgos...
     perPage: $("#herramientasPaginacionPagosMayoresMesas").getPageSize(),
-    casino: $("#FCasinoPagosMayoresMesas").val(),
-    desde: $("#fecha_PagosMayoresMesasDesde").val(),
-    hasta: $("#fecha_PagosMayoresMesasHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -5806,9 +5806,9 @@ function clickIndicePagosMayoresMesas(e, pageNumber, pageSize) {
   cargarPagosMayoresMesas({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoPagosMayoresMesas").val(),
-    desde: $("#fecha_PagosMayoresMesasDesde").val(),
-    hasta: $("#fecha_PagosMayoresMesasHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -5936,9 +5936,9 @@ $("#btn-eliminarPagosMayoresMesas").on("click", function () {
         cargarPagosMayoresMesas({
           page: $("#herramientasPaginacionPAgosMayoresMesas").getCurrentPage(),
           perPage: $("#herramientasPaginacionPagosMayoresMesas").getPageSize(),
-          casino: $("#FCasinoPagosMayoresMesas").val(),
-          desde: $("#fecha_PagosMayoresMesasDesde").val(),
-          hasta: $("#fecha_PagosMayoresMesasHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -6282,11 +6282,11 @@ $(document).on("click", "#guardarRegistroDeudaEstado", function (e) {
     contentType: false,
     success: function (res) {
       cargarDeudaEstado({
-        page: 1,
+        page: $("#herramientasPaginacionDeudaEstado").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionDeudaEstado").getPageSize(),
-        casino: $("#FCasinoDeudaEstado").val(),
-        desde: $("#fecha_DeudaEstadoDesde").val(),
-        hasta: $("#fecha_DeudaEstadoHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargarDeudaEstado").modal("hide"), 1000);
       resetFormDeudaEstado();
@@ -6306,9 +6306,9 @@ $("#btn-buscarDeudaEstado").on("click", function (e) {
   cargarDeudaEstado({
     page: 1,
     perPage: $("#herramientasPaginacionDeudaEstado").getPageSize(),
-    casino: $("#FCasinoDeudaEstado").val(),
-    desde: $("#fecha_DeudaEstadoDesde").val(),
-    hasta: $("#fecha_DeudaEstadoHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -6317,9 +6317,9 @@ function clickIndiceDeudaEstado(e, pageNumber, pageSize) {
   cargarDeudaEstado({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoDeudaEstado").val(),
-    desde: $("#fecha_DeudaEstadoDesde").val(),
-    hasta: $("#fecha_DeudaEstadoHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -6449,9 +6449,9 @@ $("#btn-eliminarDeudaEstado").on("click", function () {
         cargarDeudaEstado({
           page: $("#herramientasPaginacionDeudaEstado").getCurrentPage(),
           perPage: $("#herramientasPaginacionDeudaEstado").getPageSize(),
-          casino: $("#FCasinoDeudaEstado").val(),
-          desde: $("#fecha_DeudaEstadoDesde").val(),
-          hasta: $("#fecha_DeudaEstadoHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -6769,11 +6769,11 @@ $(document).on("click", "#guardarRegistroReporteYLavado", function (e) {
     contentType: false,
     success: function (res) {
       cargarReporteYLavado({
-        page: 1,
+        page: $("#herramientasPaginacionReporteYLavado").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionReporteYLavado").getPageSize(),
-        casino: $("#FCasinoReporteYLavado").val(),
-        desde: $("#fecha_ReporteYLavadoDesde").val(),
-        hasta: $("#fecha_ReporteYLavadoHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargarReporteYLavado").modal("hide"), 1000);
       resetFormReporteYLavado();
@@ -6816,8 +6816,10 @@ $(document).ready(function () {
 
     if (casino && desde && hasta) {
       $("#btn-ver-validados").prop("disabled", false);
+      $("#btn-control-documentos").prop("disabled", false);
     } else {
       $("#btn-ver-validados").prop("disabled", true);
+      $("#btn-control-documentos").prop("disabled", true);
     }
   }
 
@@ -6934,6 +6936,95 @@ $(document).ready(function () {
     });
 
   });
+
+  // CONTROL DE DOCUMENTOS: matriz documento x mes (válido / no válido / no subido)
+  var filtrosControlDocumentos = null;
+
+  $("#btn-control-documentos").on("click", function (e) {
+    e.preventDefault();
+    var casino = $("#filtro_global_casino").val();
+    var desde = $("#filtro_global_desde_input").val();
+    var hasta = $("#filtro_global_hasta_input").val();
+
+    if (!casino || !desde || !hasta) return;
+
+    $("[data-js-tabs] a").removeClass("active");
+    $('[id^="pant_"]').attr("hidden", true);
+
+    $("#div_tab_control_documentos").removeAttr("hidden");
+    $("[data-js-tab='#pant_control_documentos']").addClass("active");
+    $("#pant_control_documentos").removeAttr("hidden");
+
+    var casinoNombre = $("#filtro_global_casino option:selected").text();
+    $("#subtituloControlDocumentos").text(casinoNombre + " | " + desde + " a " + hasta);
+    $("#btn-descargarControlDocumentos").prop("disabled", true);
+    filtrosControlDocumentos = null;
+
+    $("#cabeceraTablaControlDocumentos").empty();
+    $("#cuerpoTablaControlDocumentos").empty().append('<tr><td class="text-center">Cargando...</td></tr>');
+
+    $.ajax({
+      url: "documentosContables/obtenerControlDocumentos",
+      method: "GET",
+      data: {
+        id_casino: casino,
+        desde: desde,
+        hasta: hasta
+      },
+      success: function (res) {
+        $("#cabeceraTablaControlDocumentos").empty();
+        $("#cuerpoTablaControlDocumentos").empty();
+        if (!res.success || !res.filas || res.filas.length === 0) {
+          $("#cuerpoTablaControlDocumentos").append('<tr><td class="text-center">No hay datos para este período.</td></tr>');
+          return;
+        }
+
+        var estiloPrimeraCol = "position: sticky; left: 0; background-color: #fff; z-index: 1; text-align: left; min-width: 220px;";
+
+        var trHead = $("<tr>").append(
+          $("<th>").attr("style", estiloPrimeraCol + " z-index: 2;").text("DOCUMENTO")
+        );
+        res.meses.forEach(function (mes) {
+          trHead.append($("<th>").addClass("text-center").attr("style", "min-width: 110px;").text(mes.label));
+        });
+        $("#cabeceraTablaControlDocumentos").append(trHead);
+
+        res.filas.forEach(function (fila) {
+          var tr = $("<tr>").append(
+            $("<td>").attr("style", estiloPrimeraCol).text(fila.documento + (fila.anual ? " (ANUAL)" : ""))
+          );
+          res.meses.forEach(function (mes) {
+            var celda = fila.celdas[mes.key];
+            var icono;
+            if (celda.estado === "valido") {
+              icono = '<i class="fa fa-check icono-validado" data-toggle="tooltip" title="Válido (' + celda.validos + '/' + celda.total + ')"></i>';
+            } else if (celda.estado === "no_valido") {
+              icono = '<i class="fa fa-times icono-no-validado" data-toggle="tooltip" title="No válido (' + celda.validos + '/' + celda.total + ' validados)"></i>';
+            } else {
+              icono = '<i class="fa fa-minus" style="color: #999;" data-toggle="tooltip" title="No subido"></i>';
+            }
+            tr.append($("<td>").addClass("text-center").html(icono));
+          });
+          $("#cuerpoTablaControlDocumentos").append(tr);
+        });
+
+        $("#tablaControlDocumentos [data-toggle='tooltip']").tooltip();
+
+        filtrosControlDocumentos = { id_casino: casino, desde: desde, hasta: hasta };
+        $("#btn-descargarControlDocumentos").prop("disabled", false);
+      },
+      error: function () {
+        $("#cabeceraTablaControlDocumentos").empty();
+        $("#cuerpoTablaControlDocumentos").empty().append('<tr><td class="text-center text-danger">Error al cargar el control de documentos.</td></tr>');
+      }
+    });
+  });
+
+  $("#btn-descargarControlDocumentos").on("click", function (e) {
+    e.preventDefault();
+    if (!filtrosControlDocumentos) return;
+    window.location.href = "/documentosContables/descargarControlDocumentosXlsx?" + $.param(filtrosControlDocumentos);
+  });
 });
 
 function filtrosGlobalDescarga() {
@@ -6952,7 +7043,8 @@ function buscarGlobal() {
   buscarPestana(activeTab);
 }
 
-function buscarPestana(tabId) {
+function buscarPestana(tabId, preservePage) {
+  preservePage = preservePage || false;
   if (!tabId) return;
 
   // Obtener valores globales (convertir vacíos a undefined para que el backend use defaults)
@@ -6966,6 +7058,26 @@ function buscarPestana(tabId) {
   // existan y acepten los parametros.
 
   // Quitamos 'pant_' para obtener el nombre clave
+
+  function getPg(funcName) {
+    if (!preservePage) return 1;
+    // We can infer paginator ID from the function name (e.g. cargarIva -> herramientasPaginacionIVA)
+    // Actually, it is easier to find the active paginator inside the tab
+    var $pag = $(tabId).find(".zonaPaginacion");
+    if ($pag.length > 0 && typeof $pag.getCurrentPage === "function") {
+        return $pag.getCurrentPage() || 1;
+    }
+    return 1;
+  }
+  
+  function getSz(funcName) {
+    var $pag = $(tabId).find(".zonaPaginacion");
+    if ($pag.length > 0 && typeof $pag.getPageSize === "function") {
+        return $pag.getPageSize() || 10;
+    }
+    return 10;
+  }
+
   var key = tabId.replace("#pant_", "");
 
   // Casos especiales de nombres
@@ -6974,8 +7086,8 @@ function buscarPestana(tabId) {
   switch (key) {
     case "iva":
       cargarIva({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarIva),
+        perPage: getSz(cargarIva),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -6983,8 +7095,8 @@ function buscarPestana(tabId) {
       break;
     case "iibb":
       cargariibb({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargariibb),
+        perPage: getSz(cargariibb),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -6992,8 +7104,8 @@ function buscarPestana(tabId) {
       break;
     case "drei":
       cargarDREI({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarDREI),
+        perPage: getSz(cargarDREI),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7001,8 +7113,8 @@ function buscarPestana(tabId) {
       break;
     case "tgi":
       cargarTGI({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarTGI),
+        perPage: getSz(cargarTGI),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7010,8 +7122,8 @@ function buscarPestana(tabId) {
       break;
     case "imp_ap_mtm":
       cargarIMP_AP_MTM({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarIMP_AP_MTM),
+        perPage: getSz(cargarIMP_AP_MTM),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7019,8 +7131,8 @@ function buscarPestana(tabId) {
       break;
     case "imp_ap_ol":
       cargarIMP_AP_OL({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarIMP_AP_OL),
+        perPage: getSz(cargarIMP_AP_OL),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7028,15 +7140,15 @@ function buscarPestana(tabId) {
       break;
     case "ganancias":
       cargarGanancias({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarGanancias),
+        perPage: getSz(cargarGanancias),
         casino: casino,
         desde: desde,
         hasta: hasta,
       });
       cargarGanancias_periodo({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarGanancias_periodo),
+        perPage: getSz(cargarGanancias_periodo),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7044,8 +7156,8 @@ function buscarPestana(tabId) {
       break;
     case "patentes":
       cargarPatentes({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarPatentes),
+        perPage: getSz(cargarPatentes),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7053,8 +7165,8 @@ function buscarPestana(tabId) {
       break;
     case "inmobiliario":
       cargarImpInmobiliario({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarImpInmobiliario),
+        perPage: getSz(cargarImpInmobiliario),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7062,8 +7174,8 @@ function buscarPestana(tabId) {
       break;
     case "deuda":
       cargarDeudaEstado({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarDeudaEstado),
+        perPage: getSz(cargarDeudaEstado),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7071,8 +7183,8 @@ function buscarPestana(tabId) {
       break;
     case "direct":
       cargarAutDirectores({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarAutDirectores),
+        perPage: getSz(cargarAutDirectores),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7080,8 +7192,8 @@ function buscarPestana(tabId) {
       break;
     case "premios_mtm":
       cargarPremiosMTM({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarPremiosMTM),
+        perPage: getSz(cargarPremiosMTM),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7089,8 +7201,8 @@ function buscarPestana(tabId) {
       break;
     case "promoticket":
       cargarPromoTickets({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarPromoTickets),
+        perPage: getSz(cargarPromoTickets),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7098,8 +7210,8 @@ function buscarPestana(tabId) {
       break;
     case "pozos_acumulados":
       cargarPozosAcumuladosLinkeados({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarPozosAcumuladosLinkeados),
+        perPage: getSz(cargarPozosAcumuladosLinkeados),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7107,8 +7219,8 @@ function buscarPestana(tabId) {
       break;
     case "jackpots_pagados":
       cargarJackpotsPagados({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarJackpotsPagados),
+        perPage: getSz(cargarJackpotsPagados),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7116,8 +7228,8 @@ function buscarPestana(tabId) {
       break;
     case "premios_pagados":
       cargarPremiosPagados({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarPremiosPagados),
+        perPage: getSz(cargarPremiosPagados),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7125,8 +7237,8 @@ function buscarPestana(tabId) {
       break;
     case "pagos_mesas":
       cargarPagosMayoresMesas({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarPagosMayoresMesas),
+        perPage: getSz(cargarPagosMayoresMesas),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7134,8 +7246,8 @@ function buscarPestana(tabId) {
       break;
     case "registros":
       cargarRegistrosContables({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarRegistrosContables),
+        perPage: getSz(cargarRegistrosContables),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7143,8 +7255,8 @@ function buscarPestana(tabId) {
       break;
     case "aportes":
       cargarAportesPatronales({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarAportesPatronales),
+        perPage: getSz(cargarAportesPatronales),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7152,8 +7264,8 @@ function buscarPestana(tabId) {
       break;
     case "rrhh":
       cargarRRHH({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarRRHH),
+        perPage: getSz(cargarRRHH),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7161,8 +7273,8 @@ function buscarPestana(tabId) {
       break;
     case "oper":
       cargarReporteYLavado({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarReporteYLavado),
+        perPage: getSz(cargarReporteYLavado),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7170,8 +7282,8 @@ function buscarPestana(tabId) {
       break;
     case "seguros":
       cargarSeguros({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarSeguros),
+        perPage: getSz(cargarSeguros),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7179,8 +7291,8 @@ function buscarPestana(tabId) {
       break;
     case "contrib_ente":
       cargarContribEnteTuristico({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarContribEnteTuristico),
+        perPage: getSz(cargarContribEnteTuristico),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7188,8 +7300,8 @@ function buscarPestana(tabId) {
       break;
     case "derecho":
       cargarDerechoAcceso({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarDerechoAcceso),
+        perPage: getSz(cargarDerechoAcceso),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7197,8 +7309,8 @@ function buscarPestana(tabId) {
       break;
     case "estado_contable":
       cargarEstadoContable({
-        page: 1,
-        perPage: 10,
+        page: getPg(cargarEstadoContable),
+        perPage: getSz(cargarEstadoContable),
         casino: casino,
         desde: desde,
         hasta: hasta,
@@ -7217,9 +7329,9 @@ function clickIndiceReporteYLavado(e, pageNumber, pageSize) {
   cargarReporteYLavado({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoReporteYLavado").val(),
-    desde: $("#fecha_ReporteYLavadoDesde").val(),
-    hasta: $("#fecha_ReporteYLavadoHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -7352,9 +7464,9 @@ $("#btn-eliminarReporteYLavado").on("click", function () {
         cargarReporteYLavado({
           page: $("#herramientasPaginacionReporteYLavado").getCurrentPage(),
           perPage: $("#herramientasPaginacionReporteYLavado").getPageSize(),
-          casino: $("#FCasinoReporteYLavado").val(),
-          desde: $("#fecha_ReporteYLavadoDesde").val(),
-          hasta: $("#fecha_ReporteYLavadoHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -7782,11 +7894,11 @@ $(document).on("click", "#guardarRegistroRegistrosContables", function (e) {
     contentType: false,
     success: function (res) {
       cargarRegistrosContables({
-        page: 1,
+        page: $("#herramientasPaginacionRegistrosContables").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionRegistrosContables").getPageSize(),
-        casino: $("#FCasinoRegistrosContables").val(),
-        desde: $("#fecha_RegistrosContablesDesde").val(),
-        hasta: $("#fecha_RegistrosContablesHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargarRegistrosContables").modal("hide"), 1000);
 
@@ -7807,9 +7919,9 @@ $("#btn-buscarRegistrosContables").on("click", function (e) {
   cargarRegistrosContables({
     page: 1,
     perPage: $("#herramientasPaginacionRegistrosContables").getPageSize(),
-    casino: $("#FCasinoRegistrosContables").val(),
-    desde: $("#fecha_RegistrosContablesDesde").val(),
-    hasta: $("#fecha_RegistrosContablesHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -7818,9 +7930,9 @@ function clickIndiceRegistrosContables(e, pageNumber, pageSize) {
   cargarRegistrosContables({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoRegistrosContables").val(),
-    desde: $("#fecha_RegistrosContablesDesde").val(),
-    hasta: $("#fecha_RegistrosContablesHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -7958,9 +8070,9 @@ $("#btn-eliminarRegistrosContables").on("click", function () {
         cargarRegistrosContables({
           page: $("#herramientasPaginacionRegistrosContables").getCurrentPage(),
           perPage: $("#herramientasPaginacionRegistrosContables").getPageSize(),
-          casino: $("#FCasinoRegistrosContables").val(),
-          desde: $("#fecha_RegistrosContablesDesde").val(),
-          hasta: $("#fecha_RegistrosContablesHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -8345,11 +8457,11 @@ $(document).on("click", "#guardarRegistroAportesPatronales", function (e) {
     contentType: false,
     success: function (res) {
       cargarAportesPatronales({
-        page: 1,
+        page: $("#herramientasPaginacionAportesPatronales").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionAportesPatronales").getPageSize(),
-        casino: $("#FCasinoAportesPatronales").val(),
-        desde: $("#fecha_AportesPatronalesDesde").val(),
-        hasta: $("#fecha_AportesPatronalesHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargarAportesPatronales").modal("hide"), 1000);
       resetFormAportesPatronales();
@@ -8369,9 +8481,9 @@ $("#btn-buscarAportesPatronales").on("click", function (e) {
   cargarAportesPatronales({
     page: 1,
     perPage: $("#herramientasPaginacionAportesPatronales").getPageSize(),
-    casino: $("#FCasinoAportesPatronales").val(),
-    desde: $("#fecha_AportesPatronalesDesde").val(),
-    hasta: $("#fecha_AportesPatronalesHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -8380,9 +8492,9 @@ function clickIndiceAportesPatronales(e, pageNumber, pageSize) {
   cargarAportesPatronales({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoAportesPatronales").val(),
-    desde: $("#fecha_AportesPatronalesDesde").val(),
-    hasta: $("#fecha_AportesPatronalesHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -8517,9 +8629,9 @@ $("#btn-eliminarAportesPatronales").on("click", function () {
         cargarAportesPatronales({
           page: $("#herramientasPaginacionAportesPatronales").getCurrentPage(),
           perPage: $("#herramientasPaginacionAportesPatronales").getPageSize(),
-          casino: $("#FCasinoAportesPatronales").val(),
-          desde: $("#fecha_AportesPatronalesDesde").val(),
-          hasta: $("#fecha_AportesPatronalesHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -8865,11 +8977,11 @@ $(document).on("click", "#guardarRegistroPromoTickets", function (e) {
     contentType: false,
     success: function (res) {
       cargarPromoTickets({
-        page: 1,
+        page: $("#herramientasPaginacionPromoTickets").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionPromoTickets").getPageSize(),
-        casino: $("#FCasinoPromoTickets").val(),
-        desde: $("#fecha_PromoTicketsDesde").val(),
-        hasta: $("#fecha_PromoTicketsHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargarPromoTickets").modal("hide"), 1000);
       resetFormPromoTickets();
@@ -8889,9 +9001,9 @@ $("#btn-buscarPromoTickets").on("click", function (e) {
   cargarPromoTickets({
     page: 1,
     perPage: $("#herramientasPaginacionPromoTickets").getPageSize(),
-    casino: $("#FCasinoPromoTickets").val(),
-    desde: $("#fecha_PromoTicketsDesde").val(),
-    hasta: $("#fecha_PromoTicketsHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -8900,9 +9012,9 @@ function clickIndicePromoTickets(e, pageNumber, pageSize) {
   cargarPromoTickets({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoPromoTickets").val(),
-    desde: $("#fecha_PromoTicketsDesde").val(),
-    hasta: $("#fecha_PromoTicketsHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -9020,9 +9132,9 @@ $("#btn-eliminarPromoTickets").on("click", function () {
         cargarPromoTickets({
           page: $("#herramientasPaginacionPromoTickets").getCurrentPage(),
           perPage: $("#herramientasPaginacionPromoTickets").getPageSize(),
-          casino: $("#FCasinoPromoTickets").val(),
-          desde: $("#fecha_PromoTicketsDesde").val(),
-          hasta: $("#fecha_PromoTicketsHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -9383,9 +9495,9 @@ $(document).on(
           perPage: $(
             "#herramientasPaginacionPozosAcumuladosLinkeados"
           ).getPageSize(),
-          casino: $("#FCasinoPozosAcumuladosLinkeados").val(),
-          desde: $("#fecha_PozosAcumuladosLinkeadosDesde").val(),
-          hasta: $("#fecha_PozosAcumuladosLinkeadosHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
         setTimeout(
           () => $("#modalCargarPozosAcumuladosLinkeados").modal("hide"),
@@ -9409,9 +9521,9 @@ $("#btn-buscarPozosAcumuladosLinkeados").on("click", function (e) {
   cargarPozosAcumuladosLinkeados({
     page: 1,
     perPage: $("#herramientasPaginacionPozosAcumuladosLinkeados").getPageSize(),
-    casino: $("#FCasinoPozosAcumuladosLinkeados").val(),
-    desde: $("#fecha_PozosAcumuladosLinkeadosDesde").val(),
-    hasta: $("#fecha_PozosAcumuladosLinkeadosHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -9420,9 +9532,9 @@ function clickIndicePozosAcumuladosLinkeados(e, pageNumber, pageSize) {
   cargarPozosAcumuladosLinkeados({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoPozosAcumuladosLinkeados").val(),
-    desde: $("#fecha_PozosAcumuladosLinkeadosDesde").val(),
-    hasta: $("#fecha_PozosAcumuladosLinkeadosHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -9566,9 +9678,9 @@ $("#btn-eliminarPozosAcumuladosLinkeados").on("click", function () {
           perPage: $(
             "#herramientasPaginacionPozosAcumuladosLinkeados"
           ).getPageSize(),
-          casino: $("#FCasinoPozosAcumuladosLinkeados").val(),
-          desde: $("#fecha_PozosAcumuladosLinkeadosDesde").val(),
-          hasta: $("#fecha_PozosAcumuladosLinkeadosHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -9988,11 +10100,11 @@ $(document).on("click", "#guardarRegistroContribEnteTuristico", function (e) {
     contentType: false,
     success: function (res) {
       cargarContribEnteTuristico({
-        page: 1,
+        page: $("#herramientasPaginacionContribEnteTuristico").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionContribEnteTuristico").getPageSize(),
-        casino: $("#FCasinoContribEnteTuristico").val(),
-        desde: $("#fecha_ContribEnteTuristicoDesde").val(),
-        hasta: $("#fecha_ContribEnteTuristicoHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(
         () => $("#modalCargarContribEnteTuristico").modal("hide"),
@@ -10015,9 +10127,9 @@ $("#btn-buscarContribEnteTuristico").on("click", function (e) {
   cargarContribEnteTuristico({
     page: 1,
     perPage: $("#herramientasPaginacionContribEnteTuristico").getPageSize(),
-    casino: $("#FCasinoContribEnteTuristico").val(),
-    desde: $("#fecha_ContribEnteTuristicoDesde").val(),
-    hasta: $("#fecha_ContribEnteTuristicoHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -10026,9 +10138,9 @@ function clickIndiceContribEnteTuristico(e, pageNumber, pageSize) {
   cargarContribEnteTuristico({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoContribEnteTuristico").val(),
-    desde: $("#fecha_ContribEnteTuristicoDesde").val(),
-    hasta: $("#fecha_ContribEnteTuristicoHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -10171,9 +10283,9 @@ $("#btn-eliminarContribEnteTuristico").on("click", function () {
           perPage: $(
             "#herramientasPaginacionContribEnteTuristico"
           ).getPageSize(),
-          casino: $("#FCasinoContribEnteTuristico").val(),
-          desde: $("#fecha_ContribEnteTuristicoDesde").val(),
-          hasta: $("#fecha_ContribEnteTuristicoHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -10757,11 +10869,11 @@ $(document)
       contentType: false,
       success: function () {
         cargarRRHH({
-          page: 1,
+          page: $("#herramientasPaginacionRRHH").getCurrentPage() || 1,
           perPage: $("#herramientasPaginacionRRHH").getPageSize(),
-          casino: $("#FCasinoRRHH").val(),
-          desde: $("#fecha_RRHHDesde").val(),
-          hasta: $("#fecha_RRHHHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
         setTimeout(() => $("#modalCargarRRHH").modal("hide"), 1000);
         resetFormRRHH();
@@ -10786,9 +10898,9 @@ $("#btn-buscarRRHH").on("click", function (e) {
   cargarRRHH({
     page: 1,
     perPage: $("#herramientasPaginacionRRHH").getPageSize(),
-    casino: $("#FCasinoRRHH").val(),
-    desde: $("#fecha_RRHHDesde").val(),
-    hasta: $("#fecha_RRHHHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -10797,9 +10909,9 @@ function clickIndiceRRHH(e, pageNumber, pageSize) {
   cargarRRHH({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoRRHH").val(),
-    desde: $("#fecha_RRHHDesde").val(),
-    hasta: $("#fecha_RRHHHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -10927,9 +11039,9 @@ $("#btn-eliminarRRHH").on("click", function () {
         cargarRRHH({
           page: $("#herramientasPaginacionRRHH").getCurrentPage(),
           perPage: $("#herramientasPaginacionRRHH").getPageSize(),
-          casino: $("#FCasinoRRHH").val(),
-          desde: $("#fecha_RRHHDesde").val(),
-          hasta: $("#fecha_RRHHHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -11391,11 +11503,11 @@ $(document).on("click", "#guardarRegistroGanancias", function (e) {
     contentType: false,
     success: function (res) {
       cargarGanancias({
-        page: 1,
+        page: $("#herramientasPaginacionGanancias").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionGanancias").getPageSize(),
-        casino: $("#FCasinoGanancias").val(),
-        desde: $("#fecha_GananciasDesde").val(),
-        hasta: $("#fecha_GananciasHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargarGanancias").modal("hide"), 1000);
       resetFormGanancias();
@@ -11648,11 +11760,11 @@ $(document).on("click", "#guardarRegistroGanancias_periodo", function (e) {
     contentType: false,
     success: function (res) {
       cargarGanancias_periodo({
-        page: 1,
+        page: $("#herramientasPaginacionGanancias_periodo").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionGanancias_periodo").getPageSize(),
-        casino: $("#FCasinoGanancias_periodo").val(),
-        desde: $("#fecha_Ganancias_periodoDesde").val(),
-        hasta: $("#fecha_Ganancias_periodoHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargarGanancias_periodo").modal("hide"), 1000);
       resetFormGanancias_periodo();
@@ -11753,9 +11865,9 @@ function clickIndiceGanancias(e, pageNumber, pageSize) {
   cargarGanancias({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoGanancias").val(),
-    desde: $("#fecha_GananciasDesde").val(),
-    hasta: $("#fecha_GananciasHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -11764,9 +11876,9 @@ function clickIndiceGanancias_periodo(e, pageNumber, pageSize) {
   cargarGanancias_periodo({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoGanancias").val(),
-    desde: $("#fecha_GananciasDesde").val(),
-    hasta: $("#fecha_GananciasHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 function generarFilaGanancias(Ganancias, controlador) {
@@ -11856,9 +11968,9 @@ $("#btn-eliminarGanancias").on("click", function () {
         cargarGanancias({
           page: $("#herramientasPaginacionGanancias").getCurrentPage(),
           perPage: $("#herramientasPaginacionGanancias").getPageSize(),
-          casino: $("#FCasinoGanancias").val(),
-          desde: $("#fecha_GananciasDesde").val(),
-          hasta: $("#fecha_GananciasHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -11949,9 +12061,9 @@ $("#btn-eliminarGanancias_periodo").on("click", function () {
         cargarGanancias_periodo({
           page: $("#herramientasPaginacionGanancias_periodo").getCurrentPage(),
           perPage: $("#herramientasPaginacionGanancias_periodo").getPageSize(),
-          casino: $("#FCasinoGanancias").val(),
-          desde: $("#fecha_GananciasDesde").val(),
-          hasta: $("#fecha_GananciasHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -12011,16 +12123,16 @@ $("#btn-buscarGanancias").on("click", function (e) {
   cargarGanancias({
     page: 1,
     perPage: $("#herramientasPaginacionGanancias").getPageSize(),
-    casino: $("#FCasinoGanancias").val(),
-    desde: $("#fecha_GananciasDesde").val(),
-    hasta: $("#fecha_GananciasHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
   cargarGanancias_periodo({
-    page: 1,
+    page: $("#herramientasPaginacionGanancias").getCurrentPage() || 1,
     perPage: $("#herramientasPaginacionGanancias").getPageSize(),
-    casino: $("#FCasinoGanancias").val(),
-    desde: $("#fecha_GananciasDesde").val(),
-    hasta: $("#fecha_GananciasHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -12367,11 +12479,11 @@ $(document).on("click", "#guardarRegistroJackpotsPagados", function (e) {
     contentType: false,
     success: function (res) {
       cargarJackpotsPagados({
-        page: 1,
+        page: $("#herramientasPaginacionJackpotsPagados").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionJackpotsPagados").getPageSize(),
-        casino: $("#FCasinoJackpotsPagados").val(),
-        desde: $("#fecha_JackpotsPagadosDesde").val(),
-        hasta: $("#fecha_JackpotsPagadosHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargarJackpotsPagados").modal("hide"), 1000);
       resetFormJackpotsPagados();
@@ -12391,9 +12503,9 @@ $("#btn-buscarJackpotsPagados").on("click", function (e) {
   cargarJackpotsPagados({
     page: 1,
     perPage: $("#herramientasPaginacionJackpotsPagados").getPageSize(),
-    casino: $("#FCasinoJackpotsPagados").val(),
-    desde: $("#fecha_JackpotsPagadosDesde").val(),
-    hasta: $("#fecha_JackpotsPagadosHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -12402,9 +12514,9 @@ function clickIndiceJackpotsPagados(e, pageNumber, pageSize) {
   cargarJackpotsPagados({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoJackpotsPagados").val(),
-    desde: $("#fecha_JackpotsPagadosDesde").val(),
-    hasta: $("#fecha_JackpotsPagadosHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -12528,9 +12640,9 @@ $("#btn-eliminarJackpotsPagados").on("click", function () {
         cargarJackpotsPagados({
           page: $("#herramientasPaginacionJackpotsPagados").getCurrentPage(),
           perPage: $("#herramientasPaginacionJackpotsPagados").getPageSize(),
-          casino: $("#FCasinoJackpotsPagados").val(),
-          desde: $("#fecha_JackpotsPagadosDesde").val(),
-          hasta: $("#fecha_JackpotsPagadosHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -12861,11 +12973,11 @@ $(document).on("click", "#guardarRegistroPremiosPagados", function (e) {
     contentType: false,
     success: function (res) {
       cargarPremiosPagados({
-        page: 1,
+        page: $("#herramientasPaginacionPremiosPagados").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionPremiosPagados").getPageSize(),
-        casino: $("#FCasinoPremiosPagados").val(),
-        desde: $("#fecha_PremiosPagadosDesde").val(),
-        hasta: $("#fecha_PremiosPagadosHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargarPremiosPagados").modal("hide"), 1000);
       resetFormPremiosPagados();
@@ -12885,9 +12997,9 @@ $("#btn-buscarPremiosPagados").on("click", function (e) {
   cargarPremiosPagados({
     page: 1,
     perPage: $("#herramientasPaginacionPremiosPagados").getPageSize(),
-    casino: $("#FCasinoPremiosPagados").val(),
-    desde: $("#fecha_PremiosPagadosDesde").val(),
-    hasta: $("#fecha_PremiosPagadosHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -12896,9 +13008,9 @@ function clickIndicePremiosPagados(e, pageNumber, pageSize) {
   cargarPremiosPagados({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoPremiosPagados").val(),
-    desde: $("#fecha_PremiosPagadosDesde").val(),
-    hasta: $("#fecha_PremiosPagadosHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -13022,9 +13134,9 @@ $("#btn-eliminarPremiosPagados").on("click", function () {
         cargarPremiosPagados({
           page: $("#herramientasPaginacionPremiosPagados").getCurrentPage(),
           perPage: $("#herramientasPaginacionPremiosPagados").getPageSize(),
-          casino: $("#FCasinoPremiosPagados").val(),
-          desde: $("#fecha_PremiosPagadosDesde").val(),
-          hasta: $("#fecha_PremiosPagadosHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -13456,11 +13568,11 @@ $(document).on("click", "#guardarRegistroPremiosMTM", function (e) {
     contentType: false,
     success: function (res) {
       cargarPremiosMTM({
-        page: 1,
+        page: $("#herramientasPaginacionPremiosMTM").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionPremiosMTM").getPageSize(),
-        casino: $("#FCasinoPremiosMTM").val(),
-        desde: $("#fecha_PremiosMTMDesde").val(),
-        hasta: $("#fecha_PremiosMTMHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargarPremiosMTM").modal("hide"), 1000);
       resetFormPremiosMTM();
@@ -13480,9 +13592,9 @@ $("#btn-buscarPremiosMTM").on("click", function (e) {
   cargarPremiosMTM({
     page: 1,
     perPage: $("#herramientasPaginacionPremiosMTM").getPageSize(),
-    casino: $("#FCasinoPremiosMTM").val(),
-    desde: $("#fecha_PremiosMTMDesde").val(),
-    hasta: $("#fecha_PremiosMTMHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -13491,9 +13603,9 @@ function clickIndicePremiosMTM(e, pageNumber, pageSize) {
   cargarPremiosMTM({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoPremiosMTM").val(),
-    desde: $("#fecha_PremiosMTMDesde").val(),
-    hasta: $("#fecha_PremiosMTMHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -14230,7 +14342,7 @@ $("#btn-eliminarPremiosMTM").on("click", function () {
     .done((res) => {
       if (res == 1) {
         $("#modalEliminarPremiosMTM").modal("hide");
-        clickIndicePremiosMTM(null, 1, 15);
+        clickIndicePremiosMTM(null, $("#herramientasPaginacionPremiosMTM").getCurrentPage() || 1, 15);
       } else {
       }
     })
@@ -14793,11 +14905,11 @@ $(document).on("click", "#guardarRegistroAutDirectores_director", function (e) {
     contentType: false,
     success: function (res) {
       cargarAutDirectores({
-        page: 1,
+        page: $("#herramientasPaginacionAutDirectores").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionAutDirectores").getPageSize(),
-        casino: $("#FCasinoAutDirectores").val(),
-        desde: $("#fecha_AutDirectoresDesde").val(),
-        hasta: $("#fecha_AutDirectoresHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(
         () => $("#modalCargarAutDirectores_director").modal("hide"),
@@ -14897,11 +15009,11 @@ $(document).on(
       contentType: false,
       success: function (res) {
         cargarAutDirectores({
-          page: 1,
+          page: $("#herramientasPaginacionAutDirectores").getCurrentPage() || 1,
           perPage: $("#herramientasPaginacionAutDirectores").getPageSize(),
-          casino: $("#FCasinoAutDirectores").val(),
-          desde: $("#fecha_AutDirectoresDesde").val(),
-          hasta: $("#fecha_AutDirectoresHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
         setTimeout(
           () => $("#modalCargarAutDirectores_autorizacion").modal("hide"),
@@ -14925,9 +15037,9 @@ $("#btn-buscarAutDirectores").on("click", function (e) {
   cargarAutDirectores({
     page: 1,
     perPage: $("#herramientasPaginacionAutDirectores").getPageSize(),
-    casino: $("#FCasinoAutDirectores").val(),
-    desde: $("#fecha_AutDirectoresDesde").val(),
-    hasta: $("#fecha_AutDirectoresHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -14936,9 +15048,9 @@ function clickIndiceAutDirectores(e, pageNumber, pageSize) {
   cargarAutDirectores({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoAutDirectores").val(),
-    desde: $("#fecha_AutDirectoresDesde").val(),
-    hasta: $("#fecha_AutDirectoresHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -15063,9 +15175,9 @@ $("#btn-eliminarAutDirectores_autorizacion").on("click", function () {
         cargarAutDirectores({
           page: $("#herramientasPaginacionAutDirectores").getCurrentPage(),
           perPage: $("#herramientasPaginacionAutDirectores").getPageSize(),
-          casino: $("#FCasinoAutDirectores").val(),
-          desde: $("#fecha_AutDirectoresDesde").val(),
-          hasta: $("#fecha_AutDirectoresHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -15664,11 +15776,11 @@ $(document).on("click", "#guardarRegistroSeguros", function (e) {
     contentType: false,
     success: function (res) {
       cargarSeguros({
-        page: 1,
+        page: $("#herramientasPaginacionSeguros").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionSeguros").getPageSize(),
-        casino: $("#FCasinoSeguros").val(),
-        desde: $("#fecha_SegurosDesde").val(),
-        hasta: $("#fecha_SegurosHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargarSeguros").modal("hide"), 1000);
       resetFormSeguros();
@@ -15688,9 +15800,9 @@ $("#btn-buscarSeguros").on("click", function (e) {
   cargarSeguros({
     page: 1,
     perPage: $("#herramientasPaginacionSeguros").getPageSize(),
-    casino: $("#FCasinoSeguros").val(),
-    desde: $("#fecha_SegurosDesde").val(),
-    hasta: $("#fecha_SegurosHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -15699,9 +15811,9 @@ function clickIndiceSeguros(e, pageNumber, pageSize) {
   cargarSeguros({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoSeguros").val(),
-    desde: $("#fecha_SegurosDesde").val(),
-    hasta: $("#fecha_SegurosHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -15843,9 +15955,9 @@ $("#btn-eliminarSeguros").on("click", function () {
         cargarSeguros({
           page: $("#herramientasPaginacionSeguros").getCurrentPage(),
           perPage: $("#herramientasPaginacionSeguros").getPageSize(),
-          casino: $("#FCasinoSeguros").val(),
-          desde: $("#fecha_SegurosDesde").val(),
-          hasta: $("#fecha_SegurosHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -15866,9 +15978,9 @@ $(document).on("click", ".btn-estadoRegSeguros", function (e) {
         cargarSeguros({
           page: $("#herramientasPaginacionSeguros").getCurrentPage(),
           perPage: $("#herramientasPaginacionSeguros").getPageSize(),
-          casino: $("#FCasinoSeguros").val(),
-          desde: $("#fecha_SegurosDesde").val(),
-          hasta: $("#fecha_SegurosHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -16218,11 +16330,11 @@ $(document).on("click", "#guardarRegistroDerechoAcceso", function (e) {
     contentType: false,
     success: function (res) {
       cargarDerechoAcceso({
-        page: 1,
+        page: $("#herramientasPaginacionDerechoAcceso").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionDerechoAcceso").getPageSize(),
-        casino: $("#FCasinoDerechoAcceso").val(),
-        desde: $("#fecha_DerechoAccesoDesde").val(),
-        hasta: $("#fecha_DerechoAccesoHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargarDerechoAcceso").modal("hide"), 1000);
       resetFormDerechoAcceso();
@@ -16242,9 +16354,9 @@ $("#btn-buscarDerechoAcceso").on("click", function (e) {
   cargarDerechoAcceso({
     page: 1,
     perPage: $("#herramientasPaginacionDerechoAcceso").getPageSize(),
-    casino: $("#FCasinoDerechoAcceso").val(),
-    desde: $("#fecha_DerechoAccesoDesde").val(),
-    hasta: $("#fecha_DerechoAccesoHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -16253,9 +16365,9 @@ function clickIndiceDerechoAcceso(e, pageNumber, pageSize) {
   cargarDerechoAcceso({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoDerechoAcceso").val(),
-    desde: $("#fecha_DerechoAccesoDesde").val(),
-    hasta: $("#fecha_DerechoAccesoHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -16383,9 +16495,9 @@ $("#btn-eliminarDerechoAcceso").on("click", function () {
         cargarDerechoAcceso({
           page: $("#herramientasPaginacionDerechoAcceso").getCurrentPage(),
           perPage: $("#herramientasPaginacionDerechoAcceso").getPageSize(),
-          casino: $("#FCasinoDerechoAcceso").val(),
-          desde: $("#fecha_DerechoAccesoDesde").val(),
-          hasta: $("#fecha_DerechoAccesoHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -17248,11 +17360,11 @@ $(document)
       contentType: false,
       success: function (res) {
         cargarPatentes({
-          page: 1,
+          page: $("#herramientasPaginacionPatentes").getCurrentPage() || 1,
           perPage: $("#herramientasPaginacionPatentes").getPageSize(),
-          casino: $("#FCasinoPatentes").val(),
-          desde: $("#fecha_PatentesDesde").val(),
-          hasta: $("#fecha_PatentesHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
         setTimeout(() => $("#modalCargarPatentes").modal("hide"), 1000);
         resetFormPatentes();
@@ -17272,9 +17384,9 @@ $("#btn-buscarPatentes").on("click", function (e) {
   cargarPatentes({
     page: 1,
     perPage: $("#herramientasPaginacionPatentes").getPageSize(),
-    casino: $("#FCasinoPatentes").val(),
-    desde: $("#fecha_PatentesDesde").val(),
-    hasta: $("#fecha_PatentesHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -17283,9 +17395,9 @@ function clickIndicePatentes(e, pageNumber, pageSize) {
   cargarPatentes({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoPatentes").val(),
-    desde: $("#fecha_PatentesDesde").val(),
-    hasta: $("#fecha_PatentesHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -17409,9 +17521,9 @@ $("#btn-eliminarPatentes").on("click", function () {
         cargarPatentes({
           page: $("#herramientasPaginacionPatentes").getCurrentPage(),
           perPage: $("#herramientasPaginacionPatentes").getPageSize(),
-          casino: $("#FCasinoPatentes").val(),
-          desde: $("#fecha_PatentesDesde").val(),
-          hasta: $("#fecha_PatentesHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -18328,11 +18440,11 @@ $(document).on("click", "#guardarRegistroImpInmobiliario", function (e) {
     contentType: false,
     success: function (res) {
       cargarImpInmobiliario({
-        page: 1,
+        page: $("#herramientasPaginacionImpInmobiliario").getCurrentPage() || 1,
         perPage: $("#herramientasPaginacionImpInmobiliario").getPageSize(),
-        casino: $("#FCasinoImpInmobiliario").val(),
-        desde: $("#fecha_ImpInmobiliarioDesde").val(),
-        hasta: $("#fecha_ImpInmobiliarioHasta").val(),
+        casino: $("#filtro_global_casino").val(),
+        desde: $("#filtro_global_desde_input").val(),
+        hasta: $("#filtro_global_hasta_input").val(),
       });
       setTimeout(() => $("#modalCargarImpInmobiliario").modal("hide"), 1000);
       resetFormImpInmobiliario();
@@ -18352,9 +18464,9 @@ $("#btn-buscarImpInmobiliario").on("click", function (e) {
   cargarImpInmobiliario({
     page: 1,
     perPage: $("#herramientasPaginacionImpInmobiliario").getPageSize(),
-    casino: $("#FCasinoImpInmobiliario").val(),
-    desde: $("#fecha_ImpInmobiliarioDesde").val(),
-    hasta: $("#fecha_ImpInmobiliarioHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 });
 
@@ -18363,9 +18475,9 @@ function clickIndiceImpInmobiliario(e, pageNumber, pageSize) {
   cargarImpInmobiliario({
     page: pageNumber,
     perPage: pageSize,
-    casino: $("#FCasinoImpInmobiliario").val(),
-    desde: $("#fecha_ImpInmobiliarioDesde").val(),
-    hasta: $("#fecha_ImpInmobiliarioHasta").val(),
+    casino: $("#filtro_global_casino").val(),
+    desde: $("#filtro_global_desde_input").val(),
+    hasta: $("#filtro_global_hasta_input").val(),
   });
 }
 
@@ -18498,9 +18610,9 @@ $("#btn-eliminarImpInmobiliario").on("click", function () {
         cargarImpInmobiliario({
           page: $("#herramientasPaginacionImpInmobiliario").getCurrentPage(),
           perPage: $("#herramientasPaginacionImpInmobiliario").getPageSize(),
-          casino: $("#FCasinoImpInmobiliario").val(),
-          desde: $("#fecha_ImpInmobiliarioDesde").val(),
-          hasta: $("#fecha_ImpInmobiliarioHasta").val(),
+          casino: $("#filtro_global_casino").val(),
+          desde: $("#filtro_global_desde_input").val(),
+          hasta: $("#filtro_global_hasta_input").val(),
         });
       } else {
       }
@@ -23585,8 +23697,10 @@ $(document).on("click", "#btn-confirmar-validacion", function () {
     },
     success: function (data) {
       $("#modalValidarDocumento").modal("hide");
-      // Refresh
-      $("#btn-buscar-global").trigger("click");
+      // Refresh preserving page
+      var activeTab = $("[data-js-tabs] a.active").attr("data-js-tab");
+      if (!activeTab) activeTab = $("[data-js-tabs] a").first().attr("data-js-tab");
+      buscarPestana(activeTab, true);
     },
     error: function (data) {
       console.log(data);
@@ -23756,7 +23870,7 @@ $(document).ready(function() {
         $("#mensajeExito h3").text("ÉXITO");
         $("#mensajeExito p").text("El estado contable han sido guardados correctamente.");
         $("#mensajeExito").show();
-        $("#btn-buscar-global").trigger("click");
+        clickIndiceEstadoContable(null, $("#herramientasPaginacionEstadoContable").getCurrentPage() || 1, 20);
       },
       error: function(res) {
         $("#frmEstadoContable .js-error").remove();
@@ -23782,7 +23896,7 @@ $(document).ready(function() {
       url: "documentosContables/eliminarEstadoContable/" + $(this).val(),
       success: function(res) {
         $("#modalEliminarEstadoContable").modal("hide");
-        clickIndiceEstadoContable(null, 1, 20);
+        clickIndiceEstadoContable(null, $("#herramientasPaginacionEstadoContable").getCurrentPage() || 1, 20);
       },
       error: function() { console.log("Error consultando eliminaci\u00f3n estado contable"); }
     });

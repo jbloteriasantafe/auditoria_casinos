@@ -321,9 +321,9 @@ $(function () {
              '<span style="color:' + color + ';">' + label + '</span>';
     }
     switch (parseInt(e, 10)) {
-      case 1: return circ('#9e9e9e', 'Generada'); // gris (generada, sin firmar)
+      case 1: return circ('#FBC02D', 'Generada'); // amarillo (generada, sin firmar)
       case 2: return circ('#5cb85c', 'Firmada');  // verde (firmada)
-      case 3: return circ('#2962FF', 'Visada');   // azul (visada)
+      case 3: return circ('#000000', 'Visada');   // negro (visada)
       default: return '';
     }
   }

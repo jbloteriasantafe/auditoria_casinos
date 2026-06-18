@@ -18053,6 +18053,208 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
         return response()->json(['success' => true, 'data' => $resultados]);
     }
 
+    // --- CONTROL DE DOCUMENTOS (matriz documento x mes: válido / no válido / no subido) ---
+
+    private function configControlDocumentos($id_casino){
+        $config = [
+            ['nombre' => 'ESTADO CONTABLE',             'model' => RegistroEstadoContable::class,       'col' => 'fecha_EstadoContable'],
+            ['nombre' => 'IVA',                         'model' => RegistroIva::class,                  'col' => 'fecha_iva'],
+            ['nombre' => 'IIBB',                        'model' => Registroiibb::class,                 'col' => 'fecha_iibb'],
+            ['nombre' => 'DREI',                        'model' => RegistroDREI::class,                 'col' => 'fecha_drei'],
+            ['nombre' => 'IMP. INMOBILIARIO',           'model' => RegistroImpInmobiliario::class,      'col' => 'fecha_ImpInmobiliario'],
+            ['nombre' => 'TGI',                         'model' => RegistroTGI::class,                  'col' => 'fecha_tgi'],
+            ['nombre' => 'IMP. APUESTAS MTM',           'model' => RegistroIMP_AP_MTM::class,           'col' => 'fecha_imp_ap_mtm'],
+            ['nombre' => 'IMP. APUESTAS ONLINE',        'model' => RegistroIMP_AP_OL::class,            'col' => 'fecha_imp_ap_ol'],
+            ['nombre' => 'GANANCIAS',                   'model' => RegistroGanancias::class,            'col' => 'periodo_fiscal', 'anual' => true],
+            ['nombre' => 'PATENTES',                    'model' => RegistroPatentes::class,             'col' => 'fecha_Patentes'],
+            ['nombre' => 'CONTRIB. ENTE (ROS)',         'model' => RegistroContribEnteTuristico::class, 'col' => 'fecha_ContribEnteTuristico', 'solo_casino' => 3],
+            ['nombre' => 'DER. ACCESO (ROS)',           'model' => RegistroDerechoAcceso::class,        'col' => 'fecha_DerechoAcceso',        'solo_casino' => 3],
+            ['nombre' => 'DEUDA ESTADO',                'model' => RegistroDeudaEstado::class,          'col' => 'fecha_DeudaEstado'],
+            ['nombre' => 'AUT. DIRECTORES',             'model' => RegistroAutDirectores::class,        'col' => 'fecha_AutDirectores'],
+            ['nombre' => 'REGISTROS CONTABLES Y PREMIOS','model' => RegistroPremiosMTM::class,          'col' => 'fecha_PremiosMTM'],
+            ['nombre' => 'APORTES PATRONALES',          'model' => RegistroAportesPatronales::class,    'col' => 'fecha_AportesPatronales'],
+            ['nombre' => 'RRHH',                        'model' => RegistroRRHH::class,                 'col' => 'fecha_RRHH'],
+            ['nombre' => 'REPORTE LAVADO',              'model' => RegistroReporteYLavado::class,       'col' => 'fecha_ReporteYLavado'],
+            ['nombre' => 'SEGUROS',                     'model' => RegistroSeguros::class,              'col' => 'periodo_inicio'],
+        ];
+
+        return array_values(array_filter($config, function($c) use ($id_casino){
+            return !isset($c['solo_casino']) || (int)$c['solo_casino'] === (int)$id_casino;
+        }));
+    }
+
+    private function armarControlDocumentos($id_casino, $desde, $hasta){
+        $desde_date = $desde.'-01';
+        $hasta_date = \Carbon\Carbon::createFromFormat('Y-m', $hasta)->endOfMonth()->format('Y-m-d');
+
+        $meses_nombres = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+
+        $meses = [];
+        $cursor = \Carbon\Carbon::createFromFormat('Y-m-d', $desde_date);
+        $fin = \Carbon\Carbon::createFromFormat('Y-m-d', $hasta.'-01');
+        while($cursor <= $fin){
+            $meses[] = [
+                'key' => $cursor->format('Y-m'),
+                'label' => $meses_nombres[$cursor->month - 1].' '.$cursor->year,
+            ];
+            $cursor->addMonth();
+        }
+        if(empty($meses)) return null;
+
+        $filas = [];
+        foreach($this->configControlDocumentos($id_casino) as $doc){
+            $clase = $doc['model'];
+            $col = $doc['col'];
+            $anual = !empty($doc['anual']);
+
+            // buckets: clave = 'YYYY-MM' (o 'YYYY' para documentos anuales) => [total, validos]
+            $buckets = [];
+            if($anual){
+                $registros = $clase::where('casino', $id_casino)
+                    ->whereBetween($col, [substr($desde,0,4), substr($hasta,0,4)])
+                    ->get([$col, 'valido']);
+                foreach($registros as $reg){
+                    $clave = (string)$reg->$col;
+                    if(!isset($buckets[$clave])) $buckets[$clave] = ['total' => 0, 'validos' => 0];
+                    $buckets[$clave]['total']++;
+                    if($reg->valido) $buckets[$clave]['validos']++;
+                }
+            }else{
+                $registros = $clase::where('casino', $id_casino)
+                    ->whereBetween($col, [$desde_date, $hasta_date])
+                    ->get([$col, 'valido']);
+                foreach($registros as $reg){
+                    if(!$reg->$col) continue;
+                    $clave = date('Y-m', strtotime($reg->$col));
+                    if(!isset($buckets[$clave])) $buckets[$clave] = ['total' => 0, 'validos' => 0];
+                    $buckets[$clave]['total']++;
+                    if($reg->valido) $buckets[$clave]['validos']++;
+                }
+            }
+
+            $celdas = [];
+            foreach($meses as $mes){
+                $clave = $anual ? substr($mes['key'],0,4) : $mes['key'];
+                $b = isset($buckets[$clave]) ? $buckets[$clave] : ['total' => 0, 'validos' => 0];
+                if($b['total'] == 0) $estado = 'no_subido';
+                else if($b['validos'] == $b['total']) $estado = 'valido';
+                else $estado = 'no_valido';
+                $celdas[$mes['key']] = ['estado' => $estado, 'total' => $b['total'], 'validos' => $b['validos']];
+            }
+
+            $filas[] = ['documento' => $doc['nombre'], 'anual' => $anual, 'celdas' => $celdas];
+        }
+
+        return ['meses' => $meses, 'filas' => $filas];
+    }
+
+    public function obtenerControlDocumentos(Request $request){
+        $id_casino = $request->input('id_casino');
+        $desde = $request->input('desde'); // YYYY-MM
+        $hasta = $request->input('hasta'); // YYYY-MM
+
+        if(!$id_casino || !$desde || !$hasta){
+            return response()->json(['success' => false, 'msg' => 'Faltan parámetros'], 400);
+        }
+
+        $user = Usuario::find(session('id_usuario'));
+        $allowedCasinoIds = $user->casinos->pluck('id_casino')->toArray();
+        if(!in_array((int)$id_casino, array_map('intval', $allowedCasinoIds))){
+            return response()->json(['success' => false, 'msg' => 'Casino no permitido'], 403);
+        }
+
+        $data = $this->armarControlDocumentos($id_casino, $desde, $hasta);
+        if(is_null($data)){
+            return response()->json(['success' => false, 'msg' => 'Rango de fechas inválido'], 400);
+        }
+
+        return response()->json(['success' => true, 'meses' => $data['meses'], 'filas' => $data['filas']]);
+    }
+
+    public function descargarControlDocumentosXlsx(Request $request){
+        $id_casino = $request->query('id_casino');
+        $desde = $request->query('desde'); // YYYY-MM
+        $hasta = $request->query('hasta'); // YYYY-MM
+
+        if(!$id_casino || !$desde || !$hasta) abort(400, 'Faltan parámetros');
+
+        $user = Usuario::find(session('id_usuario'));
+        $allowedCasinoIds = $user->casinos->pluck('id_casino')->toArray();
+        if(!in_array((int)$id_casino, array_map('intval', $allowedCasinoIds))) abort(403);
+
+        $data = $this->armarControlDocumentos($id_casino, $desde, $hasta);
+        if(is_null($data)) abort(400, 'Rango de fechas inválido');
+
+        $casino = Casino::find($id_casino);
+        $casinoNombre = $casino ? $casino->nombre : ('Casino '.$id_casino);
+
+        return \Excel::create('ControlDocumentos_'.str_replace(' ','_',$casinoNombre).'_'.date('Ymd_His'), function($excel) use ($data, $casinoNombre, $desde, $hasta) {
+            $excel->sheet('Control', function($sheet) use ($data, $casinoNombre, $desde, $hasta) {
+                $meses = $data['meses'];
+                $filas = $data['filas'];
+                $lastCol = \PHPExcel_Cell::stringFromColumnIndex(count($meses)); // 0 = A (DOCUMENTO), 1..n = meses
+
+                $sheet->mergeCells("A1:{$lastCol}1");
+                $sheet->setCellValue('A1', "CONTROL DE DOCUMENTOS - {$casinoNombre} - {$desde} a {$hasta}");
+                $sheet->cells("A1:{$lastCol}1", function($c){
+                    $c->setBackground('#222222'); $c->setFontColor('#FFFFFF'); $c->setFontWeight('bold'); $c->setAlignment('center');
+                });
+                $sheet->setHeight(1, 25);
+
+                $header = ['DOCUMENTO'];
+                foreach($meses as $mes) $header[] = $mes['label'];
+                $sheet->row(2, $header);
+                $sheet->cells("A2:{$lastCol}2", function($c){
+                    $c->setBackground('#CCCCCC'); $c->setFontColor('#000000'); $c->setFontWeight('bold'); $c->setAlignment('center');
+                });
+                $sheet->getStyle("A2:{$lastCol}2")->getAlignment()->setWrapText(true)->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $sheet->setHeight(2, 30);
+
+                $estilos = [
+                    'valido'    => ['texto' => 'VÁLIDO',    'fondo' => '#C6EFCE', 'fuente' => '#006100'],
+                    'no_valido' => ['texto' => 'NO VÁLIDO', 'fondo' => '#FFC7CE', 'fuente' => '#9C0006'],
+                    'no_subido' => ['texto' => 'NO SUBIDO', 'fondo' => '#D9D9D9', 'fuente' => '#555555'],
+                ];
+
+                $fila = 3;
+                foreach($filas as $f){
+                    $sheet->setCellValue("A{$fila}", $f['documento'].($f['anual'] ? ' (ANUAL)' : ''));
+                    $sheet->cells("A{$fila}", function($c){ $c->setFontWeight('bold'); $c->setAlignment('left'); });
+                    foreach($meses as $i => $mes){
+                        $celda = $f['celdas'][$mes['key']];
+                        $est = $estilos[$celda['estado']];
+                        $colLetra = \PHPExcel_Cell::stringFromColumnIndex($i + 1);
+                        $texto = $est['texto'];
+                        if($celda['estado'] == 'no_valido' && $celda['total'] > 1){
+                            $texto .= ' ('.$celda['validos'].'/'.$celda['total'].')';
+                        }
+                        $sheet->setCellValue("{$colLetra}{$fila}", $texto);
+                        $sheet->cells("{$colLetra}{$fila}", function($c) use ($est){
+                            $c->setBackground($est['fondo']); $c->setFontColor($est['fuente']); $c->setAlignment('center');
+                        });
+                    }
+                    $fila++;
+                }
+
+                $lastRow = $fila - 1;
+                $sheet->getStyle("A2:{$lastCol}2")->applyFromArray([
+                    'borders'=>['allborders'=>['style'=>\PHPExcel_Style_Border::BORDER_THICK,'color'=>['argb'=>'FF000000']]]
+                ]);
+                if($lastRow >= 3){
+                    $sheet->getStyle("A3:{$lastCol}{$lastRow}")->applyFromArray([
+                        'borders'=>['allborders'=>['style'=>\PHPExcel_Style_Border::BORDER_THIN,'color'=>['argb'=>'FF000000']]]
+                    ]);
+                }
+                $sheet->cells("A1:{$lastCol}{$lastRow}", function($c){ $c->setFontFamily('Arial'); $c->setFontSize(10); });
+                $sheet->setWidth('A', 32);
+                foreach($meses as $i => $mes){
+                    $sheet->setWidth(\PHPExcel_Cell::stringFromColumnIndex($i + 1), 16);
+                }
+                $sheet->setFreeze('B3');
+            });
+        })->export('xlsx');
+    }
+
     // --- ESTADO CONTABLE ---
 
     public function ultimasEstadoContable(Request $request) {

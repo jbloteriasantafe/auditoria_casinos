@@ -342,7 +342,7 @@ function cambiarEstadoFila(fila, relevamiento) {
             validacion.show();
             break;
         case 'Visado':
-            fila.find('.fa-dot-circle').addClass('faValidado');
+            fila.find('.fa-dot-circle').addClass('faVisado');
             planilla.hide();
             carga.hide();
             validacion.hide();
