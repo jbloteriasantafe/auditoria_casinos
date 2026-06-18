@@ -475,6 +475,11 @@
                             @endif
                         </div>
                         <div class="col-md-9 text-right">
+                            @if(!empty($esSuperusuario))
+                            <a href="http://10.1.120.9/eventos_casinos/eventos.php" target="_blank" class="btn btn-default" style="border-radius:8px;">
+                                Click acá para ver notas previas al 24/4/2026
+                            </a>
+                            @endif
                             @if(!empty($puedeExportar))
                                 <div class="btn-group" style="margin-right:8px;">
                                     <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"

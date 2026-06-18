@@ -57,10 +57,10 @@
                  'link' => '/disposiciones',
                  'algun_permiso' => ['ver_seccion_disposiciones'],
              ],
-             'Carga de notas' => [
-                 'link' => '/cargar-notas',
-                 'algun_permiso' => ['ver_cargar_notas'],
-             ],
+             //'Carga de notas' => [
+             //    'link' => '/cargar-notas',
+             //    'algun_permiso' => ['ver_cargar_notas'],
+             //],
              'Notas Unificadas' => [
                  'link' => '/notas-unificadas',
                  'algun_permiso' => ['ver_notas_unificadas'],

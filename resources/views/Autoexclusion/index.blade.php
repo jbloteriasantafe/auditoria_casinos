@@ -1097,16 +1097,12 @@ input[required], select[required]{
               <br>
             </div>
             <div class="col-md-12">
-              <div class="dropzone" style="border: 2px dashed #00695c; border-radius: 10px; padding: 15px; text-align: center; background-color: #f8fafc; min-height: 120px; transition: all 0.3s ease; position: relative; overflow: hidden;">
-                 <input type="file" id="archivoSubir" class="archivo form-control" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10;" onchange="document.getElementById('filenameDisplay').innerText = this.files.length > 0 ? this.files[0].name : 'Arrastre el archivo aquí o haga click en Seleccionar Archivo'; document.getElementById('filenameDisplay').style.color = this.files.length > 0 ? '#1e40af' : '#64748b'; document.getElementById('filenameDisplay').style.fontWeight = this.files.length > 0 ? 'bold' : 'normal';">
-                 <div style="pointer-events: none; position: relative; z-index: 1; margin-top: 10px;">
-                     <label style="font-weight: 600; color: #00695c; font-size: 1.2em; display:block; cursor: pointer;">
-                        <i class="fa fa-cloud-upload" style="font-size: 1.5em; margin-bottom: 5px;"></i><br>
-                        <span class="tipo_archivo">ARCHIVO</span>
-                     </label>
-                     <span id="filenameDisplay" style="color:#64748b; font-size: 13px;">Arrastre el archivo aquí o haga click en Seleccionar Archivo</span>
-                 </div>
-              </div>
+              <label for="archivoSubir" class="dropzone" id="dropzoneAutoexclusion" style="border: 3px dashed #00695c; border-radius: 12px; padding: 30px; text-align: center; background-color: #f8fafc; min-height: 220px; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; width: 100%; margin: 0;">
+                 <i class="fa fa-cloud-upload" style="font-size: 3em; color: #00695c; margin-bottom: 10px;"></i>
+                 <span class="tipo_archivo" style="font-weight: 600; color: #00695c; font-size: 1.3em;">ARCHIVO</span>
+                 <span id="filenameDisplay" style="color:#64748b; font-size: 15px; margin-top: 10px;">Arrastre el archivo aquí o haga click en Seleccionar Archivo</span>
+                 <input type="file" id="archivoSubir" class="archivo" style="display: none;">
+              </label>
               <br>
             </div>
           </div>

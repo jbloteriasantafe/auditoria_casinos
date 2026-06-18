@@ -1366,9 +1366,40 @@ $(document).on("click", ".subirArchivo", function () {
   $("#modalSubirArchivo .nro_dni").val(tr.find(".dni").text());
   $("#modalSubirArchivo .tipo_archivo").text($(this).text());
   $("#btn-subir-archivo").attr("data-id", tr.attr("data-id"));
-  $("#btn-subir-archivo").attr("data-tipo", $(this).attr("data-tipo"));
-  
+  $("#btn-subir-archivo").attr("data-tipo", $(this).attr("data-tipo"));  const dropzone = $("#dropzoneAutoexclusion");
+  const fileInput = $("#archivoSubir");
 
+  dropzone.off('dragover').on('dragover', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.css('background-color', '#e2e8f0');
+  });
+
+  dropzone.off('dragleave').on('dragleave', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.css('background-color', '#f8fafc');
+  });
+
+  dropzone.off('drop').on('drop', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.css('background-color', '#f8fafc');
+      const files = e.originalEvent.dataTransfer.files;
+      if(files.length > 0) {
+          fileInput[0].files = files;
+          fileInput.trigger('change');
+      }
+  });
+
+  fileInput.off('change').on('change', function() {
+      const display = $("#filenameDisplay");
+      if(this.files && this.files.length > 0) {
+          display.text(this.files[0].name).css({'color': '#1e40af', 'font-weight': 'bold'});
+      } else {
+          display.text("Arrastre el archivo aquí o haga click en Seleccionar Archivo").css({'color': '#64748b', 'font-weight': 'normal'});
+      }
+  });
 
   //muestra modal
   $("#modalSubirArchivo").modal("show");
