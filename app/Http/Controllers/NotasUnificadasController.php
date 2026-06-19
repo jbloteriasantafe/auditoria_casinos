@@ -3936,15 +3936,21 @@ class NotasUnificadasController extends Controller
 
             $fullPath = Storage::disk('public')->path($path);
             $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-
+            $nombreOriginal = $version->nombre_original;
+            $nombreEscapado = str_replace('"', '\\"', $nombreOriginal);
+            $nombreCodificado = rawurlencode($nombreOriginal);
+            $filenameFallback = "filename=\"{$nombreEscapado}\"; filename*=UTF-8''{$nombreCodificado}";
+            
             if ($extension === 'pdf') {
-                return response()->file($fullPath, [
-                    'Content-Type' => 'application/pdf',
-                    'Content-Disposition' => 'inline; filename="' . basename($path) . '"'
-                ]);
+              return response()->file($fullPath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => "inline; {$filenameFallback}"
+              ]);
             }
-
-            return response()->file($fullPath);
+            
+            return response()->file($fullPath, [
+              'Content-Disposition' => "attachment; {$filenameFallback}"
+            ]);
 
         } catch (\Exception $e) {
             abort(404, 'Versión no encontrada');
