@@ -1320,10 +1320,34 @@ $(document).ready(function () {
             });
             html += '</div>';
         } else if (filterType === 'rama') {
-            html += '<i class="fa fa-code-fork"></i> Rama <span style="font-weight:400; color:#94a3b8; font-size:11px;">(podés elegir varias)</span></div>';
+            html += '<i class="fa fa-code-fork"></i> Rama / Categoría / Evento</div>';
             var ramasSel = gridState.rama || [];
-            html += '<label style="display:block; padding:5px 0; cursor:pointer; font-weight:400;"><input type="checkbox" name="fp_rama" value="MKT" ' + (ramasSel.indexOf('MKT') >= 0 ? 'checked' : '') + '> <span class="label label-primary">MKT</span> Marketing</label>';
-            html += '<label style="display:block; padding:5px 0; cursor:pointer; font-weight:400;"><input type="checkbox" name="fp_rama" value="FISC" ' + (ramasSel.indexOf('FISC') >= 0 ? 'checked' : '') + '> <span class="label label-success">FISC</span> Fiscalización</label>';
+            var categSel = gridState.categorias_mkt || [];
+            var eventSel = gridState.eventos_fisc || [];
+            
+            // MKT Branch
+            html += '<div style="margin-bottom:8px; border-bottom:1px solid #f1f5f9; padding-bottom:5px;">';
+            html += '<label style="display:block; padding:2px 0; cursor:pointer; font-weight:600;"><input type="checkbox" name="fp_rama" value="MKT" ' + (ramasSel.indexOf('MKT') >= 0 ? 'checked' : '') + '> <span class="label label-primary">MKT</span> Marketing</label>';
+            html += '<div style="padding-left: 20px; max-height:100px; overflow-y:auto;">';
+            if (window.OPCIONES_CATEGORIA && window.OPCIONES_CATEGORIA.MKT) {
+                window.OPCIONES_CATEGORIA.MKT.forEach(function(c) {
+                    var checked = (categSel.indexOf(c.id.toString()) >= 0) ? 'checked' : '';
+                    html += '<label style="display:block; padding:2px 0; cursor:pointer; font-weight:400; font-size:10.5px; color:#475569;"><input type="checkbox" name="fp_categoria_mkt" value="' + c.id + '" ' + checked + '> ' + c.nombre + '</label>';
+                });
+            }
+            html += '</div></div>';
+
+            // FISC Branch
+            html += '<div style="margin-bottom:8px; padding-bottom:5px;">';
+            html += '<label style="display:block; padding:2px 0; cursor:pointer; font-weight:600;"><input type="checkbox" name="fp_rama" value="FISC" ' + (ramasSel.indexOf('FISC') >= 0 ? 'checked' : '') + '> <span class="label label-success">FISC</span> Fiscalización</label>';
+            html += '<div style="padding-left: 20px; max-height:100px; overflow-y:auto;">';
+            if (window.OPCIONES_TIPO_EVENTO && window.OPCIONES_TIPO_EVENTO.FISC) {
+                window.OPCIONES_TIPO_EVENTO.FISC.forEach(function(e) {
+                    var checked = (eventSel.indexOf(e.id.toString()) >= 0) ? 'checked' : '';
+                    html += '<label style="display:block; padding:2px 0; cursor:pointer; font-weight:400; font-size:10.5px; color:#475569;"><input type="checkbox" name="fp_evento_fisc" value="' + e.id + '" ' + checked + '> ' + e.nombre + '</label>';
+                });
+            }
+            html += '</div></div>';
         } else if (filterType === 'estado') {
             html += '<i class="fa fa-flag"></i> Estado <span style="font-weight:400; color:#94a3b8; font-size:11px;">(podés elegir varios)</span></div>';
             html += '<div style="max-height:250px; overflow-y:auto; margin-bottom:10px;">';
@@ -1338,6 +1362,24 @@ $(document).ready(function () {
             html += '<i class="fa fa-calendar"></i> Fecha Subida</div>';
             html += '<div style="margin-bottom:8px;"><label style="font-weight:600; font-size:11px; color:#64748b;">Desde</label><input type="date" class="form-control input-sm fp-fecha-desde" value="' + (gridState.fecha_desde || '') + '"></div>';
             html += '<div style="margin-bottom:8px;"><label style="font-weight:600; font-size:11px; color:#64748b;">Hasta</label><input type="date" class="form-control input-sm fp-fecha-hasta" value="' + (gridState.fecha_hasta || '') + '"></div>';
+        } else if (filterType === 'nro_aprob') {
+            html += '<i class="fa fa-sort-numeric-desc"></i> Ordenar por Nro Aprobación</div>';
+            var sortSel = gridState.sort_by;
+            var orderSel = gridState.order;
+            
+            html += '<div style="margin-bottom:8px;">';
+            html += '<label style="display:block; font-weight:600; font-size:11px; color:#64748b; margin-bottom:4px;">Rama a ordenar</label>';
+            html += '<select class="form-control input-sm fp-sort-rama" style="margin-bottom:8px;">';
+            html += '<option value="nro_aprob_mkt" ' + (sortSel === 'nro_aprob_mkt' ? 'selected' : '') + '>Marketing (MKT)</option>';
+            html += '<option value="nro_aprob_fisc" ' + (sortSel === 'nro_aprob_fisc' ? 'selected' : '') + '>Fiscalización (FISC)</option>';
+            html += '</select>';
+            
+            html += '<label style="display:block; font-weight:600; font-size:11px; color:#64748b; margin-bottom:4px;">Orden</label>';
+            html += '<select class="form-control input-sm fp-sort-orden">';
+            html += '<option value="desc" ' + (orderSel === 'desc' ? 'selected' : '') + '>Mayor a menor</option>';
+            html += '<option value="asc" ' + (orderSel === 'asc' ? 'selected' : '') + '>Menor a mayor</option>';
+            html += '</select>';
+            html += '</div>';
         }
 
         html += '<div style="text-align:right; border-top:1px solid #f1f5f9; padding-top:10px; margin-top:5px;">';
@@ -1397,6 +1439,8 @@ $(document).ready(function () {
             aplicarCasinoKeys(keys);
         } else if (type === 'rama') {
             gridState.rama = popup.find('input[name="fp_rama"]:checked').map(function () { return $(this).val(); }).get();
+            gridState.categorias_mkt = popup.find('input[name="fp_categoria_mkt"]:checked').map(function () { return $(this).val(); }).get();
+            gridState.eventos_fisc = popup.find('input[name="fp_evento_fisc"]:checked').map(function () { return $(this).val(); }).get();
         } else if (type === 'estado') {
             gridState.estado = popup.find('input[name="fp_estado"]:checked').map(function () { return $(this).val(); }).get();
         } else if (type === 'fecha') {
@@ -1404,6 +1448,9 @@ $(document).ready(function () {
             gridState.fecha_hasta = popup.find('.fp-fecha-hasta').val() || '';
             $('#inpFechaDesde').val(gridState.fecha_desde);
             $('#inpFechaHasta').val(gridState.fecha_hasta);
+        } else if (type === 'nro_aprob') {
+            gridState.sort_by = popup.find('.fp-sort-rama').val();
+            gridState.order = popup.find('.fp-sort-orden').val();
         }
 
         gridState.page = 1;
@@ -1418,9 +1465,14 @@ $(document).ready(function () {
         var type = popup.data('filter-type');
 
         if (type === 'casino') { popup.find('input[name="fp_casino"]').prop('checked', false); }
-        else if (type === 'rama') { popup.find('input[name="fp_rama"]').prop('checked', false); }
+        else if (type === 'rama') { 
+            popup.find('input[name="fp_rama"]').prop('checked', false); 
+            popup.find('input[name="fp_categoria_mkt"]').prop('checked', false); 
+            popup.find('input[name="fp_evento_fisc"]').prop('checked', false); 
+        }
         else if (type === 'estado') { popup.find('input[name="fp_estado"]').prop('checked', false); }
         else if (type === 'fecha') { popup.find('.fp-fecha-desde, .fp-fecha-hasta').val(''); }
+        else if (type === 'nro_aprob') { gridState.sort_by = 'id'; gridState.order = 'desc'; popup.find('.fp-sort-rama').val('nro_aprob_mkt'); popup.find('.fp-sort-orden').val('desc'); }
     });
 
     // Reparte las claves crudas del popup de casino ("5", "p_3") en id_casino[] / id_plataforma[]
@@ -1450,12 +1502,33 @@ $(document).ready(function () {
         (gridState.rama || []).forEach(function (r) {
             tags += '<span class="active-filter-tag" data-clear="rama" data-val="' + r + '" style="display:inline-block; background:#dbeafe; color:#1e40af; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">' + (r === 'MKT' ? 'Marketing' : 'Fiscalización') + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
         });
+        (gridState.categorias_mkt || []).forEach(function (c) {
+            var catName = c;
+            if (window.OPCIONES_CATEGORIA && window.OPCIONES_CATEGORIA.MKT) {
+                var found = window.OPCIONES_CATEGORIA.MKT.find(function(x) { return x.id == c; });
+                if (found) catName = found.nombre;
+            }
+            tags += '<span class="active-filter-tag" data-clear="categoria_mkt" data-val="' + c + '" style="display:inline-block; background:#e0e7ff; color:#3730a3; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">Cat: ' + catName + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
+        });
+        (gridState.eventos_fisc || []).forEach(function (e) {
+            var evName = e;
+            if (window.OPCIONES_TIPO_EVENTO && window.OPCIONES_TIPO_EVENTO.FISC) {
+                var found = window.OPCIONES_TIPO_EVENTO.FISC.find(function(x) { return x.id == e; });
+                if (found) evName = found.nombre;
+            }
+            tags += '<span class="active-filter-tag" data-clear="evento_fisc" data-val="' + e + '" style="display:inline-block; background:#dcfce7; color:#166534; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">Evt: ' + evName + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
+        });
         (gridState.estado || []).forEach(function (est) {
             tags += '<span class="active-filter-tag" data-clear="estado" data-val="' + est + '" style="display:inline-block; background:#fef3c7; color:#92400e; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">' + est + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
         });
         if (gridState.fecha_desde || gridState.fecha_hasta) {
             var fechaLabel = (gridState.fecha_desde || '...') + ' → ' + (gridState.fecha_hasta || '...');
             tags += '<span class="active-filter-tag" data-clear="fecha" style="display:inline-block; background:#d1fae5; color:#065f46; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">' + fechaLabel + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
+        }
+        if (gridState.sort_by === 'nro_aprob_mkt' || gridState.sort_by === 'nro_aprob_fisc') {
+            var sortRama = gridState.sort_by === 'nro_aprob_mkt' ? 'MKT' : 'FISC';
+            var sortDir = gridState.order === 'desc' ? 'Mayor a menor' : 'Menor a mayor';
+            tags += '<span class="active-filter-tag" data-clear="nro_aprob" style="display:inline-block; background:#f3e8ff; color:#7e22ce; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">Orden: Aprob. ' + sortRama + ' (' + sortDir + ') <i class="fa fa-times" style="margin-left:4px;"></i></span>';
         }
 
         if (tags) {
@@ -1468,9 +1541,10 @@ $(document).ready(function () {
         // Update header filter icons color
         $('.th-filter-icon').css('color', '#cbd5e1');
         if ((gridState.casinoKeys || []).length) $('[data-filter="casino"] .th-filter-icon').css('color', '#764ba2');
-        if ((gridState.rama || []).length) $('[data-filter="rama"] .th-filter-icon').css('color', '#764ba2');
+        if ((gridState.rama || []).length || (gridState.categorias_mkt || []).length || (gridState.eventos_fisc || []).length) $('[data-filter="rama"] .th-filter-icon').css('color', '#764ba2');
         if ((gridState.estado || []).length) $('[data-filter="estado"] .th-filter-icon').css('color', '#764ba2');
         if (gridState.fecha_desde || gridState.fecha_hasta) $('[data-filter="fecha"] .th-filter-icon').css('color', '#764ba2');
+        if (gridState.sort_by === 'nro_aprob_mkt' || gridState.sort_by === 'nro_aprob_fisc') $('[data-filter="nro_aprob"] .th-filter-icon').css('color', '#764ba2');
     }
 
     // Click active filter tag to remove it (quita solo ese valor)
@@ -1481,6 +1555,10 @@ $(document).ready(function () {
             aplicarCasinoKeys((gridState.casinoKeys || []).filter(function (k) { return k !== val; }));
         } else if (clear === 'rama') {
             gridState.rama = (gridState.rama || []).filter(function (r) { return r !== val; });
+        } else if (clear === 'categoria_mkt') {
+            gridState.categorias_mkt = (gridState.categorias_mkt || []).filter(function (c) { return c !== val; });
+        } else if (clear === 'evento_fisc') {
+            gridState.eventos_fisc = (gridState.eventos_fisc || []).filter(function (e) { return e !== val; });
         } else if (clear === 'estado') {
             gridState.estado = (gridState.estado || []).filter(function (e) { return e !== val; });
         } else if (clear === 'fecha') {
@@ -1976,11 +2054,15 @@ $(document).ready(function () {
             gridState.id_plataforma = [];
             gridState.casinoKeys = [];
             gridState.rama = [];
+            gridState.categorias_mkt = [];
+            gridState.eventos_fisc = [];
             gridState.estado = [];
             gridState.fecha_desde = '';
             gridState.fecha_hasta = '';
             gridState.quick_filter = '';
             gridState.ver_todo = '';
+            gridState.sort_by = 'id';
+            gridState.order = 'desc';
             $('#inpFechaDesde').val('');
             $('#inpFechaHasta').val('');
         }

@@ -26,9 +26,9 @@ function colorEstado($estado) {
                 <th width="8%" class="sortable" data-sort="nro_nota">Nro Nota <i class="fa fa-sort"></i></th>
                 <th width="10%" class="th-filterable" data-filter="casino" style="cursor:pointer;">Casino/Plat. <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
                 <th width="18%">Título / Tema</th>
-                <th width="7%" class="th-filterable" data-filter="rama" style="cursor:pointer;">Ramas <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
+                <th width="7%" class="th-filterable" data-filter="rama" style="cursor:pointer;">Ramas / Cat. <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
                 <th width="8%" class="th-filterable" data-filter="estado" style="cursor:pointer;">Estado <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
-                <th width="10%">Nro Aprob.</th>
+                <th width="10%" class="th-filterable" data-filter="nro_aprob" style="cursor:pointer;">Nro Aprob. <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
                 <th width="9%">Acciones</th>
             </tr>
         </thead>
@@ -68,11 +68,17 @@ function colorEstado($estado) {
                         @if($ocultarFisc && $nota->tipo_rama == 'FISC')
                             @continue
                         @endif
-                        <div style="margin-bottom:2px;">
+                        <div style="margin-bottom:4px; display:flex; align-items:center;">
                             @if($nota->tipo_rama == 'MKT')
-                                <span class="label label-primary">MKT</span>
+                                <span class="label label-primary" style="min-width:35px; text-align:center;">MKT</span>
+                                @if($nota->categoria)
+                                    <span style="font-size:10px; color:#64748b; margin-left:5px; line-height:1.1;">{{ $nota->categoria->descripcion }}</span>
+                                @endif
                             @else
-                                <span class="label label-success">FISC</span>
+                                <span class="label label-success" style="min-width:35px; text-align:center;">FISC</span>
+                                @if($nota->tipoEvento)
+                                    <span style="font-size:10px; color:#64748b; margin-left:5px; line-height:1.1;">{{ $nota->tipoEvento->descripcion }}</span>
+                                @endif
                             @endif
                         </div>
                     @endforeach

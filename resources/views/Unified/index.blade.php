@@ -397,7 +397,7 @@
             flex-wrap: wrap;
         }
 
-        #step3Content .row > [class*="col-"] {
+        #step3Content .row>[class*="col-"] {
             margin-bottom: 15px;
             display: flex;
         }
@@ -476,9 +476,10 @@
                         </div>
                         <div class="col-md-9 text-right">
                             @if(!empty($esSuperusuario))
-                            <a href="http://10.1.120.9/eventos_casinos/eventos.php" target="_blank" class="btn btn-default" style="border-radius:8px;">
-                                Click acá para ver notas previas al 24/4/2026
-                            </a>
+                                <a href="http://10.1.120.9/eventos_casinos/eventos.php" target="_blank" class="btn btn-default"
+                                    style="border-radius:8px;">
+                                    Click acá para ver notas previas al 24/4/2026
+                                </a>
                             @endif
                             @if(!empty($puedeExportar))
                                 <div class="btn-group" style="margin-right:8px;">
@@ -547,7 +548,7 @@
                             <option value="">-</option>
                             <option value="MKT">Marketing</option>
                             @if(empty($esJuegoResponsable))
-                            <option value="FISC">Fiscalización</option>
+                                <option value="FISC">Fiscalización</option>
                             @endif
                         </select>
                         <select id="selFiltroEstado">
@@ -597,9 +598,9 @@
                         <li><a href="#" class="ctx-action" data-action="descargar-todo"><i class="fa fa-download"></i>
                                 Descargar Todo</a></li>
                         @if($puedeEliminarNotas)
-                        <li class="divider"></li>
-                        <li><a href="#" class="ctx-action text-danger" data-action="eliminar"><i class="fa fa-trash"></i>
-                                Eliminar</a></li>
+                            <li class="divider"></li>
+                            <li><a href="#" class="ctx-action text-danger" data-action="eliminar"><i class="fa fa-trash"></i>
+                                    Eliminar</a></li>
                         @endif
                     </ul>
 
@@ -668,7 +669,8 @@
                             <div class="row" style="display:flex; justify-content:center; gap:20px;">
 
                                 <!-- Card Marketing -->
-                                <div class="col-md-5" style="cursor:pointer; display:flex;" onclick="selectTaskType('MARKETING')">
+                                <div class="col-md-5" style="cursor:pointer; display:flex;"
+                                    onclick="selectTaskType('MARKETING')">
                                     <div class="panel panel-default card-type"
                                         style="border-radius:15px; border:2px solid transparent; transition:all 0.3s; text-align:center; padding:30px; width:100%; display:flex; flex-direction:column;">
                                         <div
@@ -676,30 +678,33 @@
                                             <i class="fa fa-bullhorn fa-3x" style="color:#3b82f6;"></i>
                                         </div>
                                         <h4 style="font-weight:700; color:#1e293b;">Marketing / Publicidad</h4>
-                                        <p class="text-muted" style="text-align:left;">Gestión de eventos, promociones y pautas publicitarias.</p>
+                                        <p class="text-muted" style="text-align:left;">Gestión de eventos, promociones y
+                                            pautas publicitarias.</p>
                                     </div>
                                 </div>
 
                                 @if(empty($esJuegoResponsable))
-                                <!-- Card Fiscalización / Aspectos Técnicos -->
-                                <div class="col-md-5" style="cursor:pointer; display:flex;" onclick="selectTaskType('FISCALIZACION')">
-                                    <div class="panel panel-default card-type"
-                                        style="border-radius:15px; border:2px solid transparent; transition:all 0.3s; text-align:center; padding:30px; width:100%; display:flex; flex-direction:column;">
-                                        <div
-                                            style="background:#f0fdf4; width:80px; height:80px; border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                                            <i class="fa fa-cogs fa-3x" style="color:#10b981;"></i>
+                                    <!-- Card Fiscalización / Aspectos Técnicos -->
+                                    <div class="col-md-5" style="cursor:pointer; display:flex;"
+                                        onclick="selectTaskType('FISCALIZACION')">
+                                        <div class="panel panel-default card-type"
+                                            style="border-radius:15px; border:2px solid transparent; transition:all 0.3s; text-align:center; padding:30px; width:100%; display:flex; flex-direction:column;">
+                                            <div
+                                                style="background:#f0fdf4; width:80px; height:80px; border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                                <i class="fa fa-cogs fa-3x" style="color:#10b981;"></i>
+                                            </div>
+                                            <h4 style="font-weight:700; color:#1e293b;">Aspectos Técnicos</h4>
+                                            <p class="text-muted" style="text-align:left; margin-bottom:10px;">
+                                                <strong style="color:#1e293b;">CASINOS FÍSICOS:</strong>
+                                                Altas/Bajas/Modificaciones de MTM, Cambios de juegos, Promociones y Torneos sin
+                                                publicidad, Mesas, Bingo, etc.
+                                            </p>
+                                            <p class="text-muted" style="text-align:left; margin-bottom:0;">
+                                                <strong style="color:#1e293b;">PLATAFORMAS JOL:</strong>
+                                                Altas/Bajas/modificaciones varias de Juegos.
+                                            </p>
                                         </div>
-                                        <h4 style="font-weight:700; color:#1e293b;">Aspectos Técnicos</h4>
-                                        <p class="text-muted" style="text-align:left; margin-bottom:10px;">
-                                            <strong style="color:#1e293b;">CASINOS FÍSICOS:</strong>
-                                            Altas/Bajas/Modificaciones de MTM, Cambios de juegos, Promociones y Torneos sin publicidad, Mesas, Bingo, etc.
-                                        </p>
-                                        <p class="text-muted" style="text-align:left; margin-bottom:0;">
-                                            <strong style="color:#1e293b;">PLATAFORMAS JOL:</strong>
-                                            Altas/Bajas/modificaciones varias de Juegos.
-                                        </p>
                                     </div>
-                                </div>
                                 @endif
 
                             </div>
@@ -759,8 +764,8 @@
                     </div>
 
                     {{-- 'Tipo Evento (MKT)' eliminado de la UI (borrado lógico).
-                         La columna id_tipo_evento se mantiene en BD y se guarda
-                         como NULL en notas MKT nuevas. --}}
+                    La columna id_tipo_evento se mantiene en BD y se guarda
+                    como NULL en notas MKT nuevas. --}}
 
                     <!-- CATEGORÍA (MKT) -->
                     <div class="section-marketing wiz-field">
@@ -820,441 +825,451 @@
                             <input type="checkbox" name="compartir_administrador" id="chkCompartirAdmin" value="1"
                                 style="width:18px; height:18px; cursor:pointer;">
                             <span style="font-size:13px;">¿Involucra a sala de Casino Físico?</span>
-                            </label>
+                        </label>
+                    </div>
+
+                    <!-- FECHAS -->
+                    <div class="wiz-row">
+                        <div class="wiz-col">
+                            <label class="wiz-label">Fecha Inicio * <i class="fa fa-question-circle text-muted"
+                                    data-toggle="tooltip" title="Cuándo comienza la vigencia."></i></label>
+                            <input type="date" class="form-control wiz-date-click" name="fecha_inicio_evento"
+                                id="inpFechaInicio">
                         </div>
-
-                        <!-- FECHAS -->
-                        <div class="wiz-row">
-                            <div class="wiz-col">
-                                <label class="wiz-label">Fecha Inicio * <i class="fa fa-question-circle text-muted"
-                                        data-toggle="tooltip" title="Cuándo comienza la vigencia."></i></label>
-                                <input type="date" class="form-control wiz-date-click" name="fecha_inicio_evento"
-                                    id="inpFechaInicio">
-                            </div>
-                            <div class="wiz-col">
-                                <label class="wiz-label" id="lblFechaFin">Fecha Fin * <i
-                                        class="fa fa-question-circle text-muted" data-toggle="tooltip"
-                                        title="Cuándo finaliza la vigencia."></i></label>
-                                <input type="date" class="form-control wiz-date-click" name="fecha_fin_evento" id="inpFechaFin">
-                            </div>
-                        </div>
-
-                        {{-- 'Fecha Referencia' eliminada de la UI (borrado lógico).
-                             La columna fecha_referencia (nullable) sigue en BD y los
-                             7 registros históricos que la tienen se preservan. --}}
-
-                        <!-- RELACIÓN CON NOTA ANTERIOR -->
-                        <div style="margin-top: 10px; margin-bottom: 20px;">
-                            <hr style="margin-top: 10px; margin-bottom: 15px;">
-                            <h5 style="color:#64748b; margin-bottom: 15px;"><i class="fa fa-link"></i> Relacionar con Nota
-                                Anterior <small class="text-muted">(opcional)</small></h5>
-                            <div style="background:#f8fafc; padding:15px; border-radius:10px; border: 1px solid #e2e8f0;">
-                                <input type="hidden" name="id_grupo_padre" id="hidIdGrupoPadre" value="">
-                                <div id="notaPadreSeleccionada" style="display:none; margin-bottom:10px;">
-                                    <div
-                                        style="display:flex; align-items:center; gap:10px; background:#ede9fe; padding:10px 15px; border-radius:8px; border:1px solid #c4b5fd;">
-                                        <i class="fa fa-link" style="color:#7c3aed; font-size:16px;"></i>
-                                        <div style="flex:1;">
-                                            <strong id="lblNotaPadreNro" style="color:#5b21b6;"></strong>
-                                            <span id="lblNotaPadreTitulo" style="color:#6b7280; margin-left:8px;"></span>
-                                            <small id="lblNotaPadreCasino" class="text-muted" style="margin-left:8px;"></small>
-                                        </div>
-                                        <button type="button" class="btn btn-xs btn-danger" id="btnQuitarNotaPadreWizard"
-                                            title="Quitar relación">
-                                            <i class="fa fa-times"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div id="buscadorNotaPadre">
-                                    <div style="position: relative;">
-                                        <input type="text" class="form-control" id="inpBuscarNotaPadre"
-                                            placeholder="Buscar por número o título..." autocomplete="off">
-                                        <div id="resultadosBusquedaPadre" class="list-group"
-                                            style="position:absolute; top:100%; left:0; right:0; z-index:10000; max-height:220px; overflow-y:auto; display:none; box-shadow:0 10px 20px rgba(0,0,0,0.15);">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- INVOLUCRA JUEGOS (solo MKT; oculto para plataformas de apuestas deportivas) -->
-                        <div class="section-marketing wiz-field" id="secInvolucraJuegos" style="margin-top: 10px;">
-                            <label
-                                style="display:inline-flex; align-items:center; cursor:pointer; font-weight:normal; gap:8px;">
-                                <input type="checkbox" name="involucra_juegos" id="chkInvolucraJuegos" value="1"
-                                    style="width:18px; height:18px; cursor:pointer;">
-                                <span style="font-size:13px;">¿Involucra Juegos? <i
-                                        class="fa fa-question-circle text-muted" data-toggle="tooltip"
-                                        title="Marque si esta nota de marketing está asociada a juegos online, máquinas, islas, mesas o bingo."></i></span>
-                            </label>
-                        </div>
-
-                        <!-- ASSETS (Previously Step 1) -->
-                        <div id="secActivosAsociados" style="margin-top:30px; display:none; padding-bottom: 20px;">
-                            <hr>
-                            <h5 style="color:#64748b; margin-bottom: 15px;">Activos Asociados <i
+                        <div class="wiz-col">
+                            <label class="wiz-label" id="lblFechaFin">Fecha Fin * <i
                                     class="fa fa-question-circle text-muted" data-toggle="tooltip"
-                                    title="Seleccione máquinas, islas o mesas relacionadas."></i></h5>
-                            <div class="row"
-                                style="background:#f8fafc; padding:20px; border-radius:10px; border: 1px solid #e2e8f0;">
-                                <div class="col-md-4">
-                                    <select class="form-control" id="selTipoActivo">
-                                        <!-- JS Fill -->
-                                    </select>
-                                </div>
-                                <div class="col-md-6" style="position: relative;">
-                                    <input type="text" id="inpIdActivo" class="form-control" placeholder="Buscar..."
-                                        autocomplete="off">
-                                    <input type="hidden" id="hidIdActivo">
-                                    <div id="resultadosBusqueda" class="list-group"
-                                        style="position: absolute; top: 100%; left: 15px; right: 15px; z-index: 10000; max-height: 200px; overflow-y: auto; display: none; box-shadow: 0px 10px 20px rgba(0,0,0,0.15);">
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <button type="button" class="btn btn-primary btn-block" id="btnAgregarActivo"
-                                        style="padding:6px;">Agregar</button>
-                                </div>
-                                <!-- Carga masiva: pegar lista de IDs o códigos -->
-                                <div class="col-md-12" style="margin-top:8px;">
-                                    <a href="javascript:void(0)" id="wizToggleMasiva" style="font-size:12px;"><i class="fa fa-list"></i> Pegar lista (varios IDs o códigos)</a>
-                                    <div id="wizMasivaWrap" style="display:none; margin-top:6px;">
-                                        <textarea id="wizMasivaText" class="form-control" rows="4" placeholder="Un ID o código por línea (o separados por coma)." style="font-size:12px;"></textarea>
-                                        <button type="button" class="btn btn-info btn-sm" id="wizBtnResolverMasiva" style="margin-top:6px;"><i class="fa fa-magic"></i> Resolver y agregar</button>
-                                        <div id="wizMasivaReporte" style="margin-top:6px; font-size:12px;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <table class="table table-condensed table-striped" id="tablaActivos"
-                                style="margin-top:5px; font-size:12px;">
-                                <thead>
-                                    <tr>
-                                        <th>Tipo</th>
-                                        <th>ID</th>
-                                        <th>Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+                                    title="Cuándo finaliza la vigencia."></i></label>
+                            <input type="date" class="form-control wiz-date-click" name="fecha_fin_evento" id="inpFechaFin">
                         </div>
-
-                        <!-- Spacer explicitly for bottom margin -->
-                        <div style="height: 50px; width: 100%; clear: both;"></div>
-
                     </div>
 
-                    <!-- STEP 3: ADJUNTOS (Nueva Estructura) -->
-                    <div id="step3Content" style="display:none; max-width: 95%; margin: 0 auto; padding-bottom: 30px;">
-                        <input type="hidden" id="hidIdNotaFisc" name="id_nota_fisc">
-                        <input type="hidden" id="hidIdNotaMkt" name="id_nota_mkt">
+                    {{-- 'Fecha Referencia' eliminada de la UI (borrado lógico).
+                    La columna fecha_referencia (nullable) sigue en BD y los
+                    7 registros históricos que la tienen se preservan. --}}
 
-                        <!-- =====================================================
-                                         MKT UPLOADS (Marketing)
-                                    ====================================================== -->
-                        <div class="section-marketing" style="margin-bottom: 30px;">
-                            <h5
-                                style="color: #3b82f6; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; margin-bottom: 20px;">
-                                <i class="fa fa-bullhorn"></i> Adjuntos Marketing (MKT)
-                            </h5>
-
-                            <div class="row">
-                                <!-- Solicitud Concesionario MKT -->
-                                <div class="col-md-4">
-                                    <div class="dropzone"
-                                        style="border: 2px dashed #3b82f6; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
-                                        <label style="font-weight: 600; color: #1e40af;"><i class="fa fa-file-pdf-o"></i>
-                                            Solicitud Concesionario</label>
-                                        <input id="adjuntoSolicitud" name="adjuntoSolicitud[]" type="file" class="form-control"
-                                            accept=".pdf,.zip" multiple style="margin-top:10px;">
-                                        <small class="text-muted">PDF o ZIP · podés elegir varios</small>
+                    <!-- RELACIÓN CON NOTA ANTERIOR -->
+                    <div style="margin-top: 10px; margin-bottom: 20px;">
+                        <hr style="margin-top: 10px; margin-bottom: 15px;">
+                        <h5 style="color:#64748b; margin-bottom: 15px;"><i class="fa fa-link"></i> Relacionar con Nota
+                            Anterior <small class="text-muted">(opcional)</small></h5>
+                        <div style="background:#f8fafc; padding:15px; border-radius:10px; border: 1px solid #e2e8f0;">
+                            <input type="hidden" name="id_grupo_padre" id="hidIdGrupoPadre" value="">
+                            <div id="notaPadreSeleccionada" style="display:none; margin-bottom:10px;">
+                                <div
+                                    style="display:flex; align-items:center; gap:10px; background:#ede9fe; padding:10px 15px; border-radius:8px; border:1px solid #c4b5fd;">
+                                    <i class="fa fa-link" style="color:#7c3aed; font-size:16px;"></i>
+                                    <div style="flex:1;">
+                                        <strong id="lblNotaPadreNro" style="color:#5b21b6;"></strong>
+                                        <span id="lblNotaPadreTitulo" style="color:#6b7280; margin-left:8px;"></span>
+                                        <small id="lblNotaPadreCasino" class="text-muted" style="margin-left:8px;"></small>
                                     </div>
-                                </div>
-                                <!-- Diseño MKT -->
-                                <div class="col-md-4">
-                                    <div class="dropzone"
-                                        style="border: 2px dashed #3b82f6; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
-                                        <label style="font-weight: 600; color: #1e40af;"><i class="fa fa-image"></i> Adjunto
-                                            Diseño</label>
-                                        <input id="adjuntoDisenio" name="adjuntoDisenio[]" type="file" class="form-control"
-                                            accept=".pdf,.zip,.jpg,.png" multiple style="margin-top:10px;">
-                                        <small class="text-muted">PDF, ZIP, JPG, PNG · podés elegir varios</small>
-                                    </div>
-                                </div>
-                                <!-- Bases y Condiciones MKT -->
-                                <div class="col-md-4">
-                                    <div class="dropzone"
-                                        style="border: 2px dashed #3b82f6; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
-                                        <label style="font-weight: 600; color: #1e40af;"><i class="fa fa-file-text-o"></i> Bases
-                                            y Condiciones</label>
-                                        <input id="adjuntoBases" name="adjuntoBases[]" type="file" class="form-control"
-                                            accept=".pdf,.doc,.docx,.zip" multiple style="margin-top:10px;">
-                                        <small class="text-muted">PDF, DOC, DOCX, ZIP · podés elegir varios</small>
-                                    </div>
-                                </div>
-                                <!-- Anexos MKT (múltiples) -->
-                                <div class="col-md-4">
-                                    <div class="dropzone"
-                                        style="border: 2px dashed #64748b; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
-                                        <label style="font-weight: 600; color: #475569;"><i class="fa fa-paperclip"></i> Anexos</label>
-                                        <input id="adjuntoAnexosMkt" name="adjuntoAnexosMkt[]" type="file" class="form-control"
-                                            multiple style="margin-top:10px;">
-                                        <small class="text-muted">Uno o varios archivos</small>
-                                    </div>
+                                    <button type="button" class="btn btn-xs btn-danger" id="btnQuitarNotaPadreWizard"
+                                        title="Quitar relación">
+                                        <i class="fa fa-times"></i>
+                                    </button>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- =====================================================
-                                         FISC UPLOADS (Fiscalización)
-                                    ====================================================== -->
-                        <div class="section-fiscalizacion" style="display:none; margin-bottom: 30px;">
-                            <h5
-                                style="color: #10b981; border-bottom: 2px solid #10b981; padding-bottom: 8px; margin-bottom: 20px;">
-                                <i class="fa fa-gavel"></i> Adjuntos Fiscalización (FISC)
-                            </h5>
-
-                            <div class="row">
-                                <!-- Solicitud Concesionario FISC -->
-                                <div class="col-md-6">
-                                    <div class="dropzone"
-                                        style="border: 2px dashed #10b981; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
-                                        <label style="font-weight: 600; color: #047857;"><i class="fa fa-file-pdf-o"></i>
-                                            Solicitud Concesionario</label>
-                                        <input id="adjuntoSolicitudFisc" name="adjuntoSolicitudFisc[]" type="file"
-                                            class="form-control" accept=".pdf,.zip" multiple style="margin-top:10px;">
-                                        <small class="text-muted">PDF o ZIP · podés elegir varios</small>
-                                    </div>
-                                </div>
-                                <!-- Archivos Varios FISC -->
-                                <div class="col-md-6">
-                                    <div class="dropzone"
-                                        style="border: 2px dashed #10b981; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
-                                        <label style="font-weight: 600; color: #047857;"><i class="fa fa-archive"></i> Archivos
-                                            Varios</label>
-                                        <input id="adjuntoVarios" name="adjuntoVarios[]" type="file" class="form-control"
-                                            accept=".zip,.rar,.pdf,.doc,.docx,.xlsx" multiple style="margin-top:10px;">
-                                        <small class="text-muted">Podés elegir varios archivos</small>
-                                    </div>
-                                </div>
-                                <!-- Anexos FISC (múltiples) -->
-                                <div class="col-md-6">
-                                    <div class="dropzone"
-                                        style="border: 2px dashed #64748b; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
-                                        <label style="font-weight: 600; color: #475569;"><i class="fa fa-paperclip"></i> Anexos</label>
-                                        <input id="adjuntoAnexosFisc" name="adjuntoAnexosFisc[]" type="file" class="form-control"
-                                            multiple style="margin-top:10px;">
-                                        <small class="text-muted">Uno o varios archivos</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- =====================================================
-                                         INFORME TÉCNICO (Común - opcional, instancia posterior)
-                                    ====================================================== -->
-                        <div class="section-informe"
-                            style="display:none; margin-top: 20px; padding-top: 20px; border-top: 1px dashed #cbd5e1;">
-                            <h5
-                                style="color: #f59e0b; border-bottom: 2px solid #f59e0b; padding-bottom: 8px; margin-bottom: 20px;">
-                                <i class="fa fa-clipboard"></i> Informe Técnico (Opcional)
-                            </h5>
-                            <div class="row">
-                                <div class="col-md-6 section-marketing">
-                                    <div class="dropzone"
-                                        style="border: 2px dashed #f59e0b; border-radius: 10px; padding: 15px; text-align: center;">
-                                        <label style="font-weight: 600; color: #d97706;"><i class="fa fa-file-text"></i> Informe
-                                            Técnico (MKT)</label>
-                                        <input id="adjuntoInformeMkt" name="adjuntoInformeMkt[]" type="file" class="form-control"
-                                            accept=".pdf,.doc,.docx" multiple style="margin-top:10px;">
-                                    </div>
-                                </div>
-                                <div class="col-md-6 section-fiscalizacion" style="display:none;">
-                                    <div class="dropzone"
-                                        style="border: 2px dashed #f59e0b; border-radius: 10px; padding: 15px; text-align: center;">
-                                        <label style="font-weight: 600; color: #d97706;"><i class="fa fa-file-text"></i> Informe
-                                            Técnico (FISC)</label>
-                                        <input id="adjuntoInformeFisc" name="adjuntoInformeFisc[]" type="file"
-                                            class="form-control" accept=".pdf,.doc,.docx" multiple style="margin-top:10px;">
+                            <div id="buscadorNotaPadre">
+                                <div style="position: relative;">
+                                    <input type="text" class="form-control" id="inpBuscarNotaPadre"
+                                        placeholder="Buscar por número o título..." autocomplete="off">
+                                    <div id="resultadosBusquedaPadre" class="list-group"
+                                        style="position:absolute; top:100%; left:0; right:0; z-index:10000; max-height:220px; overflow-y:auto; display:none; box-shadow:0 10px 20px rgba(0,0,0,0.15);">
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- STEP 4: SUMMARY (Merged) -->
-                    <div id="step4Content" style="display:none; max-width: 95%; margin: 0 auto; padding-bottom: 20px;">
-                        <h4 class="text-center" style="margin-bottom:20px; font-weight:700; color:#475569;">Resumen de la
-                            Solicitud</h4>
-                        <div class="alert alert-success text-center" style="margin-top: 15px; margin-bottom: 0;">
-                            <i class="fa fa-info-circle"></i> Verifique que todos los datos sean correctos antes de confirmar.
+                    <!-- INVOLUCRA JUEGOS (solo MKT; oculto para plataformas de apuestas deportivas) -->
+                    <div class="section-marketing wiz-field" id="secInvolucraJuegos" style="margin-top: 10px;">
+                        <label
+                            style="display:inline-flex; align-items:center; cursor:pointer; font-weight:normal; gap:8px;">
+                            <input type="checkbox" name="involucra_juegos" id="chkInvolucraJuegos" value="1"
+                                style="width:18px; height:18px; cursor:pointer;">
+                            <span style="font-size:13px;">¿Involucra Juegos? <i class="fa fa-question-circle text-muted"
+                                    data-toggle="tooltip"
+                                    title="Marque si esta nota de marketing está asociada a juegos online, máquinas, islas, mesas o bingo."></i></span>
+                        </label>
+                    </div>
+
+                    <!-- ASSETS (Previously Step 1) -->
+                    <div id="secActivosAsociados" style="margin-top:30px; display:none; padding-bottom: 20px;">
+                        <hr>
+                        <h5 style="color:#64748b; margin-bottom: 15px;">Activos Asociados <i
+                                class="fa fa-question-circle text-muted" data-toggle="tooltip"
+                                title="Seleccione máquinas, islas o mesas relacionadas."></i></h5>
+                        <div class="row"
+                            style="background:#f8fafc; padding:20px; border-radius:10px; border: 1px solid #e2e8f0;">
+                            <div class="col-md-4">
+                                <select class="form-control" id="selTipoActivo">
+                                    <!-- JS Fill -->
+                                </select>
+                            </div>
+                            <div class="col-md-6" style="position: relative;">
+                                <input type="text" id="inpIdActivo" class="form-control" placeholder="Buscar..."
+                                    autocomplete="off">
+                                <input type="hidden" id="hidIdActivo">
+                                <div id="resultadosBusqueda" class="list-group"
+                                    style="position: absolute; top: 100%; left: 15px; right: 15px; z-index: 10000; max-height: 200px; overflow-y: auto; display: none; box-shadow: 0px 10px 20px rgba(0,0,0,0.15);">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-primary btn-block" id="btnAgregarActivo"
+                                    style="padding:6px;">Agregar</button>
+                            </div>
+                            <!-- Carga masiva: pegar lista de IDs o códigos -->
+                            <div class="col-md-12" style="margin-top:8px;">
+                                <a href="javascript:void(0)" id="wizToggleMasiva" style="font-size:12px;"><i
+                                        class="fa fa-list"></i> Pegar lista (varios IDs o códigos)</a>
+                                <div id="wizMasivaWrap" style="display:none; margin-top:6px;">
+                                    <textarea id="wizMasivaText" class="form-control" rows="4"
+                                        placeholder="Un ID o código por línea (o separados por coma)."
+                                        style="font-size:12px;"></textarea>
+                                    <button type="button" class="btn btn-info btn-sm" id="wizBtnResolverMasiva"
+                                        style="margin-top:6px;"><i class="fa fa-magic"></i> Resolver y agregar</button>
+                                    <div id="wizMasivaReporte" style="margin-top:6px; font-size:12px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <table class="table table-condensed table-striped" id="tablaActivos"
+                            style="margin-top:5px; font-size:12px;">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>ID</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Spacer explicitly for bottom margin -->
+                    <div style="height: 50px; width: 100%; clear: both;"></div>
+
+                </div>
+
+                <!-- STEP 3: ADJUNTOS (Nueva Estructura) -->
+                <div id="step3Content" style="display:none; max-width: 95%; margin: 0 auto; padding-bottom: 30px;">
+                    <input type="hidden" id="hidIdNotaFisc" name="id_nota_fisc">
+                    <input type="hidden" id="hidIdNotaMkt" name="id_nota_mkt">
+
+                    <!-- =====================================================
+                                             MKT UPLOADS (Marketing)
+                                        ====================================================== -->
+                    <div class="section-marketing" style="margin-bottom: 30px;">
+                        <h5
+                            style="color: #3b82f6; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; margin-bottom: 20px;">
+                            <i class="fa fa-bullhorn"></i> Adjuntos Marketing (MKT)
+                        </h5>
+
+                        <div class="row">
+                            <!-- Solicitud Concesionario MKT -->
+                            <div class="col-md-4">
+                                <div class="dropzone"
+                                    style="border: 2px dashed #3b82f6; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
+                                    <label style="font-weight: 600; color: #1e40af;"><i class="fa fa-file-pdf-o"></i>
+                                        Solicitud Concesionario</label>
+                                    <input id="adjuntoSolicitud" name="adjuntoSolicitud[]" type="file" class="form-control"
+                                        accept=".pdf,.zip" multiple style="margin-top:10px;">
+                                    <small class="text-muted">PDF o ZIP · podés elegir varios</small>
+                                </div>
+                            </div>
+                            <!-- Diseño MKT -->
+                            <div class="col-md-4">
+                                <div class="dropzone"
+                                    style="border: 2px dashed #3b82f6; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
+                                    <label style="font-weight: 600; color: #1e40af;"><i class="fa fa-image"></i> Adjunto
+                                        Diseño</label>
+                                    <input id="adjuntoDisenio" name="adjuntoDisenio[]" type="file" class="form-control"
+                                        accept=".pdf,.zip,.jpg,.png" multiple style="margin-top:10px;">
+                                    <small class="text-muted">PDF, ZIP, JPG, PNG · podés elegir varios</small>
+                                </div>
+                            </div>
+                            <!-- Bases y Condiciones MKT -->
+                            <div class="col-md-4">
+                                <div class="dropzone"
+                                    style="border: 2px dashed #3b82f6; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
+                                    <label style="font-weight: 600; color: #1e40af;"><i class="fa fa-file-text-o"></i> Bases
+                                        y Condiciones</label>
+                                    <input id="adjuntoBases" name="adjuntoBases[]" type="file" class="form-control"
+                                        accept=".pdf,.doc,.docx,.zip" multiple style="margin-top:10px;">
+                                    <small class="text-muted">PDF, DOC, DOCX, ZIP · podés elegir varios</small>
+                                </div>
+                            </div>
+                            <!-- Anexos MKT (múltiples) -->
+                            <div class="col-md-4">
+                                <div class="dropzone"
+                                    style="border: 2px dashed #64748b; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
+                                    <label style="font-weight: 600; color: #475569;"><i class="fa fa-paperclip"></i>
+                                        Anexos</label>
+                                    <input id="adjuntoAnexosMkt" name="adjuntoAnexosMkt[]" type="file" class="form-control"
+                                        multiple style="margin-top:10px;">
+                                    <small class="text-muted">Uno o varios archivos</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- =====================================================
+                                             FISC UPLOADS (Fiscalización)
+                                        ====================================================== -->
+                    <div class="section-fiscalizacion" style="display:none; margin-bottom: 30px;">
+                        <h5
+                            style="color: #10b981; border-bottom: 2px solid #10b981; padding-bottom: 8px; margin-bottom: 20px;">
+                            <i class="fa fa-gavel"></i> Adjuntos Fiscalización (FISC)
+                        </h5>
+
+                        <div class="row">
+                            <!-- Solicitud Concesionario FISC -->
+                            <div class="col-md-6">
+                                <div class="dropzone"
+                                    style="border: 2px dashed #10b981; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
+                                    <label style="font-weight: 600; color: #047857;"><i class="fa fa-file-pdf-o"></i>
+                                        Solicitud Concesionario</label>
+                                    <input id="adjuntoSolicitudFisc" name="adjuntoSolicitudFisc[]" type="file"
+                                        class="form-control" accept=".pdf,.zip" multiple style="margin-top:10px;">
+                                    <small class="text-muted">PDF o ZIP · podés elegir varios</small>
+                                </div>
+                            </div>
+                            <!-- Archivos Varios FISC -->
+                            <div class="col-md-6">
+                                <div class="dropzone"
+                                    style="border: 2px dashed #10b981; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
+                                    <label style="font-weight: 600; color: #047857;"><i class="fa fa-archive"></i> Archivos
+                                        Varios</label>
+                                    <input id="adjuntoVarios" name="adjuntoVarios[]" type="file" class="form-control"
+                                        accept=".zip,.rar,.pdf,.doc,.docx,.xlsx" multiple style="margin-top:10px;">
+                                    <small class="text-muted">Podés elegir varios archivos</small>
+                                </div>
+                            </div>
+                            <!-- Anexos FISC (múltiples) -->
+                            <div class="col-md-6">
+                                <div class="dropzone"
+                                    style="border: 2px dashed #64748b; border-radius: 10px; padding: 15px; text-align: center; min-height: 120px;">
+                                    <label style="font-weight: 600; color: #475569;"><i class="fa fa-paperclip"></i>
+                                        Anexos</label>
+                                    <input id="adjuntoAnexosFisc" name="adjuntoAnexosFisc[]" type="file"
+                                        class="form-control" multiple style="margin-top:10px;">
+                                    <small class="text-muted">Uno o varios archivos</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- =====================================================
+                                             INFORME TÉCNICO (Común - opcional, instancia posterior)
+                                        ====================================================== -->
+                    <div class="section-informe"
+                        style="display:none; margin-top: 20px; padding-top: 20px; border-top: 1px dashed #cbd5e1;">
+                        <h5
+                            style="color: #f59e0b; border-bottom: 2px solid #f59e0b; padding-bottom: 8px; margin-bottom: 20px;">
+                            <i class="fa fa-clipboard"></i> Informe Técnico (Opcional)
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6 section-marketing">
+                                <div class="dropzone"
+                                    style="border: 2px dashed #f59e0b; border-radius: 10px; padding: 15px; text-align: center;">
+                                    <label style="font-weight: 600; color: #d97706;"><i class="fa fa-file-text"></i> Informe
+                                        Técnico (MKT)</label>
+                                    <input id="adjuntoInformeMkt" name="adjuntoInformeMkt[]" type="file"
+                                        class="form-control" accept=".pdf,.doc,.docx" multiple style="margin-top:10px;">
+                                </div>
+                            </div>
+                            <div class="col-md-6 section-fiscalizacion" style="display:none;">
+                                <div class="dropzone"
+                                    style="border: 2px dashed #f59e0b; border-radius: 10px; padding: 15px; text-align: center;">
+                                    <label style="font-weight: 600; color: #d97706;"><i class="fa fa-file-text"></i> Informe
+                                        Técnico (FISC)</label>
+                                    <input id="adjuntoInformeFisc" name="adjuntoInformeFisc[]" type="file"
+                                        class="form-control" accept=".pdf,.doc,.docx" multiple style="margin-top:10px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: SUMMARY (Merged) -->
+                <div id="step4Content" style="display:none; max-width: 95%; margin: 0 auto; padding-bottom: 20px;">
+                    <h4 class="text-center" style="margin-bottom:20px; font-weight:700; color:#475569;">Resumen de la
+                        Solicitud</h4>
+                    <div class="alert alert-success text-center" style="margin-top: 15px; margin-bottom: 0;">
+                        <i class="fa fa-info-circle"></i> Verifique que todos los datos sean correctos antes de confirmar.
+                    </div>
+                </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i class="fa fa-times"></i>
+                    Cancelar</button>
+                <div style="float: right;">
+                    <button type="button" class="btn btn-default btn-wizard-prev" style="display:none;"
+                        onclick="wizardPrev()">Atrás</button>
+
+                    <!-- NEW COLLAB BUTTON -->
+                    <button type="button" class="btn btn-collab" id="btnSolicitarMkt"
+                        style="display:none; margin-right: 10px;" onclick="solicitarMarketing()">
+                        <i class="fa fa-paper-plane"></i> Solicitar a MKT
+                    </button>
+
+                    <button type="button" class="btn btn-success btn-wizard-next" onclick="wizardNext()">Siguiente</button>
+                    <button type="button" class="btn btn-success btn-wizard-finish" onclick="wizardFinish()"
+                        style="display:none;">Confirmar <i class="fa fa-check"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- MODAL: AGREGAR ADJUNTOS A NOTA EXISTENTE -->
+    <div class="modal fade" id="modalAgregarAdjuntos" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" style="border-radius: 12px;">
+                <div class="modal-header"
+                    style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border-radius: 12px 12px 0 0;">
+                    <button type="button" class="close" data-dismiss="modal" style="color: white;">&times;</button>
+                    <h4 class="modal-title"><i class="fa fa-paperclip"></i> Agregar Adjuntos - <span
+                            id="labelTipoRama"></span></h4>
+                </div>
+                <div class="modal-body" style="overflow-y: auto; max-height: calc(80vh - 120px);">
+                    <form id="frmAgregarAdjuntos" enctype="multipart/form-data">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <input type="hidden" id="adjNotaId" name="id_nota">
+                        <input type="hidden" id="adjTipoRama" name="tipo_rama">
+
+                        <!-- Estado actual de archivos -->
+                        <div id="adjuntosActuales"
+                            style="background: #f8fafc; border-radius: 8px; padding: 12px; margin-bottom: 20px;">
+                            <span class="text-muted"><i class="fa fa-spinner fa-spin"></i> Cargando estado de
+                                archivos...</span>
+                        </div>
+
+                        <!-- Campos MKT -->
+                        <div id="adjCamposMkt" style="display:none;">
+                            <h5 style="color: #3b82f6; margin-bottom: 15px;"><i class="fa fa-bullhorn"></i> Adjuntos
+                                Marketing</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label><i class="fa fa-file-pdf-o"></i> Solicitud Concesionario</label>
+                                        <input type="file" name="adjuntoSolicitud[]" class="form-control" accept=".pdf,.zip"
+                                            multiple>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label><i class="fa fa-image"></i> Diseño</label>
+                                        <input type="file" name="adjuntoDisenio[]" class="form-control"
+                                            accept=".pdf,.zip,.jpg,.png" multiple>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label><i class="fa fa-file-text-o"></i> Bases y Condiciones</label>
+                                        <input type="file" name="adjuntoBases[]" class="form-control"
+                                            accept=".pdf,.doc,.docx,.zip" multiple>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label><i class="fa fa-paperclip"></i> Anexos</label>
+                                        <input type="file" name="adjuntoAnexos[]" class="form-control" multiple>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos FISC -->
+                        <div id="adjCamposFisc" style="display:none;">
+                            <h5 style="color: #10b981; margin-bottom: 15px;"><i class="fa fa-gavel"></i> Adjuntos
+                                Fiscalización</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label><i class="fa fa-file-pdf-o"></i> Solicitud Concesionario</label>
+                                        <input type="file" name="adjuntoSolicitud[]" class="form-control" accept=".pdf,.zip"
+                                            multiple>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label><i class="fa fa-archive"></i> Archivos Varios</label>
+                                        <input type="file" name="adjuntoVarios[]" class="form-control"
+                                            accept=".zip,.rar,.pdf,.doc,.docx,.xlsx" multiple>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label><i class="fa fa-paperclip"></i> Anexos</label>
+                                        <input type="file" name="adjuntoAnexos[]" class="form-control" multiple>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Informe Técnico (común) -->
+                        <div class="row" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc;">
+                            <div class="col-md-12">
+                                <h5 style="color: #f59e0b;"><i class="fa fa-clipboard"></i> Informe Técnico (Opcional)</h5>
+                                <input type="file" name="adjuntoInforme[]" class="form-control" accept=".pdf,.doc,.docx"
+                                    multiple>
+                            </div>
+                        </div>
                     </form>
+
+                    <!-- Timeline de Movimientos -->
+                    <div style="margin-top: 25px; padding-top: 15px; border-top: 2px solid #eee;">
+                        <h5><i class="fa fa-history"></i> Historial de Adjuntos</h5>
+                        <div id="timelineAdjuntos" style="max-height: 200px; overflow-y: auto;">
+                            <p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i> Cargando historial...
+                            </p>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i class="fa fa-times"></i>
-                        Cancelar</button>
-                    <div style="float: right;">
-                        <button type="button" class="btn btn-default btn-wizard-prev" style="display:none;"
-                            onclick="wizardPrev()">Atrás</button>
-
-                        <!-- NEW COLLAB BUTTON -->
-                        <button type="button" class="btn btn-collab" id="btnSolicitarMkt"
-                            style="display:none; margin-right: 10px;" onclick="solicitarMarketing()">
-                            <i class="fa fa-paper-plane"></i> Solicitar a MKT
-                        </button>
-
-                        <button type="button" class="btn btn-success btn-wizard-next" onclick="wizardNext()">Siguiente</button>
-                        <button type="button" class="btn btn-success btn-wizard-finish" onclick="wizardFinish()"
-                            style="display:none;">Confirmar <i class="fa fa-check"></i></button>
-                    </div>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-success" id="btnGuardarAdjuntos">
+                        <i class="fa fa-upload"></i> Subir Adjuntos
+                    </button>
                 </div>
             </div>
         </div>
-        </div>
+    </div>
 
-        <!-- MODAL: AGREGAR ADJUNTOS A NOTA EXISTENTE -->
-        <div class="modal fade" id="modalAgregarAdjuntos" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content" style="border-radius: 12px;">
-                    <div class="modal-header"
-                        style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border-radius: 12px 12px 0 0;">
-                        <button type="button" class="close" data-dismiss="modal" style="color: white;">&times;</button>
-                        <h4 class="modal-title"><i class="fa fa-paperclip"></i> Agregar Adjuntos - <span
-                                id="labelTipoRama"></span></h4>
-                    </div>
-                    <div class="modal-body" style="overflow-y: auto; max-height: calc(80vh - 120px);">
-                        <form id="frmAgregarAdjuntos" enctype="multipart/form-data">
-                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                            <input type="hidden" id="adjNotaId" name="id_nota">
-                            <input type="hidden" id="adjTipoRama" name="tipo_rama">
-
-                            <!-- Estado actual de archivos -->
-                            <div id="adjuntosActuales"
-                                style="background: #f8fafc; border-radius: 8px; padding: 12px; margin-bottom: 20px;">
-                                <span class="text-muted"><i class="fa fa-spinner fa-spin"></i> Cargando estado de
-                                    archivos...</span>
-                            </div>
-
-                            <!-- Campos MKT -->
-                            <div id="adjCamposMkt" style="display:none;">
-                                <h5 style="color: #3b82f6; margin-bottom: 15px;"><i class="fa fa-bullhorn"></i> Adjuntos
-                                    Marketing</h5>
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label><i class="fa fa-file-pdf-o"></i> Solicitud Concesionario</label>
-                                            <input type="file" name="adjuntoSolicitud[]" class="form-control" accept=".pdf,.zip" multiple>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label><i class="fa fa-image"></i> Diseño</label>
-                                            <input type="file" name="adjuntoDisenio[]" class="form-control"
-                                                accept=".pdf,.zip,.jpg,.png" multiple>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label><i class="fa fa-file-text-o"></i> Bases y Condiciones</label>
-                                            <input type="file" name="adjuntoBases[]" class="form-control"
-                                                accept=".pdf,.doc,.docx,.zip" multiple>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label><i class="fa fa-paperclip"></i> Anexos</label>
-                                            <input type="file" name="adjuntoAnexos[]" class="form-control" multiple>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Campos FISC -->
-                            <div id="adjCamposFisc" style="display:none;">
-                                <h5 style="color: #10b981; margin-bottom: 15px;"><i class="fa fa-gavel"></i> Adjuntos
-                                    Fiscalización</h5>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label><i class="fa fa-file-pdf-o"></i> Solicitud Concesionario</label>
-                                            <input type="file" name="adjuntoSolicitud[]" class="form-control" accept=".pdf,.zip" multiple>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label><i class="fa fa-archive"></i> Archivos Varios</label>
-                                            <input type="file" name="adjuntoVarios[]" class="form-control"
-                                                accept=".zip,.rar,.pdf,.doc,.docx,.xlsx" multiple>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label><i class="fa fa-paperclip"></i> Anexos</label>
-                                            <input type="file" name="adjuntoAnexos[]" class="form-control" multiple>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Informe Técnico (común) -->
-                            <div class="row" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc;">
-                                <div class="col-md-12">
-                                    <h5 style="color: #f59e0b;"><i class="fa fa-clipboard"></i> Informe Técnico (Opcional)</h5>
-                                    <input type="file" name="adjuntoInforme[]" class="form-control" accept=".pdf,.doc,.docx" multiple>
-                                </div>
-                            </div>
-                        </form>
-
-                        <!-- Timeline de Movimientos -->
-                        <div style="margin-top: 25px; padding-top: 15px; border-top: 2px solid #eee;">
-                            <h5><i class="fa fa-history"></i> Historial de Adjuntos</h5>
-                            <div id="timelineAdjuntos" style="max-height: 200px; overflow-y: auto;">
-                                <p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i> Cargando historial...
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-                        <button type="button" class="btn btn-success" id="btnGuardarAdjuntos">
-                            <i class="fa fa-upload"></i> Subir Adjuntos
-                        </button>
-                    </div>
+    <!-- Modal: Agregar Nota de Aprobación -->
+    <div class="modal fade" id="modalNotaAprobacion" tabindex="-1" role="dialog" style="z-index: 1060;">
+        <div class="modal-dialog" role="document" style="max-width: 520px;">
+            <div class="modal-content" style="border-radius: 12px;">
+                <div class="modal-header"
+                    style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; border-radius: 12px 12px 0 0;">
+                    <button type="button" class="close" data-dismiss="modal" style="color: white;">&times;</button>
+                    <h4 class="modal-title" id="tituloModalNotaAprobacion"><i class="fa fa-check-circle"></i> Agregar Nota
+                        de Aprobación</h4>
                 </div>
-            </div>
-        </div>
+                <div class="modal-body">
+                    <form id="frmNotaAprobacion" enctype="multipart/form-data">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <input type="hidden" id="aprobacionGrupoId" name="id_grupo">
+                        <input type="hidden" id="aprobacionTipoRama" name="tipo_rama" value="">
+                        <input type="hidden" id="aprobacionEditId" name="edit_id" value="">
 
-        <!-- Modal: Agregar Nota de Aprobación -->
-        <div class="modal fade" id="modalNotaAprobacion" tabindex="-1" role="dialog" style="z-index: 1060;">
-            <div class="modal-dialog" role="document" style="max-width: 520px;">
-                <div class="modal-content" style="border-radius: 12px;">
-                    <div class="modal-header"
-                        style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; border-radius: 12px 12px 0 0;">
-                        <button type="button" class="close" data-dismiss="modal" style="color: white;">&times;</button>
-                        <h4 class="modal-title" id="tituloModalNotaAprobacion"><i class="fa fa-check-circle"></i> Agregar Nota de Aprobación</h4>
-                    </div>
-                    <div class="modal-body">
-                        <form id="frmNotaAprobacion" enctype="multipart/form-data">
-                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                            <input type="hidden" id="aprobacionGrupoId" name="id_grupo">
-                            <input type="hidden" id="aprobacionTipoRama" name="tipo_rama" value="">
-                            <input type="hidden" id="aprobacionEditId" name="edit_id" value="">
-
-                            <!-- Botonera de selección de rama (estilo wizard principal) -->
-                            <label style="margin-bottom: 10px;">Seleccione la rama</label>
-                            <div class="row" style="margin-bottom: 15px;">
-                                <div class="col-md-6" style="cursor:pointer;">
-                                    <div class="btn-rama-aprobacion" data-rama="MKT"
-                                        style="border-radius:15px; border:2px solid transparent; transition:all 0.3s; text-align:center; padding:20px; background:white;">
-                                        <div
-                                            style="background:#eff6ff; width:60px; height:60px; border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center;">
-                                            <i class="fa fa-bullhorn" style="font-size:24px; color:#3b82f6;"></i>
-                                        </div>
-                                        <strong style="display:block; font-size:14px; font-weight:700; color:#1e293b;">Marketing
-                                            / Publicidad</strong>
+                        <!-- Botonera de selección de rama (estilo wizard principal) -->
+                        <label style="margin-bottom: 10px;">Seleccione la rama</label>
+                        <div class="row" style="margin-bottom: 15px;">
+                            <div class="col-md-6" style="cursor:pointer;">
+                                <div class="btn-rama-aprobacion" data-rama="MKT"
+                                    style="border-radius:15px; border:2px solid transparent; transition:all 0.3s; text-align:center; padding:20px; background:white;">
+                                    <div
+                                        style="background:#eff6ff; width:60px; height:60px; border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center;">
+                                        <i class="fa fa-bullhorn" style="font-size:24px; color:#3b82f6;"></i>
                                     </div>
+                                    <strong style="display:block; font-size:14px; font-weight:700; color:#1e293b;">Marketing
+                                        / Publicidad</strong>
                                 </div>
-                                @if(empty($esJuegoResponsable))
+                            </div>
+                            @if(empty($esJuegoResponsable))
                                 <div class="col-md-6" style="cursor:pointer;">
                                     <div class="btn-rama-aprobacion" data-rama="FISC"
                                         style="border-radius:15px; border:2px solid transparent; transition:all 0.3s; text-align:center; padding:20px; background:white;">
@@ -1267,448 +1282,456 @@
                                             / Técnico</strong>
                                     </div>
                                 </div>
-                                @endif
-                            </div>
+                            @endif
+                        </div>
 
-                            <!-- Tipo de documento + número + año (oculto hasta seleccionar rama) -->
-                            <div id="aprobacionDatosWrap" style="display: none;">
-                                <input type="hidden" id="aprobacionTipoDocumento" name="tipo_documento" value="">
-                                <label style="margin-bottom: 8px;">Tipo de documento</label>
-                                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                                    <div class="btn-tipo-documento" data-tipo="NOTA"
-                                        style="flex:1; cursor:pointer; text-align:center; padding:10px 8px; border-radius:8px; background:white; border:2px solid transparent; transition: all 0.2s;">
-                                        <div
-                                            style="width:32px; height:32px; margin:0 auto 5px; border-radius:50%; background:#fef3c7; display:flex; align-items:center; justify-content:center;">
-                                            <i class="fa fa-file-alt" style="font-size:14px; color:#d97706;"></i>
-                                        </div>
-                                        <strong style="display:block; font-size:11px; color:#333;">Nota</strong>
+                        <!-- Tipo de documento + número + año (oculto hasta seleccionar rama) -->
+                        <div id="aprobacionDatosWrap" style="display: none;">
+                            <input type="hidden" id="aprobacionTipoDocumento" name="tipo_documento" value="">
+                            <label style="margin-bottom: 8px;">Tipo de documento</label>
+                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                <div class="btn-tipo-documento" data-tipo="NOTA"
+                                    style="flex:1; cursor:pointer; text-align:center; padding:10px 8px; border-radius:8px; background:white; border:2px solid transparent; transition: all 0.2s;">
+                                    <div
+                                        style="width:32px; height:32px; margin:0 auto 5px; border-radius:50%; background:#fef3c7; display:flex; align-items:center; justify-content:center;">
+                                        <i class="fa fa-file-alt" style="font-size:14px; color:#d97706;"></i>
                                     </div>
-                                    <div class="btn-tipo-documento" data-tipo="DISPOSICION"
-                                        style="flex:1; cursor:pointer; text-align:center; padding:10px 8px; border-radius:8px; background:white; border:2px solid transparent; transition: all 0.2s;">
-                                        <div
-                                            style="width:32px; height:32px; margin:0 auto 5px; border-radius:50%; background:#e0e7ff; display:flex; align-items:center; justify-content:center;">
-                                            <i class="fa fa-gavel" style="font-size:14px; color:#4f46e5;"></i>
-                                        </div>
-                                        <strong style="display:block; font-size:11px; color:#333;">Disposición</strong>
-                                    </div>
+                                    <strong style="display:block; font-size:11px; color:#333;">Nota</strong>
                                 </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Número</label>
-                                            <input type="text" id="aprobacionNumeroDoc" name="numero_documento"
-                                                class="form-control" placeholder="Ej: 001">
-                                        </div>
+                                <div class="btn-tipo-documento" data-tipo="DISPOSICION"
+                                    style="flex:1; cursor:pointer; text-align:center; padding:10px 8px; border-radius:8px; background:white; border:2px solid transparent; transition: all 0.2s;">
+                                    <div
+                                        style="width:32px; height:32px; margin:0 auto 5px; border-radius:50%; background:#e0e7ff; display:flex; align-items:center; justify-content:center;">
+                                        <i class="fa fa-gavel" style="font-size:14px; color:#4f46e5;"></i>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Año</label>
-                                            <input type="text" id="aprobacionAnioDoc" name="anio_documento" class="form-control"
-                                                value="{{ date('Y') }}">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="form-group" id="aprobacionArchivoWrap">
-                                    <label><i class="fa fa-file-pdf-o"></i> Archivos (puede seleccionar varios)</label>
-                                    <input type="file" name="archivos_aprobacion[]" id="inputAprobacionArchivos"
-                                        class="form-control" accept=".pdf,.doc,.docx,.zip" multiple>
+                                    <strong style="display:block; font-size:11px; color:#333;">Disposición</strong>
                                 </div>
                             </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-                        <button type="button" class="btn btn-success" id="btnGuardarNotaAprobacion">
-                            <i class="fa fa-upload"></i> Subir
-                        </button>
-                    </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Número</label>
+                                        <input type="text" id="aprobacionNumeroDoc" name="numero_documento"
+                                            class="form-control" placeholder="Ej: 001">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Año</label>
+                                        <input type="text" id="aprobacionAnioDoc" name="anio_documento" class="form-control"
+                                            value="{{ date('Y') }}">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group" id="aprobacionArchivoWrap">
+                                <label><i class="fa fa-file-pdf-o"></i> Archivos (puede seleccionar varios)</label>
+                                <input type="file" name="archivos_aprobacion[]" id="inputAprobacionArchivos"
+                                    class="form-control" accept=".pdf,.doc,.docx,.zip" multiple>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-            </div>
-        </div>
-
-        <!-- =====================================================
-                 MODAL: DETALLE/EDITAR TRÁMITE
-                 ===================================================== -->
-        <div class="modal fade" id="modalDetalleTramite" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-lg" role="document" style="width: 90%; max-width: 1100px;">
-                <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
-                    <!-- Header -->
-                    <div class="modal-header" id="modalDetalleHeader"
-                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px;">
-                        <button type="button" class="close" data-dismiss="modal"
-                            style="color: white; opacity: 1; font-size: 28px;">&times;</button>
-                        <div>
-                            <h4 class="modal-title" style="margin: 0; font-weight: 600;">
-                                <i class="fa fa-folder-open"></i> <span id="detalleHeaderTitulo">Cargando...</span>
-                            </h4>
-                            <div style="margin-top: 8px; font-size: 13px; opacity: 0.9;">
-                                <span id="detalleHeaderMeta"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal-body" style="padding: 0;">
-                        <!-- Tabs -->
-                        <ul class="nav nav-tabs" id="detalleTabs"
-                            style="background: #f8fafc; padding: 10px 20px 0; margin: 0; border-bottom: 2px solid #e5e7eb;">
-                            <li class="active" id="tabGrupoLi">
-                                <a href="#tabGrupo" data-toggle="tab" style="font-weight: 600;">
-                                    <i class="fa fa-folder"></i> Grupo
-                                </a>
-                            </li>
-                            <li id="tabMktLi">
-                                <a href="#tabMkt" data-toggle="tab" style="font-weight: 600; color: #3b82f6;">
-                                    <i class="fa fa-bullhorn"></i> Marketing
-                                </a>
-                            </li>
-                            <li id="tabFiscLi">
-                                <a href="#tabFisc" data-toggle="tab" style="font-weight: 600; color: #10b981;">
-                                    <i class="fa fa-gavel"></i> Fiscalización
-                                </a>
-                            </li>
-                        </ul>
-
-                        <!-- Tab Content -->
-                        <div class="tab-content" style="padding: 20px; max-height: 70vh; overflow-y: auto;">
-
-                            <!-- TAB: GRUPO -->
-                            <div class="tab-pane fade in active" id="tabGrupo">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="panel panel-default" style="border-radius: 8px;">
-                                            <div class="panel-heading"
-                                                style="background: #667eea !important; color: white !important; border-radius: 8px 8px 0 0;">
-                                                <i class="fa fa-info-circle"></i> Información del Grupo
-                                            </div>
-                                            <div class="panel-body" id="grupoInfoPanel">
-                                                <p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i>
-                                                    Cargando...</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="panel panel-default" style="border-radius: 8px;">
-                                            <div class="panel-heading"
-                                                style="background: #f59e0b !important; color: white !important; border-radius: 8px 8px 0 0;">
-                                                <i class="fa fa-tasks"></i> Resumen de Notas
-                                            </div>
-                                            <div class="panel-body" id="grupoResumenPanel">
-                                                <p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i>
-                                                    Cargando...</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Notas Relacionadas -->
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="panel panel-default" style="border-radius: 8px;">
-                                            <div class="panel-heading"
-                                                style="background: #7c3aed !important; color: white !important; border-radius: 8px 8px 0 0;">
-                                                <i class="fa fa-link"></i> Notas Relacionadas
-                                                @if(!in_array($nivelEstado, ['funcionario1', 'funcionario2']))
-                                                    <button class="btn btn-xs btn-default pull-right btn-vincular-nota"
-                                                        style="margin-top: -3px;">
-                                                        <i class="fa fa-plus"></i> Vincular
-                                                    </button>
-                                                @endif
-                                            </div>
-                                            <div class="panel-body" id="grupoRelacionPanel" style="padding: 10px;">
-                                                <p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i>
-                                                    Cargando...</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Notas de Aprobación -->
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="panel panel-default" style="border-radius: 8px;">
-                                            <div class="panel-heading"
-                                                style="background: #059669 !important; color: white !important; border-radius: 8px 8px 0 0;">
-                                                <i class="fa fa-check-circle"></i> Notas de Aprobación
-                                                @if($nivelEstado === 'admin')
-                                                    <button class="btn btn-xs btn-default pull-right btn-agregar-nota-aprobacion"
-                                                        style="margin-top: -3px;">
-                                                        <i class="fa fa-plus"></i> Agregar
-                                                    </button>
-                                                @endif
-                                            </div>
-                                            <div class="panel-body" id="grupoAprobacionPanel">
-                                                <p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i>
-                                                    Cargando...</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- TAB: MARKETING -->
-                            <div class="tab-pane fade" id="tabMkt">
-                                <div id="mktContenido">
-                                    <p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i> Cargando datos de
-                                        Marketing...</p>
-                                </div>
-                            </div>
-
-                            <!-- TAB: FISCALIZACION -->
-                            <div class="tab-pane fade" id="tabFisc">
-                                <div id="fiscContenido">
-                                    <p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i> Cargando datos de
-                                        Fiscalización...</p>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div class="modal-footer" style="background: #f8fafc; border-top: 2px solid #e5e7eb;">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">
-                            <i class="fa fa-times"></i> Cerrar
-                        </button>
-                        <button type="button" class="btn btn-primary" id="btnGuardarDetalle" style="display: none;">
-                            <i class="fa fa-save"></i> Guardar Cambios
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Template para contenido de nota (MKT o FISC) -->
-        @verbatim
-            <script type="text/template" id="templateNotaDetalle">
-                    <div class="nota-detalle-content" data-nota-id="{{id}}" data-tipo-rama="{{tipo_rama}}" data-id-casino="{{id_casino}}" data-id-plataforma="{{id_plataforma}}">
-                    <div class="row">
-                        <!-- Columna Izquierda: Datos y Máquinas/Islas (panel ancho) -->
-                        <div class="col-md-7">
-                            <!-- Datos Generales -->
-                            <div class="panel panel-default" style="border-radius: 8px; margin-bottom: 15px;">
-                                <div class="panel-heading" style="background: {{color}} !important; color: white !important; border-radius: 8px 8px 0 0;">
-                                    <i class="fa fa-file-text"></i> Datos de la Nota
-                                    <button class="btn btn-xs btn-default pull-right btn-editar-nota" data-id="{{id}}" style="margin-top: -3px;">
-                                        <i class="fa fa-pencil"></i> Editar
-                                    </button>
-                                </div>
-                                <div class="panel-body">
-                                    <table class="table table-condensed" style="margin-bottom: 0;">
-                                        <tr><td style="width: 140px;"><strong>Nro Nota:</strong></td><td><span class="editable" data-field="nro_nota_ing">{{nro_nota}}</span> <small class="text-muted">/ <span class="editable" data-field="anio">{{anio}}</span></small></td></tr>
-                                        <tr><td><strong>Casino/Plataforma:</strong></td><td>{{casino}}</td></tr>
-                                        <tr><td><strong>Tipo Solicitud:</strong></td><td>{{tipo_solicitud}}</td></tr>
-                                        <tr class="row-tipo-evento"><td><strong>Tipo Evento:</strong></td><td><span class="editable" data-field="id_tipo_evento" data-value="{{id_tipo_evento}}">{{tipo_evento}}</span></td></tr>
-                                        <tr class="row-categoria"><td><strong>Categoría:</strong></td><td><span class="editable" data-field="id_categoria" data-value="{{id_categoria}}">{{categoria}}</span></td></tr>
-                                        <tr><td><strong>Descripción:</strong></td><td><span class="editable" data-field="descripcion">{{descripcion}}</span></td></tr>
-                                        <tr><td><strong>Fecha Inicio:</strong></td><td><span class="editable" data-field="fecha_inicio">{{fecha_inicio}}</span></td></tr>
-                                        <tr><td><strong>Fecha Fin:</strong></td><td><span class="editable" data-field="fecha_fin">{{fecha_fin}}</span></td></tr>
-                                        <tr class="row-fecha-pretendida"><td><strong>Fecha Est. Aprob.:</strong></td><td><span class="editable" data-field="fecha_pretendida_aprobacion">{{fecha_pretendida_aprobacion}}</span></td></tr>
-                                        <tr class="row-fecha-propuesta"><td><strong>Fecha prop. realiz.:</strong></td><td><span class="editable" data-field="fecha_propuesta_realizacion">{{fecha_propuesta_realizacion}}</span></td></tr>
-                                        <tr class="row-compartir-admin"><td><strong>Compartir Admin.:</strong></td><td><span class="editable editable-toggle" data-field="compartir_administrador" data-value="{{compartir_administrador}}">{{compartir_administrador_label}}</span></td></tr>
-                                        <tr><td><strong>Estado:</strong></td><td><span class="editable" data-field="estado" data-value="{{estado}}"><span class="label" style="{{estadoStyle}}">{{estado}}</span></span></td></tr>
-                                        <tr><td><strong>Creado:</strong></td><td>{{created_at}}</td></tr>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <!-- Máquinas / Islas Asociadas (panel, columna izquierda — más ancho para los botones) -->
-                            <div class="panel panel-default panel-activos-wrap" style="border-radius: 8px; margin-bottom: 15px;">
-                                <div class="panel-heading" style="background: #8b5cf6 !important; color: white !important; border-radius: 8px 8px 0 0;">
-                                    <div><i class="fa fa-desktop"></i> <strong class="activos-titulo">Máquinas / Islas Asociadas</strong> <span class="activos-contador" style="display:inline-block; background:rgba(255,255,255,0.28); color:#fff; font-weight:700; font-size:12px; padding:1px 9px; border-radius:10px; margin-left:4px;">{{activosCount}}</span></div>
-                                    <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">
-                                        <button class="btn btn-xs btn-toggle-add-activo" data-id="{{id}}" style="background:#fff; color:#8b5cf6; border:none; border-radius:6px; font-weight:600; padding:4px 12px; box-shadow:0 1px 2px rgba(0,0,0,0.15);" onmouseover="this.style.background='#f3e8ff'" onmouseout="this.style.background='#fff'">
-                                            <i class="fa fa-plus"></i> Agregar
-                                        </button>
-                                        <button class="btn btn-xs btn-export-activos" data-id="{{id}}" data-formato="xlsx" style="background:rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.45); border-radius:6px; font-weight:600; padding:4px 11px;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" title="Exportar máquinas/juegos a Excel">
-                                            <i class="fa fa-file-excel-o"></i> Excel
-                                        </button>
-                                        <button class="btn btn-xs btn-export-activos" data-id="{{id}}" data-formato="csv" style="background:rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.45); border-radius:6px; font-weight:600; padding:4px 11px;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" title="Exportar máquinas/juegos a CSV">
-                                            <i class="fa fa-file-text-o"></i> CSV
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="panel-body" style="padding: 0;">
-                                    <div class="activos-add-form" data-nota-id="{{id}}" data-casino-id="{{id_casino}}" data-plataforma-id="{{id_plataforma}}" style="display:none; padding:10px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
-                                        <select class="form-control det-sel-tipo-activo" style="margin-bottom:8px;">
-                                            <option value="MTM">Máquina (MTM)</option>
-                                            <option value="ISLA">Isla (todas las MTM)</option>
-                                            <option value="MESA">Mesa de Paño</option>
-                                            <option value="BINGO">Bingo</option>
-                                        </select>
-                                        <div class="input-group det-input-wrap">
-                                            <input type="text" class="form-control det-inp-activo" placeholder="Nro admin de la máquina..." autocomplete="off">
-                                            <input type="hidden" class="det-hid-activo">
-                                            <span class="input-group-btn">
-                                                <button class="btn btn-primary det-btn-agregar-activo"><i class="fa fa-plus"></i> Agregar a lista</button>
-                                            </span>
-                                        </div>
-                                        <div class="det-resultados-busqueda list-group" style="position:fixed; z-index:99999; max-height:250px; overflow-y:auto; display:none; box-shadow:0 8px 30px rgba(0,0,0,0.25); border:1px solid #ccc; background:#fff;"></div>
-
-                                        <!-- Carga masiva: pegar lista de IDs o códigos -->
-                                        <div style="margin-top:8px; border-top:1px dashed #e2e8f0; padding-top:8px;">
-                                            <a href="javascript:void(0)" class="det-toggle-masiva" style="font-size:12px;"><i class="fa fa-list"></i> Pegar lista (varios IDs o códigos)</a>
-                                            <div class="det-masiva-wrap" style="display:none; margin-top:6px;">
-                                                <textarea class="form-control det-masiva-text" rows="4" placeholder="Un ID o código por línea (o separados por coma). Ej:&#10;4011086&#10;4006001" style="font-size:12px;"></textarea>
-                                                <button class="btn btn-info btn-sm det-btn-resolver-masiva" style="margin-top:6px;"><i class="fa fa-magic"></i> Resolver y agregar</button>
-                                                <div class="det-masiva-reporte" style="margin-top:6px; font-size:12px;"></div>
-                                            </div>
-                                        </div>
-
-                                        <div class="det-pendientes-lista" style="margin-top:8px;"></div>
-                                        <div class="det-pendientes-actions" style="display:none; margin-top:8px; text-align:right; border-top:1px solid #e2e8f0; padding-top:8px;">
-                                            <span class="det-pendientes-count text-muted" style="float:left; line-height:30px; font-size:12px;"></span>
-                                            <button class="btn btn-default btn-sm det-btn-cancelar-activos" style="margin-right:5px;"><i class="fa fa-times"></i> Cancelar</button>
-                                            <button class="btn btn-success btn-sm det-btn-confirmar-activos"><i class="fa fa-check"></i> Confirmar</button>
-                                        </div>
-                                    </div>
-                                    <div class="activos-lista-detalle">
-                                        {{activosHtml}}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Archivos Adjuntos: panel general + un panel por cada tipo adentro -->
-                            <div class="panel panel-default" style="border-radius: 8px; margin-bottom: 15px;">
-                                <div class="panel-heading" style="background: #6b7280 !important; color: white !important; border-radius: 8px 8px 0 0;">
-                                    <i class="fa fa-paperclip"></i> Archivos Adjuntos
-                                </div>
-                                <div class="panel-body" style="padding: 10px;">
-                                    <div class="adjuntos-lista">{{adjuntosHtml}}</div>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <!-- Columna Derecha: Comentarios, Historial -->
-                        <div class="col-md-5">
-                            <!-- Comentarios (oculto para casinos/plataformas) -->
-        @endverbatim
-            @if(isset($puedeVerComentarios) && $puedeVerComentarios)
-                @verbatim
-                    <div class="panel panel-default panel-comentarios-wrap" style="border-radius: 8px; margin-bottom: 15px;">
-                        <div class="panel-heading" style="background: #ec4899 !important; color: white !important; border-radius: 8px 8px 0 0;">
-                            <i class="fa fa-comments"></i> Comentarios
-                        </div>
-                        <div class="panel-body" style="padding: 10px;">
-                            <div class="comentarios-lista" data-id="{{id}}" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;">
-                                {{comentariosHtml}}
-                            </div>
-                            <div class="input-group">
-                                <input type="text" class="form-control input-comentario" placeholder="Escribir comentario..." data-id="{{id}}">
-                                <span class="input-group-btn">
-                                    <button class="btn btn-default btn-enviar-comentario" data-id="{{id}}" style="border:1px solid #ccc;">
-                                        <i class="fa fa-paper-plane" style="color:#ec4899;"></i>
-                                    </button>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                @endverbatim
-            @endif
-            @verbatim
-
-                        <!-- Historial -->
-                        <div class="panel panel-default" style="border-radius: 8px; margin-bottom: 15px;">
-                            <div class="panel-heading" style="background: #374151 !important; color: white !important; border-radius: 8px 8px 0 0;">
-                                <i class="fa fa-history"></i> Historial de Movimientos
-                            </div>
-                            <div class="panel-body" style="padding: 10px; max-height: 250px; overflow-y: auto;">
-                                <div class="timeline-movimientos">{{historialHtml}}</div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-                </div>
-                </script>
-            @endverbatim
-
-    @if(!empty($esSuperusuario) && empty($esFuncionario))
-    {{-- Botón discreto (superusuarios NO funcionarios): log global de movimientos del módulo --}}
-    <button type="button" id="btnLogGlobalMov" title="Log global de movimientos"
-        data-toggle="modal" data-target="#modalLogGlobalMov"
-        style="position:fixed; bottom:8px; right:10px; z-index:1030; background:transparent; border:none; color:#bbb; font-size:11px; padding:2px 6px; cursor:pointer;"
-        onmouseover="this.style.color='#666';" onmouseout="this.style.color='#bbb';">
-        <i class="fa fa-history"></i> log
-    </button>
-
-    {{-- Modal: log global de movimientos (orden cronológico) --}}
-    <div class="modal fade" id="modalLogGlobalMov" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg" role="document" style="width:92%; max-width:1150px;">
-            <div class="modal-content">
-                <div class="modal-header" style="background:#2c3e50; color:#fff; border-top-left-radius:6px; border-top-right-radius:6px;">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:#fff; opacity:0.9; text-shadow:none;"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" style="color:#fff;"><i class="fa fa-history"></i> Log global de movimientos</h4>
-                    <small id="logGlobalMovInfo" style="color:#cbd5e1;">Todos los movimientos del módulo, del más reciente al más antiguo.</small>
-                </div>
-                <div class="modal-body">
-                    {{-- Filtros --}}
-                    <div class="row" style="margin-bottom:10px;">
-                        <div class="col-md-4" style="margin-bottom:6px;">
-                            <input type="text" id="logFiltroQ" class="form-control input-sm" placeholder="Buscar: nota, título, usuario, comentario…">
-                        </div>
-                        <div class="col-md-2" style="margin-bottom:6px;">
-                            <select id="logFiltroRama" class="form-control input-sm">
-                                <option value="">Rama: todas</option>
-                                <option value="MKT">Marketing</option>
-                                <option value="FISC">Fiscalización</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3" style="margin-bottom:6px;">
-                            <select id="logFiltroAccion" class="form-control input-sm">
-                                <option value="">Acción: todas</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3" style="margin-bottom:6px;">
-                            <div class="input-group input-group-sm" title="Rango de fechas">
-                                <input type="date" id="logFiltroDesde" class="form-control input-sm" style="padding:2px 4px;">
-                                <span class="input-group-addon">a</span>
-                                <input type="date" id="logFiltroHasta" class="form-control input-sm" style="padding:2px 4px;">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="max-height:60vh; overflow-y:auto; border:1px solid #eee; border-radius:4px;">
-                        <div id="logGlobalMovLoading" class="text-center text-muted" style="padding:20px; display:none;">
-                            <i class="fa fa-spinner fa-spin"></i> Cargando…
-                        </div>
-                        <table class="table table-striped table-condensed" style="font-size:12px; margin-bottom:0;">
-                            <thead>
-                                <tr>
-                                    <th style="white-space:nowrap;">Fecha</th>
-                                    <th>Usuario</th>
-                                    <th>Nota</th>
-                                    <th>Casino / Plataforma</th>
-                                    <th>Rama</th>
-                                    <th>Acción</th>
-                                    <th>Comentario</th>
-                                </tr>
-                            </thead>
-                            <tbody id="logGlobalMovBody"></tbody>
-                        </table>
-                    </div>
-
-                    {{-- Paginación --}}
-                    <div class="row" style="margin-top:10px; align-items:center;">
-                        <div class="col-md-4">
-                            <select id="logPerPage" class="form-control input-sm" style="width:auto; display:inline-block;">
-                                <option value="25">25 / pág.</option>
-                                <option value="50" selected>50 / pág.</option>
-                                <option value="100">100 / pág.</option>
-                                <option value="200">200 / pág.</option>
-                            </select>
-                        </div>
-                        <div class="col-md-8 text-right">
-                            <button type="button" id="logBtnPrev" class="btn btn-default btn-sm"><i class="fa fa-chevron-left"></i></button>
-                            <span id="logPagInfo" style="margin:0 8px; font-size:12px; color:#555;">—</span>
-                            <button type="button" id="logBtnNext" class="btn btn-default btn-sm"><i class="fa fa-chevron-right"></i></button>
-                        </div>
-                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-success" id="btnGuardarNotaAprobacion">
+                        <i class="fa fa-upload"></i> Subir
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- =====================================================
+                     MODAL: DETALLE/EDITAR TRÁMITE
+                     ===================================================== -->
+    <div class="modal fade" id="modalDetalleTramite" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document" style="width: 90%; max-width: 1100px;">
+            <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
+                <!-- Header -->
+                <div class="modal-header" id="modalDetalleHeader"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px;">
+                    <button type="button" class="close" data-dismiss="modal"
+                        style="color: white; opacity: 1; font-size: 28px;">&times;</button>
+                    <div>
+                        <h4 class="modal-title" style="margin: 0; font-weight: 600;">
+                            <i class="fa fa-folder-open"></i> <span id="detalleHeaderTitulo">Cargando...</span>
+                        </h4>
+                        <div style="margin-top: 8px; font-size: 13px; opacity: 0.9;">
+                            <span id="detalleHeaderMeta"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-body" style="padding: 0;">
+                    <!-- Tabs -->
+                    <ul class="nav nav-tabs" id="detalleTabs"
+                        style="background: #f8fafc; padding: 10px 20px 0; margin: 0; border-bottom: 2px solid #e5e7eb;">
+                        <li class="active" id="tabGrupoLi">
+                            <a href="#tabGrupo" data-toggle="tab" style="font-weight: 600;">
+                                <i class="fa fa-folder"></i> Grupo
+                            </a>
+                        </li>
+                        <li id="tabMktLi">
+                            <a href="#tabMkt" data-toggle="tab" style="font-weight: 600; color: #3b82f6;">
+                                <i class="fa fa-bullhorn"></i> Marketing
+                            </a>
+                        </li>
+                        <li id="tabFiscLi">
+                            <a href="#tabFisc" data-toggle="tab" style="font-weight: 600; color: #10b981;">
+                                <i class="fa fa-gavel"></i> Fiscalización
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" style="padding: 20px; max-height: 70vh; overflow-y: auto;">
+
+                        <!-- TAB: GRUPO -->
+                        <div class="tab-pane fade in active" id="tabGrupo">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="panel panel-default" style="border-radius: 8px;">
+                                        <div class="panel-heading"
+                                            style="background: #667eea !important; color: white !important; border-radius: 8px 8px 0 0;">
+                                            <i class="fa fa-info-circle"></i> Información del Grupo
+                                        </div>
+                                        <div class="panel-body" id="grupoInfoPanel">
+                                            <p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i>
+                                                Cargando...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="panel panel-default" style="border-radius: 8px;">
+                                        <div class="panel-heading"
+                                            style="background: #f59e0b !important; color: white !important; border-radius: 8px 8px 0 0;">
+                                            <i class="fa fa-tasks"></i> Resumen de Notas
+                                        </div>
+                                        <div class="panel-body" id="grupoResumenPanel">
+                                            <p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i>
+                                                Cargando...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Notas Relacionadas -->
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="panel panel-default" style="border-radius: 8px;">
+                                        <div class="panel-heading"
+                                            style="background: #7c3aed !important; color: white !important; border-radius: 8px 8px 0 0;">
+                                            <i class="fa fa-link"></i> Notas Relacionadas
+                                            @if(!in_array($nivelEstado, ['funcionario1', 'funcionario2']))
+                                                <button class="btn btn-xs btn-default pull-right btn-vincular-nota"
+                                                    style="margin-top: -3px;">
+                                                    <i class="fa fa-plus"></i> Vincular
+                                                </button>
+                                            @endif
+                                        </div>
+                                        <div class="panel-body" id="grupoRelacionPanel" style="padding: 10px;">
+                                            <p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i>
+                                                Cargando...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Notas de Aprobación -->
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="panel panel-default" style="border-radius: 8px;">
+                                        <div class="panel-heading"
+                                            style="background: #059669 !important; color: white !important; border-radius: 8px 8px 0 0;">
+                                            <i class="fa fa-check-circle"></i> Notas de Aprobación
+                                            @if($nivelEstado === 'admin')
+                                                <button class="btn btn-xs btn-default pull-right btn-agregar-nota-aprobacion"
+                                                    style="margin-top: -3px;">
+                                                    <i class="fa fa-plus"></i> Agregar
+                                                </button>
+                                            @endif
+                                        </div>
+                                        <div class="panel-body" id="grupoAprobacionPanel">
+                                            <p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i>
+                                                Cargando...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB: MARKETING -->
+                        <div class="tab-pane fade" id="tabMkt">
+                            <div id="mktContenido">
+                                <p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i> Cargando datos de
+                                    Marketing...</p>
+                            </div>
+                        </div>
+
+                        <!-- TAB: FISCALIZACION -->
+                        <div class="tab-pane fade" id="tabFisc">
+                            <div id="fiscContenido">
+                                <p class="text-muted text-center"><i class="fa fa-spinner fa-spin"></i> Cargando datos de
+                                    Fiscalización...</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="background: #f8fafc; border-top: 2px solid #e5e7eb;">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        <i class="fa fa-times"></i> Cerrar
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnGuardarDetalle" style="display: none;">
+                        <i class="fa fa-save"></i> Guardar Cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template para contenido de nota (MKT o FISC) -->
+    @verbatim
+        <script type="text/template" id="templateNotaDetalle">
+                            <div class="nota-detalle-content" data-nota-id="{{id}}" data-tipo-rama="{{tipo_rama}}" data-id-casino="{{id_casino}}" data-id-plataforma="{{id_plataforma}}">
+                            <div class="row">
+                                <!-- Columna Izquierda: Datos y Máquinas/Islas (panel ancho) -->
+                                <div class="col-md-7">
+                                    <!-- Datos Generales -->
+                                    <div class="panel panel-default" style="border-radius: 8px; margin-bottom: 15px;">
+                                        <div class="panel-heading" style="background: {{color}} !important; color: white !important; border-radius: 8px 8px 0 0;">
+                                            <i class="fa fa-file-text"></i> Datos de la Nota
+                                            <button class="btn btn-xs btn-default pull-right btn-editar-nota" data-id="{{id}}" style="margin-top: -3px;">
+                                                <i class="fa fa-pencil"></i> Editar
+                                            </button>
+                                        </div>
+                                        <div class="panel-body">
+                                            <table class="table table-condensed" style="margin-bottom: 0;">
+                                                <tr><td style="width: 140px;"><strong>Nro Nota:</strong></td><td><span class="editable" data-field="nro_nota_ing">{{nro_nota}}</span> <small class="text-muted">/ <span class="editable" data-field="anio">{{anio}}</span></small></td></tr>
+                                                <tr><td><strong>Casino/Plataforma:</strong></td><td>{{casino}}</td></tr>
+                                                <tr><td><strong>Tipo Solicitud:</strong></td><td>{{tipo_solicitud}}</td></tr>
+                                                <tr class="row-tipo-evento"><td><strong>Tipo Evento:</strong></td><td><span class="editable" data-field="id_tipo_evento" data-value="{{id_tipo_evento}}">{{tipo_evento}}</span></td></tr>
+                                                <tr class="row-categoria"><td><strong>Categoría:</strong></td><td><span class="editable" data-field="id_categoria" data-value="{{id_categoria}}">{{categoria}}</span></td></tr>
+                                                <tr><td><strong>Descripción:</strong></td><td><span class="editable" data-field="descripcion">{{descripcion}}</span></td></tr>
+                                                <tr><td><strong>Fecha Inicio:</strong></td><td><span class="editable" data-field="fecha_inicio">{{fecha_inicio}}</span></td></tr>
+                                                <tr><td><strong>Fecha Fin:</strong></td><td><span class="editable" data-field="fecha_fin">{{fecha_fin}}</span></td></tr>
+                                                <tr class="row-fecha-pretendida"><td><strong>Fecha Est. Aprob.:</strong></td><td><span class="editable" data-field="fecha_pretendida_aprobacion">{{fecha_pretendida_aprobacion}}</span></td></tr>
+                                                <tr class="row-fecha-propuesta"><td><strong>Fecha prop. realiz.:</strong></td><td><span class="editable" data-field="fecha_propuesta_realizacion">{{fecha_propuesta_realizacion}}</span></td></tr>
+                                                <tr class="row-compartir-admin"><td><strong>Compartir Admin.:</strong></td><td><span class="editable editable-toggle" data-field="compartir_administrador" data-value="{{compartir_administrador}}">{{compartir_administrador_label}}</span></td></tr>
+                                                <tr><td><strong>Estado:</strong></td><td><span class="editable" data-field="estado" data-value="{{estado}}"><span class="label" style="{{estadoStyle}}">{{estado}}</span></span></td></tr>
+                                                <tr><td><strong>Creado:</strong></td><td>{{created_at}}</td></tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- Máquinas / Islas Asociadas (panel, columna izquierda — más ancho para los botones) -->
+                                    <div class="panel panel-default panel-activos-wrap" style="border-radius: 8px; margin-bottom: 15px;">
+                                        <div class="panel-heading" style="background: #8b5cf6 !important; color: white !important; border-radius: 8px 8px 0 0;">
+                                            <div><i class="fa fa-desktop"></i> <strong class="activos-titulo">Máquinas / Islas Asociadas</strong> <span class="activos-contador" style="display:inline-block; background:rgba(255,255,255,0.28); color:#fff; font-weight:700; font-size:12px; padding:1px 9px; border-radius:10px; margin-left:4px;">{{activosCount}}</span></div>
+                                            <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">
+                                                <button class="btn btn-xs btn-toggle-add-activo" data-id="{{id}}" style="background:#fff; color:#8b5cf6; border:none; border-radius:6px; font-weight:600; padding:4px 12px; box-shadow:0 1px 2px rgba(0,0,0,0.15);" onmouseover="this.style.background='#f3e8ff'" onmouseout="this.style.background='#fff'">
+                                                    <i class="fa fa-plus"></i> Agregar
+                                                </button>
+                                                <button class="btn btn-xs btn-export-activos" data-id="{{id}}" data-formato="xlsx" style="background:rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.45); border-radius:6px; font-weight:600; padding:4px 11px;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" title="Exportar máquinas/juegos a Excel">
+                                                    <i class="fa fa-file-excel-o"></i> Excel
+                                                </button>
+                                                <button class="btn btn-xs btn-export-activos" data-id="{{id}}" data-formato="csv" style="background:rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.45); border-radius:6px; font-weight:600; padding:4px 11px;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'" title="Exportar máquinas/juegos a CSV">
+                                                    <i class="fa fa-file-text-o"></i> CSV
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="panel-body" style="padding: 0;">
+                                            <div class="activos-add-form" data-nota-id="{{id}}" data-casino-id="{{id_casino}}" data-plataforma-id="{{id_plataforma}}" style="display:none; padding:10px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+                                                <select class="form-control det-sel-tipo-activo" style="margin-bottom:8px;">
+                                                    <option value="MTM">Máquina (MTM)</option>
+                                                    <option value="ISLA">Isla (todas las MTM)</option>
+                                                    <option value="MESA">Mesa de Paño</option>
+                                                    <option value="BINGO">Bingo</option>
+                                                </select>
+                                                <div class="input-group det-input-wrap">
+                                                    <input type="text" class="form-control det-inp-activo" placeholder="Nro admin de la máquina..." autocomplete="off">
+                                                    <input type="hidden" class="det-hid-activo">
+                                                    <span class="input-group-btn">
+                                                        <button class="btn btn-primary det-btn-agregar-activo"><i class="fa fa-plus"></i> Agregar a lista</button>
+                                                    </span>
+                                                </div>
+                                                <div class="det-resultados-busqueda list-group" style="position:fixed; z-index:99999; max-height:250px; overflow-y:auto; display:none; box-shadow:0 8px 30px rgba(0,0,0,0.25); border:1px solid #ccc; background:#fff;"></div>
+
+                                                <!-- Carga masiva: pegar lista de IDs o códigos -->
+                                                <div style="margin-top:8px; border-top:1px dashed #e2e8f0; padding-top:8px;">
+                                                    <a href="javascript:void(0)" class="det-toggle-masiva" style="font-size:12px;"><i class="fa fa-list"></i> Pegar lista (varios IDs o códigos)</a>
+                                                    <div class="det-masiva-wrap" style="display:none; margin-top:6px;">
+                                                        <textarea class="form-control det-masiva-text" rows="4" placeholder="Un ID o código por línea (o separados por coma). Ej:&#10;4011086&#10;4006001" style="font-size:12px;"></textarea>
+                                                        <button class="btn btn-info btn-sm det-btn-resolver-masiva" style="margin-top:6px;"><i class="fa fa-magic"></i> Resolver y agregar</button>
+                                                        <div class="det-masiva-reporte" style="margin-top:6px; font-size:12px;"></div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="det-pendientes-lista" style="margin-top:8px;"></div>
+                                                <div class="det-pendientes-actions" style="display:none; margin-top:8px; text-align:right; border-top:1px solid #e2e8f0; padding-top:8px;">
+                                                    <span class="det-pendientes-count text-muted" style="float:left; line-height:30px; font-size:12px;"></span>
+                                                    <button class="btn btn-default btn-sm det-btn-cancelar-activos" style="margin-right:5px;"><i class="fa fa-times"></i> Cancelar</button>
+                                                    <button class="btn btn-success btn-sm det-btn-confirmar-activos"><i class="fa fa-check"></i> Confirmar</button>
+                                                </div>
+                                            </div>
+                                            <div class="activos-lista-detalle">
+                                                {{activosHtml}}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Archivos Adjuntos: panel general + un panel por cada tipo adentro -->
+                                    <div class="panel panel-default" style="border-radius: 8px; margin-bottom: 15px;">
+                                        <div class="panel-heading" style="background: #6b7280 !important; color: white !important; border-radius: 8px 8px 0 0;">
+                                            <i class="fa fa-paperclip"></i> Archivos Adjuntos
+                                        </div>
+                                        <div class="panel-body" style="padding: 10px;">
+                                            <div class="adjuntos-lista">{{adjuntosHtml}}</div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- Columna Derecha: Comentarios, Historial -->
+                                <div class="col-md-5">
+                                    <!-- Comentarios (oculto para casinos/plataformas) -->
+    @endverbatim
+                @if(isset($puedeVerComentarios) && $puedeVerComentarios)
+                    @verbatim
+                        <div class="panel panel-default panel-comentarios-wrap" style="border-radius: 8px; margin-bottom: 15px;">
+                            <div class="panel-heading" style="background: #ec4899 !important; color: white !important; border-radius: 8px 8px 0 0;">
+                                <i class="fa fa-comments"></i> Comentarios
+                            </div>
+                            <div class="panel-body" style="padding: 10px;">
+                                <div class="comentarios-lista" data-id="{{id}}" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;">
+                                    {{comentariosHtml}}
+                                </div>
+                                <div class="input-group">
+                                    <input type="text" class="form-control input-comentario" placeholder="Escribir comentario..." data-id="{{id}}">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default btn-enviar-comentario" data-id="{{id}}" style="border:1px solid #ccc;">
+                                            <i class="fa fa-paper-plane" style="color:#ec4899;"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    @endverbatim
+                @endif
+                @verbatim
+
+                            <!-- Historial -->
+                            <div class="panel panel-default" style="border-radius: 8px; margin-bottom: 15px;">
+                                <div class="panel-heading" style="background: #374151 !important; color: white !important; border-radius: 8px 8px 0 0;">
+                                    <i class="fa fa-history"></i> Historial de Movimientos
+                                </div>
+                                <div class="panel-body" style="padding: 10px; max-height: 250px; overflow-y: auto;">
+                                    <div class="timeline-movimientos">{{historialHtml}}</div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    </div>
+                    </script>
+                @endverbatim
+
+    @if(!empty($esSuperusuario) && empty($esFuncionario))
+        {{-- Botón discreto (superusuarios NO funcionarios): log global de movimientos del módulo --}}
+        <button type="button" id="btnLogGlobalMov" title="Log global de movimientos" data-toggle="modal"
+            data-target="#modalLogGlobalMov"
+            style="position:fixed; bottom:8px; right:10px; z-index:1030; background:transparent; border:none; color:#bbb; font-size:11px; padding:2px 6px; cursor:pointer;"
+            onmouseover="this.style.color='#666';" onmouseout="this.style.color='#bbb';">
+            <i class="fa fa-history"></i> log
+        </button>
+
+        {{-- Modal: log global de movimientos (orden cronológico) --}}
+        <div class="modal fade" id="modalLogGlobalMov" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document" style="width:92%; max-width:1150px;">
+                <div class="modal-content">
+                    <div class="modal-header"
+                        style="background:#2c3e50; color:#fff; border-top-left-radius:6px; border-top-right-radius:6px;">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            style="color:#fff; opacity:0.9; text-shadow:none;"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" style="color:#fff;"><i class="fa fa-history"></i> Log global de movimientos</h4>
+                        <small id="logGlobalMovInfo" style="color:#cbd5e1;">Todos los movimientos del módulo, del más reciente
+                            al más antiguo.</small>
+                    </div>
+                    <div class="modal-body">
+                        {{-- Filtros --}}
+                        <div class="row" style="margin-bottom:10px;">
+                            <div class="col-md-4" style="margin-bottom:6px;">
+                                <input type="text" id="logFiltroQ" class="form-control input-sm"
+                                    placeholder="Buscar: nota, título, usuario, comentario…">
+                            </div>
+                            <div class="col-md-2" style="margin-bottom:6px;">
+                                <select id="logFiltroRama" class="form-control input-sm">
+                                    <option value="">Rama: todas</option>
+                                    <option value="MKT">Marketing</option>
+                                    <option value="FISC">Fiscalización</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3" style="margin-bottom:6px;">
+                                <select id="logFiltroAccion" class="form-control input-sm">
+                                    <option value="">Acción: todas</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3" style="margin-bottom:6px;">
+                                <div class="input-group input-group-sm" title="Rango de fechas">
+                                    <input type="date" id="logFiltroDesde" class="form-control input-sm"
+                                        style="padding:2px 4px;">
+                                    <span class="input-group-addon">a</span>
+                                    <input type="date" id="logFiltroHasta" class="form-control input-sm"
+                                        style="padding:2px 4px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="max-height:60vh; overflow-y:auto; border:1px solid #eee; border-radius:4px;">
+                            <div id="logGlobalMovLoading" class="text-center text-muted" style="padding:20px; display:none;">
+                                <i class="fa fa-spinner fa-spin"></i> Cargando…
+                            </div>
+                            <table class="table table-striped table-condensed" style="font-size:12px; margin-bottom:0;">
+                                <thead>
+                                    <tr>
+                                        <th style="white-space:nowrap;">Fecha</th>
+                                        <th>Usuario</th>
+                                        <th>Nota</th>
+                                        <th>Casino / Plataforma</th>
+                                        <th>Rama</th>
+                                        <th>Acción</th>
+                                        <th>Comentario</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="logGlobalMovBody"></tbody>
+                            </table>
+                        </div>
+
+                        {{-- Paginación --}}
+                        <div class="row" style="margin-top:10px; align-items:center;">
+                            <div class="col-md-4">
+                                <select id="logPerPage" class="form-control input-sm" style="width:auto; display:inline-block;">
+                                    <option value="25">25 / pág.</option>
+                                    <option value="50" selected>50 / pág.</option>
+                                    <option value="100">100 / pág.</option>
+                                    <option value="200">200 / pág.</option>
+                                </select>
+                            </div>
+                            <div class="col-md-8 text-right">
+                                <button type="button" id="logBtnPrev" class="btn btn-default btn-sm"><i
+                                        class="fa fa-chevron-left"></i></button>
+                                <span id="logPagInfo" style="margin:0 8px; font-size:12px; color:#555;">—</span>
+                                <button type="button" id="logBtnNext" class="btn btn-default btn-sm"><i
+                                        class="fa fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     @endif
 
 @endsection
@@ -1746,14 +1769,14 @@
                         { id: {{ $t->id }}, nombre: '{{ addslashes($t->descripcion) }}' },
                     @endif
                 @endforeach
-            ],
+                ],
             FISC: [
                 @foreach($tipos_evento as $t)
                     @if($t->tipo_tarea == 'FISC')
                         { id: {{ $t->id }}, nombre: '{{ addslashes($t->descripcion) }}', contexto: '{{ $t->contexto ?? 'todos' }}' },
                     @endif
                 @endforeach
-            ]
+                ]
         };
         var OPCIONES_CATEGORIA = {
             MKT: [
@@ -1762,40 +1785,40 @@
                         { id: {{ $c->id }}, nombre: '{{ addslashes($c->descripcion) }}' },
                     @endif
                 @endforeach
-            ],
+                ],
             FISC: []
         };
         var OPCIONES_ESTADO = [
             @foreach($estados as $est)
                 { descripcion: '{{ $est->descripcion }}', color: '{{ $est->color }}' },
             @endforeach
-        ];
+            ];
         var TRANSICIONES_ESTADO = {
             funcionario1: {
                 @foreach(\App\Models\NotaEstado::transicionesFuncionario1() as $desde => $destinos)
-                                                '{{ $desde }}': [{!! collect($destinos)->map(function ($d) {
+                                                            '{{ $desde }}': [{!! collect($destinos)->map(function ($d) {
                     return "'" . $d . "'"; })->implode(',') !!}],
                 @endforeach
-            },
+                },
         funcionario2: {
             @foreach(\App\Models\NotaEstado::transicionesFuncionario2() as $desde => $destinos)
-                        '{{ $desde }}': [{!! collect($destinos)->map(function ($d) {
+                '{{ $desde }}': [{!! collect($destinos)->map(function ($d) {
                 return "'" . $d . "'"; })->implode(',') !!}],
             @endforeach
-            },
+                },
         regular: {
             @foreach(\App\Models\NotaEstado::transicionesRegular() as $desde => $destinos)
-                        '{{ $desde }}': [{!! collect($destinos)->map(function ($d) {
+                '{{ $desde }}': [{!! collect($destinos)->map(function ($d) {
                 return "'" . $d . "'"; })->implode(',') !!}],
             @endforeach
-            },
+                },
         juego_responsable: {
             @foreach(\App\Models\NotaEstado::transicionesJuegoResponsable() as $desde => $destinos)
-                        '{{ $desde }}': [{!! collect($destinos)->map(function ($d) {
+                '{{ $desde }}': [{!! collect($destinos)->map(function ($d) {
                 return "'" . $d . "'"; })->implode(',') !!}],
             @endforeach
-            }
-        };
+                }
+            };
         var TOTAL_GRUPOS_INICIAL = {{ $totalGrupos }};
     </script>
     <script src="/js/paginacion.js"></script>
@@ -1828,8 +1851,8 @@
     <!-- <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script> -->
 
     <!-- ============================================
-             MODAL: SELECTOR DE PDFs PARA ANOTAR
-        ============================================ -->
+                 MODAL: SELECTOR DE PDFs PARA ANOTAR
+            ============================================ -->
     <div class="modal fade" id="modalSelectorPdfs" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content" style="border-radius: 12px;">
@@ -1846,8 +1869,8 @@
     </div>
 
     <!-- ============================================
-             MODAL: EDITOR DE ANOTACIONES (FULLSCREEN)
-        ============================================ -->
+                 MODAL: EDITOR DE ANOTACIONES (FULLSCREEN)
+            ============================================ -->
     <div class="modal fade" id="modalEditorAnotaciones" tabindex="-1" role="dialog" data-backdrop="static">
         <div class="modal-dialog" role="document" style="width: 95%; max-width: none; height: 95%; margin: 20px auto;">
             <div class="modal-content" style="height: 100%; border-radius: 8px;">
@@ -2331,122 +2354,122 @@
 
     <!-- FullCalendar v3 (Compatible with jQuery) -->
     <!-- Commented out to prevent timeout/lag
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css" />
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/es.js"></script>
-        -->
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/es.js"></script>
+            -->
 
     @if(!empty($esSuperusuario) && empty($esFuncionario))
-    {{-- Log global de movimientos (superusuarios NO funcionarios): carga al abrir el modal --}}
-    <script>
-        (function () {
-            function escapeHtml(s) {
-                return String(s == null ? '' : s)
-                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-            }
-            function ramaBadge(r) {
-                if (r === 'MKT') return '<span class="label label-primary">MKT</span>';
-                if (r === 'FISC') return '<span class="label label-success">FISC</span>';
-                return '';
-            }
+        {{-- Log global de movimientos (superusuarios NO funcionarios): carga al abrir el modal --}}
+        <script>
+            (function () {
+                function escapeHtml(s) {
+                    return String(s == null ? '' : s)
+                        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                }
+                function ramaBadge(r) {
+                    if (r === 'MKT') return '<span class="label label-primary">MKT</span>';
+                    if (r === 'FISC') return '<span class="label label-success">FISC</span>';
+                    return '';
+                }
 
-            var logPage = 1;
-            var logTotalPaginas = 1;
-            var logAccionesCargadas = false;
-            var logDebounce = null;
+                var logPage = 1;
+                var logTotalPaginas = 1;
+                var logAccionesCargadas = false;
+                var logDebounce = null;
 
-            function cargarLog() {
-                var $body = $('#logGlobalMovBody');
-                var $loading = $('#logGlobalMovLoading');
-                var $info = $('#logGlobalMovInfo');
-                var params = {
-                    page: logPage,
-                    per_page: $('#logPerPage').val(),
-                    q: $.trim($('#logFiltroQ').val()),
-                    rama: $('#logFiltroRama').val(),
-                    accion: $('#logFiltroAccion').val(),
-                    desde: $('#logFiltroDesde').val(),
-                    hasta: $('#logFiltroHasta').val()
-                };
-                $body.empty();
-                $loading.show();
-                $('#logBtnPrev, #logBtnNext').prop('disabled', true);
+                function cargarLog() {
+                    var $body = $('#logGlobalMovBody');
+                    var $loading = $('#logGlobalMovLoading');
+                    var $info = $('#logGlobalMovInfo');
+                    var params = {
+                        page: logPage,
+                        per_page: $('#logPerPage').val(),
+                        q: $.trim($('#logFiltroQ').val()),
+                        rama: $('#logFiltroRama').val(),
+                        accion: $('#logFiltroAccion').val(),
+                        desde: $('#logFiltroDesde').val(),
+                        hasta: $('#logFiltroHasta').val()
+                    };
+                    $body.empty();
+                    $loading.show();
+                    $('#logBtnPrev, #logBtnNext').prop('disabled', true);
 
-                $.getJSON('/notas-unificadas/log-global', params)
-                    .done(function (res) {
-                        $loading.hide();
-                        if (!res || !res.success) {
-                            $body.html('<tr><td colspan="7" class="text-center text-danger">No se pudo cargar el log.</td></tr>');
-                            return;
-                        }
-                        // Poblar acciones una sola vez
-                        if (!logAccionesCargadas && res.acciones) {
-                            var $acc = $('#logFiltroAccion');
-                            for (var k = 0; k < res.acciones.length; k++) {
-                                $acc.append('<option value="' + escapeHtml(res.acciones[k]) + '">' + escapeHtml(res.acciones[k]) + '</option>');
+                    $.getJSON('/notas-unificadas/log-global', params)
+                        .done(function (res) {
+                            $loading.hide();
+                            if (!res || !res.success) {
+                                $body.html('<tr><td colspan="7" class="text-center text-danger">No se pudo cargar el log.</td></tr>');
+                                return;
                             }
-                            logAccionesCargadas = true;
-                        }
+                            // Poblar acciones una sola vez
+                            if (!logAccionesCargadas && res.acciones) {
+                                var $acc = $('#logFiltroAccion');
+                                for (var k = 0; k < res.acciones.length; k++) {
+                                    $acc.append('<option value="' + escapeHtml(res.acciones[k]) + '">' + escapeHtml(res.acciones[k]) + '</option>');
+                                }
+                                logAccionesCargadas = true;
+                            }
 
-                        logTotalPaginas = res.total_paginas || 1;
-                        logPage = res.page || 1;
+                            logTotalPaginas = res.total_paginas || 1;
+                            logPage = res.page || 1;
 
-                        var movs = res.movimientos || [];
-                        if (!movs.length) {
-                            $body.html('<tr><td colspan="7" class="text-center text-muted">Sin movimientos para el filtro.</td></tr>');
-                        } else {
-                            var html = '';
-                            for (var i = 0; i < movs.length; i++) {
-                                var m = movs[i];
-                                html += '<tr>' +
-                                    '<td style="white-space:nowrap;">' + escapeHtml(m.fecha) + '</td>' +
-                                    '<td>' + escapeHtml(m.usuario) + '</td>' +
-                                    '<td style="white-space:nowrap;"><b>' + escapeHtml(m.nro_nota) + '</b>' +
+                            var movs = res.movimientos || [];
+                            if (!movs.length) {
+                                $body.html('<tr><td colspan="7" class="text-center text-muted">Sin movimientos para el filtro.</td></tr>');
+                            } else {
+                                var html = '';
+                                for (var i = 0; i < movs.length; i++) {
+                                    var m = movs[i];
+                                    html += '<tr>' +
+                                        '<td style="white-space:nowrap;">' + escapeHtml(m.fecha) + '</td>' +
+                                        '<td>' + escapeHtml(m.usuario) + '</td>' +
+                                        '<td style="white-space:nowrap;"><b>' + escapeHtml(m.nro_nota) + '</b>' +
                                         (m.titulo ? '<br><small class="text-muted">' + escapeHtml(m.titulo) + '</small>' : '') + '</td>' +
-                                    '<td>' + escapeHtml(m.casino) + '</td>' +
-                                    '<td>' + ramaBadge(m.rama) + '</td>' +
-                                    '<td>' + escapeHtml(m.accion) + '</td>' +
-                                    '<td>' + escapeHtml(m.comentario) + '</td>' +
-                                    '</tr>';
+                                        '<td>' + escapeHtml(m.casino) + '</td>' +
+                                        '<td>' + ramaBadge(m.rama) + '</td>' +
+                                        '<td>' + escapeHtml(m.accion) + '</td>' +
+                                        '<td>' + escapeHtml(m.comentario) + '</td>' +
+                                        '</tr>';
+                                }
+                                $body.html(html);
                             }
-                            $body.html(html);
-                        }
 
-                        $info.text(res.total + ' movimientos en total, del más reciente al más antiguo.');
-                        $('#logPagInfo').text('Página ' + logPage + ' de ' + logTotalPaginas);
-                        $('#logBtnPrev').prop('disabled', logPage <= 1);
-                        $('#logBtnNext').prop('disabled', logPage >= logTotalPaginas);
-                    })
-                    .fail(function () {
-                        $loading.hide();
-                        $body.html('<tr><td colspan="7" class="text-center text-danger">Error de conexión.</td></tr>');
-                    });
-            }
+                            $info.text(res.total + ' movimientos en total, del más reciente al más antiguo.');
+                            $('#logPagInfo').text('Página ' + logPage + ' de ' + logTotalPaginas);
+                            $('#logBtnPrev').prop('disabled', logPage <= 1);
+                            $('#logBtnNext').prop('disabled', logPage >= logTotalPaginas);
+                        })
+                        .fail(function () {
+                            $loading.hide();
+                            $body.html('<tr><td colspan="7" class="text-center text-danger">Error de conexión.</td></tr>');
+                        });
+                }
 
-            // Cambiar filtro vuelve a página 1
-            function recargarDesdeFiltro() {
-                logPage = 1;
-                cargarLog();
-            }
+                // Cambiar filtro vuelve a página 1
+                function recargarDesdeFiltro() {
+                    logPage = 1;
+                    cargarLog();
+                }
 
-            $('#modalLogGlobalMov').on('shown.bs.modal', function () {
-                logPage = 1;
-                cargarLog();
-            });
-            $('#logFiltroRama, #logFiltroAccion, #logFiltroDesde, #logFiltroHasta, #logPerPage').on('change', recargarDesdeFiltro);
-            $('#logFiltroQ').on('input', function () {
-                clearTimeout(logDebounce);
-                logDebounce = setTimeout(recargarDesdeFiltro, 350);
-            });
-            $('#logBtnPrev').on('click', function () {
-                if (logPage > 1) { logPage--; cargarLog(); }
-            });
-            $('#logBtnNext').on('click', function () {
-                if (logPage < logTotalPaginas) { logPage++; cargarLog(); }
-            });
-        })();
-    </script>
+                $('#modalLogGlobalMov').on('shown.bs.modal', function () {
+                    logPage = 1;
+                    cargarLog();
+                });
+                $('#logFiltroRama, #logFiltroAccion, #logFiltroDesde, #logFiltroHasta, #logPerPage').on('change', recargarDesdeFiltro);
+                $('#logFiltroQ').on('input', function () {
+                    clearTimeout(logDebounce);
+                    logDebounce = setTimeout(recargarDesdeFiltro, 350);
+                });
+                $('#logBtnPrev').on('click', function () {
+                    if (logPage > 1) { logPage--; cargarLog(); }
+                });
+                $('#logBtnNext').on('click', function () {
+                    if (logPage < logTotalPaginas) { logPage++; cargarLog(); }
+                });
+            })();
+        </script>
     @endif
 @endsection
