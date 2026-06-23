@@ -48,15 +48,20 @@ use App\Http\Controllers\UsuarioController;
             </table>
             <table hidden>
               <tr data-cotizacion-bna-fila data-cotizacion-bna-molde="datos" style="border-top: 1px solid grey;">
-                <td data-cotizacion-bna-col="fecha" rowspan="2" style="text-align: left;border-right: 1px solid grey;">YYYY-MM-DD</td>
+                <td data-cotizacion-bna-col="fecha" rowspan="3" style="text-align: left;border-right: 1px solid grey;">YYYY-MM-DD</td>
                 <td style="text-align: center;background: #89E1A1;">Dólar</td>
                 <td data-cotizacion-bna-col="dolar-compra" style="text-align: right;background: #89E1A1;">1111</td>
                 <td data-cotizacion-bna-col="dolar-venta" style="text-align: right;background: #89E1A1;">2222</td>
               </tr>
-              <tr data-cotizacion-bna-fila data-cotizacion-bna-molde="datos" style="border-bottom: 1px solid grey;">
+              <tr data-cotizacion-bna-fila data-cotizacion-bna-molde="datos" style="">
                 <td style="text-align: center;background: #8EB8FF;">Euro</td>
                 <td data-cotizacion-bna-col="euro-compra" style="text-align: right;background: #8EB8FF;">3333</td>
                 <td data-cotizacion-bna-col="euro-venta" style="text-align: right;background: #8EB8FF;">4444</td>
+              </tr>
+              <tr data-cotizacion-bna-fila data-cotizacion-bna-molde="datos" style="border-bottom: 1px solid grey;">
+                <td style="text-align: center;background: #E1D389;">Real</td>
+                <td data-cotizacion-bna-col="real-compra" style="text-align: right;background: #E1D389;">3333</td>
+                <td data-cotizacion-bna-col="real-venta" style="text-align: right;background: #E1D389;">4444</td>
               </tr>
               <tr data-cotizacion-bna-fila data-cotizacion-bna-molde="celda" style="border-bottom: 1px solid grey;">
                 <td data-cotizacion-bna-col="celda" colspan="4">&nbsp;</td>
@@ -108,6 +113,8 @@ use App\Http\Controllers\UsuarioController;
             fila.find('[data-cotizacion-bna-col="dolar-venta"]').text(d?.dolar?.venta ?? '-');
             fila.find('[data-cotizacion-bna-col="euro-compra"]').text(d?.euro?.compra ?? '-');
             fila.find('[data-cotizacion-bna-col="euro-venta"]').text(d?.euro?.venta ?? '-');
+            fila.find('[data-cotizacion-bna-col="real-compra"]').text(d?.real?.compra ?? '-');
+            fila.find('[data-cotizacion-bna-col="real-venta"]').text(d?.real?.venta ?? '-');
             tbody.append(fila);
           }
         },
