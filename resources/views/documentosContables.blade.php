@@ -31,9 +31,8 @@
       --texto-tab-seleccionado: #555;
       width: 100%;
       display: flex;
-      flex-direction: column; 
-      overflow-y: auto; 
-      max-height: 75vh;
+      flex-direction: column;  
+      max-height: none;
       display: block;
 
       margin-bottom: 10px;
@@ -135,12 +134,12 @@
                 <i class="fa fa-trash"></i> ELIMINAR FILTROS
               </button>
             </div>
-            <div class="col-md-3">
+            <!--<div class="col-md-3">
               <button id="btn-buscar-global" class="btn btn-infoBuscar" style="width:100%">
                 <i class="fa fa-search"></i> BUSCAR
               </button>
             </div>
-          <!--
+          
             <div class="col-md-3">
               <button id="btn-ver-validados" class="btn btn-infoBuscar" style="width:100%" disabled>
                 <i class="fa fa-check-square-o"></i> VER DOCUMENTOS VALIDADOS
@@ -161,10 +160,9 @@
   <div class="row">
     <!-- SIDEBAR TABS -->
     <div class="col-md-2">
-      <div class="tabs" data-js-tabs="" style="flex-direction: column; overflow-y: auto; height: 100%; display: block;">
-              <div><a data-js-tab="#pant_estado_contable" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">ESTADO CONTABLE</a></div>
-  
-      <div><a data-js-tab="#pant_iva" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">IVA</a></div>
+      <div class="tabs" data-js-tabs="" style="display: flex; flex-direction: column;">
+        <div><a data-js-tab="#pant_estado_contable" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">ESTADO CONTABLE</a></div>
+        <div><a data-js-tab="#pant_iva" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">IVA</a></div>
         <div><a data-js-tab="#pant_iibb" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">IIBB</a></div>
         <div><a data-js-tab="#pant_drei" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">DREI</a></div>
         <div><a data-js-tab="#pant_inmobiliario" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">IMP. INMOBILIARIO</a></div>
@@ -219,7 +217,7 @@
                   <th class="col-xs-3" style="text-align: left !important;">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaIVA" style="max-height: 356px;">
+              <tbody id="cuerpoTablaIVA" style="">
               </tbody>
             </table>
             <div class="row">
@@ -262,7 +260,7 @@
                   <th class="col-xs-4">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaEstadoContable" style="max-height: 356px;">
+              <tbody id="cuerpoTablaEstadoContable" style="max-height: none;">
               </tbody>
             </table>
             <div id="herramientasPaginacionEstadoContable" class="row zonaPaginacion"></div>
@@ -849,7 +847,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               <span style="margin-right: 15px;"><i class="fa fa-minus" style="color: #999;"></i> No subido</span>
             </div>
             <div class="panel-body">
-              <div style="overflow: auto; max-height: 550px;">
+              <div style="height: auto;">
                 <table id="tablaControlDocumentos" class="table table-bordered" style="margin-bottom: 0;">
                   <thead id="cabeceraTablaControlDocumentos">
                   </thead>
@@ -890,7 +888,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaiibb" style="max-height: 356px;">
+              <tbody id="cuerpoTablaiibb" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -934,7 +932,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaDREI" style="max-height: 356px;">
+              <tbody id="cuerpoTablaDREI" style="max-height: none;">
               </tbody>
             </table>
             <script>
@@ -982,7 +980,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-4" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaTGI" style="max-height: 356px;">
+              <tbody id="cuerpoTablaTGI" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1023,7 +1021,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-2" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaIMP_AP_OL" style="max-height: 356px;">
+              <tbody id="cuerpoTablaIMP_AP_OL" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1063,7 +1061,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-2" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaIMP_AP_MTM" style="max-height: 356px;">
+              <tbody id="cuerpoTablaIMP_AP_MTM" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1104,7 +1102,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-2" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaDeudaEstado" style="max-height: 356px;">
+              <tbody id="cuerpoTablaDeudaEstado" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1143,7 +1141,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-5" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaPagosMayoresMesas" style="max-height: 356px;">
+              <tbody id="cuerpoTablaPagosMayoresMesas" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1184,7 +1182,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-2" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaReporteYLavado" style="max-height: 356px;">
+              <tbody id="cuerpoTablaReporteYLavado" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1226,7 +1224,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-4" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaRegistrosContables" style="max-height: 356px;">
+              <tbody id="cuerpoTablaRegistrosContables" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1265,7 +1263,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-2" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaAportesPatronales" style="max-height: 356px;">
+              <tbody id="cuerpoTablaAportesPatronales" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1306,7 +1304,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaPromoTickets" style="max-height: 356px;">
+              <tbody id="cuerpoTablaPromoTickets" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1346,7 +1344,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaPozosAcumuladosLinkeados" style="max-height: 356px;">
+              <tbody id="cuerpoTablaPozosAcumuladosLinkeados" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1385,7 +1383,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaContribEnteTuristico" style="max-height: 356px;">
+              <tbody id="cuerpoTablaContribEnteTuristico" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1427,7 +1425,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaRRHH" style="max-height: 356px;">
+              <tbody id="cuerpoTablaRRHH" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1469,7 +1467,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-3" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaGanancias" style="max-height: 356px;">
+              <tbody id="cuerpoTablaGanancias" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1504,7 +1502,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-4" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaGanancias_periodo" style="max-height: 356px;">
+              <tbody id="cuerpoTablaGanancias_periodo" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1541,7 +1539,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaJackpotsPagados" style="max-height: 356px;">
+              <tbody id="cuerpoTablaJackpotsPagados" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1582,7 +1580,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-4" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaPremiosPagados" style="max-height: 356px;">
+              <tbody id="cuerpoTablaPremiosPagados" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1621,7 +1619,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-2" style="text-align: left !important;">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaPremiosMTM" style="max-height: 356px;">
+              <tbody id="cuerpoTablaPremiosMTM" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1664,7 +1662,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-4" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaAutDirectores" style="max-height: 356px;">
+              <tbody id="cuerpoTablaAutDirectores" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1709,7 +1707,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-2" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaSeguros" style="max-height: 356px;">
+              <tbody id="cuerpoTablaSeguros" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1751,7 +1749,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-2" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaDerechoAcceso" style="max-height: 356px;">
+              <tbody id="cuerpoTablaDerechoAcceso" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1794,7 +1792,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-2" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaPatentes" style="max-height: 356px;">
+              <tbody id="cuerpoTablaPatentes" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -1837,7 +1835,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
               </thead>
-              <tbody id="cuerpoTablaImpInmobiliario" style="max-height: 356px;">
+              <tbody id="cuerpoTablaImpInmobiliario" style="max-height: none;">
               </tbody>
             </table>
             <div class="row">
@@ -2616,8 +2614,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
           </div>
 
-          </br>
           <div class="row">
+            <div class="col-md-4">
+              <h5> Total Impuesto Determinado</h5>
+              <input type="text" class="form-control" id="total_imp_det_melDREI" readonly>
+            </div>
             <div class="col-md-4">
               <h5> Saldo</h5>
               <input type="text" class="form-control" name="saldo_melDREI" id="saldo_melDREI">
@@ -2965,7 +2966,10 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
          </div>
        </br>
          <div class="row">
-
+           <div class="col-md-4">
+             <h5> Total Impuesto Determinado</h5>
+             <input type="text" class="form-control" id="ver_total_imp_det_melDREI" readonly>
+           </div>
            <div class="col-md-4">
              <h5>Saldo</h5>
              <input type="text" class="form-control" id="ver_saldo_melDREI" readonly>
