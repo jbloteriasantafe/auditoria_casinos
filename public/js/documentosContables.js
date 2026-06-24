@@ -1650,6 +1650,15 @@ instalarAutoSumaAR({
   sources: [
     "#imp_det0_melDREI",
     "#imp_det_melDREI",
+    "#contenedor-inputs-drei-extra-mel .drei-imp",
+  ],
+  target: "#total_imp_det_melDREI",
+  decimales: 2,
+});
+instalarAutoSumaAR({
+  sources: [
+    "#imp_det0_melDREI",
+    "#imp_det_melDREI",
     "-#monto_pagado_melDREI",
     "#contenedor-inputs-drei-extra-mel .drei-imp",
   ],
@@ -1920,6 +1929,14 @@ function abrirModalDREIEditar(id) {
       );
       $("#alicuotaO_melDREI").val(formatoAR(d.gas_alicuota ?? "") + " %");
       $("#imp_det0_melDREI").val("$ " + formatoAR(d.gas_imp_det ?? ""));
+
+      var total_imp_det_mel_edit = (parseFloat(d.com_subt_imp_det) || 0) + (parseFloat(d.gas_imp_det) || 0);
+      if (d.bases && d.bases.length) {
+        d.bases.forEach(function(b) {
+          total_imp_det_mel_edit += parseFloat(b.imp) || 0;
+        });
+      }
+      $("#total_imp_det_melDREI").val("$ " + formatoAR(total_imp_det_mel_edit));
 
       $("#saldo_melDREI").val("$ " + formatoAR(d.saldo));
     } else if (tipo === "3") {
@@ -2292,6 +2309,14 @@ $(document).on("click", ".btn-verRegDREI", function () {
       $("#ver_gas_base_melDREI").val("$ " + formatoAR(data.gas_base));
       $("#ver_gas_ali_melDREI").val(formatoAR(data.gas_alicuota) + " %");
       $("#ver_gas_imp_melDREI").val("$ " + formatoAR(data.gas_imp));
+
+      var total_imp_det_mel = (parseFloat(data.com_subt) || 0) + (parseFloat(data.gas_imp) || 0);
+      if (data.bases && data.bases.length) {
+        data.bases.forEach(function(b) {
+          total_imp_det_mel += parseFloat(b.imp) || 0;
+        });
+      }
+      $("#ver_total_imp_det_melDREI").val("$ " + formatoAR(total_imp_det_mel));
 
       $("#ver_saldo_melDREI").val("$ " + formatoAR(data.saldo));
       $("#ver_obs_melDREI").val(data.obs);
