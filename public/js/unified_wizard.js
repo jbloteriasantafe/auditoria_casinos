@@ -1358,10 +1358,20 @@ $(document).ready(function () {
                 html += '<label style="display:block; padding:4px 0; cursor:pointer; font-weight:400;"><input type="checkbox" name="fp_estado" value="' + $(this).val() + '" ' + checked + '> <span class="label" style="' + getEstadoStyle($(this).val()) + '">' + $(this).text() + '</span></label>';
             });
             html += '</div>';
-        } else if (filterType === 'fecha') {
-            html += '<i class="fa fa-calendar"></i> Fecha Subida</div>';
-            html += '<div style="margin-bottom:8px;"><label style="font-weight:600; font-size:11px; color:#64748b;">Desde</label><input type="date" class="form-control input-sm fp-fecha-desde" value="' + (gridState.fecha_desde || '') + '"></div>';
-            html += '<div style="margin-bottom:8px;"><label style="font-weight:600; font-size:11px; color:#64748b;">Hasta</label><input type="date" class="form-control input-sm fp-fecha-hasta" value="' + (gridState.fecha_hasta || '') + '"></div>';
+        } else if (filterType === 'fecha_evento') {
+            html += '<i class="fa fa-calendar"></i> Fechas del Evento</div>';
+            
+            html += '<div style="margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid #f1f5f9;">';
+            html += '<label style="display:block; font-weight:600; font-size:11px; color:#475569; margin-bottom:8px;">Rango de Inicio del Evento:</label>';
+            html += '<div style="margin-bottom:6px;"><label style="font-weight:400; font-size:10.5px; color:#64748b; margin-bottom:2px; display:block;">Desde</label><input type="date" class="form-control input-sm fp-ini-desde" value="' + (gridState.fecha_inicio_desde || '') + '"></div>';
+            html += '<div><label style="font-weight:400; font-size:10.5px; color:#64748b; margin-bottom:2px; display:block;">Hasta</label><input type="date" class="form-control input-sm fp-ini-hasta" value="' + (gridState.fecha_inicio_hasta || '') + '"></div>';
+            html += '</div>';
+
+            html += '<div style="margin-bottom:8px;">';
+            html += '<label style="display:block; font-weight:600; font-size:11px; color:#475569; margin-bottom:8px;">Rango de Fin del Evento:</label>';
+            html += '<div style="margin-bottom:6px;"><label style="font-weight:400; font-size:10.5px; color:#64748b; margin-bottom:2px; display:block;">Desde</label><input type="date" class="form-control input-sm fp-fin-desde" value="' + (gridState.fecha_fin_desde || '') + '"></div>';
+            html += '<div><label style="font-weight:400; font-size:10.5px; color:#64748b; margin-bottom:2px; display:block;">Hasta</label><input type="date" class="form-control input-sm fp-fin-hasta" value="' + (gridState.fecha_fin_hasta || '') + '"></div>';
+            html += '</div>';
         } else if (filterType === 'nro_aprob') {
             html += '<i class="fa fa-sort-numeric-desc"></i> Ordenar por Nro Aprobación</div>';
             var sortSel = gridState.sort_by;
@@ -1443,11 +1453,16 @@ $(document).ready(function () {
             gridState.eventos_fisc = popup.find('input[name="fp_evento_fisc"]:checked').map(function () { return $(this).val(); }).get();
         } else if (type === 'estado') {
             gridState.estado = popup.find('input[name="fp_estado"]:checked').map(function () { return $(this).val(); }).get();
-        } else if (type === 'fecha') {
-            gridState.fecha_desde = popup.find('.fp-fecha-desde').val() || '';
-            gridState.fecha_hasta = popup.find('.fp-fecha-hasta').val() || '';
-            $('#inpFechaDesde').val(gridState.fecha_desde);
-            $('#inpFechaHasta').val(gridState.fecha_hasta);
+        } else if (type === 'fecha_evento') {
+            gridState.fecha_inicio_desde = popup.find('.fp-ini-desde').val() || '';
+            gridState.fecha_inicio_hasta = popup.find('.fp-ini-hasta').val() || '';
+            gridState.fecha_fin_desde = popup.find('.fp-fin-desde').val() || '';
+            gridState.fecha_fin_hasta = popup.find('.fp-fin-hasta').val() || '';
+            
+            // Si el user quiere, actualizamos los inputs invisibles viejos por retrocompatibilidad,
+            // pero como no se usan, los dejamos.
+            $('#inpFechaDesde').val(gridState.fecha_inicio_desde);
+            $('#inpFechaHasta').val(gridState.fecha_inicio_hasta);
         } else if (type === 'nro_aprob') {
             gridState.sort_by = popup.find('.fp-sort-rama').val();
             gridState.order = popup.find('.fp-sort-orden').val();
@@ -1471,7 +1486,7 @@ $(document).ready(function () {
             popup.find('input[name="fp_evento_fisc"]').prop('checked', false); 
         }
         else if (type === 'estado') { popup.find('input[name="fp_estado"]').prop('checked', false); }
-        else if (type === 'fecha') { popup.find('.fp-fecha-desde, .fp-fecha-hasta').val(''); }
+        else if (type === 'fecha_evento') { popup.find('.fp-ini-desde, .fp-ini-hasta, .fp-fin-desde, .fp-fin-hasta').val(''); }
         else if (type === 'nro_aprob') { gridState.sort_by = 'id'; gridState.order = 'desc'; popup.find('.fp-sort-rama').val('nro_aprob_mkt'); popup.find('.fp-sort-orden').val('desc'); }
     });
 
@@ -1521,9 +1536,13 @@ $(document).ready(function () {
         (gridState.estado || []).forEach(function (est) {
             tags += '<span class="active-filter-tag" data-clear="estado" data-val="' + est + '" style="display:inline-block; background:#fef3c7; color:#92400e; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">' + est + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
         });
-        if (gridState.fecha_desde || gridState.fecha_hasta) {
-            var fechaLabel = (gridState.fecha_desde || '...') + ' → ' + (gridState.fecha_hasta || '...');
-            tags += '<span class="active-filter-tag" data-clear="fecha" style="display:inline-block; background:#d1fae5; color:#065f46; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">' + fechaLabel + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
+        if (gridState.fecha_inicio_desde || gridState.fecha_inicio_hasta) {
+            var labelIni = (gridState.fecha_inicio_desde || '...') + ' → ' + (gridState.fecha_inicio_hasta || '...');
+            tags += '<span class="active-filter-tag" data-clear="fecha_inicio" style="display:inline-block; background:#d1fae5; color:#065f46; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">Inicio Evt: ' + labelIni + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
+        }
+        if (gridState.fecha_fin_desde || gridState.fecha_fin_hasta) {
+            var labelFin = (gridState.fecha_fin_desde || '...') + ' → ' + (gridState.fecha_fin_hasta || '...');
+            tags += '<span class="active-filter-tag" data-clear="fecha_fin" style="display:inline-block; background:#d1fae5; color:#065f46; padding:3px 10px; border-radius:12px; font-size:11px; margin-right:5px; cursor:pointer;">Fin Evt: ' + labelFin + ' <i class="fa fa-times" style="margin-left:4px;"></i></span>';
         }
         if (gridState.sort_by === 'nro_aprob_mkt' || gridState.sort_by === 'nro_aprob_fisc') {
             var sortRama = gridState.sort_by === 'nro_aprob_mkt' ? 'MKT' : 'FISC';
@@ -1543,7 +1562,7 @@ $(document).ready(function () {
         if ((gridState.casinoKeys || []).length) $('[data-filter="casino"] .th-filter-icon').css('color', '#764ba2');
         if ((gridState.rama || []).length || (gridState.categorias_mkt || []).length || (gridState.eventos_fisc || []).length) $('[data-filter="rama"] .th-filter-icon').css('color', '#764ba2');
         if ((gridState.estado || []).length) $('[data-filter="estado"] .th-filter-icon').css('color', '#764ba2');
-        if (gridState.fecha_desde || gridState.fecha_hasta) $('[data-filter="fecha"] .th-filter-icon').css('color', '#764ba2');
+        if (gridState.fecha_inicio_desde || gridState.fecha_inicio_hasta || gridState.fecha_fin_desde || gridState.fecha_fin_hasta) $('[data-filter="fecha_evento"] .th-filter-icon').css('color', '#764ba2');
         if (gridState.sort_by === 'nro_aprob_mkt' || gridState.sort_by === 'nro_aprob_fisc') $('[data-filter="nro_aprob"] .th-filter-icon').css('color', '#764ba2');
     }
 
@@ -1561,9 +1580,14 @@ $(document).ready(function () {
             gridState.eventos_fisc = (gridState.eventos_fisc || []).filter(function (e) { return e !== val; });
         } else if (clear === 'estado') {
             gridState.estado = (gridState.estado || []).filter(function (e) { return e !== val; });
-        } else if (clear === 'fecha') {
+        } else if (clear === 'fecha_inicio') {
+            gridState.fecha_inicio_desde = ''; gridState.fecha_inicio_hasta = '';
+        } else if (clear === 'fecha_fin') {
+            gridState.fecha_fin_desde = ''; gridState.fecha_fin_hasta = '';
+        } else if (clear === 'fecha_evento') {
             $('#inpFechaDesde').val(''); $('#inpFechaHasta').val('');
             gridState.fecha_desde = ''; gridState.fecha_hasta = '';
+            gridState.fecha_evento_tipo = 'inicio';
         }
         gridState.page = 1;
         ajaxLoadTable();
@@ -2057,8 +2081,10 @@ $(document).ready(function () {
             gridState.categorias_mkt = [];
             gridState.eventos_fisc = [];
             gridState.estado = [];
-            gridState.fecha_desde = '';
-            gridState.fecha_hasta = '';
+            gridState.fecha_inicio_desde = '';
+            gridState.fecha_inicio_hasta = '';
+            gridState.fecha_fin_desde = '';
+            gridState.fecha_fin_hasta = '';
             gridState.quick_filter = '';
             gridState.ver_todo = '';
             gridState.sort_by = 'id';

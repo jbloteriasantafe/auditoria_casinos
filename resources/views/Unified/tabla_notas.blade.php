@@ -21,7 +21,7 @@ function colorEstado($estado) {
                 <th width="3%" class="text-center">
                     {{-- Expand/Collapse --}}
                 </th>
-                <th width="7%" class="sortable th-filterable" data-sort="created_at" data-filter="fecha">Fecha Subida <i class="fa fa-sort"></i> <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
+                <th width="7%" class="sortable th-filterable" data-sort="fecha_evento" data-filter="fecha_evento">Inicio - Fin Evento <i class="fa fa-sort"></i> <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
                 <th width="7%" class="sortable" data-sort="{{ $colFechaSort }}">{{ $colFechaLabel }} <i class="fa fa-sort"></i></th>
                 <th width="8%" class="sortable" data-sort="nro_nota">Nro Nota <i class="fa fa-sort"></i></th>
                 <th width="10%" class="th-filterable" data-filter="casino" style="cursor:pointer;">Casino/Plat. <i class="fa fa-filter th-filter-icon" style="font-size:9px; color:#cbd5e1; margin-left:2px;"></i></th>
@@ -49,7 +49,17 @@ function colorEstado($estado) {
                 <td class="text-center toggle-grupo">
                     <i class="fa fa-chevron-right toggle-icon"></i>
                 </td>
-                <td>{{ \Carbon\Carbon::parse($grupo->created_at)->format('d/m/Y') }}</td>
+                <td>
+                    @php
+                        $notaFechas = $notaMkt ?: $notaFisc;
+                        $fIni = $notaFechas && $notaFechas->fecha_inicio_evento ? \Carbon\Carbon::parse($notaFechas->fecha_inicio_evento)->format('d/m/y') : '-';
+                        $fFin = $notaFechas && $notaFechas->fecha_fin_evento ? \Carbon\Carbon::parse($notaFechas->fecha_fin_evento)->format('d/m/y') : '-';
+                    @endphp
+                    <div style="font-size: 11px;">
+                        <div><strong style="color: #64748b;">I:</strong> {{ $fIni }}</div>
+                        <div><strong style="color: #64748b;">F:</strong> {{ $fFin }}</div>
+                    </div>
+                </td>
                 <td>
                     @if($fechaCol)
                         {{ $fechaCol->format('d/m/Y') }}
@@ -180,7 +190,16 @@ function colorEstado($estado) {
             @endif
             <tr class="nota-hija" data-parent-grupo="{{ $grupo->id }}" style="display: none; background: {{ $n->tipo_rama == 'MKT' ? '#eff6ff' : '#ecfdf5' }};">
                 <td style="background: {{ $n->tipo_rama == 'MKT' ? '#3b82f6' : '#10b981' }};"></td>
-                <td><small>{{ \Carbon\Carbon::parse($n->fecha_ingreso)->format('d/m/Y') }}</small></td>
+                <td>
+                    @php
+                        $fIniH = $n->fecha_inicio_evento ? \Carbon\Carbon::parse($n->fecha_inicio_evento)->format('d/m/y') : '-';
+                        $fFinH = $n->fecha_fin_evento ? \Carbon\Carbon::parse($n->fecha_fin_evento)->format('d/m/y') : '-';
+                    @endphp
+                    <div style="font-size: 10px; color:#64748b;">
+                        <div>I: {{ $fIniH }}</div>
+                        <div>F: {{ $fFinH }}</div>
+                    </div>
+                </td>
                 @php $fechaHija = $esAdm ? $n->fecha_propuesta_realizacion : $n->fecha_pretendida_aprobacion; @endphp
                 <td><small>{{ $fechaHija ? \Carbon\Carbon::parse($fechaHija)->format('d/m/Y') : '—' }}</small></td>
                 <td>

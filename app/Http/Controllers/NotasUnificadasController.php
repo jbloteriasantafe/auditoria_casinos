@@ -689,12 +689,21 @@ class NotasUnificadasController extends Controller
                 $q->whereIn('estado_actual', $estadoFiltro);
             });
         }
-        // Rango de fechas (fecha de carga)
-        if ($request->has('fecha_desde') && !empty($request->fecha_desde)) {
-            $gruposQuery->whereDate('created_at', '>=', $request->fecha_desde);
-        }
-        if ($request->has('fecha_hasta') && !empty($request->fecha_hasta)) {
-            $gruposQuery->whereDate('created_at', '<=', $request->fecha_hasta);
+        if (!empty($request->fecha_inicio_desde) || !empty($request->fecha_inicio_hasta) || !empty($request->fecha_fin_desde) || !empty($request->fecha_fin_hasta)) {
+            $gruposQuery->whereHas('notas', function ($q) use ($request) {
+                if (!empty($request->fecha_inicio_desde)) {
+                    $q->whereDate('fecha_inicio_evento', '>=', $request->fecha_inicio_desde);
+                }
+                if (!empty($request->fecha_inicio_hasta)) {
+                    $q->whereDate('fecha_inicio_evento', '<=', $request->fecha_inicio_hasta);
+                }
+                if (!empty($request->fecha_fin_desde)) {
+                    $q->whereDate('fecha_fin_evento', '>=', $request->fecha_fin_desde);
+                }
+                if (!empty($request->fecha_fin_hasta)) {
+                    $q->whereDate('fecha_fin_evento', '<=', $request->fecha_fin_hasta);
+                }
+            });
         }
 
         // Quick Filters
@@ -753,6 +762,15 @@ class NotasUnificadasController extends Controller
                 $col = $sort; // ambos son literales whitelisteados (columnas de notas_ingreso)
                 $gruposQuery->orderByRaw('(
                     SELECT MIN(ni.' . $col . ')
+                    FROM notas_ingreso ni
+                    WHERE ni.id_grupo = grupos_tramites.id
+                ) ' . $order);
+            } elseif ($sort === 'fecha_evento') {
+                $gruposQuery->orderByRaw('(
+                    SELECT COALESCE(
+                        MAX(CASE WHEN ni.tipo_rama = \'MKT\' THEN ni.fecha_inicio_evento END),
+                        MAX(CASE WHEN ni.tipo_rama = \'FISC\' THEN ni.fecha_inicio_evento END)
+                    )
                     FROM notas_ingreso ni
                     WHERE ni.id_grupo = grupos_tramites.id
                 ) ' . $order);
@@ -1142,11 +1160,21 @@ class NotasUnificadasController extends Controller
                 $q->whereIn('estado_actual', $estadoFiltro);
             });
         }
-        if ($request->has('fecha_desde') && $request->fecha_desde) {
-            $gruposQuery->whereDate('created_at', '>=', $request->fecha_desde);
-        }
-        if ($request->has('fecha_hasta') && $request->fecha_hasta) {
-            $gruposQuery->whereDate('created_at', '<=', $request->fecha_hasta);
+        if (!empty($request->fecha_inicio_desde) || !empty($request->fecha_inicio_hasta) || !empty($request->fecha_fin_desde) || !empty($request->fecha_fin_hasta)) {
+            $gruposQuery->whereHas('notas', function ($q) use ($request) {
+                if (!empty($request->fecha_inicio_desde)) {
+                    $q->whereDate('fecha_inicio_evento', '>=', $request->fecha_inicio_desde);
+                }
+                if (!empty($request->fecha_inicio_hasta)) {
+                    $q->whereDate('fecha_inicio_evento', '<=', $request->fecha_inicio_hasta);
+                }
+                if (!empty($request->fecha_fin_desde)) {
+                    $q->whereDate('fecha_fin_evento', '>=', $request->fecha_fin_desde);
+                }
+                if (!empty($request->fecha_fin_hasta)) {
+                    $q->whereDate('fecha_fin_evento', '<=', $request->fecha_fin_hasta);
+                }
+            });
         }
 
         // Quick filters
