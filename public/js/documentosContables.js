@@ -2512,12 +2512,12 @@ $(document).on("click", "#guardarRegistroDREI", function (e) {
       valid
     );
 
-    valid = validarCampoNum(
-      'input[name="saldoDREI"]:visible',
-      ".col-md-4",
-      "El saldo es requerido.",
-      valid
-    );
+//     valid = validarCampoNum(
+//       'input[name="saldoDREI"]:visible',
+//       ".col-md-4",
+//       "El saldo es requerido.",
+//       valid
+//     );
   } else if (visibleFormId === "formularioMEL") {
     valid = validarCampoNum(
       'input[name="monto_pagado_melDREI"]:visible',
