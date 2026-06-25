@@ -1301,7 +1301,7 @@ function generarFilaiibb(iibb, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -2234,7 +2234,7 @@ function generarFilaDREI(drei, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -3064,7 +3064,7 @@ function generarFilaIva(iva, controlador) {
   tdAcc.append(obtenerIconoValidacion(iva.valido, "iva", iva.id_registroIva));
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -3503,6 +3503,9 @@ function renderFilaTGI_partida(d) {
     '<button type="button" class="btn btn-sm btn-primary btn-editTGI_partida" title="MODIFICAR PARTIDA">' +
     '<i class="fa fa-edit"></i>' +
     "</button> " +
+    '<button type="button" class="btn btn-sm btn-danger btn-elimTGI_partida" title="ELIMINAR PARTIDA">' +
+    '<i class="fa fa-trash"></i>' +
+    "</button>" +
     "</td>" +
     "</tr>"
   );
@@ -4150,7 +4153,7 @@ function generarFilaTGI(TGI, controlador) {
   tdAcc.append(obtenerIconoValidacion(TGI.valido, "tgi", TGI.id_registroTGI));
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -4813,7 +4816,7 @@ function generarFilaIMP_AP_OL(IMP_AP_OL, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -5410,7 +5413,7 @@ function generarFilaIMP_AP_MTM(IMP_AP_MTM, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -5939,7 +5942,7 @@ function generarFilaPagosMayoresMesas(PagosMayoresMesas, controlador) {
   tdAcc.append(btnDelete);
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -6452,7 +6455,7 @@ function generarFilaDeudaEstado(DeudaEstado, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -6950,7 +6953,7 @@ $(document).ready(function () {
             
             $("#cuerpoTablaValidados").append(row);
           });
-          $('[data-toggle="tooltip"]').tooltip();
+          $('[data-toggle="tooltip"]')// .tooltip();
         } else {
           $("#cuerpoTablaValidados").append('<tr><td colspan="4" class="text-center">No se encontraron documentos en este período.</td></tr>');
         }
@@ -7033,7 +7036,7 @@ $(document).ready(function () {
           $("#cuerpoTablaControlDocumentos").append(tr);
         });
 
-        $("#tablaControlDocumentos [data-toggle='tooltip']").tooltip();
+        $("#tablaControlDocumentos [data-toggle='tooltip']")// .tooltip();
 
         filtrosControlDocumentos = { id_casino: casino, desde: desde, hasta: hasta };
         $("#btn-descargarControlDocumentos").prop("disabled", false);
@@ -7467,7 +7470,7 @@ function generarFilaReporteYLavado(ReporteYLavado, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -8073,7 +8076,7 @@ function generarFilaRegistrosContables(RegistrosContables, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -8632,7 +8635,7 @@ function generarFilaAportesPatronales(AportesPatronales, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -9135,7 +9138,7 @@ function generarFilaPromoTickets(PromoTickets, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -9677,7 +9680,7 @@ function generarFilaPozosAcumuladosLinkeados(
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -10282,7 +10285,7 @@ function generarFilaContribEnteTuristico(ContribEnteTuristico, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -11042,7 +11045,7 @@ function generarFilaRRHH(RRHH, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -11971,7 +11974,7 @@ function generarFilaGanancias(Ganancias, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -12064,7 +12067,7 @@ function generarFilaGanancias_periodo(Ganancias_periodo, controlador) {
   tdAcc.append(obtenerIconoValidacion(Ganancias_periodo.valido, 'ganancias_periodo', Ganancias_periodo.id_registroGanancias_periodo));
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -12643,7 +12646,7 @@ function generarFilaJackpotsPagados(JackpotsPagados, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -13137,7 +13140,7 @@ function generarFilaPremiosPagados(PremiosPagados, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -13710,7 +13713,7 @@ function generarFilaPremiosMTM(reg) {
     obtenerIconoValidacion(reg.valido, "premios_mtm", reg.id_registroPremiosMTM)
   );
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -14743,6 +14746,9 @@ function renderFilaDirector(d) {
     '<button type="button" class="btn btn-sm btn-primary btn-editAutDirectores_director" title="MODIFICAR DIRECTOR">' +
     '<i class="fa fa-edit"></i>' +
     "</button> " +
+    '<button type="button" class="btn btn-sm btn-danger btn-elimAutDirectores_director" title="ELIMINAR DIRECTOR">' +
+    '<i class="fa fa-trash"></i>' +
+    "</button>" +
     "</td>" +
     "</tr>"
   );
@@ -15177,7 +15183,7 @@ function generarFilaAutDirectores(AutDirectores, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -15542,6 +15548,9 @@ function renderFilaSeguros_tipo(d) {
     '<button type="button" class="btn btn-sm btn-primary btn-editSeguros_tipo" title="MODIFICAR TIPO DE SEGURO">' +
     '<i class="fa fa-edit"></i>' +
     "</button> " +
+    '<button type="button" class="btn btn-sm btn-danger btn-elimSeguros_tipo" title="ELIMINAR TIPO DE SEGURO">' +
+    '<i class="fa fa-trash"></i>' +
+    "</button>" +
     "</td>" +
     "</tr>"
   );
@@ -15957,7 +15966,7 @@ function generarFilaSeguros(Seguros, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -16498,7 +16507,7 @@ function generarFilaDerechoAcceso(DerechoAcceso, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -17123,9 +17132,12 @@ function renderFilaPatentes_patenteDe(d) {
     estado +
     "</td>" +
     '<td class="text-left col-md-3">' +
-    '<button type="button" class="btn btn-sm btn-primary btn-editPatentes_patenteDe" title="MODIFICAR ELEMENTO PATENTABLE">' +
+    '<button type="button" class="btn btn-sm btn-primary btn-editPatentes_patenteDe" title="MODIFICAR PATENTE">' +
     '<i class="fa fa-edit"></i>' +
     "</button> " +
+    '<button type="button" class="btn btn-sm btn-danger btn-elimPatentes_patenteDe" title="ELIMINAR PATENTE">' +
+    '<i class="fa fa-trash"></i>' +
+    "</button>" +
     "</td>" +
     "</tr>"
   );
@@ -17523,7 +17535,7 @@ function generarFilaPatentes(Patentes) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -18098,6 +18110,9 @@ function renderFilaImpInmobiliario_partida(d) {
     '<button type="button" class="btn btn-sm btn-primary btn-editImpInmobiliario_partida" title="MODIFICAR PARTIDA">' +
     '<i class="fa fa-edit"></i>' +
     "</button> " +
+    '<button type="button" class="btn btn-sm btn-danger btn-elimImpInmobiliario_partida" title="ELIMINAR PARTIDA">' +
+    '<i class="fa fa-trash"></i>' +
+    "</button>" +
     "</td>" +
     "</tr>"
   );
@@ -18612,7 +18627,7 @@ function generarFilaImpInmobiliario(ImpInmobiliario, controlador) {
   );
 
   fila.append(tdAcc);
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
 
@@ -24199,7 +24214,7 @@ function generarFilaEstadoContable(est) {
 
   fila.append(tdAcc);
   // Initialize tooltips immediately when generating row
-  fila.find('[data-toggle="tooltip"]').tooltip();
+  fila.find('[data-toggle="tooltip"]')// .tooltip();
   
   return fila;
 }

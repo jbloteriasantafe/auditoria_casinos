@@ -62,9 +62,9 @@
       padding: 0;
     }
     .tabs a {
-      padding: 15px 10px;
+      padding: 10px 5px;
       font-family:Roboto-condensed;
-      font-size:20px;
+      font-size:15px;
       background: white;
       display: inline-block;
       width: 100%;
@@ -73,13 +73,15 @@
       text-decoration: none;
       cursor: pointer;
       border: 1px solid var(--borde-tab);
-      border-top-left-radius: 2em;
-      border-top-right-radius: 2em;
+      transition: all 0.2s ease-in-out;
     }
     .tabs a.active {
-      color: var(--texto-tab-seleccionado);
+      color: #111;
+      font-weight: bold;
       cursor: default;
       border-color: var(--borde-tab-seleccionado);
+      border-left: 6px solid var(--borde-tab-seleccionado) !important;
+      background-color: #fff;
       border-bottom: none;
     }
     .tabs a:not(.active):not(:hover) {
@@ -847,7 +849,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               <span style="margin-right: 15px;"><i class="fa fa-minus" style="color: #999;"></i> No subido</span>
             </div>
             <div class="panel-body">
-              <div style="height: auto;">
+              <div class="table-responsive" style="height: auto; overflow-x: auto;">
                 <table id="tablaControlDocumentos" class="table table-bordered" style="margin-bottom: 0;">
                   <thead id="cabeceraTablaControlDocumentos">
                   </thead>
@@ -8355,7 +8357,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                  <div class="modal-header modalNuevo" style="background-color: #00695c;">
                    <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                    <button id="btn-minimizarVerpatenteDe_gestionar" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerpatenteDe_gestionar" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| ELEMENTOS PATENTADO</h3>
+                   <h3 class="modal-title" style="background-color: #00695c;">| PATENTES</h3>
                   </div>
 
                   <div  id="colapsadoVerpatenteDe_gestionar" class="collapse in">
