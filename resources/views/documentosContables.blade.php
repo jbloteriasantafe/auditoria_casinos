@@ -2548,10 +2548,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <h5> Impuesto total determinado</h5>
             <input type="text" class="form-control" name="imp_tot_csfDREI" id="imp_tot_csfDREI">
           </div>
-          <div class="col-md-4">
+          <!--<div class="col-md-4">
             <h5>Saldo a favor</h5>
             <input type="text" class="form-control" name="saldoDREI" id="saldoDREI">
           </div>
+            -->
         </div>
       </div>
         <div id="formularioMEL" class="formulario-DREI" style="display: none;">
@@ -2853,11 +2854,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
              <h5>Intereses</h5>
              <input type="text" class="form-control" id="ver_intereses_csfDREI" readonly>
            </div>
-           <div class="col-md-4">
+           <!--<div class="col-md-4">
              <h5>Saldo a favor</h5>
              <input type="text" class="form-control" id="ver_saldo_csfDREI" readonly>
            </div>
-
+            -->
          </div>
        </br>
          <div id="ver-bases-extra-csf-drei" style="display:none;">
