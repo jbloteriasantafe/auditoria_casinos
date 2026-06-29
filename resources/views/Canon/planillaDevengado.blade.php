@@ -10,18 +10,44 @@ table {
   word-wrap: break-word !important;
 }
 
-td, th {
-  border: 1px solid #dddddd;
-  text-align: left;
+th {
+  background-color: #dddddd;
 }
 
-tr:nth-child(even) {
-  background-color: #dddddd;
+td {
+  padding-right: 0.5em;
+  border-width: 0.99px; /* @HACK para que Dompdf tome el override del color */
+  border-style: solid;
+  border-color: rgb(230,230,230);
+}
+td.sin-valor {  
+  background-color: rgb(230, 230, 230) !important;
+  text-align: center !important;
+  padding-right: 0;
+}
+td.bleft , th.bleft {
+  border-left-color: rgb(180,180,180) !important;
+  border-left-width: 2px;
+}
+td.bright , th.bright {
+  border-right-color: rgb(180,180,180) !important;
+  border-right-width: 2px;
+}
+td.btop , th.btop {
+  border-top-color: rgb(180,180,180) !important;
+  border-top-width: 2px;
+}
+td.bbottom , th.bbottom {
+  border-bottom-color: rgb(180,180,180) !important;
+  border-bottom-width: 2px;
 }
 </style>
 
 <?php 
-$columnas = count($datos);
+$columnas = count($casinos);
+$D = function($n){
+  return \App\Http\Controllers\CanonController::formatear_decimal($n);
+};
 ?>
 
 <head>
@@ -42,20 +68,28 @@ $columnas = count($datos);
   <h5>{{ucwords($t)}}</h5>
   <table style="width: 100%;">
     <tr>
-      <th class="tablaInicio" style="text-align: center;" colspan="{{intval(ceil(($columnas+1)/2.0))}}">Mes</th>
-      <th class="tablaInicio" style="text-align: center;" colspan="{{intval(floor(($columnas+1)/2.0))}}">{{$mes}}</th>
+      <th class="tablaInicio sin" style="text-align: center;" colspan="{{intval(ceil(($columnas+1)/2.0))}}">Mes</th>
+      <th class="tablaInicio" style="text-align: left;" colspan="{{intval(floor(($columnas+1)/2.0))}}">{{$mes}}</th>
     </tr>
     <tr>
-      <th class="tablaInicio" style="text-align: center;">CONCEPTO</th>
-      @foreach($datos as $cas => $_)
-      <th class="tablaInicio" style="text-align: center;">{{$cas == 'Total'? '' : 'Casino '}}{{$cas}}</th>
+      <th class="tablaInicio btop bright" style="text-align: center;">OPERARIO</th>
+      @foreach($casinos as $cas)
+      <?php $bleft = $cas == 'Total'? 'bleft' : ''; ?>
+      <th class="tablaInicio btop {{$bleft}}" style="text-align: center;">{{$cas == 'Total'? '' : 'Casino '}}{{$cas}}</th>
       @endforeach
     </tr>
     @foreach($conceptos as $concepto)
     <tr>
-      <td class="tablaCampos" style="text-align: center;">{{$concepto}}</td>
+      <?php $btop = $concepto == 'Total' || $concepto == 'Total Físico' ? 'btop' : ''; ?>
+      <?php $bbottom = $concepto == 'Total Físico' ? 'bbottom' : ''; ?>
+      <td class="tablaCampos {{$btop}} {{$bbottom}} bright" style="text-align: center;"><b>{{$concepto}}</b></td>
       @foreach($datos as $cas => $datos_concepto)
-      <td class="tablaCampos" style="text-align: center;">{{$datos_concepto[$concepto][$t] ?? ''}}</td>
+      <?php $v = $datos_concepto[$concepto][$t]['pos_red']; ?>
+      <?php $sin_valor = $v === null? 'sin-valor' : ''; ?>
+      <?php $bleft = $cas == 'Total'? 'bleft' : ''; ?>
+      <td class="tablaCampos {{$sin_valor}} {{$bleft}} {{$btop}} {{$bbottom}}" style="text-align: right;">
+        {{$v !== null? $D($v) : '—'}}
+      </td>
       @endforeach
     </tr>
     @endforeach
@@ -69,3 +103,4 @@ $columnas = count($datos);
 </body>
 
 </html>
+

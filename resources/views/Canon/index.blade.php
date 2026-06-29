@@ -705,6 +705,7 @@
           $n = function($s) use (&$id_casino,&$t,&$molde_str){
             return "canon_variable[$molde_str][$s]";
           };
+          //$cuenta = $n('cuenta');
           $alicuota = $n('alicuota');
           $devengar = $n('devengar');
           $devengado = $n('devengado');
@@ -727,6 +728,14 @@
         ?>
         <div class="bloque_interno" data-js-molde="{{$molde_str}}">
           <h6 data-titulo>TITULO CANON VARIABLE</h6>
+          {{-- <div class="bloque_interno">
+            <div style="display: flex;justify-content: flex-end;">
+              <div style="display: flex;">
+                <h5>CUENTA&nbsp;</h5>
+                <input data-js-texto-no-formatear-numero class="form-control" data-name="{{$cuenta}}" style="width: unset;text-align: center;" readonly>
+              </div>
+            </div>
+          </div> --}}
           <div class="bloque_interno" style="width: 100%;display: flex;">
             <div class="parametro_chico"  style="flex: 2;">
               <h5>APLICABLE (%)</h5>
@@ -843,6 +852,7 @@
           $n = function($s) use (&$id_casino,&$t,&$molde_str){
             return "canon_fijo_mesas[$molde_str][$s]";
           };
+          //$cuenta = $n('cuenta');
           $dias_valor = $n('dias_valor');
           $bruto = $n('bruto');
           $factor_dias_valor = $n('factor_dias_valor');
@@ -879,6 +889,16 @@
         ?>
         <div class="bloque_interno" style="width: 100%;" data-js-molde="{{$molde_str}}">
           <h6 data-titulo>TITULO MESAS</h6>
+          {{--
+          <div class="bloque_interno">
+            <div style="display: flex;justify-content: flex-end;">
+              <div style="display: flex;">
+                <h5>CUENTA&nbsp;</h5>
+                <input data-js-texto-no-formatear-numero class="form-control" data-name="{{$cuenta}}" style="width: unset;text-align: center;" readonly>
+              </div>
+            </div>
+          </div>
+          --}}
           <div class="bloque_interno">
             <div style="display: flex;">
               <div>
@@ -1103,6 +1123,7 @@
           $n = function($s) use (&$id_casino,&$t,&$molde_str){
             return "canon_fijo_mesas_adicionales[$molde_str][$s]";
           };
+          //$cuenta = $n('cuenta');
           $dias_mes = $n('dias_mes');
           $horas_dia = $n('horas_dia');
           $factor_dias_mes = $n('factor_dias_mes');
@@ -1126,6 +1147,14 @@
         ?>
         <div class="bloque_interno" data-js-molde="{{$molde_str}}">
           <h6 data-titulo>TITULO MESA ADICIONAL</h6>
+          {{-- <div class="bloque_interno">
+            <div style="display: flex;justify-content: flex-end;">
+              <div style="display: flex;">
+                <h5>CUENTA&nbsp;</h5>
+                <input data-js-texto-no-formatear-numero class="form-control" data-name="{{$cuenta}}" style="width: unset;text-align: center;" readonly>
+              </div>
+            </div>
+          </div> --}}
           <div class="bloque_interno">
             <div style="display: flex;">
               <div class="parametro_chico">

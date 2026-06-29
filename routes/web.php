@@ -1652,6 +1652,14 @@ Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_c
 Route::group(['prefix' => 'canon', 'middleware' => 'tiene_permiso:m_ver_seccion_canon'], function () {
   Route::get('/', '\App\Http\Controllers\CanonController@index');
   Route::post('/buscar', '\App\Http\Controllers\CanonController@buscar');
+  
+  Route::group(['prefix' => 'agrupamientos', 'middleware' => 'tiene_rol:superusuario'] ,function(){
+    Route::get('/down','\App\Http\Controllers\CanonAgrupamientoController@down');
+    Route::get('/up','\App\Http\Controllers\CanonAgrupamientoController@up');
+    Route::get('/recalcular_todos','\App\Http\Controllers\CanonController@recalcular_agrupamientos');
+    Route::get('/agrupamientos_detallados','\App\Http\Controllers\CanonController@agrupamientos_detallados');
+  });
+  
   Route::group(['middleware' => 'tiene_permiso:m_b_pagos'],function () {
     Route::post('/descargar', '\App\Http\Controllers\CanonController@descargar');
     Route::get('/descargarPlanillas', '\App\Http\Controllers\CanonController@descargarPlanillas');

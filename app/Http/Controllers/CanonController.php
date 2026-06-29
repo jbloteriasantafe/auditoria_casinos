@@ -513,6 +513,7 @@ class CanonController extends Controller
     };
     
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
+    //$cuenta = $RD('cuenta','Físico y Online');
     $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema',$this->apostado($tipo,$año_mes,$id_casino)),'0',2);//@RETORNADO    
     $devengado_apostado_porcentaje_aplicable = bcadd($RD('devengado_apostado_porcentaje_aplicable','0.0000'),'0',4);//@RETORNADO
     $factor_apostado_porcentaje_aplicable = bcdiv($devengado_apostado_porcentaje_aplicable,'100',6);
@@ -556,6 +557,7 @@ class CanonController extends Controller
     $determinado = bcadd($determinado_total,$determinado_ajuste,20);
     
     return compact('tipo',
+      //'cuenta',
       'alicuota','devengar',
       'devengado_apostado_sistema','devengado_apostado_porcentaje_aplicable','devengado_base_imponible',
       'devengado_apostado_porcentaje_impuesto_ley',
@@ -593,6 +595,7 @@ class CanonController extends Controller
     };
     
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
+    //$cuenta = $RD('cuenta','Físico y Online');
     $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;//@RETORNADO
     $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;//@RETORNADO
     $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? '0';//@RETORNADO
@@ -726,7 +729,9 @@ class CanonController extends Controller
     $determinado = bcadd($determinado_total,$determinado_ajuste,16);
     
     return compact(
-      'tipo','dias_valor','factor_dias_valor','valor_dolar','valor_euro',
+      'tipo',
+      //'cuenta',
+      'dias_valor','factor_dias_valor','valor_dolar','valor_euro',
       'dias_lunes_jueves','mesas_lunes_jueves','dias_viernes_sabados','mesas_viernes_sabados',
       'dias_domingos','mesas_domingos','dias_todos','mesas_todos','dias_fijos','mesas_fijos',
       'mesas_dias','bruto',
@@ -789,6 +794,7 @@ class CanonController extends Controller
     $factor_porcentaje = bcdiv($porcentaje,'100',6);
         
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
+    //$cuenta = $RD('cuenta','Físico y Online');
     $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;//@RETORNADO
     $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;//@RETORNADO
     $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? '0';//@RETORNADO
@@ -855,6 +861,7 @@ class CanonController extends Controller
     
     return compact(
       'tipo',
+      //'cuenta',
       'dias_mes','horas_dia','factor_dias_mes','factor_horas_mes',
       'valor_dolar','valor_euro',
       'horas','mesas','porcentaje',
@@ -971,7 +978,7 @@ class CanonController extends Controller
           'diferencia' => $d['diferencia'],
         ]);
       }
-      
+            
       foreach(($datos['canon_variable'] ?? []) as $tipo => $d){
         $d['id_canon'] = $id_canon;
         $d['tipo'] = $tipo;
@@ -1063,6 +1070,7 @@ class CanonController extends Controller
         $this->cambio_canon_recalcular_saldos($id_canon);
       }
       
+      $this->recalcular_agrupamientos([$datos['año_mes']],false);
       return 1;
     });
   }
@@ -1318,6 +1326,12 @@ class CanonController extends Controller
       ->update(compact('deleted_at','deleted_id_usuario'));
       
       $this->cambio_canon_recalcular_saldos($id_canon);
+      
+      $c = DB::table('canon')->select('año_mes')->where('id_canon',$id_canon)
+      ->first();
+      if($c !== null){
+        $this->recalcular_agrupamientos($c->año_mes);
+      }
       
       return 1;
     });
@@ -1666,6 +1680,12 @@ class CanonController extends Controller
       ->update(['deleted_at' => null]);
             
       $this->cambio_canon_recalcular_saldos($request->id_canon);
+      
+      $c = DB::table('canon')->select('año_mes')->where('id_canon',$request->id_canon)
+      ->first();
+      if($c !== null){
+        $this->recalcular_agrupamientos($c->año_mes);
+      }
       
       return 1;
     });
@@ -2089,41 +2109,75 @@ class CanonController extends Controller
     ->first();
     
     if(empty($c_año_mes)) return;
-    
+           
     $año_mes = explode('-',$c_año_mes->año_mes);
     $mes = $año_mes[1].'/'.substr($año_mes[0],2);
     
-    $datos = $this->totalesCanon($año_mes[0],$año_mes[1],false);
+    $casinos = DB::table('casino')
+    ->select('id_casino','nombre')
+    ->get()->keyBy('id_casino')
+    ->map(function($c){return $c->nombre;});
+    $casinos[''] = 'Total';
+        
+    $conceptos = [
+      'Paños',
+      'MTM',
+      'Bingo',
+      'Total Físico',
+      'JOL',
+      'Apuestas Deportivas',
+      'Total'
+    ];
+    
+    $grupos = [];
+    foreach($casinos as $idc => $nombre){
+      $grupos[$nombre] = [];
+      foreach($conceptos as $v){
+        $grupos[$nombre][$v] = CanonAgrupamientoController::getInstancia()->obtener(
+          $c_año_mes->año_mes,
+          empty($idc)? null : $idc,
+          1,
+          'PDFTotales',
+          $v
+        );
+      }
+    }
     
     $tablas = [];
-    if($tipo_presupuesto == 'devengado'){
-      $tablas = ['','deduccion','bruto'];
-      foreach($datos as $cas => &$t){
-        foreach($t as $nombre_sc => &$subcanon){
-          $subcanon[''] = $subcanon['devengado'];
-          unset($subcanon['beneficio']);
-          unset($subcanon['devengado']);
-          unset($subcanon['determinado']);
-        }
-      }
+    switch($tipo_presupuesto){
+      case 'devengado':{
+        $tablas = [
+          'Devengado' => 'devengado',
+          'Deducción' => 'devengado_deduccion',
+          'Bruto' => 'devengado_bruto'
+        ];
+      }break;
+      case 'determinado':{
+        $tablas = [
+          'Determinado' => 'determinado'
+        ];
+      }break;
     }
-    else if($tipo_presupuesto == 'determinado'){
-      $tablas = [''];
-      foreach($datos as &$t){
-        foreach($t as &$subcanon){
-          $subcanon[''] = $subcanon['determinado'];
-          unset($subcanon['beneficio']);
-          unset($subcanon['devengado']);
-          unset($subcanon['bruto']);
-          unset($subcanon['deduccion']);
-          unset($subcanon['determinado']);
+    
+    $datos = [];
+    foreach($casinos as $cas){
+      $datos[$cas] = [];
+      foreach($conceptos as $c){
+        $datos[$cas][$c] = [];
+        foreach($tablas as $tn => $t){
+          $row = $grupos[$cas][$c] ?? (new \stdClass());
+          $datos[$cas][$c][$tn] = [
+           'pos_red' => $row->{$t.'¬pos_red'} ?? null,
+           'err_red' => $row->{$t.'¬err_red'} ?? null,
+          ];
         }
       }
     }
     
-    $conceptos = ['Paños','MTM','Bingo','Total Físico','JOL','Total'];
-        
-    $view = View::make('Canon.planillaDevengado', compact('tipo_presupuesto','tablas','conceptos','mes','datos'));
+    $casinos = $casinos->values();
+    $tablas  = array_keys($tablas);
+    $conceptos = array_values($conceptos);
+    $view = View::make('Canon.planillaDevengado', compact('tipo_presupuesto','tablas','conceptos','casinos','mes','datos'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -3037,5 +3091,48 @@ class CanonController extends Controller
       'primer_año','ultimo_año',
       'primer_mes','ultimo_mes',
       'botones','botones_elegidos','parametros','data','data_plataformas','años_planilla','años','año','año_anterior','meses','meses_calendario','planillas','planilla','es_anual','casinos','abbr_casinos','plataformas','relacion_plat_cas'));
+  }
+  
+  public function agrupamientos_detallados(){//Para debugear desde el navegador
+    return CanonAgrupamientoController::getInstancia()
+    ->agrupamientos_detallados($this->valorPorDefecto('agrupamientos') ?? []);
+  }
+  
+  public function recalcular_agrupamientos($año_meses = null,$stream_progress = true){
+    $do = function() use ($año_meses,$stream_progress){
+      $CAC = CanonAgrupamientoController::getInstancia();
+      
+      if($año_meses === null){
+        $año_meses = DB::table('canon')
+        ->select('año_mes')->distinct()
+        ->whereNull('deleted_at')
+        ->get()->pluck('año_mes')->toArray();
+        $CAC->down();
+        $CAC->up();
+        $agrupamientos_detallados = $CAC->agrupamientos_detallados($this->valorPorDefecto('agrupamientos') ?? []);
+        $CAC->guardarAgrupamientos($agrupamientos_detallados);
+      }
+      
+      if($stream_progress){
+        return response()->stream(function() use ($CAC,$año_meses){        
+          foreach($año_meses as $idx => $am){
+            $CAC->recalcular($am);
+            echo '<p>'.($am.' | '.round(($idx+1.0)/count($año_meses)*100,2).'%').'</p>';
+            ob_flush();
+            flush();
+          }
+        }, 200, [
+          'X-Accel-Buffering' => 'no', // Prevents Nginx from buffering the output
+        ]);
+      }
+      else{
+        foreach($año_meses as $idx => $am){
+          $CAC->recalcular($am);
+        }
+        return $año_meses;
+      }
+    };
+    
+    return $stream_progress? DB::transaction($do) : $do();
   }
 }
