@@ -80,15 +80,30 @@ $D = function($n){
     </tr>
     @foreach($conceptos as $concepto)
     <tr>
-      <?php $btop = $concepto == 'Total' || $concepto == 'Total Físico' ? 'btop' : ''; ?>
+      <?php $tot = $concepto == 'Total' || $concepto == 'Total Físico'; ?>
+      <?php $btop = $tot? 'btop' : ''; ?>
       <?php $bbottom = $concepto == 'Total Físico' ? 'bbottom' : ''; ?>
       <td class="tablaCampos {{$btop}} {{$bbottom}} bright" style="text-align: center;"><b>{{$concepto}}</b></td>
       @foreach($datos as $cas => $datos_concepto)
-      <?php $v = $datos_concepto[$concepto][$t]['pos_red']; ?>
-      <?php $sin_valor = $v === null? 'sin-valor' : ''; ?>
-      <?php $bleft = $cas == 'Total'? 'bleft' : ''; ?>
+      <?php 
+        $v = $datos_concepto[$concepto][$t]['pos_red'];
+        $r = $datos_concepto[$concepto][$t]['err_red'];
+        $sin_valor = $v === null? 'sin-valor' : '';
+        $bleft = $cas == 'Total'? 'bleft' : ''; 
+        $v = $v !== null? $D($v) : '—';
+        $r = 
+          (($cas == 'Total' || $tot) && bccomp_precise($r ?? '0','0') != 0)? 
+          ('redondeo '.$D(bcmul_precise($r,100)).'¢')
+        : '';
+      ?>
       <td class="tablaCampos {{$sin_valor}} {{$bleft}} {{$btop}} {{$bbottom}}" style="text-align: right;">
-        {{$v !== null? $D($v) : '—'}}
+        @if(empty($sin_valor))
+        <div style="float: left;width: 30%;font-size: 0.6em;text-align: left;">{{$r}}</div>
+        <div style="float: right;width: 80%;text-align: right;">{{$v}}</div>
+        <div style="clear: both;"></div>
+        @else
+        {{$v}}
+        @endif
       </td>
       @endforeach
     </tr>
