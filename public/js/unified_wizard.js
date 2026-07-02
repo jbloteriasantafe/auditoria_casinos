@@ -3718,13 +3718,18 @@ $(document).ready(function () {
     function renderComentarios(movimientos) {
         if (!movimientos || movimientos.length === 0) return '<p class="text-muted text-center" style="padding:20px">No hay comentarios aún</p>';
 
-        let comentarios = movimientos.filter(function (m) { return m.accion === 'COMENTARIO'; });
+        let comentarios = movimientos.filter(function (m) { return m.accion === 'COMENTARIO' || m.accion === 'COMENTARIO_PDF'; });
         if (comentarios.length === 0) return '<p class="text-muted text-center" style="padding:20px">No hay comentarios aún</p>';
 
         let html = '';
         comentarios.forEach(function (c) {
-            var puedeEliminarComentario = window.PUEDE_ELIMINAR || (c.id_usuario == window.CURRENT_USER_ID);
-            html += '<div class="comentario-item" data-mov-id="' + c.id + '" style="display:flex; align-items:flex-start; gap:8px; padding:8px; background:#fce7f3; border-radius:8px; margin-bottom:6px; position:relative;">' +
+            var esPdf = c.accion === 'COMENTARIO_PDF';
+            var puedeEliminarComentario = !esPdf && (window.PUEDE_ELIMINAR || (c.id_usuario == window.CURRENT_USER_ID));
+            
+            // Un fondo ligeramente diferente para los comentarios en PDF
+            var bgComentario = esPdf ? '#eff6ff' : '#fce7f3'; 
+
+            html += '<div class="comentario-item" data-mov-id="' + c.id + '" style="display:flex; align-items:flex-start; gap:8px; padding:8px; background:' + bgComentario + '; border-radius:8px; margin-bottom:6px; position:relative;">' +
                 _avatarHtml(c.user_imagen, 30) +
                 '<div style="flex:1; min-width:0;">' +
                     '<strong style="font-size:12px;">' + c.usuario + '</strong> <small class="text-muted">(' + c.fecha + ')</small>' +

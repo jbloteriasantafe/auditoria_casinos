@@ -1694,16 +1694,16 @@
                             <div id="logGlobalMovLoading" class="text-center text-muted" style="padding:20px; display:none;">
                                 <i class="fa fa-spinner fa-spin"></i> Cargando…
                             </div>
-                            <table class="table table-striped table-condensed" style="font-size:12px; margin-bottom:0;">
+                            <table class="table table-striped table-condensed" style="font-size:12px; margin-bottom:0; table-layout:fixed; width:100%; word-wrap:break-word;">
                                 <thead>
                                     <tr>
-                                        <th style="white-space:nowrap;">Fecha</th>
-                                        <th>Usuario</th>
-                                        <th>Nota</th>
-                                        <th>Casino / Plataforma</th>
-                                        <th>Rama</th>
-                                        <th>Acción</th>
-                                        <th>Comentario</th>
+                                        <th style="width:12%;">Fecha</th>
+                                        <th style="width:13%;">Usuario</th>
+                                        <th style="width:17%;">Nota</th>
+                                        <th style="width:14%;">Casino/Plat.</th>
+                                        <th style="width:6%;">Rama</th>
+                                        <th style="width:16%;">Acción</th>
+                                        <th style="width:22%;">Comentario</th>
                                     </tr>
                                 </thead>
                                 <tbody id="logGlobalMovBody"></tbody>
@@ -2426,7 +2426,7 @@
                                     html += '<tr>' +
                                         '<td style="white-space:nowrap;">' + escapeHtml(m.fecha) + '</td>' +
                                         '<td>' + escapeHtml(m.usuario) + '</td>' +
-                                        '<td style="white-space:nowrap;"><b>' + escapeHtml(m.nro_nota) + '</b>' +
+                                        '<td style="white-space:normal;"><b>' + escapeHtml(m.nro_nota) + '</b>' +
                                         (m.titulo ? '<br><small class="text-muted">' + escapeHtml(m.titulo) + '</small>' : '') + '</td>' +
                                         '<td>' + escapeHtml(m.casino) + '</td>' +
                                         '<td>' + ramaBadge(m.rama) + '</td>' +

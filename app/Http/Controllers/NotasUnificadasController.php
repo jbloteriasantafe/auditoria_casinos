@@ -623,7 +623,7 @@ class NotasUnificadasController extends Controller
         if ($request->has('q') && !empty($request->q)) {
             $q = $request->q;
             // El borrador es privado para roles privilegiados; solo ellos lo buscan/ven.
-            $verBorrador = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho;
+            $verBorrador = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE');
             $gruposQuery->where(function ($sub) use ($q, $verBorrador) {
                 $sub->where('nro_nota', 'LIKE', "%$q%")
                     ->orWhere('titulo', 'LIKE', "%$q%")
@@ -840,8 +840,8 @@ class NotasUnificadasController extends Controller
         $puedeVerComentarios = true; // Los comentarios de las notas son visibles para todos (pedido del usuario)
 
         // Editar el "borrador" (anotaciones rápidas inline por nota hija) lo pueden hacer
-        // solo superusuario / administrador / auditor / despacho. Control queda excluido por pedido.
-        $puedeEditarBorrador = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho;
+        // solo superusuario / administrador / auditor / despacho / juego_responsable. Control queda excluido por pedido.
+        $puedeEditarBorrador = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE');
 
         // Nivel de permisos para cambio de estado: funcionario tiene prioridad sobre admin
         $esAdmin = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control;
@@ -1100,7 +1100,7 @@ class NotasUnificadasController extends Controller
         // Filtros de búsqueda
         if ($request->has('q') && !empty($request->q)) {
             $q = $request->q;
-            $verBorrador = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho;
+            $verBorrador = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE');
             $gruposQuery->where(function ($sub) use ($q, $verBorrador) {
                 $sub->where('nro_nota', 'LIKE', "%$q%")
                     ->orWhere('titulo', 'LIKE', "%$q%")
@@ -3058,6 +3058,68 @@ class NotasUnificadasController extends Controller
             }
         }
 
+        // --- Agregar Comentarios PDF al arreglo de movimientos ---
+        if ($puedeVerComentarios) {
+            $pdfComentarios = \DB::table('notas_pdf_comentarios')
+                ->where('id_nota_ingreso', $nota->id)
+                ->orderBy('created_at', 'asc')
+                ->get();
+            
+            // Cache manual de imágenes de usuario para optimizar
+            $imgCache = [];
+
+            foreach ($pdfComentarios as $pdfCom) {
+                // Obtener imagen del usuario (cacheada)
+                if (!array_key_exists($pdfCom->id_usuario, $imgCache)) {
+                    $u = \App\Usuario::find($pdfCom->id_usuario);
+                    $imgCache[$pdfCom->id_usuario] = $u ? $u->imagen : null;
+                }
+                $userImagen = $imgCache[$pdfCom->id_usuario];
+
+                $tipoDoc = strtoupper($pdfCom->tipo_archivo);
+                $nroRef = $pdfCom->numero_ref ? " #{$pdfCom->numero_ref}" : "";
+                
+                // Darle formato para que quede claro que es de un PDF
+                $badge = "<span style='display:inline-block; font-size:10px; background:#bfdbfe; color:#1e40af; padding:1px 5px; border-radius:4px; margin-bottom:4px;'><i class='fa fa-file-pdf-o'></i> PDF $tipoDoc - Pág. {$pdfCom->pagina}$nroRef</span><br>";
+                
+                $movimientos[] = [
+                    'id' => 'pdf_' . $pdfCom->id,
+                    'id_usuario' => $pdfCom->id_usuario,
+                    'fecha' => $pdfCom->created_at ? \Carbon\Carbon::parse($pdfCom->created_at)->format('d/m/Y H:i') : null,
+                    'accion' => 'COMENTARIO_PDF',
+                    'comentario' => $badge . nl2br(e($pdfCom->mensaje)),
+                    'usuario' => $pdfCom->usuario ?? 'Sistema',
+                    'user_imagen' => $userImagen,
+                ];
+            }
+        }
+
+        // Ordenar todos los movimientos por fecha (descendente) o id para mantener coherencia
+        // ya que insertamos los del PDF al final.
+        foreach ($movimientos as &$mRef) {
+            try {
+                if (!$mRef['fecha']) {
+                    $mRef['_ts'] = 0;
+                } else if (preg_match('/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/', $mRef['fecha'])) {
+                    $mRef['_ts'] = \Carbon\Carbon::createFromFormat('d/m/Y H:i', $mRef['fecha'])->timestamp;
+                } else {
+                    $mRef['_ts'] = \Carbon\Carbon::parse($mRef['fecha'])->timestamp;
+                }
+            } catch (\Exception $e) {
+                $mRef['_ts'] = 0;
+            }
+        }
+        unset($mRef);
+
+        usort($movimientos, function($a, $b) {
+            return $b['_ts'] <=> $a['_ts'];
+        });
+
+        foreach ($movimientos as &$mRef) {
+            unset($mRef['_ts']);
+        }
+        unset($mRef);
+
         // Activos asociados (enriquecer con datos reales)
         $activos = $this->enriquecerActivos($nota->activos);
 
@@ -3359,7 +3421,7 @@ class NotasUnificadasController extends Controller
         try {
             $usuario_data = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
             $usuario = $usuario_data['usuario'] ?? null;
-            if (!$usuario || !($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho)) {
+            if (!$usuario || !($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE'))) {
                 return response()->json(['success' => false, 'msg' => 'Sin permiso para editar borrador'], 403);
             }
 
