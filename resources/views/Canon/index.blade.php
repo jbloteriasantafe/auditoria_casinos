@@ -71,6 +71,9 @@
     <div>
       <a data-js-tab="#pant_canon">Canon</a>
     </div>
+    <div>
+      <a data-js-tab="#pant_operarios">Operarios</a>
+    </div>
     @if($es_superusuario)
     <div>
       <a data-js-tab="#pant_defecto">Valores por Defecto</a>
@@ -101,7 +104,7 @@
     @slot('titulo')
     CANON
     @if($puede_agregarmodificar)
-    <button class="btn" type="button" data-js-nuevo-canon="/canon/obtener">NUEVO</button>
+    <button class="btn" type="button" data-js-nuevo="/canon/obtener">NUEVO</button>
     @endif
     @if($puede_ver)
     <button data-js-descargar="/canon/descargar" class="btn btn-sucess" type="button" style="font-size: 0.9rem;"><i class="fa fa-arrow-circle-down"></i>DESCARGAR<i class="fa fa-spinner fa-spin" data-js-descargando style="display: none;"></i></button> 
@@ -236,6 +239,67 @@
   @endcomponent
 </div>
 
+<div id="pant_operarios" hidden>
+  @component('Components/FiltroTabla')
+    @slot('titulo')
+    Operarios
+    @if($puede_agregarmodificar)
+    <button class="btn" type="button" data-js-nuevo="/canon/operario/obtener">NUEVO</button>
+    @endif
+    @endslot
+    
+    @slot('target_buscar')
+    /canon/operario/buscar
+    @endslot
+    
+    @slot('filtros')
+    @if($es_superusuario)
+    <div class="col-md-4">
+      <h5>ELIMINADOS</h5>
+      <select class="form-control" name="eliminados">
+        <option value='0' selected>NO</option>
+        <option value='1'>SI</option>
+      </select>
+    </div>
+    @endif
+    @endslot
+    
+    @slot('cabecera')
+    <tr>
+      <th>ID</th>
+      <th>NOMBRE</th>
+      <th>ACCION</th>
+    </tr>
+    @endslot
+    
+    @slot('molde')
+    <tr data-table-id="id_operario">
+      <td class="id_operario">NOMBRE</td>
+      <td class="nombre">NOMBRE</td>
+      <td>
+        @if($puede_ver)
+        <button class="btn" type="button" data-js-ver="/canon/operario/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
+        @endif
+        @if($puede_agregarmodificar)
+        <button class="btn" type="button" data-js-editar="/canon/operario/obtener" title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
+        @endif
+        @if($puede_deseliminar)
+        <button data-mostrar-borrado class="btn" type="button" data-js-desborrar="/canon/operario/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
+          <i class="fa fa-backward"></i>
+        </button>
+        @endif
+        @if($puede_agregarmodificar || $puede_deseliminar)
+        <button class="btn" type="button" data-js-borrar="/canon/operario/borrar" title="BORRAR">
+          <i class="fa fa-fw fa-trash-alt"></i>
+        </button>
+        @endif
+      </td>
+    </tr>
+    @endslot
+  @endcomponent
+</div>
+
+
 @if($es_superusuario)
 <div id="pant_defecto" hidden>
   @component('Components/FiltroTabla')
@@ -243,7 +307,7 @@
     <div>VALORES POR DEFECTO</div>
     <form style="display: flex;">
       <input class="form-control" name="campo" placeholder="Campo" style="flex: 1;">
-      <div data-js-nuevo-jsoneditor style="flex: 2;"></div>
+      <div data-js-nuevo style="flex: 2;"></div>
       <div style="flex: 1;">
         <button class="btn" type="button" data-js-guardar-nuevo="/canon/valoresPorDefecto/ingresar">GUARDAR</button>
       </div>
@@ -1330,6 +1394,144 @@
   @if($puede_agregarmodificar)
   <button class="btn btn-successAceptar" type="button" data-js-enviar="/canon/adjuntar" data-modo-mostrar='[{"modo": "ADJUNTAR"}]' data-modo-mostrar="ADJUNTAR">ADJUNTAR</button>
   <button class="btn btn-successAceptar" type="button" data-js-enviar="/canon/guardar" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>GUARDAR</button>
+  @endif
+  @endslot
+@endcomponent
+@endif
+
+@if($puede_ver || $puede_agregarmodificar)
+<style>
+  .VerCargarOperario {
+    --color-fondo-pestaña: #ececec;
+  }
+  .VerCargarOperario .pestaña {
+    background: var(--color-fondo-pestaña);
+  }
+  .VerCargarOperario h5, .VerCargarCanon select, .VerCargarCanon input {
+    text-align: center;
+  }
+  
+  .VerCargarOperario div.date input {
+    text-align: center;
+  }
+  
+  .VerCargarOperario div.bloque_interno {
+    background: white;
+    box-shadow: 0rem 0rem 0.05rem 0.2rem var(--color-fondo-pestaña);
+    padding: 0.75rem;
+  }
+  
+  .VerCargarOperario select[readonly], .VerCargarOperario input[type="color"][readonly] {
+    pointer-events: none;
+  }
+</style>
+
+@component('Components/modal',[
+  'clases_modal' => 'VerCargarOperario',
+  'attrs_modal' => 'data-js-modal-ver-cargar-operario data-modo=\'NUEVO\' ',
+  'estilo_cabecera' => 'background-color: #6dc7be;',
+  'grande' => 70,
+])
+  @slot('titulo')
+  OPERARIO
+  @endslot
+  @slot('cuerpo')
+  <div style="width: 100%;display: flex;align-items: center;justify-content: flex-end;padding-bottom: 1em;" data-modo-mostrar='[{"modo": "VER"}]'>
+    <h5 style="width: 15rem;">Version</h5>
+    <select class="form-control" data-js-select-historial style="width: 15rem;">
+    </select>
+  </div>
+  <form class="pestaña" style="display: flex;flex-direction: column;" action="/canon/operario/guardar" method="POST" data-ajax-params='{"processData": false,"contentType": false,"cache": false}'>
+    <div hidden>
+      <input name="id_canon_operario" class="form-control" data-readonly='[{"modo":"*"}]'>
+    </div>
+    <div class="bloque_enterno" style="display:flex;height: 70vh;width: 100%;">
+      <div class="bloque_interno"  style="flex: 2;height: 100%;display: flex;flex-direction: column;">
+        <div style="flex: 3;">
+          <h6>Datos</h6>
+          <div class="bloque_interno" style="display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
+            <div style="width: 33.333333333%;">
+              <h5 style="padding-left: 0;">ID</h5>
+              <!-- El id no se deberia editar una vez creado para mantener la trazabilidad/historial del operario -->
+              <input name="id_operario" class="form-control" data-readonly='[{"modo": "VER"},{"modo": "EDITAR"}]'>
+            </div>
+            <div style="width: 33.333333333%;">
+              <h5 style="padding-left: 0;">Nombre Legal</h5>
+              <input name="nombre_legal" class="form-control" data-readonly='[{"modo": "VER"}]'>
+            </div>
+            <div style="width: 33.333333333%;">
+              <h5 style="padding-left: 0;">Nombre</h5>
+              <input name="nombre" class="form-control" data-readonly='[{"modo": "VER"}]'>
+            </div>
+            <div style="width: 33.333333333%;">
+              <h5 style="padding-left: 0;">Código</h5>
+              <input name="codigo" class="form-control" data-readonly='[{"modo": "VER"}]'>
+            </div>
+            <div style="width: 33.333333333%;">
+              <h5 style="padding-left: 0;">CUIT</h5>
+              <input name="cuit" class="form-control" data-readonly='[{"modo": "VER"}]'>
+            </div>
+            <div style="width: 33.333333333%;">
+              <h5 style="padding-left: 0;">Inicio de Actividad</h5>
+              @component('Components/inputFecha',[
+                'attrs' => 'name="inicio_actividad" placeholder="YYYY-MM-DD"',
+                'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"}]\' style="padding: 0 !important;"'
+              ])
+              @endcomponent
+            </div>
+            <div style="width: 33.333333333%;">
+              <h5 style="padding-left: 0;">Abreviación</h5>
+              <input name="abbr" class="form-control" data-readonly='[{"modo": "VER"}]'>
+            </div>
+            <div style="width: 33.333333333%;">
+              <h5 style="padding-left: 0;">Color plantillas</h5>
+              <input data-js-change-agregar-alpha="" name="color" type="color" value="#000000FF" alpha="alpha" colorspace="limited-srgb" class="form-control" data-readonly='[{"modo": "VER"}]'>
+            </div>
+          </div>
+        </div>
+        <div style="flex: 3;">
+          <h6>Datos De Enlace</h6>
+          <div class="bloque_interno" style="display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
+            <div style="width: 33.333333333%;">
+              <h5 style="padding-left: 0;">Casino</h5>
+              <input name="codigo_casino" class="form-control" data-readonly='[{"modo": "VER"}]'>
+            </div>
+            <div style="width: 33.333333333%;">
+              <h5 style="padding-left: 0;">Plataforma</h5>
+              <input name="codigo_plataforma" class="form-control" data-readonly='[{"modo": "VER"}]'>
+            </div>
+            <div style="width: 33.333333333%;">
+              <h5 style="padding-left: 0;">Apuestas Deportivas</h5>
+              <input name="codigo_apuestas_deportivas" class="form-control" data-readonly='[{"modo": "VER"}]'>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bloque_interno" style="flex: 1;height: 100%;">
+        <h6 style="padding-bottom: 1em;">
+          Cuentas
+          <button class="btn" type="button" data-js-click-agregar-cuenta data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]' style="display: inline-block;">
+            <i class="fa fa-plus"></i>
+          </button>
+        </h6>
+        <div data-contenedor-cuentas class="bloque_interno" style="padding-left: 5em;width: 30em;height: 70%;overflow-y: scroll">
+        </div>
+      </div>
+    </div>
+  </form>
+  <!-- Por fuera del modal así no afecta el <form> -->
+  <div hidden>
+    <div data-molde-cuenta style="width: 100%;display: flex;padding: 1em;">
+      <input class="form-control" name="cuenta[]" data-readonly='[{"modo": "VER"}]'>
+      <button class="btn btn-link" type="button" data-js-click-borrar-parent data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>
+        <i class="fa fa-fw fa-trash-alt"></i>
+      </button>
+    </div>
+  </div>
+  @endslot
+  @slot('pie')
+  @if($puede_agregarmodificar)
+  <button class="btn btn-successAceptar" type="button" data-js-click-submit-form="form" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>GUARDAR</button>
   @endif
   @endslot
 @endcomponent

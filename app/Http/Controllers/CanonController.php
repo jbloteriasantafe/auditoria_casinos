@@ -1691,7 +1691,7 @@ class CanonController extends Controller
     });
   }
   
-  private function valorPorDefecto($k){
+  public function valorPorDefecto($k){
     $db = DB::table('canon_valores_por_defecto')
     ->whereNull('deleted_at')
     ->where('campo',$k)

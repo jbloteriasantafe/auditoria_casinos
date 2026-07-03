@@ -1657,7 +1657,20 @@ Route::group(['prefix' => 'canon', 'middleware' => 'tiene_permiso:m_ver_seccion_
     Route::get('/down','\App\Http\Controllers\CanonAgrupamientoController@down');
     Route::get('/up','\App\Http\Controllers\CanonAgrupamientoController@up');
     Route::get('/recalcular_todos','\App\Http\Controllers\CanonController@recalcular_agrupamientos');
-    Route::get('/agrupamientos_detallados','\App\Http\Controllers\CanonController@agrupamientos_detallados');
+    //Para debug
+    Route::get('/detallados','\App\Http\Controllers\CanonController@agrupamientos_detallados');
+  });
+  
+  Route::group(['prefix' => 'operario', 'middleware' => 'tiene_rol:superusuario'] ,function(){
+    Route::get('/down','\App\Http\Controllers\CanonOperarioController@down');
+    Route::get('/up','\App\Http\Controllers\CanonOperarioController@up');
+    Route::get('/llenado_inicial','\App\Http\Controllers\CanonOperarioController@llenado_inicial');
+    Route::post('/buscar','\App\Http\Controllers\CanonOperarioController@buscar');
+    Route::get('/obtener','\App\Http\Controllers\CanonOperarioController@obtener');
+    Route::get('/obtenerConHistorial','\App\Http\Controllers\CanonOperarioController@obtenerConHistorial');
+    Route::post('/guardar','\App\Http\Controllers\CanonOperarioController@guardar');
+    Route::delete('/borrar','\App\Http\Controllers\CanonOperarioController@borrar');
+    Route::delete('/desborrar','\App\Http\Controllers\CanonOperarioController@desborrar');
   });
   
   Route::group(['middleware' => 'tiene_permiso:m_b_pagos'],function () {

@@ -630,7 +630,7 @@ $(document).ready(function() {
   });
   
   if($('#pant_defecto').length){
-    reemplazarPorJsonEditor($('#pant_defecto').find('[data-js-nuevo-jsoneditor]'),'{}');
+    reemplazarPorJsonEditor($('#pant_defecto').find('[data-js-nuevo]'),'{}');
   }
   
   $('#pant_canon [data-js-descargar]').click(function(e){
@@ -666,9 +666,40 @@ $(document).ready(function() {
     );
   });
      
-  $('#pant_canon [data-js-nuevo-canon]').click(function(e){
+  $('#pant_canon [data-js-nuevo]').click(function(e){
     const tgt = $(e.currentTarget);
-    $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-nuevo-canon'),null,'NUEVO']);
+    $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-nuevo'),null,'NUEVO']);
+  });
+  
+  $('#pant_canon').on('click','[data-js-editar]',function(e){//@TODO: bindear derecho
+    const tgt = $(e.currentTarget);
+    $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-editar'),tgt.val(),'EDITAR']);
+  });
+  
+  $('#pant_canon').on('click','[data-js-adjuntar]',function(e){//@TODO: bindear derecho
+    const tgt = $(e.currentTarget);
+    $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-adjuntar'),tgt.val(),'ADJUNTAR']);
+  });
+  
+  $('#pant_canon').on('click','[data-js-ver]',function(e){//@TODO: bindear derecho
+    const tgt = $(e.currentTarget);
+    $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-ver'),tgt.val(),'VER']);
+  });
+  
+  $('#pant_canon').on('click','[data-js-cambiar-estado]',function(e){//@TODO: bindear derecho
+    const tgt = $(e.currentTarget);
+    $('[data-js-modal-cambiar-estado]').trigger('mostrar',[{
+      url: tgt.attr('data-js-cambiar-estado'),
+      url_params: {id_canon: tgt.val()},
+      mensaje: tgt.attr('data-mensaje-cambiar-estado') ?? '¿Desea cambiar el estado?',
+      success: function(data){
+        AUX.mensajeExito(data?.mensaje ?? '');
+        $('#pant_canon').find('[data-js-filtro-tabla]').trigger('buscar');
+      },
+      error: function(data){
+        AUX.mensajeError(data?.mensaje ?? '');
+      }
+    }]);
   });
   
   $('#pant_canon').on('click','[data-js-editar]',function(e){//@TODO: bindear derecho
@@ -731,7 +762,7 @@ $(document).ready(function() {
     const url = tgt.attr('data-js-guardar-nuevo');
     const form = tgt.closest('form');
     const fd = AUX.form_entries(tgt.closest('form')?.[0]);
-    guardarValorPorDefecto(url,fd.campo,form.find('[data-js-nuevo-jsoneditor]').data('jsoneditor').getText());
+    guardarValorPorDefecto(url,fd.campo,form.find('[data-js-nuevo]').data('jsoneditor').getText());
   });
   
   $('[data-js-filtro-tabla]').trigger('buscar');
@@ -768,3 +799,284 @@ $(function(e){ $('[data-js-modal-cambiar-estado]').each(function(){
   });
   
 })});
+
+
+$(document).ready(function(){
+  $('#pant_operarios [data-js-nuevo]').click(function(e){
+    const tgt = $(e.currentTarget);
+    $('[data-js-modal-ver-cargar-operario]').trigger('mostrar.modal',[tgt.attr('data-js-nuevo'),tgt.val(),'NUEVO']);
+  });
+  
+  $('#pant_operarios').on('click','[data-js-ver]',function(e){//@TODO: bindear derecho
+    const tgt = $(e.currentTarget);
+    $('[data-js-modal-ver-cargar-operario]').trigger('mostrar.modal',[tgt.attr('data-js-ver'),tgt.val(),'VER']);
+  });
+  
+  $('#pant_operarios').on('click','[data-js-editar]',function(e){//@TODO: bindear derecho
+    const tgt = $(e.currentTarget);
+    $('[data-js-modal-ver-cargar-operario]').trigger('mostrar.modal',[tgt.attr('data-js-editar'),tgt.val(),'EDITAR']);
+  });
+  
+  $('#pant_operarios').each(function(_,pant_obj){
+    const pant = $(pant_obj);
+    
+    pant.find('[data-js-filtro-tabla]').on('busqueda',function(e,ret,tbody,molde){
+      ret.data.forEach(function(obj){
+        const fila = molde.clone();
+        Object.keys(obj).forEach(function(k){
+          fila.find('.'+k).text(obj[k]);
+        });
+        
+        const id_k = fila.attr('data-table-id');
+        const id = obj[id_k];
+        
+        fila.find('button')
+        .val(id)
+        .filter(obj.deleted_at? ':not([data-mostrar-borrado])' : '[data-mostrar-borrado]')
+        .remove();
+        
+        fila.find('a[href]')
+        .each(function(_,obj){
+          const data = {};
+          data[id_k] = id;
+          $(obj).attr('href',$(obj).attr('href')+'?'+encodeQueryData(data));
+        });
+        
+        tbody.append(fila);
+      });
+      
+      tbody.find('[data-js-borrar]').click(function(e){
+        const tgt = $(e.currentTarget);
+        const fd = {};
+        fd[tgt.closest('[data-table-id]').attr('data-table-id')] = tgt.val();
+        
+        $('[data-js-modal-eliminar]').trigger('mostrar',[{
+          url: tgt.attr('data-js-borrar'),
+          url_params: fd,
+          mensaje: 'Esta seguro que desea eliminarlo',
+          success: function(){pant.find('[data-js-filtro-tabla]').trigger('buscar');},
+        }]);
+      });
+      
+      tbody.find('[data-js-desborrar]').click(function(e){
+        const tgt = $(e.currentTarget);
+        const fd = {};
+        fd[tgt.closest('[data-table-id]').attr('data-table-id')] = tgt.val();
+        
+        $('[data-js-modal-eliminar]').trigger('mostrar',[{
+          url: tgt.attr('data-js-desborrar'),
+          url_params: fd,
+          mensaje: 'Esta seguro que desea des-eliminarlo',
+          success: function(){pant.find('[data-js-filtro-tabla]').trigger('buscar');},
+        }]);
+      });
+    });
+  });
+  
+  $('[data-js-modal-ver-cargar-operario]').each(function(){
+    const  M = $(this);
+    const $M = M.find.bind(M);
+    const Mname = function(name,val,O=M){
+      return O.find(`[name="${name}"]`).val(val ?? '');
+    };
+    
+    const render = function(operario,mantener_historial = false){
+      ocultarErrorValidacion(M.find('[name]'));
+      Mname('id_canon_operario',operario?.id_canon_operario);
+      Mname('id_operario',operario?.id_operario);
+      Mname('nombre_legal',operario?.nombre_legal);
+      Mname('nombre',operario?.nombre);
+      Mname('codigo',operario?.codigo);
+      Mname('cuit',operario?.cuit);
+      Mname('inicio_actividad',operario?.inicio_actividad ?? '').trigger('change');
+      Mname('abbr',operario?.abbr);
+      Mname('color',operario?.color).trigger('change');
+      Mname('codigo_casino',operario?.codigo_casino);
+      Mname('codigo_plataforma',operario?.codigo_plataforma);
+      Mname('codigo_apuestas_deportivas',operario?.codigo_apuestas_deportivas);
+      $M('[data-contenedor-cuentas]').empty();
+      for(const c of (operario?.cuentas ?? [])){
+        const fila = $M('[data-molde-cuenta]').clone().removeAttr('data-molde-cuenta');
+        $M('[data-contenedor-cuentas]').append(fila);
+        Mname('cuenta[]',c,fila);
+      }
+      
+      (mantener_historial?
+         M.find('[data-js-select-historial]')
+       : M.find('[data-js-select-historial]').empty())
+       .append(
+        (operario?.historial ?? []).map(function(h,hidx){
+          const o = $('<option>');
+          o.val(h.id_canon_operario);
+          o.text(h.usuario + ' - '+h.created_at);
+          o.data('operario',h);
+          return o;
+        })
+      );
+    };
+    
+    const filterFunction = function(attr){
+      const check_params = {
+        modo: M.attr('data-modo')
+      };
+            
+      return function(_,r_obj){
+        let json_rdata = null;
+        try{
+          json_rdata = JSON.parse($(r_obj).attr(attr));
+        }
+        catch(error){
+          console.log(r_obj,json_rdata);
+          throw error;
+        }
+        
+        if(!Array.isArray(json_rdata)){
+          console.log(r_obj,json_rdata);
+          throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
+        }
+        for(const obj of json_rdata){
+          if(typeof obj !== 'object'){
+            console.log(r_obj,obj);
+            throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
+          }
+          for(const param in check_params){
+            const check_val = check_params[param];
+            const obj_val = obj[param] ?? undefined;
+            if(obj_val == '*' || obj_val === check_val) return true;
+          }
+        }
+        return false;
+      };
+    };
+        
+    const setReadonly = function(){
+      const setReadOnlyObj = function(state){
+        return function(_,r_obj){
+          const r = $(r_obj);
+          const f = r.children('[data-js-fecha]');
+          if(f.length){
+            f[0].readonly(state);  
+          }
+          else{
+            if(state){ r.attr('readonly',true);  }
+            else{      r.removeAttr('readonly'); }
+          }
+        };
+      }
+      
+      M.find('[data-readonly]:not([data-js-fecha])')
+      .each(setReadOnlyObj(false))
+      .filter(filterFunction('data-readonly'))
+      .each(setReadOnlyObj(true));
+    }
+    
+    const setVisible = function(){
+      M.find('[data-modo-mostrar]').hide().filter(filterFunction('data-modo-mostrar')).show();
+    }
+    
+    M.on('mostrar.modal',function(e,url,id_operario,modo){      
+      M.attr('data-modo',modo.toUpperCase());
+      AUX.GET(url,{id_operario: id_operario},function(operario){
+        render(operario);          
+        setVisible();
+        setReadonly();
+        M.modal('show');
+      });
+    });
+        
+    $M('[data-js-click-agregar-cuenta]').click(function(){
+      $M('[data-contenedor-cuentas]').append(
+        $M('[data-molde-cuenta]').clone().removeAttr('data-molde-cuenta')
+      );
+    });
+    
+    M.on('click','[data-js-click-borrar-parent]',function(){
+      $(this).parent().remove();
+    });
+    
+    $M('[data-js-click-submit-form]').click(function(e){
+      const o = e.currentTarget;
+      const select = $(o).attr('data-js-click-submit-form');
+      const $form = $M(select);
+      const form = $form?.[0] ?? undefined;
+      const formData = new FormData(form);
+      const ajax_params = JSON.parse($form.attr('data-ajax-params') ?? '{}') ?? {};
+      ocultarErrorValidacion(M.find('[name]'));
+      $.ajax({
+        type: $form.attr('method'),
+        url: $form.attr('action'),
+        data: formData,
+        ...ajax_params,
+        success: function (data) {
+          $('#pant_operarios [data-js-filtro-tabla]').trigger('buscar');
+          AUX.mensajeExito(data?.mensaje ?? '');
+          $(o).closest('.modal').modal('hide');
+        },
+        error: function (data) {
+          const json = data.responseJSON ?? {};
+          AUX.mensajeError(json?.mensaje ?? '');
+          AUX.mostrarErroresNames($form,json);
+          //@HACK: tengo que hacerlo manual porque el name de cada cuenta es cuenta[]
+          $form.find('[name="cuenta[]"]').each(function(cidx,cobj){
+            const k = 'cuenta.'+cidx;
+            if(k in json){
+              mostrarErrorValidacion($(cobj),json[k].join(', '),true);
+            }
+          });
+          console.log(data);
+        }
+      });
+    });
+    
+    $M('[data-js-change-agregar-alpha]').change(function(e){
+      const tgt = $(e.currentTarget);
+      const ALPHA = tgt.attr('data-js-change-agregar-alpha');
+      let val = tgt.val();
+      {
+        const fakeDiv = document.createElement('div');
+        fakeDiv.style.color = val;
+        document.body.append(fakeDiv);
+        const rgbStr = window.getComputedStyle(fakeDiv).color.replaceAll(/( |\t|\n|\r|\f|\v)/g,'');//Le saco los espacios
+        document.body.removeChild(fakeDiv);
+        const numRegex = '(\\+|-)?([0-9]+\\.?[0-9]*|[0-9]*\\.?[0-9]+)';
+        const fRegex = '((0|1)\\.?[0-9]*|\\.[0-9]+)';
+        const rgbRegex = new RegExp('rgb\\('+numRegex+','+numRegex+','+numRegex+'\\)','gi');
+        const rgbaRegex = new RegExp('rgba\\('+numRegex+','+numRegex+','+numRegex+','+numRegex+'\\)','gi');
+        const rgbafRegex = new RegExp('rgba\\('+numRegex+','+numRegex+','+numRegex+','+fRegex+'\\)','gi');
+        const clearTextRegex = /(r|g|b|a|\(|\))/g;
+        const f255toHex = (s) => {
+          return Math.min(Math.max(Math.round(parseFloat(s)),0),255).toString(16).padStart(2,'0').toUpperCase();
+        };
+        const fatoHex = (s) => {
+          return Math.min(Math.max(Math.round(parseFloat(s)*255),0),255).toString(16).padStart(2,'0').toUpperCase();
+        };
+        //Mi navegador me devuelve negro si seteo un color en hex con alfa #RRGGBBAA
+        //Asi que lo seteo sin esto
+        const CON_ALPHA = ALPHA.length > 0;
+        if(rgbStr == rgbStr.match(rgbRegex)?.[0]){
+          val = '#'+(rgbStr.replaceAll(clearTextRegex,'').split(',').map(f255toHex).join(''))+ALPHA;
+        }
+        else if(rgbStr == rgbStr.match(rgbaRegex)?.[0]){
+          val = '#'+(rgbStr.replaceAll(clearTextRegex,'').split(',').map(f255toHex).slice(0,CON_ALPHA? 4 : 3).join(''));
+        }
+        else if(rgbStr == rgbStr.match(rgbafRegex)?.[0]){
+          val = '#'+(rgbStr.replaceAll(clearTextRegex,'').split(',').map(function(s,idx,arr){
+            if(idx < (arr.length-1)){
+              return f255toHex(s);
+            }
+            return fatoHex(s);
+          }).slice(0,CON_ALPHA? 4 : 3).join(''));
+        }
+        else {
+          val = '#000000'+ALPHA;
+        }
+      }
+      tgt.val(val).attr('value',val);
+    });
+    
+    M.find('[data-js-select-historial]').change(function(e){
+      const tgt = $(e.currentTarget);
+      render(tgt.find('option:selected').data('operario'),true);
+    });
+  });
+});
