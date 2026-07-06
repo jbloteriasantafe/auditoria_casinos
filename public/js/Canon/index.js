@@ -873,11 +873,24 @@ $(document).ready(function(){
     });
   });
   
+  
   $('[data-js-modal-ver-cargar-operario]').each(function(){
     const  M = $(this);
     const $M = M.find.bind(M);
     const Mname = function(name,val,O=M){
       return O.find(`[name="${name}"]`).val(val ?? '');
+    };
+    
+    const agregar_fila_cuenta = (cidx,c) => {
+      const replace_str = $M('[data-molde-cuenta]').attr('data-molde-cuenta');
+      const fila = $M('[data-molde-cuenta]').clone().removeAttr('data-molde-cuenta');
+      fila.find('[data-name]').each(function(_,nobj){
+        $(nobj).attr('name',$(nobj).attr('data-name').replaceAll(replace_str,cidx));
+      });
+      $M('[data-contenedor-cuentas]').append(fila);
+      for(const k in c){
+        Mname(`cuentas[${cidx}][${k}]`,c[k],fila);
+      }
     };
     
     const render = function(operario,mantener_historial = false){
@@ -894,11 +907,10 @@ $(document).ready(function(){
       Mname('codigo_casino',operario?.codigo_casino);
       Mname('codigo_plataforma',operario?.codigo_plataforma);
       Mname('codigo_apuestas_deportivas',operario?.codigo_apuestas_deportivas);
+      
       $M('[data-contenedor-cuentas]').empty();
-      for(const c of (operario?.cuentas ?? [])){
-        const fila = $M('[data-molde-cuenta]').clone().removeAttr('data-molde-cuenta');
-        $M('[data-contenedor-cuentas]').append(fila);
-        Mname('cuenta[]',c,fila);
+      for(const cidx in (operario?.cuentas ?? [])){
+        agregar_fila_cuenta(cidx,operario.cuentas[cidx]);
       }
       
       (mantener_historial?
@@ -980,18 +992,29 @@ $(document).ready(function(){
         render(operario);          
         setVisible();
         setReadonly();
+        if(M.attr('data-modo') == 'NUEVO'){
+          $M('[data-js-click-agregar-cuenta]').trigger('click');
+        }
         M.modal('show');
       });
     });
         
     $M('[data-js-click-agregar-cuenta]').click(function(){
-      $M('[data-contenedor-cuentas]').append(
-        $M('[data-molde-cuenta]').clone().removeAttr('data-molde-cuenta')
-      );
+      const cidx = $M('[data-contenedor-cuentas] tr').length;
+      agregar_fila_cuenta(cidx,{
+        nombre: '',
+        dia_vencimiento: 10,
+        fin_de_semana: 'Lunes Próximo',
+        interes_diario_simple: 0,
+        interes_mensual_compuesto: 0
+      });
     });
     
-    M.on('click','[data-js-click-borrar-parent]',function(){
-      $(this).parent().remove();
+    M.on('click','[data-js-click-borrar-tr]',function(){
+      $(this).closest('tr').remove();
+      if($M('[data-contenedor-cuentas] tr').length == 0){
+        $M('[data-js-click-agregar-cuenta]').trigger('click');
+      }
     });
     
     $M('[data-js-click-submit-form]').click(function(e){
@@ -1016,13 +1039,19 @@ $(document).ready(function(){
           const json = data.responseJSON ?? {};
           AUX.mensajeError(json?.mensaje ?? '');
           AUX.mostrarErroresNames($form,json);
-          //@HACK: tengo que hacerlo manual porque el name de cada cuenta es cuenta[]
-          $form.find('[name="cuenta[]"]').each(function(cidx,cobj){
-            const k = 'cuenta.'+cidx;
-            if(k in json){
-              mostrarErrorValidacion($(cobj),json[k].join(', '),true);
+          //@HACK: tengo que hacerlo manual porque el name de cada cuenta es cuentas[]
+          for(const k in json){
+            if(k.substr(0,'cuentas.'.length) != 'cuentas.'){
+              continue;
             }
-          });
+            const cidx = k.match(/^cuentas\.[0-9]+/gm)?.[0].substr('cuentas.'.length);
+            const name = k.substr('cuentas.'.length+cidx.length+1);//+1 por el punto
+            mostrarErrorValidacion(
+              $form.find(`[name="cuentas[${cidx}][${name}]"]`),
+              json[k].join(', '),
+              true
+            );
+          }
           console.log(data);
         }
       });

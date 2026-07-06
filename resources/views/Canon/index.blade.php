@@ -1446,7 +1446,7 @@
       <input name="id_canon_operario" class="form-control" data-readonly='[{"modo":"*"}]'>
     </div>
     <div class="bloque_enterno" style="display:flex;height: 70vh;width: 100%;">
-      <div class="bloque_interno"  style="flex: 2;height: 100%;display: flex;flex-direction: column;">
+      <div class="bloque_interno"  style="flex: 1;height: 100%;display: flex;flex-direction: column;">
         <div style="flex: 3;">
           <h6>Datos</h6>
           <div class="bloque_interno" style="display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
@@ -1508,26 +1508,52 @@
         </div>
       </div>
       <div class="bloque_interno" style="flex: 1;height: 100%;">
-        <h6 style="padding-bottom: 1em;">
+        <h6 style="padding-bottom: 1em;width: 100%;">
           Cuentas
           <button class="btn" type="button" data-js-click-agregar-cuenta data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]' style="display: inline-block;">
             <i class="fa fa-plus"></i>
           </button>
         </h6>
-        <div data-contenedor-cuentas class="bloque_interno" style="padding-left: 5em;width: 30em;height: 70%;overflow-y: scroll">
+        <div class="bloque_interno" style="width: 100%;height: 70%;overflow-y: scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Dia Venc.</th>
+                <th>¿Fin de semana?</th>
+                <th>𝒾%  Diario Simple</th>
+                <th>𝒾%  Mensual Compuesto</th>
+                <th>&nbsp;</th>
+              </tr>
+            </thead>
+            <tbody data-contenedor-cuentas>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   </form>
   <!-- Por fuera del modal así no afecta el <form> -->
-  <div hidden>
-    <div data-molde-cuenta style="width: 100%;display: flex;padding: 1em;">
-      <input class="form-control" name="cuenta[]" data-readonly='[{"modo": "VER"}]'>
-      <button class="btn btn-link" type="button" data-js-click-borrar-parent data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>
-        <i class="fa fa-fw fa-trash-alt"></i>
-      </button>
-    </div>
-  </div>
+  <table hidden>
+    <tr data-molde-cuenta="$idxcuenta">
+      <td><input class="form-control" data-name="cuentas[$idxcuenta][nombre]" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input class="form-control" data-name="cuentas[$idxcuenta][dia_vencimiento]" data-readonly='[{"modo": "VER"}]'></td>
+      <td>
+        <select class="form-control" data-name="cuentas[$idxcuenta][fin_de_semana]" data-readonly='[{"modo": "VER"}]'>
+          <option>Lunes Próximo</option>
+          <option>Viernes Anterior</option>
+          <option>Sin Movimiento</option>
+        </select>
+      </td>
+      <td><input class="form-control" data-name="cuentas[$idxcuenta][interes_diario_simple]" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input class="form-control" data-name="cuentas[$idxcuenta][interes_mensual_compuesto]" data-readonly='[{"modo": "VER"}]'></td>
+      <td>
+        <button class="btn btn-link" type="button" data-js-click-borrar-tr data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>
+          <i class="fa fa-fw fa-trash-alt"></i>
+        </button>
+      </td>
+    </tr>
+  </table>
   @endslot
   @slot('pie')
   @if($puede_agregarmodificar)

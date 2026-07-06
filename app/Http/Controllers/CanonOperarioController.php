@@ -59,6 +59,10 @@ class CanonOperarioController extends Controller
       id_canon_operario_cuenta INT NOT NULL AUTO_INCREMENT,
       id_canon_operario INT NOT NULL,
       nombre VARCHAR(64) NOT NULL,
+      dia_vencimiento TINYINT NOT NULL,
+      fin_de_semana ENUM('Lunes Próximo','Viernes Anterior','Sin Movimiento') NOT NULL,
+      interes_diario_simple DECIMAL(7,4) NOT NULL,
+      interes_mensual_compuesto DECIMAL(7,4) NOT NULL,
       PRIMARY KEY (id_canon_operario_cuenta),
       UNIQUE KEY `unq_canon_operario_cuenta` (id_canon_operario,nombre),
       CONSTRAINT `fk_canon_operario_cuenta_operario` FOREIGN KEY (`id_canon_operario`) REFERENCES `canon_operario` (`id_canon_operario`)
@@ -154,9 +158,8 @@ class CanonOperarioController extends Controller
     if($co === null) return null;
     
     $co['cuentas'] = DB::table('canon_operario_cuenta')
-    ->select('nombre')
     ->where('id_canon_operario',$co['id_canon_operario'])
-    ->get()->pluck('nombre')->toArray();
+    ->get()->toArray();
     return $co;
   }
   
@@ -240,8 +243,9 @@ class CanonOperarioController extends Controller
     
     DB::table('canon_operario_cuenta')
     ->insert(
-      array_map(function($nombre) use ($id_canon_operario){
-        return compact('id_canon_operario','nombre');
+      array_map(function($c) use ($id_canon_operario){
+        $c['id_canon_operario'] = $id_canon_operario;
+        return $c;
       },$cuentas)
     );
       
@@ -266,15 +270,22 @@ class CanonOperarioController extends Controller
       'codigo_casino' => ['nullable','string','max:16'],
       'codigo_plataforma' => ['nullable','string','max:16'],
       'codigo_apuestas_deportivas' => ['nullable','string','max:16'],
-      'cuenta' => ['nullable','array'],
-      'cuenta.*' => ['required','string','max:64']
+      'cuentas' => ['required','array','min:1'],
+      'cuentas.*.nombre' => ['required','string','max:64'],
+      'cuentas.*.dia_vencimiento' => ['required','integer','min:1','max:28'],
+      'cuentas.*.fin_de_semana' => ['nullable','string','in:Lunes Próximo,Viernes Anterior,Sin Movimiento'],
+      'cuentas.*.interes_diario_simple' => ['required','string','regex:/^\d{1,3}(\.\d{0,4})?$/'],
+      'cuentas.*.interes_mensual_compuesto' => ['required','string','regex:/^\d{1,3}(\.\d{0,4})?$/']
     ], [
       'required' => 'El valor es requerido',
       'integer' => 'Tiene que ser un número',
+      'min' => 'Fuera de rango',
       'max' => 'Supera el limite de tamaño',
       'array' => 'Tiene que ser una lista',
       'exists' => 'No existe el valór para referenciar',
-      'string' => 'Se requiere una cadena'
+      'string' => 'Se requiere una cadena',
+      'in' => 'No es un valor valido',
+      'regex' => 'Formato incorrecto'
     ],[])->after(function($validator) use (&$co){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
@@ -325,11 +336,11 @@ class CanonOperarioController extends Controller
       
       $data = $request->all();
       
-      $cuentas = $data['cuenta'];
-      unset($data['cuenta']);
+      $cuentas = $data['cuentas'] ?? [];
+      unset($data['cuentas']);
       unset($data['id_canon_operario']);
       $data['cuentas'] = $cuentas;
-      
+            
       return $this->_guardar($data,$created_at,$created_by);
     });
   }
