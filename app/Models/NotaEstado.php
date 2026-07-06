@@ -88,6 +88,7 @@ class NotaEstado extends Model
         return [
             self::CONTROL_INICIADO => [self::APROBADO_FUNCIONARIO, self::VISTO_CON_OBSERVACIONES],
             self::OBS_CORREGIDA    => [self::APROBADO_FUNCIONARIO, self::VISTO_CON_OBSERVACIONES],
+            self::VISTO_CON_OBSERVACIONES => [self::APROBADO_FUNCIONARIO],
         ];
     }
 
@@ -100,6 +101,7 @@ class NotaEstado extends Model
             self::CONTROL_INICIADO     => [self::APROBADO_FUNCIONARIO, self::VISTO_CON_OBSERVACIONES],
             self::OBS_CORREGIDA        => [self::APROBADO_FUNCIONARIO, self::VISTO_CON_OBSERVACIONES],
             self::CON_INFORME_NEGATIVO => [self::APROBADO_FUNCIONARIO, self::VISTO_CON_OBSERVACIONES],
+            self::VISTO_CON_OBSERVACIONES => [self::APROBADO_FUNCIONARIO],
         ];
     }
 

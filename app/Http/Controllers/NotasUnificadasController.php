@@ -173,9 +173,11 @@ class NotasUnificadasController extends Controller
      */
     public static function registrarMovimiento($nota, $accion, $comentario)
     {
-        if (!$nota) return false;
+        if (!$nota)
+            return false;
         $exp = $nota->expedientes()->first();
-        if (!$exp) return false;
+        if (!$exp)
+            return false;
 
         $idUsuario = session('id_usuario');
         $usuario = $idUsuario ? \App\Usuario::find($idUsuario) : null;
@@ -198,7 +200,8 @@ class NotasUnificadasController extends Controller
      */
     public static function registrarMovimientoEnGrupo($grupo, $accion, $comentario)
     {
-        if (!$grupo) return false;
+        if (!$grupo)
+            return false;
         $grupo->load('notas');
         foreach ($grupo->notas as $nota) {
             self::registrarMovimiento($nota, $accion, $comentario);
@@ -581,9 +584,12 @@ class NotasUnificadasController extends Controller
         // Filtros por rol (se omiten si "ver_todo" está activo)
         if (!$verTodo) {
             if ($rolVista === 'funcionario1') {
-                // Funcionario 1: solo grupos con notas MKT
+                // Funcionario 1: solo grupos con notas MKT (oculta Promociones AADD por defecto)
                 $gruposQuery->whereHas('notas', function ($q) {
-                    $q->where('tipo_rama', 'MKT');
+                    $q->where('tipo_rama', 'MKT')
+                      ->whereNotIn('id_categoria', function ($query) {
+                          $query->select('id')->from('nota_categorias')->where('descripcion', 'LIKE', '%Promociones AADD%');
+                      });
                 });
             } elseif ($rolVista === 'funcionario2') {
                 // Funcionario 2: notas con tipo_evento o categoria "Contratos" O estado "CON INFORME NEGATIVO"
@@ -617,7 +623,7 @@ class NotasUnificadasController extends Controller
         if ($request->has('q') && !empty($request->q)) {
             $q = $request->q;
             // El borrador es privado para roles privilegiados; solo ellos lo buscan/ven.
-            $verBorrador = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho;
+            $verBorrador = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE');
             $gruposQuery->where(function ($sub) use ($q, $verBorrador) {
                 $sub->where('nro_nota', 'LIKE', "%$q%")
                     ->orWhere('titulo', 'LIKE', "%$q%")
@@ -646,11 +652,34 @@ class NotasUnificadasController extends Controller
                     $q->orWhereIn('id_plataforma', $idPlataformaFiltro);
             });
         }
-        // Rama (MKT / FISC) — múltiple
+        // Rama (MKT / FISC) y Categorías / Eventos
         $ramaFiltro = array_values(array_filter((array) $request->input('rama', []), 'strlen'));
-        if (!empty($ramaFiltro)) {
-            $gruposQuery->whereHas('notas', function ($q) use ($ramaFiltro) {
-                $q->whereIn('tipo_rama', $ramaFiltro);
+        $catMktFiltro = array_values(array_filter((array) $request->input('categorias_mkt', []), 'strlen'));
+        $evFiscFiltro = array_values(array_filter((array) $request->input('eventos_fisc', []), 'strlen'));
+
+        if (!empty($ramaFiltro) || !empty($catMktFiltro) || !empty($evFiscFiltro)) {
+            $gruposQuery->whereHas('notas', function ($q) use ($ramaFiltro, $catMktFiltro, $evFiscFiltro) {
+                $q->where(function ($query) use ($ramaFiltro, $catMktFiltro, $evFiscFiltro) {
+                    $hasMkt = in_array('MKT', $ramaFiltro) || !empty($catMktFiltro);
+                    if ($hasMkt) {
+                        $query->orWhere(function ($q2) use ($catMktFiltro) {
+                            $q2->where('tipo_rama', 'MKT');
+                            if (!empty($catMktFiltro)) {
+                                $q2->whereIn('id_categoria', $catMktFiltro);
+                            }
+                        });
+                    }
+
+                    $hasFisc = in_array('FISC', $ramaFiltro) || !empty($evFiscFiltro);
+                    if ($hasFisc) {
+                        $query->orWhere(function ($q2) use ($evFiscFiltro) {
+                            $q2->where('tipo_rama', 'FISC');
+                            if (!empty($evFiscFiltro)) {
+                                $q2->whereIn('id_tipo_evento', $evFiscFiltro);
+                            }
+                        });
+                    }
+                });
             });
         }
         // Estado del expediente — múltiple
@@ -660,12 +689,21 @@ class NotasUnificadasController extends Controller
                 $q->whereIn('estado_actual', $estadoFiltro);
             });
         }
-        // Rango de fechas (fecha de carga)
-        if ($request->has('fecha_desde') && !empty($request->fecha_desde)) {
-            $gruposQuery->whereDate('created_at', '>=', $request->fecha_desde);
-        }
-        if ($request->has('fecha_hasta') && !empty($request->fecha_hasta)) {
-            $gruposQuery->whereDate('created_at', '<=', $request->fecha_hasta);
+        if (!empty($request->fecha_inicio_desde) || !empty($request->fecha_inicio_hasta) || !empty($request->fecha_fin_desde) || !empty($request->fecha_fin_hasta)) {
+            $gruposQuery->whereHas('notas', function ($q) use ($request) {
+                if (!empty($request->fecha_inicio_desde)) {
+                    $q->whereDate('fecha_inicio_evento', '>=', $request->fecha_inicio_desde);
+                }
+                if (!empty($request->fecha_inicio_hasta)) {
+                    $q->whereDate('fecha_inicio_evento', '<=', $request->fecha_inicio_hasta);
+                }
+                if (!empty($request->fecha_fin_desde)) {
+                    $q->whereDate('fecha_fin_evento', '>=', $request->fecha_fin_desde);
+                }
+                if (!empty($request->fecha_fin_hasta)) {
+                    $q->whereDate('fecha_fin_evento', '<=', $request->fecha_fin_hasta);
+                }
+            });
         }
 
         // Quick Filters
@@ -727,6 +765,23 @@ class NotasUnificadasController extends Controller
                     FROM notas_ingreso ni
                     WHERE ni.id_grupo = grupos_tramites.id
                 ) ' . $order);
+            } elseif ($sort === 'fecha_evento') {
+                $gruposQuery->orderByRaw('(
+                    SELECT COALESCE(
+                        MAX(CASE WHEN ni.tipo_rama = \'MKT\' THEN ni.fecha_inicio_evento END),
+                        MAX(CASE WHEN ni.tipo_rama = \'FISC\' THEN ni.fecha_inicio_evento END)
+                    )
+                    FROM notas_ingreso ni
+                    WHERE ni.id_grupo = grupos_tramites.id
+                ) ' . $order);
+            } elseif ($sort === 'nro_aprob_mkt' || $sort === 'nro_aprob_fisc') {
+                $rama = $sort === 'nro_aprob_mkt' ? 'MKT' : 'FISC';
+                $gruposQuery->orderByRaw('(
+                    SELECT MAX(CAST(gna.numero_documento AS UNSIGNED))
+                    FROM grupo_notas_aprobacion gna
+                    WHERE gna.id_grupo = grupos_tramites.id
+                    AND gna.tipo_rama = ?
+                ) ' . $order, [$rama]);
             } else {
                 // Validar columnas permitidas de grupos_tramites
                 $columnasPermitidas = ['id', 'created_at', 'nro_nota', 'id_casino', 'anio', 'titulo', 'tipo_solicitud'];
@@ -785,8 +840,8 @@ class NotasUnificadasController extends Controller
         $puedeVerComentarios = true; // Los comentarios de las notas son visibles para todos (pedido del usuario)
 
         // Editar el "borrador" (anotaciones rápidas inline por nota hija) lo pueden hacer
-        // solo superusuario / administrador / auditor / despacho. Control queda excluido por pedido.
-        $puedeEditarBorrador = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho;
+        // solo superusuario / administrador / auditor / despacho / juego_responsable. Control queda excluido por pedido.
+        $puedeEditarBorrador = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE');
 
         // Nivel de permisos para cambio de estado: funcionario tiene prioridad sobre admin
         $esAdmin = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->es_control;
@@ -885,6 +940,24 @@ class NotasUnificadasController extends Controller
 
         // Tipos de evento y categorías desde BD
         $categorias = NotaCategoria::activasPorRama();
+
+        // Ocultar la categoría Promociones AADD a quienes no sean de plataformas deportivas ni jerárquicos
+        $esJerarquico = $sinFiltroCasino || $usuario->es_administrador || $usuario->es_control || $usuario->tieneRol('FUNCIONARIO_1') || $usuario->tieneRol('FUNCIONARIO_2');
+        $esAADD = false;
+        if (is_array($plataformasPermitidas)) {
+            foreach ($plataformasPermitidas as $idP) {
+                if (self::esPlataformaDeportiva($idP)) {
+                    $esAADD = true;
+                    break;
+                }
+            }
+        }
+        if (!$esJerarquico && !$esAADD) {
+            $categorias = $categorias->reject(function ($cat) {
+                return strpos(strtolower($cat->descripcion), 'promociones aadd') !== false;
+            })->values();
+        }
+
         $tipos_evento = NotaTipoEvento::activosPorRama();
 
         $estados = NotaEstado::activos();
@@ -1027,7 +1100,7 @@ class NotasUnificadasController extends Controller
         // Filtros de búsqueda
         if ($request->has('q') && !empty($request->q)) {
             $q = $request->q;
-            $verBorrador = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho;
+            $verBorrador = $usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE');
             $gruposQuery->where(function ($sub) use ($q, $verBorrador) {
                 $sub->where('nro_nota', 'LIKE', "%$q%")
                     ->orWhere('titulo', 'LIKE', "%$q%")
@@ -1053,9 +1126,32 @@ class NotasUnificadasController extends Controller
             });
         }
         $ramaFiltro = array_values(array_filter((array) $request->input('rama', []), 'strlen'));
-        if (!empty($ramaFiltro)) {
-            $gruposQuery->whereHas('notas', function ($q) use ($ramaFiltro) {
-                $q->whereIn('tipo_rama', $ramaFiltro);
+        $catMktFiltro = array_values(array_filter((array) $request->input('categorias_mkt', []), 'strlen'));
+        $evFiscFiltro = array_values(array_filter((array) $request->input('eventos_fisc', []), 'strlen'));
+
+        if (!empty($ramaFiltro) || !empty($catMktFiltro) || !empty($evFiscFiltro)) {
+            $gruposQuery->whereHas('notas', function ($q) use ($ramaFiltro, $catMktFiltro, $evFiscFiltro) {
+                $q->where(function ($query) use ($ramaFiltro, $catMktFiltro, $evFiscFiltro) {
+                    $hasMkt = in_array('MKT', $ramaFiltro) || !empty($catMktFiltro);
+                    if ($hasMkt) {
+                        $query->orWhere(function ($q2) use ($catMktFiltro) {
+                            $q2->where('tipo_rama', 'MKT');
+                            if (!empty($catMktFiltro)) {
+                                $q2->whereIn('id_categoria', $catMktFiltro);
+                            }
+                        });
+                    }
+
+                    $hasFisc = in_array('FISC', $ramaFiltro) || !empty($evFiscFiltro);
+                    if ($hasFisc) {
+                        $query->orWhere(function ($q2) use ($evFiscFiltro) {
+                            $q2->where('tipo_rama', 'FISC');
+                            if (!empty($evFiscFiltro)) {
+                                $q2->whereIn('id_tipo_evento', $evFiscFiltro);
+                            }
+                        });
+                    }
+                });
             });
         }
         $estadoFiltro = array_values(array_filter((array) $request->input('estado', []), 'strlen'));
@@ -1064,11 +1160,21 @@ class NotasUnificadasController extends Controller
                 $q->whereIn('estado_actual', $estadoFiltro);
             });
         }
-        if ($request->has('fecha_desde') && $request->fecha_desde) {
-            $gruposQuery->whereDate('created_at', '>=', $request->fecha_desde);
-        }
-        if ($request->has('fecha_hasta') && $request->fecha_hasta) {
-            $gruposQuery->whereDate('created_at', '<=', $request->fecha_hasta);
+        if (!empty($request->fecha_inicio_desde) || !empty($request->fecha_inicio_hasta) || !empty($request->fecha_fin_desde) || !empty($request->fecha_fin_hasta)) {
+            $gruposQuery->whereHas('notas', function ($q) use ($request) {
+                if (!empty($request->fecha_inicio_desde)) {
+                    $q->whereDate('fecha_inicio_evento', '>=', $request->fecha_inicio_desde);
+                }
+                if (!empty($request->fecha_inicio_hasta)) {
+                    $q->whereDate('fecha_inicio_evento', '<=', $request->fecha_inicio_hasta);
+                }
+                if (!empty($request->fecha_fin_desde)) {
+                    $q->whereDate('fecha_fin_evento', '>=', $request->fecha_fin_desde);
+                }
+                if (!empty($request->fecha_fin_hasta)) {
+                    $q->whereDate('fecha_fin_evento', '<=', $request->fecha_fin_hasta);
+                }
+            });
         }
 
         // Quick filters
@@ -1759,7 +1865,8 @@ class NotasUnificadasController extends Controller
         $noEncontrados = [];
         $ambiguos = [];
 
-        $esNum = function ($v) { return preg_match('/^\d+$/', (string) $v) === 1; };
+        $esNum = function ($v) {
+            return preg_match('/^\d+$/', (string) $v) === 1; };
 
         if ($tipo === 'JUEGO_ONLINE') {
             // Juegos de la plataforma de la nota (acota colisiones id/código a esa plataforma)
@@ -1784,7 +1891,8 @@ class NotasUnificadasController extends Controller
                 $rows = \App\Maquina::where('id_casino', $idCasino)
                     ->where(function ($w) use ($v, $esNum) {
                         $w->where('nro_admin', $v);
-                        if ($esNum($v)) $w->orWhere('id_maquina', (int) $v);
+                        if ($esNum($v))
+                            $w->orWhere('id_maquina', (int) $v);
                     })->get();
                 $matches = $rows->keyBy('id_maquina')->map(function ($m) {
                     return ['id' => $m->id_maquina, 'nombre' => 'MTM ' . $m->nro_admin . ' - ' . $m->marca, 'cod' => $m->nro_admin];
@@ -1796,7 +1904,8 @@ class NotasUnificadasController extends Controller
                 $rows = \App\Mesas\Mesa::where('id_casino', $idCasino)
                     ->where(function ($w) use ($v, $esNum) {
                         $w->where('nro_mesa', $v);
-                        if ($esNum($v)) $w->orWhere('id_mesa_de_panio', (int) $v);
+                        if ($esNum($v))
+                            $w->orWhere('id_mesa_de_panio', (int) $v);
                     })->with('juego')->get();
                 $matches = $rows->keyBy('id_mesa_de_panio')->map(function ($m) {
                     return ['id' => $m->id_mesa_de_panio, 'nombre' => 'Mesa ' . $m->nro_mesa, 'cod' => $m->nro_mesa];
@@ -1808,7 +1917,8 @@ class NotasUnificadasController extends Controller
                 $rows = \App\Isla::where('id_casino', $idCasino)
                     ->where(function ($w) use ($v, $esNum) {
                         $w->where('nro_isla', $v);
-                        if ($esNum($v)) $w->orWhere('id_isla', (int) $v);
+                        if ($esNum($v))
+                            $w->orWhere('id_isla', (int) $v);
                     })->get();
                 $matches = $rows->keyBy('id_isla')->map(function ($i) {
                     return ['id' => $i->id_isla, 'nombre' => 'Isla ' . $i->nro_isla, 'cod' => $i->nro_isla];
@@ -1913,9 +2023,11 @@ class NotasUnificadasController extends Controller
             // ===================================================
             // Procesa un input (posiblemente con varios archivos) creando UN DOCUMENTO por archivo.
             $procesar = function ($nota, $inputName, $tipo) use ($request) {
-                if (!$request->hasFile($inputName)) return;
+                if (!$request->hasFile($inputName))
+                    return;
                 $files = $request->file($inputName);
-                if (!is_array($files)) $files = [$files]; // soporta input simple o múltiple
+                if (!is_array($files))
+                    $files = [$files]; // soporta input simple o múltiple
                 foreach ($files as $f) {
                     if ($f && $f->isValid()) {
                         $this->crearDocumentoConArchivo($nota, $tipo, $f);
@@ -2014,20 +2126,23 @@ class NotasUnificadasController extends Controller
             // Cada input (posiblemente con varios archivos) crea UN DOCUMENTO por archivo.
             $mapa = [
                 'adjuntoSolicitud' => 'solicitud',
-                'adjuntoDisenio'   => 'diseno',
-                'adjuntoBases'     => 'bases',
-                'adjuntoInforme'   => 'informe',
-                'adjuntoVarios'    => 'varios',
-                'adjuntoAnexos'    => 'anexo',
+                'adjuntoDisenio' => 'diseno',
+                'adjuntoBases' => 'bases',
+                'adjuntoInforme' => 'informe',
+                'adjuntoVarios' => 'varios',
+                'adjuntoAnexos' => 'anexo',
             ];
 
             $archivosSubidos = [];
             foreach ($mapa as $inputName => $tipoArchivo) {
-                if (!$request->hasFile($inputName)) continue;
+                if (!$request->hasFile($inputName))
+                    continue;
                 $files = $request->file($inputName);
-                if (!is_array($files)) $files = [$files]; // soporta input simple o múltiple
+                if (!is_array($files))
+                    $files = [$files]; // soporta input simple o múltiple
                 foreach ($files as $file) {
-                    if (!$file || !$file->isValid()) continue;
+                    if (!$file || !$file->isValid())
+                        continue;
                     $doc = $this->crearDocumentoConArchivo($nota, $tipoArchivo, $file);
                     $this->logMovimientoAdjunto($nota, 'ADJUNTO_AGREGADO', $tipoArchivo, $doc->nombre, $file->getClientOriginalName());
                     $archivosSubidos[] = $file->getClientOriginalName();
@@ -2268,18 +2383,21 @@ class NotasUnificadasController extends Controller
         }
 
         // Filtros
-        $q      = trim((string) $request->input('q', ''));
-        $rama   = (string) $request->input('rama', '');
+        $q = trim((string) $request->input('q', ''));
+        $rama = (string) $request->input('rama', '');
         $accion = (string) $request->input('accion', '');
-        $desde  = (string) $request->input('desde', '');
-        $hasta  = (string) $request->input('hasta', '');
+        $desde = (string) $request->input('desde', '');
+        $hasta = (string) $request->input('hasta', '');
 
         // Paginación
         $perPage = (int) $request->input('per_page', 50);
-        if ($perPage < 10)  $perPage = 10;
-        if ($perPage > 200) $perPage = 200;
+        if ($perPage < 10)
+            $perPage = 10;
+        if ($perPage > 200)
+            $perPage = 200;
         $page = (int) $request->input('page', 1);
-        if ($page < 1) $page = 1;
+        if ($page < 1)
+            $page = 1;
 
         $base = DB::table('movimientos_expedientes as m')
             ->leftJoin('expedientes_notas as e', 'e.id', '=', 'm.id_expediente_nota')
@@ -2288,10 +2406,14 @@ class NotasUnificadasController extends Controller
             ->leftJoin('usuario as u', 'u.id_usuario', '=', 'm.id_usuario')
             ->whereNull('m.deleted_at');
 
-        if ($rama !== '')   $base->where('e.tipo_rama', $rama);
-        if ($accion !== '') $base->where('m.accion', $accion);
-        if ($desde !== '')  $base->whereDate('m.fecha_movimiento', '>=', $desde);
-        if ($hasta !== '')  $base->whereDate('m.fecha_movimiento', '<=', $hasta);
+        if ($rama !== '')
+            $base->where('e.tipo_rama', $rama);
+        if ($accion !== '')
+            $base->where('m.accion', $accion);
+        if ($desde !== '')
+            $base->whereDate('m.fecha_movimiento', '>=', $desde);
+        if ($hasta !== '')
+            $base->whereDate('m.fecha_movimiento', '<=', $hasta);
         if ($q !== '') {
             $like = '%' . $q . '%';
             $base->where(function ($w) use ($like) {
@@ -2313,12 +2435,20 @@ class NotasUnificadasController extends Controller
             ->offset(($page - 1) * $perPage)
             ->limit($perPage)
             ->get([
-                'm.fecha_movimiento', 'm.accion', 'm.comentario',
+                'm.fecha_movimiento',
+                'm.accion',
+                'm.comentario',
                 'u.nombre as usuario_nombre',
                 'e.tipo_rama as exp_rama',
-                'n.nro_nota as nota_nro', 'n.anio as nota_anio', 'n.titulo as nota_titulo', 'n.tipo_rama as nota_rama',
-                'g.nro_nota as grupo_nro', 'g.anio as grupo_anio', 'g.titulo as grupo_titulo',
-                'g.id_casino as id_casino', 'g.id_plataforma as id_plataforma',
+                'n.nro_nota as nota_nro',
+                'n.anio as nota_anio',
+                'n.titulo as nota_titulo',
+                'n.tipo_rama as nota_rama',
+                'g.nro_nota as grupo_nro',
+                'g.anio as grupo_anio',
+                'g.titulo as grupo_titulo',
+                'g.id_casino as id_casino',
+                'g.id_plataforma as id_plataforma',
             ]);
 
         $data = [];
@@ -2328,24 +2458,24 @@ class NotasUnificadasController extends Controller
                 : '';
             if ($f->grupo_nro) {
                 $nroNota = $f->grupo_nro . '-' . $f->grupo_anio;
-                $titulo  = $f->grupo_titulo;
+                $titulo = $f->grupo_titulo;
             } elseif ($f->nota_nro) {
                 $nroNota = $f->nota_nro . '-' . $f->nota_anio;
-                $titulo  = $f->nota_titulo;
+                $titulo = $f->nota_titulo;
             } else {
                 $nroNota = '';
-                $titulo  = '';
+                $titulo = '';
             }
 
             $data[] = [
-                'fecha'      => $f->fecha_movimiento ? \Carbon\Carbon::parse($f->fecha_movimiento)->format('d/m/Y H:i') : '',
-                'usuario'    => $f->usuario_nombre ?: 'Sistema',
-                'accion'     => $f->accion,
+                'fecha' => $f->fecha_movimiento ? \Carbon\Carbon::parse($f->fecha_movimiento)->format('d/m/Y H:i') : '',
+                'usuario' => $f->usuario_nombre ?: 'Sistema',
+                'accion' => $f->accion,
                 'comentario' => $f->comentario,
-                'nro_nota'   => $nroNota,
-                'titulo'     => $titulo,
-                'rama'       => $f->exp_rama ?: $f->nota_rama,
-                'casino'     => $casino,
+                'nro_nota' => $nroNota,
+                'titulo' => $titulo,
+                'rama' => $f->exp_rama ?: $f->nota_rama,
+                'casino' => $casino,
             ];
         }
 
@@ -2359,13 +2489,13 @@ class NotasUnificadasController extends Controller
             ->values();
 
         return response()->json([
-            'success'       => true,
-            'page'          => $page,
-            'per_page'      => $perPage,
-            'total'         => $total,
+            'success' => true,
+            'page' => $page,
+            'per_page' => $perPage,
+            'total' => $total,
             'total_paginas' => (int) ceil($total / max(1, $perPage)),
-            'acciones'      => $acciones,
-            'movimientos'   => $data,
+            'acciones' => $acciones,
+            'movimientos' => $data,
         ]);
     }
 
@@ -2928,6 +3058,68 @@ class NotasUnificadasController extends Controller
             }
         }
 
+        // --- Agregar Comentarios PDF al arreglo de movimientos ---
+        if ($puedeVerComentarios) {
+            $pdfComentarios = \DB::table('notas_pdf_comentarios')
+                ->where('id_nota_ingreso', $nota->id)
+                ->orderBy('created_at', 'asc')
+                ->get();
+            
+            // Cache manual de imágenes de usuario para optimizar
+            $imgCache = [];
+
+            foreach ($pdfComentarios as $pdfCom) {
+                // Obtener imagen del usuario (cacheada)
+                if (!array_key_exists($pdfCom->id_usuario, $imgCache)) {
+                    $u = \App\Usuario::find($pdfCom->id_usuario);
+                    $imgCache[$pdfCom->id_usuario] = $u ? $u->imagen : null;
+                }
+                $userImagen = $imgCache[$pdfCom->id_usuario];
+
+                $tipoDoc = strtoupper($pdfCom->tipo_archivo);
+                $nroRef = $pdfCom->numero_ref ? " #{$pdfCom->numero_ref}" : "";
+                
+                // Darle formato para que quede claro que es de un PDF
+                $badge = "<span style='display:inline-block; font-size:10px; background:#bfdbfe; color:#1e40af; padding:1px 5px; border-radius:4px; margin-bottom:4px;'><i class='fa fa-file-pdf-o'></i> PDF $tipoDoc - Pág. {$pdfCom->pagina}$nroRef</span><br>";
+                
+                $movimientos[] = [
+                    'id' => 'pdf_' . $pdfCom->id,
+                    'id_usuario' => $pdfCom->id_usuario,
+                    'fecha' => $pdfCom->created_at ? \Carbon\Carbon::parse($pdfCom->created_at)->format('d/m/Y H:i') : null,
+                    'accion' => 'COMENTARIO_PDF',
+                    'comentario' => $badge . nl2br(e($pdfCom->mensaje)),
+                    'usuario' => $pdfCom->usuario ?? 'Sistema',
+                    'user_imagen' => $userImagen,
+                ];
+            }
+        }
+
+        // Ordenar todos los movimientos por fecha (descendente) o id para mantener coherencia
+        // ya que insertamos los del PDF al final.
+        foreach ($movimientos as &$mRef) {
+            try {
+                if (!$mRef['fecha']) {
+                    $mRef['_ts'] = 0;
+                } else if (preg_match('/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/', $mRef['fecha'])) {
+                    $mRef['_ts'] = \Carbon\Carbon::createFromFormat('d/m/Y H:i', $mRef['fecha'])->timestamp;
+                } else {
+                    $mRef['_ts'] = \Carbon\Carbon::parse($mRef['fecha'])->timestamp;
+                }
+            } catch (\Exception $e) {
+                $mRef['_ts'] = 0;
+            }
+        }
+        unset($mRef);
+
+        usort($movimientos, function($a, $b) {
+            return $b['_ts'] <=> $a['_ts'];
+        });
+
+        foreach ($movimientos as &$mRef) {
+            unset($mRef['_ts']);
+        }
+        unset($mRef);
+
         // Activos asociados (enriquecer con datos reales)
         $activos = $this->enriquecerActivos($nota->activos);
 
@@ -3210,8 +3402,10 @@ class NotasUnificadasController extends Controller
             // Si la transacción quedó abierta (excepción después de beginTransaction
             // y antes de commit), rollback. Si nunca se abrió o ya hubo commit, no-op.
             try {
-                if (DB::transactionLevel() > 0) DB::rollBack();
-            } catch (\Throwable $ignored) {}
+                if (DB::transactionLevel() > 0)
+                    DB::rollBack();
+            } catch (\Throwable $ignored) {
+            }
 
             \Log::error("updateNota error: " . $e->getMessage());
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
@@ -3227,7 +3421,7 @@ class NotasUnificadasController extends Controller
         try {
             $usuario_data = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
             $usuario = $usuario_data['usuario'] ?? null;
-            if (!$usuario || !($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho)) {
+            if (!$usuario || !($usuario->es_superusuario || $usuario->es_administrador || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE'))) {
                 return response()->json(['success' => false, 'msg' => 'Sin permiso para editar borrador'], 403);
             }
 
@@ -3288,7 +3482,8 @@ class NotasUnificadasController extends Controller
             $cantPosterior = $nota->activos()->count();
             $delta = $cantPosterior - $cantPrevia;
             if ($delta > 0) {
-                $tipos = collect($activos)->pluck('tipo')->map(function ($t) { return strtoupper($t); })->unique()->values()->all();
+                $tipos = collect($activos)->pluck('tipo')->map(function ($t) {
+                    return strtoupper($t); })->unique()->values()->all();
                 $tiposTxt = implode(', ', $tipos);
                 self::registrarMovimiento(
                     $nota,
@@ -3621,8 +3816,12 @@ class NotasUnificadasController extends Controller
     private function folderPorTipo($tipo)
     {
         $map = [
-            'solicitud' => 'solicitudes', 'diseno' => 'disenos', 'bases' => 'bases',
-            'informe' => 'informes', 'varios' => 'archivos_varios', 'anexo' => 'anexos',
+            'solicitud' => 'solicitudes',
+            'diseno' => 'disenos',
+            'bases' => 'bases',
+            'informe' => 'informes',
+            'varios' => 'archivos_varios',
+            'anexo' => 'anexos',
         ];
         return isset($map[$tipo]) ? $map[$tipo] : 'archivos_varios';
     }
@@ -3631,8 +3830,11 @@ class NotasUnificadasController extends Controller
     private function campoPorTipo($tipo)
     {
         $map = [
-            'solicitud' => 'path_solicitud', 'diseno' => 'path_diseno', 'bases' => 'path_bases',
-            'informe' => 'path_informe', 'varios' => 'path_varios',
+            'solicitud' => 'path_solicitud',
+            'diseno' => 'path_diseno',
+            'bases' => 'path_bases',
+            'informe' => 'path_informe',
+            'varios' => 'path_varios',
         ];
         return isset($map[$tipo]) ? $map[$tipo] : null;
     }
@@ -3651,13 +3853,18 @@ class NotasUnificadasController extends Controller
     private function logMovimientoAdjunto($nota, $accion, $tipo, $nombreDoc, $nombreArchivo)
     {
         $exp = $nota->expedientes()->first();
-        if (!$exp) return;
+        if (!$exp)
+            return;
         $userId = session('id_usuario') ?? 1;
         $u = \App\Usuario::find($userId);
         $nombreUsr = $u ? $u->nombre : 'Usuario';
         $tipoLabel = [
-            'solicitud' => 'Solicitud', 'diseno' => 'Diseño', 'bases' => 'Bases',
-            'informe' => 'Informe', 'varios' => 'Archivos Varios', 'anexo' => 'Anexo',
+            'solicitud' => 'Solicitud',
+            'diseno' => 'Diseño',
+            'bases' => 'Bases',
+            'informe' => 'Informe',
+            'varios' => 'Archivos Varios',
+            'anexo' => 'Anexo',
         ];
         $verbo = $accion === 'ADJUNTO_REEMPLAZADO' ? 'subió nueva versión de'
             : ($accion === 'ADJUNTO_ELIMINADO' ? 'eliminó' : 'agregó');
@@ -4327,12 +4534,77 @@ class NotasUnificadasController extends Controller
             return response()->json([]);
         }
 
-        $resultados = \App\Models\GrupoTramite::with('casino')
+        $id_usuario = session('id_usuario');
+        $usuario_data = UsuarioController::getInstancia()->buscarUsuario($id_usuario);
+        $usuario = $usuario_data['usuario'];
+
+        $sinFiltroCasino = $usuario->es_superusuario || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE');
+
+        $casinosPermitidos = null;
+        $plataformasPermitidas = null;
+
+        if (!$sinFiltroCasino) {
+            $rolesNotas = DB::table('usuario_tiene_rol')
+                ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
+                ->where('usuario_tiene_rol.id_usuario', $id_usuario)
+                ->where('rol.descripcion', 'LIKE', 'CARGA\_NOTAS\_%')
+                ->pluck('rol.descripcion')
+                ->toArray();
+
+            $tieneCasinosFisicos = in_array('CARGA_NOTAS_UNIFICADAS', $rolesNotas);
+            $rolesPlataforma = array_filter($rolesNotas, function ($r) {
+                return $r !== 'CARGA_NOTAS_UNIFICADAS';
+            });
+
+            $casinosPermitidos = [];
+            if ($tieneCasinosFisicos) {
+                $casinosPermitidos = DB::table('usuario_tiene_casino')
+                    ->where('id_usuario', $id_usuario)
+                    ->pluck('id_casino')
+                    ->toArray();
+            }
+
+            $plataformasPermitidas = [];
+            if (!empty($rolesPlataforma)) {
+                foreach ($rolesPlataforma as $rolDesc) {
+                    $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
+                    $idPlat = self::idPlataformaPorCodigo($codigo);
+                    if ($idPlat !== null) {
+                        $plataformasPermitidas[] = $idPlat;
+                    }
+                }
+            }
+
+            if (empty($rolesNotas) && ($usuario->es_administrador || $usuario->es_control)) {
+                $casinosPermitidos = DB::table('usuario_tiene_casino')
+                    ->where('id_usuario', $id_usuario)
+                    ->pluck('id_casino')
+                    ->toArray();
+            }
+        }
+
+        $queryBuilder = \App\Models\GrupoTramite::with('casino')
             ->where(function ($query) use ($q) {
                 $query->where('nro_nota', 'like', '%' . $q . '%')
                     ->orWhere('titulo', 'like', '%' . $q . '%');
-            })
-            ->orderBy('anio', 'desc')
+            });
+
+        if ($casinosPermitidos !== null || $plataformasPermitidas !== null) {
+            $hayCasinos = !empty($casinosPermitidos);
+            $hayPlataformas = !empty($plataformasPermitidas);
+            if (!$hayCasinos && !$hayPlataformas) {
+                $queryBuilder->whereRaw('0 = 1');
+            } else {
+                $queryBuilder->where(function ($qBuilder) use ($casinosPermitidos, $plataformasPermitidas, $hayCasinos, $hayPlataformas) {
+                    if ($hayCasinos)
+                        $qBuilder->orWhereIn('id_casino', $casinosPermitidos);
+                    if ($hayPlataformas)
+                        $qBuilder->orWhereIn('id_plataforma', $plataformasPermitidas);
+                });
+            }
+        }
+
+        $resultados = $queryBuilder->orderBy('anio', 'desc')
             ->orderBy('nro_nota', 'desc')
             ->take(15)
             ->get()

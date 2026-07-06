@@ -107,30 +107,31 @@ function abrirEditorPdf(idNota, tipo, versionId) {
     currentVersionId = versionId || null;
     anotacionesModificadas = false; // nueva sesión: aún no hubo edición real
 
-
-
     $('#modalEditorAnotaciones').modal('show');
 
-    // Limpiar overlay previo si quedó colgado
-    $('#pdfLoadingOverlay').remove();
-    var loadingOverlay = $('<div id="pdfLoadingOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(52, 73, 94, 0.95); z-index: 10000; display: flex; align-items: center; justify-content: center;"><div class="text-center" style="color: white;"><i class="fa fa-spinner fa-spin fa-3x"></i><p style="margin-top: 20px; font-size: 16px;">Cargando PDF...</p></div></div>');
-    $('#editorContent').append(loadingOverlay);
-
-    var ajaxUrl = '/notas-unificadas/pdf-anotaciones/datos/' + idNota + '/' + tipo;
-    if(currentVersionId) ajaxUrl += '?version_id=' + currentVersionId;
-
-    $.get(ajaxUrl, function(data) {
-        window.notaActual = data.nota;
+    // Cargar librerías ANTES de inicializar o pedir datos
+    cargarLibsAnotaciones(function() {
+        // Limpiar overlay previo si quedó colgado
         $('#pdfLoadingOverlay').remove();
-        inicializarEditor(data);
-        setTimeout(function() {
-            if(typeof poblarSelectComparacion === 'function') poblarSelectComparacion(data.nota);
-        }, 500);
-    }).fail(function(xhr) {
-        $('#pdfLoadingOverlay').remove();
-        var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'Error desconocido';
-        notificacion('error', 'Error al cargar el PDF: ' + msg);
-        $('#modalEditorAnotaciones').modal('hide');
+        var loadingOverlay = $('<div id="pdfLoadingOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(52, 73, 94, 0.95); z-index: 10000; display: flex; align-items: center; justify-content: center;"><div class="text-center" style="color: white;"><i class="fa fa-spinner fa-spin fa-3x"></i><p style="margin-top: 20px; font-size: 16px;">Cargando PDF...</p></div></div>');
+        $('#editorContent').append(loadingOverlay);
+
+        var ajaxUrl = '/notas-unificadas/pdf-anotaciones/datos/' + idNota + '/' + tipo;
+        if(currentVersionId) ajaxUrl += '?version_id=' + currentVersionId;
+
+        $.get(ajaxUrl, function(data) {
+            window.notaActual = data.nota;
+            $('#pdfLoadingOverlay').remove();
+            inicializarEditor(data);
+            setTimeout(function() {
+                if(typeof poblarSelectComparacion === 'function') poblarSelectComparacion(data.nota);
+            }, 500);
+        }).fail(function(xhr) {
+            $('#pdfLoadingOverlay').remove();
+            var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'Error desconocido';
+            notificacion('error', 'Error al cargar el PDF: ' + msg);
+            $('#modalEditorAnotaciones').modal('hide');
+        });
     });
 }
 function inicializarEditor(data) {

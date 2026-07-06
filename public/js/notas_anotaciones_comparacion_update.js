@@ -22,9 +22,7 @@ var poblarSelectComparacion = function(nota) {
         {campo: 'path_diseno', tipo: 'diseno', nombre: 'Diseño'},
         {campo: 'path_bases', tipo: 'bases', nombre: 'Bases y Condiciones'},
         {campo: 'path_varios', tipo: 'varios', nombre: 'Archivos Varios'},
-        {campo: 'path_informe', tipo: '
-
-informe', nombre: 'Informe Técnico'}
+        {campo: 'path_informe', tipo: 'informe', nombre: 'Informe Técnico'}
     ];
     
     tiposArchivo.forEach(function(archivo) {

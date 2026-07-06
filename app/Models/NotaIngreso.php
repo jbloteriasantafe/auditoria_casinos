@@ -46,6 +46,14 @@ class NotaIngreso extends Model
         return $this->belongsTo(\App\Casino::class, 'id_casino', 'id_casino');
     }
 
+    public function categoria() {
+        return $this->belongsTo(NotaCategoria::class, 'id_categoria');
+    }
+
+    public function tipoEvento() {
+        return $this->belongsTo(NotaTipoEvento::class, 'id_tipo_evento');
+    }
+
     public function expedientes()
     {
         return $this->hasMany(Expediente::class, 'id_nota_ingreso');

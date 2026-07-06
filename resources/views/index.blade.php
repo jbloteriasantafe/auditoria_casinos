@@ -1,11 +1,5 @@
 <?php
-/* Secuencia Random de Imagen Index*/
-$ruta = 'imgIndex';
-$varImg= rand(1,3);
-
-//Mantener el background constante si esta recuperando la contraseña
-$rutaImagen = session()->get('olvideMiContrasena_rutaImagen',$ruta.$varImg);
-session()->put('olvideMiContrasena_rutaImagen',$rutaImagen);
+$rutaImagen = 'imgIndex';
 
 $error = $error ?? '';
 $CAS_ENDPOINT = $CAS_ENDPOINT ?? null;
