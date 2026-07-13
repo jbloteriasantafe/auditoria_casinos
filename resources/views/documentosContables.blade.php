@@ -3,7 +3,10 @@
   @section('headerLogo')
   <span class="etiquetaLogoExpedientes">@svg('expedientes','iconoExpedientes')</span>
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  @endsection
+  
+
+
+@endsection
   @section('contenidoVista')
 
   @section('estilos')
@@ -92,7 +95,10 @@
       background-color: var(--fondo);
     }
   </style>
-  @endsection
+  
+
+
+@endsection
 
   <div class="row">
     <!-- FILTROS GLOBALES -->
@@ -191,6 +197,7 @@
         <div><a data-js-tab="#pant_aportes" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">APORTES PATRONALES</a></div>
         <div><a data-js-tab="#pant_rrhh" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">RRHH</a></div>
         <div><a data-js-tab="#pant_oper" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">REPORTE LAVADO</a></div>
+                <div><a data-js-tab="#pant_publico_casino" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">PÚBLICO CASINO</a></div>
         <div><a data-js-tab="#pant_seguros" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">SEGUROS</a></div>
         <div id="div_tab_validados" hidden><a data-js-tab="#pant_validados" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">VALIDADOS</a></div>
         <div id="div_tab_control_documentos" hidden><a data-js-tab="#pant_control_documentos" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">CONTROL DOCUMENTOS</a></div>
@@ -1678,6 +1685,54 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               </div>
             </div>
             <div id="herramientasPaginacionAutDirectores" class="row zonaPaginacion"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div id="pant_publico_casino" hidden>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <div class="row">
+              <div class="col-md-6">
+                <br/><br/>
+                <h4>REGISTROS DE PÚBLICO CASINO EN EL SISTEMA</h4>
+              </div>
+              <div class="col-md-6 text-right">
+                <button type="button" class="btn btn-infoBuscar" id="btn-totalesAnualesPublicoCasino" style="margin-top: 30px;">
+                  <i class="fa fa-calendar-alt"></i> TOTALES ANUALES
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <table id="tablaResultadosPublicoCasino" class="table table-fixed">
+              <thead>
+                <tr>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">DÍAS COMPLETADOS</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpoTablaPublicoCasino" style="max-height: none;">
+              </tbody>
+            </table>
+            <div class="row">
+              <div class="col-md-12 text-center">
+                <button id="btn-descargarPublicoCasinoExcel" class="btn btn-infoBuscar">
+                  <i class="fa fa-download"></i> .xlsx
+                </button>
+                <button id="btn-descargarPublicoCasinoCsv" class="btn btn-infoBuscar">
+                  <i class="fa fa-download"></i> .csv
+                </button>
+              </div>
+            </div>
+            <div id="herramientasPaginacionPublicoCasino" class="row zonaPaginacion"></div>
           </div>
         </div>
       </div>
@@ -8976,6 +9031,9 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 
 
+
+
+
 @endsection
 @section('scripts')
   <!-- JavaScript paginacion -->
@@ -9026,4 +9084,141 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
       </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalPublicoCasino" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+        <h3 class="modal-title">PÚBLICO CASINO</h3>
+      </div>
+      <div class="modal-body">
+        <form id="frmPublicoCasino" class="form-horizontal" novalidate="">
+          <div class="row">
+            <div class="col-md-3">
+  <label>Día 1</label><input type="text" class="form-control input-publico-dia" id="pc_dia_1" name="dia_1">
+  <label>Día 2</label><input type="text" class="form-control input-publico-dia" id="pc_dia_2" name="dia_2">
+  <label>Día 3</label><input type="text" class="form-control input-publico-dia" id="pc_dia_3" name="dia_3">
+  <label>Día 4</label><input type="text" class="form-control input-publico-dia" id="pc_dia_4" name="dia_4">
+  <label>Día 5</label><input type="text" class="form-control input-publico-dia" id="pc_dia_5" name="dia_5">
+  <label>Día 6</label><input type="text" class="form-control input-publico-dia" id="pc_dia_6" name="dia_6">
+  <label>Día 7</label><input type="text" class="form-control input-publico-dia" id="pc_dia_7" name="dia_7">
+  <label>Día 8</label><input type="text" class="form-control input-publico-dia" id="pc_dia_8" name="dia_8">
+</div>
+<div class="col-md-3">
+  <label>Día 9</label><input type="text" class="form-control input-publico-dia" id="pc_dia_9" name="dia_9">
+  <label>Día 10</label><input type="text" class="form-control input-publico-dia" id="pc_dia_10" name="dia_10">
+  <label>Día 11</label><input type="text" class="form-control input-publico-dia" id="pc_dia_11" name="dia_11">
+  <label>Día 12</label><input type="text" class="form-control input-publico-dia" id="pc_dia_12" name="dia_12">
+  <label>Día 13</label><input type="text" class="form-control input-publico-dia" id="pc_dia_13" name="dia_13">
+  <label>Día 14</label><input type="text" class="form-control input-publico-dia" id="pc_dia_14" name="dia_14">
+  <label>Día 15</label><input type="text" class="form-control input-publico-dia" id="pc_dia_15" name="dia_15">
+  <label>Día 16</label><input type="text" class="form-control input-publico-dia" id="pc_dia_16" name="dia_16">
+</div>
+<div class="col-md-3">
+  <label>Día 17</label><input type="text" class="form-control input-publico-dia" id="pc_dia_17" name="dia_17">
+  <label>Día 18</label><input type="text" class="form-control input-publico-dia" id="pc_dia_18" name="dia_18">
+  <label>Día 19</label><input type="text" class="form-control input-publico-dia" id="pc_dia_19" name="dia_19">
+  <label>Día 20</label><input type="text" class="form-control input-publico-dia" id="pc_dia_20" name="dia_20">
+  <label>Día 21</label><input type="text" class="form-control input-publico-dia" id="pc_dia_21" name="dia_21">
+  <label>Día 22</label><input type="text" class="form-control input-publico-dia" id="pc_dia_22" name="dia_22">
+  <label>Día 23</label><input type="text" class="form-control input-publico-dia" id="pc_dia_23" name="dia_23">
+  <label>Día 24</label><input type="text" class="form-control input-publico-dia" id="pc_dia_24" name="dia_24">
+</div>
+<div class="col-md-3">
+  <label>Día 25</label><input type="text" class="form-control input-publico-dia" id="pc_dia_25" name="dia_25">
+  <label>Día 26</label><input type="text" class="form-control input-publico-dia" id="pc_dia_26" name="dia_26">
+  <label>Día 27</label><input type="text" class="form-control input-publico-dia" id="pc_dia_27" name="dia_27">
+  <label>Día 28</label><input type="text" class="form-control input-publico-dia" id="pc_dia_28" name="dia_28">
+  <label>Día 29</label><input type="text" class="form-control input-publico-dia" id="pc_dia_29" name="dia_29">
+  <label>Día 30</label><input type="text" class="form-control input-publico-dia" id="pc_dia_30" name="dia_30">
+  <label>Día 31</label><input type="text" class="form-control input-publico-dia" id="pc_dia_31" name="dia_31">
+</div>
+
+          </div>
+          <div class="row">
+            <div class="col-md-12 text-center" style="margin-top: 20px;">
+              <h4>TOTAL MENSUAL: <input type="text" id="pc_total_mensual_input" class="form-control" readonly style="display:inline-block; width:150px; text-align:center; font-weight:bold;"></h4>
+            </div>
+          </div>
+          <input type="hidden" id="id_registroPublicoCasino" name="id_registroPublicoCasino">
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-successAceptar" id="btn-guardarPublicoCasino">ACEPTAR</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TOTALES ANUALES PUBLICO CASINO -->
+<div class="modal fade" id="modalTotalesAnualesPublicoCasino" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" style="width: 95%;">
+    <div class="modal-content">
+      <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+        <h3 class="modal-title">TOTALES ANUALES PÚBLICO CASINO</h3>
+      </div>
+      <div class="modal-body">
+        <div class="row" style="margin-bottom: 20px;">
+          <div class="col-md-3">
+            <label>Casino</label>
+            <select id="ta_casino" class="form-control">
+              @foreach ($casinos as $cas)
+              <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
+              @endforeach
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label>Año</label>
+            <select id="ta_anio" class="form-control">
+              <!-- JS will populate -->
+            </select>
+          </div>
+          <div class="col-md-2" style="padding-top: 25px; display: none;">
+            <button id="btn-buscarTotalesAnuales" class="btn btn-infoBuscar"><i class="fa fa-search"></i> BUSCAR</button>
+          </div>
+        </div>
+        
+        <br/><br/>
+        
+        <div class="row">
+          <div class="col-md-12" style="overflow-x: auto;">
+            <table class="table table-bordered table-condensed" style="font-size: 11px; text-align: center; white-space: nowrap;">
+              <thead>
+                <tr id="ta_thead_row" style="background-color: #f5f5f5;">
+                  <th style="text-align: center; font-weight: bold;">Día</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Enero</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Febrero</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Marzo</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Abril</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Mayo</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Junio</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Julio</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Agosto</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Septiembre</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Octubre</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Noviembre</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Diciembre</th>
+                  <th style="text-align: center; background-color: #ffeb3b; font-weight: bold;">Total ANUAL</th>
+                </tr>
+              </thead>
+              <tbody id="ta_tbody">
+              </tbody>
+              <tfoot>
+                <tr id="ta_tfoot_row" style="font-weight: bold; background-color: #f5f5f5;">
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">CERRAR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 @endsection

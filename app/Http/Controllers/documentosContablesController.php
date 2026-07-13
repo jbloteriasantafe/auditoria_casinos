@@ -17950,6 +17950,7 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
           case 'derecho_acceso':      $clase = RegistroDerechoAcceso::class; break;
           case 'patentes':            $clase = RegistroPatentes::class; break;
           case 'imp_inmobiliario':    $clase = RegistroImpInmobiliario::class; break;
+          case 'publico_casino':      $clase = \App\RegistroPublicoCasino::class; break;
           default: return response()->json(['success' => false, 'msg' => 'Tipo inválido'], 400);
       }
 
@@ -17999,6 +18000,7 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
             'DER. ACCESO (ROS)' => ['model' => RegistroDerechoAcceso::class, 'date_col' => 'fecha_DerechoAcceso'],
             'PATENTES' => ['model' => RegistroPatentes::class, 'date_col' => 'fecha_Patentes'],
             'IMP. INMOBILIARIO' => ['model' => RegistroImpInmobiliario::class, 'date_col' => 'fecha_ImpInmobiliario'],
+            'PUBLICO CASINO' => ['model' => \App\RegistroPublicoCasino::class, 'date_col' => 'fecha_mes'],
         ];
 
         $resultados = [];
@@ -18076,6 +18078,7 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
             ['nombre' => 'RRHH',                        'model' => RegistroRRHH::class,                 'col' => 'fecha_RRHH'],
             ['nombre' => 'REPORTE LAVADO',              'model' => RegistroReporteYLavado::class,       'col' => 'fecha_ReporteYLavado'],
             ['nombre' => 'SEGUROS',                     'model' => RegistroSeguros::class,              'col' => 'periodo_inicio'],
+            ['nombre' => 'PUBLICO CASINO',              'model' => \App\RegistroPublicoCasino::class,        'col' => 'fecha_mes'],
         ];
 
         return array_values(array_filter($config, function($c) use ($id_casino){
@@ -18516,5 +18519,507 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
             ];
         });
         return response()->json($files);
+    }
+
+    public function ultimasPublicoCasino(Request $request) {
+        $page    = max(1, (int)$request->query("page", 1));
+        $perPage = max(1, (int)$request->query("page_size", 20));
+
+        $user = Usuario::find(session("id_usuario"));
+        $allowedCasinoIds = $user->casinos->pluck("id_casino")->toArray();
+
+        
+
+
+        $query = \App\RegistroPublicoCasino::with("casinoPublicoCasino")
+                  ->whereIn("casino", $allowedCasinoIds)
+                  ->orderBy("fecha_mes", "desc");
+
+        if ($c = $request->query("id_casino")) {
+            $query->where("casino", $c);
+        }
+        if ($desde = $request->query("desde")) {
+            $query->where("fecha_mes", ">=", $desde."-01");
+        }
+        if ($hasta = $request->query("hasta")) {
+            $query->where("fecha_mes", "<=", $hasta."-01");
+        }
+
+        $total = $query->count();
+        $registros = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        $datos = $registros->map(function($r) {
+            $completados = 0;
+            $total_mensual = 0;
+            for ($i = 1; $i <= 31; $i++) {
+                $campo = "dia_".$i;
+                if ($r->$campo !== null) {
+                    $completados++;
+                    $total_mensual += $r->$campo;
+                }
+            }
+            return [
+                "id_registroPublicoCasino" => $r->id_registroPublicoCasino,
+                "fecha_mes" => $r->fecha_mes,
+                "casino"               => $r->casinoPublicoCasino ? $r->casinoPublicoCasino->nombre : "-",
+                "dias_completados"     => $completados,
+                "total_mensual"        => $total_mensual,
+                "valido"               => $r->valido,
+            ];
+        });
+
+        return response()->json([
+            "registros"  => $datos,
+            "pagination" => [
+                "current_page" => $page,
+                "per_page"     => $perPage,
+                "total"        => $total,
+            ],
+        ]);
+    }
+
+    public function totalesAnualesPublicoCasino(Request $request) {
+        $casino = $request->query("id_casino");
+        $anio = $request->query("anio");
+
+        if (!$casino || !$anio) return response()->json(["datos" => []]);
+
+        $registros = \App\RegistroPublicoCasino::where("casino", $casino)
+            ->whereYear("fecha_mes", $anio)
+            ->get();
+
+        $datosMeses = [];
+        for ($i=1; $i<=12; $i++) {
+            $datosMeses[$i] = array_fill(1, 31, null);
+        }
+
+        foreach ($registros as $reg) {
+            $mes = (int) date("n", strtotime($reg->fecha_mes));
+            for ($d=1; $d<=31; $d++) {
+                $campo = "dia_$d";
+                if ($reg->$campo !== null) {
+                    $datosMeses[$mes][$d] = $reg->$campo;
+                }
+            }
+        }
+
+        return response()->json(["datos" => $datosMeses]);
+    }
+
+    public function descargarPublicoCasinoXlsx(Request $request)
+    {
+        $casinoId = $request->query('casino');
+        $desde    = $request->query('desde');
+        $hasta    = $request->query('hasta');
+
+        $casino = Casino::findOrFail($casinoId);
+
+        $registros = \App\RegistroPublicoCasino::where('casino', $casinoId)
+            ->when($desde, function($q) use ($desde){
+                $q->where('fecha_mes','>=', $desde.'-01');
+            })
+            ->when($hasta, function($q) use ($hasta){
+                $q->where('fecha_mes','<=', $hasta.'-31');
+            })
+            ->orderBy('fecha_mes')
+            ->get()
+            ->groupBy(function($r){
+                return date('Y', strtotime($r->fecha_mes));
+            });
+
+        $filename = 'publico_casino_'.str_replace(' ','_', strtolower($casino->nombre)).'_'.date('Ymd_His');
+        setlocale(LC_TIME, 'es_ES.UTF-8', 'es_AR.UTF-8', 'es_ES', 'es_AR');
+
+        return \Excel::create($filename, function($excel) use ($registros, $casino) {
+            foreach ($registros as $anio => $rows) {
+                $excel->sheet("{$anio}", function($sheet) use ($rows, $anio, $casino) {
+                    
+                    $fila = 1;
+                    $sheet->setCellValue("A{$fila}", 'Día');
+                    for ($m=1; $m<=12; $m++) {
+                        $mesNombre = ucfirst(strftime('%B', mktime(0, 0, 0, $m, 10)));
+                        $col = \PHPExcel_Cell::stringFromColumnIndex($m);
+                        $sheet->setCellValue("{$col}{$fila}", $mesNombre);
+                    }
+                    $colAnual = \PHPExcel_Cell::stringFromColumnIndex(13);
+                    $sheet->setCellValue("{$colAnual}{$fila}", 'Total ANUAL');
+
+                    $color = '#222222';
+                    if ($casino->id_casino == 1) $color = '#339966';
+                    if ($casino->id_casino == 2) $color = '#ff0000';
+                    if ($casino->id_casino == 3) $color = '#ffcc00';
+
+                    $sheet->cells("A1:{$colAnual}1", function($c) use ($color){
+                        $c->setBackground($color);
+                        if ($color != '#ffcc00') $c->setFontColor('#ffffff');
+                        $c->setFontWeight('bold');
+                        $c->setAlignment('center');
+                    });
+
+                    $matrix = [];
+                    for($m=1; $m<=12; $m++) $matrix[$m] = array_fill(1, 31, null);
+                    foreach($rows as $r) {
+                        $m = (int)date('n', strtotime($r->fecha_mes));
+                        for($d=1; $d<=31; $d++) {
+                            $campo = "dia_$d";
+                            if ($r->$campo !== null) $matrix[$m][$d] = $r->$campo;
+                        }
+                    }
+
+                    $colTotals = array_fill(1, 12, 0);
+                    $colTotals['anual'] = 0;
+
+                    for ($d = 1; $d <= 31; $d++) {
+                        $fila++;
+                        $sheet->setCellValue("A{$fila}", $d);
+                        $sheet->cells("A{$fila}", function($c){ $c->setBackground('#f5f5f5'); $c->setFontWeight('bold'); });
+                        
+                        $rowTotal = 0;
+                        for ($m = 1; $m <= 12; $m++) {
+                            $daysInMonth = (int)date('t', mktime(0, 0, 0, $m, 1, $anio));
+                            $col = \PHPExcel_Cell::stringFromColumnIndex($m);
+                            
+                            if ($d > $daysInMonth) {
+                                $sheet->cells("{$col}{$fila}", function($c) {
+                                    $c->setBackground('#dddddd');
+                                });
+                            } else {
+                                $val = $matrix[$m][$d];
+                                if ($val !== null) {
+                                    $sheet->setCellValue("{$col}{$fila}", $val);
+                                    $sheet->getStyle("{$col}{$fila}")->getNumberFormat()->setFormatCode('#,##0');
+                                    $rowTotal += $val;
+                                    $colTotals[$m] += $val;
+                                }
+                            }
+                        }
+                        
+                        $colTotals['anual'] += $rowTotal;
+                        $sheet->setCellValue("{$colAnual}{$fila}", $rowTotal);
+                        $sheet->getStyle("{$colAnual}{$fila}")->getNumberFormat()->setFormatCode('#,##0');
+                        $sheet->cells("{$colAnual}{$fila}", function($c){
+                            $c->setBackground('#fffde7');
+                            $c->setFontWeight('bold');
+                        });
+                    }
+
+                    $fila++;
+                    $sheet->setCellValue("A{$fila}", "TOTAL");
+                    $sheet->cells("A{$fila}", function($c){ $c->setAlignment('center'); $c->setFontWeight('bold'); });
+                    
+                    for ($m = 1; $m <= 12; $m++) {
+                        $col = \PHPExcel_Cell::stringFromColumnIndex($m);
+                        $sheet->setCellValue("{$col}{$fila}", $colTotals[$m]);
+                        $sheet->getStyle("{$col}{$fila}")->getNumberFormat()->setFormatCode('#,##0');
+                        $sheet->cells("{$col}{$fila}", function($c){
+                            $c->setFontColor('#ff0000');
+                            $c->setFontWeight('bold');
+                        });
+                    }
+                    $sheet->setCellValue("{$colAnual}{$fila}", $colTotals['anual']);
+                    $sheet->getStyle("{$colAnual}{$fila}")->getNumberFormat()->setFormatCode('#,##0');
+                    $sheet->cells("{$colAnual}{$fila}", function($c){
+                        $c->setBackground('#fffde7');
+                        $c->setFontColor('#ff0000');
+                        $c->setFontWeight('bold');
+                    });
+
+                    $sheet->setWidth('A', 8);
+                    for ($m=1; $m<=13; $m++) {
+                        $sheet->setWidth(\PHPExcel_Cell::stringFromColumnIndex($m), 18);
+                    }
+                });
+            }
+        })->download('xlsx');
+    }
+
+    public function descargarPublicoCasinoXlsxTodos(Request $request)
+    {
+        $desde = $request->query('desde');
+        $hasta = $request->query('hasta');
+        $user = Usuario::find(session('id_usuario'));
+        $casinos = $user->casinos->sortBy('id_casino');
+        $allowedCasinoIds = $casinos->pluck('id_casino')->toArray();
+
+        $registros = \App\RegistroPublicoCasino::with('casinoPublicoCasino')
+            ->whereIn('casino', $allowedCasinoIds)
+            ->when($desde, function($q) use ($desde){
+                $q->where('fecha_mes','>=', $desde.'-01');
+            })
+            ->when($hasta, function($q) use ($hasta){
+                $q->where('fecha_mes','<=', $hasta.'-31');
+            })
+            ->orderBy('fecha_mes')
+            ->get()
+            ->groupBy(function($r){
+                return date('Y', strtotime($r->fecha_mes));
+            });
+
+        $filename = 'publico_casino_todos_'.date('Ymd_His');
+        setlocale(LC_TIME, 'es_ES.UTF-8', 'es_AR.UTF-8', 'es_ES', 'es_AR');
+
+        return \Excel::create($filename, function($excel) use ($registros, $casinos) {
+            foreach ($registros as $anio => $rows) {
+                $excel->sheet("{$anio}", function($sheet) use ($rows, $anio, $casinos) {
+                    
+                    $matrix = [];
+                    for($m=1; $m<=12; $m++) {
+                        $matrix[$m] = [];
+                        for($d=1; $d<=31; $d++) {
+                            $matrix[$m][$d] = [];
+                        }
+                    }
+                    foreach($rows as $r) {
+                        $m = (int)date('n', strtotime($r->fecha_mes));
+                        $c = $r->casino;
+                        for($d=1; $d<=31; $d++) {
+                            $campo = "dia_$d";
+                            if ($r->$campo !== null) $matrix[$m][$d][$c] = $r->$campo;
+                        }
+                    }
+
+                    $sheet->setCellValue("A1", 'Día');
+                    $sheet->mergeCells("A1:A2");
+                    $sheet->cells("A1:A2", function($c){
+                        $c->setAlignment('center');
+                        $c->setValignment('center');
+                        $c->setFontWeight('bold');
+                    });
+
+                    $colIndex = 1;
+                    for ($m=1; $m<=12; $m++) {
+                        $mesNombre = ucfirst(strftime('%B', mktime(0, 0, 0, $m, 10)));
+                        $startCol = \PHPExcel_Cell::stringFromColumnIndex($colIndex);
+                        $endCol = \PHPExcel_Cell::stringFromColumnIndex($colIndex + count($casinos) - 1);
+                        
+                        $sheet->setCellValue("{$startCol}1", $mesNombre);
+                        $sheet->mergeCells("{$startCol}1:{$endCol}1");
+                        
+                        foreach($casinos as $cas) {
+                            $colStr = \PHPExcel_Cell::stringFromColumnIndex($colIndex);
+                            $shortName = strtoupper(substr($cas->nombre, 0, 3)); 
+                            if ($cas->id_casino == 1) $shortName = 'CME';
+                            if ($cas->id_casino == 2) $shortName = 'CSF';
+                            if ($cas->id_casino == 3) $shortName = 'CRO';
+
+                            $sheet->setCellValue("{$colStr}2", $shortName);
+                            $color = '#222222';
+                            if ($cas->id_casino == 1) $color = '#339966';
+                            if ($cas->id_casino == 2) $color = '#ff0000';
+                            if ($cas->id_casino == 3) $color = '#ffcc00';
+                            $sheet->cells("{$colStr}2", function($c) use ($color){
+                                $c->setBackground($color);
+                                if ($color != '#ffcc00') $c->setFontColor('#ffffff');
+                                $c->setFontWeight('bold');
+                                $c->setAlignment('center');
+                            });
+                            $sheet->setWidth($colStr, 18);
+                            $colIndex++;
+                        }
+                    }
+                    
+                    $startCol = \PHPExcel_Cell::stringFromColumnIndex($colIndex);
+                    $endCol = \PHPExcel_Cell::stringFromColumnIndex($colIndex + count($casinos) - 1);
+                    $sheet->setCellValue("{$startCol}1", 'Total ANUAL');
+                    $sheet->mergeCells("{$startCol}1:{$endCol}1");
+                    
+                    foreach($casinos as $cas) {
+                        $colStr = \PHPExcel_Cell::stringFromColumnIndex($colIndex);
+                        $shortName = 'CME';
+                        if ($cas->id_casino == 1) $shortName = 'CME';
+                        if ($cas->id_casino == 2) $shortName = 'CSF';
+                        if ($cas->id_casino == 3) $shortName = 'CRO';
+                        
+                        $sheet->setCellValue("{$colStr}2", $shortName);
+                        $color = '#222222';
+                        if ($cas->id_casino == 1) $color = '#339966';
+                        if ($cas->id_casino == 2) $color = '#ff0000';
+                        if ($cas->id_casino == 3) $color = '#ffcc00';
+                        $sheet->cells("{$colStr}2", function($c) use ($color){
+                            $c->setBackground($color);
+                            if ($color != '#ffcc00') $c->setFontColor('#ffffff');
+                            $c->setFontWeight('bold');
+                            $c->setAlignment('center');
+                        });
+                        $sheet->setWidth($colStr, 18);
+                        $colIndex++;
+                    }
+
+                    $sheet->cells("A1:{$endCol}1", function($c){
+                        $c->setAlignment('center');
+                        $c->setFontWeight('bold');
+                        $c->setBackground('#ffffff');
+                    });
+
+                    $colTotals = [];
+                    foreach($casinos as $cas) {
+                        for($m=1; $m<=12; $m++) $colTotals[$m][$cas->id_casino] = 0;
+                        $colTotals['anual'][$cas->id_casino] = 0;
+                    }
+
+                    $fila = 2;
+                    for ($d = 1; $d <= 31; $d++) {
+                        $fila++;
+                        $sheet->setCellValue("A{$fila}", $d);
+                        
+                        $rowTotals = []; 
+                        foreach($casinos as $cas) $rowTotals[$cas->id_casino] = 0;
+
+                        $cIdx = 1;
+                        for ($m = 1; $m <= 12; $m++) {
+                            $daysInMonth = (int)date('t', mktime(0, 0, 0, $m, 1, $anio));
+                            foreach($casinos as $cas) {
+                                $col = \PHPExcel_Cell::stringFromColumnIndex($cIdx);
+                                
+                                if ($d > $daysInMonth) {
+                                    $sheet->cells("{$col}{$fila}", function($c) { $c->setBackground('#dddddd'); });
+                                } else {
+                                    $val = $matrix[$m][$d][$cas->id_casino] ?? null;
+                                    if ($val !== null) {
+                                        $sheet->setCellValue("{$col}{$fila}", $val);
+                                        $sheet->getStyle("{$col}{$fila}")->getNumberFormat()->setFormatCode('#,##0');
+                                        $rowTotals[$cas->id_casino] += $val;
+                                        $colTotals[$m][$cas->id_casino] += $val;
+                                    }
+                                }
+                                $cIdx++;
+                            }
+                        }
+                        
+                        foreach($casinos as $cas) {
+                            $col = \PHPExcel_Cell::stringFromColumnIndex($cIdx);
+                            $val = $rowTotals[$cas->id_casino];
+                            $colTotals['anual'][$cas->id_casino] += $val;
+                            $sheet->setCellValue("{$col}{$fila}", $val);
+                            $sheet->getStyle("{$col}{$fila}")->getNumberFormat()->setFormatCode('#,##0');
+                            $sheet->cells("{$col}{$fila}", function($c){
+                                $c->setBackground('#fffde7');
+                                $c->setFontWeight('bold');
+                            });
+                            $cIdx++;
+                        }
+                    }
+
+                    $fila++;
+                    $sheet->setCellValue("A{$fila}", "TOTAL");
+                    $sheet->cells("A{$fila}", function($c){ $c->setAlignment('center'); $c->setFontWeight('bold'); });
+                    
+                    $cIdx = 1;
+                    for ($m = 1; $m <= 12; $m++) {
+                        foreach($casinos as $cas) {
+                            $col = \PHPExcel_Cell::stringFromColumnIndex($cIdx);
+                            $sheet->setCellValue("{$col}{$fila}", $colTotals[$m][$cas->id_casino]);
+                            $sheet->getStyle("{$col}{$fila}")->getNumberFormat()->setFormatCode('#,##0');
+                            $sheet->cells("{$col}{$fila}", function($c){
+                                $c->setFontWeight('bold');
+                            });
+                            $cIdx++;
+                        }
+                    }
+                    foreach($casinos as $cas) {
+                        $col = \PHPExcel_Cell::stringFromColumnIndex($cIdx);
+                        $sheet->setCellValue("{$col}{$fila}", $colTotals['anual'][$cas->id_casino]);
+                        $sheet->getStyle("{$col}{$fila}")->getNumberFormat()->setFormatCode('#,##0');
+                        $sheet->cells("{$col}{$fila}", function($c){
+                            $c->setBackground('#fffde7');
+                            $c->setFontWeight('bold');
+                        });
+                        $cIdx++;
+                    }
+
+                    $sheet->setWidth('A', 8);
+                });
+            }
+        })->download('xlsx');
+    }
+
+    public function descargarPublicoCasinoCsv(Request $request)
+    {
+        $casinoId = $request->query('casino');
+        $desde    = $request->query('desde');
+        $hasta    = $request->query('hasta');
+
+        $user = Usuario::find(session('id_usuario'));
+        $allowedCasinoIds = $user->casinos->pluck('id_casino')->toArray();
+
+        $registros = \App\RegistroPublicoCasino::with('casinoPublicoCasino:id_casino,nombre')
+            ->whereIn('casino', $allowedCasinoIds)
+            ->when($casinoId && (int)$casinoId !== 4, function ($q) use ($casinoId) {
+                $q->where('casino', $casinoId);
+            })
+            ->when($desde, function ($q) use ($desde) {
+                $q->where('fecha_mes', '>=', $desde . '-01');
+            })
+            ->when($hasta, function ($q) use ($hasta) {
+                $q->where('fecha_mes', '<=', $hasta . '-31');
+            })
+            ->orderBy('casino')
+            ->orderBy('fecha_mes')
+            ->get();
+
+        $csv = [];
+        $csv[] = ['Casino','Año','Mes','Día','Cantidad'];
+
+        setlocale(LC_TIME, 'es_ES.UTF-8', 'es_AR.UTF-8', 'es_ES', 'es_AR');
+        foreach ($registros as $r) {
+            $anio   = date('Y', strtotime($r->fecha_mes));
+            $mes    = ucfirst(strftime('%B', strtotime($r->fecha_mes)));
+            $casino = $r->casinoPublicoCasino ? $r->casinoPublicoCasino->nombre : '-';
+            
+            $daysInMonth = (int)date('t', strtotime($r->fecha_mes));
+            
+            for ($d=1; $d<=$daysInMonth; $d++) {
+                $campo = "dia_$d";
+                if ($r->$campo !== null) {
+                    $csv[] = [
+                        $casino,
+                        $anio,
+                        $mes,
+                        $d,
+                        $r->$campo
+                    ];
+                }
+            }
+        }
+
+        $nombreCasino = ((int)$casinoId === 4 || !$casinoId)
+            ? 'todos'
+            : (Casino::find($casinoId)->nombre ?? 'desconocido');
+
+        $filename = "PublicoCasino_{$nombreCasino}_" . date('Ymd_His') . ".csv";
+
+        $handle = fopen('php://temp', 'r+');
+        foreach ($csv as $linea) {
+            fputcsv($handle, $linea, ',');
+        }
+        rewind($handle);
+
+        return \Response::make(stream_get_contents($handle), 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    public function llenarPublicoCasino($id) {
+        $r = \App\RegistroPublicoCasino::findOrFail($id);
+        return response()->json($r);
+    }
+
+    public function actualizarPublicoCasino(Request $request, $id) {
+        $r = \App\RegistroPublicoCasino::findOrFail($id);
+        for ($i = 1; $i <= 31; $i++) {
+            $campo = "dia_".$i;
+            if ($request->has($campo)) {
+                $val = $request->input($campo);
+                if ($val !== "" && $val !== null) {
+                    $valSinPuntos = str_replace('.', '', $val);
+                    $r->$campo = intval($valSinPuntos);
+                } else {
+                    $r->$campo = null;
+                }
+            }
+        }
+        $r->save();
+        return response()->json(["success" => true]);
     }
 }

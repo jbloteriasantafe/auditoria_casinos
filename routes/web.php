@@ -1131,6 +1131,15 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('llenarEstadoContableEdit/{id}', 'documentosContablesController@llenarEstadoContableEdit');
   Route::post('actualizarEstadoContable/{id}', 'documentosContablesController@actualizarEstadoContable');
   Route::get('archivosEstadoContable/{id}', 'documentosContablesController@archivosEstadoContable');
+  
+  // PUBLICO CASINO
+  Route::get('ultimasPublicoCasino', 'documentosContablesController@ultimasPublicoCasino');
+  Route::get('totalesAnualesPublicoCasino', 'documentosContablesController@totalesAnualesPublicoCasino');
+  Route::get('descargarPublicoCasinoXlsx', 'documentosContablesController@descargarPublicoCasinoXlsx');
+  Route::get('descargarPublicoCasinoXlsxTodos', 'documentosContablesController@descargarPublicoCasinoXlsxTodos');
+  Route::get('descargarPublicoCasinoCsv', 'documentosContablesController@descargarPublicoCasinoCsv');
+  Route::get('llenarPublicoCasino/{id}', 'documentosContablesController@llenarPublicoCasino');
+  Route::post('actualizarPublicoCasino/{id}', 'documentosContablesController@actualizarPublicoCasino');
   //IVA
   Route::post('guardarIva', 'documentosContablesController@guardarIva');
   Route::post('actualizarIva/{id}', 'documentosContablesController@actualizarIva');

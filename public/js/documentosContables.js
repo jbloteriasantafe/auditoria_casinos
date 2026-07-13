@@ -7112,6 +7112,15 @@ function buscarPestana(tabId, preservePage) {
   // Si el ID del tab no coincide exactamente con el nombre de la función, mapeamos aquí
 
   switch (key) {
+    case "publico_casino":
+      cargarPublicoCasino({
+        page: getPg("cargarPublicoCasino"),
+        perPage: getSz("cargarPublicoCasino"),
+        casino: casino,
+        desde: desde,
+        hasta: hasta,
+      });
+      break;
     case "iva":
       cargarIva({
         page: getPg(cargarIva),
@@ -24306,4 +24315,245 @@ $('#dtpFechaEstadoContable').on('changeDate', function(e) {
     $('#modalCargarEstadoContable .ec-anio-actual').text(year);
     $('#modalCargarEstadoContable .ec-anio-anterior').text((year - 1) + ' Reexpresado');
   }
+});
+
+
+// ----------------- PÚBLICO CASINO -----------------
+
+$(document).on("click", ".btn-editar-publico-casino, .btn-ver-publico-casino", function () {
+  const id = $(this).val();
+  const readonly = $(this).hasClass("btn-ver-publico-casino");
+  
+  $.get("/documentosContables/llenarPublicoCasino/" + id, function (data) {
+    $("#id_registroPublicoCasino").val(id);
+    $(".input-publico-dia").val("");
+    
+    // Parse fecha_mes accurately avoiding timezone offsets changing the month
+    const parts = data.fecha_mes.split("-");
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const daysInMonth = new Date(year, month, 0).getDate();
+    
+    for(let i = 1; i <= 31; i++) {
+        let val = data["dia_"+i];
+        if (val !== null) $("#pc_dia_"+i).val(formatoAR(val, 0));
+        if (i > daysInMonth) {
+            $("#pc_dia_"+i).prop("disabled", true).val("");
+        } else {
+            $("#pc_dia_"+i).prop("disabled", readonly);
+        }
+    }
+    
+    if (readonly) {
+        $("#btn-guardarPublicoCasino").hide();
+    } else {
+        $("#btn-guardarPublicoCasino").show();
+    }
+    
+    $(".input-publico-dia").first().trigger("change");
+    $("#modalPublicoCasino").modal("show");
+  });
+});
+
+$(document).on("input blur change", ".input-publico-dia", function(e) {
+  if (e.type === "input") {
+    let clean = $(this).val().replace(/[^0-9.]/g, "");
+    if (clean !== $(this).val()) {
+      $(this).val(clean);
+    }
+  }
+
+  let total = 0;
+  $(".input-publico-dia").each(function() {
+    let raw = $(this).val();
+    let num = parseInt(raw.replace(/\./g, ""), 10);
+    if (!isNaN(num)) {
+      total += num;
+      if (e.type === "blur" && raw !== "") {
+        $(this).val(formatoAR(num, 0));
+      }
+    } else if (e.type === "blur") {
+      $(this).val("");
+    }
+  });
+  $("#pc_total_mensual_input").val(formatoAR(total, 0));
+});
+
+$(document).on("click", "#btn-guardarPublicoCasino", function (e) {
+  e.preventDefault();
+  const id = $("#id_registroPublicoCasino").val();
+  const formData = new FormData($("#frmPublicoCasino")[0]);
+  
+  $.ajax({
+    type: "POST",
+    url: "/documentosContables/actualizarPublicoCasino/" + id,
+    data: formData,
+    dataType: "json",
+    processData: false,
+    contentType: false,
+    success: function (data) {
+      $("#modalPublicoCasino").modal("hide");
+      var activeTab = $("[data-js-tabs] a.active").attr("data-js-tab");
+      if (!activeTab) activeTab = $("[data-js-tabs] a").first().attr("data-js-tab");
+      buscarPestana(activeTab, true);
+    },
+    error: function (data) {
+      console.error(data);
+    }
+  });
+});
+
+function cargarPublicoCasino({ page = 1, perPage = 10, casino, desde, hasta }) {
+  $.ajax({
+    type: "GET",
+    url: "/documentosContables/ultimasPublicoCasino",
+    data: { page: page, page_size: perPage, id_casino: casino, desde: desde, hasta: hasta },
+    success: function (data) {
+      $("#herramientasPaginacionPublicoCasino").generarIndices(page, perPage, data.pagination.total, clickIndicePublicoCasino);
+      $("#cuerpoTablaPublicoCasino").empty();
+      data.registros.forEach(function (r) {
+        let fila = $("<tr>");
+        let btnEditar = $("<button>").addClass("btn btn-warning btn-editar-publico-casino").val(r.id_registroPublicoCasino).append($("<i>").addClass("fa fa-fw fa-pencil-alt"))
+          .attr("data-toggle", "tooltip")
+          .attr("data-placement", "bottom")
+          .attr("title", "MODIFICAR PÚBLICO CASINO");
+          
+        let btnVer = $("<button>").addClass("btn btn-info btn-ver-publico-casino").val(r.id_registroPublicoCasino).append($("<i>").addClass("fa fa-fw fa-search-plus"))
+          .attr("data-toggle", "tooltip")
+          .attr("data-placement", "bottom")
+          .attr("title", "VER PÚBLICO CASINO");
+          
+        let btnValidar = obtenerIconoValidacion(r.valido, 'publico_casino', r.id_registroPublicoCasino);
+        
+        let parts = r.fecha_mes.split("-");
+        let year = parts[0];
+        let month = parts[1];
+        let daysInMonth = new Date(year, month, 0).getDate();
+        let mesFormatText = convertirMesAno(r.fecha_mes);
+
+        fila.append($("<td>").addClass("col-xs-3").text(mesFormatText));
+        fila.append($("<td>").addClass("col-xs-3").text(r.casino));
+        
+        fila.append($("<td>").addClass("col-xs-3").text(r.dias_completados + " / " + daysInMonth));
+        fila.append($("<td>").addClass("col-xs-3").append(btnVer).append(" ").append(btnEditar).append(" ").append(btnValidar));
+        $("#cuerpoTablaPublicoCasino").append(fila);
+      });
+    },
+    error: function (xhr, status, error) {
+      console.error("Error en ultimasPublicoCasino: ", error, xhr.responseText);
+      // alert("Ocurrió un error al cargar la tabla de Público Casino.");
+    }
+  });
+}
+
+function clickIndicePublicoCasino(e, pageNumber, tam) {
+  if (e != null) e.preventDefault();
+  var tam = tam != null ? tam : $("#herramientasPaginacionPublicoCasino").getPageSize();
+  cargarPublicoCasino({
+      page: pageNumber, 
+      perPage: tam, 
+      casino: $("#filtro_global_casino").val(), 
+      desde: $("#filtro_global_desde_input").val(), 
+      hasta: $("#filtro_global_hasta_input").val()
+  });
+}
+
+$(document).on("click", "#btn-totalesAnualesPublicoCasino", function() {
+    let currentYear = new Date().getFullYear();
+    let selAnio = $("#ta_anio");
+    selAnio.empty();
+    for (let y = currentYear; y >= 2020; y--) {
+        selAnio.append($("<option>").val(y).text(y));
+    }
+    
+    $("#ta_tbody").empty();
+    $("#ta_tfoot_row").empty();
+    $("#modalTotalesAnualesPublicoCasino").modal("show");
+    
+    setTimeout(function() {
+        $("#btn-buscarTotalesAnuales").click();
+    }, 500);
+});
+
+$(document).on("click", "#btn-buscarTotalesAnuales", function() {
+    let casino = $("#ta_casino").val();
+    let anio = $("#ta_anio").val();
+    
+    if(!casino || !anio) return;
+    
+    $.get("/documentosContables/totalesAnualesPublicoCasino", { id_casino: casino, anio: anio }, function(data) {
+        let matrix = data.datos;
+        
+        let tbody = $("#ta_tbody");
+        let tfoot = $("#ta_tfoot_row");
+        tbody.empty();
+        tfoot.empty();
+        
+        let colTotals = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0, 11:0, 12:0, 'anual':0};
+        
+        for (let d = 1; d <= 31; d++) {
+            let tr = $("<tr>");
+            tr.append($("<td>").text(d).css("font-weight", "bold").css("background-color", "#f5f5f5"));
+            
+            let rowTotal = 0;
+            for (let m = 1; m <= 12; m++) {
+                let yearInt = parseInt(anio, 10);
+                let daysInMonth = new Date(yearInt, m, 0).getDate();
+                let td = $("<td>");
+                
+                if (d > daysInMonth) {
+                    td.css("background-color", "#ddd");
+                } else {
+                    let val = matrix[m] ? matrix[m][d] : null;
+                    if (val !== null) {
+                        td.text(formatoAR(val, 0));
+                        rowTotal += val;
+                        colTotals[m] += val;
+                    } else {
+                        td.text("");
+                    }
+                }
+                tr.append(td);
+            }
+            
+            colTotals['anual'] += rowTotal;
+            tr.append($("<td>").text(rowTotal > 0 ? formatoAR(rowTotal, 0) : "").css("font-weight", "bold").css("background-color", "#fffde7"));
+            
+            tbody.append(tr);
+        }
+        
+        tfoot.append($("<td>").text("TOTAL").css("text-align", "center"));
+        for (let m = 1; m <= 12; m++) {
+            tfoot.append($("<td>").text(colTotals[m] > 0 ? formatoAR(colTotals[m], 0) : "").css("text-align", "center").css("color", "red"));
+        }
+        tfoot.append($("<td>").text(colTotals['anual'] > 0 ? formatoAR(colTotals['anual'], 0) : "").css("text-align", "center").css("color", "red").css("background-color", "#fffde7"));
+    });
+});
+
+$(document).on("change", "#ta_casino, #ta_anio", function() {
+    $("#btn-buscarTotalesAnuales").click();
+});
+
+$("#btn-descargarPublicoCasinoExcel").on("click", function (e) {
+  e.preventDefault();
+  var _fg = filtrosGlobalDescarga();
+  const casino = _fg.casino;
+  const desde = _fg.desde;
+  const hasta = _fg.hasta;
+
+  if (casino != 4 && casino != 0) {
+    window.location.href = `/documentosContables/descargarPublicoCasinoXlsx?casino=${casino}&desde=${desde}&hasta=${hasta}`;
+  } else {
+    window.location.href = `/documentosContables/descargarPublicoCasinoXlsxTodos?desde=${desde}&hasta=${hasta}`;
+  }
+});
+
+$("#btn-descargarPublicoCasinoCsv").on("click", function (e) {
+  e.preventDefault();
+  var _fg = filtrosGlobalDescarga();
+  const casino = _fg.casino;
+  const desde = _fg.desde;
+  const hasta = _fg.hasta;
+
+  window.location.href = `/documentosContables/descargarPublicoCasinoCsv?casino=${casino}&desde=${desde}&hasta=${hasta}`;
 });
