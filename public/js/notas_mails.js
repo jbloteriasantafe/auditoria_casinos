@@ -7,14 +7,16 @@
     'auditoria':    'Auditoría / Despacho',
     'casino':       'Casino / Plataforma',
     'funcionario1': 'Funcionario 1',
-    'funcionario2': 'Funcionario 2'
+    'funcionario2': 'Funcionario 2',
+    'aviso_aprobaciones': 'Aviso de Aprobaciones'
   };
 
   var catIconos = {
-    'auditoria':    '<i class="fa fa-balance-scale"></i>',
-    'casino':       '<i class="fa fa-building"></i>',
-    'funcionario1': '<i class="fa fa-user-tie"></i>',
-    'funcionario2': '<i class="fa fa-user-tie"></i>'
+    'auditoria':    '<i class="fa fa-balance-scale" style="color:#3b82f6;"></i>',
+    'casino':       '<i class="fa fa-building" style="color:#f59e0b;"></i>',
+    'funcionario1': '<i class="fa fa-user-tie" style="color:#10b981;"></i>',
+    'funcionario2': '<i class="fa fa-user-tie" style="color:#ec4899;"></i>',
+    'aviso_aprobaciones': '<i class="fa fa-check-circle" style="color:#4f46e5;"></i>'
   };
 
   // ========== TRANSICIONES ==========
@@ -110,7 +112,7 @@
   // ========== DESTINATARIOS ==========
 
   function toggleColumnaCasino(){
-    esCasino = (catActual === 'casino');
+    esCasino = (catActual === 'casino' || catActual === 'aviso_aprobaciones');
     if(esCasino){
       $('.th-dest-casino, .col-dest-casino, .td-dest-casino').show();
       $('#divDestCasino').show();
@@ -180,7 +182,7 @@
 
     // Marcar card activa
     $('.card-cat-mail').css({ background: '#fff' });
-    var fondos = { auditoria: '#eff6ff', casino: '#fef9ee', funcionario1: '#f0fdf4', funcionario2: '#fdf2f8' };
+    var fondos = { auditoria: '#eff6ff', casino: '#fef9ee', funcionario1: '#f0fdf4', funcionario2: '#fdf2f8', aviso_aprobaciones: '#e0e7ff' };
     $('.card-cat-mail[data-cat="' + cat + '"]').css({ background: fondos[cat] });
 
     $('#tituloCatMail').html(catIconos[cat] + ' ' + catTitulos[cat]);

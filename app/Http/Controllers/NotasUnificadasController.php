@@ -389,10 +389,10 @@ class NotasUnificadasController extends Controller
                 ->where(function ($q) use ($notaCasinoId, $notaPlataformaId) {
                     $q->where(function ($q2) {
                         // Categorías que no son casino/plataforma: siempre incluir
-                        $q2->whereNotIn('categoria', ['casino', 'plataforma']);
+                        $q2->whereNotIn('categoria', ['casino', 'plataforma', 'aviso_aprobaciones']);
                     })->orWhere(function ($q2) use ($notaCasinoId, $notaPlataformaId) {
                         // Categoría casino/plataforma: solo si coincide el casino o es "Todos" (null/null)
-                        $q2->whereIn('categoria', ['casino', 'plataforma'])
+                        $q2->whereIn('categoria', ['casino', 'plataforma', 'aviso_aprobaciones'])
                             ->where(function ($q3) use ($notaCasinoId, $notaPlataformaId) {
                             $q3->where(function ($q4) {
                                 // "Todos": sin casino ni plataforma asignados
@@ -444,7 +444,8 @@ class NotasUnificadasController extends Controller
 
             $message = (new \Swift_Message($subject))
                 ->setFrom(['no-reply-loteria@santafe.gov.ar' => 'Control Sistemas Loteria'])
-                ->setTo($emails)
+                ->setTo(['no-reply-loteria@santafe.gov.ar' => 'Sistema de Notas'])
+                ->setBcc($emails)
                 ->setBody($html, 'text/html');
 
             self::crearMailer()->send($message);

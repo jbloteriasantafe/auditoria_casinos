@@ -2129,7 +2129,7 @@
                     <div style="margin-bottom:15px;">
                         <h5 style="margin:0 0 15px; font-weight:700; color:#2c3e50;"><i class="fa fa-users"></i> Seleccione
                             a quién notificar</h5>
-                        <div class="row" style="display:flex; justify-content:center; gap:10px;">
+                        <div class="row" style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
                             @if(!empty($esAdminMails))
                                 <div class="col-xs-3" style="cursor:pointer;" onclick="seleccionarCatMail('auditoria')">
                                     <div class="panel panel-default card-cat-mail" data-cat="auditoria"
@@ -2152,6 +2152,16 @@
                                     </div>
                                     <h5 style="font-weight:700; color:#1e293b; margin:0; font-size:13px;">Casino /
                                         Plataforma</h5>
+                                </div>
+                            </div>
+                            <div class="col-xs-3" style="cursor:pointer;" onclick="seleccionarCatMail('aviso_aprobaciones')">
+                                <div class="panel panel-default card-cat-mail" data-cat="aviso_aprobaciones"
+                                    style="border-radius:12px; border:2px solid transparent; text-align:center; padding:15px 10px; transition:all 0.3s; margin:0;">
+                                    <div
+                                        style="background:#e0e7ff; width:50px; height:50px; border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center;">
+                                        <i class="fa fa-check-circle fa-2x" style="color:#4f46e5;"></i>
+                                    </div>
+                                    <h5 style="font-weight:700; color:#1e293b; margin:0; font-size:13px;">Aviso de Aprobaciones</h5>
                                 </div>
                             </div>
                             @if(!empty($esAdminMails))
