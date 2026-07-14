@@ -1140,6 +1140,7 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('descargarPublicoCasinoCsv', 'documentosContablesController@descargarPublicoCasinoCsv');
   Route::get('llenarPublicoCasino/{id}', 'documentosContablesController@llenarPublicoCasino');
   Route::post('actualizarPublicoCasino/{id}', 'documentosContablesController@actualizarPublicoCasino');
+  Route::get('archivosPublicoCasino/{id}', 'documentosContablesController@archivosPublicoCasino');
   //IVA
   Route::post('guardarIva', 'documentosContablesController@guardarIva');
   Route::post('actualizarIva/{id}', 'documentosContablesController@actualizarIva');

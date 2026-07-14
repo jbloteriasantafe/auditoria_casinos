@@ -18,4 +18,9 @@ class RegistroPublicoCasino extends Model
   public function casinoPublicoCasino(){
     return $this->belongsTo('App\Casino','casino','id_casino');
   }
+
+  public function archivos()
+  {
+    return $this->morphMany(Registro_archivo::class, 'fileable', 'fileable_type', 'fileable_id');
+  }
 }

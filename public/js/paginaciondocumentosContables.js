@@ -3,9 +3,14 @@ $.fn.getCurrentPage = function(){
   var indice = this.find('.current');
   if(indice.length > 0){
     return parseInt(indice.text());
-  }else{
-    return 1;
   }
+  
+  var inputPag = this.find('input[id^="pag-"]');
+  if(inputPag.length > 0 && !isNaN(parseInt(inputPag.val()))){
+    return parseInt(inputPag.val());
+  }
+
+  return 1;
 }
 $.fn.getPageSize = function(){
   const $select = this.find('select[id^="size"]');

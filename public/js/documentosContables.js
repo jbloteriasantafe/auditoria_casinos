@@ -635,10 +635,14 @@ $(document).on("click", "#btn-eliminarArchivo", function () {
           RRHH: (id) => cargarArchivosRRHHLista(id),
           ReporteYLavado: (id) => cargarArchivosReporteYLavadoLista(id),
           Seguros: (id) => cargarArchivosSegurosLista(id),
+          publicoCasino: (id) => cargarArchivosPublicoCasinoLista(id),
         };
 
         if (reloaders[scope]) {
           reloaders[scope](regId);
+          var activeTab = $("[data-js-tabs] a.active").attr("data-js-tab");
+          if (!activeTab) activeTab = $("[data-js-tabs] a").first().attr("data-js-tab");
+          buscarPestana(activeTab, true);
         } else {
           $(`[data-archivo-id="${fileId}"]`).remove();
         }
@@ -1284,7 +1288,7 @@ function generarFilaiibb(iibb, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", iibb.id_registroiibb)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -2217,7 +2221,7 @@ function generarFilaDREI(drei, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", drei.id_registroDREI)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -3050,7 +3054,7 @@ function generarFilaIva(iva, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", iva.id_registroIva)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
   const btnDelete = $("<button>")
     .addClass("btn btn-danger btn-sm btn-deleteIva")
@@ -3501,7 +3505,7 @@ function renderFilaTGI_partida(d) {
     "</td>" +
     '<td class="col-md-1">' +
     '<button type="button" class="btn btn-sm btn-primary btn-editTGI_partida" title="MODIFICAR PARTIDA">' +
-    '<i class="fa fa-edit"></i>' +
+    '<i class="fa fa-pencil-alt"></i>' +
     "</button> " +
     '<button type="button" class="btn btn-sm btn-danger btn-elimTGI_partida" title="ELIMINAR PARTIDA">' +
     '<i class="fa fa-trash"></i>' +
@@ -4138,7 +4142,7 @@ function generarFilaTGI(TGI, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", TGI.id_registroTGI)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -4795,7 +4799,7 @@ function generarFilaIMP_AP_OL(IMP_AP_OL, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", IMP_AP_OL.id_registroIMP_AP_OL)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -5394,7 +5398,7 @@ function generarFilaIMP_AP_MTM(IMP_AP_MTM, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", IMP_AP_MTM.id_registroIMP_AP_MTM)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -5929,7 +5933,7 @@ function generarFilaPagosMayoresMesas(PagosMayoresMesas, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", PagosMayoresMesas.id_registroPagosMayoresMesas)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -6434,7 +6438,7 @@ function generarFilaDeudaEstado(DeudaEstado, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", DeudaEstado.id_registroDeudaEstado)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -7458,7 +7462,7 @@ function generarFilaReporteYLavado(ReporteYLavado, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", ReporteYLavado.id_registroReporteYLavado)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -8064,7 +8068,7 @@ function generarFilaRegistrosContables(RegistrosContables, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", RegistrosContables.id_registroRegistrosContables)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -8623,7 +8627,7 @@ function generarFilaAportesPatronales(AportesPatronales, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", AportesPatronales.id_registroAportesPatronales)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -9126,7 +9130,7 @@ function generarFilaPromoTickets(PromoTickets, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", PromoTickets.id_registroPromoTickets)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -9668,7 +9672,7 @@ function generarFilaPozosAcumuladosLinkeados(
       PozosAcumuladosLinkeados.id_registroPozosAcumuladosLinkeados
     )
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -10273,7 +10277,7 @@ function generarFilaContribEnteTuristico(ContribEnteTuristico, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", ContribEnteTuristico.id_registroContribEnteTuristico)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -11037,7 +11041,7 @@ function generarFilaRRHH(RRHH, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", RRHH.id_registroRRHH)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -11962,7 +11966,7 @@ function generarFilaGanancias(Ganancias, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", Ganancias.id_registroGanancias)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -12061,7 +12065,7 @@ function generarFilaGanancias_periodo(Ganancias_periodo, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", Ganancias_periodo.id_registroGanancias_periodo)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -12634,7 +12638,7 @@ function generarFilaJackpotsPagados(JackpotsPagados, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", JackpotsPagados.id_registroJackpotsPagados)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -13128,7 +13132,7 @@ function generarFilaPremiosPagados(PremiosPagados, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", PremiosPagados.id_registroPremiosPagados)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -13708,7 +13712,7 @@ function generarFilaPremiosMTM(reg) {
     .attr("data-casino", reg.casino)
     .attr("data-toggle", "tooltip")
     .attr("title", "EDITAR PREMIOS")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
   
   const btnDelete = $("<button>")
@@ -14753,7 +14757,7 @@ function renderFilaDirector(d) {
     "</td>" +
     '<td class="col-md-1">' +
     '<button type="button" class="btn btn-sm btn-primary btn-editAutDirectores_director" title="MODIFICAR DIRECTOR">' +
-    '<i class="fa fa-edit"></i>' +
+    '<i class="fa fa-pencil-alt"></i>' +
     "</button> " +
     '<button type="button" class="btn btn-sm btn-danger btn-elimAutDirectores_director" title="ELIMINAR DIRECTOR">' +
     '<i class="fa fa-trash"></i>' +
@@ -15171,7 +15175,7 @@ function generarFilaAutDirectores(AutDirectores, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", AutDirectores.id_registroAutDirectores)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -15555,7 +15559,7 @@ function renderFilaSeguros_tipo(d) {
     "</td>" +
     '<td class="text-left col-md-3">' +
     '<button type="button" class="btn btn-sm btn-primary btn-editSeguros_tipo" title="MODIFICAR TIPO DE SEGURO">' +
-    '<i class="fa fa-edit"></i>' +
+    '<i class="fa fa-pencil-alt"></i>' +
     "</button> " +
     '<button type="button" class="btn btn-sm btn-danger btn-elimSeguros_tipo" title="ELIMINAR TIPO DE SEGURO">' +
     '<i class="fa fa-trash"></i>' +
@@ -15954,7 +15958,7 @@ function generarFilaSeguros(Seguros, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", Seguros.id_registroSeguros)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -16495,7 +16499,7 @@ function generarFilaDerechoAcceso(DerechoAcceso, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", DerechoAcceso.id_registroDerechoAcceso)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -17142,7 +17146,7 @@ function renderFilaPatentes_patenteDe(d) {
     "</td>" +
     '<td class="text-left col-md-3">' +
     '<button type="button" class="btn btn-sm btn-primary btn-editPatentes_patenteDe" title="MODIFICAR PATENTE">' +
-    '<i class="fa fa-edit"></i>' +
+    '<i class="fa fa-pencil-alt"></i>' +
     "</button> " +
     '<button type="button" class="btn btn-sm btn-danger btn-elimPatentes_patenteDe" title="ELIMINAR PATENTE">' +
     '<i class="fa fa-trash"></i>' +
@@ -17523,7 +17527,7 @@ function generarFilaPatentes(Patentes) {
     .attr("data-placement", "bottom")
     .attr("data-id", Patentes.id_registroPatentes)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -18117,7 +18121,7 @@ function renderFilaImpInmobiliario_partida(d) {
     "</td>" +
     '<td class="col-md-1">' +
     '<button type="button" class="btn btn-sm btn-primary btn-editImpInmobiliario_partida" title="MODIFICAR PARTIDA">' +
-    '<i class="fa fa-edit"></i>' +
+    '<i class="fa fa-pencil-alt"></i>' +
     "</button> " +
     '<button type="button" class="btn btn-sm btn-danger btn-elimImpInmobiliario_partida" title="ELIMINAR PARTIDA">' +
     '<i class="fa fa-trash"></i>' +
@@ -18615,7 +18619,7 @@ function generarFilaImpInmobiliario(ImpInmobiliario, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", ImpInmobiliario.id_registroImpInmobiliario)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -24196,7 +24200,7 @@ function generarFilaEstadoContable(est) {
   .attr("data-toggle", "tooltip")
   .attr("data-placement", "bottom")
   .attr("title", "VER ESTADO CONTABLE");
-  const btnEdit = $("<button>").addClass("btn btn-warning btn-edit-EstadoContable").val(est.id_registroEstadoContable).append($("<i>").addClass("fa fa-fw fa-edit"))
+  const btnEdit = $("<button>").addClass("btn btn-warning btn-edit-EstadoContable").val(est.id_registroEstadoContable).append($("<i>").addClass("fa fa-fw fa-pencil-alt"))
   .attr("data-toggle", "tooltip")
   .attr("data-placement", "bottom")
   .attr("title", "MODIFICAR ESTADO CONTABLE");
@@ -24328,6 +24332,13 @@ $(document).on("click", ".btn-editar-publico-casino, .btn-ver-publico-casino", f
     $("#id_registroPublicoCasino").val(id);
     $(".input-publico-dia").val("");
     
+    $("#uploadsPublicoCasinoContainer").empty();
+    $("#uploadsPublicoCasinoWrap").hide();
+    $("#fileNamePublicoCasino").val("No se ha seleccionado ningún archivo");
+    var $new = $('<input type="file" id="uploadPublicoCasino" name="uploadPublicoCasino[]" multiple style="display:none;">');
+    $("#uploadPublicoCasino").remove();
+    $("#btnPickPublicoCasino").closest(".input-group").append($new);
+    
     // Parse fecha_mes accurately avoiding timezone offsets changing the month
     const parts = data.fecha_mes.split("-");
     const year = parseInt(parts[0], 10);
@@ -24384,6 +24395,10 @@ $(document).on("click", "#btn-guardarPublicoCasino", function (e) {
   const id = $("#id_registroPublicoCasino").val();
   const formData = new FormData($("#frmPublicoCasino")[0]);
   
+  // Añadir archivos que están en el input clonado (el real).
+  // Si hubiera múltiples selecciones acumuladas, se manejan enviándolos aquí.
+  // Pero ya usamos FormData con el input del form, así que los envía.
+
   $.ajax({
     type: "POST",
     url: "/documentosContables/actualizarPublicoCasino/" + id,
@@ -24409,22 +24424,31 @@ function cargarPublicoCasino({ page = 1, perPage = 10, casino, desde, hasta }) {
     url: "/documentosContables/ultimasPublicoCasino",
     data: { page: page, page_size: perPage, id_casino: casino, desde: desde, hasta: hasta },
     success: function (data) {
-      $("#herramientasPaginacionPublicoCasino").generarIndices(page, perPage, data.pagination.total, clickIndicePublicoCasino);
+      $("#herramientasPaginacionPublicoCasino").generarTitulo(data.pagination.current_page, data.pagination.per_page, data.pagination.total, clickIndicePublicoCasino);
+      $("#herramientasPaginacionPublicoCasino").generarIndices(data.pagination.current_page, data.pagination.per_page, data.pagination.total, clickIndicePublicoCasino);
       $("#cuerpoTablaPublicoCasino").empty();
       data.registros.forEach(function (r) {
         let fila = $("<tr>");
-        let btnEditar = $("<button>").addClass("btn btn-warning btn-editar-publico-casino").val(r.id_registroPublicoCasino).append($("<i>").addClass("fa fa-fw fa-pencil-alt"))
+        let btnEditar = $("<button>").addClass("btn btn-warning btn-sm btn-editar-publico-casino").val(r.id_registroPublicoCasino).append($("<i>").addClass("fa fa-fw fa-pencil-alt"))
           .attr("data-toggle", "tooltip")
           .attr("data-placement", "bottom")
           .attr("title", "MODIFICAR PÚBLICO CASINO");
           
-        let btnVer = $("<button>").addClass("btn btn-info btn-ver-publico-casino").val(r.id_registroPublicoCasino).append($("<i>").addClass("fa fa-fw fa-search-plus"))
+        let btnVer = $("<button>").addClass("btn btn-info btn-sm btn-ver-publico-casino").val(r.id_registroPublicoCasino).append($("<i>").addClass("fa fa-fw fa-search-plus"))
           .attr("data-toggle", "tooltip")
           .attr("data-placement", "bottom")
           .attr("title", "VER PÚBLICO CASINO");
           
         let btnValidar = obtenerIconoValidacion(r.valido, 'publico_casino', r.id_registroPublicoCasino);
         
+        let btnArchivos = $();
+        if (r.tiene_archivos) {
+            btnArchivos = $("<button>").addClass("btn btn-info btn-sm mr-1 btn-archivos-publico-casino").val(r.id_registroPublicoCasino).append($("<i>").addClass("fa fa-fw fa-file"))
+              .attr("data-toggle", "tooltip")
+              .attr("data-placement", "bottom")
+              .attr("title", "VER ARCHIVOS ASOCIADOS");
+        }
+
         let parts = r.fecha_mes.split("-");
         let year = parts[0];
         let month = parts[1];
@@ -24435,7 +24459,10 @@ function cargarPublicoCasino({ page = 1, perPage = 10, casino, desde, hasta }) {
         fila.append($("<td>").addClass("col-xs-3").text(r.casino));
         
         fila.append($("<td>").addClass("col-xs-3").text(r.dias_completados + " / " + daysInMonth));
-        fila.append($("<td>").addClass("col-xs-3").append(btnVer).append(" ").append(btnEditar).append(" ").append(btnValidar));
+        let tdAcc = $("<td>").addClass("col-xs-3 d-flex flex-wrap");
+        if (r.tiene_archivos) tdAcc.append(btnArchivos);
+        tdAcc.append(btnVer).append(btnEditar).append(btnValidar);
+        fila.append(tdAcc);
         $("#cuerpoTablaPublicoCasino").append(fila);
       });
     },
@@ -24457,6 +24484,105 @@ function clickIndicePublicoCasino(e, pageNumber, tam) {
       hasta: $("#filtro_global_hasta_input").val()
   });
 }
+
+$(document).on("click", "#btnPickPublicoCasino", function () {
+  $("#uploadPublicoCasino").click();
+});
+
+$(document).on("change", "#uploadPublicoCasino", function () {
+  if (!this.files || !this.files.length) return;
+  var gid = "lote_" + (Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
+  $(this).attr("data-group", gid).removeAttr("id").addClass("archived").appendTo("#uploadsPublicoCasinoContainer");
+  renderUploadsPublicoCasino();
+  var $new = $('<input type="file" id="uploadPublicoCasino" name="uploadPublicoCasino[]" multiple style="display:none;">');
+  $("#btnPickPublicoCasino").closest(".input-group").append($new);
+});
+
+function humanSize(n) {
+  if (n >= 1024 * 1024) return (n / 1048576).toFixed(1) + " MB";
+  if (n >= 1024) return (n / 1024).toFixed(0) + " KB";
+  return n + " B";
+}
+
+function renderUploadsPublicoCasino() {
+  var $tbody = $("#uploadsPublicoCasinoTable tbody").empty();
+  var total = 0, row = 1;
+  $('#uploadsPublicoCasinoContainer input[type=file][name="uploadPublicoCasino[]"]').each(function () {
+    var gid = $(this).attr("data-group");
+    var files = this.files || [];
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i];
+      total++;
+      var $tr = $("<tr></tr>");
+      $tr.append("<td>" + row++ + "</td>");
+      $tr.append("<td>" + f.name + "</td>");
+      $tr.append("<td>" + humanSize(f.size) + "</td>");
+      var $btn = $('<button type="button" class="btn btn-xs btn-danger btn-remove-file" title="Quitar"><i class="fa fa-trash"></i></button>')
+        .attr("data-group", gid).attr("data-idx", i);
+      $tr.append($("<td></td>").append($btn));
+      $tbody.append($tr);
+    }
+  });
+  $("#uploadsPublicoCasinoWrap").css("display", total ? "" : "none");
+  $("#fileNamePublicoCasino").val(total ? total + " archivo(s) seleccionado(s)" : "No se ha seleccionado ningún archivo");
+}
+
+$(document).on("click", "#uploadsPublicoCasinoTable .btn-danger", function () {
+  var gid = $(this).attr("data-group");
+  var idx = parseInt($(this).attr("data-idx"));
+  var $inp = $('#uploadsPublicoCasinoContainer input[data-group="' + gid + '"]');
+  if (!$inp.length) return;
+  const filedt = new DataTransfer();
+  const files = $inp[0].files;
+  for (let i = 0; i < files.length; i++) {
+    if (i !== idx) filedt.items.add(files[i]);
+  }
+  $inp[0].files = filedt.files;
+  if ($inp[0].files.length === 0) $inp.remove();
+  renderUploadsPublicoCasino();
+});
+
+function cargarArchivosPublicoCasinoLista(id) {
+  var $m = $("#modalArchivosAsociados");
+  $m.data("PublicoCasinoId", id);
+  var $list = $("#listaArchivos").empty().append('<div class="list-group-item">Cargando...</div>');
+  $.getJSON("/documentosContables/archivosPublicoCasino/" + id).done(function (res) {
+    var files = Array.isArray(res) ? res : res.data || res.archivos || res.items || [];
+    $list.empty();
+    if (!files.length) {
+      $list.append('<div class="list-group-item">Sin archivos asociados.</div>');
+      return;
+    }
+    files.forEach(function (f) {
+      var fid = f.id || f.id_registro_archivo || f.id_archivo;
+      var nombre = f.nombre || f.archivo || (f.path ? String(f.path).split("/").pop() : "archivo");
+      var href = "/documentosContables/visualizarArchivo/PublicoCasino/" + encodeURIComponent(nombre);
+      var html = '<div class="list-group-item d-flex justify-content-between align-items-center" style="display:flex;">' +
+        '<a href="' + href + '" target="_blank" style="flex:1;">' + nombre + '</a>' +
+        '<button class="btn btn-danger btn-xs btn-del-archivo-publico-casino" data-id="' + fid + '" data-reg-id="' + id + '" data-scope="publicoCasino" title="Eliminar"><i class="fa fa-trash"></i></button>' +
+        '</div>';
+      $list.append(html);
+    });
+  }).fail(function () {
+    $list.empty().append('<div class="list-group-item text-danger">Error al cargar archivos.</div>');
+  });
+}
+
+$(document).on("click", ".btn-archivos-publico-casino", function(e) {
+  e.preventDefault();
+  const id = $(this).data("id") || $(this).val();
+  $("#tituloArchivos").text("Archivos de Público Casino");
+  cargarArchivosPublicoCasinoLista(id);
+  $("#modalArchivosAsociados").modal("show");
+});
+
+$(document).on("click", ".btn-del-archivo-publico-casino", function () {
+  const id = $(this).data("id");
+  const regId = $(this).data("regId");
+  const scope = $(this).data("scope");
+  $("#btn-eliminarArchivo").attr("data-id", id);
+  $("#modalEliminarArchivo").data({ id, regId, scope }).modal("show");
+});
 
 $(document).on("click", "#btn-totalesAnualesPublicoCasino", function() {
     let currentYear = new Date().getFullYear();

@@ -9141,6 +9141,41 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               <h4>TOTAL MENSUAL: <input type="text" id="pc_total_mensual_input" class="form-control" readonly style="display:inline-block; width:150px; text-align:center; font-weight:bold;"></h4>
             </div>
           </div>
+          
+          <!-- SUBIR ARCHIVOS -->
+          <div class="row">
+            <div class="col-md-3">
+              <h5>Archivo</h5>
+            </div>
+          </div>
+          <div class="row">
+            <div class="form-group">
+              <div class="input-group col-md-8">
+                <span class="input-group-btn">
+                  <button class="btn btn-primary" type="button" id="btnPickPublicoCasino">
+                    <i class="fa fa-folder-open"></i> Examinar…
+                  </button>
+                </span>
+                <input type="text" id="fileNamePublicoCasino" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+                <input type="file" id="uploadPublicoCasino" name="uploadPublicoCasino[]" multiple style="display:none;">
+                <div id="uploadsPublicoCasinoContainer"></div>
+              </div>
+              <div class="table-responsive" id="uploadsPublicoCasinoWrap" style="margin-top:8px; display:none;">
+                <table class="table table-striped table-bordered table-condensed" id="uploadsPublicoCasinoTable">
+                  <thead>
+                    <tr>
+                      <th style="width:48px;">#</th>
+                      <th>Archivo</th>
+                      <th style="width:200px;">Tamaño</th>
+                      <th style="width:70px;">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           <input type="hidden" id="id_registroPublicoCasino" name="id_registroPublicoCasino">
         </form>
       </div>

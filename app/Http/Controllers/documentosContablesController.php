@@ -113,6 +113,7 @@ class documentosContablesController extends Controller
         'Patentes' => 'app/public/RegistroPatentes',
         'ImpInmobiliario' => 'app/public/RegistroImpInmobiliario',
         'EstadoContable' => 'app/public/RegistroEstadoContable',
+        'PublicoCasino' => 'app/public/RegistroPublicoCasino',
       ];
 
       if(!array_key_exists($registro,$path)){
@@ -18532,6 +18533,7 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
 
 
         $query = \App\RegistroPublicoCasino::with("casinoPublicoCasino")
+                  ->withCount("archivos")
                   ->whereIn("casino", $allowedCasinoIds)
                   ->orderBy("fecha_mes", "desc");
 
@@ -18565,6 +18567,7 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
                 "dias_completados"     => $completados,
                 "total_mensual"        => $total_mensual,
                 "valido"               => $r->valido,
+                "tiene_archivos"       => $r->archivos_count > 0,
             ];
         });
 
@@ -19020,6 +19023,39 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
             }
         }
         $r->save();
+
+        $files = \Illuminate\Support\Arr::wrap($request->file('uploadPublicoCasino'));
+        foreach ($files as $file) {
+            if (!($file instanceof \Illuminate\Http\UploadedFile) || !$file->isValid()) continue;
+
+            $base = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $ext  = $file->getClientOriginalExtension();
+            $safe = preg_replace('/\s+/', '_', $base);
+            $filename = time().'_'.\Illuminate\Support\Str::random(6).'_'.$safe.($ext?'.'.$ext:'');
+
+            $file->storeAs('public/RegistroPublicoCasino', $filename);
+
+            $r->archivos()->create([
+                'path'       => $filename,
+                'usuario'    => \App\Http\Controllers\UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'],
+                'fecha_toma' => date('Y-m-d H:i:s'),
+            ]);
+        }
+
         return response()->json(["success" => true]);
+    }
+
+    public function archivosPublicoCasino($id) {
+        $r = \App\RegistroPublicoCasino::with('archivos')->findOrFail($id);
+        $files = $r->archivos->map(function($a) {
+            return [
+                'id'         => $a->id_registro_archivo,
+                'id_archivo' => $a->id_registro_archivo,
+                'nombre'     => basename($a->path),
+                'url'        => \Illuminate\Support\Facades\Storage::url($a->path),
+                'fecha'      => $a->fecha_toma,
+            ];
+        });
+        return response()->json($files);
     }
 }
