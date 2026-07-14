@@ -116,7 +116,7 @@ class CanonOperarioController extends Controller
       : DB::raw('1'),
       1
     )
-    ->orderBy('id_canon_operario','desc')
+    ->orderBy('id_operario','desc')
     ->paginate($request->page_size ?? 10);
   }
   

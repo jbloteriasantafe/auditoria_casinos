@@ -1684,6 +1684,9 @@ Route::group(['prefix' => 'canon', 'middleware' => 'tiene_permiso:m_ver_seccion_
     Route::get('/planillaInformeCanonPDF', '\App\Http\Controllers\CanonController@planillaInformeCanonPDF');
     Route::get('/archivo', '\App\Http\Controllers\CanonController@archivo');
     Route::get('/obtenerConHistorial', '\App\Http\Controllers\CanonController@obtenerConHistorial');
+    
+    Route::get('/pagos/obtener', '\App\Http\Controllers\CanonPagoController@obtener');
+    Route::get('/pagos/obtenerConHistorial', '\App\Http\Controllers\CanonPagoController@obtenerConHistorial');
   });
   Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
     Route::post('/recalcular', '\App\Http\Controllers\CanonController@recalcular_req');
@@ -1691,12 +1694,16 @@ Route::group(['prefix' => 'canon', 'middleware' => 'tiene_permiso:m_ver_seccion_
     Route::post('/adjuntar', '\App\Http\Controllers\CanonController@adjuntar');
     Route::get('/cambiarEstado', '\App\Http\Controllers\CanonController@cambiarEstado');
     Route::delete('/borrar', '\App\Http\Controllers\CanonController@borrar');
+    
+    Route::post('/pagos/recalcular', '\App\Http\Controllers\CanonPagoController@recalcular_req');
+    Route::post('/pagos/guardar', '\App\Http\Controllers\CanonPagoController@guardar');
+    
     Route::group(['middleware' => 'tiene_rol:superusuario'], function () {
       Route::get('/desborrar', '\App\Http\Controllers\CanonController@desborrar');
       Route::post('/valoresPorDefecto', '\App\Http\Controllers\CanonController@valoresPorDefecto');
       Route::post('/valoresPorDefecto/ingresar', '\App\Http\Controllers\CanonController@valoresPorDefecto_ingresar');
       Route::delete('/valoresPorDefecto/borrar', '\App\Http\Controllers\CanonController@valoresPorDefecto_borrar');
-      Route::get('/recalcularSaldos', '\App\Http\Controllers\CanonController@recalcular_saldos_Req');
+      Route::get('/pagos/recalcularSaldos', '\App\Http\Controllers\CanonPagoController@recalcular_saldos_Req');
     });
   });
 });

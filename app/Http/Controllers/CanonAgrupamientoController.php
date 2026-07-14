@@ -50,10 +50,6 @@ class CanonAgrupamientoController extends Controller
     return self::$instance;
   }
   
-  public function __construct(){
-    $this->up();
-  }
-  
   public function down(){
     DB::unprepared("DROP FUNCTION IF EXISTS canon_bankers_round_2digits");
     DB::unprepared("DROP FUNCTION IF EXISTS canon_agrupamiento_hash");
@@ -62,7 +58,6 @@ class CanonAgrupamientoController extends Controller
   }
   
   public function up(){
-    DB::unprepared("DROP FUNCTION IF EXISTS canon_bankers_round_2digits");
     DB::unprepared("
       CREATE FUNCTION canon_bankers_round_2digits(val DECIMAL(65,30))
       RETURNS DECIMAL(37,2)
@@ -82,7 +77,6 @@ class CanonAgrupamientoController extends Controller
       END
     ");
     
-    DB::unprepared("DROP FUNCTION IF EXISTS canon_agrupamiento_hash");
     DB::unprepared("
       CREATE FUNCTION canon_agrupamiento_hash(id_casino INT,nivel INT,año_mes date,clave VARCHAR(32),valor varchar(32))
       RETURNS binary(20)
@@ -102,7 +96,7 @@ class CanonAgrupamientoController extends Controller
         );
       END
     ");
-    
+  
     DB::statement("
     CREATE TABLE IF NOT EXISTS canon_subcanon_a_grupo (
       id_canon_subcanon_a_grupo INT NOT NULL AUTO_INCREMENT,
@@ -116,7 +110,7 @@ class CanonAgrupamientoController extends Controller
       UNIQUE KEY (nivel,id_casino,clave,valor,base_subcanon_o_superior_dependencia,base_tipo)
     )
     ");
-    
+  
     DB::statement("
     CREATE TABLE IF NOT EXISTS canon_agrupamiento (
       id_canon_agrupamiento int(11) NOT NULL AUTO_INCREMENT,

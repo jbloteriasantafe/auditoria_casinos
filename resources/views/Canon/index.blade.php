@@ -175,7 +175,28 @@
       <td class="año_mes">AÑO MES</td>
       <td class="casino">CASINO</td>
       <td>
-        <div data-content-popover data-molde-popover style="flex-direction: column;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
+        @if($puede_ver || $puede_agregarmodificar)
+        <div data-content-popover data-molde-popover="acciones" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
+          <div style="display: flex;flex-direction: column;justify-content: center;padding-right: 1em;">
+            @if($puede_ver)
+            <button class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL">VER CANON<i class="fa fa-fw fa-search-plus"></i></button>
+            @endif
+            @if($puede_agregarmodificar)
+            <button class="btn" type="button" data-js-adjuntar="/canon/obtener" data-estado-visible="PAGADO" title="ADJUNTAR">ADJUNTAR <i class="fa fa-fw fa-paperclip"></i></button>
+            <button class="btn" type="button" data-js-editar="/canon/obtener" data-estado-visible="GENERADO"  title="EDITAR">EDITAR CANON<i class="fas fa-fw fa-pencil-alt"></i></button>
+            @endif
+          </div>
+          <div style="display: flex;flex-direction: column;justify-content: center;padding-left: 1em;">
+            @if($puede_ver)
+            <button class="btn" type="button" data-js-ver-pagos="/canon/pagos/obtenerConHistorial" title="VER PAGO">VER PAGOS <i class="fa fa-book"></i></button>
+            @endif
+            @if($puede_agregarmodificar)
+            <button class="btn" type="button" data-js-editar-pagos="/canon/pagos/obtener" title="CARGAR PAGO">EDITAR PAGOS <i class="fa fas fa-hand-holding-usd"></i></button>
+            @endif
+          </div>
+        </div>
+        @endif
+        <div data-content-popover data-molde-popover="planillas" style="flex-direction: column;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
           <a href="/canon/planillaPDF" target="_blank" title="REPORTE">Valores</a>
           <a href="/canon/planillaDevengado" target="_blank" title="IMPRIMIR DEVENGADO">Devengado</a>
           <a href="/canon/planillaDeterminado"  target="_blank" title="IMPRIMIR DETERMINADO">Determinado</a>
@@ -204,14 +225,10 @@
       <td class="saldo_posterior" data-formatear-numero>SALDO</td>
       <td>
         @if($puede_ver)
-        <button class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
-        @endif
-        @if($puede_agregarmodificar)
-        <button class="btn" type="button" data-js-adjuntar="/canon/obtener" data-estado-visible="PAGADO" title="ADJUNTAR"><i class="fa fa-fw fa-paperclip"></i></button>
-        <button class="btn" type="button" data-js-editar="/canon/obtener" data-estado-visible="GENERADO"  title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
-        @endif
-        @if($puede_ver)
-        <a tabindex="0" class="btn btn-info info" data-toggle="popover" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
+        <a tabindex="0" class="btn btn-info info" data-toggle-popover="acciones" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
+          <i class="fa fa-window-restore" aria-hidden="true"></i>
+        </a>
+        <a tabindex="0" class="btn btn-info info" data-toggle-popover="planillas" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
           <i class="fa fa-print"></i>
         </a>
         <a tabindex="0" href="/canon/planillaInformeCanon" target="_blank" class="btn btn-info info" title="Informe de Canon">
@@ -494,7 +511,7 @@
 
 @component('Components/modal',[
   'clases_modal' => 'VerCargarCanon',
-  'attrs_modal' => 'data-js-modal-ver-cargar-canon',
+  'attrs_modal' => 'data-js-modal-canon-comportamiento-comun data-js-modal-ver-cargar-canon',
   'estilo_cabecera' => 'background-color: #6dc7be;',
   'grande' => 98,
 ])
@@ -507,7 +524,7 @@
     <select class="form-control" data-js-select-historial style="width: 15rem;">
     </select>
   </div>
-  <form style="display: flex;flex-direction: column;" data-css-id_casino="" data-js-recalcular="/canon/recalcular">
+  <form style="display: flex;flex-direction: column;" data-js-recalcular="/canon/recalcular">
     <div style="width: 100%;display: flex;">
       <div>
         <h5>AÑO MES</h5>
@@ -536,7 +553,7 @@
       </div>
       <div>
         <h5>ANTIGUO</h5>
-        <select class="form-control" name="es_antiguo"
+        <select class="form-control" name="es_antiguo" data-check-param
           data-js-empty-si-cambio="[data-canon-variable] [data-js-contenedor],[data-canon-fijo-mesas] [data-js-contenedor],[data-canon-fijo-mesas-adicionales] [data-js-contenedor]"
           data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
           <option value="0" selected>NO</option>
@@ -565,8 +582,8 @@
       </div>
     </div>
     <div class="datos_numericos" style="height: 70vh;overflow-y: scroll;">
-      <div class="pestaña" data-total>
-        <div class="bloque_interno">
+      <div class="pestaña" data-total style="display: flex;flex-wrap: wrap;justify-content: center;">
+        <div class="bloque_interno" style="flex: 1;">
           <h4>DEVENGADO</h4>
           <div style="width: 100%;display: flex;">
             <div>
@@ -583,7 +600,7 @@
             </div>
           </div>
         </div>
-        <div class="bloque_interno">
+        <div class="bloque_interno" style="flex: 1;">
           <h4>DETERMINADO</h4>
           <div style="width: 100%;display: flex;">
             <div>
@@ -598,166 +615,12 @@
               <h5>Determinado</h5>
               <input class="form-control" name="determinado" data-depende="determinado_bruto,determinado_ajuste" data-readonly='[{"modo":"*"}]'>
             </div>
-            <div class="parametro_chico">
-              <h5>Porcentaje Seguridad</h5>
-              <input class="form-control" name="porcentaje_seguridad" data-depende="devengado,determinado" data-readonly='[{"modo":"*"}]'>
-            </div>
           </div>
         </div>
         <div class="bloque_interno">
-          <h4>PRINCIPAL</h4>
-          <div style="width: 100%;display: flex;">
-            <div>
-              <h5>Saldo anterior</h5>
-              <input class="form-control" name="saldo_anterior" data-depende="año_mes,id_casino" data-readonly='[{"modo":"*"}]'>
-            </div>
-            <div data-modo-mostrar='[{"estado": "CERRADO"},{"estado": "PAGADO"}]'>
-              <h5>Saldo anterior (CERRADO)</h5>
-              <input class="form-control" name="saldo_anterior_cerrado" data-depende="año_mes,id_casino" data-readonly='[{"modo":"*"}]'>
-            </div>
-            <div>
-              <h5>Intereses y Cargos</h5>
-              <input class="form-control" name="intereses_y_cargos" data-depende="año_mes,id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-              <input data-js-texto-no-formatear-numero placeholder="MOTIVO" class="form-control" name="motivo_intereses_y_cargos" data-depende="" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-            </div>
-            <div>
-              <h5>Principal</h5>
-              <input class="form-control" name="principal" data-readonly='[{"modo":"*"}]' data-depende="saldo_anterior,saldo_anterior_cerrado,intereses_y_cargos,determinado">
-            </div>
-          </div>
-        </div>
-        <div class="bloque_interno" data-pagos>
-          <h4>PAGOS</h4>
-          <div style="width: 100%;display: flex;">
-            <div>
-              <h5>F. Vencimiento</h5>
-              @component('Components/inputFecha',[
-                'attrs' => "data-js-texto-no-formatear-numero name='fecha_vencimiento' data-depende='año_mes'",
-                'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
-              ])
-              @endcomponent
-            </div>
-            <div class="parametro_chico">
-              <h5>Interés Provincial Diario Simple</h5>
-              <input class="form-control" name="interes_provincial_diario_simple" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-            </div>
-            <div class="parametro_chico">
-              <h5>Interés Nacional Mensual Compuesto</h5>
-              <input class="form-control" name="interes_nacional_mensual_compuesto" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-            </div>
-          </div>
-          <div class="bloque_interno">
-            <div class="grid_fila_pago" style="width: 100%;">
-              <div class="grid_capital">
-                <h5>Capital</h5>
-              </div>
-              <div class="grid_fecha_pago">
-                <h5>F. Pago</h5>
-              </div>
-              <div class="grid_dias_vencidos">
-                <h5>Dias vencidos</h5>
-              </div>
-              <div class="grid_mora_provincial">
-                <h5>Mora Provincial</h5>
-              </div>
-              <div class="grid_mora_nacional">
-                <h5>Mora Nacional</h5>
-              </div>
-              <div class="grid_a_pagar">
-                <h5>A PAGAR</h5>
-              </div>
-              <div class="grid_pago">
-                <h5>PAGO</h5>
-              </div>
-              <div class="grid_diferencia">
-                <h5>Diferencia</h5>
-              </div>
-              <div class="grid_borrar">
-                <h5>&nbsp;</h5>
-              </div>
-            </div>
-            <div data-js-contenedor style="width: 100%;">
-            </div>
-            <button class="btn" type="button" data-js-agregar-pago data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]' style="display: inline-block;">
-              <i class="fa fa-plus"></i>
-            </button>
-            <?php
-            $molde_str = '$pidx';
-            $n = function($s) use (&$molde_str){
-              return "canon_pago[$molde_str][$s]";
-            };
-            $id_canon_pago = $n('id_canon_pago');
-            $capital = $n('capital');
-            $fecha_pago = $n('fecha_pago');
-            $dias_vencidos = $n('dias_vencidos');
-            $mora_provincial = $n('mora_provincial');
-            $mora_nacional = $n('mora_nacional');
-            $a_pagar = $n('a_pagar');
-            $pago = $n('pago');
-            $diferencia = $n('diferencia');
-            ?>
-            <div data-pago data-js-molde="{{$molde_str}}" class="grid_fila_pago" style="width: 100%;">
-              <input data-name="{{$id_canon_pago}}" data-modo-mostrar='[]'>
-              <div class="grid_capital valor_intermedio">
-                <input class="form-control" data-name="{{$capital}}" data-readonly='[{"modo":"*"}]'>
-              </div>
-              <div class="grid_fecha_pago">
-                @component('Components/inputFecha',[
-                  'attrs' => "data-js-texto-no-formatear-numero data-name='$fecha_pago' data-depende='año_mes'",
-                  'attrs_dtp' => 'data-picker-position="top-right"',
-                  'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
-                ])
-                @endcomponent
-              </div>
-              <div class="grid_dias_vencidos valor_intermedio">
-                <input class="form-control" data-name="{{$dias_vencidos}}" data-depende="fecha_vencimiento,{{$fecha_pago}}" data-readonly='[{"modo":"*"}]'>
-              </div>
-              <div class="grid_mora_provincial valor_intermedio">
-                <input class="form-control" data-name="{{$mora_provincial}}" data-depende="{{$dias_vencidos}},tasa_provincial_diaria_simple" data-readonly='[{"modo":"*"}]'>
-              </div>
-              <div class="grid_mora_nacional valor_intermedio">
-                <input class="form-control" data-name="{{$mora_nacional}}" data-depende="{{$dias_vencidos}},tasa_nacional_mensual_compuesta" data-readonly='[{"modo":"*"}]'>
-              </div>
-              <div class="grid_a_pagar">
-                <input class="form-control" data-name="{{$a_pagar}}" data-readonly='[{"modo":"*"}]' data-depende="{{$mora_provincial}},{{$mora_nacional}},{{$capital}}">
-              </div>
-              <div class="grid_pago">
-                <input class="form-control" data-name="{{$pago}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' data-depende="año_mes,id_casino">
-              </div>
-              <div class="grid_diferencia">
-                <input class="form-control" data-name="{{$diferencia}}" data-depende="{{$a_pagar}},{{$pago}}" data-readonly='[{"modo":"*"}]'>
-              </div>
-              <div class="grid_borrar">
-                <button class="btn" type="button" data-js-borrar-pago data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'><i class="fa fa-fw fa-trash-alt"></i></button>
-              </div>
-            </div>
-          </div>
-          <div style="width: 100%;display: flex;">
-            <div>
-              <h5>A Pagar</h5>
-              <input class="form-control" name="a_pagar" data-readonly='[{"modo":"*"}]'>
-            </div>
-            <div>
-              <h5>Pago</h5>
-              <input class="form-control" name="pago" data-readonly='[{"modo":"*"}]'>
-            </div>
-            <div>
-              <h5>Ajuste</h5>
-              <input class="form-control" name="ajuste" data-depende="" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-              <input data-js-texto-no-formatear-numero placeholder="MOTIVO" class="form-control" name="motivo_ajuste" data-depende="" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
-            </div>
-            <div>
-              <h5>Diferencia</h5>
-              <input class="form-control" name="diferencia" data-readonly='[{"modo":"*"}]'>
-            </div>
-            <div data-modo-mostrar='[{"estado": "CERRADO"},{"estado": "PAGADO"}]'>
-              <h5>Saldo posterior (CERRADO)</h5>
-              <input class="form-control" name="saldo_posterior_cerrado" data-depende="diferencia" data-readonly='[{"modo":"*"}]'>
-            </div>
-            <div>
-              <h5>Saldo posterior</h5>
-              <input class="form-control" name="saldo_posterior" data-depende="diferencia" data-readonly='[{"modo":"*"}]'>
-            </div>
+          <div class="parametro_chico">
+            <h5>Porcentaje Seguridad</h5>
+            <input class="form-control" name="porcentaje_seguridad" data-depende="devengado,determinado" data-readonly='[{"modo":"*"}]'>
           </div>
         </div>
       </div>
@@ -792,14 +655,6 @@
         ?>
         <div class="bloque_interno" data-js-molde="{{$molde_str}}">
           <h6 data-titulo>TITULO CANON VARIABLE</h6>
-          {{-- <div class="bloque_interno">
-            <div style="display: flex;justify-content: flex-end;">
-              <div style="display: flex;">
-                <h5>CUENTA&nbsp;</h5>
-                <input data-js-texto-no-formatear-numero class="form-control" data-name="{{$cuenta}}" style="width: unset;text-align: center;" readonly>
-              </div>
-            </div>
-          </div> --}}
           <div class="bloque_interno" style="width: 100%;display: flex;">
             <div class="parametro_chico"  style="flex: 2;">
               <h5>APLICABLE (%)</h5>
@@ -953,16 +808,6 @@
         ?>
         <div class="bloque_interno" style="width: 100%;" data-js-molde="{{$molde_str}}">
           <h6 data-titulo>TITULO MESAS</h6>
-          {{--
-          <div class="bloque_interno">
-            <div style="display: flex;justify-content: flex-end;">
-              <div style="display: flex;">
-                <h5>CUENTA&nbsp;</h5>
-                <input data-js-texto-no-formatear-numero class="form-control" data-name="{{$cuenta}}" style="width: unset;text-align: center;" readonly>
-              </div>
-            </div>
-          </div>
-          --}}
           <div class="bloque_interno">
             <div style="display: flex;">
               <div>
@@ -1211,14 +1056,6 @@
         ?>
         <div class="bloque_interno" data-js-molde="{{$molde_str}}">
           <h6 data-titulo>TITULO MESA ADICIONAL</h6>
-          {{-- <div class="bloque_interno">
-            <div style="display: flex;justify-content: flex-end;">
-              <div style="display: flex;">
-                <h5>CUENTA&nbsp;</h5>
-                <input data-js-texto-no-formatear-numero class="form-control" data-name="{{$cuenta}}" style="width: unset;text-align: center;" readonly>
-              </div>
-            </div>
-          </div> --}}
           <div class="bloque_interno">
             <div style="display: flex;">
               <div class="parametro_chico">
@@ -1400,35 +1237,239 @@
 @endif
 
 @if($puede_ver || $puede_agregarmodificar)
+@component('Components/modal',[
+  'clases_modal' => 'VerCargarCanon',
+  'attrs_modal' => 'data-js-modal-canon-comportamiento-comun data-js-modal-ver-cargar-canon-pagos',
+  'estilo_cabecera' => 'background-color: #6dc7be;',
+  'grande' => 98,
+])
+  @slot('titulo')
+  PAGOS
+  @endslot
+  @slot('cuerpo')
+  <div style="width: 100%;display: flex;align-items: center;justify-content: flex-end;" data-modo-mostrar='[{"modo": "VER"}]'>
+    <h5 style="width: 15rem;">Version</h5>
+    <select class="form-control" data-js-select-historial style="width: 15rem;">
+    </select>
+  </div>
+  <form style="display: flex;flex-direction: column;" action="/canon/pagos/guardar" method="POST" data-js-recalcular="/canon/pagos/recalcular">
+    <div style="width: 100%;display: flex;">
+      <div>
+        <h5>AÑO MES</h5>
+        <input name="año_mes" data-js-texto-no-formatear-numero data-readonly='[{"modo":"*"}]' class="form-control">
+      </div>
+      <div>
+        <h5>Casino</h5>
+        <select name="id_casino"  class="form-control" data-readonly='[{"modo":"*"}]'>
+          @foreach($casinos as $c)
+          <option value="{{$c->id_casino}}">{{$c->nombre}}</option>
+          @endforeach
+        </select>
+      </div>
+      <div>
+        <h5>Estado</h5>
+        <input name="estado" data-js-texto-no-formatear-numero class="form-control" data-check-param data-readonly='[{"modo":"*"}]'>
+      </div>
+      <div hidden>
+        <input name="id_canon" data-js-texto-no-formatear-numero  class="form-control" data-readonly='[{"modo":"*"}]'>
+      </div>
+    </div>
+    <div class="tabs" data-js-tabs>
+      <div>
+        <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-canon-pagos]" tabindex="0" style="width: 15em;">Pagos</a>
+      </div>
+    </div>
+    <div class="datos_numericos" style="height: 70vh;overflow-y: scroll;">
+      <div class="pestaña" data-canon-pagos>      
+        <div class="bloque_interno">
+          <h4>DETERMINADO</h4>
+          <div style="width: 100%;display: flex;">
+            <div>
+              <h5>Determinado</h5>
+              <input name="determinado" class="form-control" data-readonly='[{"modo":"*"}]'>
+            </div>
+          </div>
+        </div>
+        <div class="bloque_interno">
+          <h4>PRINCIPAL</h4>
+          <div style="width: 100%;display: flex;">
+            <div>
+              <h5>Saldo anterior</h5>
+              <input class="form-control" name="saldo_anterior" data-depende="año_mes,id_casino" data-readonly='[{"modo":"*"}]'>
+            </div>
+            <div data-modo-mostrar='[{"estado": "CERRADO"},{"estado": "PAGADO"}]'>
+              <h5>Saldo anterior (CERRADO)</h5>
+              <input class="form-control" name="saldo_anterior_cerrado" data-depende="año_mes,id_casino" data-readonly='[{"modo":"*"}]'>
+            </div>
+            <div>
+              <h5>Intereses y Cargos</h5>
+              <input class="form-control" name="intereses_y_cargos" data-depende="año_mes,id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              <input data-js-texto-no-formatear-numero placeholder="MOTIVO" class="form-control" name="motivo_intereses_y_cargos" data-depende="" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            </div>
+            <div>
+              <h5>Principal</h5>
+              <input class="form-control" name="principal" data-readonly='[{"modo":"*"}]' data-depende="saldo_anterior,saldo_anterior_cerrado,intereses_y_cargos,determinado">
+            </div>
+          </div>
+        </div>
+        <div class="bloque_interno">
+          <h4>PAGOS</h4>
+          <div style="width: 100%;display: flex;">
+            <div>
+              <h5>F. Vencimiento</h5>
+              @component('Components/inputFecha',[
+                'attrs' => "data-js-texto-no-formatear-numero name='fecha_vencimiento' data-depende='año_mes'",
+                'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
+              ])
+              @endcomponent
+            </div>
+            <div class="parametro_chico">
+              <h5>Interés Provincial Diario Simple</h5>
+              <input class="form-control" name="interes_provincial_diario_simple" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            </div>
+            <div class="parametro_chico">
+              <h5>Interés Nacional Mensual Compuesto</h5>
+              <input class="form-control" name="interes_nacional_mensual_compuesto" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            </div>
+          </div>
+          <div class="bloque_interno">
+            <div class="grid_fila_pago" style="width: 100%;">
+              <div class="grid_capital">
+                <h5>Capital</h5>
+              </div>
+              <div class="grid_fecha_pago">
+                <h5>F. Pago</h5>
+              </div>
+              <div class="grid_dias_vencidos">
+                <h5>Dias vencidos</h5>
+              </div>
+              <div class="grid_mora_provincial">
+                <h5>Mora Provincial</h5>
+              </div>
+              <div class="grid_mora_nacional">
+                <h5>Mora Nacional</h5>
+              </div>
+              <div class="grid_a_pagar">
+                <h5>A PAGAR</h5>
+              </div>
+              <div class="grid_pago">
+                <h5>PAGO</h5>
+              </div>
+              <div class="grid_diferencia">
+                <h5>Diferencia</h5>
+              </div>
+              <div class="grid_borrar">
+                <h5>&nbsp;</h5>
+              </div>
+            </div>
+            <div data-js-contenedor style="width: 100%;">
+            </div>
+            <button class="btn" type="button" data-js-agregar-pago data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]' style="display: inline-block;">
+              <i class="fa fa-plus"></i>
+            </button>
+          </div>
+          <div style="width: 100%;display: flex;">
+            <div>
+              <h5>A Pagar</h5>
+              <input class="form-control" name="a_pagar" data-readonly='[{"modo":"*"}]'>
+            </div>
+            <div>
+              <h5>Pago</h5>
+              <input class="form-control" name="pago" data-readonly='[{"modo":"*"}]'>
+            </div>
+            <div>
+              <h5>Ajuste</h5>
+              <input class="form-control" name="ajuste" data-depende="" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              <input data-js-texto-no-formatear-numero placeholder="MOTIVO" class="form-control" name="motivo_ajuste" data-depende="" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            </div>
+            <div>
+              <h5>Diferencia</h5>
+              <input class="form-control" name="diferencia" data-readonly='[{"modo":"*"}]'>
+            </div>
+            <div data-modo-mostrar='[{"estado": "CERRADO"},{"estado": "PAGADO"}]'>
+              <h5>Saldo posterior (CERRADO)</h5>
+              <input class="form-control" name="saldo_posterior_cerrado" data-depende="diferencia" data-readonly='[{"modo":"*"}]'>
+            </div>
+            <div>
+              <h5>Saldo posterior</h5>
+              <input class="form-control" name="saldo_posterior" data-depende="diferencia" data-readonly='[{"modo":"*"}]'>
+            </div>
+          </div>
+        </div>
+        <div hidden>
+          <?php
+          $molde_str = '$pidx';
+          $n = function($s) use (&$molde_str){
+            return "canon_pago[$molde_str][$s]";
+          };
+          $id_canon_pago = $n('id_canon_pago');
+          $capital = $n('capital');
+          $fecha_pago = $n('fecha_pago');
+          $dias_vencidos = $n('dias_vencidos');
+          $mora_provincial = $n('mora_provincial');
+          $mora_nacional = $n('mora_nacional');
+          $a_pagar = $n('a_pagar');
+          $pago = $n('pago');
+          $diferencia = $n('diferencia');
+          ?>
+          <div data-pago data-js-molde="{{$molde_str}}" class="grid_fila_pago" style="width: 100%;">
+            <input data-name="{{$id_canon_pago}}" data-modo-mostrar='[{}]'>
+            <div class="grid_capital valor_intermedio">
+              <input class="form-control" data-name="{{$capital}}" data-readonly='[{"modo":"*"}]'>
+            </div>
+            <div class="grid_fecha_pago">
+              @component('Components/inputFecha',[
+                'attrs' => "data-js-texto-no-formatear-numero data-name='$fecha_pago' data-depende='año_mes'",
+                'attrs_dtp' => 'data-picker-position="top-right"',
+                'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;"'
+              ])
+              @endcomponent
+            </div>
+            <div class="grid_dias_vencidos valor_intermedio">
+              <input class="form-control" data-name="{{$dias_vencidos}}" data-depende="fecha_vencimiento,{{$fecha_pago}}" data-readonly='[{"modo":"*"}]'>
+            </div>
+            <div class="grid_mora_provincial valor_intermedio">
+              <input class="form-control" data-name="{{$mora_provincial}}" data-depende="{{$dias_vencidos}},tasa_provincial_diaria_simple" data-readonly='[{"modo":"*"}]'>
+            </div>
+            <div class="grid_mora_nacional valor_intermedio">
+              <input class="form-control" data-name="{{$mora_nacional}}" data-depende="{{$dias_vencidos}},tasa_nacional_mensual_compuesta" data-readonly='[{"modo":"*"}]'>
+            </div>
+            <div class="grid_a_pagar">
+              <input class="form-control" data-name="{{$a_pagar}}" data-readonly='[{"modo":"*"}]' data-depende="{{$mora_provincial}},{{$mora_nacional}},{{$capital}}">
+            </div>
+            <div class="grid_pago">
+              <input class="form-control" data-name="{{$pago}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' data-depende="año_mes,id_casino">
+            </div>
+            <div class="grid_diferencia">
+              <input class="form-control" data-name="{{$diferencia}}" data-depende="{{$a_pagar}},{{$pago}}" data-readonly='[{"modo":"*"}]'>
+            </div>
+            <div class="grid_borrar">
+              <button class="btn" type="button" data-js-borrar-pago data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'><i class="fa fa-fw fa-trash-alt"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  @endslot
+  @slot('pie')
+  @if($puede_agregarmodificar)
+  <button class="btn btn-successAceptar" type="button" data-js-click-submit-form="form" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>GUARDAR</button>
+  @endif
+  @endslot
+@endcomponent
+@endif
+
+@if($puede_ver || $puede_agregarmodificar)
 <style>
-  .VerCargarOperario {
-    --color-fondo-pestaña: #ececec;
-  }
-  .VerCargarOperario .pestaña {
-    background: var(--color-fondo-pestaña);
-  }
-  .VerCargarOperario h5, .VerCargarCanon select, .VerCargarCanon input {
-    text-align: center;
-  }
-  
-  .VerCargarOperario div.date input {
-    text-align: center;
-  }
-  
-  .VerCargarOperario div.bloque_interno {
-    background: white;
-    box-shadow: 0rem 0rem 0.05rem 0.2rem var(--color-fondo-pestaña);
-    padding: 0.75rem;
-  }
-  
-  .VerCargarOperario select[readonly], .VerCargarOperario input[type="color"][readonly] {
+  .VerCargarOperario input[type="color"][readonly] {
     pointer-events: none;
   }
 </style>
 
 @component('Components/modal',[
-  'clases_modal' => 'VerCargarOperario',
-  'attrs_modal' => 'data-js-modal-ver-cargar-operario data-modo=\'NUEVO\' ',
+  'clases_modal' => 'VerCargarCanon VerCargarOperario',
+  'attrs_modal' => 'data-js-modal-canon-comportamiento-comun data-js-modal-ver-cargar-operario data-modo=\'NUEVO\' ',
   'estilo_cabecera' => 'background-color: #6dc7be;',
   'grande' => 70,
 ])
@@ -1441,7 +1482,7 @@
     <select class="form-control" data-js-select-historial style="width: 15rem;">
     </select>
   </div>
-  <form class="pestaña" style="display: flex;flex-direction: column;" action="/canon/operario/guardar" method="POST" data-ajax-params='{"processData": false,"contentType": false,"cache": false}'>
+  <form class="pestaña" style="display: flex;flex-direction: column;" action="/canon/operario/guardar" method="POST">
     <div hidden>
       <input name="id_canon_operario" class="form-control" data-readonly='[{"modo":"*"}]'>
     </div>
@@ -1453,39 +1494,39 @@
             <div style="width: 33.333333333%;">
               <h5 style="padding-left: 0;">ID</h5>
               <!-- El id no se deberia editar una vez creado para mantener la trazabilidad/historial del operario -->
-              <input name="id_operario" class="form-control" data-readonly='[{"modo": "VER"},{"modo": "EDITAR"}]'>
+              <input name="id_operario" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"},{"modo": "EDITAR"}]'>
             </div>
             <div style="width: 33.333333333%;">
               <h5 style="padding-left: 0;">Nombre Legal</h5>
-              <input name="nombre_legal" class="form-control" data-readonly='[{"modo": "VER"}]'>
+              <input name="nombre_legal" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
             </div>
             <div style="width: 33.333333333%;">
               <h5 style="padding-left: 0;">Nombre</h5>
-              <input name="nombre" class="form-control" data-readonly='[{"modo": "VER"}]'>
+              <input name="nombre" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
             </div>
             <div style="width: 33.333333333%;">
               <h5 style="padding-left: 0;">Código</h5>
-              <input name="codigo" class="form-control" data-readonly='[{"modo": "VER"}]'>
+              <input name="codigo" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
             </div>
             <div style="width: 33.333333333%;">
               <h5 style="padding-left: 0;">CUIT</h5>
-              <input name="cuit" class="form-control" data-readonly='[{"modo": "VER"}]'>
+              <input name="cuit" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
             </div>
             <div style="width: 33.333333333%;">
               <h5 style="padding-left: 0;">Inicio de Actividad</h5>
               @component('Components/inputFecha',[
-                'attrs' => 'name="inicio_actividad" placeholder="YYYY-MM-DD"',
+                'attrs' => 'name="inicio_actividad" data-js-texto-no-formatear-numero placeholder="YYYY-MM-DD"',
                 'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"}]\' style="padding: 0 !important;"'
               ])
               @endcomponent
             </div>
             <div style="width: 33.333333333%;">
               <h5 style="padding-left: 0;">Abreviación</h5>
-              <input name="abbr" class="form-control" data-readonly='[{"modo": "VER"}]'>
+              <input name="abbr" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
             </div>
             <div style="width: 33.333333333%;">
               <h5 style="padding-left: 0;">Color plantillas</h5>
-              <input data-js-change-agregar-alpha="" name="color" type="color" value="#000000FF" alpha="alpha" colorspace="limited-srgb" class="form-control" data-readonly='[{"modo": "VER"}]'>
+              <input data-js-change-agregar-alpha="" name="color" data-js-texto-no-formatear-numero type="color" value="#000000FF" alpha="alpha" colorspace="limited-srgb" class="form-control" data-readonly='[{"modo": "VER"}]'>
             </div>
           </div>
         </div>
@@ -1494,15 +1535,15 @@
           <div class="bloque_interno" style="display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
             <div style="width: 33.333333333%;">
               <h5 style="padding-left: 0;">Casino</h5>
-              <input name="codigo_casino" class="form-control" data-readonly='[{"modo": "VER"}]'>
+              <input name="codigo_casino" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
             </div>
             <div style="width: 33.333333333%;">
               <h5 style="padding-left: 0;">Plataforma</h5>
-              <input name="codigo_plataforma" class="form-control" data-readonly='[{"modo": "VER"}]'>
+              <input name="codigo_plataforma" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
             </div>
             <div style="width: 33.333333333%;">
               <h5 style="padding-left: 0;">Apuestas Deportivas</h5>
-              <input name="codigo_apuestas_deportivas" class="form-control" data-readonly='[{"modo": "VER"}]'>
+              <input name="codigo_apuestas_deportivas" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
             </div>
           </div>
         </div>
@@ -1536,8 +1577,8 @@
   <!-- Por fuera del modal así no afecta el <form> -->
   <table hidden>
     <tr data-molde-cuenta="$idxcuenta">
-      <td><input class="form-control" data-name="cuentas[$idxcuenta][nombre]" data-readonly='[{"modo": "VER"}]'></td>
-      <td><input class="form-control" data-name="cuentas[$idxcuenta][dia_vencimiento]" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input class="form-control" data-js-texto-no-formatear-numero data-name="cuentas[$idxcuenta][nombre]" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input class="form-control" data-js-texto-no-formatear-numero data-name="cuentas[$idxcuenta][dia_vencimiento]" data-readonly='[{"modo": "VER"}]'></td>
       <td>
         <select class="form-control" data-name="cuentas[$idxcuenta][fin_de_semana]" data-readonly='[{"modo": "VER"}]'>
           <option>Lunes Próximo</option>

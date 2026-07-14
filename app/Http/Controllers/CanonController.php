@@ -117,15 +117,7 @@ class CanonController extends Controller
       'id_casino' => [$requireds_f('id_casino'),'integer','exists:casino,id_casino,deleted_at,NULL'],
       'estado' => ['nullable','string','max:32'],
       'es_antiguo' => [$requireds_f('es_antiguo'),'integer','in:1,0'],
-      'intereses_y_cargos' => ['nullable',$numeric_rule(2)],
-      'motivo_intereses_y_cargos' => ['nullable','string','max:128'],
-      'fecha_vencimiento' => ['nullable','date'],
-      'interes_provincial_diario_simple' => ['nullable',$numeric_rule(4)],
-      'interes_nacional_mensual_compuesto' => ['nullable',$numeric_rule(4)],
-      'canon_pago.*.fecha_pago' => ['nullable','date'],
-      'canon_pago.*.pago' => ['nullable',$numeric_rule(2)],
-      'ajuste' => ['nullable',$numeric_rule(2)],
-      'motivo_ajuste' => ['nullable','string','max:128'],
+      
       //Valores que se "difunden" a cada subcanon >:(
       'valor_dolar' => ['nullable',$numeric_rule(2)],
       'valor_euro' => ['nullable',$numeric_rule(2)],
@@ -341,137 +333,6 @@ class CanonController extends Controller
       bcscale_string($MAX_PORCENTAJE_SEGURIDAD)
     );
     
-    //PRINCIPAL
-    $c_ant = DB::table('canon')
-    ->where('año_mes','<',$año_mes)
-    ->where('id_casino','=',$id_casino)
-    ->whereNull('deleted_at')
-    ->orderBy('año_mes','desc')
-    ->first();
-        
-    $saldo_anterior = ($c_ant !== null)? $c_ant->saldo_posterior : '0';//@RETORNADO
-    $saldo_anterior_cerrado = $saldo_anterior;//@RETORNADO
-    
-    $intereses_y_cargos = bcadd($R('intereses_y_cargos','0'),'0',2);//@RETORNADO
-    $motivo_intereses_y_cargos = $R('motivo_intereses_y_cargos','');//@RETORNADO
-    $principal = bcsub(bcadd($determinado,$intereses_y_cargos,2),$saldo_anterior_cerrado,2);//@RETORNADO
-    
-    //PAGOS
-    $canon_pago = $request['canon_pago'] ?? [[]];//Si no tiene pagos le agrego uno vacio.
-    {//Manteno las keys y el orden de las keys... importante para el front cuando se borra/cambia fecha etc
-      $ordenado_por_fecha = json_decode(json_encode($canon_pago),true);
-      usort($ordenado_por_fecha,function($a,$b){//Lo ordeno por fecha de pago
-        $fa = $a['fecha_pago'] ?? null;
-        $fb = $b['fecha_pago'] ?? null;
-        
-        if(!empty($fa) &&  empty($fb)) return -1;
-        if( empty($fa) && !empty($fb)) return  1;
-        if( empty($fa) &&  empty($fb)){
-          return 0;
-        }
-        return $fa <= $fb? -1 : 1;
-      });
-      $keys = array_keys($canon_pago);
-      foreach($ordenado_por_fecha as $idx => $v){
-        $canon_pago[$keys[$idx]] = $v;
-      }
-    }
-    
-    $a_pagar = $principal;//@RETORNADO
-    $pago = '0';//@RETORNADO
-    $canon_pago_defecto = ($this->valorPorDefecto('canon_pago') ?? [])[$id_casino] ?? [];
-    
-    $PAG = [
-      'interes_provincial_diario_simple' => $R(
-        'interes_provincial_diario_simple',
-        $canon_pago_defecto['interes_provincial_diario_simple'] ?? '0'
-      ),
-      'interes_nacional_mensual_compuesto' => $R(
-        'interes_nacional_mensual_compuesto',
-        $canon_pago_defecto['interes_nacional_mensual_compuesto'] ?? '0'
-      ),
-      'fecha_vencimiento' => $R('fecha_vencimiento',null),
-    ];
-      
-    if($año_mes !== null && $año_mes !== '' && $PAG['fecha_vencimiento'] === null){
-      $f = explode('-',$año_mes);
-      
-      $f[0] = $f[1] == '12'? intval($f[0])+1 : $f[0];
-      $f[1] = $f[1] == '12'? '01' : str_pad(intval($f[1])+1,2,'0',STR_PAD_LEFT);
-      $f[2] = '10';
-      $f = implode('-',$f);
-      $f = new \DateTimeImmutable($f);
-      $proximo_lunes = clone $f;
-      for($break = 9;$break > 0 && in_array($proximo_lunes->format('w'),['0','6']);$break--){
-        $proximo_lunes = $proximo_lunes->add(\DateInterval::createFromDateString('1 day'));
-      }
-      $PAG['fecha_vencimiento'] = $proximo_lunes->format('Y-m-d');//@RETORNADO
-    }
-    
-    $timestamp_venc = $PAG['fecha_vencimiento']?
-      \DateTimeImmutable::createFromFormat('Y-m-d', $PAG['fecha_vencimiento'])
-    : null;
-    $factor_interes_provincial_diario_simple = bcdiv($PAG['interes_provincial_diario_simple'],'100',6);
-    $factor_interes_nacional_mensual_compuesto = bcdiv($PAG['interes_nacional_mensual_compuesto'],'100',6);
-    
-    $restante = $principal;
-    foreach($canon_pago as $idx => &$p){
-      $p['capital'] = $restante;
-      $p['fecha_pago'] = $p['fecha_pago'] ?? $PAG['fecha_vencimiento'] ?? null;
-      $p['fecha_vencimiento'] = $PAG['fecha_vencimiento'] ?? null;
-      $p['interes_provincial_diario_simple'] = $PAG['interes_provincial_diario_simple'] ?? null;
-      $p['interes_nacional_mensual_compuesto'] = $PAG['interes_nacional_mensual_compuesto'] ?? null;
-      
-      if($timestamp_venc && $p['fecha_pago'] != null){
-        $timestamp_pago = \DateTimeImmutable::createFromFormat('Y-m-d', $p['fecha_pago']);
-        $date_interval  = $timestamp_pago->diff($timestamp_venc);
-        $p['dias_vencidos'] = ($timestamp_pago <= $timestamp_venc)? 0
-        : intval($date_interval->days);
-      }
-      else{
-        $p['dias_vencidos'] = 0;
-      }
-      
-      $p['mora_provincial'] = bcmul($p['dias_vencidos'],bcmul($p['capital'],$factor_interes_provincial_diario_simple,8),8);
-      $p['mora_provincial'] = bcround_ndigits($p['mora_provincial'],2);
-      $p['mora_provincial'] = bcmax($p['mora_provincial'],'0',2);
-      
-      $p['mora_nacional'] = '0';
-      {
-        $capitalizaciones = intdiv($p['dias_vencidos'],30);
-        $capital_final    = $p['capital'];
-        $interes_nacional = bcadd('1',$factor_interes_nacional_mensual_compuesto,6);
-        $digitos_capital_final = 2;
-        for($c=0;$c<$capitalizaciones;$c++){
-          $capital_final = bcmul($capital_final,$interes_nacional,$digitos_capital_final+6);
-        }
-        $p['mora_nacional'] = bcsub($capital_final,$p['capital'],$digitos_capital_final);
-        $p['mora_nacional'] = bcround_ndigits($p['mora_nacional'],2);
-      }
-      $p['mora_nacional'] = bcmax($p['mora_nacional'],'0',2);
-      
-      $p['a_pagar'] = bcadd($p['capital'],$p['mora_provincial'],2);
-      $p['a_pagar'] = bcadd($p['a_pagar'],$p['mora_nacional'],2);
-      $p['pago'] = $p['pago'] ?? '0';
-      $p['diferencia'] = bcsub($p['a_pagar'],$p['pago'],2);
-      
-      $a_pagar = bcadd($a_pagar,$p['mora_provincial'],2);
-      $a_pagar = bcadd($a_pagar,$p['mora_nacional'],2);
-      $pago = bcadd($pago,$p['pago'],2);
-      $restante = $p['diferencia'];
-    }
-    
-    $PAG = $this->confluir_datos_pago(compact('canon_pago'));
-    $interes_provincial_diario_simple   = $PAG['interes_provincial_diario_simple'] ?? null;//@RETORNADO
-    $interes_nacional_mensual_compuesto = $PAG['interes_nacional_mensual_compuesto'] ?? null;//@RETORNADO
-    $fecha_vencimiento                  = $PAG['fecha_vencimiento'] ?? null;//@RETORNADO
-    
-    $ajuste = bcadd($R('ajuste','0.00'),'0',2);//@RETORNADO
-    $motivo_ajuste = $R('motivo_ajuste','');//@RETORNADO
-    $diferencia = bcadd(bcsub($a_pagar,$pago,2),$ajuste,2);//@RETORNADO
-    $saldo_posterior = bcsub('0',$diferencia,2);//@RETORNADO @HACK: Lo mismo que diferencia? el saldo ya esta en el a_pagar
-    $saldo_posterior_cerrado = $saldo_posterior;//@RETORNADO
-    
     return compact(
       'canon_anterior',
       'año_mes','id_casino','estado','es_antiguo',
@@ -483,15 +344,7 @@ class CanonController extends Controller
       'determinado_fecha_cotizacion','determinado_cotizacion_dolar','determinado_cotizacion_euro',
       
       'devengado_bruto','devengado_deduccion','devengado',
-      'determinado_bruto','determinado_ajuste','determinado','porcentaje_seguridad',
-      'saldo_anterior','saldo_anterior_cerrado',
-      'intereses_y_cargos','motivo_intereses_y_cargos','principal',
-      //Confluidos
-      'fecha_vencimiento','interes_provincial_diario_simple','interes_nacional_mensual_compuesto',
-      //Pagos
-      'canon_pago',
-      'a_pagar','pago','ajuste','motivo_ajuste','diferencia',
-      'saldo_posterior','saldo_posterior_cerrado'
+      'determinado_bruto','determinado_ajuste','determinado','porcentaje_seguridad'
     );
   }
   
@@ -882,6 +735,155 @@ class CanonController extends Controller
     return $this->guardar($request,false);
   }
   
+  public function guardar_arr(array $datos){
+    $created_at = date('Y-m-d h:i:s');
+    $id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
+    
+    $canon_anterior = ($datos['año_mes'] !== null && $datos['id_casino'] !== null)?
+      DB::table('canon')//Necesito la variable para despues sacarle los archivos
+      ->select('id_canon')
+      ->whereNull('deleted_at')
+      ->where('año_mes',$datos['año_mes'])
+      ->where('id_casino',$datos['id_casino'])
+      ->orderBy('created_at','desc')
+      ->get()
+    : [];
+    
+    foreach($canon_anterior as $c){
+      $this->borrar_arr(['id_canon' => $c->id_canon],$created_at,$id_usuario);
+    }
+          
+    $id_canon = DB::table('canon')
+    ->insertGetId([
+      'año_mes' => $datos['año_mes'],
+      'id_casino' => $datos['id_casino'],
+      'estado' => $datos['estado'],
+      'devengado_bruto' => $datos['devengado_bruto'],
+      'devengado_deduccion' => $datos['devengado_deduccion'],
+      'devengado' => $datos['devengado'],
+      'porcentaje_seguridad' => $datos['porcentaje_seguridad'],
+      'determinado_bruto' => $datos['determinado_bruto'],
+      'determinado_ajuste' => $datos['determinado_ajuste'],
+      'determinado' => $datos['determinado'],
+      //Se rellenan despues en CanonPagoController
+        'saldo_anterior' => 0,
+        'saldo_anterior_cerrado' => 0,
+        'intereses_y_cargos' => 0,
+        'motivo_intereses_y_cargos' => '',
+        'principal' => 0,
+        'a_pagar' => 0,
+        'pago' => 0,
+        'ajuste' => 0,
+        'motivo_ajuste' => '',
+        'diferencia' => 0,
+        'saldo_posterior_cerrado' => 0,
+        'saldo_posterior' => 0,
+      //-----------
+      'es_antiguo' => $datos['es_antiguo'],
+      'created_at' => $created_at,
+      'created_id_usuario' => $id_usuario,
+    ]);
+                
+    foreach(($datos['canon_variable'] ?? []) as $tipo => $d){
+      $d['id_canon'] = $id_canon;
+      $d['tipo'] = $tipo;
+      unset($d['id_canon_variable']);
+      DB::table('canon_variable')
+      ->insert($d);
+    }
+    
+    foreach(($datos['canon_fijo_mesas'] ?? []) as $tipo => $d){
+      $d['id_canon'] = $id_canon;
+      $d['tipo'] = $tipo;
+      unset($d['id_canon_fijo_mesas']);
+      DB::table('canon_fijo_mesas')
+      ->insert($d);
+    }
+    
+    foreach(($datos['canon_fijo_mesas_adicionales'] ?? []) as $tipo => $d){
+      $d['id_canon'] = $id_canon;
+      $d['tipo']     = $tipo;
+      unset($d['id_canon_fijo_mesas_adicionales']);
+      DB::table('canon_fijo_mesas_adicionales')
+      ->insert($d);
+    }
+          
+    {
+      $archivos_existentes = count($canon_anterior) == 0? 
+        collect([])
+      : DB::table('canon_archivo as ca')
+      ->select('ca.descripcion','ca.type','a.*')
+      ->join('archivo as a','a.id_archivo','=','ca.id_archivo')
+      ->where('id_canon',$canon_anterior[0]->id_canon)
+      ->get()
+      ->keyBy('id_archivo');
+      
+      $archivos_enviados = collect($datos['adjuntos'] ?? [])->groupBy('id_archivo');
+      $archivos_resultantes = [];
+      foreach($archivos_enviados as $id_archivo_e => $archivos_e){
+        if($id_archivo_e !== ''){//Es "existente"
+          //Se recibio un id archivo que no estaba antes
+          if(!$archivos_existentes->has($id_archivo_e)) continue;
+          
+          $archivo_bd = $archivos_existentes[$id_archivo_e];
+          
+          $archivo = null;//Por si me mando varios con el mismo id_archivo, busco el que tenga mismo nombre de archivo
+          foreach($archivos_e as $ae){
+            if($ae['nombre_archivo'] == $archivo_bd->nombre_archivo){
+              $archivo = $ae;
+              break;
+            }
+          }
+          
+          if($archivo === null) continue;//No encontre, lo ignoro
+                      
+          //El archivo se repite para el nuevo canon pero posiblemente con otra descripcion
+          $archivos_resultantes[] = [
+            'id_archivo'  => $archivo_bd->id_archivo,
+            'id_canon'    => $id_canon,
+            'descripcion' => ($archivo['descripcion'] ?? ''),
+            'type'        => $archivo_bd->type,
+          ];
+        }
+        else{//Archivos nuevos
+          foreach($archivos_e as $a){
+            $file=$a['file'] ?? null;
+            if($file === null) continue;
+            
+            $archivo_bd = new Archivo;
+            $data = base64_encode(file_get_contents($file->getRealPath()));
+            $nombre_archivo = $file->getClientOriginalName();
+            $archivo_bd->nombre_archivo = $nombre_archivo;
+            $archivo_bd->archivo = $data;
+            $archivo_bd->save();
+            
+            $archivos_resultantes[] = [
+              'id_archivo' => $archivo_bd->id_archivo,
+              'id_canon' => $id_canon,
+              'descripcion' => ($a['descripcion'] ?? ''),
+              'type' => $file->getMimeType() ?? 'application/octet-stream'
+            ];
+          } 
+        }
+      }
+      
+      DB::table('canon_archivo')
+      ->insert($archivos_resultantes);
+    }
+          
+    $this->recalcular_agrupamientos([$datos['año_mes']],false);
+    
+    CanonPagoController::getInstancia()
+    ->traspasar_pagos(
+      count($canon_anterior)?
+        $this->get_by_id_canon($canon_anterior[0]->id_canon,false)
+      : null,
+      $this->get_by_id_canon($id_canon)
+    );
+    
+    return $id_canon;
+  }
+  
   public function guardar(Request $request,$recalcular = true){
     $requeridos = $recalcular? ['año_mes','id_casino','es_antiguo'] : ['id_canon'];
     $this->validarCanon($request->all(),$requeridos);
@@ -915,245 +917,9 @@ class CanonController extends Controller
         $datos['adjuntos'] = $request['adjuntos'] ?? [];
       }
       
-      $created_at = date('Y-m-d h:i:s');
-      $id_usuario = $this->u->id_usuario;
+      $id_canon = $this->guardar_arr($datos);
       
-      $canon_anterior = ($datos['año_mes'] !== null && $datos['id_casino'] !== null)?
-        DB::table('canon')//Necesito la variable para despues sacarle los archivos
-        ->select('id_canon')
-        ->whereNull('deleted_at')
-        ->where('año_mes',$datos['año_mes'])
-        ->where('id_casino',$datos['id_casino'])
-        ->orderBy('created_at','desc')
-        ->get()
-      : [];
-      
-      foreach($canon_anterior as $c){
-        $this->borrar_arr(['id_canon' => $c->id_canon],$created_at,$id_usuario);
-      }
-            
-      $id_canon = DB::table('canon')
-      ->insertGetId([
-        'año_mes' => $datos['año_mes'],
-        'id_casino' => $datos['id_casino'],
-        'estado' => $datos['estado'],
-        'devengado_bruto' => $datos['devengado_bruto'],
-        'devengado_deduccion' => $datos['devengado_deduccion'],
-        'devengado' => $datos['devengado'],
-        'porcentaje_seguridad' => $datos['porcentaje_seguridad'],
-        'determinado_bruto' => $datos['determinado_bruto'],
-        'determinado_ajuste' => $datos['determinado_ajuste'],
-        'determinado' => $datos['determinado'],
-        'saldo_anterior' => $datos['saldo_anterior'],
-        'saldo_anterior_cerrado' => $datos['saldo_anterior_cerrado'],
-        'intereses_y_cargos' => $datos['intereses_y_cargos'],
-        'motivo_intereses_y_cargos' => $datos['motivo_intereses_y_cargos'],
-        'principal' => $datos['principal'],
-        'a_pagar' => $datos['a_pagar'],
-        'pago' => $datos['pago'],
-        'ajuste' => $datos['ajuste'],
-        'motivo_ajuste' => $datos['motivo_ajuste'],
-        'diferencia' => $datos['diferencia'],
-        'saldo_posterior_cerrado' => $datos['saldo_posterior_cerrado'],
-        'saldo_posterior' => $datos['saldo_posterior'],
-        'es_antiguo' => $datos['es_antiguo'],
-        'created_at' => $created_at,
-        'created_id_usuario' => $id_usuario,
-      ]);
-      
-      foreach(($datos['canon_pago'] ?? []) as $idx => $d){
-        DB::table('canon_pago')
-        ->insert([
-          'id_canon' => $id_canon,
-          'capital' => $d['capital'],
-          'fecha_vencimiento' => $d['fecha_vencimiento'],
-          'fecha_pago' => $d['fecha_pago'],
-          'dias_vencidos' => $d['dias_vencidos'],
-          'interes_provincial_diario_simple' => $d['interes_provincial_diario_simple'],
-          'interes_nacional_mensual_compuesto' => $d['interes_nacional_mensual_compuesto'],
-          'mora_provincial' => $d['mora_provincial'],
-          'mora_nacional' => $d['mora_nacional'],
-          'a_pagar' => $d['a_pagar'],
-          'pago' => $d['pago'],
-          'diferencia' => $d['diferencia'],
-        ]);
-      }
-            
-      foreach(($datos['canon_variable'] ?? []) as $tipo => $d){
-        $d['id_canon'] = $id_canon;
-        $d['tipo'] = $tipo;
-        unset($d['id_canon_variable']);
-        DB::table('canon_variable')
-        ->insert($d);
-      }
-      
-      foreach(($datos['canon_fijo_mesas'] ?? []) as $tipo => $d){
-        $d['id_canon'] = $id_canon;
-        $d['tipo'] = $tipo;
-        unset($d['id_canon_fijo_mesas']);
-        DB::table('canon_fijo_mesas')
-        ->insert($d);
-      }
-      
-      foreach(($datos['canon_fijo_mesas_adicionales'] ?? []) as $tipo => $d){
-        $d['id_canon'] = $id_canon;
-        $d['tipo']     = $tipo;
-        unset($d['id_canon_fijo_mesas_adicionales']);
-        DB::table('canon_fijo_mesas_adicionales')
-        ->insert($d);
-      }
-      
-      {
-        $archivos_existentes = count($canon_anterior) == 0? 
-          collect([])
-        : DB::table('canon_archivo as ca')
-        ->select('ca.descripcion','ca.type','a.*')
-        ->join('archivo as a','a.id_archivo','=','ca.id_archivo')
-        ->where('id_canon',$canon_anterior[0]->id_canon)
-        ->get()
-        ->keyBy('id_archivo');
-        
-        $archivos_enviados = collect($datos['adjuntos'] ?? [])->groupBy('id_archivo');
-        $archivos_resultantes = [];
-        foreach($archivos_enviados as $id_archivo_e => $archivos_e){
-          if($id_archivo_e !== ''){//Es "existente"
-            //Se recibio un id archivo que no estaba antes
-            if(!$archivos_existentes->has($id_archivo_e)) continue;
-            
-            $archivo_bd = $archivos_existentes[$id_archivo_e];
-            
-            $archivo = null;//Por si me mando varios con el mismo id_archivo, busco el que tenga mismo nombre de archivo
-            foreach($archivos_e as $ae){
-              if($ae['nombre_archivo'] == $archivo_bd->nombre_archivo){
-                $archivo = $ae;
-                break;
-              }
-            }
-            
-            if($archivo === null) continue;//No encontre, lo ignoro
-                        
-            //El archivo se repite para el nuevo canon pero posiblemente con otra descripcion
-            $archivos_resultantes[] = [
-              'id_archivo'  => $archivo_bd->id_archivo,
-              'id_canon'    => $id_canon,
-              'descripcion' => ($archivo['descripcion'] ?? ''),
-              'type'        => $archivo_bd->type,
-            ];
-          }
-          else{//Archivos nuevos
-            foreach($archivos_e as $a){
-              $file=$a['file'] ?? null;
-              if($file === null) continue;
-              
-              $archivo_bd = new Archivo;
-              $data = base64_encode(file_get_contents($file->getRealPath()));
-              $nombre_archivo = $file->getClientOriginalName();
-              $archivo_bd->nombre_archivo = $nombre_archivo;
-              $archivo_bd->archivo = $data;
-              $archivo_bd->save();
-              
-              $archivos_resultantes[] = [
-                'id_archivo' => $archivo_bd->id_archivo,
-                'id_canon' => $id_canon,
-                'descripcion' => ($a['descripcion'] ?? ''),
-                'type' => $file->getMimeType() ?? 'application/octet-stream'
-              ];
-            } 
-          }
-        }
-        
-        DB::table('canon_archivo')
-        ->insert($archivos_resultantes);
-      }
-      
-      if($recalcular){
-        $this->cambio_canon_recalcular_saldos($id_canon);
-      }
-      
-      $this->recalcular_agrupamientos([$datos['año_mes']],false);
-      return 1;
-    });
-  }
-  
-  //@HACK: usar CoW/SoftDelete?
-  private function recalcular_saldos($saldo_posterior_prev,$año_mes,$id_casino){
-    $canons = DB::table('canon')
-    ->whereNull('deleted_at')
-    ->where('año_mes','>',$año_mes)
-    ->where('id_casino','=',$id_casino)
-    ->orderBy('año_mes','asc')->get();
-    
-    if(count($canons) <= 0) return;
-        
-    foreach($canons as $c){
-      //Si esta cerrado, solo actualizo los saldos "no cerrados" y que se use en un canon proximo
-      if(in_array(strtoupper($c->estado),['PAGADO','CERRADO'])){
-        $c->saldo_anterior = $saldo_posterior_prev;
-        $diffsaldos = bcsub($c->saldo_anterior,$c->saldo_anterior_cerrado,2);
-        $c->saldo_posterior = bcadd($c->saldo_posterior_cerrado,$diffsaldos,2);
-        
-        DB::table('canon')
-        ->where('id_canon',$c->id_canon)
-        ->update([
-          'saldo_anterior' => $c->saldo_anterior,
-          'saldo_posterior' => $c->saldo_posterior
-        ]);
-        
-        $saldo_posterior_prev = $c->saldo_posterior;
-      }
-      else{//El saldo influye en el principal y por ende en todos los calculos de pagos
-        $c_para_recalcular = $this->obtener_arr(['id_canon' => $c->id_canon]);
-        $c_para_recalcular['saldo_anterior'] = $saldo_posterior_prev;
-        $c_para_recalcular['saldo_anterior_cerrado'] = $saldo_posterior_prev;
-                
-        $datos = $this->recalcular($c_para_recalcular);
-        
-        DB::table('canon')
-        ->where('id_canon',$c->id_canon)
-        ->update([
-          'saldo_anterior' => $datos['saldo_anterior'],
-          'saldo_anterior_cerrado' => $datos['saldo_anterior_cerrado'],
-          'principal' => $datos['principal'],
-          'a_pagar' => $datos['a_pagar'],
-          'diferencia' => $datos['diferencia'],
-          'saldo_posterior_cerrado' => $datos['saldo_posterior_cerrado'],
-          'saldo_posterior' => $datos['saldo_posterior'],
-        ]);
-        
-        $pagos_bd = DB::table('canon_pago')
-        ->where('id_canon',$c->id_canon)
-        ->get()->keyBy('id_canon_pago');
-        
-        $pagos_actualizados = collect($datos['canon_pago'])
-        ->keyBy('id_canon_pago');
-        
-        assert($pagos_bd->keys()->sort() == $pagos_actualizados->keys()->sort());
-        
-        foreach($pagos_bd as $id_canon_pago => $pbd){
-          $pact = $pagos_actualizados[$id_canon_pago];
-          
-          DB::table('canon_pago')
-          ->where('id_canon_pago',$id_canon_pago)
-          ->update([
-            'capital' => $pact['capital'],
-            'mora_provincial' => $pact['mora_provincial'],
-            'mora_nacional' => $pact['mora_nacional'],
-            'a_pagar' => $pact['a_pagar'],
-            'diferencia' => $pact['diferencia']
-          ]);
-        }
-        
-        $saldo_posterior_prev = $datos['saldo_posterior'];
-      }
-    }
-  }
-  
-  public function recalcular_saldos_Req(Request $request){
-    DB::transaction(function(){
-      foreach(Casino::all() as $c){
-        $this->recalcular_saldos('0','1970-01-01',$c->id_casino);
-      }
-      return 1;
+      return $id_canon;
     });
   }
   
@@ -1165,11 +931,6 @@ class CanonController extends Controller
     ->where('id_canon',$request['id_canon'])
     ->first();
     
-    $ret['canon_pago'] = DB::table('canon_pago')
-    ->where('id_canon',$request['id_canon'])
-    ->orderBy('fecha_pago','asc')
-    ->get();
-        
     $ret['canon_variable'] = DB::table('canon_variable')
     ->where('id_canon',$request['id_canon'])
     ->get()
@@ -1197,13 +958,15 @@ class CanonController extends Controller
       return $adj;
     });
     
+    $ret['canon_pago'] = CanonPagoController::getInstancia()->obtener_arr(
+      ['id_canon' => $request['id_canon']]
+    )['canon_pago'] ?? [];
+    
     $ret = json_decode(json_encode($ret),true);
     
     if($confluir){
       $COT = $this->confluir_datos_cotizacion($ret);
-      $PAG = $this->confluir_datos_pago($ret);
       foreach($COT as $k => $v) $ret[$k] = $v;
-      foreach($PAG as $k => $v) $ret[$k] = $v;
     }
     
     return !empty($ret)? $ret : $this->recalcular($ret);
@@ -1241,15 +1004,7 @@ class CanonController extends Controller
       ]
     );
   }
-  
-  private function confluir_datos_pago(array $canon){
-    return $this->confluir_datos(
-      $canon,
-      ['canon_pago'],
-      ['fecha_vencimiento','interes_provincial_diario_simple','interes_nacional_mensual_compuesto']
-    );
-  }
-  
+    
   public function archivo(Request $request){
     if(($request['id_canon'] ?? null) === null || ($request['nombre_archivo'] ?? null) === null)
       return null;
@@ -1325,38 +1080,17 @@ class CanonController extends Controller
       ->where('id_canon',$id_canon)
       ->update(compact('deleted_at','deleted_id_usuario'));
       
-      $this->cambio_canon_recalcular_saldos($id_canon);
-      
-      $c = DB::table('canon')->select('año_mes')->where('id_canon',$id_canon)
+      $c = DB::table('canon')->select('id_casino','año_mes')->where('id_canon',$id_canon)
       ->first();
       if($c !== null){
         $this->recalcular_agrupamientos($c->año_mes);
+        CanonPagoController::getInstancia()->cambio_determinado($c->id_casino,$c->año_mes);
       }
       
       return 1;
     });
   }
-  
-  private function cambio_canon_recalcular_saldos($id_canon){
-    $c = DB::table('canon')
-    ->where('id_canon',$id_canon)
-    ->first();
     
-    $cprev = DB::table('canon')
-    ->where('año_mes','<',$c->año_mes)
-    ->where('id_casino','=',$c->id_casino)
-    ->whereNull('deleted_at')
-    ->orderBy('año_mes','desc')
-    ->first();
-    
-    if($cprev === null){
-      $this->recalcular_saldos('0','1970-01-01',$c->id_casino);
-    }
-    else{
-      $this->recalcular_saldos($cprev->saldo_posterior,$cprev->año_mes,$c->id_casino);
-    }
-  }
-  
   public function buscar(Request $request,bool $paginar = true){
     $reglas = [];
     if(isset($request->id_casino)){
@@ -1663,8 +1397,6 @@ class CanonController extends Controller
       ->where('id_canon',$request->id_canon)
       ->first();
       
-      $this->recalcular_saldos($c->saldo_posterior,$c->año_mes,$c->id_casino);
-      
       return 1;
     });
   }
@@ -1678,13 +1410,12 @@ class CanonController extends Controller
       DB::table('canon')
       ->where('id_canon',$request->id_canon)
       ->update(['deleted_at' => null]);
-            
-      $this->cambio_canon_recalcular_saldos($request->id_canon);
       
       $c = DB::table('canon')->select('año_mes')->where('id_canon',$request->id_canon)
       ->first();
       if($c !== null){
         $this->recalcular_agrupamientos($c->año_mes);
+        CanonPagoController::getInstancia()->cambio_determinado($c->id_casino,$c->año_mes);
       }
       
       return 1;
@@ -1780,13 +1511,6 @@ class CanonController extends Controller
     }
     $ret['canon'] = [$ret['canon']];
     
-    foreach(['id_canon_pago','id_canon'] as $k){
-      foreach(($data['canon_pago'] ?? []) as $tipo => $_){
-        unset($data['canon_pago'][$tipo][$k]);
-      }
-    }
-    $ret['canon_pago'] = array_values($data['canon_pago'] ?? []);
-    
     foreach(['id_canon_variable','id_canon'] as $k){
       foreach(($data['canon_variable'] ?? []) as $tipo => $_){
         unset($data['canon_variable'][$tipo][$k]);
@@ -1814,6 +1538,17 @@ class CanonController extends Controller
       }
     }
     $ret['adjuntos'] = array_values($data['adjuntos'] ?? []);
+    
+    //@HACK: revisar
+    $ret['canon_pago'] = CanonPagoController::getInstancia()->obtener_arr(
+      compact('id_canon'),
+      false
+    )['canon_pago'] ?? [];
+    foreach(['id_canon_pago','id_canon'] as $k){
+      foreach(($data['canon_pago'] ?? []) as $tipo => $_){
+        unset($data['canon_pago'][$tipo][$k]);
+      }
+    }
     
     foreach($ret as $k => $d){
       if(count($d) == 0) unset($ret[$k]);
@@ -2511,9 +2246,6 @@ class CanonController extends Controller
         }
         $fila[$tval] = ($t['Total'] ?? [])[$tval] ?? '0';
       }
-      $fila['intereses_y_cargos'] = self::formatear_decimal($d->intereses_y_cargos);
-      $fila['pago']      = self::formatear_decimal($d->pago);
-      $fila['saldo_posterior'] = self::formatear_decimal($d->saldo_posterior);
       $arreglo_a_csv[] = $fila;
     }
     
@@ -3134,5 +2866,34 @@ class CanonController extends Controller
     };
     
     return $stream_progress? DB::transaction($do) : $do();
+  }
+  
+  public function get_by_id_canon(int $id_canon,bool $active = true){    
+    return DB::table('canon')
+    ->select('canon.*','casino.nombre as casino','usuario.user_name as usuario')
+    ->join('usuario','usuario.id_usuario','=','canon.created_id_usuario')
+    ->join('casino','casino.id_casino','=','canon.id_casino')
+    ->where('canon.id_canon',$id_canon)
+    ->where(DB::raw($active? '(canon.deleted_at IS NULL)' : '1'),'=','1')
+    ->first();
+  }
+  public function get_by_id_casino_año_mes(int $id_casino,string $año_mes,bool $active = true){
+    return DB::table('canon')
+    ->select('canon.*','casino.nombre as casino','usuario.user_name as usuario')
+    ->join('usuario','usuario.id_usuario','=','canon.created_id_usuario')
+    ->join('casino','casino.id_casino','=','canon.id_casino')
+    ->where('canon.id_casino',$id_casino)
+    ->where('canon.año_mes',$año_mes)
+    ->where(DB::raw($active? '(canon.deleted_at IS NULL)' : '1'),'=','1');
+  }
+  public function get_prev_by_id_casino_año_mes(int $id_casino,string $año_mes){
+    return DB::table('canon')
+    ->select('canon.*','casino.nombre as casino','usuario.user_name as usuario')
+    ->join('usuario','usuario.id_usuario','=','canon.created_id_usuario')
+    ->join('casino','casino.id_casino','=','canon.id_casino')
+    ->where('canon.id_casino',$id_casino)
+    ->where('canon.año_mes','<',$año_mes)
+    ->whereNull('canon.deleted_at')
+    ->orderBy('canon.año_mes','desc');
   }
 }

@@ -38,508 +38,42 @@ function encodeQueryData(data){
   return ret.join('&');
 }
 
-$(document).ready(function() {
+const fill = function(div,prefix,obj){//@HACK @TODO: mover a AUX
+  const subscript = function(s){
+    return prefix === null? s : (prefix+'['+s+']');
+  };
+  for(const k in obj){
+    const val = obj[k];
+    if(typeof val == 'object'){
+      fill(div,subscript(k),val);
+    }
+    else{
+      const name = subscript(k);
+      div.find(`[name="${name}"]`).val(val);
+    }
+  }
+};
+
+const fillError = function(div,obj){//@HACK @TODO: mover a AUX
+  for(const k in obj){
+    const val = obj[k];
+    if(typeof val == 'object' && !Array.isArray(val)){
+      console.log(k,val,'Valor inesperado');
+    }
+    else{
+      const name_arr = k.split('.');
+      let name = name_arr?.[0] ?? '';
+      for(let idx=1;idx<name_arr.length;idx++){
+        name+='['+name_arr[idx]+']';
+      }
+      mostrarErrorValidacion(div.find(`[name="${name}"]`),Array.isArray(val)? val.join(', ') : val,true);
+    }
+  }
+};
+
+$(function(){
   $('.tituloSeccionPantalla').text('Canon');
   
-  $('[data-js-modal-ver-cargar-canon]').each(function(_,m_obj){
-    const M = $(m_obj);
-    
-    const fill = function(div,prefix,obj){//@HACK @TODO: mover a AUX
-      const subscript = function(s){
-        return prefix === null? s : (prefix+'['+s+']');
-      };
-      for(const k in obj){
-        const val = obj[k];
-        if(typeof val == 'object'){
-          fill(div,subscript(k),val);
-        }
-        else{
-          const name = subscript(k);
-          div.find(`[name="${name}"]`).val(val);
-        }
-      }
-    };
-    
-    const fillError = function(div,obj){//@HACK @TODO: mover a AUX
-      for(const k in obj){
-        const val = obj[k];
-        if(typeof val == 'object' && !Array.isArray(val)){
-          console.log(k,val,'Valor inesperado');
-        }
-        else{
-          const name_arr = k.split('.');
-          let name = name_arr?.[0] ?? '';
-          for(let idx=1;idx<name_arr.length;idx++){
-            name+='['+name_arr[idx]+']';
-          }
-          mostrarErrorValidacion(div.find(`[name="${name}"]`),Array.isArray(val)? val.join(', ') : val,true);
-        }
-      }
-    };
-    
-    const filterFunction = function(attr){
-      const check_params = {
-        modo: M.attr('data-modo'),
-        es_antiguo: M.find('[name="es_antiguo"]').val(),
-        estado: M.find('[name="estado"]').val().toUpperCase()
-      };
-            
-      return function(_,r_obj){
-        let json_rdata = null;
-        try{
-          json_rdata = JSON.parse($(r_obj).attr(attr));
-        }
-        catch(error){
-          console.log(r_obj,json_rdata);
-          throw error;
-        }
-        
-        if(!Array.isArray(json_rdata)){
-          console.log(r_obj,json_rdata);
-          throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
-        }
-        for(const obj of json_rdata){
-          if(typeof obj !== 'object'){
-            console.log(r_obj,obj);
-            throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
-          }
-          for(const param in check_params){
-            const check_val = check_params[param];
-            const obj_val = obj[param] ?? undefined;
-            if(obj_val == '*' || obj_val === check_val) return true;
-          }
-        }
-        return false;
-      };
-    };
-        
-    const setReadonly = function(){
-      const setReadOnlyObj = function(state){
-        return function(_,r_obj){
-          const r = $(r_obj);
-          const f = r.children('[data-js-fecha]');
-          if(f.length){
-            f[0].readonly(state);  
-          }
-          else{
-            if(state){ r.attr('readonly',true);  }
-            else{      r.removeAttr('readonly'); }
-          }
-        };
-      }
-      
-      M.find('[data-readonly]:not([data-js-fecha])')
-      .each(setReadOnlyObj(false))
-      .filter(filterFunction('data-readonly'))
-      .each(setReadOnlyObj(true));
-    }
-    
-    const setVisible = function(){
-      M.find('[data-modo-mostrar]').hide().filter(filterFunction('data-modo-mostrar')).show();
-    }
-    
-    const agregarDetallePestaña = function(pestaña,titulo,replace_idx){
-      const div = pestaña.find('[data-js-molde]').clone();
-      const replace_str_tipo = div.attr('data-js-molde');
-      div.removeAttr('data-js-molde');
-      
-      div.find('[data-titulo]').text(titulo);
-      
-      div.find('[data-name]').each(function(_,nobj){
-        const n = $(nobj);
-        n.attr('name',n.attr('data-name').replaceAll(replace_str_tipo,replace_idx));
-      });
-      
-      div.find('[data-depende]').each(function(_,nobj){
-        const n = $(nobj);
-        n.attr('data-depende',n.attr('data-depende').replaceAll(replace_str_tipo,replace_idx));
-      });
-      
-      div.attr('data-idx',replace_idx);
-      
-      pestaña.find('[data-js-contenedor]').append(div);
-      
-      div.find('[data-js-fecha]').trigger('init.fecha');
-      
-      return div;
-    }
-    
-    let inputs_a_formatear = null;
-    const agregarInputsFormatear = function(inpts){
-      inputs_a_formatear = inputs_a_formatear ?? {};
-      inpts.each(function(_,iobj){
-        inputs_a_formatear[iobj.getAttribute('name')] = $(iobj);
-      });
-    };
-    const limpiarInputsFormatear = function(){
-      inputs_a_formatear = null;
-    }
-    const borrarInputsFormatear = function(inpts){
-      if(inputs_a_formatear === null) return;
-      inpts.each(function(_,iobj){
-        const name = iobj.getAttribute('name');
-        if(name in inputs_a_formatear){
-          delete inputs_a_formatear[name];
-        }
-      });
-    };
-    
-    const formatearCampos = function(inpts = null){//Saca los 0 de sobra a la derecha
-      //Para verlos en debug usar algo tipo .css('color','red');
-      for(const name in inputs_a_formatear){
-        const i = inputs_a_formatear[name];
-        if(i.is('[data-js-formatear-año-mes]')){
-          i.val(i.val().substr(0,'YYYY-MM'.length));
-        }
-        else{
-          i.val(formatter(i.val()));
-        }
-      }
-    }
-    
-    const deformatearFormData = function(obj){      
-      const ret = {};
-      for(const k in obj){
-        let val = obj[k];
-        if(k in inputs_a_formatear){
-          const i = inputs_a_formatear[k];
-          if(i.is('[data-js-formatear-año-mes]')){
-            val = val+'-01';
-          }
-          else{
-            val = deformatter(val);
-          }
-        }
-        ret[k] = val;
-      }
-      return ret;
-    }
-    
-    const render = function(canon,mantener_historial = false){
-      const form = M.find('form[data-js-recalcular]');
-      const rerender = M.attr('data-render');
-      
-      ocultarErrorValidacion(form.find('[name]'));
-      
-      if((rerender ?? 1) == 0){
-        fill(M,null,canon);
-        setReadonly();
-        formatearCampos();
-        return;
-      }
-      
-      M.find('[name="estado"]').val(canon?.estado ?? 'Nuevo');
-      setVisible();
-      
-      const llenarPestaña = function(pestaña,tipos_obj,mostrar_de_todos_modos = false){
-        pestaña.find('[data-js-contenedor]').empty();
-        let lleno = false;
-        for(const tipo in tipos_obj){
-          lleno = true;
-          agregarDetallePestaña(pestaña,tipo.toUpperCase(),tipo);
-        }
-        
-        //@HACK: no mostrar la pestaña si no tiene nada
-        M.find('[data-js-tabs] [data-js-tab]').filter(function(_,tab_obj){
-          return $($(tab_obj).attr('data-js-tab'))?.[0] == pestaña[0];
-        }).toggle(lleno || mostrar_de_todos_modos);
-        pestaña.toggle(lleno || mostrar_de_todos_modos);
-      }
-      
-      llenarPestaña(form.find('[data-canon-variable]'),canon?.canon_variable ?? {});
-      llenarPestaña(form.find('[data-canon-fijo-mesas]'),canon?.canon_fijo_mesas ?? {});
-      llenarPestaña(form.find('[data-canon-fijo-mesas-adicionales]'),canon?.canon_fijo_mesas_adicionales ?? {});
-      llenarPestaña(form.find('[data-adjuntos]'),canon?.adjuntos ?? {},true);
-      llenarPestaña(form.find('[data-total] [data-pagos]'),canon?.canon_pago ?? [],true);
-      
-      M.attr('data-render',0);
-      fill(M,null,canon);
-      setReadonly();
-      
-      limpiarInputsFormatear();
-      agregarInputsFormatear(M.find('form[data-js-recalcular] input[name]:not([data-js-texto-no-formatear-numero])'));
-      formatearCampos();
-      
-      (mantener_historial?
-         M.find('[data-js-select-historial]')
-       : M.find('[data-js-select-historial]').empty())
-       .append(
-        (canon?.historial ?? []).map(function(h,hidx){
-          const o = $('<option>');
-          o.val(h.id_canon);
-          o.text(h.usuario + ' - '+h.created_at);
-          o.data('canon',h);
-          return o;
-        })
-      );
-      
-      M.find('[data-js-tabs] [data-js-tab]').filter(function(_,t_obj){
-        return $(t_obj).css('display') != 'none';
-      }).eq(0).click();
-      
-      M.find('[data-js-devengar]').trigger('setearDevengar');
-    };
-    
-    M.find('[data-js-select-historial]').change(function(e){
-      const tgt = $(e.currentTarget);
-      M.attr('data-render',1);
-      render(tgt.find('option:selected').data('canon'),true);
-    });
-    
-    M.on('mostrar.modal',function(e,url,id_canon,modo){      
-      M.attr('data-modo',modo.toUpperCase());
-      const form = M.find('form[data-js-recalcular]');
-      form.find('[name],[data-descripcion],[data-archivo]').val('');
-      AUX.GET(url,{id_canon: id_canon},function(canon){       
-        M.attr('data-render',1);
-        render(canon);
-        
-        if(M.is(':hidden')){
-          M.modal('show');
-        }
-      });
-    });
-    
-    //Importa el orden con 'recalcular', se llama antes
-    M.find('form[data-js-recalcular] [data-js-empty-si-cambio]').change(function(e){
-      const tgt = $(e.currentTarget);
-      const contenedores = $(tgt.attr('data-js-empty-si-cambio'));
-      contenedores.empty();
-      M.attr('data-render',1);
-    });
-    
-    //No dejar poner '.' en los inputs numericos, si pone reemplazar por una ','. Esto es para homogeineizar el input
-    //Si pega texto no se puede hacer mucho porque habria que adivinar el formato
-    M.find('form[data-js-recalcular]').on('keydown','input:not([datajs-texto-no-formatear-numero])',function(e){
-      const es_punto = e.charCode || e.keyCode || 0;
-      if(es_punto == 190 || es_punto == 110){
-        const $this = $(this);
-        
-        const val   = $this.val();
-        const start = this.selectionStart;
-        const end   = this.selectionEnd;
-        $this.val(val.substr(0,start) + "," + val.substr(end));
-        
-        this.selectionStart = this.selectionEnd = start + 1;
-        return false;
-      }
-      return true;
-    });
-    
-    M.find('form[data-js-recalcular]').on('change','[name]',function(e){//@TODO: bindear directo
-      const tgt = $(e.currentTarget);
-      const form = tgt.closest('form[data-js-recalcular]');
-      
-      const visitados = new Set();
-      
-      const limpiarDependencias = function(name){
-        visitados.add(name);
-        form.find('[data-depende]').filter(function(_,dep_obj){
-          const dep = $(dep_obj);
-          const n = dep.attr('name');
-          const lista_nombres = dep.attr('data-depende').split(',');
-          return lista_nombres.includes(name) && !visitados.has(n);
-        })
-        .val('')
-        .each(function(_,dep_obj){
-          const dep = $(dep_obj);
-          const n = dep.attr('name');
-          limpiarDependencias(n);
-        });
-      };
-      
-      limpiarDependencias(tgt.attr('name'));
-            
-      form.trigger('recalcular');
-    });
-    
-    M.find('form[data-js-recalcular]').on('recalcular',function(e){
-      const form = $(e.currentTarget);
-      AUX.POST(form.attr('data-js-recalcular'),deformatearFormData(AUX.form_entries(form[0])),
-        function(data){
-          render(data);
-        },
-        function(data){
-          fillError(form,data.responseJSON ?? {});
-        }
-      );
-    });
-    
-    M.find('form[data-js-recalcular]').on('focus','select[readonly]',function(e){
-      const tgt = $(e.currentTarget);
-      const form  = tgt.closest('form[data-js-recalcular]');
-      let focusidx = null;
-      const focusables = form.find('[name]:visible,[tabindex]:visible');
-      focusables.each(function(fidx,f){
-        if(f == e.currentTarget){
-          focusidx = fidx;
-          return false;//Break
-        }
-      });
-      if(focusidx !== null && focusables.length > 1){
-        focusables.eq((focusidx+1)%focusables.length).focus();
-      }
-      else {
-        tgt.blur();
-      }
-    });
-    
-    M.find('form[data-js-recalcular]').on('keypress','a:focus',function(e){
-      if(e.which == 13){//Enter
-        $(e.currentTarget).click();
-      }
-    });
-    
-    M.find('form[data-js-recalcular]').on('mouseenter','[data-depende]',function(e){
-      $(e.currentTarget).attr('data-depende').split(',').forEach(function(name){
-        M.find('form[data-js-recalcular]').find(`[name="${name}"]`).addClass('mostrar_dependencia');
-      });
-    });
-    M.find('form[data-js-recalcular]').on('mouseleave','[data-depende]',function(e){
-      $(e.currentTarget).attr('data-depende').split(',').forEach(function(name){
-        M.find('form[data-js-recalcular]').find(`[name="${name}"]`).removeClass('mostrar_dependencia');
-      });
-    });
-    
-    M.find('form[data-js-recalcular]').on('click','[data-js-click-abrir-val-hermano]',function(e){
-      const tgt = $(e.currentTarget);
-      const sibling_val = tgt.siblings(tgt.attr('data-js-click-abrir-val-hermano')).val();
-      window.open(sibling_val,'_blank');
-    });
-    
-    M.find('form[data-js-recalcular]').on('click','[data-js-borrar-adjunto]',function(e){
-      const tgt = $(e.currentTarget);
-      tgt.closest('[data-adjunto]').remove();
-    });
-    
-    const agregarAdjunto = function(resolve=()=>{},reject=()=>{}){
-      const tgt = M.find('form[data-js-recalcular]').find('[data-js-agregar-adjunto]');
-      const pestaña = tgt.closest('[data-adjuntos]');
-      
-      let max_idx = -1;
-      pestaña.find('[data-js-contenedor] [data-adjunto]:visible').each(function(_,adj){
-        const idx = parseInt($(adj).attr('data-idx'));
-        if(isNaN(idx) || idx < 0){
-          throw `Error el indice "${idx}" tiene que ser un numero entero positivo o 0`;
-        }
-        max_idx = Math.max(max_idx,idx);
-      });
-      
-      const idx = max_idx+1;//Si no hay max_idx=-1 -> idx=0
-      const parent = tgt.closest('[data-adjunto]');
-      const descripcion_obj = parent.find('[data-descripcion]');
-      const archivo_obj = parent.find('[data-archivo]');
-      
-      const descripcion = parent.find('[data-descripcion]').val();
-      const archivo_dom_obj = parent.find('[data-archivo]')?.[0];
-      const archivo = archivo_dom_obj?.files?.[0];
-      
-      if(!archivo) return resolve();
-      
-      const fileReader = new FileReader();
-      fileReader.onloadend = function (e) {
-        const div = agregarDetallePestaña(pestaña,idx,idx);        
-        div.data('archivo',archivo);
-        
-        const file = new Blob([e.target.result], { type: archivo.type });
-        const fileURL = window.URL.createObjectURL(file);
-        
-        fill(
-          div,
-          'adjuntos['+idx+']',
-          {
-            descripcion: descripcion,
-            nombre_archivo: archivo.name,
-            id_archivo: null,
-            link: fileURL
-          }
-        );
-        
-        descripcion_obj.val('');
-        archivo_obj.val('');
-        
-        div.attr('data-idx',idx);
-        div.attr('data-nuevo-adjunto',true);
-        
-        resolve();
-      };
-      
-      fileReader.onerror = reject;
-      
-      fileReader.readAsArrayBuffer(archivo);
-    };
-    
-    M.find('form[data-js-recalcular]').find('[data-js-agregar-adjunto]').click(function(e){
-      agregarAdjunto();
-    });
-    
-    M.find('[data-js-enviar]').click(async function(e){
-      await new Promise(agregarAdjunto);//Agrego archivo si lo dejo seleccionado
-      
-      const tgt = $(e.currentTarget);
-      const url = tgt.attr('data-js-enviar');
-      const form = M.find('form[data-js-recalcular]');
-      const entries = deformatearFormData(AUX.form_entries(form?.[0]));
-      
-      M.find('[data-adjuntos] [data-js-contenedor] [data-adjunto]:visible').each(function(_,adj_obj){
-        const adj = $(adj_obj);
-        const idx = adj.attr('data-idx');
-        if(adj.data('archivo')){
-          entries[`adjuntos[${idx}][file]`] = adj.data('archivo')
-        }
-      });
-      
-      //@HACK @TODO: agregar funcionalidad a AUX para convertir objetos a FD
-      const newfd = new FormData();//Necesito FormData si voy a mandar sin procesar (porque mando archivos)
-      for(const k in entries){
-        newfd.append(k,entries[k]);
-      }
-      
-      AUX.POST(url,newfd,
-        function(data){
-          AUX.mensajeExito('Guardado');
-          M.modal('hide');
-          $('#pant_canon').find('[data-js-filtro-tabla]').trigger('buscar');
-        },
-        function(data){
-          AUX.mensajeError('');
-          fillError(form,data.responseJSON ?? {});
-        },
-        {
-          contentType: false,
-          processData: false,
-        }
-      );
-    });
-    
-    M.find('[data-js-agregar-pago]').click(function(e){
-      let max_idx = null;
-      M.find('[data-total] [data-pagos] [data-js-contenedor] [data-pago]').each(function(_,p_obj){
-        max_idx = Math.max(parseInt($(p_obj).attr('data-idx')),max_idx);
-      });
-      
-      const idx = max_idx === null? 0 : (max_idx+1);
-      const pago = agregarDetallePestaña(M.find('[data-total] [data-pagos]'),null,idx);
-      agregarInputsFormatear(pago.find('input[name]:not([data-js-texto-no-formatear-numero])'));
-      
-      M.find('form[data-js-recalcular]').trigger('recalcular');
-    });
-    
-    M.find('form[data-js-recalcular]').on('click','[data-js-borrar-pago]',function(e){
-      const tgt = $(e.currentTarget);
-      const pago = tgt.closest('[data-pago]');
-      borrarInputsFormatear(pago.find('input[name]:not([data-js-texto-no-formatear-numero])'));
-      pago.remove();
-      M.find('form[data-js-recalcular]').trigger('recalcular');
-    });
-    
-    M.find('form[data-js-recalcular]').on('change setearDevengar','[data-js-devengar]',function(e){
-      $(e.currentTarget)
-      .closest('[data-css-devengar]')
-      .attr('data-css-devengar',parseInt(e.currentTarget.value));
-    });
-  });
-    
   $('[data-js-tabs]').each(function(_,tab_group_obj){
     const tab_group = $(tab_group_obj);
     tab_group.find('[data-js-tab]').each(function(__,tobj){
@@ -602,8 +136,14 @@ $(document).ready(function() {
           });
         }
         
-        const popover_html = fila.find('[data-molde-popover]').clone().removeAttr('data-molde-popover')[0]?.outerHTML;
-        fila.find('[data-toggle="popover"]').attr('data-content',popover_html);
+        {
+          const popover_html = fila.find('[data-molde-popover="planillas"]').clone().removeAttr('data-molde-popover')[0]?.outerHTML;
+          fila.find('[data-toggle-popover="planillas"]').attr('data-content',popover_html);
+        }
+        {
+          const popover_html = fila.find('[data-molde-popover="acciones"]').clone().removeAttr('data-molde-popover')[0]?.outerHTML;
+          fila.find('[data-toggle-popover="acciones"]').attr('data-content',popover_html);
+        }
       });
       tbody.find('[data-js-borrar]').click(function(e){
         const tgt = $(e.currentTarget);
@@ -617,7 +157,7 @@ $(document).ready(function() {
           success: function(){pant.find('[data-js-filtro-tabla]').trigger('buscar');},
         }]);
       });
-      tbody.find('[data-toggle="popover"]').popover();
+      tbody.find('[data-toggle-popover]').popover();
     });
     
     pant.find('[data-js-enviar]').click(function(e){
@@ -676,14 +216,24 @@ $(document).ready(function() {
     $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-editar'),tgt.val(),'EDITAR']);
   });
   
+  $('#pant_canon').on('click','[data-js-ver]',function(e){//@TODO: bindear derecho
+    const tgt = $(e.currentTarget);
+    $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-ver'),tgt.val(),'VER']);
+  });
+  
   $('#pant_canon').on('click','[data-js-adjuntar]',function(e){//@TODO: bindear derecho
     const tgt = $(e.currentTarget);
     $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-adjuntar'),tgt.val(),'ADJUNTAR']);
   });
   
-  $('#pant_canon').on('click','[data-js-ver]',function(e){//@TODO: bindear derecho
+  $('#pant_canon').on('click','[data-js-ver-pagos]',function(e){//@TODO: bindear derecho
     const tgt = $(e.currentTarget);
-    $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-ver'),tgt.val(),'VER']);
+    $('[data-js-modal-ver-cargar-canon-pagos]').trigger('mostrar.modal',[tgt.attr('data-js-ver-pagos'),tgt.val(),'VER']);
+  });
+  
+  $('#pant_canon').on('click','[data-js-editar-pagos]',function(e){//@TODO: bindear derecho
+    const tgt = $(e.currentTarget);
+    $('[data-js-modal-ver-cargar-canon-pagos]').trigger('mostrar.modal',[tgt.attr('data-js-editar-pagos'),tgt.val(),'EDITAR']);
   });
   
   $('#pant_canon').on('click','[data-js-cambiar-estado]',function(e){//@TODO: bindear derecho
@@ -700,21 +250,6 @@ $(document).ready(function() {
         AUX.mensajeError(data?.mensaje ?? '');
       }
     }]);
-  });
-  
-  $('#pant_canon').on('click','[data-js-editar]',function(e){//@TODO: bindear derecho
-    const tgt = $(e.currentTarget);
-    $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-editar'),tgt.val(),'EDITAR']);
-  });
-  
-  $('#pant_canon').on('click','[data-js-adjuntar]',function(e){//@TODO: bindear derecho
-    const tgt = $(e.currentTarget);
-    $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-adjuntar'),tgt.val(),'ADJUNTAR']);
-  });
-  
-  $('#pant_canon').on('click','[data-js-ver]',function(e){//@TODO: bindear derecho
-    const tgt = $(e.currentTarget);
-    $('[data-js-modal-ver-cargar-canon]').trigger('mostrar.modal',[tgt.attr('data-js-ver'),tgt.val(),'VER']);
   });
   
   $('#pant_canon').on('click','[data-js-cambiar-estado]',function(e){//@TODO: bindear derecho
@@ -768,7 +303,457 @@ $(document).ready(function() {
   $('[data-js-filtro-tabla]').trigger('buscar');
 });
 
-$(function(e){ $('[data-js-modal-cambiar-estado]').each(function(){
+$(function(){  
+  $('[data-js-modal-ver-cargar-canon]').each(function(_,m_obj){
+    const M = $(m_obj);
+    
+    const agregarDetallePestaña = function(pestaña,titulo,replace_idx){
+      const div = pestaña.find('[data-js-molde]').clone();
+      const replace_str_tipo = div.attr('data-js-molde');
+      div.removeAttr('data-js-molde');
+      
+      div.find('[data-titulo]').text(titulo);
+      
+      div.find('[data-name]').each(function(_,nobj){
+        const n = $(nobj);
+        n.attr('name',n.attr('data-name').replaceAll(replace_str_tipo,replace_idx));
+      });
+      
+      div.find('[data-depende]').each(function(_,nobj){
+        const n = $(nobj);
+        n.attr('data-depende',n.attr('data-depende').replaceAll(replace_str_tipo,replace_idx));
+      });
+      
+      div.attr('data-idx',replace_idx);
+      
+      pestaña.find('[data-js-contenedor]').append(div);
+      
+      div.find('[data-js-fecha]').trigger('init.fecha');
+      
+      return div;
+    }
+           
+    const render = function(canon,mantener_historial = false){
+      const form = M.find('form');
+      const rerender = M.attr('data-render');
+      
+      ocultarErrorValidacion(form.find('[name]'));
+      
+      if((rerender ?? 1) == 0){
+        fill(M,null,canon);
+        M.trigger('setReadonly');
+        M.trigger('formatearCampos');
+        return;
+      }
+      
+      const llenarPestaña = function(pestaña,tipos_obj,mostrar_de_todos_modos = false){
+        pestaña.find('[data-js-contenedor]').empty();
+        let lleno = false;
+        for(const tipo in tipos_obj){
+          lleno = true;
+          agregarDetallePestaña(pestaña,tipo.toUpperCase(),tipo);
+        }
+        
+        //@HACK: no mostrar la pestaña si no tiene nada
+        M.find('[data-js-tabs] [data-js-tab]').filter(function(_,tab_obj){
+          return $($(tab_obj).attr('data-js-tab'))?.[0] == pestaña[0];
+        }).toggle(lleno || mostrar_de_todos_modos);
+        pestaña.toggle(lleno || mostrar_de_todos_modos);
+      }
+      
+      llenarPestaña(form.find('[data-canon-variable]'),canon?.canon_variable ?? {});
+      llenarPestaña(form.find('[data-canon-fijo-mesas]'),canon?.canon_fijo_mesas ?? {});
+      llenarPestaña(form.find('[data-canon-fijo-mesas-adicionales]'),canon?.canon_fijo_mesas_adicionales ?? {});
+      llenarPestaña(form.find('[data-adjuntos]'),canon?.adjuntos ?? {},true);
+      
+      fill(M,null,canon);
+      
+      //@HACK: si es un canon nuevo estos valores tienen que estar llenados para setReadonly/setVisible
+      M.find('[name="estado"]').val(canon?.estado ?? 'Nuevo');
+      M.find('[name="es_antiguo"]').val(canon?.es_antiguo ?? 0);
+      M.find('[name="id_casino"]').val(canon?.id_casino ?? '');
+      
+      M.trigger('setReadonly')
+      .trigger('setVisible')
+      .trigger('regenerarInputsFormatear')
+      .trigger('formatearCampos');
+      
+      (mantener_historial?
+         M.find('[data-js-select-historial]')
+       : M.find('[data-js-select-historial]').empty())
+       .append(
+        (canon?.historial ?? []).map(function(h,hidx){
+          const o = $('<option>');
+          o.val(h.id_canon);
+          o.text(h.usuario + ' - '+h.created_at);
+          o.data('canon',h);
+          return o;
+        })
+      );
+      
+      M.attr('data-render',0);
+      
+      M.find('[data-js-tabs] [data-js-tab]').filter(function(_,t_obj){
+        return $(t_obj).css('display') != 'none';
+      }).eq(0).click();
+      
+      M.find('[data-js-devengar]').trigger('setearDevengar');
+    };
+    
+    M.find('[data-js-select-historial]').change(function(e){
+      const tgt = $(e.currentTarget);
+      M.attr('data-render',1);
+      render(tgt.find('option:selected').data('canon'),true);
+    });
+    
+    M.find('form[data-js-recalcular]').on('recalculado',function(e,data){
+      render(data);
+    });
+    
+    M.find('form[data-js-recalcular]').on('recalculado-error',function(e,data){
+      fillError($(e.currentTarget).closest('form'),data);
+    });
+    
+    M.on('mostrar.modal',function(e,url,id_canon,modo){      
+      M.trigger('setModo',[modo]);
+      const form = M.find('form');
+      form.find('[name],[data-descripcion],[data-archivo]').val('');
+      AUX.GET(url,{id_canon: id_canon},function(canon){       
+        M.attr('data-render',1);
+        render(canon);
+        if(M.is(':hidden')){
+          M.modal('show');
+        }
+      });
+    });
+    
+    //Importa el orden con 'recalcular', se llama antes
+    M.find('[data-js-empty-si-cambio]').change(function(e){
+      const tgt = $(e.currentTarget);
+      const contenedores = $(tgt.attr('data-js-empty-si-cambio'));
+      contenedores.empty();
+      M.attr('data-render',1);
+    });
+    
+    M.find('form').on('click','[data-js-borrar-adjunto]',function(e){
+      const tgt = $(e.currentTarget);
+      tgt.closest('[data-adjunto]').remove();
+    });
+    
+    const agregarAdjunto = function(resolve=()=>{},reject=()=>{}){
+      const tgt = M.find('form').find('[data-js-agregar-adjunto]');
+      const pestaña = tgt.closest('[data-adjuntos]');
+      
+      let max_idx = -1;
+      pestaña.find('[data-js-contenedor] [data-adjunto]:visible').each(function(_,adj){
+        const idx = parseInt($(adj).attr('data-idx'));
+        if(isNaN(idx) || idx < 0){
+          throw `Error el indice "${idx}" tiene que ser un numero entero positivo o 0`;
+        }
+        max_idx = Math.max(max_idx,idx);
+      });
+      
+      const idx = max_idx+1;//Si no hay max_idx=-1 -> idx=0
+      const parent = tgt.closest('[data-adjunto]');
+      const descripcion_obj = parent.find('[data-descripcion]');
+      const archivo_obj = parent.find('[data-archivo]');
+      
+      const descripcion = parent.find('[data-descripcion]').val();
+      const archivo_dom_obj = parent.find('[data-archivo]')?.[0];
+      const archivo = archivo_dom_obj?.files?.[0];
+      
+      if(!archivo) return resolve();
+      
+      const fileReader = new FileReader();
+      fileReader.onloadend = function (e) {
+        const div = agregarDetallePestaña(pestaña,idx,idx);        
+        div.data('archivo',archivo);
+        
+        const file = new Blob([e.target.result], { type: archivo.type });
+        const fileURL = window.URL.createObjectURL(file);
+        
+        fill(
+          div,
+          'adjuntos['+idx+']',
+          {
+            descripcion: descripcion,
+            nombre_archivo: archivo.name,
+            id_archivo: null,
+            link: fileURL
+          }
+        );
+        
+        descripcion_obj.val('');
+        archivo_obj.val('');
+        
+        div.attr('data-idx',idx);
+        div.attr('data-nuevo-adjunto',true);
+        
+        resolve();
+      };
+      
+      fileReader.onerror = reject;
+      
+      fileReader.readAsArrayBuffer(archivo);
+    };
+    
+    M.find('form').find('[data-js-agregar-adjunto]').click(function(e){
+      agregarAdjunto();
+    });
+    
+    M.find('[data-js-enviar]').click(async function(e){
+      await new Promise(agregarAdjunto);//Agrego archivo si lo dejo seleccionado
+      
+      const tgt = $(e.currentTarget);
+      const url = tgt.attr('data-js-enviar');
+      const form = M.find('form');
+            
+      const aux = {};
+      M.trigger('deformatearFormData',[AUX.form_entries(form[0]),aux]);
+      const entries = aux.response;
+      
+      M.find('[data-adjuntos] [data-js-contenedor] [data-adjunto]:visible').each(function(_,adj_obj){
+        const adj = $(adj_obj);
+        const idx = adj.attr('data-idx');
+        if(adj.data('archivo')){
+          entries[`adjuntos[${idx}][file]`] = adj.data('archivo')
+        }
+      });
+      
+      //@HACK @TODO: agregar funcionalidad a AUX para convertir objetos a FD
+      const newfd = new FormData();//Necesito FormData si voy a mandar sin procesar (porque mando archivos)
+      for(const k in entries){
+        newfd.append(k,entries[k]);
+      }
+      
+      AUX.POST(url,newfd,
+        function(data){
+          AUX.mensajeExito('Guardado');
+          M.modal('hide');
+          $('#pant_canon').find('[data-js-filtro-tabla]').trigger('buscar');
+        },
+        function(data){
+          AUX.mensajeError('');
+          fillError(form,data.responseJSON ?? {});
+        },
+        {
+          contentType: false,
+          processData: false,
+        }
+      );
+    });
+    
+    M.find('form').on('change setearDevengar','[data-js-devengar]',function(e){
+      $(e.currentTarget)
+      .closest('[data-css-devengar]')
+      .attr('data-css-devengar',parseInt(e.currentTarget.value));
+    });
+  });
+});
+
+$(function(){ $('[data-js-modal-cambiar-estado]').each(function(){
+  const  M = $(this);
+  const $M = M.find.bind(M);
+  
+  let url = undefined;
+  let success = null;
+  let error = null;
+  let url_params = {};
+  
+  M.on('mostrar',function(e,params){
+    url = params.url;
+    if(typeof url == 'undefined') throw 'No se recibio una URL';
+    
+    success = params.success ?? function(data){};
+    error = params.error ?? function(data){console.log(data);};
+    url_params = params.url_params ?? {};
+    
+    $M('.mensaje').text(params.mensaje ?? '');
+    M.modal('show');
+  });
+
+  $M('[data-js-click-cambiar-estado]').click(function(){
+    AUX.GET(url,url_params,function(data){
+      M.modal('hide');
+      success(data);
+    },function(data){
+      error(data);
+    });
+  });
+})});
+
+$(function(){  
+  $('[data-js-modal-ver-cargar-canon-pagos]').each(function(_,m_obj){
+    const M = $(m_obj);
+    
+    const agregarDetallePestaña = function(pestaña,titulo,replace_idx){
+      const div = pestaña.find('[data-js-molde]').clone();
+      const replace_str_tipo = div.attr('data-js-molde');
+      div.removeAttr('data-js-molde');
+      
+      div.find('[data-titulo]').text(titulo);
+      
+      div.find('[data-name]').each(function(_,nobj){
+        const n = $(nobj);
+        n.attr('name',n.attr('data-name').replaceAll(replace_str_tipo,replace_idx));
+      });
+      
+      div.find('[data-depende]').each(function(_,nobj){
+        const n = $(nobj);
+        n.attr('data-depende',n.attr('data-depende').replaceAll(replace_str_tipo,replace_idx));
+      });
+      
+      div.attr('data-idx',replace_idx);
+      
+      pestaña.find('[data-js-contenedor]').append(div);
+      
+      div.find('[data-js-fecha]').trigger('init.fecha');
+      
+      return div;
+    }
+           
+    const render = function(canon,mantener_historial = false){
+      const form = M.find('form');
+      const rerender = M.attr('data-render');
+      
+      ocultarErrorValidacion(form.find('[name]'));
+      
+      if((rerender ?? 1) == 0){
+        fill(M,null,canon);
+        M.trigger('setReadonly')
+        .trigger('formatearCampos');
+        return;
+      }
+      
+      const llenarPestaña = function(pestaña,tipos_obj,mostrar_de_todos_modos = false){
+        pestaña.find('[data-js-contenedor]').empty();
+        let lleno = false;
+        for(const tipo in tipos_obj){
+          lleno = true;
+          agregarDetallePestaña(pestaña,tipo.toUpperCase(),tipo);
+        }
+        
+        //@HACK: no mostrar la pestaña si no tiene nada
+        M.find('[data-js-tabs] [data-js-tab]').filter(function(_,tab_obj){
+          return $($(tab_obj).attr('data-js-tab'))?.[0] == pestaña[0];
+        }).toggle(lleno || mostrar_de_todos_modos);
+        pestaña.toggle(lleno || mostrar_de_todos_modos);
+      }
+      
+      llenarPestaña(form.find('[data-canon-pagos]'),canon?.canon_pago ?? [],true);
+      
+      fill(M,null,canon);
+      
+      M.trigger('setReadonly')
+      .trigger('setVisible')
+      .trigger('regenerarInputsFormatear')
+      .trigger('formatearCampos');
+      
+      M.attr('data-render',0);
+      
+      (mantener_historial?
+         M.find('[data-js-select-historial]')
+       : M.find('[data-js-select-historial]').empty())
+       .append(
+        (canon?.historial ?? []).map(function(h,hidx){
+          const o = $('<option>');
+          o.val(h.id_canon);
+          o.text(h.usuario + ' - '+h.created_at);
+          o.data('canon',h);
+          return o;
+        })
+      );
+    };
+    
+    M.find('[data-js-select-historial]').change(function(e){
+      const tgt = $(e.currentTarget);
+      M.attr('data-render',1);
+      render(tgt.find('option:selected').data('canon'),true);
+    });
+    
+    M.find('form[data-js-recalcular]').on('recalculado',function(e,data){
+      render(data);
+    });
+    
+    M.find('form[data-js-recalcular]').on('recalculado-error',function(e,data){
+      fillError($(e.currentTarget).closest('form'),data);
+    });
+    
+    M.on('mostrar.modal',function(e,url,id_canon,modo){
+      M.trigger('setModo',[modo]);
+      const form = M.find('form');
+      form.find('[name],[data-descripcion],[data-archivo]').val('');
+      AUX.GET(url,{id_canon: id_canon},function(canon){       
+        M.attr('data-render',1);
+        render(canon);
+        
+        if(M.is(':hidden')){
+          M.modal('show');
+        }
+      });
+    });
+    
+    //Importa el orden con 'recalcular', se llama antes
+    M.find('form [data-js-empty-si-cambio]').change(function(e){
+      const tgt = $(e.currentTarget);
+      const contenedores = $(tgt.attr('data-js-empty-si-cambio'));
+      contenedores.empty();
+      M.attr('data-render',1);
+    });
+    
+    M.find('[data-js-click-submit-form]').click(function(e){
+      const o = e.currentTarget;
+      const select = $(o).attr('data-js-click-submit-form');
+      const $form = M.find(select);
+      
+      const aux = {};
+      M.trigger('deformatearFormData',[$form.length? AUX.form_entries($form[0]) : {},aux]);
+      const formData = aux.response;
+      
+      const ajax_params = JSON.parse($form.attr('data-ajax-params') ?? '{}') ?? {};
+      ocultarErrorValidacion(M.find('[name]'));
+      $.ajax({
+        type: $form.attr('method'),
+        url: $form.attr('action'),
+        data: formData,
+        ...ajax_params,
+        success: function (data) {
+          $('#pant_canon [data-js-filtro-tabla]').trigger('buscar');
+          AUX.mensajeExito(data?.mensaje ?? '');
+          $(o).closest('.modal').modal('hide');
+        },
+        error: function (data) {
+          const json = data.responseJSON ?? {};
+          AUX.mensajeError(json?.mensaje ?? '');
+          AUX.mostrarErroresNames($form,json);
+          console.log(data);
+        }
+      });
+    });
+    
+    M.find('[data-js-agregar-pago]').click(function(e){
+      let max_idx = null;
+      M.find('[data-canon-pagos] [data-js-contenedor] [data-pago]').each(function(_,p_obj){
+        max_idx = Math.max(parseInt($(p_obj).attr('data-idx')),max_idx);
+      });
+      
+      const idx = max_idx === null? 0 : (max_idx+1);
+      const pago = agregarDetallePestaña(M.find('[data-canon-pagos]'),null,idx);
+      M.trigger('regenerarInputsFormatear');
+      M.find('form[data-js-recalcular]').trigger('recalcular');
+    });
+    
+    M.find('form[data-js-recalcular]').on('click','[data-js-borrar-pago]',function(e){
+      const tgt = $(e.currentTarget);
+      const pago = tgt.closest('[data-pago]');
+      pago.remove();
+      M.attr('data-render',1);
+      M.find('form[data-js-recalcular]').trigger('recalcular');
+    });
+  });
+});
+
+$(function(){ $('[data-js-modal-cambiar-estado]').each(function(){
   const  M = $(this);
   const $M = M.find.bind(M);
   
@@ -800,8 +785,7 @@ $(function(e){ $('[data-js-modal-cambiar-estado]').each(function(){
   
 })});
 
-
-$(document).ready(function(){
+$(function(){
   $('#pant_operarios [data-js-nuevo]').click(function(e){
     const tgt = $(e.currentTarget);
     $('[data-js-modal-ver-cargar-operario]').trigger('mostrar.modal',[tgt.attr('data-js-nuevo'),tgt.val(),'NUEVO']);
@@ -872,8 +856,9 @@ $(document).ready(function(){
       });
     });
   });
-  
-  
+});
+
+$(function(){
   $('[data-js-modal-ver-cargar-operario]').each(function(){
     const  M = $(this);
     const $M = M.find.bind(M);
@@ -925,73 +910,18 @@ $(document).ready(function(){
           return o;
         })
       );
-    };
-    
-    const filterFunction = function(attr){
-      const check_params = {
-        modo: M.attr('data-modo')
-      };
-            
-      return function(_,r_obj){
-        let json_rdata = null;
-        try{
-          json_rdata = JSON.parse($(r_obj).attr(attr));
-        }
-        catch(error){
-          console.log(r_obj,json_rdata);
-          throw error;
-        }
-        
-        if(!Array.isArray(json_rdata)){
-          console.log(r_obj,json_rdata);
-          throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
-        }
-        for(const obj of json_rdata){
-          if(typeof obj !== 'object'){
-            console.log(r_obj,obj);
-            throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
-          }
-          for(const param in check_params){
-            const check_val = check_params[param];
-            const obj_val = obj[param] ?? undefined;
-            if(obj_val == '*' || obj_val === check_val) return true;
-          }
-        }
-        return false;
-      };
-    };
-        
-    const setReadonly = function(){
-      const setReadOnlyObj = function(state){
-        return function(_,r_obj){
-          const r = $(r_obj);
-          const f = r.children('[data-js-fecha]');
-          if(f.length){
-            f[0].readonly(state);  
-          }
-          else{
-            if(state){ r.attr('readonly',true);  }
-            else{      r.removeAttr('readonly'); }
-          }
-        };
-      }
       
-      M.find('[data-readonly]:not([data-js-fecha])')
-      .each(setReadOnlyObj(false))
-      .filter(filterFunction('data-readonly'))
-      .each(setReadOnlyObj(true));
-    }
+      M.trigger('regenerarInputsFormatear')
+      .trigger('formatearCampos');
+    };
     
-    const setVisible = function(){
-      M.find('[data-modo-mostrar]').hide().filter(filterFunction('data-modo-mostrar')).show();
-    }
-    
-    M.on('mostrar.modal',function(e,url,id_operario,modo){      
-      M.attr('data-modo',modo.toUpperCase());
+    M.on('mostrar.modal',function(e,url,id_operario,modo){
+      M.trigger('setModo',[modo]);
+      
       AUX.GET(url,{id_operario: id_operario},function(operario){
-        render(operario);          
-        setVisible();
-        setReadonly();
+        render(operario);
+        M.trigger('setVisible');
+        M.trigger('setReadonly');
         if(M.attr('data-modo') == 'NUEVO'){
           $M('[data-js-click-agregar-cuenta]').trigger('click');
         }
@@ -1003,11 +933,12 @@ $(document).ready(function(){
       const cidx = $M('[data-contenedor-cuentas] tr').length;
       agregar_fila_cuenta(cidx,{
         nombre: '',
-        dia_vencimiento: 10,
+        dia_vencimiento: '',
         fin_de_semana: 'Lunes Próximo',
-        interes_diario_simple: 0,
-        interes_mensual_compuesto: 0
+        interes_diario_simple: '',
+        interes_mensual_compuesto: ''
       });
+      M.trigger('regenerarInputsFormatear');
     });
     
     M.on('click','[data-js-click-borrar-tr]',function(){
@@ -1021,8 +952,11 @@ $(document).ready(function(){
       const o = e.currentTarget;
       const select = $(o).attr('data-js-click-submit-form');
       const $form = $M(select);
-      const form = $form?.[0] ?? undefined;
-      const formData = new FormData(form);
+      
+      const aux = {};
+      M.trigger('deformatearFormData',[$form.length? AUX.form_entries($form[0]) : {},aux]);
+      const formData = aux.response;
+      
       const ajax_params = JSON.parse($form.attr('data-ajax-params') ?? '{}') ?? {};
       ocultarErrorValidacion(M.find('[name]'));
       $.ajax({
@@ -1106,6 +1040,227 @@ $(document).ready(function(){
     M.find('[data-js-select-historial]').change(function(e){
       const tgt = $(e.currentTarget);
       render(tgt.find('option:selected').data('operario'),true);
+    });
+  });
+});
+
+$(function(){
+  $('[data-js-modal-canon-comportamiento-comun]').each(function(){
+    const  M = $(this);
+    const $M = M.find.bind(M);
+    
+    //Formatea correctamente los campos numericos
+    M.find('form').on('keydown','input:not([data-js-texto-no-formatear-numero])',function(e){
+      const es_punto = e.charCode || e.keyCode || 0;
+      if(es_punto == 190 || es_punto == 110){
+        const $this = $(this);
+        
+        const val   = $this.val();
+        const start = this.selectionStart;
+        const end   = this.selectionEnd;
+        $this.val(val.substr(0,start) + "," + val.substr(end));
+        
+        this.selectionStart = this.selectionEnd = start + 1;
+        return false;
+      }
+      return true;
+    });
+    
+    const filterFunction = function(attr){
+      const check_params = {
+        modo: M.attr('data-modo')
+      };
+      M.find('[data-check-param]').each(function(_,obj){
+        check_params[$(obj).attr('name')] = $(obj).val()?.toUpperCase();
+      });
+            
+      return function(_,r_obj){
+        let json_rdata = null;
+        try{
+          json_rdata = JSON.parse($(r_obj).attr(attr));
+        }
+        catch(error){
+          console.log(r_obj,json_rdata);
+          throw error;
+        }
+        
+        if(!Array.isArray(json_rdata)){
+          console.log(r_obj,json_rdata);
+          throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
+        }
+        for(const obj of json_rdata){
+          if(typeof obj !== 'object'){
+            console.log(r_obj,obj);
+            throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
+          }
+          for(const param in check_params){
+            const check_val = check_params[param];
+            const obj_val = obj[param] ?? undefined;
+            if(obj_val == '*' || obj_val === check_val) return true;
+          }
+        }
+        return false;
+      };
+    };
+        
+    const setReadonly = function(){
+      const setReadOnlyObj = function(state){
+        return function(_,r_obj){
+          const r = $(r_obj);
+          const f = r.children('[data-js-fecha]');
+          if(f.length){
+            f[0].readonly(state);  
+          }
+          else{
+            if(state){ r.attr('readonly',true);  }
+            else{      r.removeAttr('readonly'); }
+          }
+        };
+      }
+      
+      M.find('[data-readonly]:not([data-js-fecha])')
+      .each(setReadOnlyObj(false))
+      .filter(filterFunction('data-readonly'))
+      .each(setReadOnlyObj(true));
+    }
+    
+    const setVisible = function(){
+      M.find('[data-modo-mostrar]').hide().filter(filterFunction('data-modo-mostrar')).show();
+    }
+    
+    M.on('setModo',function(e,modo){
+      M.attr('data-modo',modo.toUpperCase());
+    });
+    
+    M.on('setVisible',setVisible);
+    M.on('setReadonly',setReadonly);
+        
+    let inputs_a_formatear = {};
+    //Agrega todos los inputs para des/formatear
+    M.on('regenerarInputsFormatear',function(e){
+      inputs_a_formatear = {};
+      const inpts = M.find('input[name]:not([data-js-texto-no-formatear-numero])')
+      inpts.each(function(_,iobj){
+        inputs_a_formatear[iobj.getAttribute('name')] = $(iobj);
+      });
+    });
+    M.on('formatearCampos',function(e,inpts = null){//Saca los 0 de sobra a la derecha
+      //Para verlos en debug usar algo tipo .css('color','red');
+      for(const name in inputs_a_formatear){
+        const i = inputs_a_formatear[name];
+        if(i.is('[data-js-formatear-año-mes]')){
+          i.val(i.val().substr(0,'YYYY-MM'.length));
+        }
+        else{
+          i.val(formatter(i.val()));
+        }
+      }
+    });
+    M.on('deformatearFormData',async function(e,obj,responseobj){
+      const ret = {};
+      for(const k in obj){
+        let val = obj[k];
+        if(k in inputs_a_formatear){
+          const i = inputs_a_formatear[k];
+          if(i.is('[data-js-formatear-año-mes]')){
+            val = val+'-01';
+          }
+          else{
+            val = deformatter(val);
+          }
+        }
+        ret[k] = val;
+      }
+      responseobj.response = ret;
+    });
+    
+    //Limpia valores dependientes ANTES de recalcular
+    M.find('form').on('change','[name]',function(e){//@TODO: bindear directo
+      const tgt = $(e.currentTarget);
+      const form = tgt.closest('form');
+      
+      const visitados = new Set();
+      
+      const limpiarDependencias = function(name){
+        visitados.add(name);
+        form.find('[data-depende]').filter(function(_,dep_obj){
+          const dep = $(dep_obj);
+          const n = dep.attr('name');
+          const lista_nombres = dep.attr('data-depende').split(',');
+          return lista_nombres.includes(name) && !visitados.has(n);
+        })
+        .val('')
+        .each(function(_,dep_obj){
+          const dep = $(dep_obj);
+          const n = dep.attr('name');
+          limpiarDependencias(n);
+        });
+      };
+      
+      limpiarDependencias(tgt.attr('name'));
+    });
+    
+    M.find('form[data-js-recalcular]').on('change','[name]',function(e){
+      $(e.currentTarget).closest('form[data-js-recalcular]').trigger('recalcular');
+    });
+    
+    M.find('form[data-js-recalcular]').on('recalcular',function(e){
+      const form = $(e.currentTarget);
+      const aux = {};
+      M.trigger('deformatearFormData',[AUX.form_entries(form[0]),aux]);
+      const fd = aux.response;
+      
+      AUX.POST(form.attr('data-js-recalcular'),fd,
+        function(data){
+          form.trigger('recalculado',data);
+        },
+        function(data){
+          form.trigger('recalculado-error',data?.responseJSON ?? {});
+        }
+      );
+    });
+    
+    //No permite cambiar el valor de un select con Tab y flechas
+    M.find('form').on('focus','select[readonly],input[type="color"]',function(e){
+      const tgt = $(e.currentTarget);
+      const form  = tgt.closest('form');
+      let focusidx = null;
+      const focusables = form.find('[name]:visible,[tabindex]:visible');
+      focusables.each(function(fidx,f){
+        if(f == e.currentTarget){
+          focusidx = fidx;
+          return false;//Break
+        }
+      });
+      if(focusidx !== null && focusables.length > 1){
+        focusables.eq((focusidx+1)%focusables.length).focus();
+      }
+      else {
+        tgt.blur();
+      }
+    });
+    //Enter con un link focuseado
+    M.find('form').on('keypress','a:focus',function(e){
+      if(e.which == 13){//Enter
+        $(e.currentTarget).click();
+      }
+    });
+    //Mostrar dependencia al hovear
+    M.find('form').on('mouseenter','[data-depende]',function(e){
+      $(e.currentTarget).attr('data-depende').split(',').forEach(function(name){
+        M.find('form').find(`[name="${name}"]`).addClass('mostrar_dependencia');
+      });
+    });
+    M.find('form').on('mouseleave','[data-depende]',function(e){
+      $(e.currentTarget).attr('data-depende').split(',').forEach(function(name){
+        M.find('form').find(`[name="${name}"]`).removeClass('mostrar_dependencia');
+      });
+    });
+    //Abrir link de hermano
+    M.find('form').on('click','[data-js-click-abrir-val-hermano]',function(e){
+      const tgt = $(e.currentTarget);
+      const sibling_val = tgt.siblings(tgt.attr('data-js-click-abrir-val-hermano')).val();
+      window.open(sibling_val,'_blank');
     });
   });
 });
