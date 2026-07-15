@@ -1674,14 +1674,14 @@ Route::group(['prefix' => 'canon', 'middleware' => 'tiene_permiso:m_ver_seccion_
   });
   
   Route::group(['middleware' => 'tiene_permiso:m_b_pagos'],function () {
-    Route::post('/descargar', '\App\Http\Controllers\CanonController@descargar');
-    Route::get('/descargarPlanillas', '\App\Http\Controllers\CanonController@descargarPlanillas');
+    Route::post('/descargar', '\App\Http\Controllers\CanonInformeController@descargar');
+    Route::get('/descargarPlanillas', '\App\Http\Controllers\CanonInformeController@descargarPlanillas');
     Route::get('/obtener', '\App\Http\Controllers\CanonController@obtener');
-    Route::get('/planillaPDF', '\App\Http\Controllers\CanonController@planillaPDF');
-    Route::get('/planillaDevengado', '\App\Http\Controllers\CanonController@planillaDevengado');
-    Route::get('/planillaDeterminado', '\App\Http\Controllers\CanonController@planillaDeterminado');
-    Route::get('/planillaInformeCanon', '\App\Http\Controllers\CanonController@planillaInformeCanon');
-    Route::get('/planillaInformeCanonPDF', '\App\Http\Controllers\CanonController@planillaInformeCanonPDF');
+    Route::get('/planillaPDF', '\App\Http\Controllers\CanonInformeController@planillaPDF');
+    Route::get('/planillaDevengado', '\App\Http\Controllers\CanonInformeController@planillaDevengado');
+    Route::get('/planillaDeterminado', '\App\Http\Controllers\CanonInformeController@planillaDeterminado');
+    Route::get('/planillaInformeCanon', '\App\Http\Controllers\CanonInformeController@planillaInformeCanon');
+    Route::get('/planillaInformeCanonPDF', '\App\Http\Controllers\CanonInformeController@planillaInformeCanonPDF');
     Route::get('/archivo', '\App\Http\Controllers\CanonController@archivo');
     Route::get('/obtenerConHistorial', '\App\Http\Controllers\CanonController@obtenerConHistorial');
     

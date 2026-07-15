@@ -494,7 +494,7 @@ class CanonPagoController extends Controller
     
     //Esto le genera un pago si no tiene      
     $datos = $this->recalcular($this->obtener_arr(['id_canon' => $c->id_canon]));
-    if(count($datos['canon_pago']) == 0){
+    if(count($datos['canon_pago'] ?? []) == 0){
       throw new \Exception('No puede haber canon sin pago asociado');
     }
     foreach($datos['canon_pago'] as $idx => $d){
