@@ -578,7 +578,7 @@
         <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-canon-fijo-mesas-adicionales]" tabindex="0">Canon Fijo - Mesas Adicionales</a>
       </div>
       <div>
-        <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-adjuntos]" tabindex="0">Adjuntos</a>
+        <a data-js-tab="[data-js-modal-ver-cargar-canon] [data-canon-archivo]" tabindex="0">Adjuntos</a>
       </div>
     </div>
     <div class="datos_numericos" style="height: 70vh;overflow-y: scroll;">
@@ -1168,7 +1168,7 @@
           </div>
         </div>
       </div>
-      <div class="pestaña" data-adjuntos>
+      <div class="pestaña" data-canon-archivo>
         <div class="bloque_interno">
           <div class="grid_fila_adjunto" style="width: 100%;">
             <div class="grid_descripcion">
@@ -1183,21 +1183,21 @@
           </div>
           <div style="width: 100%;" data-js-contenedor>
           </div>
-          <div class="grid_fila_adjunto" style="width: 100%;" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"},{"modo": "ADJUNTAR"}]' data-adjunto>
+          <div class="grid_fila_adjunto" style="width: 100%;" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"},{"modo": "ADJUNTAR"}]' data-archivo>
             <div class="grid_descripcion">
               <input data-js-texto-no-formatear-numero class="form-control" placeholder="DESCRIPCIÓN" style="text-align: left;" data-descripcion>
             </div>
             <div class="grid_nombre_archivo">
-              <input data-js-texto-no-formatear-numero class="form-control" type="file" style="text-align: center;" data-archivo>
+              <input data-js-texto-no-formatear-numero class="form-control" type="file" style="text-align: center;" data-file>
             </div>
             <div class="grid_boton">
-              <button class="btn" type="button" data-js-agregar-adjunto data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"},{"modo": "ADJUNTAR"}]'><i class="fa fa-plus"></i></button>
+              <button class="btn" type="button" data-js-agregar-archivo data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"},{"modo": "ADJUNTAR"}]'><i class="fa fa-plus"></i></button>
             </div>
           </div>
           <?php
             $molde_str = '$adj';
             $n = function($s) use (&$id_casino,&$t,&$molde_str){
-              return "adjuntos[$molde_str][$s]";
+              return "canon_archivo[$molde_str][$s]";
             };
             $descripcion = $n('descripcion');
             $nombre_archivo = $n('nombre_archivo');
@@ -1205,7 +1205,7 @@
             $archivo = $n('archivo');
             $link = $n('link');
           ?>
-          <div style="width: 100%;" data-js-molde="{{$molde_str}}" data-adjunto>
+          <div style="width: 100%;" data-js-molde="{{$molde_str}}" data-archivo>
             <div class="grid_fila_adjunto" style="width: 100%;">
               <div class="grid_descripcion">
                 <input data-js-texto-no-formatear-numero style="width: 100%;text-align: left;" class="form-control" data-name="{{$descripcion}}" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
@@ -1218,7 +1218,7 @@
                 <input data-js-texto-no-formatear-numero style="flex: 1;" class="form-control" data-name="{{$id_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{"modo":"*"}]'>
               </div>
               <div class="grid_boton">
-                <button class="btn" type="button" data-js-borrar-adjunto data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'><i class="fa fa-fw fa-trash-alt"></i></button>
+                <button class="btn" type="button" data-js-borrar-archivo data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'><i class="fa fa-fw fa-trash-alt"></i></button>
               </div>
             </div>
           </div>

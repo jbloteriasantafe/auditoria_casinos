@@ -220,6 +220,28 @@ function bcclamp($x,$min,$max,$scale){
   return bcmin(bcmax($x,$min,$scale),$max,$scale);
 }
 
+function bc_formatear_decimal(string $val) : string {//number_format castea a float... lo hacemos a pata...
+  $negativo = ($val[0] ?? false) == '-'? '-' : '';
+  $val = strlen($negativo)? substr($val,1) : $val;
+  
+  $parts   = explode('.',$val);
+  $entero  = $parts[0] ?? '';
+  $decimal = $parts[1] ?? null;
+  $entero_separado = [];
+  for($i=0;$i<strlen($entero);$i++){
+    $bucket = intdiv($i,3);
+    if($i%3 == 0) $entero_separado[$bucket] = '';
+    $entero_separado[$bucket] = $entero[strlen($entero)-1-$i] . $entero_separado[$bucket];
+  }
+
+  $newval = implode('.',array_reverse($entero_separado));
+  $decimal = is_null($decimal)? null : rtrim($decimal,'0');
+  if(!is_null($decimal) && strlen($decimal) > 0){
+    $newval .= ','.$decimal;
+  }
+  return $negativo.$newval;
+}
+
 if(defined('BC_EXTENDIDO_TEST')){
 foreach([
     ['19.501','CEIL','19.51'],

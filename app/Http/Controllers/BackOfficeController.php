@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Validator;
 
+require_once(app_path('BC_extendido.php'));
+
 class BackOfficeController extends Controller {
   //Por algun motivo, las vistas pueden ser exponencialmente mas lentas que una
   //query directa, por eso no queryiero una vista sino una raw query
@@ -666,9 +668,9 @@ class BackOfficeController extends Controller {
       case 'integer':
         return intval($val);
       case 'numeric':
-        return CanonController::formatear_decimal($val);
+        return bc_formatear_decimal($val);
       case 'numeric3d':
-        return CanonController::formatear_decimal($val);
+        return bc_formatear_decimal($val);
     }
     return $val;
   }

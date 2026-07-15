@@ -37,135 +37,77 @@ class CanonInformeController extends Controller
     self::$instance = self::$instance ?? (new self()); 
     return self::$instance;
   }
-  
-  public static function formatear_decimal(string $val) : string {//number_format castea a float... lo hacemos a pata...
-    $negativo = ($val[0] ?? false) == '-'? '-' : '';
-    $val = strlen($negativo)? substr($val,1) : $val;
     
-    $parts   = explode('.',$val);
-    $entero  = $parts[0] ?? '';
-    $decimal = $parts[1] ?? null;
-    $entero_separado = [];
-    for($i=0;$i<strlen($entero);$i++){
-      $bucket = intdiv($i,3);
-      if($i%3 == 0) $entero_separado[$bucket] = '';
-      $entero_separado[$bucket] = $entero[strlen($entero)-1-$i] . $entero_separado[$bucket];
-    }
-
-    $newval = implode('.',array_reverse($entero_separado));
-    $decimal = is_null($decimal)? null : rtrim($decimal,'0');
-    if(!is_null($decimal) && strlen($decimal) > 0){
-      $newval .= ','.$decimal;
-    }
-    return $negativo.$newval;
-  }
-  
-  private $u = null;
-  private $CC = null;
-  private $CP = null;
-  public function __construct(){
+  private $u   = null;
+  private $CC  = null;
+  private $CP  = null;
+  private $CVD = null;
+  public function __construct(){   
+    self::$instance = $this; 
+    $this->CC = CanonController::getInstancia();
+    $this->CP = CanonPagoController::getInstancia();
+    $this->CVD = CanonValorPorDefectoController::getInstancia();
     $this->middleware(function ($request, $next) {
       $this->u = UsuarioController::getInstancia()->quienSoy()['usuario'];
-      $this->CC = CanonController::getInstancia();
-      $this->CP = CanonPagoController::getInstancia();
       return $next($request);
     });
   }
   
   private function obtener_para_salida($id_canon,$formatear_decimal = true){
     $data = $this->CC->obtener_arr(compact('id_canon'),false);
-    $ret = [];
     
-    $ret['canon'] = [];
-    foreach(['id_canon','id_casino','created_at','created_id_usuario','deleted_at','deleted_id_usuario','usuario','es_antiguo'] as $k){
+    foreach(['id_canon','id_canon_variable','id_canon_fijo_mesas','id_canon_fijo_mesas_adicionales','id_archivo','id_canon_pago','id_casino','created_at','created_id_usuario','deleted_at','deleted_id_usuario','usuario','es_antiguo'] as $k){
       unset($data[$k]);
+      foreach(['canon','canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales','canon_archivo','canon_pago'] as $arrk){
+        foreach(($data[$arrk] ?? []) as $tipo => $_){
+          unset($data[$arrk][$tipo][$k]);
+        }
+      }
     }
+    
+    $data['canon'] = [[]];
     foreach($data as $k => $v){
-      if(!is_array($v)){
-        $ret['canon'][$k] = $v;
-      }
-    }
-    $ret['canon'] = [$ret['canon']];
-    
-    foreach(['id_canon_variable','id_canon'] as $k){
-      foreach(($data['canon_variable'] ?? []) as $tipo => $_){
-        unset($data['canon_variable'][$tipo][$k]);
-      }
-    }
-    $ret['canon_variable'] = array_values($data['canon_variable'] ?? []);
-    
-    foreach(['id_canon_fijo_mesas','id_canon'] as $k){
-      foreach(($data['canon_fijo_mesas'] ?? []) as $tipo => $_){
-        unset($data['canon_fijo_mesas'][$tipo][$k]);
-      }
-    }
-    $ret['canon_fijo_mesas'] = array_values($data['canon_fijo_mesas'] ?? []);
-    
-    foreach(['id_canon_fijo_mesas_adicionales','id_canon'] as $k){
-      foreach(($data['canon_fijo_mesas_adicionales'] ?? []) as $tipo => $_){
-        unset($data['canon_fijo_mesas_adicionales'][$tipo][$k]);
-      }
-    }
-    $ret['canon_fijo_mesas_adicionales'] = array_values($data['canon_fijo_mesas_adicionales'] ?? []);
-    
-    foreach(['id_archivo','id_canon'] as $k){
-      foreach(($data['adjuntos'] ?? []) as $tipo => $_){
-        unset($data['adjuntos'][$tipo][$k]);
-      }
-    }
-    $ret['adjuntos'] = array_values($data['adjuntos'] ?? []);
-    
-    //@HACK: revisar
-    $ret['canon_pago'] = $this->CP->obtener_arr(
-      compact('id_canon'),
-      false
-    )['canon_pago'] ?? [];
-    foreach(['id_canon_pago','id_canon'] as $k){
-      foreach(($data['canon_pago'] ?? []) as $tipo => $_){
-        unset($data['canon_pago'][$tipo][$k]);
-      }
-    }
-    
-    foreach($ret as $k => $d){
-      if(count($d) == 0) unset($ret[$k]);
+      if(is_array($v)) continue;
+      $data['canon'][0][$k] = $v;
+      unset($data[$k]);
     }
     
     //@HACK: Solo para MySQl, lo hago así porque se elimino una dependencia con Doctrine... no quiero tocar el composer.json
     $types = DB::table(DB::raw('INFORMATION_SCHEMA.COLUMNS'))
     ->selectRaw("table_name as 'table', column_name as col, data_type as type")
-    ->whereIn('table_name',array_keys($ret))
+    ->whereIn('table_name',array_keys($data))
     ->get()->groupBy('table')->map(function($tcols){
       return $tcols->keyBy('col')->map(function($T){
         return $T->type;
       });
     });
-    
-    foreach($ret as $tabla => $d){
-      foreach($d as $rowidx => $row){
-        foreach($row as $col => $val){
+        
+    foreach($data as $tabla => $d){
+      foreach($d as $tipo => $vals){
+        foreach($vals as $col => $val){
           switch($types[$tabla][$col] ?? null){
             case 'smallint':
             case 'integer':
             case 'int':
             case 'decimal': if($formatear_decimal){
-              $ret[$tabla][$rowidx][$col] = self::formatear_decimal((string)$val);//number_format castea a float... lo hacemos a pata...
+              $data[$tabla][$tipo][$col] = bc_formatear_decimal((string)$val);//number_format castea a float... lo hacemos a pata...
             }break;
             
             case 'bool':
             case 'boolean':
             case 'tinyint':{
-              $ret[$tabla][$rowidx][$col] = intval($val)? 'SÍ' : 'NO';
+              $data[$tabla][$tipo][$col] = intval($val)? 'SÍ' : 'NO';
             }break;
             
             default:{
-              $ret[$tabla][$rowidx][$col] = trim($val);
+              $data[$tabla][$tipo][$col] = trim($val);
             }break;
           }
         }
       }
     }
     
-    return $ret;
+    return $data;
   }
   
   public function planillaPDF(Request $request){
@@ -401,7 +343,7 @@ class CanonInformeController extends Controller
         $ret = ['beneficio' => null,'bruto' => null,'deduccion' => null,'devengado' => null,'determinado' => null];
         foreach($ret as $k => &$v){
           $v = $obj->{$k} ?? null;
-          $v = $v === null? null : self::formatear_decimal($v);
+          $v = $v === null? null : bc_formatear_decimal($v);
         }
         return $ret;
       });

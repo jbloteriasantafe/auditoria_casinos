@@ -46,7 +46,7 @@ td.bbottom , th.bbottom {
 <?php 
 $columnas = count($casinos);
 $D = function($n){
-  return \App\Http\Controllers\CanonController::formatear_decimal($n);
+  return bc_formatear_decimal($n);
 };
 ?>
 

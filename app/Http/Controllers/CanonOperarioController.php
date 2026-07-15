@@ -14,11 +14,10 @@ class CanonOperarioController extends Controller
     return self::$instance;
   }
   
+  private $CV = null;
   public function __construct(){
-    $this->middleware(function ($request, $next) {
-      $this->up();
-      return $next($request);
-    });
+    self::$instance = $this;
+    $this->CV = CanonValorPorDefectoController::getInstancia();
   }
   
   public function down(){
@@ -73,7 +72,7 @@ class CanonOperarioController extends Controller
   public function llenado_inicial(){
     return DB::transaction(function(){
       $this->up();
-      $operarios = CanonController::getInstancia()->valorPorDefecto('operarios_iniciales');
+      $operarios = $this->CV->get('operarios_iniciales');
       $created_at = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
       $created_by = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       $ret = [];

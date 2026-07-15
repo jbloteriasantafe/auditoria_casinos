@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Validator;
+use App\Casino;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UsuarioController;
@@ -21,8 +22,11 @@ class CanonPagoController extends Controller
   
   private $u = null;
   private $CC = null;
+  private $CV = null;
   public function __construct(){
+    self::$instance = $this;
     $this->CC = CanonController::getInstancia();
+    $this->CV = CanonValorPorDefectoController::getInstancia();
     $this->middleware(function ($request, $next) {
       $this->u = UsuarioController::getInstancia()->quienSoy()['usuario'];
       return $next($request);
@@ -129,7 +133,7 @@ class CanonPagoController extends Controller
     
     $a_pagar = $principal;//@RETORNADO
     $pago = '0';//@RETORNADO
-    $canon_pago_defecto = (CanonController::getInstancia()->valorPorDefecto('canon_pago') ?? [])[$id_casino] ?? [];
+    $canon_pago_defecto = ($this->CV->get('canon_pago') ?? [])[$id_casino] ?? [];
     
     $PAG = [
       'interes_provincial_diario_simple' => $R(

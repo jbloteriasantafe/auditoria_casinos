@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <?php
   $valor_vacio = '-';
-  $FD = \App\Http\Controllers\CanonController::class;
-  $formatear_decimal = function($attr) use ($valor_vacio,$FD){
-    return $attr === null? $valor_vacio : $FD::formatear_decimal($attr);
+  $formatear_decimal = function($attr) use ($valor_vacio){
+    return $attr === null? $valor_vacio : bc_formatear_decimal($attr);
   };
   $N = function($attr){
     return (($attr[0] ?? null) == '-' && strlen($attr) > 1)? 'negativo' : '';

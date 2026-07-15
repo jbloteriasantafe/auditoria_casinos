@@ -50,6 +50,17 @@ class CanonAgrupamientoController extends Controller
     return self::$instance;
   }
   
+  private $u = null;
+  private $CVD = null;
+  public function __construct(){
+    self::$instance = $this;
+    $this->CVD = CanonValorPorDefectoController::getInstancia();
+    $this->middleware(function ($request, $next) {
+      $this->u = UsuarioController::getInstancia()->quienSoy()['usuario'];
+      return $next($request);
+    });
+  }
+  
   public function down(){
     DB::unprepared("DROP FUNCTION IF EXISTS canon_bankers_round_2digits");
     DB::unprepared("DROP FUNCTION IF EXISTS canon_agrupamiento_hash");
@@ -386,7 +397,7 @@ class CanonAgrupamientoController extends Controller
     ", [$año_mes, $año_mes]);
   }
   
-  public function recalcular(string $año_mes){
+  private function recalcular(string $año_mes){
     DB::table('canon_agrupamiento')
     ->where('año_mes',$año_mes)
     ->delete();
@@ -595,5 +606,50 @@ class CanonAgrupamientoController extends Controller
     }
     
     return $agrupamientos_detallados;
+  }
+  
+  public function recalcular_agrupamiento(string $año_mes){
+    return $this->recalcular_agrupamientos([$año_mes],false);
+  }
+  
+  public function agrupamientos_detallados_req(){//Para debugear desde el navegador
+    return $this->agrupamientos_detallados(
+      $this->CVD->get('agrupamientos') ?? []
+    );
+  }
+  
+  public function recalcular_agrupamientos_req(){
+    return DB::transaction(function(){
+      $año_meses = DB::table('canon')
+      ->select('año_mes')->distinct()
+      ->whereNull('deleted_at')
+      ->get()->pluck('año_mes')->toArray();
+      $this->down();
+      $this->up();
+      $agrupamientos_detallados = $this->agrupamientos_detallados($this->CVD->get('agrupamientos') ?? []);
+      $this->guardarAgrupamientos($agrupamientos_detallados);
+      return $this->recalcular_agrupamientos($año_meses,true);
+    });
+  }
+  
+  public function recalcular_agrupamientos(array $año_meses,bool $stream_progress){
+    if($stream_progress){
+      return response()->stream(function() use ($año_meses){        
+        foreach($año_meses as $idx => $am){
+          $this->recalcular($am);
+          echo '<p>'.($am.' | '.round(($idx+1.0)/count($año_meses)*100,2).'%').'</p>';
+          ob_flush();
+          flush();
+        }
+      }, 200, [
+        'X-Accel-Buffering' => 'no', // Prevents Nginx from buffering the output
+      ]);
+    }
+    else{
+      foreach($año_meses as $idx => $am){
+        $this->recalcular($am);
+      }
+      return $año_meses;
+    }
   }
 }
