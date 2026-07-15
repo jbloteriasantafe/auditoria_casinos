@@ -80,16 +80,16 @@ $.fn.generarTitulo = function(current_page,page_size,total_results,funcion){
                                     $pag.css('border','1px solid red');
                                   }else{
                                         var size = $(e.currentTarget).val();
-                                        var page = (size*(element.find('#pag').val() - 1) < total_results) ? parseInt(element.find('#pag').val()) : 1;
+                                        var page = (size*($pag.val() - 1) < total_results) ? parseInt($pag.val()) : 1;
                                         funcion(e,page,size);
                                     }
                                 })
                       )
                 );
 
-            $('.number-spinner-paginacion button').on('click', function (e) {
+            element.find('.number-spinner-paginacion button').on('click', function (e) {
                 e.preventDefault();
-                $('#pag').css('border','1px solid #bbb');
+                element.find('#pag-' + element.attr('id')).css('border','1px solid #bbb');
 
                 var btn = $(this);
                 var oldValue = btn.closest('.number-spinner-paginacion').find('input').val().trim();
@@ -120,7 +120,7 @@ $.fn.generarTitulo = function(current_page,page_size,total_results,funcion){
             element.find('#pag-' + element.attr('id')).on("keypress", function(e){
                 if(e.which == 13 && ($(this).val()<1 || $(this).val()>total_pages) ) {
                   e.preventDefault();
-                  $('#pag').css('border','1px solid red');
+                  $(this).css('border','1px solid red');
                 }
             });
     }

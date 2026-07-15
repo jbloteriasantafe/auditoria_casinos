@@ -17958,10 +17958,39 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
       $doc = $clase::find($id);
       if(!$doc) return response()->json(['success' => false, 'msg' => 'Documento no encontrado'], 404);
 
+      // No se permite validar un documento con campos de datos sin completar.
+      // Un campo en 0 cuenta como cargado; solo NULL/vacío se considera incompleto. No influye el archivo adjunto.
+      if((int)$validar === 1 && $this->documentoTieneCamposIncompletos($tipo, $doc)){
+          return response()->json(['success' => false, 'msg' => 'No se puede validar: el documento tiene campos sin completar.'], 422);
+      }
+
       $doc->valido = $validar;
       $doc->save();
 
       return response()->json(['success' => true]);
+  }
+
+  // Devuelve true si al registro le falta cargar algún campo de datos (NULL). 0 no cuenta como faltante.
+  private function documentoTieneCamposIncompletos($tipo, $doc){
+      // Público Casino: solo cuentan los días reales del mes (los días sobrantes quedan NULL de forma legítima).
+      if($tipo === 'publico_casino'){
+          $diasDelMes = (int)date('t', strtotime($doc->fecha_mes));
+          for($i = 1; $i <= $diasDelMes; $i++){
+              if($doc->{'dia_'.$i} === null) return true;
+          }
+          return false;
+      }
+
+      // Regla genérica: cualquier columna de datos en NULL => incompleto.
+      // Se excluyen columnas "meta" que no son datos que carga el usuario.
+      $meta = [$doc->getKeyName(), 'casino', 'usuario', 'valido', 'archivo', 'path',
+               'observacion', 'observaciones', 'obs', 'created_at', 'updated_at'];
+      foreach($doc->getAttributes() as $col => $val){
+          if(in_array($col, $meta, true)) continue;
+          if(strpos($col, 'fecha') === 0 || strpos($col, 'periodo') === 0) continue; // fecha_*, periodo_*
+          if($val === null) return true;
+      }
+      return false;
   }
 
     public function obtenerDocumentosValidados(Request $request) {
@@ -17973,16 +18002,23 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
             return response()->json(['success' => false, 'msg' => 'Faltan parámetros'], 400);
         }
 
+        $user = Usuario::find(session('id_usuario'));
+        $allowedCasinoIds = $user->casinos->pluck('id_casino')->toArray();
+        if(!in_array((int)$id_casino, array_map('intval', $allowedCasinoIds))){
+            return response()->json(['success' => false, 'msg' => 'Casino no permitido'], 403);
+        }
+
         $desde_date = $desde . '-01';
-        $hasta_date = $hasta . '-31'; // Safe enough for <= comparison in SQL for ends of months if using just YYYY-MM-DD
+        $hasta_date = $hasta . '-31'; // <= 'YYYY-MM-31' captura todo el mes (mismo patrón que el resto del módulo)
 
         $documentos_config = [
+            'ESTADO CONTABLE' => ['model' => RegistroEstadoContable::class, 'date_col' => 'fecha_EstadoContable'],
             'IVA' => ['model' => RegistroIva::class, 'date_col' => 'fecha_iva'],
             'IIBB' => ['model' => Registroiibb::class, 'date_col' => 'fecha_iibb'],
             'DREI' => ['model' => RegistroDREI::class, 'date_col' => 'fecha_drei'],
             'TGI' => ['model' => RegistroTGI::class, 'date_col' => 'fecha_tgi'],
             'IMP. APUESTAS ONLINE' => ['model' => RegistroIMP_AP_OL::class, 'date_col' => 'fecha_imp_ap_ol'],
-            'IMP. APUESTAS MTM' => ['model' => RegistroIMP_AP_MTM::class, 'date_col' => 'fecha_IMP_AP_MTM'],
+            'IMP. APUESTAS MTM' => ['model' => RegistroIMP_AP_MTM::class, 'date_col' => 'fecha_imp_ap_mtm'],
             'DEUDA ESTADO' => ['model' => RegistroDeudaEstado::class, 'date_col' => 'fecha_DeudaEstado'],
             'PAGOS MESAS DE PAÑO' => ['model' => RegistroPagosMayoresMesas::class, 'date_col' => 'fecha_PagosMayoresMesas'],
             'REPORTE LAVADO' => ['model' => RegistroReporteYLavado::class, 'date_col' => 'fecha_ReporteYLavado'],
@@ -17992,7 +18028,7 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
             'POZOS ACUMULADOS' => ['model' => RegistroPozosAcumuladosLinkeados::class, 'date_col' => 'fecha_PozosAcumuladosLinkeados'],
             'CONTRIB. ENTE (ROS)' => ['model' => RegistroContribEnteTuristico::class, 'date_col' => 'fecha_ContribEnteTuristico'],
             'RRHH' => ['model' => RegistroRRHH::class, 'date_col' => 'fecha_RRHH'],
-            'GANANCIAS' => ['model' => RegistroGanancias::class, 'date_col' => 'periodo_fiscal'],
+            'GANANCIAS' => ['model' => RegistroGanancias::class, 'date_col' => 'periodo_fiscal', 'anual' => true],
             'JACKPOTS PAGADOS' => ['model' => RegistroJackpotsPagados::class, 'date_col' => 'fecha_JackpotsPagados'],
             'PREMIOS PAGADOS' => ['model' => RegistroPremiosPagados::class, 'date_col' => 'fecha_PremiosPagados'],
             'PREMIOS MTM' => ['model' => RegistroPremiosMTM::class, 'date_col' => 'fecha_PremiosMTM'],
@@ -18008,33 +18044,53 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
 
         setlocale(LC_TIME, 'es_ES.UTF-8','es_AR.UTF-8','es_ES','es_AR');
 
+        $meses_nombres = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+
         foreach ($documentos_config as $doc_name => $config) {
             $clase = $config['model'];
             $col_fecha = $config['date_col'];
+            $anual = !empty($config['anual']);
 
-            $registros = $clase::where('casino', $id_casino)
-                ->where($col_fecha, '>=', $desde_date)
-                ->where($col_fecha, '<=', $hasta_date)
-                ->get([$col_fecha, 'valido']);
+            if ($anual) {
+                // La columna es tipo YEAR (ej. GANANCIAS: periodo_fiscal): se filtra y agrupa por año, sin mes.
+                $registros = $clase::where('casino', $id_casino)
+                    ->whereBetween($col_fecha, [substr($desde, 0, 4), substr($hasta, 0, 4)])
+                    ->get([$col_fecha, 'valido']);
 
-            foreach ($registros as $reg) {
-                // Determine format
-                $date_val = $reg->$col_fecha;
-                if (!$date_val) continue;
+                foreach ($registros as $reg) {
+                    $anio = (string)$reg->$col_fecha;
+                    if (!$anio) continue;
 
-                $mes = date('n', strtotime($date_val));
-                $anio = date('Y', strtotime($date_val));
-                
-                $meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-                $mes_nombre = $meses[$mes - 1];
+                    $resultados[] = [
+                        'documento' => $doc_name,
+                        'mes' => 'ANUAL',
+                        'anio' => $anio,
+                        'fecha_real' => $anio.'-01-01', // For internal sorting
+                        'valido' => $reg->valido ? 1 : 0
+                    ];
+                }
+            } else {
+                $registros = $clase::where('casino', $id_casino)
+                    ->where($col_fecha, '>=', $desde_date)
+                    ->where($col_fecha, '<=', $hasta_date)
+                    ->get([$col_fecha, 'valido']);
 
-                $resultados[] = [
-                    'documento' => $doc_name,
-                    'mes' => $mes_nombre,
-                    'anio' => $anio,
-                    'fecha_real' => is_object($date_val) ? clone($date_val) : $date_val, // For internal sorting
-                    'valido' => $reg->valido ? 1 : 0
-                ];
+                foreach ($registros as $reg) {
+                    $date_val = $reg->$col_fecha;
+                    if (!$date_val) continue;
+
+                    $mes = date('n', strtotime($date_val));
+                    $anio = date('Y', strtotime($date_val));
+                    $mes_nombre = $meses_nombres[$mes - 1];
+
+                    $resultados[] = [
+                        'documento' => $doc_name,
+                        'mes' => $mes_nombre,
+                        'anio' => $anio,
+                        'fecha_real' => is_object($date_val) ? $date_val->format('Y-m-d') : $date_val, // For internal sorting
+                        'valido' => $reg->valido ? 1 : 0
+                    ];
+                }
             }
         }
 
@@ -18352,7 +18408,7 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
           $r->imp_ganancias = $request->imp_ganancias ?? 0;
           $r->imp_ganancias_reexpresado = $request->imp_ganancias_reexpresado ?? 0;
 
-          $r->fecha_toma = date('Y-m-d h:i:s');
+          $r->fecha_toma = date('Y-m-d H:i:s');
           $r->usuario = UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'];
           $r->save();
 
@@ -18383,7 +18439,8 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
 
     public function eliminarEstadoContable($id) {
         $r = RegistroEstadoContable::findOrFail($id);
-        if (!$r) return 0;
+        // findOrFail ya lanza 404 si no existe; el chequeo siguiente era inalcanzable
+        // if (!$r) return 0;
         
         DB::beginTransaction();
         try {
@@ -18402,7 +18459,8 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
 
     public function llenarEstadoContableEdit($id) {
         $r = RegistroEstadoContable::with('casinoEstadoContable')->findOrFail($id);
-        if (!$r) return 0;
+        // findOrFail ya lanza 404 si no existe; el chequeo siguiente era inalcanzable
+        // if (!$r) return 0;
         
         return [
             'id_registroEstadoContable' => $r->id_registroEstadoContable,

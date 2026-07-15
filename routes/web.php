@@ -1118,7 +1118,7 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('/', 'documentosContablesController@index');
   Route::get('visualizarArchivo/{registro}/{id_archivo}', 'documentosContablesController@visualizarArchivo');
   Route::get('eliminarArchivo', 'documentosContablesController@eliminarArchivo');
-  Route::get('eliminarArchivo', 'documentosContablesController@eliminarArchivo');
+  // Route::get('eliminarArchivo', ...); // duplicado removido
   Route::post('validarDocumento', 'documentosContablesController@validarDocumento');
   Route::get('obtenerDocumentosValidados', 'documentosContablesController@obtenerDocumentosValidados');
   Route::get('obtenerControlDocumentos', 'documentosContablesController@obtenerControlDocumentos');
@@ -1187,7 +1187,7 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::post('actualizarTGI/{id}', 'documentosContablesController@actualizarTGI');
   Route::get('archivosTGI/{id}', 'documentosContablesController@archivosTGI');
   Route::get('llenarTGIEdit/{id}', 'documentosContablesController@llenarTGIEdit');
-  Route::get('archivosTGI/{id}', 'documentosContablesController@archivosTGI');
+  // Route::get('archivosTGI/{id}', ...); // duplicado removido
   Route::get('ultimasTGI', 'documentosContablesController@ultimasTGI');
   Route::get('eliminarTGI/{id}', 'documentosContablesController@eliminarTGI');
   Route::get('llenarTGI/{id}', 'documentosContablesController@llenarTGI');

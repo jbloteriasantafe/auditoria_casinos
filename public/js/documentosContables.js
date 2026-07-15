@@ -5966,7 +5966,7 @@ $("#btn-eliminarPagosMayoresMesas").on("click", function () {
       if (res == 1) {
         $("#modalEliminarPagosMayoresMesas").modal("hide");
         cargarPagosMayoresMesas({
-          page: $("#herramientasPaginacionPAgosMayoresMesas").getCurrentPage(),
+          page: $("#herramientasPaginacionPagosMayoresMesas").getCurrentPage(),
           perPage: $("#herramientasPaginacionPagosMayoresMesas").getPageSize(),
           casino: $("#filtro_global_casino").val(),
           desde: $("#filtro_global_desde_input").val(),
@@ -23755,8 +23755,12 @@ $(document).on("click", "#btn-confirmar-validacion", function () {
       if (!activeTab) activeTab = $("[data-js-tabs] a").first().attr("data-js-tab");
       buscarPestana(activeTab, true);
     },
-    error: function (data) {
-      console.log(data);
+    error: function (xhr) {
+      $("#modalValidarDocumento").modal("hide");
+      var msg = (xhr.responseJSON && xhr.responseJSON.msg)
+        ? xhr.responseJSON.msg
+        : "Ocurrió un error al validar el documento.";
+      alert(msg);
     },
   });
 });
