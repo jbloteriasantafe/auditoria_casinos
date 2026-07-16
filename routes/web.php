@@ -1650,60 +1650,60 @@ Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_c
 
 //Reuso los permisos de la sección vieja
 Route::group(['prefix' => 'canon', 'middleware' => 'tiene_permiso:m_ver_seccion_canon'], function () {
-  Route::get('/', '\App\Http\Controllers\CanonController@index');
-  Route::post('/buscar', '\App\Http\Controllers\CanonController@buscar');
+  Route::get('/', '\App\Http\Controllers\Canon\CanonController@index');
+  Route::post('/buscar', '\App\Http\Controllers\Canon\CanonController@buscar');
   
   Route::group(['prefix' => 'agrupamientos', 'middleware' => 'tiene_rol:superusuario'] ,function(){
-    Route::get('/down','\App\Http\Controllers\CanonAgrupamientoController@down');
-    Route::get('/up','\App\Http\Controllers\CanonAgrupamientoController@up');
-    Route::get('/recalcular_todos','\App\Http\Controllers\CanonAgrupamientoController@recalcular_agrupamientos_req');
+    Route::get('/down','\App\Http\Controllers\Canon\CanonAgrupamientoController@down');
+    Route::get('/up','\App\Http\Controllers\Canon\CanonAgrupamientoController@up');
+    Route::get('/recalcular_todos','\App\Http\Controllers\Canon\CanonAgrupamientoController@recalcular_agrupamientos_req');
     //Para debug
-    Route::get('/detallados','\App\Http\Controllers\CanonAgrupamientoController@agrupamientos_detallados_req');
+    Route::get('/detallados','\App\Http\Controllers\Canon\CanonAgrupamientoController@agrupamientos_detallados_req');
   });
   
   Route::group(['prefix' => 'operario', 'middleware' => 'tiene_rol:superusuario'] ,function(){
-    Route::get('/down','\App\Http\Controllers\CanonOperarioController@down');
-    Route::get('/up','\App\Http\Controllers\CanonOperarioController@up');
-    Route::get('/llenado_inicial','\App\Http\Controllers\CanonOperarioController@llenado_inicial');
-    Route::post('/buscar','\App\Http\Controllers\CanonOperarioController@buscar');
-    Route::get('/obtener','\App\Http\Controllers\CanonOperarioController@obtener');
-    Route::get('/obtenerConHistorial','\App\Http\Controllers\CanonOperarioController@obtenerConHistorial');
-    Route::post('/guardar','\App\Http\Controllers\CanonOperarioController@guardar');
-    Route::delete('/borrar','\App\Http\Controllers\CanonOperarioController@borrar');
-    Route::delete('/desborrar','\App\Http\Controllers\CanonOperarioController@desborrar');
+    Route::get('/down','\App\Http\Controllers\Canon\CanonOperarioController@down');
+    Route::get('/up','\App\Http\Controllers\Canon\CanonOperarioController@up');
+    Route::get('/llenado_inicial','\App\Http\Controllers\Canon\CanonOperarioController@llenado_inicial');
+    Route::post('/buscar','\App\Http\Controllers\Canon\CanonOperarioController@buscar');
+    Route::get('/obtener','\App\Http\Controllers\Canon\CanonOperarioController@obtener');
+    Route::get('/obtenerConHistorial','\App\Http\Controllers\Canon\CanonOperarioController@obtenerConHistorial');
+    Route::post('/guardar','\App\Http\Controllers\Canon\CanonOperarioController@guardar');
+    Route::delete('/borrar','\App\Http\Controllers\Canon\CanonOperarioController@borrar');
+    Route::delete('/desborrar','\App\Http\Controllers\Canon\CanonOperarioController@desborrar');
   });
   
   Route::group(['middleware' => 'tiene_permiso:m_b_pagos'],function () {
-    Route::post('/descargar', '\App\Http\Controllers\CanonInformeController@descargar');
-    Route::get('/descargarPlanillas', '\App\Http\Controllers\CanonInformeController@descargarPlanillas');
-    Route::get('/obtener', '\App\Http\Controllers\CanonController@obtener');
-    Route::get('/planillaPDF', '\App\Http\Controllers\CanonInformeController@planillaPDF');
-    Route::get('/planillaDevengado', '\App\Http\Controllers\CanonInformeController@planillaDevengado');
-    Route::get('/planillaDeterminado', '\App\Http\Controllers\CanonInformeController@planillaDeterminado');
-    Route::get('/planillaInformeCanon', '\App\Http\Controllers\CanonInformeController@planillaInformeCanon');
-    Route::get('/planillaInformeCanonPDF', '\App\Http\Controllers\CanonInformeController@planillaInformeCanonPDF');
-    Route::get('/archivo', '\App\Http\Controllers\CanonController@archivo');
-    Route::get('/obtenerConHistorial', '\App\Http\Controllers\CanonController@obtenerConHistorial');
+    Route::post('/descargar', '\App\Http\Controllers\Canon\CanonInformeController@descargar');
+    Route::get('/descargarPlanillas', '\App\Http\Controllers\Canon\CanonInformeController@descargarPlanillas');
+    Route::get('/obtener', '\App\Http\Controllers\Canon\CanonController@obtener');
+    Route::get('/planillaPDF', '\App\Http\Controllers\Canon\CanonInformeController@planillaPDF');
+    Route::get('/planillaDevengado', '\App\Http\Controllers\Canon\CanonInformeController@planillaDevengado');
+    Route::get('/planillaDeterminado', '\App\Http\Controllers\Canon\CanonInformeController@planillaDeterminado');
+    Route::get('/planillaInformeCanon', '\App\Http\Controllers\Canon\CanonInformeController@planillaInformeCanon');
+    Route::get('/planillaInformeCanonPDF', '\App\Http\Controllers\Canon\CanonInformeController@planillaInformeCanonPDF');
+    Route::get('/archivo', '\App\Http\Controllers\Canon\CanonController@archivo');
+    Route::get('/obtenerConHistorial', '\App\Http\Controllers\Canon\CanonController@obtenerConHistorial');
     
-    Route::get('/pagos/obtener', '\App\Http\Controllers\CanonPagoController@obtener');
-    Route::get('/pagos/obtenerConHistorial', '\App\Http\Controllers\CanonPagoController@obtenerConHistorial');
+    Route::get('/pagos/obtener', '\App\Http\Controllers\Canon\CanonPagoController@obtener');
+    Route::get('/pagos/obtenerConHistorial', '\App\Http\Controllers\Canon\CanonPagoController@obtenerConHistorial');
   });
   Route::group(['middleware' => 'tiene_permiso:m_a_pagos'], function () {
-    Route::post('/recalcular', '\App\Http\Controllers\CanonController@recalcular_req');
-    Route::post('/guardar', '\App\Http\Controllers\CanonController@guardar');
-    Route::post('/adjuntar', '\App\Http\Controllers\CanonController@adjuntar');
-    Route::get('/cambiarEstado', '\App\Http\Controllers\CanonController@cambiarEstado');
-    Route::delete('/borrar', '\App\Http\Controllers\CanonController@borrar');
+    Route::post('/recalcular', '\App\Http\Controllers\Canon\CanonController@recalcular_req');
+    Route::post('/guardar', '\App\Http\Controllers\Canon\CanonController@guardar');
+    Route::post('/adjuntar', '\App\Http\Controllers\Canon\CanonController@adjuntar');
+    Route::get('/cambiarEstado', '\App\Http\Controllers\Canon\CanonController@cambiarEstado');
+    Route::delete('/borrar', '\App\Http\Controllers\Canon\CanonController@borrar');
     
-    Route::post('/pagos/recalcular', '\App\Http\Controllers\CanonPagoController@recalcular_req');
-    Route::post('/pagos/guardar', '\App\Http\Controllers\CanonPagoController@guardar');
+    Route::post('/pagos/recalcular', '\App\Http\Controllers\Canon\CanonPagoController@recalcular_req');
+    Route::post('/pagos/guardar', '\App\Http\Controllers\Canon\CanonPagoController@guardar');
     
     Route::group(['middleware' => 'tiene_rol:superusuario'], function () {
-      Route::get('/desborrar', '\App\Http\Controllers\CanonController@desborrar');
-      Route::post('/valoresPorDefecto', '\App\Http\Controllers\CanonValorPorDefectoController@buscar');
-      Route::post('/valoresPorDefecto/ingresar', '\App\Http\Controllers\CanonValorPorDefectoController@ingresar');
-      Route::delete('/valoresPorDefecto/borrar', '\App\Http\Controllers\CanonValorPorDefectoController@borrar');
-      Route::get('/pagos/recalcularSaldos', '\App\Http\Controllers\CanonPagoController@recalcular_saldos_Req');
+      Route::get('/desborrar', '\App\Http\Controllers\Canon\CanonController@desborrar');
+      Route::post('/valoresPorDefecto', '\App\Http\Controllers\Canon\CanonValorPorDefectoController@buscar');
+      Route::post('/valoresPorDefecto/ingresar', '\App\Http\Controllers\Canon\CanonValorPorDefectoController@ingresar');
+      Route::delete('/valoresPorDefecto/borrar', '\App\Http\Controllers\Canon\CanonValorPorDefectoController@borrar');
+      Route::get('/pagos/recalcularSaldos', '\App\Http\Controllers\Canon\CanonPagoController@recalcular_saldos_Req');
     });
   });
 });

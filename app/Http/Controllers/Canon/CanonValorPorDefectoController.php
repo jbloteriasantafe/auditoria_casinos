@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Canon;
 
 use Illuminate\Http\Request;
 use Validator;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\UsuarioController;
 
 class CanonValorPorDefectoController extends Controller
 {

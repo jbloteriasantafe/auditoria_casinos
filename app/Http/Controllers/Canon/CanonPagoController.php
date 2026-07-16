@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Canon;
 
 use Illuminate\Http\Request;
 use Validator;
@@ -246,12 +246,12 @@ class CanonPagoController extends Controller
       'saldo_anterior' => $datos['saldo_anterior'],
       'saldo_anterior_cerrado' => $datos['saldo_anterior_cerrado'],
       'intereses_y_cargos' => $datos['intereses_y_cargos'],
-      'motivo_intereses_y_cargos' => $datos['motivo_intereses_y_cargos'],
+      'motivo_intereses_y_cargos' => $datos['motivo_intereses_y_cargos'] ?? '',
       'principal' => $datos['principal'],
       'a_pagar' => $datos['a_pagar'],
       'pago' => $datos['pago'],
       'ajuste' => $datos['ajuste'],
-      'motivo_ajuste' => $datos['motivo_ajuste'],
+      'motivo_ajuste' => $datos['motivo_ajuste'] ?? '',
       'diferencia' => $datos['diferencia'],
       'saldo_posterior_cerrado' => $datos['saldo_posterior_cerrado'],
       'saldo_posterior' => $datos['saldo_posterior']
