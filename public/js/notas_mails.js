@@ -21,12 +21,48 @@
 
   // ========== TRANSICIONES ==========
 
+  // Las categorías "por estado" (aviso_aprobaciones) disparan el mail cuando la nota
+  // LLEGA a un estado, sin importar el origen ni el tipo de evento.
+  function esCategoriaPorEstado(){ return catActual === 'aviso_aprobaciones'; }
+
+  // Adapta el formulario y la tabla de transiciones al modo de la categoría actual:
+  // "transición" (origen -> destino + tipo) vs "por estado" (solo estado destino).
+  function ajustarUITransiciones(){
+    var porEstado = esCategoriaPorEstado();
+    // Formulario: ocultar Estado Origen y Tipo cuando es por-estado
+    $('.trans-field-origen, .trans-field-tipo').toggle(!porEstado);
+    // Tabla: ocultar columnas Origen, flecha y Tipo (encabezados y celdas)
+    $('.trans-th-origen, .trans-td-origen, .trans-th-arrow, .trans-td-arrow, .trans-th-tipo, .trans-td-tipo').toggle(!porEstado);
+    // Layout de la tabla según el modo. En por-estado usamos 'auto': al ocultar columnas
+    // con display:none, un colgroup 'fixed' mapeaba las columnas visibles (Estado +
+    // acciones) a los <col> de 0% y las colapsaba (el texto se apilaba con el botón en el
+    // medio). Con 'auto' las columnas visibles se dimensionan por contenido.
+    var $tablaTrans = $('#tablaTransiciones');
+    if(porEstado){
+      $tablaTrans.css('table-layout','auto');
+      $tablaTrans.find('colgroup col').css('width','');
+    } else {
+      $tablaTrans.css('table-layout','fixed');
+      $('.col-t-origen').css('width','33%');
+      $('.col-t-arrow').css('width','5%');
+      $('.col-t-destino').css('width','33%');
+      $('.col-t-tipo').css('width','19%');
+      $('.col-t-acc').css('width','10%');
+    }
+    // Textos
+    $('#tituloTransiciones').html('<i class="fa fa-' + (porEstado ? 'bell' : 'exchange') + '"></i> ' + (porEstado ? 'Estados que envían mail' : 'Transiciones que envían mail'));
+    $('#lblTransDestino').text(porEstado ? 'Estado que dispara el mail' : 'Estado Destino');
+    $('#thTransDestino').text(porEstado ? 'Estado' : 'Estado Destino');
+  }
+
   function cargarTransiciones(){
     $.get(BASE + '/transiciones', { categoria: catActual }, function(data){
       var tbody = $('#tbodyTransiciones');
       tbody.empty();
       if(!data.length){
-        tbody.append('<tr><td colspan="5" class="text-center text-muted" style="padding:15px; font-size:12px;">Sin transiciones configuradas</td></tr>');
+        var vacioTxt = esCategoriaPorEstado() ? 'Sin estados configurados' : 'Sin transiciones configuradas';
+        tbody.append('<tr><td colspan="5" class="text-center text-muted" style="padding:15px; font-size:12px;">' + vacioTxt + '</td></tr>');
+        ajustarUITransiciones();
         return;
       }
       var puedeEditarTrans = !!window.ESADMIN_MAILS;
@@ -44,14 +80,15 @@
           : '';
         tbody.append(
           '<tr>' +
-            '<td style="padding:8px 15px;">' + origen + '</td>' +
-            '<td style="padding:8px 15px; text-align:center; color:#94a3b8;"><i class="fa fa-long-arrow-right"></i></td>' +
+            '<td style="padding:8px 15px;" class="trans-td-origen">' + origen + '</td>' +
+            '<td style="padding:8px 15px; text-align:center; color:#94a3b8;" class="trans-td-arrow"><i class="fa fa-long-arrow-right"></i></td>' +
             '<td style="padding:8px 15px;">' + t.estado_destino + '</td>' +
-            '<td style="padding:8px 15px;">' + tipoBadge + '</td>' +
+            '<td style="padding:8px 15px;" class="trans-td-tipo">' + tipoBadge + '</td>' +
             '<td style="padding:8px 15px; text-align:center; white-space:nowrap;">' + accionesHtml + '</td>' +
           '</tr>'
         );
       });
+      ajustarUITransiciones();
     });
   }
 
@@ -60,11 +97,19 @@
   });
 
   $(document).on('click', '#btnGuardarTransicion', function(){
-    var origen = $('#selTransOrigen').val();
+    var porEstado = esCategoriaPorEstado();
     var destino = $('#selTransDestino').val();
-    if(origen === destino){
-      alert('El estado origen y destino no pueden ser iguales.');
-      return;
+    var origen, tipo;
+    if(porEstado){
+      origen = -1;   // cualquier origen (config por-estado)
+      tipo = 0;      // cualquier tipo de evento
+    } else {
+      origen = $('#selTransOrigen').val();
+      tipo = $('#selTransTipoEvento').val() || 0;
+      if(origen === destino){
+        alert('El estado origen y destino no pueden ser iguales.');
+        return;
+      }
     }
     $.ajax({
       url: BASE + '/transiciones',
@@ -74,7 +119,7 @@
         id_estado_origen: origen,
         id_estado_destino: destino,
         categoria: catActual,
-        id_tipo_evento: $('#selTransTipoEvento').val() || 0
+        id_tipo_evento: tipo
       },
       success: function(res){
         if(res.success){
@@ -193,6 +238,7 @@
     $('#selTransTipoEvento').val('0');
 
     toggleColumnaCasino();
+    ajustarUITransiciones();
     cargarTransiciones();
     cargarDestinatarios();
   };

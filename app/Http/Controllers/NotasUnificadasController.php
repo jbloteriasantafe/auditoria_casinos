@@ -329,6 +329,65 @@ class NotasUnificadasController extends Controller
         </div>';
     }
 
+    /**
+     * Genera el HTML del mail de "Nota Aprobada" (variante verde para la categoría
+     * aviso_aprobaciones): se envía cuando una nota llega a un estado de aprobación.
+     */
+    private static function htmlNotaAprobada($usuario, $nroNota, $tipoNota, $estadoNuevo, $casino, $titulo = '')
+    {
+        return '
+        <div style="font-family: Arial, Helvetica, sans-serif; max-width: 600px; margin: 0 auto;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); padding: 28px 30px; border-radius: 8px 8px 0 0; text-align: center;">
+                <div style="width: 56px; height: 56px; margin: 0 auto 12px; background: rgba(255,255,255,0.18); border-radius: 50%; text-align: center; line-height: 56px;">
+                    <span style="color: #ffffff; font-size: 30px;">&#10003;</span>
+                </div>
+                <h1 style="color: #ffffff; margin: 0; font-size: 21px; font-weight: 700;">Nota Aprobada</h1>
+                <p style="color: #dcfce7; margin: 6px 0 0; font-size: 13px;">Sistema de Notas de Loter&iacute;a de Santa Fe</p>
+            </div>
+
+            <!-- Body -->
+            <div style="background: #ffffff; padding: 30px; border-left: 1px solid #e0e0e0; border-right: 1px solid #e0e0e0;">
+                <p style="color: #333; font-size: 15px; margin: 0 0 20px; line-height: 1.5;">
+                    La nota fue <strong style="color:#15803d;">aprobada</strong> por <strong>' . e($usuario) . '</strong>.
+                </p>
+
+                <!-- Detalle -->
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <tr>
+                        <td style="padding: 10px 14px; background: #f0fdf4; border: 1px solid #dcfce7; color: #666; font-size: 13px; width: 140px;">Nota N&deg;</td>
+                        <td style="padding: 10px 14px; background: #ffffff; border: 1px solid #dcfce7; font-size: 14px; font-weight: 600; color: #2c3e50;">' . e($nroNota) . '</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 14px; background: #f0fdf4; border: 1px solid #dcfce7; color: #666; font-size: 13px;">Tipo</td>
+                        <td style="padding: 10px 14px; background: #ffffff; border: 1px solid #dcfce7; font-size: 14px; color: #2c3e50;">' . e($tipoNota) . '</td>
+                    </tr>' .
+            ($titulo ? '
+                    <tr>
+                        <td style="padding: 10px 14px; background: #f0fdf4; border: 1px solid #dcfce7; color: #666; font-size: 13px;">T&iacute;tulo</td>
+                        <td style="padding: 10px 14px; background: #ffffff; border: 1px solid #dcfce7; font-size: 14px; color: #2c3e50;">' . e($titulo) . '</td>
+                    </tr>' : '') . '
+                    <tr>
+                        <td style="padding: 10px 14px; background: #f0fdf4; border: 1px solid #dcfce7; color: #666; font-size: 13px;">Casino / Plataforma</td>
+                        <td style="padding: 10px 14px; background: #ffffff; border: 1px solid #dcfce7; font-size: 14px; color: #2c3e50;">' . e($casino) . '</td>
+                    </tr>
+                </table>
+
+                <!-- Estado -->
+                <div style="text-align: center; padding: 10px 0 5px;">
+                    <span style="display: inline-block; background: #16a34a; color: #ffffff; padding: 10px 22px; border-radius: 20px; font-size: 14px; font-weight: 700;">&#10003; ' . e($estadoNuevo) . '</span>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="background: #f0fdf4; padding: 15px 30px; border-radius: 0 0 8px 8px; border: 1px solid #dcfce7; border-top: none;">
+                <p style="color: #86a893; font-size: 11px; margin: 0; text-align: center;">
+                    Este es un mensaje autom&aacute;tico del sistema de auditor&iacute;a. No responda a este correo.
+                </p>
+            </div>
+        </div>';
+    }
+
 
 
     /**
@@ -349,8 +408,14 @@ class NotasUnificadasController extends Controller
             // Filtrar por id_tipo_evento: 0 = todos, o debe coincidir con el tipo_evento de la nota
             $idTipoEventoNota = (int) $nota->id_tipo_evento;
             $categorias = DB::table('nota_mail_transiciones')
-                ->where('id_estado_origen', $idEstadoOrigen)
                 ->where('id_estado_destino', $idEstadoDestino)
+                ->where(function ($q) use ($idEstadoOrigen) {
+                    // id_estado_origen = -1 => "cualquier origen": configuración POR ESTADO
+                    // (ej. aviso_aprobaciones), el mail se dispara cuando la nota LLEGA al estado
+                    // destino sin importar de dónde venga (incluye creación / AL CREAR).
+                    $q->where('id_estado_origen', $idEstadoOrigen)
+                        ->orWhere('id_estado_origen', -1);
+                })
                 ->where('activo', 1)
                 ->where(function ($q) use ($idTipoEventoNota) {
                     $q->where('id_tipo_evento', 0)
@@ -418,7 +483,12 @@ class NotasUnificadasController extends Controller
             $casino = self::resolverNombreCasino($notaCasinoId, $notaPlataformaId);
 
             $titulo = $grupo ? $grupo->titulo : '';
-            $html = self::htmlCambioEstado($nombreUsuario, $nroNota, $tipoNota, $descEstadoOrigen, $descEstadoDestino, $casino, $titulo);
+            // Las notas notificadas por la categoría "aviso_aprobaciones" reciben el HTML de
+            // aprobación (verde), en vez del genérico de cambio de estado.
+            $esAviso = in_array('aviso_aprobaciones', $categorias);
+            $html = $esAviso
+                ? self::htmlNotaAprobada($nombreUsuario, $nroNota, $tipoNota, $descEstadoDestino, $casino, $titulo)
+                : self::htmlCambioEstado($nombreUsuario, $nroNota, $tipoNota, $descEstadoOrigen, $descEstadoDestino, $casino, $titulo);
 
             $emailsRaw = $destinatarios->pluck('email')->unique()->toArray();
             $emails = [];
@@ -440,7 +510,9 @@ class NotasUnificadasController extends Controller
             }
 
             $esCreacion = ($descEstadoOrigen === 'AL CREAR');
-            $subject = $esCreacion ? 'Nueva nota - ' . $nroNota : 'Cambio de estado - Nota ' . $nroNota;
+            $subject = $esAviso
+                ? 'Nota aprobada - ' . $nroNota
+                : ($esCreacion ? 'Nueva nota - ' . $nroNota : 'Cambio de estado - Nota ' . $nroNota);
 
             $message = (new \Swift_Message($subject))
                 ->setFrom(['no-reply-loteria@santafe.gov.ar' => 'Control Sistemas Loteria'])
@@ -4949,22 +5021,28 @@ class NotasUnificadasController extends Controller
             return response()->json(['success' => false, 'msg' => 'No tiene permisos para editar transiciones'], 403);
         }
 
-        $idTipoEvento = (int) ($request->id_tipo_evento ?: 0);
+        // Categorías POR ESTADO (ej. aviso_aprobaciones): el mail se dispara cuando la nota
+        // LLEGA al estado destino, sin importar el origen ni el tipo de evento. Se persisten
+        // con id_estado_origen = -1 (cualquier origen) e id_tipo_evento = 0 (cualquiera).
+        $esPorEstado = ($request->categoria === 'aviso_aprobaciones');
+        $idEstadoOrigen = $esPorEstado ? -1 : $request->id_estado_origen;
+        $idTipoEvento = $esPorEstado ? 0 : (int) ($request->id_tipo_evento ?: 0);
 
         // Evitar duplicados
         $existe = DB::table('nota_mail_transiciones')
-            ->where('id_estado_origen', $request->id_estado_origen)
+            ->where('id_estado_origen', $idEstadoOrigen)
             ->where('id_estado_destino', $request->id_estado_destino)
             ->where('categoria', $request->categoria)
             ->where('id_tipo_evento', $idTipoEvento)
             ->where('activo', 1)
             ->exists();
         if ($existe) {
-            return response()->json(['success' => false, 'msg' => 'Esa transición ya existe para esta categoría y tipo'], 422);
+            $msg = $esPorEstado ? 'Ese estado ya está configurado para esta categoría' : 'Esa transición ya existe para esta categoría y tipo';
+            return response()->json(['success' => false, 'msg' => $msg], 422);
         }
 
         $id = DB::table('nota_mail_transiciones')->insertGetId([
-            'id_estado_origen' => $request->id_estado_origen,
+            'id_estado_origen' => $idEstadoOrigen,
             'id_estado_destino' => $request->id_estado_destino,
             'categoria' => $request->categoria,
             'id_tipo_evento' => $idTipoEvento,
