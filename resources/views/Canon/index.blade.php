@@ -71,10 +71,10 @@
     <div>
       <a data-js-tab="#pant_canon">Canon</a>
     </div>
+    @if($es_superusuario)
     <div>
       <a data-js-tab="#pant_operarios">Operarios</a>
     </div>
-    @if($es_superusuario)
     <div>
       <a data-js-tab="#pant_defecto">Valores por Defecto</a>
     </div>
@@ -256,6 +256,7 @@
   @endcomponent
 </div>
 
+@if($es_superusuario)
 <div id="pant_operarios" hidden>
   @component('Components/FiltroTabla')
     @slot('titulo')
@@ -316,8 +317,6 @@
   @endcomponent
 </div>
 
-
-@if($es_superusuario)
 <div id="pant_defecto" hidden>
   @component('Components/FiltroTabla')
     @slot('titulo')
@@ -1236,6 +1235,8 @@
 @endcomponent
 @endif
 
+@if($es_superusuario)
+
 @if($puede_ver || $puede_agregarmodificar)
 @component('Components/modal',[
   'clases_modal' => 'VerCargarCanon',
@@ -1602,6 +1603,8 @@
   @endif
   @endslot
 @endcomponent
+@endif
+
 @endif
 
 @if($puede_agregarmodificar)
