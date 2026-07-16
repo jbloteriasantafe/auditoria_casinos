@@ -586,7 +586,9 @@ class UsuarioController extends Controller
     $data = null;
     if(is_null($cache)){
       $data = $this->_curl_openweathermap($endpoint,$locacion);
-      $CC->agregar($CACHE_CODIGO,$CACHE_SUBCODIGO,json_encode($data),[]);
+      if(!$data['error']){
+        $CC->agregar($CACHE_CODIGO,$CACHE_SUBCODIGO,json_encode($data),[]);
+      }
     }
     else{
       $data = json_decode($cache->data,true);
