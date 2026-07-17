@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Canon;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Validator;
@@ -120,7 +121,7 @@ class CanonOperarioController extends Controller
     ->paginate($request->page_size ?? 10);
   }
   
-  private function _obtener($id_operario){
+  public function _obtener($id_operario){
     if($id_operario === null) return null;
     $co = DB::table('canon_operario')
     ->where('id_operario',$id_operario)

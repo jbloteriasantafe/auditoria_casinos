@@ -386,7 +386,7 @@ $(function(){
           const o = $('<option>');
           o.val(h.id_canon);
           o.text(h.usuario + ' - '+h.created_at);
-          o.data('canon',h);
+          o.data('instancia',h);
           return o;
         })
       );
@@ -400,10 +400,8 @@ $(function(){
       M.find('[data-js-devengar]').trigger('setearDevengar');
     };
     
-    M.find('[data-js-select-historial]').change(function(e){
-      const tgt = $(e.currentTarget);
-      M.attr('data-render',1);
-      render(tgt.find('option:selected').data('canon'),true);
+    M.on('render',function(e,data,mantener_historial){
+      render(data,mantener_historial);
     });
     
     M.find('form[data-js-recalcular]').on('recalculado',function(e,data){
@@ -659,16 +657,14 @@ $(function(){
           const o = $('<option>');
           o.val(h.id_canon);
           o.text(h.usuario + ' - '+h.created_at);
-          o.data('canon',h);
+          o.data('instancia',h);
           return o;
         })
       );
     };
     
-    M.find('[data-js-select-historial]').change(function(e){
-      const tgt = $(e.currentTarget);
-      M.attr('data-render',1);
-      render(tgt.find('option:selected').data('canon'),true);
+    M.on('render',function(e,data,mantener_historial){
+      render(data,mantener_historial);
     });
     
     M.find('form[data-js-recalcular]').on('recalculado',function(e,data){
@@ -786,19 +782,34 @@ $(function(){ $('[data-js-modal-cambiar-estado]').each(function(){
 })});
 
 $(function(){
-  $('#pant_operarios [data-js-nuevo]').click(function(e){
+  $('#pant_operarios #individuales [data-js-nuevo]').click(function(e){
     const tgt = $(e.currentTarget);
     $('[data-js-modal-ver-cargar-operario]').trigger('mostrar.modal',[tgt.attr('data-js-nuevo'),tgt.val(),'NUEVO']);
   });
   
-  $('#pant_operarios').on('click','[data-js-ver]',function(e){//@TODO: bindear derecho
+  $('#pant_operarios #individuales').on('click','[data-js-ver]',function(e){//@TODO: bindear derecho
     const tgt = $(e.currentTarget);
     $('[data-js-modal-ver-cargar-operario]').trigger('mostrar.modal',[tgt.attr('data-js-ver'),tgt.val(),'VER']);
   });
   
-  $('#pant_operarios').on('click','[data-js-editar]',function(e){//@TODO: bindear derecho
+  $('#pant_operarios #individuales').on('click','[data-js-editar]',function(e){//@TODO: bindear derecho
     const tgt = $(e.currentTarget);
     $('[data-js-modal-ver-cargar-operario]').trigger('mostrar.modal',[tgt.attr('data-js-editar'),tgt.val(),'EDITAR']);
+  });
+  
+  $('#pant_operarios #grupos [data-js-nuevo]').click(function(e){
+    const tgt = $(e.currentTarget);
+    $('[data-js-modal-ver-cargar-grupo-operario]').trigger('mostrar.modal',[tgt.attr('data-js-nuevo'),tgt.val(),'NUEVO']);
+  });
+  
+  $('#pant_operarios #grupos').on('click','[data-js-ver]',function(e){//@TODO: bindear derecho
+    const tgt = $(e.currentTarget);
+    $('[data-js-modal-ver-cargar-grupo-operario]').trigger('mostrar.modal',[tgt.attr('data-js-ver'),tgt.val(),'VER']);
+  });
+  
+  $('#pant_operarios #grupos').on('click','[data-js-editar]',function(e){//@TODO: bindear derecho
+    const tgt = $(e.currentTarget);
+    $('[data-js-modal-ver-cargar-grupo-operario]').trigger('mostrar.modal',[tgt.attr('data-js-editar'),tgt.val(),'EDITAR']);
   });
   
   $('#pant_operarios').each(function(_,pant_obj){
@@ -906,7 +917,7 @@ $(function(){
           const o = $('<option>');
           o.val(h.id_canon_operario);
           o.text(h.usuario + ' - '+h.created_at);
-          o.data('operario',h);
+          o.data('instancia',h);
           return o;
         })
       );
@@ -914,6 +925,10 @@ $(function(){
       M.trigger('regenerarInputsFormatear')
       .trigger('formatearCampos');
     };
+    
+    M.on('render',function(e,data,mantener_historial){
+      render(data,mantener_historial);
+    });
     
     M.on('mostrar.modal',function(e,url,id_operario,modo){
       M.trigger('setModo',[modo]);
@@ -990,56 +1005,134 @@ $(function(){
         }
       });
     });
+  });
+});
+
+$(function(){
+  $('[data-js-modal-ver-cargar-grupo-operario]').each(function(){
+    const  M = $(this);
+    const $M = M.find.bind(M);
+    const Mname = function(name,val,O=M){
+      return O.find(`[name="${name}"]`).val(val ?? '');
+    };
     
-    $M('[data-js-change-agregar-alpha]').change(function(e){
-      const tgt = $(e.currentTarget);
-      const ALPHA = tgt.attr('data-js-change-agregar-alpha');
-      let val = tgt.val();
-      {
-        const fakeDiv = document.createElement('div');
-        fakeDiv.style.color = val;
-        document.body.append(fakeDiv);
-        const rgbStr = window.getComputedStyle(fakeDiv).color.replaceAll(/( |\t|\n|\r|\f|\v)/g,'');//Le saco los espacios
-        document.body.removeChild(fakeDiv);
-        const numRegex = '(\\+|-)?([0-9]+\\.?[0-9]*|[0-9]*\\.?[0-9]+)';
-        const fRegex = '((0|1)\\.?[0-9]*|\\.[0-9]+)';
-        const rgbRegex = new RegExp('rgb\\('+numRegex+','+numRegex+','+numRegex+'\\)','gi');
-        const rgbaRegex = new RegExp('rgba\\('+numRegex+','+numRegex+','+numRegex+','+numRegex+'\\)','gi');
-        const rgbafRegex = new RegExp('rgba\\('+numRegex+','+numRegex+','+numRegex+','+fRegex+'\\)','gi');
-        const clearTextRegex = /(r|g|b|a|\(|\))/g;
-        const f255toHex = (s) => {
-          return Math.min(Math.max(Math.round(parseFloat(s)),0),255).toString(16).padStart(2,'0').toUpperCase();
-        };
-        const fatoHex = (s) => {
-          return Math.min(Math.max(Math.round(parseFloat(s)*255),0),255).toString(16).padStart(2,'0').toUpperCase();
-        };
-        //Mi navegador me devuelve negro si seteo un color en hex con alfa #RRGGBBAA
-        //Asi que lo seteo sin esto
-        const CON_ALPHA = ALPHA.length > 0;
-        if(rgbStr == rgbStr.match(rgbRegex)?.[0]){
-          val = '#'+(rgbStr.replaceAll(clearTextRegex,'').split(',').map(f255toHex).join(''))+ALPHA;
-        }
-        else if(rgbStr == rgbStr.match(rgbaRegex)?.[0]){
-          val = '#'+(rgbStr.replaceAll(clearTextRegex,'').split(',').map(f255toHex).slice(0,CON_ALPHA? 4 : 3).join(''));
-        }
-        else if(rgbStr == rgbStr.match(rgbafRegex)?.[0]){
-          val = '#'+(rgbStr.replaceAll(clearTextRegex,'').split(',').map(function(s,idx,arr){
-            if(idx < (arr.length-1)){
-              return f255toHex(s);
-            }
-            return fatoHex(s);
-          }).slice(0,CON_ALPHA? 4 : 3).join(''));
-        }
-        else {
-          val = '#000000'+ALPHA;
-        }
+    const agregar_fila_operario = (oidx,o) => {
+      const replace_str = $M('[data-molde-operario]').attr('data-molde-operario');
+      const fila = $M('[data-molde-operario]').clone().removeAttr('data-molde-operario');
+      fila.find('[data-name]').each(function(_,nobj){
+        $(nobj).attr('name',$(nobj).attr('data-name').replaceAll(replace_str,oidx));
+      });
+      $M('[data-contenedor-operarios]').append(fila);
+      for(const k in o){
+        Mname(`operarios[${oidx}][${k}]`,o[k],fila);
       }
-      tgt.val(val).attr('value',val);
+    };
+    
+    const render = function(grupo_operario,mantener_historial = false){
+      ocultarErrorValidacion(M.find('[name]'));
+      Mname('id_canon_grupo_operario',grupo_operario?.id_canon_grupo_operario);
+      Mname('id_grupo_operario',grupo_operario?.id_grupo_operario);
+      Mname('nombre',grupo_operario?.nombre);
+      Mname('codigo',grupo_operario?.codigo);
+      Mname('abbr',grupo_operario?.abbr);
+      Mname('color',grupo_operario?.color).trigger('change');
+      
+      $M('[data-contenedor-operarios]').empty();
+      for(const oidx in (grupo_operario?.operarios ?? [])){
+        agregar_fila_operario(oidx,grupo_operario.operarios[oidx]);
+      }
+      
+      (mantener_historial?
+         M.find('[data-js-select-historial]')
+       : M.find('[data-js-select-historial]').empty())
+       .append(
+        (grupo_operario?.historial ?? []).map(function(h,hidx){
+          const o = $('<option>');
+          o.val(h.id_canon_grupo_operario);
+          o.text(h.usuario + ' - '+h.created_at);
+          o.data('instancia',h);
+          return o;
+        })
+      );
+      
+      M.trigger('regenerarInputsFormatear')
+      .trigger('formatearCampos');
+    };
+    
+    M.on('render',function(e,data,mantener_historial){
+      render(data,mantener_historial);
     });
     
-    M.find('[data-js-select-historial]').change(function(e){
-      const tgt = $(e.currentTarget);
-      render(tgt.find('option:selected').data('operario'),true);
+    M.on('mostrar.modal',function(e,url,id_grupo_operario,modo){
+      M.trigger('setModo',[modo]);
+      
+      AUX.GET(url,{id_grupo_operario: id_grupo_operario},function(grupo_operario){
+        render(grupo_operario);
+        M.trigger('setVisible');
+        M.trigger('setReadonly');
+        if(M.attr('data-modo') == 'NUEVO'){
+          $M('[data-js-click-agregar-operario]').trigger('click');
+        }
+        M.modal('show');
+      });
+    });
+        
+    $M('[data-js-click-agregar-operario]').click(function(){
+      const oidx = $M('[data-contenedor-operarios] tr').length;
+      agregar_fila_operario(oidx,{
+        id_operario: ''
+      });
+      M.trigger('regenerarInputsFormatear');
+    });
+    
+    M.on('click','[data-js-click-borrar-tr]',function(){
+      $(this).closest('tr').remove();
+      if($M('[data-contenedor-operarios] tr').length == 0){
+        $M('[data-js-click-agregar-operario]').trigger('click');
+      }
+    });
+    
+    $M('[data-js-click-submit-form]').click(function(e){
+      const o = e.currentTarget;
+      const select = $(o).attr('data-js-click-submit-form');
+      const $form = $M(select);
+      
+      const aux = {};
+      M.trigger('deformatearFormData',[$form.length? AUX.form_entries($form[0]) : {},aux]);
+      const formData = aux.response;
+      
+      const ajax_params = JSON.parse($form.attr('data-ajax-params') ?? '{}') ?? {};
+      ocultarErrorValidacion(M.find('[name]'));
+      $.ajax({
+        type: $form.attr('method'),
+        url: $form.attr('action'),
+        data: formData,
+        ...ajax_params,
+        success: function (data) {
+          $('#pant_operarios [data-js-filtro-tabla]').trigger('buscar');
+          AUX.mensajeExito(data?.mensaje ?? '');
+          $(o).closest('.modal').modal('hide');
+        },
+        error: function (data) {
+          const json = data.responseJSON ?? {};
+          AUX.mensajeError(json?.mensaje ?? '');
+          AUX.mostrarErroresNames($form,json);
+          
+          for(const k in json){
+            if(k.substr(0,'operarios.'.length) != 'operarios.'){
+              continue;
+            }
+            const oidx = k.match(/^operarios\.[0-9]+/gm)?.[0].substr('operarios.'.length);
+            const name = k.substr('operarios.'.length+oidx.length+1);//+1 por el punto
+            mostrarErrorValidacion(
+              $form.find(`[name="operarios[${oidx}][${name}]"]`),
+              json[k].join(', '),
+              true
+            );
+          }
+          console.log(data);
+        }
+      });
     });
   });
 });
@@ -1261,6 +1354,58 @@ $(function(){
       const tgt = $(e.currentTarget);
       const sibling_val = tgt.siblings(tgt.attr('data-js-click-abrir-val-hermano')).val();
       window.open(sibling_val,'_blank');
+    });
+    
+    M.find('[data-js-change-agregar-alpha]').change(function(e){
+      const tgt = $(e.currentTarget);
+      const ALPHA = tgt.attr('data-js-change-agregar-alpha');
+      let val = tgt.val();
+      {
+        const fakeDiv = document.createElement('div');
+        fakeDiv.style.color = val;
+        document.body.append(fakeDiv);
+        const rgbStr = window.getComputedStyle(fakeDiv).color.replaceAll(/( |\t|\n|\r|\f|\v)/g,'');//Le saco los espacios
+        document.body.removeChild(fakeDiv);
+        const numRegex = '(\\+|-)?([0-9]+\\.?[0-9]*|[0-9]*\\.?[0-9]+)';
+        const fRegex = '((0|1)\\.?[0-9]*|\\.[0-9]+)';
+        const rgbRegex = new RegExp('rgb\\('+numRegex+','+numRegex+','+numRegex+'\\)','gi');
+        const rgbaRegex = new RegExp('rgba\\('+numRegex+','+numRegex+','+numRegex+','+numRegex+'\\)','gi');
+        const rgbafRegex = new RegExp('rgba\\('+numRegex+','+numRegex+','+numRegex+','+fRegex+'\\)','gi');
+        const clearTextRegex = /(r|g|b|a|\(|\))/g;
+        const f255toHex = (s) => {
+          return Math.min(Math.max(Math.round(parseFloat(s)),0),255).toString(16).padStart(2,'0').toUpperCase();
+        };
+        const fatoHex = (s) => {
+          return Math.min(Math.max(Math.round(parseFloat(s)*255),0),255).toString(16).padStart(2,'0').toUpperCase();
+        };
+        //Mi navegador me devuelve negro si seteo un color en hex con alfa #RRGGBBAA
+        //Asi que lo seteo sin esto
+        const CON_ALPHA = ALPHA.length > 0;
+        if(rgbStr == rgbStr.match(rgbRegex)?.[0]){
+          val = '#'+(rgbStr.replaceAll(clearTextRegex,'').split(',').map(f255toHex).join(''))+ALPHA;
+        }
+        else if(rgbStr == rgbStr.match(rgbaRegex)?.[0]){
+          val = '#'+(rgbStr.replaceAll(clearTextRegex,'').split(',').map(f255toHex).slice(0,CON_ALPHA? 4 : 3).join(''));
+        }
+        else if(rgbStr == rgbStr.match(rgbafRegex)?.[0]){
+          val = '#'+(rgbStr.replaceAll(clearTextRegex,'').split(',').map(function(s,idx,arr){
+            if(idx < (arr.length-1)){
+              return f255toHex(s);
+            }
+            return fatoHex(s);
+          }).slice(0,CON_ALPHA? 4 : 3).join(''));
+        }
+        else {
+          val = '#000000'+ALPHA;
+        }
+      }
+      tgt.val(val).attr('value',val);
+    });
+    
+    M.find('[data-js-select-historial]').change(function(e){
+      const tgt = $(e.currentTarget);
+      M.attr('data-render',1);
+      M.trigger('render',[tgt.find('option:selected').data('instancia'),true]);
     });
   });
 });

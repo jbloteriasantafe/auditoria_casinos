@@ -1673,6 +1673,18 @@ Route::group(['prefix' => 'canon', 'middleware' => 'tiene_permiso:m_ver_seccion_
     Route::delete('/desborrar','\App\Http\Controllers\Canon\CanonOperarioController@desborrar');
   });
   
+  Route::group(['prefix' => 'grupo_operario', 'middleware' => 'tiene_rol:superusuario'] ,function(){
+    Route::get('/down','\App\Http\Controllers\Canon\CanonGrupoOperarioController@down');
+    Route::get('/up','\App\Http\Controllers\Canon\CanonGrupoOperarioController@up');
+    Route::get('/llenado_inicial','\App\Http\Controllers\Canon\CanonGrupoOperarioController@llenado_inicial');
+    Route::post('/buscar','\App\Http\Controllers\Canon\CanonGrupoOperarioController@buscar');
+    Route::get('/obtener','\App\Http\Controllers\Canon\CanonGrupoOperarioController@obtener');
+    Route::get('/obtenerConHistorial','\App\Http\Controllers\Canon\CanonGrupoOperarioController@obtenerConHistorial');
+    Route::post('/guardar','\App\Http\Controllers\Canon\CanonGrupoOperarioController@guardar');
+    Route::delete('/borrar','\App\Http\Controllers\Canon\CanonGrupoOperarioController@borrar');
+    Route::delete('/desborrar','\App\Http\Controllers\Canon\CanonGrupoOperarioController@desborrar');
+  });
+  
   Route::group(['middleware' => 'tiene_permiso:m_b_pagos'],function () {
     Route::post('/descargar', '\App\Http\Controllers\Canon\CanonInformeController@descargar');
     Route::get('/descargarPlanillas', '\App\Http\Controllers\Canon\CanonInformeController@descargarPlanillas');
