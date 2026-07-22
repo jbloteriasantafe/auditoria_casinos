@@ -7021,22 +7021,42 @@ $(document).ready(function () {
         });
         $("#cabeceraTablaControlDocumentos").append(trHead);
 
+        function iconoControlDoc(c) {
+          if (c.estado === "valido") {
+            return '<i class="fa fa-check icono-validado" data-toggle="tooltip" title="Válido (' + c.validos + '/' + c.total + ')"></i>';
+          } else if (c.estado === "no_valido") {
+            return '<i class="fa fa-times icono-no-validado" data-toggle="tooltip" title="No válido (' + c.validos + '/' + c.total + ' validados)"></i>';
+          }
+          return '<i class="fa fa-minus" style="color: #999;" data-toggle="tooltip" title="No subido"></i>';
+        }
+
         res.filas.forEach(function (fila) {
           var tr = $("<tr>").append(
             $("<td>").attr("style", estiloPrimeraCol).text(fila.documento + (fila.anual ? " (ANUAL)" : ""))
           );
-          res.meses.forEach(function (mes) {
-            var celda = fila.celdas[mes.key];
-            var icono;
-            if (celda.estado === "valido") {
-              icono = '<i class="fa fa-check icono-validado" data-toggle="tooltip" title="Válido (' + celda.validos + '/' + celda.total + ')"></i>';
-            } else if (celda.estado === "no_valido") {
-              icono = '<i class="fa fa-times icono-no-validado" data-toggle="tooltip" title="No válido (' + celda.validos + '/' + celda.total + ' validados)"></i>';
-            } else {
-              icono = '<i class="fa fa-minus" style="color: #999;" data-toggle="tooltip" title="No subido"></i>';
-            }
-            tr.append($("<td>").addClass("text-center").html(icono));
-          });
+          if (fila.anual && fila.grupos) {
+            // Documento anual: una sola celda por año (colspan sobre los meses de ese año).
+            fila.grupos.forEach(function (g) {
+              var td = $("<td>").addClass("text-center").attr("colspan", g.span)
+                .attr("title", "Año " + g.anio)
+                .css("background-color", "#fbfbf5");
+              if (fila.detalle && g.items && g.items.length) {
+                // un ícono por registro (ej. cada anticipo): tilde si está validado, cruz si no.
+                td.html(g.items.map(function (it) {
+                  return it.valido == 1
+                    ? '<i class="fa fa-check icono-validado" style="margin:0 3px;" data-toggle="tooltip" title="Anticipo ' + it.nro + ': validado"></i>'
+                    : '<i class="fa fa-times icono-no-validado" style="margin:0 3px;" data-toggle="tooltip" title="Anticipo ' + it.nro + ': no validado"></i>';
+                }).join(''));
+              } else {
+                td.html(iconoControlDoc(g));
+              }
+              tr.append(td);
+            });
+          } else {
+            res.meses.forEach(function (mes) {
+              tr.append($("<td>").addClass("text-center").html(iconoControlDoc(fila.celdas[mes.key])));
+            });
+          }
           $("#cuerpoTablaControlDocumentos").append(tr);
         });
 
