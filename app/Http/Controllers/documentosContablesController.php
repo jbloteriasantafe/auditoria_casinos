@@ -18047,8 +18047,8 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
             'POZOS ACUMULADOS' => ['model' => RegistroPozosAcumuladosLinkeados::class, 'date_col' => 'fecha_PozosAcumuladosLinkeados'],
             'CONTRIB. ENTE (ROS)' => ['model' => RegistroContribEnteTuristico::class, 'date_col' => 'fecha_ContribEnteTuristico'],
             'RRHH' => ['model' => RegistroRRHH::class, 'date_col' => 'fecha_RRHH'],
-            'ANTICIPOS' => ['model' => RegistroGanancias::class, 'date_col' => 'periodo_fiscal', 'anual' => true],
-            'PAGO PERIODO FISCAL' => ['model' => RegistroGanancias_periodo::class, 'date_col' => 'periodo_fiscal', 'anual' => true],
+            'ANTICIPOS GANANCIAS' => ['model' => RegistroGanancias::class, 'date_col' => 'fecha_pago'],
+            'IMP. GANANCIAS' => ['model' => RegistroGanancias_periodo::class, 'date_col' => 'fecha_presentacion'],
             'JACKPOTS PAGADOS' => ['model' => RegistroJackpotsPagados::class, 'date_col' => 'fecha_JackpotsPagados'],
             'PREMIOS PAGADOS' => ['model' => RegistroPremiosPagados::class, 'date_col' => 'fecha_PremiosPagados'],
             'PREMIOS MTM' => ['model' => RegistroPremiosMTM::class, 'date_col' => 'fecha_PremiosMTM'],
@@ -18144,8 +18144,8 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
             ['nombre' => 'TGI',                         'model' => RegistroTGI::class,                  'col' => 'fecha_tgi'],
             ['nombre' => 'IMP. APUESTAS MTM',           'model' => RegistroIMP_AP_MTM::class,           'col' => 'fecha_imp_ap_mtm'],
             ['nombre' => 'IMP. APUESTAS ONLINE',        'model' => RegistroIMP_AP_OL::class,            'col' => 'fecha_imp_ap_ol'],
-            ['nombre' => 'ANTICIPOS',                   'model' => RegistroGanancias::class,            'col' => 'periodo_fiscal', 'anual' => true, 'detalle' => true],
-            ['nombre' => 'PAGO PERIODO FISCAL',         'model' => RegistroGanancias_periodo::class,    'col' => 'periodo_fiscal', 'anual' => true],
+            ['nombre' => 'ANTICIPOS GANANCIAS',         'model' => RegistroGanancias::class,            'col' => 'fecha_pago',         'detalle' => true],
+            ['nombre' => 'IMP. GANANCIAS',              'model' => RegistroGanancias_periodo::class,    'col' => 'fecha_presentacion'],
             ['nombre' => 'PATENTES',                    'model' => RegistroPatentes::class,             'col' => 'fecha_Patentes'],
             ['nombre' => 'CONTRIB. ENTE (ROS)',         'model' => RegistroContribEnteTuristico::class, 'col' => 'fecha_ContribEnteTuristico', 'solo_casino' => 3],
             ['nombre' => 'DER. ACCESO (ROS)',           'model' => RegistroDerechoAcceso::class,        'col' => 'fecha_DerechoAcceso',        'solo_casino' => 3],
@@ -18205,56 +18205,39 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
                     if($detalle) $buckets[$clave]['items'][] = ['valido' => $reg->valido ? 1 : 0, 'nro' => $reg->nro_anticipo];
                 }
             }else{
+                $cols = [$col, 'valido'];
+                if($detalle) $cols[] = 'nro_anticipo';
                 $registros = $clase::where('casino', $id_casino)
                     ->whereBetween($col, [$desde_date, $hasta_date])
-                    ->get([$col, 'valido']);
+                    ->get($cols);
                 foreach($registros as $reg){
                     if(!$reg->$col) continue;
                     $clave = date('Y-m', strtotime($reg->$col));
-                    if(!isset($buckets[$clave])) $buckets[$clave] = ['total' => 0, 'validos' => 0];
+                    if(!isset($buckets[$clave])) $buckets[$clave] = ['total' => 0, 'validos' => 0, 'items' => []];
                     $buckets[$clave]['total']++;
                     if($reg->valido) $buckets[$clave]['validos']++;
+                    if($detalle) $buckets[$clave]['items'][] = ['valido' => $reg->valido ? 1 : 0, 'nro' => $reg->nro_anticipo];
                 }
             }
 
             $celdas = [];
             foreach($meses as $mes){
                 $clave = $anual ? substr($mes['key'],0,4) : $mes['key'];
-                $b = isset($buckets[$clave]) ? $buckets[$clave] : ['total' => 0, 'validos' => 0];
+                $b = isset($buckets[$clave]) ? $buckets[$clave] : ['total' => 0, 'validos' => 0, 'items' => []];
                 if($b['total'] == 0) $estado = 'no_subido';
                 else if($b['validos'] == $b['total']) $estado = 'valido';
                 else $estado = 'no_valido';
-                $celdas[$mes['key']] = ['estado' => $estado, 'total' => $b['total'], 'validos' => $b['validos']];
-            }
-
-            $fila = ['documento' => $doc['nombre'], 'anual' => $anual, 'detalle' => $detalle, 'celdas' => $celdas];
-
-            // Documentos anuales: se agrupan los meses consecutivos por año => una sola celda por año
-            // (con colspan/merge), en vez de repetir el mismo estado en los 12 meses.
-            if($anual){
-                $grupos = [];
-                $anioPrev = null;
-                foreach($meses as $mes){
-                    $anio = substr($mes['key'],0,4);
-                    if($anio === $anioPrev){
-                        $grupos[count($grupos)-1]['span']++;
-                        continue;
-                    }
-                    $c = $celdas[$mes['key']];
-                    $g = ['anio' => $anio, 'span' => 1, 'estado' => $c['estado'], 'total' => $c['total'], 'validos' => $c['validos']];
-                    if($detalle){
-                        // un ítem por registro (ej. cada anticipo con su estado), ordenados por nro
-                        $items = isset($buckets[$anio]['items']) ? $buckets[$anio]['items'] : [];
-                        usort($items, function($a, $b){ return ((int)$a['nro']) - ((int)$b['nro']); });
-                        $g['items'] = $items;
-                    }
-                    $grupos[] = $g;
-                    $anioPrev = $anio;
+                $celda = ['estado' => $estado, 'total' => $b['total'], 'validos' => $b['validos']];
+                if($detalle){
+                    // un ítem por registro (ej. cada anticipo con su estado en ese mes), ordenados por nro
+                    $items = isset($b['items']) ? $b['items'] : [];
+                    usort($items, function($a, $c){ return ((int)$a['nro']) - ((int)$c['nro']); });
+                    $celda['items'] = $items;
                 }
-                $fila['grupos'] = $grupos;
+                $celdas[$mes['key']] = $celda;
             }
 
-            $filas[] = $fila;
+            $filas[] = ['documento' => $doc['nombre'], 'anual' => $anual, 'detalle' => $detalle, 'celdas' => $celdas];
         }
 
         return ['meses' => $meses, 'filas' => $filas];
@@ -18330,48 +18313,28 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
 
                 $fila = 3;
                 foreach($filas as $f){
-                    $sheet->setCellValue("A{$fila}", $f['documento'].($f['anual'] ? ' (ANUAL)' : ''));
+                    $sheet->setCellValue("A{$fila}", $f['documento']);
                     $sheet->cells("A{$fila}", function($c){ $c->setFontWeight('bold'); $c->setAlignment('left'); });
 
-                    if(!empty($f['anual']) && !empty($f['grupos'])){
-                        // Documento anual: una sola celda por año (merge de las columnas de ese año).
-                        $off = 0;
-                        foreach($f['grupos'] as $g){
-                            $est = $estilos[$g['estado']];
-                            if(!empty($f['detalle']) && !empty($g['items'])){
-                                // un símbolo por registro (ej. anticipos): ✓ validado, ✗ no validado
-                                $marks = [];
-                                foreach($g['items'] as $it){ $marks[] = $it['valido'] ? '✓' : '✗'; }
-                                $texto = implode(' ', $marks);
-                            } else {
-                                $texto = $est['texto'];
-                                if($g['estado'] == 'no_valido' && $g['total'] > 1){
-                                    $texto .= ' ('.$g['validos'].'/'.$g['total'].')';
-                                }
-                            }
-                            $colIni = \PHPExcel_Cell::stringFromColumnIndex($off + 1);
-                            $colFin = \PHPExcel_Cell::stringFromColumnIndex($off + $g['span']);
-                            if($g['span'] > 1) $sheet->mergeCells("{$colIni}{$fila}:{$colFin}{$fila}");
-                            $sheet->setCellValue("{$colIni}{$fila}", $texto);
-                            $sheet->cells("{$colIni}{$fila}:{$colFin}{$fila}", function($c) use ($est){
-                                $c->setBackground($est['fondo']); $c->setFontColor($est['fuente']); $c->setAlignment('center');
-                            });
-                            $off += $g['span'];
-                        }
-                    } else {
-                        foreach($meses as $i => $mes){
-                            $celda = $f['celdas'][$mes['key']];
-                            $est = $estilos[$celda['estado']];
-                            $colLetra = \PHPExcel_Cell::stringFromColumnIndex($i + 1);
+                    foreach($meses as $i => $mes){
+                        $celda = $f['celdas'][$mes['key']];
+                        $est = $estilos[$celda['estado']];
+                        $colLetra = \PHPExcel_Cell::stringFromColumnIndex($i + 1);
+                        if(!empty($f['detalle']) && !empty($celda['items'])){
+                            // un símbolo por registro en el mes (ej. anticipos): ✓ validado, ✗ no validado
+                            $marks = [];
+                            foreach($celda['items'] as $it){ $marks[] = $it['valido'] ? '✓' : '✗'; }
+                            $texto = implode(' ', $marks);
+                        } else {
                             $texto = $est['texto'];
                             if($celda['estado'] == 'no_valido' && $celda['total'] > 1){
                                 $texto .= ' ('.$celda['validos'].'/'.$celda['total'].')';
                             }
-                            $sheet->setCellValue("{$colLetra}{$fila}", $texto);
-                            $sheet->cells("{$colLetra}{$fila}", function($c) use ($est){
-                                $c->setBackground($est['fondo']); $c->setFontColor($est['fuente']); $c->setAlignment('center');
-                            });
                         }
+                        $sheet->setCellValue("{$colLetra}{$fila}", $texto);
+                        $sheet->cells("{$colLetra}{$fila}", function($c) use ($est){
+                            $c->setBackground($est['fondo']); $c->setFontColor($est['fuente']); $c->setAlignment('center');
+                        });
                     }
                     $fila++;
                 }

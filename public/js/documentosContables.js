@@ -7030,33 +7030,29 @@ $(document).ready(function () {
           return '<i class="fa fa-minus" style="color: #999;" data-toggle="tooltip" title="No subido"></i>';
         }
 
+        function iconosDetalleControl(items) {
+          // un ícono por registro (ej. cada anticipo del mes): tilde si validado, cruz si no.
+          return items.map(function (it) {
+            return it.valido == 1
+              ? '<i class="fa fa-check icono-validado" style="margin:0 3px;" data-toggle="tooltip" title="Anticipo ' + it.nro + ': validado"></i>'
+              : '<i class="fa fa-times icono-no-validado" style="margin:0 3px;" data-toggle="tooltip" title="Anticipo ' + it.nro + ': no validado"></i>';
+          }).join('');
+        }
+
         res.filas.forEach(function (fila) {
           var tr = $("<tr>").append(
-            $("<td>").attr("style", estiloPrimeraCol).text(fila.documento + (fila.anual ? " (ANUAL)" : ""))
+            $("<td>").attr("style", estiloPrimeraCol).text(fila.documento)
           );
-          if (fila.anual && fila.grupos) {
-            // Documento anual: una sola celda por año (colspan sobre los meses de ese año).
-            fila.grupos.forEach(function (g) {
-              var td = $("<td>").addClass("text-center").attr("colspan", g.span)
-                .attr("title", "Año " + g.anio)
-                .css("background-color", "#fbfbf5");
-              if (fila.detalle && g.items && g.items.length) {
-                // un ícono por registro (ej. cada anticipo): tilde si está validado, cruz si no.
-                td.html(g.items.map(function (it) {
-                  return it.valido == 1
-                    ? '<i class="fa fa-check icono-validado" style="margin:0 3px;" data-toggle="tooltip" title="Anticipo ' + it.nro + ': validado"></i>'
-                    : '<i class="fa fa-times icono-no-validado" style="margin:0 3px;" data-toggle="tooltip" title="Anticipo ' + it.nro + ': no validado"></i>';
-                }).join(''));
-              } else {
-                td.html(iconoControlDoc(g));
-              }
-              tr.append(td);
-            });
-          } else {
-            res.meses.forEach(function (mes) {
-              tr.append($("<td>").addClass("text-center").html(iconoControlDoc(fila.celdas[mes.key])));
-            });
-          }
+          res.meses.forEach(function (mes) {
+            var celda = fila.celdas[mes.key];
+            var td = $("<td>").addClass("text-center");
+            if (fila.detalle && celda.items && celda.items.length) {
+              td.html(iconosDetalleControl(celda.items));
+            } else {
+              td.html(iconoControlDoc(celda));
+            }
+            tr.append(td);
+          });
           $("#cuerpoTablaControlDocumentos").append(tr);
         });
 
