@@ -9085,6 +9085,29 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
     </div>
 </div>
 
+<div class="modal fade" id="modalAvisoValidacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            <h3 class="modal-titleEliminar">NO SE PUEDE VALIDAR</h3>
+          </div>
+
+          <div class="modal-body franjaRojaModal">
+            <div class="form-group">
+                <div class="col-xs-12">
+                    <strong id="texto-aviso-validacion">No se puede validar el documento.</strong>
+                </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">ENTENDIDO</button>
+          </div>
+      </div>
+    </div>
+</div>
+
 <div class="modal fade" id="modalPublicoCasino" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">

@@ -17958,10 +17958,12 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
       $doc = $clase::find($id);
       if(!$doc) return response()->json(['success' => false, 'msg' => 'Documento no encontrado'], 404);
 
-      // No se permite validar un documento con campos de datos sin completar.
-      // Un campo en 0 cuenta como cargado; solo NULL/vacío se considera incompleto. No influye el archivo adjunto.
+      // No se permite validar un documento sin datos cargados. No influye el archivo adjunto.
       if((int)$validar === 1 && $this->documentoTieneCamposIncompletos($tipo, $doc)){
-          return response()->json(['success' => false, 'msg' => 'No se puede validar: el documento tiene campos sin completar.'], 422);
+          $msg = $tipo === 'publico_casino'
+              ? 'No se puede validar: faltan días por cargar en el mes.'
+              : 'No se puede validar el documento porque no tiene datos cargados.';
+          return response()->json(['success' => false, 'msg' => $msg], 422);
       }
 
       $doc->valido = $validar;
@@ -17970,9 +17972,19 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
       return response()->json(['success' => true]);
   }
 
-  // Devuelve true si al registro le falta cargar algún campo de datos (NULL). 0 no cuenta como faltante.
+  // Devuelve true si el documento no tiene NINGÚN dato cargado (documento vacío).
+  //
+  // Antes se exigía que TODA columna de datos estuviera cargada (cualquier NULL => incompleto), pero
+  // en este módulo la mayoría de los campos son legítimamente opcionales: varían según el casino/variante
+  // (p.ej. DREI carga distintas columnas para Santa Fe, Melincué o Rosario, dejando el resto en NULL) y
+  // muchos se dejan en blanco incluso en documentos que un usuario ya validó (valido=1). Aquella regla
+  // marcaba "campos incompletos" sobre documentos que en realidad estaban completos. A eso se suman
+  // columnas muertas siempre en NULL (p.ej. importe_usd en Jackpots/Premios/PromoTickets).
+  //
+  // Por eso ahora solo se bloquea la validación de un documento SIN datos: alcanza con que exista al
+  // menos un campo de datos cargado. Un 0 cuenta como cargado; NULL o cadena vacía no.
   private function documentoTieneCamposIncompletos($tipo, $doc){
-      // Público Casino: solo cuentan los días reales del mes (los días sobrantes quedan NULL de forma legítima).
+      // Público Casino: los datos se cargan por día; deben estar todos los días reales del mes.
       if($tipo === 'publico_casino'){
           $diasDelMes = (int)date('t', strtotime($doc->fecha_mes));
           for($i = 1; $i <= $diasDelMes; $i++){
@@ -17981,16 +17993,23 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
           return false;
       }
 
-      // Regla genérica: cualquier columna de datos en NULL => incompleto.
       // Se excluyen columnas "meta" que no son datos que carga el usuario.
       $meta = [$doc->getKeyName(), 'casino', 'usuario', 'valido', 'archivo', 'path',
                'observacion', 'observaciones', 'obs', 'created_at', 'updated_at'];
+      $tieneColumnasDeDatos = false;
       foreach($doc->getAttributes() as $col => $val){
           if(in_array($col, $meta, true)) continue;
           if(strpos($col, 'fecha') === 0 || strpos($col, 'periodo') === 0) continue; // fecha_*, periodo_*
-          if($val === null) return true;
+          $tieneColumnasDeDatos = true;
+          if($val !== null && $val !== '') return false; // hay al menos un dato cargado => documento completo
       }
-      return false;
+
+      // Tipos "contenedor" (TGI, Patentes, Imp. Inmobiliario, Aut. Directores): el registro padre no tiene
+      // columnas de datos propias (viven en tablas hijas), así que no se bloquean desde acá.
+      if(!$tieneColumnasDeDatos) return false;
+
+      // Hay columnas de datos pero ninguna está cargada => documento vacío.
+      return true;
   }
 
     public function obtenerDocumentosValidados(Request $request) {

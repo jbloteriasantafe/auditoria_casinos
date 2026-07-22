@@ -23756,11 +23756,17 @@ $(document).on("click", "#btn-confirmar-validacion", function () {
       buscarPestana(activeTab, true);
     },
     error: function (xhr) {
-      $("#modalValidarDocumento").modal("hide");
       var msg = (xhr.responseJSON && xhr.responseJSON.msg)
         ? xhr.responseJSON.msg
         : "Ocurrió un error al validar el documento.";
-      alert(msg);
+      // Cerramos el modal de confirmación y, una vez oculto, mostramos el aviso
+      // (evita el solapamiento de backdrops de Bootstrap al encadenar dos modales).
+      $("#modalValidarDocumento")
+        .one("hidden.bs.modal", function () {
+          $("#texto-aviso-validacion").text(msg);
+          $("#modalAvisoValidacion").modal("show");
+        })
+        .modal("hide");
     },
   });
 });
