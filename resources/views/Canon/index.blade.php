@@ -76,6 +76,9 @@
       <a data-js-tab="#pant_operarios">Operarios</a>
     </div>
     <div>
+      <a data-js-tab="#pant_agrupamientos">Agrupamientos</a>
+    </div>
+    <div>
       <a data-js-tab="#pant_defecto">Valores por Defecto</a>
     </div>
     @endif
@@ -379,6 +382,13 @@
     @endcomponent
   </div>
 </div>
+
+@if($es_superusuario)
+<div id="pant_agrupamientos">
+  @component('Canon.bAgrupamientos')
+  @endcomponent
+</div>
+@endif
 
 <div id="pant_defecto" hidden>
   @component('Components/FiltroTabla')
@@ -1535,7 +1545,7 @@
   'clases_modal' => 'VerCargarCanon VerCargarOperario',
   'attrs_modal' => 'data-js-modal-canon-comportamiento-comun data-js-modal-ver-cargar-operario data-modo=\'NUEVO\' ',
   'estilo_cabecera' => 'background-color: #6dc7be;',
-  'grande' => 70,
+  'grande' => 90,
 ])
   @slot('titulo')
   OPERARIO
@@ -1546,113 +1556,392 @@
     <select class="form-control" data-js-select-historial style="width: 15rem;">
     </select>
   </div>
-  <form class="pestaña" style="display: flex;flex-direction: column;" action="/canon/operario/guardar" method="POST">
-    <div hidden>
-      <input name="id_canon_operario" class="form-control" data-readonly='[{"modo":"*"}]'>
+  <div class="tabs" data-js-tabs>
+    <div>
+      <a data-js-tab="[data-js-modal-ver-cargar-operario] [data-datos]" tabindex="0">Datos</a>
     </div>
-    <div class="bloque_enterno" style="display:flex;height: 70vh;width: 100%;">
-      <div class="bloque_interno"  style="flex: 1;height: 100%;display: flex;flex-direction: column;">
-        <div style="flex: 3;">
-          <h6>Datos</h6>
-          <div class="bloque_interno" style="display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
-            <div style="width: 33.333333333%;">
-              <h5 style="padding-left: 0;">ID</h5>
-              <!-- El id no se deberia editar una vez creado para mantener la trazabilidad/historial del operario -->
-              <input name="id_operario" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"},{"modo": "EDITAR"}]'>
-            </div>
-            <div style="width: 33.333333333%;">
-              <h5 style="padding-left: 0;">Nombre Legal</h5>
-              <input name="nombre_legal" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
-            </div>
-            <div style="width: 33.333333333%;">
-              <h5 style="padding-left: 0;">Nombre</h5>
-              <input name="nombre" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
-            </div>
-            <div style="width: 33.333333333%;">
-              <h5 style="padding-left: 0;">Código</h5>
-              <input name="codigo" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
-            </div>
-            <div style="width: 33.333333333%;">
-              <h5 style="padding-left: 0;">CUIT</h5>
-              <input name="cuit" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
-            </div>
-            <div style="width: 33.333333333%;">
-              <h5 style="padding-left: 0;">Inicio de Actividad</h5>
-              @component('Components/inputFecha',[
-                'attrs' => 'name="inicio_actividad" data-js-texto-no-formatear-numero placeholder="YYYY-MM-DD"',
-                'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"}]\' style="padding: 0 !important;"'
-              ])
-              @endcomponent
-            </div>
-            <div style="width: 33.333333333%;">
-              <h5 style="padding-left: 0;">Abreviación</h5>
-              <input name="abbr" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
-            </div>
-            <div style="width: 33.333333333%;">
-              <h5 style="padding-left: 0;">Color plantillas</h5>
-              <input data-js-change-agregar-alpha="" name="color" data-js-texto-no-formatear-numero type="color" value="#000000FF" alpha="alpha" colorspace="limited-srgb" class="form-control" data-readonly='[{"modo": "VER"}]'>
-            </div>
-          </div>
-        </div>
-        <div style="flex: 3;">
-          <h6>Datos De Enlace</h6>
-          <div class="bloque_interno" style="display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
-            <div style="width: 33.333333333%;">
-              <h5 style="padding-left: 0;">Casino</h5>
-              <input name="codigo_casino" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
-            </div>
-            <div style="width: 33.333333333%;">
-              <h5 style="padding-left: 0;">Plataforma</h5>
-              <input name="codigo_plataforma" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
-            </div>
-            <div style="width: 33.333333333%;">
-              <h5 style="padding-left: 0;">Apuestas Deportivas</h5>
-              <input name="codigo_apuestas_deportivas" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
+    <div>
+      <a data-js-tab="[data-js-modal-ver-cargar-operario] [data-datos-enlace]" tabindex="0">Datos Enlace</a>
+    </div>
+    <div>
+      <a data-js-tab="[data-js-modal-ver-cargar-operario] [data-cuentas]" tabindex="0">Cuentas</a>
+    </div>
+    <div>
+      <a data-js-tab="[data-js-modal-ver-cargar-operario] [data-canon-variable]" tabindex="0">Canon Variable</a>
+    </div>
+    <div>
+      <a data-js-tab="[data-js-modal-ver-cargar-operario] [data-canon-fijo-mesas]" tabindex="0">Canon Fijo - Mesas</a>
+    </div>
+    <div>
+      <a data-js-tab="[data-js-modal-ver-cargar-operario] [data-canon-fijo-mesas-adicionales]" tabindex="0">Canon Fijo - Mesas Adicional</a>
+    </div>
+  </div>
+  <form  style="display: flex;flex-direction: column;" action="/canon/operario/guardar" method="POST">
+    <div class="pestaña" data-datos>
+      <div hidden>
+        <input name="id_canon_operario" class="form-control" data-readonly='[{"modo":"*"}]'>
+      </div>
+      <div class="bloque_enterno" style="display:flex;height: 70vh;width: 100%;">
+        <div class="bloque_interno"  style="flex: 1;height: 100%;display: flex;flex-direction: column;">
+          <div style="flex: 1;">
+            <h6>Datos</h6>
+            <div class="bloque_interno" style="display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
+              <div style="width: 33.333333333%;">
+                <h5 style="padding-left: 0;">ID</h5>
+                <!-- El id no se deberia editar una vez creado para mantener la trazabilidad/historial del operario -->
+                <input name="id_operario" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"},{"modo": "EDITAR"}]'>
+              </div>
+              <div style="width: 33.333333333%;">
+                <h5 style="padding-left: 0;">Nombre Legal</h5>
+                <input name="nombre_legal" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
+              </div>
+              <div style="width: 33.333333333%;">
+                <h5 style="padding-left: 0;">Nombre</h5>
+                <input name="nombre" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
+              </div>
+              <div style="width: 33.333333333%;">
+                <h5 style="padding-left: 0;">Código</h5>
+                <input name="codigo" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
+              </div>
+              <div style="width: 33.333333333%;">
+                <h5 style="padding-left: 0;">CUIT</h5>
+                <input name="cuit" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
+              </div>
+              <div style="width: 33.333333333%;">
+                <h5 style="padding-left: 0;">Inicio de Actividad</h5>
+                @component('Components/inputFecha',[
+                  'attrs' => 'name="inicio_actividad" data-js-texto-no-formatear-numero placeholder="YYYY-MM-DD"',
+                  'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"}]\' style="padding: 0 !important;"'
+                ])
+                @endcomponent
+              </div>
+              <div style="width: 33.333333333%;">
+                <h5 style="padding-left: 0;">Abreviación</h5>
+                <input name="abbr" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
+              </div>
+              <div style="width: 33.333333333%;">
+                <h5 style="padding-left: 0;">Color plantillas</h5>
+                <input data-js-change-agregar-alpha="" name="color" data-js-texto-no-formatear-numero type="color" value="#000000FF" alpha="alpha" colorspace="limited-srgb" class="form-control" data-readonly='[{"modo": "VER"}]'>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="bloque_interno" style="flex: 1;height: 100%;">
-        <h6 style="padding-bottom: 1em;width: 100%;">
-          Cuentas
-          <button class="btn" type="button" data-js-click-agregar-cuenta data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]' style="display: inline-block;">
-            <i class="fa fa-plus"></i>
-          </button>
-        </h6>
-        <div class="bloque_interno" style="width: 100%;height: 70%;overflow-y: scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Dia Venc.</th>
-                <th>¿Fin de semana?</th>
-                <th>𝒾%  Diario Simple</th>
-                <th>𝒾%  Mensual Compuesto</th>
-                <th>&nbsp;</th>
-              </tr>
-            </thead>
-            <tbody data-contenedor-cuentas>
-            </tbody>
-          </table>
+    </div>
+    <div class="pestaña" data-datos-enlace>
+      <div class="bloque_interno" style="display:flex;height: 70vh;width: 100%;">
+        <div class="bloque_interno" style="flex: 1;height: 100%;">
+          <div style="width: 100%;height: 70%;">
+            <h6>Datos De Enlace</h6>
+            <div class="bloque_interno" style="display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
+              <div style="width: 33.333333333%;">
+                <h5 style="padding-left: 0;">Casino</h5>
+                <input name="codigo_casino" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
+              </div>
+              <div style="width: 33.333333333%;">
+                <h5 style="padding-left: 0;">Plataforma</h5>
+                <input name="codigo_plataforma" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
+              </div>
+              <div style="width: 33.333333333%;">
+                <h5 style="padding-left: 0;">Apuestas Deportivas</h5>
+                <input name="codigo_apuestas_deportivas" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pestaña" data-cuentas>
+      <div class="bloque_interno" style="width: 100%;height: 70vh;">
+        <div class="bloque_interno" style="width: 100%;height: 100%;">     
+          <div class="bloque_interno" style="width: 100%;height: 70%;overflow-y: scroll">
+            <table style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Dia Venc.</th>
+                  <th>¿Fin de semana?</th>
+                  <th>𝒾%  Diario Simple</th>
+                  <th>𝒾%  Mensual Compuesto</th>
+                  <th>&nbsp;</th>
+                </tr>
+              </thead>
+              <tbody data-contenedor-cuentas>
+              </tbody>
+            </table>
+          </div>
+          <div class="bloque_interno" style="padding-top: 1em;width: 100%;">
+            <button class="btn" type="button" data-js-click-agregar-cuenta data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]' style="display: inline-block;">
+              <i class="fa fa-plus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pestaña" data-canon-variable>
+      <div class="bloque_interno" style="width: 100%;height: 70vh;">
+        <div class="bloque_interno" style="width: 100%;height: 100%;">        
+          <div class="bloque_interno" style="width: 100%;height: 70%;overflow-y: scroll">
+            <table style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>% Pje. Aplicable Apostado</th>
+                  <th>% Impuesto Apostado</th>
+                  <th>% Alícuota</th>
+                  <th>Devengar</th>
+                  <th>Deducción</th>
+                  <th>&nbsp;</th>
+                </tr>
+              </thead>
+              <tbody data-contenedor-canon-variable>
+              </tbody>
+            </table>
+          </div>
+          <div class="bloque_interno" style="padding-top: 1em;width: 100%;">
+            <button class="btn" type="button" data-js-click-agregar-canon-variable data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]' style="display: inline-block;">
+              <i class="fa fa-plus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pestaña" data-canon-fijo-mesas>
+      <div class="bloque_interno" style="width: 100%;height: 30vh;display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
+        <div style="width: 100%;display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;">
+          <div style="width: 33.333333333%;">
+            <h5 style="padding-left: 0;">Valór Dólar</h5>
+            <input name="valor_dolar" class="form-control" data-readonly='[{"modo": "VER"}]'>
+          </div>
+          <div style="width: 33.333333333%;">
+            <h5 style="padding-left: 0;">Valór Euro</h5>
+            <input name="valor_dolar" class="form-control" data-readonly='[{"modo": "VER"}]'>
+          </div>
+          <div style="width: 33.333333333%;">
+            <h5 style="padding-left: 0;">Dias Valór</h5>
+            <input name="dias_valor" class="form-control" data-readonly='[{"modo": "VER"}]'>
+          </div>
+        </div>
+        <div style="width: 100%;display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
+          <div style="width: 25%;">
+            <h5 style="padding-left: 0;">Día Cotización (Devengado)</h5>
+            <input name="devengado_dia_cotizacion" class="form-control" data-readonly='[{"modo": "VER"}]'>
+          </div>
+          <div style="width: 25%;">
+            <h5 style="padding-left: 0;">Fin De Semana (Devengado)</h5>
+            <select class="form-control" name="devengado_fin_de_semana" data-readonly='[{"modo": "VER"}]'>
+              <option>Lunes Próximo</option>
+              <option>Viernes Anterior</option>
+              <option>Sin Movimiento</option>
+            </select>
+          </div>
+        </div>
+        <div style="width: 100%;display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
+          <div style="width: 25%;">
+            <h5 style="padding-left: 0;">Día Cotización (Determinado)</h5>
+            <input name="determinado_dia_cotizacion" class="form-control" data-readonly='[{"modo": "VER"}]'>
+          </div>
+          <div style="width: 25%;">
+            <h5 style="padding-left: 0;">Fin De Semana (Determinado)</h5>
+            <select name="determinado_fin_de_semana" class="form-control" data-readonly='[{"modo": "VER"}]'>
+              <option>Lunes Próximo</option>
+              <option>Viernes Anterior</option>
+              <option>Sin Movimiento</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="bloque_interno" style="width: 100%;height: 60vh;">
+        <div class="bloque_interno" style="width: 100%;height: 100%;">
+          <div class="bloque_interno" style="width: 100%;height: 70%;overflow-y: scroll">
+            <table style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Lu.-Ju.</th>
+                  <th>Vi.-Sa.</th>
+                  <th>Dom.</th>
+                  <th>Mes</th>
+                  <th>Fijos</th>
+                  <th>Devengar</th>
+                  <th>Deducción</th>
+                  <th>&nbsp;</th>
+                </tr>
+              </thead>
+              <tbody data-contenedor-canon-fijo-mesas>
+              </tbody>
+            </table>
+          </div>
+          <div class="bloque_interno" style="padding-top: 1em;width: 100%;">
+            <button class="btn" type="button" data-js-click-agregar-canon-fijo-mesas data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]' style="display: inline-block;">
+              <i class="fa fa-plus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pestaña" data-canon-fijo-mesas-adicionales>
+      <div class="bloque_interno" style="width: 100%;height: 70vh;">
+        <div class="bloque_interno" style="width: 100%;height: 100%;">
+          <div class="bloque_interno" style="width: 100%;height: 70%;overflow-y: scroll">
+            <table style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Días Mes</th>
+                  <th>Horas Día</th>
+                  <th>Porcentaje</th>
+                  <th>Devengar</th>
+                  <th>Deducción</th>
+                  <th>&nbsp;</th>
+                </tr>
+              </thead>
+              <tbody data-contenedor-canon-fijo-mesas-adicionales>
+              </tbody>
+            </table>
+          </div>
+          <div class="bloque_interno" style="padding-top: 1em;width: 100%;">
+            <button class="btn" type="button" data-js-click-agregar-canon-fijo-mesas-adicionales data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]' style="display: inline-block;">
+              <i class="fa fa-plus"></i>
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </form>
   <!-- Por fuera del modal así no afecta el <form> -->
   <table hidden>
-    <tr data-molde-cuenta="$idxcuenta">
-      <td><input class="form-control" data-js-texto-no-formatear-numero data-name="cuentas[$idxcuenta][nombre]" data-readonly='[{"modo": "VER"}]'></td>
-      <td><input class="form-control" data-js-texto-no-formatear-numero data-name="cuentas[$idxcuenta][dia_vencimiento]" data-readonly='[{"modo": "VER"}]'></td>
+    <?php
+      $obj = 'cuentas';
+      $idx = '$idxcuenta';
+      $N = function($name) use (&$obj,&$idx){return $obj.'['.$idx.']['.$name.']';};
+      
+      $nombre = $N('nombre');
+      $dia_vencimiento = $N('dia_vencimiento');
+      $fin_de_semana = $N('fin_de_semana');
+      $interes_diario_simple = $N('interes_diario_simple');
+      $interes_mensual_compuesto = $N('interes_mensual_compuesto');
+    ?>
+    <tr data-molde-cuenta="{{$idx}}">
+      <td><input class="form-control" data-js-texto-no-formatear-numero data-name="{{$nombre}}" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input class="form-control" data-js-texto-no-formatear-numero data-name="{{$dia_vencimiento}}" data-readonly='[{"modo": "VER"}]'></td>
       <td>
-        <select class="form-control" data-name="cuentas[$idxcuenta][fin_de_semana]" data-readonly='[{"modo": "VER"}]'>
+        <select class="form-control" data-name="{{$fin_de_semana}}" data-readonly='[{"modo": "VER"}]'>
           <option>Lunes Próximo</option>
           <option>Viernes Anterior</option>
           <option>Sin Movimiento</option>
         </select>
       </td>
-      <td><input class="form-control" data-name="cuentas[$idxcuenta][interes_diario_simple]" data-readonly='[{"modo": "VER"}]'></td>
-      <td><input class="form-control" data-name="cuentas[$idxcuenta][interes_mensual_compuesto]" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input class="form-control" data-name="{{$interes_diario_simple}}" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input class="form-control" data-name="{{$interes_mensual_compuesto}}" data-readonly='[{"modo": "VER"}]'></td>
       <td>
+        <button class="btn btn-link" type="button" data-js-click-borrar-tr data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>
+          <i class="fa fa-fw fa-trash-alt"></i>
+        </button>
+      </td>
+    </tr>
+    <?php
+      $obj = 'canon_variable';
+      $idx = '$idxcv';
+      
+      $tipo = $N('tipo');
+      $porcentaje_aplicable = $N('porcentaje_aplicable');
+      $porcentaje_impuesto_ley = $N('porcentaje_impuesto_ley');
+      $alicuota = $N('alicuota');
+      $devengar = $N('devengar');
+      $devengado_deduccion = $N('devengado_deduccion');
+    ?>
+    <tr data-molde-canon-variable="{{$idx}}">
+      <td><input class="form-control" data-js-texto-no-formatear-numero data-name="{{$tipo}}" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input class="form-control" data-name="{{$porcentaje_aplicable}}" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input class="form-control" data-name="{{$porcentaje_impuesto_ley}}" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input class="form-control" data-name="{{$alicuota}}" data-readonly='[{"modo": "VER"}]'></td>
+      <td>
+        <select class="form-control" data-name="{{$devengar}}" data-readonly='[{"modo": "VER"}]'>
+          <option value="0">NO</option>
+          <option value="1">SÍ</option>
+        </select>
+      </td>
+      <td><input class="form-control" data-name="{{$devengado_deduccion}}" data-readonly='[{"modo": "VER"}]'></td>
+    </tr>
+    <?php
+      $obj = 'canon_fijo_mesas';
+      $idx = '$idxcfm';
+      
+      $tipo = $N('tipo');
+      $lunes_jueves = $N('lunes_jueves');
+      $viernes_sabados = $N('viernes_sabados');
+      $domingos = $N('domingos');
+      $mes = $N('mes');
+      $fijos = $N('fijos');
+      $devengar = $N('devengar');
+      $devengado_deduccion = $N('devengado_deduccion');
+    ?>
+    <tr data-molde-canon-fijo-mesas="{{$idx}}">      
+      <td><input value="Diarias" data-name="{{$tipo}}" class="form-control" data-js-texto-no-formatear-numero  data-readonly='[{"modo": "VER"}]'></td>
+      <td>
+        <select value="1" class="form-control" data-name="{{$lunes_jueves}}" data-readonly='[{"modo": "VER"}]'>
+          <option value="0">NO</option>
+          <option value="1" default selected>SÍ</option>
+        </select>
+      </td>
+      <td>
+        <select value="1" class="form-control" data-name="{{$viernes_sabados}}" data-readonly='[{"modo": "VER"}]'>
+          <option value="0">NO</option>
+          <option value="1" default selected>SÍ</option>
+        </select>
+      </td>
+      <td>
+        <select value="1" class="form-control" data-name="{{$domingos}}" data-readonly='[{"modo": "VER"}]'>
+          <option value="0">NO</option>
+          <option value="1" default selected>SÍ</option>
+        </select>
+      </td>
+      <td>
+        <select value="1" class="form-control" data-name="{{$mes}}" data-readonly='[{"modo": "VER"}]'>
+          <option value="0">NO</option>
+          <option value="1" default selected>SÍ</option>
+        </select>
+      </td>
+      <td><input value="0" data-name="{{$fijos}}" class="form-control" data-readonly='[{"modo": "VER"}]'></td>
+      <td>
+        <select value="1" class="form-control" data-name="{{$devengar}}" data-readonly='[{"modo": "VER"}]'>
+          <option value="0">NO</option>
+          <option value="1">SÍ</option>
+        </select>
+      </td>
+      <td><input value="0" data-name="{{$devengado_deduccion}}" class="form-control" data-readonly='[{"modo": "VER"}]'></td>
+      <td>
+        <button class="btn btn-link" type="button" data-js-click-borrar-tr data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>
+          <i class="fa fa-fw fa-trash-alt"></i>
+        </button>
+      </td>
+    </tr>
+    
+    <?php
+      $obj = 'canon_fijo_mesas_adicionales';
+      $idx = '$idxcfma';
+      
+      $tipo = $N('tipo');
+      $dias_mes = $N('dias_mes');
+      $horas_dia = $N('horas_dia');
+      $porcentaje = $N('porcentaje');
+      $devengar = $N('devengar');
+      $devengado_deduccion = $N('devengado_deduccion');
+    ?>
+    <tr data-molde-canon-fijo-mesas-adicionales="{{$idx}}">
+      <td style="flex: 1;"><input data-name="{{$tipo}}" class="form-control" data-js-texto-no-formatear-numero  data-readonly='[{"modo": "VER"}]'></td>
+      <td style="flex: 1;"><input value="30" data-name="{{$dias_mes}}" class="form-control" data-readonly='[{"modo": "VER"}]'></td>
+      <td style="flex: 1;"><input data-name="{{$horas_dia}}" class="form-control"   data-readonly='[{"modo": "VER"}]'></td>
+      <td style="flex: 1;"><input data-name="{{$porcentaje}}" class="form-control"   data-readonly='[{"modo": "VER"}]'></td>
+      <td style="flex: 1;">
+        <select value="1" class="form-control" data-name="{{$devengar}}" data-readonly='[{"modo": "VER"}]'>
+          <option value="0">NO</option>
+          <option value="1">SÍ</option>
+        </select>
+      </td>
+      <td style="flex: 1;"><input value="0" data-name="{{$devengado_deduccion}}" class="form-control" data-readonly='[{"modo": "VER"}]'></td>
+      <td style="flex: 1;">
         <button class="btn btn-link" type="button" data-js-click-borrar-tr data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>
           <i class="fa fa-fw fa-trash-alt"></i>
         </button>

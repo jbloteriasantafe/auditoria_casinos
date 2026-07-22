@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Canon;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\DB;
 
 /*
@@ -127,7 +128,7 @@ class CanonAgrupamientoController extends Controller
     CREATE TABLE IF NOT EXISTS canon_agrupamiento (
       id_canon_agrupamiento int(11) NOT NULL AUTO_INCREMENT,
 
-      id_casino INT NULL,	
+      id_casino INT NOT NULL,	
       nivel INT NOT NULL,
       clave VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       valor VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
@@ -182,12 +183,6 @@ class CanonAgrupamientoController extends Controller
     DB::statement("
       INSERT INTO canon_agrupamiento (id_casino,nivel,año_mes,clave,valor,hash)	
       SELECT DISTINCT scagg.id_casino,scagg.nivel,? as año_mes,scagg.clave,scagg.valor,canon_agrupamiento_hash(scagg.id_casino,scagg.nivel,?,scagg.clave,scagg.valor) as hash
-      FROM canon_subcanon_a_grupo as scagg
-    ",[$año_mes,$año_mes]);
-    
-    DB::statement("
-      INSERT INTO canon_agrupamiento (id_casino,nivel,año_mes,clave,valor,hash)	
-      SELECT DISTINCT NULL,scagg.nivel,? as año_mes,scagg.clave,scagg.valor,canon_agrupamiento_hash(NULL,scagg.nivel,?,scagg.clave,scagg.valor) as hash
       FROM canon_subcanon_a_grupo as scagg
     ",[$año_mes,$año_mes]);
   }
@@ -357,47 +352,7 @@ class CanonAgrupamientoController extends Controller
       WHERE cagg.año_mes = ?
     ",[$año_mes]);
   }
-  
-  private function agrupar_sin_casino(string $año_mes){
-    //Sumo los casinos y lo seteo
-    DB::statement("
-    UPDATE canon_agrupamiento as cagg
-    JOIN (
-      SELECT 
-        cagg2.clave,
-        cagg2.valor,
-        cagg2.nivel,
-        
-        SUM(beneficio¬exacto) as beneficio¬exacto,
-        SUM(beneficio¬pre_red) as beneficio¬pre_red,
-        
-        SUM(devengado_bruto¬exacto) as devengado_bruto¬exacto,
-        SUM(devengado_bruto¬pre_red) as devengado_bruto¬pre_red,
-        SUM(devengado_deduccion¬exacto) as devengado_deduccion¬exacto,
-        SUM(devengado_deduccion¬pre_red) as devengado_deduccion¬pre_red,
-        SUM(devengado¬exacto) as devengado¬exacto,
-        SUM(devengado¬pre_red) as devengado¬pre_red,
-        
-        SUM(determinado_bruto¬exacto) as determinado_bruto¬exacto,
-        SUM(determinado_bruto¬pre_red) as determinado_bruto¬pre_red,
-        SUM(determinado_ajuste¬exacto) as determinado_ajuste¬exacto,
-        SUM(determinado_ajuste¬pre_red) as determinado_ajuste¬pre_red,
-        SUM(determinado¬exacto) as determinado¬exacto,
-        SUM(determinado¬pre_red) as determinado¬pre_red
-        
-      FROM canon_agrupamiento as cagg2
-      WHERE cagg2.año_mes = ? AND cagg2.id_casino IS NOT NULL
-      GROUP BY cagg2.año_mes, cagg2.clave, cagg2.valor, cagg2.nivel
-    ) as agrupado 
-      ON  agrupado.clave = cagg.clave
-      AND agrupado.valor = cagg.valor
-      AND agrupado.nivel = cagg.nivel
-    SET 
-      ".$this->__sumar_columnas()."
-    WHERE cagg.año_mes = ? AND cagg.id_casino IS NULL 
-    ", [$año_mes, $año_mes]);
-  }
-  
+    
   private function recalcular(string $año_mes){
     DB::table('canon_agrupamiento')
     ->where('año_mes',$año_mes)
@@ -419,7 +374,6 @@ class CanonAgrupamientoController extends Controller
       }
     }
     
-    $this->agrupar_sin_casino($año_mes);
     $this->calcular_columnas_dependientes($año_mes);
   }
   
@@ -466,14 +420,8 @@ class CanonAgrupamientoController extends Controller
     ->where('año_mes',$año_mes)
     ->where('clave',$clave)
     ->where('nivel',$nivel)
-    ->where('valor',$valor);
-    
-    if($id_casino === null){
-      $data = $data->whereNull('id_casino');
-    }
-    else{
-      $data = $data->where('id_casino',$id_casino);
-    }
+    ->where('valor',$valor)
+    ->where('id_casino',$id_casino);
     
     $data = $data->first();
     
@@ -613,7 +561,7 @@ class CanonAgrupamientoController extends Controller
     return $this->recalcular_agrupamientos([$año_mes],false);
   }
   
-  public function agrupamientos_detallados_req(){//Para debugear desde el navegador
+  public function por_defecto_req(){//Para debugear desde el navegador
     return $this->agrupamientos_detallados(
       $this->CVD->get('agrupamientos') ?? []
     );
@@ -652,5 +600,135 @@ class CanonAgrupamientoController extends Controller
       }
       return $año_meses;
     }
+  }
+  
+  private function _group_dependencias($data){
+    return $data->groupBy('clave')->map(function(&$clave_group){
+      return $clave_group->groupBy('casino')->map(function(&$casino_group){
+        return $casino_group->groupBy('nivel')->map(function(&$nivel_group){
+          return $nivel_group->groupBy('valor');
+        });
+      });
+    });
+  }
+  
+  private function _group_dependencias_calculado($data){
+    return $data->groupBy('clave')->map(function(&$clave_group){
+      return $clave_group->groupBy('casino')->map(function(&$casino_group){
+        return $casino_group->groupBy('nivel')->map(function(&$nivel_group){
+          return $nivel_group->keyBy('valor');
+        });
+      });
+    });
+  }
+  
+  private function _collect_dependencias($grouped){    
+    $ret = [];
+    foreach($grouped as $clave => &$clave_groups){
+      $ret[$clave] = [];
+      foreach($clave_groups as $casino => &$casino_groups){
+        $ret[$clave][$casino] = [];
+        $max_nivel = $casino_groups->keys()->max();
+        $prev = $casino_groups[0]->map(function($lista_base){
+          return [
+            'nivel' => 0,
+            'dependencias' => $lista_base->map(function($entry){
+              return (object)[
+                'subcanon' => $entry->base_subcanon_o_superior_dependencia,
+                'tipo' => $entry->base_tipo,
+              ];
+            })->toArray()
+          ];
+        })->toArray();
+        
+        for($n=1;$n<=$max_nivel;$n++){
+          $new = [];
+          $agregados = [];
+          foreach($casino_groups[$n] as $valor => $lista_dependencias){
+            $new[$valor] = ['dependencias' => [],'nivel' => $n];
+            foreach($lista_dependencias as $dep){
+              $new[$valor]['dependencias'][$dep->base_subcanon_o_superior_dependencia] = 
+                $prev[$dep->base_subcanon_o_superior_dependencia] 
+                ?? ['dependencias' => [],'nivel' => ($n-1)];
+                
+              $agregados[$dep->base_subcanon_o_superior_dependencia] = true;
+            }
+          }
+          foreach($prev as $v => $d1){
+            if(!array_key_exists($v,$agregados)){
+              $new['`sinpadre'] = $new['`sinpadre'] ?? ['dependencias' => [],'nivel' => $n];
+              $new['`sinpadre']['dependencias'][$v] = $d1;
+            }
+          }
+          $prev = $new;
+        }
+        $ret[$clave][$casino] = $prev;
+      }
+    }
+    
+    return $ret;
+  }
+  
+  public function buscar(){
+    $data = DB::table('canon_subcanon_a_grupo as cagg_deps')
+    ->select('cagg_deps.*','cas.nombre as casino')
+    ->join('casino as cas','cas.id_casino','=','cagg_deps.id_casino')
+    ->get();
+    
+    $grouped = $this->_group_dependencias($data);
+    
+    unset($data);
+    gc_collect_cycles();
+        
+    return $this->_collect_dependencias($grouped);
+  }
+    
+  public function buscar_calculado(){
+    $dependencias = $this->buscar();
+    
+    $data = DB::table('canon_agrupamiento as cagg')
+    ->select('cagg.*','cas.nombre as casino')
+    ->join('casino as cas','cas.id_casino','=','cagg.id_casino')
+    ->get();
+    
+    foreach($data as &$d){
+      unset($d->hash);
+    }
+    
+    
+    return $data->groupBy('año_mes')->map(function($año_mes_group) use ($dependencias){
+      $ret = [];
+      $calculado_agrupado = $this->_group_dependencias_calculado($año_mes_group);
+      foreach($dependencias as $clave => $clave_groups){
+        $ret[$clave] = [];
+        
+        foreach($clave_groups as $casino => $casino_groups){
+          $data = ($calculado_agrupado[$clave] ?? [])[$casino] ?? [];
+          $recurse = function(string $valor,array $valor_group,array &$ret) use (&$data,&$recurse){
+            $n = $valor_group['nivel'];
+            if($n > 0){
+              $ret[$valor]['nivel'] = $n;
+              $ret[$valor]['data'] = (object)(($data[$n] ?? [])[$valor] ?? []);
+              $deps = [];
+              foreach($valor_group['dependencias'] as $valor2 => $valor_group2){
+                $recurse($valor2,$valor_group2,$deps);
+              }
+              $ret[$valor]['dependencias'] = $deps;
+            }
+            else{
+              $ret[$valor]['nivel'] = $n;
+              $ret[$valor]['dependencias'] = $valor_group['dependencias'];
+              $ret[$valor]['data'] = (object)(($data[$n] ?? [])[$valor] ?? []);
+            }
+          };
+          
+          $ret[$clave][$casino] = [];
+          foreach($casino_groups as $valor => $valor_group){
+            $recurse($valor,$valor_group,$ret[$clave][$casino]);
+          }
+        }
+      }
+      return $ret;
+    })->toArray();
   }
 }

@@ -877,16 +877,49 @@ $(function(){
       return O.find(`[name="${name}"]`).val(val ?? '');
     };
     
-    const agregar_fila_cuenta = (cidx,c) => {
+    const obtener_fila_cuenta = (cidx,c) => {
       const replace_str = $M('[data-molde-cuenta]').attr('data-molde-cuenta');
       const fila = $M('[data-molde-cuenta]').clone().removeAttr('data-molde-cuenta');
       fila.find('[data-name]').each(function(_,nobj){
         $(nobj).attr('name',$(nobj).attr('data-name').replaceAll(replace_str,cidx));
       });
-      $M('[data-contenedor-cuentas]').append(fila);
       for(const k in c){
         Mname(`cuentas[${cidx}][${k}]`,c[k],fila);
       }
+      return fila;
+    };
+    const obtener_fila_cv = (cidx,c) => {
+      const replace_str = $M('[data-molde-canon-variable]').attr('data-molde-canon-variable');
+      const fila = $M('[data-molde-canon-variable]').clone().removeAttr('data-molde-canon-variable');
+      fila.find('[data-name]').each(function(_,nobj){
+        $(nobj).attr('name',$(nobj).attr('data-name').replaceAll(replace_str,cidx));
+      });
+      for(const k in c){
+        Mname(`canon_variable[${cidx}][${k}]`,c[k],fila);
+      }
+      return fila;
+    };
+    const obtener_fila_cfm = (cidx,c) => {
+      const replace_str = $M('[data-molde-canon-fijo-mesas]').attr('data-molde-canon-fijo-mesas');
+      const fila = $M('[data-molde-canon-fijo-mesas]').clone().removeAttr('data-molde-canon-fijo-mesas');
+      fila.find('[data-name]').each(function(_,nobj){
+        $(nobj).attr('name',$(nobj).attr('data-name').replaceAll(replace_str,cidx));
+      });
+      for(const k in c){
+        Mname(`canon_fijo_mesas[${cidx}][${k}]`,c[k],fila);
+      }
+      return fila;
+    };
+    const obtener_fila_cfma = (cidx,c) => {
+      const replace_str = $M('[data-molde-canon-fijo-mesas-adicionales]').attr('data-molde-canon-fijo-mesas-adicionales');
+      const fila = $M('[data-molde-canon-fijo-mesas-adicionales]').clone().removeAttr('data-molde-canon-fijo-mesas-adicionales');
+      fila.find('[data-name]').each(function(_,nobj){
+        $(nobj).attr('name',$(nobj).attr('data-name').replaceAll(replace_str,cidx));
+      });
+      for(const k in c){
+        Mname(`canon_fijo_mesas_adicionales[${cidx}][${k}]`,c[k],fila);
+      }
+      return fila;
     };
     
     const render = function(operario,mantener_historial = false){
@@ -906,7 +939,7 @@ $(function(){
       
       $M('[data-contenedor-cuentas]').empty();
       for(const cidx in (operario?.cuentas ?? [])){
-        agregar_fila_cuenta(cidx,operario.cuentas[cidx]);
+        $M('[data-contenedor-cuentas]').append(obtener_fila_cuenta(cidx,operario.cuentas[cidx]));
       }
       
       (mantener_historial?
@@ -946,13 +979,39 @@ $(function(){
         
     $M('[data-js-click-agregar-cuenta]').click(function(){
       const cidx = $M('[data-contenedor-cuentas] tr').length;
-      agregar_fila_cuenta(cidx,{
-        nombre: '',
-        dia_vencimiento: '',
-        fin_de_semana: 'Lunes Próximo',
-        interes_diario_simple: '',
-        interes_mensual_compuesto: ''
-      });
+      $M('[data-contenedor-cuentas]').append(
+        obtener_fila_cuenta(cidx,{
+          nombre: '',
+          dia_vencimiento: '',
+          fin_de_semana: 'Lunes Próximo',
+          interes_diario_simple: '',
+          interes_mensual_compuesto: ''
+        })
+      );
+      M.trigger('regenerarInputsFormatear');
+    });
+    
+    $M('[data-js-click-agregar-canon-variable]').click(function(){
+      const cidx = $M('[data-contenedor-canon-variable] tr').length;
+      $M('[data-contenedor-canon-variable]').append(
+        obtener_fila_cv(cidx,{})
+      );
+      M.trigger('regenerarInputsFormatear');
+    });
+    
+    $M('[data-js-click-agregar-canon-fijo-mesas]').click(function(){
+      const cidx = $M('[data-contenedor-canon-fijo-mesas] tr').length;
+      $M('[data-contenedor-canon-fijo-mesas]').append(
+        obtener_fila_cfm(cidx,{})
+      );
+      M.trigger('regenerarInputsFormatear');
+    });
+    
+    $M('[data-js-click-agregar-canon-fijo-mesas-adicionales]').click(function(){
+      const cidx = $M('[data-contenedor-canon-fijo-mesas-adicionales] tr').length;
+      $M('[data-contenedor-canon-fijo-mesas-adicionales]').append(
+        obtener_fila_cfma(cidx,{})
+      );
       M.trigger('regenerarInputsFormatear');
     });
     
