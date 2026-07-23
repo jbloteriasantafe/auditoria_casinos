@@ -1715,7 +1715,7 @@
           </div>
           <div style="width: 25%;">
             <h5 style="padding-left: 0;">Valór Euro</h5>
-            <input name="valor_dolar" class="form-control" data-readonly='[{"modo": "VER"}]'>
+            <input name="valor_euro" class="form-control" data-readonly='[{"modo": "VER"}]'>
           </div>
         </div>
         <div style="width: 100%;display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
@@ -1934,18 +1934,18 @@
       $devengado_deduccion = $N('devengado_deduccion');
     ?>
     <tr data-molde-canon-fijo-mesas-adicionales="{{$idx}}">
-      <td style="flex: 1;"><input data-name="{{$tipo}}" class="form-control" data-js-texto-no-formatear-numero  data-readonly='[{"modo": "VER"}]'></td>
-      <td style="flex: 1;"><input value="30" data-name="{{$dias_mes}}" class="form-control" data-readonly='[{"modo": "VER"}]'></td>
-      <td style="flex: 1;"><input data-name="{{$horas_dia}}" class="form-control"   data-readonly='[{"modo": "VER"}]'></td>
-      <td style="flex: 1;"><input data-name="{{$porcentaje}}" class="form-control"   data-readonly='[{"modo": "VER"}]'></td>
-      <td style="flex: 1;">
-        <select value="1" class="form-control" data-name="{{$devengar}}" data-readonly='[{"modo": "VER"}]'>
-          <option value="0">NO</option>
+      <td><input data-name="{{$tipo}}" class="form-control" data-js-texto-no-formatear-numero  data-readonly='[{"modo": "VER"}]'></td>
+      <td><input value="30" data-name="{{$dias_mes}}" class="form-control" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input data-name="{{$horas_dia}}" class="form-control"   data-readonly='[{"modo": "VER"}]'></td>
+      <td><input value="100" data-name="{{$porcentaje}}" class="form-control"   data-readonly='[{"modo": "VER"}]'></td>
+      <td>
+        <select value="0" class="form-control" data-name="{{$devengar}}" data-readonly='[{"modo": "VER"}]'>
+          <option value="0" default selected>NO</option>
           <option value="1">SÍ</option>
         </select>
       </td>
-      <td style="flex: 1;"><input value="0" data-name="{{$devengado_deduccion}}" class="form-control" data-readonly='[{"modo": "VER"}]'></td>
-      <td style="flex: 1;">
+      <td><input value="0" data-name="{{$devengado_deduccion}}" class="form-control" data-readonly='[{"modo": "VER"}]'></td>
+      <td>
         <button class="btn btn-link" type="button" data-js-click-borrar-tr data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>
           <i class="fa fa-fw fa-trash-alt"></i>
         </button>

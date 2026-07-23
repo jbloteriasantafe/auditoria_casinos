@@ -365,7 +365,21 @@ class CanonOperarioController extends Controller
     $created_at = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
     $created_by = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
     $co = null;
-      
+
+    $numeric_rule = function(int $digits) {
+      static $cache = [];
+      if($cache[$digits] ?? false) return $cache[$digits];
+      $regex = '-?\d+';
+      if($digits){
+        $digits_regexp = implode('',array_fill(0,$digits,'\d?'));
+        $regex .= '\.?'.$digits_regexp;
+      }
+      $cache[$digits] = 'regex:/^'.$regex.'$/';
+      return $cache[$digits];
+    };
+    
+    $movimiento_dia_fin_de_semana = 'in:Lunes Próximo,Viernes Anterior,Sin Movimiento';
+
     Validator::make($request->all(),[
       'id_canon_operario' => ['nullable','integer','exists:canon_operario,id_canon_operario,deleted_at,NULL'],
       'id_operario' => ['nullable','integer'],
@@ -379,12 +393,49 @@ class CanonOperarioController extends Controller
       'codigo_casino' => ['nullable','string','max:16'],
       'codigo_plataforma' => ['nullable','string','max:16'],
       'codigo_apuestas_deportivas' => ['nullable','string','max:16'],
+      
+      'valor_dolar' => ['required','string',$numeric_rule(2)],
+      'valor_euro' => ['required','string',$numeric_rule(2)],
+      'devengado_cotizacion_dia' => ['required','integer','min:1','max:28'],
+      'determinado_cotizacion_dia' => ['required','integer','min:1','max:28'],
+      'devengado_cotizacion_fin_de_semana'   => ['required','string',$movimiento_dia_fin_de_semana],
+      'determinado_cotizacion_fin_de_semana' => ['required','string',$movimiento_dia_fin_de_semana],
+      
       'cuentas' => ['required','array','min:1'],
       'cuentas.*.nombre' => ['required','string','max:64'],
       'cuentas.*.dia_vencimiento' => ['required','integer','min:1','max:28'],
-      'cuentas.*.fin_de_semana' => ['nullable','string','in:Lunes Próximo,Viernes Anterior,Sin Movimiento'],
+      'cuentas.*.fin_de_semana' => ['nullable','string',$movimiento_dia_fin_de_semana],
       'cuentas.*.interes_diario_simple' => ['required','string','regex:/^\d{1,3}(\.\d{0,4})?$/'],
-      'cuentas.*.interes_mensual_compuesto' => ['required','string','regex:/^\d{1,3}(\.\d{0,4})?$/']
+      'cuentas.*.interes_mensual_compuesto' => ['required','string','regex:/^\d{1,3}(\.\d{0,4})?$/'],
+      
+      'canon_variable' => ['nullable','array'],
+      'canon_variable.*.tipo' => ['required','string','max:32'],
+      'canon_variable.*.devengar' => ['required','integer','in:0,1'],
+      'canon_variable.*.devengado_deduccion' => ['required','string',$numeric_rule(2)],
+      'canon_variable.*.apostado_porcentaje_aplicable' => ['required','string','regex:/^\d{1,3}(\.\d{0,4})?$/'],
+      'canon_variable.*.porcentaje_impuesto_ley' => ['required','string','regex:/^\d{1,3}(\.\d{0,4})?$/'],
+      'canon_variable.*.alicuota' => ['required','string','regex:/^\d{1,3}(\.\d{0,4})?$/'],    
+      'canon_variable.*.devengar' => ['required','integer','in:0,1'],
+      'canon_variable.*.devengado_deduccion' => ['required','string',$numeric_rule(2)],
+      
+      'canon_fijo_mesas' => ['nullable','array'],
+      'canon_fijo_mesas.*.tipo' => ['required','string','max:32'],
+      'canon_fijo_mesas.*.dias_valor' => ['required','integer','min:1','max:32767'],
+      'canon_fijo_mesas.*.lunes_jueves' => ['required','integer','in:0,1'],
+      'canon_fijo_mesas.*.viernes_sabados' => ['required','integer','in:0,1'],
+      'canon_fijo_mesas.*.domingos' => ['required','integer','in:0,1'],
+      'canon_fijo_mesas.*.mes' => ['required','integer','in:0,1'],
+      'canon_fijo_mesas.*.fijos' => ['required','integer','min:0','max:127'],
+      'canon_fijo_mesas.*.devengar' => ['required','integer','in:0,1'],
+      'canon_fijo_mesas.*.devengado_deduccion' => ['required','string',$numeric_rule(2)],
+      
+      'canon_fijo_mesas_adicionales' => ['nullable','array'],
+      'canon_fijo_mesas_adicionales.*.tipo' => ['required','string','max:32'],
+      'canon_fijo_mesas_adicionales.*.dias_mes' => ['required','integer','min:1','max:32767'],
+      'canon_fijo_mesas_adicionales.*.horas_dia' => ['required','integer','min:1','max:32767'],
+      'canon_fijo_mesas_adicionales.*.porcentaje' => ['required','string','regex:/^\d{1,3}(\.\d{0,4})?$/'],      
+      'canon_fijo_mesas_adicionales.*.devengar' => ['required','integer','in:0,1'],
+      'canon_fijo_mesas_adicionales.*.devengado_deduccion' => ['required','string',$numeric_rule(2)]
     ], [
       'required' => 'El valor es requerido',
       'integer' => 'Tiene que ser un número',

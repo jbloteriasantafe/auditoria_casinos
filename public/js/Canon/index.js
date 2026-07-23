@@ -936,10 +936,28 @@ $(function(){
       Mname('codigo_casino',operario?.codigo_casino);
       Mname('codigo_plataforma',operario?.codigo_plataforma);
       Mname('codigo_apuestas_deportivas',operario?.codigo_apuestas_deportivas);
+      Mname('valor_dolar',operario?.valor_dolar);
+      Mname('valor_euro',operario?.valor_euro);
+      Mname('devengado_cotizacion_dia',operario?.devengado_cotizacion_dia);
+      Mname('devengado_cotizacion_fin_de_semana',operario?.devengado_cotizacion_fin_de_semana);
+      Mname('determinado_cotizacion_dia',operario?.determinado_cotizacion_dia);
+      Mname('determinado_cotizacion_fin_de_semana',operario?.determinado_cotizacion_fin_de_semana);
       
       $M('[data-contenedor-cuentas]').empty();
       for(const cidx in (operario?.cuentas ?? [])){
         $M('[data-contenedor-cuentas]').append(obtener_fila_cuenta(cidx,operario.cuentas[cidx]));
+      }
+      $M('[data-contenedor-canon-variable]').empty();
+      for(const cidx in (operario?.canon_variable ?? [])){
+        $M('[data-contenedor-canon-variable]').append(obtener_fila_cv(cidx,operario.canon_variable[cidx]));
+      }
+      $M('[data-contenedor-canon-fijo-mesas]').empty();
+      for(const cidx in (operario?.canon_fijo_mesas ?? [])){
+        $M('[data-contenedor-canon-fijo-mesas]').append(obtener_fila_cfm(cidx,operario.canon_fijo_mesas[cidx]));
+      }
+      $M('[data-contenedor-canon-fijo-mesas-adicionales]').empty();
+      for(const cidx in (operario?.canon_fijo_mesas_adicionales ?? [])){
+        $M('[data-contenedor-canon-fijo-mesas-adicionales]').append(obtener_fila_cfma(cidx,operario.canon_fijo_mesas_adicionales[cidx]));
       }
       
       (mantener_historial?
@@ -1049,16 +1067,18 @@ $(function(){
           AUX.mostrarErroresNames($form,json);
           //@HACK: tengo que hacerlo manual porque el name de cada cuenta es cuentas[]
           for(const k in json){
-            if(k.substr(0,'cuentas.'.length) != 'cuentas.'){
-              continue;
+            const arrk = k.split('.');
+            if(arrk.length != 3) continue;
+            for(const objname of ['cuentas','canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales']){
+              if(arrk[0] != objname) continue;
+              const idx = arrk[1];
+              const name = arrk[2];
+              mostrarErrorValidacion(
+                $form.find(`[name="${objname}[${idx}][${name}]"]`),
+                json[k].join(', '),
+                true
+              );
             }
-            const cidx = k.match(/^cuentas\.[0-9]+/gm)?.[0].substr('cuentas.'.length);
-            const name = k.substr('cuentas.'.length+cidx.length+1);//+1 por el punto
-            mostrarErrorValidacion(
-              $form.find(`[name="cuentas[${cidx}][${name}]"]`),
-              json[k].join(', '),
-              true
-            );
           }
           console.log(data);
         }
