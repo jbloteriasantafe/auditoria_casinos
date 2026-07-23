@@ -23,6 +23,9 @@ class CanonOperarioController extends Controller
   }
   
   public function down(){
+    DB::unprepared("DROP TABLE IF EXISTS canon_operario_canon_variable");
+    DB::unprepared("DROP TABLE IF EXISTS canon_operario_canon_fijo_mesas");
+    DB::unprepared("DROP TABLE IF EXISTS canon_operario_canon_fijo_mesas_adicionales");
     DB::unprepared("DROP TABLE IF EXISTS canon_operario_cuenta");
     DB::unprepared("DROP TABLE IF EXISTS canon_operario");
   }
@@ -42,6 +45,14 @@ class CanonOperarioController extends Controller
       codigo_plataforma VARCHAR(16) NULL, -- Plataforma vinculada si tiene, para buscar datos de beneficio
       codigo_apuestas_deportivas VARCHAR(16) NULL, -- Plataforma vinculada si tiene, para buscar datos de beneficio
       inicio_actividad DATE NOT NULL,
+      -- Valores que se aplican a todo los (sub)canons (fijos)
+      valor_dolar DECIMAL(20,2) NOT NULL,
+      valor_euro DECIMAL(20,2) NOT NULL,
+      devengado_cotizacion_dia TINYINT NOT NULL,
+      devengado_cotizacion_fin_de_semana ENUM('Lunes Próximo','Viernes Anterior','Sin Movimiento'),
+      determinado_cotizacion_dia TINYINT NOT NULL,
+      determinado_cotizacion_fin_de_semana ENUM('Lunes Próximo','Viernes Anterior','Sin Movimiento'),
+      --
       created_at DATETIME NOT NULL,
       created_by INT NOT NULL,
       deleted_at DATETIME NULL,
@@ -59,7 +70,7 @@ class CanonOperarioController extends Controller
     CREATE TABLE IF NOT EXISTS canon_operario_cuenta (
       id_canon_operario_cuenta INT NOT NULL AUTO_INCREMENT,
       id_canon_operario INT NOT NULL,
-      nombre VARCHAR(64) NOT NULL,
+      nombre VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       dia_vencimiento TINYINT NOT NULL,
       fin_de_semana ENUM('Lunes Próximo','Viernes Anterior','Sin Movimiento') NOT NULL,
       interes_diario_simple DECIMAL(7,4) NOT NULL,
@@ -67,6 +78,57 @@ class CanonOperarioController extends Controller
       PRIMARY KEY (id_canon_operario_cuenta),
       UNIQUE KEY `unq_canon_operario_cuenta` (id_canon_operario,nombre),
       CONSTRAINT `fk_canon_operario_cuenta_operario` FOREIGN KEY (`id_canon_operario`) REFERENCES `canon_operario` (`id_canon_operario`)
+    )
+    ");      
+    
+    DB::statement("
+    CREATE TABLE IF NOT EXISTS canon_operario_canon_variable (
+      id_canon_operario_canon_variable INT NOT NULL AUTO_INCREMENT,
+      id_canon_operario INT NOT NULL,
+      tipo VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+      apostado_porcentaje_aplicable DECIMAL(7,4) NOT NULL,
+      porcentaje_impuesto_ley DECIMAL(7,4) NOT NULL,
+      alicuota DECIMAL(7,4) NOT NULL,
+      devengar TINYINT NOT NULL,
+      devengado_deduccion DECIMAL(20,2) NOT NULL,
+      PRIMARY KEY (id_canon_operario_canon_variable),
+      UNIQUE KEY `unq_canon_operario_canon_variable` (id_canon_operario,tipo),
+      CONSTRAINT `fk_canon_operario_canon_variable_operario` FOREIGN KEY (`id_canon_operario`) REFERENCES `canon_operario` (`id_canon_operario`)
+    )
+    ");
+       
+    DB::statement("
+    CREATE TABLE IF NOT EXISTS canon_operario_canon_fijo_mesas (
+      id_canon_operario_canon_fijo_mesas INT NOT NULL AUTO_INCREMENT,
+      id_canon_operario INT NOT NULL,
+      tipo VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+      dias_valor SMALLINT NOT NULL,
+      lunes_jueves TINYINT NOT NULL, -- bool
+      viernes_sabados TINYINT NOT NULL, -- bool
+      domingos TINYINT NOT NULL, -- bool
+      mes TINYINT NOT NULL, -- bool
+      fijos TINYINT NOT NULL,
+      devengar TINYINT NOT NULL,
+      devengado_deduccion DECIMAL(20,2) NOT NULL,
+      PRIMARY KEY (id_canon_operario_canon_fijo_mesas),
+      UNIQUE KEY `unq_canon_operario_canon_fijo_mesas` (id_canon_operario,tipo),
+      CONSTRAINT `fk_canon_operario_canon_fijo_mesas_operario` FOREIGN KEY (`id_canon_operario`) REFERENCES `canon_operario` (`id_canon_operario`)
+    )
+    ");
+    
+    DB::statement("
+    CREATE TABLE IF NOT EXISTS canon_operario_canon_fijo_mesas_adicionales (
+      id_canon_operario_canon_fijo_mesas_adicionales INT NOT NULL AUTO_INCREMENT,
+      id_canon_operario INT NOT NULL,
+      tipo VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+      dias_mes SMALLINT NOT NULL,
+      horas_dia SMALLINT NOT NULL,
+      porcentaje DECIMAL(7,4) NOT NULL,
+      devengar TINYINT NOT NULL,
+      devengado_deduccion DECIMAL(20,2) NOT NULL,
+      PRIMARY KEY (id_canon_operario_canon_fijo_mesas_adicionales),
+      UNIQUE KEY `unq_canon_operario_canon_fijo_mesas_adicionales` (id_canon_operario,tipo),
+      CONSTRAINT `fk_canon_operario_canon_fijo_mesas_adicionales_operario` FOREIGN KEY (`id_canon_operario`) REFERENCES `canon_operario` (`id_canon_operario`)
     )
     ");
   }
@@ -131,7 +193,7 @@ class CanonOperarioController extends Controller
     if($co === null) return null;
     
     $co = (array) $co;
-    return $this->agregar_cuentas($co);
+    return $this->agregar_dependencias($co);
   }
   
   public function obtener(Request $request){
@@ -149,18 +211,31 @@ class CanonOperarioController extends Controller
     ->orderBy('co.created_at','desc')
     ->get()->map(function(&$co){
       $co = (array) $co;
-      return $this->agregar_cuentas($co);
+      return $this->agregar_dependencias($co);
     });
     
     return $ultimo;
   }
   
-  private function agregar_cuentas(&$co){
+  private function agregar_dependencias(&$co){
     if($co === null) return null;
     
     $co['cuentas'] = DB::table('canon_operario_cuenta')
     ->where('id_canon_operario',$co['id_canon_operario'])
     ->get()->toArray();
+    
+    $co['canon_variable'] = DB::table('canon_operario_canon_variable')
+    ->where('id_canon_operario',$co['id_canon_operario'])
+    ->get()->toArray();
+    
+    $co['canon_fijo_mesas'] = DB::table('canon_operario_canon_fijo_mesas')
+    ->where('id_canon_operario',$co['id_canon_operario'])
+    ->get()->toArray();
+    
+    $co['canon_fijo_mesas_adicionales'] = DB::table('canon_operario_canon_fijo_mesas_adicionales')
+    ->where('id_canon_operario',$co['id_canon_operario'])
+    ->get()->toArray();
+    
     return $co;
   }
   
@@ -214,7 +289,7 @@ class CanonOperarioController extends Controller
     
     if($co === null) return 0;
     $co = (array) $co;
-    $co = $this->agregar_cuentas($co);
+    $co = $this->agregar_dependencias($co);
     
     return DB::transaction(function() use ($co){
       $created_at = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
@@ -237,6 +312,15 @@ class CanonOperarioController extends Controller
     $cuentas = $co['cuentas'] ?? [];
     unset($co['cuentas']);
     
+    $canon_variable = $co['canon_variable'] ?? [];
+    unset($co['canon_variable']);
+    
+    $canon_fijo_mesas = $co['canon_fijo_mesas'] ?? [];
+    unset($co['canon_fijo_mesas']);
+    
+    $canon_fijo_mesas_adicionales = $co['canon_fijo_mesas_adicionales'] ?? [];
+    unset($co['canon_fijo_mesas_adicionales']);
+    
     $co['created_at'] = $created_at;
     $co['created_by'] = $created_by;
     $id_canon_operario = DB::table('canon_operario')
@@ -248,6 +332,30 @@ class CanonOperarioController extends Controller
         $c['id_canon_operario'] = $id_canon_operario;
         return $c;
       },$cuentas)
+    );
+    
+    DB::table('canon_operario_canon_variable')
+    ->insert(
+      array_map(function($c) use ($id_canon_operario){
+        $c['id_canon_operario'] = $id_canon_operario;
+        return $c;
+      },$canon_variable)
+    );
+    
+    DB::table('canon_operario_canon_fijo_mesas')
+    ->insert(
+      array_map(function($c) use ($id_canon_operario){
+        $c['id_canon_operario'] = $id_canon_operario;
+        return $c;
+      },$canon_fijo_mesas)
+    );
+    
+    DB::table('canon_operario_canon_fijo_mesas_adicionales')
+    ->insert(
+      array_map(function($c) use ($id_canon_operario){
+        $c['id_canon_operario'] = $id_canon_operario;
+        return $c;
+      },$canon_fijo_mesas_adicionales)
     );
       
     return $this->_obtener($co['id_operario']);
@@ -336,12 +444,24 @@ class CanonOperarioController extends Controller
       }
       
       $data = $request->all();
+      unset($data['id_canon_operario']);
       
       $cuentas = $data['cuentas'] ?? [];
       unset($data['cuentas']);
-      unset($data['id_canon_operario']);
       $data['cuentas'] = $cuentas;
-            
+      
+      $canon_variable = $data['canon_variable'] ?? [];
+      unset($data['canon_variable']);
+      $data['canon_variable'] = $canon_variable;
+      
+      $canon_fijo_mesas = $data['canon_fijo_mesas'] ?? [];
+      unset($data['canon_fijo_mesas']);
+      $data['canon_fijo_mesas'] = $canon_fijo_mesas;
+
+      $canon_fijo_mesas_adicionales = $data['canon_fijo_mesas_adicionales'] ?? [];
+      unset($data['canon_fijo_mesas_adicionales']);
+      $data['canon_fijo_mesas_adicionales'] = $canon_fijo_mesas_adicionales;
+
       return $this->_guardar($data,$created_at,$created_by);
     });
   }

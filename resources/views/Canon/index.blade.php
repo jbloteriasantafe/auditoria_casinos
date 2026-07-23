@@ -1709,43 +1709,39 @@
     <div class="pestaña" data-canon-fijo-mesas>
       <div class="bloque_interno" style="width: 100%;height: 30vh;display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
         <div style="width: 100%;display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;">
-          <div style="width: 33.333333333%;">
+          <div style="width: 25%;">
             <h5 style="padding-left: 0;">Valór Dólar</h5>
             <input name="valor_dolar" class="form-control" data-readonly='[{"modo": "VER"}]'>
           </div>
-          <div style="width: 33.333333333%;">
+          <div style="width: 25%;">
             <h5 style="padding-left: 0;">Valór Euro</h5>
             <input name="valor_dolar" class="form-control" data-readonly='[{"modo": "VER"}]'>
-          </div>
-          <div style="width: 33.333333333%;">
-            <h5 style="padding-left: 0;">Dias Valór</h5>
-            <input name="dias_valor" class="form-control" data-readonly='[{"modo": "VER"}]'>
           </div>
         </div>
         <div style="width: 100%;display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
           <div style="width: 25%;">
             <h5 style="padding-left: 0;">Día Cotización (Devengado)</h5>
-            <input name="devengado_dia_cotizacion" class="form-control" data-readonly='[{"modo": "VER"}]'>
+            <input value="1" name="devengado_cotizacion_dia" class="form-control" data-readonly='[{"modo": "VER"}]'>
           </div>
           <div style="width: 25%;">
             <h5 style="padding-left: 0;">Fin De Semana (Devengado)</h5>
-            <select class="form-control" name="devengado_fin_de_semana" data-readonly='[{"modo": "VER"}]'>
+            <select class="form-control" name="devengado_cotizacion_fin_de_semana" data-readonly='[{"modo": "VER"}]'>
               <option>Lunes Próximo</option>
               <option>Viernes Anterior</option>
-              <option>Sin Movimiento</option>
+              <option default selected>Sin Movimiento</option>
             </select>
           </div>
         </div>
         <div style="width: 100%;display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
           <div style="width: 25%;">
             <h5 style="padding-left: 0;">Día Cotización (Determinado)</h5>
-            <input name="determinado_dia_cotizacion" class="form-control" data-readonly='[{"modo": "VER"}]'>
+            <input value="9" name="determinado_cotizacion_dia" class="form-control" data-readonly='[{"modo": "VER"}]'>
           </div>
           <div style="width: 25%;">
             <h5 style="padding-left: 0;">Fin De Semana (Determinado)</h5>
-            <select name="determinado_fin_de_semana" class="form-control" data-readonly='[{"modo": "VER"}]'>
+            <select name="determinado_cotizacion_fin_de_semana" class="form-control" data-readonly='[{"modo": "VER"}]'>
               <option>Lunes Próximo</option>
-              <option>Viernes Anterior</option>
+              <option default selected>Viernes Anterior</option>
               <option>Sin Movimiento</option>
             </select>
           </div>
@@ -1758,6 +1754,7 @@
               <thead>
                 <tr>
                   <th>Tipo</th>
+                  <th>Días Valor (/)</th>
                   <th>Lu.-Ju.</th>
                   <th>Vi.-Sa.</th>
                   <th>Dom.</th>
@@ -1824,10 +1821,10 @@
     ?>
     <tr data-molde-cuenta="{{$idx}}">
       <td><input class="form-control" data-js-texto-no-formatear-numero data-name="{{$nombre}}" data-readonly='[{"modo": "VER"}]'></td>
-      <td><input class="form-control" data-js-texto-no-formatear-numero data-name="{{$dia_vencimiento}}" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input value="10" class="form-control" data-js-texto-no-formatear-numero data-name="{{$dia_vencimiento}}" data-readonly='[{"modo": "VER"}]'></td>
       <td>
         <select class="form-control" data-name="{{$fin_de_semana}}" data-readonly='[{"modo": "VER"}]'>
-          <option>Lunes Próximo</option>
+          <option default selected>Lunes Próximo</option>
           <option>Viernes Anterior</option>
           <option>Sin Movimiento</option>
         </select>
@@ -1845,7 +1842,7 @@
       $idx = '$idxcv';
       
       $tipo = $N('tipo');
-      $porcentaje_aplicable = $N('porcentaje_aplicable');
+      $apostado_porcentaje_aplicable = $N('apostado_porcentaje_aplicable');
       $porcentaje_impuesto_ley = $N('porcentaje_impuesto_ley');
       $alicuota = $N('alicuota');
       $devengar = $N('devengar');
@@ -1853,7 +1850,7 @@
     ?>
     <tr data-molde-canon-variable="{{$idx}}">
       <td><input class="form-control" data-js-texto-no-formatear-numero data-name="{{$tipo}}" data-readonly='[{"modo": "VER"}]'></td>
-      <td><input class="form-control" data-name="{{$porcentaje_aplicable}}" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input class="form-control" data-name="{{$apostado_porcentaje_aplicable}}" data-readonly='[{"modo": "VER"}]'></td>
       <td><input class="form-control" data-name="{{$porcentaje_impuesto_ley}}" data-readonly='[{"modo": "VER"}]'></td>
       <td><input class="form-control" data-name="{{$alicuota}}" data-readonly='[{"modo": "VER"}]'></td>
       <td>
@@ -1863,12 +1860,18 @@
         </select>
       </td>
       <td><input class="form-control" data-name="{{$devengado_deduccion}}" data-readonly='[{"modo": "VER"}]'></td>
+      <td>
+        <button class="btn btn-link" type="button" data-js-click-borrar-tr data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>
+          <i class="fa fa-fw fa-trash-alt"></i>
+        </button>
+      </td>
     </tr>
     <?php
       $obj = 'canon_fijo_mesas';
       $idx = '$idxcfm';
       
       $tipo = $N('tipo');
+      $dias_valor = $N('dias_valor');
       $lunes_jueves = $N('lunes_jueves');
       $viernes_sabados = $N('viernes_sabados');
       $domingos = $N('domingos');
@@ -1879,6 +1882,7 @@
     ?>
     <tr data-molde-canon-fijo-mesas="{{$idx}}">      
       <td><input value="Diarias" data-name="{{$tipo}}" class="form-control" data-js-texto-no-formatear-numero  data-readonly='[{"modo": "VER"}]'></td>
+      <td><input value="30" data-name="{{$dias_valor}}" class="form-control" data-readonly='[{"modo": "VER"}]'></td>
       <td>
         <select value="1" class="form-control" data-name="{{$lunes_jueves}}" data-readonly='[{"modo": "VER"}]'>
           <option value="0">NO</option>
