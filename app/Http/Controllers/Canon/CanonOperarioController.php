@@ -522,7 +522,7 @@ class CanonOperarioController extends Controller
     if(!array_key_exists($id_operario,$this->op_cache)){
       $op = $this->_obtener($id_operario) ?? [];
       $to_array = function($o){return (array)$o;};
-      $op['cuentas'] = collect($op['cuentas'])->keyBy('nombre')->toArray();
+      $op['cuentas'] = collect($op['cuentas'])->map($to_array)->keyBy('nombre')->toArray();
       $op['canon_variable'] = collect($op['canon_variable'])->map($to_array)->keyBy('tipo')->toArray();
       $op['canon_fijo_mesas'] = collect($op['canon_fijo_mesas'])->map($to_array)->keyBy('tipo')->toArray();
       $op['canon_fijo_mesas_adicionales'] = collect($op['canon_fijo_mesas_adicionales'])->map($to_array)->keyBy('tipo')->toArray();

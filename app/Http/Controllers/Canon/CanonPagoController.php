@@ -23,10 +23,12 @@ class CanonPagoController extends Controller
   private $u = null;
   private $CC = null;
   private $CV = null;
+  private $CO = null;
   public function __construct(){
     self::$instance = $this;
     $this->CC = CanonController::getInstancia();
     $this->CV = CanonValorPorDefectoController::getInstancia();
+    $this->CO = CanonOperarioController::getInstancia();
     $this->middleware(function ($request, $next) {
       $this->u = UsuarioController::getInstancia()->quienSoy()['usuario'];
       return $next($request);
@@ -91,6 +93,12 @@ class CanonPagoController extends Controller
     $id_casino = $R('id_casino');//@RETORNADO
     $estado = $R('estado');//@RETORNADO
     
+    $co = $this->CO->obtener_operario($id_casino);
+    $cuenta = [];
+    foreach($co['cuentas'] ?? [] as $c){
+      $cuenta = $c;
+      break;//@TODO: cambiar para cuando se haga pago en multiples cuentas
+    }
     //@TODO: Obtener de agrupamientos
     $determinado = $R('determinado','0.00');//@RETORNADO
     
@@ -132,17 +140,15 @@ class CanonPagoController extends Controller
     }
     
     $a_pagar = $principal;//@RETORNADO
-    $pago = '0';//@RETORNADO
-    $canon_pago_defecto = ($this->CV->get('canon_pago') ?? [])[$id_casino] ?? [];
-    
+    $pago = '0';//@RETORNADO    
     $PAG = [
       'interes_provincial_diario_simple' => $R(
         'interes_provincial_diario_simple',
-        $canon_pago_defecto['interes_provincial_diario_simple'] ?? '0'
+        $cuenta['interes_provincial_diario_simple'] ?? '0'
       ),
       'interes_nacional_mensual_compuesto' => $R(
         'interes_nacional_mensual_compuesto',
-        $canon_pago_defecto['interes_nacional_mensual_compuesto'] ?? '0'
+        $cuenta['interes_nacional_mensual_compuesto'] ?? '0'
       ),
       'fecha_vencimiento' => $R('fecha_vencimiento',null),
     ];
@@ -150,16 +156,23 @@ class CanonPagoController extends Controller
     if($año_mes !== null && $año_mes !== '' && $PAG['fecha_vencimiento'] === null){
       $f = explode('-',$año_mes);
       
-      $f[0] = $f[1] == '12'? intval($f[0])+1 : $f[0];
-      $f[1] = $f[1] == '12'? '01' : str_pad(intval($f[1])+1,2,'0',STR_PAD_LEFT);
-      $f[2] = '10';
-      $f = implode('-',$f);
-      $f = new \DateTimeImmutable($f);
-      $proximo_lunes = clone $f;
-      for($break = 9;$break > 0 && in_array($proximo_lunes->format('w'),['0','6']);$break--){
-        $proximo_lunes = $proximo_lunes->add(\DateInterval::createFromDateString('1 day'));
-      }
-      $PAG['fecha_vencimiento'] = $proximo_lunes->format('Y-m-d');//@RETORNADO
+      $f[0] = intval($f[0]);
+      $f[1] = intval($f[1]);
+      $f[2] = intval($f[2]);
+      
+      $f[0] = str_pad($f[1] == 12?  ($f[0]+1) :     $f[0],4,'0',STR_PAD_LEFT);
+      $f[1] = str_pad($f[1] == 12?         1  : ($f[1]+1),2,'0',STR_PAD_LEFT);
+      
+      $PAG['fecha_vencimiento'] = implode('-',[
+        $f[0],
+        $f[1],
+        str_pad(   $cuenta['dia_vencimiento'] ?? 10,2,'0',STR_PAD_LEFT)
+      ]);
+      
+      $PAG['fecha_vencimiento'] = $this->CO->mover_fecha(
+        new \DateTimeImmutable($PAG['fecha_vencimiento']),
+        $cuenta['fin_de_semana']
+      )->format('Y-m-d');
     }
     
     $timestamp_venc = $PAG['fecha_vencimiento']?
