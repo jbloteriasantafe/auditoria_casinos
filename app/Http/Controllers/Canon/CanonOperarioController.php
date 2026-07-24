@@ -516,4 +516,48 @@ class CanonOperarioController extends Controller
       return $this->_guardar($data,$created_at,$created_by);
     });
   }
+  
+  private $op_cache = [];
+  public function obtener_operario($id_operario){
+    if(!array_key_exists($id_operario,$this->op_cache)){
+      $op = $this->_obtener($id_operario) ?? [];
+      $to_array = function($o){return (array)$o;};
+      $op['cuentas'] = collect($op['cuentas'])->keyBy('nombre')->toArray();
+      $op['canon_variable'] = collect($op['canon_variable'])->map($to_array)->keyBy('tipo')->toArray();
+      $op['canon_fijo_mesas'] = collect($op['canon_fijo_mesas'])->map($to_array)->keyBy('tipo')->toArray();
+      $op['canon_fijo_mesas_adicionales'] = collect($op['canon_fijo_mesas_adicionales'])->map($to_array)->keyBy('tipo')->toArray();
+      $this->op_cache[$id_operario] = $op;
+    }
+    return $this->op_cache[$id_operario];
+  }
+  
+  public function mover_fecha(\DateTimeImmutable $date,$movimiento = null){
+    if($movimiento === null || $movimiento == 'Sin Movimiento'){
+      return $date;
+    }
+    if($movimiento == 'Viernes Anterior'){
+      $viernes_anterior = clone $date;
+      $interval_1_day = \DateInterval::createFromDateString('1 day');
+      for($break = 3;$break > 0 && in_array($viernes_anterior->format('w'),['0','6']);$break--){
+        $viernes_anterior = $viernes_anterior->sub($interval_1_day);
+      }
+      if($break == 0){
+        throw new \Exception('Unreachable');
+      }
+      return $viernes_anterior;
+    }
+    if($movimiento == 'Lunes Próximo'){
+      $lunes_proximo = clone $date;
+      $interval_1_day = \DateInterval::createFromDateString('1 day');
+      for($break = 3;$break > 0 && in_array($lunes_proximo->format('w'),['0','6']);$break--){
+        $lunes_proximo = $lunes_proximo->add($interval_1_day);
+      }
+      if($break == 0){
+        throw new \Exception('Unreachable');
+      }
+      return $lunes_proximo;
+      
+    }
+    throw new \Exception("No puedo mover fecha ${ISO_yyyymmdd}, Movimiento no soportado: $movimiento");
+  }
 }
