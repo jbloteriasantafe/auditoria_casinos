@@ -837,6 +837,10 @@ $(function(){
           $(obj).attr('href',$(obj).attr('href')+'?'+encodeQueryData(data));
         });
         
+        if(obj?.es_individual !== undefined){
+          fila.attr('data-es_individual',obj.es_individual);
+        }
+        
         tbody.append(fila);
       });
       
@@ -864,6 +868,12 @@ $(function(){
           mensaje: 'Esta seguro que desea des-eliminarlo',
           success: function(){pant.find('[data-js-filtro-tabla]').trigger('buscar');},
         }]);
+      });
+      
+      tbody.find('tr[data-es_individual]').each(function(_,tr){
+        const es_individual = $(tr).attr('data-es_individual');
+        const correctos = $(tr).find(`[data-es_individual*="|${es_individual}|"]`);
+        $(tr).find('[data-es_individual]').not(correctos).remove();
       });
     });
   });
@@ -1111,6 +1121,7 @@ $(function(){
       ocultarErrorValidacion(M.find('[name]'));
       Mname('id_canon_grupo_operario',grupo_operario?.id_canon_grupo_operario);
       Mname('id_grupo_operario',grupo_operario?.id_grupo_operario);
+      Mname('es_individual',grupo_operario?.es_individual ?? 0);
       Mname('nombre',grupo_operario?.nombre);
       Mname('codigo',grupo_operario?.codigo);
       Mname('abbr',grupo_operario?.abbr);
@@ -1265,10 +1276,14 @@ $(function(){
             console.log(r_obj,obj);
             throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
           }
+          let result = true;
           for(const param in check_params){
             const check_val = check_params[param];
             const obj_val = obj[param] ?? undefined;
-            if(obj_val == '*' || obj_val === check_val) return true;
+            result = result && (obj_val == '*' || obj_val === check_val || obj_val === undefined);
+          }
+          if(result){//Short-circuiteo al primero que sea matchee
+            return result;
           }
         }
         return false;

@@ -40,6 +40,7 @@ class CanonGrupoOperarioController extends Controller
       created_by INT NOT NULL,
       deleted_at DATETIME NULL,
       deleted_by INT NULL,
+      es_individual TINYINT NOT NULL DEFAULT 0,
       id_grupo_operario_deleted_at VARCHAR(32) GENERATED ALWAYS AS (CONCAT_WS('|',id_grupo_operario,IFNULL(deleted_at,''))) STORED NOT NULL,
       PRIMARY KEY (id_canon_grupo_operario),
       UNIQUE KEY `unq_canon_grupo_operario_id_deleted` (id_grupo_operario_deleted_at),
@@ -61,39 +62,15 @@ class CanonGrupoOperarioController extends Controller
     )
     ");
   }
-  
-  public function generar_grupo_para_operario($id_operario){
-    $o = CanonOperarioController::getInstancia()->_obtener($id_operario);
-    return [
-      'id_grupo_operario' => $id_operario,
-      'nombre' => $o['nombre'],
-      'codigo' => $o['codigo'],
-      'abbr' => $o['abbr'],
-      'color' => $o['color'],
-      'operarios' => [
-        [
-          'id_operario' => $id_operario,
-          'id_grupo_operario' => $id_operario
-        ]
-      ]
-    ];
-  }
     
-  public function llenado_inicial(){
-    return DB::transaction(function(){
-      $this->up();
-      $grupos_operarios = $this->CV->get('grupos_operarios_iniciales');
-      $created_at = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
-      $created_by = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
-      $ret = [];
-      foreach($grupos_operarios as $g){
-        $gg = array_key_exists('id_operario',$g)?
-          $this->generar_grupo_para_operario($g['id_operario'])
-        : $g;
-        $ret[] = $this->_guardar($gg,$created_at,$created_by);
-      }
-      return $ret;
-    });
+  public function llenado_inicial($created_at,$created_by){//Sin transaccion porque se llama desde CanonOperarioController con transaccion
+    $this->up();
+    $grupos_operarios = $this->CV->get('grupos_operarios_iniciales');
+    $ret = [];
+    foreach($grupos_operarios as $g){
+      $ret[] = $this->_guardar($g,$created_at,$created_by);
+    }
+    return $ret;
   }
   
   public function buscar(Request $request){
@@ -252,7 +229,40 @@ class CanonGrupoOperarioController extends Controller
     });
   }
   
+  public function guardar_individual($id_operario,$created_at,$created_by){
+    $o = CanonOperarioController::getInstancia()->_obtener($id_operario);
+    $cgo = [
+      'id_grupo_operario' => $id_operario,
+      'nombre' => $o['nombre'],
+      'codigo' => $o['codigo'],
+      'abbr' => $o['abbr'],
+      'color' => $o['color'],
+      'es_individual' => 1,
+      'operarios' => [
+        [
+          'id_operario' => $id_operario,
+          'id_grupo_operario' => $id_operario
+        ]
+      ]
+    ];
+    return $this->_guardar($cgo,$created_at,$created_by);
+  }
+  
+  public function borrar_individual($id_operario,$deleted_at,$deleted_by){
+    return DB::table('canon_grupo_operario')
+    ->where('id_grupo_operario',$id_operario)
+    ->where('es_individual',1)
+    ->whereNull('deleted_at')
+    ->update(compact('deleted_at','deleted_by'));
+  }
+  
+  public function desborrar_individual($id_operario,$created_at,$created_by){
+    return $this->guardar_individual($id_operario,$created_at,$created_by);
+  }
+  
   private function _guardar(array $cgo,$created_at,$created_by){
+    $this->invalidar_grupo($cgo['id_grupo_operario'],$created_at,$created_by);
+    
     unset($cgo['id_canon_grupo_operario']);
     
     $operarios = $cgo['operarios'] ?? [];
@@ -279,11 +289,11 @@ class CanonGrupoOperarioController extends Controller
   public function guardar(Request $request){
     $created_at = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
     $created_by = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
-    $cgo = null;
-    
+        
     Validator::make($request->all(),[
       'id_canon_grupo_operario' => ['nullable','integer','exists:canon_grupo_operario,id_canon_grupo_operario,deleted_at,NULL'],
       'id_grupo_operario' => ['nullable','integer'],
+      'es_individual' => ['required','integer','in:0'],
       'nombre' => ['required','string','max:64'],
       'codigo' => ['required','string','max:16'],
       'abbr' => ['required','string','max:16'],
@@ -299,7 +309,7 @@ class CanonGrupoOperarioController extends Controller
       'exists' => 'No existe el valór para referenciar',
       'string' => 'Se requiere una cadena',
       'in' => 'No es un valor valido',
-    ],[])->after(function($validator) use (&$cgo){
+    ],[])->after(function($validator){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
       $id_canon_grupo_operario = $data['id_canon_grupo_operario'] ?? null;
@@ -336,19 +346,18 @@ class CanonGrupoOperarioController extends Controller
     })->validate();
     
     return DB::transaction(function() use ($request,&$nuevo,&$cgo,$created_at,$created_by){
-      if($cgo !== null){ //Estoy modificando, tengo que invalidar el viejo
-        DB::table('canon_grupo_operario')
-        ->where('id_canon_grupo_operario',$cgo->id_canon_grupo_operario)
-        ->where('id_grupo_operario',$cgo->id_grupo_operario)
-        ->whereNull('deleted_at')
-        ->update([
-          'deleted_at' => $created_at,
-          'deleted_by' => $created_by
-        ]);
-      }
-      
       $data = $request->all();            
       return $this->_guardar($data,$created_at,$created_by);
     });
+  }
+  
+  private function invalidar_grupo($id_grupo_operario,$deleted_at,$deleted_by){
+    return DB::table('canon_grupo_operario')
+    ->where('id_grupo_operario',$id_grupo_operario)
+    ->whereNull('deleted_at')
+    ->update([
+      'deleted_at' => $deleted_at,
+      'deleted_by' => $deleted_by
+    ]);
   }
 }

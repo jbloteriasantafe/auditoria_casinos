@@ -17,12 +17,15 @@ class CanonOperarioController extends Controller
   }
   
   private $CV = null;
+  private $CGO = null;
   public function __construct(){
     self::$instance = $this;
     $this->CV = CanonValorPorDefectoController::getInstancia();
+    $this->CGO = CanonGrupoOperarioController::getInstancia();
   }
   
   public function down(){
+    $this->CGO->down();
     DB::unprepared("DROP TABLE IF EXISTS canon_operario_canon_variable");
     DB::unprepared("DROP TABLE IF EXISTS canon_operario_canon_fijo_mesas");
     DB::unprepared("DROP TABLE IF EXISTS canon_operario_canon_fijo_mesas_adicionales");
@@ -131,6 +134,7 @@ class CanonOperarioController extends Controller
       CONSTRAINT `fk_canon_operario_canon_fijo_mesas_adicionales_operario` FOREIGN KEY (`id_canon_operario`) REFERENCES `canon_operario` (`id_canon_operario`)
     )
     ");
+    $this->CGO->up();
   }
   
   public function llenado_inicial(){
@@ -142,7 +146,9 @@ class CanonOperarioController extends Controller
       $ret = [];
       foreach($operarios as $o){
         $ret[] = $this->_guardar($o,$created_at,$created_by);
+        $this->CGO->guardar_individual($o['id_operario'],$created_at,$created_by);
       }
+      $this->CGO->llenado_inicial($created_at,$created_by);
       return $ret;
     });
   }
@@ -220,21 +226,23 @@ class CanonOperarioController extends Controller
   private function agregar_dependencias(&$co){
     if($co === null) return null;
     
+    $to_array = function(\stdClass $o){return (array)$o;};
+    
     $co['cuentas'] = DB::table('canon_operario_cuenta')
     ->where('id_canon_operario',$co['id_canon_operario'])
-    ->get()->toArray();
+    ->get()->map($to_array)->toArray();
     
     $co['canon_variable'] = DB::table('canon_operario_canon_variable')
     ->where('id_canon_operario',$co['id_canon_operario'])
-    ->get()->toArray();
+    ->get()->map($to_array)->toArray();
     
     $co['canon_fijo_mesas'] = DB::table('canon_operario_canon_fijo_mesas')
     ->where('id_canon_operario',$co['id_canon_operario'])
-    ->get()->toArray();
+    ->get()->map($to_array)->toArray();
     
     $co['canon_fijo_mesas_adicionales'] = DB::table('canon_operario_canon_fijo_mesas_adicionales')
     ->where('id_canon_operario',$co['id_canon_operario'])
-    ->get()->toArray();
+    ->get()->map($to_array)->toArray();
     
     return $co;
   }
@@ -250,6 +258,8 @@ class CanonOperarioController extends Controller
       ->where('id_operario',$id_operario)
       ->whereNull('deleted_at')
       ->update(compact('deleted_at','deleted_by'));
+      
+      $this->CGO->borrar_individual($id_operario,$deleted_at,$deleted_by);
       
       return 1;
     });
@@ -302,7 +312,20 @@ class CanonOperarioController extends Controller
       unset($co['deleted_by']);
       unset($co['id_operario_deleted_at']);
       
-      return $this->_guardar((array) $co,$created_at,$created_by);
+      foreach($co as $attr => &$arr){
+        if(!is_array($arr)) continue;
+        foreach($arr as &$obj){
+          unset($obj['id_canon_operario_cuenta']);
+          unset($obj['id_canon_operario_canon_variable']);
+          unset($obj['id_canon_operario_canon_fijo_mesas']);
+          unset($obj['id_canon_operario_canon_fijo_mesas_adicionales']);
+        }
+      }
+      
+      $ret = $this->_guardar($co,$created_at,$created_by);
+      $this->CGO->desborrar_individual($co['id_operario'],$created_at,$created_by);
+      
+      return $ret;
     });
   }
   
@@ -513,7 +536,9 @@ class CanonOperarioController extends Controller
       unset($data['canon_fijo_mesas_adicionales']);
       $data['canon_fijo_mesas_adicionales'] = $canon_fijo_mesas_adicionales;
 
-      return $this->_guardar($data,$created_at,$created_by);
+      $ret = $this->_guardar($data,$created_at,$created_by);
+      $this->CGO->guardar_individual($data['id_operario'],$created_at,$created_by);
+      return $ret;
     });
   }
   

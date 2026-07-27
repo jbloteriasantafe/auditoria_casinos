@@ -361,18 +361,18 @@
         <td class="operarios">OPERARIOS</td>
         <td>
           @if($puede_ver)
-          <button class="btn" type="button" data-js-ver="/canon/grupo_operario/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
+          <button class="btn" type="button" data-es_individual="|0|1|" data-js-ver="/canon/grupo_operario/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
           @endif
           @if($puede_agregarmodificar)
-          <button class="btn" type="button" data-js-editar="/canon/grupo_operario/obtener" title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
+          <button class="btn" type="button" data-es_individual="|0|" data-js-editar="/canon/grupo_operario/obtener" title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
           @endif
           @if($puede_deseliminar)
-          <button data-mostrar-borrado class="btn" type="button" data-js-desborrar="/canon/grupo_operario/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
+          <button data-mostrar-borrado data-es_individual="|0|" class="btn" type="button" data-js-desborrar="/canon/grupo_operario/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
             <i class="fa fa-backward"></i>
           </button>
           @endif
           @if($puede_agregarmodificar || $puede_deseliminar)
-          <button class="btn" type="button" data-js-borrar="/canon/grupo_operario/borrar" title="BORRAR">
+          <button class="btn" type="button" data-es_individual="|0|" data-js-borrar="/canon/grupo_operario/borrar" title="BORRAR">
             <i class="fa fa-fw fa-trash-alt"></i>
           </button>
           @endif
@@ -1988,22 +1988,23 @@
               <h5 style="padding-left: 0;">ID</h5>
               <!-- El id no se deberia editar una vez creado para mantener la trazabilidad/historial del operario -->
               <input name="id_grupo_operario" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"},{"modo": "EDITAR"}]'>
+              <input name="es_individual" data-js-texto-no-formatear-numero class="form-control" data-check-param data-readonly='[{"modo":"*"}]' data-modo-mostrar='[{"modo": "NOMOSTRARNUNCA!"}]'>
             </div>
             <div style="width: 33.333333333%;">
               <h5 style="padding-left: 0;">Nombre</h5>
-              <input name="nombre" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
+              <input name="nombre" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"},{"es_individual": "1"}]'>
             </div>
             <div style="width: 33.333333333%;">
               <h5 style="padding-left: 0;">Código</h5>
-              <input name="codigo" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
+              <input name="codigo" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"},{"es_individual": "1"}]'>
             </div>
             <div style="width: 33.333333333%;">
               <h5 style="padding-left: 0;">Abreviación</h5>
-              <input name="abbr" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"}]'>
+              <input name="abbr" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"},{"es_individual": "1"}]'>
             </div>
             <div style="width: 33.333333333%;">
               <h5 style="padding-left: 0;">Color plantillas</h5>
-              <input data-js-change-agregar-alpha="" name="color" data-js-texto-no-formatear-numero type="color" value="#000000FF" alpha="alpha" colorspace="limited-srgb" class="form-control" data-readonly='[{"modo": "VER"}]'>
+              <input data-js-change-agregar-alpha="" name="color" data-js-texto-no-formatear-numero type="color" value="#000000FF" alpha="alpha" colorspace="limited-srgb" class="form-control" data-readonly='[{"modo": "VER"},{"es_individual": "1"}]'>
             </div>
           </div>
         </div>
@@ -2011,7 +2012,7 @@
       <div class="bloque_interno" style="flex: 1;height: 100%;">
         <h6 style="padding-bottom: 1em;width: 100%;">
           Operarios
-          <button class="btn" type="button" data-js-click-agregar-operario data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]' style="display: inline-block;">
+          <button class="btn" type="button" data-js-click-agregar-operario data-modo-mostrar='[{"modo": "NUEVO","es_individual": "0"},{"modo": "EDITAR","es_individual": "0"}]' style="display: inline-block;">
             <i class="fa fa-plus"></i>
           </button>
         </h6>
@@ -2033,9 +2034,9 @@
   <!-- Por fuera del modal así no afecta el <form> -->
   <table hidden>
     <tr data-molde-operario="$idxoperario">
-      <td><input class="form-control" data-js-texto-no-formatear-numero data-name="operarios[$idxoperario][id_operario]" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input class="form-control" data-js-texto-no-formatear-numero data-name="operarios[$idxoperario][id_operario]" data-readonly='[{"modo": "VER"},{"es_individual": "1"}]'></td>
       <td>
-        <button class="btn btn-link" type="button" data-js-click-borrar-tr data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>
+        <button class="btn btn-link" type="button" data-js-click-borrar-tr data-modo-mostrar='[{"modo": "NUEVO","es_individual": "0"},{"modo": "EDITAR","es_individual": "0"}]'>
           <i class="fa fa-fw fa-trash-alt"></i>
         </button>
       </td>

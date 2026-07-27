@@ -91,7 +91,7 @@ class CanonAgrupamientoController extends Controller
     ");
     
     DB::unprepared("
-      CREATE FUNCTION canon_agrupamiento_hash(id_casino INT,nivel INT,año_mes date,clave VARCHAR(32),valor varchar(32))
+      CREATE FUNCTION canon_agrupamiento_hash(id_grupo_operario INT,nivel INT,año_mes date,clave VARCHAR(32),valor varchar(32))
       RETURNS binary(20)
       DETERMINISTIC
       BEGIN
@@ -99,7 +99,7 @@ class CanonAgrupamientoController extends Controller
           SHA(
             CONCAT_WS(
               '|',
-              IFNULL(id_casino,''),
+              IFNULL(id_grupo_operario,''),
               IFNULL(nivel,''),
               IFNULL(año_mes,''),
               IFNULL(clave,''),
@@ -113,14 +113,14 @@ class CanonAgrupamientoController extends Controller
     DB::statement("
     CREATE TABLE IF NOT EXISTS canon_subcanon_a_grupo (
       id_canon_subcanon_a_grupo INT NOT NULL AUTO_INCREMENT,
-      id_casino INT NOT NULL,
+      id_grupo_operario INT NOT NULL,
       nivel    INT NOT NULL,
       clave    VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       valor    VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       base_subcanon_o_superior_dependencia VARCHAR(64)  CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       base_tipo     VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       PRIMARY KEY (id_canon_subcanon_a_grupo),
-      UNIQUE KEY (nivel,id_casino,clave,valor,base_subcanon_o_superior_dependencia,base_tipo)
+      UNIQUE KEY (nivel,id_grupo_operario,clave,valor,base_subcanon_o_superior_dependencia,base_tipo)
     )
     ");
   
@@ -128,7 +128,7 @@ class CanonAgrupamientoController extends Controller
     CREATE TABLE IF NOT EXISTS canon_agrupamiento (
       id_canon_agrupamiento int(11) NOT NULL AUTO_INCREMENT,
 
-      id_casino INT NOT NULL,	
+      id_grupo_operario INT NOT NULL,	
       nivel INT NOT NULL,
       clave VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       valor VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
@@ -172,7 +172,7 @@ class CanonAgrupamientoController extends Controller
       determinado¬err_red DECIMAL(2,2)   NULL,
             
       PRIMARY KEY (id_canon_agrupamiento),
-      INDEX idx_canon_agrupamiento (año_mes,nivel,id_casino,clave,valor),
+      INDEX idx_canon_agrupamiento (año_mes,nivel,id_grupo_operario,clave,valor),
       UNIQUE KEY unq_canon_agrupamiento_hash (hash)
     )
     ");
@@ -181,8 +181,8 @@ class CanonAgrupamientoController extends Controller
   private function inicializar_agrupamientos(string $año_mes){
     //Inicializa todos los valores en 0
     DB::statement("
-      INSERT INTO canon_agrupamiento (id_casino,nivel,año_mes,clave,valor,hash)	
-      SELECT DISTINCT scagg.id_casino,scagg.nivel,? as año_mes,scagg.clave,scagg.valor,canon_agrupamiento_hash(scagg.id_casino,scagg.nivel,?,scagg.clave,scagg.valor) as hash
+      INSERT INTO canon_agrupamiento (id_grupo_operario,nivel,año_mes,clave,valor,hash)	
+      SELECT DISTINCT scagg.id_grupo_operario,scagg.nivel,? as año_mes,scagg.clave,scagg.valor,canon_agrupamiento_hash(scagg.id_grupo_operario,scagg.nivel,?,scagg.clave,scagg.valor) as hash
       FROM canon_subcanon_a_grupo as scagg
     ",[$año_mes,$año_mes]);
   }
@@ -218,7 +218,7 @@ class CanonAgrupamientoController extends Controller
       UPDATE canon_agrupamiento as cagg
       JOIN (
         SELECT 
-          scagg.id_casino,
+          scagg.id_grupo_operario,
           scagg.clave,
           scagg.valor,
           
@@ -245,15 +245,20 @@ class CanonAgrupamientoController extends Controller
         FROM canon as c
         JOIN $sc as sc
           ON sc.id_canon = c.id_canon
+        
+        -- @TODO cambiar id_casino a id_operario
+        JOIN canon_grupo_operario_operario as cgoo ON cgoo.id_operario = c.id_casino
+        JOIN canon_grupo_operario as cgo ON cgo.id_grupo_operario = cgoo.id_grupo_operario AND cgo.deleted_at IS NULL
+        
         JOIN canon_subcanon_a_grupo as scagg
-          ON  scagg.id_casino = c.id_casino
+          ON  scagg.id_grupo_operario = cgo.id_grupo_operario
           AND scagg.base_subcanon_o_superior_dependencia = '$sc'
           AND scagg.base_tipo = sc.tipo
           AND scagg.nivel = 0
         WHERE c.año_mes = ? AND c.deleted_at IS NULL
-        GROUP BY scagg.id_casino, scagg.clave, scagg.valor
+        GROUP BY scagg.id_grupo_operario, scagg.clave, scagg.valor
       ) as agrupado 
-        ON  agrupado.id_casino = cagg.id_casino
+        ON  agrupado.id_grupo_operario = cagg.id_grupo_operario
         AND agrupado.clave = cagg.clave
         AND agrupado.valor = cagg.valor
       SET 
@@ -281,7 +286,7 @@ class CanonAgrupamientoController extends Controller
   UPDATE canon_agrupamiento as cagg
     JOIN (
       SELECT 
-        cagg2.id_casino,
+        cagg2.id_grupo_operario,
         cagg2.nivel+1 as nivel,
         cagg2.clave,
         scagg.valor,
@@ -305,23 +310,23 @@ class CanonAgrupamientoController extends Controller
       
       FROM canon_subcanon_a_grupo as scagg
       JOIN canon_agrupamiento as cagg2
-        ON  cagg2.id_casino = scagg.id_casino
+        ON  cagg2.id_grupo_operario = scagg.id_grupo_operario
         AND cagg2.clave = scagg.clave
         AND cagg2.valor = scagg.base_subcanon_o_superior_dependencia
         AND cagg2.nivel = ($nivel-1)
         AND cagg2.año_mes = ?
       WHERE 
             scagg.nivel = $nivel
-        AND scagg.id_casino IS NOT NULL
-      GROUP BY cagg2.id_casino,cagg2.año_mes,cagg2.clave,cagg2.nivel,scagg.valor
+        AND scagg.id_grupo_operario IS NOT NULL
+      GROUP BY cagg2.id_grupo_operario,cagg2.año_mes,cagg2.clave,cagg2.nivel,scagg.valor
     ) as agrupado 
-      ON  agrupado.id_casino = cagg.id_casino
+      ON  agrupado.id_grupo_operario = cagg.id_grupo_operario
       AND agrupado.nivel = cagg.nivel
       AND agrupado.clave = cagg.clave
       AND agrupado.valor = cagg.valor
     SET
       ".$this->__sumar_columnas()."
-    WHERE cagg.año_mes = ? and cagg.nivel = $nivel and cagg.id_casino IS NOT NULL
+    WHERE cagg.año_mes = ? and cagg.nivel = $nivel and cagg.id_grupo_operario IS NOT NULL
     ", [$año_mes, $año_mes]);
   }
     
@@ -385,25 +390,25 @@ class CanonAgrupamientoController extends Controller
       $superiores = $base_superiores['superiores'] ?? [];
       
       $nivel = 0;
-      foreach($base as $valor => $id_casino_subcanons){
-        foreach($id_casino_subcanons as $id_casino => $subcanon_tipos){
+      foreach($base as $valor => $id_grupo_operario_subcanons){
+        foreach($id_grupo_operario_subcanons as $id_grupo_operario => $subcanon_tipos){
           foreach($subcanon_tipos as $base_subcanon_o_superior_dependencia => $tipos){            
             foreach($tipos as $base_tipo){
-              $i = compact('nivel','id_casino','clave','valor','base_subcanon_o_superior_dependencia','base_tipo');
+              $i = compact('nivel','id_grupo_operario','clave','valor','base_subcanon_o_superior_dependencia','base_tipo');
               $to_insert[implode('|',$i)] = $i;
             }
           }
         }
       }
       
-      foreach($superiores as $nidx => $valores_id_casinos){
+      foreach($superiores as $nidx => $valores_id_grupos_operarios){
         $nivel = $nidx + 1;
         $base_tipo = '';
         
-        foreach($valores_id_casinos as $valor => $id_casinos_dependencias){
-          foreach($id_casinos_dependencias as $id_casino => $dependencias){
+        foreach($valores_id_grupos_operarios as $valor => $id_grupos_operarios_dependencias){
+          foreach($id_grupos_operarios_dependencias as $id_grupo_operario => $dependencias){
             foreach($dependencias as $base_subcanon_o_superior_dependencia){
-              $i = compact('nivel','id_casino','clave','valor','base_subcanon_o_superior_dependencia','base_tipo');
+              $i = compact('nivel','id_grupo_operario','clave','valor','base_subcanon_o_superior_dependencia','base_tipo');
               $to_insert[implode('|',$i)] = $i;
             }
           }
@@ -415,19 +420,19 @@ class CanonAgrupamientoController extends Controller
     ->insert(array_values($to_insert));
   }
   
-  public function obtener($año_mes,$id_casino,$nivel,$clave,$valor){
+  public function obtener($año_mes,$id_grupo_operario,$nivel,$clave,$valor){
     $data = DB::table('canon_agrupamiento')
     ->where('año_mes',$año_mes)
     ->where('clave',$clave)
     ->where('nivel',$nivel)
     ->where('valor',$valor)
-    ->where('id_casino',$id_casino);
+    ->where('id_grupo_operario',$id_grupo_operario);
     
     $data = $data->first();
     
     if($data === null) return null;
     
-    unset($data->id_casino);
+    unset($data->id_grupo_operario);
     unset($data->valor);
     unset($data->año_mes);
     unset($data->clave);
@@ -438,13 +443,13 @@ class CanonAgrupamientoController extends Controller
     return $data;
   }
   
-  private function __agrupamientos_detallados_expandir_base($id_casinos,$scs,$base){
+  private function __agrupamientos_detallados_expandir_base($id_grupos_operarios,$scs,$base){
     $ret = [];
     foreach($base as $v => $cas_groups){
       $ret[$v] = [];
       
       if(array_key_exists('*',$cas_groups)){
-        foreach($id_casinos as $idc){//Todos los casinos
+        foreach($id_grupos_operarios as $idc){//Todos los grupos-operarios
           $ret[$v][$idc] = [];
         }
       }
@@ -456,7 +461,7 @@ class CanonAgrupamientoController extends Controller
       
       foreach($ret[$v] as $idc => $_){
         $sc_groups = $cas_groups[$idc] ?? $cas_groups['*'] ?? [];
-        if(array_key_exists('*',$sc_groups)){//Todos los subcanons
+        if(array_key_exists('*',$sc_groups)){//Todos los grupos-operarios
           foreach($scs as $sc => $_){
             $ret[$v][$idc][$sc] = [];
           }
@@ -481,7 +486,7 @@ class CanonAgrupamientoController extends Controller
     return $ret;
   }
   
-  private function __agrupamientos_detallados_expandir_superiores($id_casinos,$valores_nivel_anterior,$superiores){
+  private function __agrupamientos_detallados_expandir_superiores($id_grupos_operarios,$valores_nivel_anterior,$superiores){
     $ret = [];
     foreach($superiores as $nidx => $nivel_vals){
       $ret[$nidx] = [];
@@ -489,7 +494,7 @@ class CanonAgrupamientoController extends Controller
       foreach($nivel_vals as $v => $cas_groups){
         $ret[$nidx][$v] = [];
         if(array_key_exists('*',$cas_groups)){
-          foreach($id_casinos as $idc){//Todos los casinos
+          foreach($id_grupos_operarios as $idc){//Todos los grupos-operarios
             $ret[$nidx][$v][$idc] = [];
           }
         }
@@ -522,9 +527,10 @@ class CanonAgrupamientoController extends Controller
   }
   
   public function agrupamientos_detallados($agrupamientos){
-    $id_casinos = DB::table('canon')
-    ->select('id_casino')->distinct()
-    ->get()->pluck('id_casino')->toArray();
+    $id_grupos_operarios = DB::table('canon_grupo_operario')
+    ->select('id_grupo_operario')->distinct()
+    ->whereNull('deleted_at')
+    ->get()->pluck('id_grupo_operario')->toArray();
     
     $scs = [
       'canon_variable' => null,
@@ -538,17 +544,17 @@ class CanonAgrupamientoController extends Controller
       ->get()->pluck('tipo')->toArray();
     }
     
-    $agrupamientos_detallados = [];//Los agrupamientos detallados por casino etc... sin los *...
+    $agrupamientos_detallados = [];//Los agrupamientos detallados por grupo-operario etc... sin los *...
     foreach($agrupamientos as $clave => $base_superiores){
       $agrupamientos_detallados[$clave] = [];
       $agrupamientos_detallados[$clave]['base'] = $this->__agrupamientos_detallados_expandir_base(
-        $id_casinos,
+        $id_grupos_operarios,
         $scs,
         $base_superiores['base'] ?? []
       );
       
       $agrupamientos_detallados[$clave]['superiores'] = $this->__agrupamientos_detallados_expandir_superiores(
-        $id_casinos,
+        $id_grupos_operarios,
         array_keys($base_superiores['base']),
         $base_superiores['superiores'] ?? []
       );
@@ -604,8 +610,8 @@ class CanonAgrupamientoController extends Controller
   
   private function _group_dependencias($data){
     return $data->groupBy('clave')->map(function(&$clave_group){
-      return $clave_group->groupBy('casino')->map(function(&$casino_group){
-        return $casino_group->groupBy('nivel')->map(function(&$nivel_group){
+      return $clave_group->groupBy('grupo_operario')->map(function(&$grupo_operario_group){
+        return $grupo_operario_group->groupBy('nivel')->map(function(&$nivel_group){
           return $nivel_group->groupBy('valor');
         });
       });
@@ -614,8 +620,8 @@ class CanonAgrupamientoController extends Controller
   
   private function _group_dependencias_calculado($data){
     return $data->groupBy('clave')->map(function(&$clave_group){
-      return $clave_group->groupBy('casino')->map(function(&$casino_group){
-        return $casino_group->groupBy('nivel')->map(function(&$nivel_group){
+      return $clave_group->groupBy('grupo_operario')->map(function(&$grupo_operario_group){
+        return $grupo_operario_group->groupBy('nivel')->map(function(&$nivel_group){
           return $nivel_group->keyBy('valor');
         });
       });
@@ -626,10 +632,10 @@ class CanonAgrupamientoController extends Controller
     $ret = [];
     foreach($grouped as $clave => &$clave_groups){
       $ret[$clave] = [];
-      foreach($clave_groups as $casino => &$casino_groups){
-        $ret[$clave][$casino] = [];
-        $max_nivel = $casino_groups->keys()->max();
-        $prev = $casino_groups[0]->map(function($lista_base){
+      foreach($clave_groups as $grupo_operario => &$grupo_operario_groups){
+        $ret[$clave][$grupo_operario] = [];
+        $max_nivel = $grupo_operario_groups->keys()->max();
+        $prev = $grupo_operario_groups[0]->map(function($lista_base){
           return [
             'nivel' => 0,
             'dependencias' => $lista_base->map(function($entry){
@@ -644,7 +650,7 @@ class CanonAgrupamientoController extends Controller
         for($n=1;$n<=$max_nivel;$n++){
           $new = [];
           $agregados = [];
-          foreach($casino_groups[$n] as $valor => $lista_dependencias){
+          foreach($grupo_operario_groups[$n] as $valor => $lista_dependencias){
             $new[$valor] = ['dependencias' => [],'nivel' => $n];
             foreach($lista_dependencias as $dep){
               $new[$valor]['dependencias'][$dep->base_subcanon_o_superior_dependencia] = 
@@ -662,7 +668,7 @@ class CanonAgrupamientoController extends Controller
           }
           $prev = $new;
         }
-        $ret[$clave][$casino] = $prev;
+        $ret[$clave][$grupo_operario] = $prev;
       }
     }
     
@@ -671,8 +677,8 @@ class CanonAgrupamientoController extends Controller
   
   public function buscar(){
     $data = DB::table('canon_subcanon_a_grupo as cagg_deps')
-    ->select('cagg_deps.*','cas.nombre as casino')
-    ->join('casino as cas','cas.id_casino','=','cagg_deps.id_casino')
+    ->select('cagg_deps.*','cgo.nombre as grupo_operario')
+    ->join('canon_grupo_operario as cgo','cgo.id_grupo_operario','=','cagg_deps.id_grupo_operario')
     ->get();
     
     $grouped = $this->_group_dependencias($data);
@@ -687,8 +693,8 @@ class CanonAgrupamientoController extends Controller
     $dependencias = $this->buscar();
     
     $data = DB::table('canon_agrupamiento as cagg')
-    ->select('cagg.*','cas.nombre as casino')
-    ->join('casino as cas','cas.id_casino','=','cagg.id_casino')
+    ->select('cagg.*','cgo.nombre as grupo_operario')
+    ->join('canon_grupo_operario as cgo','cgo.id_grupo_operario','=','cagg.id_grupo_operario')
     ->get();
     
     foreach($data as &$d){
@@ -702,8 +708,8 @@ class CanonAgrupamientoController extends Controller
       foreach($dependencias as $clave => $clave_groups){
         $ret[$clave] = [];
         
-        foreach($clave_groups as $casino => $casino_groups){
-          $data = ($calculado_agrupado[$clave] ?? [])[$casino] ?? [];
+        foreach($clave_groups as $grupo_operario => $grupo_operario_groups){
+          $data = ($calculado_agrupado[$clave] ?? [])[$grupo_operario] ?? [];
           $recurse = function(string $valor,array $valor_group,array &$ret) use (&$data,&$recurse){
             $n = $valor_group['nivel'];
             if($n > 0){
@@ -722,9 +728,9 @@ class CanonAgrupamientoController extends Controller
             }
           };
           
-          $ret[$clave][$casino] = [];
-          foreach($casino_groups as $valor => $valor_group){
-            $recurse($valor,$valor_group,$ret[$clave][$casino]);
+          $ret[$clave][$grupo_operario] = [];
+          foreach($grupo_operario_groups as $valor => $valor_group){
+            $recurse($valor,$valor_group,$ret[$clave][$grupo_operario]);
           }
         }
       }

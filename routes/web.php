@@ -1678,9 +1678,6 @@ Route::group(['prefix' => 'canon', 'middleware' => 'tiene_permiso:m_ver_seccion_
   });
   
   Route::group(['prefix' => 'grupo_operario', 'middleware' => 'tiene_rol:superusuario'] ,function(){
-    Route::get('/down','\App\Http\Controllers\Canon\CanonGrupoOperarioController@down');
-    Route::get('/up','\App\Http\Controllers\Canon\CanonGrupoOperarioController@up');
-    Route::get('/llenado_inicial','\App\Http\Controllers\Canon\CanonGrupoOperarioController@llenado_inicial');
     Route::post('/buscar','\App\Http\Controllers\Canon\CanonGrupoOperarioController@buscar');
     Route::get('/obtener','\App\Http\Controllers\Canon\CanonGrupoOperarioController@obtener');
     Route::get('/obtenerConHistorial','\App\Http\Controllers\Canon\CanonGrupoOperarioController@obtenerConHistorial');
