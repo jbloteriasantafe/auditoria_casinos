@@ -228,10 +228,7 @@ class CanonPagoController extends Controller
       $restante = $p['diferencia'];
     }
     
-    $PAG = $this->confluir_datos_pago(compact('canon_pago'));
-    $interes_provincial_diario_simple   = $PAG['interes_provincial_diario_simple'] ?? null;//@RETORNADO
-    $interes_nacional_mensual_compuesto = $PAG['interes_nacional_mensual_compuesto'] ?? null;//@RETORNADO
-    $fecha_vencimiento                  = $PAG['fecha_vencimiento'] ?? null;//@RETORNADO
+    $PAG = $this->CC->confluir_datos(compact('canon_pago'),['canon_pago'],array_keys($PAG));
     
     $ajuste = bcadd($R('ajuste','0.00'),'0',2);//@RETORNADO
     $motivo_ajuste = $R('motivo_ajuste','');//@RETORNADO
@@ -239,16 +236,17 @@ class CanonPagoController extends Controller
     $saldo_posterior = bcsub('0',$diferencia,2);//@RETORNADO @HACK: Lo mismo que diferencia? el saldo ya esta en el a_pagar
     $saldo_posterior_cerrado = $saldo_posterior;//@RETORNADO
     
-    return compact(
-      'año_mes','id_casino','estado','determinado',
-      'saldo_anterior','saldo_anterior_cerrado',
-      'intereses_y_cargos','motivo_intereses_y_cargos','principal',
-      //Confluidos
-      'fecha_vencimiento','interes_provincial_diario_simple','interes_nacional_mensual_compuesto',
-      //Pagos
-      'canon_pago',
-      'a_pagar','pago','ajuste','motivo_ajuste','diferencia',
-      'saldo_posterior','saldo_posterior_cerrado'
+    return array_merge(
+      compact(
+        'año_mes','id_casino','estado','determinado',
+        'saldo_anterior','saldo_anterior_cerrado',
+        'intereses_y_cargos','motivo_intereses_y_cargos','principal',
+        //Pagos
+        'canon_pago',
+        'a_pagar','pago','ajuste','motivo_ajuste','diferencia',
+        'saldo_posterior','saldo_posterior_cerrado'
+      ),
+      $PAG
     );
   }
   
@@ -422,40 +420,45 @@ class CanonPagoController extends Controller
     $ret = json_decode(json_encode($ret),true);
     
     if($confluir){
-      $PAG = $this->confluir_datos_pago($ret);
-      foreach($PAG as $k => $v) $ret[$k] = $v;
+      $PAG = $this->confluir_datos(compact('canon_pago'),['canon_pago']);
+      $ret['interes_provincial_diario_simple'] = $PAG['interes_provincial_diario_simple'] ?? null;
+      $ret['interes_nacional_mensual_compuesto'] = $PAG['interes_nacional_mensual_compuesto'] ?? null;
+      $ret['fecha_vencimiento'] = $PAG['fecha_vencimiento'] ?? null;
     }
     
     return $ret;
   }
   
-  private function confluir_datos(array $canon,array $tablas,array $atributos){
+  private function confluir_datos(array $canon,array $tablas){
     $ret = [];
-    foreach($tablas as $tabla){
-      foreach($atributos as $attr){
-        foreach($canon[$tabla] as $tipo => $data_tabla){
-          if(!isset($data_tabla[$attr])) continue;
-          $val = $data_tabla[$attr];
-          if(isset($ret[$attr])){//Si es distinto, hay conflicto y pongo en nulo
-            $ret[$attr] = $val != $ret[$attr]? null : $val;
+    
+    $all_attrs = [];
+    foreach($tablas as $t){
+      foreach(($canon[$t] ?? []) as $tipo => $data_tipo){
+        foreach($data_tipo as $attr => $_){
+          $all_attrs[$attr] = true;
+        }
+      }
+    }
+    $all_attrs = array_keys($all_attrs);
+    
+    foreach($tablas as $t){
+      foreach(($canon[$t] ?? []) as $tipo => $data_tipo){
+        foreach($all_attrs as $attr){
+          if(!isset($data_tipo[$attr])) continue;
+          $v = $data_tipo[$attr];
+          if(!isset($ret[$attr])){
+            $ret[$attr] = $v;
           }
-          else{
-            $ret[$attr] = $val;
+          else if($ret[$attr] != $v){
+            $ret[$attr] = null;
           }
         }
       }
     }
     return $ret;
   }
-  
-  private function confluir_datos_pago(array $canon){
-    return $this->confluir_datos(
-      $canon,
-      ['canon_pago'],
-      ['fecha_vencimiento','interes_provincial_diario_simple','interes_nacional_mensual_compuesto']
-    );
-  }
-  
+    
   public function obtener(Request $request){
     return $this->obtener_arr($request->all());
   }

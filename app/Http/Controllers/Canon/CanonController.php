@@ -186,8 +186,8 @@ class CanonController extends Controller
     //de modificaciones al codigo y lo hace mas robusto, lo malo es que complica un poco el codigo
     //Entonces por ejemplo, si cambia la logica, podemos seguir recalculando cada subcanon independientemente de los demas
     $COT = [
-      'valor_dolar' => bcadd($R('valor_dolar',$op['valor_dolar'] ?? null),'0',2),
-      'valor_euro'  => bcadd($R('valor_euro',$op['valor_euro'] ?? null),'0',2),
+      'valor_dolar' => $R('valor_dolar',$op['valor_dolar'] ?? '0'),
+      'valor_euro'  => $R('valor_euro',$op['valor_euro'] ?? '0'),
       'devengado_fecha_cotizacion'   => $R('devengado_fecha_cotizacion',null),
       'devengado_cotizacion_dolar'   => $R('devengado_cotizacion_dolar',null),
       'devengado_cotizacion_euro'    => $R('devengado_cotizacion_euro',null),
@@ -255,9 +255,9 @@ class CanonController extends Controller
       $tipos = array_keys($request[$subcanon] ?? $defecto ?? []);
       foreach($tipos as $tipo){
         $data_tipo_req = $subcanon_req[$tipo] ?? [];
+        
         $data_tipo_defecto = $defecto[$tipo] ?? [];
         $data_tipo_canon_anterior = $subcanon_canon_anterior[$tipo] ?? [];
-        
         $retsc[$tipo] = $this->{$subcanon.'_recalcular'}(
           $año_mes,
           $id_casino,
@@ -281,7 +281,7 @@ class CanonController extends Controller
       }
     }
     
-    $COT = $this->confluir_datos_cotizacion($subcanons);
+    $COT = $this->confluir_datos($subcanons,['canon_fijo_mesas','canon_fijo_mesas_adicionales'],array_keys($COT));
     
     $devengado   = bcround_ndigits($devengado,2);//@RETORNADO
     $determinado = bcround_ndigits($determinado,2);//@RETORNADO
@@ -313,7 +313,16 @@ class CanonController extends Controller
     );
   }
   
-  public function canon_variable_recalcular($año_mes,$id_casino,$es_antiguo,$tipo,$valores_defecto,$data,$anterior,$COT){
+  public function canon_variable_recalcular(
+    $año_mes,
+    $id_casino,
+    $es_antiguo,
+    $tipo,
+    $data,
+    $valores_defecto,
+    $anterior,
+    $COT
+  ){
     $R = function($s,$dflt = null) use (&$data){
       return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
     };
@@ -387,14 +396,14 @@ class CanonController extends Controller
   }
   
   public function canon_fijo_mesas_recalcular(
-      $año_mes,
-      $id_casino,
-      $es_antiguo,
-      $tipo,//@RETORNADO
-      $valores_defecto,
-      $data,
-      $anterior,
-      $COT
+    $año_mes,
+    $id_casino,
+    $es_antiguo,
+    $tipo,
+    $data,
+    $valores_defecto,
+    $anterior,
+    $COT
   ){
     $R = function($s,$dflt = null) use (&$data){
       return (($data[$s] ?? null) === null || ($data[$s] === '') || ($data[$s] === []))? $dflt : $data[$s];
@@ -573,8 +582,8 @@ class CanonController extends Controller
     $id_casino,
     $es_antiguo,
     $tipo,
-    $valores_defecto,
     $data,
+    $valores_defecto,
     $anterior,
     $COT
   ){
@@ -928,26 +937,46 @@ class CanonController extends Controller
     $ret = json_decode(json_encode($ret),true);
     
     if($confluir){
-      $COT = $this->confluir_datos_cotizacion($ret);
-      foreach($COT as $k => $v) $ret[$k] = $v;
+      $COT = [
+        'valor_dolar','valor_euro',
+        'devengado_fecha_cotizacion','determinado_fecha_cotizacion',
+        'devengado_cotizacion_dolar','devengado_cotizacion_euro',
+        'determinado_cotizacion_dolar','determinado_cotizacion_euro'
+      ];
+      $ret = array_merge(
+        $ret,
+        $this->confluir_datos($ret,['canon_fijo_mesas','canon_fijo_mesas_adicionales'],$COT)
+      );
     }
     
     return !empty($ret)? $ret : $this->recalcular($ret);
   }
   
-  private function confluir_datos(array $canon,array $tablas,array $atributos){
+  public function confluir_datos(array $array_of_tablas,array $tablas,$attrs = null){
     $ret = [];
-    //Obtengo data de cotización, si no es uniforme devuelvo nulo
-    foreach($tablas as $tabla){
-      foreach($atributos as $attr){
-        foreach($canon[$tabla] as $tipo => $data_tabla){
-          if(!isset($data_tabla[$attr])) continue;
-          $val = $data_tabla[$attr];
-          if(isset($ret[$attr])){//Si es distinto, hay conflicto y pongo en nulo
-            $ret[$attr] = $val != $ret[$attr]? null : $val;
+    
+    if($attrs === null){
+      $attrs = [];
+      foreach($tablas as $t){
+        foreach(($array_of_tablas[$t] ?? []) as $tipo => $data_tipo){
+          foreach($data_tipo as $attr => $_){
+            $attrs[$attr] = true;
           }
-          else{
-            $ret[$attr] = $val;
+        }
+      }
+      $attrs = array_keys($attrs);
+    }
+    
+    foreach($tablas as $t){
+      foreach(($array_of_tablas[$t] ?? []) as $tipo => $data_tipo){
+        foreach($attrs as $attr){
+          if(!isset($data_tipo[$attr])) continue;
+          $v = $data_tipo[$attr];
+          if(!isset($ret[$attr])){
+            $ret[$attr] = $v;
+          }
+          else if($ret[$attr] != $v){
+            $ret[$attr] = null;
           }
         }
       }
@@ -955,19 +984,6 @@ class CanonController extends Controller
     return $ret;
   }
   
-  private function confluir_datos_cotizacion(array $canon){
-    return $this->confluir_datos(
-      $canon,
-      ['canon_variable','canon_fijo_mesas_adicionales','canon_fijo_mesas_adicionales'],
-      [
-        'valor_dolar','valor_euro','devengado_fecha_cotizacion',
-        'determinado_fecha_cotizacion',
-        'devengado_cotizacion_dolar','devengado_cotizacion_euro',
-        'determinado_cotizacion_dolar','determinado_cotizacion_euro'
-      ]
-    );
-  }
-    
   public function archivo(Request $request){
     if(($request['id_canon'] ?? null) === null || ($request['nombre_archivo'] ?? null) === null)
       return null;
