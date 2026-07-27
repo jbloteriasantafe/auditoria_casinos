@@ -14338,13 +14338,15 @@ $(document).on(
 
 $(document).on("click", ".btn-ver-archivos-unified", function () {
   const type = $(this).data("type");
+  // OJO: las claves deben coincidir con el data-type de los botones (.btn-ver-archivos-unified),
+  // que usan nombres cortos (Pozos/Jackpots/PagosMesas), igual que la respuesta del backend y unifiedFilesData.
   const idMap = {
     PremiosMTM: "#id_registroPremiosMTM_Unified",
     PromoTickets: "#id_registroPromoTickets_Unified",
-    PozosAcumuladosLinkeados: "#id_registroPozos_Unified",
-    JackpotsPagados: "#id_registroJackpots_Unified",
+    Pozos: "#id_registroPozos_Unified",
+    Jackpots: "#id_registroJackpots_Unified",
     PremiosPagados: "#id_registroPremiosPagados_Unified",
-    PagosMayoresMesas: "#id_registroPagosMesas_Unified",
+    PagosMesas: "#id_registroPagosMesas_Unified",
     RegistrosContables: "#id_registroRegistrosContables_Unified",
   };
   const id = $(idMap[type]).val();
@@ -14354,10 +14356,10 @@ $(document).on("click", ".btn-ver-archivos-unified", function () {
   const funcMap = {
     PremiosMTM: "cargarArchivosPremiosMTMLista",
     PromoTickets: "cargarArchivosPromoTicketsLista",
-    PozosAcumuladosLinkeados: "cargarArchivosPozosAcumuladosLinkeadosLista",
-    JackpotsPagados: "cargarArchivosJackpotsPagadosLista",
+    Pozos: "cargarArchivosPozosAcumuladosLinkeadosLista",
+    Jackpots: "cargarArchivosJackpotsPagadosLista",
     PremiosPagados: "cargarArchivosPremiosPagadosLista",
-    PagosMayoresMesas: "cargarArchivosPagosMayoresMesasLista",
+    PagosMesas: "cargarArchivosPagosMayoresMesasLista",
     RegistrosContables: "cargarArchivosRegistrosContablesLista",
   };
   const funcName = funcMap[type];
