@@ -101,14 +101,7 @@ class CanonPagoController extends Controller
     }
     //@TODO: Obtener de agrupamientos
     $determinado = $R('determinado','0.00');//@RETORNADO
-    
-    //PRINCIPAL
-    $c_ant = DB::table('canon')
-    ->where('año_mes','<',$año_mes)
-    ->where('id_casino','=',$id_casino)
-    ->whereNull('deleted_at')
-    ->orderBy('año_mes','desc')
-    ->first();
+    $c_ant = $this->CC->get_prev_by_id_casino_año_mes($id_casino,$año_mes)->first();
         
     $saldo_anterior = ($c_ant !== null)? $c_ant->saldo_posterior : '0';//@RETORNADO
     $saldo_anterior_cerrado = $saldo_anterior;//@RETORNADO
@@ -405,12 +398,7 @@ class CanonPagoController extends Controller
   }
   
   public function obtener_arr(array $request,$confluir = true){
-    $ret = (array) DB::table('canon as c')
-    ->select('cas.nombre as casino','c.*','u.user_name as usuario')
-    ->join('usuario as u','u.id_usuario','=','c.created_id_usuario')
-    ->join('casino as cas','cas.id_casino','=','c.id_casino')
-    ->where('id_canon',$request['id_canon'])
-    ->first();
+    $ret = (array) $this->CC->get_by_id_canon($request['id_canon'],false);
     
     $ret['canon_pago'] = DB::table('canon_pago')
     ->where('id_canon',$request['id_canon'])
@@ -420,42 +408,16 @@ class CanonPagoController extends Controller
     $ret = json_decode(json_encode($ret),true);
     
     if($confluir){
-      $PAG = $this->confluir_datos(compact('canon_pago'),['canon_pago']);
-      $ret['interes_provincial_diario_simple'] = $PAG['interes_provincial_diario_simple'] ?? null;
-      $ret['interes_nacional_mensual_compuesto'] = $PAG['interes_nacional_mensual_compuesto'] ?? null;
-      $ret['fecha_vencimiento'] = $PAG['fecha_vencimiento'] ?? null;
+      $ret = array_merge(
+        $ret,
+        $this->CC->confluir_datos(
+          $ret,
+          ['canon_pago'],
+          ['interes_provincial_diario_simple','interes_nacional_mensual_compuesto','fecha_vencimiento']
+        )
+      );
     }
     
-    return $ret;
-  }
-  
-  private function confluir_datos(array $canon,array $tablas){
-    $ret = [];
-    
-    $all_attrs = [];
-    foreach($tablas as $t){
-      foreach(($canon[$t] ?? []) as $tipo => $data_tipo){
-        foreach($data_tipo as $attr => $_){
-          $all_attrs[$attr] = true;
-        }
-      }
-    }
-    $all_attrs = array_keys($all_attrs);
-    
-    foreach($tablas as $t){
-      foreach(($canon[$t] ?? []) as $tipo => $data_tipo){
-        foreach($all_attrs as $attr){
-          if(!isset($data_tipo[$attr])) continue;
-          $v = $data_tipo[$attr];
-          if(!isset($ret[$attr])){
-            $ret[$attr] = $v;
-          }
-          else if($ret[$attr] != $v){
-            $ret[$attr] = null;
-          }
-        }
-      }
-    }
     return $ret;
   }
     

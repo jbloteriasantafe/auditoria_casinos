@@ -153,13 +153,7 @@ class CanonController extends Controller
     
     $canon_anterior = collect([]);//@RETORNADO
     if($año_mes !== null && $id_casino !== null){
-      $canon_anterior = DB::table('canon')
-      ->select('id_canon')
-      ->whereNull('deleted_at')
-      ->where('id_casino',$id_casino)
-      ->where('año_mes','<',$año_mes)
-      ->orderBy('año_mes','desc')
-      ->first();
+      $canon_anterior  = $this->get_prev_by_id_casino_año_mes($id_casino,$año_mes)->first();
       
       if($canon_anterior !== null){
         $canon_anterior = $this->obtener_arr(['id_canon' => $canon_anterior->id_canon]);
@@ -896,12 +890,7 @@ class CanonController extends Controller
   }
   
   public function obtener_arr(array $request,$confluir = true){
-    $ret = (array) DB::table('canon as c')
-    ->select('cas.nombre as casino','c.*','u.user_name as usuario')
-    ->join('usuario as u','u.id_usuario','=','c.created_id_usuario')
-    ->join('casino as cas','cas.id_casino','=','c.id_casino')
-    ->where('id_canon',$request['id_canon'])
-    ->first();
+    $ret = (array) $this->get_by_id_canon($request['id_canon'],false); 
     
     $ret['canon_variable'] = DB::table('canon_variable')
     ->where('id_canon',$request['id_canon'])
