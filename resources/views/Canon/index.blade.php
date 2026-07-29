@@ -62,6 +62,13 @@
     background-repeat: repeat;
     background-color: var(--fondo);
   }
+  
+  [data-content-popover][data-molde-popover] {
+    display: none;
+  }
+  [data-content-popover]:not([data-molde-popover]) {
+    display: flex;
+  }
 </style>
 @endsection
 @section('contenidoVista')
@@ -93,13 +100,6 @@
   
   #pant_canon [data-js-filtro-tabla] td button {
     padding: 0.3rem;/* @HACK: achivo los botones asi entran que son tantos -___- */
-  }
-  
-  #pant_canon [data-content-popover][data-molde-popover] {
-    display: none;
-  }
-  #pant_canon [data-content-popover]:not([data-molde-popover]) {
-    display: flex;
   }
 </style>
 <div id="pant_canon" hidden>
@@ -299,11 +299,30 @@
         <td class="id_operario">ID</td>
         <td class="nombre">NOMBRE</td>
         <td>
-          @if($puede_ver)
-          <button class="btn" type="button" data-js-ver="/canon/operario/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
+          @if($puede_ver || $puede_agregarmodificar)
+          <div data-content-popover data-molde-popover="acciones" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
+            <div style="display: flex;flex-direction: column;justify-content: center;padding-right: 1em;">
+              @if($puede_ver)
+              <button class="btn" type="button" data-js-ver="/canon/operario/obtenerConHistorial" title="VER/HISTORIAL">VER OPERARIO<i class="fa fa-fw fa-search-plus"></i></button>
+              @endif
+              @if($puede_agregarmodificar)
+              <button class="btn" type="button" data-js-editar="/canon/operario/obtener" title="EDITAR">EDITAR OPERARIO<i class="fas fa-fw fa-pencil-alt"></i></button>
+              @endif
+            </div>
+            <div style="display: flex;flex-direction: column;justify-content: center;padding-left: 1em;">
+              @if($puede_ver)
+              <button class="btn" type="button" data-js-ver-cuentas="/canon/operario/obtenerConHistorial" title="VER CUENTAS">VER CUENTAS <i class="fa fa-info"></i></button>
+              @endif
+              @if($puede_agregarmodificar)
+              <button class="btn" type="button" data-js-editar-cuentas="/canon/operario/obtener" title="CARGAR PAGO">EDITAR CUENTAS <i class="fa fa-university"></i></button>
+              @endif
+            </div>
+          </div>
           @endif
-          @if($puede_agregarmodificar)
-          <button class="btn" type="button" data-js-editar="/canon/operario/obtener" title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
+          @if($puede_ver)
+          <a tabindex="0" class="btn btn-info info" data-toggle-popover="acciones" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
+            <i class="fa fa-window-restore" aria-hidden="true"></i>
+          </a>
           @endif
           @if($puede_deseliminar)
           <button data-mostrar-borrado class="btn" type="button" data-js-desborrar="/canon/operario/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
@@ -2050,6 +2069,9 @@
   @endslot
 @endcomponent
 
+@component('Canon.modalAgrupamientos')
+@endcomponent
+
 @endif
 
 @endif
@@ -2110,7 +2132,6 @@
   <script src="/js/locales/es.js" type="text/javascript"></script>
   <script src="/themes/explorer/theme.js" type="text/javascript"></script>
   <script src="/js/paginacion.js" charset="utf-8"></script>
-  <script src="/js/lib/jsoneditor.js"></script>
   <script src="/js/Canon/index.js?5" charset="utf-8" type="module"></script>
 
 @endsection

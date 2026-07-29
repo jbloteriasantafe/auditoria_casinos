@@ -13,20 +13,18 @@
   @slot('cabecera')
   <tr>
     <th>CLAVE</th>
-    <th>NIVEL</th>
-    <th>VALOR</th>
-    <th>CASINO</th>
-    <th>DEPENDENCIA</th>
+    <th>GRUPO OPERARIO</th>
+    <th>ACCIÓN</th>
   </tr>
   @endslot
   
   @slot('molde')
   <tr data-table-id="id_canon_subcanon_a_grupo">
-    <td>CLAVE</td>
-    <td>NIVEL</td>
-    <td>VALOR</td>
-    <td>CASINO</td>
-    <td>DEPENDENCIA</td>
+    <td class="clave">CLAVE</td>
+    <td class="grupo_operario">GRUPO OPERARIO</td>
+    <td>
+      <button class="btn" type="button" data-js-click-editar-agrupamiento="/canon/agrupamientos/obtener" title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
+    </td>
   </tr>
   @endslot
 @endcomponent

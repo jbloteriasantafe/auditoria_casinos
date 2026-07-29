@@ -3,6 +3,7 @@ import "/js/Components/inputFecha.js";
 import "/js/Components/modal.js";
 import {AUX} from "/js/Components/AUX.js";
 import "/js/Components/modalEliminar.js";
+import "/js/lib/jsoneditor.js";
 
 function formatter(n){
   const negativo = n?.[0] == '-'? '-' : '';
@@ -71,6 +72,22 @@ const fillError = function(div,obj){//@HACK @TODO: mover a AUX
   }
 };
 
+const reemplazarPorJsonEditor = function(div,valor){
+  div?.empty();
+  const jsoneditor = new JSONEditor(div?.[0], {mode: 'code',modes: ['tree','view','form','code','text','preview']});
+  jsoneditor.set(JSON.parse(valor ?? '{}'));
+  div?.data('jsoneditor',jsoneditor);
+}
+
+const agregarPopOvers = function(fila){
+  fila.find('[data-molde-popover]').each(function(_,molde){
+    const attr_match = $(molde).attr('data-molde-popover');
+    const popover_html = $(molde).clone().removeAttr('data-molde-popover')[0]?.outerHTML;
+    fila.find(`[data-toggle-popover="${attr_match}"]`).attr('data-content',popover_html);
+  });
+  fila.find('[data-toggle-popover]').popover();
+}
+
 $(function(){
   $('.tituloSeccionPantalla').text('Canon');
   
@@ -88,14 +105,7 @@ $(function(){
       });
     }).eq(0).click();
   });
-  
-  const reemplazarPorJsonEditor = function(div,valor){
-    div?.empty();
-    const jsoneditor = new JSONEditor(div?.[0], {mode: 'code',modes: ['tree','view','form','code','text','preview']});
-    jsoneditor.set(JSON.parse(valor ?? '{}'));
-    div?.data('jsoneditor',jsoneditor);
-  }    
-  
+    
   $('#pant_canon,#pant_defecto').each(function(_,pant_obj){
     const pant = $(pant_obj);
     
@@ -135,15 +145,7 @@ $(function(){
             $fn_obj.text(formatter($fn_obj.text()));
           });
         }
-        
-        {
-          const popover_html = fila.find('[data-molde-popover="planillas"]').clone().removeAttr('data-molde-popover')[0]?.outerHTML;
-          fila.find('[data-toggle-popover="planillas"]').attr('data-content',popover_html);
-        }
-        {
-          const popover_html = fila.find('[data-molde-popover="acciones"]').clone().removeAttr('data-molde-popover')[0]?.outerHTML;
-          fila.find('[data-toggle-popover="acciones"]').attr('data-content',popover_html);
-        }
+        agregarPopOvers(fila);
       });
       tbody.find('[data-js-borrar]').click(function(e){
         const tgt = $(e.currentTarget);
@@ -157,7 +159,6 @@ $(function(){
           success: function(){pant.find('[data-js-filtro-tabla]').trigger('buscar');},
         }]);
       });
-      tbody.find('[data-toggle-popover]').popover();
     });
     
     pant.find('[data-js-enviar]').click(function(e){
@@ -842,6 +843,7 @@ $(function(){
         }
         
         tbody.append(fila);
+        agregarPopOvers(fila);
       });
       
       tbody.find('[data-js-borrar]').click(function(e){
@@ -1501,5 +1503,231 @@ $(function(){
       M.attr('data-render',1);
       M.trigger('render',[tgt.find('option:selected').data('instancia'),true]);
     });
+  });
+});
+
+
+$(function(){
+  $('#pant_agrupamientos').each(function(_,pant_obj){
+    const pant = $(pant_obj);
+    
+    pant.find('[data-js-filtro-tabla]').on('busqueda',function(e,ret,tbody,molde){
+      ret.data.forEach(function(obj){
+        const fila = molde.clone();
+        Object.keys(obj).forEach(function(k){
+          fila.find('.'+k).text(obj[k]);
+        });
+        
+        const id_k = fila.attr('data-table-id');
+        const id = obj[id_k];
+        fila.find('button').val(id);
+        
+        tbody.append(fila);
+      });
+      
+      tbody.find('[data-js-click-editar-agrupamiento]').click(function(e){
+        const tgt = $(e.currentTarget);
+        $('[data-js-modal-editar-agrupamiento]').trigger('mostrar.modal',[tgt.attr('data-js-click-editar-agrupamiento'),tgt.val(),'EDITAR']);
+      });
+    });
+  });
+});
+
+import "/js/lib/vis-network.js";
+
+$(function(){
+  $('[data-js-modal-editar-agrupamiento]').each(function(){
+    const  M = $(this);
+    const $M = M.find.bind(M);
+    const Mname = function(name,val,O=M){
+      return O.find(`[name="${name}"]`).val(val ?? '');
+    };
+  
+    const container = M.find('[data-grafo-agrupamiento]')?.[0];
+
+    // Define DAG nodes
+    const nodes = new vis.DataSet([]);
+    let nextNodeId = 1;
+
+    // Define directed edges (from parent to child)
+    const edges = new vis.DataSet([]);
+    
+    // Configure for a DAG visual layout
+    const options = {
+      layout: {
+        hierarchical: {
+          enabled: true,
+          direction: 'UD',       // 'UD' (Top-to-Bottom), 'LR' (Left-to-Right)
+          sortMethod: 'directed', // Organizes levels strictly by edge direction
+          nodeSpacing: 150,
+          levelSeparation: 120
+        }
+      },
+      groups: {
+        grupo_operario: {
+          color: { background: '#e0a96d', border: '#8c592b', highlight: { background: '#f2c48d', border: '#8c592b' } },
+          shape: 'box',
+          font: { color: '#ffffff', face: 'arial', size: 14 }
+        },
+        superior: {
+          color: { background: '#457b9d', border: '#1d3557', highlight: { background: '#a8dadc', border: '#1d3557' } },
+          shape: 'ellipse',
+          font: { color: '#ffffff', face: 'arial', size: 14 }
+        },
+        subcanon: {
+          color: { background: '#2a9d8f', border: '#145249', highlight: { background: '#76c893', border: '#145249' } },
+          shape: 'ellipse',
+          font: { color: '#ffffff', face: 'arial', size: 14 }
+        },
+      },
+      edges: {
+        arrows: {
+          to: { enabled: true, scaleFactor: 1 }
+        },
+        smooth: {
+          type: 'cubicBezier',
+          forceDirection: 'vertical',
+          roundness: 0.4
+        }
+      },
+      physics: false // Disabling physics keeps the DAG locked in rank order
+    };
+
+    const network = new vis.Network(container, { nodes, edges }, options);
+        
+    const render = function(agg,mantener_historial = false){
+      ocultarErrorValidacion(M.find('[name]'));
+      Mname('id_canon_subcanon_a_grupo',agg?.id_canon_subcanon_a_grupo);
+      Mname('clave',agg?.clave);
+      Mname('id_grupo_operario',agg?.id_grupo_operario);
+      Mname('grupo_operario',agg?.grupo_operario);
+      
+      (mantener_historial?
+         M.find('[data-js-select-historial]')
+       : M.find('[data-js-select-historial]').empty())
+       .append(
+        (agg?.historial ?? []).map(function(h,hidx){
+          const o = $('<option>');
+          o.val(h.id_canon_subcanon_a_grupo);
+          o.text(h.usuario + ' - '+h.created_at);
+          o.data('instancia',h);
+          return o;
+        })
+      );
+      
+      M.trigger('regenerarInputsFormatear')
+      .trigger('formatearCampos');
+    };
+    
+    M.on('render',function(e,data,mantener_historial){
+      render(data,mantener_historial);
+    });
+    
+    M.on('mostrar.modal',function(e,url,id_canon_subcanon_a_grupo,modo){
+      M.trigger('setModo',[modo]);
+      
+      AUX.GET(url,{id_canon_subcanon_a_grupo: id_canon_subcanon_a_grupo},function(agrupamiento){
+        render(agrupamiento);
+        M.trigger('setVisible');
+        M.trigger('setReadonly');
+        M.modal('show');
+      });
+    });
+    
+    M.find('[data-js-click-agregar-nodo]').click(function(e){
+      const tgt = $(e.currentTarget);
+      const labelTarget = M.find('[data-nuevo-nodo="label"]');
+      const groupTarget = M.find('[data-nuevo-nodo="group"]');
+      
+      const label = labelTarget?.val()?.trim();
+      if(label === undefined){
+        throw 'Error al obtener el nombre del nuevo nodo';
+      }
+      
+      const group = groupTarget?.val()?.trim();
+      if(group === undefined){
+        throw 'Error al obtener el nombre del nuevo nodo';
+      }
+      
+      nodes.add({
+        id: nextNodeId,
+        label: (label+` (${nextNodeId})`).trim(),
+        group: group
+      });
+      
+      network.fit();
+      labelTarget.val('');
+      nextNodeId++;
+    });
+    
+    M.find('[data-js-click-enlazar-nodo]').click(function(e){
+      const tgt = $(e.currentTarget);
+      const desde_hasta = M.find(tgt.attr('data-js-click-enlazar-nodo'));
+      const desde_id = parseInt(desde_hasta.filter('[data-enlazar-nodo-id="desde"]')?.val()?.trim());
+      const hasta_id = parseInt(desde_hasta.filter('[data-enlazar-nodo-id="hasta"]')?.val()?.trim());
+      if(!isNaN(desde_id) && !isNaN(hasta_id) && nodes.get(desde_id) && nodes.get(hasta_id) && desde_id != hasta_id){
+        edges.add({
+          from: desde_id,
+          to: hasta_id
+        });
+        network.fit();
+      }
+      desde_hasta.val('');
+    });
+    
+    M.find('[data-js-click-borrar-objetos]').click(function(e){
+      const selectedNodes = network.getSelectedNodes();
+      const selectedEdges = network.getSelectedEdges();
+      if (selectedNodes.length > 0) {
+        nodes.remove(selectedNodes);
+      } 
+      if (selectedEdges.length > 0) {
+        edges.remove(selectedEdges);
+      }
+      network.fit();
+    });
+    
+    /*$M('[data-js-click-submit-form]').click(function(e){
+      const o = e.currentTarget;
+      const select = $(o).attr('data-js-click-submit-form');
+      const $form = $M(select);
+      
+      const aux = {};
+      M.trigger('deformatearFormData',[$form.length? AUX.form_entries($form[0]) : {},aux]);
+      const formData = aux.response;
+      
+      const ajax_params = JSON.parse($form.attr('data-ajax-params') ?? '{}') ?? {};
+      ocultarErrorValidacion(M.find('[name]'));
+      $.ajax({
+        type: $form.attr('method'),
+        url: $form.attr('action'),
+        data: formData,
+        ...ajax_params,
+        success: function (data) {
+          $('#pant_operarios [data-js-filtro-tabla]').trigger('buscar');
+          AUX.mensajeExito(data?.mensaje ?? '');
+          $(o).closest('.modal').modal('hide');
+        },
+        error: function (data) {
+          const json = data.responseJSON ?? {};
+          AUX.mensajeError(json?.mensaje ?? '');
+          AUX.mostrarErroresNames($form,json);
+          
+          for(const k in json){
+            if(k.substr(0,'operarios.'.length) != 'operarios.'){
+              continue;
+            }
+            const oidx = k.match(/^operarios\.[0-9]+/gm)?.[0].substr('operarios.'.length);
+            const name = k.substr('operarios.'.length+oidx.length+1);//+1 por el punto
+            mostrarErrorValidacion(
+              $form.find(`[name="operarios[${oidx}][${name}]"]`),
+              json[k].join(', '),
+              true
+            );
+          }
+          console.log(data);
+        }
+      });
+    });*/
   });
 });

@@ -676,6 +676,37 @@ class CanonAgrupamientoController extends Controller
   }
   
   public function buscar(){
+    return DB::table('canon_subcanon_a_grupo as cagg_deps')
+    ->select('cagg_deps.id_canon_subcanon_a_grupo','cagg_deps.nivel','cagg_deps.clave','cagg_deps.id_grupo_operario',DB::raw('COALESCE(cgo.nombre,cagg_deps.id_grupo_operario) as grupo_operario'))
+    ->leftJoin('canon_grupo_operario as cgo',function($j){
+      return $j->on('cgo.id_grupo_operario','=','cagg_deps.id_grupo_operario')
+      ->whereNull('cgo.deleted_at');
+    })
+    ->where(DB::raw('(NOT EXISTS (
+      SELECT 1
+      FROM canon_subcanon_a_grupo as cagg_deps2
+      WHERE cagg_deps2.id_grupo_operario = cagg_deps.id_grupo_operario
+      AND   cagg_deps2.clave = cagg_deps.clave
+      AND   cagg_deps2.nivel > cagg_deps.nivel
+    ))'),'=','1')
+    ->orderBy('cagg_deps.clave','asc')
+    ->orderBy(DB::raw('COALESCE(cgo.nombre,cagg_deps.id_grupo_operario)'),'asc')
+    ->paginate(request()->page_size ?? 10);
+  }
+  
+  public function obtener_por_id(){
+    $ret = DB::table('canon_subcanon_a_grupo as cagg_deps')
+    ->select('cagg_deps.id_canon_subcanon_a_grupo','cagg_deps.nivel','cagg_deps.clave','cagg_deps.id_grupo_operario',DB::raw('COALESCE(cgo.nombre,cagg_deps.id_grupo_operario) as grupo_operario'))
+    ->leftJoin('canon_grupo_operario as cgo',function($j){
+      return $j->on('cgo.id_grupo_operario','=','cagg_deps.id_grupo_operario')
+      ->whereNull('cgo.deleted_at');
+    })
+    ->where('id_canon_subcanon_a_grupo',request()->id_canon_subcanon_a_grupo ?? null)
+    ->first() ?? (new \stdClass());
+    return response()->json($ret);
+  }
+  
+  public function buscar2(){
     $data = DB::table('canon_subcanon_a_grupo as cagg_deps')
     ->select('cagg_deps.*','cgo.nombre as grupo_operario')
     ->join('canon_grupo_operario as cgo','cgo.id_grupo_operario','=','cagg_deps.id_grupo_operario')
