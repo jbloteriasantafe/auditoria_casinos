@@ -175,14 +175,19 @@ class CanonPermisoController extends Controller
     foreach($permisos as $p){
       $pdata = $map_permisos[$p] ?? [];
       
-      foreach($casinos_bd as $c){
-        if(!$casinos_u->has($c->id_casino)){
-          continue;
-        }
-        
+      foreach($casinos_bd as $c){        
         $entry = new \stdClass();
         $entry->permiso = $p;
         $entry->id_operador = $c->id_casino;
+        
+        if($u->tieneRol('SUPERUSUARIO')){
+          $ret->push($entry);
+          continue;
+        }
+        
+        if(!$casinos_u->has($c->id_casino)){
+          continue;
+        }
         
         foreach(($pdata['rol'] ?? []) as $urol){
           if($u->tieneRol($urol)){

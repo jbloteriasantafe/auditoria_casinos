@@ -398,7 +398,11 @@ class CanonPagoController extends Controller
   }
   
   public function obtener_arr(array $request,$confluir = true){
-    $ret = (array) $this->CC->get_by_id_canon($request['id_canon'],false);
+    $ret = (array) (
+      (isset($request['id_canon']) && $request['id_canon'] !== null)?
+        $this->CC->get_by_id_canon($request['id_canon'],false)
+      : new \stdClass()
+    );
     
     $ret['canon_pago'] = DB::table('canon_pago')
     ->where('id_canon',$request['id_canon'])

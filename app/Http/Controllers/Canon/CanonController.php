@@ -64,8 +64,9 @@ class CanonController extends Controller
         $casinos[] = $ido;
       }
     }
-    $casinos = Casino::whereIn('id_casino',$casinos);
     
+    $casinos = Casino::whereIn('id_casino',$casinos)->get();
+        
     return View::make('Canon.index', compact('casinos','permisos'));
   }
   
@@ -225,11 +226,11 @@ class CanonController extends Controller
         $COT['devengado_fecha_cotizacion'] = implode('-',[
           $f[0],
           $f[1],
-          str_pad($op['devengado_cotizacion_dia'],2,'0',STR_PAD_LEFT)
+          str_pad($op['devengado_cotizacion_dia'] ?? 1,2,'0',STR_PAD_LEFT)
         ]);
         $COT['devengado_fecha_cotizacion'] = $this->CO->mover_fecha(
           new \DateTimeImmutable($COT['devengado_fecha_cotizacion']),
-          $op['devengado_cotizacion_fin_de_semana']
+          $op['devengado_cotizacion_fin_de_semana'] ?? null
         )->format('Y-m-d');
       }
       
@@ -237,11 +238,11 @@ class CanonController extends Controller
         $COT['determinado_fecha_cotizacion'] = implode('-',[
           $f[0],
           $f[1],
-          str_pad($op['determinado_cotizacion_dia'],2,'0',STR_PAD_LEFT)
+          str_pad($op['determinado_cotizacion_dia'] ?? 1,2,'0',STR_PAD_LEFT)
         ]);
         $COT['determinado_fecha_cotizacion'] = $this->CO->mover_fecha(
           new \DateTimeImmutable($COT['determinado_fecha_cotizacion']),
-          $op['determinado_cotizacion_fin_de_semana']
+          $op['determinado_cotizacion_fin_de_semana'] ?? null
         )->format('Y-m-d');
       }
     }
@@ -911,7 +912,11 @@ class CanonController extends Controller
   }
   
   public function obtener_arr(array $request,$confluir = true){
-    $ret = (array) $this->get_by_id_canon($request['id_canon'],false); 
+    $ret = (array) (
+      (isset($request['id_canon']) && $request['id_canon'] !== null)?
+        $this->get_by_id_canon($request['id_canon'],false)
+      : new \stdClass()
+    );
     
     $ret['canon_variable'] = DB::table('canon_variable')
     ->where('id_canon',$request['id_canon'])
