@@ -32,7 +32,8 @@ class CanonController extends Controller
     $this->CVD = CanonValorPorDefectoController::getInstancia();
     $this->CA = CanonAgrupamientoController::getInstancia();
     $this->CP = CanonPagoController::getInstancia();
-    $this->CO = CanonOperarioController::getInstancia();
+    $this->CPe = CanonPermisoController::getInstancia();
+    $this->CO = CanonOperadorController::getInstancia();
     $this->middleware(function ($request, $next) {
       $this->u = UsuarioController::getInstancia()->quienSoy()['usuario'];
       return $next($request);
@@ -40,12 +41,32 @@ class CanonController extends Controller
   }
           
   public function index(){
-    $casinos = $this->u->casinos;     
-    $es_superusuario = $this->u->es_superusuario;
-    $puede_deseliminar = $es_superusuario;
-    $puede_ver = $es_superusuario || $this->u->tienePermiso('m_b_pagos');
-    $puede_agregarmodificar = $es_superusuario || $this->u->tienePermiso('m_a_pagos');
-    return View::make('Canon.index', compact('casinos','es_superusuario','puede_deseliminar','puede_ver','puede_agregarmodificar'));
+    $permisos = [
+      'canon_ver' => false,
+      'canon_cargar' => false,
+      'canon_eliminar' => false,
+      'canon_deseliminar' => false,
+      'canon_operador_ver' => false,
+      'canon_operador_cargar' => false,
+      'canon_operador_eliminar' => false,
+      'canon_operador_deseliminar' => false,
+      'canon_agrupamiento_ver' => false,
+      'canon_agrupamiento_cargar' => false,
+      'canon_agrupamiento_eliminar' => false,
+      'canon_agrupamiento_deseliminar' => false
+    ];
+        
+    $pI = $this->CPe->permisosIntersect($this->u->id_usuario,array_keys($permisos));
+    $casinos = [];
+    foreach($pI as $p => $ids_operadores){
+      $permisos[$p] = true;
+      foreach($ids_operadores as $ido){
+        $casinos[] = $ido;
+      }
+    }
+    $casinos = Casino::whereIn('id_casino',$casinos);
+    
+    return View::make('Canon.index', compact('casinos','permisos'));
   }
   
   private static  $errores = [
@@ -149,7 +170,7 @@ class CanonController extends Controller
     
     $año_mes = $R('año_mes');//@RETORNADO
     $id_casino = $R('id_casino');//@RETORNADO
-    $op = $this->CO->obtener_operario($id_casino);
+    $op = $this->CO->obtener_operador($id_casino);
     
     $canon_anterior = collect([]);//@RETORNADO
     if($año_mes !== null && $id_casino !== null){

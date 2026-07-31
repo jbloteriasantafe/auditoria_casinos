@@ -70,27 +70,6 @@
     display: flex;
   }
 </style>
-@endsection
-@section('contenidoVista')
-
-<div class="row">
-  <div class="tabs" data-js-tabs="">
-    <div>
-      <a data-js-tab="#pant_canon">Canon</a>
-    </div>
-    @if($es_superusuario)
-    <div>
-      <a data-js-tab="#pant_operarios">Operarios</a>
-    </div>
-    <div>
-      <a data-js-tab="#pant_agrupamientos">Agrupamientos</a>
-    </div>
-    <div>
-      <a data-js-tab="#pant_defecto">Valores por Defecto</a>
-    </div>
-    @endif
-  </div>
-</div>
 
 <style>
   #pant_canon [data-js-filtro-tabla] th, 
@@ -102,356 +81,7 @@
     padding: 0.3rem;/* @HACK: achivo los botones asi entran que son tantos -___- */
   }
 </style>
-<div id="pant_canon" hidden>
-  @component('Components/FiltroTabla')
-    @slot('titulo')
-    CANON
-    @if($puede_agregarmodificar)
-    <button class="btn" type="button" data-js-nuevo="/canon/obtener">NUEVO</button>
-    @endif
-    @if($puede_ver)
-    <button data-js-descargar="/canon/descargar" class="btn btn-sucess" type="button" style="font-size: 0.9rem;"><i class="fa fa-arrow-circle-down"></i>DESCARGAR<i class="fa fa-spinner fa-spin" data-js-descargando style="display: none;"></i></button> 
-    <a href="/canon/descargarPlanillas" target="_blank" class="btn btn-sucess" role="button" style="font-size: 0.9rem;"><i class="fa fa-arrow-circle-down"></i>PLANILLAS</a>
-    @endif
-    @endslot
-    
-    @slot('target_buscar')
-    /canon/buscar
-    @endslot
-    
-    @slot('filtros')
-    <div class="col-md-4">
-      <h5>Casino</h5>
-      <select class="form-control" name="id_casino">
-        <option value='' selected>- TODOS -</option>
-        @foreach($casinos as $c)
-        <option value='{{$c->id_casino}}'>{{$c->nombre}}</option>
-        @endforeach
-      </select>
-    </div>
-    <div class="col-md-4">
-      <h5>PERÍODO</h5>
-      <div style="display: flex;">
-        @component('Components/inputFecha',[
-          'attrs' => 'name="año_mes[0]"',
-          'attrs_dtp' => 'data-date-format="yyyy-mm" data-start-view="year" data-min-view="decade"',
-          'form_group_attrs' => 'style="padding: 0 !important;flex: 1;"',
-          'placeholder' => 'DESDE'
-        ])
-        @endcomponent
-        @component('Components/inputFecha',[
-          'attrs' => 'name="año_mes[1]"',
-          'attrs_dtp' => 'data-date-format="yyyy-mm" data-start-view="year" data-min-view="decade"',
-          'form_group_attrs' => 'style="padding: 0 !important;flex: 1;"',
-          'placeholder' => 'HASTA'
-        ])
-        @endcomponent
-      </div>
-    </div>
-    @if($es_superusuario)
-    <div class="col-md-4">
-      <h5>ELIMINADOS</h5>
-      <select class="form-control" name="eliminados">
-        <option value='0' selected>NO</option>
-        <option value='1'>SI</option>
-      </select>
-    </div>
-    @endif
-    @endslot
-    
-    @slot('cabecera')
-    <tr>
-      <th data-js-sortable="año_mes">AÑO MES</th>
-      <th>CASINO</th>
-      <th>ESTADO</th>
-      <th>DEVENGADO</th>
-      <th>DETERMINADO</th>
-      <th>INTERESES Y CARGOS</th>
-      <th>PAGO</th>
-      <th>SALDO</th>
-      <th>ACCION</th>
-    </tr>
-    @endslot
-    
-    @slot('molde')
-    <tr data-table-id="id_canon">
-      <td class="año_mes">AÑO MES</td>
-      <td class="casino">CASINO</td>
-      <td>
-        @if($puede_ver || $puede_agregarmodificar)
-        <div data-content-popover data-molde-popover="acciones" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
-          <div style="display: flex;flex-direction: column;justify-content: center;padding-right: 1em;">
-            @if($puede_ver)
-            <button class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL">VER CANON<i class="fa fa-fw fa-search-plus"></i></button>
-            @endif
-            @if($puede_agregarmodificar)
-            <button class="btn" type="button" data-js-adjuntar="/canon/obtener" data-estado-visible="PAGADO" title="ADJUNTAR">ADJUNTAR <i class="fa fa-fw fa-paperclip"></i></button>
-            <button class="btn" type="button" data-js-editar="/canon/obtener" data-estado-visible="GENERADO"  title="EDITAR">EDITAR CANON<i class="fas fa-fw fa-pencil-alt"></i></button>
-            @endif
-          </div>
-          <div style="display: flex;flex-direction: column;justify-content: center;padding-left: 1em;">
-            @if($puede_ver)
-            <button class="btn" type="button" data-js-ver-pagos="/canon/pagos/obtenerConHistorial" title="VER PAGO">VER PAGOS <i class="fa fa-book"></i></button>
-            @endif
-            @if($puede_agregarmodificar)
-            <button class="btn" type="button" data-js-editar-pagos="/canon/pagos/obtener" title="CARGAR PAGO">EDITAR PAGOS <i class="fa fas fa-hand-holding-usd"></i></button>
-            @endif
-          </div>
-        </div>
-        @endif
-        <div data-content-popover data-molde-popover="planillas" style="flex-direction: column;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
-          <a href="/canon/planillaPDF" target="_blank" title="REPORTE">Valores</a>
-          <a href="/canon/planillaDevengado" target="_blank" title="IMPRIMIR DEVENGADO">Devengado</a>
-          <a href="/canon/planillaDeterminado"  target="_blank" title="IMPRIMIR DETERMINADO">Determinado</a>
-        </div>
-        <span style="color: blue;font-weight: bold;font-size: 0.8em;padding-right: 0.1em;"><sup class="antiguo">XXX</sup></span>
-        <span class="estado">ESTADO</span>
-        @if($puede_agregarmodificar)
-        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Pagado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Generado" a "Pagado"?' data-estado-visible="GENERADO" title="CONFIRMAR PAGO">
-          <i class="fas fa-hand-holding-usd"></i>
-        </button>
-        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Cerrado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Pagado" a "Cerrado"?' data-estado-visible="PAGADO" title="CERRAR CANON">
-          <i class="fa fa-fw fa-lock"></i>
-        </button>
-        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Generado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Pagado" a "Generado"?' data-estado-visible="PAGADO" title="DESCONFIRMAR PAGO">
-          <i class="fa fa-backward"></i>
-        </button>
-        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Pagado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Cerrado" a "Pagado"?' data-estado-visible="CERRADO" title="ABRIR CANON">
-          <i class="fa fa-backward"></i>
-        </button>
-        @endif
-      </td>
-      <td class="devengado" data-formatear-numero>DEVENGADO</td>
-      <td class="determinado" data-formatear-numero>DETERMINADO</td>
-      <td class="intereses_y_cargos" data-formatear-numero>INTERESES Y CARGOS</td>
-      <td class="pago" data-formatear-numero>PAGO</td>
-      <td class="saldo_posterior" data-formatear-numero>SALDO</td>
-      <td>
-        @if($puede_ver)
-        <a tabindex="0" class="btn btn-info info" data-toggle-popover="acciones" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
-          <i class="fa fa-window-restore" aria-hidden="true"></i>
-        </a>
-        <a tabindex="0" class="btn btn-info info" data-toggle-popover="planillas" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
-          <i class="fa fa-print"></i>
-        </a>
-        <a tabindex="0" href="/canon/planillaInformeCanon" target="_blank" class="btn btn-info info" title="Informe de Canon">
-          <i class="fa fa-list-ul"></i>
-        </a>
-        @endif
-        @if($puede_deseliminar)
-        <button data-mostrar-borrado class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
-        <button data-mostrar-borrado class="btn" type="button" data-js-cambiar-estado="/canon/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
-          <i class="fa fa-backward"></i>
-        </button>
-        @endif
-        @if($puede_agregarmodificar || $puede_deseliminar)
-        <button class="btn" type="button" data-js-borrar="/canon/borrar" title="BORRAR" 
-          @if($puede_deseliminar)
-          data-estado-visible="GENERADO,PAGADO"
-          @endif
-        >
-          <i class="fa fa-fw fa-trash-alt"></i>
-        </button>
-        @endif
-      </td>
-    </tr>
-    @endslot
-  @endcomponent
-</div>
 
-@if($es_superusuario)
-<div id="pant_operarios" hidden>
-  <div id="individuales" class="col-md-6">
-    @component('Components/FiltroTabla')
-      @slot('titulo')
-      Operarios
-      @if($puede_agregarmodificar)
-      <button class="btn" type="button" data-js-nuevo="/canon/operario/obtener">NUEVO</button>
-      @endif
-      @endslot
-      
-      @slot('target_buscar')
-      /canon/operario/buscar
-      @endslot
-      
-      @slot('filtros')
-      @if($es_superusuario)
-      <div class="col-md-4">
-        <h5>ELIMINADOS</h5>
-        <select class="form-control" name="eliminados">
-          <option value='0' selected>NO</option>
-          <option value='1'>SI</option>
-        </select>
-      </div>
-      @endif
-      @endslot
-      
-      @slot('cabecera')
-      <tr>
-        <th>ID</th>
-        <th>NOMBRE</th>
-        <th>ACCION</th>
-      </tr>
-      @endslot
-      
-      @slot('molde')
-      <tr data-table-id="id_operario">
-        <td class="id_operario">ID</td>
-        <td class="nombre">NOMBRE</td>
-        <td>
-          @if($puede_ver || $puede_agregarmodificar)
-          <div data-content-popover data-molde-popover="acciones" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
-            <div style="display: flex;flex-direction: column;justify-content: center;padding-right: 1em;">
-              @if($puede_ver)
-              <button class="btn" type="button" data-js-ver="/canon/operario/obtenerConHistorial" title="VER/HISTORIAL">VER OPERARIO<i class="fa fa-fw fa-search-plus"></i></button>
-              @endif
-              @if($puede_agregarmodificar)
-              <button class="btn" type="button" data-js-editar="/canon/operario/obtener" title="EDITAR">EDITAR OPERARIO<i class="fas fa-fw fa-pencil-alt"></i></button>
-              @endif
-            </div>
-            <div style="display: flex;flex-direction: column;justify-content: center;padding-left: 1em;">
-              @if($puede_ver)
-              <button class="btn" type="button" data-js-ver-cuentas="/canon/operario/obtenerConHistorial" title="VER CUENTAS">VER CUENTAS <i class="fa fa-info"></i></button>
-              @endif
-              @if($puede_agregarmodificar)
-              <button class="btn" type="button" data-js-editar-cuentas="/canon/operario/obtener" title="CARGAR PAGO">EDITAR CUENTAS <i class="fa fa-university"></i></button>
-              @endif
-            </div>
-          </div>
-          @endif
-          @if($puede_ver)
-          <a tabindex="0" class="btn btn-info info" data-toggle-popover="acciones" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
-            <i class="fa fa-window-restore" aria-hidden="true"></i>
-          </a>
-          @endif
-          @if($puede_deseliminar)
-          <button data-mostrar-borrado class="btn" type="button" data-js-desborrar="/canon/operario/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
-            <i class="fa fa-backward"></i>
-          </button>
-          @endif
-          @if($puede_agregarmodificar || $puede_deseliminar)
-          <button class="btn" type="button" data-js-borrar="/canon/operario/borrar" title="BORRAR">
-            <i class="fa fa-fw fa-trash-alt"></i>
-          </button>
-          @endif
-        </td>
-      </tr>
-      @endslot
-    @endcomponent
-  </div>
-  <div id="grupos" class="col-md-6">
-    @component('Components/FiltroTabla')
-      @slot('titulo')
-      Grupos Operarios
-      @if($puede_agregarmodificar)
-      <button class="btn" type="button" data-js-nuevo="/canon/grupo_operario/obtener">NUEVO</button>
-      @endif
-      @endslot
-      
-      @slot('target_buscar')
-      /canon/grupo_operario/buscar
-      @endslot
-      
-      @slot('filtros')
-      @if($es_superusuario)
-      <div class="col-md-4">
-        <h5>ELIMINADOS</h5>
-        <select class="form-control" name="eliminados">
-          <option value='0' selected>NO</option>
-          <option value='1'>SI</option>
-        </select>
-      </div>
-      @endif
-      @endslot
-      
-      @slot('cabecera')
-      <tr>
-        <th>ID</th>
-        <th>NOMBRE</th>
-        <th>OPERARIOS</th>
-        <th>ACCION</th>
-      </tr>
-      @endslot
-      
-      @slot('molde')
-      <tr data-table-id="id_grupo_operario">
-        <td class="id_grupo_operario">ID</td>
-        <td class="nombre">NOMBRE</td>
-        <td class="operarios">OPERARIOS</td>
-        <td>
-          @if($puede_ver)
-          <button class="btn" type="button" data-es_individual="|0|1|" data-js-ver="/canon/grupo_operario/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
-          @endif
-          @if($puede_agregarmodificar)
-          <button class="btn" type="button" data-es_individual="|0|" data-js-editar="/canon/grupo_operario/obtener" title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
-          @endif
-          @if($puede_deseliminar)
-          <button data-mostrar-borrado data-es_individual="|0|" class="btn" type="button" data-js-desborrar="/canon/grupo_operario/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
-            <i class="fa fa-backward"></i>
-          </button>
-          @endif
-          @if($puede_agregarmodificar || $puede_deseliminar)
-          <button class="btn" type="button" data-es_individual="|0|" data-js-borrar="/canon/grupo_operario/borrar" title="BORRAR">
-            <i class="fa fa-fw fa-trash-alt"></i>
-          </button>
-          @endif
-        </td>
-      </tr>
-      @endslot
-    @endcomponent
-  </div>
-</div>
-
-@if($es_superusuario)
-<div id="pant_agrupamientos">
-  @component('Canon.bAgrupamientos')
-  @endcomponent
-</div>
-@endif
-
-<div id="pant_defecto" hidden>
-  @component('Components/FiltroTabla')
-    @slot('titulo')
-    <div>VALORES POR DEFECTO</div>
-    <form style="display: flex;">
-      <input class="form-control" name="campo" placeholder="Campo" style="flex: 1;">
-      <div data-js-nuevo style="flex: 2;"></div>
-      <div style="flex: 1;">
-        <button class="btn" type="button" data-js-guardar-nuevo="/canon/valoresPorDefecto/ingresar">GUARDAR</button>
-      </div>
-    </form>
-    @endslot
-    
-    @slot('target_buscar')
-    /canon/valoresPorDefecto
-    @endslot
-    
-    @slot('filtros')
-    @endslot
-    
-    @slot('cabecera')
-    <tr>
-      <th>CAMPO</th>
-      <th>VALOR</th>
-      <th>ACCIÓN</th>
-    </tr>
-    @endslot
-    
-    @slot('molde')
-    <tr data-table-id="id_canon_valor_por_defecto">
-      <td class="campo">-CAMPO-</td>
-      <td class="valor" data-js-jsoneditor>-VALOR-</td>
-      <td>
-        <button class="btn" type="button" data-js-guardar="/canon/valoresPorDefecto/ingresar" title="GUARDAR"><i class="fa fa-fw fa-check"></i></button>
-        <button class="btn" type="button" data-js-borrar="/canon/valoresPorDefecto/borrar" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
-      </td>
-    </tr>
-    @endslot
-  @endcomponent
-</div>
-@endif
-
-@if($puede_ver || $puede_agregarmodificar)
 <style>
   .VerCargarCanon {
     --color-fondo-pestaña: #ececec;
@@ -599,6 +229,391 @@
     display: none;
   }
 </style>
+
+<style>
+  .VerCargarOperador input[type="color"][readonly] {
+    pointer-events: none;
+  }
+</style>
+
+@endsection
+@section('contenidoVista')
+
+<div class="row">
+  <div class="tabs" data-js-tabs="">
+    <div>
+      <a data-js-tab="#pant_canon">Canon</a>
+    </div>
+    @if($permisos['canon_operador_cargar'] || $permisos['canon_operador_ver'])
+    <div>
+      <a data-js-tab="#pant_operadores">Operadores</a>
+    </div>
+    @endif
+    @if($permisos['canon_agrupamiento_cargar'] || $permisos['canon_agrupamiento_ver'])
+    <div>
+      <a data-js-tab="#pant_grupos_operadores">Grupos Op.</a>
+    </div>
+    <div>
+      <a data-js-tab="#pant_agrupamientos">Agrupamientos</a>
+    </div>
+    <div>
+      <a data-js-tab="#pant_defecto">Valores por Defecto</a>
+    </div>
+    @endif
+  </div>
+</div>
+
+<div id="pant_canon" hidden>
+  @component('Components/FiltroTabla')
+    @slot('titulo')
+    CANON
+    @if($permisos['canon_cargar'])
+    <button class="btn" type="button" data-js-nuevo="/canon/obtener">NUEVO</button>
+    @endif
+    @if($permisos['canon_ver'])
+    <button data-js-descargar="/canon/descargar" class="btn btn-sucess" type="button" style="font-size: 0.9rem;"><i class="fa fa-arrow-circle-down"></i>DESCARGAR<i class="fa fa-spinner fa-spin" data-js-descargando style="display: none;"></i></button> 
+    <a href="/canon/descargarPlanillas" target="_blank" class="btn btn-sucess" role="button" style="font-size: 0.9rem;"><i class="fa fa-arrow-circle-down"></i>PLANILLAS</a>
+    @endif
+    @endslot
+    
+    @slot('target_buscar')
+    /canon/buscar
+    @endslot
+    
+    @slot('filtros')
+    <div class="col-md-4">
+      <h5>Casino</h5>
+      <select class="form-control" name="id_casino">
+        <option value='' selected>- TODOS -</option>
+        @foreach($casinos as $c)
+        <option value='{{$c->id_casino}}'>{{$c->nombre}}</option>
+        @endforeach
+      </select>
+    </div>
+    <div class="col-md-4">
+      <h5>PERÍODO</h5>
+      <div style="display: flex;">
+        @component('Components/inputFecha',[
+          'attrs' => 'name="año_mes[0]"',
+          'attrs_dtp' => 'data-date-format="yyyy-mm" data-start-view="year" data-min-view="decade"',
+          'form_group_attrs' => 'style="padding: 0 !important;flex: 1;"',
+          'placeholder' => 'DESDE'
+        ])
+        @endcomponent
+        @component('Components/inputFecha',[
+          'attrs' => 'name="año_mes[1]"',
+          'attrs_dtp' => 'data-date-format="yyyy-mm" data-start-view="year" data-min-view="decade"',
+          'form_group_attrs' => 'style="padding: 0 !important;flex: 1;"',
+          'placeholder' => 'HASTA'
+        ])
+        @endcomponent
+      </div>
+    </div>
+    @if($permisos['canon_deseliminar'])
+    <div class="col-md-4">
+      <h5>ELIMINADOS</h5>
+      <select class="form-control" name="eliminados">
+        <option value='0' selected>NO</option>
+        <option value='1'>SI</option>
+      </select>
+    </div>
+    @endif
+    @endslot
+    
+    @slot('cabecera')
+    <tr>
+      <th data-js-sortable="año_mes">AÑO MES</th>
+      <th>CASINO</th>
+      <th>ESTADO</th>
+      <th>DEVENGADO</th>
+      <th>DETERMINADO</th>
+      <th>INTERESES Y CARGOS</th>
+      <th>PAGO</th>
+      <th>SALDO</th>
+      <th>ACCION</th>
+    </tr>
+    @endslot
+    
+    @slot('molde')
+    <tr data-table-id="id_canon">
+      <td class="año_mes">AÑO MES</td>
+      <td class="casino">CASINO</td>
+      <td>
+        @if($permisos['canon_ver'] || $permisos['canon_cargar'])
+        <div data-content-popover data-molde-popover="acciones" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
+          <div style="display: flex;flex-direction: column;justify-content: center;padding-right: 1em;">
+            @if($permisos['canon_ver'])
+            <button class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL">VER CANON<i class="fa fa-fw fa-search-plus"></i></button>
+            @endif
+            @if($permisos['canon_cargar'])
+            <button class="btn" type="button" data-js-adjuntar="/canon/obtener" data-estado-visible="PAGADO" title="ADJUNTAR">ADJUNTAR <i class="fa fa-fw fa-paperclip"></i></button>
+            <button class="btn" type="button" data-js-editar="/canon/obtener" data-estado-visible="GENERADO"  title="EDITAR">EDITAR CANON<i class="fas fa-fw fa-pencil-alt"></i></button>
+            @endif
+          </div>
+          <div style="display: flex;flex-direction: column;justify-content: center;padding-left: 1em;">
+            @if($permisos['canon_ver'])
+            <button class="btn" type="button" data-js-ver-pagos="/canon/pagos/obtenerConHistorial" title="VER PAGO">VER PAGOS <i class="fa fa-book"></i></button>
+            @endif
+            @if($permisos['canon_cargar'])
+            <button class="btn" type="button" data-js-editar-pagos="/canon/pagos/obtener" title="CARGAR PAGO">EDITAR PAGOS <i class="fa fas fa-hand-holding-usd"></i></button>
+            @endif
+          </div>
+        </div>
+        @endif
+        <div data-content-popover data-molde-popover="planillas" style="flex-direction: column;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
+          <a href="/canon/planillaPDF" target="_blank" title="REPORTE">Valores</a>
+          <a href="/canon/planillaDevengado" target="_blank" title="IMPRIMIR DEVENGADO">Devengado</a>
+          <a href="/canon/planillaDeterminado"  target="_blank" title="IMPRIMIR DETERMINADO">Determinado</a>
+        </div>
+        <span style="color: blue;font-weight: bold;font-size: 0.8em;padding-right: 0.1em;"><sup class="antiguo">XXX</sup></span>
+        <span class="estado">ESTADO</span>
+        @if($permisos['canon_cargar'])
+        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Pagado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Generado" a "Pagado"?' data-estado-visible="GENERADO" title="CONFIRMAR PAGO">
+          <i class="fas fa-hand-holding-usd"></i>
+        </button>
+        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Cerrado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Pagado" a "Cerrado"?' data-estado-visible="PAGADO" title="CERRAR CANON">
+          <i class="fa fa-fw fa-lock"></i>
+        </button>
+        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Generado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Pagado" a "Generado"?' data-estado-visible="PAGADO" title="DESCONFIRMAR PAGO">
+          <i class="fa fa-backward"></i>
+        </button>
+        <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Pagado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Cerrado" a "Pagado"?' data-estado-visible="CERRADO" title="ABRIR CANON">
+          <i class="fa fa-backward"></i>
+        </button>
+        @endif
+      </td>
+      <td class="devengado" data-formatear-numero>DEVENGADO</td>
+      <td class="determinado" data-formatear-numero>DETERMINADO</td>
+      <td class="intereses_y_cargos" data-formatear-numero>INTERESES Y CARGOS</td>
+      <td class="pago" data-formatear-numero>PAGO</td>
+      <td class="saldo_posterior" data-formatear-numero>SALDO</td>
+      <td>
+        @if($permisos['canon_ver'])
+        <a tabindex="0" class="btn btn-info info" data-toggle-popover="acciones" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
+          <i class="fa fa-window-restore" aria-hidden="true"></i>
+        </a>
+        <a tabindex="0" class="btn btn-info info" data-toggle-popover="planillas" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
+          <i class="fa fa-print"></i>
+        </a>
+        <a tabindex="0" href="/canon/planillaInformeCanon" target="_blank" class="btn btn-info info" title="Informe de Canon">
+          <i class="fa fa-list-ul"></i>
+        </a>
+        @endif
+        @if($permisos['canon_deseliminar'])
+        <button data-mostrar-borrado class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
+        <button data-mostrar-borrado class="btn" type="button" data-js-cambiar-estado="/canon/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
+          <i class="fa fa-backward"></i>
+        </button>
+        @endif
+        @if($permisos['canon_cargar'] || $permisos['canon_deseliminar'])
+        <button class="btn" type="button" data-js-borrar="/canon/borrar" title="BORRAR" 
+          @if($permisos['canon_deseliminar'])
+          data-estado-visible="GENERADO,PAGADO"
+          @endif
+        >
+          <i class="fa fa-fw fa-trash-alt"></i>
+        </button>
+        @endif
+      </td>
+    </tr>
+    @endslot
+  @endcomponent
+</div>
+
+@if($permisos['canon_operador_ver'] || $permisos['canon_operador_cargar'])
+<div id="pant_operadores" hidden>
+  @component('Components/FiltroTabla')
+    @slot('titulo')
+    Operarios
+    @if($permisos['canon_operador_cargar'])
+    <button class="btn" type="button" data-js-nuevo="/canon/operador/obtener">NUEVO</button>
+    @endif
+    @endslot
+    
+    @slot('target_buscar')
+    /canon/operador/buscar
+    @endslot
+    
+    @slot('filtros')
+    @if($permisos['canon_operador_deseliminar'])
+    <div class="col-md-4">
+      <h5>ELIMINADOS</h5>
+      <select class="form-control" name="eliminados">
+        <option value='0' selected>NO</option>
+        <option value='1'>SI</option>
+      </select>
+    </div>
+    @endif
+    @endslot
+    
+    @slot('cabecera')
+    <tr>
+      <th>ID</th>
+      <th>NOMBRE</th>
+      <th>ACCION</th>
+    </tr>
+    @endslot
+    
+    @slot('molde')
+    <tr data-table-id="id_operador">
+      <td class="id_operador">ID</td>
+      <td class="nombre">NOMBRE</td>
+      <td>
+        @if($permisos['canon_operador_ver'] || $permisos['canon_operador_cargar'])
+        <div data-content-popover data-molde-popover="acciones" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
+          <div style="display: flex;flex-direction: column;justify-content: center;padding-right: 1em;">
+            @if($permisos['canon_operador_ver'])
+            <button class="btn" type="button" data-js-ver="/canon/operador/obtenerConHistorial" title="VER/HISTORIAL">VER OPERARIO<i class="fa fa-fw fa-search-plus"></i></button>
+            @endif
+            @if($permisos['canon_operador_cargar'])
+            <button class="btn" type="button" data-js-editar="/canon/operador/obtener" title="EDITAR">EDITAR OPERARIO<i class="fas fa-fw fa-pencil-alt"></i></button>
+            @endif
+          </div>
+          <div style="display: flex;flex-direction: column;justify-content: center;padding-left: 1em;">
+            @if($permisos['canon_operador_ver'])
+            <button class="btn" type="button" data-js-ver-cuentas="/canon/operador/obtenerConHistorial" title="VER CUENTAS">VER CUENTAS <i class="fa fa-info"></i></button>
+            @endif
+            @if($permisos['canon_operador_cargar'])
+            <button class="btn" type="button" data-js-editar-cuentas="/canon/operador/obtener" title="CARGAR PAGO">EDITAR CUENTAS <i class="fa fa-university"></i></button>
+            @endif
+          </div>
+        </div>
+        @endif
+        @if($permisos['canon_operador_ver'])
+        <a tabindex="0" class="btn btn-info info" data-toggle-popover="acciones" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
+          <i class="fa fa-window-restore" aria-hidden="true"></i>
+        </a>
+        @endif
+        @if($permisos['canon_operador_deseliminar'])
+        <button data-mostrar-borrado class="btn" type="button" data-js-desborrar="/canon/operador/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
+          <i class="fa fa-backward"></i>
+        </button>
+        @endif
+        @if($permisos['canon_operador_cargar'] || $permisos['canon_operador_deseliminar'])
+        <button class="btn" type="button" data-js-borrar="/canon/operador/borrar" title="BORRAR">
+          <i class="fa fa-fw fa-trash-alt"></i>
+        </button>
+        @endif
+      </td>
+    </tr>
+    @endslot
+  @endcomponent
+</div>
+@endif
+
+@if($permisos['canon_agrupamiento_cargar'] || $permisos['canon_agrupamiento_ver'])
+
+<div id="pant_grupos_operadores" hidden>
+  @component('Components/FiltroTabla')
+    @slot('titulo')
+    Grupos Operarios
+    @if($permisos['canon_agrupamiento_cargar'])
+    <button class="btn" type="button" data-js-nuevo="/canon/grupo_operador/obtener">NUEVO</button>
+    @endif
+    @endslot
+    
+    @slot('target_buscar')
+    /canon/grupo_operador/buscar
+    @endslot
+    
+    @slot('filtros')
+    @if($permisos['canon_agrupamiento_deseliminar'])
+    <div class="col-md-4">
+      <h5>ELIMINADOS</h5>
+      <select class="form-control" name="eliminados">
+        <option value='0' selected>NO</option>
+        <option value='1'>SI</option>
+      </select>
+    </div>
+    @endif
+    @endslot
+    
+    @slot('cabecera')
+    <tr>
+      <th>ID</th>
+      <th>NOMBRE</th>
+      <th>OPERARIOS</th>
+      <th>ACCION</th>
+    </tr>
+    @endslot
+    
+    @slot('molde')
+    <tr data-table-id="id_grupo_operador">
+      <td class="id_grupo_operador">ID</td>
+      <td class="nombre">NOMBRE</td>
+      <td class="operarios">OPERARIOS</td>
+      <td>
+        @if($permisos['canon_agrupamiento_ver'])
+        <button class="btn" type="button" data-es_individual="|0|1|" data-js-ver="/canon/grupo_operador/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
+        @endif
+        @if($permisos['canon_agrupamiento_cargar'])
+        <button class="btn" type="button" data-es_individual="|0|" data-js-editar="/canon/grupo_operador/obtener" title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
+        @endif
+        @if($permisos['canon_agrupamiento_deseliminar'])
+        <button data-mostrar-borrado data-es_individual="|0|" class="btn" type="button" data-js-desborrar="/canon/grupo_operador/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
+          <i class="fa fa-backward"></i>
+        </button>
+        @endif
+        @if($permisos['canon_agrupamiento_ver'] || $permisos['canon_agrupamiento_cargar'])
+        <button class="btn" type="button" data-es_individual="|0|" data-js-borrar="/canon/grupo_operador/borrar" title="BORRAR">
+          <i class="fa fa-fw fa-trash-alt"></i>
+        </button>
+        @endif
+      </td>
+    </tr>
+    @endslot
+  @endcomponent
+</div>
+
+<div id="pant_agrupamientos">
+  @component('Canon.bAgrupamientos')
+  @endcomponent
+</div>
+
+<div id="pant_defecto" hidden>
+  @component('Components/FiltroTabla')
+    @slot('titulo')
+    <div>VALORES POR DEFECTO</div>
+    <form style="display: flex;">
+      <input class="form-control" name="campo" placeholder="Campo" style="flex: 1;">
+      <div data-js-nuevo style="flex: 2;"></div>
+      <div style="flex: 1;">
+        <button class="btn" type="button" data-js-guardar-nuevo="/canon/valoresPorDefecto/ingresar">GUARDAR</button>
+      </div>
+    </form>
+    @endslot
+    
+    @slot('target_buscar')
+    /canon/valoresPorDefecto
+    @endslot
+    
+    @slot('filtros')
+    @endslot
+    
+    @slot('cabecera')
+    <tr>
+      <th>CAMPO</th>
+      <th>VALOR</th>
+      <th>ACCIÓN</th>
+    </tr>
+    @endslot
+    
+    @slot('molde')
+    <tr data-table-id="id_canon_valor_por_defecto">
+      <td class="campo">-CAMPO-</td>
+      <td class="valor" data-js-jsoneditor>-VALOR-</td>
+      <td>
+        <button class="btn" type="button" data-js-guardar="/canon/valoresPorDefecto/ingresar" title="GUARDAR"><i class="fa fa-fw fa-check"></i></button>
+        <button class="btn" type="button" data-js-borrar="/canon/valoresPorDefecto/borrar" title="BORRAR"><i class="fa fa-fw fa-trash-alt"></i></button>
+      </td>
+    </tr>
+    @endslot
+  @endcomponent
+</div>
+
+@endif
+
+@if($permisos['canon_ver'] || $permisos['canon_cargar'])
 
 @component('Components/modal',[
   'clases_modal' => 'VerCargarCanon',
@@ -1319,17 +1334,13 @@
   </form>
   @endslot
   @slot('pie')
-  @if($puede_agregarmodificar)
+  @if($permisos['canon_cargar'])
   <button class="btn btn-successAceptar" type="button" data-js-enviar="/canon/adjuntar" data-modo-mostrar='[{"modo": "ADJUNTAR"}]' data-modo-mostrar="ADJUNTAR">ADJUNTAR</button>
   <button class="btn btn-successAceptar" type="button" data-js-enviar="/canon/guardar" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>GUARDAR</button>
   @endif
   @endslot
 @endcomponent
-@endif
 
-@if($es_superusuario)
-
-@if($puede_ver || $puede_agregarmodificar)
 @component('Components/modal',[
   'clases_modal' => 'VerCargarCanon',
   'attrs_modal' => 'data-js-modal-canon-comportamiento-comun data-js-modal-ver-cargar-canon-pagos',
@@ -1546,28 +1557,24 @@
   </form>
   @endslot
   @slot('pie')
-  @if($puede_agregarmodificar)
+  @if($permisos['canon_cargar'])
   <button class="btn btn-successAceptar" type="button" data-js-click-submit-form="form" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>GUARDAR</button>
   @endif
   @endslot
 @endcomponent
+
 @endif
 
-@if($puede_ver || $puede_agregarmodificar)
-<style>
-  .VerCargarOperario input[type="color"][readonly] {
-    pointer-events: none;
-  }
-</style>
+@if($permisos['canon_operador_ver'] || $permisos['canon_operador_cargar'])
 
 @component('Components/modal',[
-  'clases_modal' => 'VerCargarCanon VerCargarOperario',
-  'attrs_modal' => 'data-js-modal-canon-comportamiento-comun data-js-modal-ver-cargar-operario data-modo=\'NUEVO\' ',
+  'clases_modal' => 'VerCargarCanon VerCargarOperador',
+  'attrs_modal' => 'data-js-modal-canon-comportamiento-comun data-js-modal-ver-cargar-operador data-modo=\'NUEVO\' ',
   'estilo_cabecera' => 'background-color: #6dc7be;',
   'grande' => 90,
 ])
   @slot('titulo')
-  OPERARIO
+  OPERADOR
   @endslot
   @slot('cuerpo')
   <div style="width: 100%;display: flex;align-items: center;justify-content: flex-end;padding-bottom: 1em;" data-modo-mostrar='[{"modo": "VER"}]'>
@@ -1577,28 +1584,28 @@
   </div>
   <div class="tabs" data-js-tabs>
     <div>
-      <a data-js-tab="[data-js-modal-ver-cargar-operario] [data-datos]" tabindex="0">Datos</a>
+      <a data-js-tab="[data-js-modal-ver-cargar-operador] [data-datos]" tabindex="0">Datos</a>
     </div>
     <div>
-      <a data-js-tab="[data-js-modal-ver-cargar-operario] [data-datos-enlace]" tabindex="0">Datos Enlace</a>
+      <a data-js-tab="[data-js-modal-ver-cargar-operador] [data-datos-enlace]" tabindex="0">Datos Enlace</a>
     </div>
     <div>
-      <a data-js-tab="[data-js-modal-ver-cargar-operario] [data-cuentas]" tabindex="0">Cuentas</a>
+      <a data-js-tab="[data-js-modal-ver-cargar-operador] [data-cuentas]" tabindex="0">Cuentas</a>
     </div>
     <div>
-      <a data-js-tab="[data-js-modal-ver-cargar-operario] [data-canon-variable]" tabindex="0">Canon Variable</a>
+      <a data-js-tab="[data-js-modal-ver-cargar-operador] [data-canon-variable]" tabindex="0">Canon Variable</a>
     </div>
     <div>
-      <a data-js-tab="[data-js-modal-ver-cargar-operario] [data-canon-fijo-mesas]" tabindex="0">Canon Fijo - Mesas</a>
+      <a data-js-tab="[data-js-modal-ver-cargar-operador] [data-canon-fijo-mesas]" tabindex="0">Canon Fijo - Mesas</a>
     </div>
     <div>
-      <a data-js-tab="[data-js-modal-ver-cargar-operario] [data-canon-fijo-mesas-adicionales]" tabindex="0">Canon Fijo - Mesas Adicional</a>
+      <a data-js-tab="[data-js-modal-ver-cargar-operador] [data-canon-fijo-mesas-adicionales]" tabindex="0">Canon Fijo - Mesas Adicional</a>
     </div>
   </div>
-  <form  style="display: flex;flex-direction: column;" action="/canon/operario/guardar" method="POST">
+  <form  style="display: flex;flex-direction: column;" action="/canon/operador/guardar" method="POST">
     <div class="pestaña" data-datos>
       <div hidden>
-        <input name="id_canon_operario" class="form-control" data-readonly='[{"modo":"*"}]'>
+        <input name="id_canon_operador" class="form-control" data-readonly='[{"modo":"*"}]'>
       </div>
       <div class="bloque_enterno" style="display:flex;height: 70vh;width: 100%;">
         <div class="bloque_interno"  style="flex: 1;height: 100%;display: flex;flex-direction: column;">
@@ -1607,8 +1614,8 @@
             <div class="bloque_interno" style="display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
               <div style="width: 33.333333333%;">
                 <h5 style="padding-left: 0;">ID</h5>
-                <!-- El id no se deberia editar una vez creado para mantener la trazabilidad/historial del operario -->
-                <input name="id_operario" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"},{"modo": "EDITAR"}]'>
+                <!-- El id no se deberia editar una vez creado para mantener la trazabilidad/historial del operador -->
+                <input name="id_operador" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"},{"modo": "EDITAR"}]'>
               </div>
               <div style="width: 33.333333333%;">
                 <h5 style="padding-left: 0;">Nombre Legal</h5>
@@ -1973,20 +1980,24 @@
   </table>
   @endslot
   @slot('pie')
-  @if($puede_agregarmodificar)
+  @if($permisos['canon_operador_cargar'])
   <button class="btn btn-successAceptar" type="button" data-js-click-submit-form="form" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>GUARDAR</button>
   @endif
   @endslot
 @endcomponent
 
+@endif
+
+@if($permisos['canon_agrupamiento_ver'] || $permisos['canon_agrupamiento_cargar'])
+
 @component('Components/modal',[
-  'clases_modal' => 'VerCargarCanon VerCargarOperario',
-  'attrs_modal' => 'data-js-modal-canon-comportamiento-comun data-js-modal-ver-cargar-grupo-operario data-modo=\'NUEVO\' ',
+  'clases_modal' => 'VerCargarCanon VerCargarOperador',
+  'attrs_modal' => 'data-js-modal-canon-comportamiento-comun data-js-modal-ver-cargar-grupo-operador data-modo=\'NUEVO\' ',
   'estilo_cabecera' => 'background-color: #6dc7be;',
   'grande' => 70,
 ])
   @slot('titulo')
-  GRUPO OPERARIO
+  GRUPO OPERADOR
   @endslot
   @slot('cuerpo')
   <div style="width: 100%;display: flex;align-items: center;justify-content: flex-end;padding-bottom: 1em;" data-modo-mostrar='[{"modo": "VER"}]'>
@@ -1994,9 +2005,9 @@
     <select class="form-control" data-js-select-historial style="width: 15rem;">
     </select>
   </div>
-  <form class="pestaña" style="display: flex;flex-direction: column;" action="/canon/grupo_operario/guardar" method="POST">
+  <form class="pestaña" style="display: flex;flex-direction: column;" action="/canon/grupo_operador/guardar" method="POST">
     <div hidden>
-      <input name="id_canon_grupo_operario" class="form-control" data-readonly='[{"modo":"*"}]'>
+      <input name="id_canon_grupo_operador" class="form-control" data-readonly='[{"modo":"*"}]'>
     </div>
     <div class="bloque_enterno" style="display:flex;height: 70vh;width: 100%;">
       <div class="bloque_interno"  style="flex: 1;height: 100%;display: flex;flex-direction: column;">
@@ -2005,8 +2016,8 @@
           <div class="bloque_interno" style="display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
             <div style="width: 33.333333333%;">
               <h5 style="padding-left: 0;">ID</h5>
-              <!-- El id no se deberia editar una vez creado para mantener la trazabilidad/historial del operario -->
-              <input name="id_grupo_operario" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"},{"modo": "EDITAR"}]'>
+              <!-- El id no se deberia editar una vez creado para mantener la trazabilidad/historial del g operador -->
+              <input name="id_grupo_operador" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "VER"},{"modo": "EDITAR"}]'>
               <input name="es_individual" data-js-texto-no-formatear-numero class="form-control" data-check-param data-readonly='[{"modo":"*"}]' data-modo-mostrar='[{"modo": "NOMOSTRARNUNCA!"}]'>
             </div>
             <div style="width: 33.333333333%;">
@@ -2030,8 +2041,8 @@
       </div>
       <div class="bloque_interno" style="flex: 1;height: 100%;">
         <h6 style="padding-bottom: 1em;width: 100%;">
-          Operarios
-          <button class="btn" type="button" data-js-click-agregar-operario data-modo-mostrar='[{"modo": "NUEVO","es_individual": "0"},{"modo": "EDITAR","es_individual": "0"}]' style="display: inline-block;">
+          Operadores
+          <button class="btn" type="button" data-js-click-agregar-operador data-modo-mostrar='[{"modo": "NUEVO","es_individual": "0"},{"modo": "EDITAR","es_individual": "0"}]' style="display: inline-block;">
             <i class="fa fa-plus"></i>
           </button>
         </h6>
@@ -2043,7 +2054,7 @@
                 <th>&nbsp;</th>
               </tr>
             </thead>
-            <tbody data-contenedor-operarios>
+            <tbody data-contenedor-operadores>
             </tbody>
           </table>
         </div>
@@ -2052,8 +2063,8 @@
   </form>
   <!-- Por fuera del modal así no afecta el <form> -->
   <table hidden>
-    <tr data-molde-operario="$idxoperario">
-      <td><input class="form-control" data-js-texto-no-formatear-numero data-name="operarios[$idxoperario][id_operario]" data-readonly='[{"modo": "VER"},{"es_individual": "1"}]'></td>
+    <tr data-molde-operador="$idxo">
+      <td><input class="form-control" data-js-texto-no-formatear-numero data-name="operadores[$idxo][id_operario]" data-readonly='[{"modo": "VER"},{"es_individual": "1"}]'></td>
       <td>
         <button class="btn btn-link" type="button" data-js-click-borrar-tr data-modo-mostrar='[{"modo": "NUEVO","es_individual": "0"},{"modo": "EDITAR","es_individual": "0"}]'>
           <i class="fa fa-fw fa-trash-alt"></i>
@@ -2063,7 +2074,7 @@
   </table>
   @endslot
   @slot('pie')
-  @if($puede_agregarmodificar)
+  @if($permisos['canon_agrupamiento_cargar'])
   <button class="btn btn-successAceptar" type="button" data-js-click-submit-form="form" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>GUARDAR</button>
   @endif
   @endslot
@@ -2074,14 +2085,18 @@
 
 @endif
 
-@endif
+@if(
+     $permisos['canon_cargar'] || $permisos['canon_operador_cargar'] || $permisos['canon_agrupamiento_cargar']
+  || $permisos['canon_deseliminar'] || $permisos['canon_operador_deseliminar'] || $permisos['canon_agrupamiento_deseliminar']
+)
 
-@if($puede_agregarmodificar)
 @component('Components/modalEliminar')
 @endcomponent
+
 @endif
 
-@if($puede_agregarmodificar)
+@if($permisos['canon_cargar'])
+
 @component('Components/modal',[
   'clases_modal' => 'modalCambiarEstado',
   'attrs_modal' => 'data-js-modal-cambiar-estado',
@@ -2098,6 +2113,7 @@
     <button type="button" class="btn" style="background-color: #F4B400 !important;color: white;" data-js-click-cambiar-estado>CAMBIAR</button>
   @endslot
 @endcomponent
+
 @endif
 
 <meta name="_token" content="{!! csrf_token() !!}" />

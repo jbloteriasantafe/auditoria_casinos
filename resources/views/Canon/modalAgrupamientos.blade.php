@@ -13,7 +13,7 @@
     <select class="form-control" data-js-select-historial style="width: 15rem;">
     </select>
   </div>
-  <form class="pestaña" style="display: flex;flex-direction: column;width: 100%;height: 70vh;overflow-y: scroll;" action="/canon/grupo_operario/guardar" method="POST">
+  <form class="pestaña" style="display: flex;flex-direction: column;width: 100%;height: 70vh;overflow-y: scroll;" action="/canon/grupo_operador/guardar" method="POST">
     <div hidden>
       <input name="id_canon_subcanon_a_grupo" class="form-control" data-readonly='[{"modo":"*"}]'>
     </div>
@@ -26,12 +26,12 @@
             <input name="clave" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "*"}]'>
           </div>
           <div style="width: 25%;">
-            <h5 style="padding-left: 0;">Grupo Operario</h5>
-            <input name="grupo_operario" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "*"}]'>
+            <h5 style="padding-left: 0;">Grupo Operador</h5>
+            <input name="grupo_operador" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "*"}]'>
           </div>
           <div style="width: 25%;">
-            <h5 style="padding-left: 0;">ID Grupo Operario</h5>
-            <input name="id_grupo_operario" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "*"}]'>
+            <h5 style="padding-left: 0;">ID Grupo Operador</h5>
+            <input name="id_grupo_operador" data-js-texto-no-formatear-numero class="form-control" data-readonly='[{"modo": "*"}]'>
           </div>
         </div>
       </div>
@@ -46,7 +46,7 @@
             <button style="width: 25%;" data-js-click-agregar-nodo class="btn" type="button">Agregar</button>
             <input  style="width: 50%;" data-nuevo-nodo="label" class="form-control" data-js-texto-no-formatear-numero placeholder="Nombre">
             <select data-nuevo-nodo="group" class="form-control">
-              <option default selected value="grupo_operario">Grupo Operario</option>: {
+              <option default selected value="grupo_operador">Grupo Operador</option>
               <option value="superior">Nivel Superior</option>
               <option value="subcanon">Subcanon</option>
             </select>

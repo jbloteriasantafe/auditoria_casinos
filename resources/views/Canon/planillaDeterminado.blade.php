@@ -375,7 +375,7 @@ function ucwords_espacios($s){
           $vd_euro  = $a_ingles($cfm['determinado_valor_euro_diario_cotizado']);
           $valor_diario = bcadd($vd_dolar,$vd_euro,max(bcscale_string($vd_dolar),bcscale_string($vd_euro)));
           $valor_diario = bcround_ndigits($valor_diario,2);
-          $valor_diario = App\Http\Controllers\CanonController::formatear_decimal($valor_diario);
+          $valor_diario = bc_formatear_decimal($valor_diario);
           ?>
           
           <b>Valor  diario/mesa 

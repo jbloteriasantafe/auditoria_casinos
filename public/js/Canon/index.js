@@ -783,37 +783,37 @@ $(function(){ $('[data-js-modal-cambiar-estado]').each(function(){
 })});
 
 $(function(){
-  $('#pant_operarios #individuales [data-js-nuevo]').click(function(e){
+  $('#pant_operadores [data-js-nuevo]').click(function(e){
     const tgt = $(e.currentTarget);
-    $('[data-js-modal-ver-cargar-operario]').trigger('mostrar.modal',[tgt.attr('data-js-nuevo'),tgt.val(),'NUEVO']);
+    $('[data-js-modal-ver-cargar-operador]').trigger('mostrar.modal',[tgt.attr('data-js-nuevo'),tgt.val(),'NUEVO']);
   });
   
-  $('#pant_operarios #individuales').on('click','[data-js-ver]',function(e){//@TODO: bindear derecho
+  $('#pant_operadores').on('click','[data-js-ver]',function(e){//@TODO: bindear derecho
     const tgt = $(e.currentTarget);
-    $('[data-js-modal-ver-cargar-operario]').trigger('mostrar.modal',[tgt.attr('data-js-ver'),tgt.val(),'VER']);
+    $('[data-js-modal-ver-cargar-operador]').trigger('mostrar.modal',[tgt.attr('data-js-ver'),tgt.val(),'VER']);
   });
   
-  $('#pant_operarios #individuales').on('click','[data-js-editar]',function(e){//@TODO: bindear derecho
+  $('#pant_operadores').on('click','[data-js-editar]',function(e){//@TODO: bindear derecho
     const tgt = $(e.currentTarget);
-    $('[data-js-modal-ver-cargar-operario]').trigger('mostrar.modal',[tgt.attr('data-js-editar'),tgt.val(),'EDITAR']);
+    $('[data-js-modal-ver-cargar-operador]').trigger('mostrar.modal',[tgt.attr('data-js-editar'),tgt.val(),'EDITAR']);
   });
   
-  $('#pant_operarios #grupos [data-js-nuevo]').click(function(e){
+  $('#pant_grupos_operadores [data-js-nuevo]').click(function(e){
     const tgt = $(e.currentTarget);
-    $('[data-js-modal-ver-cargar-grupo-operario]').trigger('mostrar.modal',[tgt.attr('data-js-nuevo'),tgt.val(),'NUEVO']);
+    $('[data-js-modal-ver-cargar-grupo-operador]').trigger('mostrar.modal',[tgt.attr('data-js-nuevo'),tgt.val(),'NUEVO']);
   });
   
-  $('#pant_operarios #grupos').on('click','[data-js-ver]',function(e){//@TODO: bindear derecho
+  $('#pant_grupos_operadores').on('click','[data-js-ver]',function(e){//@TODO: bindear derecho
     const tgt = $(e.currentTarget);
-    $('[data-js-modal-ver-cargar-grupo-operario]').trigger('mostrar.modal',[tgt.attr('data-js-ver'),tgt.val(),'VER']);
+    $('[data-js-modal-ver-cargar-grupo-operador]').trigger('mostrar.modal',[tgt.attr('data-js-ver'),tgt.val(),'VER']);
   });
   
-  $('#pant_operarios #grupos').on('click','[data-js-editar]',function(e){//@TODO: bindear derecho
+  $('#pant_grupos_operadores').on('click','[data-js-editar]',function(e){//@TODO: bindear derecho
     const tgt = $(e.currentTarget);
-    $('[data-js-modal-ver-cargar-grupo-operario]').trigger('mostrar.modal',[tgt.attr('data-js-editar'),tgt.val(),'EDITAR']);
+    $('[data-js-modal-ver-cargar-grupo-operador]').trigger('mostrar.modal',[tgt.attr('data-js-editar'),tgt.val(),'EDITAR']);
   });
   
-  $('#pant_operarios').each(function(_,pant_obj){
+  $('#pant_operadores,#pant_grupos_operadores').each(function(_,pant_obj){
     const pant = $(pant_obj);
     
     pant.find('[data-js-filtro-tabla]').on('busqueda',function(e,ret,tbody,molde){
@@ -882,7 +882,7 @@ $(function(){
 });
 
 $(function(){
-  $('[data-js-modal-ver-cargar-operario]').each(function(){
+  $('[data-js-modal-ver-cargar-operador]').each(function(){
     const  M = $(this);
     const $M = M.find.bind(M);
     const Mname = function(name,val,O=M){
@@ -934,51 +934,51 @@ $(function(){
       return fila;
     };
     
-    const render = function(operario,mantener_historial = false){
+    const render = function(operador,mantener_historial = false){
       ocultarErrorValidacion(M.find('[name]'));
-      Mname('id_canon_operario',operario?.id_canon_operario);
-      Mname('id_operario',operario?.id_operario);
-      Mname('nombre_legal',operario?.nombre_legal);
-      Mname('nombre',operario?.nombre);
-      Mname('codigo',operario?.codigo);
-      Mname('cuit',operario?.cuit);
-      Mname('inicio_actividad',operario?.inicio_actividad ?? '').trigger('change');
-      Mname('abbr',operario?.abbr);
-      Mname('color',operario?.color).trigger('change');
-      Mname('codigo_casino',operario?.codigo_casino);
-      Mname('codigo_plataforma',operario?.codigo_plataforma);
-      Mname('codigo_apuestas_deportivas',operario?.codigo_apuestas_deportivas);
-      Mname('valor_dolar',operario?.valor_dolar);
-      Mname('valor_euro',operario?.valor_euro);
-      Mname('devengado_cotizacion_dia',operario?.devengado_cotizacion_dia);
-      Mname('devengado_cotizacion_fin_de_semana',operario?.devengado_cotizacion_fin_de_semana);
-      Mname('determinado_cotizacion_dia',operario?.determinado_cotizacion_dia);
-      Mname('determinado_cotizacion_fin_de_semana',operario?.determinado_cotizacion_fin_de_semana);
+      Mname('id_canon_operador',operador?.id_canon_operador);
+      Mname('id_operador',operador?.id_operador);
+      Mname('nombre_legal',operador?.nombre_legal);
+      Mname('nombre',operador?.nombre);
+      Mname('codigo',operador?.codigo);
+      Mname('cuit',operador?.cuit);
+      Mname('inicio_actividad',operador?.inicio_actividad ?? '').trigger('change');
+      Mname('abbr',operador?.abbr);
+      Mname('color',operador?.color).trigger('change');
+      Mname('codigo_casino',operador?.codigo_casino);
+      Mname('codigo_plataforma',operador?.codigo_plataforma);
+      Mname('codigo_apuestas_deportivas',operador?.codigo_apuestas_deportivas);
+      Mname('valor_dolar',operador?.valor_dolar);
+      Mname('valor_euro',operador?.valor_euro);
+      Mname('devengado_cotizacion_dia',operador?.devengado_cotizacion_dia);
+      Mname('devengado_cotizacion_fin_de_semana',operador?.devengado_cotizacion_fin_de_semana);
+      Mname('determinado_cotizacion_dia',operador?.determinado_cotizacion_dia);
+      Mname('determinado_cotizacion_fin_de_semana',operador?.determinado_cotizacion_fin_de_semana);
       
       $M('[data-contenedor-cuentas]').empty();
-      for(const cidx in (operario?.cuentas ?? [])){
-        $M('[data-contenedor-cuentas]').append(obtener_fila_cuenta(cidx,operario.cuentas[cidx]));
+      for(const cidx in (operador?.cuentas ?? [])){
+        $M('[data-contenedor-cuentas]').append(obtener_fila_cuenta(cidx,operador.cuentas[cidx]));
       }
       $M('[data-contenedor-canon-variable]').empty();
-      for(const cidx in (operario?.canon_variable ?? [])){
-        $M('[data-contenedor-canon-variable]').append(obtener_fila_cv(cidx,operario.canon_variable[cidx]));
+      for(const cidx in (operador?.canon_variable ?? [])){
+        $M('[data-contenedor-canon-variable]').append(obtener_fila_cv(cidx,operador.canon_variable[cidx]));
       }
       $M('[data-contenedor-canon-fijo-mesas]').empty();
-      for(const cidx in (operario?.canon_fijo_mesas ?? [])){
-        $M('[data-contenedor-canon-fijo-mesas]').append(obtener_fila_cfm(cidx,operario.canon_fijo_mesas[cidx]));
+      for(const cidx in (operador?.canon_fijo_mesas ?? [])){
+        $M('[data-contenedor-canon-fijo-mesas]').append(obtener_fila_cfm(cidx,operador.canon_fijo_mesas[cidx]));
       }
       $M('[data-contenedor-canon-fijo-mesas-adicionales]').empty();
-      for(const cidx in (operario?.canon_fijo_mesas_adicionales ?? [])){
-        $M('[data-contenedor-canon-fijo-mesas-adicionales]').append(obtener_fila_cfma(cidx,operario.canon_fijo_mesas_adicionales[cidx]));
+      for(const cidx in (operador?.canon_fijo_mesas_adicionales ?? [])){
+        $M('[data-contenedor-canon-fijo-mesas-adicionales]').append(obtener_fila_cfma(cidx,operador.canon_fijo_mesas_adicionales[cidx]));
       }
       
       (mantener_historial?
          M.find('[data-js-select-historial]')
        : M.find('[data-js-select-historial]').empty())
        .append(
-        (operario?.historial ?? []).map(function(h,hidx){
+        (operador?.historial ?? []).map(function(h,hidx){
           const o = $('<option>');
-          o.val(h.id_canon_operario);
+          o.val(h.id_canon_operador);
           o.text(h.usuario + ' - '+h.created_at);
           o.data('instancia',h);
           return o;
@@ -993,11 +993,11 @@ $(function(){
       render(data,mantener_historial);
     });
     
-    M.on('mostrar.modal',function(e,url,id_operario,modo){
+    M.on('mostrar.modal',function(e,url,id_operador,modo){
       M.trigger('setModo',[modo]);
       
-      AUX.GET(url,{id_operario: id_operario},function(operario){
-        render(operario);
+      AUX.GET(url,{id_operador: id_operador},function(operador){
+        render(operador);
         M.trigger('setVisible');
         M.trigger('setReadonly');
         if(M.attr('data-modo') == 'NUEVO'){
@@ -1069,7 +1069,7 @@ $(function(){
         data: formData,
         ...ajax_params,
         success: function (data) {
-          $('#pant_operarios [data-js-filtro-tabla]').trigger('buscar');
+          $('#pant_operadores [data-js-filtro-tabla]').trigger('buscar');
           AUX.mensajeExito(data?.mensaje ?? '');
           $(o).closest('.modal').modal('hide');
         },
@@ -1100,47 +1100,47 @@ $(function(){
 });
 
 $(function(){
-  $('[data-js-modal-ver-cargar-grupo-operario]').each(function(){
+  $('[data-js-modal-ver-cargar-grupo-operador]').each(function(){
     const  M = $(this);
     const $M = M.find.bind(M);
     const Mname = function(name,val,O=M){
       return O.find(`[name="${name}"]`).val(val ?? '');
     };
     
-    const agregar_fila_operario = (oidx,o) => {
-      const replace_str = $M('[data-molde-operario]').attr('data-molde-operario');
-      const fila = $M('[data-molde-operario]').clone().removeAttr('data-molde-operario');
+    const agregar_fila_operador = (oidx,o) => {
+      const replace_str = $M('[data-molde-operador]').attr('data-molde-operador');
+      const fila = $M('[data-molde-operador]').clone().removeAttr('data-molde-operador');
       fila.find('[data-name]').each(function(_,nobj){
         $(nobj).attr('name',$(nobj).attr('data-name').replaceAll(replace_str,oidx));
       });
-      $M('[data-contenedor-operarios]').append(fila);
+      $M('[data-contenedor-operadores]').append(fila);
       for(const k in o){
-        Mname(`operarios[${oidx}][${k}]`,o[k],fila);
+        Mname(`operadores[${oidx}][${k}]`,o[k],fila);
       }
     };
     
-    const render = function(grupo_operario,mantener_historial = false){
+    const render = function(grupo_operador,mantener_historial = false){
       ocultarErrorValidacion(M.find('[name]'));
-      Mname('id_canon_grupo_operario',grupo_operario?.id_canon_grupo_operario);
-      Mname('id_grupo_operario',grupo_operario?.id_grupo_operario);
-      Mname('es_individual',grupo_operario?.es_individual ?? 0);
-      Mname('nombre',grupo_operario?.nombre);
-      Mname('codigo',grupo_operario?.codigo);
-      Mname('abbr',grupo_operario?.abbr);
-      Mname('color',grupo_operario?.color).trigger('change');
+      Mname('id_canon_grupo_operador',grupo_operador?.id_canon_grupo_operador);
+      Mname('id_grupo_operador',grupo_operador?.id_grupo_operador);
+      Mname('es_individual',grupo_operador?.es_individual ?? 0);
+      Mname('nombre',grupo_operador?.nombre);
+      Mname('codigo',grupo_operador?.codigo);
+      Mname('abbr',grupo_operador?.abbr);
+      Mname('color',grupo_operador?.color).trigger('change');
       
-      $M('[data-contenedor-operarios]').empty();
-      for(const oidx in (grupo_operario?.operarios ?? [])){
-        agregar_fila_operario(oidx,grupo_operario.operarios[oidx]);
+      $M('[data-contenedor-operadors]').empty();
+      for(const oidx in (grupo_operador?.operadors ?? [])){
+        agregar_fila_operador(oidx,grupo_operador.operadors[oidx]);
       }
       
       (mantener_historial?
          M.find('[data-js-select-historial]')
        : M.find('[data-js-select-historial]').empty())
        .append(
-        (grupo_operario?.historial ?? []).map(function(h,hidx){
+        (grupo_operador?.historial ?? []).map(function(h,hidx){
           const o = $('<option>');
-          o.val(h.id_canon_grupo_operario);
+          o.val(h.id_canon_grupo_operador);
           o.text(h.usuario + ' - '+h.created_at);
           o.data('instancia',h);
           return o;
@@ -1155,32 +1155,32 @@ $(function(){
       render(data,mantener_historial);
     });
     
-    M.on('mostrar.modal',function(e,url,id_grupo_operario,modo){
+    M.on('mostrar.modal',function(e,url,id_grupo_operador,modo){
       M.trigger('setModo',[modo]);
       
-      AUX.GET(url,{id_grupo_operario: id_grupo_operario},function(grupo_operario){
-        render(grupo_operario);
+      AUX.GET(url,{id_grupo_operador: id_grupo_operador},function(grupo_operador){
+        render(grupo_operador);
         M.trigger('setVisible');
         M.trigger('setReadonly');
         if(M.attr('data-modo') == 'NUEVO'){
-          $M('[data-js-click-agregar-operario]').trigger('click');
+          $M('[data-js-click-agregar-operador]').trigger('click');
         }
         M.modal('show');
       });
     });
         
-    $M('[data-js-click-agregar-operario]').click(function(){
-      const oidx = $M('[data-contenedor-operarios] tr').length;
-      agregar_fila_operario(oidx,{
-        id_operario: ''
+    $M('[data-js-click-agregar-operador]').click(function(){
+      const oidx = $M('[data-contenedor-operadores] tr').length;
+      agregar_fila_operador(oidx,{
+        id_operador: ''
       });
       M.trigger('regenerarInputsFormatear');
     });
     
     M.on('click','[data-js-click-borrar-tr]',function(){
       $(this).closest('tr').remove();
-      if($M('[data-contenedor-operarios] tr').length == 0){
-        $M('[data-js-click-agregar-operario]').trigger('click');
+      if($M('[data-contenedor-operadores] tr').length == 0){
+        $M('[data-js-click-agregar-operador]').trigger('click');
       }
     });
     
@@ -1201,7 +1201,7 @@ $(function(){
         data: formData,
         ...ajax_params,
         success: function (data) {
-          $('#pant_operarios [data-js-filtro-tabla]').trigger('buscar');
+          $('#pant_operadores [data-js-filtro-tabla]').trigger('buscar');
           AUX.mensajeExito(data?.mensaje ?? '');
           $(o).closest('.modal').modal('hide');
         },
@@ -1211,13 +1211,13 @@ $(function(){
           AUX.mostrarErroresNames($form,json);
           
           for(const k in json){
-            if(k.substr(0,'operarios.'.length) != 'operarios.'){
+            if(k.substr(0,'operadores.'.length) != 'operadores.'){
               continue;
             }
-            const oidx = k.match(/^operarios\.[0-9]+/gm)?.[0].substr('operarios.'.length);
-            const name = k.substr('operarios.'.length+oidx.length+1);//+1 por el punto
+            const oidx = k.match(/^operadores\.[0-9]+/gm)?.[0].substr('operadores.'.length);
+            const name = k.substr('operadores.'.length+oidx.length+1);//+1 por el punto
             mostrarErrorValidacion(
-              $form.find(`[name="operarios[${oidx}][${name}]"]`),
+              $form.find(`[name="operadores[${oidx}][${name}]"]`),
               json[k].join(', '),
               true
             );
@@ -1564,7 +1564,7 @@ $(function(){
         }
       },
       groups: {
-        grupo_operario: {
+        grupo_operador: {
           color: { background: '#e0a96d', border: '#8c592b', highlight: { background: '#f2c48d', border: '#8c592b' } },
           shape: 'box',
           font: { color: '#ffffff', face: 'arial', size: 14 }
@@ -1599,8 +1599,8 @@ $(function(){
       ocultarErrorValidacion(M.find('[name]'));
       Mname('id_canon_subcanon_a_grupo',agg?.id_canon_subcanon_a_grupo);
       Mname('clave',agg?.clave);
-      Mname('id_grupo_operario',agg?.id_grupo_operario);
-      Mname('grupo_operario',agg?.grupo_operario);
+      Mname('id_grupo_operador',agg?.id_grupo_operador);
+      Mname('grupo_operador',agg?.grupo_operador);
       
       (mantener_historial?
          M.find('[data-js-select-historial]')
@@ -1704,7 +1704,7 @@ $(function(){
         data: formData,
         ...ajax_params,
         success: function (data) {
-          $('#pant_operarios [data-js-filtro-tabla]').trigger('buscar');
+          $('#pant_operadores [data-js-filtro-tabla]').trigger('buscar');
           AUX.mensajeExito(data?.mensaje ?? '');
           $(o).closest('.modal').modal('hide');
         },
@@ -1714,13 +1714,13 @@ $(function(){
           AUX.mostrarErroresNames($form,json);
           
           for(const k in json){
-            if(k.substr(0,'operarios.'.length) != 'operarios.'){
+            if(k.substr(0,'operadores.'.length) != 'operadores.'){
               continue;
             }
-            const oidx = k.match(/^operarios\.[0-9]+/gm)?.[0].substr('operarios.'.length);
-            const name = k.substr('operarios.'.length+oidx.length+1);//+1 por el punto
+            const oidx = k.match(/^operadores\.[0-9]+/gm)?.[0].substr('operadores.'.length);
+            const name = k.substr('operadores.'.length+oidx.length+1);//+1 por el punto
             mostrarErrorValidacion(
-              $form.find(`[name="operarios[${oidx}][${name}]"]`),
+              $form.find(`[name="operadores[${oidx}][${name}]"]`),
               json[k].join(', '),
               true
             );

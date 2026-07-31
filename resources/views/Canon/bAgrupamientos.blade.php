@@ -21,7 +21,7 @@
   @slot('molde')
   <tr data-table-id="id_canon_subcanon_a_grupo">
     <td class="clave">CLAVE</td>
-    <td class="grupo_operario">GRUPO OPERARIO</td>
+    <td class="grupo_operador">GRUPO OPERADOR</td>
     <td>
       <button class="btn" type="button" data-js-click-editar-agrupamiento="/canon/agrupamientos/obtener" title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
     </td>

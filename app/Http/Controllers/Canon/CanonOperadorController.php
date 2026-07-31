@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Validator;
 
-class CanonOperarioController extends Controller
+class CanonOperadorController extends Controller
 {
   private static $instance;
 
@@ -18,26 +18,29 @@ class CanonOperarioController extends Controller
   
   private $CV = null;
   private $CGO = null;
+  private $CPe = null;
   public function __construct(){
     self::$instance = $this;
     $this->CV = CanonValorPorDefectoController::getInstancia();
-    $this->CGO = CanonGrupoOperarioController::getInstancia();
+    $this->CGO = CanonGrupoOperadorController::getInstancia();
+    $this->CPe = CanonPermisoController::getInstancia();
   }
   
   public function down(){
+    $this->CPe->down();
     $this->CGO->down();
-    DB::unprepared("DROP TABLE IF EXISTS canon_operario_canon_variable");
-    DB::unprepared("DROP TABLE IF EXISTS canon_operario_canon_fijo_mesas");
-    DB::unprepared("DROP TABLE IF EXISTS canon_operario_canon_fijo_mesas_adicionales");
-    DB::unprepared("DROP TABLE IF EXISTS canon_operario_cuenta");
-    DB::unprepared("DROP TABLE IF EXISTS canon_operario");
+    DB::unprepared("DROP TABLE IF EXISTS canon_operador_canon_variable");
+    DB::unprepared("DROP TABLE IF EXISTS canon_operador_canon_fijo_mesas");
+    DB::unprepared("DROP TABLE IF EXISTS canon_operador_canon_fijo_mesas_adicionales");
+    DB::unprepared("DROP TABLE IF EXISTS canon_operador_cuenta");
+    DB::unprepared("DROP TABLE IF EXISTS canon_operador");
   }
   
   public function up(){
     DB::statement("
-    CREATE TABLE IF NOT EXISTS canon_operario (
-      id_canon_operario INT NOT NULL AUTO_INCREMENT,
-      id_operario INT NOT NULL, -- ID asignado, el mismo operario puede borrarse pero tenemos que seguirlo teniendo
+    CREATE TABLE IF NOT EXISTS canon_operador (
+      id_canon_operador INT NOT NULL AUTO_INCREMENT,
+      id_operador INT NOT NULL, -- ID asignado, el mismo operador puede borrarse pero tenemos que seguirlo teniendo
       nombre_legal VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL, -- Razon social
       nombre VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL, -- El COLLATE es para que sea mas detallista en la igualdad, 'a' <> 'A' y 'á' <> 'a'
       codigo VARCHAR(16) NOT NULL,
@@ -60,50 +63,50 @@ class CanonOperarioController extends Controller
       created_by INT NOT NULL,
       deleted_at DATETIME NULL,
       deleted_by INT NULL,
-      id_operario_deleted_at VARCHAR(32) GENERATED ALWAYS AS (CONCAT_WS('|',id_operario,IFNULL(deleted_at,''))) STORED NOT NULL,
-      PRIMARY KEY (id_canon_operario),
-      UNIQUE KEY `unq_canon_operario_id_deleted` (id_operario_deleted_at),
-      KEY `fk_canon_operario_created_by` (`created_by`),
-      CONSTRAINT `fk_canon_operario_created_by` FOREIGN KEY (`created_by`) REFERENCES `usuario` (`id_usuario`),
-      CONSTRAINT `fk_canon_operario_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `usuario` (`id_usuario`)
+      id_operador_deleted_at VARCHAR(32) GENERATED ALWAYS AS (CONCAT_WS('|',id_operador,IFNULL(deleted_at,''))) STORED NOT NULL,
+      PRIMARY KEY (id_canon_operador),
+      UNIQUE KEY `unq_canon_operador_id_deleted` (id_operador_deleted_at),
+      KEY `fk_canon_operador_created_by` (`created_by`),
+      CONSTRAINT `fk_canon_operador_created_by` FOREIGN KEY (`created_by`) REFERENCES `usuario` (`id_usuario`),
+      CONSTRAINT `fk_canon_operador_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `usuario` (`id_usuario`)
     )
     ");
     
     DB::statement("
-    CREATE TABLE IF NOT EXISTS canon_operario_cuenta (
-      id_canon_operario_cuenta INT NOT NULL AUTO_INCREMENT,
-      id_canon_operario INT NOT NULL,
+    CREATE TABLE IF NOT EXISTS canon_operador_cuenta (
+      id_canon_operador_cuenta INT NOT NULL AUTO_INCREMENT,
+      id_canon_operador INT NOT NULL,
       nombre VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       dia_vencimiento TINYINT NOT NULL,
       fin_de_semana ENUM('Lunes Próximo','Viernes Anterior','Sin Movimiento') NOT NULL,
       interes_diario_simple DECIMAL(7,4) NOT NULL,
       interes_mensual_compuesto DECIMAL(7,4) NOT NULL,
-      PRIMARY KEY (id_canon_operario_cuenta),
-      UNIQUE KEY `unq_canon_operario_cuenta` (id_canon_operario,nombre),
-      CONSTRAINT `fk_canon_operario_cuenta_operario` FOREIGN KEY (`id_canon_operario`) REFERENCES `canon_operario` (`id_canon_operario`)
+      PRIMARY KEY (id_canon_operador_cuenta),
+      UNIQUE KEY `unq_canon_operador_cuenta` (id_canon_operador,nombre),
+      CONSTRAINT `fk_canon_operador_cuenta_operador` FOREIGN KEY (`id_canon_operador`) REFERENCES `canon_operador` (`id_canon_operador`)
     )
     ");      
     
     DB::statement("
-    CREATE TABLE IF NOT EXISTS canon_operario_canon_variable (
-      id_canon_operario_canon_variable INT NOT NULL AUTO_INCREMENT,
-      id_canon_operario INT NOT NULL,
+    CREATE TABLE IF NOT EXISTS canon_operador_canon_variable (
+      id_canon_operador_canon_variable INT NOT NULL AUTO_INCREMENT,
+      id_canon_operador INT NOT NULL,
       tipo VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       apostado_porcentaje_aplicable DECIMAL(7,4) NOT NULL,
       porcentaje_impuesto_ley DECIMAL(7,4) NOT NULL,
       alicuota DECIMAL(7,4) NOT NULL,
       devengar TINYINT NOT NULL,
       devengado_deduccion DECIMAL(20,2) NOT NULL,
-      PRIMARY KEY (id_canon_operario_canon_variable),
-      UNIQUE KEY `unq_canon_operario_canon_variable` (id_canon_operario,tipo),
-      CONSTRAINT `fk_canon_operario_canon_variable_operario` FOREIGN KEY (`id_canon_operario`) REFERENCES `canon_operario` (`id_canon_operario`)
+      PRIMARY KEY (id_canon_operador_canon_variable),
+      UNIQUE KEY `unq_canon_operador_canon_variable` (id_canon_operador,tipo),
+      CONSTRAINT `fk_canon_operador_canon_variable_operador` FOREIGN KEY (`id_canon_operador`) REFERENCES `canon_operador` (`id_canon_operador`)
     )
     ");
        
     DB::statement("
-    CREATE TABLE IF NOT EXISTS canon_operario_canon_fijo_mesas (
-      id_canon_operario_canon_fijo_mesas INT NOT NULL AUTO_INCREMENT,
-      id_canon_operario INT NOT NULL,
+    CREATE TABLE IF NOT EXISTS canon_operador_canon_fijo_mesas (
+      id_canon_operador_canon_fijo_mesas INT NOT NULL AUTO_INCREMENT,
+      id_canon_operador INT NOT NULL,
       tipo VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       dias_valor SMALLINT NOT NULL,
       lunes_jueves TINYINT NOT NULL, -- bool
@@ -113,42 +116,44 @@ class CanonOperarioController extends Controller
       fijos TINYINT NOT NULL,
       devengar TINYINT NOT NULL,
       devengado_deduccion DECIMAL(20,2) NOT NULL,
-      PRIMARY KEY (id_canon_operario_canon_fijo_mesas),
-      UNIQUE KEY `unq_canon_operario_canon_fijo_mesas` (id_canon_operario,tipo),
-      CONSTRAINT `fk_canon_operario_canon_fijo_mesas_operario` FOREIGN KEY (`id_canon_operario`) REFERENCES `canon_operario` (`id_canon_operario`)
+      PRIMARY KEY (id_canon_operador_canon_fijo_mesas),
+      UNIQUE KEY `unq_canon_operador_canon_fijo_mesas` (id_canon_operador,tipo),
+      CONSTRAINT `fk_canon_operador_canon_fijo_mesas_operador` FOREIGN KEY (`id_canon_operador`) REFERENCES `canon_operador` (`id_canon_operador`)
     )
     ");
     
     DB::statement("
-    CREATE TABLE IF NOT EXISTS canon_operario_canon_fijo_mesas_adicionales (
-      id_canon_operario_canon_fijo_mesas_adicionales INT NOT NULL AUTO_INCREMENT,
-      id_canon_operario INT NOT NULL,
+    CREATE TABLE IF NOT EXISTS canon_operador_canon_fijo_mesas_adicionales (
+      id_canon_operador_canon_fijo_mesas_adicionales INT NOT NULL AUTO_INCREMENT,
+      id_canon_operador INT NOT NULL,
       tipo VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       dias_mes SMALLINT NOT NULL,
       horas_dia SMALLINT NOT NULL,
       porcentaje DECIMAL(7,4) NOT NULL,
       devengar TINYINT NOT NULL,
       devengado_deduccion DECIMAL(20,2) NOT NULL,
-      PRIMARY KEY (id_canon_operario_canon_fijo_mesas_adicionales),
-      UNIQUE KEY `unq_canon_operario_canon_fijo_mesas_adicionales` (id_canon_operario,tipo),
-      CONSTRAINT `fk_canon_operario_canon_fijo_mesas_adicionales_operario` FOREIGN KEY (`id_canon_operario`) REFERENCES `canon_operario` (`id_canon_operario`)
+      PRIMARY KEY (id_canon_operador_canon_fijo_mesas_adicionales),
+      UNIQUE KEY `unq_canon_operador_canon_fijo_mesas_adicionales` (id_canon_operador,tipo),
+      CONSTRAINT `fk_canon_operador_canon_fijo_mesas_adicionales_operador` FOREIGN KEY (`id_canon_operador`) REFERENCES `canon_operador` (`id_canon_operador`)
     )
     ");
     $this->CGO->up();
+    $this->CPe->up();
   }
   
   public function llenado_inicial(){
     return DB::transaction(function(){
       $this->up();
-      $operarios = $this->CV->get('operarios_iniciales');
+      $operadores = $this->CV->get('operadores_iniciales');
       $created_at = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
       $created_by = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       $ret = [];
-      foreach($operarios as $o){
+      foreach($operadores as $o){
         $ret[] = $this->_guardar($o,$created_at,$created_by);
-        $this->CGO->guardar_individual($o['id_operario'],$created_at,$created_by);
+        $this->CGO->guardar_individual($o['id_operador'],$created_at,$created_by);
       }
       $this->CGO->llenado_inicial($created_at,$created_by);
+      $this->CPe->llenado_inicial($created_at,$created_by);
       return $ret;
     });
   }
@@ -156,43 +161,43 @@ class CanonOperarioController extends Controller
   public function buscar(Request $request){
     $eliminados = $request->eliminados ?? 0;
     
-    return DB::table('canon_operario as co')
+    return DB::table('canon_operador as co')
     ->where(DB::raw('(deleted_at IS NOT NULL)'),$eliminados)
     ->where(DB::raw('(NOT EXISTS (
       SELECT 1 
-      FROM canon_operario co2 
+      FROM canon_operador co2 
       WHERE co2.deleted_at IS NULL 
-      AND co2.id_operario = co.id_operario 
-      AND co2.id_canon_operario <> co.id_canon_operario
+      AND co2.id_operador = co.id_operador 
+      AND co2.id_canon_operador <> co.id_canon_operador
       LIMIT 1
     ))'),1)
     //Es el ultimo
     ->where($eliminados ? 
       DB::raw('(NOT EXISTS (
         SELECT 1 
-        FROM canon_operario co2 
+        FROM canon_operador co2 
         WHERE co2.deleted_at IS NOT NULL 
-        AND co2.id_operario = co.id_operario 
+        AND co2.id_operador = co.id_operador 
         AND (
            co2.deleted_at > co.deleted_at
            OR (
-             co2.deleted_at = co.deleted_at AND co2.id_canon_operario > co.id_canon_operario
+             co2.deleted_at = co.deleted_at AND co2.id_canon_operador > co.id_canon_operador
            )
         )
-        AND co2.id_canon_operario <> co.id_canon_operario
+        AND co2.id_canon_operador <> co.id_canon_operador
         LIMIT 1
       ))')
       : DB::raw('1'),
       1
     )
-    ->orderBy('id_operario','desc')
+    ->orderBy('id_operador','desc')
     ->paginate($request->page_size ?? 10);
   }
   
-  public function _obtener($id_operario){
-    if($id_operario === null) return null;
-    $co = DB::table('canon_operario')
-    ->where('id_operario',$id_operario)
+  public function _obtener($id_operador){
+    if($id_operador === null) return null;
+    $co = DB::table('canon_operador')
+    ->where('id_operador',$id_operador)
     ->whereNull('deleted_at')
     ->first();
     
@@ -203,16 +208,16 @@ class CanonOperarioController extends Controller
   }
   
   public function obtener(Request $request){
-    return $this->_obtener($request->id_operario ?? null);
+    return $this->_obtener($request->id_operador ?? null);
   }
   
   public function obtenerConHistorial(Request $request){
-    $ultimo = $this->_obtener($request->id_operario ?? null);
+    $ultimo = $this->_obtener($request->id_operador ?? null);
     if($ultimo === null) return ['historial' => []];
     
-    $ultimo['historial'] = DB::table('canon_operario as co')
+    $ultimo['historial'] = DB::table('canon_operador as co')
     ->select('u.user_name as usuario','co.*')
-    ->where('co.id_operario',$ultimo['id_operario'])
+    ->where('co.id_operador',$ultimo['id_operador'])
     ->join('usuario as u','u.id_usuario','=','co.created_by')
     ->orderBy('co.created_at','desc')
     ->get()->map(function(&$co){
@@ -228,71 +233,71 @@ class CanonOperarioController extends Controller
     
     $to_array = function(\stdClass $o){return (array)$o;};
     
-    $co['cuentas'] = DB::table('canon_operario_cuenta')
-    ->where('id_canon_operario',$co['id_canon_operario'])
+    $co['cuentas'] = DB::table('canon_operador_cuenta')
+    ->where('id_canon_operador',$co['id_canon_operador'])
     ->get()->map($to_array)->toArray();
     
-    $co['canon_variable'] = DB::table('canon_operario_canon_variable')
-    ->where('id_canon_operario',$co['id_canon_operario'])
+    $co['canon_variable'] = DB::table('canon_operador_canon_variable')
+    ->where('id_canon_operador',$co['id_canon_operador'])
     ->get()->map($to_array)->toArray();
     
-    $co['canon_fijo_mesas'] = DB::table('canon_operario_canon_fijo_mesas')
-    ->where('id_canon_operario',$co['id_canon_operario'])
+    $co['canon_fijo_mesas'] = DB::table('canon_operador_canon_fijo_mesas')
+    ->where('id_canon_operador',$co['id_canon_operador'])
     ->get()->map($to_array)->toArray();
     
-    $co['canon_fijo_mesas_adicionales'] = DB::table('canon_operario_canon_fijo_mesas_adicionales')
-    ->where('id_canon_operario',$co['id_canon_operario'])
+    $co['canon_fijo_mesas_adicionales'] = DB::table('canon_operador_canon_fijo_mesas_adicionales')
+    ->where('id_canon_operador',$co['id_canon_operador'])
     ->get()->map($to_array)->toArray();
     
     return $co;
   }
   
   public function borrar(Request $request){
-    $id_operario = $request->id_operario ?? null;
-    if($id_operario === null) return 0;
-    return DB::transaction(function() use ($id_operario){
+    $id_operador = $request->id_operador ?? null;
+    if($id_operador === null) return 0;
+    return DB::transaction(function() use ($id_operador){
       $deleted_at = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
       $deleted_by = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       
-      DB::table('canon_operario')
-      ->where('id_operario',$id_operario)
+      DB::table('canon_operador')
+      ->where('id_operador',$id_operador)
       ->whereNull('deleted_at')
       ->update(compact('deleted_at','deleted_by'));
       
-      $this->CGO->borrar_individual($id_operario,$deleted_at,$deleted_by);
+      $this->CGO->borrar_individual($id_operador,$deleted_at,$deleted_by);
       
       return 1;
     });
   }
   
   public function desborrar(Request $request){
-    $id_operario = $request->id_operario ?? null;
-    if($id_operario === null) return 0;
-    $co = DB::table('canon_operario as co')
-    ->where('co.id_operario',$id_operario)
+    $id_operador = $request->id_operador ?? null;
+    if($id_operador === null) return 0;
+    $co = DB::table('canon_operador as co')
+    ->where('co.id_operador',$id_operador)
     ->whereNotNull('co.deleted_at')
     //No existe uno vivo
     ->where(DB::raw('(NOT EXISTS (
       SELECT 1 
-      FROM canon_operario co2 
+      FROM canon_operador co2 
       WHERE co2.deleted_at IS NULL 
-      AND co2.id_operario = co.id_operario 
-      AND co2.id_canon_operario <> co.id_canon_operario
+      AND co2.id_operador = co.id_operador 
+      AND co2.id_canon_operador <> co.id_canon_operador
       LIMIT 1
     ))'),1)
     //Es el ultimo
     ->where(DB::raw('(NOT EXISTS (
       SELECT 1 
-      FROM canon_operario co2 
+      FROM canon_operador co2 
       WHERE co2.deleted_at IS NOT NULL 
-      AND co2.id_operario = co.id_operario 
+      AND co2.id_operador = co.id_operador 
       AND (
          co2.deleted_at > co.deleted_at
          OR (
-           co2.deleted_at = co.deleted_at AND co2.id_canon_operario > co.id_canon_operario
+           co2.deleted_at = co.deleted_at AND co2.id_canon_operador > co.id_canon_operador
          )
       )
-      AND co2.id_canon_operario <> co.id_canon_operario
+      AND co2.id_canon_operador <> co.id_canon_operador
       LIMIT 1
     ))'),1)
     ->first();
@@ -305,32 +310,32 @@ class CanonOperarioController extends Controller
       $created_at = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
       $created_by = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
       
-      unset($co['id_canon_operario']);
+      unset($co['id_canon_operador']);
       unset($co['created_at']);
       unset($co['created_by']);
       unset($co['deleted_at']);
       unset($co['deleted_by']);
-      unset($co['id_operario_deleted_at']);
+      unset($co['id_operador_deleted_at']);
       
       foreach($co as $attr => &$arr){
         if(!is_array($arr)) continue;
         foreach($arr as &$obj){
-          unset($obj['id_canon_operario_cuenta']);
-          unset($obj['id_canon_operario_canon_variable']);
-          unset($obj['id_canon_operario_canon_fijo_mesas']);
-          unset($obj['id_canon_operario_canon_fijo_mesas_adicionales']);
+          unset($obj['id_canon_operador_cuenta']);
+          unset($obj['id_canon_operador_canon_variable']);
+          unset($obj['id_canon_operador_canon_fijo_mesas']);
+          unset($obj['id_canon_operador_canon_fijo_mesas_adicionales']);
         }
       }
       
       $ret = $this->_guardar($co,$created_at,$created_by);
-      $this->CGO->desborrar_individual($co['id_operario'],$created_at,$created_by);
+      $this->CGO->desborrar_individual($co['id_operador'],$created_at,$created_by);
       
       return $ret;
     });
   }
   
   private function _guardar(array $co,$created_at,$created_by){
-    unset($co['id_canon_operario']);
+    unset($co['id_canon_operador']);
     
     $cuentas = $co['cuentas'] ?? [];
     unset($co['cuentas']);
@@ -346,42 +351,42 @@ class CanonOperarioController extends Controller
     
     $co['created_at'] = $created_at;
     $co['created_by'] = $created_by;
-    $id_canon_operario = DB::table('canon_operario')
+    $id_canon_operador = DB::table('canon_operador')
     ->insertGetId($co);
     
-    DB::table('canon_operario_cuenta')
+    DB::table('canon_operador_cuenta')
     ->insert(
-      array_map(function($c) use ($id_canon_operario){
-        $c['id_canon_operario'] = $id_canon_operario;
+      array_map(function($c) use ($id_canon_operador){
+        $c['id_canon_operador'] = $id_canon_operador;
         return $c;
       },$cuentas)
     );
     
-    DB::table('canon_operario_canon_variable')
+    DB::table('canon_operador_canon_variable')
     ->insert(
-      array_map(function($c) use ($id_canon_operario){
-        $c['id_canon_operario'] = $id_canon_operario;
+      array_map(function($c) use ($id_canon_operador){
+        $c['id_canon_operador'] = $id_canon_operador;
         return $c;
       },$canon_variable)
     );
     
-    DB::table('canon_operario_canon_fijo_mesas')
+    DB::table('canon_operador_canon_fijo_mesas')
     ->insert(
-      array_map(function($c) use ($id_canon_operario){
-        $c['id_canon_operario'] = $id_canon_operario;
+      array_map(function($c) use ($id_canon_operador){
+        $c['id_canon_operador'] = $id_canon_operador;
         return $c;
       },$canon_fijo_mesas)
     );
     
-    DB::table('canon_operario_canon_fijo_mesas_adicionales')
+    DB::table('canon_operador_canon_fijo_mesas_adicionales')
     ->insert(
-      array_map(function($c) use ($id_canon_operario){
-        $c['id_canon_operario'] = $id_canon_operario;
+      array_map(function($c) use ($id_canon_operador){
+        $c['id_canon_operador'] = $id_canon_operador;
         return $c;
       },$canon_fijo_mesas_adicionales)
     );
       
-    return $this->_obtener($co['id_operario']);
+    return $this->_obtener($co['id_operador']);
   }
   
   public function guardar(Request $request){
@@ -404,8 +409,8 @@ class CanonOperarioController extends Controller
     $movimiento_dia_fin_de_semana = 'in:Lunes Próximo,Viernes Anterior,Sin Movimiento';
 
     Validator::make($request->all(),[
-      'id_canon_operario' => ['nullable','integer','exists:canon_operario,id_canon_operario,deleted_at,NULL'],
-      'id_operario' => ['nullable','integer'],
+      'id_canon_operador' => ['nullable','integer','exists:canon_operador,id_canon_operador,deleted_at,NULL'],
+      'id_operador' => ['nullable','integer'],
       'nombre_legal' => ['required','string','max:64'],
       'nombre' => ['required','string','max:64'],
       'codigo' => ['required','string','max:16'],
@@ -472,44 +477,44 @@ class CanonOperarioController extends Controller
     ],[])->after(function($validator) use (&$co){
       if($validator->errors()->any()) return;
       $data = $validator->getData();
-      $id_canon_operario = $data['id_canon_operario'] ?? null;
-      $id_operario = $data['id_operario'] ?? null;
+      $id_canon_operador = $data['id_canon_operador'] ?? null;
+      $id_operador = $data['id_operador'] ?? null;
       
-      if($id_canon_operario === null && $id_operario !== null){
-        $ya_existe = DB::table('canon_operario')
-        ->where('id_operario',$id_operario)
+      if($id_canon_operador === null && $id_operador !== null){
+        $ya_existe = DB::table('canon_operador')
+        ->where('id_operador',$id_operador)
         ->whereNull('deleted_at')
         ->count() > 0;
         if($ya_existe){
-          return $validator->errors()->add('id_operario','Ya existe, ingresar otro o modificar el operario ya existente');
+          return $validator->errors()->add('id_operador','Ya existe, ingresar otro o modificar el operador ya existente');
         }
       }
-      else if($id_canon_operario === null && $id_operario === null){
-        return $validator->errors()->add('id_operario','El valor es requerido');
+      else if($id_canon_operador === null && $id_operador === null){
+        return $validator->errors()->add('id_operador','El valor es requerido');
       }
-      else if($id_canon_operario !== null && $id_operario === null){
-        return $validator->errors()->add('id_operario','El valor es requerido');
+      else if($id_canon_operador !== null && $id_operador === null){
+        return $validator->errors()->add('id_operador','El valor es requerido');
       }
-      else if($id_canon_operario !== null && $id_operario !== null){
-        $co = DB::table('canon_operario')
-        ->where('id_canon_operario',$id_canon_operario)
-        ->where('id_operario',$id_operario)
+      else if($id_canon_operador !== null && $id_operador !== null){
+        $co = DB::table('canon_operador')
+        ->where('id_canon_operador',$id_canon_operador)
+        ->where('id_operador',$id_operador)
         ->whereNull('deleted_at')
         ->first();
         if($co === null){
-          return $validator->errors()->add('id_operario','No existe esta instancia para editar intente refrescar la pagina');
+          return $validator->errors()->add('id_operador','No existe esta instancia para editar intente refrescar la pagina');
         }
       }
       else{
-        return $validator->errors()->add('id_operario','UNREACHABLE');
+        return $validator->errors()->add('id_operador','UNREACHABLE');
       }
     })->validate();
     
     return DB::transaction(function() use ($request,&$nuevo,&$co,$created_at,$created_by){
       if($co !== null){ //Estoy modificando, tengo que invalidar el viejo
-        DB::table('canon_operario')
-        ->where('id_canon_operario',$co->id_canon_operario)
-        ->where('id_operario',$co->id_operario)
+        DB::table('canon_operador')
+        ->where('id_canon_operador',$co->id_canon_operador)
+        ->where('id_operador',$co->id_operador)
         ->whereNull('deleted_at')
         ->update([
           'deleted_at' => $created_at,
@@ -518,7 +523,7 @@ class CanonOperarioController extends Controller
       }
       
       $data = $request->all();
-      unset($data['id_canon_operario']);
+      unset($data['id_canon_operador']);
       
       $cuentas = $data['cuentas'] ?? [];
       unset($data['cuentas']);
@@ -537,23 +542,23 @@ class CanonOperarioController extends Controller
       $data['canon_fijo_mesas_adicionales'] = $canon_fijo_mesas_adicionales;
 
       $ret = $this->_guardar($data,$created_at,$created_by);
-      $this->CGO->guardar_individual($data['id_operario'],$created_at,$created_by);
+      $this->CGO->guardar_individual($data['id_operador'],$created_at,$created_by);
       return $ret;
     });
   }
   
   private $op_cache = [];
-  public function obtener_operario($id_operario){
-    if(!array_key_exists($id_operario,$this->op_cache)){
-      $op = $this->_obtener($id_operario) ?? [];
+  public function obtener_operador($id_operador){
+    if(!array_key_exists($id_operador,$this->op_cache)){
+      $op = $this->_obtener($id_operador) ?? [];
       $to_array = function($o){return (array)$o;};
       $op['cuentas'] = collect($op['cuentas'])->map($to_array)->keyBy('nombre')->toArray();
       $op['canon_variable'] = collect($op['canon_variable'])->map($to_array)->keyBy('tipo')->toArray();
       $op['canon_fijo_mesas'] = collect($op['canon_fijo_mesas'])->map($to_array)->keyBy('tipo')->toArray();
       $op['canon_fijo_mesas_adicionales'] = collect($op['canon_fijo_mesas_adicionales'])->map($to_array)->keyBy('tipo')->toArray();
-      $this->op_cache[$id_operario] = $op;
+      $this->op_cache[$id_operador] = $op;
     }
-    return $this->op_cache[$id_operario];
+    return $this->op_cache[$id_operador];
   }
   
   public function mover_fecha(\DateTimeImmutable $date,$movimiento = null){

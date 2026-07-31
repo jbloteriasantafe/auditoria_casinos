@@ -28,7 +28,7 @@ class CanonPagoController extends Controller
     self::$instance = $this;
     $this->CC = CanonController::getInstancia();
     $this->CV = CanonValorPorDefectoController::getInstancia();
-    $this->CO = CanonOperarioController::getInstancia();
+    $this->CO = CanonOperadorController::getInstancia();
     $this->middleware(function ($request, $next) {
       $this->u = UsuarioController::getInstancia()->quienSoy()['usuario'];
       return $next($request);
@@ -93,7 +93,7 @@ class CanonPagoController extends Controller
     $id_casino = $R('id_casino');//@RETORNADO
     $estado = $R('estado');//@RETORNADO
     
-    $co = $this->CO->obtener_operario($id_casino);
+    $co = $this->CO->operador($id_casino);
     $cuenta = [];
     foreach($co['cuentas'] ?? [] as $c){
       $cuenta = $c;

@@ -79,10 +79,10 @@
         <?php 
           $colspan = ['width: 5em;','','','','']; $C = count($colspan); 
           $DEC = function($val){
-            return $val === null? '-' : \App\Http\Controllers\CanonController::formatear_decimal($val);
+            return $val === null? '-' : bc_formatear_decimal($val);
           };
           $PJE = function($val){
-            return $val === null? '-' : \App\Http\Controllers\CanonController::formatear_decimal($val).'%';
+            return $val === null? '-' : bc_formatear_decimal($val).'%';
           };
         ?>
         <colgroup>
