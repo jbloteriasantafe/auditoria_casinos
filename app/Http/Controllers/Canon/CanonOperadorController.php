@@ -34,16 +34,19 @@ class CanonOperadorController extends Controller
   }
   
   public function down(){
-    $this->CPe->down();
     $this->CGO->down();
+    
     DB::unprepared("DROP TABLE IF EXISTS canon_operador_canon_variable");
     DB::unprepared("DROP TABLE IF EXISTS canon_operador_canon_fijo_mesas");
     DB::unprepared("DROP TABLE IF EXISTS canon_operador_canon_fijo_mesas_adicionales");
     DB::unprepared("DROP TABLE IF EXISTS canon_operador_cuenta");
     DB::unprepared("DROP TABLE IF EXISTS canon_operador");
+    CANON_STREAM_STR('CANON_OPERADOR: DOWN');
+    
+    $this->CPe->down();
   }
   
-  public function up(){
+  private function up(){
     DB::statement("
     CREATE TABLE IF NOT EXISTS canon_operador (
       id_canon_operador INT NOT NULL AUTO_INCREMENT,
@@ -144,24 +147,29 @@ class CanonOperadorController extends Controller
       CONSTRAINT `fk_canon_operador_canon_fijo_mesas_adicionales_operador` FOREIGN KEY (`id_canon_operador`) REFERENCES `canon_operador` (`id_canon_operador`)
     )
     ");
-    $this->CGO->up();
-    $this->CPe->up();
+    CANON_STREAM_STR('CANON_OPERADOR: UP');
   }
   
   public function llenado_inicial(){
-    return DB::transaction(function(){
-      $this->up();
-      $operadores = $this->CV->get('operadores_iniciales');
-      $created_at = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
-      $created_by = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
-      $ret = [];
-      foreach($operadores as $o){
-        $ret[] = $this->_guardar($o,$created_at,$created_by);
-        $this->CGO->guardar_individual($o['id_operador'],$created_at,$created_by);
-      }
-      $this->CGO->llenado_inicial($created_at,$created_by);
-      $this->CPe->llenado_inicial($created_at,$created_by);
-      return $ret;
+    CANON_STREAM_STR(true);
+    return response()->stream(function(){   
+      return DB::transaction(function(){
+        $created_at = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
+        $created_by = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
+        $this->CGO->llenado_inicial($created_at,$created_by);
+        
+        $this->up();
+        $operadores = $this->CV->get('operadores_iniciales');
+        foreach($operadores as $o){
+          $ret[] = $this->_guardar($o,$created_at,$created_by);
+          CANON_STREAM_STR('OPERADOR: '.$o['id_operador']);
+          $this->CGO->guardar_individual($o['id_operador'],$created_at,$created_by);
+          CANON_STREAM_STR('G. OPERADOR: '.$o['id_operador']);
+        }
+        
+        $this->CPe->llenado_inicial($created_at,$created_by);
+        return $ret;
+      });
     });
   }
   

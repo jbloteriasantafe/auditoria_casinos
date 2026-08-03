@@ -54,6 +54,7 @@ class CanonAgrupamientoController extends Controller
   
   private $u = null;
   private $CVD = null;
+  private $CGO = null;
   public function __construct(){
     self::$instance = $this;
     $this->CVD = CanonValorPorDefectoController::getInstancia();
@@ -68,6 +69,7 @@ class CanonAgrupamientoController extends Controller
     DB::unprepared("DROP FUNCTION IF EXISTS canon_agrupamiento_hash");
     DB::unprepared("DROP TABLE IF EXISTS canon_subcanon_a_grupo");
     DB::unprepared("DROP TABLE IF EXISTS canon_agrupamiento");
+    CANON_STREAM_STR('CANON_AGRUPAMIENTO: DOWN');
   }
   
   public function up(){
@@ -176,6 +178,8 @@ class CanonAgrupamientoController extends Controller
       UNIQUE KEY unq_canon_agrupamiento_hash (hash)
     )
     ");
+    
+    CANON_STREAM_STR('CANON_AGRUPAMIENTO: UP');
   }
     
   private function inicializar_agrupamientos(string $año_mes){
@@ -573,39 +577,39 @@ class CanonAgrupamientoController extends Controller
     );
   }
   
+  public function llenado_inicial($created_at,$created_by){//Sin transaccion porque se llama desde CanonOperadorController con transaccion
+    $this->up();
+    return $this->recalcular_todos();
+  }
+  
+  public function recalcular_todos(){
+    $año_meses = DB::table('canon')
+    ->select('año_mes')->distinct()
+    ->whereNull('deleted_at')
+    ->get()->pluck('año_mes')->toArray();
+    $this->down();
+    $this->up();
+    $agrupamientos_detallados = $this->agrupamientos_detallados($this->CVD->get('agrupamientos') ?? []);
+    $this->guardarAgrupamientos($agrupamientos_detallados);
+    CANON_STREAM_STR('AGRUPAMIENTOS: INICIALES GUARDARDOS');
+    return $this->recalcular_agrupamientos($año_meses,true);
+  }
+    
   public function recalcular_agrupamientos_req(){
-    return DB::transaction(function(){
-      $año_meses = DB::table('canon')
-      ->select('año_mes')->distinct()
-      ->whereNull('deleted_at')
-      ->get()->pluck('año_mes')->toArray();
-      $this->down();
-      $this->up();
-      $agrupamientos_detallados = $this->agrupamientos_detallados($this->CVD->get('agrupamientos') ?? []);
-      $this->guardarAgrupamientos($agrupamientos_detallados);
-      return $this->recalcular_agrupamientos($año_meses,true);
+    CANON_STREAM_STR(true);
+    return response()->stream(function(){   
+      return DB::transaction(function(){
+        return $this->recalcular_todos();
+      });
     });
   }
   
   public function recalcular_agrupamientos(array $año_meses,bool $stream_progress){
-    if($stream_progress){
-      return response()->stream(function() use ($año_meses){        
-        foreach($año_meses as $idx => $am){
-          $this->recalcular($am);
-          echo '<p>'.($am.' | '.round(($idx+1.0)/count($año_meses)*100,2).'%').'</p>';
-          ob_flush();
-          flush();
-        }
-      }, 200, [
-        'X-Accel-Buffering' => 'no', // Prevents Nginx from buffering the output
-      ]);
+    foreach($año_meses as $idx => $am){
+      $this->recalcular($am);
+      CANON_STREAM_STR(($am.' | '.round(($idx+1.0)/count($año_meses)*100,2).'%'));
     }
-    else{
-      foreach($año_meses as $idx => $am){
-        $this->recalcular($am);
-      }
-      return $año_meses;
-    }
+    return $año_meses;
   }
   
   private function _group_dependencias($data){

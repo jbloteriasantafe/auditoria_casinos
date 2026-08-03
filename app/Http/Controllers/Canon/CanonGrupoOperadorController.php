@@ -6,6 +6,7 @@ use App\Http\Controllers\UsuarioController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Validator;
+use Illuminate\Support\Facades\Schema;
 
 class CanonGrupoOperadorController extends Controller
 {
@@ -17,14 +18,22 @@ class CanonGrupoOperadorController extends Controller
   }
   
   private $CV = null;
+  private $CAgg = null;
+  private $mocking = true;
   public function __construct(){
     self::$instance = $this;
     $this->CV = CanonValorPorDefectoController::getInstancia();
+    $this->CAgg = CanonAgrupamientoController::getInstancia();
+    $this->mocking = !Schema::hasTable('canon_grupo_operador_operador');
+    $this->mocking = $this->mocking || !Schema::hasTable('canon_grupo_operador_operador');
   }
   
   public function down(){
     DB::unprepared("DROP TABLE IF EXISTS canon_grupo_operador_operador");
     DB::unprepared("DROP TABLE IF EXISTS canon_grupo_operador");
+    CANON_STREAM_STR('CANON_GRUPO_OPERADOR: DOWN');
+    
+    $this->CAgg->down();
   }
   
   public function up(){
@@ -61,29 +70,33 @@ class CanonGrupoOperadorController extends Controller
       CONSTRAINT `fk_canon_grupo_operador_operador` FOREIGN KEY (`id_canon_grupo_operador`) REFERENCES `canon_grupo_operador` (`id_canon_grupo_operador`)
     )
     ");
+    CANON_STREAM_STR('CANON_GRUPO_OPERADOR: UP');
+    
   }
     
   public function llenado_inicial($created_at,$created_by){//Sin transaccion porque se llama desde CanonOperadorController con transaccion
     $this->up();
-    $grupos_operadors = $this->CV->get('grupos_operadors_iniciales');
+    $grupos_operadores = $this->CV->get('grupos_operadores_iniciales');
     $ret = [];
-    foreach($grupos_operadors as $g){
+    foreach($grupos_operadores as $g){
       $ret[] = $this->_guardar($g,$created_at,$created_by);
+      CANON_STREAM_STR('GRUPO OPERADOR: '.$g['id_grupo_operador']);
     }
+    $this->CAgg->llenado_inicial($created_at,$created_by);
     return $ret;
   }
   
   public function buscar(Request $request){
     $eliminados = $request->eliminados ?? 0;
     
-    $operadors = '(
+    $operadores = '(
       SELECT GROUP_CONCAT(COALESCE(co.codigo,cgoo.id_operador) ORDER BY cgoo.id_operador asc  SEPARATOR ", " ) 
       FROM canon_grupo_operador_operador as cgoo 
       LEFT JOIN canon_operador as co ON co.id_operador = cgoo.id_operador AND co.deleted_at IS NULL
       WHERE cgoo.id_canon_grupo_operador = cgo.id_canon_grupo_operador GROUP BY "constant"
     ) as operadors';
     return DB::table('canon_grupo_operador as cgo')
-    ->select('cgo.*',DB::raw($operadors))
+    ->select('cgo.*',DB::raw($operadores))
     ->where(DB::raw('(deleted_at IS NOT NULL)'),$eliminados)
     ->where(DB::raw('(NOT EXISTS (
       SELECT 1 
@@ -117,7 +130,7 @@ class CanonGrupoOperadorController extends Controller
   }
   
   private function _obtener($id_grupo_operador){
-    if($id_grupo_operador === null) return null;
+    if($this->mocking || $id_grupo_operador === null) return null;
     $cgo = DB::table('canon_grupo_operador')
     ->where('id_grupo_operador',$id_grupo_operador)
     ->whereNull('deleted_at')
@@ -126,7 +139,7 @@ class CanonGrupoOperadorController extends Controller
     if($cgo === null) return null;
     
     $cgo = (array) $cgo;
-    return $this->agregar_operadors($cgo);
+    return $this->agregar_operadores($cgo);
   }
   
   public function obtener(Request $request){
@@ -144,16 +157,16 @@ class CanonGrupoOperadorController extends Controller
     ->orderBy('cgo.created_at','desc')
     ->get()->map(function(&$cgo){
       $cgo = (array) $cgo;
-      return $this->agregar_operadors($cgo);
+      return $this->agregar_operadores($cgo);
     });
     
     return $ultimo;
   }
   
-  private function agregar_operadors(&$cgo){
+  private function agregar_operadores(&$cgo){
     if($cgo === null) return null;
     
-    $cgo['operadors'] = DB::table('canon_grupo_operador_operador')
+    $cgo['operadores'] = DB::table('canon_grupo_operador_operador')
     ->where('id_canon_grupo_operador',$cgo['id_canon_grupo_operador'])
     ->get()->map(function($o){return (array)$o;})->toArray();
     return $cgo;
@@ -209,7 +222,7 @@ class CanonGrupoOperadorController extends Controller
     
     if($cgo === null) return 0;
     $cgo = (array) $cgo;
-    $cgo = $this->agregar_operadors($cgo);
+    $cgo = $this->agregar_operadores($cgo);
     
     return DB::transaction(function() use ($cgo){
       $created_at = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
@@ -221,8 +234,8 @@ class CanonGrupoOperadorController extends Controller
       unset($cgo['deleted_at']);
       unset($cgo['deleted_by']);
       unset($cgo['id_grupo_operador_deleted_at']);
-      foreach(($cgo['operadors'] ?? []) as $oidx => &$o){
-        unset($cgo['operadors'][$oidx]['id_canon_grupo_operador_operador']);
+      foreach(($cgo['operadores'] ?? []) as $oidx => &$o){
+        unset($cgo['operadores'][$oidx]['id_canon_grupo_operador_operador']);
       }
       
       return $this->_guardar((array) $cgo,$created_at,$created_by);
@@ -238,7 +251,7 @@ class CanonGrupoOperadorController extends Controller
       'abbr' => $o['abbr'],
       'color' => $o['color'],
       'es_individual' => 1,
-      'operadors' => [
+      'operadores' => [
         [
           'id_operador' => $id_operador,
           'id_grupo_operador' => $id_operador
@@ -265,11 +278,12 @@ class CanonGrupoOperadorController extends Controller
     
     unset($cgo['id_canon_grupo_operador']);
     
-    $operadors = $cgo['operadors'] ?? [];
-    unset($cgo['operadors']);
+    $operadores = $cgo['operadores'] ?? [];
+    unset($cgo['operadores']);
         
     $cgo['created_at'] = $created_at;
     $cgo['created_by'] = $created_by;
+    
     $id_canon_grupo_operador = DB::table('canon_grupo_operador')
     ->insertGetId($cgo);
     
@@ -280,7 +294,7 @@ class CanonGrupoOperadorController extends Controller
         $o['id_canon_grupo_operador'] = $id_canon_grupo_operador;
         $o['id_grupo_operador'] = $cgo['id_grupo_operador'];
         return $o;
-      },$operadors)
+      },$operadores)
     );
           
     return $this->_obtener($cgo['id_grupo_operador']);
@@ -298,8 +312,8 @@ class CanonGrupoOperadorController extends Controller
       'codigo' => ['required','string','max:16'],
       'abbr' => ['required','string','max:16'],
       'color' => ['required','string','max:16'],
-      'operadors' => ['required','array','min:1'],
-      'operadors.*.id_operador' => ['required','integer'] //@TODO: verificar existencia?
+      'operadores' => ['required','array','min:1'],
+      'operadores.*.id_operador' => ['required','integer'] //@TODO: verificar existencia?
     ], [
       'required' => 'El valor es requerido',
       'integer' => 'Tiene que ser un número',

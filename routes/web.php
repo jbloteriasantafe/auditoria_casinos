@@ -1650,6 +1650,21 @@ Route::group(['prefix' => 'canon','middleware' => 'tiene_permiso:m_ver_seccion_c
 
 $CPermiso = \App\Http\Controllers\Canon\Middleware\CanonPermiso::class;
 Route::group(['prefix' => 'canon', 'middleware' => "${CPermiso}:canon_ver"], function () use ($CPermiso) {
+  function CANON_STREAM_STR($str){
+    static $stream = false;
+    if($str === false){
+      $stream = false;
+      return;
+    }
+    if($str === true){
+      $stream = true;
+      return;
+    }
+    echo '<p>'.$str.'</p>';
+    ob_flush();
+    flush();
+    error_log($str);
+  }
   Route::get('/', '\App\Http\Controllers\Canon\CanonController@index');
   Route::post('/buscar', '\App\Http\Controllers\Canon\CanonController@buscar');
   Route::post('/descargar', '\App\Http\Controllers\Canon\CanonInformeController@descargar');
@@ -1689,7 +1704,6 @@ Route::group(['prefix' => 'canon', 'middleware' => "${CPermiso}:canon_ver"], fun
   Route::group(['prefix' => 'operador', 'middleware' => "${CPermiso}:canon_operador_ver"] ,function() use ($CPermiso){
     Route::group(['middleware' => 'tiene_rol:superusuario'],function(){
       Route::get('/down','\App\Http\Controllers\Canon\CanonOperadorController@down');
-      Route::get('/up','\App\Http\Controllers\Canon\CanonOperadorController@up');
       Route::get('/llenado_inicial','\App\Http\Controllers\Canon\CanonOperadorController@llenado_inicial');
     });
     Route::post('/buscar','\App\Http\Controllers\Canon\CanonOperadorController@buscar');
@@ -1717,8 +1731,6 @@ Route::group(['prefix' => 'canon', 'middleware' => "${CPermiso}:canon_ver"], fun
     Route::post('/buscar_calculado','\App\Http\Controllers\Canon\CanonAgrupamientoController@buscar_calculado');
     Route::get('/buscar_calculado','\App\Http\Controllers\Canon\CanonAgrupamientoController@buscar_calculado');
     Route::group(['middleware' => 'tiene_rol:superusuario'],function(){
-      Route::get('/down','\App\Http\Controllers\Canon\CanonAgrupamientoController@down');
-      Route::get('/up','\App\Http\Controllers\Canon\CanonAgrupamientoController@up');
       Route::get('/recalcular_todos','\App\Http\Controllers\Canon\CanonAgrupamientoController@recalcular_agrupamientos_req');
       //Para debug
       Route::get('/por_defecto','\App\Http\Controllers\Canon\CanonAgrupamientoController@por_defecto_req');
@@ -1738,6 +1750,7 @@ Route::group(['prefix' => 'canon', 'middleware' => "${CPermiso}:canon_ver"], fun
     });
   });
 });
+unset($CPermiso);
 
 Route::group(['prefix' => 'informesGenerales'], function () {//@TODO: agregar permiso
   Route::get('/beneficios', 'InformesGeneralesController@beneficios');

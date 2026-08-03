@@ -28,6 +28,7 @@ class CanonPermisoController extends Controller
   public function down(){
     DB::unprepared("DROP TABLE IF EXISTS canon_permiso");
     DB::unprepared("DROP TABLE IF EXISTS canon_permiso_usuario");
+    CANON_STREAM_STR('CANON_PERMISO: DOWN');
   }
   
   public function up(){
@@ -57,6 +58,7 @@ class CanonPermisoController extends Controller
       CONSTRAINT `fk_canon_permiso_usuario_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `usuario` (`id_usuario`)
     )
     ");
+    CANON_STREAM_STR('CANON_PERMISO: UP');
   }
   
   private function map_permisos(){
@@ -105,6 +107,7 @@ class CanonPermisoController extends Controller
   }
   
   public function llenado_inicial($created_at,$created_by){
+    $this->up();
     $permisos = $this->map_permisos();
     
     {
@@ -130,7 +133,8 @@ class CanonPermisoController extends Controller
       'deleted_by' => null
     ];
     
-    foreach($usuarios_bd as $u){
+    foreach($usuarios_bd as $uidx => $u){
+      CANON_STREAM_STR('CANON_PERMISO: Usuario '.($uidx+1).'/'.count($usuarios_bd));
       $ps = $this->mocking_permisosIntersect($u->id_usuario,array_keys($permisos));
       $i['id_usuario'] = $u->id_usuario;
       

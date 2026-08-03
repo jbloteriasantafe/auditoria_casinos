@@ -251,10 +251,7 @@
     @endif
     @if($permisos['canon_agrupamiento_cargar'] || $permisos['canon_agrupamiento_ver'])
     <div>
-      <a data-js-tab="#pant_grupos_operadores">Grupos Op.</a>
-    </div>
-    <div>
-      <a data-js-tab="#pant_agrupamientos">Agrupamientos</a>
+      <a data-js-tab="#pant_agrupamientos_todos">Agrupamientos</a>
     </div>
     <div>
       <a data-js-tab="#pant_defecto">Valores por Defecto</a>
@@ -503,71 +500,75 @@
 
 @if($permisos['canon_agrupamiento_cargar'] || $permisos['canon_agrupamiento_ver'])
 
-<div id="pant_grupos_operadores" hidden>
-  @component('Components/FiltroTabla')
-    @slot('titulo')
-    Grupos Operarios
-    @if($permisos['canon_agrupamiento_cargar'])
-    <button class="btn" type="button" data-js-nuevo="/canon/grupo_operador/obtener">NUEVO</button>
-    @endif
-    @endslot
-    
-    @slot('target_buscar')
-    /canon/grupo_operador/buscar
-    @endslot
-    
-    @slot('filtros')
-    @if($permisos['canon_agrupamiento_deseliminar'])
-    <div class="col-md-4">
-      <h5>ELIMINADOS</h5>
-      <select class="form-control" name="eliminados">
-        <option value='0' selected>NO</option>
-        <option value='1'>SI</option>
-      </select>
-    </div>
-    @endif
-    @endslot
-    
-    @slot('cabecera')
-    <tr>
-      <th>ID</th>
-      <th>NOMBRE</th>
-      <th>OPERARIOS</th>
-      <th>ACCION</th>
-    </tr>
-    @endslot
-    
-    @slot('molde')
-    <tr data-table-id="id_grupo_operador">
-      <td class="id_grupo_operador">ID</td>
-      <td class="nombre">NOMBRE</td>
-      <td class="operarios">OPERARIOS</td>
-      <td>
-        @if($permisos['canon_agrupamiento_ver'])
-        <button class="btn" type="button" data-es_individual="|0|1|" data-js-ver="/canon/grupo_operador/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
-        @endif
-        @if($permisos['canon_agrupamiento_cargar'])
-        <button class="btn" type="button" data-es_individual="|0|" data-js-editar="/canon/grupo_operador/obtener" title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
-        @endif
-        @if($permisos['canon_agrupamiento_deseliminar'])
-        <button data-mostrar-borrado data-es_individual="|0|" class="btn" type="button" data-js-desborrar="/canon/grupo_operador/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
-          <i class="fa fa-backward"></i>
-        </button>
-        @endif
-        @if($permisos['canon_agrupamiento_ver'] || $permisos['canon_agrupamiento_cargar'])
-        <button class="btn" type="button" data-es_individual="|0|" data-js-borrar="/canon/grupo_operador/borrar" title="BORRAR">
-          <i class="fa fa-fw fa-trash-alt"></i>
-        </button>
-        @endif
-      </td>
-    </tr>
-    @endslot
-  @endcomponent
-</div>
 
-<div id="pant_agrupamientos">
-  @component('Canon.bAgrupamientos')
-  @endcomponent
+<div id="pant_agrupamientos_todos">
+  <div class="col-md-6" id="pant_agrupamientos">
+    @component('Canon.bAgrupamientos')
+    @endcomponent
+  </div>
+  
+  <div class="col-md-6" id="pant_grupos_operadores">
+    @component('Components/FiltroTabla')
+      @slot('titulo')
+      Grupos Operarios
+      @if($permisos['canon_agrupamiento_cargar'])
+      <button class="btn" type="button" data-js-nuevo="/canon/grupo_operador/obtener">NUEVO</button>
+      @endif
+      @endslot
+      
+      @slot('target_buscar')
+      /canon/grupo_operador/buscar
+      @endslot
+      
+      @slot('filtros')
+      @if($permisos['canon_agrupamiento_deseliminar'])
+      <div class="col-md-4">
+        <h5>ELIMINADOS</h5>
+        <select class="form-control" name="eliminados">
+          <option value='0' selected>NO</option>
+          <option value='1'>SI</option>
+        </select>
+      </div>
+      @endif
+      @endslot
+      
+      @slot('cabecera')
+      <tr>
+        <th>ID</th>
+        <th>NOMBRE</th>
+        <th>OPERARIOS</th>
+        <th>ACCION</th>
+      </tr>
+      @endslot
+      
+      @slot('molde')
+      <tr data-table-id="id_grupo_operador">
+        <td class="id_grupo_operador">ID</td>
+        <td class="nombre">NOMBRE</td>
+        <td class="operarios">OPERARIOS</td>
+        <td>
+          @if($permisos['canon_agrupamiento_ver'])
+          <button class="btn" type="button" data-es_individual="|0|1|" data-js-ver="/canon/grupo_operador/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
+          @endif
+          @if($permisos['canon_agrupamiento_cargar'])
+          <button class="btn" type="button" data-es_individual="|0|" data-js-editar="/canon/grupo_operador/obtener" title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
+          @endif
+          @if($permisos['canon_agrupamiento_deseliminar'])
+          <button data-mostrar-borrado data-es_individual="|0|" class="btn" type="button" data-js-desborrar="/canon/grupo_operador/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
+            <i class="fa fa-backward"></i>
+          </button>
+          @endif
+          @if($permisos['canon_agrupamiento_ver'] || $permisos['canon_agrupamiento_cargar'])
+          <button class="btn" type="button" data-es_individual="|0|" data-js-borrar="/canon/grupo_operador/borrar" title="BORRAR">
+            <i class="fa fa-fw fa-trash-alt"></i>
+          </button>
+          @endif
+        </td>
+      </tr>
+      @endslot
+    @endcomponent
+  </div>
+
 </div>
 
 <div id="pant_defecto" hidden>
