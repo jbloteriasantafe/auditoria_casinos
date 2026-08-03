@@ -35,6 +35,160 @@ class CanonPagoController extends Controller
     });
   }
   
+  public function down(){
+    DB::unprepared("DROP TABLE IF EXISTS canon_cuenta");
+    CANON_STREAM_STR('CANON_PAGO: DOWN');
+  }
+  
+  public function up(){
+    $tiene_cuenta = DB::table('canon_pago')->first();
+    if($tiene_cuenta !== null && !isset($tiene_cuenta->cuenta)){
+      DB::statement("ALTER TABLE canon_pago 
+        ADD cuenta 
+          VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin 
+          NOT NULL 
+          DEFAULT '' 
+          AFTER id_canon
+      ");
+      DB::statement("ALTER TABLE `bdMTM`.`canon_pago` ADD INDEX idx_canon_pago_canon_cuenta (id_canon,cuenta)");
+    }
+    
+    DB::statement("
+    CREATE TABLE IF NOT EXISTS canon_cuenta (
+      id_canon_cuenta INT NOT NULL AUTO_INCREMENT,
+      id_canon INT NOT NULL,
+      
+      -- Valores del canon(id_canon) para facilitar la busqueda/indexacion/implementación en frontend
+      id_operador INT NOT NULL,
+      año_mes DATE NOT NULL,
+      estado varchar(32) NOT NULL,
+      es_antiguo tinyint(1) NOT NULL,
+      
+      -- Instanciado a partir de canon_operador_cuenta
+      -- Estos valores se inundan a los pagos (porque quedo asi de legacy)
+      cuenta VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+      fecha_vencimiento DATE NOT NULL,                          
+      interes_provincial_diario_simple DECIMAL(7,4) NOT NULL,   
+      interes_nacional_mensual_compuesto DECIMAL(7,4) NOT NULL, 
+      
+      -- determinado obtenido de CanonAgrupamiento (de subcanons) usando la clave 'cuenta' y valor <cuenta>
+      determinado DECIMAL(20,2) NOT NULL, 
+      saldo_anterior DECIMAL(20,2) NOT NULL, 
+      saldo_anterior_cerrado DECIMAL(20,2) NOT NULL, -- Si estado=Cerrado los cambios se congela aqui y cualquier modificación que cambie saldo_anterior se pasa a saldo_posterior
+      intereses_y_cargos DECIMAL(20,2) NOT NULL,
+      motivo_intereses_y_cargos VARCHAR(128) NOT NULL,
+      
+      -- Valor principal al que se le van descontar los pagos
+      principal DECIMAL(20,2) NOT NULL,     
+      
+      -- Valores totalizados de los pagos
+      mora_provincial DECIMAL(20,2) NOT NULL,
+      mora_nacional DECIMAL(20,2) NOT NULL,
+      a_pagar DECIMAL(20,2) NOT NULL,
+      pago DECIMAL(20,2) NOT NULL,
+      
+      -- Valores introducidos
+      ajuste DECIMAL(20,2) NOT NULL,
+      motivo_ajuste VARCHAR(128) NOT NULL,
+      
+      -- Lo que queda en cuenta
+      diferencia DECIMAL(20,2) NOT NULL, 
+      saldo_posterior_cerrado DECIMAL(20,2) NOT NULL,
+      saldo_posterior DECIMAL(20,2) NOT NULL,
+      
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      deleted_at TIMESTAMP NULL DEFAULT NULL,
+      created_by INT NOT NULL,
+      deleted_by INT DEFAULT NULL,
+      
+      PRIMARY KEY (id_canon_cuenta),
+      
+      UNIQUE KEY `unq_canon_cuenta` (`id_canon`,`cuenta`,`deleted_at`),
+      UNIQUE KEY `unq_canon_cuenta2` (`id_operador`,`año_mes`,`cuenta`,`deleted_at`),
+      
+      KEY `fk_canon_cuenta_created_by` (`created_by`),
+      KEY `fk_canon_cuenta_deleted_by` (`deleted_by`),
+      CONSTRAINT `fk_canon_cuenta_canon` FOREIGN KEY (`id_canon`) REFERENCES `canon` (`id_canon`),
+      CONSTRAINT `fk_canon_cuenta_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `usuario` (`id_usuario`),
+      CONSTRAINT `fk_canon_cuenta_created_by` FOREIGN KEY (`created_by`) REFERENCES `usuario` (`id_usuario`)
+    )
+    ");
+        
+    CANON_STREAM_STR('CANON_PAGO: UP');    
+  }
+  
+  public function llenado_inicial($created_at,$created_by){//argumentos no usados porque se usan los valores ya cargados
+    $this->up();
+    
+    DB::unprepared("INSERT INTO canon_cuenta
+    (
+      id_canon,id_operador,año_mes,estado,es_antiguo,
+      cuenta,
+      fecha_vencimiento,
+      interes_provincial_diario_simple,
+      interes_nacional_mensual_compuesto,
+      determinado,
+      saldo_anterior,saldo_anterior_cerrado,
+      intereses_y_cargos,motivo_intereses_y_cargos,
+      principal,
+      mora_provincial,mora_nacional,
+      a_pagar,pago,ajuste,motivo_ajuste,
+      diferencia,
+      saldo_posterior_cerrado,saldo_posterior,
+      created_at,deleted_at,
+      created_by,
+      deleted_by
+    )
+    SELECT
+      c.id_canon,c.id_casino as id_operador,c.año_mes,c.estado,c.es_antiguo,
+      '' as cuenta,
+      COALESCE((
+        SELECT cp2.fecha_vencimiento 
+        FROM canon_pago as cp2 
+        WHERE cp2.id_canon = c.id_canon 
+        LIMIT 1
+      ),c.año_mes) as fecha_vencimiento,
+      COALESCE((
+        SELECT cp2.interes_provincial_diario_simple 
+        FROM canon_pago as cp2 
+        WHERE cp2.id_canon = c.id_canon 
+        LIMIT 1
+      ),0) as interes_provincial_diario_simple,
+      COALESCE((
+        SELECT cp2.interes_nacional_mensual_compuesto 
+        FROM canon_pago as cp2 
+        WHERE cp2.id_canon = c.id_canon 
+        LIMIT 1
+      ),0) as interes_nacional_mensual_compuesto,
+      c.determinado,
+      c.saldo_anterior, c.saldo_anterior_cerrado,
+      c.intereses_y_cargos, c.motivo_intereses_y_cargos,
+      c.principal,
+      COALESCE((
+        SELECT SUM(cp2.mora_provincial) as mora_provincial
+        FROM canon_pago as cp2 
+        WHERE cp2.id_canon = c.id_canon 
+        GROUP BY 'constant'
+        LIMIT 1
+      ),0) as mora_provincial,
+      COALESCE((
+        SELECT SUM(cp2.mora_nacional) as mora_nacional
+        FROM canon_pago as cp2 
+        WHERE cp2.id_canon = c.id_canon 
+        GROUP BY 'constant'
+        LIMIT 1
+      ),0) as mora_nacional,
+      c.a_pagar,c.pago,c.ajuste,c.motivo_ajuste,
+      c.diferencia,
+      c.saldo_posterior_cerrado,c.saldo_posterior,
+      c.created_at,c.deleted_at,
+      c.created_id_usuario as created_by,
+      c.deleted_id_usuario as created_by
+      
+      FROM canon as c
+    ");
+  }
+  
   private static  $errores = [
     'required' => 'El valor es requerido',
     'regex'    => 'Formato incorrecto',

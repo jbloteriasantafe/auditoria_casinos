@@ -20,12 +20,14 @@ class CanonOperadorController extends Controller
   private $CV = null;
   private $CGO = null;
   private $CPe = null;
+  private $CPa = null;
   private $mocking = true;
   public function __construct(){
     self::$instance = $this;
     $this->CV = CanonValorPorDefectoController::getInstancia();
     $this->CGO = CanonGrupoOperadorController::getInstancia();
     $this->CPe = CanonPermisoController::getInstancia();
+    $this->CPa = CanonPagoController::getInstancia();//Solo usado en la migración... despues borrar
     $this->mocking = !Schema::hasTable('canon_operador_canon_variable');
     $this->mocking = $this->mocking || !Schema::hasTable('canon_operador_canon_fijo_mesas');
     $this->mocking = $this->mocking || !Schema::hasTable('canon_operador_canon_fijo_mesas_adicionales');
@@ -34,6 +36,7 @@ class CanonOperadorController extends Controller
   }
   
   public function down(){
+    $this->CPa->down();
     $this->CGO->down();
     
     DB::unprepared("DROP TABLE IF EXISTS canon_operador_canon_variable");
@@ -156,6 +159,8 @@ class CanonOperadorController extends Controller
       return DB::transaction(function(){
         $created_at = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
         $created_by = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
+        
+        $this->CPa->llenado_inicial($created_at,$created_by);
         $this->CGO->llenado_inicial($created_at,$created_by);
         
         $this->up();

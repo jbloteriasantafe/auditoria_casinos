@@ -93,7 +93,7 @@ class CanonAgrupamientoController extends Controller
     ");
     
     DB::unprepared("
-      CREATE FUNCTION canon_agrupamiento_hash(id_grupo_operario INT,nivel INT,año_mes date,clave VARCHAR(32),valor varchar(32))
+      CREATE FUNCTION canon_agrupamiento_hash(id_grupo_operador INT,nivel INT,año_mes date,clave VARCHAR(32),valor varchar(32))
       RETURNS binary(20)
       DETERMINISTIC
       BEGIN
@@ -101,7 +101,7 @@ class CanonAgrupamientoController extends Controller
           SHA(
             CONCAT_WS(
               '|',
-              IFNULL(id_grupo_operario,''),
+              IFNULL(id_grupo_operador,''),
               IFNULL(nivel,''),
               IFNULL(año_mes,''),
               IFNULL(clave,''),
@@ -115,14 +115,14 @@ class CanonAgrupamientoController extends Controller
     DB::statement("
     CREATE TABLE IF NOT EXISTS canon_subcanon_a_grupo (
       id_canon_subcanon_a_grupo INT NOT NULL AUTO_INCREMENT,
-      id_grupo_operario INT NOT NULL,
+      id_grupo_operador INT NOT NULL,
       nivel    INT NOT NULL,
       clave    VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       valor    VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       base_subcanon_o_superior_dependencia VARCHAR(64)  CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       base_tipo     VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       PRIMARY KEY (id_canon_subcanon_a_grupo),
-      UNIQUE KEY (nivel,id_grupo_operario,clave,valor,base_subcanon_o_superior_dependencia,base_tipo)
+      UNIQUE KEY (nivel,id_grupo_operador,clave,valor,base_subcanon_o_superior_dependencia,base_tipo)
     )
     ");
   
@@ -130,7 +130,7 @@ class CanonAgrupamientoController extends Controller
     CREATE TABLE IF NOT EXISTS canon_agrupamiento (
       id_canon_agrupamiento int(11) NOT NULL AUTO_INCREMENT,
 
-      id_grupo_operario INT NOT NULL,	
+      id_grupo_operador INT NOT NULL,	
       nivel INT NOT NULL,
       clave VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       valor VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
@@ -174,7 +174,7 @@ class CanonAgrupamientoController extends Controller
       determinado¬err_red DECIMAL(2,2)   NULL,
             
       PRIMARY KEY (id_canon_agrupamiento),
-      INDEX idx_canon_agrupamiento (año_mes,nivel,id_grupo_operario,clave,valor),
+      INDEX idx_canon_agrupamiento (año_mes,nivel,id_grupo_operador,clave,valor),
       UNIQUE KEY unq_canon_agrupamiento_hash (hash)
     )
     ");
@@ -185,8 +185,8 @@ class CanonAgrupamientoController extends Controller
   private function inicializar_agrupamientos(string $año_mes){
     //Inicializa todos los valores en 0
     DB::statement("
-      INSERT INTO canon_agrupamiento (id_grupo_operario,nivel,año_mes,clave,valor,hash)	
-      SELECT DISTINCT scagg.id_grupo_operario,scagg.nivel,? as año_mes,scagg.clave,scagg.valor,canon_agrupamiento_hash(scagg.id_grupo_operario,scagg.nivel,?,scagg.clave,scagg.valor) as hash
+      INSERT INTO canon_agrupamiento (id_grupo_operador,nivel,año_mes,clave,valor,hash)	
+      SELECT DISTINCT scagg.id_grupo_operador,scagg.nivel,? as año_mes,scagg.clave,scagg.valor,canon_agrupamiento_hash(scagg.id_grupo_operador,scagg.nivel,?,scagg.clave,scagg.valor) as hash
       FROM canon_subcanon_a_grupo as scagg
     ",[$año_mes,$año_mes]);
   }
@@ -222,7 +222,7 @@ class CanonAgrupamientoController extends Controller
       UPDATE canon_agrupamiento as cagg
       JOIN (
         SELECT 
-          scagg.id_grupo_operario,
+          scagg.id_grupo_operador,
           scagg.clave,
           scagg.valor,
           
@@ -250,19 +250,19 @@ class CanonAgrupamientoController extends Controller
         JOIN $sc as sc
           ON sc.id_canon = c.id_canon
         
-        -- @TODO cambiar id_casino a id_operario
-        JOIN canon_grupo_operario_operario as cgoo ON cgoo.id_operario = c.id_casino
-        JOIN canon_grupo_operario as cgo ON cgo.id_grupo_operario = cgoo.id_grupo_operario AND cgo.deleted_at IS NULL
+        -- @TODO cambiar id_casino a id_operador
+        JOIN canon_grupo_operador_operador as cgoo ON cgoo.id_operador = c.id_casino
+        JOIN canon_grupo_operador as cgo ON cgo.id_grupo_operador = cgoo.id_grupo_operador AND cgo.deleted_at IS NULL
         
         JOIN canon_subcanon_a_grupo as scagg
-          ON  scagg.id_grupo_operario = cgo.id_grupo_operario
+          ON  scagg.id_grupo_operador = cgo.id_grupo_operador
           AND scagg.base_subcanon_o_superior_dependencia = '$sc'
           AND scagg.base_tipo = sc.tipo
           AND scagg.nivel = 0
         WHERE c.año_mes = ? AND c.deleted_at IS NULL
-        GROUP BY scagg.id_grupo_operario, scagg.clave, scagg.valor
+        GROUP BY scagg.id_grupo_operador, scagg.clave, scagg.valor
       ) as agrupado 
-        ON  agrupado.id_grupo_operario = cagg.id_grupo_operario
+        ON  agrupado.id_grupo_operador = cagg.id_grupo_operador
         AND agrupado.clave = cagg.clave
         AND agrupado.valor = cagg.valor
       SET 
@@ -290,7 +290,7 @@ class CanonAgrupamientoController extends Controller
   UPDATE canon_agrupamiento as cagg
     JOIN (
       SELECT 
-        cagg2.id_grupo_operario,
+        cagg2.id_grupo_operador,
         cagg2.nivel+1 as nivel,
         cagg2.clave,
         scagg.valor,
@@ -314,23 +314,23 @@ class CanonAgrupamientoController extends Controller
       
       FROM canon_subcanon_a_grupo as scagg
       JOIN canon_agrupamiento as cagg2
-        ON  cagg2.id_grupo_operario = scagg.id_grupo_operario
+        ON  cagg2.id_grupo_operador = scagg.id_grupo_operador
         AND cagg2.clave = scagg.clave
         AND cagg2.valor = scagg.base_subcanon_o_superior_dependencia
         AND cagg2.nivel = ($nivel-1)
         AND cagg2.año_mes = ?
       WHERE 
             scagg.nivel = $nivel
-        AND scagg.id_grupo_operario IS NOT NULL
-      GROUP BY cagg2.id_grupo_operario,cagg2.año_mes,cagg2.clave,cagg2.nivel,scagg.valor
+        AND scagg.id_grupo_operador IS NOT NULL
+      GROUP BY cagg2.id_grupo_operador,cagg2.año_mes,cagg2.clave,cagg2.nivel,scagg.valor
     ) as agrupado 
-      ON  agrupado.id_grupo_operario = cagg.id_grupo_operario
+      ON  agrupado.id_grupo_operador = cagg.id_grupo_operador
       AND agrupado.nivel = cagg.nivel
       AND agrupado.clave = cagg.clave
       AND agrupado.valor = cagg.valor
     SET
       ".$this->__sumar_columnas()."
-    WHERE cagg.año_mes = ? and cagg.nivel = $nivel and cagg.id_grupo_operario IS NOT NULL
+    WHERE cagg.año_mes = ? and cagg.nivel = $nivel and cagg.id_grupo_operador IS NOT NULL
     ", [$año_mes, $año_mes]);
   }
     
@@ -394,25 +394,25 @@ class CanonAgrupamientoController extends Controller
       $superiores = $base_superiores['superiores'] ?? [];
       
       $nivel = 0;
-      foreach($base as $valor => $id_grupo_operario_subcanons){
-        foreach($id_grupo_operario_subcanons as $id_grupo_operario => $subcanon_tipos){
+      foreach($base as $valor => $id_grupo_operador_subcanons){
+        foreach($id_grupo_operador_subcanons as $id_grupo_operador => $subcanon_tipos){
           foreach($subcanon_tipos as $base_subcanon_o_superior_dependencia => $tipos){            
             foreach($tipos as $base_tipo){
-              $i = compact('nivel','id_grupo_operario','clave','valor','base_subcanon_o_superior_dependencia','base_tipo');
+              $i = compact('nivel','id_grupo_operador','clave','valor','base_subcanon_o_superior_dependencia','base_tipo');
               $to_insert[implode('|',$i)] = $i;
             }
           }
         }
       }
       
-      foreach($superiores as $nidx => $valores_id_grupos_operarios){
+      foreach($superiores as $nidx => $valores_id_grupos_operadores){
         $nivel = $nidx + 1;
         $base_tipo = '';
         
-        foreach($valores_id_grupos_operarios as $valor => $id_grupos_operarios_dependencias){
-          foreach($id_grupos_operarios_dependencias as $id_grupo_operario => $dependencias){
+        foreach($valores_id_grupos_operadores as $valor => $id_grupos_operador_dependencias){
+          foreach($id_grupos_operador_dependencias as $id_grupo_operador => $dependencias){
             foreach($dependencias as $base_subcanon_o_superior_dependencia){
-              $i = compact('nivel','id_grupo_operario','clave','valor','base_subcanon_o_superior_dependencia','base_tipo');
+              $i = compact('nivel','id_grupo_operador','clave','valor','base_subcanon_o_superior_dependencia','base_tipo');
               $to_insert[implode('|',$i)] = $i;
             }
           }
@@ -424,19 +424,19 @@ class CanonAgrupamientoController extends Controller
     ->insert(array_values($to_insert));
   }
   
-  public function obtener($año_mes,$id_grupo_operario,$nivel,$clave,$valor){
+  public function obtener($año_mes,$id_grupo_operador,$nivel,$clave,$valor){
     $data = DB::table('canon_agrupamiento')
     ->where('año_mes',$año_mes)
     ->where('clave',$clave)
     ->where('nivel',$nivel)
     ->where('valor',$valor)
-    ->where('id_grupo_operario',$id_grupo_operario);
+    ->where('id_grupo_operador',$id_grupo_operador);
     
     $data = $data->first();
     
     if($data === null) return null;
     
-    unset($data->id_grupo_operario);
+    unset($data->id_grupo_operador);
     unset($data->valor);
     unset($data->año_mes);
     unset($data->clave);
@@ -447,13 +447,13 @@ class CanonAgrupamientoController extends Controller
     return $data;
   }
   
-  private function __agrupamientos_detallados_expandir_base($id_grupos_operarios,$scs,$base){
+  private function __agrupamientos_detallados_expandir_base($id_grupos_operadores,$scs,$base){
     $ret = [];
     foreach($base as $v => $cas_groups){
       $ret[$v] = [];
       
       if(array_key_exists('*',$cas_groups)){
-        foreach($id_grupos_operarios as $idc){//Todos los grupos-operarios
+        foreach($id_grupos_operadores as $idc){//Todos los grupos-operadores
           $ret[$v][$idc] = [];
         }
       }
@@ -465,7 +465,7 @@ class CanonAgrupamientoController extends Controller
       
       foreach($ret[$v] as $idc => $_){
         $sc_groups = $cas_groups[$idc] ?? $cas_groups['*'] ?? [];
-        if(array_key_exists('*',$sc_groups)){//Todos los grupos-operarios
+        if(array_key_exists('*',$sc_groups)){//Todos los grupos-operadores
           foreach($scs as $sc => $_){
             $ret[$v][$idc][$sc] = [];
           }
@@ -490,7 +490,7 @@ class CanonAgrupamientoController extends Controller
     return $ret;
   }
   
-  private function __agrupamientos_detallados_expandir_superiores($id_grupos_operarios,$valores_nivel_anterior,$superiores){
+  private function __agrupamientos_detallados_expandir_superiores($id_grupos_operadores,$valores_nivel_anterior,$superiores){
     $ret = [];
     foreach($superiores as $nidx => $nivel_vals){
       $ret[$nidx] = [];
@@ -498,7 +498,7 @@ class CanonAgrupamientoController extends Controller
       foreach($nivel_vals as $v => $cas_groups){
         $ret[$nidx][$v] = [];
         if(array_key_exists('*',$cas_groups)){
-          foreach($id_grupos_operarios as $idc){//Todos los grupos-operarios
+          foreach($id_grupos_operadores as $idc){//Todos los grupos-operadores
             $ret[$nidx][$v][$idc] = [];
           }
         }
@@ -531,10 +531,10 @@ class CanonAgrupamientoController extends Controller
   }
   
   public function agrupamientos_detallados($agrupamientos){
-    $id_grupos_operarios = DB::table('canon_grupo_operario')
-    ->select('id_grupo_operario')->distinct()
+    $id_grupos_operadores = DB::table('canon_grupo_operador')
+    ->select('id_grupo_operador')->distinct()
     ->whereNull('deleted_at')
-    ->get()->pluck('id_grupo_operario')->toArray();
+    ->get()->pluck('id_grupo_operador')->toArray();
     
     $scs = [
       'canon_variable' => null,
@@ -548,17 +548,17 @@ class CanonAgrupamientoController extends Controller
       ->get()->pluck('tipo')->toArray();
     }
     
-    $agrupamientos_detallados = [];//Los agrupamientos detallados por grupo-operario etc... sin los *...
+    $agrupamientos_detallados = [];//Los agrupamientos detallados por grupo-operador etc... sin los *...
     foreach($agrupamientos as $clave => $base_superiores){
       $agrupamientos_detallados[$clave] = [];
       $agrupamientos_detallados[$clave]['base'] = $this->__agrupamientos_detallados_expandir_base(
-        $id_grupos_operarios,
+        $id_grupos_operadores,
         $scs,
         $base_superiores['base'] ?? []
       );
       
       $agrupamientos_detallados[$clave]['superiores'] = $this->__agrupamientos_detallados_expandir_superiores(
-        $id_grupos_operarios,
+        $id_grupos_operadores,
         array_keys($base_superiores['base']),
         $base_superiores['superiores'] ?? []
       );
@@ -614,8 +614,8 @@ class CanonAgrupamientoController extends Controller
   
   private function _group_dependencias($data){
     return $data->groupBy('clave')->map(function(&$clave_group){
-      return $clave_group->groupBy('grupo_operario')->map(function(&$grupo_operario_group){
-        return $grupo_operario_group->groupBy('nivel')->map(function(&$nivel_group){
+      return $clave_group->groupBy('grupo_operador')->map(function(&$grupo_operador_group){
+        return $grupo_operador_group->groupBy('nivel')->map(function(&$nivel_group){
           return $nivel_group->groupBy('valor');
         });
       });
@@ -624,8 +624,8 @@ class CanonAgrupamientoController extends Controller
   
   private function _group_dependencias_calculado($data){
     return $data->groupBy('clave')->map(function(&$clave_group){
-      return $clave_group->groupBy('grupo_operario')->map(function(&$grupo_operario_group){
-        return $grupo_operario_group->groupBy('nivel')->map(function(&$nivel_group){
+      return $clave_group->groupBy('grupo_operador')->map(function(&$grupo_operador_group){
+        return $grupo_operador_group->groupBy('nivel')->map(function(&$nivel_group){
           return $nivel_group->keyBy('valor');
         });
       });
@@ -636,10 +636,10 @@ class CanonAgrupamientoController extends Controller
     $ret = [];
     foreach($grouped as $clave => &$clave_groups){
       $ret[$clave] = [];
-      foreach($clave_groups as $grupo_operario => &$grupo_operario_groups){
-        $ret[$clave][$grupo_operario] = [];
-        $max_nivel = $grupo_operario_groups->keys()->max();
-        $prev = $grupo_operario_groups[0]->map(function($lista_base){
+      foreach($clave_groups as $grupo_operador => &$grupo_operador_groups){
+        $ret[$clave][$grupo_operador] = [];
+        $max_nivel = $grupo_operador_groups->keys()->max();
+        $prev = $grupo_operador_groups[0]->map(function($lista_base){
           return [
             'nivel' => 0,
             'dependencias' => $lista_base->map(function($entry){
@@ -654,7 +654,7 @@ class CanonAgrupamientoController extends Controller
         for($n=1;$n<=$max_nivel;$n++){
           $new = [];
           $agregados = [];
-          foreach($grupo_operario_groups[$n] as $valor => $lista_dependencias){
+          foreach($grupo_operador_groups[$n] as $valor => $lista_dependencias){
             $new[$valor] = ['dependencias' => [],'nivel' => $n];
             foreach($lista_dependencias as $dep){
               $new[$valor]['dependencias'][$dep->base_subcanon_o_superior_dependencia] = 
@@ -672,7 +672,7 @@ class CanonAgrupamientoController extends Controller
           }
           $prev = $new;
         }
-        $ret[$clave][$grupo_operario] = $prev;
+        $ret[$clave][$grupo_operador] = $prev;
       }
     }
     
@@ -681,28 +681,28 @@ class CanonAgrupamientoController extends Controller
   
   public function buscar(){
     return DB::table('canon_subcanon_a_grupo as cagg_deps')
-    ->select('cagg_deps.id_canon_subcanon_a_grupo','cagg_deps.nivel','cagg_deps.clave','cagg_deps.id_grupo_operario',DB::raw('COALESCE(cgo.nombre,cagg_deps.id_grupo_operario) as grupo_operario'))
-    ->leftJoin('canon_grupo_operario as cgo',function($j){
-      return $j->on('cgo.id_grupo_operario','=','cagg_deps.id_grupo_operario')
+    ->select('cagg_deps.id_canon_subcanon_a_grupo','cagg_deps.nivel','cagg_deps.clave','cagg_deps.id_grupo_operador',DB::raw('COALESCE(cgo.nombre,cagg_deps.id_grupo_operador) as grupo_operador'))
+    ->leftJoin('canon_grupo_operador as cgo',function($j){
+      return $j->on('cgo.id_grupo_operador','=','cagg_deps.id_grupo_operador')
       ->whereNull('cgo.deleted_at');
     })
     ->where(DB::raw('(NOT EXISTS (
       SELECT 1
       FROM canon_subcanon_a_grupo as cagg_deps2
-      WHERE cagg_deps2.id_grupo_operario = cagg_deps.id_grupo_operario
+      WHERE cagg_deps2.id_grupo_operador = cagg_deps.id_grupo_operador
       AND   cagg_deps2.clave = cagg_deps.clave
       AND   cagg_deps2.nivel > cagg_deps.nivel
     ))'),'=','1')
     ->orderBy('cagg_deps.clave','asc')
-    ->orderBy(DB::raw('COALESCE(cgo.nombre,cagg_deps.id_grupo_operario)'),'asc')
+    ->orderBy(DB::raw('COALESCE(cgo.nombre,cagg_deps.id_grupo_operador)'),'asc')
     ->paginate(request()->page_size ?? 10);
   }
   
   public function obtener_por_id(){
     $ret = DB::table('canon_subcanon_a_grupo as cagg_deps')
-    ->select('cagg_deps.id_canon_subcanon_a_grupo','cagg_deps.nivel','cagg_deps.clave','cagg_deps.id_grupo_operario',DB::raw('COALESCE(cgo.nombre,cagg_deps.id_grupo_operario) as grupo_operario'))
-    ->leftJoin('canon_grupo_operario as cgo',function($j){
-      return $j->on('cgo.id_grupo_operario','=','cagg_deps.id_grupo_operario')
+    ->select('cagg_deps.id_canon_subcanon_a_grupo','cagg_deps.nivel','cagg_deps.clave','cagg_deps.id_grupo_operador',DB::raw('COALESCE(cgo.nombre,cagg_deps.id_grupo_operador) as grupo_operador'))
+    ->leftJoin('canon_grupo_operador as cgo',function($j){
+      return $j->on('cgo.id_grupo_operador','=','cagg_deps.id_grupo_operador')
       ->whereNull('cgo.deleted_at');
     })
     ->where('id_canon_subcanon_a_grupo',request()->id_canon_subcanon_a_grupo ?? null)
@@ -712,8 +712,8 @@ class CanonAgrupamientoController extends Controller
   
   public function buscar2(){
     $data = DB::table('canon_subcanon_a_grupo as cagg_deps')
-    ->select('cagg_deps.*','cgo.nombre as grupo_operario')
-    ->join('canon_grupo_operario as cgo','cgo.id_grupo_operario','=','cagg_deps.id_grupo_operario')
+    ->select('cagg_deps.*','cgo.nombre as grupo_operador')
+    ->join('canon_grupo_operador as cgo','cgo.id_grupo_operador','=','cagg_deps.id_grupo_operador')
     ->get();
     
     $grouped = $this->_group_dependencias($data);
@@ -728,8 +728,8 @@ class CanonAgrupamientoController extends Controller
     $dependencias = $this->buscar();
     
     $data = DB::table('canon_agrupamiento as cagg')
-    ->select('cagg.*','cgo.nombre as grupo_operario')
-    ->join('canon_grupo_operario as cgo','cgo.id_grupo_operario','=','cagg.id_grupo_operario')
+    ->select('cagg.*','cgo.nombre as grupo_operador')
+    ->join('canon_grupo_operador as cgo','cgo.id_grupo_operador','=','cagg.id_grupo_operador')
     ->get();
     
     foreach($data as &$d){
@@ -743,8 +743,8 @@ class CanonAgrupamientoController extends Controller
       foreach($dependencias as $clave => $clave_groups){
         $ret[$clave] = [];
         
-        foreach($clave_groups as $grupo_operario => $grupo_operario_groups){
-          $data = ($calculado_agrupado[$clave] ?? [])[$grupo_operario] ?? [];
+        foreach($clave_groups as $grupo_operador => $grupo_operador_groups){
+          $data = ($calculado_agrupado[$clave] ?? [])[$grupo_operador] ?? [];
           $recurse = function(string $valor,array $valor_group,array &$ret) use (&$data,&$recurse){
             $n = $valor_group['nivel'];
             if($n > 0){
@@ -763,9 +763,9 @@ class CanonAgrupamientoController extends Controller
             }
           };
           
-          $ret[$clave][$grupo_operario] = [];
-          foreach($grupo_operario_groups as $valor => $valor_group){
-            $recurse($valor,$valor_group,$ret[$clave][$grupo_operario]);
+          $ret[$clave][$grupo_operador] = [];
+          foreach($grupo_operador_groups as $valor => $valor_group){
+            $recurse($valor,$valor_group,$ret[$clave][$grupo_operador]);
           }
         }
       }
