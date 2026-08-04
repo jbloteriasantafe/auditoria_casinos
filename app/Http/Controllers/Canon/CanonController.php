@@ -43,9 +43,12 @@ class CanonController extends Controller
   public function index(){
     $permisos = [
       'canon_ver' => false,
+      'canon_adjuntar' => false,
       'canon_cargar' => false,
       'canon_eliminar' => false,
       'canon_deseliminar' => false,
+      'canon_cuenta_ver' => false,
+      'canon_cuenta_cargar' => false,
       'canon_operador_ver' => false,
       'canon_operador_cargar' => false,
       'canon_operador_eliminar' => false,

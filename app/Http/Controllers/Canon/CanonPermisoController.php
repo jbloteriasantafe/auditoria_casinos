@@ -67,6 +67,10 @@ class CanonPermisoController extends Controller
         'rol' => ['SUPERUSUARIO','CONTABLE','CONTABLE_DOCUMENTOS'],
         'permiso' => ['m_b_pagos']
       ],
+      'canon_adjuntar' => [
+        'rol' => ['SUPERUSUARIO','CONTABLE','CONTABLE_DOCUMENTOS'],
+        'permiso' => ['m_b_pagos']
+      ],
       'canon_cargar' => [
         'rol' => ['SUPERUSUARIO','CONTABLE'],
         'permiso' => ['m_a_pagos']
@@ -77,6 +81,14 @@ class CanonPermisoController extends Controller
       ],
       'canon_deseliminar' => [
         'rol' => ['SUPERUSUARIO']
+      ],
+      'canon_cuenta_ver' => [
+        'rol' => ['SUPERUSUARIO','CONTABLE','CONTABLE_DOCUMENTOS'],
+        'permiso' => ['m_b_pagos']
+      ],
+      'canon_cuenta_cargar' => [
+        'rol' => ['SUPERUSUARIO','CONTABLE'],
+        'permiso' => ['m_a_pagos']
       ],
       'canon_operador_ver' => [
         'rol' => ['SUPERUSUARIO','CONTABLE_DOCUMENTOS'],

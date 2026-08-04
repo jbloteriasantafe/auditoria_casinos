@@ -360,21 +360,23 @@
       <td data-cuentas-rowspan="{{$rowspan}}" class="casino">CASINO</td>
       <td data-cuentas-rowspan="{{$rowspan}}" class="cambios-estados">
         @if($permisos['canon_ver'] || $permisos['canon_cargar'])
-        <div data-content-popover data-molde-popover="acciones" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
+        <div data-content-popover data-molde-popover="acciones-canon" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
           <div style="display: flex;flex-direction: column;justify-content: center;padding-right: 1em;">
             @if($permisos['canon_ver'])
             <button class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL">VER CANON<i class="fa fa-fw fa-search-plus"></i></button>
             @endif
             @if($permisos['canon_cargar'])
-            <button class="btn" type="button" data-js-adjuntar="/canon/obtener" data-estado-visible="PAGADO" title="ADJUNTAR">ADJUNTAR <i class="fa fa-fw fa-paperclip"></i></button>
+            <button class="btn" type="button" data-js-adjuntar="/canon/obtener" data-estado-visible="GENERADO,PAGADO" title="ADJUNTAR">ADJUNTAR <i class="fa fa-fw fa-paperclip"></i></button>
             <button class="btn" type="button" data-js-editar="/canon/obtener" data-estado-visible="GENERADO"  title="EDITAR">EDITAR CANON<i class="fas fa-fw fa-pencil-alt"></i></button>
             @endif
           </div>
+        </div>
+        <div data-content-popover data-molde-popover="acciones-cuenta" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
           <div style="display: flex;flex-direction: column;justify-content: center;padding-left: 1em;">
-            @if($permisos['canon_ver'])
+            @if($permisos['canon_cuenta_ver'])
             <button class="btn" type="button" data-js-ver-pagos="/canon/pagos/obtenerConHistorial" title="VER PAGO">VER PAGOS <i class="fa fa-book"></i></button>
             @endif
-            @if($permisos['canon_cargar'])
+            @if($permisos['canon_cuenta_cargar'])
             <button class="btn" type="button" data-js-editar-pagos="/canon/pagos/obtener" title="CARGAR PAGO">EDITAR PAGOS <i class="fa fas fa-hand-holding-usd"></i></button>
             @endif
           </div>
@@ -413,8 +415,8 @@
       </td>
       <td class="tright saldo_posterior" data-formatear-numero>SALDO</td>
       <td>
-        @if($permisos['canon_ver'])
-        <a tabindex="0" class="btn btn-info info" data-toggle-popover="acciones" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
+        @if($permisos['canon_ver'] || $permisos['canon_cargar'])
+        <a tabindex="0" class="btn btn-info info" data-toggle-popover="acciones-canon" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
           <i class="fa fa-window-restore" aria-hidden="true"></i>
         </a>
         <a tabindex="0" class="btn btn-info info" data-toggle-popover="planillas" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
@@ -456,7 +458,11 @@
       <td class="tright" data-name="canon_cuenta[{{$cidx}}][pago]" data-formatear-numero>-</td>
       <td class="tright" data-name="canon_cuenta[{{$cidx}}][saldo_posterior]" data-formatear-numero>-</td>
       <td>
-        ACCION
+        @if($permisos['canon_cuenta_ver'] || $permisos['canon_cuenta_cargar'])
+        <a tabindex="0" class="btn btn-info info" data-toggle-popover="acciones-cuenta" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
+          <i class="fa fa-window-restore" aria-hidden="true"></i>
+        </a>
+        @endif
       </td>
     </tr>
     @endforeach
