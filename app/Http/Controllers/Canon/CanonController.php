@@ -31,7 +31,7 @@ class CanonController extends Controller
     self::$instance = $this;
     $this->CVD = CanonValorPorDefectoController::getInstancia();
     $this->CA = CanonAgrupamientoController::getInstancia();
-    $this->CP = CanonPagoController::getInstancia();
+    $this->CPa = CanonPagoController::getInstancia();
     $this->CPe = CanonPermisoController::getInstancia();
     $this->CO = CanonOperadorController::getInstancia();
     $this->middleware(function ($request, $next) {
@@ -66,8 +66,12 @@ class CanonController extends Controller
     }
     
     $casinos = Casino::whereIn('id_casino',$casinos)->get();
-        
-    return View::make('Canon.index', compact('casinos','permisos'));
+    $cuentas = DB::table('canon_cuenta')
+    ->select('cuenta')->distinct()
+    ->orderBy('cuenta','asc')
+    ->get()->pluck('cuenta')->toArray();
+    
+    return View::make('Canon.index', compact('casinos','permisos','cuentas'));
   }
   
   private static  $errores = [
@@ -862,7 +866,7 @@ class CanonController extends Controller
     }
           
     $this->CA->recalcular_agrupamiento($datos['año_mes']);
-    $this->CP->traspasar_pagos(
+    $this->CPa->traspasar_pagos(
       count($canon_anterior)?
         $this->get_by_id_canon($canon_anterior[0]->id_canon,false)
       : null,
@@ -945,7 +949,7 @@ class CanonController extends Controller
       return $adj;
     });
     
-    $ret['canon_pago'] = $this->CP->obtener_arr(
+    $ret['canon_pago'] = $this->CPa->obtener_arr(
       ['id_canon' => $request['id_canon']]
     )['canon_pago'] ?? [];
     
@@ -1078,7 +1082,7 @@ class CanonController extends Controller
       ->first();
       if($c !== null){
         $this->CA->recalcular_agrupamiento($c->año_mes);
-        $this->CP->cambio_determinado($c->id_casino,$c->año_mes);
+        $this->CPa->cambio_determinado($c->id_casino,$c->año_mes);
       }
       
       return 1;
@@ -1161,6 +1165,11 @@ class CanonController extends Controller
     else {
       $ret = $ret->get();
     }
+    
+    $ret->transform(function($c){
+      $c->cuentas = $this->CPa->obtener_cuentas_por_id_canon($c->id_canon);
+      return $c;
+    });
     
     return $ret;
   }
@@ -1409,7 +1418,7 @@ class CanonController extends Controller
       ->first();
       if($c !== null){
         $this->CA->recalcular_agrupamiento($c->año_mes);
-        $this->CP->cambio_determinado($c->id_casino,$c->año_mes);
+        $this->CPa->cambio_determinado($c->id_casino,$c->año_mes);
       }
       
       return 1;

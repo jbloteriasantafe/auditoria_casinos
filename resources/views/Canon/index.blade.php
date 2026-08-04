@@ -69,6 +69,22 @@
   [data-content-popover]:not([data-molde-popover]) {
     display: flex;
   }
+  
+  #pant_canon table tr.canon-table-row {
+    display: table-row !important;
+  }
+  #pant_canon table tr.canon-table-row td {
+    display: table-cell !important;
+  }
+  #pant_canon table tr.canon-table-row th {
+    display: table-cell !important;
+  }
+  #pant_canon table tr.canon-table-row-cuenta {
+    background: #f2f2f2;
+  }
+  #pant_canon table tr.canon-table-row-cuenta[data-cuenta-display="none"] {
+    display: none !important;
+  }
 </style>
 
 <style>
@@ -260,6 +276,11 @@
   </div>
 </div>
 
+<style>
+  #pant_canon tbody tr td.tright {
+    text-align: right;
+  }
+</style>
 <div id="pant_canon" hidden>
   @component('Components/FiltroTabla')
     @slot('titulo')
@@ -318,7 +339,7 @@
     @endslot
     
     @slot('cabecera')
-    <tr>
+    <tr class="canon-table-row">
       <th data-js-sortable="año_mes">AÑO MES</th>
       <th>CASINO</th>
       <th>ESTADO</th>
@@ -332,10 +353,12 @@
     @endslot
     
     @slot('molde')
-    <tr data-table-id="id_canon">
-      <td class="año_mes">AÑO MES</td>
-      <td class="casino">CASINO</td>
-      <td>
+    <?php $rowspan=count($cuentas)+1; ?>
+    <tr class="canon-table-row" data-table-id="id_canon" data-canon>
+      <!-- Bootstrap usa data-rowspan -->
+      <td data-cuentas-rowspan="{{$rowspan}}" class="año_mes">AÑO MES</td>
+      <td data-cuentas-rowspan="{{$rowspan}}" class="casino">CASINO</td>
+      <td data-cuentas-rowspan="{{$rowspan}}" class="cambios-estados">
         @if($permisos['canon_ver'] || $permisos['canon_cargar'])
         <div data-content-popover data-molde-popover="acciones" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
           <div style="display: flex;flex-direction: column;justify-content: center;padding-right: 1em;">
@@ -379,11 +402,16 @@
         </button>
         @endif
       </td>
-      <td class="devengado" data-formatear-numero>DEVENGADO</td>
-      <td class="determinado" data-formatear-numero>DETERMINADO</td>
-      <td class="intereses_y_cargos" data-formatear-numero>INTERESES Y CARGOS</td>
-      <td class="pago" data-formatear-numero>PAGO</td>
-      <td class="saldo_posterior" data-formatear-numero>SALDO</td>
+      <td class="tright devengado" data-formatear-numero>DEVENGADO</td>
+      <td class="tright determinado" data-formatear-numero>DETERMINADO</td>
+      <td class="tright intereses_y_cargos" data-formatear-numero>INTERESES Y CARGOS</td>
+      <td class="tright">
+        <button data-js-click-toggle-cuentas class="btn" type="button" title="VER PAGOS">
+          <i class="fa fa-sort-down"></i>
+        </button>
+        <span class="pago" data-formatear-numero>PAGO</span>
+      </td>
+      <td class="tright saldo_posterior" data-formatear-numero>SALDO</td>
       <td>
         @if($permisos['canon_ver'])
         <a tabindex="0" class="btn btn-info info" data-toggle-popover="acciones" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
@@ -413,6 +441,26 @@
         @endif
       </td>
     </tr>
+    @foreach($cuentas as $cidx => $c)
+    <tr class="canon-table-row canon-table-row-cuenta" data-table-id="id_canon_cuenta" data-cuenta-idx="{{$cidx}}" data-cuenta="{{$c}}" data-cuenta-display="none">
+      <td>
+        <div style="display: flex;width: 100%;">
+          <span style="text-align: left;">Cuenta: </span>
+          <span style="flex: 1;font-weight: bold;text-align: right;">
+            {{empty($c)? '𝕋𝕆𝕋𝔸𝕃' : $cuentas[$cidx-1]}}
+          </span>
+        </div>
+      </td>
+      <td class="tright" data-name="canon_cuenta[{{$cidx}}][determinado]" data-formatear-numero>-</td>
+      <td class="tright" data-name="canon_cuenta[{{$cidx}}][intereses_y_cargos]" data-formatear-numero>-</td>
+      <td class="tright" data-name="canon_cuenta[{{$cidx}}][pago]" data-formatear-numero>-</td>
+      <td class="tright" data-name="canon_cuenta[{{$cidx}}][saldo_posterior]" data-formatear-numero>-</td>
+      <td>
+        ACCION
+      </td>
+    </tr>
+    @endforeach
+    
     @endslot
   @endcomponent
 </div>

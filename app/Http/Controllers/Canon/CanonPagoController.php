@@ -8,6 +8,7 @@ use App\Casino;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UsuarioController;
+use Illuminate\Support\Facades\Schema;
 
 require_once(app_path('BC_extendido.php'));
 
@@ -24,11 +25,13 @@ class CanonPagoController extends Controller
   private $CC = null;
   private $CV = null;
   private $CO = null;
+  private $mocking;
   public function __construct(){
     self::$instance = $this;
     $this->CC = CanonController::getInstancia();
     $this->CV = CanonValorPorDefectoController::getInstancia();
     $this->CO = CanonOperadorController::getInstancia();
+    $this->mocking = !Schema::hasTable('canon_cuenta');
     $this->middleware(function ($request, $next) {
       $this->u = UsuarioController::getInstancia()->quienSoy()['usuario'];
       return $next($request);
@@ -653,6 +656,25 @@ class CanonPagoController extends Controller
         'pago' => $d['pago'],
         'diferencia' => $d['diferencia']
       ]);
+    }
+  }
+  
+  public function obtener_cuentas_por_id_canon($id_canon){
+    if(!$this->mocking){
+      return DB::table('canon_cuenta')->where('id_canon',$id_canon)->get()
+      ->map(function($cuenta){
+        $cuenta->pagos = DB::table('canon_pago')->where('id_canon',$cuenta->id_canon)
+        ->where('cuenta',$cuenta->cuenta)->get();
+        return $cuenta;
+      });
+    }
+    else{
+      return DB::table('canon')->where('id_canon',$id_canon)->get()
+      ->transform(function($canon){
+        $cuenta->pagos = DB::table('canon_pago')->where('id_canon',$canon->id_canon)
+        ->where('cuenta','')->get();
+        return $cuenta;
+      });
     }
   }
 }

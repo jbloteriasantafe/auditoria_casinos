@@ -137,6 +137,44 @@ $(function(){
           reemplazarPorJsonEditor(fila.find('[data-js-jsoneditor]'),obj?.valor ?? '');
         }
         else if(pant.is('#pant_canon')){
+          {//Arreglo el rowspan al numero de cuentas del canon
+            let filas_cuentas_a_borrar = fila.filter('[data-cuenta]');
+            for(const c of (obj.cuentas ?? [])){
+              const fila_cuenta = fila.filter(`[data-cuenta="${c.cuenta}"]`);
+              const cidx = fila_cuenta.attr('data-cuenta-idx');
+              for(const kc in c){
+                fila_cuenta.find(`[data-name="canon_cuenta[${cidx}][${kc}]"]`).text(c[kc]);
+              }
+              filas_cuentas_a_borrar = filas_cuentas_a_borrar.not(fila_cuenta);//Lo saco del listado para borrar
+            }
+            filas_cuentas_a_borrar.remove();
+            //Arreglo el rowspan al numero de cuentas
+            fila.find('[data-cuentas-rowspan]').attr('rowspan',1).attr('data-cuentas-rowspan',fila.filter('[data-cuenta]').length+1);
+          }
+          {//Agrego el evento de display
+            const f = fila.filter('[data-canon]');
+            const f_cuentas = fila.filter('[data-cuenta]');
+            
+            fila.find('[data-js-click-toggle-cuentas]').on('toggleCuentas',function(e,status){
+              const display = status ?? (f_cuentas.attr('data-cuenta-display') == 'none');
+              if(display){
+                f_cuentas.attr('data-cuenta-display','');
+                f.find('[rowspan]').attr('rowspan',f.find('[data-cuentas-rowspan]').attr('data-cuentas-rowspan'));
+              }
+              else{
+                f_cuentas.attr('data-cuenta-display','none');
+                f.find('[rowspan]').attr('rowspan',1);
+              }
+            });
+            
+            fila.find('[data-js-click-toggle-cuentas]').on('click',function(e,status){
+              e.stopPropagation();//Saco el evento por defecto con delay
+              fila.find('[data-js-click-toggle-cuentas]').trigger('toggleCuentas');
+              tbody.find('[data-canon]').not(f)
+              .find('[data-js-click-toggle-cuentas]').trigger('toggleCuentas',[false]);
+            });
+          }
+          
           fila.find('[data-estado-visible]').filter(function(_,ev_obj){
             return !$(ev_obj)?.attr('data-estado-visible')?.toUpperCase()?.split(',').includes(obj.estado.toUpperCase());
           }).remove();

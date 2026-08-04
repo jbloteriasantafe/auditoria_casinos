@@ -52,7 +52,7 @@ $(function(e){
     formData.page = page ?? formData.page;
     
     const tbody = div.find('[data-js-filtro-tabla-resultados] tbody').empty();
-    const molde = div.find('[data-js-filtro-tabla-molde] tr:first').clone();
+    const molde = div.find('[data-js-filtro-tabla-molde] tr').clone();
     AUX.POST(div.find('[data-js-buscar]').attr('data-target'),formData,
       function (ret){
         div.find('.herramientasPaginacion').generarTitulo(formData.page,formData.page_size,ret.total,clickIndice);
