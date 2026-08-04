@@ -9990,6 +9990,7 @@ public function guardarRRHH(Request $request){
           $RRHH->ludico_viviendo = $request->ludicos_vivivendo_RRHH;
           $RRHH->no_ludico_viviendo = $request->no_ludicos_viviendo_RRHH;
           $RRHH->total_viviendo = $request->total_ludicos_viviendo_RRHH;
+          $RRHH->observaciones = $request->obs_RRHH;
 
           $RRHH->casino = $request->casinoRRHH;
           $RRHH->fecha_toma = date('Y-m-d h:i:s', time());
@@ -10167,6 +10168,7 @@ public function llenarRRHHEdit($id)
         'ludico_viviendo'                => $r->ludico_viviendo,
         'no_ludico_viviendo'             => $r->no_ludico_viviendo,
         'total_ludico_viviendo'          => $r->total_viviendo,
+        'observaciones'                  => $r->observaciones,
     ]);
 }
 public function actualizarRRHH(Request $request, $id)
@@ -10197,6 +10199,7 @@ public function actualizarRRHH(Request $request, $id)
     $r->ludico_viviendo = $request->ludicos_vivivendo_RRHH;
     $r->no_ludico_viviendo = $request->no_ludicos_viviendo_RRHH;
     $r->total_viviendo = $request->total_ludicos_viviendo_RRHH;
+    $r->observaciones = $request->obs_RRHH;
     $r->save();
 
     $saved = 0;
@@ -10254,6 +10257,7 @@ public function llenarRRHH($id){
     'no_ludico_viviendo' => $RRHH->no_ludico_viviendo,
     'total_viviendo' => $RRHH->total_viviendo,
     'diferencia_nomina' => $RRHH->diferencia_nomina_ddjj,
+    'observaciones' => $RRHH->observaciones,
 
   ]);
 

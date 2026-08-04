@@ -10742,6 +10742,7 @@ function abrirModalRRHHEditar(id) {
     $('input[name="dif_nomina_RRHH"]').val(d.diferencia_nomina_ddjj ?? "");
     $('input[name="ludicos_vivivendo_RRHH"]').val(d.ludico_viviendo ?? "");
     $('input[name="no_ludicos_viviendo_RRHH"]').val(d.no_ludico_viviendo ?? "");
+    $('textarea[name="obs_RRHH"]').val(d.observaciones ?? "");
     $('input[name="total_ludicos_viviendo_RRHH"]').val(
       d.total_ludico_viviendo ?? ""
     );
@@ -11280,6 +11281,7 @@ $(document).on("click", ".btn-verRegRRHH", function () {
     $("#ver_total_viviendo_RRHH").val(data.total_viviendo);
 
     $("#ver_dif_nomina_RRHH").val(data.diferencia_nomina);
+    $("#ver_obs_RRHH").val(data.observaciones || "");
 
     var total = Number(data.total_personal);
     var adj = Number(data.ofertado_adjudicado);

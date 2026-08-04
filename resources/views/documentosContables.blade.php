@@ -5949,6 +5949,13 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
           </div>
           </br>
+    <div class="row">
+      <div class="col-md-12">
+        <h5>Observaciones</h5>
+        <textarea class="form-control" maxlength="4000" name="obs_RRHH" id="obs_RRHH" rows="3"></textarea>
+      </div>
+    </div>
+    </br>
           <div class="row">
     <div class="col-md-3">
       <h5>Archivo</h5>
@@ -6212,6 +6219,13 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                    <input type="text" class="form-control" name="dif_nomina_RRHH" id="ver_dif_nomina_RRHH" readonly>
                  </div>
 
+               </div>
+
+               <div class="row">
+                 <div class="col-md-12">
+                   <h5>Observaciones</h5>
+                   <textarea class="form-control" id="ver_obs_RRHH" rows="3" readonly></textarea>
+                 </div>
                </div>
 
                    </div>
