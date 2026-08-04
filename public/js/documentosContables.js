@@ -21840,19 +21840,20 @@ $(function () {
         }
 
         function cargarPersonalInicio(casinoId, mes) {
-          // Solo al CREAR. Al editar, el personal al inicio es el del propio registro: antes el
-          // trigger("change") del casino disparaba esto y la respuesta AJAX (que llega después del
-          // llenado) lo pisaba con el valor autocompletado.
-          if ($("#RRHH_modo").val() === "edit") return;
-          // Hace falta el mes: se toma el personal al final del mes anterior.
-          if (!casinoId || !mes) {
-            $("#personal_inicio_RRHH").val("");
-            return;
-          }
+          // Autocompleta con el personal al final del mes anterior, pero SOLO si el campo está
+          // vacío: si ya tiene un valor (lo escribió el usuario, o es el que trae el registro que
+          // se está editando) no se toca. Aplica igual en crear y en editar.
+          if ($.trim($("#personal_inicio_RRHH").val())) return;
+          if (!casinoId || !mes) return;
           $.get(
             "/documentosContables/ultimosPersonalRRHH/" + casinoId,
             { mes: mes },
             function (data) {
+              // Se vuelve a chequear al llegar la respuesta: puede haberse llenado mientras
+              // esperábamos (p.ej. al editar, el propio registro asigna su personal_inicio justo
+              // después de disparar este trigger). Así no se pisa el valor real del registro.
+              if ($.trim($("#personal_inicio_RRHH").val())) return;
+
               var val = null;
 
               if (data == null) {
@@ -21869,9 +21870,7 @@ $(function () {
 
               $("#personal_inicio_RRHH").trigger("input");
             }
-          ).fail(function () {
-            $("#personal_inicio_RRHH").val("");
-          });
+          );
         }
 
         $("#casinoRRHH").on("change", function () {
@@ -21891,6 +21890,13 @@ $(function () {
           cargarPersonalInicio($("#casinoRRHH").val(), mesRRHHSeleccionado());
         });
         $("#fechaRRHH").on("changeDate", function () {
+          cargarPersonalInicio($("#casinoRRHH").val(), mesRRHHSeleccionado());
+        });
+
+        // Si el usuario deja el campo vacío (lo borró, o está editando un registro viejo sin
+        // este dato), al salir del campo se autocompleta. Si tiene algo puesto, cargarPersonalInicio
+        // no lo toca (ver el guard adentro).
+        $(document).on("blur", "#personal_inicio_RRHH", function () {
           cargarPersonalInicio($("#casinoRRHH").val(), mesRRHHSeleccionado());
         });
 
