@@ -1369,6 +1369,7 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('ultimasPremiosMTM_Unificado', 'documentosContablesController@ultimasPremiosMTM_Unificado');
   Route::get('llenarPremiosMTM_Unificado', 'documentosContablesController@llenarPremiosMTM_Unificado');
   Route::get('eliminarPremiosMTM/{id}', 'documentosContablesController@eliminarPremiosMTM');
+  Route::get('eliminarPremiosMTM_Unificado', 'documentosContablesController@eliminarPremiosMTM_Unificado');
   Route::get('llenarPremiosMTM/{id}', 'documentosContablesController@llenarPremiosMTM');
   Route::post('actualizarPremiosMTM/{id}', 'documentosContablesController@actualizarPremiosMTM');
   Route::get('archivosPremiosMTM/{id}', 'documentosContablesController@archivosPremiosMTM');

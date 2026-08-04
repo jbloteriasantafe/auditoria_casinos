@@ -13864,11 +13864,16 @@ function generarFilaPremiosMTM(reg) {
     .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
   
+  // La fila agrupa los 7 documentos del mes+casino, así que el borrado se identifica por mes+casino
+  // y no por el id de Premios MTM: ese id viene vacío si el mes no tiene Premios MTM cargado.
   const btnDelete = $("<button>")
     .addClass("btn btn-danger btn-sm mr-1 btn-deletePremiosMTM")
-    .attr("id", reg.id_registroPremiosMTM)
+    .attr("data-fecha", reg.fecha)
+    .attr("data-casino", reg.casino)
+    .attr("data-casino-nombre", casino)
+    .attr("data-mes", fecha)
     .attr("data-toggle", "tooltip")
-    .attr("title", "ELIMINAR PREMIOS")
+    .attr("title", "ELIMINAR REGISTROS DEL MES")
     .append($("<i>").addClass("fa fa-trash"));
   tdAcc.append(btnDelete);
   tdAcc.append(
@@ -13900,8 +13905,18 @@ $(document).on("click", "#PremiosMTM_nuevo", function () {
 });
 
 $(document).on("click", ".btn-deletePremiosMTM", function () {
-  const id = $(this).attr("id");
-  $("#btn-eliminarPremiosMTM").attr("data-id", id);
+  const $b = $(this);
+  $("#btn-eliminarPremiosMTM")
+    .attr("data-fecha", $b.attr("data-fecha"))
+    .attr("data-casino", $b.attr("data-casino"));
+  // Se aclara qué se va a borrar: son todos los documentos de ese mes y casino, no uno solo.
+  $("#titulo-modal-eliminarPremiosMTM").text(
+    "¿Seguro desea eliminar TODOS los registros contables y premios de " +
+      ($b.attr("data-mes") || "") +
+      " - " +
+      ($b.attr("data-casino-nombre") || "") +
+      "? Se borran también sus archivos adjuntos."
+  );
   $("#modalEliminarPremiosMTM").modal("show");
 });
 
@@ -14537,19 +14552,34 @@ function cargarArchivosUnificadoInline() {
 }
 
 $("#btn-eliminarPremiosMTM").on("click", function () {
-  const id = $(this).attr("data-id");
+  const fecha = $(this).attr("data-fecha");
+  const casino = $(this).attr("data-casino");
+  if (!fecha || !casino) return;
+
   $.ajax({
-    url: `/documentosContables/eliminarPremiosMTM/${id}`,
+    url: "/documentosContables/eliminarPremiosMTM_Unificado",
     method: "GET",
+    data: { fecha: fecha, casino: casino },
   })
     .done((res) => {
-      if (res == 1) {
-        $("#modalEliminarPremiosMTM").modal("hide");
+      $("#modalEliminarPremiosMTM").modal("hide");
+      if (res && res.success) {
         clickIndicePremiosMTM(null, $("#herramientasPaginacionPremiosMTM").getCurrentPage() || 1, 15);
       } else {
+        $("#texto-aviso-validacion").text(
+          (res && res.msg) || "No se pudieron eliminar los registros."
+        );
+        $("#modalAvisoValidacion").modal("show");
       }
     })
-    .fail(() => {});
+    .fail((xhr) => {
+      $("#modalEliminarPremiosMTM").modal("hide");
+      $("#texto-aviso-validacion").text(
+        (xhr.responseJSON && xhr.responseJSON.msg) ||
+          "No se pudieron eliminar los registros."
+      );
+      $("#modalAvisoValidacion").modal("show");
+    });
 });
 
 $(document).on("click", ".btn-verRegPremiosMTM", function () {

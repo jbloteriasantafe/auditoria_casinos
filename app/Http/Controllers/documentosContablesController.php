@@ -13480,6 +13480,69 @@ public function ultimasPremiosMTM_Unificado(Request $request) {
     ]);
 }
 
+/**
+ * Borra TODO el grupo de "registros contables y premios" de un mes+casino: los 7 pseudo-documentos
+ * con sus archivos adjuntos.
+ * La tabla de esa pantalla muestra una fila por mes+casino agrupando esos 7 documentos, pero el
+ * borrado viejo (eliminarPremiosMTM/{id}) borraba solo el registro de Premios MTM: si ese mes no
+ * tenía Premios MTM el id llegaba vacío ("borrar undefined") y, si lo tenía, igual quedaban los
+ * otros 6 documentos y la fila seguía apareciendo.
+ */
+public function eliminarPremiosMTM_Unificado(Request $request) {
+    $fecha  = $request->query('fecha');   // 'YYYY-MM' o 'YYYY-MM-DD'
+    $casino = $request->query('casino');
+
+    if (!$fecha || !$casino) {
+        return response()->json(['success' => false, 'msg' => 'Faltan parámetros'], 400);
+    }
+    $mes = substr($fecha, 0, 7).'-01';
+
+    $user = Usuario::find(session('id_usuario'));
+    $allowedCasinoIds = array_map('intval', $user->casinos->pluck('id_casino')->toArray());
+    if (!in_array((int)$casino, $allowedCasinoIds)) {
+        return response()->json(['success' => false, 'msg' => 'Casino no permitido'], 403);
+    }
+
+    // modelo => [columna de fecha, carpeta de storage]
+    $tipos = [
+        RegistroPremiosMTM::class               => ['fecha_PremiosMTM', 'RegistroPremiosMTM'],
+        RegistroPromoTickets::class             => ['fecha_PromoTickets', 'RegistroPromoTickets'],
+        RegistroPozosAcumuladosLinkeados::class => ['fecha_PozosAcumuladosLinkeados', 'RegistroPozosAcumuladosLinkeados'],
+        RegistroJackpotsPagados::class          => ['fecha_JackpotsPagados', 'RegistroJackpotsPagados'],
+        RegistroPremiosPagados::class           => ['fecha_PremiosPagados', 'RegistroPremiosPagados'],
+        RegistroPagosMayoresMesas::class        => ['fecha_PagosMayoresMesas', 'RegistroPagosMayoresMesas'],
+        RegistroRegistrosContables::class       => ['fecha_RegistrosContables', 'RegistroRegistrosContables'],
+    ];
+
+    $borrados = [];
+    try {
+        DB::beginTransaction();
+        foreach ($tipos as $clase => $cfg) {
+            list($colFecha, $carpeta) = $cfg;
+            $registros = $clase::with('archivos')
+                ->where('casino', $casino)
+                ->whereRaw("DATE_FORMAT($colFecha, '%Y-%m-01') = ?", [$mes])
+                ->get();
+
+            foreach ($registros as $reg) {
+                foreach ($reg->archivos as $archivo) {
+                    $ruta = storage_path('app/public/'.$carpeta.'/'.$archivo->path);
+                    if (is_file($ruta)) @unlink($ruta);
+                    $archivo->delete();
+                }
+                $reg->delete();
+                $borrados[$carpeta] = (isset($borrados[$carpeta]) ? $borrados[$carpeta] : 0) + 1;
+            }
+        }
+        DB::commit();
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
+    }
+
+    return response()->json(['success' => true, 'borrados' => $borrados]);
+}
+
     public function guardarPremiosMTM_Unificado(Request $request) {
         try {
             DB::beginTransaction();

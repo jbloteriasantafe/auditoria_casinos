@@ -7449,7 +7449,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <form id="frmEliminar" name="frmCasino" class="form-horizontal" novalidate="">
                       <div class="form-group error ">
                         <div class="col-xs-12">
-                            <strong id="titulo-modal-eliminar">¿Seguro desea eliminar el registro del premio mtm?</strong>
+                            <strong id="titulo-modal-eliminarPremiosMTM">¿Seguro desea eliminar el registro del premio mtm?</strong>
                         </div>
                       </div>
                   </form>
