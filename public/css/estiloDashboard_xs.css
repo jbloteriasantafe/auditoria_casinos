@@ -12,6 +12,17 @@
       min-height: 60px;
     }
 
+    /* El <nav> del layout viene vacío casi siempre (sus tabs de Juegos/Canon se renderizan con
+       hidden), pero el min-height de arriba le reservaba 60px igual. La altura del panel
+       (.contenedorVistaPrincipal: calc(100% - 60px)) descuenta solo el header, así que esos 60px
+       hacían que la página quedara más alta que la ventana y apareciera un segundo scrollbar además
+       del propio del panel: el "doble scroll". Se notaba al hacer zoom porque el zoom achica el
+       viewport medido en px CSS y hace entrar en este breakpoint.
+       Cuando esos tabs sí se muestran, los <ul> le dan altura propia, así que no hay que reservarla. */
+    .contenedor > nav {
+      min-height: 0;
+    }
+
     nav > span {
       margin: 5px 15px 0px 15px !important;
     }
@@ -45,7 +56,9 @@
 
     .contenedorVistaPrincipal {
       /*position: absolute;*/
-      height: calc(100% - 60px);
+      /* Ídem estiloDashboard.css: se usa la altura real del header en vez de un número fijo, que
+         era lo que generaba el doble scroll. El 60px queda de fallback si no corre el JS. */
+      height: calc(100% - var(--alto-header, 60px));
     }
 
     .contenedorVistaPrincipal section {

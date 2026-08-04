@@ -1383,6 +1383,7 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('AutDirectoresHabilitarDirector/{id}', 'documentosContablesController@AutDirectoresHabilitarDirector');
   Route::get('AutDirectoresEliminarDirector/{id}', 'documentosContablesController@AutDirectoresEliminarDirector');
   Route::get('AutDirectoresHabilitadosPorCasino/{casinoId}', 'documentosContablesController@AutDirectoresHabilitadosPorCasino');
+  Route::get('AutDirectoresTodosPorCasino/{casinoId}', 'documentosContablesController@AutDirectoresTodosPorCasino');
   Route::get('getAutDirectores', 'documentosContablesController@getAutDirectores');
   Route::get('ultimasAutDirectores', 'documentosContablesController@ultimasAutDirectores');
   Route::post('actualizarAutDirectores/{id}', 'documentosContablesController@actualizarAutDirectores');

@@ -10086,9 +10086,26 @@ public function ultimasRRHH(Request $request)
     ]);
 }
 
-public function ultimosPersonalInicioRRHH($casino)
+public function ultimosPersonalInicioRRHH(Request $request, $casino)
 {
+    // El "personal al inicio" de un mes es el "personal al final" del MES INMEDIATAMENTE ANTERIOR
+    // de ese casino. Si ese mes no está cargado se devuelve vacío: NO se toma cualquier otro
+    // registro. Antes se ordenaba por id (último subido), así que al cargar meses fuera de orden
+    // cronológico traía el registro equivocado.
+    $mes = $request->query('mes'); // 'YYYY-MM' del período que se está cargando
+    if(!$mes) return response()->json(['personal_inicio' => null]);
+
+    try{
+        // OJO: createFromFormat('Y-m', ...) completa con el DÍA DE HOY, así que un 31 desborda los
+        // meses cortos (cargando febrero buscaba febrero). Por eso se arma con el día 01 explícito.
+        $mesAnterior = \Carbon\Carbon::createFromFormat('Y-m-d', substr($mes, 0, 7).'-01')
+            ->startOfMonth()->subMonth()->format('Y-m-d');
+    }catch(\Exception $e){
+        return response()->json(['personal_inicio' => null]);
+    }
+
     $valor = RegistroRRHH::where('casino', $casino)
+        ->where('fecha_RRHH', $mesAnterior)
         ->orderBy('id_registroRRHH', 'desc')
         ->value('personal_final');
 
@@ -12526,6 +12543,14 @@ public function descargarJackpotsPagadosXlsxTodos(Request $request)
 
     $user = Usuario::find(session('id_usuario'));
     $casinos = $user->casinos->pluck('nombre', 'id_casino');
+    // Solo los casinos que cargan este documento: si no, el archivo traía hojas vacías de
+    // casinos a los que no les corresponde.
+    $casinosDelDoc = $casinos->filter(function($nombre, $id){
+        return $this->casinoLlevaUnificado($id, 'Jackpots');
+    });
+    // Si el usuario no tiene NINGÚN casino que cargue este documento, se deja la lista original:
+    // un Excel sin ninguna hoja rompe al generarse.
+    if ($casinosDelDoc->isNotEmpty()) $casinos = $casinosDelDoc;
 
     return Excel::create('registro_JackpotsPagados_todos', function($excel) use ($casinos, $desde, $hasta) {
         foreach ($casinos as $casinoId => $casinoNombre) {
@@ -13105,6 +13130,14 @@ public function descargarPremiosPagadosXlsxTodos(Request $request)
 
     $user = Usuario::find(session('id_usuario'));
     $casinos = $user->casinos->pluck('nombre', 'id_casino');
+    // Solo los casinos que cargan este documento: si no, el archivo traía hojas vacías de
+    // casinos a los que no les corresponde.
+    $casinosDelDoc = $casinos->filter(function($nombre, $id){
+        return $this->casinoLlevaUnificado($id, 'PremiosPagados');
+    });
+    // Si el usuario no tiene NINGÚN casino que cargue este documento, se deja la lista original:
+    // un Excel sin ninguna hoja rompe al generarse.
+    if ($casinosDelDoc->isNotEmpty()) $casinos = $casinosDelDoc;
 
     return Excel::create('registro_PremiosPagados_todos', function($excel) use ($casinos, $desde, $hasta) {
         foreach ($casinos as $casinoId => $casinoNombre) {
@@ -13995,6 +14028,14 @@ public function descargarPremiosMTMXlsxTodos(Request $request)
 
     $user = Usuario::find(session('id_usuario'));
     $casinos = $user->casinos->pluck('nombre', 'id_casino');
+    // Solo los casinos que cargan este documento: si no, el archivo traía hojas vacías de
+    // casinos a los que no les corresponde.
+    $casinosDelDoc = $casinos->filter(function($nombre, $id){
+        return $this->casinoLlevaUnificado($id, 'PremiosMTM');
+    });
+    // Si el usuario no tiene NINGÚN casino que cargue este documento, se deja la lista original:
+    // un Excel sin ninguna hoja rompe al generarse.
+    if ($casinosDelDoc->isNotEmpty()) $casinos = $casinosDelDoc;
 
     return Excel::create('registro_PremiosMTM_todos', function($excel) use ($casinos, $desde, $hasta) {
         foreach ($casinos as $casinoId => $casinoNombre) {
@@ -14183,16 +14224,74 @@ public function descargarPremiosMTMXlsxTodos(Request $request)
     })->export('xlsx');
 }
 
+/**
+ * Pseudo-documentos que carga cada casino en "Registros contables y premios".
+ * Es el espejo de `prizeSectionsByCasino` (public/js/documentosContables.js), que es lo que el
+ * modal muestra/oculta al elegir el casino: Jackpots es solo de Melincué (1), Premios MTM solo de
+ * Rosario (3) y Premios Pagados no va en Rosario. Si ambos se desincronizan, el Excel vuelve a
+ * traer documentos que el casino no carga.
+ * Con un casino no mapeado devuelve todas, para no romper (mismo criterio que antes).
+ */
+private function seccionesUnificadoPorCasino($casinoId)
+{
+    $mapa = [
+        1 => ['PromoTickets', 'Pozos', 'Jackpots', 'PremiosPagados', 'PagosMesas', 'RegistrosContables'],
+        2 => ['PromoTickets', 'Pozos', 'PremiosPagados', 'PagosMesas', 'RegistrosContables'],
+        3 => ['PromoTickets', 'Pozos', 'PremiosMTM', 'PagosMesas', 'RegistrosContables'],
+    ];
+
+    return isset($mapa[(int)$casinoId])
+        ? $mapa[(int)$casinoId]
+        : ['PremiosMTM', 'PromoTickets', 'Pozos', 'Jackpots', 'PremiosPagados', 'PagosMesas', 'RegistrosContables'];
+}
+
+/** ¿Este casino carga ese pseudo-documento del unificado? */
+private function casinoLlevaUnificado($casinoId, $seccion)
+{
+    return in_array($seccion, $this->seccionesUnificadoPorCasino($casinoId), true);
+}
+
 public function descargarPremiosMTMUnificadoXlsx(Request $request)
 {
     $casinoId = $request->query('casino');
     $desde = $request->query('desde');
     $hasta = $request->query('hasta');
 
-    $casino = Casino::findOrFail($casinoId);
-    $filename = "PremiosMTM_Unificado_" . str_replace(' ', '_', strtolower($casino->nombre)) . "_" . date('Ymd_His');
+    $user = Usuario::find(session('id_usuario'));
+    $permitidos = $user->casinos->pluck('nombre', 'id_casino');
 
-    return Excel::create($filename, function($excel) use ($casino, $casinoId, $desde, $hasta) {
+    // casino = 4 es el "Todos" de la pantalla (no es un casino real). En ese caso va UN solo archivo
+    // con todos los casinos adentro: antes se disparaban 7 descargas sueltas y el navegador bloqueaba
+    // todas menos la primera, así que parecía que solo bajaba un documento.
+    $multiCasino = ((int)$casinoId === 4);
+
+    if ($multiCasino) {
+        $casinosArchivo = $permitidos;
+        $filename = "PremiosMTM_Unificado_todos_" . date('Ymd_His');
+    } else {
+        $casino = Casino::findOrFail($casinoId);
+        $casinosArchivo = collect([(int)$casinoId => $casino->nombre]);
+        $filename = "PremiosMTM_Unificado_" . str_replace(' ', '_', strtolower($casino->nombre)) . "_" . date('Ymd_His');
+    }
+
+    // Qué casinos van en cada documento: antes el Excel armaba las 7 hojas siempre, así que traía
+    // hojas de documentos que ese casino ni carga.
+    $todasLasSecciones = ['PremiosMTM', 'PromoTickets', 'Pozos', 'Jackpots', 'PremiosPagados', 'PagosMesas', 'RegistrosContables'];
+    $casinosPorSeccion = [];
+    foreach ($todasLasSecciones as $sec) {
+        $lista = [];
+        foreach ($casinosArchivo as $cid => $cnombre) {
+            if ($this->casinoLlevaUnificado($cid, $sec)) $lista[$cid] = $cnombre;
+        }
+        $casinosPorSeccion[$sec] = $lista;
+    }
+
+    // Si no quedó ninguna hoja (usuario sin casinos, o casino sin documentos), no se puede generar
+    // un Excel vacío: rompe. Se avisa en vez de bajar un archivo corrupto.
+    $totalHojas = array_sum(array_map('count', $casinosPorSeccion));
+    if ($totalHojas === 0) abort(404, 'No hay documentos para descargar con los casinos de este usuario.');
+
+    return Excel::create($filename, function($excel) use ($desde, $hasta, $casinosPorSeccion, $multiCasino) {
         
         $getColor = function($cId) {
             return $cId == 1 ? '#339966' : ($cId == 2 ? '#ff0000' : '#ffcc00');
@@ -14223,8 +14322,22 @@ public function descargarPremiosMTMUnificadoXlsx(Request $request)
             ]);
         };
 
+        // Arma una hoja por cada casino que carga ese documento. Con un casino puntual queda una
+        // sola hoja con el nombre del documento; con "Todos", una por casino ("Documento - Casino",
+        // recortado a 31 caracteres, que es el máximo que admite Excel para el nombre de la solapa).
+        $hoja = function($nombre, $callback) use ($excel, $casinosPorSeccion, $multiCasino) {
+            $lista = isset($casinosPorSeccion[$nombre]) ? $casinosPorSeccion[$nombre] : [];
+            foreach ($lista as $cid => $cnombre) {
+                // mb_substr para no partir un acento al recortar (ej. "Melincué").
+                $titulo = $multiCasino ? mb_substr($nombre . ' - ' . $cnombre, 0, 31, 'UTF-8') : $nombre;
+                $excel->sheet($titulo, function($sheet) use ($callback, $cid) {
+                    $callback($sheet, $cid);
+                });
+            }
+        };
+
         // 1. Premios MTM
-        $excel->sheet('PremiosMTM', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+        $hoja('PremiosMTM', function($sheet, $casinoId) use ($desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
             $query = RegistroPremiosMTM::select([
                 DB::raw("YEAR(fecha_PremiosMTM) AS anio"), DB::raw("MONTHNAME(fecha_PremiosMTM) AS Mes"),
                 'cancel', 'cancel_usd', 'progresivos', 'progresivos_usd', 'jackpots', 'jackpots_usd', 'total', 'total_usd'
@@ -14285,7 +14398,7 @@ public function descargarPremiosMTMUnificadoXlsx(Request $request)
         });
 
         // 2. Promo Tickets
-        $excel->sheet('PromoTickets', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+        $hoja('PromoTickets', function($sheet, $casinoId) use ($desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
             $query = RegistroPromoTickets::select([
                 DB::raw("YEAR(fecha_PromoTickets) AS anio"), DB::raw("MONTHNAME(fecha_PromoTickets) AS Mes"),
                 'cantidad', 'importe'
@@ -14327,7 +14440,7 @@ public function descargarPremiosMTMUnificadoXlsx(Request $request)
         });
 
         // 3. Pozos Acumulados
-        $excel->sheet('Pozos', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+        $hoja('Pozos', function($sheet, $casinoId) use ($desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
             $query = RegistroPozosAcumuladosLinkeados::select([
                 DB::raw("YEAR(fecha_PozosAcumuladosLinkeados) AS anio"), DB::raw("MONTHNAME(fecha_PozosAcumuladosLinkeados) AS Mes"),
                 'importe'
@@ -14369,7 +14482,7 @@ public function descargarPremiosMTMUnificadoXlsx(Request $request)
         });
 
         // 4. Jackpots
-        $excel->sheet('Jackpots', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+        $hoja('Jackpots', function($sheet, $casinoId) use ($desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
             $query = RegistroJackpotsPagados::select([
                 DB::raw("YEAR(fecha_JackpotsPagados) AS anio"), DB::raw("MONTHNAME(fecha_JackpotsPagados) AS Mes"),
                 'importe', 'importe_usd'
@@ -14411,7 +14524,7 @@ public function descargarPremiosMTMUnificadoXlsx(Request $request)
         });
 
         // 5. Premios Pagados
-        $excel->sheet('PremiosPagados', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+        $hoja('PremiosPagados', function($sheet, $casinoId) use ($desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
             $query = RegistroPremiosPagados::select([
                 DB::raw("YEAR(fecha_PremiosPagados) AS anio"), DB::raw("MONTHNAME(fecha_PremiosPagados) AS Mes"),
                 'cantidad', 'importe'
@@ -14453,7 +14566,7 @@ public function descargarPremiosMTMUnificadoXlsx(Request $request)
         });
 
         // 6. Pagos Mesas
-        $excel->sheet('PagosMesas', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+        $hoja('PagosMesas', function($sheet, $casinoId) use ($desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
             
             $applyHeaderStylePagosMesas = function($sheet, $colRange, $color) {
                 $sheet->cells($colRange, function($cells) use ($color) {
@@ -14515,7 +14628,7 @@ public function descargarPremiosMTMUnificadoXlsx(Request $request)
         });
 
         // 7. Registros Contables
-        $excel->sheet('RegistrosContables', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+        $hoja('RegistrosContables', function($sheet, $casinoId) use ($desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
             $query = RegistroRegistrosContables::select([
                 DB::raw("YEAR(fecha_RegistrosContables) AS anio"), DB::raw("MONTHNAME(fecha_RegistrosContables) AS Mes"),
                 'mtm', 'mtm_usd', 'mp', 'mp_usd', 'bingo', 'jol', 'total', 'total_usd'
@@ -14669,6 +14782,19 @@ public function AutDirectoresHabilitadosPorCasino($casinoId){
   return response()->json($directores);
 }
 
+/**
+ * Todos los directores del casino (habilitados e inhabilitados), para poder sumar al registro
+ * directores que no están habilitados. La precarga del registro sigue usando
+ * AutDirectoresHabilitadosPorCasino (solo los habilitados).
+ */
+public function AutDirectoresTodosPorCasino($casinoId){
+  $directores = RegistroAutDirectores_director::where('casino',$casinoId)
+                                              ->orderBy('habilitado','desc')
+                                              ->orderBy('nombre')
+                                              ->get(['id_registroAutDirectores_director','nombre','cuit','habilitado']);
+  return response()->json($directores);
+}
+
 public function getAutDirectores(){
   $directores = RegistroAutDirectores_director::with('casinoAutDirectores_director')
                                               ->get();
@@ -14726,7 +14852,9 @@ public function guardarAutDirectores_autorizacion(Request $request){
               $autorizacion->autoriza = (int)$autoriza;
               $autorizacion->registro = $AutDirectores->id_registroAutDirectores;
               $autorizacion->director = $dirId;
-              $autorizacion->observaciones= $obsMap[$dirId];
+              // array_key_exists y no $obsMap[$dirId] a secas: si un director no trae observación
+              // (p.ej. uno agregado a mano) tiraba "Undefined index" y fallaba todo el guardado.
+              $autorizacion->observaciones = array_key_exists($dirId, $obsMap) ? $obsMap[$dirId] : null;
               $autorizacion->save();
           }
           $files = Arr::wrap($request->file('uploadAutDirectores'));
@@ -14829,13 +14957,31 @@ public function actualizarAutDirectores(Request $request, $id)
         ->where('registro', $id)
         ->pluck('id_registroAutDirectores_autorizacion', 'director');
 
+    // Se SINCRONIZA contra lo que llegó del form: se actualizan los que siguen, se dan de alta los
+    // que se agregaron y se borran los que se sacaron. Antes solo se recorrían las filas ya
+    // guardadas, así que agregar o quitar un director en edición no tenía ningún efecto.
     foreach ($detalles as $dirId => $rowPk) {
+        if (!array_key_exists($dirId, $postAut)) {
+            \DB::table('registroAutDirectores_autorizacion')
+                ->where('id_registroAutDirectores_autorizacion', $rowPk)->delete();
+            continue;
+        }
         \DB::table('registroAutDirectores_autorizacion')
             ->where('id_registroAutDirectores_autorizacion', $rowPk)
             ->update([
-                'autoriza'      => isset($postAut[$dirId]) ? (int)$postAut[$dirId] : 0,
+                'autoriza'      => (int)$postAut[$dirId],
                 'observaciones' => array_key_exists($dirId, $postObs) ? $postObs[$dirId] : null,
             ]);
+    }
+
+    foreach ($postAut as $dirId => $autoriza) {
+        if (isset($detalles[$dirId])) continue; // ya existía: se actualizó arriba
+        \DB::table('registroAutDirectores_autorizacion')->insert([
+            'registro'      => $id,
+            'director'      => $dirId,
+            'autoriza'      => (int)$autoriza,
+            'observaciones' => array_key_exists($dirId, $postObs) ? $postObs[$dirId] : null,
+        ]);
     }
 
     $saved = 0;
@@ -18166,7 +18312,10 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
 
     private function armarControlDocumentos($id_casino, $desde, $hasta){
         $desde_date = $desde.'-01';
-        $hasta_date = \Carbon\Carbon::createFromFormat('Y-m', $hasta)->endOfMonth()->format('Y-m-d');
+        // OJO: createFromFormat('Y-m', ...) completa con el DÍA DE HOY, así que un 31 desborda los
+        // meses cortos (ej. "hasta=2026-02" un día 31 calculaba fin de MARZO). Se arma con día 01
+        // explícito antes de pedir el fin de mes.
+        $hasta_date = \Carbon\Carbon::createFromFormat('Y-m-d', $hasta.'-01')->endOfMonth()->format('Y-m-d');
 
         $meses_nombres = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
 

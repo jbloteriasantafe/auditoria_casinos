@@ -18,6 +18,17 @@
   <link rel="stylesheet" href="css/lista-datos.css">
 
   <style>
+    /* Documento validado: el modal se abre en solo lectura, así que no se puede eliminar archivos.
+       Va por CSS porque la lista de archivos se carga por AJAX (después de bloquear el modal). */
+    .doc-solo-lectura .lista-archivos-doc [class*="btn-del-archivo-"] {
+      display: none !important;
+    }
+    /* Ídem para el alta/baja de directores del registro de autónomos: si el documento ya está
+       validado no se pueden sumar ni sacar directores. */
+    .doc-solo-lectura #zona-agregar-director,
+    .doc-solo-lectura .btn-quitar-director {
+      display: none !important;
+    }
     #mensajeExito {
       animation: salida 1.5s forwards;
     }
@@ -283,10 +294,10 @@
     <div class="modal fade" id="modalCargarEstadoContable" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog" style="width: 70%;">
              <div class="modal-content">
-               <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+               <div class="modal-header modalNuevo" style="background-color: #00695c;">
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizarEstadoContable" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoEstadoContable" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO ESTADO CONTABLE</h3>
+                 <h3 class="modal-title" style="background-color: #00695c;">| NUEVO ESTADO CONTABLE</h3>
                 </div>
                 <!-- TODO: Add missing custom inputs based on specific schema request -->
                 <div id="colapsadoEstadoContable" class="collapse in">
@@ -561,6 +572,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                   </table>
                                 </div>
                                 <div id="uploadsEstadoContableContainer" style="display:none;"></div>
+                                <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+                                <div id="listaArchivosWrap_EstadoContable" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                  <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                  <div id="listaArchivos_EstadoContable" class="list-group"></div>
+                                </div>
                               </div>
                             </div>
 
@@ -2058,6 +2074,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               </div>
 
               <div id="uploadsIvaContainer" style="display:none;"></div>
+              <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+              <div id="listaArchivosWrap_Iva" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                <div id="listaArchivos_Iva" class="list-group"></div>
+              </div>
               </div>
           </div>
         </div>
@@ -2308,6 +2329,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               </div>
 
               <div id="uploadsiibbContainer" style="display:none;"></div>
+              <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+              <div id="listaArchivosWrap_iibb" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                <div id="listaArchivos_iibb" class="list-group"></div>
+              </div>
               </div>
       </div>
 
@@ -2765,6 +2791,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
 
             <div id="uploadsDREIContainer" style="display:none;"></div>
+            <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+            <div id="listaArchivosWrap_DREI" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+              <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+              <div id="listaArchivos_DREI" class="list-group"></div>
+            </div>
             </div>
     </div>
 
@@ -3398,6 +3429,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               </div>
 
               <div id="uploadsTGIContainer" style="display:none;"></div>
+              <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+              <div id="listaArchivosWrap_TGI" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                <div id="listaArchivos_TGI" class="list-group"></div>
+              </div>
               </div>
       </div>
 
@@ -3615,6 +3651,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                               </div>
 
                               <div id="uploadsIMP_AP_OLContainer" style="display:none;"></div>
+                              <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+                              <div id="listaArchivosWrap_IMP_AP_OL" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                <div id="listaArchivos_IMP_AP_OL" class="list-group"></div>
+                              </div>
                               </div>
                       </div>
           </div>
@@ -3862,6 +3903,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                     </div>
 
                     <div id="uploadsIMP_AP_MTMContainer" style="display:none;"></div>
+                    <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+                    <div id="listaArchivosWrap_IMP_AP_MTM" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                      <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                      <div id="listaArchivos_IMP_AP_MTM" class="list-group"></div>
+                    </div>
                     </div>
             </div>
             </div>
@@ -4087,6 +4133,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                     </div>
 
                     <div id="uploadsDeudaEstadoContainer" style="display:none;"></div>
+                    <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+                    <div id="listaArchivosWrap_DeudaEstado" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                      <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                      <div id="listaArchivos_DeudaEstado" class="list-group"></div>
+                    </div>
                     </div>
             </div>
 
@@ -4255,6 +4306,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
 
             <div id="uploadsPagosMayoresMesasContainer" style="display:none;"></div>
+            <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+            <div id="listaArchivosWrap_PagosMayoresMesas" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+              <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+              <div id="listaArchivos_PagosMayoresMesas" class="list-group"></div>
+            </div>
             </div>
     </div>
               </div>
@@ -4437,6 +4493,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
 
             <div id="uploadsReporteYLavadoContainer" style="display:none;"></div>
+            <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+            <div id="listaArchivosWrap_ReporteYLavado" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+              <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+              <div id="listaArchivos_ReporteYLavado" class="list-group"></div>
+            </div>
             </div>
     </div>
               </div>
@@ -4679,6 +4740,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               </div>
 
               <div id="uploadsRegistrosContablesContainer" style="display:none;"></div>
+              <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+              <div id="listaArchivosWrap_RegistrosContables" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                <div id="listaArchivos_RegistrosContables" class="list-group"></div>
+              </div>
               </div>
       </div>
               </div>
@@ -4945,6 +5011,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
           </div>
 
           <div id="uploadsAportesPatronalesContainer" style="display:none;"></div>
+          <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+          <div id="listaArchivosWrap_AportesPatronales" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+            <div id="listaArchivos_AportesPatronales" class="list-group"></div>
+          </div>
           </div>
   </div>
               </div>
@@ -5138,6 +5209,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
 
             <div id="uploadsPromoTicketsContainer" style="display:none;"></div>
+            <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+            <div id="listaArchivosWrap_PromoTickets" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+              <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+              <div id="listaArchivos_PromoTickets" class="list-group"></div>
+            </div>
             </div>
     </div>
               </div>
@@ -5328,6 +5404,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
           </div>
 
           <div id="uploadsPozosAcumuladosLinkeadosContainer" style="display:none;"></div>
+          <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+          <div id="listaArchivosWrap_PozosAcumuladosLinkeados" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+            <div id="listaArchivos_PozosAcumuladosLinkeados" class="list-group"></div>
+          </div>
           </div>
   </div>
               </div>
@@ -5555,6 +5636,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
           </div>
 
           <div id="uploadsContribEnteTuristicoContainer" style="display:none;"></div>
+          <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+          <div id="listaArchivosWrap_ContribEnteTuristico" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+            <div id="listaArchivos_ContribEnteTuristico" class="list-group"></div>
+          </div>
           </div>
   </div>
               </div>
@@ -5895,6 +5981,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
         </div>
 
         <div id="uploadsRRHHContainer" style="display:none;"></div>
+        <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+        <div id="listaArchivosWrap_RRHH" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+          <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+          <div id="listaArchivos_RRHH" class="list-group"></div>
+        </div>
         </div>
 </div>
               </div>
@@ -6252,6 +6343,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   </div>
 
                   <div id="uploadsGananciasContainer" style="display:none;"></div>
+                  <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+                  <div id="listaArchivosWrap_Ganancias" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                    <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                    <div id="listaArchivos_Ganancias" class="list-group"></div>
+                  </div>
                   </div>
                 </div>
               </div>
@@ -6477,6 +6573,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               </div>
 
               <div id="uploadsGanancias_periodoContainer" style="display:none;"></div>
+              <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+              <div id="listaArchivosWrap_Ganancias_periodo" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                <div id="listaArchivos_Ganancias_periodo" class="list-group"></div>
+              </div>
               </div>
       </div>
 
@@ -6666,6 +6767,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
 
             <div id="uploadsJackpotsPagadosContainer" style="display:none;"></div>
+            <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+            <div id="listaArchivosWrap_JackpotsPagados" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+              <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+              <div id="listaArchivos_JackpotsPagados" class="list-group"></div>
+            </div>
             </div>
     </div>
 
@@ -6857,6 +6963,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
 
             <div id="uploadsPremiosPagadosContainer" style="display:none;"></div>
+            <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+            <div id="listaArchivosWrap_PremiosPagados" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+              <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+              <div id="listaArchivos_PremiosPagados" class="list-group"></div>
+            </div>
             </div>
     </div>
               </div>
@@ -7038,7 +7149,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                             <input type="text" class="form-control displayUnified" id="display_PremiosMTM" placeholder="No se ha seleccionado ningún archivo" readonly>
                                             <input type="file" class="inputUnified" id="upload_PremiosMTM" name="uploadPremiosMTM[]" multiple style="display:none;">
                                         </div>
-                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="PremiosMTM" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <!-- archivos ya cargados (inline) -->
+                                        <div id="listaArchivosWrap_U_PremiosMTM" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                            <div id="listaArchivos_U_PremiosMTM" class="list-group"></div>
+                                        </div>
                                         <div class="table-responsive wrapUnified" id="wrap_PremiosMTM" style="margin-top:8px; display:none;">
                                             <table class="table table-striped table-bordered table-condensed tableUnified" id="table_PremiosMTM">
                                                 <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
@@ -7072,7 +7187,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                             <input type="text" class="form-control displayUnified" id="display_PromoTickets" placeholder="No se ha seleccionado ningún archivo" readonly>
                                             <input type="file" class="inputUnified" id="upload_PromoTickets" name="uploadPromoTickets[]" multiple style="display:none;">
                                         </div>
-                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="PromoTickets" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <!-- archivos ya cargados (inline) -->
+                                        <div id="listaArchivosWrap_U_PromoTickets" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                            <div id="listaArchivos_U_PromoTickets" class="list-group"></div>
+                                        </div>
                                         <div class="table-responsive wrapUnified" id="wrap_PromoTickets" style="margin-top:8px; display:none;">
                                             <table class="table table-striped table-bordered table-condensed tableUnified" id="table_PromoTickets">
                                                 <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
@@ -7105,7 +7224,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                             <input type="text" class="form-control displayUnified" id="display_Pozos" placeholder="No se ha seleccionado ningún archivo" readonly>
                                             <input type="file" class="inputUnified" id="upload_Pozos" name="uploadPozos[]" multiple style="display:none;">
                                         </div>
-                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="Pozos" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <!-- archivos ya cargados (inline) -->
+                                        <div id="listaArchivosWrap_U_Pozos" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                            <div id="listaArchivos_U_Pozos" class="list-group"></div>
+                                        </div>
                                         <div class="table-responsive wrapUnified" id="wrap_Pozos" style="margin-top:8px; display:none;">
                                             <table class="table table-striped table-bordered table-condensed tableUnified" id="table_Pozos">
                                                 <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
@@ -7139,7 +7262,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                             <input type="text" class="form-control displayUnified" id="display_Jackpots" placeholder="No se ha seleccionado ningún archivo" readonly>
                                             <input type="file" class="inputUnified" id="upload_Jackpots" name="uploadJackpots[]" multiple style="display:none;">
                                         </div>
-                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="Jackpots" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <!-- archivos ya cargados (inline) -->
+                                        <div id="listaArchivosWrap_U_Jackpots" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                            <div id="listaArchivos_U_Jackpots" class="list-group"></div>
+                                        </div>
                                         <div class="table-responsive wrapUnified" id="wrap_Jackpots" style="margin-top:8px; display:none;">
                                             <table class="table table-striped table-bordered table-condensed tableUnified" id="table_Jackpots">
                                                 <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
@@ -7174,7 +7301,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                             <input type="text" class="form-control displayUnified" id="display_PremiosPagados" placeholder="No se ha seleccionado ningún archivo" readonly>
                                             <input type="file" class="inputUnified" id="upload_PremiosPagados" name="uploadPremiosPagados[]" multiple style="display:none;">
                                         </div>
-                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="PremiosPagados" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <!-- archivos ya cargados (inline) -->
+                                        <div id="listaArchivosWrap_U_PremiosPagados" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                            <div id="listaArchivos_U_PremiosPagados" class="list-group"></div>
+                                        </div>
                                         <div class="table-responsive wrapUnified" id="wrap_PremiosPagados" style="margin-top:8px; display:none;">
                                             <table class="table table-striped table-bordered table-condensed tableUnified" id="table_PremiosPagados">
                                                 <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
@@ -7209,7 +7340,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                             <input type="text" class="form-control displayUnified" id="display_PagosMesas" placeholder="No se ha seleccionado ningún archivo" readonly>
                                             <input type="file" class="inputUnified" id="upload_PagosMesas" name="uploadPagosMesas[]" multiple style="display:none;">
                                         </div>
-                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="PagosMesas" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <!-- archivos ya cargados (inline) -->
+                                        <div id="listaArchivosWrap_U_PagosMesas" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                            <div id="listaArchivos_U_PagosMesas" class="list-group"></div>
+                                        </div>
                                         <div class="table-responsive wrapUnified" id="wrap_PagosMesas" style="margin-top:8px; display:none;">
                                             <table class="table table-striped table-bordered table-condensed tableUnified" id="table_PagosMesas">
                                                 <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
@@ -7251,7 +7386,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                             <input type="text" class="form-control displayUnified" id="display_RegistrosContables" placeholder="No se ha seleccionado ningún archivo" readonly>
                                             <input type="file" class="inputUnified" id="upload_RegistrosContables" name="uploadRegistrosContables[]" multiple style="display:none;">
                                         </div>
-                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="RegistrosContables" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <!-- archivos ya cargados (inline) -->
+                                        <div id="listaArchivosWrap_U_RegistrosContables" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                            <div id="listaArchivos_U_RegistrosContables" class="list-group"></div>
+                                        </div>
                                         <div class="table-responsive wrapUnified" id="wrap_RegistrosContables" style="margin-top:8px; display:none;">
                                             <table class="table table-striped table-bordered table-condensed tableUnified" id="table_RegistrosContables">
                                                 <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
@@ -7656,6 +7795,23 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                 </div>
                 <br/>
 
+                <!-- Alta de directores al registro: permite sumar directores del casino que no están
+                     habilitados, o volver a agregar uno que se sacó. -->
+                <div class="row" id="zona-agregar-director" style="display:none;">
+                  <div class="col-md-7">
+                    <select id="selectAgregarDirector" class="form-control input-sm">
+                      <option value="">Elegí un director para agregar…</option>
+                    </select>
+                  </div>
+                  <div class="col-md-5">
+                    <button type="button" id="btnAgregarDirector" class="btn btn-infoBuscar btn-sm">
+                      <i class="fa fa-plus"></i> AGREGAR AL REGISTRO
+                    </button>
+                    <span id="avisoAgregarDirector" class="text-muted" style="margin-left:8px;"></span>
+                  </div>
+                </div>
+                <br/>
+
                 <div id="zona-directores" class="row">
 
                 </div>
@@ -7694,6 +7850,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
 
             <div id="uploadsAutDirectoresContainer" style="display:none;"></div>
+            <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+            <div id="listaArchivosWrap_AutDirectores" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+              <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+              <div id="listaArchivos_AutDirectores" class="list-group"></div>
+            </div>
             </div>
     </div>
               </div>
@@ -8048,6 +8209,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
 
             <div id="uploadsSegurosContainer" style="display:none;"></div>
+            <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+            <div id="listaArchivosWrap_Seguros" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+              <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+              <div id="listaArchivos_Seguros" class="list-group"></div>
+            </div>
             </div>
     </div>
               </div>
@@ -8291,6 +8457,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
           </div>
 
           <div id="uploadsDerechoAccesoContainer" style="display:none;"></div>
+          <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+          <div id="listaArchivosWrap_DerechoAcceso" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+            <div id="listaArchivos_DerechoAcceso" class="list-group"></div>
+          </div>
           </div>
   </div>
               </div>
@@ -8525,12 +8696,12 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 <div class="modal fade" id="modalCargarPatentes" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width:95%">
     <div class="modal-content">
-      <div class="modal-header modalNuevo" style="background-color:#6dc7be;">
+      <div class="modal-header modalNuevo" style="background-color: #00695c;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizarCrearPatentes" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearPatentes" style="position:relative; right:20px; top:5px">
           <i class="fa fa-minus"></i>
         </button>
-        <h3 class="modal-title" style="background-color:#6dc7be;">| NUEVO PAGO DE PATENTES</h3>
+        <h3 class="modal-title" style="background-color:#00695c;">| NUEVO PAGO DE PATENTES</h3>
       </div>
 
       <div id="colapsadoCrearPatentes" class="collapse in">
@@ -8604,6 +8775,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                 </div>
 
                 <div id="uploadsPatentesContainer" style="display:none;"></div>
+                <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+                <div id="listaArchivosWrap_Patentes" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                  <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                  <div id="listaArchivos_Patentes" class="list-group"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -8942,6 +9118,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                 </div>
 
                 <div id="uploadsImpInmobiliarioContainer" style="display:none;"></div>
+                <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+                <div id="listaArchivosWrap_ImpInmobiliario" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                  <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                  <div id="listaArchivos_ImpInmobiliario" class="list-group"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -9111,7 +9292,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 <div class="modal fade" id="modalPublicoCasino" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+      <div class="modal-header modalNuevo" style="background-color: #00695c;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <h3 class="modal-title">PÚBLICO CASINO</h3>
       </div>
@@ -9182,6 +9363,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                 <input type="text" id="fileNamePublicoCasino" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
                 <input type="file" id="uploadPublicoCasino" name="uploadPublicoCasino[]" multiple style="display:none;">
                 <div id="uploadsPublicoCasinoContainer"></div>
+                <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+                <div id="listaArchivosWrap_PublicoCasino" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                  <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                  <div id="listaArchivos_PublicoCasino" class="list-group"></div>
+                </div>
               </div>
               <div class="table-responsive" id="uploadsPublicoCasinoWrap" style="margin-top:8px; display:none;">
                 <table class="table table-striped table-bordered table-condensed" id="uploadsPublicoCasinoTable">
