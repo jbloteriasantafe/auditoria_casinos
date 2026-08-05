@@ -431,6 +431,17 @@ function setDateSmart($group, val) {
   }
 }
 
+// Al subir, el archivo se guarda como "<timestamp>_<6 al azar>_<nombre original>" para que dos
+// archivos con el mismo nombre no se pisen. Esto saca ese prefijo para MOSTRAR, así se ve el
+// nombre que subió el usuario.
+// OJO: es solo cosmético. El href y el borrado tienen que seguir usando el nombre REAL guardado,
+// que es el que existe en disco.
+// Si el nombre no tiene exactamente esa forma (archivos viejos, subidos con otra convención) se
+// devuelve tal cual, para no recortar de más.
+function nombreVisibleArchivo(nombre) {
+  return String(nombre == null ? "" : nombre).replace(/^\d+_[A-Za-z0-9]{6}_/, "");
+}
+
 function iconoExt(nombre) {
   var n = (nombre || "").toLowerCase();
   if (/\.(pdf)$/.test(n)) return "📄";
@@ -460,7 +471,9 @@ function buildArchivoRow(item, registro) {
     .attr("class", faIconClassByExt(nombre))
     .css({ marginRight: "8px", fontSize: "16px", lineHeight: "1" });
 
-  var $link = $('<a target="_blank">').attr("href", href).text(nombre);
+  var $link = $('<a target="_blank">')
+    .attr("href", href)
+    .text(nombreVisibleArchivo(nombre));
 
   var $del = $(
     '<button type="button" class="btn btn-xs btn-danger btn-del-archivo" title="Quitar">'
@@ -619,43 +632,46 @@ $(document).on("click", "#btn-eliminarArchivo", function () {
   const fileId = $modal.data("id");
   const regId = $modal.data("regId");
   const scope = $modal.data("scope");
+  // Contenedor exacto donde estaba el archivo (lo guarda el hook de abajo). Hace falta porque en el
+  // modal unificado cada sub-documento tiene su propia lista (#listaArchivos_U_*) y resolver el
+  // destino solo por tipo terminaba refrescando la lista del modal suelto (#listaArchivos_*).
+  const contenedor = $modal.data("contenedor") || null;
 
   $.getJSON("/documentosContables/eliminarArchivo", { id: fileId })
     .done(function (r) {
       if (r && r.success) {
         const reloaders = {
-          Iva: (id) => cargarArchivosIvaLista(id),
-          iibb: (id) => cargarArchivosiibbLista(id),
-          DREI: (id) => cargarArchivosDREILista(id),
-          TGI: (id) => cargarArchivosTGILista(id),
-          IMP_AP_MTM: (id) => cargarArchivosIMP_AP_MTMLista(id),
-          IMP_AP_OL: (id) => cargarArchivosIMP_AP_OLLista(id),
-          Ganancias: (id) => cargarArchivosGananciasLista(id),
-          Ganancias_periodo: (id) => cargarArchivosGanancias_periodoLista(id),
-          Patentes: (id) => cargarArchivosPatentesLista(id),
-          ImpInmobiliario: (id) => cargarArchivosImpInmobiliarioLista(id),
-          ContribEnteTuristico: (id) =>
-            cargarArchivosContribEnteTuristicoLista(id),
-          DerechoAcceso: (id) => cargarArchivosDerechoAccesoLista(id),
-          DeudaEstado: (id) => cargarArchivosDeudaEstadoLista(id),
-          AutDirectores: (id) => cargarArchivosAutDirectoresLista(id),
-          PremiosMTM: (id) => cargarArchivosPremiosMTMLista(id),
-          PromoTickets: (id) => cargarArchivosPromoTicketsLista(id),
-          PozosAcumuladosLinkeados: (id) =>
-            cargarArchivosPozosAcumuladosLinkeadosLista(id),
-          JackpotsPagados: (id) => cargarArchivosJackpotsPagadosLista(id),
-          PremiosPagados: (id) => cargarArchivosPremiosPagadosLista(id),
-          PagosMayoresMesas: (id) => cargarArchivosPagosMayoresMesasLista(id),
-          RegistrosContables: (id) => cargarArchivosRegistrosContablesLista(id),
-          AportesPatronales: (id) => cargarArchivosAportesPatronalesLista(id),
-          RRHH: (id) => cargarArchivosRRHHLista(id),
-          ReporteYLavado: (id) => cargarArchivosReporteYLavadoLista(id),
-          Seguros: (id) => cargarArchivosSegurosLista(id),
-          publicoCasino: (id) => cargarArchivosPublicoCasinoLista(id),
+          Iva: (id, target) => cargarArchivosIvaLista(id, target),
+          iibb: (id, target) => cargarArchivosiibbLista(id, target),
+          DREI: (id, target) => cargarArchivosDREILista(id, target),
+          TGI: (id, target) => cargarArchivosTGILista(id, target),
+          IMP_AP_MTM: (id, target) => cargarArchivosIMP_AP_MTMLista(id, target),
+          IMP_AP_OL: (id, target) => cargarArchivosIMP_AP_OLLista(id, target),
+          Ganancias: (id, target) => cargarArchivosGananciasLista(id, target),
+          Ganancias_periodo: (id, target) => cargarArchivosGanancias_periodoLista(id, target),
+          Patentes: (id, target) => cargarArchivosPatentesLista(id, target),
+          ImpInmobiliario: (id, target) => cargarArchivosImpInmobiliarioLista(id, target),
+          ContribEnteTuristico: (id, target) => cargarArchivosContribEnteTuristicoLista(id, target),
+          DerechoAcceso: (id, target) => cargarArchivosDerechoAccesoLista(id, target),
+          DeudaEstado: (id, target) => cargarArchivosDeudaEstadoLista(id, target),
+          AutDirectores: (id, target) => cargarArchivosAutDirectoresLista(id, target),
+          PremiosMTM: (id, target) => cargarArchivosPremiosMTMLista(id, target),
+          PromoTickets: (id, target) => cargarArchivosPromoTicketsLista(id, target),
+          PozosAcumuladosLinkeados: (id, target) => cargarArchivosPozosAcumuladosLinkeadosLista(id, target),
+          JackpotsPagados: (id, target) => cargarArchivosJackpotsPagadosLista(id, target),
+          PremiosPagados: (id, target) => cargarArchivosPremiosPagadosLista(id, target),
+          PagosMayoresMesas: (id, target) => cargarArchivosPagosMayoresMesasLista(id, target),
+          RegistrosContables: (id, target) => cargarArchivosRegistrosContablesLista(id, target),
+          AportesPatronales: (id, target) => cargarArchivosAportesPatronalesLista(id, target),
+          RRHH: (id, target) => cargarArchivosRRHHLista(id, target),
+          ReporteYLavado: (id, target) => cargarArchivosReporteYLavadoLista(id, target),
+          Seguros: (id, target) => cargarArchivosSegurosLista(id, target),
+          publicoCasino: (id, target) => cargarArchivosPublicoCasinoLista(id, target),
+          EstadoContable: (id, target) => cargarArchivosEstadoContableLista(id, target),
         };
 
         if (reloaders[scope]) {
-          reloaders[scope](regId);
+          reloaders[scope](regId, contenedor);
           var activeTab = $("[data-js-tabs] a.active").attr("data-js-tab");
           if (!activeTab) activeTab = $("[data-js-tabs] a").first().attr("data-js-tab");
           buscarPestana(activeTab, true);
@@ -663,7 +679,9 @@ $(document).on("click", "#btn-eliminarArchivo", function () {
           $(`[data-archivo-id="${fileId}"]`).remove();
         }
 
-        $("#modalEliminarArchivo").modal("hide").removeData("id regId scope");
+        $("#modalEliminarArchivo")
+          .modal("hide")
+          .removeData("id regId scope contenedor");
       } else {
         alert("No se pudo eliminar");
       }
@@ -742,7 +760,7 @@ function cargarArchivosiibbLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -1724,7 +1742,7 @@ function cargarArchivosDREILista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -2741,7 +2759,7 @@ function cargarArchivosIvaLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -3296,7 +3314,7 @@ function cargarArchivosTGILista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -4470,7 +4488,7 @@ function cargarArchivosIMP_AP_OLLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -5068,7 +5086,7 @@ function cargarArchivosIMP_AP_MTMLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -5650,7 +5668,7 @@ function cargarArchivosPagosMayoresMesasLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -6169,7 +6187,7 @@ function cargarArchivosDeudaEstadoLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -6677,7 +6695,7 @@ function cargarArchivosReporteYLavadoLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -7760,7 +7778,7 @@ function cargarArchivosRegistrosContablesLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -8358,7 +8376,7 @@ function cargarArchivosAportesPatronalesLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -8918,7 +8936,7 @@ function cargarArchivosPromoTicketsLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -9425,7 +9443,7 @@ function cargarArchivosPozosAcumuladosLinkeadosLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -10003,7 +10021,7 @@ function cargarArchivosContribEnteTuristicoLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -10649,7 +10667,7 @@ function cargarArchivosRRHHLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -11431,7 +11449,7 @@ function cargarArchivosGananciasLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -11722,7 +11740,7 @@ function cargarArchivosGanancias_periodoLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -12463,7 +12481,7 @@ function cargarArchivosJackpotsPagadosLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -12971,7 +12989,7 @@ function cargarArchivosPremiosPagadosLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -13505,7 +13523,7 @@ function cargarArchivosPremiosMTMLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -14742,7 +14760,7 @@ function cargarArchivosAutDirectoresLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -15548,7 +15566,7 @@ function cargarArchivosSegurosLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -16329,7 +16347,7 @@ function cargarArchivosDerechoAccesoLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -17105,7 +17123,7 @@ function cargarArchivosPatentesLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -18471,7 +18489,7 @@ function cargarArchivosImpInmobiliarioLista(id, target) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -23939,6 +23957,71 @@ $(document).on("click", "#btn-confirmar-validacion", function () {
 
 // --- ESTADO CONTABLE ---
 
+// Estaba definida DENTRO del $(document).ready() de abajo, así que era una función local y no
+// global: prepararModalDocContable la busca con window["cargarArchivos"+tipo+"Lista"], y como no
+// existía en window, al editar un Estado Contable la sección de "archivos cargados" quedaba
+// siempre vacía/oculta (aunque el registro sí tuviera archivos) — no había forma de llegar al
+// botón de borrar. Se saca afuera para que sea global, igual que las otras 26 funciones
+// cargarArchivos*Lista del módulo.
+function cargarArchivosEstadoContableLista(id, target) {
+  var $m = $("#modalArchivosAsociados");
+  $m.data("EstadoContableId", id);
+  var $list = $(targetArchivosDoc("EstadoContable", target))
+    .empty()
+    .append('<div class="list-group-item">Cargando...</div>');
+
+  $.getJSON("/documentosContables/archivosEstadoContable/" + id)
+    .done(function (res) {
+      var files = Array.isArray(res)
+        ? res
+        : res.data || res.archivos || res.items || [];
+      $list.empty();
+      if (!files.length) {
+        $list.append(
+          '<div class="list-group-item">Sin archivos asociados.</div>'
+        );
+        return;
+      }
+      files.forEach(function (f) {
+        var fid = f.id || f.id_registro_archivo || f.id_archivo;
+        var nombre =
+          f.nombre ||
+          f.archivo ||
+          (f.path ? String(f.path).split("/").pop() : "archivo");
+        var href =
+          "/documentosContables/visualizarArchivo/EstadoContable/" +
+          encodeURIComponent(nombre);
+
+        var $row = $('<div class="list-group-item clearfix">');
+        var $a = $('<a target="_blank">')
+          .attr("href", href)
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
+        var $del = $(
+          '<button type="button" data-id="' +
+            fid +
+            '" data-reg-id="' +
+            id +
+            '" data-scope="EstadoContable"  class="btn btn-sm btn-danger btn-del-archivo-EstadoContable" title="Quitar">'
+        )
+          .attr("data-toggle", "tooltip")
+          .attr("data-placement", "bottom")
+          .attr("title", "ELIMINAR ARCHIVO")
+          .css("float", "right")
+          .append($("<i>").addClass("fa fa-trash"));
+
+        $row.append($a).append($del);
+        $list.append($row);
+      });
+    })
+    .fail(function () {
+      $list
+        .empty()
+        .append(
+          '<div class="list-group-item text-danger">Error al cargar archivos.</div>'
+        );
+    });
+}
+
 $(document).ready(function() {
   $('#dtpFechaEstadoContable').datetimepicker({
     language:  'es',
@@ -24250,65 +24333,6 @@ $(document).ready(function() {
       }
     });
   });
-  
-  function cargarArchivosEstadoContableLista(id, target) {
-    var $m = $("#modalArchivosAsociados");
-    $m.data("EstadoContableId", id);
-    var $list = $(targetArchivosDoc("EstadoContable", target))
-      .empty()
-      .append('<div class="list-group-item">Cargando...</div>');
-  
-    $.getJSON("/documentosContables/archivosEstadoContable/" + id)
-      .done(function (res) {
-        var files = Array.isArray(res)
-          ? res
-          : res.data || res.archivos || res.items || [];
-        $list.empty();
-        if (!files.length) {
-          $list.append(
-            '<div class="list-group-item">Sin archivos asociados.</div>'
-          );
-          return;
-        }
-        files.forEach(function (f) {
-          var fid = f.id || f.id_registro_archivo || f.id_archivo;
-          var nombre =
-            f.nombre ||
-            f.archivo ||
-            (f.path ? String(f.path).split("/").pop() : "archivo");
-          var href =
-            "/documentosContables/visualizarArchivo/EstadoContable/" +
-            encodeURIComponent(nombre);
-  
-          var $row = $('<div class="list-group-item clearfix">');
-          var $a = $('<a target="_blank">')
-            .attr("href", href)
-            .text(iconoExt(nombre) + " " + nombre);
-          var $del = $(
-            '<button type="button" data-id="' +
-              fid +
-              '" data-reg-id="' +
-              id +
-              '" data-scope="EstadoContable"  class="btn btn-sm btn-danger btn-del-archivo-EstadoContable" title="Quitar">'
-          )
-            .attr("data-toggle", "tooltip")
-            .attr("data-placement", "bottom")
-            .attr("title", "ELIMINAR ARCHIVO")
-            .css("float", "right")
-            .append($("<i>").addClass("fa fa-trash"));
-  
-          $row.append($a).append($del);
-          $list.append($row);
-        });
-      })
-      .fail(function () {
-        $list
-          .empty()
-          .append(
-            '<div class="list-group-item text-danger">Error al cargar archivos.</div>'
-          );
-      });
-  }
 
   $(document).on("click", ".btn-archivos-EstadoContable", function(e) {
     e.preventDefault();
@@ -25224,4 +25248,16 @@ $(document).on("click", ".btn-quitar-director", function () {
   var id = $(this).attr("data-dir");
   $('#zona-directores .fila-director[data-dir="' + id + '"]').remove();
   refrescarComboAgregarDirector();
+});
+
+// Al abrir el modal de confirmación de borrado, se guarda EL CONTENEDOR exacto donde estaba el
+// archivo. Después de borrar hay que refrescar esa misma lista, y no se puede deducir solo del
+// tipo: en el modal unificado cada sub-documento tiene su propia lista (#listaArchivos_U_*), pero
+// varios de esos tipos TAMBIÉN tienen su modal suelto (#listaArchivos_*), así que el destino por
+// tipo terminaba refrescando la lista equivocada y la del unificado quedaba desactualizada.
+// Va al final del archivo a propósito: los handlers delegados corren en orden de registro, así que
+// este se ejecuta después del handler propio de cada tipo (el que setea id/regId/scope).
+$(document).on("click", "[class*='btn-del-archivo-']", function () {
+  var id = $(this).closest(".list-group").attr("id");
+  $("#modalEliminarArchivo").data("contenedor", id ? "#" + id : null);
 });

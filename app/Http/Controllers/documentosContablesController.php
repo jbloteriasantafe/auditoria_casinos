@@ -130,13 +130,50 @@ class documentosContablesController extends Controller
     }
 
 
+    /**
+     * Carpeta de storage donde vive el archivo de un adjunto, según el documento al que pertenece.
+     *
+     * `registro_archivo.path` guarda SOLO el nombre del archivo (sin la subcarpeta), así que para
+     * ubicarlo en disco hay que reconstruir la carpeta a partir de `fileable_type`. Por defecto la
+     * carpeta es el nombre de la clase (App\RegistroTGI -> RegistroTGI); acá van solo las que no
+     * siguen esa regla.
+     */
+    private function carpetaArchivoRegistro($fileableType){
+        $excepciones = [
+            'RegistroIva'               => 'RegistroIVA',        // la carpeta va en mayúsculas
+            'RegistroGanancias_periodo' => 'RegistroGanancias',  // comparte carpeta con Ganancias
+        ];
+
+        $clase = ltrim((string)$fileableType, '\\');
+        $pos = strrpos($clase, '\\');
+        if($pos !== false) $clase = substr($clase, $pos + 1);
+
+        return isset($excepciones[$clase]) ? $excepciones[$clase] : $clase;
+    }
+
     public function eliminarArchivo(Request $request){
         $id = $request->query('id');
         if(!$id || !ctype_digit((string)$id)) return response()->json(['success'=>0],400);
 
         $ra = Registro_archivo::findOrFail($id);
-        $abs = storage_path('app/public/'.ltrim($ra->path,'/'));
-        if(file_exists($abs)) @unlink($abs);
+
+        // El archivo está en app/public/<CarpetaDelDocumento>/<nombre>. Antes se buscaba en
+        // app/public/<nombre> (sin la carpeta), así que file_exists() daba false SIEMPRE y el
+        // unlink no se ejecutaba nunca: se borraba la fila pero el archivo quedaba huérfano en
+        // disco. Se deja también el path viejo como fallback por si alguna fila lo tuviera con
+        // la carpeta incluida.
+        $nombre = ltrim($ra->path, '/');
+        $carpeta = $this->carpetaArchivoRegistro($ra->fileable_type);
+
+        $candidatos = [
+            storage_path('app/public/'.$carpeta.'/'.$nombre),
+            storage_path('app/public/'.$nombre),
+        ];
+
+        foreach($candidatos as $abs){
+            if(is_file($abs)){ @unlink($abs); break; }
+        }
+
         $ra->delete();
 
         return response()->json(['success'=>1]);
