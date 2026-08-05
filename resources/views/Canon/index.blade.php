@@ -671,18 +671,22 @@
 
 @endif
 
-@if($permisos('canon_permiso_ver') || $permisos('canon_permiso_cargar'))
+@if($permisos('canon_permiso_ver'))
 <div id="pant_permisos" hidden>
   @component('Components/FiltroTabla')
     @slot('titulo')
     <div>Permisos</div>
+    @if($permisos('canon_permiso_cargar'))
     <form id="pant_permisos_form" action="/canon/permiso/ingresar" method="POST" style="display: flex;">
       <input class="form-control" name="permiso" placeholder="nombre_permiso" style="flex: 1;">
+      <input class="form-control" name="user_name" placeholder="user_name" style="flex: 1;">
+      <input class="form-control" name="id_operador" placeholder="id_operador" style="flex: 1;">
       <div data-js-nuevo style="flex: 2;"></div>
       <div style="flex: 1;">
         <button class="btn" type="button" data-js-click-submit-form="#pant_permisos_form">GUARDAR</button>
       </div>
     </form>
+    @endif
     @endslot
     
     @slot('target_buscar')
@@ -690,25 +694,40 @@
     @endslot
     
     @slot('filtros')
+    <div class="col-md-4">
+      <h5>Permiso</h5>
+      <input class="form-control" name="permiso">
+    </div>
+    <div class="col-md-4">
+      <h5>Usuario</h5>
+      <input class="form-control" name="user_name">
+    </div>
+    <div class="col-md-4">
+      <h5>ID Operador</h5>
+      <input class="form-control" name="id_operador">
+    </div>
     @endslot
     
     @slot('cabecera')
     <tr>
       <th>PERMISO</th>
+      <th>USUARIO</th>
+      <th>ID OPERADOR</th>
       <th>ACCIÓN</th>
     </tr>
     @endslot
     
     @slot('molde')
-    <tr data-table-id="id_canon_permiso">
+    <tr data-table-id="id_canon_permiso_usuario">
       <td class="permiso">-PERMISO-</td>
+      <td class="user_name">-user_name-</td>
+      <td class="id_operador">-id_operador-</td>
       <td>
-        <button class="btn" type="button" data-js-click-abrir-modal-enlazar-permisos>
-          <i class="fa fa-fw fa-link"></i>
-        </button>
+        @if($permisos('canon_permiso_eliminar'))
         <button class="btn" type="button" data-js-borrar="/canon/permiso/borrar">
           <i class="fa fa-fw fa-trash-alt"></i>
         </button>
+        @endif
       </td>
     </tr>
     @endslot
@@ -2192,6 +2211,7 @@
 @if(
      $permisos('canon_cargar') || $permisos('canon_operador_cargar') || $permisos('canon_agrupamiento_cargar')
   || $permisos('canon_deseliminar') || $permisos('canon_operador_deseliminar') || $permisos('canon_agrupamiento_deseliminar')
+  || $permisos('canon_permiso_eliminar')
 )
 
 @component('Components/modalEliminar')

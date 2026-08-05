@@ -1725,9 +1725,11 @@ Route::group(['prefix' => 'canon', 'middleware' => "${CPermiso}:canon_ver"], fun
   });
   
   Route::group(['prefix' => 'permiso', 'middleware' => "${CPermiso}:canon_permiso_ver"] ,function() use ($CPermiso){
-    Route::post('/buscar', '\App\Http\Controllers\Canon\CanonPermisoController@buscar');
+    Route::post('/buscar', '\App\Http\Controllers\Canon\CanonPermisoController@buscar_con_usuario_operador');
     Route::group(['middleware' => "${CPermiso}:canon_permiso_cargar"] ,function() use ($CPermiso){
       Route::post('/ingresar', '\App\Http\Controllers\Canon\CanonPermisoController@ingresar');
+    });
+    Route::group(['middleware' => "${CPermiso}:canon_permiso_borrar"] ,function() use ($CPermiso){
       Route::delete('/borrar', '\App\Http\Controllers\Canon\CanonPermisoController@borrar');
     });
   });

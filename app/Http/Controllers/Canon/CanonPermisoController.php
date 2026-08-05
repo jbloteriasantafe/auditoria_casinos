@@ -53,6 +53,7 @@ class CanonPermisoController extends Controller
       deleted_by INT NULL,
       PRIMARY KEY (id_canon_permiso_usuario),
       UNIQUE KEY unq_canon_permiso_usuario (id_canon_permiso,id_usuario,id_operador,deleted_at),
+      CONSTRAINT `fk_canon_permiso_usuario_canon_permiso` FOREIGN KEY (`id_canon_permiso`) REFERENCES `canon_permiso` (`id_canon_permiso`),
       CONSTRAINT `fk_canon_permiso_usuario_id_usuario` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id_usuario`),
       CONSTRAINT `fk_canon_permiso_usuario_created_by` FOREIGN KEY (`created_by`) REFERENCES `usuario` (`id_usuario`),
       CONSTRAINT `fk_canon_permiso_usuario_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `usuario` (`id_usuario`)
@@ -302,25 +303,116 @@ class CanonPermisoController extends Controller
     }
   }
   
-  public function ingresar(){
-    if(empty(request()->permiso)){
-      return response()->json(['mensaje' => 'Permiso Vacio'],422);
+  public function buscar_con_usuario_operador($paginate = true){
+    if($this->mocking){
+      return [];
     }
+
+    $ret = DB::table('canon_permiso as cp')
+    ->select('cpu.id_canon_permiso_usuario','cp.descripcion as permiso','cpu.id_operador','u.user_name')
+    ->join('canon_permiso_usuario as cpu',function($j){
+      return $j->on('cp.id_canon_permiso','=','cpu.id_canon_permiso')
+      ->whereNull('cpu.deleted_at');
+    })
+    ->join('usuario as u',function($j){
+      return $j->on('u.id_usuario','=','cpu.id_usuario')
+      ->whereNull('u.deleted_at');
+    });
+    
+    $reglas = [];
+    if(isset(request()->permiso)){
+      $reglas[] = ['cp.descripcion','LIKE',request()->permiso.'%'];
+    }
+    if(isset(request()->user_name)){
+      $reglas[] = ['u.user_name','LIKE',request()->user_name.'%'];
+    }
+    if(isset(request()->id_operador)){
+      $reglas[] = ['cpu.id_operador','=',request()->id_operador];
+    }
+    
+    $ret = $ret->where($reglas);
+    
+    $totales = (clone $ret)->count();
+    
+    if($paginate) {
+      $page_size = request()->page_size ?? 10;
+      $page = request()->page ?? 1;
+            
+      return [
+        'current_page' => $page,
+        'data' => $ret->offset(($page-1) * $page_size)->limit($page_size)->get(),
+        'from' => (($page-1)*$page_size+1),
+        'to' => min($totales,$page*$page_size),
+        'last_page' => (intdiv($totales,$page_size)+1),
+        'next_page_url' => null,
+        'path' => null,
+        'prev_page_url' => null,
+        'per_page' => $page_size,
+        'total' => $totales
+      ];
+    }
+    else{
+      return $ret->get();
+    }
+  }
+  
+  public function ingresar(){
     if($this->mocking){
       return response()->json(['mensaje' => 'Mocking, realizar migración'],422);
     }
     
+    
+    if(empty(request()->permiso)){
+      return response()->json(['permiso' => ['Valor Vacio']],422);
+    }
+    if(empty(request()->user_name)){
+      return response()->json(['user_name' => ['Valor Vacio']],422);
+    }
+    if(empty(request()->id_operador)){
+      return response()->json(['id_operador' => ['Valor Vacio']],422);
+    }
+    
+    DB::beginTransaction();
     try{
-      DB::table('canon_permiso')
-      ->insert(['descripcion' => request()->permiso]);
+      $canon_permiso = DB::table('canon_permiso')
+      ->where('descripcion',request()->permiso)->first();
+      if($canon_permiso === null){
+        $id_canon_permiso = DB::table('canon_permiso')
+        ->insertGetId(['descripcion' => request()->permiso]);
+        $canon_permiso = DB::table('canon_permiso')
+        ->where('id_canon_permiso',$id_canon_permiso)->first();
+      }
+      
+      $user = DB::table('usuario')
+      ->where('user_name',request()->user_name)
+      ->whereNull('deleted_at')
+      ->first();
+      if($user === null){
+        throw new \Exception('Usuario inexistente');
+      }
+      
+      $created_at = date('Y-m-d h:i:s');
+      $created_by = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
+      
+      $ret = DB::table('canon_permiso_usuario')
+      ->insertGetId([
+        'id_canon_permiso' => $canon_permiso->id_canon_permiso,
+        'id_usuario' => $user->id_usuario,
+        'id_operador' => request()->id_operador,
+        'created_at' => $created_at,
+        'created_by' => $created_by
+      ]);
+      DB::commit();
+      return $ret;
     }
     catch(\Exception $e){
+      DB::rollBack();
       return response()->json(['mensaje' => $e->getMessage()],422);
     }
   }
   
   public function borrar(){
-    if(empty(request()->id_canon_permiso)){
+    if(empty(request()->id_canon_permiso_usuario)){
       return response()->json(['mensaje' => 'Permiso Vacio'],422);
     }
     if($this->mocking){
@@ -328,9 +420,17 @@ class CanonPermisoController extends Controller
     }
     
     try{
-      DB::table('canon_permiso')
-      ->where('id_canon_permiso',request()->id_canon_permiso)
-      ->delete();
+      $deleted_at = date('Y-m-d h:i:s');
+      $deleted_by = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
+      
+      DB::table('canon_permiso_usuario')
+      ->where('id_canon_permiso_usuario',request()->id_canon_permiso_usuario)
+      ->update([
+        'deleted_at' => $deleted_at,
+        'deleted_by' => $deleted_by
+      ]);
+      
+      return 1;
     }
     catch(\Exception $e){
       return response()->json(['mensaje' => $e->getMessage()],422);
